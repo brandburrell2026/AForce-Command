@@ -1,0 +1,27 @@
+kind = "mobile"
+previewPath = "/"
+title = "AForce OS"
+version = "1.0.0"
+id = "artifacts/aforce-os"
+router = "expo-domain"
+
+[[integratedSkills]]
+name = "expo"
+version = "1.0.0"
+
+[[services]]
+ensurePreviewReachable = "/status"
+name = "expo"
+paths = [ "/" ]
+localPort = 18265
+
+[services.development]
+run = "pnpm --filter @workspace/aforce-os run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/aforce-os", "run", "build" ]
+run = [ "pnpm", "--filter", "@workspace/aforce-os", "run", "serve" ]
+
+[services.env]
+PORT = "18265"
+BASE_PATH = "/"
