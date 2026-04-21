@@ -18,6 +18,7 @@ import { Feather } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
+import ViewShot from 'react-native-view-shot';
 
 import { Colors } from '@/theme/colors';
 import { useAppStore } from '@/store/useAppStore';
@@ -92,6 +93,9 @@ export const SharePreviewScreen: React.FC = () => {
   const [variantIdx, setVariantIdx] = React.useState(0);
   const [format, setFormat] = React.useState<ShareFormat>('card');
   const [sharing, setSharing] = React.useState(false);
+  // Wraps the visual preview so we can snapshot it as a PNG for image
+  // shares (Instagram, FB, Messages, etc.). Text format skips capture.
+  const previewRef = React.useRef<ViewShot>(null);
 
   // Reset variant index if context changes and the index is out of range.
   React.useEffect(() => {
@@ -113,9 +117,25 @@ export const SharePreviewScreen: React.FC = () => {
     if (!message || sharing) return;
     setSharing(true);
     if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
+
+    // Snapshot the visual preview for card/story formats so the share
+    // includes the actual image — required for Instagram, and a much
+    // better experience on every other network (richer post, no plain
+    // text). Text format keeps the original text-only path.
+    let imageUri: string | undefined;
+    if (format !== 'text' && previewRef.current?.capture) {
+      try {
+        imageUri = await previewRef.current.capture();
+      } catch {
+        // Capture failed — gracefully fall back to text-only share
+        imageUri = undefined;
+      }
+    }
+
+    const opts = { format, message, imageUri };
     const ok = platform === 'system'
-      ? await openShareSheet({ format, message })
-      : await shareToSocial(platform, { format, message });
+      ? await openShareSheet(opts)
+      : await shareToSocial(platform, opts);
     if (ok) {
       buildShareItem(format, message, ctx); // local record; server event TBD
       if (Platform.OS !== 'web') {
@@ -169,9 +189,21 @@ export const SharePreviewScreen: React.FC = () => {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.previewWrap}>
-          {format === 'card'  && <ShareCard  message={message} context={ctx} />}
-          {format === 'story' && <ShareStory message={message} context={ctx} />}
-          {format === 'text'  && <ShareText  message={message} />}
+          {/*
+            ViewShot wraps the live preview so we can snapshot it as a
+            PNG when the user taps share. options.result='tmpfile' yields
+            a file:// URI on native (consumable by expo-sharing) and a
+            data: URI on web (consumable by the Web Share API or download
+            fallback). Skipped at capture time when format === 'text'.
+          */}
+          <ViewShot
+            ref={previewRef}
+            options={{ format: 'png', quality: 0.95, result: 'tmpfile' }}
+          >
+            {format === 'card'  && <ShareCard  message={message} context={ctx} />}
+            {format === 'story' && <ShareStory message={message} context={ctx} />}
+            {format === 'text'  && <ShareText  message={message} />}
+          </ViewShot>
         </View>
 
         <View style={styles.section}>

@@ -19,6 +19,7 @@
  */
 
 import { Share, Platform, Linking } from 'react-native';
+import * as Sharing from 'expo-sharing';
 import type { ShareFormat, ShareItem } from '../types/share';
 import { composeTextShare } from './shareTemplateEngine';
 
@@ -42,16 +43,73 @@ export interface OpenShareOpts {
   message: string;
   /** Optional URL appended to the share — e.g. App Store link. */
   url?: string;
+  /**
+   * Optional captured image URI (file:// on native, blob:/data: on web).
+   * When present, image-capable share targets attach the image instead of
+   * (or in addition to) the text payload. Required for Instagram so the
+   * card/story actually appears in the user's post.
+   */
+  imageUri?: string;
 }
 
 type MaybeWebShare = {
-  share?: (d: ShareData) => Promise<void>;
+  share?: (d: ShareData & { files?: File[] }) => Promise<void>;
+  canShare?: (d: ShareData & { files?: File[] }) => boolean;
   clipboard?: { writeText?: (s: string) => Promise<void> };
 };
 
-async function webShare(text: string, url?: string): Promise<boolean> {
+/** Convert a captured image URI (data:/blob:/http:) to a File for Web Share. */
+async function uriToFile(uri: string, name = 'aforce-share.png'): Promise<File | undefined> {
+  try {
+    const res = await fetch(uri);
+    const blob = await res.blob();
+    return new File([blob], name, { type: blob.type || 'image/png' });
+  } catch {
+    return undefined;
+  }
+}
+
+/** Trigger a browser download as a last-resort image fallback on web. */
+function downloadOnWeb(uri: string, name = 'aforce-share.png'): boolean {
+  if (typeof document === 'undefined') return false;
+  try {
+    const a = document.createElement('a');
+    a.href = uri;
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function webShare(text: string, url?: string, imageUri?: string): Promise<boolean> {
   if (typeof navigator === 'undefined') return false;
   const nav = navigator as unknown as MaybeWebShare;
+
+  // Prefer image + text via Web Share API when the browser supports files.
+  if (imageUri && typeof nav.share === 'function') {
+    const file = await uriToFile(imageUri);
+    if (file) {
+      const payload: ShareData & { files?: File[] } = {
+        files: [file],
+        text,
+        ...(url ? { url } : {}),
+      };
+      const can = typeof nav.canShare === 'function' ? nav.canShare(payload) : true;
+      if (can) {
+        try {
+          await nav.share(payload);
+          return true;
+        } catch {
+          // fall through to text-only share / download
+        }
+      }
+    }
+  }
+
   if (typeof nav.share === 'function') {
     try {
       await nav.share({ text, ...(url ? { url } : {}) });
@@ -61,7 +119,8 @@ async function webShare(text: string, url?: string): Promise<boolean> {
       return false;
     }
   }
-  // Fallback: copy to clipboard so the user has something to paste.
+  // Final fallback: download the image (if any) + copy text to clipboard.
+  if (imageUri) downloadOnWeb(imageUri);
   if (nav.clipboard?.writeText) {
     try {
       await nav.clipboard.writeText(url ? `${text}\n${url}` : text);
@@ -70,13 +129,33 @@ async function webShare(text: string, url?: string): Promise<boolean> {
       return false;
     }
   }
-  return false;
+  return !!imageUri; // download counts as "something happened"
 }
 
 /** Returns true on success, false if the user cancelled or it failed silently. */
 export async function openShareSheet(opts: OpenShareOpts): Promise<boolean> {
   const text = composeTextShare(opts.message);
-  if (Platform.OS === 'web') return webShare(text, opts.url);
+  if (Platform.OS === 'web') return webShare(text, opts.url, opts.imageUri);
+
+  // Native: when an image was captured, use expo-sharing so the share
+  // sheet attaches the PNG (Instagram, Facebook, Messages, etc. all
+  // accept images). expo-sharing's native dialog shows every image-
+  // capable destination installed on the device.
+  if (opts.imageUri) {
+    try {
+      const available = await Sharing.isAvailableAsync();
+      if (available) {
+        await Sharing.shareAsync(opts.imageUri, {
+          mimeType: 'image/png',
+          dialogTitle: 'Share your result',
+          UTI: 'public.png',
+        });
+        return true;
+      }
+    } catch {
+      // fall through to text-only RN Share below
+    }
+  }
   try {
     const result = await Share.share(
       { message: opts.url ? `${text}\n${opts.url}` : text },
@@ -152,6 +231,11 @@ export async function shareToSocial(
   opts: OpenShareOpts,
 ): Promise<boolean> {
   const text = composeTextShare(opts.message);
+  // When the user is sharing an image (card/story format), bypass the
+  // text-only deep links — those networks accept images only through the
+  // OS share sheet. This is also the only way Instagram accepts our card.
+  if (opts.imageUri) return openShareSheet(opts);
+
   const url = buildSocialShareUrl(platform, text, opts.url);
   // Instagram + 'system' fall through to the OS share sheet (Web Share API
   // on web). For Instagram on a real device the share sheet exposes the

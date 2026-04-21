@@ -30,7 +30,7 @@ import { AICommandCard } from '@/components/AICommandCard';
 import { WaterCycleBar } from '@/components/WaterCycleBar';
 import { PhantomSignal } from '@/components/PhantomSignal';
 import { CycleSuccessOverlay } from '@/components/CycleSuccessOverlay';
-import { QuickIntakeBar } from '@/components/QuickIntakeBar';
+import { LogIntakeRow } from '@/components/LogIntakeRow';
 import { ScoreBreakdownSheet } from '@/components/ScoreBreakdownSheet';
 import { OnboardingOverlay } from '@/components/OnboardingOverlay';
 import { AIVideoPlayer } from '@/components/AIVideoPlayer';
@@ -338,7 +338,7 @@ export default function HomeScreen() {
           )}
 
           <View style={styles.spacer} />
-          <QuickIntakeBar accentColor={stateColor} />
+          <LogIntakeRow accentColor={stateColor} />
 
           <View style={styles.spacer} />
           <WaterCycleBar

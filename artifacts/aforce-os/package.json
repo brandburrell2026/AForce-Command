@@ -57,6 +57,8 @@
   },
   "dependencies": {
     "expo-camera": "~17.0.10",
-    "expo-speech": "~14.0.8"
+    "expo-sharing": "^55.0.18",
+    "expo-speech": "~14.0.8",
+    "react-native-view-shot": "^4.0.3"
   }
 }
