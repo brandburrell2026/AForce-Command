@@ -72,7 +72,7 @@ export const PRODUCT_FLAVORS = {
     stick: require('../assets/images/products/stick_berry.png'),
     can: require('../assets/images/products/can_berry_v2.png'),
     jar: require('../assets/images/products/jar_berry.png'),
-    bag: require('../assets/images/products/bag_berry.jpg'),
+    bag: require('../assets/images/products/bag_berry_v2.png'),
     bagAlt: require('../assets/images/products/bag_berry_alt.jpg'),
   },
   soursop: {

@@ -59,7 +59,7 @@ const FORMATS: ProductFormat[] = [
     title: 'AForce FIELD BAG',
     blurb: 'Team / program bulk format. 16 oz per serving.',
     artworkKey: 'bag',
-    flavors: ['soursop_edge_seamoss'],
+    flavors: ['berry_blast_dulse', 'soursop_edge_seamoss'],
   },
 ];
 
