@@ -148,10 +148,10 @@ const styles = StyleSheet.create({
   },
   commandText: {
     color: Colors.text.primary,
-    fontSize: 26,
-    lineHeight: 32,
+    fontSize: 21,
+    lineHeight: 27,
     fontWeight: '600',
-    letterSpacing: -0.5,
+    letterSpacing: -0.3,
   },
   recheckRow: {
     flexDirection: 'row',
