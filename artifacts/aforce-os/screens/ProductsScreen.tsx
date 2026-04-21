@@ -146,7 +146,9 @@ export default function ProductsScreen() {
             return (
               <View key={format.id} style={styles.formatCard}>
                 <View style={styles.formatHeader}>
-                  {img ? <Image source={img} style={styles.artwork} resizeMode="contain" /> : null}
+                  <View style={[styles.artworkSlot, { borderColor: `${variant.accent}55` }]}>
+                    {img ? <Image source={img} style={styles.artwork} resizeMode="contain" /> : null}
+                  </View>
                   <View style={styles.formatHeaderText}>
                     <Text style={styles.formatTitle}>{format.title}</Text>
                     <Text style={styles.formatBlurb}>{format.blurb}</Text>
@@ -250,7 +252,14 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: Colors.border.medium, backgroundColor: Colors.fill.light,
   },
   formatHeader: { flexDirection: 'row', gap: 14, alignItems: 'center', marginBottom: 14 },
-  artwork: { width: 70, height: 96, borderRadius: 8 },
+  artworkSlot: {
+    width: 78, height: 100, borderRadius: 10,
+    alignItems: 'center', justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.04)',
+    borderWidth: 1, borderColor: Colors.border.medium,
+    overflow: 'hidden',
+  },
+  artwork: { width: 64, height: 92 },
   formatHeaderText: { flex: 1 },
   formatTitle: { fontSize: 16, fontWeight: '700', color: Colors.text.primary },
   formatBlurb: { fontSize: 12, color: Colors.text.secondary, marginTop: 4, lineHeight: 17 },

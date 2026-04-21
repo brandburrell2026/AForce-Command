@@ -129,12 +129,66 @@ function whyItFits(p: CompareProduct, inputs: CompareInputs, axes: CompareResult
 }
 
 // ─── Command builder ─────────────────────────────────────────────────────────
+/**
+ * Compose a situational AI command. Voice is direct and operational, but
+ * varies by urgency, heat load, and time-since-last-intake so it doesn't read
+ * like a single boilerplate over repeated views. Templates remain symmetric
+ * across brands — verdict and physiology drive tone, not marketing.
+ */
 function buildCommand(winner: CompareResult, inputs: CompareInputs): CompareCommand {
   const p = winner.product;
   const urgent = inputs.protocol === 'depletion_correction' || inputs.score < 40;
-  // Symmetric phrasing — same template regardless of brand. Verdict drives tone.
-  const verb = winner.verdict === 'optimal' ? 'is optimal' : 'is the best fit';
-  const action = `${p.name} ${verb}. Take 1 serving now with 16 oz water. Recheck in 20 minutes.`;
+  const hot = inputs.heatLoad >= 0.6;
+  const sweaty = inputs.sweatRate >= 0.6;
+  const stale = (inputs.hoursSinceLastIntake ?? 0) >= 2;
+
+  // Pick a template bucket from physiology — not random — so the same state
+  // produces the same advice across renders within a cycle.
+  const buckets = {
+    critical: [
+      `${p.name} now. 16 oz water. You're depleted — recheck in 15 min.`,
+      `Hit ${p.name} immediately with 16 oz water. Reassess in 15 min.`,
+      `${p.name} is critical right now. Take 1 serving with 16 oz. 15 min recheck.`,
+    ],
+    heat: [
+      `${p.name} now. 16 oz water. Heat load is high — pace through the next 20 min.`,
+      `${p.name} + 20 oz water. You're carrying heat. Recheck in 20 min.`,
+    ],
+    sweat: [
+      `${p.name} + 20 oz water. Sweat rate elevated — stay ahead of the loss.`,
+      `Take 1 ${p.name} now with 20 oz. Replace what you're moving out.`,
+    ],
+    stale: [
+      `It's been a stretch — 1 ${p.name} with 16 oz water. Recheck in 20 min.`,
+      `${p.name} now. 16 oz water. Reset the cycle.`,
+    ],
+    optimal: [
+      `${p.name} is optimal. 1 serving with 16 oz water. Recheck in 20 min.`,
+      `Lock it in: ${p.name} + 16 oz water. Hold this curve for 20 min.`,
+    ],
+    default: [
+      `${p.name} is the best fit. Take 1 serving with 16 oz water. Recheck in 20 min.`,
+      `Go with ${p.name}: 1 serving + 16 oz water. Reassess in 20 min.`,
+    ],
+  } as const;
+
+  const list =
+    urgent ? buckets.critical
+    : hot ? buckets.heat
+    : sweaty ? buckets.sweat
+    : stale ? buckets.stale
+    : winner.verdict === 'optimal' ? buckets.optimal
+    : buckets.default;
+
+  // Stable "rotation" within the bucket — derived from inputs, not Math.random,
+  // so the same state always picks the same line until the state changes.
+  const seed =
+    Math.round(inputs.score) +
+    Math.round(inputs.heatLoad * 10) * 7 +
+    Math.round(inputs.sweatRate * 10) * 13 +
+    (inputs.symptomCount ?? 0) * 17;
+  const action = list[seed % list.length];
+
   return {
     action,
     explanation: winner.whyItFits,

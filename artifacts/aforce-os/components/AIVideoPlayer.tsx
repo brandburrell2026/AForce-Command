@@ -108,7 +108,7 @@ function WaterStreamScene({ accent, glow }: { accent: string; glow: string }) {
 }
 
 // ─── Scene: BreathRing ───────────────────────────────────────────────────────
-function BreathRingScene({ accent }: { accent: string; glow: string }) {
+function BreathRingScene({ accent, glow: _glow }: { accent: string; glow: string }) {
   const breath = useSharedValue(0);
   React.useEffect(() => {
     // 4 in · 2 hold · 6 out
@@ -141,7 +141,7 @@ function BreathRingScene({ accent }: { accent: string; glow: string }) {
 }
 
 // ─── Scene: PulseBuild ───────────────────────────────────────────────────────
-function PulseBuildScene({ accent }: { accent: string; glow: string }) {
+function PulseBuildScene({ accent, glow: _glow }: { accent: string; glow: string }) {
   const bar1 = useSharedValue(0);
   const bar2 = useSharedValue(0);
   const bar3 = useSharedValue(0);
@@ -215,7 +215,7 @@ function RedAlertScene({ accent }: { accent: string; glow: string }) {
 }
 
 // ─── Scene: SunriseSweep ─────────────────────────────────────────────────────
-function SunriseSweepScene({ accent }: { accent: string; glow: string }) {
+function SunriseSweepScene({ accent, glow }: { accent: string; glow: string }) {
   const sun = useSharedValue(0);
   React.useEffect(() => {
     sun.value = withRepeat(
