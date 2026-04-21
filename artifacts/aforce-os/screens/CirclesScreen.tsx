@@ -71,10 +71,14 @@ export const CirclesScreen: React.FC = () => {
         </Pressable>
       </View>
 
-      <ScrollView
-        horizontal showsHorizontalScrollIndicator={false}
-        style={styles.tabs} contentContainerStyle={styles.tabsContent}
-      >
+      {/*
+        Group filter row — five short labels distributed evenly across the
+        full screen width. We deliberately do NOT use a horizontal ScrollView
+        here: with a fixed, small number of options, scrolling caused both
+        edges to clip and made the active tab look truncated. A flex row
+        keeps every label fully visible on every screen size.
+      */}
+      <View style={styles.tabs}>
         {GROUPS.map(g => {
           const active = group === g.id;
           return (
@@ -87,11 +91,18 @@ export const CirclesScreen: React.FC = () => {
               style={[styles.tab, active && styles.tabActive]}
               accessibilityState={{ selected: active }}
             >
-              <Text style={[styles.tabText, active && styles.tabTextActive]}>{g.label}</Text>
+              <Text
+                style={[styles.tabText, active && styles.tabTextActive]}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.85}
+              >
+                {g.label}
+              </Text>
             </Pressable>
           );
         })}
-      </ScrollView>
+      </View>
 
       <ScrollView
         contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 32 }]}
@@ -163,14 +174,31 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: Colors.border.medium, backgroundColor: Colors.fill.medium,
   },
   sharedBtnText: { color: Colors.text.primary, fontSize: 10, letterSpacing: 2, fontWeight: '700' },
-  tabs: { flexGrow: 0 },
-  tabsContent: { paddingHorizontal: 20, gap: 6, paddingVertical: 8 },
+  tabs: {
+    flexDirection: 'row',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    gap: 6,
+  },
   tab: {
-    paddingHorizontal: 14, paddingVertical: 8, borderRadius: 100,
-    borderWidth: 1, borderColor: Colors.border.medium, backgroundColor: Colors.fill.light,
+    flex: 1,
+    paddingHorizontal: 4,
+    paddingVertical: 8,
+    borderRadius: 100,
+    borderWidth: 1,
+    borderColor: Colors.border.medium,
+    backgroundColor: Colors.fill.light,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   tabActive: { backgroundColor: Colors.text.primary, borderColor: Colors.text.primary },
-  tabText: { color: Colors.text.primary, fontSize: 11, letterSpacing: 2, fontWeight: '600' },
+  tabText: {
+    color: Colors.text.primary,
+    fontSize: 10,
+    letterSpacing: 0.4,
+    fontWeight: '700',
+    textAlign: 'center',
+  },
   tabTextActive: { color: Colors.text.inverse },
   content: { paddingHorizontal: 20, paddingTop: 8, gap: 24 },
   section: { gap: 12 },
