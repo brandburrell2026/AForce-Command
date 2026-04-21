@@ -35,6 +35,7 @@ import { PRODUCT_FLAVORS } from "@/data/products";
 import { FLAVOR_VARIANTS, flavorForState } from "@/data/flavors";
 import { useCart } from "@/store/useCartStore";
 import { useAppStore } from "@/store/useAppStore";
+import { useResponsiveLayout } from "@/hooks/useResponsiveLayout";
 
 // FIELD BAG / bulk bag is intentionally not offered in the store right now.
 const FORMAT_ORDER: { id: StoreFormatId; label: string; artwork: "stick" | "can" | "jar" | "bag" }[] = [
@@ -57,6 +58,7 @@ function flavorImage(sku: StoreSKU, artwork: "stick" | "can" | "jar" | "bag"): u
 export default function StoreScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const layout = useResponsiveLayout();
   const { add, itemCount, subtotalCents } = useCart();
   const { state } = useAppStore();
   const userLevel = state.engineOutput.performanceState.level;
@@ -84,7 +86,13 @@ export default function StoreScreen() {
           style={styles.scroll}
           contentContainerStyle={[
             styles.content,
-            { paddingTop: topPadding + 8, paddingBottom: bottomPadding },
+            {
+              paddingTop: topPadding + 8,
+              paddingBottom: bottomPadding,
+              ...(layout.isWide
+                ? { maxWidth: layout.contentMaxWidth, alignSelf: 'center', width: '100%' }
+                : null),
+            },
           ]}
           showsVerticalScrollIndicator={false}
         >

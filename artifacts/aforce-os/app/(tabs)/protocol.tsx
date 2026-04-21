@@ -14,12 +14,14 @@ import { Colors, getStateColors } from '@/theme/colors';
 import { formatTimeAgo } from '@/data/mockData';
 import type { HistoryEntry } from '@/types';
 import { fetchProtocol, ProtocolPayload } from '@/services/mockApi';
+import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 
 export default function ProtocolScreen() {
   const { state } = useAppStore();
   const { history, engineOutput, userState } = state;
   const insets = useSafeAreaInsets();
   const [protocol, setProtocol] = useState<ProtocolPayload | null>(null);
+  const layout = useResponsiveLayout();
 
   useEffect(() => {
     let active = true;
@@ -37,7 +39,16 @@ export default function ProtocolScreen() {
         <FlatList<HistoryEntry>
           data={history}
           keyExtractor={(item) => item.id}
-          contentContainerStyle={[styles.content, { paddingTop: topPadding + 8, paddingBottom: bottomPadding + 16 }]}
+          contentContainerStyle={[
+            styles.content,
+            {
+              paddingTop: topPadding + 8,
+              paddingBottom: bottomPadding + 16,
+              ...(layout.isWide
+                ? { maxWidth: layout.contentMaxWidth, alignSelf: 'center', width: '100%' }
+                : null),
+            },
+          ]}
           showsVerticalScrollIndicator={false}
           ListHeaderComponent={
             <View style={styles.header}>

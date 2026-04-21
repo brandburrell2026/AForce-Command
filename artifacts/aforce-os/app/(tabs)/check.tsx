@@ -20,12 +20,14 @@ import { Colors } from '@/theme/colors';
 import { useAppStore } from '@/store/useAppStore';
 import { SYMPTOM_CATALOG, HYDRATION_SIGNAL_SCALE, ENERGY_STATE_OPTIONS } from '@/data/mockData';
 import type { UserState } from '@/types';
+import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 
 export default function CheckScreen() {
   const { state, updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus } = useAppStore();
   const { userState, engineOutput } = state;
   const insets = useSafeAreaInsets();
   const stateColor = engineOutput.performanceState.color;
+  const layout = useResponsiveLayout();
 
   const [symptoms, setSymptoms] = useState<string[]>(userState.symptoms);
   const [urine, setUrine] = useState<number>(userState.urineSignal);
@@ -59,7 +61,18 @@ export default function CheckScreen() {
     <View style={styles.root}>
       <GradientBackground>
         <ScrollView
-          contentContainerStyle={[styles.content, { paddingTop: topPadding + 8, paddingBottom: bottomPadding + 24 }]}
+          contentContainerStyle={[
+            styles.content,
+            {
+              paddingTop: topPadding + 8,
+              paddingBottom: bottomPadding + 24,
+              // Cap content column on Fold-open / tablet so the
+              // signal cards don't stretch edge-to-edge.
+              ...(layout.isWide
+                ? { maxWidth: layout.contentMaxWidth, alignSelf: 'center', width: '100%' }
+                : null),
+            },
+          ]}
           showsVerticalScrollIndicator={false}
         >
           <Text style={styles.eyebrow}>CHECK</Text>

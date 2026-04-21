@@ -18,6 +18,7 @@ import { mockUserProfile } from '@/data/mockData';
 import { useAppStore } from '@/store/useAppStore';
 import { DEFAULT_FLAGS, DEMO_ALL_ON_FLAGS } from '@/featureFlags/flags';
 import type { FeatureFlags } from '@/types';
+import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 
 const TIER_LABELS: Record<string, { label: string; desc: string; color: string }> = {
   core:           { label: 'AForce Core',           desc: 'Start your performance system.',                      color: Colors.states.BALANCED.primary },
@@ -39,6 +40,7 @@ export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const { state, setFeatureFlags } = useAppStore();
   const [remindersEnabled, setRemindersEnabled] = useState(mockUserProfile.remindersEnabled);
+  const layout = useResponsiveLayout();
 
   const topPadding = Platform.OS === 'web' ? 67 : insets.top;
   const bottomPadding = Platform.OS === 'web' ? 34 + 84 : insets.bottom + 84;
@@ -55,7 +57,16 @@ export default function ProfileScreen() {
     <View style={styles.root}>
       <GradientBackground>
         <ScrollView
-          contentContainerStyle={[styles.content, { paddingTop: topPadding + 8, paddingBottom: bottomPadding + 24 }]}
+          contentContainerStyle={[
+            styles.content,
+            {
+              paddingTop: topPadding + 8,
+              paddingBottom: bottomPadding + 24,
+              ...(layout.isWide
+                ? { maxWidth: layout.contentMaxWidth, alignSelf: 'center', width: '100%' }
+                : null),
+            },
+          ]}
           showsVerticalScrollIndicator={false}
         >
           <Text style={styles.eyebrow}>PROFILE</Text>
