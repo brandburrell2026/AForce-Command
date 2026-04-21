@@ -31,6 +31,7 @@ import { WaterCycleBar } from '@/components/WaterCycleBar';
 import { PhantomSignal } from '@/components/PhantomSignal';
 import { CycleSuccessOverlay } from '@/components/CycleSuccessOverlay';
 import { LogIntakeRow } from '@/components/LogIntakeRow';
+import { FlavorPickerModal, type FlavorChoice } from '@/components/FlavorPickerModal';
 import { ScoreBreakdownSheet } from '@/components/ScoreBreakdownSheet';
 import { OnboardingOverlay } from '@/components/OnboardingOverlay';
 import { AIVideoPlayer } from '@/components/AIVideoPlayer';
@@ -53,7 +54,8 @@ import { Feather } from '@expo/vector-icons';
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { state, completeCycle, snooze, dismissSuccess, completeOnboarding } = useAppStore();
+  const { state, logIntake, snooze, dismissSuccess, completeOnboarding } = useAppStore();
+  const [ctaFlavorOpen, setCtaFlavorOpen] = React.useState(false);
   const {
     engineOutput, userState, showCycleSuccess, lastCycleResult,
     isCompletingCycle, timerSeconds, lastIntakeBurstAt, hasSeenOnboarding,
@@ -180,8 +182,17 @@ export default function HomeScreen() {
 
   const handleComplete = () => {
     if (isCompletingCycle) return;
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-    completeCycle();
+    // The primary CTA defaults to logging an AForce stick — but the
+    // user may have taken any of the three flavors, so open the picker
+    // first instead of silently logging an unflavored stick.
+    Haptics.selectionAsync().catch(() => {});
+    setCtaFlavorOpen(true);
+  };
+
+  const handleCtaFlavor = (flavor: FlavorChoice | null) => {
+    setCtaFlavorOpen(false);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy).catch(() => {});
+    logIntake('aforce_stick', flavor ? { flavorLabel: flavor.label } : undefined);
   };
 
   const handleSnooze = () => {
@@ -298,6 +309,13 @@ export default function HomeScreen() {
 
           <RiskTimerDisplay timerSeconds={timerSeconds} performanceState={performanceState} />
           <View style={styles.spacerLg} />
+
+          <FlavorPickerModal
+            visible={ctaFlavorOpen}
+            format="stick"
+            onCancel={() => setCtaFlavorOpen(false)}
+            onConfirm={handleCtaFlavor}
+          />
 
           <TouchableOpacity
             style={[
