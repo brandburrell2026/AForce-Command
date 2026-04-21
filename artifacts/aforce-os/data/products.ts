@@ -21,7 +21,7 @@ export const PRODUCTS: Record<FluidType, ProductType> = {
     ozPerServing: 18,
     hydrationImpact: 12,
     description: 'Mix with 16–20 oz water. Fastest electrolyte recovery.',
-    image: require('../assets/images/products/stick_watermelon.jpg'),
+    image: require('../assets/images/products/stick_watermelon.png'),
     flavor: 'watermelon',
   },
   aforce_rtd: {
@@ -60,7 +60,7 @@ export const PRODUCT_FLAVORS = {
   watermelon: {
     label: 'Watermelon Surge + Chlorella',
     accent: '#FF2D55',
-    stick: require('../assets/images/products/stick_watermelon.jpg'),
+    stick: require('../assets/images/products/stick_watermelon.png'),
     can: require('../assets/images/products/can_watermelon_v2.png'),
     jar: require('../assets/images/products/jar_watermelon.png'),
     bag: require('../assets/images/products/bag_watermelon.jpg'),
@@ -69,7 +69,7 @@ export const PRODUCT_FLAVORS = {
   berry: {
     label: 'Berry Blast + Dulse',
     accent: '#8B5CF6',
-    stick: require('../assets/images/products/stick_berry.jpg'),
+    stick: require('../assets/images/products/stick_berry.png'),
     can: require('../assets/images/products/can_berry_v2.png'),
     jar: require('../assets/images/products/jar_berry.png'),
     bag: require('../assets/images/products/bag_berry.jpg'),
@@ -78,7 +78,7 @@ export const PRODUCT_FLAVORS = {
   soursop: {
     label: 'Soursop Edge + Seamoss',
     accent: '#B4FF50',
-    stick: require('../assets/images/products/stick_soursop.jpg'),
+    stick: require('../assets/images/products/stick_soursop.png'),
     can: require('../assets/images/products/can_soursop_v2.png'),
     jar: require('../assets/images/products/jar_soursop.png'),
     bag: require('../assets/images/products/bag_soursop.jpg'),
