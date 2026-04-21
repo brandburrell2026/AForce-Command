@@ -17,6 +17,7 @@ import * as Haptics from 'expo-haptics';
 import { Feather } from '@expo/vector-icons';
 
 import { GradientBackground } from '@/components/GradientBackground';
+import { ZoomableProductImage } from '@/components/ZoomableProductImage';
 import { Colors } from '@/theme/colors';
 import { PRODUCTS, PRODUCT_FLAVORS } from '@/data/products';
 import { FLAVOR_VARIANTS, flavorForState, type FlavorVariant } from '@/data/flavors';
@@ -141,7 +142,18 @@ export default function ProductsScreen() {
               <View key={format.id} style={styles.formatCard}>
                 <View style={styles.formatHeader}>
                   <View style={[styles.artworkSlot, { borderColor: `${variant.accent}55` }]}>
-                    {img ? <Image source={img} style={styles.artwork} resizeMode="contain" /> : null}
+                    {img ? (
+                      <ZoomableProductImage
+                        source={img}
+                        style={styles.artwork}
+                        containerStyle={{ width: '100%', height: '100%' }}
+                        resizeMode="contain"
+                        accent={variant.accent}
+                        caption={`${format.title} · ${variant.name}`}
+                        accessibilityLabel={`Zoom in on ${format.title} ${variant.name}`}
+                        testID={`product-zoom-${format.id}-${variant.id}`}
+                      />
+                    ) : null}
                   </View>
                   <View style={styles.formatHeaderText}>
                     <Text style={styles.formatTitle}>{format.title}</Text>

@@ -22,6 +22,7 @@ import * as Haptics from "expo-haptics";
 import { Feather } from "@expo/vector-icons";
 
 import { GradientBackground } from "@/components/GradientBackground";
+import { ZoomableProductImage } from "@/components/ZoomableProductImage";
 import { Colors } from "@/theme/colors";
 import {
   STORE_SKUS,
@@ -143,7 +144,16 @@ export default function StoreScreen() {
                     <View key={sku.id} style={styles.skuCard}>
                       <View style={[styles.skuArtwork, { borderColor: `${accent}55` }]}>
                         {img ? (
-                          <Image source={img as number} style={styles.skuImg} resizeMode="contain" />
+                          <ZoomableProductImage
+                            source={img as number}
+                            style={styles.skuImg}
+                            containerStyle={{ width: '100%', height: '100%' }}
+                            resizeMode="contain"
+                            accent={accent}
+                            caption={sku.title}
+                            accessibilityLabel={`Zoom in on ${sku.title}`}
+                            testID={`store-zoom-${sku.id}`}
+                          />
                         ) : null}
                       </View>
                       <View style={styles.skuBody}>

@@ -28,6 +28,7 @@ import * as Linking from "expo-linking";
 import { Feather } from "@expo/vector-icons";
 
 import { GradientBackground } from "@/components/GradientBackground";
+import { ZoomableProductImage } from "@/components/ZoomableProductImage";
 import { Colors } from "@/theme/colors";
 import { formatPrice } from "@/data/pricing";
 import { PRODUCT_FLAVORS } from "@/data/products";
@@ -183,7 +184,16 @@ export default function CartScreen() {
                 return (
                   <View key={line.skuId} style={styles.lineCard}>
                     <View style={[styles.lineArtwork, { borderColor: `${accent}55` }]}>
-                      <Image source={img} style={styles.lineImg} resizeMode="contain" />
+                      <ZoomableProductImage
+                        source={img}
+                        style={styles.lineImg}
+                        containerStyle={{ width: '100%', height: '100%' }}
+                        resizeMode="contain"
+                        accent={accent}
+                        caption={line.sku.title}
+                        accessibilityLabel={`Zoom in on ${line.sku.title}`}
+                        testID={`cart-zoom-${line.skuId}`}
+                      />
                     </View>
                     <View style={styles.lineBody}>
                       <Text style={styles.lineTitle} numberOfLines={2}>{line.sku.title}</Text>
