@@ -221,7 +221,7 @@ export default function HydrationScanScreen() {
               <Text style={styles.trayHeaderText}>SIMULATE SCAN</Text>
             </View>
             <View style={styles.trayChips}>
-              {simulatable.slice(0, 6).map((it) => (
+              {simulatable.slice(0, 7).map((it) => (
                 <Pressable
                   key={it.code}
                   onPress={() => runScan({ kind: 'barcode', rawValue: it.code })}
