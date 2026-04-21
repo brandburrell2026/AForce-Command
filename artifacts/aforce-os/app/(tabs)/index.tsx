@@ -218,10 +218,12 @@ export default function HomeScreen() {
               into the Heat Risk screen for the full breakdown. */}
           <ClimateLine onPress={() => router.push('/heat')} />
 
-          {/* Header — minimal: brand + state pill, share lives in More tray */}
+          {/* Header — eyebrow + bold brand title (restored to its previous
+              prominence) + the live performance-state pill on the right. */}
           <View style={styles.headerRow}>
             <View style={{ flex: 1 }}>
-              <Text style={styles.eyebrow}>AFORCE OS</Text>
+              <Text style={styles.eyebrow}>HYDRATION CONTROL CENTER</Text>
+              <Text style={styles.title}>AForce OS</Text>
             </View>
             <View style={[styles.statePill, { borderColor: `${stateColor}55`, backgroundColor: `${stateColor}14` }]}>
               <View style={[styles.dot, { backgroundColor: stateColor }]} />
