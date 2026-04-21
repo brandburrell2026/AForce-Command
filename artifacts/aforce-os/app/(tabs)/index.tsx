@@ -32,6 +32,7 @@ import { PhantomSignal } from '@/components/PhantomSignal';
 import { CycleSuccessOverlay } from '@/components/CycleSuccessOverlay';
 import { LogIntakeRow } from '@/components/LogIntakeRow';
 import { FlavorPickerModal, type FlavorChoice } from '@/components/FlavorPickerModal';
+import { LocalTimeBar } from '@/components/LocalTimeBar';
 import { ScoreBreakdownSheet } from '@/components/ScoreBreakdownSheet';
 import { OnboardingOverlay } from '@/components/OnboardingOverlay';
 import { AIVideoPlayer } from '@/components/AIVideoPlayer';
@@ -214,6 +215,8 @@ export default function HomeScreen() {
           contentContainerStyle={[styles.content, { paddingTop: topPadding + 8, paddingBottom: bottomPadding + 24 }]}
           showsVerticalScrollIndicator={false}
         >
+          <LocalTimeBar />
+
           {heatScore.band !== 'STABLE' && (
             <View style={{ marginBottom: 12 }} testID="heat-alert-banner">
               <HeatAlertBanner score={heatScore.score} band={heatScore.band} />
