@@ -15,12 +15,14 @@
     },
     "ios": {
       "supportsTablet": false,
+      "bundleIdentifier": "com.aforce.os",
       "infoPlist": {
         "NSCameraUsageDescription": "AForce OS uses your camera to scan hydration product barcodes."
       }
     },
     "android": {
       "backgroundColor": "#050A1A",
+      "package": "com.aforce.os",
       "permissions": ["android.permission.CAMERA"]
     },
     "web": {
