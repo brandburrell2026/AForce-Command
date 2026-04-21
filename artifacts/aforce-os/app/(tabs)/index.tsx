@@ -36,7 +36,9 @@ import { OnboardingOverlay } from '@/components/OnboardingOverlay';
 import { AIVideoPlayer } from '@/components/AIVideoPlayer';
 import { VoiceButton } from '@/components/VoiceButton';
 import { VoiceOverlay } from '@/components/VoiceOverlay';
+import { PhantomBandCard } from '@/components/PhantomBandCard';
 import type { VoiceState } from '@/types/voice';
+import { phantomBandService } from '@/services/phantomBandService';
 
 import { useAppStore } from '@/store/useAppStore';
 import { matchVideo } from '@/services/videoEngine';
@@ -55,12 +57,29 @@ export default function HomeScreen() {
   const { performanceState, score, reasons, command, pulseConfig, breakdown } = engineOutput;
   const [breakdownOpen, setBreakdownOpen] = React.useState(false);
   const [voiceOpen, setVoiceOpen] = React.useState(false);
+  const [voiceAutoStart, setVoiceAutoStart] = React.useState(false);
   // Mirror the overlay's lifecycle on the floating button so its visual
   // state matches what's happening inside the sheet (idle vs listening).
   const [voiceBtnState, setVoiceBtnState] = React.useState<VoiceState>('idle');
   React.useEffect(() => {
     setVoiceBtnState(voiceOpen ? 'listening' : 'idle');
   }, [voiceOpen]);
+
+  // Mirror current performance level into the Phantom Band so the LED matches
+  // app state. Runs whenever the engine emits a new level.
+  React.useEffect(() => {
+    phantomBandService.mirrorPerformance(performanceState.level);
+  }, [performanceState.level]);
+
+  // Listen for band-initiated voice triggers (double-tap / press-and-hold).
+  // Band only triggers — all STT + intent + AI runs on the phone.
+  React.useEffect(() => {
+    return phantomBandService.on('voice_trigger', () => {
+      // Per spec: band double-tap → app immediately begins listening.
+      setVoiceAutoStart(true);
+      setVoiceOpen(true);
+    });
+  }, []);
 
   // Derive a quick Heat Guard read from current user state. The banner only
   // surfaces when band !== STABLE so we never nag the user for no reason.
@@ -290,6 +309,9 @@ export default function HomeScreen() {
 
           <View style={styles.spacer} />
           <PhantomSignal />
+
+          <View style={styles.spacer} />
+          <PhantomBandCard />
         </ScrollView>
 
         {showCycleSuccess && lastCycleResult && (
@@ -314,10 +336,17 @@ export default function HomeScreen() {
           pointerEvents="box-none"
           style={[styles.voiceFab, { bottom: bottomPadding - 56 }]}
         >
-          <VoiceButton state={voiceBtnState} onPress={() => setVoiceOpen(true)} />
+          <VoiceButton
+            state={voiceBtnState}
+            onPress={() => { setVoiceAutoStart(false); setVoiceOpen(true); }}
+          />
         </View>
 
-        <VoiceOverlay visible={voiceOpen} onClose={() => setVoiceOpen(false)} />
+        <VoiceOverlay
+          visible={voiceOpen}
+          autoStart={voiceAutoStart}
+          onClose={() => { setVoiceOpen(false); setVoiceAutoStart(false); }}
+        />
       </GradientBackground>
     </View>
   );

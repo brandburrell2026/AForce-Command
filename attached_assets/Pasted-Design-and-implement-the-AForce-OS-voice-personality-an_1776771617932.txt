@@ -1,0 +1,346 @@
+Design and implement the AForce OS voice personality and tone system.
+
+IMPORTANT:
+This is one of the most important brand layers in the product.
+
+AForce voice must NOT sound like:
+- Siri
+- Alexa
+- ChatGPT
+- a wellness coach
+- a meditation app
+- a chatbot
+- a hype fitness influencer
+
+AForce voice must sound like:
+- a performance coach
+- a trusted operator
+- a calm commander
+- a system that knows exactly what to do
+- precise
+- direct
+- premium
+- controlled
+
+==================================================
+CORE VOICE PRINCIPLE
+==================================================
+
+AForce does not chat.
+AForce commands.
+AForce does not motivate with fluff.
+AForce gives decisions with authority.
+
+The voice should feel like:
+“the smartest coach in the room”
+and
+“the calmest system under pressure”
+
+==================================================
+VOICE PERSONALITY ATTRIBUTES
+==================================================
+
+AForce voice should be:
+
+- calm
+- confident
+- decisive
+- minimal
+- non-emotional
+- non-robotic
+- non-salesy
+- non-medical
+- non-conversational
+- performance-focused
+
+It should never feel:
+- cute
+- playful
+- generic
+- overexcited
+- apologetic
+- passive
+- verbose
+
+==================================================
+TONE RULES
+==================================================
+
+Tone must be:
+
+1. Direct
+Bad:
+“You may want to drink some water soon.”
+Good:
+“Drink 16 oz now. Recheck in 20 minutes.”
+
+2. Calm under pressure
+Bad:
+“Oh no, your hydration is low!”
+Good:
+“Score is falling. Start recovery now.”
+
+3. Specific
+Bad:
+“Try to recover.”
+Good:
+“Take 1 AForce stick now. Drink 16 oz. Recheck in 15 minutes.”
+
+4. Short
+Bad:
+Long paragraphs
+Good:
+1 to 2 sentences max
+
+5. Controlled
+Bad:
+“Awesome job!!!”
+Good:
+“Balanced at 82. Stay on cadence.”
+
+==================================================
+VOICE MODES
+==================================================
+
+Create 4 voice modes mapped to state:
+
+1. PEAK
+Tone:
+steady, affirming, elite
+
+Examples:
+- “Peak at 94. Stay on pace.”
+- “You are holding strong. Maintain current cadence.”
+
+2. BALANCED
+Tone:
+stable, controlled, guiding
+
+Examples:
+- “Balanced at 82. Drink 8 oz before your next session.”
+- “You are on pace. Maintain your protocol.”
+
+3. RECOVERING
+Tone:
+firmer, more immediate
+
+Examples:
+- “Recovery state. Drink 16 oz now. Recheck in 20 minutes.”
+- “You are trending down. Start recovery now.”
+
+4. DEPLETED
+Tone:
+most urgent, still calm, zero panic
+
+Examples:
+- “Depleted. Stop and hydrate now.”
+- “Score is 58. Drink 20 oz and take 2 sticks now.”
+
+==================================================
+VOICE PERSONA NAME
+==================================================
+
+Internally call the persona:
+AForce Voice Engine
+
+Do not brand it as a character.
+Do not make it a mascot.
+Do not make it feel humanized in a cheesy way.
+
+This is not “Coach Max” or “Ava.”
+It is simply:
+AForce
+
+==================================================
+VOICE STYLE SPEC
+==================================================
+
+Speech style:
+- medium-low energy
+- measured pace
+- clean articulation
+- no dramatic inflection
+- no synthetic robotic stiffness
+- no exaggerated enthusiasm
+
+Ideal playback feel:
+- premium sports car navigation
+- elite performance coach
+- military-grade calm
+- Apple-level polish
+
+==================================================
+RESPONSE FORMULA
+==================================================
+
+Every voice response must follow:
+
+STATE / CONTEXT + ACTION + TIMING + OUTCOME
+
+Examples:
+- “Balanced at 82. Drink 8 oz before your next session. You are on pace.”
+- “Recovery state. Take 1 AForce stick now. Recheck in 20 minutes.”
+- “Critical heat risk rising. Stop activity now. Begin cooling immediately.”
+
+==================================================
+VOICE CONTENT CATEGORIES
+==================================================
+
+Build voice response templates for:
+
+1. Score updates
+2. Next action commands
+3. Recovery commands
+4. Intake confirmations
+5. Heat risk warnings
+6. Competition updates
+7. Morning reset
+8. Product comparisons
+9. Subscription / locked feature prompts
+10. Team / coach alerts in Clutch mode
+
+==================================================
+VOICE RESPONSE EXAMPLES
+==================================================
+
+LOG INTAKE:
+“Log confirmed. Score increased to 81. Stay on cadence.”
+
+GET STATUS:
+“Score is 74. Recovering. Start hydration now.”
+
+GET COMMAND:
+“Take 1 AForce stick now. Recheck in 20 minutes.”
+
+UPDATE SYMPTOMS:
+“Signal updated. Score dropped to 66. Recovery protocol starts now.”
+
+HEAT WARNING:
+“Heat stress is rising. Stop and hydrate now. Recheck in 10 minutes.”
+
+COMPARE PRODUCTS:
+“AForce RTD is the strongest fit for your current state. Drink 1 now.”
+
+MORNING RESET:
+“Overnight deficit detected. Start with 16 oz now before daily protocol begins.”
+
+COMPETITION:
+“Miami moved ahead. Your score matters today.”
+
+TEAM ALERT:
+“Player 12 is trending high risk. Pull at next stoppage.”
+
+==================================================
+BANNED WORDS / PHRASES
+==================================================
+
+Never say:
+- “you may want to”
+- “consider”
+- “try”
+- “awesome”
+- “great job”
+- “how can I help”
+- “I think”
+- “maybe”
+- “please”
+- “sorry”
+- “recommendation”
+- “wellness”
+- “self-care”
+
+Preferred words:
+- score
+- state
+- protocol
+- recovery
+- depleted
+- balanced
+- recheck
+- cadence
+- control
+- act now
+- maintain
+- start now
+
+==================================================
+TEXT TO SPEECH SETTINGS
+==================================================
+
+Create a voice configuration layer with:
+- speech rate
+- pitch
+- volume
+- tone profile
+- urgency profile
+
+Recommended defaults:
+- speech_rate: 0.95
+- pitch: 0.95 to 1.0
+- volume: 1.0
+- urgency controlled through phrasing, not shouting
+
+==================================================
+FILES TO CREATE
+==================================================
+
+Create:
+- /services/voicePersonaService.ts
+- /services/voiceTemplateEngine.ts
+- /services/ttsConfigService.ts
+- /data/voiceTemplates.ts
+- /types/voicePersona.ts
+
+==================================================
+DATA MODEL
+==================================================
+
+Create interfaces for:
+- VoiceProfile
+- VoiceResponseTemplate
+- VoiceUrgencyMode
+- VoiceContext
+- ToneRule
+
+Example:
+{
+  "mode": "recovering",
+  "tone": "firm_calm",
+  "max_sentences": 2,
+  "forbidden_phrases": ["you may want to", "consider", "try"],
+  "response_pattern": ["state", "action", "timing", "outcome"]
+}
+
+==================================================
+INTEGRATION
+==================================================
+
+This voice tone system must connect to:
+- Voice Command system
+- AI command engine
+- Heat Guard
+- Competition engine
+- Product comparison engine
+- Morning reset
+- Clutch alerts
+- Guardian alerts
+
+==================================================
+FINAL PRODUCT FEEL
+==================================================
+
+The AForce voice should feel like:
+- a premium operating system
+- a serious performance tool
+- a calm decision engine
+- a coach with authority
+
+Not:
+- a friend
+- an assistant
+- a therapist
+- a hype machine
+
+END GOAL:
+When users hear AForce, they should think:
+“This system knows exactly what to do, and I trust it.”

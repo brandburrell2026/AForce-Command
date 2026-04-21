@@ -32,6 +32,12 @@ import type {
 
 interface Props {
   visible: boolean;
+  /**
+   * If true, the overlay starts listening automatically the moment it opens.
+   * Used when the Phantom Band emits a voice_trigger — per spec the band
+   * trigger should put the app immediately into listening, not idle.
+   */
+  autoStart?: boolean;
   onClose: () => void;
   /** When true, skip the listening step and immediately show the demo result. */
   demoMode?: boolean;
@@ -53,7 +59,7 @@ const STATE_LABEL: Record<VoiceState, string> = {
   error:      'TRY AGAIN',
 };
 
-export function VoiceOverlay({ visible, onClose }: Props) {
+export function VoiceOverlay({ visible, onClose, autoStart = false }: Props) {
   const router = useRouter();
   const { state: appState, logIntake, updateSymptoms, confirmStatus } = useAppStore();
 
@@ -91,7 +97,9 @@ export function VoiceOverlay({ visible, onClose }: Props) {
   const executeAction = useCallback(async (action: VoiceAction) => {
     switch (action.type) {
       case 'LOG_INTAKE':
-        await logIntake(action.fluidType);
+        // silent=true so we don't stack the cycle-success hero modal on top
+        // of the voice response card (RN-web only renders one Modal at a time).
+        await logIntake(action.fluidType, { silent: true });
         return;
       case 'UPDATE_SYMPTOMS':
         await updateSymptoms(action.symptoms);
@@ -144,6 +152,18 @@ export function VoiceOverlay({ visible, onClose }: Props) {
     }
   }, [finishWithTranscript]);
 
+  // ESLint-friendly forward ref for the auto-start effect (defined further down).
+  const startListeningRef = useRef<() => Promise<void>>(async () => {});
+
+  // When opened with autoStart=true (band trigger), kick off listening on next
+  // tick so the reset-on-open effect has finished re-initializing state.
+  useEffect(() => {
+    if (visible && autoStart) {
+      const id = setTimeout(() => { void startListeningRef.current(); }, 60);
+      return () => clearTimeout(id);
+    }
+  }, [visible, autoStart]);
+
   const startListening = useCallback(async () => {
     if (voiceState === 'listening' || voiceState === 'processing') return;
     setResponse(null);
@@ -161,6 +181,10 @@ export function VoiceOverlay({ visible, onClose }: Props) {
       if (sttRef.current) void stopAndFinalize();
     }, 5000);
   }, [voiceState, stopAndFinalize]);
+
+  // Keep the ref pointed at the latest startListening so the autoStart effect
+  // always invokes the current closure.
+  useEffect(() => { startListeningRef.current = startListening; }, [startListening]);
 
   const handleMicTap = useCallback(() => {
     if (voiceState === 'idle' || voiceState === 'responding' || voiceState === 'error') {

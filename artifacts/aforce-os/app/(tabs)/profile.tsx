@@ -108,12 +108,14 @@ export default function ProfileScreen() {
           {/* Hardware Pairing */}
           <SectionHeader label="HARDWARE" />
           <View style={styles.card}>
-            <HardwareRow
-              name="PHANTOM Band"
-              kind="Private consumer wearable · BLE · 30s sync"
-              ledColor={Colors.states.BALANCED.primary}
-              status="UNPAIRED"
-            />
+            <Pressable onPress={() => router.push('/phantom')} testID="profile-phantom-link">
+              <HardwareRow
+                name="PHANTOM Band"
+                kind="Private consumer wearable · BLE · 30s sync"
+                ledColor={Colors.states.BALANCED.primary}
+                status="MANAGE ›"
+              />
+            </Pressable>
             <Divider />
             <HardwareRow
               name="CLUTCH Clip"

@@ -54,7 +54,7 @@ interface AppState {
 
 type Action =
   | { type: 'CYCLE_START' }
-  | { type: 'CYCLE_SUCCESS'; payload: { result: CycleResult; newUserState: UserState; engineOutput: ScoreEngineOutput; historyEntry: HistoryEntry } }
+  | { type: 'CYCLE_SUCCESS'; payload: { result: CycleResult; newUserState: UserState; engineOutput: ScoreEngineOutput; historyEntry: HistoryEntry; silent?: boolean } }
   | { type: 'DISMISS_SUCCESS' }
   | { type: 'SNOOZE' }
   | { type: 'TICK_TIMER' }
@@ -87,7 +87,7 @@ function reducer(state: AppState, action: Action): AppState {
     case 'CYCLE_START':
       return { ...state, isCompletingCycle: true };
     case 'CYCLE_SUCCESS': {
-      const { result, newUserState, engineOutput, historyEntry } = action.payload;
+      const { result, newUserState, engineOutput, historyEntry, silent } = action.payload;
       return {
         ...state,
         userState: newUserState,
@@ -95,7 +95,9 @@ function reducer(state: AppState, action: Action): AppState {
         history: [historyEntry, ...state.history].slice(0, 30),
         lastCycleResult: result,
         isCompletingCycle: false,
-        showCycleSuccess: true,
+        // Voice flow shows its own response card — suppress the hero overlay
+        // so we don't stack two modals (which RN-web cannot render together).
+        showCycleSuccess: !silent,
         timerSeconds: engineOutput.riskTimer.minutes * 60,
         lastIntakeBurstAt: Date.now(),
       };
@@ -142,7 +144,7 @@ function reducer(state: AppState, action: Action): AppState {
 
 interface AppContextValue {
   state: AppState;
-  logIntake: (fluidType: FluidType) => Promise<void>;
+  logIntake: (fluidType: FluidType, opts?: { silent?: boolean }) => Promise<void>;
   completeCycle: () => Promise<void>;
   snooze: () => void;
   dismissSuccess: () => void;
@@ -183,7 +185,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     return () => { cancelled = true; clearInterval(interval); };
   }, [state.userState.lastIntakeTime, state.userState.urineSignal, state.userState.symptoms.length]);
 
-  const logIntake = useCallback(async (fluidType: FluidType) => {
+  const logIntake = useCallback(async (fluidType: FluidType, opts?: { silent?: boolean }) => {
     if (state.isCompletingCycle) return;
     dispatch({ type: 'CYCLE_START' });
     try {
@@ -208,8 +210,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         unitsTaken: 1,
         fluidType,
       };
-      dispatch({ type: 'CYCLE_SUCCESS', payload: { result, newUserState, engineOutput, historyEntry } });
-      setTimeout(() => dispatch({ type: 'DISMISS_SUCCESS' }), 2400);
+      dispatch({ type: 'CYCLE_SUCCESS', payload: { result, newUserState, engineOutput, historyEntry, silent: opts?.silent } });
+      // Only schedule the auto-dismiss when the hero overlay was actually shown.
+      if (!opts?.silent) setTimeout(() => dispatch({ type: 'DISMISS_SUCCESS' }), 2400);
     } catch (err) {
       // Fail-safe: clear loading flag so UI never soft-locks.
       console.warn('[AForce] logIntake failed', err);
