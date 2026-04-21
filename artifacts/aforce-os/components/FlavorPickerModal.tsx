@@ -14,12 +14,15 @@
  */
 
 import React from 'react';
-import { Modal, View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
+import { Modal, View, Text, StyleSheet, Pressable, ScrollView, Image } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { Colors } from '../theme/colors';
 import { FLAVOR_VARIANTS } from '../data/flavors';
+import { PRODUCT_FLAVORS } from '../data/products';
 import type { ProductFlavor } from '../types';
+
+type FlavoredKey = keyof typeof PRODUCT_FLAVORS;
 
 export interface FlavorChoice {
   id: string;
@@ -68,6 +71,12 @@ export function FlavorPickerModal({ visible, format, onCancel, onConfirm }: Prop
           >
             {FLAVOR_VARIANTS.map((f) => {
               const fullLabel = `${f.name} +${f.functionalIngredient}`;
+              const artwork =
+                f.flavor in PRODUCT_FLAVORS
+                  ? format === 'rtd'
+                    ? PRODUCT_FLAVORS[f.flavor as FlavoredKey].can
+                    : PRODUCT_FLAVORS[f.flavor as FlavoredKey].stick
+                  : null;
               return (
                 <Pressable
                   key={f.id}
@@ -85,7 +94,11 @@ export function FlavorPickerModal({ visible, format, onCancel, onConfirm }: Prop
                   accessibilityLabel={`Log ${fullLabel}`}
                   testID={`flavor-${f.id}`}
                 >
-                  <View style={[styles.dot, { backgroundColor: f.accent }]} />
+                  {artwork ? (
+                    <Image source={artwork} style={styles.artwork} resizeMode="contain" />
+                  ) : (
+                    <View style={[styles.dot, { backgroundColor: f.accent }]} />
+                  )}
                   <View style={styles.cardBody}>
                     <Text style={styles.cardName}>{f.name}</Text>
                     <Text style={styles.cardSub}>+{f.functionalIngredient}</Text>
@@ -167,6 +180,10 @@ const styles = StyleSheet.create({
     width: 10,
     height: 10,
     borderRadius: 5,
+  },
+  artwork: {
+    width: 44,
+    height: 56,
   },
   cardBody: {
     flex: 1,
