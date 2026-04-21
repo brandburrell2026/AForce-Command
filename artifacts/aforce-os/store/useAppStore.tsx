@@ -146,7 +146,7 @@ interface AppContextValue {
   state: AppState;
   logIntake: (
     fluidType: FluidType,
-    opts?: { silent?: boolean; ozOverride?: number },
+    opts?: { silent?: boolean; ozOverride?: number; flavorLabel?: string },
   ) => Promise<void>;
   completeCycle: () => Promise<void>;
   snooze: () => void;
@@ -190,7 +190,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const logIntake = useCallback(async (
     fluidType: FluidType,
-    opts?: { silent?: boolean; ozOverride?: number },
+    opts?: { silent?: boolean; ozOverride?: number; flavorLabel?: string },
   ) => {
     if (state.isCompletingCycle) return;
     dispatch({ type: 'CYCLE_START' });
@@ -213,12 +213,17 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         nextCycleHint: generateNextCycleHint(engineOutput.performanceState.level),
         state: engineOutput.performanceState.level,
       };
+      // When a flavor was chosen (e.g. Berry Blast +Dulse), surface it
+      // in the history label so users can recall exactly what they drank.
+      const baseName = opts?.flavorLabel
+        ? `${product.shortName} — ${opts.flavorLabel}`
+        : product.shortName;
       const historyEntry: HistoryEntry = {
         id: log.id,
         timestamp: log.loggedAt,
         score: log.scoreAfter,
         state: engineOutput.performanceState.level,
-        action: `Logged ${product.shortName} (${log.ozAmount} oz)`,
+        action: `Logged ${baseName} (${log.ozAmount} oz)`,
         unitsTaken: 1,
         fluidType,
       };

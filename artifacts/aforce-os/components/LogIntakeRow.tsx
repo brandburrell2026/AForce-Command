@@ -20,6 +20,7 @@ import { useAppStore } from '../store/useAppStore';
 import { PRODUCTS } from '../data/products';
 import type { FluidType } from '../types';
 import { WaterAmountModal } from './WaterAmountModal';
+import { FlavorPickerModal } from './FlavorPickerModal';
 
 interface Props {
   accentColor: string;
@@ -38,14 +39,23 @@ const OPTIONS: Array<{
 export function LogIntakeRow({ accentColor }: Props) {
   const { logIntake, state } = useAppStore();
   const [waterPickerOpen, setWaterPickerOpen] = React.useState(false);
+  const [flavorPickerFor, setFlavorPickerFor] = React.useState<
+    null | 'aforce_stick' | 'aforce_rtd'
+  >(null);
 
-  // Sticks + RTD use their fixed serving size; water opens a manual
-  // picker because real-world water containers range from 8 → 32+ oz.
+  // Water opens an oz picker (variable bottle sizes); sticks + RTD
+  // open a flavor picker so the user can record which AForce flavor
+  // (Berry / Watermelon / Soursop) they actually took.
   const handleLog = (fluid: FluidType) => {
     if (state.isCompletingCycle) return;
     if (fluid === 'water') {
       Haptics.selectionAsync().catch(() => {});
       setWaterPickerOpen(true);
+      return;
+    }
+    if (fluid === 'aforce_stick' || fluid === 'aforce_rtd') {
+      Haptics.selectionAsync().catch(() => {});
+      setFlavorPickerFor(fluid);
       return;
     }
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
@@ -55,6 +65,13 @@ export function LogIntakeRow({ accentColor }: Props) {
   const handleWaterConfirm = (oz: number) => {
     setWaterPickerOpen(false);
     logIntake('water', { ozOverride: oz });
+  };
+
+  const handleFlavorConfirm = (flavor: { id: string; label: string } | null) => {
+    const fluid = flavorPickerFor;
+    setFlavorPickerFor(null);
+    if (!fluid) return;
+    logIntake(fluid, flavor ? { flavorLabel: flavor.label } : undefined);
   };
 
   return (
@@ -90,7 +107,11 @@ export function LogIntakeRow({ accentColor }: Props) {
               )}
               <Text style={styles.label} numberOfLines={1}>LOG {opt.label}</Text>
               <Text style={[styles.oz, { color: accentColor }]}>
-                {opt.fluid === 'water' ? 'choose oz' : `${product?.ozPerServing ?? 12} oz`}
+                {opt.fluid === 'water'
+                  ? 'choose oz'
+                  : opt.fluid === 'aforce_stick' || opt.fluid === 'aforce_rtd'
+                  ? 'pick flavor'
+                  : `${product?.ozPerServing ?? 12} oz`}
               </Text>
             </Pressable>
           );
@@ -101,6 +122,12 @@ export function LogIntakeRow({ accentColor }: Props) {
         accentColor={accentColor}
         onCancel={() => setWaterPickerOpen(false)}
         onConfirm={handleWaterConfirm}
+      />
+      <FlavorPickerModal
+        visible={flavorPickerFor !== null}
+        format={flavorPickerFor === 'aforce_rtd' ? 'rtd' : 'stick'}
+        onCancel={() => setFlavorPickerFor(null)}
+        onConfirm={handleFlavorConfirm}
       />
     </View>
   );
