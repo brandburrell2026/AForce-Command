@@ -33,6 +33,8 @@ import { CycleSuccessOverlay } from '@/components/CycleSuccessOverlay';
 import { LogIntakeRow } from '@/components/LogIntakeRow';
 import { FlavorPickerModal, type FlavorChoice } from '@/components/FlavorPickerModal';
 import { LocalTimeBar } from '@/components/LocalTimeBar';
+import { AdaptiveScreenWrapper } from '@/components/AdaptiveScreenWrapper';
+import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 import { ScoreBreakdownSheet } from '@/components/ScoreBreakdownSheet';
 import { OnboardingOverlay } from '@/components/OnboardingOverlay';
 import { AIVideoPlayer } from '@/components/AIVideoPlayer';
@@ -57,6 +59,7 @@ export default function HomeScreen() {
   const router = useRouter();
   const { state, logIntake, snooze, dismissSuccess, completeOnboarding } = useAppStore();
   const [ctaFlavorOpen, setCtaFlavorOpen] = React.useState(false);
+  const layout = useResponsiveLayout();
   const {
     engineOutput, userState, showCycleSuccess, lastCycleResult,
     isCompletingCycle, timerSeconds, lastIntakeBurstAt, hasSeenOnboarding,
@@ -212,7 +215,19 @@ export default function HomeScreen() {
       <GradientBackground>
         <ScrollView
           style={styles.scroll}
-          contentContainerStyle={[styles.content, { paddingTop: topPadding + 8, paddingBottom: bottomPadding + 24 }]}
+          contentContainerStyle={[
+            styles.content,
+            {
+              paddingTop: topPadding + 8,
+              paddingBottom: bottomPadding + 24,
+              // On wide layouts (Fold open, tablets) cap the content
+              // column so the design language doesn't stretch to the
+              // edges. On phones this is a no-op (width: 100%).
+              ...(layout.isWide
+                ? { maxWidth: layout.contentMaxWidth, alignSelf: 'center', width: '100%' }
+                : null),
+            },
+          ]}
           showsVerticalScrollIndicator={false}
         >
           <LocalTimeBar />
@@ -258,6 +273,7 @@ export default function HomeScreen() {
               score={score}
               burstAt={lastIntakeBurstAt}
               onTap={openBreakdown}
+              size={layout.orbSize}
             />
             <Text style={styles.orbHint}>TAP ORB FOR FULL BREAKDOWN</Text>
           </View>
@@ -326,7 +342,11 @@ export default function HomeScreen() {
           <TouchableOpacity
             style={[
               styles.ctaButton,
-              { borderColor: `${stateColor}66` },
+              {
+                borderColor: `${stateColor}66`,
+                paddingVertical: layout.ctaPaddingV,
+                marginHorizontal: layout.gutter,
+              },
               isCompletingCycle && styles.ctaDisabled,
             ]}
             onPress={handleComplete}

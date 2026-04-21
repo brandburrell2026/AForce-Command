@@ -33,10 +33,16 @@ interface Props {
   score: number;
   burstAt?: number; // timestamp — when changed, fire burst
   onTap?: () => void;
+  /**
+   * Diameter of the orb in px. Defaults to 200 (the original design
+   * size) so existing call sites are unaffected. Pass a larger value
+   * on wide layouts (Fold open, tablets) via useResponsiveLayout.
+   */
+  size?: number;
 }
 
-const ORB_SIZE = 200;
-const GLOW_SIZE = 290;
+const DEFAULT_ORB_SIZE = 200;
+const GLOW_RATIO = 290 / 200; // preserve original glow:orb proportion
 
 const COLOR_MAP: Record<PulseConfig['colorMode'], { primary: string; glow: string }> = {
   lime:  { primary: Colors.states.PEAK.primary,       glow: Colors.states.PEAK.glow },
@@ -45,9 +51,12 @@ const COLOR_MAP: Record<PulseConfig['colorMode'], { primary: string; glow: strin
   red:   { primary: Colors.states.DEPLETED.primary,   glow: Colors.states.DEPLETED.glow },
 };
 
-export function StatusPulseOrb({ pulseConfig, score, burstAt = 0, onTap }: Props) {
+export function StatusPulseOrb({ pulseConfig, score, burstAt = 0, onTap, size }: Props) {
   const { pulseSpeed, glowStrength, pulseIntensity, waveBehavior, colorMode, animations } = pulseConfig;
   const colors = COLOR_MAP[colorMode];
+  const ORB_SIZE = size ?? DEFAULT_ORB_SIZE;
+  const GLOW_SIZE = Math.round(ORB_SIZE * GLOW_RATIO);
+  const containerSize = GLOW_SIZE + 50;
 
   const cycleMs = Math.round(3400 - pulseSpeed * 2400); // 1000ms..3400ms
 
@@ -278,7 +287,7 @@ export function StatusPulseOrb({ pulseConfig, score, burstAt = 0, onTap }: Props
   const handlePressOut = () => { tapScale.value = withTiming(1, { duration: 140 }); };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { width: containerSize, height: containerSize }]}>
       <Animated.View
         style={[
           styles.outerGlow,
@@ -377,8 +386,6 @@ const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
     justifyContent: 'center',
-    width: GLOW_SIZE + 50,
-    height: GLOW_SIZE + 50,
   },
   outerGlow: { position: 'absolute' },
   innerGlow: { position: 'absolute' },
