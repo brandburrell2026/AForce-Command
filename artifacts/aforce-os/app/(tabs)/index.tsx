@@ -164,6 +164,18 @@ export default function HomeScreen() {
             <TouchableOpacity
               onPress={() => {
                 if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
+                router.push('/products');
+              }}
+              activeOpacity={0.85}
+              style={styles.actionBtn}
+            >
+              <Feather name="package" size={14} color={Colors.text.primary} />
+              <Text style={styles.actionBtnText} numberOfLines={1}>PRODUCTS</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => {
+                if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
                 router.push('/competition');
               }}
               activeOpacity={0.85}
