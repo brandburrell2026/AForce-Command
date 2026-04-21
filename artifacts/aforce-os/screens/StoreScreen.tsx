@@ -144,12 +144,13 @@ export default function StoreScreen() {
             return (
               <View key={fmt.id} style={styles.formatBlock}>
                 <Text style={styles.formatHeader}>{fmt.label.toUpperCase()}</Text>
+                <View style={layout.isWide ? styles.skuGrid : undefined}>
                 {skus.map((sku) => {
                   const accent = flavorAccent(sku.flavor);
                   const img = flavorImage(sku, fmt.artwork) as number | undefined;
                   const perServing = pricePerServingCents(sku);
                   return (
-                    <View key={sku.id} style={styles.skuCard}>
+                    <View key={sku.id} style={[styles.skuCard, layout.isWide && styles.skuCardWide]}>
                       <View style={[styles.skuArtwork, { borderColor: `${accent}55` }]}>
                         {img ? (
                           <ZoomableProductImage
@@ -200,6 +201,7 @@ export default function StoreScreen() {
                     </View>
                   );
                 })}
+                </View>
               </View>
             );
           })}
@@ -286,6 +288,21 @@ const styles = StyleSheet.create({
   formatHeader: {
     fontSize: 11, letterSpacing: 1.6, fontWeight: "700",
     color: Colors.text.muted, marginBottom: 10,
+  },
+
+  // Two-column SKU grid — used only on Fold-open / tablet so SKU
+  // cards stop wasting horizontal real estate when the screen is
+  // wide. Each card flexBasis ~48% gives a clean 2-up grid that
+  // could later widen to 3 on true tablets.
+  skuGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+  },
+  skuCardWide: {
+    flexBasis: "48%",
+    flexGrow: 1,
+    marginBottom: 0,
   },
 
   skuCard: {

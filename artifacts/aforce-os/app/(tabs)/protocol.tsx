@@ -37,8 +37,14 @@ export default function ProtocolScreen() {
     <View style={styles.root}>
       <GradientBackground>
         <FlatList<HistoryEntry>
+          // Force a remount when the column count changes — FlatList
+          // can't safely transition between numColumns values without
+          // a fresh key.
+          key={layout.isWide ? 'history-2col' : 'history-1col'}
           data={history}
           keyExtractor={(item) => item.id}
+          numColumns={layout.isWide ? 2 : 1}
+          columnWrapperStyle={layout.isWide ? styles.historyColumnWrapper : undefined}
           contentContainerStyle={[
             styles.content,
             {
@@ -116,7 +122,11 @@ export default function ProtocolScreen() {
               <Text style={styles.sectionTitle}>COMMAND HISTORY</Text>
             </View>
           }
-          renderItem={({ item }) => <HistoryRow entry={item} />}
+          renderItem={({ item }) => (
+            <View style={layout.isWide ? styles.historyCellWide : undefined}>
+              <HistoryRow entry={item} />
+            </View>
+          )}
           ListEmptyComponent={
             <View style={styles.empty}>
               <Feather name="clock" size={32} color={Colors.text.muted} />
@@ -263,6 +273,16 @@ const styles = StyleSheet.create({
   historyTime: { fontSize: 11, fontFamily: 'Inter_400Regular', color: Colors.text.muted },
   historyAction: {
     fontSize: 13, fontFamily: 'Inter_500Medium', color: Colors.text.secondary, lineHeight: 18,
+  },
+  // Two-column history grid — used only on Fold-open / tablet via
+  // FlatList numColumns=2. Each cell takes half the available width
+  // (minus the gap) so the timeline rows still get their column +
+  // card the same way as on a phone.
+  historyColumnWrapper: {
+    gap: 12,
+  },
+  historyCellWide: {
+    flex: 1,
   },
   empty: { alignItems: 'center', gap: 12, paddingTop: 60 },
   emptyText: { fontSize: 14, fontFamily: 'Inter_400Regular', color: Colors.text.muted, textAlign: 'center' },

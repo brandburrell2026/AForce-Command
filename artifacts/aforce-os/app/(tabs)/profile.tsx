@@ -13,6 +13,7 @@ import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
 import { GradientBackground } from '@/components/GradientBackground';
+import { Icon } from '@/components/Icon';
 import { Colors } from '@/theme/colors';
 import { mockUserProfile } from '@/data/mockData';
 import { useAppStore } from '@/store/useAppStore';
@@ -72,139 +73,197 @@ export default function ProfileScreen() {
           <Text style={styles.eyebrow}>PROFILE</Text>
           <Text style={styles.title}>Commander</Text>
 
-          {/* Profile card */}
-          <View style={[styles.profileCard, { borderColor: `${tier.color}33` }]}>
-            <View style={[styles.avatar, { backgroundColor: `${tier.color}20`, borderColor: `${tier.color}55` }]}>
-              <Text style={[styles.avatarText, { color: tier.color }]}>
-                {mockUserProfile.name.charAt(0).toUpperCase()}
-              </Text>
-            </View>
-            <View style={styles.profileInfo}>
-              <Text style={styles.profileName}>{mockUserProfile.name}</Text>
-              <View style={[styles.tierBadge, { backgroundColor: `${tier.color}15`, borderColor: `${tier.color}44` }]}>
-                <Feather name="award" size={10} color={tier.color} />
-                <Text style={[styles.tierLabel, { color: tier.color }]}>{tier.label.toUpperCase()}</Text>
-              </View>
-            </View>
-          </View>
+          {(() => {
+            // ─── Reusable section fragments ──────────────────────
+            // Same single-source-of-truth pattern as Home: define
+            // the cards once, arrange them as one column on phones
+            // or two columns on Fold-open / tablet so neither code
+            // path drifts.
 
-          {/* Goals */}
-          <SectionHeader label="GOALS" />
-          <View style={styles.card}>
-            <SettingRow icon="target" label="Daily Target" value={`${mockUserProfile.dailyTarget} units`} />
-            <Divider />
-            <SettingRow icon="droplet" label="Daily Oz Target" value={`${mockUserProfile.dailyTarget * 12} oz`} />
-            <Divider />
-            <SettingRow icon="user" label="Body Weight" value={`${mockUserProfile.bodyWeightLbs} lb`} />
-            <Divider />
-            <SettingRow icon="activity" label="Activity Type" value={mockUserProfile.activityType} />
-            <Divider />
-            <SettingRow icon="sunrise" label="Wake Time" value={mockUserProfile.wakeTimeHHMM} />
-            <Divider />
-            <View style={styles.settingRow}>
-              <View style={styles.settingLeft}>
-                <Feather name="bell" size={16} color={Colors.states.BALANCED.primary} />
-                <Text style={styles.settingLabel}>Reminders</Text>
-              </View>
-              <Switch
-                value={remindersEnabled}
-                onValueChange={setRemindersEnabled}
-                trackColor={{ false: Colors.fill.medium, true: Colors.states.PEAK.primary }}
-                thumbColor={Colors.text.primary}
-                ios_backgroundColor={Colors.fill.medium}
-              />
-            </View>
-          </View>
-
-          {/* Hardware Pairing */}
-          <SectionHeader label="HARDWARE" />
-          <View style={styles.card}>
-            <Pressable onPress={() => router.push('/phantom')} testID="profile-phantom-link">
-              <HardwareRow
-                name="PHANTOM Band"
-                kind="Private consumer wearable · BLE · 30s sync"
-                ledColor={Colors.states.BALANCED.primary}
-                status="MANAGE ›"
-              />
-            </Pressable>
-            <Divider />
-            <HardwareRow
-              name="CLUTCH Clip"
-              kind="Athlete clip · BLE · 15s in-game"
-              ledColor={Colors.clutch.primary}
-              status="UNPAIRED"
-            />
-          </View>
-
-          {/* Connected devices */}
-          <SectionHeader label="CONNECTED DEVICES" />
-          <View style={styles.card}>
-            {mockUserProfile.connectedDevices.map((device, i) => (
-              <React.Fragment key={device}>
-                <View style={styles.deviceRow}>
-                  <View style={styles.deviceLeft}>
-                    <View style={[styles.deviceDot, { backgroundColor: Colors.states.PEAK.primary }]} />
-                    <Text style={styles.deviceName}>{device}</Text>
-                  </View>
-                  <Text style={[styles.deviceStatus, { color: Colors.states.PEAK.primary }]}>LIVE</Text>
+            const profileCard = (
+              <View style={[styles.profileCard, { borderColor: `${tier.color}33` }]}>
+                <View style={[styles.avatar, { backgroundColor: `${tier.color}20`, borderColor: `${tier.color}55` }]}>
+                  <Text style={[styles.avatarText, { color: tier.color }]}>
+                    {mockUserProfile.name.charAt(0).toUpperCase()}
+                  </Text>
                 </View>
-                {i < mockUserProfile.connectedDevices.length - 1 && <Divider />}
-              </React.Fragment>
-            ))}
-          </View>
-
-          {/* Phase 2 / Phase 3 Demo Toggles */}
-          <SectionHeader label="DEMO ACCESS" hint="Preview Phase 2 + Phase 3" />
-          <View style={styles.card}>
-            <Pressable
-              onPress={() => setFeatureFlags(allOn ? DEFAULT_FLAGS : DEMO_ALL_ON_FLAGS)}
-              style={[styles.demoMaster, { borderColor: allOn ? Colors.states.PEAK.primary : Colors.border.medium }]}
-            >
-              <Feather name={allOn ? 'eye-off' : 'eye'} size={14} color={allOn ? Colors.states.PEAK.primary : Colors.text.secondary} />
-              <Text style={[styles.demoMasterText, { color: allOn ? Colors.states.PEAK.primary : Colors.text.primary }]}>
-                {allOn ? 'Lock all demo features' : 'Unlock all demo features'}
-              </Text>
-            </Pressable>
-
-            <FlagRow flag="clutch_access_enabled" label="Clutch Access" desc="Phase 2 — Command the Team" color={Colors.clutch.primary} state={state} onToggle={toggleFlag} />
-            <FlagRow flag="clutch_heat_mode_enabled" label="Heat Mode" desc="Aggressive cadence under heat stress" color={Colors.clutch.primary} state={state} onToggle={toggleFlag} />
-            <FlagRow flag="clutch_inventory_enabled" label="Auto Replenish" desc="Inventory + restock automation" color={Colors.clutch.primary} state={state} onToggle={toggleFlag} />
-            <FlagRow flag="clutch_clip_enabled" label="CLUTCH Clip" desc="Coach-visible BLE hardware" color={Colors.clutch.primary} state={state} onToggle={toggleFlag} />
-
-            <FlagRow flag="guardian_intelligence_enabled" label="Guardian Intelligence" desc="Phase 3 — Protect the Roster" color={Colors.guardian.primary} state={state} onToggle={toggleFlag} />
-            <FlagRow flag="guardian_body_map_enabled" label="Body Risk Map" desc="Per-body-region risk visualization" color={Colors.guardian.primary} state={state} onToggle={toggleFlag} />
-            <FlagRow flag="guardian_alerts_enabled" label="Critical Alerts" desc="Coach + medical escalations" color={Colors.guardian.primary} state={state} onToggle={toggleFlag} />
-
-            <FlagRow flag="phantom_wearable_enabled" label="PHANTOM Band" desc="Private consumer wearable" color={Colors.states.BALANCED.primary} state={state} onToggle={toggleFlag} />
-          </View>
-
-          {/* Phase 2 / Phase 3 entry */}
-          <View style={styles.phaseRow}>
-            <Pressable
-              onPress={() => router.push('/clutch')}
-              style={[styles.phaseCard, { borderColor: `${Colors.clutch.primary}55` }]}
-            >
-              <View style={[styles.phaseIcon, { backgroundColor: `${Colors.clutch.primary}1A` }]}>
-                <Feather name="users" size={20} color={Colors.clutch.primary} />
+                <View style={styles.profileInfo}>
+                  <Text style={styles.profileName}>{mockUserProfile.name}</Text>
+                  <View style={[styles.tierBadge, { backgroundColor: `${tier.color}15`, borderColor: `${tier.color}44` }]}>
+                    <Icon name="award" size={10} color={tier.color} />
+                    <Text style={[styles.tierLabel, { color: tier.color }]}>{tier.label.toUpperCase()}</Text>
+                  </View>
+                </View>
               </View>
-              <Text style={[styles.phaseTitle, { color: Colors.clutch.primary }]}>CLUTCH</Text>
-              <Text style={styles.phaseDesc}>Command the Team</Text>
-            </Pressable>
-            <Pressable
-              onPress={() => router.push('/guardian')}
-              style={[styles.phaseCard, { borderColor: `${Colors.guardian.primary}55` }]}
-            >
-              <View style={[styles.phaseIcon, { backgroundColor: `${Colors.guardian.primary}1A` }]}>
-                <Feather name="shield" size={20} color={Colors.guardian.primary} />
-              </View>
-              <Text style={[styles.phaseTitle, { color: Colors.guardian.primary }]}>GUARDIAN</Text>
-              <Text style={styles.phaseDesc}>Protect the Roster</Text>
-            </Pressable>
-          </View>
+            );
 
-          {/* Subscription */}
-          <SectionHeader label="SUBSCRIPTION" />
-          <SubscriptionPanel />
+            const goalsCard = (
+              <>
+                <SectionHeader label="GOALS" />
+                <View style={styles.card}>
+                  <SettingRow icon="target" label="Daily Target" value={`${mockUserProfile.dailyTarget} units`} />
+                  <Divider />
+                  <SettingRow icon="droplet" label="Daily Oz Target" value={`${mockUserProfile.dailyTarget * 12} oz`} />
+                  <Divider />
+                  <SettingRow icon="user" label="Body Weight" value={`${mockUserProfile.bodyWeightLbs} lb`} />
+                  <Divider />
+                  <SettingRow icon="activity" label="Activity Type" value={mockUserProfile.activityType} />
+                  <Divider />
+                  <SettingRow icon="sunrise" label="Wake Time" value={mockUserProfile.wakeTimeHHMM} />
+                  <Divider />
+                  <View style={styles.settingRow}>
+                    <View style={styles.settingLeft}>
+                      <Icon name="bell" size={16} color={Colors.states.BALANCED.primary} />
+                      <Text style={styles.settingLabel}>Reminders</Text>
+                    </View>
+                    <Switch
+                      value={remindersEnabled}
+                      onValueChange={setRemindersEnabled}
+                      trackColor={{ false: Colors.fill.medium, true: Colors.states.PEAK.primary }}
+                      thumbColor={Colors.text.primary}
+                      ios_backgroundColor={Colors.fill.medium}
+                    />
+                  </View>
+                </View>
+              </>
+            );
+
+            const hardwareCard = (
+              <>
+                <SectionHeader label="HARDWARE" />
+                <View style={styles.card}>
+                  <Pressable onPress={() => router.push('/phantom')} testID="profile-phantom-link">
+                    <HardwareRow
+                      name="PHANTOM Band"
+                      kind="Private consumer wearable · BLE · 30s sync"
+                      ledColor={Colors.states.BALANCED.primary}
+                      status="MANAGE ›"
+                    />
+                  </Pressable>
+                  <Divider />
+                  <HardwareRow
+                    name="CLUTCH Clip"
+                    kind="Athlete clip · BLE · 15s in-game"
+                    ledColor={Colors.clutch.primary}
+                    status="UNPAIRED"
+                  />
+                </View>
+              </>
+            );
+
+            const connectedDevicesCard = (
+              <>
+                <SectionHeader label="CONNECTED DEVICES" />
+                <View style={styles.card}>
+                  {mockUserProfile.connectedDevices.map((device, i) => (
+                    <React.Fragment key={device}>
+                      <View style={styles.deviceRow}>
+                        <View style={styles.deviceLeft}>
+                          <View style={[styles.deviceDot, { backgroundColor: Colors.states.PEAK.primary }]} />
+                          <Text style={styles.deviceName}>{device}</Text>
+                        </View>
+                        <Text style={[styles.deviceStatus, { color: Colors.states.PEAK.primary }]}>LIVE</Text>
+                      </View>
+                      {i < mockUserProfile.connectedDevices.length - 1 && <Divider />}
+                    </React.Fragment>
+                  ))}
+                </View>
+              </>
+            );
+
+            const demoAccessCard = (
+              <>
+                <SectionHeader label="DEMO ACCESS" hint="Preview Phase 2 + Phase 3" />
+                <View style={styles.card}>
+                  <Pressable
+                    onPress={() => setFeatureFlags(allOn ? DEFAULT_FLAGS : DEMO_ALL_ON_FLAGS)}
+                    style={[styles.demoMaster, { borderColor: allOn ? Colors.states.PEAK.primary : Colors.border.medium }]}
+                  >
+                    <Icon name={allOn ? 'eye-off' : 'eye'} size={14} color={allOn ? Colors.states.PEAK.primary : Colors.text.secondary} />
+                    <Text style={[styles.demoMasterText, { color: allOn ? Colors.states.PEAK.primary : Colors.text.primary }]}>
+                      {allOn ? 'Lock all demo features' : 'Unlock all demo features'}
+                    </Text>
+                  </Pressable>
+
+                  <FlagRow flag="clutch_access_enabled" label="Clutch Access" desc="Phase 2 — Command the Team" color={Colors.clutch.primary} state={state} onToggle={toggleFlag} />
+                  <FlagRow flag="clutch_heat_mode_enabled" label="Heat Mode" desc="Aggressive cadence under heat stress" color={Colors.clutch.primary} state={state} onToggle={toggleFlag} />
+                  <FlagRow flag="clutch_inventory_enabled" label="Auto Replenish" desc="Inventory + restock automation" color={Colors.clutch.primary} state={state} onToggle={toggleFlag} />
+                  <FlagRow flag="clutch_clip_enabled" label="CLUTCH Clip" desc="Coach-visible BLE hardware" color={Colors.clutch.primary} state={state} onToggle={toggleFlag} />
+
+                  <FlagRow flag="guardian_intelligence_enabled" label="Guardian Intelligence" desc="Phase 3 — Protect the Roster" color={Colors.guardian.primary} state={state} onToggle={toggleFlag} />
+                  <FlagRow flag="guardian_body_map_enabled" label="Body Risk Map" desc="Per-body-region risk visualization" color={Colors.guardian.primary} state={state} onToggle={toggleFlag} />
+                  <FlagRow flag="guardian_alerts_enabled" label="Critical Alerts" desc="Coach + medical escalations" color={Colors.guardian.primary} state={state} onToggle={toggleFlag} />
+
+                  <FlagRow flag="phantom_wearable_enabled" label="PHANTOM Band" desc="Private consumer wearable" color={Colors.states.BALANCED.primary} state={state} onToggle={toggleFlag} />
+                </View>
+              </>
+            );
+
+            const phaseEntryRow = (
+              <View style={styles.phaseRow}>
+                <Pressable
+                  onPress={() => router.push('/clutch')}
+                  style={[styles.phaseCard, { borderColor: `${Colors.clutch.primary}55` }]}
+                >
+                  <View style={[styles.phaseIcon, { backgroundColor: `${Colors.clutch.primary}1A` }]}>
+                    <Icon name="users" size={20} color={Colors.clutch.primary} />
+                  </View>
+                  <Text style={[styles.phaseTitle, { color: Colors.clutch.primary }]}>CLUTCH</Text>
+                  <Text style={styles.phaseDesc}>Command the Team</Text>
+                </Pressable>
+                <Pressable
+                  onPress={() => router.push('/guardian')}
+                  style={[styles.phaseCard, { borderColor: `${Colors.guardian.primary}55` }]}
+                >
+                  <View style={[styles.phaseIcon, { backgroundColor: `${Colors.guardian.primary}1A` }]}>
+                    <Icon name="shield" size={20} color={Colors.guardian.primary} />
+                  </View>
+                  <Text style={[styles.phaseTitle, { color: Colors.guardian.primary }]}>GUARDIAN</Text>
+                  <Text style={styles.phaseDesc}>Protect the Roster</Text>
+                </Pressable>
+              </View>
+            );
+
+            const subscriptionBlock = (
+              <>
+                <SectionHeader label="SUBSCRIPTION" />
+                <SubscriptionPanel />
+              </>
+            );
+
+            if (layout.isWide) {
+              // Two-column wide layout: compact info on the left,
+              // tall demo flag list + phase entries + subscription
+              // on the right. Roughly balances column heights.
+              return (
+                <View style={styles.twoCol} testID="profile-two-col">
+                  <View style={[styles.col, styles.colLeft]}>
+                    {profileCard}
+                    {goalsCard}
+                    {hardwareCard}
+                    {connectedDevicesCard}
+                  </View>
+                  <View style={[styles.col, styles.colRight]} testID="profile-right-col">
+                    {demoAccessCard}
+                    {phaseEntryRow}
+                    {subscriptionBlock}
+                  </View>
+                </View>
+              );
+            }
+
+            return (
+              <>
+                {profileCard}
+                {goalsCard}
+                {hardwareCard}
+                {connectedDevicesCard}
+                {demoAccessCard}
+                {phaseEntryRow}
+                {subscriptionBlock}
+              </>
+            );
+          })()}
 
           <Text style={styles.version}>AForce OS v1.0.0 · Phase 1 Core</Text>
         </ScrollView>
@@ -226,7 +285,7 @@ function SettingRow({ icon, label, value }: { icon: keyof typeof Feather.glyphMa
   return (
     <View style={styles.settingRow}>
       <View style={styles.settingLeft}>
-        <Feather name={icon} size={16} color={Colors.states.BALANCED.primary} />
+        <Icon name={icon} size={16} color={Colors.states.BALANCED.primary} />
         <Text style={styles.settingLabel}>{label}</Text>
       </View>
       <Text style={styles.settingValue}>{value}</Text>
@@ -449,6 +508,17 @@ const styles = StyleSheet.create({
     paddingVertical: 12, borderRadius: 12, borderWidth: 1,
   },
   upgradeBtnText: { fontSize: 14, fontFamily: 'Inter_600SemiBold' },
+  twoCol: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 16,
+    marginTop: 4,
+  },
+  col: { flex: 1 },
+  // Slight bias so the (taller) demo flag list on the right gets a
+  // touch more breathing room without hard-overriding the layout.
+  colLeft: { flex: 0.95 },
+  colRight: { flex: 1.05 },
   version: {
     fontSize: 11, fontFamily: 'Inter_400Regular', color: Colors.text.muted,
     textAlign: 'center', marginTop: 12, marginBottom: 8,
