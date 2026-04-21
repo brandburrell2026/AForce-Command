@@ -19,18 +19,26 @@ import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { Colors } from '../theme/colors';
 import { FLAVOR_VARIANTS } from '../data/flavors';
+import type { ProductFlavor } from '../types';
+
+export interface FlavorChoice {
+  id: string;
+  label: string;
+  flavor: ProductFlavor;
+  accent: string;
+}
 
 interface Props {
   visible: boolean;
   format: 'stick' | 'rtd';
   onCancel: () => void;
-  onConfirm: (flavor: { id: string; label: string } | null) => void;
+  onConfirm: (flavor: FlavorChoice | null) => void;
 }
 
 export function FlavorPickerModal({ visible, format, onCancel, onConfirm }: Props) {
   const formatLabel = format === 'stick' ? 'STICK' : 'RTD';
 
-  const choose = (flavor: { id: string; label: string } | null) => {
+  const choose = (flavor: FlavorChoice | null) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
     onConfirm(flavor);
   };
@@ -63,7 +71,7 @@ export function FlavorPickerModal({ visible, format, onCancel, onConfirm }: Prop
               return (
                 <Pressable
                   key={f.id}
-                  onPress={() => choose({ id: f.id, label: fullLabel })}
+                  onPress={() => choose({ id: f.id, label: fullLabel, flavor: f.flavor, accent: f.accent })}
                   style={({ pressed }) => [
                     styles.card,
                     {

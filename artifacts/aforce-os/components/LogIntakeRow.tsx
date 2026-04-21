@@ -17,10 +17,12 @@ import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { Colors } from '../theme/colors';
 import { useAppStore } from '../store/useAppStore';
-import { PRODUCTS } from '../data/products';
+import { PRODUCTS, PRODUCT_FLAVORS } from '../data/products';
 import type { FluidType } from '../types';
+
+type FlavoredKey = keyof typeof PRODUCT_FLAVORS;
 import { WaterAmountModal } from './WaterAmountModal';
-import { FlavorPickerModal } from './FlavorPickerModal';
+import { FlavorPickerModal, type FlavorChoice } from './FlavorPickerModal';
 
 interface Props {
   accentColor: string;
@@ -42,6 +44,12 @@ export function LogIntakeRow({ accentColor }: Props) {
   const [flavorPickerFor, setFlavorPickerFor] = React.useState<
     null | 'aforce_stick' | 'aforce_rtd'
   >(null);
+  // Remember the most recent flavor selected for each format so the
+  // tile can swap to the matching artwork after a successful log.
+  const [lastFlavor, setLastFlavor] = React.useState<{
+    aforce_stick?: FlavoredKey;
+    aforce_rtd?: FlavoredKey;
+  }>({});
 
   // Water opens an oz picker (variable bottle sizes); sticks + RTD
   // open a flavor picker so the user can record which AForce flavor
@@ -67,11 +75,28 @@ export function LogIntakeRow({ accentColor }: Props) {
     logIntake('water', { ozOverride: oz });
   };
 
-  const handleFlavorConfirm = (flavor: { id: string; label: string } | null) => {
+  const handleFlavorConfirm = (flavor: FlavorChoice | null) => {
     const fluid = flavorPickerFor;
     setFlavorPickerFor(null);
     if (!fluid) return;
+    if (flavor && flavor.flavor in PRODUCT_FLAVORS) {
+      const key = flavor.flavor as FlavoredKey;
+      setLastFlavor((prev) => ({ ...prev, [fluid]: key }));
+    }
     logIntake(fluid, flavor ? { flavorLabel: flavor.label } : undefined);
+  };
+
+  // Resolve the artwork for a tile: use the flavored render once a
+  // flavor has been picked, otherwise fall back to the default product
+  // image from the catalog.
+  const imageFor = (fluid: FluidType) => {
+    if (fluid === 'aforce_stick' && lastFlavor.aforce_stick) {
+      return PRODUCT_FLAVORS[lastFlavor.aforce_stick].stick;
+    }
+    if (fluid === 'aforce_rtd' && lastFlavor.aforce_rtd) {
+      return PRODUCT_FLAVORS[lastFlavor.aforce_rtd].can;
+    }
+    return PRODUCTS[fluid]?.image;
   };
 
   return (
@@ -79,6 +104,7 @@ export function LogIntakeRow({ accentColor }: Props) {
       <View style={styles.row}>
         {OPTIONS.map((opt) => {
           const product = PRODUCTS[opt.fluid];
+          const tileImage = imageFor(opt.fluid);
           return (
             <Pressable
               key={opt.fluid}
@@ -98,8 +124,8 @@ export function LogIntakeRow({ accentColor }: Props) {
                 state.isCompletingCycle && { opacity: 0.5 },
               ]}
             >
-              {product?.image ? (
-                <Image source={product.image} style={styles.image} resizeMode="contain" />
+              {tileImage ? (
+                <Image source={tileImage} style={styles.image} resizeMode="contain" />
               ) : (
                 <View style={styles.iconCircle}>
                   <Feather name={opt.icon} size={22} color={accentColor} />
