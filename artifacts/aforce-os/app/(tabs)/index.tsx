@@ -257,98 +257,48 @@ export default function HomeScreen() {
           />
           <View style={styles.spacer} />
 
+          {/*
+            Action row — icon-only pills in the Phantom-card aesthetic so all
+            six destinations fit on any phone width without a horizontal
+            scroll. Each tile is square + flex:1 (so they share the row evenly
+            and never overflow). The DEPLETED state still tints the Compare
+            tile with the live state color, mirroring how the Phantom card
+            promotes its LIVE pill. Screen-reader labels preserve the names.
+          */}
           <View style={styles.actionRow}>
-            <TouchableOpacity
-              onPress={() => {
-                if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
-                router.push('/scan');
-              }}
-              activeOpacity={0.85}
-              style={styles.actionBtn}
-            >
-              <Feather name="maximize" size={14} color={Colors.text.primary} />
-              <Text style={styles.actionBtnText} numberOfLines={1}>SCAN</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={() => {
-                if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
-                router.push('/compare');
-              }}
-              activeOpacity={0.85}
-              style={[
-                styles.actionBtn,
-                performanceState.level === 'DEPLETED' && {
-                  borderColor: stateColor,
-                  backgroundColor: `${stateColor}10`,
-                },
-              ]}
-            >
-              <Feather
-                name="bar-chart-2"
-                size={14}
-                color={performanceState.level === 'DEPLETED' ? stateColor : Colors.text.primary}
-              />
-              <Text
-                style={[
-                  styles.actionBtnText,
-                  performanceState.level === 'DEPLETED' && { color: stateColor },
-                ]}
-                numberOfLines={1}
-              >
-                {performanceState.level === 'DEPLETED' ? 'COMPARE' : 'COMPARE'}
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={() => {
-                if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
-                router.push('/products');
-              }}
-              activeOpacity={0.85}
-              style={styles.actionBtn}
-            >
-              <Feather name="package" size={14} color={Colors.text.primary} />
-              <Text style={styles.actionBtnText} numberOfLines={1}>PRODUCTS</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={() => {
-                if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
-                router.push('/competition');
-              }}
-              activeOpacity={0.85}
-              style={styles.actionBtn}
-            >
-              <Feather name="award" size={14} color={Colors.text.primary} />
-              <Text style={styles.actionBtnText} numberOfLines={1}>COMPETE</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={() => {
-                if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
-                router.push('/circles');
-              }}
-              activeOpacity={0.85}
-              style={styles.actionBtn}
-              testID="home-circles-button"
-            >
-              <Feather name="users" size={14} color={Colors.text.primary} />
-              <Text style={styles.actionBtnText} numberOfLines={1}>CIRCLES</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={() => {
-                if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
-                router.push('/territory');
-              }}
-              activeOpacity={0.85}
-              style={styles.actionBtn}
-              testID="home-territory-button"
-            >
-              <Feather name="map" size={14} color={Colors.text.primary} />
-              <Text style={styles.actionBtnText} numberOfLines={1}>TERRITORY</Text>
-            </TouchableOpacity>
+            {([
+              { key: 'scan',      icon: 'maximize',    label: 'Scan',      onPress: () => router.push('/scan') },
+              { key: 'compare',   icon: 'bar-chart-2', label: 'Compare',   onPress: () => router.push('/compare'),
+                accent: performanceState.level === 'DEPLETED' },
+              { key: 'products',  icon: 'package',     label: 'Products',  onPress: () => router.push('/products') },
+              { key: 'compete',   icon: 'award',       label: 'Compete',   onPress: () => router.push('/competition') },
+              { key: 'circles',   icon: 'users',       label: 'Circles',   onPress: () => router.push('/circles'),
+                testID: 'home-circles-button' },
+              { key: 'territory', icon: 'map',         label: 'Territory', onPress: () => router.push('/territory'),
+                testID: 'home-territory-button' },
+            ] as const).map((item) => {
+              const isAccent = 'accent' in item && item.accent;
+              const tint = isAccent ? stateColor : Colors.text.primary;
+              return (
+                <TouchableOpacity
+                  key={item.key}
+                  onPress={() => {
+                    if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
+                    item.onPress();
+                  }}
+                  activeOpacity={0.85}
+                  style={[
+                    styles.actionTile,
+                    isAccent && { borderColor: stateColor, backgroundColor: `${stateColor}10` },
+                  ]}
+                  accessibilityRole="button"
+                  accessibilityLabel={item.label}
+                  testID={'testID' in item ? item.testID : undefined}
+                >
+                  <Feather name={item.icon} size={18} color={tint} />
+                </TouchableOpacity>
+              );
+            })}
           </View>
           <View style={styles.spacer} />
 
@@ -537,26 +487,20 @@ const styles = StyleSheet.create({
   actionRow: {
     flexDirection: 'row',
     paddingHorizontal: 20,
-    gap: 10,
+    gap: 8,
   },
-  actionBtn: {
+  // Icon-only tile — Phantom-card aesthetic (Colors.fill.light + subtle border,
+  // borderRadius 14). flex:1 + aspectRatio:1 makes them square and evenly
+  // distributed across the row, so 6 tiles always fit any phone width.
+  actionTile: {
     flex: 1,
-    flexDirection: 'row',
+    aspectRatio: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 13,
-    paddingHorizontal: 12,
     borderRadius: 14,
-    backgroundColor: Colors.background.card,
+    backgroundColor: Colors.fill.light,
     borderWidth: 1,
     borderColor: Colors.border.subtle,
-  },
-  actionBtnText: {
-    fontSize: 12,
-    fontFamily: 'Inter_700Bold',
-    color: Colors.text.primary,
-    letterSpacing: 1.2,
   },
   voiceFab: {
     position: 'absolute',
