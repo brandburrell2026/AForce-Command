@@ -38,7 +38,7 @@ function fillTokens(template: string, ctx: VoiceContext): string {
   return template
     .replace(/\{score\}/g,        String(ctx.score))
     .replace(/\{state\}/g,        STATE_LABEL[ctx.mode])
-    .replace(/\{recheck\}/g,      String(ctx.recheck_minutes))
+    .replace(/\{recheck\}/g,      String(ctx.recheck_minutes ?? 20))
     .replace(/\{action\}/g,       ctx.command_action ?? '')
     .replace(/\{fluid\}/g,        ctx.fluid ?? 'intake')
     .replace(/\{symptoms\}/g,     (ctx.symptoms ?? []).join(', '))

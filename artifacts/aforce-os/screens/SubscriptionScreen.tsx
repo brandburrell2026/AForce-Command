@@ -12,11 +12,13 @@
 
 import React, { useMemo, useState } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, Platform, Pressable,
+  View, Text, StyleSheet, ScrollView, Platform, Pressable, Alert,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
+import * as WebBrowser from 'expo-web-browser';
+import * as Linking from 'expo-linking';
 
 import { GradientBackground } from '@/components/GradientBackground';
 import { SubscriptionPlanCard } from '@/components/SubscriptionPlanCard';
@@ -26,6 +28,11 @@ import { useAppStore } from '@/store/useAppStore';
 import { SUBSCRIPTION_PLANS } from '@/data/subscriptionPlans';
 import { switchPlan } from '@/services/subscriptionService';
 import type { SubscriptionPlan, SubscriptionPlanId } from '@/types/subscription';
+import { createCheckoutSession } from '@/lib/api';
+
+// Plans that route through real Stripe Checkout. All other plan changes stay
+// fully local (free / enterprise / team flows are out of scope for the demo).
+const STRIPE_PLAN_IDS = new Set<SubscriptionPlanId>(['athlete', 'system']);
 
 type CategoryId = 'consumer' | 'team' | 'performance';
 
@@ -75,6 +82,37 @@ export default function SubscriptionScreen() {
     if (state.subscription.planId === planId || pendingPlanId) return;
     setPendingPlanId(planId);
     try {
+      // Paid consumer upgrades route through real Stripe Checkout. Everything
+      // else (downgrade-to-Core, Team, Performance Systems) stays local.
+      if (STRIPE_PLAN_IDS.has(planId)) {
+        const returnUrl = Linking.createURL('/subscription', { queryParams: {} });
+        let session;
+        try {
+          session = await createCheckoutSession({ planId, returnUrl });
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : 'Could not start checkout.';
+          Alert.alert('Checkout unavailable', msg);
+          return;
+        }
+
+        const result = await WebBrowser.openAuthSessionAsync(session.url, returnUrl);
+
+        // openAuthSessionAsync resolves with the redirect URL on success.
+        const redirected =
+          result.type === 'success' && typeof result.url === 'string' ? result.url : null;
+
+        if (!redirected) return; // cancelled / dismissed — leave plan unchanged
+
+        const parsed = Linking.parse(redirected);
+        const status = (parsed.queryParams?.status as string | undefined) ?? '';
+        if (status !== 'success') return;
+
+        const next = await switchPlan(planId);
+        setSubscription(next);
+        return;
+      }
+
+      // Local switch (free tier, team, enterprise placeholders).
       const next = await switchPlan(planId);
       setSubscription(next);
     } finally {

@@ -145,3 +145,17 @@ export async function postCycle(cycle: Omit<ServerCycle, "id"> & { id?: string }
   const data = await request<{ cycle: ServerCycle }>("POST", "/cycles", cycle);
   return data.cycle;
 }
+
+// ─── Checkout (Stripe) ───────────────────────────────────────────────────────
+export interface CheckoutSession {
+  url: string;
+  sessionId: string;
+}
+
+/** Create a Stripe Checkout session for a consumer plan upgrade. */
+export async function createCheckoutSession(input: {
+  planId: string;
+  returnUrl: string;
+}): Promise<CheckoutSession> {
+  return request<CheckoutSession>("POST", "/checkout/session", input);
+}

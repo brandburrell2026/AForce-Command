@@ -101,13 +101,17 @@ export interface VoiceResponseTemplate {
 export interface VoiceContext {
   mode: VoiceUrgencyMode;
   score: number;
-  recheck_minutes: number;
-  command_action: string;
+  /** Default 20 min when not provided. */
+  recheck_minutes?: number;
+  /** Default '' (most templates do not use {action}). */
+  command_action?: string;
   fluid?: string;
   symptoms?: string[];
   oz?: number;
   team_player?: string;
   competitor?: string;
+  /** Heat Guard band — passed through for analytics, not currently tokenized. */
+  heat_band?: string;
 }
 
 /** Convert engine PerformanceLevel → mode key. */

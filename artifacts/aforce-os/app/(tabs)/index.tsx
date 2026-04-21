@@ -43,7 +43,11 @@ import { phantomBandService } from '@/services/phantomBandService';
 import { useAppStore } from '@/store/useAppStore';
 import { matchVideo } from '@/services/videoEngine';
 import { evaluateHeatRisk } from '@/services/heatRiskEngine';
-import type { HeatSymptom } from '@/types/heat';
+import { renderTemplate } from '@/services/voiceTemplateEngine';
+import { speak } from '@/services/textToSpeech';
+import { resolvePersona } from '@/services/voicePersonaService';
+import type { VoiceContext } from '@/types/voicePersona';
+import type { HeatSymptom, HeatRiskBand } from '@/types/heat';
 import { Colors } from '@/theme/colors';
 import { Feather } from '@expo/vector-icons';
 
@@ -65,6 +69,26 @@ export default function HomeScreen() {
     setVoiceBtnState(voiceOpen ? 'listening' : 'idle');
   }, [voiceOpen]);
 
+  // Heat Guard escalation — when the heat band crosses STABLE → anything else,
+  // fire the heat_warning voice template once. Calm coach, not an alarm:
+  // we speak the line and surface the voice overlay so the user can react.
+  const prevHeatBandRef = React.useRef<HeatRiskBand>('STABLE');
+  const heatEscalate = React.useCallback((band: HeatRiskBand, score: number) => {
+    const persona = resolvePersona(performanceState.level);
+    const ctx: VoiceContext = {
+      mode: persona.mode,
+      score,
+      heat_band: band,
+    };
+    const line = renderTemplate('heat_warning', ctx);
+    speak(line.spoken);
+    if (Platform.OS !== 'web') {
+      try { Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning); } catch { /* ignore */ }
+    }
+    setVoiceAutoStart(false);
+    setVoiceOpen(true);
+  }, [performanceState.level]);
+
   // Mirror current performance level into the Phantom Band so the LED matches
   // app state. Runs whenever the engine emits a new level.
   React.useEffect(() => {
@@ -80,6 +104,11 @@ export default function HomeScreen() {
       setVoiceOpen(true);
     });
   }, []);
+
+  // After heatScore is computed below, watch for STABLE → escalation crossings
+  // and trigger the Heat Guard voice. Defined here so the effect reads the
+  // memoized heatScore.
+  // (effect is placed after the useMemo so it always reads the latest band.)
 
   // Derive a quick Heat Guard read from current user state. The banner only
   // surfaces when band !== STABLE so we never nag the user for no reason.
@@ -119,6 +148,28 @@ export default function HomeScreen() {
     userState.sweatRate, userState.bodyWeightLbs, userState.symptoms,
     userState.urineSignal, userState.energyState,
   ]);
+
+  // Heat Guard escalation effect — fires when band crosses STABLE → non-STABLE,
+  // and again whenever the severity steps up (e.g. WARNING → HIGH_RISK). We
+  // don't fire on de-escalation, and we never fire on initial mount — the
+  // first observed band only seeds prevHeatBandRef.
+  const heatDidMountRef = React.useRef(false);
+  React.useEffect(() => {
+    const SEVERITY: Record<HeatRiskBand, number> = {
+      STABLE: 0, ELEVATED: 1, WARNING: 2, HIGH_RISK: 3, CRITICAL: 4,
+    };
+    const next = heatScore.band;
+    if (!heatDidMountRef.current) {
+      heatDidMountRef.current = true;
+      prevHeatBandRef.current = next; // seed silently — never alert on mount
+      return;
+    }
+    const prev = prevHeatBandRef.current;
+    if (SEVERITY[next] > SEVERITY[prev] && next !== 'STABLE') {
+      heatEscalate(next, heatScore.score);
+    }
+    prevHeatBandRef.current = next;
+  }, [heatScore.band, heatScore.score, heatEscalate]);
 
   const openBreakdown = () => {
     if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
