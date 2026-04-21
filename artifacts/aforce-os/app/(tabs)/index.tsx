@@ -35,6 +35,7 @@ import { FlavorPickerModal, type FlavorChoice } from '@/components/FlavorPickerM
 import { LocalTimeBar } from '@/components/LocalTimeBar';
 import { AdaptiveScreenWrapper } from '@/components/AdaptiveScreenWrapper';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
+import { useFoldableState } from '@/hooks/useFoldableState';
 import { ScoreBreakdownSheet } from '@/components/ScoreBreakdownSheet';
 import { OnboardingOverlay } from '@/components/OnboardingOverlay';
 import { AIVideoPlayer } from '@/components/AIVideoPlayer';
@@ -60,6 +61,7 @@ export default function HomeScreen() {
   const { state, logIntake, snooze, dismissSuccess, completeOnboarding } = useAppStore();
   const [ctaFlavorOpen, setCtaFlavorOpen] = React.useState(false);
   const layout = useResponsiveLayout();
+  const foldable = useFoldableState();
   const {
     engineOutput, userState, showCycleSuccess, lastCycleResult,
     isCompletingCycle, timerSeconds, lastIntakeBurstAt, hasSeenOnboarding,
@@ -210,6 +212,175 @@ export default function HomeScreen() {
   const topPadding = Platform.OS === 'web' ? 67 : insets.top;
   const bottomPadding = Platform.OS === 'web' ? 34 + 84 : insets.bottom + 84;
 
+  // ─── Reusable section fragments ─────────────────────────────────
+  // Defined once so the phone (single-column) and the foldable
+  // (two-column) layouts both consume the exact same JSX. This keeps
+  // the two layouts visually identical at the component level — only
+  // their arrangement changes.
+
+  const topSection = (
+    <>
+      <LocalTimeBar />
+
+      {heatScore.band !== 'STABLE' && (
+        <View style={{ marginBottom: 12 }} testID="heat-alert-banner">
+          <HeatAlertBanner score={heatScore.score} band={heatScore.band} />
+        </View>
+      )}
+
+      <LiveStatusStrip
+        performanceState={performanceState}
+        unitsToday={userState.unitsConsumedToday}
+        dailyTarget={userState.dailyTarget}
+      />
+
+      <View style={styles.headerRow}>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.eyebrow}>HYDRATION CONTROL CENTER</Text>
+          <Text style={styles.title}>AForce OS</Text>
+        </View>
+        <TouchableOpacity
+          onPress={() => {
+            if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
+            router.push('/share');
+          }}
+          activeOpacity={0.85}
+          style={styles.shareIconBtn}
+          accessibilityLabel="Share your performance"
+          testID="home-share-button"
+        >
+          <Feather name="share" size={14} color={Colors.text.primary} />
+        </TouchableOpacity>
+        <View style={[styles.statePill, { borderColor: `${stateColor}55`, backgroundColor: `${stateColor}14` }]}>
+          <View style={[styles.dot, { backgroundColor: stateColor }]} />
+          <Text style={[styles.stateLabel, { color: stateColor }]}>{performanceState.level}</Text>
+        </View>
+      </View>
+    </>
+  );
+
+  const orbSection = (
+    <View style={styles.orbContainer}>
+      <StatusPulseOrb
+        pulseConfig={pulseConfig}
+        score={score}
+        burstAt={lastIntakeBurstAt}
+        onTap={openBreakdown}
+        size={layout.orbSize}
+      />
+      <Text style={styles.orbHint}>TAP ORB FOR FULL BREAKDOWN</Text>
+    </View>
+  );
+
+  const commandSection = (
+    <>
+      <WhyThisScore reasons={reasons} onOpenBreakdown={openBreakdown} />
+      <View style={styles.spacer} />
+      <AICommandCard command={command} performanceState={performanceState} />
+      <View style={styles.spacer} />
+      <AIVideoPlayer
+        video={matchVideo({ engineOutput, userState })}
+        command={command}
+        timerSeconds={timerSeconds}
+      />
+    </>
+  );
+
+  const ctaSection = (
+    <>
+      <FlavorPickerModal
+        visible={ctaFlavorOpen}
+        format="both"
+        onCancel={() => setCtaFlavorOpen(false)}
+        onConfirm={handleCtaFlavor}
+      />
+
+      <TouchableOpacity
+        style={[
+          styles.ctaButton,
+          {
+            borderColor: `${stateColor}66`,
+            paddingVertical: layout.ctaPaddingV,
+            marginHorizontal: layout.gutter,
+          },
+          isCompletingCycle && styles.ctaDisabled,
+        ]}
+        onPress={handleComplete}
+        activeOpacity={0.85}
+        disabled={isCompletingCycle}
+      >
+        <View style={[styles.ctaGlow, { backgroundColor: `${stateColor}1F` }]} />
+        <Feather name="check-circle" size={20} color={isCompletingCycle ? Colors.text.muted : stateColor} />
+        <Text style={[styles.ctaText, { color: isCompletingCycle ? Colors.text.muted : Colors.text.primary }]}>
+          {isCompletingCycle ? 'LOGGING…' : 'LOG AFORCE'}
+        </Text>
+      </TouchableOpacity>
+
+      {!userState.isSnoozed ? (
+        <TouchableOpacity style={styles.snoozeBtn} onPress={handleSnooze} activeOpacity={0.7}>
+          <Feather name="clock" size={12} color={Colors.text.muted} />
+          <Text style={styles.snoozeText}>Snooze 20 minutes</Text>
+        </TouchableOpacity>
+      ) : (
+        <View style={styles.snoozeBtn}>
+          <Feather name="moon" size={12} color={Colors.states.RECOVERING.primary} />
+          <Text style={[styles.snoozeText, { color: Colors.states.RECOVERING.primary }]}>
+            Snoozed — Next alert in 20 min
+          </Text>
+        </View>
+      )}
+    </>
+  );
+
+  const actionRow = (
+    <View style={styles.actionRow}>
+      {([
+        { key: 'scan',      icon: 'maximize',    label: 'Scan',      onPress: () => router.push('/scan') },
+        { key: 'products',  icon: 'package',     label: 'Products',  onPress: () => router.push('/products') },
+        { key: 'compete',   icon: 'award',       label: 'Compete',   onPress: () => router.push('/competition') },
+        { key: 'circles',   icon: 'users',       label: 'Circles',   onPress: () => router.push('/circles'),
+          testID: 'home-circles-button' },
+        { key: 'territory', icon: 'map',         label: 'Territory', onPress: () => router.push('/territory'),
+          testID: 'home-territory-button' },
+      ] as const).map((item) => (
+        <TouchableOpacity
+          key={item.key}
+          onPress={() => {
+            if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
+            item.onPress();
+          }}
+          activeOpacity={0.85}
+          style={styles.actionTile}
+          accessibilityRole="button"
+          accessibilityLabel={item.label}
+          testID={'testID' in item ? item.testID : undefined}
+        >
+          <Feather name={item.icon} size={18} color={Colors.text.primary} />
+        </TouchableOpacity>
+      ))}
+    </View>
+  );
+
+  const supportingSection = (
+    <>
+      {actionRow}
+      <View style={styles.spacer} />
+      <RiskTimerDisplay timerSeconds={timerSeconds} performanceState={performanceState} />
+      <View style={styles.spacer} />
+      <LogIntakeRow accentColor={stateColor} />
+      <View style={styles.spacer} />
+      <WaterCycleBar
+        unitsConsumed={userState.unitsConsumedToday}
+        dailyTarget={userState.dailyTarget}
+        performanceState={performanceState}
+      />
+      <View style={styles.spacer} />
+      <PhantomSignal />
+      <View style={styles.spacer} />
+      <PhantomBandCard />
+    </>
+  );
+
   return (
     <View style={styles.root}>
       <GradientBackground>
@@ -230,165 +401,51 @@ export default function HomeScreen() {
           ]}
           showsVerticalScrollIndicator={false}
         >
-          <LocalTimeBar />
+          {topSection}
 
-          {heatScore.band !== 'STABLE' && (
-            <View style={{ marginBottom: 12 }} testID="heat-alert-banner">
-              <HeatAlertBanner score={heatScore.score} band={heatScore.band} />
+          {foldable.isExpanded ? (
+            // Foldable / tablet layout — orb + command + CTA stay
+            // dominant in the LEFT column, supporting cards (actions,
+            // log row, signals, water cycle) flow into a parallel
+            // RIGHT column so the user sees more of the dashboard at
+            // once without losing the command-first hierarchy.
+            <View style={styles.twoCol} testID="home-two-col">
+              <View style={[styles.col, styles.colLeft]}>
+                {orbSection}
+                {commandSection}
+                <View style={styles.spacerLg} />
+                {ctaSection}
+              </View>
+              <View style={[styles.col, styles.colRight]} testID="home-right-col">
+                {supportingSection}
+              </View>
             </View>
-          )}
-
-          <LiveStatusStrip
-            performanceState={performanceState}
-            unitsToday={userState.unitsConsumedToday}
-            dailyTarget={userState.dailyTarget}
-          />
-
-          <View style={styles.headerRow}>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.eyebrow}>HYDRATION CONTROL CENTER</Text>
-              <Text style={styles.title}>AForce OS</Text>
-            </View>
-            <TouchableOpacity
-              onPress={() => {
-                if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
-                router.push('/share');
-              }}
-              activeOpacity={0.85}
-              style={styles.shareIconBtn}
-              accessibilityLabel="Share your performance"
-              testID="home-share-button"
-            >
-              <Feather name="share" size={14} color={Colors.text.primary} />
-            </TouchableOpacity>
-            <View style={[styles.statePill, { borderColor: `${stateColor}55`, backgroundColor: `${stateColor}14` }]}>
-              <View style={[styles.dot, { backgroundColor: stateColor }]} />
-              <Text style={[styles.stateLabel, { color: stateColor }]}>{performanceState.level}</Text>
-            </View>
-          </View>
-
-          <View style={styles.orbContainer}>
-            <StatusPulseOrb
-              pulseConfig={pulseConfig}
-              score={score}
-              burstAt={lastIntakeBurstAt}
-              onTap={openBreakdown}
-              size={layout.orbSize}
-            />
-            <Text style={styles.orbHint}>TAP ORB FOR FULL BREAKDOWN</Text>
-          </View>
-
-          <WhyThisScore reasons={reasons} onOpenBreakdown={openBreakdown} />
-          <View style={styles.spacer} />
-
-          <AICommandCard command={command} performanceState={performanceState} />
-          <View style={styles.spacer} />
-
-          <AIVideoPlayer
-            video={matchVideo({ engineOutput, userState })}
-            command={command}
-            timerSeconds={timerSeconds}
-          />
-          <View style={styles.spacer} />
-
-          {/*
-            Action row — icon-only pills in the Phantom-card aesthetic so all
-            six destinations fit on any phone width without a horizontal
-            scroll. Each tile is square + flex:1 (so they share the row evenly
-            and never overflow). The DEPLETED state still tints the Compare
-            tile with the live state color, mirroring how the Phantom card
-            promotes its LIVE pill. Screen-reader labels preserve the names.
-          */}
-          <View style={styles.actionRow}>
-            {([
-              { key: 'scan',      icon: 'maximize',    label: 'Scan',      onPress: () => router.push('/scan') },
-              { key: 'products',  icon: 'package',     label: 'Products',  onPress: () => router.push('/products') },
-              { key: 'compete',   icon: 'award',       label: 'Compete',   onPress: () => router.push('/competition') },
-              { key: 'circles',   icon: 'users',       label: 'Circles',   onPress: () => router.push('/circles'),
-                testID: 'home-circles-button' },
-              { key: 'territory', icon: 'map',         label: 'Territory', onPress: () => router.push('/territory'),
-                testID: 'home-territory-button' },
-            ] as const).map((item) => {
-              return (
-                <TouchableOpacity
-                  key={item.key}
-                  onPress={() => {
-                    if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
-                    item.onPress();
-                  }}
-                  activeOpacity={0.85}
-                  style={styles.actionTile}
-                  accessibilityRole="button"
-                  accessibilityLabel={item.label}
-                  testID={'testID' in item ? item.testID : undefined}
-                >
-                  <Feather name={item.icon} size={18} color={Colors.text.primary} />
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-          <View style={styles.spacer} />
-
-          <RiskTimerDisplay timerSeconds={timerSeconds} performanceState={performanceState} />
-          <View style={styles.spacerLg} />
-
-          <FlavorPickerModal
-            visible={ctaFlavorOpen}
-            format="both"
-            onCancel={() => setCtaFlavorOpen(false)}
-            onConfirm={handleCtaFlavor}
-          />
-
-          <TouchableOpacity
-            style={[
-              styles.ctaButton,
-              {
-                borderColor: `${stateColor}66`,
-                paddingVertical: layout.ctaPaddingV,
-                marginHorizontal: layout.gutter,
-              },
-              isCompletingCycle && styles.ctaDisabled,
-            ]}
-            onPress={handleComplete}
-            activeOpacity={0.85}
-            disabled={isCompletingCycle}
-          >
-            <View style={[styles.ctaGlow, { backgroundColor: `${stateColor}1F` }]} />
-            <Feather name="check-circle" size={20} color={isCompletingCycle ? Colors.text.muted : stateColor} />
-            <Text style={[styles.ctaText, { color: isCompletingCycle ? Colors.text.muted : Colors.text.primary }]}>
-              {isCompletingCycle ? 'LOGGING…' : 'LOG AFORCE'}
-            </Text>
-          </TouchableOpacity>
-
-          {!userState.isSnoozed ? (
-            <TouchableOpacity style={styles.snoozeBtn} onPress={handleSnooze} activeOpacity={0.7}>
-              <Feather name="clock" size={12} color={Colors.text.muted} />
-              <Text style={styles.snoozeText}>Snooze 20 minutes</Text>
-            </TouchableOpacity>
           ) : (
-            <View style={styles.snoozeBtn}>
-              <Feather name="moon" size={12} color={Colors.states.RECOVERING.primary} />
-              <Text style={[styles.snoozeText, { color: Colors.states.RECOVERING.primary }]}>
-                Snoozed — Next alert in 20 min
-              </Text>
-            </View>
+            // Phone layout — preserved exactly as before so existing
+            // device-specific tuning isn't disturbed.
+            <>
+              {orbSection}
+              {commandSection}
+              <View style={styles.spacer} />
+              {actionRow}
+              <View style={styles.spacer} />
+              <RiskTimerDisplay timerSeconds={timerSeconds} performanceState={performanceState} />
+              <View style={styles.spacerLg} />
+              {ctaSection}
+              <View style={styles.spacer} />
+              <LogIntakeRow accentColor={stateColor} />
+              <View style={styles.spacer} />
+              <WaterCycleBar
+                unitsConsumed={userState.unitsConsumedToday}
+                dailyTarget={userState.dailyTarget}
+                performanceState={performanceState}
+              />
+              <View style={styles.spacer} />
+              <PhantomSignal />
+              <View style={styles.spacer} />
+              <PhantomBandCard />
+            </>
           )}
-
-          <View style={styles.spacer} />
-          <LogIntakeRow accentColor={stateColor} />
-
-          <View style={styles.spacer} />
-          <WaterCycleBar
-            unitsConsumed={userState.unitsConsumedToday}
-            dailyTarget={userState.dailyTarget}
-            performanceState={performanceState}
-          />
-
-          <View style={styles.spacer} />
-          <PhantomSignal />
-
-          <View style={styles.spacer} />
-          <PhantomBandCard />
         </ScrollView>
 
         {showCycleSuccess && lastCycleResult && (
@@ -526,6 +583,24 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     paddingHorizontal: 20,
     gap: 8,
+  },
+  twoCol: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 16,
+    paddingHorizontal: 8,
+    marginTop: 4,
+  },
+  col: {
+    flex: 1,
+  },
+  colLeft: {
+    // Slight bias toward the left column so the orb + command remain
+    // the dominant focal point on wide layouts.
+    flex: 1.05,
+  },
+  colRight: {
+    flex: 0.95,
   },
   // Icon-only tile — Phantom-card aesthetic (Colors.fill.light + subtle border,
   // borderRadius 14). flex:1 + aspectRatio:1 makes them square and evenly
