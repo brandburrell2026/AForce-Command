@@ -1,11 +1,24 @@
 /**
- * AForce Subscription plans.
+ * AForce Subscription plans — overhauled pricing system.
  *
- * Pricing and feature inheritance follow the spec:
- *   Core ($5)  →  Athlete ($15)  →  Bundle ($50, FLAGSHIP)
- *   Core Team ($25–$300)
- *   Clutch ($800–$5,000)
- *   Guardian ($5,000–$8,000)
+ *   CONSUMER
+ *     core              Free          "Start your performance system"
+ *     athlete           $19/mo        "Train and perform with precision"
+ *     system            $49/mo        BEST VALUE — "Full performance control"
+ *
+ *   TEAM / PROGRAM
+ *     team_starter      $49/mo        up to 25 — "Run your team with intelligence"
+ *     team_growth       $99/mo        up to 50 — "Scale team performance"
+ *     team_pro          $149/mo       up to 100 — "Operate at a higher level"
+ *
+ *   PERFORMANCE SYSTEMS — CLUTCH ACCESS
+ *     clutch_starter    $1,000/mo     "Control performance in real time"
+ *     clutch_pro        $2,500/mo     "Advance live decision making"
+ *     clutch_elite      $5,000/mo     ELITE — "Elite team command system"
+ *
+ *   PERFORMANCE SYSTEMS — GUARDIAN
+ *     guardian_core     $5,000/mo + $7,500 setup, 6mo min   — "Protect athletes before breakdown"
+ *     guardian_elite    $8,000/mo + $12,500 setup, 12mo min — ELITE "Elite roster protection system"
  *
  * Feature flags map back to `featureFlags/flags.ts` so gating + entitlements
  * stay consistent across the product surface.
@@ -13,56 +26,74 @@
 
 import type { SubscriptionPlan, SubscriptionPlanId } from '../types/subscription';
 
+function priceLabel(price: number): string {
+  if (price === 0) return 'Free';
+  if (price >= 1000) return `$${price.toLocaleString('en-US')}/mo`;
+  return `$${price}/mo`;
+}
+
 export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
+  // ─── CONSUMER ────────────────────────────────────────────────────────────
   {
     id: 'core',
     name: 'Core',
-    tagline: 'AForce OS essentials. Status pulse, score, AI commands.',
-    audience: 'consumer',
-    priceMonthly: 5,
-    priceLabel: '$5/mo',
+    category: 'consumer',
+    subcategory: 'consumer',
+    positioning: 'Start your performance system',
+    description:
+      'Entry point into AForce OS for consumers who want the core experience and daily command layer.',
+    priceMonthly: 0,
+    priceLabel: priceLabel(0),
     rank: 1,
+    ctaLabel: 'Start Free',
     features: [
-      { id: 'home',          label: 'Hydration Control Center' },
-      { id: 'pulse',         label: 'Status Pulse + Performance Score' },
-      { id: 'protocol',      label: 'AForce Protocol guidance' },
-      { id: 'ai_basic',      label: 'AI hydration commands (basic)' },
-      { id: 'logging',       label: 'Tap-to-log Quick Intake' },
-      { id: 'reminders',     label: 'Smart reminders' },
-      { id: 'scan_compare',  label: 'Hydration Scan — compare any product' },
+      { id: 'home',       label: 'Hydration Control Center' },
+      { id: 'pulse',      label: 'Status Pulse + Performance Score' },
+      { id: 'protocol',   label: 'Basic protocol guidance' },
+      { id: 'ai_basic',   label: 'Basic AI hydration commands' },
+      { id: 'logging',    label: 'Quick intake logging' },
+      { id: 'reminders',  label: 'Smart reminders' },
     ],
   },
   {
     id: 'athlete',
-    name: 'Athlete Mode',
-    tagline: 'Personalized AI. Competition. Recovery analytics.',
-    audience: 'consumer',
-    priceMonthly: 15,
-    priceLabel: '$15/mo',
+    name: 'AForce Athlete',
+    category: 'consumer',
+    subcategory: 'consumer',
+    positioning: 'Train and perform with precision',
+    description:
+      'The daily performance system for serious users who want deeper decisioning, recovery guidance, and personalized protocols.',
+    priceMonthly: 19,
+    priceLabel: priceLabel(19),
     rank: 2,
     inheritsFromId: 'core',
+    ctaLabel: 'Upgrade to Athlete',
     features: [
       { id: 'ai_pro',         label: 'Enhanced AI decisioning',          detail: 'Deeper protocol personalization tuned to your activity profile.', badge: 'PRO' },
+      { id: 'protocol_pro',   label: 'Personalized hydration protocol' },
       { id: 'recovery_pro',   label: 'Advanced recovery guidance',       detail: 'Sleep mode, recovery cycles, post-event protocols.' },
       { id: 'trends',         label: 'Expanded trends + history',        detail: '90-day score history with state breakdown.' },
       { id: 'competition',    label: 'Community Competition access',     flag: 'global_leaderboard_enabled' },
       { id: 'city_compete',   label: 'City + State leaderboards',        flag: 'city_competition_enabled' },
-      { id: 'team_compete',   label: 'Team leaderboards',                flag: 'team_competition_enabled' },
+      { id: 'team_compete',   label: 'Team leaderboard participation',   flag: 'team_competition_enabled' },
       { id: 'premium_notif',  label: 'Premium notifications' },
-      { id: 'phantom',        label: 'PHANTOM Band pairing',             flag: 'phantom_wearable_enabled' },
     ],
   },
   {
-    id: 'bundle',
-    name: 'OS + Hydration Bundle',
-    tagline: 'Athlete Mode + recurring AForce shipments at preferred pricing.',
-    audience: 'consumer',
-    priceMonthly: 50,
-    priceLabel: '$50/mo',
+    id: 'system',
+    name: 'AForce System',
+    category: 'consumer',
+    subcategory: 'consumer',
+    positioning: 'Full performance control',
+    description:
+      'The full AForce system for users who want software + product integration in one complete performance loop.',
+    priceMonthly: 49,
+    priceLabel: priceLabel(49),
     rank: 3,
-    isFlagship: true,
-    highlight: 'BEST VALUE',
     inheritsFromId: 'athlete',
+    badge: 'BEST VALUE',
+    isBestValue: true,
+    ctaLabel: 'Get the Full System',
     productSubscription: {
       allotments: [
         { fluidType: 'aforce_stick',     unitsPerCycle: 30, label: '30 AForce Sticks' },
@@ -72,61 +103,191 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
       cadence: 'monthly',
     },
     features: [
-      { id: 'product_sub',    label: 'Monthly AForce shipment',          detail: 'Sticks, RTDs, and canister auto-replenished.', badge: 'NEW' },
-      { id: 'preferred_pricing', label: 'Preferred member pricing',      detail: 'Lower per-unit cost than à la carte.' },
-      { id: 'priority_ship',  label: 'Priority shipping placeholder' },
-      { id: 'custom_mix',     label: 'Custom flavor mix (coming soon)' },
+      { id: 'product_sub',       label: 'Monthly AForce product subscription',  detail: 'Sticks, RTDs, and canister auto-replenished each cycle.', badge: 'NEW' },
+      { id: 'preferred_pricing', label: 'Preferred pricing on hydration products' },
+      { id: 'priority_ai',       label: 'Priority AI optimization',             badge: 'PRO' },
+      { id: 'protocol_tune',     label: 'Advanced protocol tuning' },
+      { id: 'premium_insights',  label: 'Premium performance insights' },
+      { id: 'system_recs',       label: 'Full system-level recommendations' },
     ],
   },
+
+  // ─── TEAM / PROGRAM ──────────────────────────────────────────────────────
   {
-    id: 'core_team',
-    name: 'Team / Program Core',
-    tagline: 'Roster-aware Core for small organizations and programs.',
-    audience: 'team',
-    priceFrom: 25,
-    priceTo: 300,
-    priceLabel: '$25–$300/mo',
+    id: 'team_starter',
+    name: 'Team Core Starter',
+    category: 'team',
+    subcategory: 'team',
+    positioning: 'Run your team with intelligence',
+    description:
+      'Roster-aware AForce OS for small organizations, training groups, and developing programs.',
+    priceMonthly: 49,
+    priceLabel: priceLabel(49),
+    userLimit: 25,
     rank: 4,
-    inheritsFromId: 'core',
+    ctaLabel: 'Start Team Core',
     features: [
-      { id: 'roster_core',    label: 'Roster-aware Core for up to 50 members' },
-      { id: 'group_reports',  label: 'Group reporting + protocol templates' },
-      { id: 'admin_console',  label: 'Admin console + invite codes' },
-      { id: 'bulk_billing',   label: 'Bulk billing + seat management' },
+      { id: 'roster_core',      label: 'Roster-aware Core',                flag: 'team_roster_enabled' },
+      { id: 'group_reports',    label: 'Group reporting',                  flag: 'team_reporting_enabled' },
+      { id: 'protocol_templates', label: 'Protocol templates' },
+      { id: 'admin_console',    label: 'Admin console',                    flag: 'team_admin_enabled' },
+      { id: 'invite_codes',     label: 'Invite codes' },
+      { id: 'seat_basic',       label: 'Basic seat management' },
     ],
   },
   {
-    id: 'clutch',
-    name: 'Clutch Access',
-    tagline: 'Live game commands. Heat Mode. Team grid.',
-    audience: 'enterprise',
-    priceFrom: 800,
-    priceTo: 5000,
-    priceLabel: '$800–$5,000/mo',
+    id: 'team_growth',
+    name: 'Team Core Growth',
+    category: 'team',
+    subcategory: 'team',
+    positioning: 'Scale team performance',
+    description:
+      'Expanded team performance system for organizations that need deeper reporting and better operational visibility.',
+    priceMonthly: 99,
+    priceLabel: priceLabel(99),
+    userLimit: 50,
     rank: 5,
-    inheritsFromId: 'core_team',
+    inheritsFromId: 'team_starter',
+    ctaLabel: 'Upgrade to Growth',
     features: [
-      { id: 'clutch_grid',    label: 'CLUTCH command grid',              flag: 'clutch_access_enabled', badge: 'ELITE' },
-      { id: 'heat_mode',      label: 'Heat Mode',                        flag: 'clutch_heat_mode_enabled' },
-      { id: 'inventory',      label: 'Auto-replenish + inventory logic', flag: 'clutch_inventory_enabled' },
-      { id: 'clutch_clip',    label: 'CLUTCH Clip hardware support',     flag: 'clutch_clip_enabled' },
+      { id: 'analytics_expanded', label: 'Expanded analytics' },
+      { id: 'multi_group',        label: 'Multi-group segmentation' },
+      { id: 'reporting_deep',     label: 'Deeper reporting' },
+      { id: 'admin_enhanced',     label: 'Enhanced admin controls' },
     ],
   },
   {
-    id: 'guardian',
-    name: 'Guardian',
-    tagline: 'Elite injury prevention + roster protection.',
-    audience: 'enterprise',
-    priceFrom: 5000,
-    priceTo: 8000,
-    priceLabel: '$5,000–$8,000/mo',
+    id: 'team_pro',
+    name: 'Team Core Pro',
+    category: 'team',
+    subcategory: 'team',
+    positioning: 'Operate at a higher level',
+    description:
+      'Advanced team management layer for larger organizations that want greater control, better insight, and stronger performance visibility.',
+    priceMonthly: 149,
+    priceLabel: priceLabel(149),
+    userLimit: 100,
     rank: 6,
-    inheritsFromId: 'clutch',
+    inheritsFromId: 'team_growth',
+    ctaLabel: 'Upgrade to Pro',
     features: [
-      { id: 'risk_score',     label: 'Roster-wide risk score',           flag: 'guardian_intelligence_enabled', badge: 'ELITE' },
-      { id: 'body_map',       label: 'Body Risk Map',                    flag: 'guardian_body_map_enabled' },
-      { id: 'critical_alert', label: 'Critical injury alerts',           flag: 'guardian_alerts_enabled' },
-      { id: 'medical_escal',  label: 'Coach + medical escalation paths' },
+      { id: 'team_insights_pro',  label: 'Advanced team performance insights', badge: 'PRO' },
+      { id: 'priority_support',   label: 'Priority support placeholder' },
+      { id: 'reporting_elevated', label: 'Elevated reporting tools' },
+      { id: 'visibility_enhanced',label: 'Enhanced operational visibility' },
+    ],
+  },
+
+  // ─── PERFORMANCE SYSTEMS — CLUTCH ACCESS ─────────────────────────────────
+  {
+    id: 'clutch_starter',
+    name: 'Clutch Starter',
+    category: 'performance',
+    subcategory: 'clutch',
+    positioning: 'Control performance in real time',
+    description:
+      'Entry point into the live team command environment for organizations that want real-time decision support.',
+    priceMonthly: 1000,
+    priceLabel: priceLabel(1000),
+    rank: 7,
+    ctaLabel: 'Get Clutch Starter',
+    features: [
+      { id: 'clutch_grid',     label: 'Clutch command grid',            flag: 'clutch_access_enabled' },
+      { id: 'realtime_layer',  label: 'Real-time hydration command layer' },
+      { id: 'heat_basic',      label: 'Basic Heat Mode',                flag: 'clutch_heat_mode_enabled' },
+      { id: 'team_visibility', label: 'Team performance visibility' },
+      { id: 'live_support',    label: 'Live command support' },
+    ],
+  },
+  {
+    id: 'clutch_pro',
+    name: 'Clutch Pro',
+    category: 'performance',
+    subcategory: 'clutch',
+    positioning: 'Advance live decision making',
+    description:
+      'Expanded game-time control system with stronger decision support, deeper team visibility, and operational execution.',
+    priceMonthly: 2500,
+    priceLabel: priceLabel(2500),
+    rank: 8,
+    inheritsFromId: 'clutch_starter',
+    ctaLabel: 'Upgrade to Clutch Pro',
+    features: [
+      { id: 'heat_advanced',   label: 'Advanced Heat Mode',             badge: 'PRO' },
+      { id: 'auto_replenish',  label: 'Auto-replenish logic',           flag: 'clutch_inventory_enabled' },
+      { id: 'command_expanded',label: 'Expanded team command tools' },
+      { id: 'live_mgmt',       label: 'Enhanced live team management' },
+    ],
+  },
+  {
+    id: 'clutch_elite',
+    name: 'Clutch Elite',
+    category: 'performance',
+    subcategory: 'clutch',
+    positioning: 'Elite team command system',
+    description:
+      'Full performance command system for elite organizations that want real-time operational control during competition and high-intensity environments.',
+    priceMonthly: 5000,
+    priceLabel: priceLabel(5000),
+    rank: 9,
+    inheritsFromId: 'clutch_pro',
+    badge: 'ELITE',
+    ctaLabel: 'Get Clutch Elite',
+    features: [
+      { id: 'clutch_clip',     label: 'CLUTCH Clip hardware support placeholder', flag: 'clutch_clip_enabled', badge: 'ELITE' },
+      { id: 'command_full',    label: 'Full team command environment' },
+      { id: 'control_elite',   label: 'Elite real-time performance control tools' },
+      { id: 'support_premium', label: 'Premium support placeholder' },
+    ],
+  },
+
+  // ─── PERFORMANCE SYSTEMS — GUARDIAN ──────────────────────────────────────
+  {
+    id: 'guardian_core',
+    name: 'Guardian Core',
+    category: 'performance',
+    subcategory: 'guardian',
+    positioning: 'Protect athletes before breakdown',
+    description:
+      'Foundational injury risk reduction and roster protection system for serious organizations that want proactive visibility into athlete stress and risk patterns.',
+    priceMonthly: 5000,
+    setupFee: 7500,
+    minimumTermMonths: 6,
+    priceLabel: priceLabel(5000),
+    rank: 10,
+    ctaLabel: 'Get Guardian Core',
+    valueNote: 'Prevent one major incident and the system can pay for itself.',
+    features: [
+      { id: 'risk_score',     label: 'Roster-wide risk score',           flag: 'guardian_intelligence_enabled' },
+      { id: 'risk_basic',     label: 'Basic body risk modeling' },
+      { id: 'early_warning',  label: 'Early warning alerts',             flag: 'guardian_alerts_enabled' },
+      { id: 'team_risk_mon',  label: 'Team risk monitoring' },
+      { id: 'recovery_escal', label: 'Recovery escalation visibility' },
+    ],
+  },
+  {
+    id: 'guardian_elite',
+    name: 'Guardian Elite',
+    category: 'performance',
+    subcategory: 'guardian',
+    positioning: 'Elite roster protection system',
+    description:
+      'Advanced roster protection system for elite organizations that need deeper intelligence, higher confidence alerts, and coordinated intervention paths.',
+    priceMonthly: 8000,
+    setupFee: 12500,
+    minimumTermMonths: 12,
+    priceLabel: priceLabel(8000),
+    rank: 11,
+    inheritsFromId: 'guardian_core',
+    badge: 'ELITE',
+    ctaLabel: 'Get Guardian Elite',
+    valueNote: 'The cost of one serious injury event can exceed the cost of Guardian.',
+    features: [
+      { id: 'body_map',          label: 'Body Risk Map',                       flag: 'guardian_body_map_enabled', badge: 'ELITE' },
+      { id: 'critical_alert',    label: 'Critical injury alerts' },
+      { id: 'medical_escal',     label: 'Coach + medical escalation paths' },
+      { id: 'risk_advanced',     label: 'Advanced risk modeling' },
+      { id: 'deployment_elite',  label: 'Elite deployment and support placeholder' },
     ],
   },
 ];

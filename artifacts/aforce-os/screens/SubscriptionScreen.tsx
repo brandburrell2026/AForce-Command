@@ -1,9 +1,13 @@
 /**
  * Subscription screen — plan picker.
  *
- * Lists all AForce subscription plans with the user's current plan
- * pre-selected. Tapping a plan switches via the (mock) billing service
- * and immediately updates the live store + unlocked feature flags.
+ * Three categories:
+ *   - CONSUMER             (Core / Athlete / System)
+ *   - TEAM / PROGRAM       (Team Core Starter / Growth / Pro)
+ *   - PERFORMANCE SYSTEMS  (Clutch Access + Guardian)
+ *
+ * Performance Systems is sub-grouped (Clutch / Guardian) and uses the
+ * heavier EnterprisePlanCard with setup-fee + minimum-term metadata.
  */
 
 import React, { useMemo, useState } from 'react';
@@ -16,32 +20,56 @@ import { Feather } from '@expo/vector-icons';
 
 import { GradientBackground } from '@/components/GradientBackground';
 import { SubscriptionPlanCard } from '@/components/SubscriptionPlanCard';
+import { EnterprisePlanCard } from '@/components/EnterprisePlanCard';
 import { Colors } from '@/theme/colors';
 import { useAppStore } from '@/store/useAppStore';
 import { SUBSCRIPTION_PLANS } from '@/data/subscriptionPlans';
 import { switchPlan } from '@/services/subscriptionService';
-import type { SubscriptionPlanId } from '@/types/subscription';
+import type { SubscriptionPlan, SubscriptionPlanId } from '@/types/subscription';
 
-const FILTERS: { id: 'consumer' | 'team' | 'enterprise'; label: string }[] = [
-  { id: 'consumer',   label: 'CONSUMER' },
-  { id: 'team',       label: 'TEAM' },
-  { id: 'enterprise', label: 'ENTERPRISE' },
+type CategoryId = 'consumer' | 'team' | 'performance';
+
+const FILTERS: { id: CategoryId; label: string }[] = [
+  { id: 'consumer',    label: 'CONSUMER' },
+  { id: 'team',        label: 'TEAM / PROGRAM' },
+  { id: 'performance', label: 'PERFORMANCE' },
 ];
+
+const CATEGORY_HEADER: Record<CategoryId, { eyebrow: string; title: string; subtitle: string }> = {
+  consumer: {
+    eyebrow: 'CONSUMER',
+    title: 'Your performance system.',
+    subtitle: 'AForce OS for individuals — from the entry layer to the full system.',
+  },
+  team: {
+    eyebrow: 'TEAM / PROGRAM',
+    title: 'Run your roster.',
+    subtitle: 'Roster-aware AForce OS for programs and organizations.',
+  },
+  performance: {
+    eyebrow: 'PERFORMANCE SYSTEMS',
+    title: 'Mission-critical performance.',
+    subtitle: 'Real-time team command and roster protection for elite organizations.',
+  },
+};
 
 export default function SubscriptionScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { state, setSubscription } = useAppStore();
-  const [filter, setFilter] = useState<'consumer' | 'team' | 'enterprise'>('consumer');
+  const [filter, setFilter] = useState<CategoryId>('consumer');
   const [pendingPlanId, setPendingPlanId] = useState<SubscriptionPlanId | null>(null);
 
   const topPadding = Platform.OS === 'web' ? 67 : insets.top;
   const bottomPadding = Platform.OS === 'web' ? 34 : insets.bottom;
 
   const visiblePlans = useMemo(
-    () => SUBSCRIPTION_PLANS.filter((p) => p.audience === filter).sort((a, b) => a.rank - b.rank),
+    () => SUBSCRIPTION_PLANS.filter((p) => p.category === filter).sort((a, b) => a.rank - b.rank),
     [filter],
   );
+
+  const clutchPlans = useMemo(() => visiblePlans.filter((p) => p.subcategory === 'clutch'), [visiblePlans]);
+  const guardianPlans = useMemo(() => visiblePlans.filter((p) => p.subcategory === 'guardian'), [visiblePlans]);
 
   const onSelect = async (planId: SubscriptionPlanId) => {
     if (state.subscription.planId === planId || pendingPlanId) return;
@@ -53,6 +81,28 @@ export default function SubscriptionScreen() {
       setPendingPlanId(null);
     }
   };
+
+  const renderConsumerOrTeamCard = (plan: SubscriptionPlan) => (
+    <SubscriptionPlanCard
+      key={plan.id}
+      plan={plan}
+      isCurrent={state.subscription.planId === plan.id}
+      isProcessing={pendingPlanId === plan.id}
+      onSelect={onSelect}
+    />
+  );
+
+  const renderEnterpriseCard = (plan: SubscriptionPlan) => (
+    <EnterprisePlanCard
+      key={plan.id}
+      plan={plan}
+      isCurrent={state.subscription.planId === plan.id}
+      isProcessing={pendingPlanId === plan.id}
+      onSelect={onSelect}
+    />
+  );
+
+  const header = CATEGORY_HEADER[filter];
 
   return (
     <View style={styles.root}>
@@ -67,7 +117,7 @@ export default function SubscriptionScreen() {
               <Feather name="chevron-left" size={20} color={Colors.text.primary} />
             </Pressable>
             <View style={{ flex: 1 }}>
-              <Text style={styles.eyebrow}>AFORCE SUBSCRIPTION</Text>
+              <Text style={styles.eyebrow}>AFORCE PRICING</Text>
               <Text style={styles.title}>Choose Your Plan</Text>
             </View>
             <Pressable onPress={() => router.push('/subscription/manage')} style={styles.manageBtn} hitSlop={10}>
@@ -76,10 +126,10 @@ export default function SubscriptionScreen() {
           </View>
 
           <Text style={styles.subtitle}>
-            AForce is a performance OS. Pick the tier that matches your mission.
+            AForce is not hydration software. AForce is performance control, recovery intelligence, and team command.
           </Text>
 
-          {/* Audience filter */}
+          {/* Category filter */}
           <View style={styles.filterRow}>
             {FILTERS.map((f) => {
               const active = filter === f.id;
@@ -95,27 +145,67 @@ export default function SubscriptionScreen() {
             })}
           </View>
 
-          {/* Plan cards */}
-          <View style={styles.plans}>
-            {visiblePlans.map((plan) => (
-              <SubscriptionPlanCard
-                key={plan.id}
-                plan={plan}
-                isCurrent={state.subscription.planId === plan.id}
-                isProcessing={pendingPlanId === plan.id}
-                onSelect={onSelect}
-              />
-            ))}
+          {/* Section header */}
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionEyebrow}>{header.eyebrow}</Text>
+            <Text style={styles.sectionTitle}>{header.title}</Text>
+            <Text style={styles.sectionSubtitle}>{header.subtitle}</Text>
           </View>
+
+          {/* Plan cards */}
+          {filter === 'performance' ? (
+            <>
+              {/* Clutch sub-section */}
+              <SubGroupHeader
+                accent={Colors.clutch.primary}
+                eyebrow="CLUTCH ACCESS"
+                title="Real-time team command"
+                hint="Live decision support for game-time and high-intensity environments."
+              />
+              <View style={styles.plans}>
+                {clutchPlans.map(renderEnterpriseCard)}
+              </View>
+
+              {/* Guardian sub-section */}
+              <SubGroupHeader
+                accent={Colors.guardian.primary}
+                eyebrow="GUARDIAN"
+                title="Roster protection"
+                hint="Mission-critical injury risk reduction and proactive intervention."
+              />
+              <View style={styles.plans}>
+                {guardianPlans.map(renderEnterpriseCard)}
+              </View>
+            </>
+          ) : (
+            <View style={styles.plans}>
+              {visiblePlans.map(renderConsumerOrTeamCard)}
+            </View>
+          )}
 
           <View style={styles.trustRow}>
             <Feather name="shield" size={12} color={Colors.text.muted} />
             <Text style={styles.trustText}>
-              Demo billing. Cancel any time. Apple IAP / Stripe integrations ready.
+              Demo billing. Stripe + Apple IAP integrations ready.
             </Text>
           </View>
         </ScrollView>
       </GradientBackground>
+    </View>
+  );
+}
+
+function SubGroupHeader({
+  accent, eyebrow, title, hint,
+}: { accent: string; eyebrow: string; title: string; hint: string }) {
+  return (
+    <View style={styles.subGroupHeader}>
+      <View style={[styles.subGroupBar, { backgroundColor: accent }]} />
+      <View style={{ flex: 1 }}>
+        <Text style={[styles.subGroupEyebrow, { color: accent }]}>{eyebrow}</Text>
+        <Text style={styles.subGroupTitle}>{title}</Text>
+        <Text style={styles.subGroupHint}>{hint}</Text>
+      </View>
     </View>
   );
 }
@@ -145,21 +235,35 @@ const styles = StyleSheet.create({
   },
 
   filterRow: {
-    flexDirection: 'row', gap: 8,
+    flexDirection: 'row', gap: 4,
     backgroundColor: Colors.background.card,
     padding: 4, borderRadius: 100,
     borderWidth: 1, borderColor: Colors.border.subtle,
   },
   filterBtn: {
-    flex: 1, paddingVertical: 8, borderRadius: 100,
+    flex: 1, paddingVertical: 8, paddingHorizontal: 4, borderRadius: 100,
     alignItems: 'center', justifyContent: 'center',
   },
   filterBtnActive: { backgroundColor: Colors.background.elevated },
   filterText: {
-    fontSize: 10, fontFamily: 'Inter_700Bold',
-    color: Colors.text.muted, letterSpacing: 1.4,
+    fontSize: 9.5, fontFamily: 'Inter_700Bold',
+    color: Colors.text.muted, letterSpacing: 1.2,
   },
   filterTextActive: { color: Colors.text.primary },
+
+  sectionHeader: { marginTop: 4 },
+  sectionEyebrow: { fontSize: 10, fontFamily: 'Inter_700Bold', color: Colors.text.muted, letterSpacing: 2.5 },
+  sectionTitle: { fontSize: 18, fontFamily: 'Inter_700Bold', color: Colors.text.primary, letterSpacing: -0.4, marginTop: 4 },
+  sectionSubtitle: { fontSize: 12, fontFamily: 'Inter_400Regular', color: Colors.text.secondary, marginTop: 4, lineHeight: 17 },
+
+  subGroupHeader: {
+    flexDirection: 'row', gap: 12, alignItems: 'flex-start',
+    marginTop: 4,
+  },
+  subGroupBar: { width: 3, alignSelf: 'stretch', borderRadius: 2, marginTop: 4 },
+  subGroupEyebrow: { fontSize: 10, fontFamily: 'Inter_700Bold', letterSpacing: 2 },
+  subGroupTitle: { fontSize: 16, fontFamily: 'Inter_700Bold', color: Colors.text.primary, letterSpacing: -0.3, marginTop: 3 },
+  subGroupHint: { fontSize: 11.5, fontFamily: 'Inter_400Regular', color: Colors.text.secondary, marginTop: 3, lineHeight: 16 },
 
   plans: { gap: 14 },
 

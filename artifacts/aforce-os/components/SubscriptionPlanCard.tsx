@@ -1,8 +1,12 @@
 /**
  * Subscription Plan card.
  *
- * Renders one plan tile with price, tagline, feature bullets,
- * and a primary CTA. Bundle is visually flagship-elevated.
+ * Used for Consumer + Team / Program tiers. Renders price, positioning,
+ * inheritance bridge, feature bullets, optional badge ("BEST VALUE"),
+ * optional value note, and a primary CTA. Premium WHOOP × Nike feel.
+ *
+ * Performance Systems plans (Clutch / Guardian) use EnterprisePlanCard
+ * for the heavier setup-fee + minimum-term layout.
  */
 
 import React from 'react';
@@ -22,18 +26,24 @@ interface Props {
 }
 
 const PLAN_ACCENT: Record<SubscriptionPlanId, string> = {
-  core:      Colors.states.BALANCED.primary,
-  athlete:   Colors.states.PEAK.primary,
-  bundle:    Colors.states.PEAK.primary,
-  core_team: Colors.states.BALANCED.primary,
-  clutch:    Colors.clutch.primary,
-  guardian:  Colors.guardian.primary,
+  core:            Colors.states.BALANCED.primary,
+  athlete:         Colors.states.PEAK.primary,
+  system:          Colors.states.PEAK.primary,
+  team_starter:    Colors.states.BALANCED.primary,
+  team_growth:     Colors.states.BALANCED.primary,
+  team_pro:        Colors.states.BALANCED.primary,
+  clutch_starter:  Colors.clutch.primary,
+  clutch_pro:      Colors.clutch.primary,
+  clutch_elite:    Colors.clutch.primary,
+  guardian_core:   Colors.guardian.primary,
+  guardian_elite:  Colors.guardian.primary,
 };
 
 export function SubscriptionPlanCard({ plan, isCurrent, isProcessing, onSelect }: Props) {
   const accent = PLAN_ACCENT[plan.id];
-  const flagship = plan.isFlagship;
+  const flagship = plan.isBestValue === true;
   const inheritedFromName = plan.inheritsFromId ? PLAN_BY_ID[plan.inheritsFromId]?.name : undefined;
+  const isFree = plan.priceMonthly === 0;
 
   return (
     <View
@@ -44,22 +54,31 @@ export function SubscriptionPlanCard({ plan, isCurrent, isProcessing, onSelect }
         isCurrent && { borderColor: accent, backgroundColor: `${accent}0F` },
       ]}
     >
-      {flagship && (
+      {plan.badge && (
         <View style={[styles.flagshipBadge, { backgroundColor: accent }]}>
           <Feather name="star" size={10} color="#000" />
-          <Text style={styles.flagshipBadgeText}>{plan.highlight ?? 'BEST VALUE'}</Text>
+          <Text style={styles.flagshipBadgeText}>{plan.badge}</Text>
         </View>
       )}
 
       <View style={styles.headerRow}>
-        <View style={{ flex: 1 }}>
+        <View style={{ flex: 1, paddingRight: plan.badge ? 70 : 0 }}>
           <Text style={[styles.name, { color: accent }]}>{plan.name}</Text>
-          <Text style={styles.tagline}>{plan.tagline}</Text>
+          <Text style={styles.positioning}>{plan.positioning}</Text>
         </View>
         <View style={[styles.priceWrap, { borderColor: `${accent}55`, backgroundColor: `${accent}14` }]}>
           <Text style={[styles.price, { color: accent }]}>{plan.priceLabel}</Text>
         </View>
       </View>
+
+      {plan.userLimit && (
+        <View style={styles.limitChip}>
+          <Feather name="users" size={11} color={Colors.text.secondary} />
+          <Text style={styles.limitText}>Up to {plan.userLimit} members</Text>
+        </View>
+      )}
+
+      <Text style={styles.description} numberOfLines={3}>{plan.description}</Text>
 
       {inheritedFromName && (
         <Text style={styles.inherits}>Everything in {inheritedFromName}, plus:</Text>
@@ -91,6 +110,10 @@ export function SubscriptionPlanCard({ plan, isCurrent, isProcessing, onSelect }
         </View>
       )}
 
+      {plan.valueNote && (
+        <Text style={styles.valueNote}>{plan.valueNote}</Text>
+      )}
+
       <Pressable
         onPress={() => {
           if (isCurrent || isProcessing) return;
@@ -113,7 +136,11 @@ export function SubscriptionPlanCard({ plan, isCurrent, isProcessing, onSelect }
             { color: isCurrent ? accent : flagship ? '#000' : accent },
           ]}
         >
-          {isProcessing ? 'UPDATING…' : isCurrent ? 'CURRENT PLAN' : `CHOOSE ${plan.name.toUpperCase()}`}
+          {isProcessing
+            ? 'UPDATING…'
+            : isCurrent
+              ? 'CURRENT PLAN'
+              : (isFree ? plan.ctaLabel : plan.ctaLabel).toUpperCase()}
         </Text>
       </Pressable>
     </View>
@@ -143,15 +170,31 @@ const styles = StyleSheet.create({
   },
   headerRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
   name: { fontSize: 18, fontFamily: 'Inter_700Bold', letterSpacing: -0.4 },
-  tagline: {
-    fontSize: 12, fontFamily: 'Inter_400Regular',
-    color: Colors.text.secondary, marginTop: 4, lineHeight: 17,
+  positioning: {
+    fontSize: 12, fontFamily: 'Inter_600SemiBold',
+    color: Colors.text.primary, marginTop: 4, lineHeight: 17, letterSpacing: 0.1,
   },
   priceWrap: {
     paddingHorizontal: 10, paddingVertical: 6,
     borderRadius: 10, borderWidth: 1,
   },
   price: { fontSize: 13, fontFamily: 'Inter_700Bold', letterSpacing: -0.2 },
+  limitChip: {
+    alignSelf: 'flex-start',
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    paddingHorizontal: 10, paddingVertical: 5,
+    borderRadius: 100, borderWidth: 1,
+    borderColor: Colors.border.subtle,
+    backgroundColor: Colors.background.elevated,
+  },
+  limitText: {
+    fontSize: 10, fontFamily: 'Inter_700Bold',
+    color: Colors.text.secondary, letterSpacing: 1,
+  },
+  description: {
+    fontSize: 12, fontFamily: 'Inter_400Regular',
+    color: Colors.text.secondary, lineHeight: 17,
+  },
   inherits: {
     fontSize: 11, fontFamily: 'Inter_500Medium',
     color: Colors.text.muted, fontStyle: 'italic',
@@ -170,6 +213,11 @@ const styles = StyleSheet.create({
   productPanelText: {
     fontSize: 11, fontFamily: 'Inter_500Medium',
     color: Colors.text.secondary, flex: 1,
+  },
+  valueNote: {
+    fontSize: 11, fontFamily: 'Inter_600SemiBold',
+    color: Colors.text.secondary, fontStyle: 'italic',
+    paddingTop: 2,
   },
   cta: {
     flexDirection: 'row', justifyContent: 'center', alignItems: 'center',

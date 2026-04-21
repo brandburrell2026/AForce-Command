@@ -1,0 +1,521 @@
+Update the entire AForce OS pricing system across Consumer, Team, and Enterprise.
+
+IMPORTANT:
+This is not a generic app pricing page.
+This is a premium performance operating system.
+Pricing must feel:
+- structured
+- premium
+- confident
+- investor-ready
+- enterprise-grade
+- easy to understand
+- easy to sell
+
+Do NOT use vague pricing ranges where a clear tier should exist.
+Do NOT make the pricing feel cheap or experimental.
+Do NOT make the product feel like a basic hydration tracker.
+
+AForce OS pricing should feel like:
+WHOOP × Nike × Tesla × enterprise SaaS
+
+==================================================
+GLOBAL POSITIONING RULES
+==================================================
+
+AForce is not selling hydration.
+AForce is selling:
+- performance control
+- recovery intelligence
+- team command
+- injury risk reduction
+- premium recurring system value
+
+Each tier must answer:
+- who it is for
+- what it unlocks
+- why it is worth the price
+
+Use fixed pricing.
+Use strong positioning language.
+Use premium UI hierarchy.
+
+==================================================
+CONSUMER PRICING
+==================================================
+
+Create 3 consumer tiers.
+
+--------------------------------------------------
+1. CORE
+--------------------------------------------------
+Price: Free
+
+Positioning:
+“Start your performance system”
+
+Description:
+Entry point into AForce OS for consumers who want the core experience and daily command layer.
+
+Includes:
+- Hydration Control Center
+- Status Pulse + Performance Score
+- Basic protocol guidance
+- Basic AI hydration commands
+- Quick intake logging
+- Smart reminders
+
+CTA:
+“Start Free”
+
+Notes:
+This is the acquisition funnel.
+Do not overstuff it.
+It must feel valuable enough to convert users upward.
+
+--------------------------------------------------
+2. AFORCE ATHLETE
+--------------------------------------------------
+Price: $19/month
+
+Positioning:
+“Train and perform with precision”
+
+Description:
+The daily performance system for serious users who want deeper decisioning, recovery guidance, and personalized protocols.
+
+Includes everything in Core, plus:
+- Enhanced AI decisioning
+- Personalized hydration protocol
+- Advanced recovery guidance
+- Expanded trends + history
+- Community Competition access
+- City + State leaderboards
+- Team leaderboard participation
+- Premium notifications
+
+CTA:
+“Upgrade to Athlete”
+
+Notes:
+This is the main consumer paid plan.
+It should feel like the true performance tier.
+
+--------------------------------------------------
+3. AFORCE SYSTEM
+--------------------------------------------------
+Price: $49/month
+
+Positioning:
+“Full performance control”
+
+Description:
+The full AForce system for users who want software + product integration in one complete performance loop.
+
+Includes everything in Athlete, plus:
+- Monthly AForce product subscription placeholder
+- Preferred pricing on hydration products
+- Priority AI optimization
+- Advanced protocol tuning
+- Premium performance insights
+- Full system-level recommendations
+
+Badge:
+“BEST VALUE”
+
+CTA:
+“Get the Full System”
+
+Notes:
+This is the flagship consumer plan.
+It should be visually emphasized as the best value and most complete experience.
+
+==================================================
+TEAM / PROGRAM PRICING
+==================================================
+
+Rename the section to:
+TEAM / PROGRAM
+
+Create 3 fixed SaaS tiers for teams and programs.
+
+--------------------------------------------------
+1. TEAM CORE STARTER
+--------------------------------------------------
+Price: $49/month
+User limit: up to 25 members
+
+Positioning:
+“Run your team with intelligence”
+
+Description:
+Roster-aware AForce OS for small organizations, training groups, and developing programs.
+
+Includes:
+- Roster-aware Core
+- Group reporting
+- Protocol templates
+- Admin console
+- Invite codes
+- Basic seat management
+
+CTA:
+“Start Team Core”
+
+--------------------------------------------------
+2. TEAM CORE GROWTH
+--------------------------------------------------
+Price: $99/month
+User limit: up to 50 members
+
+Positioning:
+“Scale team performance”
+
+Description:
+Expanded team performance system for organizations that need deeper reporting and better operational visibility.
+
+Includes everything in Starter, plus:
+- Expanded analytics
+- Multi-group segmentation
+- Deeper reporting
+- Enhanced admin controls
+
+CTA:
+“Upgrade to Growth”
+
+--------------------------------------------------
+3. TEAM CORE PRO
+--------------------------------------------------
+Price: $149/month
+User limit: up to 100 members
+
+Positioning:
+“Operate at a higher level”
+
+Description:
+Advanced team management layer for larger organizations that want greater control, better insight, and stronger performance visibility.
+
+Includes everything in Growth, plus:
+- Advanced team performance insights
+- Priority support placeholder
+- Elevated reporting tools
+- Enhanced operational visibility
+
+CTA:
+“Upgrade to Pro”
+
+==================================================
+PERFORMANCE SYSTEMS
+==================================================
+
+Rename the enterprise section to:
+PERFORMANCE SYSTEMS
+
+This section should include:
+1. Clutch Access
+2. Guardian
+
+These are not simple subscription upgrades.
+These are performance products.
+
+==================================================
+CLUTCH ACCESS PRICING
+==================================================
+
+Clutch is the live game-time and real-time team command system.
+
+It should be positioned as:
+“Control performance in real time”
+
+Create 3 fixed tiers.
+
+--------------------------------------------------
+1. CLUTCH STARTER
+--------------------------------------------------
+Price: $1,000/month
+
+Description:
+Entry point into the live team command environment for organizations that want real-time decision support.
+
+Includes:
+- Clutch command grid
+- Real-time hydration command layer
+- Basic Heat Mode
+- Team performance visibility
+- Live command support
+
+CTA:
+“Get Clutch Starter”
+
+--------------------------------------------------
+2. CLUTCH PRO
+--------------------------------------------------
+Price: $2,500/month
+
+Description:
+Expanded game-time control system with stronger decision support, deeper team visibility, and operational execution.
+
+Includes everything in Starter, plus:
+- Advanced Heat Mode
+- Auto-replenish logic
+- Expanded team command tools
+- Enhanced live team management
+
+CTA:
+“Upgrade to Clutch Pro”
+
+--------------------------------------------------
+3. CLUTCH ELITE
+--------------------------------------------------
+Price: $5,000/month
+
+Description:
+Full performance command system for elite organizations that want real-time operational control during competition and high-intensity environments.
+
+Includes everything in Pro, plus:
+- CLUTCH Clip hardware support placeholder
+- Full team command environment
+- Elite real-time performance control tools
+- Premium support placeholder
+
+Badge:
+“ELITE”
+
+CTA:
+“Get Clutch Elite”
+
+==================================================
+GUARDIAN PRICING
+==================================================
+
+Guardian is NOT just software.
+Guardian is:
+- roster protection
+- injury risk reduction
+- proactive intervention
+- high-risk environment intelligence
+
+Guardian should be positioned as:
+“Protect athletes before breakdown”
+
+Guardian must feel more expensive, more serious, and more mission-critical than Clutch.
+
+IMPORTANT:
+Add a setup / onboarding fee structure for Guardian.
+
+Create 2 tiers.
+
+--------------------------------------------------
+1. GUARDIAN CORE
+--------------------------------------------------
+Price: $5,000/month
+Setup fee: $7,500 one-time
+Minimum term placeholder: 6 months
+
+Description:
+Foundational injury risk reduction and roster protection system for serious organizations that want proactive visibility into athlete stress and risk patterns.
+
+Includes:
+- Roster-wide risk score
+- Basic body risk modeling
+- Early warning alerts
+- Team risk monitoring
+- Recovery escalation visibility
+
+CTA:
+“Get Guardian Core”
+
+Value note:
+“Prevent one major incident and the system can pay for itself.”
+
+--------------------------------------------------
+2. GUARDIAN ELITE
+--------------------------------------------------
+Price: $8,000/month
+Setup fee: $12,500 one-time
+Minimum term placeholder: 12 months
+
+Description:
+Advanced roster protection system for elite organizations that need deeper intelligence, higher confidence alerts, and coordinated intervention paths.
+
+Includes everything in Guardian Core, plus:
+- Body Risk Map
+- Critical injury alerts
+- Coach + medical escalation paths
+- Advanced risk modeling
+- Elite deployment and support placeholder
+
+Badge:
+“ELITE”
+
+CTA:
+“Get Guardian Elite”
+
+Value note:
+“The cost of one serious injury event can exceed the cost of Guardian.”
+
+==================================================
+UI / UX CHANGES
+==================================================
+
+Update the pricing UI across all categories.
+
+Rules:
+1. Remove all vague price ranges except where explicitly part of the plan model.
+2. Use fixed prices everywhere.
+3. Add stronger hierarchy:
+   - Consumer
+   - Team / Program
+   - Performance Systems
+4. Highlight:
+   - AForce System as BEST VALUE
+   - Clutch Elite as ELITE
+   - Guardian Elite as ELITE
+5. Add one-line value propositions under each plan.
+
+Use these lines:
+
+Core:
+“Start your performance system”
+
+AForce Athlete:
+“Train and perform with precision”
+
+AForce System:
+“Full performance control”
+
+Team Core Starter:
+“Run your team with intelligence”
+
+Team Core Growth:
+“Scale team performance”
+
+Team Core Pro:
+“Operate at a higher level”
+
+Clutch Starter:
+“Control performance in real time”
+
+Clutch Pro:
+“Advance live decision making”
+
+Clutch Elite:
+“Elite team command system”
+
+Guardian Core:
+“Protect athletes before breakdown”
+
+Guardian Elite:
+“Elite roster protection system”
+
+6. Make Guardian feel more serious than Clutch.
+7. Make AForce System feel like the flagship consumer offer.
+8. Make Team Core feel like clean SaaS.
+9. Avoid clutter and avoid making this look like an ecommerce pricing page.
+
+==================================================
+DATA MODEL UPDATE
+==================================================
+
+Update subscription plan data model to include:
+
+- id
+- name
+- category
+- subcategory
+- price_monthly
+- setup_fee (optional)
+- minimum_term_months (optional)
+- user_limit (optional)
+- positioning
+- description
+- features[]
+- badge (optional)
+- is_best_value (boolean)
+- cta_label
+- value_note (optional)
+
+==================================================
+FEATURE GATING
+==================================================
+
+Tie pricing tiers to feature access.
+
+Core:
+- Home
+- Check
+- Protocol
+- Profile
+- basic AI
+- basic reminders
+- intake logging
+
+AForce Athlete:
+- advanced AI
+- competition
+- expanded history
+- advanced protocol guidance
+
+AForce System:
+- product integration
+- premium AI optimization
+- bundle logic
+- premium insights
+
+Team Core:
+- roster
+- admin
+- reporting
+- team management
+
+Clutch:
+- live command grid
+- Heat Mode
+- auto-replenish
+- elite team performance control
+
+Guardian:
+- risk prediction
+- body risk map
+- critical alerts
+- escalation paths
+
+==================================================
+SCREENS / FILES TO UPDATE
+==================================================
+
+Update or create:
+
+- /screens/SubscriptionScreen.tsx
+- /screens/ManageSubscriptionScreen.tsx
+- /components/SubscriptionPlanCard.tsx
+- /components/UpgradePrompt.tsx
+- /components/EnterprisePlanCard.tsx
+- /data/subscriptionPlans.ts
+- /services/subscriptionService.ts
+- /types/subscription.ts
+- /featureFlags/subscriptionGate.ts
+
+==================================================
+FINAL PRODUCT FEEL
+==================================================
+
+The pricing system should feel:
+- premium
+- intentional
+- easy to understand
+- easy to sell
+- aligned with a billion-dollar category
+
+User should instantly understand:
+- which tier is for them
+- why it costs what it costs
+- why upgrading makes sense
+
+Do not make the pricing look cheap.
+Do not make Guardian feel like a feature add-on.
+Do not make Clutch feel like a software widget.
+Do not make AForce System feel like a simple bundle.
+
+FINAL OUTPUT:
+Update the full AForce OS pricing system, UI, data model, and feature gating to match this exact pricing architecture and positioning.

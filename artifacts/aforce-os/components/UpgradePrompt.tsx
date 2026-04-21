@@ -25,12 +25,17 @@ interface Props {
 }
 
 const PLAN_ACCENT: Record<SubscriptionPlanId, string> = {
-  core:      Colors.states.BALANCED.primary,
-  athlete:   Colors.states.PEAK.primary,
-  bundle:    Colors.states.PEAK.primary,
-  core_team: Colors.states.BALANCED.primary,
-  clutch:    Colors.clutch.primary,
-  guardian:  Colors.guardian.primary,
+  core:            Colors.states.BALANCED.primary,
+  athlete:         Colors.states.PEAK.primary,
+  system:          Colors.states.PEAK.primary,
+  team_starter:    Colors.states.BALANCED.primary,
+  team_growth:     Colors.states.BALANCED.primary,
+  team_pro:        Colors.states.BALANCED.primary,
+  clutch_starter:  Colors.clutch.primary,
+  clutch_pro:      Colors.clutch.primary,
+  clutch_elite:    Colors.clutch.primary,
+  guardian_core:   Colors.guardian.primary,
+  guardian_elite:  Colors.guardian.primary,
 };
 
 export function UpgradePrompt({ gate, visible, onDismiss, onUpgrade }: Props) {
@@ -49,7 +54,7 @@ export function UpgradePrompt({ gate, visible, onDismiss, onUpgrade }: Props) {
           <Text style={styles.eyebrow}>LOCKED FEATURE</Text>
           <Text style={styles.title}>{gate.featureLabel}</Text>
           <Text style={styles.body}>
-            Unlocked with {plan.name}. {plan.tagline}
+            Unlocked with {plan.name}. {plan.positioning}.
           </Text>
 
           <View style={[styles.planChip, { backgroundColor: `${accent}14`, borderColor: `${accent}55` }]}>

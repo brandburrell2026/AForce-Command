@@ -20,11 +20,18 @@ import { DEFAULT_FLAGS, DEMO_ALL_ON_FLAGS } from '@/featureFlags/flags';
 import type { FeatureFlags } from '@/types';
 
 const TIER_LABELS: Record<string, { label: string; desc: string; color: string }> = {
-  core:       { label: 'AForce Core',        desc: 'Athlete OS — Phase 1 hydration intelligence.',         color: Colors.states.BALANCED.primary },
-  core_team:  { label: 'AForce Core Team',   desc: 'Programs & coaches. Roster-aware Core.',              color: Colors.states.BALANCED.primary },
-  clutch:     { label: 'AForce Clutch',      desc: 'Live game commands + heat mode + team grid.',         color: Colors.clutch.primary },
-  guardian:   { label: 'AForce Guardian',    desc: 'Roster protection. Risk monitoring + alerts.',         color: Colors.guardian.primary },
-  all_access: { label: 'AForce All-Access',  desc: 'Core + Clutch + Guardian. Full performance OS.',       color: Colors.states.PEAK.primary },
+  core:           { label: 'AForce Core',           desc: 'Start your performance system.',                      color: Colors.states.BALANCED.primary },
+  athlete:        { label: 'AForce Athlete',        desc: 'Train and perform with precision.',                   color: Colors.states.PEAK.primary },
+  system:         { label: 'AForce System',         desc: 'Full performance control — software + product.',      color: Colors.states.PEAK.primary },
+  team_starter:   { label: 'Team Core Starter',     desc: 'Run your team with intelligence. Up to 25 members.',  color: Colors.states.BALANCED.primary },
+  team_growth:    { label: 'Team Core Growth',      desc: 'Scale team performance. Up to 50 members.',           color: Colors.states.BALANCED.primary },
+  team_pro:       { label: 'Team Core Pro',         desc: 'Operate at a higher level. Up to 100 members.',       color: Colors.states.BALANCED.primary },
+  clutch_starter: { label: 'Clutch Starter',        desc: 'Control performance in real time.',                   color: Colors.clutch.primary },
+  clutch_pro:     { label: 'Clutch Pro',            desc: 'Advance live decision making.',                       color: Colors.clutch.primary },
+  clutch_elite:   { label: 'Clutch Elite',          desc: 'Elite team command system.',                          color: Colors.clutch.primary },
+  guardian_core:  { label: 'Guardian Core',         desc: 'Protect athletes before breakdown.',                  color: Colors.guardian.primary },
+  guardian_elite: { label: 'Guardian Elite',        desc: 'Elite roster protection system.',                     color: Colors.guardian.primary },
+  all_access:     { label: 'AForce All-Access',     desc: 'Full performance OS across every layer.',             color: Colors.states.PEAK.primary },
 };
 
 export default function ProfileScreen() {
@@ -263,21 +270,11 @@ function SubscriptionPanel() {
   const router = useRouter();
   const { state } = useAppStore();
   const sub = state.subscription;
-  const planName = (() => {
-    switch (sub.planId) {
-      case 'core':      return 'AForce Core';
-      case 'athlete':   return 'AForce Athlete Mode';
-      case 'bundle':    return 'AForce OS + Hydration Bundle';
-      case 'core_team': return 'AForce Team Core';
-      case 'clutch':    return 'AForce Clutch';
-      case 'guardian':  return 'AForce Guardian';
-      default:          return 'AForce';
-    }
-  })();
+  const planName = TIER_LABELS[sub.planId]?.label ?? 'AForce';
   const accent =
-    sub.planId === 'guardian' ? Colors.guardian.primary :
-    sub.planId === 'clutch'   ? Colors.clutch.primary :
-    sub.planId === 'bundle' || sub.planId === 'athlete' ? Colors.states.PEAK.primary :
+    sub.planId.startsWith('guardian') ? Colors.guardian.primary :
+    sub.planId.startsWith('clutch')   ? Colors.clutch.primary :
+    sub.planId === 'system' || sub.planId === 'athlete' ? Colors.states.PEAK.primary :
     Colors.states.BALANCED.primary;
   const statusLabel =
     sub.status === 'active'   ? 'ACTIVE' :

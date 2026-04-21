@@ -82,7 +82,7 @@ export default function ManageSubscriptionScreen() {
           {/* Current plan */}
           <View style={styles.planCard}>
             <Text style={styles.planName}>{plan.name}</Text>
-            <Text style={styles.planTagline}>{plan.tagline}</Text>
+            <Text style={styles.planTagline}>{plan.positioning}</Text>
             <View style={styles.planMeta}>
               <View style={[styles.statusPill, { borderColor: `${statusColor}55`, backgroundColor: `${statusColor}14` }]}>
                 <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
@@ -102,7 +102,19 @@ export default function ManageSubscriptionScreen() {
           <View style={styles.card}>
             <Row icon="calendar"    label="Next renewal"    value={formatDate(sub.billing.nextRenewalAt)} />
             <Divider />
-            <Row icon="dollar-sign" label="Last charge"     value={sub.billing.lastChargeAmount != null ? `$${sub.billing.lastChargeAmount.toFixed(2)}` : '—'} />
+            <Row icon="dollar-sign" label="Last charge"     value={sub.billing.lastChargeAmount != null ? `$${sub.billing.lastChargeAmount.toLocaleString('en-US')}` : '—'} />
+            {plan.setupFee != null && (
+              <>
+                <Divider />
+                <Row icon="package" label="One-time setup"  value={`$${plan.setupFee.toLocaleString('en-US')}`} />
+              </>
+            )}
+            {plan.minimumTermMonths != null && (
+              <>
+                <Divider />
+                <Row icon="calendar" label="Minimum term"   value={`${plan.minimumTermMonths} months`} />
+              </>
+            )}
             <Divider />
             <Row icon="credit-card" label="Payment method"  value={sub.billing.paymentMethodLabel ?? '—'} />
             <Divider />

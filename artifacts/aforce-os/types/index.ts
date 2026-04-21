@@ -156,7 +156,12 @@ export interface HistoryEntry {
 // ─── Profile / Subscription ───────────────────────────────────────────────────
 export interface UserProfile {
   name: string;
-  subscriptionTier: 'core' | 'core_team' | 'clutch' | 'guardian' | 'all_access';
+  subscriptionTier:
+    | 'core' | 'athlete' | 'system'
+    | 'team_starter' | 'team_growth' | 'team_pro'
+    | 'clutch_starter' | 'clutch_pro' | 'clutch_elite'
+    | 'guardian_core' | 'guardian_elite'
+    | 'all_access';
   dailyTarget: number;
   bodyWeightLbs: number;
   remindersEnabled: boolean;
