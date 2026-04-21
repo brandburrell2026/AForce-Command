@@ -1,8 +1,9 @@
 /**
- * AForce OS Tab Layout — 4 tabs (per spec):
+ * AForce OS Tab Layout — 5 tabs:
  *   Home    = Hydration Control Center
  *   Check   = Performance Signals
  *   Protocol= AForce Protocol
+ *   Store   = AForce Shopping
  *   Profile = Profile & Settings
  */
 
@@ -30,6 +31,10 @@ function NativeTabLayout() {
       <NativeTabs.Trigger name="protocol">
         <Icon sf={{ default: 'list.bullet.circle', selected: 'list.bullet.circle.fill' }} />
         <Label>Protocol</Label>
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="store">
+        <Icon sf={{ default: 'bag.circle', selected: 'bag.circle.fill' }} />
+        <Label>Store</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="profile">
         <Icon sf={{ default: 'person.circle', selected: 'person.circle.fill' }} />
@@ -96,6 +101,15 @@ function ClassicTabLayout() {
           tabBarIcon: ({ color, size }) =>
             isIOS ? <SymbolView name="list.bullet.circle" tintColor={color} size={size} />
                   : <Feather name="list" size={22} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="store"
+        options={{
+          title: 'Store',
+          tabBarIcon: ({ color, size }) =>
+            isIOS ? <SymbolView name="bag.circle" tintColor={color} size={size} />
+                  : <Feather name="shopping-bag" size={22} color={color} />,
         }}
       />
       <Tabs.Screen

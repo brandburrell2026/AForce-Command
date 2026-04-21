@@ -15,6 +15,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { AppProvider } from '@/store/useAppStore';
+import { CartProvider } from '@/store/useCartStore';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -30,6 +31,7 @@ function RootLayoutNav() {
       <Stack.Screen name="products" options={{ headerShown: false, presentation: 'card' }} />
       <Stack.Screen name="subscription" options={{ headerShown: false, presentation: 'card' }} />
       <Stack.Screen name="subscription/manage" options={{ headerShown: false, presentation: 'card' }} />
+      <Stack.Screen name="cart" options={{ headerShown: false, presentation: 'card' }} />
     </Stack>
   );
 }
@@ -57,7 +59,9 @@ export default function RootLayout() {
           <GestureHandlerRootView style={{ flex: 1 }}>
             <KeyboardProvider>
               <AppProvider>
-                <RootLayoutNav />
+                <CartProvider>
+                  <RootLayoutNav />
+                </CartProvider>
               </AppProvider>
             </KeyboardProvider>
           </GestureHandlerRootView>
