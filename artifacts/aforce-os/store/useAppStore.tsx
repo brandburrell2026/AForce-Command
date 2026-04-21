@@ -45,6 +45,7 @@ interface AppState {
   timerSeconds: number;
   featureFlags: FeatureFlags;
   lastIntakeBurstAt: number; // timestamp for pulse burst trigger
+  hasSeenOnboarding: boolean;
 }
 
 type Action =
@@ -55,7 +56,8 @@ type Action =
   | { type: 'TICK_TIMER' }
   | { type: 'SET_USER_STATE'; payload: { newUserState: UserState; engineOutput: ScoreEngineOutput } }
   | { type: 'REFRESH_ENGINE'; payload: { engineOutput: ScoreEngineOutput } }
-  | { type: 'SET_FLAGS'; payload: FeatureFlags };
+  | { type: 'SET_FLAGS'; payload: FeatureFlags }
+  | { type: 'COMPLETE_ONBOARDING' };
 
 // Initial render only — engine output is then immediately refreshed via
 // /v1/home from the service layer in an effect (see AppProvider mount).
@@ -71,6 +73,7 @@ const initialState: AppState = {
   timerSeconds: initialEngineOutput.riskTimer.minutes * 60,
   featureFlags: DEFAULT_FLAGS,
   lastIntakeBurstAt: 0,
+  hasSeenOnboarding: false,
 };
 
 function reducer(state: AppState, action: Action): AppState {
@@ -122,6 +125,8 @@ function reducer(state: AppState, action: Action): AppState {
     }
     case 'SET_FLAGS':
       return { ...state, featureFlags: action.payload };
+    case 'COMPLETE_ONBOARDING':
+      return { ...state, hasSeenOnboarding: true };
     default:
       return state;
   }
@@ -138,6 +143,7 @@ interface AppContextValue {
   updateEnergyState: (energy: UserState['energyState']) => Promise<void>;
   confirmStatus: () => Promise<void>;
   setFeatureFlags: (flags: FeatureFlags) => void;
+  completeOnboarding: () => void;
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -232,10 +238,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     dispatch({ type: 'SET_FLAGS', payload: flags });
   }, []);
 
+  const completeOnboarding = useCallback(() => {
+    dispatch({ type: 'COMPLETE_ONBOARDING' });
+  }, []);
+
   const value = useMemo<AppContextValue>(() => ({
     state, logIntake, completeCycle, snooze, dismissSuccess,
     updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags,
-  }), [state, logIntake, completeCycle, snooze, dismissSuccess, updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags]);
+    completeOnboarding,
+  }), [state, logIntake, completeCycle, snooze, dismissSuccess, updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags, completeOnboarding]);
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }

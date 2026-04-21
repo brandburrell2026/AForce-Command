@@ -22,6 +22,7 @@ import type {
   RiskTimer,
   Command,
   ScoreEngineOutput,
+  ScoreContribution,
   PerformanceLevel,
   PulseConfig,
   PulseStateName,
@@ -35,6 +36,71 @@ function resolveState(score: number): PerformanceLevel {
   if (score >= 75) return 'BALANCED';
   if (score >= 60) return 'RECOVERING';
   return 'DEPLETED';
+}
+
+// ─── Score Breakdown ──────────────────────────────────────────────────────────
+function buildBreakdown(state: UserState): { score: number; contributions: ScoreContribution[] } {
+  const minutesSinceLast = minutesSince(state.lastIntakeTime);
+
+  const ozRatio = Math.min(1, state.ozConsumedToday / state.ozTarget);
+  const baseIntake = Math.round(40 * ozRatio);
+
+  let recency = 20;
+  if (minutesSinceLast > 90) recency = 0;
+  else if (minutesSinceLast > 60) recency = 4;
+  else if (minutesSinceLast > 45) recency = 9;
+  else if (minutesSinceLast > 30) recency = 14;
+
+  const consistency = Math.min(15, state.complianceStreak * 2);
+
+  let context = 5;
+  if (state.heatLoad >= 8) context -= 12;
+  else if (state.heatLoad >= 6) context -= 7;
+  else if (state.heatLoad >= 4) context -= 3;
+  if (state.sweatRate >= 6) context -= 4;
+  if (state.activityLevel >= 8) context -= 5;
+  else if (state.activityLevel >= 5) context -= 2;
+
+  const recoveryMomentum = Math.min(15, Math.max(0, 15 - minutesSinceLast / 4));
+
+  let symptomPenalty = 0;
+  if (state.symptomState === 'severe') symptomPenalty = -22;
+  else if (state.symptomState === 'moderate') symptomPenalty = -14;
+  else if (state.symptomState === 'mild') symptomPenalty = -6;
+  symptomPenalty -= Math.min(8, state.symptoms.length * 2);
+
+  const urinePenalty = -Math.max(0, (state.urineSignal - 3)) * 4;
+  const outputStress = -Math.min(10, Math.floor(state.sweatRate * state.activityLevel / 12));
+  const sleepCarry = state.overnightLossOz > 8 && !state.hasSeenMorningCommand
+    ? -Math.min(10, Math.floor((state.overnightLossOz - 8) * 0.8))
+    : 0;
+
+  const raw = baseIntake + recency + consistency + context + recoveryMomentum
+            + symptomPenalty + urinePenalty + outputStress + sleepCarry;
+  const score = Math.max(0, Math.min(100, Math.round(raw)));
+
+  const contributions: ScoreContribution[] = [
+    { id: 'base', label: 'Base intake (oz vs target)', delta: baseIntake, maxMagnitude: 40,
+      hint: `${state.ozConsumedToday} of ${state.ozTarget} oz` },
+    { id: 'recency', label: 'Recency of last intake', delta: recency, maxMagnitude: 20,
+      hint: `${minutesSinceLast} min since last intake` },
+    { id: 'consistency', label: 'Compliance streak', delta: consistency, maxMagnitude: 15,
+      hint: `${state.complianceStreak}-day streak` },
+    { id: 'context', label: 'Context (heat / sweat / activity)', delta: context, maxMagnitude: 20,
+      hint: `Heat ${state.heatLoad} · Sweat ${state.sweatRate} · Activity ${state.activityLevel}` },
+    { id: 'recovery', label: 'Recovery momentum', delta: Math.round(recoveryMomentum), maxMagnitude: 15,
+      hint: 'Aggressive restoration after deficit' },
+    { id: 'symptom', label: 'Performance signals', delta: symptomPenalty, maxMagnitude: 30,
+      hint: state.symptoms.length ? `${state.symptoms.length} active` : 'None active' },
+    { id: 'urine', label: 'Hydration signal (1-8)', delta: urinePenalty, maxMagnitude: 20,
+      hint: `Level ${state.urineSignal}/8` },
+    { id: 'output', label: 'Output stress', delta: outputStress, maxMagnitude: 10,
+      hint: 'Sweat × activity load' },
+    { id: 'sleep', label: 'Overnight carryover', delta: sleepCarry, maxMagnitude: 10,
+      hint: state.overnightLossOz > 8 ? `${state.overnightLossOz} oz loss` : 'No deficit carry' },
+  ];
+
+  return { score, contributions };
 }
 
 // ─── Score Calculation ────────────────────────────────────────────────────────
@@ -274,7 +340,7 @@ function buildPulseConfig(level: PerformanceLevel, deltaMode: 'rising' | 'fallin
 
 // ─── Main Engine ──────────────────────────────────────────────────────────────
 export function calculateScore(userState: UserState): ScoreEngineOutput {
-  const score = calculateBaseScore(userState);
+  const { score, contributions } = buildBreakdown(userState);
   const level = resolveState(score);
   const performanceState = buildPerformanceState(level, score);
   const pulseConfig = buildPulseConfig(level);
@@ -282,7 +348,7 @@ export function calculateScore(userState: UserState): ScoreEngineOutput {
   const riskTimer = calculateRiskTimer(userState, level);
   const command = generateCommand(level, userState, score);
 
-  return { score, performanceState, pulseConfig, reasons, riskTimer, command };
+  return { score, performanceState, pulseConfig, reasons, riskTimer, command, breakdown: contributions };
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────

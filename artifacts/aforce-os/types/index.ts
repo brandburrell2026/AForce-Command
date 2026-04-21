@@ -101,6 +101,16 @@ export interface RiskTimer {
   urgency: 'low' | 'medium' | 'high' | 'critical';
 }
 
+export interface ScoreContribution {
+  id: string;
+  label: string;
+  // Negative = penalty. Positive = boost. Zero = neutral.
+  delta: number;
+  // Maximum possible magnitude this contribution can produce, for bar scaling.
+  maxMagnitude: number;
+  hint: string;
+}
+
 export interface ScoreEngineOutput {
   score: number;
   performanceState: PerformanceState;
@@ -108,6 +118,8 @@ export interface ScoreEngineOutput {
   reasons: ScoreReason[];
   riskTimer: RiskTimer;
   command: Command;
+  /** Full per-input contributions to the score. Drives the breakdown drill-in. */
+  breakdown: ScoreContribution[];
 }
 
 // ─── Intake / History / Cycle ─────────────────────────────────────────────────

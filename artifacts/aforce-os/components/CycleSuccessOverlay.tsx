@@ -1,22 +1,30 @@
 /**
- * CycleSuccessOverlay — Premium micro-animation shown after completing a cycle.
- * Shows performance gain, identity message, and next cycle hint.
+ * CycleSuccessOverlay — Hero confirmation moment after a successful cycle.
+ *
+ * Premium signature beats:
+ *   - Three radiating ripple rings outward from the check icon
+ *   - Animated count-up from `scoreBefore` to `scoreAfter`
+ *   - Tier ribbon, gain delta, identity message, next cycle hint
  */
 
-import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
+  useAnimatedReaction,
   withTiming,
   withSpring,
   withSequence,
+  withDelay,
+  runOnJS,
   Easing,
 } from 'react-native-reanimated';
 import { Feather } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
+
 import type { CycleResult } from '../types';
-import { Colors } from '../theme/colors';
-import { getStateColors } from '../theme/colors';
+import { Colors, getStateColors } from '../theme/colors';
 
 interface Props {
   result: CycleResult;
@@ -28,59 +36,114 @@ export function CycleSuccessOverlay({ result, onDismiss }: Props) {
   const scale = useSharedValue(0.85);
   const gainScale = useSharedValue(0);
 
+  // Three radiating ripple rings
+  const ring1 = useSharedValue(0);
+  const ring2 = useSharedValue(0);
+  const ring3 = useSharedValue(0);
+
+  // Count-up score
+  const counter = useSharedValue(result.scoreBefore);
+  const [displayScore, setDisplayScore] = useState(result.scoreBefore);
+
   const stateColors = getStateColors(result.state);
   const color = stateColors.primary;
+  const delta = result.scoreAfter - result.scoreBefore;
+  const positive = delta >= 0;
 
   useEffect(() => {
-    // Enter animation
-    opacity.value = withTiming(1, { duration: 300, easing: Easing.out(Easing.quad) });
+    // Haptic celebration cascade
+    if (Platform.OS !== 'web') {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+    }
+
+    // Enter
+    opacity.value = withTiming(1, { duration: 240, easing: Easing.out(Easing.quad) });
     scale.value = withSpring(1, { damping: 14, stiffness: 180 });
 
-    // Delayed gain counter pop
-    setTimeout(() => {
-      gainScale.value = withSequence(
-        withSpring(1.2, { damping: 8, stiffness: 250 }),
-        withSpring(1, { damping: 12, stiffness: 200 })
-      );
-    }, 200);
+    // Gain pop
+    gainScale.value = withDelay(180, withSequence(
+      withSpring(1.25, { damping: 8, stiffness: 260 }),
+      withSpring(1, { damping: 12, stiffness: 200 }),
+    ));
+
+    // Ripples — staggered
+    ring1.value = withDelay(60,  withTiming(1, { duration: 1100, easing: Easing.out(Easing.cubic) }));
+    ring2.value = withDelay(260, withTiming(1, { duration: 1100, easing: Easing.out(Easing.cubic) }));
+    ring3.value = withDelay(460, withTiming(1, { duration: 1100, easing: Easing.out(Easing.cubic) }));
+
+    // Animated count-up
+    counter.value = withDelay(220, withTiming(result.scoreAfter, {
+      duration: 900, easing: Easing.out(Easing.cubic),
+    }));
   }, []);
 
-  const overlayStyle = useAnimatedStyle(() => ({
-    opacity: opacity.value,
-  }));
+  useAnimatedReaction(
+    () => Math.round(counter.value),
+    (current, prev) => {
+      if (prev !== current) runOnJS(setDisplayScore)(current);
+    },
+    [],
+  );
 
-  const cardStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
+  const overlayStyle = useAnimatedStyle(() => ({ opacity: opacity.value }));
+  const cardStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
+  const gainStyle = useAnimatedStyle(() => ({ transform: [{ scale: gainScale.value }] }));
+  const r1 = useAnimatedStyle(() => ({
+    opacity: 0.7 - ring1.value * 0.7,
+    transform: [{ scale: 1 + ring1.value * 2.6 }],
   }));
-
-  const gainStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: gainScale.value }],
+  const r2 = useAnimatedStyle(() => ({
+    opacity: 0.7 - ring2.value * 0.7,
+    transform: [{ scale: 1 + ring2.value * 2.6 }],
+  }));
+  const r3 = useAnimatedStyle(() => ({
+    opacity: 0.7 - ring3.value * 0.7,
+    transform: [{ scale: 1 + ring3.value * 2.6 }],
   }));
 
   return (
     <Animated.View style={[styles.overlay, overlayStyle]}>
       <Animated.View style={[styles.card, cardStyle, { borderColor: `${color}40` }]}>
-        {/* Glow */}
-        <View style={[styles.glow, { backgroundColor: `${color}15` }]} />
+        {/* Soft glow */}
+        <View style={[styles.glow, { backgroundColor: `${color}1A` }]} />
 
-        {/* Check icon */}
-        <View style={[styles.iconCircle, { backgroundColor: `${color}20`, borderColor: `${color}44` }]}>
-          <Feather name="check" size={28} color={color} />
+        {/* Tier ribbon */}
+        <View style={[styles.ribbon, { borderColor: `${color}55`, backgroundColor: `${color}14` }]}>
+          <View style={[styles.ribbonDot, { backgroundColor: color }]} />
+          <Text style={[styles.ribbonText, { color }]}>{result.state}</Text>
         </View>
 
-        {/* Gain */}
-        <Animated.Text style={[styles.gainText, { color }, gainStyle]}>
-          {result.gainDisplay}
-        </Animated.Text>
+        {/* Ripples + Check */}
+        <View style={styles.checkContainer}>
+          <Animated.View pointerEvents="none" style={[styles.rippleRing, { borderColor: color }, r1]} />
+          <Animated.View pointerEvents="none" style={[styles.rippleRing, { borderColor: color }, r2]} />
+          <Animated.View pointerEvents="none" style={[styles.rippleRing, { borderColor: color }, r3]} />
+          <View style={[styles.iconCircle, { backgroundColor: `${color}20`, borderColor: `${color}66` }]}>
+            <Feather name={positive ? 'check' : 'arrow-down'} size={32} color={color} />
+          </View>
+        </View>
+
+        {/* Animated count-up score (BEFORE → AFTER) */}
+        <View style={styles.scoreLine}>
+          <Text style={[styles.scoreNum, { color }]}>{displayScore}</Text>
+          <Animated.View style={[styles.gainPill, { borderColor: `${color}55`, backgroundColor: `${color}1A` }, gainStyle]}>
+            <Feather
+              name={positive ? 'trending-up' : 'trending-down'}
+              size={12}
+              color={color}
+            />
+            <Text style={[styles.gainText, { color }]}>{result.gainDisplay}</Text>
+          </Animated.View>
+        </View>
 
         {/* Identity message */}
         <Text style={styles.identityText}>{result.identityMessage}</Text>
 
-        {/* Score delta */}
-        <View style={styles.scoreRow}>
-          <Text style={styles.scoreFrom}>{result.scoreBefore}</Text>
-          <Feather name="arrow-right" size={14} color={Colors.text.muted} />
-          <Text style={[styles.scoreTo, { color }]}>{result.scoreAfter}</Text>
+        {/* Score path (from / arrow / to) */}
+        <View style={styles.deltaRow}>
+          <Text style={styles.deltaFrom}>was {result.scoreBefore}</Text>
+          <Feather name="arrow-right" size={12} color={Colors.text.muted} />
+          <Text style={[styles.deltaTo, { color }]}>now {result.scoreAfter}</Text>
         </View>
 
         {/* Next hint */}
@@ -90,7 +153,7 @@ export function CycleSuccessOverlay({ result, onDismiss }: Props) {
         </View>
 
         {/* Dismiss */}
-        <TouchableOpacity onPress={onDismiss} style={styles.dismissBtn}>
+        <TouchableOpacity onPress={onDismiss} style={styles.dismissBtn} activeOpacity={0.7}>
           <Text style={styles.dismissText}>CONTINUE</Text>
           <Feather name="arrow-right" size={12} color={Colors.text.muted} />
         </TouchableOpacity>
@@ -102,92 +165,90 @@ export function CycleSuccessOverlay({ result, onDismiss }: Props) {
 const styles = StyleSheet.create({
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(5,10,26,0.88)',
+    backgroundColor: 'rgba(2,2,8,0.90)',
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 100,
-    paddingHorizontal: 32,
+    paddingHorizontal: 28,
   },
   card: {
     width: '100%',
     backgroundColor: Colors.background.elevated,
     borderRadius: 28,
     borderWidth: 1,
-    padding: 32,
+    paddingTop: 22,
+    paddingBottom: 22,
+    paddingHorizontal: 28,
     alignItems: 'center',
     overflow: 'hidden',
   },
   glow: {
     position: 'absolute',
-    top: -60,
+    top: -80,
     left: -60,
     right: -60,
-    height: 200,
-    borderRadius: 100,
+    height: 240,
+    borderRadius: 120,
+  },
+  ribbon: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    paddingHorizontal: 12, paddingVertical: 5, borderRadius: 100, borderWidth: 1,
+    marginBottom: 22,
+  },
+  ribbonDot: { width: 6, height: 6, borderRadius: 3 },
+  ribbonText: { fontSize: 10, fontFamily: 'Inter_700Bold', letterSpacing: 1.5 },
+  checkContainer: {
+    width: 120, height: 120,
+    alignItems: 'center', justifyContent: 'center',
+    marginBottom: 18,
+  },
+  rippleRing: {
+    position: 'absolute',
+    width: 70, height: 70, borderRadius: 35, borderWidth: 1.5,
   },
   iconCircle: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    borderWidth: 1.5,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 20,
+    width: 70, height: 70, borderRadius: 35, borderWidth: 1.5,
+    alignItems: 'center', justifyContent: 'center',
   },
-  gainText: {
-    fontSize: 52,
-    fontFamily: 'Inter_700Bold',
-    letterSpacing: -2,
+  scoreLine: {
+    flexDirection: 'row', alignItems: 'center', gap: 10,
     marginBottom: 8,
   },
+  scoreNum: {
+    fontSize: 64, fontFamily: 'Inter_700Bold', letterSpacing: -3, lineHeight: 70,
+  },
+  gainPill: {
+    flexDirection: 'row', alignItems: 'center', gap: 4,
+    paddingHorizontal: 10, paddingVertical: 5, borderRadius: 100, borderWidth: 1,
+  },
+  gainText: { fontSize: 13, fontFamily: 'Inter_700Bold', letterSpacing: 0.2 },
   identityText: {
-    fontSize: 20,
-    fontFamily: 'Inter_700Bold',
-    color: Colors.text.primary,
-    textAlign: 'center',
-    marginBottom: 16,
-    letterSpacing: -0.3,
+    fontSize: 18, fontFamily: 'Inter_700Bold',
+    color: Colors.text.primary, textAlign: 'center',
+    marginBottom: 12, marginTop: 6, letterSpacing: -0.3,
   },
-  scoreRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    marginBottom: 20,
+  deltaRow: {
+    flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 16,
   },
-  scoreFrom: {
-    fontSize: 15,
-    fontFamily: 'Inter_600SemiBold',
-    color: Colors.text.muted,
+  deltaFrom: {
+    fontSize: 12, fontFamily: 'Inter_500Medium', color: Colors.text.muted,
   },
-  scoreTo: {
-    fontSize: 15,
-    fontFamily: 'Inter_700Bold',
+  deltaTo: {
+    fontSize: 12, fontFamily: 'Inter_700Bold',
   },
   hintRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingTop: 16,
-    paddingBottom: 16,
-    borderTopWidth: 1,
-    width: '100%',
-    justifyContent: 'center',
+    flexDirection: 'row', alignItems: 'center', gap: 8,
+    paddingTop: 14, paddingBottom: 12,
+    borderTopWidth: 1, width: '100%', justifyContent: 'center',
   },
   hintText: {
-    fontSize: 12,
-    fontFamily: 'Inter_500Medium',
-    color: Colors.text.secondary,
+    fontSize: 12, fontFamily: 'Inter_500Medium', color: Colors.text.secondary,
   },
   dismissBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingVertical: 8,
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    paddingVertical: 8, paddingHorizontal: 12, marginTop: 4,
   },
   dismissText: {
-    fontSize: 11,
-    fontFamily: 'Inter_700Bold',
-    color: Colors.text.muted,
-    letterSpacing: 2,
+    fontSize: 11, fontFamily: 'Inter_700Bold', color: Colors.text.muted, letterSpacing: 2,
   },
 });

@@ -29,18 +29,26 @@ import { WaterCycleBar } from '@/components/WaterCycleBar';
 import { PhantomSignal } from '@/components/PhantomSignal';
 import { CycleSuccessOverlay } from '@/components/CycleSuccessOverlay';
 import { QuickIntakeBar } from '@/components/QuickIntakeBar';
+import { ScoreBreakdownSheet } from '@/components/ScoreBreakdownSheet';
+import { OnboardingOverlay } from '@/components/OnboardingOverlay';
 
 import { useAppStore } from '@/store/useAppStore';
 import { Colors } from '@/theme/colors';
 import { Feather } from '@expo/vector-icons';
 
 export default function HomeScreen() {
-  const { state, completeCycle, snooze, dismissSuccess } = useAppStore();
+  const { state, completeCycle, snooze, dismissSuccess, completeOnboarding } = useAppStore();
   const {
     engineOutput, userState, showCycleSuccess, lastCycleResult,
-    isCompletingCycle, timerSeconds, lastIntakeBurstAt,
+    isCompletingCycle, timerSeconds, lastIntakeBurstAt, hasSeenOnboarding,
   } = state;
-  const { performanceState, score, reasons, command, pulseConfig } = engineOutput;
+  const { performanceState, score, reasons, command, pulseConfig, breakdown } = engineOutput;
+  const [breakdownOpen, setBreakdownOpen] = React.useState(false);
+
+  const openBreakdown = () => {
+    if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
+    setBreakdownOpen(true);
+  };
   const insets = useSafeAreaInsets();
   const stateColor = performanceState.color;
 
@@ -84,10 +92,16 @@ export default function HomeScreen() {
           </View>
 
           <View style={styles.orbContainer}>
-            <StatusPulseOrb pulseConfig={pulseConfig} score={score} burstAt={lastIntakeBurstAt} />
+            <StatusPulseOrb
+              pulseConfig={pulseConfig}
+              score={score}
+              burstAt={lastIntakeBurstAt}
+              onTap={openBreakdown}
+            />
+            <Text style={styles.orbHint}>TAP ORB FOR FULL BREAKDOWN</Text>
           </View>
 
-          <WhyThisScore reasons={reasons} />
+          <WhyThisScore reasons={reasons} onOpenBreakdown={openBreakdown} />
           <View style={styles.spacer} />
 
           <AICommandCard command={command} performanceState={performanceState} />
@@ -144,6 +158,19 @@ export default function HomeScreen() {
         {showCycleSuccess && lastCycleResult && (
           <CycleSuccessOverlay result={lastCycleResult} onDismiss={dismissSuccess} />
         )}
+
+        <ScoreBreakdownSheet
+          visible={breakdownOpen}
+          onDismiss={() => setBreakdownOpen(false)}
+          score={score}
+          contributions={breakdown}
+          performanceState={performanceState}
+        />
+
+        <OnboardingOverlay
+          visible={!hasSeenOnboarding}
+          onDismiss={completeOnboarding}
+        />
       </GradientBackground>
     </View>
   );
@@ -190,6 +217,13 @@ const styles = StyleSheet.create({
     letterSpacing: 1.5,
   },
   orbContainer: { alignItems: 'center', paddingVertical: 8, marginBottom: 4 },
+  orbHint: {
+    fontSize: 9,
+    fontFamily: 'Inter_700Bold',
+    color: Colors.text.muted,
+    letterSpacing: 2,
+    marginTop: -6,
+  },
   spacer: { height: 12 },
   spacerLg: { height: 20 },
   ctaButton: {

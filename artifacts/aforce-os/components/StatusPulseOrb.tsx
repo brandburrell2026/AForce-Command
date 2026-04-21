@@ -1,20 +1,25 @@
 /**
  * StatusPulseOrb — Signature animated orb.
  *
- * Per spec: ZERO pulse logic is hardcoded inside this presentation component.
- * All breathe speed, glow strength, intensity, color mode, and wave behavior
- * are driven by `pulseConfig` returned from the mock service layer.
+ * Pulse is fully driven by `pulseConfig` from the service layer.
+ * On top of the four `waveBehavior` modes, this build also implements:
+ *   - `flareOnPeak` — rhythmic accent ring radiating outward at PEAK
+ *   - `collapseOnDepletion` — tense inward squeeze pulses at DEPLETED
+ *   - `burstOnIntake` — outward shockwave on every successful intake
+ *   - secondary "ripple" ring continuously emitted in BALANCED/PEAK
+ *
+ * Tappable: invokes `onTap` (used to open the Score Breakdown sheet).
  */
 
 import React, { useEffect } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Pressable } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withRepeat,
   withTiming,
   withSequence,
-  withSpring,
+  withDelay,
   interpolate,
   Easing,
   cancelAnimation,
@@ -27,6 +32,7 @@ interface Props {
   pulseConfig: PulseConfig;
   score: number;
   burstAt?: number; // timestamp — when changed, fire burst
+  onTap?: () => void;
 }
 
 const ORB_SIZE = 200;
@@ -39,26 +45,48 @@ const COLOR_MAP: Record<PulseConfig['colorMode'], { primary: string; glow: strin
   red:   { primary: Colors.states.DEPLETED.primary,   glow: Colors.states.DEPLETED.glow },
 };
 
-export function StatusPulseOrb({ pulseConfig, score, burstAt = 0 }: Props) {
+export function StatusPulseOrb({ pulseConfig, score, burstAt = 0, onTap }: Props) {
   const { pulseSpeed, glowStrength, pulseIntensity, waveBehavior, colorMode, animations } = pulseConfig;
   const colors = COLOR_MAP[colorMode];
 
-  // Convert pulseSpeed (0..1) into a millisecond cycle. Faster speed = shorter cycle.
   const cycleMs = Math.round(3400 - pulseSpeed * 2400); // 1000ms..3400ms
 
   const pulseAnim = useSharedValue(0);
   const glowAnim = useSharedValue(0);
   const scaleAnim = useSharedValue(1);
+
+  // Burst-on-intake
   const burstScale = useSharedValue(1);
   const burstOpacity = useSharedValue(0);
+
+  // Continuous ripple (PEAK + BALANCED + RECOVERING — small)
+  const rippleScale = useSharedValue(1);
+  const rippleOpacity = useSharedValue(0);
+
+  // Flare ring (PEAK only)
+  const flareScale = useSharedValue(1);
+  const flareOpacity = useSharedValue(0);
+
+  // Inward collapse ring (DEPLETED only)
+  const collapseScale = useSharedValue(1.4);
+  const collapseOpacity = useSharedValue(0);
+
+  // Tap press feedback
+  const tapScale = useSharedValue(1);
 
   useEffect(() => {
     cancelAnimation(pulseAnim);
     cancelAnimation(glowAnim);
     cancelAnimation(scaleAnim);
+    cancelAnimation(rippleScale);
+    cancelAnimation(rippleOpacity);
+    cancelAnimation(flareScale);
+    cancelAnimation(flareOpacity);
+    cancelAnimation(collapseScale);
+    cancelAnimation(collapseOpacity);
 
     if (waveBehavior === 'sharp_outward') {
-      // PEAK: assertive expanding wave
+      // PEAK
       pulseAnim.value = withRepeat(
         withSequence(
           withTiming(1, { duration: cycleMs * 0.45, easing: Easing.out(Easing.cubic) }),
@@ -78,7 +106,6 @@ export function StatusPulseOrb({ pulseConfig, score, burstAt = 0 }: Props) {
         ), -1, false,
       );
     } else if (waveBehavior === 'steady_outward') {
-      // BALANCED: smooth breathing
       pulseAnim.value = withRepeat(
         withSequence(
           withTiming(1, { duration: cycleMs, easing: Easing.inOut(Easing.sin) }),
@@ -92,7 +119,6 @@ export function StatusPulseOrb({ pulseConfig, score, burstAt = 0 }: Props) {
         ), -1, false,
       );
     } else if (waveBehavior === 'uneven_outward') {
-      // RECOVERING: choppy uneven pulse
       pulseAnim.value = withRepeat(
         withSequence(
           withTiming(1, { duration: cycleMs * 0.3, easing: Easing.out(Easing.quad) }),
@@ -114,7 +140,7 @@ export function StatusPulseOrb({ pulseConfig, score, burstAt = 0 }: Props) {
         ), -1, false,
       );
     } else {
-      // collapsing — DEPLETED: tense, contracting
+      // collapsing — DEPLETED
       pulseAnim.value = withRepeat(
         withSequence(
           withTiming(0.8, { duration: cycleMs * 0.4, easing: Easing.out(Easing.quad) }),
@@ -129,12 +155,70 @@ export function StatusPulseOrb({ pulseConfig, score, burstAt = 0 }: Props) {
       );
       scaleAnim.value = withRepeat(
         withSequence(
-          withTiming(0.98, { duration: cycleMs * 0.5 }),
-          withTiming(1.01, { duration: cycleMs * 0.5 }),
+          withTiming(0.97, { duration: cycleMs * 0.5 }),
+          withTiming(1.02, { duration: cycleMs * 0.5 }),
         ), -1, false,
       );
     }
-  }, [waveBehavior, cycleMs]);
+
+    // Continuous outward ripple — present in PEAK / BALANCED / RECOVERING.
+    if (waveBehavior !== 'collapsing') {
+      const rippleMs = Math.max(1400, cycleMs * 1.4);
+      rippleScale.value = withRepeat(
+        withSequence(
+          withTiming(1, { duration: 0 }),
+          withTiming(1.6, { duration: rippleMs, easing: Easing.out(Easing.quad) }),
+        ), -1, false,
+      );
+      rippleOpacity.value = withRepeat(
+        withSequence(
+          withTiming(0.55 * pulseIntensity, { duration: 80 }),
+          withTiming(0, { duration: rippleMs, easing: Easing.out(Easing.quad) }),
+        ), -1, false,
+      );
+    } else {
+      rippleOpacity.value = 0;
+    }
+
+    // Flare on PEAK — secondary fast accent ring shooting out twice per cycle.
+    if (animations.flareOnPeak) {
+      const flareMs = Math.max(800, cycleMs * 0.55);
+      flareScale.value = withRepeat(
+        withSequence(
+          withTiming(1, { duration: 0 }),
+          withTiming(1.9, { duration: flareMs, easing: Easing.out(Easing.cubic) }),
+        ), -1, false,
+      );
+      flareOpacity.value = withRepeat(
+        withSequence(
+          withTiming(0.7, { duration: 60 }),
+          withTiming(0, { duration: flareMs, easing: Easing.out(Easing.cubic) }),
+          withDelay(flareMs * 0.15, withTiming(0, { duration: 0 })),
+        ), -1, false,
+      );
+    } else {
+      flareOpacity.value = 0;
+    }
+
+    // Collapse on DEPLETED — tense inward squeeze ring that contracts toward orb.
+    if (animations.collapseOnDepletion) {
+      const collapseMs = Math.max(1200, cycleMs * 0.85);
+      collapseScale.value = withRepeat(
+        withSequence(
+          withTiming(1.5, { duration: 0 }),
+          withTiming(1.02, { duration: collapseMs, easing: Easing.in(Easing.quad) }),
+        ), -1, false,
+      );
+      collapseOpacity.value = withRepeat(
+        withSequence(
+          withTiming(0.6, { duration: 100 }),
+          withTiming(0, { duration: collapseMs, easing: Easing.in(Easing.quad) }),
+        ), -1, false,
+      );
+    } else {
+      collapseOpacity.value = 0;
+    }
+  }, [waveBehavior, cycleMs, animations.flareOnPeak, animations.collapseOnDepletion, pulseIntensity]);
 
   // Burst-on-intake animation
   useEffect(() => {
@@ -147,7 +231,7 @@ export function StatusPulseOrb({ pulseConfig, score, burstAt = 0 }: Props) {
     );
     burstScale.value = withSequence(
       withTiming(1, { duration: 0 }),
-      withTiming(1.4, { duration: 820, easing: Easing.out(Easing.cubic) }),
+      withTiming(1.55, { duration: 820, easing: Easing.out(Easing.cubic) }),
     );
   }, [burstAt]);
 
@@ -162,7 +246,7 @@ export function StatusPulseOrb({ pulseConfig, score, burstAt = 0 }: Props) {
   }));
 
   const orbStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scaleAnim.value }],
+    transform: [{ scale: scaleAnim.value * tapScale.value }],
   }));
 
   const ringStyle = useAnimatedStyle(() => ({
@@ -174,6 +258,24 @@ export function StatusPulseOrb({ pulseConfig, score, burstAt = 0 }: Props) {
     opacity: burstOpacity.value,
     transform: [{ scale: burstScale.value }],
   }));
+
+  const rippleStyle = useAnimatedStyle(() => ({
+    opacity: rippleOpacity.value,
+    transform: [{ scale: rippleScale.value }],
+  }));
+
+  const flareStyle = useAnimatedStyle(() => ({
+    opacity: flareOpacity.value,
+    transform: [{ scale: flareScale.value }],
+  }));
+
+  const collapseStyle = useAnimatedStyle(() => ({
+    opacity: collapseOpacity.value,
+    transform: [{ scale: collapseScale.value }],
+  }));
+
+  const handlePressIn = () => { tapScale.value = withTiming(0.96, { duration: 80 }); };
+  const handlePressOut = () => { tapScale.value = withTiming(1, { duration: 140 }); };
 
   return (
     <View style={styles.container}>
@@ -191,6 +293,45 @@ export function StatusPulseOrb({ pulseConfig, score, burstAt = 0 }: Props) {
           innerGlowStyle,
         ]}
       />
+
+      {/* Continuous outward ripple (PEAK / BALANCED / RECOVERING) */}
+      <Animated.View
+        pointerEvents="none"
+        style={[
+          styles.ring,
+          { borderColor: colors.primary, width: ORB_SIZE + 24, height: ORB_SIZE + 24, borderRadius: (ORB_SIZE + 24) / 2 },
+          rippleStyle,
+        ]}
+      />
+
+      {/* Flare on PEAK */}
+      <Animated.View
+        pointerEvents="none"
+        style={[
+          styles.ring,
+          {
+            borderColor: colors.primary,
+            borderWidth: 2,
+            width: ORB_SIZE + 24, height: ORB_SIZE + 24, borderRadius: (ORB_SIZE + 24) / 2,
+          },
+          flareStyle,
+        ]}
+      />
+
+      {/* Inward collapse ring on DEPLETED */}
+      <Animated.View
+        pointerEvents="none"
+        style={[
+          styles.ring,
+          {
+            borderColor: colors.primary,
+            borderStyle: 'dashed',
+            width: ORB_SIZE + 24, height: ORB_SIZE + 24, borderRadius: (ORB_SIZE + 24) / 2,
+          },
+          collapseStyle,
+        ]}
+      />
+
       {/* Burst ring on intake */}
       <Animated.View
         pointerEvents="none"
@@ -200,6 +341,7 @@ export function StatusPulseOrb({ pulseConfig, score, burstAt = 0 }: Props) {
           burstStyle,
         ]}
       />
+
       <Animated.View style={[styles.orbWrapper, orbStyle]}>
         <Animated.View
           style={[
@@ -208,7 +350,11 @@ export function StatusPulseOrb({ pulseConfig, score, burstAt = 0 }: Props) {
             ringStyle,
           ]}
         />
-        <View
+        <Pressable
+          onPress={onTap}
+          onPressIn={handlePressIn}
+          onPressOut={handlePressOut}
+          android_ripple={null}
           style={[
             styles.orb,
             {
@@ -221,7 +367,7 @@ export function StatusPulseOrb({ pulseConfig, score, burstAt = 0 }: Props) {
           ]}
         >
           <AnimatedScore value={score} color={colors.primary} />
-        </View>
+        </Pressable>
       </Animated.View>
     </View>
   );

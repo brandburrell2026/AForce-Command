@@ -1,21 +1,31 @@
 /**
  * WhyThisScore — Shows 2–4 concise reasons for current performance score.
+ * Tap "Full breakdown" to open the ScoreBreakdownSheet.
  */
 
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import type { ScoreReason } from '../types';
 import { Colors } from '../theme/colors';
 
 interface Props {
   reasons: ScoreReason[];
+  onOpenBreakdown?: () => void;
 }
 
-export function WhyThisScore({ reasons }: Props) {
+export function WhyThisScore({ reasons, onOpenBreakdown }: Props) {
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>WHY THIS SCORE</Text>
+      <View style={styles.headerRow}>
+        <Text style={styles.label}>WHY THIS SCORE</Text>
+        {onOpenBreakdown && (
+          <Pressable onPress={onOpenBreakdown} hitSlop={10} style={styles.breakdownBtn}>
+            <Text style={styles.breakdownText}>FULL BREAKDOWN</Text>
+            <Feather name="chevron-right" size={12} color={Colors.text.secondary} />
+          </Pressable>
+        )}
+      </View>
       <View style={styles.list}>
         {reasons.map((reason) => (
           <View key={reason.id} style={styles.reasonRow}>
@@ -54,12 +64,21 @@ const styles = StyleSheet.create({
     borderColor: Colors.border.subtle,
     marginHorizontal: 20,
   },
+  headerRow: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    marginBottom: 12,
+  },
   label: {
     fontSize: 10,
     fontFamily: 'Inter_700Bold',
     color: Colors.text.muted,
     letterSpacing: 2,
-    marginBottom: 12,
+  },
+  breakdownBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 4,
+  },
+  breakdownText: {
+    fontSize: 9, fontFamily: 'Inter_700Bold', color: Colors.text.secondary, letterSpacing: 1.5,
   },
   list: {
     gap: 10,
