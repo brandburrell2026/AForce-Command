@@ -140,7 +140,9 @@ function buildResponse(
         ...base,
         spoken: rendered.spoken,
         detail: rendered.detail,
-        action: { type: 'NAVIGATE', route: '/compare' },
+        // Compare flow has been removed from the app — the response stays
+        // informational but no longer navigates to a dedicated screen.
+        action: { type: 'NONE' },
       };
     }
 

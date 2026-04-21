@@ -25,10 +25,8 @@ function RootLayoutNav() {
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      <Stack.Screen name="compare" options={{ headerShown: false, presentation: 'card' }} />
       <Stack.Screen name="competition" options={{ headerShown: false, presentation: 'card' }} />
       <Stack.Screen name="scan" options={{ headerShown: false, presentation: 'card' }} />
-      <Stack.Screen name="hydroscan-compare" options={{ headerShown: false, presentation: 'card' }} />
       <Stack.Screen name="products" options={{ headerShown: false, presentation: 'card' }} />
       <Stack.Screen name="subscription" options={{ headerShown: false, presentation: 'card' }} />
       <Stack.Screen name="subscription/manage" options={{ headerShown: false, presentation: 'card' }} />

@@ -269,8 +269,6 @@ export default function HomeScreen() {
           <View style={styles.actionRow}>
             {([
               { key: 'scan',      icon: 'maximize',    label: 'Scan',      onPress: () => router.push('/scan') },
-              { key: 'compare',   icon: 'bar-chart-2', label: 'Compare',   onPress: () => router.push('/compare'),
-                accent: performanceState.level === 'DEPLETED' },
               { key: 'products',  icon: 'package',     label: 'Products',  onPress: () => router.push('/products') },
               { key: 'compete',   icon: 'award',       label: 'Compete',   onPress: () => router.push('/competition') },
               { key: 'circles',   icon: 'users',       label: 'Circles',   onPress: () => router.push('/circles'),
@@ -278,8 +276,6 @@ export default function HomeScreen() {
               { key: 'territory', icon: 'map',         label: 'Territory', onPress: () => router.push('/territory'),
                 testID: 'home-territory-button' },
             ] as const).map((item) => {
-              const isAccent = 'accent' in item && item.accent;
-              const tint = isAccent ? stateColor : Colors.text.primary;
               return (
                 <TouchableOpacity
                   key={item.key}
@@ -288,15 +284,12 @@ export default function HomeScreen() {
                     item.onPress();
                   }}
                   activeOpacity={0.85}
-                  style={[
-                    styles.actionTile,
-                    isAccent && { borderColor: stateColor, backgroundColor: `${stateColor}10` },
-                  ]}
+                  style={styles.actionTile}
                   accessibilityRole="button"
                   accessibilityLabel={item.label}
                   testID={'testID' in item ? item.testID : undefined}
                 >
-                  <Feather name={item.icon} size={18} color={tint} />
+                  <Feather name={item.icon} size={18} color={Colors.text.primary} />
                 </TouchableOpacity>
               );
             })}

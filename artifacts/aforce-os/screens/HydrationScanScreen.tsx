@@ -35,7 +35,6 @@ import { CameraScanModal } from '@/components/CameraScanModal';
 import { Colors } from '@/theme/colors';
 import { useAppStore } from '@/store/useAppStore';
 import { scan } from '@/services/hydrationScanService';
-import { competitorIdForScannedProduct } from '@/data/beverageCompetitors';
 import { listSimulatableBarcodes } from '@/services/productRecognitionService';
 import { usePostScan, useScanHistory } from '@/hooks/useServerHistory';
 import type { ScanOutcome, ScanResult, ScanSource } from '@/types/scan';
@@ -250,25 +249,6 @@ export default function HydrationScanScreen() {
             </Pressable>
           </View>
 
-          {/* Compare-vs-competitors entry — opens the AForce HydroScan
-              comparison flow against the top hydration brands on shelf. */}
-          <Pressable
-            onPress={() => router.push('/hydroscan-compare')}
-            style={({ pressed }) => [styles.compareCta, pressed && { opacity: 0.7 }]}
-            accessibilityRole="button"
-            accessibilityLabel="Compare AForce versus the top competitor brands"
-            testID="hydroscan-compare-cta"
-          >
-            <Feather name="bar-chart-2" size={14} color={Colors.states.PEAK.primary} />
-            <View style={{ flex: 1 }}>
-              <Text style={styles.compareCtaTitle}>COMPARE VS COMPETITORS</Text>
-              <Text style={styles.compareCtaSub}>
-                Gatorade · LMNT · Liquid I.V. · Prime · Nuun · Pedialyte +6 more
-              </Text>
-            </View>
-            <Feather name="chevron-right" size={16} color={Colors.text.muted} />
-          </Pressable>
-
           {/* Manual search fallback */}
           <View style={styles.manualCard}>
             <Text style={styles.manualLabel}>MANUAL SEARCH</Text>
@@ -329,49 +309,6 @@ export default function HydrationScanScreen() {
 
               <ProductFitCard result={result} />
 
-              {/* Compare-with-AForce CTA — only shown when the scanned
-                  product maps to a competitor we carry a beverage profile
-                  for. AForce scans return null (no self-compare); unknown
-                  brands return undefined (CTA hidden). Deep-links into
-                  HydroScan Compare with the competitor pre-selected. */}
-              {(() => {
-                const competitorId = competitorIdForScannedProduct(result.product.productId);
-                if (!competitorId) return null;
-                return (
-                  <Pressable
-                    onPress={() =>
-                      router.push({
-                        pathname: '/hydroscan-compare',
-                        params: { competitor: competitorId },
-                      })
-                    }
-                    style={({ pressed }) => [
-                      styles.compareWithAforceCta,
-                      { opacity: pressed ? 0.85 : 1 },
-                    ]}
-                    accessibilityRole="button"
-                    accessibilityLabel={`Compare ${result.product.brand} with AForce`}
-                    testID="scan-compare-with-aforce-cta"
-                  >
-                    <Feather name="zap" size={14} color={Colors.states.PEAK.primary} />
-                    <Text style={styles.compareWithAforceText}>
-                      COMPARE {result.product.brand.toUpperCase()} WITH AFORCE
-                    </Text>
-                    <Feather name="chevron-right" size={14} color={Colors.states.PEAK.primary} />
-                  </Pressable>
-                );
-              })()}
-
-              <Pressable
-                onPress={() => router.push('/compare')}
-                style={({ pressed }) => [
-                  styles.secondaryCta,
-                  { opacity: pressed ? 0.85 : 1 },
-                ]}
-              >
-                <Feather name="bar-chart-2" size={14} color={Colors.text.primary} />
-                <Text style={styles.secondaryCtaText}>VIEW FULL COMPARISON</Text>
-              </Pressable>
             </>
           )}
 
