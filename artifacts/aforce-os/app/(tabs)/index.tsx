@@ -17,6 +17,7 @@ import {
   View, Text, StyleSheet, TouchableOpacity, ScrollView, Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 
 import { GradientBackground } from '@/components/GradientBackground';
@@ -31,12 +32,15 @@ import { CycleSuccessOverlay } from '@/components/CycleSuccessOverlay';
 import { QuickIntakeBar } from '@/components/QuickIntakeBar';
 import { ScoreBreakdownSheet } from '@/components/ScoreBreakdownSheet';
 import { OnboardingOverlay } from '@/components/OnboardingOverlay';
+import { AIVideoPlayer } from '@/components/AIVideoPlayer';
 
 import { useAppStore } from '@/store/useAppStore';
+import { matchVideo } from '@/services/videoEngine';
 import { Colors } from '@/theme/colors';
 import { Feather } from '@expo/vector-icons';
 
 export default function HomeScreen() {
+  const router = useRouter();
   const { state, completeCycle, snooze, dismissSuccess, completeOnboarding } = useAppStore();
   const {
     engineOutput, userState, showCycleSuccess, lastCycleResult,
@@ -105,6 +109,58 @@ export default function HomeScreen() {
           <View style={styles.spacer} />
 
           <AICommandCard command={command} performanceState={performanceState} />
+          <View style={styles.spacer} />
+
+          <AIVideoPlayer
+            video={matchVideo({ engineOutput, userState })}
+            command={command}
+            timerSeconds={timerSeconds}
+          />
+          <View style={styles.spacer} />
+
+          <View style={styles.actionRow}>
+            <TouchableOpacity
+              onPress={() => {
+                if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
+                router.push('/compare');
+              }}
+              activeOpacity={0.85}
+              style={[
+                styles.actionBtn,
+                performanceState.level === 'DEPLETED' && {
+                  borderColor: stateColor,
+                  backgroundColor: `${stateColor}10`,
+                },
+              ]}
+            >
+              <Feather
+                name="bar-chart-2"
+                size={14}
+                color={performanceState.level === 'DEPLETED' ? stateColor : Colors.text.primary}
+              />
+              <Text
+                style={[
+                  styles.actionBtnText,
+                  performanceState.level === 'DEPLETED' && { color: stateColor },
+                ]}
+                numberOfLines={1}
+              >
+                {performanceState.level === 'DEPLETED' ? 'COMPARE — REC.' : 'COMPARE'}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => {
+                if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
+                router.push('/competition');
+              }}
+              activeOpacity={0.85}
+              style={styles.actionBtn}
+            >
+              <Feather name="award" size={14} color={Colors.text.primary} />
+              <Text style={styles.actionBtnText} numberOfLines={1}>COMPETE</Text>
+            </TouchableOpacity>
+          </View>
           <View style={styles.spacer} />
 
           <RiskTimerDisplay timerSeconds={timerSeconds} performanceState={performanceState} />
@@ -257,5 +313,29 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontFamily: 'Inter_500Medium',
     color: Colors.text.muted,
+  },
+  actionRow: {
+    flexDirection: 'row',
+    paddingHorizontal: 20,
+    gap: 10,
+  },
+  actionBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 13,
+    paddingHorizontal: 12,
+    borderRadius: 14,
+    backgroundColor: Colors.background.card,
+    borderWidth: 1,
+    borderColor: Colors.border.subtle,
+  },
+  actionBtnText: {
+    fontSize: 12,
+    fontFamily: 'Inter_700Bold',
+    color: Colors.text.primary,
+    letterSpacing: 1.2,
   },
 });

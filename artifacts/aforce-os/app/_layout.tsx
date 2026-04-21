@@ -24,6 +24,8 @@ function RootLayoutNav() {
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen name="compare" options={{ headerShown: false, presentation: 'card' }} />
+      <Stack.Screen name="competition" options={{ headerShown: false, presentation: 'card' }} />
     </Stack>
   );
 }

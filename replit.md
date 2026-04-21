@@ -21,6 +21,12 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 ### AForce OS (Mobile App — `artifacts/aforce-os`)
 Production-ready React Native / Expo mobile app — real-time human performance OS (hydration intelligence + AI decisioning). See `artifacts/aforce-os/README.md` for the full spec.
 
+**Recent additions (3-phase build):**
+- **AI Coaching Videos** (Phase 1): cinematic Reanimated video player at `components/AIVideoPlayer.tsx` with 6 scenes matched to user state via `services/videoEngine.ts`. Compact + full-screen modal, command overlay.
+- **Product Comparison Engine** (Phase 2): real-time, brand-neutral product ranking. `services/comparisonEngine.ts` (empty-catalog safe, NaN-clamped), `data/productDatabase.ts` (7 products), screen at `/compare` with axis breakdown, "Why AForce Wins" / "Full Comparison" toggle. Symmetric phrasing — never marketing.
+- **Community Competition** (Phase 3): hydration as sport. Spec formula (perf 0.35 + compliance 0.25 + consistency 0.20 + recovery 0.20) applied uniformly to individuals, cities, states, and teams via `services/competitionEngine.ts`. Screen at `/competition` with City/State/Team/Individual scope tabs (flag-gated), highlighted YOU row, +12 spots delta pill, city-wins celebration ribbon. 4 new feature flags (`city_/state_/team_competition_enabled`, `global_leaderboard_enabled`).
+- Home action row exposes both new screens via COMPARE + COMPETE buttons; COMPARE button auto-promotes when state is DEPLETED.
+
 **Phase 1 (this build) delivers:**
 - 4 tabs: Home (Hydration Control Center), Check (Performance Signals), Protocol (AForce Protocol), Profile (Settings + Demo Access).
 - Stack routes for Phase 2 (`/clutch` — Command the Team) and Phase 3 (`/guardian` — Protect the Roster), gated behind feature flags toggled in Profile → DEMO ACCESS.

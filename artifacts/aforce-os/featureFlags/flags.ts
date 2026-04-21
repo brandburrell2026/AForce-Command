@@ -26,6 +26,12 @@ export const DEFAULT_FLAGS: FeatureFlags = {
 
   // Future
   kids_world_enabled: false,
+
+  // Competition (Sport mode) — on by default for the demo
+  city_competition_enabled: true,
+  state_competition_enabled: true,
+  team_competition_enabled: true,
+  global_leaderboard_enabled: true,
 };
 
 /**
@@ -42,6 +48,10 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
   guardian_alerts_enabled: true,
   phantom_wearable_enabled: true,
   kids_world_enabled: false,
+  city_competition_enabled: true,
+  state_competition_enabled: true,
+  team_competition_enabled: true,
+  global_leaderboard_enabled: true,
 };
 
 export function isFlagEnabled(flags: FeatureFlags, key: keyof FeatureFlags): boolean {

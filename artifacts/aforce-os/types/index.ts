@@ -176,6 +176,12 @@ export interface FeatureFlags {
   phantom_wearable_enabled: boolean;
   clutch_clip_enabled: boolean;
   kids_world_enabled: boolean;
+
+  // Phase 3+ — Competition (Sport mode)
+  city_competition_enabled: boolean;
+  state_competition_enabled: boolean;
+  team_competition_enabled: boolean;
+  global_leaderboard_enabled: boolean;
 }
 
 // ─── Notifications / Hardware ─────────────────────────────────────────────────
