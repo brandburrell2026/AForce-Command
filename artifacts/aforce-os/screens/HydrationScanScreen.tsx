@@ -177,7 +177,7 @@ export default function HydrationScanScreen() {
             </Pressable>
             <View style={{ flex: 1 }}>
               <Text style={styles.eyebrow}>SCAN TO DECIDE</Text>
-              <Text style={styles.title}>Hydration Scan</Text>
+              <Text style={styles.title}>AForce HydroScan</Text>
             </View>
             <View style={styles.statePill}>
               <View style={[styles.dot, { backgroundColor: state.engineOutput.performanceState.color }]} />
@@ -248,6 +248,25 @@ export default function HydrationScanScreen() {
               </Text>
             </Pressable>
           </View>
+
+          {/* Compare-vs-competitors entry — opens the AForce HydroScan
+              comparison flow against the top hydration brands on shelf. */}
+          <Pressable
+            onPress={() => router.push('/hydroscan-compare')}
+            style={({ pressed }) => [styles.compareCta, pressed && { opacity: 0.7 }]}
+            accessibilityRole="button"
+            accessibilityLabel="Compare AForce versus the top competitor brands"
+            testID="hydroscan-compare-cta"
+          >
+            <Feather name="bar-chart-2" size={14} color={Colors.states.PEAK.primary} />
+            <View style={{ flex: 1 }}>
+              <Text style={styles.compareCtaTitle}>COMPARE VS COMPETITORS</Text>
+              <Text style={styles.compareCtaSub}>
+                Gatorade · LMNT · Liquid I.V. · Prime · Nuun · Pedialyte +6 more
+              </Text>
+            </View>
+            <Feather name="chevron-right" size={16} color={Colors.text.muted} />
+          </Pressable>
 
           {/* Manual search fallback */}
           <View style={styles.manualCard}>
@@ -491,6 +510,22 @@ const styles = StyleSheet.create({
     borderRadius: 100, borderWidth: 1, borderColor: `${Colors.states.PEAK.primary}55`,
     backgroundColor: `${Colors.states.PEAK.primary}10`,
     alignSelf: 'flex-start',
+  },
+
+  compareCta: {
+    flexDirection: 'row', alignItems: 'center', gap: 12,
+    padding: 14, marginVertical: 12,
+    borderRadius: 14, borderWidth: 1,
+    borderColor: `${Colors.states.PEAK.primary}55`,
+    backgroundColor: `${Colors.states.PEAK.primary}10`,
+  },
+  compareCtaTitle: {
+    fontSize: 12, fontFamily: 'Inter_700Bold',
+    color: Colors.text.primary, letterSpacing: 1.4,
+  },
+  compareCtaSub: {
+    fontSize: 10, fontFamily: 'Inter_500Medium',
+    color: Colors.text.muted, marginTop: 2, letterSpacing: 0.2,
   },
 
   manualCard: {

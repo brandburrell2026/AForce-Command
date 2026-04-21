@@ -162,7 +162,7 @@ function CameraScanBody({
         <Pressable onPress={onClose} hitSlop={12} style={styles.iconBtn}>
           <Feather name="x" size={22} color={Colors.text.primary} />
         </Pressable>
-        <Text style={styles.topBarTitle}>HYDRATION SCAN</Text>
+        <Text style={styles.topBarTitle}>AFORCE HYDROSCAN</Text>
         <View style={{ width: 36 }} />
       </View>
 
