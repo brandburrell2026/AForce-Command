@@ -1,0 +1,343 @@
+Update the AForce OS mobile app so it is fully compatible across Android devices, with special focus on:
+
+- Google Pixel phones
+- Samsung Galaxy phones
+- Samsung Galaxy Fold / Foldable devices
+- modern Android tablets where relevant
+
+IMPORTANT:
+This is not an Android port with downgraded quality.
+This is not a separate visual language.
+
+The Android version must feel identical in quality, authority, polish, and design intent to the Apple version.
+
+The goal is:
+Apple-level visual consistency
+across Android hardware
+
+Everything must reflect the same premium product standard as iPhone:
+- same icon quality
+- same spacing logic
+- same motion standard
+- same visual hierarchy
+- same command-first experience
+- same brand identity
+
+==================================================
+CORE REQUIREMENT
+==================================================
+
+AForce OS must feel like one product across:
+- iPhone
+- Google Pixel
+- Samsung Galaxy
+- Samsung Fold
+
+No cheap Android fallback design.
+No broken spacing.
+No stretched layouts.
+No icon inconsistencies.
+No visual downgrade.
+
+==================================================
+ANDROID COMPATIBILITY GOALS
+==================================================
+
+Ensure full support for:
+
+1. Standard Android slab phones
+- Pixel
+- Samsung Galaxy S / A / Ultra models
+
+2. Foldable devices
+- Samsung Galaxy Fold / Z Fold
+- folded state
+- unfolded state
+- orientation changes
+
+3. Larger Android screens
+- tablets and large screen mode where appropriate
+
+==================================================
+DESIGN CONSISTENCY RULE
+==================================================
+
+The app must preserve the same premium look and feel as Apple.
+
+That means:
+- same icon style
+- same color system
+- same typography hierarchy
+- same card language
+- same animation quality
+- same navigation confidence
+- same spacing discipline
+
+Do NOT redesign the app into generic Material Design.
+Do NOT replace AForce visual identity with default Android patterns.
+
+Use Android-native behaviors only where necessary for usability, but preserve AForce design language everywhere.
+
+==================================================
+ICONS
+==================================================
+
+All icons must match the Apple version in:
+- size
+- weight
+- clarity
+- visual tone
+- spacing
+- premium feel
+
+If using icon libraries, choose a consistent icon family that feels:
+- sharp
+- modern
+- minimal
+- premium
+
+Do not allow Android icons to look lighter, cheaper, or more generic than iOS.
+
+Ensure:
+- tab icons
+- quick action icons
+- settings icons
+- hardware icons
+- competition icons
+- scan icons
+all visually match the Apple experience
+
+==================================================
+TYPOGRAPHY + SPACING
+==================================================
+
+Typography must remain visually consistent across platforms.
+
+Keep the same hierarchy:
+- Screen Title
+- Score
+- Card Titles
+- Labels
+- Body text
+- Buttons
+
+Ensure font rendering on Android looks as close as possible to iOS quality.
+
+Use platform-safe fonts if needed, but preserve:
+- weight
+- density
+- line height
+- visual hierarchy
+
+Spacing must remain consistent across:
+- Pixel
+- Samsung
+- Fold
+- small Android devices
+- large Android devices
+
+No compressed layouts.
+No oversized Android padding.
+No broken alignment.
+
+==================================================
+ANDROID UI SYSTEM REQUIREMENTS
+==================================================
+
+Build and validate:
+- responsive layout system
+- device width breakpoints
+- safe area handling
+- status bar handling
+- navigation bar handling
+- keyboard handling
+- notch / hole punch camera handling
+- split screen / resizable windows where relevant
+
+==================================================
+FOLDABLE DEVICE SUPPORT
+==================================================
+
+Add full support for Samsung Fold / foldables.
+
+The app must work beautifully in:
+
+1. Folded phone mode
+- looks like a normal phone
+- no cramped UI
+- command remains dominant
+
+2. Unfolded expanded mode
+- layout adapts intelligently
+- more whitespace
+- stronger visual balance
+- optional two-column support where appropriate
+
+DO NOT simply stretch the phone UI.
+
+For unfolded Fold mode:
+- Home screen should intelligently expand
+- orb should stay centered and powerful
+- command card should remain dominant
+- supporting information can use wider layout
+- tabs and bottom nav should still feel intentional
+
+Possible expanded layout behavior:
+- orb + score centered
+- primary command full-width below
+- secondary info (Why, signals, hardware, quick actions) can use two-column arrangement if it improves usability
+
+==================================================
+RESPONSIVE LAYOUT RULES
+==================================================
+
+Create breakpoints for:
+- compact phone
+- standard phone
+- large phone
+- folded device open
+- tablet
+
+Define which screens may use:
+- single column only
+- adaptive two-column layout
+- repositioned cards
+- resized orb
+- expanded competition/map layouts
+
+Home screen must always preserve:
+- one-command priority
+- state clarity
+- orb identity
+
+==================================================
+ANDROID MOTION + ANIMATION
+==================================================
+
+Animations must be as good on Android as on iPhone.
+
+Requirements:
+- smooth 60fps target
+- no dropped frames
+- same orb behavior quality
+- same score count-up quality
+- same transition quality
+- same command feedback quality
+
+Do not let Android feel slower or less alive.
+
+Use React Native Reanimated and native driver where possible.
+
+==================================================
+PLATFORM-SPECIFIC ENGINEERING
+==================================================
+
+Audit and update the codebase for:
+- Android permissions
+- camera permissions
+- microphone permissions
+- Bluetooth permissions
+- background notification behavior
+- vibration / haptics equivalents
+- foldable screen dimension changes
+- orientation listeners
+- window resize events
+
+Ensure:
+- Hydration Scan works on Android
+- Voice Command works on Android
+- Phantom Band BLE flow works on Android
+- push notifications work on Android
+- bottom navigation works correctly on Android
+- all modals, sheets, and overlays behave correctly
+
+==================================================
+NAVIGATION
+==================================================
+
+Keep the same core navigation experience across iOS and Android.
+
+Tabs:
+- Home
+- Check
+- Protocol
+- Profile
+
+Bottom nav must feel visually identical in quality.
+
+Do not allow:
+- Android tab bar to look cheaper
+- icon spacing changes
+- inconsistent label behavior
+- awkward padding on Samsung devices
+
+==================================================
+QA / DEVICE TESTING
+==================================================
+
+Add testing requirements for:
+- Pixel standard phone
+- Samsung Galaxy slab phone
+- Samsung Fold closed
+- Samsung Fold open
+- Android dark mode consistency
+- different DPI / screen densities
+- text scaling behavior
+- orientation changes
+- split-screen if applicable
+
+Create a compatibility checklist for:
+- visual consistency
+- animation quality
+- spacing integrity
+- icon consistency
+- fold behavior
+- scan / voice / BLE behavior
+
+==================================================
+FILES / STRUCTURE TO UPDATE
+==================================================
+
+Create or update:
+
+- /docs/android-compatibility-plan.md
+- /docs/foldable-layout-spec.md
+- /src/hooks/useResponsiveLayout.ts
+- /src/hooks/useDeviceClass.ts
+- /src/hooks/useFoldableState.ts
+- /src/theme/platformTokens.ts
+- /src/theme/iconSystem.ts
+- /src/utils/layoutBreakpoints.ts
+- /src/components/AdaptiveScreenWrapper.tsx
+- /src/components/FoldableLayout.tsx
+- /src/components/PlatformSafeIcon.tsx
+- /src/components/ResponsiveCommandCard.tsx
+
+==================================================
+ICON SYSTEM
+==================================================
+
+Create an icon system abstraction so all icons are controlled centrally.
+
+Requirements:
+- same icon family or mapped families
+- same sizing tokens
+- same stroke/weight tokens
+- same active/inactive state logic
+- same premium appearance across Apple and Android
+
+==================================================
+DELIVERABLE
+==================================================
+
+Update the app architecture and UI system so AForce OS is fully Android-compatible, foldable-aware, and visually identical in premium quality to the Apple version.
+
+The result should feel like:
+one product
+one brand
+one premium system
+
+across iPhone, Google Pixel, Samsung Galaxy, and Samsung Fold.
+
+FINAL GOAL:
+A user on Google or Samsung should never feel they received a lower-quality version of AForce OS than an iPhone user.

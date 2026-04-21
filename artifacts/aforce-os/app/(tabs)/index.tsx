@@ -192,7 +192,10 @@ export default function HomeScreen() {
   const handleCtaFlavor = (flavor: FlavorChoice | null) => {
     setCtaFlavorOpen(false);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy).catch(() => {});
-    logIntake('aforce_stick', flavor ? { flavorLabel: flavor.label } : undefined);
+    // The big CTA picker offers both formats; honor whichever the user
+    // tapped, falling back to a stick if they dismissed without choosing.
+    const fluid = flavor?.fluid ?? 'aforce_stick';
+    logIntake(fluid, flavor ? { flavorLabel: flavor.label } : undefined);
   };
 
   const handleSnooze = () => {
@@ -312,7 +315,7 @@ export default function HomeScreen() {
 
           <FlavorPickerModal
             visible={ctaFlavorOpen}
-            format="stick"
+            format="both"
             onCancel={() => setCtaFlavorOpen(false)}
             onConfirm={handleCtaFlavor}
           />
@@ -330,7 +333,7 @@ export default function HomeScreen() {
             <View style={[styles.ctaGlow, { backgroundColor: `${stateColor}1F` }]} />
             <Feather name="check-circle" size={20} color={isCompletingCycle ? Colors.text.muted : stateColor} />
             <Text style={[styles.ctaText, { color: isCompletingCycle ? Colors.text.muted : Colors.text.primary }]}>
-              {isCompletingCycle ? 'LOGGING…' : 'LOG AFORCE STICK'}
+              {isCompletingCycle ? 'LOGGING…' : 'LOG AFORCE'}
             </Text>
           </TouchableOpacity>
 

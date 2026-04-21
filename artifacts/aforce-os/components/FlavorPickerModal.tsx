@@ -29,22 +29,53 @@ export interface FlavorChoice {
   label: string;
   flavor: ProductFlavor;
   accent: string;
+  // Set when the picker is in 'both' mode so the caller knows which
+  // physical product (stick vs ready-to-drink can) was selected.
+  fluid?: 'aforce_stick' | 'aforce_rtd';
 }
+
+type PickerFormat = 'stick' | 'rtd' | 'both';
 
 interface Props {
   visible: boolean;
-  format: 'stick' | 'rtd';
+  format: PickerFormat;
   onCancel: () => void;
   onConfirm: (flavor: FlavorChoice | null) => void;
 }
 
+// One render row in the picker: a flavor variant paired with the
+// physical format being offered. In 'stick' / 'rtd' mode this is just
+// the 3 flavors; in 'both' mode it expands to 6 options (3 flavors x 2
+// formats) so the user can pick flavor and format in a single tap.
+type PickerRow = {
+  variant: (typeof FLAVOR_VARIANTS)[number];
+  fluid: 'aforce_stick' | 'aforce_rtd';
+  formatWord: 'Stick' | 'Can';
+};
+
+function buildRows(format: PickerFormat): PickerRow[] {
+  const rows: PickerRow[] = [];
+  for (const v of FLAVOR_VARIANTS) {
+    if (format === 'stick' || format === 'both') {
+      rows.push({ variant: v, fluid: 'aforce_stick', formatWord: 'Stick' });
+    }
+    if (format === 'rtd' || format === 'both') {
+      rows.push({ variant: v, fluid: 'aforce_rtd', formatWord: 'Can' });
+    }
+  }
+  return rows;
+}
+
 export function FlavorPickerModal({ visible, format, onCancel, onConfirm }: Props) {
-  const formatLabel = format === 'stick' ? 'STICK' : 'RTD';
+  const titleSuffix =
+    format === 'stick' ? ' STICK' : format === 'rtd' ? ' RTD' : '';
 
   const choose = (flavor: FlavorChoice | null) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
     onConfirm(flavor);
   };
+
+  const rows = buildRows(format);
 
   return (
     <Modal
@@ -57,30 +88,44 @@ export function FlavorPickerModal({ visible, format, onCancel, onConfirm }: Prop
       <Pressable style={styles.backdrop} onPress={onCancel}>
         <Pressable style={styles.sheet} onPress={() => {}}>
           <View style={styles.headerRow}>
-            <Text style={styles.title}>LOG AFORCE {formatLabel}</Text>
+            <Text style={styles.title}>LOG AFORCE{titleSuffix}</Text>
             <Pressable onPress={onCancel} hitSlop={12} accessibilityLabel="Cancel">
               <Feather name="x" size={20} color={Colors.text.secondary} />
             </Pressable>
           </View>
-          <Text style={styles.subtitle}>Which flavor did you take?</Text>
+          <Text style={styles.subtitle}>
+            {format === 'both'
+              ? 'Pick a flavor and format.'
+              : 'Which flavor did you take?'}
+          </Text>
 
           <ScrollView
             style={styles.list}
             contentContainerStyle={styles.listContent}
             showsVerticalScrollIndicator={false}
           >
-            {FLAVOR_VARIANTS.map((f) => {
-              const fullLabel = `${f.name} +${f.functionalIngredient}`;
+            {rows.map((row) => {
+              const f = row.variant;
+              const fullLabel = `${f.name} +${f.functionalIngredient} ${row.formatWord}`;
               const artwork =
                 f.flavor in PRODUCT_FLAVORS
-                  ? format === 'rtd'
+                  ? row.fluid === 'aforce_rtd'
                     ? PRODUCT_FLAVORS[f.flavor as FlavoredKey].can
                     : PRODUCT_FLAVORS[f.flavor as FlavoredKey].stick
                   : null;
+              const rowKey = `${f.id}-${row.fluid}`;
               return (
                 <Pressable
-                  key={f.id}
-                  onPress={() => choose({ id: f.id, label: fullLabel, flavor: f.flavor, accent: f.accent })}
+                  key={rowKey}
+                  onPress={() =>
+                    choose({
+                      id: f.id,
+                      label: fullLabel,
+                      flavor: f.flavor,
+                      accent: f.accent,
+                      fluid: row.fluid,
+                    })
+                  }
                   style={({ pressed }) => [
                     styles.card,
                     {
@@ -92,7 +137,7 @@ export function FlavorPickerModal({ visible, format, onCancel, onConfirm }: Prop
                   ]}
                   accessibilityRole="button"
                   accessibilityLabel={`Log ${fullLabel}`}
-                  testID={`flavor-${f.id}`}
+                  testID={`flavor-${rowKey}`}
                 >
                   {artwork ? (
                     <Image source={artwork} style={styles.artwork} resizeMode="contain" />
@@ -101,7 +146,9 @@ export function FlavorPickerModal({ visible, format, onCancel, onConfirm }: Prop
                   )}
                   <View style={styles.cardBody}>
                     <Text style={styles.cardName}>{f.name}</Text>
-                    <Text style={styles.cardSub}>+{f.functionalIngredient}</Text>
+                    <Text style={styles.cardSub}>
+                      +{f.functionalIngredient} · {row.formatWord}
+                    </Text>
                   </View>
                   <Feather name="chevron-right" size={18} color={f.accent} />
                 </Pressable>
