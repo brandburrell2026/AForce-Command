@@ -35,6 +35,7 @@ import { CameraScanModal } from '@/components/CameraScanModal';
 import { Colors } from '@/theme/colors';
 import { useAppStore } from '@/store/useAppStore';
 import { scan } from '@/services/hydrationScanService';
+import { competitorIdForScannedProduct } from '@/data/beverageCompetitors';
 import { listSimulatableBarcodes } from '@/services/productRecognitionService';
 import { usePostScan, useScanHistory } from '@/hooks/useServerHistory';
 import type { ScanOutcome, ScanResult, ScanSource } from '@/types/scan';
@@ -328,6 +329,39 @@ export default function HydrationScanScreen() {
 
               <ProductFitCard result={result} />
 
+              {/* Compare-with-AForce CTA — only shown when the scanned
+                  product maps to a competitor we carry a beverage profile
+                  for. AForce scans return null (no self-compare); unknown
+                  brands return undefined (CTA hidden). Deep-links into
+                  HydroScan Compare with the competitor pre-selected. */}
+              {(() => {
+                const competitorId = competitorIdForScannedProduct(result.product.productId);
+                if (!competitorId) return null;
+                return (
+                  <Pressable
+                    onPress={() =>
+                      router.push({
+                        pathname: '/hydroscan-compare',
+                        params: { competitor: competitorId },
+                      })
+                    }
+                    style={({ pressed }) => [
+                      styles.compareWithAforceCta,
+                      { opacity: pressed ? 0.85 : 1 },
+                    ]}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Compare ${result.product.brand} with AForce`}
+                    testID="scan-compare-with-aforce-cta"
+                  >
+                    <Feather name="zap" size={14} color={Colors.states.PEAK.primary} />
+                    <Text style={styles.compareWithAforceText}>
+                      COMPARE {result.product.brand.toUpperCase()} WITH AFORCE
+                    </Text>
+                    <Feather name="chevron-right" size={14} color={Colors.states.PEAK.primary} />
+                  </Pressable>
+                );
+              })()}
+
               <Pressable
                 onPress={() => router.push('/compare')}
                 style={({ pressed }) => [
@@ -518,6 +552,18 @@ const styles = StyleSheet.create({
     borderRadius: 14, borderWidth: 1,
     borderColor: `${Colors.states.PEAK.primary}55`,
     backgroundColor: `${Colors.states.PEAK.primary}10`,
+  },
+  compareWithAforceCta: {
+    flexDirection: 'row', alignItems: 'center', gap: 8,
+    paddingHorizontal: 14, paddingVertical: 12,
+    borderRadius: 12, borderWidth: 1,
+    borderColor: `${Colors.states.PEAK.primary}66`,
+    backgroundColor: `${Colors.states.PEAK.primary}14`,
+  },
+  compareWithAforceText: {
+    flex: 1,
+    fontSize: 11, fontFamily: 'Inter_700Bold',
+    color: Colors.states.PEAK.primary, letterSpacing: 1.4,
   },
   compareCtaTitle: {
     fontSize: 12, fontFamily: 'Inter_700Bold',

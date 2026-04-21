@@ -5,7 +5,11 @@
 
 import { describe, expect, it } from 'vitest';
 
-import { AFORCE_PROFILE, COMPETITORS } from '../../data/beverageCompetitors';
+import {
+  AFORCE_PROFILE,
+  COMPETITORS,
+  competitorIdForScannedProduct,
+} from '../../data/beverageCompetitors';
 import {
   compareBeverages,
   scoreBeverage,
@@ -51,5 +55,26 @@ describe('beverageComparisonEngine', () => {
     expect(Object.keys(r.metricWinners).sort()).toEqual(
       ['alkaline', 'clean', 'electrolytes', 'functional', 'sugar'],
     );
+  });
+
+  describe('competitorIdForScannedProduct (scan -> compare deep link)', () => {
+    it('maps known scanned competitor ids to their comparison profile', () => {
+      expect(competitorIdForScannedProduct('gatorade')).toBe('gatorade');
+      expect(competitorIdForScannedProduct('lmnt')).toBe('lmnt');
+      expect(competitorIdForScannedProduct('liquid_iv')).toBe('liquid_iv');
+      expect(competitorIdForScannedProduct('pedialyte')).toBe('pedialyte');
+      expect(competitorIdForScannedProduct('prime')).toBe('prime');
+    });
+
+    it('returns null for AForce SKUs (no self-compare)', () => {
+      expect(competitorIdForScannedProduct('aforce_stick')).toBeNull();
+      expect(competitorIdForScannedProduct('aforce_rtd')).toBeNull();
+      expect(competitorIdForScannedProduct('aforce_berry_blast')).toBeNull();
+    });
+
+    it('returns undefined for unknown brands so the CTA stays hidden', () => {
+      expect(competitorIdForScannedProduct('water')).toBeUndefined();
+      expect(competitorIdForScannedProduct('mystery_juice')).toBeUndefined();
+    });
   });
 });

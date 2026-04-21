@@ -293,3 +293,33 @@ export function findCompetitor(id: CompetitorId): BeverageProfile | undefined {
   if (id === 'aforce_stick') return AFORCE_PROFILE;
   return COMPETITORS.find((c) => c.id === id);
 }
+
+/**
+ * Map a productId from the SCAN catalog (`data/productDatabase.ts`) over to
+ * a CompetitorId in this beverage-comparison catalog so a scanned product
+ * can deep-link straight into the comparison flow. Returns `null` for
+ * AForce products (you don't compare AForce to itself) and `undefined` for
+ * scanned brands we don't carry a profile for yet (the UI hides the CTA).
+ */
+export function competitorIdForScannedProduct(
+  scannedProductId: string,
+): CompetitorId | null | undefined {
+  // AForce SKUs — no comparison needed, scanned product IS the benchmark.
+  if (scannedProductId.startsWith('aforce_')) return null;
+
+  // Direct id matches (the two catalogs share these slugs by design).
+  switch (scannedProductId) {
+    case 'gatorade':   return 'gatorade';
+    case 'powerade':   return 'powerade';
+    case 'pedialyte':  return 'pedialyte';
+    case 'lmnt':       return 'lmnt';
+    case 'liquid_iv':  return 'liquid_iv';
+    case 'prime':      return 'prime';
+    case 'nuun':       return 'nuun';
+    case 'bodyarmor':  return 'bodyarmor';
+    case 'g2':         return 'g2';
+    case 'propel':     return 'propel';
+    case 'dripdrop':   return 'dripdrop';
+    default:           return undefined;
+  }
+}

@@ -14,7 +14,7 @@
 import React, { useMemo, useState } from 'react';
 import { View, Text, StyleSheet, Pressable, ScrollView, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 
@@ -45,7 +45,17 @@ function winnerColor(w: 'aforce' | 'competitor' | 'tie'): string {
 export default function HydroScanCompareScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const [selected, setSelected] = useState<CompetitorId | null>(null);
+  // Support deep-link from a HydroScan result: /hydroscan-compare?competitor=<id>.
+  // Validates against the known competitor list so a bad URL just falls back
+  // to the picker instead of throwing.
+  const params = useLocalSearchParams<{ competitor?: string }>();
+  const initialCompetitor = useMemo<CompetitorId | null>(() => {
+    const raw = params.competitor;
+    if (!raw) return null;
+    const match = COMPETITORS.find((c) => c.id === raw);
+    return match ? match.id : null;
+  }, [params.competitor]);
+  const [selected, setSelected] = useState<CompetitorId | null>(initialCompetitor);
 
   const competitor: BeverageProfile | null = useMemo(
     () => (selected ? COMPETITORS.find((c) => c.id === selected) ?? null : null),
