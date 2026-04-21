@@ -24,7 +24,7 @@ import { useAppStore } from '@/store/useAppStore';
 
 import type { ShareContext, ShareFormat, ShareType, StateLabel } from '@/types/share';
 import { generateShareVariations } from '@/services/shareTemplateEngine';
-import { openShareSheet, buildShareItem } from '@/services/shareService';
+import { openShareSheet, shareToSocial, buildShareItem, type SocialPlatform } from '@/services/shareService';
 import ShareCard from '@/components/ShareCard';
 import ShareStory from '@/components/ShareStory';
 import ShareText from '@/components/ShareText';
@@ -100,11 +100,22 @@ export const SharePreviewScreen: React.FC = () => {
 
   const message = variations[variantIdx]?.text ?? '';
 
-  const onShare = async () => {
+  /**
+   * Single dispatch path for every share button on this screen.
+   *
+   * Passing `platform` routes through `shareToSocial` (deep-link / web
+   * intent) for X / Facebook / LinkedIn / WhatsApp / Telegram / SMS.
+   * Instagram + the default "More" button fall through to the OS share
+   * sheet — Instagram because IG only accepts image/video payloads via
+   * deep link, "More" because that's the user's intent.
+   */
+  const dispatchShare = async (platform: SocialPlatform = 'system') => {
     if (!message || sharing) return;
     setSharing(true);
     if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
-    const ok = await openShareSheet({ format, message });
+    const ok = platform === 'system'
+      ? await openShareSheet({ format, message })
+      : await shareToSocial(platform, { format, message });
     if (ok) {
       buildShareItem(format, message, ctx); // local record; server event TBD
       if (Platform.OS !== 'web') {
@@ -113,6 +124,29 @@ export const SharePreviewScreen: React.FC = () => {
     }
     setSharing(false);
   };
+
+  const onShare = () => dispatchShare('system');
+
+  /**
+   * Quick-share targets surfaced as a horizontal row of icons.
+   * Order is the most-requested-first list (X / IG / FB are the top three
+   * for share-to-social on consumer apps, then messengers).
+   */
+  const SOCIAL_TARGETS: ReadonlyArray<{
+    id: SocialPlatform;
+    label: string;
+    icon: keyof typeof Feather.glyphMap;
+    tint: string;
+  }> = [
+    { id: 'x',         label: 'X',         icon: 'twitter',          tint: '#FFFFFF' },
+    { id: 'instagram', label: 'Instagram', icon: 'instagram',        tint: '#E1306C' },
+    { id: 'facebook',  label: 'Facebook',  icon: 'facebook',         tint: '#1877F2' },
+    { id: 'linkedin',  label: 'LinkedIn',  icon: 'linkedin',         tint: '#0A66C2' },
+    { id: 'whatsapp',  label: 'WhatsApp',  icon: 'message-circle',   tint: '#25D366' },
+    { id: 'telegram',  label: 'Telegram',  icon: 'send',             tint: '#26A5E4' },
+    { id: 'sms',       label: 'Messages',  icon: 'message-square',   tint: Colors.text.primary },
+    { id: 'system',    label: 'More',      icon: 'more-horizontal',  tint: Colors.text.primary },
+  ];
 
   return (
     <View style={[styles.root, { paddingTop: insets.top + 8 }]}>
@@ -138,6 +172,43 @@ export const SharePreviewScreen: React.FC = () => {
           {format === 'card'  && <ShareCard  message={message} context={ctx} />}
           {format === 'story' && <ShareStory message={message} context={ctx} />}
           {format === 'text'  && <ShareText  message={message} />}
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>SHARE TO</Text>
+          {/*
+            One-tap social targets. Each opens that network's share intent
+            (or the OS share sheet for Instagram + "More"). The row is
+            horizontally scrollable so we never have to drop a platform on
+            narrow phones — the visible quartet is always the highest-
+            priority targets (X · Instagram · Facebook · LinkedIn).
+          */}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.socialRow}
+          >
+            {SOCIAL_TARGETS.map((target) => (
+              <Pressable
+                key={target.id}
+                onPress={() => dispatchShare(target.id)}
+                disabled={sharing}
+                style={({ pressed }) => [
+                  styles.socialBtn,
+                  pressed && !sharing && { opacity: 0.85 },
+                  sharing && { opacity: 0.5 },
+                ]}
+                accessibilityRole="button"
+                accessibilityLabel={`Share to ${target.label}`}
+                testID={`share-to-${target.id}`}
+              >
+                <View style={[styles.socialIconCircle, { borderColor: `${target.tint}55` }]}>
+                  <Feather name={target.icon} size={18} color={target.tint} />
+                </View>
+                <Text style={styles.socialLabel} numberOfLines={1}>{target.label}</Text>
+              </Pressable>
+            ))}
+          </ScrollView>
         </View>
 
         <View style={styles.section}>
@@ -239,6 +310,24 @@ const styles = StyleSheet.create({
     fontSize: 11,
     letterSpacing: 3,
     fontWeight: '600',
+  },
+  socialRow: { flexDirection: 'row', gap: 14, paddingVertical: 4, paddingRight: 8 },
+  socialBtn: { alignItems: 'center', gap: 6, width: 64 },
+  socialIconCircle: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    backgroundColor: Colors.fill.light,
+  },
+  socialLabel: {
+    color: Colors.text.muted,
+    fontSize: 10,
+    letterSpacing: 0.6,
+    fontWeight: '600',
+    textAlign: 'center',
   },
   formatRow: { flexDirection: 'row', gap: 8 },
   formatBtn: {

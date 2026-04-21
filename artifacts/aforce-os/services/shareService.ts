@@ -18,9 +18,24 @@
  *     succeeded; user cancellation returns false without throwing.
  */
 
-import { Share, Platform } from 'react-native';
+import { Share, Platform, Linking } from 'react-native';
 import type { ShareFormat, ShareItem } from '../types/share';
 import { composeTextShare } from './shareTemplateEngine';
+
+/**
+ * Supported one-tap social targets. `'system'` is the OS share sheet which
+ * remains the catch-all (and the only viable target for Instagram Stories
+ * because IG does not accept text payloads through deep-link URLs).
+ */
+export type SocialPlatform =
+  | 'x'
+  | 'facebook'
+  | 'instagram'
+  | 'linkedin'
+  | 'whatsapp'
+  | 'telegram'
+  | 'sms'
+  | 'system';
 
 export interface OpenShareOpts {
   format: ShareFormat;
@@ -70,6 +85,90 @@ export async function openShareSheet(opts: OpenShareOpts): Promise<boolean> {
     return result.action !== Share.dismissedAction;
   } catch {
     // User cancellation on iOS throws — treat as not-shared, not an error.
+    return false;
+  }
+}
+
+/**
+ * Build a deep-link / web-intent URL for a given social target.
+ *
+ * Each platform exposes a "share intent" URL that pre-fills a post composer.
+ * Mobile apps register custom URL schemes that intercept the matching web
+ * URL; if the app isn't installed the browser opens the same URL and the
+ * user lands in the web composer instead. `null` means "this platform has
+ * no text-share URL — use the OS share sheet" (Instagram is the canonical
+ * example: IG Stories accept only image/video payloads via deep link, not
+ * arbitrary text).
+ */
+export function buildSocialShareUrl(
+  platform: SocialPlatform,
+  text: string,
+  url?: string,
+): string | null {
+  const t = text.trim();
+  const u = (url ?? '').trim();
+  const composed = u ? `${t}\n${u}` : t;
+  const encT = encodeURIComponent(t);
+  const encU = encodeURIComponent(u);
+  const encComposed = encodeURIComponent(composed);
+
+  switch (platform) {
+    case 'x':
+      // X / Twitter web intent — works for both app (via deep link
+      // interception) and browser composer.
+      return u
+        ? `https://twitter.com/intent/tweet?text=${encT}&url=${encU}`
+        : `https://twitter.com/intent/tweet?text=${encT}`;
+    case 'facebook':
+      // FB sharer requires a `u` (URL) param; the `quote` is appended as the
+      // user-editable caption. When no link is supplied we fall back to
+      // sharing the App Store landing page so the share is non-empty.
+      return `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(u || 'https://aforce.app')}&quote=${encT}`;
+    case 'linkedin':
+      return `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(u || 'https://aforce.app')}&summary=${encT}`;
+    case 'whatsapp':
+      // wa.me works on web AND deep-links into the WhatsApp app on devices
+      // where it's installed — the recommended cross-platform target.
+      return `https://wa.me/?text=${encComposed}`;
+    case 'telegram':
+      return `https://t.me/share/url?url=${encodeURIComponent(u || 'https://aforce.app')}&text=${encT}`;
+    case 'sms':
+      // RFC 5724 SMS URI. Use `&` body separator on iOS, `?` elsewhere — but
+      // both platforms tolerate `?body=` so we keep it simple.
+      return `sms:?body=${encComposed}`;
+    case 'instagram':
+    case 'system':
+      // Instagram has no text-share URL — let the OS share sheet handle it.
+      return null;
+  }
+}
+
+/**
+ * Share to a specific social platform. Returns true on success / dispatch,
+ * false if the user cancelled or the platform was unreachable.
+ */
+export async function shareToSocial(
+  platform: SocialPlatform,
+  opts: OpenShareOpts,
+): Promise<boolean> {
+  const text = composeTextShare(opts.message);
+  const url = buildSocialShareUrl(platform, text, opts.url);
+  // Instagram + 'system' fall through to the OS share sheet (Web Share API
+  // on web). For Instagram on a real device the share sheet exposes the
+  // "Stories" / "Feed" targets when IG is installed.
+  if (!url) return openShareSheet(opts);
+  try {
+    const can = await Linking.canOpenURL(url);
+    if (!can && Platform.OS !== 'web') {
+      // Native couldn't resolve a handler — fall back to system share
+      // sheet so the user still has a path to post.
+      return openShareSheet(opts);
+    }
+    await Linking.openURL(url);
+    return true;
+  } catch {
+    // openURL can throw on misconfigured URLs or user denial — treat as
+    // a non-fatal cancellation and let the caller decide what to surface.
     return false;
   }
 }
