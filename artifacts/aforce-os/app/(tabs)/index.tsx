@@ -35,6 +35,7 @@ import { WhyCompact } from '@/components/WhyCompact';
 import { QuickActionInline } from '@/components/QuickActionInline';
 import { SystemSignalLine } from '@/components/SystemSignalLine';
 import { PhantomBandLine } from '@/components/PhantomBandLine';
+import { ClimateLine } from '@/components/ClimateLine';
 import { AIVideoPlayer } from '@/components/AIVideoPlayer';
 import { CycleSuccessOverlay } from '@/components/CycleSuccessOverlay';
 import { ScoreBreakdownSheet } from '@/components/ScoreBreakdownSheet';
@@ -278,6 +279,12 @@ export default function HomeScreen() {
 
           {/* 6. SYSTEM SIGNAL — one condensed line + interpretive verdict */}
           <SystemSignalLine performanceLevel={performanceState.level} />
+
+          {/* 6b. CLIMATE — auto-detected city, outside temp + humidity. Taps
+              into the Heat Risk screen for the full breakdown. The component
+              renders a sync snapshot immediately and upgrades to the live
+              geolocated reading after permission. */}
+          <ClimateLine onPress={() => router.push('/heat')} />
 
           {/* 7. PHANTOM BAND — subtle hardware status one-liner. Tappable so
               users can drill into pairing / band status without losing the
