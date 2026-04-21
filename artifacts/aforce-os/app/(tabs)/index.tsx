@@ -1,17 +1,20 @@
 /**
- * Autopilot Screen — Main performance command center.
- * The core AForce OS experience.
+ * Home — Hydration Control Center.
+ *
+ * Per spec, top to bottom:
+ *   1. Live status strip
+ *   2. Status Pulse + Performance score + State label
+ *   3. Why this score
+ *   4. AI command card
+ *   5. Primary CTA + Quick intake controls
+ *   6. Recheck timing / next action
+ *   7. Water cycle visualization
+ *   8. Phantom signal (live sensor strip)
  */
 
-import React, { useRef } from 'react';
+import React from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  Platform,
-  Pressable,
+  View, Text, StyleSheet, TouchableOpacity, ScrollView, Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
@@ -21,24 +24,27 @@ import { LiveStatusStrip } from '@/components/LiveStatusStrip';
 import { StatusPulseOrb } from '@/components/StatusPulseOrb';
 import { WhyThisScore } from '@/components/WhyThisScore';
 import { RiskTimerDisplay } from '@/components/RiskTimerDisplay';
-import { SystemCommandCard } from '@/components/SystemCommandCard';
+import { AICommandCard } from '@/components/AICommandCard';
 import { WaterCycleBar } from '@/components/WaterCycleBar';
 import { PhantomSignal } from '@/components/PhantomSignal';
 import { CycleSuccessOverlay } from '@/components/CycleSuccessOverlay';
+import { QuickIntakeBar } from '@/components/QuickIntakeBar';
 
 import { useAppStore } from '@/store/useAppStore';
 import { Colors } from '@/theme/colors';
 import { Feather } from '@expo/vector-icons';
 
-export default function AutopilotScreen() {
+export default function HomeScreen() {
   const { state, completeCycle, snooze, dismissSuccess } = useAppStore();
-  const { engineOutput, userState, showCycleSuccess, lastCycleResult, isCompletingCycle, timerSeconds } = state;
-  const { performanceState, score, reasons, command } = engineOutput;
+  const {
+    engineOutput, userState, showCycleSuccess, lastCycleResult,
+    isCompletingCycle, timerSeconds, lastIntakeBurstAt,
+  } = state;
+  const { performanceState, score, reasons, command, pulseConfig } = engineOutput;
   const insets = useSafeAreaInsets();
-
   const stateColor = performanceState.color;
 
-  const handleCompleteCycle = () => {
+  const handleComplete = () => {
     if (isCompletingCycle) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
     completeCycle();
@@ -57,70 +63,56 @@ export default function AutopilotScreen() {
       <GradientBackground>
         <ScrollView
           style={styles.scroll}
-          contentContainerStyle={[
-            styles.content,
-            { paddingTop: topPadding + 8, paddingBottom: bottomPadding + 24 },
-          ]}
+          contentContainerStyle={[styles.content, { paddingTop: topPadding + 8, paddingBottom: bottomPadding + 24 }]}
           showsVerticalScrollIndicator={false}
-          bounces={true}
         >
-          {/* 1. Live Status Strip */}
           <LiveStatusStrip
             performanceState={performanceState}
             unitsToday={userState.unitsConsumedToday}
             dailyTarget={userState.dailyTarget}
           />
 
-          {/* 2. Header */}
           <View style={styles.headerRow}>
-            <View>
-              <Text style={styles.screenTitle}>AUTOPILOT</Text>
-              <Text style={styles.screenSubtitle}>Performance Command System</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.eyebrow}>HYDRATION CONTROL CENTER</Text>
+              <Text style={styles.title}>AForce OS</Text>
             </View>
-            <View style={[styles.statePill, { borderColor: `${stateColor}44`, backgroundColor: `${stateColor}12` }]}>
+            <View style={[styles.statePill, { borderColor: `${stateColor}55`, backgroundColor: `${stateColor}14` }]}>
+              <View style={[styles.dot, { backgroundColor: stateColor }]} />
               <Text style={[styles.stateLabel, { color: stateColor }]}>{performanceState.level}</Text>
             </View>
           </View>
 
-          {/* 3. Central Status Pulse Orb */}
           <View style={styles.orbContainer}>
-            <StatusPulseOrb performanceState={performanceState} score={score} />
+            <StatusPulseOrb pulseConfig={pulseConfig} score={score} burstAt={lastIntakeBurstAt} />
           </View>
 
-          {/* 4. Why This Score */}
           <WhyThisScore reasons={reasons} />
-
           <View style={styles.spacer} />
 
-          {/* 5. Risk Timer */}
+          <AICommandCard command={command} performanceState={performanceState} />
+          <View style={styles.spacer} />
+
           <RiskTimerDisplay timerSeconds={timerSeconds} performanceState={performanceState} />
-
-          <View style={styles.spacer} />
-
-          {/* 6. System Command */}
-          <SystemCommandCard command={command} performanceState={performanceState} />
-
           <View style={styles.spacerLg} />
 
-          {/* 7. Primary CTA */}
           <TouchableOpacity
             style={[
               styles.ctaButton,
-              { borderColor: `${stateColor}55` },
+              { borderColor: `${stateColor}66` },
               isCompletingCycle && styles.ctaDisabled,
             ]}
-            onPress={handleCompleteCycle}
-            activeOpacity={0.8}
+            onPress={handleComplete}
+            activeOpacity={0.85}
             disabled={isCompletingCycle}
           >
-            <View style={[styles.ctaGlow, { backgroundColor: `${stateColor}25` }]} />
+            <View style={[styles.ctaGlow, { backgroundColor: `${stateColor}1F` }]} />
             <Feather name="check-circle" size={20} color={isCompletingCycle ? Colors.text.muted : stateColor} />
             <Text style={[styles.ctaText, { color: isCompletingCycle ? Colors.text.muted : Colors.text.primary }]}>
-              {isCompletingCycle ? 'LOGGING...' : 'COMPLETE CYCLE'}
+              {isCompletingCycle ? 'LOGGING…' : 'LOG AFORCE STICK'}
             </Text>
           </TouchableOpacity>
 
-          {/* 8. Snooze */}
           {!userState.isSnoozed ? (
             <TouchableOpacity style={styles.snoozeBtn} onPress={handleSnooze} activeOpacity={0.7}>
               <Feather name="clock" size={12} color={Colors.text.muted} />
@@ -136,8 +128,9 @@ export default function AutopilotScreen() {
           )}
 
           <View style={styles.spacer} />
+          <QuickIntakeBar accentColor={stateColor} />
 
-          {/* 9. Water Cycle Bar */}
+          <View style={styles.spacer} />
           <WaterCycleBar
             unitsConsumed={userState.unitsConsumedToday}
             dailyTarget={userState.dailyTarget}
@@ -145,12 +138,9 @@ export default function AutopilotScreen() {
           />
 
           <View style={styles.spacer} />
-
-          {/* 10. Phantom Signal */}
           <PhantomSignal />
         </ScrollView>
 
-        {/* Cycle Success Overlay */}
         {showCycleSuccess && lastCycleResult && (
           <CycleSuccessOverlay result={lastCycleResult} onDismiss={dismissSuccess} />
         )}
@@ -160,59 +150,48 @@ export default function AutopilotScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: Colors.background.primary,
-  },
-  scroll: {
-    flex: 1,
-  },
-  content: {
-    gap: 0,
-  },
+  root: { flex: 1, backgroundColor: Colors.background.primary },
+  scroll: { flex: 1 },
+  content: { gap: 0 },
   headerRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-end',
     paddingHorizontal: 20,
-    paddingBottom: 12,
+    paddingBottom: 8,
     paddingTop: 8,
+    gap: 12,
   },
-  screenTitle: {
-    fontSize: 11,
+  eyebrow: {
+    fontSize: 10,
     fontFamily: 'Inter_700Bold',
     color: Colors.text.muted,
-    letterSpacing: 3,
+    letterSpacing: 2.5,
   },
-  screenSubtitle: {
-    fontSize: 20,
+  title: {
+    fontSize: 22,
     fontFamily: 'Inter_700Bold',
     color: Colors.text.primary,
-    letterSpacing: -0.5,
+    letterSpacing: -0.6,
     marginTop: 2,
   },
   statePill: {
-    paddingHorizontal: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 100,
     borderWidth: 1,
   },
+  dot: { width: 6, height: 6, borderRadius: 3 },
   stateLabel: {
-    fontSize: 11,
+    fontSize: 10,
     fontFamily: 'Inter_700Bold',
     letterSpacing: 1.5,
   },
-  orbContainer: {
-    alignItems: 'center',
-    paddingVertical: 8,
-    marginBottom: 4,
-  },
-  spacer: {
-    height: 12,
-  },
-  spacerLg: {
-    height: 20,
-  },
+  orbContainer: { alignItems: 'center', paddingVertical: 8, marginBottom: 4 },
+  spacer: { height: 12 },
+  spacerLg: { height: 20 },
   ctaButton: {
     marginHorizontal: 20,
     flexDirection: 'row',
@@ -225,16 +204,8 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     overflow: 'hidden',
   },
-  ctaGlow: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-  },
-  ctaDisabled: {
-    opacity: 0.5,
-  },
+  ctaGlow: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
+  ctaDisabled: { opacity: 0.5 },
   ctaText: {
     fontSize: 15,
     fontFamily: 'Inter_700Bold',

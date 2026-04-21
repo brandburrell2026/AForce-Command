@@ -1,0 +1,663 @@
+Build a production-ready, mobile-first AForce OS application in Replit.
+
+IMPORTANT:
+This is not a generic hydration app.
+This is not a chatbot.
+This is not a dashboard-first wellness tracker.
+
+AForce OS is a real-time human performance operating system built on hydration intelligence, AI decisioning, hardware integration, and closed-loop behavioral execution.
+
+Core system philosophy:
+Sense → Analyze → Predict → Command → Act → Feedback → Adapt
+
+The product must feel:
+- instant
+- predictive
+- alive
+- premium
+- authoritative
+- performance-first
+
+The app must answer one of three questions on every screen:
+1. What state am I in?
+2. What should I do next?
+3. How fast can I get back to optimal?
+
+TECH STACK:
+Build this as a React Native app with TypeScript.
+Use Expo for fast development if needed.
+Structure it so it can later deploy to iOS and Android.
+Use:
+- React Native
+- TypeScript
+- React Navigation
+- Zustand for state
+- React Native Reanimated for animation
+- react-native-svg if needed for the Pulse
+- modular architecture
+- local mock data and mock services for now
+
+Do not build a real backend yet, but architect the frontend as if it is driven by an API.
+The frontend must not invent hydration logic.
+All logic should come from a mocked API/service layer that returns:
+- score
+- state
+- protocol
+- pulse configuration
+
+APP V1 GOAL:
+Build the Phase 1 AForce OS Core experience first, but architect the codebase so Phase 2 and Phase 3 are already present behind feature flags.
+
+PHASES:
+Phase 1 = AForce OS Core = Build the Athlete
+Phase 2 = Clutch Access = Command the Team
+Phase 3 = Guardian Intelligence = Protect the Roster
+
+Build all three phases into the codebase.
+Only Phase 1 should be visible by default.
+Phase 2 and Phase 3 should be feature-gated and demo-ready.
+
+FEATURE FLAG REQUIREMENT:
+Add a feature flag system with flags such as:
+- clutch_access_enabled
+- clutch_heat_mode_enabled
+- clutch_inventory_enabled
+- guardian_intelligence_enabled
+- guardian_body_map_enabled
+- guardian_alerts_enabled
+- phantom_wearable_enabled
+- clutch_clip_enabled
+- kids_world_enabled
+
+Locked features should render upgrade / coming soon / demo-only experiences, not dead links.
+Add an admin demo toggle in dev mode so these features can be previewed instantly.
+
+NAVIGATION:
+Use 4 tabs exactly:
+1. Home
+2. Check
+3. Protocol
+4. Profile
+
+TAB DEFINITIONS:
+Home = Hydration Control Center
+Check = Performance Signals
+Protocol = AForce Protocol
+Profile = Profile & Settings
+
+BRAND LANGUAGE RULES:
+Never use generic health app language.
+Replace:
+- “Body Symptoms” with “Performance Signals”
+- “Urine Color” with “Hydration Signal Check”
+- “Select Energy” with “Energy State”
+- “Save Update” with “Confirm Status”
+- “Hydration Tracker” with “Performance Command System”
+
+AI language rules:
+Never say:
+- “you may want to”
+- “consider”
+- “try”
+- “we suggest”
+- “stay hydrated”
+- “great job”
+- any chatbot phrasing
+
+The AI is not an assistant.
+It is a performance decision engine.
+
+Every AI output must follow:
+WHAT to do + WHEN/HOW MUCH + OUTCOME
+
+Examples:
+- “Drink 16 oz now. Recheck in 20 minutes. You are trending down.”
+- “Take 1 AForce stick immediately. You are in Recovery state.”
+- “Score: 58. Depleted. Drink 20 oz and take 2 sticks now.”
+- “Balanced at 82. Drink 8 oz before your next session. You are on pace.”
+
+AI RULES:
+- 1 to 2 sentences max
+- command authority
+- no explanations
+- no suggestions
+- always personalized to score, state, time of day, trend, and inputs
+- response must appear within 1 second of trigger
+- use a custom logic layer above AI providers in the code architecture, even if mocked
+
+UI / DESIGN SYSTEM:
+The app should feel like:
+- Apple precision
+- Nike performance energy
+- WHOOP intelligence
+- Tesla control-layer simplicity
+
+Visual design requirements:
+- dark premium background
+- deep black background #050510
+- charcoal panels #0D0D20
+- lime accent #B4FF50
+- teal/cyan #00E5C8
+- amber #FFA01E
+- red #FF2D55
+- Guardian purple #8B5CF6
+- bold typography
+- strong spacing
+- rounded premium cards
+- no clutter
+- no health cliches
+- investor-grade aesthetic
+
+Typography scale:
+- Screen Title: 32–40px bold
+- Primary Score: 40–56px bold
+- Card Title: 18–22px semibold
+- Body Text: 14–16px regular
+- Button Text: 18–20px semibold
+- Micro Labels: 10–12px medium with tracking
+
+HOME SCREEN:
+This is the most important screen.
+Name: Hydration Control Center
+
+Top to bottom:
+1. Live status strip
+2. Status Pulse
+3. Performance score
+4. Current state label
+5. Why this score section
+6. Active protocol card
+7. AI command card
+8. Primary CTA
+9. Quick intake controls
+10. Recheck timing / next action
+11. Water or intake progress visualization
+
+HOME SCREEN QUESTIONS IT MUST ANSWER:
+- What state am I in?
+- What do I do next?
+- How fast can I get back to optimal?
+
+STATUS PULSE:
+This is the signature UI element.
+It replaces generic rings and static progress bars.
+The Pulse is the product.
+
+Rules:
+- dynamic animated circle
+- always alive
+- reacts to every state change
+- reacts to every input
+- reacts to score changes
+- driven by backend / mock API response
+- zero pulse logic should be hardcoded inside presentation components
+- use config returned from mocked service:
+  - pulse_state
+  - pulse_intensity
+  - pulse_speed
+  - glow_strength
+  - wave_behavior
+  - color_mode
+  - delta_mode
+  - animation flags
+
+Pulse states:
+PEAK
+- score 90–100
+- color lime
+- breathe speed fast 0.70
+- sharp outward wave
+- glow 0.92
+
+BALANCED
+- score 75–89
+- color teal
+- breathe speed slow 0.30
+- steady outward wave
+- glow 0.74
+
+RECOVERING
+- score 60–74
+- color amber
+- breathe speed medium uneven 0.55
+- uneven outward wave
+- glow 0.50
+
+DEPLETED
+- score 0–59
+- color red
+- breathe speed slow heavy 0.40
+- collapsing wave
+- glow 0.30
+
+Build the Status Pulse with React Native Reanimated.
+It must feel premium at 60fps.
+It must be the visual identity of AForce OS.
+
+SCORING ENGINE:
+Create a mocked scoring engine utility layer with the following formula shape:
+
+hydration_score = (
+  base_intake_score +
+  recency_score +
+  consistency_score +
+  context_modifier +
+  recovery_momentum +
+  symptom_penalty +
+  urine_signal_penalty +
+  output_stress_penalty
+)
+
+score = max(0, min(100, round(score)))
+
+Mock the inputs and calculations realistically.
+
+STATE CLASSIFICATION:
+- PEAK: 90–100
+- BALANCED: 75–89
+- RECOVERING: 60–74
+- DEPLETED: 0–59
+
+PROTOCOL TRIGGERS:
+Maintain
+- Balanced + low risk + stable
+- 8–12 oz, recheck 45–60 min
+
+Peak Support
+- Peak + high activity
+- maintain fluid, stick during exertion
+
+Recovery
+- Recovering + moderate risk
+- 12–16 oz now, stick if symptoms
+
+Depletion Correction
+- Depleted + high risk
+- 16–24 oz, electrolytes critical, recheck 20–30 min
+
+Heat Stress
+- hot + activity + declining
+- aggressive cadence, forced recheck interval
+
+SLEEP MODE:
+Include mock Sleep Mode logic.
+Rules:
+- track overnight hydration loss continuously in mock state
+- on wake, calculate carryover deficit
+- apply context penalty if overnight loss is significant
+- the first morning AI command should address overnight deficit first
+- morning opening should feel alive and intentional
+
+CHECK TAB:
+This is Performance Signals.
+Build UI for:
+- symptom toggles
+- Hydration Signal Check
+- Energy State
+- confirm status CTA
+
+Include:
+1. Performance Signals section
+   - toggles for mock symptoms
+2. Hydration Signal Check
+   - selectable urine signal tiles or scale
+3. Energy State
+   - simple state selector
+4. Confirm Status button
+5. Recalculation and score update after confirmation
+
+PROTOCOL TAB:
+Build AForce Protocol screen.
+Show:
+- active protocol steps
+- timing windows
+- 7 day trend
+- compliance CTA
+- current protocol stage
+- last command
+- next recheck time
+- progress toward protocol completion
+
+PROFILE TAB:
+Build Profile & Settings screen.
+Show:
+- goals
+- weight
+- activity type
+- wake time
+- daily target
+- subscription tier
+- integrations
+- hardware pairing placeholders
+- upgrade path
+
+WOW MOMENTS:
+These are mandatory.
+
+Required WOW moments:
+1. App Open
+- Status Pulse breathes in as score loads
+- should feel like a heartbeat waking up
+
+2. Water Logged
+- Pulse expands with glow burst
+- score animates upward
+- micro celebration
+- must feel instant
+
+3. Score Drops
+- Pulse tightens
+- glow dims
+- shifts toward amber
+- AI command fires
+
+4. Depleted State
+- Pulse collapses
+- red edge appears
+- emergency command
+
+5. Protocol Accepted
+- check mark animation
+- pulse brightens
+- AI confirms
+
+6. Peak State Reached
+- pulse expands fully
+- lime flare fires
+- AI confirms elite state
+
+7. Morning Opening
+- overnight loss shown
+- morning command fires
+- pulse resets for the day
+
+SCORE ANIMATION RULE:
+The score number must never just appear.
+Always count up from the previous score.
+This animation makes the product feel alive.
+
+ANIMATION STANDARDS:
+- 60fps minimum
+- no dropped frames
+- no laggy pulse
+- no static pulse on load
+- no delayed reward feedback after tap
+
+PERFORMANCE REQUIREMENTS:
+Hard standards:
+- GET /home style mock endpoint under 300ms target
+- log intake feedback under 150–200ms visually
+- pulse state change under 200ms
+- tab switch under 250ms
+- AI command render under 1 second end to end
+
+BANNED PATTERNS:
+- full-screen loading spinners on Home
+- score appearing without animation
+- pulse appearing static on load
+- logging water with no visual reaction
+- slow slide transitions
+- chatbot-style responses
+
+API ARCHITECTURE:
+Mock a service layer for these endpoints and wire the UI to them:
+
+GET /v1/home
+POST /v1/intake/log
+POST /v1/device/event
+GET /v1/signals/current
+POST /v1/signals/update
+GET /v1/urine-signal/current
+POST /v1/urine-signal/update
+GET /v1/energy-state/current
+POST /v1/energy-state/update
+GET /v1/pulse/current
+GET /v1/protocol/current
+POST /v1/protocol/acknowledge
+POST /v1/protocol/complete
+POST /v1/checkin
+GET /v1/timeline
+GET /v1/profile
+PATCH /v1/profile
+GET /v1/notifications/next
+
+MVP PRIORITY ENDPOINTS TO MOCK FIRST:
+- GET /v1/home
+- POST /v1/intake/log
+- POST /v1/signals/update
+- POST /v1/urine-signal/update
+- POST /v1/energy-state/update
+- GET /v1/protocol/current
+- POST /v1/checkin
+- GET /v1/pulse/current
+
+DATA MODEL / TYPES:
+Create TypeScript types/interfaces for:
+- User
+- UserProfile
+- CurrentUserState
+- PulseConfig
+- Protocol
+- ProtocolRecommendation
+- IntakeLog
+- SymptomLog
+- UrineSignalLog
+- EnergyStateLog
+- Command
+- Notification
+- FeatureFlags
+- Team
+- RosterPlayer
+- GuardianRiskState
+- HardwareDevice
+- ProductType
+
+DATABASE / DATA SHAPE:
+Model local mock data as if the backend uses:
+- users
+- user_profiles
+- raw_events
+- hydration_logs
+- symptom_logs
+- urine_signal_logs
+- energy_state_logs
+- computed_state_snapshots
+- current_user_state
+- protocols
+- protocol_recommendations
+and phase 2 tables like:
+- teams
+- team_rosters
+- game_sessions
+- clutch_commands
+- heat_mode_snapshots
+- inventory_records
+- environmental_snapshots
+- notification_jobs
+- protocol_outcomes
+
+Keep raw_events as the source of truth in the architecture.
+
+INTAKE / PRODUCTS:
+Important:
+AForce Phase 1 launches with four product formats.
+The app must support all four in data and UI.
+
+Products:
+1. AForce Hydration Sticks
+- API fluid_type = aforce_stick
+- mixed with 16–20 oz water
+
+2. AForce RTD Cans
+- API fluid_type = aforce_rtd
+- 12 oz per can
+
+3. AForce Canisters
+- API fluid_type = aforce_canister
+- 16–20 oz per scoop
+
+4. AForce FIELD BAG bulk bag
+- API fluid_type = aforce_bulk_bag
+- 16 oz per serving
+
+Build intake logging UI and mocked services that support:
+- water
+- aforce_stick
+- aforce_rtd
+- aforce_canister
+- aforce_bulk_bag
+
+Add quick add controls on Home to log:
+- Water
+- Stick
+- RTD
+- Canister
+- Bulk / team use placeholder
+
+PHASE 2: CLUTCH ACCESS
+Build hidden screens/components behind feature flags for demo purposes.
+Include:
+- live command grid
+- coach AI panel
+- Heat Mode
+- weight based hydration engine
+- staff view
+- auto replenish
+- roster import placeholder
+- offline mode placeholder
+
+Clutch state ranges:
+PLATINUM = 90–100%
+STABLE = 70–89%
+RECOVERY = 50–69%
+DEPLETED = below 50%
+
+Weight based hydration engine:
+daily_baseline_oz = 0.5 × body_weight_lbs
+game_target_oz = 0.25 × body_weight_lbs + (12 × active_30_min_windows)
+sticks_needed = ceil(game_target_oz / 20)
+
+Show these formulas in code comments and mock logic.
+
+PHASE 3: GUARDIAN INTELLIGENCE
+Build hidden screens/components behind feature flags for demo purposes.
+Include:
+- Guardian risk score screen
+- body risk map placeholder
+- critical risk alerts
+- risk thresholds
+- team roster protection UI
+
+Guardian algorithm mock inputs:
+- hydration percentage
+- body weight
+- active minutes
+- heat index
+- sweat rate
+- core temp estimate
+- quarter/period
+- pH level estimate
+
+Guardian thresholds:
+0–24 = OPTIMAL
+25–49 = WATCH
+50–74 = MODERATE RISK
+75–100 = CRITICAL RISK
+
+HARDWARE LAYER:
+Architect placeholders for:
+- PHANTOM Band
+- CLUTCH Clip
+
+PHANTOM:
+- private consumer wearable
+- BLE
+- sync every 30 seconds active
+- 5 minutes background
+- not visible to coach
+
+CLUTCH:
+- athlete clip
+- BLE
+- 15 second sync in game
+- 30 second sync in practice
+- visible to coach dashboard
+
+LED STATES:
+PLATINUM = white/silver steady
+STABLE = teal steady
+RECOVERY = amber slow pulse
+DEPLETED = red fast pulse
+
+Create a hardware sync service mock and hardware device types.
+
+REVENUE / PRICING PLACEHOLDERS:
+Build placeholders in settings or admin demo views for:
+- Core tier
+- Core team/program tier
+- Clutch add-on
+- Guardian add-on
+
+Do not make pricing a user-facing focus, but structure the code to support:
+- tier-based gating
+- upgrade prompts
+- admin demo activation
+
+FILE STRUCTURE:
+Use a clean scalable structure:
+- app
+- src/components
+- src/screens
+- src/navigation
+- src/store
+- src/services
+- src/mocks
+- src/types
+- src/hooks
+- src/theme
+- src/utils
+- src/constants
+- src/featureFlags
+- src/animations
+
+REQUIRED COMPONENTS:
+- StatusPulse
+- LiveStatusStrip
+- ScoreDisplay
+- StateBadge
+- WhyThisScoreCard
+- AICommandCard
+- ProtocolCard
+- QuickIntakeBar
+- RecheckTimer
+- FeatureGate
+- HardwareStatusCard
+- TeamCommandGrid
+- GuardianRiskCard
+- UpgradePrompt
+
+REQUIRED UTILITIES:
+- scoringEngine.ts
+- pulseMapper.ts
+- commandFormatter.ts
+- mockApi.ts
+- featureFlagService.ts
+- intakeLogger.ts
+- guardianRiskEngine.ts
+- clutchHydrationEngine.ts
+
+README:
+Include a clear README that explains:
+- product philosophy
+- architecture
+- file structure
+- feature flags
+- how to run in Replit
+- what is mocked
+- what would later connect to real APIs
+
+FINAL OUTPUT REQUIREMENT:
+Generate the full codebase so it runs immediately in Replit and previews without needing outside setup beyond normal package install.
+Make it polished, premium, modular, and demo-ready.
+Do not give me a prototype.
+Give me a build-ready codebase with mocked backend behavior and beautiful UI.

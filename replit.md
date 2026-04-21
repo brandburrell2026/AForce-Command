@@ -19,59 +19,69 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 ## Artifacts
 
 ### AForce OS (Mobile App — `artifacts/aforce-os`)
-Production-ready React Native / Expo mobile app.
+Production-ready React Native / Expo mobile app — real-time human performance OS (hydration intelligence + AI decisioning). See `artifacts/aforce-os/README.md` for the full spec.
+
+**Phase 1 (this build) delivers:**
+- 4 tabs: Home (Hydration Control Center), Check (Performance Signals), Protocol (AForce Protocol), Profile (Settings + Demo Access).
+- Stack routes for Phase 2 (`/clutch` — Command the Team) and Phase 3 (`/guardian` — Protect the Roster), gated behind feature flags toggled in Profile → DEMO ACCESS.
+- Mocked `/v1` REST contract in `services/mockApi.ts` (8 endpoints, 60–220ms simulated latency). The store NEVER calls the scoring engine directly — engine output flows only from the service layer.
+- Backend-driven Pulse animation contract (`PulseConfig`) — color, speed, wave behavior, glow, burst-on-intake.
+- AI Commands enforced as WHAT + WHEN + OUTCOME (1–2 sentences, no soft language).
+- 4 product types (sticks/jars/cans/bag) with brand imagery for tap-to-log Quick Intake.
 
 **Tech Stack:**
 - Expo SDK 54 / React Native 0.81
-- React Native Reanimated (animations)
+- React Native Reanimated (animations — useAnimatedReaction + runOnJS for score count-up)
 - React Native Gesture Handler
-- Expo Router (file-based navigation)
+- Expo Router 6 (file-based navigation)
 - React Context + useReducer (state management — no backend)
 - Inter font (via @expo-google-fonts/inter)
-- AsyncStorage (local persistence)
-- No backend — local mock data only (V1)
+- No backend — service layer is mocked but contract-aligned to a real `/v1` API
 
 **Architecture:**
 ```
 artifacts/aforce-os/
 ├── app/
 │   ├── _layout.tsx          # Root layout (SafeArea, Fonts, Providers)
+│   ├── clutch.tsx           # Phase 2 demo (gated)
+│   ├── guardian.tsx         # Phase 3 demo (gated)
 │   └── (tabs)/
-│       ├── _layout.tsx      # Tab bar (3 tabs: Autopilot, Protocol, Profile)
-│       ├── index.tsx        # Autopilot screen (main)
-│       ├── protocol.tsx     # Protocol/history screen
-│       └── profile.tsx      # Profile screen
+│       ├── _layout.tsx      # Tab bar (4 tabs: Home, Check, Protocol, Profile)
+│       ├── index.tsx        # Home — Hydration Control Center
+│       ├── check.tsx        # Check — Performance Signals
+│       ├── protocol.tsx     # AForce Protocol + Command History
+│       └── profile.tsx      # Profile + Demo Access (feature flags)
 ├── components/
-│   ├── StatusPulseOrb.tsx   # Animated signature orb
-│   ├── LiveStatusStrip.tsx  # Top biometric strip
-│   ├── WhyThisScore.tsx     # Score reasons
-│   ├── RiskTimerDisplay.tsx # Countdown timer
-│   ├── SystemCommandCard.tsx# Primary command
-│   ├── WaterCycleBar.tsx    # 8-cell progress bar
-│   ├── PhantomSignal.tsx    # Mock contextual data
-│   ├── CycleSuccessOverlay.tsx # Post-cycle success animation
-│   └── GradientBackground.tsx  # Premium dark background
+│   ├── StatusPulseOrb.tsx   # Pulse — driven entirely by PulseConfig
+│   ├── AnimatedScore.tsx    # Score count-up (Reanimated)
+│   ├── AICommandCard.tsx    # WHAT + WHEN + OUTCOME
+│   ├── QuickIntakeBar.tsx   # 4 product types tap-to-log
+│   ├── FeatureGate.tsx      # Locked-state wrapper for Phase 2/3
+│   └── (LiveStatusStrip / WhyThisScore / RiskTimerDisplay / WaterCycleBar / PhantomSignal / CycleSuccessOverlay / GradientBackground / ErrorBoundary)
+├── services/
+│   └── mockApi.ts           # 8 mocked /v1 endpoints — sole source of engine output
 ├── store/
-│   └── useAppStore.tsx      # App state (Context + useReducer)
+│   └── useAppStore.tsx      # Context + useReducer; routes through service layer
 ├── utils/
-│   └── scoringEngine.ts     # Score calculation (0-100)
-├── theme/
-│   ├── colors.ts            # Full color system (states: PEAK/BALANCED/RECOVERING/DEPLETED)
-│   ├── typography.ts        # Type scale
-│   └── spacing.ts           # Spacing/radii/shadows
-├── types/
-│   └── index.ts             # All TypeScript types
+│   └── scoringEngine.ts     # Score formula + AI command + Phase 2/3 mocks
+├── featureFlags/
+│   └── flags.ts             # DEFAULT + DEMO_ALL_ON
+├── theme/colors.ts          # Brand palette (lime/teal/amber/red, Clutch teal, Guardian purple)
+├── types/index.ts           # PulseConfig / FluidType / FeatureFlags / GuardianRiskState
 └── data/
-    └── mockData.ts          # Mock user state, history, phantom signal
+    ├── mockData.ts          # User state, history, signal scales, roster
+    └── products.ts          # 4 product types + bundled images
 ```
 
 **Performance States:**
-- PEAK (90-100): Neon lime (#AAFF00)
-- BALANCED (75-89): Teal (#00D4B8)
-- RECOVERING (60-74): Amber (#FFB800)
-- DEPLETED (0-59): Red (#FF3B5C)
+- PEAK (90–100): Lime #B4FF50
+- BALANCED (75–89): Teal #00E5C8
+- RECOVERING (60–74): Amber #FFA01E
+- DEPLETED (0–59): Red #FF2D55
 
-**Core Loop:** Score → Reason → Risk Timer → Command → Complete Cycle → Success → Reset → Repeat
+**Brand language enforced:** "Performance Signals" / "Hydration Signal Check" / "Energy State" / "Confirm Status" / "AFORCE COMMAND" / "HYDRATION CONTROL CENTER".
+
+**Core Loop:** Score → Why This Score → AI Command → Quick Intake → Cycle Success → Engine refresh from /v1.
 
 ## Key Commands
 

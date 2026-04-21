@@ -1,7 +1,9 @@
 /**
- * AForce OS Tab Layout
- * 3 tabs: Autopilot, Protocol, Profile
- * Dark themed with state-reactive accents.
+ * AForce OS Tab Layout — 4 tabs (per spec):
+ *   Home    = Hydration Control Center
+ *   Check   = Performance Signals
+ *   Protocol= AForce Protocol
+ *   Profile = Profile & Settings
  */
 
 import React from 'react';
@@ -19,7 +21,11 @@ function NativeTabLayout() {
     <NativeTabs>
       <NativeTabs.Trigger name="index">
         <Icon sf={{ default: 'bolt.circle', selected: 'bolt.circle.fill' }} />
-        <Label>Autopilot</Label>
+        <Label>Home</Label>
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="check">
+        <Icon sf={{ default: 'waveform.path.ecg', selected: 'waveform.path.ecg.rectangle.fill' }} />
+        <Label>Check</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="protocol">
         <Icon sf={{ default: 'list.bullet.circle', selected: 'list.bullet.circle.fill' }} />
@@ -41,7 +47,7 @@ function ClassicTabLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: Colors.states.PEAK.primary,
+        tabBarActiveTintColor: Colors.tabBar.active,
         tabBarInactiveTintColor: Colors.tabBar.inactive,
         tabBarStyle: {
           position: 'absolute',
@@ -54,8 +60,6 @@ function ClassicTabLayout() {
         tabBarBackground: () =>
           isIOS ? (
             <BlurView intensity={40} tint="dark" style={StyleSheet.absoluteFill} />
-          ) : isWeb ? (
-            <View style={[StyleSheet.absoluteFill, { backgroundColor: Colors.tabBar.background }]} />
           ) : (
             <View style={[StyleSheet.absoluteFill, { backgroundColor: Colors.tabBar.background }]} />
           ),
@@ -70,13 +74,19 @@ function ClassicTabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Autopilot',
+          title: 'Home',
           tabBarIcon: ({ color, size }) =>
-            isIOS ? (
-              <SymbolView name="bolt.circle" tintColor={color} size={size} />
-            ) : (
-              <Feather name="zap" size={22} color={color} />
-            ),
+            isIOS ? <SymbolView name="bolt.circle" tintColor={color} size={size} />
+                  : <Feather name="zap" size={22} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="check"
+        options={{
+          title: 'Check',
+          tabBarIcon: ({ color, size }) =>
+            isIOS ? <SymbolView name="waveform.path.ecg" tintColor={color} size={size} />
+                  : <Feather name="activity" size={22} color={color} />,
         }}
       />
       <Tabs.Screen
@@ -84,11 +94,8 @@ function ClassicTabLayout() {
         options={{
           title: 'Protocol',
           tabBarIcon: ({ color, size }) =>
-            isIOS ? (
-              <SymbolView name="list.bullet.circle" tintColor={color} size={size} />
-            ) : (
-              <Feather name="list" size={22} color={color} />
-            ),
+            isIOS ? <SymbolView name="list.bullet.circle" tintColor={color} size={size} />
+                  : <Feather name="list" size={22} color={color} />,
         }}
       />
       <Tabs.Screen
@@ -96,11 +103,8 @@ function ClassicTabLayout() {
         options={{
           title: 'Profile',
           tabBarIcon: ({ color, size }) =>
-            isIOS ? (
-              <SymbolView name="person.circle" tintColor={color} size={size} />
-            ) : (
-              <Feather name="user" size={22} color={color} />
-            ),
+            isIOS ? <SymbolView name="person.circle" tintColor={color} size={size} />
+                  : <Feather name="user" size={22} color={color} />,
         }}
       />
     </Tabs>
@@ -108,8 +112,6 @@ function ClassicTabLayout() {
 }
 
 export default function TabLayout() {
-  if (isLiquidGlassAvailable()) {
-    return <NativeTabLayout />;
-  }
+  if (isLiquidGlassAvailable()) return <NativeTabLayout />;
   return <ClassicTabLayout />;
 }

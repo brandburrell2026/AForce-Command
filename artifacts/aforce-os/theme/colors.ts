@@ -1,86 +1,92 @@
 // AForce OS Color System
-// Dark navy to deep purple gradient aesthetic
-// Premium performance command UI
+// Investor-grade premium dark performance OS palette.
 
 export const Colors = {
-  // Base backgrounds
+  // Base backgrounds — deep black + charcoal panels per spec
   background: {
-    primary: '#050A1A',    // Deep space navy
-    secondary: '#0A0F24',  // Dark navy
-    card: '#0D1530',       // Card surface
-    elevated: '#12193A',   // Elevated surface
-    overlay: 'rgba(5,10,26,0.92)',
+    primary: '#050510',     // Deep black
+    secondary: '#08081A',   // Slightly elevated black
+    card: '#0D0D20',        // Charcoal panel
+    elevated: '#13132B',    // Elevated panel
+    overlay: 'rgba(5,5,16,0.92)',
   },
 
   // Gradient stops
   gradient: {
-    background: ['#050A1A', '#0E0B2E', '#050A1A'],
+    background: ['#050510', '#0A0A1E', '#050510'],
     backgroundAngle: 160,
-    header: ['rgba(5,10,26,0.95)', 'rgba(14,11,46,0.0)'],
-    card: ['#0D1530', '#0F1840'],
+    header: ['rgba(5,5,16,0.95)', 'rgba(13,13,32,0.0)'],
+    card: ['#0D0D20', '#13132B'],
   },
 
   // Performance state accents
   states: {
     PEAK: {
-      primary: '#AAFF00',      // Neon lime
-      glow: '#AAFF0066',
-      dim: '#AAFF0022',
-      text: '#AAFF00',
+      primary: '#B4FF50',      // Lime
+      glow: '#B4FF5066',
+      dim: '#B4FF5022',
+      text: '#B4FF50',
     },
     BALANCED: {
-      primary: '#00D4B8',      // Teal
-      glow: '#00D4B866',
-      dim: '#00D4B822',
-      text: '#00D4B8',
+      primary: '#00E5C8',      // Teal/cyan
+      glow: '#00E5C866',
+      dim: '#00E5C822',
+      text: '#00E5C8',
     },
     RECOVERING: {
-      primary: '#FFB800',      // Amber
-      glow: '#FFB80066',
-      dim: '#FFB80022',
-      text: '#FFB800',
+      primary: '#FFA01E',      // Amber
+      glow: '#FFA01E66',
+      dim: '#FFA01E22',
+      text: '#FFA01E',
     },
     DEPLETED: {
-      primary: '#FF3B5C',      // Red
-      glow: '#FF3B5C66',
-      dim: '#FF3B5C22',
-      text: '#FF3B5C',
+      primary: '#FF2D55',      // Red
+      glow: '#FF2D5566',
+      dim: '#FF2D5522',
+      text: '#FF2D55',
     },
   },
 
-  // Typography
+  // Phase-specific accents
+  guardian: {
+    primary: '#8B5CF6',
+    glow: '#8B5CF666',
+    dim: '#8B5CF622',
+  },
+  clutch: {
+    primary: '#00E5C8',
+    glow: '#00E5C866',
+    dim: '#00E5C822',
+  },
+
   text: {
     primary: '#FFFFFF',
     secondary: 'rgba(255,255,255,0.65)',
-    muted: 'rgba(255,255,255,0.35)',
-    inverse: '#050A1A',
+    muted: 'rgba(255,255,255,0.40)',
+    inverse: '#050510',
   },
 
-  // UI elements
   border: {
-    subtle: 'rgba(255,255,255,0.07)',
+    subtle: 'rgba(255,255,255,0.06)',
     medium: 'rgba(255,255,255,0.12)',
-    strong: 'rgba(255,255,255,0.2)',
+    strong: 'rgba(255,255,255,0.22)',
   },
 
-  // Fills
   fill: {
-    light: 'rgba(255,255,255,0.05)',
+    light: 'rgba(255,255,255,0.04)',
     medium: 'rgba(255,255,255,0.08)',
-    strong: 'rgba(255,255,255,0.12)',
+    strong: 'rgba(255,255,255,0.14)',
   },
 
-  // Semantic
-  success: '#AAFF00',
-  warning: '#FFB800',
-  danger: '#FF3B5C',
-  info: '#00D4B8',
+  success: '#B4FF50',
+  warning: '#FFA01E',
+  danger: '#FF2D55',
+  info: '#00E5C8',
 
-  // Tab bar
   tabBar: {
-    background: 'rgba(5,10,26,0.95)',
-    active: '#AAFF00',
-    inactive: 'rgba(255,255,255,0.35)',
+    background: 'rgba(5,5,16,0.95)',
+    active: '#B4FF50',
+    inactive: 'rgba(255,255,255,0.40)',
   },
 } as const;
 
