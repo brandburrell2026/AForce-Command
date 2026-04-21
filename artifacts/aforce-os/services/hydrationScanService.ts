@@ -16,6 +16,7 @@
 import { recognize } from './productRecognitionService';
 import { computeComparison, inferInputs } from './comparisonEngine';
 import { COMPARE_PRODUCTS } from '../data/productDatabase';
+import { getDynamicCompareProduct } from './openFoodFactsService';
 import type { CompareInputs, CompareProduct, CompareResult } from '../types/comparison';
 import type { ScoreEngineOutput, UserState } from '../types';
 import type {
@@ -98,7 +99,7 @@ export async function scan(
   userState: UserState,
 ): Promise<ScanOutcome> {
   await delay(LATENCY());
-  const scanned = recognize(source);
+  const scanned = await recognize(source);
   if (!scanned) {
     return {
       ok: false,
@@ -110,7 +111,22 @@ export async function scan(
       },
     };
   }
-  const product = COMPARE_PRODUCTS.find((p) => p.id === scanned.productId)!;
+  // Resolve the comparable product. Local catalog first; OFF-synthesized
+  // entries live in the dynamic cache.
+  const product =
+    COMPARE_PRODUCTS.find((p) => p.id === scanned.productId) ??
+    getDynamicCompareProduct(scanned.productId);
+  if (!product) {
+    return {
+      ok: false,
+      failure: {
+        scannedAt: new Date().toISOString(),
+        source,
+        reason: 'invalid_payload',
+        message: 'Could not load comparable nutrition for that product.',
+      },
+    };
+  }
   const inputs = inferInputs(engineOutput, userState);
   const selfFit = fitFor(product, inputs);
   if (!selfFit) {

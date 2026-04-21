@@ -14,6 +14,7 @@ import { COMPARE_PRODUCTS } from '../data/productDatabase';
 import type { CompareProduct } from '../types/comparison';
 import type { ScannedProduct, ScanSource } from '../types/scan';
 import type { FluidType } from '../types';
+import { lookupBarcode } from './openFoodFactsService';
 
 /** UPC / EAN / GS1 barcode → product id. */
 const BARCODE_INDEX: Record<string, string> = {
@@ -86,8 +87,14 @@ function toScanned(product: CompareProduct): ScannedProduct {
   };
 }
 
-/** Resolve from a ScanSource. Returns undefined when nothing matches. */
-export function recognize(source: ScanSource): ScannedProduct | undefined {
+/**
+ * Resolve from a ScanSource. Returns undefined when nothing matches.
+ *
+ * Async because barcode + manual paths now fall back to the Open Food
+ * Facts catalog when the local index misses, so the scanner can handle
+ * any US beverage barcode (not just our curated list).
+ */
+export async function recognize(source: ScanSource): Promise<ScannedProduct | undefined> {
   const raw = (source.rawValue || '').trim();
   if (!raw) return undefined;
 
@@ -108,22 +115,30 @@ export function recognize(source: ScanSource): ScannedProduct | undefined {
     return undefined;
   }
 
-  // Barcode
+  // Barcode — local catalog first (fast path), then Open Food Facts
+  // for any unknown US beverage SKU.
   if (source.kind === 'barcode') {
     const productId = BARCODE_INDEX[raw];
-    if (!productId) return undefined;
-    const p = fromCatalog(productId);
-    return p ? toScanned(p) : undefined;
+    if (productId) {
+      const p = fromCatalog(productId);
+      if (p) return toScanned(p);
+    }
+    return await lookupBarcode(raw);
   }
 
-  // Manual search by name (case-insensitive substring match).
+  // Manual — local name match first, otherwise treat numeric input as
+  // a barcode and pass to OFF (covers users typing in a UPC by hand).
   if (source.kind === 'manual') {
     const lowered = raw.toLowerCase();
     const p = COMPARE_PRODUCTS.find((it) =>
       it.name.toLowerCase().includes(lowered) ||
       it.brand.toLowerCase().includes(lowered)
     );
-    return p ? toScanned(p) : undefined;
+    if (p) return toScanned(p);
+    if (/^[0-9]{6,14}$/.test(raw)) {
+      return await lookupBarcode(raw);
+    }
+    return undefined;
   }
 
   // NFC — reserved. Treat payload as a slug for forward compatibility.
