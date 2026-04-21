@@ -216,6 +216,18 @@ export default function HomeScreen() {
               <Text style={styles.eyebrow}>HYDRATION CONTROL CENTER</Text>
               <Text style={styles.title}>AForce OS</Text>
             </View>
+            <TouchableOpacity
+              onPress={() => {
+                if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
+                router.push('/share');
+              }}
+              activeOpacity={0.85}
+              style={styles.shareIconBtn}
+              accessibilityLabel="Share your performance"
+              testID="home-share-button"
+            >
+              <Feather name="share" size={14} color={Colors.text.primary} />
+            </TouchableOpacity>
             <View style={[styles.statePill, { borderColor: `${stateColor}55`, backgroundColor: `${stateColor}14` }]}>
               <View style={[styles.dot, { backgroundColor: stateColor }]} />
               <Text style={[styles.stateLabel, { color: stateColor }]}>{performanceState.level}</Text>
@@ -436,6 +448,17 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 100,
     borderWidth: 1,
+  },
+  shareIconBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: Colors.border.medium,
+    backgroundColor: Colors.fill.medium,
+    marginRight: 8,
   },
   dot: { width: 6, height: 6, borderRadius: 3 },
   stateLabel: {
