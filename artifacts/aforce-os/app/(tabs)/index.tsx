@@ -35,6 +35,7 @@ import { WhyCompact } from '@/components/WhyCompact';
 import { QuickActionInline } from '@/components/QuickActionInline';
 import { SystemSignalLine } from '@/components/SystemSignalLine';
 import { PhantomBandLine } from '@/components/PhantomBandLine';
+import { AIVideoPlayer } from '@/components/AIVideoPlayer';
 import { CycleSuccessOverlay } from '@/components/CycleSuccessOverlay';
 import { ScoreBreakdownSheet } from '@/components/ScoreBreakdownSheet';
 import { OnboardingOverlay } from '@/components/OnboardingOverlay';
@@ -44,6 +45,7 @@ import type { VoiceState } from '@/types/voice';
 import { phantomBandService } from '@/services/phantomBandService';
 
 import { useAppStore } from '@/store/useAppStore';
+import { matchVideo } from '@/services/videoEngine';
 import { evaluateHeatRisk } from '@/services/heatRiskEngine';
 import { renderTemplate } from '@/services/voiceTemplateEngine';
 import { speak } from '@/services/textToSpeech';
@@ -243,6 +245,18 @@ export default function HomeScreen() {
 
           {/* 4. WHY — compact, supporting only. Tap to open full breakdown. */}
           <WhyCompact reasons={reasons} onOpenBreakdown={openBreakdown} />
+
+          {/* 4b. AI COACHING — compact inline video. Sits BELOW the Primary
+              Command Card so it visually supports the command (matched to the
+              same engine output) rather than competing with it. Compact mode
+              keeps it short; the recheck timer overlay reinforces the same
+              countdown the command card already shows. */}
+          <AIVideoPlayer
+            video={matchVideo({ engineOutput, userState })}
+            command={command}
+            compact
+            timerSeconds={timerSeconds}
+          />
 
           {/* 5. QUICK ACTION — Water · Stick · RTD log shortcuts */}
           <QuickActionInline />
