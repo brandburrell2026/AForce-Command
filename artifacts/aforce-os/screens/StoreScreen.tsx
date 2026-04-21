@@ -35,11 +35,11 @@ import { FLAVOR_VARIANTS, flavorForState } from "@/data/flavors";
 import { useCart } from "@/store/useCartStore";
 import { useAppStore } from "@/store/useAppStore";
 
+// FIELD BAG / bulk bag is intentionally not offered in the store right now.
 const FORMAT_ORDER: { id: StoreFormatId; label: string; artwork: "stick" | "can" | "jar" | "bag" }[] = [
   { id: "aforce_stick", label: "Hydration Sticks", artwork: "stick" },
   { id: "aforce_rtd", label: "Ready-To-Drink", artwork: "can" },
   { id: "aforce_canister", label: "Canisters", artwork: "jar" },
-  { id: "aforce_bulk_bag", label: "FIELD BAG", artwork: "bag" },
 ];
 
 type FlavorKey = keyof typeof PRODUCT_FLAVORS;

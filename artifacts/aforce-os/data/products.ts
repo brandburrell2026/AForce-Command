@@ -86,10 +86,12 @@ export const PRODUCT_FLAVORS = {
   },
 } as const;
 
+// FIELD BAG / bulk bag intentionally omitted from the Quick Log for now —
+// the type/PRODUCTS entry is kept so any historical scans/intake records
+// still resolve, but it's no longer offered as a quick-log option.
 export const QUICK_INTAKE_ORDER: FluidType[] = [
   'water',
   'aforce_stick',
   'aforce_rtd',
   'aforce_canister',
-  'aforce_bulk_bag',
 ];

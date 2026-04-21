@@ -34,8 +34,8 @@ export const STORE_CATALOG: Record<string, ServerSkuEntry> = {
   sku_can_watermelon:     { name: 'Watermelon Surge Canister · 30 srv', unitAmountCents: 5499 },
   sku_can_soursop:        { name: 'Soursop Edge Canister · 30 srv',   unitAmountCents: 5499 },
 
-  // FIELD BAG — $89.99 / 50 servings
-  sku_bag_soursop:        { name: 'FIELD BAG · Soursop Edge · 50 srv', unitAmountCents: 8999 },
+  // FIELD BAG / bulk bag intentionally removed for now — re-add alongside
+  // the matching client SKU in artifacts/aforce-os/data/pricing.ts.
 };
 
 /** Same rules the client uses in CartScreen. Keep in lockstep. */

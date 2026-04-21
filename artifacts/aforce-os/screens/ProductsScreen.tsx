@@ -1,7 +1,7 @@
 /**
  * Products Screen — AForce product catalog with functional flavor variants.
  *
- * Each AForce product (Stick, RTD, Canister, FIELD BAG) is a system format.
+ * Each AForce product (Stick, RTD, Canister) is a system format.
  * Flavors are TOOLS — each one pairs a functional ingredient with a user
  * state and an AI command. Selecting a flavor updates the bio, focus tags,
  * recommended use, and the suggested AI command line in real time.
@@ -54,13 +54,7 @@ const FORMATS: ProductFormat[] = [
     artworkKey: 'jar',
     flavors: ['berry_blast_dulse', 'watermelon_surge_chlorella', 'soursop_edge_seamoss'],
   },
-  {
-    id: 'aforce_bulk_bag',
-    title: 'AForce FIELD BAG',
-    blurb: 'Team / program bulk format. 16 oz per serving.',
-    artworkKey: 'bag',
-    flavors: ['berry_blast_dulse', 'soursop_edge_seamoss'],
-  },
+  // FIELD BAG / bulk bag intentionally hidden from the catalog for now.
 ];
 
 function flavorImage(format: ProductFormat, variant: FlavorVariant): any {

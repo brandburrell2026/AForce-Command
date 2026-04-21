@@ -157,19 +157,9 @@ export const STORE_SKUS: StoreSKU[] = [
     blurb: "Daily protocol fuel. Full-spectrum minerals.",
   },
 
-  // FIELD BAG — Soursop only today, $89.99 / 50 servings
-  {
-    id: "sku_bag_soursop",
-    formatId: "aforce_bulk_bag",
-    flavor: "soursop",
-    title: "FIELD BAG · Soursop Edge",
-    formatLabel: "Bulk Bag · 50 servings",
-    servingsPerPack: 50,
-    ozPerServing: 16,
-    priceCents: 8999,
-    upc: "850000000116",
-    blurb: "Team / program format. $1.80 per serving.",
-  },
+  // FIELD BAG / bulk bag SKU intentionally removed from the store catalog
+  // for now. Re-add (and the matching server entry in storeCatalog.ts) when
+  // the bulk format is ready to ship again.
 ];
 
 export function findSku(id: string): StoreSKU | undefined {
