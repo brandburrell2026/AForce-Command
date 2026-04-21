@@ -212,6 +212,12 @@ export default function HomeScreen() {
             </View>
           )}
 
+          {/* 1b. CLIMATE — outside temp + humidity + auto-detected city. Sits
+              directly under the Heat Guard banner so the environmental
+              context that drives the alert reads as a single unit. Taps
+              into the Heat Risk screen for the full breakdown. */}
+          <ClimateLine onPress={() => router.push('/heat')} />
+
           {/* Header — minimal: brand + state pill, share lives in More tray */}
           <View style={styles.headerRow}>
             <View style={{ flex: 1 }}>
@@ -279,12 +285,6 @@ export default function HomeScreen() {
 
           {/* 6. SYSTEM SIGNAL — one condensed line + interpretive verdict */}
           <SystemSignalLine performanceLevel={performanceState.level} />
-
-          {/* 6b. CLIMATE — auto-detected city, outside temp + humidity. Taps
-              into the Heat Risk screen for the full breakdown. The component
-              renders a sync snapshot immediately and upgrades to the live
-              geolocated reading after permission. */}
-          <ClimateLine onPress={() => router.push('/heat')} />
 
           {/* 7. PHANTOM BAND — subtle hardware status one-liner. Tappable so
               users can drill into pairing / band status without losing the
