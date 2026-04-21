@@ -144,7 +144,10 @@ function reducer(state: AppState, action: Action): AppState {
 
 interface AppContextValue {
   state: AppState;
-  logIntake: (fluidType: FluidType, opts?: { silent?: boolean }) => Promise<void>;
+  logIntake: (
+    fluidType: FluidType,
+    opts?: { silent?: boolean; ozOverride?: number },
+  ) => Promise<void>;
   completeCycle: () => Promise<void>;
   snooze: () => void;
   dismissSuccess: () => void;
@@ -185,11 +188,20 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     return () => { cancelled = true; clearInterval(interval); };
   }, [state.userState.lastIntakeTime, state.userState.urineSignal, state.userState.symptoms.length]);
 
-  const logIntake = useCallback(async (fluidType: FluidType, opts?: { silent?: boolean }) => {
+  const logIntake = useCallback(async (
+    fluidType: FluidType,
+    opts?: { silent?: boolean; ozOverride?: number },
+  ) => {
     if (state.isCompletingCycle) return;
     dispatch({ type: 'CYCLE_START' });
     try {
-      const { log, newUserState, engineOutput } = await postIntakeLog(state.userState, { fluidType });
+      // Allow callers (e.g. the manual water amount picker) to override
+      // the default per-serving oz so the score impact reflects what was
+      // actually consumed (e.g. a 24 oz water bottle instead of 12 oz).
+      const { log, newUserState, engineOutput } = await postIntakeLog(state.userState, {
+        fluidType,
+        ...(opts?.ozOverride != null ? { ozAmount: opts.ozOverride } : {}),
+      });
       const product = PRODUCTS[fluidType];
       const result: CycleResult = {
         id: log.id,

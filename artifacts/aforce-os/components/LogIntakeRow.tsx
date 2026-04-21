@@ -19,6 +19,7 @@ import { Colors } from '../theme/colors';
 import { useAppStore } from '../store/useAppStore';
 import { PRODUCTS } from '../data/products';
 import type { FluidType } from '../types';
+import { WaterAmountModal } from './WaterAmountModal';
 
 interface Props {
   accentColor: string;
@@ -36,11 +37,24 @@ const OPTIONS: Array<{
 
 export function LogIntakeRow({ accentColor }: Props) {
   const { logIntake, state } = useAppStore();
+  const [waterPickerOpen, setWaterPickerOpen] = React.useState(false);
 
+  // Sticks + RTD use their fixed serving size; water opens a manual
+  // picker because real-world water containers range from 8 → 32+ oz.
   const handleLog = (fluid: FluidType) => {
     if (state.isCompletingCycle) return;
+    if (fluid === 'water') {
+      Haptics.selectionAsync().catch(() => {});
+      setWaterPickerOpen(true);
+      return;
+    }
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
     logIntake(fluid);
+  };
+
+  const handleWaterConfirm = (oz: number) => {
+    setWaterPickerOpen(false);
+    logIntake('water', { ozOverride: oz });
   };
 
   return (
@@ -76,12 +90,18 @@ export function LogIntakeRow({ accentColor }: Props) {
               )}
               <Text style={styles.label} numberOfLines={1}>LOG {opt.label}</Text>
               <Text style={[styles.oz, { color: accentColor }]}>
-                {product?.ozPerServing ?? 12} oz
+                {opt.fluid === 'water' ? 'choose oz' : `${product?.ozPerServing ?? 12} oz`}
               </Text>
             </Pressable>
           );
         })}
       </View>
+      <WaterAmountModal
+        visible={waterPickerOpen}
+        accentColor={accentColor}
+        onCancel={() => setWaterPickerOpen(false)}
+        onConfirm={handleWaterConfirm}
+      />
     </View>
   );
 }
