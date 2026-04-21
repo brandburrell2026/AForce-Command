@@ -1,15 +1,22 @@
 /**
- * Home — Hydration Control Center.
+ * Home — One-Command OS.
  *
- * Per spec, top to bottom:
- *   1. Live status strip
- *   2. Status Pulse + Performance score + State label
- *   3. Why this score
- *   4. AI command card
- *   5. Primary CTA + Quick intake controls
- *   6. Recheck timing / next action
- *   7. Water cycle visualization
- *   8. Phantom signal (live sensor strip)
+ * This screen is a decision engine, not a dashboard. The brief is strict:
+ * in under one second the user must know their state, what to do, and why.
+ *
+ * Hierarchy (top to bottom):
+ *   1. System alert       — Heat Guard banner, ONLY when band !== STABLE
+ *   2. Core state         — animated orb + score + state label
+ *   3. Primary command    — DOMINANT card with action + recheck + CTA
+ *   4. Why                — compact, max 2 reasons supporting (3)
+ *   5. Quick action       — small inline Water/Stick/RTD log shortcuts
+ *   6. System signal      — one condensed line of body + env signals
+ *   7. Phantom Band       — subtle one-line connection status
+ *   ─ More tray (nav)     — small icons preserving access to other screens
+ *
+ * Anything that competed with the primary command — duplicate AI Coach
+ * card, separate timer block, separate water-cycle bar, the standalone
+ * AI video player — has been removed or folded into the components above.
  */
 
 import React from 'react';
@@ -22,26 +29,21 @@ import * as Haptics from 'expo-haptics';
 
 import { GradientBackground } from '@/components/GradientBackground';
 import { HeatAlertBanner } from '@/components/HeatAlertBanner';
-import { LiveStatusStrip } from '@/components/LiveStatusStrip';
 import { StatusPulseOrb } from '@/components/StatusPulseOrb';
-import { WhyThisScore } from '@/components/WhyThisScore';
-import { RiskTimerDisplay } from '@/components/RiskTimerDisplay';
-import { AICommandCard } from '@/components/AICommandCard';
-import { WaterCycleBar } from '@/components/WaterCycleBar';
-import { PhantomSignal } from '@/components/PhantomSignal';
+import { PrimaryCommandCard } from '@/components/PrimaryCommandCard';
+import { WhyCompact } from '@/components/WhyCompact';
+import { QuickActionInline } from '@/components/QuickActionInline';
+import { SystemSignalLine } from '@/components/SystemSignalLine';
+import { PhantomBandLine } from '@/components/PhantomBandLine';
 import { CycleSuccessOverlay } from '@/components/CycleSuccessOverlay';
-import { QuickIntakeBar } from '@/components/QuickIntakeBar';
 import { ScoreBreakdownSheet } from '@/components/ScoreBreakdownSheet';
 import { OnboardingOverlay } from '@/components/OnboardingOverlay';
-import { AIVideoPlayer } from '@/components/AIVideoPlayer';
 import { VoiceButton } from '@/components/VoiceButton';
 import { VoiceOverlay } from '@/components/VoiceOverlay';
-import { PhantomBandCard } from '@/components/PhantomBandCard';
 import type { VoiceState } from '@/types/voice';
 import { phantomBandService } from '@/services/phantomBandService';
 
 import { useAppStore } from '@/store/useAppStore';
-import { matchVideo } from '@/services/videoEngine';
 import { evaluateHeatRisk } from '@/services/heatRiskEngine';
 import { renderTemplate } from '@/services/voiceTemplateEngine';
 import { speak } from '@/services/textToSpeech';
@@ -200,40 +202,25 @@ export default function HomeScreen() {
           contentContainerStyle={[styles.content, { paddingTop: topPadding + 8, paddingBottom: bottomPadding + 24 }]}
           showsVerticalScrollIndicator={false}
         >
+          {/* 1. SYSTEM ALERT — only renders when heat band escalates above STABLE */}
           {heatScore.band !== 'STABLE' && (
             <View style={{ marginBottom: 12 }} testID="heat-alert-banner">
               <HeatAlertBanner score={heatScore.score} band={heatScore.band} />
             </View>
           )}
-          <LiveStatusStrip
-            performanceState={performanceState}
-            unitsToday={userState.unitsConsumedToday}
-            dailyTarget={userState.dailyTarget}
-          />
 
+          {/* Header — minimal: brand + state pill, share lives in More tray */}
           <View style={styles.headerRow}>
             <View style={{ flex: 1 }}>
-              <Text style={styles.eyebrow}>HYDRATION CONTROL CENTER</Text>
-              <Text style={styles.title}>AForce OS</Text>
+              <Text style={styles.eyebrow}>AFORCE OS</Text>
             </View>
-            <TouchableOpacity
-              onPress={() => {
-                if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
-                router.push('/share');
-              }}
-              activeOpacity={0.85}
-              style={styles.shareIconBtn}
-              accessibilityLabel="Share your performance"
-              testID="home-share-button"
-            >
-              <Feather name="share" size={14} color={Colors.text.primary} />
-            </TouchableOpacity>
             <View style={[styles.statePill, { borderColor: `${stateColor}55`, backgroundColor: `${stateColor}14` }]}>
               <View style={[styles.dot, { backgroundColor: stateColor }]} />
               <Text style={[styles.stateLabel, { color: stateColor }]}>{performanceState.level}</Text>
             </View>
           </View>
 
+          {/* 2. CORE STATE — animated orb is the identity of the product */}
           <View style={styles.orbContainer}>
             <StatusPulseOrb
               pulseConfig={pulseConfig}
@@ -241,30 +228,57 @@ export default function HomeScreen() {
               burstAt={lastIntakeBurstAt}
               onTap={openBreakdown}
             />
-            <Text style={styles.orbHint}>TAP ORB FOR FULL BREAKDOWN</Text>
           </View>
 
-          <WhyThisScore reasons={reasons} onOpenBreakdown={openBreakdown} />
-          <View style={styles.spacer} />
-
-          <AICommandCard command={command} performanceState={performanceState} />
-          <View style={styles.spacer} />
-
-          <AIVideoPlayer
-            video={matchVideo({ engineOutput, userState })}
+          {/* 3. PRIMARY COMMAND — the dominant element. Recheck minutes are
+              derived from the live timer (rounded up) so the user reads
+              whole minutes, not seconds. */}
+          <PrimaryCommandCard
             command={command}
-            timerSeconds={timerSeconds}
+            performanceState={performanceState}
+            recheckMinutes={Math.max(0, Math.ceil(timerSeconds / 60))}
+            isLogging={isCompletingCycle}
+            onLog={handleComplete}
           />
-          <View style={styles.spacer} />
+
+          {/* 4. WHY — compact, supporting only. Tap to open full breakdown. */}
+          <WhyCompact reasons={reasons} onOpenBreakdown={openBreakdown} />
+
+          {/* 5. QUICK ACTION — Water · Stick · RTD log shortcuts */}
+          <QuickActionInline />
+
+          {/* Snooze affordance lives here as a single low-weight line */}
+          {!userState.isSnoozed ? (
+            <TouchableOpacity style={styles.snoozeBtn} onPress={handleSnooze} activeOpacity={0.7}>
+              <Feather name="clock" size={12} color={Colors.text.muted} />
+              <Text style={styles.snoozeText}>Snooze 20 minutes</Text>
+            </TouchableOpacity>
+          ) : (
+            <View style={styles.snoozeBtn}>
+              <Feather name="moon" size={12} color={Colors.states.RECOVERING.primary} />
+              <Text style={[styles.snoozeText, { color: Colors.states.RECOVERING.primary }]}>
+                Snoozed — Next alert in 20 min
+              </Text>
+            </View>
+          )}
+
+          {/* 6. SYSTEM SIGNAL — one condensed line + interpretive verdict */}
+          <SystemSignalLine performanceLevel={performanceState.level} />
+
+          {/* 7. PHANTOM BAND — subtle hardware status one-liner. Tappable so
+              users can drill into pairing / band status without losing the
+              dedicated screen the old PhantomBandCard exposed. */}
+          <PhantomBandLine onPress={() => router.push('/phantom')} />
 
           {/*
-            Action row — icon-only pills in the Phantom-card aesthetic so all
-            six destinations fit on any phone width without a horizontal
-            scroll. Each tile is square + flex:1 (so they share the row evenly
-            and never overflow). The DEPLETED state still tints the Compare
-            tile with the live state color, mirroring how the Phantom card
-            promotes its LIVE pill. Screen-reader labels preserve the names.
+            More tray — preserves navigation to deeper screens (Scan, Compare,
+            Products, Compete, Circles, Territory, Share) without competing
+            with the primary command. Deliberately the lightest-weight row
+            on the page; users who need it know to scroll.
           */}
+          <View style={styles.moreLabelRow}>
+            <Text style={styles.moreLabel}>MORE</Text>
+          </View>
           <View style={styles.actionRow}>
             {([
               { key: 'scan',      icon: 'maximize',    label: 'Scan',      onPress: () => router.push('/scan') },
@@ -276,9 +290,11 @@ export default function HomeScreen() {
                 testID: 'home-circles-button' },
               { key: 'territory', icon: 'map',         label: 'Territory', onPress: () => router.push('/territory'),
                 testID: 'home-territory-button' },
+              { key: 'share',     icon: 'share',       label: 'Share',     onPress: () => router.push('/share'),
+                testID: 'home-share-button' },
             ] as const).map((item) => {
               const isAccent = 'accent' in item && item.accent;
-              const tint = isAccent ? stateColor : Colors.text.primary;
+              const tint = isAccent ? stateColor : Colors.text.secondary;
               return (
                 <TouchableOpacity
                   key={item.key}
@@ -295,62 +311,11 @@ export default function HomeScreen() {
                   accessibilityLabel={item.label}
                   testID={'testID' in item ? item.testID : undefined}
                 >
-                  <Feather name={item.icon} size={18} color={tint} />
+                  <Feather name={item.icon} size={16} color={tint} />
                 </TouchableOpacity>
               );
             })}
           </View>
-          <View style={styles.spacer} />
-
-          <RiskTimerDisplay timerSeconds={timerSeconds} performanceState={performanceState} />
-          <View style={styles.spacerLg} />
-
-          <TouchableOpacity
-            style={[
-              styles.ctaButton,
-              { borderColor: `${stateColor}66` },
-              isCompletingCycle && styles.ctaDisabled,
-            ]}
-            onPress={handleComplete}
-            activeOpacity={0.85}
-            disabled={isCompletingCycle}
-          >
-            <View style={[styles.ctaGlow, { backgroundColor: `${stateColor}1F` }]} />
-            <Feather name="check-circle" size={20} color={isCompletingCycle ? Colors.text.muted : stateColor} />
-            <Text style={[styles.ctaText, { color: isCompletingCycle ? Colors.text.muted : Colors.text.primary }]}>
-              {isCompletingCycle ? 'LOGGING…' : 'LOG AFORCE STICK'}
-            </Text>
-          </TouchableOpacity>
-
-          {!userState.isSnoozed ? (
-            <TouchableOpacity style={styles.snoozeBtn} onPress={handleSnooze} activeOpacity={0.7}>
-              <Feather name="clock" size={12} color={Colors.text.muted} />
-              <Text style={styles.snoozeText}>Snooze 20 minutes</Text>
-            </TouchableOpacity>
-          ) : (
-            <View style={styles.snoozeBtn}>
-              <Feather name="moon" size={12} color={Colors.states.RECOVERING.primary} />
-              <Text style={[styles.snoozeText, { color: Colors.states.RECOVERING.primary }]}>
-                Snoozed — Next alert in 20 min
-              </Text>
-            </View>
-          )}
-
-          <View style={styles.spacer} />
-          <QuickIntakeBar accentColor={stateColor} />
-
-          <View style={styles.spacer} />
-          <WaterCycleBar
-            unitsConsumed={userState.unitsConsumedToday}
-            dailyTarget={userState.dailyTarget}
-            performanceState={performanceState}
-          />
-
-          <View style={styles.spacer} />
-          <PhantomSignal />
-
-          <View style={styles.spacer} />
-          <PhantomBandCard />
         </ScrollView>
 
         {showCycleSuccess && lastCycleResult && (
@@ -452,6 +417,13 @@ const styles = StyleSheet.create({
   },
   spacer: { height: 12 },
   spacerLg: { height: 20 },
+  moreLabelRow: { marginTop: 12, paddingHorizontal: 4 },
+  moreLabel: {
+    color: Colors.text.muted,
+    fontSize: 9,
+    letterSpacing: 3,
+    fontWeight: '700',
+  },
   ctaButton: {
     marginHorizontal: 20,
     flexDirection: 'row',
@@ -489,18 +461,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     gap: 8,
   },
-  // Icon-only tile — Phantom-card aesthetic (Colors.fill.light + subtle border,
-  // borderRadius 14). flex:1 + aspectRatio:1 makes them square and evenly
-  // distributed across the row, so 6 tiles always fit any phone width.
+  // Low-weight nav chip for the MORE tray. Deliberately short (32px) and
+  // borderless so the row reads as a quiet utility strip, never competing
+  // with the dominant Primary Command Card above. flex:1 keeps the row
+  // balanced across the 7 destinations on any phone width.
   actionTile: {
     flex: 1,
-    aspectRatio: 1,
+    height: 32,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 14,
-    backgroundColor: Colors.fill.light,
-    borderWidth: 1,
-    borderColor: Colors.border.subtle,
+    borderRadius: 8,
+    backgroundColor: 'transparent',
+    borderWidth: 0,
   },
   voiceFab: {
     position: 'absolute',
