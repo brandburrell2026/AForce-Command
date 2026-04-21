@@ -323,6 +323,32 @@ export default function HomeScreen() {
               <Feather name="award" size={14} color={Colors.text.primary} />
               <Text style={styles.actionBtnText} numberOfLines={1}>COMPETE</Text>
             </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => {
+                if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
+                router.push('/circles');
+              }}
+              activeOpacity={0.85}
+              style={styles.actionBtn}
+              testID="home-circles-button"
+            >
+              <Feather name="users" size={14} color={Colors.text.primary} />
+              <Text style={styles.actionBtnText} numberOfLines={1}>CIRCLES</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => {
+                if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
+                router.push('/territory');
+              }}
+              activeOpacity={0.85}
+              style={styles.actionBtn}
+              testID="home-territory-button"
+            >
+              <Feather name="map" size={14} color={Colors.text.primary} />
+              <Text style={styles.actionBtnText} numberOfLines={1}>TERRITORY</Text>
+            </TouchableOpacity>
           </View>
           <View style={styles.spacer} />
 
