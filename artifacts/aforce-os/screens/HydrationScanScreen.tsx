@@ -31,10 +31,12 @@ import { GradientBackground } from '@/components/GradientBackground';
 import { ScanResultCard } from '@/components/ScanResultCard';
 import { ProductFitCard } from '@/components/ProductFitCard';
 import { AForceReplacementCard } from '@/components/AForceReplacementCard';
+import { CameraScanModal } from '@/components/CameraScanModal';
 import { Colors } from '@/theme/colors';
 import { useAppStore } from '@/store/useAppStore';
 import { scan } from '@/services/hydrationScanService';
 import { listSimulatableBarcodes } from '@/services/productRecognitionService';
+import { usePostScan, useScanHistory } from '@/hooks/useServerHistory';
 import type { ScanOutcome, ScanResult, ScanSource } from '@/types/scan';
 
 export default function HydrationScanScreen() {
@@ -45,6 +47,9 @@ export default function HydrationScanScreen() {
   const [scanning, setScanning] = useState(false);
   const [logging, setLogging] = useState(false);
   const [manualQuery, setManualQuery] = useState('');
+  const [cameraOpen, setCameraOpen] = useState(false);
+  const postScanMut = usePostScan();
+  const { data: serverScans } = useScanHistory(20);
 
   const topPadding = Platform.OS === 'web' ? 67 : insets.top;
   const bottomPadding = Platform.OS === 'web' ? 34 : insets.bottom;
@@ -85,16 +90,44 @@ export default function HydrationScanScreen() {
     try {
       const out = await scan(source, state.engineOutput, state.userState);
       setOutcome(out);
-      if (out.ok && Platform.OS !== 'web') {
-        Haptics.notificationAsync(
-          out.result.verdict === 'avoid' || out.result.verdict === 'suboptimal'
-            ? Haptics.NotificationFeedbackType.Warning
-            : Haptics.NotificationFeedbackType.Success,
-        ).catch(() => {});
+      if (out.ok) {
+        // Persist to server (best-effort — UI never blocks on this).
+        postScanMut.mutate({
+          loggedAt: new Date().toISOString(),
+          source: source.kind === 'qr' ? 'qr' : source.kind === 'manual' ? 'manual' : 'barcode',
+          rawValue: source.rawValue,
+          productId: out.result.product.productId,
+          productName: out.result.product.productName,
+          brand: out.result.product.brand ?? null,
+          verdict: out.result.verdict,
+          fitScore: out.result.currentFitScore,
+          scoreBefore: state.engineOutput.score,
+          scoreAfter: state.engineOutput.score,
+          performanceState: state.engineOutput.performanceState.level,
+          recommendedProductId: out.result.recommendation.aforceEquivalentId ?? null,
+        });
+        if (Platform.OS !== 'web') {
+          Haptics.notificationAsync(
+            out.result.verdict === 'avoid' || out.result.verdict === 'suboptimal'
+              ? Haptics.NotificationFeedbackType.Warning
+              : Haptics.NotificationFeedbackType.Success,
+          ).catch(() => {});
+        }
       }
     } finally {
       setScanning(false);
     }
+  };
+
+  const onCameraScan = (r: { data: string; kind: 'barcode' | 'qr' }) => {
+    setCameraOpen(false);
+    runScan({ kind: r.kind, rawValue: r.data });
+  };
+
+  const openCamera = () => {
+    if (Platform.OS === 'web') return;
+    Haptics.selectionAsync().catch(() => {});
+    setCameraOpen(true);
   };
 
   const result: ScanResult | null = outcome?.ok ? outcome.result : null;
@@ -154,8 +187,15 @@ export default function HydrationScanScreen() {
             </View>
           </View>
 
-          {/* Camera viewfinder (mock) */}
-          <View style={styles.viewfinder}>
+          {/* Camera viewfinder — tap to open native camera on device */}
+          <Pressable
+            onPress={openCamera}
+            disabled={Platform.OS === 'web' || scanning}
+            style={({ pressed }) => [
+              styles.viewfinder,
+              { opacity: Platform.OS === 'web' ? 1 : pressed ? 0.85 : 1 },
+            ]}
+          >
             <Animated.View style={[styles.ring, ringStyle]} />
             <View style={styles.reticule}>
               <View style={[styles.cornerTL, styles.corner]} />
@@ -163,15 +203,15 @@ export default function HydrationScanScreen() {
               <View style={[styles.cornerBL, styles.corner]} />
               <View style={[styles.cornerBR, styles.corner]} />
               <Feather
-                name="maximize"
+                name={Platform.OS === 'web' ? 'maximize' : 'camera'}
                 size={28}
-                color={scanning ? Colors.states.PEAK.primary : `${Colors.text.primary}66`}
+                color={scanning ? Colors.states.PEAK.primary : `${Colors.text.primary}99`}
               />
             </View>
             <Text style={styles.viewfinderLabel}>
-              {scanning ? 'IDENTIFYING…' : Platform.OS === 'web' ? 'PREVIEW MODE — USE MOCK SCAN' : 'POINT AT BARCODE OR QR'}
+              {scanning ? 'IDENTIFYING…' : Platform.OS === 'web' ? 'PREVIEW MODE — USE MOCK SCAN' : 'TAP TO OPEN CAMERA'}
             </Text>
-          </View>
+          </Pressable>
 
           {/* Mock scan tray */}
           <View style={styles.trayCard}>
@@ -287,19 +327,105 @@ export default function HydrationScanScreen() {
               <Feather name="camera" size={20} color={Colors.text.muted} />
               <Text style={styles.emptyTitle}>Awaiting scan</Text>
               <Text style={styles.emptyHint}>
-                Tap a product above to simulate a barcode scan, or search by name.
+                {Platform.OS === 'web'
+                  ? 'Tap a product above to simulate a barcode scan, or search by name.'
+                  : 'Tap the viewfinder to open the camera, or use simulate scan.'}
               </Text>
+            </View>
+          )}
+
+          {/* Server-backed recent scans — proves persistence across reloads. */}
+          {serverScans && serverScans.length > 0 && (
+            <View style={styles.historyCard}>
+              <View style={styles.historyHeader}>
+                <Feather name="clock" size={12} color={Colors.text.muted} />
+                <Text style={styles.historyHeaderText}>RECENT SCANS</Text>
+                <Text style={styles.historySync}>SYNCED</Text>
+              </View>
+              {serverScans.slice(0, 5).map((s) => (
+                <View key={s.id} style={styles.historyRow}>
+                  <View style={[styles.historyDot, { backgroundColor: verdictColor(s.verdict) }]} />
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.historyTitle} numberOfLines={1}>{s.productName}</Text>
+                    <Text style={styles.historyMeta} numberOfLines={1}>
+                      {formatRelativeTime(s.loggedAt)} · fit {s.fitScore}
+                    </Text>
+                  </View>
+                  <Text style={[styles.historyVerdict, { color: verdictColor(s.verdict) }]}>
+                    {s.verdict.toUpperCase()}
+                  </Text>
+                </View>
+              ))}
             </View>
           )}
         </ScrollView>
       </GradientBackground>
+
+      <CameraScanModal
+        visible={cameraOpen}
+        onClose={() => setCameraOpen(false)}
+        onScan={onCameraScan}
+      />
     </View>
   );
+}
+
+function verdictColor(v: string): string {
+  switch (v) {
+    case 'optimal': return Colors.states.PEAK.primary;
+    case 'strong': return Colors.states.PEAK.primary;
+    case 'acceptable': return Colors.states.RECOVERING.primary;
+    case 'suboptimal': return Colors.states.DEPLETED.primary;
+    case 'avoid': return Colors.states.DEPLETED.primary;
+    default: return Colors.text.muted;
+  }
+}
+
+function formatRelativeTime(iso: string): string {
+  const t = Date.parse(iso);
+  if (!Number.isFinite(t)) return '';
+  const diff = Date.now() - t;
+  const m = Math.floor(diff / 60000);
+  if (m < 1) return 'just now';
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  const d = Math.floor(h / 24);
+  return `${d}d ago`;
 }
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: Colors.background.primary },
   content: { paddingHorizontal: 20, gap: 14 },
+
+  historyCard: {
+    marginTop: 8,
+    padding: 14,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: Colors.border.medium,
+    backgroundColor: Colors.fill.light,
+    gap: 10,
+  },
+  historyHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  historyHeaderText: {
+    flex: 1,
+    fontSize: 10,
+    letterSpacing: 1.2,
+    color: Colors.text.muted,
+    fontWeight: '700',
+  },
+  historySync: {
+    fontSize: 9,
+    letterSpacing: 1.2,
+    color: Colors.states.PEAK.primary,
+    fontWeight: '700',
+  },
+  historyRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  historyDot: { width: 6, height: 6, borderRadius: 3 },
+  historyTitle: { fontSize: 13, color: Colors.text.primary, fontWeight: '600' },
+  historyMeta: { fontSize: 11, color: Colors.text.muted, marginTop: 2 },
+  historyVerdict: { fontSize: 10, letterSpacing: 1, fontWeight: '700' },
 
   headerRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 4 },
   backBtn: {

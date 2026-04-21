@@ -14,10 +14,14 @@
       "backgroundColor": "#050A1A"
     },
     "ios": {
-      "supportsTablet": false
+      "supportsTablet": false,
+      "infoPlist": {
+        "NSCameraUsageDescription": "AForce OS uses your camera to scan hydration product barcodes."
+      }
     },
     "android": {
-      "backgroundColor": "#050A1A"
+      "backgroundColor": "#050A1A",
+      "permissions": ["android.permission.CAMERA"]
     },
     "web": {
       "favicon": "./assets/images/icon.png",
@@ -31,7 +35,13 @@
         }
       ],
       "expo-font",
-      "expo-web-browser"
+      "expo-web-browser",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "AForce OS uses your camera to scan hydration product barcodes."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
