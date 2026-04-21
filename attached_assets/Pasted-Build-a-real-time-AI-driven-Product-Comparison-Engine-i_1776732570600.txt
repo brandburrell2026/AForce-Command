@@ -1,0 +1,275 @@
+Build a real-time AI-driven Product Comparison Engine inside AForce OS.
+
+IMPORTANT:
+This is NOT a simple comparison table.
+This is NOT a static “AForce vs Gatorade” page.
+
+This is a real-time, personalized decision engine that compares AForce products against competitors based on the user’s current physiological state, protocol, and performance goal.
+
+The system must feel:
+- intelligent
+- unbiased but confident
+- data-driven
+- real-time
+- authoritative
+
+---
+
+CORE CONCEPT:
+
+AForce OS does not just recommend AForce.
+
+It evaluates the entire market and tells the user:
+
+“What is the best option for YOU right now?”
+
+---
+
+USER EXPERIENCE:
+
+User taps:
+“Compare Options”
+
+System instantly generates:
+
+AForce vs Competitors (in real time)
+
+Example competitors:
+- Gatorade
+- Liquid IV
+- Pedialyte
+- LMNT
+- Water only
+
+---
+
+PERSONALIZATION INPUTS:
+
+The comparison must be based on:
+
+- current score
+- current state (Peak, Balanced, Recovering, Depleted)
+- protocol (Maintenance, Recovery, Depletion, Heat Stress)
+- activity level
+- time of day
+- last intake
+- symptoms
+- environment (heat, sweat)
+- goal (performance, recovery, daily)
+
+---
+
+OUTPUT FORMAT:
+
+Show a dynamic comparison card system.
+
+For each product show:
+
+1. Product Name
+2. Fit Score (0–100)
+3. Why it fits or doesn’t
+4. Speed of impact
+5. Hydration effectiveness
+6. Electrolyte balance
+7. Sugar impact
+8. AI verdict
+
+---
+
+EXAMPLE OUTPUT:
+
+AForce Stick
+Fit Score: 94
+Fast electrolyte absorption. Matches current depletion state. Optimized for rapid recovery.
+
+LMNT
+Fit Score: 82
+Strong electrolytes but no dynamic dosing. Slower adjustment to current state.
+
+Gatorade
+Fit Score: 61
+High sugar content. Not aligned with recovery protocol. Slower hydration efficiency.
+
+Water
+Fit Score: 55
+Hydrates volume but lacks electrolyte replacement. Insufficient for current state.
+
+---
+
+AI DECISION RULES:
+
+The system MUST:
+
+- prioritize physiology over brand
+- prioritize state over marketing
+- adapt results in real time
+- change outputs when user state changes
+
+The AI must ALWAYS give a clear winner.
+
+---
+
+COMMAND INTEGRATION:
+
+After comparison, show:
+
+“Best Option Right Now”
+
+Then trigger AI command:
+
+Example:
+“AForce Stick is optimal. Take 1 now with 16 oz water. Recheck in 20 minutes.”
+
+---
+
+UI REQUIREMENTS:
+
+Create a Comparison Screen with:
+
+- dynamic ranking list
+- animated score bars
+- highlight best option
+- expandable details per product
+- fast switching between products
+
+Add a toggle:
+- “Why AForce Wins”
+- “Full Comparison”
+
+---
+
+DATA MODEL:
+
+Create a structured product database:
+
+Each product should include:
+
+- hydration speed score
+- electrolyte density
+- sugar level
+- absorption rate
+- recovery efficiency
+- compatibility with protocols
+
+Example:
+
+{
+  "name": "AForce Stick",
+  "hydration_speed": 95,
+  "electrolytes": 90,
+  "sugar": 10,
+  "absorption_rate": 92,
+  "recovery_efficiency": 94
+}
+
+---
+
+AI ENGINE LOGIC:
+
+Create a comparison engine that:
+
+1. Takes user state
+2. Scores each product against that state
+3. Outputs ranked results
+4. Generates explanation
+5. Generates final command
+
+---
+
+COMPARISON ENGINE FILES:
+
+/services/comparisonEngine.ts
+/data/productDatabase.ts
+/components/ComparisonCard.tsx
+/components/ComparisonList.tsx
+/screens/ComparisonScreen.tsx
+/types/comparison.ts
+
+---
+
+REAL-TIME BEHAVIOR:
+
+The comparison must update when:
+
+- score changes
+- user logs intake
+- protocol changes
+- symptoms update
+- environment changes
+
+---
+
+WOW MOMENT:
+
+When user enters DEPLETED state:
+
+System auto-suggests:
+
+“Compare Options”
+
+Then:
+
+- loads instantly
+- shows AForce as dominant
+- explains WHY clearly
+- triggers command
+
+This should feel like:
+
+AForce OS just made the decision for you.
+
+---
+
+FUTURE ARCHITECTURE (IMPORTANT):
+
+Prepare system for:
+
+- live market data
+- price comparisons
+- ingredient scanning via camera
+- barcode scanning
+- real-time retail integration
+- team-based product optimization
+
+Do NOT fully build yet, but structure for it.
+
+---
+
+PERFORMANCE REQUIREMENTS:
+
+- load comparison under 500ms
+- no lag when switching products
+- no loading spinners if possible
+- smooth animations
+
+---
+
+IMPORTANT RULE:
+
+This system must NEVER feel like marketing.
+
+It must feel like:
+
+AForce is the smartest system in the room.
+
+---
+
+FINAL OUTPUT:
+
+Build a working comparison engine using mock data.
+
+It must:
+- feel real
+- update dynamically
+- clearly show AForce advantage without bias language
+- drive action
+
+---
+
+END GOAL:
+
+User should think:
+
+“I don’t need to guess anymore.”
+
+AForce OS decides for me.

@@ -1,0 +1,289 @@
+Build a real-time Community Competition system inside AForce OS.
+
+IMPORTANT:
+This is NOT social media.
+This is NOT generic leaderboards.
+
+This is a performance-driven competition system where users, cities, states, and teams compete based on real physiological performance and hydration behavior.
+
+The system must feel:
+- competitive
+- real
+- intense
+- motivating
+- premium
+- like sports + culture
+
+---
+
+CORE CONCEPT:
+
+AForce turns hydration into competition.
+
+Users are not just tracking.
+They are competing.
+
+Competition types:
+1. City vs City
+2. State vs State
+3. Teams vs Teams
+4. Individual vs Individual
+
+---
+
+PRIMARY GOAL:
+
+Make users want to win.
+
+---
+
+COMPETITION METRICS:
+
+Rank users and groups based on:
+
+- average performance score
+- hydration compliance
+- protocol completion rate
+- recovery speed
+- consistency (streaks)
+- improvement over time
+
+---
+
+COMPETITION TYPES:
+
+1. CITY VS CITY
+
+Users are grouped by city.
+
+Display:
+- top cities ranked by performance
+- city score (average of users)
+- total participants
+- momentum trend
+
+Example:
+New York: 88
+Miami: 84
+Los Angeles: 81
+
+---
+
+2. STATE VS STATE
+
+Aggregate city data into state rankings.
+
+Display:
+- state leaderboard
+- top performing state
+- weekly winner
+- monthly winner
+
+---
+
+3. TEAMS VS TEAMS
+
+Teams can be:
+- gyms
+- sports teams
+- friend groups
+- companies
+
+Each team has:
+- roster
+- team score
+- team ranking
+- coach view (future)
+
+---
+
+4. INDIVIDUAL COMPETITION
+
+Display:
+- global leaderboard
+- friends leaderboard
+- local leaderboard
+
+---
+
+UI REQUIREMENTS:
+
+Create a new tab or section:
+“Competition”
+
+Inside include:
+
+- leaderboard screen
+- competition selector (city, state, team, individual)
+- animated rankings
+- user rank card
+- team card
+- city card
+
+---
+
+VISUAL DESIGN:
+
+- dark premium theme
+- bold rankings
+- large numbers
+- subtle animations for movement
+- highlight top performers
+- highlight user's position
+
+---
+
+RANKING ENGINE:
+
+Create a scoring formula for competition:
+
+competition_score = (
+  avg_performance_score * 0.35 +
+  compliance_rate * 0.25 +
+  consistency_score * 0.20 +
+  recovery_efficiency * 0.20
+)
+
+---
+
+REAL-TIME UPDATES:
+
+Leaderboard must update when:
+- user logs intake
+- score changes
+- protocol completes
+- check-in occurs
+
+---
+
+SOCIAL FEATURES (LIGHT, NOT SOCIAL MEDIA):
+
+- join a city automatically
+- join or create a team
+- invite friends
+- see friends ranking
+- share results (future)
+
+---
+
+WOW MOMENTS:
+
+1. Rank Increase
+- smooth animation up leaderboard
+- highlight user
+- pulse reacts
+
+2. City Wins
+- full screen celebration
+- “Miami leads the country”
+
+3. Team Victory
+- “Your team is #1 this week”
+
+4. Personal Best
+- “You moved up 12 spots”
+
+---
+
+COMPETITION FEED:
+
+Optional feed showing:
+- rank changes
+- streak wins
+- team performance spikes
+
+Keep it minimal and performance-focused.
+
+---
+
+DATA MODEL:
+
+Create structures for:
+
+User
+City
+State
+Team
+LeaderboardEntry
+CompetitionScore
+
+Example:
+
+{
+  "user_id": "123",
+  "city": "New York",
+  "state": "NY",
+  "team_id": "team_01",
+  "score": 87,
+  "rank": 12
+}
+
+---
+
+FILES / STRUCTURE:
+
+/screens/CompetitionScreen.tsx
+/components/Leaderboard.tsx
+/components/RankingCard.tsx
+/components/TeamCard.tsx
+/services/competitionEngine.ts
+/types/competition.ts
+/mocks/competitionData.ts
+
+---
+
+FEATURE FLAGS:
+
+Add:
+- city_competition_enabled
+- state_competition_enabled
+- team_competition_enabled
+- global_leaderboard_enabled
+
+---
+
+FUTURE ARCHITECTURE:
+
+Prepare for:
+
+- real-time server updates
+- push notifications
+- team coach dashboards
+- sponsorships (Nike, events, etc.)
+- live competitions (game day, marathons)
+
+---
+
+PERFORMANCE:
+
+- leaderboard loads under 500ms
+- smooth rank animations
+- no lag on updates
+
+---
+
+IMPORTANT RULE:
+
+This must feel like SPORT.
+
+Not like a health app.
+
+---
+
+FINAL OUTPUT:
+
+Build a working competition system with mock data.
+
+Make it:
+- fast
+- exciting
+- competitive
+- visually premium
+
+---
+
+END GOAL:
+
+User opens app and thinks:
+
+“I need to win today.”

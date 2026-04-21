@@ -1,0 +1,301 @@
+Build an AI Coaching Video system inside AForce OS.
+
+IMPORTANT:
+This is NOT content.
+This is NOT generic fitness video playback.
+This is a real-time performance coaching system driven by AForce OS state.
+
+The videos must feel:
+- immediate
+- contextual
+- personalized
+- authoritative
+- like a coach speaking directly to the user
+
+The system should dynamically generate and display short coaching videos based on the user’s real-time performance state, score, protocol, and AI command.
+
+---
+
+CORE CONCEPT:
+
+AForce OS does not just tell the user what to do.
+
+It SHOWS them.
+
+AI Coaching Videos = visual execution of the command.
+
+Every video must map to:
+WHAT to do → HOW to do it → WHAT happens next
+
+---
+
+VIDEO TYPES (PHASE 1):
+
+Create a structured system for 5 core video categories:
+
+1. Hydration Action Videos
+- drinking water
+- mixing AForce stick
+- consuming RTD
+- proper intake timing
+
+2. Recovery Videos
+- quick reset routines
+- breathing reset
+- posture correction
+- light recovery movement
+
+3. Performance Activation Videos
+- pre-workout hydration timing
+- warm-up activation
+- mental readiness cues
+
+4. Emergency / Depletion Videos
+- urgent hydration
+- recovery protocol
+- symptom correction
+
+5. Morning Reset Videos
+- first action of the day
+- hydration reset after sleep
+- system activation
+
+---
+
+VIDEO SYSTEM RULES:
+
+1. Every video must be tied to:
+- score
+- state
+- protocol
+- AI command
+
+2. No random content
+3. No browsing
+4. No libraries like YouTube feeds
+5. Always triggered by system state
+
+---
+
+AI + VIDEO CONNECTION:
+
+Each AI command should optionally trigger a video.
+
+Example:
+
+AI Command:
+"Drink 16 oz now. Recheck in 20 minutes. You are trending down."
+
+Video Trigger:
+→ Hydration Action Video (water intake)
+
+---
+
+VIDEO STRUCTURE:
+
+Each video should be:
+
+- 5 to 20 seconds max
+- fast
+- direct
+- no fluff
+- no intros
+- no outros
+- no talking heads explaining theory
+
+Format:
+
+1. Immediate action visual
+2. Minimal text overlay
+3. Optional short voice command
+
+---
+
+VIDEO STYLE:
+
+- cinematic but minimal
+- high contrast
+- dark + performance aesthetic
+- Nike / Apple level quality
+- slow motion + sharp cuts
+- subtle UI overlay from AForce OS
+
+---
+
+UI INTEGRATION:
+
+On Home screen:
+
+When a command is active:
+
+Display:
+
+AI Command Card
++
+AI Coaching Video Player (auto visible or expandable)
+
+---
+
+VIDEO PLAYER REQUIREMENTS:
+
+- autoplay muted
+- tap to expand full screen
+- overlay shows:
+  - command
+  - timer
+  - progress
+- instant load (no buffering feel)
+- preloaded based on predicted state
+
+---
+
+VIDEO ENGINE ARCHITECTURE:
+
+Create a video mapping system:
+
+Input:
+- state
+- score range
+- protocol
+- command type
+
+Output:
+- video_id
+- video_url
+- video_type
+- duration
+- overlay_text
+
+Example:
+
+{
+  "state": "depleted",
+  "score_range": "0-59",
+  "protocol": "depletion_correction",
+  "command_type": "hydration_urgent",
+  "video_id": "hydration_emergency_01",
+  "video_url": "/videos/hydration_emergency_01.mp4"
+}
+
+---
+
+CREATE MOCK VIDEO LIBRARY:
+
+Simulate a local video library with:
+
+- hydration_action_01.mp4
+- hydration_action_02.mp4
+- recovery_reset_01.mp4
+- depletion_emergency_01.mp4
+- morning_reset_01.mp4
+
+Use placeholders or sample clips.
+
+---
+
+SMART VIDEO TRIGGERS:
+
+Trigger videos on:
+
+- app open
+- score drop
+- protocol change
+- user logs intake
+- user enters depleted state
+- morning reset
+
+---
+
+WOW MOMENT INTEGRATION:
+
+Videos must enhance the 7 WOW moments.
+
+Example:
+
+Depleted state:
+- Pulse collapses
+- AI command fires
+- Emergency hydration video auto plays
+
+This should feel like:
+→ system taking control
+
+---
+
+PERFORMANCE REQUIREMENTS:
+
+- video load < 300ms (use preload)
+- no buffering spinner
+- transitions instant
+- smooth playback
+- no dropped frames
+
+---
+
+FUTURE AI VIDEO GENERATION (ARCHITECTURE ONLY):
+
+Add placeholder structure for future:
+
+- AI-generated personalized videos
+- avatar coach
+- voice customization
+- sport-specific coaching
+- real-time rendering
+
+Do NOT implement fully yet
+Just structure for it
+
+---
+
+FILES / STRUCTURE:
+
+Create:
+
+/videos/
+/components/AIVideoPlayer.tsx
+/services/videoEngine.ts
+/mocks/videoLibrary.ts
+/types/video.ts
+
+---
+
+VIDEO PLAYER COMPONENT:
+
+Build a reusable AIVideoPlayer that:
+
+- receives video config
+- handles autoplay
+- overlays command text
+- shows timer
+- handles expand / collapse
+
+---
+
+FINAL OUTPUT:
+
+Build a working AI Coaching Video system integrated into the AForce OS Home screen.
+
+Use mock data but make it feel real.
+
+This should feel like:
+
+AForce OS is not telling the user what to do.
+
+It is SHOWING them in real time.
+
+---
+
+IMPORTANT:
+
+This is a premium feature.
+It must feel like a $1B product.
+
+No generic UI.
+No stock app feeling.
+No lag.
+
+Everything must feel:
+
+alive
+fast
+command-driven
