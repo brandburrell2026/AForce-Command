@@ -8,6 +8,7 @@ import { Feather } from '@expo/vector-icons';
 import type { PerformanceState } from '../types';
 import { Colors } from '../theme/colors';
 import { phantomSignalData } from '../data/mockData';
+import { getCurrentCityClimateSync } from '../services/cityClimateService';
 
 interface Props {
   performanceState: PerformanceState;
@@ -17,13 +18,25 @@ interface Props {
 
 export function LiveStatusStrip({ performanceState, unitsToday, dailyTarget }: Props) {
   const { color } = performanceState;
-  const { heartRateBPM, ambientTempF, activityLabel, lastSyncLabel } = phantomSignalData;
+  const { heartRateBPM, activityLabel, lastSyncLabel } = phantomSignalData;
+  // City climate is the source of truth for ambient temp + humidity now.
+  // Single read on render; service is sync + cheap.
+  const climate = React.useMemo(() => getCurrentCityClimateSync(), []);
 
   return (
     <View style={styles.container}>
-      <View style={styles.pill}>
-        <View style={[styles.dot, { backgroundColor: color }]} />
-        <Text style={[styles.statusText, { color }]}>LIVE</Text>
+      <View style={styles.topRow}>
+        <View style={styles.pill}>
+          <View style={[styles.dot, { backgroundColor: color }]} />
+          <Text style={[styles.statusText, { color }]}>LIVE</Text>
+        </View>
+        <View style={styles.cityPill}>
+          <Feather name="map-pin" size={10} color={Colors.text.muted} />
+          <Text style={styles.cityText} numberOfLines={1}>
+            {climate.city}, {climate.region}
+          </Text>
+        </View>
+        <Text style={styles.syncText}>{lastSyncLabel}</Text>
       </View>
 
       <View style={styles.metrics}>
@@ -34,26 +47,55 @@ export function LiveStatusStrip({ performanceState, unitsToday, dailyTarget }: P
         <View style={styles.separator} />
         <View style={styles.metric}>
           <Feather name="thermometer" size={11} color={Colors.text.muted} />
-          <Text style={styles.metricText}>{ambientTempF}°F</Text>
+          <Text style={styles.metricText}>{climate.tempF}°F</Text>
+        </View>
+        <View style={styles.separator} />
+        <View
+          style={styles.metric}
+          accessibilityLabel={`Humidity ${climate.humidityPct} percent in ${climate.city}`}
+          testID="live-humidity"
+        >
+          <Feather name="droplet" size={11} color={Colors.text.muted} />
+          <Text style={styles.metricText}>{climate.humidityPct}% RH</Text>
         </View>
         <View style={styles.separator} />
         <View style={styles.metric}>
           <Text style={styles.metricText}>{unitsToday}/{dailyTarget} units</Text>
         </View>
       </View>
-
-      <Text style={styles.syncText}>{lastSyncLabel}</Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingVertical: 10,
+    gap: 8,
+  },
+  topRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  cityPill: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 100,
+    backgroundColor: Colors.fill.light,
+    borderWidth: 1,
+    borderColor: Colors.border.subtle,
+  },
+  cityText: {
+    flexShrink: 1,
+    fontSize: 10,
+    fontFamily: 'Inter_600SemiBold',
+    color: Colors.text.secondary,
+    letterSpacing: 0.6,
   },
   pill: {
     flexDirection: 'row',
