@@ -63,6 +63,8 @@ export const PRODUCT_FLAVORS = {
     stick: require('../assets/images/products/stick_watermelon.jpg'),
     can: require('../assets/images/products/can_watermelon.png'),
     jar: require('../assets/images/products/jar_watermelon.png'),
+    bag: require('../assets/images/products/bag_watermelon.jpg'),
+    bagAlt: require('../assets/images/products/bag_watermelon_alt.jpg'),
   },
   berry: {
     label: 'Berry Blast + Dulse',
@@ -70,6 +72,8 @@ export const PRODUCT_FLAVORS = {
     stick: require('../assets/images/products/stick_berry.jpg'),
     can: require('../assets/images/products/can_berry.png'),
     jar: require('../assets/images/products/jar_berry.png'),
+    bag: require('../assets/images/products/bag_berry.jpg'),
+    bagAlt: require('../assets/images/products/bag_berry_alt.jpg'),
   },
   soursop: {
     label: 'Soursop Edge + Seamoss',
@@ -78,6 +82,7 @@ export const PRODUCT_FLAVORS = {
     can: require('../assets/images/products/can_soursop.png'),
     jar: require('../assets/images/products/jar_soursop.png'),
     bag: require('../assets/images/products/bag_soursop.jpg'),
+    bagAlt: require('../assets/images/products/bag_soursop_alt.jpg'),
   },
 } as const;
 

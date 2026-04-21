@@ -22,6 +22,9 @@ const BARCODE_INDEX: Record<string, string> = {
   '850000000024': 'aforce_rtd',
   '850000000031': 'aforce_canister',
   '850000000048': 'aforce_bulk_bag',
+  '850000000055': 'aforce_berry_blast',
+  '850000000062': 'aforce_watermelon_surge',
+  '850000000079': 'aforce_soursop_edge',
   // Competitors
   '052000338874': 'gatorade',
   '850000111234': 'liquid_iv',
@@ -41,6 +44,12 @@ const SLUG_INDEX: Record<string, string> = {
   canister: 'aforce_canister',
   bulk: 'aforce_bulk_bag',
   field_bag: 'aforce_bulk_bag',
+  berry: 'aforce_berry_blast',
+  berry_blast: 'aforce_berry_blast',
+  watermelon: 'aforce_watermelon_surge',
+  watermelon_surge: 'aforce_watermelon_surge',
+  soursop: 'aforce_soursop_edge',
+  soursop_edge: 'aforce_soursop_edge',
 };
 
 /** Mapping from CompareProduct id → loggable FluidType (when applicable). */
@@ -49,6 +58,10 @@ const PRODUCT_TO_FLUID: Record<string, FluidType> = {
   aforce_rtd: 'aforce_rtd',
   aforce_canister: 'aforce_canister',
   aforce_bulk_bag: 'aforce_bulk_bag',
+  // Flavored 12-stick bags log as sticks for hydration tracking.
+  aforce_berry_blast: 'aforce_stick',
+  aforce_watermelon_surge: 'aforce_stick',
+  aforce_soursop_edge: 'aforce_stick',
   water: 'water',
 };
 
