@@ -1,11 +1,14 @@
 /**
- * TerritoryMap — stylized abstract US map. Uses react-native-svg so it
- * renders on iOS / Android / web without a heavy native maps dep. When the
- * real Mapbox / Google Maps integration ships, swap this component out and
- * keep TerritoryScreen unchanged.
+ * TerritoryMap — *stylized* competition map (the design language, not a
+ * placeholder). AForce intentionally never renders a precise satellite or
+ * street map: locations are aggregated to city/state/team buckets and shown
+ * on an abstract 100x60 grid, projected through `react-native-svg` so it
+ * renders identically on iOS / Android / web without a native maps dep.
  *
- * Coordinates use a 100x60 abstract grid; we project to the available
- * width/height so the layout adapts to phones and tablets.
+ * This is a privacy stance as much as a visual one — the user can see
+ * relative competition energy across the country without anyone, including
+ * AForce, ever needing exact GPS. If we ever introduce real cartography it
+ * will be an additive opt-in layer; this stylized view stays as the default.
  */
 
 import React from 'react';
@@ -36,6 +39,9 @@ export const TerritoryMap: React.FC<Props> = ({
 
   return (
     <View style={[styles.wrap, { height }]}>
+      <View style={styles.badge} pointerEvents="none" accessibilityRole="text">
+        <Text style={styles.badgeText}>STYLIZED VIEW · NO PRECISE LOCATION</Text>
+      </View>
       <Svg width="100%" height="100%" viewBox={`0 0 ${GRID_W} ${GRID_H}`} preserveAspectRatio="xMidYMid meet">
         <Defs>
           <RadialGradient id="bgGlow" cx="50%" cy="50%" r="60%">
@@ -140,6 +146,15 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background.card,
   },
   tap: { position: 'absolute', alignItems: 'center', justifyContent: 'center' },
+  badge: {
+    position: 'absolute', top: 10, left: 12, zIndex: 2,
+    paddingHorizontal: 8, paddingVertical: 4, borderRadius: 100,
+    borderWidth: 1, borderColor: Colors.border.medium,
+    backgroundColor: `${Colors.background.primary}cc`,
+  },
+  badgeText: {
+    color: Colors.text.muted, fontSize: 9, letterSpacing: 1.5, fontWeight: '700',
+  },
 });
 
 export default TerritoryMap;

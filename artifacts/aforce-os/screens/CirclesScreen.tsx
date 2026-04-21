@@ -15,6 +15,7 @@ import type { CircleGroup } from '@/types/circle';
 import {
   getCircleFeed, listChallenges, acceptChallenge, listPending,
 } from '@/services/circleService';
+import { useCircleSubscription } from '@/hooks/useCircleSubscription';
 import CircleUserCard from '@/components/CircleUserCard';
 import CircleChallengeCard from '@/components/CircleChallengeCard';
 
@@ -30,16 +31,16 @@ export const CirclesScreen: React.FC = () => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [group, setGroup] = React.useState<CircleGroup | 'all'>('all');
-  // Bump on every in-memory mutation so the memos below re-run; without
-  // this dep, accepting a challenge would not remove it from the list.
-  const [tick, force] = React.useReducer((n: number) => n + 1, 0);
+  // Subscribe to the circle store so this screen refreshes whenever ANY
+  // mutation runs — including from Manage Circle on a different screen.
+  const v = useCircleSubscription();
 
   const feed = React.useMemo(
     () => getCircleFeed(group === 'all' ? undefined : group),
-    [group, tick],
+    [group, v],
   );
-  const challenges = React.useMemo(() => listChallenges(), [tick]);
-  const pending = React.useMemo(() => listPending(), [tick]);
+  const challenges = React.useMemo(() => listChallenges(), [v]);
+  const pending = React.useMemo(() => listPending(), [v]);
 
   return (
     <View style={[styles.root, { paddingTop: insets.top + 8 }]}>
@@ -104,7 +105,7 @@ export const CirclesScreen: React.FC = () => {
                 <CircleChallengeCard
                   key={c.id}
                   challenge={c}
-                  onAccept={(id) => { acceptChallenge(id); force(); }}
+                  onAccept={(id) => acceptChallenge(id)}
                 />
               ))}
             </View>

@@ -14,6 +14,7 @@ import { Colors } from '@/theme/colors';
 import {
   listCircle, listPending, setRelationshipStatus, removeFromCircle, moveToGroup,
 } from '@/services/circleService';
+import { useCircleSubscription } from '@/hooks/useCircleSubscription';
 import type { CircleGroup, CircleUser } from '@/types/circle';
 
 const GROUPS: { id: CircleGroup; label: string }[] = [
@@ -39,33 +40,29 @@ function confirmRemove(name: string, onConfirm: () => void) {
 export const ManageCircleScreen: React.FC = () => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  // Bump on every in-memory mutation so the memos below re-run; without
-  // this dep, accepting/removing wouldn't refresh the visible lists.
-  const [tick, force] = React.useReducer((n: number) => n + 1, 0);
+  // Subscribe to the circle store — covers both this screen's edits and any
+  // edits other screens make to keep state coherent across the app.
+  const v = useCircleSubscription();
 
-  const active = React.useMemo(() => listCircle(), [tick]);
-  const pending = React.useMemo(() => listPending(), [tick]);
+  const active = React.useMemo(() => listCircle(), [v]);
+  const pending = React.useMemo(() => listPending(), [v]);
 
   const accept = (u: CircleUser) => {
     if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
     setRelationshipStatus(u.userId, 'active');
-    force();
   };
   const decline = (u: CircleUser) => {
     removeFromCircle(u.userId);
-    force();
   };
   const mute = (u: CircleUser) => {
     setRelationshipStatus(u.userId, u.status === 'muted' ? 'active' : 'muted');
-    force();
   };
   const remove = (u: CircleUser) => {
-    confirmRemove(u.name, () => { removeFromCircle(u.userId); force(); });
+    confirmRemove(u.name, () => { removeFromCircle(u.userId); });
   };
   const move = (u: CircleUser, g: CircleGroup) => {
     if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
     moveToGroup(u.userId, g);
-    force();
   };
 
   return (

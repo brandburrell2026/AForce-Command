@@ -58,6 +58,8 @@ function sanitizeComment(input?: string): string | undefined {
     out = out.replace(re, '').replace(/\s{2,}/g, ' ').trim();
   }
   // No exclamation marks, no hashtags — same tone rules as Voice/Share.
-  out = out.replace(/!+/g, '.').replace(/#\S+/g, '').replace(/\s{2,}/g, ' ').trim();
+  // `#\S*` (vs `#\S+`) also strips a lone `#` left behind after a hashtag's
+  // body matches a banned token (e.g. `#fire` → strip `fire` → strip `#`).
+  out = out.replace(/!+/g, '.').replace(/#\S*/g, '').replace(/\s{2,}/g, ' ').trim();
   return out.length > 0 ? out : undefined;
 }

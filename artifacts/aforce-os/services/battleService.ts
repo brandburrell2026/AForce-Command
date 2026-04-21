@@ -1,6 +1,10 @@
 /**
  * Battle service — list/get/create/join active region rivalries.
  * In-memory today; same surface will adapt to `/api/battles/*`.
+ *
+ * Reactive: `supportSide` and `openBattle` bump a version counter and notify
+ * subscribers, so the Territory screen refreshes via `useSyncExternalStore`
+ * without `force()` reducers.
  */
 
 import { MOCK_BATTLES } from '@/data/mockTerritoryData';
@@ -8,6 +12,25 @@ import { getRegionById } from '@/services/mapAggregationService';
 import type { TerritoryBattle, TerritoryRegion } from '@/types/territory';
 
 let battles: TerritoryBattle[] = [...MOCK_BATTLES];
+
+let version = 0;
+const listeners = new Set<() => void>();
+
+export function subscribeBattles(fn: () => void): () => void {
+  listeners.add(fn);
+  return () => { listeners.delete(fn); };
+}
+
+export function getBattlesVersion(): number {
+  return version;
+}
+
+function emit() {
+  version += 1;
+  for (const fn of listeners) {
+    try { fn(); } catch { /* swallow */ }
+  }
+}
 
 export interface BattleView extends TerritoryBattle {
   side1: TerritoryRegion;
@@ -42,6 +65,7 @@ export function supportSide(id: string, side: 'side1' | 'side2'): BattleView | u
       : next.side1Score > next.side2Score ? 'side1' : 'side2';
     return next;
   });
+  emit();
   return getBattle(id);
 }
 
@@ -53,5 +77,12 @@ export function openBattle(side1RegionId: string, side2RegionId: string): Battle
     side1Score: 50, side2Score: 50,
     hoursRemaining: 24, leader: 'tie', trend: 'flat',
   });
+  emit();
   return getBattle(id);
+}
+
+/** Test-only reset. */
+export function __resetBattlesForTests(): void {
+  battles = [...MOCK_BATTLES];
+  emit();
 }

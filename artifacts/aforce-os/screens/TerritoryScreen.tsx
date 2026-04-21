@@ -15,6 +15,7 @@ import { Colors } from '@/theme/colors';
 import type { RegionKind, TerritoryLayer } from '@/types/territory';
 import { getRegions, buildMarkers, getRegionById } from '@/services/mapAggregationService';
 import { listBattles, supportSide } from '@/services/battleService';
+import { useBattlesSubscription } from '@/hooks/useCircleSubscription';
 import TerritoryMap from '@/components/TerritoryMap';
 import MapLayerToggle from '@/components/MapLayerToggle';
 import CityCard from '@/components/CityCard';
@@ -33,14 +34,13 @@ export const TerritoryScreen: React.FC = () => {
   const [scope, setScope] = React.useState<RegionKind>('city');
   const [layer, setLayer] = React.useState<TerritoryLayer>('territory');
   const [selectedId, setSelectedId] = React.useState<string | undefined>(undefined);
-  // Bump on every in-memory mutation (e.g. supportSide) so battle scores
-  // refresh in the UI without remounting the screen.
-  const [tick, force] = React.useReducer((n: number) => n + 1, 0);
+  // Subscribe to the battle store so support taps update scores immediately.
+  const bv = useBattlesSubscription();
 
   const regions = React.useMemo(() => getRegions(scope), [scope]);
   const markers = React.useMemo(() => buildMarkers(regions, layer), [regions, layer]);
   const selected = selectedId ? getRegionById(selectedId) : regions[0];
-  const battles = React.useMemo(() => listBattles(), [tick]);
+  const battles = React.useMemo(() => listBattles(), [bv]);
 
   const trending = React.useMemo(
     () => [...regions].sort((a, b) => b.stats.momentumScore - a.stats.momentumScore).slice(0, 4),
@@ -55,7 +55,6 @@ export const TerritoryScreen: React.FC = () => {
 
   const handleSupport = (id: string, side: 'side1' | 'side2') => {
     supportSide(id, side);
-    force();
   };
 
   return (
