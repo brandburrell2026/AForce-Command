@@ -32,6 +32,8 @@ function RootLayoutNav() {
       <Stack.Screen name="subscription" options={{ headerShown: false, presentation: 'card' }} />
       <Stack.Screen name="subscription/manage" options={{ headerShown: false, presentation: 'card' }} />
       <Stack.Screen name="cart" options={{ headerShown: false, presentation: 'card' }} />
+      <Stack.Screen name="heat" options={{ headerShown: false, presentation: 'card' }} />
+      <Stack.Screen name="heat/guardian" options={{ headerShown: false, presentation: 'card' }} />
     </Stack>
   );
 }

@@ -1,0 +1,312 @@
+Build a Heat Risk Prediction and Early Intervention system inside AForce OS.
+
+IMPORTANT:
+This system must NOT claim to diagnose heat stroke.
+This system must NOT present itself as a medical device.
+This system must act as an early warning and intervention engine that detects elevated heat risk patterns before a dangerous event may occur.
+
+The system should identify rising physiological risk, classify urgency, and trigger immediate hydration and cooling actions.
+
+CORE GOAL:
+Detect when a user is trending toward heat stress, dehydration overload, or possible heat injury risk before full breakdown occurs.
+
+SYSTEM NAME:
+Heat Guard
+
+CORE PRINCIPLE:
+AForce OS monitors signals continuously and identifies dangerous heat patterns early.
+It does not wait for the user to ask for help.
+
+OUTPUT MUST FEEL:
+- urgent
+- authoritative
+- precise
+- fast
+- non-medical but serious
+
+IMPORTANT LANGUAGE RULES:
+Never say:
+- “You have heat stroke”
+- “Diagnosed”
+- “Medical emergency confirmed”
+
+Always say:
+- “Critical heat risk rising”
+- “Heat stress trend detected”
+- “Immediate cooling and hydration required”
+- “You are trending toward dangerous heat overload”
+- “Stop activity now and begin recovery protocol”
+
+RISK SIGNALS TO MONITOR:
+Create a heat risk engine that uses mock or real-time inputs from available sources.
+
+Inputs may include:
+- hydration score
+- recent fluid intake
+- time since last intake
+- ambient temperature
+- humidity
+- heat index
+- sun exposure
+- activity intensity
+- continuous active minutes
+- heart rate trend
+- heart rate recovery delay
+- sweat rate estimate
+- body weight
+- recovery momentum
+- symptom inputs
+- dizziness
+- headache
+- nausea
+- cramping
+- chills
+- confusion
+- fatigue
+- urine signal
+- energy state
+- sleep deficit
+- previous heat events
+
+CORE RISK ENGINE:
+Create a weighted Heat Risk Score from 0 to 100.
+
+Example structure:
+
+heat_risk_score = (
+  heat_index_load +
+  hydration_deficit +
+  activity_stress +
+  heart_rate_strain +
+  recovery_failure +
+  symptom_risk +
+  sleep_penalty +
+  sweat_loss_estimate
+)
+
+Clamp final score:
+0 to 100
+
+RISK STATES:
+Create 5 risk bands:
+
+1. STABLE
+0–24
+Low heat concern
+User can continue with maintenance hydration
+
+2. ELEVATED
+25–44
+Moderate heat load rising
+Increase hydration cadence and watch trend
+
+3. WARNING
+45–64
+Heat stress pattern forming
+Immediate hydration and recovery intervention required
+
+4. HIGH RISK
+65–84
+Dangerous heat trend detected
+Stop activity, cool down, hydrate aggressively, recheck fast
+
+5. CRITICAL
+85–100
+Extreme heat injury risk rising
+Immediate stop, active cooling, emergency escalation guidance
+
+IMPORTANT:
+Critical does NOT diagnose heat stroke.
+It flags a severe risk pattern and escalates action.
+
+HEAT RISK OUTPUT:
+For each user state, output:
+- heat_risk_score
+- heat_risk_state
+- trend direction
+- urgency level
+- intervention protocol
+- cooldown timer
+- recheck interval
+- AI command
+- visual alert style
+
+COMMAND EXAMPLES:
+Stable:
+“Hydrate now and stay on cadence. Heat load is under control.”
+
+Elevated:
+“Drink 12 to 16 oz now. Heat stress is building. Recheck in 20 minutes.”
+
+Warning:
+“Stop and hydrate now. Cooling protocol starts immediately. Recheck in 10 minutes.”
+
+High Risk:
+“Stop activity now. Move to shade or cooling. Drink fluids immediately. Recheck in 5 minutes.”
+
+Critical:
+“Critical heat risk rising. Stop activity now. Begin rapid cooling and hydration immediately. Seek on site medical support if symptoms escalate.”
+
+INTERVENTION LOGIC:
+When heat risk rises, the system must trigger action instantly.
+
+Possible intervention outputs:
+- hydrate now
+- take AForce now
+- stop activity
+- move to shade
+- cool body immediately
+- remove layers if appropriate
+- shorten next work interval
+- force recheck timer
+- alert coach or staff in team mode
+
+TEAM / CLUTCH MODE:
+If used in team mode, build logic so coaches can see:
+- athlete heat risk score
+- athlete heat risk state
+- hydration trend
+- who is entering warning or high risk
+- who must be pulled now
+- who needs fluids at next timeout
+
+TEAM ALERT STATES:
+- WATCH
+- INTERVENE
+- PULL NOW
+
+Example:
+“Player 12 is trending High Risk. Pull at next stoppage.”
+“Player 7 has entered Critical heat risk. Remove immediately and begin cooling.”
+
+GUARDIAN MODE:
+Create a Guardian Heat Risk screen that shows:
+- heat risk score
+- current drivers
+- top contributing variables
+- next best action
+- time to next recheck
+- body stress indicator
+- trend over last 60 minutes
+
+WHY THIS RISK SECTION:
+Show the top 3 to 5 reasons the system is flagging risk.
+
+Example:
+- Heat index is elevated
+- Hydration score dropped 14 points
+- Continuous exertion exceeded 42 minutes
+- Heart rate recovery is delayed
+- Dizziness reported
+
+VISUAL DESIGN:
+This must feel serious, premium, and immediate.
+
+Use:
+- deep black / charcoal background
+- amber for warning
+- red for high risk
+- flashing or pulsing red only for critical
+- sharp typography
+- large score
+- countdown timer
+- strong command card
+
+Add a Heat Pulse visual mode:
+- stable = subtle
+- elevated = warmer glow
+- warning = amber tension
+- high risk = red tightening pulse
+- critical = urgent red pulse with collapse effect
+
+REAL-TIME TRIGGERS:
+Update risk when:
+- activity increases
+- environment changes
+- hydration is logged
+- symptoms are entered
+- score drops
+- heart rate strain rises
+- recheck timer expires
+
+RECHECK TIMERS:
+Stable: 30 to 45 min
+Elevated: 20 min
+Warning: 10 min
+High Risk: 5 min
+Critical: immediate rolling reassessment
+
+COOLDOWN PROTOCOLS:
+Create protocol cards for:
+- Heat Reset
+- Shade Recovery
+- Emergency Cooldown
+- Hydration Recovery
+- Return to Play Pending Recovery
+
+RETURN TO ACTIVITY LOGIC:
+The system should not clear users too quickly.
+Require:
+- lower heat risk score
+- improved hydration score
+- symptom reduction
+- recovery timer complete
+
+FILES TO CREATE:
+- /services/heatRiskEngine.ts
+- /services/heatProtocolService.ts
+- /components/HeatRiskCard.tsx
+- /components/HeatAlertBanner.tsx
+- /components/HeatPulse.tsx
+- /screens/HeatRiskScreen.tsx
+- /screens/GuardianHeatScreen.tsx
+- /types/heat.ts
+- /mocks/heatData.ts
+
+DATA TYPES:
+Create interfaces for:
+- HeatRiskState
+- HeatRiskScore
+- HeatProtocol
+- HeatSignalInput
+- TeamHeatAlert
+- CoolingAction
+- RecheckTimer
+
+MOCK VARIABLES:
+Use realistic mock calculations for:
+- temp
+- humidity
+- heat index
+- exertion minutes
+- hydration gap
+- heart rate stress
+- sweat loss
+- symptom severity
+
+FUTURE READY:
+Structure for later integration with:
+- Apple Watch
+- WHOOP
+- Phantom band
+- Clutch clip
+- GPS weather
+- live sideline alerts
+- wearable temperature data
+- core temperature estimation models
+
+IMPORTANT:
+This system must be described as:
+- heat risk prediction
+- heat stress early warning
+- proactive intervention
+- performance safety layer
+
+Never market it as guaranteed prevention or diagnosis.
+
+FINAL OUTPUT:
+Build a premium Heat Guard feature inside AForce OS that predicts rising heat risk, classifies danger, triggers real-time intervention, and supports both individual and team environments.
+
+END GOAL:
+The user or coach should feel:
+“The system caught the danger trend early and told me exactly what to do.”

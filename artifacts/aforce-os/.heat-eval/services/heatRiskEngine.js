@@ -1,0 +1,356 @@
+"use strict";
+/**
+ * Heat Risk Engine.
+ *
+ * Pure scoring service. Takes a HeatSignalInput, produces a HeatRiskScore.
+ * No I/O, no React. Easy to swap to wearable inputs later.
+ *
+ * IMPORTANT:
+ * - Output is a RISK PREDICTION, not a diagnosis.
+ * - The "CRITICAL" band flags a severe risk pattern; it does NOT claim heat
+ *   stroke or any medical condition.
+ */
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.HEAT_BANDS = void 0;
+exports.bandForScore = bandForScore;
+exports.computeHeatIndex = computeHeatIndex;
+exports.evaluateHeatRisk = evaluateHeatRisk;
+// ─── Band configuration ─────────────────────────────────────────────────────
+exports.HEAT_BANDS = [
+    {
+        band: "STABLE",
+        label: "STABLE",
+        range: [0, 24],
+        color: "#B4FF50", // lime
+        flashing: false,
+        visualMode: "subtle",
+        urgency: "calm",
+        recheckMinutes: 35,
+        shortDirective: "Maintenance hydration",
+    },
+    {
+        band: "ELEVATED",
+        label: "ELEVATED",
+        range: [25, 44],
+        color: "#FFC857", // gold
+        flashing: false,
+        visualMode: "warm_glow",
+        urgency: "moderate",
+        recheckMinutes: 20,
+        shortDirective: "Increase cadence",
+    },
+    {
+        band: "WARNING",
+        label: "WARNING",
+        range: [45, 64],
+        color: "#FFA01E", // amber
+        flashing: false,
+        visualMode: "amber_tension",
+        urgency: "high",
+        recheckMinutes: 10,
+        shortDirective: "Stop. Hydrate. Cool.",
+    },
+    {
+        band: "HIGH_RISK",
+        label: "HIGH RISK",
+        range: [65, 84],
+        color: "#FF5A1F", // red-orange
+        flashing: false,
+        visualMode: "red_tighten",
+        urgency: "extreme",
+        recheckMinutes: 5,
+        shortDirective: "Stop activity now",
+    },
+    {
+        band: "CRITICAL",
+        label: "CRITICAL",
+        range: [85, 100],
+        color: "#FF2D55", // red
+        flashing: true,
+        visualMode: "red_collapse",
+        urgency: "imminent",
+        recheckMinutes: 1,
+        shortDirective: "Begin rapid cooling",
+    },
+];
+function bandForScore(score) {
+    const clamped = Math.max(0, Math.min(100, Math.round(score)));
+    return (exports.HEAT_BANDS.find((b) => clamped >= b.range[0] && clamped <= b.range[1]) ??
+        exports.HEAT_BANDS[0]);
+}
+// ─── Heat index helper (Rothfusz simplified) ────────────────────────────────
+function computeHeatIndex(tempF, humidityPct) {
+    if (tempF < 80)
+        return tempF;
+    const T = tempF;
+    const R = humidityPct;
+    const HI = -42.379 +
+        2.04901523 * T +
+        10.14333127 * R -
+        0.22475541 * T * R -
+        0.00683783 * T * T -
+        0.05481717 * R * R +
+        0.00122874 * T * T * R +
+        0.00085282 * T * R * R -
+        0.00000199 * T * T * R * R;
+    return HI;
+}
+// ─── Contribution calculators ───────────────────────────────────────────────
+function clamp(n, min, max) {
+    return Math.max(min, Math.min(max, n));
+}
+function heatIndexLoad(input) {
+    const hi = input.heatIndexF ?? computeHeatIndex(input.ambientTempF, input.humidityPct);
+    // Heat index thresholds per NWS:
+    // <80 caution none, 80-90 caution, 90-103 extreme caution, 103-124 danger,
+    // >=125 extreme danger. Map to 0-22 points.
+    let raw = 0;
+    if (hi >= 125)
+        raw = 22;
+    else if (hi >= 103)
+        raw = 16 + ((hi - 103) / 22) * 6;
+    else if (hi >= 90)
+        raw = 8 + ((hi - 90) / 13) * 8;
+    else if (hi >= 80)
+        raw = ((hi - 80) / 10) * 8;
+    // Sun exposure adds up to +4 on top.
+    raw += input.sunExposure * 4;
+    return {
+        id: "heat_index",
+        label: "Heat index load",
+        points: clamp(Math.round(raw), 0, 26),
+        maxPoints: 26,
+        reason: hi >= 103
+            ? `Heat index ${Math.round(hi)}°F — danger zone.`
+            : hi >= 90
+                ? `Heat index ${Math.round(hi)}°F is elevated.`
+                : `Heat index ${Math.round(hi)}°F is mild.`,
+    };
+}
+function hydrationDeficit(input) {
+    // hydrationScore 100 = no deficit (0 pts). Below 60 ramps fast.
+    const deficit = Math.max(0, 100 - input.hydrationScore);
+    let raw = 0;
+    if (deficit > 40)
+        raw = 12 + ((deficit - 40) / 60) * 8; // up to 20
+    else
+        raw = (deficit / 40) * 12;
+    // Time since last intake compounds the deficit.
+    if (input.minutesSinceLastIntake > 60) {
+        raw += clamp((input.minutesSinceLastIntake - 60) / 30, 0, 4);
+    }
+    return {
+        id: "hydration_deficit",
+        label: "Hydration deficit",
+        points: clamp(Math.round(raw), 0, 20),
+        maxPoints: 20,
+        reason: deficit > 30
+            ? `Hydration score has dropped ${Math.round(deficit)} pts.`
+            : `Hydration is holding (${input.hydrationScore} pts).`,
+    };
+}
+function activityStress(input) {
+    // Continuous exertion >30 min compounds; intensity multiplies.
+    const minutes = input.continuousActiveMin;
+    const minutesPts = minutes <= 20 ? 0 : minutes >= 80 ? 10 : ((minutes - 20) / 60) * 10;
+    const intensityPts = input.activityIntensity * 6; // up to 6
+    const raw = minutesPts + intensityPts;
+    return {
+        id: "activity_stress",
+        label: "Activity stress",
+        points: clamp(Math.round(raw), 0, 16),
+        maxPoints: 16,
+        reason: minutes > 40
+            ? `Continuous exertion exceeded ${minutes} min.`
+            : `Activity load is moderate.`,
+    };
+}
+function heartRateStrain(input) {
+    // Approximate "strain" as HR > 150 starts adding load.
+    const hr = input.heartRateBpm;
+    let raw = 0;
+    if (hr >= 180)
+        raw = 10;
+    else if (hr >= 150)
+        raw = ((hr - 150) / 30) * 10;
+    // Recovery delay adds independent strain (slower recovery = worse).
+    if (input.hrRecoveryDelaySec > 0) {
+        raw += clamp(input.hrRecoveryDelaySec / 15, 0, 6);
+    }
+    return {
+        id: "hr_strain",
+        label: "Heart-rate strain",
+        points: clamp(Math.round(raw), 0, 16),
+        maxPoints: 16,
+        reason: input.hrRecoveryDelaySec >= 30
+            ? `Heart-rate recovery is delayed.`
+            : hr >= 160
+                ? `Heart rate is elevated at ${hr} bpm.`
+                : `Heart rate trend is normal.`,
+    };
+}
+function recoveryFailure(input) {
+    // Low recovery momentum + recent heat event compounds.
+    const base = (1 - clamp(input.recoveryMomentum, 0, 1)) * 6;
+    const echo = input.recentHeatEvent ? 4 : 0;
+    return {
+        id: "recovery_failure",
+        label: "Recovery momentum",
+        points: clamp(Math.round(base + echo), 0, 10),
+        maxPoints: 10,
+        reason: input.recoveryMomentum < 0.5
+            ? `Recovery momentum is low (${Math.round(input.recoveryMomentum * 100)}%).`
+            : input.recentHeatEvent
+                ? `Prior heat event in last 7 days.`
+                : `Recovery momentum is healthy.`,
+    };
+}
+function symptomRisk(input) {
+    // Per-symptom weights. Confusion is the heaviest single signal.
+    const weights = {
+        confusion: 8,
+        nausea: 5,
+        dizziness: 5,
+        cramping: 4,
+        chills: 4,
+        headache: 3,
+        fatigue: 2,
+    };
+    const points = input.symptoms.reduce((acc, s) => acc + (weights[s] ?? 0), 0);
+    // Urine darkness 5+ adds independent points.
+    const urinePts = input.urineSignal >= 5 ? (input.urineSignal - 4) * 2 : 0;
+    const raw = points + urinePts;
+    return {
+        id: "symptom_risk",
+        label: "Symptom signals",
+        points: clamp(raw, 0, 18),
+        maxPoints: 18,
+        reason: input.symptoms.length > 0
+            ? `Reported: ${input.symptoms.join(", ")}.`
+            : input.urineSignal >= 5
+                ? `Urine signal is dark (${input.urineSignal}/8).`
+                : `No symptom signals reported.`,
+    };
+}
+function sleepPenalty(input) {
+    const raw = clamp(input.sleepDeficitHrs * 1.5, 0, 6);
+    return {
+        id: "sleep_penalty",
+        label: "Sleep deficit",
+        points: Math.round(raw),
+        maxPoints: 6,
+        reason: input.sleepDeficitHrs >= 1.5
+            ? `Sleep deficit ${input.sleepDeficitHrs.toFixed(1)} hr below baseline.`
+            : `Sleep is on baseline.`,
+    };
+}
+function sweatLossEstimate(input) {
+    // Sweat loss as % of body weight per hour. >2% triggers concern.
+    const lossPct = input.bodyWeightLbs > 0
+        ? (input.sweatLossOzPerHr / 16 / input.bodyWeightLbs) * 100
+        : 0;
+    let raw = 0;
+    if (lossPct >= 2.5)
+        raw = 8;
+    else if (lossPct >= 1.5)
+        raw = 4 + ((lossPct - 1.5) / 1) * 4;
+    else if (lossPct >= 0.8)
+        raw = ((lossPct - 0.8) / 0.7) * 4;
+    return {
+        id: "sweat_loss",
+        label: "Sweat loss estimate",
+        points: clamp(Math.round(raw), 0, 8),
+        maxPoints: 8,
+        reason: lossPct >= 1.5
+            ? `Sweat loss ~${lossPct.toFixed(1)}% body weight / hr.`
+            : `Sweat loss is within range.`,
+    };
+}
+function evaluateHeatRisk(input, opts = {}) {
+    const breakdown = [
+        heatIndexLoad(input),
+        hydrationDeficit(input),
+        activityStress(input),
+        heartRateStrain(input),
+        recoveryFailure(input),
+        symptomRisk(input),
+        sleepPenalty(input),
+        sweatLossEstimate(input),
+    ];
+    const rawSum = breakdown.reduce((acc, c) => acc + c.points, 0);
+    const score = clamp(Math.round(rawSum), 0, 100);
+    const band = bandForScore(score);
+    // Trend.
+    let trend = "steady";
+    if (opts.previousScore != null) {
+        const delta = score - opts.previousScore;
+        if (delta >= 4)
+            trend = "rising";
+        else if (delta <= -4)
+            trend = "falling";
+    }
+    const topDrivers = [...breakdown]
+        .filter((c) => c.points > 0)
+        .sort((a, b) => b.points - a.points)
+        .slice(0, 5);
+    const command = commandForBand(band.band);
+    const commandDetail = commandDetailForBand(band.band, input);
+    const cooldownMinutes = cooldownForBand(band.band);
+    return {
+        score,
+        band: band.band,
+        trend,
+        urgency: band.urgency,
+        visualMode: band.visualMode,
+        topDrivers,
+        breakdown,
+        recheckMinutes: band.recheckMinutes,
+        cooldownMinutes,
+        command,
+        commandDetail,
+    };
+}
+function commandForBand(band) {
+    switch (band) {
+        case "STABLE":
+            return "Hydrate now and stay on cadence. Heat load is under control.";
+        case "ELEVATED":
+            return "Drink 12 to 16 oz now. Heat stress is building. Recheck in 20 minutes.";
+        case "WARNING":
+            return "Stop and hydrate now. Cooling protocol starts immediately. Recheck in 10 minutes.";
+        case "HIGH_RISK":
+            return "Stop activity now. Move to shade or cooling. Drink fluids immediately. Recheck in 5 minutes.";
+        case "CRITICAL":
+            return "Critical heat risk rising. Stop activity now. Begin rapid cooling and hydration immediately. Seek on-site medical support if symptoms escalate.";
+    }
+}
+function commandDetailForBand(band, input) {
+    switch (band) {
+        case "STABLE":
+            return "Maintain steady intake. Monitor environment as it changes.";
+        case "ELEVATED":
+            return "Heat trend detected. Increase intake cadence and watch the score.";
+        case "WARNING":
+            return "Heat stress pattern is forming. Action now prevents escalation.";
+        case "HIGH_RISK":
+            return "Dangerous heat trend detected. Aggressive cooling and fluids required.";
+        case "CRITICAL":
+            return input.symptoms.includes("confusion")
+                ? "Confusion reported with extreme heat load — treat as urgent."
+                : "Extreme heat-injury risk pattern. Do not resume activity until cleared.";
+    }
+}
+function cooldownForBand(band) {
+    switch (band) {
+        case "STABLE":
+            return 0;
+        case "ELEVATED":
+            return 5;
+        case "WARNING":
+            return 10;
+        case "HIGH_RISK":
+            return 15;
+        case "CRITICAL":
+            return 20;
+    }
+}

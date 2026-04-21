@@ -21,6 +21,7 @@ import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 
 import { GradientBackground } from '@/components/GradientBackground';
+import { HeatAlertBanner } from '@/components/HeatAlertBanner';
 import { LiveStatusStrip } from '@/components/LiveStatusStrip';
 import { StatusPulseOrb } from '@/components/StatusPulseOrb';
 import { WhyThisScore } from '@/components/WhyThisScore';
@@ -36,6 +37,8 @@ import { AIVideoPlayer } from '@/components/AIVideoPlayer';
 
 import { useAppStore } from '@/store/useAppStore';
 import { matchVideo } from '@/services/videoEngine';
+import { evaluateHeatRisk } from '@/services/heatRiskEngine';
+import type { HeatSymptom } from '@/types/heat';
 import { Colors } from '@/theme/colors';
 import { Feather } from '@expo/vector-icons';
 
@@ -48,6 +51,45 @@ export default function HomeScreen() {
   } = state;
   const { performanceState, score, reasons, command, pulseConfig, breakdown } = engineOutput;
   const [breakdownOpen, setBreakdownOpen] = React.useState(false);
+
+  // Derive a quick Heat Guard read from current user state. The banner only
+  // surfaces when band !== STABLE so we never nag the user for no reason.
+  const heatScore = React.useMemo(() => {
+    const SYMPTOM_IDS: HeatSymptom[] = ['dizziness','headache','nausea','cramping','chills','confusion','fatigue'];
+    const symptoms: HeatSymptom[] = (userState.symptoms ?? []).filter(
+      (s): s is HeatSymptom => (SYMPTOM_IDS as string[]).includes(s),
+    );
+    return evaluateHeatRisk({
+      hydrationScore: score,
+      recentFluidOz: 0,
+      minutesSinceLastIntake: Math.max(
+        0,
+        Math.round((Date.now() - new Date(userState.lastIntakeTime).getTime()) / 60000),
+      ),
+      ambientTempF: 78 + (userState.heatLoad ?? 0) * 22,
+      humidityPct: 50 + (userState.heatLoad ?? 0) * 25,
+      sunExposure: Math.min(1, (userState.heatLoad ?? 0)),
+      continuousActiveMin: Math.round((userState.activityLevel ?? 0) * 60),
+      activityIntensity: userState.activityLevel ?? 0,
+      heartRateBpm: 110 + Math.round((userState.activityLevel ?? 0) * 60),
+      hrRecoveryDelaySec: Math.round((userState.activityLevel ?? 0) * 25),
+      sweatLossOzPerHr: (userState.sweatRate ?? 0) * 30,
+      bodyWeightLbs: userState.bodyWeightLbs || 175,
+      recoveryMomentum: 1 - (userState.heatLoad ?? 0),
+      symptoms,
+      urineSignal: userState.urineSignal ?? 2,
+      energyState:
+        userState.energyState === 'crashed' ? 'crashed'
+        : userState.energyState === 'low' ? 'low'
+        : userState.energyState === 'peak' ? 'peak' : 'steady',
+      sleepDeficitHrs: 0,
+      recentHeatEvent: false,
+    });
+  }, [
+    score, userState.lastIntakeTime, userState.heatLoad, userState.activityLevel,
+    userState.sweatRate, userState.bodyWeightLbs, userState.symptoms,
+    userState.urineSignal, userState.energyState,
+  ]);
 
   const openBreakdown = () => {
     if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
@@ -78,6 +120,11 @@ export default function HomeScreen() {
           contentContainerStyle={[styles.content, { paddingTop: topPadding + 8, paddingBottom: bottomPadding + 24 }]}
           showsVerticalScrollIndicator={false}
         >
+          {heatScore.band !== 'STABLE' && (
+            <View style={{ marginBottom: 12 }} testID="heat-alert-banner">
+              <HeatAlertBanner score={heatScore.score} band={heatScore.band} />
+            </View>
+          )}
           <LiveStatusStrip
             performanceState={performanceState}
             unitsToday={userState.unitsConsumedToday}
