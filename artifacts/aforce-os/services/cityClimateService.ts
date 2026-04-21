@@ -13,14 +13,16 @@
  *   accelerates. The Heat Risk engine already consumes `humidityPct` as a
  *   signal; this service surfaces the same value to the user-facing UI.
  *
- * Production wiring:
- *   The real implementation will:
- *     1. Resolve location via `expo-location` (lat/lon → reverse geocode).
- *     2. Hit a weather API (OpenWeather, Tomorrow.io, etc.) for live humidity.
- *     3. Cache for ~10 min to avoid hammering the API on every render.
- *   That work is gated behind a real API key + integration; until then this
- *   module returns a deterministic mock so the UI is fully wired and the
- *   shape never changes when we cut over.
+ * Data sources (live):
+ *   - Geolocation:      expo-location (permission-gated, foreground)
+ *   - Reverse geocode:  expo-location's built-in reverseGeocodeAsync
+ *   - Weather:          Open-Meteo (open, no API key, generous rate limits)
+ *
+ * Resilience:
+ *   - Any failure (denied permission, no network, geocode miss, web env)
+ *     transparently falls back to a deterministic daily mock so the UI
+ *     never goes blank or shows a contradictory reading.
+ *   - In-memory TTL cache (10 min) prevents API hammering on every render.
  */
 
 export interface CityClimate {
@@ -40,6 +42,8 @@ export interface CityClimate {
   hydrationInsight: string;
   /** ISO timestamp the snapshot was generated. */
   observedAt: string;
+  /** Whether the snapshot came from a live source or the offline mock. */
+  source: 'live' | 'mock';
 }
 
 export type HumidityBand = 'very_dry' | 'dry' | 'comfortable' | 'humid' | 'oppressive';
@@ -73,15 +77,21 @@ export function hydrationInsightForHumidity(band: HumidityBand): string {
   }
 }
 
-/**
- * Deterministic mock keyed off the date, so the same day shows the same
- * reading (no jitter that makes the UI look broken). Production replaces
- * this with a real geocode + weather call.
- */
-function mockClimate(): CityClimate {
-  // Default city for demo: rotate across a small set so the UI doesn't
-  // feel static across days. The "user is here" feel comes from showing
-  // a single city consistently, not from precision.
+// ─── Cache ───────────────────────────────────────────────────────────────────
+const CACHE_TTL_MS = 10 * 60 * 1000;
+let cachedClimate: CityClimate | null = null;
+let cachedAt = 0;
+
+/** Test-only hook: clear the in-memory cache between cases. */
+export function __resetClimateCache(): void {
+  cachedClimate = null;
+  cachedAt = 0;
+}
+
+// ─── Mock fallback ───────────────────────────────────────────────────────────
+function buildMockClimate(): CityClimate {
+  // Rotate across a small set of cities by day-of-year so the demo feels
+  // alive without flickering within a single session.
   const CITIES: { city: string; region: string; baseHumidity: number; baseTempF: number }[] = [
     { city: 'Austin',   region: 'TX', baseHumidity: 68, baseTempF: 88 },
     { city: 'Phoenix',  region: 'AZ', baseHumidity: 22, baseTempF: 102 },
@@ -90,11 +100,8 @@ function mockClimate(): CityClimate {
     { city: 'Seattle',  region: 'WA', baseHumidity: 72, baseTempF: 64 },
     { city: 'New York', region: 'NY', baseHumidity: 58, baseTempF: 74 },
   ];
-  // Day-of-year index so the city is stable for a full day, then rotates.
   const day = Math.floor(Date.now() / 86_400_000);
   const pick = CITIES[day % CITIES.length];
-  // Tiny within-day variation so the number doesn't look frozen but never
-  // crosses a band boundary unfairly.
   const humidityPct = Math.max(5, Math.min(98, pick.baseHumidity + ((day % 5) - 2)));
   const tempF = Math.max(20, Math.min(115, pick.baseTempF + ((day % 3) - 1)));
   const band = classifyHumidity(humidityPct);
@@ -112,19 +119,132 @@ function mockClimate(): CityClimate {
     humidityBand: band,
     hydrationInsight: hydrationInsightForHumidity(band),
     observedAt: new Date().toISOString(),
+    source: 'mock',
   };
 }
 
-/**
- * Returns the current-city climate. Async signature so the production
- * implementation (geolocation + network) can drop in without changing
- * call sites. The mock resolves synchronously-fast.
- */
-export async function getCurrentCityClimate(): Promise<CityClimate> {
-  return mockClimate();
+// ─── Live fetch ──────────────────────────────────────────────────────────────
+interface OpenMeteoResponse {
+  current?: {
+    temperature_2m?: number;
+    relative_humidity_2m?: number;
+    weather_code?: number;
+  };
 }
 
-/** Synchronous accessor for components that mount without an effect. */
+/** Map an Open-Meteo WMO weather code to our coarse condition vocabulary. */
+function conditionFromWeatherCode(code: number | undefined, band: HumidityBand): CityClimate['condition'] {
+  if (code == null) return band === 'oppressive' ? 'humid' : band === 'very_dry' ? 'dry' : 'clear';
+  if (code === 0 || code === 1) return 'clear';
+  if (code >= 2 && code <= 3) return 'cloudy';
+  if ((code >= 51 && code <= 67) || (code >= 80 && code <= 82)) return 'rain';
+  if (code >= 95) return 'storm';
+  return band === 'oppressive' ? 'humid' : 'cloudy';
+}
+
+async function fetchLiveClimate(): Promise<CityClimate | null> {
+  // Dynamic imports so the service stays usable in node tests where the
+  // expo-location native module isn't available.
+  let Location: typeof import('expo-location');
+  try {
+    Location = await import('expo-location');
+  } catch {
+    return null;
+  }
+
+  // 1. Permission gate.
+  let permissionStatus: string;
+  try {
+    const { status } = await Location.requestForegroundPermissionsAsync();
+    permissionStatus = status;
+  } catch {
+    return null;
+  }
+  if (permissionStatus !== 'granted') return null;
+
+  // 2. Position. Balanced accuracy is plenty for city-level weather.
+  let lat: number;
+  let lon: number;
+  try {
+    const pos = await Location.getCurrentPositionAsync({
+      accuracy: Location.Accuracy.Balanced,
+    });
+    lat = pos.coords.latitude;
+    lon = pos.coords.longitude;
+  } catch {
+    return null;
+  }
+
+  // 3. Reverse geocode (best-effort — if it fails we still have weather).
+  let city = 'Your area';
+  let region = '';
+  try {
+    const places = await Location.reverseGeocodeAsync({ latitude: lat, longitude: lon });
+    const place = places[0];
+    if (place) {
+      city = place.city ?? place.subregion ?? place.region ?? city;
+      region = place.region ?? place.isoCountryCode ?? '';
+    }
+  } catch {
+    // non-fatal
+  }
+
+  // 4. Weather from Open-Meteo (no API key).
+  try {
+    const url =
+      `https://api.open-meteo.com/v1/forecast` +
+      `?latitude=${lat.toFixed(4)}&longitude=${lon.toFixed(4)}` +
+      `&current=temperature_2m,relative_humidity_2m,weather_code` +
+      `&temperature_unit=fahrenheit`;
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const data = (await res.json()) as OpenMeteoResponse;
+    const tempRaw = data.current?.temperature_2m;
+    const humRaw = data.current?.relative_humidity_2m;
+    if (tempRaw == null || humRaw == null) return null;
+    const tempF = Math.round(tempRaw);
+    const humidityPct = Math.round(humRaw);
+    const band = classifyHumidity(humidityPct);
+    return {
+      city,
+      region,
+      humidityPct,
+      tempF,
+      condition: conditionFromWeatherCode(data.current?.weather_code, band),
+      humidityBand: band,
+      hydrationInsight: hydrationInsightForHumidity(band),
+      observedAt: new Date().toISOString(),
+      source: 'live',
+    };
+  } catch {
+    return null;
+  }
+}
+
+// ─── Public API ──────────────────────────────────────────────────────────────
+
+/**
+ * Returns the live city climate, falling back to the deterministic mock if
+ * any step (permission, position, geocode, weather) fails. Cached for
+ * `CACHE_TTL_MS` to avoid API hammering and battery drain.
+ */
+export async function getCurrentCityClimate(force = false): Promise<CityClimate> {
+  const now = Date.now();
+  if (!force && cachedClimate && now - cachedAt < CACHE_TTL_MS) {
+    return cachedClimate;
+  }
+  const live = await fetchLiveClimate();
+  const result = live ?? buildMockClimate();
+  cachedClimate = result;
+  cachedAt = now;
+  return result;
+}
+
+/**
+ * Synchronous accessor — returns the cached climate if available, otherwise
+ * the deterministic mock. Use this for the initial render; pair with
+ * `getCurrentCityClimate()` in an effect to refresh with live data.
+ */
 export function getCurrentCityClimateSync(): CityClimate {
-  return mockClimate();
+  return cachedClimate ?? buildMockClimate();
 }

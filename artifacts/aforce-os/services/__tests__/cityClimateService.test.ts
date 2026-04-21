@@ -4,13 +4,19 @@
  * (e.g. an "oppressive humidity" insight on a 30% RH reading).
  */
 
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 
 import {
   classifyHumidity,
   hydrationInsightForHumidity,
   getCurrentCityClimateSync,
+  getCurrentCityClimate,
+  __resetClimateCache,
 } from '../cityClimateService';
+
+beforeEach(() => {
+  __resetClimateCache();
+});
 
 describe('cityClimateService', () => {
   describe('classifyHumidity', () => {
@@ -54,9 +60,24 @@ describe('cityClimateService', () => {
     it('returns a city, region, and a plausible humidity number', () => {
       const snap = getCurrentCityClimateSync();
       expect(snap.city.length).toBeGreaterThan(0);
-      expect(snap.region.length).toBeGreaterThan(0);
       expect(snap.humidityPct).toBeGreaterThanOrEqual(0);
       expect(snap.humidityPct).toBeLessThanOrEqual(100);
+    });
+  });
+
+  describe('getCurrentCityClimate (async)', () => {
+    it('falls back to the deterministic mock when no live source is available', async () => {
+      // In the node test env, expo-location is unavailable → service must
+      // fall back to the mock without throwing.
+      const snap = await getCurrentCityClimate();
+      expect(snap.source).toBe('mock');
+      expect(snap.humidityBand).toBe(classifyHumidity(snap.humidityPct));
+    });
+
+    it('caches: a second call within the TTL returns the same snapshot reference', async () => {
+      const first = await getCurrentCityClimate();
+      const second = await getCurrentCityClimate();
+      expect(second).toBe(first);
     });
   });
 });

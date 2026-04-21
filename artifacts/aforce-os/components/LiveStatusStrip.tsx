@@ -8,7 +8,11 @@ import { Feather } from '@expo/vector-icons';
 import type { PerformanceState } from '../types';
 import { Colors } from '../theme/colors';
 import { phantomSignalData } from '../data/mockData';
-import { getCurrentCityClimateSync } from '../services/cityClimateService';
+import {
+  getCurrentCityClimate,
+  getCurrentCityClimateSync,
+  type CityClimate,
+} from '../services/cityClimateService';
 
 interface Props {
   performanceState: PerformanceState;
@@ -20,8 +24,27 @@ export function LiveStatusStrip({ performanceState, unitsToday, dailyTarget }: P
   const { color } = performanceState;
   const { heartRateBPM, activityLabel, lastSyncLabel } = phantomSignalData;
   // City climate is the source of truth for ambient temp + humidity now.
-  // Single read on render; service is sync + cheap.
-  const climate = React.useMemo(() => getCurrentCityClimateSync(), []);
+  // Render the cached/mock snapshot immediately, then upgrade to live data
+  // (geolocation + Open-Meteo) once it lands. Refresh every 10 minutes
+  // while the screen is mounted; the service layer also caches.
+  const [climate, setClimate] = React.useState<CityClimate>(() => getCurrentCityClimateSync());
+  React.useEffect(() => {
+    let cancelled = false;
+    const refresh = async () => {
+      try {
+        const next = await getCurrentCityClimate();
+        if (!cancelled) setClimate(next);
+      } catch {
+        // service swallows errors and falls back to mock — nothing to do
+      }
+    };
+    void refresh();
+    const id = setInterval(refresh, 10 * 60 * 1000);
+    return () => {
+      cancelled = true;
+      clearInterval(id);
+    };
+  }, []);
 
   return (
     <View style={styles.container}>

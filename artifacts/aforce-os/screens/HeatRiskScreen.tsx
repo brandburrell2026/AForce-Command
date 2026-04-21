@@ -29,6 +29,11 @@ import { HeatRiskCard } from "@/components/HeatRiskCard";
 import { Colors } from "@/theme/colors";
 import { evaluateHeatRisk, HEAT_BANDS } from "@/services/heatRiskEngine";
 import { activeProtocolFor } from "@/services/heatProtocolService";
+import {
+  getCurrentCityClimate,
+  getCurrentCityClimateSync,
+  type CityClimate,
+} from "@/services/cityClimateService";
 import { SAMPLE_INPUTS } from "@/mocks/heatData";
 import type { HeatRiskBand } from "@/types/heat";
 
@@ -44,6 +49,16 @@ export default function HeatRiskScreen() {
   const insets = useSafeAreaInsets();
   const [bandPattern, setBandPattern] = useState<HeatRiskBand>("ELEVATED");
   const previousScoreRef = useRef<number | null>(null);
+
+  // Live local climate — drives the city-humidity insight panel below.
+  const [climate, setClimate] = useState<CityClimate>(() => getCurrentCityClimateSync());
+  useEffect(() => {
+    let cancelled = false;
+    void getCurrentCityClimate().then((c) => {
+      if (!cancelled) setClimate(c);
+    });
+    return () => { cancelled = true; };
+  }, []);
 
   const score = useMemo(() => {
     const out = evaluateHeatRisk(SAMPLE_INPUTS[bandPattern], {
@@ -117,6 +132,31 @@ export default function HeatRiskScreen() {
 
           {/* Risk card */}
           <HeatRiskCard score={score} />
+
+          {/* Local climate — humidity drives a real, named recommendation */}
+          <View style={styles.climateCard} testID="climate-card">
+            <View style={styles.climateHeader}>
+              <Feather name="map-pin" size={12} color={Colors.text.muted} />
+              <Text style={styles.climateEyebrow}>
+                LOCAL CLIMATE · {climate.city.toUpperCase()}
+                {climate.region ? `, ${climate.region.toUpperCase()}` : ""}
+              </Text>
+            </View>
+            <View style={styles.climateRow}>
+              <View style={styles.climateMetric}>
+                <Feather name="thermometer" size={14} color={Colors.text.secondary} />
+                <Text style={styles.climateMetricText}>{climate.tempF}°F</Text>
+              </View>
+              <View style={styles.climateMetric}>
+                <Feather name="droplet" size={14} color={Colors.text.secondary} />
+                <Text style={styles.climateMetricText}>{climate.humidityPct}% RH</Text>
+              </View>
+              <Text style={styles.climateBand}>
+                {climate.humidityBand.replace("_", " ").toUpperCase()}
+              </Text>
+            </View>
+            <Text style={styles.climateInsight}>{climate.hydrationInsight}</Text>
+          </View>
 
           {/* Command card */}
           <View
@@ -236,6 +276,41 @@ export default function HeatRiskScreen() {
 }
 
 const styles = StyleSheet.create({
+  climateCard: {
+    backgroundColor: Colors.background.card,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: Colors.border.subtle,
+    padding: 14,
+    gap: 10,
+  },
+  climateHeader: { flexDirection: "row", alignItems: "center", gap: 6 },
+  climateEyebrow: {
+    color: Colors.text.muted,
+    fontSize: 10,
+    letterSpacing: 2,
+    fontWeight: "600",
+  },
+  climateRow: { flexDirection: "row", alignItems: "center", gap: 14 },
+  climateMetric: { flexDirection: "row", alignItems: "center", gap: 6 },
+  climateMetricText: {
+    color: Colors.text.primary,
+    fontSize: 15,
+    fontWeight: "600",
+    letterSpacing: 0.3,
+  },
+  climateBand: {
+    marginLeft: "auto",
+    color: Colors.text.secondary,
+    fontSize: 10,
+    letterSpacing: 1.5,
+    fontWeight: "700",
+  },
+  climateInsight: {
+    color: Colors.text.secondary,
+    fontSize: 13,
+    lineHeight: 18,
+  },
   root: { flex: 1, backgroundColor: Colors.background.primary },
   scroll: { flex: 1 },
   content: { paddingHorizontal: 16 },

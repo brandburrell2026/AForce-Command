@@ -17,7 +17,8 @@
       "supportsTablet": false,
       "bundleIdentifier": "com.aforce.os",
       "infoPlist": {
-        "NSCameraUsageDescription": "AForce OS uses your camera to scan hydration product barcodes."
+        "NSCameraUsageDescription": "AForce OS uses your camera to scan hydration product barcodes.",
+        "NSLocationWhenInUseUsageDescription": "AForce OS uses your location to show local temperature and humidity, which drive your personalized hydration recommendations."
       }
     },
     "android": {
@@ -28,7 +29,11 @@
         "foregroundImage": "./assets/images/icon.png",
         "backgroundColor": "#050A1A"
       },
-      "permissions": ["android.permission.CAMERA"]
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
+      ]
     },
     "web": {
       "favicon": "./assets/images/icon.png",
@@ -47,6 +52,12 @@
         "expo-camera",
         {
           "cameraPermission": "AForce OS uses your camera to scan hydration product barcodes."
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "AForce OS uses your location to show local temperature and humidity, which drive your personalized hydration recommendations."
         }
       ]
     ],
