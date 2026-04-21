@@ -5,21 +5,24 @@
  * a VoiceCommandResponse describing what AForce will SAY and what side-effect
  * the overlay should perform.
  *
- * The overlay owns the side-effect (logIntake / navigate / updateSymptoms /
- * confirmStatus) — the orchestrator never touches the store directly so it
- * stays trivially testable.
- *
- * Response style rules (enforced here, NOT in callers):
- *   - max 1–2 short sentences
- *   - imperative voice ("Drink…", "Log…", "Recheck…")
- *   - no "you may want to", no "how can I help", no chatbot tone
+ * The orchestrator does NOT compose spoken lines itself anymore — it picks
+ * the right template category for the intent and hands the engine snapshot to
+ * the AForce Voice Engine (voiceTemplateEngine + voicePersonaService) which
+ * enforces the brand contract (mode-aware tone, banned phrases, sentence cap).
  */
 
 import type { ScoreEngineOutput } from '../types';
 import type {
-  VoiceCommandResponse, VoiceClassification, VoiceAction, VoiceSymptomId,
+  VoiceCommandResponse, VoiceClassification, VoiceSymptomId,
 } from '../types/voice';
+import type {
+  VoiceContext as PersonaContext,
+  VoiceTemplateCategory,
+} from '../types/voicePersona';
 import { classifyTranscript } from './intentClassifier';
+import { resolvePersona } from './voicePersonaService';
+import { renderTemplate } from './voiceTemplateEngine';
+import { setActiveMode } from './ttsConfigService';
 
 export interface VoiceContext {
   engineOutput: ScoreEngineOutput;
@@ -43,49 +46,57 @@ const FLUID_LABEL: Record<string, string> = {
   aforce_bulk_bag: 'AForce bulk',
 };
 
-/** First sentence is what TTS speaks. */
+/** Build the persona context the template engine needs. */
+function buildPersonaContext(ctx: VoiceContext, extras: Partial<PersonaContext> = {}): PersonaContext {
+  const { engineOutput } = ctx;
+  const { mode } = resolvePersona(engineOutput.performanceState.level);
+  return {
+    mode,
+    score: engineOutput.score,
+    recheck_minutes: engineOutput.riskTimer.minutes,
+    command_action: engineOutput.command.action,
+    ...extras,
+  };
+}
+
 function buildResponse(
   classification: VoiceClassification,
   ctx: VoiceContext,
   transcript: string,
 ): VoiceCommandResponse {
   const { intent, entities } = classification;
-  const { engineOutput } = ctx;
-  const score = engineOutput.score;
-  const stateLevel = engineOutput.performanceState.level;
-  const commandAction = engineOutput.command.action;
-  const recheck = engineOutput.riskTimer.minutes;
-
   const at = Date.now();
   const base = { intent, transcript, at };
 
   switch (intent) {
     case 'LOG_INTAKE': {
       const fluid = entities.fluidType ?? 'aforce_stick';
+      const personaCtx = buildPersonaContext(ctx, { fluid: FLUID_LABEL[fluid] ?? 'intake' });
+      const rendered = renderTemplate('intake_confirmation', personaCtx);
       return {
         ...base,
-        spoken: `Logging ${FLUID_LABEL[fluid] ?? 'intake'}.`,
-        detail: `Score ${score} · recheck ${recheck} min.`,
+        spoken: rendered.spoken,
+        detail: rendered.detail,
         action: { type: 'LOG_INTAKE', fluidType: fluid },
       };
     }
 
     case 'GET_STATUS': {
+      const rendered = renderTemplate('score_update', buildPersonaContext(ctx));
       return {
         ...base,
-        spoken: `Score ${score}. ${stateLevel}.`,
-        detail: `${commandAction} Recheck ${recheck} min.`,
+        spoken: rendered.spoken,
+        detail: rendered.detail,
         action: { type: 'CONFIRM_STATUS' },
       };
     }
 
     case 'GET_COMMAND': {
-      // Command may already be a full sentence; truncate hard at ~12 words.
-      const tight = clip(commandAction, 12);
+      const rendered = renderTemplate('next_action', buildPersonaContext(ctx));
       return {
         ...base,
-        spoken: tight,
-        detail: `Score ${score} · ${stateLevel}.`,
+        spoken: rendered.spoken,
+        detail: rendered.detail,
         action: { type: 'NONE' },
       };
     }
@@ -100,29 +111,35 @@ function buildResponse(
           action: { type: 'NAVIGATE', route: '/profile' },
         };
       }
-      const labels = symptoms.map((s) => SYMPTOM_LABEL[s]).join(', ');
+      const labels = symptoms.map((s) => SYMPTOM_LABEL[s]);
+      const rendered = renderTemplate('recovery_command', buildPersonaContext(ctx, {
+        symptoms: labels,
+        oz: 16,
+      }));
       return {
         ...base,
-        spoken: `${labels} logged.`,
-        detail: 'Take 1 AForce stick now.',
+        spoken: rendered.spoken,
+        detail: `${labels.join(', ')} logged.`,
         action: { type: 'UPDATE_SYMPTOMS', symptoms },
       };
     }
 
     case 'START_PROTOCOL': {
+      const rendered = renderTemplate('recovery_command', buildPersonaContext(ctx, { oz: 16 }));
       return {
         ...base,
-        spoken: 'Recovery protocol activated.',
-        detail: `Recheck in ${recheck} min.`,
+        spoken: rendered.spoken,
+        detail: rendered.detail,
         action: { type: 'NAVIGATE', route: '/protocol' },
       };
     }
 
     case 'COMPARE_PRODUCTS': {
+      const rendered = renderTemplate('product_comparison', buildPersonaContext(ctx));
       return {
         ...base,
-        spoken: 'Opening comparison.',
-        detail: 'AForce stick is the recommended option.',
+        spoken: rendered.spoken,
+        detail: rendered.detail,
         action: { type: 'NAVIGATE', route: '/compare' },
       };
     }
@@ -139,15 +156,16 @@ function buildResponse(
   }
 }
 
-/** Hard 12-word ceiling so spoken lines never become chatbot prose. */
-function clip(s: string, maxWords: number): string {
-  const words = s.trim().split(/\s+/);
-  if (words.length <= maxWords) return s.trim();
-  return words.slice(0, maxWords).join(' ').replace(/[,.;:]+$/, '') + '.';
-}
-
-/** Public entry: classify + build response in one call. */
+/**
+ * Public entry: classify + build response in one call.
+ *
+ * Side effect: syncs the TTS layer's active mode from the engine snapshot
+ * BEFORE intent dispatch so even hard-coded branches (UNKNOWN, no-symptom)
+ * play back at the right rate/pitch for the user's current performance state.
+ */
 export function processTranscript(transcript: string, ctx: VoiceContext): VoiceCommandResponse {
+  const { mode } = resolvePersona(ctx.engineOutput.performanceState.level);
+  setActiveMode(mode);
   const classification = classifyTranscript(transcript);
   return buildResponse(classification, ctx, transcript.trim());
 }

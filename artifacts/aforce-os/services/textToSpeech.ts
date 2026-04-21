@@ -7,11 +7,13 @@
  *   when the package isn't installed. To enable native TTS, install
  *   expo-speech and call its `speak` directly here.
  *
- * Voice style is calm/confident/direct: we slow the rate slightly and avoid
- * pitch variation so AForce never sounds like an excited assistant.
+ * Voice style is calm/confident/direct: rate + pitch come from the
+ * AForce Voice Engine's active TTS profile (mode-aware), so playback nudges
+ * subtly with the user's performance state without ever sounding excited.
  */
 
 import { Platform } from 'react-native';
+import { getActiveTtsConfig } from './ttsConfigService';
 
 export function speak(text: string): void {
   if (!text) return;
@@ -21,10 +23,11 @@ export function speak(text: string): void {
   if (!synth || typeof SpeechSynthesisUtterance === 'undefined') return;
   try {
     synth.cancel();
+    const cfg = getActiveTtsConfig();
     const utter = new SpeechSynthesisUtterance(text);
-    utter.rate = 1.02;
-    utter.pitch = 0.95;
-    utter.volume = 1.0;
+    utter.rate = cfg.speech_rate;
+    utter.pitch = cfg.pitch;
+    utter.volume = cfg.volume;
     utter.lang = 'en-US';
     synth.speak(utter);
   } catch {
