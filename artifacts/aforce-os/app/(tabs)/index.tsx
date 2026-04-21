@@ -34,6 +34,9 @@ import { QuickIntakeBar } from '@/components/QuickIntakeBar';
 import { ScoreBreakdownSheet } from '@/components/ScoreBreakdownSheet';
 import { OnboardingOverlay } from '@/components/OnboardingOverlay';
 import { AIVideoPlayer } from '@/components/AIVideoPlayer';
+import { VoiceButton } from '@/components/VoiceButton';
+import { VoiceOverlay } from '@/components/VoiceOverlay';
+import type { VoiceState } from '@/types/voice';
 
 import { useAppStore } from '@/store/useAppStore';
 import { matchVideo } from '@/services/videoEngine';
@@ -51,6 +54,13 @@ export default function HomeScreen() {
   } = state;
   const { performanceState, score, reasons, command, pulseConfig, breakdown } = engineOutput;
   const [breakdownOpen, setBreakdownOpen] = React.useState(false);
+  const [voiceOpen, setVoiceOpen] = React.useState(false);
+  // Mirror the overlay's lifecycle on the floating button so its visual
+  // state matches what's happening inside the sheet (idle vs listening).
+  const [voiceBtnState, setVoiceBtnState] = React.useState<VoiceState>('idle');
+  React.useEffect(() => {
+    setVoiceBtnState(voiceOpen ? 'listening' : 'idle');
+  }, [voiceOpen]);
 
   // Derive a quick Heat Guard read from current user state. The banner only
   // surfaces when band !== STABLE so we never nag the user for no reason.
@@ -298,6 +308,16 @@ export default function HomeScreen() {
           visible={!hasSeenOnboarding}
           onDismiss={completeOnboarding}
         />
+
+        {/* Floating voice mic — sits above the tab bar. */}
+        <View
+          pointerEvents="box-none"
+          style={[styles.voiceFab, { bottom: bottomPadding - 56 }]}
+        >
+          <VoiceButton state={voiceBtnState} onPress={() => setVoiceOpen(true)} />
+        </View>
+
+        <VoiceOverlay visible={voiceOpen} onClose={() => setVoiceOpen(false)} />
       </GradientBackground>
     </View>
   );
@@ -408,5 +428,10 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter_700Bold',
     color: Colors.text.primary,
     letterSpacing: 1.2,
+  },
+  voiceFab: {
+    position: 'absolute',
+    right: 20,
+    alignItems: 'flex-end',
   },
 });

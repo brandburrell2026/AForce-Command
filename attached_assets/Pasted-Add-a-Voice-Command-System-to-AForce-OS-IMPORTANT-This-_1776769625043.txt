@@ -1,0 +1,316 @@
+Add a Voice Command System to AForce OS.
+
+IMPORTANT:
+This is NOT a chatbot.
+This is NOT open-ended conversation.
+
+This is a performance command interface where users can speak and AForce OS responds with clear, structured, action-driven outputs.
+
+The system must feel:
+- fast
+- direct
+- intelligent
+- authoritative
+- minimal
+- like a coach, not a conversation
+
+---
+
+CORE CONCEPT:
+
+User speaks → AForce interprets → AForce responds with a command
+
+No long dialogue.
+No fluff.
+No back-and-forth chat.
+
+---
+
+PRIMARY USE CASES:
+
+Users should be able to say things like:
+
+- “I just drank water”
+- “Log a stick”
+- “How am I doing?”
+- “What should I do next?”
+- “I feel dizzy”
+- “Update my symptoms”
+- “What’s my score?”
+- “Compare options”
+- “Start recovery”
+
+---
+
+SYSTEM FLOW:
+
+1. User taps voice button OR uses press-and-hold
+2. App records voice
+3. Speech is converted to text (mock or real)
+4. Intent is classified
+5. System executes action
+6. AI returns structured command
+7. UI updates instantly
+
+---
+
+VOICE UI REQUIREMENTS:
+
+Create a floating voice button on the Home screen:
+
+- circular mic button
+- subtle glow
+- press and hold OR tap to start
+- visual waveform or pulse while recording
+
+States:
+- idle
+- listening
+- processing
+- responding
+
+---
+
+VOICE FEEDBACK:
+
+While listening:
+- animate waveform
+- pulse reacts
+
+While processing:
+- short loading state (under 1 second)
+
+Response:
+- show AI Command Card update
+- optional voice playback of command
+
+---
+
+INTENT SYSTEM:
+
+Create an intent classification system.
+
+INTENTS:
+
+1. LOG_INTAKE
+Examples:
+“I drank water”
+“Log a stick”
+“I had a drink”
+
+Action:
+→ log intake
+→ update score
+→ update pulse
+
+---
+
+2. GET_STATUS
+Examples:
+“How am I doing?”
+“What’s my score?”
+“Where am I at?”
+
+Action:
+→ return score
+→ return state
+→ return command
+
+---
+
+3. GET_COMMAND
+Examples:
+“What should I do?”
+“What’s next?”
+
+Action:
+→ return next command
+
+---
+
+4. UPDATE_SYMPTOMS
+Examples:
+“I feel dizzy”
+“I have a headache”
+“I feel off”
+
+Action:
+→ update signals
+→ recalculate score
+→ trigger new command
+
+---
+
+5. START_PROTOCOL
+Examples:
+“Start recovery”
+“Reset me”
+“Fix this”
+
+Action:
+→ trigger recovery protocol
+→ generate command
+
+---
+
+6. COMPARE_PRODUCTS
+Examples:
+“Compare options”
+“What should I drink?”
+
+Action:
+→ open comparison engine
+→ return best option
+
+---
+
+VOICE RESPONSE RULES:
+
+Responses must follow AForce AI rules:
+
+- max 1–2 sentences
+- command-based
+- no suggestions
+- no “you may want to”
+- no chatbot tone
+
+Examples:
+
+- “Score is 72. Recovering. Drink 16 oz now. Recheck in 15 minutes.”
+- “Log confirmed. Score increased to 81. Stay on cadence.”
+- “You are trending down. Take 1 AForce stick now.”
+
+---
+
+VOICE PLAYBACK (OPTIONAL):
+
+Add text-to-speech for responses.
+
+Voice style:
+- calm
+- confident
+- direct
+- no excitement or hype
+
+---
+
+FILES TO CREATE:
+
+/components/VoiceButton.tsx
+/components/VoiceOverlay.tsx
+/components/VoiceWaveform.tsx
+/services/voiceService.ts
+/services/speechToText.ts
+/services/textToSpeech.ts
+/services/intentClassifier.ts
+/types/voice.ts
+
+---
+
+TECH IMPLEMENTATION:
+
+Use:
+- Expo Speech API or equivalent for TTS
+- mock STT if needed (simulate transcription)
+- structure for real STT integration later
+
+---
+
+INTENT CLASSIFIER:
+
+Create a simple NLP layer:
+
+Input:
+- transcript text
+
+Output:
+- intent
+- entities (water, stick, symptoms, etc.)
+
+---
+
+DATA FLOW:
+
+Voice Input → Transcript → Intent → Action → AI Command → UI Update
+
+---
+
+WOW MOMENTS:
+
+1. Voice Log Intake
+User says:
+“I drank water”
+
+→ instantly logs
+→ pulse expands
+→ score increases
+→ AI confirms
+
+---
+
+2. Voice Emergency
+User says:
+“I feel dizzy”
+
+→ system escalates
+→ pulse shifts
+→ command fires immediately
+
+---
+
+3. Voice Command
+User says:
+“What should I do?”
+
+→ instant command
+→ feels like a real-time coach
+
+---
+
+PERFORMANCE REQUIREMENTS:
+
+- voice response under 1 second
+- no lag
+- no long loading
+- immediate UI feedback
+
+---
+
+BANNED BEHAVIOR:
+
+- chatbot conversations
+- long responses
+- open-ended discussion
+- “how can I help you?”
+- generic assistant tone
+
+---
+
+INTEGRATION:
+
+Voice must connect to:
+- Home screen
+- AI command system
+- Hydration logging
+- Comparison engine
+- Protocol system
+- Heat Guard
+- Competition system
+
+---
+
+FINAL EXPERIENCE:
+
+User should feel:
+
+“I don’t have to think. I just say it and it happens.”
+
+---
+
+END GOAL:
+
+Voice becomes the fastest way to interact with AForce OS.
+
+Not typing.
+Not tapping.
+Speaking → action → result.
