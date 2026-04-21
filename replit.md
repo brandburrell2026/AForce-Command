@@ -21,6 +21,12 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 ### AForce OS (Mobile App — `artifacts/aforce-os`)
 Production-ready React Native / Expo mobile app — real-time human performance OS (hydration intelligence + AI decisioning). See `artifacts/aforce-os/README.md` for the full spec.
 
+**Recent additions (Phase 4 — Hydration Scan + Subscription System):**
+- **Hydration Scan** (`/scan`): premium scan-to-decide UX. `services/productRecognitionService.ts` maps barcodes/QR/manual queries → `CompareProduct` (BARCODE_INDEX includes AForce + Gatorade/Liquid IV/Pedialyte/LMNT/Prime). `services/hydrationScanService.ts` composes recognize → comparison-engine fit score → AI command + AForce equivalent recommendation. Screen has animated viewfinder ring, mock scan tray (preview-mode), QR shortcut, manual search fallback. Logs scanned AForce items via `logIntake`.
+- **Subscription System** (`/subscription`, `/subscription/manage`): 6 plan tiers with feature inheritance — Core $5 → Athlete Mode $15 → Bundle $50 (FLAGSHIP w/ monthly product shipment) · Core Team $25–$300 · Clutch $800–$5K · Guardian $5K–$8K. Plans live in `data/subscriptionPlans.ts` (`PLAN_BY_ID`, `getEffectiveFeatures`, `getEffectiveFlags` walk the inheritance chain). Mock billing in `services/subscriptionService.ts` (switchPlan/cancel/pause/resume/skipNextDelivery). `featureFlags/subscriptionGate.ts` provides `gate(sub, featureId)` → `GateCheck` for `UpgradePrompt` modal. Manage screen shows billing, product shipment cycle, unlocked features, and pause/skip/cancel controls.
+- `useAppStore` adds `state.subscription: UserSubscription` (initial via `defaultSubscription()`) and `setSubscription(sub)`. Profile screen renders dynamic plan name + status badge with Manage / Upgrade buttons.
+- Home action row: SCAN / COMPARE / COMPETE.
+
 **Recent additions (3-phase build):**
 - **AI Coaching Videos** (Phase 1): cinematic Reanimated video player at `components/AIVideoPlayer.tsx` with 6 scenes matched to user state via `services/videoEngine.ts`. Compact + full-screen modal, command overlay.
 - **Product Comparison Engine** (Phase 2): real-time, brand-neutral product ranking. `services/comparisonEngine.ts` (empty-catalog safe, NaN-clamped), `data/productDatabase.ts` (7 products), screen at `/compare` with axis breakdown, "Why AForce Wins" / "Full Comparison" toggle. Symmetric phrasing — never marketing.

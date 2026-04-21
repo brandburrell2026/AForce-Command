@@ -1,0 +1,384 @@
+Add the following two major systems to AForce OS:
+
+1. Hydration Scan
+2. AForce Subscription System
+
+These must feel fully integrated into the product, not bolted on.
+
+==================================================
+1. HYDRATION SCAN SYSTEM
+==================================================
+
+Build a feature called:
+
+Hydration Scan
+
+Purpose:
+Allow users to scan barcodes, QR codes, and AForce product packaging in real time to instantly log hydration products, compare products, and update their performance protocol.
+
+This must feel premium, fast, and intelligent.
+
+CORE CONCEPT:
+User scans a product.
+AForce OS instantly identifies it.
+The system then:
+- recognizes the product
+- logs intake if desired
+- compares it to AForce products
+- tells the user whether it fits their current state
+- updates score / protocol if consumed
+
+SUPPORTED SCAN TYPES:
+- barcode scan
+- QR code scan
+- AForce product scan
+- competitor product scan
+- future NFC-ready architecture placeholder
+
+MAIN USER FLOWS:
+
+FLOW 1: Scan to Compare
+- user opens Hydration Scan
+- scans competitor product or AForce product
+- app identifies product
+- app shows:
+  - product name
+  - hydration profile
+  - electrolyte profile
+  - sugar level
+  - fit score for current user state
+  - AForce equivalent or better recommendation
+- show “Best Option Right Now”
+
+FLOW 2: Scan to Log Intake
+- user scans product
+- app asks:
+  - “Log this product?”
+- if yes:
+  - create intake event
+  - update hydration score
+  - update state
+  - update protocol
+  - update pulse
+  - possibly trigger AI command
+
+FLOW 3: Scan to Recommend AForce Alternative
+- user scans Gatorade, Liquid IV, Pedialyte, LMNT, or any competitor
+- app compares against user’s current need
+- app shows:
+  - “How this compares to AForce”
+  - “Best AForce replacement”
+  - “Take 1 AForce Stick now” or similar action
+
+HYDRATION SCAN SCREEN REQUIREMENTS:
+Create a screen called:
+Hydration Scan
+
+Sections:
+1. Camera scan area
+2. Scan result card
+3. Product details card
+4. Fit score card
+5. AForce comparison card
+6. Log intake CTA
+7. View full comparison CTA
+
+SCAN OUTPUT MODEL:
+For each scanned product return:
+- product_id
+- product_name
+- brand
+- category
+- hydration_speed
+- electrolyte_density
+- sugar_level
+- stimulant_level
+- recovery_fit
+- performance_fit
+- current_fit_score
+- aforce_equivalent
+- recommendation
+
+Example:
+{
+  "product_id": "gatorade_01",
+  "product_name": "Gatorade Thirst Quencher",
+  "brand": "Gatorade",
+  "category": "sports_drink",
+  "hydration_speed": 70,
+  "electrolyte_density": 60,
+  "sugar_level": 85,
+  "stimulant_level": 0,
+  "recovery_fit": 58,
+  "performance_fit": 62,
+  "current_fit_score": 54,
+  "aforce_equivalent": "AForce RTD",
+  "recommendation": "AForce RTD is a better fit for your current Recovery state."
+}
+
+PRODUCT DATABASE:
+Create a local mock product database that includes:
+- AForce Stick
+- AForce RTD
+- AForce Canister
+- AForce Bulk Bag
+- Gatorade
+- Liquid IV
+- Pedialyte
+- LMNT
+- Prime
+- Water
+
+Use structured comparison attributes.
+
+AI RULES FOR HYDRATION SCAN:
+The app must never sound like generic marketing.
+It should sound like a performance system.
+
+Examples:
+- “This product is not optimal for your current state.”
+- “AForce RTD is a stronger fit for Recovery.”
+- “This product hydrates volume but lacks targeted electrolyte support.”
+- “Take 1 AForce Stick now. Recheck in 20 minutes.”
+
+SCANNING TECH:
+Use Expo barcode scanner or equivalent Replit-compatible camera scanner if available.
+If camera scan cannot fully run in preview, still build:
+- the screen
+- camera permission flow
+- mock scan simulation
+- product identification service
+- scan result UI
+- fallback manual search field
+
+FILES TO CREATE:
+- /screens/HydrationScanScreen.tsx
+- /components/ScanResultCard.tsx
+- /components/ProductFitCard.tsx
+- /components/AForceReplacementCard.tsx
+- /services/hydrationScanService.ts
+- /services/productRecognitionService.ts
+- /data/productDatabase.ts
+- /types/scan.ts
+
+WOW MOMENTS FOR HYDRATION SCAN:
+1. Scan completes instantly with premium animation
+2. Product card flips in with fit score
+3. AForce recommendation appears with command CTA
+4. If logged, pulse updates immediately
+
+PERFORMANCE:
+- scan result under 500ms mocked
+- no clunky loading spinner
+- elegant, premium transition
+- smooth camera open and close
+
+==================================================
+2. AFORCE SUBSCRIPTION SYSTEM
+==================================================
+
+Build a full AForce Subscription system into the app.
+
+Purpose:
+Create recurring subscription plans for AForce products and AForce OS access.
+
+This system must:
+- feel premium
+- clearly show plan tiers
+- gate features
+- support upgrade prompts
+- support product subscriptions + software subscriptions
+
+SUBSCRIPTION PRINCIPLE:
+AForce is not just a product.
+It is a subscription-based performance system.
+
+PLAN TIERS TO INCLUDE:
+
+1. Core
+Price: $5 per month
+Includes:
+- basic AI hydration commands
+- performance score
+- protocol guidance
+- status pulse
+- hydration logging
+- basic reminders
+
+2. Athlete Mode
+Price: $15 per month
+Includes everything in Core plus:
+- enhanced AI decisioning
+- deeper protocol personalization
+- expanded trends
+- advanced recovery guidance
+- competition access
+- premium notifications
+
+3. OS + Hydration Bundle
+Price: $50 per month
+Includes:
+- Athlete Mode
+- recurring AForce hydration product subscription
+- bundled product delivery
+- preferred pricing
+- best value positioning
+
+4. Team / Program Core
+Price range: $25 to $300 monthly placeholder
+For small organizations and programs
+
+5. Clutch Access
+Price range: $800 to $5000 monthly placeholder
+For team command and competition layers
+
+6. Guardian
+Price range: $5000 to $8000 monthly placeholder
+For elite injury prevention and roster protection
+
+SUBSCRIPTION UI:
+Create:
+- Subscription screen
+- Upgrade prompts
+- Plan comparison cards
+- Manage subscription screen
+- Locked feature screens
+- pricing and benefits layout
+
+SUBSCRIPTION SCREEN REQUIREMENTS:
+Show:
+- current plan
+- monthly price
+- included features
+- upgrade CTA
+- compare plans CTA
+- billing status placeholder
+
+FEATURE GATING:
+Tie plans to features.
+
+Core:
+- Home
+- Check
+- Protocol
+- Profile
+- status pulse
+- hydration logging
+- AI command basics
+
+Athlete Mode:
+- advanced AI personalization
+- competition
+- expanded analytics
+- premium protocol guidance
+
+Bundle:
+- Athlete Mode
+- hydration product delivery
+- bundle pricing
+- priority support placeholder
+
+Clutch:
+- team dashboards
+- command grid
+- Heat Mode
+- inventory logic
+
+Guardian:
+- risk score
+- body risk map
+- injury alerts
+
+UPGRADE PROMPTS:
+Whenever a locked feature is tapped, show elegant upgrade prompt with:
+- feature name
+- what it unlocks
+- required plan
+- upgrade CTA
+
+PRODUCT SUBSCRIPTION LOGIC:
+For bundle plans, include product subscription placeholders:
+- monthly sticks
+- RTD allocation
+- canister refill
+- custom mix later
+
+Create a mock structure for:
+- subscription frequency
+- shipment quantity
+- next delivery date
+- subscription status
+
+DATA MODELS:
+Create types/interfaces for:
+- SubscriptionPlan
+- UserSubscription
+- SubscriptionFeature
+- BillingStatus
+- ProductSubscription
+- DeliverySchedule
+
+FILES TO CREATE:
+- /screens/SubscriptionScreen.tsx
+- /screens/ManageSubscriptionScreen.tsx
+- /components/SubscriptionPlanCard.tsx
+- /components/UpgradePrompt.tsx
+- /services/subscriptionService.ts
+- /data/subscriptionPlans.ts
+- /types/subscription.ts
+- /featureFlags/subscriptionGate.ts
+
+VISUAL DESIGN:
+Subscription screens must match the premium AForce UI:
+- dark background
+- premium cards
+- clear hierarchy
+- best value highlighted
+- Athlete Mode and Bundle visually emphasized
+
+BEST VALUE RULE:
+Highlight OS + Hydration Bundle as:
+“Best Value”
+
+POSSIBLE COPY:
+- Core — $5/mo
+- Athlete Mode — $15/mo
+- OS + Hydration Bundle — $50/mo
+
+Make Bundle feel like the flagship consumer plan.
+
+ADMIN / MOCK LOGIC:
+Use mocked billing and plan switching logic.
+No real Stripe required yet, but structure the app so Stripe or other billing can be integrated later.
+
+FUTURE READY:
+Prepare architecture for:
+- Apple in app subscriptions
+- Stripe
+- team contracts
+- annual billing
+- promo codes
+- founder / admin comp plans
+
+FINAL INTEGRATION:
+Hydration Scan and Subscription must connect with:
+- Home screen
+- comparison engine
+- feature gates
+- AI command system
+- intake logging
+- product recommendations
+
+FINAL PRODUCT FEEL:
+The user should feel:
+
+AForce knows what I need
+AForce tells me what to do
+AForce lets me scan what I have
+AForce shows me the best option
+AForce gives me a premium subscription path to stay in the system
+
+Build this as a premium, modular, demo-ready system.
+No generic app design.
+No basic ecommerce feel.
+This must feel like a performance operating system with recurring revenue built in.

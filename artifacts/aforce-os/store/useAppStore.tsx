@@ -7,6 +7,7 @@
  */
 
 import React, { createContext, useContext, useReducer, useCallback, useEffect, useMemo } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import type {
   UserState,
   ScoreEngineOutput,
@@ -15,6 +16,8 @@ import type {
   FluidType,
   FeatureFlags,
 } from '../types';
+import type { UserSubscription } from '../types/subscription';
+import { defaultSubscription } from '../services/subscriptionService';
 import { generateCycleIdentityMessage, generateNextCycleHint } from '../utils/scoringEngine';
 import { defaultUserState, mockHistory } from '../data/mockData';
 import { DEFAULT_FLAGS } from '../featureFlags/flags';
@@ -44,6 +47,7 @@ interface AppState {
   showCycleSuccess: boolean;
   timerSeconds: number;
   featureFlags: FeatureFlags;
+  subscription: UserSubscription;
   lastIntakeBurstAt: number; // timestamp for pulse burst trigger
   hasSeenOnboarding: boolean;
 }
@@ -57,6 +61,7 @@ type Action =
   | { type: 'SET_USER_STATE'; payload: { newUserState: UserState; engineOutput: ScoreEngineOutput } }
   | { type: 'REFRESH_ENGINE'; payload: { engineOutput: ScoreEngineOutput } }
   | { type: 'SET_FLAGS'; payload: FeatureFlags }
+  | { type: 'SET_SUBSCRIPTION'; payload: UserSubscription }
   | { type: 'COMPLETE_ONBOARDING' };
 
 // Initial render only — engine output is then immediately refreshed via
@@ -72,6 +77,7 @@ const initialState: AppState = {
   showCycleSuccess: false,
   timerSeconds: initialEngineOutput.riskTimer.minutes * 60,
   featureFlags: DEFAULT_FLAGS,
+  subscription: defaultSubscription(),
   lastIntakeBurstAt: 0,
   hasSeenOnboarding: false,
 };
@@ -125,6 +131,8 @@ function reducer(state: AppState, action: Action): AppState {
     }
     case 'SET_FLAGS':
       return { ...state, featureFlags: action.payload };
+    case 'SET_SUBSCRIPTION':
+      return { ...state, subscription: action.payload };
     case 'COMPLETE_ONBOARDING':
       return { ...state, hasSeenOnboarding: true };
     default:
@@ -143,6 +151,7 @@ interface AppContextValue {
   updateEnergyState: (energy: UserState['energyState']) => Promise<void>;
   confirmStatus: () => Promise<void>;
   setFeatureFlags: (flags: FeatureFlags) => void;
+  setSubscription: (sub: UserSubscription) => void;
   completeOnboarding: () => void;
 }
 
@@ -238,6 +247,28 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     dispatch({ type: 'SET_FLAGS', payload: flags });
   }, []);
 
+  const setSubscription = useCallback((sub: UserSubscription) => {
+    dispatch({ type: 'SET_SUBSCRIPTION', payload: sub });
+    AsyncStorage.setItem('aforce.subscription', JSON.stringify(sub)).catch(() => {});
+  }, []);
+
+  // Hydrate persisted subscription on mount.
+  useEffect(() => {
+    AsyncStorage.getItem('aforce.subscription')
+      .then((raw) => {
+        if (!raw) return;
+        try {
+          const parsed = JSON.parse(raw) as UserSubscription;
+          if (parsed && parsed.planId) {
+            dispatch({ type: 'SET_SUBSCRIPTION', payload: parsed });
+          }
+        } catch {
+          // Ignore malformed payloads.
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   const completeOnboarding = useCallback(() => {
     dispatch({ type: 'COMPLETE_ONBOARDING' });
   }, []);
@@ -245,8 +276,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const value = useMemo<AppContextValue>(() => ({
     state, logIntake, completeCycle, snooze, dismissSuccess,
     updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags,
-    completeOnboarding,
-  }), [state, logIntake, completeCycle, snooze, dismissSuccess, updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags, completeOnboarding]);
+    setSubscription, completeOnboarding,
+  }), [state, logIntake, completeCycle, snooze, dismissSuccess, updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags, setSubscription, completeOnboarding]);
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }

@@ -184,21 +184,7 @@ export default function ProfileScreen() {
 
           {/* Subscription */}
           <SectionHeader label="SUBSCRIPTION" />
-          <View style={[styles.subscriptionCard, { borderColor: `${tier.color}33` }]}>
-            <View style={styles.subscriptionTop}>
-              <View style={{ flex: 1 }}>
-                <Text style={[styles.tierName, { color: tier.color }]}>{tier.label}</Text>
-                <Text style={styles.tierDesc}>{tier.desc}</Text>
-              </View>
-              <View style={[styles.tierTag, { backgroundColor: `${tier.color}1A`, borderColor: `${tier.color}55` }]}>
-                <Text style={[styles.tierTagText, { color: tier.color }]}>ACTIVE</Text>
-              </View>
-            </View>
-            <TouchableOpacity style={[styles.upgradeBtn, { borderColor: `${tier.color}44` }]} activeOpacity={0.85}>
-              <Text style={[styles.upgradeBtnText, { color: tier.color }]}>Manage Plan</Text>
-              <Feather name="arrow-right" size={14} color={tier.color} />
-            </TouchableOpacity>
-          </View>
+          <SubscriptionPanel />
 
           <Text style={styles.version}>AForce OS v1.0.0 · Phase 1 Core</Text>
         </ScrollView>
@@ -271,6 +257,69 @@ function FlagRow({
 
 function Divider() {
   return <View style={styles.divider} />;
+}
+
+function SubscriptionPanel() {
+  const router = useRouter();
+  const { state } = useAppStore();
+  const sub = state.subscription;
+  const planName = (() => {
+    switch (sub.planId) {
+      case 'core':      return 'AForce Core';
+      case 'athlete':   return 'AForce Athlete Mode';
+      case 'bundle':    return 'AForce OS + Hydration Bundle';
+      case 'core_team': return 'AForce Team Core';
+      case 'clutch':    return 'AForce Clutch';
+      case 'guardian':  return 'AForce Guardian';
+      default:          return 'AForce';
+    }
+  })();
+  const accent =
+    sub.planId === 'guardian' ? Colors.guardian.primary :
+    sub.planId === 'clutch'   ? Colors.clutch.primary :
+    sub.planId === 'bundle' || sub.planId === 'athlete' ? Colors.states.PEAK.primary :
+    Colors.states.BALANCED.primary;
+  const statusLabel =
+    sub.status === 'active'   ? 'ACTIVE' :
+    sub.status === 'trialing' ? 'TRIAL' :
+    sub.status === 'paused'   ? 'PAUSED' :
+    sub.status === 'past_due' ? 'PAST DUE' : 'CANCELED';
+
+  return (
+    <View style={[styles.subscriptionCard, { borderColor: `${accent}33` }]}>
+      <View style={styles.subscriptionTop}>
+        <View style={{ flex: 1 }}>
+          <Text style={[styles.tierName, { color: accent }]}>{planName}</Text>
+          <Text style={styles.tierDesc}>
+            {sub.product
+              ? 'AForce OS + monthly product shipment.'
+              : 'AForce OS subscription.'}
+          </Text>
+        </View>
+        <View style={[styles.tierTag, { backgroundColor: `${accent}1A`, borderColor: `${accent}55` }]}>
+          <Text style={[styles.tierTagText, { color: accent }]}>{statusLabel}</Text>
+        </View>
+      </View>
+      <View style={{ flexDirection: 'row', gap: 10 }}>
+        <TouchableOpacity
+          style={[styles.upgradeBtn, { borderColor: `${accent}44`, flex: 1 }]}
+          activeOpacity={0.85}
+          onPress={() => router.push('/subscription/manage')}
+        >
+          <Text style={[styles.upgradeBtnText, { color: accent }]}>Manage</Text>
+          <Feather name="settings" size={14} color={accent} />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.upgradeBtn, { borderColor: `${accent}44`, flex: 1, backgroundColor: `${accent}10` }]}
+          activeOpacity={0.85}
+          onPress={() => router.push('/subscription')}
+        >
+          <Text style={[styles.upgradeBtnText, { color: accent }]}>Upgrade</Text>
+          <Feather name="arrow-up-right" size={14} color={accent} />
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({

@@ -122,6 +122,18 @@ export default function HomeScreen() {
             <TouchableOpacity
               onPress={() => {
                 if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
+                router.push('/scan');
+              }}
+              activeOpacity={0.85}
+              style={styles.actionBtn}
+            >
+              <Feather name="maximize" size={14} color={Colors.text.primary} />
+              <Text style={styles.actionBtnText} numberOfLines={1}>SCAN</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => {
+                if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
                 router.push('/compare');
               }}
               activeOpacity={0.85}
@@ -145,7 +157,7 @@ export default function HomeScreen() {
                 ]}
                 numberOfLines={1}
               >
-                {performanceState.level === 'DEPLETED' ? 'COMPARE — REC.' : 'COMPARE'}
+                {performanceState.level === 'DEPLETED' ? 'COMPARE' : 'COMPARE'}
               </Text>
             </TouchableOpacity>
 
