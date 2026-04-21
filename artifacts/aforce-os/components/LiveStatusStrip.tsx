@@ -1,5 +1,12 @@
 /**
- * LiveStatusStrip — Top status bar showing live contextual signals.
+ * LiveStatusStrip — Two-line ambient + body strip.
+ *
+ * Layout (per latest design direction):
+ *   Line 1 (climate):  outside temp · outside humidity · city, region
+ *   Line 2 (body):     bpm · units consumed / target
+ *
+ * City climate is auto-detected via cityClimateService (geolocation +
+ * Open-Meteo); falls back to a cached mock snapshot until live data lands.
  */
 
 import React from 'react';
@@ -22,12 +29,9 @@ interface Props {
 
 export function LiveStatusStrip({ performanceState, unitsToday, dailyTarget }: Props) {
   const { color } = performanceState;
-  const { heartRateBPM, activityLabel, lastSyncLabel } = phantomSignalData;
-  // City climate is the source of truth for ambient temp + humidity now.
-  // Render the cached/mock snapshot immediately, then upgrade to live data
-  // (geolocation + Open-Meteo) once it lands. Refresh every 10 minutes
-  // while the screen is mounted; the service layer also caches.
+  const { heartRateBPM } = phantomSignalData;
   const [climate, setClimate] = React.useState<CityClimate>(() => getCurrentCityClimateSync());
+
   React.useEffect(() => {
     let cancelled = false;
     const refresh = async () => {
@@ -48,26 +52,8 @@ export function LiveStatusStrip({ performanceState, unitsToday, dailyTarget }: P
 
   return (
     <View style={styles.container}>
-      <View style={styles.topRow}>
-        <View style={styles.pill}>
-          <View style={[styles.dot, { backgroundColor: color }]} />
-          <Text style={[styles.statusText, { color }]}>LIVE</Text>
-        </View>
-        <View style={styles.cityPill}>
-          <Feather name="map-pin" size={10} color={Colors.text.muted} />
-          <Text style={styles.cityText} numberOfLines={1}>
-            {climate.city}, {climate.region}
-          </Text>
-        </View>
-        <Text style={styles.syncText}>{lastSyncLabel}</Text>
-      </View>
-
-      <View style={styles.metrics}>
-        <View style={styles.metric}>
-          <Feather name="activity" size={11} color={Colors.text.muted} />
-          <Text style={styles.metricText}>{heartRateBPM} bpm</Text>
-        </View>
-        <View style={styles.separator} />
+      {/* Line 1 — outside temp · outside humidity · city */}
+      <View style={styles.row}>
         <View style={styles.metric}>
           <Feather name="thermometer" size={11} color={Colors.text.muted} />
           <Text style={styles.metricText}>{climate.tempF}°F</Text>
@@ -80,6 +66,26 @@ export function LiveStatusStrip({ performanceState, unitsToday, dailyTarget }: P
         >
           <Feather name="droplet" size={11} color={Colors.text.muted} />
           <Text style={styles.metricText}>{climate.humidityPct}% RH</Text>
+        </View>
+        <View style={styles.separator} />
+        <View style={styles.metric}>
+          <Feather name="map-pin" size={11} color={Colors.text.muted} />
+          <Text style={styles.metricText} numberOfLines={1}>
+            {climate.city}, {climate.region}
+          </Text>
+        </View>
+        {climate.source === 'mock' && <Text style={styles.estTag}>est.</Text>}
+      </View>
+
+      {/* Line 2 — bpm · units */}
+      <View style={styles.row}>
+        <View style={styles.pill}>
+          <View style={[styles.dot, { backgroundColor: color }]} />
+          <Text style={[styles.statusText, { color }]}>LIVE</Text>
+        </View>
+        <View style={styles.metric}>
+          <Feather name="activity" size={11} color={Colors.text.muted} />
+          <Text style={styles.metricText}>{heartRateBPM} bpm</Text>
         </View>
         <View style={styles.separator} />
         <View style={styles.metric}>
@@ -96,29 +102,10 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     gap: 8,
   },
-  topRow: {
+  row: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-  },
-  cityPill: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 100,
-    backgroundColor: Colors.fill.light,
-    borderWidth: 1,
-    borderColor: Colors.border.subtle,
-  },
-  cityText: {
-    flexShrink: 1,
-    fontSize: 10,
-    fontFamily: 'Inter_600SemiBold',
-    color: Colors.text.secondary,
-    letterSpacing: 0.6,
   },
   pill: {
     flexDirection: 'row',
@@ -126,7 +113,7 @@ const styles = StyleSheet.create({
     gap: 5,
     backgroundColor: Colors.fill.light,
     paddingHorizontal: 10,
-    paddingVertical: 5,
+    paddingVertical: 4,
     borderRadius: 100,
     borderWidth: 1,
     borderColor: Colors.border.subtle,
@@ -141,29 +128,28 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter_700Bold',
     letterSpacing: 1.5,
   },
-  metrics: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
   metric: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
+    flexShrink: 1,
   },
   metricText: {
     fontSize: 11,
     fontFamily: 'Inter_500Medium',
     color: Colors.text.secondary,
+    flexShrink: 1,
   },
   separator: {
     width: 1,
     height: 12,
     backgroundColor: Colors.border.subtle,
   },
-  syncText: {
-    fontSize: 10,
-    fontFamily: 'Inter_400Regular',
+  estTag: {
+    fontSize: 9,
+    fontFamily: 'Inter_600SemiBold',
     color: Colors.text.muted,
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
   },
 });

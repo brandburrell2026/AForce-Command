@@ -23,7 +23,6 @@ import * as Haptics from 'expo-haptics';
 import { GradientBackground } from '@/components/GradientBackground';
 import { HeatAlertBanner } from '@/components/HeatAlertBanner';
 import { LiveStatusStrip } from '@/components/LiveStatusStrip';
-import { ClimateLine } from '@/components/ClimateLine';
 import { StatusPulseOrb } from '@/components/StatusPulseOrb';
 import { WhyThisScore } from '@/components/WhyThisScore';
 import { RiskTimerDisplay } from '@/components/RiskTimerDisplay';
@@ -206,11 +205,6 @@ export default function HomeScreen() {
               <HeatAlertBanner score={heatScore.score} band={heatScore.band} />
             </View>
           )}
-
-          {/* Climate strip — auto-detected city, outside temp + humidity.
-              Sits directly under the Heat Guard banner so the environmental
-              context that drives the alert reads as a single block. */}
-          <ClimateLine onPress={() => router.push('/heat')} />
 
           <LiveStatusStrip
             performanceState={performanceState}
