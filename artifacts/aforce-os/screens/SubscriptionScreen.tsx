@@ -28,7 +28,7 @@ import { useAppStore } from '@/store/useAppStore';
 import { SUBSCRIPTION_PLANS } from '@/data/subscriptionPlans';
 import { switchPlan } from '@/services/subscriptionService';
 import type { SubscriptionPlan, SubscriptionPlanId } from '@/types/subscription';
-import { createCheckoutSession } from '@/lib/api';
+import { createCheckoutSession, fetchCheckoutSession } from '@/lib/api';
 
 // Plans that route through real Stripe Checkout. All other plan changes stay
 // fully local (free / enterprise / team flows are out of scope for the demo).
@@ -106,6 +106,24 @@ export default function SubscriptionScreen() {
         const parsed = Linking.parse(redirected);
         const status = (parsed.queryParams?.status as string | undefined) ?? '';
         if (status !== 'success') return;
+
+        // Verify with the server before switching plans — the redirect alone
+        // is not a trust boundary (a tampered or stale URL must not flip
+        // a user onto a paid plan they didn't actually pay for).
+        let paid = false;
+        try {
+          const sessionStatus = await fetchCheckoutSession(session.sessionId);
+          paid = sessionStatus.paid && sessionStatus.planId === planId;
+        } catch {
+          paid = false;
+        }
+        if (!paid) {
+          Alert.alert(
+            'Could not confirm checkout',
+            'We could not verify your payment. If you were charged, your plan will update shortly.',
+          );
+          return;
+        }
 
         const next = await switchPlan(planId);
         setSubscription(next);

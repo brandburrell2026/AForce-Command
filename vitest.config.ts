@@ -13,6 +13,7 @@ export default defineConfig({
     include: [
       'artifacts/aforce-os/services/__tests__/**/*.test.ts',
       'artifacts/api-server/src/**/__tests__/**/*.test.ts',
+      'artifacts/api-server/src/lib/__tests__/**/*.test.ts',
     ],
     environment: 'node',
     reporters: 'default',

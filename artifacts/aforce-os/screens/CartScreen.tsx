@@ -2,9 +2,10 @@
  * Cart Screen — review and check out.
  *
  * Reads from useCartStore. Lets the user adjust qty per line, remove lines,
- * and proceeds to a checkout CTA. Real Stripe / RevenueCat checkout is not
- * yet wired (see Subscription for separate plan management); the CTA shows
- * a clear "Coming soon" state instead of a fake success.
+ * and checks out via real Stripe Checkout (one-time payment). The server
+ * re-prices every line against its own SKU catalog, so the client only sends
+ * `{skuId, qty}`. After Stripe redirects with `status=success`, the cart is
+ * cleared and a confirmation banner is shown.
  */
 
 import React, { useState } from "react";
@@ -16,10 +17,14 @@ import {
   Pressable,
   Image,
   Platform,
+  Alert,
+  ActivityIndicator,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import * as Haptics from "expo-haptics";
+import * as WebBrowser from "expo-web-browser";
+import * as Linking from "expo-linking";
 import { Feather } from "@expo/vector-icons";
 
 import { GradientBackground } from "@/components/GradientBackground";
@@ -27,6 +32,7 @@ import { Colors } from "@/theme/colors";
 import { formatPrice } from "@/data/pricing";
 import { PRODUCT_FLAVORS } from "@/data/products";
 import { useCart } from "@/store/useCartStore";
+import { createCartCheckoutSession, fetchCheckoutSession } from "@/lib/api";
 
 const SHIPPING_THRESHOLD_CENTS = 5000; // $50 free-shipping threshold
 
@@ -35,20 +41,69 @@ export default function CartScreen() {
   const insets = useSafeAreaInsets();
   const { resolvedLines, itemCount, subtotalCents, setQty, remove, clear } = useCart();
   const [checkoutNotice, setCheckoutNotice] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
 
   const shippingCents = subtotalCents >= SHIPPING_THRESHOLD_CENTS || subtotalCents === 0 ? 0 : 599;
   const taxCents = Math.round(subtotalCents * 0.0875);
   const totalCents = subtotalCents + shippingCents + taxCents;
   const shipGap = Math.max(0, SHIPPING_THRESHOLD_CENTS - subtotalCents);
 
-  const onCheckout = () => {
-    if (itemCount === 0) return;
-    if (Platform.OS !== "web") {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => {});
+  const onCheckout = async () => {
+    if (itemCount === 0 || pending) return;
+    setPending(true);
+    setCheckoutNotice(null);
+    try {
+      const items = resolvedLines.map((l) => ({ skuId: l.skuId, qty: l.qty }));
+      const returnUrl = Linking.createURL("/cart", { queryParams: {} });
+
+      let session;
+      try {
+        session = await createCartCheckoutSession({ items, returnUrl });
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : "Could not start checkout.";
+        Alert.alert("Checkout unavailable", msg);
+        return;
+      }
+
+      const result = await WebBrowser.openAuthSessionAsync(session.url, returnUrl);
+      const redirected =
+        result.type === "success" && typeof result.url === "string" ? result.url : null;
+      if (!redirected) return; // dismissed / cancelled — leave cart intact
+
+      const parsed = Linking.parse(redirected);
+      const status = (parsed.queryParams?.status as string | undefined) ?? "";
+      if (status !== "success") {
+        setCheckoutNotice("Checkout was cancelled. Your cart is saved.");
+        return;
+      }
+
+      // Trust no redirect — verify with the server before clearing the cart.
+      // If the deep-link bounce is intercepted or the user crafts a fake
+      // success URL, this guards against double-charge and false confirmations.
+      let verified = false;
+      try {
+        const status = await fetchCheckoutSession(session.sessionId);
+        verified = status.paid && status.kind === "cart";
+      } catch {
+        verified = false;
+      }
+      if (!verified) {
+        setCheckoutNotice(
+          "We couldn't confirm payment. If you were charged, your order is safe — refresh in a moment.",
+        );
+        return;
+      }
+
+      if (Platform.OS !== "web") {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+      }
+      clear();
+      setCheckoutNotice(
+        "Order confirmed. Your cart has been cleared — a receipt is on its way.",
+      );
+    } finally {
+      setPending(false);
     }
-    setCheckoutNotice(
-      "Checkout is coming soon — payment processing will go live once Stripe is connected. Your cart is saved.",
-    );
   };
 
   const topPadding = Platform.OS === "web" ? 24 : insets.top;
@@ -200,15 +255,23 @@ export default function CartScreen() {
 
               <Pressable
                 onPress={onCheckout}
+                disabled={pending}
                 style={({ pressed }) => [
                   styles.checkoutBtn,
-                  pressed && { opacity: 0.9 },
+                  (pressed || pending) && { opacity: 0.85 },
                 ]}
                 accessibilityRole="button"
                 accessibilityLabel="Proceed to checkout"
+                accessibilityState={{ disabled: pending, busy: pending }}
               >
-                <Feather name="lock" size={14} color="#000" />
-                <Text style={styles.checkoutBtnText}>SECURE CHECKOUT · {formatPrice(totalCents)}</Text>
+                {pending ? (
+                  <ActivityIndicator size="small" color="#000" />
+                ) : (
+                  <Feather name="lock" size={14} color="#000" />
+                )}
+                <Text style={styles.checkoutBtnText}>
+                  {pending ? "STARTING CHECKOUT…" : `SECURE CHECKOUT · ${formatPrice(totalCents)}`}
+                </Text>
               </Pressable>
 
               <Text style={styles.footnote}>

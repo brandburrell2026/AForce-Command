@@ -159,3 +159,43 @@ export async function createCheckoutSession(input: {
 }): Promise<CheckoutSession> {
   return request<CheckoutSession>("POST", "/checkout/session", input);
 }
+
+export interface CartCheckoutSession extends CheckoutSession {
+  totals: {
+    subtotalCents: number;
+    shippingCents: number;
+    taxCents: number;
+    totalCents: number;
+  };
+}
+
+/**
+ * Create a Stripe Checkout session for a Store cart (one-time payment).
+ * The server validates and re-prices every line against its own SKU catalog
+ * — the client never sends prices.
+ */
+export async function createCartCheckoutSession(input: {
+  items: { skuId: string; qty: number }[];
+  returnUrl: string;
+}): Promise<CartCheckoutSession> {
+  return request<CartCheckoutSession>("POST", "/checkout/cart", input);
+}
+
+export interface CheckoutSessionStatus {
+  sessionId: string;
+  mode: "subscription" | "payment" | "setup" | string;
+  paymentStatus: string;
+  status: string | null;
+  paid: boolean;
+  kind: "cart" | "subscription" | null;
+  planId: string | null;
+}
+
+/**
+ * Server-side check of a Stripe Checkout session's authoritative payment
+ * status. Use this before clearing a cart or switching a plan — never trust
+ * the redirect's `?status=success` alone (the bounce can be interrupted).
+ */
+export async function fetchCheckoutSession(sessionId: string): Promise<CheckoutSessionStatus> {
+  return request<CheckoutSessionStatus>("GET", `/checkout/session/${encodeURIComponent(sessionId)}`);
+}

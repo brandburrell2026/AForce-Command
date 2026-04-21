@@ -1,24 +1,30 @@
 /**
- * Checkout route — creates a Stripe Checkout Session for one consumer plan.
+ * Checkout routes — Stripe Checkout Sessions for both consumer plans
+ * (subscription mode) and Store cart purchases (one-time payment mode).
  *
- * Demo flow (no DB / webhooks):
+ * Demo flow (no DB / webhooks yet):
+ *
  *   POST /api/checkout/session  body: { planId, returnUrl }
+ *     → mode: 'subscription'
  *     → returns { url } that the client opens in WebBrowser.
- *     The Stripe success/cancel URLs always point back at THIS server's
- *     /api/checkout/return endpoint, which then bounces the browser to the
- *     caller's `returnUrl` (works equally for https web origins and native
- *     custom-scheme deep links like `aforce://`, `exp://`, etc).
- *     The caller is responsible for switching its local subscription state
- *     when the user is redirected back to `${returnUrl}?status=success`.
  *
- * The price is created inline via `price_data` so we don't need pre-seeded
- * Stripe products to demo. For production you'd seed real Price IDs and
- * sync via stripe-replit-sync.
+ *   POST /api/checkout/cart     body: { items: [{skuId, qty}], returnUrl }
+ *     → mode: 'payment'
+ *     → server prices every line against STORE_CATALOG (never trusts client
+ *       prices); shipping + tax are added as additional line items so the
+ *       Stripe total matches what CartScreen displayed.
+ *
+ *   GET  /api/checkout/return   query: status, kind, planId?, app
+ *     → bridges Stripe's https-only redirect back to the caller's deep link
+ *       (works for https web origins and `aforce://` / `exp://` schemes).
+ *       The `kind` param tells the app whether this was a subscription or
+ *       cart return so it can react appropriately (clear cart vs switch plan).
  */
 
 import { Router, type IRouter, type Request, type Response } from 'express';
 import { getStripeClient } from '../lib/stripeClient';
 import { logger } from '../lib/logger';
+import { priceCart } from '../lib/storeCatalog';
 
 const router: IRouter = Router();
 
@@ -49,6 +55,8 @@ const ALLOWED_RETURN_SCHEMES = new Set([
   'http:', 'https:', 'exp:', 'exps:', 'aforce:', 'aforceos:',
 ]);
 
+const ALLOWED_KINDS = new Set(['subscription', 'cart']);
+
 function publicBaseUrl(req: Request): string {
   // Trust the host the request came in on. The api-server sits behind the
   // workspace proxy in dev and behind the deployment proxy in prod, both of
@@ -63,15 +71,47 @@ function publicBaseUrl(req: Request): string {
   return `${proto}://${host}`;
 }
 
-function isAllowedReturnUrl(raw: string): boolean {
+/**
+ * Return-URL validation.
+ *
+ * Native deep-link schemes (`exp:`, `aforce:`, `aforceos:`) are trusted by
+ * the OS — only the owning app handles them, so any host is fine.
+ *
+ * Web schemes (`http:`, `https:`) are dangerous: without a host check this
+ * endpoint becomes an open redirect that an attacker can use to bounce
+ * through Stripe's checkout flow back to a phishing page on a domain that
+ * looks legitimate. We tie web returnUrls to the same host the request
+ * came in on (workspace proxy in dev, deployment domain in prod), which
+ * is exactly what `Linking.createURL` produces from the Expo web client
+ * and matches the api-server's own origin.
+ */
+function isAllowedReturnUrl(raw: string, requestHost: string | null): boolean {
+  let u: URL;
   try {
-    const u = new URL(raw);
-    return ALLOWED_RETURN_SCHEMES.has(u.protocol);
+    u = new URL(raw);
   } catch {
     return false;
   }
+  if (!ALLOWED_RETURN_SCHEMES.has(u.protocol)) return false;
+
+  if (u.protocol === 'http:' || u.protocol === 'https:') {
+    if (!requestHost) return false;
+    // u.host includes port if present; same for requestHost — compare verbatim.
+    return u.host.toLowerCase() === requestHost.toLowerCase();
+  }
+  // Native schemes — trust the OS handler.
+  return true;
 }
 
+function inboundHost(req: Request): string | null {
+  const host =
+    (req.headers['x-forwarded-host'] as string | undefined)?.split(',')[0]?.trim() ??
+    req.get('host') ??
+    null;
+  return host && host.length > 0 ? host : null;
+}
+
+// ─── Subscription: POST /checkout/session ────────────────────────────────────
 router.post('/checkout/session', async (req: Request, res: Response) => {
   const { planId, returnUrl } = (req.body ?? {}) as { planId?: string; returnUrl?: string };
 
@@ -79,8 +119,8 @@ router.post('/checkout/session', async (req: Request, res: Response) => {
     res.status(400).json({ error: 'planId is required' });
     return;
   }
-  if (!returnUrl || typeof returnUrl !== 'string' || !isAllowedReturnUrl(returnUrl)) {
-    res.status(400).json({ error: 'returnUrl must be a valid http(s)/exp/aforce URL' });
+  if (!returnUrl || typeof returnUrl !== 'string' || !isAllowedReturnUrl(returnUrl, inboundHost(req))) {
+    res.status(400).json({ error: 'returnUrl must be a same-origin web URL or an app deep link' });
     return;
   }
 
@@ -112,9 +152,9 @@ router.post('/checkout/session', async (req: Request, res: Response) => {
       ],
       // Stripe requires https success/cancel URLs — bounce through this
       // server, which then forwards to the caller's returnUrl (web or native).
-      success_url: `${base}/api/checkout/return?status=success&planId=${encodeURIComponent(planId)}&app=${app}`,
-      cancel_url:  `${base}/api/checkout/return?status=cancel&planId=${encodeURIComponent(planId)}&app=${app}`,
-      metadata: { planId },
+      success_url: `${base}/api/checkout/return?status=success&kind=subscription&planId=${encodeURIComponent(planId)}&app=${app}`,
+      cancel_url:  `${base}/api/checkout/return?status=cancel&kind=subscription&planId=${encodeURIComponent(planId)}&app=${app}`,
+      metadata: { planId, kind: 'subscription' },
     });
 
     if (!session.url) {
@@ -129,17 +169,112 @@ router.post('/checkout/session', async (req: Request, res: Response) => {
   }
 });
 
+// ─── Cart: POST /checkout/cart ───────────────────────────────────────────────
+router.post('/checkout/cart', async (req: Request, res: Response) => {
+  const { items, returnUrl } = (req.body ?? {}) as {
+    items?: unknown;
+    returnUrl?: string;
+  };
+
+  if (!returnUrl || typeof returnUrl !== 'string' || !isAllowedReturnUrl(returnUrl, inboundHost(req))) {
+    res.status(400).json({ error: 'returnUrl must be a same-origin web URL or an app deep link' });
+    return;
+  }
+
+  let priced;
+  try {
+    priced = priceCart(items);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Invalid cart';
+    res.status(400).json({ error: message });
+    return;
+  }
+
+  try {
+    const stripe = await getStripeClient();
+    const base = publicBaseUrl(req);
+    const app = encodeURIComponent(returnUrl);
+
+    // Line items: each SKU at server-priced unit_amount × qty, plus shipping
+    // and tax as separate non-product line items so the Stripe total is
+    // identical to what CartScreen displayed (subtotal + shipping + tax).
+    const line_items = priced.lines.map((l) => ({
+      quantity: l.qty,
+      price_data: {
+        currency: 'usd',
+        unit_amount: l.unitAmountCents,
+        product_data: { name: l.name },
+      },
+    }));
+
+    if (priced.shippingCents > 0) {
+      line_items.push({
+        quantity: 1,
+        price_data: {
+          currency: 'usd',
+          unit_amount: priced.shippingCents,
+          product_data: { name: 'Shipping' },
+        },
+      });
+    }
+    if (priced.taxCents > 0) {
+      line_items.push({
+        quantity: 1,
+        price_data: {
+          currency: 'usd',
+          unit_amount: priced.taxCents,
+          product_data: { name: 'Estimated tax' },
+        },
+      });
+    }
+
+    const session = await stripe.checkout.sessions.create({
+      mode: 'payment',
+      line_items,
+      success_url: `${base}/api/checkout/return?status=success&kind=cart&app=${app}`,
+      cancel_url:  `${base}/api/checkout/return?status=cancel&kind=cart&app=${app}`,
+      metadata: {
+        kind: 'cart',
+        // Compact summary — full line detail will live on the Session itself.
+        // Stripe metadata values cap at 500 chars so we keep it terse.
+        skuSummary: priced.lines.map((l) => `${l.skuId}x${l.qty}`).join(','),
+        subtotalCents: String(priced.subtotalCents),
+        totalCents: String(priced.totalCents),
+      },
+    });
+
+    if (!session.url) {
+      res.status(502).json({ error: 'Stripe did not return a checkout URL' });
+      return;
+    }
+    res.json({
+      url: session.url,
+      sessionId: session.id,
+      totals: {
+        subtotalCents: priced.subtotalCents,
+        shippingCents: priced.shippingCents,
+        taxCents: priced.taxCents,
+        totalCents: priced.totalCents,
+      },
+    });
+  } catch (err) {
+    logger.error({ err }, 'Stripe cart checkout session creation failed');
+    res.status(500).json({ error: 'Could not start checkout. Please try again.' });
+  }
+});
+
 /**
  * Bridge endpoint Stripe redirects to. Forwards the browser to the original
- * caller's returnUrl with the same status + planId query params, so native
- * deep links (`aforce://...`) work even though Stripe only accepts https.
+ * caller's returnUrl with status + kind (+ planId for subscriptions), so
+ * native deep links (`aforce://...`) work even though Stripe only accepts https.
  */
 router.get('/checkout/return', (req: Request, res: Response) => {
   const status = String(req.query['status'] ?? '');
+  const kind = String(req.query['kind'] ?? 'subscription');
   const planId = String(req.query['planId'] ?? '');
   const appRaw = String(req.query['app'] ?? '');
 
-  if (!appRaw || !isAllowedReturnUrl(appRaw)) {
+  if (!appRaw || !isAllowedReturnUrl(appRaw, inboundHost(req))) {
     res.status(400).type('text/plain').send('Invalid app return URL.');
     return;
   }
@@ -147,9 +282,14 @@ router.get('/checkout/return', (req: Request, res: Response) => {
     res.status(400).type('text/plain').send('Invalid status.');
     return;
   }
+  if (!ALLOWED_KINDS.has(kind)) {
+    res.status(400).type('text/plain').send('Invalid kind.');
+    return;
+  }
 
   const u = new URL(appRaw);
   u.searchParams.set('status', status);
+  u.searchParams.set('kind', kind);
   if (planId) u.searchParams.set('planId', planId);
   const target = u.toString();
 
@@ -166,6 +306,48 @@ router.get('/checkout/return', (req: Request, res: Response) => {
 <p>Returning to AForce…</p>
 <script>window.location.replace(${JSON.stringify(target)});</script>
 </body></html>`);
+});
+
+/**
+ * Server-side finalization check. The client must call this with the session
+ * id from `createCart/CheckoutSession` BEFORE clearing the cart or applying
+ * a plan switch — trusting the redirect's `?status=success` alone is unsafe
+ * (a successful payment whose deep-link bounce is interrupted could let the
+ * user check out again and double-charge themselves).
+ *
+ * Returns the authoritative `paid` boolean derived from the Stripe session's
+ * `payment_status`. Sessions for unrelated checkouts (mode mismatch, etc)
+ * also return `paid: false` so callers can fail closed.
+ */
+router.get('/checkout/session/:id', async (req: Request, res: Response) => {
+  const idRaw = req.params['id'];
+  const id = typeof idRaw === 'string' ? idRaw : '';
+  if (!id || !/^cs_(test|live)_[A-Za-z0-9]+$/.test(id)) {
+    res.status(400).json({ error: 'Invalid session id' });
+    return;
+  }
+
+  try {
+    const stripe = await getStripeClient();
+    const session = await stripe.checkout.sessions.retrieve(id);
+    // For one-time payments, `payment_status` flips to 'paid' on success.
+    // For subscriptions in synchronous flows it's also 'paid'. For trials or
+    // async-payment flows it can be 'unpaid' — we still return the raw value
+    // so the client can decide.
+    const paid = session.payment_status === 'paid';
+    res.json({
+      sessionId: session.id,
+      mode: session.mode,
+      paymentStatus: session.payment_status,
+      status: session.status,
+      paid,
+      kind: (session.metadata?.['kind'] as string | undefined) ?? null,
+      planId: (session.metadata?.['planId'] as string | undefined) ?? null,
+    });
+  } catch (err) {
+    logger.error({ err, id }, 'Stripe session retrieval failed');
+    res.status(404).json({ error: 'Session not found' });
+  }
 });
 
 export default router;
