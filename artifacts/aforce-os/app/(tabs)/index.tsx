@@ -30,7 +30,6 @@ import { AICommandCard } from '@/components/AICommandCard';
 import { WaterCycleBar } from '@/components/WaterCycleBar';
 import { PhantomSignal } from '@/components/PhantomSignal';
 import { CycleSuccessOverlay } from '@/components/CycleSuccessOverlay';
-import { LogIntakeRow } from '@/components/LogIntakeRow';
 import { FlavorPickerModal, type FlavorChoice } from '@/components/FlavorPickerModal';
 import { LocalTimeBar } from '@/components/LocalTimeBar';
 import { AdaptiveScreenWrapper } from '@/components/AdaptiveScreenWrapper';
@@ -375,8 +374,6 @@ export default function HomeScreen() {
       <View style={styles.spacer} />
       <RiskTimerDisplay timerSeconds={timerSeconds} performanceState={performanceState} />
       <View style={styles.spacer} />
-      <LogIntakeRow accentColor={stateColor} />
-      <View style={styles.spacer} />
       <WaterCycleBar
         unitsConsumed={userState.unitsConsumedToday}
         dailyTarget={userState.dailyTarget}
@@ -440,8 +437,6 @@ export default function HomeScreen() {
               <RiskTimerDisplay timerSeconds={timerSeconds} performanceState={performanceState} />
               <View style={styles.spacerLg} />
               {ctaSection}
-              <View style={styles.spacer} />
-              <LogIntakeRow accentColor={stateColor} />
               <View style={styles.spacer} />
               <WaterCycleBar
                 unitsConsumed={userState.unitsConsumedToday}
