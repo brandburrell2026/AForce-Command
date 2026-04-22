@@ -378,6 +378,33 @@ router.post("/social/hydrate", async (req, res) => {
   }
 });
 
+const contextSchema = z.object({
+  sex: z.enum(["male", "female", "unspecified"]).optional(),
+  ateRecently: z.boolean().optional(),
+});
+router.post("/social/context", async (req, res) => {
+  try {
+    const patch = contextSchema.parse(req.body);
+    const userId = resolveUserId();
+    const current = (await readSocial(userId)) ?? {
+      active: false,
+      startedAt: new Date().toISOString(),
+      drinks: [],
+    };
+    const next: PersistedSocialMode = {
+      ...current,
+      ...(patch.sex !== undefined ? { sex: patch.sex } : {}),
+      ...(patch.ateRecently !== undefined ? { ateRecently: patch.ateRecently } : {}),
+    };
+    const updated = await updateUserState(userId, { socialMode: next });
+    broadcastState(userId, updated);
+    return res.json({ userState: updated });
+  } catch (err) {
+    logger.error({ err }, "POST /aforce/social/context failed");
+    return res.status(400).json({ error: "social_context_failed" });
+  }
+});
+
 router.post("/social/deactivate", async (_req, res) => {
   try {
     const userId = resolveUserId();

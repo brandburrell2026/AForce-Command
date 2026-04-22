@@ -35,6 +35,7 @@ import {
   refreshWeather,
   subscribeToStateUpdates,
   postSocialActivate,
+  postSocialContext,
   postSocialDrink,
   postSocialHydrate,
   postSocialDeactivate,
@@ -219,6 +220,10 @@ interface AppContextValue {
   confirmSocialHydration: (confirmed: boolean) => Promise<void>;
   /** End the drinking session — flips into the 8h Recovery Mode window. */
   deactivateSocialMode: () => Promise<void>;
+  /** Persist optional BAC context (sex, ate recently) for sharper estimates. */
+  setSocialContext: (
+    ctx: { sex?: 'male' | 'female' | 'unspecified'; ateRecently?: boolean },
+  ) => Promise<void>;
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -523,6 +528,17 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   }, [state.userState]);
 
+  const setSocialContext = useCallback(async (
+    ctx: { sex?: 'male' | 'female' | 'unspecified'; ateRecently?: boolean },
+  ) => {
+    try {
+      const { newUserState, engineOutput } = await postSocialContext(state.userState, ctx);
+      dispatch({ type: 'SET_USER_STATE', payload: { newUserState, engineOutput } });
+    } catch (err) {
+      console.warn('[AForce] setSocialContext failed', err);
+    }
+  }, [state.userState]);
+
   const setSubscription = useCallback((sub: UserSubscription) => {
     dispatch({ type: 'SET_SUBSCRIPTION', payload: sub });
     AsyncStorage.setItem('aforce.subscription', JSON.stringify(sub)).catch(() => {});
@@ -580,8 +596,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     state, logIntake, completeCycle, snooze, dismissSuccess,
     updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags,
     setSubscription, completeOnboarding, setAppleHealthSnapshot, confirmCommand, setLanguage,
-    activateSocialMode, logSocialDrink, confirmSocialHydration, deactivateSocialMode,
-  }), [state, logIntake, completeCycle, snooze, dismissSuccess, updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags, setSubscription, completeOnboarding, setAppleHealthSnapshot, confirmCommand, setLanguage, activateSocialMode, logSocialDrink, confirmSocialHydration, deactivateSocialMode]);
+    activateSocialMode, logSocialDrink, confirmSocialHydration, deactivateSocialMode, setSocialContext,
+  }), [state, logIntake, completeCycle, snooze, dismissSuccess, updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags, setSubscription, completeOnboarding, setAppleHealthSnapshot, confirmCommand, setLanguage, activateSocialMode, logSocialDrink, confirmSocialHydration, deactivateSocialMode, setSocialContext]);
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }

@@ -170,17 +170,17 @@
     "impairment_high": "ALTA",
     "impairment_critical": "CRÍTICA",
 
-    "safety_title": "SEGURANÇA",
+    "safety_title": "SEGURANÇA NO TRANSPORTE",
     "safety_do_not_drive": "Não dirija.",
     "safety_use_rideshare": "Planeje uma carona antes do próximo drink.",
     "safety_stop_drinking": "Pare o álcool. Mude para água.",
-    "safety_transportation": "Use rideshare, táxi ou chame um amigo.",
+    "safety_transportation": "Não dirija. Use rideshare, motorista designado ou outro transporte seguro.",
     "safety_moderate_body": "Coordenação e julgamento reduzidos. Organize uma carona antes de precisar.",
-    "safety_high_body": "Tempo de reação muito afetado. Não dirija nenhum veículo.",
-    "safety_critical_body": "Você está em alto nível de afetação. Pare o álcool e organize transporte seguro agora.",
+    "safety_high_body": "O risco de afetação está aumentando. Não dirija.",
+    "safety_critical_body": "O risco de afetação está aumentando. Não dirija.",
 
     "estimate_only": "Apenas estimativa",
-    "not_legal_medical": "Não é determinação legal nem médica.",
+    "not_legal_medical": "As estimativas de BAC e de afetação são apenas aproximadas e nunca devem ser usadas para decidir se você está apto, legal ou seguro para dirigir. Se você bebeu, não dirija. Use rideshare, motorista designado ou outro transporte seguro.",
 
     "recovery_paywall_eyebrow": "MODO RECUPERAÇÃO",
     "recovery_paywall_title": "Acorde com a mente clara",

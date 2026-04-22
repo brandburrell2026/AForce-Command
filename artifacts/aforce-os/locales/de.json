@@ -170,17 +170,17 @@
     "impairment_high": "HOCH",
     "impairment_critical": "KRITISCH",
 
-    "safety_title": "SICHERHEIT",
+    "safety_title": "TRANSPORT-SICHERHEIT",
     "safety_do_not_drive": "Nicht fahren.",
     "safety_use_rideshare": "Plane eine Fahrt vor dem nächsten Drink.",
     "safety_stop_drinking": "Stopp den Alkohol. Wechsle zu Wasser.",
-    "safety_transportation": "Taxi, VTC oder einen Freund anrufen.",
+    "safety_transportation": "Nicht fahren. Nimm ein Rideshare, einen designierten Fahrer oder einen anderen sicheren Transport.",
     "safety_moderate_body": "Koordination und Urteil sind reduziert. Organisiere eine Fahrt, bevor du sie brauchst.",
-    "safety_high_body": "Reaktionszeit ist stark beeinträchtigt. Fahre kein Fahrzeug.",
-    "safety_critical_body": "Du bist auf hohem Beeinträchtigungsniveau. Alkohol stoppen und sicheren Transport jetzt organisieren.",
+    "safety_high_body": "Das Beeinträchtigungsrisiko steigt. Nicht fahren.",
+    "safety_critical_body": "Das Beeinträchtigungsrisiko steigt. Nicht fahren.",
 
     "estimate_only": "Nur Schätzung",
-    "not_legal_medical": "Keine rechtliche oder medizinische Aussage.",
+    "not_legal_medical": "BAC- und Beeinträchtigungsschätzungen sind nur Näherungswerte und dürfen nie verwendet werden, um zu entscheiden, ob du legal oder sicher fahren kannst. Wenn du getrunken hast, fahre nicht. Nimm ein Rideshare, einen designierten Fahrer oder einen anderen sicheren Transport.",
 
     "recovery_paywall_eyebrow": "RECOVERY MODUS",
     "recovery_paywall_title": "Klar im Kopf aufwachen",

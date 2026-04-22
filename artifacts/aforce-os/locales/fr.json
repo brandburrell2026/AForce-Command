@@ -170,17 +170,17 @@
     "impairment_high": "ÉLEVÉ",
     "impairment_critical": "CRITIQUE",
 
-    "safety_title": "SÉCURITÉ",
+    "safety_title": "SÉCURITÉ DES TRANSPORTS",
     "safety_do_not_drive": "Ne conduis pas.",
     "safety_use_rideshare": "Prévois un trajet avant ton prochain verre.",
     "safety_stop_drinking": "Arrête l'alcool. Passe à l'eau.",
-    "safety_transportation": "VTC, taxi, ou appelle un ami.",
+    "safety_transportation": "Ne conduis pas. Prends un VTC, un conducteur désigné ou un autre transport sûr.",
     "safety_moderate_body": "Ta coordination et ton jugement sont réduits. Organise un trajet avant d'en avoir besoin.",
-    "safety_high_body": "Tes réflexes sont nettement diminués. Ne conduis aucun véhicule.",
-    "safety_critical_body": "Tu es à un niveau d'affaiblissement élevé. Arrête l'alcool et organise un transport sûr maintenant.",
+    "safety_high_body": "Le risque d'affaiblissement augmente. Ne conduis pas.",
+    "safety_critical_body": "Le risque d'affaiblissement augmente. Ne conduis pas.",
 
     "estimate_only": "Estimation uniquement",
-    "not_legal_medical": "Pas une détermination légale ni médicale.",
+    "not_legal_medical": "Les estimations d'alcoolémie et d'affaiblissement sont seulement approximatives et ne doivent jamais servir à déterminer si tu es en mesure légale ou sûre de conduire. Si tu as bu, ne conduis pas. Prends un VTC, un conducteur désigné ou un autre transport sûr.",
 
     "recovery_paywall_eyebrow": "MODE RÉCUPÉRATION",
     "recovery_paywall_title": "Réveillez-vous l'esprit clair",

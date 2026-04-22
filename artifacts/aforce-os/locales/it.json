@@ -170,17 +170,17 @@
     "impairment_high": "ALTA",
     "impairment_critical": "CRITICA",
 
-    "safety_title": "SICUREZZA",
+    "safety_title": "SICUREZZA NEI TRASPORTI",
     "safety_do_not_drive": "Non guidare.",
     "safety_use_rideshare": "Pianifica un passaggio prima del prossimo drink.",
     "safety_stop_drinking": "Ferma l'alcol. Passa all'acqua.",
-    "safety_transportation": "Usa taxi, NCC o chiama un amico.",
+    "safety_transportation": "Non guidare. Usa un rideshare, un guidatore designato o un altro trasporto sicuro.",
     "safety_moderate_body": "Coordinazione e giudizio ridotti. Organizza un passaggio prima di averne bisogno.",
-    "safety_high_body": "Tempo di reazione molto ridotto. Non guidare alcun veicolo.",
-    "safety_critical_body": "Sei a un alto livello di alterazione. Ferma l'alcol e organizza un trasporto sicuro ora.",
+    "safety_high_body": "Il rischio di alterazione sta aumentando. Non guidare.",
+    "safety_critical_body": "Il rischio di alterazione sta aumentando. Non guidare.",
 
     "estimate_only": "Solo stima",
-    "not_legal_medical": "Non è una determinazione legale o medica.",
+    "not_legal_medical": "Le stime di BAC e alterazione sono solo approssimative e non devono mai essere usate per decidere se sei legalmente o in sicurezza in grado di guidare. Se hai bevuto, non guidare. Usa un rideshare, un guidatore designato o un altro trasporto sicuro.",
 
     "recovery_paywall_eyebrow": "MODALITÀ RECUPERO",
     "recovery_paywall_title": "Svegliati con la mente lucida",

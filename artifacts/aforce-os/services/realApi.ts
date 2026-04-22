@@ -298,6 +298,12 @@ export function postSocialHydrate(userState: UserState, confirmed: boolean) {
 export function postSocialDeactivate(userState: UserState) {
   return postAndRecompute('/social/deactivate', {}, userState);
 }
+export function postSocialContext(
+  userState: UserState,
+  ctx: { sex?: 'male' | 'female' | 'unspecified'; ateRecently?: boolean },
+) {
+  return postAndRecompute('/social/context', ctx, userState);
+}
 export function postConfirmCommand(userState: UserState, followed: boolean) {
   // inClutch is read from the server state by the route, but we send
   // the client's view as a hint so the server can short-circuit if the
