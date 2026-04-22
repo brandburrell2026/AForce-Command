@@ -33,7 +33,7 @@ import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 
 // Plans that route through real Stripe Checkout. All other plan changes stay
 // fully local (free / enterprise / team flows are out of scope for the demo).
-const STRIPE_PLAN_IDS = new Set<SubscriptionPlanId>(['athlete', 'system']);
+const STRIPE_PLAN_IDS = new Set<SubscriptionPlanId>(['athlete', 'system', 'elite']);
 
 type CategoryId = 'consumer' | 'team' | 'performance';
 

@@ -2,18 +2,24 @@
  * Store Screen — AForce Shopping.
  *
  * Lists every SKU (format × flavor) with image, blurb, price, and add-to-cart
- * controls. Recommends the user's state-aligned flavor at the top. Cart state
- * is persisted in useCartStore. Tapping the floating cart pill opens /cart.
+ * controls. Each card carries:
+ *   - one-time / subscribe toggle (Subscribe & Save 15%)
+ *   - bundle quantity selector with implied savings
+ *   - product-intelligence chips (USE CASE · PROTOCOL ROLE · RECOMMENDED FOR)
+ *   - a "Performance Bundle" badge surfacing system-tier inclusion for canisters
+ *
+ * Pricing math lives in services/productPricingService — the screen is purely
+ * presentational. The cart is keyed by sku id, so subscription / bundle
+ * variants reuse SKU ids defined in data/pricing.ts and the server catalog.
  */
 
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   Pressable,
-  Image,
   Platform,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -31,6 +37,11 @@ import {
   type StoreFormatId,
   type StoreSKU,
 } from "@/data/pricing";
+import {
+  getSubscriptionPricing,
+  getBundlesForSku,
+  type BundlePricing,
+} from "@/services/productPricingService";
 import { PRODUCT_FLAVORS } from "@/data/products";
 import { FLAVOR_VARIANTS, flavorForState } from "@/data/flavors";
 import { useCart } from "@/store/useCartStore";
@@ -55,6 +66,24 @@ function flavorImage(sku: StoreSKU, artwork: "stick" | "can" | "jar" | "bag"): u
   return set[artwork];
 }
 
+function useCaseChipColor(useCase: StoreSKU["useCase"]): string {
+  switch (useCase) {
+    case "Heat":     return Colors.states.PEAK.primary;
+    case "Recovery": return Colors.states.RECOVERING.primary;
+    case "Daily":    return Colors.states.BALANCED.primary;
+    case "Field":    return Colors.text.secondary;
+  }
+}
+
+function protocolRoleLabel(role: StoreSKU["protocolRole"]): string {
+  switch (role) {
+    case "baseline_hydration":      return "Baseline Hydration";
+    case "field_grade_hydration":   return "Field-Grade Hydration";
+    case "daily_protocol_fuel":     return "Daily Protocol Fuel";
+    case "team_bulk":               return "Team Bulk";
+  }
+}
+
 export default function StoreScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -69,11 +98,20 @@ export default function StoreScreen() {
     [recommended.flavor],
   );
 
+  // Per-SKU UI state: subscribe toggle + selected bundle (null = single).
+  const [subscribeMap, setSubscribeMap] = useState<Record<string, boolean>>({});
+  const [bundleMap, setBundleMap] = useState<Record<string, string | null>>({});
+
   const onAdd = (sku: StoreSKU) => {
     if (Platform.OS !== "web") {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
     }
-    add(sku.id, 1);
+    const bundleId = bundleMap[sku.id] ?? null;
+    if (bundleId) {
+      add(bundleId, 1);
+    } else {
+      add(sku.id, 1);
+    }
   };
 
   const topPadding = Platform.OS === "web" ? 24 : insets.top;
@@ -119,7 +157,7 @@ export default function StoreScreen() {
 
           <Text style={styles.subtitle}>
             Every flavor pairs a functional ingredient with the state your body is in. Mix
-            formats. Build your protocol.
+            formats. Subscribe and save.
           </Text>
 
           {/* Recommended-for-you banner */}
@@ -145,45 +183,260 @@ export default function StoreScreen() {
               <View key={fmt.id} style={styles.formatBlock}>
                 <Text style={styles.formatHeader}>{fmt.label.toUpperCase()}</Text>
                 <View style={layout.isWide ? styles.skuGrid : undefined}>
-                {skus.map((sku) => {
-                  const accent = flavorAccent(sku.flavor);
-                  const img = flavorImage(sku, fmt.artwork) as number | undefined;
-                  const perServing = pricePerServingCents(sku);
-                  return (
-                    <View key={sku.id} style={[styles.skuCard, layout.isWide && styles.skuCardWide]}>
-                      <View style={[styles.skuArtwork, { borderColor: `${accent}55` }]}>
-                        {img ? (
-                          <ZoomableProductImage
-                            source={img as number}
-                            style={styles.skuImg}
-                            containerStyle={{ width: '100%', height: '100%' }}
-                            resizeMode="contain"
-                            accent={accent}
-                            caption={sku.title}
-                            accessibilityLabel={`Zoom in on ${sku.title}`}
-                            testID={`store-zoom-${sku.id}`}
-                          />
-                        ) : null}
-                      </View>
-                      <View style={styles.skuBody}>
-                        <Text style={styles.skuTitle} numberOfLines={2}>
-                          {sku.title}
-                        </Text>
-                        <Text style={styles.skuFormat}>{sku.formatLabel}</Text>
-                        <Text style={styles.skuBlurb} numberOfLines={2}>
-                          {sku.blurb}
-                        </Text>
+                  {skus.map((sku) => {
+                    const accent = flavorAccent(sku.flavor);
+                    const img = flavorImage(sku, fmt.artwork) as number | undefined;
+                    const perServing = pricePerServingCents(sku);
+                    const subPricing = getSubscriptionPricing(sku);
+                    const isSubscribed = subscribeMap[sku.id] ?? false;
+                    const bundles = getBundlesForSku(sku);
+                    const selectedBundleId = bundleMap[sku.id] ?? null;
+                    const selectedBundle: BundlePricing | undefined =
+                      selectedBundleId
+                        ? bundles.find((b) => b.bundle.id === selectedBundleId)
+                        : undefined;
 
-                        <View style={styles.priceRow}>
-                          <Text style={styles.priceMain}>{formatPrice(sku.priceCents)}</Text>
-                          {sku.compareAtCents && sku.compareAtCents > sku.priceCents && (
-                            <Text style={styles.priceCompare}>{formatPrice(sku.compareAtCents)}</Text>
-                          )}
-                          <Text style={styles.pricePerServing}>
-                            · {formatPrice(perServing)}/serving
-                          </Text>
+                    // Effective unit price shown big — bundle wins over sub
+                    // wins over one-time. Bundles already imply a deeper
+                    // discount, so we don't double-apply subscribe-save on
+                    // top of bundle pricing (kept simple at the catalog
+                    // level — the server will price authoritatively).
+                    const bigPriceCents = selectedBundle
+                      ? selectedBundle.bundlePriceCents
+                      : isSubscribed
+                        ? subPricing.subscriptionCents
+                        : sku.priceCents;
+                    const compareCents = selectedBundle
+                      ? selectedBundle.singlesCents
+                      : isSubscribed
+                        ? sku.priceCents
+                        : sku.compareAtCents;
+
+                    return (
+                      <View
+                        key={sku.id}
+                        style={[
+                          styles.skuCard,
+                          layout.isWide && styles.skuCardWide,
+                          isSubscribed && { borderColor: `${accent}88` },
+                        ]}
+                      >
+                        {/* Top row: artwork + body */}
+                        <View style={styles.skuTopRow}>
+                          <View style={[styles.skuArtwork, { borderColor: `${accent}55` }]}>
+                            {img ? (
+                              <ZoomableProductImage
+                                source={img as number}
+                                style={styles.skuImg}
+                                containerStyle={{ width: '100%', height: '100%' }}
+                                resizeMode="contain"
+                                accent={accent}
+                                caption={sku.title}
+                                accessibilityLabel={`Zoom in on ${sku.title}`}
+                                testID={`store-zoom-${sku.id}`}
+                              />
+                            ) : null}
+                          </View>
+                          <View style={styles.skuBody}>
+                            {/* Badge row */}
+                            <View style={styles.badgeRow}>
+                              {sku.badge ? (
+                                <View
+                                  style={[
+                                    styles.badgeChip,
+                                    { borderColor: accent, backgroundColor: `${accent}22` },
+                                  ]}
+                                >
+                                  <Text style={[styles.badgeChipText, { color: accent }]}>
+                                    {sku.badge.toUpperCase()}
+                                  </Text>
+                                </View>
+                              ) : null}
+                              {sku.formatId === "aforce_canister" ? (
+                                <View
+                                  style={[
+                                    styles.badgeChip,
+                                    {
+                                      borderColor: Colors.guardian.primary,
+                                      backgroundColor: `${Colors.guardian.primary}22`,
+                                    },
+                                  ]}
+                                >
+                                  <Text
+                                    style={[
+                                      styles.badgeChipText,
+                                      { color: Colors.guardian.primary },
+                                    ]}
+                                  >
+                                    INCLUDED · PERFORMANCE BUNDLE
+                                  </Text>
+                                </View>
+                              ) : null}
+                            </View>
+
+                            <Text style={styles.skuTitle} numberOfLines={2}>
+                              {sku.title}
+                            </Text>
+                            <Text style={styles.skuFormat}>{sku.formatLabel}</Text>
+                            <Text style={styles.skuBlurb} numberOfLines={2}>
+                              {sku.blurb}
+                            </Text>
+
+                            {/* Intelligence row */}
+                            <View style={styles.intelRow}>
+                              <Text style={[styles.intelChip, { color: useCaseChipColor(sku.useCase) }]}>
+                                {sku.useCase.toUpperCase()}
+                              </Text>
+                              <Text style={styles.intelDivider}>·</Text>
+                              <Text style={styles.intelChip}>
+                                {protocolRoleLabel(sku.protocolRole).toUpperCase()}
+                              </Text>
+                            </View>
+                            <Text style={styles.intelRecommend}>
+                              RECOMMENDED FOR{" "}
+                              <Text style={{ color: accent }}>
+                                {sku.recommendedFor.join(" · ")}
+                              </Text>
+                            </Text>
+                          </View>
                         </View>
 
+                        {/* Subscribe / one-time toggle */}
+                        <View style={styles.toggleRow}>
+                          <Pressable
+                            onPress={() =>
+                              setSubscribeMap((m) => ({ ...m, [sku.id]: false }))
+                            }
+                            style={[
+                              styles.toggleBtn,
+                              !isSubscribed && {
+                                borderColor: accent,
+                                backgroundColor: `${accent}1A`,
+                              },
+                            ]}
+                            accessibilityRole="button"
+                          >
+                            <Text
+                              style={[
+                                styles.toggleBtnText,
+                                !isSubscribed && { color: accent },
+                              ]}
+                            >
+                              ONE-TIME
+                            </Text>
+                          </Pressable>
+                          <Pressable
+                            onPress={() =>
+                              setSubscribeMap((m) => ({ ...m, [sku.id]: true }))
+                            }
+                            style={[
+                              styles.toggleBtn,
+                              isSubscribed && {
+                                borderColor: accent,
+                                backgroundColor: `${accent}1A`,
+                              },
+                            ]}
+                            accessibilityRole="button"
+                          >
+                            <Text
+                              style={[
+                                styles.toggleBtnText,
+                                isSubscribed && { color: accent },
+                              ]}
+                            >
+                              SUBSCRIBE · {subPricing.discountLabel.toUpperCase()}
+                            </Text>
+                          </Pressable>
+                        </View>
+
+                        {/* Bundle selector (if any) */}
+                        {bundles.length > 0 ? (
+                          <View style={styles.bundleRow}>
+                            <Pressable
+                              onPress={() =>
+                                setBundleMap((m) => ({ ...m, [sku.id]: null }))
+                              }
+                              style={[
+                                styles.bundleChip,
+                                selectedBundleId === null && {
+                                  borderColor: accent,
+                                  backgroundColor: `${accent}1A`,
+                                },
+                              ]}
+                              accessibilityRole="button"
+                            >
+                              <Text
+                                style={[
+                                  styles.bundleChipText,
+                                  selectedBundleId === null && { color: accent },
+                                ]}
+                              >
+                                SINGLE
+                              </Text>
+                            </Pressable>
+                            {bundles.map((b) => {
+                              const active = selectedBundleId === b.bundle.id;
+                              return (
+                                <Pressable
+                                  key={b.bundle.id}
+                                  onPress={() =>
+                                    setBundleMap((m) => ({
+                                      ...m,
+                                      [sku.id]: b.bundle.id,
+                                    }))
+                                  }
+                                  style={[
+                                    styles.bundleChip,
+                                    active && {
+                                      borderColor: accent,
+                                      backgroundColor: `${accent}1A`,
+                                    },
+                                  ]}
+                                  accessibilityRole="button"
+                                  accessibilityLabel={`Select ${b.bundle.label} · ${b.savingsLabel}`}
+                                >
+                                  <Text
+                                    style={[
+                                      styles.bundleChipText,
+                                      active && { color: accent },
+                                    ]}
+                                  >
+                                    {b.bundle.label.toUpperCase()}
+                                  </Text>
+                                  {b.savingsCents > 0 ? (
+                                    <Text
+                                      style={[
+                                        styles.bundleChipSavings,
+                                        active && { color: accent },
+                                      ]}
+                                    >
+                                      {b.savingsLabel}
+                                    </Text>
+                                  ) : null}
+                                </Pressable>
+                              );
+                            })}
+                          </View>
+                        ) : null}
+
+                        {/* Price row */}
+                        <View style={styles.priceRow}>
+                          <Text style={styles.priceMain}>{formatPrice(bigPriceCents)}</Text>
+                          {compareCents != null && compareCents > bigPriceCents ? (
+                            <Text style={styles.priceCompare}>{formatPrice(compareCents)}</Text>
+                          ) : null}
+                          {!selectedBundle ? (
+                            <Text style={styles.pricePerServing}>
+                              · {formatPrice(perServing)}/serving
+                            </Text>
+                          ) : (
+                            <Text style={styles.pricePerServing}>
+                              · {formatPrice(selectedBundle.effectiveUnitCents)}/pack
+                            </Text>
+                          )}
+                        </View>
+
+                        {/* CTA */}
                         <Pressable
                           onPress={() => onAdd(sku)}
                           style={({ pressed }) => [
@@ -192,15 +445,23 @@ export default function StoreScreen() {
                             pressed && { opacity: 0.85 },
                           ]}
                           accessibilityRole="button"
-                          accessibilityLabel={`Add ${sku.title} to cart`}
+                          accessibilityLabel={`Add ${sku.title} to cart${
+                            isSubscribed ? " (subscription)" : ""
+                          }${selectedBundle ? ` (${selectedBundle.bundle.label})` : ""}`}
+                          testID={`store-add-${sku.id}`}
                         >
                           <Feather name="plus" size={14} color={accent} />
-                          <Text style={[styles.addBtnText, { color: accent }]}>ADD TO CART</Text>
+                          <Text style={[styles.addBtnText, { color: accent }]}>
+                            {isSubscribed
+                              ? `SUBSCRIBE & ${subPricing.discountLabel.toUpperCase()}`
+                              : selectedBundle
+                                ? `ADD ${selectedBundle.bundle.label.toUpperCase()}`
+                                : "ADD TO CART"}
+                          </Text>
                         </Pressable>
                       </View>
-                    </View>
-                  );
-                })}
+                    );
+                  })}
                 </View>
               </View>
             );
@@ -208,7 +469,7 @@ export default function StoreScreen() {
 
           <View style={styles.legalBlock}>
             <Text style={styles.legalText}>
-              Prices in USD. Subscriptions and recurring orders managed under{" "}
+              Prices in USD. Subscriptions billed monthly until canceled. Manage under{" "}
               <Text
                 style={styles.legalLink}
                 onPress={() => router.push("/subscription")}
@@ -227,11 +488,6 @@ export default function StoreScreen() {
             style={[
               styles.cartPill,
               { bottom: (Platform.OS === "web" ? 100 : insets.bottom + 100) },
-              // On wide layouts the scroll content is centered/capped,
-              // so the absolutely-positioned pill needs to follow the
-              // same column instead of spanning the full viewport.
-              // `left:'50%'` + negative marginLeft is the RN idiom for
-              // centering an absolute element by its own width.
               layout.isWide && {
                 left: "50%",
                 right: undefined,
@@ -301,27 +557,17 @@ const styles = StyleSheet.create({
     color: Colors.text.muted, marginBottom: 10,
   },
 
-  // Two-column SKU grid — used only on Fold-open / tablet so SKU
-  // cards stop wasting horizontal real estate when the screen is
-  // wide. Each card flexBasis ~48% gives a clean 2-up grid that
-  // could later widen to 3 on true tablets.
-  skuGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 10,
-  },
-  skuCardWide: {
-    flexBasis: "48%",
-    flexGrow: 1,
-    marginBottom: 0,
-  },
+  skuGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
+  skuCardWide: { flexBasis: "48%", flexGrow: 1, marginBottom: 0 },
 
   skuCard: {
-    flexDirection: "row", gap: 12, padding: 12,
+    padding: 12,
     borderRadius: 14, marginBottom: 10,
     borderWidth: 1, borderColor: Colors.border.medium,
     backgroundColor: Colors.fill.light,
+    gap: 10,
   },
+  skuTopRow: { flexDirection: "row", gap: 12 },
   skuArtwork: {
     width: 86, height: 110, borderRadius: 10,
     alignItems: "center", justifyContent: "center",
@@ -331,14 +577,58 @@ const styles = StyleSheet.create({
   },
   skuImg: { width: 70, height: 100 },
   skuBody: { flex: 1, gap: 4 },
+
+  badgeRow: { flexDirection: "row", flexWrap: "wrap", gap: 6, marginBottom: 4 },
+  badgeChip: {
+    paddingHorizontal: 8, paddingVertical: 3,
+    borderRadius: 6, borderWidth: 1,
+  },
+  badgeChipText: { fontSize: 9, fontWeight: "800", letterSpacing: 0.9 },
+
   skuTitle: { fontSize: 15, fontWeight: "700", color: Colors.text.primary },
   skuFormat: { fontSize: 11, color: Colors.text.muted, letterSpacing: 0.4 },
   skuBlurb: { fontSize: 12, color: Colors.text.secondary, lineHeight: 17, marginTop: 2 },
+
+  intelRow: { flexDirection: "row", alignItems: "center", gap: 6, marginTop: 6, flexWrap: "wrap" },
+  intelChip: { fontSize: 9, fontWeight: "700", letterSpacing: 1, color: Colors.text.secondary },
+  intelDivider: { fontSize: 10, color: Colors.text.muted },
+  intelRecommend: { fontSize: 9, fontWeight: "700", letterSpacing: 1, color: Colors.text.muted, marginTop: 4 },
+
+  toggleRow: { flexDirection: "row", gap: 6 },
+  toggleBtn: {
+    flex: 1,
+    paddingVertical: 8, paddingHorizontal: 10,
+    borderRadius: 8, borderWidth: 1,
+    borderColor: Colors.border.medium,
+    backgroundColor: "rgba(255,255,255,0.02)",
+    alignItems: "center", justifyContent: "center",
+  },
+  toggleBtnText: {
+    fontSize: 10, fontWeight: "700", letterSpacing: 1,
+    color: Colors.text.muted,
+  },
+
+  bundleRow: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
+  bundleChip: {
+    flexDirection: "row", alignItems: "center", gap: 6,
+    paddingHorizontal: 9, paddingVertical: 6,
+    borderRadius: 8, borderWidth: 1,
+    borderColor: Colors.border.medium,
+    backgroundColor: "rgba(255,255,255,0.02)",
+  },
+  bundleChipText: {
+    fontSize: 10, fontWeight: "700", letterSpacing: 0.8,
+    color: Colors.text.secondary,
+  },
+  bundleChipSavings: {
+    fontSize: 9, fontWeight: "700", color: Colors.text.muted,
+  },
+
   priceRow: {
     flexDirection: "row", alignItems: "baseline", gap: 6,
-    marginTop: 6, flexWrap: "wrap",
+    flexWrap: "wrap",
   },
-  priceMain: { fontSize: 17, fontWeight: "700", color: Colors.text.primary },
+  priceMain: { fontSize: 19, fontWeight: "700", color: Colors.text.primary },
   priceCompare: {
     fontSize: 12, color: Colors.text.muted,
     textDecorationLine: "line-through",
@@ -346,10 +636,10 @@ const styles = StyleSheet.create({
   pricePerServing: { fontSize: 11, color: Colors.text.muted },
   addBtn: {
     flexDirection: "row", alignItems: "center", gap: 6,
-    paddingHorizontal: 12, paddingVertical: 9,
+    paddingHorizontal: 12, paddingVertical: 10,
     borderRadius: 10, borderWidth: 1,
-    alignSelf: "flex-start",
-    marginTop: 8,
+    alignSelf: "stretch",
+    justifyContent: "center",
   },
   addBtnText: { fontSize: 11, fontWeight: "700", letterSpacing: 1 },
 

@@ -34,18 +34,26 @@ interface PlanCatalogEntry {
   description: string;
 }
 
-// Mirror of the consumer plans on the client. Kept tiny on purpose — Stripe
-// is only enabled for the consumer tier upgrade demo today.
-const PLAN_CATALOG: Record<string, PlanCatalogEntry> = {
+// Mirror of the consumer plans on the client. Stripe-eligible consumer
+// tiers only — `core` is the always-on entry tier and is sold as a
+// freemium upgrade target rather than a Stripe checkout. Keep prices in
+// lockstep with `artifacts/aforce-os/data/subscriptionPlans.ts` —
+// `subscriptionPlanParity.test.ts` enforces this.
+export const PLAN_CATALOG: Record<string, PlanCatalogEntry> = {
   athlete: {
-    amountCents: 1900,
+    amountCents: 1999,
     name: 'AForce Athlete',
     description: 'Train and perform with precision.',
   },
   system: {
-    amountCents: 4900,
-    name: 'AForce System',
-    description: 'Full performance control — software + product.',
+    amountCents: 5999,
+    name: 'Performance Bundle',
+    description: 'Full performance control — Athlete tier + monthly product drop.',
+  },
+  elite: {
+    amountCents: 9900,
+    name: 'AForce Elite',
+    description: 'Guardian Mode + premium analytics + full monthly bundle.',
   },
 };
 

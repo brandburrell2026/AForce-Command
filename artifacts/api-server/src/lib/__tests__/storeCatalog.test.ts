@@ -19,7 +19,10 @@ import {
 describe('storeCatalog — catalog shape', () => {
   it('every entry has a non-empty name and a positive integer price', () => {
     for (const [skuId, entry] of Object.entries(STORE_CATALOG)) {
-      expect(skuId.startsWith('sku_'), `SKU id "${skuId}" must start with sku_`).toBe(true);
+      expect(
+        skuId.startsWith('sku_') || skuId.startsWith('bundle_'),
+        `catalog id "${skuId}" must start with sku_ or bundle_`,
+      ).toBe(true);
       expect(entry.name.length).toBeGreaterThan(0);
       expect(Number.isInteger(entry.unitAmountCents)).toBe(true);
       expect(entry.unitAmountCents).toBeGreaterThan(0);
@@ -93,16 +96,16 @@ describe('priceCart — totals', () => {
   });
 
   it('mixed multi-line cart sums correctly across SKUs', () => {
-    // 1 berry stick ($34.99) + 1 watermelon canister ($54.99) = $89.98
+    // 1 berry stick ($34.99) + 1 watermelon canister ($59.99) = $94.98
     const priced = priceCart([
       { skuId: 'sku_stick_berry', qty: 1 },
       { skuId: 'sku_can_watermelon', qty: 1 },
     ]);
-    expect(priced.subtotalCents).toBe(3499 + 5499);
+    expect(priced.subtotalCents).toBe(3499 + 5999);
     expect(priced.shippingCents).toBe(0); // over $50
     expect(priced.lines).toHaveLength(2);
     expect(priced.lines[0]!.lineSubtotalCents).toBe(3499);
-    expect(priced.lines[1]!.lineSubtotalCents).toBe(5499);
+    expect(priced.lines[1]!.lineSubtotalCents).toBe(5999);
   });
 
   it('qty multiplier is applied per line', () => {

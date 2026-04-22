@@ -16,7 +16,38 @@ import React, {
 } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-import { findSku, type StoreSKU } from "../data/pricing";
+import {
+  findSku,
+  findBundle,
+  STORE_SKUS,
+  type StoreSKU,
+  type StoreBundle,
+} from "../data/pricing";
+
+/**
+ * Synthesize a StoreSKU-shaped record for a bundle line so the cart UI
+ * (which renders `line.sku.title`, image, etc.) keeps working without a
+ * second code path. The display flavor inherits from the user's
+ * recommended flavor would be ideal, but the cart store has no app-state
+ * dependency by design — so we deterministically pick the first SKU of
+ * the bundle's format. Bundle pricing is authoritative on the server;
+ * the synthesized priceCents is just for client-side subtotal display.
+ */
+function bundleAsSku(bundle: StoreBundle): StoreSKU | null {
+  const repr = STORE_SKUS.find((s) => s.formatId === bundle.formatId);
+  if (!repr) return null;
+  return {
+    ...repr,
+    id: bundle.id,
+    title: `${repr.title} · ${bundle.label}`,
+    formatLabel: `${repr.formatLabel} · ${bundle.label}`,
+    priceCents: bundle.priceCents,
+    subscriptionPriceCents: bundle.priceCents,
+    compareAtCents: repr.priceCents * bundle.multiplier,
+    blurb: `Bundle of ${bundle.multiplier} packs.`,
+    badge: bundle.badge,
+  };
+}
 
 const STORAGE_KEY = "aforce.cart.v1";
 const MAX_QTY_PER_LINE = 99;
@@ -164,7 +195,16 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const resolvedLines = useMemo<CartLineWithSku[]>(() => {
     return state.lines
       .map((line) => {
-        const sku = findSku(line.skuId);
+        // Try atomic SKU first, then fall back to a bundle resolution
+        // that synthesizes a SKU-shaped record so the cart UI doesn't
+        // need a second render path.
+        const directSku = findSku(line.skuId);
+        const sku =
+          directSku ??
+          (() => {
+            const b = findBundle(line.skuId);
+            return b ? bundleAsSku(b) : null;
+          })();
         if (!sku) return null;
         return {
           ...line,

@@ -71,7 +71,14 @@ I prefer iterative development, with frequent, small updates. Ask before making 
     - Robust validation for SKUs, quantities, and return URLs.
     - Open-redirect guard requiring return URLs to match the inbound request's host for `http(s)` schemes.
     - Server-side checkout finalization by retrieving Stripe session status to verify `payment_status` before confirming orders/subscriptions.
-    - `catalogParity.test.ts` ensures client and server SKU catalogs are in sync regarding existence and pricing.
+    - `catalogParity.test.ts` ensures client and server SKU catalogs are in sync regarding existence and pricing — guards both atomic SKUs (`STORE_SKUS`) and the flavor-agnostic bundles (`STORE_BUNDLES`).
+
+### Store + Subscription System (`artifacts/aforce-os/data/pricing.ts`, `data/subscriptionPlans.ts`, `services/productPricingService.ts`, `screens/StoreScreen.tsx`)
+- **SKU pricing:** Sticks $34.99 (12 ct), RTD 12-pack $47.99, Canister 30 srv $59.99. Each SKU carries a separate `subscriptionPriceCents` (~15% off) plus product intelligence (`useCase`, `protocolRole`, `recommendedFor: PerformanceLevel[]`, optional `badge`).
+- **Bundles:** Per-format flavor-agnostic bundles (`STORE_BUNDLES`) — sticks 3pk $89.99 / 6pk $169.99, RTD 24pk $89.99, canister 2pk $109.99 / 3pk $149.99. Bundles are mirrored on the server catalog and priced authoritatively at checkout.
+- **`services/productPricingService.ts`** centralizes Subscribe-and-Save math (`getSubscriptionPricing`), bundle savings (`getBundlePricing`, `getBundlesForSku`), and `recommendedSkuFor(state, formatId)` lookup — UI never re-derives discount logic.
+- **Consumer subscription tiers (4):** `core` $9.99/mo, `athlete` $19.99/mo, `system` "Performance Bundle" $59.99/mo (flagship — Athlete tier + monthly product drop of 1 canister OR 2 stick packs at member pricing), and `elite` $99/mo (adds Guardian Mode for individuals, premium analytics, full monthly bundle, early-access, concierge). Plan id `system` is intentionally unchanged so existing Stripe wiring, `subscriptionGate` feature requirements, and `STRIPE_PLAN_IDS` keep working — only the display name + price + allotments evolved.
+- **StoreScreen UI** preserves the dark-luxury card layout while adding: badge chips (Best Value / Most Popular / Included · Performance Bundle), product-intelligence row (USE CASE · PROTOCOL ROLE · RECOMMENDED FOR), one-time/subscribe toggle, bundle quantity selector with savings badge, and a "Subscribe & Save N%" CTA. Cart wiring is unchanged — bundle ids reuse the cart's existing skuId keying.
 
 ## Architecture Diagram (AForce OS)
 The mobile application structure is organized as follows:

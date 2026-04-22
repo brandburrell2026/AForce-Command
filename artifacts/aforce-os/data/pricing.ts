@@ -63,7 +63,7 @@ export interface StoreSKU {
   /** Performance states this SKU is the recommended tool for. */
   recommendedFor: PerformanceLevel[];
   /** Optional emphasis chip ("Best Value", "Most Popular", etc). */
-  badge?: "Best Value" | "Most Popular" | "Performance Bundle";
+  badge?: "Best Value" | "Most Popular" | "Performance Bundle" | "Bulk";
 }
 
 /**

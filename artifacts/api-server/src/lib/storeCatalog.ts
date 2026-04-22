@@ -24,15 +24,23 @@ export const STORE_CATALOG: Record<string, ServerSkuEntry> = {
   sku_stick_watermelon:   { name: 'Watermelon Surge + Chlorella · 12 ct', unitAmountCents: 3499 },
   sku_stick_soursop:      { name: 'Soursop Edge + Seamoss · 12 ct',   unitAmountCents: 3499 },
 
-  // RTD cans — $44.99 / 12-pack
-  sku_rtd_berry_12:       { name: 'Berry Blast RTD · 12-pack',        unitAmountCents: 4499 },
-  sku_rtd_watermelon_12:  { name: 'Watermelon Surge RTD · 12-pack',   unitAmountCents: 4499 },
-  sku_rtd_soursop_12:     { name: 'Soursop Edge RTD · 12-pack',       unitAmountCents: 4499 },
+  // RTD cans — $47.99 / 12-pack
+  sku_rtd_berry_12:       { name: 'Berry Blast RTD · 12-pack',        unitAmountCents: 4799 },
+  sku_rtd_watermelon_12:  { name: 'Watermelon Surge RTD · 12-pack',   unitAmountCents: 4799 },
+  sku_rtd_soursop_12:     { name: 'Soursop Edge RTD · 12-pack',       unitAmountCents: 4799 },
 
-  // Canisters — $54.99 / 30 servings
-  sku_can_berry:          { name: 'Berry Blast Canister · 30 srv',    unitAmountCents: 5499 },
-  sku_can_watermelon:     { name: 'Watermelon Surge Canister · 30 srv', unitAmountCents: 5499 },
-  sku_can_soursop:        { name: 'Soursop Edge Canister · 30 srv',   unitAmountCents: 5499 },
+  // Canisters — $59.99 / 30 servings
+  sku_can_berry:          { name: 'Berry Blast Canister · 30 srv',    unitAmountCents: 5999 },
+  sku_can_watermelon:     { name: 'Watermelon Surge Canister · 30 srv', unitAmountCents: 5999 },
+  sku_can_soursop:        { name: 'Soursop Edge Canister · 30 srv',   unitAmountCents: 5999 },
+
+  // ─── Bundles (flavor-agnostic at the catalog level — flavor mix is
+  // chosen at fulfillment by the customer's profile or split selector). ──
+  bundle_stick_3:  { name: 'Hydration Sticks · 3-Pack Bundle',   unitAmountCents: 8999 },
+  bundle_stick_6:  { name: 'Hydration Sticks · 6-Pack Bulk',     unitAmountCents: 16999 },
+  bundle_rtd_24:   { name: 'RTD · 24-Pack Bundle',               unitAmountCents: 8999 },
+  bundle_can_2:    { name: 'Canister · 2-Pack Bundle',           unitAmountCents: 10999 },
+  bundle_can_3:    { name: 'Canister · 3-Pack Bundle',           unitAmountCents: 14999 },
 
   // FIELD BAG / bulk bag intentionally removed for now — re-add alongside
   // the matching client SKU in artifacts/aforce-os/data/pricing.ts.
