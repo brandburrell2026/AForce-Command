@@ -56,9 +56,11 @@
     "zod-validation-error": "^3.4.0"
   },
   "dependencies": {
+    "@kingstinct/react-native-healthkit": "^14.0.0",
     "expo-camera": "~17.0.10",
     "expo-sharing": "^55.0.18",
     "expo-speech": "~14.0.8",
+    "react-native-nitro-modules": "^0.35.4",
     "react-native-view-shot": "^4.0.3"
   }
 }

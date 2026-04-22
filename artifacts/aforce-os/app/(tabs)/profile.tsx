@@ -18,6 +18,12 @@ import { Icon } from '@/components/Icon';
 import { Colors } from '@/theme/colors';
 import { mockUserProfile } from '@/data/mockData';
 import { HEALTH_PROVIDERS, type HealthProviderId } from '@/data/healthProviders';
+import {
+  isAppleHealthSupported,
+  requestAppleHealthPermissions,
+  fetchAppleHealthSnapshot,
+  type AppleHealthSnapshot,
+} from '@/services/appleHealth';
 import { useAppStore } from '@/store/useAppStore';
 import { DEFAULT_FLAGS, DEMO_ALL_ON_FLAGS } from '@/featureFlags/flags';
 import type { FeatureFlags } from '@/types';
@@ -50,13 +56,46 @@ export default function ProfileScreen() {
   const [linkedProviders, setLinkedProviders] = useState<Set<HealthProviderId>>(
     () => new Set(),
   );
+  // Latest Apple Health snapshot — null until the user grants
+  // permission AND the bridge actually returns data. Rendered in a
+  // small "Live from Apple Health" panel so the user can see the
+  // numbers AForce is pulling.
+  const [appleSnapshot, setAppleSnapshot] = useState<AppleHealthSnapshot | null>(null);
 
-  const toggleProvider = (id: HealthProviderId, name: string) => {
+  const refreshAppleSnapshot = React.useCallback(async () => {
+    if (!isAppleHealthSupported()) return;
+    const snap = await fetchAppleHealthSnapshot();
+    setAppleSnapshot(snap);
+  }, []);
+
+  const connectAppleHealth = async (): Promise<boolean> => {
+    if (!isAppleHealthSupported()) {
+      Alert.alert(
+        'Apple Health needs a native iOS build',
+        "Apple Health uses HealthKit, which only works in a native iOS build of AForce — not in the web preview or on Android. Build with EAS / a dev client on iPhone, then tap Connect again.",
+      );
+      return false;
+    }
+    const granted = await requestAppleHealthPermissions();
+    if (!granted) {
+      Alert.alert(
+        'Apple Health permission not granted',
+        'AForce will stay disconnected until you allow access. Open Settings → Health → Data Access & Devices → AForce OS to change this later.',
+      );
+      return false;
+    }
+    await refreshAppleSnapshot();
+    return true;
+  };
+
+  const toggleProvider = async (id: HealthProviderId, name: string) => {
     if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
     if (linkedProviders.has(id)) {
       Alert.alert(
         `Disconnect ${name}?`,
-        'AForce will stop pulling biometrics from this source.',
+        id === 'apple_health'
+          ? "AForce will stop pulling Apple Health data. Permission stays granted in iOS Settings until you revoke it there."
+          : 'AForce will stop pulling biometrics from this source.',
         [
           { text: 'Cancel', style: 'cancel' },
           {
@@ -68,12 +107,26 @@ export default function ProfileScreen() {
                 next.delete(id);
                 return next;
               });
+              if (id === 'apple_health') setAppleSnapshot(null);
             },
           },
         ],
       );
       return;
     }
+
+    if (id === 'apple_health') {
+      const ok = await connectAppleHealth();
+      if (ok) {
+        setLinkedProviders((prev) => {
+          const next = new Set(prev);
+          next.add(id);
+          return next;
+        });
+      }
+      return;
+    }
+
     Alert.alert(
       `Connect ${name}`,
       `You'll be redirected to ${name} to authorize AForce. Mocked in this build.`,
@@ -272,6 +325,58 @@ export default function ProfileScreen() {
                             </View>
                           )}
                         </Pressable>
+                        {p.id === 'apple_health' && linked && appleSnapshot && (
+                          <View style={styles.snapshotBlock}>
+                            <View style={styles.snapshotHeader}>
+                              <Text style={styles.snapshotLabel}>LIVE FROM APPLE HEALTH</Text>
+                              <Pressable
+                                onPress={() => refreshAppleSnapshot()}
+                                hitSlop={10}
+                                accessibilityLabel="Refresh Apple Health"
+                              >
+                                <Feather
+                                  name="refresh-cw"
+                                  size={12}
+                                  color={Colors.text.secondary}
+                                />
+                              </Pressable>
+                            </View>
+                            <View style={styles.snapshotGrid}>
+                              <SnapshotCell
+                                label="Resting HR"
+                                value={
+                                  appleSnapshot.restingHeartRate != null
+                                    ? `${Math.round(appleSnapshot.restingHeartRate)} bpm`
+                                    : '—'
+                                }
+                              />
+                              <SnapshotCell
+                                label="HRV"
+                                value={
+                                  appleSnapshot.hrvSdnn != null
+                                    ? `${Math.round(appleSnapshot.hrvSdnn)} ms`
+                                    : '—'
+                                }
+                              />
+                              <SnapshotCell
+                                label="Steps"
+                                value={
+                                  appleSnapshot.stepsToday != null
+                                    ? Math.round(appleSnapshot.stepsToday).toLocaleString()
+                                    : '—'
+                                }
+                              />
+                              <SnapshotCell
+                                label="Sleep"
+                                value={
+                                  appleSnapshot.sleepHoursLastNight != null
+                                    ? `${appleSnapshot.sleepHoursLastNight.toFixed(1)} h`
+                                    : '—'
+                                }
+                              />
+                            </View>
+                          </View>
+                        )}
                         {i < HEALTH_PROVIDERS.length - 1 && <Divider />}
                       </React.Fragment>
                     );
@@ -386,6 +491,15 @@ function SectionHeader({ label, hint }: { label: string; hint?: string }) {
     <View style={styles.sectionHeader}>
       <Text style={styles.sectionLabel}>{label}</Text>
       {hint && <Text style={styles.sectionHint}>{hint}</Text>}
+    </View>
+  );
+}
+
+function SnapshotCell({ label, value }: { label: string; value: string }) {
+  return (
+    <View style={styles.snapshotCell}>
+      <Text style={styles.snapshotCellLabel}>{label}</Text>
+      <Text style={styles.snapshotCellValue}>{value}</Text>
     </View>
   );
 }
@@ -589,6 +703,32 @@ const styles = StyleSheet.create({
   },
   connectPillText: {
     fontSize: 10, fontFamily: 'Inter_700Bold', letterSpacing: 1.4,
+  },
+  snapshotBlock: {
+    marginHorizontal: 16, marginBottom: 12,
+    padding: 12, borderRadius: 12,
+    backgroundColor: 'rgba(255,45,85,0.06)',
+    borderWidth: 1, borderColor: 'rgba(255,45,85,0.18)',
+    gap: 10,
+  },
+  snapshotHeader: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+  },
+  snapshotLabel: {
+    fontSize: 10, fontFamily: 'Inter_700Bold',
+    letterSpacing: 1.4, color: Colors.text.secondary,
+  },
+  snapshotGrid: {
+    flexDirection: 'row', flexWrap: 'wrap',
+  },
+  snapshotCell: {
+    width: '50%', paddingVertical: 4, gap: 2,
+  },
+  snapshotCellLabel: {
+    fontSize: 11, fontFamily: 'Inter_500Medium', color: Colors.text.muted,
+  },
+  snapshotCellValue: {
+    fontSize: 16, fontFamily: 'Inter_700Bold', color: Colors.text.primary,
   },
   flagRow: {
     flexDirection: 'row', alignItems: 'center', gap: 12,
