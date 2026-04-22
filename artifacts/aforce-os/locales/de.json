@@ -24,6 +24,9 @@
     "profile": "Profil"
   },
   "home": {
+    "welcome": "Willkommen, {{name}}",
+    "subtitle_eyebrow": "HYDRATIONS-LEITSTAND",
+    "subtitle_title": "AForce OS",
     "snooze": "20 Minuten verschieben",
     "snoozed": "Verschoben — Nächster Hinweis in 20 Min",
     "cta_become_aforce": "AFORCE AKTIVIEREN",

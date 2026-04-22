@@ -234,22 +234,6 @@ export default function HomeScreen() {
   // the two layouts visually identical at the component level — only
   // their arrangement changes.
 
-  // Above-fold = ambient context only. The orb is the centerpiece and
-  // should land in the user's first glance — so we strip the title block
-  // (HYDRATION CONTROL CENTER / AForce OS / state pill / share) out of
-  // topSection and reattach it directly under the orb as identitySection.
-  const topSection = (
-    <>
-      <LocalTimeBar />
-
-      <LiveStatusStrip
-        performanceState={performanceState}
-        unitsToday={userState.unitsConsumedToday}
-        dailyTarget={userState.dailyTarget}
-      />
-    </>
-  );
-
   // Heat Guard lives at the bottom alongside Phantom signals — both are
   // ambient environmental/biometric readouts, so they belong in the same
   // "signals" zone rather than crowding above the orb.
@@ -260,11 +244,13 @@ export default function HomeScreen() {
       </View>
     ) : null;
 
+  // identitySection MUST be declared before topSection because topSection
+  // embeds it. Using `const` (not function expression) means no hoisting.
   const identitySection = (
     <View style={styles.headerRow}>
       <View style={{ flex: 1 }}>
-        <Text style={styles.eyebrow}>HYDRATION CONTROL CENTER</Text>
-        <Text style={styles.title}>AForce OS</Text>
+        <Text style={styles.eyebrow}>{t('home.subtitle_eyebrow')}</Text>
+        <Text style={styles.title}>{t('home.subtitle_title')}</Text>
       </View>
       <TouchableOpacity
         onPress={() => {
@@ -283,6 +269,26 @@ export default function HomeScreen() {
         <Text style={[styles.stateLabel, { color: stateColor }]}>{performanceState.level}</Text>
       </View>
     </View>
+  );
+
+  // Top of screen: personal greeting → product identity → ambient context
+  // (time, status strip). Greeting name is hardcoded for the demo build.
+  const topSection = (
+    <>
+      <View style={styles.welcomeBlock}>
+        <Text style={styles.welcomeText}>{t('home.welcome', { name: 'Brandon' })}</Text>
+      </View>
+
+      {identitySection}
+
+      <LocalTimeBar />
+
+      <LiveStatusStrip
+        performanceState={performanceState}
+        unitsToday={userState.unitsConsumedToday}
+        dailyTarget={userState.dailyTarget}
+      />
+    </>
   );
 
   const orbSection = (
@@ -501,7 +507,6 @@ export default function HomeScreen() {
             <View style={styles.twoCol} testID="home-two-col">
               <View style={[styles.col, styles.colLeft]}>
                 {orbSection}
-                {identitySection}
                 {commandSection}
                 <View style={styles.spacerLg} />
                 {ctaSection}
@@ -515,7 +520,6 @@ export default function HomeScreen() {
             // device-specific tuning isn't disturbed.
             <>
               {orbSection}
-              {identitySection}
               {commandSection}
               <View style={styles.spacer} />
               {actionRow}
@@ -616,6 +620,17 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: Colors.background.primary },
   scroll: { flex: 1 },
   content: { gap: 0 },
+  welcomeBlock: {
+    paddingHorizontal: 20,
+    paddingTop: 4,
+    paddingBottom: 2,
+  },
+  welcomeText: {
+    fontSize: 13,
+    fontFamily: 'Inter_500Medium',
+    color: Colors.text.secondary,
+    letterSpacing: 0.2,
+  },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'flex-end',

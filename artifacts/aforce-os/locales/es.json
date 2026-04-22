@@ -24,6 +24,9 @@
     "profile": "Perfil"
   },
   "home": {
+    "welcome": "Bienvenido, {{name}}",
+    "subtitle_eyebrow": "CENTRO DE CONTROL DE HIDRATACIÓN",
+    "subtitle_title": "AForce OS",
     "snooze": "Posponer 20 minutos",
     "snoozed": "Pospuesto — Próxima alerta en 20 min",
     "cta_become_aforce": "ACTIVAR AFORCE",

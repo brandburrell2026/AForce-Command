@@ -24,6 +24,9 @@
     "profile": "Profile"
   },
   "home": {
+    "welcome": "Welcome, {{name}}",
+    "subtitle_eyebrow": "HYDRATION CONTROL CENTER",
+    "subtitle_title": "AForce OS",
     "cta_become_aforce": "BECOME AFORCE",
     "cta_log_intake": "LOG INTAKE",
     "snooze": "Snooze 20 minutes",

@@ -24,6 +24,9 @@
     "profile": "Profilo"
   },
   "home": {
+    "welcome": "Benvenuto, {{name}}",
+    "subtitle_eyebrow": "CENTRO DI CONTROLLO IDRATAZIONE",
+    "subtitle_title": "AForce OS",
     "snooze": "Posticipa 20 minuti",
     "snoozed": "Posticipato — Prossimo avviso fra 20 min",
     "cta_become_aforce": "ATTIVA AFORCE",
