@@ -12,6 +12,7 @@ export default defineConfig({
   test: {
     include: [
       'artifacts/aforce-os/services/__tests__/**/*.test.ts',
+      'artifacts/aforce-os/utils/__tests__/**/*.test.ts',
       'artifacts/api-server/src/**/__tests__/**/*.test.ts',
       'artifacts/api-server/src/lib/__tests__/**/*.test.ts',
     ],

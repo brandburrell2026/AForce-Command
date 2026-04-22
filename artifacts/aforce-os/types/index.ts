@@ -93,6 +93,45 @@ export interface UserState {
    * resource bundle and the BCP-47 locale used for TTS.
    */
   language?: 'en' | 'es' | 'fr' | 'de' | 'pt' | 'it';
+  /**
+   * Social Mode — real-time alcohol mitigation + hydration control.
+   * When `active` is true the engine swaps in the social coach command
+   * set, applies an alcohol decay multiplier, and exposes a Hangover
+   * Risk score in `engineOutput`. When inactive but `endedAt` is set
+   * within the last 8h, the engine sits in Recovery Mode.
+   */
+  socialMode?: SocialModeState;
+}
+
+// ─── Social Mode ──────────────────────────────────────────────────────────────
+export type DrinkType = 'beer' | 'wine' | 'cocktail' | 'liquor' | 'custom';
+
+export type HangoverRiskLevel = 'LOW' | 'MODERATE' | 'HIGH' | 'CRITICAL';
+
+export interface DrinkLog {
+  id: string;
+  type: DrinkType;
+  loggedAt: Date;
+  /** Hydration decay multiplier applied while this drink is in the active window. */
+  multiplier: number;
+  /** Did the user complete the post-drink hydration command? null = still pending. */
+  hydrated: boolean | null;
+}
+
+export interface SocialModeState {
+  active: boolean;
+  startedAt: Date;
+  drinks: DrinkLog[];
+  lastHydrationPromptAt?: Date;
+  /** Set when user taps "End Night". Recovery window = `endedAt` + 8h. */
+  endedAt?: Date;
+}
+
+export interface HangoverRisk {
+  level: HangoverRiskLevel;
+  /** 0–100 numeric score, drives the badge gradient + voice urgency. */
+  score: number;
+  reasons: string[];
 }
 
 export interface AppleHealthInputs {
@@ -177,6 +216,18 @@ export interface ScoreEngineOutput {
   breakdown: ScoreContribution[];
   /** Continuous decay model output (per spec). */
   prediction: ScorePrediction;
+  /**
+   * Social Mode rollup. `null` when neither active nor in recovery
+   * window — the UI hides every social surface in that case.
+   */
+  social: {
+    active: boolean;
+    inRecoveryWindow: boolean;
+    drinkCount: number;
+    hangoverRisk: HangoverRisk;
+    /** Alcohol decay multiplier currently applied (1 when none active). */
+    alcoholMultiplier: number;
+  } | null;
 }
 
 export interface ScorePrediction {

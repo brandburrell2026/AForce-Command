@@ -29,8 +29,10 @@ import type {
   PulseWaveBehavior,
   PulseColorMode,
   ScorePrediction,
+  SocialModeState,
 } from '../types';
 import { Colors } from '../theme/colors';
+import { calculateHangoverRisk, activeDecayMultiplier } from './hangoverRisk';
 
 function resolveState(score: number): PerformanceLevel {
   if (score >= 90) return 'PEAK';
@@ -167,6 +169,14 @@ function computeDecayPerMinute(state: UserState): number {
   if (!state.isAwake) perMin *= 0.5;
   // Clutch mode multiplier (T3): ×1.3 while clutch_access_enabled is on.
   if (state.clutchActive) perMin *= 1.3;
+  // Social Mode: alcohol amplifies hydration decay. We only fold the
+  // multiplier in when social mode is currently *active* — once the
+  // user ends the night the in-window drinks have already aged out
+  // anyway, and Recovery Mode handles the post-drink response via the
+  // command override (not via decay shaping).
+  if (state.socialMode?.active) {
+    perMin *= activeDecayMultiplier(state.socialMode.drinks);
+  }
   // NOTE: the +0.5 missed-command boost is NOT folded into the per-min
   // rate here, because the rate is reported to the prediction strip and
   // multiplied by elapsed time in `computeDecayPoints`. Folding it in
@@ -419,7 +429,86 @@ function getBaseRiskMinutes(level: PerformanceLevel, minutesSinceLast: number): 
 // pure from the caller's perspective — i18next.t is itself sync.
 import i18n from '../services/i18nService';
 
-function generateCommand(level: PerformanceLevel, state: UserState, score: number): Command {
+function generateSocialCommand(state: UserState, social: NonNullable<ScoreEngineOutput['social']>): Command | null {
+  // Recovery Mode (drinking ended within 8h) — coach pivots to recovery
+  // protocol. Calm, non-judgmental, never "don't drink".
+  if (social.inRecoveryWindow && !social.active) {
+    return {
+      id: 'cmd-social-recovery',
+      action: i18n.t('coach.social_recovery_action'),
+      explanation: i18n.t('coach.social_recovery_explanation'),
+      urgencyLevel: 'high',
+      estimatedImpact: '+15 to score',
+    };
+  }
+  if (!social.active) return null;
+  const drinks = state.socialMode?.drinks ?? [];
+  const lastDrink = drinks.length > 0 ? drinks[drinks.length - 1] : null;
+  const minutesSinceDrink = lastDrink
+    ? (Date.now() - lastDrink.loggedAt.getTime()) / 60000
+    : Infinity;
+  // Just logged a drink → hydration command (within 5 min). Skip
+  // when the user has already confirmed hydration for that drink so
+  // we don't repeat ourselves.
+  if (minutesSinceDrink <= 5 && lastDrink?.hydrated !== true) {
+    return {
+      id: 'cmd-social-hydrate',
+      action: i18n.t('coach.social_drink_water_action'),
+      explanation: i18n.t('coach.social_drink_water_explanation'),
+      urgencyLevel: 'high',
+      estimatedImpact: '+8 to score',
+    };
+  }
+  // CRITICAL hangover risk → push AForce RTD harder.
+  if (social.hangoverRisk.level === 'CRITICAL' || social.hangoverRisk.level === 'HIGH') {
+    return {
+      id: 'cmd-social-rtd',
+      action: i18n.t('coach.social_take_rtd_action'),
+      explanation: i18n.t('coach.social_take_rtd_explanation', { score: social.hangoverRisk.score }),
+      urgencyLevel: 'critical',
+      estimatedImpact: '+12 to score',
+    };
+  }
+  // Default in-mode prompt — slow the pace, alternate.
+  return {
+    id: 'cmd-social-pace',
+    action: i18n.t('coach.social_slow_intake_action'),
+    explanation: i18n.t('coach.social_slow_intake_explanation', { count: drinks.length }),
+    urgencyLevel: 'medium',
+    estimatedImpact: '+5 to score',
+  };
+}
+
+function buildSocialRollup(state: UserState): ScoreEngineOutput['social'] {
+  const sm = state.socialMode;
+  if (!sm) return null;
+  const endedAtMs = sm.endedAt ? sm.endedAt.getTime() : null;
+  const inRecoveryWindow = !sm.active
+    && endedAtMs != null
+    && (Date.now() - endedAtMs) < 8 * 60 * 60 * 1000;
+  if (!sm.active && !inRecoveryWindow) return null;
+  const hangoverRisk = calculateHangoverRisk({
+    drinks: sm.drinks,
+    bodyWeightLbs: state.bodyWeightLbs,
+    heatLoad: state.heatLoad,
+  });
+  return {
+    active: sm.active,
+    inRecoveryWindow,
+    drinkCount: sm.drinks.length,
+    hangoverRisk,
+    alcoholMultiplier: sm.active ? activeDecayMultiplier(sm.drinks) : 1,
+  };
+}
+
+function generateCommand(level: PerformanceLevel, state: UserState, score: number, social: ScoreEngineOutput['social']): Command {
+  // Social Mode takes precedence over the standard PEAK/BALANCED/etc
+  // protocol — the user is actively drinking (or just stopped) and the
+  // coach must speak to that, not generic hydration math.
+  if (social) {
+    const social_cmd = generateSocialCommand(state, social);
+    if (social_cmd) return social_cmd;
+  }
   // Sleep mode: morning command if overnight deficit is significant
   if (state.overnightLossOz > 8 && !state.hasSeenMorningCommand) {
     const oz = Math.max(16, Math.round(state.overnightLossOz));
@@ -542,10 +631,11 @@ export function calculateScore(userState: UserState): ScoreEngineOutput {
   const pulseConfig = buildPulseConfig(level);
   const reasons = generateReasons(userState);
   const riskTimer = calculateRiskTimer(userState, level);
-  const command = generateCommand(level, userState, score);
+  const social = buildSocialRollup(userState);
+  const command = generateCommand(level, userState, score, social);
   const prediction = buildPrediction(score, decayPerMinute);
 
-  return { score, performanceState, pulseConfig, reasons, riskTimer, command, breakdown: contributions, prediction };
+  return { score, performanceState, pulseConfig, reasons, riskTimer, command, breakdown: contributions, prediction, social };
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────

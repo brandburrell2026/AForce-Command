@@ -63,6 +63,18 @@ export const aforceUserState = pgTable("aforce_user_state", {
   // Multi-language support: ISO 639-1 code (en/es/fr/de/pt/it). Drives
   // i18next on the client and locale-aware voice playback (Expo Speech).
   language: text("language").notNull().default("en"),
+  // Social Mode (alcohol mitigation + hydration control). Persisted as
+  // JSONB so the shape can evolve without a migration. `null` = mode
+  // never activated; `{active:true,...}` = currently drinking;
+  // `{active:false, endedAt:<ts>}` = Recovery Mode window. Dates are
+  // stored as ISO strings (the client normalizes back to Date).
+  socialMode: jsonb("social_mode").$type<{
+    active: boolean;
+    startedAt: string;
+    drinks: { id: string; type: string; loggedAt: string; multiplier: number; hydrated: boolean | null }[];
+    lastHydrationPromptAt?: string;
+    endedAt?: string;
+  } | null>(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

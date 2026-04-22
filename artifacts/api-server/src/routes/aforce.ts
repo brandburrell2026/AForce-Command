@@ -253,6 +253,138 @@ router.post("/language", async (req, res) => {
   }
 });
 
+// ─── Social Mode ─────────────────────────────────────────────────────────────
+// All four endpoints persist `social_mode` JSONB and broadcast.
+// Date fields are stored as ISO strings so the JSONB column is round-
+// trippable; the client `normalizeUserState` converts them back.
+
+const drinkTypeEnum = z.enum(["beer", "wine", "cocktail", "liquor", "custom"]);
+const DRINK_MULTIPLIERS: Record<string, number> = {
+  beer: 1.15, wine: 1.20, cocktail: 1.30, liquor: 1.35, custom: 1.25,
+};
+
+interface PersistedDrink {
+  id: string;
+  type: string;
+  loggedAt: string;
+  multiplier: number;
+  hydrated: boolean | null;
+}
+interface PersistedSocialMode {
+  active: boolean;
+  startedAt: string;
+  drinks: PersistedDrink[];
+  lastHydrationPromptAt?: string;
+  endedAt?: string;
+}
+
+async function readSocial(userId: string): Promise<PersistedSocialMode | null> {
+  const row = await getUserState(userId);
+  return (row.socialMode ?? null) as PersistedSocialMode | null;
+}
+
+router.post("/social/activate", async (_req, res) => {
+  try {
+    const userId = resolveUserId();
+    const now = new Date().toISOString();
+    const next: PersistedSocialMode = {
+      active: true,
+      startedAt: now,
+      drinks: [],
+    };
+    const updated = await updateUserState(userId, { socialMode: next });
+    broadcastState(userId, updated);
+    res.json({ userState: updated });
+  } catch (err) {
+    logger.error({ err }, "POST /aforce/social/activate failed");
+    res.status(500).json({ error: "social_activate_failed" });
+  }
+});
+
+const drinkSchema = z.object({ type: drinkTypeEnum });
+router.post("/social/drink", async (req, res) => {
+  try {
+    const { type } = drinkSchema.parse(req.body);
+    const userId = resolveUserId();
+    const now = new Date().toISOString();
+    const current = (await readSocial(userId)) ?? {
+      active: true,
+      startedAt: now,
+      drinks: [],
+    };
+    if (!current.active) {
+      // User logged a drink without explicitly re-activating — treat
+      // as a fresh session rather than rejecting (protective default).
+      current.active = true;
+      current.startedAt = now;
+      current.drinks = [];
+      delete current.endedAt;
+    }
+    const drink: PersistedDrink = {
+      id: `drink-${Date.now()}`,
+      type,
+      loggedAt: now,
+      multiplier: DRINK_MULTIPLIERS[type] ?? 1.25,
+      hydrated: null,
+    };
+    const next: PersistedSocialMode = { ...current, drinks: [...current.drinks, drink] };
+    const updated = await updateUserState(userId, { socialMode: next });
+    broadcastState(userId, updated);
+    res.json({ userState: updated });
+  } catch (err) {
+    logger.error({ err }, "POST /aforce/social/drink failed");
+    res.status(400).json({ error: "social_drink_failed" });
+  }
+});
+
+const hydrateSchema = z.object({ confirmed: z.boolean() });
+router.post("/social/hydrate", async (req, res) => {
+  try {
+    const { confirmed } = hydrateSchema.parse(req.body);
+    const userId = resolveUserId();
+    const current = await readSocial(userId);
+    if (!current) {
+      return res.status(400).json({ error: "social_not_active" });
+    }
+    // Mark the most recent pending drink as hydrated/skipped.
+    const drinks = [...current.drinks];
+    for (let i = drinks.length - 1; i >= 0; i -= 1) {
+      if (drinks[i].hydrated == null) {
+        drinks[i] = { ...drinks[i], hydrated: confirmed };
+        break;
+      }
+    }
+    const next: PersistedSocialMode = {
+      ...current,
+      drinks,
+      lastHydrationPromptAt: new Date().toISOString(),
+    };
+    const updated = await updateUserState(userId, { socialMode: next });
+    broadcastState(userId, updated);
+    return res.json({ userState: updated });
+  } catch (err) {
+    logger.error({ err }, "POST /aforce/social/hydrate failed");
+    return res.status(400).json({ error: "social_hydrate_failed" });
+  }
+});
+
+router.post("/social/deactivate", async (_req, res) => {
+  try {
+    const userId = resolveUserId();
+    const current = await readSocial(userId);
+    const now = new Date().toISOString();
+    const next: PersistedSocialMode = current
+      ? { ...current, active: false, endedAt: now }
+      : { active: false, startedAt: now, endedAt: now, drinks: [] };
+    const updated = await updateUserState(userId, { socialMode: next });
+    broadcastState(userId, updated);
+    res.json({ userState: updated });
+  } catch (err) {
+    logger.error({ err }, "POST /aforce/social/deactivate failed");
+    res.status(500).json({ error: "social_deactivate_failed" });
+  }
+});
+
 // ─── GET /weather?lat&lon ──────────────────────────────────────────────────────
 const weatherQuery = z.object({
   lat: z.coerce.number().min(-90).max(90),

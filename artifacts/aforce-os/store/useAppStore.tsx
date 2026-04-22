@@ -34,6 +34,10 @@ import {
   postLanguage,
   refreshWeather,
   subscribeToStateUpdates,
+  postSocialActivate,
+  postSocialDrink,
+  postSocialHydrate,
+  postSocialDeactivate,
 } from '../services/realApi';
 import i18n, { setLanguage as setI18nLanguage, type SupportedLanguage } from '../services/i18nService';
 import { PRODUCTS } from '../data/products';
@@ -204,6 +208,14 @@ interface AppContextValue {
    * and POSTs to the server so it survives reload.
    */
   setLanguage: (lang: SupportedLanguage) => Promise<void>;
+  /** Social Mode (alcohol mitigation) — start a fresh drinking session. */
+  activateSocialMode: () => Promise<void>;
+  /** Log a single drink of the given alcohol type. */
+  logSocialDrink: (type: 'beer' | 'wine' | 'cocktail' | 'liquor' | 'custom') => Promise<void>;
+  /** Resolve the post-drink hydration prompt (true = drank water/RTD). */
+  confirmSocialHydration: (confirmed: boolean) => Promise<void>;
+  /** End the drinking session — flips into the 8h Recovery Mode window. */
+  deactivateSocialMode: () => Promise<void>;
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -469,6 +481,42 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   }, [state.userState]);
 
+  const activateSocialMode = useCallback(async () => {
+    try {
+      const { newUserState, engineOutput } = await postSocialActivate(state.userState);
+      dispatch({ type: 'SET_USER_STATE', payload: { newUserState, engineOutput } });
+    } catch (err) {
+      console.warn('[AForce] activateSocialMode failed', err);
+    }
+  }, [state.userState]);
+
+  const logSocialDrink = useCallback(async (type: 'beer' | 'wine' | 'cocktail' | 'liquor' | 'custom') => {
+    try {
+      const { newUserState, engineOutput } = await postSocialDrink(state.userState, type);
+      dispatch({ type: 'SET_USER_STATE', payload: { newUserState, engineOutput } });
+    } catch (err) {
+      console.warn('[AForce] logSocialDrink failed', err);
+    }
+  }, [state.userState]);
+
+  const confirmSocialHydration = useCallback(async (confirmed: boolean) => {
+    try {
+      const { newUserState, engineOutput } = await postSocialHydrate(state.userState, confirmed);
+      dispatch({ type: 'SET_USER_STATE', payload: { newUserState, engineOutput } });
+    } catch (err) {
+      console.warn('[AForce] confirmSocialHydration failed', err);
+    }
+  }, [state.userState]);
+
+  const deactivateSocialMode = useCallback(async () => {
+    try {
+      const { newUserState, engineOutput } = await postSocialDeactivate(state.userState);
+      dispatch({ type: 'SET_USER_STATE', payload: { newUserState, engineOutput } });
+    } catch (err) {
+      console.warn('[AForce] deactivateSocialMode failed', err);
+    }
+  }, [state.userState]);
+
   const setSubscription = useCallback((sub: UserSubscription) => {
     dispatch({ type: 'SET_SUBSCRIPTION', payload: sub });
     AsyncStorage.setItem('aforce.subscription', JSON.stringify(sub)).catch(() => {});
@@ -526,7 +574,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     state, logIntake, completeCycle, snooze, dismissSuccess,
     updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags,
     setSubscription, completeOnboarding, setAppleHealthSnapshot, confirmCommand, setLanguage,
-  }), [state, logIntake, completeCycle, snooze, dismissSuccess, updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags, setSubscription, completeOnboarding, setAppleHealthSnapshot, confirmCommand, setLanguage]);
+    activateSocialMode, logSocialDrink, confirmSocialHydration, deactivateSocialMode,
+  }), [state, logIntake, completeCycle, snooze, dismissSuccess, updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags, setSubscription, completeOnboarding, setAppleHealthSnapshot, confirmCommand, setLanguage, activateSocialMode, logSocialDrink, confirmSocialHydration, deactivateSocialMode]);
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }

@@ -37,6 +37,8 @@ import { AdaptiveScreenWrapper } from '@/components/AdaptiveScreenWrapper';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 import { useFoldableState } from '@/hooks/useFoldableState';
 import { ScoreBreakdownSheet } from '@/components/ScoreBreakdownSheet';
+import { SocialModeBanner } from '@/components/SocialModeBanner';
+import { SocialModeSheet } from '@/components/SocialModeSheet';
 import { OnboardingOverlay } from '@/components/OnboardingOverlay';
 import { AIVideoPlayer } from '@/components/AIVideoPlayer';
 import { VoiceButton } from '@/components/VoiceButton';
@@ -61,7 +63,10 @@ import { useTranslation } from 'react-i18next';
 export default function HomeScreen() {
   const { t } = useTranslation();
   const router = useRouter();
-  const { state, logIntake, snooze, dismissSuccess, completeOnboarding, confirmCommand } = useAppStore();
+  const {
+    state, logIntake, snooze, dismissSuccess, completeOnboarding, confirmCommand,
+    activateSocialMode, logSocialDrink, confirmSocialHydration, deactivateSocialMode,
+  } = useAppStore();
   const [ctaFlavorOpen, setCtaFlavorOpen] = React.useState(false);
   const layout = useResponsiveLayout();
   const foldable = useFoldableState();
@@ -72,6 +77,7 @@ export default function HomeScreen() {
   } = state;
   const { performanceState, score, reasons, command, pulseConfig, breakdown, prediction } = engineOutput;
   const [breakdownOpen, setBreakdownOpen] = React.useState(false);
+  const [socialOpen, setSocialOpen] = React.useState(false);
   const [voiceOpen, setVoiceOpen] = React.useState(false);
   const [voiceAutoStart, setVoiceAutoStart] = React.useState(false);
   // Mirror the overlay's lifecycle on the floating button so its visual
@@ -406,6 +412,22 @@ export default function HomeScreen() {
       <PhantomSignal />
       <View style={styles.spacer} />
       <PhantomBandCard />
+      <View style={styles.spacer} />
+      <TouchableOpacity
+        onPress={() => {
+          if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
+          setSocialOpen(true);
+        }}
+        activeOpacity={0.85}
+        style={[styles.socialEntry, { borderColor: '#9D7CFB55' }]}
+        accessibilityRole="button"
+        accessibilityLabel={t('social.entry_button')}
+        testID="home-social-entry"
+      >
+        <Feather name="moon" size={16} color="#9D7CFB" />
+        <Text style={styles.socialEntryText}>{t('social.entry_button')}</Text>
+        <Feather name="chevron-right" size={16} color="#9D7CFB" />
+      </TouchableOpacity>
     </>
   );
 
@@ -430,6 +452,17 @@ export default function HomeScreen() {
           showsVerticalScrollIndicator={false}
         >
           {topSection}
+
+          {engineOutput.social && (
+            // Banner is gated only on engineOutput.social so it
+            // disappears on its own when the 8h Recovery window expires
+            // (engine returns null). Falling back to userState.socialMode
+            // would leave a stale badge on the home screen forever.
+            <SocialModeBanner
+              social={engineOutput.social}
+              onPress={() => setSocialOpen(true)}
+            />
+          )}
 
           {foldable.isExpanded ? (
             // Foldable / tablet layout — orb + command + CTA stay
@@ -470,6 +503,22 @@ export default function HomeScreen() {
               <PhantomSignal />
               <View style={styles.spacer} />
               <PhantomBandCard />
+              <View style={styles.spacer} />
+              <TouchableOpacity
+                onPress={() => {
+                  if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
+                  setSocialOpen(true);
+                }}
+                activeOpacity={0.85}
+                style={[styles.socialEntry, { borderColor: '#9D7CFB55' }]}
+                accessibilityRole="button"
+                accessibilityLabel={t('social.entry_button')}
+                testID="home-social-entry"
+              >
+                <Feather name="moon" size={16} color="#9D7CFB" />
+                <Text style={styles.socialEntryText}>{t('social.entry_button')}</Text>
+                <Feather name="chevron-right" size={16} color="#9D7CFB" />
+              </TouchableOpacity>
             </>
           )}
         </ScrollView>
@@ -477,6 +526,17 @@ export default function HomeScreen() {
         {showCycleSuccess && lastCycleResult && (
           <CycleSuccessOverlay result={lastCycleResult} onDismiss={dismissSuccess} />
         )}
+
+        <SocialModeSheet
+          visible={socialOpen}
+          onDismiss={() => setSocialOpen(false)}
+          socialMode={userState.socialMode}
+          social={engineOutput.social}
+          onActivate={activateSocialMode}
+          onLogDrink={logSocialDrink}
+          onConfirmHydration={confirmSocialHydration}
+          onDeactivate={deactivateSocialMode}
+        />
 
         <ScoreBreakdownSheet
           visible={breakdownOpen}
@@ -568,6 +628,16 @@ const styles = StyleSheet.create({
     letterSpacing: 1.5,
   },
   orbContainer: { alignItems: 'center', paddingVertical: 24, marginBottom: 8, overflow: 'visible' },
+  socialEntry: {
+    flexDirection: 'row', alignItems: 'center', gap: 8,
+    marginHorizontal: 16, paddingHorizontal: 14, paddingVertical: 12,
+    borderRadius: 14, borderWidth: 1,
+    backgroundColor: 'rgba(157,124,251,0.06)',
+  },
+  socialEntryText: {
+    flex: 1, fontSize: 13, fontFamily: 'Inter_700Bold',
+    color: Colors.text.primary, letterSpacing: 1.2,
+  },
   predictionStrip: {
     flexDirection: 'row',
     alignItems: 'center',

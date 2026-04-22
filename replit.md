@@ -62,6 +62,7 @@ I prefer iterative development, with frequent, small updates. Ask before making 
 - **AI Coaching Videos:** Cinematic Reanimated video player with scenes matched to user state via a video engine.
 - **Community Competition:** Applies a formula (performance, compliance, consistency, recovery) to individuals, cities, states, and teams.
 - **Core Loop:** Score -> Why This Score -> AI Command -> Quick Intake -> Cycle Success -> Engine refresh.
+- **Social Mode (alcohol mitigation + hydration control):** Activate → pick a drink (beer / wine / cocktail / liquor / custom, hydration multipliers 1.15–1.35 for ~30 min) → engine applies the alcohol decay multiplier in `computeDecayPerMinute` → real-time hangover risk (LOW / MOD / HIGH / CRITICAL) computed by pure `utils/hangoverRisk.ts` (drink count + types + hydration ratio + gap + heat) → calm coach commands ("drink water", "take RTD", "slow intake", "recovery"). Ending the night flips into an 8h Recovery Mode window. UI: subtle purple/amber accent via `SocialModeBanner`, `SocialModeSheet`, `HangoverRiskBadge`. Localized across en/es/fr/de/pt/it. Persisted as JSONB on `aforce_user_state.social_mode`.
 
 ### API Server (`artifacts/api-server`)
 - **Scaling Blueprint:** Documents target topology for 50M+ users, including edge/CDN, multi-region active/active reads, sharded Postgres, Redis hot state, Kafka event log, and AI provider failover. Placeholder modules provide working in-memory defaults for `cache`, `events`, `queues`, `middleware`, `observability`, `health`, and `config`.

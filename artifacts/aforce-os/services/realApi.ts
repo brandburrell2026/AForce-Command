@@ -102,6 +102,29 @@ function normalizeUserState(row: Record<string, unknown>): UserState {
     weatherCity: (get<string | null>('weatherCity') ?? null),
     weatherFetchedAt: row['weatherFetchedAt'] ? new Date(row['weatherFetchedAt'] as string).getTime() : null,
     language: ((get<string>('language') ?? 'en') as UserState['language']),
+    socialMode: normalizeSocialMode(row['socialMode']),
+  };
+}
+
+function normalizeSocialMode(raw: unknown): UserState['socialMode'] {
+  if (!raw || typeof raw !== 'object') return undefined;
+  const r = raw as Record<string, unknown>;
+  const drinks = Array.isArray(r['drinks']) ? r['drinks'] : [];
+  return {
+    active: Boolean(r['active']),
+    startedAt: r['startedAt'] ? new Date(r['startedAt'] as string) : new Date(),
+    drinks: drinks.map((d) => {
+      const x = d as Record<string, unknown>;
+      return {
+        id: String(x['id'] ?? `drink-${Math.random().toString(36).slice(2)}`),
+        type: (x['type'] as 'beer' | 'wine' | 'cocktail' | 'liquor' | 'custom') ?? 'custom',
+        loggedAt: x['loggedAt'] ? new Date(x['loggedAt'] as string) : new Date(),
+        multiplier: Number(x['multiplier'] ?? 1.25),
+        hydrated: x['hydrated'] == null ? null : Boolean(x['hydrated']),
+      };
+    }),
+    lastHydrationPromptAt: r['lastHydrationPromptAt'] ? new Date(r['lastHydrationPromptAt'] as string) : undefined,
+    endedAt: r['endedAt'] ? new Date(r['endedAt'] as string) : undefined,
   };
 }
 
@@ -250,6 +273,18 @@ export function postClutchFlag(userState: UserState, clutchActive: boolean) {
  */
 export function postLanguage(userState: UserState, language: UserState['language']) {
   return postAndRecompute('/language', { language }, userState);
+}
+export function postSocialActivate(userState: UserState) {
+  return postAndRecompute('/social/activate', {}, userState);
+}
+export function postSocialDrink(userState: UserState, type: 'beer' | 'wine' | 'cocktail' | 'liquor' | 'custom') {
+  return postAndRecompute('/social/drink', { type }, userState);
+}
+export function postSocialHydrate(userState: UserState, confirmed: boolean) {
+  return postAndRecompute('/social/hydrate', { confirmed }, userState);
+}
+export function postSocialDeactivate(userState: UserState) {
+  return postAndRecompute('/social/deactivate', {}, userState);
 }
 export function postConfirmCommand(userState: UserState, followed: boolean) {
   // inClutch is read from the server state by the route, but we send
