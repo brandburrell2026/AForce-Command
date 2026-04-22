@@ -55,7 +55,7 @@ export function tokensForDeviceClass(cls: DeviceClass): LayoutTokens {
   switch (cls) {
     case 'compact':
       return {
-        orbSize: 280,
+        orbSize: 182,
         contentMaxWidth: 480,
         gutter: 16,
         ctaPaddingV: 16,
@@ -64,7 +64,7 @@ export function tokensForDeviceClass(cls: DeviceClass): LayoutTokens {
       };
     case 'standard':
       return {
-        orbSize: 320,
+        orbSize: 208,
         contentMaxWidth: 480,
         gutter: 20,
         ctaPaddingV: 18,
@@ -73,7 +73,7 @@ export function tokensForDeviceClass(cls: DeviceClass): LayoutTokens {
       };
     case 'large':
       return {
-        orbSize: 360,
+        orbSize: 234,
         contentMaxWidth: 520,
         gutter: 22,
         ctaPaddingV: 20,
@@ -82,7 +82,7 @@ export function tokensForDeviceClass(cls: DeviceClass): LayoutTokens {
       };
     case 'foldOpen':
       return {
-        orbSize: 420,
+        orbSize: 273,
         contentMaxWidth: 620,
         gutter: 28,
         ctaPaddingV: 22,
@@ -91,7 +91,7 @@ export function tokensForDeviceClass(cls: DeviceClass): LayoutTokens {
       };
     case 'tablet':
       return {
-        orbSize: 480,
+        orbSize: 312,
         contentMaxWidth: 700,
         gutter: 32,
         ctaPaddingV: 24,
