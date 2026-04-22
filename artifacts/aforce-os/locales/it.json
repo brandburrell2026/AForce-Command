@@ -1,0 +1,98 @@
+{
+  "common": {
+    "loading": "Caricamento…",
+    "error": "Qualcosa è andato storto",
+    "retry": "Riprova",
+    "cancel": "Annulla",
+    "save": "Salva",
+    "close": "Chiudi",
+    "back": "Indietro",
+    "yes": "Sì",
+    "no": "No",
+    "minutes": "min",
+    "minutes_long": "{{count}} minuto",
+    "minutes_long_plural": "{{count}} minuti",
+    "oz": "oz",
+    "today": "oggi",
+    "now": "ora"
+  },
+  "tabs": {
+    "home": "Home",
+    "check": "Verifica",
+    "protocol": "Protocollo",
+    "store": "Negozio",
+    "profile": "Profilo"
+  },
+  "home": {
+    "cta_become_aforce": "ATTIVA AFORCE",
+    "cta_log_intake": "REGISTRA",
+    "depleted_in": "ESAURITO tra {{minutes}} min",
+    "your_score": "Il tuo punteggio",
+    "why_this_score": "Perché questo punteggio",
+    "tap_to_open": "Tocca per i dettagli"
+  },
+  "logIntake": {
+    "title": "REGISTRA",
+    "subtitle": "Scegli cosa hai bevuto",
+    "water": "Acqua",
+    "stick": "STICK",
+    "rtd": "PRONTO",
+    "canister": "Barattolo",
+    "berry": "Frutti di Bosco",
+    "watermelon": "Anguria Surge",
+    "soursop": "Graviola Edge",
+    "size_oz": "{{oz}} oz",
+    "logged": "Registrato",
+    "score_was": "prima",
+    "score_now": "ora"
+  },
+  "breakdown": {
+    "title": "Dettaglio punteggio",
+    "base_intake": "Assunzione base (oz vs obiettivo)",
+    "aforce_bonus": "Bonus protocollo AForce",
+    "aforce_bonus_hint_zero": "Registra uno stick o drink AForce",
+    "aforce_bonus_hint": "{{count}} assunzione AForce oggi",
+    "aforce_bonus_hint_plural": "{{count}} assunzioni AForce oggi",
+    "decay": "Calo dall'ultima assunzione",
+    "consistency": "Costanza della serie",
+    "context": "Caldo / sudore / attività",
+    "recovery": "Recupero",
+    "symptoms": "Sintomi",
+    "urine": "Segnale di idratazione",
+    "output": "Stress di uscita",
+    "sleep": "Deficit notturno",
+    "confirmation": "Conferma ultimo comando"
+  },
+  "profile": {
+    "title": "Profilo",
+    "settings": "Impostazioni",
+    "language": "Lingua",
+    "language_auto": "Auto (dispositivo)",
+    "account": "Account",
+    "subscription": "Abbonamento",
+    "notifications": "Notifiche",
+    "about": "Info"
+  },
+  "settings": {
+    "language_title": "Scegli la tua lingua",
+    "language_saved": "Lingua aggiornata",
+    "language_failed": "Impossibile salvare la lingua"
+  },
+  "voice": {
+    "drink_now": "Prendi 1 unità di AForce ora. Ricontrolla tra {{recheck}} minuti.",
+    "drink_water_now": "Bevi {{oz}} oz d'acqua ora. Ricontrolla tra {{recheck}} minuti.",
+    "depleted": "Sistema instabile. Agisci subito.",
+    "balanced": "Stabile. Mantieni il protocollo.",
+    "peak": "Stato ottimale. Mantieni.",
+    "recovering": "Recupero in corso. {{action}}.",
+    "did_you_follow": "Hai seguito il comando?",
+    "command_followed": "Confermato. Punteggio stabile.",
+    "command_missed": "Mancato. Calo accelerato."
+  },
+  "states": {
+    "peak": "Ottimale",
+    "balanced": "Stabile",
+    "recovering": "Recupero",
+    "depleted": "Esaurito"
+  }
+}

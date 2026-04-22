@@ -87,6 +87,12 @@ export interface UserState {
   weatherHumidity?: number | null;
   weatherCity?: string | null;
   weatherFetchedAt?: number | null;
+  /**
+   * Preferred UI language (ISO 639-1: en/es/fr/de/pt/it). Persisted
+   * server-side; defaults to 'en' if absent. Drives both the i18next
+   * resource bundle and the BCP-47 locale used for TTS.
+   */
+  language?: 'en' | 'es' | 'fr' | 'de' | 'pt' | 'it';
 }
 
 export interface AppleHealthInputs {

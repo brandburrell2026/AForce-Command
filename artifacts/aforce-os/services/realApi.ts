@@ -101,6 +101,7 @@ function normalizeUserState(row: Record<string, unknown>): UserState {
     weatherHumidity: numOrNull('weatherHumidity'),
     weatherCity: (get<string | null>('weatherCity') ?? null),
     weatherFetchedAt: row['weatherFetchedAt'] ? new Date(row['weatherFetchedAt'] as string).getTime() : null,
+    language: ((get<string>('language') ?? 'en') as UserState['language']),
   };
 }
 
@@ -241,6 +242,14 @@ export function postCheckin(userState: UserState) {
 }
 export function postClutchFlag(userState: UserState, clutchActive: boolean) {
   return postAndRecompute('/flags', { clutchActive }, userState);
+}
+/**
+ * Persist the user's chosen UI language. Server stores it on the
+ * userState row so a fresh device reload picks up the right locale
+ * before i18n auto-detects from `expo-localization`.
+ */
+export function postLanguage(userState: UserState, language: UserState['language']) {
+  return postAndRecompute('/language', { language }, userState);
 }
 export function postConfirmCommand(userState: UserState, followed: boolean) {
   // inClutch is read from the server state by the route, but we send

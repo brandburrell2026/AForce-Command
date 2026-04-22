@@ -16,35 +16,38 @@ import { SymbolView } from 'expo-symbols';
 import { Feather } from '@expo/vector-icons';
 import { Platform, StyleSheet, View } from 'react-native';
 import { Colors } from '@/theme/colors';
+import { useTranslation } from 'react-i18next';
 
 function NativeTabLayout() {
+  const { t } = useTranslation();
   return (
     <NativeTabs>
       <NativeTabs.Trigger name="index">
         <Icon sf={{ default: 'bolt.circle', selected: 'bolt.circle.fill' }} />
-        <Label>Home</Label>
+        <Label>{t('tabs.home')}</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="check">
         <Icon sf={{ default: 'waveform.path.ecg', selected: 'waveform.path.ecg.rectangle.fill' }} />
-        <Label>Check</Label>
+        <Label>{t('tabs.check')}</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="protocol">
         <Icon sf={{ default: 'list.bullet.circle', selected: 'list.bullet.circle.fill' }} />
-        <Label>Protocol</Label>
+        <Label>{t('tabs.protocol')}</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="store">
         <Icon sf={{ default: 'bag.circle', selected: 'bag.circle.fill' }} />
-        <Label>Store</Label>
+        <Label>{t('tabs.store')}</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="profile">
         <Icon sf={{ default: 'person.circle', selected: 'person.circle.fill' }} />
-        <Label>Profile</Label>
+        <Label>{t('tabs.profile')}</Label>
       </NativeTabs.Trigger>
     </NativeTabs>
   );
 }
 
 function ClassicTabLayout() {
+  const { t } = useTranslation();
   const isIOS = Platform.OS === 'ios';
   const isWeb = Platform.OS === 'web';
 
@@ -79,7 +82,7 @@ function ClassicTabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Home',
+          title: t('tabs.home'),
           tabBarIcon: ({ color, size }) =>
             isIOS ? <SymbolView name="bolt.circle" tintColor={color} size={size} />
                   : <Feather name="zap" size={22} color={color} />,
@@ -88,7 +91,7 @@ function ClassicTabLayout() {
       <Tabs.Screen
         name="check"
         options={{
-          title: 'Check',
+          title: t('tabs.check'),
           tabBarIcon: ({ color, size }) =>
             isIOS ? <SymbolView name="waveform.path.ecg" tintColor={color} size={size} />
                   : <Feather name="activity" size={22} color={color} />,
@@ -97,7 +100,7 @@ function ClassicTabLayout() {
       <Tabs.Screen
         name="protocol"
         options={{
-          title: 'Protocol',
+          title: t('tabs.protocol'),
           tabBarIcon: ({ color, size }) =>
             isIOS ? <SymbolView name="list.bullet.circle" tintColor={color} size={size} />
                   : <Feather name="list" size={22} color={color} />,
@@ -106,7 +109,7 @@ function ClassicTabLayout() {
       <Tabs.Screen
         name="store"
         options={{
-          title: 'Store',
+          title: t('tabs.store'),
           tabBarIcon: ({ color, size }) =>
             isIOS ? <SymbolView name="bag.circle" tintColor={color} size={size} />
                   : <Feather name="shopping-bag" size={22} color={color} />,
@@ -115,7 +118,7 @@ function ClassicTabLayout() {
       <Tabs.Screen
         name="profile"
         options={{
-          title: 'Profile',
+          title: t('tabs.profile'),
           tabBarIcon: ({ color, size }) =>
             isIOS ? <SymbolView name="person.circle" tintColor={color} size={size} />
                   : <Feather name="user" size={22} color={color} />,

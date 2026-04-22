@@ -233,6 +233,26 @@ router.post("/flags", async (req, res) => {
   }
 });
 
+// ─── POST /language ────────────────────────────────────────────────────────────
+// Persists the user's UI-language preference. Strict allow-list so a
+// typo'd code can't poison the i18n bootstrap on next reload.
+const languageSchema = z.object({
+  language: z.enum(["en", "es", "fr", "de", "pt", "it"]),
+});
+
+router.post("/language", async (req, res) => {
+  try {
+    const { language } = languageSchema.parse(req.body);
+    const userId = resolveUserId();
+    const updated = await updateUserState(userId, { language });
+    broadcastState(userId, updated);
+    res.json({ userState: updated });
+  } catch (err) {
+    logger.error({ err }, "POST /aforce/language failed");
+    res.status(400).json({ error: "language_failed" });
+  }
+});
+
 // ─── GET /weather?lat&lon ──────────────────────────────────────────────────────
 const weatherQuery = z.object({
   lat: z.coerce.number().min(-90).max(90),

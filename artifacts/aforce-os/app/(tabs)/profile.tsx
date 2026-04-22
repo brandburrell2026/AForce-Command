@@ -28,6 +28,8 @@ import { useAppStore } from '@/store/useAppStore';
 import { DEFAULT_FLAGS, DEMO_ALL_ON_FLAGS } from '@/featureFlags/flags';
 import type { FeatureFlags } from '@/types';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
+import { LanguageSelector } from '@/components/LanguageSelector';
+import { useTranslation } from 'react-i18next';
 
 const TIER_LABELS: Record<string, { label: string; desc: string; color: string }> = {
   core:           { label: 'AForce Core',           desc: 'Start your performance system.',                      color: Colors.states.BALANCED.primary },
@@ -47,7 +49,8 @@ const TIER_LABELS: Record<string, { label: string; desc: string; color: string }
 export default function ProfileScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { state, setFeatureFlags, setAppleHealthSnapshot } = useAppStore();
+  const { state, setFeatureFlags, setAppleHealthSnapshot, setLanguage } = useAppStore();
+  const { t } = useTranslation();
   const [remindersEnabled, setRemindersEnabled] = useState(mockUserProfile.remindersEnabled);
   // Mocked OAuth state for the third-party health platforms shown in
   // the "HEALTH PLATFORMS" card. In a real build, each id would map
@@ -452,6 +455,17 @@ export default function ProfileScreen() {
               </>
             );
 
+            const settingsBlock = (
+              <>
+                <SectionHeader label={t('profile.settings').toUpperCase()} />
+                <View style={styles.card}>
+                  <View style={{ paddingHorizontal: 14, paddingVertical: 4 }}>
+                    <LanguageSelector onPersist={(lang) => setLanguage(lang)} />
+                  </View>
+                </View>
+              </>
+            );
+
             if (layout.isWide) {
               // Two-column wide layout: compact info on the left,
               // tall demo flag list + phase entries + subscription
@@ -465,6 +479,7 @@ export default function ProfileScreen() {
                     {connectedDevicesCard}
                   </View>
                   <View style={[styles.col, styles.colRight]} testID="profile-right-col">
+                    {settingsBlock}
                     {demoAccessCard}
                     {phaseEntryRow}
                     {subscriptionBlock}
@@ -476,6 +491,7 @@ export default function ProfileScreen() {
             return (
               <>
                 {profileCard}
+                {settingsBlock}
                 {goalsCard}
                 {hardwareCard}
                 {connectedDevicesCard}

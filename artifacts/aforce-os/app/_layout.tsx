@@ -16,6 +16,13 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { AppProvider } from '@/store/useAppStore';
 import { CartProvider } from '@/store/useCartStore';
+import { initI18n } from '@/services/i18nService';
+
+// Bootstrap i18next as soon as the JS bundle loads so even the first
+// frame (SplashScreen, ErrorBoundary fallbacks) has access to t(). The
+// server-persisted language replaces this initial value via the effect
+// in useAppStore once /state lands.
+initI18n();
 
 SplashScreen.preventAutoHideAsync();
 

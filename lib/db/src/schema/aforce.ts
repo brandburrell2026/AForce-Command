@@ -60,6 +60,9 @@ export const aforceUserState = pgTable("aforce_user_state", {
   weatherHumidity: real("weather_humidity"),
   weatherCity: text("weather_city"),
   weatherFetchedAt: timestamp("weather_fetched_at", { withTimezone: true }),
+  // Multi-language support: ISO 639-1 code (en/es/fr/de/pt/it). Drives
+  // i18next on the client and locale-aware voice playback (Expo Speech).
+  language: text("language").notNull().default("en"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

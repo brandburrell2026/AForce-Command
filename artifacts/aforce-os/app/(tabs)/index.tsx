@@ -56,7 +56,10 @@ import type { HeatSymptom, HeatRiskBand } from '@/types/heat';
 import { Colors } from '@/theme/colors';
 import { Feather } from '@expo/vector-icons';
 
+import { useTranslation } from 'react-i18next';
+
 export default function HomeScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { state, logIntake, snooze, dismissSuccess, completeOnboarding, confirmCommand } = useAppStore();
   const [ctaFlavorOpen, setCtaFlavorOpen] = React.useState(false);
@@ -340,7 +343,7 @@ export default function HomeScreen() {
         <View style={[styles.ctaGlow, { backgroundColor: `${stateColor}1F` }]} />
         <Feather name="check-circle" size={20} color={isCompletingCycle ? Colors.text.muted : stateColor} />
         <Text style={[styles.ctaText, { color: isCompletingCycle ? Colors.text.muted : Colors.text.primary }]}>
-          {isCompletingCycle ? 'BECOMING…' : 'BECOME AFORCE'}
+          {isCompletingCycle ? `${t('home.cta_become_aforce')}…` : t('home.cta_become_aforce')}
         </Text>
       </TouchableOpacity>
 

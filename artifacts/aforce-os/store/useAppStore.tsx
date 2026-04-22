@@ -31,9 +31,11 @@ import {
   postCheckin,
   postClutchFlag,
   postConfirmCommand,
+  postLanguage,
   refreshWeather,
   subscribeToStateUpdates,
 } from '../services/realApi';
+import { setLanguage as setI18nLanguage, type SupportedLanguage } from '../services/i18nService';
 import { PRODUCTS } from '../data/products';
 
 // Service-only synchronous bootstrapping helper. The store NEVER calls
@@ -196,6 +198,12 @@ interface AppContextValue {
    * +0.5 pts/min decay boost.
    */
   confirmCommand: (followed: boolean) => Promise<void>;
+  /**
+   * Persist the user's chosen UI language. Updates i18next immediately,
+   * mirrors the choice into UserState so the orb / breakdown re-render,
+   * and POSTs to the server so it survives reload.
+   */
+  setLanguage: (lang: SupportedLanguage) => Promise<void>;
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -225,7 +233,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         const drift =
           userState.weatherFetchedAt !== state.userState.weatherFetchedAt ||
           userState.unitsConsumedToday !== state.userState.unitsConsumedToday ||
-          userState.urineSignal !== state.userState.urineSignal;
+          userState.urineSignal !== state.userState.urineSignal ||
+          // Pick up a language change persisted from another device when
+          // the WS push was missed — without this, the Profile picker on
+          // device A would never reach device B until a stronger drift
+          // (intake / weather refresh) triggered the swap.
+          userState.language !== state.userState.language;
         if (drift) {
           dispatch({ type: 'SET_USER_STATE', payload: { newUserState: userState, engineOutput } });
         } else {
@@ -418,6 +431,21 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   }, [state.userState, state.engineOutput]);
 
+  const setLanguage = useCallback(async (lang: SupportedLanguage) => {
+    // Update i18n + local state instantly so the UI re-renders without
+    // waiting for the server round-trip. The server POST is fire-and-forget;
+    // a failed write just means the choice doesn't persist to other devices.
+    await setI18nLanguage(lang);
+    const optimistic: UserState = { ...state.userState, language: lang };
+    dispatch({ type: 'SET_USER_STATE', payload: { newUserState: optimistic, engineOutput: state.engineOutput } });
+    try {
+      const { newUserState, engineOutput } = await postLanguage(state.userState, lang);
+      dispatch({ type: 'SET_USER_STATE', payload: { newUserState, engineOutput } });
+    } catch (err) {
+      console.warn('[AForce] setLanguage persist failed', err);
+    }
+  }, [state.userState, state.engineOutput]);
+
   const setSubscription = useCallback((sub: UserSubscription) => {
     dispatch({ type: 'SET_SUBSCRIPTION', payload: sub });
     AsyncStorage.setItem('aforce.subscription', JSON.stringify(sub)).catch(() => {});
@@ -461,11 +489,21 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       });
   }, [state.userState]);
 
+  // Sync i18n with the language returned by the server on every userState
+  // change. This lets a fresh app boot land on the user's saved language
+  // without the picker having to be opened.
+  useEffect(() => {
+    const lang = state.userState.language;
+    if (lang) {
+      setI18nLanguage(lang).catch(() => { /* i18n init failure is non-fatal */ });
+    }
+  }, [state.userState.language]);
+
   const value = useMemo<AppContextValue>(() => ({
     state, logIntake, completeCycle, snooze, dismissSuccess,
     updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags,
-    setSubscription, completeOnboarding, setAppleHealthSnapshot, confirmCommand,
-  }), [state, logIntake, completeCycle, snooze, dismissSuccess, updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags, setSubscription, completeOnboarding, setAppleHealthSnapshot, confirmCommand]);
+    setSubscription, completeOnboarding, setAppleHealthSnapshot, confirmCommand, setLanguage,
+  }), [state, logIntake, completeCycle, snooze, dismissSuccess, updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags, setSubscription, completeOnboarding, setAppleHealthSnapshot, confirmCommand, setLanguage]);
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }

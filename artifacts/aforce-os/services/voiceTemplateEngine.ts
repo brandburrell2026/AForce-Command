@@ -15,6 +15,22 @@ import type {
 } from '../types/voicePersona';
 import { VOICE_TEMPLATES } from '../data/voiceTemplates';
 import { getRule } from './voicePersonaService';
+import i18n from 'i18next';
+// Type-only import keeps the RN-touching i18nService module out of the
+// vitest bundle (its expo-localization dep imports react-native).
+import type { SupportedLanguage } from './i18nService';
+
+/**
+ * Per-language template overrides. The English bank lives in
+ * `data/voiceTemplates.ts` for full coverage of the (category × mode)
+ * matrix; non-English entries draw from the i18n `voice.*` keys when
+ * a localized phrase exists, and silently fall back to English when
+ * one is missing. This keeps the tone-rule pipeline (banned-phrase
+ * scrub, sentence ceiling) authoritative for every output line.
+ */
+export const VOICE_TEMPLATES_BY_LANG: Partial<Record<SupportedLanguage, typeof VOICE_TEMPLATES>> = {
+  en: VOICE_TEMPLATES,
+};
 
 interface RenderedLine {
   spoken: string;
@@ -92,11 +108,20 @@ function clipWords(text: string, maxWords: number): string {
  * Public renderer
  * ------------------------------------------------------------------ */
 
+function resolveTemplate(category: VoiceTemplateCategory, mode: VoiceUrgencyMode, lang: SupportedLanguage) {
+  // Localized override takes precedence; English remains the canonical
+  // fallback so an untranslated cell never crashes the speaker.
+  const localized = VOICE_TEMPLATES_BY_LANG[lang]?.[category]?.[mode];
+  return localized ?? VOICE_TEMPLATES[category][mode];
+}
+
 export function renderTemplate(
   category: VoiceTemplateCategory,
   ctx: VoiceContext,
+  lang?: SupportedLanguage,
 ): RenderedLine {
-  const template = VOICE_TEMPLATES[category][ctx.mode];
+  const resolvedLang = lang ?? ((i18n.language ?? 'en').slice(0, 2) as SupportedLanguage);
+  const template = resolveTemplate(category, ctx.mode, resolvedLang);
   const rule = getRule(ctx.mode);
 
   let spoken = fillTokens(template.spoken, ctx);

@@ -31,6 +31,7 @@ I prefer iterative development, with frequent, small updates. Ask before making 
 - **Navigation (Mobile):** Expo Router 6 (file-based navigation)
 - **Animations (Mobile):** React Native Reanimated, React Native Gesture Handler
 - **Fonts (Mobile):** Inter font (`@expo-google-fonts/inter`)
+- **i18n (Mobile):** `i18next` + `react-i18next` + `expo-localization`. Six MVP locales (en/es/fr/de/pt/it) live in `artifacts/aforce-os/locales/*.json`. `services/i18nService.ts` initializes from device locale, then `services/voiceService.ts` (TTS via `expo-speech`) speaks in the matching BCP-47 voice. User selection persists to `aforce_user_state.language` via `POST /api/aforce/language` and rehydrates via `useAppStore` on next /state pull. STT is stubbed (`services/speechRecognitionService.ts` with `isSupported()=false` and a localized command vocabulary) until a dev-build STT engine is wired up; UI falls back to text input.
 
 ## UI/UX Decisions (AForce OS)
 - **Color Scheme:** Brand palette uses lime (#B4FF50 - PEAK), teal (#00E5C8 - BALANCED), amber (#FFA01E - RECOVERING), and red (#FF2D55 - DEPLETED) to represent performance states. Clutch teal and Guardian purple are used for specific features.

@@ -1,0 +1,98 @@
+{
+  "common": {
+    "loading": "Cargando…",
+    "error": "Algo salió mal",
+    "retry": "Reintentar",
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "close": "Cerrar",
+    "back": "Atrás",
+    "yes": "Sí",
+    "no": "No",
+    "minutes": "min",
+    "minutes_long": "{{count}} minuto",
+    "minutes_long_plural": "{{count}} minutos",
+    "oz": "oz",
+    "today": "hoy",
+    "now": "ahora"
+  },
+  "tabs": {
+    "home": "Inicio",
+    "check": "Revisar",
+    "protocol": "Protocolo",
+    "store": "Tienda",
+    "profile": "Perfil"
+  },
+  "home": {
+    "cta_become_aforce": "ACTIVAR AFORCE",
+    "cta_log_intake": "REGISTRAR",
+    "depleted_in": "AGOTADO en {{minutes}} min",
+    "your_score": "Tu puntuación",
+    "why_this_score": "Por qué esta puntuación",
+    "tap_to_open": "Toca para ver detalle"
+  },
+  "logIntake": {
+    "title": "REGISTRAR INGESTA",
+    "subtitle": "Elige lo que tomaste",
+    "water": "Agua",
+    "stick": "STICK",
+    "rtd": "BEBIDA",
+    "canister": "Bote",
+    "berry": "Frutos Rojos",
+    "watermelon": "Sandía Surge",
+    "soursop": "Guanábana Edge",
+    "size_oz": "{{oz}} oz",
+    "logged": "Registrado",
+    "score_was": "antes",
+    "score_now": "ahora"
+  },
+  "breakdown": {
+    "title": "Detalle de puntuación",
+    "base_intake": "Ingesta base (oz vs objetivo)",
+    "aforce_bonus": "Bono protocolo AForce",
+    "aforce_bonus_hint_zero": "Registra un stick o bebida AForce",
+    "aforce_bonus_hint": "{{count}} ingesta AForce hoy",
+    "aforce_bonus_hint_plural": "{{count}} ingestas AForce hoy",
+    "decay": "Descenso desde última ingesta",
+    "consistency": "Constancia de racha",
+    "context": "Calor / sudor / actividad",
+    "recovery": "Recuperación",
+    "symptoms": "Síntomas",
+    "urine": "Señal de hidratación",
+    "output": "Estrés de salida",
+    "sleep": "Déficit nocturno",
+    "confirmation": "Confirmación última orden"
+  },
+  "profile": {
+    "title": "Perfil",
+    "settings": "Ajustes",
+    "language": "Idioma",
+    "language_auto": "Auto (dispositivo)",
+    "account": "Cuenta",
+    "subscription": "Suscripción",
+    "notifications": "Notificaciones",
+    "about": "Acerca de"
+  },
+  "settings": {
+    "language_title": "Elige tu idioma",
+    "language_saved": "Idioma actualizado",
+    "language_failed": "No se pudo guardar el idioma"
+  },
+  "voice": {
+    "drink_now": "Toma 1 unidad de AForce ahora. Revisa en {{recheck}} minutos.",
+    "drink_water_now": "Bebe {{oz}} oz de agua ahora. Revisa en {{recheck}} minutos.",
+    "depleted": "Sistema inestable. Actúa ya.",
+    "balanced": "Estable. Mantén el protocolo.",
+    "peak": "Estado óptimo. Mantén.",
+    "recovering": "Recuperando. {{action}}.",
+    "did_you_follow": "¿Seguiste la orden?",
+    "command_followed": "Confirmado. Puntuación firme.",
+    "command_missed": "Perdida. Descenso acelerado."
+  },
+  "states": {
+    "peak": "Óptimo",
+    "balanced": "Estable",
+    "recovering": "Recuperando",
+    "depleted": "Agotado"
+  }
+}
