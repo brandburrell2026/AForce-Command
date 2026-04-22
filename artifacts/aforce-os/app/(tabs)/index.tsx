@@ -317,7 +317,7 @@ export default function HomeScreen() {
         <View style={[styles.ctaGlow, { backgroundColor: `${stateColor}1F` }]} />
         <Feather name="check-circle" size={20} color={isCompletingCycle ? Colors.text.muted : stateColor} />
         <Text style={[styles.ctaText, { color: isCompletingCycle ? Colors.text.muted : Colors.text.primary }]}>
-          {isCompletingCycle ? 'EXECUTING…' : 'EXECUTE NOW'}
+          {isCompletingCycle ? 'BECOMING…' : 'BECOME AFORCE'}
         </Text>
       </TouchableOpacity>
 
