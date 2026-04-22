@@ -120,15 +120,6 @@ export default function ProductsScreen() {
             Flavors are tools. Each one pairs a functional ingredient with the state your body is in.
           </Text>
 
-          <View style={styles.recommendCard}>
-            <Text style={styles.recommendLabel}>RECOMMENDED FOR YOU</Text>
-            <Text style={styles.recommendName}>
-              {recommended.name} <Text style={styles.recommendIngredient}>+ {recommended.functionalIngredient}</Text>
-            </Text>
-            <Text style={styles.recommendCmd}>{recommended.aiCommand}</Text>
-            <Text style={styles.recommendState}>State: {userLevel}</Text>
-          </View>
-
           {FORMATS.map((format) => {
             const product = PRODUCTS[format.id];
             const flavorOptions = FLAVOR_VARIANTS.filter((f) => format.flavors.includes(f.id));
