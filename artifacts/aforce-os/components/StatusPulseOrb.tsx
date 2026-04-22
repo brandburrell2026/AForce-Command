@@ -42,7 +42,7 @@ interface Props {
 }
 
 const DEFAULT_ORB_SIZE = 200;
-const GLOW_RATIO = 290 / 200; // preserve original glow:orb proportion
+const GLOW_RATIO = 1.85; // dramatic dominant halo
 
 const COLOR_MAP: Record<PulseConfig['colorMode'], { primary: string; glow: string }> = {
   lime:  { primary: Colors.states.PEAK.primary,       glow: Colors.states.PEAK.glow },
@@ -245,13 +245,13 @@ export function StatusPulseOrb({ pulseConfig, score, burstAt = 0, onTap, size }:
   }, [burstAt]);
 
   const outerGlowStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(glowAnim.value, [0, 1], [0.10, 0.20 + glowStrength * 0.45]),
-    transform: [{ scale: interpolate(glowAnim.value, [0, 1], [0.95, 1.12]) }],
+    opacity: interpolate(glowAnim.value, [0, 1], [0.28, 0.55 + glowStrength * 0.45]),
+    transform: [{ scale: interpolate(glowAnim.value, [0, 1], [0.98, 1.18]) }],
   }));
 
   const innerGlowStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(pulseAnim.value, [0, 1], [0.20, 0.35 + pulseIntensity * 0.45]),
-    transform: [{ scale: interpolate(pulseAnim.value, [0, 1], [0.92, 1.05]) }],
+    opacity: interpolate(pulseAnim.value, [0, 1], [0.45, 0.75 + pulseIntensity * 0.25]),
+    transform: [{ scale: interpolate(pulseAnim.value, [0, 1], [0.95, 1.08]) }],
   }));
 
   const orbStyle = useAnimatedStyle(() => ({
@@ -390,6 +390,6 @@ const styles = StyleSheet.create({
   outerGlow: { position: 'absolute' },
   innerGlow: { position: 'absolute' },
   orbWrapper: { alignItems: 'center', justifyContent: 'center' },
-  ring: { position: 'absolute', borderWidth: 1.5 },
-  orb: { alignItems: 'center', justifyContent: 'center', borderWidth: 1.5 },
+  ring: { position: 'absolute', borderWidth: 2 },
+  orb: { alignItems: 'center', justifyContent: 'center', borderWidth: 2.5 },
 });
