@@ -35,6 +35,8 @@ export function AICommandCard({ command, performanceState }: Props) {
   const label = URGENCY_LABELS[command.urgencyLevel] ?? 'ACT NOW';
 
   const [isSpeaking, setIsSpeaking] = React.useState(false);
+  const hasSpokenInitial = React.useRef(false);
+  const lastSpokenAction = React.useRef<string | null>(null);
 
   React.useEffect(() => {
     // Stop any in-flight speech when the command itself changes.
@@ -42,8 +44,24 @@ export function AICommandCard({ command, performanceState }: Props) {
       stopSpeaking();
       setIsSpeaking(false);
     }
+
+    // Auto-speak rules:
+    //   - First command after mount → always speak it
+    //   - Any subsequent command at HIGH or CRITICAL urgency → speak it
+    //   - Skip if the action text didn't actually change
+    if (lastSpokenAction.current === command.action) return;
+
+    const isUrgent = command.urgencyLevel === 'high' || command.urgencyLevel === 'critical';
+    const shouldSpeak = !hasSpokenInitial.current || isUrgent;
+    if (!shouldSpeak) return;
+
+    const line = `${command.action}. ${command.explanation}`;
+    speak(line);
+    setIsSpeaking(true);
+    hasSpokenInitial.current = true;
+    lastSpokenAction.current = command.action;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [command.action, command.explanation]);
+  }, [command.action, command.explanation, command.urgencyLevel]);
 
   React.useEffect(() => {
     return () => { stopSpeaking(); };
@@ -71,6 +89,7 @@ export function AICommandCard({ command, performanceState }: Props) {
     const line = `${command.action}. ${command.explanation}`;
     speak(line);
     setIsSpeaking(true);
+    lastSpokenAction.current = command.action;
   };
 
   return (
