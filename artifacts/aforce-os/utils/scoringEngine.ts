@@ -33,6 +33,7 @@ import type {
 } from '../types';
 import { Colors } from '../theme/colors';
 import { activeDecayMultiplier } from './hangoverRisk';
+import { materializedIntakePoints } from '../services/hydrationScoreService';
 
 function resolveState(score: number): PerformanceLevel {
   if (score >= 90) return 'PEAK';
@@ -45,16 +46,26 @@ function resolveState(score: number): PerformanceLevel {
 function buildBreakdown(state: UserState): { score: number; contributions: ScoreContribution[]; decayPerMinute: number; minutesSinceLast: number } {
   const minutesSinceLast = minutesSince(state.lastIntakeTime);
 
-  const ozRatio = Math.min(1, state.ozConsumedToday / state.ozTarget);
-  const baseIntake = Math.round(45 * ozRatio);
-
-  // AForce protocol bonus: each AForce-format intake (stick/RTD/canister/
-  // bulk_bag) is worth +12 score, capped at +50/day. This is the visible
-  // reward for choosing an AForce product over plain water — the
-  // functional ingredients (electrolytes, dulse/chlorella/seamoss) are
-  // why an AForce stick out-hydrates a tap-water of the same volume,
-  // so a single stick should swing the orb meaningfully (~3× water).
-  const aforceBonus = Math.min(50, Math.max(0, (state.aforceUnitsToday ?? 0) * 12));
+  // Per-event hydration scoring (replaces the old running-aggregate
+  // baseIntake + aforceBonus model). Each event carries its own
+  // pre-computed impact decomposition; the materializer ramps the
+  // delayed portion in linearly over the absorption window so the orb
+  // keeps moving for ~10–25 min after a log — feels like the body
+  // absorbing in real time. When `intakeEvents` is empty (legacy
+  // state pre-migration), we fall back to the running-aggregate so
+  // the score still renders.
+  const events = state.intakeEvents ?? [];
+  let baseIntake: number;
+  let aforceBonus: number;
+  if (events.length > 0) {
+    const m = materializedIntakePoints(events, new Date());
+    baseIntake = Math.round(m.waterPoints);
+    aforceBonus = Math.round(m.aforcePoints);
+  } else {
+    const ozRatio = Math.min(1, state.ozConsumedToday / state.ozTarget);
+    baseIntake = Math.round(45 * ozRatio);
+    aforceBonus = Math.min(50, Math.max(0, (state.aforceUnitsToday ?? 0) * 12));
+  }
 
   // Per spec: continuous decay model (replaces the old tiered "recency").
   // Score(t) = previous − decay × time + inputs. We translate that into
@@ -286,12 +297,21 @@ function computeRecoverySignal(state: UserState): { delta: number; hint: string 
 
 // ─── Score Calculation ────────────────────────────────────────────────────────
 function calculateBaseScore(state: UserState): number {
-  // base_intake_score: 0–45 from oz consumed vs target
-  const ozRatio = Math.min(1, state.ozConsumedToday / state.ozTarget);
-  const baseIntake = Math.round(45 * ozRatio);
-  // AForce protocol bonus mirrored from buildBreakdown — keep these
-  // two paths in lockstep so the prediction strip and the orb agree.
-  const aforceBonus = Math.min(50, Math.max(0, (state.aforceUnitsToday ?? 0) * 12));
+  // Per-event hydration scoring — mirrors buildBreakdown so the score
+  // and the prediction strip agree. Falls back to the legacy running-
+  // aggregate when no events are present.
+  const events = state.intakeEvents ?? [];
+  let baseIntake: number;
+  let aforceBonus: number;
+  if (events.length > 0) {
+    const m = materializedIntakePoints(events, new Date());
+    baseIntake = Math.round(m.waterPoints);
+    aforceBonus = Math.round(m.aforcePoints);
+  } else {
+    const ozRatio = Math.min(1, state.ozConsumedToday / state.ozTarget);
+    baseIntake = Math.round(45 * ozRatio);
+    aforceBonus = Math.min(50, Math.max(0, (state.aforceUnitsToday ?? 0) * 12));
+  }
 
   // Continuous decay (per spec) replaces the tiered recency tier.
   const minutesSinceLast = minutesSince(state.lastIntakeTime);

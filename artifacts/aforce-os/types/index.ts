@@ -23,6 +23,33 @@ export interface ProductType {
   flavor?: ProductFlavor;
 }
 
+// ─── Intake Events ────────────────────────────────────────────────────────────
+/**
+ * A single intake log used by the hydration scoring engine. Persisted
+ * in `aforce_user_state.intake_events` JSONB (rolling 24h window).
+ * Each event carries its own pre-computed impact decomposition so the
+ * materialized score is reproducible without re-running the scoring
+ * service over the full history.
+ */
+export interface IntakeEvent {
+  id: string;
+  fluidType: FluidType;
+  flavor?: ProductFlavor;
+  oz: number;
+  loggedAt: Date;
+  /** Raw flavor / oz score before the 20-min absorption cap. */
+  baseImpact: number;
+  /** After cap. immediate + delayed = capAdjusted. */
+  capAdjusted: number;
+  immediate: number;
+  delayed: number;
+  delayedDurationMin: number;
+  /** True if Heat Guard band was WARNING+ when logged (audit trail). */
+  heatGuardActiveAtLog: boolean;
+  /** Score before the event — used for Soursop bonus reproducibility. */
+  scoreBeforeAtLog: number;
+}
+
 // ─── User / State ─────────────────────────────────────────────────────────────
 export interface UserState {
   unitsConsumedToday: number;
@@ -33,6 +60,13 @@ export interface UserState {
    * an AForce product visibly out-scores plain water.
    */
   aforceUnitsToday: number;
+  /**
+   * Per-event intake history (rolling 24h). Drives the new hydration
+   * scoring engine — flavor-aware impacts, 20-min absorption cap,
+   * delayed absorption curves. When empty (legacy state), the engine
+   * falls back to the running-aggregate baseIntake formula.
+   */
+  intakeEvents?: IntakeEvent[];
   lastIntakeTime: Date;
   lastIntakeType: FluidType;
   symptomState: 'none' | 'mild' | 'moderate' | 'severe';

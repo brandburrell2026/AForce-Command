@@ -50,6 +50,15 @@ I prefer iterative development, with frequent, small updates. Ask before making 
 - **Server-side OpenWeather:** `lib/openWeather.ts` proxies OpenWeather with a 10-minute in-memory cache so the API key never reaches the client. Snapshot is persisted into `aforce_user_state` and consumed by `scoringEngine.ts` (`weatherTempC`/`weatherHumidity` — falls back to the heatLoad approximation when missing). Client refreshes every 15 min using `expo-location` (Denver default).
 - **Client overlay model:** Server is source of truth for everything except `appleHealth` (HealthKit on-device only), which the mobile store preserves via a ref-backed overlay across WS pushes.
 
+### Per-Event Hydration Scoring (replaces baseIntake/aforceBonus aggregate)
+- **Spec:** Water 0.5 pt/oz (12/16/24/32oz → +6/+8/+12/+16). AForce flavors: Berry +10, Watermelon +10 (or +12 if Heat Guard active = `heatLoad ≥ 6`), Soursop +11 (or +13 if `scoreBefore < 40`).
+- **Absorption cap:** 1.5 units in any rolling 20-min window; excess intake scaled to 75% efficiency.
+- **Release curves:** Water releases 60% immediately + 40% linearly over 12.5 min. AForce releases 70% immediately + 30% linearly over 25 min.
+- **Implementation:** Pure logic in `artifacts/aforce-os/services/hydrationScoreService.ts` (`computeEventImpact`, `materializedIntakePoints`, `trimOldEvents`). Each `/intake` call appends an `IntakeEvent` to the `intake_events` JSONB column on `aforce_user_state`. `scoringEngine` materializes points from events when present, else falls back to legacy aggregate.
+- **Rolling 24h window:** Trimmed on every `/intake` write AND defensively re-trimmed inside `materializedIntakePoints` so stale events can't contribute. UTC day rollover preserves `intake_events` (window is independent of day boundary).
+- **Concurrency:** `/intake` uses `SELECT ... FOR UPDATE` row lock inside the tx so concurrent intakes can't lose each other to a JSONB read-modify-write race.
+- **Tests:** `artifacts/aforce-os/utils/__tests__/hydrationScoreService.test.ts` — 17 tests covering flavor bonuses, cap math, release curves, and trim behavior.
+
 ### Mobile Application (`artifacts/aforce-os`)
 - **AForce HydroScan:** Premium scan-to-decide UX for product recognition and comparison. Maps barcodes/QR/manual queries to `CompareProduct` and provides AI commands and recommendations.
 - **AForce Circles:** A premium private accountability network with shared status, reactions, challenges, and privacy controls.

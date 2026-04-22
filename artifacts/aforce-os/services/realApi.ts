@@ -22,10 +22,13 @@ import type {
   UserState,
   ScoreEngineOutput,
   IntakeLog,
+  IntakeEvent,
   FluidType,
+  ProductFlavor,
   PulseConfig,
 } from '../types';
 import { calculateScore } from '../utils/scoringEngine';
+import { computeEventImpact } from './hydrationScoreService';
 import { PRODUCTS } from '../data/products';
 import { defaultUserState } from '../data/mockData';
 
@@ -102,8 +105,30 @@ function normalizeUserState(row: Record<string, unknown>): UserState {
     weatherCity: (get<string | null>('weatherCity') ?? null),
     weatherFetchedAt: row['weatherFetchedAt'] ? new Date(row['weatherFetchedAt'] as string).getTime() : null,
     language: ((get<string>('language') ?? 'en') as UserState['language']),
+    intakeEvents: normalizeIntakeEvents(row['intakeEvents']),
     socialMode: normalizeSocialMode(row['socialMode']),
   };
+}
+
+function normalizeIntakeEvents(raw: unknown): UserState['intakeEvents'] {
+  if (!Array.isArray(raw)) return [];
+  return raw.map((r) => {
+    const e = r as Record<string, unknown>;
+    return {
+      id: String(e['id'] ?? `evt-${Math.random().toString(36).slice(2)}`),
+      fluidType: (e['fluidType'] as FluidType) ?? 'water',
+      ...(e['flavor'] != null ? { flavor: e['flavor'] as ProductFlavor } : {}),
+      oz: Number(e['oz'] ?? 12),
+      loggedAt: e['loggedAt'] ? new Date(e['loggedAt'] as string) : new Date(),
+      baseImpact: Number(e['baseImpact'] ?? 0),
+      capAdjusted: Number(e['capAdjusted'] ?? 0),
+      immediate: Number(e['immediate'] ?? 0),
+      delayed: Number(e['delayed'] ?? 0),
+      delayedDurationMin: Number(e['delayedDurationMin'] ?? 25),
+      heatGuardActiveAtLog: Boolean(e['heatGuardActiveAtLog']),
+      scoreBeforeAtLog: Number(e['scoreBeforeAtLog'] ?? 0),
+    };
+  });
 }
 
 function normalizeSocialMode(raw: unknown): UserState['socialMode'] {
@@ -192,6 +217,8 @@ export async function fetchHome(userState: UserState): Promise<HomePayload> {
 export interface IntakeLogPayload {
   fluidType: FluidType;
   ozAmount?: number;
+  /** Optional flavor — required for AForce flavored bonuses. */
+  flavor?: ProductFlavor;
 }
 export interface IntakeLogResponse {
   log: IntakeLog;
@@ -205,7 +232,39 @@ export async function postIntakeLog(
 ): Promise<IntakeLogResponse> {
   const product = PRODUCTS[body.fluidType];
   const ozAmount = body.ozAmount ?? product.ozPerServing;
-  const scoreBefore = calculateScore(userState).score;
+  const flavor = body.flavor ?? product.flavor;
+  const now = new Date();
+  // Pre-compute the per-event hydration impact so the score moves
+  // immediately and the event is reproducible server-side.
+  const beforeOutput = calculateScore(userState);
+  const scoreBefore = beforeOutput.score;
+  // Heat Guard active proxy: use the same heatLoad threshold that
+  // already drives the engine's heat-context penalty (>= 6). This
+  // avoids a second evaluateHeatRisk pass on every intake while still
+  // matching the user-visible "Heat Guard ON" surface.
+  const heatGuardActive = (userState.heatLoad ?? 0) >= 6;
+  const impact = computeEventImpact(
+    body.fluidType,
+    flavor,
+    ozAmount,
+    userState.intakeEvents ?? [],
+    now,
+    { heatGuardActive, scoreBefore },
+  );
+  const event: IntakeEvent = {
+    id: `evt-${now.getTime()}-${Math.random().toString(36).slice(2, 8)}`,
+    fluidType: body.fluidType,
+    ...(flavor ? { flavor } : {}),
+    oz: ozAmount,
+    loggedAt: now,
+    baseImpact: impact.baseImpact,
+    capAdjusted: impact.capAdjusted,
+    immediate: impact.immediate,
+    delayed: impact.delayed,
+    delayedDurationMin: impact.delayedDurationMin,
+    heatGuardActiveAtLog: heatGuardActive,
+    scoreBeforeAtLog: scoreBefore,
+  };
   // Compute the optimistic post-intake state so we can report scoreAfter
   // truthfully without a second round trip.
   const optimistic: UserState = {
@@ -213,14 +272,17 @@ export async function postIntakeLog(
     unitsConsumedToday: userState.unitsConsumedToday + 1,
     ozConsumedToday: userState.ozConsumedToday + ozAmount,
     aforceUnitsToday: userState.aforceUnitsToday + (body.fluidType.startsWith('aforce_') ? 1 : 0),
-    lastIntakeTime: new Date(),
+    lastIntakeTime: now,
     lastIntakeType: body.fluidType,
+    intakeEvents: [...(userState.intakeEvents ?? []), event],
   };
   const scoreAfter = calculateScore(optimistic).score;
 
+  // Serialize the event for the wire (Date -> ISO).
+  const eventWire = { ...event, loggedAt: event.loggedAt.toISOString() };
   const resp = await postJson<{ userState: Record<string, unknown>; log: { id: number; loggedAt: string } }>(
     '/intake',
-    { fluidType: body.fluidType, ozAmount, scoreBefore, scoreAfter },
+    { fluidType: body.fluidType, ozAmount, scoreBefore, scoreAfter, event: eventWire },
   );
   const normalized = normalizeUserState(resp.userState);
   const newUserState: UserState = {

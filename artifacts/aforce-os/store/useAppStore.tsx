@@ -42,6 +42,22 @@ import {
 } from '../services/realApi';
 import i18n, { setLanguage as setI18nLanguage, type SupportedLanguage } from '../services/i18nService';
 import { PRODUCTS } from '../data/products';
+import type { ProductFlavor } from '../types';
+
+/**
+ * Map a free-form flavor label (as shown in the manual picker) back to
+ * the canonical ProductFlavor used by the hydration scoring engine.
+ * The picker labels live in `data/products.ts` (PRODUCT_FLAVORS) — we
+ * substring-match so "Berry Blast + Dulse" / "Berry Blast" both map.
+ */
+function inferFlavorFromLabel(label?: string): ProductFlavor | undefined {
+  if (!label) return undefined;
+  const lower = label.toLowerCase();
+  if (lower.includes('berry')) return 'berry';
+  if (lower.includes('watermelon')) return 'watermelon';
+  if (lower.includes('soursop')) return 'soursop';
+  return undefined;
+}
 
 // Service-only synchronous bootstrapping helper. The store NEVER calls
 // the scoring engine directly — it always asks the mock API for engineOutput.
@@ -360,9 +376,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       // Allow callers (e.g. the manual water amount picker) to override
       // the default per-serving oz so the score impact reflects what was
       // actually consumed (e.g. a 24 oz water bottle instead of 12 oz).
+      // Map flavorLabel (display string) → ProductFlavor for the
+      // hydration scoring engine. Watermelon/Berry/Soursop bonuses
+      // depend on this. Fallback to the product's default flavor.
+      const flavor = inferFlavorFromLabel(opts?.flavorLabel) ?? PRODUCTS[fluidType].flavor;
       const { log, newUserState, engineOutput } = await postIntakeLog(state.userState, {
         fluidType,
         ...(opts?.ozOverride != null ? { ozAmount: opts.ozOverride } : {}),
+        ...(flavor ? { flavor } : {}),
       });
       const product = PRODUCTS[fluidType];
       const result: CycleResult = {

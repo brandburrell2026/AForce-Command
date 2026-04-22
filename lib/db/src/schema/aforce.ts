@@ -68,6 +68,24 @@ export const aforceUserState = pgTable("aforce_user_state", {
   // never activated; `{active:true,...}` = currently drinking;
   // `{active:false, endedAt:<ts>}` = Recovery Mode window. Dates are
   // stored as ISO strings (the client normalizes back to Date).
+  // Per-event intake history (rolling 24h). Drives the per-event
+  // hydration scoring engine — flavor-aware impacts, 20-min absorption
+  // cap, delayed absorption curves. Stored as JSONB so the shape can
+  // evolve without a migration.
+  intakeEvents: jsonb("intake_events").$type<{
+    id: string;
+    fluidType: string;
+    flavor?: string;
+    oz: number;
+    loggedAt: string;
+    baseImpact: number;
+    capAdjusted: number;
+    immediate: number;
+    delayed: number;
+    delayedDurationMin: number;
+    heatGuardActiveAtLog: boolean;
+    scoreBeforeAtLog: number;
+  }[]>().notNull().default([]),
   socialMode: jsonb("social_mode").$type<{
     active: boolean;
     startedAt: string;

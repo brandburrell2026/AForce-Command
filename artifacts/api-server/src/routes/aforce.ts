@@ -50,6 +50,25 @@ router.get("/state", async (_req, res) => {
 });
 
 // ─── POST /intake ──────────────────────────────────────────────────────────────
+// `event` carries the per-event impact decomposition computed client-
+// side by `services/hydrationScoreService.ts`. The server stores it
+// verbatim into the `intake_events` JSONB so the materialized score
+// is reproducible across reloads / multi-device. Cap-trim to last 24h.
+const flavorEnum = z.enum(["watermelon", "berry", "soursop", "unflavored"]);
+const intakeEventSchema = z.object({
+  id: z.string().min(1).max(64),
+  fluidType: z.enum(ALL_FLUID_TYPES),
+  flavor: flavorEnum.optional(),
+  oz: z.number().positive(),
+  loggedAt: z.string(),
+  baseImpact: z.number(),
+  capAdjusted: z.number(),
+  immediate: z.number(),
+  delayed: z.number(),
+  delayedDurationMin: z.number().positive(),
+  heatGuardActiveAtLog: z.boolean(),
+  scoreBeforeAtLog: z.number(),
+});
 const intakeSchema = z.object({
   // Strict allow-list (mirrors client `FluidType`). Rejects arbitrary
   // strings like `aforce_fake` that would otherwise sneak past the
@@ -58,7 +77,10 @@ const intakeSchema = z.object({
   ozAmount: z.number().positive(),
   scoreBefore: z.number().int(),
   scoreAfter: z.number().int(),
+  event: intakeEventSchema.optional(),
 });
+
+const INTAKE_EVENT_MAX_AGE_MS = 24 * 60 * 60 * 1000;
 
 router.post("/intake", async (req, res) => {
   try {
@@ -72,6 +94,23 @@ router.post("/intake", async (req, res) => {
     const isAforce = isAforceFluid(body.fluidType);
     const now = new Date();
     const result = await db.transaction(async (tx) => {
+      // Read current events, append + trim. We do this inside the tx
+      // so concurrent intakes can't lose each other's events to a
+      // read-modify-write race on the JSONB array.
+      const [current] = await tx
+        .select({ intakeEvents: aforceUserState.intakeEvents })
+        .from(aforceUserState)
+        .where(eq(aforceUserState.userId, userId))
+        .limit(1)
+        .for('update');
+      type StoredEvent = NonNullable<typeof current>['intakeEvents'][number];
+      const prevEvents: StoredEvent[] = current?.intakeEvents ?? [];
+      const trimmed = prevEvents.filter((e) => {
+        const t = new Date(e.loggedAt).getTime();
+        return Number.isFinite(t) && now.getTime() - t < INTAKE_EVENT_MAX_AGE_MS;
+      });
+      const nextEvents: StoredEvent[] = body.event ? [...trimmed, body.event] : trimmed;
+
       const [updated] = await tx
         .update(aforceUserState)
         .set({
@@ -85,6 +124,7 @@ router.post("/intake", async (req, res) => {
           isSnoozed: false,
           snoozeUntil: null,
           hasSeenMorningCommand: true,
+          intakeEvents: nextEvents,
           updatedAt: now,
         })
         .where(eq(aforceUserState.userId, userId))

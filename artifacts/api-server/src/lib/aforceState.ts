@@ -60,6 +60,9 @@ async function applyDayRollover(userId: string, current: AforceUserStateRow): Pr
       ozConsumedToday: 0,
       aforceUnitsToday: 0,
       hasSeenMorningCommand: false,
+      // intakeEvents intentionally NOT reset here — events are a
+      // rolling-24h window (trimmed on /intake write & at materialization
+      // time), independent of UTC day boundaries.
       updatedAt: new Date(),
     })
     .where(sql`${aforceUserState.userId} = ${userId}
@@ -112,6 +115,7 @@ function defaultSeed(): Omit<AforceUserStateRow, "updatedAt"> {
     weatherCity: null,
     weatherFetchedAt: null,
     language: "en",
+    intakeEvents: [],
     socialMode: null,
   };
 }
