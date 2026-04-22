@@ -12,6 +12,8 @@
 import type { Feather } from '@expo/vector-icons';
 
 export type HealthProviderId =
+  | 'apple_health'
+  | 'oura'
   | 'samsung_health'
   | 'google_health'
   | 'garmin'
@@ -29,6 +31,20 @@ export interface HealthProvider {
 }
 
 export const HEALTH_PROVIDERS: HealthProvider[] = [
+  {
+    id: 'apple_health',
+    name: 'Apple Health',
+    pulls: 'HR · HRV · sleep · workouts',
+    brand: '#FF2D55',
+    icon: 'heart',
+  },
+  {
+    id: 'oura',
+    name: 'Oura Ring',
+    pulls: 'Readiness · sleep · HRV',
+    brand: '#9B8CFF',
+    icon: 'circle',
+  },
   {
     id: 'samsung_health',
     name: 'Samsung Health',
