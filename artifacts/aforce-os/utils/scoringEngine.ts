@@ -46,6 +46,13 @@ function buildBreakdown(state: UserState): { score: number; contributions: Score
   const ozRatio = Math.min(1, state.ozConsumedToday / state.ozTarget);
   const baseIntake = Math.round(45 * ozRatio);
 
+  // AForce protocol bonus: each AForce-format intake (stick/RTD/canister/
+  // bulk_bag) is worth +4 score, capped at +20/day. This is the visible
+  // reward for choosing an AForce product over plain water — the
+  // functional ingredients (electrolytes, dulse/chlorella/seamoss) are
+  // why an AForce stick out-hydrates a tap-water of the same volume.
+  const aforceBonus = Math.min(20, Math.max(0, (state.aforceUnitsToday ?? 0) * 4));
+
   // Per spec: continuous decay model (replaces the old tiered "recency").
   // Score(t) = previous − decay × time + inputs. We translate that into
   // a single contribution called "decay since last intake" so the
@@ -89,14 +96,19 @@ function buildBreakdown(state: UserState): { score: number; contributions: Score
   const recovery = computeRecoverySignal(state);
   const confirmation = computeConfirmationDelta(state);
 
-  const raw = baseIntake + recency + consistency + context + recoveryMomentum
+  const raw = baseIntake + aforceBonus + recency + consistency + context + recoveryMomentum
             + symptomPenalty + urinePenalty + outputStress + sleepCarry
             + recovery.delta + confirmation;
   const score = Math.max(0, Math.min(100, Math.round(raw)));
 
+  const aforceUnits = state.aforceUnitsToday ?? 0;
   const contributions: ScoreContribution[] = [
     { id: 'base', label: 'Base intake (oz vs target)', delta: baseIntake, maxMagnitude: 45,
       hint: `${state.ozConsumedToday} of ${state.ozTarget} oz` },
+    { id: 'aforce_bonus', label: 'AForce protocol bonus', delta: aforceBonus, maxMagnitude: 20,
+      hint: aforceUnits === 0
+        ? 'Log an AForce stick or RTD'
+        : `${aforceUnits} AForce intake${aforceUnits === 1 ? '' : 's'} today` },
     { id: 'recency', label: 'Decay since last intake', delta: recency, maxMagnitude: 35,
       hint: `${minutesSinceLast} min · ${decayPerMinute.toFixed(2)} pts/min${state.clutchActive ? ' (clutch ×1.3)' : ''}` },
     { id: 'confirmation', label: 'Last command confirmation', delta: confirmation, maxMagnitude: 3,
@@ -266,6 +278,9 @@ function calculateBaseScore(state: UserState): number {
   // base_intake_score: 0–45 from oz consumed vs target
   const ozRatio = Math.min(1, state.ozConsumedToday / state.ozTarget);
   const baseIntake = Math.round(45 * ozRatio);
+  // AForce protocol bonus mirrored from buildBreakdown — keep these
+  // two paths in lockstep so the prediction strip and the orb agree.
+  const aforceBonus = Math.min(20, Math.max(0, (state.aforceUnitsToday ?? 0) * 4));
 
   // Continuous decay (per spec) replaces the tiered recency tier.
   const minutesSinceLast = minutesSince(state.lastIntakeTime);
@@ -308,7 +323,7 @@ function calculateBaseScore(state: UserState): number {
 
   const confirmation = computeConfirmationDelta(state);
 
-  const raw = baseIntake + recency + consistency + context + recoveryMomentum
+  const raw = baseIntake + aforceBonus + recency + consistency + context + recoveryMomentum
             + symptomPenalty + urinePenalty + outputStress + sleepCarry
             + recovery.delta + confirmation;
 

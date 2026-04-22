@@ -17,6 +17,11 @@ export const aforceUserState = pgTable("aforce_user_state", {
   userId: text("user_id").primaryKey(),
   unitsConsumedToday: integer("units_consumed_today").notNull().default(0),
   ozConsumedToday: real("oz_consumed_today").notNull().default(0),
+  // T6 follow-up: count of AForce-format intakes today (stick / RTD /
+  // canister / bulk_bag). Drives the "AForce protocol bonus" in the
+  // scoring engine so picking an AForce product visibly out-scores
+  // plain water.
+  aforceUnitsToday: integer("aforce_units_today").notNull().default(0),
   lastIntakeTime: timestamp("last_intake_time", { withTimezone: true }).notNull().defaultNow(),
   lastIntakeType: text("last_intake_type").notNull().default("water"),
   symptomState: text("symptom_state").notNull().default("none"),

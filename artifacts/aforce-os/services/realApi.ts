@@ -72,6 +72,7 @@ function normalizeUserState(row: Record<string, unknown>): UserState {
   return {
     unitsConsumedToday: Number(get('unitsConsumedToday') ?? 0),
     ozConsumedToday: Number(get('ozConsumedToday') ?? 0),
+    aforceUnitsToday: Number(get('aforceUnitsToday') ?? 0),
     lastIntakeTime: dateOrNull('lastIntakeTime') ?? new Date(),
     lastIntakeType: (get<FluidType>('lastIntakeType') ?? 'water') as FluidType,
     symptomState: (get<UserState['symptomState']>('symptomState') ?? 'none'),
@@ -179,6 +180,7 @@ export async function postIntakeLog(
     ...userState,
     unitsConsumedToday: userState.unitsConsumedToday + 1,
     ozConsumedToday: userState.ozConsumedToday + ozAmount,
+    aforceUnitsToday: userState.aforceUnitsToday + (body.fluidType.startsWith('aforce_') ? 1 : 0),
     lastIntakeTime: new Date(),
     lastIntakeType: body.fluidType,
   };

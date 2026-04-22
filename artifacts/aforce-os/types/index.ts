@@ -27,6 +27,12 @@ export interface ProductType {
 export interface UserState {
   unitsConsumedToday: number;
   ozConsumedToday: number;
+  /**
+   * AForce-format intakes today (stick / RTD / canister / bulk_bag).
+   * Drives the "AForce protocol bonus" in the scoring engine so picking
+   * an AForce product visibly out-scores plain water.
+   */
+  aforceUnitsToday: number;
   lastIntakeTime: Date;
   lastIntakeType: FluidType;
   symptomState: 'none' | 'mild' | 'moderate' | 'severe';

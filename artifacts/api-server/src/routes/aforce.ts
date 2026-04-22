@@ -20,7 +20,7 @@ import { Router, type IRouter } from "express";
 import { z } from "zod";
 import { db, aforceIntakeLogs, aforceConfirmations, aforceUserState } from "@workspace/db";
 import { eq, sql } from "drizzle-orm";
-import { DEFAULT_USER_ID, getUserState, updateUserState, incrementIntake } from "../lib/aforceState";
+import { DEFAULT_USER_ID, getUserState, updateUserState, ALL_FLUID_TYPES, isAforceFluid } from "../lib/aforceState";
 import { publish } from "../lib/aforceHub";
 import { fetchWeather } from "../lib/openWeather";
 import { logger } from "../lib/logger";
@@ -51,7 +51,10 @@ router.get("/state", async (_req, res) => {
 
 // ─── POST /intake ──────────────────────────────────────────────────────────────
 const intakeSchema = z.object({
-  fluidType: z.string().min(1),
+  // Strict allow-list (mirrors client `FluidType`). Rejects arbitrary
+  // strings like `aforce_fake` that would otherwise sneak past the
+  // bonus gate.
+  fluidType: z.enum(ALL_FLUID_TYPES),
   ozAmount: z.number().positive(),
   scoreBefore: z.number().int(),
   scoreAfter: z.number().int(),
@@ -61,25 +64,32 @@ router.post("/intake", async (req, res) => {
   try {
     const body = intakeSchema.parse(req.body);
     const userId = resolveUserId();
-    // Single transaction: atomic counter increment + log insert. If
-    // either fails the whole thing rolls back, so a client retry won't
-    // double-apply and we can never have a log without its state bump
-    // (or vice-versa).
+    // Pre-seed (and apply day rollover) outside the transaction so the
+    // UPDATE inside the tx is guaranteed to find a row. This collapses
+    // the old "tx + fallback" two-path flow into a single atomic write,
+    // eliminating the duplicate-log edge case where both paths inserted.
+    await getUserState(userId);
+    const isAforce = isAforceFluid(body.fluidType);
+    const now = new Date();
     const result = await db.transaction(async (tx) => {
-      const updated = await tx
+      const [updated] = await tx
         .update(aforceUserState)
         .set({
           unitsConsumedToday: sql`${aforceUserState.unitsConsumedToday} + 1`,
           ozConsumedToday: sql`${aforceUserState.ozConsumedToday} + ${body.ozAmount}`,
-          lastIntakeTime: new Date(),
+          aforceUnitsToday: isAforce
+            ? sql`${aforceUserState.aforceUnitsToday} + 1`
+            : aforceUserState.aforceUnitsToday,
+          lastIntakeTime: now,
           lastIntakeType: body.fluidType,
           isSnoozed: false,
           snoozeUntil: null,
           hasSeenMorningCommand: true,
-          updatedAt: new Date(),
+          updatedAt: now,
         })
         .where(eq(aforceUserState.userId, userId))
         .returning();
+      if (!updated) throw new Error("user_state_missing");
       const [log] = await tx
         .insert(aforceIntakeLogs)
         .values({
@@ -90,20 +100,8 @@ router.post("/intake", async (req, res) => {
           scoreAfter: body.scoreAfter,
         })
         .returning();
-      return { updated: updated[0], log };
+      return { updated, log };
     });
-    if (!result.updated) {
-      // First-touch case: row didn't exist yet. Seed and retry once
-      // outside the transaction (atomic via incrementIntake).
-      await getUserState(userId);
-      const updated = await incrementIntake(userId, body.ozAmount, body.fluidType, new Date());
-      const [log] = await db.insert(aforceIntakeLogs).values({
-        userId, fluidType: body.fluidType, ozAmount: body.ozAmount,
-        scoreBefore: body.scoreBefore, scoreAfter: body.scoreAfter,
-      }).returning();
-      broadcastState(userId, updated);
-      return res.json({ userState: updated, log });
-    }
     broadcastState(userId, result.updated);
     return res.json({ userState: result.updated, log: result.log });
   } catch (err) {

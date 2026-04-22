@@ -75,6 +75,7 @@ export function postIntakeLog(
     ...userState,
     unitsConsumedToday: userState.unitsConsumedToday + 1,
     ozConsumedToday: userState.ozConsumedToday + ozAmount,
+    aforceUnitsToday: userState.aforceUnitsToday + (body.fluidType.startsWith('aforce_') ? 1 : 0),
     lastIntakeTime: new Date(),
     lastIntakeType: body.fluidType,
     isSnoozed: false,

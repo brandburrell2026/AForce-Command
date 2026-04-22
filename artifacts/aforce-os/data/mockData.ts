@@ -9,6 +9,7 @@ import type { UserState, UserProfile, HistoryEntry, RosterPlayer } from '../type
 // ─── Mock User State ──────────────────────────────────────────────────────────
 export const defaultUserState: UserState = {
   unitsConsumedToday: 4,
+  aforceUnitsToday: 3,
   ozConsumedToday: 60,
   lastIntakeTime: new Date(Date.now() - 38 * 60 * 1000),
   lastIntakeType: 'aforce_stick',
