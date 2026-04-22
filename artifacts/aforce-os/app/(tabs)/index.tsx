@@ -340,8 +340,6 @@ export default function HomeScreen() {
   const actionRow = (
     <View style={styles.actionRow}>
       {([
-        { key: 'log',       icon: 'droplet',     label: 'Log Water', onPress: () => setCtaFlavorOpen(true),
-          testID: 'home-log-water-button' },
         { key: 'scan',      icon: 'maximize',    label: 'Scan',      onPress: () => router.push('/scan') },
         { key: 'compete',   icon: 'award',       label: 'Compete',   onPress: () => router.push('/competition') },
         { key: 'circles',   icon: 'users',       label: 'Circles',   onPress: () => router.push('/circles'),
