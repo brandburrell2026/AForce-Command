@@ -42,6 +42,13 @@ export const FEATURE_REQUIREMENTS: Record<string, { plan: SubscriptionPlanId; la
   premium_insights:   { plan: 'system',   label: 'Premium Performance Insights' },
   system_recs:        { plan: 'system',   label: 'Full System-Level Recommendations' },
 
+  // ─── Elite (Consumer ELITE tier) ───────────────────────────────────────
+  guardian_consumer:  { plan: 'elite',    label: 'Guardian Mode for Individuals' },
+  analytics_premium:  { plan: 'elite',    label: 'Premium Analytics' },
+  full_bundle:        { plan: 'elite',    label: 'Full Monthly Product Bundle' },
+  early_access:       { plan: 'elite',    label: 'Early Access to New Features' },
+  concierge:          { plan: 'elite',    label: 'Priority Concierge Support' },
+
   // ─── Team / Program ────────────────────────────────────────────────────
   roster_core:        { plan: 'team_starter', label: 'Roster-Aware Core' },
   group_reports:      { plan: 'team_starter', label: 'Group Reporting' },

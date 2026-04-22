@@ -29,7 +29,10 @@ import type { SubscriptionPlan, SubscriptionPlanId } from '../types/subscription
 function priceLabel(price: number): string {
   if (price === 0) return 'Free';
   if (price >= 1000) return `$${price.toLocaleString('en-US')}/mo`;
-  return `$${price}/mo`;
+  // Render the cents only when meaningful so $19.99 → "$19.99/mo" but
+  // $99 → "$99/mo" (no trailing .00). Keeps the dark-luxury type rhythm.
+  const formatted = Number.isInteger(price) ? `${price}` : price.toFixed(2);
+  return `$${formatted}/mo`;
 }
 
 export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
@@ -41,11 +44,11 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     subcategory: 'consumer',
     positioning: 'Start your performance system',
     description:
-      'Entry point into AForce OS for consumers who want the core experience and daily command layer.',
-    priceMonthly: 0,
-    priceLabel: priceLabel(0),
+      'Entry point into AForce OS — OS access, AI commands, and the daily hydration tracking layer.',
+    priceMonthly: 9.99,
+    priceLabel: priceLabel(9.99),
     rank: 1,
-    ctaLabel: 'Start Free',
+    ctaLabel: 'Start with Core',
     features: [
       { id: 'home',       label: 'Hydration Control Center' },
       { id: 'pulse',      label: 'Status Pulse + Performance Score' },
@@ -63,8 +66,8 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     positioning: 'Train and perform with precision',
     description:
       'The daily performance system for serious users who want deeper decisioning, recovery guidance, and personalized protocols.',
-    priceMonthly: 19,
-    priceLabel: priceLabel(19),
+    priceMonthly: 19.99,
+    priceLabel: priceLabel(19.99),
     rank: 2,
     inheritsFromId: 'core',
     ctaLabel: 'Upgrade to Athlete',
@@ -81,34 +84,65 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
   },
   {
     id: 'system',
-    name: 'AForce System',
+    name: 'Performance Bundle',
     category: 'consumer',
     subcategory: 'consumer',
-    positioning: 'Full performance control',
+    positioning: 'Full performance control + monthly product',
     description:
-      'The full AForce system for users who want software + product integration in one complete performance loop.',
-    priceMonthly: 49,
-    priceLabel: priceLabel(49),
+      'The flagship — Athlete tier plus a recurring product drop (1 canister or 2 stick packs each month) at exclusive member pricing.',
+    priceMonthly: 59.99,
+    priceLabel: priceLabel(59.99),
     rank: 3,
     inheritsFromId: 'athlete',
     badge: 'BEST VALUE',
     isBestValue: true,
-    ctaLabel: 'Get the Full System',
+    ctaLabel: 'Get the Performance Bundle',
     productSubscription: {
+      // Default fulfillment is the canister; the user can swap to "2 stick
+      // packs" from ManageSubscription. UI copy reflects the choice.
       allotments: [
-        { fluidType: 'aforce_stick',     unitsPerCycle: 30, label: '30 AForce Sticks' },
-        { fluidType: 'aforce_rtd',       unitsPerCycle: 12, label: '12 AForce RTDs' },
-        { fluidType: 'aforce_canister',  unitsPerCycle: 1,  label: '1 AForce Canister' },
+        { fluidType: 'aforce_canister',  unitsPerCycle: 1, label: '1 Canister · 30 servings' },
+        { fluidType: 'aforce_stick',     unitsPerCycle: 2, label: 'or 2 Stick Packs · 24 servings' },
       ],
       cadence: 'monthly',
     },
     features: [
-      { id: 'product_sub',       label: 'Monthly AForce product subscription',  detail: 'Sticks, RTDs, and canister auto-replenished each cycle.', badge: 'NEW' },
-      { id: 'preferred_pricing', label: 'Preferred pricing on hydration products' },
+      { id: 'product_sub',       label: 'Monthly product drop',                 detail: '1 canister OR 2 stick packs auto-shipped each cycle.', badge: 'NEW' },
+      { id: 'preferred_pricing', label: 'Exclusive member pricing on the store' },
       { id: 'priority_ai',       label: 'Priority AI optimization',             badge: 'PRO' },
       { id: 'protocol_tune',     label: 'Advanced protocol tuning' },
       { id: 'premium_insights',  label: 'Premium performance insights' },
-      { id: 'system_recs',       label: 'Full system-level recommendations' },
+      { id: 'system_recs',       label: 'Priority access to new features' },
+    ],
+  },
+  {
+    id: 'elite',
+    name: 'AForce Elite',
+    category: 'consumer',
+    subcategory: 'consumer',
+    positioning: 'Guardian Mode + the full system, unlocked',
+    description:
+      'Top-tier consumer experience — Guardian Mode early-warning intelligence, premium analytics, the full monthly product bundle, and early access to new features.',
+    priceMonthly: 99,
+    priceLabel: priceLabel(99),
+    rank: 3.5,
+    inheritsFromId: 'system',
+    badge: 'ELITE',
+    ctaLabel: 'Go Elite',
+    productSubscription: {
+      allotments: [
+        { fluidType: 'aforce_canister',  unitsPerCycle: 1,  label: '1 Canister · 30 servings' },
+        { fluidType: 'aforce_stick',     unitsPerCycle: 24, label: '2 Stick Packs · 24 servings' },
+        { fluidType: 'aforce_rtd',       unitsPerCycle: 12, label: '12 RTD Cans' },
+      ],
+      cadence: 'monthly',
+    },
+    features: [
+      { id: 'guardian_consumer', label: 'Guardian Mode for individuals',       detail: 'Personal early-warning heat / strain intelligence layer.', badge: 'ELITE' },
+      { id: 'analytics_premium', label: 'Premium analytics + trend deep-dive' },
+      { id: 'full_bundle',       label: 'Full monthly bundle (canister + sticks + RTDs)' },
+      { id: 'early_access',      label: 'Early access to new features',         badge: 'ELITE' },
+      { id: 'concierge',         label: 'Priority concierge support' },
     ],
   },
 

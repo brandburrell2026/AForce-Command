@@ -28,6 +28,7 @@ const PLAN_ACCENT: Record<SubscriptionPlanId, string> = {
   core:            Colors.states.BALANCED.primary,
   athlete:         Colors.states.PEAK.primary,
   system:          Colors.states.PEAK.primary,
+  elite:           Colors.guardian.primary,
   team_starter:    Colors.states.BALANCED.primary,
   team_growth:     Colors.states.BALANCED.primary,
   team_pro:        Colors.states.BALANCED.primary,

@@ -17,6 +17,7 @@ export type SubscriptionPlanId =
   | 'core'
   | 'athlete'
   | 'system'
+  | 'elite'
   // Team / Program
   | 'team_starter'
   | 'team_growth'
@@ -43,7 +44,7 @@ export type SubscriptionStatus =
   | 'canceled'
   | 'paused';
 
-export type PlanBadge = 'BEST VALUE' | 'ELITE';
+export type PlanBadge = 'BEST VALUE' | 'ELITE' | 'MOST POPULAR';
 
 export interface SubscriptionFeature {
   id: string;
