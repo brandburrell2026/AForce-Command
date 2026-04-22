@@ -174,43 +174,63 @@ export function FlavorPickerModal({ visible, format, onCancel, onConfirm }: Prop
                   : null;
               const rowKey = `${f.id}-${row.fluid}`;
               return (
-                <Pressable
+                <View
                   key={rowKey}
-                  onPress={() =>
-                    choose({
-                      id: f.id,
-                      label: fullLabel,
-                      flavor: f.flavor,
-                      accent: f.accent,
-                      fluid: row.fluid,
-                    })
-                  }
-                  style={({ pressed }) => [
-                    styles.card,
+                  style={[
+                    styles.waterCard,
                     {
-                      borderColor: pressed ? f.accent : `${f.accent}55`,
-                      backgroundColor: pressed
-                        ? `${f.accent}1F`
-                        : `${f.accent}10`,
+                      borderColor: `${f.accent}55`,
+                      backgroundColor: `${f.accent}10`,
                     },
                   ]}
-                  accessibilityRole="button"
-                  accessibilityLabel={`Log ${fullLabel}`}
-                  testID={`flavor-${rowKey}`}
                 >
-                  {artwork ? (
-                    <Image source={artwork} style={styles.artwork} resizeMode="contain" />
-                  ) : (
-                    <View style={[styles.dot, { backgroundColor: f.accent }]} />
-                  )}
-                  <View style={styles.cardBody}>
-                    <Text style={styles.cardName}>{f.name}</Text>
-                    <Text style={styles.cardSub}>
-                      +{f.functionalIngredient} · {row.formatWord}
-                    </Text>
+                  <View style={styles.waterHeader}>
+                    {artwork ? (
+                      <Image source={artwork} style={styles.artwork} resizeMode="contain" />
+                    ) : (
+                      <View style={[styles.dot, { backgroundColor: f.accent }]} />
+                    )}
+                    <View style={styles.cardBody}>
+                      <Text style={styles.cardName}>{f.name}</Text>
+                      <Text style={styles.cardSub}>
+                        +{f.functionalIngredient} · {row.formatWord} · pick a size
+                      </Text>
+                    </View>
                   </View>
-                  <Feather name="chevron-right" size={18} color={f.accent} />
-                </Pressable>
+                  <View style={styles.waterSizes}>
+                    {WATER_SIZES.map((oz) => (
+                      <Pressable
+                        key={`${rowKey}-${oz}`}
+                        onPress={() =>
+                          choose({
+                            id: `${f.id}-${oz}`,
+                            label: `${fullLabel} ${oz} oz`,
+                            flavor: f.flavor,
+                            accent: f.accent,
+                            fluid: row.fluid,
+                            ozOverride: oz,
+                          })
+                        }
+                        style={({ pressed }) => [
+                          styles.waterSizeChip,
+                          {
+                            borderColor: pressed ? f.accent : `${f.accent}66`,
+                            backgroundColor: pressed
+                              ? `${f.accent}33`
+                              : `${f.accent}1A`,
+                          },
+                        ]}
+                        accessibilityRole="button"
+                        accessibilityLabel={`Log ${oz} ounces of ${fullLabel}`}
+                        testID={`flavor-${rowKey}-${oz}`}
+                      >
+                        <Text style={[styles.waterSizeLabel, { color: f.accent }]}>
+                          {oz} oz
+                        </Text>
+                      </Pressable>
+                    ))}
+                  </View>
+                </View>
               );
             })}
 
