@@ -30,6 +30,9 @@ import { ImpairmentRiskBadge } from './ImpairmentRiskBadge';
 import { BACEstimateCard } from './BACEstimateCard';
 import { SocialSafetyCard } from './SocialSafetyCard';
 import { RecoveryModeCard } from './RecoveryModeCard';
+import { RecoveryModePaywall } from './RecoveryModePaywall';
+import { useAppStore } from '../store/useAppStore';
+import { gate } from '../featureFlags/subscriptionGate';
 import { ALCOHOL_DRINKS, DRINK_TYPES_ORDER } from '../data/alcoholDrinks';
 import type { DrinkType, ScoreEngineOutput, SocialModeState } from '../types';
 
@@ -61,6 +64,7 @@ export function SocialModeSheet({
   onActivate, onLogDrink, onConfirmHydration, onDeactivate,
 }: Props) {
   const { t } = useTranslation();
+  const { state } = useAppStore();
   const opacity = useSharedValue(0);
   const translateY = useSharedValue(60);
 
@@ -256,7 +260,11 @@ export function SocialModeSheet({
                 </View>
               </View>
 
-              <RecoveryModeCard timeToClearMinutes={social.bac.timeToClearMinutes} />
+              {gate(state.subscription, 'recovery_mode_enabled').allowed ? (
+                <RecoveryModeCard timeToClearMinutes={social.bac.timeToClearMinutes} />
+              ) : (
+                <RecoveryModePaywall />
+              )}
 
               <Pressable
                 onPress={onDismiss}

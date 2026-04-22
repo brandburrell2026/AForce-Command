@@ -24,6 +24,9 @@ export const FEATURE_REQUIREMENTS: Record<string, { plan: SubscriptionPlanId; la
   logging:            { plan: 'core',     label: 'Quick Intake Logging' },
   reminders:          { plan: 'core',     label: 'Smart Reminders' },
 
+  // ─── Recovery+ (standalone add-on) ─────────────────────────────────────
+  recovery_mode_enabled: { plan: 'recovery_plus', label: 'Recovery Mode' },
+
   // ─── AForce Athlete ────────────────────────────────────────────────────
   ai_pro:             { plan: 'athlete',  label: 'Enhanced AI Decisioning' },
   protocol_pro:       { plan: 'athlete',  label: 'Personalized Hydration Protocol' },

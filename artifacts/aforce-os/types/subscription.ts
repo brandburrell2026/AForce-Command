@@ -15,6 +15,7 @@ import type { FluidType } from './index';
 export type SubscriptionPlanId =
   // Consumer
   | 'core'
+  | 'recovery_plus'
   | 'athlete'
   | 'system'
   | 'elite'

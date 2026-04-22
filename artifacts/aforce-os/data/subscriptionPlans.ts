@@ -59,6 +59,27 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     ],
   },
   {
+    id: 'recovery_plus',
+    name: 'Recovery+',
+    category: 'consumer',
+    subcategory: 'consumer',
+    positioning: 'Wake up clear-headed',
+    description:
+      'Standalone add-on that unlocks Recovery Mode after a Social Mode session — pre-sleep protocol, AForce RTD recommendation, and a personalized morning recovery estimate.',
+    priceMonthly: 9.99,
+    priceLabel: priceLabel(9.99),
+    rank: 1.5,
+    ctaLabel: 'Subscribe to Recovery+',
+    features: [
+      {
+        id: 'recovery_mode_enabled',
+        label: 'Recovery Mode',
+        detail: 'Post-session recovery card with morning estimate, hydration steps, and AForce RTD pacing.',
+        badge: 'PRO',
+      },
+    ],
+  },
+  {
     id: 'athlete',
     name: 'AForce Athlete',
     category: 'consumer',

@@ -27,6 +27,7 @@ interface Props {
 
 const PLAN_ACCENT: Record<SubscriptionPlanId, string> = {
   core:            Colors.states.BALANCED.primary,
+  recovery_plus:   Colors.states.RECOVERING.primary,
   athlete:         Colors.states.PEAK.primary,
   system:          Colors.states.PEAK.primary,
   elite:           Colors.guardian.primary,

@@ -183,6 +183,15 @@
     "not_legal_medical": "Not a legal or medical determination.",
 
     "recovery_card_title": "RECOVERY MODE",
+    "recovery_paywall_eyebrow": "RECOVERY MODE",
+    "recovery_paywall_title": "Wake up clear-headed",
+    "recovery_paywall_blurb": "Recovery+ unlocks a personalized post-session plan with a morning estimate, hydration steps, and AForce RTD pacing.",
+    "recovery_paywall_feat_morning": "Personalized morning recovery estimate",
+    "recovery_paywall_feat_steps": "Pre-sleep checklist (water, RTD, sleep)",
+    "recovery_paywall_feat_rtd": "AForce RTD pacing recommendation",
+    "recovery_paywall_price": "$9.99",
+    "recovery_paywall_cadence": "/ month",
+    "recovery_paywall_cta": "Subscribe to Recovery+",
     "recovery_morning_estimate": "Estimated time to clear",
     "recovery_morning_clear": "Cleared"
   },

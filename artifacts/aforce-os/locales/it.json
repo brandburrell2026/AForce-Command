@@ -182,6 +182,15 @@
     "estimate_only": "Solo stima",
     "not_legal_medical": "Non è una determinazione legale o medica.",
 
+    "recovery_paywall_eyebrow": "MODALITÀ RECUPERO",
+    "recovery_paywall_title": "Svegliati con la mente lucida",
+    "recovery_paywall_blurb": "Recovery+ sblocca un piano personalizzato dopo la sessione con stima mattutina, passi di idratazione e dosaggio AForce RTD.",
+    "recovery_paywall_feat_morning": "Stima personalizzata del recupero mattutino",
+    "recovery_paywall_feat_steps": "Checklist pre-sonno (acqua, RTD, sonno)",
+    "recovery_paywall_feat_rtd": "Raccomandazione di dosaggio AForce RTD",
+    "recovery_paywall_price": "9,99 $",
+    "recovery_paywall_cadence": "/ mese",
+    "recovery_paywall_cta": "Abbonati a Recovery+",
     "recovery_card_title": "MODALITÀ RECUPERO",
     "recovery_morning_estimate": "Tempo stimato per smaltire",
     "recovery_morning_clear": "Smaltito"

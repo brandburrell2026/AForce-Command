@@ -182,6 +182,15 @@
     "estimate_only": "Estimation uniquement",
     "not_legal_medical": "Pas une détermination légale ni médicale.",
 
+    "recovery_paywall_eyebrow": "MODE RÉCUPÉRATION",
+    "recovery_paywall_title": "Réveillez-vous l'esprit clair",
+    "recovery_paywall_blurb": "Recovery+ débloque un plan personnalisé après la session avec une estimation matinale, des étapes d'hydratation et un dosage AForce RTD.",
+    "recovery_paywall_feat_morning": "Estimation personnalisée de la récupération matinale",
+    "recovery_paywall_feat_steps": "Liste pré-sommeil (eau, RTD, sommeil)",
+    "recovery_paywall_feat_rtd": "Recommandation de dosage AForce RTD",
+    "recovery_paywall_price": "9,99 $",
+    "recovery_paywall_cadence": "/ mois",
+    "recovery_paywall_cta": "S'abonner à Recovery+",
     "recovery_card_title": "MODE RÉCUPÉRATION",
     "recovery_morning_estimate": "Temps estimé d'élimination",
     "recovery_morning_clear": "Éliminé"

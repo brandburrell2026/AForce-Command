@@ -10,12 +10,12 @@
  * heavier EnterprisePlanCard with setup-fee + minimum-term metadata.
  */
 
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, Platform, Pressable, Alert,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
@@ -33,7 +33,7 @@ import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 
 // Plans that route through real Stripe Checkout. All other plan changes stay
 // fully local (free / enterprise / team flows are out of scope for the demo).
-const STRIPE_PLAN_IDS = new Set<SubscriptionPlanId>(['athlete', 'system', 'elite']);
+const STRIPE_PLAN_IDS = new Set<SubscriptionPlanId>(['recovery_plus', 'athlete', 'system', 'elite']);
 
 type CategoryId = 'consumer' | 'team' | 'performance';
 
@@ -66,8 +66,10 @@ export default function SubscriptionScreen() {
   const insets = useSafeAreaInsets();
   const layout = useResponsiveLayout();
   const { state, setSubscription } = useAppStore();
+  const params = useLocalSearchParams<{ planId?: string; autoCheckout?: string }>();
   const [filter, setFilter] = useState<CategoryId>('consumer');
   const [pendingPlanId, setPendingPlanId] = useState<SubscriptionPlanId | null>(null);
+  const autoCheckoutFiredRef = useRef(false);
 
   const topPadding = Platform.OS === 'web' ? 67 : insets.top;
   const bottomPadding = Platform.OS === 'web' ? 34 : insets.bottom;
@@ -139,6 +141,30 @@ export default function SubscriptionScreen() {
       setPendingPlanId(null);
     }
   };
+
+  // Deep-link auto-checkout: when the Recovery+ paywall (or any other
+  // entry point) routes here with `?planId=X&autoCheckout=1`, kick off
+  // the same Stripe-gated `onSelect` flow once. Switch the visible
+  // category filter to match so the user sees the plan card if they
+  // back out of the browser.
+  useEffect(() => {
+    if (autoCheckoutFiredRef.current) return;
+    const planId = params.planId as SubscriptionPlanId | undefined;
+    const auto = params.autoCheckout === '1';
+    if (!planId || !auto) return;
+    const plan = SUBSCRIPTION_PLANS.find((p) => p.id === planId);
+    if (!plan) return;
+    autoCheckoutFiredRef.current = true;
+    setFilter(plan.category as CategoryId);
+    // Strip the auto-checkout params from the URL/route immediately so a
+    // remount or back-navigation cannot re-fire the Stripe session and
+    // create duplicate charges.
+    router.setParams({ planId: undefined, autoCheckout: undefined });
+    // Defer one tick so the screen mounts before opening the browser.
+    const id = setTimeout(() => { void onSelect(planId); }, 0);
+    return () => clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params.planId, params.autoCheckout]);
 
   const renderConsumerOrTeamCard = (plan: SubscriptionPlan) => (
     <SubscriptionPlanCard

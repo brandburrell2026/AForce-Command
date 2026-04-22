@@ -40,6 +40,11 @@ interface PlanCatalogEntry {
 // lockstep with `artifacts/aforce-os/data/subscriptionPlans.ts` —
 // `subscriptionPlanParity.test.ts` enforces this.
 export const PLAN_CATALOG: Record<string, PlanCatalogEntry> = {
+  recovery_plus: {
+    amountCents: 999,
+    name: 'Recovery+',
+    description: 'Unlock Recovery Mode after Social Mode sessions.',
+  },
   athlete: {
     amountCents: 1999,
     name: 'AForce Athlete',
