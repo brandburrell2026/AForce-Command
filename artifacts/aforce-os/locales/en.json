@@ -26,6 +26,8 @@
   "home": {
     "cta_become_aforce": "BECOME AFORCE",
     "cta_log_intake": "LOG INTAKE",
+    "snooze": "Snooze 20 minutes",
+    "snoozed": "Snoozed — Next alert in 20 min",
     "depleted_in": "Drops to DEPLETED in {{minutes}} min",
     "your_score": "Your score",
     "why_this_score": "Why this score",
@@ -44,7 +46,14 @@
     "size_oz": "{{oz}} oz",
     "logged": "Logged",
     "score_was": "was",
-    "score_now": "now"
+    "score_now": "now",
+    "log_prefix": "LOG",
+    "row_stick_label": "AFORCE STICK",
+    "row_rtd_label": "AFORCE RTD",
+    "row_water_label": "WATER",
+    "choose_oz": "choose oz",
+    "pick_flavor": "pick flavor",
+    "a11y_log": "Log {{label}}"
   },
   "breakdown": {
     "title": "Score breakdown",

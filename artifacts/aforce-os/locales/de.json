@@ -24,6 +24,8 @@
     "profile": "Profil"
   },
   "home": {
+    "snooze": "20 Minuten verschieben",
+    "snoozed": "Verschoben — Nächster Hinweis in 20 Min",
     "cta_become_aforce": "AFORCE AKTIVIEREN",
     "cta_log_intake": "EINTRAG",
     "depleted_in": "ERSCHÖPFT in {{minutes}} Min",
@@ -32,6 +34,13 @@
     "tap_to_open": "Tippen für Details"
   },
   "logIntake": {
+    "log_prefix": "EINTRAGEN",
+    "row_stick_label": "AFORCE STICK",
+    "row_rtd_label": "AFORCE RTD",
+    "row_water_label": "WASSER",
+    "choose_oz": "oz wählen",
+    "pick_flavor": "sorte wählen",
+    "a11y_log": "{{label}} eintragen",
     "title": "EINTRAG",
     "subtitle": "Wähle dein Getränk",
     "water": "Wasser",

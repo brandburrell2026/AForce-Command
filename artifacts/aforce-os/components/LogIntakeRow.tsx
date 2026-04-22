@@ -15,6 +15,7 @@ import React from 'react';
 import { View, Text, StyleSheet, Pressable, Image } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import { useTranslation } from 'react-i18next';
 import { Colors } from '../theme/colors';
 import { useAppStore } from '../store/useAppStore';
 import { PRODUCTS, PRODUCT_FLAVORS } from '../data/products';
@@ -28,17 +29,21 @@ interface Props {
   accentColor: string;
 }
 
+// Each tile's label is resolved through i18n at render time so the row
+// re-localizes the moment the user changes language. Keep the icon /
+// fluid id outside the i18n layer — those are stable identifiers.
 const OPTIONS: Array<{
   fluid: FluidType;
-  label: string;
+  labelKey: string;
   icon: keyof typeof Feather.glyphMap;
 }> = [
-  { fluid: 'aforce_stick', label: 'AFORCE STICK', icon: 'zap' },
-  { fluid: 'aforce_rtd', label: 'AFORCE RTD', icon: 'package' },
-  { fluid: 'water', label: 'WATER', icon: 'droplet' },
+  { fluid: 'aforce_stick', labelKey: 'logIntake.row_stick_label', icon: 'zap' },
+  { fluid: 'aforce_rtd', labelKey: 'logIntake.row_rtd_label', icon: 'package' },
+  { fluid: 'water', labelKey: 'logIntake.row_water_label', icon: 'droplet' },
 ];
 
 export function LogIntakeRow({ accentColor }: Props) {
+  const { t } = useTranslation();
   const { logIntake, state } = useAppStore();
   const [waterPickerOpen, setWaterPickerOpen] = React.useState(false);
   const [flavorPickerFor, setFlavorPickerFor] = React.useState<
@@ -105,13 +110,14 @@ export function LogIntakeRow({ accentColor }: Props) {
         {OPTIONS.map((opt) => {
           const product = PRODUCTS[opt.fluid];
           const tileImage = imageFor(opt.fluid);
+          const label = t(opt.labelKey);
           return (
             <Pressable
               key={opt.fluid}
               onPress={() => handleLog(opt.fluid)}
               disabled={state.isCompletingCycle}
               accessibilityRole="button"
-              accessibilityLabel={`Log ${opt.label}`}
+              accessibilityLabel={t('logIntake.a11y_log', { label })}
               testID={`log-${opt.fluid}`}
               style={({ pressed }) => [
                 styles.tile,
@@ -131,13 +137,15 @@ export function LogIntakeRow({ accentColor }: Props) {
                   <Feather name={opt.icon} size={22} color={accentColor} />
                 </View>
               )}
-              <Text style={styles.label} numberOfLines={1}>LOG {opt.label}</Text>
+              <Text style={styles.label} numberOfLines={1}>
+                {t('logIntake.log_prefix')} {label}
+              </Text>
               <Text style={[styles.oz, { color: accentColor }]}>
                 {opt.fluid === 'water'
-                  ? 'choose oz'
+                  ? t('logIntake.choose_oz')
                   : opt.fluid === 'aforce_stick' || opt.fluid === 'aforce_rtd'
-                  ? 'pick flavor'
-                  : `${product?.ozPerServing ?? 12} oz`}
+                  ? t('logIntake.pick_flavor')
+                  : t('logIntake.size_oz', { oz: product?.ozPerServing ?? 12 })}
               </Text>
             </Pressable>
           );

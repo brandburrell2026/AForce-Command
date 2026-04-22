@@ -350,13 +350,13 @@ export default function HomeScreen() {
       {!userState.isSnoozed ? (
         <TouchableOpacity style={styles.snoozeBtn} onPress={handleSnooze} activeOpacity={0.7}>
           <Feather name="clock" size={12} color={Colors.text.muted} />
-          <Text style={styles.snoozeText}>Snooze 20 minutes</Text>
+          <Text style={styles.snoozeText}>{t('home.snooze')}</Text>
         </TouchableOpacity>
       ) : (
         <View style={styles.snoozeBtn}>
           <Feather name="moon" size={12} color={Colors.states.RECOVERING.primary} />
           <Text style={[styles.snoozeText, { color: Colors.states.RECOVERING.primary }]}>
-            Snoozed — Next alert in 20 min
+            {t('home.snoozed')}
           </Text>
         </View>
       )}

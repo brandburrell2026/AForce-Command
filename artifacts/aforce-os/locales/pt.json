@@ -24,6 +24,8 @@
     "profile": "Perfil"
   },
   "home": {
+    "snooze": "Adiar 20 minutos",
+    "snoozed": "Adiado — Próximo alerta em 20 min",
     "cta_become_aforce": "ATIVAR AFORCE",
     "cta_log_intake": "REGISTRAR",
     "depleted_in": "ESGOTADO em {{minutes}} min",
@@ -32,6 +34,13 @@
     "tap_to_open": "Toque para detalhes"
   },
   "logIntake": {
+    "log_prefix": "REGISTRAR",
+    "row_stick_label": "AFORCE STICK",
+    "row_rtd_label": "AFORCE RTD",
+    "row_water_label": "ÁGUA",
+    "choose_oz": "escolher oz",
+    "pick_flavor": "escolher sabor",
+    "a11y_log": "Registrar {{label}}",
     "title": "REGISTRAR",
     "subtitle": "Escolha o que bebeu",
     "water": "Água",
