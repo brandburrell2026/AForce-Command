@@ -6,8 +6,9 @@
 
 import React, { useState } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, Switch, TouchableOpacity, Platform, Pressable,
+  View, Text, StyleSheet, ScrollView, Switch, TouchableOpacity, Platform, Pressable, Alert,
 } from 'react-native';
+import * as Haptics from 'expo-haptics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -16,6 +17,7 @@ import { GradientBackground } from '@/components/GradientBackground';
 import { Icon } from '@/components/Icon';
 import { Colors } from '@/theme/colors';
 import { mockUserProfile } from '@/data/mockData';
+import { HEALTH_PROVIDERS, type HealthProviderId } from '@/data/healthProviders';
 import { useAppStore } from '@/store/useAppStore';
 import { DEFAULT_FLAGS, DEMO_ALL_ON_FLAGS } from '@/featureFlags/flags';
 import type { FeatureFlags } from '@/types';
@@ -41,6 +43,55 @@ export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const { state, setFeatureFlags } = useAppStore();
   const [remindersEnabled, setRemindersEnabled] = useState(mockUserProfile.remindersEnabled);
+  // Mocked OAuth state for the third-party health platforms shown in
+  // the "HEALTH PLATFORMS" card. In a real build, each id would map
+  // to its provider SDK / OAuth grant. Here we toggle locally so the
+  // UX (LIVE pill / disconnect) is honest about what the user did.
+  const [linkedProviders, setLinkedProviders] = useState<Set<HealthProviderId>>(
+    () => new Set(),
+  );
+
+  const toggleProvider = (id: HealthProviderId, name: string) => {
+    if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
+    if (linkedProviders.has(id)) {
+      Alert.alert(
+        `Disconnect ${name}?`,
+        'AForce will stop pulling biometrics from this source.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Disconnect',
+            style: 'destructive',
+            onPress: () => {
+              setLinkedProviders((prev) => {
+                const next = new Set(prev);
+                next.delete(id);
+                return next;
+              });
+            },
+          },
+        ],
+      );
+      return;
+    }
+    Alert.alert(
+      `Connect ${name}`,
+      `You'll be redirected to ${name} to authorize AForce. Mocked in this build.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Authorize',
+          onPress: () => {
+            setLinkedProviders((prev) => {
+              const next = new Set(prev);
+              next.add(id);
+              return next;
+            });
+          },
+        },
+      ],
+    );
+  };
   const layout = useResponsiveLayout();
 
   const topPadding = Platform.OS === 'web' ? 67 : insets.top;
@@ -167,6 +218,64 @@ export default function ProfileScreen() {
                       {i < mockUserProfile.connectedDevices.length - 1 && <Divider />}
                     </React.Fragment>
                   ))}
+                </View>
+
+                <SectionHeader label="HEALTH PLATFORMS" hint="Pull biometrics from these services" />
+                <View style={styles.card}>
+                  {HEALTH_PROVIDERS.map((p, i) => {
+                    const linked = linkedProviders.has(p.id);
+                    return (
+                      <React.Fragment key={p.id}>
+                        <Pressable
+                          onPress={() => toggleProvider(p.id, p.name)}
+                          style={({ pressed }) => [
+                            styles.providerRow,
+                            pressed && { backgroundColor: `${p.brand}10` },
+                          ]}
+                          accessibilityRole="button"
+                          accessibilityLabel={
+                            linked ? `Disconnect ${p.name}` : `Connect ${p.name}`
+                          }
+                          testID={`provider-${p.id}`}
+                        >
+                          <View
+                            style={[
+                              styles.providerIcon,
+                              {
+                                backgroundColor: `${p.brand}1F`,
+                                borderColor: `${p.brand}66`,
+                              },
+                            ]}
+                          >
+                            <Feather name={p.icon} size={16} color={p.brand} />
+                          </View>
+                          <View style={styles.providerBody}>
+                            <Text style={styles.deviceName}>{p.name}</Text>
+                            <Text style={styles.providerSub}>{p.pulls}</Text>
+                          </View>
+                          {linked ? (
+                            <Text
+                              style={[styles.deviceStatus, { color: Colors.states.PEAK.primary }]}
+                            >
+                              LIVE
+                            </Text>
+                          ) : (
+                            <View
+                              style={[
+                                styles.connectPill,
+                                { borderColor: `${p.brand}88` },
+                              ]}
+                            >
+                              <Text style={[styles.connectPillText, { color: p.brand }]}>
+                                CONNECT
+                              </Text>
+                            </View>
+                          )}
+                        </Pressable>
+                        {i < HEALTH_PROVIDERS.length - 1 && <Divider />}
+                      </React.Fragment>
+                    );
+                  })}
                 </View>
               </>
             );
@@ -461,6 +570,26 @@ const styles = StyleSheet.create({
   deviceDot: { width: 7, height: 7, borderRadius: 4 },
   deviceName: { fontSize: 15, fontFamily: 'Inter_500Medium', color: Colors.text.primary },
   deviceStatus: { fontSize: 10, fontFamily: 'Inter_700Bold', letterSpacing: 1.5 },
+  providerRow: {
+    flexDirection: 'row', alignItems: 'center', gap: 12,
+    paddingHorizontal: 16, paddingVertical: 14,
+  },
+  providerIcon: {
+    width: 34, height: 34, borderRadius: 10,
+    alignItems: 'center', justifyContent: 'center',
+    borderWidth: 1,
+  },
+  providerBody: { flex: 1, gap: 2 },
+  providerSub: {
+    fontSize: 12, color: Colors.text.secondary, fontFamily: 'Inter_400Regular',
+  },
+  connectPill: {
+    paddingHorizontal: 10, paddingVertical: 5,
+    borderRadius: 999, borderWidth: 1,
+  },
+  connectPillText: {
+    fontSize: 10, fontFamily: 'Inter_700Bold', letterSpacing: 1.4,
+  },
   flagRow: {
     flexDirection: 'row', alignItems: 'center', gap: 12,
     paddingHorizontal: 16, paddingVertical: 12,
