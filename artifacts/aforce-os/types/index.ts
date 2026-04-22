@@ -47,6 +47,20 @@ export interface UserState {
   wakeTime: Date | null;
   overnightLossOz: number;
   hasSeenMorningCommand: boolean;
+  // Optional biometrics from Apple Health (only present after the
+  // user grants permission on a native iOS build). Any null field is
+  // ignored by the scoring engine — never substituted with placeholder
+  // numbers.
+  appleHealth?: AppleHealthInputs;
+}
+
+export interface AppleHealthInputs {
+  restingHeartRate: number | null;
+  hrvSdnn: number | null;
+  stepsToday: number | null;
+  sleepHoursLastNight: number | null;
+  /** When the snapshot was last refreshed (epoch ms). */
+  fetchedAt: number;
 }
 
 export interface PerformanceState {

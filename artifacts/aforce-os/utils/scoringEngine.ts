@@ -75,8 +75,11 @@ function buildBreakdown(state: UserState): { score: number; contributions: Score
     ? -Math.min(10, Math.floor((state.overnightLossOz - 8) * 0.8))
     : 0;
 
+  const recovery = computeRecoverySignal(state);
+
   const raw = baseIntake + recency + consistency + context + recoveryMomentum
-            + symptomPenalty + urinePenalty + outputStress + sleepCarry;
+            + symptomPenalty + urinePenalty + outputStress + sleepCarry
+            + recovery.delta;
   const score = Math.max(0, Math.min(100, Math.round(raw)));
 
   const contributions: ScoreContribution[] = [
@@ -98,9 +101,47 @@ function buildBreakdown(state: UserState): { score: number; contributions: Score
       hint: 'Sweat × activity load' },
     { id: 'sleep', label: 'Overnight carryover', delta: sleepCarry, maxMagnitude: 10,
       hint: state.overnightLossOz > 8 ? `${state.overnightLossOz} oz loss` : 'No deficit carry' },
+    { id: 'apple_health', label: 'Apple Health (HRV + sleep)', delta: recovery.delta, maxMagnitude: 10,
+      hint: recovery.hint },
   ];
 
   return { score, contributions };
+}
+
+/**
+ * Translate the most recent Apple Health snapshot into a -10..+10
+ * adjustment. Each signal (HRV, sleep) contributes independently and
+ * is dropped if the field is null. When no Apple Health data is
+ * available we return delta=0 so the score is unchanged — never
+ * substituted with a placeholder.
+ */
+function computeRecoverySignal(state: UserState): { delta: number; hint: string } {
+  const snap = state.appleHealth;
+  if (!snap) return { delta: 0, hint: 'Not connected' };
+
+  const parts: string[] = [];
+  let delta = 0;
+
+  if (snap.hrvSdnn != null) {
+    if (snap.hrvSdnn >= 60) { delta += 5; parts.push(`HRV ${Math.round(snap.hrvSdnn)}ms (high)`); }
+    else if (snap.hrvSdnn >= 40) { delta += 2; parts.push(`HRV ${Math.round(snap.hrvSdnn)}ms`); }
+    else if (snap.hrvSdnn >= 30) { parts.push(`HRV ${Math.round(snap.hrvSdnn)}ms`); }
+    else { delta -= 5; parts.push(`HRV ${Math.round(snap.hrvSdnn)}ms (low)`); }
+  }
+
+  if (snap.sleepHoursLastNight != null) {
+    const h = snap.sleepHoursLastNight;
+    if (h >= 7 && h <= 9) { delta += 5; parts.push(`Sleep ${h.toFixed(1)}h`); }
+    else if (h >= 6) { delta += 2; parts.push(`Sleep ${h.toFixed(1)}h`); }
+    else if (h >= 4) { delta -= 3; parts.push(`Sleep ${h.toFixed(1)}h (short)`); }
+    else { delta -= 5; parts.push(`Sleep ${h.toFixed(1)}h (deficit)`); }
+  }
+
+  // Clamp to ±10 so Apple Health can never dominate the score.
+  delta = Math.max(-10, Math.min(10, delta));
+
+  if (parts.length === 0) return { delta: 0, hint: 'Awaiting data' };
+  return { delta, hint: parts.join(' · ') };
 }
 
 // ─── Score Calculation ────────────────────────────────────────────────────────
@@ -150,8 +191,11 @@ function calculateBaseScore(state: UserState): number {
     ? -Math.min(10, Math.floor((state.overnightLossOz - 8) * 0.8))
     : 0;
 
+  const recovery = computeRecoverySignal(state);
+
   const raw = baseIntake + recency + consistency + context + recoveryMomentum
-            + symptomPenalty + urinePenalty + outputStress + sleepCarry;
+            + symptomPenalty + urinePenalty + outputStress + sleepCarry
+            + recovery.delta;
 
   return Math.max(0, Math.min(100, Math.round(raw)));
 }
@@ -194,6 +238,20 @@ function generateReasons(state: UserState): ScoreReason[] {
   }
   if (state.overnightLossOz > 8 && !state.hasSeenMorningCommand) {
     reasons.push({ id: 'overnight', text: `Overnight deficit ${state.overnightLossOz} oz.`, weight: 'negative' });
+  }
+
+  const ah = state.appleHealth;
+  if (ah) {
+    if (ah.hrvSdnn != null && ah.hrvSdnn < 30) {
+      reasons.push({ id: 'ah-hrv-low', text: `Apple Health: HRV ${Math.round(ah.hrvSdnn)} ms (low recovery).`, weight: 'negative' });
+    } else if (ah.hrvSdnn != null && ah.hrvSdnn >= 60) {
+      reasons.push({ id: 'ah-hrv-high', text: `Apple Health: HRV ${Math.round(ah.hrvSdnn)} ms (recovered).`, weight: 'positive' });
+    }
+    if (ah.sleepHoursLastNight != null && ah.sleepHoursLastNight < 6) {
+      reasons.push({ id: 'ah-sleep-short', text: `Apple Health: ${ah.sleepHoursLastNight.toFixed(1)} h sleep last night.`, weight: 'negative' });
+    } else if (ah.sleepHoursLastNight != null && ah.sleepHoursLastNight >= 7 && ah.sleepHoursLastNight <= 9) {
+      reasons.push({ id: 'ah-sleep-good', text: `Apple Health: ${ah.sleepHoursLastNight.toFixed(1)} h sleep — well rested.`, weight: 'positive' });
+    }
   }
 
   return reasons.slice(0, 4);

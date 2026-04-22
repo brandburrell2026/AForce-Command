@@ -10,6 +10,7 @@ import React, { createContext, useContext, useReducer, useCallback, useEffect, u
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type {
   UserState,
+  AppleHealthInputs,
   ScoreEngineOutput,
   CycleResult,
   HistoryEntry,
@@ -62,7 +63,8 @@ type Action =
   | { type: 'REFRESH_ENGINE'; payload: { engineOutput: ScoreEngineOutput } }
   | { type: 'SET_FLAGS'; payload: FeatureFlags }
   | { type: 'SET_SUBSCRIPTION'; payload: UserSubscription }
-  | { type: 'COMPLETE_ONBOARDING' };
+  | { type: 'COMPLETE_ONBOARDING' }
+  | { type: 'SET_APPLE_HEALTH'; payload: { snapshot: AppleHealthInputs | null; engineOutput: ScoreEngineOutput } };
 
 // Initial render only — engine output is then immediately refreshed via
 // /v1/home from the service layer in an effect (see AppProvider mount).
@@ -137,6 +139,13 @@ function reducer(state: AppState, action: Action): AppState {
       return { ...state, subscription: action.payload };
     case 'COMPLETE_ONBOARDING':
       return { ...state, hasSeenOnboarding: true };
+    case 'SET_APPLE_HEALTH': {
+      const { snapshot, engineOutput } = action.payload;
+      const updated: UserState = snapshot
+        ? { ...state.userState, appleHealth: snapshot }
+        : (() => { const { appleHealth: _drop, ...rest } = state.userState; return rest as UserState; })();
+      return { ...state, userState: updated, engineOutput };
+    }
     default:
       return state;
   }
@@ -158,6 +167,7 @@ interface AppContextValue {
   setFeatureFlags: (flags: FeatureFlags) => void;
   setSubscription: (sub: UserSubscription) => void;
   completeOnboarding: () => void;
+  setAppleHealthSnapshot: (snapshot: AppleHealthInputs | null) => void;
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -293,11 +303,28 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     dispatch({ type: 'COMPLETE_ONBOARDING' });
   }, []);
 
+  // Push an Apple Health snapshot into the score. Pass null to clear
+  // (e.g. on disconnect). The engine immediately recomputes so HRV /
+  // sleep show up in the orb and breakdown without waiting for the
+  // next /v1/home tick.
+  const setAppleHealthSnapshot = useCallback((snapshot: AppleHealthInputs | null) => {
+    const merged: UserState = snapshot
+      ? { ...state.userState, appleHealth: snapshot }
+      : (() => { const { appleHealth: _drop, ...rest } = state.userState; return rest as UserState; })();
+    fetchHome(merged)
+      .then(({ engineOutput }) => {
+        dispatch({ type: 'SET_APPLE_HEALTH', payload: { snapshot, engineOutput } });
+      })
+      .catch((err) => {
+        console.warn('[AForce] setAppleHealthSnapshot refresh failed', err);
+      });
+  }, [state.userState]);
+
   const value = useMemo<AppContextValue>(() => ({
     state, logIntake, completeCycle, snooze, dismissSuccess,
     updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags,
-    setSubscription, completeOnboarding,
-  }), [state, logIntake, completeCycle, snooze, dismissSuccess, updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags, setSubscription, completeOnboarding]);
+    setSubscription, completeOnboarding, setAppleHealthSnapshot,
+  }), [state, logIntake, completeCycle, snooze, dismissSuccess, updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags, setSubscription, completeOnboarding, setAppleHealthSnapshot]);
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }

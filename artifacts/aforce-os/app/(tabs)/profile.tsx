@@ -47,7 +47,7 @@ const TIER_LABELS: Record<string, { label: string; desc: string; color: string }
 export default function ProfileScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { state, setFeatureFlags } = useAppStore();
+  const { state, setFeatureFlags, setAppleHealthSnapshot } = useAppStore();
   const [remindersEnabled, setRemindersEnabled] = useState(mockUserProfile.remindersEnabled);
   // Mocked OAuth state for the third-party health platforms shown in
   // the "HEALTH PLATFORMS" card. In a real build, each id would map
@@ -66,7 +66,11 @@ export default function ProfileScreen() {
     if (!isAppleHealthSupported()) return;
     const snap = await fetchAppleHealthSnapshot();
     setAppleSnapshot(snap);
-  }, []);
+    // Push into the global score so HRV / sleep actually move the orb
+    // and show up in the score breakdown. We tag it with fetchedAt so
+    // downstream consumers can decide whether to trust it.
+    setAppleHealthSnapshot({ ...snap, fetchedAt: Date.now() });
+  }, [setAppleHealthSnapshot]);
 
   const connectAppleHealth = async (): Promise<boolean> => {
     if (!isAppleHealthSupported()) {
@@ -107,7 +111,10 @@ export default function ProfileScreen() {
                 next.delete(id);
                 return next;
               });
-              if (id === 'apple_health') setAppleSnapshot(null);
+              if (id === 'apple_health') {
+                setAppleSnapshot(null);
+                setAppleHealthSnapshot(null);
+              }
             },
           },
         ],
