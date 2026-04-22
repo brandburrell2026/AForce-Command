@@ -1,65 +1,28 @@
 /**
  * Text-to-Speech adapter.
  *
- * Web   : window.speechSynthesis
- * Native: expo-speech (iOS / Android)
+ * STATUS: AI voice playback is DISABLED per product spec.
+ *   AForce OS responds with on-screen prompts only — no audio response.
+ *   Voice INPUT (STT) and the visual command-prompt pipeline remain
+ *   fully wired; only this output stage is muted.
  *
- * Voice style is calm/confident/direct. Rate + pitch come from the
- * AForce Voice Engine's active TTS profile (mode-aware), so playback nudges
- * subtly with the user's performance state without ever sounding excited.
+ * `speak()` / `stopSpeaking()` are kept as no-op stubs so that all
+ * existing callsites (VoiceOverlay, command engines, etc.) continue
+ * to compile and execute without scattering platform-specific guards
+ * throughout the app. Flip the body back on (or set
+ * VOICE_PLAYBACK_ENABLED to true) if voice output is ever re-enabled.
  */
 
-import { Platform } from 'react-native';
-import * as Speech from 'expo-speech';
-import { getActiveTtsConfig } from './ttsConfigService';
-import { getVoiceLocale } from './i18nService';
+const VOICE_PLAYBACK_ENABLED = false;
 
-export function speak(text: string): void {
-  if (!text) return;
-  const cfg = getActiveTtsConfig();
-  // Pull the BCP-47 voice locale at speak time (NOT at module load) so
-  // a language switch is reflected immediately on the very next call,
-  // without needing to reset the TTS layer or restart the app.
-  const locale = getVoiceLocale();
-
-  if (Platform.OS === 'web') {
-    if (typeof window === 'undefined') return;
-    const synth = (window as unknown as { speechSynthesis?: SpeechSynthesis }).speechSynthesis;
-    if (!synth || typeof SpeechSynthesisUtterance === 'undefined') return;
-    try {
-      synth.cancel();
-      const utter = new SpeechSynthesisUtterance(text);
-      utter.rate = cfg.speech_rate;
-      utter.pitch = cfg.pitch;
-      utter.volume = cfg.volume;
-      utter.lang = locale;
-      synth.speak(utter);
-    } catch {
-      // ignore — TTS is optional
-    }
-    return;
-  }
-
-  // Native (iOS / Android) via expo-speech.
-  try {
-    Speech.stop();
-    Speech.speak(text, {
-      language: locale,
-      rate: cfg.speech_rate,
-      pitch: cfg.pitch,
-      volume: cfg.volume,
-    });
-  } catch {
-    // ignore — TTS is optional
-  }
+/** No-op while voice playback is disabled. See header for rationale. */
+export function speak(_text: string): void {
+  if (!VOICE_PLAYBACK_ENABLED) return;
+  // Implementation removed — see git history if re-enabling.
 }
 
+/** No-op while voice playback is disabled. */
 export function stopSpeaking(): void {
-  if (Platform.OS === 'web') {
-    if (typeof window === 'undefined') return;
-    const synth = (window as unknown as { speechSynthesis?: SpeechSynthesis }).speechSynthesis;
-    try { synth?.cancel(); } catch { /* ignore */ }
-    return;
-  }
-  try { Speech.stop(); } catch { /* ignore */ }
+  if (!VOICE_PLAYBACK_ENABLED) return;
+  // Implementation removed — see git history if re-enabling.
 }
