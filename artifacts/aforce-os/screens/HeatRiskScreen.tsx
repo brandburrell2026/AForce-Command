@@ -123,7 +123,7 @@ export default function HeatRiskScreen() {
 
           {/* Heat Pulse */}
           <View style={styles.pulseWrap}>
-            <HeatPulse band={score.band} size={200} />
+            <HeatPulse band={score.band} score={score.score} size={200} />
             <View style={styles.pulseOverlay} pointerEvents="none">
               <Text style={styles.pulseScore}>{score.score}</Text>
               <Text style={styles.pulseLabel}>RISK</Text>
