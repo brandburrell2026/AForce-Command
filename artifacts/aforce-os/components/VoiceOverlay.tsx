@@ -5,8 +5,12 @@
  *   1. Tap mic → start STT
  *   2. Tap again or stop → finalize transcript → classify → build response
  *   3. Render response card → execute side-effect (logIntake / navigate / etc.)
- *   4. Optional TTS playback
- *   5. Auto-dismiss after a short window
+ *   4. Auto-dismiss after a short window
+ *
+ * Note: AI voice playback is globally disabled in `services/textToSpeech.ts`
+ * (`VOICE_PLAYBACK_ENABLED = false`). The `speak()` calls below remain as
+ * silent no-ops so this overlay continues to drive the visual prompt
+ * pipeline without an audio response.
  *
  * No long dialogue. No conversation history. ONE command at a time.
  */
@@ -126,8 +130,10 @@ export function VoiceOverlay({ visible, onClose, autoStart = false }: Props) {
     const result = processTranscript(transcript, { engineOutput: appState.engineOutput });
     setResponse(result);
     setVoiceState(result.intent === 'UNKNOWN' ? 'error' : 'responding');
-    // Speak first, then dispatch the side-effect (so logIntake's loading
-    // overlay doesn't visually compete with the response card).
+    // speak() is a no-op while voice playback is disabled — kept here
+    // so re-enabling playback later requires only flipping the flag in
+    // textToSpeech.ts. Side-effect dispatch follows so logIntake's
+    // loading state can't visually compete with the response card.
     void speak(result.spoken);
     void executeAction(result.action);
     // Auto-dismiss after a comfortable read window. Navigation actions close

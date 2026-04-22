@@ -591,20 +591,19 @@ export default function HomeScreen() {
           onDismiss={completeOnboarding}
         />
 
-        {/* Floating voice mic temporarily hidden — service code is
-            kept intact (heat trigger + band trigger still wire to the
-            overlay) so we can re-enable the FAB later without rework. */}
-        {false && (
-          <View
-            pointerEvents="box-none"
-            style={[styles.voiceFab, { bottom: bottomPadding - 56 }]}
-          >
-            <VoiceButton
-              state={voiceBtnState}
-              onPress={() => { setVoiceAutoStart(false); setVoiceOpen(true); }}
-            />
-          </View>
-        )}
+        {/* Floating voice mic — primary user-initiated entry into the
+            voice overlay. STT capture only; AI responses render as
+            on-screen prompts (no audio playback). Heat-warning and
+            Phantom-band triggers still also open the overlay. */}
+        <View
+          pointerEvents="box-none"
+          style={[styles.voiceFab, { bottom: bottomPadding - 56 }]}
+        >
+          <VoiceButton
+            state={voiceBtnState}
+            onPress={() => { setVoiceAutoStart(false); setVoiceOpen(true); }}
+          />
+        </View>
 
         <VoiceOverlay
           visible={voiceOpen}
