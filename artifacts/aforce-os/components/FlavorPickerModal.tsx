@@ -40,6 +40,7 @@ export interface FlavorChoice {
 }
 
 const WATER_SIZES = [12, 16, 24, 32] as const;
+const FLAVOR_SIZES = [12] as const;
 
 const WATER_ACCENT = '#4FB6FF';
 
@@ -138,7 +139,7 @@ function FlavorCard({ variant: f, formatOptions, onChoose }: FlavorCardProps) {
       )}
 
       <View style={styles.waterSizes}>
-        {WATER_SIZES.map((oz) => (
+        {FLAVOR_SIZES.map((oz) => (
           <Pressable
             key={`${f.id}-${selected.fluid}-${oz}`}
             onPress={() =>
