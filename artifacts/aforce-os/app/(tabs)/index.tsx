@@ -242,12 +242,6 @@ export default function HomeScreen() {
     <>
       <LocalTimeBar />
 
-      {heatScore.band !== 'STABLE' && (
-        <View style={{ marginBottom: 12 }} testID="heat-alert-banner">
-          <HeatAlertBanner score={heatScore.score} band={heatScore.band} />
-        </View>
-      )}
-
       <LiveStatusStrip
         performanceState={performanceState}
         unitsToday={userState.unitsConsumedToday}
@@ -255,6 +249,16 @@ export default function HomeScreen() {
       />
     </>
   );
+
+  // Heat Guard lives at the bottom alongside Phantom signals — both are
+  // ambient environmental/biometric readouts, so they belong in the same
+  // "signals" zone rather than crowding above the orb.
+  const heatGuardSection =
+    heatScore.band !== 'STABLE' ? (
+      <View testID="heat-alert-banner">
+        <HeatAlertBanner score={heatScore.score} band={heatScore.band} />
+      </View>
+    ) : null;
 
   const identitySection = (
     <View style={styles.headerRow}>
@@ -430,6 +434,12 @@ export default function HomeScreen() {
       <PhantomSignal />
       <View style={styles.spacer} />
       <PhantomBandCard />
+      {heatGuardSection && (
+        <>
+          <View style={styles.spacer} />
+          {heatGuardSection}
+        </>
+      )}
       <View style={styles.spacer} />
       <TouchableOpacity
         onPress={() => {
@@ -523,6 +533,12 @@ export default function HomeScreen() {
               <PhantomSignal />
               <View style={styles.spacer} />
               <PhantomBandCard />
+              {heatGuardSection && (
+                <>
+                  <View style={styles.spacer} />
+                  {heatGuardSection}
+                </>
+              )}
               <View style={styles.spacer} />
               <TouchableOpacity
                 onPress={() => {
