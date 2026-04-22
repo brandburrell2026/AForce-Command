@@ -17,6 +17,7 @@ import { Colors } from '@/theme/colors';
 import { HardwareConnectionStatus } from '@/components/HardwareConnectionStatus';
 import { BandSignalPreview } from '@/components/BandSignalPreview';
 import { phantomBandService } from '@/services/phantomBandService';
+import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 import { ledForLevel } from '@/services/ledSignalService';
 import { describeHaptic } from '@/services/hapticService';
 import { useAppStore } from '@/store/useAppStore';
@@ -40,6 +41,7 @@ const GESTURES: BandGesture[] = ['single_tap', 'double_tap', 'long_press', 'pres
 export function PhantomBandScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const layout = useResponsiveLayout();
   const { state } = useAppStore();
   const [bandState, setBandState] = useState<PhantomBandState>(phantomBandService.getState());
 
@@ -70,7 +72,17 @@ export function PhantomBandScreen() {
     <View style={styles.root}>
       <GradientBackground>
         <ScrollView
-          contentContainerStyle={[styles.content, { paddingTop: topPadding, paddingBottom: bottomPadding }]}
+          contentContainerStyle={[
+            styles.content,
+            { paddingTop: topPadding, paddingBottom: bottomPadding },
+            // Cap line length on Fold-open / tablet so the band
+            // hero/preview don't stretch edge-to-edge.
+            layout.isWide && {
+              maxWidth: layout.contentMaxWidth,
+              alignSelf: 'center',
+              width: '100%',
+            },
+          ]}
           showsVerticalScrollIndicator={false}
         >
           {/* Header */}

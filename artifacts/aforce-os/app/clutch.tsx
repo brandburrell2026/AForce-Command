@@ -15,11 +15,13 @@ import { Colors } from '@/theme/colors';
 import { useAppStore } from '@/store/useAppStore';
 import { mockRoster } from '@/data/mockData';
 import { clutchHydrationPlan, clutchTier } from '@/utils/scoringEngine';
+import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 
 export default function ClutchScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { state } = useAppStore();
+  const layout = useResponsiveLayout();
   const topPadding = Platform.OS === 'web' ? 67 : insets.top;
   const bottomPadding = Platform.OS === 'web' ? 34 : insets.bottom;
   const heatModeOn = state.featureFlags.clutch_heat_mode_enabled;
@@ -28,7 +30,17 @@ export default function ClutchScreen() {
     <View style={styles.root}>
       <GradientBackground>
         <ScrollView
-          contentContainerStyle={[styles.content, { paddingTop: topPadding + 8, paddingBottom: bottomPadding + 24 }]}
+          contentContainerStyle={[
+            styles.content,
+            { paddingTop: topPadding + 8, paddingBottom: bottomPadding + 24 },
+            // Cap line length on Fold-open / tablet so the roster
+            // grid and command panels don't sprawl edge-to-edge.
+            layout.isWide && {
+              maxWidth: layout.contentMaxWidth,
+              alignSelf: 'center',
+              width: '100%',
+            },
+          ]}
           showsVerticalScrollIndicator={false}
         >
           <Pressable onPress={() => router.back()} style={styles.backBtn}>

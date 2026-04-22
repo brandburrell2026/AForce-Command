@@ -227,6 +227,17 @@ export default function StoreScreen() {
             style={[
               styles.cartPill,
               { bottom: (Platform.OS === "web" ? 100 : insets.bottom + 100) },
+              // On wide layouts the scroll content is centered/capped,
+              // so the absolutely-positioned pill needs to follow the
+              // same column instead of spanning the full viewport.
+              // `left:'50%'` + negative marginLeft is the RN idiom for
+              // centering an absolute element by its own width.
+              layout.isWide && {
+                left: "50%",
+                right: undefined,
+                width: layout.contentMaxWidth - 32,
+                marginLeft: -((layout.contentMaxWidth - 32) / 2),
+              },
             ]}
             accessibilityRole="button"
             accessibilityLabel={`View cart, ${itemCount} items, subtotal ${formatPrice(subtotalCents)}`}

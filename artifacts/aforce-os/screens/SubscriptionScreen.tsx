@@ -29,6 +29,7 @@ import { SUBSCRIPTION_PLANS } from '@/data/subscriptionPlans';
 import { switchPlan } from '@/services/subscriptionService';
 import type { SubscriptionPlan, SubscriptionPlanId } from '@/types/subscription';
 import { createCheckoutSession, fetchCheckoutSession } from '@/lib/api';
+import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 
 // Plans that route through real Stripe Checkout. All other plan changes stay
 // fully local (free / enterprise / team flows are out of scope for the demo).
@@ -63,6 +64,7 @@ const CATEGORY_HEADER: Record<CategoryId, { eyebrow: string; title: string; subt
 export default function SubscriptionScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const layout = useResponsiveLayout();
   const { state, setSubscription } = useAppStore();
   const [filter, setFilter] = useState<CategoryId>('consumer');
   const [pendingPlanId, setPendingPlanId] = useState<SubscriptionPlanId | null>(null);
@@ -165,7 +167,17 @@ export default function SubscriptionScreen() {
       <GradientBackground>
         <ScrollView
           style={{ flex: 1 }}
-          contentContainerStyle={[styles.content, { paddingTop: topPadding + 8, paddingBottom: bottomPadding + 32 }]}
+          contentContainerStyle={[
+            styles.content,
+            { paddingTop: topPadding + 8, paddingBottom: bottomPadding + 32 },
+            // Cap line length on Fold-open / tablet so plan cards
+            // stay legible instead of stretching across the screen.
+            layout.isWide && {
+              maxWidth: layout.contentMaxWidth,
+              alignSelf: 'center',
+              width: '100%',
+            },
+          ]}
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.headerRow}>

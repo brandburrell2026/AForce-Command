@@ -15,6 +15,7 @@ import { Colors } from '@/theme/colors';
 import { useAppStore } from '@/store/useAppStore';
 import { mockRoster } from '@/data/mockData';
 import { guardianRiskScore, guardianTier } from '@/utils/scoringEngine';
+import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 
 const TIER_COLOR: Record<string, string> = {
   OPTIMAL: Colors.states.PEAK.primary,
@@ -27,6 +28,7 @@ export default function GuardianScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { state } = useAppStore();
+  const layout = useResponsiveLayout();
   const topPadding = Platform.OS === 'web' ? 67 : insets.top;
   const bottomPadding = Platform.OS === 'web' ? 34 : insets.bottom;
 
@@ -47,7 +49,17 @@ export default function GuardianScreen() {
     <View style={styles.root}>
       <GradientBackground>
         <ScrollView
-          contentContainerStyle={[styles.content, { paddingTop: topPadding + 8, paddingBottom: bottomPadding + 24 }]}
+          contentContainerStyle={[
+            styles.content,
+            { paddingTop: topPadding + 8, paddingBottom: bottomPadding + 24 },
+            // Cap line length on Fold-open / tablet so risk cards and
+            // body-map panels stay readable rather than stretching.
+            layout.isWide && {
+              maxWidth: layout.contentMaxWidth,
+              alignSelf: 'center',
+              width: '100%',
+            },
+          ]}
           showsVerticalScrollIndicator={false}
         >
           <Pressable onPress={() => router.back()} style={styles.backBtn}>

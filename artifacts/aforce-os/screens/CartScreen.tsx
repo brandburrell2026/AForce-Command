@@ -34,12 +34,14 @@ import { formatPrice } from "@/data/pricing";
 import { PRODUCT_FLAVORS } from "@/data/products";
 import { useCart } from "@/store/useCartStore";
 import { createCartCheckoutSession, fetchCheckoutSession } from "@/lib/api";
+import { useResponsiveLayout } from "@/hooks/useResponsiveLayout";
 
 const SHIPPING_THRESHOLD_CENTS = 5000; // $50 free-shipping threshold
 
 export default function CartScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const layout = useResponsiveLayout();
   const { resolvedLines, itemCount, subtotalCents, setQty, remove, clear } = useCart();
   const [checkoutNotice, setCheckoutNotice] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -117,6 +119,13 @@ export default function CartScreen() {
           contentContainerStyle={[
             styles.content,
             { paddingTop: topPadding + 8, paddingBottom: insets.bottom + 32 },
+            // Cap line length on Fold-open / tablet — cart line items
+            // and the totals panel get hard to scan at full width.
+            layout.isWide && {
+              maxWidth: layout.contentMaxWidth,
+              alignSelf: "center",
+              width: "100%",
+            },
           ]}
           showsVerticalScrollIndicator={false}
         >
