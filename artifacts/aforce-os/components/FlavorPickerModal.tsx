@@ -30,9 +30,12 @@ export interface FlavorChoice {
   flavor: ProductFlavor;
   accent: string;
   // Set when the picker is in 'both' mode so the caller knows which
-  // physical product (stick vs ready-to-drink can) was selected.
-  fluid?: 'aforce_stick' | 'aforce_rtd';
+  // physical product (stick / ready-to-drink can / plain water) was
+  // selected. 'water' is the plain-water shortcut.
+  fluid?: 'aforce_stick' | 'aforce_rtd' | 'water';
 }
+
+const WATER_ACCENT = '#4FB6FF';
 
 type PickerFormat = 'stick' | 'rtd' | 'both';
 
@@ -69,6 +72,7 @@ function buildRows(format: PickerFormat): PickerRow[] {
 export function FlavorPickerModal({ visible, format, onCancel, onConfirm }: Props) {
   const titleSuffix =
     format === 'stick' ? ' STICK' : format === 'rtd' ? ' RTD' : '';
+  const titleText = format === 'both' ? 'LOG INTAKE' : `LOG AFORCE${titleSuffix}`;
 
   const choose = (flavor: FlavorChoice | null) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
@@ -88,7 +92,7 @@ export function FlavorPickerModal({ visible, format, onCancel, onConfirm }: Prop
       <Pressable style={styles.backdrop} onPress={onCancel}>
         <Pressable style={styles.sheet} onPress={() => {}}>
           <View style={styles.headerRow}>
-            <Text style={styles.title}>LOG AFORCE{titleSuffix}</Text>
+            <Text style={styles.title}>{titleText}</Text>
             <Pressable onPress={onCancel} hitSlop={12} accessibilityLabel="Cancel">
               <Feather name="x" size={20} color={Colors.text.secondary} />
             </Pressable>
@@ -104,6 +108,41 @@ export function FlavorPickerModal({ visible, format, onCancel, onConfirm }: Prop
             contentContainerStyle={styles.listContent}
             showsVerticalScrollIndicator={false}
           >
+            {format === 'both' && (
+              <Pressable
+                onPress={() =>
+                  choose({
+                    id: 'plain-water',
+                    label: 'Water',
+                    // Cast: 'water' is not a flavored AForce variant, but
+                    // FlavorChoice carries it through to the caller which
+                    // routes by `fluid`, not `flavor`.
+                    flavor: 'plain' as ProductFlavor,
+                    accent: WATER_ACCENT,
+                    fluid: 'water',
+                  })
+                }
+                style={({ pressed }) => [
+                  styles.card,
+                  {
+                    borderColor: pressed ? WATER_ACCENT : `${WATER_ACCENT}66`,
+                    backgroundColor: pressed ? `${WATER_ACCENT}26` : `${WATER_ACCENT}14`,
+                  },
+                ]}
+                accessibilityRole="button"
+                accessibilityLabel="Log plain water"
+                testID="flavor-water"
+              >
+                <View style={styles.waterIcon}>
+                  <Feather name="droplet" size={20} color={WATER_ACCENT} />
+                </View>
+                <View style={styles.cardBody}>
+                  <Text style={styles.cardName}>Water</Text>
+                  <Text style={styles.cardSub}>Plain · 12 oz</Text>
+                </View>
+                <Feather name="chevron-right" size={18} color={WATER_ACCENT} />
+              </Pressable>
+            )}
             {rows.map((row) => {
               const f = row.variant;
               const fullLabel = `${f.name} +${f.functionalIngredient} ${row.formatWord}`;
@@ -231,6 +270,12 @@ const styles = StyleSheet.create({
   artwork: {
     width: 44,
     height: 56,
+  },
+  waterIcon: {
+    width: 44,
+    height: 56,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   cardBody: {
     flex: 1,
