@@ -201,7 +201,13 @@ export default function HomeScreen() {
     // The big CTA picker offers both formats; honor whichever the user
     // tapped, falling back to a stick if they dismissed without choosing.
     const fluid = flavor?.fluid ?? 'aforce_stick';
-    logIntake(fluid, flavor ? { flavorLabel: flavor.label } : undefined);
+    const opts = flavor
+      ? {
+          flavorLabel: flavor.label,
+          ...(flavor.ozOverride != null ? { ozOverride: flavor.ozOverride } : {}),
+        }
+      : undefined;
+    logIntake(fluid, opts);
   };
 
   const handleSnooze = () => {

@@ -33,7 +33,13 @@ export interface FlavorChoice {
   // physical product (stick / ready-to-drink can / plain water) was
   // selected. 'water' is the plain-water shortcut.
   fluid?: 'aforce_stick' | 'aforce_rtd' | 'water';
+  // Optional explicit oz amount — used by the water size selector to
+  // log 12 / 16 / 24 / 32 oz. When omitted, the caller falls back to
+  // the product's default per-serving oz.
+  ozOverride?: number;
 }
+
+const WATER_SIZES = [12, 16, 24, 32] as const;
 
 const WATER_ACCENT = '#4FB6FF';
 
@@ -109,39 +115,53 @@ export function FlavorPickerModal({ visible, format, onCancel, onConfirm }: Prop
             showsVerticalScrollIndicator={false}
           >
             {format === 'both' && (
-              <Pressable
-                onPress={() =>
-                  choose({
-                    id: 'plain-water',
-                    label: 'Water',
-                    // Cast: 'water' is not a flavored AForce variant, but
-                    // FlavorChoice carries it through to the caller which
-                    // routes by `fluid`, not `flavor`.
-                    flavor: 'plain' as ProductFlavor,
-                    accent: WATER_ACCENT,
-                    fluid: 'water',
-                  })
-                }
-                style={({ pressed }) => [
-                  styles.card,
-                  {
-                    borderColor: pressed ? WATER_ACCENT : `${WATER_ACCENT}66`,
-                    backgroundColor: pressed ? `${WATER_ACCENT}26` : `${WATER_ACCENT}14`,
-                  },
+              <View
+                style={[
+                  styles.waterCard,
+                  { borderColor: `${WATER_ACCENT}66`, backgroundColor: `${WATER_ACCENT}14` },
                 ]}
-                accessibilityRole="button"
-                accessibilityLabel="Log plain water"
-                testID="flavor-water"
               >
-                <View style={styles.waterIcon}>
-                  <Feather name="droplet" size={20} color={WATER_ACCENT} />
+                <View style={styles.waterHeader}>
+                  <View style={styles.waterIcon}>
+                    <Feather name="droplet" size={20} color={WATER_ACCENT} />
+                  </View>
+                  <View style={styles.cardBody}>
+                    <Text style={styles.cardName}>Water</Text>
+                    <Text style={styles.cardSub}>Plain · pick a size</Text>
+                  </View>
                 </View>
-                <View style={styles.cardBody}>
-                  <Text style={styles.cardName}>Water</Text>
-                  <Text style={styles.cardSub}>Plain · 12 oz</Text>
+                <View style={styles.waterSizes}>
+                  {WATER_SIZES.map((oz) => (
+                    <Pressable
+                      key={`water-${oz}`}
+                      onPress={() =>
+                        choose({
+                          id: `plain-water-${oz}`,
+                          label: `Water ${oz} oz`,
+                          flavor: 'plain' as ProductFlavor,
+                          accent: WATER_ACCENT,
+                          fluid: 'water',
+                          ozOverride: oz,
+                        })
+                      }
+                      style={({ pressed }) => [
+                        styles.waterSizeChip,
+                        {
+                          borderColor: pressed ? WATER_ACCENT : `${WATER_ACCENT}77`,
+                          backgroundColor: pressed ? `${WATER_ACCENT}33` : `${WATER_ACCENT}1A`,
+                        },
+                      ]}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Log ${oz} ounces of water`}
+                      testID={`flavor-water-${oz}`}
+                    >
+                      <Text style={[styles.waterSizeLabel, { color: WATER_ACCENT }]}>
+                        {oz} oz
+                      </Text>
+                    </Pressable>
+                  ))}
                 </View>
-                <Feather name="chevron-right" size={18} color={WATER_ACCENT} />
-              </Pressable>
+              </View>
             )}
             {rows.map((row) => {
               const f = row.variant;
@@ -276,6 +296,35 @@ const styles = StyleSheet.create({
     height: 56,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  waterCard: {
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 14,
+    borderWidth: 1,
+    gap: 12,
+  },
+  waterHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+  },
+  waterSizes: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  waterSizeChip: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 10,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  waterSizeLabel: {
+    fontSize: 13,
+    fontFamily: 'Inter_700Bold',
+    letterSpacing: 0.5,
   },
   cardBody: {
     flex: 1,
