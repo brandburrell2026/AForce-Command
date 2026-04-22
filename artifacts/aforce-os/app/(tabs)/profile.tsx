@@ -49,7 +49,57 @@ const TIER_LABELS: Record<string, { label: string; desc: string; color: string }
 export default function ProfileScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { state, setFeatureFlags, setAppleHealthSnapshot, setLanguage } = useAppStore();
+  const {
+    state, setFeatureFlags, setAppleHealthSnapshot, setLanguage,
+    activateSocialMode, logSocialDrink, deactivateSocialMode,
+  } = useAppStore();
+  // Tracks the in-flight demo so we can disable the row + show the
+  // active label without blocking the rest of Profile. Cleared once
+  // the final dispatch settles.
+  const [demoBusy, setDemoBusy] = useState<null | 'social' | 'recovery' | 'reset'>(null);
+
+  // Seed Social Mode with a realistic-but-mild drink load so the
+  // banner shows BAC math + impairment chips immediately. Order
+  // matters: activate first (server creates the row), then drinks
+  // append to it.
+  const runSocialDemo = React.useCallback(async () => {
+    setDemoBusy('social');
+    try {
+      await activateSocialMode();
+      await logSocialDrink('beer');
+      await logSocialDrink('cocktail');
+    } finally {
+      setDemoBusy(null);
+    }
+  }, [activateSocialMode, logSocialDrink]);
+
+  // Recovery Mode = post-drinking. We log a heavier session (so
+  // timeToClearMinutes is meaningfully > 0) then deactivate, which
+  // sets endedAt = now and slides the user into the 8h recovery
+  // window. RecoveryModeCard then renders inside the Social sheet.
+  const runRecoveryDemo = React.useCallback(async () => {
+    setDemoBusy('recovery');
+    try {
+      await activateSocialMode();
+      await logSocialDrink('cocktail');
+      await logSocialDrink('liquor');
+      await logSocialDrink('wine');
+      await deactivateSocialMode();
+    } finally {
+      setDemoBusy(null);
+    }
+  }, [activateSocialMode, logSocialDrink, deactivateSocialMode]);
+
+  // "End demo" — calls deactivate. If the user is already in the
+  // recovery window this is a no-op on the server. The 8h window
+  // expires naturally; there is no hard reset endpoint by design.
+  const endDemo = React.useCallback(async () => {
+    setDemoBusy('reset');
+    try { await deactivateSocialMode(); } finally { setDemoBusy(null); }
+  }, [deactivateSocialMode]);
+
+  const socialActive = !!state.userState.socialMode?.active;
+  const inRecovery = !!state.userState.socialMode && !state.userState.socialMode.active && !!state.userState.socialMode.endedAt;
   const { t } = useTranslation();
   const [remindersEnabled, setRemindersEnabled] = useState(mockUserProfile.remindersEnabled);
   // Mocked OAuth state for the third-party health platforms shown in
@@ -423,6 +473,79 @@ export default function ProfileScreen() {
               </>
             );
 
+            const demoModesCard = (
+              <>
+                <SectionHeader label="DEMO MODES" hint="Preview Social + Recovery flows" />
+                <View style={styles.card}>
+                  <View style={{ paddingHorizontal: 14, paddingTop: 12, paddingBottom: 6 }}>
+                    <Text style={{ color: Colors.text.secondary, fontSize: 12, lineHeight: 17 }}>
+                      Activate Social Mode (drinking-night UX) or jump straight into the 8-hour Recovery window. After activating, return to Home — the purple/amber banner appears at the top; tap it to open the full sheet.
+                    </Text>
+                  </View>
+
+                  <Pressable
+                    onPress={runSocialDemo}
+                    disabled={demoBusy !== null}
+                    style={[
+                      styles.demoMaster,
+                      {
+                        borderColor: socialActive ? '#9D7CFB' : Colors.border.medium,
+                        opacity: demoBusy && demoBusy !== 'social' ? 0.5 : 1,
+                      },
+                    ]}
+                  >
+                    <Icon name="moon" size={14} color={socialActive ? '#9D7CFB' : Colors.text.secondary} />
+                    <Text style={[styles.demoMasterText, { color: socialActive ? '#9D7CFB' : Colors.text.primary }]}>
+                      {demoBusy === 'social'
+                        ? 'Activating Social Mode…'
+                        : socialActive
+                          ? 'Social Mode active — replay demo'
+                          : 'Activate Social Mode (2 drinks)'}
+                    </Text>
+                  </Pressable>
+
+                  <Pressable
+                    onPress={runRecoveryDemo}
+                    disabled={demoBusy !== null}
+                    style={[
+                      styles.demoMaster,
+                      {
+                        borderColor: inRecovery ? '#F4B23F' : Colors.border.medium,
+                        opacity: demoBusy && demoBusy !== 'recovery' ? 0.5 : 1,
+                      },
+                    ]}
+                  >
+                    <Icon name="sun" size={14} color={inRecovery ? '#F4B23F' : Colors.text.secondary} />
+                    <Text style={[styles.demoMasterText, { color: inRecovery ? '#F4B23F' : Colors.text.primary }]}>
+                      {demoBusy === 'recovery'
+                        ? 'Entering Recovery Mode…'
+                        : inRecovery
+                          ? 'Recovery window active — replay demo'
+                          : 'Enter Recovery Mode (3 drinks → end night)'}
+                    </Text>
+                  </Pressable>
+
+                  {(socialActive || inRecovery) && (
+                    <Pressable
+                      onPress={endDemo}
+                      disabled={demoBusy !== null}
+                      style={[
+                        styles.demoMaster,
+                        { borderColor: Colors.border.medium, opacity: demoBusy ? 0.5 : 1 },
+                      ]}
+                    >
+                      <Icon name="x" size={14} color={Colors.text.secondary} />
+                      <Text style={[styles.demoMasterText, { color: Colors.text.primary }]}>
+                        {demoBusy === 'reset'
+                          ? 'Ending session…'
+                          : socialActive ? 'End night → Recovery' : 'Demo: Recovery is auto-clearing'}
+                      </Text>
+                    </Pressable>
+                  )}
+                </View>
+              </>
+            );
+
             const phaseEntryRow = (
               <View style={styles.phaseRow}>
                 <Pressable
@@ -480,6 +603,7 @@ export default function ProfileScreen() {
                   </View>
                   <View style={[styles.col, styles.colRight]} testID="profile-right-col">
                     {settingsBlock}
+                    {demoModesCard}
                     {demoAccessCard}
                     {phaseEntryRow}
                     {subscriptionBlock}
@@ -495,6 +619,7 @@ export default function ProfileScreen() {
                 {goalsCard}
                 {hardwareCard}
                 {connectedDevicesCard}
+                {demoModesCard}
                 {demoAccessCard}
                 {phaseEntryRow}
                 {subscriptionBlock}
