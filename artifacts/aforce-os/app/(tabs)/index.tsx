@@ -465,16 +465,20 @@ export default function HomeScreen() {
           onDismiss={completeOnboarding}
         />
 
-        {/* Floating voice mic — sits above the tab bar. */}
-        <View
-          pointerEvents="box-none"
-          style={[styles.voiceFab, { bottom: bottomPadding - 56 }]}
-        >
-          <VoiceButton
-            state={voiceBtnState}
-            onPress={() => { setVoiceAutoStart(false); setVoiceOpen(true); }}
-          />
-        </View>
+        {/* Floating voice mic temporarily hidden — service code is
+            kept intact (heat trigger + band trigger still wire to the
+            overlay) so we can re-enable the FAB later without rework. */}
+        {false && (
+          <View
+            pointerEvents="box-none"
+            style={[styles.voiceFab, { bottom: bottomPadding - 56 }]}
+          >
+            <VoiceButton
+              state={voiceBtnState}
+              onPress={() => { setVoiceAutoStart(false); setVoiceOpen(true); }}
+            />
+          </View>
+        )}
 
         <VoiceOverlay
           visible={voiceOpen}
