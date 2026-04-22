@@ -46,7 +46,7 @@ export function HeatAlertBanner({ score, band }: Props) {
         style={[styles.innerBorder, { borderColor: innerBorder }]}
       />
       <View style={[styles.iconCell, { backgroundColor: `${accent}44` }]}>
-        <Feather name="thermometer" size={16} color={accent} />
+        <Feather name="thermometer" size={18} color={accent} />
       </View>
       <View style={styles.body}>
         <Text style={[styles.eyebrow, { color: accent }]}>HEAT GUARD · {display.label}</Text>
@@ -59,24 +59,28 @@ export function HeatAlertBanner({ score, band }: Props) {
   );
 }
 
+// Sized to match the other bottom-zone signal cards (PhantomBandCard,
+// PhantomSignal, SocialModeBanner): marginHorizontal 20, padding 16,
+// borderRadius 14, eyebrow 11/700, body 12.
 const styles = StyleSheet.create({
   banner: {
-    flexDirection: "row", alignItems: "center", gap: 12,
-    paddingVertical: 12, paddingHorizontal: 12,
-    borderRadius: 12, borderWidth: 1,
+    marginHorizontal: 20,
+    flexDirection: "row", alignItems: "center", gap: 14,
+    paddingVertical: 16, paddingHorizontal: 16,
+    borderRadius: 14, borderWidth: 1,
     position: "relative",
   },
   innerBorder: {
     position: "absolute",
     top: 3, left: 3, right: 3, bottom: 3,
-    borderRadius: 9,
+    borderRadius: 11,
     borderWidth: 1,
   },
   iconCell: {
-    width: 32, height: 32, borderRadius: 16,
+    width: 36, height: 36, borderRadius: 18,
     alignItems: "center", justifyContent: "center",
   },
   body: { flex: 1 },
-  eyebrow: { fontSize: 10, letterSpacing: 1.4, fontWeight: "800" },
-  line: { fontSize: 12, color: Colors.text.primary, marginTop: 2 },
+  eyebrow: { fontSize: 11, letterSpacing: 1.6, fontWeight: "700" },
+  line: { fontSize: 12, color: Colors.text.primary, marginTop: 4 },
 });
