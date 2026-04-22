@@ -1,0 +1,439 @@
+Build AForce OS as a premium, cross-platform performance control system.
+
+IMPORTANT:
+This is NOT a redesign.
+This is a precision upgrade.
+
+Preserve the current visual identity and UX language exactly:
+- dark luxury interface
+- large center orb
+- premium glow system
+- red / orange / blue / green state logic
+- minimal, high-end layout
+- futuristic Apple / Tesla / Rolex feel
+
+The goal:
+Enhance intelligence, responsiveness, and polish without breaking identity.
+
+==================================================
+PRODUCT DEFINITION
+==================================================
+
+AForce OS is NOT a hydration tracker.
+
+It is:
+A real-time performance control system driven by hydration, environment, and behavior.
+
+Core loop:
+Score → Command → Action → Feedback → Adapt
+
+The system must feel:
+- intelligent
+- alive
+- precise
+- calm but authoritative
+- addictive in a premium way
+
+==================================================
+PLATFORM REQUIREMENTS
+==================================================
+
+Build for:
+- iOS (primary)
+- Android
+- Samsung Fold / Flip (critical)
+- Tablets
+- Desktop Web
+
+Requirements:
+- responsive layouts
+- no UI breakage on foldables
+- adaptive spacing for larger screens
+- maintain same design language everywhere
+
+==================================================
+TECH STACK
+==================================================
+
+Frontend:
+- React (web)
+- React Native + Expo (mobile)
+
+Backend:
+- Node.js (Express)
+
+Database:
+- Supabase Postgres
+
+Auth:
+- Supabase Auth
+
+Realtime:
+- Socket.io (or equivalent)
+
+External APIs:
+- Weather (OpenWeather or equivalent)
+
+Voice:
+- Web Speech API (web)
+- Expo Speech (mobile)
+
+AI Layer:
+- Rule-based engine (MVP)
+- LLM optional later
+
+==================================================
+DESIGN SYSTEM (DO NOT BREAK)
+==================================================
+
+Visual rules:
+- deep black / navy background
+- central glowing orb (hero)
+- subtle gradients only
+- luxury spacing
+- minimal text
+- no clutter
+- no cheap neon
+
+State colors:
+- DEPLETED → deep red
+- RECOVERING → warm orange
+- BALANCED → cool blue
+- PEAK → teal green
+
+==================================================
+MAIN SCREEN STRUCTURE
+==================================================
+
+TOP:
+- alert banner
+- live status strip
+
+CENTER:
+- orb (hero)
+- hydration score
+- state badge
+- system message
+- system status label
+
+BOTTOM:
+- “why this score”
+- breakdown
+- protocol shortcut
+
+NAV:
+- Home
+- Check
+- Protocol
+- Store
+- Profile
+
+==================================================
+ORB SYSTEM (CORE EXPERIENCE)
+==================================================
+
+The orb must feel alive and responsive.
+
+Structure:
+- inner score
+- glowing ring
+- rotating energy ring
+- outer radar ring
+
+Animations:
+- pulse scale (1 → 1.04 → 1)
+- rotation loop
+- glow intensity based on urgency
+- score jump animation
+
+State behavior:
+- depleted → faster, sharper motion
+- recovering → active but stabilizing
+- balanced → smooth
+- peak → controlled and confident
+
+DO NOT:
+- make orb static
+- remove motion
+- flatten visuals
+
+==================================================
+UNIT SYSTEM (LOCKED)
+==================================================
+
+1 unit = 12 oz
+
+Buttons:
+- Log 1 Water Unit
+- Log 1 AForce Unit
+
+Rules:
+- 1 tap = 1 unit
+- no bulk submission
+- multiple taps required for multiple units
+
+==================================================
+SCORING ENGINE
+==================================================
+
+Score range:
+0–100 (clamped)
+
+Add:
+Water = +6
+AForce = +10
+
+Decay:
+
+BaseDecay =
+0.4 × (weight / 150) + (0.1 × activity_level)
+
+HeatFactor =
+max(0, (temp_C - 25) × 0.3)
+
+HumidityFactor =
+max(0, ((humidity - 50) / 10) × 0.2)
+
+FinalDecayPerMinute =
+BaseDecay + HeatFactor + HumidityFactor
+
+Score formula:
+Score(t) =
+PreviousScore - (Decay × time) + inputs
+
+==================================================
+STATE ENGINE
+==================================================
+
+0–40 → DEPLETED
+41–65 → RECOVERING
+66–85 → BALANCED
+86–100 → PEAK
+
+Status labels:
+- UNSTABLE
+- RECOVERING
+- CONTROLLED
+- PEAK
+
+==================================================
+PREDICTION ENGINE
+==================================================
+
+Display:
+“You will drop into DEPLETED in X minutes”
+
+Formula:
+TimeToDepletion = Score / Decay
+
+Update in real-time.
+
+==================================================
+AI COMMAND ENGINE
+==================================================
+
+Commands must:
+- be direct
+- include units
+- include timing
+- include outcome when possible
+
+Examples:
+- “Take 1 AForce unit now. Recheck in 20 minutes.”
+- “Drink 1 water unit now. Recheck in 20 minutes.”
+- “Heat stress detected. Stabilize now.”
+
+Tone:
+- authoritative
+- concise
+- non-salesy
+
+==================================================
+CONFIRMATION LOOP
+==================================================
+
+After timer:
+Ask:
+“Did you follow the command?”
+
+Options:
+- Yes → +3 bonus
+- No → penalty
+
+Messages:
+- “Good. You’re back on track.”
+- “You missed the window. Recovery is harder now.”
+
+==================================================
+HEAT GUARD
+==================================================
+
+Trigger:
+High temp / stress
+
+Effects:
+- red/orange intensification
+- higher decay
+- urgent messaging
+
+Banner:
+“HEAT GUARD · CRITICAL”
+
+==================================================
+SLEEP MODE
+==================================================
+
+Effects:
+- decay reduced by 50%
+- morning bonus +5
+
+Message:
+“You recovered overnight. Stabilize now.”
+
+==================================================
+CLUTCH MODE
+==================================================
+
+Restricted mode.
+
+Effects:
+- decay × 1.3
+- strict command enforcement
+- penalty on miss:
+  - -3 score
+  - decay boost for 10 minutes
+
+Visual:
+- darker tension
+- faster pulse
+
+==================================================
+GUARDIAN MODE
+==================================================
+
+Elite mode.
+
+Features:
+- daily analytics
+- time in peak
+- trend insights
+- performance scoring
+
+Tone:
+- calm
+- strategic
+- authoritative
+
+==================================================
+HYDRATION SCANNER
+==================================================
+
+Calculate:
+
+Efficiency =
+(Minerals × 0.4) +
+(Water × 0.3) +
+(Low Sodium × 0.2) -
+(Sugar × 0.1)
+
+Output:
+“This hydrates at 64% efficiency.”
+
+==================================================
+VOICE SYSTEM
+==================================================
+
+Commands:
+- Log water
+- Log AForce
+- Check hydration
+- What should I do
+
+Responses:
+- short
+- precise
+- actionable
+
+==================================================
+PHANTOM BAND (SIMULATION)
+==================================================
+
+Simulate:
+- heart rate
+- body temp
+- activity
+- sleep
+
+Mapping:
+- blue → stable
+- orange → recovery
+- red → depleted
+
+==================================================
+DATABASE STRUCTURE
+==================================================
+
+Tables:
+- users
+- profiles
+- hydration_logs
+- score_snapshots
+- environment_logs
+- command_history
+- confirmations
+
+==================================================
+API ENDPOINTS
+==================================================
+
+POST /auth/signup
+POST /auth/login
+
+GET /state
+POST /log
+
+GET /prediction
+GET /history
+
+POST /command/confirm
+GET /environment
+
+==================================================
+PERFORMANCE REQUIREMENTS
+==================================================
+
+- <500ms UI response
+- smooth animations
+- no lag
+- realtime updates
+- minimal re-renders
+
+==================================================
+NON-NEGOTIABLES
+==================================================
+
+DO NOT:
+- redesign UI
+- clutter interface
+- remove orb
+- make it generic
+- over-explain
+
+DO:
+- enhance motion
+- enhance intelligence
+- enhance responsiveness
+- preserve identity
+
+==================================================
+SUCCESS CRITERIA
+==================================================
+
+The app should feel like:
+- the same product
+- but sharper
+- more intelligent
+- more premium
+- more alive
+
+This is a refinement into a world-class system.
