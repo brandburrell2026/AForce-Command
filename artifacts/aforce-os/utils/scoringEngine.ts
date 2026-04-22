@@ -43,7 +43,7 @@ function buildBreakdown(state: UserState): { score: number; contributions: Score
   const minutesSinceLast = minutesSince(state.lastIntakeTime);
 
   const ozRatio = Math.min(1, state.ozConsumedToday / state.ozTarget);
-  const baseIntake = Math.round(40 * ozRatio);
+  const baseIntake = Math.round(45 * ozRatio);
 
   let recency = 20;
   if (minutesSinceLast > 90) recency = 0;
@@ -80,7 +80,7 @@ function buildBreakdown(state: UserState): { score: number; contributions: Score
   const score = Math.max(0, Math.min(100, Math.round(raw)));
 
   const contributions: ScoreContribution[] = [
-    { id: 'base', label: 'Base intake (oz vs target)', delta: baseIntake, maxMagnitude: 40,
+    { id: 'base', label: 'Base intake (oz vs target)', delta: baseIntake, maxMagnitude: 45,
       hint: `${state.ozConsumedToday} of ${state.ozTarget} oz` },
     { id: 'recency', label: 'Recency of last intake', delta: recency, maxMagnitude: 20,
       hint: `${minutesSinceLast} min since last intake` },
@@ -105,9 +105,9 @@ function buildBreakdown(state: UserState): { score: number; contributions: Score
 
 // ─── Score Calculation ────────────────────────────────────────────────────────
 function calculateBaseScore(state: UserState): number {
-  // base_intake_score: 0–40 from oz consumed vs target
+  // base_intake_score: 0–45 from oz consumed vs target
   const ozRatio = Math.min(1, state.ozConsumedToday / state.ozTarget);
-  const baseIntake = Math.round(40 * ozRatio);
+  const baseIntake = Math.round(45 * ozRatio);
 
   // recency_score: 0–20 based on minutes since last intake
   const minutesSinceLast = minutesSince(state.lastIntakeTime);
