@@ -436,7 +436,7 @@ export default function HomeScreen() {
               <RiskTimerDisplay timerSeconds={timerSeconds} performanceState={performanceState} />
               <View style={styles.spacerLg} />
               {ctaSection}
-              <View style={styles.spacer} />
+              <View style={styles.spacerSm} />
               <WaterCycleBar
                 unitsConsumed={userState.unitsConsumedToday}
                 dailyTarget={userState.dailyTarget}
@@ -549,6 +549,7 @@ const styles = StyleSheet.create({
     opacity: 0.45,
   },
   spacer: { height: 12 },
+  spacerSm: { height: 6 },
   spacerLg: { height: 20 },
   ctaButton: {
     marginHorizontal: 20,

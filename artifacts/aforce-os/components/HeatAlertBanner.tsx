@@ -23,24 +23,38 @@ export function HeatAlertBanner({ score, band }: Props) {
   if (band === "STABLE") return null;
   const accent = display.color;
 
+  // Punch up CRITICAL/SEVERE alerts so they read at a glance: stronger
+  // background, brighter inner glow, and a 1px inner border in the
+  // alert color (rendered as a second wrapping View).
+  const isCritical = band === "CRITICAL" || band === "HIGH_RISK";
+  const bgAlpha = isCritical ? "33" : "1F";
+  const outerBorder = isCritical ? "FF" : "88";
+  const innerBorder = `${accent}${isCritical ? "AA" : "55"}`;
+
   return (
     <Pressable
       onPress={() => router.push("/heat")}
       style={[
         styles.banner,
-        { borderColor: `${accent}88`, backgroundColor: `${accent}1F` },
+        { borderColor: `${accent}${outerBorder}`, backgroundColor: `${accent}${bgAlpha}` },
       ]}
       accessibilityRole="button"
       accessibilityLabel={`Heat Guard: ${display.label}, score ${score}. Tap to open.`}
     >
-      <View style={[styles.iconCell, { backgroundColor: `${accent}33` }]}>
+      <View
+        pointerEvents="none"
+        style={[styles.innerBorder, { borderColor: innerBorder }]}
+      />
+      <View style={[styles.iconCell, { backgroundColor: `${accent}44` }]}>
         <Feather name="thermometer" size={16} color={accent} />
       </View>
       <View style={styles.body}>
         <Text style={[styles.eyebrow, { color: accent }]}>HEAT GUARD · {display.label}</Text>
-        <Text style={styles.line}>{display.shortDirective} · Score {score}</Text>
+        <Text style={[styles.line, isCritical && { color: accent, fontWeight: "700" }]}>
+          {display.shortDirective} · Score {score}
+        </Text>
       </View>
-      <Feather name="chevron-right" size={18} color={Colors.text.secondary} />
+      <Feather name="chevron-right" size={18} color={accent} />
     </Pressable>
   );
 }
@@ -50,6 +64,13 @@ const styles = StyleSheet.create({
     flexDirection: "row", alignItems: "center", gap: 12,
     paddingVertical: 12, paddingHorizontal: 12,
     borderRadius: 12, borderWidth: 1,
+    position: "relative",
+  },
+  innerBorder: {
+    position: "absolute",
+    top: 3, left: 3, right: 3, bottom: 3,
+    borderRadius: 9,
+    borderWidth: 1,
   },
   iconCell: {
     width: 32, height: 32, borderRadius: 16,
