@@ -413,13 +413,20 @@ function getBaseRiskMinutes(level: PerformanceLevel, minutesSinceLast: number): 
 }
 
 // ─── AI Command Generation (WHAT + WHEN + OUTCOME) ────────────────────────────
+// Localized via i18n.t() so the AI coach speaks (and reads) in the user's
+// chosen language. Strings live under the `coach.*` namespace in
+// `artifacts/aforce-os/locales/*.json`. The score engine stays sync /
+// pure from the caller's perspective — i18next.t is itself sync.
+import i18n from '../services/i18nService';
+
 function generateCommand(level: PerformanceLevel, state: UserState, score: number): Command {
   // Sleep mode: morning command if overnight deficit is significant
   if (state.overnightLossOz > 8 && !state.hasSeenMorningCommand) {
+    const oz = Math.max(16, Math.round(state.overnightLossOz));
     return {
       id: 'cmd-morning',
-      action: `Drink ${Math.max(16, Math.round(state.overnightLossOz))} oz now. Recheck in 25 minutes. You are starting in deficit.`,
-      explanation: `Overnight loss: ${state.overnightLossOz} oz. Reset your baseline before training.`,
+      action: i18n.t('coach.morning_action', { oz }),
+      explanation: i18n.t('coach.morning_explanation', { oz: state.overnightLossOz }),
       urgencyLevel: 'high',
       estimatedImpact: '+12 to score',
     };
@@ -429,32 +436,32 @@ function generateCommand(level: PerformanceLevel, state: UserState, score: numbe
     case 'PEAK':
       return {
         id: 'cmd-peak',
-        action: `Score ${score}. Peak. Drink 8 oz before next session. Hold the line.`,
-        explanation: 'Maintain pace. Stick during exertion if heat or output rises.',
+        action: i18n.t('coach.peak_action', { score }),
+        explanation: i18n.t('coach.peak_explanation'),
         urgencyLevel: 'low',
         estimatedImpact: '+2 to score',
       };
     case 'BALANCED':
       return {
         id: 'cmd-balanced',
-        action: `Score ${score}. Balanced. Drink 12 oz now. Recheck in 45 minutes.`,
-        explanation: 'You are on pace. Stay ahead of the next deficit window.',
+        action: i18n.t('coach.balanced_action', { score }),
+        explanation: i18n.t('coach.balanced_explanation'),
         urgencyLevel: 'medium',
         estimatedImpact: '+5 to score',
       };
     case 'RECOVERING':
       return {
         id: 'cmd-recovering',
-        action: `Score ${score}. Recovering. Take 1 AForce stick with 16 oz now. Recheck in 20 minutes.`,
-        explanation: 'You are trending down. Reverse the curve before it accelerates.',
+        action: i18n.t('coach.recovering_action', { score }),
+        explanation: i18n.t('coach.recovering_explanation'),
         urgencyLevel: 'high',
         estimatedImpact: '+10 to score',
       };
     case 'DEPLETED':
       return {
         id: 'cmd-depleted',
-        action: `Score ${score}. Depleted. Drink 20 oz and take 2 sticks now. Recheck in 10 minutes.`,
-        explanation: 'Critical deficit. Electrolytes required. Performance is compromised.',
+        action: i18n.t('coach.depleted_action', { score }),
+        explanation: i18n.t('coach.depleted_explanation'),
         urgencyLevel: 'critical',
         estimatedImpact: '+18 to score',
       };

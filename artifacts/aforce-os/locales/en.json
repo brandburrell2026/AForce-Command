@@ -87,6 +87,18 @@
     "language_saved": "Language updated",
     "language_failed": "Couldn't save language"
   },
+  "coach": {
+    "morning_action": "Drink {{oz}} oz now. Recheck in 25 minutes. You are starting in deficit.",
+    "morning_explanation": "Overnight loss: {{oz}} oz. Reset your baseline before training.",
+    "peak_action": "Score {{score}}. Peak. Drink 8 oz before next session. Hold the line.",
+    "peak_explanation": "Maintain pace. Stick during exertion if heat or output rises.",
+    "balanced_action": "Score {{score}}. Balanced. Drink 12 oz now. Recheck in 45 minutes.",
+    "balanced_explanation": "You are on pace. Stay ahead of the next deficit window.",
+    "recovering_action": "Score {{score}}. Recovering. Take 1 AForce stick with 16 oz now. Recheck in 20 minutes.",
+    "recovering_explanation": "You are trending down. Reverse the curve before it accelerates.",
+    "depleted_action": "Score {{score}}. Depleted. Drink 20 oz and take 2 sticks now. Recheck in 10 minutes.",
+    "depleted_explanation": "Critical deficit. Electrolytes required. Performance is compromised."
+  },
   "voice": {
     "drink_now": "Take 1 AForce unit now. Recheck in {{recheck}} minutes.",
     "drink_water_now": "Drink {{oz}} oz of water now. Recheck in {{recheck}} minutes.",

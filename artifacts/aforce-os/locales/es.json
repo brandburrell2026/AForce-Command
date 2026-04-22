@@ -87,6 +87,18 @@
     "language_saved": "Idioma actualizado",
     "language_failed": "No se pudo guardar el idioma"
   },
+  "coach": {
+    "morning_action": "Bebe {{oz}} oz ahora. Vuelve a comprobar en 25 minutos. Empiezas en déficit.",
+    "morning_explanation": "Pérdida nocturna: {{oz}} oz. Restablece tu base antes de entrenar.",
+    "peak_action": "Puntaje {{score}}. Pico. Bebe 8 oz antes de la próxima sesión. Mantén el ritmo.",
+    "peak_explanation": "Mantén el ritmo. Toma un stick si suben el calor o el esfuerzo.",
+    "balanced_action": "Puntaje {{score}}. Equilibrado. Bebe 12 oz ahora. Vuelve a comprobar en 45 minutos.",
+    "balanced_explanation": "Vas a buen ritmo. Adelántate a la próxima caída.",
+    "recovering_action": "Puntaje {{score}}. Recuperando. Toma 1 stick AForce con 16 oz ahora. Vuelve a comprobar en 20 minutos.",
+    "recovering_explanation": "Estás bajando. Revierte la curva antes de que se acelere.",
+    "depleted_action": "Puntaje {{score}}. Agotado. Bebe 20 oz y toma 2 sticks ahora. Vuelve a comprobar en 10 minutos.",
+    "depleted_explanation": "Déficit crítico. Se requieren electrolitos. Tu rendimiento está comprometido."
+  },
   "voice": {
     "drink_now": "Toma 1 unidad de AForce ahora. Revisa en {{recheck}} minutos.",
     "drink_water_now": "Bebe {{oz}} oz de agua ahora. Revisa en {{recheck}} minutos.",

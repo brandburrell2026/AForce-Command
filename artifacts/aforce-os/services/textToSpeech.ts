@@ -12,10 +12,15 @@
 import { Platform } from 'react-native';
 import * as Speech from 'expo-speech';
 import { getActiveTtsConfig } from './ttsConfigService';
+import { getVoiceLocale } from './i18nService';
 
 export function speak(text: string): void {
   if (!text) return;
   const cfg = getActiveTtsConfig();
+  // Pull the BCP-47 voice locale at speak time (NOT at module load) so
+  // a language switch is reflected immediately on the very next call,
+  // without needing to reset the TTS layer or restart the app.
+  const locale = getVoiceLocale();
 
   if (Platform.OS === 'web') {
     if (typeof window === 'undefined') return;
@@ -27,7 +32,7 @@ export function speak(text: string): void {
       utter.rate = cfg.speech_rate;
       utter.pitch = cfg.pitch;
       utter.volume = cfg.volume;
-      utter.lang = 'en-US';
+      utter.lang = locale;
       synth.speak(utter);
     } catch {
       // ignore — TTS is optional
@@ -39,7 +44,7 @@ export function speak(text: string): void {
   try {
     Speech.stop();
     Speech.speak(text, {
-      language: 'en-US',
+      language: locale,
       rate: cfg.speech_rate,
       pitch: cfg.pitch,
       volume: cfg.volume,

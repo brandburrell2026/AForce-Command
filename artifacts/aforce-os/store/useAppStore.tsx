@@ -35,7 +35,7 @@ import {
   refreshWeather,
   subscribeToStateUpdates,
 } from '../services/realApi';
-import { setLanguage as setI18nLanguage, type SupportedLanguage } from '../services/i18nService';
+import i18n, { setLanguage as setI18nLanguage, type SupportedLanguage } from '../services/i18nService';
 import { PRODUCTS } from '../data/products';
 
 // Service-only synchronous bootstrapping helper. The store NEVER calls
@@ -253,6 +253,22 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     return () => { cancelled = true; clearInterval(interval); };
   }, [state.userState.lastIntakeTime, state.userState.urineSignal, state.userState.symptoms.length]);
 
+  // When the user switches languages, the AI command strings (action /
+  // explanation) live inside engineOutput and were rendered with the
+  // OLD locale. Re-derive engineOutput locally so the coach card and
+  // any TTS playback pick up the new language on the very next frame —
+  // no server round trip required.
+  useEffect(() => {
+    const handler = () => {
+      dispatch({
+        type: 'REFRESH_ENGINE',
+        payload: { engineOutput: _initialOnly(state.userState) },
+      });
+    };
+    i18n.on('languageChanged', handler);
+    return () => { i18n.off('languageChanged', handler); };
+  }, [state.userState]);
+
   // Ref-backed latest snapshot of the client-only overlay so the WS
   // subscription (mounted once) always reads the *current* appleHealth
   // value rather than a stale closure over the initial render.
@@ -437,14 +453,21 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     // a failed write just means the choice doesn't persist to other devices.
     await setI18nLanguage(lang);
     const optimistic: UserState = { ...state.userState, language: lang };
-    dispatch({ type: 'SET_USER_STATE', payload: { newUserState: optimistic, engineOutput: state.engineOutput } });
+    // Recompute engineOutput now (after i18n.changeLanguage resolves) so
+    // the AI command strings are fresh. Reusing `state.engineOutput`
+    // would clobber the localized output produced by the
+    // `languageChanged` listener with stale, pre-switch text.
+    dispatch({
+      type: 'SET_USER_STATE',
+      payload: { newUserState: optimistic, engineOutput: _initialOnly(optimistic) },
+    });
     try {
       const { newUserState, engineOutput } = await postLanguage(state.userState, lang);
       dispatch({ type: 'SET_USER_STATE', payload: { newUserState, engineOutput } });
     } catch (err) {
       console.warn('[AForce] setLanguage persist failed', err);
     }
-  }, [state.userState, state.engineOutput]);
+  }, [state.userState]);
 
   const setSubscription = useCallback((sub: UserSubscription) => {
     dispatch({ type: 'SET_SUBSCRIPTION', payload: sub });

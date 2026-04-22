@@ -87,6 +87,18 @@
     "language_saved": "Langue mise à jour",
     "language_failed": "Impossible d'enregistrer la langue"
   },
+  "coach": {
+    "morning_action": "Bois {{oz}} oz maintenant. Reprends dans 25 minutes. Tu commences en déficit.",
+    "morning_explanation": "Perte nocturne : {{oz}} oz. Réinitialise ta base avant l'entraînement.",
+    "peak_action": "Score {{score}}. Sommet. Bois 8 oz avant la prochaine séance. Tiens la ligne.",
+    "peak_explanation": "Maintiens le rythme. Prends un stick si la chaleur ou l'effort augmente.",
+    "balanced_action": "Score {{score}}. Équilibré. Bois 12 oz maintenant. Reprends dans 45 minutes.",
+    "balanced_explanation": "Tu es dans le rythme. Anticipe la prochaine chute.",
+    "recovering_action": "Score {{score}}. Récupération. Prends 1 stick AForce avec 16 oz maintenant. Reprends dans 20 minutes.",
+    "recovering_explanation": "Tu chutes. Inverse la courbe avant qu'elle s'accélère.",
+    "depleted_action": "Score {{score}}. Épuisé. Bois 20 oz et prends 2 sticks maintenant. Reprends dans 10 minutes.",
+    "depleted_explanation": "Déficit critique. Électrolytes requis. La performance est compromise."
+  },
   "voice": {
     "drink_now": "Prenez 1 unité d'AForce maintenant. Vérifiez dans {{recheck}} minutes.",
     "drink_water_now": "Buvez {{oz}} oz d'eau maintenant. Vérifiez dans {{recheck}} minutes.",

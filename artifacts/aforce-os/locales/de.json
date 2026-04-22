@@ -87,6 +87,18 @@
     "language_saved": "Sprache aktualisiert",
     "language_failed": "Sprache konnte nicht gespeichert werden"
   },
+  "coach": {
+    "morning_action": "Trinke jetzt {{oz}} oz. Erneut prüfen in 25 Minuten. Du startest im Defizit.",
+    "morning_explanation": "Nächtlicher Verlust: {{oz}} oz. Setze deine Basis vor dem Training zurück.",
+    "peak_action": "Score {{score}}. Peak. Trinke 8 oz vor der nächsten Einheit. Halte die Linie.",
+    "peak_explanation": "Halte das Tempo. Stick bei Belastung, wenn Hitze oder Output steigen.",
+    "balanced_action": "Score {{score}}. Balanced. Trinke jetzt 12 oz. Erneut prüfen in 45 Minuten.",
+    "balanced_explanation": "Du bist im Plan. Bleib dem nächsten Defizit-Fenster voraus.",
+    "recovering_action": "Score {{score}}. Erholung. Nimm jetzt 1 AForce Stick mit 16 oz. Erneut prüfen in 20 Minuten.",
+    "recovering_explanation": "Tendenz fällt. Dreh die Kurve, bevor sie beschleunigt.",
+    "depleted_action": "Score {{score}}. Erschöpft. Trinke jetzt 20 oz und nimm 2 Sticks. Erneut prüfen in 10 Minuten.",
+    "depleted_explanation": "Kritisches Defizit. Elektrolyte erforderlich. Leistung beeinträchtigt."
+  },
   "voice": {
     "drink_now": "Nimm jetzt 1 AForce-Einheit. In {{recheck}} Minuten prüfen.",
     "drink_water_now": "Trinke jetzt {{oz}} oz Wasser. In {{recheck}} Minuten prüfen.",

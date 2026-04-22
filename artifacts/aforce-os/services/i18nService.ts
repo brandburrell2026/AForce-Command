@@ -108,4 +108,13 @@ export function getVoiceLocale(lang: SupportedLanguage = getCurrentLanguage()): 
   return VOICE_LOCALES[lang] ?? 'en-US';
 }
 
+// Self-initialize on module import. Several modules (notably
+// `utils/scoringEngine.ts`) call `i18n.t()` synchronously during their
+// module-evaluation phase — before `app/_layout.tsx` has a chance to
+// invoke `initI18n()`. Without this side effect, those early calls
+// would return the raw key (e.g. `coach.peak_action`) until the
+// provider mounts. Calling here is idempotent (the `initialized`
+// guard inside `initI18n` makes the later explicit call a no-op).
+initI18n();
+
 export default i18n;
