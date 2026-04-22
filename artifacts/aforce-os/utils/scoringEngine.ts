@@ -47,11 +47,12 @@ function buildBreakdown(state: UserState): { score: number; contributions: Score
   const baseIntake = Math.round(45 * ozRatio);
 
   // AForce protocol bonus: each AForce-format intake (stick/RTD/canister/
-  // bulk_bag) is worth +4 score, capped at +20/day. This is the visible
+  // bulk_bag) is worth +12 score, capped at +50/day. This is the visible
   // reward for choosing an AForce product over plain water — the
   // functional ingredients (electrolytes, dulse/chlorella/seamoss) are
-  // why an AForce stick out-hydrates a tap-water of the same volume.
-  const aforceBonus = Math.min(20, Math.max(0, (state.aforceUnitsToday ?? 0) * 4));
+  // why an AForce stick out-hydrates a tap-water of the same volume,
+  // so a single stick should swing the orb meaningfully (~3× water).
+  const aforceBonus = Math.min(50, Math.max(0, (state.aforceUnitsToday ?? 0) * 12));
 
   // Per spec: continuous decay model (replaces the old tiered "recency").
   // Score(t) = previous − decay × time + inputs. We translate that into
@@ -105,7 +106,7 @@ function buildBreakdown(state: UserState): { score: number; contributions: Score
   const contributions: ScoreContribution[] = [
     { id: 'base', label: 'Base intake (oz vs target)', delta: baseIntake, maxMagnitude: 45,
       hint: `${state.ozConsumedToday} of ${state.ozTarget} oz` },
-    { id: 'aforce_bonus', label: 'AForce protocol bonus', delta: aforceBonus, maxMagnitude: 20,
+    { id: 'aforce_bonus', label: 'AForce protocol bonus', delta: aforceBonus, maxMagnitude: 50,
       hint: aforceUnits === 0
         ? 'Log an AForce stick or RTD'
         : `${aforceUnits} AForce intake${aforceUnits === 1 ? '' : 's'} today` },
@@ -280,7 +281,7 @@ function calculateBaseScore(state: UserState): number {
   const baseIntake = Math.round(45 * ozRatio);
   // AForce protocol bonus mirrored from buildBreakdown — keep these
   // two paths in lockstep so the prediction strip and the orb agree.
-  const aforceBonus = Math.min(20, Math.max(0, (state.aforceUnitsToday ?? 0) * 4));
+  const aforceBonus = Math.min(50, Math.max(0, (state.aforceUnitsToday ?? 0) * 12));
 
   // Continuous decay (per spec) replaces the tiered recency tier.
   const minutesSinceLast = minutesSince(state.lastIntakeTime);
