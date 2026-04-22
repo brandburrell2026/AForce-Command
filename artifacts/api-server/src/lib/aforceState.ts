@@ -111,6 +111,8 @@ function defaultSeed(): Omit<AforceUserStateRow, "updatedAt"> {
     weatherHumidity: null,
     weatherCity: null,
     weatherFetchedAt: null,
+    language: "en",
+    socialMode: null,
   };
 }
 

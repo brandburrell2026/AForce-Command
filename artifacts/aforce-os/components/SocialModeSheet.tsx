@@ -26,6 +26,10 @@ import { useTranslation } from 'react-i18next';
 
 import { Colors } from '../theme/colors';
 import { HangoverRiskBadge } from './HangoverRiskBadge';
+import { ImpairmentRiskBadge } from './ImpairmentRiskBadge';
+import { BACEstimateCard } from './BACEstimateCard';
+import { SocialSafetyCard } from './SocialSafetyCard';
+import { RecoveryModeCard } from './RecoveryModeCard';
 import { ALCOHOL_DRINKS, DRINK_TYPES_ORDER } from '../data/alcoholDrinks';
 import type { DrinkType, ScoreEngineOutput, SocialModeState } from '../types';
 
@@ -48,6 +52,7 @@ const DRINK_ICON: Record<DrinkType, React.ComponentProps<typeof Feather>['name']
   wine: 'droplet',
   cocktail: 'feather',
   liquor: 'zap',
+  hard_seltzer: 'cloud-drizzle',
   custom: 'plus-circle',
 };
 
@@ -161,9 +166,21 @@ export function SocialModeSheet({
                   <Text style={styles.statLabel}>{t('social.decay_mult')}</Text>
                 </View>
                 <View style={[styles.statBlock, { alignItems: 'flex-end' }]}>
-                  <HangoverRiskBadge risk={social.hangoverRisk} showScore />
-                  <Text style={[styles.statLabel, { marginTop: 6 }]}>{t('social.hangover_risk')}</Text>
+                  <ImpairmentRiskBadge impairment={social.impairment} />
+                  <Text style={[styles.statLabel, { marginTop: 6 }]}>{t('social.impairment_label')}</Text>
                 </View>
+              </View>
+
+              {/* BAC + impairment surface — always rendered while active so
+                  the user can see the trend before things escalate. */}
+              <BACEstimateCard bac={social.bac} />
+
+              {/* Legal & transportation safety — only renders at MODERATE+. */}
+              <SocialSafetyCard prompt={social.transportation} />
+
+              <View style={styles.hangoverInline}>
+                <HangoverRiskBadge risk={social.hangoverRisk} showScore />
+                <Text style={styles.hangoverLabel}>{t('social.hangover_risk')}</Text>
               </View>
 
               {showHydrationPrompt && (
@@ -238,12 +255,9 @@ export function SocialModeSheet({
                   <Text style={[styles.statLabel, { marginTop: 6 }]}>{t('social.hangover_risk')}</Text>
                 </View>
               </View>
-              <View style={[styles.hydrateCard, { borderColor: `${AMBER}55` }]}>
-                <Text style={[styles.eyebrow, { color: AMBER }]}>{t('social.recovery_steps_label')}</Text>
-                <Text style={styles.body}>• {t('social.recovery_step_water')}</Text>
-                <Text style={styles.body}>• {t('social.recovery_step_rtd')}</Text>
-                <Text style={styles.body}>• {t('social.recovery_step_sleep')}</Text>
-              </View>
+
+              <RecoveryModeCard timeToClearMinutes={social.bac.timeToClearMinutes} />
+
               <Pressable
                 onPress={onDismiss}
                 style={[styles.endNightBtn, { borderColor: `${AMBER}66` }]}
@@ -332,4 +346,12 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   endNightText: { fontSize: 13, fontFamily: 'Inter_700Bold', letterSpacing: 1.2 },
+  hangoverInline: {
+    flexDirection: 'row', alignItems: 'center', gap: 10,
+    marginBottom: 14,
+  },
+  hangoverLabel: {
+    fontSize: 11, fontFamily: 'Inter_500Medium', color: Colors.text.muted,
+    letterSpacing: 0.4,
+  },
 });

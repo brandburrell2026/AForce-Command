@@ -3,8 +3,10 @@
  * (or while the 8h Recovery window is still open). Tap opens the
  * Social Mode sheet for full controls.
  *
- * Subtle purple/amber accent per spec — the banner is informational,
- * not alarming. Tone never says "don't drink".
+ * In active mode the banner exposes the impairment badge + estimated
+ * BAC range so users can see escalation at a glance without opening
+ * the sheet. Subtle purple accent in active mode, amber in recovery,
+ * crimson when impairment is HIGH/CRITICAL. Never says "don't drink".
  */
 
 import React from 'react';
@@ -13,8 +15,8 @@ import { Feather } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import * as Haptics from 'expo-haptics';
 
-import { HangoverRiskBadge } from './HangoverRiskBadge';
-import type { ScoreEngineOutput } from '../types';
+import { ImpairmentRiskBadge } from './ImpairmentRiskBadge';
+import type { ScoreEngineOutput, ImpairmentRiskLevel } from '../types';
 
 interface Props {
   social: NonNullable<ScoreEngineOutput['social']>;
@@ -23,11 +25,24 @@ interface Props {
 
 const PURPLE = '#9D7CFB';
 const AMBER = '#F4B23F';
+const CRIMSON = '#FB7C7C';
+
+function accentFor(social: NonNullable<ScoreEngineOutput['social']>): string {
+  if (social.inRecoveryWindow) return AMBER;
+  const lvl: ImpairmentRiskLevel = social.impairment.level;
+  if (lvl === 'HIGH' || lvl === 'CRITICAL') return CRIMSON;
+  return PURPLE;
+}
+
+function formatRange(low: number, high: number): string {
+  return `${low.toFixed(2)}–${high.toFixed(2)}`;
+}
 
 export function SocialModeBanner({ social, onPress }: Props) {
   const { t } = useTranslation();
-  const accent = social.inRecoveryWindow ? AMBER : PURPLE;
+  const accent = accentFor(social);
   const titleKey = social.inRecoveryWindow ? 'social.recovery_active' : 'social.mode_active';
+  const showBac = !social.inRecoveryWindow && social.drinkCount > 0;
 
   return (
     <Pressable
@@ -51,9 +66,12 @@ export function SocialModeBanner({ social, onPress }: Props) {
         <Text style={[styles.title, { color: accent }]}>{t(titleKey)}</Text>
         <Text style={styles.subtitle}>
           {t('social.drinks_logged', { count: social.drinkCount })}
+          {showBac ? `  ·  ${t('social.bac_label')} ${formatRange(social.bac.rangeLow, social.bac.rangeHigh)}` : ''}
         </Text>
       </View>
-      <HangoverRiskBadge risk={social.hangoverRisk} />
+      {!social.inRecoveryWindow && social.drinkCount > 0 && (
+        <ImpairmentRiskBadge impairment={social.impairment} />
+      )}
       <Feather name="chevron-right" size={18} color={accent} style={{ marginLeft: 6 }} />
     </Pressable>
   );
@@ -77,5 +95,5 @@ const styles = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
   },
   title: { fontSize: 12, fontFamily: 'Inter_700Bold', letterSpacing: 1.5 },
-  subtitle: { fontSize: 13, fontFamily: 'Inter_500Medium', color: 'rgba(255,255,255,0.72)', marginTop: 2 },
+  subtitle: { fontSize: 12, fontFamily: 'Inter_500Medium', color: 'rgba(255,255,255,0.72)', marginTop: 2 },
 });

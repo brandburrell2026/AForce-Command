@@ -105,7 +105,11 @@
     "social_slow_intake_action": "Bebe agua entre copas. Llevas {{count}} hasta ahora — marca el ritmo.",
     "social_slow_intake_explanation": "Espaciar las copas 30+ minutos mantiene la puntuación firme y la mañana limpia.",
     "social_recovery_action": "Bebe 20 oz de agua y toma 1 AForce RTD antes de dormir.",
-    "social_recovery_explanation": "Ventana de recuperación abierta. Dos unidades de líquido + electrolitos marcan la diferencia."
+    "social_recovery_explanation": "Ventana de recuperación abierta. Dos unidades de líquido + electrolitos marcan la diferencia.",
+    "social_stop_action": "Detén el alcohol. Recuperación necesaria.",
+    "social_stop_explanation": "Estás en una ventana de alta afectación. Cambia a agua y empieza el protocolo de recuperación.",
+    "social_do_not_drive_action": "No conduzcas. Usa rideshare o llama a un amigo.",
+    "social_do_not_drive_explanation": "Tu reacción y juicio están reducidos. Un viaje compartido es la opción más segura."
   },
   "social": {
     "title": "MODO SOCIAL",
@@ -142,8 +146,45 @@
     "drink_wine": "Vino",
     "drink_cocktail": "Cóctel",
     "drink_liquor": "Licor",
+    "drink_hard_seltzer": "Hard Seltzer",
     "drink_custom": "Otra",
-    "entry_button": "Modo Social"
+    "entry_button": "Modo Social",
+
+    "bac_label": "BAC EST.",
+    "bac_clear_label": "DESPEJA EN",
+    "bac_clear_now": "Despejado",
+    "bac_clear_minutes": "{{minutes}} min",
+    "bac_clear_hours": "{{hours}}h",
+    "bac_clear_hours_minutes": "{{hours}}h {{minutes}}m",
+    "bac_trend_rising": "SUBE",
+    "bac_trend_steady": "ESTABLE",
+    "bac_trend_falling": "BAJA",
+    "bac_confidence_low": "BAJA CONF",
+    "bac_confidence_medium": "MED CONF",
+    "bac_confidence_high": "ALTA CONF",
+
+    "impairment_label": "AFECTACIÓN",
+    "impairment_low": "BAJA",
+    "impairment_elevated": "ELEVADA",
+    "impairment_moderate": "MODERADA",
+    "impairment_high": "ALTA",
+    "impairment_critical": "CRÍTICA",
+
+    "safety_title": "SEGURIDAD",
+    "safety_do_not_drive": "No conduzcas.",
+    "safety_use_rideshare": "Planifica un viaje antes de la próxima copa.",
+    "safety_stop_drinking": "Para de beber alcohol. Cambia a agua.",
+    "safety_transportation": "Usa rideshare, taxi o llama a un amigo.",
+    "safety_moderate_body": "Tu coordinación y juicio están reducidos. Coordina un viaje antes de necesitarlo.",
+    "safety_high_body": "Tu reacción está muy afectada. No conduzcas ningún vehículo.",
+    "safety_critical_body": "Estás en un nivel alto de afectación. Detén el alcohol y organiza transporte seguro ya.",
+
+    "estimate_only": "Sólo estimación",
+    "not_legal_medical": "No es una determinación legal ni médica.",
+
+    "recovery_card_title": "MODO RECUPERACIÓN",
+    "recovery_morning_estimate": "Tiempo estimado para despejar",
+    "recovery_morning_clear": "Despejado"
   },
   "voice": {
     "drink_now": "Toma 1 unidad de AForce ahora. Revisa en {{recheck}} minutos.",

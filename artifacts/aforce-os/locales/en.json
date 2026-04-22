@@ -105,7 +105,11 @@
     "social_slow_intake_action": "Sip water between drinks. You're at {{count}} so far — pace from here.",
     "social_slow_intake_explanation": "Spacing drinks to 30+ minutes keeps the score stable and the morning clean.",
     "social_recovery_action": "Drink 20 oz of water and take 1 AForce RTD before sleep.",
-    "social_recovery_explanation": "Recovery window is open. Two units of fluid + electrolytes now is the difference."
+    "social_recovery_explanation": "Recovery window is open. Two units of fluid + electrolytes now is the difference.",
+    "social_stop_action": "Stop alcohol intake. Recovery required.",
+    "social_stop_explanation": "You are in a high-impairment window. Switch to water and start the recovery protocol.",
+    "social_do_not_drive_action": "Do not drive. Use a rideshare or call a friend.",
+    "social_do_not_drive_explanation": "Reaction time and judgment are significantly reduced. A ride is the safer next move."
   },
   "social": {
     "title": "SOCIAL MODE",
@@ -142,8 +146,45 @@
     "drink_wine": "Wine",
     "drink_cocktail": "Cocktail",
     "drink_liquor": "Liquor",
+    "drink_hard_seltzer": "Hard Seltzer",
     "drink_custom": "Custom",
-    "entry_button": "Social Mode"
+    "entry_button": "Social Mode",
+
+    "bac_label": "EST. BAC",
+    "bac_clear_label": "CLEAR IN",
+    "bac_clear_now": "Cleared",
+    "bac_clear_minutes": "{{minutes}} min",
+    "bac_clear_hours": "{{hours}}h",
+    "bac_clear_hours_minutes": "{{hours}}h {{minutes}}m",
+    "bac_trend_rising": "RISING",
+    "bac_trend_steady": "STEADY",
+    "bac_trend_falling": "FALLING",
+    "bac_confidence_low": "LOW CONF",
+    "bac_confidence_medium": "MED CONF",
+    "bac_confidence_high": "HIGH CONF",
+
+    "impairment_label": "IMPAIRMENT",
+    "impairment_low": "LOW",
+    "impairment_elevated": "ELEVATED",
+    "impairment_moderate": "MODERATE",
+    "impairment_high": "HIGH",
+    "impairment_critical": "CRITICAL",
+
+    "safety_title": "SAFETY",
+    "safety_do_not_drive": "Do not drive.",
+    "safety_use_rideshare": "Plan a ride before your next drink.",
+    "safety_stop_drinking": "Stop adding alcohol. Switch to water.",
+    "safety_transportation": "Use a rideshare, taxi, or call a friend.",
+    "safety_moderate_body": "Coordination and judgment are reduced. Arrange a ride before you need one.",
+    "safety_high_body": "Reaction time is significantly impaired. Do not drive any vehicle.",
+    "safety_critical_body": "You are at a high-risk impairment level. Stop alcohol intake and arrange safe transport now.",
+
+    "estimate_only": "Estimate only",
+    "not_legal_medical": "Not a legal or medical determination.",
+
+    "recovery_card_title": "RECOVERY MODE",
+    "recovery_morning_estimate": "Estimated time to clear",
+    "recovery_morning_clear": "Cleared"
   },
   "voice": {
     "drink_now": "Take 1 AForce unit now. Recheck in {{recheck}} minutes.",

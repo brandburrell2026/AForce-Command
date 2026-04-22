@@ -283,6 +283,18 @@ export default function HomeScreen() {
         burstAt={lastIntakeBurstAt}
         onTap={openBreakdown}
         size={layout.orbSize}
+        socialOverlay={
+          engineOutput.social?.active
+            ? {
+                // alcoholLoad maps the active decay multiplier (1.00–1.50)
+                // into the 0..1 ring intensity.
+                alcoholLoad: Math.min(1, Math.max(0, (engineOutput.social.alcoholMultiplier - 1) * 2)),
+                unstable:
+                  engineOutput.social.impairment.level === 'HIGH' ||
+                  engineOutput.social.impairment.level === 'CRITICAL',
+              }
+            : undefined
+        }
       />
       <Text style={styles.orbHint}>TAP ORB FOR FULL BREAKDOWN</Text>
       <View

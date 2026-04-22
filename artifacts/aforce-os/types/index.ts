@@ -104,35 +104,32 @@ export interface UserState {
 }
 
 // ─── Social Mode ──────────────────────────────────────────────────────────────
-export type DrinkType = 'beer' | 'wine' | 'cocktail' | 'liquor' | 'custom';
-
-export type HangoverRiskLevel = 'LOW' | 'MODERATE' | 'HIGH' | 'CRITICAL';
-
-export interface DrinkLog {
-  id: string;
-  type: DrinkType;
-  loggedAt: Date;
-  /** Hydration decay multiplier applied while this drink is in the active window. */
-  multiplier: number;
-  /** Did the user complete the post-drink hydration command? null = still pending. */
-  hydrated: boolean | null;
-}
-
-export interface SocialModeState {
-  active: boolean;
-  startedAt: Date;
-  drinks: DrinkLog[];
-  lastHydrationPromptAt?: Date;
-  /** Set when user taps "End Night". Recovery window = `endedAt` + 8h. */
-  endedAt?: Date;
-}
-
-export interface HangoverRisk {
-  level: HangoverRiskLevel;
-  /** 0–100 numeric score, drives the badge gradient + voice urgency. */
-  score: number;
-  reasons: string[];
-}
+// All Social Mode types live in `./socialMode.ts` so the BAC engine,
+// legal-safety service, and UI can import from a smaller surface.
+// Re-exported here so existing call sites keep working.
+export type {
+  DrinkType,
+  DrinkLog,
+  SocialModeState,
+  SocialContextSex,
+  HangoverRiskLevel,
+  HangoverRisk,
+  BACEstimate,
+  BACTrend,
+  BACConfidence,
+  ImpairmentRiskLevel,
+  ImpairmentRiskState,
+  TransportationSafetyPrompt,
+  TransportationSeverity,
+  RecoveryRecommendation,
+} from './socialMode';
+import type {
+  HangoverRisk,
+  BACEstimate,
+  ImpairmentRiskState,
+  TransportationSafetyPrompt,
+  SocialModeState,
+} from './socialMode';
 
 export interface AppleHealthInputs {
   restingHeartRate: number | null;
@@ -219,6 +216,11 @@ export interface ScoreEngineOutput {
   /**
    * Social Mode rollup. `null` when neither active nor in recovery
    * window — the UI hides every social surface in that case.
+   *
+   * `bac`, `impairment`, and `transportation` are always populated when
+   * the rollup itself is non-null so the UI can render the BAC card,
+   * impairment badge, and (conditionally) the legal-safety card without
+   * having to build them from raw inputs.
    */
   social: {
     active: boolean;
@@ -227,6 +229,9 @@ export interface ScoreEngineOutput {
     hangoverRisk: HangoverRisk;
     /** Alcohol decay multiplier currently applied (1 when none active). */
     alcoholMultiplier: number;
+    bac: BACEstimate;
+    impairment: ImpairmentRiskState;
+    transportation: TransportationSafetyPrompt;
   } | null;
 }
 

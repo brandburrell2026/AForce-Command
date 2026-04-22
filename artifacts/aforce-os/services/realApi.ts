@@ -115,16 +115,24 @@ function normalizeSocialMode(raw: unknown): UserState['socialMode'] {
     startedAt: r['startedAt'] ? new Date(r['startedAt'] as string) : new Date(),
     drinks: drinks.map((d) => {
       const x = d as Record<string, unknown>;
+      const abvRaw = x['abv'];
+      const ozRaw = x['oz'];
       return {
         id: String(x['id'] ?? `drink-${Math.random().toString(36).slice(2)}`),
-        type: (x['type'] as 'beer' | 'wine' | 'cocktail' | 'liquor' | 'custom') ?? 'custom',
+        type: (x['type'] as 'beer' | 'wine' | 'cocktail' | 'liquor' | 'hard_seltzer' | 'custom') ?? 'custom',
         loggedAt: x['loggedAt'] ? new Date(x['loggedAt'] as string) : new Date(),
         multiplier: Number(x['multiplier'] ?? 1.25),
         hydrated: x['hydrated'] == null ? null : Boolean(x['hydrated']),
+        ...(abvRaw != null ? { abv: Number(abvRaw) } : {}),
+        ...(ozRaw != null ? { oz: Number(ozRaw) } : {}),
       };
     }),
     lastHydrationPromptAt: r['lastHydrationPromptAt'] ? new Date(r['lastHydrationPromptAt'] as string) : undefined,
     endedAt: r['endedAt'] ? new Date(r['endedAt'] as string) : undefined,
+    ...(r['sex'] === 'male' || r['sex'] === 'female' || r['sex'] === 'unspecified'
+      ? { sex: r['sex'] as 'male' | 'female' | 'unspecified' }
+      : {}),
+    ...(typeof r['ateRecently'] === 'boolean' ? { ateRecently: r['ateRecently'] } : {}),
   };
 }
 
@@ -277,8 +285,12 @@ export function postLanguage(userState: UserState, language: UserState['language
 export function postSocialActivate(userState: UserState) {
   return postAndRecompute('/social/activate', {}, userState);
 }
-export function postSocialDrink(userState: UserState, type: 'beer' | 'wine' | 'cocktail' | 'liquor' | 'custom') {
-  return postAndRecompute('/social/drink', { type }, userState);
+export function postSocialDrink(
+  userState: UserState,
+  type: 'beer' | 'wine' | 'cocktail' | 'liquor' | 'hard_seltzer' | 'custom',
+  opts: { abv?: number; oz?: number } = {},
+) {
+  return postAndRecompute('/social/drink', { type, ...opts }, userState);
 }
 export function postSocialHydrate(userState: UserState, confirmed: boolean) {
   return postAndRecompute('/social/hydrate', { confirmed }, userState);

@@ -71,9 +71,19 @@ export const aforceUserState = pgTable("aforce_user_state", {
   socialMode: jsonb("social_mode").$type<{
     active: boolean;
     startedAt: string;
-    drinks: { id: string; type: string; loggedAt: string; multiplier: number; hydrated: boolean | null }[];
+    drinks: {
+      id: string;
+      type: string;
+      loggedAt: string;
+      multiplier: number;
+      hydrated: boolean | null;
+      abv?: number;
+      oz?: number;
+    }[];
     lastHydrationPromptAt?: string;
     endedAt?: string;
+    sex?: "male" | "female" | "unspecified";
+    ateRecently?: boolean;
   } | null>(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });

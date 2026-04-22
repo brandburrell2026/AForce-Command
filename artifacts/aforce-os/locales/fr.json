@@ -105,7 +105,11 @@
     "social_slow_intake_action": "Bois de l'eau entre les verres. Tu en es à {{count}} — ralentis le rythme.",
     "social_slow_intake_explanation": "Espacer les verres de 30+ minutes garde le score stable et la matinée claire.",
     "social_recovery_action": "Bois 20 oz d'eau et prends 1 AForce RTD avant de dormir.",
-    "social_recovery_explanation": "Fenêtre de récupération ouverte. Deux unités de liquide + électrolytes maintenant font la différence."
+    "social_recovery_explanation": "Fenêtre de récupération ouverte. Deux unités de liquide + électrolytes maintenant font la différence.",
+    "social_stop_action": "Arrête l'alcool. Récupération nécessaire.",
+    "social_stop_explanation": "Tu es dans une fenêtre d'affaiblissement élevé. Passe à l'eau et lance le protocole de récupération.",
+    "social_do_not_drive_action": "Ne conduis pas. Prends un VTC ou appelle un ami.",
+    "social_do_not_drive_explanation": "Tes réflexes et ton jugement sont réduits. Un trajet partagé est plus sûr."
   },
   "social": {
     "title": "MODE SOCIAL",
@@ -142,8 +146,45 @@
     "drink_wine": "Vin",
     "drink_cocktail": "Cocktail",
     "drink_liquor": "Spiritueux",
+    "drink_hard_seltzer": "Hard Seltzer",
     "drink_custom": "Autre",
-    "entry_button": "Mode Social"
+    "entry_button": "Mode Social",
+
+    "bac_label": "BAC EST.",
+    "bac_clear_label": "DÉCROÎT EN",
+    "bac_clear_now": "Éliminé",
+    "bac_clear_minutes": "{{minutes}} min",
+    "bac_clear_hours": "{{hours}}h",
+    "bac_clear_hours_minutes": "{{hours}}h {{minutes}}m",
+    "bac_trend_rising": "MONTE",
+    "bac_trend_steady": "STABLE",
+    "bac_trend_falling": "BAISSE",
+    "bac_confidence_low": "CONF FAIBLE",
+    "bac_confidence_medium": "CONF MOY.",
+    "bac_confidence_high": "CONF HAUTE",
+
+    "impairment_label": "AFFAIBLISSEMENT",
+    "impairment_low": "FAIBLE",
+    "impairment_elevated": "AUGMENTÉ",
+    "impairment_moderate": "MODÉRÉ",
+    "impairment_high": "ÉLEVÉ",
+    "impairment_critical": "CRITIQUE",
+
+    "safety_title": "SÉCURITÉ",
+    "safety_do_not_drive": "Ne conduis pas.",
+    "safety_use_rideshare": "Prévois un trajet avant ton prochain verre.",
+    "safety_stop_drinking": "Arrête l'alcool. Passe à l'eau.",
+    "safety_transportation": "VTC, taxi, ou appelle un ami.",
+    "safety_moderate_body": "Ta coordination et ton jugement sont réduits. Organise un trajet avant d'en avoir besoin.",
+    "safety_high_body": "Tes réflexes sont nettement diminués. Ne conduis aucun véhicule.",
+    "safety_critical_body": "Tu es à un niveau d'affaiblissement élevé. Arrête l'alcool et organise un transport sûr maintenant.",
+
+    "estimate_only": "Estimation uniquement",
+    "not_legal_medical": "Pas une détermination légale ni médicale.",
+
+    "recovery_card_title": "MODE RÉCUPÉRATION",
+    "recovery_morning_estimate": "Temps estimé d'élimination",
+    "recovery_morning_clear": "Éliminé"
   },
   "voice": {
     "drink_now": "Prenez 1 unité d'AForce maintenant. Vérifiez dans {{recheck}} minutes.",

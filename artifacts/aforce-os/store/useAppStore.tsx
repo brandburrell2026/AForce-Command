@@ -211,7 +211,10 @@ interface AppContextValue {
   /** Social Mode (alcohol mitigation) — start a fresh drinking session. */
   activateSocialMode: () => Promise<void>;
   /** Log a single drink of the given alcohol type. */
-  logSocialDrink: (type: 'beer' | 'wine' | 'cocktail' | 'liquor' | 'custom') => Promise<void>;
+  logSocialDrink: (
+    type: 'beer' | 'wine' | 'cocktail' | 'liquor' | 'hard_seltzer' | 'custom',
+    opts?: { abv?: number; oz?: number },
+  ) => Promise<void>;
   /** Resolve the post-drink hydration prompt (true = drank water/RTD). */
   confirmSocialHydration: (confirmed: boolean) => Promise<void>;
   /** End the drinking session — flips into the 8h Recovery Mode window. */
@@ -490,9 +493,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   }, [state.userState]);
 
-  const logSocialDrink = useCallback(async (type: 'beer' | 'wine' | 'cocktail' | 'liquor' | 'custom') => {
+  const logSocialDrink = useCallback(async (
+    type: 'beer' | 'wine' | 'cocktail' | 'liquor' | 'hard_seltzer' | 'custom',
+    opts: { abv?: number; oz?: number } = {},
+  ) => {
     try {
-      const { newUserState, engineOutput } = await postSocialDrink(state.userState, type);
+      const { newUserState, engineOutput } = await postSocialDrink(state.userState, type, opts);
       dispatch({ type: 'SET_USER_STATE', payload: { newUserState, engineOutput } });
     } catch (err) {
       console.warn('[AForce] logSocialDrink failed', err);

@@ -39,6 +39,14 @@ interface Props {
    * on wide layouts (Fold open, tablets) via useResponsiveLayout.
    */
   size?: number;
+  /**
+   * Optional Social Mode overlay. When present, renders a subtle
+   * outer ring whose intensity tracks `alcoholLoad` (0..1) and whose
+   * color flips to crimson when `unstable` (HIGH/CRITICAL impairment).
+   * Purely additive — the normal hydration animation continues
+   * underneath.
+   */
+  socialOverlay?: { alcoholLoad: number; unstable: boolean };
 }
 
 const DEFAULT_ORB_SIZE = 200;
@@ -51,7 +59,7 @@ const COLOR_MAP: Record<PulseConfig['colorMode'], { primary: string; glow: strin
   red:   { primary: Colors.states.DEPLETED.primary,   glow: Colors.states.DEPLETED.glow },
 };
 
-export function StatusPulseOrb({ pulseConfig, score, burstAt = 0, onTap, size }: Props) {
+export function StatusPulseOrb({ pulseConfig, score, burstAt = 0, onTap, size, socialOverlay }: Props) {
   const { pulseSpeed, glowStrength, pulseIntensity, waveBehavior, colorMode, animations } = pulseConfig;
   const colors = COLOR_MAP[colorMode];
   const ORB_SIZE = size ?? DEFAULT_ORB_SIZE;
@@ -286,6 +294,32 @@ export function StatusPulseOrb({ pulseConfig, score, burstAt = 0, onTap, size }:
   const handlePressIn = () => { tapScale.value = withTiming(0.96, { duration: 80 }); };
   const handlePressOut = () => { tapScale.value = withTiming(1, { duration: 140 }); };
 
+  // Social Mode overlay ring — slow purple pulse, faster crimson when unstable.
+  const socialPulse = useSharedValue(0);
+  useEffect(() => {
+    if (!socialOverlay) {
+      cancelAnimation(socialPulse);
+      socialPulse.value = 0;
+      return;
+    }
+    const period = socialOverlay.unstable ? 1100 : 2200;
+    socialPulse.value = 0;
+    socialPulse.value = withRepeat(
+      withTiming(1, { duration: period, easing: Easing.inOut(Easing.ease) }),
+      -1,
+      true,
+    );
+    return () => cancelAnimation(socialPulse);
+  }, [socialOverlay?.unstable, socialOverlay?.alcoholLoad]);
+
+  const socialOverlayStyle = useAnimatedStyle(() => {
+    const load = Math.min(1, Math.max(0, socialOverlay?.alcoholLoad ?? 0));
+    const baseOpacity = 0.18 + 0.32 * load;
+    const opacity = baseOpacity * (0.65 + 0.35 * socialPulse.value);
+    const scale = 1 + 0.04 * socialPulse.value;
+    return { opacity, transform: [{ scale }] };
+  });
+
   return (
     <View style={[styles.container, { width: containerSize, height: containerSize }]}>
       <Animated.View
@@ -302,6 +336,24 @@ export function StatusPulseOrb({ pulseConfig, score, burstAt = 0, onTap, size }:
           innerGlowStyle,
         ]}
       />
+
+      {/* Social Mode outer ring overlay — purple at low load, crimson when unstable. */}
+      {socialOverlay && (
+        <Animated.View
+          pointerEvents="none"
+          style={[
+            styles.ring,
+            {
+              borderColor: socialOverlay.unstable ? '#FB7C7C' : '#9D7CFB',
+              borderWidth: socialOverlay.unstable ? 2 : 1.5,
+              width: ORB_SIZE + 44,
+              height: ORB_SIZE + 44,
+              borderRadius: (ORB_SIZE + 44) / 2,
+            },
+            socialOverlayStyle,
+          ]}
+        />
+      )}
 
       {/* Continuous outward ripple (PEAK / BALANCED / RECOVERING) */}
       <Animated.View

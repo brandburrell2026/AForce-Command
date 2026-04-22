@@ -32,7 +32,7 @@ import type {
   SocialModeState,
 } from '../types';
 import { Colors } from '../theme/colors';
-import { calculateHangoverRisk, activeDecayMultiplier } from './hangoverRisk';
+import { activeDecayMultiplier } from './hangoverRisk';
 
 function resolveState(score: number): PerformanceLevel {
   if (score >= 90) return 'PEAK';
@@ -447,6 +447,31 @@ function generateSocialCommand(state: UserState, social: NonNullable<ScoreEngine
   const minutesSinceDrink = lastDrink
     ? (Date.now() - lastDrink.loggedAt.getTime()) / 60000
     : Infinity;
+
+  // CRITICAL impairment → strongest, most protective copy. Pulls rank
+  // over hydration nudges because the safer next move is to stop and
+  // arrange a ride. Never says "don't drink" — says "stop alcohol
+  // intake. Recovery required." per the safety spec.
+  if (social.impairment.level === 'CRITICAL') {
+    return {
+      id: 'cmd-social-stop-critical',
+      action: i18n.t('coach.social_stop_action'),
+      explanation: i18n.t('coach.social_do_not_drive_explanation'),
+      urgencyLevel: 'critical',
+      estimatedImpact: '+18 to score',
+    };
+  }
+  // HIGH impairment → "do not drive" + transportation prompt. Still
+  // calm, still protective.
+  if (social.impairment.level === 'HIGH') {
+    return {
+      id: 'cmd-social-do-not-drive',
+      action: i18n.t('coach.social_do_not_drive_action'),
+      explanation: i18n.t('coach.social_do_not_drive_explanation'),
+      urgencyLevel: 'critical',
+      estimatedImpact: '+15 to score',
+    };
+  }
   // Just logged a drink → hydration command (within 5 min). Skip
   // when the user has already confirmed hydration for that drink so
   // we don't repeat ourselves.
@@ -459,7 +484,7 @@ function generateSocialCommand(state: UserState, social: NonNullable<ScoreEngine
       estimatedImpact: '+8 to score',
     };
   }
-  // CRITICAL hangover risk → push AForce RTD harder.
+  // CRITICAL/HIGH hangover risk → push AForce RTD harder.
   if (social.hangoverRisk.level === 'CRITICAL' || social.hangoverRisk.level === 'HIGH') {
     return {
       id: 'cmd-social-rtd',
@@ -479,27 +504,9 @@ function generateSocialCommand(state: UserState, social: NonNullable<ScoreEngine
   };
 }
 
-function buildSocialRollup(state: UserState): ScoreEngineOutput['social'] {
-  const sm = state.socialMode;
-  if (!sm) return null;
-  const endedAtMs = sm.endedAt ? sm.endedAt.getTime() : null;
-  const inRecoveryWindow = !sm.active
-    && endedAtMs != null
-    && (Date.now() - endedAtMs) < 8 * 60 * 60 * 1000;
-  if (!sm.active && !inRecoveryWindow) return null;
-  const hangoverRisk = calculateHangoverRisk({
-    drinks: sm.drinks,
-    bodyWeightLbs: state.bodyWeightLbs,
-    heatLoad: state.heatLoad,
-  });
-  return {
-    active: sm.active,
-    inRecoveryWindow,
-    drinkCount: sm.drinks.length,
-    hangoverRisk,
-    alcoholMultiplier: sm.active ? activeDecayMultiplier(sm.drinks) : 1,
-  };
-}
+// Rollup logic now lives in `services/socialModeEngine.ts` so the BAC
+// estimator + legal-safety service have a single point of orchestration.
+import { buildSocialRollup } from '../services/socialModeEngine';
 
 function generateCommand(level: PerformanceLevel, state: UserState, score: number, social: ScoreEngineOutput['social']): Command {
   // Social Mode takes precedence over the standard PEAK/BALANCED/etc

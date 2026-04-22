@@ -258,9 +258,9 @@ router.post("/language", async (req, res) => {
 // Date fields are stored as ISO strings so the JSONB column is round-
 // trippable; the client `normalizeUserState` converts them back.
 
-const drinkTypeEnum = z.enum(["beer", "wine", "cocktail", "liquor", "custom"]);
+const drinkTypeEnum = z.enum(["beer", "wine", "cocktail", "liquor", "hard_seltzer", "custom"]);
 const DRINK_MULTIPLIERS: Record<string, number> = {
-  beer: 1.15, wine: 1.20, cocktail: 1.30, liquor: 1.35, custom: 1.25,
+  beer: 1.15, wine: 1.20, cocktail: 1.30, liquor: 1.35, hard_seltzer: 1.15, custom: 1.25,
 };
 
 interface PersistedDrink {
@@ -269,6 +269,8 @@ interface PersistedDrink {
   loggedAt: string;
   multiplier: number;
   hydrated: boolean | null;
+  abv?: number;
+  oz?: number;
 }
 interface PersistedSocialMode {
   active: boolean;
@@ -276,6 +278,8 @@ interface PersistedSocialMode {
   drinks: PersistedDrink[];
   lastHydrationPromptAt?: string;
   endedAt?: string;
+  sex?: "male" | "female" | "unspecified";
+  ateRecently?: boolean;
 }
 
 async function readSocial(userId: string): Promise<PersistedSocialMode | null> {
@@ -301,10 +305,14 @@ router.post("/social/activate", async (_req, res) => {
   }
 });
 
-const drinkSchema = z.object({ type: drinkTypeEnum });
+const drinkSchema = z.object({
+  type: drinkTypeEnum,
+  abv: z.number().min(0).max(100).optional(),
+  oz: z.number().min(0).max(64).optional(),
+});
 router.post("/social/drink", async (req, res) => {
   try {
-    const { type } = drinkSchema.parse(req.body);
+    const { type, abv, oz } = drinkSchema.parse(req.body);
     const userId = resolveUserId();
     const now = new Date().toISOString();
     const current = (await readSocial(userId)) ?? {
@@ -326,6 +334,8 @@ router.post("/social/drink", async (req, res) => {
       loggedAt: now,
       multiplier: DRINK_MULTIPLIERS[type] ?? 1.25,
       hydrated: null,
+      ...(abv != null ? { abv } : {}),
+      ...(oz != null ? { oz } : {}),
     };
     const next: PersistedSocialMode = { ...current, drinks: [...current.drinks, drink] };
     const updated = await updateUserState(userId, { socialMode: next });
