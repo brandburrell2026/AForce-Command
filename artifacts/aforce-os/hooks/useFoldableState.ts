@@ -30,8 +30,11 @@ export function useFoldableState(): FoldableState {
   const { deviceClass, isPortrait } = useDeviceClass();
   const isFoldOpen = deviceClass === 'foldOpen';
   const isTablet = deviceClass === 'tablet';
+  const isDesktop = deviceClass === 'desktop';
   return {
-    isExpanded: isFoldOpen || isTablet,
+    // Desktop (≥1280) also gets the two-column treatment so the wide
+    // layout doesn't degrade back to a single phone column on web.
+    isExpanded: isFoldOpen || isTablet || isDesktop,
     isFoldOpen,
     isTablet,
     isPortrait,

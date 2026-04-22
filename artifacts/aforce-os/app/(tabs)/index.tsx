@@ -27,6 +27,7 @@ import { StatusPulseOrb } from '@/components/StatusPulseOrb';
 import { WhyThisScore } from '@/components/WhyThisScore';
 import { RiskTimerDisplay } from '@/components/RiskTimerDisplay';
 import { AICommandCard } from '@/components/AICommandCard';
+import { CommandConfirmPrompt } from '@/components/CommandConfirmPrompt';
 import { WaterCycleBar } from '@/components/WaterCycleBar';
 import { PhantomSignal } from '@/components/PhantomSignal';
 import { CycleSuccessOverlay } from '@/components/CycleSuccessOverlay';
@@ -57,15 +58,16 @@ import { Feather } from '@expo/vector-icons';
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { state, logIntake, snooze, dismissSuccess, completeOnboarding } = useAppStore();
+  const { state, logIntake, snooze, dismissSuccess, completeOnboarding, confirmCommand } = useAppStore();
   const [ctaFlavorOpen, setCtaFlavorOpen] = React.useState(false);
   const layout = useResponsiveLayout();
   const foldable = useFoldableState();
   const {
     engineOutput, userState, showCycleSuccess, lastCycleResult,
     isCompletingCycle, timerSeconds, lastIntakeBurstAt, hasSeenOnboarding,
+    pendingConfirmation,
   } = state;
-  const { performanceState, score, reasons, command, pulseConfig, breakdown } = engineOutput;
+  const { performanceState, score, reasons, command, pulseConfig, breakdown, prediction } = engineOutput;
   const [breakdownOpen, setBreakdownOpen] = React.useState(false);
   const [voiceOpen, setVoiceOpen] = React.useState(false);
   const [voiceAutoStart, setVoiceAutoStart] = React.useState(false);
@@ -274,6 +276,18 @@ export default function HomeScreen() {
         size={layout.orbSize}
       />
       <Text style={styles.orbHint}>TAP ORB FOR FULL BREAKDOWN</Text>
+      <View
+        style={[
+          styles.predictionStrip,
+          { borderColor: `${stateColor}33`, backgroundColor: `${stateColor}10` },
+        ]}
+        testID="prediction-strip"
+      >
+        <View style={[styles.dot, { backgroundColor: stateColor }]} />
+        <Text style={[styles.predictionText, { color: stateColor }]}>
+          {prediction.label}
+        </Text>
+      </View>
     </View>
   );
 
@@ -281,6 +295,15 @@ export default function HomeScreen() {
     <>
       <WhyThisScore reasons={reasons} onOpenBreakdown={openBreakdown} />
       <View style={styles.spacer} />
+      {pendingConfirmation && (
+        <>
+          <CommandConfirmPrompt
+            onAnswer={(followed) => { confirmCommand(followed); }}
+            inClutch={!!userState.clutchActive}
+          />
+          <View style={styles.spacer} />
+        </>
+      )}
       <AICommandCard command={command} performanceState={performanceState} />
       <View style={styles.spacer} />
       <AIVideoPlayer
@@ -542,6 +565,21 @@ const styles = StyleSheet.create({
     letterSpacing: 1.5,
   },
   orbContainer: { alignItems: 'center', paddingVertical: 24, marginBottom: 8, overflow: 'visible' },
+  predictionStrip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 14,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 999,
+    borderWidth: StyleSheet.hairlineWidth,
+  },
+  predictionText: {
+    fontSize: 11,
+    fontFamily: 'Inter_600SemiBold',
+    letterSpacing: 0.4,
+  },
   orbHint: {
     fontSize: 8,
     fontFamily: 'Inter_700Bold',

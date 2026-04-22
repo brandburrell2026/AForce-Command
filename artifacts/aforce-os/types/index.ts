@@ -52,6 +52,25 @@ export interface UserState {
   // ignored by the scoring engine — never substituted with placeholder
   // numbers.
   appleHealth?: AppleHealthInputs;
+  /**
+   * Transient ±3 from the post-recheck "Did you follow the command?"
+   * confirmation loop. Stale entries (>30 min old) are ignored by the
+   * engine.
+   */
+  confirmationDelta?: number;
+  confirmationDeltaSetAt?: Date;
+  /**
+   * When the user said "No" while in Clutch mode, decay gets a +0.5
+   * pts/min boost until this time.
+   */
+  clutchDecayBoostUntil?: Date;
+  /**
+   * Mirrored from feature flags by the store. The engine itself can't
+   * read flags, so the store sets this each time clutch_access_enabled
+   * changes — it lets `computeDecayPerMinute` apply the ×1.3 spec
+   * multiplier without drilling flags into the engine API.
+   */
+  clutchActive?: boolean;
 }
 
 export interface AppleHealthInputs {
@@ -134,6 +153,17 @@ export interface ScoreEngineOutput {
   command: Command;
   /** Full per-input contributions to the score. Drives the breakdown drill-in. */
   breakdown: ScoreContribution[];
+  /** Continuous decay model output (per spec). */
+  prediction: ScorePrediction;
+}
+
+export interface ScorePrediction {
+  /** Points lost per minute at current weight / activity / heat / humidity. */
+  decayPerMinute: number;
+  /** Estimated minutes until score crosses into DEPLETED (≤40), or null if already there or decay is zero. */
+  minutesToDepleted: number | null;
+  /** Human-readable summary used by the prediction strip on Home. */
+  label: string;
 }
 
 // ─── Intake / History / Cycle ─────────────────────────────────────────────────

@@ -15,25 +15,33 @@
  */
 
 export type DeviceClass =
+  | 'narrow'
   | 'compact'
   | 'standard'
   | 'large'
   | 'foldOpen'
-  | 'tablet';
+  | 'tablet'
+  | 'desktop';
 
 export const BREAKPOINTS = {
+  /** Galaxy Z Fold outer cover screen sits around 280px wide. */
+  narrowMax: 319,
   compactMax: 359,
   standardMax: 413,
   largeMax: 599,
   foldOpenMax: 839,
+  /** Anything wider than a tablet portrait is treated as desktop / web. */
+  tabletMax: 1279,
 } as const;
 
 export function deviceClassForWidth(width: number): DeviceClass {
+  if (width <= BREAKPOINTS.narrowMax) return 'narrow';
   if (width <= BREAKPOINTS.compactMax) return 'compact';
   if (width <= BREAKPOINTS.standardMax) return 'standard';
   if (width <= BREAKPOINTS.largeMax) return 'large';
   if (width <= BREAKPOINTS.foldOpenMax) return 'foldOpen';
-  return 'tablet';
+  if (width <= BREAKPOINTS.tabletMax) return 'tablet';
+  return 'desktop';
 }
 
 export interface LayoutTokens {
@@ -53,6 +61,17 @@ export interface LayoutTokens {
 
 export function tokensForDeviceClass(cls: DeviceClass): LayoutTokens {
   switch (cls) {
+    case 'narrow':
+      // Galaxy Fold cover screen / sub-320 width. Everything tightens up
+      // so the orb, gutter, and CTA don't clip horizontally.
+      return {
+        orbSize: 156,
+        contentMaxWidth: 320,
+        gutter: 12,
+        ctaPaddingV: 14,
+        titleSize: 18,
+        isWide: false,
+      };
     case 'compact':
       return {
         orbSize: 182,
@@ -96,6 +115,18 @@ export function tokensForDeviceClass(cls: DeviceClass): LayoutTokens {
         gutter: 32,
         ctaPaddingV: 24,
         titleSize: 28,
+        isWide: true,
+      };
+    case 'desktop':
+      // Web / external monitors. Don't let the column stretch across
+      // the full 1280+ viewport — cap it so the dark luxury card stays
+      // composed and centered.
+      return {
+        orbSize: 320,
+        contentMaxWidth: 760,
+        gutter: 40,
+        ctaPaddingV: 24,
+        titleSize: 30,
         isWide: true,
       };
   }

@@ -38,6 +38,34 @@ function fitFor(product: CompareProduct, inputs: CompareInputs): CompareResult |
   return results[0];
 }
 
+/**
+ * Per-product hydration efficiency 0..1 per spec:
+ *   efficiency = M*0.4 + W*0.3 + LS*0.2 - S*0.1
+ *
+ * M  = mineral content     → product.electrolytes / 100
+ * W  = water content       → product.hydrationSpeed / 100  (speed is the
+ *                            best available water-availability proxy
+ *                            we have on CompareProduct)
+ * LS = low-sugar quality   → 1 - (product.sugar / 100)
+ * S  = sugar penalty       → product.sugar / 100
+ *
+ * Result is clamped to [0, 1] and returned as a fraction so the UI
+ * can format it as "Hydrates at X% efficiency".
+ */
+export function computeHydrationEfficiency(product: CompareProduct): number {
+  const M = Math.max(0, Math.min(1, (product.electrolytes ?? 0) / 100));
+  const W = Math.max(0, Math.min(1, (product.hydrationSpeed ?? 0) / 100));
+  const sugar01 = Math.max(0, Math.min(1, (product.sugar ?? 0) / 100));
+  const LS = 1 - sugar01;
+  const S = sugar01;
+  const raw = M * 0.4 + W * 0.3 + LS * 0.2 - S * 0.1;
+  return Math.max(0, Math.min(1, raw));
+}
+
+export function efficiencyLabel(efficiency: number): string {
+  return `Hydrates at ${Math.round(efficiency * 100)}% efficiency`;
+}
+
 function bestAforceFor(inputs: CompareInputs): CompareResult | undefined {
   const aforce = COMPARE_PRODUCTS.filter((p) => p.isAForce);
   if (aforce.length === 0) return undefined;
@@ -142,6 +170,7 @@ export async function scan(
   }
   const bestAforce = bestAforceFor(inputs);
   const recommendation = buildRecommendation(scanned, inputs, selfFit, bestAforce);
+  const efficiency = computeHydrationEfficiency(product);
   const result: ScanResult = {
     scannedAt: new Date().toISOString(),
     source,
@@ -150,6 +179,8 @@ export async function scan(
     verdict: selfFit.verdict,
     evaluatedAgainstState: inputs.state,
     recommendation,
+    efficiency,
+    efficiencyLabel: efficiencyLabel(efficiency),
   };
   return { ok: true, result };
 }

@@ -61,6 +61,15 @@ export interface ScanResult {
   /** State the score was generated against (so the UI can label the verdict). */
   evaluatedAgainstState: PerformanceLevel;
   recommendation: ScanRecommendation;
+  /**
+   * Hydration efficiency 0..1 per spec:
+   *   efficiency = M*0.4 + W*0.3 + LS*0.2 - S*0.1
+   * where M = mineral / electrolyte adequacy, W = water-fraction
+   * proxy (hydration speed), LS = low-sugar quality, S = sugar load.
+   * Surfaced on the result card as "Hydrates at X% efficiency".
+   */
+  efficiency: number;
+  efficiencyLabel: string;
 }
 
 export interface ScanFailure {

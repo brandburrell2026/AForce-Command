@@ -47,6 +47,8 @@ interface AppState {
   isCompletingCycle: boolean;
   showCycleSuccess: boolean;
   timerSeconds: number;
+  /** True when the recheck timer hit zero and we're awaiting the user's "Did you follow it?" answer. */
+  pendingConfirmation: boolean;
   featureFlags: FeatureFlags;
   subscription: UserSubscription;
   lastIntakeBurstAt: number; // timestamp for pulse burst trigger
@@ -64,7 +66,8 @@ type Action =
   | { type: 'SET_FLAGS'; payload: FeatureFlags }
   | { type: 'SET_SUBSCRIPTION'; payload: UserSubscription }
   | { type: 'COMPLETE_ONBOARDING' }
-  | { type: 'SET_APPLE_HEALTH'; payload: { snapshot: AppleHealthInputs | null; engineOutput: ScoreEngineOutput } };
+  | { type: 'SET_APPLE_HEALTH'; payload: { snapshot: AppleHealthInputs | null; engineOutput: ScoreEngineOutput } }
+  | { type: 'CONFIRM_COMMAND'; payload: { newUserState: UserState; engineOutput: ScoreEngineOutput } };
 
 // Initial render only — engine output is then immediately refreshed via
 // /v1/home from the service layer in an effect (see AppProvider mount).
@@ -78,6 +81,7 @@ const initialState: AppState = {
   isCompletingCycle: false,
   showCycleSuccess: false,
   timerSeconds: initialEngineOutput.riskTimer.minutes * 60,
+  pendingConfirmation: false,
   featureFlags: DEFAULT_FLAGS,
   subscription: defaultSubscription(),
   lastIntakeBurstAt: 0,
@@ -101,6 +105,7 @@ function reducer(state: AppState, action: Action): AppState {
         // so we don't stack two modals (which RN-web cannot render together).
         showCycleSuccess: !silent,
         timerSeconds: engineOutput.riskTimer.minutes * 60,
+        pendingConfirmation: false,
         lastIntakeBurstAt: Date.now(),
       };
     }
@@ -119,11 +124,24 @@ function reducer(state: AppState, action: Action): AppState {
     case 'TICK_TIMER': {
       const next = state.timerSeconds - 1;
       if (next <= 0) {
-        // Timer expired — engine refresh is handled by the periodic
-        // /v1/home poll in AppProvider, not in this reducer.
-        return { ...state, timerSeconds: 0 };
+        // Timer expired — arm the "Did you follow the command?"
+        // prompt (T2). The engine is still refreshed from /v1/home;
+        // we only flip the local UI flag here.
+        return { ...state, timerSeconds: 0, pendingConfirmation: true };
       }
       return { ...state, timerSeconds: next };
+    }
+    case 'CONFIRM_COMMAND': {
+      const { newUserState, engineOutput } = action.payload;
+      // Reset the recheck countdown so the user gets a fresh window
+      // before the next prompt fires.
+      return {
+        ...state,
+        userState: newUserState,
+        engineOutput,
+        pendingConfirmation: false,
+        timerSeconds: engineOutput.riskTimer.minutes * 60,
+      };
     }
     case 'SET_USER_STATE': {
       const { newUserState, engineOutput } = action.payload;
@@ -168,6 +186,12 @@ interface AppContextValue {
   setSubscription: (sub: UserSubscription) => void;
   completeOnboarding: () => void;
   setAppleHealthSnapshot: (snapshot: AppleHealthInputs | null) => void;
+  /**
+   * Resolve the post-recheck "Did you follow the command?" prompt (T2).
+   * Yes → +3 score. No → -3 score and (in Clutch mode, T3) a 10-min
+   * +0.5 pts/min decay boost.
+   */
+  confirmCommand: (followed: boolean) => Promise<void>;
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -275,7 +299,42 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const setFeatureFlags = useCallback((flags: FeatureFlags) => {
     dispatch({ type: 'SET_FLAGS', payload: flags });
-  }, []);
+    // Mirror clutch_access_enabled into UserState so the engine's decay
+    // function picks up the ×1.3 multiplier (T3) without needing flags
+    // drilled into its API.
+    const clutchActive = !!flags.clutch_access_enabled;
+    if ((state.userState.clutchActive ?? false) !== clutchActive) {
+      const merged: UserState = { ...state.userState, clutchActive };
+      fetchHome(merged)
+        .then(({ engineOutput }) => {
+          dispatch({ type: 'SET_USER_STATE', payload: { newUserState: merged, engineOutput } });
+        })
+        .catch(() => {});
+    }
+  }, [state.userState]);
+
+  const confirmCommand = useCallback(async (followed: boolean) => {
+    const inClutch = !!state.userState.clutchActive;
+    const merged: UserState = {
+      ...state.userState,
+      confirmationDelta: followed ? 3 : -3,
+      confirmationDeltaSetAt: new Date(),
+      // T3: missing a command while in Clutch boosts decay for 10 min.
+      clutchDecayBoostUntil: !followed && inClutch
+        ? new Date(Date.now() + 10 * 60 * 1000)
+        : state.userState.clutchDecayBoostUntil,
+      // Compliance streak is intentionally NOT mutated here. It already
+      // contributes to the score via the `consistency` term (×2/day);
+      // adjusting it on confirm would double-count the ±3 swing.
+    };
+    try {
+      const { engineOutput } = await fetchHome(merged);
+      dispatch({ type: 'CONFIRM_COMMAND', payload: { newUserState: merged, engineOutput } });
+    } catch (err) {
+      console.warn('[AForce] confirmCommand refresh failed', err);
+      dispatch({ type: 'CONFIRM_COMMAND', payload: { newUserState: merged, engineOutput: state.engineOutput } });
+    }
+  }, [state.userState, state.engineOutput]);
 
   const setSubscription = useCallback((sub: UserSubscription) => {
     dispatch({ type: 'SET_SUBSCRIPTION', payload: sub });
@@ -323,8 +382,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const value = useMemo<AppContextValue>(() => ({
     state, logIntake, completeCycle, snooze, dismissSuccess,
     updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags,
-    setSubscription, completeOnboarding, setAppleHealthSnapshot,
-  }), [state, logIntake, completeCycle, snooze, dismissSuccess, updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags, setSubscription, completeOnboarding, setAppleHealthSnapshot]);
+    setSubscription, completeOnboarding, setAppleHealthSnapshot, confirmCommand,
+  }), [state, logIntake, completeCycle, snooze, dismissSuccess, updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags, setSubscription, completeOnboarding, setAppleHealthSnapshot, confirmCommand]);
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }

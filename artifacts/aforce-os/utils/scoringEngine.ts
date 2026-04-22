@@ -28,6 +28,7 @@ import type {
   PulseStateName,
   PulseWaveBehavior,
   PulseColorMode,
+  ScorePrediction,
 } from '../types';
 import { Colors } from '../theme/colors';
 
@@ -39,17 +40,27 @@ function resolveState(score: number): PerformanceLevel {
 }
 
 // ─── Score Breakdown ──────────────────────────────────────────────────────────
-function buildBreakdown(state: UserState): { score: number; contributions: ScoreContribution[] } {
+function buildBreakdown(state: UserState): { score: number; contributions: ScoreContribution[]; decayPerMinute: number; minutesSinceLast: number } {
   const minutesSinceLast = minutesSince(state.lastIntakeTime);
 
   const ozRatio = Math.min(1, state.ozConsumedToday / state.ozTarget);
   const baseIntake = Math.round(45 * ozRatio);
 
-  let recency = 20;
-  if (minutesSinceLast > 90) recency = 0;
-  else if (minutesSinceLast > 60) recency = 4;
-  else if (minutesSinceLast > 45) recency = 9;
-  else if (minutesSinceLast > 30) recency = 14;
+  // Per spec: continuous decay model (replaces the old tiered "recency").
+  // Score(t) = previous − decay × time + inputs. We translate that into
+  // a single contribution called "decay since last intake" so the
+  // breakdown UI keeps its bar-and-label shape while the score itself
+  // honors the spec formula.
+  const decayPerMinute = computeDecayPerMinute(state);
+  // Continuous decay — no artificial cap. The final score is clamped
+  // to 0..100 below, so a long deficit naturally pins the user at 0
+  // (DEPLETED) instead of plateauing inside the band.
+  const decayMagnitude = computeDecayPoints(state, minutesSinceLast);
+  const decayContribution = -Math.round(decayMagnitude);
+  // Stored under id="recency" so any saved rows / tests that key off
+  // that id continue to work — the label and meaning have been
+  // upgraded to match the spec.
+  const recency = decayContribution;
 
   const consistency = Math.min(15, state.complianceStreak * 2);
 
@@ -76,17 +87,20 @@ function buildBreakdown(state: UserState): { score: number; contributions: Score
     : 0;
 
   const recovery = computeRecoverySignal(state);
+  const confirmation = computeConfirmationDelta(state);
 
   const raw = baseIntake + recency + consistency + context + recoveryMomentum
             + symptomPenalty + urinePenalty + outputStress + sleepCarry
-            + recovery.delta;
+            + recovery.delta + confirmation;
   const score = Math.max(0, Math.min(100, Math.round(raw)));
 
   const contributions: ScoreContribution[] = [
     { id: 'base', label: 'Base intake (oz vs target)', delta: baseIntake, maxMagnitude: 45,
       hint: `${state.ozConsumedToday} of ${state.ozTarget} oz` },
-    { id: 'recency', label: 'Recency of last intake', delta: recency, maxMagnitude: 20,
-      hint: `${minutesSinceLast} min since last intake` },
+    { id: 'recency', label: 'Decay since last intake', delta: recency, maxMagnitude: 35,
+      hint: `${minutesSinceLast} min · ${decayPerMinute.toFixed(2)} pts/min${state.clutchActive ? ' (clutch ×1.3)' : ''}` },
+    { id: 'confirmation', label: 'Last command confirmation', delta: confirmation, maxMagnitude: 3,
+      hint: confirmation > 0 ? 'Followed last recheck' : confirmation < 0 ? 'Missed last recheck' : 'No recent recheck' },
     { id: 'consistency', label: 'Compliance streak', delta: consistency, maxMagnitude: 15,
       hint: `${state.complianceStreak}-day streak` },
     { id: 'context', label: 'Context (heat / sweat / activity)', delta: context, maxMagnitude: 20,
@@ -105,7 +119,105 @@ function buildBreakdown(state: UserState): { score: number; contributions: Score
       hint: recovery.hint },
   ];
 
-  return { score, contributions };
+  return { score, contributions, decayPerMinute, minutesSinceLast };
+}
+
+/**
+ * Continuous decay (points / minute) per spec:
+ *
+ *   BaseDecay      = 0.4 × (weight_lbs / 150) + 0.1 × activity_level
+ *   HeatFactor     = max(0, (temp_C  − 25) × 0.3)
+ *   HumidityFactor = max(0, ((humidity − 50) / 10) × 0.2)
+ *
+ * temp_C is approximated from the existing 0..10 `heatLoad` axis until
+ * a real OpenWeather feed is wired in (see task #6 in the session
+ * plan). Humidity defaults to 50 (neutral) so HumidityFactor is 0
+ * until that wiring lands — never substitute a placeholder humidity.
+ */
+function computeDecayPerMinute(state: UserState): number {
+  const weight = Math.max(60, state.bodyWeightLbs || 150);
+  const activity = Math.max(0, state.activityLevel || 0);
+  const tempC = 20 + (state.heatLoad ?? 0) * 1.2; // ~20°C @ 0 → 32°C @ 10
+  const humidity = 50;
+
+  const baseDecay = 0.4 * (weight / 150) + 0.1 * activity;
+  const heatFactor = Math.max(0, (tempC - 25) * 0.3);
+  const humidityFactor = Math.max(0, ((humidity - 50) / 10) * 0.2);
+
+  let perMin = baseDecay + heatFactor + humidityFactor;
+  // Sleep mode halves decay per spec.
+  if (!state.isAwake) perMin *= 0.5;
+  // Clutch mode multiplier (T3): ×1.3 while clutch_access_enabled is on.
+  if (state.clutchActive) perMin *= 1.3;
+  // NOTE: the +0.5 missed-command boost is NOT folded into the per-min
+  // rate here, because the rate is reported to the prediction strip and
+  // multiplied by elapsed time in `computeDecayPoints`. Folding it in
+  // would (a) misreport the steady-state rate after the 10-min window
+  // expires and (b) retroactively apply the boost to time the user
+  // spent before they ever missed the recheck. The boost is integrated
+  // separately in `computeDecayPoints` over its true active overlap.
+  return perMin;
+}
+
+/**
+ * Total decay (in score points) accumulated over `minutesSinceLast`
+ * minutes since the last intake. Splits into:
+ *   - Baseline: `decayPerMinute × minutesSinceLast`
+ *   - Boost overlap: `0.5 × (overlap minutes between the active 10-min
+ *     missed-command window and the [lastIntake, now] interval)`.
+ *
+ * Boost integration only counts the slice of the boost window that
+ * actually fell after the last intake — anything before the intake has
+ * no remaining decay to apply (intake reset the score).
+ */
+function computeDecayPoints(state: UserState, minutesSinceLast: number): number {
+  const baseline = computeDecayPerMinute(state) * Math.max(0, minutesSinceLast);
+
+  let boost = 0;
+  if (state.clutchDecayBoostUntil) {
+    const boostEndMs = state.clutchDecayBoostUntil.getTime();
+    const boostStartMs = boostEndMs - 10 * 60 * 1000;
+    const intakeMs = state.lastIntakeTime.getTime();
+    const nowMs = Date.now();
+    const overlapStart = Math.max(boostStartMs, intakeMs);
+    const overlapEnd = Math.min(boostEndMs, nowMs);
+    if (overlapEnd > overlapStart) {
+      boost = 0.5 * ((overlapEnd - overlapStart) / 60000);
+    }
+  }
+  return baseline + boost;
+}
+
+/**
+ * ±3 swing from the post-recheck confirmation loop (T2). Stale entries
+ * (older than 30 minutes) are ignored so the bonus / penalty does not
+ * stick to the score forever.
+ */
+function computeConfirmationDelta(state: UserState): number {
+  if (state.confirmationDelta == null) return 0;
+  if (!state.confirmationDeltaSetAt) return 0;
+  const ageMin = (Date.now() - state.confirmationDeltaSetAt.getTime()) / 60000;
+  if (ageMin > 30) return 0;
+  return Math.max(-3, Math.min(3, Math.round(state.confirmationDelta)));
+}
+
+function buildPrediction(score: number, decayPerMinute: number): ScorePrediction {
+  if (score <= 40) {
+    return { decayPerMinute, minutesToDepleted: 0, label: 'Already in DEPLETED zone' };
+  }
+  if (decayPerMinute <= 0) {
+    return { decayPerMinute, minutesToDepleted: null, label: 'Holding stable — no decay' };
+  }
+  const minutes = Math.max(1, Math.round((score - 40) / decayPerMinute));
+  if (minutes >= 240) {
+    return { decayPerMinute, minutesToDepleted: minutes, label: `4+ hours to DEPLETED (${decayPerMinute.toFixed(2)} pts/min)` };
+  }
+  if (minutes >= 60) {
+    const h = Math.floor(minutes / 60);
+    const m = minutes % 60;
+    return { decayPerMinute, minutesToDepleted: minutes, label: `Drops to DEPLETED in ${h}h ${m}m` };
+  }
+  return { decayPerMinute, minutesToDepleted: minutes, label: `Drops to DEPLETED in ${minutes} min` };
 }
 
 /**
@@ -150,13 +262,9 @@ function calculateBaseScore(state: UserState): number {
   const ozRatio = Math.min(1, state.ozConsumedToday / state.ozTarget);
   const baseIntake = Math.round(45 * ozRatio);
 
-  // recency_score: 0–20 based on minutes since last intake
+  // Continuous decay (per spec) replaces the tiered recency tier.
   const minutesSinceLast = minutesSince(state.lastIntakeTime);
-  let recency = 20;
-  if (minutesSinceLast > 90) recency = 0;
-  else if (minutesSinceLast > 60) recency = 4;
-  else if (minutesSinceLast > 45) recency = 9;
-  else if (minutesSinceLast > 30) recency = 14;
+  const recency = -Math.round(computeDecayPoints(state, minutesSinceLast));
 
   // consistency_score: 0–15 based on streak
   const consistency = Math.min(15, state.complianceStreak * 2);
@@ -193,9 +301,11 @@ function calculateBaseScore(state: UserState): number {
 
   const recovery = computeRecoverySignal(state);
 
+  const confirmation = computeConfirmationDelta(state);
+
   const raw = baseIntake + recency + consistency + context + recoveryMomentum
             + symptomPenalty + urinePenalty + outputStress + sleepCarry
-            + recovery.delta;
+            + recovery.delta + confirmation;
 
   return Math.max(0, Math.min(100, Math.round(raw)));
 }
@@ -398,15 +508,16 @@ function buildPulseConfig(level: PerformanceLevel, deltaMode: 'rising' | 'fallin
 
 // ─── Main Engine ──────────────────────────────────────────────────────────────
 export function calculateScore(userState: UserState): ScoreEngineOutput {
-  const { score, contributions } = buildBreakdown(userState);
+  const { score, contributions, decayPerMinute } = buildBreakdown(userState);
   const level = resolveState(score);
   const performanceState = buildPerformanceState(level, score);
   const pulseConfig = buildPulseConfig(level);
   const reasons = generateReasons(userState);
   const riskTimer = calculateRiskTimer(userState, level);
   const command = generateCommand(level, userState, score);
+  const prediction = buildPrediction(score, decayPerMinute);
 
-  return { score, performanceState, pulseConfig, reasons, riskTimer, command, breakdown: contributions };
+  return { score, performanceState, pulseConfig, reasons, riskTimer, command, breakdown: contributions, prediction };
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────

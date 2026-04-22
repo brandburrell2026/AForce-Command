@@ -86,6 +86,11 @@ export function ScanResultCard({ result }: Props) {
           <Text style={styles.fitHeadline}>{result.recommendation.headline}</Text>
         </View>
       </View>
+
+      <View style={styles.efficiencyRow} testID="scan-efficiency-row">
+        <Text style={styles.fitLabel}>EFFICIENCY</Text>
+        <Text style={[styles.efficiencyText, { color }]}>{result.efficiencyLabel}</Text>
+      </View>
     </Animated.View>
   );
 }
@@ -119,6 +124,17 @@ const styles = StyleSheet.create({
     paddingTop: 12, borderTopWidth: 1, borderTopColor: Colors.border.subtle,
   },
   fitScore: { fontSize: 44, fontFamily: 'Inter_700Bold', letterSpacing: -1.5, lineHeight: 48 },
+  efficiencyRow: {
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border.subtle,
+    gap: 4,
+  },
+  efficiencyText: {
+    fontSize: 14,
+    fontFamily: 'Inter_700Bold',
+    letterSpacing: 0.2,
+  },
   fitLabel: {
     fontSize: 9, fontFamily: 'Inter_700Bold',
     color: Colors.text.muted, letterSpacing: 1.5, marginBottom: 4,
