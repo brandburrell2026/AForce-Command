@@ -211,5 +211,26 @@
     "balanced": "Balanced",
     "recovering": "Recovering",
     "depleted": "Depleted"
+  },
+  "onboarding": {
+    "page1": {
+      "eyebrow": "WELCOME TO AFORCE OS",
+      "title": "A real-time human performance OS.",
+      "body": "AForce tells you what to do next, not what you did yesterday. The Pulse, score, and AI command update live."
+    },
+    "page2": {
+      "eyebrow": "YOUR LOOP",
+      "title": "Home → Check → Protocol → Profile.",
+      "body": "Home shows your live score. Check updates your signals. Protocol shows the active stage. Profile is your settings + Demo Access."
+    },
+    "page3": {
+      "eyebrow": "DEMO ACCESS",
+      "title": "Unlock Phase 2 and Phase 3.",
+      "body": "Open Profile → DEMO ACCESS → Unlock all to preview Clutch (Command the Team) and Guardian (Protect the Roster)."
+    },
+    "skip": "SKIP",
+    "next": "NEXT",
+    "start": "START",
+    "back": "Back"
   }
 }

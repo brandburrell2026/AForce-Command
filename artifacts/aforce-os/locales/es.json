@@ -211,5 +211,26 @@
     "balanced": "Estable",
     "recovering": "Recuperando",
     "depleted": "Agotado"
+  },
+  "onboarding": {
+    "page1": {
+      "eyebrow": "BIENVENIDO A AFORCE OS",
+      "title": "Un OS de rendimiento humano en tiempo real.",
+      "body": "AForce te dice qué hacer ahora, no qué hiciste ayer. El Pulso, el puntaje y el comando IA se actualizan en vivo."
+    },
+    "page2": {
+      "eyebrow": "TU CICLO",
+      "title": "Inicio → Revisar → Protocolo → Perfil.",
+      "body": "Inicio muestra tu puntaje en vivo. Revisar actualiza tus señales. Protocolo muestra la fase activa. Perfil es ajustes + Acceso Demo."
+    },
+    "page3": {
+      "eyebrow": "ACCESO DEMO",
+      "title": "Desbloquea Fase 2 y Fase 3.",
+      "body": "Abre Perfil → ACCESO DEMO → Desbloquear todo para probar Clutch (Comandar al equipo) y Guardian (Proteger al plantel)."
+    },
+    "skip": "OMITIR",
+    "next": "SIGUIENTE",
+    "start": "EMPEZAR",
+    "back": "Atrás"
   }
 }

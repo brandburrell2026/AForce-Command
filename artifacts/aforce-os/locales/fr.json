@@ -211,5 +211,26 @@
     "balanced": "Stable",
     "recovering": "Récupération",
     "depleted": "Épuisé"
+  },
+  "onboarding": {
+    "page1": {
+      "eyebrow": "BIENVENUE SUR AFORCE OS",
+      "title": "Un OS de performance humaine en temps réel.",
+      "body": "AForce te dit quoi faire ensuite, pas ce que tu as fait hier. Le Pouls, le score et la commande IA se mettent à jour en direct."
+    },
+    "page2": {
+      "eyebrow": "TA BOUCLE",
+      "title": "Accueil → Vérifier → Protocole → Profil.",
+      "body": "Accueil montre ton score en direct. Vérifier met à jour tes signaux. Protocole montre la phase active. Profil, c'est tes réglages + Accès Démo."
+    },
+    "page3": {
+      "eyebrow": "ACCÈS DÉMO",
+      "title": "Débloque Phase 2 et Phase 3.",
+      "body": "Ouvre Profil → ACCÈS DÉMO → Tout débloquer pour tester Clutch (Commander l'équipe) et Guardian (Protéger l'effectif)."
+    },
+    "skip": "PASSER",
+    "next": "SUIVANT",
+    "start": "DÉMARRER",
+    "back": "Retour"
   }
 }

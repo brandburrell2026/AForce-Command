@@ -1,15 +1,25 @@
 /**
  * OnboardingOverlay — First-launch coach mark.
  * 3 paged screens introducing AForce OS, the 4 tabs, and the Demo Access toggle.
+ *
+ * Visual design:
+ *  - Card is bottom-anchored so the live Pulse/score it's introducing
+ *    stays visible above it (the user sees what's being explained).
+ *  - Backdrop is a soft dim, not opaque, for the same reason.
+ *  - All copy goes through i18n so onboarding matches the user's
+ *    saved language (previously hardcoded English caused a broken
+ *    first impression for non-English users).
  */
 
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Pressable, Platform } from 'react-native';
 import Animated, {
-  useSharedValue, useAnimatedStyle, withTiming, withSpring, Easing,
+  useSharedValue, useAnimatedStyle, withTiming, withSpring,
 } from 'react-native-reanimated';
 import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import { useTranslation } from 'react-i18next';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Colors } from '../theme/colors';
 
@@ -18,48 +28,33 @@ interface Props {
   onDismiss: () => void;
 }
 
-const PAGES = [
-  {
-    eyebrow: 'WELCOME TO AFORCE OS',
-    title: 'A real-time human performance OS.',
-    body: 'AForce tells you what to do next, not what you did yesterday. The Pulse, score, and AI command update live.',
-    icon: 'activity' as const,
-  },
-  {
-    eyebrow: 'YOUR LOOP',
-    title: 'Home → Check → Protocol → Profile.',
-    body: 'Home shows your live score. Check updates your signals. Protocol shows the active stage. Profile is your settings + Demo Access.',
-    icon: 'compass' as const,
-  },
-  {
-    eyebrow: 'DEMO ACCESS',
-    title: 'Unlock Phase 2 and Phase 3.',
-    body: 'Open Profile → DEMO ACCESS → Unlock all to preview Clutch (Command the Team) and Guardian (Protect the Roster).',
-    icon: 'unlock' as const,
-  },
-];
+const PAGE_KEYS = ['page1', 'page2', 'page3'] as const;
+const PAGE_ICONS = ['activity', 'compass', 'unlock'] as const;
 
 export function OnboardingOverlay({ visible, onDismiss }: Props) {
+  const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
   const [page, setPage] = useState(0);
   const opacity = useSharedValue(visible ? 1 : 0);
-  const scale = useSharedValue(visible ? 1 : 0.9);
+  const translateY = useSharedValue(visible ? 0 : 40);
 
   React.useEffect(() => {
     if (visible) {
       opacity.value = withTiming(1, { duration: 280 });
-      scale.value = withSpring(1, { damping: 16, stiffness: 200 });
+      translateY.value = withSpring(0, { damping: 18, stiffness: 220 });
     } else {
       opacity.value = withTiming(0, { duration: 180 });
+      translateY.value = withTiming(40, { duration: 180 });
     }
   }, [visible]);
 
   const overlayStyle = useAnimatedStyle(() => ({ opacity: opacity.value }));
-  const cardStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
+  const cardStyle = useAnimatedStyle(() => ({ transform: [{ translateY: translateY.value }] }));
 
   if (!visible) return null;
 
-  const isLast = page === PAGES.length - 1;
-  const current = PAGES[page];
+  const isLast = page === PAGE_KEYS.length - 1;
+  const pageKey = PAGE_KEYS[page];
   const accent = Colors.states.PEAK.primary;
 
   const next = () => {
@@ -69,17 +64,34 @@ export function OnboardingOverlay({ visible, onDismiss }: Props) {
   };
 
   return (
-    <Animated.View style={[styles.overlay, overlayStyle]} pointerEvents="auto">
+    <Animated.View
+      style={[styles.overlay, overlayStyle, { paddingBottom: Math.max(insets.bottom + 12, 28) }]}
+      pointerEvents="auto"
+      accessibilityViewIsModal
+    >
+      {/* Tap-outside-to-dismiss target. Hidden from a11y so screen
+          readers don't see a duplicate/ambiguous skip control — the
+          explicit Skip button below remains the primary dismiss path. */}
+      <Pressable
+        style={StyleSheet.absoluteFill}
+        onPress={onDismiss}
+        accessible={false}
+        importantForAccessibility="no-hide-descendants"
+      />
       <Animated.View style={[styles.card, cardStyle, { borderColor: `${accent}33` }]}>
-        <View style={[styles.iconCircle, { backgroundColor: `${accent}1A`, borderColor: `${accent}55` }]}>
-          <Feather name={current.icon} size={28} color={accent} />
+        <View style={styles.cardHeader}>
+          <View style={[styles.iconCircle, { backgroundColor: `${accent}1A`, borderColor: `${accent}55` }]}>
+            <Feather name={PAGE_ICONS[page]} size={22} color={accent} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.eyebrow, { color: accent }]}>{t(`onboarding.${pageKey}.eyebrow`)}</Text>
+            <Text style={styles.title}>{t(`onboarding.${pageKey}.title`)}</Text>
+          </View>
         </View>
-        <Text style={[styles.eyebrow, { color: accent }]}>{current.eyebrow}</Text>
-        <Text style={styles.title}>{current.title}</Text>
-        <Text style={styles.body}>{current.body}</Text>
+        <Text style={styles.body}>{t(`onboarding.${pageKey}.body`)}</Text>
 
         <View style={styles.dotsRow}>
-          {PAGES.map((_, i) => (
+          {PAGE_KEYS.map((_, i) => (
             <View
               key={i}
               style={[
@@ -95,17 +107,34 @@ export function OnboardingOverlay({ visible, onDismiss }: Props) {
 
         <View style={styles.actions}>
           {page > 0 && (
-            <Pressable onPress={() => setPage(page - 1)} style={styles.backBtn} hitSlop={8}>
+            <Pressable
+              onPress={() => setPage(page - 1)}
+              style={styles.backBtn}
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel={t('onboarding.back')}
+            >
               <Feather name="chevron-left" size={14} color={Colors.text.secondary} />
-              <Text style={styles.backText}>Back</Text>
+              <Text style={styles.backText}>{t('onboarding.back')}</Text>
             </Pressable>
           )}
           <View style={{ flex: 1 }} />
-          <Pressable onPress={onDismiss} style={styles.skipBtn} hitSlop={8}>
-            <Text style={styles.skipText}>SKIP</Text>
+          <Pressable
+            onPress={onDismiss}
+            style={styles.skipBtn}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel={t('onboarding.skip')}
+          >
+            <Text style={styles.skipText}>{t('onboarding.skip')}</Text>
           </Pressable>
-          <Pressable onPress={next} style={[styles.nextBtn, { backgroundColor: accent }]}>
-            <Text style={styles.nextText}>{isLast ? 'START' : 'NEXT'}</Text>
+          <Pressable
+            onPress={next}
+            style={[styles.nextBtn, { backgroundColor: accent }]}
+            accessibilityRole="button"
+            accessibilityLabel={isLast ? t('onboarding.start') : t('onboarding.next')}
+          >
+            <Text style={styles.nextText}>{isLast ? t('onboarding.start') : t('onboarding.next')}</Text>
             <Feather name={isLast ? 'check' : 'arrow-right'} size={14} color="#000" />
           </Pressable>
         </View>
@@ -117,33 +146,51 @@ export function OnboardingOverlay({ visible, onDismiss }: Props) {
 const styles = StyleSheet.create({
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(2,2,8,0.92)',
-    alignItems: 'center', justifyContent: 'center',
-    zIndex: 300, paddingHorizontal: 26,
+    // Soft dim only — we want the live Pulse/score to remain visible
+    // through the backdrop so the user can SEE what's being introduced.
+    backgroundColor: 'rgba(2,2,8,0.55)',
+    justifyContent: 'flex-end',
+    zIndex: 300,
+    paddingHorizontal: 18,
+    // paddingBottom is set inline so it can respect safe-area insets.
   },
   card: {
     width: '100%',
     backgroundColor: Colors.background.elevated,
-    borderRadius: 24, borderWidth: 1,
-    paddingHorizontal: 26, paddingVertical: 28,
+    borderRadius: 22,
+    borderWidth: 1,
+    paddingHorizontal: 22,
+    paddingVertical: 22,
+    // Lift the card off the dim backdrop with a soft shadow.
+    shadowColor: '#000',
+    shadowOpacity: 0.45,
+    shadowRadius: 24,
+    shadowOffset: { width: 0, height: -6 },
+    elevation: 12,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    marginBottom: 14,
   },
   iconCircle: {
-    width: 60, height: 60, borderRadius: 30, borderWidth: 1.5,
-    alignItems: 'center', justifyContent: 'center', marginBottom: 18,
+    width: 44, height: 44, borderRadius: 22, borderWidth: 1.5,
+    alignItems: 'center', justifyContent: 'center',
   },
   eyebrow: {
-    fontSize: 10, fontFamily: 'Inter_700Bold', letterSpacing: 2.5, marginBottom: 6,
+    fontSize: 10, fontFamily: 'Inter_700Bold', letterSpacing: 2.2, marginBottom: 4,
   },
   title: {
-    fontSize: 22, fontFamily: 'Inter_700Bold',
-    color: Colors.text.primary, letterSpacing: -0.4, marginBottom: 10, lineHeight: 28,
+    fontSize: 17, fontFamily: 'Inter_700Bold',
+    color: Colors.text.primary, letterSpacing: -0.3, lineHeight: 22,
   },
   body: {
-    fontSize: 14, fontFamily: 'Inter_400Regular',
-    color: Colors.text.secondary, lineHeight: 20, marginBottom: 22,
+    fontSize: 13.5, fontFamily: 'Inter_400Regular',
+    color: Colors.text.secondary, lineHeight: 19, marginBottom: 18,
   },
   dotsRow: {
-    flexDirection: 'row', gap: 6, marginBottom: 22,
+    flexDirection: 'row', gap: 6, marginBottom: 18,
   },
   dot: { height: 6, borderRadius: 3 },
   actions: {

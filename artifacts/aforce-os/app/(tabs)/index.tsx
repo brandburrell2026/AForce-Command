@@ -234,6 +234,10 @@ export default function HomeScreen() {
   // the two layouts visually identical at the component level — only
   // their arrangement changes.
 
+  // Above-fold = ambient context only. The orb is the centerpiece and
+  // should land in the user's first glance — so we strip the title block
+  // (HYDRATION CONTROL CENTER / AForce OS / state pill / share) out of
+  // topSection and reattach it directly under the orb as identitySection.
   const topSection = (
     <>
       <LocalTimeBar />
@@ -249,30 +253,32 @@ export default function HomeScreen() {
         unitsToday={userState.unitsConsumedToday}
         dailyTarget={userState.dailyTarget}
       />
-
-      <View style={styles.headerRow}>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.eyebrow}>HYDRATION CONTROL CENTER</Text>
-          <Text style={styles.title}>AForce OS</Text>
-        </View>
-        <TouchableOpacity
-          onPress={() => {
-            if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
-            router.push('/share');
-          }}
-          activeOpacity={0.85}
-          style={styles.shareIconBtn}
-          accessibilityLabel="Share your performance"
-          testID="home-share-button"
-        >
-          <Feather name="share" size={14} color={Colors.text.primary} />
-        </TouchableOpacity>
-        <View style={[styles.statePill, { borderColor: `${stateColor}55`, backgroundColor: `${stateColor}14` }]}>
-          <View style={[styles.dot, { backgroundColor: stateColor }]} />
-          <Text style={[styles.stateLabel, { color: stateColor }]}>{performanceState.level}</Text>
-        </View>
-      </View>
     </>
+  );
+
+  const identitySection = (
+    <View style={styles.headerRow}>
+      <View style={{ flex: 1 }}>
+        <Text style={styles.eyebrow}>HYDRATION CONTROL CENTER</Text>
+        <Text style={styles.title}>AForce OS</Text>
+      </View>
+      <TouchableOpacity
+        onPress={() => {
+          if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
+          router.push('/share');
+        }}
+        activeOpacity={0.85}
+        style={styles.shareIconBtn}
+        accessibilityLabel="Share your performance"
+        testID="home-share-button"
+      >
+        <Feather name="share" size={14} color={Colors.text.primary} />
+      </TouchableOpacity>
+      <View style={[styles.statePill, { borderColor: `${stateColor}55`, backgroundColor: `${stateColor}14` }]}>
+        <View style={[styles.dot, { backgroundColor: stateColor }]} />
+        <Text style={[styles.stateLabel, { color: stateColor }]}>{performanceState.level}</Text>
+      </View>
+    </View>
   );
 
   const orbSection = (
@@ -485,6 +491,7 @@ export default function HomeScreen() {
             <View style={styles.twoCol} testID="home-two-col">
               <View style={[styles.col, styles.colLeft]}>
                 {orbSection}
+                {identitySection}
                 {commandSection}
                 <View style={styles.spacerLg} />
                 {ctaSection}
@@ -498,6 +505,7 @@ export default function HomeScreen() {
             // device-specific tuning isn't disturbed.
             <>
               {orbSection}
+              {identitySection}
               {commandSection}
               <View style={styles.spacer} />
               {actionRow}

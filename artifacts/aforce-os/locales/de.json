@@ -211,5 +211,26 @@
     "balanced": "Stabil",
     "recovering": "Erholung",
     "depleted": "Erschöpft"
+  },
+  "onboarding": {
+    "page1": {
+      "eyebrow": "WILLKOMMEN BEI AFORCE OS",
+      "title": "Ein Echtzeit-Performance-OS für Menschen.",
+      "body": "AForce sagt dir, was als Nächstes zu tun ist – nicht, was gestern war. Puls, Score und KI-Befehl aktualisieren sich live."
+    },
+    "page2": {
+      "eyebrow": "DEIN LOOP",
+      "title": "Start → Prüfen → Protokoll → Profil.",
+      "body": "Start zeigt deinen Live-Score. Prüfen aktualisiert deine Signale. Protokoll zeigt die aktive Phase. Profil ist Einstellungen + Demo-Zugang."
+    },
+    "page3": {
+      "eyebrow": "DEMO-ZUGANG",
+      "title": "Phase 2 und Phase 3 freischalten.",
+      "body": "Öffne Profil → DEMO-ZUGANG → Alles freischalten, um Clutch (Team befehlen) und Guardian (Roster schützen) zu testen."
+    },
+    "skip": "ÜBERSPRINGEN",
+    "next": "WEITER",
+    "start": "START",
+    "back": "Zurück"
   }
 }
