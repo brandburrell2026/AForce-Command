@@ -446,6 +446,18 @@ export default function HomeScreen() {
           {heatGuardSection}
         </>
       )}
+      {/* Social Mode / Recovery banner lives in the bottom signals zone
+          alongside Phantom + Heat Guard. Gated only on engineOutput.social
+          so it disappears on its own when the 8h Recovery window expires. */}
+      {engineOutput.social && (
+        <>
+          <View style={styles.spacer} />
+          <SocialModeBanner
+            social={engineOutput.social}
+            onPress={() => setSocialOpen(true)}
+          />
+        </>
+      )}
       <View style={styles.spacer} />
       <TouchableOpacity
         onPress={() => {
@@ -486,17 +498,6 @@ export default function HomeScreen() {
           showsVerticalScrollIndicator={false}
         >
           {topSection}
-
-          {engineOutput.social && (
-            // Banner is gated only on engineOutput.social so it
-            // disappears on its own when the 8h Recovery window expires
-            // (engine returns null). Falling back to userState.socialMode
-            // would leave a stale badge on the home screen forever.
-            <SocialModeBanner
-              social={engineOutput.social}
-              onPress={() => setSocialOpen(true)}
-            />
-          )}
 
           {foldable.isExpanded ? (
             // Foldable / tablet layout — orb + command + CTA stay
@@ -541,6 +542,17 @@ export default function HomeScreen() {
                 <>
                   <View style={styles.spacer} />
                   {heatGuardSection}
+                </>
+              )}
+              {/* Social Mode / Recovery banner — placed in the bottom
+                  signals zone alongside Phantom + Heat Guard. */}
+              {engineOutput.social && (
+                <>
+                  <View style={styles.spacer} />
+                  <SocialModeBanner
+                    social={engineOutput.social}
+                    onPress={() => setSocialOpen(true)}
+                  />
                 </>
               )}
               <View style={styles.spacer} />
