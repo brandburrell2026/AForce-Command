@@ -41,6 +41,13 @@ I prefer iterative development, with frequent, small updates. Ask before making 
 
 ## Technical Implementations & Feature Specifications
 
+### Persistence & Real-Time Backend (T6)
+- **Postgres-backed user state:** AForce OS now persists `userState`, intake logs, and confirmation answers to Replit Postgres via Drizzle (`lib/db/src/schema/aforce.ts`). V1 is single-user (`userId='default'`); the schema is shaped so multi-user/auth is a drop-in change later.
+- **REST API:** `artifacts/api-server/src/routes/aforce.ts` mounts under `/api/aforce` — endpoints: `/state`, `/intake` (atomic increment in a tx), `/signals`, `/urine`, `/energy`, `/checkin`, `/confirm` (tx + ±3 + clutch boost), `/flags`, `/weather?lat&lon`. All mutations broadcast to subscribed WebSocket clients.
+- **WebSocket hub:** `ws` package in noServer mode at `/api/aforce/ws?user=default`, sharing one HTTP server (and one PORT) with Express. 30s heartbeat. Mobile client (`services/realApi.ts → subscribeToStateUpdates`) reconnects with exponential backoff.
+- **Server-side OpenWeather:** `lib/openWeather.ts` proxies OpenWeather with a 10-minute in-memory cache so the API key never reaches the client. Snapshot is persisted into `aforce_user_state` and consumed by `scoringEngine.ts` (`weatherTempC`/`weatherHumidity` — falls back to the heatLoad approximation when missing). Client refreshes every 15 min using `expo-location` (Denver default).
+- **Client overlay model:** Server is source of truth for everything except `appleHealth` (HealthKit on-device only), which the mobile store preserves via a ref-backed overlay across WS pushes.
+
 ### Mobile Application (`artifacts/aforce-os`)
 - **AForce HydroScan:** Premium scan-to-decide UX for product recognition and comparison. Maps barcodes/QR/manual queries to `CompareProduct` and provides AI commands and recommendations.
 - **AForce Circles:** A premium private accountability network with shared status, reactions, challenges, and privacy controls.

@@ -1,0 +1,359 @@
+/**
+ * AForce OS — Real REST + WebSocket API client.
+ *
+ * Replaces the in-memory `mockApi.ts`. The api-server (see
+ * `artifacts/api-server/src/routes/aforce.ts`) is the source of truth
+ * for persisted user state, intake logs, confirmations, and the
+ * server-side OpenWeather lookup. The scoring engine still lives on
+ * the client — every response from the server gets re-fed to
+ * `calculateScore` so we always render the same engineOutput shape the
+ * UI was built against.
+ *
+ * Why keep the engine on the client:
+ *   - Faster perceived response (no extra round trip for derived fields)
+ *   - Lets us run the engine offline against the last known state
+ *   - Avoids duplicating the engine logic on the server
+ *
+ * Same exported names as `mockApi.ts` so `useAppStore` swaps in with
+ * minimal churn.
+ */
+
+import type {
+  UserState,
+  ScoreEngineOutput,
+  IntakeLog,
+  FluidType,
+  PulseConfig,
+} from '../types';
+import { calculateScore } from '../utils/scoringEngine';
+import { PRODUCTS } from '../data/products';
+import { defaultUserState } from '../data/mockData';
+
+// ─── Base URL resolution ─────────────────────────────────────────────────────
+// In dev, EXPO_PUBLIC_DOMAIN is set to REPLIT_DEV_DOMAIN by package.json's
+// dev script. The api-server is mounted at `/api`. In production builds
+// you can override with EXPO_PUBLIC_API_BASE.
+function resolveApiBase(): string {
+  const explicit = process.env['EXPO_PUBLIC_API_BASE'];
+  if (explicit) return explicit.replace(/\/$/, '');
+  const domain = process.env['EXPO_PUBLIC_DOMAIN'];
+  if (domain) return `https://${domain}/api`;
+  // Last-resort fallback: same origin (web preview).
+  if (typeof window !== 'undefined' && window.location?.origin) {
+    return `${window.location.origin}/api`;
+  }
+  return '/api';
+}
+
+const API_BASE = resolveApiBase();
+const AFORCE_BASE = `${API_BASE}/aforce`;
+
+// ─── Server row → UserState normalization ────────────────────────────────────
+// The Postgres row returns ISO date strings + nullable fields; the rest
+// of the app expects `Date` instances. Centralize the conversion so the
+// store never has to know the wire format.
+function normalizeUserState(row: Record<string, unknown>): UserState {
+  const get = <T>(k: string): T => row[k] as T;
+  const dateOrNull = (k: string): Date | null => {
+    const v = row[k];
+    if (v == null) return null;
+    return new Date(v as string);
+  };
+  const dateOrUndef = (k: string): Date | undefined => {
+    const v = row[k];
+    if (v == null) return undefined;
+    return new Date(v as string);
+  };
+  const numOrNull = (k: string): number | null => {
+    const v = row[k];
+    return v == null ? null : Number(v);
+  };
+
+  return {
+    unitsConsumedToday: Number(get('unitsConsumedToday') ?? 0),
+    ozConsumedToday: Number(get('ozConsumedToday') ?? 0),
+    lastIntakeTime: dateOrNull('lastIntakeTime') ?? new Date(),
+    lastIntakeType: (get<FluidType>('lastIntakeType') ?? 'water') as FluidType,
+    symptomState: (get<UserState['symptomState']>('symptomState') ?? 'none'),
+    symptoms: (get<string[]>('symptoms') ?? []),
+    urineSignal: Number(get('urineSignal') ?? 3),
+    energyState: (get<UserState['energyState']>('energyState') ?? 'steady'),
+    heatLoad: Number(get('heatLoad') ?? 4),
+    sweatRate: Number(get('sweatRate') ?? 3),
+    activityLevel: Number(get('activityLevel') ?? 5),
+    complianceStreak: Number(get('complianceStreak') ?? 0),
+    dailyTarget: Number(get('dailyTarget') ?? 8),
+    ozTarget: Number(get('ozTarget') ?? 96),
+    isSnoozed: Boolean(get('isSnoozed')),
+    snoozeUntil: dateOrNull('snoozeUntil'),
+    bodyWeightLbs: Number(get('bodyWeightLbs') ?? 180),
+    isAwake: Boolean(get('isAwake') ?? true),
+    wakeTime: dateOrNull('wakeTime'),
+    overnightLossOz: Number(get('overnightLossOz') ?? 0),
+    hasSeenMorningCommand: Boolean(get('hasSeenMorningCommand')),
+    appleHealth: get<UserState['appleHealth']>('appleHealth') ?? undefined,
+    confirmationDelta: numOrNull('confirmationDelta') ?? undefined,
+    confirmationDeltaSetAt: dateOrUndef('confirmationDeltaSetAt'),
+    clutchDecayBoostUntil: dateOrUndef('clutchDecayBoostUntil'),
+    clutchActive: Boolean(get('clutchActive')),
+    weatherTempC: numOrNull('weatherTempC'),
+    weatherHumidity: numOrNull('weatherHumidity'),
+    weatherCity: (get<string | null>('weatherCity') ?? null),
+    weatherFetchedAt: row['weatherFetchedAt'] ? new Date(row['weatherFetchedAt'] as string).getTime() : null,
+  };
+}
+
+async function postJson<T>(path: string, body: unknown): Promise<T> {
+  const res = await fetch(`${AFORCE_BASE}${path}`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) throw new Error(`POST ${path} → ${res.status}`);
+  return (await res.json()) as T;
+}
+
+async function getJson<T>(path: string): Promise<T> {
+  const res = await fetch(`${AFORCE_BASE}${path}`);
+  if (!res.ok) throw new Error(`GET ${path} → ${res.status}`);
+  return (await res.json()) as T;
+}
+
+// ─── GET /home (compat shim over /state) ─────────────────────────────────────
+export interface HomePayload {
+  engineOutput: ScoreEngineOutput;
+  userState: UserState;
+  serverTime: string;
+}
+
+let lastKnownState: UserState = defaultUserState;
+
+export async function fetchHome(userState: UserState): Promise<HomePayload> {
+  // Push any client-side mutations (clutchActive flag, appleHealth)
+  // forward by merging them onto whatever the server returns. The
+  // server is the source of truth for everything else.
+  try {
+    const { userState: row, serverTime } = await getJson<{ userState: Record<string, unknown>; serverTime: string }>('/state');
+    const normalized = normalizeUserState(row);
+    const merged: UserState = {
+      ...normalized,
+      // Only appleHealth is preserved from the client — server is now
+      // the source of truth for everything else (including clutchActive).
+      appleHealth: userState.appleHealth ?? normalized.appleHealth,
+    };
+    lastKnownState = merged;
+    return { engineOutput: calculateScore(merged), userState: merged, serverTime };
+  } catch (err) {
+    // Network down — keep the UI alive with the last state we had,
+    // recomputed against `now` so decay continues to tick locally.
+    console.warn('[AForce] fetchHome failed, falling back', err);
+    return {
+      engineOutput: calculateScore(userState),
+      userState,
+      serverTime: new Date().toISOString(),
+    };
+  }
+}
+
+// ─── POST /intake ────────────────────────────────────────────────────────────
+export interface IntakeLogPayload {
+  fluidType: FluidType;
+  ozAmount?: number;
+}
+export interface IntakeLogResponse {
+  log: IntakeLog;
+  newUserState: UserState;
+  engineOutput: ScoreEngineOutput;
+}
+
+export async function postIntakeLog(
+  userState: UserState,
+  body: IntakeLogPayload,
+): Promise<IntakeLogResponse> {
+  const product = PRODUCTS[body.fluidType];
+  const ozAmount = body.ozAmount ?? product.ozPerServing;
+  const scoreBefore = calculateScore(userState).score;
+  // Compute the optimistic post-intake state so we can report scoreAfter
+  // truthfully without a second round trip.
+  const optimistic: UserState = {
+    ...userState,
+    unitsConsumedToday: userState.unitsConsumedToday + 1,
+    ozConsumedToday: userState.ozConsumedToday + ozAmount,
+    lastIntakeTime: new Date(),
+    lastIntakeType: body.fluidType,
+  };
+  const scoreAfter = calculateScore(optimistic).score;
+
+  const resp = await postJson<{ userState: Record<string, unknown>; log: { id: number; loggedAt: string } }>(
+    '/intake',
+    { fluidType: body.fluidType, ozAmount, scoreBefore, scoreAfter },
+  );
+  const normalized = normalizeUserState(resp.userState);
+  const newUserState: UserState = {
+    ...normalized,
+    appleHealth: userState.appleHealth ?? normalized.appleHealth,
+  };
+  lastKnownState = newUserState;
+  const log: IntakeLog = {
+    id: `intake-${resp.log.id}`,
+    fluidType: body.fluidType,
+    ozAmount,
+    loggedAt: new Date(resp.log.loggedAt),
+    scoreBefore,
+    scoreAfter,
+  };
+  return { log, newUserState, engineOutput: calculateScore(newUserState) };
+}
+
+// ─── POST /signals ───────────────────────────────────────────────────────────
+async function postAndRecompute(
+  path: string,
+  body: unknown,
+  preserve: Pick<UserState, 'appleHealth'>,
+): Promise<{ newUserState: UserState; engineOutput: ScoreEngineOutput }> {
+  const resp = await postJson<{ userState: Record<string, unknown> }>(path, body);
+  const normalized = normalizeUserState(resp.userState);
+  // appleHealth is client-only (sourced from HealthKit on-device, never
+  // persisted). Server-owned fields (including clutchActive after the
+  // T6 swap) flow through unchanged so multi-device & WS pushes stay
+  // consistent.
+  const newUserState: UserState = {
+    ...normalized,
+    appleHealth: preserve.appleHealth ?? normalized.appleHealth,
+  };
+  lastKnownState = newUserState;
+  return { newUserState, engineOutput: calculateScore(newUserState) };
+}
+
+export function postSignalsUpdate(userState: UserState, symptoms: string[]) {
+  return postAndRecompute('/signals', { symptoms }, userState);
+}
+export function postUrineSignalUpdate(userState: UserState, urineSignal: number) {
+  return postAndRecompute('/urine', { urineSignal }, userState);
+}
+export function postEnergyStateUpdate(userState: UserState, energyState: UserState['energyState']) {
+  return postAndRecompute('/energy', { energyState }, userState);
+}
+export function postCheckin(userState: UserState) {
+  return postAndRecompute('/checkin', {}, userState);
+}
+export function postClutchFlag(userState: UserState, clutchActive: boolean) {
+  return postAndRecompute('/flags', { clutchActive }, userState);
+}
+export function postConfirmCommand(userState: UserState, followed: boolean) {
+  // inClutch is read from the server state by the route, but we send
+  // the client's view as a hint so the server can short-circuit if the
+  // flag flipped between requests.
+  const inClutch = !!userState.clutchActive;
+  return postAndRecompute('/confirm', { followed, inClutch }, userState);
+}
+
+export function fetchPulseConfig(userState: UserState): Promise<PulseConfig> {
+  return Promise.resolve(calculateScore(userState).pulseConfig);
+}
+
+// ─── Weather refresh (server-side OpenWeather) ────────────────────────────────
+export async function refreshWeather(
+  userState: UserState,
+  lat: number,
+  lon: number,
+): Promise<{ newUserState: UserState; engineOutput: ScoreEngineOutput }> {
+  try {
+    const resp = await getJson<{ userState: Record<string, unknown> }>(
+      `/weather?lat=${lat}&lon=${lon}`,
+    );
+    const normalized = normalizeUserState(resp.userState);
+    const newUserState: UserState = {
+      ...normalized,
+      appleHealth: userState.appleHealth ?? normalized.appleHealth,
+    };
+    lastKnownState = newUserState;
+    return { newUserState, engineOutput: calculateScore(newUserState) };
+  } catch (err) {
+    console.warn('[AForce] refreshWeather failed', err);
+    return { newUserState: userState, engineOutput: calculateScore(userState) };
+  }
+}
+
+// ─── Live updates over WebSocket ─────────────────────────────────────────────
+/**
+ * Subscribe to live state pushes from the api-server. Returns an
+ * unsubscribe function. The callback receives a freshly normalized
+ * UserState; transient client-only fields (clutchActive, appleHealth)
+ * are merged from `getOverlay` so flag flips and Apple Health snapshots
+ * survive a server push.
+ */
+export function subscribeToStateUpdates(
+  onState: (state: UserState) => void,
+  getOverlay: () => Pick<UserState, 'appleHealth'>,
+): () => void {
+  const wsBase = AFORCE_BASE.replace(/^http/, 'ws');
+  const url = `${wsBase}/ws?user=default`;
+
+  let ws: WebSocket | null = null;
+  let closed = false;
+  let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+  let attempt = 0;
+
+  const connect = () => {
+    if (closed) return;
+    try {
+      ws = new WebSocket(url);
+    } catch (err) {
+      console.warn('[AForce] ws construct failed', err);
+      schedule();
+      return;
+    }
+    ws.onopen = () => { attempt = 0; };
+    ws.onmessage = (evt) => {
+      try {
+        const msg = JSON.parse(typeof evt.data === 'string' ? evt.data : '{}');
+        if (msg.type === 'state' && msg.userState) {
+          const overlay = getOverlay();
+          const normalized = normalizeUserState(msg.userState);
+          const next: UserState = {
+            ...normalized,
+            // Only appleHealth is purely client-side (HealthKit on-device).
+            // Everything else (including clutchActive) is server-owned.
+            appleHealth: overlay.appleHealth ?? normalized.appleHealth,
+          };
+          lastKnownState = next;
+          onState(next);
+        }
+      } catch (err) {
+        console.warn('[AForce] ws message parse failed', err);
+      }
+    };
+    ws.onerror = () => { /* swallow — onclose handles reconnect */ };
+    ws.onclose = () => {
+      ws = null;
+      schedule();
+    };
+  };
+
+  const schedule = () => {
+    if (closed) return;
+    if (reconnectTimer) return;
+    // Exponential backoff capped at 15s.
+    const delay = Math.min(15000, 500 * 2 ** attempt);
+    attempt += 1;
+    reconnectTimer = setTimeout(() => {
+      reconnectTimer = null;
+      connect();
+    }, delay);
+  };
+
+  connect();
+
+  return () => {
+    closed = true;
+    if (reconnectTimer) clearTimeout(reconnectTimer);
+    if (ws) {
+      try { ws.close(); } catch { /* ignore */ }
+    }
+  };
+}
+
+export function getLastKnownState(): UserState {
+  return lastKnownState;
+}

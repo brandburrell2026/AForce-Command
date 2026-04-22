@@ -137,8 +137,13 @@ function buildBreakdown(state: UserState): { score: number; contributions: Score
 function computeDecayPerMinute(state: UserState): number {
   const weight = Math.max(60, state.bodyWeightLbs || 150);
   const activity = Math.max(0, state.activityLevel || 0);
-  const tempC = 20 + (state.heatLoad ?? 0) * 1.2; // ~20°C @ 0 → 32°C @ 10
-  const humidity = 50;
+  // Prefer real OpenWeather data when the api-server has it; fall back
+  // to the heatLoad-derived approximation so the score still renders
+  // before the first weather lookup completes (or when offline).
+  const tempC = state.weatherTempC != null
+    ? state.weatherTempC
+    : 20 + (state.heatLoad ?? 0) * 1.2; // ~20°C @ 0 → 32°C @ 10
+  const humidity = state.weatherHumidity != null ? state.weatherHumidity : 50;
 
   const baseDecay = 0.4 * (weight / 150) + 0.1 * activity;
   const heatFactor = Math.max(0, (tempC - 25) * 0.3);

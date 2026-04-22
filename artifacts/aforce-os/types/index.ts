@@ -71,6 +71,16 @@ export interface UserState {
    * multiplier without drilling flags into the engine API.
    */
   clutchActive?: boolean;
+  /**
+   * Real-world weather (T6) — populated by the api-server's OpenWeather
+   * lookup. When present the scoring engine uses these values instead of
+   * the heatLoad-derived placeholders. Never substituted with placeholder
+   * numbers when missing — the engine falls back gracefully.
+   */
+  weatherTempC?: number | null;
+  weatherHumidity?: number | null;
+  weatherCity?: string | null;
+  weatherFetchedAt?: number | null;
 }
 
 export interface AppleHealthInputs {

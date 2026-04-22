@@ -6,7 +6,7 @@
  * cycle history, feature flags, and overlay UI state.
  */
 
-import React, { createContext, useContext, useReducer, useCallback, useEffect, useMemo } from 'react';
+import React, { createContext, useContext, useReducer, useCallback, useEffect, useMemo, useRef } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type {
   UserState,
@@ -29,7 +29,11 @@ import {
   postUrineSignalUpdate,
   postEnergyStateUpdate,
   postCheckin,
-} from '../services/mockApi';
+  postClutchFlag,
+  postConfirmCommand,
+  refreshWeather,
+  subscribeToStateUpdates,
+} from '../services/realApi';
 import { PRODUCTS } from '../data/products';
 
 // Service-only synchronous bootstrapping helper. The store NEVER calls
@@ -205,14 +209,28 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     return () => clearInterval(interval);
   }, []);
 
-  // Periodic /v1/home refresh — the only place engineOutput originates from.
+  // Periodic /state refresh — keeps the engine output current (decay
+  // ticks, weather staleness, etc.) and rehydrates from server in case
+  // a WS push was missed.
   useEffect(() => {
     let cancelled = false;
     const refresh = async () => {
       try {
-        const { engineOutput } = await fetchHome(state.userState);
+        const { engineOutput, userState } = await fetchHome(state.userState);
         if (cancelled) return;
-        dispatch({ type: 'REFRESH_ENGINE', payload: { engineOutput } });
+        // If server returned a newer state (e.g. from another device or
+        // a fresh weather lookup), adopt it; otherwise just refresh the
+        // engine. We compare a few fields rather than deep-equal to keep
+        // this cheap.
+        const drift =
+          userState.weatherFetchedAt !== state.userState.weatherFetchedAt ||
+          userState.unitsConsumedToday !== state.userState.unitsConsumedToday ||
+          userState.urineSignal !== state.userState.urineSignal;
+        if (drift) {
+          dispatch({ type: 'SET_USER_STATE', payload: { newUserState: userState, engineOutput } });
+        } else {
+          dispatch({ type: 'REFRESH_ENGINE', payload: { engineOutput } });
+        }
       } catch {
         // swallow — UI keeps last known engineOutput
       }
@@ -221,6 +239,67 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const interval = setInterval(refresh, 30 * 1000); // every 30s
     return () => { cancelled = true; clearInterval(interval); };
   }, [state.userState.lastIntakeTime, state.userState.urineSignal, state.userState.symptoms.length]);
+
+  // Ref-backed latest snapshot of the client-only overlay so the WS
+  // subscription (mounted once) always reads the *current* appleHealth
+  // value rather than a stale closure over the initial render.
+  const overlayRef = useRef<{ appleHealth?: AppleHealthInputs }>({});
+  useEffect(() => {
+    overlayRef.current = { appleHealth: state.userState.appleHealth };
+  }, [state.userState.appleHealth]);
+
+  // Live state pushes from the api-server. The server broadcasts after
+  // every mutation, so this catches changes from other clients (or
+  // server-initiated updates like the weather refresh) without waiting
+  // for the 30s poll. Subscribe once per mount; the overlay getter
+  // pulls from `overlayRef` so updates to appleHealth never get lost.
+  useEffect(() => {
+    const unsubscribe = subscribeToStateUpdates(
+      (next) => dispatch({ type: 'SET_USER_STATE', payload: { newUserState: next, engineOutput: _initialOnly(next) } }),
+      () => ({ appleHealth: overlayRef.current.appleHealth }),
+    );
+    return unsubscribe;
+  }, []);
+
+  // Weather: fetch once on mount, then every 15 min. Uses Denver as a
+  // safe default (matches the existing climate strip) so we never block
+  // the UI on a permission prompt; if expo-location grants real coords
+  // later the next tick will use them.
+  useEffect(() => {
+    let cancelled = false;
+    const DEFAULT_LAT = 39.7392;
+    const DEFAULT_LON = -104.9903;
+    const tick = async (lat: number, lon: number) => {
+      try {
+        const { newUserState, engineOutput } = await refreshWeather(state.userState, lat, lon);
+        if (cancelled) return;
+        dispatch({ type: 'SET_USER_STATE', payload: { newUserState, engineOutput } });
+      } catch (err) {
+        console.warn('[AForce] weather refresh failed', err);
+      }
+    };
+    let lat = DEFAULT_LAT;
+    let lon = DEFAULT_LON;
+    // Best-effort geolocation — only on web/native where the API exists.
+    // Failures fall through to the Denver default.
+    (async () => {
+      try {
+        const Location = await import('expo-location');
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status === 'granted') {
+          const pos = await Location.getCurrentPositionAsync({});
+          lat = pos.coords.latitude;
+          lon = pos.coords.longitude;
+        }
+      } catch {
+        // fall back to Denver
+      }
+      if (!cancelled) tick(lat, lon);
+    })();
+    const interval = setInterval(() => tick(lat, lon), 15 * 60 * 1000);
+    return () => { cancelled = true; clearInterval(interval); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const logIntake = useCallback(async (
     fluidType: FluidType,
@@ -304,34 +383,37 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     // drilled into its API.
     const clutchActive = !!flags.clutch_access_enabled;
     if ((state.userState.clutchActive ?? false) !== clutchActive) {
-      const merged: UserState = { ...state.userState, clutchActive };
-      fetchHome(merged)
-        .then(({ engineOutput }) => {
-          dispatch({ type: 'SET_USER_STATE', payload: { newUserState: merged, engineOutput } });
+      // Persist the flag server-side so it survives reload and is
+      // available to any other connected client.
+      postClutchFlag(state.userState, clutchActive)
+        .then(({ newUserState, engineOutput }) => {
+          dispatch({ type: 'SET_USER_STATE', payload: { newUserState, engineOutput } });
         })
         .catch(() => {});
     }
   }, [state.userState]);
 
   const confirmCommand = useCallback(async (followed: boolean) => {
-    const inClutch = !!state.userState.clutchActive;
-    const merged: UserState = {
-      ...state.userState,
-      confirmationDelta: followed ? 3 : -3,
-      confirmationDeltaSetAt: new Date(),
-      // T3: missing a command while in Clutch boosts decay for 10 min.
-      clutchDecayBoostUntil: !followed && inClutch
-        ? new Date(Date.now() + 10 * 60 * 1000)
-        : state.userState.clutchDecayBoostUntil,
-      // Compliance streak is intentionally NOT mutated here. It already
-      // contributes to the score via the `consistency` term (×2/day);
-      // adjusting it on confirm would double-count the ±3 swing.
-    };
     try {
-      const { engineOutput } = await fetchHome(merged);
-      dispatch({ type: 'CONFIRM_COMMAND', payload: { newUserState: merged, engineOutput } });
+      // Server applies confirmationDelta + (in Clutch, on No)
+      // clutchDecayBoostUntil. Compliance streak is intentionally NOT
+      // mutated server-side — it already contributes to the score via
+      // the `consistency` term, so a ±3 swing here would double-count.
+      const { newUserState, engineOutput } = await postConfirmCommand(state.userState, followed);
+      dispatch({ type: 'CONFIRM_COMMAND', payload: { newUserState, engineOutput } });
     } catch (err) {
-      console.warn('[AForce] confirmCommand refresh failed', err);
+      console.warn('[AForce] confirmCommand failed', err);
+      // Local fallback so the UI doesn't soft-lock if the server is
+      // unreachable; the next reconnect will re-sync state.
+      const inClutch = !!state.userState.clutchActive;
+      const merged: UserState = {
+        ...state.userState,
+        confirmationDelta: followed ? 3 : -3,
+        confirmationDeltaSetAt: new Date(),
+        clutchDecayBoostUntil: !followed && inClutch
+          ? new Date(Date.now() + 10 * 60 * 1000)
+          : state.userState.clutchDecayBoostUntil,
+      };
       dispatch({ type: 'CONFIRM_COMMAND', payload: { newUserState: merged, engineOutput: state.engineOutput } });
     }
   }, [state.userState, state.engineOutput]);
