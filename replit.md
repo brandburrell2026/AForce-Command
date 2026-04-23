@@ -44,12 +44,32 @@ I prefer iterative development, with frequent, small updates. Ask before making 
 - `helmet()` security headers (CSP off — JSON API only).
 - `app.set('trust proxy', 1)` so `express-rate-limit` and request logging see the real client IP behind the Replit edge.
 - Body-size cap: `express.json({ limit: '64kb' })`.
-- Per-route limiters: `intakeLimiter` (60/min), `weatherLimiter` (30/min), `checkoutLimiter` (10/min).
+- Per-route limiters: `intakeLimiter` (60/min), `weatherLimiter` (30/min), `checkoutLimiter` (10/min). Limiters now key by `req.userId` (Clerk-authenticated) with the IPv6-safe `ipKeyGenerator` fallback for unauthenticated traffic, and skip entirely in `NODE_ENV=test` so vitest can hammer endpoints without 429s.
+- `requireAuth` (Clerk JWT verification) is applied to every mutating aforce route, both checkout endpoints (`/api/checkout/session`, `/api/checkout/cart`) and `/api/stripe/portal-session`. WebSocket upgrades on `/api/aforce/ws` verify the same Clerk JWT before accepting the connection.
+- OpenWeather responses are cached server-side (10-min TTL, coordinate-rounded key) so the API key never reaches the client and identical lat/lon refreshes don't fan out to OpenWeather.
+
+### Auth-gated routes (mobile must send `Authorization: Bearer <Clerk JWT>`)
+- `GET /api/aforce/state`, `GET /api/aforce/weather?lat&lon`
+- `POST /api/aforce/intake | signals | urine | energy | checkin | confirm | flags | language`
+- `POST /api/aforce/social/{activate,context,drink,hydrate,deactivate}`
+- `POST /api/checkout/session`, `POST /api/checkout/cart`, `POST /api/stripe/portal-session`
+- `WS /api/aforce/ws` — Clerk JWT verified on upgrade via `Sec-WebSocket-Protocol` or `?token=…` query param. The `?user=` query param is informational only and is NOT trusted; the Clerk-verified `sub` is the authoritative user id.
+- `POST /api/stripe/webhook` is intentionally unauthenticated — verified by HMAC instead.
+
+### Required `EXPO_PUBLIC_*` env vars
+- `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` — Clerk frontend key (mirrored from `CLERK_PUBLISHABLE_KEY` in the dev script).
+- `EXPO_PUBLIC_DOMAIN` / `REPLIT_DEV_DOMAIN` — base URL the mobile client targets for the API server and WS hub.
+- `EXPO_PUBLIC_REPL_ID` — passed through for diagnostics.
 
 ### Store Slicing
 - `store/appStoreTypes.ts` — `AppState` + `Action` union.
 - `store/appStoreReducer.ts` — pure reducer, no React/AsyncStorage imports (unit-testable).
 - `store/useAppStore.tsx` — provider + action creators only. Exports focused selector hooks: `useSubscription`, `useFeatureFlags`, `useEngineOutput`, `useUserState` for call-site clarity and a future migration path to `use-context-selector`.
+- `store/slices.tsx` — projects `AppState` into nine focused contexts (Engine / User / Social / Subscription / Flags / Intake / Cycle / Confirmation / Onboarding) plus a stable Actions context. Memoized so consumers re-render only when their slice changes.
+- `store/__tests__/appStoreReducer.test.ts` — 20 unit tests covering all reducer branches (cycle/intake fanout, timer + confirmation, engine refresh vs full SET_USER_STATE, snooze, social mode, subscription, feature flags, Apple Health overlay, unknown-action safety). Self-contained fixtures avoid pulling i18n/RN into the test runtime.
+
+### Home Layout Composition
+- `app/(tabs)/index.tsx` is now an orchestrator (~215 lines) that owns side effects (heat guard, voice triggers, band mirroring) and overlays. The visual layout is composed from memoized section components in `components/home/*` — `HomeHeader`, `OrbSection`, `CommandStack`, `PrimaryCTA`, `EntryActions`, `SignalsZone`. Phone vs foldable layouts share the same children; the orchestrator just rearranges them into a one- or two-column grid.
 
 # System Architecture
 
