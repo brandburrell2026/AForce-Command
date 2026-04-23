@@ -16,6 +16,12 @@ I prefer iterative development, with frequent, small updates. Ask before making 
 
 ## Recent Architecture Updates (Apr 2026)
 
+### Home Tab Polish (Task #3)
+- `WhyThisScore` is now a single tappable CTA into `ScoreBreakdownSheet` — the duplicate "FULL BREAKDOWN" button in the header was removed; the whole card is the affordance and a chevron in the header signals it. Component is wrapped in `React.memo`.
+- Added a 24h "no recent intake" empty-state pill in `app/(tabs)/index.tsx` `orbSection` — when `Date.now() - userState.lastIntakeTime > 24h`, the prediction strip is replaced with a calm "No intake in 24h — log a drink to start" placeholder (`testID=no-recent-intake`, i18n key `home.no_recent_intake`).
+- `PhantomBandCard`, `HeatAlertBanner`, and `SocialModeBanner` are wrapped in `React.memo` so the bottom-zone signal cards don't re-render on unrelated store updates.
+- Deeper context-split / global memoization sweep + component tests are deferred to follow-up Tasks #4 and #5.
+
 ### Authentication (Clerk)
 - `@clerk/express` on api-server, `@clerk/expo` on mobile.
 - `requireAuth` middleware (`artifacts/api-server/src/middlewares/requireAuth.ts`) attaches `req.userId` from the Clerk session; falls back to `DEFAULT_USER_ID` only when Clerk env is unset (dev mode). Uses `declare global namespace Express` to add `userId?: string` to `Request`.

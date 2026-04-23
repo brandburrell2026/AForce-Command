@@ -17,7 +17,7 @@ interface Props {
   band: HeatRiskBand;
 }
 
-export function HeatAlertBanner({ score, band }: Props) {
+function HeatAlertBannerImpl({ score, band }: Props) {
   const router = useRouter();
   const display = HEAT_BANDS.find((b) => b.band === band) ?? HEAT_BANDS[0];
   if (band === "STABLE") return null;
@@ -58,6 +58,8 @@ export function HeatAlertBanner({ score, band }: Props) {
     </Pressable>
   );
 }
+
+export const HeatAlertBanner = React.memo(HeatAlertBannerImpl);
 
 // Sized to match the other bottom-zone signal cards (PhantomBandCard,
 // PhantomSignal, SocialModeBanner): marginHorizontal 20, padding 16,

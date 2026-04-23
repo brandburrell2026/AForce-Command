@@ -14,7 +14,7 @@ import { ledForLevel } from '../services/ledSignalService';
 import type { PhantomBandState } from '../types/hardware';
 import { useAppStore } from '../store/useAppStore';
 
-export function PhantomBandCard() {
+function PhantomBandCardImpl() {
   const router = useRouter();
   const { state } = useAppStore();
   const [bandState, setBandState] = useState<PhantomBandState>(phantomBandService.getState());
@@ -60,6 +60,8 @@ export function PhantomBandCard() {
     </Pressable>
   );
 }
+
+export const PhantomBandCard = React.memo(PhantomBandCardImpl);
 
 const styles = StyleSheet.create({
   card: {

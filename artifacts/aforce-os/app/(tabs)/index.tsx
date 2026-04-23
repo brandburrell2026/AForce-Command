@@ -300,6 +300,15 @@ export default function HomeScreen() {
     </>
   );
 
+  // 24h "no recent intake" empty-state: when the user hasn't logged
+  // anything for a full day, surface a calm placeholder beneath the orb
+  // so the screen never reads as "everything is fine" by default.
+  const lastIntakeMs = userState.lastIntakeTime instanceof Date
+    ? userState.lastIntakeTime.getTime()
+    : new Date(userState.lastIntakeTime as unknown as string).getTime();
+  const noRecentIntake = Number.isFinite(lastIntakeMs) &&
+    Date.now() - lastIntakeMs > 24 * 60 * 60 * 1000;
+
   const orbSection = (
     <View style={styles.orbContainer}>
       <StatusPulseOrb
@@ -322,18 +331,34 @@ export default function HomeScreen() {
         }
       />
       <Text style={styles.orbHint}>TAP ORB FOR FULL BREAKDOWN</Text>
-      <View
-        style={[
-          styles.predictionStrip,
-          { borderColor: `${stateColor}33`, backgroundColor: `${stateColor}10` },
-        ]}
-        testID="prediction-strip"
-      >
-        <View style={[styles.dot, { backgroundColor: stateColor }]} />
-        <Text style={[styles.predictionText, { color: stateColor }]}>
-          {prediction.label}
-        </Text>
-      </View>
+      {noRecentIntake ? (
+        <View
+          style={[
+            styles.predictionStrip,
+            { borderColor: `${Colors.text.muted}33`, backgroundColor: `${Colors.text.muted}14` },
+          ]}
+          testID="no-recent-intake"
+          accessibilityLabel="No intake logged in the last 24 hours. Log a drink to start your day."
+        >
+          <Feather name="droplet" size={12} color={Colors.text.muted} />
+          <Text style={[styles.predictionText, { color: Colors.text.secondary }]}>
+            {t('home.no_recent_intake')}
+          </Text>
+        </View>
+      ) : (
+        <View
+          style={[
+            styles.predictionStrip,
+            { borderColor: `${stateColor}33`, backgroundColor: `${stateColor}10` },
+          ]}
+          testID="prediction-strip"
+        >
+          <View style={[styles.dot, { backgroundColor: stateColor }]} />
+          <Text style={[styles.predictionText, { color: stateColor }]}>
+            {prediction.label}
+          </Text>
+        </View>
+      )}
     </View>
   );
 

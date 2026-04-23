@@ -1,6 +1,8 @@
 /**
  * WhyThisScore — Shows 2–4 concise reasons for current performance score.
- * Tap "Full breakdown" to open the ScoreBreakdownSheet.
+ * The entire card is the single CTA into the full ScoreBreakdownSheet
+ * (chevron in the header signals "tap to open"). The previous separate
+ * "FULL BREAKDOWN" button has been collapsed into this card-wide tap.
  */
 
 import React from 'react';
@@ -14,16 +16,23 @@ interface Props {
   onOpenBreakdown?: () => void;
 }
 
-export function WhyThisScore({ reasons, onOpenBreakdown }: Props) {
+function WhyThisScoreImpl({ reasons, onOpenBreakdown }: Props) {
+  const Container: any = onOpenBreakdown ? Pressable : View;
+  const containerProps = onOpenBreakdown
+    ? {
+        onPress: onOpenBreakdown,
+        accessibilityRole: 'button' as const,
+        accessibilityLabel: 'Why this score — tap to open the full breakdown',
+        testID: 'why-this-score',
+      }
+    : { testID: 'why-this-score' };
+
   return (
-    <View style={styles.container}>
+    <Container {...containerProps} style={styles.container}>
       <View style={styles.headerRow}>
         <Text style={styles.label}>WHY THIS SCORE</Text>
         {onOpenBreakdown && (
-          <Pressable onPress={onOpenBreakdown} hitSlop={10} style={styles.breakdownBtn}>
-            <Text style={styles.breakdownText}>FULL BREAKDOWN</Text>
-            <Feather name="chevron-right" size={12} color={Colors.text.secondary} />
-          </Pressable>
+          <Feather name="chevron-right" size={14} color={Colors.text.muted} />
         )}
       </View>
       <View style={styles.list}>
@@ -50,9 +59,11 @@ export function WhyThisScore({ reasons, onOpenBreakdown }: Props) {
           </View>
         ))}
       </View>
-    </View>
+    </Container>
   );
 }
+
+export const WhyThisScore = React.memo(WhyThisScoreImpl);
 
 const styles = StyleSheet.create({
   container: {
@@ -73,12 +84,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter_700Bold',
     color: Colors.text.muted,
     letterSpacing: 2,
-  },
-  breakdownBtn: {
-    flexDirection: 'row', alignItems: 'center', gap: 4,
-  },
-  breakdownText: {
-    fontSize: 9, fontFamily: 'Inter_700Bold', color: Colors.text.secondary, letterSpacing: 1.5,
   },
   list: {
     gap: 10,

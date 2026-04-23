@@ -38,7 +38,7 @@ function formatRange(low: number, high: number): string {
   return `${low.toFixed(2)}–${high.toFixed(2)}`;
 }
 
-export function SocialModeBanner({ social, onPress }: Props) {
+function SocialModeBannerImpl({ social, onPress }: Props) {
   const { t } = useTranslation();
   const accent = accentFor(social);
   const titleKey = social.inRecoveryWindow ? 'social.recovery_active' : 'social.mode_active';
@@ -76,6 +76,8 @@ export function SocialModeBanner({ social, onPress }: Props) {
     </Pressable>
   );
 }
+
+export const SocialModeBanner = React.memo(SocialModeBannerImpl);
 
 const styles = StyleSheet.create({
   banner: {

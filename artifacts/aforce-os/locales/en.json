@@ -34,7 +34,8 @@
     "depleted_in": "Drops to DEPLETED in {{minutes}} min",
     "your_score": "Your score",
     "why_this_score": "Why this score",
-    "tap_to_open": "Tap for breakdown"
+    "tap_to_open": "Tap for breakdown",
+    "no_recent_intake": "No intake in 24h — log a drink to start"
   },
   "logIntake": {
     "title": "LOG INTAKE",
