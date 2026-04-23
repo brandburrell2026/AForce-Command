@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 1000" width="1400" height="1000">
+    <defs>
+      <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+        <path d="M0,0 L0,6 L9,3 z" fill="#111"/>
+      </marker>
+      <marker id="arrowOpen" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+        <path d="M0,0 L0,6 L9,3 z" fill="none" stroke="#111" stroke-width="1.2"/>
+      </marker>
+    </defs>
+    <rect width="1400" height="1000" fill="#ffffff"/>
+    <text x="700" y="46" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="24" font-weight="700" fill="#111">FIG. 5 — Voice Command Flow</text>
+    
+    <text x="700" y="76" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#555">Wake → transcribe → match → silent cycle → audible response</text>
+
+    <ellipse cx="140" cy="150" rx="80" ry="30" fill="#fff" stroke="#111" stroke-width="1.5"/>
+      <text x="140" y="155" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#111">User</text>
+    <rect x="60" y="210" width="240" height="70" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="180" y="240" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">Tap voice pill / wake phrase</text><text x="180" y="258" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#444">Voice Overlay opens</text>
+    <line x1="170" y1="180" x2="170" y2="210" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="60" y="320" width="240" height="70" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="180" y="359" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">Capture audio (mic)</text>
+    <line x1="170" y1="280" x2="170" y2="320" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="360" y="320" width="280" height="70" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="500" y="359" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">ASR / Speech-to-Text</text>
+    <line x1="300" y1="355" x2="360" y2="355" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="700" y="320" width="280" height="70" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="840" y="350" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">Intent classifier</text><text x="840" y="368" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#444">intake · status · snooze · social</text>
+    <line x1="640" y1="355" x2="700" y2="355" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <polygon points="1180,305 1290,355 1180,405 1070,355" fill="#fff" stroke="#111" stroke-width="1.5"/><text x="1180" y="360" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#111">Intent type?</text>
+    <line x1="980" y1="355" x2="1070" y2="355" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="900" y="510" width="220" height="60" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="1010" y="535" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">Log intake (silent)</text><text x="1010" y="553" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#444">CYCLE_SUCCESS silent=true</text>
+    <line x1="1170" y1="405" x2="1010" y2="510" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/><text x="1090" y="451.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#333">intake</text>
+
+    <rect x="1140" y="510" width="220" height="60" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="1250" y="544" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">Read current score</text>
+    <line x1="1200" y1="405" x2="1240" y2="510" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/><text x="1220" y="451.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#333">status</text>
+
+    <rect x="620" y="510" width="220" height="60" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="730" y="544" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">SNOOZE 20 min</text>
+    <line x1="1150" y1="405" x2="720" y2="510" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/><text x="935" y="451.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#333">snooze</text>
+
+    <rect x="340" y="510" width="220" height="60" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="450" y="544" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">Activate Social Mode</text>
+    <line x1="1130" y1="405" x2="440" y2="510" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/><text x="785" y="451.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#333">social</text>
+
+    <rect x="60" y="660" width="1300" height="80" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="710" y="704" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">TTS Response Card — overlay reads result aloud, no hero modal triggered (silent=true suppresses celebratory UI)</text>
+    <line x1="450" y1="570" x2="450" y2="660" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <line x1="720" y1="570" x2="720" y2="660" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <line x1="1010" y1="570" x2="1010" y2="660" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <line x1="1240" y1="570" x2="1240" y2="660" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="60" y="800" width="600" height="90" rx="4" ry="4" fill="#fafaf2" stroke="#999" stroke-width="1" stroke-dasharray="4 3"/><text x="70" y="818" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#333">The voice path reuses the exact same</text><text x="70" y="833" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#333">reducer actions as the touch UI;</text><text x="70" y="848" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#333">only the silent flag differs. The orb</text><text x="70" y="863" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#333">pulse still bursts, the recheck timer</text><text x="70" y="878" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#333">still resets — only the celebratory</text><text x="70" y="893" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#333">hero overlay is suppressed.</text>
+  
+    <text x="1380" y="984" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#777">AForce OS · Patent Figure</text>
+  </svg>

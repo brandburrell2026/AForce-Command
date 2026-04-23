@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 1000" width="1400" height="1000">
+    <defs>
+      <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+        <path d="M0,0 L0,6 L9,3 z" fill="#111"/>
+      </marker>
+      <marker id="arrowOpen" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+        <path d="M0,0 L0,6 L9,3 z" fill="none" stroke="#111" stroke-width="1.2"/>
+      </marker>
+    </defs>
+    <rect width="1400" height="1000" fill="#ffffff"/>
+    <text x="700" y="46" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="24" font-weight="700" fill="#111">FIG. 2 — Hero Intake & Score Recompute Cycle</text>
+    
+    <text x="700" y="76" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#555">User logs an AForce intake; orb pulse, recheck timer, and recovery banner update in lockstep</text>
+
+    <ellipse cx="140" cy="150" rx="80" ry="30" fill="#fff" stroke="#111" stroke-width="1.5"/>
+      <text x="140" y="155" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#111">User</text>
+    <rect x="60" y="220" width="220" height="60" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="170" y="245" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">Tap "Log AForce"</text><text x="170" y="263" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#444">Home Orb screen</text>
+    <line x1="170" y1="180" x2="170" y2="220" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="60" y="320" width="220" height="60" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="170" y="345" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">CYCLE_START dispatched</text><text x="170" y="363" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#444">isCompletingCycle = true</text>
+    <line x1="170" y1="280" x2="170" y2="320" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="60" y="420" width="220" height="60" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="170" y="445" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">POST /api/aforce/intake</text><text x="170" y="463" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#444">Authorization: Bearer <Clerk JWT></text>
+    <line x1="170" y1="380" x2="170" y2="420" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="380" y="420" width="260" height="60" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="510" y="445" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">Server: rate-limit check</text><text x="510" y="463" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#444">per-user key + IP fallback</text>
+    <line x1="280" y1="450" x2="380" y2="450" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="700" y="420" width="260" height="60" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="830" y="445" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">Score Engine recompute</text><text x="830" y="463" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#444">pure function, deterministic</text>
+    <line x1="640" y1="450" x2="700" y2="450" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="1020" y="420" width="320" height="60" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="1180" y="445" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">Persist new userState + history</text><text x="1180" y="463" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#444">Drizzle / Postgres</text>
+    <line x1="960" y1="450" x2="1020" y2="450" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="700" y="540" width="260" height="60" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="830" y="565" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">WS broadcast</text><text x="830" y="583" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#444">state + score event</text>
+    <line x1="830" y1="480" x2="830" y2="540" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="380" y="540" width="260" height="60" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="510" y="574" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">HTTP 200 with new engineOutput</text>
+    <line x1="700" y1="570" x2="640" y2="570" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="60" y="540" width="220" height="60" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="170" y="565" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">Mobile: CYCLE_SUCCESS</text><text x="170" y="583" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#444">reducer applies result</text>
+    <line x1="380" y1="570" x2="280" y2="570" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="60" y="660" width="220" height="60" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="170" y="694" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">Orb pulse burst (timestamp)</text>
+    <rect x="310" y="660" width="220" height="60" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="420" y="685" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">Recheck timer reset</text><text x="420" y="703" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#444">from riskTimer.minutes</text>
+    <rect x="560" y="660" width="220" height="60" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="670" y="685" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">Hero overlay (silent=false)</text><text x="670" y="703" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#444">voice path: silent=true → suppressed</text>
+    <rect x="810" y="660" width="220" height="60" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="920" y="685" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">Recovery card re-eval</text><text x="920" y="703" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#444">shown if score < threshold</text>
+
+    <line x1="170" y1="600" x2="170" y2="660" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <line x1="280" y1="600" x2="420" y2="660" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <line x1="380" y1="600" x2="670" y2="660" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <line x1="640" y1="600" x2="920" y2="660" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <!-- timer loop -->
+    <polygon points="1180,610 1290,660 1180,710 1070,660" fill="#fff" stroke="#111" stroke-width="1.5"/><text x="1180" y="665" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#111">timerSeconds === 0 ?</text>
+    <line x1="1030" y1="690" x2="1070" y2="660" stroke="#111" stroke-width="1.2" stroke-dasharray="6 4" marker-end="url(#arrow)"/>
+    <rect x="1080" y="800" width="200" height="60" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="1180" y="825" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">pendingConfirmation = true</text><text x="1180" y="843" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#444">prompt user to recheck</text>
+    <line x1="1180" y1="710" x2="1180" y2="800" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/><text x="1180" y="749" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#333">yes</text>
+    <line x1="1295" y1="660" x2="1340" y2="600" stroke="#111" stroke-width="1.2" stroke-dasharray="6 4" marker-end="url(#arrow)"/><text x="1317.5" y="624" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#333">no — tick again</text>
+  
+    <text x="1380" y="984" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#777">AForce OS · Patent Figure</text>
+  </svg>

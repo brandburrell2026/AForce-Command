@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 1000" width="1400" height="1000">
+    <defs>
+      <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+        <path d="M0,0 L0,6 L9,3 z" fill="#111"/>
+      </marker>
+      <marker id="arrowOpen" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+        <path d="M0,0 L0,6 L9,3 z" fill="none" stroke="#111" stroke-width="1.2"/>
+      </marker>
+    </defs>
+    <rect width="1400" height="1000" fill="#ffffff"/>
+    <text x="700" y="46" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="24" font-weight="700" fill="#111">FIG. 4 — Social Mode: Drink Logging, BAC, Recovery Window</text>
+    
+    <text x="700" y="76" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#555">Activation through transportation prompt</text>
+
+    <ellipse cx="140" cy="150" rx="80" ry="30" fill="#fff" stroke="#111" stroke-width="1.5"/>
+      <text x="140" y="155" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#111">User</text>
+    <rect x="60" y="210" width="240" height="70" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="180" y="240" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">Activate Social Mode</text><text x="180" y="258" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#444">sex · ate-recently · started-at</text>
+    <line x1="170" y1="180" x2="170" y2="210" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="60" y="320" width="240" height="70" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="180" y="350" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">Log drink</text><text x="180" y="368" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#444">type · oz · ABV</text>
+    <line x1="170" y1="280" x2="170" y2="320" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="360" y="320" width="280" height="70" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="500" y="359" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">POST /api/aforce/social/drink</text>
+    <line x1="300" y1="355" x2="360" y2="355" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="700" y="320" width="280" height="70" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="840" y="350" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">Score Engine: Social rollup</text><text x="840" y="368" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#444">BAC · alcohol multiplier · impairment</text>
+    <line x1="640" y1="355" x2="700" y2="355" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="1040" y="320" width="320" height="70" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="1200" y="350" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">engineOutput.social attached</text><text x="1200" y="368" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#444">broadcast via WS</text>
+    <line x1="980" y1="355" x2="1040" y2="355" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <polygon points="840,415 970,470 840,525 710,470" fill="#fff" stroke="#111" stroke-width="1.5"/><text x="840" y="475" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#111">BAC ≥ recovery threshold?</text>
+    <line x1="840" y1="390" x2="840" y2="415" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="1080" y="460" width="280" height="70" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="1220" y="490" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">Recovery banner</text><text x="1220" y="508" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#444">shown in Signals zone</text>
+    <line x1="970" y1="470" x2="1080" y2="480" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/><text x="1025" y="469" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#333">yes</text>
+
+    <rect x="560" y="460" width="220" height="70" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="670" y="499" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">Continue logging</text>
+    <line x1="710" y1="470" x2="780" y2="470" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/><text x="745" y="464" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#333">no</text>
+
+    <rect x="1080" y="580" width="280" height="80" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="1220" y="615" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">Transportation prompt</text><text x="1220" y="633" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#444">rideshare deep-link</text>
+    <line x1="1220" y1="530" x2="1220" y2="580" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/><text x="1220" y="549" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#333">if impairment = elevated</text>
+
+    <rect x="60" y="600" width="240" height="80" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="180" y="635" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">Deactivate Social Mode</text><text x="180" y="653" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#444">recovery window starts</text>
+    <line x1="170" y1="390" x2="170" y2="600" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="360" y="600" width="320" height="80" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="520" y="635" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">Recovery window (server-clocked)</text><text x="520" y="653" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#444">social rollup persists, then clears</text>
+    <line x1="300" y1="640" x2="360" y2="640" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="720" y="600" width="340" height="100" rx="4" ry="4" fill="#fafaf2" stroke="#999" stroke-width="1" stroke-dasharray="4 3"/><text x="730" y="618" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#333">BAC, impairment, and transportation</text><text x="730" y="633" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#333">prompts are all derived from the</text><text x="730" y="648" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#333">same deterministic Score Engine —</text><text x="730" y="663" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#333">client never computes these locally.</text>
+  
+    <text x="1380" y="984" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#777">AForce OS · Patent Figure</text>
+  </svg>

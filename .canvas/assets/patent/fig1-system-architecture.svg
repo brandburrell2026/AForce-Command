@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 1000" width="1400" height="1000">
+    <defs>
+      <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+        <path d="M0,0 L0,6 L9,3 z" fill="#111"/>
+      </marker>
+      <marker id="arrowOpen" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+        <path d="M0,0 L0,6 L9,3 z" fill="none" stroke="#111" stroke-width="1.2"/>
+      </marker>
+    </defs>
+    <rect width="1400" height="1000" fill="#ffffff"/>
+    <text x="700" y="46" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="24" font-weight="700" fill="#111">FIG. 1 — System Architecture</text>
+    
+    <text x="700" y="76" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#555">Mobile client, API server, persistence, and external service boundaries</text>
+
+    <!-- Mobile -->
+    <rect x="80" y="130" width="280" height="360" rx="8" ry="8" fill="#f5f5f5" stroke="#111" stroke-width="1.5"/><text x="220" y="305" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">Mobile Client</text><text x="220" y="323" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#444">Expo / React Native</text>
+    <rect x="110" y="190" width="220" height="50" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="220" y="219" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">Home Orb (Score 0–100)</text>
+    <rect x="110" y="250" width="220" height="50" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="220" y="270" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">Recovery Card</text><text x="220" y="288" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#444">Locked / Unlocked</text>
+    <rect x="110" y="310" width="220" height="50" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="220" y="339" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">Social Mode UI</text>
+    <rect x="110" y="370" width="220" height="50" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="220" y="399" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">Voice Overlay</text>
+    <rect x="110" y="430" width="220" height="50" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="220" y="450" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">Apple Health Bridge</text><text x="220" y="468" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#444">HRV · RHR · Sleep</text>
+
+    <!-- API Server -->
+    <rect x="540" y="200" width="320" height="320" rx="8" ry="8" fill="#f5f5f5" stroke="#111" stroke-width="1.5"/><text x="700" y="355" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">API Server</text><text x="700" y="373" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#444">Express + TypeScript</text>
+    <rect x="570" y="250" width="260" height="36" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="700" y="272" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">Auth Middleware (Clerk JWT)</text>
+    <rect x="570" y="296" width="260" height="36" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="700" y="318" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">Score Engine (pure, deterministic)</text>
+    <rect x="570" y="342" width="260" height="36" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="700" y="364" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">Rate Limiter (per-user)</text>
+    <rect x="570" y="388" width="260" height="36" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="700" y="410" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">WebSocket Hub</text>
+    <rect x="570" y="434" width="260" height="36" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="700" y="456" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">Weather Cache (10-min TTL)</text>
+
+    <!-- Postgres -->
+    <rect x="1040" y="220" width="280" height="100" rx="8" ry="8" fill="#f5f5f5" stroke="#111" stroke-width="1.5"/><text x="1180" y="256" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">Postgres</text><text x="1180" y="274" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#444">Drizzle ORM</text><text x="1180" y="290" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#444">user_state · history · entitlements</text>
+
+    <!-- Externals -->
+    <rect x="1040" y="350" width="280" height="60" rx="8" ry="8" fill="#f5f5f5" stroke="#111" stroke-width="1.5"/><text x="1180" y="375" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">Clerk</text><text x="1180" y="393" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#444">Auth · JWT verification</text>
+    <rect x="1040" y="420" width="280" height="60" rx="8" ry="8" fill="#f5f5f5" stroke="#111" stroke-width="1.5"/><text x="1180" y="445" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">Stripe</text><text x="1180" y="463" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#444">Checkout · Webhooks · Portal</text>
+    <rect x="1040" y="490" width="280" height="60" rx="8" ry="8" fill="#f5f5f5" stroke="#111" stroke-width="1.5"/><text x="1180" y="515" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">OpenWeather</text><text x="1180" y="533" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#444">Heat / humidity inputs</text>
+
+    <!-- WS broadcast bus -->
+    <rect x="540" y="580" width="320" height="60" rx="8" ry="8" fill="#f5f5f5" stroke="#111" stroke-width="1.5"/><text x="700" y="605" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">WS Broadcast Bus</text><text x="700" y="623" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#444">state · score · entitlement events</text>
+
+    <!-- Connections -->
+    <line x1="360" y1="310" x2="540" y2="310" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/><text x="450" y="304" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#333">HTTPS REST</text>
+    <line x1="360" y1="400" x2="540" y2="400" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/><text x="450" y="394" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#333">WSS</text>
+    <line x1="860" y1="270" x2="1040" y2="270" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/><text x="950" y="264" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#333">SQL</text>
+    <line x1="860" y1="360" x2="1040" y2="380" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/><text x="950" y="364" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#333">verify JWT</text>
+    <line x1="860" y1="410" x2="1040" y2="450" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/><text x="950" y="424" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#333">session / webhook</text>
+    <line x1="860" y1="460" x2="1040" y2="520" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/><text x="950" y="484" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#333">lat/lon</text>
+
+    <line x1="700" y1="470" x2="700" y2="580" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/><text x="700" y="519" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#333">broadcast</text>
+    <line x1="540" y1="610" x2="220" y2="480" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/><text x="380" y="539" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#333">push state</text>
+  
+    <text x="1380" y="984" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#777">AForce OS · Patent Figure</text>
+  </svg>

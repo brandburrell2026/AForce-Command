@@ -11,3 +11,39 @@ id = "fILTiXCCTKYfWe9d8R46M"
 uri = "file://attached_assets/tester-share/aforce-tester-qr.png"
 type = "image"
 title = "AForce OS — Tester QR Code"
+
+[[outputs]]
+id = "8M-sPYgJfouyRImP9YKI7"
+uri = "file://attached_assets/patent/fig1-system-architecture.svg"
+type = "image"
+title = "FIG. 1 — System Architecture"
+
+[[outputs]]
+id = "jaH-SCPkHRKWRONStFz3d"
+uri = "file://attached_assets/patent/fig2-hero-intake-flow.svg"
+type = "image"
+title = "FIG. 2 — Hero Intake & Score Cycle"
+
+[[outputs]]
+id = "uOuA4m3HoaQuP0g6GENUG"
+uri = "file://attached_assets/patent/fig3-paywall-flow.svg"
+type = "image"
+title = "FIG. 3 — Paywall: Recovery Mode Unlock"
+
+[[outputs]]
+id = "-jnv_KwjyHQEk8g1twsf0"
+uri = "file://attached_assets/patent/fig4-social-mode-flow.svg"
+type = "image"
+title = "FIG. 4 — Social Mode Flow"
+
+[[outputs]]
+id = "iJ-FoV-AauRx8b1E-jFRZ"
+uri = "file://attached_assets/patent/fig5-voice-command-flow.svg"
+type = "image"
+title = "FIG. 5 — Voice Command Flow"
+
+[[outputs]]
+id = "75opdxgXg3nJPiymomv-k"
+uri = "file://attached_assets/patent/fig6-wireframes.svg"
+type = "image"
+title = "FIG. 6 — Wireframes (Home / Recovery Locked / Recovery Unlocked / Social Mode)"
