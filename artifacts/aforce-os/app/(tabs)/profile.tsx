@@ -398,6 +398,7 @@ export default function ProfileScreen() {
                               <Pressable
                                 onPress={() => refreshAppleSnapshot()}
                                 hitSlop={10}
+                                accessibilityRole="button"
                                 accessibilityLabel="Refresh Apple Health"
                               >
                                 <Feather

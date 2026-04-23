@@ -215,7 +215,7 @@ export function VoiceOverlay({ visible, onClose, autoStart = false }: Props) {
           <View style={styles.header}>
             <Text style={styles.eyebrow}>{t('voice.eyebrow')}</Text>
             <View style={styles.headerRight}>
-              <Pressable onPress={onClose} style={styles.closeBtn} accessibilityLabel={t('voice.close_a11y')}>
+              <Pressable onPress={onClose} style={styles.closeBtn} accessibilityRole="button" accessibilityLabel={t('voice.close_a11y')}>
                 <Feather name="x" size={18} color={Colors.text.muted} />
               </Pressable>
             </View>
