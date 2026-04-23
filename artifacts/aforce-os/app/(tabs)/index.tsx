@@ -59,10 +59,22 @@ import { Colors } from '@/theme/colors';
 import { Feather } from '@expo/vector-icons';
 
 import { useTranslation } from 'react-i18next';
+import { useUser } from '@clerk/expo';
 
 export default function HomeScreen() {
   const { t } = useTranslation();
   const router = useRouter();
+  // Clerk is optional — when not configured (CI / local dev without
+  // CLERK_PUBLISHABLE_KEY) `useUser` returns null and we fall back to
+  // the demo greeting. When configured, prefer firstName, then the
+  // local-part of the email, then the demo string.
+  const clerkUser = (() => {
+    try { return useUser().user; } catch { return null; }
+  })();
+  const greetingName =
+    clerkUser?.firstName ||
+    clerkUser?.primaryEmailAddress?.emailAddress?.split('@')[0] ||
+    'Athlete';
   const {
     state, logIntake, snooze, dismissSuccess, completeOnboarding, confirmCommand,
     activateSocialMode, logSocialDrink, confirmSocialHydration, deactivateSocialMode,
@@ -276,7 +288,7 @@ export default function HomeScreen() {
   const topSection = (
     <>
       <View style={styles.welcomeBlock}>
-        <Text style={styles.welcomeText}>{t('home.welcome', { name: 'Brandon' })}</Text>
+        <Text style={styles.welcomeText}>{t('home.welcome', { name: greetingName })}</Text>
       </View>
 
       {identitySection}

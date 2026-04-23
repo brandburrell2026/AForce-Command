@@ -124,7 +124,36 @@ export const aforceConfirmations = pgTable("aforce_confirmations", {
   loggedAt: timestamp("logged_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+/**
+ * Per-user account row keyed by Clerk user id. Holds the Stripe linkage
+ * + the currently entitled plan id so the api-server's /api/entitlement
+ * endpoint can answer in O(1) without round-tripping to Stripe.
+ *
+ * Stripe webhook (`/api/stripe/webhook`) is the source of truth for
+ * `planId` and `subscriptionStatus` — the client only reads.
+ */
+export const aforceUsers = pgTable("aforce_users", {
+  // Clerk's user id (`user_xxx`). Same value the per-user-state tables
+  // store under `userId`, so all aforce_* rows for one human carry an
+  // identical id.
+  id: text("id").primaryKey(),
+  email: text("email"),
+  stripeCustomerId: text("stripe_customer_id"),
+  stripeSubscriptionId: text("stripe_subscription_id"),
+  // Current entitled plan id. Defaults to 'core' (free tier).
+  planId: text("plan_id").notNull().default("core"),
+  // Stripe subscription.status mirror: trialing | active | past_due |
+  // canceled | incomplete | incomplete_expired | unpaid | paused.
+  // 'none' for users that have never subscribed.
+  subscriptionStatus: text("subscription_status").notNull().default("none"),
+  currentPeriodEnd: timestamp("current_period_end", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 export type AforceUserStateRow = typeof aforceUserState.$inferSelect;
 export type InsertAforceUserState = typeof aforceUserState.$inferInsert;
 export type AforceIntakeLogRow = typeof aforceIntakeLogs.$inferSelect;
 export type AforceConfirmationRow = typeof aforceConfirmations.$inferSelect;
+export type AforceUserRow = typeof aforceUsers.$inferSelect;
+export type InsertAforceUser = typeof aforceUsers.$inferInsert;

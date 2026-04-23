@@ -12,7 +12,10 @@ import React, { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { ClerkProvider, ClerkLoaded } from '@clerk/expo';
+import { tokenCache } from '@clerk/expo/token-cache';
 
+import { ClerkAuthBridge } from '@/components/ClerkAuthBridge';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { AppProvider } from '@/store/useAppStore';
 import { CartProvider } from '@/store/useCartStore';
@@ -28,9 +31,13 @@ SplashScreen.preventAutoHideAsync();
 
 const queryClient = new QueryClient();
 
+const publishableKey = process.env['EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY'];
+const proxyUrl = process.env['EXPO_PUBLIC_CLERK_PROXY_URL'] || undefined;
+
 function RootLayoutNav() {
   return (
     <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="(auth)" options={{ headerShown: false }} />
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="competition" options={{ headerShown: false, presentation: 'card' }} />
       <Stack.Screen name="scan" options={{ headerShown: false, presentation: 'card' }} />
@@ -41,6 +48,26 @@ function RootLayoutNav() {
       <Stack.Screen name="heat/guardian" options={{ headerShown: false, presentation: 'card' }} />
       <Stack.Screen name="phantom" options={{ headerShown: false, presentation: 'card' }} />
     </Stack>
+  );
+}
+
+function AppShell() {
+  return (
+    <SafeAreaProvider>
+      <ErrorBoundary>
+        <QueryClientProvider client={queryClient}>
+          <GestureHandlerRootView style={{ flex: 1 }}>
+            <KeyboardProvider>
+              <AppProvider>
+                <CartProvider>
+                  <RootLayoutNav />
+                </CartProvider>
+              </AppProvider>
+            </KeyboardProvider>
+          </GestureHandlerRootView>
+        </QueryClientProvider>
+      </ErrorBoundary>
+    </SafeAreaProvider>
   );
 }
 
@@ -60,21 +87,22 @@ export default function RootLayout() {
 
   if (!fontsLoaded && !fontError) return null;
 
+  // When Clerk isn't configured (e.g. CI without secrets), skip the
+  // provider entirely so the app still boots in single-user demo mode.
+  if (!publishableKey) {
+    return <AppShell />;
+  }
+
   return (
-    <SafeAreaProvider>
-      <ErrorBoundary>
-        <QueryClientProvider client={queryClient}>
-          <GestureHandlerRootView style={{ flex: 1 }}>
-            <KeyboardProvider>
-              <AppProvider>
-                <CartProvider>
-                  <RootLayoutNav />
-                </CartProvider>
-              </AppProvider>
-            </KeyboardProvider>
-          </GestureHandlerRootView>
-        </QueryClientProvider>
-      </ErrorBoundary>
-    </SafeAreaProvider>
+    <ClerkProvider
+      publishableKey={publishableKey}
+      tokenCache={tokenCache}
+      proxyUrl={proxyUrl}
+    >
+      <ClerkLoaded>
+        <ClerkAuthBridge />
+        <AppShell />
+      </ClerkLoaded>
+    </ClerkProvider>
   );
 }

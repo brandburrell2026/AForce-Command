@@ -25,6 +25,8 @@ import { Router, type IRouter, type Request, type Response } from 'express';
 import { getStripeClient } from '../lib/stripeClient';
 import { logger } from '../lib/logger';
 import { priceCart } from '../lib/storeCatalog';
+import { checkoutLimiter } from '../middlewares/rateLimits';
+import { requireAuth } from '../middlewares/requireAuth';
 
 const router: IRouter = Router();
 
@@ -125,7 +127,7 @@ function inboundHost(req: Request): string | null {
 }
 
 // ─── Subscription: POST /checkout/session ────────────────────────────────────
-router.post('/checkout/session', async (req: Request, res: Response) => {
+router.post('/checkout/session', requireAuth, checkoutLimiter, async (req: Request, res: Response) => {
   const { planId, returnUrl } = (req.body ?? {}) as { planId?: string; returnUrl?: string };
 
   if (!planId || typeof planId !== 'string') {
@@ -167,7 +169,14 @@ router.post('/checkout/session', async (req: Request, res: Response) => {
       // server, which then forwards to the caller's returnUrl (web or native).
       success_url: `${base}/api/checkout/return?status=success&kind=subscription&planId=${encodeURIComponent(planId)}&app=${app}`,
       cancel_url:  `${base}/api/checkout/return?status=cancel&kind=subscription&planId=${encodeURIComponent(planId)}&app=${app}`,
-      metadata: { planId, kind: 'subscription' },
+      // userId is critical: the Stripe webhook joins back to the
+      // aforce_users row via this metadata bag (see stripeWebhook.ts).
+      metadata: { planId, kind: 'subscription', userId: req.userId ?? '' },
+      // Mirror onto subscription_data so customer.subscription.* events
+      // also carry the linkage even after the checkout session expires.
+      subscription_data: {
+        metadata: { planId, userId: req.userId ?? '' },
+      },
     });
 
     if (!session.url) {
@@ -183,7 +192,7 @@ router.post('/checkout/session', async (req: Request, res: Response) => {
 });
 
 // ─── Cart: POST /checkout/cart ───────────────────────────────────────────────
-router.post('/checkout/cart', async (req: Request, res: Response) => {
+router.post('/checkout/cart', checkoutLimiter, async (req: Request, res: Response) => {
   const { items, returnUrl } = (req.body ?? {}) as {
     items?: unknown;
     returnUrl?: string;

@@ -16,7 +16,7 @@
  *   GET  /weather?lat&lon     → cached OpenWeather snapshot
  */
 
-import { Router, type IRouter } from "express";
+import { Router, type IRouter, type Request } from "express";
 import { z } from "zod";
 import { db, aforceIntakeLogs, aforceConfirmations, aforceUserState } from "@workspace/db";
 import { eq, sql } from "drizzle-orm";
@@ -24,13 +24,19 @@ import { DEFAULT_USER_ID, getUserState, updateUserState, ALL_FLUID_TYPES, isAfor
 import { publish } from "../lib/aforceHub";
 import { fetchWeather } from "../lib/openWeather";
 import { logger } from "../lib/logger";
+import { requireAuth } from "../middlewares/requireAuth";
+import { intakeLimiter, weatherLimiter } from "../middlewares/rateLimits";
 
 const router: IRouter = Router();
 
-// All routes operate on the single-user row for V1. Once auth lands,
-// resolve userId from the session/cookie here.
-function resolveUserId(): string {
-  return DEFAULT_USER_ID;
+// Every aforce route is per-user; requireAuth attaches req.userId
+// (Clerk session in production, DEFAULT_USER_ID in dev fallback).
+router.use(requireAuth);
+
+// Resolve the userId set by requireAuth, with a defensive fallback so a
+// misconfigured deployment never crashes the route.
+function resolveUserId(req: Request): string {
+  return req.userId ?? DEFAULT_USER_ID;
 }
 
 function broadcastState(userId: string, row: unknown) {
@@ -38,9 +44,9 @@ function broadcastState(userId: string, row: unknown) {
 }
 
 // ─── GET /state ────────────────────────────────────────────────────────────────
-router.get("/state", async (_req, res) => {
+router.get("/state", async (req, res) => {
   try {
-    const userId = resolveUserId();
+    const userId = resolveUserId(req);
     const row = await getUserState(userId);
     res.json({ userState: row, serverTime: new Date().toISOString() });
   } catch (err) {
@@ -82,10 +88,10 @@ const intakeSchema = z.object({
 
 const INTAKE_EVENT_MAX_AGE_MS = 24 * 60 * 60 * 1000;
 
-router.post("/intake", async (req, res) => {
+router.post("/intake", intakeLimiter, async (req, res) => {
   try {
     const body = intakeSchema.parse(req.body);
-    const userId = resolveUserId();
+    const userId = resolveUserId(req);
     // Pre-seed (and apply day rollover) outside the transaction so the
     // UPDATE inside the tx is guaranteed to find a row. This collapses
     // the old "tx + fallback" two-path flow into a single atomic write,
@@ -160,7 +166,7 @@ router.post("/signals", async (req, res) => {
       symptoms.length === 0 ? "none" :
       symptoms.length <= 1 ? "mild" :
       symptoms.length <= 3 ? "moderate" : "severe";
-    const userId = resolveUserId();
+    const userId = resolveUserId(req);
     const updated = await updateUserState(userId, { symptoms, symptomState });
     broadcastState(userId, updated);
     res.json({ userState: updated });
@@ -176,7 +182,7 @@ const urineSchema = z.object({ urineSignal: z.number().int().min(1).max(8) });
 router.post("/urine", async (req, res) => {
   try {
     const { urineSignal } = urineSchema.parse(req.body);
-    const userId = resolveUserId();
+    const userId = resolveUserId(req);
     const updated = await updateUserState(userId, { urineSignal });
     broadcastState(userId, updated);
     res.json({ userState: updated });
@@ -192,7 +198,7 @@ const energySchema = z.object({ energyState: z.enum(["peak", "steady", "low", "c
 router.post("/energy", async (req, res) => {
   try {
     const { energyState } = energySchema.parse(req.body);
-    const userId = resolveUserId();
+    const userId = resolveUserId(req);
     const updated = await updateUserState(userId, { energyState });
     broadcastState(userId, updated);
     res.json({ userState: updated });
@@ -203,9 +209,9 @@ router.post("/energy", async (req, res) => {
 });
 
 // ─── POST /checkin ─────────────────────────────────────────────────────────────
-router.post("/checkin", async (_req, res) => {
+router.post("/checkin", async (req, res) => {
   try {
-    const userId = resolveUserId();
+    const userId = resolveUserId(req);
     const updated = await updateUserState(userId, { hasSeenMorningCommand: true });
     broadcastState(userId, updated);
     res.json({ userState: updated });
@@ -221,7 +227,7 @@ const confirmSchema = z.object({ followed: z.boolean(), inClutch: z.boolean().op
 router.post("/confirm", async (req, res) => {
   try {
     const { followed, inClutch: clientInClutch = false } = confirmSchema.parse(req.body);
-    const userId = resolveUserId();
+    const userId = resolveUserId(req);
     // Ensure row exists before opening the tx (avoids the seed dance
     // inside the transaction callback).
     await getUserState(userId);
@@ -263,7 +269,7 @@ const flagsSchema = z.object({ clutchActive: z.boolean() });
 router.post("/flags", async (req, res) => {
   try {
     const { clutchActive } = flagsSchema.parse(req.body);
-    const userId = resolveUserId();
+    const userId = resolveUserId(req);
     const updated = await updateUserState(userId, { clutchActive });
     broadcastState(userId, updated);
     res.json({ userState: updated });
@@ -283,7 +289,7 @@ const languageSchema = z.object({
 router.post("/language", async (req, res) => {
   try {
     const { language } = languageSchema.parse(req.body);
-    const userId = resolveUserId();
+    const userId = resolveUserId(req);
     const updated = await updateUserState(userId, { language });
     broadcastState(userId, updated);
     res.json({ userState: updated });
@@ -327,9 +333,9 @@ async function readSocial(userId: string): Promise<PersistedSocialMode | null> {
   return (row.socialMode ?? null) as PersistedSocialMode | null;
 }
 
-router.post("/social/activate", async (_req, res) => {
+router.post("/social/activate", async (req, res) => {
   try {
-    const userId = resolveUserId();
+    const userId = resolveUserId(req);
     const now = new Date().toISOString();
     const next: PersistedSocialMode = {
       active: true,
@@ -353,7 +359,7 @@ const drinkSchema = z.object({
 router.post("/social/drink", async (req, res) => {
   try {
     const { type, abv, oz } = drinkSchema.parse(req.body);
-    const userId = resolveUserId();
+    const userId = resolveUserId(req);
     const now = new Date().toISOString();
     const current = (await readSocial(userId)) ?? {
       active: true,
@@ -391,7 +397,7 @@ const hydrateSchema = z.object({ confirmed: z.boolean() });
 router.post("/social/hydrate", async (req, res) => {
   try {
     const { confirmed } = hydrateSchema.parse(req.body);
-    const userId = resolveUserId();
+    const userId = resolveUserId(req);
     const current = await readSocial(userId);
     if (!current) {
       return res.status(400).json({ error: "social_not_active" });
@@ -425,7 +431,7 @@ const contextSchema = z.object({
 router.post("/social/context", async (req, res) => {
   try {
     const patch = contextSchema.parse(req.body);
-    const userId = resolveUserId();
+    const userId = resolveUserId(req);
     const current = (await readSocial(userId)) ?? {
       active: false,
       startedAt: new Date().toISOString(),
@@ -445,9 +451,9 @@ router.post("/social/context", async (req, res) => {
   }
 });
 
-router.post("/social/deactivate", async (_req, res) => {
+router.post("/social/deactivate", async (req, res) => {
   try {
-    const userId = resolveUserId();
+    const userId = resolveUserId(req);
     const current = await readSocial(userId);
     const now = new Date().toISOString();
     const next: PersistedSocialMode = current
@@ -468,7 +474,7 @@ const weatherQuery = z.object({
   lon: z.coerce.number().min(-180).max(180),
 });
 
-router.get("/weather", async (req, res) => {
+router.get("/weather", weatherLimiter, async (req, res) => {
   try {
     const { lat, lon } = weatherQuery.parse(req.query);
     const snapshot = await fetchWeather(lat, lon);
@@ -477,7 +483,7 @@ router.get("/weather", async (req, res) => {
     }
     // Persist into user state so the engine can read it on next score
     // calculation, and the next /state fetch picks it up automatically.
-    const userId = resolveUserId();
+    const userId = resolveUserId(req);
     const updated = await updateUserState(userId, {
       weatherTempC: snapshot.tempC,
       weatherHumidity: snapshot.humidity,

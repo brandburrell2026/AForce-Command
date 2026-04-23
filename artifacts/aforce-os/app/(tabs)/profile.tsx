@@ -30,6 +30,7 @@ import type { FeatureFlags } from '@/types';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 import { LanguageSelector } from '@/components/LanguageSelector';
 import { useTranslation } from 'react-i18next';
+import { useAuth, useUser } from '@clerk/expo';
 
 const TIER_LABELS: Record<string, { label: string; desc: string; color: string }> = {
   core:           { label: 'AForce Core',           desc: 'Start your performance system.',                      color: Colors.states.BALANCED.primary },
@@ -627,12 +628,62 @@ export default function ProfileScreen() {
             );
           })()}
 
+          <SignOutRow />
+
           <Text style={styles.version}>AForce OS v1.0.0 · Phase 1 Core</Text>
         </ScrollView>
       </GradientBackground>
     </View>
   );
 }
+
+/**
+ * Account row: shows the signed-in user's email + a sign-out button.
+ * No-op when Clerk isn't configured (CI / local dev without a key).
+ */
+function SignOutRow() {
+  const auth = (() => { try { return useAuth(); } catch { return null; } })();
+  const userHook = (() => { try { return useUser(); } catch { return null; } })();
+  if (!auth?.isSignedIn) return null;
+  const email = userHook?.user?.primaryEmailAddress?.emailAddress;
+  return (
+    <View style={signOutStyles.row}>
+      {email && <Text style={signOutStyles.email}>{email}</Text>}
+      <Pressable
+        onPress={() => {
+          Alert.alert('Sign out', 'Are you sure you want to sign out?', [
+            { text: 'Cancel', style: 'cancel' },
+            { text: 'Sign out', style: 'destructive', onPress: () => auth.signOut() },
+          ]);
+        }}
+        style={({ pressed }) => [signOutStyles.btn, pressed && { opacity: 0.7 }]}
+        accessibilityRole="button"
+        accessibilityLabel="Sign out"
+      >
+        <Feather name="log-out" size={14} color={Colors.text.primary} />
+        <Text style={signOutStyles.btnText}>Sign out</Text>
+      </Pressable>
+    </View>
+  );
+}
+
+const signOutStyles = StyleSheet.create({
+  row: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingVertical: 14, paddingHorizontal: 16, marginTop: 12, marginBottom: 4,
+    borderRadius: 12, borderWidth: 1, borderColor: Colors.border.subtle,
+    backgroundColor: Colors.background.card,
+  },
+  email: {
+    fontFamily: 'Inter_500Medium', fontSize: 13, color: Colors.text.secondary, flex: 1,
+  },
+  btn: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8,
+    borderWidth: 1, borderColor: Colors.border.subtle,
+  },
+  btnText: { fontFamily: 'Inter_600SemiBold', fontSize: 12, color: Colors.text.primary },
+});
 
 function SectionHeader({ label, hint }: { label: string; hint?: string }) {
   return (

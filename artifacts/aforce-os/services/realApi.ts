@@ -31,6 +31,7 @@ import { calculateScore } from '../utils/scoringEngine';
 import { computeEventImpact } from './hydrationScoreService';
 import { PRODUCTS } from '../data/products';
 import { defaultUserState } from '../data/mockData';
+import { getAuthHeaders, getAuthToken } from './authToken';
 
 // ─── Base URL resolution ─────────────────────────────────────────────────────
 // In dev, EXPO_PUBLIC_DOMAIN is set to REPLIT_DEV_DOMAIN by package.json's
@@ -162,9 +163,10 @@ function normalizeSocialMode(raw: unknown): UserState['socialMode'] {
 }
 
 async function postJson<T>(path: string, body: unknown): Promise<T> {
+  const auth = await getAuthHeaders();
   const res = await fetch(`${AFORCE_BASE}${path}`, {
     method: 'POST',
-    headers: { 'content-type': 'application/json' },
+    headers: { 'content-type': 'application/json', ...auth },
     body: JSON.stringify(body),
   });
   if (!res.ok) throw new Error(`POST ${path} → ${res.status}`);
@@ -172,7 +174,8 @@ async function postJson<T>(path: string, body: unknown): Promise<T> {
 }
 
 async function getJson<T>(path: string): Promise<T> {
-  const res = await fetch(`${AFORCE_BASE}${path}`);
+  const auth = await getAuthHeaders();
+  const res = await fetch(`${AFORCE_BASE}${path}`, { headers: auth });
   if (!res.ok) throw new Error(`GET ${path} → ${res.status}`);
   return (await res.json()) as T;
 }
@@ -414,15 +417,20 @@ export function subscribeToStateUpdates(
   getOverlay: () => Pick<UserState, 'appleHealth'>,
 ): () => void {
   const wsBase = AFORCE_BASE.replace(/^http/, 'ws');
-  const url = `${wsBase}/ws?user=default`;
 
   let ws: WebSocket | null = null;
   let closed = false;
   let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
   let attempt = 0;
 
-  const connect = () => {
+  const connect = async () => {
     if (closed) return;
+    // Refresh the Clerk token on every (re)connect so a long-lived
+    // session doesn't drift past the JWT expiry between reconnects.
+    const token = await getAuthToken();
+    const url = token
+      ? `${wsBase}/ws?token=${encodeURIComponent(token)}`
+      : `${wsBase}/ws?user=default`;
     try {
       ws = new WebSocket(url);
     } catch (err) {

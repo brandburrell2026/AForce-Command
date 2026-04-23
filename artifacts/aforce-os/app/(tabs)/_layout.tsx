@@ -10,7 +10,8 @@
 import React from 'react';
 import { BlurView } from 'expo-blur';
 import { isLiquidGlassAvailable } from 'expo-glass-effect';
-import { Tabs } from 'expo-router';
+import { Redirect, Tabs } from 'expo-router';
+import { useAuth } from '@clerk/expo';
 import { Icon, Label, NativeTabs } from 'expo-router/unstable-native-tabs';
 import { SymbolView } from 'expo-symbols';
 import { Feather } from '@expo/vector-icons';
@@ -129,6 +130,14 @@ function ClassicTabLayout() {
 }
 
 export default function TabLayout() {
+  // When Clerk is configured, gate the tab group behind a valid session;
+  // otherwise (CI / local dev without a publishable key) fall through so
+  // the app still boots in single-user demo mode.
+  const clerkConfigured = !!process.env['EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY'];
+  const { isLoaded, isSignedIn } = useAuth();
+  if (clerkConfigured && isLoaded && !isSignedIn) {
+    return <Redirect href="/(auth)/sign-in" />;
+  }
   if (isLiquidGlassAvailable()) return <NativeTabLayout />;
   return <ClassicTabLayout />;
 }
