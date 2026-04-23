@@ -47,3 +47,27 @@ id = "75opdxgXg3nJPiymomv-k"
 uri = "file://attached_assets/patent/fig6-wireframes.svg"
 type = "image"
 title = "FIG. 6 — Wireframes (Home / Recovery Locked / Recovery Unlocked / Social Mode)"
+
+[[outputs]]
+id = "IeOHCvzbu0si5l-1ocL9b"
+uri = "file://attached_assets/patent/fig7-mobile-app-architecture.svg"
+type = "image"
+title = "FIG. 7 — Mobile Application Architecture"
+
+[[outputs]]
+id = "FSzZAsIslIf0oGFdAl_bp"
+uri = "file://attached_assets/patent/fig8-scoring-engine.svg"
+type = "image"
+title = "FIG. 8 — Scoring Engine: Deterministic Pipeline"
+
+[[outputs]]
+id = "y0ZSaZLs633wN-RhR58Wg"
+uri = "file://attached_assets/patent/fig9-deterministic-ai-layer.svg"
+type = "image"
+title = "FIG. 9 — Deterministic AI Layer"
+
+[[outputs]]
+id = "md1t0YMM00sRoxIDae90V"
+uri = "file://attached_assets/patent/fig10-autopilot-autoscan.svg"
+type = "image"
+title = "FIG. 10 — Autopilot / Autoscan Background Loop"

@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 1000" width="1400" height="1000">
+    <defs>
+      <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+        <path d="M0,0 L0,6 L9,3 z" fill="#111"/>
+      </marker>
+    </defs>
+    <rect width="1400" height="1000" fill="#ffffff"/>
+    <text x="700" y="46" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="24" font-weight="700" fill="#111">FIG. 8 — Scoring Engine: Deterministic Pipeline</text>
+    
+    <text x="700" y="76" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#555">Pure function: same inputs → same outputs, no model state, no randomness</text>
+
+    <rect x="60" y="110" width="1280" height="110" rx="14" ry="14" fill="none" stroke="#111" stroke-width="1.2" stroke-dasharray="3 4"/>
+     <text x="74" y="132" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#111">Inputs (UserState + environmental snapshot)</text>
+    <rect x="80" y="150" width="160" height="50" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="160" y="170" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">Hydration</text><text x="160" y="188" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#444">oz · units · target</text>
+    <rect x="250" y="150" width="150" height="50" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="325" y="170" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">Symptoms</text><text x="325" y="188" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#444">urine · energy</text>
+    <rect x="410" y="150" width="150" height="50" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="485" y="179" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">Sweat / Activity</text>
+    <rect x="570" y="150" width="160" height="50" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="650" y="170" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">Heat Load</text><text x="650" y="188" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#444">weather + body</text>
+    <rect x="740" y="150" width="170" height="50" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="825" y="170" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">Apple Health</text><text x="825" y="188" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#444">HRV · RHR · sleep</text>
+    <rect x="920" y="150" width="150" height="50" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="995" y="170" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">Social / BAC</text><text x="995" y="188" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#444">drinks log</text>
+    <rect x="1080" y="150" width="110" height="50" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="1135" y="179" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">Snooze</text>
+    <rect x="1200" y="150" width="130" height="50" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="1265" y="170" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">Time-of-day</text><text x="1265" y="188" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#444">wake / overnight loss</text>
+
+    <rect x="60" y="250" width="1280" height="360" rx="14" ry="14" fill="none" stroke="#111" stroke-width="1.2" stroke-dasharray="3 4"/>
+     <text x="74" y="272" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#111">Deterministic Computation Pipeline</text>
+
+    <rect x="80" y="290" width="200" height="60" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="180" y="315" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">Normalize inputs</text><text x="180" y="333" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#444">units · ranges · clamps</text>
+    <line x1="280" y1="320" x2="320" y2="320" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="320" y="290" width="220" height="60" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="430" y="315" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">Hydration deficit</text><text x="430" y="333" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#444">target − consumed (oz)</text>
+    <line x1="540" y1="320" x2="580" y2="320" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="580" y="290" width="220" height="60" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="690" y="315" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">Heat-load adjustment</text><text x="690" y="333" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#444">temp · humidity · sweat</text>
+    <line x1="800" y1="320" x2="840" y2="320" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="840" y="290" width="220" height="60" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="950" y="315" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">Recovery adjustment</text><text x="950" y="333" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#444">HRV / sleep modifiers</text>
+    <line x1="1060" y1="320" x2="1100" y2="320" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="1100" y="290" width="220" height="60" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="1210" y="315" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">Social subengine</text><text x="1210" y="333" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#444">BAC · impairment</text>
+
+    <rect x="80" y="380" width="220" height="60" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="190" y="414" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">Symptom risk weights</text>
+    <rect x="320" y="380" width="220" height="60" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="430" y="414" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">Streak / compliance bonus</text>
+    <rect x="580" y="380" width="220" height="60" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="690" y="414" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">Decay model (per minute)</text>
+    <rect x="840" y="380" width="220" height="60" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="950" y="405" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">Snooze gating</text><text x="950" y="423" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#444">bypasses urgency</text>
+    <rect x="1100" y="380" width="220" height="60" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="1210" y="405" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">Time-of-day weighting</text><text x="1210" y="423" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#444">morning command flag</text>
+
+    <line x1="190" y1="350" x2="190" y2="380" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <line x1="430" y1="350" x2="430" y2="380" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <line x1="690" y1="350" x2="690" y2="380" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <line x1="950" y1="350" x2="950" y2="380" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <line x1="1210" y1="350" x2="1210" y2="380" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="280" y="480" width="360" height="70" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="460" y="510" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">Score aggregator</text><text x="460" y="528" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#444">weighted sum → 0–100, clamped</text>
+    <rect x="680" y="480" width="360" height="70" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="860" y="510" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">Performance state classifier</text><text x="860" y="528" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#444">PEAK · BALANCED · WARNING · CRITICAL</text>
+    <line x1="640" y1="510" x2="680" y2="510" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="60" y="640" width="1280" height="220" rx="14" ry="14" fill="none" stroke="#111" stroke-width="1.2" stroke-dasharray="3 4"/>
+     <text x="74" y="662" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#111">Outputs (ScoreEngineOutput)</text>
+    <rect x="80" y="680" width="200" height="60" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="180" y="714" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">score (0–100)</text>
+    <rect x="290" y="680" width="220" height="60" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="400" y="705" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">performanceState</text><text x="400" y="723" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#444">level + color + urgency</text>
+    <rect x="520" y="680" width="220" height="60" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="630" y="705" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">pulseConfig</text><text x="630" y="723" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#444">animation / glow / wave</text>
+    <rect x="750" y="680" width="220" height="60" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="860" y="705" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">command</text><text x="860" y="723" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#444">next action + impact</text>
+    <rect x="980" y="680" width="200" height="60" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="1080" y="705" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">riskTimer</text><text x="1080" y="723" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#444">recheck minutes</text>
+    <rect x="1190" y="680" width="140" height="60" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="1260" y="714" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">reasons[]</text>
+    <rect x="80" y="760" width="280" height="60" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="220" y="785" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">breakdown[]</text><text x="220" y="803" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#444">per-factor contributions</text>
+    <rect x="370" y="760" width="280" height="60" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="510" y="785" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">prediction</text><text x="510" y="803" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#444">decay/min + minutesToDepleted</text>
+    <rect x="660" y="760" width="280" height="60" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="800" y="794" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">social (rollup or null)</text>
+    <rect x="950" y="760" width="380" height="60" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="1140" y="794" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">No I/O · no logging · no clock reads outside fn args</text>
+
+    <line x1="460" y1="550" x2="460" y2="640" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <line x1="860" y1="550" x2="860" y2="640" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/>
+  
+    <text x="1380" y="984" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#777">AForce OS · Patent Figure</text>
+  </svg>

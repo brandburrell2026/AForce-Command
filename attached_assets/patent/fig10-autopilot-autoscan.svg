@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 1000" width="1400" height="1000">
+    <defs>
+      <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+        <path d="M0,0 L0,6 L9,3 z" fill="#111"/>
+      </marker>
+    </defs>
+    <rect width="1400" height="1000" fill="#ffffff"/>
+    <text x="700" y="46" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="24" font-weight="700" fill="#111">FIG. 10 — Autopilot / Autoscan Background Loop</text>
+    
+    <text x="700" y="76" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#555">Continuous server-clocked re-evaluation that drives orb pulse, recheck prompts, and recovery-window expiry</text>
+
+    <ellipse cx="140" cy="130" rx="100" ry="30" fill="#fff" stroke="#111" stroke-width="1.5"/>
+      <text x="140" y="135" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#111">Wake / cold-start</text>
+    <line x1="140" y1="160" x2="140" y2="200" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="40" y="200" width="200" height="60" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="140" y="225" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">Hydrate store from disk</text><text x="140" y="243" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#444">AsyncStorage rehydrate</text>
+    <line x1="140" y1="260" x2="140" y2="300" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="40" y="300" width="200" height="60" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="140" y="334" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">Open WS · auth via JWT</text>
+    <line x1="140" y1="360" x2="140" y2="400" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="40" y="400" width="200" height="60" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="140" y="425" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">GET /api/aforce/state</text><text x="140" y="443" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#444">baseline snapshot</text>
+    <line x1="240" y1="430" x2="320" y2="430" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="320" y="400" width="240" height="60" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="440" y="425" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">Apply SET_USER_STATE</text><text x="440" y="443" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#444">engine output adopted</text>
+    <line x1="560" y1="430" x2="640" y2="430" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="640" y="400" width="220" height="60" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="750" y="425" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">Recheck timer armed</text><text x="750" y="443" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#444">from riskTimer.minutes</text>
+
+    <rect x="60" y="500" width="1280" height="380" rx="14" ry="14" fill="none" stroke="#111" stroke-width="1.2" stroke-dasharray="3 4"/>
+     <text x="74" y="522" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#111">Continuous Loop (every tick)</text>
+
+    <rect x="100" y="550" width="200" height="60" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="200" y="575" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">TICK_TIMER</text><text x="200" y="593" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#444">every 1 s while awake</text>
+    <polygon points="420,535 530,580 420,625 310,580" fill="#fff" stroke="#111" stroke-width="1.5"/><text x="420" y="585" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#111">timerSeconds === 0 ?</text>
+    <line x1="300" y1="580" x2="310" y2="580" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="700" y="550" width="240" height="60" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="820" y="575" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">pendingConfirmation = true</text><text x="820" y="593" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#444">prompt user to recheck</text>
+    <line x1="530" y1="580" x2="700" y2="580" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/><text x="615" y="574" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#333">yes</text>
+
+    <rect x="960" y="550" width="340" height="60" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="1130" y="584" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">CONFIRM_COMMAND → engine recompute</text>
+    <line x1="940" y1="580" x2="960" y2="580" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="100" y="660" width="280" height="60" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="240" y="685" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">Polling: Apple Health snapshot</text><text x="240" y="703" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#444">periodic + on foreground</text>
+    <line x1="380" y1="690" x2="460" y2="690" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="460" y="660" width="240" height="60" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="580" y="685" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">SET_APPLE_HEALTH</text><text x="580" y="703" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#444">attaches snapshot</text>
+    <line x1="700" y1="690" x2="740" y2="690" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="740" y="660" width="240" height="60" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="860" y="685" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">Engine re-runs</text><text x="860" y="703" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#444">new score broadcast</text>
+
+    <rect x="100" y="740" width="280" height="60" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="240" y="765" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">Polling: weather refresh</text><text x="240" y="783" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#444">lat/lon → cached endpoint</text>
+    <line x1="380" y1="770" x2="460" y2="770" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="460" y="740" width="240" height="60" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="580" y="765" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">userState.weather*</text><text x="580" y="783" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#444">updated</text>
+    <line x1="700" y1="770" x2="740" y2="770" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="740" y="740" width="240" height="60" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="860" y="774" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">Engine re-runs</text>
+
+    <rect x="100" y="820" width="280" height="40" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="240" y="835" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">Server WS broadcast</text><text x="240" y="853" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#444">state · score · entitlement deltas</text>
+    <rect x="420" y="820" width="280" height="40" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="560" y="835" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">Reducer applies updates</text><text x="560" y="853" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#444">no client-side recompute</text>
+    <rect x="740" y="820" width="240" height="40" rx="8" ry="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/><text x="860" y="844" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111">UI reflects automatically</text>
+    <line x1="380" y1="840" x2="420" y2="840" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <line x1="700" y1="840" x2="740" y2="840" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <line x1="420" y1="625" x2="420" y2="540" stroke="#111" stroke-width="1.2" stroke-dasharray="6 4" marker-end="url(#arrow)"/><text x="420" y="576.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#333">no — keep ticking</text>
+
+    <rect x="1010" y="820" width="320" height="60" rx="4" ry="4" fill="#fafaf2" stroke="#999" stroke-width="1" stroke-dasharray="4 3"/><text x="1020" y="838" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#333">Loop is server-clocked.</text><text x="1020" y="853" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#333">Client never invents score deltas;</text><text x="1020" y="868" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#333">it only renders broadcast state.</text>
+  
+    <text x="1380" y="984" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#777">AForce OS · Patent Figure</text>
+  </svg>
