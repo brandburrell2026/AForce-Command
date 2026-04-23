@@ -12,6 +12,7 @@ import { db, aforceUsers } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { getUncachableStripeClient } from "../lib/stripeClient";
 import { requireAuth } from "../middlewares/requireAuth";
+import { checkoutLimiter } from "../middlewares/rateLimits";
 import { logger } from "../lib/logger";
 
 const router: IRouter = Router();
@@ -49,7 +50,7 @@ function isAllowedReturnUrl(raw: string, requestHost: string | null): boolean {
   return true;
 }
 
-router.post("/stripe/portal-session", requireAuth, async (req: Request, res: Response) => {
+router.post("/stripe/portal-session", requireAuth, checkoutLimiter, async (req: Request, res: Response) => {
   const userId = req.userId;
   if (!userId) {
     res.status(401).json({ error: "unauthorized" });
