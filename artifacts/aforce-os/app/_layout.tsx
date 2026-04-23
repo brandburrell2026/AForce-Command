@@ -14,6 +14,7 @@ import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ClerkProvider, ClerkLoaded } from '@clerk/expo';
 import { tokenCache } from '@clerk/expo/token-cache';
+import { Text, View } from 'react-native';
 
 import { ClerkAuthBridge } from '@/components/ClerkAuthBridge';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
@@ -87,10 +88,46 @@ export default function RootLayout() {
 
   if (!fontsLoaded && !fontError) return null;
 
-  // When Clerk isn't configured (e.g. CI without secrets), skip the
-  // provider entirely so the app still boots in single-user demo mode.
+  // ClerkProvider is required: every screen below uses Clerk hooks
+  // (`useAuth`, `useUser`) directly. Rather than guard each call site
+  // with try/catch, surface a clear configuration error when the
+  // EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY env var hasn't been wired up.
   if (!publishableKey) {
-    return <AppShell />;
+    return (
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: '#0A0A0F',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: 24,
+        }}
+      >
+        <Text
+          style={{
+            color: '#FFFFFF',
+            fontSize: 18,
+            textAlign: 'center',
+            fontFamily: 'Inter_600SemiBold',
+            marginBottom: 8,
+          }}
+        >
+          Auth is not configured
+        </Text>
+        <Text
+          style={{
+            color: 'rgba(255,255,255,0.6)',
+            fontSize: 13,
+            textAlign: 'center',
+            fontFamily: 'Inter_400Regular',
+            lineHeight: 18,
+          }}
+        >
+          Set EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY in this app&apos;s environment
+          to enable sign-in.
+        </Text>
+      </View>
+    );
   }
 
   return (

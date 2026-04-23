@@ -130,12 +130,11 @@ function ClassicTabLayout() {
 }
 
 export default function TabLayout() {
-  // When Clerk is configured, gate the tab group behind a valid session;
-  // otherwise (CI / local dev without a publishable key) fall through so
-  // the app still boots in single-user demo mode.
-  const clerkConfigured = !!process.env['EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY'];
+  // Gate the tab group behind a valid Clerk session. Safe: ClerkProvider
+  // is always mounted in the root _layout (the app refuses to render
+  // without a publishable key).
   const { isLoaded, isSignedIn } = useAuth();
-  if (clerkConfigured && isLoaded && !isSignedIn) {
+  if (isLoaded && !isSignedIn) {
     return <Redirect href="/(auth)/sign-in" />;
   }
   if (isLiquidGlassAvailable()) return <NativeTabLayout />;

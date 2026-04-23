@@ -85,7 +85,9 @@ function buildSubscription(
 }
 
 export function useEntitlement(): void {
-  const auth = (() => { try { return useAuth(); } catch { return null; } })();
+  // Safe: this hook is only ever rendered inside <ClerkProvider> via
+  // ClerkAuthBridge in app/_layout.tsx.
+  const auth = useAuth();
   const { state, setSubscription } = useAppStore();
   const isSignedIn = auth?.isSignedIn ?? false;
   const subscriptionRef = React.useRef(state.subscription);

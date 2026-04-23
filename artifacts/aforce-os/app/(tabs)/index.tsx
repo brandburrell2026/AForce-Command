@@ -64,13 +64,10 @@ import { useUser } from '@clerk/expo';
 export default function HomeScreen() {
   const { t } = useTranslation();
   const router = useRouter();
-  // Clerk is optional — when not configured (CI / local dev without
-  // CLERK_PUBLISHABLE_KEY) `useUser` returns null and we fall back to
-  // the demo greeting. When configured, prefer firstName, then the
-  // local-part of the email, then the demo string.
-  const clerkUser = (() => {
-    try { return useUser().user; } catch { return null; }
-  })();
+  // Safe: this screen only renders inside <ClerkProvider>; the root
+  // _layout refuses to render the app shell otherwise. Prefer
+  // firstName, then the local-part of the email, then the demo string.
+  const clerkUser = useUser().user;
   const greetingName =
     clerkUser?.firstName ||
     clerkUser?.primaryEmailAddress?.emailAddress?.split('@')[0] ||

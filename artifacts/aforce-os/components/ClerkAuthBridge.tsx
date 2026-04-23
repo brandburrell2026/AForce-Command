@@ -9,6 +9,7 @@
 
 import React from 'react';
 import { useAuth } from '@clerk/expo';
+import { setAuthTokenGetter } from '@workspace/api-client-react';
 import { setTokenGetter } from '@/services/authToken';
 import { useEntitlement } from '@/hooks/useEntitlement';
 
@@ -17,8 +18,16 @@ export function ClerkAuthBridge(): null {
 
   React.useEffect(() => {
     if (!isLoaded) return;
-    setTokenGetter(() => getToken());
-    return () => setTokenGetter(null);
+    // Bridge into both the imperative realApi/WS registry and the
+    // generated OpenAPI client so every outbound request carries the
+    // current Clerk session token.
+    const getter = () => getToken();
+    setTokenGetter(getter);
+    setAuthTokenGetter(getter);
+    return () => {
+      setTokenGetter(null);
+      setAuthTokenGetter(null);
+    };
   }, [isLoaded, getToken]);
 
   // Pull server-authoritative subscription entitlement once we have a

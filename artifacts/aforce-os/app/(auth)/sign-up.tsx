@@ -7,19 +7,51 @@ import React from 'react';
 import {
   View, Text, StyleSheet, TextInput, Pressable, KeyboardAvoidingView, Platform,
 } from 'react-native';
-import { useSignUp } from '@clerk/expo';
+import { useSignUp, useSSO } from '@clerk/expo';
 import { Link, useRouter } from 'expo-router';
+import * as AuthSession from 'expo-auth-session';
+import * as WebBrowser from 'expo-web-browser';
 import { GradientBackground } from '@/components/GradientBackground';
 import { Colors } from '@/theme/colors';
 
+// Required by Clerk's OAuth/SSO flow on native to dismiss the in-app
+// browser once the redirect lands.
+WebBrowser.maybeCompleteAuthSession();
+
 export default function SignUpScreen() {
   const { signUp, errors, fetchStatus } = useSignUp();
+  const { startSSOFlow } = useSSO();
   const router = useRouter();
   const [emailAddress, setEmailAddress] = React.useState('');
   const [firstName, setFirstName] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [code, setCode] = React.useState('');
   const [submitError, setSubmitError] = React.useState<string | null>(null);
+  const [oauthBusy, setOauthBusy] = React.useState(false);
+
+  const handleGoogle = async () => {
+    setSubmitError(null);
+    setOauthBusy(true);
+    try {
+      const { createdSessionId, setActive } = await startSSOFlow({
+        strategy: 'oauth_google',
+        redirectUrl: AuthSession.makeRedirectUri(),
+      });
+      if (createdSessionId && setActive) {
+        await setActive({
+          session: createdSessionId,
+          navigate: ({ session }) => {
+            if (session?.currentTask) return;
+            router.replace('/(tabs)');
+          },
+        });
+      }
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : 'Google sign-up failed.');
+    } finally {
+      setOauthBusy(false);
+    }
+  };
 
   const handleStart = async () => {
     setSubmitError(null);
@@ -180,6 +212,28 @@ export default function SignUpScreen() {
                 </Text>
               </Pressable>
 
+              <View style={styles.dividerRow}>
+                <View style={styles.dividerLine} />
+                <Text style={styles.dividerText}>or</Text>
+                <View style={styles.dividerLine} />
+              </View>
+
+              <Pressable
+                onPress={handleGoogle}
+                disabled={oauthBusy}
+                style={({ pressed }) => [
+                  styles.oauthButton,
+                  oauthBusy && styles.buttonDisabled,
+                  pressed && styles.buttonPressed,
+                ]}
+                accessibilityRole="button"
+                accessibilityLabel="Continue with Google"
+              >
+                <Text style={styles.oauthButtonText}>
+                  {oauthBusy ? 'Connecting…' : 'Continue with Google'}
+                </Text>
+              </Pressable>
+
               <View style={styles.linkRow}>
                 <Text style={styles.linkText}>Already have an account? </Text>
                 <Link href="/(auth)/sign-in" replace>
@@ -235,5 +289,24 @@ const styles = StyleSheet.create({
   link: { fontFamily: 'Inter_600SemiBold', fontSize: 13, color: Colors.text.primary },
   error: {
     fontFamily: 'Inter_400Regular', fontSize: 12, color: '#FF6B6B', marginTop: 6,
+  },
+  dividerRow: {
+    flexDirection: 'row', alignItems: 'center', marginTop: 22, marginBottom: 14,
+  },
+  dividerLine: {
+    flex: 1, height: 1, backgroundColor: Colors.border.subtle,
+  },
+  dividerText: {
+    fontFamily: 'Inter_500Medium', fontSize: 11, color: Colors.text.muted,
+    marginHorizontal: 12, letterSpacing: 1, textTransform: 'uppercase',
+  },
+  oauthButton: {
+    paddingVertical: 14, borderRadius: 14, alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    borderWidth: 1, borderColor: Colors.border.subtle,
+  },
+  oauthButtonText: {
+    fontFamily: 'Inter_600SemiBold', fontSize: 14, color: Colors.text.primary,
+    letterSpacing: 0.3,
   },
 });

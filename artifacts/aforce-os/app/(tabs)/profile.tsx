@@ -639,13 +639,13 @@ export default function ProfileScreen() {
 
 /**
  * Account row: shows the signed-in user's email + a sign-out button.
- * No-op when Clerk isn't configured (CI / local dev without a key).
+ * Safe: only rendered inside <ClerkProvider> via the root _layout.
  */
 function SignOutRow() {
-  const auth = (() => { try { return useAuth(); } catch { return null; } })();
-  const userHook = (() => { try { return useUser(); } catch { return null; } })();
-  if (!auth?.isSignedIn) return null;
-  const email = userHook?.user?.primaryEmailAddress?.emailAddress;
+  const auth = useAuth();
+  const userHook = useUser();
+  if (!auth.isSignedIn) return null;
+  const email = userHook.user?.primaryEmailAddress?.emailAddress;
   return (
     <View style={signOutStyles.row}>
       {email && <Text style={signOutStyles.email}>{email}</Text>}
