@@ -31,6 +31,9 @@ import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 import { LanguageSelector } from '@/components/LanguageSelector';
 import { useTranslation } from 'react-i18next';
 import { useAuth, useUser } from '@clerk/expo';
+import * as WebBrowser from 'expo-web-browser';
+import * as Linking from 'expo-linking';
+import { createPortalSession } from '@/lib/api';
 
 const TIER_LABELS: Record<string, { label: string; desc: string; color: string }> = {
   core:           { label: 'AForce Core',           desc: 'Start your performance system.',                      color: Colors.states.BALANCED.primary },
@@ -764,6 +767,25 @@ function SubscriptionPanel() {
   const router = useRouter();
   const { state } = useAppStore();
   const sub = state.subscription;
+  const [portalBusy, setPortalBusy] = React.useState(false);
+
+  const onManage = React.useCallback(async () => {
+    if (portalBusy) return;
+    setPortalBusy(true);
+    try {
+      const returnUrl = Linking.createURL('/profile');
+      const { url } = await createPortalSession(returnUrl);
+      await WebBrowser.openBrowserAsync(url);
+    } catch {
+      // No Stripe customer yet (user never checked out) — fall through
+      // to the in-app management screen which still owns plan-pause /
+      // plan-resume for non-Stripe demo flows.
+      router.push('/subscription/manage');
+    } finally {
+      setPortalBusy(false);
+    }
+  }, [portalBusy, router]);
+
   const planName = TIER_LABELS[sub.planId]?.label ?? 'AForce';
   const accent =
     sub.planId.startsWith('guardian') ? Colors.guardian.primary :
@@ -793,9 +815,13 @@ function SubscriptionPanel() {
       </View>
       <View style={{ flexDirection: 'row', gap: 10 }}>
         <TouchableOpacity
-          style={[styles.upgradeBtn, { borderColor: `${accent}44`, flex: 1 }]}
+          style={[styles.upgradeBtn, { borderColor: `${accent}44`, flex: 1, opacity: portalBusy ? 0.6 : 1 }]}
           activeOpacity={0.85}
-          onPress={() => router.push('/subscription/manage')}
+          onPress={onManage}
+          disabled={portalBusy}
+          accessibilityRole="button"
+          accessibilityLabel="Manage subscription"
+          accessibilityState={{ busy: portalBusy, disabled: portalBusy }}
         >
           <Text style={[styles.upgradeBtnText, { color: accent }]}>Manage</Text>
           <Feather name="settings" size={14} color={accent} />

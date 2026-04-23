@@ -8,12 +8,15 @@
  */
 
 import React from 'react';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { View, Text, StyleSheet, Pressable, ActivityIndicator } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
+import * as WebBrowser from 'expo-web-browser';
+import * as Linking from 'expo-linking';
 
 import { Colors } from '../theme/colors';
+import { createCheckoutSession } from '../lib/api';
 
 const TEAL = '#7CD3E5';
 const AMBER = '#F4B23F';
@@ -27,13 +30,26 @@ const FEATURES: { key: string; icon: React.ComponentProps<typeof Feather>['name'
 export function RecoveryModePaywall() {
   const { t } = useTranslation();
   const router = useRouter();
+  const [busy, setBusy] = React.useState(false);
 
-  const onSubscribe = () => {
-    // The subscription screen owns the Stripe Checkout flow. The
-    // `recovery_plus` plan is registered in both client SUBSCRIPTION_PLANS
-    // and server PLAN_CATALOG so the existing flow handles it natively.
-    router.push({ pathname: '/subscription', params: { planId: 'recovery_plus', autoCheckout: '1' } });
-  };
+  const onSubscribe = React.useCallback(async () => {
+    if (busy) return;
+    setBusy(true);
+    try {
+      // Use Linking.createURL so the deep link uses the app's registered
+      // scheme on native and the dev server URL on web — matches the
+      // server's allow-list (see api-server/routes/checkout.ts).
+      const returnUrl = Linking.createURL('/subscription');
+      const { url } = await createCheckoutSession({ planId: 'recovery_plus', returnUrl });
+      await WebBrowser.openBrowserAsync(url);
+    } catch {
+      // Fall back to the subscription screen, which owns retry UI and
+      // will surface a friendlier error if the second attempt fails too.
+      router.push({ pathname: '/subscription', params: { planId: 'recovery_plus', autoCheckout: '1' } });
+    } finally {
+      setBusy(false);
+    }
+  }, [busy, router]);
 
   return (
     <View style={[styles.card, { borderColor: `${TEAL}40` }]} testID="recovery-mode-paywall">
@@ -65,13 +81,21 @@ export function RecoveryModePaywall() {
 
       <Pressable
         onPress={onSubscribe}
+        disabled={busy}
         style={({ pressed }) => [
           styles.cta,
-          { backgroundColor: TEAL, opacity: pressed ? 0.85 : 1 },
+          { backgroundColor: TEAL, opacity: busy ? 0.6 : pressed ? 0.85 : 1 },
         ]}
+        accessibilityRole="button"
+        accessibilityLabel={t('social.recovery_paywall_cta')}
+        accessibilityState={{ busy, disabled: busy }}
         testID="recovery-mode-paywall-cta"
       >
-        <Feather name="arrow-right" size={16} color="#0A0A0F" />
+        {busy ? (
+          <ActivityIndicator size="small" color="#0A0A0F" />
+        ) : (
+          <Feather name="arrow-right" size={16} color="#0A0A0F" />
+        )}
         <Text style={styles.ctaText}>{t('social.recovery_paywall_cta')}</Text>
       </Pressable>
 

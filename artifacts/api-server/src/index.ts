@@ -2,6 +2,7 @@ import { createServer } from "node:http";
 import app from "./app";
 import { logger } from "./lib/logger";
 import { attachAforceHub } from "./lib/aforceHub";
+import { initStripe } from "./lib/initStripe";
 
 const rawPort = process.env["PORT"];
 
@@ -24,6 +25,9 @@ attachAforceHub(server);
 
 server.listen(port, () => {
   logger.info({ port }, "Server listening");
+  // Fire-and-forget — initStripe handles its own errors and falls back
+  // gracefully if the Stripe integration isn't connected yet.
+  void initStripe();
 });
 
 server.on("error", (err) => {

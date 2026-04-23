@@ -1,16 +1,20 @@
 /**
- * Stripe client.
+ * Stripe client + StripeSync wiring.
  *
- * Pulls credentials from the Replit Connectors API on every call (tokens can
- * rotate, so we never cache the secret). Exposed via `getStripeClient()`
- * which returns a fully-configured Stripe SDK instance.
+ * Pulls credentials from the Replit Connectors API on every call (tokens
+ * can rotate, so we never cache the secret). Exposes:
+ *   - getUncachableStripeClient() → fresh Stripe SDK instance
+ *   - getStripeSync()              → fresh StripeSync (for webhook + backfill)
+ *   - getStripeClient()            → legacy alias for getUncachableStripeClient
  */
 
 import Stripe from 'stripe';
+import { StripeSync } from 'stripe-replit-sync';
 
 interface StripeCredentials {
-  secret_key: string;
-  publishable_key?: string;
+  secretKey: string;
+  publishableKey?: string;
+  webhookSecret?: string;
 }
 
 async function getStripeCredentials(): Promise<StripeCredentials> {
@@ -40,17 +44,32 @@ async function getStripeCredentials(): Promise<StripeCredentials> {
   }
   const data = (await resp.json()) as { items?: Array<{ settings?: Record<string, string> }> };
   const settings = data.items?.[0]?.settings;
-  // The connector exposes the keys under either `secret`/`publishable` or the
-  // long-form names depending on its version — accept both.
-  const secret_key = settings?.['secret_key'] ?? settings?.['secret'];
-  const publishable_key = settings?.['publishable_key'] ?? settings?.['publishable'];
-  if (!secret_key) {
+  const secretKey = settings?.['secret_key'] ?? settings?.['secret'];
+  const publishableKey = settings?.['publishable_key'] ?? settings?.['publishable'];
+  const webhookSecret = settings?.['webhook_secret'];
+  if (!secretKey) {
     throw new Error('Stripe credentials missing secret key.');
   }
-  return { secret_key, publishable_key };
+  return { secretKey, publishableKey, webhookSecret };
 }
 
-export async function getStripeClient(): Promise<Stripe> {
-  const { secret_key } = await getStripeCredentials();
-  return new Stripe(secret_key);
+export async function getUncachableStripeClient(): Promise<Stripe> {
+  const { secretKey } = await getStripeCredentials();
+  return new Stripe(secretKey);
+}
+
+/** Legacy alias — kept so existing imports keep compiling. */
+export const getStripeClient = getUncachableStripeClient;
+
+export async function getStripeSync(): Promise<StripeSync> {
+  const databaseUrl = process.env['DATABASE_URL'];
+  if (!databaseUrl) {
+    throw new Error('DATABASE_URL environment variable is required');
+  }
+  const { secretKey, webhookSecret } = await getStripeCredentials();
+  return new StripeSync({
+    poolConfig: { connectionString: databaseUrl },
+    stripeSecretKey: secretKey,
+    stripeWebhookSecret: webhookSecret ?? '',
+  });
 }

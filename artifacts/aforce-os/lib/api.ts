@@ -77,11 +77,16 @@ async function request<T>(
 ): Promise<T> {
   const deviceId = await getDeviceId();
   const url = `${getApiBase()}${path}`;
+  // Lazy import to avoid a static cycle between this file and the
+  // services layer (which imports from here for some helpers).
+  const { getAuthHeaders } = await import("../services/authToken");
+  const auth = await getAuthHeaders();
   const res = await fetch(url, {
     method,
     headers: {
       "content-type": "application/json",
       "x-device-id": deviceId,
+      ...auth,
     },
     body: body == null ? undefined : JSON.stringify(body),
   });
@@ -198,4 +203,16 @@ export interface CheckoutSessionStatus {
  */
 export async function fetchCheckoutSession(sessionId: string): Promise<CheckoutSessionStatus> {
   return request<CheckoutSessionStatus>("GET", `/checkout/session/${encodeURIComponent(sessionId)}`);
+}
+
+// ─── Stripe Customer Portal ──────────────────────────────────────────────────
+export interface PortalSession { url: string }
+
+/**
+ * Open the Stripe Customer Portal for the signed-in user. The server
+ * resolves the customer id from `aforce_users.stripe_customer_id`, so
+ * the user must have completed checkout at least once.
+ */
+export async function createPortalSession(returnUrl: string): Promise<PortalSession> {
+  return request<PortalSession>("POST", "/stripe/portal-session", { returnUrl });
 }

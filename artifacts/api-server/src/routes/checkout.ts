@@ -22,11 +22,71 @@
  */
 
 import { Router, type IRouter, type Request, type Response } from 'express';
-import { getStripeClient } from '../lib/stripeClient';
+import { getStripeClient, getUncachableStripeClient } from '../lib/stripeClient';
 import { logger } from '../lib/logger';
 import { priceCart } from '../lib/storeCatalog';
 import { checkoutLimiter } from '../middlewares/rateLimits';
 import { requireAuth } from '../middlewares/requireAuth';
+import { db, aforceUsers } from '@workspace/db';
+import { eq, sql } from 'drizzle-orm';
+
+/**
+ * Look up the active Stripe price id for a given local plan id by
+ * matching `stripe.products.metadata->>'planId'`. Seeded by
+ * `scripts/src/seed-products.ts`. Returns null when the integration
+ * isn't connected yet (so callers can fall back to inline price_data).
+ */
+async function lookupStripePriceId(planId: string): Promise<string | null> {
+  try {
+    const result = await db.execute(sql`
+      SELECT pr.id AS price_id
+      FROM stripe.products p
+      JOIN stripe.prices pr ON pr.product = p.id
+      WHERE p.metadata->>'planId' = ${planId}
+        AND p.active = true
+        AND pr.active = true
+      ORDER BY pr.created DESC NULLS LAST
+      LIMIT 1
+    `);
+    const row = result.rows?.[0] as { price_id?: string } | undefined;
+    return row?.price_id ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Get-or-create a Stripe customer for the authenticated user, persisting
+ * the customer id back onto `aforce_users` so future checkouts (and the
+ * Customer Portal) can reuse it.
+ */
+async function ensureStripeCustomer(userId: string): Promise<string | null> {
+  try {
+    const [row] = await db
+      .select()
+      .from(aforceUsers)
+      .where(eq(aforceUsers.id, userId))
+      .limit(1);
+    if (row?.stripeCustomerId) return row.stripeCustomerId;
+
+    const stripe = await getUncachableStripeClient();
+    const customer = await stripe.customers.create({
+      metadata: { userId },
+      ...(row?.email ? { email: row.email } : {}),
+    });
+    await db
+      .insert(aforceUsers)
+      .values({ id: userId, stripeCustomerId: customer.id })
+      .onConflictDoUpdate({
+        target: aforceUsers.id,
+        set: { stripeCustomerId: customer.id, updatedAt: new Date() },
+      });
+    return customer.id;
+  } catch (err) {
+    logger.warn({ err, userId }, 'ensureStripeCustomer failed');
+    return null;
+  }
+}
 
 const router: IRouter = Router();
 
@@ -149,33 +209,49 @@ router.post('/checkout/session', requireAuth, checkoutLimiter, async (req: Reque
     const stripe = await getStripeClient();
     const base = publicBaseUrl(req);
     const app = encodeURIComponent(returnUrl);
-    const session = await stripe.checkout.sessions.create({
-      mode: 'subscription',
-      line_items: [
-        {
+    const userId = req.userId ?? '';
+
+    // Prefer a real seeded Stripe price id (recommended pattern). Fall
+    // back to inline price_data when the product hasn't been seeded yet
+    // — keeps the demo flow working before `seed-products.ts` runs.
+    const realPriceId = await lookupStripePriceId(planId);
+    const lineItem = realPriceId
+      ? { quantity: 1, price: realPriceId }
+      : {
           quantity: 1,
           price_data: {
             currency: 'usd',
             unit_amount: plan.amountCents,
-            recurring: { interval: 'month' },
+            recurring: { interval: 'month' as const },
+            // Echo planId into product metadata so the entitlement
+            // lookup (which joins via stripe.products.metadata->>'planId')
+            // still resolves to the right plan for un-seeded products.
             product_data: {
               name: plan.name,
               description: plan.description,
+              metadata: { planId },
             },
           },
-        },
-      ],
+        };
+
+    // Get-or-create the Stripe customer so the entitlement endpoint can
+    // join back via aforce_users.stripe_customer_id (and so the Customer
+    // Portal works on second visit).
+    const customerId = userId ? await ensureStripeCustomer(userId) : null;
+
+    const session = await stripe.checkout.sessions.create({
+      mode: 'subscription',
+      line_items: [lineItem],
+      ...(customerId ? { customer: customerId } : {}),
       // Stripe requires https success/cancel URLs — bounce through this
       // server, which then forwards to the caller's returnUrl (web or native).
       success_url: `${base}/api/checkout/return?status=success&kind=subscription&planId=${encodeURIComponent(planId)}&app=${app}`,
       cancel_url:  `${base}/api/checkout/return?status=cancel&kind=subscription&planId=${encodeURIComponent(planId)}&app=${app}`,
-      // userId is critical: the Stripe webhook joins back to the
-      // aforce_users row via this metadata bag (see stripeWebhook.ts).
-      metadata: { planId, kind: 'subscription', userId: req.userId ?? '' },
-      // Mirror onto subscription_data so customer.subscription.* events
-      // also carry the linkage even after the checkout session expires.
+      // userId is critical: lets us recover linkage from Stripe metadata
+      // even if customer creation failed for some reason.
+      metadata: { planId, kind: 'subscription', userId },
       subscription_data: {
-        metadata: { planId, userId: req.userId ?? '' },
+        metadata: { planId, userId },
       },
     });
 
