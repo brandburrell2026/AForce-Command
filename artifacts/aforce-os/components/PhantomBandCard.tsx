@@ -12,16 +12,20 @@ import { Colors } from '../theme/colors';
 import { phantomBandService } from '../services/phantomBandService';
 import { ledForLevel } from '../services/ledSignalService';
 import type { PhantomBandState } from '../types/hardware';
-import { useAppStore } from '../store/useAppStore';
+import { useEngineSlice } from '../store/slices';
 
 function PhantomBandCardImpl() {
   const router = useRouter();
-  const { state } = useAppStore();
+  // Subscribe to ONLY the engine slice — re-renders when the score band /
+  // pulse changes, but not when (e.g.) social mode flips or onboarding
+  // completes. This is what makes the React.memo wrapper materially
+  // gate re-renders.
+  const engine = useEngineSlice();
   const [bandState, setBandState] = useState<PhantomBandState>(phantomBandService.getState());
 
   useEffect(() => phantomBandService.on('state', setBandState), []);
 
-  const level = state.engineOutput.performanceState.level;
+  const level = engine.performanceState.level;
   const ledHex = bandState.connection === 'connected'
     ? bandState.ledPattern.hex
     : ledForLevel(level).hex; // preview color even when unpaired

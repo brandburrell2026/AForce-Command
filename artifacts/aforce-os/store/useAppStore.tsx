@@ -19,6 +19,7 @@ import type {
 import type { UserSubscription } from '../types/subscription';
 import type { AppState } from './appStoreTypes';
 import { reducer } from './appStoreReducer';
+import { SliceProvider, type ActionsSlice } from './slices';
 import { defaultSubscription } from '../services/subscriptionService';
 import { generateCycleIdentityMessage, generateNextCycleHint } from '../utils/scoringEngine';
 import { defaultUserState, mockHistory } from '../data/mockData';
@@ -510,7 +511,23 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     activateSocialMode, logSocialDrink, confirmSocialHydration, deactivateSocialMode, setSocialContext,
   }), [state, logIntake, completeCycle, snooze, dismissSuccess, updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags, setSubscription, completeOnboarding, setAppleHealthSnapshot, confirmCommand, setLanguage, activateSocialMode, logSocialDrink, confirmSocialHydration, deactivateSocialMode, setSocialContext]);
 
-  return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
+  // Stable actions value for the sliced ActionsContext — same callbacks
+  // as `value` minus `state`, so action consumers don't re-render when
+  // unrelated state mutates.
+  const actions = useMemo<ActionsSlice>(() => ({
+    logIntake, completeCycle, snooze, dismissSuccess,
+    updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags,
+    setSubscription, completeOnboarding, setAppleHealthSnapshot, confirmCommand, setLanguage,
+    activateSocialMode, logSocialDrink, confirmSocialHydration, deactivateSocialMode, setSocialContext,
+  }), [logIntake, completeCycle, snooze, dismissSuccess, updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags, setSubscription, completeOnboarding, setAppleHealthSnapshot, confirmCommand, setLanguage, activateSocialMode, logSocialDrink, confirmSocialHydration, deactivateSocialMode, setSocialContext]);
+
+  return (
+    <AppContext.Provider value={value}>
+      <SliceProvider state={state} actions={actions}>
+        {children}
+      </SliceProvider>
+    </AppContext.Provider>
+  );
 }
 
 export function useAppStore() {
@@ -520,25 +537,20 @@ export function useAppStore() {
 }
 
 // ─── Focused selector hooks ────────────────────────────────────────────
-// These don't avoid re-renders today (React.useContext re-runs on any
-// context change), but they document intent at call sites and give us
-// a stable migration target if we move to Zustand / use-context-selector
-// later. Components that only need a single slice should reach for these
-// rather than destructuring the full store.
+// Re-exported from `./slices` so existing call sites keep working but
+// now read from per-slice contexts. Subscribers re-render only when
+// *their* slice changes (not on every store mutation).
 
-export function useSubscription() {
-  return useAppStore().state.subscription;
-}
-
-export function useFeatureFlags() {
-  return useAppStore().state.featureFlags;
-}
-
-export function useEngineOutput() {
-  return useAppStore().state.engineOutput;
-}
-
-export function useUserState() {
-  return useAppStore().state.userState;
-}
+export {
+  useEngineSlice as useEngineOutput,
+  useUserSlice as useUserState,
+  useSubscriptionSlice as useSubscription,
+  useFlagsSlice as useFeatureFlags,
+  useSocialSlice,
+  useIntakeSlice,
+  useCycleSlice,
+  useConfirmationSlice,
+  useOnboardingSlice,
+  useActionsSlice,
+} from './slices';
 
