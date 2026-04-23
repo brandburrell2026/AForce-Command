@@ -35,6 +35,7 @@ import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
 import { createPortalSession } from '@/lib/api';
 import { refreshEntitlement } from '@/hooks/useEntitlement';
+import { VOICE_PLAYBACK_ENABLED } from '@/services/textToSpeech';
 
 const TIER_LABELS: Record<string, { label: string; desc: string; color: string }> = {
   core:           { label: 'AForce Core',           desc: 'Start your performance system.',                      color: Colors.states.BALANCED.primary },
@@ -480,17 +481,19 @@ export default function ProfileScreen() {
 
             const demoModesCard = (
               <>
-                <SectionHeader label="DEMO MODES" hint="Preview Social + Recovery flows" />
+                <SectionHeader label={t('profile.demo_modes.label')} hint={t('profile.demo_modes.hint')} />
                 <View style={styles.card}>
                   <View style={{ paddingHorizontal: 14, paddingTop: 12, paddingBottom: 6 }}>
                     <Text style={{ color: Colors.text.secondary, fontSize: 12, lineHeight: 17 }}>
-                      Activate Social Mode (drinking-night UX) or jump straight into the 8-hour Recovery window. After activating, return to Home — the purple/amber banner appears at the top; tap it to open the full sheet.
+                      {t('profile.demo_modes.intro')}
                     </Text>
                   </View>
 
                   <Pressable
                     onPress={runSocialDemo}
                     disabled={demoBusy !== null}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('profile.demo_modes.activate_social')}
                     style={[
                       styles.demoMaster,
                       {
@@ -502,16 +505,18 @@ export default function ProfileScreen() {
                     <Icon name="moon" size={14} color={socialActive ? '#9D7CFB' : Colors.text.secondary} />
                     <Text style={[styles.demoMasterText, { color: socialActive ? '#9D7CFB' : Colors.text.primary }]}>
                       {demoBusy === 'social'
-                        ? 'Activating Social Mode…'
+                        ? t('profile.demo_modes.activating_social')
                         : socialActive
-                          ? 'Social Mode active — replay demo'
-                          : 'Activate Social Mode (2 drinks)'}
+                          ? t('profile.demo_modes.social_active')
+                          : t('profile.demo_modes.activate_social')}
                     </Text>
                   </Pressable>
 
                   <Pressable
                     onPress={runRecoveryDemo}
                     disabled={demoBusy !== null}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('profile.demo_modes.enter_recovery')}
                     style={[
                       styles.demoMaster,
                       {
@@ -523,10 +528,10 @@ export default function ProfileScreen() {
                     <Icon name="sun" size={14} color={inRecovery ? '#F4B23F' : Colors.text.secondary} />
                     <Text style={[styles.demoMasterText, { color: inRecovery ? '#F4B23F' : Colors.text.primary }]}>
                       {demoBusy === 'recovery'
-                        ? 'Entering Recovery Mode…'
+                        ? t('profile.demo_modes.entering_recovery')
                         : inRecovery
-                          ? 'Recovery window active — replay demo'
-                          : 'Enter Recovery Mode (3 drinks → end night)'}
+                          ? t('profile.demo_modes.recovery_active')
+                          : t('profile.demo_modes.enter_recovery')}
                     </Text>
                   </Pressable>
 
@@ -534,6 +539,8 @@ export default function ProfileScreen() {
                     <Pressable
                       onPress={endDemo}
                       disabled={demoBusy !== null}
+                      accessibilityRole="button"
+                      accessibilityLabel={t('profile.demo_modes.end_night')}
                       style={[
                         styles.demoMaster,
                         { borderColor: Colors.border.medium, opacity: demoBusy ? 0.5 : 1 },
@@ -542,11 +549,36 @@ export default function ProfileScreen() {
                       <Icon name="x" size={14} color={Colors.text.secondary} />
                       <Text style={[styles.demoMasterText, { color: Colors.text.primary }]}>
                         {demoBusy === 'reset'
-                          ? 'Ending session…'
-                          : socialActive ? 'End night → Recovery' : 'Demo: Recovery is auto-clearing'}
+                          ? t('profile.demo_modes.ending')
+                          : socialActive ? t('profile.demo_modes.end_night') : t('profile.demo_modes.auto_clearing')}
                       </Text>
                     </Pressable>
                   )}
+                </View>
+              </>
+            );
+
+            // Read-only Voice section — surfaces the global VOICE_PLAYBACK_ENABLED
+            // flag from services/textToSpeech.ts so users can see at a glance
+            // that AI replies are currently muted by design (visual-only prompts).
+            const voiceCard = (
+              <>
+                <SectionHeader label={t('profile.voice_section.label')} />
+                <View style={styles.card}>
+                  <View style={styles.settingRow}>
+                    <View style={styles.settingLeft}>
+                      <Icon name="volume-x" size={16} color={Colors.text.secondary} />
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.settingLabel}>{t('profile.voice_section.row_label')}</Text>
+                        <Text style={[styles.flagDesc, { marginTop: 2 }]}>
+                          {t('profile.voice_section.muted_detail')}
+                        </Text>
+                      </View>
+                    </View>
+                    <Text style={[styles.settingValue, { color: Colors.text.muted }]}>
+                      {VOICE_PLAYBACK_ENABLED ? t('profile.voice_section.enabled') : t('profile.voice_section.muted')}
+                    </Text>
+                  </View>
                 </View>
               </>
             );
@@ -608,6 +640,7 @@ export default function ProfileScreen() {
                   </View>
                   <View style={[styles.col, styles.colRight]} testID="profile-right-col">
                     {settingsBlock}
+                    {voiceCard}
                     {demoModesCard}
                     {demoAccessCard}
                     {phaseEntryRow}
@@ -621,6 +654,7 @@ export default function ProfileScreen() {
               <>
                 {profileCard}
                 {settingsBlock}
+                {voiceCard}
                 {goalsCard}
                 {hardwareCard}
                 {connectedDevicesCard}

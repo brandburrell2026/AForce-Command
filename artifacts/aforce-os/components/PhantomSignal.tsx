@@ -5,20 +5,22 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { Colors } from '../theme/colors';
 import { phantomSignalData } from '../data/mockData';
 
 export function PhantomSignal() {
+  const { t } = useTranslation();
   const { estimatedCoreTemp, activityLabel, hrv, vo2Estimate } = phantomSignalData;
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>PHANTOM SIGNAL</Text>
+      <Text style={styles.title}>{t('home.phantom_signal.title')}</Text>
       <View style={styles.grid}>
-        <SignalItem icon="thermometer" label="CORE TEMP" value={`${estimatedCoreTemp.toFixed(1)}°F`} />
-        <SignalItem icon="wind" label="HRV" value={`${hrv} ms`} />
-        <SignalItem icon="activity" label="VO₂ EST" value={`${vo2Estimate}`} />
-        <SignalItem icon="zap" label="MODE" value={activityLabel} />
+        <SignalItem icon="thermometer" label={t('home.phantom_signal.core_temp')} value={`${estimatedCoreTemp.toFixed(1)}°F`} />
+        <SignalItem icon="wind" label={t('home.phantom_signal.hrv')} value={`${hrv} ms`} />
+        <SignalItem icon="activity" label={t('home.phantom_signal.vo2')} value={`${vo2Estimate}`} />
+        <SignalItem icon="zap" label={t('home.phantom_signal.mode')} value={activityLabel} />
       </View>
     </View>
   );

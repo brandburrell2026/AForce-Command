@@ -13,7 +13,7 @@
  * VOICE_PLAYBACK_ENABLED to true) if voice output is ever re-enabled.
  */
 
-const VOICE_PLAYBACK_ENABLED = false;
+export const VOICE_PLAYBACK_ENABLED = false;
 
 /** No-op while voice playback is disabled. See header for rationale. */
 export function speak(_text: string): void {

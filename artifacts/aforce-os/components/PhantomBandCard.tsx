@@ -7,6 +7,7 @@ import React, { useEffect, useState } from 'react';
 import { Pressable, View, Text, StyleSheet } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
 import { Colors } from '../theme/colors';
 import { phantomBandService } from '../services/phantomBandService';
@@ -16,6 +17,7 @@ import { useEngineSlice } from '../store/slices';
 
 function PhantomBandCardImpl() {
   const router = useRouter();
+  const { t } = useTranslation();
   // Subscribe to ONLY the engine slice — re-renders when the score band /
   // pulse changes, but not when (e.g.) social mode flips or onboarding
   // completes. This is what makes the React.memo wrapper materially
@@ -32,12 +34,12 @@ function PhantomBandCardImpl() {
 
   const statusLine = (() => {
     switch (bandState.connection) {
-      case 'connected':    return 'Mirroring · double-tap for voice';
-      case 'syncing':      return 'Syncing…';
-      case 'pairing':      return 'Pairing…';
-      case 'disconnected': return 'Disconnected · tap to reconnect';
+      case 'connected':    return t('home.phantom_band.status_connected');
+      case 'syncing':      return t('home.phantom_band.status_syncing');
+      case 'pairing':      return t('home.phantom_band.status_pairing');
+      case 'disconnected': return t('home.phantom_band.status_disconnected');
       case 'unpaired':
-      default:             return 'Tap to pair · trigger voice from your wrist';
+      default:             return t('home.phantom_band.status_unpaired');
     }
   })();
 
@@ -46,15 +48,17 @@ function PhantomBandCardImpl() {
       onPress={() => router.push('/phantom')}
       style={styles.card}
       testID="phantom-band-card"
+      accessibilityRole="button"
+      accessibilityLabel={t('home.phantom_band.a11y')}
     >
       <View style={[styles.led, { backgroundColor: ledHex, shadowColor: ledHex }]} />
       <View style={{ flex: 1 }}>
         <View style={styles.titleRow}>
-          <Text style={styles.title}>PHANTOM BAND</Text>
+          <Text style={styles.title}>{t('home.phantom_band.title')}</Text>
           {bandState.connection === 'connected' && (
             <View style={styles.livePill}>
               <View style={styles.liveDot} />
-              <Text style={styles.liveText}>LIVE</Text>
+              <Text style={styles.liveText}>{t('home.phantom_band.live')}</Text>
             </View>
           )}
         </View>

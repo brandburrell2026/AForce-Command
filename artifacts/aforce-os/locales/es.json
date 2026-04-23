@@ -34,7 +34,30 @@
     "depleted_in": "AGOTADO en {{minutes}} min",
     "your_score": "Tu puntuación",
     "why_this_score": "Por qué esta puntuación",
-    "tap_to_open": "Toca para ver detalle"
+    "tap_to_open": "Toca para ver detalle",
+    "share_a11y": "Share your performance",
+    "heat_guard": {
+      "eyebrow": "HEAT GUARD",
+      "score": "Score {{score}}",
+      "a11y": "Heat Guard: {{label}}, score {{score}}. Tap to open."
+    },
+    "phantom_band": {
+      "title": "PHANTOM BAND",
+      "live": "LIVE",
+      "a11y": "Phantom Band",
+      "status_connected": "Mirroring · double-tap for voice",
+      "status_syncing": "Syncing…",
+      "status_pairing": "Pairing…",
+      "status_disconnected": "Disconnected · tap to reconnect",
+      "status_unpaired": "Tap to pair · trigger voice from your wrist"
+    },
+    "phantom_signal": {
+      "title": "PHANTOM SIGNAL",
+      "core_temp": "CORE TEMP",
+      "hrv": "HRV",
+      "vo2": "VO₂ EST",
+      "mode": "MODE"
+    }
   },
   "logIntake": {
     "log_prefix": "REGISTRAR",
@@ -83,7 +106,28 @@
     "account": "Cuenta",
     "subscription": "Suscripción",
     "notifications": "Notificaciones",
-    "about": "Acerca de"
+    "about": "Acerca de",
+    "demo_modes": {
+      "label": "DEMO MODES",
+      "hint": "Preview Social + Recovery flows",
+      "intro": "Activate Social Mode (drinking-night UX) or jump straight into the 8-hour Recovery window. After activating, return to Home — the purple/amber banner appears at the top; tap it to open the full sheet.",
+      "activate_social": "Activate Social Mode (2 drinks)",
+      "activating_social": "Activating Social Mode…",
+      "social_active": "Social Mode active — replay demo",
+      "enter_recovery": "Enter Recovery Mode (3 drinks → end night)",
+      "entering_recovery": "Entering Recovery Mode…",
+      "recovery_active": "Recovery window active — replay demo",
+      "end_night": "End night → Recovery",
+      "ending": "Ending session…",
+      "auto_clearing": "Demo: Recovery is auto-clearing"
+    },
+    "voice_section": {
+      "label": "VOICE",
+      "row_label": "AI voice replies",
+      "muted": "Muted",
+      "enabled": "On",
+      "muted_detail": "AForce shows on-screen prompts only — voice input still works."
+    }
   },
   "settings": {
     "language_title": "Elige tu idioma",
@@ -152,7 +196,6 @@
     "drink_hard_seltzer": "Hard Seltzer",
     "drink_custom": "Otra",
     "entry_button": "Modo Social",
-
     "bac_label": "BAC EST.",
     "bac_clear_label": "DESPEJA EN",
     "bac_clear_now": "Despejado",
@@ -165,14 +208,12 @@
     "bac_confidence_low": "BAJA CONF",
     "bac_confidence_medium": "MED CONF",
     "bac_confidence_high": "ALTA CONF",
-
     "impairment_label": "AFECTACIÓN",
     "impairment_low": "BAJA",
     "impairment_elevated": "ELEVADA",
     "impairment_moderate": "MODERADA",
     "impairment_high": "ALTA",
     "impairment_critical": "CRÍTICA",
-
     "safety_title": "SEGURIDAD EN EL TRANSPORTE",
     "safety_do_not_drive": "No conduzcas.",
     "safety_use_rideshare": "Planifica un viaje antes de la próxima copa.",
@@ -181,10 +222,8 @@
     "safety_moderate_body": "Tu coordinación y juicio están reducidos. Coordina un viaje antes de necesitarlo.",
     "safety_high_body": "El riesgo de afectación está aumentando. No conduzcas.",
     "safety_critical_body": "El riesgo de afectación está aumentando. No conduzcas.",
-
     "estimate_only": "Sólo estimación",
     "not_legal_medical": "Las estimaciones de BAC y de afectación son solo aproximadas y nunca deben usarse para decidir si estás en condiciones legales o seguras de conducir. Si has bebido, no conduzcas. Usa un rideshare, conductor designado u otro transporte seguro.",
-
     "recovery_paywall_eyebrow": "MODO RECUPERACIÓN",
     "recovery_paywall_title": "Despierta con la mente clara",
     "recovery_paywall_blurb": "Recovery+ desbloquea un plan personalizado tras la sesión con una estimación matinal, pasos de hidratación y dosificación de AForce RTD.",
@@ -207,7 +246,21 @@
     "recovering": "Recuperando. {{action}}.",
     "did_you_follow": "¿Seguiste la orden?",
     "command_followed": "Confirmado. Puntuación firme.",
-    "command_missed": "Perdida. Descenso acelerado."
+    "command_missed": "Perdida. Descenso acelerado.",
+    "tap_to_speak": "TAP TO SPEAK",
+    "listening": "LISTENING…",
+    "processing": "PROCESSING…",
+    "responding": "COMMAND",
+    "try_again": "TRY AGAIN",
+    "speak": "SPEAK",
+    "stop": "STOP",
+    "working": "WORKING",
+    "hint": "Try \"log a stick\", \"how am I doing\", or \"I feel dizzy\".",
+    "eyebrow": "AFORCE VOICE",
+    "close_a11y": "Close voice",
+    "mic_a11y": "Toggle voice capture",
+    "replies_muted": "REPLIES MUTED",
+    "replies_muted_hint": "On-screen prompts only — no audio response."
   },
   "states": {
     "peak": "Óptimo",

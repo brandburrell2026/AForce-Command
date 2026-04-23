@@ -54,6 +54,9 @@ function buildBreakdown(state: UserState): { score: number; contributions: Score
   // absorbing in real time. When `intakeEvents` is empty (legacy
   // state pre-migration), we fall back to the running-aggregate so
   // the score still renders.
+  // TODO(remove): legacy baseIntake/aforceBonus running-aggregate
+  // fallback. Safe to delete once we've confirmed no production rows
+  // are missing `intakeEvents` (migration shipped 2026-Q1).
   const events = state.intakeEvents ?? [];
   let baseIntake: number;
   let aforceBonus: number;
@@ -300,6 +303,9 @@ function calculateBaseScore(state: UserState): number {
   // Per-event hydration scoring — mirrors buildBreakdown so the score
   // and the prediction strip agree. Falls back to the legacy running-
   // aggregate when no events are present.
+  // TODO(remove): legacy baseIntake/aforceBonus running-aggregate
+  // fallback. Safe to delete once we've confirmed no production rows
+  // are missing `intakeEvents` (migration shipped 2026-Q1).
   const events = state.intakeEvents ?? [];
   let baseIntake: number;
   let aforceBonus: number;

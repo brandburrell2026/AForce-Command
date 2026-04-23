@@ -7,6 +7,7 @@ import React from "react";
 import { View, Text, StyleSheet, Pressable } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import { useTranslation } from "react-i18next";
 
 import { Colors } from "../theme/colors";
 import type { HeatRiskBand } from "../types/heat";
@@ -19,6 +20,7 @@ interface Props {
 
 function HeatAlertBannerImpl({ score, band }: Props) {
   const router = useRouter();
+  const { t } = useTranslation();
   const display = HEAT_BANDS.find((b) => b.band === band) ?? HEAT_BANDS[0];
   if (band === "STABLE") return null;
   const accent = display.color;
@@ -39,7 +41,7 @@ function HeatAlertBannerImpl({ score, band }: Props) {
         { borderColor: `${accent}${outerBorder}`, backgroundColor: `${accent}${bgAlpha}` },
       ]}
       accessibilityRole="button"
-      accessibilityLabel={`Heat Guard: ${display.label}, score ${score}. Tap to open.`}
+      accessibilityLabel={t("home.heat_guard.a11y", { label: display.label, score })}
     >
       <View
         pointerEvents="none"
@@ -49,9 +51,11 @@ function HeatAlertBannerImpl({ score, band }: Props) {
         <Feather name="thermometer" size={18} color={accent} />
       </View>
       <View style={styles.body}>
-        <Text style={[styles.eyebrow, { color: accent }]}>HEAT GUARD · {display.label}</Text>
+        <Text style={[styles.eyebrow, { color: accent }]}>
+          {t("home.heat_guard.eyebrow")} · {display.label}
+        </Text>
         <Text style={[styles.line, isCritical && { color: accent, fontWeight: "700" }]}>
-          {display.shortDirective} · Score {score}
+          {display.shortDirective} · {t("home.heat_guard.score", { score })}
         </Text>
       </View>
       <Feather name="chevron-right" size={18} color={accent} />

@@ -22,13 +22,15 @@ import {
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
+import { useTranslation } from 'react-i18next';
+
 import { Colors } from '../theme/colors';
 import { VoiceWaveform } from './VoiceWaveform';
 import { useAppStore } from '../store/useAppStore';
 import {
   startSpeechRecognition, type STTHandle,
 } from '../services/speechToText';
-import { speak, stopSpeaking } from '../services/textToSpeech';
+import { speak, stopSpeaking, VOICE_PLAYBACK_ENABLED } from '../services/textToSpeech';
 import { processTranscript } from '../services/voiceService';
 import type {
   VoiceCommandResponse, VoiceState, VoiceAction,
@@ -55,16 +57,17 @@ const ACCENT_BY_STATE: Record<VoiceState, string> = {
   error:      Colors.states.DEPLETED.primary,
 };
 
-const STATE_LABEL: Record<VoiceState, string> = {
-  idle:       'TAP TO SPEAK',
-  listening:  'LISTENING…',
-  processing: 'PROCESSING…',
-  responding: 'COMMAND',
-  error:      'TRY AGAIN',
+const STATE_LABEL_KEY: Record<VoiceState, string> = {
+  idle:       'voice.tap_to_speak',
+  listening:  'voice.listening',
+  processing: 'voice.processing',
+  responding: 'voice.responding',
+  error:      'voice.try_again',
 };
 
 export function VoiceOverlay({ visible, onClose, autoStart = false }: Props) {
   const router = useRouter();
+  const { t } = useTranslation();
   const { state: appState, logIntake, updateSymptoms, confirmStatus } = useAppStore();
 
   const [voiceState, setVoiceState] = useState<VoiceState>('idle');
@@ -210,15 +213,23 @@ export function VoiceOverlay({ visible, onClose, autoStart = false }: Props) {
 
         <View style={styles.sheet}>
           <View style={styles.header}>
-            <Text style={styles.eyebrow}>AFORCE VOICE</Text>
-            <Pressable onPress={onClose} style={styles.closeBtn} accessibilityLabel="Close voice">
-              <Feather name="x" size={18} color={Colors.text.muted} />
-            </Pressable>
+            <Text style={styles.eyebrow}>{t('voice.eyebrow')}</Text>
+            <View style={styles.headerRight}>
+              {!VOICE_PLAYBACK_ENABLED && (
+                <View style={styles.mutedPill} testID="voice-replies-muted-pill">
+                  <Feather name="volume-x" size={10} color={Colors.text.muted} />
+                  <Text style={styles.mutedPillText}>{t('voice.replies_muted')}</Text>
+                </View>
+              )}
+              <Pressable onPress={onClose} style={styles.closeBtn} accessibilityLabel={t('voice.close_a11y')}>
+                <Feather name="x" size={18} color={Colors.text.muted} />
+              </Pressable>
+            </View>
           </View>
 
           <View style={[styles.stateRow, { borderColor: `${accent}55`, backgroundColor: `${accent}14` }]}>
             <View style={[styles.dot, { backgroundColor: accent }]} />
-            <Text style={[styles.stateLabel, { color: accent }]}>{STATE_LABEL[voiceState]}</Text>
+            <Text style={[styles.stateLabel, { color: accent }]}>{t(STATE_LABEL_KEY[voiceState])}</Text>
           </View>
 
           <View style={styles.waveformWrap}>
@@ -236,9 +247,7 @@ export function VoiceOverlay({ visible, onClose, autoStart = false }: Props) {
               {response.detail ? <Text style={styles.detail}>{response.detail}</Text> : null}
             </View>
           ) : (
-            <Text style={styles.hint}>
-              Try “log a stick”, “how am I doing”, or “I feel dizzy”.
-            </Text>
+            <Text style={styles.hint}>{t('voice.hint')}</Text>
           )}
 
           <Pressable
@@ -249,7 +258,7 @@ export function VoiceOverlay({ visible, onClose, autoStart = false }: Props) {
               pressed && { transform: [{ scale: 0.97 }] },
             ]}
             accessibilityRole="button"
-            accessibilityLabel="Toggle voice capture"
+            accessibilityLabel={t('voice.mic_a11y')}
             testID="voice-mic-toggle"
           >
             <Feather
@@ -258,7 +267,7 @@ export function VoiceOverlay({ visible, onClose, autoStart = false }: Props) {
               color={accent}
             />
             <Text style={[styles.micText, { color: accent }]}>
-              {voiceState === 'listening' ? 'STOP' : voiceState === 'processing' ? 'WORKING' : 'SPEAK'}
+              {voiceState === 'listening' ? t('voice.stop') : voiceState === 'processing' ? t('voice.working') : t('voice.speak')}
             </Text>
           </Pressable>
         </View>
@@ -286,6 +295,17 @@ const styles = StyleSheet.create({
     gap: 14,
   },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  headerRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  mutedPill: {
+    flexDirection: 'row', alignItems: 'center', gap: 4,
+    paddingHorizontal: 8, paddingVertical: 3,
+    borderRadius: 100, borderWidth: 1, borderColor: Colors.border.subtle,
+    backgroundColor: Colors.fill.light,
+  },
+  mutedPillText: {
+    fontSize: 9, fontFamily: 'Inter_700Bold',
+    color: Colors.text.muted, letterSpacing: 1.4,
+  },
   eyebrow: {
     fontSize: 10,
     fontFamily: 'Inter_700Bold',
