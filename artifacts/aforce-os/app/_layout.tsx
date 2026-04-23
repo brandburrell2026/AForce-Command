@@ -61,6 +61,9 @@ function AppShell() {
             <KeyboardProvider>
               <AppProvider>
                 <CartProvider>
+                  {/* Mounted *inside* AppProvider so the entitlement
+                      hook can call useAppStore() safely. */}
+                  <ClerkAuthBridge />
                   <RootLayoutNav />
                 </CartProvider>
               </AppProvider>
@@ -137,7 +140,6 @@ export default function RootLayout() {
       proxyUrl={proxyUrl}
     >
       <ClerkLoaded>
-        <ClerkAuthBridge />
         <AppShell />
       </ClerkLoaded>
     </ClerkProvider>
