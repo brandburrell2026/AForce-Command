@@ -44,6 +44,10 @@ function resolveBase(): string {
 const ENTITLEMENT_URL = `${resolveBase()}/entitlement`;
 const REFETCH_INTERVAL_MS = 60_000;
 
+const VALID_STATUSES: readonly SubscriptionStatus[] = [
+  'active', 'trialing', 'past_due', 'canceled', 'paused',
+];
+
 function buildSubscription(
   current: UserSubscription,
   data: EntitlementResponse,
@@ -54,20 +58,29 @@ function buildSubscription(
   const planId = (PLAN_BY_ID[data.planId as SubscriptionPlanId]
     ? (data.planId as SubscriptionPlanId)
     : 'core') as SubscriptionPlanId;
-  const status = (
-    ['active', 'trialing', 'past_due', 'canceled', 'incomplete', 'paused', 'inactive'] as const
-  ).includes(data.status as SubscriptionStatus)
+  // Map server-side `none` / `incomplete` / `inactive` (no live Stripe
+  // sub) to client-side `canceled` so paywalls trigger correctly
+  // instead of optimistically rendering the unlocked UI. The local
+  // SubscriptionStatus enum doesn't carry a separate "never had one"
+  // value — `canceled` is the closest gate-blocking state.
+  const status: SubscriptionStatus = VALID_STATUSES.includes(
+    data.status as SubscriptionStatus,
+  )
     ? (data.status as SubscriptionStatus)
-    : ('active' as SubscriptionStatus);
+    : 'canceled';
   return {
     ...current,
     planId,
     status,
     unlockedFlags: getEffectiveFeatures(planId).map((f) => f.id),
-    billing: {
-      ...current.billing,
-      ...(data.currentPeriodEnd ? { nextRenewalAt: data.currentPeriodEnd } : {}),
-    },
+    // Always reflect the server's renewal date — including a clear on
+     // downgrade/cancel — instead of preserving a stale value.
+    billing: (() => {
+      const { nextRenewalAt: _drop, ...restBilling } = current.billing;
+      return data.currentPeriodEnd
+        ? { ...restBilling, nextRenewalAt: data.currentPeriodEnd }
+        : restBilling;
+    })(),
   };
 }
 
@@ -78,18 +91,30 @@ export function useEntitlement(): void {
   const subscriptionRef = React.useRef(state.subscription);
   React.useEffect(() => { subscriptionRef.current = state.subscription; }, [state.subscription]);
 
+  // Monotonic request id guards against out-of-order responses: a
+  // foreground wake can race a 60s interval tick and the older one
+  // would otherwise overwrite the newer one.
+  const requestIdRef = React.useRef(0);
+
   const refresh = React.useCallback(async () => {
     if (!isSignedIn) return;
+    const myId = ++requestIdRef.current;
     try {
       const headers = await getAuthHeaders();
       const res = await fetch(ENTITLEMENT_URL, { headers });
       if (!res.ok) return;
       const data = (await res.json()) as EntitlementResponse;
+      // Drop stale responses — a newer request finished first.
+      if (myId !== requestIdRef.current) return;
       const next = buildSubscription(subscriptionRef.current, data);
-      // Avoid a needless dispatch if nothing actually changed.
+      // Avoid a needless dispatch if nothing actually changed. Compare
+      // currentPeriodEnd too so renewal-date refreshes propagate.
+      const prevPeriodEnd = subscriptionRef.current.billing?.nextRenewalAt ?? null;
+      const nextPeriodEnd = (next.billing?.nextRenewalAt as string | undefined) ?? null;
       if (
         next.planId === subscriptionRef.current.planId &&
-        next.status === subscriptionRef.current.status
+        next.status === subscriptionRef.current.status &&
+        prevPeriodEnd === nextPeriodEnd
       ) return;
       setSubscription(next);
     } catch {

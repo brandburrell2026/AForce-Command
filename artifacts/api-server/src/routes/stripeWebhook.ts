@@ -139,19 +139,30 @@ router.post(
             items?: { data?: Array<{ price?: PriceLike }> };
             metadata?: Record<string, string> | null;
           };
-          // Find the user row by stripeSubscriptionId (set by checkout).
+          // Try to find the existing user row by stripeSubscriptionId
+          // (the linkage that checkout.session.completed wrote).
           const [row] = await db
             .select()
             .from(aforceUsers)
             .where(eq(aforceUsers.stripeSubscriptionId, sub.id))
             .limit(1);
-          if (!row) {
-            logger.warn({ subId: sub.id }, "subscription.updated for unknown sub — ignoring");
+          // Fallback to subscription_data.metadata.userId, written by
+          // checkout.ts. This recovers linkage when subscription.created
+          // arrives before checkout.session.completed (Stripe does not
+          // guarantee event ordering) or when checkout.session.completed
+          // is lost to a transient failure.
+          const metaUserId = sub.metadata?.["userId"];
+          const targetUserId = row?.id ?? (metaUserId && metaUserId.length > 0 ? metaUserId : null);
+          if (!targetUserId) {
+            logger.warn({ subId: sub.id }, "subscription.updated with no resolvable userId — ignoring");
             break;
           }
           const price = sub.items?.data?.[0]?.price;
           const derived = planFromPrice(price);
-          await upsertEntitlement(row.id, {
+          await upsertEntitlement(targetUserId, {
+            // Backfill the stripeSubscriptionId on the metadata recovery
+            // path so future events can hit the fast lookup.
+            ...(row ? {} : { stripeSubscriptionId: sub.id, stripeCustomerId: sub.customer }),
             subscriptionStatus: sub.status,
             ...(derived ? { planId: derived } : {}),
             ...(sub.current_period_end

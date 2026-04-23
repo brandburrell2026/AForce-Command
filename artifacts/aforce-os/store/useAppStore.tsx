@@ -11,13 +11,14 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import type {
   UserState,
   AppleHealthInputs,
-  ScoreEngineOutput,
   CycleResult,
   HistoryEntry,
   FluidType,
   FeatureFlags,
 } from '../types';
 import type { UserSubscription } from '../types/subscription';
+import type { AppState } from './appStoreTypes';
+import { reducer } from './appStoreReducer';
 import { defaultSubscription } from '../services/subscriptionService';
 import { generateCycleIdentityMessage, generateNextCycleHint } from '../utils/scoringEngine';
 import { defaultUserState, mockHistory } from '../data/mockData';
@@ -66,36 +67,6 @@ function inferFlavorFromLabel(label?: string): ProductFlavor | undefined {
 // initial render, we accept a one-tick zero state and refresh on mount.)
 import { calculateScore as _initialOnly } from '../utils/scoringEngine';
 
-interface AppState {
-  userState: UserState;
-  engineOutput: ScoreEngineOutput;
-  history: HistoryEntry[];
-  lastCycleResult: CycleResult | null;
-  isCompletingCycle: boolean;
-  showCycleSuccess: boolean;
-  timerSeconds: number;
-  /** True when the recheck timer hit zero and we're awaiting the user's "Did you follow it?" answer. */
-  pendingConfirmation: boolean;
-  featureFlags: FeatureFlags;
-  subscription: UserSubscription;
-  lastIntakeBurstAt: number; // timestamp for pulse burst trigger
-  hasSeenOnboarding: boolean;
-}
-
-type Action =
-  | { type: 'CYCLE_START' }
-  | { type: 'CYCLE_SUCCESS'; payload: { result: CycleResult; newUserState: UserState; engineOutput: ScoreEngineOutput; historyEntry: HistoryEntry; silent?: boolean } }
-  | { type: 'DISMISS_SUCCESS' }
-  | { type: 'SNOOZE' }
-  | { type: 'TICK_TIMER' }
-  | { type: 'SET_USER_STATE'; payload: { newUserState: UserState; engineOutput: ScoreEngineOutput } }
-  | { type: 'REFRESH_ENGINE'; payload: { engineOutput: ScoreEngineOutput } }
-  | { type: 'SET_FLAGS'; payload: FeatureFlags }
-  | { type: 'SET_SUBSCRIPTION'; payload: UserSubscription }
-  | { type: 'COMPLETE_ONBOARDING' }
-  | { type: 'SET_APPLE_HEALTH'; payload: { snapshot: AppleHealthInputs | null; engineOutput: ScoreEngineOutput } }
-  | { type: 'CONFIRM_COMMAND'; payload: { newUserState: UserState; engineOutput: ScoreEngineOutput } };
-
 // Initial render only — engine output is then immediately refreshed via
 // /v1/home from the service layer in an effect (see AppProvider mount).
 const initialEngineOutput = _initialOnly(defaultUserState);
@@ -114,87 +85,6 @@ const initialState: AppState = {
   lastIntakeBurstAt: 0,
   hasSeenOnboarding: false,
 };
-
-function reducer(state: AppState, action: Action): AppState {
-  switch (action.type) {
-    case 'CYCLE_START':
-      return { ...state, isCompletingCycle: true };
-    case 'CYCLE_SUCCESS': {
-      const { result, newUserState, engineOutput, historyEntry, silent } = action.payload;
-      return {
-        ...state,
-        userState: newUserState,
-        engineOutput,
-        history: [historyEntry, ...state.history].slice(0, 30),
-        lastCycleResult: result,
-        isCompletingCycle: false,
-        // Voice flow shows its own response card — suppress the hero overlay
-        // so we don't stack two modals (which RN-web cannot render together).
-        showCycleSuccess: !silent,
-        timerSeconds: engineOutput.riskTimer.minutes * 60,
-        pendingConfirmation: false,
-        lastIntakeBurstAt: Date.now(),
-      };
-    }
-    case 'DISMISS_SUCCESS':
-      return { ...state, showCycleSuccess: false, lastCycleResult: null };
-    case 'SNOOZE': {
-      const updated: UserState = {
-        ...state.userState,
-        isSnoozed: true,
-        snoozeUntil: new Date(Date.now() + 20 * 60 * 1000),
-      };
-      // Snooze itself is local UI state. Score will be refreshed on next
-      // /v1/home tick — do not invoke the scoring engine inline.
-      return { ...state, userState: updated };
-    }
-    case 'TICK_TIMER': {
-      const next = state.timerSeconds - 1;
-      if (next <= 0) {
-        // Timer expired — arm the "Did you follow the command?"
-        // prompt (T2). The engine is still refreshed from /v1/home;
-        // we only flip the local UI flag here.
-        return { ...state, timerSeconds: 0, pendingConfirmation: true };
-      }
-      return { ...state, timerSeconds: next };
-    }
-    case 'CONFIRM_COMMAND': {
-      const { newUserState, engineOutput } = action.payload;
-      // Reset the recheck countdown so the user gets a fresh window
-      // before the next prompt fires.
-      return {
-        ...state,
-        userState: newUserState,
-        engineOutput,
-        pendingConfirmation: false,
-        timerSeconds: engineOutput.riskTimer.minutes * 60,
-      };
-    }
-    case 'SET_USER_STATE': {
-      const { newUserState, engineOutput } = action.payload;
-      return { ...state, userState: newUserState, engineOutput, timerSeconds: engineOutput.riskTimer.minutes * 60 };
-    }
-    case 'REFRESH_ENGINE': {
-      // Engine refresh from poll — do NOT reset countdown timer.
-      return { ...state, engineOutput: action.payload.engineOutput };
-    }
-    case 'SET_FLAGS':
-      return { ...state, featureFlags: action.payload };
-    case 'SET_SUBSCRIPTION':
-      return { ...state, subscription: action.payload };
-    case 'COMPLETE_ONBOARDING':
-      return { ...state, hasSeenOnboarding: true };
-    case 'SET_APPLE_HEALTH': {
-      const { snapshot, engineOutput } = action.payload;
-      const updated: UserState = snapshot
-        ? { ...state.userState, appleHealth: snapshot }
-        : (() => { const { appleHealth: _drop, ...rest } = state.userState; return rest as UserState; })();
-      return { ...state, userState: updated, engineOutput };
-    }
-    default:
-      return state;
-  }
-}
 
 interface AppContextValue {
   state: AppState;
@@ -628,3 +518,27 @@ export function useAppStore() {
   if (!ctx) throw new Error('useAppStore must be used inside AppProvider');
   return ctx;
 }
+
+// ─── Focused selector hooks ────────────────────────────────────────────
+// These don't avoid re-renders today (React.useContext re-runs on any
+// context change), but they document intent at call sites and give us
+// a stable migration target if we move to Zustand / use-context-selector
+// later. Components that only need a single slice should reach for these
+// rather than destructuring the full store.
+
+export function useSubscription() {
+  return useAppStore().state.subscription;
+}
+
+export function useFeatureFlags() {
+  return useAppStore().state.featureFlags;
+}
+
+export function useEngineOutput() {
+  return useAppStore().state.engineOutput;
+}
+
+export function useUserState() {
+  return useAppStore().state.userState;
+}
+

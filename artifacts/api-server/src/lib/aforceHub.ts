@@ -5,9 +5,12 @@
  * after they mutate state and every connected socket for that user
  * receives the JSON payload.
  *
- * Connection URL: `ws://<host>/api/aforce/ws?user=<id>`
- *   - `user` defaults to `DEFAULT_USER_ID` (single-user V1)
- *   - Heartbeat ping every 30s; dead sockets are pruned
+ * Connection URL: `wss://<host>/api/aforce/ws?token=<clerk_jwt>`
+ *   - userId is derived from the Clerk session token; the legacy `?user`
+ *     query parameter is **not trusted** (would let any client subscribe
+ *     to another user's channel — IDOR).
+ *   - In dev (no CLERK_SECRET_KEY), falls back to DEFAULT_USER_ID.
+ *   - Heartbeat ping every 30s; dead sockets are pruned.
  *
  * The server holds the WebSocketServer in `noServer` mode and the
  * upgrade is wired up from `artifacts/api-server/src/index.ts` so the
@@ -16,8 +19,12 @@
 
 import { WebSocketServer, WebSocket, type RawData } from "ws";
 import type { Server as HttpServer, IncomingMessage } from "node:http";
+import { verifyToken } from "@clerk/backend";
 import { logger } from "./logger";
 import { DEFAULT_USER_ID } from "./aforceState";
+
+const CLERK_SECRET_KEY = process.env["CLERK_SECRET_KEY"];
+const IS_PRODUCTION = process.env["NODE_ENV"] === "production";
 
 const wss = new WebSocketServer({ noServer: true });
 
@@ -55,12 +62,34 @@ export function publish(userId: string, payload: unknown): void {
   }
 }
 
-function parseUserId(req: IncomingMessage): string {
+/**
+ * Resolve the authenticated userId for an incoming WS upgrade.
+ * Returns null when the request must be rejected.
+ *
+ * Dev fallback (no Clerk secret) returns DEFAULT_USER_ID. In production
+ * we *always* require a valid Clerk JWT; an absent or invalid token
+ * yields null so the upgrade is denied with 401.
+ */
+async function authenticateUpgrade(req: IncomingMessage): Promise<string | null> {
+  if (!CLERK_SECRET_KEY) {
+    if (IS_PRODUCTION) return null;
+    return DEFAULT_USER_ID;
+  }
   try {
     const url = new URL(req.url ?? "/", "http://localhost");
-    return url.searchParams.get("user") ?? DEFAULT_USER_ID;
-  } catch {
-    return DEFAULT_USER_ID;
+    // Token can come via Sec-WebSocket-Protocol (preferred — no URL leak
+    // into proxy logs) or ?token= (Expo can't set custom subprotocols).
+    const token =
+      url.searchParams.get("token") ??
+      (req.headers["sec-websocket-protocol"] as string | undefined)?.split(",")[0]?.trim() ??
+      null;
+    if (!token) return null;
+    const payload = await verifyToken(token, { secretKey: CLERK_SECRET_KEY });
+    const userId = (payload?.sub as string | undefined) || null;
+    return userId && userId.length > 0 ? userId : null;
+  } catch (err) {
+    logger.warn({ err }, "ws upgrade: token verification failed");
+    return null;
   }
 }
 
@@ -70,10 +99,16 @@ export function attachAforceHub(server: HttpServer): void {
       // Let other upgrade handlers (if any) deal with it.
       return;
     }
-    wss.handleUpgrade(req, socket, head, (ws) => {
-      const userId = parseUserId(req);
-      add(userId, ws);
-      ws.send(JSON.stringify({ type: "hello", userId }));
+    void authenticateUpgrade(req).then((userId) => {
+      if (!userId) {
+        // Reject the handshake; client sees a 401 close.
+        socket.write("HTTP/1.1 401 Unauthorized\r\n\r\n");
+        socket.destroy();
+        return;
+      }
+      wss.handleUpgrade(req, socket, head, (ws) => {
+        add(userId, ws);
+        ws.send(JSON.stringify({ type: "hello", userId }));
 
       // Heartbeat — drop the socket if it doesn't pong back.
       let alive = true;
@@ -105,6 +140,7 @@ export function attachAforceHub(server: HttpServer): void {
 
       ws.on("error", (err) => {
         logger.warn({ err }, "ws error");
+      });
       });
     });
   });

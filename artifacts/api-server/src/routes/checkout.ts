@@ -192,7 +192,7 @@ router.post('/checkout/session', requireAuth, checkoutLimiter, async (req: Reque
 });
 
 // ─── Cart: POST /checkout/cart ───────────────────────────────────────────────
-router.post('/checkout/cart', checkoutLimiter, async (req: Request, res: Response) => {
+router.post('/checkout/cart', requireAuth, checkoutLimiter, async (req: Request, res: Response) => {
   const { items, returnUrl } = (req.body ?? {}) as {
     items?: unknown;
     returnUrl?: string;
@@ -257,6 +257,10 @@ router.post('/checkout/cart', checkoutLimiter, async (req: Request, res: Respons
       cancel_url:  `${base}/api/checkout/return?status=cancel&kind=cart&app=${app}`,
       metadata: {
         kind: 'cart',
+        // userId lets order-fulfillment lookups join back to the
+        // Clerk user that placed the order. Same role it plays in
+        // the subscription flow.
+        userId: req.userId ?? '',
         // Compact summary — full line detail will live on the Session itself.
         // Stripe metadata values cap at 500 chars so we keep it terse.
         skuSummary: priced.lines.map((l) => `${l.skuId}x${l.qty}`).join(','),

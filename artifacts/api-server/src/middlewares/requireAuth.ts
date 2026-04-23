@@ -22,11 +22,22 @@ declare global {
   }
 }
 
+// Fail-closed in production: even if CLERK_SECRET_KEY is somehow
+// missing in a prod deployment, refuse the request rather than
+// silently granting the demo user. Dev fallback only fires when
+// NODE_ENV !== 'production' AND the secret is unset.
+const IS_PRODUCTION = process.env["NODE_ENV"] === "production";
+
 export const requireAuth: RequestHandler = (req, res, next) => {
-  // Dev fallback: if Clerk isn't configured at all, keep using the
-  // single-user demo row so local dev (and CI without secrets) doesn't
-  // break. Production sets CLERK_SECRET_KEY, so this branch is skipped.
   if (!process.env["CLERK_SECRET_KEY"]) {
+    if (IS_PRODUCTION) {
+      // Operator misconfiguration — log loudly and reject. Never
+      // grant DEFAULT_USER_ID in production.
+      // eslint-disable-next-line no-console
+      console.error("[requireAuth] CLERK_SECRET_KEY missing in production — denying request");
+      res.status(503).json({ error: "auth_unavailable" });
+      return;
+    }
     req.userId = DEFAULT_USER_ID;
     return next();
   }

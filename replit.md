@@ -14,6 +14,34 @@ The project's vision is to deliver a comprehensive platform for athletic perform
 
 I prefer iterative development, with frequent, small updates. Ask before making major changes.
 
+## Recent Architecture Updates (Apr 2026)
+
+### Authentication (Clerk)
+- `@clerk/express` on api-server, `@clerk/expo` on mobile.
+- `requireAuth` middleware (`artifacts/api-server/src/middlewares/requireAuth.ts`) attaches `req.userId` from the Clerk session; falls back to `DEFAULT_USER_ID` only when Clerk env is unset (dev mode). Uses `declare global namespace Express` to add `userId?: string` to `Request`.
+- Mobile root `_layout.tsx` wraps the tree in `<ClerkProvider><ClerkLoaded>` and mounts `<ClerkAuthBridge/>` once. The bridge calls `setTokenGetter(...)` so `services/authToken.ts` can inject `Authorization: Bearer` into every fetch + WS handshake, and also fires the entitlement hook.
+- Custom branded `(auth)/sign-in.tsx` and `sign-up.tsx` use `useSignIn` / `useSignUp` directly (no Clerk component UI).
+- `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` is mirrored from `CLERK_PUBLISHABLE_KEY` in the dev script.
+
+### Stripe Paywall
+- `aforce_users` table (in `lib/db/src/schema/aforce.ts`): `id` (=Clerk userId), `email`, `stripeCustomerId`, `stripeSubscriptionId`, `planId` (default `core`), `subscriptionStatus`, `currentPeriodEnd`. Pushed via `drizzle-kit push`.
+- `GET /api/entitlement` (auth-gated): returns the user's plan, auto-upserting on first read.
+- `POST /api/stripe/webhook` mounted **before** `express.json()` with `express.raw({type:'application/json'})` so HMAC verification works. Handles `checkout.session.completed` and `customer.subscription.{created,updated,deleted}`. Uses an `AMOUNT_TO_PLAN` reverse-lookup keyed off the price's `unit_amount` — keep in lockstep with `PLAN_CATALOG` in `routes/checkout.ts`.
+- `/checkout/session` and `/checkout/cart` now both `requireAuth` and inject `metadata.userId: req.userId` (subscription also mirrors onto `subscription_data.metadata`) so the webhook can join Stripe events back to a Clerk user.
+- Mobile `hooks/useEntitlement.ts` polls `/api/entitlement` on sign-in, on app foreground, and every 60s. Maps response into the `UserSubscription` shape via the local `PLAN_BY_ID` whitelist + `getEffectiveFeatures(planId)`, and dispatches into the store via `setSubscription`. This makes `state.subscription.planId` server-authoritative; the existing `RecoveryModePaywall` / `SocialModeSheet` swap continues to work unchanged.
+- Requires `STRIPE_WEBHOOK_SECRET` secret (the webhook no-ops when missing).
+
+### Server Hardening
+- `helmet()` security headers (CSP off — JSON API only).
+- `app.set('trust proxy', 1)` so `express-rate-limit` and request logging see the real client IP behind the Replit edge.
+- Body-size cap: `express.json({ limit: '64kb' })`.
+- Per-route limiters: `intakeLimiter` (60/min), `weatherLimiter` (30/min), `checkoutLimiter` (10/min).
+
+### Store Slicing
+- `store/appStoreTypes.ts` — `AppState` + `Action` union.
+- `store/appStoreReducer.ts` — pure reducer, no React/AsyncStorage imports (unit-testable).
+- `store/useAppStore.tsx` — provider + action creators only. Exports focused selector hooks: `useSubscription`, `useFeatureFlags`, `useEngineOutput`, `useUserState` for call-site clarity and a future migration path to `use-context-selector`.
+
 # System Architecture
 
 ## Core Technologies
