@@ -84,6 +84,14 @@ function buildSubscription(
   };
 }
 
+// Module-level handle so non-hook callers (e.g. the Recovery+ paywall
+// after a Stripe Checkout browser session closes) can request an
+// immediate entitlement refresh without waiting for the next 60s tick.
+let activeRefresh: (() => Promise<void>) | null = null;
+export function refreshEntitlement(): Promise<void> {
+  return activeRefresh ? activeRefresh() : Promise.resolve();
+}
+
 export function useEntitlement(): void {
   // Safe: this hook is only ever rendered inside <ClerkProvider> via
   // ClerkAuthBridge in app/_layout.tsx.
@@ -123,6 +131,15 @@ export function useEntitlement(): void {
       // Network errors are silent — the cached subscription remains.
     }
   }, [isSignedIn, setSubscription]);
+
+  // Publish the latest `refresh` to module scope so external callers
+  // (RecoveryModePaywall, profile.tsx) can trigger an immediate refetch.
+  React.useEffect(() => {
+    activeRefresh = refresh;
+    return () => {
+      if (activeRefresh === refresh) activeRefresh = null;
+    };
+  }, [refresh]);
 
   // Initial fetch + interval poll while the app is foregrounded.
   React.useEffect(() => {

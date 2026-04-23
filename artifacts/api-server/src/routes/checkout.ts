@@ -236,13 +236,22 @@ router.post('/checkout/session', requireAuth, checkoutLimiter, async (req: Reque
 
     // Get-or-create the Stripe customer so the entitlement endpoint can
     // join back via aforce_users.stripe_customer_id (and so the Customer
-    // Portal works on second visit).
+    // Portal works on second visit). FAIL CLOSED if linkage cannot be
+    // persisted — without it the user could pay but never get entitled,
+    // since the only join key from Stripe back to the Clerk user is the
+    // stored stripe_customer_id (the webhook recovery path also relies
+    // on it via Customer.metadata.userId).
     const customerId = userId ? await ensureStripeCustomer(userId) : null;
+    if (!customerId) {
+      logger.warn({ userId, planId }, 'Refusing checkout — could not persist Stripe customer linkage');
+      res.status(503).json({ error: 'Could not start checkout. Please try again.' });
+      return;
+    }
 
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
       line_items: [lineItem],
-      ...(customerId ? { customer: customerId } : {}),
+      customer: customerId,
       // Stripe requires https success/cancel URLs — bounce through this
       // server, which then forwards to the caller's returnUrl (web or native).
       success_url: `${base}/api/checkout/return?status=success&kind=subscription&planId=${encodeURIComponent(planId)}&app=${app}`,

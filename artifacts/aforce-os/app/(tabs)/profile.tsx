@@ -34,6 +34,7 @@ import { useAuth, useUser } from '@clerk/expo';
 import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
 import { createPortalSession } from '@/lib/api';
+import { refreshEntitlement } from '@/hooks/useEntitlement';
 
 const TIER_LABELS: Record<string, { label: string; desc: string; color: string }> = {
   core:           { label: 'AForce Core',           desc: 'Start your performance system.',                      color: Colors.states.BALANCED.primary },
@@ -776,6 +777,9 @@ function SubscriptionPanel() {
       const returnUrl = Linking.createURL('/profile');
       const { url } = await createPortalSession(returnUrl);
       await WebBrowser.openBrowserAsync(url);
+      // Pick up plan changes (cancellation, upgrade, payment-method swap)
+      // immediately on browser close instead of waiting for the next poll.
+      await refreshEntitlement();
     } catch {
       // No Stripe customer yet (user never checked out) — fall through
       // to the in-app management screen which still owns plan-pause /

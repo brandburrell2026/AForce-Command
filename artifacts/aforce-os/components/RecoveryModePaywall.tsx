@@ -17,6 +17,7 @@ import * as Linking from 'expo-linking';
 
 import { Colors } from '../theme/colors';
 import { createCheckoutSession } from '../lib/api';
+import { refreshEntitlement } from '../hooks/useEntitlement';
 
 const TEAL = '#7CD3E5';
 const AMBER = '#F4B23F';
@@ -42,6 +43,11 @@ export function RecoveryModePaywall() {
       const returnUrl = Linking.createURL('/subscription');
       const { url } = await createCheckoutSession({ planId: 'recovery_plus', returnUrl });
       await WebBrowser.openBrowserAsync(url);
+      // Stripe webhook is the source of truth; once the user closes the
+      // browser pull a fresh entitlement so the paywall disappears as
+      // soon as the subscription is recorded (avoids waiting up to 60s
+      // for the next polling tick).
+      await refreshEntitlement();
     } catch {
       // Fall back to the subscription screen, which owns retry UI and
       // will surface a friendlier error if the second attempt fails too.
