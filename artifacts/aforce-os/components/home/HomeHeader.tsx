@@ -54,7 +54,8 @@ function HomeHeaderImpl() {
           onPress={onShare}
           activeOpacity={0.85}
           style={styles.shareIconBtn}
-          accessibilityLabel="Share your performance"
+          accessibilityRole="button"
+          accessibilityLabel={t('home.share_a11y')}
           testID="home-share-button"
         >
           <Feather name="share" size={14} color={Colors.text.primary} />

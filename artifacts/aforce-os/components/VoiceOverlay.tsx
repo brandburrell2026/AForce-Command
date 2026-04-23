@@ -215,12 +215,6 @@ export function VoiceOverlay({ visible, onClose, autoStart = false }: Props) {
           <View style={styles.header}>
             <Text style={styles.eyebrow}>{t('voice.eyebrow')}</Text>
             <View style={styles.headerRight}>
-              {!VOICE_PLAYBACK_ENABLED && (
-                <View style={styles.mutedPill} testID="voice-replies-muted-pill">
-                  <Feather name="volume-x" size={10} color={Colors.text.muted} />
-                  <Text style={styles.mutedPillText}>{t('voice.replies_muted')}</Text>
-                </View>
-              )}
               <Pressable onPress={onClose} style={styles.closeBtn} accessibilityLabel={t('voice.close_a11y')}>
                 <Feather name="x" size={18} color={Colors.text.muted} />
               </Pressable>
@@ -235,6 +229,15 @@ export function VoiceOverlay({ visible, onClose, autoStart = false }: Props) {
           <View style={styles.waveformWrap}>
             <VoiceWaveform active={voiceState === 'listening'} color={accent} height={48} />
           </View>
+
+          {!VOICE_PLAYBACK_ENABLED && (
+            <View style={styles.mutedPillRow}>
+              <View style={styles.mutedPill} testID="voice-replies-muted-pill">
+                <Feather name="volume-x" size={10} color={Colors.text.muted} />
+                <Text style={styles.mutedPillText}>{t('voice.replies_muted')}</Text>
+              </View>
+            </View>
+          )}
 
           {response ? (
             <View style={styles.responseCard} testID="voice-response">
@@ -326,6 +329,7 @@ const styles = StyleSheet.create({
   dot: { width: 6, height: 6, borderRadius: 3 },
   stateLabel: { fontSize: 10, fontFamily: 'Inter_700Bold', letterSpacing: 1.5 },
   waveformWrap: { paddingVertical: 8, alignItems: 'center' },
+  mutedPillRow: { alignItems: 'center', paddingTop: 4, paddingBottom: 8 },
   hint: {
     fontSize: 13,
     color: Colors.text.muted,

@@ -726,7 +726,7 @@ const signOutStyles = StyleSheet.create({
 function SectionHeader({ label, hint }: { label: string; hint?: string }) {
   return (
     <View style={styles.sectionHeader}>
-      <Text style={styles.sectionLabel}>{label}</Text>
+      <Text style={styles.sectionLabel} accessibilityRole="header">{label}</Text>
       {hint && <Text style={styles.sectionHint}>{hint}</Text>}
     </View>
   );

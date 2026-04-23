@@ -24,6 +24,8 @@ function HeatAlertBannerImpl({ score, band }: Props) {
   const display = HEAT_BANDS.find((b) => b.band === band) ?? HEAT_BANDS[0];
   if (band === "STABLE") return null;
   const accent = display.color;
+  const bandLabel = t(`home.heat_guard.bands.${band}.label`);
+  const bandDirective = t(`home.heat_guard.bands.${band}.directive`);
 
   // Punch up CRITICAL/SEVERE alerts so they read at a glance: stronger
   // background, brighter inner glow, and a 1px inner border in the
@@ -41,7 +43,7 @@ function HeatAlertBannerImpl({ score, band }: Props) {
         { borderColor: `${accent}${outerBorder}`, backgroundColor: `${accent}${bgAlpha}` },
       ]}
       accessibilityRole="button"
-      accessibilityLabel={t("home.heat_guard.a11y", { label: display.label, score })}
+      accessibilityLabel={t("home.heat_guard.a11y", { label: bandLabel, score })}
     >
       <View
         pointerEvents="none"
@@ -52,10 +54,10 @@ function HeatAlertBannerImpl({ score, band }: Props) {
       </View>
       <View style={styles.body}>
         <Text style={[styles.eyebrow, { color: accent }]}>
-          {t("home.heat_guard.eyebrow")} · {display.label}
+          {t("home.heat_guard.eyebrow")} · {bandLabel}
         </Text>
         <Text style={[styles.line, isCritical && { color: accent, fontWeight: "700" }]}>
-          {display.shortDirective} · {t("home.heat_guard.score", { score })}
+          {bandDirective} · {t("home.heat_guard.score", { score })}
         </Text>
       </View>
       <Feather name="chevron-right" size={18} color={accent} />

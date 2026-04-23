@@ -40,7 +40,14 @@
     "heat_guard": {
       "eyebrow": "HEAT GUARD",
       "score": "Score {{score}}",
-      "a11y": "Heat Guard: {{label}}, score {{score}}. Tap to open."
+      "a11y": "Heat Guard: {{label}}, score {{score}}. Tap to open.",
+      "bands": {
+        "STABLE": { "label": "STABLE", "directive": "Maintenance hydration" },
+        "ELEVATED": { "label": "ELEVATED", "directive": "Increase cadence" },
+        "WARNING": { "label": "WARNING", "directive": "Stop. Hydrate. Cool." },
+        "HIGH_RISK": { "label": "HIGH RISK", "directive": "Stop activity now" },
+        "CRITICAL": { "label": "CRITICAL", "directive": "Begin rapid cooling" }
+      }
     },
     "phantom_band": {
       "title": "PHANTOM BAND",
