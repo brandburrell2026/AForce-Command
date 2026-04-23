@@ -1,13 +1,18 @@
 /**
  * Custom sign-up screen with email-code verification.
- * Uses @clerk/expo's `useSignUp` future API.
+ *
+ * Uses @clerk/expo's `useSignUp` with the canonical create() →
+ * sendEmailCode() → attemptEmailAddressVerification() → setActive()
+ * flow. Stale-resource safe across log-out / log-back-in cycles
+ * because each `handleStart` issues a fresh `signUp.create()` call.
  */
 
 import React from 'react';
 import {
   View, Text, StyleSheet, TextInput, Pressable, KeyboardAvoidingView, Platform,
 } from 'react-native';
-import { useSignUp, useSSO } from '@clerk/expo';
+import { useSSO } from '@clerk/expo';
+import { useSignUp } from '@clerk/expo/legacy';
 import { Link, useRouter } from 'expo-router';
 import * as AuthSession from 'expo-auth-session';
 import * as WebBrowser from 'expo-web-browser';
@@ -19,26 +24,28 @@ import { Colors } from '@/theme/colors';
 WebBrowser.maybeCompleteAuthSession();
 
 export default function SignUpScreen() {
-  const { signUp, errors, fetchStatus } = useSignUp();
+  const { isLoaded, signUp, setActive } = useSignUp();
   const { startSSOFlow } = useSSO();
   const router = useRouter();
   const [emailAddress, setEmailAddress] = React.useState('');
   const [firstName, setFirstName] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [code, setCode] = React.useState('');
+  const [pendingVerification, setPendingVerification] = React.useState(false);
   const [submitError, setSubmitError] = React.useState<string | null>(null);
+  const [submitting, setSubmitting] = React.useState(false);
   const [oauthBusy, setOauthBusy] = React.useState(false);
 
   const handleGoogle = async () => {
     setSubmitError(null);
     setOauthBusy(true);
     try {
-      const { createdSessionId, setActive } = await startSSOFlow({
+      const { createdSessionId, setActive: ssoSetActive } = await startSSOFlow({
         strategy: 'oauth_google',
         redirectUrl: AuthSession.makeRedirectUri(),
       });
-      if (createdSessionId && setActive) {
-        await setActive({
+      if (createdSessionId && ssoSetActive) {
+        await ssoSetActive({
           session: createdSessionId,
           navigate: ({ session }) => {
             if (session?.currentTask) return;
@@ -54,46 +61,55 @@ export default function SignUpScreen() {
   };
 
   const handleStart = async () => {
+    if (!isLoaded || !signUp || submitting) return;
     setSubmitError(null);
+    setSubmitting(true);
     try {
-      const { error } = await signUp.password({
+      await signUp.create({
         emailAddress,
         password,
         ...(firstName ? { firstName } : {}),
       });
-      if (error) {
-        setSubmitError(error.message ?? 'Sign-up failed.');
-        return;
-      }
-      await signUp.verifications.sendEmailCode();
-    } catch (err) {
-      setSubmitError(err instanceof Error ? err.message : 'Sign-up failed.');
+      await signUp.prepareEmailAddressVerification({ strategy: 'email_code' });
+      setPendingVerification(true);
+    } catch (err: unknown) {
+      setSubmitError(extractClerkError(err) ?? 'Sign-up failed.');
+    } finally {
+      setSubmitting(false);
     }
   };
 
   const handleVerify = async () => {
+    if (!isLoaded || !signUp || submitting) return;
     setSubmitError(null);
+    setSubmitting(true);
     try {
-      await signUp.verifications.verifyEmailCode({ code });
-      if (signUp.status === 'complete') {
-        await signUp.finalize({
-          navigate: ({ session }) => {
-            if (session?.currentTask) return;
-            router.replace('/(tabs)');
-          },
-        });
+      const attempt = await signUp.attemptEmailAddressVerification({ code });
+      if (attempt.status === 'complete') {
+        await setActive({ session: attempt.createdSessionId });
+        router.replace('/(tabs)');
       } else {
-        setSubmitError('Verification incomplete.');
+        setSubmitError(`Verification incomplete (${attempt.status}).`);
       }
-    } catch (err) {
-      setSubmitError(err instanceof Error ? err.message : 'Verification failed.');
+    } catch (err: unknown) {
+      setSubmitError(extractClerkError(err) ?? 'Verification failed.');
+    } finally {
+      setSubmitting(false);
     }
   };
 
-  const needsVerification =
-    signUp.status === 'missing_requirements' &&
-    signUp.unverifiedFields.includes('email_address') &&
-    signUp.missingFields.length === 0;
+  const handleResend = async () => {
+    if (!isLoaded || !signUp) return;
+    setSubmitError(null);
+    try {
+      await signUp.prepareEmailAddressVerification({ strategy: 'email_code' });
+    } catch (err: unknown) {
+      setSubmitError(extractClerkError(err) ?? 'Could not resend code.');
+    }
+  };
+
+  const startDisabled = !isLoaded || !emailAddress || !password || submitting;
+  const verifyDisabled = !isLoaded || !code || submitting;
 
   return (
     <GradientBackground>
@@ -103,14 +119,14 @@ export default function SignUpScreen() {
       >
         <View style={styles.container}>
           <Text style={styles.eyebrow}>AFORCE OS</Text>
-          <Text style={styles.title}>{needsVerification ? 'Verify your email' : 'Create account'}</Text>
+          <Text style={styles.title}>{pendingVerification ? 'Verify your email' : 'Create account'}</Text>
           <Text style={styles.subtitle}>
-            {needsVerification
+            {pendingVerification
               ? 'Enter the 6-digit code we just emailed you.'
               : 'Real-time human performance OS.'}
           </Text>
 
-          {needsVerification ? (
+          {pendingVerification ? (
             <>
               <Text style={styles.label}>Verification code</Text>
               <TextInput
@@ -122,29 +138,26 @@ export default function SignUpScreen() {
                 placeholderTextColor={Colors.text.muted}
                 accessibilityLabel="Verification code"
               />
-              {errors?.fields?.code && (
-                <Text style={styles.error}>{errors.fields.code.message}</Text>
-              )}
               {submitError && <Text style={styles.error}>{submitError}</Text>}
 
               <Pressable
                 onPress={handleVerify}
-                disabled={!code || fetchStatus === 'fetching'}
+                disabled={verifyDisabled}
                 style={({ pressed }) => [
                   styles.button,
-                  (!code || fetchStatus === 'fetching') && styles.buttonDisabled,
+                  verifyDisabled && styles.buttonDisabled,
                   pressed && styles.buttonPressed,
                 ]}
                 accessibilityRole="button"
                 accessibilityLabel="Verify code"
               >
                 <Text style={styles.buttonText}>
-                  {fetchStatus === 'fetching' ? 'Verifying…' : 'Verify'}
+                  {submitting ? 'Verifying…' : 'Verify'}
                 </Text>
               </Pressable>
 
               <Pressable
-                onPress={() => signUp.verifications.sendEmailCode()}
+                onPress={handleResend}
                 style={({ pressed }) => [styles.linkBtn, pressed && { opacity: 0.6 }]}
                 accessibilityRole="button"
                 accessibilityLabel="Resend verification code"
@@ -177,9 +190,6 @@ export default function SignUpScreen() {
                 placeholderTextColor={Colors.text.muted}
                 accessibilityLabel="Email address"
               />
-              {errors?.fields?.emailAddress && (
-                <Text style={styles.error}>{errors.fields.emailAddress.message}</Text>
-              )}
 
               <Text style={styles.label}>Password</Text>
               <TextInput
@@ -191,24 +201,21 @@ export default function SignUpScreen() {
                 placeholderTextColor={Colors.text.muted}
                 accessibilityLabel="Password"
               />
-              {errors?.fields?.password && (
-                <Text style={styles.error}>{errors.fields.password.message}</Text>
-              )}
               {submitError && <Text style={styles.error}>{submitError}</Text>}
 
               <Pressable
                 onPress={handleStart}
-                disabled={!emailAddress || !password || fetchStatus === 'fetching'}
+                disabled={startDisabled}
                 style={({ pressed }) => [
                   styles.button,
-                  (!emailAddress || !password || fetchStatus === 'fetching') && styles.buttonDisabled,
+                  startDisabled && styles.buttonDisabled,
                   pressed && styles.buttonPressed,
                 ]}
                 accessibilityRole="button"
                 accessibilityLabel="Continue"
               >
                 <Text style={styles.buttonText}>
-                  {fetchStatus === 'fetching' ? 'Working…' : 'Continue'}
+                  {submitting ? 'Working…' : 'Continue'}
                 </Text>
               </Pressable>
 
@@ -220,10 +227,10 @@ export default function SignUpScreen() {
 
               <Pressable
                 onPress={handleGoogle}
-                disabled={oauthBusy}
+                disabled={oauthBusy || !isLoaded}
                 style={({ pressed }) => [
                   styles.oauthButton,
-                  oauthBusy && styles.buttonDisabled,
+                  (oauthBusy || !isLoaded) && styles.buttonDisabled,
                   pressed && styles.buttonPressed,
                 ]}
                 accessibilityRole="button"
@@ -249,6 +256,15 @@ export default function SignUpScreen() {
       </KeyboardAvoidingView>
     </GradientBackground>
   );
+}
+
+function extractClerkError(err: unknown): string | null {
+  if (!err || typeof err !== 'object') return null;
+  const e = err as { errors?: Array<{ message?: string; longMessage?: string }>; message?: string };
+  if (Array.isArray(e.errors) && e.errors.length > 0) {
+    return e.errors[0]?.longMessage ?? e.errors[0]?.message ?? null;
+  }
+  return e.message ?? null;
 }
 
 const styles = StyleSheet.create({

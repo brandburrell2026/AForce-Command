@@ -1,17 +1,23 @@
 /**
  * Custom sign-in screen.
  *
- * Uses Clerk's `useSignIn` hook to drive an email + password flow. We
- * do NOT use the @clerk/clerk-react `<SignIn>` component because it
- * isn't available in @clerk/expo and would require a hosted redirect
- * that doesn't play well with Expo Go.
+ * Uses Clerk's `useSignIn` hook to drive an email + password flow with
+ * the canonical create() + setActive() pattern. We do NOT use the
+ * @clerk/clerk-react `<SignIn>` component because it isn't available
+ * in @clerk/expo and would require a hosted redirect that doesn't
+ * play well with Expo Go.
+ *
+ * Note on log-out -> log-back-in: every submit calls `signIn.create()`,
+ * which starts a fresh sign-in attempt. This avoids the stale-resource
+ * trap where a previous "complete" sign-in would block re-login.
  */
 
 import React from 'react';
 import {
   View, Text, StyleSheet, TextInput, Pressable, KeyboardAvoidingView, Platform,
 } from 'react-native';
-import { useSignIn, useSSO } from '@clerk/expo';
+import { useSSO } from '@clerk/expo';
+import { useSignIn } from '@clerk/expo/legacy';
 import { Link, useRouter } from 'expo-router';
 import * as AuthSession from 'expo-auth-session';
 import * as WebBrowser from 'expo-web-browser';
@@ -23,25 +29,29 @@ import { Colors } from '@/theme/colors';
 WebBrowser.maybeCompleteAuthSession();
 
 export default function SignInScreen() {
-  const { signIn, errors, fetchStatus } = useSignIn();
+  const { isLoaded, signIn, setActive } = useSignIn();
   const { startSSOFlow } = useSSO();
   const router = useRouter();
   const [emailAddress, setEmailAddress] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [submitError, setSubmitError] = React.useState<string | null>(null);
+  const [submitting, setSubmitting] = React.useState(false);
   const [oauthBusy, setOauthBusy] = React.useState(false);
 
   const handleGoogle = async () => {
     setSubmitError(null);
     setOauthBusy(true);
     try {
-      const { createdSessionId, setActive } = await startSSOFlow({
+      const { createdSessionId, setActive: ssoSetActive } = await startSSOFlow({
         strategy: 'oauth_google',
         redirectUrl: AuthSession.makeRedirectUri(),
       });
-      if (createdSessionId && setActive) {
-        await setActive({
+      if (createdSessionId && ssoSetActive) {
+        await ssoSetActive({
           session: createdSessionId,
+          // Defer navigation when Clerk reports an outstanding task
+          // (MFA, missing required field, etc.) so the user is not
+          // dropped into the tabs prematurely.
           navigate: ({ session }) => {
             if (session?.currentTask) return;
             router.replace('/(tabs)');
@@ -56,23 +66,33 @@ export default function SignInScreen() {
   };
 
   const handleSubmit = async () => {
+    if (!isLoaded || !signIn || submitting) return;
     setSubmitError(null);
+    setSubmitting(true);
     try {
-      await signIn.password({ emailAddress, password });
-      if (signIn.status === 'complete') {
-        await signIn.finalize({
-          navigate: ({ session }) => {
-            if (session?.currentTask) return;
-            router.replace('/(tabs)');
-          },
-        });
+      const attempt = await signIn.create({
+        identifier: emailAddress,
+        password,
+      });
+      if (attempt.status === 'complete') {
+        await setActive({ session: attempt.createdSessionId });
+        router.replace('/(tabs)');
       } else {
-        setSubmitError('Sign-in incomplete. Please try again.');
+        // Multi-factor or other intermediate states; surface a clear
+        // message rather than silently stalling.
+        setSubmitError(`Additional verification required (${attempt.status}).`);
       }
-    } catch (err) {
-      setSubmitError(err instanceof Error ? err.message : 'Sign-in failed.');
+    } catch (err: unknown) {
+      // Clerk throws a structured error with a `errors[]` array; pull
+      // the first user-facing message when available.
+      const message = extractClerkError(err) ?? 'Sign-in failed. Please check your credentials.';
+      setSubmitError(message);
+    } finally {
+      setSubmitting(false);
     }
   };
+
+  const disabled = !isLoaded || !emailAddress || !password || submitting;
 
   return (
     <GradientBackground>
@@ -97,9 +117,6 @@ export default function SignInScreen() {
             placeholderTextColor={Colors.text.muted}
             accessibilityLabel="Email address"
           />
-          {errors?.fields?.identifier && (
-            <Text style={styles.error}>{errors.fields.identifier.message}</Text>
-          )}
 
           <Text style={styles.label}>Password</Text>
           <TextInput
@@ -111,24 +128,21 @@ export default function SignInScreen() {
             placeholderTextColor={Colors.text.muted}
             accessibilityLabel="Password"
           />
-          {errors?.fields?.password && (
-            <Text style={styles.error}>{errors.fields.password.message}</Text>
-          )}
           {submitError && <Text style={styles.error}>{submitError}</Text>}
 
           <Pressable
             onPress={handleSubmit}
-            disabled={!emailAddress || !password || fetchStatus === 'fetching'}
+            disabled={disabled}
             style={({ pressed }) => [
               styles.button,
-              (!emailAddress || !password || fetchStatus === 'fetching') && styles.buttonDisabled,
+              disabled && styles.buttonDisabled,
               pressed && styles.buttonPressed,
             ]}
             accessibilityRole="button"
             accessibilityLabel="Sign in"
           >
             <Text style={styles.buttonText}>
-              {fetchStatus === 'fetching' ? 'Signing in…' : 'Sign in'}
+              {submitting ? 'Signing in…' : 'Sign in'}
             </Text>
           </Pressable>
 
@@ -140,10 +154,10 @@ export default function SignInScreen() {
 
           <Pressable
             onPress={handleGoogle}
-            disabled={oauthBusy}
+            disabled={oauthBusy || !isLoaded}
             style={({ pressed }) => [
               styles.oauthButton,
-              oauthBusy && styles.buttonDisabled,
+              (oauthBusy || !isLoaded) && styles.buttonDisabled,
               pressed && styles.buttonPressed,
             ]}
             accessibilityRole="button"
@@ -164,6 +178,15 @@ export default function SignInScreen() {
       </KeyboardAvoidingView>
     </GradientBackground>
   );
+}
+
+function extractClerkError(err: unknown): string | null {
+  if (!err || typeof err !== 'object') return null;
+  const e = err as { errors?: Array<{ message?: string; longMessage?: string }>; message?: string };
+  if (Array.isArray(e.errors) && e.errors.length > 0) {
+    return e.errors[0]?.longMessage ?? e.errors[0]?.message ?? null;
+  }
+  return e.message ?? null;
 }
 
 const styles = StyleSheet.create({
