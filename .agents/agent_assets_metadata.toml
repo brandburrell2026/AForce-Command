@@ -71,3 +71,33 @@ id = "md1t0YMM00sRoxIDae90V"
 uri = "file://attached_assets/patent/fig10-autopilot-autoscan.svg"
 type = "image"
 title = "FIG. 10 — Autopilot / Autoscan Background Loop"
+
+[[outputs]]
+id = "uH2vuqUeKsYcXkDyxc6kW"
+uri = "file://attached_assets/screenshots/aforce-home.png"
+type = "image"
+title = "Home — AForce orb, command bar & recovery card"
+
+[[outputs]]
+id = "hfUVl3Iu71Z050FVVFPN1"
+uri = "file://attached_assets/screenshots/aforce-check.png"
+type = "image"
+title = "Check — daily intake / engine input"
+
+[[outputs]]
+id = "mf7SqnbHP5rcZKLB26pQR"
+uri = "file://attached_assets/screenshots/aforce-protocol.png"
+type = "image"
+title = "Protocol — recovery & training plan"
+
+[[outputs]]
+id = "iDR8FG0RkxycqdxBAtJ57"
+uri = "file://attached_assets/screenshots/aforce-store.png"
+type = "image"
+title = "Store — Stripe-backed subscription"
+
+[[outputs]]
+id = "5pJx6RwqC0mfxWzOrJXL6"
+uri = "file://attached_assets/screenshots/aforce-profile.png"
+type = "image"
+title = "Profile — account, settings, sign out"
