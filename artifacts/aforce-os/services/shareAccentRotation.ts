@@ -15,18 +15,13 @@
 import { Colors } from '../theme/colors';
 
 /**
- * Brand glow colors — red + blue. Order is fixed and exposed for tests
- * + analytics. Red is the original state-Depleted accent (kept so
- * high-urgency shares still read "hot"); blue is added for visual
- * variety so feeds don't read monochrome.
- *
- * Blue is declared inline because the theme doesn't ship a blue token.
+ * Brand glow color — red only. Single-entry palette keeps every share
+ * card visually consistent with the AForce DEPLETED-state accent. The
+ * rotation infrastructure is preserved (palette + picker) so colors
+ * can be added back later without touching the components.
  */
-const BRAND_BLUE = '#3B82F6';
-
 export const GLOW_PALETTE: readonly string[] = [
   Colors.states.DEPLETED.primary,    // #FF2D55  red
-  BRAND_BLUE,                        // #3B82F6  blue
 ] as const;
 
 /**

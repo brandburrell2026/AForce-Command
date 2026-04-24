@@ -22,31 +22,20 @@ describe('pickGlowAccent', () => {
     expect(pickGlowAccent('act-aforce')).toBe(pickGlowAccent('act-aforce'));
   });
 
-  it('palette has exactly 2 distinct colors (red + blue)', () => {
-    expect(GLOW_PALETTE.length).toBe(2);
-    expect(new Set(GLOW_PALETTE).size).toBe(2);
-  });
-
-  it('palette is [red, blue] in that order', () => {
+  it('palette is a single red entry', () => {
+    expect(GLOW_PALETTE.length).toBe(1);
     expect(GLOW_PALETTE[0]).toBe('#FF2D55');
-    expect(GLOW_PALETTE[1]).toBe('#3B82F6');
   });
 
-  it('cycles through BOTH colors across the real broadcast pools', () => {
-    // Across the real id-namespaces (action + identity + every status
-    // variant the engine emits), both palette colors appear at least
-    // once. Guards against a hash collision regression where the
-    // rotation degenerates to a single color in practice.
+  it('every broadcast id resolves to red', () => {
     const seeds = [
       ...ACTION_BROADCASTS.map(b => b.id),
       ...IDENTITY_BROADCASTS.map(b => b.id),
-      'status-peak-0', 'status-peak-1', 'status-peak-2',
-      'status-balanced-0', 'status-balanced-1', 'status-balanced-2',
-      'status-recovering-0', 'status-recovering-1', 'status-recovering-2',
-      'status-depleted-0', 'status-depleted-1', 'status-depleted-2',
+      'status-peak-0', 'status-balanced-0', 'status-recovering-0', 'status-depleted-0',
     ];
-    const used = new Set(seeds.map(pickGlowAccent));
-    expect(used.size).toBe(GLOW_PALETTE.length);
+    for (const seed of seeds) {
+      expect(pickGlowAccent(seed)).toBe('#FF2D55');
+    }
   });
 
   it('null / undefined / empty seed returns a valid palette color (no throw)', () => {
