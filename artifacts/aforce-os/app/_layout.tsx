@@ -5,6 +5,7 @@ import {
   Inter_700Bold,
   useFonts,
 } from '@expo-google-fonts/inter';
+import { Feather } from '@expo/vector-icons';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
@@ -81,6 +82,11 @@ export default function RootLayout() {
     Inter_500Medium,
     Inter_600SemiBold,
     Inter_700Bold,
+    // Pre-load the Feather icon font *before* the splash screen hides.
+    // Without this, Android (and the first paint of iOS dev builds)
+    // briefly renders empty boxes instead of glyphs because @expo/vector-
+    // icons loads its font lazily on first <Icon> mount.
+    ...Feather.font,
   });
 
   useEffect(() => {
