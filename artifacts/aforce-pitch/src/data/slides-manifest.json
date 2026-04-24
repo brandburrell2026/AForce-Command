@@ -80,8 +80,40 @@
     "speakerNotes": ""
   },
   {
-    "id": "d44bf2c6-5675-42c1-901b-e682ddfe1ff4",
+    "id": "e1a6c2f8-7b3d-4e9c-8a5f-1d4b8e2c6f9a",
     "position": 11,
+    "filepath": "src/pages/slides/OSIntro.tsx",
+    "title": "AForce OS",
+    "description": "Beyond the can. The mobile OS that turns every sip into measurable output.",
+    "speakerNotes": ""
+  },
+  {
+    "id": "f2b7d3a9-8c4e-4f0b-9a6d-2e5c9f3a7d1b",
+    "position": 12,
+    "filepath": "src/pages/slides/OSEngine.tsx",
+    "title": "The Engine",
+    "description": "Score, Why, Command — the three-step engine that powers AForce OS.",
+    "speakerNotes": ""
+  },
+  {
+    "id": "a3c8e4b0-9d5f-4a1c-8b7e-3f6d0a4b8e2c",
+    "position": 13,
+    "filepath": "src/pages/slides/OSNetwork.tsx",
+    "title": "The Network",
+    "description": "Circles + Territory — the social and competitive layer that creates the moat.",
+    "speakerNotes": ""
+  },
+  {
+    "id": "b4d9f5c1-0e6a-4b2d-9c8f-4a7e1b5c9f3d",
+    "position": 14,
+    "filepath": "src/pages/slides/OSLoop.tsx",
+    "title": "The Loop",
+    "description": "Hardware + software, one closed loop. Hydration that gets smarter every cycle.",
+    "speakerNotes": ""
+  },
+  {
+    "id": "d44bf2c6-5675-42c1-901b-e682ddfe1ff4",
+    "position": 15,
     "filepath": "src/pages/slides/Market.tsx",
     "title": "Market",
     "description": "Functional beverages, sports drinks, and stick mixes — all moving toward AForce.",
@@ -89,7 +121,7 @@
   },
   {
     "id": "f504a48d-36c6-4611-a5ab-62f37c012092",
-    "position": 12,
+    "position": 16,
     "filepath": "src/pages/slides/Model.tsx",
     "title": "Channels",
     "description": "DTC, premium retail, gyms, and travel — every place sweat happens.",
@@ -97,7 +129,7 @@
   },
   {
     "id": "a8f2b7d4-3c5e-4a92-9b1f-2e6d4c8a7b3d",
-    "position": 13,
+    "position": 17,
     "filepath": "src/pages/slides/Roadmap.tsx",
     "title": "Roadmap",
     "description": "Stand up, scale out, take share — three years to a category-defining brand.",
@@ -105,7 +137,7 @@
   },
   {
     "id": "b9e3c8f5-4d6a-4b71-8c2e-1a5f3d9b6e4c",
-    "position": 14,
+    "position": 18,
     "filepath": "src/pages/slides/Team.tsx",
     "title": "Team",
     "description": "Two brothers built AForce because they needed it.",
@@ -113,10 +145,10 @@
   },
   {
     "id": "c0a4d9e6-5e7b-4c82-9d3f-2b6a4e0c7f5d",
-    "position": 15,
+    "position": 19,
     "filepath": "src/pages/slides/Ask.tsx",
     "title": "Ask",
-    "description": "Raising the seed round to launch the line and put AForce in every cooler that matters.",
+    "description": "Raising the seed round to launch the line and ship AForce OS to every athlete who needs it.",
     "speakerNotes": ""
   }
 ]

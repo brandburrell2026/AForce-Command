@@ -69,12 +69,13 @@ I prefer iterative development, with frequent, small updates. Ask before making 
 - **Social Mode (alcohol mitigation):** Features BAC estimator (Widmark approximation), 5-level impairment assessment (LOW to CRITICAL), legal/transportation safety guidance, and Recovery Mode with pre-sleep protocol and morning estimates. Coach escalation for high-risk states. Disclaimer copy is locked and global-safe.
 
 ### Investor Pitch Deck (`artifacts/aforce-pitch`)
-- **Format:** 15 React slides served at `/aforce-pitch/slide{1..15}` via the standard slides scaffold (manifest + per-slide TSX components, w-screen h-screen, vw/vh-only sizing).
-- **Narrative:** Built around the real AForce product line — 3 alkaline hydration flavors (Berry Blast + Dulse, Watermelon Surge + Chlorella, Soursop Edge + Sea Moss) in 2 formats (11oz/325ml cans + 14g/0.49oz stick mixes). Position: "Performance Alkaline Hydration." Tagline: "Fuel your body with alkaline power." All formulas at pH 8.8, no added sugar.
-- **Slide order:** Cover → Mission → Problem → Insight (pH) → Product lineup → Berry Blast → Watermelon Surge → Soursop Edge → Formats (Can vs Stick) → Why pH 8.8 → Market → Channels → Roadmap → Team → Ask.
-- **Brand palette (deck-only):** Dark base #08080F with three flavor accents — red #E53341 (Watermelon, primary CTA), blue #5478D5 (Berry), yellow #F5D637 (Soursop, accent). Matches the can/stick artwork.
+- **Format:** 19 React slides served at `/aforce-pitch/slide{1..19}` via the standard slides scaffold (manifest + per-slide TSX components, w-screen h-screen, vw/vh-only sizing).
+- **Narrative:** Built around the real AForce product line — 3 alkaline hydration flavors (Berry Blast + Dulse, Watermelon Surge + Chlorella, Soursop Edge + Sea Moss) in 2 formats (11oz/325ml cans + 14g/0.49oz stick mixes), AND the AForce OS mobile app that turns each sip into measurable output. Position: "Performance Alkaline Hydration + Connected Performance OS." Tagline: "Fuel your body with alkaline power." All formulas at pH 8.8, no added sugar.
+- **Slide order:** Cover → Mission → Problem → Insight (pH) → Product lineup → Berry Blast → Watermelon Surge → Soursop Edge → Formats (Can vs Stick) → Why pH 8.8 → AForce OS intro → The Engine (Score/Why/Command) → The Network (Circles + Territory) → The Loop (closed loop diagram) → Market → Channels → Roadmap → Team → Ask.
+- **AForce OS section (slides 11–14):** Frames the mobile app as the second half of the product. Shows phone-shaped UI mocks (CSS-only, no live screenshots) for the Hydration Score, the Why panel, and one-tap Commands. Explains Circles + Territory as the network-effects moat. Closes with a 4-node closed-loop diagram (Drink → Score → Coach → Decide) around a central AForce hub.
+- **Brand palette (deck-only):** Dark base #08080F with three flavor accents — red #E53341 (Watermelon, primary CTA), blue #5478D5 (Berry), yellow #F5D637 (Soursop, accent). Matches the can/stick artwork. The OS slides reuse the same palette for data states (yellow = peak/score, blue = data, red = alerts/CTA).
 - **Product images:** Six product renders live in `public/` (3 cans as PNG, 3 sticks as PNG with transparent backgrounds — converted from JPG via ImageMagick `magick … -fuzz 8% -transparent white -trim`).
-- **Open placeholders:** Founder names + bios (slide 14) and seed amount + email (slide 15) still bracketed; tracked as follow-up tasks.
+- **Open placeholders:** Founder names + bios (slide 18) and seed amount + email (slide 19) still bracketed; tracked as follow-up tasks.
 
 ### API Server (`artifacts/api-server`)
 - **Scaling Blueprint:** Documents target topology for 50M+ users including edge/CDN, multi-region active/active reads, sharded Postgres, Redis, Kafka, and AI provider failover.
