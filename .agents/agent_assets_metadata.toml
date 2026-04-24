@@ -101,3 +101,57 @@ id = "5pJx6RwqC0mfxWzOrJXL6"
 uri = "file://attached_assets/screenshots/aforce-profile.png"
 type = "image"
 title = "Profile — account, settings, sign out"
+
+[[outputs]]
+id = "2I1aHkma7lLK2kJ4Zn-i5"
+uri = "file://attached_assets/screenshots/aforce-signin.png"
+type = "image"
+title = "Sign-in screen"
+
+[[outputs]]
+id = "dzApqE8S_cITBP_KrkFCY"
+uri = "file://attached_assets/screenshots/aforce-signup.png"
+type = "image"
+title = "Sign-up screen"
+
+[[outputs]]
+id = "68BejoelLk6SwEbMDdesL"
+uri = "file://attached_assets/screenshots/aforce-deep-orb-breakdown.png"
+type = "image"
+title = "Orb tap — score breakdown"
+
+[[outputs]]
+id = "sDkdJbLnoXlSJlrJIZRnD"
+uri = "file://attached_assets/screenshots/aforce-deep-command-active.png"
+type = "image"
+title = "Command bar / voice pill active"
+
+[[outputs]]
+id = "ki_ejUQT5f3sA0wcgXMR5"
+uri = "file://attached_assets/screenshots/aforce-deep-share-screen.png"
+type = "image"
+title = "Share screen"
+
+[[outputs]]
+id = "jC1-qaK95aIhh6CU2lWyv"
+uri = "file://attached_assets/screenshots/aforce-deep-store-upgrade.png"
+type = "image"
+title = "Store — upgrade / checkout"
+
+[[outputs]]
+id = "vsiOuxCPwWrVGf5Gc7zi-"
+uri = "file://attached_assets/screenshots/aforce-deep-profile-phantom-band.png"
+type = "image"
+title = "Profile — PHANTOM Band hardware settings"
+
+[[outputs]]
+id = "K4-tTgWm8QmmK1J999n7Z"
+uri = "file://attached_assets/screenshots/aforce-home-foldable.png"
+type = "image"
+title = "Home — foldable / tablet layout (900×1200)"
+
+[[outputs]]
+id = "x-tbHUuSF8JzDqVfw_iW6"
+uri = "file://attached_assets/screenshots/aforce-store-foldable.png"
+type = "image"
+title = "Store — foldable / tablet layout (900×1200)"
