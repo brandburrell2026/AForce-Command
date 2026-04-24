@@ -62,7 +62,7 @@ export const ACTION_BROADCASTS: BroadcastEntry[] = [
  */
 export const IDENTITY_BROADCASTS: BroadcastEntry[] = [
   { id: 'id-become',    voice: 'identity', headline: 'Become AForce.',           subtext: 'From the inside.' },
-  { id: 'id-inside',    voice: 'identity', headline: 'AForce inside me.',        subtext: 'Two brothers. One promise.' },
+  { id: 'id-inside',    voice: 'identity', headline: 'AForce inside me.',        subtext: 'Built to perform.' },
   { id: 'id-not-drink', voice: 'identity', headline: 'Not a drink.',             subtext: 'A system.' },
   { id: 'id-clean-af',  voice: 'identity', headline: 'Clean AF.',                subtext: 'Effective AF.' },
   { id: 'id-system',    voice: 'identity', headline: 'Performance is a system.', subtext: 'I run mine.' },

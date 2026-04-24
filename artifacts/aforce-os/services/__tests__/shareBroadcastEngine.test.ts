@@ -88,7 +88,7 @@ describe('generateBroadcasts — IDENTITY voice', () => {
     expect(v[0].headline).toBe('Become AForce.');
     expect(v[0].subtext).toBe('From the inside.');
     expect(v[1].headline).toBe('AForce inside me.');
-    expect(v[1].subtext).toBe('Two brothers. One promise.');
+    expect(v[1].subtext).toBe('Built to perform.');
     expect(v[2].headline).toBe('Not a drink.');
     expect(v[2].subtext).toBe('A system.');
     expect(v[3].headline).toBe('Clean AF.');
