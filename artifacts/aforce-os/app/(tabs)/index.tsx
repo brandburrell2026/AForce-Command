@@ -39,6 +39,7 @@ import { SignalsZone } from '@/components/home/SignalsZone';
 import { EntryActions } from '@/components/home/EntryActions';
 import { CommandStack } from '@/components/home/CommandStack';
 import { PrimaryCTA } from '@/components/home/PrimaryCTA';
+import { TodayQuote } from '@/components/home/TodayQuote';
 
 import { useAppStore } from '@/store/useAppStore';
 import { Colors } from '@/theme/colors';
@@ -131,6 +132,7 @@ export default function HomeScreen() {
             <View style={styles.twoCol} testID="home-two-col">
               <View style={[styles.col, styles.colLeft]}>
                 <OrbSection onOpenBreakdown={openBreakdown} orbSize={layout.orbSize} />
+                <TodayQuote />
                 <CommandStack onOpenBreakdown={openBreakdown} />
                 <View style={styles.spacerLg} />
                 <PrimaryCTA layout={layout} />
@@ -147,6 +149,7 @@ export default function HomeScreen() {
           ) : (
             <>
               <OrbSection onOpenBreakdown={openBreakdown} orbSize={layout.orbSize} />
+              <TodayQuote />
               <CommandStack onOpenBreakdown={openBreakdown} />
               <View style={styles.spacer} />
               <EntryActions />
