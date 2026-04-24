@@ -14,7 +14,7 @@ import { FeatureGate } from '@/components/FeatureGate';
 import { Colors } from '@/theme/colors';
 import { useAppStore } from '@/store/useAppStore';
 import { mockRoster } from '@/data/mockData';
-import { guardianRiskScore, guardianTier } from '@/utils/scoringEngine';
+import { guardianRiskScore, guardianTier, guardianRecommendation } from '@/utils/scoringEngine';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 
 const TIER_COLOR: Record<string, string> = {
@@ -111,33 +111,72 @@ export default function GuardianScreen() {
               {mockRoster.map((p) => {
                 const tier = guardianTier(p.guardianRisk);
                 const color = TIER_COLOR[tier];
+                const rec = guardianRecommendation({ guardianRisk: p.guardianRisk, position: p.position });
+                const isPull = rec.action === 'pull';
                 return (
                   <View key={p.id} style={[styles.rosterRow, { borderLeftColor: color }]}>
-                    <View style={{ flex: 1 }}>
-                      <Text style={styles.rosterName}>{p.name} · {p.position}</Text>
-                      <Text style={styles.rosterMeta}>Hydration {p.hydrationScore}</Text>
+                    <View style={styles.rosterTop}>
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.rosterName}>{p.name} · {p.position}</Text>
+                        <Text style={styles.rosterMeta}>Hydration {p.hydrationScore}</Text>
+                      </View>
+                      <Text style={[styles.rosterRisk, { color }]}>{p.guardianRisk}</Text>
+                      <View style={[styles.tierTag, { backgroundColor: `${color}1A`, borderColor: `${color}55` }]}>
+                        <Text style={[styles.tierTagText, { color }]}>{tier}</Text>
+                      </View>
                     </View>
-                    <Text style={[styles.rosterRisk, { color }]}>{p.guardianRisk}</Text>
-                    <View style={[styles.tierTag, { backgroundColor: `${color}1A`, borderColor: `${color}55` }]}>
-                      <Text style={[styles.tierTagText, { color }]}>{tier}</Text>
+                    <Text style={[styles.rosterRecCommand, isPull && { color: Colors.danger }]}>
+                      {rec.command}
+                    </Text>
+                    <Text style={styles.rosterRecDetail}>{rec.detail}</Text>
+                    <View style={styles.rosterRecMeta}>
+                      <Text style={styles.rosterRecChip}>{rec.fluidOz} oz</Text>
+                      {rec.sticks > 0 && (
+                        <Text style={styles.rosterRecChip}>{rec.sticks} stick{rec.sticks > 1 ? 's' : ''}</Text>
+                      )}
+                      <Text style={styles.rosterRecChip}>recheck {rec.recheckMinutes}m</Text>
                     </View>
                   </View>
                 );
               })}
             </View>
 
-            {/* Critical alerts */}
-            {state.featureFlags.guardian_alerts_enabled && (
-              <View style={[styles.alertCard, { borderColor: Colors.danger }]}>
-                <Feather name="alert-octagon" size={18} color={Colors.danger} />
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.alertTitle}>CRITICAL · R. Vega (CB)</Text>
-                  <Text style={styles.alertBody}>
-                    Risk 81. Pull from rotation. Administer 24 oz + 2 sticks. Recheck core temp in 5 minutes.
+            {/* Critical alerts — auto-generated for every CRITICAL athlete */}
+            {state.featureFlags.guardian_alerts_enabled && (() => {
+              const critical = mockRoster.filter((p) => guardianTier(p.guardianRisk) === 'CRITICAL');
+              if (critical.length === 0) {
+                return (
+                  <View style={[styles.alertCard, styles.alertCardClear, { borderColor: `${Colors.states.PEAK.primary}55` }]}>
+                    <Feather name="check-circle" size={18} color={Colors.states.PEAK.primary} />
+                    <View style={{ flex: 1 }}>
+                      <Text style={[styles.alertTitle, { color: Colors.states.PEAK.primary }]}>NO CRITICAL ALERTS</Text>
+                      <Text style={styles.alertBody}>Roster within safe bounds. Continue standard monitoring.</Text>
+                    </View>
+                  </View>
+                );
+              }
+              return (
+                <>
+                  <Text style={styles.sectionLabel}>
+                    CRITICAL ALERTS · {critical.length} ATHLETE{critical.length > 1 ? 'S' : ''}
                   </Text>
-                </View>
-              </View>
-            )}
+                  {critical.map((p) => {
+                    const rec = guardianRecommendation({ guardianRisk: p.guardianRisk, position: p.position });
+                    return (
+                      <View key={p.id} style={[styles.alertCard, { borderColor: Colors.danger }]}>
+                        <Feather name="alert-octagon" size={18} color={Colors.danger} />
+                        <View style={{ flex: 1 }}>
+                          <Text style={styles.alertTitle}>CRITICAL · {p.name} ({p.position})</Text>
+                          <Text style={styles.alertBody}>
+                            Risk {p.guardianRisk}. {rec.command} {rec.detail}
+                          </Text>
+                        </View>
+                      </View>
+                    );
+                  })}
+                </>
+              );
+            })()}
 
             <Text style={styles.thresholdNote}>
               Tiers — OPTIMAL 0–24 · WATCH 25–49 · MODERATE 50–74 · CRITICAL 75–100
@@ -210,10 +249,12 @@ const styles = StyleSheet.create({
     borderColor: Colors.border.subtle, marginBottom: 22, overflow: 'hidden',
   },
   rosterRow: {
-    flexDirection: 'row', alignItems: 'center', gap: 10,
     paddingHorizontal: 14, paddingVertical: 12,
     borderLeftWidth: 3,
     borderBottomWidth: 1, borderBottomColor: Colors.border.subtle,
+  },
+  rosterTop: {
+    flexDirection: 'row', alignItems: 'center', gap: 10,
   },
   rosterName: { fontSize: 14, fontFamily: 'Inter_600SemiBold', color: Colors.text.primary },
   rosterMeta: { fontSize: 11, fontFamily: 'Inter_400Regular', color: Colors.text.muted, marginTop: 2 },
@@ -222,10 +263,29 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8, paddingVertical: 3, borderRadius: 100, borderWidth: 1,
   },
   tierTagText: { fontSize: 9, fontFamily: 'Inter_700Bold', letterSpacing: 1.2 },
+  rosterRecCommand: {
+    fontSize: 12, fontFamily: 'Inter_600SemiBold', color: Colors.text.primary,
+    lineHeight: 16, marginTop: 10,
+  },
+  rosterRecDetail: {
+    fontSize: 11, fontFamily: 'Inter_400Regular', color: Colors.text.secondary,
+    lineHeight: 15, marginTop: 2,
+  },
+  rosterRecMeta: {
+    flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 8,
+  },
+  rosterRecChip: {
+    fontSize: 9, fontFamily: 'Inter_700Bold', color: Colors.text.muted,
+    letterSpacing: 1, paddingHorizontal: 7, paddingVertical: 3,
+    borderRadius: 6, backgroundColor: Colors.background.primary,
+  },
   alertCard: {
     flexDirection: 'row', gap: 12,
     backgroundColor: 'rgba(255,45,85,0.08)', borderRadius: 16, borderWidth: 1,
-    padding: 14, marginBottom: 18,
+    padding: 14, marginBottom: 12,
+  },
+  alertCardClear: {
+    backgroundColor: 'rgba(180,255,80,0.06)', marginBottom: 18,
   },
   alertTitle: {
     fontSize: 12, fontFamily: 'Inter_700Bold', color: Colors.danger, letterSpacing: 1.5, marginBottom: 4,

@@ -14,7 +14,7 @@ import { FeatureGate } from '@/components/FeatureGate';
 import { Colors } from '@/theme/colors';
 import { useAppStore } from '@/store/useAppStore';
 import { mockRoster } from '@/data/mockData';
-import { clutchHydrationPlan, clutchTier } from '@/utils/scoringEngine';
+import { clutchHydrationPlan, clutchTier, clutchRecommendation } from '@/utils/scoringEngine';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 
 export default function ClutchScreen() {
@@ -67,6 +67,8 @@ export default function ClutchScreen() {
                   tier === 'STABLE' ? Colors.states.BALANCED.primary :
                   tier === 'RECOVERY' ? Colors.states.RECOVERING.primary :
                   Colors.states.DEPLETED.primary;
+                const rec = clutchRecommendation({ hydrationScore: p.hydrationScore, position: p.position });
+                const isPull = rec.action === 'pull';
                 return (
                   <View key={p.id} style={[styles.playerCard, { borderColor: `${tierColor}55` }]}>
                     <View style={styles.playerHeader}>
@@ -76,6 +78,17 @@ export default function ClutchScreen() {
                     <Text style={styles.playerName}>{p.name}</Text>
                     <Text style={[styles.playerScore, { color: tierColor }]}>{p.hydrationScore}</Text>
                     <Text style={styles.playerTier}>{tier}</Text>
+
+                    <View style={[styles.recDivider, { backgroundColor: `${tierColor}33` }]} />
+                    <Text style={[styles.recCommand, isPull && { color: Colors.states.DEPLETED.primary }]}>
+                      {rec.command}
+                    </Text>
+                    <Text style={styles.recDetail}>{rec.detail}</Text>
+                    <View style={styles.recMeta}>
+                      <Text style={styles.recMetaItem}>{rec.fluidOz} oz</Text>
+                      {rec.sticks > 0 && <Text style={styles.recMetaItem}>{rec.sticks} stick{rec.sticks > 1 ? 's' : ''}</Text>}
+                      <Text style={styles.recMetaItem}>recheck {rec.recheckMinutes}m</Text>
+                    </View>
                   </View>
                 );
               })}
@@ -179,6 +192,21 @@ const styles = StyleSheet.create({
   playerName: { fontSize: 14, fontFamily: 'Inter_600SemiBold', color: Colors.text.primary, marginBottom: 8 },
   playerScore: { fontSize: 28, fontFamily: 'Inter_700Bold', letterSpacing: -1 },
   playerTier: { fontSize: 10, fontFamily: 'Inter_700Bold', color: Colors.text.muted, letterSpacing: 1.5, marginTop: 2 },
+  recDivider: { height: 1, marginTop: 10, marginBottom: 8 },
+  recCommand: {
+    fontSize: 11, fontFamily: 'Inter_600SemiBold', color: Colors.text.primary, lineHeight: 15,
+  },
+  recDetail: {
+    fontSize: 10, fontFamily: 'Inter_400Regular', color: Colors.text.secondary, lineHeight: 14, marginTop: 2,
+  },
+  recMeta: {
+    flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 6,
+  },
+  recMetaItem: {
+    fontSize: 9, fontFamily: 'Inter_700Bold', color: Colors.text.muted,
+    letterSpacing: 1, paddingHorizontal: 6, paddingVertical: 2,
+    borderRadius: 6, backgroundColor: Colors.background.primary,
+  },
   planCard: {
     backgroundColor: Colors.background.card, borderRadius: 16, borderWidth: 1,
     borderColor: Colors.border.subtle, padding: 16, marginBottom: 22,

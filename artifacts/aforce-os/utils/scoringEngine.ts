@@ -753,3 +753,141 @@ export function guardianTier(score: number): 'OPTIMAL' | 'WATCH' | 'MODERATE' | 
   if (score >= 25) return 'WATCH';
   return 'OPTIMAL';
 }
+
+// ─── Coach Recommendation Engine (Phase 2 + 3) ────────────────────────────────
+/**
+ * Per-athlete recommendation a coach can act on at the next dead ball.
+ * Tone follows the AI command spec: WHAT + WHEN/HOW MUCH + OUTCOME, command
+ * authority, no soft language ("consider / try / suggest").
+ */
+export type CoachAction = 'maintain' | 'top_off' | 'restore' | 'reduce_reps' | 'pull';
+
+export interface ClutchRecommendation {
+  tier: ClutchTier;
+  action: CoachAction;
+  fluidOz: number;
+  sticks: number;
+  recheckMinutes: number;
+  command: string;
+  detail: string;
+}
+
+export interface GuardianRecommendation {
+  tier: 'OPTIMAL' | 'WATCH' | 'MODERATE' | 'CRITICAL';
+  action: CoachAction;
+  fluidOz: number;
+  sticks: number;
+  recheckMinutes: number;
+  command: string;
+  detail: string;
+}
+
+/**
+ * Coach recommendation for a single player on the Clutch dashboard. Driven
+ * purely by the player's hydration score (0–100), tier-banded so coaches can
+ * scan the roster in a glance and execute at the next dead ball.
+ */
+export function clutchRecommendation(input: {
+  hydrationScore: number;
+  position?: string;
+}): ClutchRecommendation {
+  const tier = clutchTier(input.hydrationScore);
+  switch (tier) {
+    case 'PLATINUM':
+      return {
+        tier,
+        action: 'maintain',
+        fluidOz: 8,
+        sticks: 0,
+        recheckMinutes: 30,
+        command: 'Maintain. 8 oz water at next break.',
+        detail: 'Keep rotation. Recheck end of quarter.',
+      };
+    case 'STABLE':
+      return {
+        tier,
+        action: 'top_off',
+        fluidOz: 12,
+        sticks: 1,
+        recheckMinutes: 20,
+        command: '12 oz + 1 stick at next dead ball.',
+        detail: 'Hold rotation. Recheck in 20 min.',
+      };
+    case 'RECOVERY':
+      return {
+        tier,
+        action: 'restore',
+        fluidOz: 16,
+        sticks: 2,
+        recheckMinutes: 10,
+        command: '16 oz + 2 sticks now.',
+        detail: 'Move to shaded area. Recheck in 10 min.',
+      };
+    case 'DEPLETED':
+    default:
+      return {
+        tier,
+        action: 'pull',
+        fluidOz: 24,
+        sticks: 3,
+        recheckMinutes: 5,
+        command: 'PULL FROM ROTATION. 24 oz + 3 sticks.',
+        detail: 'Cooling protocol. Recheck core temp in 5 min.',
+      };
+  }
+}
+
+/**
+ * Coach recommendation for a single player on the Guardian dashboard. Driven
+ * by the composite Guardian risk (0–100). At MODERATE / CRITICAL we escalate
+ * to medical eval and pull the athlete from rotation.
+ */
+export function guardianRecommendation(input: {
+  guardianRisk: number;
+  position?: string;
+}): GuardianRecommendation {
+  const tier = guardianTier(input.guardianRisk);
+  switch (tier) {
+    case 'OPTIMAL':
+      return {
+        tier,
+        action: 'maintain',
+        fluidOz: 8,
+        sticks: 0,
+        recheckMinutes: 30,
+        command: 'Continue play. 8 oz at next break.',
+        detail: 'Standard recheck next series.',
+      };
+    case 'WATCH':
+      return {
+        tier,
+        action: 'top_off',
+        fluidOz: 15,
+        sticks: 1,
+        recheckMinutes: 15,
+        command: '15 oz + 1 stick at next break.',
+        detail: 'Monitor next series. Recheck in 15 min.',
+      };
+    case 'MODERATE':
+      return {
+        tier,
+        action: 'reduce_reps',
+        fluidOz: 20,
+        sticks: 2,
+        recheckMinutes: 8,
+        command: 'Reduce reps 30%. 20 oz + 2 sticks.',
+        detail: 'Cooling towel. Recheck core temp in 8 min.',
+      };
+    case 'CRITICAL':
+    default:
+      return {
+        tier,
+        action: 'pull',
+        fluidOz: 24,
+        sticks: 2,
+        recheckMinutes: 5,
+        command: 'PULL FROM ROTATION. Medical eval.',
+        detail: 'Cooling protocol now. 24 oz + 2 sticks. Recheck in 5 min.',
+      };
+  }
+}
