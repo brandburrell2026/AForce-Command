@@ -4,7 +4,7 @@
     "position": 1,
     "filepath": "src/pages/slides/Cover.tsx",
     "title": "Cover",
-    "description": "AForce. Built to perform.",
+    "description": "AForce — performance alkaline hydration. Fuel your body with alkaline power.",
     "speakerNotes": ""
   },
   {
@@ -12,7 +12,7 @@
     "position": 2,
     "filepath": "src/pages/slides/Mission.tsx",
     "title": "Mission",
-    "description": "Become AForce.",
+    "description": "Hydration that fuels output, not advertising.",
     "speakerNotes": ""
   },
   {
@@ -20,7 +20,7 @@
     "position": 3,
     "filepath": "src/pages/slides/Problem.tsx",
     "title": "Problem",
-    "description": "Performance is reactive.",
+    "description": "Hydration is broken: sugar bombs vs. plain water.",
     "speakerNotes": ""
   },
   {
@@ -28,55 +28,55 @@
     "position": 4,
     "filepath": "src/pages/slides/Insight.tsx",
     "title": "Insight",
-    "description": "Nobody owns the loop.",
+    "description": "Performance lives in the buffer. pH 8.8 changes everything.",
     "speakerNotes": ""
   },
   {
     "id": "c64e2c71-c39c-4bcc-8d67-031815b2a82d",
     "position": 5,
     "filepath": "src/pages/slides/System.tsx",
-    "title": "System",
-    "description": "Drink. OS. Band. One loop.",
+    "title": "Product",
+    "description": "Three flavors. Two formats. The full lineup.",
     "speakerNotes": ""
   },
   {
     "id": "46d3d7d1-dc3e-412a-92e1-437fa2d74fe1",
     "position": 6,
     "filepath": "src/pages/slides/Drink.tsx",
-    "title": "Drink",
-    "description": "Performance hydration with a clean formula.",
+    "title": "Berry Blast",
+    "description": "Berry Blast + Dulse — antioxidants and sea-derived minerals.",
     "speakerNotes": ""
   },
   {
     "id": "f0636088-1f38-4633-b225-f98165098493",
     "position": 7,
     "filepath": "src/pages/slides/OS.tsx",
-    "title": "OS",
-    "description": "AForce OS reads your state and routes action.",
+    "title": "Watermelon Surge",
+    "description": "Watermelon Surge + Chlorella — natural electrolytes and clean output.",
     "speakerNotes": ""
   },
   {
     "id": "ae15b50d-a766-4931-98eb-9b059a3670d4",
     "position": 8,
     "filepath": "src/pages/slides/Band.tsx",
-    "title": "Band",
-    "description": "Phantom Band closes the loop physically.",
+    "title": "Soursop Edge",
+    "description": "Soursop Edge + Sea Moss — 92 minerals from one ocean-grown plant.",
     "speakerNotes": ""
   },
   {
     "id": "b51134a1-7a9a-4912-9cf2-11dacc6a0de7",
     "position": 9,
     "filepath": "src/pages/slides/Loop.tsx",
-    "title": "Loop",
-    "description": "The closed performance loop.",
+    "title": "Formats",
+    "description": "Anytime, anywhere — cans for the cooler, sticks for the road.",
     "speakerNotes": ""
   },
   {
     "id": "442cc5a6-cd31-431d-bde2-787a57d4f113",
     "position": 10,
     "filepath": "src/pages/slides/Tailwinds.tsx",
-    "title": "Tailwinds",
-    "description": "The category is moving toward us.",
+    "title": "Why pH 8.8",
+    "description": "Buffer the body. Restore minerals. Hold output longer.",
     "speakerNotes": ""
   },
   {
@@ -84,39 +84,39 @@
     "position": 11,
     "filepath": "src/pages/slides/Market.tsx",
     "title": "Market",
-    "description": "Three categories. One intersection.",
-    "speakerNotes": ""
-  },
-  {
-    "id": "4b8978d0-35cf-4381-8fce-9a72ecb84890",
-    "position": 12,
-    "filepath": "src/pages/slides/Model.tsx",
-    "title": "Model",
-    "description": "Two recurring streams. One ecosystem.",
+    "description": "Functional beverages, sports drinks, and stick mixes — all moving toward AForce.",
     "speakerNotes": ""
   },
   {
     "id": "f504a48d-36c6-4611-a5ab-62f37c012092",
+    "position": 12,
+    "filepath": "src/pages/slides/Model.tsx",
+    "title": "Channels",
+    "description": "DTC, premium retail, gyms, and travel — every place sweat happens.",
+    "speakerNotes": ""
+  },
+  {
+    "id": "a8f2b7d4-3c5e-4a92-9b1f-2e6d4c8a7b3d",
     "position": 13,
     "filepath": "src/pages/slides/Roadmap.tsx",
     "title": "Roadmap",
-    "description": "Twelve months to the loop.",
+    "description": "Stand up, scale out, take share — three years to a category-defining brand.",
     "speakerNotes": ""
   },
   {
-    "id": "b4ffcfe3-c893-4dbb-9ec1-909a63b42c8b",
+    "id": "b9e3c8f5-4d6a-4b71-8c2e-1a5f3d9b6e4c",
     "position": 14,
     "filepath": "src/pages/slides/Team.tsx",
     "title": "Team",
-    "description": "Two brothers.",
+    "description": "Two brothers built AForce because they needed it.",
     "speakerNotes": ""
   },
   {
-    "id": "98660470-cf73-44de-a415-b3b874a9b322",
+    "id": "c0a4d9e6-5e7b-4c82-9d3f-2b6a4e0c7f5d",
     "position": 15,
     "filepath": "src/pages/slides/Ask.tsx",
     "title": "Ask",
-    "description": "Raising. Become AForce.",
+    "description": "Raising the seed round to launch the line and put AForce in every cooler that matters.",
     "speakerNotes": ""
   }
 ]

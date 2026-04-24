@@ -3,6 +3,7 @@
 @theme inline {
   --color-primary: var(--slide-primary);
   --color-accent: var(--slide-accent);
+  --color-blue: var(--slide-blue);
   --color-bg: var(--slide-bg);
   --color-bg-elev: var(--slide-bg-elev);
   --color-text: var(--slide-text);
@@ -13,10 +14,11 @@
 }
 
 :root {
-  --slide-primary: #FF2D55;
-  --slide-accent: #B4FF50;
-  --slide-bg: #050510;
-  --slide-bg-elev: #0D0D20;
+  --slide-primary: #E53341;
+  --slide-accent: #F5D637;
+  --slide-blue: #5478D5;
+  --slide-bg: #08080F;
+  --slide-bg-elev: #12121E;
   --slide-text: #F8F8F8;
   --slide-muted: #8C8C9E;
   --slide-divider: #1F1F33;

@@ -7,28 +7,26 @@ export default function Team() {
       </div>
 
       <div className="absolute top-[18vh] left-[6vw] right-[6vw]">
-        <h2 className="font-display text-[6vw] leading-[0.95] tracking-tighter text-balance max-w-[80vw]">
+        <h2 className="font-display text-[7vw] leading-[0.95] tracking-tighter text-balance">
           Two brothers.
         </h2>
-        <p className="mt-[3vh] font-body text-[1.7vw] font-light text-text/75 max-w-[55vw] text-pretty">
-          Built AForce because they needed it. Then they noticed everyone else did too.
+        <p className="mt-[3vh] font-body text-[1.8vw] text-text/80 max-w-[55vw] leading-snug">
+          Built AForce because they needed a hydration drink that did not lie. Then they noticed everyone else needed one too.
         </p>
       </div>
 
-      <div className="absolute top-[48vh] bottom-[10vh] left-[6vw] right-[6vw] grid grid-cols-2 gap-[5vw]">
-        <div className="border-t border-divider pt-[3vh]">
-          <div className="font-body uppercase tracking-[0.3em] text-[1.5vw] text-accent mb-[1.5vh]">Co-founder</div>
-          <div className="font-display text-[2.6vw] text-text mb-[1.5vh] leading-tight">[Founder 01 Name]</div>
-          <p className="font-body text-[1.5vw] font-light text-text/70 text-pretty leading-snug">
-            [One-line background — formulation, brand, beverage operations.]
-          </p>
+      <div className="absolute bottom-[10vh] left-[6vw] right-[6vw] grid grid-cols-2 gap-[5vw]">
+        <div>
+          <div className="border-t border-divider mb-[3vh]" />
+          <div className="font-body uppercase tracking-[0.3em] text-[1.5vw] text-accent mb-[2vh]">Co-Founder</div>
+          <div className="font-display text-[3vw] leading-tight tracking-tight text-text mb-[2vh]">[Founder 01 Name]</div>
+          <div className="font-body text-[1.5vw] text-text/80 leading-snug">[One-line background — formulation, brand, beverage operations.]</div>
         </div>
-        <div className="border-t border-divider pt-[3vh]">
-          <div className="font-body uppercase tracking-[0.3em] text-[1.5vw] text-accent mb-[1.5vh]">Co-founder</div>
-          <div className="font-display text-[2.6vw] text-text mb-[1.5vh] leading-tight">[Founder 02 Name]</div>
-          <p className="font-body text-[1.5vw] font-light text-text/70 text-pretty leading-snug">
-            [One-line background — software, hardware, OS engineering.]
-          </p>
+        <div>
+          <div className="border-t border-divider mb-[3vh]" />
+          <div className="font-body uppercase tracking-[0.3em] text-[1.5vw] text-accent mb-[2vh]">Co-Founder</div>
+          <div className="font-display text-[3vw] leading-tight tracking-tight text-text mb-[2vh]">[Founder 02 Name]</div>
+          <div className="font-body text-[1.5vw] text-text/80 leading-snug">[One-line background — supply chain, retail, growth.]</div>
         </div>
       </div>
     </div>

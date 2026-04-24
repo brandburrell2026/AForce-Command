@@ -1,45 +1,44 @@
-const base = import.meta.env.BASE_URL;
-
 export default function Band() {
+  const base = import.meta.env.BASE_URL;
   return (
     <div className="w-screen h-screen overflow-hidden relative bg-bg text-text font-body">
       <div className="absolute top-[6vh] left-[6vw] right-[6vw] flex justify-between items-center z-10">
-        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-primary font-semibold">08 — Band</div>
+        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-accent font-semibold">08 — Soursop Edge</div>
         <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-muted">08 / 15</div>
       </div>
 
+      <div
+        className="absolute inset-y-0 left-0 w-[45vw] pointer-events-none"
+        style={{ background: "radial-gradient(ellipse at center, rgba(245,214,55,0.22) 0%, transparent 65%)" }}
+      />
+
       <div className="absolute inset-0 grid grid-cols-2">
-        <div className="flex flex-col justify-center px-[5vw]">
-          <div className="h-[2px] w-[4vw] bg-primary mb-[3vh]" />
-          <h2 className="font-display text-[5vw] leading-[0.95] tracking-tighter text-balance">
-            The Band.
+        <div className="relative flex items-center justify-center">
+          <img src={`${base}can-soursop.png`} alt="" className="h-[80vh] object-contain drop-shadow-2xl" />
+        </div>
+        <div className="flex flex-col justify-center pr-[6vw]">
+          <div className="h-[2px] w-[4vw] bg-accent mb-[3vh]" />
+          <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-accent mb-[2vh] font-semibold">Flavor 03</div>
+          <h2 className="font-display text-[6.5vw] leading-[0.92] tracking-tighter">
+            Soursop Edge.
           </h2>
-          <p className="mt-[4vh] font-body text-[1.6vw] font-light text-text/85 text-pretty leading-relaxed max-w-[35vw]">
-            Phantom Band. An LED-driven wearable that mirrors your state. Feedback you can feel without looking.
+          <p className="mt-[3vh] font-body text-[1.8vw] text-text/85 max-w-[35vw] leading-snug text-pretty">
+            Tropical soursop layered with <span className="text-accent font-semibold">Sea Moss</span>. An ocean-grown botanical long valued for its mineral profile.
           </p>
-          <div className="mt-[5vh] flex flex-col gap-[2vh] max-w-[35vw]">
-            <div className="flex items-start gap-[1.5vw]">
-              <div className="w-[1.2vw] h-[1.2vw] rounded-full bg-accent mt-[0.6vh] shrink-0" />
-              <div className="font-body text-[1.5vw] text-text/85 text-pretty leading-snug">Lime when you are peaking.</div>
+          <div className="mt-[4vh] flex flex-col gap-[1.8vh] max-w-[35vw]">
+            <div className="flex items-start gap-[1.2vw]">
+              <div className="font-display text-[1.8vw] text-accent mt-[0.4vh] shrink-0">01</div>
+              <div className="font-body text-[1.5vw] text-text/85 leading-snug">Sea moss is rich in iodine, magnesium, zinc, and selenium — minerals the body uses every day.</div>
             </div>
-            <div className="flex items-start gap-[1.5vw]">
-              <div className="w-[1.2vw] h-[1.2vw] rounded-full bg-primary mt-[0.6vh] shrink-0" />
-              <div className="font-body text-[1.5vw] text-text/85 text-pretty leading-snug">Red when the system needs you.</div>
+            <div className="flex items-start gap-[1.2vw]">
+              <div className="font-display text-[1.8vw] text-accent mt-[0.4vh] shrink-0">02</div>
+              <div className="font-body text-[1.5vw] text-text/85 leading-snug">Soursop is naturally sweet — bright tropical flavor with no added sugar.</div>
             </div>
-            <div className="flex items-start gap-[1.5vw]">
-              <div className="w-[1.2vw] h-[1.2vw] rounded-full bg-text/70 mt-[0.6vh] shrink-0" />
-              <div className="font-body text-[1.5vw] text-text/85 text-pretty leading-snug">Closes the loop. Body, drink, OS, band.</div>
+            <div className="flex items-start gap-[1.2vw]">
+              <div className="font-display text-[1.8vw] text-accent mt-[0.4vh] shrink-0">03</div>
+              <div className="font-body text-[1.5vw] text-text/85 leading-snug">325ml can. 14g stick. pH 8.8. No added sugar.</div>
             </div>
           </div>
-        </div>
-        <div className="relative overflow-hidden">
-          <img
-            src={`${base}band-hero.png`}
-            crossOrigin="anonymous"
-            alt=""
-            className="absolute inset-0 w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-l from-transparent via-transparent to-bg/70" />
         </div>
       </div>
     </div>
