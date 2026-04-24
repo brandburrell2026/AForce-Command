@@ -9,6 +9,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Colors } from '@/theme/colors';
+import { pickGlowAccent } from '@/services/shareAccentRotation';
 import type { BroadcastEntry, ShareContext, StateLabel } from '@/types/share';
 
 interface Props {
@@ -24,17 +25,22 @@ const ACCENT_FOR_STATE: Record<StateLabel, string> = {
 };
 
 export const ShareStory: React.FC<Props> = ({ broadcast, context }) => {
+  // State-tied accent for the small dot + score badge — keeps the live
+  // state cue visible. The dominant top/bottom glows rotate separately.
   const accent = (context.state && ACCENT_FOR_STATE[context.state]) || Colors.states.BALANCED.primary;
+  const glowAccent = pickGlowAccent(broadcast.id);
   const showBadge = context.score != null;
 
   return (
     <View style={styles.story}>
-      {/* Top + bottom edge glows tied to state — luxe vignette feel. */}
+      {/* Top + bottom edge glows rotate through 4 brand colors per
+          broadcast — gives shared stories visual variety so feeds
+          don't read monochrome. */}
       <View pointerEvents="none" style={styles.glowTop}>
-        <View style={[styles.glow, { backgroundColor: accent }]} />
+        <View style={[styles.glow, { backgroundColor: glowAccent }]} />
       </View>
       <View pointerEvents="none" style={styles.glowBottom}>
-        <View style={[styles.glow, { backgroundColor: accent, opacity: 0.08 }]} />
+        <View style={[styles.glow, { backgroundColor: glowAccent, opacity: 0.08 }]} />
       </View>
 
       <View style={styles.topRow}>
