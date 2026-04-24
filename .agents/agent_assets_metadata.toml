@@ -155,3 +155,39 @@ id = "x-tbHUuSF8JzDqVfw_iW6"
 uri = "file://attached_assets/screenshots/aforce-store-foldable.png"
 type = "image"
 title = "Store — foldable / tablet layout (900×1200)"
+
+[[outputs]]
+id = "1fih4AS7RBKo9e7V1mxcv"
+uri = "file://attached_assets/screenshots/aforce-clutch-locked.png"
+type = "image"
+title = "Clutch — LOCKED (default state for new users)"
+
+[[outputs]]
+id = "De-T563TPvRsL5rSooq4A"
+uri = "file://attached_assets/screenshots/aforce-clutch-dashboard.png"
+type = "image"
+title = "Clutch dashboard — UNLOCKED (Command the Team)"
+
+[[outputs]]
+id = "e91OU_ai5jW_6fXT1hycP"
+uri = "file://attached_assets/screenshots/aforce-clutch-foldable.png"
+type = "image"
+title = "Clutch dashboard — foldable / tablet (900×1200)"
+
+[[outputs]]
+id = "AR8hUGh4HiTauLYWEgKjK"
+uri = "file://attached_assets/screenshots/aforce-guardian-locked.png"
+type = "image"
+title = "Guardian — LOCKED (default state for new users)"
+
+[[outputs]]
+id = "pZ_C6t6NuGFcM9o_m6Dut"
+uri = "file://attached_assets/screenshots/aforce-guardian-dashboard.png"
+type = "image"
+title = "Guardian dashboard — UNLOCKED (Protect the Roster)"
+
+[[outputs]]
+id = "Ap6lDR5pHeOu9cxnWEm9I"
+uri = "file://attached_assets/screenshots/aforce-guardian-foldable.png"
+type = "image"
+title = "Guardian dashboard — foldable / tablet (900×1200)"
