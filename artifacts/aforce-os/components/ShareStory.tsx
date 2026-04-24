@@ -1,15 +1,18 @@
 /**
- * Vertical story share — IG/Snap/TikTok ratio (9:16). Bolder visual, less
- * text. Same data as ShareCard, different composition.
+ * Vertical story share — IG/Snap/TikTok ratio (9:16). Broadcast-first
+ * layout: dominant headline with massive type, subtext beneath, dark
+ * luxury, minimal, high contrast.
+ *
+ * Same data as ShareCard, taller composition optimized for stories.
  */
 
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Colors } from '@/theme/colors';
-import type { ShareContext, StateLabel } from '@/types/share';
+import type { BroadcastEntry, ShareContext, StateLabel } from '@/types/share';
 
 interface Props {
-  message: string;
+  broadcast: BroadcastEntry;
   context: ShareContext;
 }
 
@@ -20,26 +23,39 @@ const ACCENT_FOR_STATE: Record<StateLabel, string> = {
   Depleted:   Colors.states.DEPLETED.primary,
 };
 
-export const ShareStory: React.FC<Props> = ({ message, context }) => {
+export const ShareStory: React.FC<Props> = ({ broadcast, context }) => {
   const accent = (context.state && ACCENT_FOR_STATE[context.state]) || Colors.states.BALANCED.primary;
-  const big = context.score != null
-    ? String(context.score)
-    : context.delta != null
-      ? (context.delta >= 0 ? `+${context.delta}` : `${context.delta}`)
-      : context.streakDays != null
-        ? `${context.streakDays}`
-        : '';
+  const showBadge = context.score != null;
 
   return (
     <View style={styles.story}>
-      <View style={styles.glowTop} pointerEvents="none">
+      {/* Top + bottom edge glows tied to state — luxe vignette feel. */}
+      <View pointerEvents="none" style={styles.glowTop}>
         <View style={[styles.glow, { backgroundColor: accent }]} />
+      </View>
+      <View pointerEvents="none" style={styles.glowBottom}>
+        <View style={[styles.glow, { backgroundColor: accent, opacity: 0.08 }]} />
+      </View>
+
+      <View style={styles.topRow}>
+        <View style={styles.brandRow}>
+          <View style={[styles.dot, { backgroundColor: accent }]} />
+          <Text style={styles.eyebrow}>AFORCE · {broadcast.voice.toUpperCase()}</Text>
+        </View>
+        {showBadge && (
+          <View style={[styles.scoreBadge, { borderColor: `${accent}66` }]}>
+            <Text style={[styles.scoreBadgeText, { color: accent }]}>{context.score}</Text>
+          </View>
+        )}
       </View>
 
       <View style={styles.body}>
-        <Text style={styles.eyebrow}>AFORCE</Text>
-        {big ? <Text style={styles.big}>{big}</Text> : null}
-        <Text style={[styles.line, { color: accent }]}>{message}</Text>
+        <Text style={styles.headline} numberOfLines={4} adjustsFontSizeToFit>
+          {broadcast.headline}
+        </Text>
+        {broadcast.subtext ? (
+          <Text style={styles.subtext}>{broadcast.subtext}</Text>
+        ) : null}
       </View>
 
       <Text style={styles.brand}>aforce.os</Text>
@@ -50,51 +66,73 @@ export const ShareStory: React.FC<Props> = ({ message, context }) => {
 const styles = StyleSheet.create({
   story: {
     aspectRatio: 9 / 16,
-    backgroundColor: Colors.background.primary,
+    backgroundColor: '#06070A',
     borderRadius: 24,
-    padding: 28,
+    padding: 32,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: Colors.border.subtle,
+    borderColor: 'rgba(255,255,255,0.08)',
     justifyContent: 'space-between',
   },
   glowTop: {
     position: 'absolute',
-    top: -100,
-    left: -50,
-    right: -50,
+    top: -140, left: -60, right: -60,
+    alignItems: 'center',
+  },
+  glowBottom: {
+    position: 'absolute',
+    bottom: -140, left: -60, right: -60,
     alignItems: 'center',
   },
   glow: {
-    width: 260,
-    height: 260,
-    borderRadius: 200,
-    opacity: 0.18,
+    width: 320, height: 320, borderRadius: 200, opacity: 0.16,
   },
-  body: { flex: 1, justifyContent: 'center', gap: 12 },
+  topRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  brandRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  dot: { width: 8, height: 8, borderRadius: 4 },
   eyebrow: {
     color: Colors.text.muted,
-    fontSize: 11,
+    fontSize: 10,
     letterSpacing: 3,
-    fontWeight: '600',
+    fontWeight: '700',
   },
-  big: {
-    color: Colors.text.primary,
-    fontSize: 120,
-    fontWeight: '200',
-    letterSpacing: -3,
-    lineHeight: 124,
+  scoreBadge: {
+    paddingHorizontal: 10, paddingVertical: 4,
+    borderRadius: 100, borderWidth: 1,
+    backgroundColor: 'rgba(255,255,255,0.03)',
   },
-  line: {
-    fontSize: 22,
+  scoreBadgeText: {
+    fontSize: 12, fontWeight: '700', letterSpacing: 1,
+  },
+  body: {
+    flex: 1,
+    justifyContent: 'center',
+    gap: 14,
+  },
+  headline: {
+    color: '#FFFFFF',
+    fontSize: 56,
+    fontWeight: '800',
+    letterSpacing: -1,
+    lineHeight: 60,
+    textTransform: 'uppercase',
+  },
+  subtext: {
+    color: 'rgba(255,255,255,0.55)',
+    fontSize: 16,
     fontWeight: '500',
-    letterSpacing: 0.2,
+    letterSpacing: 0.4,
+    lineHeight: 22,
   },
   brand: {
     color: Colors.text.muted,
     fontSize: 11,
-    letterSpacing: 2,
-    fontWeight: '600',
+    letterSpacing: 2.5,
+    fontWeight: '700',
     textAlign: 'center',
     marginTop: 8,
   },

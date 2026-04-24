@@ -23,6 +23,30 @@ export type ShareType =
 export type StateLabel = 'Peak' | 'Balanced' | 'Recovering' | 'Depleted';
 
 /**
+ * Broadcast voice — *how* a share is phrased. Orthogonal to ShareType.
+ *
+ *   STATUS   — declarative system state ("SYSTEM CONTROLLED")
+ *   ACTION   — proof-of-action moment    ("Took 1 AForce. Stabilizing.")
+ *   IDENTITY — manifesto / philosophy    ("Check. Act. Win. Repeat.")
+ *
+ * Sharing in AForce is identity, not data. Voice is the lever the user
+ * pulls to choose which face of that identity goes out the door.
+ */
+export type ShareVoice = 'status' | 'action' | 'identity';
+
+/**
+ * One broadcast entry — what actually paints on the card.
+ *   headline → dominant element. Big, uppercase, tracked.
+ *   subtext  → small caption beneath. Muted, secondary.
+ */
+export interface BroadcastEntry {
+  id: string;
+  voice: ShareVoice;
+  headline: string;
+  subtext: string;
+}
+
+/**
  * Domain context for the template engine. Only the fields relevant to a
  * given ShareType are required by the engine; others are optional.
  */
@@ -38,6 +62,8 @@ export interface ShareContext {
   rankLabel?: string;
   /** label for protocol completion ("Recovery", "Pre-game", etc.) */
   protocolLabel?: string;
+  /** Optional voice override. Defaults to 'status' on the share screen. */
+  voice?: ShareVoice;
 }
 
 /** Output of the template engine — one variation. */

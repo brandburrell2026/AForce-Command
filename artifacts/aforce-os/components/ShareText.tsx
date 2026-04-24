@@ -1,19 +1,28 @@
 /**
  * Text-only share — preview of what gets pasted into X / Threads / iMessage.
  * Renders the exact final string composeTextShare() will send.
+ *
+ * Broadcast-first: composes from headline + subtext when present, falls
+ * back to a single message string for legacy callers.
  */
 
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Colors } from '@/theme/colors';
 import { composeTextShare } from '@/services/shareTemplateEngine';
+import { broadcastToMessage } from '@/services/shareBroadcastEngine';
+import type { BroadcastEntry } from '@/types/share';
 
 interface Props {
-  message: string;
+  /** Preferred — broadcast-first composition. */
+  broadcast?: BroadcastEntry;
+  /** Fallback — legacy single-line message. */
+  message?: string;
 }
 
-export const ShareText: React.FC<Props> = ({ message }) => {
-  const finalText = composeTextShare(message);
+export const ShareText: React.FC<Props> = ({ broadcast, message }) => {
+  const raw = broadcast ? broadcastToMessage(broadcast) : (message ?? '');
+  const finalText = composeTextShare(raw);
   return (
     <View style={styles.wrap}>
       <Text style={styles.eyebrow}>TEXT PREVIEW</Text>

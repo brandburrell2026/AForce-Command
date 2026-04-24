@@ -1,16 +1,18 @@
 /**
- * Square card share — Instagram-grid optimized. Premium, dark, minimal.
- * This is the *visual* preview rendered inside the app; image export is
- * a future cycle (view-shot).
+ * Square card share — Instagram-grid optimized. Broadcast-first layout:
+ * dominant headline, small subtext, dark luxury, minimal, high contrast.
+ *
+ * The card is identity, not data. The score (when present) lives in a
+ * tiny badge in the corner — supporting evidence, not the headline.
  */
 
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Colors } from '@/theme/colors';
-import type { ShareContext, StateLabel } from '@/types/share';
+import type { BroadcastEntry, ShareContext, StateLabel } from '@/types/share';
 
 interface Props {
-  message: string;
+  broadcast: BroadcastEntry;
   context: ShareContext;
 }
 
@@ -21,28 +23,37 @@ const ACCENT_FOR_STATE: Record<StateLabel, string> = {
   Depleted:   Colors.states.DEPLETED.primary,
 };
 
-export const ShareCard: React.FC<Props> = ({ message, context }) => {
+export const ShareCard: React.FC<Props> = ({ broadcast, context }) => {
   const accent = (context.state && ACCENT_FOR_STATE[context.state]) || Colors.states.BALANCED.primary;
-  const big = context.score != null
-    ? String(context.score)
-    : context.delta != null
-      ? (context.delta >= 0 ? `+${context.delta}` : `${context.delta}`)
-      : context.streakDays != null
-        ? `${context.streakDays}`
-        : '';
+  const showBadge = context.score != null;
 
   return (
     <View style={styles.card}>
-      <View style={styles.header}>
-        <View style={[styles.dot, { backgroundColor: accent }]} />
-        <Text style={styles.eyebrow}>AFORCE</Text>
+      {/* Edge glow tied to live state — luxe, subtle, never loud. */}
+      <View pointerEvents="none" style={styles.glowWrap}>
+        <View style={[styles.glow, { backgroundColor: accent }]} />
       </View>
 
-      {big ? <Text style={styles.big}>{big}</Text> : null}
+      <View style={styles.topRow}>
+        <View style={styles.brandRow}>
+          <View style={[styles.dot, { backgroundColor: accent }]} />
+          <Text style={styles.eyebrow}>AFORCE · {broadcast.voice.toUpperCase()}</Text>
+        </View>
+        {showBadge && (
+          <View style={[styles.scoreBadge, { borderColor: `${accent}66` }]}>
+            <Text style={[styles.scoreBadgeText, { color: accent }]}>{context.score}</Text>
+          </View>
+        )}
+      </View>
 
-      <Text style={[styles.line, { color: accent }]} numberOfLines={2}>
-        {message}
-      </Text>
+      <View style={styles.body}>
+        <Text style={styles.headline} numberOfLines={3} adjustsFontSizeToFit>
+          {broadcast.headline}
+        </Text>
+        {broadcast.subtext ? (
+          <Text style={styles.subtext} numberOfLines={2}>{broadcast.subtext}</Text>
+        ) : null}
+      </View>
 
       <View style={styles.footer}>
         <Text style={styles.brand}>aforce.os</Text>
@@ -54,42 +65,70 @@ export const ShareCard: React.FC<Props> = ({ message, context }) => {
 const styles = StyleSheet.create({
   card: {
     aspectRatio: 1,
-    backgroundColor: Colors.background.primary,
+    backgroundColor: '#06070A',
     borderRadius: 24,
-    padding: 28,
+    padding: 30,
     justifyContent: 'space-between',
     borderWidth: 1,
-    borderColor: Colors.border.subtle,
+    borderColor: 'rgba(255,255,255,0.08)',
     overflow: 'hidden',
   },
-  header: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  glowWrap: {
+    position: 'absolute',
+    top: -120, left: -60, right: -60,
+    alignItems: 'center',
+  },
+  glow: {
+    width: 320, height: 320, borderRadius: 200, opacity: 0.14,
+  },
+  topRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  brandRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   dot: { width: 8, height: 8, borderRadius: 4 },
   eyebrow: {
     color: Colors.text.muted,
-    fontSize: 11,
+    fontSize: 10,
     letterSpacing: 3,
-    fontWeight: '600',
+    fontWeight: '700',
   },
-  big: {
-    color: Colors.text.primary,
-    fontSize: 96,
-    fontWeight: '200',
-    letterSpacing: -2,
-    marginTop: 'auto',
-    marginBottom: 4,
+  scoreBadge: {
+    paddingHorizontal: 10, paddingVertical: 4,
+    borderRadius: 100, borderWidth: 1,
+    backgroundColor: 'rgba(255,255,255,0.03)',
   },
-  line: {
-    fontSize: 18,
+  scoreBadgeText: {
+    fontSize: 12, fontWeight: '700', letterSpacing: 1,
+  },
+  body: {
+    flex: 1,
+    justifyContent: 'center',
+    paddingVertical: 16,
+    gap: 10,
+  },
+  headline: {
+    color: '#FFFFFF',
+    fontSize: 44,
+    fontWeight: '800',
+    letterSpacing: -0.5,
+    lineHeight: 48,
+    textTransform: 'uppercase',
+  },
+  subtext: {
+    color: 'rgba(255,255,255,0.55)',
+    fontSize: 14,
     fontWeight: '500',
-    letterSpacing: 0.2,
-    lineHeight: 24,
+    letterSpacing: 0.4,
+    lineHeight: 19,
   },
-  footer: { marginTop: 16 },
+  footer: { marginTop: 8 },
   brand: {
     color: Colors.text.muted,
     fontSize: 11,
-    letterSpacing: 2,
-    fontWeight: '600',
+    letterSpacing: 2.5,
+    fontWeight: '700',
   },
 });
 

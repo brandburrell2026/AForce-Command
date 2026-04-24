@@ -1,13 +1,16 @@
 /**
- * Share Preview screen — pick a format, pick a message variation, share.
+ * Share Preview screen — pick a voice, pick a format, pick a line, share.
+ *
+ * Sharing in AForce is identity, not data. The user picks a VOICE
+ * (STATUS / ACTION / IDENTITY) which drives the dominant headline on
+ * the card. The legacy `type` query param still feeds in (e.g. score,
+ * state, streak) — it determines the live context that subtext draws
+ * from.
  *
  * Reachable as the route `/share`. Reads share context from query params:
  *   /share?type=score&score=88&state=Balanced
  *   /share?type=streak&streakDays=7
- *   /share?type=heat_save
- *
- * If params are missing it derives a sensible "current state" share from
- * the live engine output in the app store.
+ *   /share?voice=identity
  */
 
 import React from 'react';
@@ -23,8 +26,12 @@ import ViewShot from 'react-native-view-shot';
 import { Colors } from '@/theme/colors';
 import { useAppStore } from '@/store/useAppStore';
 
-import type { ShareContext, ShareFormat, ShareType, StateLabel } from '@/types/share';
-import { generateShareVariations } from '@/services/shareTemplateEngine';
+import type {
+  ShareContext, ShareFormat, ShareType, ShareVoice, StateLabel,
+} from '@/types/share';
+import {
+  generateBroadcasts, defaultVoice, broadcastToMessage,
+} from '@/services/shareBroadcastEngine';
 import { openShareSheet, shareToSocial, buildShareItem, type SocialPlatform } from '@/services/shareService';
 import ShareCard from '@/components/ShareCard';
 import ShareStory from '@/components/ShareStory';
@@ -34,6 +41,12 @@ const FORMATS: { id: ShareFormat; label: string; icon: keyof typeof Feather.glyp
   { id: 'card',  label: 'CARD',  icon: 'square'    },
   { id: 'story', label: 'STORY', icon: 'smartphone' },
   { id: 'text',  label: 'TEXT',  icon: 'type'      },
+];
+
+const VOICES: { id: ShareVoice; label: string; tagline: string }[] = [
+  { id: 'status',   label: 'STATUS',   tagline: 'System state' },
+  { id: 'action',   label: 'ACTION',   tagline: 'Proof in motion' },
+  { id: 'identity', label: 'IDENTITY', tagline: 'How I run' },
 ];
 
 function levelToStateLabel(level: string): StateLabel {
@@ -50,13 +63,30 @@ function readParam(params: Record<string, string | string[] | undefined>, k: str
   return Array.isArray(v) ? v[0] : v;
 }
 
+// Allowlists keep raw query params from poisoning the engine. Anything
+// outside the union falls through to the safe fallback.
+const VALID_TYPES: ReadonlySet<ShareType> = new Set([
+  'score', 'state', 'gain', 'streak', 'protocol', 'rank', 'heat_save', 'command', 'reset',
+]);
+const VALID_STATES: ReadonlySet<StateLabel> = new Set(['Peak', 'Balanced', 'Recovering', 'Depleted']);
+const VALID_VOICES: ReadonlySet<ShareVoice> = new Set(['status', 'action', 'identity']);
+
+function asType(v: string | undefined): ShareType | undefined {
+  return v && VALID_TYPES.has(v as ShareType) ? (v as ShareType) : undefined;
+}
+function asState(v: string | undefined): StateLabel | undefined {
+  return v && VALID_STATES.has(v as StateLabel) ? (v as StateLabel) : undefined;
+}
+function asVoice(v: string | undefined): ShareVoice | undefined {
+  return v && VALID_VOICES.has(v as ShareVoice) ? (v as ShareVoice) : undefined;
+}
+
 function parseContext(
   params: Record<string, string | string[] | undefined>,
   fallback: ShareContext,
 ): ShareContext {
-  const type = (readParam(params, 'type') as ShareType | undefined) ?? fallback.type;
+  const type = asType(readParam(params, 'type')) ?? fallback.type;
   const scoreRaw = readParam(params, 'score');
-  const stateParam = readParam(params, 'state') as StateLabel | undefined;
   const deltaRaw = readParam(params, 'delta');
   const streakRaw = readParam(params, 'streakDays');
   const score = scoreRaw != null ? Number(scoreRaw) : fallback.score;
@@ -65,11 +95,12 @@ function parseContext(
   return {
     type,
     score: Number.isFinite(score) ? score : fallback.score,
-    state: stateParam ?? fallback.state,
+    state: asState(readParam(params, 'state')) ?? fallback.state,
     delta: Number.isFinite(delta) ? delta : undefined,
     streakDays: Number.isFinite(streakDays) ? streakDays : undefined,
     rankLabel: readParam(params, 'rankLabel'),
     protocolLabel: readParam(params, 'protocolLabel'),
+    voice: asVoice(readParam(params, 'voice')),
   };
 }
 
@@ -89,7 +120,11 @@ export const SharePreviewScreen: React.FC = () => {
 
   const ctx = React.useMemo(() => parseContext(params, fallbackContext), [params, fallbackContext]);
 
-  const variations = React.useMemo(() => generateShareVariations(ctx), [ctx]);
+  // Voice: explicit param wins; otherwise auto-pick a sensible default
+  // for the live context. User can override via the VOICE picker.
+  const [voice, setVoice] = React.useState<ShareVoice>(() => ctx.voice ?? defaultVoice(ctx));
+
+  const broadcasts = React.useMemo(() => generateBroadcasts(voice, ctx), [voice, ctx]);
   const [variantIdx, setVariantIdx] = React.useState(0);
   const [format, setFormat] = React.useState<ShareFormat>('card');
   const [sharing, setSharing] = React.useState(false);
@@ -97,12 +132,13 @@ export const SharePreviewScreen: React.FC = () => {
   // shares (Instagram, FB, Messages, etc.). Text format skips capture.
   const previewRef = React.useRef<ViewShot>(null);
 
-  // Reset variant index if context changes and the index is out of range.
+  // Reset variant index if voice/context changes and the index is out of range.
   React.useEffect(() => {
-    if (variantIdx >= variations.length) setVariantIdx(0);
-  }, [variations, variantIdx]);
+    if (variantIdx >= broadcasts.length) setVariantIdx(0);
+  }, [broadcasts, variantIdx]);
 
-  const message = variations[variantIdx]?.text ?? '';
+  const broadcast = broadcasts[variantIdx] ?? broadcasts[0];
+  const message = broadcast ? broadcastToMessage(broadcast) : '';
 
   /**
    * Single dispatch path for every share button on this screen.
@@ -200,10 +236,41 @@ export const SharePreviewScreen: React.FC = () => {
             ref={previewRef}
             options={{ format: 'png', quality: 0.95, result: 'tmpfile' }}
           >
-            {format === 'card'  && <ShareCard  message={message} context={ctx} />}
-            {format === 'story' && <ShareStory message={message} context={ctx} />}
-            {format === 'text'  && <ShareText  message={message} />}
+            {format === 'card'  && broadcast && <ShareCard  broadcast={broadcast} context={ctx} />}
+            {format === 'story' && broadcast && <ShareStory broadcast={broadcast} context={ctx} />}
+            {format === 'text'  && broadcast && <ShareText  broadcast={broadcast} />}
           </ViewShot>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>VOICE</Text>
+          <View style={styles.voiceRow}>
+            {VOICES.map((v) => {
+              const active = v.id === voice;
+              return (
+                <Pressable
+                  key={v.id}
+                  onPress={() => {
+                    if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
+                    setVoice(v.id);
+                    setVariantIdx(0);
+                  }}
+                  style={[styles.voiceBtn, active && styles.voiceBtnActive]}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${v.label} voice — ${v.tagline}`}
+                  accessibilityState={{ selected: active }}
+                  testID={`voice-${v.id}`}
+                >
+                  <Text style={[styles.voiceLabel, active && styles.voiceLabelActive]}>
+                    {v.label}
+                  </Text>
+                  <Text style={[styles.voiceTagline, active && styles.voiceTaglineActive]}>
+                    {v.tagline}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
         </View>
 
         <View style={styles.section}>
@@ -272,21 +339,27 @@ export const SharePreviewScreen: React.FC = () => {
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>MESSAGE</Text>
           <View style={styles.variantsCol}>
-            {variations.map((v, i) => {
+            {broadcasts.map((b, i) => {
               const active = i === variantIdx;
+              const preview = b.subtext ? `${b.headline} ${b.subtext}` : b.headline;
               return (
                 <Pressable
-                  key={v.id}
+                  key={b.id}
                   onPress={() => {
                     if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
                     setVariantIdx(i);
                   }}
                   style={[styles.variantBtn, active && styles.variantBtnActive]}
-                  accessibilityLabel={`Message option ${i + 1}: ${v.text}`}
+                  accessibilityLabel={`Message option ${i + 1}: ${preview}`}
                   accessibilityState={{ selected: active }}
                 >
                   <View style={[styles.radio, active && styles.radioActive]} />
-                  <Text style={styles.variantText}>{v.text}</Text>
+                  <View style={styles.variantTextWrap}>
+                    <Text style={styles.variantHeadline} numberOfLines={2}>{b.headline}</Text>
+                    {b.subtext ? (
+                      <Text style={styles.variantSubtext} numberOfLines={1}>{b.subtext}</Text>
+                    ) : null}
+                  </View>
                 </Pressable>
               );
             })}
@@ -343,6 +416,36 @@ const styles = StyleSheet.create({
     letterSpacing: 3,
     fontWeight: '600',
   },
+  voiceRow: { flexDirection: 'row', gap: 8 },
+  voiceBtn: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Colors.border.medium,
+    backgroundColor: Colors.fill.medium,
+    alignItems: 'center',
+    gap: 4,
+  },
+  voiceBtnActive: {
+    backgroundColor: Colors.text.primary,
+    borderColor: Colors.text.primary,
+  },
+  voiceLabel: {
+    color: Colors.text.primary,
+    fontSize: 12,
+    letterSpacing: 2.5,
+    fontWeight: '700',
+  },
+  voiceLabelActive: { color: Colors.text.inverse },
+  voiceTagline: {
+    color: Colors.text.muted,
+    fontSize: 10,
+    letterSpacing: 0.6,
+    fontWeight: '500',
+  },
+  voiceTaglineActive: { color: Colors.text.inverse, opacity: 0.7 },
   socialRow: { flexDirection: 'row', gap: 14, paddingVertical: 4, paddingRight: 8 },
   socialBtn: { alignItems: 'center', gap: 6, width: 64 },
   socialIconCircle: {
@@ -408,11 +511,17 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.text.primary,
     borderColor: Colors.text.primary,
   },
-  variantText: {
-    flex: 1,
+  variantTextWrap: { flex: 1, gap: 2 },
+  variantHeadline: {
     color: Colors.text.primary,
     fontSize: 15,
     lineHeight: 20,
+    fontWeight: '700',
+  },
+  variantSubtext: {
+    color: Colors.text.muted,
+    fontSize: 12,
+    lineHeight: 16,
   },
   footer: {
     paddingHorizontal: 20, paddingTop: 12,
