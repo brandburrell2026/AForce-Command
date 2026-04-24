@@ -15,16 +15,18 @@
 import { Colors } from '../theme/colors';
 
 /**
- * 4 brand glow colors. Order is fixed and exposed for tests + analytics.
- * Red is intentionally first — it's the original state-Depleted accent
- * the rotation replaces, kept in the rotation so high-urgency shares
- * still feel "hot" some of the time.
+ * Brand glow colors — red + blue. Order is fixed and exposed for tests
+ * + analytics. Red is the original state-Depleted accent (kept so
+ * high-urgency shares still read "hot"); blue is added for visual
+ * variety so feeds don't read monochrome.
+ *
+ * Blue is declared inline because the theme doesn't ship a blue token.
  */
+const BRAND_BLUE = '#3B82F6';
+
 export const GLOW_PALETTE: readonly string[] = [
   Colors.states.DEPLETED.primary,    // #FF2D55  red
-  Colors.states.PEAK.primary,        // #B4FF50  lime
-  Colors.states.BALANCED.primary,    // #00E5C8  teal
-  Colors.guardian.primary,           // #8B5CF6  violet
+  BRAND_BLUE,                        // #3B82F6  blue
 ] as const;
 
 /**

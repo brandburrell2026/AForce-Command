@@ -22,20 +22,21 @@ describe('pickGlowAccent', () => {
     expect(pickGlowAccent('act-aforce')).toBe(pickGlowAccent('act-aforce'));
   });
 
-  it('palette has exactly 4 distinct colors', () => {
-    expect(GLOW_PALETTE.length).toBe(4);
-    expect(new Set(GLOW_PALETTE).size).toBe(4);
+  it('palette has exactly 2 distinct colors (red + blue)', () => {
+    expect(GLOW_PALETTE.length).toBe(2);
+    expect(new Set(GLOW_PALETTE).size).toBe(2);
   });
 
-  it('palette includes red so the original Depleted vibe is preserved', () => {
+  it('palette is [red, blue] in that order', () => {
     expect(GLOW_PALETTE[0]).toBe('#FF2D55');
+    expect(GLOW_PALETTE[1]).toBe('#3B82F6');
   });
 
-  it('cycles through ALL 4 colors across the real broadcast pools', () => {
+  it('cycles through BOTH colors across the real broadcast pools', () => {
     // Across the real id-namespaces (action + identity + every status
-    // variant the engine emits), every palette color appears at least
-    // once. This guards against a hash collision regression where the
-    // rotation degenerates to fewer than 4 colors in practice.
+    // variant the engine emits), both palette colors appear at least
+    // once. Guards against a hash collision regression where the
+    // rotation degenerates to a single color in practice.
     const seeds = [
       ...ACTION_BROADCASTS.map(b => b.id),
       ...IDENTITY_BROADCASTS.map(b => b.id),
