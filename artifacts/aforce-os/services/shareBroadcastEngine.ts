@@ -50,7 +50,9 @@ export function generateBroadcasts(voice: ShareVoice, ctx: ShareContext): Broadc
       // Take the first 3 from the pool — keeps the picker scannable.
       return ACTION_BROADCASTS.slice(0, 3);
     case 'identity':
-      return IDENTITY_BROADCASTS.slice(0, 3);
+      // 4 manifesto picks — one more than action because the IDENTITY
+      // pool is the most-loved voice and "Become AForce." sits at the top.
+      return IDENTITY_BROADCASTS.slice(0, 4);
     default: {
       // Unknown voice (e.g. value crossed a TS boundary). Always return a
       // safe non-empty STATUS broadcast so the UI never blanks out.

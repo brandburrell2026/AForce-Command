@@ -61,6 +61,7 @@ export const ACTION_BROADCASTS: BroadcastEntry[] = [
  * brand voice. No data, no protocol mechanics — pure identity.
  */
 export const IDENTITY_BROADCASTS: BroadcastEntry[] = [
+  { id: 'id-become',    voice: 'identity', headline: 'Become AForce.',           subtext: 'From the inside.' },
   { id: 'id-inside',    voice: 'identity', headline: 'AForce inside me.',        subtext: 'Two brothers. One promise.' },
   { id: 'id-not-drink', voice: 'identity', headline: 'Not a drink.',             subtext: 'A system.' },
   { id: 'id-clean-af',  voice: 'identity', headline: 'Clean AF.',                subtext: 'Effective AF.' },

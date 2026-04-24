@@ -74,23 +74,25 @@ describe('generateBroadcasts — ACTION voice', () => {
 });
 
 describe('generateBroadcasts — IDENTITY voice', () => {
-  it('returns 3 manifesto lines, no numbers', () => {
+  it('returns 4 manifesto lines, no numbers', () => {
     const v = generateBroadcasts('identity', { type: 'score', score: 88 });
-    expect(v.length).toBe(3);
+    expect(v.length).toBe(4);
     for (const b of v) {
       expect(b.voice).toBe('identity');
       expect(b.headline).not.toMatch(/\d/);
     }
   });
 
-  it('uses website brand themes (AForce inside / Not a drink / Clean AF)', () => {
+  it('leads with "Become AForce." then the rest of the website brand themes', () => {
     const v = generateBroadcasts('identity', { type: 'score' });
-    expect(v[0].headline).toBe('AForce inside me.');
-    expect(v[0].subtext).toBe('Two brothers. One promise.');
-    expect(v[1].headline).toBe('Not a drink.');
-    expect(v[1].subtext).toBe('A system.');
-    expect(v[2].headline).toBe('Clean AF.');
-    expect(v[2].subtext).toBe('Effective AF.');
+    expect(v[0].headline).toBe('Become AForce.');
+    expect(v[0].subtext).toBe('From the inside.');
+    expect(v[1].headline).toBe('AForce inside me.');
+    expect(v[1].subtext).toBe('Two brothers. One promise.');
+    expect(v[2].headline).toBe('Not a drink.');
+    expect(v[2].subtext).toBe('A system.');
+    expect(v[3].headline).toBe('Clean AF.');
+    expect(v[3].subtext).toBe('Effective AF.');
   });
 });
 
