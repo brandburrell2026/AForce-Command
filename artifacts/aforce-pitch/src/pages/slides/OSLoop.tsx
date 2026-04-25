@@ -2,8 +2,8 @@ export default function OSLoop() {
   return (
     <div className="w-screen h-screen overflow-hidden relative bg-bg text-text font-body">
       <div className="absolute top-[6vh] left-[6vw] right-[6vw] flex justify-between items-center">
-        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-primary font-semibold">15 — The Loop</div>
-        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-muted">15 / 29</div>
+        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-primary font-semibold">12 — The Loop</div>
+        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-muted">12 / 22</div>
       </div>
 
       <div className="absolute top-[14vh] left-[6vw] right-[6vw]">
@@ -58,6 +58,7 @@ export default function OSLoop() {
             <div className="text-center">
               <div className="font-display text-[2.2vw] leading-none text-accent">AForce</div>
               <div className="font-body uppercase tracking-[0.25em] text-[1vw] text-text/70 mt-[0.8vh]">The system</div>
+              <div className="font-body uppercase tracking-[0.2em] text-[0.75vw] text-muted mt-[0.6vh]">Circles · Territory</div>
             </div>
           </div>
         </div>

@@ -4,7 +4,7 @@
     "position": 1,
     "filepath": "src/pages/slides/Cover.tsx",
     "title": "Cover",
-    "description": "Drink AForce. Run on AForce OS. Fuel your body with alkaline power.",
+    "description": "Drink AForce. Run on AForce OS. $4M Seed for Spring 2026 launch.",
     "speakerNotes": ""
   },
   {
@@ -28,7 +28,7 @@
     "position": 4,
     "filepath": "src/pages/slides/Insight.tsx",
     "title": "Insight",
-    "description": "Performance lives in the buffer. pH 8.8 changes everything.",
+    "description": "Performance lives in the buffer. pH 8.8 — Buffer / Restore / Hold.",
     "speakerNotes": ""
   },
   {
@@ -80,72 +80,32 @@
     "speakerNotes": ""
   },
   {
-    "id": "442cc5a6-cd31-431d-bde2-787a57d4f113",
-    "position": 11,
-    "filepath": "src/pages/slides/Tailwinds.tsx",
-    "title": "Why pH 8.8",
-    "description": "Buffer the body. Restore minerals. Hold output longer.",
-    "speakerNotes": ""
-  },
-  {
     "id": "e1a6c2f8-7b3d-4e9c-8a5f-1d4b8e2c6f9a",
-    "position": 12,
+    "position": 11,
     "filepath": "src/pages/slides/OSIntro.tsx",
     "title": "AForce OS",
     "description": "Beyond the can. The mobile OS that turns every sip into measurable output.",
     "speakerNotes": ""
   },
   {
-    "id": "f2b7d3a9-8c4e-4f0b-9a6d-2e5c9f3a7d1b",
-    "position": 13,
-    "filepath": "src/pages/slides/OSEngine.tsx",
-    "title": "The Engine",
-    "description": "Score, Why, Command — the three-step engine that powers AForce OS.",
-    "speakerNotes": ""
-  },
-  {
-    "id": "a3c8e4b0-9d5f-4a1c-8b7e-3f6d0a4b8e2c",
-    "position": 14,
-    "filepath": "src/pages/slides/OSNetwork.tsx",
-    "title": "The Network",
-    "description": "Circles + Territory — the social and competitive layer that creates the moat.",
-    "speakerNotes": ""
-  },
-  {
     "id": "b4d9f5c1-0e6a-4b2d-9c8f-4a7e1b5c9f3d",
-    "position": 15,
+    "position": 12,
     "filepath": "src/pages/slides/OSLoop.tsx",
     "title": "The Loop",
-    "description": "Hardware + software, one closed loop. Hydration that gets smarter every cycle.",
+    "description": "Hardware + software, one closed loop. Drink → Score → Coach → Decide.",
     "speakerNotes": ""
   },
   {
     "id": "c2d3e4f5-a6b7-4890-bc1d-2e3f4a5b6c7d",
-    "position": 16,
+    "position": 13,
     "filepath": "src/pages/slides/Flywheel.tsx",
-    "title": "Revenue Flywheel",
-    "description": "Hybrid CPG + SaaS — products acquire, OS subscribes, data compounds LTV.",
-    "speakerNotes": ""
-  },
-  {
-    "id": "d3e4f5a6-b7c8-4901-cd2e-3f4a5b6c7d8e",
-    "position": 17,
-    "filepath": "src/pages/slides/Delivers.tsx",
-    "title": "AForce Delivers",
-    "description": "5:1 LTV:CAC. $52 AOV. $383 CLTV. 65% gross margin across multi-format mix.",
-    "speakerNotes": ""
-  },
-  {
-    "id": "e4f5a6b7-c8d9-4012-de3f-4a5b6c7d8e9f",
-    "position": 18,
-    "filepath": "src/pages/slides/OSScales.tsx",
-    "title": "OS Economics",
-    "description": "Software-level economics — 90%+ digital margin, up to 21:1 LTV:CAC at the bundle tier.",
+    "title": "Economics",
+    "description": "Hybrid CPG + SaaS — $52 AOV, $383 CLTV, 5:1 LTV:CAC, 90%+ digital margin, 21:1 at OS bundle.",
     "speakerNotes": ""
   },
   {
     "id": "d44bf2c6-5675-42c1-901b-e682ddfe1ff4",
-    "position": 19,
+    "position": 14,
     "filepath": "src/pages/slides/Market.tsx",
     "title": "Market",
     "description": "Functional beverages, sports drinks, and stick mixes — all moving toward AForce.",
@@ -153,7 +113,7 @@
   },
   {
     "id": "f5a6b7c8-d9e0-4123-ef4a-5b6c7d8e9f01",
-    "position": 20,
+    "position": 15,
     "filepath": "src/pages/slides/Advantage.tsx",
     "title": "Competitive Advantage",
     "description": "Performance intelligence platform + closed-loop data + multi-format ecosystem + premium formulation.",
@@ -161,23 +121,15 @@
   },
   {
     "id": "a6b7c8d9-e0f1-4234-fa5b-6c7d8e9f0123",
-    "position": 21,
+    "position": 16,
     "filepath": "src/pages/slides/Competitors.tsx",
     "title": "Competitors",
     "description": "AForce vs. Liquid IV, LMNT, BodyArmor, Gatorade, Prime — only AForce checks every box.",
     "speakerNotes": ""
   },
   {
-    "id": "f504a48d-36c6-4611-a5ab-62f37c012092",
-    "position": 22,
-    "filepath": "src/pages/slides/Model.tsx",
-    "title": "Channels",
-    "description": "DTC, premium retail, gyms, and travel — every place sweat happens.",
-    "speakerNotes": ""
-  },
-  {
     "id": "b7c8d9e0-f1a2-4345-ab6c-7d8e9f012345",
-    "position": 23,
+    "position": 17,
     "filepath": "src/pages/slides/GTM.tsx",
     "title": "Go-To-Market",
     "description": "Six phases from DTC launch to global category leader and OS licensing.",
@@ -185,7 +137,7 @@
   },
   {
     "id": "c8d9e0f1-a2b3-4456-bc7d-8e9f01234567",
-    "position": 24,
+    "position": 18,
     "filepath": "src/pages/slides/Traction.tsx",
     "title": "Traction",
     "description": "$630K closed, 179 creators, 2.3M+ projected reach, national media booked.",
@@ -193,7 +145,7 @@
   },
   {
     "id": "d9e0f1a2-b3c4-4567-cd8e-9f0123456789",
-    "position": 25,
+    "position": 19,
     "filepath": "src/pages/slides/Financials.tsx",
     "title": "Financial Projections",
     "description": "$3.2M (2026) → $13M (2027) → $27.8M (2028). EBITDA breakeven late 2027.",
@@ -201,23 +153,15 @@
   },
   {
     "id": "e0f1a2b3-c4d5-4678-de9f-012345678901",
-    "position": 26,
+    "position": 20,
     "filepath": "src/pages/slides/Funding.tsx",
-    "title": "Funding Strategy",
-    "description": "$4M Series Seed Preferred. Target close Q1 2026. Market timing + proven team + optionality.",
-    "speakerNotes": ""
-  },
-  {
-    "id": "f1a2b3c4-d5e6-4789-ef01-234567890123",
-    "position": 27,
-    "filepath": "src/pages/slides/UseOfFunds.tsx",
-    "title": "Use of Funds",
-    "description": "40% inventory, 20% GTM, 20% AForce OS + tech, 10% sales build-out, 10% team.",
+    "title": "Funding & Use of Funds",
+    "description": "$4M Series Seed Preferred. Q1 2026 close. 40/20/20/10/10 allocation across inventory, GTM, OS, distribution, team.",
     "speakerNotes": ""
   },
   {
     "id": "a2b3c4d5-e6f7-4890-f012-345678901234",
-    "position": 28,
+    "position": 21,
     "filepath": "src/pages/slides/Leaders.tsx",
     "title": "Our Leaders",
     "description": "Brandon Burrell, Julius Burrell — with advisors Mark Mendel, Adam Sobol, Thomas Masterbouni, and Chief Scientist Mark Satterfield.",
@@ -225,10 +169,10 @@
   },
   {
     "id": "b3c4d5e6-f7a8-4901-1234-567890123456",
-    "position": 29,
+    "position": 22,
     "filepath": "src/pages/slides/Closing.tsx",
     "title": "Closing",
-    "description": "AForce is not a drink — it's the operating system for human performance. Contact Brandon Burrell. Investment thesis: CPG + SaaS, omnichannel, category trends, national media catalyst.",
+    "description": "AForce is not a drink — it's the operating system for human performance. Contact + investment thesis pillars.",
     "speakerNotes": ""
   }
 ]

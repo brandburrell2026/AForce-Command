@@ -17,8 +17,8 @@ export default function Financials() {
   return (
     <div className="w-screen h-screen overflow-hidden relative bg-bg text-text font-body">
       <div className="absolute top-[6vh] left-[6vw] right-[6vw] flex justify-between items-center z-10">
-        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-blue font-semibold">25 — Financial Projections</div>
-        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-muted">25 / 29</div>
+        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-blue font-semibold">19 — Financial Projections</div>
+        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-muted">19 / 22</div>
       </div>
 
       <div className="absolute top-[12vh] left-[6vw] right-[6vw] flex justify-between items-end gap-[3vw]">

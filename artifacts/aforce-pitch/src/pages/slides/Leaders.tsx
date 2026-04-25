@@ -52,8 +52,8 @@ export default function Leaders() {
   return (
     <div className="w-screen h-screen overflow-hidden relative bg-bg text-text font-body">
       <div className="absolute top-[6vh] left-[6vw] right-[6vw] flex justify-between items-center z-10">
-        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-primary font-semibold">28 — Our Leaders</div>
-        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-muted">28 / 29</div>
+        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-primary font-semibold">21 — Our Leaders</div>
+        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-muted">21 / 22</div>
       </div>
 
       <div className="absolute top-[14vh] left-[6vw] right-[6vw]">

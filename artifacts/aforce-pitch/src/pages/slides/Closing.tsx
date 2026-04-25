@@ -7,7 +7,7 @@ export default function Closing() {
         <div className="font-display text-[1.6vw] tracking-tight text-text">
           A<span className="text-blue">FORCE</span>
         </div>
-        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-muted">29 / 29</div>
+        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-muted">22 / 22</div>
       </div>
 
       <div className="absolute top-[16vh] left-[6vw] w-[50vw]">
