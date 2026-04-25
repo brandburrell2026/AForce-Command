@@ -8,8 +8,8 @@ export default function Closing() {
       <div className="absolute -bottom-[20vh] -left-[10vw] w-[45vw] h-[45vw] rounded-full bg-primary/[0.06] blur-[120px] pointer-events-none" />
 
       <div className="absolute top-[5vh] left-[6vw] right-[6vw] flex justify-between items-center z-10">
-        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-blue font-semibold">23 — The Ask</div>
-        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-muted">23 / 23</div>
+        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-blue font-semibold">24 — The Ask</div>
+        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-muted">24 / 24</div>
       </div>
 
       <div className="absolute top-[14vh] bottom-[12vh] left-[6vw] w-[30vw] z-10">
