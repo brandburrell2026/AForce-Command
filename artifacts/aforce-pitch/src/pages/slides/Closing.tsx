@@ -15,7 +15,7 @@ export default function Closing() {
       <div className="absolute top-[8vh] left-[4vw] w-[32vw] z-10 flex flex-col gap-[1.5vh]">
         {/* Photo card — locked to image's natural ~1.07 aspect so both faces are 100% visible with no crop and no empty space */}
         <div
-          className="relative w-full rounded-2xl overflow-hidden ring-1 ring-text/10"
+          className="relative w-full rounded-2xl overflow-hidden"
           style={{ aspectRatio: "870 / 810" }}
         >
           <img
