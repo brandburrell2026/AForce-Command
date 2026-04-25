@@ -35,14 +35,43 @@ export default function OSRoadmap() {
 
           {/* Floating AI Coach phone — hero specimen */}
           <div
-            className="absolute -left-[1vw] -top-[4vh] w-[8vw] z-20 pointer-events-none"
+            className="absolute -left-[1.5vw] -top-[3vh] w-[9.5vw] z-20 pointer-events-none"
             style={{ filter: "drop-shadow(0 18px 36px rgba(0,0,0,0.55)) drop-shadow(0 0 24px rgba(229,51,65,0.28))" }}
           >
-            <img
-              src={`${import.meta.env.BASE_URL}ai-coach-phone-mockup.png`}
-              alt="AForce AI Coach — live in your pocket"
-              className="w-full h-auto block"
-            />
+            <div className="relative">
+              <img
+                src={`${import.meta.env.BASE_URL}ai-coach-phone-mockup.png`}
+                alt="AForce AI Coach — live in your pocket"
+                className="w-full h-auto block"
+              />
+
+              {/* Crisp HTML overlay — replaces blurry baked-in text */}
+              <div
+                className="absolute"
+                style={{ top: "50%", bottom: "5%", left: "10.7%", right: "11.2%", background: "#000" }}
+              >
+                <div className="h-full px-[0.4vw] py-[0.5vh] flex flex-col">
+                  <div className="font-display font-bold text-white text-[0.78vw] leading-none tracking-tight">CORRECT NOW</div>
+                  <div className="font-body text-white/85 text-[0.42vw] leading-tight mt-[0.4vh]">AForce Stick + 20 oz. Immediate.</div>
+
+                  <div className="mt-[0.7vh] rounded-[0.25vw] bg-white/[0.06] border border-white/10 px-[0.4vw] py-[0.4vh]">
+                    <div className="font-body uppercase tracking-[0.18em] text-white/55 text-[0.32vw] font-semibold">Command</div>
+                    <div className="font-body font-bold text-white text-[0.42vw] leading-tight mt-[0.2vh]">
+                      Take 1 AForce RTD now. Drink 16&nbsp;oz water before the next round.
+                    </div>
+                    <div className="font-body text-white/60 text-[0.34vw] leading-snug mt-[0.3vh]">
+                      Hangover risk rising (64/100). Electrolytes now make morning easier.
+                    </div>
+                  </div>
+
+                  <div className="mt-auto pt-[0.4vh] border-t border-primary/60 flex items-center justify-between">
+                    <span className="font-body uppercase tracking-[0.14em] text-white/65 text-[0.3vw] font-semibold">Depletion Emergency</span>
+                    <span className="font-body uppercase tracking-[0.14em] text-white/65 text-[0.3vw] font-semibold">Recheck 4:27</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div className="absolute -bottom-[1.2vh] left-1/2 -translate-x-1/2 px-[0.7vw] py-[0.25vh] rounded-full bg-primary text-white font-body uppercase tracking-[0.22em] text-[0.55vw] font-bold whitespace-nowrap shadow-lg">
               ● Live in pocket
             </div>
