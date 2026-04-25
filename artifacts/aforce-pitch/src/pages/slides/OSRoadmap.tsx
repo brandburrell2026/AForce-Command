@@ -22,7 +22,7 @@ export default function OSRoadmap() {
           <span className="text-text"> A billion-dollar </span>
           <span className="text-accent">moat.</span>
         </h1>
-        <div className="font-body text-[1.1vw] text-text/60 mt-[1.6vh] max-w-[78vw] leading-tight">
+        <div className="font-body text-[1.05vw] text-text/60 mt-[1.6vh] max-w-[58vw] ml-auto leading-tight text-right">
           Each phase unlocks a new revenue engine on the same platform — consumer DTC, team SaaS, then enterprise + medical contracts.{" "}
           <span className="text-text/85">The moat compounds with every athlete, every roster, every roster-year.</span>
         </div>
@@ -30,8 +30,24 @@ export default function OSRoadmap() {
 
       <div className="absolute top-[40vh] bottom-[17vh] left-[6vw] right-[6vw] grid grid-cols-3 gap-[1.6vw] z-10">
 
-        <div className="relative rounded-2xl bg-gradient-to-b from-primary/[0.14] via-primary/[0.04] to-transparent border border-primary/30 p-[1.8vw] flex flex-col overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 h-[0.5vh] bg-primary" />
+        <div className="relative rounded-2xl bg-gradient-to-b from-primary/[0.14] via-primary/[0.04] to-transparent border border-primary/30 p-[1.8vw] pl-[10vw] flex flex-col overflow-visible">
+          <div className="absolute top-0 left-0 right-0 h-[0.5vh] bg-primary rounded-t-2xl" />
+
+          {/* Floating AI Coach phone — hero specimen */}
+          <div
+            className="absolute -left-[1.5vw] -top-[10vh] w-[9.5vw] z-20 pointer-events-none"
+            style={{ filter: "drop-shadow(0 18px 36px rgba(0,0,0,0.55)) drop-shadow(0 0 24px rgba(229,51,65,0.28))" }}
+          >
+            <img
+              src={`${import.meta.env.BASE_URL}ai-coach-phone-mockup.png`}
+              alt="AForce AI Coach — live in your pocket"
+              className="w-full h-auto block"
+            />
+            <div className="absolute -bottom-[1.2vh] left-1/2 -translate-x-1/2 px-[0.7vw] py-[0.25vh] rounded-full bg-primary text-white font-body uppercase tracking-[0.22em] text-[0.55vw] font-bold whitespace-nowrap shadow-lg">
+              ● Live in pocket
+            </div>
+          </div>
+
           <div className="flex items-center justify-between mb-[1.6vh]">
             <div className="font-body uppercase tracking-[0.28em] text-[0.7vw] text-primary font-semibold">Phase 1 · Consumer</div>
             <div className="px-[0.7vw] py-[0.3vh] rounded-full border border-primary/55 bg-primary/15 font-body uppercase tracking-[0.18em] text-[0.6vw] text-primary font-semibold flex items-center gap-[0.4vw]">
