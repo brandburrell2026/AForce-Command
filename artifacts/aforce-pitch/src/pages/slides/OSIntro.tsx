@@ -110,10 +110,10 @@ export default function OSIntro() {
           </div>
 
           <div className="px-[0.4vw]">
-            <div className="font-body text-[0.65vw] text-text/55">Welcome, Brandon</div>
-            <div className="font-body uppercase tracking-[0.18em] text-[0.55vw] text-text/40 mt-[0.4vh] leading-tight">Hydration Control<br />Center</div>
-            <div className="flex items-center justify-between mt-[0.5vh] gap-[0.4vw]">
-              <div className="font-display text-[1.3vw] leading-none text-text">AForce OS</div>
+            <div className="font-body text-[0.5vw] text-text/45">Welcome, Brandon</div>
+            <div className="font-body uppercase tracking-[0.18em] text-[0.5vw] text-text/35 mt-[0.3vh] leading-tight">Hydration Control<br />Center</div>
+            <div className="flex items-center justify-between mt-[0.4vh] gap-[0.4vw]">
+              <div className="font-display text-[1vw] leading-none text-text/85">AForce OS</div>
               <div className="flex items-center gap-[0.4vw]">
                 <div className="w-[1.1vw] h-[1.1vw] rounded-full border border-text/30 flex items-center justify-center font-body text-[0.55vw] text-text/55">↑</div>
                 <div className="px-[0.55vw] py-[0.15vh] rounded-full border border-primary/55 bg-primary/10 font-body uppercase tracking-[0.16em] text-[0.5vw] text-primary font-semibold flex items-center gap-[0.25vw]">
