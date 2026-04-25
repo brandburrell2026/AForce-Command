@@ -14,7 +14,8 @@ export default function Band() {
 
       <div className="absolute inset-0 grid grid-cols-2">
         <div className="relative flex items-center justify-center">
-          <img src={`${base}can-soursop.png`} alt="" className="h-[80vh] object-contain drop-shadow-2xl" />
+          <img src={`${base}can-soursop.png`} alt="" className="h-[78vh] object-contain drop-shadow-2xl relative z-10 -translate-x-[10%]" />
+          <img src={`${base}stick-soursop.png`} alt="" className="absolute h-[58vh] object-contain drop-shadow-2xl translate-x-[58%] translate-y-[2%] rotate-[8deg]" />
         </div>
         <div className="flex flex-col justify-center pr-[6vw]">
           <div className="h-[2px] w-[4vw] bg-accent mb-[3vh]" />
