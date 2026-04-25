@@ -35,7 +35,7 @@ export default function OSRoadmap() {
 
           {/* Floating AI Coach phone — hero specimen */}
           <div
-            className="absolute -left-[1.5vw] -top-[10vh] w-[9.5vw] z-20 pointer-events-none"
+            className="absolute -left-[1vw] -top-[4vh] w-[8vw] z-20 pointer-events-none"
             style={{ filter: "drop-shadow(0 18px 36px rgba(0,0,0,0.55)) drop-shadow(0 0 24px rgba(229,51,65,0.28))" }}
           >
             <img
