@@ -152,10 +152,10 @@ export default function ProductTour() {
             {/* Snooze */}
             <div className="text-center font-body text-[0.42vw] text-text/45 mt-[0.35vh]">⏱ Snooze 20 minutes</div>
 
-            {/* CRITICAL — ACT NOW countdown */}
+            {/* TIME TO CLEAR countdown */}
             <div className="text-center mt-[0.3vh] pb-[0.4vh]">
-              <div className="font-body uppercase tracking-[0.22em] text-[0.42vw] font-semibold" style={{ color: "rgba(229,51,65,0.55)" }}>Critical — Act Now</div>
-              <div className="font-display text-[1.85vw] leading-none mt-[0.1vh]" style={{ color: "rgba(229,51,65,0.5)" }}>11:53</div>
+              <div className="font-body uppercase tracking-[0.22em] text-[0.42vw] font-semibold" style={{ color: "rgba(157,124,251,0.65)" }}>Time to Clear</div>
+              <div className="font-display text-[1.85vw] leading-none mt-[0.1vh]" style={{ color: "rgba(157,124,251,0.6)" }}>4h 30m</div>
             </div>
 
             {/* Drawer handle */}
