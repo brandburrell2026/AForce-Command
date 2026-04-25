@@ -12,28 +12,29 @@ export default function Closing() {
         <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-muted">25 / 25</div>
       </div>
 
-      <div className="absolute top-[14vh] left-[6vw] w-[22vw] h-[58vh] z-10">
+      <div className="absolute top-[10vh] left-[4vw] w-[30vw] h-[78vh] z-10">
         <div className="relative h-full w-full rounded-2xl overflow-hidden ring-1 ring-text/10 bg-[#1a1d24]">
           <img
             src={`${base}brothers-tight.png`}
             alt="Brandon and Julius Burrell as children"
-            className="absolute inset-0 w-full h-full object-contain object-top"
+            className="absolute inset-0 w-full h-full object-cover"
+            style={{ objectPosition: "70% 30%" }}
           />
-          <div className="absolute inset-x-0 bottom-0 h-[28vh] bg-gradient-to-t from-bg via-bg/80 to-transparent pointer-events-none" />
-          <div className="absolute inset-x-0 bottom-0 p-[1.2vw]">
-            <div className="font-body uppercase tracking-[0.32em] text-[0.7vw] text-accent font-semibold">Our Story</div>
-            <div className="font-display text-[1.6vw] leading-[1.02] tracking-tight text-text mt-[0.6vh]">
+          <div className="absolute inset-x-0 bottom-0 h-[24vh] bg-gradient-to-t from-bg via-bg/85 to-transparent pointer-events-none" />
+          <div className="absolute inset-x-0 bottom-0 p-[1.4vw]">
+            <div className="font-body uppercase tracking-[0.32em] text-[0.75vw] text-accent font-semibold">Our Story</div>
+            <div className="font-display text-[1.9vw] leading-[1.02] tracking-tight text-text mt-[0.7vh]">
               Two brothers. <span className="text-accent">One promise.</span>
             </div>
-            <div className="font-body uppercase tracking-[0.28em] text-[0.65vw] text-blue font-semibold mt-[0.9vh]">Brandon &amp; Julius Burrell · Founders</div>
-            <div className="font-body italic text-[0.8vw] text-text/80 mt-[0.9vh] leading-snug">
+            <div className="font-body uppercase tracking-[0.28em] text-[0.7vw] text-blue font-semibold mt-[1vh]">Brandon &amp; Julius Burrell · Founders</div>
+            <div className="font-body italic text-[0.85vw] text-text/85 mt-[1vh] leading-snug">
               "Hydration is the wedge. Intelligence is the moat."
             </div>
           </div>
         </div>
       </div>
 
-      <div className="absolute top-[14vh] bottom-[12vh] left-[32vw] right-[6vw] flex flex-col z-10">
+      <div className="absolute top-[14vh] bottom-[12vh] left-[37vw] right-[5vw] flex flex-col z-10">
         <div className="flex items-center gap-[1vw] mb-[1.4vh]">
           <div className="h-px w-[3vw] bg-blue" />
           <div className="font-body uppercase tracking-[0.32em] text-[0.95vw] text-blue font-semibold">Series Seed</div>
