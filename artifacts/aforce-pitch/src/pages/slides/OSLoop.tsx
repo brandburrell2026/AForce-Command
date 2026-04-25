@@ -124,22 +124,28 @@ export default function OSLoop() {
           ))}
 
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
-            <div className="relative w-[15vw] h-[15vw] rounded-full bg-bg flex items-center justify-center"
+            <div className="relative w-[20vw] h-[20vw] rounded-full flex items-center justify-center"
                  style={{
-                   boxShadow: "0 0 0 1px rgba(229,51,65,0.45), 0 0 60px rgba(229,51,65,0.25), inset 0 0 30px rgba(8,8,15,0.8)",
+                   boxShadow: "0 0 80px rgba(229,51,65,0.18)",
                  }}>
               <div
-                className="absolute inset-[-2px] rounded-full pointer-events-none opacity-80"
+                className="absolute inset-0 rounded-full pointer-events-none opacity-70"
                 style={{
                   background: "conic-gradient(from 0deg, #5478D5 0%, #F5D637 25%, #E53341 50%, #FFFFFF 75%, #5478D5 100%)",
-                  WebkitMask: "radial-gradient(circle, transparent 60%, #000 62%)",
-                  mask: "radial-gradient(circle, transparent 60%, #000 62%)",
+                  WebkitMask: "radial-gradient(circle, transparent 58%, #000 60%, #000 64%, transparent 66%)",
+                  mask: "radial-gradient(circle, transparent 58%, #000 60%, #000 64%, transparent 66%)",
                 }}
               />
-              <div className="text-center relative">
-                <div className="font-display text-[4.2vw] leading-none text-primary">↻</div>
-                <div className="font-body uppercase tracking-[0.32em] text-[0.78vw] text-text/55 mt-[1.6vh] font-semibold">Every Cycle</div>
-                <div className="font-display text-[1.6vw] leading-none text-text mt-[0.6vh]">Tighter.</div>
+              <div className="relative flex flex-col items-center">
+                <img
+                  src={`${import.meta.env.BASE_URL}ai-coach-correct-now.png`}
+                  alt="AForce AI Coach — Correct Now"
+                  className="w-[10vw] h-auto rounded-[1.4vw] block"
+                  style={{ filter: "drop-shadow(0 12px 28px rgba(229,51,65,0.35)) drop-shadow(0 0 1px rgba(255,255,255,0.15))" }}
+                />
+                <div className="absolute -bottom-[2.6vh] left-1/2 -translate-x-1/2 px-[0.9vw] py-[0.4vh] rounded-full bg-bg/90 border border-primary/40 backdrop-blur-sm whitespace-nowrap">
+                  <span className="font-body uppercase tracking-[0.28em] text-[0.7vw] text-primary font-semibold">↻ Every Cycle, Tighter</span>
+                </div>
               </div>
             </div>
           </div>
