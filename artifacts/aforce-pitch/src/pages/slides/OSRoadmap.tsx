@@ -92,26 +92,26 @@ export default function OSRoadmap() {
             </div>
           </div>
 
-          <div className="flex items-center justify-between mb-[1.6vh]">
-            <div className="font-body uppercase tracking-[0.28em] text-[0.7vw] text-primary font-semibold">Phase 1 · Consumer</div>
-            <div className="px-[0.7vw] py-[0.3vh] rounded-full border border-primary/55 bg-primary/15 font-body uppercase tracking-[0.18em] text-[0.6vw] text-primary font-semibold flex items-center gap-[0.4vw]">
-              <span className="w-[0.35vw] h-[0.35vw] rounded-full bg-primary inline-block" />
+          <div className="flex items-center justify-between mb-[1.2vh]">
+            <div className="font-body uppercase tracking-[0.24em] text-[0.62vw] text-primary font-semibold">Phase 1 · Consumer</div>
+            <div className="px-[0.55vw] py-[0.25vh] rounded-full border border-primary/55 bg-primary/15 font-body uppercase tracking-[0.16em] text-[0.52vw] text-primary font-semibold flex items-center gap-[0.35vw]">
+              <span className="w-[0.3vw] h-[0.3vw] rounded-full bg-primary inline-block" />
               Live 2026
             </div>
           </div>
-          <div className="font-display text-[2.8vw] leading-[1] tracking-tight text-text mb-[0.6vh]">AI Coach</div>
-          <div className="font-body text-[0.9vw] text-text/65 leading-snug mb-[1.4vh]">Voice-first hydration intelligence in every consumer's pocket. One command at a time.</div>
-          <ul className="space-y-[0.8vh] font-body text-[0.8vw] text-text/80 mb-[1.4vh] leading-snug">
-            <li className="flex gap-[0.7vw]"><span className="text-primary mt-[0.3vh] text-[0.6vw]">●</span><span><span className="text-text font-semibold">Real-time scoring.</span> Hydration, energy, recovery — measured, not guessed.</span></li>
-            <li className="flex gap-[0.7vw]"><span className="text-primary mt-[0.3vh] text-[0.6vw]">●</span><span><span className="text-text font-semibold">Adaptive protocols.</span> The OS rewrites your day in response to live biometrics.</span></li>
-            <li className="flex gap-[0.7vw]"><span className="text-primary mt-[0.3vh] text-[0.6vw]">●</span><span><span className="text-text font-semibold">Social Mode.</span> Owns the after-hours moment competitors can't touch.</span></li>
+          <div className="font-display text-[2.2vw] leading-[1] tracking-tight text-text mb-[0.5vh]">AI Coach</div>
+          <div className="font-body text-[0.72vw] text-text/65 leading-snug mb-[1vh]">Voice-first hydration intelligence in every pocket. One command at a time.</div>
+          <ul className="space-y-[0.55vh] font-body text-[0.68vw] text-text/80 mb-[1vh] leading-snug">
+            <li className="flex gap-[0.5vw]"><span className="text-primary mt-[0.2vh] text-[0.5vw]">●</span><span><span className="text-text font-semibold">Real-time scoring.</span> Hydration, energy, recovery — measured.</span></li>
+            <li className="flex gap-[0.5vw]"><span className="text-primary mt-[0.2vh] text-[0.5vw]">●</span><span><span className="text-text font-semibold">Adaptive protocols.</span> Rewrites your day from live biometrics.</span></li>
+            <li className="flex gap-[0.5vw]"><span className="text-primary mt-[0.2vh] text-[0.5vw]">●</span><span><span className="text-text font-semibold">Social Mode.</span> Owns the after-hours moment.</span></li>
           </ul>
-          <div className="mt-auto pt-[1.2vh] border-t border-primary/20">
-            <div className="flex items-baseline gap-[0.6vw]">
-              <div className="font-display text-[2.2vw] leading-none text-primary">$383</div>
-              <div className="font-body text-[0.7vw] text-text/55 uppercase tracking-[0.18em] leading-tight">Blended<br/>Customer LTV</div>
+          <div className="mt-auto pt-[0.9vh] border-t border-primary/20">
+            <div className="flex items-baseline gap-[0.5vw]">
+              <div className="font-display text-[1.7vw] leading-none text-primary">$383</div>
+              <div className="font-body text-[0.6vw] text-text/55 uppercase tracking-[0.16em] leading-tight">Blended<br/>Customer LTV</div>
             </div>
-            <div className="font-body text-[0.7vw] text-text/50 mt-[0.6vh] uppercase tracking-[0.2em]">$200B+ functional bev market</div>
+            <div className="font-body text-[0.6vw] text-text/50 mt-[0.4vh] uppercase tracking-[0.18em]">$200B+ functional bev market</div>
           </div>
         </div>
 
