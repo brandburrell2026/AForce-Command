@@ -82,10 +82,34 @@ export default function ProductTour() {
 
             <div className="text-center font-body uppercase tracking-[0.22em] text-[0.45vw] text-text/40 mb-[0.4vh]">Tap orb for full breakdown</div>
 
-            <div className="flex justify-center mb-[0.6vh]">
+            <div className="flex justify-center mb-[0.5vh]">
               <div className="px-[0.6vw] py-[0.2vh] rounded-full border border-primary/55 bg-primary/10 font-body text-[0.5vw] text-primary flex items-center gap-[0.3vw]">
                 <span className="w-[0.25vw] h-[0.25vw] rounded-full bg-primary inline-block" />
                 Drops to Depleted in 9 min
+              </div>
+            </div>
+
+            {/* Hydration Check + Transportation Safety */}
+            <div className="rounded-[0.5vw] border border-primary/30 bg-primary/[0.04] mb-[0.5vh] divide-y divide-text/10">
+              <div className="flex items-center justify-between px-[0.55vw] py-[0.4vh]">
+                <div className="flex items-center gap-[0.4vw]">
+                  <span className="text-primary text-[0.7vw] leading-none">∿</span>
+                  <div>
+                    <div className="font-body uppercase tracking-[0.16em] text-[0.4vw] text-text/55">Hydration Check</div>
+                    <div className="font-body text-[0.5vw] text-text/85 leading-tight">Last 6 min · 12 oz behind</div>
+                  </div>
+                </div>
+                <div className="font-body uppercase tracking-[0.14em] text-[0.42vw] font-bold text-primary">RE-CHECK</div>
+              </div>
+              <div className="flex items-center justify-between px-[0.55vw] py-[0.4vh]">
+                <div className="flex items-center gap-[0.4vw]">
+                  <span className="text-blue text-[0.7vw] leading-none">⊳</span>
+                  <div>
+                    <div className="font-body uppercase tracking-[0.16em] text-[0.4vw] text-text/55">Transportation Safety</div>
+                    <div className="font-body text-[0.5vw] text-text/85 leading-tight">Cleared to drive · 0.000 BAC</div>
+                  </div>
+                </div>
+                <div className="font-body uppercase tracking-[0.14em] text-[0.42vw] font-bold text-blue">CLEAR</div>
               </div>
             </div>
 
@@ -188,6 +212,30 @@ export default function ProductTour() {
 
             <div className="flex-1" />
 
+            {/* Hydration Check + Transportation Safety */}
+            <div className="rounded-[0.5vw] border mb-[0.5vh] divide-y divide-text/10" style={{ borderColor: "rgba(244,178,63,0.4)", background: "rgba(244,178,63,0.05)" }}>
+              <div className="flex items-center justify-between px-[0.55vw] py-[0.4vh]">
+                <div className="flex items-center gap-[0.4vw]">
+                  <span className="text-[0.7vw] leading-none" style={{ color: "#9D7CFB" }}>∿</span>
+                  <div>
+                    <div className="font-body uppercase tracking-[0.16em] text-[0.4vw] text-text/55">Hydration Check</div>
+                    <div className="font-body text-[0.5vw] text-text/85 leading-tight">36 oz behind · drink 16 oz now</div>
+                  </div>
+                </div>
+                <div className="font-body uppercase tracking-[0.14em] text-[0.42vw] font-bold" style={{ color: "#F4B23F" }}>BEHIND</div>
+              </div>
+              <div className="flex items-center justify-between px-[0.55vw] py-[0.4vh]">
+                <div className="flex items-center gap-[0.4vw]">
+                  <span className="text-[0.7vw] leading-none" style={{ color: "#F4B23F" }}>⊳</span>
+                  <div>
+                    <div className="font-body uppercase tracking-[0.16em] text-[0.4vw] text-text/55">Transportation Safety</div>
+                    <div className="font-body text-[0.5vw] text-text/85 leading-tight">Do not drive · clear at 12:56 AM</div>
+                  </div>
+                </div>
+                <div className="font-body uppercase tracking-[0.14em] text-[0.42vw] font-bold" style={{ color: "#F4B23F" }}>CALL RIDE</div>
+              </div>
+            </div>
+
             {/* End the night */}
             <div className="rounded-[0.7vw] border py-[0.7vh] text-center font-body uppercase tracking-[0.22em] text-[0.5vw] font-bold" style={{ borderColor: "rgba(244,178,63,0.55)", color: "#F4B23F" }}>
               End the night
@@ -280,6 +328,30 @@ export default function ProductTour() {
             </div>
 
             <div className="flex-1" />
+
+            {/* Hydration Check + Transportation Safety */}
+            <div className="rounded-[0.5vw] border mb-[0.5vh] divide-y divide-text/10" style={{ borderColor: "rgba(244,178,63,0.4)", background: "rgba(244,178,63,0.05)" }}>
+              <div className="flex items-center justify-between px-[0.55vw] py-[0.4vh]">
+                <div className="flex items-center gap-[0.4vw]">
+                  <span className="text-[0.7vw] leading-none" style={{ color: "#F4B23F" }}>∿</span>
+                  <div>
+                    <div className="font-body uppercase tracking-[0.16em] text-[0.4vw] text-text/55">Hydration Check</div>
+                    <div className="font-body text-[0.5vw] text-text/85 leading-tight">Restored 78% · 12 oz to full</div>
+                  </div>
+                </div>
+                <div className="font-body uppercase tracking-[0.14em] text-[0.42vw] font-bold" style={{ color: "#F4B23F" }}>ON TRACK</div>
+              </div>
+              <div className="flex items-center justify-between px-[0.55vw] py-[0.4vh]">
+                <div className="flex items-center gap-[0.4vw]">
+                  <span className="text-[0.7vw] leading-none text-blue">⊳</span>
+                  <div>
+                    <div className="font-body uppercase tracking-[0.16em] text-[0.4vw] text-text/55">Transportation Safety</div>
+                    <div className="font-body text-[0.5vw] text-text/85 leading-tight">Cleared to drive at 9:01 AM</div>
+                  </div>
+                </div>
+                <div className="font-body uppercase tracking-[0.14em] text-[0.42vw] font-bold text-blue">CLEAR 9:01</div>
+              </div>
+            </div>
 
             <div className="rounded-[0.7vw] border py-[0.7vh] text-center font-body uppercase tracking-[0.22em] text-[0.5vw] font-bold" style={{ borderColor: "rgba(244,178,63,0.55)", color: "#F4B23F" }}>
               I'm done
