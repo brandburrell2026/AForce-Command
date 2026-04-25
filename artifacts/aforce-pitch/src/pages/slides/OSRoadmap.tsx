@@ -51,12 +51,11 @@ export default function OSRoadmap() {
                 style={{ top: "5%", bottom: "5%", left: "10.7%", right: "11.2%", background: "#000" }}
               >
                 {/* Header: AI COACH */}
-                <div className="px-[0.55vw] pt-[0.6vh] flex items-center justify-between">
+                <div className="px-[0.55vw] pt-[0.6vh] flex items-center">
                   <div className="flex items-center gap-[0.3vw]">
                     <span className="w-[0.32vw] h-[0.32vw] rounded-full bg-primary inline-block" />
                     <span className="font-body uppercase tracking-[0.22em] text-primary text-[0.5vw] font-bold">AI Coach</span>
                   </div>
-                  <span className="font-display text-white/70 text-[0.65vw] leading-none">×</span>
                 </div>
 
                 {/* Red orb */}
