@@ -12,29 +12,29 @@ export default function Closing() {
         <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-muted">25 / 25</div>
       </div>
 
-      <div className="absolute top-[14vh] left-[6vw] w-[22vw] h-[58vh] z-10 flex flex-col gap-[1.6vh]">
-        {/* Photo card — landscape-ish to fit both brothers */}
-        <div
-          className="w-full h-[22vw] rounded-2xl ring-1 ring-text/10 bg-bg-elev"
-          style={{
-            backgroundImage: `url(${base}brothers.png)`,
-            backgroundSize: "200% auto",
-            backgroundPosition: "0% center",
-            backgroundRepeat: "no-repeat",
-          }}
-          role="img"
-          aria-label="Brandon and Julius Burrell as children"
-        />
-
-        {/* Caption card */}
-        <div className="flex-1 rounded-2xl ring-1 ring-text/10 bg-bg-elev p-[1.1vw] flex flex-col justify-center">
-          <div className="font-body uppercase tracking-[0.32em] text-[0.7vw] text-accent font-semibold">Our Story</div>
-          <div className="font-display text-[1.55vw] leading-[1] tracking-tight text-text mt-[0.7vh]">
-            Two brothers. <span className="text-accent">One promise.</span>
-          </div>
-          <div className="font-body uppercase tracking-[0.28em] text-[0.65vw] text-blue font-semibold mt-[1.2vh]">Brandon &amp; Julius Burrell · Founders</div>
-          <div className="font-body italic text-[0.8vw] text-text/70 mt-[1vh] leading-snug">
-            "Hydration is the wedge. Intelligence is the moat."
+      <div className="absolute top-[14vh] left-[6vw] w-[22vw] h-[58vh] z-10">
+        <div className="relative h-full w-full rounded-2xl overflow-hidden ring-1 ring-text/10 bg-bg-elev">
+          <div
+            className="absolute inset-0"
+            style={{
+              backgroundImage: `url(${base}brothers.png)`,
+              backgroundSize: "auto 100%",
+              backgroundPosition: "18% center",
+              backgroundRepeat: "no-repeat",
+            }}
+            role="img"
+            aria-label="Brandon and Julius Burrell as children"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-bg/95 via-bg/30 to-transparent pointer-events-none" />
+          <div className="absolute inset-x-0 bottom-0 p-[1.2vw]">
+            <div className="font-body uppercase tracking-[0.32em] text-[0.7vw] text-accent font-semibold">Our Story</div>
+            <div className="font-display text-[1.6vw] leading-[1.02] tracking-tight text-text mt-[0.6vh]">
+              Two brothers. <span className="text-accent">One promise.</span>
+            </div>
+            <div className="font-body uppercase tracking-[0.28em] text-[0.65vw] text-blue font-semibold mt-[0.9vh]">Brandon &amp; Julius Burrell · Founders</div>
+            <div className="font-body italic text-[0.8vw] text-text/80 mt-[0.9vh] leading-snug">
+              "Hydration is the wedge. Intelligence is the moat."
+            </div>
           </div>
         </div>
       </div>
