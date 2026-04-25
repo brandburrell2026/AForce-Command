@@ -12,7 +12,7 @@ export default function Closing() {
         <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-muted">24 / 24</div>
       </div>
 
-      <div className="absolute top-[14vh] bottom-[12vh] left-[6vw] w-[30vw] z-10">
+      <div className="absolute top-[14vh] left-[6vw] w-[22vw] h-[58vh] z-10">
         <div className="relative h-full w-full rounded-2xl overflow-hidden ring-1 ring-text/10 bg-bg-elev">
           <img
             src={`${base}brandon.jpg`}
@@ -20,17 +20,17 @@ export default function Closing() {
             className="w-full h-full object-cover object-top"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-bg/95 via-bg/20 to-transparent pointer-events-none" />
-          <div className="absolute inset-x-0 bottom-0 p-[1.6vw]">
-            <div className="font-display text-[2.2vw] leading-[1] tracking-tight text-text">Brandon Burrell</div>
-            <div className="font-body uppercase tracking-[0.28em] text-[0.9vw] text-blue font-semibold mt-[0.8vh]">Founder · AForce</div>
-            <div className="font-body italic text-[0.95vw] text-text/70 mt-[1.2vh] leading-snug">
+          <div className="absolute inset-x-0 bottom-0 p-[1.1vw]">
+            <div className="font-display text-[1.55vw] leading-[1] tracking-tight text-text">Brandon Burrell</div>
+            <div className="font-body uppercase tracking-[0.28em] text-[0.7vw] text-blue font-semibold mt-[0.6vh]">Founder · AForce</div>
+            <div className="font-body italic text-[0.8vw] text-text/70 mt-[0.9vh] leading-snug">
               "Hydration is the wedge. Intelligence is the moat."
             </div>
           </div>
         </div>
       </div>
 
-      <div className="absolute top-[14vh] bottom-[12vh] left-[40vw] right-[6vw] flex flex-col z-10">
+      <div className="absolute top-[14vh] bottom-[12vh] left-[32vw] right-[6vw] flex flex-col z-10">
         <div className="flex items-center gap-[1vw] mb-[1.4vh]">
           <div className="h-px w-[3vw] bg-blue" />
           <div className="font-body uppercase tracking-[0.32em] text-[0.95vw] text-blue font-semibold">Series Seed</div>
