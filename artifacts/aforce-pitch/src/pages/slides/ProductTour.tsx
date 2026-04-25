@@ -360,31 +360,34 @@ export default function ProductTour() {
               </div>
             </div>
 
-            <div className="flex-1" />
+            {/* TRANSPORTATION SAFETY full card */}
+            <div className="mt-[0.55vh] rounded-[0.7vw] border px-[0.55vw] py-[0.5vh]" style={{ borderColor: "rgba(244,178,63,0.5)", background: "rgba(244,178,63,0.06)" }}>
+              <div className="flex items-start gap-[0.35vw]">
+                <div className="w-[0.85vw] h-[0.85vw] rounded-full flex items-center justify-center text-[0.55vw] font-bold leading-none mt-[0.05vh]" style={{ background: "rgba(244,178,63,0.2)", color: "#F4B23F" }}>!</div>
+                <div className="flex-1">
+                  <div className="font-body uppercase tracking-[0.18em] text-[0.42vw] font-semibold" style={{ color: "#F4B23F" }}>Transportation Safety</div>
+                  <div className="font-body text-[0.55vw] font-bold text-text mt-[0.1vh] leading-tight">Cleared to drive at 9:01 AM.</div>
+                  <div className="font-body text-[0.4vw] text-text/65 mt-[0.2vh] leading-snug">Residual BAC ~0.018. Coordination still recovering — give yourself buffer before driving.</div>
+                  <div className="font-body text-[0.42vw] mt-[0.25vh] font-semibold leading-snug" style={{ color: "#F4B23F" }}>⊳ Need to leave sooner? Use a rideshare or designated driver.</div>
+                </div>
+              </div>
+            </div>
 
-            {/* Hydration Check + Transportation Safety */}
-            <div className="rounded-[0.5vw] border mb-[0.5vh] divide-y divide-text/10" style={{ borderColor: "rgba(244,178,63,0.4)", background: "rgba(244,178,63,0.05)" }}>
+            {/* Hydration Check slim row */}
+            <div className="mt-[0.4vh] rounded-[0.5vw] border" style={{ borderColor: "rgba(157,124,251,0.4)", background: "rgba(157,124,251,0.05)" }}>
               <div className="flex items-center justify-between px-[0.55vw] py-[0.4vh]">
                 <div className="flex items-center gap-[0.4vw]">
-                  <span className="text-[0.7vw] leading-none" style={{ color: "#F4B23F" }}>∿</span>
+                  <span className="text-[0.7vw] leading-none" style={{ color: "#9D7CFB" }}>∿</span>
                   <div>
                     <div className="font-body uppercase tracking-[0.16em] text-[0.4vw] text-text/55">Hydration Check</div>
                     <div className="font-body text-[0.5vw] text-text/85 leading-tight">Restored 78% · 12 oz to full</div>
                   </div>
                 </div>
-                <div className="font-body uppercase tracking-[0.14em] text-[0.42vw] font-bold" style={{ color: "#F4B23F" }}>ON TRACK</div>
-              </div>
-              <div className="flex items-center justify-between px-[0.55vw] py-[0.4vh]">
-                <div className="flex items-center gap-[0.4vw]">
-                  <span className="text-[0.7vw] leading-none text-blue">⊳</span>
-                  <div>
-                    <div className="font-body uppercase tracking-[0.16em] text-[0.4vw] text-text/55">Transportation Safety</div>
-                    <div className="font-body text-[0.5vw] text-text/85 leading-tight">Cleared to drive at 9:01 AM</div>
-                  </div>
-                </div>
-                <div className="font-body uppercase tracking-[0.14em] text-[0.42vw] font-bold text-blue">CLEAR 9:01</div>
+                <div className="font-body uppercase tracking-[0.14em] text-[0.42vw] font-bold" style={{ color: "#9D7CFB" }}>ON TRACK</div>
               </div>
             </div>
+
+            <div className="flex-1" />
 
             <div className="rounded-[0.7vw] border py-[0.7vh] text-center font-body uppercase tracking-[0.22em] text-[0.5vw] font-bold" style={{ borderColor: "rgba(244,178,63,0.55)", color: "#F4B23F" }}>
               I'm done
