@@ -1,43 +1,110 @@
 export default function Market() {
+  const segments = [
+    {
+      label: "Functional Beverages",
+      amount: "$200B+",
+      tag: "Fastest growing",
+      body: "Fastest-growing slice of global beverage. Premium hydration leads it — clean labels, function over flavor.",
+      capture: "Clean-label, mineral-dense formulation",
+      accent: "text-primary",
+      ring: "ring-primary/35",
+      bar: "bg-primary",
+      bg: "from-primary/[0.10] to-primary/0",
+    },
+    {
+      label: "Sports Drinks",
+      amount: "$30B+",
+      tag: "Wide open at the top",
+      body: "Owned by sugar legacy brands. Wide open at the clean, alkaline end — no incumbent has earned it yet.",
+      capture: "Performance use case, no sugar, alkaline base",
+      accent: "text-blue",
+      ring: "ring-blue/35",
+      bar: "bg-blue",
+      bg: "from-blue/[0.10] to-blue/0",
+    },
+    {
+      label: "Hydration Mixes",
+      amount: "$5B+",
+      tag: "Exploding category",
+      body: "Stick category exploding. No alkaline, sea-functional player operating at scale today.",
+      capture: "Stick-mix convenience + functional formula",
+      accent: "text-accent",
+      ring: "ring-accent/35",
+      bar: "bg-accent",
+      bg: "from-accent/[0.10] to-accent/0",
+    },
+  ];
+
   return (
     <div className="w-screen h-screen overflow-hidden relative bg-bg text-text font-body">
-      <div className="absolute top-[6vh] left-[6vw] right-[6vw] flex justify-between items-center">
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{ background: "radial-gradient(ellipse 50% 45% at 18% 30%, rgba(229,51,65,0.10) 0%, transparent 65%)" }}
+      />
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{ background: "radial-gradient(ellipse 50% 45% at 50% 65%, rgba(84,120,213,0.10) 0%, transparent 65%)" }}
+      />
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{ background: "radial-gradient(ellipse 50% 45% at 82% 25%, rgba(245,214,55,0.10) 0%, transparent 65%)" }}
+      />
+
+      <div className="absolute top-[6vh] left-[6vw] right-[6vw] flex justify-between items-center z-10">
         <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-accent font-semibold">14 — Market</div>
         <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-muted">14 / 24</div>
       </div>
 
-      <div className="absolute top-[16vh] left-[6vw] right-[6vw]">
-        <h2 className="font-display text-[6.5vw] leading-[0.95] tracking-tighter text-balance max-w-[75vw]">
-          The new hydration economy.
-        </h2>
-        <p className="mt-[2vh] font-body text-[1.6vw] text-text/75 max-w-[55vw] leading-snug">
-          Three tides moving in the same direction.
+      <div className="absolute top-[12vh] left-[6vw] right-[6vw] flex justify-between items-end gap-[4vw]">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-[1.2vw] mb-[1.4vh]">
+            <div className="h-[2px] w-[5vw] bg-accent" />
+            <span className="font-body uppercase tracking-[0.32em] text-[1.3vw] text-accent font-semibold">Market</span>
+          </div>
+          <h2 className="font-display text-[5.2vw] leading-[0.92] tracking-tighter">
+            The new hydration <span className="text-accent">economy.</span>
+          </h2>
+        </div>
+        <p className="font-body text-[1.05vw] text-text/65 max-w-[28vw] leading-snug pb-[1vh] text-right">
+          <span className="text-text">Three tides moving in the same direction.</span> Functional beverages, sports drinks, and stick mixes — all converging on clean, alkaline, sea-functional hydration.
         </p>
       </div>
 
-      <div className="absolute bottom-[12vh] left-[6vw] right-[6vw] grid grid-cols-3 gap-[3vw]">
-        <div>
-          <div className="font-body uppercase tracking-[0.3em] text-[1.5vw] text-muted mb-[2vh]">Functional Beverages</div>
-          <div className="font-display text-[6vw] leading-none text-text">$200B+</div>
-          <div className="h-[2px] w-full bg-primary mt-[2vh] mb-[2vh]" />
-          <div className="font-body text-[1.5vw] text-text/75 leading-snug">Fastest-growing slice of global beverage. Premium hydration leads it.</div>
-        </div>
-        <div>
-          <div className="font-body uppercase tracking-[0.3em] text-[1.5vw] text-muted mb-[2vh]">Sports Drinks</div>
-          <div className="font-display text-[6vw] leading-none text-text">$30B+</div>
-          <div className="h-[2px] w-full bg-blue mt-[2vh] mb-[2vh]" />
-          <div className="font-body text-[1.5vw] text-text/75 leading-snug">Owned by sugar legacy brands. Wide open at the clean, alkaline end.</div>
-        </div>
-        <div>
-          <div className="font-body uppercase tracking-[0.3em] text-[1.5vw] text-muted mb-[2vh]">Hydration Mixes</div>
-          <div className="font-display text-[6vw] leading-none text-text">$5B+</div>
-          <div className="h-[2px] w-full bg-accent mt-[2vh] mb-[2vh]" />
-          <div className="font-body text-[1.5vw] text-text/75 leading-snug">Stick category exploding. No alkaline, sea-functional player at scale.</div>
-        </div>
+      <div className="absolute top-[40vh] bottom-[16vh] left-[6vw] right-[6vw] grid grid-cols-3 gap-[1.4vw]">
+        {segments.map((s) => (
+          <div key={s.label} className={`relative rounded-2xl ring-1 ${s.ring} bg-bg-elev/40 overflow-hidden`}>
+            <div className={`absolute inset-0 bg-gradient-to-b ${s.bg} pointer-events-none`} />
+            <div className={`absolute inset-x-0 top-0 h-[3px] ${s.bar}`} />
+            <div className="relative p-[1.6vw] flex flex-col h-full">
+              <div className={`font-body uppercase tracking-[0.32em] text-[0.95vw] font-semibold ${s.accent}`}>{s.label}</div>
+              <div className={`font-display text-[5vw] leading-none tracking-tighter mt-[1.4vh] ${s.accent}`}>{s.amount}</div>
+              <div className={`self-start mt-[1.6vh] px-[0.9vw] py-[0.4vh] rounded-full ring-1 ${s.ring} font-body text-[0.78vw] uppercase tracking-[0.22em] font-semibold ${s.accent}`}>
+                {s.tag}
+              </div>
+              <div className="font-body text-[1vw] text-text/70 mt-[2vh] leading-snug">{s.body}</div>
+
+              <div className="mt-auto pt-[2vh] border-t border-text/10">
+                <div className="font-body uppercase tracking-[0.22em] text-[0.65vw] text-text/45 font-semibold mb-[0.6vh]">AForce captures</div>
+                <div className={`font-body text-[0.9vw] ${s.accent}`}>{s.capture}</div>
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
 
-      <div className="absolute bottom-[5vh] left-[6vw] right-[6vw] text-center font-body text-[1.5vw] text-muted">
-        Sizes are directional industry estimates. AForce sits at the intersection of all three.
+      <div className="absolute bottom-[5vh] left-[6vw] right-[6vw]">
+        <div className="border-t border-text/10 pt-[2vh]">
+          <div className="flex items-center gap-[1vw] mb-[1.2vh]">
+            <div className="h-px w-[3vw] bg-accent" />
+            <div className="font-body uppercase tracking-[0.32em] text-[0.85vw] text-accent font-semibold">The Intersection</div>
+          </div>
+          <div className="font-display text-[1.6vw] leading-[1.25] tracking-tight">
+            <span className="text-text/55">AForce is the only player engineered for </span>
+            <span className="text-text">all three.</span>
+            <span className="text-text/55"> Functional formula · sports use case · stick convenience — </span>
+            <span className="text-accent">$235B+ at the intersection.</span>
+          </div>
+        </div>
       </div>
     </div>
   );
