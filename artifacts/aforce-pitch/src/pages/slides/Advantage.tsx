@@ -1,61 +1,132 @@
 export default function Advantage() {
+  const pillars = [
+    {
+      moat: "Product Moat",
+      num: "01",
+      title: "Premium Formulation",
+      body: "Mineral-based hydration at pH 8.8 — clean-label, clinically relevant ingredients for performance, recovery, and longevity.",
+      defense: "Years of formulation IP. Not a SKU swap.",
+      accent: "text-primary",
+      ring: "ring-primary/35",
+      bar: "bg-primary",
+      bg: "from-primary/[0.10] to-primary/0",
+    },
+    {
+      moat: "Distribution Moat",
+      num: "02",
+      title: "Multi-Format Ecosystem",
+      body: "Sticks for the road. Cans for the cooler. Energy for the lift. Canisters for the kitchen — every occasion, one brand.",
+      defense: "Compounds usage occasions and basket size.",
+      accent: "text-blue",
+      ring: "ring-blue/35",
+      bar: "bg-blue",
+      bg: "from-blue/[0.10] to-blue/0",
+    },
+    {
+      moat: "Data Moat",
+      num: "03",
+      title: "Closed-Loop Data",
+      body: "Every sip feeds AForce OS. Every signal sharpens the next recommendation — a model that gets smarter every day.",
+      defense: "First-mover compounding. Not catchable by SKUs.",
+      accent: "text-accent",
+      ring: "ring-accent/35",
+      bar: "bg-accent",
+      bg: "from-accent/[0.10] to-accent/0",
+    },
+    {
+      moat: "Software Moat",
+      num: "04",
+      title: "AForce OS",
+      body: "Real-time performance engine that tracks, learns, and optimizes user behavior across the entire product system.",
+      defense: "No CPG brand has built this. No SaaS brand has the can.",
+      accent: "text-text",
+      ring: "ring-text/25",
+      bar: "bg-text/70",
+      bg: "from-text/[0.08] to-text/0",
+    },
+  ];
+
   return (
     <div className="w-screen h-screen overflow-hidden relative bg-bg text-text font-body">
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{ background: "radial-gradient(ellipse 70% 55% at 18% 30%, rgba(229,51,65,0.10) 0%, transparent 65%)" }}
+      />
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{ background: "radial-gradient(ellipse 70% 55% at 85% 75%, rgba(84,120,213,0.16) 0%, transparent 65%)" }}
+      />
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{ background: "radial-gradient(ellipse 30% 25% at 60% 50%, rgba(245,214,55,0.06) 0%, transparent 70%)" }}
+      />
+
       <div className="absolute top-[6vh] left-[6vw] right-[6vw] flex justify-between items-center z-10">
         <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-blue font-semibold">15 — Competitive Advantage</div>
         <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-muted">15 / 24</div>
       </div>
 
-      <div
-        className="absolute inset-y-0 right-0 w-[40vw] pointer-events-none"
-        style={{ background: "radial-gradient(ellipse at right center, rgba(84,120,213,0.15) 0%, transparent 60%)" }}
-      />
-
-      <div className="absolute top-[16vh] left-[6vw] right-[6vw]">
-        <div className="flex items-center gap-[1.2vw] mb-[3vh]">
-          <div className="h-[2px] w-[5vw] bg-blue" />
-          <span className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-blue font-semibold">The Moat</span>
+      <div className="absolute top-[12vh] left-[6vw] right-[6vw] flex justify-between items-end gap-[4vw]">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-[1.2vw] mb-[1.4vh]">
+            <div className="h-[2px] w-[5vw] bg-blue" />
+            <span className="font-body uppercase tracking-[0.32em] text-[1.3vw] text-blue font-semibold">Structural Advantage</span>
+          </div>
+          <h2 className="font-display text-[5.4vw] leading-[0.92] tracking-tighter">
+            Hybrid is <span className="text-blue">the moat.</span>
+          </h2>
         </div>
-        <h2 className="font-display text-[6vw] leading-[0.95] tracking-tighter text-balance">
-          AForce competitive <span className="text-blue">advantage.</span>
-        </h2>
+        <p className="font-body text-[1.05vw] text-text/65 max-w-[26vw] leading-snug pb-[1vh] text-right">
+          <span className="text-text">CPG × SaaS.</span> Four reinforcing pillars no competitor has assembled — and the operating system that fuses them into one.
+        </p>
       </div>
 
-      <div className="absolute bottom-[14vh] left-[6vw] right-[6vw] grid grid-cols-2 gap-x-[3vw] gap-y-[3vh]">
-        <div className="flex items-start gap-[1.2vw]">
-          <div className="font-display text-[2vw] text-blue shrink-0 mt-[0.2vh]">01</div>
-          <div>
-            <div className="font-display text-[2vw] text-text mb-[0.8vh]">Performance Intelligence Platform</div>
-            <div className="font-body text-[1.25vw] text-text/70 leading-snug">The only hydration brand powered by a real-time performance engine that tracks, learns, and optimizes user behavior.</div>
+      <div className="absolute top-[36vh] bottom-[18vh] left-[6vw] right-[6vw] grid grid-cols-4 gap-x-[0.9vw]">
+        {pillars.map((p) => (
+          <div
+            key={p.num}
+            className={`relative rounded-2xl ring-1 ${p.ring} bg-bg-elev/40 overflow-hidden flex flex-col`}
+          >
+            <div className={`absolute inset-0 bg-gradient-to-b ${p.bg} pointer-events-none`} />
+            <div className={`absolute inset-x-0 top-0 h-[3px] ${p.bar}`} />
+
+            <div className="relative p-[1.4vw] flex flex-col h-full">
+              <div className={`font-body uppercase tracking-[0.32em] text-[0.78vw] font-semibold ${p.accent}`}>{p.moat}</div>
+
+              <div className="flex items-baseline gap-[0.7vw] mt-[1.6vh]">
+                <div className={`font-display text-[2.6vw] leading-none tracking-tight ${p.accent}`}>{p.num}</div>
+              </div>
+
+              <div className="font-display text-[1.55vw] leading-[1.05] tracking-tight text-text mt-[1.6vh]">{p.title}</div>
+
+              <div className="font-body text-[0.92vw] text-text/70 leading-snug mt-[1.4vh]">{p.body}</div>
+
+              <div className="mt-auto pt-[1.6vh] border-t border-text/10">
+                <div className="font-body uppercase tracking-[0.22em] text-[0.65vw] text-text/45 font-semibold mb-[0.6vh]">Why it can't be copied</div>
+                <div className={`font-body text-[0.85vw] leading-snug ${p.accent}`}>{p.defense}</div>
+              </div>
+            </div>
           </div>
-        </div>
-        <div className="flex items-start gap-[1.2vw]">
-          <div className="font-display text-[2vw] text-blue shrink-0 mt-[0.2vh]">02</div>
-          <div>
-            <div className="font-display text-[2vw] text-text mb-[0.8vh]">Closed-Loop Data System</div>
-            <div className="font-body text-[1.25vw] text-text/70 leading-snug">Every user interaction feeds AForce OS — continuously improving recommendations, outcomes, and retention.</div>
-          </div>
-        </div>
-        <div className="flex items-start gap-[1.2vw]">
-          <div className="font-display text-[2vw] text-blue shrink-0 mt-[0.2vh]">03</div>
-          <div>
-            <div className="font-display text-[2vw] text-text mb-[0.8vh]">Multi-Format Product Ecosystem</div>
-            <div className="font-body text-[1.25vw] text-text/70 leading-snug">Hydration sticks, RTD beverages, and functional formats designed to drive daily usage and data capture.</div>
-          </div>
-        </div>
-        <div className="flex items-start gap-[1.2vw]">
-          <div className="font-display text-[2vw] text-blue shrink-0 mt-[0.2vh]">04</div>
-          <div>
-            <div className="font-display text-[2vw] text-text mb-[0.8vh]">Premium Functional Formulation</div>
-            <div className="font-body text-[1.25vw] text-text/70 leading-snug">Clean-label, mineral-based hydration with clinically relevant ingredients for performance, recovery, and longevity.</div>
-          </div>
-        </div>
+        ))}
       </div>
 
-      <div className="absolute bottom-[5vh] left-[6vw] right-[6vw] text-center">
-        <span className="font-body text-[1.4vw] text-blue uppercase tracking-[0.25em]">
-          Only hydration brand building a real-time performance operating system.
-        </span>
+      <div className="absolute bottom-[5vh] left-[6vw] right-[6vw]">
+        <div className="border-t border-text/10 pt-[2vh]">
+          <div className="flex items-center gap-[1vw] mb-[1.2vh]">
+            <div className="h-px w-[3vw] bg-blue" />
+            <div className="font-body uppercase tracking-[0.32em] text-[0.85vw] text-blue font-semibold">Asymmetric to the Field</div>
+          </div>
+          <div className="font-display text-[1.6vw] leading-[1.25] tracking-tight">
+            <span className="text-text/55">Liquid I.V. has the </span>
+            <span className="text-text">formula</span>
+            <span className="text-text/55">. Gatorade has the </span>
+            <span className="text-text">shelf</span>
+            <span className="text-text/55">. Whoop has the </span>
+            <span className="text-text">data</span>
+            <span className="text-text/55">.{" "}</span>
+            <span className="text-blue">Only AForce assembles all four — and the operating system that ties them together.</span>
+          </div>
+        </div>
       </div>
     </div>
   );
