@@ -3,7 +3,7 @@ export default function OSLoop() {
     <div className="w-screen h-screen overflow-hidden relative bg-bg text-text font-body">
       <div className="absolute top-[6vh] left-[6vw] right-[6vw] flex justify-between items-center">
         <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-primary font-semibold">15 — The Loop</div>
-        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-muted">15 / 28</div>
+        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-muted">15 / 29</div>
       </div>
 
       <div className="absolute top-[14vh] left-[6vw] right-[6vw]">

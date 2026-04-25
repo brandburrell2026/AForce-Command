@@ -15,7 +15,7 @@ export default function UseOfFunds() {
     <div className="w-screen h-screen overflow-hidden relative bg-bg text-text font-body">
       <div className="absolute top-[6vh] left-[6vw] right-[6vw] flex justify-between items-center z-10">
         <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-accent font-semibold">27 — Use of Funds</div>
-        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-muted">27 / 28</div>
+        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-muted">27 / 29</div>
       </div>
 
       <div className="absolute top-[14vh] left-[6vw] right-[6vw]">

@@ -222,5 +222,13 @@
     "title": "Our Leaders",
     "description": "Brandon Burrell, Julius Burrell — with advisors Mark Mendel, Adam Sobol, Thomas Masterbouni, and Chief Scientist Mark Satterfield.",
     "speakerNotes": ""
+  },
+  {
+    "id": "b3c4d5e6-f7a8-4901-1234-567890123456",
+    "position": 29,
+    "filepath": "src/pages/slides/Closing.tsx",
+    "title": "Closing",
+    "description": "AForce is not a drink — it's the operating system for human performance. Contact Brandon Burrell. Investment thesis: CPG + SaaS, omnichannel, category trends, national media catalyst.",
+    "speakerNotes": ""
   }
 ]

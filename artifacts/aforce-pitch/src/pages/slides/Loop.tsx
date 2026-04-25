@@ -4,7 +4,7 @@ export default function Loop() {
     <div className="w-screen h-screen overflow-hidden relative bg-bg text-text font-body">
       <div className="absolute top-[6vh] left-[6vw] right-[6vw] flex justify-between items-center z-10">
         <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-accent font-semibold">10 — Formats</div>
-        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-muted">10 / 28</div>
+        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-muted">10 / 29</div>
       </div>
 
       <div className="absolute top-[16vh] left-[6vw] right-[6vw]">
