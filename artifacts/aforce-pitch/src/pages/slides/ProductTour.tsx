@@ -123,45 +123,65 @@ export default function ProductTour() {
               <div className="font-display text-[1.05vw] leading-tight text-text mt-[0.3vh]">You're at the bar.</div>
             </div>
 
-            <div className="mt-[0.7vh] flex justify-between items-center px-[0.5vw] py-[0.7vh] rounded-[0.7vw] bg-white/[0.04]">
+            <div className="mt-[0.6vh] flex justify-between items-center px-[0.5vw] py-[0.5vh] rounded-[0.7vw] bg-white/[0.04]">
               <div>
-                <div className="font-display text-[1.4vw] leading-none text-text">3</div>
-                <div className="font-body uppercase tracking-[0.14em] text-[0.4vw] text-text/55 mt-[0.2vh]">Drinks</div>
+                <div className="font-display text-[1.2vw] leading-none text-text">3</div>
+                <div className="font-body uppercase tracking-[0.14em] text-[0.38vw] text-text/55 mt-[0.2vh]">Drinks</div>
               </div>
               <div>
-                <div className="font-display text-[1.05vw] leading-none text-text">×1.45</div>
-                <div className="font-body uppercase tracking-[0.14em] text-[0.4vw] text-text/55 mt-[0.2vh]">Decay</div>
+                <div className="font-body text-[0.6vw] leading-none text-text font-semibold">8:42 PM</div>
+                <div className="font-body uppercase tracking-[0.14em] text-[0.38vw] text-text/55 mt-[0.3vh]">First drink</div>
               </div>
               <div className="text-right">
-                <div className="px-[0.4vw] py-[0.1vh] rounded-full font-body uppercase tracking-[0.14em] text-[0.42vw] font-semibold inline-block" style={{ background: "rgba(244,178,63,0.15)", color: "#F4B23F", border: "1px solid rgba(244,178,63,0.5)" }}>HIGH</div>
-                <div className="font-body uppercase tracking-[0.14em] text-[0.4vw] text-text/55 mt-[0.2vh]">Impairment</div>
+                <div className="font-display text-[0.85vw] leading-none text-text">×1.45<span className="font-body text-[0.42vw] text-text/55 ml-[0.15vw]">g/L·hr</span></div>
+                <div className="font-body uppercase tracking-[0.14em] text-[0.38vw] text-text/55 mt-[0.3vh]">Decay rate</div>
               </div>
             </div>
 
-            {/* BAC Card */}
-            <div className="mt-[0.6vh] rounded-[0.7vw] border px-[0.6vw] py-[0.7vh]" style={{ borderColor: "rgba(157,124,251,0.35)", background: "rgba(157,124,251,0.06)" }}>
+            {/* BAC Card — value + trend + projection + sparkline */}
+            <div className="mt-[0.5vh] rounded-[0.7vw] border px-[0.6vw] py-[0.6vh]" style={{ borderColor: "rgba(157,124,251,0.35)", background: "rgba(157,124,251,0.06)" }}>
               <div className="flex justify-between items-baseline">
                 <div className="font-body uppercase tracking-[0.18em] text-[0.45vw] font-semibold" style={{ color: "#9D7CFB" }}>Estimated BAC</div>
-                <div className="font-body text-[0.45vw] text-text/55">Clears in 2h 14m</div>
+                <div className="font-body uppercase tracking-[0.14em] text-[0.42vw] font-bold" style={{ color: "#F4B23F" }}>↑ Rising</div>
               </div>
-              <div className="font-display text-[1.6vw] leading-none mt-[0.3vh] text-text">0.062</div>
-              <div className="mt-[0.4vh] h-[0.35vh] rounded-full bg-white/10 overflow-hidden">
-                <div className="h-full" style={{ width: "78%", background: "linear-gradient(90deg,#9D7CFB,#F4B23F)" }} />
+              <div className="flex items-end justify-between mt-[0.25vh]">
+                <div className="font-display text-[1.55vw] leading-none text-text">0.062</div>
+                <div className="text-right leading-tight">
+                  <div className="font-body text-[0.5vw] text-text/65">Peak <span className="text-text font-semibold">0.084</span></div>
+                  <div className="font-body text-[0.4vw] text-text/45">@ 11:30 PM</div>
+                </div>
+              </div>
+              {/* Sparkline: BAC over evening, dashed legal limit, dot = now */}
+              <svg viewBox="0 0 100 16" preserveAspectRatio="none" className="mt-[0.4vh] w-full h-[1.6vh]">
+                <line x1="0" x2="100" y1="5" y2="5" stroke="#F4B23F" strokeWidth="0.5" strokeDasharray="2 2" opacity="0.7" />
+                <polyline points="0,16 12,14 22,11.5 32,9.5 44,7.5 55,6.2 68,4.6 82,3.4 100,2.6" fill="none" stroke="#9D7CFB" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+                <circle cx="55" cy="6.2" r="1.6" fill="#9D7CFB" />
+              </svg>
+              <div className="mt-[0.25vh] flex justify-between font-body text-[0.4vw] text-text/55">
+                <span>Now 10:42</span>
+                <span style={{ color: "#F4B23F" }}>Limit 0.08</span>
+                <span>Clear 12:56</span>
               </div>
             </div>
 
             {/* Hangover Risk */}
-            <div className="mt-[0.6vh] flex items-center gap-[0.5vw] px-[0.4vw]">
+            <div className="mt-[0.5vh] flex items-center gap-[0.5vw] px-[0.4vw]">
               <div className="px-[0.4vw] py-[0.1vh] rounded-full font-body uppercase tracking-[0.14em] text-[0.42vw] font-semibold" style={{ background: "rgba(244,178,63,0.15)", color: "#F4B23F", border: "1px solid rgba(244,178,63,0.5)" }}>HIGH 7.4</div>
               <div className="font-body text-[0.5vw] text-text/55">Hangover risk</div>
             </div>
 
+            {/* Next drink projection */}
+            <div className="mt-[0.5vh] rounded-[0.5vw] border-l-2 px-[0.5vw] py-[0.35vh] bg-white/[0.03] flex justify-between items-baseline" style={{ borderColor: "#F4B23F" }}>
+              <div className="font-body text-[0.46vw] text-text/65">Next beer → BAC</div>
+              <div className="font-body text-[0.55vw] font-bold" style={{ color: "#F4B23F" }}>0.084 · over legal</div>
+            </div>
+
             {/* Drink picker mini */}
-            <div className="mt-[0.6vh]">
+            <div className="mt-[0.5vh]">
               <div className="font-body uppercase tracking-[0.18em] text-[0.42vw] text-text/45">Log next drink</div>
-              <div className="grid grid-cols-3 gap-[0.3vw] mt-[0.4vh]">
+              <div className="grid grid-cols-3 gap-[0.3vw] mt-[0.35vh]">
                 {["Beer", "Wine", "Cocktail", "Liquor", "Seltzer", "+"].map((d) => (
-                  <div key={d} className="rounded-[0.4vw] border py-[0.4vh] text-center font-body text-[0.45vw]" style={{ borderColor: "rgba(157,124,251,0.35)", background: "rgba(157,124,251,0.06)", color: "#9D7CFB" }}>{d}</div>
+                  <div key={d} className="rounded-[0.4vw] border py-[0.35vh] text-center font-body text-[0.45vw]" style={{ borderColor: "rgba(157,124,251,0.35)", background: "rgba(157,124,251,0.06)", color: "#9D7CFB" }}>{d}</div>
                 ))}
               </div>
             </div>
@@ -196,18 +216,43 @@ export default function ProductTour() {
               <div className="font-display text-[1.05vw] leading-tight text-text mt-[0.3vh]">Recovery in progress.</div>
             </div>
 
-            {/* Big timer */}
-            <div className="mt-[0.8vh] rounded-[0.8vw] border px-[0.6vw] py-[1vh] flex flex-col items-center" style={{ borderColor: "rgba(244,178,63,0.4)", background: "rgba(244,178,63,0.06)" }}>
-              <div className="font-body uppercase tracking-[0.18em] text-[0.45vw] font-semibold" style={{ color: "#F4B23F" }}>Time to clear</div>
-              <div className="font-display text-[2.4vw] leading-none mt-[0.3vh] text-text">1h 47m</div>
-              <div className="mt-[0.5vh] h-[0.35vh] w-full rounded-full bg-white/10 overflow-hidden">
-                <div className="h-full" style={{ width: "62%", background: "linear-gradient(90deg,#F4B23F,#5478D5)" }} />
+            {/* Last night recap — peak BAC, time over legal, last drink */}
+            <div className="mt-[0.6vh] flex justify-between items-center px-[0.4vw] py-[0.5vh] rounded-[0.6vw] bg-white/[0.04]">
+              <div>
+                <div className="font-display text-[1.05vw] leading-none text-text">0.094</div>
+                <div className="font-body uppercase tracking-[0.14em] text-[0.38vw] text-text/55 mt-[0.25vh]">Peak · 1:14 AM</div>
               </div>
-              <div className="mt-[0.4vh] font-body text-[0.45vw] text-text/55">3 drinks · last session 11:42 PM</div>
+              <div>
+                <div className="font-display text-[1.05vw] leading-none text-text">47<span className="font-body text-[0.5vw] text-text/55 ml-[0.1vw]">m</span></div>
+                <div className="font-body uppercase tracking-[0.14em] text-[0.38vw] text-text/55 mt-[0.25vh]">Over 0.08</div>
+              </div>
+              <div className="text-right">
+                <div className="font-body text-[0.62vw] leading-none text-text font-semibold">1:42 AM</div>
+                <div className="font-body uppercase tracking-[0.14em] text-[0.38vw] text-text/55 mt-[0.35vh]">Last drink</div>
+              </div>
+            </div>
+
+            {/* Big timer + residual BAC + descending curve */}
+            <div className="mt-[0.55vh] rounded-[0.8vw] border px-[0.6vw] py-[0.75vh] flex flex-col items-center" style={{ borderColor: "rgba(244,178,63,0.4)", background: "rgba(244,178,63,0.06)" }}>
+              <div className="flex w-full justify-between items-baseline">
+                <div className="font-body uppercase tracking-[0.18em] text-[0.42vw] font-semibold" style={{ color: "#F4B23F" }}>Time to clear</div>
+                <div className="font-body text-[0.45vw] text-text/65">Now BAC <span className="text-text font-semibold">0.018</span></div>
+              </div>
+              <div className="font-display text-[2.2vw] leading-none mt-[0.25vh] text-text">1h 47m</div>
+              {/* Descending BAC curve from peak to clear */}
+              <svg viewBox="0 0 100 14" preserveAspectRatio="none" className="mt-[0.45vh] w-full h-[1.4vh]">
+                <polyline points="0,1.5 10,2.2 22,3.4 35,4.8 48,6.6 60,8.4 70,9.8 82,11 92,12 100,12.5" fill="none" stroke="#F4B23F" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+                <circle cx="60" cy="8.4" r="1.6" fill="#F4B23F" />
+              </svg>
+              <div className="mt-[0.25vh] flex w-full justify-between font-body text-[0.4vw] text-text/55">
+                <span>1:14 peak</span>
+                <span>7:14 now</span>
+                <span>9:01 clear</span>
+              </div>
             </div>
 
             {/* Hangover Risk */}
-            <div className="mt-[0.6vh] flex items-center justify-between px-[0.4vw] py-[0.5vh] rounded-[0.5vw] bg-white/[0.04]">
+            <div className="mt-[0.55vh] flex items-center justify-between px-[0.4vw] py-[0.45vh] rounded-[0.5vw] bg-white/[0.04]">
               <div className="flex items-center gap-[0.4vw]">
                 <div className="px-[0.4vw] py-[0.1vh] rounded-full font-body uppercase tracking-[0.14em] text-[0.42vw] font-semibold" style={{ background: "rgba(244,178,63,0.15)", color: "#F4B23F", border: "1px solid rgba(244,178,63,0.5)" }}>MOD 4.2</div>
                 <div className="font-body text-[0.5vw] text-text/55">Hangover risk</div>
