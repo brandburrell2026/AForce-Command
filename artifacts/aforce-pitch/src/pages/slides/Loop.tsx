@@ -50,7 +50,7 @@ export default function Loop() {
           <div className="absolute top-0 left-0 right-0 h-[0.5vh] bg-primary" />
           <div className="flex items-end shrink-0">
             <img src={`${base}can-watermelon.png`} alt="" className="h-[18vh] object-contain drop-shadow-2xl" />
-            <img src={`${base}stick-watermelon.png?v=3`} alt="" className="h-[30vh] object-contain drop-shadow-2xl -ml-[1vw]" />
+            <img src={`${base}stick-watermelon.png?v=4`} alt="" className="h-[30vh] object-contain drop-shadow-2xl -ml-[1vw]" />
           </div>
           <div className="flex-1 min-w-0 flex flex-col">
             <div className="font-body uppercase tracking-[0.28em] text-[0.85vw] text-primary font-semibold mb-[1.2vh]">Format 02 · Pocket-Sized</div>

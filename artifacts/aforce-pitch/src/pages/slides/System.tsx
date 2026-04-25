@@ -50,7 +50,7 @@ export default function System() {
           <div className="absolute top-0 left-0 right-0 h-[0.5vh] bg-primary" />
           <div className="flex items-end justify-center gap-[0.4vw] h-[27vh] mb-[1.2vh]">
             <img src={`${base}can-watermelon.png`} alt="" className="h-[27vh] object-contain drop-shadow-2xl" />
-            <img src={`${base}stick-watermelon.png?v=3`} alt="" className="h-[25vh] object-contain drop-shadow-2xl" />
+            <img src={`${base}stick-watermelon.png?v=4`} alt="" className="h-[25vh] object-contain drop-shadow-2xl" />
           </div>
           <div className="font-body uppercase tracking-[0.28em] text-[0.7vw] text-primary font-semibold mb-[0.6vh]">Flavor 02</div>
           <div className="font-display text-[1.8vw] leading-[1] tracking-tight text-text mb-[0.3vh]">Watermelon Surge</div>
