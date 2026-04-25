@@ -30,13 +30,13 @@ export default function OSRoadmap() {
 
       <div className="absolute top-[40vh] bottom-[17vh] left-[6vw] right-[6vw] grid grid-cols-3 gap-[1.6vw] z-10">
 
-        <div className="relative rounded-2xl bg-gradient-to-b from-primary/[0.14] via-primary/[0.04] to-transparent border border-primary/30 p-[1.8vw] pl-[10vw] flex flex-col overflow-visible">
+        <div className="relative rounded-2xl bg-gradient-to-b from-primary/[0.14] via-primary/[0.04] to-transparent border border-primary/30 p-[1.8vw] pl-[12vw] flex flex-col overflow-visible">
           <div className="absolute top-0 left-0 right-0 h-[0.5vh] bg-primary rounded-t-2xl" />
 
           {/* Floating AI Coach phone — hero specimen */}
           <div
-            className="absolute -left-[1.5vw] -top-[3vh] w-[9.5vw] z-20 pointer-events-none"
-            style={{ filter: "drop-shadow(0 18px 36px rgba(0,0,0,0.55)) drop-shadow(0 0 24px rgba(229,51,65,0.28))" }}
+            className="absolute -left-[1vw] -top-[6vh] w-[11.5vw] z-20 pointer-events-none"
+            style={{ filter: "drop-shadow(0 22px 44px rgba(0,0,0,0.6)) drop-shadow(0 0 28px rgba(229,51,65,0.3))" }}
           >
             <div className="relative">
               <img
@@ -45,34 +45,49 @@ export default function OSRoadmap() {
                 className="w-full h-auto block"
               />
 
-              {/* Crisp HTML overlay — replaces blurry baked-in text */}
+              {/* Crisp HTML overlay — replaces blurry baked-in text. Covers entire screen interior with crisp, readable text */}
               <div
-                className="absolute"
-                style={{ top: "50%", bottom: "5%", left: "10.7%", right: "11.2%", background: "#000" }}
+                className="absolute flex flex-col"
+                style={{ top: "5%", bottom: "5%", left: "10.7%", right: "11.2%", background: "#000" }}
               >
-                <div className="h-full px-[0.4vw] py-[0.5vh] flex flex-col">
-                  <div className="font-display font-bold text-white text-[0.78vw] leading-none tracking-tight">CORRECT NOW</div>
-                  <div className="font-body text-white/85 text-[0.42vw] leading-tight mt-[0.4vh]">AForce Stick + 20 oz. Immediate.</div>
+                {/* Header: AI COACH */}
+                <div className="px-[0.55vw] pt-[0.6vh] flex items-center justify-between">
+                  <div className="flex items-center gap-[0.3vw]">
+                    <span className="w-[0.32vw] h-[0.32vw] rounded-full bg-primary inline-block" />
+                    <span className="font-body uppercase tracking-[0.22em] text-primary text-[0.5vw] font-bold">AI Coach</span>
+                  </div>
+                  <span className="font-display text-white/70 text-[0.65vw] leading-none">×</span>
+                </div>
 
-                  <div className="mt-[0.7vh] rounded-[0.25vw] bg-white/[0.06] border border-white/10 px-[0.4vw] py-[0.4vh]">
-                    <div className="font-body uppercase tracking-[0.18em] text-white/55 text-[0.32vw] font-semibold">Command</div>
-                    <div className="font-body font-bold text-white text-[0.42vw] leading-tight mt-[0.2vh]">
+                {/* Red orb */}
+                <div className="flex-1 flex items-center justify-center min-h-0">
+                  <div className="w-[2.4vw] h-[2.4vw] rounded-full bg-primary" style={{ boxShadow: "0 0 10px rgba(229,51,65,0.55)" }} />
+                </div>
+
+                {/* Action area */}
+                <div className="px-[0.55vw] pb-[0.5vh]">
+                  <div className="font-display font-bold text-white text-[1vw] leading-none tracking-tight">CORRECT NOW</div>
+                  <div className="font-body text-white/85 text-[0.55vw] leading-tight mt-[0.4vh]">AForce Stick + 20&nbsp;oz. Immediate.</div>
+
+                  <div className="mt-[0.7vh] rounded-[0.3vw] bg-white/[0.06] border border-white/10 px-[0.5vw] py-[0.5vh]">
+                    <div className="font-body uppercase tracking-[0.18em] text-white/55 text-[0.4vw] font-semibold">Command</div>
+                    <div className="font-body font-bold text-white text-[0.55vw] leading-tight mt-[0.25vh]">
                       Take 1 AForce RTD now. Drink 16&nbsp;oz water before the next round.
                     </div>
-                    <div className="font-body text-white/60 text-[0.34vw] leading-snug mt-[0.3vh]">
+                    <div className="font-body text-white/60 text-[0.42vw] leading-snug mt-[0.35vh]">
                       Hangover risk rising (64/100). Electrolytes now make morning easier.
                     </div>
                   </div>
 
-                  <div className="mt-auto pt-[0.4vh] border-t border-primary/60 flex items-center justify-between">
-                    <span className="font-body uppercase tracking-[0.14em] text-white/65 text-[0.3vw] font-semibold">Depletion Emergency</span>
-                    <span className="font-body uppercase tracking-[0.14em] text-white/65 text-[0.3vw] font-semibold">Recheck 4:27</span>
+                  <div className="mt-[0.6vh] pt-[0.4vh] border-t border-primary/60 flex items-center justify-between">
+                    <span className="font-body uppercase tracking-[0.14em] text-white/70 text-[0.4vw] font-semibold">Depletion Emergency</span>
+                    <span className="font-body uppercase tracking-[0.14em] text-white/70 text-[0.4vw] font-semibold">Recheck 4:27</span>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="absolute -bottom-[1.2vh] left-1/2 -translate-x-1/2 px-[0.7vw] py-[0.25vh] rounded-full bg-primary text-white font-body uppercase tracking-[0.22em] text-[0.55vw] font-bold whitespace-nowrap shadow-lg">
+            <div className="absolute -bottom-[1.2vh] left-1/2 -translate-x-1/2 px-[0.8vw] py-[0.3vh] rounded-full bg-primary text-white font-body uppercase tracking-[0.22em] text-[0.6vw] font-bold whitespace-nowrap shadow-lg">
               ● Live in pocket
             </div>
           </div>
