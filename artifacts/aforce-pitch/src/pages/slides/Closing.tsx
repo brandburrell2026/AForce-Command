@@ -13,19 +13,13 @@ export default function Closing() {
       </div>
 
       <div className="absolute top-[14vh] left-[6vw] w-[22vw] h-[58vh] z-10">
-        <div className="relative h-full w-full rounded-2xl overflow-hidden ring-1 ring-text/10 bg-bg-elev">
-          <div
-            className="absolute inset-0"
-            style={{
-              backgroundImage: `url(${base}brothers.png)`,
-              backgroundSize: "auto 100%",
-              backgroundPosition: "18% center",
-              backgroundRepeat: "no-repeat",
-            }}
-            role="img"
-            aria-label="Brandon and Julius Burrell as children"
+        <div className="relative h-full w-full rounded-2xl overflow-hidden ring-1 ring-text/10 bg-[#1a1d24]">
+          <img
+            src={`${base}brothers-tight.png`}
+            alt="Brandon and Julius Burrell as children"
+            className="absolute inset-0 w-full h-full object-contain object-top"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-bg/95 via-bg/30 to-transparent pointer-events-none" />
+          <div className="absolute inset-x-0 bottom-0 h-[28vh] bg-gradient-to-t from-bg via-bg/80 to-transparent pointer-events-none" />
           <div className="absolute inset-x-0 bottom-0 p-[1.2vw]">
             <div className="font-body uppercase tracking-[0.32em] text-[0.7vw] text-accent font-semibold">Our Story</div>
             <div className="font-display text-[1.6vw] leading-[1.02] tracking-tight text-text mt-[0.6vh]">
