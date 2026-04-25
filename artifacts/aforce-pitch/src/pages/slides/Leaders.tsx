@@ -53,11 +53,18 @@ export default function Leaders() {
       bio: "Chief Investment Officer at Big Idea Ventures — Generation Food Rural Partners, New Protein Fund, Global Food Innovation Fund.",
     },
     {
-      name: "Mark Satterfield",
-      role: "Chief Scientist",
-      color: "accent",
-      photo: `${base}mark-satterfield.png`,
-      bio: "35+ years creating top beverage companies in the world, including formative work at Starbucks. Chief product mind behind AForce's alkaline platform.",
+      name: "Kristel van Kleef",
+      role: "Advisor",
+      color: "blue",
+      photo: `${base}kristel.jpg`,
+      bio: "Former VP Marketing, Red Bull North America. Scaled one of the world's most iconic brands through culture-led strategy, driving hundreds of millions in growth across global markets.",
+    },
+    {
+      name: "Peter Ingwersen",
+      role: "Advisor",
+      color: "blue",
+      photo: `${base}peter.jpg`,
+      bio: "Advisor to Red Bull and Warner Bros. Specialist in premium brand building, storytelling, and global positioning across luxury, fashion, and lifestyle sectors.",
     },
   ];
 
@@ -79,8 +86,10 @@ export default function Leaders() {
       </div>
 
       <div className="absolute bottom-[5vh] left-[6vw] right-[6vw] grid grid-cols-3 gap-[1.6vw]">
-        {leaders.map((l, i) => (
-          <div key={i} className={`bg-bg-elev rounded-lg p-[1.4vw] border-t-2 ${COLOR_BORDER[l.color]}`}>
+        {leaders.map((l, i) => {
+          const isLastOrphan = leaders.length % 3 === 1 && i === leaders.length - 1;
+          return (
+          <div key={i} className={`bg-bg-elev rounded-lg p-[1.4vw] border-t-2 ${COLOR_BORDER[l.color]} ${isLastOrphan ? "col-start-2" : ""}`}>
             <div className="flex items-center gap-[1.2vw] mb-[1.2vh]">
               <div className={`w-[5.6vw] h-[5.6vw] rounded-full overflow-hidden ring-2 ${COLOR_RING[l.color]} ring-offset-2 ring-offset-bg-elev shrink-0 bg-bg`}>
                 <img
@@ -97,7 +106,8 @@ export default function Leaders() {
             <div className="h-[1px] bg-divider mb-[1vh]" />
             <div className="font-body text-[0.95vw] text-text/70 leading-snug">{l.bio}</div>
           </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
