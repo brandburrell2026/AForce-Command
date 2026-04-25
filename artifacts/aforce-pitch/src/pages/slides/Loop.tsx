@@ -27,7 +27,7 @@ export default function Loop() {
         </div>
       </div>
 
-      <div className="absolute top-[40vh] bottom-[17vh] left-[6vw] right-[6vw] grid grid-cols-2 gap-[2vw] z-10">
+      <div className="absolute top-[40vh] bottom-[20vh] left-[6vw] right-[6vw] grid grid-cols-2 gap-[2vw] z-10">
 
         <div className="relative rounded-2xl bg-gradient-to-b from-accent/[0.16] via-accent/[0.05] to-transparent border border-accent/35 p-[2vw] flex items-center gap-[2vw] overflow-hidden">
           <div className="absolute top-0 left-0 right-0 h-[0.5vh] bg-accent" />
@@ -45,7 +45,7 @@ export default function Loop() {
 
         <div className="relative rounded-2xl bg-gradient-to-b from-primary/[0.16] via-primary/[0.05] to-transparent border border-primary/35 p-[2vw] flex items-center gap-[2vw] overflow-hidden">
           <div className="absolute top-0 left-0 right-0 h-[0.5vh] bg-primary" />
-          <img src={`${base}stick-watermelon.png`} alt="" className="h-[36vh] object-contain shrink-0 drop-shadow-2xl" />
+          <img src={`${base}stick-watermelon.png`} alt="" className="h-[44vh] object-contain shrink-0 drop-shadow-2xl" />
           <div className="flex-1 flex flex-col">
             <div className="font-body uppercase tracking-[0.28em] text-[0.85vw] text-primary font-semibold mb-[1.2vh]">Format 02 · Pocket-Sized</div>
             <div className="font-display text-[3.2vw] leading-[1] tracking-tight text-text mb-[1vh]">The <span className="text-primary">Stick.</span></div>

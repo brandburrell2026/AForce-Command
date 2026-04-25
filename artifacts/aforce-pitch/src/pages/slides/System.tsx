@@ -29,13 +29,13 @@ export default function System() {
         </div>
       </div>
 
-      <div className="absolute top-[33vh] bottom-[15vh] left-[6vw] right-[6vw] grid grid-cols-3 gap-[1.6vw] z-10">
+      <div className="absolute top-[33vh] bottom-[19vh] left-[6vw] right-[6vw] grid grid-cols-3 gap-[1.6vw] z-10">
 
         <div className="relative rounded-2xl bg-gradient-to-b from-blue/[0.14] via-blue/[0.04] to-transparent border border-blue/30 p-[1.6vw] flex flex-col overflow-hidden">
           <div className="absolute top-0 left-0 right-0 h-[0.5vh] bg-blue" />
-          <div className="flex items-end justify-center gap-[0.4vw] h-[33vh] mb-[1.4vh]">
-            <img src={`${base}can-berry.png`} alt="" className="h-[33vh] object-contain drop-shadow-2xl" />
-            <img src={`${base}stick-berry.png`} alt="" className="h-[31vh] object-contain drop-shadow-2xl" />
+          <div className="flex items-end justify-center gap-[0.4vw] h-[27vh] mb-[1.2vh]">
+            <img src={`${base}can-berry.png`} alt="" className="h-[27vh] object-contain drop-shadow-2xl" />
+            <img src={`${base}stick-berry.png`} alt="" className="h-[25vh] object-contain drop-shadow-2xl" />
           </div>
           <div className="font-body uppercase tracking-[0.28em] text-[0.7vw] text-blue font-semibold mb-[0.6vh]">Flavor 01</div>
           <div className="font-display text-[1.8vw] leading-[1] tracking-tight text-text mb-[0.3vh]">Berry Blast</div>
@@ -48,9 +48,9 @@ export default function System() {
 
         <div className="relative rounded-2xl bg-gradient-to-b from-primary/[0.14] via-primary/[0.04] to-transparent border border-primary/30 p-[1.6vw] flex flex-col overflow-hidden">
           <div className="absolute top-0 left-0 right-0 h-[0.5vh] bg-primary" />
-          <div className="flex items-end justify-center gap-[0.4vw] h-[33vh] mb-[1.4vh]">
-            <img src={`${base}can-watermelon.png`} alt="" className="h-[33vh] object-contain drop-shadow-2xl" />
-            <img src={`${base}stick-watermelon.png`} alt="" className="h-[31vh] object-contain drop-shadow-2xl" />
+          <div className="flex items-end justify-center gap-[0.4vw] h-[27vh] mb-[1.2vh]">
+            <img src={`${base}can-watermelon.png`} alt="" className="h-[27vh] object-contain drop-shadow-2xl" />
+            <img src={`${base}stick-watermelon.png`} alt="" className="h-[25vh] object-contain drop-shadow-2xl" />
           </div>
           <div className="font-body uppercase tracking-[0.28em] text-[0.7vw] text-primary font-semibold mb-[0.6vh]">Flavor 02</div>
           <div className="font-display text-[1.8vw] leading-[1] tracking-tight text-text mb-[0.3vh]">Watermelon Surge</div>
@@ -63,9 +63,9 @@ export default function System() {
 
         <div className="relative rounded-2xl bg-gradient-to-b from-accent/[0.16] via-accent/[0.05] to-transparent border border-accent/35 p-[1.6vw] flex flex-col overflow-hidden">
           <div className="absolute top-0 left-0 right-0 h-[0.5vh] bg-accent" />
-          <div className="flex items-end justify-center gap-[0.4vw] h-[33vh] mb-[1.4vh]">
-            <img src={`${base}can-soursop.png`} alt="" className="h-[33vh] object-contain drop-shadow-2xl" />
-            <img src={`${base}stick-soursop.png`} alt="" className="h-[31vh] object-contain drop-shadow-2xl" />
+          <div className="flex items-end justify-center gap-[0.4vw] h-[27vh] mb-[1.2vh]">
+            <img src={`${base}can-soursop.png`} alt="" className="h-[27vh] object-contain drop-shadow-2xl" />
+            <img src={`${base}stick-soursop.png`} alt="" className="h-[25vh] object-contain drop-shadow-2xl" />
           </div>
           <div className="font-body uppercase tracking-[0.28em] text-[0.7vw] text-accent font-semibold mb-[0.6vh]">Flavor 03</div>
           <div className="font-display text-[1.8vw] leading-[1] tracking-tight text-text mb-[0.3vh]">Soursop Edge</div>
