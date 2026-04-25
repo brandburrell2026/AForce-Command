@@ -23,6 +23,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import { useTranslation } from 'react-i18next';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Colors } from '../theme/colors';
 import { HangoverRiskBadge } from './HangoverRiskBadge';
@@ -65,6 +66,7 @@ export function SocialModeSheet({
 }: Props) {
   const { t } = useTranslation();
   const { state } = useAppStore();
+  const insets = useSafeAreaInsets();
   const opacity = useSharedValue(0);
   const translateY = useSharedValue(60);
 
@@ -107,8 +109,18 @@ export function SocialModeSheet({
   return (
     <Animated.View style={[styles.overlay, overlayStyle]} pointerEvents="auto">
       <Pressable style={StyleSheet.absoluteFill} onPress={onDismiss} />
-      <Animated.View style={[styles.sheet, sheetStyle, { borderColor: `${accent}33` }]} testID="social-mode-sheet">
-        <View style={styles.handle} />
+      <Animated.View
+        style={[
+          styles.sheet,
+          sheetStyle,
+          {
+            borderColor: `${accent}33`,
+            paddingTop: Math.max(insets.top, 12) + 8,
+            paddingBottom: Math.max(insets.bottom, 16) + 16,
+          },
+        ]}
+        testID="social-mode-sheet"
+      >
         <View style={styles.header}>
           <View style={{ flex: 1 }}>
             <Text style={[styles.eyebrow, { color: accent }]}>{t('social.title')}</Text>
@@ -123,7 +135,7 @@ export function SocialModeSheet({
           </Pressable>
         </View>
 
-        <ScrollView style={{ maxHeight: 520 }} showsVerticalScrollIndicator={false}>
+        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 12 }} showsVerticalScrollIndicator={false}>
           {!isActive && !inRecovery && (
             <>
               <Text style={styles.body}>{t('social.intro_body')}</Text>
@@ -284,19 +296,14 @@ export function SocialModeSheet({
 const styles = StyleSheet.create({
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.78)',
-    justifyContent: 'flex-end',
+    backgroundColor: '#000',
     zIndex: 1000,
   },
   sheet: {
+    flex: 1,
     backgroundColor: '#101015',
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    borderTopWidth: 1,
+    borderTopWidth: 0,
     paddingHorizontal: 22,
-    paddingTop: 12,
-    paddingBottom: 32,
-    maxHeight: '92%',
   },
   handle: {
     width: 40, height: 4, borderRadius: 2,
