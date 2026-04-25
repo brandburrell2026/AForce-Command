@@ -136,11 +136,10 @@ export default function ProductTour() {
           <div className="w-[18vw] h-[36vw] bg-bg-elev rounded-[2.2vw] border-2 border-text/20 overflow-hidden flex flex-col shadow-2xl ring-1" style={{ boxShadow: "0 0 60px rgba(157,124,251,0.15)" }}>
             {/* iOS status bar */}
             <div className="flex justify-between items-center px-[0.9vw] pt-[0.5vh] pb-[0.25vh]">
-              <span className="font-body text-[0.65vw] text-text font-semibold">6:48</span>
-              <div className="flex gap-[0.3vw] items-center">
-                <span className="text-text/85 text-[0.6vw] leading-none">📶</span>
-                <span className="text-text/85 text-[0.6vw] leading-none">📡</span>
-                <div className="px-[0.25vw] py-[0.05vh] rounded-[0.2vw] border font-body text-[0.4vw] leading-none font-bold" style={{ borderColor: "#22c55e", background: "rgba(34,197,94,0.18)", color: "#22c55e" }}>100</div>
+              <span className="font-body text-[0.65vw] text-text font-medium">10:42</span>
+              <div className="flex gap-[0.35vw] items-center">
+                <span className="font-body text-[0.5vw] text-text/85 font-semibold">5G</span>
+                <div className="px-[0.3vw] py-[0.1vh] rounded-[0.25vw] border border-text/55 font-body text-[0.45vw] text-text/85 leading-none">62</div>
               </div>
             </div>
 
