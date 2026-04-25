@@ -48,7 +48,7 @@ export default function OSRoadmap() {
               {/* Crisp HTML overlay — replaces blurry baked-in text. Covers entire screen interior with crisp, readable text */}
               <div
                 className="absolute flex flex-col"
-                style={{ top: "5%", bottom: "5%", left: "10.7%", right: "11.2%", background: "#000" }}
+                style={{ top: "2.5%", bottom: "5%", left: "10.7%", right: "11.2%", background: "#000" }}
               >
                 {/* Header: AI COACH */}
                 <div className="px-[0.55vw] pt-[0.6vh] flex items-center justify-between">
