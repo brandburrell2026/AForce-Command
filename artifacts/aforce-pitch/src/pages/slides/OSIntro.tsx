@@ -184,9 +184,6 @@ export default function OSIntro() {
               <div className="w-[1.6vw] h-[1.6vw] flex items-center justify-center text-text/55 font-display text-[1vw] leading-none">◉</div>
               <div className="font-body text-[0.5vw] text-text/55">Profile</div>
             </div>
-            <div className="absolute -top-[1vw] right-[0.2vw] w-[2.2vw] h-[2.2vw] rounded-full bg-bg-elev border border-text/35 flex items-center justify-center shadow-lg">
-              <div className="font-display text-[1vw] text-text leading-none">🎤</div>
-            </div>
           </div>
         </div>
       </div>
