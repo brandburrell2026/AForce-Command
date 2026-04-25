@@ -300,7 +300,8 @@ const styles = StyleSheet.create({
     zIndex: 1000,
   },
   sheet: {
-    flex: 1,
+    ...StyleSheet.absoluteFillObject,
+    flexDirection: 'column',
     backgroundColor: '#101015',
     borderTopWidth: 0,
     paddingHorizontal: 22,

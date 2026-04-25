@@ -96,8 +96,16 @@
     "speakerNotes": ""
   },
   {
-    "id": "c2d3e4f5-a6b7-4890-bc1d-2e3f4a5b6c7d",
+    "id": "d7e8f9a0-1b2c-4d3e-9f5a-7b8c9d0e1f2a",
     "position": 13,
+    "filepath": "src/pages/slides/ProductTour.tsx",
+    "title": "Product Tour",
+    "description": "Three modes, one loop: Hydration Score, Social Mode, Recovery Mode — the OS adapts to every state of the body.",
+    "speakerNotes": ""
+  },
+  {
+    "id": "c2d3e4f5-a6b7-4890-bc1d-2e3f4a5b6c7d",
+    "position": 14,
     "filepath": "src/pages/slides/OSRoadmap.tsx",
     "title": "OS Roadmap",
     "description": "One OS. Three phases. AI Coach (live 2026, consumer) → Clutch (2027, team SaaS) → Guardian (2028, enterprise + medical). $216B+ in compounding TAM.",
@@ -105,7 +113,7 @@
   },
   {
     "id": "d44bf2c6-5675-42c1-901b-e682ddfe1ff4",
-    "position": 14,
+    "position": 15,
     "filepath": "src/pages/slides/Market.tsx",
     "title": "Market",
     "description": "Functional beverages, sports drinks, and stick mixes — all moving toward AForce.",
@@ -113,7 +121,7 @@
   },
   {
     "id": "f5a6b7c8-d9e0-4123-ef4a-5b6c7d8e9f01",
-    "position": 15,
+    "position": 16,
     "filepath": "src/pages/slides/Advantage.tsx",
     "title": "Competitive Advantage",
     "description": "Performance intelligence platform + closed-loop data + multi-format ecosystem + premium formulation.",
@@ -121,7 +129,7 @@
   },
   {
     "id": "a6b7c8d9-e0f1-4234-fa5b-6c7d8e9f0123",
-    "position": 16,
+    "position": 17,
     "filepath": "src/pages/slides/Competitors.tsx",
     "title": "Competitors",
     "description": "AForce vs. Liquid IV, LMNT, BodyArmor, Gatorade, Prime — only AForce checks every box.",
@@ -129,7 +137,7 @@
   },
   {
     "id": "b7c8d9e0-f1a2-4345-ab6c-7d8e9f012345",
-    "position": 17,
+    "position": 18,
     "filepath": "src/pages/slides/GTM.tsx",
     "title": "Go-To-Market",
     "description": "Six phases from DTC launch to global category leader and OS licensing.",
@@ -137,7 +145,7 @@
   },
   {
     "id": "c8d9e0f1-a2b3-4456-bc7d-8e9f01234567",
-    "position": 18,
+    "position": 19,
     "filepath": "src/pages/slides/Traction.tsx",
     "title": "Traction",
     "description": "$832K closed, 179 launch creators, 2.3M+ combined reach, America's Real Deal Season 2 national TV premiere — pre-launch proof on every axis.",
@@ -145,7 +153,7 @@
   },
   {
     "id": "f1a2b3c4-d5e6-4789-fa01-234567890abc",
-    "position": 19,
+    "position": 20,
     "filepath": "src/pages/slides/Year1.tsx",
     "title": "Path to $3.2M",
     "description": "Year 1 math: 60,000 orders × $52 AOV = $3.2M. Five-stage acquisition→retention engine, H1 DTC+Amazon / H2 retail expansion + national TV catalyst.",
@@ -153,7 +161,7 @@
   },
   {
     "id": "d9e0f1a2-b3c4-4567-cd8e-9f0123456789",
-    "position": 20,
+    "position": 21,
     "filepath": "src/pages/slides/Financials.tsx",
     "title": "Financial Projections",
     "description": "$3.2M (2026) → $13M (2027) → $27.8M (2028). EBITDA breakeven late 2027.",
@@ -161,7 +169,7 @@
   },
   {
     "id": "c5d6e7f8-a9b0-4cde-fab1-23456789cdef",
-    "position": 21,
+    "position": 22,
     "filepath": "src/pages/slides/Methodology.tsx",
     "title": "Methodology",
     "description": "Bottoms-up model: 40/25/20/15 product mix, $52×5–7×/65%=$383 CLTV ÷ $49 CAC = 5:1 LTV:CAC. Benchmarked vs Liquid I.V./LMNT. SaaS layer modeled as upside.",
@@ -169,7 +177,7 @@
   },
   {
     "id": "e0f1a2b3-c4d5-4678-de9f-012345678901",
-    "position": 22,
+    "position": 23,
     "filepath": "src/pages/slides/Funding.tsx",
     "title": "Funding & Use of Funds",
     "description": "$4M Series Seed Preferred. Q1 2026 close. 40/20/20/10/10 allocation across inventory, GTM, OS, distribution, team.",
@@ -177,7 +185,7 @@
   },
   {
     "id": "a2b3c4d5-e6f7-4890-f012-345678901234",
-    "position": 23,
+    "position": 24,
     "filepath": "src/pages/slides/Leaders.tsx",
     "title": "Our Leaders",
     "description": "Brandon Burrell, Julius Burrell — with advisors Mark Mendel, Adam Sobol, Thomas Masterbouni, and Chief Scientist Mark Satterfield.",
@@ -185,7 +193,7 @@
   },
   {
     "id": "b3c4d5e6-f7a8-4901-1234-567890123456",
-    "position": 24,
+    "position": 25,
     "filepath": "src/pages/slides/Closing.tsx",
     "title": "The Ask",
     "description": "$4M Seed close. Founder-led closer with Brandon Burrell portrait, vision restatement, four proof KPIs, and contact strip.",
