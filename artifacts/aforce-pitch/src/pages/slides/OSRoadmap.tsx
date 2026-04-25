@@ -28,7 +28,7 @@ export default function OSRoadmap() {
         </div>
       </div>
 
-      <div className="absolute top-[40vh] bottom-[18vh] left-[6vw] right-[6vw] grid grid-cols-3 gap-[1.6vw] z-10">
+      <div className="absolute top-[40vh] bottom-[17vh] left-[6vw] right-[6vw] grid grid-cols-3 gap-[1.6vw] z-10">
 
         <div className="relative rounded-2xl bg-gradient-to-b from-primary/[0.14] via-primary/[0.04] to-transparent border border-primary/30 p-[1.8vw] flex flex-col overflow-hidden">
           <div className="absolute top-0 left-0 right-0 h-[0.5vh] bg-primary" />
@@ -40,18 +40,18 @@ export default function OSRoadmap() {
             </div>
           </div>
           <div className="font-display text-[2.8vw] leading-[1] tracking-tight text-text mb-[0.6vh]">AI Coach</div>
-          <div className="font-body text-[0.95vw] text-text/65 leading-snug mb-[2vh]">Voice-first hydration intelligence in every consumer's pocket. One command at a time.</div>
-          <ul className="space-y-[1vh] font-body text-[0.85vw] text-text/80 mb-[2vh] leading-snug">
+          <div className="font-body text-[0.9vw] text-text/65 leading-snug mb-[1.4vh]">Voice-first hydration intelligence in every consumer's pocket. One command at a time.</div>
+          <ul className="space-y-[0.8vh] font-body text-[0.8vw] text-text/80 mb-[1.4vh] leading-snug">
             <li className="flex gap-[0.7vw]"><span className="text-primary mt-[0.3vh] text-[0.6vw]">●</span><span><span className="text-text font-semibold">Real-time scoring.</span> Hydration, energy, recovery — measured, not guessed.</span></li>
             <li className="flex gap-[0.7vw]"><span className="text-primary mt-[0.3vh] text-[0.6vw]">●</span><span><span className="text-text font-semibold">Adaptive protocols.</span> The OS rewrites your day in response to live biometrics.</span></li>
             <li className="flex gap-[0.7vw]"><span className="text-primary mt-[0.3vh] text-[0.6vw]">●</span><span><span className="text-text font-semibold">Social Mode.</span> Owns the after-hours moment competitors can't touch.</span></li>
           </ul>
-          <div className="mt-auto pt-[1.6vh] border-t border-primary/20">
+          <div className="mt-auto pt-[1.2vh] border-t border-primary/20">
             <div className="flex items-baseline gap-[0.6vw]">
               <div className="font-display text-[2.2vw] leading-none text-primary">$383</div>
               <div className="font-body text-[0.7vw] text-text/55 uppercase tracking-[0.18em] leading-tight">Blended<br/>Customer LTV</div>
             </div>
-            <div className="font-body text-[0.7vw] text-text/50 mt-[0.8vh] uppercase tracking-[0.2em]">$200B+ functional bev market</div>
+            <div className="font-body text-[0.7vw] text-text/50 mt-[0.6vh] uppercase tracking-[0.2em]">$200B+ functional bev market</div>
           </div>
         </div>
 
@@ -62,18 +62,18 @@ export default function OSRoadmap() {
             <div className="px-[0.7vw] py-[0.3vh] rounded-full border border-blue/55 bg-blue/15 font-body uppercase tracking-[0.18em] text-[0.6vw] text-blue font-semibold">2027</div>
           </div>
           <div className="font-display text-[2.8vw] leading-[1] tracking-tight text-text mb-[0.6vh]">Clutch</div>
-          <div className="font-body text-[0.95vw] text-text/65 leading-snug mb-[2vh]">Coach-side roster command grid. Per-seat SaaS layered with a hardware attach.</div>
-          <ul className="space-y-[1vh] font-body text-[0.85vw] text-text/80 mb-[2vh] leading-snug">
+          <div className="font-body text-[0.9vw] text-text/65 leading-snug mb-[1.4vh]">Coach-side roster command grid. Per-seat SaaS layered with a hardware attach.</div>
+          <ul className="space-y-[0.8vh] font-body text-[0.8vw] text-text/80 mb-[1.4vh] leading-snug">
             <li className="flex gap-[0.7vw]"><span className="text-blue mt-[0.3vh] text-[0.6vw]">●</span><span><span className="text-text font-semibold">Live roster tier.</span> Every athlete reads PLATINUM → STABLE → RECOVERY → DEPLETED.</span></li>
             <li className="flex gap-[0.7vw]"><span className="text-blue mt-[0.3vh] text-[0.6vw]">●</span><span><span className="text-text font-semibold">Heat Mode.</span> Auto-replenish logic + game-day command tools.</span></li>
             <li className="flex gap-[0.7vw]"><span className="text-blue mt-[0.3vh] text-[0.6vw]">●</span><span><span className="text-text font-semibold">CLUTCH Clip.</span> Wearable hardware attach at the elite tier.</span></li>
           </ul>
-          <div className="mt-auto pt-[1.6vh] border-t border-blue/20">
+          <div className="mt-auto pt-[1.2vh] border-t border-blue/20">
             <div className="flex items-baseline gap-[0.6vw]">
               <div className="font-display text-[2.2vw] leading-none text-blue">$4B+</div>
               <div className="font-body text-[0.7vw] text-text/55 uppercase tracking-[0.18em] leading-tight">Team performance<br/>SaaS market</div>
             </div>
-            <div className="font-body text-[0.7vw] text-text/50 mt-[0.8vh] uppercase tracking-[0.2em]">High school · College · Pro · Military</div>
+            <div className="font-body text-[0.7vw] text-text/50 mt-[0.6vh] uppercase tracking-[0.2em]">High school · College · Pro · Military</div>
           </div>
         </div>
 
@@ -84,18 +84,18 @@ export default function OSRoadmap() {
             <div className="px-[0.7vw] py-[0.3vh] rounded-full border border-accent/55 bg-accent/15 font-body uppercase tracking-[0.18em] text-[0.6vw] text-accent font-semibold">2028</div>
           </div>
           <div className="font-display text-[2.8vw] leading-[1] tracking-tight text-text mb-[0.6vh]">Guardian</div>
-          <div className="font-body text-[0.95vw] text-text/65 leading-snug mb-[2vh]">Roster-wide risk + injury prevention. Five-figure ACV contracts with medical escalation paths.</div>
-          <ul className="space-y-[1vh] font-body text-[0.85vw] text-text/80 mb-[2vh] leading-snug">
+          <div className="font-body text-[0.9vw] text-text/65 leading-snug mb-[1.4vh]">Roster-wide risk + injury prevention. Five-figure ACV contracts with medical escalation paths.</div>
+          <ul className="space-y-[0.8vh] font-body text-[0.8vw] text-text/80 mb-[1.4vh] leading-snug">
             <li className="flex gap-[0.7vw]"><span className="text-accent mt-[0.3vh] text-[0.6vw]">●</span><span><span className="text-text font-semibold">Composite risk score.</span> OPTIMAL → WATCH → MODERATE → CRITICAL per athlete.</span></li>
             <li className="flex gap-[0.7vw]"><span className="text-accent mt-[0.3vh] text-[0.6vw]">●</span><span><span className="text-text font-semibold">Body Risk Map.</span> Critical injury alerts before the play breaks down.</span></li>
             <li className="flex gap-[0.7vw]"><span className="text-accent mt-[0.3vh] text-[0.6vw]">●</span><span><span className="text-text font-semibold">Medical escalation.</span> Coach + medical paths inside the same OS.</span></li>
           </ul>
-          <div className="mt-auto pt-[1.6vh] border-t border-accent/20">
+          <div className="mt-auto pt-[1.2vh] border-t border-accent/20">
             <div className="flex items-baseline gap-[0.6vw]">
               <div className="font-display text-[2.2vw] leading-none text-accent">$12B+</div>
               <div className="font-body text-[0.7vw] text-text/55 uppercase tracking-[0.18em] leading-tight">Sports med +<br/>wellness risk market</div>
             </div>
-            <div className="font-body text-[0.7vw] text-text/50 mt-[0.8vh] uppercase tracking-[0.2em]">Sports orgs · Military · Enterprise</div>
+            <div className="font-body text-[0.7vw] text-text/50 mt-[0.6vh] uppercase tracking-[0.2em]">Sports orgs · Military · Enterprise</div>
           </div>
         </div>
       </div>
