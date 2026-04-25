@@ -55,6 +55,31 @@ export default function Closing() {
           <span className="text-text/55"> for human performance.</span>
         </h2>
 
+        {/* Our Story — brothers origin */}
+        <div className="mt-[3.2vh] flex items-center gap-[1.4vw] rounded-2xl border border-text/10 bg-white/[0.03] p-[0.9vw] pr-[1.4vw] max-w-[42vw]">
+          <div
+            className="w-[6.5vw] h-[6.5vw] rounded-xl ring-1 ring-text/15 flex-shrink-0 bg-bg-elev"
+            style={{
+              backgroundImage: `url(${base}brothers.png)`,
+              backgroundSize: "200% auto",
+              backgroundPosition: "0% center",
+              backgroundRepeat: "no-repeat",
+            }}
+            role="img"
+            aria-label="Brandon and Julius Burrell as children"
+          />
+
+          <div className="min-w-0">
+            <div className="font-body uppercase tracking-[0.32em] text-[0.75vw] text-accent font-semibold">Our Story</div>
+            <div className="font-display text-[1.55vw] leading-[1.05] tracking-tight mt-[0.5vh] text-text">
+              Two brothers. <span className="text-accent">One promise.</span>
+            </div>
+            <div className="font-body italic text-[0.85vw] text-text/65 mt-[0.6vh] leading-snug">
+              Brandon &amp; Julius Burrell. Same fight, since day one.
+            </div>
+          </div>
+        </div>
+
         <div className="mt-auto">
           <div className="flex items-center gap-[1vw] mb-[1.6vh]">
             <div className="h-px w-[3vw] bg-accent" />
