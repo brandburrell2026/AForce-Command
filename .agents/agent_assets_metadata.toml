@@ -215,3 +215,9 @@ id = "S3_B-ku4nzrodpn7vq1xH"
 uri = "file://.local/outputs/AForce-Command.pdf"
 type = "pdf"
 title = "AForce Command.pdf"
+
+[[outputs]]
+id = "WV3pChTn0MkW3fQaz1BYQ"
+uri = "file://.local/outputs/AForce-Command.pptx"
+type = "slides"
+title = "AForce Command.pptx"
