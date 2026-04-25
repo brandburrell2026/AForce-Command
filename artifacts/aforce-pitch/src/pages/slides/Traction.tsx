@@ -32,7 +32,7 @@ export default function Traction() {
         <div className="relative rounded-2xl bg-gradient-to-b from-primary/[0.14] via-primary/[0.04] to-transparent border border-primary/30 p-[1.6vw] flex flex-col overflow-hidden">
           <div className="absolute top-0 left-0 right-0 h-[0.5vh] bg-primary" />
           <div className="font-body uppercase tracking-[0.28em] text-[0.7vw] text-primary font-semibold mb-[1.2vh]">Friends &amp; Family</div>
-          <div className="font-display text-[5.4vw] leading-[1] tracking-tight text-primary mb-[0.6vh]">$750K</div>
+          <div className="font-display text-[5.4vw] leading-[1] tracking-tight text-primary mb-[0.6vh]">$832K</div>
           <div className="font-body uppercase tracking-[0.22em] text-[0.85vw] text-text mb-[1vh]">Capital Closed</div>
           <div className="font-body text-[0.85vw] text-text/65 leading-snug mb-auto">Round closed. Pre-seed momentum carrying directly into the $4M Seed.</div>
           <div className="pt-[1.4vh] border-t border-primary/20 mt-[1.4vh]">
