@@ -57,14 +57,14 @@ export default function Leaders() {
       role: "Advisor",
       color: "blue",
       photo: `${base}kristel.jpg`,
-      bio: "Former VP Marketing, Red Bull North America. Scaled one of the world's most iconic brands through culture-led strategy, driving hundreds of millions in growth across global markets.",
+      bio: "VP Marketing, Red Bull North America; Global Head of Brand Events, On. Scaled one of the world's most iconic brands, driving hundreds of millions in growth through culture-led strategy and global execution.",
     },
     {
       name: "Peter Ingwersen",
       role: "Advisor",
       color: "blue",
       photo: `${base}peter.jpg`,
-      bio: "Advisor to Red Bull and Warner Bros. Specialist in premium brand building, storytelling, and global positioning across luxury, fashion, and lifestyle sectors.",
+      bio: "Strategic advisor to Red Bull, Warner Bros., and Levi's. Specialist in premium brand building and storytelling across global fashion and lifestyle brands.",
     },
   ];
 
