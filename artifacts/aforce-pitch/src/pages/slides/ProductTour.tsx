@@ -256,6 +256,11 @@ export default function ProductTour() {
 
             <div className="flex-1" />
 
+            {/* End the night */}
+            <div className="mx-[0.7vw] mt-[0.4vh] rounded-[0.7vw] border py-[0.7vh] text-center font-body uppercase tracking-[0.22em] text-[0.5vw] font-bold" style={{ borderColor: "rgba(244,178,63,0.55)", color: "#F4B23F" }}>
+              End the night
+            </div>
+
             {/* Tab bar — pill */}
             <div className="mx-[0.5vw] mb-[0.4vh] mt-[0.4vh] rounded-full bg-white/[0.05] grid grid-cols-5 py-[0.35vh]">
               {[
