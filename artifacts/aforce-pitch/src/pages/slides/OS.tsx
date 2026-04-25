@@ -15,7 +15,7 @@ export default function OS() {
       <div className="absolute inset-0 grid grid-cols-2 z-10">
         <div className="relative flex items-center justify-center">
           <img src={`${base}can-watermelon.png`} alt="" className="h-[78vh] object-contain drop-shadow-2xl relative z-10 -translate-x-[10%]" />
-          <img src={`${base}stick-watermelon.png`} alt="" className="absolute h-[58vh] object-contain drop-shadow-2xl translate-x-[58%] translate-y-[2%] rotate-[8deg]" />
+          <img src={`${base}stick-watermelon.png?v=3`} alt="" className="absolute h-[58vh] object-contain drop-shadow-2xl translate-x-[58%] translate-y-[2%] rotate-[8deg]" />
         </div>
 
         <div className="flex flex-col justify-center pr-[6vw] pt-[6vh] pb-[8vh]">
