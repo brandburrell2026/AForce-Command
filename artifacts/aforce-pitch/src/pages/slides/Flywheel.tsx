@@ -68,7 +68,7 @@ export default function Flywheel() {
                 <span className="font-body text-[0.95vw] text-text/45">+ $5 / $15 / $50 mo subscription · 90%+ digital margin · ecosystem lock-in</span>
               </div>
             </div>
-            <div className="flex items-center gap-[1.6vw]">
+            <div className="flex items-center gap-[2.8vw]">
               <div className="relative h-[5.4vh] flex-1 bg-bg-elev rounded-md overflow-hidden border border-text/8">
                 <div
                   className="h-full rounded-md relative"
