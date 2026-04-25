@@ -1,0 +1,15 @@
+{
+  "name": "aforce-os-engine",
+  "version": "1.0.0",
+  "description": "AForce OS voice and hydration command system",
+  "main": "src/app.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/app.js",
+    "test": "node src/tests/finalSystemTests.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "node-fetch": "^3.3.2"
+  }
+}

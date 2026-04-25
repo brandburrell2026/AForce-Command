@@ -1,0 +1,50 @@
+import { calculateHydrationTarget } from "./hydrationEngine.js";
+import { generateCommand } from "./commandEngine.js";
+
+export function onboardingCalculation(profile) {
+  const target = calculateHydrationTarget(profile);
+
+  return {
+    spokenText: `Based on your profile, ${profile.name}, ${profile.heightFeet} ft ${profile.heightInches} in, ${profile.weightLbs} lbs, ${profile.age} years old, ${profile.activityType} activity, your personalized daily hydration target is ${target.totalUnits} units, ${target.dailyOz} oz. This is calculated specifically for your body using your height, weight, age, and biological sex. Your AForce protocol starts now.`,
+    card: {
+      title: "YOUR PERSONALIZED HYDRATION PROFILE",
+      name: profile.name,
+      height: `${profile.heightFeet} ft ${profile.heightInches} in`,
+      weight: `${profile.weightLbs} lbs`,
+      age: profile.age,
+      biologicalSex: profile.biologicalSex,
+      activityType: profile.activityType,
+      location: profile.location || "Not set",
+      dailyBaseline: `${target.dailyOz} oz — ${target.baselineUnits} units`,
+      activityAdjustment: `plus ${target.activityUnits} units for ${profile.activityType}`,
+      environmentalAdjustment: `${target.environmentalUnits} units for ${profile.climateType}`,
+      totalDailyTarget: `${target.trainingDayUnits} units on training days · ${target.restDayUnits} units on rest days`,
+      firstUnitWindow: "Within 30 minutes of waking",
+      lastUnitWindow: "2 hours before sleep",
+      recalculationNote: "This profile recalculates automatically when you update your weight, height, or activity type."
+    }
+  };
+}
+
+export function answerQuestion(question, context) {
+  const q = question.toLowerCase();
+
+  if (q.includes("how many more")) {
+    const remaining = context.dailyUnits - context.unitsTaken;
+    return `You have taken ${context.unitsTaken} of your ${context.dailyUnits} daily units. You need ${remaining} more before ${context.endTime}. Take 1 ${context.preferredProduct} now.`;
+  }
+
+  if (q.includes("before my workout")) {
+    return `Take 1 AForce stick with 12 oz of spring water 20 minutes before you start. Your current score is ${context.score} and trending ${context.trend}.`;
+  }
+
+  if (q.includes("spring water")) {
+    return "Yes. Spring water supports a balanced hydration routine between AForce units. Drink 12 oz now and follow with an AForce stick before your next session.";
+  }
+
+  if (q.includes("water or aforce")) {
+    return generateCommand(context.state, context.inventory);
+  }
+
+  return generateCommand(context.state, context.inventory);
+}
