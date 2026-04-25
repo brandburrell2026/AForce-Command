@@ -29,10 +29,13 @@ export default function Loop() {
 
       <div className="absolute top-[40vh] bottom-[20vh] left-[6vw] right-[6vw] grid grid-cols-2 gap-[2vw] z-10">
 
-        <div className="relative rounded-2xl bg-gradient-to-b from-accent/[0.16] via-accent/[0.05] to-transparent border border-accent/35 p-[2vw] flex items-center gap-[2vw] overflow-hidden">
+        <div className="relative rounded-2xl bg-gradient-to-b from-accent/[0.16] via-accent/[0.05] to-transparent border border-accent/35 p-[2vw] flex items-center gap-[1.2vw] overflow-hidden min-w-0">
           <div className="absolute top-0 left-0 right-0 h-[0.5vh] bg-accent" />
-          <img src={`${base}can-soursop.png`} alt="" className="h-[36vh] object-contain shrink-0 drop-shadow-2xl" />
-          <div className="flex-1 flex flex-col">
+          <div className="flex items-end shrink-0">
+            <img src={`${base}can-soursop.png`} alt="" className="h-[26vh] object-contain drop-shadow-2xl" />
+            <img src={`${base}stick-soursop.png`} alt="" className="h-[19vh] object-contain drop-shadow-2xl -ml-[1.2vw]" />
+          </div>
+          <div className="flex-1 min-w-0 flex flex-col">
             <div className="font-body uppercase tracking-[0.28em] text-[0.85vw] text-accent font-semibold mb-[1.2vh]">Format 01 · Ready Cold</div>
             <div className="font-display text-[3.2vw] leading-[1] tracking-tight text-text mb-[1vh]">The <span className="text-accent">Can.</span></div>
             <div className="font-display text-[1.4vw] text-accent leading-none mb-[1.4vh]">11oz · 325ml</div>
@@ -43,10 +46,13 @@ export default function Loop() {
           </div>
         </div>
 
-        <div className="relative rounded-2xl bg-gradient-to-b from-primary/[0.16] via-primary/[0.05] to-transparent border border-primary/35 p-[2vw] flex items-center gap-[2vw] overflow-hidden">
+        <div className="relative rounded-2xl bg-gradient-to-b from-primary/[0.16] via-primary/[0.05] to-transparent border border-primary/35 p-[2vw] flex items-center gap-[1.2vw] overflow-hidden min-w-0">
           <div className="absolute top-0 left-0 right-0 h-[0.5vh] bg-primary" />
-          <img src={`${base}stick-watermelon.png`} alt="" className="h-[44vh] object-contain shrink-0 drop-shadow-2xl" />
-          <div className="flex-1 flex flex-col">
+          <div className="flex items-end shrink-0">
+            <img src={`${base}can-watermelon.png`} alt="" className="h-[18vh] object-contain drop-shadow-2xl" />
+            <img src={`${base}stick-watermelon.png`} alt="" className="h-[30vh] object-contain drop-shadow-2xl -ml-[1vw]" />
+          </div>
+          <div className="flex-1 min-w-0 flex flex-col">
             <div className="font-body uppercase tracking-[0.28em] text-[0.85vw] text-primary font-semibold mb-[1.2vh]">Format 02 · Pocket-Sized</div>
             <div className="font-display text-[3.2vw] leading-[1] tracking-tight text-text mb-[1vh]">The <span className="text-primary">Stick.</span></div>
             <div className="font-display text-[1.4vw] text-primary leading-none mb-[1.4vh]">14g · 0.49oz</div>
