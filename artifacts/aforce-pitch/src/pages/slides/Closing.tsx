@@ -1,84 +1,109 @@
 export default function Closing() {
+  const base = import.meta.env.BASE_URL;
+
   return (
     <div className="w-screen h-screen overflow-hidden relative bg-bg text-text font-body">
-      <div className="absolute inset-0 bg-gradient-to-br from-blue/[0.08] via-transparent to-primary/[0.06] pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-br from-blue/[0.10] via-transparent to-primary/[0.08] pointer-events-none" />
+      <div className="absolute -top-[20vh] -right-[10vw] w-[55vw] h-[55vw] rounded-full bg-blue/[0.08] blur-[120px] pointer-events-none" />
+      <div className="absolute -bottom-[20vh] -left-[10vw] w-[45vw] h-[45vw] rounded-full bg-primary/[0.06] blur-[120px] pointer-events-none" />
 
-      <div className="absolute top-[6vh] left-[6vw] right-[6vw] flex justify-between items-center z-10">
-        <div className="font-display text-[1.6vw] tracking-tight text-text">
-          A<span className="text-blue">FORCE</span>
-        </div>
+      <div className="absolute top-[5vh] left-[6vw] right-[6vw] flex justify-between items-center z-10">
+        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-blue font-semibold">22 — The Ask</div>
         <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-muted">22 / 22</div>
       </div>
 
-      <div className="absolute top-[16vh] left-[6vw] w-[50vw]">
-        <h1 className="font-display text-[4.4vw] leading-[1] tracking-tighter text-balance">
-          <span className="text-blue">AFORCE</span> is not a drink.
+      <div className="absolute top-[14vh] bottom-[12vh] left-[6vw] w-[30vw] z-10">
+        <div className="relative h-full w-full rounded-2xl overflow-hidden ring-1 ring-text/10 bg-bg-elev">
+          <img
+            src={`${base}brandon.jpg`}
+            alt="Brandon Burrell, Founder of AForce"
+            className="w-full h-full object-cover object-top"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-bg/95 via-bg/20 to-transparent pointer-events-none" />
+          <div className="absolute inset-x-0 bottom-0 p-[1.6vw]">
+            <div className="font-display text-[2.2vw] leading-[1] tracking-tight text-text">Brandon Burrell</div>
+            <div className="font-body uppercase tracking-[0.28em] text-[0.9vw] text-blue font-semibold mt-[0.8vh]">Founder · AForce</div>
+            <div className="font-body italic text-[0.95vw] text-text/70 mt-[1.2vh] leading-snug">
+              "Hydration is the wedge. Intelligence is the moat."
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="absolute top-[14vh] bottom-[12vh] left-[40vw] right-[6vw] flex flex-col z-10">
+        <div className="flex items-center gap-[1vw] mb-[1.4vh]">
+          <div className="h-px w-[3vw] bg-blue" />
+          <div className="font-body uppercase tracking-[0.32em] text-[0.95vw] text-blue font-semibold">Series Seed</div>
+        </div>
+
+        <h1 className="font-display leading-[0.92] tracking-tighter text-balance">
+          <span className="text-[8.4vw] text-primary">$4M</span>
+          <span className="text-[8.4vw] text-text"> Seed.</span>
         </h1>
-        <h2 className="font-display text-[3.6vw] leading-[1.05] tracking-tighter text-text/85 mt-[2vh]">
-          It's the <span className="text-text">operating system</span> for human performance.
+        <div className="font-body text-[1.25vw] text-text/70 mt-[1.4vh] leading-tight">
+          <span className="text-text">Q1 2026 close</span>
+          <span className="text-text/40 mx-[0.6vw]">·</span>
+          <span className="text-text">Spring 2026 launch</span>
+          <span className="text-text/40 mx-[0.6vw]">·</span>
+          <span className="text-text">National media catalyst</span>
+        </div>
+
+        <h2 className="font-display text-[2.4vw] leading-[1.08] tracking-tight mt-[4.2vh] text-text/95 text-balance">
+          AForce isn't a drink.{" "}
+          <span className="text-text/55">It's the </span>
+          <span className="text-blue">operating system</span>
+          <span className="text-text/55"> for human performance.</span>
         </h2>
-      </div>
 
-      <div className="absolute bottom-[6vh] left-[6vw] w-[44vw] bg-bg-elev rounded-2xl border border-text/10 p-[2vw] flex items-center gap-[2vw]">
-        <div className="w-[8vw] h-[8vw] rounded-full bg-gradient-to-br from-blue/30 to-primary/20 border-2 border-blue/40 flex items-center justify-center shrink-0">
-          <span className="font-display text-[3vw] text-text/80">BB</span>
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-baseline gap-[0.8vw] mb-[1.4vh]">
-            <div className="font-display text-[1.8vw] text-text leading-tight">Brandon Burrell</div>
-            <div className="font-body text-[1.05vw] text-blue uppercase tracking-[0.2em]">Founder</div>
+        <div className="mt-auto">
+          <div className="flex items-center gap-[1vw] mb-[1.6vh]">
+            <div className="h-px w-[3vw] bg-accent" />
+            <div className="font-body uppercase tracking-[0.32em] text-[0.85vw] text-accent font-semibold">Why now · Proof</div>
           </div>
-          <div className="grid grid-cols-2 gap-x-[1.4vw] gap-y-[1.1vh] font-body text-[1.05vw] text-text/80">
-            <div className="flex items-center gap-[0.7vw]">
-              <span className="text-blue text-[1.1vw]">@</span>
-              <span>@brandburrell</span>
+          <div className="grid grid-cols-4 gap-[1.4vw] border-t border-text/10 pt-[2vh]">
+            <div>
+              <div className="font-display text-[2.6vw] leading-none tracking-tight text-text">8.7×</div>
+              <div className="font-body uppercase tracking-[0.22em] text-[0.7vw] text-text/65 mt-[0.8vh] leading-snug">Revenue<br/>growth · 24 mo</div>
             </div>
-            <div className="flex items-center gap-[0.7vw]">
-              <span className="text-blue text-[1.1vw]">⌂</span>
-              <span>www.drinkaforce.com</span>
+            <div>
+              <div className="font-display text-[2.6vw] leading-none tracking-tight text-blue">21:1</div>
+              <div className="font-body uppercase tracking-[0.22em] text-[0.7vw] text-text/65 mt-[0.8vh] leading-snug">LTV : CAC<br/>at OS bundle</div>
             </div>
-            <div className="flex items-center gap-[0.7vw] col-span-1">
-              <span className="text-blue text-[1.1vw]">✉</span>
-              <span className="whitespace-nowrap">bburrell@alkalineforce.com</span>
+            <div>
+              <div className="font-display text-[2.6vw] leading-none tracking-tight text-text">$383</div>
+              <div className="font-body uppercase tracking-[0.22em] text-[0.7vw] text-text/65 mt-[0.8vh] leading-snug">Blended<br/>customer LTV</div>
             </div>
-            <div className="flex items-center gap-[0.7vw]">
-              <span className="text-blue text-[1.1vw]">☏</span>
+            <div>
+              <div className="font-display text-[2.6vw] leading-none tracking-tight text-accent">Q4 '27</div>
+              <div className="font-body uppercase tracking-[0.22em] text-[0.7vw] text-text/65 mt-[0.8vh] leading-snug">EBITDA<br/>breakeven</div>
+            </div>
+          </div>
+
+          <div className="mt-[3vh] flex items-center gap-[1.6vw] font-body text-[0.95vw] text-text/80 flex-wrap">
+            <a href="mailto:bburrell@alkalineforce.com" className="flex items-center gap-[0.5vw] hover:text-blue transition-colors">
+              <span className="text-blue">✉</span>
+              <span>bburrell@alkalineforce.com</span>
+            </a>
+            <span className="text-text/25">·</span>
+            <span className="flex items-center gap-[0.5vw]">
+              <span className="text-blue">☏</span>
               <span>+1 205.243.9447</span>
-            </div>
+            </span>
+            <span className="text-text/25">·</span>
+            <span className="flex items-center gap-[0.5vw]">
+              <span className="text-blue">⌂</span>
+              <span>drinkaforce.com</span>
+            </span>
+            <span className="text-text/25">·</span>
+            <span className="flex items-center gap-[0.5vw]">
+              <span className="text-blue">@</span>
+              <span>@brandburrell</span>
+            </span>
           </div>
         </div>
       </div>
 
-      <div className="absolute top-[14vh] bottom-[6vh] right-[6vw] w-[36vw] flex flex-col justify-between gap-[1.6vh]">
-        {[
-          {
-            title: "Category-Defining CPG + SaaS Platform",
-            body: "A structural moat combining premium physical products with a high-margin subscription software platform — no competitor offers both.",
-          },
-          {
-            title: "Omnichannel Distribution from Day One",
-            body: "DTC, Amazon, specialty retail, and gym channels create diversified revenue streams and broad consumer touchpoints from day one.",
-          },
-          {
-            title: "Aligned with Premium, High-Growth Category Trends",
-            body: "Positioned in a rapidly consolidating category where clean, functional, performance-driven brands command the highest strategic multiples.",
-          },
-          {
-            title: "National Media Catalyst at Launch",
-            body: "Spring 2026 product launch is aligned with the national premiere of America's Real Deal — Season 2, creating brand awareness at exactly the right moment.",
-          },
-        ].map((p, i) => (
-          <div key={i} className="flex items-start gap-[1vw]">
-            <div className="font-display text-[1.6vw] text-blue leading-none mt-[0.4vh] shrink-0">›</div>
-            <div className="flex-1">
-              <div className="font-display text-[1.4vw] text-text leading-tight mb-[0.6vh]">{p.title}</div>
-              <div className="font-body text-[1vw] text-text/65 leading-snug">{p.body}</div>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <div className="absolute bottom-[1.6vh] left-[6vw] font-body text-[0.85vw] text-muted/60">
+      <div className="absolute bottom-[1.6vh] left-[6vw] font-body text-[0.75vw] text-muted/50 z-10">
         Copyright © 2026 AForce. All rights reserved.
       </div>
     </div>
