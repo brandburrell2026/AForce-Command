@@ -209,3 +209,9 @@ id = "Ap6lDR5pHeOu9cxnWEm9I"
 uri = "file://attached_assets/screenshots/aforce-guardian-foldable.png"
 type = "image"
 title = "Guardian dashboard — foldable / tablet (900×1200)"
+
+[[outputs]]
+id = "S3_B-ku4nzrodpn7vq1xH"
+uri = "file://.local/outputs/AForce-Command.pdf"
+type = "pdf"
+title = "AForce Command.pdf"
