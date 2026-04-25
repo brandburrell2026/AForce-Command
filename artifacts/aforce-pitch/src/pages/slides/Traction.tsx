@@ -1,69 +1,93 @@
 export default function Traction() {
   return (
     <div className="w-screen h-screen overflow-hidden relative bg-bg text-text font-body">
-      <div className="absolute top-[6vh] left-[6vw] right-[6vw] flex justify-between items-center z-10">
+      <div className="absolute -top-[20vh] -left-[15vw] w-[60vw] h-[60vw] rounded-full bg-primary/[0.08] blur-[140px] pointer-events-none" />
+      <div className="absolute top-[18vh] -right-[20vw] w-[55vw] h-[55vw] rounded-full bg-blue/[0.08] blur-[140px] pointer-events-none" />
+      <div className="absolute -bottom-[25vh] left-[22vw] w-[60vw] h-[60vw] rounded-full bg-accent/[0.07] blur-[140px] pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-b from-bg/0 via-bg/40 to-bg/80 pointer-events-none" />
+
+      <div className="absolute top-[5vh] left-[6vw] right-[6vw] flex justify-between items-center z-10">
         <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-primary font-semibold">18 — Traction</div>
         <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-muted">18 / 24</div>
       </div>
 
-      <div className="absolute top-[13vh] left-[6vw] right-[6vw]">
-        <div className="flex items-center gap-[1.2vw] mb-[1.6vh]">
-          <div className="h-[2px] w-[4vw] bg-primary" />
-          <span className="font-body uppercase tracking-[0.32em] text-[1.2vw] text-primary font-semibold">Pre-Launch Momentum</span>
+      <div className="absolute top-[12vh] left-[6vw] right-[6vw] z-10">
+        <div className="flex items-center gap-[1vw] mb-[1.2vh]">
+          <div className="h-px w-[4vw] bg-primary" />
+          <div className="font-body uppercase tracking-[0.32em] text-[0.95vw] text-primary font-semibold">Proof Before Launch</div>
         </div>
-        <h2 className="font-display text-[3.8vw] leading-[1] tracking-tighter text-balance">
-          Traction <span className="text-primary">highlights.</span>
-        </h2>
+        <h1 className="font-display leading-[0.9] tracking-tighter text-balance text-[5vw]">
+          <span className="text-text">Billion-dollar </span>
+          <span className="text-primary">proof.</span>
+          <span className="text-text"> Pre-launch.</span>
+        </h1>
+        <div className="font-body text-[1.1vw] text-text/60 mt-[1.6vh] max-w-[78vw] leading-tight">
+          We've raised, signed, and booked our launch — before a single can has shipped.{" "}
+          <span className="text-text/85">Capital, creators, audience, and a national television catalyst, all in hand for Spring 2026.</span>
+        </div>
       </div>
 
-      <div className="absolute top-[32vh] bottom-[5vh] left-[6vw] right-[6vw] grid grid-cols-[1fr_1.6fr] gap-[3vw]">
-        <div className="flex flex-col gap-[2vh]">
-          <div className="bg-bg-elev rounded-lg p-[1.8vw] border-t-2 border-blue">
-            <div className="font-display text-[5vw] leading-none text-blue">179</div>
-            <div className="font-body text-[1.1vw] text-text/65 mt-[0.8vh] uppercase tracking-[0.22em]">Creators</div>
-          </div>
-          <div className="bg-bg-elev rounded-lg p-[1.8vw] border-t-2 border-accent">
-            <div className="font-body uppercase tracking-[0.25em] text-[0.95vw] text-muted mb-[0.8vh]">Projected Launch Reach</div>
-            <div className="font-display text-[4.6vw] leading-none text-accent">2.3M+</div>
-            <div className="font-body text-[1.1vw] text-text/65 mt-[0.8vh]">Combined creator audience.</div>
+      <div className="absolute top-[40vh] bottom-[17vh] left-[6vw] right-[6vw] grid grid-cols-4 gap-[1.4vw] z-10">
+
+        <div className="relative rounded-2xl bg-gradient-to-b from-primary/[0.14] via-primary/[0.04] to-transparent border border-primary/30 p-[1.6vw] flex flex-col overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-[0.5vh] bg-primary" />
+          <div className="font-body uppercase tracking-[0.28em] text-[0.7vw] text-primary font-semibold mb-[1.2vh]">Friends &amp; Family</div>
+          <div className="font-display text-[5.4vw] leading-[1] tracking-tight text-primary mb-[0.6vh]">$750K</div>
+          <div className="font-body uppercase tracking-[0.22em] text-[0.85vw] text-text mb-[1vh]">Capital Closed</div>
+          <div className="font-body text-[0.85vw] text-text/65 leading-snug mb-auto">Round closed. Pre-seed momentum carrying directly into the $4M Seed.</div>
+          <div className="pt-[1.4vh] border-t border-primary/20 mt-[1.4vh]">
+            <div className="font-body text-[0.7vw] text-text/55 uppercase tracking-[0.2em]">Q1 2026 · Closed</div>
           </div>
         </div>
 
-        <div className="flex flex-col gap-[1vh]">
-          <div className="bg-bg-elev rounded-md px-[1.2vw] py-[0.9vw] border border-text/10 flex items-start gap-[1vw]">
-            <div className="font-display text-[1.2vw] text-primary shrink-0 mt-[0.2vh]">01</div>
-            <div>
-              <div className="font-display text-[1.2vw] text-text mb-[0.2vh]">Fundraising &amp; Pre-Sales</div>
-              <div className="font-body text-[0.95vw] text-text/65 leading-snug">Successfully closed <span className="text-text font-semibold">$630K</span> in friends &amp; family round.</div>
-            </div>
+        <div className="relative rounded-2xl bg-gradient-to-b from-blue/[0.14] via-blue/[0.04] to-transparent border border-blue/30 p-[1.6vw] flex flex-col overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-[0.5vh] bg-blue" />
+          <div className="font-body uppercase tracking-[0.28em] text-[0.7vw] text-blue font-semibold mb-[1.2vh]">Creator Network</div>
+          <div className="font-display text-[5.4vw] leading-[1] tracking-tight text-blue mb-[0.6vh]">179</div>
+          <div className="font-body uppercase tracking-[0.22em] text-[0.85vw] text-text mb-[1vh]">Launch Creators</div>
+          <div className="font-body text-[0.85vw] text-text/65 leading-snug mb-auto">Multi-platform creator network committed to the launch wave — TikTok, Instagram, YouTube.</div>
+          <div className="pt-[1.4vh] border-t border-blue/20 mt-[1.4vh]">
+            <div className="font-body text-[0.7vw] text-text/55 uppercase tracking-[0.2em]">Signed · Activating Spring 2026</div>
           </div>
-          <div className="bg-bg-elev rounded-md px-[1.2vw] py-[0.9vw] border border-text/10 flex items-start gap-[1vw]">
-            <div className="font-display text-[1.2vw] text-primary shrink-0 mt-[0.2vh]">02</div>
-            <div>
-              <div className="font-display text-[1.2vw] text-text mb-[0.2vh]">Hydration Product Development</div>
-              <div className="font-body text-[0.95vw] text-text/65 leading-snug">Final formulations completed across sticks, RTD, and canisters. Supplier relationships established; first production run scheduled Spring 2026.</div>
-            </div>
+        </div>
+
+        <div className="relative rounded-2xl bg-gradient-to-b from-accent/[0.16] via-accent/[0.05] to-transparent border border-accent/35 p-[1.6vw] flex flex-col overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-[0.5vh] bg-accent" />
+          <div className="font-body uppercase tracking-[0.28em] text-[0.7vw] text-accent font-semibold mb-[1.2vh]">Audience Leverage</div>
+          <div className="font-display text-[5.4vw] leading-[1] tracking-tight text-accent mb-[0.6vh]">2.3M+</div>
+          <div className="font-body uppercase tracking-[0.22em] text-[0.85vw] text-text mb-[1vh]">Combined Reach</div>
+          <div className="font-body text-[0.85vw] text-text/65 leading-snug mb-auto">Aggregate creator audience across the launch network. Owned distribution from day one — no paid acquisition required.</div>
+          <div className="pt-[1.4vh] border-t border-accent/20 mt-[1.4vh]">
+            <div className="font-body text-[0.7vw] text-text/55 uppercase tracking-[0.2em]">Projected Launch Reach</div>
           </div>
-          <div className="bg-bg-elev rounded-md px-[1.2vw] py-[0.9vw] border border-text/10 flex items-start gap-[1vw]">
-            <div className="font-display text-[1.2vw] text-primary shrink-0 mt-[0.2vh]">03</div>
-            <div>
-              <div className="font-display text-[1.2vw] text-text mb-[0.2vh]">OS Product Development</div>
-              <div className="font-body text-[0.95vw] text-text/65 leading-snug">AForce OS performance platform is product-ready and scheduled to launch alongside hydration drinks this summer.</div>
-            </div>
+        </div>
+
+        <div className="relative rounded-2xl bg-gradient-to-b from-primary/[0.14] via-primary/[0.04] to-transparent border border-primary/30 p-[1.6vw] flex flex-col overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-[0.5vh] bg-primary" />
+          <div className="font-body uppercase tracking-[0.28em] text-[0.7vw] text-primary font-semibold mb-[1.2vh]">National Catalyst</div>
+          <div className="font-display text-[5.4vw] leading-[1] tracking-tight text-primary mb-[0.6vh]">S2</div>
+          <div className="font-body uppercase tracking-[0.22em] text-[0.85vw] text-text mb-[1vh]">National TV Premiere</div>
+          <div className="font-body text-[0.85vw] text-text/65 leading-snug mb-auto"><span className="text-text font-semibold">America's Real Deal — Season 2.</span> Filmed Summer 2026. Aired nationally Fall 2026.</div>
+          <div className="pt-[1.4vh] border-t border-primary/20 mt-[1.4vh]">
+            <div className="font-body text-[0.7vw] text-text/55 uppercase tracking-[0.2em]">Booked · Launch-Aligned</div>
           </div>
-          <div className="bg-bg-elev rounded-md px-[1.2vw] py-[0.9vw] border border-accent/40 flex items-start gap-[1vw]">
-            <div className="font-display text-[1.2vw] text-accent shrink-0 mt-[0.2vh]">04</div>
-            <div>
-              <div className="font-display text-[1.2vw] text-text mb-[0.2vh]">National Media Exposure</div>
-              <div className="font-body text-[0.95vw] text-text/65 leading-snug">Selected to premiere on <span className="text-text font-semibold">America&apos;s Real Deal — Season 2</span>, filming Summer 2026, airing nationally Fall.</div>
-            </div>
-          </div>
-          <div className="bg-bg-elev rounded-md px-[1.2vw] py-[0.9vw] border border-text/10 flex items-start gap-[1vw]">
-            <div className="font-display text-[1.2vw] text-primary shrink-0 mt-[0.2vh]">05</div>
-            <div>
-              <div className="font-display text-[1.2vw] text-text mb-[0.2vh]">Retail &amp; Distribution</div>
-              <div className="font-body text-[0.95vw] text-text/65 leading-snug">Buyer meetings underway with premium retailers; preliminary engagement with national distribution partners targeting Q2 2026 rollout.</div>
-            </div>
+        </div>
+      </div>
+
+      <div className="absolute bottom-[5vh] left-[6vw] right-[6vw] z-10">
+        <div className="flex items-center gap-[1vw] mb-[1.2vh]">
+          <div className="h-px w-[3vw] bg-accent" />
+          <div className="font-body uppercase tracking-[0.32em] text-[0.85vw] text-accent font-semibold">Foundation Ready</div>
+        </div>
+        <div className="border-t border-text/10 pt-[1.6vh] grid grid-cols-[1.4fr_1fr] gap-[2vw] items-baseline">
+          <h3 className="font-display text-[2.1vw] leading-[1.05] tracking-tight text-text/95 text-balance">
+            Hydration <span className="text-primary">formulas locked.</span>{" "}
+            OS <span className="text-blue">product-ready.</span>{" "}
+            Retail <span className="text-accent">conversations live.</span>
+          </h3>
+          <div className="font-body text-[0.85vw] text-text/55 uppercase tracking-[0.22em] text-right whitespace-nowrap leading-snug">
+            Suppliers · Q2 2026 retail rollout<br/>
+            Spring 2026 launch is locked.
           </div>
         </div>
       </div>
