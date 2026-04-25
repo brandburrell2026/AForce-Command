@@ -74,6 +74,25 @@ export default function OSIntro() {
         ))}
       </div>
 
+      <div className="absolute right-[24vw] top-[55vh] z-20 flex flex-col items-center">
+        <div className="w-[5vw] h-[1.2vw] bg-gradient-to-b from-text/0 via-text/10 to-text/20 rounded-t-md" />
+        <div className="w-[8vw] h-[9.5vw] bg-bg-elev rounded-[1.5vw] border-2 border-text/30 overflow-hidden p-[0.6vw] flex flex-col shadow-2xl ring-1 ring-text/5">
+          <div className="flex justify-between items-center px-[0.2vw]">
+            <span className="font-body text-[0.55vw] text-text/55">9:41</span>
+            <div className="w-[0.4vw] h-[0.4vw] rounded-full bg-accent" />
+          </div>
+          <div className="flex-1 flex flex-col items-center justify-center">
+            <div className="font-body uppercase tracking-[0.2em] text-[0.5vw] text-muted">Next</div>
+            <div className="font-display text-[1.5vw] leading-none text-accent mt-[0.5vh]">Drink</div>
+            <div className="font-body text-[0.55vw] text-text/65 mt-[0.4vh] text-center leading-tight">Berry Blast</div>
+          </div>
+          <div className="text-center pt-[0.4vh] border-t border-text/10">
+            <div className="font-body uppercase tracking-[0.22em] text-[0.5vw] text-accent font-semibold">18 min</div>
+          </div>
+        </div>
+        <div className="w-[5vw] h-[1.2vw] bg-gradient-to-t from-text/0 via-text/10 to-text/20 rounded-b-md" />
+      </div>
+
       <div className="absolute right-[7vw] top-[13vh] z-10">
         <div className="w-[19vw] h-[38vw] bg-bg-elev rounded-[2.4vw] border-2 border-text/20 overflow-hidden p-[1.3vw] flex flex-col shadow-2xl">
           <div className="flex justify-between items-center px-[0.8vw] mb-[1.4vh]">
