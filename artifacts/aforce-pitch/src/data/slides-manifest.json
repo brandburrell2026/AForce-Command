@@ -144,8 +144,16 @@
     "speakerNotes": ""
   },
   {
-    "id": "d9e0f1a2-b3c4-4567-cd8e-9f0123456789",
+    "id": "f1a2b3c4-d5e6-4789-fa01-234567890abc",
     "position": 19,
+    "filepath": "src/pages/slides/Year1.tsx",
+    "title": "Path to $3.2M",
+    "description": "Year 1 math: 60,000 orders × $52 AOV = $3.2M. Five-stage acquisition→retention engine, H1 DTC+Amazon / H2 retail expansion + national TV catalyst.",
+    "speakerNotes": ""
+  },
+  {
+    "id": "d9e0f1a2-b3c4-4567-cd8e-9f0123456789",
+    "position": 20,
     "filepath": "src/pages/slides/Financials.tsx",
     "title": "Financial Projections",
     "description": "$3.2M (2026) → $13M (2027) → $27.8M (2028). EBITDA breakeven late 2027.",
@@ -153,7 +161,7 @@
   },
   {
     "id": "e0f1a2b3-c4d5-4678-de9f-012345678901",
-    "position": 20,
+    "position": 21,
     "filepath": "src/pages/slides/Funding.tsx",
     "title": "Funding & Use of Funds",
     "description": "$4M Series Seed Preferred. Q1 2026 close. 40/20/20/10/10 allocation across inventory, GTM, OS, distribution, team.",
@@ -161,7 +169,7 @@
   },
   {
     "id": "a2b3c4d5-e6f7-4890-f012-345678901234",
-    "position": 21,
+    "position": 22,
     "filepath": "src/pages/slides/Leaders.tsx",
     "title": "Our Leaders",
     "description": "Brandon Burrell, Julius Burrell — with advisors Mark Mendel, Adam Sobol, Thomas Masterbouni, and Chief Scientist Mark Satterfield.",
@@ -169,7 +177,7 @@
   },
   {
     "id": "b3c4d5e6-f7a8-4901-1234-567890123456",
-    "position": 22,
+    "position": 23,
     "filepath": "src/pages/slides/Closing.tsx",
     "title": "The Ask",
     "description": "$4M Seed close. Founder-led closer with Brandon Burrell portrait, vision restatement, four proof KPIs, and contact strip.",

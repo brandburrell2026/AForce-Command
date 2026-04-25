@@ -3,7 +3,7 @@ export default function Mission() {
     <div className="w-screen h-screen overflow-hidden relative bg-bg text-text font-body flex flex-col justify-center px-[8vw]">
       <div className="absolute top-[6vh] left-[6vw] right-[6vw] flex justify-between items-center">
         <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-accent font-semibold">02 — Mission</div>
-        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-muted">02 / 22</div>
+        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-muted">02 / 23</div>
       </div>
 
       <div className="flex items-center gap-[1.2vw] mb-[4vh]">
