@@ -46,13 +46,13 @@ export default function OSDashboards() {
           <span className="text-blue">One OS.</span>
         </h1>
         <div className="font-body text-[1.05vw] text-text/60 mt-[1.6vh] max-w-[62vw] leading-tight">
-          The same loop that lives in every athlete's pocket scales up to the coach's bench and the team doctor's office.
+          The same loop that lives in every athlete's pocket scales from the Friday-night high school bench to the college and pro medical staff.
           <span className="text-text/85"> Clutch runs the game. Guardian runs the season.</span>
         </div>
       </div>
 
       {/* Two dashboards */}
-      <div className="absolute top-[34vh] bottom-[14vh] left-[6vw] right-[6vw] grid grid-cols-2 gap-[2vw] z-10">
+      <div className="absolute top-[34vh] bottom-[18vh] left-[6vw] right-[6vw] grid grid-cols-2 gap-[2vw] z-10">
 
         {/* ────────── CLUTCH DASHBOARD ────────── */}
         <div
@@ -66,10 +66,10 @@ export default function OSDashboards() {
             <div className="flex items-center gap-[0.55vw]">
               <span className="w-[0.7vw] h-[0.7vw] rounded-full bg-blue" />
               <span className="font-display font-bold text-text text-[1vw] tracking-tight">CLUTCH</span>
-              <span className="font-body uppercase tracking-[0.18em] text-blue/80 text-[0.55vw] font-semibold">Phase 2 · Coach Console</span>
+              <span className="font-body uppercase tracking-[0.18em] text-blue/80 text-[0.55vw] font-semibold">Phase 2 · High School Coaches</span>
             </div>
             <div className="flex items-center gap-[0.7vw]">
-              <span className="font-body uppercase tracking-[0.18em] text-text/55 text-[0.55vw]">Game 14 · Q3</span>
+              <span className="font-body uppercase tracking-[0.18em] text-text/55 text-[0.55vw]">Friday · Q3</span>
               <span className="font-body text-blue text-[0.7vw] font-bold tracking-tight tabular-nums">14:22</span>
               <span className="w-[0.4vw] h-[0.4vw] rounded-full bg-primary animate-pulse inline-block" />
               <span className="font-body uppercase tracking-[0.2em] text-primary text-[0.55vw] font-bold">Live</span>
@@ -122,8 +122,8 @@ export default function OSDashboards() {
               <span className="font-body text-text/50 text-[0.6vw]">· auto-replenish queued × 7</span>
             </div>
             <div className="flex items-baseline gap-[0.5vw]">
-              <span className="font-display text-blue text-[1.1vw] leading-none font-bold">$249</span>
-              <span className="font-body uppercase tracking-[0.16em] text-text/50 text-[0.5vw]">/ seat / mo</span>
+              <span className="font-display text-blue text-[1.1vw] leading-none font-bold">$1,200</span>
+              <span className="font-body uppercase tracking-[0.16em] text-text/50 text-[0.5vw]">/ team / yr · HS</span>
             </div>
           </div>
         </div>
@@ -140,10 +140,10 @@ export default function OSDashboards() {
             <div className="flex items-center gap-[0.55vw]">
               <span className="w-[0.7vw] h-[0.7vw] rounded-full bg-accent" />
               <span className="font-display font-bold text-text text-[1vw] tracking-tight">GUARDIAN</span>
-              <span className="font-body uppercase tracking-[0.18em] text-accent/80 text-[0.55vw] font-semibold">Phase 3 · Enterprise Console</span>
+              <span className="font-body uppercase tracking-[0.18em] text-accent/80 text-[0.55vw] font-semibold">Phase 3 · College + Pro</span>
             </div>
             <div className="flex items-center gap-[0.7vw]">
-              <span className="font-body uppercase tracking-[0.18em] text-text/55 text-[0.55vw]">Roster · 53</span>
+              <span className="font-body uppercase tracking-[0.18em] text-text/55 text-[0.55vw]">D1 · NCAA · Pro</span>
               <span className="font-body text-accent text-[0.7vw] font-bold tracking-tight tabular-nums">78<span className="text-text/40 text-[0.55vw]">/100</span></span>
               <span className="w-[0.4vw] h-[0.4vw] rounded-full bg-primary animate-pulse inline-block" />
               <span className="font-body uppercase tracking-[0.2em] text-primary text-[0.55vw] font-bold">Live</span>
@@ -210,11 +210,11 @@ export default function OSDashboards() {
             <div className="flex items-center gap-[0.6vw]">
               <span className="w-[0.45vw] h-[0.45vw] rounded-full bg-primary inline-block" />
               <span className="font-body uppercase tracking-[0.18em] text-text/65 text-[0.55vw] font-semibold">Medical escalation open</span>
-              <span className="font-body text-text/50 text-[0.6vw]">· coach + doctor in same OS</span>
+              <span className="font-body text-text/50 text-[0.6vw]">· athletic dept + medical staff</span>
             </div>
             <div className="flex items-baseline gap-[0.5vw]">
               <span className="font-display text-accent text-[1.1vw] leading-none font-bold">$48K</span>
-              <span className="font-body uppercase tracking-[0.16em] text-text/50 text-[0.5vw]">/ roster / yr ACV</span>
+              <span className="font-body uppercase tracking-[0.16em] text-text/50 text-[0.5vw]">/ roster / yr · D1 + Pro</span>
             </div>
           </div>
         </div>
@@ -227,13 +227,13 @@ export default function OSDashboards() {
           <div className="font-body uppercase tracking-[0.32em] text-[0.85vw] text-blue font-semibold">Same Loop · Bigger Stakes</div>
         </div>
         <div className="border-t border-text/10 pt-[1.6vh] flex items-baseline justify-between gap-[2vw]">
-          <h3 className="font-display text-[2.2vw] leading-[1.05] tracking-tight text-text/95 text-balance">
-            <span className="text-blue">Coach</span> calls the play.{" "}
-            <span className="text-accent">Doctor</span> protects the season.{" "}
+          <h3 className="font-display text-[2vw] leading-[1.05] tracking-tight text-text/95 text-balance">
+            <span className="text-blue">HS coach</span> calls the play.{" "}
+            <span className="text-accent">College &amp; pro doctor</span> protects the season.{" "}
             <span className="text-text/55">All on the same OS the athlete already runs.</span>
           </h3>
           <div className="font-body text-[0.85vw] text-text/55 uppercase tracking-[0.22em] text-right whitespace-nowrap leading-snug">
-            Per-seat SaaS<br/>+ five-figure ACV
+            HS team SaaS<br/>+ D1 / Pro five-figure ACV
           </div>
         </div>
       </div>
