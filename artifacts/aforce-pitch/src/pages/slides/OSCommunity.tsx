@@ -96,15 +96,42 @@ export default function OSCommunity() {
                 </div>
               </div>
 
-              {/* Top athlete strip */}
-              <div className="mt-[1.6vh] flex items-center gap-[0.7vw] rounded-[0.5vw] border border-accent/30 bg-accent/[0.06] px-[0.8vw] py-[0.8vh]">
-                <span className="w-[2vw] h-[2vw] rounded-full bg-accent/25 border border-accent/55 flex items-center justify-center">
-                  <span className="font-display text-accent text-[0.9vw] font-bold leading-none">MC</span>
-                </span>
-                <div className="flex-1 min-w-0">
-                  <div className="font-body uppercase tracking-[0.18em] text-accent text-[0.55vw] font-bold">City MVP</div>
-                  <div className="font-display text-text text-[1.05vw] font-bold leading-tight">M. Carter <span className="text-text/55 font-body text-[0.7vw] tracking-normal">· Score 98 · Brooklyn</span></div>
+              {/* Top NY athletes — mini leaderboard fills the rest of the card */}
+              <div className="mt-[1.6vh] flex flex-col flex-1 min-h-0">
+                <div className="flex items-center justify-between mb-[0.5vh]">
+                  <span className="font-body uppercase tracking-[0.22em] text-accent text-[0.6vw] font-bold">Top NY Athletes · Week 17</span>
+                  <span className="font-body uppercase tracking-[0.18em] text-text/40 text-[0.55vw]">View all 1,284 →</span>
                 </div>
+                {[
+                  { i: "MC", name: "M. Carter",    score: 98, nbhd: "Brooklyn",        mvp: true  },
+                  { i: "KP", name: "K. Patel",     score: 95, nbhd: "Harlem",          mvp: false },
+                  { i: "DW", name: "D. Williams",  score: 94, nbhd: "Queens",          mvp: false },
+                  { i: "AR", name: "A. Russo",     score: 93, nbhd: "Bronx",           mvp: false },
+                  { i: "TN", name: "T. Nguyen",    score: 92, nbhd: "Tribeca",         mvp: false },
+                  { i: "JR", name: "J. Reyes",     score: 91, nbhd: "Brooklyn Heights",mvp: false },
+                  { i: "RK", name: "R. Kim",       score: 90, nbhd: "Astoria",         mvp: false },
+                ].map((a) => (
+                  <div
+                    key={a.i}
+                    className={`flex items-center gap-[0.6vw] rounded-[0.4vw] border px-[0.7vw] py-[0.45vh] flex-1 min-h-0 ${
+                      a.mvp ? "border-accent/45 bg-accent/[0.08]" : "border-text/8 bg-white/[0.02]"
+                    } ${a.mvp ? "" : "mt-[0.35vh]"}`}
+                  >
+                    <span className={`w-[1.6vw] h-[1.6vw] rounded-full flex items-center justify-center flex-shrink-0 border ${
+                      a.mvp ? "bg-accent/25 border-accent/55" : "bg-white/[0.04] border-text/15"
+                    }`}>
+                      <span className={`font-display text-[0.7vw] font-bold leading-none ${a.mvp ? "text-accent" : "text-text/80"}`}>{a.i}</span>
+                    </span>
+                    <div className="flex-1 min-w-0 flex items-baseline gap-[0.4vw]">
+                      <span className="font-display text-text text-[0.85vw] font-bold leading-tight truncate">{a.name}</span>
+                      <span className="font-body text-text/45 text-[0.6vw] tracking-tight truncate">· {a.nbhd}</span>
+                    </div>
+                    {a.mvp && (
+                      <span className="px-[0.35vw] py-[0.1vh] rounded-full border border-accent/55 bg-accent/15 text-accent font-bold uppercase tracking-[0.14em] text-[0.45vw] flex-shrink-0">MVP</span>
+                    )}
+                    <span className={`font-display tabular-nums font-bold leading-none flex-shrink-0 ${a.mvp ? "text-accent text-[1vw]" : "text-text text-[0.85vw]"}`}>{a.score}</span>
+                  </div>
+                ))}
               </div>
             </div>
 
