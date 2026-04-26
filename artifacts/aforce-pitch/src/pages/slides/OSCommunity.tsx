@@ -1,12 +1,12 @@
 export default function OSCommunity() {
   const cities = [
-    { rank: "01", city: "Chicago",       state: "IL", members: "8,941",  score: 87, delta: "+2", trend: "up",   pct: 87, badge: "CHAMPION · 3 WKS" },
-    { rank: "02", city: "Atlanta",       state: "GA", members: "5,402",  score: 86, delta: "+4", trend: "up",   pct: 86, badge: "CLIMBING" },
-    { rank: "03", city: "Austin",        state: "TX", members: "5,128",  score: 86, delta: "+1", trend: "up",   pct: 86, badge: "" },
-    { rank: "04", city: "Brooklyn",      state: "NY", members: "12,847", score: 85, delta: "+2", trend: "up",   pct: 85, badge: "BIGGEST" },
+    { rank: "01", city: "New York",      state: "NY", members: "14,328", score: 91, delta: "+5", trend: "up",   pct: 91, badge: "CHAMPION · 5 WKS" },
+    { rank: "02", city: "Chicago",       state: "IL", members: "8,941",  score: 87, delta: "+1", trend: "up",   pct: 87, badge: "CHASING" },
+    { rank: "03", city: "Atlanta",       state: "GA", members: "5,402",  score: 86, delta: "+4", trend: "up",   pct: 86, badge: "CLIMBING" },
+    { rank: "04", city: "Austin",        state: "TX", members: "5,128",  score: 86, delta: "+1", trend: "up",   pct: 86, badge: "" },
     { rank: "05", city: "San Diego",     state: "CA", members: "4,541",  score: 85, delta: "+3", trend: "up",   pct: 85, badge: "" },
     { rank: "06", city: "Miami",         state: "FL", members: "4,872",  score: 84, delta: "−1", trend: "down", pct: 84, badge: "" },
-    { rank: "07", city: "Los Angeles",   state: "CA", members: "11,203", score: 83, delta: "−1", trend: "down", pct: 83, badge: "" },
+    { rank: "07", city: "Los Angeles",   state: "CA", members: "11,203", score: 83, delta: "−1", trend: "down", pct: 83, badge: "BIGGEST WEST" },
     { rank: "08", city: "Philadelphia",  state: "PA", members: "5,712",  score: 83, delta: "·",  trend: "flat", pct: 83, badge: "" },
     { rank: "09", city: "Dallas",        state: "TX", members: "6,234",  score: 82, delta: "−2", trend: "down", pct: 82, badge: "" },
     { rank: "10", city: "Houston",       state: "TX", members: "7,520",  score: 81, delta: "−1", trend: "down", pct: 81, badge: "" },
@@ -74,9 +74,9 @@ export default function OSCommunity() {
             <div className="px-[1.4vw] pt-[1.6vh] flex-1 flex flex-col min-h-0 relative">
               <div className="flex items-baseline justify-between gap-[1vw]">
                 <h2 className="font-display text-[3.6vw] leading-[0.92] tracking-tighter text-text">
-                  Chicago<span className="text-primary">.</span>
+                  New York<span className="text-primary">.</span>
                 </h2>
-                <div className="font-display text-[2.6vw] leading-[0.9] tracking-tight text-accent font-bold tabular-nums">87</div>
+                <div className="font-display text-[2.6vw] leading-[0.9] tracking-tight text-accent font-bold tabular-nums">91</div>
               </div>
               <div className="font-body uppercase tracking-[0.22em] text-text/50 text-[0.7vw] mt-[0.3vh]">Avg Hydration · Last 7 days</div>
 
@@ -84,26 +84,26 @@ export default function OSCommunity() {
               <div className="grid grid-cols-3 gap-[0.6vw] mt-[2vh]">
                 <div className="rounded-[0.4vw] border border-text/10 bg-white/[0.03] px-[0.7vw] py-[0.9vh]">
                   <div className="font-body uppercase tracking-[0.18em] text-text/45 text-[0.55vw] font-semibold">Members</div>
-                  <div className="font-display text-text text-[1.3vw] leading-tight font-bold tabular-nums mt-[0.2vh]">8,941</div>
+                  <div className="font-display text-text text-[1.3vw] leading-tight font-bold tabular-nums mt-[0.2vh]">14,328</div>
                 </div>
                 <div className="rounded-[0.4vw] border border-text/10 bg-white/[0.03] px-[0.7vw] py-[0.9vh]">
                   <div className="font-body uppercase tracking-[0.18em] text-text/45 text-[0.55vw] font-semibold">Streak</div>
-                  <div className="font-display text-text text-[1.3vw] leading-tight font-bold tabular-nums mt-[0.2vh]">3 wks</div>
+                  <div className="font-display text-text text-[1.3vw] leading-tight font-bold tabular-nums mt-[0.2vh]">5 wks</div>
                 </div>
                 <div className="rounded-[0.4vw] border border-text/10 bg-white/[0.03] px-[0.7vw] py-[0.9vh]">
                   <div className="font-body uppercase tracking-[0.18em] text-text/45 text-[0.55vw] font-semibold">Cans / wk</div>
-                  <div className="font-display text-text text-[1.3vw] leading-tight font-bold tabular-nums mt-[0.2vh]">62K</div>
+                  <div className="font-display text-text text-[1.3vw] leading-tight font-bold tabular-nums mt-[0.2vh]">98K</div>
                 </div>
               </div>
 
               {/* Top athlete strip */}
               <div className="mt-[1.6vh] flex items-center gap-[0.7vw] rounded-[0.5vw] border border-accent/30 bg-accent/[0.06] px-[0.8vw] py-[0.8vh]">
                 <span className="w-[2vw] h-[2vw] rounded-full bg-accent/25 border border-accent/55 flex items-center justify-center">
-                  <span className="font-display text-accent text-[0.9vw] font-bold leading-none">JG</span>
+                  <span className="font-display text-accent text-[0.9vw] font-bold leading-none">MC</span>
                 </span>
                 <div className="flex-1 min-w-0">
                   <div className="font-body uppercase tracking-[0.18em] text-accent text-[0.55vw] font-bold">City MVP</div>
-                  <div className="font-display text-text text-[1.05vw] font-bold leading-tight">J. Grant <span className="text-text/55 font-body text-[0.7vw] tracking-normal">· Score 96 · West Loop</span></div>
+                  <div className="font-display text-text text-[1.05vw] font-bold leading-tight">M. Carter <span className="text-text/55 font-body text-[0.7vw] tracking-normal">· Score 98 · Brooklyn</span></div>
                 </div>
               </div>
             </div>
