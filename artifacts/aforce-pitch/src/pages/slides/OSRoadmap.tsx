@@ -7,8 +7,8 @@ export default function OSRoadmap() {
       <div className="absolute inset-0 bg-gradient-to-b from-bg/0 via-bg/40 to-bg/80 pointer-events-none" />
 
       <div className="absolute top-[5vh] left-[6vw] right-[6vw] flex justify-between items-center z-10">
-        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-accent font-semibold">14 — OS Roadmap</div>
-        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-muted">14 / 27</div>
+        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-accent font-semibold">11 — OS Roadmap</div>
+        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-muted">11 / 24</div>
       </div>
 
       <div className="absolute top-[12vh] left-[6vw] right-[6vw] z-10">
@@ -160,19 +160,36 @@ export default function OSRoadmap() {
         </div>
       </div>
 
-      <div className="absolute bottom-[5vh] left-[6vw] right-[6vw] z-10">
+      <div className="absolute bottom-[4vh] left-[6vw] right-[6vw] z-10">
         <div className="flex items-center gap-[1vw] mb-[1.2vh]">
           <div className="h-px w-[3vw] bg-accent" />
-          <div className="font-body uppercase tracking-[0.32em] text-[0.85vw] text-accent font-semibold">Compounding</div>
+          <div className="font-body uppercase tracking-[0.32em] text-[0.85vw] text-accent font-semibold">Compounding · TAM / SAM / SOM</div>
         </div>
-        <div className="border-t border-text/10 pt-[1.6vh] flex items-baseline justify-between gap-[2vw]">
-          <h3 className="font-display text-[2.2vw] leading-[1.05] tracking-tight text-text/95 text-balance">
-            <span className="text-text/55">Three engines.</span> One platform.{" "}
-            <span className="text-primary">$216B+</span> in compounding{" "}
-            <span className="text-accent">TAM.</span>
-          </h3>
-          <div className="font-body text-[0.85vw] text-text/55 uppercase tracking-[0.22em] text-right whitespace-nowrap leading-snug">
-            Each phase compounds<br/>on the layer below it.
+        <div className="border-t border-text/10 pt-[1.6vh] grid grid-cols-[auto_auto_auto_1fr] gap-[2.6vw] items-end">
+          <div>
+            <div className="flex items-baseline gap-[0.6vw]">
+              <span className="font-body uppercase tracking-[0.24em] text-[0.7vw] text-primary font-bold">TAM</span>
+              <span className="font-display text-[2vw] leading-none tracking-tight text-primary font-bold tabular-nums">$216B+</span>
+            </div>
+            <div className="font-body uppercase tracking-[0.18em] text-[0.58vw] text-text/55 mt-[0.7vh] leading-snug">All 3 phases · global · by 2030</div>
+          </div>
+          <div>
+            <div className="flex items-baseline gap-[0.6vw]">
+              <span className="font-body uppercase tracking-[0.24em] text-[0.7vw] text-blue font-bold">SAM</span>
+              <span className="font-display text-[2vw] leading-none tracking-tight text-blue font-bold tabular-nums">$48B</span>
+            </div>
+            <div className="font-body uppercase tracking-[0.18em] text-[0.58vw] text-text/55 mt-[0.7vh] leading-snug">Serviceable today · US functional bev + team perf</div>
+          </div>
+          <div>
+            <div className="flex items-baseline gap-[0.6vw]">
+              <span className="font-body uppercase tracking-[0.24em] text-[0.7vw] text-accent font-bold">SOM</span>
+              <span className="font-display text-[2vw] leading-none tracking-tight text-accent font-bold tabular-nums">$1.4B</span>
+            </div>
+            <div className="font-body uppercase tracking-[0.18em] text-[0.58vw] text-text/55 mt-[0.7vh] leading-snug">Winnable by 2030 · ~3% bev + 8% teams + early enterprise / medical pilots</div>
+          </div>
+          <div className="font-body text-[0.62vw] text-text/55 uppercase tracking-[0.2em] text-right leading-snug">
+            <span className="text-text/85">Methodology.</span> TAM = sum of three phase markets, compounding through 2030.<br/>
+            SAM / SOM = US-only, bottom-up against published category benchmarks.
           </div>
         </div>
       </div>
