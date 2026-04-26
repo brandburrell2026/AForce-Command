@@ -9,7 +9,7 @@ export default function System() {
 
       <div className="absolute top-[5vh] left-[6vw] right-[6vw] flex justify-between items-center z-10">
         <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-primary font-semibold">06 — Product</div>
-        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-muted">06 / 25</div>
+        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-muted">06 / 26</div>
       </div>
 
       <div className="absolute top-[11vh] left-[6vw] right-[6vw] z-10">

@@ -63,7 +63,7 @@ export default function OSLoop() {
 
       <div className="absolute top-[6vh] left-[6vw] right-[6vw] flex justify-between items-center z-10">
         <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-primary font-semibold">12 — The Loop</div>
-        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-muted">12 / 25</div>
+        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-muted">12 / 26</div>
       </div>
 
       <div className="absolute top-[12vh] left-[6vw] right-[6vw] flex justify-between items-end gap-[4vw]">
