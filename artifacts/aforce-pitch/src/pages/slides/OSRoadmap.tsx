@@ -8,7 +8,7 @@ export default function OSRoadmap() {
 
       <div className="absolute top-[5vh] left-[6vw] right-[6vw] flex justify-between items-center z-10">
         <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-accent font-semibold">14 — OS Roadmap</div>
-        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-muted">14 / 26</div>
+        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-muted">14 / 27</div>
       </div>
 
       <div className="absolute top-[12vh] left-[6vw] right-[6vw] z-10">
