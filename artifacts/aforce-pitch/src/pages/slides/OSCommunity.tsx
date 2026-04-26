@@ -1,18 +1,39 @@
 export default function OSCommunity() {
   const cities = [
-    { rank: "01", city: "New York",      state: "NY", members: "14,328", score: 91, delta: "+5", trend: "up",   pct: 91, badge: "CHAMPION · 5 WKS" },
-    { rank: "02", city: "Chicago",       state: "IL", members: "8,941",  score: 87, delta: "+1", trend: "up",   pct: 87, badge: "CHASING" },
-    { rank: "03", city: "Atlanta",       state: "GA", members: "5,402",  score: 86, delta: "+4", trend: "up",   pct: 86, badge: "CLIMBING" },
-    { rank: "04", city: "Austin",        state: "TX", members: "5,128",  score: 86, delta: "+1", trend: "up",   pct: 86, badge: "" },
-    { rank: "05", city: "San Diego",     state: "CA", members: "4,541",  score: 85, delta: "+3", trend: "up",   pct: 85, badge: "" },
-    { rank: "06", city: "Miami",         state: "FL", members: "4,872",  score: 84, delta: "−1", trend: "down", pct: 84, badge: "" },
-    { rank: "07", city: "Los Angeles",   state: "CA", members: "11,203", score: 83, delta: "−1", trend: "down", pct: 83, badge: "BIGGEST WEST" },
-    { rank: "08", city: "Philadelphia",  state: "PA", members: "5,712",  score: 83, delta: "·",  trend: "flat", pct: 83, badge: "" },
-    { rank: "09", city: "Dallas",        state: "TX", members: "6,234",  score: 82, delta: "−2", trend: "down", pct: 82, badge: "" },
-    { rank: "10", city: "Houston",       state: "TX", members: "7,520",  score: 81, delta: "−1", trend: "down", pct: 81, badge: "" },
-    { rank: "11", city: "San Antonio",   state: "TX", members: "4,983",  score: 80, delta: "+1", trend: "up",   pct: 80, badge: "" },
-    { rank: "12", city: "Phoenix",       state: "AZ", members: "6,890",  score: 79, delta: "−3", trend: "down", pct: 79, badge: "" },
+    { rank: "01", city: "New York",      state: "NY", members: "14,328", score: 91, delta: "+5", trend: "up",   pct: 91, badge: "CHAMPION · 5 WKS", x: 87.9, y: 20.7, members_n: 14328 },
+    { rank: "02", city: "Chicago",       state: "IL", members: "8,941",  score: 87, delta: "+1", trend: "up",   pct: 87, badge: "CHASING",          x: 64.5, y: 17.8, members_n: 8941  },
+    { rank: "03", city: "Atlanta",       state: "GA", members: "5,402",  score: 86, delta: "+4", trend: "up",   pct: 86, badge: "CLIMBING",         x: 70.0, y: 38.1, members_n: 5402  },
+    { rank: "04", city: "Austin",        state: "TX", members: "5,128",  score: 86, delta: "+1", trend: "up",   pct: 86, badge: "",                 x: 47.0, y: 46.8, members_n: 5128  },
+    { rank: "05", city: "San Diego",     state: "CA", members: "4,541",  score: 85, delta: "+3", trend: "up",   pct: 85, badge: "",                 x: 13.5, y: 40.7, members_n: 4541  },
+    { rank: "06", city: "Miami",         state: "FL", members: "4,872",  score: 84, delta: "−1", trend: "down", pct: 84, badge: "",                 x: 77.3, y: 51.0, members_n: 4872  },
+    { rank: "07", city: "Los Angeles",   state: "CA", members: "11,203", score: 83, delta: "−1", trend: "down", pct: 83, badge: "BIGGEST WEST",     x: 11.7, y: 37.4, members_n: 11203 },
+    { rank: "08", city: "Philadelphia",  state: "PA", members: "5,712",  score: 83, delta: "·",  trend: "flat", pct: 83, badge: "",                 x: 86.0, y: 22.6, members_n: 5712  },
+    { rank: "09", city: "Dallas",        state: "TX", members: "6,234",  score: 82, delta: "−2", trend: "down", pct: 82, badge: "",                 x: 48.6, y: 40.6, members_n: 6234  },
+    { rank: "10", city: "Houston",       state: "TX", members: "7,520",  score: 81, delta: "−1", trend: "down", pct: 81, badge: "",                 x: 51.1, y: 48.1, members_n: 7520  },
+    { rank: "11", city: "San Antonio",   state: "TX", members: "4,983",  score: 80, delta: "+1", trend: "up",   pct: 80, badge: "",                 x: 45.7, y: 49.0, members_n: 4983  },
+    { rank: "12", city: "Phoenix",       state: "AZ", members: "6,890",  score: 79, delta: "−3", trend: "down", pct: 79, badge: "",                 x: 22.3, y: 38.9, members_n: 6890  },
   ];
+
+  // Score → color (hex for SVG fills)
+  const dotColor = (s: number) =>
+    s >= 90 ? "#E53341" :   // primary red — champion tier
+    s >= 85 ? "#F5D637" :   // accent yellow — chasing tier
+    s >= 82 ? "#5478D5" :   // blue — top half
+              "#6b7280";    // muted — bottom tier
+
+  // Members → radius
+  const dotRadius = (m: number) =>
+    m >= 12000 ? 2.8 :
+    m >=  8000 ? 2.3 :
+    m >=  5000 ? 1.8 :
+                 1.4;
+
+  // Simplified continental US outline (viewBox 100x60)
+  const usPath =
+    "M 6 22 L 12 18 L 20 14 L 28 11 L 36 9 L 46 8 L 56 8 L 66 9 L 75 11 L 83 14 " +
+    "L 89 17 L 93 21 L 96 26 L 97 32 L 95 37 L 92 42 L 88 46 L 83 49 L 78 51 " +
+    "L 75 54 L 72 56 L 68 57 L 63 56 L 58 54 L 52 53 L 46 52 L 40 51 L 33 49 " +
+    "L 27 47 L 22 44 L 17 40 L 12 35 L 9 30 L 7 26 Z";
 
   return (
     <div className="w-screen h-screen overflow-hidden relative bg-bg text-text font-body">
@@ -42,8 +63,8 @@ export default function OSCommunity() {
         </div>
       </div>
 
-      {/* Two-column body */}
-      <div className="absolute top-[34vh] bottom-[18vh] left-[6vw] right-[6vw] grid grid-cols-[34%_1fr] gap-[2vw] z-10">
+      {/* Three-column body */}
+      <div className="absolute top-[34vh] bottom-[18vh] left-[6vw] right-[6vw] grid grid-cols-[27%_24%_1fr] gap-[1.4vw] z-10">
 
         {/* ────────── HERO CHAMPION CARD ────────── */}
         <div className="flex flex-col min-h-0">
@@ -143,6 +164,142 @@ export default function OSCommunity() {
           </div>
         </div>
 
+        {/* ────────── US HEAT MAP ────────── */}
+        <div className="flex flex-col min-h-0">
+          <div
+            className="relative rounded-2xl bg-[#0a0d14] border border-text/15 overflow-hidden flex-1 min-h-0 flex flex-col"
+            style={{ boxShadow: "0 24px 60px rgba(0,0,0,0.55)" }}
+          >
+            {/* Header */}
+            <div className="px-[1vw] pt-[1.4vh] pb-[0.8vh] flex items-center justify-between border-b border-text/10">
+              <div className="flex items-center gap-[0.5vw]">
+                <span className="w-[0.55vw] h-[0.55vw] rounded-full bg-primary animate-pulse" />
+                <span className="font-display font-bold text-text text-[1vw] tracking-tight">League Heat Map</span>
+              </div>
+              <span className="font-body uppercase tracking-[0.18em] text-text/45 text-[0.55vw]">USA · LIVE</span>
+            </div>
+
+            {/* Map */}
+            <div className="flex-1 min-h-0 px-[0.6vw] py-[0.8vh] flex items-center justify-center">
+              <svg viewBox="0 0 100 60" className="w-full h-full" preserveAspectRatio="xMidYMid meet">
+                <defs>
+                  <radialGradient id="heatGlow" cx="50%" cy="50%" r="50%">
+                    <stop offset="0%"   stopColor="#E53341" stopOpacity="0.55" />
+                    <stop offset="60%"  stopColor="#E53341" stopOpacity="0.12" />
+                    <stop offset="100%" stopColor="#E53341" stopOpacity="0" />
+                  </radialGradient>
+                  <radialGradient id="dotGlowAccent" cx="50%" cy="50%" r="50%">
+                    <stop offset="0%"   stopColor="#F5D637" stopOpacity="0.35" />
+                    <stop offset="100%" stopColor="#F5D637" stopOpacity="0" />
+                  </radialGradient>
+                </defs>
+
+                {/* Faint grid */}
+                <g opacity="0.06" stroke="#ffffff" strokeWidth="0.15">
+                  <line x1="0" y1="15" x2="100" y2="15" />
+                  <line x1="0" y1="30" x2="100" y2="30" />
+                  <line x1="0" y1="45" x2="100" y2="45" />
+                  <line x1="25" y1="0" x2="25" y2="60" />
+                  <line x1="50" y1="0" x2="50" y2="60" />
+                  <line x1="75" y1="0" x2="75" y2="60" />
+                </g>
+
+                {/* US outline */}
+                <path
+                  d={usPath}
+                  fill="rgba(255,255,255,0.03)"
+                  stroke="rgba(255,255,255,0.22)"
+                  strokeWidth="0.35"
+                  strokeLinejoin="round"
+                />
+
+                {/* NY hero glow */}
+                <circle cx="87.9" cy="20.7" r="11" fill="url(#heatGlow)" />
+
+                {/* Secondary glow on top-3 */}
+                <circle cx="64.5" cy="17.8" r="6" fill="url(#dotGlowAccent)" />
+                <circle cx="70.0" cy="38.1" r="6" fill="url(#dotGlowAccent)" />
+
+                {/* City dots */}
+                {cities.map((c) => {
+                  const r = dotRadius(c.members_n);
+                  const fill = dotColor(c.score);
+                  const isChampion = c.rank === "01";
+                  return (
+                    <g key={c.rank}>
+                      {/* Pulsing ring for champion */}
+                      {isChampion && (
+                        <circle
+                          cx={c.x}
+                          cy={c.y}
+                          r={r + 1.2}
+                          fill="none"
+                          stroke="#E53341"
+                          strokeWidth="0.4"
+                          opacity="0.55"
+                        >
+                          <animate attributeName="r" values={`${r + 1.2};${r + 3.5};${r + 1.2}`} dur="2.2s" repeatCount="indefinite" />
+                          <animate attributeName="opacity" values="0.6;0;0.6" dur="2.2s" repeatCount="indefinite" />
+                        </circle>
+                      )}
+                      {/* Outer ring */}
+                      <circle cx={c.x} cy={c.y} r={r + 0.5} fill={fill} opacity="0.25" />
+                      {/* Core dot */}
+                      <circle cx={c.x} cy={c.y} r={r} fill={fill} />
+                      {/* Inner highlight */}
+                      <circle cx={c.x} cy={c.y} r={r * 0.4} fill="#ffffff" opacity="0.55" />
+                    </g>
+                  );
+                })}
+
+                {/* NY label */}
+                <g>
+                  <rect x="79" y="11.5" width="11.5" height="3.4" rx="0.6" fill="#0a0d14" stroke="#E53341" strokeWidth="0.18" opacity="0.95" />
+                  <text x="84.75" y="14" textAnchor="middle" fill="#E53341" fontSize="2.2" fontWeight="700" fontFamily="ui-sans-serif, system-ui" letterSpacing="0.15">NYC · 91</text>
+                </g>
+                {/* LA label */}
+                <g opacity="0.85">
+                  <text x="11.7" y="33.8" textAnchor="middle" fill="#5478D5" fontSize="1.9" fontWeight="700" fontFamily="ui-sans-serif, system-ui">LA</text>
+                </g>
+                {/* CHI label */}
+                <g opacity="0.85">
+                  <text x="64.5" y="14.6" textAnchor="middle" fill="#F5D637" fontSize="1.9" fontWeight="700" fontFamily="ui-sans-serif, system-ui">CHI</text>
+                </g>
+                {/* ATL label */}
+                <g opacity="0.85">
+                  <text x="70" y="42.4" textAnchor="middle" fill="#F5D637" fontSize="1.9" fontWeight="700" fontFamily="ui-sans-serif, system-ui">ATL</text>
+                </g>
+              </svg>
+            </div>
+
+            {/* Legend */}
+            <div className="px-[1vw] py-[0.7vh] border-t border-text/10 flex items-center justify-between gap-[0.4vw]">
+              <div className="flex items-center gap-[0.5vw]">
+                <span className="font-body uppercase tracking-[0.18em] text-text/40 text-[0.5vw] font-semibold">Score</span>
+                <div className="flex items-center gap-[0.35vw]">
+                  <span className="w-[0.5vw] h-[0.5vw] rounded-full" style={{ background: "#E53341" }} />
+                  <span className="font-body text-text/65 text-[0.55vw]">90+</span>
+                </div>
+                <div className="flex items-center gap-[0.35vw]">
+                  <span className="w-[0.5vw] h-[0.5vw] rounded-full" style={{ background: "#F5D637" }} />
+                  <span className="font-body text-text/65 text-[0.55vw]">85+</span>
+                </div>
+                <div className="flex items-center gap-[0.35vw]">
+                  <span className="w-[0.5vw] h-[0.5vw] rounded-full" style={{ background: "#5478D5" }} />
+                  <span className="font-body text-text/65 text-[0.55vw]">82+</span>
+                </div>
+              </div>
+              <div className="font-body uppercase tracking-[0.16em] text-text/40 text-[0.5vw]">Size = members</div>
+            </div>
+
+            {/* Footer */}
+            <div className="px-[1vw] py-[0.9vh] bg-primary/[0.08] border-t border-primary/25 flex items-center justify-between">
+              <span className="font-body uppercase tracking-[0.18em] text-text/65 text-[0.55vw] font-semibold">East-coast density · West-coast scale</span>
+              <span className="font-body uppercase tracking-[0.2em] text-primary text-[0.55vw] font-bold">12 / 50 states</span>
+            </div>
+          </div>
+        </div>
+
         {/* ────────── LEAGUE LEADERBOARD ────────── */}
         <div
           className="rounded-2xl bg-[#0a0d14] border border-text/15 overflow-hidden flex flex-col"
@@ -162,17 +319,16 @@ export default function OSCommunity() {
           </div>
 
           {/* Column header */}
-          <div className="px-[1.2vw] py-[0.6vh] grid grid-cols-[2vw_1fr_4vw_3.5vw_2.4vw_8vw] gap-[0.6vw] font-body uppercase tracking-[0.16em] text-text/40 text-[0.55vw] border-b border-text/8">
+          <div className="px-[1vw] py-[0.6vh] grid grid-cols-[1.8vw_1fr_2.2vw_2vw_5vw] gap-[0.5vw] font-body uppercase tracking-[0.16em] text-text/40 text-[0.5vw] border-b border-text/8">
             <span>Rank</span>
             <span>City</span>
-            <span className="text-right">Members</span>
             <span className="text-right">Δ Wk</span>
             <span className="text-right">Score</span>
             <span>Form</span>
           </div>
 
           {/* Rows — flex distributed */}
-          <div className="flex-1 flex flex-col min-h-0 px-[1.2vw]">
+          <div className="flex-1 flex flex-col min-h-0 px-[1vw]">
             {cities.map((c, i) => {
               const isPodium = i < 3;
               const podiumColor =
@@ -190,25 +346,24 @@ export default function OSCommunity() {
               return (
                 <div
                   key={c.rank}
-                  className="grid grid-cols-[2vw_1fr_4vw_3.5vw_2.4vw_8vw] gap-[0.6vw] items-center border-b border-text/5 font-body text-[0.72vw] flex-1 min-h-0"
+                  className="grid grid-cols-[1.8vw_1fr_2.2vw_2vw_5vw] gap-[0.5vw] items-center border-b border-text/5 font-body text-[0.7vw] flex-1 min-h-0"
                 >
-                  <span className={`px-[0.4vw] py-[0.18vh] rounded border ${podiumBg} ${podiumColor} font-bold uppercase tracking-[0.12em] text-[0.55vw] text-center tabular-nums`}>{c.rank}</span>
-                  <div className="flex items-baseline gap-[0.5vw] min-w-0">
-                    <span className={`font-display font-bold truncate text-[0.95vw] ${isPodium ? "text-text" : "text-text/85"}`}>{c.city}</span>
-                    <span className="font-body uppercase tracking-[0.14em] text-text/40 text-[0.55vw]">{c.state}</span>
+                  <span className={`px-[0.35vw] py-[0.18vh] rounded border ${podiumBg} ${podiumColor} font-bold uppercase tracking-[0.12em] text-[0.5vw] text-center tabular-nums`}>{c.rank}</span>
+                  <div className="flex items-baseline gap-[0.4vw] min-w-0">
+                    <span className={`font-display font-bold truncate text-[0.9vw] ${isPodium ? "text-text" : "text-text/85"}`}>{c.city}</span>
+                    <span className="font-body uppercase tracking-[0.14em] text-text/40 text-[0.5vw]">{c.state}</span>
                     {c.badge && (
-                      <span className={`px-[0.35vw] py-[0.1vh] rounded-full border ${
+                      <span className={`px-[0.3vw] py-[0.1vh] rounded-full border ${
                         c.badge.includes("CHAMPION")  ? "bg-accent/20 border-accent/55 text-accent"   :
                         c.badge.includes("CLIMBING")  ? "bg-blue/20 border-blue/55 text-blue"         :
                                                         "bg-text/10 border-text/25 text-text/65"
-                      } font-bold uppercase tracking-[0.14em] text-[0.48vw] whitespace-nowrap`}>{c.badge}</span>
+                      } font-bold uppercase tracking-[0.14em] text-[0.42vw] whitespace-nowrap`}>{c.badge}</span>
                     )}
                   </div>
-                  <span className="text-text/85 tabular-nums text-right">{c.members}</span>
                   <span className={`tabular-nums text-right font-bold ${trendColor}`}>{c.delta}</span>
-                  <span className={`font-display font-bold tabular-nums text-right ${isPodium ? "text-accent text-[1vw]" : "text-text text-[0.9vw]"}`}>{c.score}</span>
+                  <span className={`font-display font-bold tabular-nums text-right ${isPodium ? "text-accent text-[0.95vw]" : "text-text text-[0.85vw]"}`}>{c.score}</span>
                   {/* Mini bar */}
-                  <div className="h-[0.8vh] rounded-full bg-text/8 overflow-hidden border border-text/10">
+                  <div className="h-[0.7vh] rounded-full bg-text/8 overflow-hidden border border-text/10">
                     <div
                       className={`h-full ${i === 0 ? "bg-accent" : i < 3 ? "bg-blue" : "bg-text/40"}`}
                       style={{ width: `${c.pct}%` }}
