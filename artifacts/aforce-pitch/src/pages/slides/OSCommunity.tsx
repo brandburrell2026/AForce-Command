@@ -118,8 +118,8 @@ export default function OSCommunity() {
               </div>
 
               {/* Top NY athletes — mini leaderboard fills the rest of the card */}
-              <div className="mt-[1.6vh] flex flex-col flex-1 min-h-0">
-                <div className="flex items-center justify-between mb-[0.5vh]">
+              <div className="mt-[1.8vh] flex flex-col flex-1 min-h-0">
+                <div className="flex items-center justify-between mb-[0.7vh]">
                   <span className="font-body uppercase tracking-[0.22em] text-accent text-[0.6vw] font-bold">Top NY Athletes · Week 17</span>
                   <span className="font-body uppercase tracking-[0.18em] text-text/40 text-[0.55vw]">View all 1,284 →</span>
                 </div>
@@ -129,8 +129,6 @@ export default function OSCommunity() {
                   { i: "DW", name: "D. Williams",  score: 94, nbhd: "Queens",          mvp: false },
                   { i: "AR", name: "A. Russo",     score: 93, nbhd: "Bronx",           mvp: false },
                   { i: "TN", name: "T. Nguyen",    score: 92, nbhd: "Tribeca",         mvp: false },
-                  { i: "JR", name: "J. Reyes",     score: 91, nbhd: "Brooklyn Heights",mvp: false },
-                  { i: "RK", name: "R. Kim",       score: 90, nbhd: "Astoria",         mvp: false },
                 ].map((a) => (
                   <div
                     key={a.i}
@@ -176,98 +174,98 @@ export default function OSCommunity() {
                 <span className="w-[0.55vw] h-[0.55vw] rounded-full bg-primary animate-pulse" />
                 <span className="font-display font-bold text-text text-[1vw] tracking-tight">League Heat Map</span>
               </div>
-              <span className="font-body uppercase tracking-[0.18em] text-text/45 text-[0.55vw]">USA · LIVE</span>
+              <span className="font-body uppercase tracking-[0.18em] text-text/45 text-[0.55vw]">Live</span>
+            </div>
+
+            {/* Stylized View pill */}
+            <div className="px-[1vw] pt-[1vh] pb-[0.4vh]">
+              <div className="inline-flex items-center px-[0.7vw] py-[0.35vh] rounded-full border border-text/15 bg-white/[0.03]">
+                <span className="font-body uppercase tracking-[0.2em] text-text/55 text-[0.5vw] font-semibold">Stylized View · No Precise Location</span>
+              </div>
             </div>
 
             {/* Map */}
-            <div className="flex-1 min-h-0 px-[0.6vw] py-[0.8vh] flex items-center justify-center">
+            <div className="flex-1 min-h-0 px-[0.6vw] pb-[0.8vh] flex items-center justify-center">
               <svg viewBox="0 0 100 60" className="w-full h-full" preserveAspectRatio="xMidYMid meet">
                 <defs>
-                  <radialGradient id="heatGlow" cx="50%" cy="50%" r="50%">
+                  <radialGradient id="clusterGlowPrimary" cx="50%" cy="50%" r="50%">
                     <stop offset="0%"   stopColor="#E53341" stopOpacity="0.55" />
-                    <stop offset="60%"  stopColor="#E53341" stopOpacity="0.12" />
+                    <stop offset="55%"  stopColor="#E53341" stopOpacity="0.14" />
                     <stop offset="100%" stopColor="#E53341" stopOpacity="0" />
                   </radialGradient>
-                  <radialGradient id="dotGlowAccent" cx="50%" cy="50%" r="50%">
-                    <stop offset="0%"   stopColor="#F5D637" stopOpacity="0.35" />
+                  <radialGradient id="clusterGlowAccent" cx="50%" cy="50%" r="50%">
+                    <stop offset="0%"   stopColor="#F5D637" stopOpacity="0.42" />
+                    <stop offset="60%"  stopColor="#F5D637" stopOpacity="0.10" />
                     <stop offset="100%" stopColor="#F5D637" stopOpacity="0" />
                   </radialGradient>
                 </defs>
 
-                {/* Faint grid */}
-                <g opacity="0.06" stroke="#ffffff" strokeWidth="0.15">
-                  <line x1="0" y1="15" x2="100" y2="15" />
+                {/* Stylized grid */}
+                <g opacity="0.10" stroke="#ffffff" strokeWidth="0.12">
+                  <line x1="0" y1="10" x2="100" y2="10" />
+                  <line x1="0" y1="20" x2="100" y2="20" />
                   <line x1="0" y1="30" x2="100" y2="30" />
-                  <line x1="0" y1="45" x2="100" y2="45" />
-                  <line x1="25" y1="0" x2="25" y2="60" />
+                  <line x1="0" y1="40" x2="100" y2="40" />
+                  <line x1="0" y1="50" x2="100" y2="50" />
+                  <line x1="10" y1="0" x2="10" y2="60" />
+                  <line x1="20" y1="0" x2="20" y2="60" />
+                  <line x1="30" y1="0" x2="30" y2="60" />
+                  <line x1="40" y1="0" x2="40" y2="60" />
                   <line x1="50" y1="0" x2="50" y2="60" />
-                  <line x1="75" y1="0" x2="75" y2="60" />
+                  <line x1="60" y1="0" x2="60" y2="60" />
+                  <line x1="70" y1="0" x2="70" y2="60" />
+                  <line x1="80" y1="0" x2="80" y2="60" />
+                  <line x1="90" y1="0" x2="90" y2="60" />
                 </g>
 
-                {/* US outline */}
-                <path
-                  d={usPath}
-                  fill="rgba(255,255,255,0.03)"
-                  stroke="rgba(255,255,255,0.22)"
-                  strokeWidth="0.35"
-                  strokeLinejoin="round"
-                />
+                {/* Smaller cities (ranks 4–12) — stylized scatter */}
+                {[
+                  { x: 22, y: 14 },
+                  { x: 42, y: 18 },
+                  { x: 14, y: 32 },
+                  { x: 38, y: 36 },
+                  { x: 86, y: 36 },
+                  { x: 18, y: 50 },
+                  { x: 48, y: 50 },
+                  { x: 80, y: 52 },
+                  { x: 62, y: 28 },
+                ].map((p, i) => (
+                  <g key={`small-${i}`}>
+                    <circle cx={p.x} cy={p.y} r="2.6" fill="#F5D637" opacity="0.18" />
+                    <circle cx={p.x} cy={p.y} r="1.5" fill="#F5D637" opacity="0.85" />
+                    <circle cx={p.x} cy={p.y} r="0.55" fill="#ffffff" opacity="0.7" />
+                  </g>
+                ))}
 
-                {/* NY hero glow */}
-                <circle cx="87.9" cy="20.7" r="11" fill="url(#heatGlow)" />
-
-                {/* Secondary glow on top-3 */}
-                <circle cx="64.5" cy="17.8" r="6" fill="url(#dotGlowAccent)" />
-                <circle cx="70.0" cy="38.1" r="6" fill="url(#dotGlowAccent)" />
-
-                {/* City dots */}
-                {cities.map((c) => {
-                  const r = dotRadius(c.members_n);
-                  const fill = dotColor(c.score);
-                  const isChampion = c.rank === "01";
-                  return (
-                    <g key={c.rank}>
-                      {/* Pulsing ring for champion */}
-                      {isChampion && (
-                        <circle
-                          cx={c.x}
-                          cy={c.y}
-                          r={r + 1.2}
-                          fill="none"
-                          stroke="#E53341"
-                          strokeWidth="0.4"
-                          opacity="0.55"
-                        >
-                          <animate attributeName="r" values={`${r + 1.2};${r + 3.5};${r + 1.2}`} dur="2.2s" repeatCount="indefinite" />
-                          <animate attributeName="opacity" values="0.6;0;0.6" dur="2.2s" repeatCount="indefinite" />
-                        </circle>
-                      )}
-                      {/* Outer ring */}
-                      <circle cx={c.x} cy={c.y} r={r + 0.5} fill={fill} opacity="0.25" />
-                      {/* Core dot */}
-                      <circle cx={c.x} cy={c.y} r={r} fill={fill} />
-                      {/* Inner highlight */}
-                      <circle cx={c.x} cy={c.y} r={r * 0.4} fill="#ffffff" opacity="0.55" />
-                    </g>
-                  );
-                })}
-
-                {/* NY label */}
+                {/* ─── Champion cluster: New York #1 (top right) ─── */}
                 <g>
-                  <rect x="79" y="11.5" width="11.5" height="3.4" rx="0.6" fill="#0a0d14" stroke="#E53341" strokeWidth="0.18" opacity="0.95" />
-                  <text x="84.75" y="14" textAnchor="middle" fill="#E53341" fontSize="2.2" fontWeight="700" fontFamily="ui-sans-serif, system-ui" letterSpacing="0.15">NYC · 91</text>
+                  <circle cx="74" cy="16" r="11" fill="url(#clusterGlowPrimary)" />
+                  <circle cx="74" cy="16" r="6.2" fill="none" stroke="#E53341" strokeWidth="0.5" opacity="0.7">
+                    <animate attributeName="r" values="6.2;8;6.2" dur="2.4s" repeatCount="indefinite" />
+                    <animate attributeName="opacity" values="0.7;0.15;0.7" dur="2.4s" repeatCount="indefinite" />
+                  </circle>
+                  <circle cx="74" cy="16" r="4" fill="none" stroke="#E53341" strokeWidth="0.6" opacity="0.85" />
+                  <circle cx="74" cy="16" r="2.4" fill="#5478D5" opacity="0.95" />
+                  <circle cx="74" cy="16" r="0.9" fill="#ffffff" />
+                  <text x="74" y="6" textAnchor="middle" fill="#E53341" fontSize="2.3" fontWeight="700" fontFamily="ui-sans-serif, system-ui" letterSpacing="0.05">New York #1</text>
                 </g>
-                {/* LA label */}
-                <g opacity="0.85">
-                  <text x="11.7" y="33.8" textAnchor="middle" fill="#5478D5" fontSize="1.9" fontWeight="700" fontFamily="ui-sans-serif, system-ui">LA</text>
+
+                {/* ─── Cluster: Chicago #2 (mid-left) ─── */}
+                <g>
+                  <circle cx="30" cy="22" r="8.5" fill="url(#clusterGlowAccent)" />
+                  <circle cx="30" cy="22" r="4.6" fill="none" stroke="#F5D637" strokeWidth="0.5" opacity="0.85" />
+                  <circle cx="30" cy="22" r="2.1" fill="#5478D5" opacity="0.9" />
+                  <circle cx="30" cy="22" r="0.8" fill="#ffffff" />
+                  <text x="30" y="34" textAnchor="middle" fill="#F5D637" fontSize="2.1" fontWeight="700" fontFamily="ui-sans-serif, system-ui" letterSpacing="0.05">Chicago #2</text>
                 </g>
-                {/* CHI label */}
-                <g opacity="0.85">
-                  <text x="64.5" y="14.6" textAnchor="middle" fill="#F5D637" fontSize="1.9" fontWeight="700" fontFamily="ui-sans-serif, system-ui">CHI</text>
-                </g>
-                {/* ATL label */}
-                <g opacity="0.85">
-                  <text x="70" y="42.4" textAnchor="middle" fill="#F5D637" fontSize="1.9" fontWeight="700" fontFamily="ui-sans-serif, system-ui">ATL</text>
+
+                {/* ─── Cluster: Atlanta #3 (center-right) ─── */}
+                <g>
+                  <circle cx="60" cy="44" r="8.5" fill="url(#clusterGlowAccent)" />
+                  <circle cx="60" cy="44" r="4.6" fill="none" stroke="#F5D637" strokeWidth="0.5" opacity="0.85" />
+                  <circle cx="60" cy="44" r="2.1" fill="#5478D5" opacity="0.9" />
+                  <circle cx="60" cy="44" r="0.8" fill="#ffffff" />
+                  <text x="60" y="56" textAnchor="middle" fill="#F5D637" fontSize="2.1" fontWeight="700" fontFamily="ui-sans-serif, system-ui" letterSpacing="0.05">Atlanta #3</text>
                 </g>
               </svg>
             </div>
