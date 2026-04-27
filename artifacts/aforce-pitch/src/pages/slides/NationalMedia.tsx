@@ -96,7 +96,18 @@ export default function NationalMedia() {
         </p>
       </div>
 
-      <div className="absolute top-[36vh] left-[6vw] right-[6vw]">
+      <div className="absolute top-[34vh] left-[6vw] right-[6vw] flex items-start gap-[1.2vw]">
+        <div className="font-display text-[2.6vw] leading-none text-accent/70 select-none -mt-[0.4vh] shrink-0">"</div>
+        <div className="font-display italic text-[1.3vw] leading-[1.3] tracking-tight text-text max-w-[80vw]">
+          We didn't start with a product. We started with a problem we lived every day:
+          <span className="text-accent"> how to stay sharp when performance isn't optional.</span>
+          <span className="block mt-[0.6vh] font-body not-italic text-[0.95vw] text-text/60 leading-snug">
+            AForce is the system we built for ourselves — now scaled.
+          </span>
+        </div>
+      </div>
+
+      <div className="absolute top-[46vh] left-[6vw] right-[6vw]">
         <div className="flex items-center gap-[1vw] mb-[2.4vh]">
           <div className="h-px w-[3vw] bg-accent" />
           <div className="font-body uppercase tracking-[0.32em] text-[0.85vw] text-accent font-semibold">Timeline · 2026</div>

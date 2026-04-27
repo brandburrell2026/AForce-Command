@@ -55,9 +55,15 @@ export default function Mission() {
             Performance is not a goal. <span className="text-accent">It's a standard.</span>
           </h2>
         </div>
-        <p className="font-body text-[1.05vw] text-text/65 max-w-[26vw] leading-snug pb-[1vh] text-right">
-          <span className="text-text">For people who cannot afford to be off</span> — judged by how they perform, not by what they say.
-        </p>
+        <div className="max-w-[28vw] pb-[0.4vh] text-right">
+          <div className="flex items-start justify-end gap-[0.7vw]">
+            <p className="font-display italic text-[1.15vw] leading-[1.35] tracking-tight text-text">
+              <span className="text-accent">"</span>Built by founders who learned the hard way:<br />
+              when you're <span className="text-accent">off</span>, you feel it immediately.<br />
+              And in high-stakes environments, you don't get a <span className="text-accent">second chance</span>.<span className="text-accent">"</span>
+            </p>
+          </div>
+        </div>
       </div>
 
       <div className="absolute top-[40vh] bottom-[18vh] left-[6vw] right-[6vw]">
