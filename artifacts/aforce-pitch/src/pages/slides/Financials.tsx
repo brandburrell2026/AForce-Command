@@ -51,12 +51,12 @@ export default function Financials() {
       </div>
 
       <div className="absolute top-[12vh] left-[6vw] right-[6vw] flex justify-between items-end gap-[4vw]">
-        <div className="min-w-0 flex-1">
+        <div className="min-w-0 flex-1 max-w-[58vw]">
           <div className="flex items-center gap-[1.2vw] mb-[1.4vh]">
             <div className="h-[2px] w-[5vw] bg-blue" />
             <span className="font-body uppercase tracking-[0.32em] text-[1.3vw] text-blue font-semibold">Projections · 2026 — 2028</span>
           </div>
-          <h2 className="font-display text-[4.4vw] leading-[0.92] tracking-tighter whitespace-nowrap">
+          <h2 className="font-display text-[4vw] leading-[0.95] tracking-tighter text-balance">
             Scaling a <span className="text-blue">performance system.</span>
           </h2>
         </div>
@@ -65,7 +65,7 @@ export default function Financials() {
         </p>
       </div>
 
-      <div className="absolute top-[30vh] bottom-[5vh] left-[6vw] right-[6vw]">
+      <div className="absolute top-[30vh] bottom-[9vh] left-[6vw] right-[6vw]">
         <div className="relative w-full h-full">
           <svg viewBox={`0 0 ${VB_W} ${VB_H}`} preserveAspectRatio="none" className="absolute inset-0 w-full h-full">
             <defs>
