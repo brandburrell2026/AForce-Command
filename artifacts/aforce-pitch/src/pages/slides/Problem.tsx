@@ -1,10 +1,10 @@
 export default function Problem() {
   const failures = [
     {
-      label: "Option A",
-      title: "Short bursts. Hard crashes.",
-      tags: ["Acid-forming", "Energy crashes", "Engineered for taste"],
-      body: "Sugar-loaded drinks create quick hits and long-term lows. Marketed at output — engineered for taste.",
+      label: "Option 1 — Short-term boost",
+      title: "Energy spikes. Hard crashes.",
+      tags: ["Energy spikes", "Hard crashes", "No control"],
+      body: "Sugar-loaded boosters create quick hits with no system underneath. The lift comes — and then the fall.",
       accent: "text-primary",
       ring: "ring-primary/35",
       bar: "bg-primary",
@@ -12,10 +12,10 @@ export default function Problem() {
       shelf: "Gatorade · Powerade · Prime",
     },
     {
-      label: "Option B",
-      title: "No support. No system.",
-      tags: ["No minerals", "No buffer", "No command"],
-      body: "Plain water helps, but it does not command behavior or sustain performance alone. Minerals lost to sweat are never replaced.",
+      label: "Option 2 — No system",
+      title: "Water alone. No structure.",
+      tags: ["Water alone", "No structure", "No feedback"],
+      body: "Plain water helps but never closes the loop. No measurement, no feedback, no command — and nothing compounds.",
       accent: "text-text/75",
       ring: "ring-text/25",
       bar: "bg-text/40",
@@ -44,14 +44,14 @@ export default function Problem() {
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-[1.2vw] mb-[1.4vh]">
             <div className="h-[2px] w-[5vw] bg-primary" />
-            <span className="font-body uppercase tracking-[0.32em] text-[1.3vw] text-primary font-semibold">The Shelf</span>
+            <span className="font-body uppercase tracking-[0.32em] text-[1.3vw] text-primary font-semibold">The Reality</span>
           </div>
-          <h2 className="font-display text-[6.2vw] leading-[0.92] tracking-tighter">
-            Performance is <span className="text-primary">unreliable.</span>
+          <h2 className="font-display text-[4.4vw] leading-[0.95] tracking-tighter text-balance">
+            Most people don't lose from lack of effort. <span className="text-primary">They lose from inconsistency.</span>
           </h2>
         </div>
         <p className="font-body text-[1.05vw] text-text/65 max-w-[26vw] leading-snug pb-[1vh] text-right">
-          <span className="text-text">Two bad choices.</span> Both cost output. Nothing on the shelf is engineered for the body that has work to do.
+          <span className="text-text">You don't break all at once. You fade.</span> Focus slips. Energy drops. Decisions get worse — and performance follows.
         </p>
       </div>
 

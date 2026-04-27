@@ -25,20 +25,20 @@ export default function Cover() {
       </div>
 
       <div className="absolute bottom-[6vh] left-[6vw] right-[55vw] z-10">
-        <div className="flex items-center gap-[1.2vw] mb-[2.4vh]">
-          <div className="h-[2px] w-[5vw] bg-primary" />
-          <span className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-primary font-semibold">The Performance Operating System</span>
+        <div className="flex items-baseline gap-[1.4vw] mb-[2.4vh]">
+          <div className="font-display text-[3.8vw] leading-none tracking-tight text-primary">AForce</div>
+          <div className="font-body uppercase tracking-[0.32em] text-[0.95vw] text-text/55 font-semibold">The Performance Operating System</div>
         </div>
-        <h1 className="font-display text-[11vw] leading-[0.85] tracking-tighter text-text">
-          AForce.
+        <h1 className="font-display text-[6.6vw] leading-[0.92] tracking-tighter text-text max-w-[44vw]">
+          You don't break <span className="text-primary">under pressure.</span>
         </h1>
         <p className="mt-[2.4vh] font-display text-[2.2vw] leading-tight text-text max-w-[42vw] text-pretty">
           <span className="text-primary">Check.</span> <span className="text-accent">Act.</span> Perform.
         </p>
-        <p className="mt-[1vh] font-body text-[1.5vw] font-light text-text/70 max-w-[42vw] text-pretty">
-          Built for pressure. Proven in it.
+        <p className="mt-[1.2vh] font-body text-[1.25vw] font-light text-text/70 max-w-[42vw] leading-snug">
+          Built for people who operate when others don't — a system for staying sharp, steady, and in control.
         </p>
-        <div className="mt-[3vh] flex items-center gap-[1.2vw]">
+        <div className="mt-[2.8vh] flex items-center gap-[1.2vw]">
           <div className="px-[1.2vw] py-[1vh] bg-primary/15 border border-primary/40 rounded-md">
             <div className="font-body uppercase tracking-[0.28em] text-[0.95vw] text-primary/80">Raising</div>
             <div className="font-display text-[1.8vw] text-primary leading-tight">$4M Seed</div>
@@ -47,9 +47,6 @@ export default function Cover() {
             <div className="text-text">Spring 2026 launch</div>
             <div className="text-muted">Aligned with America's Real Deal · Season 2</div>
           </div>
-        </div>
-        <div className="mt-[2.6vh] font-body uppercase tracking-[0.32em] text-[1.2vw] text-muted">
-          pH 8.8  ·  No added sugar  ·  Sea-derived functionals
         </div>
       </div>
     </div>
