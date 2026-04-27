@@ -96,6 +96,9 @@ export default function Mission() {
             <span className="text-text/55"> Control the </span>
             <span className="text-accent">outcome.</span>
           </div>
+          <div className="mt-[1.4vh] font-body italic text-[1vw] text-text/55 leading-snug">
+            Built by founders who had to <span className="text-text">perform</span> before the product ever existed.
+          </div>
         </div>
       </div>
     </div>
