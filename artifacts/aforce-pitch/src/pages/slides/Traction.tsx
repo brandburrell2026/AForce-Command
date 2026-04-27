@@ -26,7 +26,7 @@ export default function Traction() {
         </div>
       </div>
 
-      <div className="absolute top-[40vh] bottom-[17vh] left-[6vw] right-[6vw] grid grid-cols-4 gap-[1.4vw] z-10">
+      <div className="absolute top-[40vh] bottom-[22vh] left-[6vw] right-[6vw] grid grid-cols-4 gap-[1.4vw] z-10">
 
         <div className="relative rounded-2xl bg-gradient-to-b from-primary/[0.14] via-primary/[0.04] to-transparent border border-primary/30 p-[1.6vw] flex flex-col overflow-hidden">
           <div className="absolute top-0 left-0 right-0 h-[0.5vh] bg-primary" />
