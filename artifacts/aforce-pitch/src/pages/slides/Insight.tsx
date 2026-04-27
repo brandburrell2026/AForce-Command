@@ -1,32 +1,10 @@
 export default function Insight() {
-  const tenets = [
-    {
-      label: "Buffer",
-      title: "Support recovery.",
-      body: "Help the body restore what pressure takes out — so the next set starts fresh.",
-      accent: "text-primary",
-      ring: "ring-primary/35",
-      bar: "bg-primary",
-      bg: "from-primary/[0.10] to-primary/0",
-    },
-    {
-      label: "Restore",
-      title: "Mineral matrix.",
-      body: "Sea-derived ingredients designed for sustained output — no synthetic shortcuts, no fillers.",
-      accent: "text-blue",
-      ring: "ring-blue/35",
-      bar: "bg-blue",
-      bg: "from-blue/[0.10] to-blue/0",
-    },
-    {
-      label: "Hold",
-      title: "Hold longer.",
-      body: "Built to support consistency across long days and high demand — not chasing a crash thirty minutes later.",
-      accent: "text-accent",
-      ring: "ring-accent/35",
-      bar: "bg-accent",
-      bg: "from-accent/[0.10] to-accent/0",
-    },
+  const oldModel = ["Push harder", "Drink when needed", "Hope it holds"];
+  const newModel = ["Measure", "Adjust", "Stay in control"];
+  const shifts = [
+    { from: "Reactive", to: "Proactive" },
+    { from: "Guessing", to: "Knowing" },
+    { from: "Effort", to: "Precision" },
   ];
 
   return (
@@ -49,67 +27,82 @@ export default function Insight() {
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-[1.2vw] mb-[1.4vh]">
             <div className="h-[2px] w-[5vw] bg-accent" />
-            <span className="font-body uppercase tracking-[0.32em] text-[1.3vw] text-accent font-semibold">Insight</span>
+            <span className="font-body uppercase tracking-[0.32em] text-[1.3vw] text-accent font-semibold">Insight · The Leak</span>
           </div>
-          <h2 className="font-display text-[5vw] leading-[0.92] tracking-tighter">
-            Performance is <span className="text-accent">maintained, not created.</span>
+          <h2 className="font-display text-[5.4vw] leading-[0.92] tracking-tighter text-balance">
+            Performance doesn't collapse. <span className="text-accent">It leaks.</span>
           </h2>
         </div>
-        <p className="font-body text-[1.05vw] text-text/65 max-w-[26vw] leading-snug pb-[1vh] text-right">
-          <span className="text-text">The difference is not effort. It is stability.</span> pH 8.8 is where the buffer lives — and where output gets held.
-        </p>
+        <div className="font-body text-[1.05vw] text-text/65 max-w-[26vw] leading-snug pb-[1vh] text-right">
+          <div className="text-text">You don't feel it immediately. You feel it later.</div>
+          <div className="mt-[1vh] text-text/55">
+            <span className="text-text/85">Slower reactions.</span> <span className="text-text/85">Lower clarity.</span> <span className="text-text/85">Worse decisions.</span>
+          </div>
+        </div>
       </div>
 
-      <div className="absolute top-[44vh] left-[6vw] right-[6vw]">
-        <div className="flex items-center gap-[1vw] mb-[2vh]">
+      <div className="absolute top-[34vh] left-[6vw] right-[6vw]">
+        <div className="flex items-center gap-[1vw] mb-[1.4vh]">
           <div className="h-px w-[3vw] bg-accent" />
-          <div className="font-body uppercase tracking-[0.32em] text-[0.85vw] text-accent font-semibold">pH Scale · Buffer Zone</div>
+          <div className="font-body uppercase tracking-[0.32em] text-[0.85vw] text-accent font-semibold">The Category Shift</div>
         </div>
-        <div className="grid grid-cols-9 gap-[0.5vw] mb-[1.6vh] items-end">
-          <div className="h-[2vh] bg-primary rounded-sm" />
-          <div className="h-[2vh] bg-primary/80 rounded-sm" />
-          <div className="h-[2vh] bg-primary/60 rounded-sm" />
-          <div className="h-[2vh] bg-primary/40 rounded-sm" />
-          <div className="h-[2vh] bg-text/30 rounded-sm" />
-          <div className="h-[2vh] bg-blue/40 rounded-sm" />
-          <div className="h-[2vh] bg-blue/60 rounded-sm" />
-          <div className="h-[2vh] bg-blue/85 rounded-sm" />
-          <div className="h-[3vh] bg-accent rounded-sm relative">
-            <div className="absolute -top-[2.6vh] left-1/2 -translate-x-1/2 font-display text-[1.4vw] text-accent leading-none">8.8</div>
-          </div>
-        </div>
-        <div className="flex justify-between font-body uppercase tracking-[0.3em] text-[0.95vw] text-muted">
-          <span>pH 1 — Acidic</span>
-          <span>Neutral</span>
-          <span className="text-accent">pH 8.8 — AForce</span>
+        <div className="font-display text-[3.4vw] leading-[1.04] tracking-tight text-balance">
+          <span className="text-text/55">Performance is not </span>
+          <span className="text-text">effort.</span>
+          <span className="text-text/55"> It is </span>
+          <span className="text-accent">management.</span>
         </div>
       </div>
 
-      <div className="absolute top-[57vh] bottom-[16vh] left-[6vw] right-[6vw] grid grid-cols-3 gap-x-[1vw]">
-        {tenets.map((t) => (
-          <div key={t.label} className={`relative rounded-2xl ring-1 ${t.ring} bg-bg-elev/40 overflow-hidden`}>
-            <div className={`absolute inset-0 bg-gradient-to-b ${t.bg} pointer-events-none`} />
-            <div className={`absolute inset-x-0 top-0 h-[3px] ${t.bar}`} />
-            <div className="relative p-[1.4vw] flex flex-col h-full">
-              <div className={`font-body uppercase tracking-[0.32em] text-[0.95vw] font-semibold ${t.accent}`}>{t.label}</div>
-              <div className="font-display text-[2vw] leading-tight tracking-tight text-text mt-[1.4vh]">{t.title}</div>
-              <div className="font-body text-[0.95vw] text-text/65 mt-[1.6vh] leading-snug">{t.body}</div>
-            </div>
+      <div className="absolute top-[52vh] bottom-[17vh] left-[6vw] right-[6vw] grid grid-cols-2 gap-[2vw]">
+        <div className="relative rounded-2xl ring-1 ring-text/20 bg-bg-elev/40 overflow-hidden">
+          <div className="absolute inset-x-0 top-0 h-[3px] bg-text/40" />
+          <div className="relative p-[1.6vw] flex flex-col h-full">
+            <div className="font-body uppercase tracking-[0.28em] text-[0.85vw] text-text/55 font-semibold">The Old Model</div>
+            <div className="font-display text-[2vw] leading-tight tracking-tight text-text/75 mt-[1vh]">React. Push. Hope.</div>
+            <ul className="mt-[1.6vh] space-y-[1vh]">
+              {oldModel.map((m) => (
+                <li key={m} className="flex items-center gap-[0.8vw] font-body text-[1.15vw] text-text/65">
+                  <span className="text-text/30 font-display text-[1.3vw]">×</span> {m}
+                </li>
+              ))}
+            </ul>
           </div>
-        ))}
+        </div>
+
+        <div className="relative rounded-2xl ring-1 ring-accent/35 bg-bg-elev/40 overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-b from-accent/[0.10] to-accent/0 pointer-events-none" />
+          <div className="absolute inset-x-0 top-0 h-[3px] bg-accent" />
+          <div className="relative p-[1.6vw] flex flex-col h-full">
+            <div className="font-body uppercase tracking-[0.28em] text-[0.85vw] text-accent font-semibold">The New Model</div>
+            <div className="font-display text-[2vw] leading-tight tracking-tight text-text mt-[1vh]">Measure. Adjust. Hold.</div>
+            <ul className="mt-[1.6vh] space-y-[1vh]">
+              {newModel.map((m) => (
+                <li key={m} className="flex items-center gap-[0.8vw] font-body text-[1.15vw] text-text">
+                  <span className="text-accent font-display text-[1.3vw]">→</span> {m}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
       </div>
 
       <div className="absolute bottom-[5vh] left-[6vw] right-[6vw]">
         <div className="border-t border-text/10 pt-[2vh]">
-          <div className="flex items-center gap-[1vw] mb-[1.2vh]">
-            <div className="h-px w-[3vw] bg-accent" />
-            <div className="font-body uppercase tracking-[0.32em] text-[0.85vw] text-accent font-semibold">Why 8.8</div>
-          </div>
-          <div className="font-display text-[1.7vw] leading-[1.25] tracking-tight">
-            <span className="text-text/55">When the system holds, performance </span>
-            <span className="text-text">compounds.</span>
-            <span className="text-text/55"> When it breaks, </span>
-            <span className="text-accent">everything drops.</span>
+          <div className="flex items-center justify-between gap-[2vw] flex-wrap">
+            <div className="flex items-center gap-[2vw]">
+              {shifts.map((s) => (
+                <div key={s.from} className="flex items-center gap-[0.6vw] font-body text-[1.1vw]">
+                  <span className="text-text/55">{s.from}</span>
+                  <span className="text-accent">→</span>
+                  <span className="text-text">{s.to}</span>
+                </div>
+              ))}
+            </div>
+            <div className="font-body text-[0.95vw] uppercase tracking-[0.28em]">
+              <span className="text-text/45 mr-[0.8vw]">Unlocks</span>
+              <span className="text-accent font-semibold">Consistency · Clarity · Control</span>
+            </div>
           </div>
         </div>
       </div>
