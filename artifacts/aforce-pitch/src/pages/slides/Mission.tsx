@@ -51,7 +51,7 @@ export default function Mission() {
             <div className="h-[2px] w-[5vw] bg-accent" />
             <span className="font-body uppercase tracking-[0.32em] text-[1.3vw] text-accent font-semibold">Mission</span>
           </div>
-          <h2 className="font-display text-[5.8vw] leading-[0.92] tracking-tighter">
+          <h2 className="font-display text-[4.4vw] leading-[0.95] tracking-tighter">
             Performance you can measure. <span className="text-accent">Not advertising you can ignore.</span>
           </h2>
         </div>
