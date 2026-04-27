@@ -60,12 +60,12 @@ export default function Mission() {
         </p>
       </div>
 
-      <div className="absolute top-[55vh] bottom-[16vh] left-[6vw] right-[6vw]">
-        <div className="flex items-center gap-[1vw] mb-[2vh]">
+      <div className="absolute top-[40vh] bottom-[18vh] left-[6vw] right-[6vw]">
+        <div className="flex items-center gap-[1vw] mb-[1.6vh]">
           <div className="h-px w-[3vw] bg-accent" />
           <div className="font-body uppercase tracking-[0.32em] text-[0.85vw] text-accent font-semibold">What We Build · What We Don't</div>
         </div>
-        <div className="grid grid-cols-3 gap-x-[1vw] h-[calc(100%-4.5vh)]">
+        <div className="grid grid-cols-3 gap-x-[1vw] h-[calc(100%-3.8vh)]">
           {tenets.map((t) => (
             <div key={t.but} className={`relative rounded-2xl ring-1 ${t.ring} bg-bg-elev/40 overflow-hidden`}>
               <div className={`absolute inset-0 bg-gradient-to-b ${t.bg} pointer-events-none`} />
