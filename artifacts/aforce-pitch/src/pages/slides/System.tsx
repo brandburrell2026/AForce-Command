@@ -65,6 +65,9 @@ export default function System() {
         <p className="mt-[1.4vh] font-body text-[1.15vw] text-text/65 leading-snug">
           Three signature flavors. Two formats. One performance loop.
         </p>
+        <p className="mt-[0.8vh] font-body italic text-[1vw] text-primary/85 leading-snug">
+          This wasn't built in a lab. <span className="text-text">It was built under pressure.</span>
+        </p>
       </div>
 
       <div className="absolute top-[33vh] bottom-[14vh] left-[6vw] right-[6vw]">
@@ -115,6 +118,10 @@ export default function System() {
             </div>
           ))}
         </div>
+      </div>
+
+      <div className="absolute bottom-[9vh] left-[6vw] right-[6vw] text-center font-body italic text-[1vw] text-text/55 leading-snug">
+        Built by founders who had to <span className="text-text">perform</span> before the product ever existed.
       </div>
 
       <div className="absolute bottom-[3.5vh] left-[6vw] right-[6vw] border-t border-text/10 pt-[1.6vh] flex items-baseline justify-between gap-[2vw]">
