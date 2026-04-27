@@ -46,8 +46,8 @@ export default function System() {
       <div className="absolute inset-0 bg-gradient-to-b from-bg/0 via-bg/40 to-bg/80 pointer-events-none" />
 
       <div className="absolute top-[5vh] left-[6vw] right-[6vw] flex justify-between items-center z-10">
-        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-primary font-semibold">06 — Solution</div>
-        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-muted">06 / 24</div>
+        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-primary font-semibold">05 — Solution</div>
+        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-muted">05 / 24</div>
       </div>
 
       <div className="absolute top-[11vh] left-[6vw] right-[6vw] flex justify-between items-end gap-[4vw] z-10">
@@ -56,7 +56,7 @@ export default function System() {
             <div className="h-[2px] w-[5vw] bg-primary" />
             <span className="font-body uppercase tracking-[0.32em] text-[1.3vw] text-primary font-semibold">Solution · The System</span>
           </div>
-          <h1 className="font-display text-[5.2vw] leading-[0.92] tracking-tighter text-balance">
+          <h1 className="font-display text-[4.6vw] leading-[0.92] tracking-tighter text-balance">
             AForce is a <span className="text-primary">Performance System.</span>
           </h1>
         </div>

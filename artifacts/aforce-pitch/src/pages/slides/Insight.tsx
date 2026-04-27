@@ -29,7 +29,7 @@ export default function Insight() {
             <div className="h-[2px] w-[5vw] bg-accent" />
             <span className="font-body uppercase tracking-[0.32em] text-[1.3vw] text-accent font-semibold">Insight · The Leak</span>
           </div>
-          <h2 className="font-display text-[5.4vw] leading-[0.92] tracking-tighter text-balance">
+          <h2 className="font-display text-[4.8vw] leading-[0.92] tracking-tighter text-balance">
             Performance doesn't collapse. <span className="text-accent">It leaks.</span>
           </h2>
         </div>
@@ -41,12 +41,12 @@ export default function Insight() {
         </div>
       </div>
 
-      <div className="absolute top-[34vh] left-[6vw] right-[6vw]">
+      <div className="absolute top-[36vh] left-[6vw] right-[6vw]">
         <div className="flex items-center gap-[1vw] mb-[1.4vh]">
           <div className="h-px w-[3vw] bg-accent" />
           <div className="font-body uppercase tracking-[0.32em] text-[0.85vw] text-accent font-semibold">The Category Shift</div>
         </div>
-        <div className="font-display text-[3.4vw] leading-[1.04] tracking-tight text-balance">
+        <div className="font-display text-[3.2vw] leading-[1.04] tracking-tight text-balance">
           <span className="text-text/55">Performance is not </span>
           <span className="text-text">effort.</span>
           <span className="text-text/55"> It is </span>
@@ -54,7 +54,7 @@ export default function Insight() {
         </div>
       </div>
 
-      <div className="absolute top-[52vh] bottom-[17vh] left-[6vw] right-[6vw] grid grid-cols-2 gap-[2vw]">
+      <div className="absolute top-[53vh] bottom-[17vh] left-[6vw] right-[6vw] grid grid-cols-2 gap-[2vw]">
         <div className="relative rounded-2xl ring-1 ring-text/20 bg-bg-elev/40 overflow-hidden">
           <div className="absolute inset-x-0 top-0 h-[3px] bg-text/40" />
           <div className="relative p-[1.6vw] flex flex-col h-full">
