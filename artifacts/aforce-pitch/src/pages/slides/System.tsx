@@ -65,6 +65,12 @@ export default function System() {
         <p className="mt-[1.4vh] font-body text-[1.15vw] text-text/65 leading-snug">
           Three signature flavors. Two formats. One performance loop.
         </p>
+        <div className="mt-[1.6vh] flex items-start gap-[0.9vw] max-w-[68vw]">
+          <div className="font-display text-[2.6vw] leading-none text-primary/70 select-none">"</div>
+          <p className="font-display italic text-[1.45vw] leading-[1.25] tracking-tight text-text">
+            AForce is the system we built to <span className="text-primary">stay sharp</span> when performance wasn't optional.
+          </p>
+        </div>
       </div>
 
       <div className="absolute top-[33vh] bottom-[14vh] left-[6vw] right-[6vw]">
