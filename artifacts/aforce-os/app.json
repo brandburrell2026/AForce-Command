@@ -16,6 +16,7 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.aforce.os",
+      "buildNumber": "1",
       "entitlements": {
         "com.apple.developer.healthkit": true,
         "com.apple.developer.healthkit.access": []
@@ -30,6 +31,7 @@
     "android": {
       "backgroundColor": "#050A1A",
       "package": "com.aforce.os",
+      "versionCode": 1,
       "icon": "./assets/images/icon.png",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/icon.png",
