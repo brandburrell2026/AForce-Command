@@ -18,17 +18,21 @@ export default function Closing() {
       </div>
 
       <div className="absolute top-[14vh] bottom-[12vh] left-[6vw] w-[28vw] z-10 flex items-center justify-center">
-        <div className="relative w-full h-full flex items-center justify-center">
+        <div className="relative w-full flex items-center justify-center">
           <div
-            className="absolute inset-[10%] rounded-full pointer-events-none"
-            style={{ background: "radial-gradient(circle at 50% 55%, rgba(229,51,65,0.28) 0%, rgba(229,51,65,0.08) 35%, transparent 65%)", filter: "blur(40px)" }}
+            className="absolute -inset-[6%] rounded-3xl pointer-events-none"
+            style={{ background: "radial-gradient(ellipse at 50% 55%, rgba(229,51,65,0.18) 0%, rgba(229,51,65,0.04) 45%, transparent 70%)", filter: "blur(40px)" }}
           />
-          <img
-            src={`${base}can-watermelon.png`}
-            alt="AForce Watermelon Surge can"
-            className="relative w-auto h-[78vh] object-contain"
-            style={{ filter: "drop-shadow(0 30px 50px rgba(0,0,0,0.55))" }}
-          />
+          <div
+            className="relative w-full rounded-2xl overflow-hidden ring-1 ring-text/10"
+            style={{ aspectRatio: "870 / 810", boxShadow: "0 30px 50px rgba(0,0,0,0.55)" }}
+          >
+            <img
+              src={`${base}brothers-tight.png`}
+              alt="Brandon and Julius Burrell as children"
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+          </div>
         </div>
       </div>
 
