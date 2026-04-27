@@ -248,24 +248,24 @@ export default function OSCommunity() {
 
                 {/* ─── Champion cluster: New York #1 (top right) ─── */}
                 <g>
-                  <circle cx="74" cy="16" r="11" fill="url(#clusterGlowPrimary)" />
-                  <circle cx="74" cy="16" r="6.2" fill="none" stroke="#E53341" strokeWidth="0.5" opacity="0.7">
-                    <animate attributeName="r" values="6.2;8;6.2" dur="2.4s" repeatCount="indefinite" />
+                  <circle cx="74" cy="18" r="14" fill="url(#clusterGlowPrimary)" />
+                  <circle cx="74" cy="18" r="8" fill="none" stroke="#E53341" strokeWidth="0.55" opacity="0.7">
+                    <animate attributeName="r" values="8;10.5;8" dur="2.4s" repeatCount="indefinite" />
                     <animate attributeName="opacity" values="0.7;0.15;0.7" dur="2.4s" repeatCount="indefinite" />
                   </circle>
-                  <circle cx="74" cy="16" r="4" fill="none" stroke="#E53341" strokeWidth="0.6" opacity="0.85" />
-                  <circle cx="74" cy="16" r="2.4" fill="#5478D5" opacity="0.95" />
-                  <circle cx="74" cy="16" r="0.9" fill="#ffffff" />
-                  <text x="74" y="6" textAnchor="middle" fill="#E53341" fontSize="2.3" fontWeight="700" fontFamily="ui-sans-serif, system-ui" letterSpacing="0.05">New York #1</text>
+                  <circle cx="74" cy="18" r="5.5" fill="none" stroke="#E53341" strokeWidth="0.7" opacity="0.9" />
+                  <circle cx="74" cy="18" r="3.2" fill="#5478D5" opacity="0.95" />
+                  <circle cx="74" cy="18" r="1.2" fill="#ffffff" />
+                  <text x="74" y="5.5" textAnchor="middle" fill="#E53341" fontSize="2.4" fontWeight="700" fontFamily="ui-sans-serif, system-ui" letterSpacing="0.05">New York #1</text>
                 </g>
 
                 {/* ─── Cluster: Chicago #2 (mid-left) ─── */}
                 <g>
-                  <circle cx="30" cy="22" r="8.5" fill="url(#clusterGlowAccent)" />
-                  <circle cx="30" cy="22" r="4.6" fill="none" stroke="#F5D637" strokeWidth="0.5" opacity="0.85" />
-                  <circle cx="30" cy="22" r="2.1" fill="#5478D5" opacity="0.9" />
-                  <circle cx="30" cy="22" r="0.8" fill="#ffffff" />
-                  <text x="30" y="34" textAnchor="middle" fill="#F5D637" fontSize="2.1" fontWeight="700" fontFamily="ui-sans-serif, system-ui" letterSpacing="0.05">Chicago #2</text>
+                  <circle cx="30" cy="22" r="11" fill="url(#clusterGlowAccent)" />
+                  <circle cx="30" cy="22" r="6" fill="none" stroke="#F5D637" strokeWidth="0.6" opacity="0.9" />
+                  <circle cx="30" cy="22" r="2.8" fill="#5478D5" opacity="0.95" />
+                  <circle cx="30" cy="22" r="1.05" fill="#ffffff" />
+                  <text x="30" y="36" textAnchor="middle" fill="#F5D637" fontSize="2.2" fontWeight="700" fontFamily="ui-sans-serif, system-ui" letterSpacing="0.05">Chicago #2</text>
                 </g>
 
                 {/* ─── Cluster: Atlanta #3 (center-right) ─── */}
