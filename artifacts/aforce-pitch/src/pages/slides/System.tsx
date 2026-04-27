@@ -120,10 +120,6 @@ export default function System() {
         </div>
       </div>
 
-      <div className="absolute bottom-[9vh] left-[6vw] right-[6vw] text-center font-body italic text-[1vw] text-text/55 leading-snug">
-        Built by founders who had to <span className="text-text">perform</span> before the product ever existed.
-      </div>
-
       <div className="absolute bottom-[3.5vh] left-[6vw] right-[6vw] border-t border-text/10 pt-[1.6vh] flex items-baseline justify-between gap-[2vw]">
         <div className="font-body uppercase tracking-[0.32em] text-[0.9vw] text-primary font-semibold whitespace-nowrap shrink-0">
           pH 8.8 · Zero Sugar
