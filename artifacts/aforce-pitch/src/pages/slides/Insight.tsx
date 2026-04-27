@@ -38,6 +38,9 @@ export default function Insight() {
           <div className="mt-[1vh] text-text/55">
             <span className="text-text/85">Slower reactions.</span> <span className="text-text/85">Lower clarity.</span> <span className="text-text/85">Worse decisions.</span>
           </div>
+          <div className="mt-[1.6vh] pt-[1vh] border-t border-text/15 italic text-[0.95vw] text-accent/80">
+            We didn't learn this in theory. <span className="text-text">We learned it under pressure.</span>
+          </div>
         </div>
       </div>
 
