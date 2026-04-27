@@ -4,7 +4,7 @@ export default function Problem() {
       label: "Option A",
       title: "Sugar bombs.",
       tags: ["Acid-forming", "Energy crashes", "Engineered for taste"],
-      body: "The shelf's loudest hydration is the one that costs the most output. Marketed at performance — engineered for taste.",
+      body: "The shelf's loudest hydration is the one that costs the most performance. Marketed at output — engineered for taste.",
       accent: "text-primary",
       ring: "ring-primary/35",
       bar: "bg-primary",
@@ -47,7 +47,7 @@ export default function Problem() {
             <span className="font-body uppercase tracking-[0.32em] text-[1.3vw] text-primary font-semibold">The Shelf</span>
           </div>
           <h2 className="font-display text-[6.2vw] leading-[0.92] tracking-tighter">
-            Hydration is <span className="text-primary">broken.</span>
+            Performance is <span className="text-primary">broken.</span>
           </h2>
         </div>
         <p className="font-body text-[1.05vw] text-text/65 max-w-[26vw] leading-snug pb-[1vh] text-right">

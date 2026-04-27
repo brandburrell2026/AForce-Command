@@ -62,7 +62,7 @@ export default function Market() {
             <span className="font-body uppercase tracking-[0.32em] text-[1.3vw] text-accent font-semibold">Market</span>
           </div>
           <h2 className="font-display text-[5.2vw] leading-[0.92] tracking-tighter">
-            The new hydration <span className="text-accent">economy.</span>
+            The new performance <span className="text-accent">economy.</span>
           </h2>
         </div>
         <p className="font-body text-[1.05vw] text-text/65 max-w-[28vw] leading-snug pb-[1vh] text-right">

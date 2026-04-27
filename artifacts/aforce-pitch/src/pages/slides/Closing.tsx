@@ -33,7 +33,7 @@ export default function Closing() {
           </div>
           <div className="font-body uppercase tracking-[0.28em] text-[0.7vw] text-blue font-semibold mt-[1vh]">Brandon &amp; Julius Burrell · Founders</div>
           <div className="font-body italic text-[0.85vw] text-text/85 mt-[1vh] leading-snug">
-            "Hydration is the wedge. Intelligence is the moat."
+            "Performance is the wedge. Intelligence is the moat."
           </div>
         </div>
       </div>

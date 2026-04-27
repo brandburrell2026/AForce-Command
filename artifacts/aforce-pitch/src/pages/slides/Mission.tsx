@@ -21,7 +21,7 @@ export default function Mission() {
     {
       not: "built to coast",
       but: "Built to compound.",
-      body: "Every drink, every signal, every cycle stacks — turning hydration into a system that gets smarter with use.",
+      body: "Every drink, every signal, every cycle stacks — turning every sip into performance that compounds with use.",
       accent: "text-primary",
       ring: "ring-primary/35",
       bar: "bg-primary",
@@ -52,7 +52,7 @@ export default function Mission() {
             <span className="font-body uppercase tracking-[0.32em] text-[1.3vw] text-accent font-semibold">Mission</span>
           </div>
           <h2 className="font-display text-[5.8vw] leading-[0.92] tracking-tighter">
-            Hydration that fuels output. <span className="text-accent">Not advertising.</span>
+            Performance you can measure. <span className="text-accent">Not advertising you can ignore.</span>
           </h2>
         </div>
         <p className="font-body text-[1.05vw] text-text/65 max-w-[26vw] leading-snug pb-[1vh] text-right">

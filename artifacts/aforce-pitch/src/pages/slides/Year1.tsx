@@ -45,7 +45,7 @@ export default function Year1() {
         <div className="grid grid-cols-[1fr_auto_1fr_auto_1fr_auto_1fr_auto_1fr] items-stretch gap-x-[0.6vw]">
           {[
             { stage: "Acquire", title: "Meta + Google", body: "Paid + creators · top-of-funnel intent capture", color: "text-blue", border: "border-blue/40" },
-            { stage: "Capture", title: "Hydration Quiz", body: "Email + SMS opt-in · qualified lead", color: "text-text", border: "border-text/20" },
+            { stage: "Capture", title: "Performance Quiz", body: "Email + SMS opt-in · qualified lead", color: "text-text", border: "border-text/20" },
             { stage: "Activate", title: "7-Day Starter Bundle", body: "Habit-forming first purchase · proves the product", color: "text-primary", border: "border-primary/40" },
             { stage: "Retain", title: "Email · SMS · Retargeting", body: "Repeat purchases on sticks, drinks, canisters", color: "text-text", border: "border-text/20" },
             { stage: "Expand LTV", title: "AForce OS Subscription", body: "Recurring software layer · the multiplier", color: "text-accent", border: "border-accent/40" },

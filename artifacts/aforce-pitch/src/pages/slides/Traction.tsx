@@ -81,7 +81,7 @@ export default function Traction() {
         </div>
         <div className="border-t border-text/10 pt-[1.6vh] grid grid-cols-[1.4fr_1fr] gap-[2vw] items-baseline">
           <h3 className="font-display text-[2.1vw] leading-[1.05] tracking-tight text-text/95 text-balance">
-            Hydration <span className="text-primary">formulas locked.</span>{" "}
+            Performance <span className="text-primary">formulas locked.</span>{" "}
             OS <span className="text-blue">product-ready.</span>{" "}
             Retail <span className="text-accent">conversations live.</span>
           </h3>

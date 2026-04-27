@@ -58,7 +58,7 @@ export default function OSCommunity() {
           <span className="text-primary">AForce League.</span>
         </h1>
         <div className="font-body text-[1.05vw] text-text/60 mt-[1.6vh] max-w-[62vw] leading-tight">
-          Every can, every stick, every sip is logged to your city. Cities compete weekly on average hydration score —
+          Every can, every stick, every sip is logged to your city. Cities compete weekly on average Performance Score —
           <span className="text-text/85"> the loop becomes a movement.</span>
         </div>
       </div>
@@ -99,7 +99,7 @@ export default function OSCommunity() {
                 </h2>
                 <div className="font-display text-[2.6vw] leading-[0.9] tracking-tight text-accent font-bold tabular-nums">91</div>
               </div>
-              <div className="font-body uppercase tracking-[0.22em] text-text/50 text-[0.7vw] mt-[0.3vh]">Avg Hydration · Last 7 days</div>
+              <div className="font-body uppercase tracking-[0.22em] text-text/50 text-[0.7vw] mt-[0.3vh]">Avg Performance · Last 7 days</div>
 
               {/* Stat strip */}
               <div className="grid grid-cols-3 gap-[0.6vw] mt-[2vh]">

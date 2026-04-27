@@ -24,7 +24,7 @@ export default function System() {
           <span className="text-primary">system.</span>
         </h1>
         <div className="font-body text-[1vw] text-text/60 mt-[1.2vh] max-w-[78vw] leading-tight">
-          A complete hydration system — ready to ship.{" "}
+          A complete performance system — ready to ship.{" "}
           <span className="text-text/85">Three signature flavors, each cut with a sea-grown botanical, available in cans for the cooler and sticks for the road.</span>
         </div>
       </div>

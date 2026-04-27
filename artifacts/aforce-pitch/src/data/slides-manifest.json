@@ -12,7 +12,7 @@
     "position": 2,
     "filepath": "src/pages/slides/Mission.tsx",
     "title": "Mission",
-    "description": "Hydration that fuels output, not advertising.",
+    "description": "Performance you can measure. Not advertising you can ignore.",
     "speakerNotes": ""
   },
   {
@@ -20,7 +20,7 @@
     "position": 3,
     "filepath": "src/pages/slides/Problem.tsx",
     "title": "Problem",
-    "description": "Hydration is broken: sugar bombs vs. plain water.",
+    "description": "Performance is broken: sugar bombs vs. plain water.",
     "speakerNotes": ""
   },
   {
@@ -60,7 +60,7 @@
     "position": 8,
     "filepath": "src/pages/slides/OSIntro.tsx",
     "title": "AForce OS",
-    "description": "Beyond the can. The mobile OS that turns every sip into measurable output.",
+    "description": "Beyond the can. The mobile OS that turns every sip into measurable performance.",
     "speakerNotes": ""
   },
   {
@@ -76,7 +76,7 @@
     "position": 10,
     "filepath": "src/pages/slides/ProductTour.tsx",
     "title": "Product Tour",
-    "description": "Three modes, one loop: Hydration Score, Social Mode, Recovery Mode — the OS adapts to every state of the body.",
+    "description": "Three modes, one loop: Performance Score, Social Mode, Recovery Mode — the OS adapts to every state of the body.",
     "speakerNotes": ""
   },
   {
@@ -100,7 +100,7 @@
     "position": 13,
     "filepath": "src/pages/slides/OSCommunity.tsx",
     "title": "Community",
-    "description": "The AForce League — 12 cities, 84K members competing weekly on hydration score. New York leads. Every can logs to your zip; the community turns customers into a flywheel.",
+    "description": "The AForce League — 12 cities, 84K members competing weekly on Performance Score. New York leads. Every can logs to your zip; the community turns customers into a flywheel.",
     "speakerNotes": ""
   },
   {

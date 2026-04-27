@@ -22,7 +22,7 @@ export default function Loop() {
           <span className="text-accent">Anywhere.</span>
         </h1>
         <div className="font-body text-[1.1vw] text-text/60 mt-[1.6vh] max-w-[78vw] leading-tight">
-          Same hydration. Two travel-ready formats.{" "}
+          Same performance. Two travel-ready formats.{" "}
           <span className="text-text/85">Cans for the cooler, sticks for the road — designed to follow you through the day.</span>
         </div>
       </div>
@@ -71,7 +71,7 @@ export default function Loop() {
         </div>
         <div className="border-t border-text/10 pt-[1.6vh] grid grid-cols-[1.4fr_1fr] gap-[2vw] items-baseline">
           <h3 className="font-display text-[2.1vw] leading-[1.05] tracking-tight text-text/95 text-balance">
-            Same <span className="text-primary">hydration.</span> Every <span className="text-accent">moment.</span> From the cooler to the carry-on.
+            Same <span className="text-primary">performance.</span> Every <span className="text-accent">moment.</span> From the cooler to the carry-on.
           </h3>
           <div className="font-body text-[0.85vw] text-text/55 uppercase tracking-[0.22em] text-right whitespace-nowrap leading-snug">
             Ships in both formats<br/>

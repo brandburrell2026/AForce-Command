@@ -4,9 +4,9 @@ export default function Competitors() {
     ["Alkaline (pH 8.8+)",    true,  false, false, false, false, false],
     ["Functional Superfoods", true,  false, false, false, false, false],
     ["Subscription Platform", true,  "warn", "warn", false, false, false],
-    ["AI Hydration Coaching", true,  false, false, false, false, false],
+    ["AI Performance Coaching", true,  false, false, false, false, false],
     ["Wearable Integration",  true,  false, false, false, false, false],
-    ["Hydration Intelligence",true,  false, false, false, false, false],
+    ["Performance Intelligence",true,  false, false, false, false, false],
     ["Behavioral Data",       true,  false, false, false, false, false],
   ] as const;
 
@@ -28,7 +28,7 @@ export default function Competitors() {
           AForce vs. <span className="text-primary">competitors.</span>
         </h2>
         <p className="font-body text-[1.15vw] text-text/70 max-w-[34vw] leading-snug pb-[1vh]">
-          AForce is the only hydration brand combining clean ingredients, functional superfoods, a digital performance platform, AI hydration coaching, and wearable integration — a combination no competitor currently offers.
+          AForce is the only performance brand combining clean ingredients, functional superfoods, a digital performance platform, AI performance coaching, and wearable integration — a combination no competitor currently offers.
         </p>
       </div>
 

@@ -3,7 +3,7 @@ export default function OSIntro() {
     {
       label: "Score",
       title: "Reads the body in real time.",
-      body: "Hydration, energy, and recovery — measured continuously, not guessed at.",
+      body: "Performance — energy, recovery, hydration — measured continuously, not guessed at.",
       accent: "text-primary",
       ring: "ring-primary/35",
       bar: "bg-primary",
@@ -111,7 +111,7 @@ export default function OSIntro() {
 
           <div className="px-[0.4vw]">
             <div className="font-body text-[0.5vw] text-text/45">Welcome, Brandon</div>
-            <div className="font-body uppercase tracking-[0.18em] text-[0.5vw] text-text/35 mt-[0.3vh] leading-tight">Hydration Control<br />Center</div>
+            <div className="font-body uppercase tracking-[0.18em] text-[0.5vw] text-text/35 mt-[0.3vh] leading-tight">Performance Control<br />Center</div>
             <div className="flex items-center justify-between mt-[0.4vh] gap-[0.4vw]">
               <div className="font-display text-[1vw] leading-none text-text/85">AForce OS</div>
               <div className="flex items-center gap-[0.4vw]">

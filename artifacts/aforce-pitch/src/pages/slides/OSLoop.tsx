@@ -16,7 +16,7 @@ export default function OSLoop() {
       num: "02",
       stage: "Score",
       title: "Body becomes data.",
-      body: "Intake, sweat, weather, and recovery feed the hydration score.",
+      body: "Intake, sweat, weather, and recovery feed the Performance Score.",
       accent: "text-accent",
       ring: "ring-accent/35",
       bar: "bg-accent",

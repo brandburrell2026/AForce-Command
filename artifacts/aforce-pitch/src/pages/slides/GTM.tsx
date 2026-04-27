@@ -59,7 +59,7 @@ export default function GTM() {
       label: "Phase 6",
       window: "48+ mo",
       color: "accent",
-      items: ["M&A / IPO positioning", "Category leader: hydration intelligence", "Global performance data platform"],
+      items: ["M&A / IPO positioning", "Category leader: performance intelligence", "Global performance data platform"],
     },
   ];
 
