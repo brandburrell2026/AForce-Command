@@ -70,7 +70,7 @@ export default function Market() {
         </p>
       </div>
 
-      <div className="absolute top-[40vh] bottom-[16vh] left-[6vw] right-[6vw] grid grid-cols-3 gap-[1.4vw]">
+      <div className="absolute top-[46vh] bottom-[16vh] left-[6vw] right-[6vw] grid grid-cols-3 gap-[1.4vw]">
         {segments.map((s) => (
           <div key={s.label} className={`relative rounded-2xl ring-1 ${s.ring} bg-bg-elev/40 overflow-hidden`}>
             <div className={`absolute inset-0 bg-gradient-to-b ${s.bg} pointer-events-none`} />
