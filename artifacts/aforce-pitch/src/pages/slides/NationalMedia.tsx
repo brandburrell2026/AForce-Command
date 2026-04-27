@@ -2,8 +2,8 @@ export default function NationalMedia() {
   const impacts = [
     {
       num: "01",
-      title: "National Brand Visibility",
-      body: "A launch moment amplified by national media — millions introduced to AForce at the exact moment of launch.",
+      title: "Millions see real performance in real time",
+      body: "National broadcast turns the launch moment into live proof — the product, the founders, the system, watched as it happens.",
       accent: "text-accent",
       ring: "ring-accent/35",
       bar: "bg-accent",
@@ -11,8 +11,8 @@ export default function NationalMedia() {
     },
     {
       num: "02",
-      title: "Retail Buyer Awareness",
-      body: "A strong story for buyers looking for differentiated functional beverages — accelerating major retail conversations.",
+      title: "Buyers don't hear a pitch — they see demand",
+      body: "Major retailers don't get a story. They get a category appearing on TV the same week the product hits shelves.",
       accent: "text-blue",
       ring: "ring-blue/35",
       bar: "bg-blue",
@@ -20,8 +20,8 @@ export default function NationalMedia() {
     },
     {
       num: "03",
-      title: "Investor Attention",
-      body: "A media catalyst aligned with capital raising — primetime visibility signals validation during the early-growth window.",
+      title: "Investors don't imagine growth — they watch it",
+      body: "Capital meets visibility. The raise window aligns with primetime — traction is observable, not projected.",
       accent: "text-primary",
       ring: "ring-primary/35",
       bar: "bg-primary",
@@ -29,8 +29,8 @@ export default function NationalMedia() {
     },
     {
       num: "04",
-      title: "Launch Momentum",
-      body: "Visibility meets availability — TV exposure synced with the first production run drives rapid trial and shelf velocity.",
+      title: "Shelf velocity starts before retail expansion",
+      body: "Trial accelerates from day one. Demand outpaces footprint — the signal retail buyers are built to react to.",
       accent: "text-text",
       ring: "ring-text/25",
       bar: "bg-text/70",
@@ -73,7 +73,7 @@ export default function NationalMedia() {
       />
       <div
         className="absolute inset-0 pointer-events-none"
-        style={{ background: "radial-gradient(ellipse 60% 50% at 18% 75%, rgba(84,120,213,0.08) 0%, transparent 65%)" }}
+        style={{ background: "radial-gradient(ellipse 60% 50% at 18% 75%, rgba(229,51,65,0.10) 0%, transparent 65%)" }}
       />
 
       <div className="absolute top-[6vh] left-[6vw] right-[6vw] flex justify-between items-center z-10">
@@ -81,34 +81,28 @@ export default function NationalMedia() {
         <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-muted">05 / 24</div>
       </div>
 
-      <div className="absolute top-[12vh] left-[6vw] right-[6vw] flex justify-between items-end gap-[4vw]">
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-[1.2vw] mb-[1.4vh]">
-            <div className="h-[2px] w-[5vw] bg-accent" />
-            <span className="font-body uppercase tracking-[0.32em] text-[1.3vw] text-accent font-semibold">Launch Catalyst</span>
-          </div>
-          <h2 className="font-display text-[4.8vw] leading-[0.92] tracking-tighter">
-            <span className="text-accent">National attention</span> at the moment of launch.
-          </h2>
+      <div className="absolute top-[12vh] left-[6vw] right-[6vw]">
+        <div className="flex items-center gap-[1.2vw] mb-[1.4vh]">
+          <div className="h-[2px] w-[5vw] bg-accent" />
+          <span className="font-body uppercase tracking-[0.32em] text-[1.3vw] text-accent font-semibold">Launch Catalyst</span>
         </div>
-        <p className="font-body text-[1.05vw] text-text/65 max-w-[28vw] leading-snug pb-[1vh] text-right">
-          <span className="text-text">AForce enters market with national visibility, product availability, and a clear performance story.</span> Selected for America's Real Deal — Season 2.
-        </p>
-      </div>
-
-      <div className="absolute top-[34vh] left-[6vw] right-[6vw] flex items-start gap-[1.2vw]">
-        <div className="font-display text-[2.6vw] leading-none text-accent/70 select-none -mt-[0.4vh] shrink-0">"</div>
-        <div className="font-display italic text-[1.3vw] leading-[1.3] tracking-tight text-text max-w-[80vw]">
-          We didn't start with a product. We started with a problem we lived every day:
-          <span className="text-accent"> how to stay sharp when performance isn't optional.</span>
-          <span className="block mt-[0.6vh] font-body not-italic text-[0.95vw] text-text/60 leading-snug">
-            AForce is the system we built for ourselves — now scaled.
-          </span>
+        <h2 className="font-display text-[3.8vw] leading-[0.96] tracking-tighter text-balance">
+          We launch <span className="text-primary">under pressure</span>, <span className="text-text/55">not in theory.</span>
+        </h2>
+        <div className="mt-[1.4vh] font-body uppercase tracking-[0.28em] text-[1vw] font-semibold text-text/85">
+          Two founders. <span className="text-primary">Real pressure.</span> <span className="text-accent">National stage.</span>
         </div>
       </div>
 
-      <div className="absolute top-[46vh] left-[6vw] right-[6vw]">
-        <div className="flex items-center gap-[1vw] mb-[2.4vh]">
+      <div className="absolute top-[34vh] left-[6vw] right-[6vw] flex items-start gap-[1.4vw]">
+        <div className="font-display text-[3.6vw] leading-[0.7] text-primary/80 select-none -mt-[0.2vh] shrink-0">"</div>
+        <div className="font-display text-[2.2vw] leading-[1.12] tracking-tight text-text max-w-[80vw]">
+          We didn't start with a product. We started with a problem we lived <span className="text-primary">under pressure.</span>
+        </div>
+      </div>
+
+      <div className="absolute top-[48vh] left-[6vw] right-[6vw]">
+        <div className="flex items-center gap-[1vw] mb-[2vh]">
           <div className="h-px w-[3vw] bg-accent" />
           <div className="font-body uppercase tracking-[0.32em] text-[0.85vw] text-accent font-semibold">Timeline · 2026</div>
         </div>
@@ -121,41 +115,41 @@ export default function NationalMedia() {
             {timeline.map((t) => (
               <div key={t.date} className={`flex flex-col ${t.align}`}>
                 <div className={`w-[1.4vw] h-[1.4vw] rounded-full ${t.dot} ring-4 ring-bg`} />
-                <div className={`font-body uppercase tracking-[0.32em] text-[0.85vw] font-semibold mt-[1.6vh] ${t.accent}`}>
+                <div className={`font-body uppercase tracking-[0.32em] text-[0.85vw] font-semibold mt-[1.4vh] ${t.accent}`}>
                   {t.date} — {t.label}
                 </div>
-                <div className="font-body text-[0.95vw] text-text/65 max-w-[24vw] leading-snug mt-[0.6vh]">{t.body}</div>
+                <div className="font-body text-[0.9vw] text-text/65 max-w-[24vw] leading-snug mt-[0.5vh]">{t.body}</div>
               </div>
             ))}
           </div>
         </div>
       </div>
 
-      <div className="absolute top-[60vh] bottom-[16vh] left-[6vw] right-[6vw] grid grid-cols-4 gap-x-[0.9vw]">
+      <div className="absolute top-[63vh] bottom-[14vh] left-[6vw] right-[6vw] grid grid-cols-4 gap-x-[0.9vw]">
         {impacts.map((p) => (
           <div key={p.num} className={`relative rounded-2xl ring-1 ${p.ring} bg-bg-elev/40 overflow-hidden`}>
             <div className={`absolute inset-0 bg-gradient-to-b ${p.bg} pointer-events-none`} />
             <div className={`absolute inset-x-0 top-0 h-[3px] ${p.bar}`} />
-            <div className="relative p-[1.2vw] flex flex-col h-full">
-              <div className={`font-display text-[1.8vw] leading-none ${p.accent}`}>{p.num}</div>
-              <div className="font-display text-[1.3vw] leading-tight text-text mt-[1.4vh]">{p.title}</div>
-              <div className="font-body text-[0.88vw] text-text/65 leading-snug mt-[1.2vh]">{p.body}</div>
+            <div className="relative p-[1.1vw] flex flex-col h-full">
+              <div className={`font-display text-[1.7vw] leading-none ${p.accent}`}>{p.num}</div>
+              <div className="font-display text-[1.15vw] leading-tight text-text mt-[1.2vh]">{p.title}</div>
+              <div className="font-body text-[0.85vw] text-text/65 leading-snug mt-[1vh]">{p.body}</div>
             </div>
           </div>
         ))}
       </div>
 
-      <div className="absolute bottom-[5vh] left-[6vw] right-[6vw]">
-        <div className="border-t border-text/10 pt-[2vh]">
-          <div className="flex items-center gap-[1vw] mb-[1.2vh]">
-            <div className="h-px w-[3vw] bg-accent" />
-            <div className="font-body uppercase tracking-[0.32em] text-[0.85vw] text-accent font-semibold">Perfect Timing</div>
+      <div className="absolute bottom-[4vh] left-[6vw] right-[6vw]">
+        <div className="border-t border-text/10 pt-[1.6vh]">
+          <div className="flex items-center gap-[1vw] mb-[1vh]">
+            <div className="h-px w-[3vw] bg-primary" />
+            <div className="font-body uppercase tracking-[0.32em] text-[0.85vw] text-primary font-semibold">The Catch</div>
           </div>
-          <div className="font-display text-[1.6vw] leading-[1.25] tracking-tight">
-            <span className="text-text/55">Visibility meets </span>
-            <span className="text-text">availability</span>
-            <span className="text-text/55">. Demand meets </span>
-            <span className="text-accent">supply.</span>
+          <div className="font-display text-[1.8vw] leading-[1.2] tracking-tight">
+            <span className="text-text">Demand is </span>
+            <span className="text-accent">created publicly.</span>
+            <span className="text-text/55"> Captured </span>
+            <span className="text-primary">immediately.</span>
           </div>
         </div>
       </div>
