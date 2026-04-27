@@ -42,12 +42,12 @@ export default function OSDashboards() {
           <div className="font-body uppercase tracking-[0.32em] text-[0.95vw] text-blue font-semibold">Beyond the Consumer</div>
         </div>
         <h1 className="font-display leading-[0.9] tracking-tighter text-balance text-[5vw]">
-          <span className="text-text">Two dashboards. </span>
-          <span className="text-blue">One OS.</span>
+          <span className="text-text">Performance </span>
+          <span className="text-blue">at scale.</span>
         </h1>
         <div className="font-body text-[1.05vw] text-text/60 mt-[1.6vh] max-w-[62vw] leading-tight">
-          The same loop that lives in every athlete's pocket scales from the Friday-night high school bench to the college and pro medical staff.
-          <span className="text-text/85"> Clutch runs the game. Guardian runs the season.</span>
+          The same loop that guides one user can scale across teams, schools, sports programs, and enterprise environments.
+          <span className="text-text/85"> Clutch for coaches and high-pressure environments. Guardian for elite monitoring.</span>
         </div>
       </div>
 
@@ -228,9 +228,8 @@ export default function OSDashboards() {
         </div>
         <div className="border-t border-text/10 pt-[1.6vh] flex items-baseline justify-between gap-[2vw]">
           <h3 className="font-display text-[2vw] leading-[1.05] tracking-tight text-text/95 text-balance">
-            <span className="text-blue">HS coach</span> calls the play.{" "}
-            <span className="text-accent">College &amp; pro doctor</span> protects the season.{" "}
-            <span className="text-text/55">All on the same OS the athlete already runs.</span>
+            <span className="text-text">Individual to team to system.</span>{" "}
+            <span className="text-text/55">One loop, scaled across every level of performance.</span>
           </h3>
           <div className="font-body text-[0.85vw] text-text/55 uppercase tracking-[0.22em] text-right whitespace-nowrap leading-snug">
             HS team SaaS<br/>+ D1 / Pro five-figure ACV

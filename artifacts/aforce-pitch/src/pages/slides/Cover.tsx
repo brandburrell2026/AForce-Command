@@ -27,16 +27,16 @@ export default function Cover() {
       <div className="absolute bottom-[6vh] left-[6vw] right-[55vw] z-10">
         <div className="flex items-center gap-[1.2vw] mb-[2.4vh]">
           <div className="h-[2px] w-[5vw] bg-primary" />
-          <span className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-primary font-semibold">Performance Alkaline Hydration</span>
+          <span className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-primary font-semibold">The Performance Operating System</span>
         </div>
         <h1 className="font-display text-[11vw] leading-[0.85] tracking-tighter text-text">
           AForce.
         </h1>
         <p className="mt-[2.4vh] font-display text-[2.2vw] leading-tight text-text max-w-[42vw] text-pretty">
-          Drink <span className="text-primary">AForce</span>. Run on <span className="text-accent">AForce OS</span>.
+          <span className="text-primary">Check.</span> <span className="text-accent">Act.</span> Perform.
         </p>
         <p className="mt-[1vh] font-body text-[1.5vw] font-light text-text/70 max-w-[42vw] text-pretty">
-          Engineered for the moments you don't get back.
+          Built for pressure. Proven in it.
         </p>
         <div className="mt-[3vh] flex items-center gap-[1.2vw]">
           <div className="px-[1.2vw] py-[1vh] bg-primary/15 border border-primary/40 rounded-md">

@@ -2,8 +2,8 @@ export default function OSIntro() {
   const pillars = [
     {
       label: "Score",
-      title: "Reads the body in real time.",
-      body: "Performance — energy, recovery, hydration — measured continuously, not guessed at.",
+      title: "Reads your state in real time.",
+      body: "Hydration, energy, environment, and behavior become one score.",
       accent: "text-primary",
       ring: "ring-primary/35",
       bar: "bg-primary",
@@ -12,7 +12,7 @@ export default function OSIntro() {
     {
       label: "Coach",
       title: "Tells you what to do next.",
-      body: "One command at a time — no dashboards, no decisions, no friction in the moment.",
+      body: "One command at a time. No guessing. No friction in the moment.",
       accent: "text-blue",
       ring: "ring-blue/35",
       bar: "bg-blue",
@@ -20,8 +20,8 @@ export default function OSIntro() {
     },
     {
       label: "Network",
-      title: "Compounds across users.",
-      body: "Every sip teaches the model. The system gets smarter with every can sold.",
+      title: "Learns and improves over time.",
+      body: "Every cycle strengthens the system. Every can sold sharpens the next.",
       accent: "text-accent",
       ring: "ring-accent/35",
       bar: "bg-accent",
@@ -51,10 +51,10 @@ export default function OSIntro() {
           <span className="font-body uppercase tracking-[0.32em] text-[1.1vw] text-accent font-semibold">The Other Half of AForce</span>
         </div>
         <h2 className="font-display text-[5.4vw] leading-[0.92] tracking-tighter">
-          Beyond the <span className="text-accent">can.</span>
+          The intelligence <span className="text-accent">layer.</span>
         </h2>
         <p className="mt-[2.4vh] font-body text-[1.15vw] text-text/70 leading-snug max-w-[40vw]">
-          The drink fuels the body. The app reads the body and tells you what to do next. <span className="text-text">AForce OS turns every sip into measurable output.</span>
+          The product fuels the body. <span className="text-text">AForce OS reads the state and tells the user what to do next.</span>
         </p>
       </div>
 
@@ -195,8 +195,8 @@ export default function OSIntro() {
             <div className="font-body uppercase tracking-[0.32em] text-[0.85vw] text-accent font-semibold">The OS Loop</div>
           </div>
           <div className="font-display text-[1.5vw] leading-[1.25] tracking-tight">
-            <span className="text-text/55">Can fuels body. App reads body. Body trains OS. </span>
-            <span className="text-accent">The loop compounds.</span>
+            <span className="text-text/55">Product fuels the body. </span>
+            <span className="text-accent">OS controls performance.</span>
           </div>
         </div>
       </div>

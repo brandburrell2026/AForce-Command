@@ -4,7 +4,7 @@
     "position": 1,
     "filepath": "src/pages/slides/Cover.tsx",
     "title": "Cover",
-    "description": "Drink AForce. Run on AForce OS. $4M Seed for Spring 2026 launch.",
+    "description": "AForce — the performance operating system. Drink the product. Run on the system. $4M Seed for Spring 2026 launch.",
     "speakerNotes": ""
   },
   {
@@ -12,7 +12,7 @@
     "position": 2,
     "filepath": "src/pages/slides/Mission.tsx",
     "title": "Mission",
-    "description": "Performance you can measure. Not advertising you can ignore.",
+    "description": "Build the performance system the body actually needs. Performance you can measure, control, and repeat.",
     "speakerNotes": ""
   },
   {
@@ -20,7 +20,7 @@
     "position": 3,
     "filepath": "src/pages/slides/Problem.tsx",
     "title": "Problem",
-    "description": "Performance is broken: sugar bombs vs. plain water.",
+    "description": "Hydration is broken. Performance is unmanaged. Sugar bombs vs. plain water — neither delivers control.",
     "speakerNotes": ""
   },
   {
@@ -28,7 +28,7 @@
     "position": 4,
     "filepath": "src/pages/slides/Insight.tsx",
     "title": "Insight",
-    "description": "Performance lives in the buffer. pH 8.8 — Buffer / Restore / Hold.",
+    "description": "Performance lives in the buffer. pH 8.8 — Buffer / Restore / Hold. Control the chemistry, control the loop.",
     "speakerNotes": ""
   },
   {
@@ -36,7 +36,7 @@
     "position": 5,
     "filepath": "src/pages/slides/NationalMedia.tsx",
     "title": "National Media",
-    "description": "America's Real Deal Season 2 — national TV catalyst aligned with Spring 2026 launch.",
+    "description": "America's Real Deal Season 2 — national TV catalyst aligned with Spring 2026 launch. Pressure-tested credibility on a national stage.",
     "speakerNotes": ""
   },
   {
@@ -44,7 +44,7 @@
     "position": 6,
     "filepath": "src/pages/slides/System.tsx",
     "title": "Product",
-    "description": "Three flavors. Two formats. The full lineup.",
+    "description": "One system. Three states. The product line that powers Performance, Recovery, and Hydration.",
     "speakerNotes": ""
   },
   {
@@ -52,7 +52,7 @@
     "position": 7,
     "filepath": "src/pages/slides/Loop.tsx",
     "title": "Formats",
-    "description": "Anytime, anywhere — cans for the cooler, sticks for the road.",
+    "description": "Same system. Two formats. Cans for the cooler, sticks for the road — both feed the same performance loop.",
     "speakerNotes": ""
   },
   {
@@ -60,7 +60,7 @@
     "position": 8,
     "filepath": "src/pages/slides/OSIntro.tsx",
     "title": "AForce OS",
-    "description": "Beyond the can. The mobile OS that turns every sip into measurable performance.",
+    "description": "The intelligence layer. Product fuels the body. OS controls performance.",
     "speakerNotes": ""
   },
   {
@@ -68,7 +68,7 @@
     "position": 9,
     "filepath": "src/pages/slides/OSLoop.tsx",
     "title": "The Loop",
-    "description": "Hardware + software, one closed loop. Drink → Score → Coach → Decide.",
+    "description": "Performance loop. Drink → Score → Coach → Decide. Same system. Every state of the body.",
     "speakerNotes": ""
   },
   {
@@ -76,7 +76,7 @@
     "position": 10,
     "filepath": "src/pages/slides/ProductTour.tsx",
     "title": "Product Tour",
-    "description": "Three modes, one loop: Performance Score, Social Mode, Recovery Mode — the OS adapts to every state of the body.",
+    "description": "One system. Multiple states. Performance Score, Social Mode, Recovery Mode — the OS adapts to every state of the body.",
     "speakerNotes": ""
   },
   {
@@ -84,7 +84,7 @@
     "position": 11,
     "filepath": "src/pages/slides/OSRoadmap.tsx",
     "title": "OS Roadmap",
-    "description": "One OS. Three phases. AI Coach (live 2026, consumer) → Clutch (2027, team SaaS) → Guardian (2028, enterprise + medical). $216B+ TAM, $48B SAM, $1.4B SOM.",
+    "description": "Building the performance layer. AI Coach (2026, consumer) → Clutch (2027, team SaaS) → Guardian (2028, enterprise + medical). $216B+ TAM, $48B SAM, $1.4B SOM.",
     "speakerNotes": ""
   },
   {
@@ -92,7 +92,7 @@
     "position": 12,
     "filepath": "src/pages/slides/OSDashboards.tsx",
     "title": "Dashboards",
-    "description": "Two dashboards, one OS — Clutch puts the coach in command of game-day roster tiers; Guardian gives medical and enterprise teams composite risk + critical alerts on the same loop.",
+    "description": "Performance at scale. Clutch puts the coach in command of game-day roster tiers; Guardian gives medical and enterprise teams composite risk + critical alerts on the same loop. Individual to team to system.",
     "speakerNotes": ""
   },
   {
@@ -100,7 +100,7 @@
     "position": 13,
     "filepath": "src/pages/slides/OSCommunity.tsx",
     "title": "Community",
-    "description": "The AForce League — 12 cities, 84K members competing weekly on Performance Score. New York leads. Every can logs to your zip; the community turns customers into a flywheel.",
+    "description": "Performance becomes visible. The AForce League — 12 cities, 84K members competing weekly on Performance Score. Every can logs to your zip; the community turns customers into a flywheel.",
     "speakerNotes": ""
   },
   {
@@ -108,7 +108,7 @@
     "position": 14,
     "filepath": "src/pages/slides/Market.tsx",
     "title": "Market",
-    "description": "Functional beverages, sports drinks, and stick mixes — all moving toward AForce.",
+    "description": "The performance economy. AForce sits at the intersection of product, behavior, and data — functional beverages, sports drinks, and stick mixes all converging.",
     "speakerNotes": ""
   },
   {
@@ -116,7 +116,7 @@
     "position": 15,
     "filepath": "src/pages/slides/Advantage.tsx",
     "title": "Competitive Advantage",
-    "description": "Performance intelligence platform + closed-loop data + multi-format ecosystem + premium formulation.",
+    "description": "System is the moat. CPG is copied. Systems compound. Others sell products. AForce builds performance infrastructure.",
     "speakerNotes": ""
   },
   {
@@ -124,7 +124,7 @@
     "position": 16,
     "filepath": "src/pages/slides/Competitors.tsx",
     "title": "Competitors",
-    "description": "AForce vs. Liquid IV, LMNT, BodyArmor, Gatorade, Prime — only AForce checks every box.",
+    "description": "No competitor operates a system. AForce vs. Liquid IV, LMNT, BodyArmor, Gatorade, Prime — the category has drinks. AForce has a loop.",
     "speakerNotes": ""
   },
   {
@@ -132,7 +132,7 @@
     "position": 17,
     "filepath": "src/pages/slides/GTM.tsx",
     "title": "Go-To-Market",
-    "description": "Six phases from DTC launch to global category leader and OS licensing.",
+    "description": "Build. Scale. Lead. Six phases from DTC launch to global category leader. Hardware scales. Software compounds. The OS creates retention.",
     "speakerNotes": ""
   },
   {
@@ -140,7 +140,7 @@
     "position": 18,
     "filepath": "src/pages/slides/Traction.tsx",
     "title": "Traction",
-    "description": "$832K closed, 179 launch creators, 2.3M+ combined reach, America's Real Deal Season 2 national TV premiere — pre-launch proof on every axis.",
+    "description": "Momentum before launch. $832K closed, 179 launch creators, 2.3M+ combined reach, America's Real Deal Season 2 national TV premiere. Product ready. System ready. Demand building.",
     "speakerNotes": ""
   },
   {
@@ -148,7 +148,7 @@
     "position": 19,
     "filepath": "src/pages/slides/Year1.tsx",
     "title": "Path to $3.2M",
-    "description": "Year 1 math: 60,000 orders × $52 AOV = $3.2M. Five-stage acquisition→retention engine, H1 DTC+Amazon / H2 retail expansion + national TV catalyst.",
+    "description": "Growth driven by repeat behavior. 60,000 orders × $52 AOV = $3.2M. Five-stage acquisition→retention engine. Performance creates retention. Retention drives revenue.",
     "speakerNotes": ""
   },
   {
@@ -156,7 +156,7 @@
     "position": 20,
     "filepath": "src/pages/slides/Financials.tsx",
     "title": "Financial Projections",
-    "description": "$3.2M (2026) → $13M (2027) → $27.8M (2028). EBITDA breakeven late 2027.",
+    "description": "Scaling a performance system. $3.2M (2026) → $13M (2027) → $27.8M (2028). EBITDA breakeven late 2027. The product creates entry. The system creates compounding value.",
     "speakerNotes": ""
   },
   {

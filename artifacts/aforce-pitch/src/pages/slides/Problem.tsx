@@ -2,9 +2,9 @@ export default function Problem() {
   const failures = [
     {
       label: "Option A",
-      title: "Sugar bombs.",
+      title: "Short bursts. Hard crashes.",
       tags: ["Acid-forming", "Energy crashes", "Engineered for taste"],
-      body: "The shelf's loudest hydration is the one that costs the most performance. Marketed at output — engineered for taste.",
+      body: "Sugar-loaded drinks create quick hits and long-term lows. Marketed at output — engineered for taste.",
       accent: "text-primary",
       ring: "ring-primary/35",
       bar: "bg-primary",
@@ -13,9 +13,9 @@ export default function Problem() {
     },
     {
       label: "Option B",
-      title: "Plain water.",
-      tags: ["No minerals", "No buffer", "Falls short past 30 min"],
-      body: "Hydrates the basics — and nothing else. Minerals lost to sweat are never replaced. The session ends early.",
+      title: "No support. No system.",
+      tags: ["No minerals", "No buffer", "No command"],
+      body: "Plain water helps, but it does not command behavior or sustain performance alone. Minerals lost to sweat are never replaced.",
       accent: "text-text/75",
       ring: "ring-text/25",
       bar: "bg-text/40",
@@ -47,7 +47,7 @@ export default function Problem() {
             <span className="font-body uppercase tracking-[0.32em] text-[1.3vw] text-primary font-semibold">The Shelf</span>
           </div>
           <h2 className="font-display text-[6.2vw] leading-[0.92] tracking-tighter">
-            Performance is <span className="text-primary">broken.</span>
+            Performance is <span className="text-primary">unreliable.</span>
           </h2>
         </div>
         <p className="font-body text-[1.05vw] text-text/65 max-w-[26vw] leading-snug pb-[1vh] text-right">
@@ -93,10 +93,10 @@ export default function Problem() {
             <div className="font-body uppercase tracking-[0.32em] text-[0.85vw] text-primary font-semibold">The Gap</div>
           </div>
           <div className="font-display text-[1.7vw] leading-[1.25] tracking-tight">
-            <span className="text-text/55">Both options fail past minute 30. The body needs </span>
-            <span className="text-text">minerals, alkalinity, and intelligence</span>
-            <span className="text-text/55"> — </span>
-            <span className="text-primary">none of which the shelf provides.</span>
+            <span className="text-text/55">The market fuels </span>
+            <span className="text-text">effort.</span>
+            <span className="text-text/55"> It does not sustain </span>
+            <span className="text-primary">performance.</span>
           </div>
         </div>
       </div>

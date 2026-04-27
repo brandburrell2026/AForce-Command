@@ -96,11 +96,11 @@ export default function GTM() {
             <span className="font-body uppercase tracking-[0.32em] text-[1.3vw] text-accent font-semibold">Roadmap</span>
           </div>
           <h2 className="font-display text-[4.8vw] leading-[0.92] tracking-tighter">
-            Six phases. <span className="text-accent">One arc.</span>
+            Build. Scale. <span className="text-accent">Lead.</span>
           </h2>
         </div>
         <p className="font-body text-[1.05vw] text-text/65 max-w-[28vw] leading-snug pb-[1vh] text-right">
-          <span className="text-text">DTC launch → global category leader → OS licensing.</span> Hardware and software scale on the same timeline.
+          <span className="text-text">Product drives entry. System drives retention.</span> DTC launch → global category leader → OS licensing.
         </p>
       </div>
 
@@ -165,9 +165,8 @@ export default function GTM() {
             <span className="text-text">scales</span>
             <span className="text-text/55">. Software </span>
             <span className="text-text">compounds</span>
-            <span className="text-text/55">. Both arrive at the </span>
-            <span className="text-accent">IPO window</span>
-            <span className="text-text/55"> together.</span>
+            <span className="text-text/55">. The </span>
+            <span className="text-accent">OS creates retention.</span>
           </div>
         </div>
       </div>

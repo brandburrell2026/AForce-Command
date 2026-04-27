@@ -3,7 +3,7 @@ export default function Insight() {
     {
       label: "Buffer",
       title: "Support recovery.",
-      body: "Alkaline mineral content complements the body's natural buffer after hard effort — so the next set starts fresh.",
+      body: "Help the body restore what pressure takes out — so the next set starts fresh.",
       accent: "text-primary",
       ring: "ring-primary/35",
       bar: "bg-primary",
@@ -12,7 +12,7 @@ export default function Insight() {
     {
       label: "Restore",
       title: "Mineral matrix.",
-      body: "Sea-derived ingredients carry electrolytes and trace minerals in their natural form — no synthetic shortcuts, no fillers.",
+      body: "Sea-derived ingredients designed for sustained output — no synthetic shortcuts, no fillers.",
       accent: "text-blue",
       ring: "ring-blue/35",
       bar: "bg-blue",
@@ -20,8 +20,8 @@ export default function Insight() {
     },
     {
       label: "Hold",
-      title: "Built to ride longer.",
-      body: "No added sugar — designed to keep you in the work, not chasing a crash thirty minutes later.",
+      title: "Hold longer.",
+      body: "Built to support consistency across long days and high demand — not chasing a crash thirty minutes later.",
       accent: "text-accent",
       ring: "ring-accent/35",
       bar: "bg-accent",
@@ -52,11 +52,11 @@ export default function Insight() {
             <span className="font-body uppercase tracking-[0.32em] text-[1.3vw] text-accent font-semibold">Insight</span>
           </div>
           <h2 className="font-display text-[5vw] leading-[0.92] tracking-tighter">
-            Performance lives in the <span className="text-accent">buffer.</span>
+            Performance is <span className="text-accent">maintained, not created.</span>
           </h2>
         </div>
         <p className="font-body text-[1.05vw] text-text/65 max-w-[26vw] leading-snug pb-[1vh] text-right">
-          <span className="text-text">Most drinks fight the body. AForce works with it.</span> pH 8.8 is where the buffer lives — and where output gets held.
+          <span className="text-text">The difference is not effort. It is stability.</span> pH 8.8 is where the buffer lives — and where output gets held.
         </p>
       </div>
 
@@ -106,10 +106,10 @@ export default function Insight() {
             <div className="font-body uppercase tracking-[0.32em] text-[0.85vw] text-accent font-semibold">Why 8.8</div>
           </div>
           <div className="font-display text-[1.7vw] leading-[1.25] tracking-tight">
-            <span className="text-text/55">Acidic drinks tax the buffer. </span>
-            <span className="text-text">Alkaline restores it.</span>
-            <span className="text-text/55"> 8.8 is the difference between </span>
-            <span className="text-accent">finishing and crashing.</span>
+            <span className="text-text/55">When the system holds, performance </span>
+            <span className="text-text">compounds.</span>
+            <span className="text-text/55"> When it breaks, </span>
+            <span className="text-accent">everything drops.</span>
           </div>
         </div>
       </div>

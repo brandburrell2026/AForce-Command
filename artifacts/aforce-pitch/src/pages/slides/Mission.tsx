@@ -2,8 +2,8 @@ export default function Mission() {
   const tenets = [
     {
       not: "flavor first",
-      but: "Engineered for output.",
-      body: "Mineral-dense, alkaline-buffered, clinically grounded — formulated for the body that has work to do.",
+      but: "Built for pressure.",
+      body: "Clean hydration designed for output — formulated for the body that has work to do.",
       accent: "text-accent",
       ring: "ring-accent/35",
       bar: "bg-accent",
@@ -11,8 +11,8 @@ export default function Mission() {
     },
     {
       not: "sugar from a lab",
-      but: "Minerals from the sea.",
-      body: "Functional ingredients pulled from sources the body recognizes — clean label, no compromises, no marketing additives.",
+      but: "Engineered for consistency.",
+      body: "Minerals and functionals that support the body when demand rises — no compromises, no marketing additives.",
       accent: "text-blue",
       ring: "ring-blue/35",
       bar: "bg-blue",
@@ -20,8 +20,8 @@ export default function Mission() {
     },
     {
       not: "built to coast",
-      but: "Built to compound.",
-      body: "Every drink, every signal, every cycle stacks — turning every sip into performance that compounds with use.",
+      but: "Designed to deliver under stress.",
+      body: "Daily fuel for long days, training, travel, heat, and pressure — performance that compounds with use.",
       accent: "text-primary",
       ring: "ring-primary/35",
       bar: "bg-primary",
@@ -52,11 +52,11 @@ export default function Mission() {
             <span className="font-body uppercase tracking-[0.32em] text-[1.3vw] text-accent font-semibold">Mission</span>
           </div>
           <h2 className="font-display text-[4.4vw] leading-[0.95] tracking-tighter">
-            Performance you can measure. <span className="text-accent">Not advertising you can ignore.</span>
+            Performance, <span className="text-accent">when it matters.</span>
           </h2>
         </div>
         <p className="font-body text-[1.05vw] text-text/65 max-w-[26vw] leading-snug pb-[1vh] text-right">
-          <span className="text-text">For traders, operators, founders, and decision-makers under pressure</span> — judged by how they perform, not by what they say.
+          <span className="text-text">For people who cannot afford to be off</span> — judged by how they perform, not by what they say.
         </p>
       </div>
 
@@ -89,10 +89,10 @@ export default function Mission() {
             <div className="font-body uppercase tracking-[0.32em] text-[0.85vw] text-accent font-semibold">Who We're For</div>
           </div>
           <div className="font-display text-[1.7vw] leading-[1.25] tracking-tight">
-            <span className="text-text/55">For the people who don't get a </span>
-            <span className="text-text">second chance</span>
-            <span className="text-text/55"> in the moment — and </span>
-            <span className="text-accent">still deliver.</span>
+            <span className="text-text/55">For people who treat performance as a </span>
+            <span className="text-text">standard</span>
+            <span className="text-text/55">, not a </span>
+            <span className="text-accent">goal.</span>
           </div>
         </div>
       </div>

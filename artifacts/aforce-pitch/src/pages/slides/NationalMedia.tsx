@@ -3,7 +3,7 @@ export default function NationalMedia() {
     {
       num: "01",
       title: "National Brand Visibility",
-      body: "Millions of viewers introduced to AForce at the exact moment of launch.",
+      body: "A launch moment amplified by national media — millions introduced to AForce at the exact moment of launch.",
       accent: "text-accent",
       ring: "ring-accent/35",
       bar: "bg-accent",
@@ -12,7 +12,7 @@ export default function NationalMedia() {
     {
       num: "02",
       title: "Retail Buyer Awareness",
-      body: "Accelerates conversations with major retail buyers seeking momentum brands.",
+      body: "A strong story for buyers looking for differentiated functional beverages — accelerating major retail conversations.",
       accent: "text-blue",
       ring: "ring-blue/35",
       bar: "bg-blue",
@@ -21,7 +21,7 @@ export default function NationalMedia() {
     {
       num: "03",
       title: "Investor Attention",
-      body: "Primetime visibility signals market validation during the early-growth window.",
+      body: "A media catalyst aligned with capital raising — primetime visibility signals validation during the early-growth window.",
       accent: "text-primary",
       ring: "ring-primary/35",
       bar: "bg-primary",
@@ -30,7 +30,7 @@ export default function NationalMedia() {
     {
       num: "04",
       title: "Launch Momentum",
-      body: "TV exposure synced with the first production run drives rapid trial and shelf velocity.",
+      body: "Visibility meets availability — TV exposure synced with the first production run drives rapid trial and shelf velocity.",
       accent: "text-text",
       ring: "ring-text/25",
       bar: "bg-text/70",
@@ -88,11 +88,11 @@ export default function NationalMedia() {
             <span className="font-body uppercase tracking-[0.32em] text-[1.3vw] text-accent font-semibold">Launch Catalyst</span>
           </div>
           <h2 className="font-display text-[4.8vw] leading-[0.92] tracking-tighter">
-            <span className="text-accent">National TV.</span> Synced to launch.
+            <span className="text-accent">National attention</span> at the moment of launch.
           </h2>
         </div>
         <p className="font-body text-[1.05vw] text-text/65 max-w-[28vw] leading-snug pb-[1vh] text-right">
-          AForce selected for <span className="text-text font-semibold">America's Real Deal — Season 2</span>. Nationally distributed on Amazon Prime + syndicated TV. Timed precisely with our Spring 2026 launch.
+          <span className="text-text">AForce enters market with national visibility, product availability, and a clear performance story.</span> Selected for America's Real Deal — Season 2.
         </p>
       </div>
 
@@ -141,11 +141,10 @@ export default function NationalMedia() {
             <div className="font-body uppercase tracking-[0.32em] text-[0.85vw] text-accent font-semibold">Perfect Timing</div>
           </div>
           <div className="font-display text-[1.6vw] leading-[1.25] tracking-tight">
-            <span className="text-text/55">Spring: </span>
-            <span className="text-text">launch</span>
-            <span className="text-text/55">. Fall: </span>
-            <span className="text-accent">primetime</span>
-            <span className="text-text/55">. The two events compound — visibility lands the moment shelves stock.</span>
+            <span className="text-text/55">Visibility meets </span>
+            <span className="text-text">availability</span>
+            <span className="text-text/55">. Demand meets </span>
+            <span className="text-accent">supply.</span>
           </div>
         </div>
       </div>

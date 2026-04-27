@@ -18,14 +18,13 @@ export default function System() {
           <div className="font-body uppercase tracking-[0.32em] text-[0.95vw] text-primary font-semibold">The Lineup</div>
         </div>
         <h1 className="font-display leading-[0.9] tracking-tighter text-balance text-[4.4vw]">
-          <span className="text-text">Three flavors. </span>
-          <span className="text-accent">Two formats.</span>
-          <span className="text-text"> One </span>
+          <span className="text-text">One </span>
           <span className="text-primary">system.</span>
+          <span className="text-text"> Delivered through </span>
+          <span className="text-accent">product.</span>
         </h1>
         <div className="font-body text-[1vw] text-text/60 mt-[1.2vh] max-w-[78vw] leading-tight">
-          A complete performance system — ready to ship.{" "}
-          <span className="text-text/85">Three signature flavors, each cut with a sea-grown botanical, available in cans for the cooler and sticks for the road.</span>
+          <span className="text-text/85">Three signature flavors. Two formats. One performance loop.</span>
         </div>
       </div>
 
@@ -40,7 +39,7 @@ export default function System() {
           <div className="font-body uppercase tracking-[0.28em] text-[0.7vw] text-blue font-semibold mb-[0.6vh]">Flavor 01</div>
           <div className="font-display text-[1.8vw] leading-[1] tracking-tight text-text mb-[0.3vh]">Berry Blast</div>
           <div className="font-body uppercase tracking-[0.22em] text-[0.8vw] text-blue mb-[0.8vh]">+ Dulse</div>
-          <div className="font-body text-[0.8vw] text-text/65 leading-snug mb-auto">Antioxidants and trace minerals from a sea vegetable rich in iodine, iron, and potassium.</div>
+          <div className="font-body text-[0.8vw] text-text/65 leading-snug mb-auto">For recovery, minerals, and daily control. A sea vegetable rich in iodine, iron, and potassium.</div>
           <div className="pt-[1vh] border-t border-blue/20 mt-[1vh]">
             <div className="font-body text-[0.7vw] text-text/55 uppercase tracking-[0.2em]">325ml Can · 14g Stick</div>
           </div>
@@ -55,7 +54,7 @@ export default function System() {
           <div className="font-body uppercase tracking-[0.28em] text-[0.7vw] text-primary font-semibold mb-[0.6vh]">Flavor 02</div>
           <div className="font-display text-[1.8vw] leading-[1] tracking-tight text-text mb-[0.3vh]">Watermelon Surge</div>
           <div className="font-body uppercase tracking-[0.22em] text-[0.8vw] text-primary mb-[0.8vh]">+ Chlorella</div>
-          <div className="font-body text-[0.8vw] text-text/65 leading-snug mb-auto">Natural electrolytes and L-citrulline paired with a green-algae superfood for clean output.</div>
+          <div className="font-body text-[0.8vw] text-text/65 leading-snug mb-auto">For heat, stress, and performance correction. Natural electrolytes paired with a green-algae superfood.</div>
           <div className="pt-[1vh] border-t border-primary/20 mt-[1vh]">
             <div className="font-body text-[0.7vw] text-text/55 uppercase tracking-[0.2em]">325ml Can · 14g Stick</div>
           </div>
@@ -70,7 +69,7 @@ export default function System() {
           <div className="font-body uppercase tracking-[0.28em] text-[0.7vw] text-accent font-semibold mb-[0.6vh]">Flavor 03</div>
           <div className="font-display text-[1.8vw] leading-[1] tracking-tight text-text mb-[0.3vh]">Soursop Edge</div>
           <div className="font-body uppercase tracking-[0.22em] text-[0.8vw] text-accent mb-[0.8vh]">+ Sea Moss</div>
-          <div className="font-body text-[0.8vw] text-text/65 leading-snug mb-auto">92 minerals from one ocean-grown botanical — iodine, magnesium, zinc, and selenium in a single plant.</div>
+          <div className="font-body text-[0.8vw] text-text/65 leading-snug mb-auto">For deep recovery, minerals, and sustained support. 92 minerals from one ocean-grown botanical.</div>
           <div className="pt-[1vh] border-t border-accent/20 mt-[1vh]">
             <div className="font-body text-[0.7vw] text-text/55 uppercase tracking-[0.2em]">325ml Can · 14g Stick</div>
           </div>
@@ -84,7 +83,7 @@ export default function System() {
         </div>
         <div className="border-t border-text/10 pt-[1.6vh] grid grid-cols-[1.4fr_1fr] gap-[2vw] items-baseline">
           <h3 className="font-display text-[2.1vw] leading-[1.05] tracking-tight text-text/95 text-balance">
-            One <span className="text-primary">system.</span> Three <span className="text-accent">signature</span> flavors. Two <span className="text-blue">travel-ready</span> formats.
+            Every <span className="text-blue">format</span> serves the same outcome: <span className="text-primary">sustained</span> <span className="text-accent">performance.</span>
           </h3>
           <div className="font-body text-[0.85vw] text-text/55 uppercase tracking-[0.22em] text-right whitespace-nowrap leading-snug">
             Spring 2026 launch<br/>

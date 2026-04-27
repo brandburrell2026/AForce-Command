@@ -4,9 +4,9 @@ export default function Competitors() {
     ["Alkaline (pH 8.8+)",    true,  false, false, false, false, false],
     ["Functional Superfoods", true,  false, false, false, false, false],
     ["Subscription Platform", true,  "warn", "warn", false, false, false],
-    ["AI Performance Coaching", true,  false, false, false, false, false],
+    ["AI Hydration Coaching", true,  false, false, false, false, false],
     ["Wearable Integration",  true,  false, false, false, false, false],
-    ["Performance Intelligence",true,  false, false, false, false, false],
+    ["Hydration Intelligence",true,  false, false, false, false, false],
     ["Behavioral Data",       true,  false, false, false, false, false],
   ] as const;
 
@@ -24,15 +24,18 @@ export default function Competitors() {
       </div>
 
       <div className="absolute top-[14vh] left-[6vw] right-[6vw] flex justify-between items-end gap-[3vw]">
-        <h2 className="font-display text-[5.5vw] leading-[0.95] tracking-tighter text-balance">
-          AForce vs. <span className="text-primary">competitors.</span>
-        </h2>
+        <div className="min-w-0 flex-1">
+          <div className="font-body uppercase tracking-[0.32em] text-[1vw] text-primary font-semibold mb-[1vh]">No competitor operates a system.</div>
+          <h2 className="font-display text-[5.5vw] leading-[0.95] tracking-tighter text-balance">
+            AForce vs. <span className="text-primary">competitors.</span>
+          </h2>
+        </div>
         <p className="font-body text-[1.15vw] text-text/70 max-w-[34vw] leading-snug pb-[1vh]">
-          AForce is the only performance brand combining clean ingredients, functional superfoods, a digital performance platform, AI performance coaching, and wearable integration — a combination no competitor currently offers.
+          AForce combines clean ingredients, functional performance, AI hydration coaching, behavioral data, and wearable-ready integration — a combination no competitor offers.
         </p>
       </div>
 
-      <div className="absolute bottom-[6vh] left-[6vw] right-[6vw] bg-bg-elev rounded-lg border border-text/10 overflow-hidden">
+      <div className="absolute bottom-[14vh] left-[6vw] right-[6vw] bg-bg-elev rounded-lg border border-text/10 overflow-hidden">
         <div className="grid grid-cols-[1.6fr_repeat(6,1fr)] px-[1.4vw] py-[1.4vh] border-b border-text/10 font-body uppercase tracking-[0.22em] text-[0.95vw]">
           <div className="text-muted">Feature</div>
           <div className="text-center text-primary font-semibold">AForce</div>
@@ -50,6 +53,17 @@ export default function Competitors() {
             ))}
           </div>
         ))}
+      </div>
+
+      <div className="absolute bottom-[4vh] left-[6vw] right-[6vw]">
+        <div className="border-t border-text/10 pt-[1.4vh]">
+          <div className="font-display text-[1.6vw] leading-[1.25] tracking-tight">
+            <span className="text-text/55">The category has </span>
+            <span className="text-text">drinks.</span>
+            <span className="text-text/55"> AForce has a </span>
+            <span className="text-primary">loop.</span>
+          </div>
+        </div>
       </div>
     </div>
   );

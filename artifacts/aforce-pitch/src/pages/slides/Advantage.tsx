@@ -4,7 +4,7 @@ export default function Advantage() {
       moat: "Product Moat",
       num: "01",
       title: "Premium Formulation",
-      body: "Mineral-based hydration at pH 8.8 — clean-label, clinically relevant ingredients for performance, recovery, and longevity.",
+      body: "Premium formulation with alkaline minerals and sea-derived functionals for performance, recovery, and longevity.",
       defense: "Years of formulation IP. Not a SKU swap.",
       accent: "text-primary",
       ring: "ring-primary/35",
@@ -15,7 +15,7 @@ export default function Advantage() {
       moat: "Distribution Moat",
       num: "02",
       title: "Multi-Format Ecosystem",
-      body: "Sticks for the road. Cans for the cooler. Energy for the lift. Canisters for the kitchen — every occasion, one brand.",
+      body: "Multi-format ecosystem across cans, sticks, subscriptions, and retail — every occasion, one brand.",
       defense: "Compounds usage occasions and basket size.",
       accent: "text-blue",
       ring: "ring-blue/35",
@@ -26,7 +26,7 @@ export default function Advantage() {
       moat: "Data Moat",
       num: "03",
       title: "Closed-Loop Data",
-      body: "Every sip feeds AForce OS. Every signal sharpens the next recommendation — a model that gets smarter every day.",
+      body: "Closed-loop behavior and performance data. Every signal sharpens the next recommendation — the model gets smarter every day.",
       defense: "First-mover compounding. Not catchable by SKUs.",
       accent: "text-accent",
       ring: "ring-accent/35",
@@ -37,7 +37,7 @@ export default function Advantage() {
       moat: "Software Moat",
       num: "04",
       title: "AForce OS",
-      body: "Real-time performance engine that tracks, learns, and optimizes user behavior across the entire product system.",
+      body: "AForce OS turns product usage into daily performance intelligence — tracking, learning, and optimizing behavior across the system.",
       defense: "No CPG brand has built this. No SaaS brand has the can.",
       accent: "text-text",
       ring: "ring-text/25",
@@ -73,11 +73,11 @@ export default function Advantage() {
             <span className="font-body uppercase tracking-[0.32em] text-[1.3vw] text-blue font-semibold">Structural Advantage</span>
           </div>
           <h2 className="font-display text-[5.4vw] leading-[0.92] tracking-tighter">
-            Hybrid is <span className="text-blue">the moat.</span>
+            System is <span className="text-blue">the moat.</span>
           </h2>
         </div>
         <p className="font-body text-[1.05vw] text-text/65 max-w-[26vw] leading-snug pb-[1vh] text-right">
-          <span className="text-text">CPG × SaaS.</span> Four reinforcing pillars no competitor has assembled — and the operating system that fuses them into one.
+          <span className="text-text">CPG is copied. Systems compound.</span> Four reinforcing moats no competitor has assembled — fused into one operating system.
         </p>
       </div>
 
@@ -117,14 +117,10 @@ export default function Advantage() {
             <div className="font-body uppercase tracking-[0.32em] text-[0.85vw] text-blue font-semibold">Asymmetric to the Field</div>
           </div>
           <div className="font-display text-[1.6vw] leading-[1.25] tracking-tight">
-            <span className="text-text/55">Liquid I.V. has the </span>
-            <span className="text-text">formula</span>
-            <span className="text-text/55">. Gatorade has the </span>
-            <span className="text-text">shelf</span>
-            <span className="text-text/55">. Whoop has the </span>
-            <span className="text-text">data</span>
-            <span className="text-text/55">.{" "}</span>
-            <span className="text-blue">Only AForce assembles all four — and the operating system that ties them together.</span>
+            <span className="text-text/55">Others sell </span>
+            <span className="text-text">products.</span>
+            <span className="text-text/55"> AForce builds </span>
+            <span className="text-blue">performance infrastructure.</span>
           </div>
         </div>
       </div>

@@ -4,7 +4,7 @@ export default function OSLoop() {
       pos: "top-0 left-0",
       num: "01",
       stage: "Drink",
-      title: "A can or a stick.",
+      title: "A can or stick fuels the body.",
       body: "pH 8.8 hydration enters the body. The first signal goes out.",
       accent: "text-blue",
       ring: "ring-blue/35",
@@ -15,8 +15,8 @@ export default function OSLoop() {
       pos: "top-0 right-0",
       num: "02",
       stage: "Score",
-      title: "Body becomes data.",
-      body: "Intake, sweat, weather, and recovery feed the Performance Score.",
+      title: "The system reads the body.",
+      body: "Intake, sweat, weather, and recovery update the performance state.",
       accent: "text-accent",
       ring: "ring-accent/35",
       bar: "bg-accent",
@@ -26,7 +26,7 @@ export default function OSLoop() {
       pos: "bottom-0 right-0",
       num: "03",
       stage: "Coach",
-      title: "AI calls the move.",
+      title: "AI delivers the next command.",
       body: "Mode-aware voice. One-tap action. The right product, in the right moment.",
       accent: "text-primary",
       ring: "ring-primary/35",
@@ -37,7 +37,7 @@ export default function OSLoop() {
       pos: "bottom-0 left-0",
       num: "04",
       stage: "Decide",
-      title: "Drink the next one.",
+      title: "The user acts. The loop repeats.",
       body: "Reorder is one tap. The next cycle starts smarter than the last.",
       accent: "text-text",
       ring: "ring-text/25",
@@ -73,11 +73,11 @@ export default function OSLoop() {
             <span className="font-body uppercase tracking-[0.32em] text-[1.3vw] text-primary font-semibold">Hardware × Software</span>
           </div>
           <h2 className="font-display text-[4.4vw] leading-[0.92] tracking-tighter">
-            One closed loop. <span className="text-primary">Compounding data.</span>
+            Performance <span className="text-primary">loop.</span>
           </h2>
         </div>
         <p className="font-body text-[1.05vw] text-text/65 max-w-[26vw] leading-snug pb-[1vh] text-right">
-          <span className="text-text">Hardware captures. Software learns.</span> Every cycle sharpens the next — and the longer a customer is in the loop, the harder it is to leave.
+          <span className="text-text">Product plus software creates a closed loop that improves with every cycle.</span> The longer a customer is in the loop, the harder it is to leave.
         </p>
       </div>
 
@@ -139,7 +139,7 @@ export default function OSLoop() {
               <div className="text-center relative">
                 <div className="font-display text-[4.2vw] leading-none text-primary">↻</div>
                 <div className="font-body uppercase tracking-[0.32em] text-[0.78vw] text-text/55 mt-[1.6vh] font-semibold">Every Cycle</div>
-                <div className="font-display text-[1.6vw] leading-none text-text mt-[0.6vh]">Tighter.</div>
+                <div className="font-display text-[1.6vw] leading-none text-text mt-[0.6vh]">Improves the next.</div>
               </div>
             </div>
           </div>
@@ -153,10 +153,10 @@ export default function OSLoop() {
             <div className="font-body uppercase tracking-[0.32em] text-[0.85vw] text-primary font-semibold">The Compounding Moat</div>
           </div>
           <div className="font-display text-[1.7vw] leading-[1.25] tracking-tight">
-            <span className="text-text/55">Cycle 1: </span>
-            <span className="text-text">a smart drink</span>
-            <span className="text-text/55">. Cycle 100: </span>
-            <span className="text-primary">an operating system you can't replace.</span>
+            <span className="text-text/55">This is not a </span>
+            <span className="text-text">product cycle.</span>
+            <span className="text-text/55"> It is a </span>
+            <span className="text-primary">performance system.</span>
           </div>
         </div>
       </div>

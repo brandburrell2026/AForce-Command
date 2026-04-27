@@ -4,7 +4,7 @@ export default function Market() {
       label: "Functional Beverages",
       amount: "$200B+",
       tag: "Fastest growing",
-      body: "Fastest-growing slice of global beverage. Premium hydration leads it — clean labels, function over flavor.",
+      body: "Consumers want cleaner functional fuel. Premium hydration leads it — clean labels, function over flavor.",
       capture: "Clean-label, mineral-dense formulation",
       accent: "text-primary",
       ring: "ring-primary/35",
@@ -15,7 +15,7 @@ export default function Market() {
       label: "Sports Drinks",
       amount: "$30B+",
       tag: "Wide open at the top",
-      body: "Owned by sugar legacy brands. Wide open at the clean, alkaline end — no incumbent has earned it yet.",
+      body: "Athletes and high-output users want performance without the crash. The clean, alkaline end is wide open.",
       capture: "Performance use case, no sugar, alkaline base",
       accent: "text-blue",
       ring: "ring-blue/35",
@@ -26,7 +26,7 @@ export default function Market() {
       label: "Hydration Mixes",
       amount: "$5B+",
       tag: "Exploding category",
-      body: "Stick category exploding. No alkaline, sea-functional player operating at scale today.",
+      body: "Convenience is rising, but intelligence is missing. No alkaline, sea-functional player operates here at scale.",
       capture: "Stick-mix convenience + functional formula",
       accent: "text-accent",
       ring: "ring-accent/35",
@@ -62,11 +62,11 @@ export default function Market() {
             <span className="font-body uppercase tracking-[0.32em] text-[1.3vw] text-accent font-semibold">Market</span>
           </div>
           <h2 className="font-display text-[5.2vw] leading-[0.92] tracking-tighter">
-            The new performance <span className="text-accent">economy.</span>
+            The performance <span className="text-accent">economy.</span>
           </h2>
         </div>
         <p className="font-body text-[1.05vw] text-text/65 max-w-[28vw] leading-snug pb-[1vh] text-right">
-          <span className="text-text">Three tides moving in the same direction.</span> Functional beverages, sports drinks, and stick mixes — all converging on clean, alkaline, sea-functional hydration.
+          <span className="text-text">Functional beverages, sports drinks, and hydration mixes are converging into one demand:</span> sustained performance.
         </p>
       </div>
 
@@ -99,8 +99,8 @@ export default function Market() {
             <div className="font-body uppercase tracking-[0.32em] text-[0.85vw] text-accent font-semibold">The Intersection</div>
           </div>
           <div className="font-display text-[1.6vw] leading-[1.25] tracking-tight">
-            <span className="text-text/55">AForce is the only player engineered for </span>
-            <span className="text-text">all three.</span>
+            <span className="text-text/55">AForce sits at the intersection of </span>
+            <span className="text-text">product, behavior, and data.</span>
             <span className="text-text/55"> Functional formula · sports use case · stick convenience — </span>
             <span className="text-accent">$235B+ at the intersection.</span>
           </div>

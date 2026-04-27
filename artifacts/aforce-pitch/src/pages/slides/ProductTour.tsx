@@ -27,10 +27,10 @@ export default function ProductTour() {
           <span className="font-body uppercase tracking-[0.32em] text-[1.05vw] text-accent font-semibold">AForce OS · In Your Pocket</span>
         </div>
         <h2 className="font-display text-[5vw] leading-[0.92] tracking-tighter">
-          Three modes. <span className="text-accent">One loop.</span>
+          One system. <span className="text-accent">Multiple states.</span>
         </h2>
         <p className="mt-[1.4vh] font-body text-[1.1vw] text-text/65 leading-snug max-w-[60vw]">
-          The same OS adapts to every state of the body — <span className="text-text">peak, social, and recovery.</span> Drink → Score → Coach → Decide.
+          <span className="text-text">AForce OS adapts to the user's state and turns behavior into performance.</span> Drink → Score → Coach → Decide.
         </p>
       </div>
 
@@ -125,7 +125,7 @@ export default function ProductTour() {
             </div>
           </div>
           <div className="mt-[1.4vh] text-center max-w-[18vw]">
-            <div className="font-display text-[1.15vw] leading-tight tracking-tight">Real-time performance score.</div>
+            <div className="font-display text-[1.15vw] leading-tight tracking-tight">Real-time performance awareness.</div>
             <div className="font-body text-[0.85vw] text-text/55 mt-[0.4vh] leading-snug">One number. Updated every minute from temp, sweat, heart-rate, and intake.</div>
           </div>
         </div>
@@ -280,8 +280,8 @@ export default function ProductTour() {
             </div>
           </div>
           <div className="mt-[1.4vh] text-center max-w-[18vw]">
-            <div className="font-display text-[1.15vw] leading-tight tracking-tight">Live BAC. Live risk.</div>
-            <div className="font-body text-[0.85vw] text-text/55 mt-[0.4vh] leading-snug">One tap to log. The OS warns before you drive — and pre-stages recovery.</div>
+            <div className="font-display text-[1.15vw] leading-tight tracking-tight">Control while drinking.</div>
+            <div className="font-body text-[0.85vw] text-text/55 mt-[0.4vh] leading-snug">Live BAC estimate. Hydration prompts. Recovery window — pre-staged before you need it.</div>
           </div>
         </div>
 

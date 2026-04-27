@@ -17,13 +17,12 @@ export default function Traction() {
           <div className="font-body uppercase tracking-[0.32em] text-[0.95vw] text-primary font-semibold">Proof Before Launch</div>
         </div>
         <h1 className="font-display leading-[0.9] tracking-tighter text-balance text-[5vw]">
-          <span className="text-text">Billion-dollar </span>
-          <span className="text-primary">proof.</span>
-          <span className="text-text"> Pre-launch.</span>
+          <span className="text-text">Momentum before </span>
+          <span className="text-primary">launch.</span>
         </h1>
         <div className="font-body text-[1.1vw] text-text/60 mt-[1.6vh] max-w-[78vw] leading-tight">
-          We've raised, signed, and booked our launch — before a single can has shipped.{" "}
-          <span className="text-text/85">Capital, creators, audience, and a national television catalyst, all in hand for Spring 2026.</span>
+          Capital, product, audience, and media are aligning before national rollout.{" "}
+          <span className="text-text/85">$832K committed. 179 launch creators. 2.3M+ combined reach. National TV catalyst booked.</span>
         </div>
       </div>
 
@@ -81,9 +80,9 @@ export default function Traction() {
         </div>
         <div className="border-t border-text/10 pt-[1.6vh] grid grid-cols-[1.4fr_1fr] gap-[2vw] items-baseline">
           <h3 className="font-display text-[2.1vw] leading-[1.05] tracking-tight text-text/95 text-balance">
-            Performance <span className="text-primary">formulas locked.</span>{" "}
-            OS <span className="text-blue">product-ready.</span>{" "}
-            Retail <span className="text-accent">conversations live.</span>
+            Product <span className="text-primary">ready.</span>{" "}
+            System <span className="text-blue">ready.</span>{" "}
+            Demand <span className="text-accent">building.</span>
           </h3>
           <div className="font-body text-[0.85vw] text-text/55 uppercase tracking-[0.22em] text-right whitespace-nowrap leading-snug">
             Suppliers · Q2 2026 retail rollout<br/>

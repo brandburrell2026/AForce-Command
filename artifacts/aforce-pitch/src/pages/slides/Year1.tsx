@@ -21,7 +21,7 @@ export default function Year1() {
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-[1.2vw] mb-[1.4vh]">
             <div className="h-[2px] w-[5vw] bg-blue" />
-            <span className="font-body uppercase tracking-[0.32em] text-[1.3vw] text-blue font-semibold">Year 1 · 2026</span>
+            <span className="font-body uppercase tracking-[0.32em] text-[1.3vw] text-blue font-semibold">Growth driven by repeat behavior</span>
           </div>
           <h2 className="font-display text-[3.6vw] leading-[0.95] tracking-tighter whitespace-nowrap">
             <span className="text-blue">60,000</span>
@@ -32,7 +32,7 @@ export default function Year1() {
           </h2>
         </div>
         <p className="font-body text-[1.05vw] text-text/65 max-w-[24vw] leading-snug pb-[1vh] text-right">
-          A DTC + Amazon engine in H1, retail expansion and national TV amplification in H2 — the same customers buying 5–7× a year.
+          DTC, Amazon, retail activation, and OS subscription work together to drive repeat purchase.
         </p>
       </div>
 
@@ -45,10 +45,10 @@ export default function Year1() {
         <div className="grid grid-cols-[1fr_auto_1fr_auto_1fr_auto_1fr_auto_1fr] items-stretch gap-x-[0.6vw]">
           {[
             { stage: "Acquire", title: "Meta + Google", body: "Paid + creators · top-of-funnel intent capture", color: "text-blue", border: "border-blue/40" },
-            { stage: "Capture", title: "Performance Quiz", body: "Email + SMS opt-in · qualified lead", color: "text-text", border: "border-text/20" },
-            { stage: "Activate", title: "7-Day Starter Bundle", body: "Habit-forming first purchase · proves the product", color: "text-primary", border: "border-primary/40" },
-            { stage: "Retain", title: "Email · SMS · Retargeting", body: "Repeat purchases on sticks, drinks, canisters", color: "text-text", border: "border-text/20" },
-            { stage: "Expand LTV", title: "AForce OS Subscription", body: "Recurring software layer · the multiplier", color: "text-accent", border: "border-accent/40" },
+            { stage: "Capture", title: "Hydration Quiz", body: "Converts intent · email + SMS opt-in · qualified lead", color: "text-text", border: "border-text/20" },
+            { stage: "Activate", title: "7-Day Starter Bundle", body: "Creates first protocol · habit-forming · proves the product", color: "text-primary", border: "border-primary/40" },
+            { stage: "Retain", title: "Email · SMS · Retargeting", body: "Drives repeat purchases on sticks, drinks, canisters", color: "text-text", border: "border-text/20" },
+            { stage: "Expand", title: "AForce OS Subscription", body: "Deepens retention · recurring software layer", color: "text-accent", border: "border-accent/40" },
           ].map((s, i, arr) => (
             <Fragment key={i}>
               <div className={`relative rounded-xl border ${s.border} bg-bg-elev/40 p-[1.1vw] flex flex-col`}>
@@ -96,6 +96,10 @@ export default function Year1() {
       </div>
 
       <div className="absolute bottom-[5vh] left-[6vw] right-[6vw]">
+        <div className="font-display text-[1.3vw] leading-tight tracking-tight mb-[1.6vh]">
+          <span className="text-text/55">Performance creates retention. </span>
+          <span className="text-accent">Retention drives revenue.</span>
+        </div>
         <div className="border-t border-text/10 pt-[2vh] grid grid-cols-4 gap-[1.4vw]">
           <div>
             <div className="font-display text-[2.4vw] leading-none tracking-tight text-primary">$52</div>

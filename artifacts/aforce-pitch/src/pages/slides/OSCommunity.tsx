@@ -54,12 +54,12 @@ export default function OSCommunity() {
           <div className="font-body uppercase tracking-[0.32em] text-[0.95vw] text-primary font-semibold">From the OS to the Streets</div>
         </div>
         <h1 className="font-display leading-[0.9] tracking-tighter text-balance text-[5vw]">
-          <span className="text-text">The </span>
-          <span className="text-primary">AForce League.</span>
+          <span className="text-text">Performance becomes </span>
+          <span className="text-primary">visible.</span>
         </h1>
         <div className="font-body text-[1.05vw] text-text/60 mt-[1.6vh] max-w-[62vw] leading-tight">
-          Every can, every stick, every sip is logged to your city. Cities compete weekly on average Performance Score —
-          <span className="text-text/85"> the loop becomes a movement.</span>
+          Every user, team, and city contributes to a performance network.
+          <span className="text-text/85"> City leaderboard. Heat map. The AForce League.</span>
         </div>
       </div>
 

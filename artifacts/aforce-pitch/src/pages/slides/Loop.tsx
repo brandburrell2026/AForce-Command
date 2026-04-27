@@ -18,12 +18,11 @@ export default function Loop() {
           <div className="font-body uppercase tracking-[0.32em] text-[0.95vw] text-primary font-semibold">Two Formats · One System</div>
         </div>
         <h1 className="font-display leading-[0.9] tracking-tighter text-balance text-[5vw]">
-          <span className="text-text">Anytime. </span>
-          <span className="text-accent">Anywhere.</span>
+          <span className="text-text">Performance, in every </span>
+          <span className="text-accent">moment.</span>
         </h1>
         <div className="font-body text-[1.1vw] text-text/60 mt-[1.6vh] max-w-[78vw] leading-tight">
-          Same performance. Two travel-ready formats.{" "}
-          <span className="text-text/85">Cans for the cooler, sticks for the road — designed to follow you through the day.</span>
+          <span className="text-text/85">Same system. Two formats built for different moments of use.</span>
         </div>
       </div>
 
@@ -36,10 +35,10 @@ export default function Loop() {
             <img src={`${base}stick-soursop.png`} alt="" className="h-[19vh] object-contain drop-shadow-2xl -ml-[1.2vw]" />
           </div>
           <div className="flex-1 min-w-0 flex flex-col">
-            <div className="font-body uppercase tracking-[0.28em] text-[0.85vw] text-accent font-semibold mb-[1.2vh]">Format 01 · Ready Cold</div>
+            <div className="font-body uppercase tracking-[0.28em] text-[0.85vw] text-accent font-semibold mb-[1.2vh]">Format 01 · For Sustained Output</div>
             <div className="font-display text-[3.2vw] leading-[1] tracking-tight text-text mb-[1vh]">The <span className="text-accent">Can.</span></div>
             <div className="font-display text-[1.4vw] text-accent leading-none mb-[1.4vh]">11oz · 325ml</div>
-            <div className="font-body text-[1vw] text-text/75 leading-snug mb-auto">Built for the fridge, the gym bag, and the checkout cooler. Premium grab-and-go.</div>
+            <div className="font-body text-[1vw] text-text/75 leading-snug mb-auto">Ready cold. Built for the fridge, gym bag, office, and high-demand days.</div>
             <div className="pt-[1.4vh] border-t border-accent/20 mt-[1.6vh]">
               <div className="font-body text-[0.8vw] text-text/55 uppercase tracking-[0.22em]">Cooler · Gym · Checkout</div>
             </div>
@@ -53,10 +52,10 @@ export default function Loop() {
             <img src={`${base}stick-watermelon.png?v=5`} alt="" className="h-[30vh] object-contain drop-shadow-2xl -ml-[1vw]" />
           </div>
           <div className="flex-1 min-w-0 flex flex-col">
-            <div className="font-body uppercase tracking-[0.28em] text-[0.85vw] text-primary font-semibold mb-[1.2vh]">Format 02 · Pocket-Sized</div>
+            <div className="font-body uppercase tracking-[0.28em] text-[0.85vw] text-primary font-semibold mb-[1.2vh]">Format 02 · For Immediate Correction</div>
             <div className="font-display text-[3.2vw] leading-[1] tracking-tight text-text mb-[1vh]">The <span className="text-primary">Stick.</span></div>
             <div className="font-display text-[1.4vw] text-primary leading-none mb-[1.4vh]">14g · 0.49oz</div>
-            <div className="font-body text-[1vw] text-text/75 leading-snug mb-auto">Drops into any bottle. Goes anywhere a can can't — travel, office, hotel, hike.</div>
+            <div className="font-body text-[1vw] text-text/75 leading-snug mb-auto">Portable protocol fuel for travel, office, training, and social settings.</div>
             <div className="pt-[1.4vh] border-t border-primary/20 mt-[1.6vh]">
               <div className="font-body text-[0.8vw] text-text/55 uppercase tracking-[0.22em]">Travel · Office · Trail</div>
             </div>
@@ -71,7 +70,7 @@ export default function Loop() {
         </div>
         <div className="border-t border-text/10 pt-[1.6vh] grid grid-cols-[1.4fr_1fr] gap-[2vw] items-baseline">
           <h3 className="font-display text-[2.1vw] leading-[1.05] tracking-tight text-text/95 text-balance">
-            Same <span className="text-primary">performance.</span> Every <span className="text-accent">moment.</span> From the cooler to the carry-on.
+            Same <span className="text-primary">system.</span> Every <span className="text-accent">moment.</span> From the cooler to the carry-on.
           </h3>
           <div className="font-body text-[0.85vw] text-text/55 uppercase tracking-[0.22em] text-right whitespace-nowrap leading-snug">
             Ships in both formats<br/>

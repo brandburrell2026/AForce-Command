@@ -17,14 +17,14 @@ export default function OSRoadmap() {
           <div className="font-body uppercase tracking-[0.32em] text-[0.95vw] text-accent font-semibold">The Billion-Dollar OS</div>
         </div>
         <h1 className="font-display leading-[0.9] tracking-tighter text-balance text-[5vw]">
-          <span className="text-text">One OS. Three </span>
-          <span className="text-primary">phases.</span>
-          <span className="text-text"> A billion-dollar </span>
-          <span className="text-accent">moat.</span>
+          <span className="text-text">Building the </span>
+          <span className="text-primary">performance</span>
+          <span className="text-text"> </span>
+          <span className="text-accent">layer.</span>
         </h1>
         <div className="font-body text-[1.05vw] text-text/60 mt-[1.6vh] max-w-[58vw] ml-auto leading-tight text-right">
-          Each phase unlocks a new revenue engine on the same platform — consumer DTC, team SaaS, then enterprise + medical contracts.{" "}
-          <span className="text-text/85">The moat compounds with every athlete, every roster, every roster-year.</span>
+          Each phase expands control, increases retention, and opens new revenue channels.{" "}
+          <span className="text-text/85">Consumer commands → team performance → enterprise risk monitoring.</span>
         </div>
       </div>
 
@@ -100,7 +100,7 @@ export default function OSRoadmap() {
             </div>
           </div>
           <div className="font-display text-[2.2vw] leading-[1] tracking-tight text-text mb-[0.5vh]">AI Coach</div>
-          <div className="font-body text-[0.72vw] text-text/65 leading-snug mb-[1vh]">Voice-first performance intelligence in every pocket. One command at a time.</div>
+          <div className="font-body text-[0.72vw] text-text/65 leading-snug mb-[1vh]">Consumer performance commands and hydration intelligence. One command at a time.</div>
           <ul className="space-y-[0.55vh] font-body text-[0.68vw] text-text/80 mb-[1vh] leading-snug">
             <li className="flex gap-[0.5vw]"><span className="text-primary mt-[0.2vh] text-[0.5vw]">●</span><span><span className="text-text font-semibold">Real-time scoring.</span> Hydration, energy, recovery — measured.</span></li>
             <li className="flex gap-[0.5vw]"><span className="text-primary mt-[0.2vh] text-[0.5vw]">●</span><span><span className="text-text font-semibold">Adaptive protocols.</span> Rewrites your day from live biometrics.</span></li>
@@ -153,7 +153,7 @@ export default function OSRoadmap() {
           <div className="mt-auto pt-[1.2vh] border-t border-accent/20">
             <div className="flex items-baseline gap-[0.6vw]">
               <div className="font-display text-[2.2vw] leading-none text-accent">$12B+</div>
-              <div className="font-body text-[0.7vw] text-text/55 uppercase tracking-[0.18em] leading-tight">Sports med +<br/>wellness risk market</div>
+              <div className="font-body text-[0.7vw] text-text/55 uppercase tracking-[0.18em] leading-tight">Sports med +<br/>readiness risk market</div>
             </div>
             <div className="font-body text-[0.7vw] text-text/50 mt-[0.6vh] uppercase tracking-[0.2em]">Sports orgs · Military · Enterprise</div>
           </div>

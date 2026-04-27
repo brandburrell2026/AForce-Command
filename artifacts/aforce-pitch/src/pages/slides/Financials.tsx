@@ -57,11 +57,11 @@ export default function Financials() {
             <span className="font-body uppercase tracking-[0.32em] text-[1.3vw] text-blue font-semibold">Projections · 2026 — 2028</span>
           </div>
           <h2 className="font-display text-[4.4vw] leading-[0.92] tracking-tighter whitespace-nowrap">
-            <span className="text-blue">8.7×</span> growth to <span className="text-text">$27.8M.</span>
+            Scaling a <span className="text-blue">performance system.</span>
           </h2>
         </div>
         <p className="font-body text-[1.05vw] text-text/65 max-w-[24vw] leading-snug pb-[1vh] text-right">
-          Revenue compounds through national TV in Summer 2026 and crosses EBITDA breakeven in late 2027.
+          Revenue growth driven by product velocity, repeat behavior, and software retention.
         </p>
       </div>
 
@@ -293,20 +293,26 @@ export default function Financials() {
         </div>
       </div>
 
-      <div className="absolute bottom-[1.8vh] left-[6vw] right-[6vw] flex items-baseline justify-end gap-[2.6vw]">
-        <div className="flex items-baseline gap-[0.6vw]">
-          <span className="font-display text-[1.6vw] text-accent leading-none">Q4'27</span>
-          <span className="font-body uppercase tracking-[0.26em] text-[0.85vw] text-text/55">Breakeven</span>
+      <div className="absolute bottom-[1.8vh] left-[6vw] right-[6vw] flex items-baseline justify-between gap-[2vw]">
+        <div className="font-display text-[1.2vw] leading-tight tracking-tight">
+          <span className="text-text/55">The product creates entry. </span>
+          <span className="text-blue">The system creates compounding value.</span>
         </div>
-        <div className="w-[1px] h-[2vh] bg-divider" />
-        <div className="flex items-baseline gap-[0.6vw]">
-          <span className="font-display text-[1.6vw] text-blue leading-none">62%</span>
-          <span className="font-body uppercase tracking-[0.26em] text-[0.85vw] text-text/55">Gross Margin '28</span>
-        </div>
-        <div className="w-[1px] h-[2vh] bg-divider" />
-        <div className="flex items-baseline gap-[0.6vw]">
-          <span className="font-display text-[1.6vw] text-blue leading-none">42%</span>
-          <span className="font-body uppercase tracking-[0.26em] text-[0.85vw] text-text/55">Contribution Margin '28</span>
+        <div className="flex items-baseline gap-[2.2vw]">
+          <div className="flex items-baseline gap-[0.6vw]">
+            <span className="font-display text-[1.6vw] text-accent leading-none">Q4'27</span>
+            <span className="font-body uppercase tracking-[0.26em] text-[0.85vw] text-text/55">Breakeven</span>
+          </div>
+          <div className="w-[1px] h-[2vh] bg-divider" />
+          <div className="flex items-baseline gap-[0.6vw]">
+            <span className="font-display text-[1.6vw] text-blue leading-none">62%</span>
+            <span className="font-body uppercase tracking-[0.26em] text-[0.85vw] text-text/55">Gross Margin '28</span>
+          </div>
+          <div className="w-[1px] h-[2vh] bg-divider" />
+          <div className="flex items-baseline gap-[0.6vw]">
+            <span className="font-display text-[1.6vw] text-blue leading-none">42%</span>
+            <span className="font-body uppercase tracking-[0.26em] text-[0.85vw] text-text/55">Contribution Margin '28</span>
+          </div>
         </div>
       </div>
     </div>
