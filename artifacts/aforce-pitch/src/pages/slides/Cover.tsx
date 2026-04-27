@@ -28,21 +28,23 @@ export default function Cover() {
       />
 
       <div className="absolute top-[6vh] left-[6vw] right-[6vw] flex justify-between items-center z-10">
-        <div className="font-display text-[1.7vw] tracking-tight text-primary leading-none">AForce</div>
+        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-primary font-semibold">01 — Cover</div>
         <div className="font-body uppercase tracking-[0.32em] text-[1.1vw] text-muted">01 / 24</div>
       </div>
 
-      <div className="absolute top-1/2 -translate-y-1/2 left-[6vw] right-[52vw] z-10">
-        <h1 className="font-display text-[7.4vw] leading-[0.9] tracking-tighter text-text">
-          You don't break
-          <br />
-          <span className="text-primary">under pressure.</span>
+      <div className="absolute bottom-[6vh] left-[6vw] right-[55vw] z-10">
+        <div className="flex items-baseline gap-[1.4vw] mb-[2.4vh]">
+          <div className="font-display text-[3.8vw] leading-none tracking-tight text-primary">AForce</div>
+          <div className="font-body uppercase tracking-[0.32em] text-[0.95vw] text-text/55 font-semibold">The Performance Operating System</div>
+        </div>
+        <h1 className="font-display text-[6.6vw] leading-[0.92] tracking-tighter text-text max-w-[44vw]">
+          You don't break <span className="text-primary">under pressure.</span>
         </h1>
-        <p className="mt-[4vh] font-display text-[2.4vw] leading-tight text-text tracking-tight">
+        <p className="mt-[2.4vh] font-display text-[2.2vw] leading-tight text-text max-w-[42vw] text-pretty">
           <span className="text-primary">Check.</span> <span className="text-accent">Act.</span> Perform.
         </p>
-        <p className="mt-[2.2vh] font-body text-[1.25vw] font-light text-text/65 max-w-[38vw] leading-snug">
-          For people who perform when it matters.
+        <p className="mt-[1.2vh] font-body text-[1.25vw] font-light text-text/70 max-w-[42vw] leading-snug">
+          Built for people who operate when others don't — a system for staying sharp, steady, and in control.
         </p>
       </div>
     </div>
