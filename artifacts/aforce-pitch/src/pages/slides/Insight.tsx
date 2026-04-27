@@ -60,7 +60,7 @@ export default function Insight() {
         </p>
       </div>
 
-      <div className="absolute top-[37vh] left-[6vw] right-[6vw]">
+      <div className="absolute top-[44vh] left-[6vw] right-[6vw]">
         <div className="flex items-center gap-[1vw] mb-[2vh]">
           <div className="h-px w-[3vw] bg-accent" />
           <div className="font-body uppercase tracking-[0.32em] text-[0.85vw] text-accent font-semibold">pH Scale · Buffer Zone</div>
@@ -75,7 +75,7 @@ export default function Insight() {
           <div className="h-[2vh] bg-blue/60 rounded-sm" />
           <div className="h-[2vh] bg-blue/85 rounded-sm" />
           <div className="h-[3vh] bg-accent rounded-sm relative">
-            <div className="absolute -top-[3.4vh] left-1/2 -translate-x-1/2 font-display text-[1.6vw] text-accent leading-none">8.8</div>
+            <div className="absolute -top-[2.6vh] left-1/2 -translate-x-1/2 font-display text-[1.4vw] text-accent leading-none">8.8</div>
           </div>
         </div>
         <div className="flex justify-between font-body uppercase tracking-[0.3em] text-[0.95vw] text-muted">
