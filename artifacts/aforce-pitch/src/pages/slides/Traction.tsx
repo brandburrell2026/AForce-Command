@@ -22,7 +22,7 @@ export default function Traction() {
         </h1>
         <div className="font-body text-[1.1vw] text-text/60 mt-[1.6vh] max-w-[78vw] leading-tight">
           Capital, product, audience, and media are aligning before national rollout.{" "}
-          <span className="text-text/85">$832K committed. 179 launch creators. 2.3M+ combined reach. National TV catalyst booked.</span>
+          <span className="text-text/85">$832K committed. 179 launch creators. 2.3M+ watching before product is on shelf. National TV catalyst booked.</span>
         </div>
       </div>
 
@@ -54,10 +54,10 @@ export default function Traction() {
           <div className="absolute top-0 left-0 right-0 h-[0.5vh] bg-accent" />
           <div className="font-body uppercase tracking-[0.28em] text-[0.7vw] text-accent font-semibold mb-[1.2vh]">Audience Leverage</div>
           <div className="font-display text-[5.4vw] leading-[1] tracking-tight text-accent mb-[0.6vh]">2.3M+</div>
-          <div className="font-body uppercase tracking-[0.22em] text-[0.85vw] text-text mb-[1vh]">Combined Reach</div>
-          <div className="font-body text-[0.85vw] text-text/65 leading-snug mb-auto">Aggregate creator audience across the launch network. Owned distribution from day one — no paid acquisition required.</div>
+          <div className="font-body uppercase tracking-[0.22em] text-[0.85vw] text-text mb-[1vh]">Watching Before Shelf</div>
+          <div className="font-body text-[0.85vw] text-text/65 leading-snug mb-auto">Audience already engaged before the product hits retail. Demand is observable, not projected — owned distribution from day one.</div>
           <div className="pt-[1.4vh] border-t border-accent/20 mt-[1.4vh]">
-            <div className="font-body text-[0.7vw] text-text/55 uppercase tracking-[0.2em]">Projected Launch Reach</div>
+            <div className="font-body text-[0.7vw] text-text/55 uppercase tracking-[0.2em]">Pre-Shelf Audience</div>
           </div>
         </div>
 
