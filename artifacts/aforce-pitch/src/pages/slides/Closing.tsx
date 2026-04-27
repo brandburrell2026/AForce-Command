@@ -61,7 +61,7 @@ export default function Closing() {
         <div className="mt-auto">
           <div className="h-px w-[5vw] bg-primary mb-[2vh]" />
           <div className="font-display text-[2.4vw] leading-[1.15] tracking-tight text-text">
-            If you can count on us —<br />
+            If you can count on us,<br />
             you can count on <span className="text-primary">AForce.</span>
           </div>
         </div>
