@@ -36,7 +36,7 @@ export default function Cover() {
           Drink <span className="text-primary">AForce</span>. Run on <span className="text-accent">AForce OS</span>.
         </p>
         <p className="mt-[1vh] font-body text-[1.5vw] font-light text-text/70 max-w-[42vw] text-pretty">
-          Fuel your body with alkaline power.
+          Engineered for the moments you don't get back.
         </p>
         <div className="mt-[3vh] flex items-center gap-[1.2vw]">
           <div className="px-[1.2vw] py-[1vh] bg-primary/15 border border-primary/40 rounded-md">

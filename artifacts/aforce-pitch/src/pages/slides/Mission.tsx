@@ -56,7 +56,7 @@ export default function Mission() {
           </h2>
         </div>
         <p className="font-body text-[1.05vw] text-text/65 max-w-[26vw] leading-snug pb-[1vh] text-right">
-          <span className="text-text">For athletes, finishers, and anyone who refuses to coast.</span> Performance-first. Marketing-second.
+          <span className="text-text">For traders, operators, founders, and decision-makers under pressure</span> — judged by how they perform, not by what they say.
         </p>
       </div>
 
@@ -89,10 +89,10 @@ export default function Mission() {
             <div className="font-body uppercase tracking-[0.32em] text-[0.85vw] text-accent font-semibold">Who We're For</div>
           </div>
           <div className="font-display text-[1.7vw] leading-[1.25] tracking-tight">
-            <span className="text-text/55">For the people who treat the body like </span>
-            <span className="text-text">an asset</span>
-            <span className="text-text/55"> — not </span>
-            <span className="text-accent">an audience.</span>
+            <span className="text-text/55">For the people who don't get a </span>
+            <span className="text-text">second chance</span>
+            <span className="text-text/55"> in the moment — and </span>
+            <span className="text-accent">still deliver.</span>
           </div>
         </div>
       </div>
