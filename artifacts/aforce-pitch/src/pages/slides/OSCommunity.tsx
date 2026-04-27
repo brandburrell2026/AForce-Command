@@ -91,18 +91,27 @@ export default function OSCommunity() {
               </div>
             </div>
 
-            {/* Big city name */}
+            {/* Big city name + scoreboard */}
             <div className="px-[1.4vw] pt-[1.6vh] flex-1 flex flex-col min-h-0 relative">
-              <div className="flex items-baseline justify-between gap-[1vw]">
-                <h2 className="font-display text-[3.6vw] leading-[0.92] tracking-tighter text-text">
-                  New York<span className="text-primary">.</span>
-                </h2>
-                <div className="font-display text-[2.6vw] leading-[0.9] tracking-tight text-accent font-bold tabular-nums">91</div>
+              {/* City name — one line, full width */}
+              <h2 className="font-display text-[2.8vw] leading-[0.95] tracking-tighter text-text whitespace-nowrap">
+                New York<span className="text-primary">.</span>
+              </h2>
+
+              {/* Scoreboard row */}
+              <div className="mt-[1.2vh] pb-[1.4vh] border-b border-text/10 flex items-end justify-between gap-[0.6vw]">
+                <div className="flex flex-col gap-[0.15vh]">
+                  <span className="font-body uppercase tracking-[0.22em] text-text/55 text-[0.6vw] font-semibold">Avg Performance</span>
+                  <span className="font-body uppercase tracking-[0.18em] text-text/35 text-[0.55vw]">Last 7 Days</span>
+                </div>
+                <div className="flex items-baseline gap-[0.3vw]">
+                  <span className="font-display text-[3.4vw] leading-[0.82] tracking-tight text-accent font-bold tabular-nums">91</span>
+                  <span className="font-body text-text/40 text-[0.6vw] uppercase tracking-[0.22em]">/ 100</span>
+                </div>
               </div>
-              <div className="font-body uppercase tracking-[0.22em] text-text/50 text-[0.7vw] mt-[0.3vh]">Avg Performance · Last 7 days</div>
 
               {/* Stat strip */}
-              <div className="grid grid-cols-3 gap-[0.6vw] mt-[2vh]">
+              <div className="grid grid-cols-3 gap-[0.6vw] mt-[1.6vh]">
                 <div className="rounded-[0.4vw] border border-text/10 bg-white/[0.03] px-[0.7vw] py-[0.9vh]">
                   <div className="font-body uppercase tracking-[0.18em] text-text/45 text-[0.55vw] font-semibold">Members</div>
                   <div className="font-display text-text text-[1.3vw] leading-tight font-bold tabular-nums mt-[0.2vh]">14,328</div>
