@@ -23,19 +23,19 @@ export default function Competitors() {
         <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-muted">16 / 24</div>
       </div>
 
-      <div className="absolute top-[14vh] left-[6vw] right-[6vw] flex justify-between items-end gap-[3vw]">
+      <div className="absolute top-[13vh] left-[6vw] right-[6vw] flex justify-between items-end gap-[3vw]">
         <div className="min-w-0 flex-1">
           <div className="font-body uppercase tracking-[0.32em] text-[1vw] text-primary font-semibold mb-[1vh]">No competitor operates a system.</div>
-          <h2 className="font-display text-[5.5vw] leading-[0.95] tracking-tighter text-balance">
+          <h2 className="font-display text-[4.4vw] leading-[0.95] tracking-tighter text-balance whitespace-nowrap">
             AForce vs. <span className="text-primary">competitors.</span>
           </h2>
         </div>
-        <p className="font-body text-[1.15vw] text-text/70 max-w-[34vw] leading-snug pb-[1vh]">
+        <p className="font-body text-[1.05vw] text-text/70 max-w-[30vw] leading-snug pb-[1vh] text-right">
           AForce combines clean ingredients, functional performance, AI hydration coaching, behavioral data, and wearable-ready integration — a combination no competitor offers.
         </p>
       </div>
 
-      <div className="absolute bottom-[14vh] left-[6vw] right-[6vw] bg-bg-elev rounded-lg border border-text/10 overflow-hidden">
+      <div className="absolute top-[28vh] bottom-[12vh] left-[6vw] right-[6vw] bg-bg-elev rounded-lg border border-text/10 overflow-hidden">
         <div className="grid grid-cols-[1.6fr_repeat(6,1fr)] px-[1.4vw] py-[1.4vh] border-b border-text/10 font-body uppercase tracking-[0.22em] text-[0.95vw]">
           <div className="text-muted">Feature</div>
           <div className="text-center text-primary font-semibold">AForce</div>
