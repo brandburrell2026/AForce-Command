@@ -117,10 +117,6 @@ export default function System() {
         </div>
       </div>
 
-      <div className="absolute bottom-[9vh] left-[6vw] right-[6vw] text-center font-body italic text-[1vw] text-primary/85 leading-snug">
-        AForce is the system we built to <span className="text-text">stay sharp</span> when performance wasn't optional.
-      </div>
-
       <div className="absolute bottom-[3.5vh] left-[6vw] right-[6vw] border-t border-text/10 pt-[1.6vh] flex items-baseline justify-between gap-[2vw]">
         <div className="font-body uppercase tracking-[0.32em] text-[0.9vw] text-primary font-semibold whitespace-nowrap shrink-0">
           pH 8.8 · Zero Sugar
