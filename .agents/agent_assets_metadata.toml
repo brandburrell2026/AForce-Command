@@ -1,28 +1,5 @@
 uploads = []
-
-[[generated]]
-id = "Fpo924GlAzlPw7AnwCMDd"
-uri = "file://artifacts/aforce-os/assets/images/icon.png"
-type = "image"
-title = "generated_image"
-
-[[generated]]
-id = "jjlpSy5Y_AUvMm-x22zAH"
-uri = "file://artifacts/aforce-pitch/public/title-hero.png"
-type = "image"
-title = "generated_image"
-
-[[generated]]
-id = "NgGCJ2Z5IYQZfmgBYs0kD"
-uri = "file://artifacts/aforce-pitch/public/drink-hero.png"
-type = "image"
-title = "generated_image"
-
-[[generated]]
-id = "In65ggtdgM70xE3l-c4_L"
-uri = "file://artifacts/aforce-pitch/public/band-hero.png"
-type = "image"
-title = "generated_image"
+generated = []
 
 [[outputs]]
 id = "fILTiXCCTKYfWe9d8R46M"
