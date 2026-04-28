@@ -43,7 +43,7 @@ export default function Leaders() {
       role: "Advisor",
       color: "blue",
       photo: `${base}adam.jpg`,
-      bio: "SVP, Head of Marketing at BECU. Transformational marketing leader across fintech, financial services, business and social impact. Advisor, speaker, and board member.",
+      bio: "Senior marketing and customer experience leader with over 20 years of experience driving growth across financial services and global organizations. Leads marketing at BECU and brings deep expertise in acquisition, retention, and business transformation, helping AForce scale its go-to-market and customer growth strategy.",
     },
     {
       name: "Thomas Mastrobuoni",
