@@ -75,11 +75,6 @@ export default function OSCommunity() {
             {/* Top stripe */}
             <div className="absolute top-0 left-0 right-0 h-[0.4vh] bg-primary" />
 
-            {/* Faint city skyline silhouette as background flavor */}
-            <svg className="absolute bottom-0 left-0 right-0 w-full opacity-[0.12] text-text" viewBox="0 0 200 40" preserveAspectRatio="none" aria-hidden>
-              <path fill="currentColor" d="M0 40 L0 28 L8 28 L8 22 L14 22 L14 30 L22 30 L22 18 L28 18 L28 24 L34 24 L34 12 L38 12 L38 8 L42 8 L42 16 L48 16 L48 22 L56 22 L56 14 L64 14 L64 26 L72 26 L72 20 L80 20 L80 30 L88 30 L88 16 L96 16 L96 24 L104 24 L104 10 L112 10 L112 18 L120 18 L120 26 L128 26 L128 14 L136 14 L136 22 L144 22 L144 28 L152 28 L152 18 L160 18 L160 24 L168 24 L168 12 L176 12 L176 20 L184 20 L184 28 L192 28 L192 22 L200 22 L200 40 Z" />
-            </svg>
-
             {/* Header */}
             <div className="px-[1.4vw] pt-[1.6vh] pb-[0.8vh] flex items-center justify-between border-b border-text/8 relative">
               <div className="flex items-center gap-[0.6vw]">
