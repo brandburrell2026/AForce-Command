@@ -29,7 +29,7 @@ export default function Leaders() {
       role: "Co-Founder",
       color: "primary",
       photo: `${base}julius.jpg`,
-      bio: "Powerhouse in operations and logistics with a proven ability to scale production and supply chains from the ground up — overseeing high-volume distribution and operational execution.",
+      bio: "Co-founder and systems builder with experience across product development and international business environments. Leads the development of AForce OS, translating hydration and behavior into structured, scalable performance systems. His work ensures AForce operates as an integrated platform across product, technology, and global growth.",
     },
     {
       name: "Mark Mendel",
