@@ -198,3 +198,99 @@ id = "WV3pChTn0MkW3fQaz1BYQ"
 uri = "file://.local/outputs/AForce-Command.pptx"
 type = "slides"
 title = "AForce Command.pptx"
+
+[[outputs]]
+id = "X45XA-DuxwGo1ovUgzEJp"
+uri = "file://screenshots/aforce-os/01-home.jpg"
+type = "image"
+title = "01 — Home (Status Pulse)"
+
+[[outputs]]
+id = "CjsVi-EAd7fPlItjgaCGD"
+uri = "file://screenshots/aforce-os/02-check.jpg"
+type = "image"
+title = "02 — Check"
+
+[[outputs]]
+id = "RyUT2JIF26auCk3qNWxEJ"
+uri = "file://screenshots/aforce-os/03-protocol.jpg"
+type = "image"
+title = "03 — Protocol"
+
+[[outputs]]
+id = "B6moVCuIp3Zi7NtcfoTbS"
+uri = "file://screenshots/aforce-os/04-store.jpg"
+type = "image"
+title = "04 — Store"
+
+[[outputs]]
+id = "hWGIS1C0X47E6xx81MBg_"
+uri = "file://screenshots/aforce-os/05-profile.jpg"
+type = "image"
+title = "05 — Profile"
+
+[[outputs]]
+id = "TUzofy1YL682suNS0_il8"
+uri = "file://screenshots/aforce-os/06-circles.jpg"
+type = "image"
+title = "06 — Circles (Social Mode)"
+
+[[outputs]]
+id = "cs9_0MdG9aOtq2DNpxv7e"
+uri = "file://screenshots/aforce-os/07-clutch.jpg"
+type = "image"
+title = "07 — Clutch (Team Command)"
+
+[[outputs]]
+id = "Q-g4qGDYJDGNajtfUTkhg"
+uri = "file://screenshots/aforce-os/08-guardian.jpg"
+type = "image"
+title = "08 — Guardian"
+
+[[outputs]]
+id = "clIGdj62YWUZbAjDRvyZM"
+uri = "file://screenshots/aforce-os/09-heat.jpg"
+type = "image"
+title = "09 — Heat Risk Prediction"
+
+[[outputs]]
+id = "9ETI552uEt8bJH6GIX-wW"
+uri = "file://screenshots/aforce-os/10-competition.jpg"
+type = "image"
+title = "10 — Competition (Sport Mode)"
+
+[[outputs]]
+id = "QrZsEuDAEHw7CtCOj2sHt"
+uri = "file://screenshots/aforce-os/11-subscription.jpg"
+type = "image"
+title = "11 — Pricing / Subscription"
+
+[[outputs]]
+id = "azqWf2qRQAH-lFiptv148"
+uri = "file://screenshots/aforce-os/12-scan.jpg"
+type = "image"
+title = "12 — HydroScan"
+
+[[outputs]]
+id = "rPYaMWRFFxmU_l0yl4I5F"
+uri = "file://screenshots/aforce-os/13-territory.jpg"
+type = "image"
+title = "13 — Territory"
+
+[[outputs]]
+id = "GRv_u4tJzgeP_r3Gm1CVo"
+uri = "file://screenshots/aforce-os/14-cart.jpg"
+type = "image"
+title = "14 — Cart"
+
+[[outputs]]
+id = "H4BQfVbGrY2Pu7fRffYnM"
+uri = "file://screenshots/aforce-os/15-share.jpg"
+type = "image"
+title = "15 — Share"
+
+[[outputs]]
+id = "khN35MCV1sARlXe6z6lG4"
+uri = "file://screenshots/aforce-os/16-phantom.jpg"
+type = "image"
+title = "16 — Phantom Band"

@@ -17,6 +17,7 @@ import { SymbolView } from 'expo-symbols';
 import { Feather } from '@expo/vector-icons';
 import { Platform, StyleSheet, View } from 'react-native';
 import { Colors } from '@/theme/colors';
+import { DEMO_MODE } from '@/services/demoMode';
 import { useTranslation } from 'react-i18next';
 
 function NativeTabLayout() {
@@ -134,7 +135,7 @@ export default function TabLayout() {
   // is always mounted in the root _layout (the app refuses to render
   // without a publishable key).
   const { isLoaded, isSignedIn } = useAuth();
-  if (isLoaded && !isSignedIn) {
+  if (isLoaded && !isSignedIn && !DEMO_MODE) {
     return <Redirect href="/(auth)/sign-in" />;
   }
   if (isLiquidGlassAvailable()) return <NativeTabLayout />;
