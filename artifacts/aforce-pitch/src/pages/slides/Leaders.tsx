@@ -36,7 +36,7 @@ export default function Leaders() {
       role: "Advisor",
       color: "blue",
       photo: `${base}mark-mendel.jpg`,
-      bio: "30 years across biotech, life sciences, and medical devices. Seasoned Managing Director, Venture Partner, and Biomedical Engineer with a PhD from the University of Pennsylvania.",
+      bio: "Biotechnology and life sciences executive with over 30 years of experience across venture capital, product development, and company building. Advises early-stage companies on strategy, fundraising, and scientific validation, and brings deep expertise in translating innovation into scalable businesses.",
     },
     {
       name: "Adam Sobol",
