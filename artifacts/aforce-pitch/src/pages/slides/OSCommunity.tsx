@@ -64,7 +64,7 @@ export default function OSCommunity() {
       </div>
 
       {/* Three-column body */}
-      <div className="absolute top-[34vh] bottom-[18vh] left-[6vw] right-[6vw] grid grid-cols-[27%_24%_1fr] gap-[1.4vw] z-10">
+      <div className="absolute top-[34vh] bottom-[18vh] left-[6vw] right-[6vw] grid grid-cols-3 gap-[1.4vw] z-10">
 
         {/* ────────── HERO CHAMPION CARD ────────── */}
         <div className="flex flex-col min-h-0">
@@ -296,15 +296,17 @@ export default function OSCommunity() {
           style={{ boxShadow: "0 24px 60px rgba(0,0,0,0.55)" }}
         >
           {/* Header */}
-          <div className="px-[1.2vw] pt-[1.4vh] pb-[1vh] flex items-center justify-between border-b border-text/10">
-            <div className="flex items-center gap-[0.6vw]">
-              <span className="w-[0.7vw] h-[0.7vw] rounded-full bg-accent" />
-              <span className="font-display font-bold text-text text-[1.1vw] tracking-tight">AForce League</span>
-              <span className="font-body uppercase tracking-[0.18em] text-text/45 text-[0.6vw]">Season 1 · Week 17</span>
+          <div className="px-[1.2vw] pt-[1.4vh] pb-[0.9vh] border-b border-text/10">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-[0.55vw]">
+                <span className="w-[0.65vw] h-[0.65vw] rounded-full bg-accent" />
+                <span className="font-display font-bold text-text text-[1vw] tracking-tight whitespace-nowrap">AForce League</span>
+              </div>
+              <span className="font-body text-accent text-[0.65vw] font-bold tracking-tight tabular-nums whitespace-nowrap">12 cities</span>
             </div>
-            <div className="flex items-center gap-[0.7vw]">
-              <span className="font-body uppercase tracking-[0.18em] text-text/55 text-[0.6vw]">Sorted by Avg Score</span>
-              <span className="font-body text-accent text-[0.7vw] font-bold tracking-tight tabular-nums">12 cities</span>
+            <div className="flex items-center justify-between mt-[0.4vh]">
+              <span className="font-body uppercase tracking-[0.18em] text-text/45 text-[0.55vw] whitespace-nowrap">Season 1 · Week 17</span>
+              <span className="font-body uppercase tracking-[0.18em] text-text/45 text-[0.55vw] whitespace-nowrap">Sorted by Avg Score</span>
             </div>
           </div>
 
@@ -365,15 +367,14 @@ export default function OSCommunity() {
           </div>
 
           {/* Footer */}
-          <div className="px-[1.2vw] py-[1vh] bg-accent/[0.06] border-t border-accent/25 flex items-center justify-between">
-            <div className="flex items-center gap-[0.6vw]">
-              <span className="w-[0.45vw] h-[0.45vw] rounded-full bg-accent inline-block" />
-              <span className="font-body uppercase tracking-[0.18em] text-text/65 text-[0.6vw] font-semibold">Season 1 ends Week 26</span>
-              <span className="font-body text-text/45 text-[0.6vw]">· $250K total prize drop</span>
+          <div className="px-[1.2vw] py-[1vh] bg-accent/[0.06] border-t border-accent/25 flex items-center justify-between gap-[0.6vw]">
+            <div className="flex items-center gap-[0.5vw] min-w-0">
+              <span className="w-[0.4vw] h-[0.4vw] rounded-full bg-accent inline-block flex-shrink-0" />
+              <span className="font-body uppercase tracking-[0.16em] text-text/65 text-[0.55vw] font-semibold whitespace-nowrap">Ends Wk 26 · $250K drop</span>
             </div>
-            <div className="flex items-baseline gap-[0.5vw]">
-              <span className="font-display text-accent text-[1.2vw] leading-none font-bold tabular-nums">84,273</span>
-              <span className="font-body uppercase tracking-[0.16em] text-text/55 text-[0.55vw]">total members</span>
+            <div className="flex items-baseline gap-[0.4vw] flex-shrink-0">
+              <span className="font-display text-accent text-[1.1vw] leading-none font-bold tabular-nums">84,273</span>
+              <span className="font-body uppercase tracking-[0.16em] text-text/55 text-[0.5vw] whitespace-nowrap">members</span>
             </div>
           </div>
         </div>
