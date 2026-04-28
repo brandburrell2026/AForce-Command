@@ -269,6 +269,25 @@ export default function HeatRiskScreen() {
               )}
             </View>
           </View>
+
+          {/* Cross-link → Sweat Calculator */}
+          <Pressable
+            onPress={() => router.push('/sweat')}
+            style={styles.sweatCta}
+            accessibilityRole="button"
+            accessibilityLabel="Open Sweat Calculator"
+          >
+            <View style={styles.sweatCtaIcon}>
+              <Feather name="droplet" size={18} color={Colors.states.BALANCED.primary} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.sweatCtaTitle}>Calculate your sweat rate</Text>
+              <Text style={styles.sweatCtaSub}>
+                ACSM-grade fluid &amp; sodium loss · personalized AForce protocol
+              </Text>
+            </View>
+            <Feather name="chevron-right" size={18} color={Colors.text.muted} />
+          </Pressable>
         </ScrollView>
       </GradientBackground>
     </View>
@@ -392,4 +411,26 @@ const styles = StyleSheet.create({
   },
   simDot: { width: 8, height: 8, borderRadius: 4 },
   simChipText: { fontSize: 10, fontWeight: "700", color: Colors.text.secondary, letterSpacing: 0.6 },
+
+  sweatCta: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    marginTop: 14,
+    padding: 14,
+    borderRadius: 14,
+    backgroundColor: Colors.background.card,
+    borderWidth: 1,
+    borderColor: Colors.states.BALANCED.dim,
+  },
+  sweatCtaIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: Colors.states.BALANCED.dim,
+  },
+  sweatCtaTitle: { color: Colors.text.primary, fontSize: 14, fontWeight: "700" },
+  sweatCtaSub: { color: Colors.text.muted, fontSize: 11, marginTop: 2 },
 });

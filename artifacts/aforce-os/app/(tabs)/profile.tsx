@@ -298,6 +298,28 @@ export default function ProfileScreen() {
               </>
             );
 
+            const protocolToolsCard = (
+              <>
+                <SectionHeader label="PROTOCOL TOOLS" hint="Sport-science calculators" />
+                <View style={styles.card}>
+                  <Pressable
+                    onPress={() => router.push('/sweat')}
+                    testID="profile-sweat-link"
+                    style={styles.settingRow}
+                  >
+                    <View style={styles.settingLeft}>
+                      <Icon name="droplet" size={16} color={Colors.states.BALANCED.primary} />
+                      <View>
+                        <Text style={styles.settingLabel}>Sweat Calculator</Text>
+                        <Text style={styles.settingSubLabel}>ACSM sweat-rate · Baker sodium · AForce Rx</Text>
+                      </View>
+                    </View>
+                    <Icon name="chevron-right" size={16} color={Colors.text.muted} />
+                  </Pressable>
+                </View>
+              </>
+            );
+
             const hardwareCard = (
               <>
                 <SectionHeader label="HARDWARE" />
@@ -636,6 +658,7 @@ export default function ProfileScreen() {
                   <View style={[styles.col, styles.colLeft]}>
                     {profileCard}
                     {goalsCard}
+                    {protocolToolsCard}
                     {hardwareCard}
                     {connectedDevicesCard}
                   </View>
@@ -657,6 +680,7 @@ export default function ProfileScreen() {
                 {settingsBlock}
                 {voiceCard}
                 {goalsCard}
+                {protocolToolsCard}
                 {hardwareCard}
                 {connectedDevicesCard}
                 {demoModesCard}
@@ -928,6 +952,7 @@ const styles = StyleSheet.create({
   },
   settingLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   settingLabel: { fontSize: 15, fontFamily: 'Inter_500Medium', color: Colors.text.primary },
+  settingSubLabel: { fontSize: 11, color: Colors.text.muted, marginTop: 2 },
   settingValue: { fontSize: 14, fontFamily: 'Inter_500Medium', color: Colors.text.secondary },
   divider: { height: 1, backgroundColor: Colors.border.subtle, marginHorizontal: 16 },
   hardwareRow: {
