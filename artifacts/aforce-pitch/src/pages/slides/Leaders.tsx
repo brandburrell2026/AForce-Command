@@ -50,7 +50,7 @@ export default function Leaders() {
       role: "Advisor",
       color: "blue",
       photo: `${base}thomas.jpg`,
-      bio: "Chief Investment Officer at Big Idea Ventures — Generation Food Rural Partners, New Protein Fund, Global Food Innovation Fund.",
+      bio: "Venture investor and Chief Investment Officer at Big Idea Ventures, where he leads investments across food innovation and sustainability. Brings deep expertise in capital strategy, company building, and scaling early-stage ventures globally.",
     },
     {
       name: "Kristel van Kleef",
