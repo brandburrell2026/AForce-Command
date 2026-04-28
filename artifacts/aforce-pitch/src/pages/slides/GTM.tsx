@@ -132,18 +132,18 @@ export default function GTM() {
             <div key={p.label} className={`relative rounded-2xl ring-1 ${c.ring} bg-bg-elev/40 overflow-hidden flex flex-col`}>
               <div className={`absolute inset-0 bg-gradient-to-b ${c.bg} pointer-events-none`} />
               <div className={`absolute inset-x-0 top-0 h-[3px] ${c.bar}`} />
-              <div className="relative p-[1vw] flex flex-col h-full">
-                <div className={`font-body uppercase tracking-[0.28em] text-[0.7vw] font-semibold ${c.accent}`}>{p.label}</div>
-                <div className="font-display text-[1.05vw] text-text mt-[0.6vh]">{p.window}</div>
+              <div className="relative p-[1.1vw] flex flex-col h-full">
+                <div className={`font-body uppercase tracking-[0.28em] text-[0.95vw] font-semibold ${c.accent}`}>{p.label}</div>
+                <div className="font-display text-[2.1vw] leading-[1] tracking-tight text-text mt-[0.8vh]">{p.window}</div>
                 {p.tag && (
-                  <div className="self-start px-[0.5vw] py-[0.2vh] mt-[0.8vh] bg-primary/20 ring-1 ring-primary/40 rounded text-primary font-body text-[0.6vw] uppercase tracking-[0.22em] font-semibold">
+                  <div className="self-start px-[0.7vw] py-[0.3vh] mt-[1.2vh] bg-primary/20 ring-1 ring-primary/40 rounded text-primary font-body text-[0.78vw] uppercase tracking-[0.22em] font-semibold">
                     {p.tag}
                   </div>
                 )}
-                <ul className="font-body text-[0.78vw] text-text/70 leading-snug space-y-[0.55vh] mt-[1.2vh]">
+                <ul className={`font-body text-[1.18vw] text-text/85 leading-[1.32] mt-[2vh] flex-1 flex flex-col ${p.items.length >= 4 ? "justify-between" : "gap-[2vh]"}`}>
                   {p.items.map((it, j) => (
-                    <li key={j} className="flex gap-[0.4vw]">
-                      <span className={`${c.accent} mt-[0.05vh] shrink-0`}>·</span>
+                    <li key={j} className="flex gap-[0.55vw]">
+                      <span className={`${c.accent} mt-[0.05vh] shrink-0 text-[1.3vw] leading-none`}>·</span>
                       <span>{it}</span>
                     </li>
                   ))}
