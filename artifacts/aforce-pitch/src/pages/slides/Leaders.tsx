@@ -64,7 +64,7 @@ export default function Leaders() {
       role: "Advisor",
       color: "blue",
       photo: `${base}peter.jpg`,
-      bio: "Strategic advisor to Red Bull, Warner Bros., and Levi's. Specialist in premium brand building and storytelling across global fashion and lifestyle brands.",
+      bio: "35+ years building and repositioning global brands through strategic disruption and cultural insight. 20 years at Levi's across multiple leadership roles, including pioneering sustainability initiatives in 2005 with the NOIR concept. In addition, Peter has advised many of the world's leading lifestyle brands, from luxury houses to high street. A recognized thought leader and brand maverick, he specializes in defining clear, differentiated narratives by aligning business strategy with zeitgeist and human behavior.",
     },
   ];
 
