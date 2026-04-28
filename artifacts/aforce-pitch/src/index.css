@@ -17,14 +17,14 @@
   --slide-primary: #E53341;
   --slide-accent: #F5D637;
   --slide-blue: #5478D5;
-  --slide-bg: #E8E8EC;
-  --slide-bg-elev: #F4F4F7;
-  --slide-text: #1A1A1F;
-  --slide-muted: #6A6A75;
-  --slide-divider: #C8C8D0;
+  --slide-bg: #1F1F22;
+  --slide-bg-elev: #2A2A30;
+  --slide-text: #F8F8F8;
+  --slide-muted: #9A9AA8;
+  --slide-divider: #3A3A42;
   --font-display-family: "Archivo Black", "Archivo", system-ui, sans-serif;
   --font-body-family: "Manrope", system-ui, sans-serif;
-  color-scheme: light;
+  color-scheme: dark;
 }
 
 html,
