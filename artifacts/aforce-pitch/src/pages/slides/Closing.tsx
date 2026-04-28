@@ -46,6 +46,9 @@ export default function Closing() {
         <div className="mt-[3.4vh] font-display text-[1.85vw] leading-[1.2] tracking-tight text-text/85">
           Two brothers. Built under <span className="text-primary">pressure.</span> Still <span className="text-primary">performing.</span>
         </div>
+        <div className="mt-[1.4vh] font-body uppercase tracking-[0.28em] text-[0.85vw] text-text/55 font-semibold">
+          Real environments. Real consequences. <span className="text-primary">No off switch.</span>
+        </div>
 
         <div className="mt-[5vh] grid grid-cols-2 gap-x-[2.4vw] max-w-[52vw]">
           <p className="font-body text-[1.05vw] leading-[1.55] text-text/70">
