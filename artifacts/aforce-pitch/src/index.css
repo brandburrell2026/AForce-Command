@@ -17,11 +17,11 @@
   --slide-primary: #E53341;
   --slide-accent: #F5D637;
   --slide-blue: #5478D5;
-  --slide-bg: #08080F;
-  --slide-bg-elev: #12121E;
+  --slide-bg: #1F1F22;
+  --slide-bg-elev: #2A2A30;
   --slide-text: #F8F8F8;
-  --slide-muted: #8C8C9E;
-  --slide-divider: #1F1F33;
+  --slide-muted: #9A9AA8;
+  --slide-divider: #3A3A42;
   --font-display-family: "Archivo Black", "Archivo", system-ui, sans-serif;
   --font-body-family: "Manrope", system-ui, sans-serif;
   color-scheme: dark;
