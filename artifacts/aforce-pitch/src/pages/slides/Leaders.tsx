@@ -22,7 +22,7 @@ export default function Leaders() {
       role: "Founder",
       color: "primary",
       photo: `${base}brandon.jpg`,
-      bio: "18+ years of global business leadership. Started his career in finance at Morgan Stanley before leading international operations across Southeast Asia in hospitality and food.",
+      bio: "Founder-operator with a background in finance and global business operations, including experience at Morgan Stanley and leadership roles across Southeast Asia. Has built and scaled international businesses in high-performance environments, with a focus on systems, execution, and consistency under pressure. AForce Hydration reflects that philosophy — building a performance system, not just a product.",
     },
     {
       name: "Julius Burrell",
