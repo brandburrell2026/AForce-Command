@@ -17,7 +17,7 @@ export default function Closing() {
         <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-muted">24 / 24</div>
       </div>
 
-      <div className="absolute top-[14vh] bottom-[12vh] left-[6vw] w-[28vw] z-10 flex items-center justify-center">
+      <div className="absolute top-[11vh] bottom-[8vh] left-[5vw] w-[38vw] z-10 flex items-center justify-center">
         <div className="relative w-full flex items-center justify-center">
           <div
             className="absolute -inset-[6%] rounded-3xl pointer-events-none"
@@ -36,8 +36,8 @@ export default function Closing() {
         </div>
       </div>
 
-      <div className="absolute top-[14vh] bottom-[10vh] left-[40vw] right-[6vw] z-10 flex flex-col">
-        <h1 className="font-display text-[5.6vw] leading-[0.94] tracking-tighter text-balance">
+      <div className="absolute top-[14vh] bottom-[10vh] left-[46vw] right-[5vw] z-10 flex flex-col">
+        <h1 className="font-display text-[4.8vw] leading-[0.94] tracking-tighter text-balance">
           We don't get to be <span className="text-primary">off.</span>
           <br />
           So we built a system that <span className="text-text/55">doesn't let us be.</span>
