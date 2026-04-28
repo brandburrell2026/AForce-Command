@@ -80,12 +80,14 @@ export default function SweatCalculatorScreen() {
   // Quick mode state.
   const [qPre, setQPre] = useState('170');
   const [qPost, setQPost] = useState('167.5');
+  const [qHeight, setQHeight] = useState('70');
   const [qDuration, setQDuration] = useState('60');
   const [qFluid, setQFluid] = useState('16');
 
   // Precision mode state.
   const [pPre, setPPre] = useState('170');
   const [pPost, setPPost] = useState('167');
+  const [pHeight, setPHeight] = useState('70');
   const [pDuration, setPDuration] = useState('90');
   const [pFluid, setPFluid] = useState('20');
   const [pUrine, setPUrine] = useState('0');
@@ -113,9 +115,11 @@ export default function SweatCalculatorScreen() {
       const post = num(qPost);
       const dur = num(qDuration);
       const fluid = num(qFluid);
+      const h = num(qHeight);
       if (pre <= 0 || pre > 700) return 'Enter a pre-weight between 1 and 700 lbs.';
       if (post <= 0 || post > 700) return 'Enter a post-weight between 1 and 700 lbs.';
       if (post > pre + 5) return 'Post-weight is higher than pre-weight — check your numbers.';
+      if (h !== 0 && (h <= 0 || h > 96)) return 'Height should be 1–96 inches (or leave blank).';
       if (dur <= 0 || dur > 600) return 'Enter a duration between 1 and 600 minutes.';
       if (fluid < 0 || fluid > 500) return 'Fluid intake should be 0–500 oz.';
       return null;
@@ -126,9 +130,11 @@ export default function SweatCalculatorScreen() {
       const dur = num(pDuration);
       const fluid = num(pFluid);
       const urine = num(pUrine);
+      const h = num(pHeight);
       if (pre <= 0 || pre > 700) return 'Enter a pre-weight between 1 and 700 lbs.';
       if (post <= 0 || post > 700) return 'Enter a post-weight between 1 and 700 lbs.';
       if (post > pre + 5) return 'Post-weight is higher than pre-weight — check your numbers.';
+      if (h !== 0 && (h <= 0 || h > 96)) return 'Height should be 1–96 inches (or leave blank).';
       if (dur <= 0 || dur > 600) return 'Enter a duration between 1 and 600 minutes.';
       if (fluid < 0 || fluid > 500) return 'Fluid intake should be 0–500 oz.';
       if (urine < 0 || urine > 100) return 'Urine output should be 0–100 oz.';
@@ -147,6 +153,7 @@ export default function SweatCalculatorScreen() {
   function calculate() {
     if (!canCalculate) return;
     if (mode === 'quick') {
+      const qH = num(qHeight);
       const inputs: QuickInputs = {
         mode: 'quick',
         preWeight: num(qPre),
@@ -155,9 +162,11 @@ export default function SweatCalculatorScreen() {
         durationMinutes: num(qDuration),
         fluidIntake: num(qFluid),
         fluidUnit: 'oz',
+        ...(qH > 0 ? { height: qH, heightUnit: 'in' as const } : {}),
       };
       setResult(computeSweatSession(inputs));
     } else if (mode === 'precision') {
+      const pH = num(pHeight);
       const inputs: PrecisionInputs = {
         mode: 'precision',
         preWeight: num(pPre),
@@ -172,6 +181,7 @@ export default function SweatCalculatorScreen() {
         ambientHumidityPct: climate.humidityPct,
         acclimatized: pAcclimatized,
         sodiumProfile: pSodium,
+        ...(pH > 0 ? { height: pH, heightUnit: 'in' as const } : {}),
       };
       setResult(computeSweatSession(inputs));
     } else {
@@ -242,6 +252,7 @@ export default function SweatCalculatorScreen() {
                 <SectionTitle>Inputs</SectionTitle>
                 <NumberRow label="Pre-weight" suffix="lbs" value={qPre} onChange={setQPre} />
                 <NumberRow label="Post-weight" suffix="lbs" value={qPost} onChange={setQPost} />
+                <NumberRow label="Height" suffix="in" value={qHeight} onChange={setQHeight} />
                 <NumberRow label="Duration" suffix="min" value={qDuration} onChange={setQDuration} />
                 <NumberRow label="Fluid intake" suffix="oz" value={qFluid} onChange={setQFluid} />
                 <Helper>Weigh nude or in dry clothing for accuracy. 1 lb of weight loss ≈ 16 oz of sweat.</Helper>
@@ -253,6 +264,7 @@ export default function SweatCalculatorScreen() {
                 <SectionTitle>Inputs</SectionTitle>
                 <NumberRow label="Pre-weight" suffix="lbs" value={pPre} onChange={setPPre} />
                 <NumberRow label="Post-weight" suffix="lbs" value={pPost} onChange={setPPost} />
+                <NumberRow label="Height" suffix="in" value={pHeight} onChange={setPHeight} />
                 <NumberRow label="Duration" suffix="min" value={pDuration} onChange={setPDuration} />
                 <NumberRow label="Fluid intake" suffix="oz" value={pFluid} onChange={setPFluid} />
                 <NumberRow label="Urine output" suffix="oz" value={pUrine} onChange={setPUrine} />

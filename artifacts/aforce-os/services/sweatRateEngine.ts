@@ -349,7 +349,9 @@ function computeQuick(i: QuickInputs): SweatSession {
 
   const prescription = buildPrescription(sweatLossL, sodiumLossMg, sweatRateLh);
 
-  const audit: SweatAudit = { bodyWeightKg: preKg, source: 'measured' };
+  const heightCm = i.height && i.heightUnit ? toCm(i.height, i.heightUnit) : 0;
+  const bsaM2 = heightCm > 0 ? bsaDuBois(preKg, heightCm) : undefined;
+  const audit: SweatAudit = { bodyWeightKg: preKg, bsaM2, source: 'measured' };
   return finalize({
     mode: 'quick',
     sweatLossL,
@@ -386,8 +388,11 @@ function computePrecision(i: PrecisionInputs): SweatSession {
 
   const prescription = buildPrescription(sweatLossL, sodiumLossMg, sweatRateLh);
 
+  const heightCm = i.height && i.heightUnit ? toCm(i.height, i.heightUnit) : 0;
+  const bsaM2 = heightCm > 0 ? bsaDuBois(preKg, heightCm) : undefined;
   const audit: SweatAudit = {
     bodyWeightKg: preKg,
+    bsaM2,
     sport: getSport(i.sportId),
     heatFactor: heatFactor(i.ambientTempC, i.ambientHumidityPct),
     acclimFactor: acclimFactor(i.acclimatized),

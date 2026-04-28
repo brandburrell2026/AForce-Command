@@ -68,11 +68,17 @@ export interface QuickInputs {
   /** Optional: fluid the athlete drank during the session. */
   fluidIntake: number;
   fluidUnit: FluidUnit;
+  /** Optional: height — used only for Du Bois BSA in the audit panel. */
+  height?: number;
+  heightUnit?: HeightUnit;
 }
 
 /** ── Inputs — Precision mode (full ACSM protocol) ─────────────────── */
 export interface PrecisionInputs {
   mode: 'precision';
+  /** Optional: height — used only for Du Bois BSA in the audit panel. */
+  height?: number;
+  heightUnit?: HeightUnit;
   preWeight: number;
   postWeight: number;
   weightUnit: WeightUnit;
