@@ -57,7 +57,7 @@ export default function Leaders() {
       role: "Advisor",
       color: "blue",
       photo: `${base}kristel.jpg`,
-      bio: "VP Marketing, Red Bull North America; Global Head of Brand Events, On. Scaled one of the world's most iconic brands, driving hundreds of millions in growth through culture-led strategy and global execution.",
+      bio: "20+ years building category-defining brands at global scale. 14 years at Red Bull driving culture-led growth across North America and globally, followed by executive brand leadership at one of the most disruptive performance brands, On. Her work spans brand building, athlete partnerships, and scaling premium performance products across 80+ markets.",
     },
     {
       name: "Peter Ingwersen",
