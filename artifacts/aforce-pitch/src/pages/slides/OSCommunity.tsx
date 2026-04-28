@@ -95,7 +95,7 @@ export default function OSCommunity() {
             <div className="px-[1.6vw] pt-[3vh] flex-1 flex flex-col min-h-0 relative">
               {/* City name — massive, one line, full width */}
               <h2 className="font-display text-[3.2vw] leading-[0.92] tracking-tighter text-text whitespace-nowrap">
-                New York<span className="text-primary">.</span>
+                New York
               </h2>
 
               {/* Quiet locator */}
