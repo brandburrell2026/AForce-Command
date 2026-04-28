@@ -91,75 +91,58 @@ export default function OSCommunity() {
               </div>
             </div>
 
-            {/* Big city name + scoreboard */}
-            <div className="px-[1.4vw] pt-[1.6vh] flex-1 flex flex-col min-h-0 relative">
-              {/* City name — one line, full width */}
-              <h2 className="font-display text-[2.8vw] leading-[0.95] tracking-tighter text-text whitespace-nowrap">
+            {/* Editorial body — restrained, billion-dollar */}
+            <div className="px-[1.6vw] pt-[3vh] flex-1 flex flex-col min-h-0 relative">
+              {/* City name — massive, one line, full width */}
+              <h2 className="font-display text-[3.2vw] leading-[0.92] tracking-tighter text-text whitespace-nowrap">
                 New York<span className="text-primary">.</span>
               </h2>
 
-              {/* Scoreboard row */}
-              <div className="mt-[1.2vh] pb-[1.4vh] border-b border-text/10 flex items-end justify-between gap-[0.6vw]">
-                <div className="flex flex-col gap-[0.15vh]">
-                  <span className="font-body uppercase tracking-[0.22em] text-text/55 text-[0.6vw] font-semibold">Avg Performance</span>
+              {/* Quiet locator */}
+              <div className="font-body uppercase tracking-[0.28em] text-text/40 text-[0.6vw] mt-[1vh]">
+                Brooklyn → Bronx → Queens
+              </div>
+
+              {/* Scoreboard — hero number */}
+              <div className="mt-[3.5vh] flex items-end justify-between gap-[0.6vw]">
+                <div className="flex flex-col gap-[0.2vh]">
+                  <span className="font-body uppercase tracking-[0.22em] text-text/55 text-[0.65vw] font-semibold">Avg Performance</span>
                   <span className="font-body uppercase tracking-[0.18em] text-text/35 text-[0.55vw]">Last 7 Days</span>
                 </div>
-                <div className="flex items-baseline gap-[0.3vw]">
-                  <span className="font-display text-[3.4vw] leading-[0.82] tracking-tight text-accent font-bold tabular-nums">91</span>
-                  <span className="font-body text-text/40 text-[0.6vw] uppercase tracking-[0.22em]">/ 100</span>
+                <div className="flex items-baseline gap-[0.35vw]">
+                  <span className="font-display text-[4vw] leading-[0.82] tracking-tight text-accent font-bold tabular-nums">91</span>
+                  <span className="font-body text-text/35 text-[0.65vw] uppercase tracking-[0.22em]">/ 100</span>
                 </div>
               </div>
 
-              {/* Stat strip */}
-              <div className="grid grid-cols-3 gap-[0.6vw] mt-[1.6vh]">
-                <div className="rounded-[0.4vw] border border-text/10 bg-white/[0.03] px-[0.7vw] py-[0.9vh]">
-                  <div className="font-body uppercase tracking-[0.18em] text-text/45 text-[0.55vw] font-semibold">Members</div>
-                  <div className="font-display text-text text-[1.3vw] leading-tight font-bold tabular-nums mt-[0.2vh]">14,328</div>
-                </div>
-                <div className="rounded-[0.4vw] border border-text/10 bg-white/[0.03] px-[0.7vw] py-[0.9vh]">
-                  <div className="font-body uppercase tracking-[0.18em] text-text/45 text-[0.55vw] font-semibold">Streak</div>
-                  <div className="font-display text-text text-[1.3vw] leading-tight font-bold tabular-nums mt-[0.2vh]">5 wks</div>
-                </div>
-                <div className="rounded-[0.4vw] border border-text/10 bg-white/[0.03] px-[0.7vw] py-[0.9vh]">
-                  <div className="font-body uppercase tracking-[0.18em] text-text/45 text-[0.55vw] font-semibold">Cans / wk</div>
-                  <div className="font-display text-text text-[1.3vw] leading-tight font-bold tabular-nums mt-[0.2vh]">98K</div>
-                </div>
+              {/* Quiet stat line — no boxes, just text */}
+              <div className="mt-[2.4vh] pt-[1.6vh] border-t border-text/10 font-body text-text/65 text-[0.78vw] tracking-tight leading-snug">
+                <span className="text-text font-semibold tabular-nums">14,328</span>
+                <span className="text-text/45"> members</span>
+                <span className="text-text/25 px-[0.4vw]">·</span>
+                <span className="text-text font-semibold tabular-nums">5</span>
+                <span className="text-text/45"> wk streak</span>
+                <span className="text-text/25 px-[0.4vw]">·</span>
+                <span className="text-text font-semibold tabular-nums">98K</span>
+                <span className="text-text/45"> cans / wk</span>
               </div>
 
-              {/* Top NY athletes — mini leaderboard fills the rest of the card */}
-              <div className="mt-[1.8vh] flex flex-col flex-1 min-h-0">
-                <div className="flex items-center justify-between mb-[0.7vh]">
-                  <span className="font-body uppercase tracking-[0.22em] text-accent text-[0.6vw] font-bold">Top NY Athletes · Week 17</span>
-                  <span className="font-body uppercase tracking-[0.18em] text-text/40 text-[0.55vw]">View all 1,284 →</span>
-                </div>
-                {[
-                  { i: "MC", name: "M. Carter",    score: 98, nbhd: "Brooklyn",        mvp: true  },
-                  { i: "KP", name: "K. Patel",     score: 95, nbhd: "Harlem",          mvp: false },
-                  { i: "DW", name: "D. Williams",  score: 94, nbhd: "Queens",          mvp: false },
-                  { i: "AR", name: "A. Russo",     score: 93, nbhd: "Bronx",           mvp: false },
-                  { i: "TN", name: "T. Nguyen",    score: 92, nbhd: "Tribeca",         mvp: false },
-                ].map((a) => (
-                  <div
-                    key={a.i}
-                    className={`flex items-center gap-[0.6vw] rounded-[0.4vw] border px-[0.7vw] py-[0.45vh] flex-1 min-h-0 ${
-                      a.mvp ? "border-accent/45 bg-accent/[0.08]" : "border-text/8 bg-white/[0.02]"
-                    } ${a.mvp ? "" : "mt-[0.35vh]"}`}
-                  >
-                    <span className={`w-[1.6vw] h-[1.6vw] rounded-full flex items-center justify-center flex-shrink-0 border ${
-                      a.mvp ? "bg-accent/25 border-accent/55" : "bg-white/[0.04] border-text/15"
-                    }`}>
-                      <span className={`font-display text-[0.7vw] font-bold leading-none ${a.mvp ? "text-accent" : "text-text/80"}`}>{a.i}</span>
-                    </span>
-                    <div className="flex-1 min-w-0 flex items-baseline gap-[0.4vw]">
-                      <span className="font-display text-text text-[0.85vw] font-bold leading-tight truncate">{a.name}</span>
-                      <span className="font-body text-text/45 text-[0.6vw] tracking-tight truncate">· {a.nbhd}</span>
-                    </div>
-                    {a.mvp && (
-                      <span className="px-[0.35vw] py-[0.1vh] rounded-full border border-accent/55 bg-accent/15 text-accent font-bold uppercase tracking-[0.14em] text-[0.45vw] flex-shrink-0">MVP</span>
-                    )}
-                    <span className={`font-display tabular-nums font-bold leading-none flex-shrink-0 ${a.mvp ? "text-accent text-[1vw]" : "text-text text-[0.85vw]"}`}>{a.score}</span>
+              {/* MVP highlight — single hero card replacing the leaderboard */}
+              <div className="mt-auto mb-[1vh]">
+                <div className="font-body uppercase tracking-[0.28em] text-accent text-[0.6vw] font-bold mb-[0.8vh]">Week 17 MVP</div>
+                <div className="rounded-[0.5vw] border border-accent/35 bg-accent/[0.06] px-[1vw] py-[1.4vh] flex items-center gap-[0.8vw]">
+                  <div className="w-[2.4vw] h-[2.4vw] rounded-full bg-accent/20 border border-accent/50 flex items-center justify-center flex-shrink-0">
+                    <span className="font-display text-accent text-[0.95vw] font-bold leading-none">MC</span>
                   </div>
-                ))}
+                  <div className="flex-1 min-w-0">
+                    <div className="font-display text-text text-[1.1vw] font-bold leading-tight truncate">M. Carter</div>
+                    <div className="font-body text-text/50 text-[0.65vw] tracking-tight mt-[0.2vh]">Brooklyn · 1,284 NY athletes</div>
+                  </div>
+                  <div className="flex items-baseline gap-[0.2vw] flex-shrink-0">
+                    <span className="font-display text-accent text-[1.6vw] font-bold tabular-nums leading-none">98</span>
+                    <span className="font-body text-text/35 text-[0.55vw] uppercase tracking-[0.2em]">/100</span>
+                  </div>
+                </div>
               </div>
             </div>
 
