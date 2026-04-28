@@ -1,8 +1,15 @@
 /**
  * Hydration Scoring Engine — per-event, time-windowed.
  *
- * Replaces the old "running aggregate" baseIntake/aforceBonus model
- * with a faithful implementation of the user spec:
+ * STATUS: Product design rubric (AForce IP), not a clinical model.
+ * The constants below are the AForce performance-scoring spec — chosen
+ * to produce a responsive, anti-gaming feel and to reward AForce-
+ * formulated blends. They are NOT derived from peer-reviewed sport-
+ * science literature and MUST NOT be presented as medical claims.
+ * Calibration against blood-marker / urine-osmolality work is on the
+ * Year-1 sport-science partnership roadmap.
+ *
+ * Rubric:
  *
  *   1 unit = 12 oz
  *
@@ -13,17 +20,17 @@
  *     Soursop Edge       +11 (+2 if scoreBefore < 40)
  *
  *   Absorption cap: ≤1.5 units per rolling 20-min window. Excess
- *   intake is absorbed at 75% efficiency (midpoint of 70–80%).
+ *   intake is absorbed at 75% efficiency.
  *
  *   Absorption curve:
- *     Water:  60% immediate, 40% over 10–15 min  (midpoint 12.5 min)
- *     AForce: 70% immediate, 30% over 20–30 min  (midpoint 25 min)
+ *     Water:  60% immediate, 40% over 12.5 min
+ *     AForce: 70% immediate, 30% over 25 min
  *
  *   Score is clamped 0..100 by the caller. Continuous decay is owned
  *   by `utils/scoringEngine.ts`.
  *
  *   Anti-game: cap prevents 4 sticks in 5min from being a +40 jump.
- *   Realistic: delayed portion ramps in linearly so the orb keeps
+ *   Realistic feel: delayed portion ramps in linearly so the orb keeps
  *   moving for ~25 min after the log — feels like the body absorbing.
  */
 
