@@ -294,3 +294,9 @@ id = "khN35MCV1sARlXe6z6lG4"
 uri = "file://screenshots/aforce-os/16-phantom.jpg"
 type = "image"
 title = "16 — Phantom Band"
+
+[[outputs]]
+id = "wBKMJWNTKGR-CvK3_KahC"
+uri = "file://attached_assets/patent/aforce-os-engineering-brief.md"
+type = "text"
+title = "AForce OS — Engineering Brief for Provisional Patent Application"
