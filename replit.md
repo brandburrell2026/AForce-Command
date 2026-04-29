@@ -80,6 +80,8 @@ I prefer iterative development, with frequent, small updates. Ask before making 
 ### API Server (`artifacts/api-server`)
 - **Scaling Blueprint:** Documents target topology for 50M+ users including multi-region active/active reads, sharded Postgres, Redis, Kafka, and AI provider failover.
 - **Stripe Integration:** Handles one-time cart checkouts and subscription flows, including server-side re-pricing, shipping, tax, and robust validation.
+- **Auth-gated routes (`requireAuth` middleware):** All `/api/aforce/*` mutating routes — `POST /sensors/import`, `POST /achievements/unlock`, `GET /achievements`, `POST /intake`, `POST /confirmation`, `POST /journal/snapshot`, `GET /state`, plus `GET /entitlement` and `POST /checkout/session`. Auth resolves via `@clerk/express` `getAuth()`; in non-production builds without `CLERK_SECRET_KEY` the middleware falls back to `DEFAULT_USER_ID` so the demo flow keeps working. In production, missing `CLERK_SECRET_KEY` returns `503 auth_unavailable` (fail-closed).
+- **Environment variables:** Server reads `DATABASE_URL`, `OPENWEATHER_API_KEY`, `SESSION_SECRET`, `CLERK_SECRET_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `NODE_ENV`, `PORT`. Mobile app reads (via Metro / `EXPO_PUBLIC_*` prefix): `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` (Clerk web/mobile sign-in), `EXPO_PUBLIC_DOMAIN` (proxy host for API requests), `EXPO_PUBLIC_REPL_ID` (deep-link scheme); plus the Expo packager-only vars `EXPO_PACKAGER_PROXY_URL` and `REACT_NATIVE_PACKAGER_HOSTNAME`.
 
 ### Store + Subscription System
 - **SKU pricing:** Defines pricing for sticks, RTD, and canisters, including subscription discounts.
