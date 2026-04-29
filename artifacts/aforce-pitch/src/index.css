@@ -14,15 +14,22 @@
 }
 
 :root {
-  --slide-primary: #E53341;
-  --slide-accent: #F5D637;
-  --slide-blue: #5478D5;
-  --slide-bg: #08090E;
-  --slide-bg-elev: #2A2A30;
-  --slide-text: #F8F8F8;
-  --slide-muted: #9A9AA8;
-  --slide-divider: #3A3A42;
-  --font-display-family: "Archivo Black", "Archivo", system-ui, sans-serif;
+  /* Palette — rebalanced for masculine + feminine duality.
+     Reds and yellows kept bold but warmed/softened away from "alarm/sport" toward "premium/editorial".
+     Backgrounds carry a faint warm undertone instead of pure cold black. */
+  --slide-primary: #E55A6B;     /* refined coral-crimson — confident, less aggressive */
+  --slide-accent: #E8C063;      /* champagne / honey gold — sophisticated */
+  --slide-blue: #7B8FCD;        /* softer periwinkle — balanced cool tone */
+  --slide-bg: #0E0D14;          /* warm near-black */
+  --slide-bg-elev: #26242C;     /* warm charcoal */
+  --slide-text: #F4F1EC;        /* warm ivory off-white */
+  --slide-muted: #A29CA8;       /* warm mauve-grey */
+  --slide-divider: #3A363F;     /* warm divider */
+
+  /* Typography — pairs an editorial variable serif with a modern geometric sans.
+     The serif adds elegance/femininity; the sans keeps it tech/precise/masculine.
+     Slides reference these via Tailwind utilities (font-display / font-body). */
+  --font-display-family: "Fraunces", "Archivo Black", "Georgia", serif;
   --font-body-family: "Manrope", system-ui, sans-serif;
   color-scheme: dark;
 }
