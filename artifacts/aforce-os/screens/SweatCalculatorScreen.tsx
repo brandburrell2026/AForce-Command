@@ -29,6 +29,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
+import Svg, { Defs, LinearGradient as SvgLinearGradient, Polygon, Stop } from 'react-native-svg';
 
 import { GradientBackground } from '@/components/GradientBackground';
 import { Colors } from '@/theme/colors';
@@ -633,6 +634,7 @@ function ResultPane({ result }: { result: SweatSession }) {
       <AForceSystemCard />
       <AIRecoveryDecision result={result} protocol={protocol} />
       <RecoveryProtocolCard protocol={protocol} result={result} />
+      <SodiumGapCard result={result} />
       <OptionalSupportCard result={result} />
       <AdvancedDataCard result={result} />
       <ComparisonTable />
@@ -681,6 +683,10 @@ function PerformanceHeader({ result }: { result: SweatSession }) {
           <Text style={styles.estimatedBadgeText}>ESTIMATED — measure with scale for precision</Text>
         </View>
       )}
+
+      <Text style={styles.intentionalSodiumLine}>
+        AForce formula sodium: {AFORCE_SODIUM_PER_UNIT_MG}mg per serving — intentional by design
+      </Text>
     </View>
   );
 }
@@ -893,6 +899,45 @@ function OptionalSupportCard({ result }: { result: SweatSession }) {
           </View>
         ))}
       </View>
+      <Text style={styles.supportFooter}>
+        For higher-output sessions, add a small pinch of Celtic sea salt if needed.
+      </Text>
+    </View>
+  );
+}
+
+/* ── E2. Sodium Gap Protocol — Celtic sea salt card ─────────────────── */
+function SodiumGapCard({ result }: { result: SweatSession }) {
+  return (
+    <View style={styles.sodiumGapCard}>
+      <Text style={styles.sodiumGapEyebrow}>⚡ SODIUM GAP PROTOCOL</Text>
+
+      <View style={styles.sodiumGapRows}>
+        <View style={styles.sodiumGapRow}>
+          <Text style={styles.sodiumGapKey}>Your sweat sodium loss</Text>
+          <Text style={styles.sodiumGapValue}>{result.sodiumLossMg} mg</Text>
+        </View>
+        <View style={styles.sodiumGapRow}>
+          <Text style={styles.sodiumGapKey}>AForce provides</Text>
+          <Text style={styles.sodiumGapValue}>{result.aforceSodiumTotalMg} mg</Text>
+        </View>
+        <View style={styles.sodiumGapRow}>
+          <Text style={styles.sodiumGapKey}>Remaining gap</Text>
+          <Text style={[styles.sodiumGapValue, styles.sodiumGapValueAccent]}>
+            {result.sodiumGapMg} mg
+          </Text>
+        </View>
+      </View>
+
+      <Text style={styles.sodiumGapBody}>
+        For sessions with high sodium loss add ¼ tsp of Celtic sea salt to your
+        water between each AForce unit over the next 4 hours.
+      </Text>
+      <Text style={styles.sodiumGapNote}>
+        Celtic sea salt is minimally processed and retains a broad spectrum of
+        naturally occurring trace minerals. It is philosophically aligned with
+        AForce — unprocessed and ocean-sourced like our algae ingredients.
+      </Text>
     </View>
   );
 }
@@ -989,6 +1034,19 @@ function ShareCardHandoff({ result }: { result: SweatSession }) {
   return (
     <Pressable style={styles.shareCard} accessibilityRole="button">
       <View style={styles.shareGlow} />
+
+      <View style={styles.shareTriangleMark} pointerEvents="none">
+        <Svg width={28} height={28} viewBox="0 0 28 28">
+          <Defs>
+            <SvgLinearGradient id="aforceTriGrad" x1="0" y1="0" x2="1" y2="1">
+              <Stop offset="0" stopColor={Colors.states.BALANCED.primary} stopOpacity="1" />
+              <Stop offset="1" stopColor={Colors.states.PEAK.primary} stopOpacity="1" />
+            </SvgLinearGradient>
+          </Defs>
+          <Polygon points="14,3 26,25 2,25" fill="url(#aforceTriGrad)" />
+        </Svg>
+      </View>
+
       <View style={styles.shareTopRow}>
         <View style={styles.shareDot} />
         <Text style={styles.shareEyebrow}>AFORCE · SWEAT SESSION</Text>
@@ -1001,6 +1059,8 @@ function ShareCardHandoff({ result }: { result: SweatSession }) {
         <Feather name="share-2" size={13} color={Colors.text.primary} />
         <Text style={styles.shareCTAText}>Share session</Text>
       </View>
+
+      <Text style={styles.shareUrl}>drinkaforce.com</Text>
     </Pressable>
   );
 }
@@ -1266,6 +1326,66 @@ const styles = StyleSheet.create({
     fontSize: 9,
     fontWeight: '800',
     letterSpacing: 0.6,
+  },
+  intentionalSodiumLine: {
+    color: Colors.text.muted,
+    fontSize: 11,
+    lineHeight: 15,
+    marginTop: 12,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border.subtle,
+    fontStyle: 'italic',
+  },
+
+  // E2 — Sodium Gap Protocol (Celtic sea salt)
+  sodiumGapCard: {
+    backgroundColor: Colors.background.card,
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: Colors.border.subtle,
+    borderLeftWidth: 4,
+    borderLeftColor: Colors.states.BALANCED.primary,
+    gap: 10,
+  },
+  sodiumGapEyebrow: {
+    color: Colors.states.BALANCED.primary,
+    fontSize: 11,
+    letterSpacing: 1.4,
+    fontWeight: '800',
+  },
+  sodiumGapRows: {
+    gap: 6,
+    paddingVertical: 6,
+  },
+  sodiumGapRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  sodiumGapKey: {
+    color: Colors.text.secondary,
+    fontSize: 12,
+  },
+  sodiumGapValue: {
+    color: Colors.text.primary,
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  sodiumGapValueAccent: {
+    color: Colors.states.BALANCED.primary,
+  },
+  sodiumGapBody: {
+    color: Colors.text.primary,
+    fontSize: 13,
+    lineHeight: 18,
+  },
+  sodiumGapNote: {
+    color: Colors.text.muted,
+    fontSize: 11,
+    lineHeight: 15,
+    fontStyle: 'italic',
   },
 
   bandCard: {
@@ -1624,6 +1744,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 12,
   },
+  supportFooter: {
+    color: Colors.text.muted,
+    fontSize: 11,
+    lineHeight: 15,
+    marginTop: 12,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border.subtle,
+    fontStyle: 'italic',
+  },
   supportIcon: {
     width: 28,
     height: 28,
@@ -1749,6 +1879,25 @@ const styles = StyleSheet.create({
     borderRadius: 200,
     backgroundColor: Colors.states.BALANCED.primary,
     opacity: 0.16,
+  },
+  shareTriangleMark: {
+    position: 'absolute',
+    top: 14,
+    left: 14,
+    width: 28,
+    height: 28,
+    zIndex: 2,
+  },
+  shareUrl: {
+    position: 'absolute',
+    bottom: 12,
+    left: 0,
+    right: 0,
+    textAlign: 'center',
+    color: 'rgba(255,255,255,0.45)',
+    fontSize: 10,
+    letterSpacing: 1.6,
+    fontWeight: '600',
   },
   shareTopRow: {
     flexDirection: 'row',
