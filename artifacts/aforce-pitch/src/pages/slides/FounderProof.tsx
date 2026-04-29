@@ -1,22 +1,22 @@
 export default function FounderProof() {
   const arenas = [
     {
-      label: "NBA Environments",
-      title: "82-game seasons. Back-to-backs. No off nights.",
-      detail: "Performance was the requirement, not the goal. Show up at level — every night.",
-      accent: "text-primary",
-      ring: "ring-primary/35",
-      bar: "bg-primary",
-      bg: "from-primary/[0.10] to-primary/0",
-    },
-    {
-      label: "Wall Street Execution",
-      title: "Capital decisions under pressure. Every day.",
+      label: "Wall Street",
+      title: "Capital decisions under pressure.",
       detail: "Sharp at 6 AM. Sharp at 10 PM. The market does not wait for you to recover.",
       accent: "text-blue",
       ring: "ring-blue/35",
       bar: "bg-blue",
       bg: "from-blue/[0.10] to-blue/0",
+    },
+    {
+      label: "Entrepreneurship",
+      title: "Building from zero. High-pressure execution.",
+      detail: "Every decision yours. No safety net. No off day. Performance is the only output that counts.",
+      accent: "text-primary",
+      ring: "ring-primary/35",
+      bar: "bg-primary",
+      bg: "from-primary/[0.10] to-primary/0",
     },
   ];
 
@@ -39,22 +39,22 @@ export default function FounderProof() {
       <div className="absolute top-[13vh] left-[6vw] right-[6vw]">
         <div className="flex items-center gap-[1.2vw] mb-[1.6vh]">
           <div className="h-[2px] w-[5vw] bg-primary" />
-          <span className="font-body uppercase tracking-[0.32em] text-[1.3vw] text-primary font-semibold">Origin · Built Under Pressure</span>
+          <span className="font-body uppercase tracking-[0.32em] text-[1.3vw] text-primary font-semibold">Origin · Built From That Reality</span>
         </div>
-        <h2 className="font-display text-[4.2vw] leading-[0.95] tracking-tighter text-balance max-w-[78vw]">
-          Built under pressure. <span className="text-primary">Before the product existed.</span>
+        <h2 className="font-display text-[4.4vw] leading-[0.95] tracking-tighter text-balance max-w-[80vw]">
+          Built where performance <span className="text-primary">is required.</span>
         </h2>
       </div>
 
       <div className="absolute top-[42vh] left-[6vw] right-[6vw] flex items-end justify-between gap-[3vw]">
-        <div className="font-display text-[2.3vw] leading-[1.15] tracking-tight max-w-[42vw]">
-          <span className="text-text">Before AForce, performance was not optional.</span>
-          <span className="text-text/55"> NBA environments. Wall Street execution. </span>
-          <span className="text-primary">No room for an off day.</span>
+        <div className="font-display text-[2.3vw] leading-[1.15] tracking-tight max-w-[44vw]">
+          <span className="text-text">Environments where there is </span>
+          <span className="text-primary">no room for inconsistency.</span>
         </div>
         <div className="font-body text-[1.05vw] text-text/65 max-w-[28vw] leading-snug text-right pb-[1vh]">
-          <div className="text-text">We didn't build a drink.</div>
-          <div className="mt-[0.6vh] text-text/85">We built the system we needed to stay sharp when failure wasn't allowed.</div>
+          <div className="text-text/85">Where focus matters.</div>
+          <div className="text-text/85">Where energy matters.</div>
+          <div className="mt-[0.4vh] text-text">Where performance is expected — every day.</div>
         </div>
       </div>
 
@@ -77,7 +77,7 @@ export default function FounderProof() {
       <div className="absolute bottom-[5vh] left-[6vw] right-[6vw]">
         <div className="border-t border-text/10 pt-[2vh] flex items-center justify-between gap-[2vw] flex-wrap">
           <div className="font-body uppercase tracking-[0.28em] text-[1vw] text-primary font-semibold">
-            Two founders. <span className="text-text">No off switch.</span>
+            AForce was built <span className="text-text">from that reality.</span>
           </div>
           <div className="font-body text-[0.95vw] uppercase tracking-[0.28em] text-text/55">
             Brandon Burrell · Julius Burrell
