@@ -52,7 +52,7 @@ export default function Closing() {
           <div className="absolute inset-x-0 top-0 h-[3px] bg-primary" />
           <div className="relative px-[1.8vw] py-[1.8vh]">
             <div className="font-display text-[1.75vw] leading-[1.15] tracking-tight text-text">
-              We're raising <span className="text-primary">$4M</span> to build the performance standard.
+              We're raising <span className="text-primary">$4M</span> to own the performance standard.
             </div>
             <ul className="mt-[1.4vh] grid grid-cols-2 gap-x-[1.6vw] gap-y-[0.8vh]">
               {[
