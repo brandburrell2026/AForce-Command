@@ -13,8 +13,8 @@ export default function Closing() {
       />
 
       <div className="absolute top-[5vh] left-[6vw] right-[6vw] flex justify-between items-center z-10">
-        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-primary font-semibold">24 — The Ask</div>
-        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-muted">24 / 24</div>
+        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-primary font-semibold">25 — The Ask</div>
+        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-muted">25 / 25</div>
       </div>
 
       <div className="absolute top-[11vh] bottom-[8vh] left-[5vw] w-[38vw] z-10 flex items-center justify-center">

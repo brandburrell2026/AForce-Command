@@ -31,8 +31,8 @@ export default function OSDashboards() {
 
       {/* Eyebrow */}
       <div className="absolute top-[5vh] left-[6vw] right-[6vw] flex justify-between items-center z-10">
-        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-blue font-semibold">12 — At Scale</div>
-        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-muted">12 / 24</div>
+        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-blue font-semibold">13 — At Scale</div>
+        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-muted">13 / 25</div>
       </div>
 
       {/* Headline */}

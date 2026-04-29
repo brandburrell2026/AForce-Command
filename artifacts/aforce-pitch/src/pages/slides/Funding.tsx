@@ -14,8 +14,8 @@ export default function Funding() {
   return (
     <div className="w-screen h-screen overflow-hidden relative bg-bg text-text font-body">
       <div className="absolute top-[6vh] left-[6vw] right-[6vw] flex justify-between items-center z-10">
-        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-primary font-semibold">22 — Funding & Use of Funds</div>
-        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-muted">22 / 24</div>
+        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-primary font-semibold">23 — Funding & Use of Funds</div>
+        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-muted">23 / 25</div>
       </div>
 
       <div
