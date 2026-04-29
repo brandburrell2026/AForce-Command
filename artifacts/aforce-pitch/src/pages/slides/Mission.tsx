@@ -1,27 +1,27 @@
 export default function Mission() {
   const tenets = [
     {
-      eyebrow: "Built for pressure",
-      title: "Most products give you a lift. Then they let you fall.",
-      body: "AForce is built for the moments that decide everything — when others fade, you stay sharp.",
+      eyebrow: "The Brand Truth",
+      title: "Your best — every day. Not your best ever.",
+      body: "Not your best in perfect conditions. Reliably, consistently, every single day. The standard this category has not yet defined.",
       accent: "text-accent",
       ring: "ring-accent/35",
       bar: "bg-accent",
       bg: "from-accent/[0.10] to-accent/0",
     },
     {
-      eyebrow: "What we believe",
-      title: "Performance comes from control, not intensity.",
-      body: "Control your body → you control your output. Control your output → you control the outcome.",
+      eyebrow: "The Human Insight",
+      title: "There is a kind of person who does not get to be off.",
+      body: "The gap between what they're capable of and what they deliver is not talent or ambition. It is consistency under pressure.",
       accent: "text-blue",
       ring: "ring-blue/35",
       bar: "bg-blue",
       bg: "from-blue/[0.10] to-blue/0",
     },
     {
-      eyebrow: "Who this is for",
-      title: "People who expect more from themselves — every day.",
-      body: "People who don't guess. People who don't drift. People judged by what they deliver, not what they say.",
+      eyebrow: "The Category Claim",
+      title: "Where others capture moments, AForce sets the baseline.",
+      body: "Not a hydration brand. Not a sports drink. A daily performance system built on hydration intelligence — and a performance discipline.",
       accent: "text-primary",
       ring: "ring-primary/35",
       bar: "bg-primary",
@@ -52,21 +52,27 @@ export default function Mission() {
             <span className="font-body uppercase tracking-[0.32em] text-[1.3vw] text-accent font-semibold">Mission</span>
           </div>
           <h2 className="font-display text-[4.4vw] leading-[0.95] tracking-tighter">
-            Performance is not a goal. <span className="text-accent">It's a standard.</span>
+            Performance is <span className="text-accent">non-negotiable.</span>
           </h2>
+          <p className="mt-[1.6vh] font-display text-[1.55vw] leading-[1.2] text-text/80 max-w-[44vw]">
+            For professionals who <span className="text-accent">do not get to be off.</span>
+          </p>
         </div>
         <div className="max-w-[28vw] pb-[0.4vh] text-right">
           <div className="flex items-start justify-end gap-[0.7vw]">
-            <p className="font-display italic text-[1.15vw] leading-[1.35] tracking-tight text-text">
-              <span className="text-accent">"</span>Built by founders who learned the hard way:<br />
-              when you're <span className="text-accent">off</span>, you feel it immediately.<br />
-              And in high-stakes environments, you don't get a <span className="text-accent">second chance</span>.<span className="text-accent">"</span>
+            <p className="font-display italic text-[1.1vw] leading-[1.4] tracking-tight text-text">
+              <span className="text-accent">"</span>The energy category is <span className="text-accent">loud by design.</span><br />
+              AForce removes noise. It removes friction.<br />
+              It creates the focus for performance.<span className="text-accent">"</span>
             </p>
+          </div>
+          <div className="mt-[1.2vh] font-body uppercase tracking-[0.28em] text-[0.7vw] text-text/55 font-semibold">
+            Strategic Advisors · Kristel van Kleef · Peter Ingwersen
           </div>
         </div>
       </div>
 
-      <div className="absolute top-[40vh] bottom-[18vh] left-[6vw] right-[6vw]">
+      <div className="absolute top-[42vh] bottom-[20vh] left-[6vw] right-[6vw]">
         <div className="flex items-center gap-[1vw] mb-[1.6vh]">
           <div className="h-px w-[3vw] bg-accent" />
           <div className="font-body uppercase tracking-[0.32em] text-[0.85vw] text-accent font-semibold">Three Beliefs</div>
@@ -80,7 +86,7 @@ export default function Mission() {
                 <div className={`font-body uppercase tracking-[0.28em] text-[0.85vw] font-semibold ${t.accent}`}>
                   {t.eyebrow}
                 </div>
-                <div className="font-display text-[1.7vw] leading-tight tracking-tight mt-[1.2vh] text-text">{t.title}</div>
+                <div className="font-display text-[1.55vw] leading-tight tracking-tight mt-[1.2vh] text-text">{t.title}</div>
                 <div className="font-body text-[0.95vw] text-text/65 mt-[1.6vh] leading-snug">{t.body}</div>
               </div>
             </div>
@@ -92,18 +98,19 @@ export default function Mission() {
         <div className="border-t border-text/10 pt-[2vh]">
           <div className="flex items-center gap-[1vw] mb-[1.2vh]">
             <div className="h-px w-[3vw] bg-accent" />
-            <div className="font-body uppercase tracking-[0.32em] text-[0.85vw] text-accent font-semibold">The Loop</div>
+            <div className="font-body uppercase tracking-[0.32em] text-[0.85vw] text-accent font-semibold">The Daily Ritual</div>
           </div>
-          <div className="font-display text-[1.7vw] leading-[1.25] tracking-tight">
-            <span className="text-text/55">Control your </span>
-            <span className="text-text">body.</span>
-            <span className="text-text/55"> Control your </span>
-            <span className="text-text">output.</span>
-            <span className="text-text/55"> Control the </span>
-            <span className="text-accent">outcome.</span>
+          <div className="flex items-baseline gap-[2vw] flex-wrap font-display text-[1.45vw] leading-[1.2] tracking-tight">
+            <div><span className="text-accent">Morning.</span><span className="text-text/55"> Set your level.</span></div>
+            <div className="text-text/30">·</div>
+            <div><span className="text-accent">Midday.</span><span className="text-text/55"> Maintain your edge.</span></div>
+            <div className="text-text/30">·</div>
+            <div><span className="text-accent">Pre-performance.</span><span className="text-text/55"> Lock in.</span></div>
+            <div className="text-text/30">·</div>
+            <div><span className="text-accent">Recovery.</span><span className="text-text/55"> Reset.</span></div>
           </div>
-          <div className="mt-[1.4vh] font-body italic text-[1vw] text-text/55 leading-snug">
-            Built by founders who had to <span className="text-text">perform</span> before the product ever existed.
+          <div className="mt-[1.2vh] font-body italic text-[1vw] text-text/55 leading-snug">
+            Not used occasionally. <span className="text-text">Built into the day so you're never off.</span>
           </div>
         </div>
       </div>

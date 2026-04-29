@@ -1,9 +1,9 @@
 export default function Insight() {
   const oldModel = ["Push harder", "Drink when needed", "Hope it holds"];
-  const newModel = ["Measure", "Adjust", "Stay in control"];
+  const newModel = ["Pause", "Hydrate", "Lock in"];
   const shifts = [
-    { from: "Reactive", to: "Proactive" },
-    { from: "Guessing", to: "Knowing" },
+    { from: "Loud", to: "Quiet" },
+    { from: "Reactive", to: "Prepared" },
     { from: "Effort", to: "Precision" },
   ];
 
@@ -27,19 +27,19 @@ export default function Insight() {
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-[1.2vw] mb-[1.4vh]">
             <div className="h-[2px] w-[5vw] bg-accent" />
-            <span className="font-body uppercase tracking-[0.32em] text-[1.3vw] text-accent font-semibold">Insight · The Leak</span>
+            <span className="font-body uppercase tracking-[0.32em] text-[1.3vw] text-accent font-semibold">Insight · The Performance Moment</span>
           </div>
-          <h2 className="font-display text-[4.8vw] leading-[0.92] tracking-tighter text-balance">
-            Performance doesn't collapse. <span className="text-accent">It leaks.</span>
+          <h2 className="font-display text-[4.6vw] leading-[0.92] tracking-tighter text-balance">
+            The edge is not louder. <span className="text-accent">It is quieter.</span>
           </h2>
         </div>
-        <div className="font-body text-[1.05vw] text-text/65 max-w-[26vw] leading-snug pb-[1vh] text-right">
-          <div className="text-text">You don't feel it immediately. You feel it later.</div>
+        <div className="font-body text-[1.05vw] text-text/65 max-w-[28vw] leading-snug pb-[1vh] text-right">
+          <div className="text-text">Kobe before the court. Beyoncé before the stage.</div>
           <div className="mt-[1vh] text-text/55">
-            <span className="text-text/85">Slower reactions.</span> <span className="text-text/85">Lower clarity.</span> <span className="text-text/85">Worse decisions.</span>
+            <span className="text-text/85">Silence.</span> <span className="text-text/85">Focus.</span> <span className="text-text/85">Breath.</span> <span className="text-text/85">Complete clarity.</span>
           </div>
-          <div className="mt-[1.6vh] pt-[1vh] border-t border-text/15 italic text-[0.95vw] text-accent/80">
-            We didn't learn this in theory. <span className="text-text">We learned it under pressure.</span>
+          <div className="mt-[1.6vh] pt-[1vh] border-t border-text/15 italic text-[0.95vw] text-accent/85">
+            They are not becoming someone else. <span className="text-text">They are removing what gets in the way.</span>
           </div>
         </div>
       </div>
@@ -47,25 +47,24 @@ export default function Insight() {
       <div className="absolute top-[36vh] left-[6vw] right-[6vw]">
         <div className="flex items-center gap-[1vw] mb-[1.4vh]">
           <div className="h-px w-[3vw] bg-accent" />
-          <div className="font-body uppercase tracking-[0.32em] text-[0.85vw] text-accent font-semibold">The Category Shift</div>
+          <div className="font-body uppercase tracking-[0.32em] text-[0.85vw] text-accent font-semibold">Where AForce Lives</div>
         </div>
-        <div className="font-display text-[3.2vw] leading-[1.04] tracking-tight text-balance">
-          <span className="text-text/55">Performance is not </span>
-          <span className="text-text">effort.</span>
-          <span className="text-text/55"> It is </span>
-          <span className="text-accent">management.</span>
+        <div className="font-display text-[2.8vw] leading-[1.04] tracking-tight text-balance">
+          <span className="text-text/55">The physical trigger. </span>
+          <span className="text-text">The signal to switch state. </span>
+          <span className="text-accent">The transition into performance.</span>
         </div>
       </div>
 
-      <div className="absolute top-[53vh] bottom-[17vh] left-[6vw] right-[6vw] grid grid-cols-2 gap-[2vw]">
+      <div className="absolute top-[55vh] bottom-[17vh] left-[6vw] right-[6vw] grid grid-cols-2 gap-[2vw]">
         <div className="relative rounded-2xl ring-1 ring-text/20 bg-bg-elev/40 overflow-hidden">
           <div className="absolute inset-x-0 top-0 h-[3px] bg-text/40" />
           <div className="relative p-[1.6vw] flex flex-col h-full">
             <div className="font-body uppercase tracking-[0.28em] text-[0.85vw] text-text/55 font-semibold">The Old Model</div>
-            <div className="font-display text-[2vw] leading-tight tracking-tight text-text/75 mt-[1vh]">React. Push. Hope.</div>
-            <ul className="mt-[1.6vh] space-y-[1vh]">
+            <div className="font-display text-[1.9vw] leading-tight tracking-tight text-text/75 mt-[1vh]">React. Push. Hope.</div>
+            <ul className="mt-[1.4vh] space-y-[0.9vh]">
               {oldModel.map((m) => (
-                <li key={m} className="flex items-center gap-[0.8vw] font-body text-[1.15vw] text-text/65">
+                <li key={m} className="flex items-center gap-[0.8vw] font-body text-[1.1vw] text-text/65">
                   <span className="text-text/30 font-display text-[1.3vw]">×</span> {m}
                 </li>
               ))}
@@ -77,14 +76,17 @@ export default function Insight() {
           <div className="absolute inset-0 bg-gradient-to-b from-accent/[0.10] to-accent/0 pointer-events-none" />
           <div className="absolute inset-x-0 top-0 h-[3px] bg-accent" />
           <div className="relative p-[1.6vw] flex flex-col h-full">
-            <div className="font-body uppercase tracking-[0.28em] text-[0.85vw] text-accent font-semibold">The New Model</div>
-            <div className="font-display text-[2vw] leading-tight tracking-tight text-text mt-[1vh]">Measure. Adjust. Hold.</div>
-            <ul className="mt-[1.6vh] space-y-[1vh]">
+            <div className="font-body uppercase tracking-[0.28em] text-[0.85vw] text-accent font-semibold">The AForce Ritual</div>
+            <div className="font-display text-[1.9vw] leading-tight tracking-tight text-text mt-[1vh]">Pause. Hydrate. Lock in.</div>
+            <ul className="mt-[1.4vh] space-y-[0.9vh]">
               {newModel.map((m) => (
-                <li key={m} className="flex items-center gap-[0.8vw] font-body text-[1.15vw] text-text">
+                <li key={m} className="flex items-center gap-[0.8vw] font-body text-[1.1vw] text-text">
                   <span className="text-accent font-display text-[1.3vw]">→</span> {m}
                 </li>
               ))}
+              <li className="flex items-center gap-[0.8vw] font-body text-[1.1vw] text-accent font-semibold">
+                <span className="text-accent font-display text-[1.3vw]">→</span> Perform.
+              </li>
             </ul>
           </div>
         </div>
@@ -103,8 +105,8 @@ export default function Insight() {
               ))}
             </div>
             <div className="font-body text-[0.95vw] uppercase tracking-[0.28em]">
-              <span className="text-text/45 mr-[0.8vw]">Unlocks</span>
-              <span className="text-accent font-semibold">Consistency · Clarity · Control</span>
+              <span className="text-text/45 mr-[0.8vw]">AForce does not create performance.</span>
+              <span className="text-accent font-semibold">It ensures nothing gets in the way.</span>
             </div>
           </div>
         </div>

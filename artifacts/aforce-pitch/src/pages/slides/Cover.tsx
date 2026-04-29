@@ -37,14 +37,14 @@ export default function Cover() {
           <div className="font-display text-[3.8vw] leading-none tracking-tight text-primary">AForce</div>
           <div className="font-body uppercase tracking-[0.32em] text-[0.95vw] text-text/55 font-semibold">The Performance Operating System</div>
         </div>
-        <h1 className="font-display text-[6.6vw] leading-[0.92] tracking-tighter text-text max-w-[44vw]">
-          You don't break <span className="text-primary">under pressure.</span>
+        <h1 className="font-display text-[6.4vw] leading-[0.9] tracking-tighter text-text max-w-[44vw]">
+          Performance is <span className="text-primary">non-negotiable.</span>
         </h1>
-        <p className="mt-[2.4vh] font-display text-[2.2vw] leading-tight text-text max-w-[42vw] text-pretty">
-          <span className="text-primary">Check.</span> <span className="text-accent">Act.</span> Perform.
+        <p className="mt-[2.4vh] font-display text-[1.85vw] leading-tight text-text/90 max-w-[42vw] text-pretty">
+          <span className="text-primary">Pause.</span> <span className="text-text">Hydrate.</span> <span className="text-accent">Lock in.</span> Perform.
         </p>
-        <p className="mt-[1.2vh] font-body text-[1.25vw] font-light text-text/70 max-w-[42vw] leading-snug">
-          Built for people who operate when others don't — a system for staying sharp, steady, and in control.
+        <p className="mt-[1.4vh] font-body text-[1.15vw] font-light text-text/65 max-w-[42vw] leading-snug">
+          This is beyond a hydration brand. <span className="text-text/85">This is a performance standard.</span>
         </p>
       </div>
     </div>

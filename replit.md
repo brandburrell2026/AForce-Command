@@ -72,8 +72,14 @@ I prefer iterative development, with frequent, small updates. Ask before making 
 - **Science & Methodology (`/science`):** In-app page documenting every formula in the engine — ACSM sweat rate, Baker 2017 sodium bands, Rothfusz Heat Index, Widmark BAC, Apple Health HRV/RHR/sleep adjustment, soursop/flavor bonuses, scoring decay model. Each section follows **What we compute → Formula → Reference → Limitations**. "Export Methodology PDF" button (expo-print) unlocks the **PDF Pioneer** badge. Companion file: `docs/validation-methodology.md`.
 
 ### Investor Pitch Deck (`artifacts/aforce-pitch`)
-- **Format:** 22 React slides served at `/aforce-pitch/slide{1..22}`.
-- **Narrative:** Built around the AForce product line (3 alkaline hydration flavors in cans and stick mixes) and the AForce OS mobile app.
+- **Format:** 25 React slides served at `/aforce-pitch/slide{1..25}` (manifest at `src/data/slides-manifest.json`).
+- **Narrative spine (advisor-aligned, April 30 2026 brief by Kristel van Kleef & Peter Ingwersen):**
+  - **Slide 1 — Cover:** "Performance is non-negotiable." · "Pause. Hydrate. Lock in. Perform." · "This is beyond a hydration brand. This is a performance standard."
+  - **Slide 2 — Mission:** Three Beliefs (Brand Truth / Human Insight / Category Claim) plus the Daily Ritual ribbon (Morning · Midday · Pre-performance · Recovery) and an advisor pull-quote attributed to Kristel van Kleef & Peter Ingwersen.
+  - **Slide 3 — Problem (The Disruption):** Reframes the energy category as "loud by design" with a direct Red Bull contrast (Loud Category vs. Empty Default) and the New Territory line: focus, control, consistency.
+  - **Slide 4 — Insight (The Performance Moment):** "The edge is not louder — it is quieter." Kobe / Beyoncé pre-performance metaphor, AForce ritual (Pause → Hydrate → Lock in → Perform), Loud→Quiet shift.
+  - **Slide 25 — The Ask:** Closing reprises "Performance is non-negotiable. AForce makes sure you're always on." with a strategic-advisors credit box and the final insight "The edge is not louder. It is quieter."
+- **Built around the AForce product line** (3 alkaline hydration flavors in cans and stick mixes) and the AForce OS mobile app.
 - **Key Business Metrics:** Hardcoded revenue projections, LTV:CAC, gross margin, funding ask, and use of funds split.
 - **Brand palette (deck-only):** Dark base with red, blue, and yellow flavor accents.
 

@@ -1,202 +1,202 @@
 [
-	{
-		"id": "30e66484-77d0-4285-a7eb-c83a6727395b",
-		"position": 1,
-		"filepath": "src/pages/slides/Cover.tsx",
-		"title": "Cover",
-		"description": "AForce — the performance operating system. You don't break under pressure. Check. Act. Perform. $4M Seed for Spring 2026 launch.",
-		"speakerNotes": ""
-	},
-	{
-		"id": "8e4cf563-c48f-4c66-b94d-aab6f68f7995",
-		"position": 2,
-		"filepath": "src/pages/slides/Mission.tsx",
-		"title": "Mission",
-		"description": "Performance is not a goal. It's a standard. Built for pressure. Performance comes from control. For people who expect more — every day.",
-		"speakerNotes": ""
-	},
-	{
-		"id": "77238899-dda0-4c5f-96aa-ecf2cfba9ed5",
-		"position": 3,
-		"filepath": "src/pages/slides/Problem.tsx",
-		"title": "Problem",
-		"description": "Most people don't lose from lack of effort. They lose from inconsistency. Two market options — short-term boost or no system. Neither sustains performance.",
-		"speakerNotes": ""
-	},
-	{
-		"id": "7fe43c1b-89b6-447f-8b27-7577d199165c",
-		"position": 4,
-		"filepath": "src/pages/slides/Insight.tsx",
-		"title": "Insight",
-		"description": "Performance doesn't collapse. It leaks. Performance is not effort — it is management. Old model (push, drink, hope) vs. new model (measure, adjust, hold). Unlocks consistency, clarity, control.",
-		"speakerNotes": ""
-	},
-	{
-		"id": "b1c2d3e4-f5a6-4789-9b0c-1d2e3f4a5b6c",
-		"position": 5,
-		"filepath": "src/pages/slides/NationalMedia.tsx",
-		"title": "Timing",
-		"description": "National attention at the moment of launch. Spring 2026 launch → Summer 2026 filming → Fall 2026 national broadcast. Visibility meets availability. Demand meets supply.",
-		"speakerNotes": ""
-	},
-	{
-		"id": "c64e2c71-c39c-4bcc-8d67-031815b2a82d",
-		"position": 6,
-		"filepath": "src/pages/slides/System.tsx",
-		"title": "Product",
-		"description": "One system. Three flavors. Two formats. One outcome — sustained performance. Stability, recovery, output under pressure. This is not hydration. This is performance fuel.",
-		"speakerNotes": ""
-	},
-	{
-		"id": "b51134a1-7a9a-4912-9cf2-11dacc6a0de7",
-		"position": 7,
-		"filepath": "src/pages/slides/Loop.tsx",
-		"title": "Formats",
-		"description": "Same system. Two formats. Cans for the cooler, sticks for the road — both feed the same performance loop.",
-		"speakerNotes": ""
-	},
-	{
-		"id": "e1a6c2f8-7b3d-4e9c-8a5f-1d4b8e2c6f9a",
-		"position": 8,
-		"filepath": "src/pages/slides/OSIntro.tsx",
-		"title": "AForce OS",
-		"description": "The intelligence layer. Product fuels the body. OS controls performance.",
-		"speakerNotes": ""
-	},
-	{
-		"id": "b4d9f5c1-0e6a-4b2d-9c8f-4a7e1b5c9f3d",
-		"position": 9,
-		"filepath": "src/pages/slides/OSLoop.tsx",
-		"title": "The Loop",
-		"description": "Performance loop. Drink → Score → Coach → Decide. Same system. Every state of the body.",
-		"speakerNotes": ""
-	},
-	{
-		"id": "d7e8f9a0-1b2c-4d3e-9f5a-7b8c9d0e1f2a",
-		"position": 10,
-		"filepath": "src/pages/slides/ProductTour.tsx",
-		"title": "Product Tour",
-		"description": "One system. Multiple states. Performance Score, Social Mode, Recovery Mode — the OS adapts to every state of the body.",
-		"speakerNotes": ""
-	},
-	{
-		"id": "a1b2c3d4-e5f6-4789-9abc-def012345678",
-		"position": 11,
-		"filepath": "src/pages/slides/SweatCalculator.tsx",
-		"title": "Sweat Calculator",
-		"description": "Inside the OS — six inputs become a peer-reviewed sweat profile and an exact AForce protocol. Measure → engine → replenish, with every number traceable to ACSM 2007, Baker 2017, Maughan-Shirreffs 2010, and Périard 2015.",
-		"speakerNotes": ""
-	},
-	{
-		"id": "c2d3e4f5-a6b7-4890-bc1d-2e3f4a5b6c7d",
-		"position": 12,
-		"filepath": "src/pages/slides/OSRoadmap.tsx",
-		"title": "OS Roadmap",
-		"description": "Building the performance layer. AI Coach (2026, consumer) → Clutch (2027, team SaaS) → Guardian (2028, enterprise + medical). $216B+ TAM, $48B SAM, $1.4B SOM.",
-		"speakerNotes": ""
-	},
-	{
-		"id": "e9f1a2b3-c4d5-46e7-89fa-0b1c2d3e4f56",
-		"position": 13,
-		"filepath": "src/pages/slides/OSDashboards.tsx",
-		"title": "At Scale",
-		"description": "Performance at scale. Clutch puts the coach in command of game-day roster tiers; Guardian gives medical and enterprise teams composite risk + critical alerts on the same loop. Individual to team to system.",
-		"speakerNotes": ""
-	},
-	{
-		"id": "f2a3b4c5-d6e7-48f9-9a0b-1c2d3e4f5a67",
-		"position": 14,
-		"filepath": "src/pages/slides/OSCommunity.tsx",
-		"title": "Community",
-		"description": "Performance becomes visible. The AForce League — 12 cities, 84K members competing weekly on Performance Score. Every can logs to your zip; the community turns customers into a flywheel.",
-		"speakerNotes": ""
-	},
-	{
-		"id": "d44bf2c6-5675-42c1-901b-e682ddfe1ff4",
-		"position": 15,
-		"filepath": "src/pages/slides/Market.tsx",
-		"title": "Market",
-		"description": "The performance economy. AForce sits at the intersection of product, behavior, and data — functional beverages, sports drinks, and stick mixes all converging.",
-		"speakerNotes": ""
-	},
-	{
-		"id": "f5a6b7c8-d9e0-4123-ef4a-5b6c7d8e9f01",
-		"position": 16,
-		"filepath": "src/pages/slides/Advantage.tsx",
-		"title": "Competitive Advantage",
-		"description": "System is the moat. CPG is copied. Systems compound. Others sell products. AForce builds performance infrastructure.",
-		"speakerNotes": ""
-	},
-	{
-		"id": "a6b7c8d9-e0f1-4234-fa5b-6c7d8e9f0123",
-		"position": 17,
-		"filepath": "src/pages/slides/Competitors.tsx",
-		"title": "Competitors",
-		"description": "No competitor operates a system. AForce vs. Liquid IV, LMNT, BodyArmor, Gatorade, Prime — the category has drinks. AForce has a loop.",
-		"speakerNotes": ""
-	},
-	{
-		"id": "b7c8d9e0-f1a2-4345-ab6c-7d8e9f012345",
-		"position": 18,
-		"filepath": "src/pages/slides/GTM.tsx",
-		"title": "Go-To-Market",
-		"description": "Build. Scale. Lead. Six phases from DTC launch to global category leader. Hardware scales. Software compounds. The OS creates retention.",
-		"speakerNotes": ""
-	},
-	{
-		"id": "c8d9e0f1-a2b3-4456-bc7d-8e9f01234567",
-		"position": 19,
-		"filepath": "src/pages/slides/Traction.tsx",
-		"title": "Traction",
-		"description": "Momentum before launch. $832K closed, 179 launch creators, 2.3M+ watching before product is on shelf, America's Real Deal Season 2 national TV premiere. Product ready. System ready. Demand building.",
-		"speakerNotes": ""
-	},
-	{
-		"id": "f1a2b3c4-d5e6-4789-fa01-234567890abc",
-		"position": 20,
-		"filepath": "src/pages/slides/Year1.tsx",
-		"title": "Path to $3.2M",
-		"description": "Growth driven by repeat behavior. 60,000 orders × $52 AOV = $3.2M. Five-stage acquisition→retention engine. Performance creates retention. Retention drives revenue.",
-		"speakerNotes": ""
-	},
-	{
-		"id": "d9e0f1a2-b3c4-4567-cd8e-9f0123456789",
-		"position": 21,
-		"filepath": "src/pages/slides/Financials.tsx",
-		"title": "Financial Projections",
-		"description": "Scaling a performance system. $3.2M (2026) → $13M (2027) → $27.8M (2028). EBITDA breakeven late 2027. The product creates entry. The system creates compounding value.",
-		"speakerNotes": ""
-	},
-	{
-		"id": "c5d6e7f8-a9b0-4cde-fab1-23456789cdef",
-		"position": 22,
-		"filepath": "src/pages/slides/Methodology.tsx",
-		"title": "Unit Economics",
-		"description": "Bottoms-up model: 40/25/20/15 product mix, $52×5–7×/65%=$383 CLTV ÷ $49 CAC = 5:1 LTV:CAC. Benchmarked vs Liquid I.V./LMNT. SaaS layer modeled as upside.",
-		"speakerNotes": ""
-	},
-	{
-		"id": "e0f1a2b3-c4d5-4678-de9f-012345678901",
-		"position": 23,
-		"filepath": "src/pages/slides/Funding.tsx",
-		"title": "Funding & Use of Funds",
-		"description": "$4M Series Seed Preferred. Q1 2026 close. 40/20/20/10/10 allocation across inventory, GTM, OS, distribution, team.",
-		"speakerNotes": ""
-	},
-	{
-		"id": "a2b3c4d5-e6f7-4890-f012-345678901234",
-		"position": 24,
-		"filepath": "src/pages/slides/Leaders.tsx",
-		"title": "Team",
-		"description": "Brandon Burrell, Julius Burrell — with advisors Mark Mendel, Adam Sobol, Thomas Masterbouni, and Chief Scientist Mark Satterfield.",
-		"speakerNotes": ""
-	},
-	{
-		"id": "b3c4d5e6-f7a8-4901-1234-567890123456",
-		"position": 25,
-		"filepath": "src/pages/slides/Closing.tsx",
-		"title": "The Ask",
-		"description": "$4M Seed close. Founder-led closer with Brandon Burrell portrait, vision restatement, four proof KPIs, and contact strip.",
-		"speakerNotes": ""
-	}
+        {
+                "id": "30e66484-77d0-4285-a7eb-c83a6727395b",
+                "position": 1,
+                "filepath": "src/pages/slides/Cover.tsx",
+                "title": "Cover",
+                "description": "AForce — the performance operating system. Performance is non-negotiable. Pause. Hydrate. Lock in. Perform. This is beyond a hydration brand — it is a performance standard.",
+                "speakerNotes": ""
+        },
+        {
+                "id": "8e4cf563-c48f-4c66-b94d-aab6f68f7995",
+                "position": 2,
+                "filepath": "src/pages/slides/Mission.tsx",
+                "title": "Mission",
+                "description": "Performance is non-negotiable. The Brand Truth, the Human Insight, the Category Claim. The daily ritual: Morning, Midday, Pre-performance, Recovery. Voiced by strategic advisors Kristel van Kleef and Peter Ingwersen.",
+                "speakerNotes": ""
+        },
+        {
+                "id": "77238899-dda0-4c5f-96aa-ecf2cfba9ed5",
+                "position": 3,
+                "filepath": "src/pages/slides/Problem.tsx",
+                "title": "Problem",
+                "description": "The Disruption. The energy category is loud by design (Red Bull, Monster, Celsius) — every other brand shows up after performance breaks down. AForce shows up before. The new territory: focus, control, consistency.",
+                "speakerNotes": ""
+        },
+        {
+                "id": "7fe43c1b-89b6-447f-8b27-7577d199165c",
+                "position": 4,
+                "filepath": "src/pages/slides/Insight.tsx",
+                "title": "Insight",
+                "description": "The edge is not louder — it is quieter. The Performance Moment: Kobe before the court, Beyoncé before the stage. Old model (React. Push. Hope.) vs. the AForce ritual (Pause. Hydrate. Lock in. Perform.). AForce ensures nothing gets in the way.",
+                "speakerNotes": ""
+        },
+        {
+                "id": "b1c2d3e4-f5a6-4789-9b0c-1d2e3f4a5b6c",
+                "position": 5,
+                "filepath": "src/pages/slides/NationalMedia.tsx",
+                "title": "Timing",
+                "description": "National attention at the moment of launch. Spring 2026 launch → Summer 2026 filming → Fall 2026 national broadcast. Visibility meets availability. Demand meets supply.",
+                "speakerNotes": ""
+        },
+        {
+                "id": "c64e2c71-c39c-4bcc-8d67-031815b2a82d",
+                "position": 6,
+                "filepath": "src/pages/slides/System.tsx",
+                "title": "Product",
+                "description": "One system. Three flavors. Two formats. One outcome — sustained performance. Stability, recovery, output under pressure. This is not hydration. This is performance fuel.",
+                "speakerNotes": ""
+        },
+        {
+                "id": "b51134a1-7a9a-4912-9cf2-11dacc6a0de7",
+                "position": 7,
+                "filepath": "src/pages/slides/Loop.tsx",
+                "title": "Formats",
+                "description": "Same system. Two formats. Cans for the cooler, sticks for the road — both feed the same performance loop.",
+                "speakerNotes": ""
+        },
+        {
+                "id": "e1a6c2f8-7b3d-4e9c-8a5f-1d4b8e2c6f9a",
+                "position": 8,
+                "filepath": "src/pages/slides/OSIntro.tsx",
+                "title": "AForce OS",
+                "description": "The intelligence layer. Product fuels the body. OS controls performance.",
+                "speakerNotes": ""
+        },
+        {
+                "id": "b4d9f5c1-0e6a-4b2d-9c8f-4a7e1b5c9f3d",
+                "position": 9,
+                "filepath": "src/pages/slides/OSLoop.tsx",
+                "title": "The Loop",
+                "description": "Performance loop. Drink → Score → Coach → Decide. Same system. Every state of the body.",
+                "speakerNotes": ""
+        },
+        {
+                "id": "d7e8f9a0-1b2c-4d3e-9f5a-7b8c9d0e1f2a",
+                "position": 10,
+                "filepath": "src/pages/slides/ProductTour.tsx",
+                "title": "Product Tour",
+                "description": "One system. Multiple states. Performance Score, Social Mode, Recovery Mode — the OS adapts to every state of the body.",
+                "speakerNotes": ""
+        },
+        {
+                "id": "a1b2c3d4-e5f6-4789-9abc-def012345678",
+                "position": 11,
+                "filepath": "src/pages/slides/SweatCalculator.tsx",
+                "title": "Sweat Calculator",
+                "description": "Inside the OS — six inputs become a peer-reviewed sweat profile and an exact AForce protocol. Measure → engine → replenish, with every number traceable to ACSM 2007, Baker 2017, Maughan-Shirreffs 2010, and Périard 2015.",
+                "speakerNotes": ""
+        },
+        {
+                "id": "c2d3e4f5-a6b7-4890-bc1d-2e3f4a5b6c7d",
+                "position": 12,
+                "filepath": "src/pages/slides/OSRoadmap.tsx",
+                "title": "OS Roadmap",
+                "description": "Building the performance layer. AI Coach (2026, consumer) → Clutch (2027, team SaaS) → Guardian (2028, enterprise + medical). $216B+ TAM, $48B SAM, $1.4B SOM.",
+                "speakerNotes": ""
+        },
+        {
+                "id": "e9f1a2b3-c4d5-46e7-89fa-0b1c2d3e4f56",
+                "position": 13,
+                "filepath": "src/pages/slides/OSDashboards.tsx",
+                "title": "At Scale",
+                "description": "Performance at scale. Clutch puts the coach in command of game-day roster tiers; Guardian gives medical and enterprise teams composite risk + critical alerts on the same loop. Individual to team to system.",
+                "speakerNotes": ""
+        },
+        {
+                "id": "f2a3b4c5-d6e7-48f9-9a0b-1c2d3e4f5a67",
+                "position": 14,
+                "filepath": "src/pages/slides/OSCommunity.tsx",
+                "title": "Community",
+                "description": "Performance becomes visible. The AForce League — 12 cities, 84K members competing weekly on Performance Score. Every can logs to your zip; the community turns customers into a flywheel.",
+                "speakerNotes": ""
+        },
+        {
+                "id": "d44bf2c6-5675-42c1-901b-e682ddfe1ff4",
+                "position": 15,
+                "filepath": "src/pages/slides/Market.tsx",
+                "title": "Market",
+                "description": "The performance economy. AForce sits at the intersection of product, behavior, and data — functional beverages, sports drinks, and stick mixes all converging.",
+                "speakerNotes": ""
+        },
+        {
+                "id": "f5a6b7c8-d9e0-4123-ef4a-5b6c7d8e9f01",
+                "position": 16,
+                "filepath": "src/pages/slides/Advantage.tsx",
+                "title": "Competitive Advantage",
+                "description": "System is the moat. CPG is copied. Systems compound. Others sell products. AForce builds performance infrastructure.",
+                "speakerNotes": ""
+        },
+        {
+                "id": "a6b7c8d9-e0f1-4234-fa5b-6c7d8e9f0123",
+                "position": 17,
+                "filepath": "src/pages/slides/Competitors.tsx",
+                "title": "Competitors",
+                "description": "No competitor operates a system. AForce vs. Liquid IV, LMNT, BodyArmor, Gatorade, Prime — the category has drinks. AForce has a loop.",
+                "speakerNotes": ""
+        },
+        {
+                "id": "b7c8d9e0-f1a2-4345-ab6c-7d8e9f012345",
+                "position": 18,
+                "filepath": "src/pages/slides/GTM.tsx",
+                "title": "Go-To-Market",
+                "description": "Build. Scale. Lead. Six phases from DTC launch to global category leader. Hardware scales. Software compounds. The OS creates retention.",
+                "speakerNotes": ""
+        },
+        {
+                "id": "c8d9e0f1-a2b3-4456-bc7d-8e9f01234567",
+                "position": 19,
+                "filepath": "src/pages/slides/Traction.tsx",
+                "title": "Traction",
+                "description": "Momentum before launch. $832K closed, 179 launch creators, 2.3M+ watching before product is on shelf, America's Real Deal Season 2 national TV premiere. Product ready. System ready. Demand building.",
+                "speakerNotes": ""
+        },
+        {
+                "id": "f1a2b3c4-d5e6-4789-fa01-234567890abc",
+                "position": 20,
+                "filepath": "src/pages/slides/Year1.tsx",
+                "title": "Path to $3.2M",
+                "description": "Growth driven by repeat behavior. 60,000 orders × $52 AOV = $3.2M. Five-stage acquisition→retention engine. Performance creates retention. Retention drives revenue.",
+                "speakerNotes": ""
+        },
+        {
+                "id": "d9e0f1a2-b3c4-4567-cd8e-9f0123456789",
+                "position": 21,
+                "filepath": "src/pages/slides/Financials.tsx",
+                "title": "Financial Projections",
+                "description": "Scaling a performance system. $3.2M (2026) → $13M (2027) → $27.8M (2028). EBITDA breakeven late 2027. The product creates entry. The system creates compounding value.",
+                "speakerNotes": ""
+        },
+        {
+                "id": "c5d6e7f8-a9b0-4cde-fab1-23456789cdef",
+                "position": 22,
+                "filepath": "src/pages/slides/Methodology.tsx",
+                "title": "Unit Economics",
+                "description": "Bottoms-up model: 40/25/20/15 product mix, $52×5–7×/65%=$383 CLTV ÷ $49 CAC = 5:1 LTV:CAC. Benchmarked vs Liquid I.V./LMNT. SaaS layer modeled as upside.",
+                "speakerNotes": ""
+        },
+        {
+                "id": "e0f1a2b3-c4d5-4678-de9f-012345678901",
+                "position": 23,
+                "filepath": "src/pages/slides/Funding.tsx",
+                "title": "Funding & Use of Funds",
+                "description": "$4M Series Seed Preferred. Q1 2026 close. 40/20/20/10/10 allocation across inventory, GTM, OS, distribution, team.",
+                "speakerNotes": ""
+        },
+        {
+                "id": "a2b3c4d5-e6f7-4890-f012-345678901234",
+                "position": 24,
+                "filepath": "src/pages/slides/Leaders.tsx",
+                "title": "Team",
+                "description": "Brandon Burrell, Julius Burrell — with advisors Mark Mendel, Adam Sobol, Thomas Masterbouni, and Chief Scientist Mark Satterfield.",
+                "speakerNotes": ""
+        },
+        {
+                "id": "b3c4d5e6-f7a8-4901-1234-567890123456",
+                "position": 25,
+                "filepath": "src/pages/slides/Closing.tsx",
+                "title": "The Ask",
+                "description": "Performance is non-negotiable. AForce makes sure you're always on. This is beyond a hydration brand — it is a performance standard. Closing image of two brothers, advisor credit (Kristel van Kleef, Peter Ingwersen), and the final insight: the edge is not louder, it is quieter.",
+                "speakerNotes": ""
+        }
 ]

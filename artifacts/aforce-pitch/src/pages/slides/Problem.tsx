@@ -1,21 +1,21 @@
 export default function Problem() {
   const failures = [
     {
-      label: "Option 1 — Short-term boost",
-      title: "Energy spikes. Hard crashes.",
-      tags: ["Energy spikes", "Hard crashes", "No control"],
-      body: "Sugar-loaded boosters create quick hits with no system underneath. The lift comes — and then the fall.",
+      label: "The Loud Category",
+      title: "Stimulation. Hype. Speed.",
+      tags: ["External energy", "Spike & crash", "Built for moments"],
+      body: "Red Bull is the clearest example — the category is loud by design. It captures attention with intensity, then leaves the body to absorb the fall.",
       accent: "text-primary",
       ring: "ring-primary/35",
       bar: "bg-primary",
       bg: "from-primary/[0.10] to-primary/0",
-      shelf: "Gatorade · Powerade · Prime",
+      shelf: "Red Bull · Monster · Celsius · Prime",
     },
     {
-      label: "Option 2 — No system",
-      title: "Water alone. No structure.",
-      tags: ["Water alone", "No structure", "No feedback"],
-      body: "Plain water helps but never closes the loop. No measurement, no feedback, no command — and nothing compounds.",
+      label: "The Empty Default",
+      title: "Water alone. No system.",
+      tags: ["No measurement", "No feedback", "No compounding"],
+      body: "Plain water helps but never closes the loop. Nothing measures the body, nothing adjusts, nothing repeats. Performance is left to chance.",
       accent: "text-text/75",
       ring: "ring-text/25",
       bar: "bg-text/40",
@@ -44,14 +44,14 @@ export default function Problem() {
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-[1.2vw] mb-[1.4vh]">
             <div className="h-[2px] w-[5vw] bg-primary" />
-            <span className="font-body uppercase tracking-[0.32em] text-[1.3vw] text-primary font-semibold">The Reality</span>
+            <span className="font-body uppercase tracking-[0.32em] text-[1.3vw] text-primary font-semibold">The Disruption</span>
           </div>
           <h2 className="font-display text-[4.4vw] leading-[0.95] tracking-tighter text-balance">
-            Most people don't lose from lack of effort. <span className="text-primary">They lose from inconsistency.</span>
+            Every other brand shows up <span className="text-primary">after</span> performance breaks down.
           </h2>
         </div>
         <p className="font-body text-[1.05vw] text-text/65 max-w-[26vw] leading-snug pb-[1vh] text-right">
-          <span className="text-text">You don't break all at once. You fade.</span> Focus slips. Energy drops. Decisions get worse — and performance follows.
+          <span className="text-text">The category captures peaks.</span> Stimulation, hype, recovery after the fact. Nothing operates <span className="text-text">before</span> the moment that decides everything.
         </p>
       </div>
 
@@ -62,7 +62,7 @@ export default function Problem() {
             <div className={`absolute inset-x-0 top-0 h-[3px] ${f.bar}`} />
             <div className="relative p-[1.8vw] flex flex-col h-full">
               <div className={`font-body uppercase tracking-[0.32em] text-[0.95vw] font-semibold ${f.accent}`}>{f.label}</div>
-              <div className="font-display text-[3.4vw] leading-none tracking-tight text-text mt-[1.4vh]">{f.title}</div>
+              <div className="font-display text-[3vw] leading-none tracking-tight text-text mt-[1.4vh]">{f.title}</div>
 
               <div className="flex flex-wrap gap-[0.6vw] mt-[2.2vh]">
                 {f.tags.map((tag) => (
@@ -90,13 +90,13 @@ export default function Problem() {
         <div className="border-t border-text/10 pt-[2vh]">
           <div className="flex items-center gap-[1vw] mb-[1.2vh]">
             <div className="h-px w-[3vw] bg-primary" />
-            <div className="font-body uppercase tracking-[0.32em] text-[0.85vw] text-primary font-semibold">The Gap</div>
+            <div className="font-body uppercase tracking-[0.32em] text-[0.85vw] text-primary font-semibold">The New Territory</div>
           </div>
           <div className="font-display text-[1.7vw] leading-[1.25] tracking-tight">
-            <span className="text-text/55">The market fuels </span>
-            <span className="text-text">effort.</span>
-            <span className="text-text/55"> It does not sustain </span>
-            <span className="text-primary">performance.</span>
+            <span className="text-text/55">Performance doesn't come from </span>
+            <span className="text-text">more.</span>
+            <span className="text-text/55"> It comes from </span>
+            <span className="text-primary">focus, control, and consistency.</span>
           </div>
         </div>
       </div>
