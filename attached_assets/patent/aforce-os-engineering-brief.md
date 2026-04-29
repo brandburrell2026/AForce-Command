@@ -17,6 +17,9 @@ The five systems counsel asked about — **Mobile Application**, **Scoring Engin
 **Repository root:** `artifacts/aforce-os/`
 **Stack:** Expo (React Native), expo-router for file-based navigation, Clerk for auth, Postgres + Drizzle on the backend (`artifacts/api-server/`), WebSocket for multi-device sync.
 
+![FIG. 1 — System Architecture](png/fig1-system-architecture.png)
+*FIG. 1 — System Architecture.*
+
 ### 1.1 Navigation skeleton
 
 File-based routing through `expo-router`. Root `Stack` wraps a persistent bottom `Tabs` layout for the main experience.
@@ -36,6 +39,9 @@ File-based routing through `expo-router`. Root `Stack` wraps a persistent bottom
 | `/(auth)/sign-in`, `/(auth)/sign-up` | `app/(auth)/*` | Clerk-backed auth |
 
 ### 1.2 State management
+
+![FIG. 7 — Mobile App Architecture](png/fig7-mobile-app-architecture.png)
+*FIG. 7 — Mobile App Architecture.*
 
 **Pattern:** Sliced React Context + `useReducer`. The monolithic `AppState` is projected through memoized slice contexts so unrelated UI sections do not re-render on unrelated state changes.
 
@@ -67,6 +73,9 @@ File-based routing through `expo-router`. Root `Stack` wraps a persistent bottom
 
 ### 1.5 Wireframes (live on canvas)
 
+![FIG. 6 — Wireframes](png/fig6-wireframes.png)
+*FIG. 6 — Wireframes.*
+
 Counsel can view the actual rendered screens — not static mockups — in the engineering canvas:
 
 | Canvas shape ID | What it shows | Source |
@@ -84,6 +93,9 @@ Counsel can view the actual rendered screens — not static mockups — in the e
 **Maps to:** FIG. 8 (Scoring Engine)
 **Primary file:** `artifacts/aforce-os/utils/scoringEngine.ts`
 **Supporting files:** `services/hydrationScoreService.ts`, `types/index.ts`, `store/slices.tsx#useEngineSlice`
+
+![FIG. 8 — Scoring Engine](png/fig8-scoring-engine.png)
+*FIG. 8 — Scoring Engine.*
 
 The Scoring Engine is a **pure function** that takes a `UserState` snapshot and returns a `ScoreEngineOutput`. It runs both server-side (during state writes) and client-side (on every API response, for sub-network-latency UI updates). Because it is pure, the same input snapshot always produces the same output — this is the foundation of the determinism claim in §3.
 
@@ -179,6 +191,9 @@ Driven exclusively by `useEngineSlice()` (`store/slices.tsx`). Primary consumers
 **Primary file:** `artifacts/aforce-os/utils/scoringEngine.ts` (command generator at lines 537–591)
 **Supporting:** `services/bacEstimationService.ts`, `services/legalSafetyService.ts`
 
+![FIG. 9 — Deterministic AI Layer](png/fig9-deterministic-ai-layer.png)
+*FIG. 9 — Deterministic AI Layer.*
+
 ### 3.1 What "Deterministic" means here
 
 Conventional consumer health apps make recommendations through probabilistic LLM calls. The AForce Deterministic AI Layer is the opposite: an **ordered, pure-function rule pipeline** with **no remote inference and no nondeterministic LLM calls** in the safety- and performance-critical path. The same `UserState` snapshot always produces the same `AICommand`. This matters for three reasons that the application leans on as differentiators:
@@ -199,6 +214,9 @@ The pipeline (FIG. 9) runs in this order, top-down, on each engine refresh:
 6. **Recheck cadence** — Default cadence by band (§2.6); if Autopilot is active, replaced by the autopilot interval (§4.3).
 
 ### 3.3 Social Mode override (`scoringEngine.ts:458–531`)
+
+![FIG. 4 — Social Mode Flow](png/fig4-social-mode-flow.png)
+*FIG. 4 — Social Mode Flow.*
 
 When `socialMode.active === true`, the engine swaps in a parallel ruleset that:
 
@@ -229,6 +247,9 @@ Two specialized branches sit on top of the core pipeline:
 **Maps to:** FIG. 10 (Autopilot / Autoscan)
 **Engine file:** `artifacts/aforce-os/services/sweatRateEngine.ts`
 **Wiring:** `screens/SweatCalculatorScreen.tsx`, `store/appStoreReducer.ts`, `hooks/useHeatGuard.ts`, `components/RiskTimerDisplay.tsx`
+
+![FIG. 10 — Autopilot / Autoscan](png/fig10-autopilot-autoscan.png)
+*FIG. 10 — Autopilot / Autoscan.*
 
 ### 4.1 What Autopilot is
 
@@ -377,6 +398,76 @@ Counsel may want to consider these implementation details as candidate claim ele
 - TypeScript: `pnpm --filter @workspace/aforce-os typecheck` is clean as of this brief.
 - Visual: AForce OS app preview, Recovery Card (Unlocked/Locked), and Hydration Score Band variants are live iframes on the engineering canvas; counsel can interact with them directly.
 - Constants in this brief (25 mg sodium per AForce unit; 8 / 12 / 20 min autopilot ladder; 90 / 75 / 60 band thresholds) were re-verified by ripgrep against the source files cited above on the date of this brief.
+
+---
+
+*End of main brief. Appendix A follows.*
+
+---
+
+## Appendix A — Patent Figures (FIG. 1 – FIG. 10)
+
+This appendix reproduces all ten patent figures in filing order. Each figure is also embedded inline in the brief at the section that references it. Figures are also available as standalone vector files (`fig{1..10}-*.svg`) and as a separate "Figures" PDF (`aforce-os-figures.pdf`) for the firm's filing package.
+
+### A.1 — FIG. 1: System Architecture (maps to §1)
+
+![FIG. 1 — System Architecture](png/fig1-system-architecture.png)
+
+*FIG. 1 — System Architecture. Top-level diagram of the AForce OS mobile client, the api-server, the Postgres / Drizzle data store, and the WebSocket realtime channel.*
+
+### A.2 — FIG. 2: Hero Intake Flow (maps to §1.1, home screen)
+
+![FIG. 2 — Hero Intake Flow](png/fig2-hero-intake-flow.png)
+
+*FIG. 2 — Hero Intake Flow. The Hydration Control Center loop: status orb → AI command → user logs intake → score recompute → orb re-renders.*
+
+### A.3 — FIG. 3: Paywall Flow (maps to §1.4, entitlement)
+
+![FIG. 3 — Paywall Flow](png/fig3-paywall-flow.png)
+
+*FIG. 3 — Paywall Flow. Premium gating for Recovery Card, Sweat Calculator, Voice, Heat Guard, and Autoscan via `useEntitlement`.*
+
+### A.4 — FIG. 4: Social Mode Flow (maps to §3.3)
+
+![FIG. 4 — Social Mode Flow](png/fig4-social-mode-flow.png)
+
+*FIG. 4 — Social Mode Flow. Drink-logging → Widmark BAC estimate → impairment level → safety-class command override.*
+
+### A.5 — FIG. 5: Voice Command Flow (maps to §1.4, voice)
+
+![FIG. 5 — Voice Command Flow](png/fig5-voice-command-flow.png)
+
+*FIG. 5 — Voice Command Flow. Audio transcript → intent classification (LOG_INTAKE, GET_STATUS, …) → action dispatch → spoken response via the brand template engine.*
+
+### A.6 — FIG. 6: Wireframes (maps to §1.5)
+
+![FIG. 6 — Wireframes](png/fig6-wireframes.png)
+
+*FIG. 6 — Wireframes. Hydration Control Center, Performance Signals (check), Recovery Protocol, Store, and Profile screens.*
+
+### A.7 — FIG. 7: Mobile App Architecture (maps to §1.2)
+
+![FIG. 7 — Mobile App Architecture](png/fig7-mobile-app-architecture.png)
+
+*FIG. 7 — Mobile App Architecture. Sliced React Context + pure reducer + memoized projections; expo-router file-based navigation; Clerk auth bridge.*
+
+### A.8 — FIG. 8: Scoring Engine (maps to §2)
+
+![FIG. 8 — Scoring Engine](png/fig8-scoring-engine.png)
+
+*FIG. 8 — Scoring Engine. Pure-function pipeline from `UserState` snapshot → bounded contribution sum → score / band / breakdown / prediction / command.*
+
+### A.9 — FIG. 9: Deterministic AI Layer (maps to §3)
+
+![FIG. 9 — Deterministic AI Layer](png/fig9-deterministic-ai-layer.png)
+
+*FIG. 9 — Deterministic AI Layer. Mode classification → penalty application → bonus application → decay projection → command generation → recheck cadence.*
+
+### A.10 — FIG. 10: Autopilot / Autoscan (maps to §4 and §5)
+
+![FIG. 10 — Autopilot / Autoscan](png/fig10-autopilot-autoscan.png)
+
+*FIG. 10 — Autopilot / Autoscan. Sweat session → deficit % → autopilot cadence ladder (8 / 12 / 20 min, 4 h window). Barcode scan → product recognition → live-state fit score → AForce replacement decision.*
 
 ---
 

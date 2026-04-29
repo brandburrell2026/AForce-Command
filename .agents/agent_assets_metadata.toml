@@ -305,7 +305,7 @@ title = "AForce OS — Engineering Brief for Provisional Patent Application"
 id = "M0CboroPQR7olIBp5mnux"
 uri = "file://attached_assets/patent/aforce-os-engineering-brief.pdf"
 type = "pdf"
-title = "1. Engineering Brief (PDF)"
+title = "Engineering Brief (with figures inline + Appendix A)"
 
 [[outputs]]
 id = "Wsdnyi9aFFS-BdSuNIjjA"
@@ -324,3 +324,9 @@ id = "iTDlVIiMYbqQ5FK5o02Ol"
 uri = "file://attached_assets/patent/aforce-os-source-excerpts.pdf"
 type = "pdf"
 title = "4. Source-Code Excerpts (PDF)"
+
+[[outputs]]
+id = "HTF8xew04VtfzQOJZ_0sJ"
+uri = "file://attached_assets/patent/aforce-os-figures.pdf"
+type = "pdf"
+title = "Patent Figures — standalone (FIG. 1 – FIG. 10)"
