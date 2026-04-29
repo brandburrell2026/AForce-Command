@@ -39,6 +39,9 @@ body {
   background: var(--slide-bg);
   color: var(--slide-text);
   font-family: var(--font-body-family);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 .slide {
