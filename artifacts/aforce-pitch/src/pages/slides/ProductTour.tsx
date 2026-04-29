@@ -39,7 +39,7 @@ export default function ProductTour() {
         {/* PHONE 1 — HYDRATION SCORE */}
         <div className="flex flex-col items-center">
           <div className="font-body uppercase tracking-[0.32em] text-[0.85vw] text-primary font-semibold mb-[1vh]">01 · Score</div>
-          <div className="w-[16vw] h-[30vw] bg-bg-elev rounded-[2.2vw] border-2 border-text/20 overflow-hidden p-[0.9vw] flex flex-col shadow-2xl ring-1 ring-primary/10">
+          <div className="w-[16vw] h-[30vw] bg-black rounded-[2.2vw] border-2 border-text/20 overflow-hidden p-[0.9vw] flex flex-col shadow-2xl ring-1 ring-primary/10">
             <div className="flex justify-between items-center px-[0.4vw] mb-[0.6vh]">
               <span className="font-body text-[0.65vw] text-text font-medium">6:06</span>
               <div className="flex gap-[0.35vw] items-center">
@@ -133,7 +133,7 @@ export default function ProductTour() {
         {/* PHONE 2 — SOCIAL MODE */}
         <div className="flex flex-col items-center">
           <div className="font-body uppercase tracking-[0.32em] text-[0.85vw] font-semibold mb-[1vh]" style={{ color: "#9D7CFB" }}>02 · Social</div>
-          <div className="w-[16vw] h-[30vw] bg-bg-elev rounded-[2.2vw] border-2 border-text/20 overflow-hidden flex flex-col shadow-2xl ring-1" style={{ boxShadow: "0 0 60px rgba(157,124,251,0.15)" }}>
+          <div className="w-[16vw] h-[30vw] bg-black rounded-[2.2vw] border-2 border-text/20 overflow-hidden flex flex-col shadow-2xl ring-1" style={{ boxShadow: "0 0 60px rgba(157,124,251,0.15)" }}>
             {/* iOS status bar */}
             <div className="flex justify-between items-center px-[0.9vw] pt-[0.5vh] pb-[0.25vh]">
               <span className="font-body text-[0.65vw] text-text font-medium">10:42</span>
@@ -288,7 +288,7 @@ export default function ProductTour() {
         {/* PHONE 3 — RECOVERY MODE */}
         <div className="flex flex-col items-center">
           <div className="font-body uppercase tracking-[0.32em] text-[0.85vw] font-semibold mb-[1vh]" style={{ color: "#F4B23F" }}>03 · Recovery</div>
-          <div className="w-[16vw] h-[30vw] bg-bg-elev rounded-[2.2vw] border-2 border-text/20 overflow-hidden p-[0.9vw] flex flex-col shadow-2xl ring-1" style={{ boxShadow: "0 0 60px rgba(244,178,63,0.15)" }}>
+          <div className="w-[16vw] h-[30vw] bg-black rounded-[2.2vw] border-2 border-text/20 overflow-hidden p-[0.9vw] flex flex-col shadow-2xl ring-1" style={{ boxShadow: "0 0 60px rgba(244,178,63,0.15)" }}>
             <div className="flex justify-between items-center px-[0.4vw] mb-[0.6vh]">
               <span className="font-body text-[0.65vw] text-text font-medium">7:14</span>
               <div className="flex gap-[0.35vw] items-center">

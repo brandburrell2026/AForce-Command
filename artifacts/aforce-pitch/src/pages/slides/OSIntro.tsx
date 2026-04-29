@@ -75,8 +75,8 @@ export default function OSIntro() {
       </div>
 
       <div className="absolute right-[30vw] top-[55vh] z-20 flex flex-col items-center">
-        <div className="w-[5vw] h-[1.2vw] bg-gradient-to-b from-text/0 via-text/10 to-text/20 rounded-t-md" />
-        <div className="w-[8vw] h-[9.5vw] bg-bg-elev rounded-[1.5vw] border-2 border-text/30 overflow-hidden p-[0.6vw] flex flex-col shadow-2xl ring-1 ring-text/5">
+        <div className="w-[5vw] h-[1.2vw] bg-gradient-to-b from-black/0 via-black/60 to-black rounded-t-md" />
+        <div className="w-[8vw] h-[9.5vw] bg-black rounded-[1.5vw] border-2 border-text/30 overflow-hidden p-[0.6vw] flex flex-col shadow-2xl ring-1 ring-text/5">
           <div className="flex justify-between items-center px-[0.2vw]">
             <span className="font-body text-[0.55vw] text-text/55">6:06</span>
             <div className="w-[0.4vw] h-[0.4vw] rounded-full bg-primary" />
@@ -90,11 +90,11 @@ export default function OSIntro() {
             <div className="font-body uppercase tracking-[0.22em] text-[0.5vw] text-primary font-semibold">9 min</div>
           </div>
         </div>
-        <div className="w-[5vw] h-[1.2vw] bg-gradient-to-t from-text/0 via-text/10 to-text/20 rounded-b-md" />
+        <div className="w-[5vw] h-[1.2vw] bg-gradient-to-t from-black/0 via-black/60 to-black rounded-b-md" />
       </div>
 
       <div className="absolute right-[7vw] top-[13vh] z-10">
-        <div className="w-[19vw] h-[38vw] bg-bg-elev rounded-[2.4vw] border-2 border-text/20 overflow-hidden p-[1vw] flex flex-col shadow-2xl">
+        <div className="w-[19vw] h-[38vw] bg-black rounded-[2.4vw] border-2 border-text/20 overflow-hidden p-[1vw] flex flex-col shadow-2xl">
           <div className="flex justify-between items-center px-[0.4vw] mb-[0.6vh]">
             <span className="font-body text-[0.7vw] text-text font-medium">6:06</span>
             <div className="flex gap-[0.35vw] items-center">
