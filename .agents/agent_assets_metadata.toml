@@ -300,3 +300,27 @@ id = "wBKMJWNTKGR-CvK3_KahC"
 uri = "file://attached_assets/patent/aforce-os-engineering-brief.md"
 type = "text"
 title = "AForce OS — Engineering Brief for Provisional Patent Application"
+
+[[outputs]]
+id = "M0CboroPQR7olIBp5mnux"
+uri = "file://attached_assets/patent/aforce-os-engineering-brief.pdf"
+type = "pdf"
+title = "1. Engineering Brief (PDF)"
+
+[[outputs]]
+id = "Wsdnyi9aFFS-BdSuNIjjA"
+uri = "file://attached_assets/patent/aforce-os-glossary.pdf"
+type = "pdf"
+title = "2. Glossary of Terms (PDF)"
+
+[[outputs]]
+id = "JQjFPEiGyyHz283mbWR2A"
+uri = "file://attached_assets/patent/aforce-os-claim-hooks.pdf"
+type = "pdf"
+title = "3. Expanded Claim Hooks (PDF)"
+
+[[outputs]]
+id = "iTDlVIiMYbqQ5FK5o02Ol"
+uri = "file://attached_assets/patent/aforce-os-source-excerpts.pdf"
+type = "pdf"
+title = "4. Source-Code Excerpts (PDF)"
