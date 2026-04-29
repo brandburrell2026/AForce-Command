@@ -46,23 +46,20 @@ export default function Closing() {
         <div className="mt-[3.4vh] font-display text-[1.7vw] leading-[1.2] tracking-tight text-text/90">
           Where there are <span className="text-primary">no off days.</span> <span className="text-primary">No missed moments.</span>
         </div>
-        <div className="mt-[1.4vh] font-body uppercase tracking-[0.28em] text-[0.85vw] text-text/55 font-semibold">
-          Two brothers. Built under pressure. <span className="text-primary">No off switch.</span>
-        </div>
 
         <div className="mt-[3.4vh] max-w-[52vw] relative rounded-2xl ring-1 ring-primary/35 bg-bg-elev/40 overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-r from-primary/[0.10] via-primary/[0.04] to-transparent pointer-events-none" />
           <div className="absolute inset-x-0 top-0 h-[3px] bg-primary" />
           <div className="relative px-[1.8vw] py-[1.8vh]">
             <div className="font-display text-[1.75vw] leading-[1.15] tracking-tight text-text">
-              We're raising <span className="text-primary">$4M</span> to define the performance category.
+              We're raising <span className="text-primary">$4M</span> to build the performance standard.
             </div>
             <ul className="mt-[1.4vh] grid grid-cols-2 gap-x-[1.6vw] gap-y-[0.8vh]">
               {[
-                "Scale manufacturing + inventory",
+                "Scale product to meet demand",
                 "Launch AForce OS + subscription layer",
-                "Expand retail + DTC channels",
-                "Build brand + cultural presence",
+                "Expand retail + direct channels",
+                "Build the performance brand",
               ].map((item) => (
                 <li key={item} className="flex items-start gap-[0.7vw] font-body text-[0.95vw] text-text/85 leading-snug">
                   <span className="mt-[0.65vh] h-[0.55vh] w-[0.55vh] rounded-full bg-primary shrink-0" />
@@ -76,8 +73,7 @@ export default function Closing() {
         <div className="mt-auto">
           <div className="h-px w-[5vw] bg-primary mb-[2vh]" />
           <div className="font-display text-[2.2vw] leading-[1.15] tracking-tight text-text">
-            The edge is not louder.<br />
-            <span className="text-primary">It is quieter.</span>
+            The edge is <span className="text-primary">control.</span>
           </div>
         </div>
       </div>
