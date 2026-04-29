@@ -63,6 +63,7 @@
     "@kingstinct/react-native-healthkit": "^14.0.0",
     "expo-camera": "~17.0.10",
     "expo-localization": "^55.0.13",
+    "expo-print": "^55.0.13",
     "expo-sharing": "^55.0.18",
     "expo-speech": "~14.0.8",
     "i18next": "^26.0.6",

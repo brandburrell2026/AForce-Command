@@ -362,6 +362,63 @@ export interface FeatureFlags {
   global_leaderboard_enabled: boolean;
 }
 
+// ─── Hydration Journal ────────────────────────────────────────────────────────
+/**
+ * One row from `aforce_score_snapshots` — written client-side after
+ * each engine refresh (debounced ~5 min, or on band change). Drives
+ * the longitudinal chart on the Journal tab.
+ */
+export interface JournalSnapshot {
+  type: 'snapshot';
+  at: string; // ISO
+  score: number;
+  level: PerformanceLevel;
+  ozConsumedToday: number;
+  aforceUnitsToday: number;
+  unitsConsumedToday: number;
+  sodiumDeliveredMg: number;
+  sodiumLostMg: number;
+  deficitPct: number;
+  clutchActive: boolean;
+  socialActive: boolean;
+  autopilotActive: boolean;
+  reason: string;
+}
+
+/** One row from `aforce_intake_logs` flattened into the timeline. */
+export interface JournalIntake {
+  type: 'intake';
+  at: string; // ISO
+  fluidType: string;
+  ozAmount: number;
+  scoreBefore: number;
+  scoreAfter: number;
+}
+
+export type JournalTimelineEntry = JournalSnapshot | JournalIntake;
+
+/** Per-day rollup served by `GET /aforce/journal/rollups`. */
+export interface JournalRollup {
+  date: string; // YYYY-MM-DD
+  snapshotsCount: number;
+  avgScore: number;
+  minScore: number;
+  maxScore: number;
+  endOzConsumed: number;
+  endAforceUnits: number;
+  endUnitsConsumed: number;
+  endSodiumDelivered: number;
+  endSodiumLost: number;
+  endDeficitPct: number;
+  pctTimePeak: number;
+  pctTimeBalanced: number;
+  pctTimeRecovering: number;
+  pctTimeDepleted: number;
+  intakeCount: number;
+  autopilotSessions: number;
+  socialSessions: number;
+}
+
 // ─── Notifications / Hardware ─────────────────────────────────────────────────
 export interface NotificationItem {
   id: string;

@@ -11,7 +11,7 @@
  *   aforce_confirmations — append-only ±3 confirmation answers
  */
 
-import { pgTable, text, integer, real, boolean, timestamp, jsonb, serial } from "drizzle-orm/pg-core";
+import { pgTable, text, integer, real, boolean, timestamp, jsonb, serial, index } from "drizzle-orm/pg-core";
 
 export const aforceUserState = pgTable("aforce_user_state", {
   userId: text("user_id").primaryKey(),
@@ -116,6 +116,38 @@ export const aforceIntakeLogs = pgTable("aforce_intake_logs", {
   loggedAt: timestamp("logged_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+/**
+ * Append-only longitudinal score snapshot. Drives the Hydration
+ * Journal — chart of score over time, daily rollups, and PDF export.
+ *
+ * Written client-side after each engine refresh, debounced to ~5 min
+ * (or on band change). Engine still lives on the client so the
+ * captured `score` + `level` are authoritative for that moment in time.
+ */
+export const aforceScoreSnapshots = pgTable(
+  "aforce_score_snapshots",
+  {
+    id: serial("id").primaryKey(),
+    userId: text("user_id").notNull(),
+    score: integer("score").notNull(),
+    level: text("level").notNull(), // 'PEAK' | 'BALANCED' | 'RECOVERING' | 'DEPLETED'
+    ozConsumedToday: real("oz_consumed_today").notNull().default(0),
+    aforceUnitsToday: integer("aforce_units_today").notNull().default(0),
+    unitsConsumedToday: integer("units_consumed_today").notNull().default(0),
+    sodiumDeliveredMg: real("sodium_delivered_mg").notNull().default(0),
+    sodiumLostMg: real("sodium_lost_mg").notNull().default(0),
+    deficitPct: real("deficit_pct").notNull().default(0),
+    clutchActive: boolean("clutch_active").notNull().default(false),
+    socialActive: boolean("social_active").notNull().default(false),
+    autopilotActive: boolean("autopilot_active").notNull().default(false),
+    reason: text("reason").notNull().default(""),
+    capturedAt: timestamp("captured_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => ({
+    userTimeIdx: index("aforce_snap_user_time_idx").on(t.userId, t.capturedAt),
+  }),
+);
+
 export const aforceConfirmations = pgTable("aforce_confirmations", {
   id: serial("id").primaryKey(),
   userId: text("user_id").notNull(),
@@ -157,3 +189,5 @@ export type AforceIntakeLogRow = typeof aforceIntakeLogs.$inferSelect;
 export type AforceConfirmationRow = typeof aforceConfirmations.$inferSelect;
 export type AforceUserRow = typeof aforceUsers.$inferSelect;
 export type InsertAforceUser = typeof aforceUsers.$inferInsert;
+export type AforceScoreSnapshotRow = typeof aforceScoreSnapshots.$inferSelect;
+export type InsertAforceScoreSnapshot = typeof aforceScoreSnapshots.$inferInsert;

@@ -36,6 +36,10 @@ function NativeTabLayout() {
         <Icon sf={{ default: 'list.bullet.circle', selected: 'list.bullet.circle.fill' }} />
         <Label>{t('tabs.protocol')}</Label>
       </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="journal">
+        <Icon sf={{ default: 'book.closed.circle', selected: 'book.closed.circle.fill' }} />
+        <Label>{t('tabs.journal')}</Label>
+      </NativeTabs.Trigger>
       <NativeTabs.Trigger name="store">
         <Icon sf={{ default: 'bag.circle', selected: 'bag.circle.fill' }} />
         <Label>{t('tabs.store')}</Label>
@@ -106,6 +110,15 @@ function ClassicTabLayout() {
           tabBarIcon: ({ color, size }) =>
             isIOS ? <SymbolView name="list.bullet.circle" tintColor={color} size={size} />
                   : <Feather name="list" size={22} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="journal"
+        options={{
+          title: t('tabs.journal'),
+          tabBarIcon: ({ color, size }) =>
+            isIOS ? <SymbolView name="book.closed.circle" tintColor={color} size={size} />
+                  : <Feather name="book-open" size={22} color={color} />,
         }}
       />
       <Tabs.Screen

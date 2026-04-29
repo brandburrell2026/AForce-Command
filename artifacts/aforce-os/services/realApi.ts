@@ -26,6 +26,9 @@ import type {
   FluidType,
   ProductFlavor,
   PulseConfig,
+  JournalTimelineEntry,
+  JournalRollup,
+  PerformanceLevel,
 } from '../types';
 import { calculateScore } from '../utils/scoringEngine';
 import { computeEventImpact } from './hydrationScoreService';
@@ -490,4 +493,39 @@ export function subscribeToStateUpdates(
 
 export function getLastKnownState(): UserState {
   return lastKnownState;
+}
+
+// ─── Hydration Journal ───────────────────────────────────────────────────────
+/**
+ * Persist a single score snapshot. Called from the store's snapshot
+ * writer effect — debounced to ~5 min (or on band change) so we don't
+ * flood the table. Errors are swallowed by the caller.
+ */
+export interface JournalSnapshotPayload {
+  score: number;
+  level: PerformanceLevel;
+  ozConsumedToday: number;
+  aforceUnitsToday: number;
+  unitsConsumedToday: number;
+  sodiumDeliveredMg: number;
+  sodiumLostMg: number;
+  deficitPct: number;
+  clutchActive: boolean;
+  socialActive: boolean;
+  autopilotActive: boolean;
+  reason: string;
+}
+
+export async function postJournalSnapshot(payload: JournalSnapshotPayload): Promise<void> {
+  await postJson<{ snapshot: unknown }>('/journal/snapshot', payload);
+}
+
+export async function fetchJournalTimeline(days: number): Promise<JournalTimelineEntry[]> {
+  const resp = await getJson<{ entries: JournalTimelineEntry[] }>(`/journal/timeline?days=${days}`);
+  return resp.entries ?? [];
+}
+
+export async function fetchJournalRollups(days: number): Promise<JournalRollup[]> {
+  const resp = await getJson<{ rollups: JournalRollup[] }>(`/journal/rollups?days=${days}`);
+  return resp.rollups ?? [];
 }

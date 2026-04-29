@@ -42,6 +42,7 @@ import {
   postSocialDrink,
   postSocialHydrate,
   postSocialDeactivate,
+  postJournalSnapshot,
 } from '../services/realApi';
 import i18n, { setLanguage as setI18nLanguage, type SupportedLanguage } from '../services/i18nService';
 import { PRODUCTS } from '../data/products';
@@ -470,6 +471,79 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       payload: { autopilot, setAt: autopilot ? Date.now() : null },
     });
   }, []);
+
+  // ─── Hydration Journal snapshot writer ──────────────────────────────
+  // Persists a `aforce_score_snapshots` row after each engine refresh,
+  // debounced so we don't flood the table:
+  //   - On first render after mount
+  //   - At least every 5 minutes
+  //   - Immediately on band change (PEAK ↔ BALANCED ↔ RECOVERING ↔ DEPLETED)
+  // Writes are fire-and-forget — a network failure never breaks the UI.
+  // Crucially, `lastSnapshotRef.at/level` only advance on a *successful*
+  // POST so a transient network failure doesn't suppress retries until
+  // the next 5 min window or band change. An `inFlight` flag prevents
+  // duplicate writes while a request is in flight.
+  const lastSnapshotRef = useRef<{ at: number; level: string | null; inFlight: boolean }>({
+    at: 0,
+    level: null,
+    inFlight: false,
+  });
+  useEffect(() => {
+    const now = Date.now();
+    const level = state.engineOutput.performanceState.level;
+    const last = lastSnapshotRef.current;
+    if (last.inFlight) return;
+    const FIVE_MIN = 5 * 60 * 1000;
+    const elapsed = now - last.at;
+    const bandChanged = last.level !== null && last.level !== level;
+    const shouldWrite = last.at === 0 || bandChanged || elapsed >= FIVE_MIN;
+    if (!shouldWrite) return;
+    lastSnapshotRef.current = { ...last, inFlight: true };
+    // Sodium delivered ≈ AForce units × 25 mg (matches the prescription
+    // spec rule). Sodium lost & deficit % aren't carried on the
+    // autopilot snapshot itself (only urgency / interval), so they
+    // default to 0; future work can plumb the underlying SweatSession.
+    const autopilot = state.sweatAutopilot ?? null;
+    const sodiumDeliveredMg = state.userState.aforceUnitsToday * 25;
+    const sodiumLostMg = 0;
+    const deficitPct = 0;
+    const socialActive = !!state.userState.socialMode?.active;
+    const reason = state.engineOutput.command?.action?.slice(0, 240) ?? '';
+    postJournalSnapshot({
+      score: state.engineOutput.score,
+      level,
+      ozConsumedToday: state.userState.ozConsumedToday,
+      aforceUnitsToday: state.userState.aforceUnitsToday,
+      unitsConsumedToday: state.userState.unitsConsumedToday,
+      sodiumDeliveredMg,
+      sodiumLostMg,
+      deficitPct,
+      clutchActive: !!state.userState.clutchActive,
+      socialActive,
+      autopilotActive: autopilot != null,
+      reason,
+    })
+      .then(() => {
+        // Only commit the debounce window on success.
+        lastSnapshotRef.current = { at: now, level, inFlight: false };
+      })
+      .catch((err) => {
+        // Roll back: leave `at` / `level` untouched so the very next
+        // engine refresh retries (network down, auth not yet ready).
+        lastSnapshotRef.current = { at: last.at, level: last.level, inFlight: false };
+        console.warn('[Journal] snapshot write failed', err);
+      });
+  }, [
+    state.engineOutput.score,
+    state.engineOutput.performanceState.level,
+    state.userState.ozConsumedToday,
+    state.userState.aforceUnitsToday,
+    state.userState.unitsConsumedToday,
+    state.userState.clutchActive,
+    state.userState.socialMode?.active,
+    state.sweatAutopilot,
+    state.engineOutput.command?.action,
+  ]);
 
   // Hydrate persisted subscription on mount.
   useEffect(() => {
