@@ -44,22 +44,32 @@ export default function Closing() {
         </h1>
 
         <div className="mt-[3.4vh] font-display text-[1.7vw] leading-[1.2] tracking-tight text-text/90">
-          In the NBA there are <span className="text-primary">no off nights.</span> On Wall Street, <span className="text-primary">no missed moments.</span>
+          Where there are <span className="text-primary">no off days.</span> <span className="text-primary">No missed moments.</span>
         </div>
         <div className="mt-[1.4vh] font-body uppercase tracking-[0.28em] text-[0.85vw] text-text/55 font-semibold">
           Two brothers. Built under pressure. <span className="text-primary">No off switch.</span>
         </div>
 
-        <div className="mt-[4.2vh] max-w-[52vw]">
-          <p className="font-body text-[1.1vw] leading-[1.55] text-text/75">
-            <span className="text-text">This is beyond a hydration brand.</span> It is the performance standard this category has not yet defined — and now, the one we are building.
-          </p>
-        </div>
-
-        <div className="mt-[2.6vh] rounded-xl ring-1 ring-primary/30 bg-bg-elev/40 px-[1.6vw] py-[1.2vh] max-w-[52vw]">
-          <div className="font-body text-[0.95vw] text-text/85 leading-snug">
-            <span className="font-body uppercase tracking-[0.24em] text-[0.7vw] text-primary/80 font-semibold mr-[0.8vw]">Founders</span>
-            <span className="text-text">Brandon Burrell</span> <span className="text-text/55">(Morgan Stanley · International Operator)</span> <span className="text-text/30 mx-[0.4vw]">·</span> <span className="text-text">Julius Burrell</span> <span className="text-text/55">(AForce OS · Systems Builder)</span>
+        <div className="mt-[3.4vh] max-w-[52vw] relative rounded-2xl ring-1 ring-primary/35 bg-bg-elev/40 overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-r from-primary/[0.10] via-primary/[0.04] to-transparent pointer-events-none" />
+          <div className="absolute inset-x-0 top-0 h-[3px] bg-primary" />
+          <div className="relative px-[1.8vw] py-[1.8vh]">
+            <div className="font-display text-[1.75vw] leading-[1.15] tracking-tight text-text">
+              We're raising <span className="text-primary">$4M</span> to define the performance category.
+            </div>
+            <ul className="mt-[1.4vh] grid grid-cols-2 gap-x-[1.6vw] gap-y-[0.8vh]">
+              {[
+                "Scale manufacturing + inventory",
+                "Launch AForce OS + subscription layer",
+                "Expand retail + DTC channels",
+                "Build brand + cultural presence",
+              ].map((item) => (
+                <li key={item} className="flex items-start gap-[0.7vw] font-body text-[0.95vw] text-text/85 leading-snug">
+                  <span className="mt-[0.65vh] h-[0.55vh] w-[0.55vh] rounded-full bg-primary shrink-0" />
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
 
