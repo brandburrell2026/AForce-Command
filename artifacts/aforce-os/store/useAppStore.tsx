@@ -47,6 +47,8 @@ import {
 import i18n, { setLanguage as setI18nLanguage, type SupportedLanguage } from '../services/i18nService';
 import { PRODUCTS } from '../data/products';
 import type { ProductFlavor } from '../types';
+import { phantomBandService } from '../services/phantomBandService';
+import { speak as ttsSpeak, setVoicePlaybackEnabled } from '../services/textToSpeech';
 
 /**
  * Map a free-form flavor label (as shown in the manual picker) back to
@@ -140,12 +142,26 @@ interface AppContextValue {
    * for any consumer that drives recheck cadence.
    */
   setSweatAutopilot: (autopilot: SweatAutopilot | null) => void;
+  /**
+   * Voice Coach (T3): when true, the AForce voice persona reads each
+   * new AI command aloud (debounced inside textToSpeech.speak). The
+   * preference is mirrored into AsyncStorage + the textToSpeech
+   * playback flag so refreshes / non-React callers see the same value.
+   */
+  voiceCoachEnabled: boolean;
+  setVoiceCoachEnabled: (next: boolean) => void;
 }
+
+const VOICE_COACH_KEY = 'aforce.voiceCoachEnabled';
 
 const AppContext = createContext<AppContextValue | null>(null);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(reducer, initialState);
+  // Voice Coach toggle (T3) — defaults ON; mirrored to AsyncStorage +
+  // the textToSpeech playback flag so non-React consumers see the same
+  // value. Hydrated from storage on first effect.
+  const [voiceCoachEnabled, setVoiceCoachEnabledState] = React.useState<boolean>(true);
 
   // Live countdown timer (drives recheck)
   useEffect(() => {
@@ -545,6 +561,49 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     state.engineOutput.command?.action,
   ]);
 
+  // ─── T1: Phantom Band auto-log ─────────────────────────────────────────
+  // Subscribe once: every BLE sip notification is silently logged as an
+  // intake. We use a ref-backed `logIntake` so the listener always sees
+  // the latest closure (state.userState moves a lot) without resubscribing.
+  const logIntakeRef = useRef(logIntake);
+  useEffect(() => { logIntakeRef.current = logIntake; }, [logIntake]);
+  useEffect(() => {
+    return phantomBandService.on('sip', (event) => {
+      void logIntakeRef.current(event.fluidType, { silent: true, ozOverride: event.oz });
+    });
+  }, []);
+
+  // ─── T3: Voice Coach — auto-speak the AI command on change ─────────────
+  // textToSpeech.speak is debounced (500ms window on identical text), so
+  // re-renders that produce the same `command.action` won't double-trigger.
+  const lastSpokenCommandIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!voiceCoachEnabled) return;
+    const cmd = state.engineOutput.command;
+    if (!cmd?.action) return;
+    if (lastSpokenCommandIdRef.current === cmd.id) return;
+    lastSpokenCommandIdRef.current = cmd.id;
+    ttsSpeak(cmd.action, { language: state.userState.language as SupportedLanguage | undefined });
+  }, [voiceCoachEnabled, state.engineOutput.command?.id, state.engineOutput.command?.action, state.userState.language]);
+
+  // Hydrate persisted Voice Coach preference once on mount.
+  useEffect(() => {
+    AsyncStorage.getItem(VOICE_COACH_KEY)
+      .then((raw) => {
+        if (raw == null) return;
+        const next = raw === 'true';
+        setVoiceCoachEnabledState(next);
+        setVoicePlaybackEnabled(next);
+      })
+      .catch(() => {});
+  }, []);
+
+  const setVoiceCoachEnabled = useCallback((next: boolean) => {
+    setVoiceCoachEnabledState(next);
+    setVoicePlaybackEnabled(next);
+    AsyncStorage.setItem(VOICE_COACH_KEY, String(next)).catch(() => {});
+  }, []);
+
   // Hydrate persisted subscription on mount.
   useEffect(() => {
     AsyncStorage.getItem('aforce.subscription')
@@ -599,7 +658,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setSubscription, completeOnboarding, setAppleHealthSnapshot, confirmCommand, setLanguage,
     activateSocialMode, logSocialDrink, confirmSocialHydration, deactivateSocialMode, setSocialContext,
     setSweatAutopilot,
-  }), [state, logIntake, completeCycle, snooze, dismissSuccess, updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags, setSubscription, completeOnboarding, setAppleHealthSnapshot, confirmCommand, setLanguage, activateSocialMode, logSocialDrink, confirmSocialHydration, deactivateSocialMode, setSocialContext, setSweatAutopilot]);
+    voiceCoachEnabled, setVoiceCoachEnabled,
+  }), [state, logIntake, completeCycle, snooze, dismissSuccess, updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags, setSubscription, completeOnboarding, setAppleHealthSnapshot, confirmCommand, setLanguage, activateSocialMode, logSocialDrink, confirmSocialHydration, deactivateSocialMode, setSocialContext, setSweatAutopilot, voiceCoachEnabled, setVoiceCoachEnabled]);
 
   // Stable actions value for the sliced ActionsContext — same callbacks
   // as `value` minus `state`, so action consumers don't re-render when

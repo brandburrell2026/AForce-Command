@@ -26,15 +26,17 @@ import type {
 } from '../types/hardware';
 import { ledForLevel, ledOff } from './ledSignalService';
 import { playHaptic } from './hapticService';
-import { createMockBleAdapter, type BleAdapter } from './bleService';
+import { createBleAdapter, type BleAdapter, type SipEvent } from './bleService';
 import { GESTURE_ACTION } from '../types/hardware';
+import type { FluidType } from '../types';
 
 type EventName =
   | 'state'           // connection / battery / led changes
   | 'gesture'         // any gesture observed
   | 'voice_trigger'   // voice mode should open
   | 'status_request'  // user requested a silent status pulse
-  | 'signal';         // any new BandSignal entry
+  | 'signal'          // any new BandSignal entry
+  | 'sip';            // BLE notification: user took a sip from the band
 
 type Listener<T> = (payload: T) => void;
 
@@ -44,12 +46,26 @@ interface VoiceTriggerPayload {
   gesture: BandGesture;
 }
 
+/**
+ * Public sip event payload — emitted whenever the band's sip-event GATT
+ * characteristic notifies us (or the simulator fires a fake sip). The
+ * store's `addIntake` listener consumes this and silently logs an
+ * intake of the inferred fluid type.
+ */
+export interface SipEventPayload {
+  oz: number;
+  fluidType: FluidType;
+  source: 'phantom_band';
+  at: number;
+}
+
 interface ServiceEvents {
   state: PhantomBandState;
   gesture: BandGesture;
   voice_trigger: VoiceTriggerPayload;
   status_request: undefined;
   signal: BandSignal;
+  sip: SipEventPayload;
 }
 
 /** Foreground / background sync intervals per spec. */
@@ -57,7 +73,8 @@ const SYNC_INTERVAL_FG_MS = 30_000;
 const SYNC_INTERVAL_BG_MS = 5 * 60_000;
 
 class PhantomBandService {
-  private ble: BleAdapter = createMockBleAdapter();
+  private ble: BleAdapter = createBleAdapter();
+  private sipUnsubscribe: (() => void) | null = null;
   private state: PhantomBandState = {
     device: null,
     connection: 'unpaired',
@@ -80,6 +97,7 @@ class PhantomBandService {
     voice_trigger: new Set(),
     status_request: new Set(),
     signal: new Set(),
+    sip: new Set(),
   };
 
   on<K extends EventName>(event: K, fn: Listener<ServiceEvents[K]>): () => void {
@@ -127,6 +145,10 @@ class PhantomBandService {
       // Push the LED to the band so display matches OS state immediately.
       void this.ble.sendCommand({ type: 'set_led', pattern: restoredLed }).catch(() => {});
       this.startSyncLoop();
+      // Subscribe to sip notifications. The mock adapter auto-fires one
+      // every 90s; the real adapter forwards GATT notifications here.
+      this.sipUnsubscribe?.();
+      this.sipUnsubscribe = this.ble.onSip((payload) => this.handleSip(payload));
       this.pushSignal({ at: Date.now(), source: 'system', note: 'Paired with PHANTOM Band' });
       void this.sendHaptic('voice_open'); // gentle pairing confirmation
     } catch {
@@ -137,6 +159,8 @@ class PhantomBandService {
   async disconnect(): Promise<void> {
     this.sessionToken += 1; // invalidate any in-flight syncs / pair callbacks
     this.stopSyncLoop();
+    this.sipUnsubscribe?.();
+    this.sipUnsubscribe = null;
     await this.ble.disconnect().catch(() => { /* ignore */ });
     this.setState({
       connection: 'disconnected',
@@ -265,6 +289,32 @@ class PhantomBandService {
   private pushSignal(signal: BandSignal): void {
     this.signals = [signal, ...this.signals].slice(0, 24);
     this.emit('signal', signal);
+  }
+
+  // ─── Sip ingest (BLE notification → store auto-log) ────────────────────
+  /**
+   * Translate a raw BLE sip payload into a public SipEventPayload and
+   * emit. The store's effect picks this up and silently logs an intake
+   * — keeping the band a private trigger surface (no UI noise).
+   */
+  private handleSip(sip: SipEvent): void {
+    const event: SipEventPayload = {
+      oz: sip.oz,
+      fluidType: sip.fluidType,
+      source: 'phantom_band',
+      at: sip.at,
+    };
+    this.pushSignal({ at: event.at, source: 'system', note: `Auto-logged sip · ${sip.oz.toFixed(1)} oz` });
+    this.emit('sip', event);
+  }
+
+  /**
+   * Dev / demo helper: simulate a sip event without touching real BLE.
+   * Routes through the adapter's simulator so the rest of the pipeline
+   * (decode → handleSip → emit) exercises the same code path.
+   */
+  simulateSip(opts?: { oz?: number; fluidType?: FluidType }): void {
+    this.ble.simulateSip(opts);
   }
 }
 

@@ -35,7 +35,6 @@ import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
 import { createPortalSession } from '@/lib/api';
 import { refreshEntitlement } from '@/hooks/useEntitlement';
-import { VOICE_PLAYBACK_ENABLED } from '@/services/textToSpeech';
 
 const TIER_LABELS: Record<string, { label: string; desc: string; color: string }> = {
   core:           { label: 'AForce Core',           desc: 'Start your performance system.',                      color: Colors.states.BALANCED.primary },
@@ -58,6 +57,7 @@ export default function ProfileScreen() {
   const {
     state, setFeatureFlags, setAppleHealthSnapshot, setLanguage,
     activateSocialMode, logSocialDrink, deactivateSocialMode,
+    voiceCoachEnabled, setVoiceCoachEnabled,
   } = useAppStore();
   // Tracks the in-flight demo so we can disable the row + show the
   // active label without blocking the rest of Profile. Cleared once
@@ -312,6 +312,51 @@ export default function ProfileScreen() {
                       <View>
                         <Text style={styles.settingLabel}>Sweat Calculator</Text>
                         <Text style={styles.settingSubLabel}>ACSM sweat-rate · Baker sodium · AForce Rx</Text>
+                      </View>
+                    </View>
+                    <Icon name="chevron-right" size={16} color={Colors.text.muted} />
+                  </Pressable>
+                  <Divider />
+                  <Pressable
+                    onPress={() => router.push('/sensors')}
+                    testID="profile-sensors-link"
+                    style={styles.settingRow}
+                  >
+                    <View style={styles.settingLeft}>
+                      <Icon name="upload" size={16} color={Colors.states.BALANCED.primary} />
+                      <View>
+                        <Text style={styles.settingLabel}>Sensor Import</Text>
+                        <Text style={styles.settingSubLabel}>hDrop · Nix · Gatorade Gx — CSV/JSON</Text>
+                      </View>
+                    </View>
+                    <Icon name="chevron-right" size={16} color={Colors.text.muted} />
+                  </Pressable>
+                  <Divider />
+                  <Pressable
+                    onPress={() => router.push('/achievements')}
+                    testID="profile-achievements-link"
+                    style={styles.settingRow}
+                  >
+                    <View style={styles.settingLeft}>
+                      <Icon name="award" size={16} color={Colors.states.PEAK.primary} />
+                      <View>
+                        <Text style={styles.settingLabel}>Achievements</Text>
+                        <Text style={styles.settingSubLabel}>Streaks · badges · unlock progress</Text>
+                      </View>
+                    </View>
+                    <Icon name="chevron-right" size={16} color={Colors.text.muted} />
+                  </Pressable>
+                  <Divider />
+                  <Pressable
+                    onPress={() => router.push('/science')}
+                    testID="profile-science-link"
+                    style={styles.settingRow}
+                  >
+                    <View style={styles.settingLeft}>
+                      <Icon name="book-open" size={16} color={Colors.text.secondary} />
+                      <View>
+                        <Text style={styles.settingLabel}>Science & Methodology</Text>
+                        <Text style={styles.settingSubLabel}>Formulas · citations · export PDF</Text>
                       </View>
                     </View>
                     <Icon name="chevron-right" size={16} color={Colors.text.muted} />
@@ -581,26 +626,35 @@ export default function ProfileScreen() {
               </>
             );
 
-            // Read-only Voice section — surfaces the global VOICE_PLAYBACK_ENABLED
-            // flag from services/textToSpeech.ts so users can see at a glance
-            // that AI replies are currently muted by design (visual-only prompts).
+            // Voice Coach toggle (T3) — re-enables the AI voice persona.
+            // Each new AI command is read aloud via expo-speech (debounced
+            // inside textToSpeech.speak). Persisted in AsyncStorage by the
+            // store so the choice survives a refresh.
             const voiceCard = (
               <>
                 <SectionHeader label={t('profile.voice_section.label')} />
                 <View style={styles.card}>
                   <View style={styles.settingRow}>
                     <View style={styles.settingLeft}>
-                      <Icon name="volume-x" size={16} color={Colors.text.secondary} />
+                      <Icon
+                        name={voiceCoachEnabled ? 'volume-2' : 'volume-x'}
+                        size={16}
+                        color={voiceCoachEnabled ? Colors.states.PEAK.primary : Colors.text.secondary}
+                      />
                       <View style={{ flex: 1 }}>
                         <Text style={styles.settingLabel}>{t('profile.voice_section.row_label')}</Text>
                         <Text style={[styles.flagDesc, { marginTop: 2 }]}>
-                          {t('profile.voice_section.muted_detail')}
+                          {voiceCoachEnabled
+                            ? 'Voice persona reads each new AI command aloud.'
+                            : 'AI commands are visual-only.'}
                         </Text>
                       </View>
                     </View>
-                    <Text style={[styles.settingValue, { color: Colors.text.muted }]}>
-                      {VOICE_PLAYBACK_ENABLED ? t('profile.voice_section.enabled') : t('profile.voice_section.muted')}
-                    </Text>
+                    <Switch
+                      value={voiceCoachEnabled}
+                      onValueChange={setVoiceCoachEnabled}
+                      testID="profile-voice-coach-toggle"
+                    />
                   </View>
                 </View>
               </>

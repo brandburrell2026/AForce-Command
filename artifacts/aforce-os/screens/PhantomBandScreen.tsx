@@ -136,6 +136,12 @@ export function PhantomBandScreen() {
                     onPress={() => phantomBandService.disconnect()}
                     testID="phantom-disconnect"
                   />
+                  <SecondaryButton
+                    label="SIMULATE SIP"
+                    icon="droplet"
+                    onPress={() => phantomBandService.simulateSip({ oz: 4, fluidType: 'aforce_stick' })}
+                    testID="phantom-simulate-sip"
+                  />
                 </>
               )}
             </View>

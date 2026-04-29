@@ -11,7 +11,7 @@
  *   aforce_confirmations — append-only ±3 confirmation answers
  */
 
-import { pgTable, text, integer, real, boolean, timestamp, jsonb, serial, index } from "drizzle-orm/pg-core";
+import { pgTable, text, integer, real, boolean, timestamp, jsonb, serial, index, uniqueIndex } from "drizzle-orm/pg-core";
 
 export const aforceUserState = pgTable("aforce_user_state", {
   userId: text("user_id").primaryKey(),
@@ -191,3 +191,30 @@ export type AforceUserRow = typeof aforceUsers.$inferSelect;
 export type InsertAforceUser = typeof aforceUsers.$inferInsert;
 export type AforceScoreSnapshotRow = typeof aforceScoreSnapshots.$inferSelect;
 export type InsertAforceScoreSnapshot = typeof aforceScoreSnapshots.$inferInsert;
+
+/**
+ * Append-only badge unlock log. The catalog itself lives in code
+ * (`achievementsCatalog.ts`) — this table only records WHEN each user
+ * first satisfied the unlock criteria so we can render the badge as
+ * unlocked + show the unlock date.
+ *
+ * `code` is the catalog id ('first_sip', 'streak_7', etc). The
+ * (user_id, code) pair is enforced UNIQUE at the DB level so the
+ * insert path can use ON CONFLICT DO NOTHING and stay race-safe under
+ * concurrent unlock-on-read calls.
+ */
+export const aforceAchievements = pgTable(
+  "aforce_achievements",
+  {
+    id: serial("id").primaryKey(),
+    userId: text("user_id").notNull(),
+    code: text("code").notNull(),
+    unlockedAt: timestamp("unlocked_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => ({
+    userCodeUq: uniqueIndex("aforce_ach_user_code_uq").on(t.userId, t.code),
+  }),
+);
+
+export type AforceAchievementRow = typeof aforceAchievements.$inferSelect;
+export type InsertAforceAchievement = typeof aforceAchievements.$inferInsert;

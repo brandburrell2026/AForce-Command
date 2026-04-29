@@ -529,3 +529,38 @@ export async function fetchJournalRollups(days: number): Promise<JournalRollup[]
   const resp = await getJson<{ rollups: JournalRollup[] }>(`/journal/rollups?days=${days}`);
   return resp.rollups ?? [];
 }
+
+// ─── Sweat-sensor import ─────────────────────────────────────────────────────
+import type { SensorRow, SensorSource } from './sensorImportService';
+import type { AchievementCode, AchievementUnlockState } from './achievementsCatalog';
+
+export interface SensorImportPayload {
+  source: SensorSource;
+  rows: SensorRow[];
+}
+export interface SensorImportResponse {
+  imported: number;
+  source: SensorSource;
+  reason: string;
+}
+
+export async function postSensorImport(payload: SensorImportPayload): Promise<SensorImportResponse> {
+  return postJson<SensorImportResponse>('/sensors/import', payload);
+}
+
+// ─── Achievements ────────────────────────────────────────────────────────────
+export interface AchievementsResponse { unlocks: AchievementUnlockState[] }
+
+export async function fetchAchievements(): Promise<AchievementsResponse> {
+  return getJson<AchievementsResponse>('/achievements');
+}
+
+export interface UnlockResponse {
+  code: AchievementCode;
+  unlocked: true;
+  newlyUnlocked: boolean;
+}
+
+export async function unlockAchievement(code: AchievementCode): Promise<UnlockResponse> {
+  return postJson<UnlockResponse>('/achievements/unlock', { code });
+}

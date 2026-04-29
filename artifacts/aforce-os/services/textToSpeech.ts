@@ -1,28 +1,62 @@
 /**
- * Text-to-Speech adapter.
+ * Text-to-Speech adapter (re-enabled).
  *
- * STATUS: AI voice playback is DISABLED per product spec.
- *   AForce OS responds with on-screen prompts only — no audio response.
- *   Voice INPUT (STT) and the visual command-prompt pipeline remain
- *   fully wired; only this output stage is muted.
+ * Public surface for any caller that wants to read a coach line out
+ * loud. Delegates to:
+ *   - `ttsService.speak()`             → expo-speech, locale-aware
+ *   - `voicePersonaService.resolvePersona()` → rate / pitch per band
  *
- * `speak()` / `stopSpeaking()` are kept as no-op stubs so that all
- * existing callsites (VoiceOverlay, command engines, etc.) continue
- * to compile and execute without scattering platform-specific guards
- * throughout the app. Flip the body back on (or set
- * VOICE_PLAYBACK_ENABLED to true) if voice output is ever re-enabled.
+ * A module-level `enabled` flag (mirrored from the user's Voice Coach
+ * toggle in Profile) lets the store mute every callsite at once
+ * without scattering guards through the UI. Set via
+ * `setVoicePlaybackEnabled()`.
  */
 
-export const VOICE_PLAYBACK_ENABLED = false;
+import { speak as ttsSpeak, stop as ttsStop } from './ttsService';
+import { resolvePersona } from './voicePersonaService';
+import type { PerformanceLevel } from '../types';
+import type { SupportedLanguage } from './i18nService';
 
-/** No-op while voice playback is disabled. See header for rationale. */
-export function speak(_text: string): void {
-  if (!VOICE_PLAYBACK_ENABLED) return;
-  // Implementation removed — see git history if re-enabling.
+// Default ON now that voice output is shipping. The store flips this
+// to false when the user toggles "Voice coach" off in Profile.
+let enabled = true;
+
+export const VOICE_PLAYBACK_ENABLED = true;
+
+export function setVoicePlaybackEnabled(next: boolean): void {
+  enabled = next;
+  if (!next) {
+    void ttsStop();
+  }
 }
 
-/** No-op while voice playback is disabled. */
+export function isVoicePlaybackEnabled(): boolean {
+  return enabled;
+}
+
+export interface SpeakOpts {
+  /** Caller-known performance level — drives rate / pitch. */
+  level?: PerformanceLevel;
+  /** Override BCP-47 locale picker. */
+  language?: SupportedLanguage;
+}
+
+/**
+ * Speak `text` if the user has voice playback enabled. The persona
+ * resolver picks rate + pitch from the current band so DEPLETED lines
+ * land with controlled urgency without sounding excited.
+ */
+export function speak(text: string, opts: SpeakOpts = {}): void {
+  if (!enabled) return;
+  if (!text || !text.trim()) return;
+  const profile = opts.level ? resolvePersona(opts.level).profile : null;
+  void ttsSpeak(text, {
+    ...(opts.language ? { language: opts.language } : {}),
+    ...(profile ? { rate: profile.speech_rate, pitch: profile.pitch } : {}),
+  });
+}
+
+/** Stop any currently-speaking utterance (e.g., on overlay dismiss). */
 export function stopSpeaking(): void {
-  if (!VOICE_PLAYBACK_ENABLED) return;
-  // Implementation removed — see git history if re-enabling.
+  void ttsStop();
 }

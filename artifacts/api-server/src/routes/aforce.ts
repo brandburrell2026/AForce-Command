@@ -18,8 +18,12 @@
 
 import { Router, type IRouter, type Request } from "express";
 import { z } from "zod";
-import { db, aforceIntakeLogs, aforceConfirmations, aforceUserState, aforceScoreSnapshots } from "@workspace/db";
-import { eq, sql, and, gte, asc } from "drizzle-orm";
+import {
+  db,
+  aforceIntakeLogs, aforceConfirmations, aforceUserState, aforceScoreSnapshots,
+  aforceAchievements,
+} from "@workspace/db";
+import { eq, sql, and, gte, asc, desc, inArray } from "drizzle-orm";
 import { DEFAULT_USER_ID, getUserState, updateUserState, ALL_FLUID_TYPES, isAforceFluid } from "../lib/aforceState";
 import { publish } from "../lib/aforceHub";
 import { fetchWeather } from "../lib/openWeather";
@@ -804,6 +808,304 @@ router.get("/weather", weatherLimiter, async (req, res) => {
   } catch (err) {
     logger.error({ err }, "GET /aforce/weather failed");
     return res.status(400).json({ error: "weather_failed" });
+  }
+});
+
+// ─── Sweat-sensor import ───────────────────────────────────────────────────────
+// Accepts parsed rows from a third-party patch (hDrop / Nix / Gx).
+// Each row creates an intake_log + a score_snapshot tagged with
+// `reason='sensor:<source>'`. We approximate the intake side as a
+// water-equivalent rehydration: 1 oz per 30 mL replaced (= a ~30 mL
+// AForce stick converts back to 1 oz, the user's drinking unit). The
+// snapshot deficit_pct stores the actual sweat loss / sodium loss so
+// the journal still reflects the raw sensor data.
+
+const SENSOR_SOURCES = ["hdrop", "nix", "gatorade_gx"] as const;
+
+const sensorRowSchema = z.object({
+  timestamp: z.string().min(1),
+  sweatLossMl: z.number().nonnegative(),
+  sodiumMg: z.number().nonnegative().default(0),
+  potassiumMg: z.number().nonnegative().optional(),
+});
+
+const sensorImportSchema = z.object({
+  source: z.enum(SENSOR_SOURCES),
+  rows: z.array(sensorRowSchema).min(1).max(2000),
+});
+
+router.post("/sensors/import", async (req, res) => {
+  try {
+    const body = sensorImportSchema.parse(req.body);
+    const userId = resolveUserId(req);
+    await getUserState(userId);
+    const reason = `sensor:${body.source}`;
+
+    let lastTs = 0;
+    const intakes: Array<typeof aforceIntakeLogs.$inferInsert> = [];
+    const snapshots: Array<typeof aforceScoreSnapshots.$inferInsert> = [];
+
+    for (const row of body.rows) {
+      const ts = new Date(row.timestamp);
+      if (Number.isNaN(ts.getTime())) continue;
+      lastTs = Math.max(lastTs, ts.getTime());
+      // Approximate water-equivalent rehydration: 30 mL ≈ 1 oz.
+      const ozEquivalent = Math.max(0, row.sweatLossMl / 30);
+      intakes.push({
+        userId,
+        fluidType: "water",
+        ozAmount: ozEquivalent,
+        // Score before/after on a sensor-derived row are placeholders;
+        // the engine recomputes the displayed score on the next /state
+        // fetch. We just need a non-null pair that the timeline can
+        // render.
+        scoreBefore: 70,
+        scoreAfter: 70,
+        loggedAt: ts,
+      });
+      // Use deficit_pct as the carrier for "sodium-loss vs delivered"
+      // ratio for this interval — bounded 0–100 to match the column
+      // semantics elsewhere.
+      const sodiumLost = row.sodiumMg;
+      const deficitPct = Math.min(100, sodiumLost / 50); // rough %: 5g lost ≈ 100
+      snapshots.push({
+        userId,
+        score: 70,
+        level: "BALANCED",
+        ozConsumedToday: ozEquivalent,
+        aforceUnitsToday: 0,
+        unitsConsumedToday: 1,
+        sodiumDeliveredMg: 0,
+        sodiumLostMg: sodiumLost,
+        deficitPct,
+        clutchActive: false,
+        socialActive: false,
+        autopilotActive: false,
+        reason,
+        capturedAt: ts,
+      });
+    }
+
+    if (intakes.length === 0) {
+      return res.status(400).json({ error: "no_valid_rows" });
+    }
+
+    // Defensive guard against client-side timestamp parsing bugs
+    // (e.g. unix-seconds misread as unix-ms producing 1970 dates, or
+    // future-dated samples from clock-skewed sensors). Only allow
+    // `lastIntakeTime` to advance into a plausible window.
+    const TS_MIN = Date.UTC(2015, 0, 1);
+    const TS_MAX = Date.now() + 24 * 60 * 60 * 1000; // +1 day grace
+    const safeLastTs = lastTs > TS_MIN && lastTs < TS_MAX ? lastTs : 0;
+
+    await db.transaction(async (tx) => {
+      await tx.insert(aforceIntakeLogs).values(intakes);
+      await tx.insert(aforceScoreSnapshots).values(snapshots);
+      // Bump lastIntakeTime to the most recent valid sensor sample so
+      // the engine's recency-aware terms reflect the import.
+      if (safeLastTs > 0) {
+        await tx
+          .update(aforceUserState)
+          .set({ lastIntakeTime: new Date(safeLastTs), updatedAt: new Date() })
+          .where(eq(aforceUserState.userId, userId));
+      }
+    });
+
+    // Auto-unlock Sensor Sync on first successful import (idempotent).
+    await unlockAchievementCode(userId, "sensor_sync");
+
+    return res.json({ imported: intakes.length, source: body.source, reason });
+  } catch (err) {
+    logger.error({ err }, "POST /aforce/sensors/import failed");
+    return res.status(400).json({ error: "sensor_import_failed" });
+  }
+});
+
+// ─── Achievements ──────────────────────────────────────────────────────────────
+// Catalog lives client-side (services/achievementsCatalog.ts); the
+// server only persists which codes a user has unlocked + computes
+// progress on the fly from snapshots + intake_logs.
+
+const ACH_CODES = [
+  "first_sip", "streak_3", "streak_7", "streak_30",
+  "sodium_master", "heat_survivor", "recovery_rookie", "social_sentinel",
+  "aforce_convert", "hydration_engineer", "pdf_pioneer", "sensor_sync",
+] as const;
+type AchCode = (typeof ACH_CODES)[number];
+
+const unlockSchema = z.object({ code: z.enum(ACH_CODES) });
+
+/**
+ * Insert an unlock row, ignoring duplicates. Returns true if this call
+ * was the one that actually persisted the unlock (used to drive the
+ * client's haptic / toast).
+ */
+async function unlockAchievementCode(userId: string, code: AchCode): Promise<boolean> {
+  // Atomic upsert: relies on the (user_id, code) UNIQUE index. If a
+  // concurrent request already inserted, ON CONFLICT swallows it and
+  // returning() yields zero rows, which we surface as newlyUnlocked=false.
+  const inserted = await db
+    .insert(aforceAchievements)
+    .values({ userId, code })
+    .onConflictDoNothing({ target: [aforceAchievements.userId, aforceAchievements.code] })
+    .returning({ id: aforceAchievements.id });
+  return inserted.length > 0;
+}
+
+router.post("/achievements/unlock", async (req, res) => {
+  try {
+    const { code } = unlockSchema.parse(req.body);
+    const userId = resolveUserId(req);
+    const newlyUnlocked = await unlockAchievementCode(userId, code);
+    return res.json({ code, unlocked: true, newlyUnlocked });
+  } catch (err) {
+    logger.error({ err }, "POST /aforce/achievements/unlock failed");
+    return res.status(400).json({ error: "unlock_failed" });
+  }
+});
+
+router.get("/achievements", async (req, res) => {
+  try {
+    const userId = resolveUserId(req);
+    // Pull the snapshots + intakes window we need to compute progress.
+    // 60 days is plenty for the longest streak (30) plus headroom.
+    const since = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000);
+    const [snapshots, intakes, persisted] = await Promise.all([
+      db
+        .select()
+        .from(aforceScoreSnapshots)
+        .where(and(eq(aforceScoreSnapshots.userId, userId), gte(aforceScoreSnapshots.capturedAt, since)))
+        .orderBy(asc(aforceScoreSnapshots.capturedAt)),
+      db
+        .select({ id: aforceIntakeLogs.id, loggedAt: aforceIntakeLogs.loggedAt, fluidType: aforceIntakeLogs.fluidType })
+        .from(aforceIntakeLogs)
+        .where(and(eq(aforceIntakeLogs.userId, userId), gte(aforceIntakeLogs.loggedAt, since)))
+        .orderBy(asc(aforceIntakeLogs.loggedAt)),
+      db
+        .select()
+        .from(aforceAchievements)
+        .where(and(eq(aforceAchievements.userId, userId), inArray(aforceAchievements.code, ACH_CODES as unknown as string[])))
+        .orderBy(desc(aforceAchievements.unlockedAt)),
+    ]);
+
+    // ─── Day buckets for streak / sodium-master / heat-survivor ────────
+    function dayKey(d: Date): string {
+      const y = d.getUTCFullYear();
+      const m = String(d.getUTCMonth() + 1).padStart(2, "0");
+      const dd = String(d.getUTCDate()).padStart(2, "0");
+      return `${y}-${m}-${dd}`;
+    }
+
+    const intakeDays = new Set<string>();
+    for (const i of intakes) intakeDays.add(dayKey(i.loggedAt));
+
+    // Longest current trailing streak (back from today).
+    function trailingStreak(): number {
+      let n = 0;
+      const cursor = new Date();
+      // Walk backward day by day until we hit a day with no intake.
+      for (let safety = 0; safety < 60; safety += 1) {
+        if (intakeDays.has(dayKey(cursor))) {
+          n += 1;
+          cursor.setUTCDate(cursor.getUTCDate() - 1);
+        } else {
+          break;
+        }
+      }
+      return n;
+    }
+    const streak = trailingStreak();
+
+    // Day-grouped snapshot stats.
+    const dayStats = new Map<string, {
+      lastDeficit: number;
+      hadHeatPeak: boolean;
+      hadAutopilot: boolean;
+      hadSocial: boolean;
+      maxAforceUnits: number;
+    }>();
+    for (const s of snapshots) {
+      const k = dayKey(s.capturedAt);
+      const cur = dayStats.get(k) ?? {
+        lastDeficit: 100, hadHeatPeak: false, hadAutopilot: false,
+        hadSocial: false, maxAforceUnits: 0,
+      };
+      cur.lastDeficit = s.deficitPct;
+      // Heat Survivor: PEAK while a Heat Guard reason snapshot landed on
+      // the same day. We approximate "heat guard active" via the reason
+      // string flag — engine writes "heat_guard:..." prefixes.
+      if (s.level === "PEAK" && /heat/i.test(s.reason)) cur.hadHeatPeak = true;
+      if (s.autopilotActive) cur.hadAutopilot = true;
+      if (s.socialActive) cur.hadSocial = true;
+      if (s.aforceUnitsToday > cur.maxAforceUnits) cur.maxAforceUnits = s.aforceUnitsToday;
+      dayStats.set(k, cur);
+    }
+
+    const sodiumMasterDays = Array.from(dayStats.values()).filter((d) => d.lastDeficit <= 5).length;
+    const heatSurvivor = Array.from(dayStats.values()).some((d) => d.hadHeatPeak);
+    const recoveryRookie = snapshots.some((s) => s.autopilotActive);
+    const socialSentinel = snapshots.some((s) => s.socialActive);
+    const aforceConvert = snapshots.some((s) => s.aforceUnitsToday >= 10);
+    const hydrationEngineerCount = snapshots.length;
+
+    const persistedMap = new Map<string, Date>();
+    for (const p of persisted) persistedMap.set(p.code, p.unlockedAt);
+
+    // Compute the live unlock state. A code may be "earned now" without
+    // a persisted row yet (e.g. user hit the criterion on the most
+    // recent snapshot). We persist on read so the unlock time is
+    // anchored to the first time the criterion was satisfied.
+    const liveUnlocked: Record<AchCode, boolean> = {
+      first_sip:           intakes.length >= 1,
+      streak_3:            streak >= 3,
+      streak_7:            streak >= 7,
+      streak_30:           streak >= 30,
+      sodium_master:       sodiumMasterDays >= 4,
+      heat_survivor:       heatSurvivor,
+      recovery_rookie:     recoveryRookie,
+      social_sentinel:     socialSentinel,
+      aforce_convert:      aforceConvert,
+      hydration_engineer:  hydrationEngineerCount >= 30,
+      // pdf_pioneer + sensor_sync are persisted-only — they have no
+      // recomputable on-the-fly criterion.
+      pdf_pioneer:         persistedMap.has("pdf_pioneer"),
+      sensor_sync:         persistedMap.has("sensor_sync"),
+    };
+
+    // Persist any newly-satisfied unlocks so the unlock date sticks.
+    for (const code of ACH_CODES) {
+      if (liveUnlocked[code] && !persistedMap.has(code)) {
+        await unlockAchievementCode(userId, code);
+        persistedMap.set(code, new Date());
+      }
+    }
+
+    const progress: Partial<Record<AchCode, number>> = {
+      streak_3:            Math.min(1, streak / 3),
+      streak_7:            Math.min(1, streak / 7),
+      streak_30:           Math.min(1, streak / 30),
+      sodium_master:       Math.min(1, sodiumMasterDays / 4),
+      hydration_engineer:  Math.min(1, hydrationEngineerCount / 30),
+      aforce_convert:      Math.min(
+        1,
+        Math.max(0, ...Array.from(dayStats.values()).map((d) => d.maxAforceUnits)) / 10,
+      ),
+    };
+
+    const unlocks = ACH_CODES.map((code) => {
+      const unlockedAt = persistedMap.get(code);
+      return {
+        code,
+        unlocked: liveUnlocked[code],
+        ...(unlockedAt ? { unlockedAt: unlockedAt.toISOString() } : {}),
+        ...(progress[code] != null ? { progress: progress[code] } : {}),
+      };
+    });
+
+    return res.json({ unlocks });
+  } catch (err) {
+    logger.error({ err }, "GET /aforce/achievements failed");
+    return res.status(500).json({ error: "achievements_failed" });
   }
 });
 
