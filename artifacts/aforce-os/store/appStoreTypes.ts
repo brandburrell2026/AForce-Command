@@ -13,6 +13,7 @@ import type {
   FeatureFlags,
 } from '../types';
 import type { UserSubscription } from '../types/subscription';
+import type { SweatAutopilot } from '../types/sweat';
 
 export interface AppState {
   userState: UserState;
@@ -28,9 +29,21 @@ export interface AppState {
   subscription: UserSubscription;
   lastIntakeBurstAt: number;
   hasSeenOnboarding: boolean;
+  /**
+   * Active autopilot snapshot from the most recent sweat session.
+   * When set, useHeatGuard exposes its interval/urgency so screens can
+   * drive recheck cadence from the sweat-driven recovery window.
+   */
+  sweatAutopilot?: SweatAutopilot | null;
+  /** Epoch ms when sweatAutopilot was set — drives the recovery window. */
+  sweatAutopilotSetAt?: number | null;
 }
 
 export type Action =
+  | {
+      type: 'SET_SWEAT_AUTOPILOT';
+      payload: { autopilot: SweatAutopilot | null; setAt: number | null };
+    }
   | { type: 'CYCLE_START' }
   | {
       type: 'CYCLE_SUCCESS';

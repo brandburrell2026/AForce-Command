@@ -27,17 +27,23 @@ import {
   KeyboardAvoidingView,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 
 import { GradientBackground } from '@/components/GradientBackground';
 import { Colors } from '@/theme/colors';
 import {
+  AFORCE_SODIUM_PER_UNIT_MG,
   computeSweatSession,
   DEFICIT_BANDS,
   SODIUM_BANDS,
 } from '@/services/sweatRateEngine';
 import { SWEAT_SPORTS } from '@/data/sweatSports';
+import {
+  pickRecoveryProtocol,
+  type RecoveryProtocolPlan,
+} from '@/services/recoveryProtocolService';
+import { useActionsSlice, useInventorySlice } from '@/store/slices';
 import {
   getCurrentCityClimate,
   getCurrentCityClimateSync,
@@ -62,6 +68,11 @@ const DEFICIT_COLOR: Record<string, string> = {
 export default function SweatCalculatorScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  // `?demo=1` auto-runs Calculate on mount so previews / share screens
+  // can render the result pane without user interaction. Inert in normal
+  // navigation — the Calculate button is still required.
+  const params = useLocalSearchParams<{ demo?: string }>();
+  const demoMode = params?.demo === '1';
   const [mode, setMode] = useState<SweatInputMode>('quick');
 
   // Live climate snapshot — auto-fills temp/humidity for Precision + Estimate.
@@ -150,6 +161,24 @@ export default function SweatCalculatorScreen() {
   })();
   const canCalculate = validationError === null;
 
+  // Push the freshly-derived autopilot into the store so useHeatGuard
+  // (and any other consumer driving recheck cadence) can reflect the
+  // recovery window for the next 4 hours.
+  const { setSweatAutopilot } = useActionsSlice<{ setSweatAutopilot: (a: SweatSession['autopilot'] | null) => void }>();
+
+  function commitSession(session: SweatSession) {
+    setResult(session);
+    setSweatAutopilot(session.autopilot);
+  }
+
+  // Demo auto-trigger: only fires when the URL carries ?demo=1 and the
+  // user has not yet pressed Calculate. Lets us snapshot the result
+  // pane in previews + screenshots without changing production UX.
+  useEffect(() => {
+    if (demoMode && !result && canCalculate) calculate();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [demoMode, canCalculate]);
+
   function calculate() {
     if (!canCalculate) return;
     if (mode === 'quick') {
@@ -164,7 +193,7 @@ export default function SweatCalculatorScreen() {
         fluidUnit: 'oz',
         ...(qH > 0 ? { height: qH, heightUnit: 'in' as const } : {}),
       };
-      setResult(computeSweatSession(inputs));
+      commitSession(computeSweatSession(inputs));
     } else if (mode === 'precision') {
       const pH = num(pHeight);
       const inputs: PrecisionInputs = {
@@ -183,7 +212,7 @@ export default function SweatCalculatorScreen() {
         sodiumProfile: pSodium,
         ...(pH > 0 ? { height: pH, heightUnit: 'in' as const } : {}),
       };
-      setResult(computeSweatSession(inputs));
+      commitSession(computeSweatSession(inputs));
     } else {
       const inputs: EstimateInputs = {
         mode: 'estimate',
@@ -199,7 +228,7 @@ export default function SweatCalculatorScreen() {
         acclimatized: eAcclimatized,
         sodiumProfile: eSodium,
       };
-      setResult(computeSweatSession(inputs));
+      commitSession(computeSweatSession(inputs));
     }
   }
 
@@ -585,95 +614,319 @@ function ClimateLine({ climate, ambientTempC }: { climate: CityClimate; ambientT
   );
 }
 
+/* ─── Result Pane — Sweat Intelligence v2 ──────────────────────────────
+ * Nine spec cards (A–I), in order. Every card sources from the engine
+ * output + inventory slice; nothing is hardcoded except the verbatim
+ * positioning copy required by the upgrade brief.
+ */
 function ResultPane({ result }: { result: SweatSession }) {
-  const bandColor = DEFICIT_COLOR[result.deficitBand] ?? Colors.text.primary;
-  const bandSpec = DEFICIT_BANDS.find((b) => b.id === result.deficitBand);
+  const inventory = useInventorySlice();
+  const protocol = useMemo(
+    () => pickRecoveryProtocol(result, inventory),
+    [result, inventory],
+  );
 
   return (
     <View style={styles.resultsWrap}>
-      {/* Hero — sweat rate */}
-      <View style={styles.heroCard}>
-        <Text style={styles.heroEyebrow}>SWEAT RATE</Text>
-        <View style={styles.heroNumbers}>
-          <Text style={styles.heroBig}>{result.sweatRateLh.toFixed(2)}</Text>
-          <View style={{ marginLeft: 6 }}>
-            <Text style={styles.heroUnitTop}>L/h</Text>
-            <Text style={styles.heroUnitBottom}>{Math.round(result.sweatRateOzh)} oz/h</Text>
-          </View>
-        </View>
-        <Text style={styles.heroSub}>
-          Total loss this session: <Text style={styles.heroSubBold}>{result.sweatLossL.toFixed(2)} L</Text>
-          {' '}· Sodium: <Text style={styles.heroSubBold}>{(result.sodiumLossMg / 1000).toFixed(2)} g</Text>
+      <PerformanceHeader result={result} />
+      <RecoveryIntelligenceCard />
+      <AForceSystemCard />
+      <AIRecoveryDecision result={result} protocol={protocol} />
+      <RecoveryProtocolCard protocol={protocol} result={result} />
+      <OptionalSupportCard result={result} />
+      <AdvancedDataCard result={result} />
+      <ComparisonTable />
+      <ShareCardHandoff result={result} />
+    </View>
+  );
+}
+
+/* ── A. Performance Header ──────────────────────────────────────────── */
+function PerformanceHeader({ result }: { result: SweatSession }) {
+  const bandColor = DEFICIT_COLOR[result.deficitBand] ?? Colors.text.primary;
+  const bandSpec = DEFICIT_BANDS.find((b) => b.id === result.deficitBand);
+  const sportLabel = result.audit.sport?.label;
+
+  return (
+    <View style={styles.heroCard}>
+      <Text style={styles.heroEyebrow}>PERFORMANCE SUMMARY</Text>
+
+      <View style={styles.heroNumbers}>
+        <Text style={[styles.heroBig, { color: bandColor }]}>
+          {result.deficitPct.toFixed(1)}
         </Text>
-        {result.audit.source === 'estimated' && (
-          <View style={styles.estimatedBadge}>
-            <Feather name="info" size={10} color={Colors.states.RECOVERING.primary} />
-            <Text style={styles.estimatedBadgeText}>ESTIMATED — measure with scale for precision</Text>
-          </View>
-        )}
-      </View>
-
-      {/* Hydration deficit band */}
-      <View style={[styles.bandCard, { borderColor: bandColor }]}>
-        <View style={styles.bandHeader}>
-          <View style={[styles.bandPill, { backgroundColor: bandColor }]}>
-            <Text style={styles.bandPillText}>{bandSpec?.label ?? result.deficitBand}</Text>
-          </View>
-          <Text style={[styles.bandPct, { color: bandColor }]}>
-            {result.deficitPct.toFixed(1)}%
-          </Text>
-        </View>
-        <Text style={styles.bandMessage}>{bandSpec?.message}</Text>
-        <Text style={styles.bandReference}>
-          ACSM 2007 thresholds: &lt;1% optimal · 2% impaired · 4%+ danger
-        </Text>
-      </View>
-
-      {/* Prescription */}
-      <View style={styles.rxCard}>
-        <Text style={styles.rxEyebrow}>AFORCE PRESCRIPTION · NEXT {result.prescription.windowHours}H</Text>
-        <Text style={styles.rxHeadline}>{result.prescription.headline}</Text>
-
-        <View style={styles.rxGrid}>
-          <RxStat label="Sticks" value={String(result.prescription.aforceSticks)} unit="" />
-          <RxStat label="Pair Water" value={String(result.prescription.pairWaterOz)} unit="oz" />
-          <RxStat label="Sodium" value={String(result.prescription.replacementSodiumMg)} unit="mg" />
-          <RxStat label="Per-hr next time" value={String(result.prescription.ongoingOzPerHour)} unit="oz/h" />
-        </View>
-
-        <View style={{ marginTop: 12, gap: 6 }}>
-          {result.prescription.rationale.map((r, i) => (
-            <View key={i} style={styles.bulletRow}>
-              <View style={styles.bulletDot} />
-              <Text style={styles.bulletText}>{r}</Text>
-            </View>
-          ))}
+        <View style={{ marginLeft: 6 }}>
+          <Text style={[styles.heroUnitTop, { color: bandColor }]}>%</Text>
+          <Text style={styles.heroUnitBottom}>fluid deficit</Text>
         </View>
       </View>
 
-      {/* Audit */}
-      <View style={styles.auditCard}>
-        <Text style={styles.auditTitle}>Session detail</Text>
-        <AuditRow k="Sweat-sodium concentration" v={`${result.sodiumConcentrationMgL} mg/L`} />
-        <AuditRow k="Sodium profile assumed" v={result.sodiumProfile.replace('_', ' ')} />
-        {result.audit.sport && <AuditRow k="Sport reference" v={`${result.audit.sport.label} · ${result.audit.sport.meanSweatRateLh} L/h (${result.audit.sport.citation})`} />}
-        {result.audit.heatFactor !== undefined && <AuditRow k="Climate factor" v={`×${result.audit.heatFactor.toFixed(2)}`} />}
-        {result.audit.acclimFactor !== undefined && <AuditRow k="Acclim. factor" v={`×${result.audit.acclimFactor.toFixed(2)}`} />}
-        {result.audit.bsaM2 !== undefined && <AuditRow k="Body surface area (Du Bois)" v={`${result.audit.bsaM2.toFixed(2)} m²`} />}
-        <AuditRow k="Method" v={result.audit.source === 'measured' ? 'Direct measurement (ACSM)' : 'Anchored estimate (Baker 2017)'} />
+      <View style={[styles.bandPill, { backgroundColor: bandColor, alignSelf: 'flex-start', marginTop: 6 }]}>
+        <Text style={styles.bandPillText}>{bandSpec?.label ?? result.deficitBand}</Text>
+      </View>
+
+      <View style={styles.perfMetaRow}>
+        <PerfMeta label="Sweat rate" value={`${result.sweatRateLh.toFixed(2)} L/h`} />
+        <PerfMeta label="Total loss" value={`${result.sweatLossL.toFixed(2)} L`} />
+        <PerfMeta label="Sodium loss" value={`${(result.sodiumLossMg / 1000).toFixed(2)} g`} />
+      </View>
+
+      {sportLabel && (
+        <Text style={styles.heroSub}>{sportLabel}</Text>
+      )}
+
+      {result.audit.source === 'estimated' && (
+        <View style={styles.estimatedBadge}>
+          <Feather name="info" size={10} color={Colors.states.RECOVERING.primary} />
+          <Text style={styles.estimatedBadgeText}>ESTIMATED — measure with scale for precision</Text>
+        </View>
+      )}
+    </View>
+  );
+}
+
+function PerfMeta({ label, value }: { label: string; value: string }) {
+  return (
+    <View style={styles.perfMeta}>
+      <Text style={styles.perfMetaValue}>{value}</Text>
+      <Text style={styles.perfMetaLabel}>{label}</Text>
+    </View>
+  );
+}
+
+/* ── B. Recovery Intelligence — verbatim positioning copy ───────────── */
+function RecoveryIntelligenceCard() {
+  return (
+    <View style={styles.intelCard}>
+      <Text style={styles.intelEyebrow}>RECOVERY INTELLIGENCE</Text>
+      <Text style={styles.intelHeadline}>
+        Recovery is not driven by sodium alone.
+      </Text>
+      <Text style={styles.intelBody}>
+        AForce uses {AFORCE_SODIUM_PER_UNIT_MG}mg of sodium paired with marine
+        bioavailable minerals and pH 8.8 alkaline structuring to drive
+        cellular recovery — not flood you with salt.
+      </Text>
+      <View style={styles.intelChipRow}>
+        <View style={styles.intelChip}><Text style={styles.intelChipText}>{AFORCE_SODIUM_PER_UNIT_MG}mg sodium</Text></View>
+        <View style={styles.intelChip}><Text style={styles.intelChipText}>Marine minerals</Text></View>
+        <View style={styles.intelChip}><Text style={styles.intelChipText}>pH 8.8</Text></View>
       </View>
     </View>
   );
 }
 
-function RxStat({ label, value, unit }: { label: string; value: string; unit: string }) {
+/* ── C. AForce System — 4 spec rows + 3 verbatim ingredient lines ───── */
+function AForceSystemCard() {
   return (
-    <View style={styles.rxStat}>
-      <Text style={styles.rxStatValue}>
-        {value}
-        {unit ? <Text style={styles.rxStatUnit}> {unit}</Text> : null}
-      </Text>
-      <Text style={styles.rxStatLabel}>{label}</Text>
+    <View style={styles.systemCard}>
+      <Text style={styles.cardEyebrow}>AFORCE SYSTEM</Text>
+
+      <SystemRow k={`${AFORCE_SODIUM_PER_UNIT_MG}mg Sodium`} v="Per serving — controlled, not bombarding." />
+      <SystemRow k="72 Trace Minerals" v="Marine source (Irish Seamoss)." />
+      <SystemRow k="pH 8.8 Alkaline" v="Structured water for cellular uptake." />
+      <SystemRow k="4-Hour Recovery Window" v="Time-released absorption profile." />
+
+      <View style={styles.systemDivider} />
+
+      <Text style={styles.systemSubhead}>Ingredient Detail</Text>
+      <IngredientLine name="Irish Seamoss" line="Marine source of 72 trace minerals critical to cellular function." />
+      <IngredientLine name="Chlorella" line="Binds heavy metals and supports oxygen transport." />
+      <IngredientLine name="Atlantic Dulse" line="Iodine-rich for thyroid + metabolic recovery." />
+    </View>
+  );
+}
+
+function SystemRow({ k, v }: { k: string; v: string }) {
+  return (
+    <View style={styles.systemRow}>
+      <Text style={styles.systemRowKey}>{k}</Text>
+      <Text style={styles.systemRowValue}>{v}</Text>
+    </View>
+  );
+}
+
+function IngredientLine({ name, line }: { name: string; line: string }) {
+  return (
+    <View style={styles.ingredientRow}>
+      <Text style={styles.ingredientName}>{name}</Text>
+      <Text style={styles.ingredientLine}>{line}</Text>
+    </View>
+  );
+}
+
+/* ── D. AI Recovery Decision ────────────────────────────────────────── */
+function AIRecoveryDecision({
+  result,
+  protocol,
+}: {
+  result: SweatSession;
+  protocol: RecoveryProtocolPlan;
+}) {
+  const urgencyLabel =
+    result.autopilot.urgency === 'critical' ? 'Critical recovery'
+    : result.autopilot.urgency === 'high' ? 'High priority'
+    : 'Steady recovery';
+
+  const urgencyColor =
+    result.autopilot.urgency === 'critical' ? Colors.states.DEPLETED.primary
+    : result.autopilot.urgency === 'high' ? Colors.states.RECOVERING.primary
+    : Colors.states.PEAK.primary;
+
+  return (
+    <View style={styles.aiCard}>
+      <View style={styles.aiHeader}>
+        <Feather name="cpu" size={14} color={urgencyColor} />
+        <Text style={[styles.aiEyebrow, { color: urgencyColor }]}>AI RECOVERY DECISION</Text>
+      </View>
+
+      <Text style={styles.aiHeadline}>{urgencyLabel} · recheck every {result.autopilot.intervalMin} min</Text>
+
+      <View style={styles.aiBullets}>
+        <BulletRow text={`${result.deficitPct.toFixed(1)}% deficit triggered ${result.autopilot.urgency} cadence (${result.autopilot.recoveryWindowHours}h window).`} />
+        <BulletRow text={`Sodium loss ${result.sodiumLossMg} mg → ${result.aforceSodiumTotalMg} mg delivered by ${result.prescription.aforceSticks} unit${result.prescription.aforceSticks === 1 ? '' : 's'}; gap ${result.sodiumGapMg} mg covered by structured-water absorption.`} />
+        <BulletRow text={protocol.reasoning} />
+      </View>
+    </View>
+  );
+}
+
+function BulletRow({ text }: { text: string }) {
+  return (
+    <View style={styles.bulletRow}>
+      <View style={styles.bulletDot} />
+      <Text style={styles.bulletText}>{text}</Text>
+    </View>
+  );
+}
+
+/* ── E. Recovery Protocol — inventory-gated ─────────────────────────── */
+function RecoveryProtocolCard({
+  protocol,
+  result,
+}: {
+  protocol: RecoveryProtocolPlan;
+  result: SweatSession;
+}) {
+  if (protocol.reason === 'restock') {
+    return (
+      <View style={[styles.protocolCard, styles.protocolRestock]}>
+        <Text style={styles.cardEyebrow}>RECOVERY PROTOCOL</Text>
+        <Text style={styles.protocolHeadline}>{protocol.headline}</Text>
+        <Text style={styles.protocolReasoning}>{protocol.reasoning}</Text>
+        <Pressable style={styles.restockBtn} accessibilityRole="button">
+          <Feather name="shopping-bag" size={14} color={Colors.text.inverse} />
+          <Text style={styles.restockBtnText}>Restock AForce</Text>
+        </Pressable>
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.protocolCard}>
+      <Text style={styles.cardEyebrow}>RECOVERY PROTOCOL · NEXT {result.prescription.windowHours}H</Text>
+      <Text style={styles.protocolHeadline}>{protocol.headline}</Text>
+
+      <View style={styles.protocolSteps}>
+        {protocol.steps.map((s, i) => (
+          <View key={`${s.productId}-${i}`} style={styles.protocolStep}>
+            <View style={styles.protocolStepIdx}><Text style={styles.protocolStepIdxText}>{i + 1}</Text></View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.protocolStepLabel}>{s.label}</Text>
+              <Text style={styles.protocolStepHint}>{labelForProduct(s.productId)}</Text>
+            </View>
+          </View>
+        ))}
+        <View style={styles.protocolStep}>
+          <View style={[styles.protocolStepIdx, { backgroundColor: Colors.fill.medium }]}>
+            <Feather name="droplet" size={11} color={Colors.text.secondary} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.protocolStepLabel}>{protocol.waterOz} oz water</Text>
+            <Text style={styles.protocolStepHint}>Pair across the {result.autopilot.recoveryWindowHours}h window.</Text>
+          </View>
+        </View>
+      </View>
+
+      <Text style={styles.protocolReasoning}>{protocol.reasoning}</Text>
+    </View>
+  );
+}
+
+function labelForProduct(id: 'rtd' | 'stick' | 'canister'): string {
+  if (id === 'rtd') return 'Ready-to-drink — fastest start.';
+  if (id === 'stick') return 'Single-serve stick — pour into water.';
+  return 'Canister scoop — bulk option.';
+}
+
+/* ── F. Optional Support ────────────────────────────────────────────── */
+function OptionalSupportCard({ result }: { result: SweatSession }) {
+  // Symptom-aware add-ons. Light, optional, never prescriptive — these
+  // amplify the protocol when conditions warrant.
+  const items: { icon: keyof typeof Feather.glyphMap; label: string; hint: string }[] = [];
+
+  if (result.deficitPct >= 2) {
+    items.push({ icon: 'moon', label: 'Cool-down rest', hint: '15–20 min low HR before next bout.' });
+  }
+  if (result.sodiumGapMg > 100) {
+    items.push({ icon: 'coffee', label: 'Salty whole food', hint: 'Olives, broth, or pickle juice closes the sodium gap.' });
+  }
+  if (result.deficitBand === 'mild' || result.deficitBand === 'optimal') {
+    items.push({ icon: 'sun', label: 'Daylight + slow breath', hint: 'Parasympathetic restart — accelerates absorption.' });
+  } else {
+    items.push({ icon: 'thermometer', label: 'Cooling shower', hint: 'Drop core temp 1–2°F to free up cardiac output.' });
+  }
+
+  return (
+    <View style={styles.supportCard}>
+      <Text style={styles.cardEyebrow}>OPTIONAL SUPPORT</Text>
+      <View style={{ gap: 10 }}>
+        {items.map((it, i) => (
+          <View key={i} style={styles.supportRow}>
+            <View style={styles.supportIcon}>
+              <Feather name={it.icon} size={13} color={Colors.text.secondary} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.supportLabel}>{it.label}</Text>
+              <Text style={styles.supportHint}>{it.hint}</Text>
+            </View>
+          </View>
+        ))}
+      </View>
+    </View>
+  );
+}
+
+/* ── G. Advanced Data — collapsible audit ───────────────────────────── */
+function AdvancedDataCard({ result }: { result: SweatSession }) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <View style={styles.advCard}>
+      <Pressable
+        onPress={() => setOpen((o) => !o)}
+        style={styles.advHeader}
+        accessibilityRole="button"
+        accessibilityState={{ expanded: open }}
+      >
+        <Text style={styles.cardEyebrow}>ADVANCED DATA</Text>
+        <Feather name={open ? 'chevron-up' : 'chevron-down'} size={16} color={Colors.text.muted} />
+      </Pressable>
+
+      {open && (
+        <View style={{ marginTop: 6 }}>
+          <AuditRow k="Sweat-sodium concentration" v={`${result.sodiumConcentrationMgL} mg/L`} />
+          <AuditRow k="Sodium profile assumed" v={result.sodiumProfile.replace('_', ' ')} />
+          <AuditRow k="AForce sodium delivered" v={`${result.aforceSodiumTotalMg} mg (${result.prescription.aforceSticks} × ${AFORCE_SODIUM_PER_UNIT_MG} mg)`} />
+          <AuditRow k="Sodium gap" v={`${result.sodiumGapMg} mg`} />
+          {result.audit.sport && <AuditRow k="Sport reference" v={`${result.audit.sport.label} · ${result.audit.sport.meanSweatRateLh} L/h`} />}
+          {result.audit.heatFactor !== undefined && <AuditRow k="Climate factor" v={`×${result.audit.heatFactor.toFixed(2)}`} />}
+          {result.audit.acclimFactor !== undefined && <AuditRow k="Acclim. factor" v={`×${result.audit.acclimFactor.toFixed(2)}`} />}
+          {result.audit.bsaM2 !== undefined && <AuditRow k="Body surface area" v={`${result.audit.bsaM2.toFixed(2)} m² (Du Bois)`} />}
+          <AuditRow k="Method" v={result.audit.source === 'measured' ? 'Direct measurement (ACSM)' : 'Anchored estimate (Baker 2017)'} />
+          <AuditRow k="Autopilot" v={`${result.autopilot.intervalMin} min · ${result.autopilot.urgency}`} />
+        </View>
+      )}
     </View>
   );
 }
@@ -684,6 +937,71 @@ function AuditRow({ k, v }: { k: string; v: string }) {
       <Text style={styles.auditKey}>{k}</Text>
       <Text style={styles.auditValue}>{v}</Text>
     </View>
+  );
+}
+
+/* ── H. Comparison Table — the only brand-comparison surface ────────── */
+const COMPARISON_ROWS: { brand: string; sodium: string; profile: string; you: boolean }[] = [
+  { brand: 'AForce',     sodium: '25 mg',     profile: 'Marine · pH 8.8 · structured', you: true  },
+  { brand: 'Gatorade',   sodium: '~270 mg',   profile: 'Sugar-driven · table salt',     you: false },
+  { brand: 'LMNT',       sodium: '1000 mg',   profile: 'Salt-bomb · no minerals',       you: false },
+  { brand: 'Liquid IV',  sodium: '~500 mg',   profile: 'Sugar + salt · no structuring', you: false },
+];
+
+function ComparisonTable() {
+  return (
+    <View style={styles.compareCard}>
+      <Text style={styles.cardEyebrow}>HOW AFORCE COMPARES</Text>
+
+      <View style={[styles.compareRow, styles.compareHead]}>
+        <Text style={[styles.compareCell, styles.compareCellBrand, styles.compareHeadText]}>Brand</Text>
+        <Text style={[styles.compareCell, styles.compareCellSodium, styles.compareHeadText]}>Sodium</Text>
+        <Text style={[styles.compareCell, styles.compareCellProfile, styles.compareHeadText]}>Profile</Text>
+      </View>
+
+      {COMPARISON_ROWS.map((r) => (
+        <View key={r.brand} style={[styles.compareRow, r.you && styles.compareRowYou]}>
+          <View style={[styles.compareCellBrand, { flexDirection: 'row', alignItems: 'center', gap: 6 }]}>
+            <Text style={[styles.compareCell, r.you && styles.compareYouText]}>{r.brand}</Text>
+            {r.you && (
+              <View style={styles.youDot}><Text style={styles.youDotText}>YOU</Text></View>
+            )}
+          </View>
+          <Text style={[styles.compareCell, styles.compareCellSodium, r.you && styles.compareYouText]}>{r.sodium}</Text>
+          <Text style={[styles.compareCell, styles.compareCellProfile, r.you && styles.compareYouText]}>{r.profile}</Text>
+        </View>
+      ))}
+
+      <Text style={styles.compareCloser}>
+        More sodium is not always the goal. Better recovery is.
+      </Text>
+    </View>
+  );
+}
+
+/* ── I. Share Card hand-off ─────────────────────────────────────────── */
+function ShareCardHandoff({ result }: { result: SweatSession }) {
+  const headline =
+    result.deficitPct >= 4 ? 'Recovery on autopilot.'
+    : result.deficitPct >= 2 ? 'Sodium gap closed — smarter, not saltier.'
+    : 'Hydration held. Sweat decoded.';
+
+  return (
+    <Pressable style={styles.shareCard} accessibilityRole="button">
+      <View style={styles.shareGlow} />
+      <View style={styles.shareTopRow}>
+        <View style={styles.shareDot} />
+        <Text style={styles.shareEyebrow}>AFORCE · SWEAT SESSION</Text>
+      </View>
+      <Text style={styles.shareHeadline}>{headline}</Text>
+      <Text style={styles.shareSub}>
+        {result.deficitPct.toFixed(1)}% deficit · {result.prescription.aforceSticks} units · {result.autopilot.intervalMin} min recheck
+      </Text>
+      <View style={styles.shareCTA}>
+        <Feather name="share-2" size={13} color={Colors.text.primary} />
+        <Text style={styles.shareCTAText}>Share session</Text>
+      </View>
+    </Pressable>
   );
 }
 
@@ -1058,5 +1376,427 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     borderTopWidth: 1,
     borderTopColor: Colors.border.subtle,
+  },
+
+  // ── Sweat Intelligence v2 cards ───────────────────────────────────
+  cardEyebrow: {
+    color: Colors.text.muted,
+    fontSize: 10,
+    letterSpacing: 1.4,
+    fontWeight: '800',
+    marginBottom: 10,
+  },
+
+  // A — Performance Header extras
+  perfMetaRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 14,
+  },
+  perfMeta: {
+    flex: 1,
+    backgroundColor: Colors.fill.light,
+    borderRadius: 10,
+    padding: 10,
+  },
+  perfMetaValue: {
+    color: Colors.text.primary,
+    fontSize: 15,
+    fontWeight: '800',
+    letterSpacing: -0.2,
+  },
+  perfMetaLabel: {
+    color: Colors.text.muted,
+    fontSize: 9,
+    letterSpacing: 0.8,
+    fontWeight: '700',
+    marginTop: 3,
+    textTransform: 'uppercase',
+  },
+
+  // B — Recovery Intelligence
+  intelCard: {
+    backgroundColor: '#0A0B10',
+    borderRadius: 16,
+    padding: 18,
+    borderWidth: 1,
+    borderColor: Colors.states.PEAK.primary,
+  },
+  intelEyebrow: {
+    color: Colors.states.PEAK.primary,
+    fontSize: 10,
+    letterSpacing: 1.4,
+    fontWeight: '800',
+  },
+  intelHeadline: {
+    color: Colors.text.primary,
+    fontSize: 22,
+    fontWeight: '800',
+    letterSpacing: -0.4,
+    lineHeight: 28,
+    marginTop: 10,
+  },
+  intelBody: {
+    color: Colors.text.secondary,
+    fontSize: 13,
+    lineHeight: 19,
+    marginTop: 8,
+  },
+  intelChipRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 14,
+  },
+  intelChip: {
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.10)',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 999,
+  },
+  intelChipText: {
+    color: Colors.text.primary,
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.4,
+  },
+
+  // C — AForce System
+  systemCard: {
+    backgroundColor: Colors.background.card,
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: Colors.border.subtle,
+  },
+  systemRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border.subtle,
+    gap: 12,
+  },
+  systemRowKey: {
+    color: Colors.text.primary,
+    fontSize: 13,
+    fontWeight: '700',
+    flexShrink: 0,
+  },
+  systemRowValue: {
+    color: Colors.text.muted,
+    fontSize: 11,
+    textAlign: 'right',
+    flex: 1,
+  },
+  systemDivider: { height: 14 },
+  systemSubhead: {
+    color: Colors.text.muted,
+    fontSize: 10,
+    letterSpacing: 1.2,
+    fontWeight: '800',
+    marginBottom: 8,
+  },
+  ingredientRow: { paddingVertical: 6 },
+  ingredientName: {
+    color: Colors.text.primary,
+    fontSize: 12,
+    fontWeight: '800',
+    letterSpacing: 0.2,
+  },
+  ingredientLine: {
+    color: Colors.text.secondary,
+    fontSize: 12,
+    lineHeight: 17,
+    marginTop: 2,
+  },
+
+  // D — AI Recovery Decision
+  aiCard: {
+    backgroundColor: Colors.background.elevated,
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: Colors.border.subtle,
+  },
+  aiHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 8,
+  },
+  aiEyebrow: {
+    fontSize: 10,
+    letterSpacing: 1.4,
+    fontWeight: '800',
+  },
+  aiHeadline: {
+    color: Colors.text.primary,
+    fontSize: 16,
+    fontWeight: '800',
+    letterSpacing: -0.2,
+    marginBottom: 10,
+  },
+  aiBullets: { gap: 8 },
+
+  // E — Recovery Protocol
+  protocolCard: {
+    backgroundColor: Colors.background.card,
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: Colors.states.PEAK.primary,
+  },
+  protocolRestock: {
+    borderColor: Colors.states.RECOVERING.primary,
+  },
+  protocolHeadline: {
+    color: Colors.text.primary,
+    fontSize: 15,
+    fontWeight: '700',
+    lineHeight: 21,
+  },
+  protocolReasoning: {
+    color: Colors.text.muted,
+    fontSize: 11,
+    lineHeight: 16,
+    marginTop: 10,
+  },
+  protocolSteps: { marginTop: 14, gap: 10 },
+  protocolStep: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  protocolStepIdx: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: Colors.states.PEAK.dim,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  protocolStepIdxText: {
+    color: Colors.states.PEAK.primary,
+    fontSize: 11,
+    fontWeight: '800',
+  },
+  protocolStepLabel: {
+    color: Colors.text.primary,
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  protocolStepHint: {
+    color: Colors.text.muted,
+    fontSize: 11,
+    marginTop: 2,
+  },
+  restockBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: Colors.text.primary,
+    paddingVertical: 12,
+    borderRadius: 10,
+    marginTop: 14,
+  },
+  restockBtnText: {
+    color: Colors.text.inverse,
+    fontSize: 13,
+    fontWeight: '800',
+    letterSpacing: 0.4,
+  },
+
+  // F — Optional Support
+  supportCard: {
+    backgroundColor: Colors.background.card,
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: Colors.border.subtle,
+  },
+  supportRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  supportIcon: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: Colors.fill.medium,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  supportLabel: {
+    color: Colors.text.primary,
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  supportHint: {
+    color: Colors.text.muted,
+    fontSize: 11,
+    marginTop: 2,
+    lineHeight: 15,
+  },
+
+  // G — Advanced Data
+  advCard: {
+    backgroundColor: Colors.background.card,
+    borderRadius: 12,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: Colors.border.subtle,
+  },
+  advHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+
+  // H — Comparison Table
+  compareCard: {
+    backgroundColor: Colors.background.card,
+    borderRadius: 16,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: Colors.border.subtle,
+  },
+  compareRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border.subtle,
+    gap: 8,
+  },
+  compareHead: {
+    paddingTop: 4,
+    paddingBottom: 8,
+  },
+  compareHeadText: {
+    color: Colors.text.muted,
+    fontSize: 9,
+    letterSpacing: 1,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+  },
+  compareRowYou: {
+    backgroundColor: Colors.states.PEAK.dim,
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    borderBottomWidth: 0,
+    marginVertical: 2,
+  },
+  compareCell: {
+    color: Colors.text.primary,
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  compareCellBrand: { width: 92 },
+  compareCellSodium: { width: 76 },
+  compareCellProfile: { flex: 1 },
+  compareYouText: {
+    color: Colors.states.PEAK.primary,
+    fontWeight: '800',
+  },
+  youDot: {
+    backgroundColor: Colors.states.PEAK.primary,
+    paddingHorizontal: 5,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  youDotText: {
+    color: Colors.text.inverse,
+    fontSize: 8,
+    fontWeight: '800',
+    letterSpacing: 0.6,
+  },
+  compareCloser: {
+    color: Colors.text.primary,
+    fontSize: 13,
+    fontWeight: '800',
+    fontStyle: 'italic',
+    letterSpacing: -0.1,
+    lineHeight: 18,
+    marginTop: 14,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border.subtle,
+  },
+
+  // I — Share Card hand-off
+  shareCard: {
+    aspectRatio: 1.6,
+    backgroundColor: '#06070A',
+    borderRadius: 18,
+    padding: 18,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.10)',
+    overflow: 'hidden',
+    justifyContent: 'space-between',
+  },
+  shareGlow: {
+    position: 'absolute',
+    top: -80,
+    right: -60,
+    width: 220,
+    height: 220,
+    borderRadius: 200,
+    backgroundColor: Colors.states.BALANCED.primary,
+    opacity: 0.16,
+  },
+  shareTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  shareDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+    backgroundColor: Colors.states.BALANCED.primary,
+  },
+  shareEyebrow: {
+    color: Colors.text.muted,
+    fontSize: 10,
+    letterSpacing: 2.4,
+    fontWeight: '800',
+  },
+  shareHeadline: {
+    color: '#FFFFFF',
+    fontSize: 26,
+    fontWeight: '800',
+    letterSpacing: -0.5,
+    lineHeight: 30,
+    textTransform: 'uppercase',
+  },
+  shareSub: {
+    color: 'rgba(255,255,255,0.6)',
+    fontSize: 11,
+    letterSpacing: 0.5,
+    fontWeight: '600',
+  },
+  shareCTA: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(255,255,255,0.10)',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 100,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.12)',
+  },
+  shareCTAText: {
+    color: Colors.text.primary,
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.4,
   },
 });

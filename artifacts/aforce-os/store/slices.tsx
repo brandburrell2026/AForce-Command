@@ -25,8 +25,10 @@ import type {
   CycleResult,
   FeatureFlags,
   IntakeEvent,
+  InventoryState,
 } from '../types';
 import type { UserSubscription } from '../types/subscription';
+import type { SweatAutopilot } from '../types/sweat';
 import type { AppState } from './appStoreTypes';
 
 // ─── Slice value shapes ──────────────────────────────────────────────
@@ -61,6 +63,19 @@ export interface OnboardingSlice {
   hasSeenOnboarding: boolean;
 }
 
+export type InventorySlice = InventoryState;
+
+export interface SweatAutopilotSlice {
+  /**
+   * Active autopilot snapshot derived from the most recent sweat
+   * session. Null until the user runs the calculator at least once or
+   * after the recovery window expires.
+   */
+  autopilot: SweatAutopilot | null;
+  /** Epoch ms when the autopilot was set — drives the 4h window. */
+  setAt: number | null;
+}
+
 // Actions are passed through unchanged — the AppProvider already memoizes
 // the callbacks so this context value is stable across renders unless a
 // callback identity actually changes. Consumers narrow it to the subset
@@ -80,6 +95,8 @@ const IntakeContext = createContext<IntakeSlice | null>(null);
 const CycleContext = createContext<CycleSlice | null>(null);
 const ConfirmationContext = createContext<ConfirmationSlice | null>(null);
 const OnboardingContext = createContext<OnboardingSlice | null>(null);
+const InventoryContext = createContext<InventorySlice | null>(null);
+const SweatAutopilotContext = createContext<SweatAutopilotSlice | null>(null);
 const ActionsContext = createContext<ActionsSlice | null>(null);
 
 // ─── Selector hooks ──────────────────────────────────────────────────
@@ -118,6 +135,14 @@ export function useConfirmationSlice(): ConfirmationSlice {
 }
 export function useOnboardingSlice(): OnboardingSlice {
   return required(useContext(OnboardingContext), 'useOnboardingSlice');
+}
+/** On-hand AForce inventory — gates the Recovery Protocol card. */
+export function useInventorySlice(): InventorySlice {
+  return required(useContext(InventoryContext), 'useInventorySlice');
+}
+/** Active sweat-driven autopilot snapshot (null when expired / never set). */
+export function useSweatAutopilotSlice(): SweatAutopilotSlice {
+  return required(useContext(SweatAutopilotContext), 'useSweatAutopilotSlice');
 }
 export function useActionsSlice<T = ActionsSlice>(): T {
   return required(useContext(ActionsContext), 'useActionsSlice') as unknown as T;
@@ -202,6 +227,23 @@ export function SliceProvider({ state, actions, now = Date.now, children }: Slic
     [state.hasSeenOnboarding],
   );
 
+  // Default to all-zero inventory so consumers always get a stable
+  // shape — the Recovery Protocol resolver flips to a restock command
+  // when every count is zero. Real values come from defaultUserState
+  // in mockData.ts (or, eventually, the inventory service).
+  const inventoryValue = useMemo<InventorySlice>(
+    () => state.userState.inventory ?? { sticks: 0, rtd: 0, canister: 0 },
+    [state.userState.inventory],
+  );
+
+  const sweatAutopilotValue = useMemo<SweatAutopilotSlice>(
+    () => ({
+      autopilot: state.sweatAutopilot ?? null,
+      setAt: state.sweatAutopilotSetAt ?? null,
+    }),
+    [state.sweatAutopilot, state.sweatAutopilotSetAt],
+  );
+
   // Actions identity is already stabilized by the parent AppProvider's
   // useMemo. Pass through unchanged so callback consumers don't re-render
   // unless an action actually changes identity.
@@ -215,9 +257,13 @@ export function SliceProvider({ state, actions, now = Date.now, children }: Slic
                 <CycleContext.Provider value={cycleValue}>
                   <ConfirmationContext.Provider value={confirmationValue}>
                     <OnboardingContext.Provider value={onboardingValue}>
-                      <ActionsContext.Provider value={actions}>
-                        {children}
-                      </ActionsContext.Provider>
+                      <InventoryContext.Provider value={inventoryValue}>
+                        <SweatAutopilotContext.Provider value={sweatAutopilotValue}>
+                          <ActionsContext.Provider value={actions}>
+                            {children}
+                          </ActionsContext.Provider>
+                        </SweatAutopilotContext.Provider>
+                      </InventoryContext.Provider>
                     </OnboardingContext.Provider>
                   </ConfirmationContext.Provider>
                 </CycleContext.Provider>

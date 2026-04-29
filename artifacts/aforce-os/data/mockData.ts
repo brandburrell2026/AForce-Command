@@ -31,6 +31,10 @@ export const defaultUserState: UserState = {
   wakeTime: new Date(new Date().setHours(6, 30, 0, 0)),
   overnightLossOz: 14,
   hasSeenMorningCommand: false,
+  // Sensible dev defaults so the inventory-gated Recovery Protocol card
+  // shows the full range of options out of the box. Real builds will
+  // sync this from the inventory service / store.
+  inventory: { sticks: 6, rtd: 2, canister: 12 },
 };
 
 // ─── Mock Profile ─────────────────────────────────────────────────────────────

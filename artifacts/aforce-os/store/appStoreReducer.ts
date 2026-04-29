@@ -12,6 +12,27 @@ import type { AppState, Action } from './appStoreTypes';
 
 export function reducer(state: AppState, action: Action): AppState {
   switch (action.type) {
+    case 'SET_SWEAT_AUTOPILOT': {
+      const { autopilot, setAt } = action.payload;
+      // When a sweat-driven autopilot window opens, also reset the
+      // active recheck countdown to its cadence so the existing
+      // RiskTimerDisplay (driven by `timerSeconds`) reflects the
+      // autopilot interval instead of the stale engine.riskTimer value.
+      // Clearing autopilot (null) leaves the timer untouched — the next
+      // engine refresh / cycle will set it via its own branches.
+      const nextTimerSeconds = autopilot
+        ? autopilot.intervalMin * 60
+        : state.timerSeconds;
+      return {
+        ...state,
+        sweatAutopilot: autopilot,
+        sweatAutopilotSetAt: setAt,
+        timerSeconds: nextTimerSeconds,
+        // A fresh autopilot window invalidates any pending "did you
+        // follow the command?" prompt — the new cadence supersedes it.
+        pendingConfirmation: autopilot ? false : state.pendingConfirmation,
+      };
+    }
     case 'CYCLE_START':
       return { ...state, isCompletingCycle: true };
     case 'CYCLE_SUCCESS': {

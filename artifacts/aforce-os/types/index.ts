@@ -135,6 +135,23 @@ export interface UserState {
    * within the last 8h, the engine sits in Recovery Mode.
    */
   socialMode?: SocialModeState;
+  /**
+   * On-hand AForce inventory — gates the Sweat Intelligence Recovery
+   * Protocol card so we only ever recommend what the user can actually
+   * pour. When all three are zero the protocol surface flips to a
+   * "restock" command. See services/recoveryProtocolService.ts.
+   */
+  inventory?: InventoryState;
+}
+
+/** ── Inventory ─────────────────────────────────────────────────────── */
+export interface InventoryState {
+  /** Single-serving sticks on hand. */
+  sticks: number;
+  /** Ready-to-drink cans on hand. */
+  rtd: number;
+  /** Canister scoops on hand. */
+  canister: number;
 }
 
 // ─── Social Mode ──────────────────────────────────────────────────────────────

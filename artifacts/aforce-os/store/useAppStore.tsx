@@ -17,6 +17,7 @@ import type {
   FeatureFlags,
 } from '../types';
 import type { UserSubscription } from '../types/subscription';
+import type { SweatAutopilot } from '../types/sweat';
 import type { AppState } from './appStoreTypes';
 import { reducer } from './appStoreReducer';
 import { SliceProvider, type ActionsSlice } from './slices';
@@ -131,6 +132,13 @@ interface AppContextValue {
   setSocialContext: (
     ctx: { sex?: 'male' | 'female' | 'unspecified'; ateRecently?: boolean },
   ) => Promise<void>;
+  /**
+   * Snapshot the autopilot derived from a fresh sweat session into
+   * the store. Pass null to clear (e.g. when the recovery window
+   * expires). useHeatGuard reads this and surfaces interval/urgency
+   * for any consumer that drives recheck cadence.
+   */
+  setSweatAutopilot: (autopilot: SweatAutopilot | null) => void;
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -456,6 +464,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     AsyncStorage.setItem('aforce.subscription', JSON.stringify(sub)).catch(() => {});
   }, []);
 
+  const setSweatAutopilot = useCallback((autopilot: SweatAutopilot | null) => {
+    dispatch({
+      type: 'SET_SWEAT_AUTOPILOT',
+      payload: { autopilot, setAt: autopilot ? Date.now() : null },
+    });
+  }, []);
+
   // Hydrate persisted subscription on mount.
   useEffect(() => {
     AsyncStorage.getItem('aforce.subscription')
@@ -509,7 +524,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags,
     setSubscription, completeOnboarding, setAppleHealthSnapshot, confirmCommand, setLanguage,
     activateSocialMode, logSocialDrink, confirmSocialHydration, deactivateSocialMode, setSocialContext,
-  }), [state, logIntake, completeCycle, snooze, dismissSuccess, updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags, setSubscription, completeOnboarding, setAppleHealthSnapshot, confirmCommand, setLanguage, activateSocialMode, logSocialDrink, confirmSocialHydration, deactivateSocialMode, setSocialContext]);
+    setSweatAutopilot,
+  }), [state, logIntake, completeCycle, snooze, dismissSuccess, updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags, setSubscription, completeOnboarding, setAppleHealthSnapshot, confirmCommand, setLanguage, activateSocialMode, logSocialDrink, confirmSocialHydration, deactivateSocialMode, setSocialContext, setSweatAutopilot]);
 
   // Stable actions value for the sliced ActionsContext — same callbacks
   // as `value` minus `state`, so action consumers don't re-render when
@@ -519,7 +535,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags,
     setSubscription, completeOnboarding, setAppleHealthSnapshot, confirmCommand, setLanguage,
     activateSocialMode, logSocialDrink, confirmSocialHydration, deactivateSocialMode, setSocialContext,
-  }), [logIntake, completeCycle, snooze, dismissSuccess, updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags, setSubscription, completeOnboarding, setAppleHealthSnapshot, confirmCommand, setLanguage, activateSocialMode, logSocialDrink, confirmSocialHydration, deactivateSocialMode, setSocialContext]);
+    setSweatAutopilot,
+  }), [logIntake, completeCycle, snooze, dismissSuccess, updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags, setSubscription, completeOnboarding, setAppleHealthSnapshot, confirmCommand, setLanguage, activateSocialMode, logSocialDrink, confirmSocialHydration, deactivateSocialMode, setSocialContext, setSweatAutopilot]);
 
   return (
     <AppContext.Provider value={value}>
@@ -551,6 +568,8 @@ export {
   useCycleSlice,
   useConfirmationSlice,
   useOnboardingSlice,
+  useInventorySlice,
+  useSweatAutopilotSlice,
   useActionsSlice,
 } from './slices';
 

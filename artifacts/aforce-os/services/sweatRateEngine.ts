@@ -34,6 +34,7 @@ import {
   type SodiumProfile,
   type SodiumProfileBand,
   type SweatAudit,
+  type SweatAutopilot,
   type SweatInputs,
   type SweatPrescription,
   type SweatSession,
@@ -107,9 +108,24 @@ export function sodiumBand(profile: SodiumProfile): SodiumProfileBand {
   return SODIUM_BANDS.find((b) => b.id === profile) ?? SODIUM_BANDS[1];
 }
 
-/** AForce Stick reference — used to translate sodium / fluid into sticks. */
-const AFORCE_STICK_SODIUM_MG = 500;     // single stick into 12 oz water
+/**
+ * AForce Stick reference. Used to translate fluid replacement into
+ * stick count.
+ *
+ * Sweat Intelligence v2 spec: AForce delivers 25mg sodium per serving —
+ * NOT 500mg+ like mass-market electrolytes. Sticks are sized by fluid
+ * budget (one stick per 12 oz of replacement water), and the residual
+ * sodium gap is intentional and explained on the Recovery Intelligence
+ * surface ("Recovery is not driven by sodium alone…").
+ */
 const AFORCE_STICK_REFERENCE_OZ = 12;   // serving size
+
+/**
+ * Sodium per AForce serving (stick / RTD / canister scoop). Per spec:
+ * 25mg / serving. Intentional positioning: marine minerals + pH 8.8
+ * structured water drive cellular recovery, not sodium flooding.
+ */
+export const AFORCE_SODIUM_PER_UNIT_MG = 25;
 
 // ─── Unit normalization ──────────────────────────────────────────────────────
 
@@ -276,16 +292,18 @@ export function buildPrescription(
   const replacementL = clampPositive(sweatLossL) * REPLACEMENT_FACTOR;
   const replacementOz = Math.round(replacementL * OZ_PER_L);
 
-  // Sodium replacement target = sodium lost. Acclimatization
-  // adjustment (~30% lower [Na+] per liter, Périard 2015) is folded
-  // into the upstream concentration step, so we don't double-count it.
-  const sodiumNeed = clampPositive(sodiumLossMg);
-  const replacementSodiumMg = Math.round(sodiumNeed);
+  // Sodium loss is reported for transparency, but AForce does NOT try
+  // to flood-replace it. The Recovery Intelligence surface explains the
+  // marine-mineral / pH-structured-water mechanism that drives recovery
+  // without dosing 500mg+ sodium per serving.
+  const replacementSodiumMg = Math.round(clampPositive(sodiumLossMg));
 
-  // How many AForce sticks does that need? Don't exceed fluid budget.
-  const stickByNa = Math.ceil(sodiumNeed / AFORCE_STICK_SODIUM_MG);
+  // Sticks are sized purely by fluid budget at 25mg sodium / serving.
+  // The intentional sodium gap (sodiumLoss − units * 25) is surfaced
+  // separately as `sodiumGapMg` and is part of the positioning, not a
+  // bug to be closed by overdosing electrolyte powder.
   const stickByFluid = Math.floor(replacementOz / AFORCE_STICK_REFERENCE_OZ);
-  const aforceSticks = Math.max(0, Math.min(stickByNa, stickByFluid));
+  const aforceSticks = Math.max(0, stickByFluid);
 
   const stickFluidOz = aforceSticks * AFORCE_STICK_REFERENCE_OZ;
   const pairWaterOz = Math.max(0, replacementOz - stickFluidOz);
@@ -295,13 +313,13 @@ export function buildPrescription(
   const ongoingOzPerHour = Math.round(clampPositive(ongoingRateLh) * OZ_PER_L * 0.9);
 
   const headline = aforceSticks > 0
-    ? `Replace ${replacementOz} oz over the next ${WINDOW_H}h — ${aforceSticks} stick${aforceSticks > 1 ? 's' : ''} + ${pairWaterOz} oz water.`
+    ? `Replace ${replacementOz} oz over the next ${WINDOW_H}h — ${aforceSticks} AForce serving${aforceSticks > 1 ? 's' : ''} + ${pairWaterOz} oz water.`
     : `Replace ${replacementOz} oz of water over the next ${WINDOW_H}h.`;
 
   const rationale: [string, string] = [
     `${replacementOz} oz = 125% of measured loss — replaces sweat plus the obligatory urine output during recovery (Sawka 2007).`,
     aforceSticks > 0
-      ? `${aforceSticks} stick${aforceSticks > 1 ? 's' : ''} delivers ${aforceSticks * AFORCE_STICK_SODIUM_MG} mg sodium — matches your sweat-sodium loss and supports gut-water co-transport (Sawka 2007 §G).`
+      ? `${aforceSticks} AForce serving${aforceSticks > 1 ? 's' : ''} (${aforceSticks * AFORCE_SODIUM_PER_UNIT_MG} mg sodium) paired with marine minerals + pH 8.8 structured water — recovery is driven by cellular uptake, not sodium volume.`
       : 'Sodium loss was minimal — plain water is enough this session.',
   ];
 
@@ -460,6 +478,20 @@ function computeEstimate(i: EstimateInputs): SweatSession {
   });
 }
 
+/**
+ * Autopilot recheck cadence — driven entirely by deficit %.
+ * Spec:
+ *   ≥ 4% → 8 min  / critical
+ *   ≥ 2% → 12 min / high
+ *   else → 20 min / moderate
+ * Recovery window is fixed at 4 hours (spec §4).
+ */
+export function deriveAutopilot(deficitPct: number): SweatAutopilot {
+  if (deficitPct >= 4) return { intervalMin: 8, urgency: 'critical', recoveryWindowHours: 4 };
+  if (deficitPct >= 2) return { intervalMin: 12, urgency: 'high', recoveryWindowHours: 4 };
+  return { intervalMin: 20, urgency: 'moderate', recoveryWindowHours: 4 };
+}
+
 function finalize(args: {
   mode: SweatSession['mode'];
   sweatLossL: number;
@@ -471,6 +503,12 @@ function finalize(args: {
   prescription: SweatPrescription;
   audit: SweatAudit;
 }): SweatSession {
+  // Spec rules:
+  //   aforce_sodium_total = total_units * 25
+  //   sodium_gap          = max(0, sodium_loss - aforce_sodium_total)
+  const aforceSodiumTotalMg = args.prescription.aforceSticks * AFORCE_SODIUM_PER_UNIT_MG;
+  const sodiumGapMg = Math.max(0, args.sodiumLossMg - aforceSodiumTotalMg);
+
   return {
     computedAt: new Date().toISOString(),
     mode: args.mode,
@@ -483,6 +521,9 @@ function finalize(args: {
     sodiumLossMg: args.sodiumLossMg,
     sodiumProfile: args.sodiumProfile,
     prescription: args.prescription,
+    aforceSodiumTotalMg,
+    sodiumGapMg,
+    autopilot: deriveAutopilot(args.deficitPct),
     audit: args.audit,
   };
 }

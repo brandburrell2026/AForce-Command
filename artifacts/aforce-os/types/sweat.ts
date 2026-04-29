@@ -115,6 +115,18 @@ export interface EstimateInputs {
 
 export type SweatInputs = QuickInputs | PrecisionInputs | EstimateInputs;
 
+/** ── Autopilot ─────────────────────────────────────────────────────── */
+export type AutopilotUrgency = 'moderate' | 'high' | 'critical';
+
+export interface SweatAutopilot {
+  /** Recheck cadence (minutes) for the recovery window. */
+  intervalMin: number;
+  /** Urgency tier mirrored into Heat Guard / overlays. */
+  urgency: AutopilotUrgency;
+  /** Length of the recovery window (hours). Spec: 4. */
+  recoveryWindowHours: number;
+}
+
 /** ── Output — the resolved session ─────────────────────────────────── */
 export interface SweatSession {
   /** ISO timestamp when computed. */
@@ -142,6 +154,20 @@ export interface SweatSession {
 
   /** Personalized AForce prescription. */
   prescription: SweatPrescription;
+
+  /**
+   * Total sodium delivered by the AForce prescription (mg).
+   * Spec rule: aforce_sodium_total = total_units * 25.
+   */
+  aforceSodiumTotalMg: number;
+  /**
+   * Remaining sodium gap after the prescription (mg). Always ≥ 0.
+   * Spec rule: sodium_gap = max(0, sodium_loss - aforce_sodium_total).
+   */
+  sodiumGapMg: number;
+
+  /** Autopilot recheck profile derived from the session deficit. */
+  autopilot: SweatAutopilot;
 
   /** Per-input audit trail — what we computed from what. */
   audit: SweatAudit;

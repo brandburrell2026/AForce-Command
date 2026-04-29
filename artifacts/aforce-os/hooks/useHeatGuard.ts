@@ -18,7 +18,8 @@ import { speak } from '../services/textToSpeech';
 import { resolvePersona } from '../services/voicePersonaService';
 import type { HeatRiskBand, HeatSymptom } from '../types/heat';
 import type { VoiceContext } from '../types/voicePersona';
-import { useEngineSlice, useUserSlice } from '../store/slices';
+import type { AutopilotUrgency } from '../types/sweat';
+import { useEngineSlice, useSweatAutopilotSlice, useUserSlice } from '../store/slices';
 
 const SYMPTOM_IDS: HeatSymptom[] = [
   'dizziness','headache','nausea','cramping','chills','confusion','fatigue',
@@ -35,17 +36,43 @@ export interface UseHeatGuardOptions {
 export interface HeatGuardResult {
   score: number;
   band: HeatRiskBand;
+  /**
+   * Recheck cadence (minutes) the host screen should use for its
+   * recovery / "did you follow it?" countdown. When a sweat session
+   * is active and within its 4h recovery window, this comes from
+   * the session's autopilot. Otherwise it falls back to a default
+   * cadence derived from the live Heat Guard band.
+   */
+  recheckIntervalMin: number;
+  /** Why we picked that cadence — drives the UI urgency tier. */
+  recheckUrgency: AutopilotUrgency;
+  /** True when the cadence is being driven by an active sweat session. */
+  autopilotActive: boolean;
+}
+
+const HOUR_MS = 60 * 60 * 1000;
+
+/**
+ * Default recheck cadence when no sweat-driven autopilot is active.
+ * Mirrors the spec's three-tier ladder so heat-driven escalations
+ * surface the same intervals as a freshly logged session.
+ */
+function defaultCadenceForBand(band: HeatRiskBand): { intervalMin: number; urgency: AutopilotUrgency } {
+  if (band === 'CRITICAL' || band === 'HIGH_RISK') return { intervalMin: 8, urgency: 'critical' };
+  if (band === 'WARNING') return { intervalMin: 12, urgency: 'high' };
+  return { intervalMin: 20, urgency: 'moderate' };
 }
 
 export function useHeatGuard({ onEscalate }: UseHeatGuardOptions): HeatGuardResult {
   const { performanceState, score } = useEngineSlice();
   const userState = useUserSlice();
+  const { autopilot, setAt } = useSweatAutopilotSlice();
 
   const heatScore = React.useMemo<HeatGuardResult>(() => {
     const symptoms: HeatSymptom[] = (userState.symptoms ?? []).filter(
       (s): s is HeatSymptom => (SYMPTOM_IDS as string[]).includes(s),
     );
-    return evaluateHeatRisk({
+    const heat = evaluateHeatRisk({
       hydrationScore: score,
       recentFluidOz: 0,
       minutesSinceLastIntake: Math.max(
@@ -71,10 +98,28 @@ export function useHeatGuard({ onEscalate }: UseHeatGuardOptions): HeatGuardResu
       sleepDeficitHrs: 0,
       recentHeatEvent: false,
     });
+
+    // Sweat-driven autopilot wins for the duration of the recovery
+    // window (spec §4). Outside that window we fall back to a band-
+    // derived default so the recheck cadence still reflects current
+    // physiological strain.
+    const windowMs = (autopilot?.recoveryWindowHours ?? 0) * HOUR_MS;
+    const autopilotActive =
+      !!autopilot && setAt != null && Date.now() - setAt < windowMs;
+    const fallback = defaultCadenceForBand(heat.band);
+
+    return {
+      score: heat.score,
+      band: heat.band,
+      recheckIntervalMin: autopilotActive ? autopilot!.intervalMin : fallback.intervalMin,
+      recheckUrgency: autopilotActive ? autopilot!.urgency : fallback.urgency,
+      autopilotActive,
+    };
   }, [
     score, userState.lastIntakeTime, userState.heatLoad, userState.activityLevel,
     userState.sweatRate, userState.bodyWeightLbs, userState.symptoms,
     userState.urineSignal, userState.energyState,
+    autopilot, setAt,
   ]);
 
   // Escalation effect — fires only on STABLE → non-STABLE upward crossings.
