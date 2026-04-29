@@ -59,7 +59,7 @@ export default function SweatCalculator() {
 
         {/* ────────── COLUMN 1 — INPUTS ────────── */}
         <div
-          className="relative rounded-2xl bg-black border border-blue/40 overflow-hidden flex flex-col"
+          className="relative rounded-2xl bg-[#0c1220] border border-blue/40 overflow-hidden flex flex-col"
           style={{ boxShadow: "0 24px 60px rgba(0,0,0,0.55), 0 0 0 1px rgba(84,120,213,0.18) inset" }}
         >
           <div className="absolute top-0 left-0 right-0 h-[0.4vh] bg-blue" />
@@ -91,7 +91,7 @@ export default function SweatCalculator() {
 
         {/* ────────── COLUMN 2 — ENGINE / AUDIT ────────── */}
         <div
-          className="relative rounded-2xl bg-black border border-accent/40 overflow-hidden flex flex-col"
+          className="relative rounded-2xl bg-[#15110a] border border-accent/40 overflow-hidden flex flex-col"
           style={{ boxShadow: "0 24px 60px rgba(0,0,0,0.55), 0 0 0 1px rgba(245,214,55,0.18) inset" }}
         >
           <div className="absolute top-0 left-0 right-0 h-[0.4vh] bg-accent" />
@@ -139,7 +139,7 @@ export default function SweatCalculator() {
         <div className="flex flex-col items-center">
           <div className="font-body uppercase tracking-[0.32em] text-[0.7vw] text-primary font-semibold mb-[0.8vh]">03 · Replenish</div>
           <div
-            className="w-[18vw] flex-1 bg-black rounded-[1.6vw] border-2 border-text/20 overflow-hidden p-[0.8vw] flex flex-col shadow-2xl ring-1 ring-accent/15"
+            className="w-[18vw] flex-1 bg-bg-elev rounded-[1.6vw] border-2 border-text/20 overflow-hidden p-[0.8vw] flex flex-col shadow-2xl ring-1 ring-accent/15"
             style={{ boxShadow: "0 30px 80px rgba(0,0,0,0.6)" }}
           >
             {/* Status bar */}
