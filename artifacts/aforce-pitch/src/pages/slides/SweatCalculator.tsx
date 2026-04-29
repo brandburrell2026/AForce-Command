@@ -34,8 +34,8 @@ export default function SweatCalculator() {
 
       {/* Eyebrow */}
       <div className="absolute top-[5vh] left-[6vw] right-[6vw] flex justify-between items-center z-10">
-        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-accent font-semibold">11 — Inside the OS</div>
-        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-muted">11 / 25</div>
+        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-accent font-semibold">12 — Inside the OS</div>
+        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-muted">12 / 27</div>
       </div>
 
       {/* Headline */}

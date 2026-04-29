@@ -1,27 +1,27 @@
 export default function OSIntro() {
-  const pillars = [
+  const steps = [
     {
       label: "Score",
       title: "Reads your state in real time.",
-      body: "Hydration, energy, environment, and behavior become one score.",
+      body: "Hydration. Activity. Environment.",
       accent: "text-primary",
       ring: "ring-primary/35",
       bar: "bg-primary",
       bg: "from-primary/[0.10] to-primary/0",
     },
     {
-      label: "Coach",
-      title: "Tells you what to do next.",
-      body: "One command at a time. No guessing. No friction in the moment.",
+      label: "Command",
+      title: "Tells you exactly what to do.",
+      body: "Drink. How much. When.",
       accent: "text-blue",
       ring: "ring-blue/35",
       bar: "bg-blue",
       bg: "from-blue/[0.10] to-blue/0",
     },
     {
-      label: "Network",
-      title: "Learns and improves over time.",
-      body: "Every cycle strengthens the system. Every can sold sharpens the next.",
+      label: "Improve",
+      title: "Learns your behavior. Gets smarter every day.",
+      body: "Every cycle sharpens the next recommendation.",
       accent: "text-accent",
       ring: "ring-accent/35",
       bar: "bg-accent",
@@ -41,33 +41,34 @@ export default function OSIntro() {
       />
 
       <div className="absolute top-[6vh] left-[6vw] right-[6vw] flex justify-between items-center z-10">
-        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-accent font-semibold">08 — AForce OS</div>
-        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-muted">8 / 25</div>
+        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-accent font-semibold">09 — AForce OS</div>
+        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-muted">9 / 27</div>
       </div>
 
       <div className="absolute top-[13vh] left-[6vw] right-[42vw]">
         <div className="flex items-center gap-[1.2vw] mb-[1.6vh]">
           <div className="h-[2px] w-[5vw] bg-accent" />
-          <span className="font-body uppercase tracking-[0.32em] text-[1.1vw] text-accent font-semibold">The Other Half of AForce</span>
+          <span className="font-body uppercase tracking-[0.32em] text-[1.1vw] text-accent font-semibold">The Intelligence Layer</span>
         </div>
         <h2 className="font-display text-[5.4vw] leading-[0.92] tracking-tighter">
           The intelligence <span className="text-accent">layer.</span>
         </h2>
         <p className="mt-[2.4vh] font-body text-[1.15vw] text-text/70 leading-snug max-w-[40vw]">
-          The product fuels the body. <span className="text-text">AForce OS reads the state and tells the user what to do next.</span>
+          <span className="text-text">Product fuels the body.</span> AForce OS tells you what to do next.
         </p>
       </div>
 
-      <div className="absolute top-[48vh] left-[6vw] right-[42vw] space-y-[1.4vh]">
-        {pillars.map((p) => (
-          <div key={p.label} className={`relative rounded-xl ring-1 ${p.ring} bg-bg-elev/40 overflow-hidden`}>
-            <div className={`absolute inset-0 bg-gradient-to-r ${p.bg} pointer-events-none`} />
-            <div className={`absolute inset-y-0 left-0 w-[3px] ${p.bar}`} />
+      <div className="absolute top-[44vh] left-[6vw] right-[42vw] space-y-[1.4vh]">
+        {steps.map((s, i) => (
+          <div key={s.label} className={`relative rounded-xl ring-1 ${s.ring} bg-bg-elev/40 overflow-hidden`}>
+            <div className={`absolute inset-0 bg-gradient-to-r ${s.bg} pointer-events-none`} />
+            <div className={`absolute inset-y-0 left-0 w-[3px] ${s.bar}`} />
             <div className="relative pl-[1.6vw] pr-[1.4vw] py-[1.4vh] flex items-baseline gap-[1.4vw]">
-              <div className={`font-body uppercase tracking-[0.32em] text-[0.95vw] font-semibold ${p.accent} min-w-[6vw]`}>{p.label}</div>
+              <div className={`font-display text-[1.4vw] ${s.accent} leading-none opacity-70 min-w-[2vw]`}>0{i + 1}</div>
+              <div className={`font-body uppercase tracking-[0.32em] text-[0.95vw] font-semibold ${s.accent} min-w-[7vw]`}>{s.label}</div>
               <div className="flex-1">
-                <div className="font-display text-[1.4vw] leading-tight tracking-tight text-text">{p.title}</div>
-                <div className="font-body text-[0.9vw] text-text/60 mt-[0.5vh] leading-snug">{p.body}</div>
+                <div className="font-display text-[1.4vw] leading-tight tracking-tight text-text">{s.title}</div>
+                <div className="font-body text-[0.9vw] text-text/60 mt-[0.5vh] leading-snug">{s.body}</div>
               </div>
             </div>
           </div>
@@ -192,11 +193,12 @@ export default function OSIntro() {
         <div className="border-t border-text/10 pt-[1.8vh]">
           <div className="flex items-center gap-[1vw] mb-[1vh]">
             <div className="h-px w-[3vw] bg-accent" />
-            <div className="font-body uppercase tracking-[0.32em] text-[0.85vw] text-accent font-semibold">The OS Loop</div>
+            <div className="font-body uppercase tracking-[0.32em] text-[0.85vw] text-accent font-semibold">No Friction</div>
           </div>
           <div className="font-display text-[1.5vw] leading-[1.25] tracking-tight">
-            <span className="text-text/55">Product fuels the body. </span>
-            <span className="text-accent">OS controls performance.</span>
+            <span className="text-text">No wearable required.</span>
+            <span className="text-text/55"> Starts simple. </span>
+            <span className="text-accent">Gets smarter over time.</span>
           </div>
         </div>
       </div>

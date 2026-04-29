@@ -72,13 +72,17 @@ I prefer iterative development, with frequent, small updates. Ask before making 
 - **Science & Methodology (`/science`):** In-app page documenting every formula in the engine — ACSM sweat rate, Baker 2017 sodium bands, Rothfusz Heat Index, Widmark BAC, Apple Health HRV/RHR/sleep adjustment, soursop/flavor bonuses, scoring decay model. Each section follows **What we compute → Formula → Reference → Limitations**. "Export Methodology PDF" button (expo-print) unlocks the **PDF Pioneer** badge. Companion file: `docs/validation-methodology.md`.
 
 ### Investor Pitch Deck (`artifacts/aforce-pitch`)
-- **Format:** 25 React slides served at `/aforce-pitch/slide{1..25}` (manifest at `src/data/slides-manifest.json`).
-- **Narrative spine (advisor-aligned, April 30 2026 brief by Kristel van Kleef & Peter Ingwersen):**
+- **Format:** 27 React slides served at `/aforce-pitch/slide{1..27}` (manifest at `src/data/slides-manifest.json`). Each slide hardcodes its own "NN — Title" eyebrow and "N / 27" page indicator; renumbering requires touching every slide file.
+- **Narrative spine (Pitch Deck v2 — investor-grade restructure):**
   - **Slide 1 — Cover:** "Performance is non-negotiable." · "Pause. Hydrate. Lock in. Perform." · "This is beyond a hydration brand. This is a performance standard."
-  - **Slide 2 — Mission:** Three Beliefs (Brand Truth / Human Insight / Category Claim) plus the Daily Ritual ribbon (Morning · Midday · Pre-performance · Recovery) and an advisor pull-quote attributed to Kristel van Kleef & Peter Ingwersen.
-  - **Slide 3 — Problem (The Disruption):** Reframes the energy category as "loud by design" with a direct Red Bull contrast (Loud Category vs. Empty Default) and the New Territory line: focus, control, consistency.
-  - **Slide 4 — Insight (The Performance Moment):** "The edge is not louder — it is quieter." Kobe / Beyoncé pre-performance metaphor, AForce ritual (Pause → Hydrate → Lock in → Perform), Loud→Quiet shift.
-  - **Slide 25 — The Ask:** Closing reprises "Performance is non-negotiable. AForce makes sure you're always on." with a strategic-advisors credit box and the final insight "The edge is not louder. It is quieter."
+  - **Slide 2 — Founder Proof (NEW):** "Built under pressure. Before the product existed." NBA environments + Wall Street execution arenas. "We didn't build a drink. We built the system we needed." Footer: "Two founders. No off switch. · Brandon Burrell · Julius Burrell."
+  - **Slide 3 — Mission:** Three Beliefs (Brand Truth / Human Insight / Category Claim) plus the Daily Ritual ribbon (Morning · Midday · Pre-performance · Recovery) and an advisor pull-quote attributed to Kristel van Kleef & Peter Ingwersen.
+  - **Slide 4 — Problem (The Disruption):** Reframes the energy category as "loud by design" with a direct Red Bull contrast and the New Territory line: focus, control, consistency.
+  - **Slide 5 — Insight (The Performance Moment):** "The edge is not louder — it is quieter." Kobe / Beyoncé metaphor, AForce ritual, Loud→Quiet shift.
+  - **Slide 9 — AForce OS (SIMPLIFIED):** "The intelligence layer." Three-step framework (Score → Command → Improve) replaces the prior Four Stages. Bottom strip: "No wearable required. Starts simple. Gets smarter over time."
+  - **Slide 19 — Go-To-Market:** Headline "Build. Scale. Lead." Top-right pull-quote (NEW): "We don't sell hydration. We install a daily performance system." Six phases + "Hardware scales. Software compounds. The OS creates retention."
+  - **Slide 24 — Recurring Engine (NEW):** "Every user becomes a system." Three layers (Product / Subscription·OS / Data Loop). Pull-strip: "Performance creates habit · Habit creates subscription · Subscription creates enterprise value." Metrics: $52 AOV / 5–7× / $5·$15 / 90%+.
+  - **Slide 27 — The Ask:** Closing reprises "Performance is non-negotiable. AForce makes sure you're always on." with a strategic-advisors credit box and the final insight "The edge is not louder. It is quieter."
 - **Built around the AForce product line** (3 alkaline hydration flavors in cans and stick mixes) and the AForce OS mobile app.
 - **Key Business Metrics:** Hardcoded revenue projections, LTV:CAC, gross margin, funding ask, and use of funds split.
 - **Brand palette (deck-only):** Dark base with red, blue, and yellow flavor accents.

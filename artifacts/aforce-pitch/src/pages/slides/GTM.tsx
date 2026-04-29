@@ -85,8 +85,8 @@ export default function GTM() {
       />
 
       <div className="absolute top-[6vh] left-[6vw] right-[6vw] flex justify-between items-center z-10">
-        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-accent font-semibold">18 — Go-To-Market</div>
-        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-muted">18 / 25</div>
+        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-accent font-semibold">19 — Go-To-Market</div>
+        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-muted">19 / 27</div>
       </div>
 
       <div className="absolute top-[12vh] left-[6vw] right-[6vw] flex justify-between items-end gap-[4vw]">
@@ -100,7 +100,7 @@ export default function GTM() {
           </h2>
         </div>
         <p className="font-body text-[1.05vw] text-text/65 max-w-[28vw] leading-snug pb-[1vh] text-right">
-          <span className="text-text">Product drives entry. System drives retention.</span> DTC launch → global category leader → OS licensing.
+          <span className="text-text">We don't sell hydration.</span> <span className="text-accent">We install a daily performance system.</span>
         </p>
       </div>
 

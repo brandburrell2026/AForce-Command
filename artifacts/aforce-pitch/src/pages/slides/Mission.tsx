@@ -41,8 +41,8 @@ export default function Mission() {
       />
 
       <div className="absolute top-[6vh] left-[6vw] right-[6vw] flex justify-between items-center z-10">
-        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-accent font-semibold">02 — Mission</div>
-        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-muted">2 / 25</div>
+        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-accent font-semibold">03 — Mission</div>
+        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-muted">3 / 27</div>
       </div>
 
       <div className="absolute top-[12vh] left-[6vw] right-[6vw] flex justify-between items-end gap-[4vw]">
