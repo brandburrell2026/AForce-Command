@@ -58,8 +58,8 @@ export default function Closing() {
 
         <div className="mt-[2.6vh] rounded-xl ring-1 ring-primary/30 bg-bg-elev/40 px-[1.6vw] py-[1.2vh] max-w-[52vw]">
           <div className="font-body text-[0.95vw] text-text/85 leading-snug">
-            <span className="font-body uppercase tracking-[0.24em] text-[0.7vw] text-primary/80 font-semibold mr-[0.8vw]">Brand Advisors</span>
-            <span className="text-text">Kristel van Kleef</span> <span className="text-text/55">(Red Bull · On)</span> <span className="text-text/30 mx-[0.4vw]">·</span> <span className="text-text">Peter Ingwersen</span> <span className="text-text/55">(Levi's · NOIR)</span>
+            <span className="font-body uppercase tracking-[0.24em] text-[0.7vw] text-primary/80 font-semibold mr-[0.8vw]">Founders</span>
+            <span className="text-text">Brandon Burrell</span> <span className="text-text/55">(Morgan Stanley · International Operator)</span> <span className="text-text/30 mx-[0.4vw]">·</span> <span className="text-text">Julius Burrell</span> <span className="text-text/55">(AForce OS · Systems Builder)</span>
           </div>
         </div>
 
