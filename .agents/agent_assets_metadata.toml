@@ -330,3 +330,9 @@ id = "HTF8xew04VtfzQOJZ_0sJ"
 uri = "file://attached_assets/patent/aforce-os-figures.pdf"
 type = "pdf"
 title = "Patent Figures — standalone (FIG. 1 – FIG. 10) — 704 KB"
+
+[[outputs]]
+id = "i1aZL21hUm5gYInofvrMm"
+uri = "file://.local/patent/AForce_Invention_Disclosure.md"
+type = "text"
+title = "AForce Invention Disclosure — Sweat Engine & Cruise Mode (for patent counsel)"
