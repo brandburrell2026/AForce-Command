@@ -142,8 +142,10 @@ export function toLiters(value: number, unit: 'oz' | 'ml'): number {
   return unit === 'ml' ? value / 1000 : value * L_PER_OZ;
 }
 
-export function toCm(value: number, unit: 'in' | 'cm'): number {
-  return unit === 'cm' ? value : value * CM_PER_IN;
+export function toCm(value: number, unit: 'in' | 'cm' | 'ft'): number {
+  if (unit === 'cm') return value;
+  if (unit === 'ft') return value * 12 * CM_PER_IN;
+  return value * CM_PER_IN;
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────

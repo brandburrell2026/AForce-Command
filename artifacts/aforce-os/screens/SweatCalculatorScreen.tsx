@@ -92,14 +92,14 @@ export default function SweatCalculatorScreen() {
   // Quick mode state.
   const [qPre, setQPre] = useState('170');
   const [qPost, setQPost] = useState('167.5');
-  const [qHeight, setQHeight] = useState('70');
+  const [qHeight, setQHeight] = useState('5.8');
   const [qDuration, setQDuration] = useState('60');
   const [qFluid, setQFluid] = useState('16');
 
   // Precision mode state.
   const [pPre, setPPre] = useState('170');
   const [pPost, setPPost] = useState('167');
-  const [pHeight, setPHeight] = useState('70');
+  const [pHeight, setPHeight] = useState('5.8');
   const [pDuration, setPDuration] = useState('90');
   const [pFluid, setPFluid] = useState('20');
   const [pUrine, setPUrine] = useState('0');
@@ -109,7 +109,7 @@ export default function SweatCalculatorScreen() {
 
   // Estimate mode state.
   const [eWeight, setEWeight] = useState('170');
-  const [eHeight, setEHeight] = useState('70');
+  const [eHeight, setEHeight] = useState('5.8');
   const [eSportId, setESportId] = useState('basketball');
   const [eDuration, setEDuration] = useState('60');
   const [eIntensity, setEIntensity] = useState<1 | 2 | 3 | 4 | 5>(3);
@@ -131,7 +131,7 @@ export default function SweatCalculatorScreen() {
       if (pre <= 0 || pre > 700) return 'Enter a pre-weight between 1 and 700 lbs.';
       if (post <= 0 || post > 700) return 'Enter a post-weight between 1 and 700 lbs.';
       if (post > pre + 5) return 'Post-weight is higher than pre-weight — check your numbers.';
-      if (h !== 0 && (h <= 0 || h > 96)) return 'Height should be 1–96 inches (or leave blank).';
+      if (h !== 0 && (h <= 0 || h > 8)) return 'Height should be 0.5–8 ft (or leave blank).';
       if (dur <= 0 || dur > 600) return 'Enter a duration between 1 and 600 minutes.';
       if (fluid < 0 || fluid > 500) return 'Fluid intake should be 0–500 oz.';
       return null;
@@ -146,7 +146,7 @@ export default function SweatCalculatorScreen() {
       if (pre <= 0 || pre > 700) return 'Enter a pre-weight between 1 and 700 lbs.';
       if (post <= 0 || post > 700) return 'Enter a post-weight between 1 and 700 lbs.';
       if (post > pre + 5) return 'Post-weight is higher than pre-weight — check your numbers.';
-      if (h !== 0 && (h <= 0 || h > 96)) return 'Height should be 1–96 inches (or leave blank).';
+      if (h !== 0 && (h <= 0 || h > 8)) return 'Height should be 0.5–8 ft (or leave blank).';
       if (dur <= 0 || dur > 600) return 'Enter a duration between 1 and 600 minutes.';
       if (fluid < 0 || fluid > 500) return 'Fluid intake should be 0–500 oz.';
       if (urine < 0 || urine > 100) return 'Urine output should be 0–100 oz.';
@@ -156,7 +156,7 @@ export default function SweatCalculatorScreen() {
     const h = num(eHeight);
     const dur = num(eDuration);
     if (w <= 0 || w > 700) return 'Enter a body weight between 1 and 700 lbs.';
-    if (h <= 0 || h > 96) return 'Enter a height between 1 and 96 inches.';
+    if (h <= 0 || h > 8) return 'Enter a height between 0.5 and 8 ft.';
     if (dur <= 0 || dur > 600) return 'Enter a duration between 1 and 600 minutes.';
     return null;
   })();
@@ -192,7 +192,7 @@ export default function SweatCalculatorScreen() {
         durationMinutes: num(qDuration),
         fluidIntake: num(qFluid),
         fluidUnit: 'oz',
-        ...(qH > 0 ? { height: qH, heightUnit: 'in' as const } : {}),
+        ...(qH > 0 ? { height: qH, heightUnit: 'ft' as const } : {}),
       };
       commitSession(computeSweatSession(inputs));
     } else if (mode === 'precision') {
@@ -211,7 +211,7 @@ export default function SweatCalculatorScreen() {
         ambientHumidityPct: climate.humidityPct,
         acclimatized: pAcclimatized,
         sodiumProfile: pSodium,
-        ...(pH > 0 ? { height: pH, heightUnit: 'in' as const } : {}),
+        ...(pH > 0 ? { height: pH, heightUnit: 'ft' as const } : {}),
       };
       commitSession(computeSweatSession(inputs));
     } else {
@@ -220,7 +220,7 @@ export default function SweatCalculatorScreen() {
         bodyWeight: num(eWeight),
         weightUnit: 'lbs',
         height: num(eHeight),
-        heightUnit: 'in',
+        heightUnit: 'ft',
         sportId: eSportId,
         durationMinutes: num(eDuration),
         intensity: eIntensity,
@@ -282,7 +282,7 @@ export default function SweatCalculatorScreen() {
                 <SectionTitle>Inputs</SectionTitle>
                 <NumberRow label="Pre-weight" suffix="lbs" value={qPre} onChange={setQPre} />
                 <NumberRow label="Post-weight" suffix="lbs" value={qPost} onChange={setQPost} />
-                <NumberRow label="Height" suffix="in" value={qHeight} onChange={setQHeight} />
+                <NumberRow label="Height" suffix="ft" value={qHeight} onChange={setQHeight} />
                 <NumberRow label="Duration" suffix="min" value={qDuration} onChange={setQDuration} />
                 <NumberRow label="Fluid intake" suffix="oz" value={qFluid} onChange={setQFluid} />
                 <Helper>Weigh nude or in dry clothing for accuracy. 1 lb of weight loss ≈ 16 oz of sweat.</Helper>
@@ -294,7 +294,7 @@ export default function SweatCalculatorScreen() {
                 <SectionTitle>Inputs</SectionTitle>
                 <NumberRow label="Pre-weight" suffix="lbs" value={pPre} onChange={setPPre} />
                 <NumberRow label="Post-weight" suffix="lbs" value={pPost} onChange={setPPost} />
-                <NumberRow label="Height" suffix="in" value={pHeight} onChange={setPHeight} />
+                <NumberRow label="Height" suffix="ft" value={pHeight} onChange={setPHeight} />
                 <NumberRow label="Duration" suffix="min" value={pDuration} onChange={setPDuration} />
                 <NumberRow label="Fluid intake" suffix="oz" value={pFluid} onChange={setPFluid} />
                 <NumberRow label="Urine output" suffix="oz" value={pUrine} onChange={setPUrine} />
@@ -319,7 +319,7 @@ export default function SweatCalculatorScreen() {
               <Card>
                 <SectionTitle>Inputs</SectionTitle>
                 <NumberRow label="Body weight" suffix="lbs" value={eWeight} onChange={setEWeight} />
-                <NumberRow label="Height" suffix="in" value={eHeight} onChange={setEHeight} />
+                <NumberRow label="Height" suffix="ft" value={eHeight} onChange={setEHeight} />
                 <NumberRow label="Session duration" suffix="min" value={eDuration} onChange={setEDuration} />
                 <Divider />
                 <SubLabel>Sport</SubLabel>

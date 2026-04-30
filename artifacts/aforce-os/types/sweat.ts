@@ -21,7 +21,7 @@
 export type SweatInputMode = 'quick' | 'precision' | 'estimate';
 export type WeightUnit = 'lbs' | 'kg';
 export type FluidUnit = 'oz' | 'ml';
-export type HeightUnit = 'in' | 'cm';
+export type HeightUnit = 'in' | 'cm' | 'ft';
 
 /** ── Sweat-sodium classification (Baker 2017, Table 2) ─────────────── */
 export type SodiumProfile = 'light' | 'moderate' | 'heavy' | 'very_heavy';
