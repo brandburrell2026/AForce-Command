@@ -373,6 +373,112 @@ export const CREW_AGGREGATE_DEMO: CrewDeptRisk[] = [
   { department: "Entertainment", hydrationCompliancePct: 79, highRiskShiftWindow: "20:00–23:00", aforceUsagePerCrew: 1.9, riskLevel: "MODERATE" },
 ];
 
+// ─── Fleet view (operator multi-ship dashboard) ─────────────────────────────
+
+export interface FleetShip {
+  id: string;
+  name: string;
+  line: string;
+  portToday: string;
+  totalCrew: number;
+  fleetCompliancePct: number;
+  highRiskCrewPct: number;
+  departments: CrewDeptRisk[];
+}
+
+export const FLEET_DEMO: ReadonlyArray<FleetShip> = [
+  {
+    id: "symphony",
+    name: "Symphony of the Seas",
+    line: "Royal Caribbean",
+    portToday: "Cozumel",
+    totalCrew: 2200,
+    fleetCompliancePct: 78,
+    highRiskCrewPct: 14,
+    departments: CREW_AGGREGATE_DEMO,
+  },
+  {
+    id: "mardi_gras",
+    name: "Mardi Gras",
+    line: "Carnival Cruise Line",
+    portToday: "Nassau",
+    totalCrew: 1750,
+    fleetCompliancePct: 72,
+    highRiskCrewPct: 19,
+    departments: [
+      { department: "Food & Beverage", hydrationCompliancePct: 64, highRiskShiftWindow: "13:00–17:00", aforceUsagePerCrew: 2.7, riskLevel: "HIGH" },
+      { department: "Housekeeping", hydrationCompliancePct: 77, highRiskShiftWindow: "09:00–12:00", aforceUsagePerCrew: 1.9, riskLevel: "MODERATE" },
+      { department: "Deck Crew", hydrationCompliancePct: 61, highRiskShiftWindow: "11:00–15:00", aforceUsagePerCrew: 2.4, riskLevel: "HIGH" },
+      { department: "Spa & Fitness", hydrationCompliancePct: 88, highRiskShiftWindow: "—", aforceUsagePerCrew: 1.5, riskLevel: "LOW" },
+      { department: "Entertainment", hydrationCompliancePct: 74, highRiskShiftWindow: "20:00–23:00", aforceUsagePerCrew: 2.0, riskLevel: "MODERATE" },
+    ],
+  },
+  {
+    id: "scarlet_lady",
+    name: "Scarlet Lady",
+    line: "Virgin Voyages",
+    portToday: "St. Thomas",
+    totalCrew: 1150,
+    fleetCompliancePct: 86,
+    highRiskCrewPct: 8,
+    departments: [
+      { department: "Food & Beverage", hydrationCompliancePct: 82, highRiskShiftWindow: "14:00–17:00", aforceUsagePerCrew: 2.1, riskLevel: "MODERATE" },
+      { department: "Housekeeping", hydrationCompliancePct: 90, highRiskShiftWindow: "—", aforceUsagePerCrew: 1.6, riskLevel: "LOW" },
+      { department: "Deck Crew", hydrationCompliancePct: 80, highRiskShiftWindow: "12:00–15:00", aforceUsagePerCrew: 1.9, riskLevel: "MODERATE" },
+      { department: "Spa & Fitness", hydrationCompliancePct: 94, highRiskShiftWindow: "—", aforceUsagePerCrew: 1.3, riskLevel: "LOW" },
+      { department: "Entertainment", hydrationCompliancePct: 87, highRiskShiftWindow: "21:00–23:00", aforceUsagePerCrew: 1.7, riskLevel: "LOW" },
+    ],
+  },
+  {
+    id: "wonder",
+    name: "Disney Wonder",
+    line: "Disney Cruise Line",
+    portToday: "Grand Cayman",
+    totalCrew: 950,
+    fleetCompliancePct: 83,
+    highRiskCrewPct: 11,
+    departments: [
+      { department: "Food & Beverage", hydrationCompliancePct: 76, highRiskShiftWindow: "13:00–16:00", aforceUsagePerCrew: 2.3, riskLevel: "MODERATE" },
+      { department: "Housekeeping", hydrationCompliancePct: 87, highRiskShiftWindow: "10:00–12:00", aforceUsagePerCrew: 1.7, riskLevel: "LOW" },
+      { department: "Deck Crew", hydrationCompliancePct: 73, highRiskShiftWindow: "12:00–15:00", aforceUsagePerCrew: 2.0, riskLevel: "MODERATE" },
+      { department: "Spa & Fitness", hydrationCompliancePct: 92, highRiskShiftWindow: "—", aforceUsagePerCrew: 1.3, riskLevel: "LOW" },
+      { department: "Entertainment", hydrationCompliancePct: 88, highRiskShiftWindow: "19:00–22:00", aforceUsagePerCrew: 1.6, riskLevel: "LOW" },
+    ],
+  },
+];
+
+/** Roll-up of fleet KPIs for the dashboard hero strip. */
+export interface FleetSummary {
+  shipCount: number;
+  totalCrew: number;
+  weightedCompliancePct: number;
+  highRiskCrewCount: number;
+  topRiskShip: FleetShip;
+}
+
+export function summarizeFleet(fleet: ReadonlyArray<FleetShip>): FleetSummary {
+  const totalCrew = fleet.reduce((sum, s) => sum + s.totalCrew, 0);
+  const weighted = totalCrew === 0
+    ? 0
+    : Math.round(
+        fleet.reduce((sum, s) => sum + s.fleetCompliancePct * s.totalCrew, 0) /
+          totalCrew,
+      );
+  const highRisk = Math.round(
+    fleet.reduce((sum, s) => sum + s.totalCrew * (s.highRiskCrewPct / 100), 0),
+  );
+  const topRiskShip = [...fleet].sort(
+    (a, b) => b.highRiskCrewPct - a.highRiskCrewPct,
+  )[0]!;
+  return {
+    shipCount: fleet.length,
+    totalCrew,
+    weightedCompliancePct: weighted,
+    highRiskCrewCount: highRisk,
+    topRiskShip,
+  };
+}
+
 // ─── Port-day checklist (static) ────────────────────────────────────────────
 
 export const PORT_DAY_CHECKLIST: ReadonlyArray<{ id: string; label: string; icon: string }> = [

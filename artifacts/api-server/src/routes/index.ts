@@ -6,6 +6,7 @@ import checkoutRouter from "./checkout";
 import aforceRouter from "./aforce";
 import entitlementRouter from "./entitlement";
 import stripePortalRouter from "./stripePortal";
+import cruiseRouter from "./cruise";
 
 const router: IRouter = Router();
 
@@ -15,6 +16,7 @@ router.use(cyclesRouter);
 router.use(checkoutRouter);
 router.use(entitlementRouter);
 router.use(stripePortalRouter);
+router.use(cruiseRouter);
 router.use("/aforce", aforceRouter);
 
 export default router;

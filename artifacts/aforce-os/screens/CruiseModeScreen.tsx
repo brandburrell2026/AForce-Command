@@ -20,7 +20,7 @@
  * Premium-gated via the `cruise_mode_enabled` feature flag (FeatureGate wrapper).
  */
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -28,6 +28,7 @@ import {
   ScrollView,
   Pressable,
   Platform,
+  ActivityIndicator,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
@@ -39,16 +40,23 @@ import { Colors } from "@/theme/colors";
 import {
   evaluateCruise,
   CRUISE_DEMO_PROFILES,
-  CREW_AGGREGATE_DEMO,
   PORT_DAY_CHECKLIST,
   CRUISE_BADGES,
   CREW_ROLE_LABEL,
   GUEST_TYPE_LABEL,
   RISK_LABEL,
+  FLEET_DEMO,
+  summarizeFleet,
   type CruiseDemoProfile,
   type CruiseRiskLevel,
   type CruiseStatus,
+  type CruiseSession,
+  type EnvironmentFactors,
 } from "@/services/cruiseModeService";
+import {
+  fetchCruiseEnvironment,
+  type CruiseLiveEnvironment,
+} from "@/services/cruiseEnvService";
 
 // ─── Cruise palette (deep navy + electric aqua) ─────────────────────────────
 const CRUISE = {
@@ -79,17 +87,102 @@ const RISK_COLOR: Record<CruiseRiskLevel, string> = {
 
 // ────────────────────────────────────────────────────────────────────────────
 
+// Ports the user can switch the live environment to. Mirrors the
+// allow-list on the api-server route — adding one here without adding
+// it on the server will return a 400.
+const PORT_OPTIONS: ReadonlyArray<{ id: string; label: string }> = [
+  { id: "miami", label: "Miami" },
+  { id: "cozumel", label: "Cozumel" },
+  { id: "nassau", label: "Nassau" },
+  { id: "st_thomas", label: "St. Thomas" },
+  { id: "cayman", label: "Grand Cayman" },
+  { id: "juneau", label: "Juneau" },
+  { id: "barcelona", label: "Barcelona" },
+];
+
 function CruiseModeBody() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [profileIdx, setProfileIdx] = useState(0);
+  const [portId, setPortId] = useState<string>("cozumel");
+  const [liveEnv, setLiveEnv] = useState<CruiseLiveEnvironment | null>(null);
+  const [envLoading, setEnvLoading] = useState(true);
+  const [envError, setEnvError] = useState<string | null>(null);
+  const [shipIdx, setShipIdx] = useState(0);
+
   const profile: CruiseDemoProfile = CRUISE_DEMO_PROFILES[profileIdx]!;
-  const evaluation = useMemo(() => evaluateCruise(profile.session), [profile]);
+  const ship = FLEET_DEMO[shipIdx]!;
+  const fleetSummary = useMemo(() => summarizeFleet(FLEET_DEMO), []);
+
+  // Pull live conditions for the selected port. The api-server returns a
+  // realistic Caribbean fallback when OpenWeather is unavailable, so this
+  // never blocks the orb from rendering.
+  useEffect(() => {
+    let cancelled = false;
+    setEnvLoading(true);
+    setEnvError(null);
+    fetchCruiseEnvironment(portId)
+      .then((env) => {
+        if (cancelled) return;
+        setLiveEnv(env);
+      })
+      .catch((err: unknown) => {
+        if (cancelled) return;
+        setEnvError(err instanceof Error ? err.message : "Failed to load");
+        setLiveEnv(null);
+      })
+      .finally(() => {
+        if (!cancelled) setEnvLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [portId]);
+
+  // Only blend live conditions when the response matches the currently
+  // selected port — otherwise a slow previous fetch could briefly show
+  // Cozumel temps on a Juneau chip.
+  const matchedLiveEnv = liveEnv && liveEnv.port === portId ? liveEnv : null;
+
+  // Merge live env into the active profile so the orb / risk / heat-index
+  // all reflect the real port conditions, not the demo seed.
+  const effectiveSession: CruiseSession = useMemo(() => {
+    const base = profile.session;
+    const env: EnvironmentFactors = matchedLiveEnv
+      ? {
+          ...base.env,
+          ambientTempF: matchedLiveEnv.ambientTempF,
+          humidityPct: matchedLiveEnv.humidityPct,
+          sunExposureHours: matchedLiveEnv.sunExposureHours,
+        }
+      : base.env;
+    return { ...base, env };
+  }, [profile, matchedLiveEnv]);
+
+  const evaluation = useMemo(
+    () => evaluateCruise(effectiveSession),
+    [effectiveSession],
+  );
 
   const topPadding = Platform.OS === "web" ? 24 : insets.top;
-  const isCrew = profile.session.userType === "crew";
+  const isCrew = effectiveSession.userType === "crew";
   const statusColor = STATUS_COLOR[evaluation.status];
   const riskColor = RISK_COLOR[evaluation.riskLevel];
+  const isLiveSource = matchedLiveEnv?.source === "openweather";
+  const sourceLabel = envLoading
+    ? "Fetching…"
+    : isLiveSource
+      ? "Live"
+      : envError
+        ? "Offline"
+        : "Pilot Data";
+  const sourceColor = envLoading
+    ? Colors.text.muted
+    : isLiveSource
+      ? Colors.states.PEAK.primary
+      : envError
+        ? Colors.states.RECOVERING.primary
+        : CRUISE.aqua;
 
   return (
     <View style={styles.root}>
@@ -170,24 +263,78 @@ function CruiseModeBody() {
             </View>
           </View>
 
-          {/* ── 2. Ship Environment Factors ─────────────────────────── */}
-          <SectionHeader label="SHIP ENVIRONMENT" hint="Live conditions onboard" />
+          {/* ── 2. Ship Environment Factors (LIVE) ──────────────────── */}
+          <SectionHeader
+            label="SHIP ENVIRONMENT"
+            hint={
+              matchedLiveEnv
+                ? `${matchedLiveEnv.portName} · ${matchedLiveEnv.conditions}`
+                : "Live port conditions"
+            }
+          />
           <View style={styles.card}>
+            <View style={styles.liveStrip}>
+              <View style={[styles.sourcePill, { borderColor: sourceColor + "66", backgroundColor: sourceColor + "1A" }]}>
+                {envLoading ? (
+                  <ActivityIndicator size="small" color={sourceColor} />
+                ) : (
+                  <View style={[styles.sourceDot, { backgroundColor: sourceColor }]} />
+                )}
+                <Text style={[styles.sourcePillText, { color: sourceColor }]}>
+                  {sourceLabel.toUpperCase()}
+                </Text>
+              </View>
+              <Text style={styles.liveStripCaption} numberOfLines={1}>
+                {isLiveSource
+                  ? `OpenWeather · ${matchedLiveEnv ? new Date(matchedLiveEnv.fetchedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : ""}`
+                  : envError
+                    ? "Upstream unavailable"
+                    : "Pilot baseline data"}
+              </Text>
+            </View>
+
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.portRow}
+            >
+              {PORT_OPTIONS.map((p) => {
+                const active = p.id === portId;
+                return (
+                  <Pressable
+                    key={p.id}
+                    onPress={() => setPortId(p.id)}
+                    style={[styles.portChip, active && styles.portChipActive]}
+                    testID={`cruise-port-${p.id}`}
+                  >
+                    <Feather
+                      name="map-pin"
+                      size={11}
+                      color={active ? CRUISE.aqua : Colors.text.muted}
+                    />
+                    <Text style={[styles.portChipText, active && { color: CRUISE.aqua }]}>
+                      {p.label}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
+
             <View style={styles.envGrid}>
               <EnvCell
                 icon="thermometer"
                 label="Temperature"
-                value={`${profile.session.env.ambientTempF}°F`}
+                value={`${effectiveSession.env.ambientTempF}°F`}
               />
               <EnvCell
                 icon="cloud-drizzle"
                 label="Humidity"
-                value={`${profile.session.env.humidityPct}%`}
+                value={`${effectiveSession.env.humidityPct}%`}
               />
               <EnvCell
                 icon="sun"
                 label="Sun exposure"
-                value={`${profile.session.env.sunExposureHours} hr`}
+                value={`${effectiveSession.env.sunExposureHours.toFixed(1)} hr`}
               />
               <EnvCell
                 icon="wind"
@@ -196,21 +343,21 @@ function CruiseModeBody() {
                 accent={evaluation.envHeatIndexF >= 90 ? Colors.states.RECOVERING.primary : undefined}
               />
               <EnvCell
-                icon={profile.session.env.deckExposure === "outdoor" ? "sunrise" : "home"}
+                icon={effectiveSession.env.deckExposure === "outdoor" ? "sunrise" : "home"}
                 label="Deck"
-                value={titleCase(profile.session.env.deckExposure)}
+                value={titleCase(effectiveSession.env.deckExposure)}
               />
               <EnvCell
                 icon="navigation"
-                label="Day"
-                value={profile.session.env.dayMode === "sea_day" ? "Sea day" : "Port day"}
+                label="Wind"
+                value={matchedLiveEnv ? `${matchedLiveEnv.windKts} kts` : "—"}
               />
             </View>
-            {profile.session.env.excursionRisk !== "none" && (
+            {effectiveSession.env.excursionRisk !== "none" && (
               <View style={[styles.inlineBanner, { borderColor: CRUISE.aqua + "55", backgroundColor: CRUISE.aqua + "10" }]}>
                 <Feather name="alert-triangle" size={13} color={CRUISE.aqua} />
                 <Text style={styles.inlineBannerText}>
-                  Excursion risk: <Text style={{ color: CRUISE.aqua }}>{titleCase(profile.session.env.excursionRisk)}</Text>
+                  Excursion risk: <Text style={{ color: CRUISE.aqua }}>{titleCase(effectiveSession.env.excursionRisk)}</Text>
                 </Text>
               </View>
             )}
@@ -308,13 +455,80 @@ function CruiseModeBody() {
             ))}
           </View>
 
-          {/* ── 7. Crew Aggregate Dashboard (operator) ──────────────── */}
-          <SectionHeader label="CREW DASHBOARD" hint="Operator view · anonymized · opt-in" />
+          {/* ── 7. Operator Fleet Dashboard ─────────────────────────── */}
+          <SectionHeader
+            label="OPERATOR FLEET DASHBOARD"
+            hint={`${fleetSummary.shipCount} ships · ${fleetSummary.totalCrew.toLocaleString()} crew`}
+          />
+
+          {/* Fleet KPI strip */}
+          <View style={[styles.card, { paddingVertical: 14 }]}>
+            <View style={styles.kpiRow}>
+              <KpiCell
+                label="Fleet compliance"
+                value={`${fleetSummary.weightedCompliancePct}%`}
+                accent={CRUISE.aqua}
+              />
+              <View style={styles.kpiDivider} />
+              <KpiCell
+                label="High-risk crew"
+                value={fleetSummary.highRiskCrewCount.toLocaleString()}
+                accent={Colors.states.RECOVERING.primary}
+              />
+              <View style={styles.kpiDivider} />
+              <KpiCell
+                label="Top-risk ship"
+                value={fleetSummary.topRiskShip.name}
+                accent={Colors.text.primary}
+                small
+              />
+            </View>
+          </View>
+
+          {/* Ship switcher */}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.shipRow}
+          >
+            {FLEET_DEMO.map((s, i) => {
+              const active = i === shipIdx;
+              return (
+                <Pressable
+                  key={s.id}
+                  onPress={() => setShipIdx(i)}
+                  style={[styles.shipChip, active && styles.shipChipActive]}
+                  testID={`cruise-ship-${s.id}`}
+                >
+                  <Text style={[styles.shipChipName, active && { color: CRUISE.aqua }]}>
+                    {s.name}
+                  </Text>
+                  <Text style={styles.shipChipMeta}>
+                    {s.line} · {s.totalCrew.toLocaleString()} crew
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </ScrollView>
+
+          {/* Selected ship detail */}
           <View style={styles.card}>
-            {CREW_AGGREGATE_DEMO.map((d, i) => {
+            <View style={styles.shipHeader}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.shipHeaderName}>{ship.name}</Text>
+                <Text style={styles.shipHeaderMeta}>
+                  {ship.line} · Today: {ship.portToday}
+                </Text>
+              </View>
+              <View style={styles.shipHeaderKpi}>
+                <Text style={styles.shipHeaderKpiValue}>{ship.fleetCompliancePct}%</Text>
+                <Text style={styles.shipHeaderKpiLabel}>compliance</Text>
+              </View>
+            </View>
+            {ship.departments.map((d, i) => {
               const c = RISK_COLOR[d.riskLevel];
               return (
-                <View key={d.department} style={[styles.deptRow, i === CREW_AGGREGATE_DEMO.length - 1 && { borderBottomWidth: 0 }]}>
+                <View key={d.department} style={[styles.deptRow, i === ship.departments.length - 1 && { borderBottomWidth: 0 }]}>
                   <View style={styles.deptHeader}>
                     <Text style={styles.deptName}>{d.department}</Text>
                     <View style={[styles.deptRiskPill, { backgroundColor: c + "1F", borderColor: c + "55" }]}>
@@ -507,6 +721,31 @@ function NavRow({
       </View>
       <Feather name="chevron-right" size={14} color={Colors.text.muted} />
     </Pressable>
+  );
+}
+
+function KpiCell({
+  label,
+  value,
+  accent,
+  small,
+}: {
+  label: string;
+  value: string;
+  accent: string;
+  small?: boolean;
+}) {
+  return (
+    <View style={styles.kpiCell}>
+      <Text
+        style={[small ? styles.kpiValueSmall : styles.kpiValue, { color: accent }]}
+        numberOfLines={1}
+        adjustsFontSizeToFit
+      >
+        {value}
+      </Text>
+      <Text style={styles.kpiLabel}>{label}</Text>
+    </View>
   );
 }
 
@@ -1046,5 +1285,168 @@ const styles = StyleSheet.create({
     fontStyle: "italic",
     marginTop: 4,
     lineHeight: 14,
+  },
+
+  // Live env strip
+  liveStrip: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 10,
+  },
+  sourcePill: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 999,
+    borderWidth: 1,
+  },
+  sourceDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  sourcePillText: {
+    fontSize: 9,
+    fontFamily: "Inter_700Bold",
+    letterSpacing: 1.4,
+  },
+  liveStripCaption: {
+    fontSize: 10,
+    fontFamily: "Inter_400Regular",
+    color: Colors.text.muted,
+    flex: 1,
+    textAlign: "right",
+    marginLeft: 12,
+  },
+
+  // Port chips
+  portRow: {
+    gap: 8,
+    paddingBottom: 12,
+    paddingRight: 8,
+  },
+  portChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: CRUISE.borderSoft,
+    backgroundColor: CRUISE.navyMid,
+  },
+  portChipActive: {
+    borderColor: CRUISE.aqua + "88",
+    backgroundColor: CRUISE.aquaSoft,
+  },
+  portChipText: {
+    fontSize: 11,
+    fontFamily: "Inter_600SemiBold",
+    color: Colors.text.secondary,
+  },
+
+  // Fleet KPI strip
+  kpiRow: {
+    flexDirection: "row",
+    alignItems: "stretch",
+    gap: 12,
+  },
+  kpiCell: {
+    flex: 1,
+    gap: 4,
+  },
+  kpiValue: {
+    fontFamily: "Inter_700Bold",
+    fontSize: 22,
+    color: Colors.text.primary,
+  },
+  kpiValueSmall: {
+    fontFamily: "Inter_700Bold",
+    fontSize: 14,
+    color: Colors.text.primary,
+  },
+  kpiLabel: {
+    fontFamily: "Inter_500Medium",
+    fontSize: 9,
+    color: Colors.text.muted,
+    letterSpacing: 1.2,
+    textTransform: "uppercase",
+  },
+  kpiDivider: {
+    width: 1,
+    backgroundColor: CRUISE.borderSoft,
+  },
+
+  // Fleet ship switcher
+  shipRow: {
+    gap: 10,
+    paddingHorizontal: 14,
+    paddingBottom: 12,
+    paddingTop: 4,
+  },
+  shipChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 9,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: CRUISE.borderSoft,
+    backgroundColor: CRUISE.navyMid,
+    minWidth: 170,
+  },
+  shipChipActive: {
+    borderColor: CRUISE.aqua + "88",
+    backgroundColor: CRUISE.aquaSoft,
+  },
+  shipChipName: {
+    fontSize: 12,
+    fontFamily: "Inter_700Bold",
+    color: Colors.text.primary,
+  },
+  shipChipMeta: {
+    fontSize: 10,
+    fontFamily: "Inter_400Regular",
+    color: Colors.text.muted,
+    marginTop: 2,
+  },
+
+  // Selected-ship header inside detail card
+  shipHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    paddingBottom: 12,
+    marginBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: CRUISE.borderSoft,
+  },
+  shipHeaderName: {
+    fontSize: 14,
+    fontFamily: "Inter_700Bold",
+    color: Colors.text.primary,
+  },
+  shipHeaderMeta: {
+    fontSize: 11,
+    fontFamily: "Inter_400Regular",
+    color: Colors.text.muted,
+    marginTop: 2,
+  },
+  shipHeaderKpi: {
+    alignItems: "flex-end",
+  },
+  shipHeaderKpiValue: {
+    fontSize: 20,
+    fontFamily: "Inter_700Bold",
+    color: CRUISE.aqua,
+  },
+  shipHeaderKpiLabel: {
+    fontSize: 9,
+    fontFamily: "Inter_500Medium",
+    color: Colors.text.muted,
+    letterSpacing: 1.2,
+    textTransform: "uppercase",
   },
 });
