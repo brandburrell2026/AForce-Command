@@ -51,6 +51,7 @@ I prefer iterative development, with frequent, small updates. Ask before making 
 - **Hydration Journal:** Longitudinal score history, daily timeline, and PDF export.
 - **Sweat Calculator:** ACSM-grade sweat-rate calculation with multiple input modes.
 - **Phantom Band Integration:** BLE service for automatic sip logging from a hardware device.
+- **AForce Ring Integration:** Wearable ring companion with two surfaces. **Calm Coach** (`/ring`) is the idle home — a single hydration deficit orb (color-shifted by `sweatRateEngine` deficit band) plus a "next sip" action card. **Sport Mode** (`/ring/session`) is the auto-triggered live HUD with sport pill, chronometer (since GSR onset), 4-tile biometric grid (HR, sweat L/h, skin temp, GSR), live deficit card, and amber "next sip" countdown. The home auto-routes to Sport Mode when `services/ringService.ts` reports 3+ ticks of `vigorous` movement, and Sport Mode auto-exits after 5+ idle ticks. A `RingStatusCard` on the home tab signals zone is the entry point. Backed by a singleton 1Hz mock biometric stream (`services/ringService.ts` + `useRingStream()` hook + `startMockSession()`/`stopMockSession()` demo affordances) so the full loop runs without hardware.
 - **Sensor Import:** Parses external sensor data (hDrop, Nix, Gatorade Gx) and integrates it into logs and snapshots.
 - **Achievements:** Catalog of 12 badges unlocked based on user activity, stored in an append-only table.
 - **Science & Methodology:** In-app documentation of all formulas, calculations, and references, with PDF export.

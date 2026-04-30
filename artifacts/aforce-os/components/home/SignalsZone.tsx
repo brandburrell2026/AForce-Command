@@ -19,6 +19,7 @@ import { RiskTimerDisplay } from '../RiskTimerDisplay';
 import { WaterCycleBar } from '../WaterCycleBar';
 import { PhantomSignal } from '../PhantomSignal';
 import { PhantomBandCard } from '../PhantomBandCard';
+import { RingStatusCard } from '../RingStatusCard';
 import { HeatAlertBanner } from '../HeatAlertBanner';
 import { SocialModeBanner } from '../SocialModeBanner';
 import { useEngineSlice, useUserSlice, useCycleSlice, useSocialSlice } from '../../store/slices';
@@ -56,6 +57,8 @@ function SignalsZoneImpl({ heatScore, onOpenSocial, includeEntryActions, entryAc
       <PhantomSignal />
       <Spacer />
       <PhantomBandCard />
+      <Spacer />
+      <RingStatusCard />
       {heatScore.band !== 'STABLE' && (
         <>
           <Spacer />
