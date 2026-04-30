@@ -277,31 +277,6 @@ export interface CruiseDemoProfile {
 
 export const CRUISE_DEMO_PROFILES: CruiseDemoProfile[] = [
   {
-    id: "fb_crew",
-    label: "F&B Crew · 9h shift",
-    hint: "Food & Beverage · 18,000 steps · humid",
-    session: {
-      userType: "crew",
-      hydrationScore: 62,
-      minutesSinceLastIntake: 75,
-      env: {
-        ambientTempF: 86,
-        humidityPct: 78,
-        sunExposureHours: 1.5,
-        deckExposure: "mixed",
-        dayMode: "sea_day",
-        excursionRisk: "none",
-      },
-      crew: {
-        role: "food_beverage",
-        shiftLengthHours: 9,
-        steps: 18000,
-        sweatRiskLevel: "high",
-        hoursSinceBreak: 4,
-      },
-    },
-  },
-  {
     id: "pool_guest",
     label: "Pool-day Guest",
     hint: "3 cocktails · 11k steps · high sun",

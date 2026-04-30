@@ -1,21 +1,23 @@
 /**
- * Cruise Mode Screen — premium add-on for cruise lines & guests.
+ * Cruise Mode Screen — premium guest experience for life at sea.
  *
- * One scrollable screen that surfaces every section of the Cruise Mode spec:
+ * Cruise Mode is the **guest-facing** premium add-on. Crew / staff get
+ * personalized hydration support through Social Mode, not this screen.
+ *
+ * One scrollable screen that surfaces every section of the guest-mode spec:
  *   1. Live Hydration Score (status + AForce Rx)
- *   2. Ship Environment Factors
- *   3. Crew Performance Mode  (when userType=crew)
- *   4. Guest Wellness Mode    (when userType=guest)
- *   5. Alcohol + Sun Risk Layer
- *   6. Port Day / Excursion checklist
- *   7. Crew Aggregate Dashboard (operator view, anonymized)
- *   8. Engagement / Rewards
- *   9. Cross-feature navigation strip
- *  10. Business positioning copy blocks
+ *   2. Ship Environment Factors (live OpenWeather)
+ *   3. Guest Wellness Mode (pool day / excursion signals)
+ *   4. Alcohol + Sun Risk Layer
+ *   5. Port Day / Excursion checklist
+ *   6. Operator Fleet Dashboard (B2B view, anonymized)
+ *   7. Engagement / Rewards
+ *   8. Cross-feature navigation strip
+ *   9. Business positioning copy blocks
  *
- * Demo data lives in `services/cruiseModeService.ts`. The user can cycle through
- * three realistic profiles (F&B crew, pool-day guest, excursion guest) so the
- * screen always shows live signal — not empty state.
+ * Demo data lives in `services/cruiseModeService.ts`. The user can cycle
+ * through two realistic guest profiles (pool-day, excursion) so the screen
+ * always shows live signal — not empty state.
  *
  * Premium-gated via the `cruise_mode_enabled` feature flag (FeatureGate wrapper).
  */
@@ -42,7 +44,6 @@ import {
   CRUISE_DEMO_PROFILES,
   PORT_DAY_CHECKLIST,
   CRUISE_BADGES,
-  CREW_ROLE_LABEL,
   GUEST_TYPE_LABEL,
   RISK_LABEL,
   FLEET_DEMO,
@@ -165,7 +166,6 @@ function CruiseModeBody() {
   );
 
   const topPadding = Platform.OS === "web" ? 24 : insets.top;
-  const isCrew = effectiveSession.userType === "crew";
   const statusColor = STATUS_COLOR[evaluation.status];
   const riskColor = RISK_COLOR[evaluation.riskLevel];
   const isLiveSource = matchedLiveEnv?.source === "openweather";
@@ -363,32 +363,8 @@ function CruiseModeBody() {
             )}
           </View>
 
-          {/* ── 3 / 4. Crew Performance OR Guest Wellness Mode ──────── */}
-          {isCrew && profile.session.crew && (
-            <>
-              <SectionHeader label="CREW PERFORMANCE MODE" hint="Onboard crew shift signals" />
-              <View style={styles.card}>
-                <Row label="Role" value={CREW_ROLE_LABEL[profile.session.crew.role]} />
-                <Row label="Shift length" value={`${profile.session.crew.shiftLengthHours} hours`} />
-                <Row label="Steps today" value={profile.session.crew.steps.toLocaleString()} />
-                <Row
-                  label="Sweat risk"
-                  value={titleCase(profile.session.crew.sweatRiskLevel)}
-                  valueColor={profile.session.crew.sweatRiskLevel === "high" ? Colors.states.RECOVERING.primary : Colors.text.primary}
-                />
-                <Row label="Hours since break" value={`${profile.session.crew.hoursSinceBreak} hr`} />
-                <View style={styles.coachBlock}>
-                  <Feather name="message-circle" size={14} color={CRUISE.aqua} />
-                  <Text style={styles.coachText}>
-                    “You are entering a high-risk dehydration window. Drink water now and complete one
-                    AForce hydration cycle before your next shift block.”
-                  </Text>
-                </View>
-              </View>
-            </>
-          )}
-
-          {!isCrew && profile.session.guest && (
+          {/* ── 3. Guest Wellness Mode (Cruise Mode is guest-only) ──── */}
+          {profile.session.guest && (
             <>
               <SectionHeader label="GUEST WELLNESS MODE" hint="Daily exposure & recovery signals" />
               <View style={styles.card}>
@@ -620,7 +596,7 @@ function CruiseModeBody() {
           <View style={[styles.card, { gap: 14 }]}>
             <PitchBlock
               eyebrow="FOR OPERATORS"
-              body="Reduce dehydration risk, improve crew performance, and elevate guest wellness across every sailing."
+              body="Elevate guest wellness, reduce dehydration incidents, and protect on-board revenue across every sailing."
             />
             <PitchBlock
               eyebrow="FOR GUESTS"
@@ -628,7 +604,7 @@ function CruiseModeBody() {
             />
             <PitchBlock
               eyebrow="FOR CREW"
-              body="Smarter hydration support during long shifts, heat exposure, and high-movement days."
+              body="Crew get personalized hydration support through Social Mode — tuned for long shifts, heat exposure, and high-movement days."
             />
             <Text style={styles.brandLine}>
               Built for Royal Caribbean, Carnival, Norwegian, Disney, Virgin Voyages, and luxury cruise lines.
@@ -773,7 +749,7 @@ export default function CruiseModeScreen() {
       <FeatureGate
         flag="cruise_mode_enabled"
         title="Cruise Mode · Premium"
-        description="Hydration intelligence for life at sea — for cruise crew, guests, and operators. Activate the demo to preview the full Cruise Mode product."
+        description="Hydration intelligence for cruise guests at sea, with operator visibility across the fleet. Crew get personalized support through Social Mode. Activate the demo to preview the full Cruise Mode product."
         accentColor={CRUISE.aqua}
         ctaLabel="Activate Cruise Demo"
       >
