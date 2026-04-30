@@ -2,11 +2,12 @@
  * Cruise Mode Engine.
  *
  * Pure scoring service for the AForce OS Cruise Mode premium feature.
- * Models hydration risk for cruise crew (long shifts, heat, sweat) and guests
- * (sun, alcohol, excursions, sleep) layered on top of the live hydration score.
+ * Models hydration risk for cruise **guests** (sun, alcohol, excursions,
+ * sleep) layered on top of the live hydration score. Crew / staff get
+ * personalized hydration support through Social Mode, not Cruise Mode.
  *
  * No I/O, no React. The screen passes a CruiseSession in, gets a CruiseEvaluation
- * back. Demo profiles are exported for the operator-style dashboard.
+ * back.
  *
  * IMPORTANT — these are RISK PREDICTIONS, not medical diagnoses. The
  * RECOVERY_CRITICAL band flags a severe pattern; emergency-services language is
@@ -14,16 +15,6 @@
  */
 
 // ─── Types ──────────────────────────────────────────────────────────────────
-
-export type CruiseUserType = "crew" | "guest";
-
-export type CruiseCrewRole =
-  | "housekeeping"
-  | "food_beverage"
-  | "entertainment"
-  | "deck_crew"
-  | "spa_fitness"
-  | "officer";
 
 export type CruiseGuestType =
   | "family"
@@ -49,14 +40,6 @@ export interface EnvironmentFactors {
   excursionRisk: "none" | "low" | "moderate" | "high";
 }
 
-export interface CrewSession {
-  role: CruiseCrewRole;
-  shiftLengthHours: number; // 0–14
-  steps: number;
-  sweatRiskLevel: "low" | "moderate" | "high";
-  hoursSinceBreak: number;
-}
-
 export interface GuestSession {
   guestType: CruiseGuestType;
   poolHours: number;
@@ -67,12 +50,10 @@ export interface GuestSession {
 }
 
 export interface CruiseSession {
-  userType: CruiseUserType;
   hydrationScore: number; // 0–100 — comes from engine
   minutesSinceLastIntake: number;
   env: EnvironmentFactors;
-  crew?: CrewSession;
-  guest?: GuestSession;
+  guest: GuestSession;
 }
 
 export interface CruiseEvaluation {
@@ -155,59 +136,30 @@ export function evaluateCruise(s: CruiseSession): CruiseEvaluation {
   }
   if (s.env.deckExposure === "outdoor") sunHit += 2;
 
-  // Crew workload
-  if (s.crew) {
-    const c = s.crew;
-    if (c.shiftLengthHours >= 8) {
-      workHit += 10;
-      reasons.push(`Long ${c.shiftLengthHours}h shift`);
-    } else if (c.shiftLengthHours >= 6) {
-      workHit += 5;
-    }
-    if (c.steps >= 14000) {
-      workHit += 6;
-      reasons.push(`${c.steps.toLocaleString()} steps logged`);
-    } else if (c.steps >= 10000) {
-      workHit += 3;
-    }
-    if (c.sweatRiskLevel === "high") {
-      workHit += 8;
-      reasons.push("High-sweat role");
-    } else if (c.sweatRiskLevel === "moderate") {
-      workHit += 4;
-    }
-    if (c.hoursSinceBreak >= 3) {
-      workHit += 4;
-      reasons.push(`${c.hoursSinceBreak}h since last break`);
-    }
-  }
-
   // Guest behaviour
-  if (s.guest) {
-    const g = s.guest;
-    if (g.alcoholDrinks >= 3) {
-      alcoholHit += 14;
-      reasons.push(`${g.alcoholDrinks} alcoholic drinks`);
-    } else if (g.alcoholDrinks >= 1) {
-      alcoholHit += 6;
-      reasons.push(`${g.alcoholDrinks} alcoholic drink${g.alcoholDrinks > 1 ? "s" : ""}`);
-    }
-    if (g.poolHours >= 3) {
-      sunHit += 4;
-      reasons.push(`${g.poolHours} hrs poolside`);
-    }
-    if (g.excursionHours >= 3) {
-      workHit += 6;
-      reasons.push(`${g.excursionHours} hr excursion`);
-    } else if (g.excursionHours >= 1) {
-      workHit += 3;
-    }
-    if (g.sleepQualityPct < 60) {
-      sleepHit += 8;
-      reasons.push(`Sleep quality ${g.sleepQualityPct}%`);
-    } else if (g.sleepQualityPct < 75) {
-      sleepHit += 4;
-    }
+  const g = s.guest;
+  if (g.alcoholDrinks >= 3) {
+    alcoholHit += 14;
+    reasons.push(`${g.alcoholDrinks} alcoholic drinks`);
+  } else if (g.alcoholDrinks >= 1) {
+    alcoholHit += 6;
+    reasons.push(`${g.alcoholDrinks} alcoholic drink${g.alcoholDrinks > 1 ? "s" : ""}`);
+  }
+  if (g.poolHours >= 3) {
+    sunHit += 4;
+    reasons.push(`${g.poolHours} hrs poolside`);
+  }
+  if (g.excursionHours >= 3) {
+    workHit += 6;
+    reasons.push(`${g.excursionHours} hr excursion`);
+  } else if (g.excursionHours >= 1) {
+    workHit += 3;
+  }
+  if (g.sleepQualityPct < 60) {
+    sleepHit += 8;
+    reasons.push(`Sleep quality ${g.sleepQualityPct}%`);
+  } else if (g.sleepQualityPct < 75) {
+    sleepHit += 4;
   }
 
   // Time since last intake compounds
@@ -281,7 +233,6 @@ export const CRUISE_DEMO_PROFILES: CruiseDemoProfile[] = [
     label: "Pool-day Guest",
     hint: "3 cocktails · 11k steps · high sun",
     session: {
-      userType: "guest",
       hydrationScore: 54,
       minutesSinceLastIntake: 95,
       env: {
@@ -307,7 +258,6 @@ export const CRUISE_DEMO_PROFILES: CruiseDemoProfile[] = [
     label: "Excursion Guest",
     hint: "4-hr walking tour · high heat",
     session: {
-      userType: "guest",
       hydrationScore: 48,
       minutesSinceLastIntake: 110,
       env: {
@@ -330,130 +280,6 @@ export const CRUISE_DEMO_PROFILES: CruiseDemoProfile[] = [
   },
 ];
 
-// ─── Aggregate (operator dashboard) demo ────────────────────────────────────
-
-export interface CrewDeptRisk {
-  department: string;
-  hydrationCompliancePct: number;
-  highRiskShiftWindow: string;
-  aforceUsagePerCrew: number;
-  riskLevel: CruiseRiskLevel;
-}
-
-export const CREW_AGGREGATE_DEMO: CrewDeptRisk[] = [
-  { department: "Food & Beverage", hydrationCompliancePct: 71, highRiskShiftWindow: "14:00–18:00", aforceUsagePerCrew: 2.4, riskLevel: "HIGH" },
-  { department: "Housekeeping", hydrationCompliancePct: 84, highRiskShiftWindow: "10:00–13:00", aforceUsagePerCrew: 1.8, riskLevel: "MODERATE" },
-  { department: "Deck Crew", hydrationCompliancePct: 68, highRiskShiftWindow: "12:00–16:00", aforceUsagePerCrew: 2.1, riskLevel: "HIGH" },
-  { department: "Spa & Fitness", hydrationCompliancePct: 91, highRiskShiftWindow: "—", aforceUsagePerCrew: 1.4, riskLevel: "LOW" },
-  { department: "Entertainment", hydrationCompliancePct: 79, highRiskShiftWindow: "20:00–23:00", aforceUsagePerCrew: 1.9, riskLevel: "MODERATE" },
-];
-
-// ─── Fleet view (operator multi-ship dashboard) ─────────────────────────────
-
-export interface FleetShip {
-  id: string;
-  name: string;
-  line: string;
-  portToday: string;
-  totalCrew: number;
-  fleetCompliancePct: number;
-  highRiskCrewPct: number;
-  departments: CrewDeptRisk[];
-}
-
-export const FLEET_DEMO: ReadonlyArray<FleetShip> = [
-  {
-    id: "symphony",
-    name: "Symphony of the Seas",
-    line: "Royal Caribbean",
-    portToday: "Cozumel",
-    totalCrew: 2200,
-    fleetCompliancePct: 78,
-    highRiskCrewPct: 14,
-    departments: CREW_AGGREGATE_DEMO,
-  },
-  {
-    id: "mardi_gras",
-    name: "Mardi Gras",
-    line: "Carnival Cruise Line",
-    portToday: "Nassau",
-    totalCrew: 1750,
-    fleetCompliancePct: 72,
-    highRiskCrewPct: 19,
-    departments: [
-      { department: "Food & Beverage", hydrationCompliancePct: 64, highRiskShiftWindow: "13:00–17:00", aforceUsagePerCrew: 2.7, riskLevel: "HIGH" },
-      { department: "Housekeeping", hydrationCompliancePct: 77, highRiskShiftWindow: "09:00–12:00", aforceUsagePerCrew: 1.9, riskLevel: "MODERATE" },
-      { department: "Deck Crew", hydrationCompliancePct: 61, highRiskShiftWindow: "11:00–15:00", aforceUsagePerCrew: 2.4, riskLevel: "HIGH" },
-      { department: "Spa & Fitness", hydrationCompliancePct: 88, highRiskShiftWindow: "—", aforceUsagePerCrew: 1.5, riskLevel: "LOW" },
-      { department: "Entertainment", hydrationCompliancePct: 74, highRiskShiftWindow: "20:00–23:00", aforceUsagePerCrew: 2.0, riskLevel: "MODERATE" },
-    ],
-  },
-  {
-    id: "scarlet_lady",
-    name: "Scarlet Lady",
-    line: "Virgin Voyages",
-    portToday: "St. Thomas",
-    totalCrew: 1150,
-    fleetCompliancePct: 86,
-    highRiskCrewPct: 8,
-    departments: [
-      { department: "Food & Beverage", hydrationCompliancePct: 82, highRiskShiftWindow: "14:00–17:00", aforceUsagePerCrew: 2.1, riskLevel: "MODERATE" },
-      { department: "Housekeeping", hydrationCompliancePct: 90, highRiskShiftWindow: "—", aforceUsagePerCrew: 1.6, riskLevel: "LOW" },
-      { department: "Deck Crew", hydrationCompliancePct: 80, highRiskShiftWindow: "12:00–15:00", aforceUsagePerCrew: 1.9, riskLevel: "MODERATE" },
-      { department: "Spa & Fitness", hydrationCompliancePct: 94, highRiskShiftWindow: "—", aforceUsagePerCrew: 1.3, riskLevel: "LOW" },
-      { department: "Entertainment", hydrationCompliancePct: 87, highRiskShiftWindow: "21:00–23:00", aforceUsagePerCrew: 1.7, riskLevel: "LOW" },
-    ],
-  },
-  {
-    id: "wonder",
-    name: "Disney Wonder",
-    line: "Disney Cruise Line",
-    portToday: "Grand Cayman",
-    totalCrew: 950,
-    fleetCompliancePct: 83,
-    highRiskCrewPct: 11,
-    departments: [
-      { department: "Food & Beverage", hydrationCompliancePct: 76, highRiskShiftWindow: "13:00–16:00", aforceUsagePerCrew: 2.3, riskLevel: "MODERATE" },
-      { department: "Housekeeping", hydrationCompliancePct: 87, highRiskShiftWindow: "10:00–12:00", aforceUsagePerCrew: 1.7, riskLevel: "LOW" },
-      { department: "Deck Crew", hydrationCompliancePct: 73, highRiskShiftWindow: "12:00–15:00", aforceUsagePerCrew: 2.0, riskLevel: "MODERATE" },
-      { department: "Spa & Fitness", hydrationCompliancePct: 92, highRiskShiftWindow: "—", aforceUsagePerCrew: 1.3, riskLevel: "LOW" },
-      { department: "Entertainment", hydrationCompliancePct: 88, highRiskShiftWindow: "19:00–22:00", aforceUsagePerCrew: 1.6, riskLevel: "LOW" },
-    ],
-  },
-];
-
-/** Roll-up of fleet KPIs for the dashboard hero strip. */
-export interface FleetSummary {
-  shipCount: number;
-  totalCrew: number;
-  weightedCompliancePct: number;
-  highRiskCrewCount: number;
-  topRiskShip: FleetShip;
-}
-
-export function summarizeFleet(fleet: ReadonlyArray<FleetShip>): FleetSummary {
-  const totalCrew = fleet.reduce((sum, s) => sum + s.totalCrew, 0);
-  const weighted = totalCrew === 0
-    ? 0
-    : Math.round(
-        fleet.reduce((sum, s) => sum + s.fleetCompliancePct * s.totalCrew, 0) /
-          totalCrew,
-      );
-  const highRisk = Math.round(
-    fleet.reduce((sum, s) => sum + s.totalCrew * (s.highRiskCrewPct / 100), 0),
-  );
-  const topRiskShip = [...fleet].sort(
-    (a, b) => b.highRiskCrewPct - a.highRiskCrewPct,
-  )[0]!;
-  return {
-    shipCount: fleet.length,
-    totalCrew,
-    weightedCompliancePct: weighted,
-    highRiskCrewCount: highRisk,
-    topRiskShip,
-  };
-}
-
 // ─── Port-day checklist (static) ────────────────────────────────────────────
 
 export const PORT_DAY_CHECKLIST: ReadonlyArray<{ id: string; label: string; icon: string }> = [
@@ -469,20 +295,11 @@ export const PORT_DAY_CHECKLIST: ReadonlyArray<{ id: string; label: string; icon
 export const CRUISE_BADGES: ReadonlyArray<{ id: string; title: string; hint: string }> = [
   { id: "deck_day", title: "Deck Day", hint: "4+ hrs poolside, hydrated through" },
   { id: "excursion_recovery", title: "Excursion Recovery", hint: "Recovery cycle within 60 min of return" },
-  { id: "shift_warrior", title: "Shift Warrior", hint: "9+ hr shift with hydration above 70" },
+  { id: "sun_soaker", title: "Sun-soaker", hint: "5+ hrs in the sun, hydrated through" },
   { id: "wellness_streak", title: "Wellness Streak", hint: "5 consecutive sea days, score ≥ 75" },
 ];
 
-// ─── Role / guest copy maps ─────────────────────────────────────────────────
-
-export const CREW_ROLE_LABEL: Record<CruiseCrewRole, string> = {
-  housekeeping: "Housekeeping",
-  food_beverage: "Food & Beverage",
-  entertainment: "Entertainment",
-  deck_crew: "Deck Crew",
-  spa_fitness: "Spa & Fitness",
-  officer: "Officer",
-};
+// ─── Guest copy map ─────────────────────────────────────────────────────────
 
 export const GUEST_TYPE_LABEL: Record<CruiseGuestType, string> = {
   family: "Family",

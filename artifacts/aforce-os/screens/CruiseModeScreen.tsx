@@ -10,10 +10,9 @@
  *   3. Guest Wellness Mode (pool day / excursion signals)
  *   4. Alcohol + Sun Risk Layer
  *   5. Port Day / Excursion checklist
- *   6. Operator Fleet Dashboard (B2B view, anonymized)
- *   7. Engagement / Rewards
- *   8. Cross-feature navigation strip
- *   9. Business positioning copy blocks
+ *   6. Engagement / Rewards
+ *   7. Cross-feature navigation strip
+ *   8. Business positioning copy blocks
  *
  * Demo data lives in `services/cruiseModeService.ts`. The user can cycle
  * through two realistic guest profiles (pool-day, excursion) so the screen
@@ -46,8 +45,6 @@ import {
   CRUISE_BADGES,
   GUEST_TYPE_LABEL,
   RISK_LABEL,
-  FLEET_DEMO,
-  summarizeFleet,
   type CruiseDemoProfile,
   type CruiseRiskLevel,
   type CruiseStatus,
@@ -109,11 +106,8 @@ function CruiseModeBody() {
   const [liveEnv, setLiveEnv] = useState<CruiseLiveEnvironment | null>(null);
   const [envLoading, setEnvLoading] = useState(true);
   const [envError, setEnvError] = useState<string | null>(null);
-  const [shipIdx, setShipIdx] = useState(0);
 
   const profile: CruiseDemoProfile = CRUISE_DEMO_PROFILES[profileIdx]!;
-  const ship = FLEET_DEMO[shipIdx]!;
-  const fleetSummary = useMemo(() => summarizeFleet(FLEET_DEMO), []);
 
   // Pull live conditions for the selected port. The api-server returns a
   // realistic Caribbean fallback when OpenWeather is unavailable, so this
@@ -431,106 +425,7 @@ function CruiseModeBody() {
             ))}
           </View>
 
-          {/* ── 7. Operator Fleet Dashboard ─────────────────────────── */}
-          <SectionHeader
-            label="OPERATOR FLEET DASHBOARD"
-            hint={`${fleetSummary.shipCount} ships · ${fleetSummary.totalCrew.toLocaleString()} crew`}
-          />
-
-          {/* Fleet KPI strip */}
-          <View style={[styles.card, { paddingVertical: 14 }]}>
-            <View style={styles.kpiRow}>
-              <KpiCell
-                label="Fleet compliance"
-                value={`${fleetSummary.weightedCompliancePct}%`}
-                accent={CRUISE.aqua}
-              />
-              <View style={styles.kpiDivider} />
-              <KpiCell
-                label="High-risk crew"
-                value={fleetSummary.highRiskCrewCount.toLocaleString()}
-                accent={Colors.states.RECOVERING.primary}
-              />
-              <View style={styles.kpiDivider} />
-              <KpiCell
-                label="Top-risk ship"
-                value={fleetSummary.topRiskShip.name}
-                accent={Colors.text.primary}
-                small
-              />
-            </View>
-          </View>
-
-          {/* Ship switcher */}
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.shipRow}
-          >
-            {FLEET_DEMO.map((s, i) => {
-              const active = i === shipIdx;
-              return (
-                <Pressable
-                  key={s.id}
-                  onPress={() => setShipIdx(i)}
-                  style={[styles.shipChip, active && styles.shipChipActive]}
-                  testID={`cruise-ship-${s.id}`}
-                >
-                  <Text style={[styles.shipChipName, active && { color: CRUISE.aqua }]}>
-                    {s.name}
-                  </Text>
-                  <Text style={styles.shipChipMeta}>
-                    {s.line} · {s.totalCrew.toLocaleString()} crew
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </ScrollView>
-
-          {/* Selected ship detail */}
-          <View style={styles.card}>
-            <View style={styles.shipHeader}>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.shipHeaderName}>{ship.name}</Text>
-                <Text style={styles.shipHeaderMeta}>
-                  {ship.line} · Today: {ship.portToday}
-                </Text>
-              </View>
-              <View style={styles.shipHeaderKpi}>
-                <Text style={styles.shipHeaderKpiValue}>{ship.fleetCompliancePct}%</Text>
-                <Text style={styles.shipHeaderKpiLabel}>compliance</Text>
-              </View>
-            </View>
-            {ship.departments.map((d, i) => {
-              const c = RISK_COLOR[d.riskLevel];
-              return (
-                <View key={d.department} style={[styles.deptRow, i === ship.departments.length - 1 && { borderBottomWidth: 0 }]}>
-                  <View style={styles.deptHeader}>
-                    <Text style={styles.deptName}>{d.department}</Text>
-                    <View style={[styles.deptRiskPill, { backgroundColor: c + "1F", borderColor: c + "55" }]}>
-                      <Text style={[styles.deptRiskText, { color: c }]}>{RISK_LABEL[d.riskLevel]}</Text>
-                    </View>
-                  </View>
-                  <View style={styles.complianceBarBg}>
-                    <View style={[styles.complianceBar, { width: `${d.hydrationCompliancePct}%`, backgroundColor: c }]} />
-                  </View>
-                  <View style={styles.deptMeta}>
-                    <Text style={styles.deptMetaText}>{d.hydrationCompliancePct}% compliance</Text>
-                    <Text style={styles.deptMetaText}>·</Text>
-                    <Text style={styles.deptMetaText}>Peak: {d.highRiskShiftWindow}</Text>
-                    <Text style={styles.deptMetaText}>·</Text>
-                    <Text style={styles.deptMetaText}>{d.aforceUsagePerCrew}× / crew</Text>
-                  </View>
-                </View>
-              );
-            })}
-            <Text style={styles.privacyNote}>
-              Aggregate trends only. No individual health data is shown unless the user
-              has explicitly opted in.
-            </Text>
-          </View>
-
-          {/* ── 8. Engagement / Rewards ─────────────────────────────── */}
+          {/* ── 7. Engagement / Rewards ─────────────────────────────── */}
           <SectionHeader label="GUEST ENGAGEMENT" hint="Cruise wellness badges" />
           <View style={styles.card}>
             <View style={styles.badgeGrid}>
@@ -561,7 +456,7 @@ function CruiseModeBody() {
             </View>
           </View>
 
-          {/* ── 9. Cross-feature navigation ─────────────────────────── */}
+          {/* ── 8. Cross-feature navigation ─────────────────────────── */}
           <SectionHeader label="CONNECT TO" hint="Cross-feature shortcuts" />
           <View style={[styles.card, { paddingVertical: 8 }]}>
             <NavRow
@@ -591,20 +486,12 @@ function CruiseModeBody() {
             />
           </View>
 
-          {/* ── 10. Business positioning ────────────────────────────── */}
+          {/* ── 9. Business positioning ─────────────────────────────── */}
           <SectionHeader label="WHY CRUISE MODE" />
           <View style={[styles.card, { gap: 14 }]}>
             <PitchBlock
-              eyebrow="FOR OPERATORS"
-              body="Elevate guest wellness, reduce dehydration incidents, and protect on-board revenue across every sailing."
-            />
-            <PitchBlock
               eyebrow="FOR GUESTS"
               body="Enjoy more, recover faster, and stay ahead of dehydration at sea."
-            />
-            <PitchBlock
-              eyebrow="FOR CREW"
-              body="Crew get personalized hydration support through Social Mode — tuned for long shifts, heat exposure, and high-movement days."
             />
             <Text style={styles.brandLine}>
               Built for Royal Caribbean, Carnival, Norwegian, Disney, Virgin Voyages, and luxury cruise lines.
@@ -700,31 +587,6 @@ function NavRow({
   );
 }
 
-function KpiCell({
-  label,
-  value,
-  accent,
-  small,
-}: {
-  label: string;
-  value: string;
-  accent: string;
-  small?: boolean;
-}) {
-  return (
-    <View style={styles.kpiCell}>
-      <Text
-        style={[small ? styles.kpiValueSmall : styles.kpiValue, { color: accent }]}
-        numberOfLines={1}
-        adjustsFontSizeToFit
-      >
-        {value}
-      </Text>
-      <Text style={styles.kpiLabel}>{label}</Text>
-    </View>
-  );
-}
-
 function PitchBlock({ eyebrow, body }: { eyebrow: string; body: string }) {
   return (
     <View>
@@ -749,7 +611,7 @@ export default function CruiseModeScreen() {
       <FeatureGate
         flag="cruise_mode_enabled"
         title="Cruise Mode · Premium"
-        description="Hydration intelligence for cruise guests at sea, with operator visibility across the fleet. Crew get personalized support through Social Mode. Activate the demo to preview the full Cruise Mode product."
+        description="Hydration intelligence for cruise guests at sea — pool day, excursion, and port-day risk all in one place. Activate the demo to preview the full Cruise Mode product."
         accentColor={CRUISE.aqua}
         ctaLabel="Activate Cruise Demo"
       >
@@ -1083,56 +945,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 
-  // Crew dashboard
-  deptRow: {
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: CRUISE.borderSoft,
-    gap: 6,
-  },
-  deptHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  deptName: {
-    fontSize: 13,
-    fontFamily: "Inter_700Bold",
-    color: Colors.text.primary,
-  },
-  deptRiskPill: {
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 100,
-    borderWidth: 1,
-  },
-  deptRiskText: {
-    fontSize: 9,
-    fontFamily: "Inter_700Bold",
-    letterSpacing: 1,
-  },
-  complianceBarBg: {
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: CRUISE.borderSoft,
-    overflow: "hidden",
-  },
-  complianceBar: { height: "100%", borderRadius: 2 },
-  deptMeta: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
-  deptMetaText: {
-    fontSize: 10,
-    fontFamily: "Inter_400Regular",
-    color: Colors.text.muted,
-  },
-  privacyNote: {
-    fontSize: 10,
-    fontFamily: "Inter_400Regular",
-    color: Colors.text.muted,
-    fontStyle: "italic",
-    marginTop: 12,
-    lineHeight: 14,
-  },
-
   // Badge grid
   badgeGrid: {
     flexDirection: "row",
@@ -1325,104 +1137,4 @@ const styles = StyleSheet.create({
     color: Colors.text.secondary,
   },
 
-  // Fleet KPI strip
-  kpiRow: {
-    flexDirection: "row",
-    alignItems: "stretch",
-    gap: 12,
-  },
-  kpiCell: {
-    flex: 1,
-    gap: 4,
-  },
-  kpiValue: {
-    fontFamily: "Inter_700Bold",
-    fontSize: 22,
-    color: Colors.text.primary,
-  },
-  kpiValueSmall: {
-    fontFamily: "Inter_700Bold",
-    fontSize: 14,
-    color: Colors.text.primary,
-  },
-  kpiLabel: {
-    fontFamily: "Inter_500Medium",
-    fontSize: 9,
-    color: Colors.text.muted,
-    letterSpacing: 1.2,
-    textTransform: "uppercase",
-  },
-  kpiDivider: {
-    width: 1,
-    backgroundColor: CRUISE.borderSoft,
-  },
-
-  // Fleet ship switcher
-  shipRow: {
-    gap: 10,
-    paddingHorizontal: 14,
-    paddingBottom: 12,
-    paddingTop: 4,
-  },
-  shipChip: {
-    paddingHorizontal: 12,
-    paddingVertical: 9,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: CRUISE.borderSoft,
-    backgroundColor: CRUISE.navyMid,
-    minWidth: 170,
-  },
-  shipChipActive: {
-    borderColor: CRUISE.aqua + "88",
-    backgroundColor: CRUISE.aquaSoft,
-  },
-  shipChipName: {
-    fontSize: 12,
-    fontFamily: "Inter_700Bold",
-    color: Colors.text.primary,
-  },
-  shipChipMeta: {
-    fontSize: 10,
-    fontFamily: "Inter_400Regular",
-    color: Colors.text.muted,
-    marginTop: 2,
-  },
-
-  // Selected-ship header inside detail card
-  shipHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    paddingBottom: 12,
-    marginBottom: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: CRUISE.borderSoft,
-  },
-  shipHeaderName: {
-    fontSize: 14,
-    fontFamily: "Inter_700Bold",
-    color: Colors.text.primary,
-  },
-  shipHeaderMeta: {
-    fontSize: 11,
-    fontFamily: "Inter_400Regular",
-    color: Colors.text.muted,
-    marginTop: 2,
-  },
-  shipHeaderKpi: {
-    alignItems: "flex-end",
-  },
-  shipHeaderKpiValue: {
-    fontSize: 20,
-    fontFamily: "Inter_700Bold",
-    color: CRUISE.aqua,
-  },
-  shipHeaderKpiLabel: {
-    fontSize: 9,
-    fontFamily: "Inter_500Medium",
-    color: Colors.text.muted,
-    letterSpacing: 1.2,
-    textTransform: "uppercase",
-  },
 });
