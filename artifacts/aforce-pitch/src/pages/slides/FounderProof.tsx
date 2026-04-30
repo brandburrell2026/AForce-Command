@@ -1,9 +1,18 @@
 export default function FounderProof() {
   const arenas = [
     {
+      label: "The NBA",
+      title: "There are no off nights.",
+      detail: "Every possession matters. Every minute is recorded. Performance is the only currency that travels.",
+      accent: "text-accent",
+      ring: "ring-accent/35",
+      bar: "bg-accent",
+      bg: "from-accent/[0.10] to-accent/0",
+    },
+    {
       label: "Wall Street",
-      title: "Capital decisions under pressure.",
-      detail: "6 AM or 10 PM — the market doesn't wait. You show up sharp, or you pay for it.",
+      title: "There are no missed moments.",
+      detail: "6 AM or 10 PM — the market doesn't wait. Capital decisions under pressure. You show up sharp, or you pay for it.",
       accent: "text-blue",
       ring: "ring-blue/35",
       bar: "bg-blue",
@@ -11,8 +20,8 @@ export default function FounderProof() {
     },
     {
       label: "Entrepreneurship",
-      title: "Building from zero. High-pressure execution.",
-      detail: "Every decision is yours. No safety net. No off days. Performance is the job.",
+      title: "There are no second chances.",
+      detail: "Building from zero. High-pressure execution. Every decision is yours. No safety net. No off days.",
       accent: "text-primary",
       ring: "ring-primary/35",
       bar: "bg-primary",
@@ -48,24 +57,24 @@ export default function FounderProof() {
 
       <div className="absolute top-[37vh] left-[6vw] right-[6vw] flex items-end justify-between gap-[3vw]">
         <div className="font-display text-[2.2vw] leading-[1.15] tracking-tight max-w-[44vw]">
-          <span className="text-text">No room for inconsistency. </span>
-          <span className="text-primary">No off days.</span>
+          <span className="text-text">Performance expected. Pressure constant. </span>
+          <span className="text-primary">Failure has consequences.</span>
         </div>
         <div className="font-body text-[1.05vw] text-text/80 max-w-[26vw] leading-snug text-right pb-[0.6vh]">
-          <div className="text-text">When performance drops, you lose.</div>
-          <div className="mt-[0.6vh] text-primary font-semibold">So it doesn't.</div>
+          <div className="text-text">What defines them is not perfection.</div>
+          <div className="mt-[0.6vh] text-primary font-semibold">It is consistency.</div>
         </div>
       </div>
 
-      <div className="absolute top-[50vh] left-[6vw] right-[6vw] h-[22vh] grid grid-cols-2 gap-[2vw]">
+      <div className="absolute top-[50vh] left-[6vw] right-[6vw] h-[22vh] grid grid-cols-3 gap-[1.6vw]">
         {arenas.map((a) => (
           <div key={a.label} className={`relative rounded-2xl ring-1 ${a.ring} bg-bg-elev/40 overflow-hidden`}>
             <div className={`absolute inset-0 bg-gradient-to-b ${a.bg} pointer-events-none`} />
             <div className={`absolute inset-x-0 top-0 h-[3px] ${a.bar}`} />
-            <div className="relative p-[1.4vw] flex flex-col h-full">
-              <div className={`font-body uppercase tracking-[0.28em] text-[0.85vw] ${a.accent} font-semibold`}>{a.label}</div>
-              <div className="font-display text-[1.5vw] leading-tight tracking-tight text-text mt-[0.9vh]">{a.title}</div>
-              <div className="mt-auto pt-[1vh] border-t border-text/10 font-body text-[0.95vw] text-text/70 leading-snug">
+            <div className="relative p-[1.3vw] flex flex-col h-full">
+              <div className={`font-body uppercase tracking-[0.28em] text-[0.8vw] ${a.accent} font-semibold`}>{a.label}</div>
+              <div className="font-display text-[1.4vw] leading-tight tracking-tight text-text mt-[0.9vh]">{a.title}</div>
+              <div className="mt-auto pt-[1vh] border-t border-text/10 font-body text-[0.85vw] text-text/70 leading-snug">
                 {a.detail}
               </div>
             </div>
@@ -76,9 +85,9 @@ export default function FounderProof() {
       <div className="absolute top-[75vh] left-[6vw] right-[6vw]">
         <div className="rounded-2xl ring-1 ring-primary/40 bg-bg-elev/40 px-[2vw] py-[1.6vh] relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-r from-primary/[0.10] via-accent/[0.06] to-primary/[0.10] pointer-events-none" />
-          <div className="relative font-display text-[2.3vw] leading-[1.15] tracking-tight text-center">
-            <span className="text-text">We built the system </span>
-            <span className="text-primary">we wish we had.</span>
+          <div className="relative font-display text-[1.95vw] leading-[1.18] tracking-tight text-center">
+            <span className="text-text">Sports discipline. Repetition. Consistency under pressure — </span>
+            <span className="text-primary">translated into modern professional performance.</span>
           </div>
         </div>
       </div>
@@ -86,7 +95,7 @@ export default function FounderProof() {
       <div className="absolute bottom-[5vh] left-[6vw] right-[6vw]">
         <div className="border-t border-text/10 pt-[1.8vh] flex items-center justify-between gap-[2vw] flex-wrap">
           <div className="font-body uppercase tracking-[0.28em] text-[1vw] text-primary font-semibold">
-            AForce exists <span className="text-text">because of that reality.</span>
+            AForce is built <span className="text-text">from this truth.</span>
           </div>
           <div className="font-body text-[0.95vw] uppercase tracking-[0.28em] text-text/55">
             Brandon Burrell · Julius Burrell

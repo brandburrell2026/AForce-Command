@@ -90,13 +90,13 @@ export default function Problem() {
         <div className="border-t border-text/10 pt-[2vh]">
           <div className="flex items-center gap-[1vw] mb-[1.2vh]">
             <div className="h-px w-[3vw] bg-primary" />
-            <div className="font-body uppercase tracking-[0.32em] text-[0.85vw] text-primary font-semibold">The New Territory</div>
+            <div className="font-body uppercase tracking-[0.32em] text-[0.85vw] text-primary font-semibold">AForce does something fundamentally different</div>
           </div>
-          <div className="font-display text-[1.7vw] leading-[1.25] tracking-tight">
-            <span className="text-text/55">Performance doesn't come from </span>
-            <span className="text-text">more.</span>
-            <span className="text-text/55"> It comes from </span>
-            <span className="text-primary">focus, control, and consistency.</span>
+          <div className="font-display text-[1.55vw] leading-[1.25] tracking-tight">
+            <span className="text-text">It removes noise. </span>
+            <span className="text-text">It removes friction. </span>
+            <span className="text-primary">It creates clarity. </span>
+            <span className="text-text/65">It prepares you for performance.</span>
           </div>
         </div>
       </div>

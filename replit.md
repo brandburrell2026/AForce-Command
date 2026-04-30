@@ -61,6 +61,7 @@ I prefer iterative development, with frequent, small updates. Ask before making 
 - A 27-slide React presentation (`/aforce-pitch/slide{1..27}`) outlining the project's vision, problem statement, solution (AForce OS), go-to-market strategy, and recurring revenue model.
 - Focuses on AForce product line (hydration flavors) and the OS app.
 - Includes key business metrics and funding ask.
+- **Performance Positioning Brief alignment (Apr 30 2026, prepared by Kristel van Kleef & Peter Ingwersen):** Slides 2–5 are the narrative spine and now match the brief verbatim where the brief is precise. Slide 2 (Founder Proof) carries the NBA / Wall Street / Entrepreneurship trio — "no off nights · no missed moments · no second chances" — and closes on "consistency, not perfection." Slide 3 (Mission) anchors the Brand Truth tile to the exact line: *"Performance is non-negotiable. Not your best ever. Not your best in perfect conditions. Your best, reliably, consistently, every single day."* Slide 4 (Problem / The Disruption) keeps the Red Bull "loud by design" framing and surfaces the verbatim AForce counter: *"It removes noise. It removes friction. It creates clarity. It prepares you for performance."* Slide 5 (Insight / The New Territory) carries the cadence *"Not one big moment. Not occasional peaks. Every day. Every moment. Every decision."*
 
 ### API Server (`artifacts/api-server`)
 - **Scaling Blueprint:** Outlines target topology for 50M+ users, including multi-region deployments, sharded databases, Redis, Kafka, and AI provider failover.

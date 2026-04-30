@@ -2,8 +2,8 @@ export default function Mission() {
   const tenets = [
     {
       eyebrow: "The Brand Truth",
-      title: "Your best — every day. Not your best ever.",
-      body: "Not your best in perfect conditions. Reliably, consistently, every single day. The standard this category has not yet defined.",
+      title: "Performance is non-negotiable.",
+      body: "Not your best ever. Not your best in perfect conditions. Your best, reliably, consistently, every single day. The one standard this category has not yet defined.",
       accent: "text-accent",
       ring: "ring-accent/35",
       bar: "bg-accent",

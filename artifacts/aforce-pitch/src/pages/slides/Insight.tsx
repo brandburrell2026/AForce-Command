@@ -47,12 +47,12 @@ export default function Insight() {
       <div className="absolute top-[36vh] left-[6vw] right-[6vw]">
         <div className="flex items-center gap-[1vw] mb-[1.4vh]">
           <div className="h-px w-[3vw] bg-accent" />
-          <div className="font-body uppercase tracking-[0.32em] text-[0.85vw] text-accent font-semibold">Where AForce Lives</div>
+          <div className="font-body uppercase tracking-[0.32em] text-[0.85vw] text-accent font-semibold">The New Territory · Where AForce Lives</div>
         </div>
-        <div className="font-display text-[2.8vw] leading-[1.04] tracking-tight text-balance">
-          <span className="text-text/55">The physical trigger. </span>
-          <span className="text-text">The signal to switch state. </span>
-          <span className="text-accent">The transition into performance.</span>
+        <div className="font-display text-[2.6vw] leading-[1.04] tracking-tight text-balance">
+          <span className="text-text/55">Not one big moment. Not occasional peaks. </span>
+          <span className="text-text">Every day. Every moment. </span>
+          <span className="text-accent">Every decision.</span>
         </div>
       </div>
 
