@@ -336,3 +336,9 @@ id = "i1aZL21hUm5gYInofvrMm"
 uri = "file://.local/patent/AForce_Invention_Disclosure.md"
 type = "text"
 title = "AForce Invention Disclosure — Sweat Engine & Cruise Mode (for patent counsel)"
+
+[[outputs]]
+id = "KPf8AmecFJ5pOQCXiIHPu"
+uri = "file://.local/patent/AForce_Invention_Disclosure.pdf"
+type = "pdf"
+title = "AForce OS — Invention Disclosure (Sweat Engine & Cruise Mode) — PDF"
