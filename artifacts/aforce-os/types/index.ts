@@ -360,6 +360,9 @@ export interface FeatureFlags {
   state_competition_enabled: boolean;
   team_competition_enabled: boolean;
   global_leaderboard_enabled: boolean;
+
+  // Enterprise — Cruise Mode (premium add-on for cruise lines & guests)
+  cruise_mode_enabled: boolean;
 }
 
 // ─── Hydration Journal ────────────────────────────────────────────────────────

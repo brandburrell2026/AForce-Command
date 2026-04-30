@@ -1,0 +1,149 @@
+Add a new AForce OS feature called “Cruise Mode” for cruise line employees and guests.
+
+Goal:
+Cruise Mode helps crew members and guests monitor hydration, heat exposure, alcohol impact, activity level, sleep disruption, and recovery while onboard a cruise ship.
+
+Create this as a premium feature inside AForce OS, not a separate app.
+
+Core user types:
+1. Crew Members
+   - Housekeeping
+   - Food & Beverage
+   - Entertainment staff
+   - Deck crew
+   - Spa/Fitness staff
+   - Officers
+2. Guests
+   - Families
+   - Athletes/fitness guests
+   - Older travelers
+   - Party/nightlife guests
+   - Excursion guests
+
+Main Cruise Mode screen:
+Title: Cruise Mode
+Subtitle: Hydration intelligence for life at sea.
+
+Add these sections:
+
+1. Live Hydration Score
+   - 0–100 score
+   - Status labels:
+     - Optimized
+     - Monitor
+     - Dehydration Risk
+     - Recovery Needed
+   - Show AForce recommendation:
+     “Drink 12–16 oz water + 1 AForce stick now.”
+
+2. Ship Environment Factors
+   Include:
+   - Temperature
+   - Humidity
+   - Sun exposure
+   - Deck exposure
+   - Indoor/outdoor work status
+   - Sea day vs port day
+   - Excursion risk level
+
+3. Crew Performance Mode
+   For cruise employees, add:
+   - Shift length
+   - Role type
+   - Steps/activity level
+   - Sweat risk
+   - Break reminders
+   - Hydration cycle reminders
+   - Fatigue risk
+   - Heat stress warning
+
+   Example command:
+   “You are entering a high-risk dehydration window. Drink water now and complete one AForce hydration cycle before your next shift block.”
+
+4. Guest Wellness Mode
+   For guests, add:
+   - Pool/deck time
+   - Alcohol intake estimate
+   - Excursion activity
+   - Fitness activity
+   - Sleep quality
+   - Recovery status
+
+   Example command:
+   “You had elevated sun and alcohol exposure today. Complete a recovery hydration cycle before dinner.”
+
+5. Alcohol + Sun Risk Layer
+   Add a visual risk card that combines:
+   - Alcohol drinks logged
+   - Hours in sun
+   - Steps/activity
+   - Sleep disruption
+   - Hydration score
+
+   Risk levels:
+   - Low
+   - Moderate
+   - High
+   - Recovery Critical
+
+6. Port Day / Excursion Mode
+   Add a port-day checklist:
+   - Hydrate before leaving ship
+   - Bring AForce stick
+   - Log outdoor activity
+   - Monitor heat index
+   - Recovery reminder after returning
+
+7. Crew Dashboard
+   Create an admin-style dashboard for cruise operators:
+   - Aggregate crew hydration risk
+   - Heat risk by department
+   - Anonymous wellness trends
+   - High-risk shift windows
+   - Hydration compliance
+   - AForce product usage
+
+   Do not show private individual health data unless user explicitly opts in.
+
+8. Guest Engagement / Rewards
+   Add:
+   - Hydration streaks
+   - Cruise wellness badge
+   - Excursion recovery badge
+   - Deck day badge
+   - QR scan to log AForce usage
+   - Reorder / buy onboard CTA
+
+9. Design Direction
+   Make it feel premium, oceanic, Apple-level, and cruise-line ready.
+   Use:
+   - Deep navy background
+   - Electric aqua accents
+   - Soft glowing hydration orb
+   - Premium cards
+   - Clean icons
+   - Smooth transitions
+   - Mobile-first layout
+
+10. Navigation
+   Add Cruise Mode as a feature inside the existing AForce OS navigation.
+   It should connect to:
+   - Hydration Score
+   - Autopilot
+   - Social Mode
+   - Heat Mode
+   - Recovery Mode
+
+11. Demo Data
+   Add realistic cruise sample data:
+   - Crew member: 9-hour F&B shift, 18,000 steps, high humidity, moderate dehydration risk
+   - Guest: pool day, 3 alcoholic drinks, 11,000 steps, high sun exposure, recovery needed
+   - Excursion guest: 4-hour walking tour, high heat index, hydration warning
+
+12. Business Positioning
+   Include small copy blocks:
+   - “For cruise operators: reduce dehydration risk, improve crew performance, and elevate guest wellness.”
+   - “For guests: enjoy more, recover faster, and stay ahead of dehydration at sea.”
+   - “For crew: smarter hydration support during long shifts, heat exposure, and high-movement days.”
+
+Make this feature feel like a serious enterprise wellness product that could be sold to Royal Caribbean, Carnival, Norwegian, Disney Cruise Line, Virgin Voyages, and luxury cruise brands.

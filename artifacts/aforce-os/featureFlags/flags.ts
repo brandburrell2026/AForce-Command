@@ -32,6 +32,9 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   state_competition_enabled: true,
   team_competition_enabled: true,
   global_leaderboard_enabled: true,
+
+  // Enterprise — Cruise Mode (premium add-on)
+  cruise_mode_enabled: false,
 };
 
 /**
@@ -52,6 +55,7 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
   state_competition_enabled: true,
   team_competition_enabled: true,
   global_leaderboard_enabled: true,
+  cruise_mode_enabled: true,
 };
 
 export function isFlagEnabled(flags: FeatureFlags, key: keyof FeatureFlags): boolean {

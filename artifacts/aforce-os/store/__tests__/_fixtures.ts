@@ -101,6 +101,7 @@ export const baseFlags: FeatureFlags = {
   state_competition_enabled: false,
   team_competition_enabled: false,
   global_leaderboard_enabled: false,
+  cruise_mode_enabled: false,
 };
 
 export const baseSubscription: UserSubscription = {

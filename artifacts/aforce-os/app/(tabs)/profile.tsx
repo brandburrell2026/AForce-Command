@@ -333,6 +333,21 @@ export default function ProfileScreen() {
                   </Pressable>
                   <Divider />
                   <Pressable
+                    onPress={() => router.push('/cruise')}
+                    testID="profile-cruise-link"
+                    style={styles.settingRow}
+                  >
+                    <View style={styles.settingLeft}>
+                      <Icon name="anchor" size={16} color="#00E5FF" />
+                      <View>
+                        <Text style={styles.settingLabel}>Cruise Mode · Premium</Text>
+                        <Text style={styles.settingSubLabel}>Hydration intelligence for life at sea</Text>
+                      </View>
+                    </View>
+                    <Icon name="chevron-right" size={16} color={Colors.text.muted} />
+                  </Pressable>
+                  <Divider />
+                  <Pressable
                     onPress={() => router.push('/achievements')}
                     testID="profile-achievements-link"
                     style={styles.settingRow}
