@@ -91,6 +91,28 @@ I prefer iterative development, with frequent, small updates. Ask before making 
 - **`types/`**: Global type definitions.
 - **`data/`**: Mock data, product definitions, voice/sharing templates.
 
+# Launch Readiness Reference
+
+## Environment variables (Expo client)
+- `EXPO_PUBLIC_API_BASE` — fully-qualified API base (e.g. `https://aforce.app/api`). Optional; takes precedence over `EXPO_PUBLIC_DOMAIN` when set.
+- `EXPO_PUBLIC_DOMAIN` — production domain (e.g. `aforce.app`). Used to derive `https://${domain}/api` for native builds. Baked at EAS build time.
+- Web preview / dev: when neither var is set the client falls back to `window.location.origin/api` (web) or `http://localhost:8080/api` (native fallback) — only relevant in the workspace, never in shipped builds.
+
+## Environment variables (api-server, managed)
+- `STRIPE_WEBHOOK_SECRET` — auto-managed by the Stripe Replit integration (`initStripe: managed webhook ensured`). No manual setup required.
+- `SESSION_SECRET`, `OPENWEATHER_API_KEY` — already configured.
+- `DATABASE_URL` — provided by Replit PostgreSQL.
+
+## Auth-gated API routes (`requireAuth` via `@clerk/express`)
+All mutating and user-scoped endpoints require a Clerk session token (Bearer):
+- **Subscription / billing:** `POST /api/checkout/session`, `POST /api/checkout/cart`, `POST /api/stripe/portal-session`, `GET /api/entitlement`.
+- **AForce core state:** all mutating `/api/aforce/*` (state, intake, snapshots, journal, weather).
+- **Social graph:** all `/api/battles/*`, `/api/circle/*`, `/api/privacy/*`.
+- **Public:** `GET /api/checkout/return` (Stripe redirect bridge), `GET /api/checkout/session/:id` (read-only payment status), `POST /api/stripe/webhook` (Stripe-signed).
+
+## Stripe entitlement source-of-truth
+`/api/entitlement` returns the authoritative `{ planId, status, currentPeriodEnd, stripeCustomerId }` derived from the Stripe webhook–populated `stripe.subscriptions` mirror joined to `aforce_users.stripe_customer_id`. The mobile client polls every 60s + on app foreground via `useEntitlement`, and screens after Checkout / Portal sessions trigger an immediate `refreshEntitlement()` instead of writing optimistic local state. `services/subscriptionService.ts` is now seed-only — no client-side mock CRUD remains.
+
 # External Dependencies
 
 - **Stripe:** Payment processing.
