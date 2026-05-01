@@ -26,13 +26,15 @@ import { EnterprisePlanCard } from '@/components/EnterprisePlanCard';
 import { Colors } from '@/theme/colors';
 import { useAppStore } from '@/store/useAppStore';
 import { SUBSCRIPTION_PLANS } from '@/data/subscriptionPlans';
-import { switchPlan } from '@/services/subscriptionService';
 import type { SubscriptionPlan, SubscriptionPlanId } from '@/types/subscription';
 import { createCheckoutSession, fetchCheckoutSession } from '@/lib/api';
+import { refreshEntitlement } from '@/hooks/useEntitlement';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 
-// Plans that route through real Stripe Checkout. All other plan changes stay
-// fully local (free / enterprise / team flows are out of scope for the demo).
+// Plans that route through real Stripe Checkout. Anything not in this set
+// (Core entry tier, Team / Performance Systems enterprise tiers) goes
+// through a "Contact sales" alert at launch — there is no mock plan
+// switch in the shipped app.
 const STRIPE_PLAN_IDS = new Set<SubscriptionPlanId>(['recovery_plus', 'athlete', 'system', 'elite']);
 
 type CategoryId = 'consumer' | 'team' | 'performance';
@@ -65,7 +67,7 @@ export default function SubscriptionScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const layout = useResponsiveLayout();
-  const { state, setSubscription } = useAppStore();
+  const { state } = useAppStore();
   const params = useLocalSearchParams<{ planId?: string; autoCheckout?: string }>();
   const [filter, setFilter] = useState<CategoryId>('consumer');
   const [pendingPlanId, setPendingPlanId] = useState<SubscriptionPlanId | null>(null);
@@ -87,56 +89,62 @@ export default function SubscriptionScreen() {
     setPendingPlanId(planId);
     try {
       // Paid consumer upgrades route through real Stripe Checkout. Everything
-      // else (downgrade-to-Core, Team, Performance Systems) stays local.
-      if (STRIPE_PLAN_IDS.has(planId)) {
-        const returnUrl = Linking.createURL('/subscription', { queryParams: {} });
-        let session;
-        try {
-          session = await createCheckoutSession({ planId, returnUrl });
-        } catch (err) {
-          const msg = err instanceof Error ? err.message : 'Could not start checkout.';
-          Alert.alert('Checkout unavailable', msg);
-          return;
-        }
-
-        const result = await WebBrowser.openAuthSessionAsync(session.url, returnUrl);
-
-        // openAuthSessionAsync resolves with the redirect URL on success.
-        const redirected =
-          result.type === 'success' && typeof result.url === 'string' ? result.url : null;
-
-        if (!redirected) return; // cancelled / dismissed — leave plan unchanged
-
-        const parsed = Linking.parse(redirected);
-        const status = (parsed.queryParams?.status as string | undefined) ?? '';
-        if (status !== 'success') return;
-
-        // Verify with the server before switching plans — the redirect alone
-        // is not a trust boundary (a tampered or stale URL must not flip
-        // a user onto a paid plan they didn't actually pay for).
-        let paid = false;
-        try {
-          const sessionStatus = await fetchCheckoutSession(session.sessionId);
-          paid = sessionStatus.paid && sessionStatus.planId === planId;
-        } catch {
-          paid = false;
-        }
-        if (!paid) {
-          Alert.alert(
-            'Could not confirm checkout',
-            'We could not verify your payment. If you were charged, your plan will update shortly.',
-          );
-          return;
-        }
-
-        const next = await switchPlan(planId);
-        setSubscription(next);
+      // else (Core entry tier, Team, Performance Systems) is sales-led and
+      // does not have an in-app self-serve flow at launch.
+      if (!STRIPE_PLAN_IDS.has(planId)) {
+        Alert.alert(
+          'Talk to our team',
+          'This plan is sold direct. Email sales@aforce.app and we will get you set up.',
+        );
         return;
       }
 
-      // Local switch (free tier, team, enterprise placeholders).
-      const next = await switchPlan(planId);
-      setSubscription(next);
+      const returnUrl = Linking.createURL('/subscription', { queryParams: {} });
+      let session;
+      try {
+        session = await createCheckoutSession({ planId, returnUrl });
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : 'Could not start checkout.';
+        Alert.alert('Checkout unavailable', msg);
+        return;
+      }
+
+      const result = await WebBrowser.openAuthSessionAsync(session.url, returnUrl);
+
+      // openAuthSessionAsync resolves with the redirect URL on success.
+      const redirected =
+        result.type === 'success' && typeof result.url === 'string' ? result.url : null;
+
+      if (!redirected) return; // cancelled / dismissed — leave plan unchanged
+
+      const parsed = Linking.parse(redirected);
+      const status = (parsed.queryParams?.status as string | undefined) ?? '';
+      if (status !== 'success') return;
+
+      // Verify with the server before reflecting the plan switch — the
+      // redirect alone is not a trust boundary (a tampered or stale URL
+      // must not flip a user onto a paid plan they didn't actually pay
+      // for).
+      let paid = false;
+      try {
+        const sessionStatus = await fetchCheckoutSession(session.sessionId);
+        paid = sessionStatus.paid && sessionStatus.planId === planId;
+      } catch {
+        paid = false;
+      }
+      if (!paid) {
+        Alert.alert(
+          'Could not confirm checkout',
+          'We could not verify your payment. If you were charged, your plan will update shortly.',
+        );
+        return;
+      }
+
+      // Pull the authoritative plan from /api/entitlement (set by the
+      // Stripe webhook) instead of writing optimistic local state. The
+      // 60s polling interval would eventually reconcile, but kicking an
+      // immediate refetch keeps the UI in sync with the charge.
+      await refreshEntitlement();
     } finally {
       setPendingPlanId(null);
     }
@@ -280,7 +288,7 @@ export default function SubscriptionScreen() {
           <View style={styles.trustRow}>
             <Feather name="shield" size={12} color={Colors.text.muted} />
             <Text style={styles.trustText}>
-              Demo billing. Stripe + Apple IAP integrations ready.
+              Secured by Stripe. Cancel anytime from Manage Plan.
             </Text>
           </View>
         </ScrollView>

@@ -1,20 +1,46 @@
 /**
  * Manage Subscription — current plan, billing, product shipment, controls.
+ *
+ * Cancel / pause / resume / update payment method are all handled by the
+ * Stripe Customer Portal (POST /api/stripe/portal-session). One button
+ * opens the hosted portal in a browser session; on return we trigger an
+ * entitlement refresh so any plan change reflects immediately instead of
+ * waiting for the next 60s poll tick.
+ *
+ * Product-shipment skipping is not a Stripe Subscription concept and is
+ * deferred to a v1.1 fulfillment endpoint.
  */
 
 import React, { useState } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, Platform, Pressable,
+  View, Text, StyleSheet, ScrollView, Platform, Pressable, Alert,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
+import * as WebBrowser from 'expo-web-browser';
+import * as Linking from 'expo-linking';
 
 import { GradientBackground } from '@/components/GradientBackground';
 import { Colors } from '@/theme/colors';
 import { useAppStore } from '@/store/useAppStore';
 import { PLAN_BY_ID, getEffectiveFeatures } from '@/data/subscriptionPlans';
-import { cancel, pause, resume, skipNextDelivery } from '@/services/subscriptionService';
+import { createPortalSession, type ApiError } from '@/lib/api';
+import { refreshEntitlement } from '@/hooks/useEntitlement';
+
+/**
+ * `lib/api.request` throws a plain `{ status, message }` ApiError object,
+ * not a real Error instance, so `err instanceof Error` is false. Use a
+ * structural check instead.
+ */
+function isApiError(err: unknown): err is ApiError {
+  return (
+    typeof err === 'object' &&
+    err !== null &&
+    typeof (err as { status?: unknown }).status === 'number' &&
+    typeof (err as { message?: unknown }).message === 'string'
+  );
+}
 
 function formatDate(iso?: string): string {
   if (!iso) return '—';
@@ -24,34 +50,48 @@ function formatDate(iso?: string): string {
 export default function ManageSubscriptionScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { state, setSubscription } = useAppStore();
+  const { state } = useAppStore();
   const sub = state.subscription;
   const plan = PLAN_BY_ID[sub.planId];
   const features = getEffectiveFeatures(sub.planId);
-  const [busy, setBusy] = useState<'cancel' | 'pause' | 'resume' | 'skip' | null>(null);
+  const [busy, setBusy] = useState(false);
 
   const topPadding = Platform.OS === 'web' ? 67 : insets.top;
   const bottomPadding = Platform.OS === 'web' ? 34 : insets.bottom;
 
-  const onCancel = async () => {
+  const onManageBilling = async () => {
     if (busy) return;
-    setBusy('cancel');
-    try { setSubscription(await cancel(sub)); } finally { setBusy(null); }
-  };
-  const onPause = async () => {
-    if (busy) return;
-    setBusy('pause');
-    try { setSubscription(await pause(sub)); } finally { setBusy(null); }
-  };
-  const onResume = async () => {
-    if (busy) return;
-    setBusy('resume');
-    try { setSubscription(await resume(sub)); } finally { setBusy(null); }
-  };
-  const onSkip = async () => {
-    if (busy) return;
-    setBusy('skip');
-    try { setSubscription(await skipNextDelivery(sub)); } finally { setBusy(null); }
+    setBusy(true);
+    try {
+      const returnUrl = Linking.createURL('/subscription/manage', { queryParams: {} });
+      let session;
+      try {
+        session = await createPortalSession(returnUrl);
+      } catch (err) {
+        // The most common failure here is `no_stripe_customer` (404):
+        // the user has never completed Checkout so Stripe has no
+        // customer record for them. Surface a clear next step instead
+        // of a raw error. For any other failure we keep the message
+        // generic — server error bodies aren't safe to render verbatim.
+        let friendly = 'Could not open billing. Please try again.';
+        if (isApiError(err)) {
+          if (err.status === 404 && err.message.includes('no_stripe_customer')) {
+            friendly = 'No billing account yet. Choose a plan to set up billing first.';
+          } else if (err.status === 401) {
+            friendly = 'Please sign in again to manage billing.';
+          }
+        }
+        Alert.alert('Billing unavailable', friendly);
+        return;
+      }
+      await WebBrowser.openAuthSessionAsync(session.url, returnUrl);
+      // The portal handles cancel / pause / resume / payment method in
+      // its own UI; on return, refetch entitlement so the local plan +
+      // status reflect anything the user changed.
+      await refreshEntitlement();
+    } finally {
+      setBusy(false);
+    }
   };
 
   const statusColor =
@@ -121,7 +161,9 @@ export default function ManageSubscriptionScreen() {
             <Row icon="shield"      label="Provider"        value={sub.billing.provider.toUpperCase()} />
           </View>
 
-          {/* Product subscription */}
+          {/* Product subscription — display only at launch. Skip / pause
+              of physical shipments isn't a Stripe Subscription concept
+              and will land via a v1.1 fulfillment endpoint. */}
           {sub.product && (
             <>
               <SectionHeader label="PRODUCT SHIPMENTS" />
@@ -141,11 +183,6 @@ export default function ManageSubscriptionScreen() {
                     {i < sub.product!.allotments.length - 1 && <Divider />}
                   </React.Fragment>
                 ))}
-                <Divider />
-                <Pressable onPress={onSkip} disabled={!!busy} style={styles.skipBtn}>
-                  <Feather name="skip-forward" size={13} color={Colors.text.primary} />
-                  <Text style={styles.skipBtnText}>{busy === 'skip' ? 'SKIPPING…' : 'SKIP NEXT DELIVERY'}</Text>
-                </Pressable>
               </View>
             </>
           )}
@@ -172,40 +209,27 @@ export default function ManageSubscriptionScreen() {
             ))}
           </View>
 
-          {/* Controls */}
+          {/* Controls — Stripe Customer Portal handles cancel / pause /
+              resume / payment method update / invoices in one hosted UI. */}
           <SectionHeader label="SUBSCRIPTION CONTROLS" />
           <View style={styles.card}>
-            {sub.status === 'active' && (
-              <Pressable onPress={onPause} disabled={!!busy} style={styles.controlBtn}>
-                <Feather name="pause-circle" size={14} color={Colors.states.RECOVERING.primary} />
-                <Text style={[styles.controlText, { color: Colors.states.RECOVERING.primary }]}>
-                  {busy === 'pause' ? 'PAUSING…' : 'PAUSE SUBSCRIPTION'}
-                </Text>
-              </Pressable>
-            )}
-            {(sub.status === 'paused' || sub.status === 'canceled') && (
-              <Pressable onPress={onResume} disabled={!!busy} style={styles.controlBtn}>
-                <Feather name="play-circle" size={14} color={Colors.states.PEAK.primary} />
-                <Text style={[styles.controlText, { color: Colors.states.PEAK.primary }]}>
-                  {busy === 'resume' ? 'RESUMING…' : 'RESUME SUBSCRIPTION'}
-                </Text>
-              </Pressable>
-            )}
-            {sub.status !== 'canceled' && (
-              <>
-                <Divider />
-                <Pressable onPress={onCancel} disabled={!!busy} style={styles.controlBtn}>
-                  <Feather name="x-circle" size={14} color={Colors.states.DEPLETED.primary} />
-                  <Text style={[styles.controlText, { color: Colors.states.DEPLETED.primary }]}>
-                    {busy === 'cancel' ? 'CANCELING…' : 'CANCEL SUBSCRIPTION'}
-                  </Text>
-                </Pressable>
-              </>
-            )}
+            <Pressable
+              onPress={onManageBilling}
+              disabled={busy}
+              style={({ pressed }) => [styles.portalBtn, pressed && styles.portalBtnPressed]}
+            >
+              <Feather name="external-link" size={14} color={Colors.text.primary} />
+              <Text style={styles.portalBtnText}>
+                {busy ? 'OPENING…' : 'MANAGE BILLING'}
+              </Text>
+            </Pressable>
+            <Text style={styles.portalHint}>
+              Cancel, pause, update payment, or download invoices in the Stripe billing portal.
+            </Text>
           </View>
 
           <Text style={styles.footnote}>
-            Demo billing. No real charges.
+            Secured by Stripe.
           </Text>
         </ScrollView>
       </GradientBackground>
@@ -303,12 +327,6 @@ const styles = StyleSheet.create({
   shipmentDate: { fontSize: 12, fontFamily: 'Inter_500Medium', color: Colors.text.secondary, marginTop: 2 },
   shipmentStatus: { fontSize: 9, fontFamily: 'Inter_700Bold', color: Colors.text.muted, letterSpacing: 1.5 },
 
-  skipBtn: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
-    paddingVertical: 12,
-  },
-  skipBtnText: { fontSize: 11, fontFamily: 'Inter_700Bold', color: Colors.text.primary, letterSpacing: 1.2 },
-
   featureRow: {
     flexDirection: 'row', alignItems: 'center', gap: 10,
     paddingHorizontal: 14, paddingVertical: 12,
@@ -321,11 +339,16 @@ const styles = StyleSheet.create({
   },
   featureBadgeText: { fontSize: 8, fontFamily: 'Inter_700Bold', color: Colors.text.primary, letterSpacing: 0.8 },
 
-  controlBtn: {
+  portalBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
-    paddingVertical: 14,
+    paddingVertical: 16, paddingHorizontal: 14,
   },
-  controlText: { fontSize: 11, fontFamily: 'Inter_700Bold', letterSpacing: 1.2 },
+  portalBtnPressed: { opacity: 0.6 },
+  portalBtnText: { fontSize: 12, fontFamily: 'Inter_700Bold', color: Colors.text.primary, letterSpacing: 1.4 },
+  portalHint: {
+    fontSize: 11, fontFamily: 'Inter_400Regular', color: Colors.text.muted,
+    paddingHorizontal: 14, paddingBottom: 14, textAlign: 'center', lineHeight: 16,
+  },
 
   footnote: {
     fontSize: 11, fontFamily: 'Inter_400Regular',

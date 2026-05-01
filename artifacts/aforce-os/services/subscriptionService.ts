@@ -1,11 +1,15 @@
 /**
- * Subscription service — mock billing layer.
+ * Subscription service — boot-time seed only.
  *
- * Provides the same shape a real billing layer (Stripe, Apple IAP)
- * would expose, so screens can switch over without changing call sites.
+ * The shipped app uses real Stripe Checkout for paid plan upgrades and
+ * the Stripe Customer Portal for cancel / pause / resume / payment
+ * method changes. The plan + status are then sourced from
+ * `/api/entitlement` (set by the Stripe webhook) via `useEntitlement`.
  *
- * No real payment processing. All calls resolve immediately with a
- * 200–400ms simulated latency to keep the UI feel real.
+ * The only thing this module still owns is the cold-start seed used by
+ * `useAppStore` before the first entitlement fetch lands — every other
+ * mock CRUD function has been removed because it would write fake state
+ * that the real entitlement poll would then have to overwrite.
  */
 
 import type {
@@ -13,12 +17,6 @@ import type {
   UserSubscription,
 } from '../types/subscription';
 import { PLAN_BY_ID, getEffectiveFlags } from '../data/subscriptionPlans';
-
-const LATENCY = () => 200 + Math.floor(Math.random() * 200);
-
-function delay(ms: number) {
-  return new Promise<void>((res) => setTimeout(res, ms));
-}
 
 function buildSubscription(planId: SubscriptionPlanId): UserSubscription {
   const plan = PLAN_BY_ID[planId];
@@ -41,47 +39,18 @@ function buildSubscription(planId: SubscriptionPlanId): UserSubscription {
     unlockedFlags: getEffectiveFlags(planId),
     product: productSub,
     billing: {
-      provider: 'mock',
+      provider: 'stripe',
       lastChargeAmount: plan.priceMonthly,
       nextRenewalAt: nextRenewal,
-      paymentMethodLabel: 'Demo wallet',
+      paymentMethodLabel: undefined,
     },
   };
 }
 
-/** The seed subscription used at app boot. */
+/**
+ * Cold-start seed used by `useAppStore`. Everyone gets `core` until
+ * `/api/entitlement` returns the real plan a few hundred ms later.
+ */
 export function defaultSubscription(): UserSubscription {
   return buildSubscription('core');
-}
-
-/** Switch the active plan. Mocked — returns the new subscription. */
-export async function switchPlan(planId: SubscriptionPlanId): Promise<UserSubscription> {
-  await delay(LATENCY());
-  return buildSubscription(planId);
-}
-
-/** Cancel — flips the status to "canceled" but preserves the rest. */
-export async function cancel(sub: UserSubscription): Promise<UserSubscription> {
-  await delay(LATENCY());
-  return { ...sub, status: 'canceled' };
-}
-
-/** Pause — for cycle skips. */
-export async function pause(sub: UserSubscription): Promise<UserSubscription> {
-  await delay(LATENCY());
-  return { ...sub, status: 'paused' };
-}
-
-/** Resume from paused / canceled. */
-export async function resume(sub: UserSubscription): Promise<UserSubscription> {
-  await delay(LATENCY());
-  return { ...sub, status: 'active' };
-}
-
-/** Skip the next product shipment by 14 days. */
-export async function skipNextDelivery(sub: UserSubscription): Promise<UserSubscription> {
-  await delay(LATENCY());
-  if (!sub.product) return sub;
-  const next = new Date(new Date(sub.product.nextDeliveryAt).getTime() + 14 * 24 * 60 * 60 * 1000).toISOString();
-  return { ...sub, product: { ...sub.product, nextDeliveryAt: next, status: 'scheduled' } };
 }
