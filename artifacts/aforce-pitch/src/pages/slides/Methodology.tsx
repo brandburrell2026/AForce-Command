@@ -64,9 +64,9 @@ export default function Methodology() {
           ))}
         </div>
 
-        <div className="grid grid-cols-4 gap-[1vw] mt-[1.4vh]">
+        <div className="flex w-full mt-[1.4vh]">
           {mix.map((m) => (
-            <div key={m.label}>
+            <div key={m.label} style={{ width: `${m.pct}%` }} className="px-[0.6vw] first:pl-0 last:pr-0">
               <div className={`font-display text-[1.05vw] leading-tight ${m.text}`}>{m.label}</div>
               <div className="font-body text-[0.78vw] text-text/55 mt-[0.4vh] leading-snug">{m.why}</div>
             </div>
