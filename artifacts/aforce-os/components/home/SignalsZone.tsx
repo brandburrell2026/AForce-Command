@@ -22,7 +22,7 @@ import { PhantomBandCard } from '../PhantomBandCard';
 import { RingStatusCard } from '../RingStatusCard';
 import { HeatAlertBanner } from '../HeatAlertBanner';
 import { SocialModeBanner } from '../SocialModeBanner';
-import { useEngineSlice, useUserSlice, useCycleSlice, useSocialSlice } from '../../store/slices';
+import { useEngineSlice, useUserSlice, useCycleSlice, useSocialSlice, useFlagsSlice } from '../../store/slices';
 import type { HeatRiskBand } from '../../types/heat';
 
 interface Props {
@@ -41,6 +41,11 @@ function SignalsZoneImpl({ heatScore, onOpenSocial, includeEntryActions, entryAc
   const userState = useUserSlice();
   const cycle = useCycleSlice();
   const social = useSocialSlice();
+  // Hardware (Phantom Band + AForce Ring) ships dark for v1 launch — these
+  // surfaces only render when the flag is on (admin toggle in Profile, or
+  // remote config in production).
+  const flags = useFlagsSlice();
+  const showHardwareSignals = flags.phantom_wearable_enabled;
 
   return (
     <>
@@ -53,12 +58,16 @@ function SignalsZoneImpl({ heatScore, onOpenSocial, includeEntryActions, entryAc
         dailyTarget={userState.dailyTarget}
         performanceState={engine.performanceState}
       />
-      <Spacer />
-      <PhantomSignal />
-      <Spacer />
-      <PhantomBandCard />
-      <Spacer />
-      <RingStatusCard />
+      {showHardwareSignals && (
+        <>
+          <Spacer />
+          <PhantomSignal />
+          <Spacer />
+          <PhantomBandCard />
+          <Spacer />
+          <RingStatusCard />
+        </>
+      )}
       {heatScore.band !== 'STABLE' && (
         <>
           <Spacer />
