@@ -67,6 +67,11 @@ I prefer iterative development, with frequent, small updates. Ask before making 
 - **Scaling Blueprint:** Outlines target topology for 50M+ users, including multi-region deployments, sharded databases, Redis, Kafka, and AI provider failover.
 - **Stripe Integration:** Handles one-time checkouts and subscription flows with server-side pricing, shipping, tax, and validation.
 - **Auth-gated routes:** All mutating `/api/aforce/*` routes require authentication via `@clerk/express`, with a fallback to `DEFAULT_USER_ID` in non-production environments.
+- **Social graph routes (graduated May 1 2026):** Three formerly in-memory mock services on the Expo client (`battleService`, `circleService`, `privacyService`) are now backed by real Drizzle-persisted endpoints, all per-user via `requireAuth`:
+  - `GET/POST /api/battles`, `POST /api/battles/:id/support` — territory rivalries (table `aforce_battles`).
+  - `GET /api/circle[?group=]`, `GET /api/circle/pending`, `GET /api/circle/feed[?group=]`, `POST /api/circle/users/:memberUserId/{status,group}`, `DELETE /api/circle/users/:memberUserId`, `GET /api/circle/challenges`, `POST /api/circle/challenges/:id/accept`, `GET /api/circle/notifications`, `POST /api/circle/notifications/:id/read` — circle membership, statuses, challenges, notifications (tables `aforce_circle_users`, `aforce_circle_statuses`, `aforce_circle_challenges`, `aforce_circle_notifications`).
+  - `GET /api/privacy`, `PUT /api/privacy/scope`, `PUT /api/privacy/field` — share scope + per-field toggles (table `aforce_privacy`).
+  - First GET per user auto-seeds the demo set (mirroring the previous mock fixtures) so the UI has data immediately. Client services keep their original synchronous read surface + `useSyncExternalStore` subscribe pattern by hydrating an in-memory cache from the seed and reconciling with the server on first read; mutations are optimistic with background reconcile.
 
 ### Store + Subscription System
 - Defines SKU pricing, subscription discounts, and bundle offerings.

@@ -7,6 +7,9 @@ import aforceRouter from "./aforce";
 import entitlementRouter from "./entitlement";
 import stripePortalRouter from "./stripePortal";
 import cruiseRouter from "./cruise";
+import battlesRouter from "./battles";
+import circleRouter from "./circle";
+import privacyRouter from "./privacy";
 
 const router: IRouter = Router();
 
@@ -18,5 +21,8 @@ router.use(entitlementRouter);
 router.use(stripePortalRouter);
 router.use(cruiseRouter);
 router.use("/aforce", aforceRouter);
+router.use("/battles", battlesRouter);
+router.use("/circle", circleRouter);
+router.use("/privacy", privacyRouter);
 
 export default router;

@@ -1,17 +1,25 @@
 /**
  * Battle service — list/get/create/join active region rivalries.
- * In-memory today; same surface will adapt to `/api/battles/*`.
  *
- * Reactive: `supportSide` and `openBattle` bump a version counter and notify
- * subscribers, so the Territory screen refreshes via `useSyncExternalStore`
- * without `force()` reducers.
+ * Backed by the api-server `/api/battles/*` endpoints; keeps a local
+ * cache + version stamp so the existing `useSyncExternalStore` snapshot
+ * pattern in `useCircleSubscription` continues to work without async
+ * propagation through every screen.
+ *
+ * Mutation strategy: optimistic local cache update + version bump,
+ * then background POST. On response we replace the row with the
+ * server's authoritative copy and bump again. On failure we re-fetch
+ * the whole list to recover.
  */
 
 import { MOCK_BATTLES } from '@/data/mockTerritoryData';
 import { getRegionById } from '@/services/mapAggregationService';
 import type { TerritoryBattle, TerritoryRegion } from '@/types/territory';
+import { getJsonAforceApi, postJsonAforceApi } from '@/services/aforceApiClient';
 
 let battles: TerritoryBattle[] = [...MOCK_BATTLES];
+let hydrated = false;
+let inflight: Promise<void> | null = null;
 
 let version = 0;
 const listeners = new Set<() => void>();
@@ -28,8 +36,69 @@ export function getBattlesVersion(): number {
 function emit() {
   version += 1;
   for (const fn of listeners) {
-    try { fn(); } catch { /* swallow */ }
+    try { fn(); } catch { /* swallow — never let one bad listener break others */ }
   }
+}
+
+interface ServerBattle {
+  id: string;
+  side1RegionId: string;
+  side2RegionId: string;
+  side1Score: number;
+  side2Score: number;
+  hoursRemaining: number;
+  leader: 'side1' | 'side2' | 'tie';
+  trend: 'up' | 'flat' | 'down';
+}
+
+function applyServerList(list: ServerBattle[]): void {
+  battles = list.map((b) => ({
+    id: b.id,
+    side1RegionId: b.side1RegionId,
+    side2RegionId: b.side2RegionId,
+    side1Score: b.side1Score,
+    side2Score: b.side2Score,
+    hoursRemaining: b.hoursRemaining,
+    leader: b.leader,
+    trend: b.trend,
+  }));
+}
+
+function upsertLocal(updated: ServerBattle): void {
+  const next = {
+    id: updated.id,
+    side1RegionId: updated.side1RegionId,
+    side2RegionId: updated.side2RegionId,
+    side1Score: updated.side1Score,
+    side2Score: updated.side2Score,
+    hoursRemaining: updated.hoursRemaining,
+    leader: updated.leader,
+    trend: updated.trend,
+  };
+  const idx = battles.findIndex((b) => b.id === updated.id);
+  if (idx === -1) battles = [...battles, next];
+  else battles = battles.map((b, i) => (i === idx ? next : b));
+}
+
+/**
+ * Kick off a background hydrate of the cache from the api-server.
+ * First-call sync from MOCK_BATTLES guarantees the UI has data
+ * immediately; the network response replaces it once it lands.
+ */
+function ensureHydrated(): void {
+  if (hydrated || inflight) return;
+  inflight = (async () => {
+    try {
+      const res = await getJsonAforceApi<{ battles: ServerBattle[] }>('/battles');
+      applyServerList(res.battles);
+      hydrated = true;
+      emit();
+    } catch {
+      // Stay on the seed list — caller will see MOCK_BATTLES.
+    } finally {
+      inflight = null;
+    }
+  })();
 }
 
 export interface BattleView extends TerritoryBattle {
@@ -38,6 +107,7 @@ export interface BattleView extends TerritoryBattle {
 }
 
 export function listBattles(): BattleView[] {
+  ensureHydrated();
   return battles
     .map((b): BattleView | null => {
       const side1 = getRegionById(b.side1RegionId);
@@ -55,6 +125,7 @@ export function getBattle(id: string): BattleView | undefined {
 
 /** "Support" a side — tilts the score by 1 in the chosen direction. */
 export function supportSide(id: string, side: 'side1' | 'side2'): BattleView | undefined {
+  // Optimistic local bump.
   battles = battles.map((b) => {
     if (b.id !== id) return b;
     const next = { ...b };
@@ -66,23 +137,66 @@ export function supportSide(id: string, side: 'side1' | 'side2'): BattleView | u
     return next;
   });
   emit();
+
+  // Fire-and-forget reconcile with the server.
+  void (async () => {
+    try {
+      const res = await postJsonAforceApi<{ battle: ServerBattle }>(
+        `/battles/${encodeURIComponent(id)}/support`,
+        { side },
+      );
+      upsertLocal(res.battle);
+      emit();
+    } catch {
+      // Recover by re-syncing the list.
+      try {
+        const list = await getJsonAforceApi<{ battles: ServerBattle[] }>('/battles');
+        applyServerList(list.battles);
+        emit();
+      } catch { /* leave optimistic state in place */ }
+    }
+  })();
+
   return getBattle(id);
 }
 
 /** Open a fresh battle between two regions. */
 export function openBattle(side1RegionId: string, side2RegionId: string): BattleView | undefined {
-  const id = `b_${Date.now()}`;
-  battles.push({
-    id, side1RegionId, side2RegionId,
-    side1Score: 50, side2Score: 50,
-    hoursRemaining: 24, leader: 'tie', trend: 'flat',
-  });
+  const tempId = `b_local_${Date.now()}`;
+  battles = [
+    ...battles,
+    {
+      id: tempId, side1RegionId, side2RegionId,
+      side1Score: 50, side2Score: 50,
+      hoursRemaining: 24, leader: 'tie', trend: 'flat',
+    },
+  ];
   emit();
-  return getBattle(id);
+
+  void (async () => {
+    try {
+      const res = await postJsonAforceApi<{ battle: ServerBattle }>(
+        '/battles',
+        { side1RegionId, side2RegionId },
+      );
+      // Replace the temp row with the server's authoritative one.
+      battles = battles.filter((b) => b.id !== tempId);
+      upsertLocal(res.battle);
+      emit();
+    } catch {
+      // Drop the optimistic row on failure.
+      battles = battles.filter((b) => b.id !== tempId);
+      emit();
+    }
+  })();
+
+  return getBattle(tempId);
 }
 
 /** Test-only reset. */
 export function __resetBattlesForTests(): void {
   battles = [...MOCK_BATTLES];
+  hydrated = false;
+  inflight = null;
   emit();
 }

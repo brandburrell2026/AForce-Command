@@ -218,3 +218,158 @@ export const aforceAchievements = pgTable(
 
 export type AforceAchievementRow = typeof aforceAchievements.$inferSelect;
 export type InsertAforceAchievement = typeof aforceAchievements.$inferInsert;
+
+/* ─── Territory battles (regional rivalries) ──────────────────────────────── */
+/**
+ * Per-user persisted view of active battles. Battles are surfaced from
+ * MOCK_BATTLES on first read if a user has none — preserves the demo
+ * experience while making support/open mutations real and durable.
+ */
+export const aforceBattles = pgTable(
+  "aforce_battles",
+  {
+    id: text("id").primaryKey(),
+    ownerUserId: text("owner_user_id").notNull(),
+    side1RegionId: text("side1_region_id").notNull(),
+    side2RegionId: text("side2_region_id").notNull(),
+    side1Score: integer("side1_score").notNull().default(50),
+    side2Score: integer("side2_score").notNull().default(50),
+    hoursRemaining: integer("hours_remaining").notNull().default(24),
+    leader: text("leader").notNull().default("tie"),
+    trend: text("trend").notNull().default("flat"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => ({
+    ownerIdx: index("aforce_battles_owner_idx").on(t.ownerUserId),
+  }),
+);
+
+export type AforceBattleRow = typeof aforceBattles.$inferSelect;
+export type InsertAforceBattle = typeof aforceBattles.$inferInsert;
+
+/* ─── AForce Circles ──────────────────────────────────────────────────────── */
+/**
+ * Members of a user's private circle. (owner_user_id, member_user_id) is
+ * the natural key — a member appears once per owner.
+ */
+export const aforceCircleUsers = pgTable(
+  "aforce_circle_users",
+  {
+    id: serial("id").primaryKey(),
+    ownerUserId: text("owner_user_id").notNull(),
+    memberUserId: text("member_user_id").notNull(),
+    name: text("name").notNull(),
+    initials: text("initials").notNull(),
+    city: text("city"),
+    group: text("group").notNull().default("friends"),
+    status: text("status").notNull().default("active"),
+    joinedAt: timestamp("joined_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => ({
+    ownerMemberUq: uniqueIndex("aforce_circle_users_owner_member_uq").on(
+      t.ownerUserId,
+      t.memberUserId,
+    ),
+  }),
+);
+
+export type AforceCircleUserRow = typeof aforceCircleUsers.$inferSelect;
+export type InsertAforceCircleUser = typeof aforceCircleUsers.$inferInsert;
+
+/**
+ * Latest shared status per circle member, scoped to the viewing owner.
+ * Mutated by the server when a member's status snapshot publishes;
+ * read-only for the client.
+ */
+export const aforceCircleStatuses = pgTable(
+  "aforce_circle_statuses",
+  {
+    id: serial("id").primaryKey(),
+    ownerUserId: text("owner_user_id").notNull(),
+    memberUserId: text("member_user_id").notNull(),
+    score: integer("score").notNull().default(0),
+    state: text("state").notNull().default("Balanced"),
+    streakDays: integer("streak_days").notNull().default(0),
+    protocolComplete: boolean("protocol_complete").notNull().default(false),
+    trend: text("trend").notNull().default("flat"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => ({
+    ownerMemberUq: uniqueIndex("aforce_circle_statuses_owner_member_uq").on(
+      t.ownerUserId,
+      t.memberUserId,
+    ),
+  }),
+);
+
+export type AforceCircleStatusRow = typeof aforceCircleStatuses.$inferSelect;
+export type InsertAforceCircleStatus = typeof aforceCircleStatuses.$inferInsert;
+
+export const aforceCircleChallenges = pgTable(
+  "aforce_circle_challenges",
+  {
+    id: text("id").primaryKey(),
+    ownerUserId: text("owner_user_id").notNull(),
+    fromUserId: text("from_user_id").notNull(),
+    toUserId: text("to_user_id"),
+    kind: text("kind").notNull(),
+    targetScore: integer("target_score"),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    status: text("status").notNull().default("open"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => ({
+    ownerIdx: index("aforce_circle_challenges_owner_idx").on(t.ownerUserId),
+  }),
+);
+
+export type AforceCircleChallengeRow = typeof aforceCircleChallenges.$inferSelect;
+export type InsertAforceCircleChallenge = typeof aforceCircleChallenges.$inferInsert;
+
+export const aforceCircleNotifications = pgTable(
+  "aforce_circle_notifications",
+  {
+    id: text("id").primaryKey(),
+    ownerUserId: text("owner_user_id").notNull(),
+    kind: text("kind").notNull(),
+    fromUserId: text("from_user_id").notNull(),
+    message: text("message").notNull(),
+    read: boolean("read").notNull().default(false),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => ({
+    ownerIdx: index("aforce_circle_notifications_owner_idx").on(t.ownerUserId),
+  }),
+);
+
+export type AforceCircleNotificationRow = typeof aforceCircleNotifications.$inferSelect;
+export type InsertAforceCircleNotification = typeof aforceCircleNotifications.$inferInsert;
+
+/* ─── Privacy settings ────────────────────────────────────────────────────── */
+/**
+ * Per-user privacy preferences. `fields` is a JSONB blob mirroring the
+ * client `PrivacySettings.fields` shape so we can add new toggles
+ * without a migration.
+ */
+export const aforcePrivacy = pgTable("aforce_privacy", {
+  userId: text("user_id").primaryKey(),
+  scope: text("scope").notNull().default("circle"),
+  fields: jsonb("fields").$type<{
+    score: boolean;
+    state: boolean;
+    streak: boolean;
+    protocol: boolean;
+    trend: boolean;
+  }>().notNull().default({
+    score: true,
+    state: true,
+    streak: true,
+    protocol: true,
+    trend: true,
+  }),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export type AforcePrivacyRow = typeof aforcePrivacy.$inferSelect;
+export type InsertAforcePrivacy = typeof aforcePrivacy.$inferInsert;
