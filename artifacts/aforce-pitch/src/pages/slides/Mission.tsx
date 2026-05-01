@@ -67,7 +67,7 @@ export default function Mission() {
             </p>
           </div>
           <div className="mt-[1.2vh] font-body uppercase tracking-[0.28em] text-[0.7vw] text-text/55 font-semibold">
-            Strategic Advisors · Kristel van Kleef · Peter Ingwersen
+            Brandon &amp; Julius Burrell
           </div>
         </div>
       </div>
