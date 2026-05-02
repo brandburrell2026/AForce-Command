@@ -34,6 +34,7 @@ import type {
 import { Colors } from '../theme/colors';
 import { activeDecayMultiplier } from './hangoverRisk';
 import { materializedIntakePoints } from '../services/hydrationScoreService';
+import { depletionRatePerMinute } from './depletionRate';
 
 function resolveState(score: number): PerformanceLevel {
   if (score >= 90) return 'PEAK';
@@ -152,45 +153,25 @@ function buildBreakdown(state: UserState): { score: number; contributions: Score
 }
 
 /**
- * Continuous decay (points / minute) per spec:
+ * Continuous decay (points / minute) — physiologically grounded.
  *
- *   BaseDecay      = 0.4 × (weight_lbs / 150) + 0.1 × activity_level
- *   HeatFactor     = max(0, (temp_C  − 25) × 0.3)
- *   HumidityFactor = max(0, ((humidity − 50) / 10) × 0.2)
+ * The previous formula (`BaseDecay = 0.4×weight/150 + 0.1×activity`,
+ * additive heat/humidity terms) was ~5× too aggressive at rest and
+ * catastrophic in heat (sitting in 35 °C depleted PEAK→DEPLETED in
+ * 17 minutes). The math has been re-grounded against ACSM/IOM/ISO 7933
+ * sources and lives in `utils/depletionRate.ts` so it can be unit-
+ * tested in plain node/vitest. See that file's header for the full
+ * physiology references and anchor scenarios.
  *
- * temp_C is approximated from the existing 0..10 `heatLoad` axis until
- * a real OpenWeather feed is wired in (see task #6 in the session
- * plan). Humidity defaults to 50 (neutral) so HumidityFactor is 0
- * until that wiring lands — never substitute a placeholder humidity.
+ * This wrapper just adapts UserState → DepletionInputs and folds in
+ * the social-mode multiplier (which depends on the drinks list, kept
+ * outside the pure helper so the helper stays zero-dep).
  */
 function computeDecayPerMinute(state: UserState): number {
-  const weight = Math.max(60, state.bodyWeightLbs || 150);
-  const activity = Math.max(0, state.activityLevel || 0);
-  // Prefer real OpenWeather data when the api-server has it; fall back
-  // to the heatLoad-derived approximation so the score still renders
-  // before the first weather lookup completes (or when offline).
-  const tempC = state.weatherTempC != null
-    ? state.weatherTempC
-    : 20 + (state.heatLoad ?? 0) * 1.2; // ~20°C @ 0 → 32°C @ 10
-  const humidity = state.weatherHumidity != null ? state.weatherHumidity : 50;
+  const socialDecayMultiplier = state.socialMode?.active
+    ? activeDecayMultiplier(state.socialMode.drinks)
+    : 1;
 
-  const baseDecay = 0.4 * (weight / 150) + 0.1 * activity;
-  const heatFactor = Math.max(0, (tempC - 25) * 0.3);
-  const humidityFactor = Math.max(0, ((humidity - 50) / 10) * 0.2);
-
-  let perMin = baseDecay + heatFactor + humidityFactor;
-  // Sleep mode halves decay per spec.
-  if (!state.isAwake) perMin *= 0.5;
-  // Clutch mode multiplier (T3): ×1.3 while clutch_access_enabled is on.
-  if (state.clutchActive) perMin *= 1.3;
-  // Social Mode: alcohol amplifies hydration decay. We only fold the
-  // multiplier in when social mode is currently *active* — once the
-  // user ends the night the in-window drinks have already aged out
-  // anyway, and Recovery Mode handles the post-drink response via the
-  // command override (not via decay shaping).
-  if (state.socialMode?.active) {
-    perMin *= activeDecayMultiplier(state.socialMode.drinks);
-  }
   // NOTE: the +0.5 missed-command boost is NOT folded into the per-min
   // rate here, because the rate is reported to the prediction strip and
   // multiplied by elapsed time in `computeDecayPoints`. Folding it in
@@ -198,7 +179,16 @@ function computeDecayPerMinute(state: UserState): number {
   // expires and (b) retroactively apply the boost to time the user
   // spent before they ever missed the recheck. The boost is integrated
   // separately in `computeDecayPoints` over its true active overlap.
-  return perMin;
+  return depletionRatePerMinute({
+    bodyWeightLbs: state.bodyWeightLbs,
+    activityLevel: state.activityLevel,
+    weatherTempC: state.weatherTempC,
+    weatherHumidity: state.weatherHumidity,
+    heatLoad: state.heatLoad,
+    isAwake: state.isAwake,
+    clutchActive: state.clutchActive,
+    socialDecayMultiplier,
+  });
 }
 
 /**

@@ -38,6 +38,15 @@ I prefer iterative development, with frequent, small updates. Ask before making 
 - Defines point values, absorption caps, and release curves for hydration events.
 - Uses `SELECT ... FOR UPDATE` for concurrent intake operations.
 
+### Hydration Depletion Math (`utils/depletionRate.ts`)
+- Pure, dependency-free helper that owns the score-points-per-minute decay model.
+- Physiologically grounded against ACSM Position Statement on Exercise & Fluid Replacement (2007), IOM Dietary Reference Intakes for Water (2005), and ISO 7933 (Hot Environments).
+- Formula: `perMin = (RESTING_BASELINE × weight/150 + ACTIVITY_PER_LEVEL × activity_0..10) × heatMul × humFac × sleep × clutch × social`.
+- Constants calibrated so anchor scenarios are realistic: sedentary 150 lb adult ≈ 5 pts/hr (PEAK→DEPLETED ~8 hr); athlete training in 30°C ≈ 90 pts/hr (~28 min to DEPLETED); sleeping ~2.5 pts/hr (~20 pts decay over 8 hr).
+- Heat is **multiplicative** not additive — 35°C amplifies the existing sweat rate ×1.6 instead of dumping 180 pts/hr independently. Humidity only amplifies the heat premium (no effect at thermoneutral).
+- `scoringEngine.computeDecayPerMinute` is a thin adapter that translates `UserState` → `DepletionInputs` and folds in the social-mode multiplier (computed from the drinks list, kept outside the pure helper).
+- Pinned by 56 unit tests covering anchor scenarios, weight/activity/heat/humidity scaling, modifier composition, and invariants (non-negative, monotonic).
+
 ### Mobile Application (`artifacts/aforce-os`)
 - **AForce HydroScan:** Product recognition and comparison.
 - **AForce Circles:** Private accountability networks.
