@@ -206,12 +206,12 @@ describe('SET_USER_STATE — client-owns-overlays invariant', () => {
         result: {
           id: 'log_1', timestamp: new Date(), scoreBefore: 70, scoreAfter: 78,
           gainDisplay: '+8', identityMessage: 'Locked in.', nextCycleHint: 'Next at 12:00',
-          state: 'optimal',
+          state: 'PEAK',
         },
         newUserState: stalePayload,
         engineOutput: makeEngine(),
         historyEntry: {
-          id: 'log_1', timestamp: new Date(), score: 78, state: 'optimal',
+          id: 'log_1', timestamp: new Date(), score: 78, state: 'PEAK',
           action: 'Logged AForce stick (12 oz)', unitsTaken: 1, fluidType: 'aforce_stick',
         },
         silent: true,
