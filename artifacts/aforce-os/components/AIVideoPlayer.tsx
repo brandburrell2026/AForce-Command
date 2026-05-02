@@ -26,6 +26,8 @@ import Animated, {
 import type { VideoConfig, VideoSceneKind } from '../types/video';
 import type { Command } from '../types';
 import { Colors } from '../theme/colors';
+import { speak, stopSpeaking } from '../services/textToSpeech';
+import { buildVideoCoachLine } from '../services/videoCoachVoice';
 
 // ─── Public props ─────────────────────────────────────────────────────────────
 interface Props {
@@ -278,6 +280,30 @@ export function AIVideoPlayer({ video, command, compact = true, timerSeconds }: 
     setExpanded(true);
   }, []);
   const handleCollapse = React.useCallback(() => setExpanded(false), []);
+
+  // ─── AI Coach voice ────────────────────────────────────────────────────────
+  // When the user opens the full-screen overlay, speak the same content
+  // they see — overlay title + subtitle + command action + explanation —
+  // tuned by the video's themeLevel persona (DEPLETED lands with controlled
+  // urgency, PEAK is calm, etc.). Stop speaking on close / unmount so the
+  // coach never talks over a navigated-away screen.
+  React.useEffect(() => {
+    if (!expanded) return;
+    const line = buildVideoCoachLine(video, command);
+    if (!line) return;
+    speak(line, { level: video.themeLevel });
+    return () => {
+      stopSpeaking();
+    };
+  }, [
+    expanded,
+    video.videoId,
+    video.themeLevel,
+    video.overlayTitle,
+    video.overlaySubtitle,
+    command.action,
+    command.explanation,
+  ]);
 
   // ─── Inline / compact ──────────────────────────────────────────────────────
   return (
