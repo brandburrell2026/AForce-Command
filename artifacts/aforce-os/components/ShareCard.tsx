@@ -9,7 +9,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Colors } from '@/theme/colors';
-import { pickGlowAccent } from '@/services/shareAccentRotation';
 import type { BroadcastEntry, ShareContext, StateLabel } from '@/types/share';
 
 interface Props {
@@ -25,19 +24,18 @@ const ACCENT_FOR_STATE: Record<StateLabel, string> = {
 };
 
 export const ShareCard: React.FC<Props> = ({ broadcast, context }) => {
-  // State-tied accent for the small dot + score badge — keeps the live
-  // state cue visible. The dominant background glow rotates separately.
+  // State-tied accent for everything visual: the dot, the score badge,
+  // AND the dominant background glow. The glow now reflects the user's
+  // score band at share time (Peak → green, Balanced → teal,
+  // Recovering → amber, Depleted → red) so the card reads as a true
+  // status snapshot, not a generic broadcast skin.
   const accent = (context.state && ACCENT_FOR_STATE[context.state]) || Colors.states.BALANCED.primary;
-  const glowAccent = pickGlowAccent(broadcast.id);
   const showBadge = context.score != null;
 
   return (
     <View style={styles.card}>
-      {/* Background glow rotates through 4 brand colors per broadcast —
-          gives shared feeds visual variety without losing the small
-          state dot/badge readout above. */}
       <View pointerEvents="none" style={styles.glowWrap}>
-        <View style={[styles.glow, { backgroundColor: glowAccent }]} />
+        <View style={[styles.glow, { backgroundColor: accent }]} />
       </View>
 
       <View style={styles.topRow}>
