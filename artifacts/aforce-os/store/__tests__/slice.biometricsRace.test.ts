@@ -18,7 +18,8 @@
  */
 import { describe, it, expect } from 'vitest';
 import { reducer as appStoreReducer } from '../appStoreReducer';
-import type { ProviderSnapshot } from '../../types';
+import type { ProviderBiometrics, ProviderSnapshot } from '../../types';
+import type { HealthProviderId } from '../../data/healthProviders';
 import { makeState, makeUserState, makeEngine } from './_fixtures';
 
 const ouraSnap: ProviderSnapshot = {
@@ -244,15 +245,27 @@ describe('SET_USER_STATE — client-owns-overlays invariant', () => {
     // Provider-agnostic regression — every supported HealthProviderId
     // is preserved through SET_USER_STATE, CYCLE_SUCCESS, and
     // CONFIRM_COMMAND races.
-    const fullBiometrics = {
-      apple_health: { providerId: 'apple_health' as const, restingHeartRate: 60, fetchedAt: 1 },
+    // Compile-time exhaustiveness — adding a new HealthProviderId
+    // without a snapshot here will fail typecheck, guaranteeing the
+    // race-safety contract stays in lockstep with the supported
+    // provider set.
+    const fullBiometrics: Required<ProviderBiometrics> = {
+      apple_health: { providerId: 'apple_health', restingHeartRate: 60, fetchedAt: 1 },
       oura: ouraSnap,
-      samsung_health: { providerId: 'samsung_health' as const, stepsToday: 7000, fetchedAt: 1 },
-      health_connect: { providerId: 'health_connect' as const, sleepHoursLastNight: 7, fetchedAt: 1 },
-      garmin: { providerId: 'garmin' as const, hrvSdnn: 55, fetchedAt: 1 },
+      samsung_health: { providerId: 'samsung_health', stepsToday: 7000, fetchedAt: 1 },
+      health_connect: { providerId: 'health_connect', sleepHoursLastNight: 7, fetchedAt: 1 },
+      garmin: { providerId: 'garmin', hrvSdnn: 55, fetchedAt: 1 },
       whoop: whoopSnap,
       strava: stravaSnap,
     };
+    // Belt-and-suspenders runtime check — every HealthProviderId
+    // (sourced from the production registry) is represented.
+    const allProviderIds: HealthProviderId[] = [
+      'apple_health', 'oura', 'samsung_health', 'health_connect', 'garmin', 'whoop', 'strava',
+    ];
+    for (const id of allProviderIds) {
+      expect(fullBiometrics[id]).toBeDefined();
+    }
     const state = makeState({
       userState: makeUserState({ biometrics: fullBiometrics, appleHealth: appleSnap }),
     });

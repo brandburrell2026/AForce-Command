@@ -390,15 +390,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       const baseName = opts?.flavorLabel
         ? `${product.shortName} — ${opts.flavorLabel}`
         : product.shortName;
-      const historyEntry: HistoryEntry = {
-        id: log.id,
-        timestamp: log.loggedAt,
-        score: log.scoreAfter,
-        state: engineOutput.performanceState.level,
-        action: `Logged ${baseName} (${log.ozAmount} oz)`,
-        unitsTaken: 1,
-        fluidType,
-      };
       // Race-safe: merge in latest client-only overlays (provider
       // biometrics + appleHealth) and recompute engineOutput from the
       // merged state so the score/command/timer dispatched here
@@ -412,6 +403,23 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         appleHealth: latest.appleHealth,
       };
       const mergedEngine = _initialOnly(mergedUserState);
+      // Derive user-visible success state from the merged engine so
+      // the success card and history entry stay coherent with the
+      // overlay-corrected level (otherwise a mid-flight provider
+      // connect could land 'PEAK' state with a server-computed
+      // 'BALANCED' level in the success card).
+      result.state = mergedEngine.performanceState.level;
+      result.identityMessage = generateCycleIdentityMessage(mergedEngine.performanceState.level);
+      result.nextCycleHint = generateNextCycleHint(mergedEngine.performanceState.level);
+      const historyEntry: HistoryEntry = {
+        id: log.id,
+        timestamp: log.loggedAt,
+        score: log.scoreAfter,
+        state: mergedEngine.performanceState.level,
+        action: `Logged ${baseName} (${log.ozAmount} oz)`,
+        unitsTaken: 1,
+        fluidType,
+      };
       dispatch({ type: 'CYCLE_SUCCESS', payload: { result, newUserState: mergedUserState, engineOutput: mergedEngine, historyEntry, silent: opts?.silent } });
       // Only schedule the auto-dismiss when the hero overlay was actually shown.
       if (!opts?.silent) setTimeout(() => dispatch({ type: 'DISMISS_SUCCESS' }), 2400);
