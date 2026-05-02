@@ -186,6 +186,13 @@ interface AppContextValue {
    */
   voiceScope: VoiceScope;
   setVoiceScope: (next: VoiceScope) => void;
+  /**
+   * Investor Demo overlay flag. Cinematic 60-second scripted flow that
+   * walks through every Voice Engine state in sequence. Lives entirely
+   * above the regular store — toggling this never mutates user data.
+   */
+  isInvestorDemoActive: boolean;
+  setInvestorDemoActive: (next: boolean) => void;
 }
 
 const VOICE_COACH_KEY = 'aforce.voiceCoachEnabled';
@@ -211,6 +218,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // AsyncStorage on first effect; persisted on every setter call.
   const [voiceIntensity, setVoiceIntensityState] = React.useState<VoiceIntensity>('standard');
   const [voiceScope, setVoiceScopeState] = React.useState<VoiceScope>('all');
+  // Investor Demo overlay — purely transient UI flag. Never persisted
+  // (every demo run starts fresh) and never reads/writes engine state.
+  const [isInvestorDemoActive, setInvestorDemoActiveState] = React.useState<boolean>(false);
+  const setInvestorDemoActive = useCallback((next: boolean) => {
+    setInvestorDemoActiveState(next);
+  }, []);
   // Latest intensity + scope mirrored into refs so the auto-speak +
   // completion side-effects can read the current preference without
   // taking them as deps (they would otherwise re-run on every toggle
@@ -957,10 +970,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     activateSocialMode, logSocialDrink, confirmSocialHydration, deactivateSocialMode, setSocialContext,
     setSweatAutopilot,
     voiceCoachEnabled, setVoiceCoachEnabled,
+    isInvestorDemoActive, setInvestorDemoActive,
     selectedVoiceId, setSelectedVoiceId,
     voiceIntensity, setVoiceIntensity,
     voiceScope, setVoiceScope,
-  }), [state, logIntake, completeCycle, snooze, dismissSuccess, updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags, setSubscription, completeOnboarding, setAppleHealthSnapshot, setProviderBiometrics, confirmCommand, setLanguage, activateSocialMode, logSocialDrink, confirmSocialHydration, deactivateSocialMode, setSocialContext, setSweatAutopilot, voiceCoachEnabled, setVoiceCoachEnabled, selectedVoiceId, setSelectedVoiceId, voiceIntensity, setVoiceIntensity, voiceScope, setVoiceScope]);
+  }), [state, logIntake, completeCycle, snooze, dismissSuccess, updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags, setSubscription, completeOnboarding, setAppleHealthSnapshot, setProviderBiometrics, confirmCommand, setLanguage, activateSocialMode, logSocialDrink, confirmSocialHydration, deactivateSocialMode, setSocialContext, setSweatAutopilot, voiceCoachEnabled, setVoiceCoachEnabled, selectedVoiceId, setSelectedVoiceId, voiceIntensity, setVoiceIntensity, voiceScope, setVoiceScope, isInvestorDemoActive, setInvestorDemoActive]);
 
   // Stable actions value for the sliced ActionsContext — same callbacks
   // as `value` minus `state`, so action consumers don't re-render when

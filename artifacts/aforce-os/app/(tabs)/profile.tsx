@@ -69,6 +69,7 @@ export default function ProfileScreen() {
     selectedVoiceId, setSelectedVoiceId,
     voiceIntensity, setVoiceIntensity,
     voiceScope, setVoiceScope,
+    setInvestorDemoActive,
   } = useAppStore();
   // Tracks the in-flight demo so we can disable the row + show the
   // active label without blocking the rest of Profile. Cleared once
@@ -868,6 +869,36 @@ export default function ProfileScreen() {
                           ]}
                         >
                           {getLastCommand() ? 'REPLAY LAST COMMAND' : 'NOTHING TO REPLAY YET'}
+                        </Text>
+                      </Pressable>
+
+                      {/* Investor Demo launcher — kicks off the 60-second
+                          cinematic flow that walks through every Voice
+                          Engine state in sequence. Self-contained
+                          overlay; never mutates user state. */}
+                      <Pressable
+                        onPress={() => { setInvestorDemoActive(true); }}
+                        style={({ pressed }) => [
+                          voicePickerStyles.replayBtn,
+                          {
+                            marginTop: 10,
+                            borderColor: `${Colors.states.PEAK.primary}66`,
+                            backgroundColor: pressed
+                              ? `${Colors.states.PEAK.primary}1F`
+                              : `${Colors.states.PEAK.primary}12`,
+                          },
+                        ]}
+                        testID="profile-investor-demo-launch"
+                        accessibilityRole="button"
+                        accessibilityLabel="Launch investor demo"
+                      >
+                        <Text
+                          style={[
+                            voicePickerStyles.replayLabel,
+                            { color: Colors.states.PEAK.primary },
+                          ]}
+                        >
+                          ▶  LAUNCH INVESTOR DEMO · 60s
                         </Text>
                       </Pressable>
                     </View>

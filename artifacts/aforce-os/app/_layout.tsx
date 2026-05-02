@@ -19,7 +19,8 @@ import { Text, View } from 'react-native';
 
 import { ClerkAuthBridge } from '@/components/ClerkAuthBridge';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
-import { AppProvider } from '@/store/useAppStore';
+import { InvestorDemoOverlay } from '@/components/investorDemo/InvestorDemoOverlay';
+import { AppProvider, useAppStore } from '@/store/useAppStore';
 import { CartProvider } from '@/store/useCartStore';
 import { initI18n } from '@/services/i18nService';
 
@@ -56,6 +57,21 @@ function RootLayoutNav() {
   );
 }
 
+/**
+ * Mounts the Investor Demo overlay just under AppProvider so it can
+ * read `isInvestorDemoActive` from the store. Floats above every
+ * screen via React Native's Modal so it works on any tab / route.
+ */
+function InvestorDemoMount() {
+  const { isInvestorDemoActive, setInvestorDemoActive } = useAppStore();
+  return (
+    <InvestorDemoOverlay
+      visible={isInvestorDemoActive}
+      onClose={() => setInvestorDemoActive(false)}
+    />
+  );
+}
+
 function AppShell() {
   return (
     <SafeAreaProvider>
@@ -69,6 +85,7 @@ function AppShell() {
                       hook can call useAppStore() safely. */}
                   <ClerkAuthBridge />
                   <RootLayoutNav />
+                  <InvestorDemoMount />
                 </CartProvider>
               </AppProvider>
             </KeyboardProvider>
