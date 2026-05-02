@@ -17,6 +17,7 @@ import type {
   FeatureFlags,
   ProviderSnapshot,
   ProviderBiometrics,
+  ScoreEngineOutput,
 } from '../types';
 import type { UserSubscription } from '../types/subscription';
 import type { SweatAutopilot } from '../types/sweat';
@@ -190,6 +191,43 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const userStateRef = useRef(state.userState);
   useEffect(() => { userStateRef.current = state.userState; }, [state.userState]);
 
+  // Race-safe wrapper for every SET_USER_STATE dispatched from a
+  // server response.
+  //
+  // INVARIANT: client-only overlays (`biometrics`, `appleHealth`) are
+  // owned exclusively by the device. Service responses NEVER produce
+  // overlay data — they only echo whatever the request sent. Therefore
+  // at dispatch time we always replace the payload's overlays with the
+  // LATEST client state from `userStateRef.current`, regardless of
+  // what the payload carries. This handles every race uniformly:
+  //   - payload missing overlays (server-pushed WS update)         → use latest
+  //   - payload carrying empty `{}` (request had no providers)     → use latest
+  //   - payload carrying stale partial subset (e.g. `{whoop}` while
+  //     current is `{whoop, oura}` because user connected oura
+  //     mid-flight)                                                 → use latest superset
+  //   - payload carrying stale superset (request had `{whoop}` but
+  //     user disconnected mid-flight, current is `{}`)              → use empty current
+  //
+  // Engine output is then recomputed from the merged state so
+  // score/command/timer reflect the actual overlays — the service-
+  // computed `engineOutput` reflects the request-time snapshot which
+  // may have been clobbered by the overlay swap.
+  const applyServerUserState = useCallback((
+    newUserState: UserState,
+    _engineOutput: ScoreEngineOutput,
+  ) => {
+    const latest = userStateRef.current;
+    const merged: UserState = {
+      ...newUserState,
+      biometrics: latest.biometrics,
+      appleHealth: latest.appleHealth,
+    };
+    dispatch({
+      type: 'SET_USER_STATE',
+      payload: { newUserState: merged, engineOutput: _initialOnly(merged) },
+    });
+  }, []);
+
   // Periodic /state refresh — keeps the engine output current (decay
   // ticks, weather staleness, etc.) and rehydrates from server in case
   // a WS push was missed.
@@ -214,7 +252,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           // (intake / weather refresh) triggered the swap.
           userState.language !== current.language;
         if (drift) {
-          dispatch({ type: 'SET_USER_STATE', payload: { newUserState: userState, engineOutput } });
+          applyServerUserState(userState, engineOutput);
         } else {
           dispatch({ type: 'REFRESH_ENGINE', payload: { engineOutput } });
         }
@@ -264,7 +302,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // (both client-only) never get clobbered by a server push.
   useEffect(() => {
     const unsubscribe = subscribeToStateUpdates(
-      (next) => dispatch({ type: 'SET_USER_STATE', payload: { newUserState: next, engineOutput: _initialOnly(next) } }),
+      (next) => applyServerUserState(next, _initialOnly(next)),
       () => ({
         appleHealth: overlayRef.current.appleHealth,
         biometrics: overlayRef.current.biometrics,
@@ -289,7 +327,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         // that lacked them.
         const { newUserState, engineOutput } = await refreshWeather(userStateRef.current, lat, lon);
         if (cancelled) return;
-        dispatch({ type: 'SET_USER_STATE', payload: { newUserState, engineOutput } });
+        applyServerUserState(newUserState, engineOutput);
       } catch (err) {
         console.warn('[AForce] weather refresh failed', err);
       }
@@ -379,23 +417,23 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const updateSymptoms = useCallback(async (symptoms: string[]) => {
     const { newUserState, engineOutput } = await postSignalsUpdate(state.userState, symptoms);
-    dispatch({ type: 'SET_USER_STATE', payload: { newUserState, engineOutput } });
-  }, [state.userState]);
+    applyServerUserState(newUserState, engineOutput);
+  }, [state.userState, applyServerUserState]);
 
   const updateUrineSignal = useCallback(async (signal: number) => {
     const { newUserState, engineOutput } = await postUrineSignalUpdate(state.userState, signal);
-    dispatch({ type: 'SET_USER_STATE', payload: { newUserState, engineOutput } });
-  }, [state.userState]);
+    applyServerUserState(newUserState, engineOutput);
+  }, [state.userState, applyServerUserState]);
 
   const updateEnergyState = useCallback(async (energy: UserState['energyState']) => {
     const { newUserState, engineOutput } = await postEnergyStateUpdate(state.userState, energy);
-    dispatch({ type: 'SET_USER_STATE', payload: { newUserState, engineOutput } });
-  }, [state.userState]);
+    applyServerUserState(newUserState, engineOutput);
+  }, [state.userState, applyServerUserState]);
 
   const confirmStatus = useCallback(async () => {
     const { newUserState, engineOutput } = await postCheckin(state.userState);
-    dispatch({ type: 'SET_USER_STATE', payload: { newUserState, engineOutput } });
-  }, [state.userState]);
+    applyServerUserState(newUserState, engineOutput);
+  }, [state.userState, applyServerUserState]);
 
   const setFeatureFlags = useCallback((flags: FeatureFlags) => {
     dispatch({ type: 'SET_FLAGS', payload: flags });
@@ -408,7 +446,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       // available to any other connected client.
       postClutchFlag(state.userState, clutchActive)
         .then(({ newUserState, engineOutput }) => {
-          dispatch({ type: 'SET_USER_STATE', payload: { newUserState, engineOutput } });
+          applyServerUserState(newUserState, engineOutput);
         })
         .catch(() => {});
     }
@@ -449,26 +487,23 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     // the AI command strings are fresh. Reusing `state.engineOutput`
     // would clobber the localized output produced by the
     // `languageChanged` listener with stale, pre-switch text.
-    dispatch({
-      type: 'SET_USER_STATE',
-      payload: { newUserState: optimistic, engineOutput: _initialOnly(optimistic) },
-    });
+    applyServerUserState(optimistic, _initialOnly(optimistic));
     try {
       const { newUserState, engineOutput } = await postLanguage(state.userState, lang);
-      dispatch({ type: 'SET_USER_STATE', payload: { newUserState, engineOutput } });
+      applyServerUserState(newUserState, engineOutput);
     } catch (err) {
       console.warn('[AForce] setLanguage persist failed', err);
     }
-  }, [state.userState]);
+  }, [state.userState, applyServerUserState]);
 
   const activateSocialMode = useCallback(async () => {
     try {
       const { newUserState, engineOutput } = await postSocialActivate(state.userState);
-      dispatch({ type: 'SET_USER_STATE', payload: { newUserState, engineOutput } });
+      applyServerUserState(newUserState, engineOutput);
     } catch (err) {
       console.warn('[AForce] activateSocialMode failed', err);
     }
-  }, [state.userState]);
+  }, [state.userState, applyServerUserState]);
 
   const logSocialDrink = useCallback(async (
     type: 'beer' | 'wine' | 'cocktail' | 'liquor' | 'hard_seltzer' | 'custom',
@@ -476,40 +511,40 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   ) => {
     try {
       const { newUserState, engineOutput } = await postSocialDrink(state.userState, type, opts);
-      dispatch({ type: 'SET_USER_STATE', payload: { newUserState, engineOutput } });
+      applyServerUserState(newUserState, engineOutput);
     } catch (err) {
       console.warn('[AForce] logSocialDrink failed', err);
     }
-  }, [state.userState]);
+  }, [state.userState, applyServerUserState]);
 
   const confirmSocialHydration = useCallback(async (confirmed: boolean) => {
     try {
       const { newUserState, engineOutput } = await postSocialHydrate(state.userState, confirmed);
-      dispatch({ type: 'SET_USER_STATE', payload: { newUserState, engineOutput } });
+      applyServerUserState(newUserState, engineOutput);
     } catch (err) {
       console.warn('[AForce] confirmSocialHydration failed', err);
     }
-  }, [state.userState]);
+  }, [state.userState, applyServerUserState]);
 
   const deactivateSocialMode = useCallback(async () => {
     try {
       const { newUserState, engineOutput } = await postSocialDeactivate(state.userState);
-      dispatch({ type: 'SET_USER_STATE', payload: { newUserState, engineOutput } });
+      applyServerUserState(newUserState, engineOutput);
     } catch (err) {
       console.warn('[AForce] deactivateSocialMode failed', err);
     }
-  }, [state.userState]);
+  }, [state.userState, applyServerUserState]);
 
   const setSocialContext = useCallback(async (
     ctx: { sex?: 'male' | 'female' | 'unspecified'; ateRecently?: boolean },
   ) => {
     try {
       const { newUserState, engineOutput } = await postSocialContext(state.userState, ctx);
-      dispatch({ type: 'SET_USER_STATE', payload: { newUserState, engineOutput } });
+      applyServerUserState(newUserState, engineOutput);
     } catch (err) {
       console.warn('[AForce] setSocialContext failed', err);
     }
-  }, [state.userState]);
+  }, [state.userState, applyServerUserState]);
 
   const setSubscription = useCallback((sub: UserSubscription) => {
     dispatch({ type: 'SET_SUBSCRIPTION', payload: sub });

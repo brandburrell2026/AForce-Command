@@ -1,18 +1,20 @@
 /**
- * Regression tests for the SET_USER_STATE overlay-safe merge.
+ * Regression tests for the SET_USER_STATE overlay invariant.
  *
- * Race scenario the architect flagged: a long-running async (e.g. the
- * 30s /state poll, weather refresh, or any postAndRecompute) starts
- * BEFORE the user connects a non-Apple provider. The response carries
- * a userState computed from the request-time snapshot — i.e. without
- * `biometrics`. If that response dispatches `SET_USER_STATE` after the
- * user has since connected WHOOP/Oura, a naive `userState: payload`
- * assignment would wipe the freshly-connected provider out of the
- * store and the engine would lose the recovery contribution.
+ * INVARIANT: client-only overlays (`biometrics`, `appleHealth`) are
+ * owned exclusively by the device. Service responses only ECHO what
+ * the request sent — they never originate or authoritatively update
+ * overlays. Therefore `SET_USER_STATE` always overrides the payload's
+ * overlays with the current store state, regardless of what the
+ * payload carries (undefined, empty, partial subset, stale superset).
  *
- * The reducer therefore preserves current `biometrics` / `appleHealth`
- * when the payload omits them. Explicit disconnect intent flows
- * through SET_PROVIDER_BIOMETRICS / SET_APPLE_HEALTH instead.
+ * Explicit overlay mutations flow through SET_PROVIDER_BIOMETRICS /
+ * SET_APPLE_HEALTH, never through SET_USER_STATE.
+ *
+ * The companion `applyServerUserState` helper in useAppStore enforces
+ * the same invariant AND recomputes engineOutput from the merged
+ * state so score/command/timer reflect actual overlays. Reducer-level
+ * enforcement here is defense-in-depth.
  */
 import { describe, it, expect } from 'vitest';
 import { reducer as appStoreReducer } from '../appStoreReducer';
@@ -34,6 +36,12 @@ const whoopSnap: ProviderSnapshot = {
   fetchedAt: 1_700_000_000_000,
 };
 
+const stravaSnap: ProviderSnapshot = {
+  providerId: 'strava',
+  workoutMinutesToday: 60,
+  fetchedAt: 1_700_000_000_000,
+};
+
 const appleSnap = {
   restingHeartRate: 60,
   hrvSdnn: 65,
@@ -42,10 +50,10 @@ const appleSnap = {
   fetchedAt: 1_700_000_000_000,
 };
 
-describe('SET_USER_STATE — overlay-safe merge', () => {
+describe('SET_USER_STATE — client-owns-overlays invariant', () => {
   it('preserves current biometrics when a late response omits them', () => {
-    // User has WHOOP connected NOW. A late /state response from before
-    // the connect arrives without biometrics.
+    // User connected WHOOP; a late /state response from before the
+    // connect arrives without biometrics.
     const state = makeState({
       userState: makeUserState({ biometrics: { whoop: whoopSnap } }),
     });
@@ -73,23 +81,64 @@ describe('SET_USER_STATE — overlay-safe merge', () => {
     expect(next.userState.appleHealth).toEqual(appleSnap);
   });
 
-  it('adopts a fresher biometrics payload over the current value', () => {
-    // Server-merge path that round-trips through fetchHome WILL include
-    // biometrics if the request had them. Reducer must accept it.
+  it('preserves current biometrics when payload carries empty {} from a no-provider request', () => {
     const state = makeState({
-      userState: makeUserState({ biometrics: { oura: ouraSnap } }),
+      userState: makeUserState({ biometrics: { whoop: whoopSnap } }),
     });
-    const fresherWhoop: ProviderSnapshot = { ...whoopSnap, recoveryPct: 90 };
-    const freshPayload = makeUserState({
-      biometrics: { oura: ouraSnap, whoop: fresherWhoop },
-    });
+    const stalePayload = makeUserState({ biometrics: {} });
 
     const next = appStoreReducer(state, {
       type: 'SET_USER_STATE',
-      payload: { newUserState: freshPayload, engineOutput: makeEngine() },
+      payload: { newUserState: stalePayload, engineOutput: makeEngine() },
     });
 
-    expect(next.userState.biometrics).toEqual({ oura: ouraSnap, whoop: fresherWhoop });
+    expect(next.userState.biometrics).toEqual({ whoop: whoopSnap });
+  });
+
+  it('preserves current SUPERSET when payload echoes a stale partial subset', () => {
+    // Architect-flagged race: at request time client had {whoop}; user
+    // connected oura mid-flight (current is now {whoop, oura}); the
+    // response echoes {whoop}. Naive replacement would drop oura.
+    const state = makeState({
+      userState: makeUserState({ biometrics: { whoop: whoopSnap, oura: ouraSnap } }),
+    });
+    const stalePayload = makeUserState({ biometrics: { whoop: whoopSnap } });
+
+    const next = appStoreReducer(state, {
+      type: 'SET_USER_STATE',
+      payload: { newUserState: stalePayload, engineOutput: makeEngine() },
+    });
+
+    expect(next.userState.biometrics).toEqual({ whoop: whoopSnap, oura: ouraSnap });
+  });
+
+  it('honors current DISCONNECT when payload echoes a stale superset', () => {
+    // Reverse race: at request time client had {whoop, oura}; user
+    // disconnected oura mid-flight (current is {whoop}); the response
+    // echoes {whoop, oura}. Naive replacement would re-inject oura.
+    const state = makeState({
+      userState: makeUserState({ biometrics: { whoop: whoopSnap } }),
+    });
+    const stalePayload = makeUserState({ biometrics: { whoop: whoopSnap, oura: ouraSnap } });
+
+    const next = appStoreReducer(state, {
+      type: 'SET_USER_STATE',
+      payload: { newUserState: stalePayload, engineOutput: makeEngine() },
+    });
+
+    expect(next.userState.biometrics).toEqual({ whoop: whoopSnap });
+  });
+
+  it('honors current full disconnect (undefined) over stale payload echoing providers', () => {
+    const state = makeState({ userState: makeUserState({ biometrics: undefined }) });
+    const stalePayload = makeUserState({ biometrics: { whoop: whoopSnap } });
+
+    const next = appStoreReducer(state, {
+      type: 'SET_USER_STATE',
+      payload: { newUserState: stalePayload, engineOutput: makeEngine() },
+    });
+
+    expect(next.userState.biometrics).toBeUndefined();
   });
 
   it('does NOT inject biometrics when neither current nor payload has any', () => {
@@ -105,8 +154,8 @@ describe('SET_USER_STATE — overlay-safe merge', () => {
   });
 
   it('explicit disconnect via SET_PROVIDER_BIOMETRICS still wipes the provider', () => {
-    // Sanity check — the overlay-safe SET_USER_STATE merge must not
-    // prevent users from actually disconnecting providers.
+    // Sanity check — overlay invariant must not prevent explicit
+    // disconnects.
     const state = makeState({
       userState: makeUserState({ biometrics: { oura: ouraSnap, whoop: whoopSnap } }),
     });
@@ -122,7 +171,7 @@ describe('SET_USER_STATE — overlay-safe merge', () => {
   it('multi-provider current state survives a stale payload that has none', () => {
     const state = makeState({
       userState: makeUserState({
-        biometrics: { oura: ouraSnap, whoop: whoopSnap },
+        biometrics: { oura: ouraSnap, whoop: whoopSnap, strava: stravaSnap },
         appleHealth: appleSnap,
       }),
     });
@@ -133,7 +182,40 @@ describe('SET_USER_STATE — overlay-safe merge', () => {
       payload: { newUserState: stalePayload, engineOutput: makeEngine() },
     });
 
-    expect(next.userState.biometrics).toEqual({ oura: ouraSnap, whoop: whoopSnap });
+    expect(next.userState.biometrics).toEqual({
+      oura: ouraSnap, whoop: whoopSnap, strava: stravaSnap,
+    });
     expect(next.userState.appleHealth).toEqual(appleSnap);
+  });
+
+  it('non-overlay fields from the payload ARE adopted (only overlays are protected)', () => {
+    // Regression — make sure the invariant only protects overlays,
+    // not legitimate server-authoritative fields like score-relevant
+    // counters or weather data.
+    const state = makeState({
+      userState: makeUserState({
+        biometrics: { whoop: whoopSnap },
+        unitsConsumedToday: 4,
+        ozConsumedToday: 60,
+      }),
+    });
+    const payload = makeUserState({
+      biometrics: undefined,
+      unitsConsumedToday: 9,
+      ozConsumedToday: 120,
+      weatherCity: 'Phoenix',
+      weatherTempC: 38,
+    });
+
+    const next = appStoreReducer(state, {
+      type: 'SET_USER_STATE',
+      payload: { newUserState: payload, engineOutput: makeEngine() },
+    });
+
+    expect(next.userState.biometrics).toEqual({ whoop: whoopSnap });
+    expect(next.userState.unitsConsumedToday).toBe(9);
+    expect(next.userState.ozConsumedToday).toBe(120);
+    expect(next.userState.weatherCity).toBe('Phoenix');
+    expect(next.userState.weatherTempC).toBe(38);
   });
 });

@@ -81,23 +81,19 @@ export function reducer(state: AppState, action: Action): AppState {
     }
     case 'SET_USER_STATE': {
       const { newUserState, engineOutput } = action.payload;
-      // Overlay-safe merge: client-only fields (`biometrics`,
-      // `appleHealth`) are NEVER server-authoritative. They live on
-      // the device. If a late-arriving response was computed from a
-      // request whose snapshot pre-dated a provider connect, its
-      // payload may omit fields that the user has since added — so we
-      // preserve the current overlays unless the payload explicitly
-      // provides a fresher value. Explicit disconnect intent flows
-      // through `SET_PROVIDER_BIOMETRICS` / `SET_APPLE_HEALTH`, not
-      // through this reducer.
+      // INVARIANT (defense-in-depth — primary enforcement lives in
+      // the `applyServerUserState` helper in useAppStore): client-only
+      // overlays (`biometrics`, `appleHealth`) are owned exclusively
+      // by the device and NEVER originate server-side. Service
+      // responses only echo what the request sent, so at every
+      // SET_USER_STATE dispatch we override the payload's overlays
+      // with the current store state. Explicit overlay mutations
+      // (connect / disconnect) flow through `SET_PROVIDER_BIOMETRICS`
+      // and `SET_APPLE_HEALTH`, never through this reducer.
       const merged: UserState = {
         ...newUserState,
-        ...(newUserState.biometrics === undefined && state.userState.biometrics
-          ? { biometrics: state.userState.biometrics }
-          : {}),
-        ...(newUserState.appleHealth === undefined && state.userState.appleHealth
-          ? { appleHealth: state.userState.appleHealth }
-          : {}),
+        biometrics: state.userState.biometrics,
+        appleHealth: state.userState.appleHealth,
       };
       return {
         ...state,
