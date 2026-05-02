@@ -46,24 +46,13 @@ import {
 } from '../services/realApi';
 import i18n, { setLanguage as setI18nLanguage, type SupportedLanguage } from '../services/i18nService';
 import { PRODUCTS } from '../data/products';
-import type { ProductFlavor } from '../types';
 import { phantomBandService } from '../services/phantomBandService';
 import { speak as ttsSpeak, setVoicePlaybackEnabled, setSelectedVoiceId as setTtsVoiceId } from '../services/textToSpeech';
 
-/**
- * Map a free-form flavor label (as shown in the manual picker) back to
- * the canonical ProductFlavor used by the hydration scoring engine.
- * The picker labels live in `data/products.ts` (PRODUCT_FLAVORS) — we
- * substring-match so "Berry Blast + Dulse" / "Berry Blast" both map.
- */
-function inferFlavorFromLabel(label?: string): ProductFlavor | undefined {
-  if (!label) return undefined;
-  const lower = label.toLowerCase();
-  if (lower.includes('berry')) return 'berry';
-  if (lower.includes('watermelon')) return 'watermelon';
-  if (lower.includes('soursop')) return 'soursop';
-  return undefined;
-}
+// Flavor inference moved to `utils/inferFlavorFromLabel` so it can be
+// unit-tested in isolation. Substring-based: "Berry Blast" and
+// "Berry Blast + Dulse" both resolve to the same canonical token.
+import { inferFlavorFromLabel } from '../utils/inferFlavorFromLabel';
 
 // Service-only synchronous bootstrapping helper. The store NEVER calls
 // the scoring engine directly — it always asks the mock API for engineOutput.
