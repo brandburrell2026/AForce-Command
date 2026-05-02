@@ -33,6 +33,12 @@ interface Props {
   /** Whether a log cycle is currently in flight (disables the CTA). */
   isLogging: boolean;
   onLog: () => void;
+  /**
+   * Optional accent override. Same purpose as on `AICommandCard` —
+   * keeps this card's colour locked to the visible (animating) score
+   * instead of flipping instantly to the engine's target band.
+   */
+  accentOverride?: string;
 }
 
 const URGENCY_LABEL: Record<Command['urgencyLevel'], string> = {
@@ -48,8 +54,9 @@ export function PrimaryCommandCard({
   recheckMinutes,
   isLogging,
   onLog,
+  accentOverride,
 }: Props) {
-  const accent = performanceState.color;
+  const accent = accentOverride ?? performanceState.color;
   // Haptics are intentionally NOT triggered here — the parent handler
   // (handleComplete in app/(tabs)/index.tsx) already fires a heavy impact
   // when this CTA invokes it. Keeping it in one place avoids the

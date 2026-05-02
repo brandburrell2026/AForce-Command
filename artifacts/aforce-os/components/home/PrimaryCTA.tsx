@@ -12,6 +12,7 @@ import { useTranslation } from 'react-i18next';
 import { Colors } from '../../theme/colors';
 import { FlavorPickerModal, type FlavorChoice } from '../FlavorPickerModal';
 import { useEngineSlice, useUserSlice, useCycleSlice, useActionsSlice } from '../../store/slices';
+import { useDisplayedAccent } from '../../hooks/useDisplayedAccent';
 import type { FluidType } from '../../types';
 
 interface Layout {
@@ -36,7 +37,11 @@ function PrimaryCTAImpl({ layout }: Props) {
   const { isCompletingCycle } = useCycleSlice();
   const { logIntake, snooze } = useActionsSlice<CtaActions>();
   const [open, setOpen] = React.useState(false);
-  const stateColor = performanceState.color;
+  // Track the visible (animating) accent so the "Become AForce" CTA
+  // border + glow change colour together with the orb digit and the
+  // AI Coach card.
+  const displayed = useDisplayedAccent();
+  const stateColor = displayed?.primary ?? performanceState.color;
 
   const onCta = () => {
     if (isCompletingCycle) return;

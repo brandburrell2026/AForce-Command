@@ -42,6 +42,7 @@ import { PrimaryCTA } from '@/components/home/PrimaryCTA';
 import { TodayQuote } from '@/components/home/TodayQuote';
 
 import { useAppStore } from '@/store/useAppStore';
+import { DisplayedAccentProvider } from '@/hooks/useDisplayedAccent';
 import { Colors } from '@/theme/colors';
 
 export default function HomeScreen() {
@@ -112,6 +113,17 @@ export default function HomeScreen() {
   return (
     <View style={styles.root}>
       <GradientBackground>
+        {/*
+          DisplayedAccentProvider runs ONE shared 900ms tween from the
+          previous score to the new score and exposes the in-flight
+          (rounded) value plus its band-correct accent. Every state-
+          tinted child on this screen — the orb digit, the prediction
+          strip, the AI Coach card, the "Become AForce" CTA — reads
+          from this provider, so they all recolour on the exact frame
+          the orb number rolls into the next band. Without it, the
+          colour flips were instant while the digit was still tweening.
+        */}
+        <DisplayedAccentProvider score={engineOutput.score}>
         <ScrollView
           style={styles.scroll}
           contentContainerStyle={[
@@ -195,6 +207,7 @@ export default function HomeScreen() {
           autoStart={voiceAutoStart}
           onClose={closeVoice}
         />
+        </DisplayedAccentProvider>
       </GradientBackground>
     </View>
   );

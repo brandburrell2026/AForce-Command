@@ -23,6 +23,7 @@ import {
   useConfirmationSlice,
   useActionsSlice,
 } from '../../store/slices';
+import { useDisplayedAccent } from '../../hooks/useDisplayedAccent';
 
 interface ConfirmActions {
   confirmCommand: (followed: boolean) => Promise<void>;
@@ -38,6 +39,9 @@ function CommandStackImpl({ onOpenBreakdown }: Props) {
   const { timerSeconds } = useCycleSlice();
   const { pendingConfirmation } = useConfirmationSlice();
   const { confirmCommand } = useActionsSlice<ConfirmActions>();
+  // Pass the displayed-score accent so the AI Coach recolours in lockstep
+  // with the orb digit. `undefined` when not under the provider.
+  const displayed = useDisplayedAccent();
 
   return (
     <>
@@ -52,7 +56,11 @@ function CommandStackImpl({ onOpenBreakdown }: Props) {
           <View style={styles.spacer} />
         </>
       )}
-      <AICommandCard command={engine.command} performanceState={engine.performanceState} />
+      <AICommandCard
+        command={engine.command}
+        performanceState={engine.performanceState}
+        accentOverride={displayed?.primary}
+      />
       <View style={styles.spacer} />
       <AIVideoPlayer
         video={matchVideo({ engineOutput: engine, userState })}

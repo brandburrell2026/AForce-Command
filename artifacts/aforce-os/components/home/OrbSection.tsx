@@ -15,6 +15,7 @@ import { useTranslation } from 'react-i18next';
 import { Colors } from '../../theme/colors';
 import { StatusPulseOrb } from '../StatusPulseOrb';
 import { useEngineSlice, useIntakeSlice } from '../../store/slices';
+import { useDisplayedAccent } from '../../hooks/useDisplayedAccent';
 
 interface Props {
   onOpenBreakdown: () => void;
@@ -25,7 +26,12 @@ function OrbSectionImpl({ onOpenBreakdown, orbSize }: Props) {
   const { t } = useTranslation();
   const engine = useEngineSlice();
   const intake = useIntakeSlice();
-  const stateColor = engine.performanceState.color;
+  // Prefer the displayed (in-flight) accent so the orb digit, ring,
+  // glow, and prediction strip recolour on the same frame as every
+  // other state-tinted element on the home screen. Falls back to the
+  // engine's instantaneous accent when the provider isn't mounted.
+  const displayed = useDisplayedAccent();
+  const stateColor = displayed?.primary ?? engine.performanceState.color;
 
   const onTap = React.useCallback(() => {
     if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
@@ -50,6 +56,8 @@ function OrbSectionImpl({ onOpenBreakdown, orbSize }: Props) {
         onTap={onTap}
         size={orbSize}
         socialOverlay={socialOverlay}
+        displayedAccent={displayed ? { primary: displayed.primary, glow: displayed.glow } : undefined}
+        displayedScore={displayed?.displayedScore}
       />
       <Text style={styles.orbHint}>TAP ORB FOR FULL BREAKDOWN</Text>
       {intake.noRecentIntake ? (

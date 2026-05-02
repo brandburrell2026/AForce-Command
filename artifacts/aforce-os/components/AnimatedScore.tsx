@@ -18,14 +18,25 @@ interface Props {
   color: string;
   label?: string;
   size?: number;
+  /**
+   * Optional externally-driven displayed value. When provided, this
+   * component skips its internal tween and renders the supplied number
+   * verbatim — used by the home screen so the orb digit, the AI Coach
+   * card, and the prediction strip all recolour on the same animation
+   * frame (driven by `useDisplayedAccent`). Omit to keep the original
+   * self-contained tween for any other caller.
+   */
+  displayValue?: number;
 }
 
-export function AnimatedScore({ value, color, label, size = 56 }: Props) {
+export function AnimatedScore({ value, color, label, size = 56, displayValue }: Props) {
   const previousRef = useRef(0);
   const animated = useSharedValue(0);
   const [display, setDisplay] = useState(0);
+  const isControlled = displayValue !== undefined;
 
   useEffect(() => {
+    if (isControlled) return;
     const from = previousRef.current;
     animated.value = from;
     animated.value = withTiming(value, {
@@ -33,16 +44,18 @@ export function AnimatedScore({ value, color, label, size = 56 }: Props) {
       easing: Easing.out(Easing.cubic),
     });
     previousRef.current = value;
-  }, [value]);
+  }, [value, isControlled]);
 
   useAnimatedReaction(
     () => animated.value,
     (v) => runOnJS(setDisplay)(Math.round(v)),
   );
 
+  const shown = isControlled ? displayValue : display;
+
   return (
     <>
-      <Text style={[styles.score, { color, fontSize: size, lineHeight: size + 6 }]}>{display}</Text>
+      <Text style={[styles.score, { color, fontSize: size, lineHeight: size + 6 }]}>{shown}</Text>
       {label !== undefined && <Text style={styles.label}>{label}</Text>}
     </>
   );

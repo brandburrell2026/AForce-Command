@@ -47,6 +47,23 @@ interface Props {
    * underneath.
    */
   socialOverlay?: { alcoholLoad: number; unstable: boolean };
+  /**
+   * Optional accent override that drives the orb's digit colour, ring
+   * colours, and glow. When the home screen tweens the score, it also
+   * tweens the displayed band — passing it here keeps the orb's colour
+   * locked to the visible number, instead of flipping instantly to the
+   * engine's target band. The pulse motion (waveBehavior, flare,
+   * collapse) still comes from `pulseConfig` since that reflects the
+   * actual physiological state, not the visible score readout.
+   */
+  displayedAccent?: { primary: string; glow: string };
+  /**
+   * Optional externally-driven displayed score. When provided, the
+   * inner `<AnimatedScore/>` skips its own tween and renders this
+   * value verbatim — kept in step with `displayedAccent` so the digit
+   * and the colour change on the same frame.
+   */
+  displayedScore?: number;
 }
 
 const DEFAULT_ORB_SIZE = 200;
@@ -59,9 +76,15 @@ const COLOR_MAP: Record<PulseConfig['colorMode'], { primary: string; glow: strin
   red:   { primary: Colors.states.DEPLETED.primary,   glow: Colors.states.DEPLETED.glow },
 };
 
-export function StatusPulseOrb({ pulseConfig, score, burstAt = 0, onTap, size, socialOverlay }: Props) {
+export function StatusPulseOrb({ pulseConfig, score, burstAt = 0, onTap, size, socialOverlay, displayedAccent, displayedScore }: Props) {
   const { pulseSpeed, glowStrength, pulseIntensity, waveBehavior, colorMode, animations } = pulseConfig;
-  const colors = COLOR_MAP[colorMode];
+  const baseColors = COLOR_MAP[colorMode];
+  // Override colour ONLY — kinetic behaviour (waveBehavior, flare,
+  // collapse) still tracks the engine's actual band so the motion
+  // matches the user's true physiological state.
+  const colors = displayedAccent
+    ? { primary: displayedAccent.primary, glow: displayedAccent.glow }
+    : baseColors;
   const ORB_SIZE = size ?? DEFAULT_ORB_SIZE;
   const GLOW_SIZE = Math.round(ORB_SIZE * GLOW_RATIO);
   const containerSize = GLOW_SIZE + 50;
@@ -427,7 +450,7 @@ export function StatusPulseOrb({ pulseConfig, score, burstAt = 0, onTap, size, s
             },
           ]}
         >
-          <AnimatedScore value={score} color={colors.primary} />
+          <AnimatedScore value={score} color={colors.primary} displayValue={displayedScore} />
         </Pressable>
       </Animated.View>
     </View>

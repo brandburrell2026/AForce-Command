@@ -16,6 +16,14 @@ import { Colors } from '../theme/colors';
 interface Props {
   command: Command;
   performanceState: PerformanceState;
+  /**
+   * Optional accent override. When the home screen is tweening the
+   * displayed score through bands, the parent passes the displayed
+   * (in-flight) accent here so this card recolours on the same frame
+   * the orb digit changes — instead of flipping instantly to the
+   * engine's target band while the score is still rolling.
+   */
+  accentOverride?: string;
 }
 
 const URGENCY_ICONS: Record<string, keyof typeof Feather.glyphMap> = {
@@ -32,8 +40,8 @@ const URGENCY_LABELS: Record<string, string> = {
   critical: 'CRITICAL',
 };
 
-export function AICommandCard({ command, performanceState }: Props) {
-  const { color } = performanceState;
+export function AICommandCard({ command, performanceState, accentOverride }: Props) {
+  const color = accentOverride ?? performanceState.color;
   const icon = URGENCY_ICONS[command.urgencyLevel] ?? 'zap';
   const label = URGENCY_LABELS[command.urgencyLevel] ?? 'ACT NOW';
 
