@@ -16,7 +16,7 @@
  */
 import { describe, it, expect } from 'vitest';
 import { reducer as appStoreReducer } from '../appStoreReducer';
-import type { ProviderSnapshot, UserState } from '../../types';
+import type { ProviderSnapshot } from '../../types';
 import { makeState, makeUserState, makeEngine } from './_fixtures';
 
 const ouraSnap: ProviderSnapshot = {
