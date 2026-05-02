@@ -342,3 +342,27 @@ id = "KPf8AmecFJ5pOQCXiIHPu"
 uri = "file://.local/patent/AForce_Invention_Disclosure.pdf"
 type = "pdf"
 title = "AForce OS — Invention Disclosure (Sweat Engine & Cruise Mode) — PDF"
+
+[[outputs]]
+id = "-dBlBtU7by3uLye6Zq0ky"
+uri = "file://attached_assets/voice_samples/01_adam_male.mp3"
+type = "audio"
+title = "Adam — Dominant, firm (push mode authority)"
+
+[[outputs]]
+id = "0Klfib2s7H3tWLw5YFzeW"
+uri = "file://attached_assets/voice_samples/02_charlie_male.mp3"
+type = "audio"
+title = "Charlie — Deep, confident, energetic (pre-game hype)"
+
+[[outputs]]
+id = "vjqwSS6a3qrh1CEtL1sOS"
+uri = "file://attached_assets/voice_samples/03_sarah_female.mp3"
+type = "audio"
+title = "Sarah — Mature, reassuring, confident (recovery & breathwork)"
+
+[[outputs]]
+id = "7ZkaYe3rTxnyehUyM55U6"
+uri = "file://attached_assets/voice_samples/04_matilda_female.mp3"
+type = "audio"
+title = "Matilda — Knowledgeable, professional (focused coach)"

@@ -1,17 +1,19 @@
 /**
  * AForce voice catalog — the four ElevenLabs voices the user can pick
- * from in Profile. These are the platform's permanent stock voices, so
- * they're available on every ElevenLabs account (free or paid) without
- * any per-account voice creation. IDs are stable.
+ * from in Profile. These are platform "premade" voices (the always-free
+ * stock catalog) so they're available on every ElevenLabs account
+ * without needing a paid Voice Library subscription. IDs are stable.
  *
  * Why these four:
  *   - We want a coach persona that's confident and clear over a phone
- *     speaker mid-workout. Stock voices like "Adam" / "Rachel" have
- *     been tuned by the platform for narrator-grade clarity, which
- *     matches the AForce one-shot command style much better than the
- *     more conversational community voices.
+ *     speaker mid-workout. Premade voices are tuned by the platform for
+ *     narrator-grade clarity, which matches the AForce one-shot command
+ *     style much better than the more conversational community voices.
  *   - Two men + two women so the user can pick the energy that lands
- *     for them: deeper / older vs younger / energetic on each side.
+ *     for them: dominant/firm vs deep/energetic on the male side,
+ *     mature/reassuring vs knowledgeable/professional on the female side.
+ *   - Picked from the user's verified ElevenLabs account inventory so
+ *     the picker never hits a 404 or a paid_plan_required upstream.
  */
 
 export type VoiceGender = 'male' | 'female';
@@ -30,25 +32,25 @@ export const AFORCE_VOICES: AForceVoice[] = [
   {
     id: 'pNInz6obpgDQGcFmaJgB',
     label: 'Adam',
-    description: 'Deep, mature — calm authority.',
+    description: 'Dominant, firm — push mode authority.',
     gender: 'male',
   },
   {
-    id: 'TxGEqnHWrfWFTfGW9XjX',
-    label: 'Josh',
-    description: 'Younger, energetic — pre-game hype.',
+    id: 'IKne3meq5aSn9XLyUdCD',
+    label: 'Charlie',
+    description: 'Deep, confident, energetic — pre-game hype.',
     gender: 'male',
   },
   {
-    id: '21m00Tcm4TlvDq8ikWAM',
-    label: 'Rachel',
-    description: 'Calm, focused — recovery & breathwork.',
+    id: 'EXAVITQu4vr4xnSDxMaL',
+    label: 'Sarah',
+    description: 'Mature, reassuring, confident — recovery & breathwork.',
     gender: 'female',
   },
   {
-    id: 'AZnzlk1QvdT5XeGgwwlbN',
-    label: 'Domi',
-    description: 'Strong, driven — push through the next set.',
+    id: 'XrExE9yKIg1WjnnlVkGX',
+    label: 'Matilda',
+    description: 'Knowledgeable, professional — focused coach.',
     gender: 'female',
   },
 ];
