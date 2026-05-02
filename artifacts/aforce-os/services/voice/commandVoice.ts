@@ -232,20 +232,39 @@ export function getCompletionRewardLines(): ReadonlyArray<string> {
  * ------------------------------------------------------------------ */
 
 const PRESSURE_REPLACEMENTS: ReadonlyArray<readonly [RegExp, string]> = Object.freeze([
+  // Filler / hedging — strip everything that softens a command.
   [/\bplease\b/gi,                ''],
   [/\bgo ahead and\b/gi,          ''],
   [/\byou should\b/gi,            ''],
+  [/\byou need to\b/gi,           ''],
   [/\bmake sure to\b/gi,          ''],
   [/\bremember to\b/gi,           ''],
+  [/\btry to\b/gi,                ''],
+  [/\bjust\b/gi,                  ''],
+  [/\bquickly\b/gi,               ''],
+  [/\ba little\b/gi,              ''],
+  [/\bsome\b/gi,                  ''],
+  // Time-urgency — collapse every "ASAP" variant to a clean "now".
   [/\bright now\b/gi,             'now'],
   [/\bimmediately\b/gi,           'now'],
   [/\bas soon as possible\b/gi,   'now'],
+  [/\bwithout delay\b/gi,         'now'],
+  // Volume / units — convert to compact military-style notation.
   [/\bof water\b/gi,              ''],
   [/\bounces of\b/gi,             'oz'],
   [/\bounces\b/gi,                'oz'],
+  [/\bone\b/gi,                   '1'],
+  [/\btwo\b/gi,                   '2'],
+  [/\bthree\b/gi,                 '3'],
+  [/\bfour\b/gi,                  '4'],
+  [/\beight\b/gi,                 '8'],
   [/\btwelve\b/gi,                '12'],
   [/\bsixteen\b/gi,               '16'],
   [/\btwenty\b/gi,                '20'],
+  [/\btwenty-?four\b/gi,          '24'],
+  // Cadence — replace conjunctions with a sharp comma cut.
+  [/\s+and\s+then\s+/gi,          ', '],
+  [/\s+and\s+/gi,                 ', '],
 ] as const);
 
 /**
@@ -266,8 +285,14 @@ export function pressureCommandLine(command: string): string {
   // Collapse whitespace + leading/trailing punctuation noise.
   out = out
     .replace(/\s+([.!?,;:])/g, '$1')
+    .replace(/,\s*,+/g, ',')
     .replace(/\s{2,}/g, ' ')
+    .replace(/^[\s,;:.!?]+/, '')
     .trim();
+
+  // Capitalize the leading character so the sharpened line still reads
+  // like a command rather than a fragment ("drink 12 oz." → "Drink 12 oz.").
+  if (out.length > 0) out = out[0].toUpperCase() + out.slice(1);
 
   // Clip to 10 words for a sharper command-center cadence.
   const words = out.split(/\s+/);

@@ -13,8 +13,13 @@ import {
   _setSpeakerForTests,
   commandSpeak,
   getLastCommand,
+  getPlaybackState,
+  markCycleExecuted,
+  markVoiceError,
   replayLastCommand,
   subscribe,
+  subscribePlayback,
+  type PlaybackState,
 } from '../voice/commandVoiceBus';
 
 describe('commandVoiceBus', () => {
@@ -142,5 +147,175 @@ describe('commandVoiceBus', () => {
     commandSpeak('System optimized.', { category: 'score_band' });
     expect(bad).toHaveBeenCalledTimes(1);
     expect(good).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('commandVoiceBus — playback lifecycle', () => {
+  // Same explicit-no-op factory as the first describe — keeps strict
+  // TS happy because vi.fn()'s default type is too wide for `Speaker`.
+  function makePlaybackSpeakerMock() {
+    return vi.fn((_text: string, _opts?: { level?: unknown }) => {});
+  }
+  let speaker: ReturnType<typeof makePlaybackSpeakerMock>;
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    _resetForTests();
+    speaker = makePlaybackSpeakerMock();
+    _setSpeakerForTests(speaker);
+  });
+
+  afterEach(() => {
+    _resetForTests();
+    vi.useRealTimers();
+  });
+
+  it('starts in the idle state', () => {
+    expect(getPlaybackState()).toBe('idle');
+  });
+
+  it('transitions idle → received → playing → idle on commandSpeak', () => {
+    const transitions: PlaybackState[] = [];
+    subscribePlayback((s) => transitions.push(s));
+
+    commandSpeak('Risk rising. Twelve oz. AForce. Now.', { category: 'score_band' });
+
+    // RECEIVED fires synchronously after the speaker call.
+    expect(getPlaybackState()).toBe('received');
+    expect(transitions).toEqual(['received']);
+
+    // After the 220ms pre-roll, we flip to PLAYING.
+    vi.advanceTimersByTime(220);
+    expect(getPlaybackState()).toBe('playing');
+    expect(transitions).toEqual(['received', 'playing']);
+
+    // After the estimated speak duration, we return to IDLE.
+    vi.advanceTimersByTime(8000);
+    expect(getPlaybackState()).toBe('idle');
+    expect(transitions).toEqual(['received', 'playing', 'idle']);
+  });
+
+  it('a back-to-back commandSpeak supersedes the in-flight cycle', () => {
+    const transitions: PlaybackState[] = [];
+    subscribePlayback((s) => transitions.push(s));
+
+    commandSpeak('First line.', { category: 'system_command' });
+    vi.advanceTimersByTime(100); // mid pre-roll
+    commandSpeak('Second line.', { category: 'system_command' });
+
+    // Two RECEIVED transitions, no orphan PLAYING / IDLE from the first.
+    expect(transitions.filter(s => s === 'received')).toHaveLength(2);
+    expect(transitions).not.toContain('playing'); // not yet
+    expect(getPlaybackState()).toBe('received');
+
+    vi.advanceTimersByTime(220);
+    expect(getPlaybackState()).toBe('playing');
+
+    vi.advanceTimersByTime(8000);
+    expect(getPlaybackState()).toBe('idle');
+  });
+
+  it('markCycleExecuted overrides any in-flight state and decays to idle', () => {
+    const transitions: PlaybackState[] = [];
+    subscribePlayback((s) => transitions.push(s));
+
+    commandSpeak('Hydration cycle complete. System reset.', { category: 'completion' });
+    vi.advanceTimersByTime(220);
+    expect(getPlaybackState()).toBe('playing');
+
+    markCycleExecuted();
+    expect(getPlaybackState()).toBe('executed');
+    expect(transitions).toEqual(['received', 'playing', 'executed']);
+
+    vi.advanceTimersByTime(2400);
+    expect(getPlaybackState()).toBe('idle');
+  });
+
+  it('markCycleExecuted is safe to call from idle (no in-flight speak)', () => {
+    expect(getPlaybackState()).toBe('idle');
+    markCycleExecuted();
+    expect(getPlaybackState()).toBe('executed');
+    vi.advanceTimersByTime(2400);
+    expect(getPlaybackState()).toBe('idle');
+  });
+
+  it('markVoiceError flashes error then decays to idle', () => {
+    const transitions: PlaybackState[] = [];
+    subscribePlayback((s) => transitions.push(s));
+
+    markVoiceError();
+    expect(getPlaybackState()).toBe('error');
+    vi.advanceTimersByTime(2400);
+    expect(getPlaybackState()).toBe('idle');
+    expect(transitions).toEqual(['error', 'idle']);
+  });
+
+  it('a synchronously-throwing speaker auto-marks the bus into error', () => {
+    _setSpeakerForTests(() => { throw new Error('TTS unavailable'); });
+    const transitions: PlaybackState[] = [];
+    subscribePlayback((s) => transitions.push(s));
+
+    // Still records the line for replay even when the speaker fails.
+    const rec = commandSpeak('Critical risk. Execute Recovery Protocol now.', {
+      category: 'risk_timer',
+    });
+    expect(rec).not.toBeNull();
+    expect(getLastCommand()?.line).toBe('Critical risk. Execute Recovery Protocol now.');
+    expect(getPlaybackState()).toBe('error');
+
+    // Does not flow through received/playing — error is terminal.
+    vi.advanceTimersByTime(2400);
+    expect(getPlaybackState()).toBe('idle');
+    expect(transitions).toEqual(['error', 'idle']);
+  });
+
+  it('replayLastCommand cycles the playback lifecycle just like a fresh speak', () => {
+    commandSpeak('Performance stable. Maintain hydration rhythm.', { category: 'score_band' });
+    // Drain the original cycle.
+    vi.advanceTimersByTime(220 + 8000);
+    expect(getPlaybackState()).toBe('idle');
+
+    const transitions: PlaybackState[] = [];
+    subscribePlayback((s) => transitions.push(s));
+    replayLastCommand();
+    expect(transitions).toEqual(['received']);
+
+    vi.advanceTimersByTime(220);
+    expect(transitions).toEqual(['received', 'playing']);
+
+    vi.advanceTimersByTime(8000);
+    expect(transitions).toEqual(['received', 'playing', 'idle']);
+  });
+
+  it('subscribePlayback unsubscribes cleanly', () => {
+    const listener = vi.fn();
+    const unsub = subscribePlayback(listener);
+    commandSpeak('Risk rising. Act now.', { category: 'score_band' });
+    expect(listener).toHaveBeenCalledTimes(1); // received
+    unsub();
+    vi.advanceTimersByTime(220);
+    expect(listener).toHaveBeenCalledTimes(1); // no playing transition received
+  });
+
+  it('a throwing playback subscriber does not break the bus', () => {
+    const bad = vi.fn(() => { throw new Error('boom'); });
+    const good = vi.fn();
+    subscribePlayback(bad);
+    subscribePlayback(good);
+    commandSpeak('System optimized.', { category: 'score_band' });
+    expect(bad).toHaveBeenCalledTimes(1);
+    expect(good).toHaveBeenCalledTimes(1);
+  });
+
+  it('_resetForTests clears playback state and timers', () => {
+    commandSpeak('Test line.', { category: 'system_command' });
+    expect(getPlaybackState()).toBe('received');
+    _resetForTests();
+    expect(getPlaybackState()).toBe('idle');
+    // Stale timer from before reset must not fire.
+    const after = vi.fn();
+    subscribePlayback(after);
+    vi.advanceTimersByTime(10_000);
+    expect(after).not.toHaveBeenCalled();
   });
 });

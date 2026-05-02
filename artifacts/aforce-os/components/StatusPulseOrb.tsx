@@ -64,6 +64,14 @@ interface Props {
    * and the colour change on the same frame.
    */
   displayedScore?: number;
+  /**
+   * When true, the orb radiates an additional fast-breathing voice
+   * halo to signal that the AForce Command Voice Engine is currently
+   * mid-utterance. Wired by OrbSection from the commandVoiceBus
+   * playback state. Purely additive — every other animation continues
+   * underneath.
+   */
+  voiceActive?: boolean;
 }
 
 const DEFAULT_ORB_SIZE = 200;
@@ -76,7 +84,7 @@ const COLOR_MAP: Record<PulseConfig['colorMode'], { primary: string; glow: strin
   red:   { primary: Colors.states.DEPLETED.primary,   glow: Colors.states.DEPLETED.glow },
 };
 
-export function StatusPulseOrb({ pulseConfig, score, burstAt = 0, onTap, size, socialOverlay, displayedAccent, displayedScore }: Props) {
+export function StatusPulseOrb({ pulseConfig, score, burstAt = 0, onTap, size, socialOverlay, displayedAccent, displayedScore, voiceActive = false }: Props) {
   const { pulseSpeed, glowStrength, pulseIntensity, waveBehavior, colorMode, animations } = pulseConfig;
   const baseColors = COLOR_MAP[colorMode];
   // Override colour ONLY — kinetic behaviour (waveBehavior, flare,
@@ -343,6 +351,42 @@ export function StatusPulseOrb({ pulseConfig, score, burstAt = 0, onTap, size, s
     return { opacity, transform: [{ scale }] };
   });
 
+  // Voice-active halo — fast outward pulse that radiates while the
+  // AForce Command Voice Engine is mid-utterance. Driven by the
+  // commandVoiceBus playback lifecycle via OrbSection.
+  const voicePulse = useSharedValue(0);
+  useEffect(() => {
+    cancelAnimation(voicePulse);
+    if (!voiceActive) {
+      voicePulse.value = withTiming(0, { duration: 320 });
+      return;
+    }
+    voicePulse.value = withRepeat(
+      withSequence(
+        withTiming(1, { duration: 900, easing: Easing.out(Easing.cubic) }),
+        withTiming(0, { duration: 0 }),
+      ),
+      -1,
+      false,
+    );
+    return () => cancelAnimation(voicePulse);
+  }, [voiceActive]);
+
+  const voiceHaloStyle = useAnimatedStyle(() => ({
+    opacity:   interpolate(voicePulse.value, [0, 0.15, 1], [0, 0.85, 0]),
+    transform: [{ scale: interpolate(voicePulse.value, [0, 1], [1, 1.45]) }],
+  }));
+
+  const voiceCoreStyle = useAnimatedStyle(() => {
+    if (!voiceActive) return { opacity: 0 };
+    // Soft inner accent ring that holds steady while voice is active.
+    const breath = 0.5 + 0.5 * Math.sin(voicePulse.value * Math.PI);
+    return {
+      opacity: 0.35 + 0.35 * breath,
+      transform: [{ scale: 1 + 0.04 * breath }],
+    };
+  });
+
   return (
     <View style={[styles.container, { width: containerSize, height: containerSize }]}>
       <Animated.View
@@ -425,6 +469,42 @@ export function StatusPulseOrb({ pulseConfig, score, burstAt = 0, onTap, size, s
           burstStyle,
         ]}
       />
+
+      {/* Voice-active halo — radiating fast pulse while voice mid-utterance */}
+      {voiceActive && (
+        <Animated.View
+          pointerEvents="none"
+          style={[
+            styles.ring,
+            {
+              borderColor: colors.primary,
+              borderWidth: 1.5,
+              width: ORB_SIZE + 60,
+              height: ORB_SIZE + 60,
+              borderRadius: (ORB_SIZE + 60) / 2,
+            },
+            voiceHaloStyle,
+          ]}
+        />
+      )}
+
+      {/* Voice-active core ring — soft steady accent while voice mid-utterance */}
+      {voiceActive && (
+        <Animated.View
+          pointerEvents="none"
+          style={[
+            styles.ring,
+            {
+              borderColor: colors.primary,
+              borderWidth: 1,
+              width: ORB_SIZE + 14,
+              height: ORB_SIZE + 14,
+              borderRadius: (ORB_SIZE + 14) / 2,
+            },
+            voiceCoreStyle,
+          ]}
+        />
+      )}
 
       <Animated.View style={[styles.orbWrapper, orbStyle]}>
         <Animated.View

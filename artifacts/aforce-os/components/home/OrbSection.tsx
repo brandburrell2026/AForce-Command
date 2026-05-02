@@ -16,6 +16,11 @@ import { Colors } from '../../theme/colors';
 import { StatusPulseOrb } from '../StatusPulseOrb';
 import { useEngineSlice, useIntakeSlice } from '../../store/slices';
 import { useDisplayedAccent } from '../../hooks/useDisplayedAccent';
+import {
+  getPlaybackState,
+  subscribePlayback,
+  type PlaybackState,
+} from '../../services/voice/commandVoiceBus';
 
 interface Props {
   onOpenBreakdown: () => void;
@@ -47,6 +52,12 @@ function OrbSectionImpl({ onOpenBreakdown, orbSize }: Props) {
       }
     : undefined;
 
+  // Track the voice engine's playback lifecycle so the orb can radiate
+  // an extra halo while a command is being received or transmitted.
+  const [playback, setPlayback] = React.useState<PlaybackState>(() => getPlaybackState());
+  React.useEffect(() => subscribePlayback(setPlayback), []);
+  const voiceActive = playback === 'received' || playback === 'playing';
+
   return (
     <View style={styles.orbContainer}>
       <StatusPulseOrb
@@ -58,6 +69,7 @@ function OrbSectionImpl({ onOpenBreakdown, orbSize }: Props) {
         socialOverlay={socialOverlay}
         displayedAccent={displayed ? { primary: displayed.primary, glow: displayed.glow } : undefined}
         displayedScore={displayed?.displayedScore}
+        voiceActive={voiceActive}
       />
       <Text style={styles.orbHint}>TAP ORB FOR FULL BREAKDOWN</Text>
       {intake.noRecentIntake ? (

@@ -59,7 +59,7 @@ import {
   type VoiceIntensity,
   type VoiceScope,
 } from '../services/voice/commandVoice';
-import { commandSpeak, setSpeakerImpl as setBusSpeakerImpl } from '../services/voice/commandVoiceBus';
+import { commandSpeak, markCycleExecuted, setSpeakerImpl as setBusSpeakerImpl } from '../services/voice/commandVoiceBus';
 
 // Flavor inference moved to `utils/inferFlavorFromLabel` so it can be
 // unit-tested in isolation. Substring-based: "Berry Blast" and
@@ -494,8 +494,18 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           category: 'completion',
         });
       }
-      // Only schedule the auto-dismiss when the hero overlay was actually shown.
-      if (!opts?.silent) setTimeout(() => dispatch({ type: 'DISMISS_SUCCESS' }), 2400);
+      // AForce Command Voice Engine — visual "COMMAND EXECUTED" badge.
+      // Fires on every user-initiated cycle regardless of voice
+      // settings: the badge is the reward, voice is one of several
+      // ways to express it. Stays silent for silent-sip events
+      // (Phantom Band auto-logging) so background activity doesn't
+      // pulse the orb.
+      if (!opts?.silent) {
+        markCycleExecuted();
+        // Auto-dismiss the hero overlay on the same cadence as the
+        // executed badge so the two cinematic moments end together.
+        setTimeout(() => dispatch({ type: 'DISMISS_SUCCESS' }), 2400);
+      }
     } catch (err) {
       // Fail-safe: clear loading flag so UI never soft-locks.
       console.warn('[AForce] logIntake failed', err);
