@@ -10,7 +10,7 @@
  * comparison engine → recommend → log intake into the live store.
  */
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, Platform, Pressable, TextInput,
 } from 'react-native';
@@ -29,6 +29,7 @@ import { Feather } from '@expo/vector-icons';
 
 import { GradientBackground } from '@/components/GradientBackground';
 import { ScanResultCard } from '@/components/ScanResultCard';
+import { ScanAICoachCard } from '@/components/ScanAICoachCard';
 import { ProductFitCard } from '@/components/ProductFitCard';
 import { AForceReplacementCard } from '@/components/AForceReplacementCard';
 import { CameraScanModal } from '@/components/CameraScanModal';
@@ -36,8 +37,12 @@ import { Colors } from '@/theme/colors';
 import { useAppStore } from '@/store/useAppStore';
 import { scan } from '@/services/hydrationScanService';
 import { listSimulatableBarcodes } from '@/services/productRecognitionService';
+import { buildScanCoachScript } from '@/services/scanCoachVoice';
+import { speak as speakCoach, stopSpeaking } from '@/services/textToSpeech';
+import { COMPARE_PRODUCTS } from '@/data/productDatabase';
 import { usePostScan, useScanHistory } from '@/hooks/useServerHistory';
 import type { ScanOutcome, ScanResult, ScanSource } from '@/types/scan';
+import type { PerformanceLevel } from '@/types';
 
 export default function HydrationScanScreen() {
   const router = useRouter();
@@ -131,6 +136,37 @@ export default function HydrationScanScreen() {
   };
 
   const result: ScanResult | null = outcome?.ok ? outcome.result : null;
+
+  // Resolve the AForce equivalent (if recommended) + build the AI Coach
+  // narrative once per scan. Pure derivation — re-computed only when the
+  // scan changes, so the spoken transcript is stable for replay.
+  const aforceEquivalent = useMemo(() => {
+    const id = result?.recommendation.aforceEquivalentId;
+    if (!id) return undefined;
+    return COMPARE_PRODUCTS.find((p) => p.id === id);
+  }, [result?.recommendation.aforceEquivalentId]);
+
+  const coachScript = useMemo(
+    () => (result ? buildScanCoachScript(result, aforceEquivalent) : null),
+    [result, aforceEquivalent],
+  );
+
+  // Stop any in-flight speech if the screen unmounts mid-narrative.
+  useEffect(() => {
+    return () => {
+      stopSpeaking();
+    };
+  }, []);
+
+  // Stable refs — voice handlers depend on nothing from render scope, so
+  // wrap them so the card's auto-speak effect deps stay stable across
+  // unrelated re-renders (logging state, animation frames, etc.).
+  const handleCoachSpeak = useCallback((text: string, level: PerformanceLevel) => {
+    speakCoach(text, { level });
+  }, []);
+  const handleCoachStop = useCallback(() => {
+    stopSpeaking();
+  }, []);
 
   const onLogScanned = async () => {
     if (!result) return;
@@ -279,6 +315,18 @@ export default function HydrationScanScreen() {
           {result && (
             <>
               <ScanResultCard result={result} />
+
+              {coachScript && (
+                <ScanAICoachCard
+                  script={coachScript}
+                  scanKey={result.scannedAt}
+                  level={result.evaluatedAgainstState}
+                  scannedName={result.product.productName}
+                  aforceName={aforceEquivalent?.name}
+                  onSpeak={handleCoachSpeak}
+                  onStop={handleCoachStop}
+                />
+              )}
 
               {result.recommendation.aforceEquivalentId && (
                 <AForceReplacementCard
