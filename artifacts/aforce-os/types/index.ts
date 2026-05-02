@@ -90,8 +90,17 @@ export interface UserState {
   // Optional biometrics from Apple Health (only present after the
   // user grants permission on a native iOS build). Any null field is
   // ignored by the scoring engine — never substituted with placeholder
-  // numbers.
+  // numbers. Also mirrored into `biometrics.apple_health` so the
+  // multi-provider aggregator sees it alongside the other 6 platforms.
   appleHealth?: AppleHealthInputs;
+  /**
+   * Per-provider biometric snapshots from any of the 7 health
+   * platforms in `data/healthProviders.ts` (Apple Health, Oura,
+   * Samsung Health, Google Health Connect, Garmin, WHOOP, Strava).
+   * Aggregated by `utils/biometricsAggregator.ts` into a single
+   * recovery delta + inferred activity level that feed the score.
+   */
+  biometrics?: ProviderBiometrics;
   /**
    * Transient ±3 from the post-recheck "Did you follow the command?"
    * confirmation loop. Stale entries (>30 min old) are ignored by the
@@ -181,6 +190,7 @@ import type {
   TransportationSafetyPrompt,
   SocialModeState,
 } from './socialMode';
+import type { ProviderBiometrics } from './biometrics';
 
 export interface AppleHealthInputs {
   restingHeartRate: number | null;
@@ -190,6 +200,8 @@ export interface AppleHealthInputs {
   /** When the snapshot was last refreshed (epoch ms). */
   fetchedAt: number;
 }
+
+export type { ProviderSnapshot, ProviderBiometrics } from './biometrics';
 
 export interface PerformanceState {
   level: PerformanceLevel;

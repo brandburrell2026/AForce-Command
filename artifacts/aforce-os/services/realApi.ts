@@ -193,17 +193,20 @@ export interface HomePayload {
 let lastKnownState: UserState = defaultUserState;
 
 export async function fetchHome(userState: UserState): Promise<HomePayload> {
-  // Push any client-side mutations (clutchActive flag, appleHealth)
-  // forward by merging them onto whatever the server returns. The
-  // server is the source of truth for everything else.
+  // Push any client-side mutations (clutchActive flag, appleHealth,
+  // biometrics) forward by merging them onto whatever the server
+  // returns. The server is the source of truth for everything else.
   try {
     const { userState: row, serverTime } = await getJson<{ userState: Record<string, unknown>; serverTime: string }>('/state');
     const normalized = normalizeUserState(row);
     const merged: UserState = {
       ...normalized,
-      // Only appleHealth is preserved from the client — server is now
-      // the source of truth for everything else (including clutchActive).
+      // appleHealth + biometrics are client-only (sourced from on-device
+      // HealthKit + provider OAuth). The server doesn't persist them
+      // (yet), so without preserving here, every server round-trip
+      // would erase the score contribution from connected platforms.
       appleHealth: userState.appleHealth ?? normalized.appleHealth,
+      ...(userState.biometrics ? { biometrics: userState.biometrics } : {}),
     };
     lastKnownState = merged;
     return { engineOutput: calculateScore(merged), userState: merged, serverTime };
@@ -294,6 +297,7 @@ export async function postIntakeLog(
   const newUserState: UserState = {
     ...normalized,
     appleHealth: userState.appleHealth ?? normalized.appleHealth,
+    ...(userState.biometrics ? { biometrics: userState.biometrics } : {}),
   };
   lastKnownState = newUserState;
   const log: IntakeLog = {
@@ -311,17 +315,18 @@ export async function postIntakeLog(
 async function postAndRecompute(
   path: string,
   body: unknown,
-  preserve: Pick<UserState, 'appleHealth'>,
+  preserve: Pick<UserState, 'appleHealth' | 'biometrics'>,
 ): Promise<{ newUserState: UserState; engineOutput: ScoreEngineOutput }> {
   const resp = await postJson<{ userState: Record<string, unknown> }>(path, body);
   const normalized = normalizeUserState(resp.userState);
-  // appleHealth is client-only (sourced from HealthKit on-device, never
-  // persisted). Server-owned fields (including clutchActive after the
-  // T6 swap) flow through unchanged so multi-device & WS pushes stay
-  // consistent.
+  // appleHealth + biometrics are client-only (sourced from HealthKit
+  // on-device + provider OAuth, never persisted server-side yet).
+  // Server-owned fields (including clutchActive after the T6 swap) flow
+  // through unchanged so multi-device & WS pushes stay consistent.
   const newUserState: UserState = {
     ...normalized,
     appleHealth: preserve.appleHealth ?? normalized.appleHealth,
+    ...(preserve.biometrics ? { biometrics: preserve.biometrics } : {}),
   };
   lastKnownState = newUserState;
   return { newUserState, engineOutput: calculateScore(newUserState) };
@@ -398,6 +403,7 @@ export async function refreshWeather(
     const newUserState: UserState = {
       ...normalized,
       appleHealth: userState.appleHealth ?? normalized.appleHealth,
+      ...(userState.biometrics ? { biometrics: userState.biometrics } : {}),
     };
     lastKnownState = newUserState;
     return { newUserState, engineOutput: calculateScore(newUserState) };
@@ -417,7 +423,7 @@ export async function refreshWeather(
  */
 export function subscribeToStateUpdates(
   onState: (state: UserState) => void,
-  getOverlay: () => Pick<UserState, 'appleHealth'>,
+  getOverlay: () => Pick<UserState, 'appleHealth' | 'biometrics'>,
 ): () => void {
   const wsBase = AFORCE_BASE.replace(/^http/, 'ws');
 
@@ -450,9 +456,11 @@ export function subscribeToStateUpdates(
           const normalized = normalizeUserState(msg.userState);
           const next: UserState = {
             ...normalized,
-            // Only appleHealth is purely client-side (HealthKit on-device).
-            // Everything else (including clutchActive) is server-owned.
+            // appleHealth + biometrics are purely client-side (HealthKit
+            // on-device + provider OAuth snapshots). Everything else
+            // (including clutchActive) is server-owned.
             appleHealth: overlay.appleHealth ?? normalized.appleHealth,
+            ...(overlay.biometrics ? { biometrics: overlay.biometrics } : {}),
           };
           lastKnownState = next;
           onState(next);

@@ -15,9 +15,12 @@ import type {
   HistoryEntry,
   FluidType,
   FeatureFlags,
+  ProviderSnapshot,
+  ProviderBiometrics,
 } from '../types';
 import type { UserSubscription } from '../types/subscription';
 import type { SweatAutopilot } from '../types/sweat';
+import type { HealthProviderId } from '../data/healthProviders';
 import type { AppState } from './appStoreTypes';
 import { reducer } from './appStoreReducer';
 import { SliceProvider, type ActionsSlice } from './slices';
@@ -97,6 +100,13 @@ interface AppContextValue {
   setSubscription: (sub: UserSubscription) => void;
   completeOnboarding: () => void;
   setAppleHealthSnapshot: (snapshot: AppleHealthInputs | null) => void;
+  /**
+   * Push a snapshot from any non-Apple-Health provider (Oura / WHOOP /
+   * Garmin / Strava / Samsung / Google Health Connect) into UserState
+   * .biometrics. The score engine immediately re-aggregates across all
+   * connected providers. Pass null to disconnect that provider.
+   */
+  setProviderBiometrics: (providerId: HealthProviderId, snapshot: ProviderSnapshot | null) => void;
   /**
    * Resolve the post-recheck "Did you follow the command?" prompt (T2).
    * Yes → +3 score. No → -3 score and (in Clutch mode, T3) a 10-min
@@ -224,20 +234,27 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // Ref-backed latest snapshot of the client-only overlay so the WS
   // subscription (mounted once) always reads the *current* appleHealth
   // value rather than a stale closure over the initial render.
-  const overlayRef = useRef<{ appleHealth?: AppleHealthInputs }>({});
+  const overlayRef = useRef<{ appleHealth?: AppleHealthInputs; biometrics?: ProviderBiometrics }>({});
   useEffect(() => {
-    overlayRef.current = { appleHealth: state.userState.appleHealth };
-  }, [state.userState.appleHealth]);
+    overlayRef.current = {
+      appleHealth: state.userState.appleHealth,
+      biometrics: state.userState.biometrics,
+    };
+  }, [state.userState.appleHealth, state.userState.biometrics]);
 
   // Live state pushes from the api-server. The server broadcasts after
   // every mutation, so this catches changes from other clients (or
   // server-initiated updates like the weather refresh) without waiting
   // for the 30s poll. Subscribe once per mount; the overlay getter
-  // pulls from `overlayRef` so updates to appleHealth never get lost.
+  // pulls from `overlayRef` so updates to appleHealth + biometrics
+  // (both client-only) never get clobbered by a server push.
   useEffect(() => {
     const unsubscribe = subscribeToStateUpdates(
       (next) => dispatch({ type: 'SET_USER_STATE', payload: { newUserState: next, engineOutput: _initialOnly(next) } }),
-      () => ({ appleHealth: overlayRef.current.appleHealth }),
+      () => ({
+        appleHealth: overlayRef.current.appleHealth,
+        biometrics: overlayRef.current.biometrics,
+      }),
     );
     return unsubscribe;
   }, []);
@@ -653,15 +670,60 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // sleep show up in the orb and breakdown without waiting for the
   // next /v1/home tick.
   const setAppleHealthSnapshot = useCallback((snapshot: AppleHealthInputs | null) => {
+    const baseBio = state.userState.biometrics ?? {};
     const merged: UserState = snapshot
-      ? { ...state.userState, appleHealth: snapshot }
-      : (() => { const { appleHealth: _drop, ...rest } = state.userState; return rest as UserState; })();
+      ? {
+          ...state.userState,
+          appleHealth: snapshot,
+          biometrics: {
+            ...baseBio,
+            apple_health: {
+              providerId: 'apple_health' as const,
+              restingHeartRate: snapshot.restingHeartRate,
+              hrvSdnn: snapshot.hrvSdnn,
+              sleepHoursLastNight: snapshot.sleepHoursLastNight,
+              stepsToday: snapshot.stepsToday,
+              fetchedAt: snapshot.fetchedAt,
+            },
+          },
+        }
+      : (() => {
+          const { appleHealth: _drop, ...rest } = state.userState;
+          const { apple_health: _dropBio, ...restBio } = baseBio;
+          return { ...(rest as UserState), biometrics: restBio };
+        })();
     fetchHome(merged)
       .then(({ engineOutput }) => {
         dispatch({ type: 'SET_APPLE_HEALTH', payload: { snapshot, engineOutput } });
       })
       .catch((err) => {
         console.warn('[AForce] setAppleHealthSnapshot refresh failed', err);
+      });
+  }, [state.userState]);
+
+  // Push a snapshot from any non-Apple health platform (Oura / WHOOP /
+  // Strava / Garmin / Samsung / Google Health) into UserState.biometrics.
+  // The score engine immediately picks it up via the multi-provider
+  // aggregator. Pass null to disconnect.
+  const setProviderBiometrics = useCallback((
+    providerId: HealthProviderId,
+    snapshot: ProviderSnapshot | null,
+  ) => {
+    const baseBio = state.userState.biometrics ?? {};
+    let nextBio: ProviderBiometrics;
+    if (snapshot) {
+      nextBio = { ...baseBio, [providerId]: snapshot };
+    } else {
+      const { [providerId]: _drop, ...rest } = baseBio;
+      nextBio = rest;
+    }
+    const merged: UserState = { ...state.userState, biometrics: nextBio };
+    fetchHome(merged)
+      .then(({ engineOutput }) => {
+        dispatch({ type: 'SET_PROVIDER_BIOMETRICS', payload: { providerId, snapshot, engineOutput } });
+      })
+      .catch((err) => {
+        console.warn('[AForce] setProviderBiometrics refresh failed', err);
       });
   }, [state.userState]);
 
@@ -678,12 +740,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const value = useMemo<AppContextValue>(() => ({
     state, logIntake, completeCycle, snooze, dismissSuccess,
     updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags,
-    setSubscription, completeOnboarding, setAppleHealthSnapshot, confirmCommand, setLanguage,
+    setSubscription, completeOnboarding, setAppleHealthSnapshot, setProviderBiometrics, confirmCommand, setLanguage,
     activateSocialMode, logSocialDrink, confirmSocialHydration, deactivateSocialMode, setSocialContext,
     setSweatAutopilot,
     voiceCoachEnabled, setVoiceCoachEnabled,
     selectedVoiceId, setSelectedVoiceId,
-  }), [state, logIntake, completeCycle, snooze, dismissSuccess, updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags, setSubscription, completeOnboarding, setAppleHealthSnapshot, confirmCommand, setLanguage, activateSocialMode, logSocialDrink, confirmSocialHydration, deactivateSocialMode, setSocialContext, setSweatAutopilot, voiceCoachEnabled, setVoiceCoachEnabled, selectedVoiceId, setSelectedVoiceId]);
+  }), [state, logIntake, completeCycle, snooze, dismissSuccess, updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags, setSubscription, completeOnboarding, setAppleHealthSnapshot, setProviderBiometrics, confirmCommand, setLanguage, activateSocialMode, logSocialDrink, confirmSocialHydration, deactivateSocialMode, setSocialContext, setSweatAutopilot, voiceCoachEnabled, setVoiceCoachEnabled, selectedVoiceId, setSelectedVoiceId]);
 
   // Stable actions value for the sliced ActionsContext — same callbacks
   // as `value` minus `state`, so action consumers don't re-render when
@@ -691,10 +753,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const actions = useMemo<ActionsSlice>(() => ({
     logIntake, completeCycle, snooze, dismissSuccess,
     updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags,
-    setSubscription, completeOnboarding, setAppleHealthSnapshot, confirmCommand, setLanguage,
+    setSubscription, completeOnboarding, setAppleHealthSnapshot, setProviderBiometrics, confirmCommand, setLanguage,
     activateSocialMode, logSocialDrink, confirmSocialHydration, deactivateSocialMode, setSocialContext,
     setSweatAutopilot,
-  }), [logIntake, completeCycle, snooze, dismissSuccess, updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags, setSubscription, completeOnboarding, setAppleHealthSnapshot, confirmCommand, setLanguage, activateSocialMode, logSocialDrink, confirmSocialHydration, deactivateSocialMode, setSocialContext, setSweatAutopilot]);
+  }), [logIntake, completeCycle, snooze, dismissSuccess, updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags, setSubscription, completeOnboarding, setAppleHealthSnapshot, setProviderBiometrics, confirmCommand, setLanguage, activateSocialMode, logSocialDrink, confirmSocialHydration, deactivateSocialMode, setSocialContext, setSweatAutopilot]);
 
   return (
     <AppContext.Provider value={value}>

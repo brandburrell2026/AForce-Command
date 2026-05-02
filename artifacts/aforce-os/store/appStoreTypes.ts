@@ -11,9 +11,11 @@ import type {
   CycleResult,
   HistoryEntry,
   FeatureFlags,
+  ProviderSnapshot,
 } from '../types';
 import type { UserSubscription } from '../types/subscription';
 import type { SweatAutopilot } from '../types/sweat';
+import type { HealthProviderId } from '../data/healthProviders';
 
 export interface AppState {
   userState: UserState;
@@ -69,6 +71,14 @@ export type Action =
   | {
       type: 'SET_APPLE_HEALTH';
       payload: { snapshot: AppleHealthInputs | null; engineOutput: ScoreEngineOutput };
+    }
+  | {
+      type: 'SET_PROVIDER_BIOMETRICS';
+      payload: {
+        providerId: HealthProviderId;
+        snapshot: ProviderSnapshot | null;
+        engineOutput: ScoreEngineOutput;
+      };
     }
   | {
       type: 'CONFIRM_COMMAND';

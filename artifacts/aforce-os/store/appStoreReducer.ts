@@ -100,13 +100,53 @@ export function reducer(state: AppState, action: Action): AppState {
       return { ...state, hasSeenOnboarding: true };
     case 'SET_APPLE_HEALTH': {
       const { snapshot, engineOutput } = action.payload;
-      const updated: UserState = snapshot
-        ? { ...state.userState, appleHealth: snapshot }
-        : (() => {
-            const { appleHealth: _drop, ...rest } = state.userState;
-            return rest as UserState;
-          })();
+      // Apple Health is mirrored into TWO places:
+      //   - Legacy `appleHealth` field (kept for back-compat with the
+      //     score engine fallback path and the existing `generateReasons`
+      //     consumer).
+      //   - The `biometrics.apple_health` slot of the multi-provider
+      //     record so the cross-provider aggregator sees Apple Health
+      //     alongside the other six platforms.
+      const baseBio = state.userState.biometrics ?? {};
+      let updated: UserState;
+      if (snapshot) {
+        updated = {
+          ...state.userState,
+          appleHealth: snapshot,
+          biometrics: {
+            ...baseBio,
+            apple_health: {
+              providerId: 'apple_health',
+              restingHeartRate: snapshot.restingHeartRate,
+              hrvSdnn: snapshot.hrvSdnn,
+              sleepHoursLastNight: snapshot.sleepHoursLastNight,
+              stepsToday: snapshot.stepsToday,
+              fetchedAt: snapshot.fetchedAt,
+            },
+          },
+        };
+      } else {
+        const { appleHealth: _drop, ...rest } = state.userState;
+        const { apple_health: _dropBio, ...restBio } = baseBio;
+        updated = { ...(rest as UserState), biometrics: restBio };
+      }
       return { ...state, userState: updated, engineOutput };
+    }
+    case 'SET_PROVIDER_BIOMETRICS': {
+      const { providerId, snapshot, engineOutput } = action.payload;
+      const baseBio = state.userState.biometrics ?? {};
+      let nextBio: typeof baseBio;
+      if (snapshot) {
+        nextBio = { ...baseBio, [providerId]: snapshot };
+      } else {
+        const { [providerId]: _drop, ...rest } = baseBio;
+        nextBio = rest;
+      }
+      return {
+        ...state,
+        userState: { ...state.userState, biometrics: nextBio },
+        engineOutput,
+      };
     }
     default:
       return state;

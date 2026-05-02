@@ -18,6 +18,7 @@ import { Icon } from '@/components/Icon';
 import { Colors } from '@/theme/colors';
 import { mockUserProfile } from '@/data/mockData';
 import { HEALTH_PROVIDERS, type HealthProviderId } from '@/data/healthProviders';
+import { buildDemoSnapshot } from '@/data/providerDemoSnapshots';
 import {
   isAppleHealthSupported,
   requestAppleHealthPermissions,
@@ -56,7 +57,7 @@ export default function ProfileScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const {
-    state, setFeatureFlags, setAppleHealthSnapshot, setLanguage,
+    state, setFeatureFlags, setAppleHealthSnapshot, setProviderBiometrics, setLanguage,
     activateSocialMode, logSocialDrink, deactivateSocialMode,
     voiceCoachEnabled, setVoiceCoachEnabled,
     selectedVoiceId, setSelectedVoiceId,
@@ -175,6 +176,10 @@ export default function ProfileScreen() {
               if (id === 'apple_health') {
                 setAppleSnapshot(null);
                 setAppleHealthSnapshot(null);
+              } else {
+                // Clear the biometric snapshot from the score so the
+                // recovery / activity contribution disappears immediately.
+                setProviderBiometrics(id, null);
               }
             },
           },
@@ -197,7 +202,7 @@ export default function ProfileScreen() {
 
     Alert.alert(
       `Connect ${name}`,
-      `You'll be redirected to ${name} to authorize AForce. Mocked in this build.`,
+      `You'll be redirected to ${name} to authorize AForce. Mocked in this build — a representative biometric snapshot is seeded so the hydration score reflects the connection.`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -208,6 +213,10 @@ export default function ProfileScreen() {
               next.add(id);
               return next;
             });
+            // Seed a demo snapshot so the score immediately reflects the
+            // newly connected provider. Real OAuth ships in v1.1 native.
+            const snap = buildDemoSnapshot(id);
+            if (snap) setProviderBiometrics(id, snap);
           },
         },
       ],

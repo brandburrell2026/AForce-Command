@@ -33,6 +33,7 @@ import type {
 } from '../types';
 import { Colors } from '../theme/colors';
 import { activeDecayMultiplier, socialIntakePoints, SOCIAL_INTAKE_MAX_PENALTY } from './hangoverRisk';
+import { aggregateBiometrics } from './biometricsAggregator';
 import { materializedIntakePoints } from '../services/hydrationScoreService';
 import { depletionRatePerMinute } from './depletionRate';
 
@@ -152,7 +153,7 @@ function buildBreakdown(state: UserState): { score: number; contributions: Score
       hint: 'Sweat × activity load' },
     { id: 'sleep', label: 'Overnight carryover', delta: sleepCarry, maxMagnitude: 10,
       hint: state.overnightLossOz > 8 ? `${state.overnightLossOz} oz loss` : 'No deficit carry' },
-    { id: 'apple_health', label: 'Apple Health (HRV + sleep)', delta: recovery.delta, maxMagnitude: 10,
+    { id: 'health_signals', label: recovery.label, delta: recovery.delta, maxMagnitude: 10,
       hint: recovery.hint },
   ];
 
@@ -194,6 +195,20 @@ function computeDecayPerMinute(state: UserState): number {
     ? activeDecayMultiplier(state.socialMode.drinks)
     : 1;
 
+  // Multi-provider activity floor: when any connected health platform
+  // (WHOOP strain, Strava workout minutes, Garmin GPS workout, Apple
+  // Health steps, etc.) shows the user has been more active than the
+  // manual `activityLevel` slider, use the inferred level as a FLOOR.
+  // This way a heavy training day automatically depletes faster even
+  // if the user never bumped the activity axis themselves.
+  let activityLevel = state.activityLevel;
+  if (state.biometrics && Object.keys(state.biometrics).length > 0) {
+    const agg = aggregateBiometrics(state.biometrics);
+    if (agg.inferredActivityLevel > activityLevel) {
+      activityLevel = agg.inferredActivityLevel;
+    }
+  }
+
   // NOTE: the +0.5 missed-command boost is NOT folded into the per-min
   // rate here, because the rate is reported to the prediction strip and
   // multiplied by elapsed time in `computeDecayPoints`. Folding it in
@@ -203,7 +218,7 @@ function computeDecayPerMinute(state: UserState): number {
   // separately in `computeDecayPoints` over its true active overlap.
   return depletionRatePerMinute({
     bodyWeightLbs: state.bodyWeightLbs,
-    activityLevel: state.activityLevel,
+    activityLevel,
     weatherTempC: state.weatherTempC,
     weatherHumidity: state.weatherHumidity,
     heatLoad: state.heatLoad,
@@ -275,15 +290,36 @@ function buildPrediction(score: number, decayPerMinute: number): ScorePrediction
 }
 
 /**
- * Translate the most recent Apple Health snapshot into a -10..+10
- * adjustment. Each signal (HRV, sleep) contributes independently and
- * is dropped if the field is null. When no Apple Health data is
- * available we return delta=0 so the score is unchanged — never
- * substituted with a placeholder.
+ * Translate the user's connected health platforms into a -10..+10
+ * adjustment to the score. The previous version only read Apple Health;
+ * the score now derives from any combination of the seven providers
+ * in `data/healthProviders.ts` (Apple Health, Oura, Samsung Health,
+ * Google Health Connect, Garmin, WHOOP, Strava).
+ *
+ * Aggregation lives in `utils/biometricsAggregator.ts`; this wrapper
+ * just adapts UserState → that helper, with a fallback to the legacy
+ * `appleHealth` field if `biometrics` was never populated.
+ *
+ * The ±10 clamp is preserved end-to-end so multi-provider data can
+ * never dominate the score.
  */
-function computeRecoverySignal(state: UserState): { delta: number; hint: string } {
+function computeRecoverySignal(state: UserState): { delta: number; hint: string; label: string } {
+  // Prefer the multi-provider record when present.
+  if (state.biometrics && Object.keys(state.biometrics).length > 0) {
+    const agg = aggregateBiometrics(state.biometrics);
+    const label = agg.sources.length === 1
+      ? 'Health platform (HRV / sleep / strain)'
+      : `Health platforms (${agg.sources.length} connected)`;
+    if (agg.recoveryDelta === 0 && agg.hint.startsWith('No') === false) {
+      return { delta: 0, hint: agg.hint, label };
+    }
+    return { delta: agg.recoveryDelta, hint: agg.hint, label };
+  }
+
+  // Legacy fallback — preserved so existing callers / saved states
+  // that only have `appleHealth` still get a recovery contribution.
   const snap = state.appleHealth;
-  if (!snap) return { delta: 0, hint: 'Not connected' };
+  if (!snap) return { delta: 0, hint: 'Not connected', label: 'Health platforms (none connected)' };
 
   const parts: string[] = [];
   let delta = 0;
@@ -303,11 +339,11 @@ function computeRecoverySignal(state: UserState): { delta: number; hint: string 
     else { delta -= 5; parts.push(`Sleep ${h.toFixed(1)}h (deficit)`); }
   }
 
-  // Clamp to ±10 so Apple Health can never dominate the score.
+  // Clamp to ±10 so a single platform can never dominate the score.
   delta = Math.max(-10, Math.min(10, delta));
 
-  if (parts.length === 0) return { delta: 0, hint: 'Awaiting data' };
-  return { delta, hint: parts.join(' · ') };
+  if (parts.length === 0) return { delta: 0, hint: 'Awaiting data', label: 'Apple Health (HRV + sleep)' };
+  return { delta, hint: parts.join(' · '), label: 'Apple Health (HRV + sleep)' };
 }
 
 // ─── Score Calculation ────────────────────────────────────────────────────────

@@ -46,6 +46,21 @@ I prefer iterative development, with frequent, small updates. Ask before making 
 - Pinned by 24 unit tests (`utils/__tests__/socialIntake.test.ts`) covering each drink type, hydrated mitigation, multi-drink stacking, clamp, ramp / peak / fade / clear boundaries, future-dated defensive case, monotonicity, and two end-to-end scenarios (3 paced beers all hydrated; 3 rapid liquor shots).
 - Physiology references baked into the helper docstring: Eggleton (1942), Hobson & Maughan (2010) — alcohol diuresis ≈ 10 mL/g ethanol = ~140 mL/std drink ≈ losing 5 oz of ingested water.
 
+### Multi-Provider Health Signals → Hydration Score
+- All seven listed health platforms (Apple Health, Oura Ring, Samsung Health, Google Health Connect, Garmin Connect, WHOOP, Strava) feed the score — not just Apple Health. Connecting any provider on Profile → Linked sources immediately moves the orb because a representative biometric snapshot is seeded into `UserState.biometrics` (Real OAuth ships in v1.1 native; the mock keeps the score loop honest in dev/web).
+- New types `types/biometrics.ts` define `ProviderSnapshot` (per-provider HRV / RHR / sleep / steps / workout-min / Oura readiness / WHOOP strain+recovery% / Garmin stress / Strava training-load + `fetchedAt`) and `ProviderBiometrics = Partial<Record<HealthProviderId, ProviderSnapshot>>`.
+- New aggregator `utils/biometricsAggregator.ts:aggregateBiometrics(bio)` returns `{inferredActivityLevel, recoveryDelta, sources, hint}`:
+  - **Freshest-wins per metric**: if Apple Health and Garmin both report HRV, only the newer `fetchedAt` counts. Prevents double-counting when users wear two devices.
+  - **MAX activity across providers**: Strava 60-min workout (≈ activity 7) and Apple Health 4k steps (≈ activity 2.5) → infer 7, not stack.
+  - **Recovery scoring** (clamped to ±10 so no single platform can dominate): HRV ≥60ms +5 / 40-59 +2 / <30 -5; sleep 7-9h +5 / <4h -5; Oura readiness ≥85 +4 / <50 -4; WHOOP recovery% ≥75 +4 / <33 -5; Garmin stress ≥76 -4 / ≤25 +2.
+  - **Activity inference**: 10k steps → 7, 7.5k → 5; WHOOP strain linearly 0-21 → 0-10; Strava workout-minutes 60min → 7.5; Strava trainingLoad at half weight.
+- Wired into `scoringEngine.ts`:
+  - `computeRecoverySignal` returns `{delta, hint, label}` — when any provider is connected the aggregator owns the recovery contribution and the breakdown row is renamed `apple_health` → `health_signals` with a label like "Oura · WHOOP · Strava". Pure Apple-Health install keeps the legacy label for back-compat.
+  - `computeDecayPerMinute` uses `aggregator.inferredActivityLevel` as a **floor** for the activity axis, so a heavy Strava day depletes faster even if the user never bumped the manual slider.
+- Store wiring: `appStoreReducer.SET_PROVIDER_BIOMETRICS` and `useAppStore.setProviderBiometrics(providerId, snapshot|null)` push snapshots and re-fetch the engine output. `setAppleHealthSnapshot` now also mirrors into `biometrics.apple_health` so the aggregator sees Apple Health alongside the others.
+- Profile wiring: `app/(tabs)/profile.tsx:toggleProvider` dispatches `setProviderBiometrics(id, buildDemoSnapshot(id))` on connect for non-Apple providers and `setProviderBiometrics(id, null)` on disconnect. Apple Health continues to use the real native bridge unchanged.
+- Pinned by 32 unit tests (`utils/__tests__/biometricsAggregator.test.ts`) covering empty/undefined, each per-signal recovery rule, ±10 clamping, freshest-wins HRV / sleep, activity inference for steps / strain / workout-min / training-load, MAX-across-providers and MAX-within-provider, sources & hint formatting, and two realistic multi-provider scenarios (good day Oura+WHOOP+Strava net positive; bad-night Apple+Garmin net negative).
+
 ### Hydration Depletion Math (`utils/depletionRate.ts`)
 - Pure, dependency-free helper that owns the score-points-per-minute decay model.
 - Physiologically grounded against ACSM Position Statement on Exercise & Fluid Replacement (2007), IOM Dietary Reference Intakes for Water (2005), and ISO 7933 (Hot Environments).
