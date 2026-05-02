@@ -26,6 +26,8 @@ import Animated, {
 import type { VideoConfig, VideoSceneKind } from '../types/video';
 import type { Command } from '../types';
 import { Colors } from '../theme/colors';
+import { getStatusColor } from '../theme/statusColor';
+import { useAppStore } from '../store/useAppStore';
 import { speak, stopSpeaking } from '../services/textToSpeech';
 import { buildVideoCoachLine } from '../services/videoCoachVoice';
 
@@ -37,14 +39,28 @@ interface Props {
   compact?: boolean;
   /** Optional: countdown in seconds shown on the overlay (e.g. recheck timer). */
   timerSeconds?: number;
+  /**
+   * Live 0-100 status score driving the centralized color band.
+   * Optional — when omitted we fall back to a sensible mapping
+   * from `video.themeLevel`.
+   */
+  score?: number;
 }
 
 // ─── Theme helpers ────────────────────────────────────────────────────────────
-function levelColor(level: VideoConfig['themeLevel']): string {
-  return Colors.states[level].primary;
-}
-function levelGlow(level: VideoConfig['themeLevel']): string {
-  return Colors.states[level].glow;
+/**
+ * Legacy 4-band PerformanceLevel → centre-of-band score so the
+ * centralized `getStatusColor()` system has a number to operate on
+ * when no live score is supplied.
+ */
+function levelToFallbackScore(level: VideoConfig['themeLevel']): number {
+  switch (level) {
+    case 'PEAK':       return 92; // OPTIMAL
+    case 'BALANCED':   return 78; // STABLE
+    case 'RECOVERING': return 55; // DECLINING
+    case 'DEPLETED':   return 22; // CRITICAL
+    default:           return 75;
+  }
 }
 
 function formatTimer(seconds: number): string {
@@ -143,7 +159,19 @@ function BreathRingScene({ accent, glow: _glow }: { accent: string; glow: string
 }
 
 // ─── Scene: PulseBuild ───────────────────────────────────────────────────────
-function PulseBuildScene({ accent, glow: _glow }: { accent: string; glow: string }) {
+/**
+ * The "voice bars" equalizer. Pulse cadence honors the band's
+ * animationSpeed so worse bands beat faster, and pressure mode
+ * multiplies on top — speedMultiplier > 1 = faster bars.
+ */
+function PulseBuildScene({
+  accent,
+  speedMultiplier = 1,
+}: {
+  accent: string;
+  glow: string;
+  speedMultiplier?: number;
+}) {
   const bar1 = useSharedValue(0);
   const bar2 = useSharedValue(0);
   const bar3 = useSharedValue(0);
@@ -152,17 +180,20 @@ function PulseBuildScene({ accent, glow: _glow }: { accent: string; glow: string
   const bars = [bar1, bar2, bar3, bar4, bar5];
 
   React.useEffect(() => {
+    const upMs = Math.max(140, Math.round(380 / speedMultiplier));
+    const downMs = Math.max(200, Math.round(520 / speedMultiplier));
+    const stagger = Math.max(40, Math.round(100 / speedMultiplier));
     bars.forEach((b, i) => {
       b.value = withRepeat(
-        withDelay(i * 100, withSequence(
-          withTiming(1, { duration: 380, easing: Easing.out(Easing.cubic) }),
-          withTiming(0.25, { duration: 520 }),
+        withDelay(i * stagger, withSequence(
+          withTiming(1, { duration: upMs, easing: Easing.out(Easing.cubic) }),
+          withTiming(0.25, { duration: downMs }),
         )),
         -1, false,
       );
     });
     return () => bars.forEach(b => cancelAnimation(b));
-  }, []);
+  }, [speedMultiplier]);
 
   const b1 = useAnimatedStyle(() => ({ height: 18 + bar1.value * 70, opacity: 0.4 + bar1.value * 0.6 }));
   const b2 = useAnimatedStyle(() => ({ height: 18 + bar2.value * 70, opacity: 0.4 + bar2.value * 0.6 }));
@@ -244,11 +275,21 @@ function SunriseSweepScene({ accent, glow }: { accent: string; glow: string }) {
 }
 
 // ─── Scene dispatch ──────────────────────────────────────────────────────────
-function Scene({ kind, accent, glow }: { kind: VideoSceneKind; accent: string; glow: string }) {
+function Scene({
+  kind,
+  accent,
+  glow,
+  speedMultiplier,
+}: {
+  kind: VideoSceneKind;
+  accent: string;
+  glow: string;
+  speedMultiplier: number;
+}) {
   switch (kind) {
     case 'water_stream':   return <WaterStreamScene  accent={accent} glow={glow} />;
     case 'breath_ring':    return <BreathRingScene   accent={accent} glow={glow} />;
-    case 'pulse_build':    return <PulseBuildScene   accent={accent} glow={glow} />;
+    case 'pulse_build':    return <PulseBuildScene   accent={accent} glow={glow} speedMultiplier={speedMultiplier} />;
     case 'red_alert':      return <RedAlertScene     accent={accent} glow={glow} />;
     case 'sunrise_sweep':  return <SunriseSweepScene accent={accent} glow={glow} />;
     default:               return <WaterStreamScene  accent={accent} glow={glow} />;
@@ -256,10 +297,21 @@ function Scene({ kind, accent, glow }: { kind: VideoSceneKind; accent: string; g
 }
 
 // ─── Main player ─────────────────────────────────────────────────────────────
-export function AIVideoPlayer({ video, command, compact = true, timerSeconds }: Props) {
+export function AIVideoPlayer({ video, command, compact = true, timerSeconds, score }: Props) {
   const [expanded, setExpanded] = React.useState(false);
-  const accent = levelColor(video.themeLevel);
-  const glow = levelGlow(video.themeLevel);
+
+  // Centralized status color — every accent on this player reads from
+  // the same StatusColor contract, keyed off the live engine score so
+  // the cinematic surface tunes to the current band. Pressure Mode
+  // (driven by the user's voice intensity setting) amplifies the
+  // saturation, glow, and voice-bar tempo.
+  const { voiceIntensity } = useAppStore();
+  const isPressure = voiceIntensity === 'pressure';
+  const resolvedScore = score ?? levelToFallbackScore(video.themeLevel);
+  const status = getStatusColor(resolvedScore, { pressure: isPressure });
+  const accent = status.primary;
+  const glow = status.glow;
+  const speedMultiplier = status.animationSpeed;
 
   // Progress bar (loops video duration)
   const progress = useSharedValue(0);
@@ -330,7 +382,7 @@ export function AIVideoPlayer({ video, command, compact = true, timerSeconds }: 
 
         {/* Scene stage */}
         <View style={[styles.stage, compact ? styles.stageCompact : styles.stageFull]}>
-          <Scene kind={video.scene} accent={accent} glow={glow} />
+          <Scene kind={video.scene} accent={accent} glow={glow} speedMultiplier={speedMultiplier} />
           <View style={styles.overlayTextBlock} pointerEvents="none">
             <Text style={[styles.overlayTitle, { color: '#fff' }]}>{video.overlayTitle}</Text>
             <Text style={styles.overlaySub}>{video.overlaySubtitle}</Text>
@@ -364,7 +416,7 @@ export function AIVideoPlayer({ video, command, compact = true, timerSeconds }: 
             </View>
 
             <View style={[styles.stage, styles.stageFullScreen]}>
-              <Scene kind={video.scene} accent={accent} glow={glow} />
+              <Scene kind={video.scene} accent={accent} glow={glow} speedMultiplier={speedMultiplier} />
               <View style={styles.overlayTextBlock} pointerEvents="none">
                 <Text style={[styles.overlayTitleLg, { color: '#fff' }]}>{video.overlayTitle}</Text>
                 <Text style={styles.overlaySubLg}>{video.overlaySubtitle}</Text>

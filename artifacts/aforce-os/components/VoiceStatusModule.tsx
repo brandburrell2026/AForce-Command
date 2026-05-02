@@ -14,6 +14,13 @@
  * bus (received → playing → executed → error → idle) so every state
  * shift animates without polling. Reanimated drives the breathing live
  * dot, the breathing border tint, and the press-scale on Replay.
+ *
+ * Color treatment is fully score-driven via the centralized
+ * `getStatusColor(score)` system — every accent (status dot, lifecycle
+ * pill, RISK STATE value, INTENSITY label, command card border / glow,
+ * replay CTA tint) reads from the same StatusColor contract, with
+ * Pressure Mode amplifying saturation + glow + animation tempo.
+ * Cross-band transitions tween smoothly via `useAnimatedStatusColor`.
  */
 
 import React from 'react';
@@ -31,6 +38,8 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { Colors } from '../theme/colors';
+import { getStatusColor } from '../theme/statusColor';
+import { useAnimatedStatusColor } from '../hooks/useAnimatedStatusColor';
 import { useEngineSlice } from '../store/slices';
 import { useAppStore } from '../store/useAppStore';
 import {
@@ -56,14 +65,6 @@ const BAND_LABELS: Record<ScoreBand, string> = {
   CORRECT:  'CORRECT',
   RISK:     'RISK',
   CRITICAL: 'CRITICAL',
-};
-
-const BAND_ACCENT: Record<ScoreBand, string> = {
-  PEAK:     Colors.states.PEAK.primary,
-  STABLE:   Colors.states.BALANCED.primary,
-  CORRECT:  Colors.states.BALANCED.primary,
-  RISK:     Colors.states.RECOVERING.primary,
-  CRITICAL: Colors.states.DEPLETED.primary,
 };
 
 const INTENSITY_LABEL: Record<VoiceIntensity, string> = {
@@ -110,13 +111,17 @@ function lifecycleVisual(
   voiceEnabled: boolean,
   bandAccent: string,
 ): LifecycleVisual {
+  // Lifecycle pill colors all read from the band accent so the entire
+  // surface stays in lock-step with the score. The exception: an audio
+  // error always flags red regardless of band, so a network failure
+  // never gets dressed up as healthy green.
   if (playback === 'received')  return { label: 'RECEIVED',     color: bandAccent,                      active: true };
   if (playback === 'playing')   return { label: 'TRANSMITTING', color: bandAccent,                      active: true };
-  if (playback === 'executed')  return { label: 'EXECUTED',     color: Colors.states.PEAK.primary,      active: true };
+  if (playback === 'executed')  return { label: 'EXECUTED',     color: bandAccent,                      active: true };
   if (playback === 'error')     return { label: 'AUDIO RETRY',  color: Colors.states.DEPLETED.primary,  active: false };
   if (!voiceEnabled)            return { label: 'OFF',          color: Colors.text.muted,               active: false };
   if (!isLive)                  return { label: 'MUTED',        color: Colors.text.muted,               active: false };
-  return                              { label: 'LIVE',          color: Colors.states.PEAK.primary,      active: false };
+  return                              { label: 'LIVE',          color: bandAccent,                      active: false };
 }
 
 function VoiceStatusModuleImpl() {
@@ -141,7 +146,12 @@ function VoiceStatusModuleImpl() {
 
   const band = scoreBand(engine.score);
   const bandLabel = BAND_LABELS[band];
-  const bandAccent = BAND_ACCENT[band];
+
+  // Centralized status color — single source of truth for every accent
+  // on this card. Pressure Mode amplifies saturation + glow + tempo.
+  const isPressure = voiceIntensity === 'pressure';
+  const statusColor = getStatusColor(engine.score, { pressure: isPressure });
+  const bandAccent = statusColor.primary;
 
   const isLive = voiceCoachEnabled && voiceScope !== 'muted';
   const visual = lifecycleVisual(playback, isLive, voiceCoachEnabled, bandAccent);
@@ -161,24 +171,29 @@ function VoiceStatusModuleImpl() {
   /* ----------------------- Reanimated drivers ----------------------- */
 
   // Live dot — breathes slowly when LIVE, pulses fast during RECEIVED /
-  // PLAYING / EXECUTED, static when OFF / MUTED / ERROR.
+  // PLAYING / EXECUTED, static when OFF / MUTED / ERROR. Pulse cadence
+  // honors the band's animationSpeed so worse bands beat faster, and
+  // pressure mode amplifies on top.
   const dotPulse = useSharedValue(0);
+  const speed = statusColor.animationSpeed;
   React.useEffect(() => {
     cancelAnimation(dotPulse);
     if (visual.active) {
+      const half = Math.max(180, Math.round(520 / speed));
       dotPulse.value = withRepeat(
         withSequence(
-          withTiming(1, { duration: 520, easing: Easing.out(Easing.quad) }),
-          withTiming(0, { duration: 520, easing: Easing.in(Easing.quad) }),
+          withTiming(1, { duration: half, easing: Easing.out(Easing.quad) }),
+          withTiming(0, { duration: half, easing: Easing.in(Easing.quad) }),
         ),
         -1,
         false,
       );
     } else if (isLive) {
+      const half = Math.max(420, Math.round(1400 / speed));
       dotPulse.value = withRepeat(
         withSequence(
-          withTiming(1, { duration: 1400, easing: Easing.inOut(Easing.sin) }),
-          withTiming(0, { duration: 1400, easing: Easing.inOut(Easing.sin) }),
+          withTiming(1, { duration: half, easing: Easing.inOut(Easing.sin) }),
+          withTiming(0, { duration: half, easing: Easing.inOut(Easing.sin) }),
         ),
         -1,
         false,
@@ -187,7 +202,7 @@ function VoiceStatusModuleImpl() {
       dotPulse.value = withTiming(0, { duration: 240 });
     }
     return () => cancelAnimation(dotPulse);
-  }, [visual.active, isLive]);
+  }, [visual.active, isLive, speed, dotPulse]);
 
   const dotStyle = useAnimatedStyle(() => ({
     opacity:  interpolate(dotPulse.value, [0, 1], [0.55, 1]),
@@ -200,10 +215,11 @@ function VoiceStatusModuleImpl() {
   React.useEffect(() => {
     cancelAnimation(borderPulse);
     if (isPlaying) {
+      const half = Math.max(280, Math.round(800 / speed));
       borderPulse.value = withRepeat(
         withSequence(
-          withTiming(1, { duration: 800, easing: Easing.inOut(Easing.sin) }),
-          withTiming(0, { duration: 800, easing: Easing.inOut(Easing.sin) }),
+          withTiming(1, { duration: half, easing: Easing.inOut(Easing.sin) }),
+          withTiming(0, { duration: half, easing: Easing.inOut(Easing.sin) }),
         ),
         -1,
         false,
@@ -223,17 +239,32 @@ function VoiceStatusModuleImpl() {
       borderPulse.value = withTiming(0, { duration: 320 });
     }
     return () => cancelAnimation(borderPulse);
-  }, [playback, isPlaying]);
+  }, [playback, isPlaying, speed, borderPulse]);
+
+  // Smoothly tween the border + glow tint between bands as the score
+  // crosses thresholds (300-500ms cubic ease) — color updates without
+  // abrupt jumps, fully driven by the centralized status system.
+  const animated = useAnimatedStatusColor(engine.score, { pressure: isPressure });
 
   const cardAnimStyle = useAnimatedStyle(() => {
-    // 0 = subtle resting border, 1 = full visual.color tint.
-    const alpha = 0.20 + 0.45 * borderPulse.value;
-    const hex = Math.round(alpha * 255).toString(16).padStart(2, '0');
+    // 0 = subtle resting border, 1 = full primary tint with band-spec alpha.
+    const base = 0.20 + 0.45 * borderPulse.value;
+    const alpha = base + statusColor.glowAlpha * 0.25 * borderPulse.value;
+    const hex = Math.round(Math.min(1, alpha) * 255).toString(16).padStart(2, '0');
     return {
-      borderColor: `${visual.color}${hex}`,
-      shadowOpacity: 0.10 + 0.35 * borderPulse.value,
+      borderColor: `${animated.animatedPrimary.value}${hex}`,
+      shadowColor: animated.animatedPrimary.value,
+      shadowOpacity: 0.10 + (statusColor.glowAlpha * 0.55) * borderPulse.value,
+      shadowRadius: statusColor.glowRadius,
     };
   });
+
+  // Animated styles for the surfaces that should also tween smoothly
+  // when the band crosses (status dot, lifecycle pill, replay CTA).
+  const dotColorStyle = useAnimatedStyle(() => ({
+    backgroundColor: animated.animatedPrimary.value,
+    shadowColor: animated.animatedPrimary.value,
+  }));
 
   // Replay press scale.
   const pressScale = useSharedValue(1);
@@ -253,11 +284,7 @@ function VoiceStatusModuleImpl() {
 
   return (
     <Animated.View
-      style={[
-        styles.card,
-        { shadowColor: visual.color },
-        cardAnimStyle,
-      ]}
+      style={[styles.card, cardAnimStyle]}
       testID="voice-status-module"
     >
       {/* Eyebrow row — engine name + lifecycle badge */}
@@ -266,11 +293,12 @@ function VoiceStatusModuleImpl() {
           <Animated.View
             style={[
               styles.liveDot,
-              {
-                backgroundColor: visual.color,
-                shadowColor: visual.color,
-              },
               dotStyle,
+              // Use animated color when the dot is reflecting the band;
+              // use the static muted color when OFF/MUTED/ERROR.
+              visual.active || isLive
+                ? dotColorStyle
+                : { backgroundColor: visual.color, shadowColor: visual.color },
             ]}
           />
           <Text style={styles.eyebrow} numberOfLines={1}>
@@ -316,7 +344,9 @@ function VoiceStatusModuleImpl() {
           <Text
             style={[
               styles.cellValue,
-              voiceIntensity === 'pressure' && { color: Colors.states.DEPLETED.primary },
+              // PRESSURE label tints with the current band's pressure-amplified
+              // accent so the urgency reads in score context, not always red.
+              isPressure && { color: bandAccent },
             ]}
           >
             {INTENSITY_LABEL[voiceIntensity]}
@@ -348,7 +378,7 @@ function VoiceStatusModuleImpl() {
           style={[
             styles.lastLine,
             !last && { color: Colors.text.muted, fontStyle: 'italic' },
-            playback === 'executed' && { color: Colors.states.PEAK.primary },
+            playback === 'executed' && { color: bandAccent },
             playback === 'error' && { color: Colors.states.DEPLETED.primary },
           ]}
         >
@@ -404,9 +434,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     backgroundColor: Colors.background.card,
     gap: 16,
-    // shadow set dynamically by lifecycle
+    // shadow set dynamically by lifecycle + status color
     shadowOffset: { width: 0, height: 0 },
-    shadowRadius: 18,
     elevation: 0,
   },
   eyebrowRow: {

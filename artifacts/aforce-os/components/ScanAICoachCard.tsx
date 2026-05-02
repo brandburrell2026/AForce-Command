@@ -7,6 +7,12 @@
  * Auto-speaks once per new scan (gated on the user's voice toggle
  * inside `textToSpeech.speak()`). The play/stop button lets the user
  * replay or silence at any point.
+ *
+ * Color treatment is fully score-driven via the centralized
+ * `getStatusColor(score)` system — status dot, headline accent line,
+ * comparison header, CTA tint, card border + glow all read from the
+ * same status band so the surface matches the user's current
+ * performance state. Pressure Mode amplifies saturation + glow.
  */
 
 import React, { useEffect, useRef, useState } from 'react';
@@ -15,7 +21,9 @@ import * as Haptics from 'expo-haptics';
 import { Feather } from '@expo/vector-icons';
 
 import { Colors } from '@/theme/colors';
+import { getStatusColor } from '@/theme/statusColor';
 import type { ScanCoachScript } from '@/services/scanCoachVoice';
+import { useAppStore } from '@/store/useAppStore';
 import type { PerformanceLevel } from '@/types';
 
 interface Props {
@@ -24,23 +32,53 @@ interface Props {
   scanKey: string;
   /** Drives TTS persona rate / pitch. */
   level: PerformanceLevel;
+  /**
+   * Live 0-100 status score driving the color band. Optional — when
+   * omitted we fall back to a sensible mapping from `level` so the
+   * card stays visually correct in storybook / tests.
+   */
+  score?: number;
   scannedName: string;
   aforceName?: string;
   onSpeak: (text: string, level: PerformanceLevel) => void;
   onStop: () => void;
 }
 
+/**
+ * Defensive fallback when no score prop is supplied — maps the legacy
+ * 4-band PerformanceLevel into the centre of each new score band.
+ */
+function levelToFallbackScore(level: PerformanceLevel): number {
+  switch (level) {
+    case 'PEAK':       return 92; // OPTIMAL
+    case 'BALANCED':   return 78; // STABLE
+    case 'RECOVERING': return 55; // DECLINING
+    case 'DEPLETED':   return 22; // CRITICAL
+    default:           return 75;
+  }
+}
+
 export function ScanAICoachCard({
   script,
   scanKey,
   level,
+  score,
   scannedName,
   aforceName,
   onSpeak,
   onStop,
 }: Props) {
   const [isPlaying, setIsPlaying] = useState(false);
-  const accent = Colors.states.PEAK.primary;
+
+  // Centralized color system — every accent on this card reads from the
+  // same StatusColor contract. Pressure Mode amplifies saturation + glow
+  // based on the user's voice intensity setting.
+  const { voiceIntensity } = useAppStore();
+  const resolvedScore = score ?? levelToFallbackScore(level);
+  const status = getStatusColor(resolvedScore, {
+    pressure: voiceIntensity === 'pressure',
+  });
+  const accent = status.primary;
 
   // Tracks any in-flight "estimated finish" timer so we can cancel it on
   // unmount, on re-toggle, or on a fresh scan — prevents a stale timeout
@@ -98,11 +136,23 @@ export function ScanAICoachCard({
 
   return (
     <View
-      style={[styles.card, { borderColor: `${accent}55` }]}
+      style={[
+        styles.card,
+        {
+          borderColor: `${accent}55`,
+          // Glow signal — radius + opacity scale with the band's intensity.
+          // Background stays the dark card; only the shadow tints.
+          shadowColor: accent,
+          shadowOpacity: status.glowAlpha * 0.55,
+          shadowRadius: status.glowRadius,
+        },
+      ]}
       testID="scan-ai-coach-card"
     >
       <View style={styles.headerRow}>
         <View style={[styles.badge, { backgroundColor: `${accent}1A`, borderColor: `${accent}66` }]}>
+          {/* Status dot — the small pulsing signal next to AI COACH */}
+          <View style={[styles.statusDot, { backgroundColor: accent, shadowColor: accent }]} />
           <Feather name="message-circle" size={11} color={accent} />
           <Text style={[styles.badgeText, { color: accent }]}>AI COACH</Text>
         </View>
@@ -111,9 +161,13 @@ export function ScanAICoachCard({
         )}
       </View>
 
-      <Text style={styles.headline} numberOfLines={3}>
-        {script.headline}
-      </Text>
+      <View>
+        <Text style={styles.headline} numberOfLines={3}>
+          {script.headline}
+        </Text>
+        {/* Headline accent line — score-driven signal under the title */}
+        <View style={[styles.headlineAccent, { backgroundColor: accent }]} />
+      </View>
 
       {script.hasComparison && script.bullets.length > 0 && (
         <View style={styles.comparison} testID="scan-ai-coach-comparison">
@@ -127,9 +181,11 @@ export function ScanAICoachCard({
             </Text>
           </View>
           {script.bullets.map((b) => {
+            // Scanned-winner stays neutral white (it's a comparison signal,
+            // not a status signal — we never recommend the scanned drink).
             const sColor =
               b.winner === 'scanned'
-                ? Colors.states.PEAK.primary
+                ? Colors.text.primary
                 : b.winner === 'tie'
                 ? Colors.text.primary
                 : Colors.text.muted;
@@ -190,6 +246,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     padding: 16,
     gap: 12,
+    // shadowColor / shadowOpacity / shadowRadius set dynamically per band
+    shadowOffset: { width: 0, height: 0 },
   },
   headerRow: {
     flexDirection: 'row',
@@ -206,6 +264,14 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     alignSelf: 'flex-start',
   },
+  statusDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    shadowOpacity: 0.9,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 0 },
+  },
   badgeText: { fontSize: 9, fontFamily: 'Inter_700Bold', letterSpacing: 1.4 },
   headerHint: {
     fontSize: 9,
@@ -219,6 +285,12 @@ const styles = StyleSheet.create({
     color: Colors.text.primary,
     letterSpacing: -0.2,
     lineHeight: 22,
+  },
+  headlineAccent: {
+    height: 2,
+    width: 28,
+    borderRadius: 1,
+    marginTop: 8,
   },
   transcript: {
     fontSize: 12,

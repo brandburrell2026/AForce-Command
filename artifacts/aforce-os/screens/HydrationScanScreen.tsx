@@ -321,6 +321,7 @@ export default function HydrationScanScreen() {
                   script={coachScript}
                   scanKey={result.scannedAt}
                   level={result.evaluatedAgainstState}
+                  score={state.engineOutput.score}
                   scannedName={result.product.productName}
                   aforceName={aforceEquivalent?.name}
                   onSpeak={handleCoachSpeak}
