@@ -68,7 +68,12 @@ const STATE_LABEL_KEY: Record<VoiceState, string> = {
 export function VoiceOverlay({ visible, onClose, autoStart = false }: Props) {
   const router = useRouter();
   const { t } = useTranslation();
-  const { state: appState, logIntake, updateSymptoms, confirmStatus } = useAppStore();
+  const {
+    state: appState,
+    logIntake, updateSymptoms, confirmStatus,
+    setSweatAutopilot,
+    activateSocialMode, deactivateSocialMode,
+  } = useAppStore();
 
   const [voiceState, setVoiceState] = useState<VoiceState>('idle');
   const [response, setResponse] = useState<VoiceCommandResponse | null>(null);
@@ -103,10 +108,28 @@ export function VoiceOverlay({ visible, onClose, autoStart = false }: Props) {
   /** Dispatch the side-effect declared by the orchestrator. */
   const executeAction = useCallback(async (action: VoiceAction) => {
     switch (action.type) {
-      case 'LOG_INTAKE':
+      case 'LOG_INTAKE': {
         // silent=true so we don't stack the cycle-success hero modal on top
         // of the voice response card (RN-web only renders one Modal at a time).
-        await logIntake(action.fluidType, { silent: true });
+        // ozOverride flows through to the engine so "log 12 oz of water"
+        // logs exactly that, not the default per-serving size.
+        const repeat = Math.max(1, Math.min(action.repeat ?? 1, 6));
+        const opts: { silent: boolean; ozOverride?: number } = { silent: true };
+        if (action.ozOverride !== undefined) opts.ozOverride = action.ozOverride;
+        for (let i = 0; i < repeat; i++) {
+          // Sequential awaits ensure the engine sees each intake atomically.
+          // eslint-disable-next-line no-await-in-loop
+          await logIntake(action.fluidType, opts);
+        }
+        return;
+      }
+      case 'COMPLETE_CYCLE':
+        // Inline a silent intake instead of completeCycle() — the latter
+        // calls logIntake without `silent: true`, which would stack the
+        // CycleSuccessOverlay hero modal on top of the voice response card
+        // (RN-web only renders one Modal at a time → the response would be
+        // hidden behind the hero modal).
+        await logIntake('aforce_stick', { silent: true });
         return;
       case 'UPDATE_SYMPTOMS':
         await updateSymptoms(action.symptoms);
@@ -114,17 +137,43 @@ export function VoiceOverlay({ visible, onClose, autoStart = false }: Props) {
       case 'CONFIRM_STATUS':
         await confirmStatus();
         return;
+      case 'SET_AUTOPILOT':
+        // The store wants a SweatAutopilot object (or null to disable).
+        // Voice-triggered activation seeds a sensible default: 30-min
+        // recheck cadence, moderate urgency, 4-hour recovery window
+        // (matches the SweatCalculator demo defaults).
+        setSweatAutopilot(
+          action.on
+            ? { intervalMin: 30, urgency: 'moderate', recoveryWindowHours: 4 }
+            : null,
+        );
+        return;
+      case 'ACTIVATE_SOCIAL':
+        await activateSocialMode();
+        return;
+      case 'DEACTIVATE_SOCIAL':
+        await deactivateSocialMode();
+        return;
       case 'NAVIGATE':
         // Close the overlay first so the new screen renders cleanly.
         onClose();
         // Fire after a tick so React doesn't fight the modal teardown.
         setTimeout(() => router.push(action.route as never), 80);
         return;
+      case 'START_PROTOCOL':
+        // The voice service maps START_PROTOCOL to a NAVIGATE action, so
+        // this branch is here purely to keep the union exhaustive for TS.
+        return;
       case 'NONE':
       default:
         return;
     }
-  }, [logIntake, updateSymptoms, confirmStatus, router, onClose]);
+  }, [
+    logIntake, updateSymptoms, confirmStatus,
+    setSweatAutopilot,
+    activateSocialMode, deactivateSocialMode,
+    router, onClose,
+  ]);
 
   const finishWithTranscript = useCallback(async (transcript: string) => {
     setVoiceState('processing');

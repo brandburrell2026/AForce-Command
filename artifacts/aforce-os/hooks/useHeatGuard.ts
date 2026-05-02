@@ -99,20 +99,39 @@ export function useHeatGuard({ onEscalate }: UseHeatGuardOptions): HeatGuardResu
       recentHeatEvent: false,
     });
 
-    // Sweat-driven autopilot wins for the duration of the recovery
-    // window (spec §4). Outside that window we fall back to a band-
-    // derived default so the recheck cadence still reflects current
+    // Sweat-driven autopilot drives cadence for the duration of the
+    // recovery window (spec §4). Outside that window we fall back to a
+    // band-derived default so the recheck cadence still reflects current
     // physiological strain.
+    //
+    // SAFETY CLAMP: when both signals are live we always pick the SAFER
+    // of the two — min interval (more frequent rechecks) and max urgency
+    // (moderate < high < critical). This prevents a low-cadence
+    // autopilot (e.g. voice-seeded "performance mode on" at 30 min /
+    // moderate) from silently downgrading a CRITICAL heat band's
+    // mandatory 8 min / critical cadence.
     const windowMs = (autopilot?.recoveryWindowHours ?? 0) * HOUR_MS;
     const autopilotActive =
       !!autopilot && setAt != null && Date.now() - setAt < windowMs;
     const fallback = defaultCadenceForBand(heat.band);
+    const URGENCY_RANK: Record<AutopilotUrgency, number> = {
+      moderate: 0, high: 1, critical: 2,
+    };
+    const safer = (a: AutopilotUrgency, b: AutopilotUrgency): AutopilotUrgency =>
+      URGENCY_RANK[a] >= URGENCY_RANK[b] ? a : b;
+
+    const recheckIntervalMin = autopilotActive
+      ? Math.min(autopilot!.intervalMin, fallback.intervalMin)
+      : fallback.intervalMin;
+    const recheckUrgency = autopilotActive
+      ? safer(autopilot!.urgency, fallback.urgency)
+      : fallback.urgency;
 
     return {
       score: heat.score,
       band: heat.band,
-      recheckIntervalMin: autopilotActive ? autopilot!.intervalMin : fallback.intervalMin,
-      recheckUrgency: autopilotActive ? autopilot!.urgency : fallback.urgency,
+      recheckIntervalMin,
+      recheckUrgency,
       autopilotActive,
     };
   }, [

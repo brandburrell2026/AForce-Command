@@ -5,19 +5,24 @@
  * a VoiceCommandResponse describing what AForce will SAY and what side-effect
  * the overlay should perform.
  *
- * The orchestrator does NOT compose spoken lines itself anymore — it picks
- * the right template category for the intent and hands the engine snapshot to
- * the AForce Voice Engine (voiceTemplateEngine + voicePersonaService) which
- * enforces the brand contract (mode-aware tone, banned phrases, sentence cap).
+ * For the "AForce-style" intents (existing LOG_INTAKE, GET_STATUS, GET_COMMAND,
+ * UPDATE_SYMPTOMS, START_PROTOCOL, COMPARE_PRODUCTS) we route through the
+ * voiceTemplateEngine + voicePersonaService so the response respects the
+ * mode-aware brand contract (banned phrases, sentence cap, tone shift by band).
+ *
+ * For the new launch-day command intents (COMPLETE_CYCLE, OPEN_SCREEN, REORDER,
+ * SET_AUTOPILOT, ACTIVATE_SOCIAL, DEACTIVATE_SOCIAL) we use short, decisive
+ * AForce phrases inline — keeps the spoken line under 12 words and matches
+ * the brand examples ("Autopilot activated.", "Performance Mode is now on.").
  */
 
 import type { ScoreEngineOutput } from '../types';
 import type {
   VoiceCommandResponse, VoiceClassification, VoiceSymptomId,
+  VoiceScreenTarget,
 } from '../types/voice';
 import type {
   VoiceContext as PersonaContext,
-  VoiceTemplateCategory,
 } from '../types/voicePersona';
 import { classifyTranscript } from './intentClassifier';
 import { resolvePersona } from './voicePersonaService';
@@ -46,6 +51,41 @@ const FLUID_LABEL: Record<string, string> = {
   aforce_bulk_bag: 'AForce bulk',
 };
 
+/**
+ * Friendly screen handle → router path. Centralised here so the classifier
+ * can stay vocabulary-only and the dispatch layer stays route-aware.
+ */
+const SCREEN_ROUTE: Record<VoiceScreenTarget, string> = {
+  home:         '/',
+  profile:      '/profile',
+  journal:      '/journal',
+  store:        '/store',
+  check:        '/check',
+  protocol:     '/protocol',
+  scan:         '/scan',
+  cart:         '/cart',
+  rewards:      '/achievements',
+  circles:      '/circles',
+  share:        '/share',
+  ring:         '/ring',
+  competition:  '/competition',
+  territory:    '/territory',
+  science:      '/science',
+  sweat:        '/sweat',
+  heat:         '/heat',
+  cruise:       '/cruise',
+  subscription: '/subscription',
+};
+
+const SCREEN_LABEL: Record<VoiceScreenTarget, string> = {
+  home: 'Home', profile: 'Profile', journal: 'Journal', store: 'Store',
+  check: 'Performance Signals', protocol: 'Protocol', scan: 'HydroScan',
+  cart: 'Cart', rewards: 'Rewards', circles: 'Circles', share: 'Share',
+  ring: 'Ring', competition: 'Competition', territory: 'Territory',
+  science: 'Science', sweat: 'Sweat', heat: 'Heat Risk', cruise: 'Cruise',
+  subscription: 'Membership',
+};
+
 /** Build the persona context the template engine needs. */
 function buildPersonaContext(ctx: VoiceContext, extras: Partial<PersonaContext> = {}): PersonaContext {
   const { engineOutput } = ctx;
@@ -67,17 +107,41 @@ function buildResponse(
   const { intent, entities } = classification;
   const at = Date.now();
   const base = { intent, transcript, at };
+  const score = ctx.engineOutput.score;
 
   switch (intent) {
     case 'LOG_INTAKE': {
       const fluid = entities.fluidType ?? 'aforce_stick';
+      const oz = entities.ozOverride;
+      const repeat = entities.repeat ?? 1;
       const personaCtx = buildPersonaContext(ctx, { fluid: FLUID_LABEL[fluid] ?? 'intake' });
       const rendered = renderTemplate('intake_confirmation', personaCtx);
+      // If the user said an oz/quantity, surface it in the detail line so
+      // the confirmation card mirrors their command verbatim.
+      const detailParts: string[] = [];
+      if (oz) detailParts.push(`${oz} oz`);
+      if (repeat > 1) detailParts.push(`× ${repeat}`);
+      if (rendered.detail) detailParts.push(rendered.detail);
+      const action = {
+        type: 'LOG_INTAKE' as const,
+        fluidType: fluid,
+        ...(oz !== undefined ? { ozOverride: oz } : {}),
+        ...(repeat > 1 ? { repeat } : {}),
+      };
       return {
         ...base,
         spoken: rendered.spoken,
-        detail: rendered.detail,
-        action: { type: 'LOG_INTAKE', fluidType: fluid },
+        ...(detailParts.length ? { detail: detailParts.join(' · ') } : {}),
+        action,
+      };
+    }
+
+    case 'COMPLETE_CYCLE': {
+      return {
+        ...base,
+        spoken: 'Cycle complete. One AForce stick logged.',
+        detail: `Hydration score moves to ${score + 4}.`,
+        action: { type: 'COMPLETE_CYCLE' },
       };
     }
 
@@ -86,7 +150,7 @@ function buildResponse(
       return {
         ...base,
         spoken: rendered.spoken,
-        detail: rendered.detail,
+        ...(rendered.detail ? { detail: rendered.detail } : {}),
         action: { type: 'CONFIRM_STATUS' },
       };
     }
@@ -96,7 +160,7 @@ function buildResponse(
       return {
         ...base,
         spoken: rendered.spoken,
-        detail: rendered.detail,
+        ...(rendered.detail ? { detail: rendered.detail } : {}),
         action: { type: 'NONE' },
       };
     }
@@ -107,8 +171,8 @@ function buildResponse(
         return {
           ...base,
           spoken: 'Symptom not recognized.',
-          detail: 'Tap your profile to log it manually.',
-          action: { type: 'NAVIGATE', route: '/profile' },
+          detail: 'Tap Performance Signals to log it manually.',
+          action: { type: 'NAVIGATE', route: '/check' },
         };
       }
       const labels = symptoms.map((s) => SYMPTOM_LABEL[s]);
@@ -129,7 +193,7 @@ function buildResponse(
       return {
         ...base,
         spoken: rendered.spoken,
-        detail: rendered.detail,
+        ...(rendered.detail ? { detail: rendered.detail } : {}),
         action: { type: 'NAVIGATE', route: '/protocol' },
       };
     }
@@ -139,10 +203,64 @@ function buildResponse(
       return {
         ...base,
         spoken: rendered.spoken,
-        detail: rendered.detail,
-        // Compare flow has been removed from the app — the response stays
-        // informational but no longer navigates to a dedicated screen.
+        ...(rendered.detail ? { detail: rendered.detail } : {}),
         action: { type: 'NONE' },
+      };
+    }
+
+    case 'OPEN_SCREEN': {
+      const screen = entities.screen ?? 'home';
+      const route = SCREEN_ROUTE[screen];
+      const label = SCREEN_LABEL[screen];
+      return {
+        ...base,
+        spoken: `Opening ${label}.`,
+        detail: `Route ${route}`,
+        action: { type: 'NAVIGATE', route },
+      };
+    }
+
+    case 'REORDER': {
+      return {
+        ...base,
+        spoken: 'Reorder ready. Opening the AForce store.',
+        detail: 'Pick up where your last delivery left off.',
+        action: { type: 'NAVIGATE', route: '/store' },
+      };
+    }
+
+    case 'SET_AUTOPILOT': {
+      const on = entities.toggle !== 'off';
+      const phrasing = entities.modePhrasing ?? 'autopilot';
+      const spoken =
+        phrasing === 'performance'
+          ? on ? 'Performance Mode is now on.' : 'Performance Mode is off.'
+          : on ? 'Autopilot activated.' : 'Autopilot deactivated.';
+      return {
+        ...base,
+        spoken,
+        detail: on
+          ? 'AForce will pace your sweat and intake automatically.'
+          : 'You are back in manual control.',
+        action: { type: 'SET_AUTOPILOT', on },
+      };
+    }
+
+    case 'ACTIVATE_SOCIAL': {
+      return {
+        ...base,
+        spoken: 'Social Mode activated.',
+        detail: 'AForce will track alcohol load and pre-load recovery.',
+        action: { type: 'ACTIVATE_SOCIAL' },
+      };
+    }
+
+    case 'DEACTIVATE_SOCIAL': {
+      return {
+        ...base,
+        spoken: 'Social Mode off.',
+        detail: 'Recovery protocol cued for tomorrow morning.',
+        action: { type: 'DEACTIVATE_SOCIAL' },
       };
     }
 
@@ -151,7 +269,7 @@ function buildResponse(
       return {
         ...base,
         spoken: 'Command not recognized.',
-        detail: 'Try "log a stick" or "what should I do".',
+        detail: 'Try "log a stick", "performance mode on", or "open rewards".',
         action: { type: 'NONE' },
       };
     }
