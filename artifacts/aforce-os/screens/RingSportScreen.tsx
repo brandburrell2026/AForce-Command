@@ -194,7 +194,7 @@ export default function RingSportScreen() {
               <Text style={styles.deficitLabel}>LIVE DEFICIT</Text>
               <View style={styles.deficitValueRow}>
                 <Text style={[styles.deficitValue, { color: TEAL }]}>{deficitOz.toFixed(1)}</Text>
-                <Text style={styles.deficitUnit}>oz</Text>
+                <Text style={styles.deficitUnit}>ounces</Text>
               </View>
             </View>
             <View style={{ alignItems: 'flex-end' }}>
@@ -230,12 +230,12 @@ export default function RingSportScreen() {
           <Pressable
             onPress={() => {
               setSipCountdown(NEXT_SIP_SECONDS);
-              Alert.alert('Logged', 'Logged 8 oz to your active session.');
+              Alert.alert('Logged', 'Logged 8 ounces to your active session.');
             }}
             style={({ pressed }) => [styles.sipBtn, pressed && { opacity: 0.85 }]}
             accessibilityRole="button"
           >
-            <Text style={styles.sipBtnText}>LOG 8 OZ</Text>
+            <Text style={styles.sipBtnText}>LOG 8 OUNCES</Text>
           </Pressable>
         </View>
 

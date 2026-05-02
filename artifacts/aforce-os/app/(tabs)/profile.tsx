@@ -293,7 +293,7 @@ export default function ProfileScreen() {
                 <View style={styles.card}>
                   <SettingRow icon="target" label="Daily Target" value={`${mockUserProfile.dailyTarget} units`} />
                   <Divider />
-                  <SettingRow icon="droplet" label="Daily Oz Target" value={`${mockUserProfile.dailyTarget * 12} oz`} />
+                  <SettingRow icon="droplet" label="Daily Ounces Target" value={`${mockUserProfile.dailyTarget * 12} ounces`} />
                   <Divider />
                   <SettingRow icon="user" label="Body Weight" value={`${mockUserProfile.bodyWeightLbs} lb`} />
                   <Divider />

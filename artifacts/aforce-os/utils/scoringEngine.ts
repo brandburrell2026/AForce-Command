@@ -129,8 +129,8 @@ function buildBreakdown(state: UserState): { score: number; contributions: Score
 
   const aforceUnits = state.aforceUnitsToday ?? 0;
   const contributions: ScoreContribution[] = [
-    { id: 'base', label: 'Base intake (oz vs target)', delta: baseIntake, maxMagnitude: 45,
-      hint: `${state.ozConsumedToday} of ${state.ozTarget} oz` },
+    { id: 'base', label: 'Base intake (ounces vs target)', delta: baseIntake, maxMagnitude: 45,
+      hint: `${state.ozConsumedToday} of ${state.ozTarget} ounces` },
     { id: 'aforce_bonus', label: 'AForce protocol bonus', delta: aforceBonus, maxMagnitude: 50,
       hint: aforceUnits === 0
         ? 'Log an AForce stick or RTD'
@@ -152,7 +152,7 @@ function buildBreakdown(state: UserState): { score: number; contributions: Score
     { id: 'output', label: 'Output stress', delta: outputStress, maxMagnitude: 10,
       hint: 'Sweat × activity load' },
     { id: 'sleep', label: 'Overnight carryover', delta: sleepCarry, maxMagnitude: 10,
-      hint: state.overnightLossOz > 8 ? `${state.overnightLossOz} oz loss` : 'No deficit carry' },
+      hint: state.overnightLossOz > 8 ? `${state.overnightLossOz} ounces loss` : 'No deficit carry' },
     { id: 'health_signals', label: recovery.label, delta: recovery.delta, maxMagnitude: 10,
       hint: recovery.hint },
   ];
@@ -432,7 +432,7 @@ function generateReasons(state: UserState): ScoreReason[] {
 
   const ozRatio = state.ozConsumedToday / state.ozTarget;
   if (ozRatio < 0.5) {
-    reasons.push({ id: 'pace-behind', text: 'You are behind your daily oz pace.', weight: 'negative' });
+    reasons.push({ id: 'pace-behind', text: 'You are behind your daily ounces pace.', weight: 'negative' });
   } else if (ozRatio >= 0.75) {
     reasons.push({ id: 'pace-ahead', text: 'On pace for daily target.', weight: 'positive' });
   }
@@ -456,7 +456,7 @@ function generateReasons(state: UserState): ScoreReason[] {
     reasons.push({ id: 'streak', text: `${state.complianceStreak}-day compliance streak.`, weight: 'positive' });
   }
   if (state.overnightLossOz > 8 && !state.hasSeenMorningCommand) {
-    reasons.push({ id: 'overnight', text: `Overnight deficit ${state.overnightLossOz} oz.`, weight: 'negative' });
+    reasons.push({ id: 'overnight', text: `Overnight deficit ${state.overnightLossOz} ounces.`, weight: 'negative' });
   }
 
   const ah = state.appleHealth;
@@ -852,7 +852,7 @@ export function clutchRecommendation(input: {
         fluidOz: 8,
         sticks: 0,
         recheckMinutes: 30,
-        command: 'Maintain. 8 oz water at next break.',
+        command: 'Maintain. 8 ounces water at next break.',
         detail: 'Keep rotation. Recheck end of quarter.',
       };
     case 'STABLE':
@@ -862,7 +862,7 @@ export function clutchRecommendation(input: {
         fluidOz: 12,
         sticks: 1,
         recheckMinutes: 20,
-        command: '12 oz + 1 stick at next dead ball.',
+        command: '12 ounces + 1 stick at next dead ball.',
         detail: 'Hold rotation. Recheck in 20 min.',
       };
     case 'RECOVERY':
@@ -872,7 +872,7 @@ export function clutchRecommendation(input: {
         fluidOz: 16,
         sticks: 2,
         recheckMinutes: 10,
-        command: '16 oz + 2 sticks now.',
+        command: '16 ounces + 2 sticks now.',
         detail: 'Move to shaded area. Recheck in 10 min.',
       };
     case 'DEPLETED':
@@ -883,7 +883,7 @@ export function clutchRecommendation(input: {
         fluidOz: 24,
         sticks: 3,
         recheckMinutes: 5,
-        command: 'PULL FROM ROTATION. 24 oz + 3 sticks.',
+        command: 'PULL FROM ROTATION. 24 ounces + 3 sticks.',
         detail: 'Cooling protocol. Recheck core temp in 5 min.',
       };
   }
@@ -907,7 +907,7 @@ export function guardianRecommendation(input: {
         fluidOz: 8,
         sticks: 0,
         recheckMinutes: 30,
-        command: 'Continue play. 8 oz at next break.',
+        command: 'Continue play. 8 ounces at next break.',
         detail: 'Standard recheck next series.',
       };
     case 'WATCH':
@@ -917,7 +917,7 @@ export function guardianRecommendation(input: {
         fluidOz: 15,
         sticks: 1,
         recheckMinutes: 15,
-        command: '15 oz + 1 stick at next break.',
+        command: '15 ounces + 1 stick at next break.',
         detail: 'Monitor next series. Recheck in 15 min.',
       };
     case 'MODERATE':
@@ -927,7 +927,7 @@ export function guardianRecommendation(input: {
         fluidOz: 20,
         sticks: 2,
         recheckMinutes: 8,
-        command: 'Reduce reps 30%. 20 oz + 2 sticks.',
+        command: 'Reduce reps 30%. 20 ounces + 2 sticks.',
         detail: 'Cooling towel. Recheck core temp in 8 min.',
       };
     case 'CRITICAL':
@@ -939,7 +939,7 @@ export function guardianRecommendation(input: {
         sticks: 2,
         recheckMinutes: 5,
         command: 'PULL FROM ROTATION. Medical eval.',
-        detail: 'Cooling protocol now. 24 oz + 2 sticks. Recheck in 5 min.',
+        detail: 'Cooling protocol now. 24 ounces + 2 sticks. Recheck in 5 min.',
       };
   }
 }

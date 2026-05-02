@@ -190,11 +190,11 @@ export function evaluateCruise(s: CruiseSession): CruiseEvaluation {
   if (status === "OPTIMIZED") {
     recommendation = "Hydration locked. Maintain — sip water every 45 min.";
   } else if (status === "MONITOR") {
-    recommendation = "Drink 8–12 oz water and complete one AForce hydration cycle.";
+    recommendation = "Drink 8–12 ounces water and complete one AForce hydration cycle.";
   } else if (status === "DEHYDRATION_RISK") {
-    recommendation = "Drink 12–16 oz water + 1 AForce stick now. Recheck in 20 min.";
+    recommendation = "Drink 12–16 ounces water + 1 AForce stick now. Recheck in 20 min.";
   } else {
-    recommendation = "Recovery cycle: 16 oz water + 1 AForce + 5 min seated cool-down.";
+    recommendation = "Recovery cycle: 16 ounces water + 1 AForce + 5 min seated cool-down.";
   }
 
   const nextCheckMinutes =

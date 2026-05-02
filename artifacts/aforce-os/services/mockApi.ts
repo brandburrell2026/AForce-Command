@@ -155,10 +155,10 @@ export interface ProtocolPayload {
 }
 
 const PROTOCOL_DESCRIPTION: Record<ProtocolPayload['stage'], string> = {
-  'Maintain': 'Drink 8–12 oz, recheck 45–60 min. Hold rhythm.',
+  'Maintain': 'Drink 8–12 ounces, recheck 45–60 min. Hold rhythm.',
   'Peak Support': 'Maintain fluid. Stick during exertion. Defend Peak.',
-  'Recovery': 'Drink 12–16 oz now. Stick if signals appear.',
-  'Depletion Correction': 'Drink 16–24 oz. Electrolytes critical. Recheck 20–30 min.',
+  'Recovery': 'Drink 12–16 ounces now. Stick if signals appear.',
+  'Depletion Correction': 'Drink 16–24 ounces. Electrolytes critical. Recheck 20–30 min.',
   'Heat Stress': 'Aggressive cadence. Forced 15-min recheck.',
 };
 

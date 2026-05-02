@@ -145,7 +145,7 @@ function FlavorCard({ variant: f, formatOptions, onChoose }: FlavorCardProps) {
             onPress={() =>
               onChoose({
                 id: `${f.id}-${selected.fluid}-${oz}`,
-                label: `${fullLabel} ${oz} oz`,
+                label: `${fullLabel} ${oz} ounces`,
                 flavor: f.flavor,
                 accent: f.accent,
                 fluid: selected.fluid,
@@ -164,7 +164,7 @@ function FlavorCard({ variant: f, formatOptions, onChoose }: FlavorCardProps) {
             testID={`flavor-${f.id}-${selected.fluid}-${oz}`}
           >
             <Text style={[styles.waterSizeLabel, { color: f.accent }]}>
-              {oz} oz
+              {oz} ounces
             </Text>
           </Pressable>
         ))}
@@ -235,7 +235,7 @@ export function FlavorPickerModal({ visible, format, onCancel, onConfirm }: Prop
                       onPress={() =>
                         choose({
                           id: `plain-water-${oz}`,
-                          label: `Water ${oz} oz`,
+                          label: `Water ${oz} ounces`,
                           flavor: 'plain' as ProductFlavor,
                           accent: WATER_ACCENT,
                           fluid: 'water',
@@ -254,7 +254,7 @@ export function FlavorPickerModal({ visible, format, onCancel, onConfirm }: Prop
                       testID={`flavor-water-${oz}`}
                     >
                       <Text style={[styles.waterSizeLabel, { color: WATER_ACCENT }]}>
-                        {oz} oz
+                        {oz} ounces
                       </Text>
                     </Pressable>
                   ))}

@@ -5,7 +5,7 @@
  * If this mapping ever silently breaks, every voice-logged or picker-
  * logged AForce stick falls back to "unflavored" (+10 only) and users
  * stop seeing the contextual bonuses. These tests cover every label
- * shape the FlavorPickerModal (`${name} ${oz} oz`) and the
+ * shape the FlavorPickerModal (`${name} ${oz} ounces`) and the
  * `data/products.ts` / `data/flavors.ts` source-of-truth tables
  * actually emit.
  *
@@ -48,12 +48,21 @@ describe('inferFlavorFromLabel — production label shapes', () => {
     expect(inferFlavorFromLabel('Soursop Edge + Seamoss')).toBe('soursop');
   });
 
-  it('maps the FlavorPickerModal label format `${name} ${oz} oz`', () => {
-    // FlavorPickerModal.tsx line 148: label: `${fullLabel} ${oz} oz`
+  it('maps the FlavorPickerModal label format `${name} ${oz} ounces`', () => {
+    // FlavorPickerModal.tsx line 148: label: `${fullLabel} ${oz} ounces`
+    expect(inferFlavorFromLabel('Berry Blast 12 ounces')).toBe('berry');
+    expect(inferFlavorFromLabel('Watermelon Surge 12 ounces')).toBe('watermelon');
+    expect(inferFlavorFromLabel('Soursop Edge 12 ounces')).toBe('soursop');
+    expect(inferFlavorFromLabel('Berry Blast + Dulse 12 ounces')).toBe('berry');
+  });
+
+  it('back-compat: still resolves legacy `${name} ${oz} oz` label format', () => {
+    // The parser is unit-agnostic (substring flavor match only), so any
+    // historical journal entries logged before the "ounces" rename must
+    // still resolve correctly.
     expect(inferFlavorFromLabel('Berry Blast 12 oz')).toBe('berry');
     expect(inferFlavorFromLabel('Watermelon Surge 12 oz')).toBe('watermelon');
     expect(inferFlavorFromLabel('Soursop Edge 12 oz')).toBe('soursop');
-    expect(inferFlavorFromLabel('Berry Blast + Dulse 12 oz')).toBe('berry');
   });
 
   it('is case-insensitive', () => {
@@ -66,7 +75,7 @@ describe('inferFlavorFromLabel — production label shapes', () => {
     expect(inferFlavorFromLabel(undefined)).toBeUndefined();
     expect(inferFlavorFromLabel('')).toBeUndefined();
     expect(inferFlavorFromLabel('Mystery Flavor')).toBeUndefined();
-    expect(inferFlavorFromLabel('Water 16 oz')).toBeUndefined();
+    expect(inferFlavorFromLabel('Water 16 ounces')).toBeUndefined();
   });
 
   it('every PRODUCT_FLAVORS label is recognised', () => {

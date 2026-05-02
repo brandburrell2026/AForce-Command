@@ -169,7 +169,7 @@ describe('buildScanCoachScript', () => {
       recommendation: {
         headline: 'Avoid',
         detail: 'High sugar',
-        command: 'Take 16 oz water now',
+        command: 'Take 16 ounces water now',
         shouldLog: false,
       },
     });
@@ -193,7 +193,7 @@ describe('buildScanCoachScript', () => {
         headline: 'Sub-par',
         detail: 'High sugar',
         aforceEquivalentId: 'aforce_stick',
-        command: 'Take 1 AForce Stick now with 16 oz water. Recheck in 20 minutes.',
+        command: 'Take 1 AForce Stick now with 16 ounces water. Recheck in 20 minutes.',
         shouldLog: false,
       },
     });

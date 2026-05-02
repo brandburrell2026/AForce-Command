@@ -178,7 +178,7 @@ describe('commandVoiceBus — playback lifecycle', () => {
     const transitions: PlaybackState[] = [];
     subscribePlayback((s) => transitions.push(s));
 
-    commandSpeak('Risk rising. Twelve oz. AForce. Now.', { category: 'score_band' });
+    commandSpeak('Risk rising. Twelve ounces. AForce. Now.', { category: 'score_band' });
 
     // RECEIVED fires synchronously after the speaker call.
     expect(getPlaybackState()).toBe('received');

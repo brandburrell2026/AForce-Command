@@ -133,7 +133,7 @@ export default function SweatCalculatorScreen() {
       if (post > pre + 5) return 'Post-weight is higher than pre-weight — check your numbers.';
       if (h !== 0 && (h <= 0 || h > 8)) return 'Height should be 0.5–8 ft (or leave blank).';
       if (dur <= 0 || dur > 600) return 'Enter a duration between 1 and 600 minutes.';
-      if (fluid < 0 || fluid > 500) return 'Fluid intake should be 0–500 oz.';
+      if (fluid < 0 || fluid > 500) return 'Fluid intake should be 0–500 ounces.';
       return null;
     }
     if (mode === 'precision') {
@@ -148,8 +148,8 @@ export default function SweatCalculatorScreen() {
       if (post > pre + 5) return 'Post-weight is higher than pre-weight — check your numbers.';
       if (h !== 0 && (h <= 0 || h > 8)) return 'Height should be 0.5–8 ft (or leave blank).';
       if (dur <= 0 || dur > 600) return 'Enter a duration between 1 and 600 minutes.';
-      if (fluid < 0 || fluid > 500) return 'Fluid intake should be 0–500 oz.';
-      if (urine < 0 || urine > 100) return 'Urine output should be 0–100 oz.';
+      if (fluid < 0 || fluid > 500) return 'Fluid intake should be 0–500 ounces.';
+      if (urine < 0 || urine > 100) return 'Urine output should be 0–100 ounces.';
       return null;
     }
     const w = num(eWeight);
@@ -284,8 +284,8 @@ export default function SweatCalculatorScreen() {
                 <NumberRow label="Post-weight" suffix="lbs" value={qPost} onChange={setQPost} />
                 <NumberRow label="Height" suffix="ft" value={qHeight} onChange={setQHeight} />
                 <NumberRow label="Duration" suffix="min" value={qDuration} onChange={setQDuration} />
-                <NumberRow label="Fluid intake" suffix="oz" value={qFluid} onChange={setQFluid} />
-                <Helper>Weigh nude or in dry clothing for accuracy. 1 lb of weight loss ≈ 16 oz of sweat.</Helper>
+                <NumberRow label="Fluid intake" suffix="ounces" value={qFluid} onChange={setQFluid} />
+                <Helper>Weigh nude or in dry clothing for accuracy. 1 lb of weight loss ≈ 16 ounces of sweat.</Helper>
               </Card>
             )}
 
@@ -296,8 +296,8 @@ export default function SweatCalculatorScreen() {
                 <NumberRow label="Post-weight" suffix="lbs" value={pPost} onChange={setPPost} />
                 <NumberRow label="Height" suffix="ft" value={pHeight} onChange={setPHeight} />
                 <NumberRow label="Duration" suffix="min" value={pDuration} onChange={setPDuration} />
-                <NumberRow label="Fluid intake" suffix="oz" value={pFluid} onChange={setPFluid} />
-                <NumberRow label="Urine output" suffix="oz" value={pUrine} onChange={setPUrine} />
+                <NumberRow label="Fluid intake" suffix="ounces" value={pFluid} onChange={setPFluid} />
+                <NumberRow label="Urine output" suffix="ounces" value={pUrine} onChange={setPUrine} />
                 <Divider />
                 <SubLabel>Sport</SubLabel>
                 <SportPicker value={pSportId} onChange={setPSportId} />
@@ -848,7 +848,7 @@ function RecoveryProtocolCard({
             <Feather name="droplet" size={11} color={Colors.text.secondary} />
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={styles.protocolStepLabel}>{protocol.waterOz} oz water</Text>
+            <Text style={styles.protocolStepLabel}>{protocol.waterOz} ounces water</Text>
             <Text style={styles.protocolStepHint}>Pair across the {result.autopilot.recoveryWindowHours}h window.</Text>
           </View>
         </View>

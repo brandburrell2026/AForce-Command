@@ -146,29 +146,29 @@ function buildCommand(winner: CompareResult, inputs: CompareInputs): CompareComm
   // produces the same advice across renders within a cycle.
   const buckets = {
     critical: [
-      `${p.name} now. 16 oz water. You're depleted — recheck in 15 min.`,
-      `Hit ${p.name} immediately with 16 oz water. Reassess in 15 min.`,
-      `${p.name} is critical right now. Take 1 serving with 16 oz. 15 min recheck.`,
+      `${p.name} now. 16 ounces water. You're depleted — recheck in 15 min.`,
+      `Hit ${p.name} immediately with 16 ounces water. Reassess in 15 min.`,
+      `${p.name} is critical right now. Take 1 serving with 16 ounces. 15 min recheck.`,
     ],
     heat: [
-      `${p.name} now. 16 oz water. Heat load is high — pace through the next 20 min.`,
-      `${p.name} + 20 oz water. You're carrying heat. Recheck in 20 min.`,
+      `${p.name} now. 16 ounces water. Heat load is high — pace through the next 20 min.`,
+      `${p.name} + 20 ounces water. You're carrying heat. Recheck in 20 min.`,
     ],
     sweat: [
-      `${p.name} + 20 oz water. Sweat rate elevated — stay ahead of the loss.`,
-      `Take 1 ${p.name} now with 20 oz. Replace what you're moving out.`,
+      `${p.name} + 20 ounces water. Sweat rate elevated — stay ahead of the loss.`,
+      `Take 1 ${p.name} now with 20 ounces. Replace what you're moving out.`,
     ],
     stale: [
-      `It's been a stretch — 1 ${p.name} with 16 oz water. Recheck in 20 min.`,
-      `${p.name} now. 16 oz water. Reset the cycle.`,
+      `It's been a stretch — 1 ${p.name} with 16 ounces water. Recheck in 20 min.`,
+      `${p.name} now. 16 ounces water. Reset the cycle.`,
     ],
     optimal: [
-      `${p.name} is optimal. 1 serving with 16 oz water. Recheck in 20 min.`,
-      `Lock it in: ${p.name} + 16 oz water. Hold this curve for 20 min.`,
+      `${p.name} is optimal. 1 serving with 16 ounces water. Recheck in 20 min.`,
+      `Lock it in: ${p.name} + 16 ounces water. Hold this curve for 20 min.`,
     ],
     default: [
-      `${p.name} is the best fit. Take 1 serving with 16 oz water. Recheck in 20 min.`,
-      `Go with ${p.name}: 1 serving + 16 oz water. Reassess in 20 min.`,
+      `${p.name} is the best fit. Take 1 serving with 16 ounces water. Recheck in 20 min.`,
+      `Go with ${p.name}: 1 serving + 16 ounces water. Reassess in 20 min.`,
     ],
   } as const;
 
@@ -200,7 +200,7 @@ function buildCommand(winner: CompareResult, inputs: CompareInputs): CompareComm
 // Safe fallback for empty / fully-invalid catalog.
 function emptyCommand(): CompareCommand {
   return {
-    action: 'No suitable products available. Take 16 oz water now and recheck in 20 minutes.',
+    action: 'No suitable products available. Take 16 ounces water now and recheck in 20 minutes.',
     explanation: 'Catalog is empty or unavailable. Defaulting to baseline hydration.',
     productId: '',
     urgencyLevel: 'medium',

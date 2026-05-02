@@ -85,7 +85,7 @@ export default function ClutchScreen() {
                     </Text>
                     <Text style={styles.recDetail}>{rec.detail}</Text>
                     <View style={styles.recMeta}>
-                      <Text style={styles.recMetaItem}>{rec.fluidOz} oz</Text>
+                      <Text style={styles.recMetaItem}>{rec.fluidOz} ounces</Text>
                       {rec.sticks > 0 && <Text style={styles.recMetaItem}>{rec.sticks} stick{rec.sticks > 1 ? 's' : ''}</Text>}
                       <Text style={styles.recMetaItem}>recheck {rec.recheckMinutes}m</Text>
                     </View>
@@ -101,8 +101,8 @@ export default function ClutchScreen() {
                 const plan = clutchHydrationPlan(state.userState.bodyWeightLbs, 4);
                 return (
                   <>
-                    <PlanRow label="Daily baseline" value={`${plan.dailyBaselineOz} oz`} />
-                    <PlanRow label="Game target (4 active windows)" value={`${plan.gameTargetOz} oz`} />
+                    <PlanRow label="Daily baseline" value={`${plan.dailyBaselineOz} ounces`} />
+                    <PlanRow label="Game target (4 active windows)" value={`${plan.gameTargetOz} ounces`} />
                     <PlanRow label="Sticks needed" value={`${plan.sticksNeeded}`} accent={Colors.clutch.primary} />
                   </>
                 );

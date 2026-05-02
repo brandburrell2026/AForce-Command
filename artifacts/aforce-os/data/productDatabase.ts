@@ -35,7 +35,7 @@ export const COMPARE_PRODUCTS: CompareProduct[] = [
     absorptionRate: 88,
     recoveryEfficiency: 90,
     compatibleProtocols: ['maintenance', 'recovery', 'heat_stress'],
-    factualNote: '12 oz ready-to-drink. Field-grade format.',
+    factualNote: '12 ounces ready-to-drink. Field-grade format.',
     isAForce: true,
   },
   {

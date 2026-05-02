@@ -17,7 +17,7 @@ const baseCtx: VoiceContext = {
   mode: 'balanced',
   score: 82,
   recheck_minutes: 20,
-  command_action: 'Drink 16 oz now.',
+  command_action: 'Drink 16 ounces now.',
 };
 
 describe('voiceTemplateEngine — token replacement', () => {

@@ -152,12 +152,12 @@ export function pickRecoveryProtocol(
 
   const labelList = steps.map((s) => s.label).join(' + ');
   const headline = partial
-    ? `Use what you have: ${labelList} + ${waterOz} oz water.`
-    : `Recommended: ${labelList} + ${waterOz} oz water over the next ${session.autopilot.recoveryWindowHours}h.`;
+    ? `Use what you have: ${labelList} + ${waterOz} ounces water.`
+    : `Recommended: ${labelList} + ${waterOz} ounces water over the next ${session.autopilot.recoveryWindowHours}h.`;
 
   const reasoning = partial
     ? `Inventory covers ${totalUnitsNeeded - remaining}/${totalUnitsNeeded} units. Top up to fully replace your sodium loss.`
-    : `${totalUnitsNeeded} unit${totalUnitsNeeded > 1 ? 's' : ''} matches your sodium loss; ${waterOz} oz water pairs the absorption window.`;
+    : `${totalUnitsNeeded} unit${totalUnitsNeeded > 1 ? 's' : ''} matches your sodium loss; ${waterOz} ounces water pairs the absorption window.`;
 
   return { reason: 'ok', steps, waterOz, headline, reasoning };
 }

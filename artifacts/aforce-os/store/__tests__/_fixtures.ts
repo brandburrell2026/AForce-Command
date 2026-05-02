@@ -153,7 +153,7 @@ export function makeHistoryEntry(id = 'h-1'): HistoryEntry {
     timestamp: new Date(FIXED_NOW),
     score: 80,
     state: 'PEAK',
-    action: 'Logged AForce Stick (12 oz)',
+    action: 'Logged AForce Stick (12 ounces)',
     unitsTaken: 1,
     fluidType: 'aforce_stick',
   };

@@ -103,9 +103,9 @@ export const VOICE_TEMPLATES: Readonly<TemplateMap> = Object.freeze({
   },
   recovery_command: {
     peak:       t('recovery_command', 'peak',       'No recovery needed. Hold cadence.',                    'Score {score}.'),
-    balanced:   t('recovery_command', 'balanced',   'Drink {oz} oz now. Recheck in {recheck} min.',          'Score {score}.'),
-    recovering: t('recovery_command', 'recovering', 'Recovery state. Drink {oz} oz now. Recheck {recheck} min.', 'Score {score}.'),
-    depleted:   t('recovery_command', 'depleted',   'Depleted. Drink {oz} oz and take 2 sticks now.',        'Recheck {recheck} min.'),
+    balanced:   t('recovery_command', 'balanced',   'Drink {oz} ounces now. Recheck in {recheck} min.',          'Score {score}.'),
+    recovering: t('recovery_command', 'recovering', 'Recovery state. Drink {oz} ounces now. Recheck {recheck} min.', 'Score {score}.'),
+    depleted:   t('recovery_command', 'depleted',   'Depleted. Drink {oz} ounces and take 2 sticks now.',        'Recheck {recheck} min.'),
   },
   intake_confirmation: {
     peak:       t('intake_confirmation', 'peak',       'Logged {fluid}. Score {score}. Hold cadence.',      'Maintain protocol.'),
@@ -115,7 +115,7 @@ export const VOICE_TEMPLATES: Readonly<TemplateMap> = Object.freeze({
   },
   heat_warning: {
     peak:       t('heat_warning', 'peak',       'Heat load rising. Maintain cooling.',                'Recheck {recheck} min.'),
-    balanced:   t('heat_warning', 'balanced',   'Heat stress climbing. Drink {oz} oz now.',           'Recheck {recheck} min.'),
+    balanced:   t('heat_warning', 'balanced',   'Heat stress climbing. Drink {oz} ounces now.',           'Recheck {recheck} min.'),
     recovering: t('heat_warning', 'recovering', 'Heat risk. Stop and hydrate now. Recheck 10 min.',   'Score {score}.'),
     depleted:   t('heat_warning', 'depleted',   'Critical heat. Stop now. Begin cooling immediately.','Score {score}.'),
   },
@@ -127,9 +127,9 @@ export const VOICE_TEMPLATES: Readonly<TemplateMap> = Object.freeze({
   },
   morning_reset: {
     peak:       t('morning_reset', 'peak',       'Morning reset clean. Begin protocol.',                   'Score {score}.'),
-    balanced:   t('morning_reset', 'balanced',   'Light overnight deficit. Drink {oz} oz before protocol.','Score {score}.'),
-    recovering: t('morning_reset', 'recovering', 'Overnight deficit detected. Drink {oz} oz now.',         'Recheck {recheck} min.'),
-    depleted:   t('morning_reset', 'depleted',   'Severe overnight deficit. Drink {oz} oz and take 1 stick now.', 'Recheck {recheck} min.'),
+    balanced:   t('morning_reset', 'balanced',   'Light overnight deficit. Drink {oz} ounces before protocol.','Score {score}.'),
+    recovering: t('morning_reset', 'recovering', 'Overnight deficit detected. Drink {oz} ounces now.',         'Recheck {recheck} min.'),
+    depleted:   t('morning_reset', 'depleted',   'Severe overnight deficit. Drink {oz} ounces and take 1 stick now.', 'Recheck {recheck} min.'),
   },
   product_comparison: {
     peak:       t('product_comparison', 'peak',       'AForce stick is the strongest fit. Hold cadence.', 'Score {score}.'),

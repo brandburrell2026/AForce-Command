@@ -99,10 +99,10 @@ describe('investorDemoBeats — narrative correctness', () => {
     const b = INVESTOR_DEMO_BEATS[6];
     expect(b.voice).toBeDefined();
     const line = b.voice!.line;
-    // Pressure cadence assertions: short, contains "now", uses digit + oz.
+    // Pressure cadence assertions: short, contains "now", uses digit + ounces.
     expect(line.split(/\s+/).length).toBeLessThanOrEqual(8);
     expect(line.toLowerCase()).toContain('now');
-    expect(line.toLowerCase()).toMatch(/\b\d+\s*oz\b/);
+    expect(line.toLowerCase()).toMatch(/\b\d+\s*ounces\b/);
     expect(line.toLowerCase()).not.toContain('please');
   });
 

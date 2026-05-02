@@ -346,7 +346,7 @@ function commandForBand(band: HeatRiskBand): string {
     case "STABLE":
       return "Hydrate now and stay on cadence. Heat load is under control.";
     case "ELEVATED":
-      return "Drink 12 to 16 oz now. Heat stress is building. Recheck in 20 minutes.";
+      return "Drink 12 to 16 ounces now. Heat stress is building. Recheck in 20 minutes.";
     case "WARNING":
       return "Stop and hydrate now. Cooling protocol starts immediately. Recheck in 10 minutes.";
     case "HIGH_RISK":

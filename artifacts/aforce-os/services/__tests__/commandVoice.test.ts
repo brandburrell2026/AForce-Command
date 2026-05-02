@@ -188,11 +188,11 @@ describe('commandVoice — pressureCommandLine', () => {
     expect(out).toMatch(/[.!?]$/);
   });
 
-  it('normalizes "ounces" to "oz" and number words to digits', () => {
+  it('preserves "ounces" and converts number words to digits', () => {
     expect(pressureCommandLine('Drink sixteen ounces of water.').toLowerCase())
-      .toContain('16 oz');
+      .toContain('16 ounces');
     expect(pressureCommandLine('Drink twenty ounces.').toLowerCase())
-      .toContain('20 oz');
+      .toContain('20 ounces');
   });
 
   it('clips runaway commands to ten words and terminates', () => {

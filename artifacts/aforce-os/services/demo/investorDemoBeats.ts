@@ -171,7 +171,7 @@ export const INVESTOR_DEMO_BEATS: ReadonlyArray<DemoBeat> = Object.freeze([
     riskMin: 2,
     intensity: 'pressure',
     voice: {
-      line: 'Drink 12 oz. AForce. Now.',
+      line: 'Drink 12 ounces. AForce. Now.',
       level: 'DEPLETED',
       category: 'system_command',
     },

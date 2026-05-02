@@ -130,7 +130,7 @@ export default function GuardianScreen() {
                     </Text>
                     <Text style={styles.rosterRecDetail}>{rec.detail}</Text>
                     <View style={styles.rosterRecMeta}>
-                      <Text style={styles.rosterRecChip}>{rec.fluidOz} oz</Text>
+                      <Text style={styles.rosterRecChip}>{rec.fluidOz} ounces</Text>
                       {rec.sticks > 0 && (
                         <Text style={styles.rosterRecChip}>{rec.sticks} stick{rec.sticks > 1 ? 's' : ''}</Text>
                       )}

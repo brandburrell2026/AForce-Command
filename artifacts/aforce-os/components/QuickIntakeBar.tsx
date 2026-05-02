@@ -57,7 +57,7 @@ export function QuickIntakeBar({ accentColor }: Props) {
                 </View>
               )}
               <Text style={styles.name} numberOfLines={1}>{p.shortName}</Text>
-              <Text style={[styles.oz, { color: accentColor }]}>{p.ozPerServing} oz</Text>
+              <Text style={[styles.oz, { color: accentColor }]}>{p.ozPerServing} ounces</Text>
             </Pressable>
           );
         })}

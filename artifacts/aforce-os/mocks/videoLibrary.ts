@@ -17,7 +17,7 @@ export const VIDEO_LIBRARY: Record<string, VideoConfig> = {
     videoUrl: '/videos/hydration_action_01.mp4',
     durationSec: 8,
     overlayTitle: 'INTAKE NOW',
-    overlaySubtitle: 'AForce Stick + 16 oz water',
+    overlaySubtitle: 'AForce Stick + 16 ounces water',
     themeLevel: 'BALANCED',
   },
   hydration_action_02: {
@@ -29,7 +29,7 @@ export const VIDEO_LIBRARY: Record<string, VideoConfig> = {
     videoUrl: '/videos/hydration_action_02.mp4',
     durationSec: 8,
     overlayTitle: 'CLOSE THE GAP',
-    overlaySubtitle: 'Recover deficit. 12 oz now.',
+    overlaySubtitle: 'Recover deficit. 12 ounces now.',
     themeLevel: 'RECOVERING',
   },
   recovery_reset_01: {
@@ -65,7 +65,7 @@ export const VIDEO_LIBRARY: Record<string, VideoConfig> = {
     videoUrl: '/videos/depletion_emergency_01.mp4',
     durationSec: 6,
     overlayTitle: 'CORRECT NOW',
-    overlaySubtitle: 'AForce Stick + 20 oz. Immediate.',
+    overlaySubtitle: 'AForce Stick + 20 ounces. Immediate.',
     themeLevel: 'DEPLETED',
   },
   morning_reset_01: {
@@ -77,7 +77,7 @@ export const VIDEO_LIBRARY: Record<string, VideoConfig> = {
     videoUrl: '/videos/morning_reset_01.mp4',
     durationSec: 8,
     overlayTitle: 'FIRST MOVE',
-    overlaySubtitle: 'Reset the system. 16 oz + 1 stick.',
+    overlaySubtitle: 'Reset the system. 16 ounces + 1 stick.',
     themeLevel: 'BALANCED',
   },
 };

@@ -265,7 +265,7 @@ function buildReportHtml(
         <th style="text-align:right">Avg</th>
         <th style="text-align:right">Min</th>
         <th style="text-align:right">Max</th>
-        <th style="text-align:right">Oz</th>
+        <th style="text-align:right">Ounces</th>
         <th style="text-align:right">AForce</th>
         <th style="text-align:right">Intakes</th>
         <th style="text-align:right">Na in (mg)</th>

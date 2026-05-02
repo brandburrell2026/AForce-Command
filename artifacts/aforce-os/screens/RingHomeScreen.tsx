@@ -130,7 +130,7 @@ export default function RingHomeScreen() {
     ? Math.max(4, Math.round(session.prescription.replacementOz / 4))
     : 8;
   const nextSipMin = session ? Math.max(4, Math.round(session.autopilot.intervalMin / 2)) : 20;
-  const actionTitle = session ? `Time for ${sipOz} oz` : 'You\'re good for now';
+  const actionTitle = session ? `Time for ${sipOz} ounces` : 'You\'re good for now';
   const actionBody = session
     ? `About ${nextSipMin} minutes from now to stay ahead of your sweat loss.`
     : `We\'ll let you know when it\'s time to sip. Check-in in ~${nextSipMin} min.`;
@@ -262,7 +262,7 @@ export default function RingHomeScreen() {
                   styles.actionPrimary,
                   pressed && { opacity: 0.85 },
                 ]}
-                onPress={() => Alert.alert('Logged', `Logged ${sipOz} oz to your hydration timeline.`)}
+                onPress={() => Alert.alert('Logged', `Logged ${sipOz} ounces to your hydration timeline.`)}
                 accessibilityRole="button"
               >
                 <Feather name="check" size={16} color={Colors.text.primary} />

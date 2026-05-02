@@ -85,7 +85,7 @@ function buildRecommendation(
     return {
       headline: `${scanned.productName} is optimal for your current state.`,
       detail: selfFit.whyItFits,
-      command: `Take 1 ${scanned.productName} now with 16 oz water. Recheck in 20 minutes.`,
+      command: `Take 1 ${scanned.productName} now with 16 ounces water. Recheck in 20 minutes.`,
       shouldLog: true,
     };
   }
@@ -95,7 +95,7 @@ function buildRecommendation(
       headline: `${bestAforce.product.name} is a stronger fit for your ${stateLabel} state.`,
       detail: bestAforce.whyItFits,
       aforceEquivalentId: bestAforce.product.id,
-      command: `Take 1 ${bestAforce.product.name} now with 16 oz water. Recheck in 20 minutes.`,
+      command: `Take 1 ${bestAforce.product.name} now with 16 ounces water. Recheck in 20 minutes.`,
       shouldLog: false,
     };
   }
@@ -104,7 +104,7 @@ function buildRecommendation(
     return {
       headline: `${scanned.productName} fits your current state.`,
       detail: selfFit.whyItFits,
-      command: `Take 1 ${scanned.productName} now with 16 oz water. Recheck in 20 minutes.`,
+      command: `Take 1 ${scanned.productName} now with 16 ounces water. Recheck in 20 minutes.`,
       shouldLog: true,
     };
   }
@@ -114,8 +114,8 @@ function buildRecommendation(
     detail: selfFit.whyItFits,
     aforceEquivalentId: bestAforce?.product.id,
     command: bestAforce
-      ? `Take 1 ${bestAforce.product.name} now with 16 oz water. Recheck in 20 minutes.`
-      : `Take 16 oz water now. Recheck in 20 minutes.`,
+      ? `Take 1 ${bestAforce.product.name} now with 16 ounces water. Recheck in 20 minutes.`
+      : `Take 16 ounces water now. Recheck in 20 minutes.`,
     shouldLog: false,
   };
 }

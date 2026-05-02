@@ -304,7 +304,7 @@ class PhantomBandService {
       source: 'phantom_band',
       at: sip.at,
     };
-    this.pushSignal({ at: event.at, source: 'system', note: `Auto-logged sip · ${sip.oz.toFixed(1)} oz` });
+    this.pushSignal({ at: event.at, source: 'system', note: `Auto-logged sip · ${sip.oz.toFixed(1)} ounces` });
     this.emit('sip', event);
   }
 

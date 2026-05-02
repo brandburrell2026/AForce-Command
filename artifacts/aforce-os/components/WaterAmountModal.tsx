@@ -85,7 +85,7 @@ export function WaterAmountModal({ visible, accentColor, onCancel, onConfirm }: 
             </Pressable>
             <View style={styles.amountDisplay}>
               <Text style={[styles.amountValue, { color: accentColor }]}>{oz}</Text>
-              <Text style={styles.amountUnit}>oz</Text>
+              <Text style={styles.amountUnit}>ounces</Text>
             </View>
             <Pressable
               onPress={() => adjust(STEP_OZ)}
@@ -136,7 +136,7 @@ export function WaterAmountModal({ visible, accentColor, onCancel, onConfirm }: 
             testID="water-confirm"
           >
             <Feather name="droplet" size={16} color={Colors.text.inverse} />
-            <Text style={styles.ctaText}>LOG {oz} OZ WATER</Text>
+            <Text style={styles.ctaText}>LOG {oz} OUNCES WATER</Text>
           </Pressable>
         </Pressable>
       </Pressable>

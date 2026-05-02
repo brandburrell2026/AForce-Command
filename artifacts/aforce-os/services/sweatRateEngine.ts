@@ -315,11 +315,11 @@ export function buildPrescription(
   const ongoingOzPerHour = Math.round(clampPositive(ongoingRateLh) * OZ_PER_L * 0.9);
 
   const headline = aforceSticks > 0
-    ? `Replace ${replacementOz} oz over the next ${WINDOW_H}h — ${aforceSticks} AForce serving${aforceSticks > 1 ? 's' : ''} + ${pairWaterOz} oz water.`
-    : `Replace ${replacementOz} oz of water over the next ${WINDOW_H}h.`;
+    ? `Replace ${replacementOz} ounces over the next ${WINDOW_H}h — ${aforceSticks} AForce serving${aforceSticks > 1 ? 's' : ''} + ${pairWaterOz} ounces water.`
+    : `Replace ${replacementOz} ounces of water over the next ${WINDOW_H}h.`;
 
   const rationale: [string, string] = [
-    `${replacementOz} oz = 125% of measured loss — replaces sweat plus the obligatory urine output during recovery (Sawka 2007).`,
+    `${replacementOz} ounces = 125% of measured loss — replaces sweat plus the obligatory urine output during recovery (Sawka 2007).`,
     aforceSticks > 0
       ? `${aforceSticks} AForce serving${aforceSticks > 1 ? 's' : ''} (${aforceSticks * AFORCE_SODIUM_PER_UNIT_MG} mg sodium) paired with marine minerals + pH 8.8 structured water — recovery is driven by cellular uptake, not sodium volume.`
       : 'Sodium loss was minimal — plain water is enough this session.',

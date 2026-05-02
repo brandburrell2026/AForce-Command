@@ -249,10 +249,9 @@ const PRESSURE_REPLACEMENTS: ReadonlyArray<readonly [RegExp, string]> = Object.f
   [/\bimmediately\b/gi,           'now'],
   [/\bas soon as possible\b/gi,   'now'],
   [/\bwithout delay\b/gi,         'now'],
-  // Volume / units — convert to compact military-style notation.
+  // Volume / units — strip the redundant "of water" qualifier but keep
+  // "ounces" intact so the brand canonical unit reads through every channel.
   [/\bof water\b/gi,              ''],
-  [/\bounces of\b/gi,             'oz'],
-  [/\bounces\b/gi,                'oz'],
   [/\bone\b/gi,                   '1'],
   [/\btwo\b/gi,                   '2'],
   [/\bthree\b/gi,                 '3'],
@@ -269,12 +268,13 @@ const PRESSURE_REPLACEMENTS: ReadonlyArray<readonly [RegExp, string]> = Object.f
 
 /**
  * Convert any system command to its Pressure Mode form: shorter,
- * sharper, more direct. Strips filler, normalizes ounces, collapses
- * whitespace, and clips to ~10 words. Always ends with a period.
+ * sharper, more direct. Strips filler, preserves "ounces" as the brand
+ * canonical unit, collapses whitespace, and clips to ~10 words. Always
+ * ends with a period.
  *
  * Example:
  *   "Drink twelve ounces of water with one AForce stick now."
- *     → "Drink 12 oz with one AForce stick now."
+ *     → "Drink 12 ounces with 1 AForce stick now."
  */
 export function pressureCommandLine(command: string): string {
   if (!command || !command.trim()) return '';
@@ -291,7 +291,7 @@ export function pressureCommandLine(command: string): string {
     .trim();
 
   // Capitalize the leading character so the sharpened line still reads
-  // like a command rather than a fragment ("drink 12 oz." → "Drink 12 oz.").
+  // like a command rather than a fragment ("drink 12 ounces." → "Drink 12 ounces.").
   if (out.length > 0) out = out[0].toUpperCase() + out.slice(1);
 
   // Clip to 10 words for a sharper command-center cadence.

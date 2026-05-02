@@ -213,7 +213,7 @@ describe('SET_USER_STATE — client-owns-overlays invariant', () => {
         engineOutput: makeEngine(),
         historyEntry: {
           id: 'log_1', timestamp: new Date(), score: 78, state: 'PEAK',
-          action: 'Logged AForce stick (12 oz)', unitsTaken: 1, fluidType: 'aforce_stick',
+          action: 'Logged AForce stick (12 ounces)', unitsTaken: 1, fluidType: 'aforce_stick',
         },
         silent: true,
       },

@@ -485,7 +485,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         timestamp: log.loggedAt,
         score: log.scoreAfter,
         state: mergedEngine.performanceState.level,
-        action: `Logged ${baseName} (${log.ozAmount} oz)`,
+        action: `Logged ${baseName} (${log.ozAmount} ounces)`,
         unitsTaken: 1,
         fluidType,
       };

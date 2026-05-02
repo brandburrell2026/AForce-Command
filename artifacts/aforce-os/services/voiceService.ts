@@ -119,7 +119,7 @@ function buildResponse(
       // If the user said an oz/quantity, surface it in the detail line so
       // the confirmation card mirrors their command verbatim.
       const detailParts: string[] = [];
-      if (oz) detailParts.push(`${oz} oz`);
+      if (oz) detailParts.push(`${oz} ounces`);
       if (repeat > 1) detailParts.push(`× ${repeat}`);
       if (rendered.detail) detailParts.push(rendered.detail);
       const action = {
