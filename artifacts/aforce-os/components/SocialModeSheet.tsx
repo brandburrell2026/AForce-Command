@@ -17,7 +17,7 @@ import React, { useEffect } from 'react';
 import {
   View, Text, StyleSheet, Pressable, Platform, ScrollView,
 } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import Animated, {
   useSharedValue, useAnimatedStyle, withTiming, withSpring, Easing,
 } from 'react-native-reanimated';
@@ -51,13 +51,21 @@ interface Props {
 const PURPLE = '#9D7CFB';
 const AMBER = '#F4B23F';
 
-const DRINK_ICON: Record<DrinkType, React.ComponentProps<typeof Feather>['name']> = {
-  beer: 'coffee',
-  wine: 'droplet',
-  cocktail: 'feather',
-  liquor: 'zap',
-  hard_seltzer: 'cloud-drizzle',
-  custom: 'plus-circle',
+// MaterialCommunityIcons has true drinkware glyphs (beer/wine/cocktail/
+// liquor) — Feather only carries `coffee`/`droplet`-style icons which
+// made the picker look like a hot-beverage menu. We map every DrinkType
+// to a literal beverage icon so users can tell at a glance which drink
+// they're logging.
+const DRINK_ICON: Record<
+  DrinkType,
+  React.ComponentProps<typeof MaterialCommunityIcons>['name']
+> = {
+  beer: 'beer',
+  wine: 'glass-wine',
+  cocktail: 'glass-cocktail',
+  liquor: 'bottle-tonic',
+  hard_seltzer: 'bottle-soda-classic',
+  custom: 'glass-mug-variant',
 };
 
 export function SocialModeSheet({
@@ -161,7 +169,7 @@ export function SocialModeSheet({
                     ]}
                     testID={`social-drink-${type}`}
                   >
-                    <Feather name={DRINK_ICON[type]} size={22} color={PURPLE} />
+                    <MaterialCommunityIcons name={DRINK_ICON[type]} size={22} color={PURPLE} />
                     <Text style={styles.drinkLabel}>{t(`social.drink_${type}`)}</Text>
                     <Text style={styles.drinkMeta}>+{Math.round((ALCOHOL_DRINKS[type].decayMultiplier - 1) * 100)}%</Text>
                   </Pressable>
@@ -241,7 +249,7 @@ export function SocialModeSheet({
                     ]}
                     testID={`social-drink-${type}`}
                   >
-                    <Feather name={DRINK_ICON[type]} size={20} color={PURPLE} />
+                    <MaterialCommunityIcons name={DRINK_ICON[type]} size={20} color={PURPLE} />
                     <Text style={styles.drinkLabel}>{t(`social.drink_${type}`)}</Text>
                   </Pressable>
                 ))}

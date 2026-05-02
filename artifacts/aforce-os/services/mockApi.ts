@@ -154,33 +154,53 @@ export interface ProtocolPayload {
   weeklyCompliancePct: number;
 }
 
-export function fetchProtocol(userState: UserState): Promise<ProtocolPayload> {
-  const out = calculateScore(userState);
-  const level = out.performanceState.level;
+const PROTOCOL_DESCRIPTION: Record<ProtocolPayload['stage'], string> = {
+  'Maintain': 'Drink 8–12 oz, recheck 45–60 min. Hold rhythm.',
+  'Peak Support': 'Maintain fluid. Stick during exertion. Defend Peak.',
+  'Recovery': 'Drink 12–16 oz now. Stick if signals appear.',
+  'Depletion Correction': 'Drink 16–24 oz. Electrolytes critical. Recheck 20–30 min.',
+  'Heat Stress': 'Aggressive cadence. Forced 15-min recheck.',
+};
+
+/**
+ * Pure, synchronous derivation of the active protocol payload from a
+ * userState + already-computed engineOutput. Used directly by the
+ * Protocol screen so the Depletion Correction stage flips the moment
+ * the engine score crosses a threshold — no async fetch, no useEffect
+ * race, no loading flash. `fetchProtocol` is a thin mock-network
+ * wrapper around this same function for parity with the future
+ * `/v1/protocol/current` endpoint.
+ */
+export function deriveProtocol(
+  userState: UserState,
+  engineOutput: ScoreEngineOutput,
+  /** Compliance is a server-owned metric; pass deterministic value when calling sync. */
+  weeklyCompliancePct = 82,
+): ProtocolPayload {
+  const level = engineOutput.performanceState.level;
   const stage: ProtocolPayload['stage'] =
     level === 'PEAK' ? 'Peak Support' :
     level === 'BALANCED' ? 'Maintain' :
     level === 'RECOVERING' ? 'Recovery' :
     'Depletion Correction';
 
-  const description: Record<ProtocolPayload['stage'], string> = {
-    'Maintain': 'Drink 8–12 oz, recheck 45–60 min. Hold rhythm.',
-    'Peak Support': 'Maintain fluid. Stick during exertion. Defend Peak.',
-    'Recovery': 'Drink 12–16 oz now. Stick if signals appear.',
-    'Depletion Correction': 'Drink 16–24 oz. Electrolytes critical. Recheck 20–30 min.',
-    'Heat Stress': 'Aggressive cadence. Forced 15-min recheck.',
-  };
-
-  return simulateLatency({
+  return {
     stage,
-    description: description[stage],
+    description: PROTOCOL_DESCRIPTION[stage],
     steps: [
       { id: 's1', label: 'Confirm hydration signal', window: 'Now', complete: userState.urineSignal > 0 },
-      { id: 's2', label: 'Log next intake', window: `Within ${out.riskTimer.minutes} min`, complete: false },
+      { id: 's2', label: 'Log next intake', window: `Within ${engineOutput.riskTimer.minutes} min`, complete: false },
       { id: 's3', label: 'Recheck performance signals', window: 'After intake', complete: false },
       { id: 's4', label: 'Confirm Status', window: 'End of cycle', complete: false },
     ],
-    nextRecheckMinutes: out.riskTimer.minutes,
-    weeklyCompliancePct: 78 + Math.round(Math.random() * 10),
-  });
+    nextRecheckMinutes: engineOutput.riskTimer.minutes,
+    weeklyCompliancePct,
+  };
+}
+
+export function fetchProtocol(userState: UserState): Promise<ProtocolPayload> {
+  const out = calculateScore(userState);
+  return simulateLatency(
+    deriveProtocol(userState, out, 78 + Math.round(Math.random() * 10)),
+  );
 }

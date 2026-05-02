@@ -3,8 +3,8 @@
  * Shows: active protocol stage, steps, weekly compliance, command history timeline.
  */
 
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, Platform, ActivityIndicator } from 'react-native';
+import React, { useMemo } from 'react';
+import { View, Text, StyleSheet, FlatList, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 
@@ -13,21 +13,29 @@ import { useAppStore } from '@/store/useAppStore';
 import { Colors, getStateColors } from '@/theme/colors';
 import { formatTimeAgo } from '@/data/mockData';
 import type { HistoryEntry } from '@/types';
-import { fetchProtocol, ProtocolPayload } from '@/services/mockApi';
+import { deriveProtocol } from '@/services/mockApi';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 
 export default function ProtocolScreen() {
   const { state } = useAppStore();
   const { history, engineOutput, userState } = state;
   const insets = useSafeAreaInsets();
-  const [protocol, setProtocol] = useState<ProtocolPayload | null>(null);
   const layout = useResponsiveLayout();
 
-  useEffect(() => {
-    let active = true;
-    fetchProtocol(userState).then((p) => { if (active) setProtocol(p); });
-    return () => { active = false; };
-  }, [userState, engineOutput.score]);
+  // Derive the active protocol synchronously from live store state so
+  // the Depletion Correction stage flips the moment the engine score
+  // crosses a threshold (no async fetch, no useEffect race, no loading
+  // flash on tab switch). Memoized on the few inputs that actually
+  // change the payload — score-bucket-driven stage, risk timer, and
+  // urine signal (drives the first step's "complete" flag).
+  const protocol = useMemo(
+    () => deriveProtocol(userState, engineOutput),
+    [
+      engineOutput.performanceState.level,
+      engineOutput.riskTimer.minutes,
+      userState.urineSignal,
+    ],
+  );
 
   const topPadding = Platform.OS === 'web' ? 67 : insets.top;
   const bottomPadding = Platform.OS === 'web' ? 34 + 84 : insets.bottom + 84;
@@ -61,57 +69,52 @@ export default function ProtocolScreen() {
               <Text style={styles.eyebrow}>PROTOCOL</Text>
               <Text style={styles.title}>AForce Protocol</Text>
 
-              {/* Current stage */}
-              {protocol ? (
-                <View style={[styles.stageCard, { borderColor: `${stateColor}33` }]}>
-                  <View style={styles.stageHeader}>
-                    <Text style={[styles.stageLabel, { color: stateColor }]}>STAGE</Text>
-                    <View style={[styles.stagePill, { backgroundColor: `${stateColor}1A`, borderColor: `${stateColor}55` }]}>
-                      <Text style={[styles.stagePillText, { color: stateColor }]}>ACTIVE</Text>
-                    </View>
+              {/* Current stage — derived synchronously from engineOutput
+                  so it updates in real time on every score change. */}
+              <View style={[styles.stageCard, { borderColor: `${stateColor}33` }]}>
+                <View style={styles.stageHeader}>
+                  <Text style={[styles.stageLabel, { color: stateColor }]}>STAGE</Text>
+                  <View style={[styles.stagePill, { backgroundColor: `${stateColor}1A`, borderColor: `${stateColor}55` }]}>
+                    <Text style={[styles.stagePillText, { color: stateColor }]}>ACTIVE</Text>
                   </View>
-                  <Text style={styles.stageName}>{protocol.stage}</Text>
-                  <Text style={styles.stageDesc}>{protocol.description}</Text>
+                </View>
+                <Text style={styles.stageName}>{protocol.stage}</Text>
+                <Text style={styles.stageDesc}>{protocol.description}</Text>
 
-                  {/* Steps */}
-                  <View style={styles.stepsList}>
-                    {protocol.steps.map((step) => (
-                      <View key={step.id} style={styles.stepRow}>
-                        <View style={[
-                          styles.stepDot,
-                          { backgroundColor: step.complete ? stateColor : 'transparent', borderColor: stateColor },
-                        ]}>
-                          {step.complete && <Feather name="check" size={10} color="#000" />}
-                        </View>
-                        <View style={{ flex: 1 }}>
-                          <Text style={[styles.stepLabel, step.complete && styles.stepLabelDone]}>{step.label}</Text>
-                          <Text style={styles.stepWindow}>{step.window}</Text>
-                        </View>
+                {/* Steps */}
+                <View style={styles.stepsList}>
+                  {protocol.steps.map((step) => (
+                    <View key={step.id} style={styles.stepRow}>
+                      <View style={[
+                        styles.stepDot,
+                        { backgroundColor: step.complete ? stateColor : 'transparent', borderColor: stateColor },
+                      ]}>
+                        {step.complete && <Feather name="check" size={10} color="#000" />}
                       </View>
-                    ))}
-                  </View>
+                      <View style={{ flex: 1 }}>
+                        <Text style={[styles.stepLabel, step.complete && styles.stepLabelDone]}>{step.label}</Text>
+                        <Text style={styles.stepWindow}>{step.window}</Text>
+                      </View>
+                    </View>
+                  ))}
+                </View>
 
-                  <View style={[styles.stageFooter, { borderTopColor: Colors.border.subtle }]}>
-                    <View style={styles.footerCol}>
-                      <Text style={styles.footerLabel}>NEXT RECHECK</Text>
-                      <Text style={[styles.footerValue, { color: stateColor }]}>
-                        {protocol.nextRecheckMinutes} min
-                      </Text>
-                    </View>
-                    <View style={styles.footerSep} />
-                    <View style={styles.footerCol}>
-                      <Text style={styles.footerLabel}>WEEKLY COMPLIANCE</Text>
-                      <Text style={[styles.footerValue, { color: Colors.states.PEAK.primary }]}>
-                        {protocol.weeklyCompliancePct}%
-                      </Text>
-                    </View>
+                <View style={[styles.stageFooter, { borderTopColor: Colors.border.subtle }]}>
+                  <View style={styles.footerCol}>
+                    <Text style={styles.footerLabel}>NEXT RECHECK</Text>
+                    <Text style={[styles.footerValue, { color: stateColor }]}>
+                      {protocol.nextRecheckMinutes} min
+                    </Text>
+                  </View>
+                  <View style={styles.footerSep} />
+                  <View style={styles.footerCol}>
+                    <Text style={styles.footerLabel}>WEEKLY COMPLIANCE</Text>
+                    <Text style={[styles.footerValue, { color: Colors.states.PEAK.primary }]}>
+                      {protocol.weeklyCompliancePct}%
+                    </Text>
                   </View>
                 </View>
-              ) : (
-                <View style={styles.loading}>
-                  <ActivityIndicator color={stateColor} />
-                </View>
-              )}
+              </View>
 
               <View style={styles.summaryRow}>
                 <SummaryCard label="TARGET" value={`${userState.dailyTarget} units`} color={stateColor} />
@@ -238,7 +241,6 @@ const styles = StyleSheet.create({
     letterSpacing: 1.5, marginBottom: 4,
   },
   footerValue: { fontSize: 16, fontFamily: 'Inter_700Bold', letterSpacing: -0.3 },
-  loading: { paddingVertical: 40, alignItems: 'center', marginBottom: 16 },
   summaryRow: { flexDirection: 'row', gap: 10, marginBottom: 24 },
   summaryCard: {
     flex: 1, backgroundColor: Colors.background.card, borderRadius: 12,
