@@ -188,6 +188,91 @@ describe('SET_USER_STATE — client-owns-overlays invariant', () => {
     expect(next.userState.appleHealth).toEqual(appleSnap);
   });
 
+  it('CYCLE_SUCCESS preserves current overlays across server intake response', () => {
+    // Architect-flagged: logIntake's CYCLE_SUCCESS dispatch was
+    // bypassing the overlay-ownership invariant. Mid-flight provider
+    // connects must survive a concurrent intake log.
+    const state = makeState({
+      userState: makeUserState({
+        biometrics: { whoop: whoopSnap, oura: ouraSnap },
+        appleHealth: appleSnap,
+      }),
+    });
+    const stalePayload = makeUserState({ biometrics: undefined, appleHealth: undefined });
+
+    const next = appStoreReducer(state, {
+      type: 'CYCLE_SUCCESS',
+      payload: {
+        result: {
+          id: 'log_1', timestamp: new Date(), scoreBefore: 70, scoreAfter: 78,
+          gainDisplay: '+8', identityMessage: 'Locked in.', nextCycleHint: 'Next at 12:00',
+          state: 'optimal',
+        },
+        newUserState: stalePayload,
+        engineOutput: makeEngine(),
+        historyEntry: {
+          id: 'log_1', timestamp: new Date(), score: 78, state: 'optimal',
+          action: 'Logged AForce stick (12 oz)', unitsTaken: 1, fluidType: 'aforce_stick',
+        },
+        silent: true,
+      },
+    });
+
+    expect(next.userState.biometrics).toEqual({ whoop: whoopSnap, oura: ouraSnap });
+    expect(next.userState.appleHealth).toEqual(appleSnap);
+  });
+
+  it('CONFIRM_COMMAND preserves current overlays across server confirm response', () => {
+    const state = makeState({
+      userState: makeUserState({
+        biometrics: { strava: stravaSnap, oura: ouraSnap },
+        appleHealth: appleSnap,
+      }),
+    });
+    const stalePayload = makeUserState({ biometrics: { strava: stravaSnap }, appleHealth: undefined });
+
+    const next = appStoreReducer(state, {
+      type: 'CONFIRM_COMMAND',
+      payload: { newUserState: stalePayload, engineOutput: makeEngine() },
+    });
+
+    expect(next.userState.biometrics).toEqual({ strava: stravaSnap, oura: ouraSnap });
+    expect(next.userState.appleHealth).toEqual(appleSnap);
+  });
+
+  it('overlay invariant generalizes across all 7 health platforms', () => {
+    // Provider-agnostic regression — every supported HealthProviderId
+    // is preserved through SET_USER_STATE, CYCLE_SUCCESS, and
+    // CONFIRM_COMMAND races.
+    const fullBiometrics = {
+      apple_health: { providerId: 'apple_health' as const, restingHeartRate: 60, fetchedAt: 1 },
+      oura: ouraSnap,
+      samsung_health: { providerId: 'samsung_health' as const, stepsToday: 7000, fetchedAt: 1 },
+      health_connect: { providerId: 'health_connect' as const, sleepHoursLastNight: 7, fetchedAt: 1 },
+      garmin: { providerId: 'garmin' as const, hrvSdnn: 55, fetchedAt: 1 },
+      whoop: whoopSnap,
+      strava: stravaSnap,
+    };
+    const state = makeState({
+      userState: makeUserState({ biometrics: fullBiometrics, appleHealth: appleSnap }),
+    });
+    const stalePayload = makeUserState({ biometrics: undefined, appleHealth: undefined });
+
+    const afterSetUserState = appStoreReducer(state, {
+      type: 'SET_USER_STATE',
+      payload: { newUserState: stalePayload, engineOutput: makeEngine() },
+    });
+    expect(afterSetUserState.userState.biometrics).toEqual(fullBiometrics);
+    expect(afterSetUserState.userState.appleHealth).toEqual(appleSnap);
+
+    const afterConfirm = appStoreReducer(state, {
+      type: 'CONFIRM_COMMAND',
+      payload: { newUserState: stalePayload, engineOutput: makeEngine() },
+    });
+    expect(afterConfirm.userState.biometrics).toEqual(fullBiometrics);
+    expect(afterConfirm.userState.appleHealth).toEqual(appleSnap);
+  });
+
   it('non-overlay fields from the payload ARE adopted (only overlays are protected)', () => {
     // Regression — make sure the invariant only protects overlays,
     // not legitimate server-authoritative fields like score-relevant

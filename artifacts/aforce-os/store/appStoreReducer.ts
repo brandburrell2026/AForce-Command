@@ -37,9 +37,20 @@ export function reducer(state: AppState, action: Action): AppState {
       return { ...state, isCompletingCycle: true };
     case 'CYCLE_SUCCESS': {
       const { result, newUserState, engineOutput, historyEntry, silent } = action.payload;
+      // INVARIANT (defense-in-depth): client-only overlays
+      // (`biometrics`, `appleHealth`) are owned exclusively by the
+      // device — server intake responses only echo what the request
+      // sent, so we always restore current overlays. The companion
+      // call site in `logIntake` recomputes engineOutput from the
+      // merged state so the new score reflects actual overlays.
+      const merged: UserState = {
+        ...newUserState,
+        biometrics: state.userState.biometrics,
+        appleHealth: state.userState.appleHealth,
+      };
       return {
         ...state,
-        userState: newUserState,
+        userState: merged,
         engineOutput,
         history: [historyEntry, ...state.history].slice(0, 30),
         lastCycleResult: result,
@@ -71,9 +82,18 @@ export function reducer(state: AppState, action: Action): AppState {
     }
     case 'CONFIRM_COMMAND': {
       const { newUserState, engineOutput } = action.payload;
+      // INVARIANT (defense-in-depth): protect client-only overlays
+      // from server-echo replacement, identical to SET_USER_STATE /
+      // CYCLE_SUCCESS. Companion call site in `confirmCommand`
+      // recomputes engineOutput from the merged state.
+      const merged: UserState = {
+        ...newUserState,
+        biometrics: state.userState.biometrics,
+        appleHealth: state.userState.appleHealth,
+      };
       return {
         ...state,
-        userState: newUserState,
+        userState: merged,
         engineOutput,
         pendingConfirmation: false,
         timerSeconds: engineOutput.riskTimer.minutes * 60,

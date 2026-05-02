@@ -399,7 +399,20 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         unitsTaken: 1,
         fluidType,
       };
-      dispatch({ type: 'CYCLE_SUCCESS', payload: { result, newUserState, engineOutput, historyEntry, silent: opts?.silent } });
+      // Race-safe: merge in latest client-only overlays (provider
+      // biometrics + appleHealth) and recompute engineOutput from the
+      // merged state so the score/command/timer dispatched here
+      // reflects actual overlays — the server-computed `engineOutput`
+      // was derived from the request-time snapshot which may have
+      // been clobbered by a concurrent connect/disconnect.
+      const latest = userStateRef.current;
+      const mergedUserState: UserState = {
+        ...newUserState,
+        biometrics: latest.biometrics,
+        appleHealth: latest.appleHealth,
+      };
+      const mergedEngine = _initialOnly(mergedUserState);
+      dispatch({ type: 'CYCLE_SUCCESS', payload: { result, newUserState: mergedUserState, engineOutput: mergedEngine, historyEntry, silent: opts?.silent } });
       // Only schedule the auto-dismiss when the hero overlay was actually shown.
       if (!opts?.silent) setTimeout(() => dispatch({ type: 'DISMISS_SUCCESS' }), 2400);
     } catch (err) {
@@ -459,7 +472,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       // mutated server-side — it already contributes to the score via
       // the `consistency` term, so a ±3 swing here would double-count.
       const { newUserState, engineOutput } = await postConfirmCommand(state.userState, followed);
-      dispatch({ type: 'CONFIRM_COMMAND', payload: { newUserState, engineOutput } });
+      // Race-safe: same client-owns-overlays merge as logIntake.
+      const latest = userStateRef.current;
+      const mergedUserState: UserState = {
+        ...newUserState,
+        biometrics: latest.biometrics,
+        appleHealth: latest.appleHealth,
+      };
+      const mergedEngine = _initialOnly(mergedUserState);
+      dispatch({ type: 'CONFIRM_COMMAND', payload: { newUserState: mergedUserState, engineOutput: mergedEngine } });
     } catch (err) {
       console.warn('[AForce] confirmCommand failed', err);
       // Local fallback so the UI doesn't soft-lock if the server is
