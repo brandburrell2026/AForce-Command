@@ -13,6 +13,7 @@
  */
 
 import { speak as ttsSpeak, stop as ttsStop } from './ttsService';
+import { speakWithElevenLabs, stopElevenLabs } from './elevenLabsTts';
 import { resolvePersona } from './voicePersonaService';
 import type { PerformanceLevel } from '../types';
 import type { SupportedLanguage } from './i18nService';
@@ -21,12 +22,27 @@ import type { SupportedLanguage } from './i18nService';
 // to false when the user toggles "Voice coach" off in Profile.
 let enabled = true;
 
+// Selected ElevenLabs voice id, mirrored from the user's Profile
+// picker. When set, speak() routes through ElevenLabs and falls back
+// to the device synthesizer only if the network/playback fails — so
+// the coach is never silent.
+let selectedVoiceId: string | null = null;
+
+export function setSelectedVoiceId(next: string | null): void {
+  selectedVoiceId = next && next.trim().length > 0 ? next : null;
+}
+
+export function getSelectedVoiceId(): string | null {
+  return selectedVoiceId;
+}
+
 export const VOICE_PLAYBACK_ENABLED = true;
 
 export function setVoicePlaybackEnabled(next: boolean): void {
   enabled = next;
   if (!next) {
     void ttsStop();
+    stopElevenLabs();
   }
 }
 
@@ -50,6 +66,21 @@ export function speak(text: string, opts: SpeakOpts = {}): void {
   if (!enabled) return;
   if (!text || !text.trim()) return;
   const profile = opts.level ? resolvePersona(opts.level).profile : null;
+
+  // If the user has picked an ElevenLabs voice, prefer that — but fall
+  // back to the device synthesizer on any failure so the coach never
+  // goes silent over a flaky network.
+  if (selectedVoiceId) {
+    speakWithElevenLabs({ text, voiceId: selectedVoiceId }).catch((err) => {
+      console.warn('[AForce] ElevenLabs TTS failed, falling back to device:', err);
+      void ttsSpeak(text, {
+        ...(opts.language ? { language: opts.language } : {}),
+        ...(profile ? { rate: profile.speech_rate, pitch: profile.pitch } : {}),
+      });
+    });
+    return;
+  }
+
   void ttsSpeak(text, {
     ...(opts.language ? { language: opts.language } : {}),
     ...(profile ? { rate: profile.speech_rate, pitch: profile.pitch } : {}),
@@ -59,4 +90,5 @@ export function speak(text: string, opts: SpeakOpts = {}): void {
 /** Stop any currently-speaking utterance (e.g., on overlay dismiss). */
 export function stopSpeaking(): void {
   void ttsStop();
+  stopElevenLabs();
 }

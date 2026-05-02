@@ -49,7 +49,7 @@ export async function getDeviceId(): Promise<string> {
   return fresh;
 }
 
-function getApiBase(): string {
+export function getApiBase(): string {
   if (Platform.OS === "web") {
     if (typeof window !== "undefined" && window.location?.origin) {
       return `${window.location.origin}/api`;

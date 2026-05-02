@@ -48,7 +48,7 @@ import i18n, { setLanguage as setI18nLanguage, type SupportedLanguage } from '..
 import { PRODUCTS } from '../data/products';
 import type { ProductFlavor } from '../types';
 import { phantomBandService } from '../services/phantomBandService';
-import { speak as ttsSpeak, setVoicePlaybackEnabled } from '../services/textToSpeech';
+import { speak as ttsSpeak, setVoicePlaybackEnabled, setSelectedVoiceId as setTtsVoiceId } from '../services/textToSpeech';
 
 /**
  * Map a free-form flavor label (as shown in the manual picker) back to
@@ -150,9 +150,18 @@ interface AppContextValue {
    */
   voiceCoachEnabled: boolean;
   setVoiceCoachEnabled: (next: boolean) => void;
+  /**
+   * Selected ElevenLabs voice id, or null when the user prefers the
+   * device synthesizer. Persisted to AsyncStorage and mirrored into
+   * `textToSpeech.setSelectedVoiceId` so any non-React caller sees the
+   * same value.
+   */
+  selectedVoiceId: string | null;
+  setSelectedVoiceId: (next: string | null) => void;
 }
 
 const VOICE_COACH_KEY = 'aforce.voiceCoachEnabled';
+const SELECTED_VOICE_KEY = 'aforce.selectedVoiceId';
 
 const AppContext = createContext<AppContextValue | null>(null);
 
@@ -162,6 +171,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // the textToSpeech playback flag so non-React consumers see the same
   // value. Hydrated from storage on first effect.
   const [voiceCoachEnabled, setVoiceCoachEnabledState] = React.useState<boolean>(true);
+  // ElevenLabs voice picker (Profile). Null = device synthesizer (default).
+  const [selectedVoiceId, setSelectedVoiceIdState] = React.useState<string | null>(null);
 
   // Live countdown timer (drives recheck)
   useEffect(() => {
@@ -604,6 +615,29 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     AsyncStorage.setItem(VOICE_COACH_KEY, String(next)).catch(() => {});
   }, []);
 
+  // Hydrate persisted ElevenLabs voice selection on mount + mirror into
+  // textToSpeech so non-React callers see it immediately.
+  useEffect(() => {
+    AsyncStorage.getItem(SELECTED_VOICE_KEY)
+      .then((raw) => {
+        const next = raw && raw.length > 0 ? raw : null;
+        setSelectedVoiceIdState(next);
+        setTtsVoiceId(next);
+      })
+      .catch(() => {});
+  }, []);
+
+  const setSelectedVoiceId = useCallback((next: string | null) => {
+    const normalized = next && next.length > 0 ? next : null;
+    setSelectedVoiceIdState(normalized);
+    setTtsVoiceId(normalized);
+    if (normalized) {
+      AsyncStorage.setItem(SELECTED_VOICE_KEY, normalized).catch(() => {});
+    } else {
+      AsyncStorage.removeItem(SELECTED_VOICE_KEY).catch(() => {});
+    }
+  }, []);
+
   // Hydrate persisted subscription on mount.
   useEffect(() => {
     AsyncStorage.getItem('aforce.subscription')
@@ -659,7 +693,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     activateSocialMode, logSocialDrink, confirmSocialHydration, deactivateSocialMode, setSocialContext,
     setSweatAutopilot,
     voiceCoachEnabled, setVoiceCoachEnabled,
-  }), [state, logIntake, completeCycle, snooze, dismissSuccess, updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags, setSubscription, completeOnboarding, setAppleHealthSnapshot, confirmCommand, setLanguage, activateSocialMode, logSocialDrink, confirmSocialHydration, deactivateSocialMode, setSocialContext, setSweatAutopilot, voiceCoachEnabled, setVoiceCoachEnabled]);
+    selectedVoiceId, setSelectedVoiceId,
+  }), [state, logIntake, completeCycle, snooze, dismissSuccess, updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags, setSubscription, completeOnboarding, setAppleHealthSnapshot, confirmCommand, setLanguage, activateSocialMode, logSocialDrink, confirmSocialHydration, deactivateSocialMode, setSocialContext, setSweatAutopilot, voiceCoachEnabled, setVoiceCoachEnabled, selectedVoiceId, setSelectedVoiceId]);
 
   // Stable actions value for the sliced ActionsContext — same callbacks
   // as `value` minus `state`, so action consumers don't re-render when

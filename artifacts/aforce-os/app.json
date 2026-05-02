@@ -75,7 +75,8 @@
           "NSHealthUpdateUsageDescription": "AForce OS writes hydration logs to Apple Health so they appear alongside your other health data.",
           "background": false
         }
-      ]
+      ],
+      "expo-audio"
     ],
     "experiments": {
       "typedRoutes": true,

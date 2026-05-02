@@ -10,6 +10,7 @@ import cruiseRouter from "./cruise";
 import battlesRouter from "./battles";
 import circleRouter from "./circle";
 import privacyRouter from "./privacy";
+import voiceTtsRouter from "./voiceTts";
 
 const router: IRouter = Router();
 
@@ -24,5 +25,6 @@ router.use("/aforce", aforceRouter);
 router.use("/battles", battlesRouter);
 router.use("/circle", circleRouter);
 router.use("/privacy", privacyRouter);
+router.use(voiceTtsRouter);
 
 export default router;

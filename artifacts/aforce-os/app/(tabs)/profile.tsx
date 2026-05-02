@@ -35,6 +35,7 @@ import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
 import { createPortalSession } from '@/lib/api';
 import { refreshEntitlement } from '@/hooks/useEntitlement';
+import { AFORCE_VOICES } from '@/services/voiceCatalog';
 
 const TIER_LABELS: Record<string, { label: string; desc: string; color: string }> = {
   core:           { label: 'AForce Core',           desc: 'Start your performance system.',                      color: Colors.states.BALANCED.primary },
@@ -58,6 +59,7 @@ export default function ProfileScreen() {
     state, setFeatureFlags, setAppleHealthSnapshot, setLanguage,
     activateSocialMode, logSocialDrink, deactivateSocialMode,
     voiceCoachEnabled, setVoiceCoachEnabled,
+    selectedVoiceId, setSelectedVoiceId,
   } = useAppStore();
   // Tracks the in-flight demo so we can disable the row + show the
   // active label without blocking the rest of Profile. Cleared once
@@ -642,9 +644,10 @@ export default function ProfileScreen() {
             );
 
             // Voice Coach toggle (T3) — re-enables the AI voice persona.
-            // Each new AI command is read aloud via expo-speech (debounced
-            // inside textToSpeech.speak). Persisted in AsyncStorage by the
-            // store so the choice survives a refresh.
+            // Each new AI command is read aloud via the selected coach
+            // voice (ElevenLabs when picked, else device synthesizer).
+            // Both the on/off toggle AND the picked voice survive a
+            // refresh via AsyncStorage in the store.
             const voiceCard = (
               <>
                 <SectionHeader label={t('profile.voice_section.label')} />
@@ -671,6 +674,59 @@ export default function ProfileScreen() {
                       testID="profile-voice-coach-toggle"
                     />
                   </View>
+
+                  {voiceCoachEnabled ? (
+                    <View style={{ paddingHorizontal: 14, paddingTop: 4, paddingBottom: 12 }}>
+                      <Text style={[styles.flagDesc, { marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.6 }]}>
+                        Coach voice
+                      </Text>
+                      <View style={{ gap: 6 }}>
+                        <Pressable
+                          onPress={() => setSelectedVoiceId(null)}
+                          style={[
+                            voicePickerStyles.row,
+                            selectedVoiceId === null && voicePickerStyles.rowSelected,
+                          ]}
+                          testID="profile-voice-device"
+                        >
+                          <View style={{ flex: 1 }}>
+                            <Text style={voicePickerStyles.rowLabel}>Device default</Text>
+                            <Text style={voicePickerStyles.rowDesc}>Built-in iOS / Android voice. Works offline.</Text>
+                          </View>
+                          {selectedVoiceId === null ? (
+                            <Icon name="check" size={16} color={Colors.states.PEAK.primary} />
+                          ) : null}
+                        </Pressable>
+                        {AFORCE_VOICES.map((v) => {
+                          const selected = selectedVoiceId === v.id;
+                          return (
+                            <Pressable
+                              key={v.id}
+                              onPress={() => setSelectedVoiceId(v.id)}
+                              style={[voicePickerStyles.row, selected && voicePickerStyles.rowSelected]}
+                              testID={`profile-voice-${v.label.toLowerCase()}`}
+                            >
+                              <View style={{ flex: 1 }}>
+                                <Text style={voicePickerStyles.rowLabel}>
+                                  {v.label}
+                                  <Text style={voicePickerStyles.rowGender}>
+                                    {'  '}· {v.gender === 'male' ? 'M' : 'F'}
+                                  </Text>
+                                </Text>
+                                <Text style={voicePickerStyles.rowDesc}>{v.description}</Text>
+                              </View>
+                              {selected ? (
+                                <Icon name="check" size={16} color={Colors.states.PEAK.primary} />
+                              ) : null}
+                            </Pressable>
+                          );
+                        })}
+                      </View>
+                      <Text style={[styles.flagDesc, { marginTop: 10, fontSize: 11 }]}>
+                        ElevenLabs voices stream from our server. If the network drops, we fall back to your device voice.
+                      </Text>
+                    </View>
+                  ) : null}
                 </View>
               </>
             );
@@ -1149,5 +1205,39 @@ const styles = StyleSheet.create({
   version: {
     fontSize: 11, fontFamily: 'Inter_400Regular', color: Colors.text.muted,
     textAlign: 'center', marginTop: 12, marginBottom: 8,
+  },
+});
+
+const voicePickerStyles = StyleSheet.create({
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: Colors.border.subtle,
+    backgroundColor: Colors.background.secondary,
+  },
+  rowSelected: {
+    borderColor: Colors.states.PEAK.primary,
+    backgroundColor: `${Colors.states.PEAK.primary}14`,
+  },
+  rowLabel: {
+    fontSize: 13,
+    fontFamily: 'Inter_600SemiBold',
+    color: Colors.text.primary,
+  },
+  rowGender: {
+    fontSize: 11,
+    fontFamily: 'Inter_500Medium',
+    color: Colors.text.muted,
+  },
+  rowDesc: {
+    fontSize: 11,
+    fontFamily: 'Inter_400Regular',
+    color: Colors.text.muted,
+    marginTop: 2,
   },
 });
