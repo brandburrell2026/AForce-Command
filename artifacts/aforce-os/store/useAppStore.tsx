@@ -179,28 +179,40 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     return () => clearInterval(interval);
   }, []);
 
+  // Ref-backed latest snapshot of the full UserState. Long-lived
+  // intervals (30s poll, 15min weather) close over `state.userState` at
+  // mount time and would otherwise pass STALE state to the merge layer
+  // — including dropping client-only fields like `biometrics` /
+  // `appleHealth` that landed AFTER the effect last ran. Reading
+  // `userStateRef.current` inside the interval callbacks makes every
+  // tick use the freshest state without re-creating timers on every
+  // change.
+  const userStateRef = useRef(state.userState);
+  useEffect(() => { userStateRef.current = state.userState; }, [state.userState]);
+
   // Periodic /state refresh — keeps the engine output current (decay
   // ticks, weather staleness, etc.) and rehydrates from server in case
   // a WS push was missed.
   useEffect(() => {
     let cancelled = false;
     const refresh = async () => {
+      const current = userStateRef.current;
       try {
-        const { engineOutput, userState } = await fetchHome(state.userState);
+        const { engineOutput, userState } = await fetchHome(current);
         if (cancelled) return;
         // If server returned a newer state (e.g. from another device or
         // a fresh weather lookup), adopt it; otherwise just refresh the
         // engine. We compare a few fields rather than deep-equal to keep
         // this cheap.
         const drift =
-          userState.weatherFetchedAt !== state.userState.weatherFetchedAt ||
-          userState.unitsConsumedToday !== state.userState.unitsConsumedToday ||
-          userState.urineSignal !== state.userState.urineSignal ||
+          userState.weatherFetchedAt !== current.weatherFetchedAt ||
+          userState.unitsConsumedToday !== current.unitsConsumedToday ||
+          userState.urineSignal !== current.urineSignal ||
           // Pick up a language change persisted from another device when
           // the WS push was missed — without this, the Profile picker on
           // device A would never reach device B until a stronger drift
           // (intake / weather refresh) triggered the swap.
-          userState.language !== state.userState.language;
+          userState.language !== current.language;
         if (drift) {
           dispatch({ type: 'SET_USER_STATE', payload: { newUserState: userState, engineOutput } });
         } else {
@@ -213,7 +225,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     refresh();
     const interval = setInterval(refresh, 30 * 1000); // every 30s
     return () => { cancelled = true; clearInterval(interval); };
-  }, [state.userState.lastIntakeTime, state.userState.urineSignal, state.userState.symptoms.length]);
+    // Mount-once timer; reads latest state via userStateRef.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // When the user switches languages, the AI command strings (action /
   // explanation) live inside engineOutput and were rendered with the
@@ -269,7 +283,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const DEFAULT_LON = -104.9903;
     const tick = async (lat: number, lon: number) => {
       try {
-        const { newUserState, engineOutput } = await refreshWeather(state.userState, lat, lon);
+        // Read latest userState via ref so a tick that fires AFTER a
+        // provider connect / Apple-Health snapshot lands carries those
+        // overlays into the merge, instead of the mount-time closure
+        // that lacked them.
+        const { newUserState, engineOutput } = await refreshWeather(userStateRef.current, lat, lon);
         if (cancelled) return;
         dispatch({ type: 'SET_USER_STATE', payload: { newUserState, engineOutput } });
       } catch (err) {
