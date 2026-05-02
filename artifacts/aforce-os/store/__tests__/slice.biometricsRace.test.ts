@@ -253,7 +253,7 @@ describe('SET_USER_STATE — client-owns-overlays invariant', () => {
       apple_health: { providerId: 'apple_health', restingHeartRate: 60, fetchedAt: 1 },
       oura: ouraSnap,
       samsung_health: { providerId: 'samsung_health', stepsToday: 7000, fetchedAt: 1 },
-      health_connect: { providerId: 'health_connect', sleepHoursLastNight: 7, fetchedAt: 1 },
+      google_health: { providerId: 'google_health', sleepHoursLastNight: 7, fetchedAt: 1 },
       garmin: { providerId: 'garmin', hrvSdnn: 55, fetchedAt: 1 },
       whoop: whoopSnap,
       strava: stravaSnap,
@@ -261,7 +261,7 @@ describe('SET_USER_STATE — client-owns-overlays invariant', () => {
     // Belt-and-suspenders runtime check — every HealthProviderId
     // (sourced from the production registry) is represented.
     const allProviderIds: HealthProviderId[] = [
-      'apple_health', 'oura', 'samsung_health', 'health_connect', 'garmin', 'whoop', 'strava',
+      'apple_health', 'oura', 'samsung_health', 'google_health', 'garmin', 'whoop', 'strava',
     ];
     for (const id of allProviderIds) {
       expect(fullBiometrics[id]).toBeDefined();
