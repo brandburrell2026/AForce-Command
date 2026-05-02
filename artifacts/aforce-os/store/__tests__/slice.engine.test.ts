@@ -53,7 +53,10 @@ describe('store · engine slice', () => {
       type: 'SET_USER_STATE',
       payload: { newUserState: newUser, engineOutput: newEngine },
     });
-    expect(next.userState).toBe(newUser);
+    // SET_USER_STATE returns a merged object (overlay-safe — preserves
+    // current `biometrics`/`appleHealth` if payload omits them), so the
+    // contract is structural equality rather than reference identity.
+    expect(next.userState).toEqual(newUser);
     expect(next.engineOutput).toBe(newEngine);
     expect(next.timerSeconds).toBe(7 * 60);
   });
