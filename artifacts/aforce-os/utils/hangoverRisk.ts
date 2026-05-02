@@ -135,6 +135,105 @@ export function calculateHangoverRisk(inputs: HangoverRiskInputs): HangoverRisk 
 }
 
 /**
+ * Per-event alcohol penalty applied directly to the hydration score.
+ *
+ * The decay multiplier (`activeDecayMultiplier` below) only changes the
+ * RATE at which the score drops going forward — it does not move the
+ * score the moment a drink is logged. That doesn't match user
+ * expectations: if you're at PEAK 100 and pound four cocktails in five
+ * minutes, the orb should obviously plummet immediately, not just
+ * "decay slightly faster from now on".
+ *
+ * Physiological grounding (alcohol diuresis):
+ *   - Each ~14 g standard drink causes the kidneys to excrete an extra
+ *     ~10 mL of urine per gram of ethanol over the next ~60 min
+ *     (Eggleton 1942, Hobson & Maughan 2010). That's ~140 mL of net
+ *     water loss per drink — roughly equivalent to losing ~5 oz of
+ *     ingested water in score terms.
+ *   - Liquor and cocktails carry more ethanol per serving (and cocktails
+ *     add osmotic sugar load), so their per-drink penalty is larger.
+ *   - Hard seltzer / beer are at the low end (~5 % ABV).
+ *   - Confirming hydration (the `/social/hydrate` confirm action sets
+ *     `drink.hydrated = true`) materially blunts the diuresis cost
+ *     because the matching water bolus offsets the kidney response.
+ *
+ * Time profile (per drink):
+ *   0–5 min     ramp in linearly (alcohol absorption from the gut)
+ *   5–60 min    full penalty (peak diuresis window)
+ *   60–180 min  fade linearly to zero (alcohol metabolized at
+ *               ~1 standard drink / hour, complete clearance ~3 h)
+ *   > 180 min   zero — the lasting cost now lives in the hangover risk
+ *               score, the decay multiplier, and the recovery window.
+ *
+ * Returns a NEGATIVE delta (or zero) so the scoring engine can fold it
+ * straight into the contribution sum. Magnitude clamped to MAX_PENALTY
+ * so a marathon session can't single-handedly drive the orb to zero —
+ * the decay multiplier and hangover risk continue to do their work.
+ */
+export const SOCIAL_INTAKE_MAX_PENALTY = 30;
+const HYDRATED_MITIGATION_FACTOR = 0.4; // 60 % of the penalty cancelled
+const PER_DRINK_WEIGHT = 5; // pts per riskWeight unit at peak window
+const RAMP_IN_MIN = 5;
+const PEAK_END_MIN = 60;
+const FADE_END_MIN = 180;
+
+export interface SocialIntakePoints {
+  /** Negative or zero — points to add to the score contribution sum. */
+  penalty: number;
+  /** Drinks currently inside the 0–180 min penalty window. */
+  activeDrinks: number;
+  /** Drinks at full peak penalty (5–60 min old). */
+  peakDrinks: number;
+  /** Drinks whose user has confirmed hydration response. */
+  hydratedDrinks: number;
+}
+
+export function socialIntakePoints(
+  drinks: DrinkLog[],
+  now: number = Date.now(),
+): SocialIntakePoints {
+  if (!drinks || drinks.length === 0) {
+    return { penalty: 0, activeDrinks: 0, peakDrinks: 0, hydratedDrinks: 0 };
+  }
+  let raw = 0;
+  let activeDrinks = 0;
+  let peakDrinks = 0;
+  let hydratedDrinks = 0;
+  for (const d of drinks) {
+    const meta = ALCOHOL_DRINKS[d.type];
+    if (!meta) continue;
+    const ageMin = (now - d.loggedAt.getTime()) / 60000;
+    if (ageMin < 0 || ageMin > FADE_END_MIN) continue;
+
+    let envelope: number;
+    if (ageMin < RAMP_IN_MIN) {
+      envelope = ageMin / RAMP_IN_MIN; // 0 → 1 (ramp-in, exclusive of t=5)
+    } else if (ageMin <= PEAK_END_MIN) {
+      envelope = 1; // full penalty (t=5 to t=60 inclusive)
+      peakDrinks += 1;
+    } else {
+      envelope = 1 - (ageMin - PEAK_END_MIN) / (FADE_END_MIN - PEAK_END_MIN); // 1 → 0
+    }
+    activeDrinks += 1;
+    let perDrink = meta.riskWeight * PER_DRINK_WEIGHT * envelope;
+    if (d.hydrated === true) {
+      perDrink *= HYDRATED_MITIGATION_FACTOR;
+      hydratedDrinks += 1;
+    }
+    raw += perDrink;
+  }
+  const clamped = Math.min(SOCIAL_INTAKE_MAX_PENALTY, raw);
+  // Normalize -0 → 0 so callers don't have to deal with JS negative zero.
+  const penalty = clamped === 0 ? 0 : -clamped;
+  return {
+    penalty,
+    activeDrinks,
+    peakDrinks,
+    hydratedDrinks,
+  };
+}
+
+/**
  * Average decay multiplier from the active drink window. Used by the
  * scoring engine to amplify base decay while social mode is active.
  * Drinks older than their `activeMinutes` window contribute nothing

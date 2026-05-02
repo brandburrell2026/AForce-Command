@@ -32,7 +32,7 @@ import type {
   SocialModeState,
 } from '../types';
 import { Colors } from '../theme/colors';
-import { activeDecayMultiplier } from './hangoverRisk';
+import { activeDecayMultiplier, socialIntakePoints, SOCIAL_INTAKE_MAX_PENALTY } from './hangoverRisk';
 import { materializedIntakePoints } from '../services/hydrationScoreService';
 import { depletionRatePerMinute } from './depletionRate';
 
@@ -114,9 +114,16 @@ function buildBreakdown(state: UserState): { score: number; contributions: Score
   const recovery = computeRecoverySignal(state);
   const confirmation = computeConfirmationDelta(state);
 
+  // Per-event social-mode penalty: each logged alcohol drink moves the
+  // score immediately (alcohol diuresis ≈ 5 oz of net water loss per
+  // standard drink), with `/social/hydrate` confirmations cutting the
+  // penalty by 60 %. See `socialIntakePoints` for the time profile.
+  const socialDrinks = state.socialMode?.drinks ?? [];
+  const socialIntake = socialIntakePoints(socialDrinks);
+
   const raw = baseIntake + aforceBonus + recency + consistency + context + recoveryMomentum
             + symptomPenalty + urinePenalty + outputStress + sleepCarry
-            + recovery.delta + confirmation;
+            + recovery.delta + confirmation + socialIntake.penalty;
   const score = Math.max(0, Math.min(100, Math.round(raw)));
 
   const aforceUnits = state.aforceUnitsToday ?? 0;
@@ -148,6 +155,21 @@ function buildBreakdown(state: UserState): { score: number; contributions: Score
     { id: 'apple_health', label: 'Apple Health (HRV + sleep)', delta: recovery.delta, maxMagnitude: 10,
       hint: recovery.hint },
   ];
+
+  // Only surface the Social-mode row when there is something to show —
+  // an empty row at delta 0 is just visual noise on the breakdown sheet.
+  if (socialIntake.activeDrinks > 0) {
+    const hydratedNote = socialIntake.hydratedDrinks > 0
+      ? ` · ${socialIntake.hydratedDrinks} hydrated (-60 %)`
+      : '';
+    contributions.push({
+      id: 'social_intake',
+      label: 'Social mode intake',
+      delta: Math.round(socialIntake.penalty),
+      maxMagnitude: SOCIAL_INTAKE_MAX_PENALTY,
+      hint: `${socialIntake.activeDrinks} drink${socialIntake.activeDrinks === 1 ? '' : 's'} active${hydratedNote}`,
+    });
+  }
 
   return { score, contributions, decayPerMinute, minutesSinceLast };
 }
@@ -350,9 +372,13 @@ function calculateBaseScore(state: UserState): number {
 
   const confirmation = computeConfirmationDelta(state);
 
+  // Per-event social-mode penalty — must mirror buildBreakdown so that
+  // ScoreEngineOutput.score and the contribution sum agree.
+  const socialIntake = socialIntakePoints(state.socialMode?.drinks ?? []);
+
   const raw = baseIntake + aforceBonus + recency + consistency + context + recoveryMomentum
             + symptomPenalty + urinePenalty + outputStress + sleepCarry
-            + recovery.delta + confirmation;
+            + recovery.delta + confirmation + socialIntake.penalty;
 
   return Math.max(0, Math.min(100, Math.round(raw)));
 }

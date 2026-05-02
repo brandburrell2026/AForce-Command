@@ -38,6 +38,14 @@ I prefer iterative development, with frequent, small updates. Ask before making 
 - Defines point values, absorption caps, and release curves for hydration events.
 - Uses `SELECT ... FOR UPDATE` for concurrent intake operations.
 
+### Social Mode → Hydration Score (per-event coupling)
+- Every alcohol drink logged via `POST /api/aforce/social/drink` immediately moves the hydration score, in addition to amplifying the decay rate. Without this coupling the orb would stay at PEAK while a user pounded four cocktails — the multiplier-only model only changed FUTURE pts/min.
+- New helper `utils/hangoverRisk.ts:socialIntakePoints(drinks, now)` returns a negative score delta per active drink: `riskWeight × 5 pts × envelope(age)` where the envelope ramps in over 5 min (alcohol absorption), holds full at 5–60 min (peak diuresis), fades linearly 60–180 min (~1 std drink/hr metabolism), then clears. Confirming hydration via `POST /api/aforce/social/hydrate` (sets `drink.hydrated=true`) cuts that drink's penalty by 60 % to credit the matching water bolus that offsets kidney response.
+- Total magnitude clamped to `SOCIAL_INTAKE_MAX_PENALTY = 30` so a marathon session can't single-handedly drive the orb to zero — the decay multiplier and hangover risk continue doing their share.
+- Wired into both `scoringEngine.ts:buildBreakdown` and `:calculateBaseScore` so the rolled-up score and the breakdown sheet stay in sync; a new `social_intake` contribution row is shown on the breakdown only when `activeDrinks > 0`.
+- Pinned by 24 unit tests (`utils/__tests__/socialIntake.test.ts`) covering each drink type, hydrated mitigation, multi-drink stacking, clamp, ramp / peak / fade / clear boundaries, future-dated defensive case, monotonicity, and two end-to-end scenarios (3 paced beers all hydrated; 3 rapid liquor shots).
+- Physiology references baked into the helper docstring: Eggleton (1942), Hobson & Maughan (2010) — alcohol diuresis ≈ 10 mL/g ethanol = ~140 mL/std drink ≈ losing 5 oz of ingested water.
+
 ### Hydration Depletion Math (`utils/depletionRate.ts`)
 - Pure, dependency-free helper that owns the score-points-per-minute decay model.
 - Physiologically grounded against ACSM Position Statement on Exercise & Fluid Replacement (2007), IOM Dietary Reference Intakes for Water (2005), and ISO 7933 (Hot Environments).
