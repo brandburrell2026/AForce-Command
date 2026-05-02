@@ -24,17 +24,23 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
+import { useRouter } from 'expo-router';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import JournalRangePicker, { type JournalRange } from '@/components/journal/JournalRangePicker';
 import JournalChart from '@/components/journal/JournalChart';
 import JournalDayCard from '@/components/journal/JournalDayCard';
 import { fetchJournalRollups, fetchJournalTimeline } from '@/services/realApi';
+import {
+  deriveJournalShareContext,
+  toShareRouteParams,
+} from '@/services/journalShareContext';
 import type { JournalRollup, JournalSnapshot, JournalTimelineEntry } from '@/types';
 import { Colors } from '@/theme/colors';
 
 export default function JournalScreen() {
   const { t } = useTranslation();
+  const router = useRouter();
   const [range, setRange] = useState<JournalRange>(7);
   const [timeline, setTimeline] = useState<JournalTimelineEntry[]>([]);
   const [rollups, setRollups] = useState<JournalRollup[]>([]);
@@ -75,6 +81,15 @@ export default function JournalScreen() {
 
   const chartWidth = Math.min(Dimensions.get('window').width - 32, 720);
 
+  const onShareJournal = useCallback(() => {
+    // Hand the journal context off to the existing /share screen so the
+    // user gets the full voice / format / platform picker. The route
+    // accepts query params via Expo Router; the share screen's
+    // `parseContext` validates them.
+    const ctx = deriveJournalShareContext(rollups, range);
+    router.push({ pathname: '/share', params: toShareRouteParams(ctx) });
+  }, [rollups, range, router]);
+
   const onExport = useCallback(async () => {
     if (exporting) return;
     setExporting(true);
@@ -114,22 +129,34 @@ export default function JournalScreen() {
             <Text style={styles.title}>{t('journal.title')}</Text>
             <Text style={styles.subtitle}>{t('journal.subtitle')}</Text>
           </View>
-          <Pressable
-            onPress={onExport}
-            accessibilityRole="button"
-            accessibilityLabel={t('journal.export_pdf')}
-            disabled={exporting}
-            style={[styles.exportBtn, exporting && styles.exportBtnDisabled]}
-          >
-            {exporting ? (
-              <ActivityIndicator size="small" color="#0A0A1E" />
-            ) : (
-              <Feather name="share" size={14} color="#0A0A1E" />
-            )}
-            <Text style={styles.exportBtnText}>
-              {exporting ? t('journal.exporting') : t('journal.export_pdf')}
-            </Text>
-          </Pressable>
+          <View style={styles.headerActions}>
+            <Pressable
+              onPress={onShareJournal}
+              accessibilityRole="button"
+              accessibilityLabel={t('journal.share_social')}
+              testID="journal-share-social"
+              style={styles.shareBtn}
+            >
+              <Feather name="share-2" size={14} color="#FFFFFF" />
+              <Text style={styles.shareBtnText}>{t('journal.share_social')}</Text>
+            </Pressable>
+            <Pressable
+              onPress={onExport}
+              accessibilityRole="button"
+              accessibilityLabel={t('journal.export_pdf')}
+              disabled={exporting}
+              style={[styles.exportBtn, exporting && styles.exportBtnDisabled]}
+            >
+              {exporting ? (
+                <ActivityIndicator size="small" color="#0A0A1E" />
+              ) : (
+                <Feather name="share" size={14} color="#0A0A1E" />
+              )}
+              <Text style={styles.exportBtnText}>
+                {exporting ? t('journal.exporting') : t('journal.export_pdf')}
+              </Text>
+            </Pressable>
+          </View>
         </View>
 
         <View style={styles.rangeRow}>
@@ -297,6 +324,29 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter_400Regular',
     fontSize: 13,
     marginTop: 2,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flexShrink: 0,
+  },
+  shareBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.18)',
+    paddingHorizontal: 12,
+    paddingVertical: 9,
+    borderRadius: 999,
+    gap: 6,
+  },
+  shareBtnText: {
+    color: '#FFFFFF',
+    fontFamily: 'Inter_700Bold',
+    fontSize: 11,
+    letterSpacing: 0.6,
   },
   exportBtn: {
     flexDirection: 'row',

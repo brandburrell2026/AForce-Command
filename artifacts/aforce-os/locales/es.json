@@ -288,5 +288,8 @@
     "next": "SIGUIENTE",
     "start": "EMPEZAR",
     "back": "Atrás"
+  },
+  "journal": {
+    "share_social": "Compartir"
   }
 }

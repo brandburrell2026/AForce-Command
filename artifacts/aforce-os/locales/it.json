@@ -288,5 +288,8 @@
     "next": "AVANTI",
     "start": "INIZIA",
     "back": "Indietro"
+  },
+  "journal": {
+    "share_social": "Condividi"
   }
 }
