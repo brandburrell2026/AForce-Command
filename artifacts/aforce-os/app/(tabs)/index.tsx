@@ -40,6 +40,9 @@ import { EntryActions } from '@/components/home/EntryActions';
 import { CommandStack } from '@/components/home/CommandStack';
 import { PrimaryCTA } from '@/components/home/PrimaryCTA';
 import { TodayQuote } from '@/components/home/TodayQuote';
+import { VoiceStatusModule } from '@/components/VoiceStatusModule';
+import { useScoreBandVoice } from '@/hooks/useScoreBandVoice';
+import { useRiskTimerVoice } from '@/hooks/useRiskTimerVoice';
 
 import { useAppStore } from '@/store/useAppStore';
 import { DisplayedAccentProvider } from '@/hooks/useDisplayedAccent';
@@ -61,6 +64,13 @@ export default function HomeScreen() {
   const [voiceOpen, setVoiceOpen] = React.useState(false);
   const [voiceAutoStart, setVoiceAutoStart] = React.useState(false);
   const [voiceBtnState, setVoiceBtnState] = React.useState<VoiceState>('idle');
+
+  // AForce Command Voice Engine — score-band + risk-timer alert hooks.
+  // Both consume the store internally (no props needed) and are gated
+  // by voiceCoachEnabled + voiceScope. Mounted here so they live on
+  // Home for the duration of every session.
+  useScoreBandVoice();
+  useRiskTimerVoice();
 
   React.useEffect(() => {
     setVoiceBtnState(voiceOpen ? 'listening' : 'idle');
@@ -150,6 +160,7 @@ export default function HomeScreen() {
                 <PrimaryCTA layout={layout} />
               </View>
               <View style={[styles.col, styles.colRight]} testID="home-right-col">
+                <VoiceStatusModule />
                 <SignalsZone
                   heatScore={heatScore}
                   onOpenSocial={openSocial}
@@ -168,6 +179,7 @@ export default function HomeScreen() {
               <View style={styles.spacerLg} />
               <PrimaryCTA layout={layout} />
               <View style={styles.spacerSm} />
+              <VoiceStatusModule />
               <SignalsZone heatScore={heatScore} onOpenSocial={openSocial} />
             </>
           )}

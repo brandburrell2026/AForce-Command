@@ -37,6 +37,12 @@ import * as Linking from 'expo-linking';
 import { createPortalSession } from '@/lib/api';
 import { refreshEntitlement } from '@/hooks/useEntitlement';
 import { AFORCE_VOICES } from '@/services/voiceCatalog';
+import {
+  BRAND_LANGUAGE,
+  type VoiceIntensity,
+  type VoiceScope,
+} from '@/services/voice/commandVoice';
+import { replayLastCommand, getLastCommand } from '@/services/voice/commandVoiceBus';
 
 const TIER_LABELS: Record<string, { label: string; desc: string; color: string }> = {
   core:           { label: 'AForce Core',           desc: 'Start your performance system.',                      color: Colors.states.BALANCED.primary },
@@ -61,6 +67,8 @@ export default function ProfileScreen() {
     activateSocialMode, logSocialDrink, deactivateSocialMode,
     voiceCoachEnabled, setVoiceCoachEnabled,
     selectedVoiceId, setSelectedVoiceId,
+    voiceIntensity, setVoiceIntensity,
+    voiceScope, setVoiceScope,
   } = useAppStore();
   // Tracks the in-flight demo so we can disable the row + show the
   // active label without blocking the rest of Profile. Cleared once
@@ -734,6 +742,134 @@ export default function ProfileScreen() {
                       <Text style={[styles.flagDesc, { marginTop: 10, fontSize: 11 }]}>
                         ElevenLabs voices stream from our server. If the network drops, we fall back to your device voice.
                       </Text>
+
+                      {/* AForce Command Voice Engine — intensity picker.
+                          Calm = full sentences, Standard = spec phrases
+                          (auto-Pressure when DEPLETED), Pressure = forced
+                          short sharp lines for every command. */}
+                      <Text style={[styles.flagDesc, { marginTop: 16, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.6 }]}>
+                        Voice intensity
+                      </Text>
+                      <View style={voicePickerStyles.segmentRow}>
+                        {(['calm', 'standard', 'pressure'] as const).map((opt) => {
+                          const selected = voiceIntensity === opt;
+                          const accent = opt === 'pressure'
+                            ? Colors.states.DEPLETED.primary
+                            : opt === 'calm'
+                              ? Colors.states.BALANCED.primary
+                              : Colors.states.PEAK.primary;
+                          return (
+                            <Pressable
+                              key={opt}
+                              onPress={() => setVoiceIntensity(opt as VoiceIntensity)}
+                              style={[
+                                voicePickerStyles.segment,
+                                selected && {
+                                  borderColor: `${accent}AA`,
+                                  backgroundColor: `${accent}1A`,
+                                },
+                              ]}
+                              testID={`profile-voice-intensity-${opt}`}
+                            >
+                              <Text
+                                style={[
+                                  voicePickerStyles.segmentLabel,
+                                  selected && { color: accent },
+                                ]}
+                              >
+                                {opt.toUpperCase()}
+                              </Text>
+                            </Pressable>
+                          );
+                        })}
+                      </View>
+                      <Text style={[styles.flagDesc, { marginTop: 6, fontSize: 11 }]}>
+                        {voiceIntensity === 'calm'
+                          ? 'Measured Performance Command tone. Full sentences.'
+                          : voiceIntensity === 'pressure'
+                            ? `${BRAND_LANGUAGE.pressureMode} active. Short, sharp, direct.`
+                            : 'Default — spec phrases, auto-engages Pressure Mode when DEPLETED.'}
+                      </Text>
+
+                      {/* AForce Command Voice Engine — scope picker.
+                          Controls which categories of voice events are
+                          allowed to fire. 'muted' is silent at the
+                          category gate even if the master toggle is on. */}
+                      <Text style={[styles.flagDesc, { marginTop: 16, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.6 }]}>
+                        When voice plays
+                      </Text>
+                      <View style={voicePickerStyles.segmentRow}>
+                        {(['all', 'risk', 'commands', 'muted'] as const).map((opt) => {
+                          const selected = voiceScope === opt;
+                          const label =
+                            opt === 'all' ? 'ALWAYS'
+                              : opt === 'risk' ? 'RISK'
+                                : opt === 'commands' ? 'CMDS'
+                                  : 'MUTED';
+                          const accent = opt === 'muted'
+                            ? Colors.text.muted
+                            : Colors.states.PEAK.primary;
+                          return (
+                            <Pressable
+                              key={opt}
+                              onPress={() => setVoiceScope(opt as VoiceScope)}
+                              style={[
+                                voicePickerStyles.segment,
+                                selected && {
+                                  borderColor: `${accent}AA`,
+                                  backgroundColor: `${accent}1A`,
+                                },
+                              ]}
+                              testID={`profile-voice-scope-${opt}`}
+                            >
+                              <Text
+                                style={[
+                                  voicePickerStyles.segmentLabel,
+                                  selected && { color: accent },
+                                ]}
+                              >
+                                {label}
+                              </Text>
+                            </Pressable>
+                          );
+                        })}
+                      </View>
+                      <Text style={[styles.flagDesc, { marginTop: 6, fontSize: 11 }]}>
+                        {voiceScope === 'all' && 'Every voice event — score band, risk timer, commands, completion.'}
+                        {voiceScope === 'risk' && 'Score-band crossings + risk-timer alerts only.'}
+                        {voiceScope === 'commands' && 'Performance Commands + cycle completion only.'}
+                        {voiceScope === 'muted' && 'No voice events. Master toggle stays on for replay.'}
+                      </Text>
+
+                      {/* Replay last command — surfaces the same data the
+                          Voice Status module on Home shows. */}
+                      <Pressable
+                        onPress={() => { replayLastCommand(); }}
+                        disabled={!getLastCommand()}
+                        style={({ pressed }) => [
+                          voicePickerStyles.replayBtn,
+                          {
+                            borderColor: getLastCommand()
+                              ? `${Colors.states.PEAK.primary}55`
+                              : Colors.border.subtle,
+                            backgroundColor: getLastCommand()
+                              ? pressed
+                                ? `${Colors.states.PEAK.primary}1A`
+                                : `${Colors.states.PEAK.primary}10`
+                              : 'transparent',
+                          },
+                        ]}
+                        testID="profile-voice-replay"
+                      >
+                        <Text
+                          style={[
+                            voicePickerStyles.replayLabel,
+                            { color: getLastCommand() ? Colors.states.PEAK.primary : Colors.text.muted },
+                          ]}
+                        >
+                          {getLastCommand() ? 'REPLAY LAST COMMAND' : 'NOTHING TO REPLAY YET'}
+                        </Text>
+                      </Pressable>
                     </View>
                   ) : null}
                 </View>
@@ -1248,5 +1384,39 @@ const voicePickerStyles = StyleSheet.create({
     fontFamily: 'Inter_400Regular',
     color: Colors.text.muted,
     marginTop: 2,
+  },
+  // AForce Command Voice Engine — segmented intensity / scope pickers.
+  segmentRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  segment: {
+    flex: 1,
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: Colors.border.subtle,
+    backgroundColor: Colors.background.secondary,
+    alignItems: 'center',
+  },
+  segmentLabel: {
+    fontSize: 11,
+    fontFamily: 'Inter_700Bold',
+    letterSpacing: 1.4,
+    color: Colors.text.secondary,
+  },
+  replayBtn: {
+    marginTop: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    alignItems: 'center',
+  },
+  replayLabel: {
+    fontSize: 11,
+    fontFamily: 'Inter_700Bold',
+    letterSpacing: 2,
   },
 });

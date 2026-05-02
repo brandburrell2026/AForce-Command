@@ -52,6 +52,14 @@ import i18n, { setLanguage as setI18nLanguage, type SupportedLanguage } from '..
 import { PRODUCTS } from '../data/products';
 import { phantomBandService } from '../services/phantomBandService';
 import { speak as ttsSpeak, setVoicePlaybackEnabled, setSelectedVoiceId as setTtsVoiceId } from '../services/textToSpeech';
+import {
+  effectiveCommandLine,
+  categoryAllowedForScope,
+  completionRewardLine,
+  type VoiceIntensity,
+  type VoiceScope,
+} from '../services/voice/commandVoice';
+import { commandSpeak, setSpeakerImpl as setBusSpeakerImpl } from '../services/voice/commandVoiceBus';
 
 // Flavor inference moved to `utils/inferFlavorFromLabel` so it can be
 // unit-tested in isolation. Substring-based: "Berry Blast" and
@@ -158,10 +166,35 @@ interface AppContextValue {
    */
   selectedVoiceId: string | null;
   setSelectedVoiceId: (next: string | null) => void;
+  /**
+   * AForce Command Voice Engine — intensity setting. Drives Pressure
+   * Mode behaviour: 'calm' speaks every line in full, 'standard' is
+   * the default (spec phrases verbatim, auto-engages Pressure Mode
+   * when DEPLETED), 'pressure' forces Pressure Mode for every system
+   * command regardless of band.
+   */
+  voiceIntensity: VoiceIntensity;
+  setVoiceIntensity: (next: VoiceIntensity) => void;
+  /**
+   * AForce Command Voice Engine — scope setting. Controls which
+   * categories of voice events are allowed to fire:
+   *   'all'       — every category (default)
+   *   'risk'      — score-band + risk-timer alerts only
+   *   'commands'  — system commands + completion rewards only
+   *   'muted'     — nothing speaks (separate from voiceCoachEnabled,
+   *                 which is the master toggle)
+   */
+  voiceScope: VoiceScope;
+  setVoiceScope: (next: VoiceScope) => void;
 }
 
 const VOICE_COACH_KEY = 'aforce.voiceCoachEnabled';
 const SELECTED_VOICE_KEY = 'aforce.selectedVoiceId';
+const VOICE_INTENSITY_KEY = 'aforce.voiceIntensity';
+const VOICE_SCOPE_KEY = 'aforce.voiceScope';
+
+const VOICE_INTENSITIES: ReadonlySet<VoiceIntensity> = new Set(['calm', 'standard', 'pressure']);
+const VOICE_SCOPES: ReadonlySet<VoiceScope> = new Set(['all', 'risk', 'commands', 'muted']);
 
 const AppContext = createContext<AppContextValue | null>(null);
 
@@ -173,6 +206,29 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [voiceCoachEnabled, setVoiceCoachEnabledState] = React.useState<boolean>(true);
   // ElevenLabs voice picker (Profile). Null = device synthesizer (default).
   const [selectedVoiceId, setSelectedVoiceIdState] = React.useState<string | null>(null);
+  // AForce Command Voice Engine — intensity + scope (defaults match
+  // the spec: standard tone, all categories audible). Hydrated from
+  // AsyncStorage on first effect; persisted on every setter call.
+  const [voiceIntensity, setVoiceIntensityState] = React.useState<VoiceIntensity>('standard');
+  const [voiceScope, setVoiceScopeState] = React.useState<VoiceScope>('all');
+  // Latest intensity + scope mirrored into refs so the auto-speak +
+  // completion side-effects can read the current preference without
+  // taking them as deps (they would otherwise re-run on every toggle
+  // and re-trigger the same line).
+  const voiceIntensityRef = useRef(voiceIntensity);
+  const voiceScopeRef = useRef(voiceScope);
+  const voiceCoachEnabledRef = useRef(voiceCoachEnabled);
+  useEffect(() => { voiceIntensityRef.current = voiceIntensity; }, [voiceIntensity]);
+  useEffect(() => { voiceScopeRef.current = voiceScope; }, [voiceScope]);
+  useEffect(() => { voiceCoachEnabledRef.current = voiceCoachEnabled; }, [voiceCoachEnabled]);
+
+  // Wire the AForce Command Voice Engine bus to the real TTS speaker
+  // exactly once on mount. The bus defaults to a silent noop so it can
+  // be unit-tested in Node without dragging in expo-audio / expo-speech.
+  useEffect(() => {
+    setBusSpeakerImpl((text, opts) => ttsSpeak(text, opts ?? {}));
+    return () => setBusSpeakerImpl(null);
+  }, []);
 
   // Live countdown timer (drives recheck)
   useEffect(() => {
@@ -421,6 +477,23 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         fluidType,
       };
       dispatch({ type: 'CYCLE_SUCCESS', payload: { result, newUserState: mergedUserState, engineOutput: mergedEngine, historyEntry, silent: opts?.silent } });
+      // AForce Command Voice Engine — completion reward voice. Fires
+      // on user-initiated cycles (silent sips from the Phantom Band
+      // get `silent: true` and stay quiet so background auto-logging
+      // doesn't keep speaking). Honors the master toggle + scope: a
+      // completion is a 'commands' category event (not a 'risk' one),
+      // so it stays silent under 'risk' / 'muted' scope.
+      if (
+        !opts?.silent
+        && voiceCoachEnabledRef.current
+        && categoryAllowedForScope('completion', voiceScopeRef.current)
+      ) {
+        commandSpeak(completionRewardLine(), {
+          level: mergedEngine.performanceState.level,
+          intensity: voiceIntensityRef.current,
+          category: 'completion',
+        });
+      }
       // Only schedule the auto-dismiss when the hero overlay was actually shown.
       if (!opts?.silent) setTimeout(() => dispatch({ type: 'DISMISS_SUCCESS' }), 2400);
     } catch (err) {
@@ -672,18 +745,33 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
-  // ─── T3: Voice Coach — auto-speak the AI command on change ─────────────
-  // textToSpeech.speak is debounced (500ms window on identical text), so
-  // re-renders that produce the same `command.action` won't double-trigger.
+  // ─── AForce Command Voice Engine — system command voice ────────────────
+  // Routes through commandSpeak() so the bus records every utterance for
+  // the Voice Status module + replay. Pressure Mode kicks in when the
+  // user picks 'pressure' intensity OR when intensity is 'standard' AND
+  // the user is currently DEPLETED (the engine self-sharpens when risk
+  // is real). Scope is honored — 'risk' and 'muted' suppress system
+  // commands. textToSpeech.speak (called inside the bus) is debounced
+  // by 500ms on identical text so re-renders never double-trigger.
   const lastSpokenCommandIdRef = useRef<string | null>(null);
   useEffect(() => {
     if (!voiceCoachEnabled) return;
+    if (!categoryAllowedForScope('system_command', voiceScopeRef.current)) return;
     const cmd = state.engineOutput.command;
     if (!cmd?.action) return;
     if (lastSpokenCommandIdRef.current === cmd.id) return;
     lastSpokenCommandIdRef.current = cmd.id;
-    ttsSpeak(cmd.action, { language: state.userState.language as SupportedLanguage | undefined });
-  }, [voiceCoachEnabled, state.engineOutput.command?.id, state.engineOutput.command?.action, state.userState.language]);
+    const intensity = voiceIntensityRef.current;
+    const level = state.engineOutput.performanceState.level;
+    const line = effectiveCommandLine(cmd.action, intensity, level);
+    commandSpeak(line, { level, intensity, category: 'system_command' });
+  }, [
+    voiceCoachEnabled,
+    state.engineOutput.command?.id,
+    state.engineOutput.command?.action,
+    state.engineOutput.performanceState.level,
+    state.userState.language,
+  ]);
 
   // Hydrate persisted Voice Coach preference once on mount.
   useEffect(() => {
@@ -724,6 +812,39 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     } else {
       AsyncStorage.removeItem(SELECTED_VOICE_KEY).catch(() => {});
     }
+  }, []);
+
+  // Hydrate persisted Command Voice Engine intensity + scope on mount.
+  // Both fields tolerate unknown / corrupt values by falling back to
+  // their spec defaults so a forward-incompat change can never brick
+  // the engine.
+  useEffect(() => {
+    AsyncStorage.getItem(VOICE_INTENSITY_KEY)
+      .then((raw) => {
+        if (raw && VOICE_INTENSITIES.has(raw as VoiceIntensity)) {
+          setVoiceIntensityState(raw as VoiceIntensity);
+        }
+      })
+      .catch(() => {});
+    AsyncStorage.getItem(VOICE_SCOPE_KEY)
+      .then((raw) => {
+        if (raw && VOICE_SCOPES.has(raw as VoiceScope)) {
+          setVoiceScopeState(raw as VoiceScope);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const setVoiceIntensity = useCallback((next: VoiceIntensity) => {
+    if (!VOICE_INTENSITIES.has(next)) return;
+    setVoiceIntensityState(next);
+    AsyncStorage.setItem(VOICE_INTENSITY_KEY, next).catch(() => {});
+  }, []);
+
+  const setVoiceScope = useCallback((next: VoiceScope) => {
+    if (!VOICE_SCOPES.has(next)) return;
+    setVoiceScopeState(next);
+    AsyncStorage.setItem(VOICE_SCOPE_KEY, next).catch(() => {});
   }, []);
 
   // Hydrate persisted subscription on mount.
@@ -827,7 +948,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setSweatAutopilot,
     voiceCoachEnabled, setVoiceCoachEnabled,
     selectedVoiceId, setSelectedVoiceId,
-  }), [state, logIntake, completeCycle, snooze, dismissSuccess, updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags, setSubscription, completeOnboarding, setAppleHealthSnapshot, setProviderBiometrics, confirmCommand, setLanguage, activateSocialMode, logSocialDrink, confirmSocialHydration, deactivateSocialMode, setSocialContext, setSweatAutopilot, voiceCoachEnabled, setVoiceCoachEnabled, selectedVoiceId, setSelectedVoiceId]);
+    voiceIntensity, setVoiceIntensity,
+    voiceScope, setVoiceScope,
+  }), [state, logIntake, completeCycle, snooze, dismissSuccess, updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags, setSubscription, completeOnboarding, setAppleHealthSnapshot, setProviderBiometrics, confirmCommand, setLanguage, activateSocialMode, logSocialDrink, confirmSocialHydration, deactivateSocialMode, setSocialContext, setSweatAutopilot, voiceCoachEnabled, setVoiceCoachEnabled, selectedVoiceId, setSelectedVoiceId, voiceIntensity, setVoiceIntensity, voiceScope, setVoiceScope]);
 
   // Stable actions value for the sliced ActionsContext — same callbacks
   // as `value` minus `state`, so action consumers don't re-render when
