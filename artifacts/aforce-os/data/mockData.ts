@@ -139,14 +139,23 @@ export const ENERGY_STATE_OPTIONS = [
   { value: 'crashed', label: 'CRASHED', desc: 'Performance compromised.', color: '#FF2D55' },
 ] as const;
 
-// ─── Mock roster (Phase 3 Guardian preview) ───────────────────────────────────
+// ─── Mock roster — Los Angeles Lakers (Phase 2 / 3 demo) ──────────────────────
+// Demo roster used by the Clutch + Guardian dashboards. Real player
+// names + positions for pitch credibility; hydration / risk values are
+// fabricated to span every band (PEAK → DEPLETED, OPTIMAL → CRITICAL)
+// so coaches and athletic trainers see the full UI in one screen.
+export const TEAM_NAME = 'LOS ANGELES LAKERS';
+export const TEAM_ABBR = 'LAL';
+
 export const mockRoster: RosterPlayer[] = [
-  { id: 'p1', name: 'D. Reyes', position: 'WR', hydrationScore: 92, state: 'PEAK', guardianRisk: 12 },
-  { id: 'p2', name: 'J. Carter', position: 'RB', hydrationScore: 81, state: 'BALANCED', guardianRisk: 28 },
-  { id: 'p3', name: 'M. Nash', position: 'LB', hydrationScore: 68, state: 'RECOVERING', guardianRisk: 54 },
-  { id: 'p4', name: 'T. Brooks', position: 'QB', hydrationScore: 87, state: 'BALANCED', guardianRisk: 22 },
-  { id: 'p5', name: 'R. Vega', position: 'CB', hydrationScore: 49, state: 'DEPLETED', guardianRisk: 81 },
-  { id: 'p6', name: 'S. Howell', position: 'OL', hydrationScore: 73, state: 'RECOVERING', guardianRisk: 41 },
+  { id: 'lal-23', name: 'L. James',      position: 'SF', hydrationScore: 91, state: 'PEAK',       guardianRisk: 14 },
+  { id: 'lal-77', name: 'L. Dončić',     position: 'PG', hydrationScore: 68, state: 'RECOVERING', guardianRisk: 52 },
+  { id: 'lal-15', name: 'A. Reaves',     position: 'SG', hydrationScore: 84, state: 'BALANCED',   guardianRisk: 26 },
+  { id: 'lal-28', name: 'R. Hachimura',  position: 'PF', hydrationScore: 78, state: 'BALANCED',   guardianRisk: 31 },
+  { id: 'lal-5',  name: 'D. Ayton',      position: 'C',  hydrationScore: 47, state: 'DEPLETED',   guardianRisk: 83 },
+  { id: 'lal-1',  name: 'D. Russell',    position: 'PG', hydrationScore: 73, state: 'RECOVERING', guardianRisk: 44 },
+  { id: 'lal-7',  name: 'J. Vanderbilt', position: 'PF', hydrationScore: 88, state: 'BALANCED',   guardianRisk: 19 },
+  { id: 'lal-10', name: 'J. Hayes',      position: 'C',  hydrationScore: 62, state: 'RECOVERING', guardianRisk: 58 },
 ];
 
 // ─── Format helpers ───────────────────────────────────────────────────────────

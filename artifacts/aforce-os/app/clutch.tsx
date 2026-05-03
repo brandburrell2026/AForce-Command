@@ -13,7 +13,7 @@ import { GradientBackground } from '@/components/GradientBackground';
 import { FeatureGate } from '@/components/FeatureGate';
 import { Colors } from '@/theme/colors';
 import { useAppStore } from '@/store/useAppStore';
-import { mockRoster } from '@/data/mockData';
+import { mockRoster, TEAM_NAME } from '@/data/mockData';
 import { clutchHydrationPlan, clutchTier, clutchRecommendation } from '@/utils/scoringEngine';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 import { WEB_TOP_PADDING, WEB_BOTTOM_INSET } from '@/constants/layout';
@@ -49,7 +49,7 @@ export default function ClutchScreen() {
             <Text style={styles.backText}>Profile</Text>
           </Pressable>
 
-          <Text style={[styles.eyebrow, { color: Colors.clutch.primary }]}>PHASE 2 · CLUTCH</Text>
+          <Text style={[styles.eyebrow, { color: Colors.clutch.primary }]}>PHASE 2 · CLUTCH · {TEAM_NAME}</Text>
           <Text style={styles.title}>Command the Team</Text>
 
           <FeatureGate

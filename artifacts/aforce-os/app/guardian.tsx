@@ -13,7 +13,7 @@ import { GradientBackground } from '@/components/GradientBackground';
 import { FeatureGate } from '@/components/FeatureGate';
 import { Colors } from '@/theme/colors';
 import { useAppStore } from '@/store/useAppStore';
-import { mockRoster } from '@/data/mockData';
+import { mockRoster, TEAM_NAME } from '@/data/mockData';
 import { guardianRiskScore, guardianTier, guardianRecommendation } from '@/utils/scoringEngine';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 import { WEB_TOP_PADDING, WEB_BOTTOM_INSET } from '@/constants/layout';
@@ -68,7 +68,7 @@ export default function GuardianScreen() {
             <Text style={styles.backText}>Profile</Text>
           </Pressable>
 
-          <Text style={[styles.eyebrow, { color: Colors.guardian.primary }]}>PHASE 3 · GUARDIAN</Text>
+          <Text style={[styles.eyebrow, { color: Colors.guardian.primary }]}>PHASE 3 · GUARDIAN · {TEAM_NAME}</Text>
           <Text style={styles.title}>Protect the Roster</Text>
 
           <FeatureGate
