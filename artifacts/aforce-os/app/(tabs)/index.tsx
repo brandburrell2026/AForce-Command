@@ -156,11 +156,11 @@ export default function HomeScreen() {
                 <OrbSection onOpenBreakdown={openBreakdown} orbSize={layout.orbSize} />
                 <TodayQuote />
                 <CommandStack onOpenBreakdown={openBreakdown} />
+                <VoiceStatusModule />
                 <View style={styles.spacerLg} />
                 <PrimaryCTA layout={layout} />
               </View>
               <View style={[styles.col, styles.colRight]} testID="home-right-col">
-                <VoiceStatusModule />
                 <SignalsZone
                   heatScore={heatScore}
                   onOpenSocial={openSocial}
@@ -174,12 +174,12 @@ export default function HomeScreen() {
               <OrbSection onOpenBreakdown={openBreakdown} orbSize={layout.orbSize} />
               <TodayQuote />
               <CommandStack onOpenBreakdown={openBreakdown} />
+              <VoiceStatusModule />
               <View style={styles.spacer} />
               <EntryActions />
               <View style={styles.spacerLg} />
               <PrimaryCTA layout={layout} />
               <View style={styles.spacerSm} />
-              <VoiceStatusModule />
               <SignalsZone heatScore={heatScore} onOpenSocial={openSocial} />
             </>
           )}
