@@ -13,7 +13,7 @@ import { GradientBackground } from '@/components/GradientBackground';
 import { FeatureGate } from '@/components/FeatureGate';
 import { Colors } from '@/theme/colors';
 import { useAppStore } from '@/store/useAppStore';
-import { mockRoster, TEAM_NAME } from '@/data/mockData';
+import { mockRosterGuardian as mockRoster, GUARDIAN_TEAM_NAME as TEAM_NAME } from '@/data/mockData';
 import { guardianRiskScore, guardianTier, guardianRecommendation } from '@/utils/scoringEngine';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 import { WEB_TOP_PADDING, WEB_BOTTOM_INSET } from '@/constants/layout';

@@ -139,15 +139,34 @@ export const ENERGY_STATE_OPTIONS = [
   { value: 'crashed', label: 'CRASHED', desc: 'Performance compromised.', color: '#FF2D55' },
 ] as const;
 
-// ─── Mock roster — Los Angeles Lakers (Phase 2 / 3 demo) ──────────────────────
-// Demo roster used by the Clutch + Guardian dashboards. Real player
-// names + positions for pitch credibility; hydration / risk values are
-// fabricated to span every band (PEAK → DEPLETED, OPTIMAL → CRITICAL)
-// so coaches and athletic trainers see the full UI in one screen.
-export const TEAM_NAME = 'LOS ANGELES LAKERS';
-export const TEAM_ABBR = 'LAL';
+// ─── Mock rosters — Phase 2 / 3 demo dashboards ───────────────────────────────
+// Two distinct demo rosters so the Clutch (coach) and Guardian
+// (athletic trainer / medical) screens visibly target different
+// audiences. Real player names + positions for pitch credibility;
+// hydration / risk values are fabricated to span every band so coaches
+// and ATs see the full UI in one screen.
+//
+// CLUTCH  → Duke Men's Basketball  (NCAA, in-game command surface)
+// GUARDIAN → Los Angeles Lakers    (NBA, roster protection / medical)
+export const CLUTCH_TEAM_NAME = 'DUKE BASKETBALL';
+export const CLUTCH_TEAM_ABBR = 'DUKE';
+export const GUARDIAN_TEAM_NAME = 'LOS ANGELES LAKERS';
+export const GUARDIAN_TEAM_ABBR = 'LAL';
 
-export const mockRoster: RosterPlayer[] = [
+// Duke Men's Basketball — used by Clutch (Phase 2).
+export const mockRosterClutch: RosterPlayer[] = [
+  { id: 'duke-12', name: 'C. Boozer',    position: 'PF', hydrationScore: 92, state: 'PEAK',       guardianRisk: 13 },
+  { id: 'duke-2',  name: 'C. Boozer Jr', position: 'PG', hydrationScore: 81, state: 'BALANCED',   guardianRisk: 27 },
+  { id: 'duke-21', name: 'I. Evans',     position: 'SF', hydrationScore: 74, state: 'RECOVERING', guardianRisk: 41 },
+  { id: 'duke-1',  name: 'C. Foster',    position: 'SG', hydrationScore: 86, state: 'BALANCED',   guardianRisk: 24 },
+  { id: 'duke-34', name: 'P. Ngongba',   position: 'C',  hydrationScore: 49, state: 'DEPLETED',   guardianRisk: 79 },
+  { id: 'duke-7',  name: 'M. Brown',     position: 'PF', hydrationScore: 71, state: 'RECOVERING', guardianRisk: 47 },
+  { id: 'duke-3',  name: 'S. James',     position: 'SG', hydrationScore: 88, state: 'BALANCED',   guardianRisk: 21 },
+  { id: 'duke-13', name: 'N. Khamenia',  position: 'SF', hydrationScore: 65, state: 'RECOVERING', guardianRisk: 55 },
+];
+
+// Los Angeles Lakers — used by Guardian (Phase 3).
+export const mockRosterGuardian: RosterPlayer[] = [
   { id: 'lal-23', name: 'L. James',      position: 'SF', hydrationScore: 91, state: 'PEAK',       guardianRisk: 14 },
   { id: 'lal-77', name: 'L. Dončić',     position: 'PG', hydrationScore: 68, state: 'RECOVERING', guardianRisk: 52 },
   { id: 'lal-15', name: 'A. Reaves',     position: 'SG', hydrationScore: 84, state: 'BALANCED',   guardianRisk: 26 },
@@ -157,6 +176,13 @@ export const mockRoster: RosterPlayer[] = [
   { id: 'lal-7',  name: 'J. Vanderbilt', position: 'PF', hydrationScore: 88, state: 'BALANCED',   guardianRisk: 19 },
   { id: 'lal-10', name: 'J. Hayes',      position: 'C',  hydrationScore: 62, state: 'RECOVERING', guardianRisk: 58 },
 ];
+
+// Back-compat alias — older imports still pull `mockRoster`. Points at
+// the Guardian roster so any unmigrated reference keeps rendering
+// real-looking data instead of crashing.
+export const mockRoster = mockRosterGuardian;
+export const TEAM_NAME = GUARDIAN_TEAM_NAME;
+export const TEAM_ABBR = GUARDIAN_TEAM_ABBR;
 
 // ─── Format helpers ───────────────────────────────────────────────────────────
 export function formatTimeAgo(date: Date): string {
