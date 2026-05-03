@@ -180,38 +180,47 @@ export default function ProfileScreen() {
 
   const toggleProvider = async (id: HealthProviderId, name: string) => {
     if (Platform.OS !== 'web') hapticSelection();
+
+    // ─── Disconnect path ──────────────────────────────────────────────
     if (linkedProviders.has(id)) {
-      Alert.alert(
-        `Disconnect ${name}?`,
+      const disconnectMessage =
         id === 'apple_health'
-          ? "AForce will stop pulling Apple Health data. Permission stays granted in iOS Settings until you revoke it there."
-          : 'AForce will stop pulling biometrics from this source.',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          {
-            text: 'Disconnect',
-            style: 'destructive',
-            onPress: () => {
-              setLinkedProviders((prev) => {
-                const next = new Set(prev);
-                next.delete(id);
-                return next;
-              });
-              if (id === 'apple_health') {
-                setAppleSnapshot(null);
-                setAppleHealthSnapshot(null);
-              } else {
-                // Clear the biometric snapshot from the score so the
-                // recovery / activity contribution disappears immediately.
-                setProviderBiometrics(id, null);
-              }
-            },
-          },
-        ],
-      );
+          ? 'AForce will stop pulling Apple Health data. Permission stays granted in iOS Settings until you revoke it there.'
+          : 'AForce will stop pulling biometrics from this source.';
+
+      const performDisconnect = () => {
+        setLinkedProviders((prev) => {
+          const next = new Set(prev);
+          next.delete(id);
+          return next;
+        });
+        if (id === 'apple_health') {
+          setAppleSnapshot(null);
+          setAppleHealthSnapshot(null);
+        } else {
+          // Clear the biometric snapshot from the score so the
+          // recovery / activity contribution disappears immediately.
+          setProviderBiometrics(id, null);
+        }
+      };
+
+      // RN Web: Alert.alert with multi-button onPress callbacks is a
+      // no-op, so fall back to the browser's native confirm dialog.
+      if (Platform.OS === 'web') {
+        if (typeof window !== 'undefined' && window.confirm(`Disconnect ${name}? ${disconnectMessage}`)) {
+          performDisconnect();
+        }
+        return;
+      }
+
+      Alert.alert(`Disconnect ${name}?`, disconnectMessage, [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Disconnect', style: 'destructive', onPress: performDisconnect },
+      ]);
       return;
     }
 
+    // ─── Connect path ─────────────────────────────────────────────────
     if (id === 'apple_health') {
       const ok = await connectAppleHealth();
       if (ok) {
@@ -224,27 +233,32 @@ export default function ProfileScreen() {
       return;
     }
 
-    Alert.alert(
-      `Connect ${name}`,
-      `You'll be redirected to ${name} to authorize AForce. Mocked in this build — a representative biometric snapshot is seeded so the hydration score reflects the connection.`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Authorize',
-          onPress: () => {
-            setLinkedProviders((prev) => {
-              const next = new Set(prev);
-              next.add(id);
-              return next;
-            });
-            // Seed a demo snapshot so the score immediately reflects the
-            // newly connected provider. Real OAuth ships in v1.1 native.
-            const snap = buildDemoSnapshot(id);
-            if (snap) setProviderBiometrics(id, snap);
-          },
-        },
-      ],
-    );
+    const performAuthorize = () => {
+      setLinkedProviders((prev) => {
+        const next = new Set(prev);
+        next.add(id);
+        return next;
+      });
+      // Seed a demo snapshot so the score immediately reflects the
+      // newly connected provider. Real OAuth ships in v1.1 native.
+      const snap = buildDemoSnapshot(id);
+      if (snap) setProviderBiometrics(id, snap);
+    };
+
+    const authorizeMessage = `You'll be redirected to ${name} to authorize AForce. Mocked in this build — a representative biometric snapshot is seeded so the hydration score reflects the connection.`;
+
+    // RN Web: skip the broken multi-button Alert and use window.confirm.
+    if (Platform.OS === 'web') {
+      if (typeof window !== 'undefined' && window.confirm(`Connect ${name}? ${authorizeMessage}`)) {
+        performAuthorize();
+      }
+      return;
+    }
+
+    Alert.alert(`Connect ${name}`, authorizeMessage, [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Authorize', onPress: performAuthorize },
+    ]);
   };
   const layout = useResponsiveLayout();
 
