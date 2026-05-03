@@ -272,16 +272,49 @@ function ScoreDrivenBody({
         </Text>
       </TouchableOpacity>
 
-      {/* 6 — Command preview */}
-      <View
-        style={[styles.commandCard, { borderColor: `${orbColor}40` }]}
-        testID="home-command-preview"
-      >
-        <Text style={styles.commandEyebrow}>NEXT COMMAND</Text>
-        <Text style={styles.commandText}>{status.command}</Text>
+      {/* 6 — Next Command (light, not a heavy card) */}
+      <View style={styles.nextCommand} testID="home-command-preview">
+        <Text style={[styles.nextCommandEyebrow, { color: orbColor }]}>NEXT COMMAND</Text>
+        <Text style={styles.nextCommandText}>{status.command}</Text>
+        {engine.command?.estimatedImpact ? (
+          <Text style={styles.nextCommandImpact}>
+            Projected: {engine.command.estimatedImpact}
+          </Text>
+        ) : null}
       </View>
 
-      {/* 7 — Minimal secondary data */}
+      {/* ── Layer 2: AI Coach · Live ─────────────────────────────────
+          Below-the-fold deeper-intelligence layer. Visually demoted
+          (lower opacity, generous top spacing) so it never competes
+          with the orb / CTA / Next Command above. */}
+      <View style={styles.coachSectionHeader}>
+        <View style={[styles.coachLiveDot, { backgroundColor: orbColor }]} />
+        <Text style={styles.coachSectionTitle}>AI COACH</Text>
+        <Text style={styles.coachSectionDot}>·</Text>
+        <Text style={[styles.coachSectionLive, { color: orbColor }]}>LIVE</Text>
+      </View>
+
+      <View style={styles.coachLayer}>
+        <View style={styles.coachWrapper} testID="home-ai-coach">
+          <CommandConsole
+            command={engine.command}
+            performanceState={engine.performanceState}
+            accentOverride={displayed?.primary}
+          />
+        </View>
+
+        {/* Cinematic AI Coach video card (tap → fullscreen overlay) */}
+        <View style={styles.coachVideoWrapper} testID="home-ai-coach-video">
+          <AIVideoPlayer
+            video={matchVideo({ engineOutput: engine, userState })}
+            command={engine.command}
+            timerSeconds={timerSeconds}
+            score={displayedScore}
+          />
+        </View>
+      </View>
+
+      {/* ── Layer 3: Telemetry — minimal secondary data ───────────── */}
       <View style={styles.metaRow}>
         <View style={styles.metaCell}>
           <Text style={styles.metaLabel}>WATER CYCLE</Text>
@@ -298,26 +331,7 @@ function ScoreDrivenBody({
         </View>
       </View>
 
-      {/* 8 — AI Coach · Live (CommandConsole = AICommandCard + Voice Engine status) */}
-      <View style={styles.coachWrapper} testID="home-ai-coach">
-        <CommandConsole
-          command={engine.command}
-          performanceState={engine.performanceState}
-          accentOverride={displayed?.primary}
-        />
-      </View>
-
-      {/* 8b — Cinematic AI Coach video card (tap → fullscreen overlay) */}
-      <View style={styles.coachVideoWrapper} testID="home-ai-coach-video">
-        <AIVideoPlayer
-          video={matchVideo({ engineOutput: engine, userState })}
-          command={engine.command}
-          timerSeconds={timerSeconds}
-          score={displayedScore}
-        />
-      </View>
-
-      {/* 9 — Live Signals strip (Heat Guard + Social Mode) */}
+      {/* Live Signals strip (Heat Guard + Social Mode) */}
       <View style={styles.signalsRow} testID="home-live-signals">
         <SignalPill
           icon="thermometer"
@@ -659,26 +673,64 @@ const styles = StyleSheet.create({
     letterSpacing: 3,
   },
 
-  commandCard: {
-    borderWidth: 1,
-    borderRadius: 12,
-    padding: 16,
-    backgroundColor: 'rgba(255,255,255,0.02)',
-    marginBottom: 16,
+  // "Next Command" — light, no card chrome. Sits as a quiet
+  // continuation of the CTA, not a competing surface.
+  nextCommand: {
+    paddingHorizontal: 4,
+    paddingTop: 4,
+    paddingBottom: 4,
+    marginBottom: 12,
   },
-  commandEyebrow: {
+  nextCommandEyebrow: {
     fontFamily: 'Inter_700Bold',
     fontSize: 10,
-    color: Colors.text.secondary,
     letterSpacing: 2.5,
     marginBottom: 6,
   },
-  commandText: {
+  nextCommandText: {
     fontFamily: 'Inter_500Medium',
     fontSize: 15,
     color: Colors.text.primary,
     lineHeight: 22,
   },
+  nextCommandImpact: {
+    fontFamily: 'Inter_500Medium',
+    fontSize: 11,
+    color: Colors.text.muted,
+    letterSpacing: 0.4,
+    marginTop: 6,
+  },
+
+  // Section header that visually separates the deeper-intelligence
+  // AI Coach layer from the decision/action layer above it.
+  coachSectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 44,
+    marginBottom: 12,
+    paddingHorizontal: 4,
+  },
+  coachLiveDot: { width: 6, height: 6, borderRadius: 3 },
+  coachSectionTitle: {
+    fontFamily: 'Inter_700Bold',
+    fontSize: 11,
+    color: Colors.text.secondary,
+    letterSpacing: 2.5,
+  },
+  coachSectionDot: {
+    fontFamily: 'Inter_700Bold',
+    fontSize: 11,
+    color: Colors.text.muted,
+  },
+  coachSectionLive: {
+    fontFamily: 'Inter_700Bold',
+    fontSize: 11,
+    letterSpacing: 2.5,
+  },
+  // Subtle visual demotion so the Coach layer never out-shouts the
+  // orb / CTA / Next Command above it.
+  coachLayer: { opacity: 0.96 },
 
   metaRow: {
     flexDirection: 'row',
@@ -711,8 +763,9 @@ const styles = StyleSheet.create({
 
   // CommandConsole brings its own marginHorizontal: 20 — negate the
   // surrounding scrollContent padding so the card stretches edge-to-edge
-  // like the other premium cards.
-  coachWrapper: { marginHorizontal: -20, marginTop: 20 },
+  // like the other premium cards. Top spacing now comes from
+  // coachSectionHeader so this is flush with the section title.
+  coachWrapper: { marginHorizontal: -20, marginTop: 0 },
   coachVideoWrapper: { marginHorizontal: -20, marginTop: 12 },
 
   voiceFab: { position: 'absolute', right: 20, alignItems: 'flex-end' },

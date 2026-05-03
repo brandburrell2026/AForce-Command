@@ -575,7 +575,7 @@ function generateSocialCommand(state: UserState, social: NonNullable<ScoreEngine
   // Default in-mode prompt — slow the pace, alternate.
   return {
     id: 'cmd-social-pace',
-    action: i18n.t('coach.social_slow_intake_action'),
+    action: i18n.t('coach.social_slow_intake_action', { count: drinks.length }),
     explanation: i18n.t('coach.social_slow_intake_explanation', { count: drinks.length }),
     urgencyLevel: 'medium',
     estimatedImpact: '+5 to score',

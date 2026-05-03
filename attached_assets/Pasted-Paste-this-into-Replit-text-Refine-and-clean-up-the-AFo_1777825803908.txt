@@ -1,0 +1,173 @@
+Paste this into Replit:
+
+```text
+Refine and clean up the AForce OS front screen for perfect hierarchy, spacing, and clarity.
+
+The UI is already strong. This pass is about removing clutter, improving flow, and making it feel like a world-class operating system for performance.
+
+GOAL:
+Make the first screen instantly readable, non-redundant, and perfectly structured.
+
+-----------------------------------
+1. ABOVE-THE-FOLD STRUCTURE (STRICT)
+-----------------------------------
+
+The first screen (no scroll) must ONLY include:
+
+1. Header:
+- Welcome, Brandon
+- AForce OS
+- Current city · time · temperature (example: Sitges · 6:24 PM · 65°F)
+
+2. Status Headline
+3. Status Pulse Orb
+4. Status Label (DECLINING, OPTIMIZED, etc.)
+5. Consequence Line
+6. Primary Action Button
+7. Next Command (short version)
+
+DO NOT include anything else above the fold.
+
+-----------------------------------
+2. REMOVE DUPLICATION
+-----------------------------------
+
+Right now there are too many command sections.
+
+Keep ONLY:
+- “Next Command” (short, clear, actionable)
+
+REMOVE or MERGE:
+- Duplicate “AForce Command” cards
+- Any repeated command text
+- Redundant instruction sections
+
+The user should never feel like they are reading the same instruction twice.
+
+-----------------------------------
+3. AI COACH = SECOND LAYER (CRITICAL FIX)
+-----------------------------------
+
+Move AI Coach BELOW the main section and clearly separate it.
+
+Add a section header:
+AI Coach · Live
+
+This should feel like a deeper intelligence layer, NOT part of the main decision layer.
+
+AI Coach should include:
+- Expanded explanation of the command
+- Voice engine status
+- Risk state / intensity
+
+It must NOT compete visually with:
+- The orb
+- The main button
+- The Next Command
+
+Reduce visual weight slightly (opacity, spacing, or size).
+
+-----------------------------------
+4. FIX PLACEHOLDER BUGS
+-----------------------------------
+
+Replace any template variables like:
+
+{{count}}
+
+with:
+- Real dynamic values
+OR
+- Remove them entirely
+
+No raw placeholders should ever be visible.
+
+-----------------------------------
+5. SPACING + VISUAL HIERARCHY
+-----------------------------------
+
+Apply strict spacing rules:
+
+- Large spacing between:
+  Header → Headline
+  Headline → Orb
+  Orb → Button
+
+- Medium spacing between:
+  Button → Next Command
+
+- Large spacing before AI Coach section
+
+Nothing should feel cramped or stacked.
+
+-----------------------------------
+6. NEXT COMMAND DESIGN
+-----------------------------------
+
+Keep it simple and clean:
+
+Example:
+Next Command
+Drink 16 oz water with 1 AForce stick.
+
+Optional subtext:
+Projected: +5 to score
+
+Do NOT turn this into a heavy card.
+Keep it light and readable.
+
+-----------------------------------
+7. BUTTON PRIORITY
+-----------------------------------
+
+The primary button must remain the strongest CTA on the screen.
+
+Rules:
+- Only ONE primary button above the fold
+- No competing CTAs nearby
+- Keep glow subtle
+- Maintain status-based color
+
+-----------------------------------
+8. SCROLL EXPERIENCE
+-----------------------------------
+
+Scrolling should feel like entering deeper layers:
+
+Layer 1 (no scroll):
+Decision + Action
+
+Layer 2 (scroll):
+AI Coach + Intelligence
+
+Layer 3 (optional deeper scroll):
+History, logs, advanced data
+
+-----------------------------------
+9. FINAL FEEL
+-----------------------------------
+
+The screen should feel:
+
+- Minimal
+- Decisive
+- Intelligent
+- Urgent (when needed)
+- Premium (Apple-level)
+- System-driven, not app-like
+
+-----------------------------------
+FINAL TEST:
+-----------------------------------
+
+A user opens the app and within 2 seconds understands:
+
+- Where they are
+- What time it is
+- Temperature
+- Their hydration state
+- Why it matters
+- Exactly what to do next
+
+If anything distracts from that → remove it.
+```
