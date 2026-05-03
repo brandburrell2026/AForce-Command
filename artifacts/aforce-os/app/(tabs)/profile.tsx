@@ -13,6 +13,7 @@ import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
 import { GradientBackground } from '@/components/GradientBackground';
+import { WhoopSnapshotCard } from '@/components/WhoopSnapshotCard';
 import { Icon } from '@/components/Icon';
 import { Colors } from '@/theme/colors';
 import { mockUserProfile } from '@/data/mockData';
@@ -538,54 +539,20 @@ export default function ProfileScreen() {
                           )}
                         </Pressable>
                         {p.id === 'whoop' && linked && (() => {
-                          // Pitch-demo "live" panel for WHOOP. Numbers come
+                          // Cinematic WHOOP-styled live panel. Numbers come
                           // straight from DEMO_PROVIDER_SNAPSHOTS.whoop —
-                          // same payload the score engine consumes — so what
-                          // the user sees here matches what's moving the orb.
-                          // Swaps to a real OAuth-backed snapshot in v1.1.
+                          // the same payload the score engine consumes — so
+                          // what the user sees here matches what's moving
+                          // the orb. Swaps to a real OAuth-backed snapshot
+                          // in v1.1.
                           const snap = buildDemoSnapshot('whoop');
                           if (!snap) return null;
                           return (
-                            <View
-                              style={[
-                                styles.snapshotBlock,
-                                {
-                                  backgroundColor: `${p.brand}10`,
-                                  borderColor: `${p.brand}33`,
-                                },
-                              ]}
-                            >
-                              <View style={styles.snapshotHeader}>
-                                <Text style={[styles.snapshotLabel, { color: p.brand }]}>
-                                  LIVE FROM WHOOP
-                                </Text>
-                                <Text style={[styles.snapshotLabel, { color: Colors.text.muted }]}>
-                                  CYCLE · TODAY
-                                </Text>
-                              </View>
-                              <View style={styles.snapshotGrid}>
-                                <SnapshotCell
-                                  label="Strain"
-                                  value={snap.strain != null ? snap.strain.toFixed(1) : '—'}
-                                />
-                                <SnapshotCell
-                                  label="Recovery"
-                                  value={snap.recoveryPct != null ? `${Math.round(snap.recoveryPct)}%` : '—'}
-                                />
-                                <SnapshotCell
-                                  label="Sleep"
-                                  value={
-                                    snap.sleepHoursLastNight != null
-                                      ? `${snap.sleepHoursLastNight.toFixed(1)} h`
-                                      : '—'
-                                  }
-                                />
-                                <SnapshotCell
-                                  label="Status"
-                                  value="Feeding score"
-                                />
-                              </View>
-                            </View>
+                            <WhoopSnapshotCard
+                              recoveryPct={snap.recoveryPct}
+                              strain={snap.strain}
+                              sleepHoursLastNight={snap.sleepHoursLastNight}
+                            />
                           );
                         })()}
                         {p.id === 'apple_health' && linked && appleSnapshot && (
