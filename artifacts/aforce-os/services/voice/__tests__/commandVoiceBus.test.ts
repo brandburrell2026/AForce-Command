@@ -202,3 +202,59 @@ describe('setSpeakerImpl', () => {
     expect(rec!.line).toBe('Quiet line.');
   });
 });
+
+/* ────────────────────────────────────────────────────────────────────
+ * Merged from prior services/__tests__/ copy — input hygiene,
+ * supersede-in-flight, and stale-timer guards.
+ * ──────────────────────────────────────────────────────────────────── */
+
+describe('commandSpeak — input hygiene', () => {
+  it('trims surrounding whitespace before forwarding to the speaker', () => {
+    const speaker = vi.fn();
+    _setSpeakerForTests(speaker);
+    commandSpeak('   Risk rising. Drink now.   ', { category: 'score_band' });
+    expect(speaker).toHaveBeenCalledWith('Risk rising. Drink now.', {});
+    expect(getLastCommand()!.line).toBe('Risk rising. Drink now.');
+  });
+});
+
+describe('playback lifecycle — supersede in-flight', () => {
+  it('a back-to-back commandSpeak resets the timer to the new utterance', () => {
+    _setSpeakerForTests(vi.fn());
+    const transitions: string[] = [];
+    subscribePlayback((s) => transitions.push(s));
+
+    commandSpeak('First line.', { category: 'system_command' });
+    vi.advanceTimersByTime(100); // mid pre-roll, before 'playing' would fire
+    commandSpeak('Second line.', { category: 'system_command' });
+
+    // Two RECEIVED transitions; no orphan PLAYING from the superseded first speak.
+    expect(transitions.filter((s) => s === 'received')).toHaveLength(2);
+    expect(transitions).not.toContain('playing');
+    expect(getPlaybackState()).toBe('received');
+
+    vi.advanceTimersByTime(220);
+    expect(getPlaybackState()).toBe('playing');
+
+    vi.advanceTimersByTime(10_000);
+    expect(getPlaybackState()).toBe('idle');
+  });
+});
+
+describe('_resetForTests', () => {
+  it('clears playback state and prevents stale timers from firing', () => {
+    _setSpeakerForTests(vi.fn());
+    commandSpeak('Test line.', { category: 'system_command' });
+    expect(getPlaybackState()).toBe('received');
+
+    _resetForTests();
+    expect(getPlaybackState()).toBe('idle');
+
+    // A subscriber attached AFTER reset must not see any transitions
+    // from the pre-reset cycle's still-pending timers.
+    const after = vi.fn();
+    subscribePlayback(after);
+    vi.advanceTimersByTime(10_000);
+    expect(after).not.toHaveBeenCalled();
+  });
+});

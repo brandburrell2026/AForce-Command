@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   BRAND_LANGUAGE,
   RISK_THRESHOLDS,
+  SCORE_BAND_THRESHOLDS,
   categoryAllowedForScope,
   completionRewardLine,
   effectiveCommandLine,
@@ -315,5 +316,41 @@ describe('categoryAllowedForScope', () => {
         expect(typeof categoryAllowedForScope(c, s)).toBe('boolean');
       }
     }
+  });
+});
+
+/* ────────────────────────────────────────────────────────────────────
+ * SCORE_BAND_THRESHOLDS — published constant + edge cases
+ * (merged from prior services/__tests__/ copy)
+ * ──────────────────────────────────────────────────────────────────── */
+
+describe('SCORE_BAND_THRESHOLDS', () => {
+  it('exposes the spec floor for every named band', () => {
+    expect(SCORE_BAND_THRESHOLDS.PEAK).toBe(85);
+    expect(SCORE_BAND_THRESHOLDS.STABLE).toBe(70);
+    expect(SCORE_BAND_THRESHOLDS.CORRECT).toBe(50);
+    expect(SCORE_BAND_THRESHOLDS.RISK).toBe(30);
+  });
+
+  it('is frozen so callers cannot mutate band floors', () => {
+    expect(Object.isFrozen(SCORE_BAND_THRESHOLDS)).toBe(true);
+  });
+});
+
+describe('scoreBand — out-of-range inputs', () => {
+  it('clamps negative scores into the CRITICAL band', () => {
+    expect(scoreBand(-1)).toBe('CRITICAL');
+    expect(scoreBand(-12)).toBe('CRITICAL');
+    expect(scoreBand(-9999)).toBe('CRITICAL');
+  });
+});
+
+describe('lineForBand parity with scoreBandLine', () => {
+  it('returns the same string for every band as the equivalent scoreBandLine call', () => {
+    expect(lineForBand('CRITICAL', 'standard')).toBe(scoreBandLine(10, 'standard'));
+    expect(lineForBand('RISK',     'standard')).toBe(scoreBandLine(40, 'standard'));
+    expect(lineForBand('CORRECT',  'standard')).toBe(scoreBandLine(60, 'standard'));
+    expect(lineForBand('STABLE',   'standard')).toBe(scoreBandLine(75, 'standard'));
+    expect(lineForBand('PEAK',     'pressure')).toBe(scoreBandLine(95, 'pressure'));
   });
 });
