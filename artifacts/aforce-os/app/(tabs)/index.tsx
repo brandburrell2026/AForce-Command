@@ -203,12 +203,17 @@ function ScoreDrivenBody({
     () => getHydrationStatus(displayedScore),
     [displayedScore],
   );
+  // Color the surrounding titles + CTA from the *orb's* live accent so
+  // the headline / STABLE label / "Maintain rhythm." / CTA all flip to
+  // the same hue the ring is currently rendering. Falls back to the
+  // band color from getHydrationStatus when no in-flight tween exists.
+  const orbColor = displayed?.primary ?? status.color.primary;
 
   return (
     <>
       {/* 1 — Status headline above the orb */}
       <Text
-        style={[styles.statusHeadline, { color: status.color.primary }]}
+        style={[styles.statusHeadline, { color: orbColor }]}
         testID="home-status-headline"
       >
         {status.headline}
@@ -233,7 +238,7 @@ function ScoreDrivenBody({
 
       {/* 3 — Status label */}
       <Text
-        style={[styles.statusLabel, { color: status.color.primary }]}
+        style={[styles.statusLabel, { color: orbColor }]}
         testID="home-status-label"
       >
         {status.label}
@@ -255,21 +260,21 @@ function ScoreDrivenBody({
         style={[
           styles.cta,
           {
-            borderColor: status.color.primary,
-            backgroundColor: `${status.color.primary}1A`,
-            shadowColor: status.color.primary,
+            borderColor: orbColor,
+            backgroundColor: `${orbColor}1A`,
+            shadowColor: orbColor,
             opacity: isCompletingCycle ? 0.55 : 1,
           },
         ]}
       >
-        <Text style={[styles.ctaText, { color: status.color.primary }]}>
+        <Text style={[styles.ctaText, { color: orbColor }]}>
           {status.ctaText}
         </Text>
       </TouchableOpacity>
 
       {/* 6 — Command preview */}
       <View
-        style={[styles.commandCard, { borderColor: `${status.color.primary}40` }]}
+        style={[styles.commandCard, { borderColor: `${orbColor}40` }]}
         testID="home-command-preview"
       >
         <Text style={styles.commandEyebrow}>NEXT COMMAND</Text>
