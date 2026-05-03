@@ -40,7 +40,6 @@ import { EntryActions } from '@/components/home/EntryActions';
 import { CommandStack } from '@/components/home/CommandStack';
 import { PrimaryCTA } from '@/components/home/PrimaryCTA';
 import { TodayQuote } from '@/components/home/TodayQuote';
-import { VoiceStatusModule } from '@/components/VoiceStatusModule';
 import { useScoreBandVoice } from '@/hooks/useScoreBandVoice';
 import { useRiskTimerVoice } from '@/hooks/useRiskTimerVoice';
 
@@ -156,7 +155,6 @@ export default function HomeScreen() {
                 <OrbSection onOpenBreakdown={openBreakdown} orbSize={layout.orbSize} />
                 <TodayQuote />
                 <CommandStack onOpenBreakdown={openBreakdown} />
-                <VoiceStatusModule />
                 <View style={styles.spacerLg} />
                 <PrimaryCTA layout={layout} />
               </View>
@@ -174,7 +172,6 @@ export default function HomeScreen() {
               <OrbSection onOpenBreakdown={openBreakdown} orbSize={layout.orbSize} />
               <TodayQuote />
               <CommandStack onOpenBreakdown={openBreakdown} />
-              <VoiceStatusModule />
               <View style={styles.spacer} />
               <EntryActions />
               <View style={styles.spacerLg} />

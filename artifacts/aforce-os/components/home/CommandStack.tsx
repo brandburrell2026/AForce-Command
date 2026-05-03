@@ -12,7 +12,7 @@ import React from 'react';
 import { View, StyleSheet } from 'react-native';
 
 import { WhyThisScore } from '../WhyThisScore';
-import { AICommandCard } from '../AICommandCard';
+import { CommandConsole } from './CommandConsole';
 import { CommandConfirmPrompt } from '../CommandConfirmPrompt';
 import { AIVideoPlayer } from '../AIVideoPlayer';
 import { matchVideo } from '../../services/videoEngine';
@@ -56,7 +56,7 @@ function CommandStackImpl({ onOpenBreakdown }: Props) {
           <View style={styles.spacer} />
         </>
       )}
-      <AICommandCard
+      <CommandConsole
         command={engine.command}
         performanceState={engine.performanceState}
         accentOverride={displayed?.primary}

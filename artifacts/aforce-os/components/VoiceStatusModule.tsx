@@ -124,7 +124,17 @@ function lifecycleVisual(
   return                              { label: 'LIVE',          color: bandAccent,                      active: false };
 }
 
-function VoiceStatusModuleImpl() {
+interface VoiceStatusModuleProps {
+  /**
+   * When true, the module renders without its own outer card chrome
+   * (no margin, no border, no shadow, no background) so it can sit
+   * inside a parent card as a footer strip. Used by CommandConsole
+   * to fuse the AI Coach card + Voice Engine into one visual block.
+   */
+  embedded?: boolean;
+}
+
+function VoiceStatusModuleImpl({ embedded = false }: VoiceStatusModuleProps) {
   const engine = useEngineSlice();
   const { voiceCoachEnabled, voiceIntensity, voiceScope } = useAppStore();
 
@@ -284,7 +294,10 @@ function VoiceStatusModuleImpl() {
 
   return (
     <Animated.View
-      style={[styles.card, cardAnimStyle]}
+      style={[
+        embedded ? styles.cardEmbedded : styles.card,
+        embedded ? null : cardAnimStyle,
+      ]}
       testID="voice-status-module"
     >
       {/* Eyebrow row — engine name + lifecycle badge */}
@@ -437,6 +450,14 @@ const styles = StyleSheet.create({
     // shadow set dynamically by lifecycle + status color
     shadowOffset: { width: 0, height: 0 },
     elevation: 0,
+  },
+  cardEmbedded: {
+    paddingHorizontal: 0,
+    paddingTop: 14,
+    paddingBottom: 0,
+    gap: 14,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: Colors.border.subtle,
   },
   eyebrowRow: {
     flexDirection: 'row',

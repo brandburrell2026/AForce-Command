@@ -24,6 +24,13 @@ interface Props {
    * engine's target band while the score is still rolling.
    */
   accentOverride?: string;
+  /**
+   * When true, the card renders without its own outer chrome (no
+   * margin, no border, no background) so it can sit inside a parent
+   * card. Used by CommandConsole to fuse the AI Coach + Voice Engine
+   * into a single visual block.
+   */
+  embedded?: boolean;
 }
 
 const URGENCY_ICONS: Record<string, keyof typeof Feather.glyphMap> = {
@@ -40,13 +47,18 @@ const URGENCY_LABELS: Record<string, string> = {
   critical: 'CRITICAL',
 };
 
-export function AICommandCard({ command, performanceState, accentOverride }: Props) {
+export function AICommandCard({ command, performanceState, accentOverride, embedded = false }: Props) {
   const color = accentOverride ?? performanceState.color;
   const icon = URGENCY_ICONS[command.urgencyLevel] ?? 'zap';
   const label = URGENCY_LABELS[command.urgencyLevel] ?? 'ACT NOW';
 
   return (
-    <View style={[styles.container, { borderColor: `${color}30` }]}>
+    <View
+      style={[
+        embedded ? styles.containerEmbedded : styles.container,
+        !embedded && { borderColor: `${color}30` },
+      ]}
+    >
       <View style={styles.header}>
         <Text style={styles.sectionLabel}>AFORCE COMMAND</Text>
         <View style={styles.headerRight}>
@@ -78,6 +90,11 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background.card,
     borderRadius: 20,
     borderWidth: 1,
+  },
+  containerEmbedded: {
+    paddingHorizontal: 0,
+    paddingTop: 0,
+    paddingBottom: 4,
   },
   header: {
     flexDirection: 'row',
