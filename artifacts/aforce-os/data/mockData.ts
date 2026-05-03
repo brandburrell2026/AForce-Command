@@ -39,7 +39,7 @@ export const defaultUserState: UserState = {
 
 // ─── Mock Profile ─────────────────────────────────────────────────────────────
 export const mockUserProfile: UserProfile = {
-  name: 'Alex',
+  name: 'Brandon',
   subscriptionTier: 'core',
   dailyTarget: 8,
   bodyWeightLbs: 180,
