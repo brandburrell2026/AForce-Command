@@ -1,0 +1,155 @@
+Update the AForce Hydration Score Algorithm to personalize hydration needs based on gender, height, and weight.
+
+This should improve the score logic so water and AForce product logs contribute based on the user’s body profile, not a generic fixed amount.
+
+Add user profile inputs:
+- gender: male, female, non_binary, prefer_not_to_say
+- heightInches
+- weightLbs
+- age
+- activityLevel: sedentary, light, moderate, high, athlete
+
+Core idea:
+Calculate a personalized daily hydration target first.
+
+Personalized Daily Water Target:
+Base formula:
+dailyWaterTargetOz = weightLbs * 0.5
+
+Adjustments:
+Male = +8 oz
+Female = +0 oz
+Non-binary / prefer not to say = +4 oz
+
+Height adjustment:
+Under 62 inches = -4 oz
+62–68 inches = +0 oz
+69–74 inches = +4 oz
+75+ inches = +8 oz
+
+Activity adjustment:
+Sedentary = +0 oz
+Light = +8 oz
+Moderate = +16 oz
+High = +24 oz
+Athlete = +32 oz
+
+Weather adjustment:
+Temperature 80–89°F = +8 oz
+Temperature 90–99°F = +16 oz
+Temperature 100°F+ = +24 oz
+
+Workout adjustment:
+Light workout = +8 oz
+Moderate workout = +16 oz
+Hard workout = +24 oz
+Extreme workout = +32 oz
+
+Clamp dailyWaterTargetOz between 64 oz and 180 oz.
+
+Add hydration progress:
+dailyHydrationProgress = waterOuncesLoggedToday / dailyWaterTargetOz
+
+Convert hydration progress into score support:
+0–24% of target = +0
+25–49% of target = +5
+50–74% of target = +10
+75–99% of target = +15
+100%+ of target = +20
+
+Recent intake still matters:
+Water logged within last 2 hours should boost current score.
+Water logged 2–4 hours ago counts at 50%.
+Water logged more than 4 hours ago does not boost current score.
+
+AForce products:
+AForce products should support hydration score, but should not replace water.
+They add electrolyte/performance support.
+
+AForce Stick within last 2 hours = +12
+AForce RTD within last 2 hours = +14
+AForce Canister Serving within last 2 hours = +10
+AForce Energy Drink within last 2 hours = +8
+
+AForce products 2–4 hours ago count at 50%.
+More than 4 hours ago = 0.
+
+Caps:
+Max daily hydration progress boost = +20
+Max recent water boost = +18
+Max AForce product boost = +18
+Max hydration cycle bonus = +15
+Max total positive boost = +40
+
+Scoring order:
+1. Calculate personalized dailyWaterTargetOz
+2. Start with base score of 100
+3. Subtract negative risk factors:
+   - thirst
+   - low energy
+   - urine color
+   - steps
+   - temperature
+   - humidity
+   - workout load
+   - time since last hydration
+   - sleep prep window
+4. Add daily hydration progress boost
+5. Add recent water boost
+6. Add AForce product boost
+7. Add hydration cycle bonus
+8. Clamp score between 0 and 100
+
+Create these functions:
+calculateDailyWaterTarget(userProfile, environment, workout)
+calculateDailyHydrationProgressBoost(waterOuncesLoggedToday, dailyWaterTargetOz)
+calculateRecentWaterBoost(inputs)
+calculateAForceBoost(inputs)
+calculateHydrationCycleBoost(inputs, currentStatus)
+calculateNegativeRiskPenalty(inputs)
+getHydrationScore(inputs)
+
+Update output object:
+
+{
+  score: number,
+  status: string,
+  riskLevel: string,
+  colorToken: string,
+  dailyWaterTargetOz: number,
+  waterOuncesLoggedToday: number,
+  dailyHydrationProgress: number,
+  dailyHydrationProgressBoost: number,
+  recentWaterBoost: number,
+  aforceBoost: number,
+  hydrationCycleBoost: number,
+  totalPositiveBoost: number,
+  riskPenalty: number,
+  recheckMinutes: number,
+  pressureMode: boolean,
+  command: string,
+  reason: string,
+  confidence: number,
+  signals: string[],
+  recommendedFluidOz: number,
+  recommendedAForceProduct: string,
+  nextEvaluationTime: string
+}
+
+Important UX:
+The app should show:
+- Today’s personalized water target
+- Water logged today
+- Percentage completed
+- Hydration Score impact
+- AForce support active when product is logged
+
+Example:
+“Daily Target: 128 oz”
+“Logged: 72 oz”
+“Progress: 56%”
+“Score Support: +10”
+
+Design rule:
+Use the same Status Score color system.
+Do not create random colors.

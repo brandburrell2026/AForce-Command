@@ -1,0 +1,125 @@
+Update the AForce Hydration Score Algorithm so logged water and AForce products directly improve the user’s Hydration Score.
+
+This is not a rewards point system.
+
+Goal:
+When a user logs water or an AForce product, it should positively impact the Hydration Score, Status Score color, AI Coach command, risk state, and recheck timer.
+
+Create a hydration intake contribution model.
+
+Inputs to add:
+- waterOuncesLoggedToday
+- waterOuncesLoggedLast2Hours
+- waterOuncesLoggedLast4Hours
+- aforceSticksLoggedToday
+- aforceSticksLoggedLast2Hours
+- aforceRTDsLoggedToday
+- aforceRTDsLoggedLast2Hours
+- aforceCanisterServingsToday
+- aforceCanisterServingsLast2Hours
+- lastWaterLogTime
+- lastAForceLogTime
+
+Hydration Score Positive Contributions:
+
+WATER INTAKE
+8 oz water logged within last 2 hours = +4 points
+12 oz water logged within last 2 hours = +6 points
+16 oz water logged within last 2 hours = +8 points
+20 oz water logged within last 2 hours = +10 points
+24 oz water logged within last 2 hours = +12 points
+32 oz water logged within last 2 hours = +16 points
+
+Water logged 2–4 hours ago should count at 50% value.
+Water logged more than 4 hours ago should not boost current score.
+
+AFORCE PRODUCT INTAKE
+1 AForce Stick within last 2 hours = +12 points
+1 AForce RTD within last 2 hours = +14 points
+1 AForce Canister Serving within last 2 hours = +10 points
+1 AForce Energy Drink within last 2 hours = +8 points
+
+AForce products logged 2–4 hours ago should count at 50% value.
+AForce products logged more than 4 hours ago should not boost current score.
+
+HYDRATION CYCLE BONUS
+If the user logs water and an AForce product within the same 30-minute window:
++8 bonus points
+
+If the Hydration Cycle is completed during:
+DECLINING state = +5 additional points
+RISK state = +8 additional points
+CRITICAL state = +12 additional points
+
+CAPS
+Maximum positive boost from water = +18 points
+Maximum positive boost from AForce products = +18 points
+Maximum positive boost from hydration cycle bonus = +15 points
+Maximum total intake boost = +35 points
+
+Important:
+The score must never exceed 100.
+The score must still account for negative risk factors like thirst, urine color, heat, activity, humidity, workout load, and time since hydration.
+
+Scoring order:
+1. Start with base score of 100
+2. Subtract risk factors
+3. Add water intake boost
+4. Add AForce product boost
+5. Add hydration cycle bonus
+6. Clamp final score between 0 and 100
+
+Create these functions:
+calculateWaterBoost(inputs)
+calculateAForceBoost(inputs)
+calculateHydrationCycleBoost(inputs, currentStatus)
+applyIntakeBoost(baseScoreAfterRisk, inputs)
+getHydrationScore(inputs)
+
+Return this updated object:
+
+{
+  score: number,
+  status: string,
+  riskLevel: string,
+  colorToken: string,
+  recheckMinutes: number,
+  pressureMode: boolean,
+  command: string,
+  reason: string,
+  confidence: number,
+  signals: string[],
+  recommendedFluidOz: number,
+  recommendedAForceProduct: string,
+  waterBoost: number,
+  aforceBoost: number,
+  hydrationCycleBoost: number,
+  totalIntakeBoost: number,
+  lastWaterLogTime: string,
+  lastAForceLogTime: string,
+  nextEvaluationTime: string
+}
+
+Signal examples:
+- “Water intake confirmed”
+- “AForce intake confirmed”
+- “Hydration cycle completed”
+- “Recent fluid intake improving score”
+- “Electrolyte support active”
+- “Boost fading as intake ages”
+
+UX requirement:
+When a user logs water or an AForce product, animate the Status Score increasing.
+
+Example:
+Hydration Score 62 → 74
+
+Show:
+“Hydration intake confirmed”
+“Score improved +12”
+“AForce support active”
+
+Design:
+Use the existing Status Score color system.
+Do not use random reward colors.
+The score ring, AI Coach bars, command card, and CTA should update immediately based on the new score.
