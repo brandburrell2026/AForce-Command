@@ -92,17 +92,23 @@ interface HeaderProps {
 
 function MinimalHeader({ greetingName, city, tempLabel }: HeaderProps) {
   const now = useNow();
-  const locationLine = [city, formatTime(now), tempLabel]
-    .filter((s) => s && s.length > 0)
-    .join(' · ');
+  const segments = [city, formatTime(now), tempLabel].filter(
+    (s): s is string => !!s && s.length > 0,
+  );
   return (
     <View style={styles.header}>
       <Text style={styles.welcome}>Welcome, {greetingName}</Text>
       <Text style={styles.brand}>AForce OS</Text>
-      {locationLine.length > 0 && (
-        <Text style={styles.locationLine} testID="home-location-line">
-          {locationLine}
-        </Text>
+      {segments.length > 0 && (
+        <View style={styles.statusBar} testID="home-location-line">
+          <View style={styles.statusDot} />
+          {segments.map((seg, i) => (
+            <React.Fragment key={`${seg}-${i}`}>
+              {i > 0 && <View style={styles.statusSep} />}
+              <Text style={styles.statusSegment}>{seg}</Text>
+            </React.Fragment>
+          ))}
+        </View>
       )}
     </View>
   );
@@ -605,7 +611,7 @@ const styles = StyleSheet.create({
   scroll: { flex: 1 },
   content: { paddingHorizontal: 20, alignItems: 'stretch' },
 
-  header: { marginBottom: 24 },
+  header: { marginBottom: 20 },
   welcome: {
     fontFamily: 'Inter_500Medium',
     fontSize: 13,
@@ -617,15 +623,45 @@ const styles = StyleSheet.create({
     fontSize: 26,
     color: Colors.text.primary,
     letterSpacing: -0.4,
-    marginTop: 2,
+    marginTop: 1,
   },
-  locationLine: {
-    fontFamily: 'Inter_500Medium',
-    fontSize: 12,
-    color: Colors.text.secondary,
-    letterSpacing: 1.2,
-    textTransform: 'uppercase',
+  // Status-bar treatment for the city · time · temp line — sits as a
+  // discrete pill under the brand so it reads like a piece of HUD
+  // telemetry, not body copy.
+  statusBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
     marginTop: 8,
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    borderRadius: 100,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(255,255,255,0.10)',
+    backgroundColor: 'rgba(255,255,255,0.04)',
+  },
+  statusDot: {
+    width: 5,
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: Colors.text.primary,
+    opacity: 0.85,
+    marginRight: 8,
+  },
+  statusSep: {
+    width: 3,
+    height: 3,
+    borderRadius: 2,
+    backgroundColor: Colors.text.muted,
+    marginHorizontal: 8,
+    opacity: 0.7,
+  },
+  statusSegment: {
+    fontFamily: 'Inter_600SemiBold',
+    fontSize: 12.5,
+    color: Colors.text.primary,
+    letterSpacing: 1.4,
+    textTransform: 'uppercase',
   },
 
   statusHeadline: {
