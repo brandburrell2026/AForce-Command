@@ -31,6 +31,8 @@ import { CycleSuccessOverlay } from '@/components/CycleSuccessOverlay';
 import { ScoreBreakdownSheet } from '@/components/ScoreBreakdownSheet';
 import { SocialModeSheet } from '@/components/SocialModeSheet';
 import { CommandConsole } from '@/components/home/CommandConsole';
+import { AIVideoPlayer } from '@/components/AIVideoPlayer';
+import { matchVideo } from '@/services/videoEngine';
 import { OnboardingOverlay } from '@/components/OnboardingOverlay';
 import { VoiceButton } from '@/components/VoiceButton';
 import { VoiceOverlay } from '@/components/VoiceOverlay';
@@ -52,6 +54,7 @@ import {
   useEngineSlice,
   useUserSlice,
   useIntakeSlice,
+  useCycleSlice,
   useActionsSlice,
 } from '@/store/slices';
 import { phantomBandService } from '@/services/phantomBandService';
@@ -189,7 +192,9 @@ function ScoreDrivenBody({
   socialDrinks,
 }: BodyProps) {
   const engine = useEngineSlice();
+  const userState = useUserSlice();
   const intake = useIntakeSlice();
+  const { timerSeconds } = useCycleSlice();
   // Use the in-flight tweened score when available so headline / orb /
   // CTA all flip bands on the same frame.
   const displayed = useDisplayedAccent();
@@ -294,6 +299,16 @@ function ScoreDrivenBody({
           command={engine.command}
           performanceState={engine.performanceState}
           accentOverride={displayed?.primary}
+        />
+      </View>
+
+      {/* 8b — Cinematic AI Coach video card (tap → fullscreen overlay) */}
+      <View style={styles.coachVideoWrapper} testID="home-ai-coach-video">
+        <AIVideoPlayer
+          video={matchVideo({ engineOutput: engine, userState })}
+          command={engine.command}
+          timerSeconds={timerSeconds}
+          score={displayedScore}
         />
       </View>
 
@@ -693,6 +708,7 @@ const styles = StyleSheet.create({
   // surrounding scrollContent padding so the card stretches edge-to-edge
   // like the other premium cards.
   coachWrapper: { marginHorizontal: -20, marginTop: 20 },
+  coachVideoWrapper: { marginHorizontal: -20, marginTop: 12 },
 
   voiceFab: { position: 'absolute', right: 20, alignItems: 'flex-end' },
 
