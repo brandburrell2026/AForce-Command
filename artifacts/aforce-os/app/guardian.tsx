@@ -16,6 +16,7 @@ import { useAppStore } from '@/store/useAppStore';
 import { mockRoster } from '@/data/mockData';
 import { guardianRiskScore, guardianTier, guardianRecommendation } from '@/utils/scoringEngine';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
+import { WEB_TOP_PADDING, WEB_BOTTOM_INSET } from '@/constants/layout';
 
 const TIER_COLOR: Record<string, string> = {
   OPTIMAL: Colors.states.PEAK.primary,
@@ -29,8 +30,8 @@ export default function GuardianScreen() {
   const insets = useSafeAreaInsets();
   const { state } = useAppStore();
   const layout = useResponsiveLayout();
-  const topPadding = Platform.OS === 'web' ? 67 : insets.top;
-  const bottomPadding = Platform.OS === 'web' ? 34 : insets.bottom;
+  const topPadding = Platform.OS === 'web' ? WEB_TOP_PADDING : insets.top;
+  const bottomPadding = Platform.OS === 'web' ? WEB_BOTTOM_INSET : insets.bottom;
 
   // Mock the user's own Guardian risk
   const ownRisk = guardianRiskScore({

@@ -364,6 +364,7 @@ export interface FeatureFlags {
   guardian_body_map_enabled: boolean;
   guardian_alerts_enabled: boolean;
   phantom_wearable_enabled: boolean;
+  ring_enabled: boolean;
   clutch_clip_enabled: boolean;
   kids_world_enabled: boolean;
 

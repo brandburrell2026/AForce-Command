@@ -23,6 +23,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GradientBackground } from '@/components/GradientBackground';
 import { CycleSuccessOverlay } from '@/components/CycleSuccessOverlay';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
+import { WEB_TOP_PADDING, WEB_BOTTOM_PADDING, TAB_BAR_HEIGHT } from '@/constants/layout';
 import { useFoldableState } from '@/hooks/useFoldableState';
 import { useHeatGuard } from '@/hooks/useHeatGuard';
 import { ScoreBreakdownSheet } from '@/components/ScoreBreakdownSheet';
@@ -116,8 +117,8 @@ export default function HomeScreen() {
   }, []);
 
   const insets = useSafeAreaInsets();
-  const topPadding = Platform.OS === 'web' ? 67 : insets.top;
-  const bottomPadding = Platform.OS === 'web' ? 34 + 84 : insets.bottom + 84;
+  const topPadding = Platform.OS === 'web' ? WEB_TOP_PADDING : insets.top;
+  const bottomPadding = Platform.OS === 'web' ? WEB_BOTTOM_PADDING : insets.bottom + TAB_BAR_HEIGHT;
 
   return (
     <View style={styles.root}>

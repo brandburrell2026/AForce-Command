@@ -15,6 +15,7 @@ import { formatTimeAgo } from '@/data/mockData';
 import type { HistoryEntry } from '@/types';
 import { deriveProtocol } from '@/services/mockApi';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
+import { WEB_TOP_PADDING, WEB_BOTTOM_PADDING, TAB_BAR_HEIGHT } from '@/constants/layout';
 
 export default function ProtocolScreen() {
   const { state } = useAppStore();
@@ -25,20 +26,17 @@ export default function ProtocolScreen() {
   // Derive the active protocol synchronously from live store state so
   // the Depletion Correction stage flips the moment the engine score
   // crosses a threshold (no async fetch, no useEffect race, no loading
-  // flash on tab switch). Memoized on the few inputs that actually
-  // change the payload — score-bucket-driven stage, risk timer, and
-  // urine signal (drives the first step's "complete" flag).
+  // flash on tab switch). `deriveProtocol` reads several fields from
+  // both `userState` and `engineOutput`, so depend on the full objects
+  // — cherry-picking deps is brittle and skips legitimate updates if
+  // the function ever starts reading another field.
   const protocol = useMemo(
     () => deriveProtocol(userState, engineOutput),
-    [
-      engineOutput.performanceState.level,
-      engineOutput.riskTimer.minutes,
-      userState.urineSignal,
-    ],
+    [userState, engineOutput],
   );
 
-  const topPadding = Platform.OS === 'web' ? 67 : insets.top;
-  const bottomPadding = Platform.OS === 'web' ? 34 + 84 : insets.bottom + 84;
+  const topPadding = Platform.OS === 'web' ? WEB_TOP_PADDING : insets.top;
+  const bottomPadding = Platform.OS === 'web' ? WEB_BOTTOM_PADDING : insets.bottom + TAB_BAR_HEIGHT;
   const stateColor = engineOutput.performanceState.color;
 
   return (

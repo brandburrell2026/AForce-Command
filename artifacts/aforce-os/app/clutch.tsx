@@ -16,14 +16,15 @@ import { useAppStore } from '@/store/useAppStore';
 import { mockRoster } from '@/data/mockData';
 import { clutchHydrationPlan, clutchTier, clutchRecommendation } from '@/utils/scoringEngine';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
+import { WEB_TOP_PADDING, WEB_BOTTOM_INSET } from '@/constants/layout';
 
 export default function ClutchScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { state } = useAppStore();
   const layout = useResponsiveLayout();
-  const topPadding = Platform.OS === 'web' ? 67 : insets.top;
-  const bottomPadding = Platform.OS === 'web' ? 34 : insets.bottom;
+  const topPadding = Platform.OS === 'web' ? WEB_TOP_PADDING : insets.top;
+  const bottomPadding = Platform.OS === 'web' ? WEB_BOTTOM_INSET : insets.bottom;
   const heatModeOn = state.featureFlags.clutch_heat_mode_enabled;
 
   return (

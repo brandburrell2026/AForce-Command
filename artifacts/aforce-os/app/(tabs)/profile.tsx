@@ -8,7 +8,6 @@ import React, { useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, Switch, TouchableOpacity, Platform, Pressable, Alert,
 } from 'react-native';
-import * as Haptics from 'expo-haptics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -43,6 +42,14 @@ import {
   type VoiceScope,
 } from '@/services/voice/commandVoice';
 import { replayLastCommand, getLastCommand } from '@/services/voice/commandVoiceBus';
+
+// Lazy-loaded haptics — `expo-haptics` rejects on web (no native
+// module). The `import('expo-haptics')` form bundles the module on
+// native and no-ops cleanly on web. We swallow rejections so a
+// haptics failure can never surface to the user.
+const hapticSelection = () => {
+  import('expo-haptics').then(m => m.selectionAsync().catch(() => {})).catch(() => {});
+};
 
 const TIER_LABELS: Record<string, { label: string; desc: string; color: string }> = {
   core:           { label: 'AForce Core',           desc: 'Start your performance system.',                      color: Colors.states.BALANCED.primary },
@@ -119,6 +126,14 @@ export default function ProfileScreen() {
   const socialActive = !!state.userState.socialMode?.active;
   const inRecovery = !!state.userState.socialMode && !state.userState.socialMode.active && !!state.userState.socialMode.endedAt;
   const { t } = useTranslation();
+
+  // Real Clerk identity for the profile header. Other `mockUserProfile`
+  // fields (weight, target, tier, etc.) stay mocked until they're wired
+  // to a real API. `useUser()` is safe here — ClerkProvider always
+  // wraps the tab group via the root _layout.
+  const { user: clerkUser } = useUser();
+  const displayName = clerkUser?.fullName ?? clerkUser?.firstName ?? mockUserProfile.name;
+  const avatarInitial = displayName.charAt(0).toUpperCase();
   const [remindersEnabled, setRemindersEnabled] = useState(mockUserProfile.remindersEnabled);
   // Mocked OAuth state for the third-party health platforms shown in
   // the "HEALTH PLATFORMS" card. In a real build, each id would map
@@ -164,7 +179,7 @@ export default function ProfileScreen() {
   };
 
   const toggleProvider = async (id: HealthProviderId, name: string) => {
-    if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
+    if (Platform.OS !== 'web') hapticSelection();
     if (linkedProviders.has(id)) {
       Alert.alert(
         `Disconnect ${name}?`,
@@ -274,11 +289,11 @@ export default function ProfileScreen() {
               <View style={[styles.profileCard, { borderColor: `${tier.color}33` }]}>
                 <View style={[styles.avatar, { backgroundColor: `${tier.color}20`, borderColor: `${tier.color}55` }]}>
                   <Text style={[styles.avatarText, { color: tier.color }]}>
-                    {mockUserProfile.name.charAt(0).toUpperCase()}
+                    {avatarInitial}
                   </Text>
                 </View>
                 <View style={styles.profileInfo}>
-                  <Text style={styles.profileName}>{mockUserProfile.name}</Text>
+                  <Text style={styles.profileName}>{displayName}</Text>
                   <View style={[styles.tierBadge, { backgroundColor: `${tier.color}15`, borderColor: `${tier.color}44` }]}>
                     <Icon name="award" size={10} color={tier.color} />
                     <Text style={[styles.tierLabel, { color: tier.color }]}>{tier.label.toUpperCase()}</Text>

@@ -95,6 +95,7 @@ export const baseFlags: FeatureFlags = {
   guardian_body_map_enabled: false,
   guardian_alerts_enabled: false,
   phantom_wearable_enabled: false,
+  ring_enabled: false,
   clutch_clip_enabled: false,
   kids_world_enabled: false,
   city_competition_enabled: false,

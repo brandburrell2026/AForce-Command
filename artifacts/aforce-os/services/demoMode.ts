@@ -10,3 +10,9 @@
  * which is sufficient for visual capture.
  */
 export const DEMO_MODE = false;
+
+// Hard guard: a production build with DEMO_MODE accidentally left on
+// would bypass Clerk auth gates for every user. Refuse to start.
+if (typeof __DEV__ !== 'undefined' && !__DEV__ && DEMO_MODE) {
+  throw new Error('DEMO_MODE must not be enabled in production builds. Set DEMO_MODE to false.');
+}

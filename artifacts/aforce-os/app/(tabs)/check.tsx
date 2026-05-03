@@ -13,7 +13,6 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
 
 import { GradientBackground } from '@/components/GradientBackground';
 import { Colors } from '@/theme/colors';
@@ -21,6 +20,21 @@ import { useAppStore } from '@/store/useAppStore';
 import { SYMPTOM_CATALOG, HYDRATION_SIGNAL_SCALE, ENERGY_STATE_OPTIONS } from '@/data/mockData';
 import type { UserState } from '@/types';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
+import { WEB_TOP_PADDING, WEB_BOTTOM_PADDING, TAB_BAR_HEIGHT } from '@/constants/layout';
+
+// Lazy-loaded haptics — `expo-haptics` rejects on web (no native
+// module), and a top-level static import + bare `.then()` would leak
+// "Possible Unhandled Promise Rejection" warnings into the console
+// every time we tap. The `import('expo-haptics')` form bundles the
+// module on native and tree-shakes / no-ops cleanly on web. We
+// always swallow rejections so a haptics failure can never surface
+// to the user.
+const hapticSelection = () => {
+  import('expo-haptics').then(m => m.selectionAsync().catch(() => {})).catch(() => {});
+};
+const hapticImpactHeavy = () => {
+  import('expo-haptics').then(m => m.impactAsync(m.ImpactFeedbackStyle.Heavy).catch(() => {})).catch(() => {});
+};
 
 export default function CheckScreen() {
   const { state, updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus } = useAppStore();
@@ -37,24 +51,32 @@ export default function CheckScreen() {
   useEffect(() => { setUrine(userState.urineSignal); }, [userState.urineSignal]);
   useEffect(() => { setEnergy(userState.energyState); }, [userState.energyState]);
 
-  const topPadding = Platform.OS === 'web' ? 67 : insets.top;
-  const bottomPadding = Platform.OS === 'web' ? 34 + 84 : insets.bottom + 84;
+  const topPadding = Platform.OS === 'web' ? WEB_TOP_PADDING : insets.top;
+  const bottomPadding = Platform.OS === 'web' ? WEB_BOTTOM_PADDING : insets.bottom + TAB_BAR_HEIGHT;
 
   const toggleSymptom = (id: string) => {
-    Haptics.selectionAsync();
+    hapticSelection();
     setSymptoms((prev) =>
       prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]
     );
   };
 
   const handleConfirm = async () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-    await Promise.all([
-      updateSymptoms(symptoms),
-      updateUrineSignal(urine),
-      updateEnergyState(energy),
-    ]);
-    await confirmStatus();
+    hapticImpactHeavy();
+    // If any of the per-field updates throws (e.g. network blip while
+    // syncing the engine state), don't recalculate against half-stale
+    // data — surface the error and let the user retry.
+    try {
+      await Promise.all([
+        updateSymptoms(symptoms),
+        updateUrineSignal(urine),
+        updateEnergyState(energy),
+      ]);
+      await confirmStatus();
+    } catch (err) {
+      console.error('Confirm status failed:', err);
+      // optionally surface a toast here
+    }
   };
 
   return (
@@ -119,7 +141,7 @@ export default function CheckScreen() {
                 return (
                   <Pressable
                     key={tile.value}
-                    onPress={() => { Haptics.selectionAsync(); setUrine(tile.value); }}
+                    onPress={() => { hapticSelection(); setUrine(tile.value); }}
                     style={[
                       styles.scaleTile,
                       { backgroundColor: tile.color },
@@ -151,7 +173,7 @@ export default function CheckScreen() {
               return (
                 <Pressable
                   key={opt.value}
-                  onPress={() => { Haptics.selectionAsync(); setEnergy(opt.value); }}
+                  onPress={() => { hapticSelection(); setEnergy(opt.value); }}
                   style={[
                     styles.energyTile,
                     { borderColor: selected ? opt.color : Colors.border.medium, backgroundColor: selected ? `${opt.color}14` : Colors.background.card },

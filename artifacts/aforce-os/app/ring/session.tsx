@@ -7,6 +7,6 @@ import { useFlagsSlice } from '@/store/slices';
  */
 export default function RingSessionRoute() {
   const flags = useFlagsSlice();
-  if (!flags.phantom_wearable_enabled) return <Redirect href="/" />;
+  if (!flags.ring_enabled) return <Redirect href="/" />;
   return <RingSportScreen />;
 }

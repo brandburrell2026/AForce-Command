@@ -18,6 +18,7 @@ import * as AuthSession from 'expo-auth-session';
 import * as WebBrowser from 'expo-web-browser';
 import { GradientBackground } from '@/components/GradientBackground';
 import { Colors } from '@/theme/colors';
+import { extractClerkError } from '@/utils/clerkErrors';
 
 // Required by Clerk's OAuth/SSO flow on native to dismiss the in-app
 // browser once the redirect lands.
@@ -45,13 +46,11 @@ export default function SignUpScreen() {
         redirectUrl: AuthSession.makeRedirectUri(),
       });
       if (createdSessionId && ssoSetActive) {
-        await ssoSetActive({
-          session: createdSessionId,
-          navigate: ({ session }) => {
-            if (session?.currentTask) return;
-            router.replace('/(tabs)');
-          },
-        });
+        // The `navigate` callback shape from earlier @clerk/expo
+        // versions is no longer reliably invoked; activate the
+        // session, then route ourselves.
+        await ssoSetActive({ session: createdSessionId });
+        router.replace('/(tabs)');
       }
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : 'Google sign-up failed.');
@@ -256,15 +255,6 @@ export default function SignUpScreen() {
       </KeyboardAvoidingView>
     </GradientBackground>
   );
-}
-
-function extractClerkError(err: unknown): string | null {
-  if (!err || typeof err !== 'object') return null;
-  const e = err as { errors?: Array<{ message?: string; longMessage?: string }>; message?: string };
-  if (Array.isArray(e.errors) && e.errors.length > 0) {
-    return e.errors[0]?.longMessage ?? e.errors[0]?.message ?? null;
-  }
-  return e.message ?? null;
 }
 
 const styles = StyleSheet.create({

@@ -1,8 +1,9 @@
 /**
- * AForce OS Tab Layout — 5 tabs:
+ * AForce OS Tab Layout — 6 tabs:
  *   Home    = Hydration Control Center
  *   Check   = Performance Signals
  *   Protocol= AForce Protocol
+ *   Journal = Journal
  *   Store   = AForce Shopping
  *   Profile = Profile & Settings
  */
@@ -18,6 +19,7 @@ import { Feather } from '@expo/vector-icons';
 import { Platform, StyleSheet, View } from 'react-native';
 import { Colors } from '@/theme/colors';
 import { DEMO_MODE } from '@/services/demoMode';
+import { TAB_BAR_HEIGHT } from '@/constants/layout';
 import { useTranslation } from 'react-i18next';
 
 function NativeTabLayout() {
@@ -69,7 +71,7 @@ function ClassicTabLayout() {
           borderTopWidth: 1,
           borderTopColor: Colors.border.subtle,
           elevation: 0,
-          height: isWeb ? 84 : undefined,
+          height: isWeb ? TAB_BAR_HEIGHT : undefined,
         },
         tabBarBackground: () =>
           isIOS ? (

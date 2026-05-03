@@ -23,6 +23,7 @@ export const DEFAULT_FLAGS: FeatureFlags = {
 
   // Hardware
   phantom_wearable_enabled: false,
+  ring_enabled: false,
 
   // Future
   kids_world_enabled: false,
@@ -50,6 +51,7 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
   guardian_body_map_enabled: true,
   guardian_alerts_enabled: true,
   phantom_wearable_enabled: true,
+  ring_enabled: true,
   kids_world_enabled: false,
   city_competition_enabled: true,
   state_competition_enabled: true,
