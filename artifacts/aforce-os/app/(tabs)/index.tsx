@@ -30,6 +30,7 @@ import { GradientBackground } from '@/components/GradientBackground';
 import { CycleSuccessOverlay } from '@/components/CycleSuccessOverlay';
 import { ScoreBreakdownSheet } from '@/components/ScoreBreakdownSheet';
 import { SocialModeSheet } from '@/components/SocialModeSheet';
+import { CommandConsole } from '@/components/home/CommandConsole';
 import { OnboardingOverlay } from '@/components/OnboardingOverlay';
 import { VoiceButton } from '@/components/VoiceButton';
 import { VoiceOverlay } from '@/components/VoiceOverlay';
@@ -287,24 +288,13 @@ function ScoreDrivenBody({
         </View>
       </View>
 
-      {/* 8 — AI Coach · Live */}
-      <View
-        style={[styles.coachCard, { borderColor: `${status.color.primary}33` }]}
-        testID="home-ai-coach"
-      >
-        <View style={styles.coachHeader}>
-          <View style={[styles.coachDot, { backgroundColor: status.color.primary }]} />
-          <Text style={styles.coachEyebrow}>AI COACH · LIVE</Text>
-          {voiceCoachEnabled && (
-            <View style={styles.voiceBadge}>
-              <Feather name="volume-2" size={10} color={Colors.text.secondary} />
-              <Text style={styles.voiceBadgeText}>VOICE</Text>
-            </View>
-          )}
-        </View>
-        <Text style={styles.commandText}>
-          {engine.command?.action ?? status.command}
-        </Text>
+      {/* 8 — AI Coach · Live (CommandConsole = AICommandCard + Voice Engine status) */}
+      <View style={styles.coachWrapper} testID="home-ai-coach">
+        <CommandConsole
+          command={engine.command}
+          performanceState={engine.performanceState}
+          accentOverride={displayed?.primary}
+        />
       </View>
 
       {/* 9 — Live Signals strip (Heat Guard + Social Mode) */}
@@ -699,41 +689,10 @@ const styles = StyleSheet.create({
     color: Colors.text.primary,
   },
 
-  coachCard: {
-    borderWidth: 1,
-    borderRadius: 12,
-    padding: 16,
-    backgroundColor: 'rgba(255,255,255,0.02)',
-  },
-  coachHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 8,
-  },
-  coachDot: { width: 8, height: 8, borderRadius: 4 },
-  coachEyebrow: {
-    fontFamily: 'Inter_700Bold',
-    fontSize: 10,
-    color: Colors.text.secondary,
-    letterSpacing: 2.5,
-    flex: 1,
-  },
-  voiceBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 8,
-    backgroundColor: 'rgba(255,255,255,0.05)',
-  },
-  voiceBadgeText: {
-    fontFamily: 'Inter_700Bold',
-    fontSize: 9,
-    color: Colors.text.secondary,
-    letterSpacing: 1.4,
-  },
+  // CommandConsole brings its own marginHorizontal: 20 — negate the
+  // surrounding scrollContent padding so the card stretches edge-to-edge
+  // like the other premium cards.
+  coachWrapper: { marginHorizontal: -20, marginTop: 20 },
 
   voiceFab: { position: 'absolute', right: 20, alignItems: 'flex-end' },
 
