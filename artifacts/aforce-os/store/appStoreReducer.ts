@@ -182,6 +182,20 @@ export function reducer(state: AppState, action: Action): AppState {
         engineOutput,
       };
     }
+    case 'SET_NOTIFICATION_SETTING': {
+      const { key, value } = action.payload;
+      return {
+        ...state,
+        notificationSettings: { ...state.notificationSettings, [key]: value },
+      };
+    }
+    case 'SET_NOTIFICATION_SETTINGS':
+      return { ...state, notificationSettings: action.payload };
+    case 'ADD_HISTORY_ENTRY': {
+      // De-dupe by id so a re-seeded synthetic baseline never doubles up.
+      const filtered = state.history.filter((h) => h.id !== action.payload.id);
+      return { ...state, history: [action.payload, ...filtered].slice(0, 30) };
+    }
     default:
       return state;
   }

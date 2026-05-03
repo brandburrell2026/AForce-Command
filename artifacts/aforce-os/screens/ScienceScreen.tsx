@@ -198,6 +198,33 @@ export function ScienceScreen() {
             )}
           </Pressable>
 
+          <View style={styles.compareCard}>
+            <Text style={styles.compareTitle}>FORMULA COMPARISON</Text>
+            <Text style={styles.compareSub}>How AForce&apos;s engine compares to the field standard at a glance.</Text>
+            <View style={styles.compareTable}>
+              <View style={styles.compareHeaderRow}>
+                <Text style={[styles.compareCell, styles.compareHeaderCell, { flex: 1.2 }]}>METRIC</Text>
+                <Text style={[styles.compareCell, styles.compareHeaderCell]}>AFORCE</Text>
+                <Text style={[styles.compareCell, styles.compareHeaderCell]}>STANDARD</Text>
+              </View>
+              {[
+                { metric: 'Sweat rate',         aforce: 'Multi-source + scale',   standard: 'Pre/post weight only' },
+                { metric: 'Sodium target',      aforce: '4 bands + heat adj.',    standard: 'Single 500 mg avg.' },
+                { metric: 'Heat risk',          aforce: 'Rothfusz + recheck',      standard: 'Static "warm/hot"' },
+                { metric: 'BAC estimate',       aforce: 'Widmark + meal corr.',    standard: 'None in hydration apps' },
+                { metric: 'Recovery overlay',   aforce: 'HRV + RHR + sleep',      standard: 'Sleep hours only' },
+                { metric: 'Per-event impact',   aforce: 'Split immediate/delayed', standard: 'Flat add-to-bucket' },
+                { metric: 'Streak math',        aforce: '06:00–22:00 + 0.6 SDT',   standard: 'Calendar-day binary' },
+              ].map((row) => (
+                <View key={row.metric} style={styles.compareBodyRow}>
+                  <Text style={[styles.compareCell, styles.compareCellMetric, { flex: 1.2 }]}>{row.metric}</Text>
+                  <Text style={[styles.compareCell, styles.compareCellAforce]}>{row.aforce}</Text>
+                  <Text style={[styles.compareCell, styles.compareCellStandard]}>{row.standard}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+
           {SECTIONS.map((s) => (
             <View key={s.id} style={styles.card} testID={`science-section-${s.id}`}>
               <View style={styles.sectionTopRow}>
@@ -348,4 +375,30 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter_400Regular', fontSize: 11, color: Colors.text.muted,
     textAlign: 'center', fontStyle: 'italic',
   },
+  compareCard: {
+    backgroundColor: Colors.fill.light,
+    borderRadius: 14, borderWidth: 1, borderColor: Colors.border.subtle,
+    padding: 16, gap: 8,
+  },
+  compareTitle: {
+    fontFamily: 'Inter_700Bold', fontSize: 11, color: Colors.text.primary, letterSpacing: 1.8,
+  },
+  compareSub: {
+    fontFamily: 'Inter_400Regular', fontSize: 12, color: Colors.text.secondary, lineHeight: 17, marginBottom: 4,
+  },
+  compareTable: { borderRadius: 8, overflow: 'hidden', borderWidth: 1, borderColor: Colors.border.subtle },
+  compareHeaderRow: {
+    flexDirection: 'row', backgroundColor: Colors.fill.medium,
+    paddingVertical: 8, paddingHorizontal: 10,
+  },
+  compareBodyRow: {
+    flexDirection: 'row',
+    paddingVertical: 8, paddingHorizontal: 10,
+    borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: Colors.border.subtle,
+  },
+  compareCell: { flex: 1, fontFamily: 'Inter_500Medium', fontSize: 11, color: Colors.text.primary },
+  compareHeaderCell: { fontFamily: 'Inter_700Bold', fontSize: 9, color: Colors.text.muted, letterSpacing: 1.2 },
+  compareCellMetric: { color: Colors.text.primary, fontFamily: 'Inter_600SemiBold' },
+  compareCellAforce: { color: Colors.states.PEAK.primary, fontFamily: 'Inter_600SemiBold' },
+  compareCellStandard: { color: Colors.text.secondary },
 });

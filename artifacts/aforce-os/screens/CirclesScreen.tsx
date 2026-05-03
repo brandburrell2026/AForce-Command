@@ -18,6 +18,7 @@ import {
 import { useCircleSubscription } from '@/hooks/useCircleSubscription';
 import CircleUserCard from '@/components/CircleUserCard';
 import CircleChallengeCard from '@/components/CircleChallengeCard';
+import { useEngineSlice } from '@/store/slices';
 
 const GROUPS: { id: CircleGroup | 'all'; label: string }[] = [
   { id: 'all',     label: 'ALL' },
@@ -41,6 +42,22 @@ export const CirclesScreen: React.FC = () => {
   );
   const challenges = React.useMemo(() => listChallenges(), [v]);
   const pending = React.useMemo(() => listPending(), [v]);
+
+  // CIRCLE PULSE — surface the highest-scoring friend across the full
+  // circle (not just the current group filter) plus the user's own
+  // score so the comparison is always meaningful. Drives the headline
+  // card above OPEN CHALLENGES per the polish spec.
+  const engine = useEngineSlice();
+  const userScore = engine.score;
+  const pulseLeader = React.useMemo(() => {
+    const all = getCircleFeed();
+    if (all.length === 0) return null;
+    return all.reduce((best, cur) => (cur.score > best.score ? cur : best), all[0]!);
+  }, [v]);
+  const pulseDelta = pulseLeader ? pulseLeader.score - userScore : 0;
+  const pulseColor = pulseDelta > 0
+    ? Colors.states.RECOVERING.primary
+    : Colors.states.PEAK.primary;
 
   return (
     <View style={[styles.root, { paddingTop: insets.top + 8 }]}>
@@ -108,6 +125,44 @@ export const CirclesScreen: React.FC = () => {
         contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 32 }]}
         showsVerticalScrollIndicator={false}
       >
+        {pulseLeader && (
+          <View style={styles.section}>
+            <Text style={styles.sectionLabel}>CIRCLE PULSE</Text>
+            <Pressable
+              onPress={() => router.push(`/circles/${pulseLeader.userId}`)}
+              style={({ pressed }) => [styles.pulseCard, pressed && { opacity: 0.85 }]}
+              testID="circle-pulse-card"
+            >
+              <View style={styles.pulseHeaderRow}>
+                <View style={[styles.pulseDot, { backgroundColor: pulseColor }]} />
+                <Text style={styles.pulseEyebrow}>TOP IN CIRCLE</Text>
+                <Text style={[styles.pulseDelta, { color: pulseColor }]}>
+                  {pulseDelta > 0 ? `+${pulseDelta}` : pulseDelta < 0 ? `${pulseDelta}` : 'TIED'}
+                </Text>
+              </View>
+              <Text style={styles.pulseName} numberOfLines={1}>{pulseLeader.user.name}</Text>
+              <View style={styles.pulseScoresRow}>
+                <View style={styles.pulseScoreCol}>
+                  <Text style={styles.pulseScoreLabel}>THEM</Text>
+                  <Text style={[styles.pulseScoreVal, { color: pulseColor }]}>{pulseLeader.score}</Text>
+                </View>
+                <View style={styles.pulseScoreSeparator} />
+                <View style={styles.pulseScoreCol}>
+                  <Text style={styles.pulseScoreLabel}>YOU</Text>
+                  <Text style={styles.pulseScoreVal}>{userScore}</Text>
+                </View>
+              </View>
+              <Text style={styles.pulseHint}>
+                {pulseDelta > 0
+                  ? 'Tap to see what they\'re doing differently.'
+                  : pulseDelta < 0
+                    ? 'You\'re leading the circle right now — keep the rhythm.'
+                    : 'Dead even. One AForce stick decides the day.'}
+              </Text>
+            </Pressable>
+          </View>
+        )}
+
         {challenges.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionLabel}>OPEN CHALLENGES</Text>
@@ -216,6 +271,26 @@ const styles = StyleSheet.create({
   },
   emptyCtaText: { color: Colors.text.inverse, fontSize: 11, letterSpacing: 2, fontWeight: '700' },
   hint: { color: Colors.text.muted, fontSize: 13 },
+  pulseCard: {
+    padding: 16, borderRadius: 16,
+    borderWidth: 1, borderColor: Colors.border.subtle,
+    backgroundColor: Colors.background.card,
+    gap: 8,
+  },
+  pulseHeaderRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  pulseDot: { width: 6, height: 6, borderRadius: 3 },
+  pulseEyebrow: { flex: 1, color: Colors.text.muted, fontSize: 9, letterSpacing: 1.6, fontWeight: '700' },
+  pulseDelta: { fontSize: 11, letterSpacing: 1, fontWeight: '700' },
+  pulseName: { color: Colors.text.primary, fontSize: 15, fontWeight: '600' },
+  pulseScoresRow: {
+    flexDirection: 'row', alignItems: 'center', gap: 16,
+    marginTop: 4,
+  },
+  pulseScoreCol: { alignItems: 'flex-start' },
+  pulseScoreSeparator: { width: 1, height: 28, backgroundColor: Colors.border.subtle },
+  pulseScoreLabel: { color: Colors.text.muted, fontSize: 9, letterSpacing: 1.4, fontWeight: '700' },
+  pulseScoreVal: { color: Colors.text.primary, fontSize: 26, fontFamily: 'Inter_700Bold', marginTop: 2 },
+  pulseHint: { color: Colors.text.muted, fontSize: 11, lineHeight: 15, marginTop: 4 },
 });
 
 export default CirclesScreen;

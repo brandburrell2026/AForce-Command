@@ -336,7 +336,35 @@ export interface HistoryEntry {
   action: string;
   unitsTaken: number;
   fluidType?: FluidType;
+  /**
+   * True for the synthetic baseline entry seeded on the first
+   * `confirmStatus()` call so the journal chart has a "yesterday" anchor.
+   * Excluded from PDF exports and the Protocol screen command history.
+   */
+  isSynthetic?: boolean;
 }
+
+// ─── Notifications (Settings) ─────────────────────────────────────────────────
+export interface NotificationSettings {
+  recheckReminders: boolean;
+  scoreDecayAlerts: boolean;
+  morningKickoff: boolean;
+  circleActivity: boolean;
+  challengeDeadlines: boolean;
+  lowInventoryAlert: boolean;
+}
+
+export const DEFAULT_NOTIFICATION_SETTINGS: NotificationSettings = {
+  recheckReminders: true,
+  scoreDecayAlerts: true,
+  morningKickoff: true,
+  circleActivity: false,
+  challengeDeadlines: true,
+  lowInventoryAlert: false,
+};
+
+/** Key-of helper so the store + UI can iterate / address toggles by name. */
+export type NotificationSettingKey = keyof NotificationSettings;
 
 // ─── Profile / Subscription ───────────────────────────────────────────────────
 export interface UserProfile {

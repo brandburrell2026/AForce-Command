@@ -18,7 +18,10 @@ import type {
   ProviderSnapshot,
   ProviderBiometrics,
   ScoreEngineOutput,
+  NotificationSettings,
+  NotificationSettingKey,
 } from '../types';
+import { DEFAULT_NOTIFICATION_SETTINGS } from '../types';
 import type { UserSubscription } from '../types/subscription';
 import type { SweatAutopilot } from '../types/sweat';
 import type { HealthProviderId } from '../data/healthProviders';
@@ -90,7 +93,27 @@ const initialState: AppState = {
   subscription: defaultSubscription(),
   lastIntakeBurstAt: 0,
   hasSeenOnboarding: false,
+  notificationSettings: DEFAULT_NOTIFICATION_SETTINGS,
 };
+
+/**
+ * Seed a synthetic baseline history entry when no real cycles exist yet.
+ * Stamped to "yesterday" so day-1 users see a populated journal day card
+ * instead of a stark empty state. Marked with `isSynthetic: true` so
+ * downstream consumers (Insights, Streak Math) can opt out.
+ */
+function buildSyntheticBaselineEntry(level: 'PEAK' | 'BALANCED' | 'RECOVERING' | 'DEPLETED', score: number): HistoryEntry {
+  const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000);
+  return {
+    id: 'synthetic-baseline',
+    timestamp: yesterday,
+    score,
+    state: level,
+    action: 'Baseline reading — start logging to replace this synthetic snapshot.',
+    unitsTaken: 0,
+    isSynthetic: true,
+  };
+}
 
 interface AppContextValue {
   state: AppState;
@@ -186,6 +209,9 @@ interface AppContextValue {
    */
   voiceScope: VoiceScope;
   setVoiceScope: (next: VoiceScope) => void;
+  /** Persisted notification preferences + setter. */
+  notificationSettings: NotificationSettings;
+  setNotificationSetting: (key: NotificationSettingKey, value: boolean) => void;
   /**
    * Investor Demo overlay flag. Cinematic 60-second scripted flow that
    * walks through every Voice Engine state in sequence. Lives entirely
@@ -199,6 +225,7 @@ const VOICE_COACH_KEY = 'aforce.voiceCoachEnabled';
 const SELECTED_VOICE_KEY = 'aforce.selectedVoiceId';
 const VOICE_INTENSITY_KEY = 'aforce.voiceIntensity';
 const VOICE_SCOPE_KEY = 'aforce.voiceScope';
+const NOTIFICATION_SETTINGS_KEY = 'aforce.notificationSettings';
 
 const VOICE_INTENSITIES: ReadonlySet<VoiceIntensity> = new Set(['calm', 'standard', 'pressure']);
 const VOICE_SCOPES: ReadonlySet<VoiceScope> = new Set(['all', 'risk', 'commands', 'muted']);
@@ -870,6 +897,60 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     AsyncStorage.setItem(VOICE_SCOPE_KEY, next).catch(() => {});
   }, []);
 
+  // Hydrate persisted notification settings on mount; ignore corrupt
+  // payloads so a forward-incompat key change can't brick the toggles.
+  useEffect(() => {
+    AsyncStorage.getItem(NOTIFICATION_SETTINGS_KEY)
+      .then((raw) => {
+        if (!raw) return;
+        try {
+          const parsed = JSON.parse(raw) as Partial<NotificationSettings>;
+          if (parsed && typeof parsed === 'object') {
+            dispatch({
+              type: 'SET_NOTIFICATION_SETTINGS',
+              payload: { ...DEFAULT_NOTIFICATION_SETTINGS, ...parsed },
+            });
+          }
+        } catch {
+          // ignore malformed payload
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const setNotificationSetting = useCallback((key: NotificationSettingKey, value: boolean) => {
+    dispatch({ type: 'SET_NOTIFICATION_SETTING', payload: { key, value } });
+    // Persist the merged shape so reload always restores every toggle.
+    const next = { ...state.notificationSettings, [key]: value };
+    AsyncStorage.setItem(NOTIFICATION_SETTINGS_KEY, JSON.stringify(next)).catch(() => {});
+  }, [state.notificationSettings]);
+
+  // Seed a synthetic baseline history entry on first mount so the
+  // Hydration Journal day card shows a populated yesterday row instead
+  // of stark emptiness for brand-new users. The entry is marked
+  // `isSynthetic` so downstream consumers (Insights, Streak Math) can
+  // opt out. Real cycles always replace it via ADD_HISTORY_ENTRY id de-dupe.
+  const baselineSeededRef = useRef(false);
+  useEffect(() => {
+    if (baselineSeededRef.current) return;
+    if (state.history.some((h) => !h.isSynthetic)) {
+      baselineSeededRef.current = true;
+      return;
+    }
+    if (state.history.some((h) => h.id === 'synthetic-baseline')) {
+      baselineSeededRef.current = true;
+      return;
+    }
+    baselineSeededRef.current = true;
+    const level = state.engineOutput.performanceState.level;
+    const score = state.engineOutput.score;
+    dispatch({
+      type: 'ADD_HISTORY_ENTRY',
+      payload: buildSyntheticBaselineEntry(level, score),
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Hydrate persisted subscription on mount.
   useEffect(() => {
     AsyncStorage.getItem('aforce.subscription')
@@ -974,7 +1055,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     selectedVoiceId, setSelectedVoiceId,
     voiceIntensity, setVoiceIntensity,
     voiceScope, setVoiceScope,
-  }), [state, logIntake, completeCycle, snooze, dismissSuccess, updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags, setSubscription, completeOnboarding, setAppleHealthSnapshot, setProviderBiometrics, confirmCommand, setLanguage, activateSocialMode, logSocialDrink, confirmSocialHydration, deactivateSocialMode, setSocialContext, setSweatAutopilot, voiceCoachEnabled, setVoiceCoachEnabled, selectedVoiceId, setSelectedVoiceId, voiceIntensity, setVoiceIntensity, voiceScope, setVoiceScope, isInvestorDemoActive, setInvestorDemoActive]);
+    notificationSettings: state.notificationSettings, setNotificationSetting,
+  }), [state, logIntake, completeCycle, snooze, dismissSuccess, updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags, setSubscription, completeOnboarding, setAppleHealthSnapshot, setProviderBiometrics, confirmCommand, setLanguage, activateSocialMode, logSocialDrink, confirmSocialHydration, deactivateSocialMode, setSocialContext, setSweatAutopilot, voiceCoachEnabled, setVoiceCoachEnabled, selectedVoiceId, setSelectedVoiceId, voiceIntensity, setVoiceIntensity, voiceScope, setVoiceScope, isInvestorDemoActive, setInvestorDemoActive, setNotificationSetting]);
 
   // Stable actions value for the sliced ActionsContext — same callbacks
   // as `value` minus `state`, so action consumers don't re-render when
@@ -985,7 +1067,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setSubscription, completeOnboarding, setAppleHealthSnapshot, setProviderBiometrics, confirmCommand, setLanguage,
     activateSocialMode, logSocialDrink, confirmSocialHydration, deactivateSocialMode, setSocialContext,
     setSweatAutopilot,
-  }), [logIntake, completeCycle, snooze, dismissSuccess, updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags, setSubscription, completeOnboarding, setAppleHealthSnapshot, setProviderBiometrics, confirmCommand, setLanguage, activateSocialMode, logSocialDrink, confirmSocialHydration, deactivateSocialMode, setSocialContext, setSweatAutopilot]);
+    setNotificationSetting,
+  }), [logIntake, completeCycle, snooze, dismissSuccess, updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags, setSubscription, completeOnboarding, setAppleHealthSnapshot, setProviderBiometrics, confirmCommand, setLanguage, activateSocialMode, logSocialDrink, confirmSocialHydration, deactivateSocialMode, setSocialContext, setSweatAutopilot, setNotificationSetting]);
 
   return (
     <AppContext.Provider value={value}>

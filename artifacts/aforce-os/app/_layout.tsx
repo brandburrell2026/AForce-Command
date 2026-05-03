@@ -53,6 +53,7 @@ function RootLayoutNav() {
       <Stack.Screen name="cruise" options={{ headerShown: false, presentation: 'card' }} />
       <Stack.Screen name="ring" options={{ headerShown: false, presentation: 'card' }} />
       <Stack.Screen name="ring/session" options={{ headerShown: false, presentation: 'card' }} />
+      <Stack.Screen name="notifications" options={{ headerShown: false, presentation: 'card' }} />
     </Stack>
   );
 }

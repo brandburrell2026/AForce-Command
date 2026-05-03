@@ -329,6 +329,21 @@ export default function ProfileScreen() {
                       ios_backgroundColor={Colors.fill.medium}
                     />
                   </View>
+                  <Divider />
+                  <Pressable
+                    onPress={() => router.push('/notifications')}
+                    testID="profile-notifications-link"
+                    style={styles.settingRow}
+                  >
+                    <View style={styles.settingLeft}>
+                      <Icon name="sliders" size={16} color={Colors.states.BALANCED.primary} />
+                      <View>
+                        <Text style={styles.settingLabel}>Notification Preferences</Text>
+                        <Text style={styles.settingSubLabel}>Score alerts · Risk timer · Recovery · Reorder</Text>
+                      </View>
+                    </View>
+                    <Icon name="chevron-right" size={16} color={Colors.text.muted} />
+                  </Pressable>
                 </View>
               </>
             );

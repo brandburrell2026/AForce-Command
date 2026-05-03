@@ -12,6 +12,8 @@ import type {
   HistoryEntry,
   FeatureFlags,
   ProviderSnapshot,
+  NotificationSettings,
+  NotificationSettingKey,
 } from '../types';
 import type { UserSubscription } from '../types/subscription';
 import type { SweatAutopilot } from '../types/sweat';
@@ -39,6 +41,8 @@ export interface AppState {
   sweatAutopilot?: SweatAutopilot | null;
   /** Epoch ms when sweatAutopilot was set — drives the recovery window. */
   sweatAutopilotSetAt?: number | null;
+  /** User-facing notification preferences (persisted to AsyncStorage). */
+  notificationSettings: NotificationSettings;
 }
 
 export type Action =
@@ -83,4 +87,7 @@ export type Action =
   | {
       type: 'CONFIRM_COMMAND';
       payload: { newUserState: UserState; engineOutput: ScoreEngineOutput };
-    };
+    }
+  | { type: 'SET_NOTIFICATION_SETTING'; payload: { key: NotificationSettingKey; value: boolean } }
+  | { type: 'SET_NOTIFICATION_SETTINGS'; payload: NotificationSettings }
+  | { type: 'ADD_HISTORY_ENTRY'; payload: HistoryEntry };

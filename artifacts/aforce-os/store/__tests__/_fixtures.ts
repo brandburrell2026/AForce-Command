@@ -14,6 +14,7 @@ import type {
   FeatureFlags,
 } from '../../types';
 import type { UserSubscription } from '../../types/subscription';
+import { DEFAULT_NOTIFICATION_SETTINGS } from '../../types';
 
 export const FIXED_NOW = new Date('2026-04-22T12:00:00Z').getTime();
 
@@ -131,6 +132,7 @@ export function makeState(overrides: Partial<AppState> = {}): AppState {
     subscription: baseSubscription,
     lastIntakeBurstAt: 0,
     hasSeenOnboarding: false,
+    notificationSettings: DEFAULT_NOTIFICATION_SETTINGS,
     ...overrides,
   };
 }

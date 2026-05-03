@@ -53,6 +53,40 @@ export default function HydrationScanScreen() {
   const [logging, setLogging] = useState(false);
   const [manualQuery, setManualQuery] = useState('');
   const [cameraOpen, setCameraOpen] = useState(false);
+
+  // Success flash overlay — fires after a successful log, fades a PEAK
+  // tint over the screen, plays a Success haptic, and pops back to Home
+  // ~800ms later. Per spec §11: 20% PEAK over 300ms + Haptics.Success
+  // then router.back() at 800ms so the user gets a satisfying confirmation
+  // moment before returning to the dashboard.
+  const flashOpacity = useSharedValue(0);
+  const flashStyle = useAnimatedStyle(() => ({ opacity: flashOpacity.value }));
+  // Track the pending router.back() so a manual back-nav (or unmount)
+  // mid-flash can clear it and avoid a phantom navigation on a
+  // disposed component.
+  const flashTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    return () => {
+      if (flashTimeoutRef.current !== null) {
+        clearTimeout(flashTimeoutRef.current);
+        flashTimeoutRef.current = null;
+      }
+    };
+  }, []);
+  const triggerSuccessFlash = useCallback(() => {
+    flashOpacity.value = withSequence(
+      withTiming(0.2, { duration: 300, easing: Easing.out(Easing.cubic) }),
+      withTiming(0, { duration: 500, easing: Easing.in(Easing.cubic) }),
+    );
+    if (Platform.OS !== 'web') {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+    }
+    if (flashTimeoutRef.current !== null) clearTimeout(flashTimeoutRef.current);
+    flashTimeoutRef.current = setTimeout(() => {
+      flashTimeoutRef.current = null;
+      router.back();
+    }, 800);
+  }, [flashOpacity, router]);
   const postScanMut = usePostScan();
   const { data: serverScans } = useScanHistory(20);
 
@@ -175,6 +209,7 @@ export default function HydrationScanScreen() {
     setLogging(true);
     try {
       await logIntake(fluid);
+      triggerSuccessFlash();
     } finally {
       setLogging(false);
     }
@@ -188,6 +223,7 @@ export default function HydrationScanScreen() {
     setLogging(true);
     try {
       await logIntake(fluid);
+      triggerSuccessFlash();
     } finally {
       setLogging(false);
     }
@@ -399,6 +435,9 @@ export default function HydrationScanScreen() {
           )}
         </ScrollView>
       </GradientBackground>
+      {/* Success flash overlay — pointerEvents='none' so it never blocks
+          taps mid-fade. Tinted PEAK so a successful log feels rewarded. */}
+      <Animated.View pointerEvents="none" style={[styles.flashOverlay, flashStyle]} />
 
       <CameraScanModal
         visible={cameraOpen}
@@ -435,6 +474,10 @@ function formatRelativeTime(iso: string): string {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: Colors.background.primary },
+  flashOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: Colors.states.PEAK.primary,
+  },
   content: { paddingHorizontal: 20, gap: 14 },
 
   historyCard: {
