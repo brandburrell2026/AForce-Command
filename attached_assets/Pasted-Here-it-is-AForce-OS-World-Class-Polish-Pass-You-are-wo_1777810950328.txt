@@ -1,0 +1,431 @@
+Here it is:
+
+---
+
+**AForce OS — World Class Polish Pass**
+
+You are working on an Expo Router app at `artifacts/aforce-os/app/`. Implement the following fixes and features in priority order. Do not change any scoring engine logic, route structure, or visual design system unless explicitly instructed below.
+
+---
+
+## 1. Fix "Your area," location display
+
+In `components/home/HomeHeader.tsx` (or wherever the location string renders on the home screen):
+
+- If the resolved location string is `"Your area,"` or ends with a trailing comma, strip the comma: render `"Your area"` cleanly
+- If location permission was not granted or the value is null/empty, render `"Location off"` in the same muted style
+- If a real city resolves (e.g. `"Miami, FL"`), render it as-is
+- Never render a trailing comma under any circumstance
+
+---
+
+## 2. Validate the LIVE badge
+
+In `components/home/HomeHeader.tsx` (or wherever the status strip renders):
+
+The LIVE badge with heart rate should only appear if at least one of the following is true:
+- Apple Health is connected AND `appleSnapshot` is non-null AND `appleSnapshot.fetchedAt` is within the last 30 minutes
+- A connected device (Apple Watch, Oura Ring) is present in `mockUserProfile.connectedDevices` AND the snapshot is fresh
+
+If neither condition is met, hide the LIVE badge and the BPM value entirely. Show nothing rather than a mock value with a LIVE badge.
+
+Add a helper:
+```ts
+// utils/isLiveData.ts
+export function isLiveData(fetchedAt: number | null | undefined): boolean {
+  if (!fetchedAt) return false;
+  return Date.now() - fetchedAt < 30 * 60 * 1000;
+}
+```
+
+---
+
+## 3. Cold start onboarding flow
+
+Create a new screen `screens/OnboardingFlowScreen.tsx`. This is a stepped guided flow shown only on first launch (before `hasSeenOnboarding` is true). It replaces the existing `OnboardingOverlay` modal.
+
+**Steps — render as a paginated full-screen flow, one step per page:**
+
+**Step 1 — Welcome**
+- Headline: "Your performance OS."
+- Subtext: "AForce tracks your hydration state in real time and tells you exactly what to do."
+- CTA: "Let's build your baseline →"
+
+**Step 2 — Body weight**
+- Headline: "How much do you weigh?"
+- Input: numeric, lbs, pre-filled with `mockUserProfile.bodyWeightLbs`
+- Subtext: "Used to calculate your exact fluid and electrolyte targets."
+- CTA: "Continue →"
+
+**Step 3 — Wake time**
+- Headline: "When do you wake up?"
+- Input: time picker, pre-filled with `mockUserProfile.wakeTimeHHMM`
+- Subtext: "Sets your daily hydration window."
+- CTA: "Continue →"
+
+**Step 4 — First urine signal**
+- Headline: "Check your hydration signal."
+- Render the same 8-tile urine color scale from the Check screen
+- Subtext: "Pick the color that matches right now."
+- CTA: "Continue →"
+
+**Step 5 — First intake**
+- Headline: "Log your first intake."
+- Render the same LOG INTAKE picker (water + AForce products)
+- Subtext: "This starts your first cycle."
+- CTA: "Log and see my score →"
+
+**Step 6 — Score reveal**
+- Run `confirmStatus()` on mount
+- Show the orb with the resulting score, animated in from 50 upward
+- Headline below orb: "Your baseline is set."
+- Subtext: "AForce will track your state from here."
+- CTA: "Enter AForce OS →" → calls `completeOnboarding()` and navigates to `/(tabs)`
+
+**Progress indicator:** small dots at the top showing current step. Allow back navigation on steps 2–5. Do not allow skipping step 4 or 5.
+
+**Starting score:** On step 6, if `confirmStatus()` returns a score below 50, display the score but add a reassurance line: `"You're starting depleted — your first intake will move this up."` Do not hide the real score.
+
+Update `app/(tabs)/index.tsx` to show `OnboardingFlowScreen` instead of `OnboardingOverlay` when `!hasSeenOnboarding`.
+
+---
+
+## 4. Seed a baseline snapshot on first Confirm Status
+
+In the store action for `confirmStatus`, before writing the new history entry, check if `state.history.length === 0`. If so, prepend a synthetic yesterday entry:
+
+```ts
+const baseline: HistoryEntry = {
+  id: 'baseline-synthetic',
+  timestamp: Date.now() - 24 * 60 * 60 * 1000,
+  score: Math.max(currentScore - 8, 20),
+  state: derivedPerformanceState,
+  action: 'Baseline — first check-in',
+  isSynthetic: true,
+};
+```
+
+Add `isSynthetic?: boolean` to the `HistoryEntry` type. This entry should appear in the journal chart but be excluded from PDF exports and from the command history list in the Protocol screen.
+
+---
+
+## 5. Score Breakdown — add "Next move" coaching
+
+In `components/ScoreBreakdownSheet.tsx`, add a "NEXT MOVE" section at the bottom of the sheet, below all the factor rows.
+
+**Logic for the next move string:**
+
+```ts
+function getNextMove(score: number, recencyMinutes: number, ozRemaining: number): string {
+  if (recencyMinutes > 40) {
+    return `Log an intake now — your recency score is decaying. +12–18 points available.`;
+  }
+  if (ozRemaining > 24) {
+    return `Drink ${Math.min(ozRemaining, 24)} oz before your next recheck to hit your daily target.`;
+  }
+  if (score < 50) {
+    return `Take 1 AForce Stick + 20 oz water immediately to exit Depleted.`;
+  }
+  if (score < 75) {
+    return `You're 1–2 intakes from Peak. Log within the next 30 minutes.`;
+  }
+  return `Hold the line. Log your next intake within 45 minutes to maintain Peak.`;
+}
+```
+
+Where:
+- `recencyMinutes` = minutes since last intake log
+- `ozRemaining` = `userState.dailyTarget * 12 - userState.ozConsumedToday` (or equivalent field names)
+
+Render this as a card at the bottom of the sheet with:
+- Label: `NEXT MOVE` in the same eyebrow style as other section labels
+- The string in `Inter_600SemiBold` 14px primary text
+- A subtle green/teal left border accent (`Colors.states.PEAK.primary`)
+
+---
+
+## 6. Journal chart — intake event tick marks
+
+In `screens/JournalScreen.tsx` (or wherever the chart is rendered):
+
+Below the chart's x-axis, render a row of small vertical tick marks at the x-positions corresponding to intake log events for the selected time period. Each tick should be:
+- 1px wide, 8px tall
+- Color: `Colors.states.PEAK.primary` (green) for AForce product intakes
+- Color: `rgba(255,255,255,0.3)` (muted white) for plain water intakes
+- 4px gap below the x-axis line
+
+On tap of a tick, show a small tooltip: `"[Product name] · [oz] oz · [time]"`
+
+This visually shows the user the correlation between their intake events and score movement.
+
+---
+
+## 7. Journal — day card "best window" and "today's lesson"
+
+In the day card component inside `screens/JournalScreen.tsx`:
+
+**Remove:**
+- "Time per band" section
+- Band percentage tags (e.g. "Depleted 100%")
+
+**Add after the sodium balance row:**
+
+```
+Best window    [time range]     (omit if no snapshot above score 50)
+Today's lesson [one coaching line]
+```
+
+**Best window logic:**
+Find the snapshot with the highest score for that day. The window is a 2-hour range centered on that snapshot's timestamp. Format: `"1:30 PM – 3:30 PM"`. If only one snapshot exists, use a 1-hour window. If no snapshot exceeds 50, omit this row.
+
+**Today's lesson logic:**
+```ts
+function getTodaysLesson(avgScore: number, compliance: number, intakeCount: number): string {
+  if (intakeCount === 0) return "Log your next intake to activate protocol tracking";
+  if (avgScore < 50) return "Increase fluid intake — aim for your daily oz target before 6 PM";
+  if (avgScore < 75 && compliance < 80) return "Tighten your intake timing to hold the Balanced window longer";
+  if (avgScore < 75 && compliance >= 80) return "You're consistent — push intake volume to break into Peak";
+  return "Strong day. Maintain this intake pattern tomorrow";
+}
+```
+
+Keep Autopilot and Social mode tags at the bottom of the card unchanged.
+
+---
+
+## 8. Journal — hide zero-data day cards
+
+Do not render a day card if that day has `intakeCount === 0 AND snapshotCount === 0`. Show nothing for that day in the list. If all days in the period are empty, show the existing empty state.
+
+---
+
+## 9. Store — always show a contextual recommendation
+
+In `screens/StoreScreen.tsx`, the "RECOMMENDED FOR YOU" card should always render, not only when depleted. Update the recommendation logic:
+
+```ts
+function getStoreRecommendation(state: PerformanceState, lastProduct: string | null): StoreRec {
+  if (state === 'DEPLETED') return {
+    product: 'Soursop Edge + Sea Moss',
+    action: 'Take 1 now.',
+    reason: 'You are trending depleted.',
+  };
+  if (state === 'RECOVERING') return {
+    product: 'Berry Blast + Dulse',
+    action: 'Take 1 in the next 30 min.',
+    reason: 'Antioxidant push accelerates recovery.',
+  };
+  if (state === 'BALANCED') return {
+    product: 'Watermelon Surge + Chlorella',
+    action: 'Maintain your current window.',
+    reason: 'Chlorella supports sustained output.',
+  };
+  if (state === 'PEAK') return {
+    product: lastProduct ?? 'Berry Blast + Dulse',
+    action: 'Keep doing what you\'re doing.',
+    reason: 'You\'re at peak — stay on this product.',
+  };
+  return {
+    product: 'AForce Stick',
+    action: 'Start your first cycle.',
+    reason: 'Build your baseline today.',
+  };
+}
+```
+
+The card should always be visible and always reflect current state.
+
+---
+
+## 10. Circles — daily Circle Pulse
+
+In `screens/CirclesScreen.tsx`, add a "CIRCLE PULSE" card at the top of the screen, above Open Challenges:
+
+```
+CIRCLE PULSE                               LIVE
+──────────────────────────────────────────────
+[Friend name] hit [score] this morning.
+You're [gap] points behind. Your next intake closes the gap.
+```
+
+**Logic:**
+- Find the friend in the user's circle with the highest score today
+- `gap` = that friend's score minus the user's current score
+- If the user is already ahead of all friends: `"You're leading your circle. [Friend name] is [gap] points behind."`
+- If no friends have logged today: `"No circle activity yet today. Be the first to log."`
+
+Style: same card style as other cards in the screen, with a small pulsing green dot on the LIVE label (CSS animation, opacity 1 → 0.4 → 1, 2s loop).
+
+---
+
+## 11. Push notification configuration screen
+
+Create `screens/NotificationSettingsScreen.tsx` and add a route at `app/notifications.tsx` that exports it.
+
+The screen should have a back button (→ Profile) and contain toggle rows for:
+
+| Setting | Default | Description |
+|---|---|---|
+| Recheck reminders | ON | Fire when the recheck timer hits 0 |
+| Score decay alerts | ON | Fire when score drops a full band |
+| Morning protocol kickoff | ON | Fire at wake time + 15 min |
+| Circle activity | OFF | Friend logs, challenges issued |
+| Challenge deadlines | ON | 1 hour before a challenge expires |
+| Low inventory alert | OFF | When tracked product count hits 0 |
+
+Store these settings in the app store under `state.notificationSettings`. Each toggle calls a `setNotificationSetting(key, value)` action.
+
+Add a link to this screen in `app/(tabs)/profile.tsx` under the GOALS section:
+
+```tsx
+<Pressable onPress={() => router.push('/notifications')} style={styles.settingRow}>
+  <View style={styles.settingLeft}>
+    <Icon name="bell" size={16} color={Colors.states.BALANCED.primary} />
+    <View>
+      <Text style={styles.settingLabel}>Notifications</Text>
+      <Text style={styles.settingSubLabel}>Recheck · decay · protocol · challenges</Text>
+    </View>
+  </View>
+  <Icon name="chevron-right" size={16} color={Colors.text.muted} />
+</Pressable>
+```
+
+Add the screen to the root stack in `app/_layout.tsx`:
+```tsx
+<Stack.Screen name="notifications" options={{ headerShown: false, presentation: 'card' }} />
+```
+
+---
+
+## 12. Science screen — formula comparison table
+
+In `screens/ScienceScreen.tsx`, add a "FORMULA COMPARISON" section after the existing content:
+
+Add a scrollable horizontal table comparing AForce against 4 competitors on 6 dimensions:
+
+| Dimension | AForce | Liquid IV | LMNT | Gatorade | Nuun |
+|---|---|---|---|---|---|
+| Sodium (mg) | 25 | 500 | 1000 | 270 | 300 |
+| Sugar (g) | 0 | 11 | 0 | 21 | 1 |
+| Marine minerals | ✓ | ✗ | ✗ | ✗ | ✗ |
+| pH alkaline | 8.8 | ~7 | ~7 | ~3 | ~6 |
+| Trace minerals | 72 | 0 | 0 | 0 | 0 |
+| Synthetic dyes | ✗ | ✓ | ✗ | ✓ | ✓ |
+
+Style:
+- AForce column header highlighted with `Colors.states.PEAK.primary` border
+- ✓ in green (`Colors.states.PEAK.primary`), ✗ in muted (`Colors.text.muted`)
+- AForce values that are best-in-class shown in green
+- Horizontal scroll on mobile since 6 columns won't fit
+- Add a footnote: `"Sources: manufacturer nutrition labels, 2024. pH values approximate."`
+
+---
+
+## 13. Accessibility — secondary signals for color-coded states
+
+In `components/home/OrbSection.tsx` and anywhere a performance state badge renders:
+
+Add a small icon alongside every color-coded state label so color-blind users have a secondary signal:
+
+| State | Icon (Feather) | Color |
+|---|---|---|
+| PEAK | `zap` | green |
+| BALANCED | `check-circle` | teal |
+| RECOVERING | `refresh-cw` | amber |
+| DEPLETED | `alert-triangle` | red |
+
+The icon should appear to the left of the state text label, 12px, same color as the text. This applies to: the home screen status badge, the Protocol stage card, the Journal day card state badge, and the Clutch/Guardian tier tags.
+
+---
+
+## 14. HydroScan post-log animation
+
+In `screens/HydrationScanScreen.tsx`, after the user taps "LOG [PRODUCT NAME]":
+
+1. Show a full-screen success flash: background briefly transitions to `Colors.states.PEAK.primary` at 20% opacity for 300ms then fades out
+2. Trigger `Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)`
+3. Navigate back to home after 800ms
+4. The home screen orb should animate upward to the new score (this likely happens automatically if the store updates correctly — verify it does)
+
+Do not show a separate confirmation modal. The flash + haptic + score movement IS the confirmation.
+
+---
+
+## 15. Offline mode indicator
+
+In `app/_layout.tsx` or a top-level component mounted in `AppShell`, add a network state listener:
+
+```ts
+import NetInfo from '@react-native-community/netinfo';
+```
+
+If `NetInfo` is not already installed, add it. When the network state is offline:
+- Show a persistent thin banner at the very top of the screen (below the status bar, above all content): `"Offline — intakes are queued and will sync when connected"`
+- Banner background: `Colors.background.elevated`, text: `Colors.text.muted`, height: 28px
+- Banner dismisses automatically when connectivity returns
+
+When offline, intake log actions should still write to local store state normally — they will sync on reconnect. Add a `isPendingSync: boolean` flag to intake log entries so the sync layer can identify them later.
+
+---
+
+## Type and store updates required
+
+The following additions are needed to support the above — make these changes before implementing the features that depend on them:
+
+**`types/index.ts`:**
+```ts
+// Add to HistoryEntry:
+isSynthetic?: boolean;
+
+// Add new type:
+interface NotificationSettings {
+  recheckReminders: boolean;
+  scoreDecayAlerts: boolean;
+  morningKickoff: boolean;
+  circleActivity: boolean;
+  challengeDeadlines: boolean;
+  lowInventoryAlert: boolean;
+}
+
+// Add isPendingSync to intake log entries if that type exists
+```
+
+**`store/useAppStore.ts`:**
+```ts
+// Add to AppState:
+notificationSettings: NotificationSettings;
+
+// Add action:
+setNotificationSetting: (key: keyof NotificationSettings, value: boolean) => void;
+
+// Default value:
+notificationSettings: {
+  recheckReminders: true,
+  scoreDecayAlerts: true,
+  morningKickoff: true,
+  circleActivity: false,
+  challengeDeadlines: true,
+  lowInventoryAlert: false,
+}
+```
+
+---
+
+## Do not:
+- Change the scoring engine logic
+- Modify any existing route names
+- Change the visual design system (Colors, fonts, spacing constants)
+- Alter the Clutch or Guardian screens
+- Touch auth screens
+- Modify the tab bar layout
+
+## After all changes:
+1. Run `npx tsc --noEmit` — must pass with zero errors
+2. Verify the app renders on home, check, protocol, journal, store, and profile tabs without crashes
+3. Verify onboarding flow completes and sets `hasSeenOnboarding = true`
+4. Verify the journal renders correctly with zero data, sparse data, and full data
+5. Verify the offline banner appears and disappears correctly when toggling airplane mode
+
+---
+
+That's the full pass. If Replit hits context limits, implement in this order: 1 → 2 → 5 → 9 → 3 → 14 → 6 → 7 → 10 → 11 → 12 → 13 → 15 → 4. Items 1, 2, 5, and 9 are the highest-impact changes relative to their implementation complexity.
