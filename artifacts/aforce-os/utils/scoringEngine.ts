@@ -271,22 +271,112 @@ function computeConfirmationDelta(state: UserState): number {
 }
 
 function buildPrediction(score: number, decayPerMinute: number): ScorePrediction {
+  // System-language prediction copy (Performance Command Engine spec).
+  // Reads as telemetry: decisive, time-bound, no soft hedging.
   if (score <= 40) {
-    return { decayPerMinute, minutesToDepleted: 0, label: 'Already in DEPLETED zone' };
+    return { decayPerMinute, minutesToDepleted: 0, label: 'Performance compromised. Correction required.' };
   }
   if (decayPerMinute <= 0) {
-    return { decayPerMinute, minutesToDepleted: null, label: 'Holding stable — no decay' };
+    return { decayPerMinute, minutesToDepleted: null, label: 'System holding. No decay detected.' };
   }
   const minutes = Math.max(1, Math.round((score - 40) / decayPerMinute));
   if (minutes >= 240) {
-    return { decayPerMinute, minutesToDepleted: minutes, label: `4+ hours to DEPLETED (${decayPerMinute.toFixed(2)} pts/min)` };
+    return { decayPerMinute, minutesToDepleted: minutes, label: `Stable. Degradation outside 4-hour window.` };
   }
   if (minutes >= 60) {
     const h = Math.floor(minutes / 60);
     const m = minutes % 60;
-    return { decayPerMinute, minutesToDepleted: minutes, label: `Drops to DEPLETED in ${h}h ${m}m` };
+    return { decayPerMinute, minutesToDepleted: minutes, label: `Performance degradation in ${h}h ${m}m.` };
   }
-  return { decayPerMinute, minutesToDepleted: minutes, label: `Drops to DEPLETED in ${minutes} min` };
+  return { decayPerMinute, minutesToDepleted: minutes, label: `Performance degradation in ${minutes} min. Correction required.` };
+}
+
+// ─── Context-aware explanation overlay ────────────────────────────────────────
+/**
+ * Performance Command Engine — composes the final coach explanation by
+ * stacking the band-specific base copy with up to two context-aware
+ * overlays (heat / time-of-day / pattern / no-action consequence).
+ *
+ * Inputs are pure (state + score + decayPerMinute + level); no React,
+ * no UI dependencies. Returns a single space-joined string the existing
+ * AICommandCard can render unchanged.
+ *
+ * Order is intentional — base first, then immediate context (heat,
+ * gap), then pattern reinforcement (streak, late-night), then the
+ * "if you do nothing" consequence as the closer. We cap at three
+ * overlays so the card never overflows its 2-3 line slot.
+ */
+function composeExplanation(
+  base: string,
+  state: UserState,
+  score: number,
+  decayPerMinute: number,
+  level: PerformanceLevel,
+  socialActive: boolean,
+  minutesSinceLast: number,
+): string {
+  // Social Mode owns its own copy lane — its commands are highly
+  // context-tuned (impairment, transportation, recovery window) and
+  // appending generic heat/streak overlays would dilute the safety
+  // signal. Skip overlays when social rollup is active.
+  if (socialActive) return base;
+
+  const parts: string[] = [base];
+  let overlays = 0;
+  const MAX_OVERLAYS = 2;
+
+  // Heat — single highest-priority context modifier. Two tiers so
+  // copy escalates with depletion rate.
+  if (overlays < MAX_OVERLAYS) {
+    if (state.heatLoad >= 8) {
+      parts.push(i18n.t('coach.context_heat_high'));
+      overlays++;
+    } else if (state.heatLoad >= 6) {
+      parts.push(i18n.t('coach.context_heat_elevated'));
+      overlays++;
+    }
+  }
+
+  // Late-night recovery window (10 PM – 5 AM). Skip at PEAK so we
+  // don't tell a perfectly-hydrated user they're in a recovery
+  // window for no reason.
+  if (overlays < MAX_OVERLAYS && level !== 'PEAK') {
+    const hour = new Date().getHours();
+    if (hour >= 22 || hour < 5) {
+      parts.push(i18n.t('coach.context_late_night'));
+      overlays++;
+    }
+  }
+
+  // Pattern: compliance streak — only surfaced when the system is
+  // actually performing (PEAK/BALANCED) so it lands as positive
+  // reinforcement, not a contrast against a critical command.
+  if (
+    overlays < MAX_OVERLAYS &&
+    state.complianceStreak >= 4 &&
+    (level === 'PEAK' || level === 'BALANCED')
+  ) {
+    parts.push(i18n.t('coach.pattern_streak', { count: state.complianceStreak }));
+    overlays++;
+  }
+
+  // No-action consequence — projects 30 minutes ahead. Only fires
+  // when the projected drop is meaningful (≥5 pts) and we're already
+  // trending down. Used sparingly per spec ("to maintain impact").
+  if (
+    overlays < MAX_OVERLAYS &&
+    decayPerMinute > 0.05 &&
+    (level === 'RECOVERING' || level === 'DEPLETED')
+  ) {
+    const minutesAhead = 30;
+    const projected = Math.max(0, Math.round(score - decayPerMinute * minutesAhead));
+    if (projected <= score - 5) {
+      parts.push(i18n.t('coach.consequence_drop', { projected, minutes: minutesAhead }));
+      overlays++;
+    }
+  }
+
+  return parts.join(' ');
 }
 
 /**
@@ -719,6 +809,21 @@ export function calculateScore(userState: UserState): ScoreEngineOutput {
   const social = buildSocialRollup(userState);
   const command = generateCommand(level, userState, score, social);
   const prediction = buildPrediction(score, decayPerMinute);
+
+  // Performance Command Engine overlay — fold context (heat / time-of-day),
+  // pattern recognition (streak), and no-action consequence into the
+  // existing explanation field so the AICommandCard renders the upgraded
+  // intelligence without any UI changes.
+  const minutesSinceLast = minutesSince(userState.lastIntakeTime);
+  command.explanation = composeExplanation(
+    command.explanation,
+    userState,
+    score,
+    decayPerMinute,
+    level,
+    !!social && (social.active || social.inRecoveryWindow),
+    minutesSinceLast,
+  );
 
   return { score, performanceState, pulseConfig, reasons, riskTimer, command, breakdown: contributions, prediction, social };
 }

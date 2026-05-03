@@ -1,0 +1,242 @@
+Upgrade the AForce OS AI Coach into a world-class Performance Command Engine.
+
+CRITICAL CONSTRAINT:
+DO NOT change any visual design, layout, spacing, or styling.
+DO NOT modify UI components, colors, or structure.
+
+This task is ONLY about upgrading:
+- Intelligence
+- Logic
+- Copy
+- System behavior
+
+-----------------------------------
+GOAL
+-----------------------------------
+
+Transform AI Coach from a static instruction layer into a real-time, predictive performance system.
+
+It must feel:
+- Alive
+- Context-aware
+- Decisive
+- System-driven (not conversational, not chatbot)
+
+-----------------------------------
+1. CORE SYSTEM MODEL
+-----------------------------------
+
+AI Coach must operate on this loop:
+
+Score → Risk → Command → Action → Impact → Reset
+
+Every output must follow this logic.
+
+-----------------------------------
+2. PREDICTIVE INTELLIGENCE (ADD)
+-----------------------------------
+
+AI Coach must anticipate future state, not just react.
+
+Add prediction logic:
+
+- Estimate time until next score drop
+- Detect risk acceleration (heat, inactivity, alcohol, time since last intake)
+
+Examples:
+“At your current pace, score will drop below 50 in 38 minutes.”
+“Heat conditions accelerating depletion.”
+
+Do NOT make this verbose.
+Keep it sharp and system-like.
+
+-----------------------------------
+3. RISK TIMER (ADD)
+-----------------------------------
+
+Add a live countdown value inside AI Coach logic:
+
+- Time until performance degradation
+- Time until recovery window closes
+
+Examples:
+“Performance degradation in 18:42”
+“Recovery window active for 32 minutes”
+
+This must update dynamically based on inputs.
+
+-----------------------------------
+4. COMMAND ENGINE (UPGRADE)
+-----------------------------------
+
+All commands must be:
+
+- Immediate
+- Specific
+- Measurable
+
+Replace vague instructions with:
+
+“Drink 16 oz water + 1 AForce stick now.”
+NOT:
+“Stay hydrated” or “Drink water soon”
+
+Commands must always map to score state.
+
+-----------------------------------
+5. COMMAND CONFIRMATION LOOP (ADD)
+-----------------------------------
+
+When a user logs an action:
+
+AI Coach must respond with system feedback:
+
+- “Command received.”
+- “Processing…”
+- “Score increasing… +6 expected”
+- “System stabilizing.”
+
+This should happen instantly after action input.
+
+-----------------------------------
+6. IMPACT FEEDBACK (ADD)
+-----------------------------------
+
+After actions, show measurable results:
+
+- Score delta (+5, +8, etc.)
+- Risk reduction
+- Recovery extension
+
+Examples:
+“+6 hydration score”
+“Heat risk reduced”
+“Recovery window extended”
+
+This must reinforce behavior.
+
+-----------------------------------
+7. CONTEXT AWARENESS (ADD)
+-----------------------------------
+
+AI Coach must adjust based on:
+
+- Temperature (hot vs cool environments)
+- Time of day (morning vs night)
+- Time since last intake
+- Activity level (if available)
+- Social mode (if active)
+
+Examples:
+“You’re in 85°F heat — increase intake by 20%”
+“Late-night recovery window active”
+
+-----------------------------------
+8. PATTERN RECOGNITION (ADD)
+-----------------------------------
+
+Track and surface behavioral patterns:
+
+Examples:
+“You typically drop below 50 at this time.”
+“Hydration dip detected post-workout.”
+“4-day compliance streak active.”
+
+Keep it short and non-intrusive.
+
+-----------------------------------
+9. SYSTEM STATE LANGUAGE (UPGRADE)
+-----------------------------------
+
+Replace soft wellness language with performance system language.
+
+Avoid:
+- “Try to”
+- “You may want to”
+- “Consider”
+
+Use:
+- “Execute”
+- “Correct”
+- “Stabilize”
+- “Maintain”
+
+Examples:
+“Correction required.”
+“System stabilizing.”
+“Depletion risk rising.”
+
+-----------------------------------
+10. “NO ACTION” CONSEQUENCE (ADD)
+-----------------------------------
+
+Occasionally show what happens if the user ignores the command.
+
+Examples:
+“If no action is taken: score drops to 44”
+“Performance impairment likely”
+
+Use sparingly to maintain impact.
+
+-----------------------------------
+11. PRODUCT INTELLIGENCE (CRITICAL)
+-----------------------------------
+
+AI Coach must intelligently recommend:
+
+- Water vs AForce stick vs RTD
+
+Examples:
+“Water alone insufficient. Use 1 AForce stick.”
+“Maintenance mode: water only required.”
+
+This must be tied to score and context.
+
+-----------------------------------
+12. REMOVE CHATBOT BEHAVIOR
+-----------------------------------
+
+AI Coach is NOT a chatbot.
+
+DO NOT:
+- Ask questions conversationally
+- Use long explanations
+- Use casual tone
+
+ALL outputs must feel like:
+A system issuing commands.
+
+-----------------------------------
+13. DATA INTEGRATION
+-----------------------------------
+
+All logic must use:
+
+getHydrationScore(inputs)
+getStatusFromScore(score)
+generateHydrationCommand(score, inputs)
+
+Add new helper logic:
+
+predictHydrationDropTime(inputs)
+calculateRiskLevel(inputs)
+calculateCommandImpact(inputs)
+
+No hardcoded values.
+
+-----------------------------------
+FINAL RESULT
+-----------------------------------
+
+Without changing any UI:
+
+AI Coach should feel like:
+- A real-time operating system
+- A performance command center
+- A predictive intelligence engine
+
+The user should feel:
+“This system understands my state and is controlling my performance.”
+
+If it feels like a wellness app → it is wrong.
+If it feels like a system → it is correct.
