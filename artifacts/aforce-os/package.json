@@ -7,7 +7,16 @@
     "dev": "EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY=$CLERK_PUBLISHABLE_KEY EXPO_PACKAGER_PROXY_URL=https://$REPLIT_EXPO_DEV_DOMAIN EXPO_PUBLIC_DOMAIN=$REPLIT_DEV_DOMAIN EXPO_PUBLIC_REPL_ID=$REPL_ID REACT_NATIVE_PACKAGER_HOSTNAME=$REPLIT_DEV_DOMAIN pnpm exec expo start --localhost --port $PORT",
     "build": "node scripts/build.js",
     "serve": "node server/serve.js",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "eas:login": "pnpm dlx eas-cli@latest login",
+    "eas:configure": "pnpm dlx eas-cli@latest init",
+    "eas:build:dev": "pnpm dlx eas-cli@latest build --profile development --platform all",
+    "eas:build:preview": "pnpm dlx eas-cli@latest build --profile preview --platform all",
+    "eas:build:ios": "pnpm dlx eas-cli@latest build --profile production --platform ios",
+    "eas:build:android": "pnpm dlx eas-cli@latest build --profile production --platform android",
+    "eas:build:all": "pnpm dlx eas-cli@latest build --profile production --platform all",
+    "eas:submit:ios": "pnpm dlx eas-cli@latest submit --profile production --platform ios --latest",
+    "eas:submit:android": "pnpm dlx eas-cli@latest submit --profile production --platform android --latest"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
