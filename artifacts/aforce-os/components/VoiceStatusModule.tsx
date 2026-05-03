@@ -260,7 +260,7 @@ function VoiceStatusModuleImpl({ embedded = false }: VoiceStatusModuleProps) {
   // Smoothly tween the border + glow tint between bands as the score
   // crosses thresholds (300-500ms cubic ease) — color updates without
   // abrupt jumps, fully driven by the centralized status system.
-  const animated = useAnimatedStatusColor(engine.score, { pressure: isPressure });
+  const animated = useAnimatedStatusColor(liveScore, { pressure: isPressure });
 
   const cardAnimStyle = useAnimatedStyle(() => {
     // 0 = subtle resting border, 1 = full primary tint with band-spec alpha.
