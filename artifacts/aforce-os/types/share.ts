@@ -7,7 +7,7 @@
  * sheet and disappears.
  */
 
-export type ShareFormat = 'card' | 'story' | 'text';
+export type ShareFormat = 'card' | 'story' | 'text' | 'recap';
 
 export type ShareType =
   | 'score'        // "Balanced at 88"

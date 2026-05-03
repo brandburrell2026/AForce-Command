@@ -35,6 +35,7 @@ import {
   deriveJournalShareContext,
   toShareRouteParams,
 } from '@/services/journalShareContext';
+import { publishJournalShare } from '@/services/journalShareCache';
 import type { JournalRollup, JournalSnapshot, JournalTimelineEntry } from '@/types';
 import { Colors } from '@/theme/colors';
 
@@ -85,7 +86,11 @@ export default function JournalScreen() {
     // Hand the journal context off to the existing /share screen so the
     // user gets the full voice / format / platform picker. The route
     // accepts query params via Expo Router; the share screen's
-    // `parseContext` validates them.
+    // `parseContext` validates them. We ALSO publish the full rollup
+    // payload to the in-memory share cache so the Recap format on the
+    // share screen can render the actual chart + day-by-day stats
+    // (URL params can only carry the small summary headline).
+    publishJournalShare(rollups, range);
     const ctx = deriveJournalShareContext(rollups, range);
     router.push({ pathname: '/share', params: toShareRouteParams(ctx) });
   }, [rollups, range, router]);

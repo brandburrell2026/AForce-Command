@@ -36,12 +36,20 @@ import { openShareSheet, shareToSocial, buildShareItem, type SocialPlatform } fr
 import ShareCard from '@/components/ShareCard';
 import ShareStory from '@/components/ShareStory';
 import ShareText from '@/components/ShareText';
+import ShareJournalRecap from '@/components/ShareJournalRecap';
+import {
+  readJournalShare,
+  type JournalSharePayload,
+} from '@/services/journalShareCache';
 
-const FORMATS: { id: ShareFormat; label: string; icon: keyof typeof Feather.glyphMap }[] = [
+const BASE_FORMATS: { id: ShareFormat; label: string; icon: keyof typeof Feather.glyphMap }[] = [
   { id: 'card',  label: 'CARD',  icon: 'square'    },
   { id: 'story', label: 'STORY', icon: 'smartphone' },
   { id: 'text',  label: 'TEXT',  icon: 'type'      },
 ];
+const RECAP_FORMAT: { id: ShareFormat; label: string; icon: keyof typeof Feather.glyphMap } = {
+  id: 'recap', label: 'RECAP', icon: 'bar-chart-2',
+};
 
 const VOICES: { id: ShareVoice; label: string; tagline: string }[] = [
   { id: 'status',   label: 'STATUS',   tagline: 'System state' },
@@ -126,8 +134,22 @@ export const SharePreviewScreen: React.FC = () => {
 
   const broadcasts = React.useMemo(() => generateBroadcasts(voice, ctx), [voice, ctx]);
   const [variantIdx, setVariantIdx] = React.useState(0);
-  const [format, setFormat] = React.useState<ShareFormat>('card');
+  // Journal payload is read once on mount. When present we expose the
+  // RECAP format option AND default the picker to it, so a user who
+  // taps "Share to Social" on the Journal screen lands on a card that
+  // shows their actual chart + stats — not a generic identity headline.
+  const [journalPayload] = React.useState<JournalSharePayload | null>(() => readJournalShare());
+  const formats = React.useMemo(
+    () => (journalPayload ? [RECAP_FORMAT, ...BASE_FORMATS] : BASE_FORMATS),
+    [journalPayload],
+  );
+  const [format, setFormat] = React.useState<ShareFormat>(journalPayload ? 'recap' : 'card');
   const [sharing, setSharing] = React.useState(false);
+
+  // The cache self-expires via TTL (see journalShareCache.ts), which
+  // both prevents stale recap data leaking into an unrelated /share
+  // visit hours later AND survives the React 18 StrictMode dev
+  // double-mount that would otherwise wipe the payload between mounts.
   // Wraps the visual preview so we can snapshot it as a PNG for image
   // shares (Instagram, FB, Messages, etc.). Text format skips capture.
   const previewRef = React.useRef<ViewShot>(null);
@@ -239,6 +261,12 @@ export const SharePreviewScreen: React.FC = () => {
             {format === 'card'  && broadcast && <ShareCard  broadcast={broadcast} context={ctx} />}
             {format === 'story' && broadcast && <ShareStory broadcast={broadcast} context={ctx} />}
             {format === 'text'  && broadcast && <ShareText  broadcast={broadcast} />}
+            {format === 'recap' && journalPayload && (
+              <ShareJournalRecap
+                rollups={journalPayload.rollups}
+                rangeDays={journalPayload.rangeDays}
+              />
+            )}
           </ViewShot>
         </View>
 
@@ -313,7 +341,7 @@ export const SharePreviewScreen: React.FC = () => {
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>FORMAT</Text>
           <View style={styles.formatRow}>
-            {FORMATS.map((f) => {
+            {formats.map((f) => {
               const active = f.id === format;
               return (
                 <Pressable
