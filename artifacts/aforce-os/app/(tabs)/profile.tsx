@@ -523,6 +523,57 @@ export default function ProfileScreen() {
                             </View>
                           )}
                         </Pressable>
+                        {p.id === 'whoop' && linked && (() => {
+                          // Pitch-demo "live" panel for WHOOP. Numbers come
+                          // straight from DEMO_PROVIDER_SNAPSHOTS.whoop —
+                          // same payload the score engine consumes — so what
+                          // the user sees here matches what's moving the orb.
+                          // Swaps to a real OAuth-backed snapshot in v1.1.
+                          const snap = buildDemoSnapshot('whoop');
+                          if (!snap) return null;
+                          return (
+                            <View
+                              style={[
+                                styles.snapshotBlock,
+                                {
+                                  backgroundColor: `${p.brand}10`,
+                                  borderColor: `${p.brand}33`,
+                                },
+                              ]}
+                            >
+                              <View style={styles.snapshotHeader}>
+                                <Text style={[styles.snapshotLabel, { color: p.brand }]}>
+                                  LIVE FROM WHOOP
+                                </Text>
+                                <Text style={[styles.snapshotLabel, { color: Colors.text.muted }]}>
+                                  CYCLE · TODAY
+                                </Text>
+                              </View>
+                              <View style={styles.snapshotGrid}>
+                                <SnapshotCell
+                                  label="Strain"
+                                  value={snap.strain != null ? snap.strain.toFixed(1) : '—'}
+                                />
+                                <SnapshotCell
+                                  label="Recovery"
+                                  value={snap.recoveryPct != null ? `${Math.round(snap.recoveryPct)}%` : '—'}
+                                />
+                                <SnapshotCell
+                                  label="Sleep"
+                                  value={
+                                    snap.sleepHoursLastNight != null
+                                      ? `${snap.sleepHoursLastNight.toFixed(1)} h`
+                                      : '—'
+                                  }
+                                />
+                                <SnapshotCell
+                                  label="Status"
+                                  value="Feeding score"
+                                />
+                              </View>
+                            </View>
+                          );
+                        })()}
                         {p.id === 'apple_health' && linked && appleSnapshot && (
                           <View style={styles.snapshotBlock}>
                             <View style={styles.snapshotHeader}>
