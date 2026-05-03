@@ -28,6 +28,7 @@ import type { Command } from '../types';
 import { Colors } from '../theme/colors';
 import { getStatusColor } from '../theme/statusColor';
 import { useAppStore } from '../store/useAppStore';
+import { useDisplayedAccent } from '../hooks/useDisplayedAccent';
 import { speak, stopSpeaking } from '../services/textToSpeech';
 import { buildVideoCoachLine } from '../services/videoCoachVoice';
 
@@ -307,10 +308,14 @@ export function AIVideoPlayer({ video, command, compact = true, timerSeconds, sc
   // saturation, glow, and voice-bar tempo.
   const { voiceIntensity } = useAppStore();
   const isPressure = voiceIntensity === 'pressure';
-  const resolvedScore = score ?? levelToFallbackScore(video.themeLevel);
+  // Subscribe to the in-flight tweened accent so this card flips hue on
+  // the same frame the orb does. Falls back to the static band color
+  // when no provider is mounted (e.g. fullscreen overlay outside Home).
+  const displayed = useDisplayedAccent();
+  const resolvedScore = displayed?.displayedScore ?? score ?? levelToFallbackScore(video.themeLevel);
   const status = getStatusColor(resolvedScore, { pressure: isPressure });
-  const accent = status.primary;
-  const glow = status.glow;
+  const accent = displayed?.primary ?? status.primary;
+  const glow = displayed?.glow ?? status.glow;
   const speedMultiplier = status.animationSpeed;
 
   // Progress bar (loops video duration)

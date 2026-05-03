@@ -41,6 +41,7 @@ import { Colors } from '../theme/colors';
 import { getStatusColor } from '../theme/statusColor';
 import { useAnimatedStatusColor } from '../hooks/useAnimatedStatusColor';
 import { useEngineSlice } from '../store/slices';
+import { useDisplayedAccent } from '../hooks/useDisplayedAccent';
 import { useAppStore } from '../store/useAppStore';
 import {
   BRAND_LANGUAGE,
@@ -154,14 +155,19 @@ function VoiceStatusModuleImpl({ embedded = false }: VoiceStatusModuleProps) {
     return () => clearInterval(id);
   }, []);
 
-  const band = scoreBand(engine.score);
+  // Subscribe to the in-flight tweened accent so this card flips hue on
+  // the same frame the orb does. Falls back to the engine's static
+  // band color when no provider is mounted (e.g. unit tests).
+  const displayed = useDisplayedAccent();
+  const liveScore = displayed?.displayedScore ?? engine.score;
+  const band = scoreBand(liveScore);
   const bandLabel = BAND_LABELS[band];
 
   // Centralized status color — single source of truth for every accent
   // on this card. Pressure Mode amplifies saturation + glow + tempo.
   const isPressure = voiceIntensity === 'pressure';
-  const statusColor = getStatusColor(engine.score, { pressure: isPressure });
-  const bandAccent = statusColor.primary;
+  const statusColor = getStatusColor(liveScore, { pressure: isPressure });
+  const bandAccent = displayed?.primary ?? statusColor.primary;
 
   const isLive = voiceCoachEnabled && voiceScope !== 'muted';
   const visual = lifecycleVisual(playback, isLive, voiceCoachEnabled, bandAccent);
