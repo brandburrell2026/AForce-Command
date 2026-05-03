@@ -378,3 +378,9 @@ id = "tX3tjbGbnBmz8ht0gtFLP"
 uri = "file://design/aforce-design-tokens.md"
 type = "text"
 title = "AForce Design Tokens — Figma Spec"
+
+[[outputs]]
+id = "bPprApyiCNdQuL405oI9-"
+uri = "file://design/aforce-tokens.json"
+type = "unspecified"
+title = "AForce Tokens — import into Tokens Studio for Figma"
