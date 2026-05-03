@@ -27,7 +27,7 @@ import {
   KeyboardAvoidingView,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter, router as globalRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import Svg, { Defs, LinearGradient as SvgLinearGradient, Polygon, Stop } from 'react-native-svg';
 
@@ -820,7 +820,13 @@ function RecoveryProtocolCard({
         <Text style={styles.cardEyebrow}>RECOVERY PROTOCOL</Text>
         <Text style={styles.protocolHeadline}>{protocol.headline}</Text>
         <Text style={styles.protocolReasoning}>{protocol.reasoning}</Text>
-        <Pressable style={styles.restockBtn} accessibilityRole="button">
+        <Pressable
+          style={styles.restockBtn}
+          accessibilityRole="button"
+          accessibilityLabel="Restock AForce — open the AForce shop"
+          testID="recovery-restock-cta"
+          onPress={() => globalRouter.push('/(tabs)/store')}
+        >
           <Feather name="shopping-bag" size={14} color={Colors.text.inverse} />
           <Text style={styles.restockBtnText}>Restock AForce</Text>
         </Pressable>
