@@ -31,6 +31,7 @@ import { CycleSuccessOverlay } from '@/components/CycleSuccessOverlay';
 import { ScoreBreakdownSheet } from '@/components/ScoreBreakdownSheet';
 import { SocialModeSheet } from '@/components/SocialModeSheet';
 import { CommandConsole } from '@/components/home/CommandConsole';
+import { EntryActions } from '@/components/home/EntryActions';
 import { AIVideoPlayer } from '@/components/AIVideoPlayer';
 import { matchVideo } from '@/services/videoEngine';
 import { OnboardingOverlay } from '@/components/OnboardingOverlay';
@@ -335,6 +336,11 @@ function ScoreDrivenBody({
             {lastIntakeMinutes != null ? `${lastIntakeMinutes} min ago` : '—'}
           </Text>
         </View>
+      </View>
+
+      {/* Quick-action tile grid — Scan, Compete, Circles, Territory */}
+      <View style={styles.entryActionsRow}>
+        <EntryActions />
       </View>
 
       {/* Live Signals strip (Heat Guard + Social Mode) */}
@@ -806,6 +812,14 @@ const styles = StyleSheet.create({
 
   voiceFab: { position: 'absolute', right: 20, alignItems: 'flex-end' },
 
+  // Quick-action tile grid wrapper. Negative horizontal margin cancels
+  // the parent `content` 20px padding so EntryActions can apply its own
+  // 20px (matching the rest of the home rhythm) — keeps tiles flush
+  // with the metaRow / signalsRow above and below.
+  entryActionsRow: {
+    marginTop: 16,
+    marginHorizontal: -20,
+  },
   signalsRow: {
     flexDirection: 'row',
     gap: 10,
