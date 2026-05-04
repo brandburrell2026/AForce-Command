@@ -11,6 +11,7 @@ import battlesRouter from "./battles";
 import circleRouter from "./circle";
 import privacyRouter from "./privacy";
 import voiceTtsRouter from "./voiceTts";
+import designTokensRouter from "./designTokens";
 
 const router: IRouter = Router();
 
@@ -26,5 +27,6 @@ router.use("/battles", battlesRouter);
 router.use("/circle", circleRouter);
 router.use("/privacy", privacyRouter);
 router.use(voiceTtsRouter);
+router.use(designTokensRouter);
 
 export default router;
