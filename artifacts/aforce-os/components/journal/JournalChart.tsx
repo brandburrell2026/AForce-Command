@@ -7,24 +7,35 @@
  * Renders:
  *   - 4 horizontal band fills (PEAK >=85, BALANCED 65-85, RECOVERING 40-65, DEPLETED <40)
  *   - A polyline through every snapshot point
- *   - Min/Max/Avg axis labels
+ *   - Y-axis tick marks (0 / 50 / 100)
  *   - "no data" placeholder when the series is empty
+ *   - A 4-cell stat strip below the chart:
+ *       AVG SCORE   — colored to match the band the avg falls in
+ *       TREND       — ↑ / ↓ / —, derived from first-half vs second-half avg
+ *       COMPLIANCE  — `weeklyCompliancePct` + %, lime
+ *       STREAK      — `complianceStreak` + d, lime
  */
 
 import React, { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Svg, { Line, Path, Rect, Text as SvgText } from 'react-native-svg';
 import type { JournalSnapshot } from '@/types';
+import { Colors } from '@/theme/colors';
 
 interface Props {
   data: JournalSnapshot[];
   width: number;
   height?: number;
+  /** % of recent days the user met their hydration target (0..100). */
+  weeklyCompliancePct: number;
+  /** Consecutive days the user met their target. */
+  complianceStreak: number;
 }
 
 const PADDING = { top: 12, right: 16, bottom: 22, left: 32 };
 const SCORE_MIN = 0;
 const SCORE_MAX = 100;
+const TREND_THRESHOLD = 3; // points of avg-delta to count as ↑ / ↓
 
 // Band thresholds aligned with the PerformanceState bands used by the
 // scoring engine.
@@ -35,13 +46,27 @@ const BANDS = [
   { from: 0, to: 40, color: 'rgba(255, 45, 85, 0.10)' },
 ];
 
-export default function JournalChart({ data, width, height = 200 }: Props) {
+/** Map a score (0..100) to the matching state-band color. */
+function scoreBandColor(score: number): string {
+  if (score >= 85) return Colors.states.PEAK.primary;
+  if (score >= 65) return Colors.states.BALANCED.primary;
+  if (score >= 40) return Colors.states.RECOVERING.primary;
+  return Colors.states.DEPLETED.primary;
+}
+
+export default function JournalChart({
+  data,
+  width,
+  height = 200,
+  weeklyCompliancePct,
+  complianceStreak,
+}: Props) {
   const innerW = Math.max(40, width - PADDING.left - PADDING.right);
   const innerH = Math.max(40, height - PADDING.top - PADDING.bottom);
 
-  const { points, pathD, avg, minScore, maxScore } = useMemo(() => {
+  const { pathD, avg, trendDiff } = useMemo(() => {
     if (data.length === 0) {
-      return { points: [] as { x: number; y: number; s: JournalSnapshot }[], pathD: '', avg: 0, minScore: 0, maxScore: 0 };
+      return { pathD: '', avg: 0, trendDiff: 0 };
     }
     const ts = data.map((d) => new Date(d.at).getTime());
     const tMin = ts[0];
@@ -51,19 +76,27 @@ export default function JournalChart({ data, width, height = 200 }: Props) {
     const xy = data.map((d, i) => {
       const x = PADDING.left + ((ts[i] - tMin) / tSpan) * innerW;
       const y = PADDING.top + (1 - (d.score - SCORE_MIN) / (SCORE_MAX - SCORE_MIN)) * innerH;
-      return { x, y, s: d };
+      return { x, y };
     });
     const dStr = xy
       .map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x.toFixed(1)},${p.y.toFixed(1)}`)
       .join(' ');
     const sumScore = data.reduce((acc, d) => acc + d.score, 0);
-    return {
-      points: xy,
-      pathD: dStr,
-      avg: Math.round(sumScore / data.length),
-      minScore: Math.min(...data.map((d) => d.score)),
-      maxScore: Math.max(...data.map((d) => d.score)),
-    };
+    const avgScore = Math.round(sumScore / data.length);
+
+    // Trend: first-half avg vs second-half avg.
+    const mid = Math.floor(data.length / 2);
+    let trend = 0;
+    if (data.length >= 2 && mid > 0) {
+      const firstHalf = data.slice(0, mid);
+      const secondHalf = data.slice(mid);
+      const firstAvg =
+        firstHalf.reduce((a, d) => a + d.score, 0) / firstHalf.length;
+      const secondAvg =
+        secondHalf.reduce((a, d) => a + d.score, 0) / secondHalf.length;
+      trend = secondAvg - firstAvg;
+    }
+    return { pathD: dStr, avg: avgScore, trendDiff: trend };
   }, [data, innerH, innerW]);
 
   if (data.length === 0) {
@@ -77,6 +110,19 @@ export default function JournalChart({ data, width, height = 200 }: Props) {
   // Map a score (0..100) to its y coordinate.
   const yFor = (score: number) =>
     PADDING.top + (1 - (score - SCORE_MIN) / (SCORE_MAX - SCORE_MIN)) * innerH;
+
+  const trendSymbol = trendDiff > TREND_THRESHOLD ? '↑'
+    : trendDiff < -TREND_THRESHOLD ? '↓'
+    : '—';
+  const trendColor = trendDiff > TREND_THRESHOLD
+    ? Colors.states.PEAK.primary
+    : trendDiff < -TREND_THRESHOLD
+      ? Colors.states.DEPLETED.primary
+      : Colors.text.secondary;
+
+  const avgColor = scoreBandColor(avg);
+  const compliancePctClamped = Math.max(0, Math.min(100, Math.round(weeklyCompliancePct)));
+  const streakClamped = Math.max(0, Math.round(complianceStreak));
 
   return (
     <View style={{ width }}>
@@ -126,20 +172,20 @@ export default function JournalChart({ data, width, height = 200 }: Props) {
       </Svg>
       <View style={styles.legend}>
         <Text style={styles.legendCell}>
-          <Text style={styles.legendK}>AVG </Text>
-          <Text style={styles.legendV}>{avg}</Text>
+          <Text style={styles.legendK}>AVG SCORE </Text>
+          <Text style={[styles.legendV, { color: avgColor }]}>{avg}</Text>
         </Text>
         <Text style={styles.legendCell}>
-          <Text style={styles.legendK}>MIN </Text>
-          <Text style={styles.legendV}>{minScore}</Text>
+          <Text style={styles.legendK}>TREND </Text>
+          <Text style={[styles.legendV, { color: trendColor }]}>{trendSymbol}</Text>
         </Text>
         <Text style={styles.legendCell}>
-          <Text style={styles.legendK}>MAX </Text>
-          <Text style={styles.legendV}>{maxScore}</Text>
+          <Text style={styles.legendK}>COMPLIANCE </Text>
+          <Text style={[styles.legendV, { color: Colors.states.PEAK.primary }]}>{compliancePctClamped}%</Text>
         </Text>
         <Text style={styles.legendCell}>
-          <Text style={styles.legendK}>N </Text>
-          <Text style={styles.legendV}>{points.length}</Text>
+          <Text style={styles.legendK}>STREAK </Text>
+          <Text style={[styles.legendV, { color: Colors.states.PEAK.primary }]}>{streakClamped}d</Text>
         </Text>
       </View>
     </View>
@@ -173,7 +219,6 @@ const styles = StyleSheet.create({
     letterSpacing: 0.6,
   },
   legendV: {
-    color: '#B6FF00',
     fontFamily: 'Inter_700Bold',
     letterSpacing: 0.4,
   },

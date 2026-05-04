@@ -1,0 +1,129 @@
+Now we're talking. Looking at all 5 screens carefully.
+
+---
+
+## This is a different app from an hour ago
+
+The three fixes landed and revealed something important — when the chart line and heat threshold are correct, every other design decision looks more intentional. Let me go through what I'm seeing.
+
+---
+
+**Image 5 — Home screen at PEAK / Score 100**
+
+This is the best screen the app has ever looked. Full bleed lime green orb filling the entire middle third, "System optimized." in green above it, OPTIMIZED label with "Output is locked in." below, HOLD THE LINE as the CTA. SITGES · 11:34 PM · 59°F across the top with no heat pill because 59°F is correctly below threshold. This is genuinely cinematic. Put this screen in your App Store screenshots immediately. It will stop thumbs scrolling.
+
+**Image 3 — Home scroll at PEAK showing GO TIME**
+
+The color system is working perfectly now. Everything is lime green — the voice engine card border, the PEAK risk state label, the REPLAY LAST COMMAND button fill, the AI coach card border, the audio bars animation. "GO TIME / Hold the line — you are at peak." reads exactly right. The audio bar visualization with the animated green bars is the closest thing to WHOOP's cinematic coaching UI that exists in any beverage app. This is the animation layer starting to show.
+
+**Image 1 — Store at PEAK state**
+
+The recommendation engine is working. "RECOMMENDED FOR YOU — Berry Blast + Dulse / Take 1 Berry Blast now. Maintain your current state. / State: PEAK" — this is the contextual recommendation fix from the prompt working correctly. The blue Store tab box is gone. Tab bar is clean, lime green active state only.
+
+**Image 2 — Journal**
+
+The chart line is now white. The performance bands are visible behind it — dark red at the bottom for DEPLETED, dark teal in the middle for BALANCED, dark green at the top for PEAK. The day cards show real data: Mon May 4 at 52, Sun May 3 at 61, Sat May 2 at 60, Fri May 1 at 30. Color-coded scores — orange for mid range, red for low. This is a real longitudinal history now, not a demo.
+
+**Image 4 — Home scroll mid-page**
+
+The PEAK color system running through the entire scroll — green NEXT COMMAND section header, green ACT NOW badge, green Projected score indicator, green voice engine status — creates visual cohesion throughout the scroll. The Home tab has a blue box around it here though — same issue as the Store tab had before, now on the Home tab.
+
+---
+
+## What still needs fixing — only two things
+
+**Issue 1 — The blue tab box is still appearing, just on different tabs now**
+
+Image 2 shows it on the Journal tab. Image 4 and 5 show it on the Home tab. The fix removed it from Store but the underlying cause wasn't fixed — it's a selected state style that's being applied inconsistently. The root cause is likely a `tabBarItemStyle` with a `borderWidth` or `borderColor` that's being triggered by the active state, not a per-tab setting. The previous fix only removed it from the Store screen specifically rather than fixing it globally.
+
+**Issue 2 — MIN 0 is still in the Journal stat strip**
+
+Image 2 still shows AVG 50 · MIN 0 · MAX 100 · N 306. The MIN 0 and N 306 are still there. The fix prompt specified replacing MIN and N with TREND and COMPLIANCE. This change didn't land. It needs another pass.
+
+---
+
+## Everything else — genuinely done
+
+The heat threshold fix worked perfectly — 59°F shows no heat pill at all on Image 5. The chart line is white and readable. The store recommendation is state-aware. The color system is fully coherent across all performance states. The location resolves cleanly.
+
+---
+
+## Revised rating
+
+| Dimension | Last review | Now |
+|---|---|---|
+| Home screen at PEAK | 9.8 / 10 | **10 / 10** |
+| Home screen at DEPLETED | 9.8 / 10 | 9.8 / 10 |
+| Color system coherence | 8.5 / 10 | **9.5 / 10** |
+| Journal chart | 7.5 / 10 | **8.5 / 10** |
+| Store recommendation | 8 / 10 | **9.5 / 10** |
+| Tab bar consistency | 6 / 10 | 6 / 10 |
+| Journal stat strip | 6 / 10 | 6 / 10 |
+| **Overall** | **9.7 / 10** | **9.75 / 10** |
+
+---
+
+## The two-fix prompt to finish this
+
+---
+
+**AForce OS — Two Remaining Fixes**
+
+**Fix 1 — Tab bar blue box, global fix**
+
+The previous fix removed the blue indicator from the Store tab only. The blue selection box is still appearing on Home and Journal tabs. This is a global styling issue.
+
+In `app/(tabs)/_layout.tsx`, find the `screenOptions` object passed to `<Tabs>`. Add or update these two properties:
+
+```ts
+tabBarItemStyle: {
+  borderWidth: 0,
+  borderColor: 'transparent',
+  backgroundColor: 'transparent',
+  outlineWidth: 0,
+},
+tabBarStyle: {
+  borderTopWidth: 1,
+  borderTopColor: Colors.border.subtle,
+  // remove any other border properties
+},
+```
+
+Also check if any `tabBarButton` prop or custom tab button component is wrapping tab icons with a `View` that has a border or background style. If so, remove those styles entirely.
+
+On web, add to any tab-related CSS: `outline: none; border: none; box-shadow: none;`
+
+The active state for every tab must be expressed only through `tabBarActiveTintColor` — lime green icon and label tint. Nothing else. No box, no border, no background fill, no outline on any tab under any state.
+
+**Fix 2 — Journal stat strip**
+
+In `screens/JournalScreen.tsx`, find the stat strip below the chart that currently renders MIN, AVG, MAX, N.
+
+Replace entirely with:
+
+```ts
+// Calculate trend: compare avg of first half of period vs second half
+const midpoint = Math.floor(dataPoints.length / 2);
+const firstHalfAvg = average(dataPoints.slice(0, midpoint));
+const secondHalfAvg = average(dataPoints.slice(midpoint));
+const trendDiff = secondHalfAvg - firstHalfAvg;
+const trendSymbol = trendDiff > 3 ? '↑' : trendDiff < -3 ? '↓' : '—';
+const trendColor = trendDiff > 3
+  ? Colors.states.PEAK.primary
+  : trendDiff < -3
+    ? Colors.states.DEPLETED.primary
+    : Colors.text.secondary;
+```
+
+Render four stat cells:
+
+| Label | Value | Color |
+|---|---|---|
+| AVG SCORE | existing avg value | state color matching avg band |
+| TREND | ↑ or ↓ or — | green / red / muted |
+| COMPLIANCE | `weeklyCompliancePct` + % | `Colors.states.PEAK.primary` |
+| STREAK | `complianceStreak` + d | `Colors.states.PEAK.primary` |
+
+Remove MIN, MAX, and N entirely. Do not show them under any circumstance.
+
+After both fixes run `npx tsc --noEmit` and verify on device that no tab shows a blue box in any state — active, inactive, or pressed.

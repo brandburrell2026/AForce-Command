@@ -31,6 +31,7 @@ import JournalRangePicker, { type JournalRange } from '@/components/journal/Jour
 import JournalChart from '@/components/journal/JournalChart';
 import JournalDayCard from '@/components/journal/JournalDayCard';
 import { fetchJournalRollups, fetchJournalTimeline } from '@/services/realApi';
+import { useUserSlice } from '@/store/slices';
 import {
   deriveJournalShareContext,
   toShareRouteParams,
@@ -42,6 +43,7 @@ import { Colors } from '@/theme/colors';
 export default function JournalScreen() {
   const { t } = useTranslation();
   const router = useRouter();
+  const userState = useUserSlice();
   const [range, setRange] = useState<JournalRange>(7);
   const [timeline, setTimeline] = useState<JournalTimelineEntry[]>([]);
   const [rollups, setRollups] = useState<JournalRollup[]>([]);
@@ -81,6 +83,21 @@ export default function JournalScreen() {
   const reversedRollups = useMemo(() => [...rollups].reverse(), [rollups]);
 
   const chartWidth = Math.min(Dimensions.get('window').width - 32, 720);
+
+  // Compliance % over the visible range — a "compliant day" is one
+  // where the average score landed in BALANCED+ territory (>=65). We
+  // compute it here from the rollups (rather than reading
+  // `weeklyCompliancePct` from `deriveProtocol`) so the metric stays in
+  // sync with whatever range the user has selected (7 / 30 / 90 days).
+  const weeklyCompliancePct = useMemo(() => {
+    if (rollups.length === 0) return 0;
+    const compliantDays = rollups.filter(
+      (r) => r.snapshotsCount > 0 && r.avgScore >= 65,
+    ).length;
+    return Math.round((compliantDays / rollups.length) * 100);
+  }, [rollups]);
+
+  const complianceStreak = userState.complianceStreak ?? 0;
 
   const onShareJournal = useCallback(() => {
     // Hand the journal context off to the existing /share screen so the
@@ -179,7 +196,13 @@ export default function JournalScreen() {
               <ActivityIndicator color="#B6FF00" />
             </View>
           ) : (
-            <JournalChart data={snapshots} width={chartWidth} height={220} />
+            <JournalChart
+              data={snapshots}
+              width={chartWidth}
+              height={220}
+              weeklyCompliancePct={weeklyCompliancePct}
+              complianceStreak={complianceStreak}
+            />
           )}
         </View>
 
