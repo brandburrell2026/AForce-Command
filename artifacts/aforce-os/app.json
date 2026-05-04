@@ -9,9 +9,9 @@
     "userInterfaceStyle": "dark",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/images/icon.png",
+      "image": "./assets/images/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#050A1A"
+      "backgroundColor": "#000000"
     },
     "ios": {
       "supportsTablet": false,
@@ -29,13 +29,13 @@
       }
     },
     "android": {
-      "backgroundColor": "#050A1A",
+      "backgroundColor": "#000000",
       "package": "com.aforce.os",
       "versionCode": 1,
       "icon": "./assets/images/icon.png",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/icon.png",
-        "backgroundColor": "#050A1A"
+        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "backgroundColor": "#000000"
       },
       "permissions": [
         "android.permission.CAMERA",
@@ -44,8 +44,8 @@
       ]
     },
     "web": {
-      "favicon": "./assets/images/icon.png",
-      "backgroundColor": "#050A1A"
+      "favicon": "./assets/images/favicon.png",
+      "backgroundColor": "#000000"
     },
     "plugins": [
       [

@@ -31,6 +31,22 @@ I prefer iterative development, with frequent, small updates. Ask before making 
 - **Client-side:** `useEntitlement.ts` hook for paywall gating based on plan tier.
 - **Security:** Server-side computation for pricing, shipping, and tax; webhook signature verification.
 
+## Publishing & Distribution
+- **Build service:** Expo Application Services (EAS Build) — configured in `artifacts/aforce-os/eas.json` with `development`, `preview`, and `production` profiles.
+- **Bundle IDs:** iOS `com.aforce.os`, Android `com.aforce.os` (set in `app.json`).
+- **App icon / splash / adaptive icon:** WHOOP-cinematic branded set in `assets/images/` (`icon.png`, `splash.png`, `adaptive-icon.png`, `favicon.png`) — pure black background with WHOOP lime `#B6FF00` mark.
+- **Build commands** (run from `artifacts/aforce-os/` after `pnpm eas:login` + `pnpm eas:configure`):
+  - iOS production: `pnpm eas:build:ios`
+  - Android production: `pnpm eas:build:android`
+  - Both: `pnpm eas:build:all`
+  - Internal preview (no store submission): `pnpm eas:build:preview`
+- **Submit commands:**
+  - iOS App Store: `pnpm eas:submit:ios`
+  - Google Play (internal track): `pnpm eas:submit:android`
+- **One-time setup needed before first submit:**
+  - In `eas.json` `submit.production.ios`: replace `REPLACE_WITH_APP_STORE_CONNECT_APP_ID` and `REPLACE_WITH_APPLE_TEAM_ID` with the values from App Store Connect.
+  - For Android: place a Google Play service account JSON at `artifacts/aforce-os/google-service-account.json` (path already in `eas.json`); never commit it.
+
 ## Server Hardening
 - **Routing:** Express 5 with Zod input/output validation based on OpenAPI spec.
 - **Concurrency:** `SELECT ... FOR UPDATE` for serializing concurrent user actions.
