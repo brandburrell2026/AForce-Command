@@ -57,13 +57,13 @@ export const STATUS_BANDS: readonly StatusBandThreshold[] = [
   { band: 'OPTIMAL',   min: 85, max: 100, index: 4 },
 ] as const;
 
-/** Hex primaries — calm baseline (saturation moderate). */
+/** Hex primaries — calm baseline (WHOOP-cinematic tuned). */
 const PRIMARY: Record<StatusBand, string> = {
-  CRITICAL:  '#FF2D55', // red
+  CRITICAL:  '#FF0026', // WHOOP recovery red
   RISK:      '#FF8C1A', // orange
-  DECLINING: '#FFD60A', // amber / yellow
-  STABLE:    '#B4FF50', // lime (brand green)
-  OPTIMAL:   '#39FF14', // neon green
+  DECLINING: '#FFDE00', // WHOOP recovery yellow
+  STABLE:    '#B6FF00', // WHOOP lime (hero accent)
+  OPTIMAL:   '#16EC06', // WHOOP recovery green
 };
 
 /** Hex primaries — Pressure Mode (slightly deeper saturation). */
@@ -72,7 +72,7 @@ const PRIMARY_PRESSURE: Record<StatusBand, string> = {
   RISK:      '#FF7A00',
   DECLINING: '#FFC000',
   STABLE:    '#A0FF20',
-  OPTIMAL:   '#22FF00',
+  OPTIMAL:   '#00FF00',
 };
 
 /** Glow alpha per band — extreme bands are tighter & more intense. */

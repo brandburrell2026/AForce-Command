@@ -16,8 +16,8 @@ I prefer iterative development, with frequent, small updates. Ask before making 
 - **API Tools:** Orval for OpenAPI codegen, generating React Query hooks.
 
 ## UI/UX Decisions
-- **Color Scheme:** Brand palette including lime, teal, amber, red, Clutch teal, and Guardian purple.
-- **Design Language:** Concepts like "Performance Signals," "Hydration Signal Check," "Energy State," and "AFORCE COMMAND," utilizing a "Phantom-card" aesthetic.
+- **Color Scheme:** WHOOP-Cinematic edition — pure black `#000000` canvas, WHOOP lime `#B6FF00` hero accent, near-invisible borders, WHOOP recovery colors (green/yellow/red). Design tokens exported via `design/aforce-tokens.json` (Tokens Studio format) and human-readable `design/aforce-design-tokens.md`.
+- **Design Language:** WHOOP-cinematic dark aesthetic. Content floats on pure black. Data-forward: big numbers, small tracked labels. Soft radial glows, never hard box shadows. Generous spacing throughout.
 - **Visuals:** Stylized maps for "Territory" and smooth animations with Reanimated.
 
 ## Authentication & Identity
@@ -58,7 +58,8 @@ I prefer iterative development, with frequent, small updates. Ask before making 
 - **`store/`**: Slice-based reducer state.
 - **`utils/`**: Pure helpers.
 - **`featureFlags/`**: Feature toggles.
-- **`theme/`**: Brand colors.
+- **`theme/`**: WHOOP-Cinematic color system, typography, spacing, radii, shadows, status color engine.
+- **`design/`**: Figma design tokens (`aforce-tokens.json`) and human-readable spec (`aforce-design-tokens.md`). Download endpoint: `GET /api/design-tokens`. Design guide: `GET /api/design-guide`.
 - **`types/`**: Global type definitions.
 - **`data/`**: Mock data, product definitions, templates.
 

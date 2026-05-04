@@ -47,12 +47,12 @@ interface Props {
 // gradient stays stable even if a band's color is tweaked for legibility.
 const COLOR_STOPS_INPUT = [0, 25, 45, 65, 85, 100];
 const COLOR_STOPS_OUTPUT = [
-  "#B4FF50", // STABLE   — lime
+  "#B6FF00", // STABLE   — WHOOP lime
   "#FFC857", // ELEVATED — gold
   "#FFA01E", // WARNING  — amber
   "#FF5A1F", // HIGH     — red-orange
-  "#FF2D55", // CRITICAL — red
-  "#FF2D55",
+  "#FF0026", // CRITICAL — WHOOP recovery red
+  "#FF0026",
 ];
 
 interface ModeConfig {

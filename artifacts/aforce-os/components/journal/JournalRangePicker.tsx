@@ -58,7 +58,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   cellActive: {
-    backgroundColor: '#B4FF50',
+    backgroundColor: '#B6FF00',
   },
   label: {
     color: '#9CA3AF',

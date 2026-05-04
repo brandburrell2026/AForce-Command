@@ -93,7 +93,7 @@ export const ShareJournalRecap: React.FC<Props> = ({ rollups, rangeDays }) => {
                 />
               );
             })}
-            <Path d={pathD} stroke="#B4FF50" strokeWidth={2} fill="none" />
+            <Path d={pathD} stroke="#B6FF00" strokeWidth={2} fill="none" />
           </Svg>
         )}
       </View>
@@ -142,7 +142,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   brandRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#B4FF50' },
+  dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#B6FF00' },
   eyebrow: {
     color: Colors.text.muted,
     fontSize: 10,
@@ -158,7 +158,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.03)',
   },
   scoreBadgeText: {
-    color: '#B4FF50',
+    color: '#B6FF00',
     fontSize: 12,
     fontWeight: '700',
     letterSpacing: 1,

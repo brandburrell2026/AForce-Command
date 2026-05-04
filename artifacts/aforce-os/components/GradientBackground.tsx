@@ -1,13 +1,13 @@
 /**
- * GradientBackground — Premium dark navy to deep purple background.
- * Used as a base layer for all screens.
+ * GradientBackground — WHOOP-cinematic pure black canvas.
+ * Subtle ambient glow bleeds keep the void from feeling dead.
  */
 
 import React from 'react';
 import { View, StyleSheet, Dimensions } from 'react-native';
 import { Colors } from '../theme/colors';
 
-const { width, height } = Dimensions.get('window');
+const { height } = Dimensions.get('window');
 
 interface Props {
   children: React.ReactNode;
@@ -16,10 +16,8 @@ interface Props {
 export function GradientBackground({ children }: Props) {
   return (
     <View style={styles.container}>
-      {/* Base dark background */}
       <View style={[StyleSheet.absoluteFillObject, { backgroundColor: Colors.background.primary }]} />
 
-      {/* Top radial-like glow — simulated with circles */}
       <View style={styles.topGlow} />
       <View style={styles.midGlow} />
 
@@ -41,7 +39,7 @@ const styles = StyleSheet.create({
     width: 400,
     height: 400,
     borderRadius: 200,
-    backgroundColor: 'rgba(70, 30, 120, 0.18)',
+    backgroundColor: 'rgba(182,255,0,0.03)',
   },
   midGlow: {
     position: 'absolute',
@@ -50,6 +48,6 @@ const styles = StyleSheet.create({
     width: 320,
     height: 320,
     borderRadius: 160,
-    backgroundColor: 'rgba(20, 20, 80, 0.15)',
+    backgroundColor: 'rgba(0,147,231,0.02)',
   },
 });

@@ -139,10 +139,10 @@ function MinimalHeader({ greetingName, city, tempLabel, onShare }: HeaderProps) 
 
 const HEAT_BAND_COLOR: Record<HeatRiskBand, string> = {
   STABLE: Colors.text.secondary,
-  ELEVATED: '#FFD60A',
+  ELEVATED: '#FFDE00',
   WARNING: '#FF8C1A',
-  HIGH_RISK: '#FF2D55',
-  CRITICAL: '#FF2D55',
+  HIGH_RISK: '#FF0026',
+  CRITICAL: '#FF0026',
 };
 const HEAT_BAND_LABEL: Record<HeatRiskBand, string> = {
   STABLE: 'STABLE',

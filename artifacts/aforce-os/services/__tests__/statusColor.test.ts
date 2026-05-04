@@ -89,11 +89,11 @@ describe('getStatusBand — exact boundary mapping', () => {
 
 describe('getStatusColor — calm baseline', () => {
   it('returns brand spec hex per band', () => {
-    expect(getStatusColor(95).primary).toBe('#39FF14');  // OPTIMAL neon green
-    expect(getStatusColor(78).primary).toBe('#B4FF50');  // STABLE brand lime
-    expect(getStatusColor(60).primary).toBe('#FFD60A');  // DECLINING amber
+    expect(getStatusColor(95).primary).toBe('#16EC06');  // OPTIMAL WHOOP recovery green
+    expect(getStatusColor(78).primary).toBe('#B6FF00');  // STABLE WHOOP lime
+    expect(getStatusColor(60).primary).toBe('#FFDE00');  // DECLINING WHOOP recovery yellow
     expect(getStatusColor(40).primary).toBe('#FF8C1A');  // RISK orange
-    expect(getStatusColor(15).primary).toBe('#FF2D55');  // CRITICAL red
+    expect(getStatusColor(15).primary).toBe('#FF0026');  // CRITICAL WHOOP recovery red
   });
 
   it('attaches band + bandIndex consistently', () => {
@@ -105,11 +105,11 @@ describe('getStatusColor — calm baseline', () => {
 
   it('emits #RRGGBBAA glow strings with band-appropriate alpha', () => {
     // CRITICAL = tight + intense (alpha 0.70 → B3)
-    expect(getStatusColor(15).glow.toUpperCase()).toBe('#FF2D55B3');
+    expect(getStatusColor(15).glow.toUpperCase()).toBe('#FF0026B3');
     // OPTIMAL = soft + wide (alpha 0.32 → 52)
-    expect(getStatusColor(95).glow.toUpperCase()).toBe('#39FF1452');
+    expect(getStatusColor(95).glow.toUpperCase()).toBe('#16EC0652');
     // DECLINING = minimal (alpha 0.20 → 33)
-    expect(getStatusColor(60).glow.toUpperCase()).toBe('#FFD60A33');
+    expect(getStatusColor(60).glow.toUpperCase()).toBe('#FFDE0033');
   });
 
   it('CRITICAL uses the tightest glow radius; OPTIMAL the widest', () => {
@@ -131,7 +131,7 @@ describe('getStatusColor — calm baseline', () => {
 
 describe('getStatusColor — Pressure Mode amplification', () => {
   it('swaps to the deeper-saturation primary per band', () => {
-    expect(getStatusColor(95, { pressure: true }).primary).toBe('#22FF00');
+    expect(getStatusColor(95, { pressure: true }).primary).toBe('#00FF00');
     expect(getStatusColor(78, { pressure: true }).primary).toBe('#A0FF20');
     expect(getStatusColor(60, { pressure: true }).primary).toBe('#FFC000');
     expect(getStatusColor(40, { pressure: true }).primary).toBe('#FF7A00');
@@ -183,10 +183,10 @@ describe('Interpolation stops — wired for Reanimated', () => {
   });
 
   it('stops are ordered worst → best (index 0 = CRITICAL)', () => {
-    expect(PRIMARY_STOPS[0]).toBe('#FF2D55');
-    expect(PRIMARY_STOPS[4]).toBe('#39FF14');
+    expect(PRIMARY_STOPS[0]).toBe('#FF0026');
+    expect(PRIMARY_STOPS[4]).toBe('#16EC06');
     expect(PRIMARY_STOPS_PRESSURE[0]).toBe('#FF0040');
-    expect(PRIMARY_STOPS_PRESSURE[4]).toBe('#22FF00');
+    expect(PRIMARY_STOPS_PRESSURE[4]).toBe('#00FF00');
   });
 
   it('every glow stop is an 8-character #RRGGBBAA string', () => {

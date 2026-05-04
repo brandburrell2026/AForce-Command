@@ -1,92 +1,99 @@
-// AForce OS Color System
-// Investor-grade premium dark performance OS palette.
+// AForce OS Color System — WHOOP-Cinematic Edition
+// Pure black canvas, WHOOP lime hero accent, near-invisible borders.
 
 export const Colors = {
-  // Base backgrounds — deep black + charcoal panels per spec
   background: {
-    primary: '#050510',     // Deep black
-    secondary: '#08081A',   // Slightly elevated black
-    card: '#0D0D20',        // Charcoal panel
-    elevated: '#13132B',    // Elevated panel
-    overlay: 'rgba(5,5,16,0.92)',
+    primary: '#000000',
+    secondary: '#050508',
+    card: '#0A0A0F',
+    elevated: '#101018',
+    surface: '#141420',
+    overlay: 'rgba(0,0,0,0.92)',
   },
 
-  // Gradient stops
   gradient: {
-    background: ['#050510', '#0A0A1E', '#050510'],
+    background: ['#000000', '#050510', '#000000'],
     backgroundAngle: 160,
-    header: ['rgba(5,5,16,0.95)', 'rgba(13,13,32,0.0)'],
-    card: ['#0D0D20', '#13132B'],
+    header: ['rgba(0,0,0,0.95)', 'rgba(0,0,0,0.0)'],
+    card: ['#0A0A0F', '#101018'],
   },
 
-  // Performance state accents
+  accent: {
+    primary: '#B6FF00',
+    glow: 'rgba(182,255,0,0.50)',
+    dim: 'rgba(182,255,0,0.12)',
+    subtle: 'rgba(182,255,0,0.06)',
+    secondary: '#0093E7',
+  },
+
   states: {
     PEAK: {
-      primary: '#B4FF50',      // Lime
-      glow: '#B4FF5066',
-      dim: '#B4FF5022',
-      text: '#B4FF50',
+      primary: '#B6FF00',
+      glow: 'rgba(182,255,0,0.50)',
+      dim: 'rgba(182,255,0,0.12)',
+      text: '#B6FF00',
     },
     BALANCED: {
-      primary: '#00E5C8',      // Teal/cyan
-      glow: '#00E5C866',
-      dim: '#00E5C822',
+      primary: '#00E5C8',
+      glow: 'rgba(0,229,200,0.40)',
+      dim: 'rgba(0,229,200,0.12)',
       text: '#00E5C8',
     },
     RECOVERING: {
-      primary: '#FFA01E',      // Amber
-      glow: '#FFA01E66',
-      dim: '#FFA01E22',
+      primary: '#FFA01E',
+      glow: 'rgba(255,160,30,0.40)',
+      dim: 'rgba(255,160,30,0.12)',
       text: '#FFA01E',
     },
     DEPLETED: {
-      primary: '#FF2D55',      // Red
-      glow: '#FF2D5566',
-      dim: '#FF2D5522',
-      text: '#FF2D55',
+      primary: '#FF0026',
+      glow: 'rgba(255,0,38,0.40)',
+      dim: 'rgba(255,0,38,0.12)',
+      text: '#FF0026',
     },
   },
 
-  // Phase-specific accents
   guardian: {
     primary: '#8B5CF6',
-    glow: '#8B5CF666',
-    dim: '#8B5CF622',
+    glow: 'rgba(139,92,246,0.40)',
+    dim: 'rgba(139,92,246,0.12)',
   },
   clutch: {
     primary: '#00E5C8',
-    glow: '#00E5C866',
-    dim: '#00E5C822',
+    glow: 'rgba(0,229,200,0.40)',
+    dim: 'rgba(0,229,200,0.12)',
   },
 
   text: {
     primary: '#FFFFFF',
-    secondary: 'rgba(255,255,255,0.65)',
-    muted: 'rgba(255,255,255,0.40)',
-    inverse: '#050510',
+    secondary: 'rgba(255,255,255,0.55)',
+    muted: 'rgba(255,255,255,0.30)',
+    ghost: 'rgba(255,255,255,0.18)',
+    inverse: '#000000',
   },
 
   border: {
-    subtle: 'rgba(255,255,255,0.06)',
-    medium: 'rgba(255,255,255,0.12)',
-    strong: 'rgba(255,255,255,0.22)',
+    subtle: 'rgba(255,255,255,0.04)',
+    medium: 'rgba(255,255,255,0.08)',
+    strong: 'rgba(255,255,255,0.14)',
+    accent: 'rgba(182,255,0,0.20)',
   },
 
   fill: {
-    light: 'rgba(255,255,255,0.04)',
-    medium: 'rgba(255,255,255,0.08)',
-    strong: 'rgba(255,255,255,0.14)',
+    light: 'rgba(255,255,255,0.02)',
+    medium: 'rgba(255,255,255,0.05)',
+    strong: 'rgba(255,255,255,0.10)',
   },
 
-  success: '#B4FF50',
+  success: '#B6FF00',
   warning: '#FFA01E',
-  danger: '#FF2D55',
-  info: '#00E5C8',
+  danger: '#FF0026',
+  info: '#0093E7',
 
   tabBar: {
-    background: 'rgba(5,5,16,0.95)',
-    active: '#B4FF50',
-    inactive: 'rgba(255,255,255,0.40)',
+    background: 'rgba(0,0,0,0.95)',
+    active: '#B6FF00',
+    inactive: 'rgba(255,255,255,0.30)',
   },
 } as const;
 

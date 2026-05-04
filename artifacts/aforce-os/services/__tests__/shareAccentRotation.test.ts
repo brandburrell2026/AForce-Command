@@ -24,7 +24,7 @@ describe('pickGlowAccent', () => {
 
   it('palette is a single red entry', () => {
     expect(GLOW_PALETTE.length).toBe(1);
-    expect(GLOW_PALETTE[0]).toBe('#FF2D55');
+    expect(GLOW_PALETTE[0]).toBe('#FF0026');
   });
 
   it('every broadcast id resolves to red', () => {
@@ -34,7 +34,7 @@ describe('pickGlowAccent', () => {
       'status-peak-0', 'status-balanced-0', 'status-recovering-0', 'status-depleted-0',
     ];
     for (const seed of seeds) {
-      expect(pickGlowAccent(seed)).toBe('#FF2D55');
+      expect(pickGlowAccent(seed)).toBe('#FF0026');
     }
   });
 

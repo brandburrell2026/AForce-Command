@@ -75,7 +75,7 @@ export const FLAVOR_VARIANTS: FlavorVariant[] = [
     ],
     stateAlignment: ['RECOVERING'],
     aiCommand: 'Take 1 Watermelon Surge now. You are in recovery.',
-    accent: '#FF2D55',
+    accent: '#FF0026',
   },
   {
     id: 'soursop_edge_seamoss',
@@ -97,7 +97,7 @@ export const FLAVOR_VARIANTS: FlavorVariant[] = [
     ],
     stateAlignment: ['DEPLETED'],
     aiCommand: 'Take 1 Soursop Edge now. You are trending depleted.',
-    accent: '#B4FF50',
+    accent: '#B6FF00',
   },
 ];
 

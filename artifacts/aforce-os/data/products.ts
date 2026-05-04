@@ -59,7 +59,7 @@ export const PRODUCTS: Record<FluidType, ProductType> = {
 export const PRODUCT_FLAVORS = {
   watermelon: {
     label: 'Watermelon Surge + Chlorella',
-    accent: '#FF2D55',
+    accent: '#FF0026',
     stick: require('../assets/images/products/stick_watermelon.png'),
     can: require('../assets/images/products/can_watermelon_v2.png'),
     jar: require('../assets/images/products/jar_watermelon.png'),
@@ -77,7 +77,7 @@ export const PRODUCT_FLAVORS = {
   },
   soursop: {
     label: 'Soursop Edge + Seamoss',
-    accent: '#B4FF50',
+    accent: '#B6FF00',
     stick: require('../assets/images/products/stick_soursop.png'),
     can: require('../assets/images/products/can_soursop_v2.png'),
     jar: require('../assets/images/products/jar_soursop.png'),

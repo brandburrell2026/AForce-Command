@@ -25,7 +25,7 @@ export const HEAT_BANDS: HeatBandDisplay[] = [
     band: "STABLE",
     label: "STABLE",
     range: [0, 24],
-    color: "#B4FF50", // lime
+    color: "#B6FF00", // WHOOP lime
     flashing: false,
     visualMode: "subtle",
     urgency: "calm",
@@ -69,7 +69,7 @@ export const HEAT_BANDS: HeatBandDisplay[] = [
     band: "CRITICAL",
     label: "CRITICAL",
     range: [85, 100],
-    color: "#FF2D55", // red
+    color: "#FF0026", // WHOOP recovery red
     flashing: true,
     visualMode: "red_collapse",
     urgency: "imminent",

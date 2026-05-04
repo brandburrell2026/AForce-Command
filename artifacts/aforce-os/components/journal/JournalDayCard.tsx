@@ -51,10 +51,10 @@ function getTodaysLesson(rollup: JournalRollup): string {
 }
 
 function avgColor(score: number): string {
-  if (score >= 85) return '#B4FF50';
+  if (score >= 85) return '#B6FF00';
   if (score >= 65) return '#00E5C8';
   if (score >= 40) return '#FFA01E';
-  return '#FF2D55';
+  return '#FF0026';
 }
 
 function formatDate(ymd: string): string {
@@ -114,7 +114,7 @@ export default function JournalDayCard({ rollup }: Props) {
             <Row label={t('journal.day_card_deficit')} value={`${rollup.endDeficitPct.toFixed(1)}%`} />
           )}
           <View style={styles.lessonRow}>
-            <Feather name="zap" size={11} color="#B4FF50" />
+            <Feather name="zap" size={11} color="#B6FF00" />
             <Text style={styles.lessonText}>{lesson}</Text>
           </View>
           {(rollup.autopilotSessions > 0 || rollup.socialSessions > 0) && (
@@ -232,8 +232,8 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   sessionPill: {
-    color: '#B4FF50',
-    backgroundColor: 'rgba(180,255,80,0.08)',
+    color: '#B6FF00',
+    backgroundColor: 'rgba(182,255,0,0.08)',
     fontFamily: 'Inter_600SemiBold',
     fontSize: 10,
     letterSpacing: 0.5,

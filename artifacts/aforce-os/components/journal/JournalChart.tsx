@@ -121,7 +121,7 @@ export default function JournalChart({ data, width, height = 200 }: Props) {
         ))}
 
         {/* Score polyline */}
-        <Path d={pathD} stroke="#B4FF50" strokeWidth={1.8} fill="none" />
+        <Path d={pathD} stroke="#B6FF00" strokeWidth={1.8} fill="none" />
       </Svg>
       <View style={styles.legend}>
         <Text style={styles.legendCell}>
@@ -172,7 +172,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.6,
   },
   legendV: {
-    color: '#B4FF50',
+    color: '#B6FF00',
     fontFamily: 'Inter_700Bold',
     letterSpacing: 0.4,
   },

@@ -1,4 +1,5 @@
-// AForce OS Spacing System
+// AForce OS Spacing System — WHOOP-Cinematic Edition
+// Generous spacing. When in doubt, use more space, not less.
 
 export const Spacing = {
   0: 0,
@@ -14,9 +15,12 @@ export const Spacing = {
   12: 48,
   14: 56,
   16: 64,
+  20: 80,
+  24: 96,
 } as const;
 
 export const Radii = {
+  none: 0,
   sm: 8,
   md: 12,
   lg: 16,
@@ -30,15 +34,15 @@ export const Shadows = {
   card: {
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
+    shadowOpacity: 0.4,
+    shadowRadius: 20,
     elevation: 8,
   },
   orb: {
-    shadowColor: '#AAFF00',
+    shadowColor: '#B6FF00',
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.6,
-    shadowRadius: 32,
+    shadowOpacity: 0.5,
+    shadowRadius: 40,
     elevation: 20,
   },
 } as const;
