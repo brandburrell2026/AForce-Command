@@ -377,13 +377,13 @@ title = "AForce OS — Every Screen (Source Code)"
 id = "tX3tjbGbnBmz8ht0gtFLP"
 uri = "file://design/aforce-design-tokens.md"
 type = "text"
-title = "AForce Design Tokens — Figma Spec"
+title = "AForce Design Spec v2.0 — WHOOP-Cinematic (reference doc)"
 
 [[outputs]]
 id = "bPprApyiCNdQuL405oI9-"
 uri = "file://design/aforce-tokens.json"
 type = "unspecified"
-title = "AForce Tokens — import into Tokens Studio for Figma"
+title = "AForce Tokens v2.0 — WHOOP-Cinematic (import into Figma)"
 
 [[outputs]]
 id = "2HgmrRySByOkwnH45myBS"

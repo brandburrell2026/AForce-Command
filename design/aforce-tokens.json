@@ -1,63 +1,80 @@
 {
-  "$description": "AForce OS design tokens — W3C Design Tokens format, compatible with Tokens Studio for Figma. Generated from artifacts/aforce-os/theme/* and artifacts/aforce-os/data/healthProviders.ts. Re-export by asking Replit Agent: 're-export the AForce tokens'.",
-  "$version": "1.0.0",
+  "$description": "AForce OS design tokens — WHOOP-Cinematic edition. W3C Design Tokens format for Tokens Studio for Figma. Source of truth: artifacts/aforce-os/theme/*. Re-export: ask Replit Agent 're-export the AForce tokens'.",
+  "$version": "2.0.0",
+
   "color": {
     "bg": {
-      "primary":   { "$type": "color", "$value": "#050510" },
-      "secondary": { "$type": "color", "$value": "#08081A" },
-      "card":      { "$type": "color", "$value": "#0D0D20" },
-      "elevated":  { "$type": "color", "$value": "#13132B" },
-      "overlay":   { "$type": "color", "$value": "rgba(5,5,16,0.92)" }
+      "$description": "Backgrounds pushed to WHOOP-level black. Pure #000 base, near-invisible elevation steps.",
+      "primary":   { "$type": "color", "$value": "#000000" },
+      "secondary": { "$type": "color", "$value": "#050508" },
+      "card":      { "$type": "color", "$value": "#0A0A0F" },
+      "elevated":  { "$type": "color", "$value": "#101018" },
+      "surface":   { "$type": "color", "$value": "#141420" },
+      "overlay":   { "$type": "color", "$value": "rgba(0,0,0,0.92)" }
     },
     "text": {
       "primary":   { "$type": "color", "$value": "#FFFFFF" },
-      "secondary": { "$type": "color", "$value": "rgba(255,255,255,0.65)" },
-      "muted":     { "$type": "color", "$value": "rgba(255,255,255,0.40)" },
-      "inverse":   { "$type": "color", "$value": "#050510" }
+      "secondary": { "$type": "color", "$value": "rgba(255,255,255,0.55)" },
+      "muted":     { "$type": "color", "$value": "rgba(255,255,255,0.30)" },
+      "ghost":     { "$type": "color", "$value": "rgba(255,255,255,0.18)" },
+      "inverse":   { "$type": "color", "$value": "#000000" }
     },
     "border": {
-      "subtle": { "$type": "color", "$value": "rgba(255,255,255,0.06)" },
-      "medium": { "$type": "color", "$value": "rgba(255,255,255,0.12)" },
-      "strong": { "$type": "color", "$value": "rgba(255,255,255,0.22)" }
+      "$description": "WHOOP-level subtle. Borders are almost invisible — structure comes from spacing, not lines.",
+      "subtle":  { "$type": "color", "$value": "rgba(255,255,255,0.04)" },
+      "medium":  { "$type": "color", "$value": "rgba(255,255,255,0.08)" },
+      "strong":  { "$type": "color", "$value": "rgba(255,255,255,0.14)" },
+      "accent":  { "$type": "color", "$value": "rgba(182,255,0,0.20)" }
     },
     "fill": {
-      "light":  { "$type": "color", "$value": "rgba(255,255,255,0.04)" },
-      "medium": { "$type": "color", "$value": "rgba(255,255,255,0.08)" },
-      "strong": { "$type": "color", "$value": "rgba(255,255,255,0.14)" }
+      "$description": "Glass fills — barely there. WHOOP uses near-zero alpha so content floats on black.",
+      "light":  { "$type": "color", "$value": "rgba(255,255,255,0.02)" },
+      "medium": { "$type": "color", "$value": "rgba(255,255,255,0.05)" },
+      "strong": { "$type": "color", "$value": "rgba(255,255,255,0.10)" }
+    },
+    "accent": {
+      "$description": "Hero accent = WHOOP lime. This is the cinematic signature color.",
+      "primary":    { "$type": "color", "$value": "#B6FF00" },
+      "glow":       { "$type": "color", "$value": "rgba(182,255,0,0.50)" },
+      "dim":        { "$type": "color", "$value": "rgba(182,255,0,0.12)" },
+      "subtle":     { "$type": "color", "$value": "rgba(182,255,0,0.06)" },
+      "secondary":  { "$type": "color", "$value": "#0093E7" }
     },
     "state": {
+      "$description": "Performance states — same 4-band system, WHOOP-tuned greens.",
       "peak": {
-        "primary": { "$type": "color", "$value": "#B4FF50" },
-        "glow":    { "$type": "color", "$value": "#B4FF5066" },
-        "dim":     { "$type": "color", "$value": "#B4FF5022" }
+        "primary": { "$type": "color", "$value": "#B6FF00" },
+        "glow":    { "$type": "color", "$value": "rgba(182,255,0,0.50)" },
+        "dim":     { "$type": "color", "$value": "rgba(182,255,0,0.12)" }
       },
       "balanced": {
         "primary": { "$type": "color", "$value": "#00E5C8" },
-        "glow":    { "$type": "color", "$value": "#00E5C866" },
-        "dim":     { "$type": "color", "$value": "#00E5C822" }
+        "glow":    { "$type": "color", "$value": "rgba(0,229,200,0.40)" },
+        "dim":     { "$type": "color", "$value": "rgba(0,229,200,0.12)" }
       },
       "recovering": {
         "primary": { "$type": "color", "$value": "#FFA01E" },
-        "glow":    { "$type": "color", "$value": "#FFA01E66" },
-        "dim":     { "$type": "color", "$value": "#FFA01E22" }
+        "glow":    { "$type": "color", "$value": "rgba(255,160,30,0.40)" },
+        "dim":     { "$type": "color", "$value": "rgba(255,160,30,0.12)" }
       },
       "depleted": {
         "primary": { "$type": "color", "$value": "#FF2D55" },
-        "glow":    { "$type": "color", "$value": "#FF2D5566" },
-        "dim":     { "$type": "color", "$value": "#FF2D5522" }
+        "glow":    { "$type": "color", "$value": "rgba(255,45,85,0.40)" },
+        "dim":     { "$type": "color", "$value": "rgba(255,45,85,0.12)" }
       }
     },
     "status": {
+      "$description": "5-band score status for the hydration score engine.",
       "optimal": {
-        "primary":          { "$type": "color", "$value": "#39FF14" },
-        "primary-pressure": { "$type": "color", "$value": "#22FF00" }
+        "primary":          { "$type": "color", "$value": "#16EC06" },
+        "primary-pressure": { "$type": "color", "$value": "#00FF00" }
       },
       "stable": {
-        "primary":          { "$type": "color", "$value": "#B4FF50" },
+        "primary":          { "$type": "color", "$value": "#B6FF00" },
         "primary-pressure": { "$type": "color", "$value": "#A0FF20" }
       },
       "declining": {
-        "primary":          { "$type": "color", "$value": "#FFD60A" },
+        "primary":          { "$type": "color", "$value": "#FFDE00" },
         "primary-pressure": { "$type": "color", "$value": "#FFC000" }
       },
       "risk": {
@@ -65,32 +82,42 @@
         "primary-pressure": { "$type": "color", "$value": "#FF7A00" }
       },
       "critical": {
-        "primary":          { "$type": "color", "$value": "#FF2D55" },
+        "primary":          { "$type": "color", "$value": "#FF0026" },
         "primary-pressure": { "$type": "color", "$value": "#FF0040" }
       }
     },
     "phase": {
       "clutch": {
         "primary": { "$type": "color", "$value": "#00E5C8" },
-        "glow":    { "$type": "color", "$value": "#00E5C866" },
-        "dim":     { "$type": "color", "$value": "#00E5C822" }
+        "glow":    { "$type": "color", "$value": "rgba(0,229,200,0.40)" },
+        "dim":     { "$type": "color", "$value": "rgba(0,229,200,0.12)" }
       },
       "guardian": {
         "primary": { "$type": "color", "$value": "#8B5CF6" },
-        "glow":    { "$type": "color", "$value": "#8B5CF666" },
-        "dim":     { "$type": "color", "$value": "#8B5CF622" }
+        "glow":    { "$type": "color", "$value": "rgba(139,92,246,0.40)" },
+        "dim":     { "$type": "color", "$value": "rgba(139,92,246,0.12)" }
       }
     },
     "semantic": {
-      "success": { "$type": "color", "$value": "#B4FF50" },
+      "success": { "$type": "color", "$value": "#B6FF00" },
       "warning": { "$type": "color", "$value": "#FFA01E" },
       "danger":  { "$type": "color", "$value": "#FF2D55" },
-      "info":    { "$type": "color", "$value": "#00E5C8" }
+      "info":    { "$type": "color", "$value": "#0093E7" }
     },
     "tabbar": {
-      "bg":       { "$type": "color", "$value": "rgba(5,5,16,0.95)" },
-      "active":   { "$type": "color", "$value": "#B4FF50" },
-      "inactive": { "$type": "color", "$value": "rgba(255,255,255,0.40)" }
+      "bg":       { "$type": "color", "$value": "rgba(0,0,0,0.95)" },
+      "active":   { "$type": "color", "$value": "#B6FF00" },
+      "inactive": { "$type": "color", "$value": "rgba(255,255,255,0.30)" }
+    },
+    "gradient": {
+      "$description": "Key gradients used across the app. Figma: apply as linear fills.",
+      "background-top":    { "$type": "color", "$value": "#000000" },
+      "background-mid":    { "$type": "color", "$value": "#050510" },
+      "background-bottom": { "$type": "color", "$value": "#000000" },
+      "card-top":          { "$type": "color", "$value": "#0A0A0F" },
+      "card-bottom":       { "$type": "color", "$value": "#101018" },
+      "header-top":        { "$type": "color", "$value": "rgba(0,0,0,0.95)" },
+      "header-bottom":     { "$type": "color", "$value": "rgba(0,0,0,0.00)" }
     },
     "provider": {
       "apple-health":   { "$type": "color", "$value": "#FF2D55" },
@@ -102,13 +129,29 @@
       "strava":         { "$type": "color", "$value": "#FC4C02" }
     },
     "whoop": {
-      "lime":           { "$type": "color", "$value": "#B6FF00" },
-      "teal":           { "$type": "color", "$value": "#0093E7" },
-      "recovery-green": { "$type": "color", "$value": "#16EC06" },
-      "recovery-yellow":{ "$type": "color", "$value": "#FFDE00" },
-      "recovery-red":   { "$type": "color", "$value": "#FF0026" },
-      "panel-top":      { "$type": "color", "$value": "#0A0A0A" },
-      "panel-bottom":   { "$type": "color", "$value": "#000000" }
+      "$description": "WHOOP brand palette — used for the cinematic WHOOP integration card and as the tonal reference for the entire redesign.",
+      "lime":            { "$type": "color", "$value": "#B6FF00" },
+      "teal":            { "$type": "color", "$value": "#0093E7" },
+      "recovery-green":  { "$type": "color", "$value": "#16EC06" },
+      "recovery-yellow": { "$type": "color", "$value": "#FFDE00" },
+      "recovery-red":    { "$type": "color", "$value": "#FF0026" },
+      "panel-top":       { "$type": "color", "$value": "#0A0A0A" },
+      "panel-bottom":    { "$type": "color", "$value": "#000000" },
+      "ring-track":      { "$type": "color", "$value": "rgba(255,255,255,0.08)" },
+      "strain-track":    { "$type": "color", "$value": "rgba(0,147,231,0.15)" }
+    },
+    "opacity": {
+      "$description": "WHOOP-style opacity scale. Use for layering content on pure black.",
+      "02": { "$type": "color", "$value": "rgba(255,255,255,0.02)" },
+      "04": { "$type": "color", "$value": "rgba(255,255,255,0.04)" },
+      "06": { "$type": "color", "$value": "rgba(255,255,255,0.06)" },
+      "08": { "$type": "color", "$value": "rgba(255,255,255,0.08)" },
+      "10": { "$type": "color", "$value": "rgba(255,255,255,0.10)" },
+      "14": { "$type": "color", "$value": "rgba(255,255,255,0.14)" },
+      "20": { "$type": "color", "$value": "rgba(255,255,255,0.20)" },
+      "30": { "$type": "color", "$value": "rgba(255,255,255,0.30)" },
+      "55": { "$type": "color", "$value": "rgba(255,255,255,0.55)" },
+      "100": { "$type": "color", "$value": "#FFFFFF" }
     }
   },
 
@@ -122,6 +165,7 @@
     "bold":     { "$type": "fontWeight", "$value": 700 }
   },
   "fontSizes": {
+    "2xs": { "$type": "dimension", "$value": "9px" },
     "xs":  { "$type": "dimension", "$value": "11px" },
     "sm":  { "$type": "dimension", "$value": "13px" },
     "base":{ "$type": "dimension", "$value": "15px" },
@@ -131,38 +175,46 @@
     "2xl": { "$type": "dimension", "$value": "28px" },
     "3xl": { "$type": "dimension", "$value": "36px" },
     "4xl": { "$type": "dimension", "$value": "48px" },
-    "5xl": { "$type": "dimension", "$value": "64px" }
+    "5xl": { "$type": "dimension", "$value": "64px" },
+    "6xl": { "$type": "dimension", "$value": "80px" }
   },
   "lineHeights": {
-    "tight":   { "$type": "number", "$value": 1.1 },
-    "snug":    { "$type": "number", "$value": 1.2 },
+    "tight":   { "$type": "number", "$value": 1.0 },
+    "snug":    { "$type": "number", "$value": 1.15 },
     "normal":  { "$type": "number", "$value": 1.4 },
     "relaxed": { "$type": "number", "$value": 1.6 }
   },
   "letterSpacing": {
-    "tighter": { "$type": "dimension", "$value": "-1px" },
+    "tighter": { "$type": "dimension", "$value": "-1.5px" },
     "tight":   { "$type": "dimension", "$value": "-0.5px" },
     "normal":  { "$type": "dimension", "$value": "0px" },
     "wide":    { "$type": "dimension", "$value": "0.5px" },
     "wider":   { "$type": "dimension", "$value": "1px" },
-    "widest":  { "$type": "dimension", "$value": "2px" }
+    "widest":  { "$type": "dimension", "$value": "2px" },
+    "ultra":   { "$type": "dimension", "$value": "3px" }
   },
   "typography": {
-    "display-hero":  { "$type": "typography", "$value": { "fontFamily": "{fontFamilies.inter}", "fontWeight": "{fontWeights.bold}",     "fontSize": "{fontSizes.5xl}",  "lineHeight": "{lineHeights.tight}",  "letterSpacing": "{letterSpacing.tighter}" } },
-    "display-mega":  { "$type": "typography", "$value": { "fontFamily": "{fontFamilies.inter}", "fontWeight": "{fontWeights.bold}",     "fontSize": "{fontSizes.4xl}",  "lineHeight": "{lineHeights.tight}",  "letterSpacing": "{letterSpacing.tight}"   } },
-    "display-title": { "$type": "typography", "$value": { "fontFamily": "{fontFamilies.inter}", "fontWeight": "{fontWeights.bold}",     "fontSize": "{fontSizes.3xl}",  "lineHeight": "{lineHeights.snug}",   "letterSpacing": "{letterSpacing.tight}"   } },
-    "h1":            { "$type": "typography", "$value": { "fontFamily": "{fontFamilies.inter}", "fontWeight": "{fontWeights.bold}",     "fontSize": "{fontSizes.2xl}",  "lineHeight": "{lineHeights.snug}",   "letterSpacing": "{letterSpacing.normal}"  } },
-    "h2":            { "$type": "typography", "$value": { "fontFamily": "{fontFamilies.inter}", "fontWeight": "{fontWeights.semibold}", "fontSize": "{fontSizes.xl}",   "lineHeight": "{lineHeights.snug}",   "letterSpacing": "{letterSpacing.normal}"  } },
-    "h3":            { "$type": "typography", "$value": { "fontFamily": "{fontFamilies.inter}", "fontWeight": "{fontWeights.semibold}", "fontSize": "{fontSizes.lg}",   "lineHeight": "{lineHeights.snug}",   "letterSpacing": "{letterSpacing.normal}"  } },
-    "body-lg":       { "$type": "typography", "$value": { "fontFamily": "{fontFamilies.inter}", "fontWeight": "{fontWeights.medium}",   "fontSize": "{fontSizes.md}",   "lineHeight": "{lineHeights.normal}", "letterSpacing": "{letterSpacing.normal}"  } },
-    "body-base":     { "$type": "typography", "$value": { "fontFamily": "{fontFamilies.inter}", "fontWeight": "{fontWeights.regular}",  "fontSize": "{fontSizes.base}", "lineHeight": "{lineHeights.normal}", "letterSpacing": "{letterSpacing.normal}"  } },
-    "body-sm":       { "$type": "typography", "$value": { "fontFamily": "{fontFamilies.inter}", "fontWeight": "{fontWeights.regular}",  "fontSize": "{fontSizes.sm}",   "lineHeight": "{lineHeights.normal}", "letterSpacing": "{letterSpacing.normal}"  } },
-    "caption":       { "$type": "typography", "$value": { "fontFamily": "{fontFamilies.inter}", "fontWeight": "{fontWeights.medium}",   "fontSize": "{fontSizes.xs}",   "lineHeight": "{lineHeights.normal}", "letterSpacing": "{letterSpacing.normal}"  } },
-    "eyebrow":       { "$type": "typography", "$value": { "fontFamily": "{fontFamilies.inter}", "fontWeight": "{fontWeights.bold}",     "fontSize": "{fontSizes.xs}",   "lineHeight": "{lineHeights.normal}", "letterSpacing": "{letterSpacing.widest}"  } },
-    "pill":          { "$type": "typography", "$value": { "fontFamily": "{fontFamilies.inter}", "fontWeight": "{fontWeights.bold}",     "fontSize": "10px",             "lineHeight": "{lineHeights.normal}", "letterSpacing": "{letterSpacing.wider}"   } }
+    "$description": "WHOOP-cinematic type scale. Hero numbers are massive and tight. Labels are small, tracked, uppercase.",
+    "display-hero":   { "$type": "typography", "$value": { "fontFamily": "{fontFamilies.inter}", "fontWeight": "{fontWeights.bold}",     "fontSize": "{fontSizes.6xl}",  "lineHeight": "{lineHeights.tight}", "letterSpacing": "{letterSpacing.tighter}" } },
+    "display-score":  { "$type": "typography", "$value": { "fontFamily": "{fontFamilies.inter}", "fontWeight": "{fontWeights.bold}",     "fontSize": "{fontSizes.5xl}",  "lineHeight": "{lineHeights.tight}", "letterSpacing": "{letterSpacing.tighter}" } },
+    "display-mega":   { "$type": "typography", "$value": { "fontFamily": "{fontFamilies.inter}", "fontWeight": "{fontWeights.bold}",     "fontSize": "{fontSizes.4xl}",  "lineHeight": "{lineHeights.tight}", "letterSpacing": "{letterSpacing.tight}"   } },
+    "display-title":  { "$type": "typography", "$value": { "fontFamily": "{fontFamilies.inter}", "fontWeight": "{fontWeights.bold}",     "fontSize": "{fontSizes.3xl}",  "lineHeight": "{lineHeights.snug}",  "letterSpacing": "{letterSpacing.tight}"   } },
+    "h1":             { "$type": "typography", "$value": { "fontFamily": "{fontFamilies.inter}", "fontWeight": "{fontWeights.bold}",     "fontSize": "{fontSizes.2xl}",  "lineHeight": "{lineHeights.snug}",  "letterSpacing": "{letterSpacing.normal}"  } },
+    "h2":             { "$type": "typography", "$value": { "fontFamily": "{fontFamilies.inter}", "fontWeight": "{fontWeights.semibold}", "fontSize": "{fontSizes.xl}",   "lineHeight": "{lineHeights.snug}",  "letterSpacing": "{letterSpacing.normal}"  } },
+    "h3":             { "$type": "typography", "$value": { "fontFamily": "{fontFamilies.inter}", "fontWeight": "{fontWeights.semibold}", "fontSize": "{fontSizes.lg}",   "lineHeight": "{lineHeights.snug}",  "letterSpacing": "{letterSpacing.normal}"  } },
+    "body-lg":        { "$type": "typography", "$value": { "fontFamily": "{fontFamilies.inter}", "fontWeight": "{fontWeights.medium}",   "fontSize": "{fontSizes.md}",   "lineHeight": "{lineHeights.normal}","letterSpacing": "{letterSpacing.normal}"  } },
+    "body-base":      { "$type": "typography", "$value": { "fontFamily": "{fontFamilies.inter}", "fontWeight": "{fontWeights.regular}",  "fontSize": "{fontSizes.base}", "lineHeight": "{lineHeights.normal}","letterSpacing": "{letterSpacing.normal}"  } },
+    "body-sm":        { "$type": "typography", "$value": { "fontFamily": "{fontFamilies.inter}", "fontWeight": "{fontWeights.regular}",  "fontSize": "{fontSizes.sm}",   "lineHeight": "{lineHeights.normal}","letterSpacing": "{letterSpacing.normal}"  } },
+    "caption":        { "$type": "typography", "$value": { "fontFamily": "{fontFamilies.inter}", "fontWeight": "{fontWeights.medium}",   "fontSize": "{fontSizes.xs}",   "lineHeight": "{lineHeights.normal}","letterSpacing": "{letterSpacing.normal}"  } },
+    "eyebrow":        { "$type": "typography", "$value": { "fontFamily": "{fontFamilies.inter}", "fontWeight": "{fontWeights.bold}",     "fontSize": "{fontSizes.xs}",   "lineHeight": "{lineHeights.normal}","letterSpacing": "{letterSpacing.ultra}"   } },
+    "eyebrow-sm":     { "$type": "typography", "$value": { "fontFamily": "{fontFamilies.inter}", "fontWeight": "{fontWeights.bold}",     "fontSize": "{fontSizes.2xs}",  "lineHeight": "{lineHeights.normal}","letterSpacing": "{letterSpacing.ultra}"   } },
+    "metric-label":   { "$type": "typography", "$value": { "fontFamily": "{fontFamilies.inter}", "fontWeight": "{fontWeights.semibold}", "fontSize": "{fontSizes.2xs}",  "lineHeight": "{lineHeights.normal}","letterSpacing": "{letterSpacing.widest}"  } },
+    "metric-value":   { "$type": "typography", "$value": { "fontFamily": "{fontFamilies.inter}", "fontWeight": "{fontWeights.bold}",     "fontSize": "{fontSizes.xl}",   "lineHeight": "{lineHeights.tight}", "letterSpacing": "{letterSpacing.tight}"   } },
+    "pill":           { "$type": "typography", "$value": { "fontFamily": "{fontFamilies.inter}", "fontWeight": "{fontWeights.bold}",     "fontSize": "10px",             "lineHeight": "{lineHeights.normal}","letterSpacing": "{letterSpacing.wider}"   } }
   },
 
   "spacing": {
+    "$description": "WHOOP uses generous spacing. When in doubt, use more space, not less.",
     "0":  { "$type": "dimension", "$value": "0px"  },
     "1":  { "$type": "dimension", "$value": "4px"  },
     "2":  { "$type": "dimension", "$value": "8px"  },
@@ -175,9 +227,12 @@
     "10": { "$type": "dimension", "$value": "40px" },
     "12": { "$type": "dimension", "$value": "48px" },
     "14": { "$type": "dimension", "$value": "56px" },
-    "16": { "$type": "dimension", "$value": "64px" }
+    "16": { "$type": "dimension", "$value": "64px" },
+    "20": { "$type": "dimension", "$value": "80px" },
+    "24": { "$type": "dimension", "$value": "96px" }
   },
   "radius": {
+    "none": { "$type": "dimension", "$value": "0px"    },
     "sm":   { "$type": "dimension", "$value": "8px"    },
     "md":   { "$type": "dimension", "$value": "12px"   },
     "lg":   { "$type": "dimension", "$value": "16px"   },
@@ -187,25 +242,58 @@
     "full": { "$type": "dimension", "$value": "9999px" }
   },
   "layout": {
-    "web-top-padding":    { "$type": "dimension", "$value": "67px"  },
-    "web-bottom-inset":   { "$type": "dimension", "$value": "34px"  },
+    "$description": "Safe-area and navigation constants for iPhone 14 Pro frames in Figma.",
+    "status-bar-height":  { "$type": "dimension", "$value": "54px"  },
     "tab-bar-height":     { "$type": "dimension", "$value": "84px"  },
-    "web-bottom-padding": { "$type": "dimension", "$value": "118px" }
+    "home-indicator":     { "$type": "dimension", "$value": "34px"  },
+    "safe-top":           { "$type": "dimension", "$value": "59px"  },
+    "safe-bottom":        { "$type": "dimension", "$value": "34px"  },
+    "screen-width":       { "$type": "dimension", "$value": "393px" },
+    "screen-height":      { "$type": "dimension", "$value": "852px" },
+    "content-padding":    { "$type": "dimension", "$value": "20px"  }
+  },
+
+  "component": {
+    "$description": "WHOOP-cinematic component dimensions. Use these when drawing orb rings, strain bars, and metric cards in Figma.",
+    "orb-size":         { "$type": "dimension", "$value": "200px" },
+    "orb-stroke":       { "$type": "dimension", "$value": "6px"  },
+    "orb-glow-radius":  { "$type": "dimension", "$value": "32px" },
+    "ring-size":        { "$type": "dimension", "$value": "132px"},
+    "ring-stroke":      { "$type": "dimension", "$value": "8px"  },
+    "strain-bar-height":{ "$type": "dimension", "$value": "6px"  },
+    "strain-bar-radius":{ "$type": "dimension", "$value": "3px"  },
+    "metric-card-padding": { "$type": "dimension", "$value": "20px" },
+    "metric-card-radius":  { "$type": "dimension", "$value": "16px" },
+    "cta-height":       { "$type": "dimension", "$value": "56px" },
+    "cta-radius":       { "$type": "dimension", "$value": "14px" },
+    "pill-height":      { "$type": "dimension", "$value": "28px" },
+    "pill-radius":      { "$type": "dimension", "$value": "14px" },
+    "share-btn-size":   { "$type": "dimension", "$value": "36px" },
+    "icon-size-sm":     { "$type": "dimension", "$value": "16px" },
+    "icon-size-md":     { "$type": "dimension", "$value": "20px" },
+    "icon-size-lg":     { "$type": "dimension", "$value": "24px" }
   },
 
   "shadow": {
+    "$description": "Glow effects. In Figma: apply as Drop Shadow on the element. WHOOP uses soft, wide glows — never hard box shadows.",
+    "orb-glow": {
+      "$type": "shadow",
+      "$value": { "color": "rgba(182,255,0,0.50)", "offsetX": "0px", "offsetY": "0px", "blur": "40px", "spread": "0px" }
+    },
     "card": {
       "$type": "shadow",
-      "$value": { "color": "rgba(0,0,0,0.30)", "offsetX": "0px", "offsetY": "4px", "blur": "16px", "spread": "0px" }
+      "$value": { "color": "rgba(0,0,0,0.40)", "offsetX": "0px", "offsetY": "4px", "blur": "20px", "spread": "0px" }
     },
-    "orb": {
+    "glow-peak":       { "$type": "shadow", "$value": { "color": "rgba(182,255,0,0.35)", "offsetX": "0px", "offsetY": "0px", "blur": "24px", "spread": "0px" } },
+    "glow-balanced":   { "$type": "shadow", "$value": { "color": "rgba(0,229,200,0.25)", "offsetX": "0px", "offsetY": "0px", "blur": "18px", "spread": "0px" } },
+    "glow-recovering": { "$type": "shadow", "$value": { "color": "rgba(255,160,30,0.30)", "offsetX": "0px", "offsetY": "0px", "blur": "14px", "spread": "0px" } },
+    "glow-depleted":   { "$type": "shadow", "$value": { "color": "rgba(255,45,85,0.40)",  "offsetX": "0px", "offsetY": "0px", "blur": "12px", "spread": "0px" } },
+    "glow-recovery-green":  { "$type": "shadow", "$value": { "color": "rgba(22,236,6,0.30)", "offsetX": "0px", "offsetY": "0px", "blur": "20px", "spread": "0px" } },
+    "glow-recovery-yellow": { "$type": "shadow", "$value": { "color": "rgba(255,222,0,0.25)", "offsetX": "0px", "offsetY": "0px", "blur": "16px", "spread": "0px" } },
+    "glow-recovery-red":    { "$type": "shadow", "$value": { "color": "rgba(255,0,38,0.35)", "offsetX": "0px", "offsetY": "0px", "blur": "12px", "spread": "0px" } },
+    "cta-glow": {
       "$type": "shadow",
-      "$value": { "color": "rgba(170,255,0,0.60)", "offsetX": "0px", "offsetY": "0px", "blur": "32px", "spread": "0px" }
-    },
-    "glow-optimal":   { "$type": "shadow", "$value": { "color": "rgba(57,255,20,0.32)",  "offsetX": "0px", "offsetY": "0px", "blur": "22px", "spread": "0px" } },
-    "glow-stable":    { "$type": "shadow", "$value": { "color": "rgba(180,255,80,0.24)", "offsetX": "0px", "offsetY": "0px", "blur": "14px", "spread": "0px" } },
-    "glow-declining": { "$type": "shadow", "$value": { "color": "rgba(255,214,10,0.20)", "offsetX": "0px", "offsetY": "0px", "blur": "10px", "spread": "0px" } },
-    "glow-risk":      { "$type": "shadow", "$value": { "color": "rgba(255,140,26,0.45)", "offsetX": "0px", "offsetY": "0px", "blur": "14px", "spread": "0px" } },
-    "glow-critical":  { "$type": "shadow", "$value": { "color": "rgba(255,45,85,0.70)",  "offsetX": "0px", "offsetY": "0px", "blur": "8px",  "spread": "0px" } }
+      "$value": { "color": "rgba(182,255,0,0.20)", "offsetX": "0px", "offsetY": "0px", "blur": "16px", "spread": "0px" }
+    }
   }
 }
