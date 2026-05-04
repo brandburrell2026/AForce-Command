@@ -11,7 +11,7 @@
  * screen is read-only.
  */
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Dimensions,
@@ -51,6 +51,15 @@ export default function JournalScreen() {
   const [error, setError] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
   const [exportNote, setExportNote] = useState<string | null>(null);
+  // Transient inline error for failed PDF generation. Auto-clears
+  // after 3s. Held separately from `exportNote` (which is reserved
+  // for success / status messages) so the error is always styled in
+  // red and never gets overwritten by a stale success.
+  const [pdfError, setPdfError] = useState<string | null>(null);
+  const pdfErrorTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => {
+    if (pdfErrorTimerRef.current) clearTimeout(pdfErrorTimerRef.current);
+  }, []);
 
   const load = useCallback(async (r: JournalRange) => {
     setLoading(true);
@@ -116,6 +125,11 @@ export default function JournalScreen() {
     if (exporting) return;
     setExporting(true);
     setExportNote(null);
+    setPdfError(null);
+    if (pdfErrorTimerRef.current) {
+      clearTimeout(pdfErrorTimerRef.current);
+      pdfErrorTimerRef.current = null;
+    }
     try {
       const html = buildReportHtml(range, snapshots, rollups);
       const { uri } = await Print.printToFileAsync({ html, base64: false });
@@ -132,7 +146,11 @@ export default function JournalScreen() {
       }
     } catch (err) {
       console.warn('[Journal] export failed', err);
-      setExportNote(t('journal.share_failed'));
+      setPdfError(t('journal.share_failed'));
+      pdfErrorTimerRef.current = setTimeout(() => {
+        setPdfError(null);
+        pdfErrorTimerRef.current = null;
+      }, 3000);
     } finally {
       setExporting(false);
     }
@@ -187,6 +205,9 @@ export default function JournalScreen() {
 
         {exportNote && (
           <Text style={styles.exportNote}>{exportNote}</Text>
+        )}
+        {pdfError && (
+          <Text style={styles.pdfError} accessibilityRole="alert">{pdfError}</Text>
         )}
 
         <View style={styles.chartCard}>
@@ -399,6 +420,13 @@ const styles = StyleSheet.create({
   },
   exportNote: {
     color: '#00E5C8',
+    fontSize: 11,
+    fontFamily: 'Inter_600SemiBold',
+    letterSpacing: 0.4,
+    marginBottom: 8,
+  },
+  pdfError: {
+    color: Colors.danger,
     fontSize: 11,
     fontFamily: 'Inter_600SemiBold',
     letterSpacing: 0.4,
