@@ -1277,6 +1277,21 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 12,
     marginTop: 4,
+    // Kill the browser :focus-visible ring on web preview — the
+    // Pressable's white surface is high-contrast enough to stand on
+    // its own, so the bright blue outline that RN-Web inherits from
+    // the UA stylesheet is off-system. Same pattern as PlainTabButton
+    // in app/(tabs)/_layout.tsx. RN native ignores unknown style keys
+    // at runtime — these are no-ops off-web.
+    ...(Platform.OS === 'web'
+      ? ({
+          outlineWidth: 0,
+          outlineStyle: 'none',
+          outlineColor: 'transparent',
+          boxShadow: 'none',
+          cursor: 'pointer',
+        } as Record<string, unknown>)
+      : {}),
   },
   calcBtnText: { color: Colors.text.inverse, fontSize: 15, fontWeight: '700', letterSpacing: 0.3 },
   calcBtnDisabled: { backgroundColor: Colors.fill.medium },
