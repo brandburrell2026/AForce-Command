@@ -65,6 +65,16 @@ function ClassicTabLayout() {
         headerShown: false,
         tabBarActiveTintColor: Colors.tabBar.active,
         tabBarInactiveTintColor: Colors.tabBar.inactive,
+        // Force the active-tab background to transparent so no system
+        // default (e.g. iOS systemBlue selection) shows through, and
+        // make every tab item transparent / borderless. Keeps all 6
+        // tabs visually identical — the only active-state cue is the
+        // lime tint on the icon and label.
+        tabBarActiveBackgroundColor: 'transparent',
+        tabBarItemStyle: {
+          backgroundColor: 'transparent',
+          borderWidth: 0,
+        },
         tabBarStyle: {
           position: 'absolute',
           backgroundColor: isIOS ? 'transparent' : Colors.tabBar.background,

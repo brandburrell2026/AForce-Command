@@ -1,0 +1,80 @@
+Here it is:
+
+---
+
+**AForce OS — Three Targeted Fixes**
+
+Do not change anything other than what is explicitly described below. Three fixes only.
+
+---
+
+**Fix 1 — Journal chart line color**
+
+In `screens/JournalScreen.tsx` (or wherever the score-over-time chart is rendered), find the line/stroke color configuration for the chart series.
+
+Replace the current neon yellow-green line color with:
+- Stroke color: `rgba(255, 255, 255, 0.9)`
+- Stroke width: 2px
+- Add a subtle glow effect if the chart library supports it: a second identical line behind the first at `rgba(255, 255, 255, 0.15)` with stroke width 6px
+
+If using Victory Native, Recharts, or react-native-gifted-charts, the change will be in the `stroke` or `color` prop on the line series config.
+
+If using SVG directly, update the `stroke` attribute on the path element.
+
+Do not change the performance band region colors behind the chart. Only change the line itself.
+
+---
+
+**Fix 2 — Heat guard threshold calibration**
+
+Find the heat guard logic — likely in `hooks/useHeatGuard.ts` or `utils/scoringEngine.ts` or wherever the heat score and heat band are derived from temperature.
+
+Replace the current threshold table with this:
+
+```ts
+function getHeatBand(tempF: number): 'NORMAL' | 'ELEVATED' | 'HIGH' | 'CRITICAL' {
+  if (tempF < 75) return 'NORMAL';
+  if (tempF < 85) return 'ELEVATED';
+  if (tempF < 95) return 'HIGH';
+  return 'CRITICAL';
+}
+```
+
+Rules:
+- Below 75°F → do not render the heat pill on the home screen at all. Hide it completely.
+- 75–84°F → render pill with label `HEAT · [temp] · ELEVATED`, color amber/orange
+- 85–94°F → render pill with label `HEAT · [temp] · HIGH`, color orange-red
+- 95°F and above → render pill with label `HEAT · [temp] · CRITICAL`, color red
+
+Update anywhere the heat band string `'CRITICAL'` is used to check against this function's output. The home screen heat pill, the heat guard warning voice trigger, and the Guardian heat scoring should all use this same threshold function as the single source of truth.
+
+Also update the heat guard voice escalation trigger — `onEscalate` should only fire when the band is `'HIGH'` or `'CRITICAL'`, not `'ELEVATED'` or `'NORMAL'`.
+
+---
+
+**Fix 3 — Store tab blue selection indicator**
+
+In `app/(tabs)/_layout.tsx`, find the Tabs.Screen configuration for the Store tab.
+
+Check for any `tabBarStyle`, `tabBarItemStyle`, `tabBarIconStyle`, or `style` prop on the Store screen that differs from other tabs. Remove any blue border, blue background, or non-standard highlight color.
+
+The active tab indicator across all 6 tabs must use the same color — `Colors.tabBar.active` (lime green) — for both the icon tint and the label. No tab should have a box, border, or background highlight around its icon.
+
+Also check `app/(tabs)/store.tsx` and `screens/StoreScreen.tsx` for any `borderColor`, `borderWidth`, `backgroundColor`, or `outline` style applied at the tab level that could be causing a blue box to appear. Remove it.
+
+After the fix, all 6 tab icons should behave identically — active state is lime green tint only, no box, no border, no background.
+
+---
+
+**After all three fixes:**
+- Run `npx tsc --noEmit` — must pass clean
+- Visually verify on a real device or simulator:
+  - Journal chart line is white/soft, not neon yellow
+  - At 60°F the heat pill does not appear on the home screen
+  - Store tab active state matches all other tabs — lime green, no blue box
+
+Do not touch any other files.
+
+---
+
+Clean and scoped. Replit should have these done in one pass.

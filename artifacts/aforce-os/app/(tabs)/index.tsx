@@ -49,6 +49,12 @@ import { useRiskTimerVoice } from '@/hooks/useRiskTimerVoice';
 import { useHeatGuard } from '@/hooks/useHeatGuard';
 import { DisplayedAccentProvider, useDisplayedAccent } from '@/hooks/useDisplayedAccent';
 import type { HeatRiskBand } from '@/types/heat';
+import {
+  getHeatBandFromCelsius,
+  TEMP_HEAT_BAND_COLOR,
+  TEMP_HEAT_BAND_LABEL,
+  type TempHeatBand,
+} from '@/utils/heatBand';
 import type { DrinkType } from '@/types';
 
 import { useAppStore } from '@/store/useAppStore';
@@ -137,20 +143,11 @@ function MinimalHeader({ greetingName, city, tempLabel, onShare }: HeaderProps) 
 
 // ─── Live Signals strip (Heat + Social) ──────────────────────────────
 
-const HEAT_BAND_COLOR: Record<HeatRiskBand, string> = {
-  STABLE: Colors.text.secondary,
-  ELEVATED: '#FFDE00',
-  WARNING: '#FF8C1A',
-  HIGH_RISK: '#FF0026',
-  CRITICAL: '#FF0026',
-};
-const HEAT_BAND_LABEL: Record<HeatRiskBand, string> = {
-  STABLE: 'STABLE',
-  ELEVATED: 'ELEVATED',
-  WARNING: 'WARNING',
-  HIGH_RISK: 'HIGH RISK',
-  CRITICAL: 'CRITICAL',
-};
+// Heat-pill colors and labels are sourced from the temperature-band
+// helper so this component, the voice escalation gate, and any other
+// heat-pill consumer share the same source of truth.
+const HEAT_BAND_COLOR = TEMP_HEAT_BAND_COLOR;
+const HEAT_BAND_LABEL = TEMP_HEAT_BAND_LABEL;
 
 interface SignalPillProps {
   icon: React.ComponentProps<typeof Feather>['name'];
@@ -195,7 +192,7 @@ interface BodyProps {
   lastIntakeMinutes: number | null;
   voiceCoachEnabled: boolean;
   orbSize: number;
-  heatBand: HeatRiskBand;
+  heatBand: TempHeatBand;
   heatTempLabel: string | null;
   socialActive: boolean;
   socialDrinks: number;
@@ -361,17 +358,21 @@ function ScoreDrivenBody({
         <EntryActions />
       </View>
 
-      {/* Live Signals strip (Heat Guard + Social Mode) */}
+      {/* Live Signals strip (Heat Guard + Social Mode).
+          The HEAT pill is hidden entirely when ambient temperature is
+          below 75 °F (band === 'NORMAL'). */}
       <View style={styles.signalsRow} testID="home-live-signals">
-        <SignalPill
-          icon="thermometer"
-          label="HEAT"
-          value={heatTempLabel ? `${heatTempLabel} · ${HEAT_BAND_LABEL[heatBand]}` : HEAT_BAND_LABEL[heatBand]}
-          tint={HEAT_BAND_COLOR[heatBand]}
-          active={heatBand !== 'STABLE'}
-          onPress={onTapHeat}
-          testID="home-heat-pill"
-        />
+        {heatBand !== 'NORMAL' && (
+          <SignalPill
+            icon="thermometer"
+            label="HEAT"
+            value={heatTempLabel ? `${heatTempLabel} · ${HEAT_BAND_LABEL[heatBand]}` : HEAT_BAND_LABEL[heatBand]}
+            tint={HEAT_BAND_COLOR[heatBand]}
+            active
+            onPress={onTapHeat}
+            testID="home-heat-pill"
+          />
+        )}
         <SignalPill
           icon="users"
           label="SOCIAL"
@@ -586,7 +587,7 @@ export default function HomeScreen() {
               lastIntakeMinutes={lastIntakeMinutes}
               voiceCoachEnabled={voiceCoachEnabled}
               orbSize={layout.orbSize}
-              heatBand={heat.band}
+              heatBand={getHeatBandFromCelsius(userState.weatherTempC)}
               heatTempLabel={tempLabel}
               socialActive={!!userState.socialMode?.active}
               socialDrinks={userState.socialMode?.drinks?.length ?? 0}

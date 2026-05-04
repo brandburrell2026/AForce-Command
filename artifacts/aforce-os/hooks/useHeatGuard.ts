@@ -20,6 +20,7 @@ import type { HeatRiskBand, HeatSymptom } from '../types/heat';
 import type { VoiceContext } from '../types/voicePersona';
 import type { AutopilotUrgency } from '../types/sweat';
 import { useEngineSlice, useSweatAutopilotSlice, useUserSlice } from '../store/slices';
+import { getHeatBandFromCelsius, shouldEscalateForBand } from '../utils/heatBand';
 
 const SYMPTOM_IDS: HeatSymptom[] = [
   'dizziness','headache','nausea','cramping','chills','confusion','fatigue',
@@ -153,7 +154,16 @@ export function useHeatGuard({ onEscalate }: UseHeatGuardOptions): HeatGuardResu
       return;
     }
     const prev = prevBandRef.current;
-    if (SEVERITY[next] > SEVERITY[prev] && next !== 'STABLE') {
+    // Voice / haptic escalation is gated by the temperature-derived
+    // band: only fire when ambient temp is in HIGH (≥85 °F) or
+    // CRITICAL (≥95 °F). At ELEVATED or NORMAL the engine band may
+    // still update silently for downstream UI, but no voice fires.
+    const tempBand = getHeatBandFromCelsius(userState.weatherTempC);
+    if (
+      SEVERITY[next] > SEVERITY[prev] &&
+      next !== 'STABLE' &&
+      shouldEscalateForBand(tempBand)
+    ) {
       const persona = resolvePersona(performanceState.level);
       const ctx: VoiceContext = { mode: persona.mode, score: heatScore.score, heat_band: next };
       const line = renderTemplate('heat_warning', ctx);
@@ -164,7 +174,7 @@ export function useHeatGuard({ onEscalate }: UseHeatGuardOptions): HeatGuardResu
       onEscalate();
     }
     prevBandRef.current = next;
-  }, [heatScore.band, heatScore.score, performanceState.level, onEscalate]);
+  }, [heatScore.band, heatScore.score, performanceState.level, userState.weatherTempC, onEscalate]);
 
   return heatScore;
 }

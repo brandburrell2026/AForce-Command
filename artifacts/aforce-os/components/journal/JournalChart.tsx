@@ -120,8 +120,9 @@ export default function JournalChart({ data, width, height = 200 }: Props) {
           </React.Fragment>
         ))}
 
-        {/* Score polyline */}
-        <Path d={pathD} stroke="#B6FF00" strokeWidth={1.8} fill="none" />
+        {/* Score polyline — soft white with a subtle outer glow */}
+        <Path d={pathD} stroke="rgba(255,255,255,0.15)" strokeWidth={6} fill="none" />
+        <Path d={pathD} stroke="rgba(255,255,255,0.9)" strokeWidth={2} fill="none" />
       </Svg>
       <View style={styles.legend}>
         <Text style={styles.legendCell}>
