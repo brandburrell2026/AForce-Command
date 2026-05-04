@@ -24,6 +24,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import { useRouter } from 'expo-router';
 import { useUser } from '@clerk/expo';
 
 import { GradientBackground } from '@/components/GradientBackground';
@@ -89,17 +90,34 @@ interface HeaderProps {
   greetingName: string;
   city: string | null;
   tempLabel: string | null;
+  onShare?: () => void;
 }
 
-function MinimalHeader({ greetingName, city, tempLabel }: HeaderProps) {
+function MinimalHeader({ greetingName, city, tempLabel, onShare }: HeaderProps) {
   const now = useNow();
   const segments = [city, formatTime(now), tempLabel].filter(
     (s): s is string => !!s && s.length > 0,
   );
   return (
     <View style={styles.header}>
-      <Text style={styles.welcome}>Welcome, {greetingName}</Text>
-      <Text style={styles.brand}>AForce OS</Text>
+      <View style={styles.headerTopRow}>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.welcome}>Welcome, {greetingName}</Text>
+          <Text style={styles.brand}>AForce OS</Text>
+        </View>
+        {onShare && (
+          <TouchableOpacity
+            onPress={onShare}
+            activeOpacity={0.85}
+            style={styles.shareBtn}
+            accessibilityRole="button"
+            accessibilityLabel="Share your status"
+            testID="home-share-button"
+          >
+            <Feather name="share" size={15} color={Colors.text.primary} />
+          </TouchableOpacity>
+        )}
+      </View>
       {segments.length > 0 && (
         <View style={styles.statusBar} testID="home-location-line">
           <View style={styles.statusDot} />
@@ -385,6 +403,7 @@ export default function HomeScreen() {
   const { state, dismissSuccess, completeOnboarding, voiceCoachEnabled } = useAppStore();
   const layout = useResponsiveLayout();
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const clerkUser = useUser().user;
 
   const engine = useEngineSlice();
@@ -461,6 +480,17 @@ export default function HomeScreen() {
     }
     setFlavorOpen(true);
   }, [state.isCompletingCycle]);
+
+  const onShare = React.useCallback(() => {
+    if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
+    const level = engine.performanceState.level;
+    const stateLabel =
+      level === 'PEAK' ? 'Peak'
+      : level === 'RECOVERING' ? 'Recovering'
+      : level === 'DEPLETED' ? 'Depleted'
+      : 'Balanced';
+    router.push(`/share?type=score&score=${engine.score}&state=${stateLabel}`);
+  }, [router, engine.score, engine.performanceState.level]);
 
   const openSocial = React.useCallback(() => {
     if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
@@ -544,7 +574,7 @@ export default function HomeScreen() {
             ]}
             showsVerticalScrollIndicator={false}
           >
-            <MinimalHeader greetingName={greetingName} city={city} tempLabel={tempLabel} />
+            <MinimalHeader greetingName={greetingName} city={city} tempLabel={tempLabel} onShare={onShare} />
 
             <ScoreDrivenBody
               onOpenBreakdown={openBreakdown}
@@ -618,6 +648,21 @@ const styles = StyleSheet.create({
   content: { paddingHorizontal: 20, alignItems: 'stretch' },
 
   header: { marginBottom: 20 },
+  headerTopRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  shareBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.12)',
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    marginTop: 6,
+  },
   welcome: {
     fontFamily: 'Inter_500Medium',
     fontSize: 13,
