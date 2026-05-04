@@ -384,3 +384,15 @@ id = "bPprApyiCNdQuL405oI9-"
 uri = "file://design/aforce-tokens.json"
 type = "unspecified"
 title = "AForce Tokens — import into Tokens Studio for Figma"
+
+[[outputs]]
+id = "2HgmrRySByOkwnH45myBS"
+uri = "file://attached_assets/Screenshot_2026-05-04_at_2.59.23_PM_1777899566008.png"
+type = "image"
+title = "AForce Social — Original (with phone frame)"
+
+[[outputs]]
+id = "BwTWglHJ1haD_x-pNFGbe"
+uri = "file://exports/aforce-social-transparent.png"
+type = "image"
+title = "AForce Social — Transparent background (for overlays)"
