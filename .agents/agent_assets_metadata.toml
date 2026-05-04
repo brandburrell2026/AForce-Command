@@ -396,3 +396,9 @@ id = "BwTWglHJ1haD_x-pNFGbe"
 uri = "file://exports/aforce-social-transparent.png"
 type = "image"
 title = "AForce Social — Transparent background (for overlays)"
+
+[[outputs]]
+id = "3h8qvU43AmFciiWnA6MWj"
+uri = "file://docs/competitive-moat.md"
+type = "text"
+title = "AForce — Competitive Moat & Defensibility"
