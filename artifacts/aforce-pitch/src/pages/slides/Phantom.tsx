@@ -93,6 +93,15 @@ export default function Phantom() {
             alt="Phantom One hero, LED state feedback, Phantom Meridian luxury edition, and component tech overview"
             className="absolute inset-0 w-full h-full object-cover object-center"
           />
+          {/* Mask the brand sheet's baked-in bottom caption row
+              ("3. PHANTOM MERIDIAN...", "4. CONCEPT/TECH...") so it
+              doesn't visually collide with the slide's own footer. */}
+          <div className="absolute inset-x-0 bottom-0 h-[16%] bg-gradient-to-t from-bg via-bg/95 to-transparent pointer-events-none" />
+          {/* Mask the brand sheet's baked-in middle caption row
+              ("1. HERO IMAGE...", "2. LED STATE FEEDBACK...") at the
+              ~50% horizontal seam — same logic, less aggressive since
+              this strip is internal to the image. */}
+          <div className="absolute inset-x-0 top-[46%] h-[8%] bg-gradient-to-b from-transparent via-bg/55 to-transparent pointer-events-none" />
         </div>
       </div>
 
