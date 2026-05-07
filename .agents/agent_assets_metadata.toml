@@ -402,3 +402,27 @@ id = "3h8qvU43AmFciiWnA6MWj"
 uri = "file://docs/competitive-moat.md"
 type = "text"
 title = "AForce — Competitive Moat & Defensibility"
+
+[[outputs]]
+id = "kb-aMLCpk06Gcb72o7TIL"
+uri = "file://exports/phantom-rfp/Phantom-Band-RFP-Brief.pdf"
+type = "pdf"
+title = "Phantom Band — Full RFP Brief (PDF)"
+
+[[outputs]]
+id = "pYJG84CvhQ56Y5MVo5Jel"
+uri = "file://exports/phantom-rfp/Phantom-Band-Tearsheet.pdf"
+type = "pdf"
+title = "Phantom Band — Vendor Tear Sheet (PDF)"
+
+[[outputs]]
+id = "kaYSFCwC6XuuiK6r03NhI"
+uri = "file://exports/phantom-rfp/Phantom-Band-RFP-Brief.md"
+type = "text"
+title = "RFP Brief — Editable Source (Markdown)"
+
+[[outputs]]
+id = "nDvx49tfItGUKhn3YUVcw"
+uri = "file://exports/phantom-rfp/Phantom-Band-Tearsheet.md"
+type = "text"
+title = "Tear Sheet — Editable Source (Markdown)"
