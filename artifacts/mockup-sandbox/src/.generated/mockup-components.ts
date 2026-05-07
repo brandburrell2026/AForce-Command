@@ -4,8 +4,8 @@ export const modules: ModuleMap = {
   "./components/mockups/aforce-ring/CalmCoach.tsx": () => import("../components/mockups/aforce-ring/CalmCoach.tsx"),
   "./components/mockups/aforce-ring/MissionControl.tsx": () => import("../components/mockups/aforce-ring/MissionControl.tsx"),
   "./components/mockups/aforce-ring/SportMode.tsx": () => import("../components/mockups/aforce-ring/SportMode.tsx"),
-  "./components/mockups/score-band/Default.tsx": () => import("../components/mockups/score-band/Default.tsx"),
-  "./components/mockups/score-band/Hero.tsx": () => import("../components/mockups/score-band/Hero.tsx"),
   "./components/mockups/recovery-mode/Locked.tsx": () => import("../components/mockups/recovery-mode/Locked.tsx"),
-  "./components/mockups/recovery-mode/Unlocked.tsx": () => import("../components/mockups/recovery-mode/Unlocked.tsx")
+  "./components/mockups/recovery-mode/Unlocked.tsx": () => import("../components/mockups/recovery-mode/Unlocked.tsx"),
+  "./components/mockups/score-band/Default.tsx": () => import("../components/mockups/score-band/Default.tsx"),
+  "./components/mockups/score-band/Hero.tsx": () => import("../components/mockups/score-band/Hero.tsx")
 };
