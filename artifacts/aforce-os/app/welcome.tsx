@@ -261,11 +261,6 @@ export default function WelcomeScreen() {
           ))}
         </View>
 
-        {/* Standard line */}
-        <Animated.Text style={[styles.standard, stdStyle]}>
-          This is beyond a hydration brand.{' '}
-          <Text style={styles.standardEm}>This is a performance standard.</Text>
-        </Animated.Text>
       </View>
 
       {/* ─── Bottom CTA — inline (not absolute) so it can never
@@ -417,10 +412,10 @@ const styles = StyleSheet.create({
   },
   brand: {
     fontFamily: F.display,
-    fontSize: 54,
-    lineHeight: 60,
+    fontSize: 128,
+    lineHeight: 132,
     color: C.primary,
-    letterSpacing: -1.5,
+    letterSpacing: -4,
     ...(Platform.OS === 'web'
       ? ({ filter: 'drop-shadow(0 0 32px rgba(229,51,65,0.45))' } as object)
       : { textShadowColor: 'rgba(229,51,65,0.45)', textShadowRadius: 32, textShadowOffset: { width: 0, height: 0 } }),
