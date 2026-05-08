@@ -239,7 +239,7 @@ export default function WelcomeScreen() {
             Performance is
           </Animated.Text>
           <Animated.Text
-            style={[styles.headlineRed, { fontSize: headlineSize, lineHeight: headlineSize * 0.95 }, h2Style]}
+            style={[styles.headlineRed, { fontSize: headlineSize * 0.86, lineHeight: headlineSize * 0.86 * 0.95 }, h2Style]}
             numberOfLines={1}
             adjustsFontSizeToFit
             minimumFontScale={0.5}
