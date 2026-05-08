@@ -1,24 +1,24 @@
 /**
- * Welcome — first-launch cinematic intro.
+ * Welcome — first-launch cinematic intro (Deck-aligned edition).
  *
- * The frame the user sees the moment they open AForce OS for the
- * first time. WHOOP-cinematic: pure black canvas, single LED-lime
- * accent, premium display typography, staged reveal that earns the
- * "Begin" tap. No data, no chrome, no decisions — one statement of
- * intent and one CTA.
+ * Re-skinned to match the AForce investor deck's visual language:
+ *   • Deep blue-black canvas (#08080F)
+ *   • Editorial left-aligned hierarchy
+ *   • Red primary (#E53341), Yellow accent (#F5D637), Blue ambient (#5478D5)
+ *   • "AForce" set in proper case as a red display wordmark
+ *   • Massive headline with mixed-color spans ("non-negotiable." in red)
+ *   • Multi-color tagline: Pause.(red) Hydrate.(white) Lock in.(yellow) Perform.(white)
  *
  * Reveal timeline (ms from mount):
- *   0     ambient lime glow begins breathing
- *   180   top eyebrow ("AFORCE OS · 2026") fades in
- *   500   AFORCE wordmark scales + fades in
- *   1100  lime accent rule draws across (scaleX 0 → 1)
- *   1400  slogan "Performance is non-negotiable." rises into place
- *   2000  tagline words appear with 160ms stagger
- *   2900  primary CTA "Begin" fades in from below
- *   3300  microcopy hairline appears
- *
- * On Begin: routes to (auth)/sign-up so the new user lands on
- * account creation. (DEMO_MODE bypass still applies elsewhere.)
+ *   0     ambient blue halo (left) + red halo (right) start breathing
+ *   180   top meta row (01 — WELCOME / AFORCE OS · 2026)
+ *   420   "AForce" wordmark + tracked subtitle fade in
+ *   820   "Performance is" rises into place
+ *   1120  "non-negotiable." snaps in (red, slight scale pop)
+ *   1550  tagline words appear with 140 ms stagger
+ *   2300  standard line ("This is beyond a hydration brand…")
+ *   2700  red CTA "Begin" pill rises
+ *   3100  hairline microcopy
  */
 
 import React from 'react';
@@ -27,28 +27,53 @@ import {
 } from 'react-native';
 import Animated, {
   useSharedValue, useAnimatedStyle, withTiming, withDelay, withRepeat,
-  withSequence, Easing, interpolate, cancelAnimation, type SharedValue,
+  withSequence, withSpring, Easing, cancelAnimation, type SharedValue,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 
-import { Colors } from '@/theme/colors';
+// ─── Deck-aligned palette ─────────────────────────────────────────
+const C = {
+  bg:       '#08080F',
+  bgEdge:   '#04040A',
+  primary:  '#E53341', // red — wordmark, "non-negotiable.", CTA, "Pause."
+  accent:   '#F5D637', // yellow — "Lock in."
+  secondary:'#5478D5', // blue — left ambient halo
+  white:    '#FFFFFF',
+  text90:   'rgba(255,255,255,0.92)',
+  text65:   'rgba(255,255,255,0.65)',
+  text45:   'rgba(255,255,255,0.45)',
+  text25:   'rgba(255,255,255,0.25)',
+  hair:     'rgba(255,255,255,0.10)',
+};
 
-const ACCENT = Colors.accent.primary; // WHOOP lime #B6FF00
-const TAGLINE_WORDS = ['Pause.', 'Hydrate.', 'Lock in.', 'Perform.'];
+// Typography — Inter is the only family loaded; we use weight to do
+// the work display fonts normally would.
+const F = {
+  display: 'Inter_700Bold',
+  body:    'Inter_500Medium',
+  bodyR:   'Inter_400Regular',
+};
 
-// Single global timing tokens so the whole reveal stays in sync.
+const TAGLINE: { word: string; color: string }[] = [
+  { word: 'Pause.',    color: C.primary },
+  { word: 'Hydrate.',  color: C.white },
+  { word: 'Lock in.',  color: C.accent },
+  { word: 'Perform.',  color: C.white },
+];
+
 const T = {
-  eyebrow:   { delay: 180,  dur: 600 },
-  wordmark:  { delay: 500,  dur: 900 },
-  rule:      { delay: 1100, dur: 700 },
-  slogan:    { delay: 1400, dur: 700 },
-  taglineBase: 2000, // first word
-  taglineStagger: 160,
-  cta:       { delay: 2900, dur: 600 },
-  micro:     { delay: 3300, dur: 500 },
+  meta:       { delay: 180,  dur: 600 },
+  brandRow:   { delay: 420,  dur: 700 },
+  headline1:  { delay: 820,  dur: 700 }, // "Performance is"
+  headline2:  { delay: 1120, dur: 700 }, // "non-negotiable."
+  taglineBase:1550,
+  taglineStagger: 140,
+  standard:   { delay: 2300, dur: 600 }, // "This is beyond..."
+  cta:        { delay: 2700, dur: 600 },
+  micro:      { delay: 3100, dur: 500 },
 };
 
 export default function WelcomeScreen() {
@@ -56,199 +81,217 @@ export default function WelcomeScreen() {
   const insets = useSafeAreaInsets();
   const { width, height } = useWindowDimensions();
 
-  // ─── Shared values ──────────────────────────────────────────────
-  const eyebrowO = useSharedValue(0);
-  const eyebrowY = useSharedValue(-8);
-  const wordmarkO = useSharedValue(0);
-  const wordmarkS = useSharedValue(0.94);
-  const rule = useSharedValue(0);
-  const sloganO = useSharedValue(0);
-  const sloganY = useSharedValue(14);
-  // Tagline shared values — declared individually (not in a loop) to
-  // satisfy the Rules of Hooks. TAGLINE_WORDS has 4 entries.
-  const tag0O = useSharedValue(0); const tag0Y = useSharedValue(10);
-  const tag1O = useSharedValue(0); const tag1Y = useSharedValue(10);
-  const tag2O = useSharedValue(0); const tag2Y = useSharedValue(10);
-  const tag3O = useSharedValue(0); const tag3Y = useSharedValue(10);
-  const tagOs = [tag0O, tag1O, tag2O, tag3O];
-  const tagYs = [tag0Y, tag1Y, tag2Y, tag3Y];
-  const ctaO = useSharedValue(0);
-  const ctaY = useSharedValue(20);
+  // ─── Shared values ─────────────────────────────────────────────
+  const blueGlow = useSharedValue(0.45);
+  const redGlow  = useSharedValue(0.30);
+
+  const metaO = useSharedValue(0); const metaY = useSharedValue(-6);
+  const brandO = useSharedValue(0); const brandY = useSharedValue(8);
+  const h1O = useSharedValue(0); const h1Y = useSharedValue(14);
+  const h2O = useSharedValue(0); const h2Y = useSharedValue(18); const h2S = useSharedValue(0.96);
+  // 4 tagline words, declared individually for Rules of Hooks.
+  const t0O = useSharedValue(0); const t0Y = useSharedValue(10);
+  const t1O = useSharedValue(0); const t1Y = useSharedValue(10);
+  const t2O = useSharedValue(0); const t2Y = useSharedValue(10);
+  const t3O = useSharedValue(0); const t3Y = useSharedValue(10);
+  const tagOs = [t0O, t1O, t2O, t3O];
+  const tagYs = [t0Y, t1Y, t2Y, t3Y];
+
+  const stdO = useSharedValue(0); const stdY = useSharedValue(8);
+  const ctaO = useSharedValue(0); const ctaY = useSharedValue(20);
   const microO = useSharedValue(0);
-  const glow = useSharedValue(0.55);
-  const haloRot = useSharedValue(0);
   const ctaPress = useSharedValue(0);
 
-  // ─── Reveal sequence ────────────────────────────────────────────
+  // ─── Reveal sequence ───────────────────────────────────────────
   React.useEffect(() => {
-    // Ambient breathing glow — runs forever, subtle.
-    glow.value = withRepeat(
+    // Ambient breathing halos — desync slightly so they don't pulse
+    // in lockstep, which reads as "broken" instead of "alive".
+    blueGlow.value = withRepeat(
       withSequence(
-        withTiming(0.85, { duration: 3200, easing: Easing.inOut(Easing.quad) }),
-        withTiming(0.55, { duration: 3200, easing: Easing.inOut(Easing.quad) }),
-      ),
-      -1,
-      false,
+        withTiming(0.65, { duration: 3400, easing: Easing.inOut(Easing.quad) }),
+        withTiming(0.42, { duration: 3400, easing: Easing.inOut(Easing.quad) }),
+      ), -1, false,
     );
-    // Slow halo rotation — barely perceptible, adds life.
-    haloRot.value = withRepeat(
-      withTiming(360, { duration: 60000, easing: Easing.linear }),
-      -1,
-      false,
-    );
+    redGlow.value = withDelay(900, withRepeat(
+      withSequence(
+        withTiming(0.50, { duration: 3000, easing: Easing.inOut(Easing.quad) }),
+        withTiming(0.28, { duration: 3000, easing: Easing.inOut(Easing.quad) }),
+      ), -1, false,
+    ));
 
-    eyebrowO.value = withDelay(T.eyebrow.delay,
-      withTiming(1, { duration: T.eyebrow.dur, easing: Easing.out(Easing.cubic) }));
-    eyebrowY.value = withDelay(T.eyebrow.delay,
-      withTiming(0, { duration: T.eyebrow.dur, easing: Easing.out(Easing.cubic) }));
+    const out = (d: number, dur: number) =>
+      withDelay(d, withTiming(0, { duration: dur, easing: Easing.out(Easing.cubic) }));
+    const inO = (d: number, dur: number) =>
+      withDelay(d, withTiming(1, { duration: dur, easing: Easing.out(Easing.cubic) }));
 
-    wordmarkO.value = withDelay(T.wordmark.delay,
-      withTiming(1, { duration: T.wordmark.dur, easing: Easing.out(Easing.cubic) }));
-    wordmarkS.value = withDelay(T.wordmark.delay,
-      withTiming(1, { duration: T.wordmark.dur, easing: Easing.out(Easing.cubic) }));
+    metaO.value = inO(T.meta.delay, T.meta.dur);
+    metaY.value = out(T.meta.delay, T.meta.dur);
 
-    rule.value = withDelay(T.rule.delay,
-      withTiming(1, { duration: T.rule.dur, easing: Easing.out(Easing.cubic) }));
+    brandO.value = inO(T.brandRow.delay, T.brandRow.dur);
+    brandY.value = out(T.brandRow.delay, T.brandRow.dur);
 
-    sloganO.value = withDelay(T.slogan.delay,
-      withTiming(1, { duration: T.slogan.dur, easing: Easing.out(Easing.cubic) }));
-    sloganY.value = withDelay(T.slogan.delay,
-      withTiming(0, { duration: T.slogan.dur, easing: Easing.out(Easing.cubic) }));
+    h1O.value = inO(T.headline1.delay, T.headline1.dur);
+    h1Y.value = out(T.headline1.delay, T.headline1.dur);
 
-    TAGLINE_WORDS.forEach((_, i) => {
+    h2O.value = inO(T.headline2.delay, T.headline2.dur);
+    h2Y.value = out(T.headline2.delay, T.headline2.dur);
+    h2S.value = withDelay(T.headline2.delay,
+      withSpring(1, { damping: 16, stiffness: 180, mass: 0.7 }));
+
+    TAGLINE.forEach((_, i) => {
       const d = T.taglineBase + i * T.taglineStagger;
       tagOs[i].value = withDelay(d,
-        withTiming(1, { duration: 520, easing: Easing.out(Easing.cubic) }));
+        withTiming(1, { duration: 480, easing: Easing.out(Easing.cubic) }));
       tagYs[i].value = withDelay(d,
-        withTiming(0, { duration: 520, easing: Easing.out(Easing.cubic) }));
+        withTiming(0, { duration: 480, easing: Easing.out(Easing.cubic) }));
     });
 
-    ctaO.value = withDelay(T.cta.delay,
-      withTiming(1, { duration: T.cta.dur, easing: Easing.out(Easing.cubic) }));
-    ctaY.value = withDelay(T.cta.delay,
-      withTiming(0, { duration: T.cta.dur, easing: Easing.out(Easing.cubic) }));
+    stdO.value = inO(T.standard.delay, T.standard.dur);
+    stdY.value = out(T.standard.delay, T.standard.dur);
 
-    microO.value = withDelay(T.micro.delay,
-      withTiming(1, { duration: T.micro.dur, easing: Easing.out(Easing.cubic) }));
+    ctaO.value = inO(T.cta.delay, T.cta.dur);
+    ctaY.value = out(T.cta.delay, T.cta.dur);
 
-    // Stop the infinite ambient loops when the screen unmounts so we
-    // don't burn cycles after the user taps Begin and routes away.
+    microO.value = inO(T.micro.delay, T.micro.dur);
+
     return () => {
-      cancelAnimation(glow);
-      cancelAnimation(haloRot);
+      cancelAnimation(blueGlow);
+      cancelAnimation(redGlow);
     };
   }, []);
 
-  // ─── Animated styles ────────────────────────────────────────────
-  const haloStyle = useAnimatedStyle(() => ({
-    opacity: glow.value,
-    transform: [{ rotate: `${haloRot.value}deg` }],
+  // ─── Animated styles ───────────────────────────────────────────
+  const blueGlowStyle = useAnimatedStyle(() => ({ opacity: blueGlow.value }));
+  const redGlowStyle  = useAnimatedStyle(() => ({ opacity: redGlow.value }));
+  const metaStyle  = useAnimatedStyle(() => ({ opacity: metaO.value, transform: [{ translateY: metaY.value }] }));
+  const brandStyle = useAnimatedStyle(() => ({ opacity: brandO.value, transform: [{ translateY: brandY.value }] }));
+  const h1Style    = useAnimatedStyle(() => ({ opacity: h1O.value, transform: [{ translateY: h1Y.value }] }));
+  const h2Style    = useAnimatedStyle(() => ({
+    opacity: h2O.value,
+    transform: [{ translateY: h2Y.value }, { scale: h2S.value }],
   }));
-  const eyebrowStyle = useAnimatedStyle(() => ({
-    opacity: eyebrowO.value,
-    transform: [{ translateY: eyebrowY.value }],
-  }));
-  const wordmarkStyle = useAnimatedStyle(() => ({
-    opacity: wordmarkO.value,
-    transform: [{ scale: wordmarkS.value }],
-  }));
-  const ruleStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(rule.value, [0, 1], [0, 1]),
-    transform: [{ scaleX: rule.value }],
-  }));
-  const sloganStyle = useAnimatedStyle(() => ({
-    opacity: sloganO.value,
-    transform: [{ translateY: sloganY.value }],
-  }));
-  const ctaWrapStyle = useAnimatedStyle(() => ({
-    opacity: ctaO.value,
-    transform: [{ translateY: ctaY.value }],
-  }));
-  const ctaBtnStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: 1 - ctaPress.value * 0.03 }],
-  }));
+  const stdStyle   = useAnimatedStyle(() => ({ opacity: stdO.value, transform: [{ translateY: stdY.value }] }));
+  const ctaWrap    = useAnimatedStyle(() => ({ opacity: ctaO.value, transform: [{ translateY: ctaY.value }] }));
+  const ctaBtnStyle = useAnimatedStyle(() => ({ transform: [{ scale: 1 - ctaPress.value * 0.03 }] }));
   const microStyle = useAnimatedStyle(() => ({ opacity: microO.value }));
 
-  // ─── Handlers ───────────────────────────────────────────────────
+  // ─── Handlers ──────────────────────────────────────────────────
   const handleBegin = () => {
     if (Platform.OS !== 'web') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy).catch(() => {});
     }
     router.replace('/(auth)/sign-up');
   };
-
-  const onPressIn = () => { ctaPress.value = withTiming(1, { duration: 90 }); };
+  const onPressIn  = () => { ctaPress.value = withTiming(1, { duration: 90 }); };
   const onPressOut = () => { ctaPress.value = withTiming(0, { duration: 180 }); };
 
-  // Halo size scales with the smaller viewport edge so it looks right
-  // on both phone and tablet without overflowing.
-  const haloSize = Math.min(width, height) * 1.4;
+  // Halo geometry — sized so they bleed off-screen without overflow.
+  const blueSize = Math.min(width, height) * 1.3;
+  const redSize  = Math.min(width, height) * 1.1;
+
+  // Responsive headline size so we don't blow out narrow viewports.
+  const headlineSize = Math.min(64, Math.max(40, width * 0.16));
 
   return (
     <View style={styles.root}>
-      {/* ─── Ambient halo ─────────────────────────────────────── */}
+      {/* ─── Ambient halos ───────────────────────────────────── */}
       <View pointerEvents="none" style={StyleSheet.absoluteFill}>
         <Animated.View
           style={[
-            styles.halo,
-            { width: haloSize, height: haloSize, top: height * 0.08, left: (width - haloSize) / 2 },
-            haloStyle,
+            styles.haloBlue,
+            { width: blueSize, height: blueSize,
+              top: height * 0.05,
+              left: -blueSize * 0.45 },
+            blueGlowStyle,
           ]}
         />
-        {/* Vertical accent bars — barely-there left/right edge LEDs. */}
-        <View style={[styles.edgeBar, styles.edgeLeft, { top: height * 0.22, height: height * 0.56 }]} />
-        <View style={[styles.edgeBar, styles.edgeRight, { top: height * 0.22, height: height * 0.56 }]} />
+        <Animated.View
+          style={[
+            styles.haloRed,
+            { width: redSize, height: redSize,
+              bottom: -redSize * 0.45,
+              right: -redSize * 0.30 },
+            redGlowStyle,
+          ]}
+        />
+        {/* Vignette to deepen edges and lift the type. */}
+        <View style={styles.vignette} />
       </View>
 
-      {/* ─── Top eyebrow ──────────────────────────────────────── */}
+      {/* ─── Top meta row ────────────────────────────────────── */}
       <Animated.View
-        style={[styles.eyebrowWrap, { paddingTop: insets.top + 18 }, eyebrowStyle]}
+        style={[styles.metaRow, { paddingTop: insets.top + 16 }, metaStyle]}
       >
-        <View style={styles.eyebrowDot} />
-        <Text style={styles.eyebrow}>AFORCE OS · 2026</Text>
+        <View style={styles.metaLeft}>
+          <View style={styles.metaDot} />
+          <Text style={styles.metaTextRed}>01 — WELCOME</Text>
+        </View>
+        <Text style={styles.metaTextMuted}>AFORCE OS · 2026</Text>
       </Animated.View>
 
-      {/* ─── Center stack ─────────────────────────────────────── */}
-      <View style={styles.center}>
-        <Animated.Text
-          style={[styles.wordmark, wordmarkStyle]}
-          numberOfLines={1}
-          adjustsFontSizeToFit
-          minimumFontScale={0.6}
-        >
-          AFORCE
-        </Animated.Text>
+      {/* ─── Editorial stack ─────────────────────────────────── */}
+      <View style={[styles.editorial, { paddingTop: insets.top + 76 }]}>
+        {/* Brand row — "AForce" red display + tracked subtitle */}
+        <Animated.View style={[styles.brandRow, brandStyle]}>
+          <Text style={styles.brand}>AForce</Text>
+          <Text style={styles.brandSubtitle}>
+            THE PERFORMANCE{'\n'}OPERATING SYSTEM
+          </Text>
+        </Animated.View>
 
-        <Animated.View style={[styles.rule, ruleStyle]} />
+        {/* Headline — two-line reveal so "non-negotiable." lands hard */}
+        <View style={styles.headlineWrap}>
+          <Animated.Text
+            style={[styles.headline, { fontSize: headlineSize, lineHeight: headlineSize * 0.95 }, h1Style]}
+            numberOfLines={2}
+            adjustsFontSizeToFit
+            minimumFontScale={0.7}
+          >
+            Performance is
+          </Animated.Text>
+          <Animated.Text
+            style={[styles.headlineRed, { fontSize: headlineSize, lineHeight: headlineSize * 0.95 }, h2Style]}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.7}
+          >
+            non‑negotiable.
+          </Animated.Text>
+        </View>
 
-        <Animated.Text style={[styles.slogan, sloganStyle]}>
-          Performance is non-negotiable.
-        </Animated.Text>
-
+        {/* Tagline — multi-color word reveal */}
         <View style={styles.taglineRow}>
-          {TAGLINE_WORDS.map((word, i) => (
-            <TaglineWord
-              key={word}
-              word={word}
+          {TAGLINE.map((t, i) => (
+            <TagWord
+              key={t.word}
+              word={t.word}
+              color={t.color}
               opacity={tagOs[i]}
               translateY={tagYs[i]}
             />
           ))}
         </View>
+
+        {/* Standard line */}
+        <Animated.Text style={[styles.standard, stdStyle]}>
+          This is beyond a hydration brand.{' '}
+          <Text style={styles.standardEm}>This is a performance standard.</Text>
+        </Animated.Text>
       </View>
 
-      {/* ─── Bottom CTA ───────────────────────────────────────── */}
+      {/* ─── Bottom CTA ──────────────────────────────────────── */}
       <Animated.View
         style={[
           styles.ctaWrap,
-          { paddingBottom: Math.max(insets.bottom + 28, 36) },
-          ctaWrapStyle,
+          { paddingBottom: Math.max(insets.bottom + 26, 34) },
+          ctaWrap,
         ]}
       >
         <Pressable
           onPress={handleBegin}
           onPressIn={onPressIn}
           onPressOut={onPressOut}
+          accessible
           accessibilityRole="button"
           accessibilityLabel="Begin"
           hitSlop={12}
@@ -256,7 +299,7 @@ export default function WelcomeScreen() {
           <Animated.View style={[styles.ctaBtn, ctaBtnStyle]}>
             <Text style={styles.ctaLabel}>BEGIN</Text>
             <View style={styles.ctaArrow}>
-              <Feather name="arrow-right" size={16} color={Colors.text.inverse} />
+              <Feather name="arrow-right" size={16} color={C.white} />
             </View>
           </Animated.View>
         </Pressable>
@@ -264,7 +307,7 @@ export default function WelcomeScreen() {
         <Animated.View style={[styles.microRow, microStyle]}>
           <View style={styles.microHair} />
           <Text style={styles.microText}>
-            Activate your performance OS
+            Tap to activate your performance OS
           </Text>
           <View style={styles.microHair} />
         </Animated.View>
@@ -273,163 +316,203 @@ export default function WelcomeScreen() {
   );
 }
 
-// ─── Tagline word — own component so each animated style hook is
-// called at the top level of its own render (Rules of Hooks). ─────
-interface TaglineWordProps {
+// ─── TagWord — own component so each useAnimatedStyle hook is at the
+// top level of its own render (Rules of Hooks). ────────────────────
+interface TagWordProps {
   word: string;
+  color: string;
   opacity: SharedValue<number>;
   translateY: SharedValue<number>;
 }
-function TaglineWord({ word, opacity, translateY }: TaglineWordProps) {
+function TagWord({ word, color, opacity, translateY }: TagWordProps) {
   const style = useAnimatedStyle(() => ({
     opacity: opacity.value,
     transform: [{ translateY: translateY.value }],
   }));
   return (
-    <Animated.Text style={[styles.taglineWord, style]}>
+    <Animated.Text style={[styles.taglineWord, { color }, style]}>
       {word}
     </Animated.Text>
   );
 }
 
-// ─── Styles ────────────────────────────────────────────────────────
+// ─── Styles ───────────────────────────────────────────────────────
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: Colors.background.primary, // #000
+    backgroundColor: C.bg,
     overflow: 'hidden',
   },
 
-  // Ambient halo — radial-ish glow built from a hugely rounded view
-  // with a low-alpha lime fill. Cheap, web-safe, and it breathes via
-  // the opacity animation.
-  halo: {
+  // ── Ambient halos. Web uses CSS filter for a true gaussian glow;
+  // native gets a tinted soft circle (close enough, no extra deps).
+  haloBlue: {
     position: 'absolute',
     borderRadius: 9999,
-    backgroundColor: ACCENT,
-    opacity: 0.06,
-    // Web shadow → glow halo. RN strips this on native; we still get
-    // the radial color via the fill + opacity.
+    backgroundColor: C.secondary,
+    opacity: 0.45,
+    ...(Platform.OS === 'web'
+      ? ({ filter: 'blur(150px)' } as object)
+      : {
+          shadowColor: C.secondary,
+          shadowOpacity: 0.7,
+          shadowRadius: 140,
+          shadowOffset: { width: 0, height: 0 },
+        }),
+  },
+  haloRed: {
+    position: 'absolute',
+    borderRadius: 9999,
+    backgroundColor: C.primary,
+    opacity: 0.30,
     ...(Platform.OS === 'web'
       ? ({ filter: 'blur(140px)' } as object)
-      : { shadowColor: ACCENT, shadowOpacity: 0.6, shadowRadius: 120, shadowOffset: { width: 0, height: 0 } }),
+      : {
+          shadowColor: C.primary,
+          shadowOpacity: 0.6,
+          shadowRadius: 120,
+          shadowOffset: { width: 0, height: 0 },
+        }),
+  },
+  vignette: {
+    ...StyleSheet.absoluteFillObject,
+    ...(Platform.OS === 'web'
+      ? ({ background: 'radial-gradient(ellipse at 50% 60%, transparent 40%, rgba(0,0,0,0.55) 100%)' } as object)
+      : { backgroundColor: 'transparent' }),
   },
 
-  edgeBar: {
-    position: 'absolute',
-    width: 1,
-    backgroundColor: 'rgba(182,255,0,0.18)',
-  },
-  edgeLeft:  { left: 18 },
-  edgeRight: { right: 18 },
-
-  // ─── Eyebrow ──────────────────────────────────────────────────
-  eyebrowWrap: {
+  // ── Top meta row (slide-number style)
+  metaRow: {
     position: 'absolute',
     top: 0, left: 0, right: 0,
+    paddingHorizontal: 24,
     flexDirection: 'row',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    gap: 8,
+    zIndex: 5,
   },
-  eyebrowDot: {
-    width: 5, height: 5, borderRadius: 5,
-    backgroundColor: ACCENT,
-    ...(Platform.OS === 'web' ? ({ boxShadow: `0 0 8px ${ACCENT}` } as object) : {}),
+  metaLeft: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  metaDot: {
+    width: 6, height: 6, borderRadius: 6,
+    backgroundColor: C.primary,
+    ...(Platform.OS === 'web' ? ({ boxShadow: `0 0 10px ${C.primary}` } as object) : {}),
   },
-  eyebrow: {
-    fontFamily: 'Inter_700Bold',
-    fontSize: 11,
-    letterSpacing: 3.5,
-    color: 'rgba(255,255,255,0.55)',
+  metaTextRed: {
+    fontFamily: F.display, fontSize: 10.5, letterSpacing: 3,
+    color: C.primary,
+  },
+  metaTextMuted: {
+    fontFamily: F.display, fontSize: 10.5, letterSpacing: 3,
+    color: C.text45,
   },
 
-  // ─── Center stack ─────────────────────────────────────────────
-  center: {
+  // ── Editorial stack
+  editorial: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 24,
+    paddingHorizontal: 26,
+    justifyContent: 'flex-start',
+    gap: 24,
   },
-  wordmark: {
-    fontFamily: 'Inter_700Bold',
-    fontSize: 76,
-    lineHeight: 80,
-    letterSpacing: 6,
-    color: '#FFFFFF',
-    textAlign: 'center',
+  brandRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: 14,
+    marginTop: 14,
+  },
+  brand: {
+    fontFamily: F.display,
+    fontSize: 44,
+    lineHeight: 44,
+    color: C.primary,
+    letterSpacing: -1,
     ...(Platform.OS === 'web'
-      ? ({ filter: 'drop-shadow(0 0 28px rgba(255,255,255,0.18))' } as object)
-      : { textShadowColor: 'rgba(255,255,255,0.18)', textShadowRadius: 28, textShadowOffset: { width: 0, height: 0 } }),
+      ? ({ filter: 'drop-shadow(0 0 24px rgba(229,51,65,0.35))' } as object)
+      : { textShadowColor: 'rgba(229,51,65,0.35)', textShadowRadius: 24, textShadowOffset: { width: 0, height: 0 } }),
   },
-  rule: {
-    width: 64,
-    height: 2,
-    backgroundColor: ACCENT,
-    marginTop: 22,
-    marginBottom: 28,
-    borderRadius: 2,
-    ...(Platform.OS === 'web' ? ({ boxShadow: `0 0 12px ${ACCENT}` } as object) : {}),
+  brandSubtitle: {
+    fontFamily: F.display,
+    fontSize: 9,
+    lineHeight: 12,
+    letterSpacing: 2.4,
+    color: C.text45,
+    paddingBottom: 6,
+    flex: 1,
   },
-  slogan: {
-    fontFamily: 'Inter_700Bold',
-    fontSize: 22,
-    lineHeight: 28,
-    letterSpacing: -0.3,
-    color: '#FFFFFF',
-    textAlign: 'center',
-    paddingHorizontal: 12,
-    marginBottom: 36,
+
+  headlineWrap: { marginTop: 6 },
+  headline: {
+    fontFamily: F.display,
+    color: C.white,
+    letterSpacing: -1.2,
   },
+  headlineRed: {
+    fontFamily: F.display,
+    color: C.primary,
+    letterSpacing: -1.6,
+    ...(Platform.OS === 'web'
+      ? ({ filter: 'drop-shadow(0 0 28px rgba(229,51,65,0.45))' } as object)
+      : { textShadowColor: 'rgba(229,51,65,0.45)', textShadowRadius: 28, textShadowOffset: { width: 0, height: 0 } }),
+  },
+
   taglineRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'center',
-    alignItems: 'center',
-    columnGap: 12,
-    rowGap: 6,
-    paddingHorizontal: 8,
+    alignItems: 'baseline',
+    columnGap: 8,
+    rowGap: 4,
+    marginTop: 4,
   },
   taglineWord: {
-    fontFamily: 'Inter_500Medium',
-    fontSize: 14,
-    letterSpacing: 2,
-    color: 'rgba(255,255,255,0.65)',
-    textTransform: 'uppercase',
+    fontFamily: F.display,
+    fontSize: 22,
+    letterSpacing: -0.3,
   },
 
-  // ─── CTA ──────────────────────────────────────────────────────
+  standard: {
+    fontFamily: F.bodyR,
+    fontSize: 13,
+    lineHeight: 19,
+    color: C.text65,
+    marginTop: 10,
+    maxWidth: 360,
+  },
+  standardEm: {
+    fontFamily: F.body,
+    color: C.white,
+  },
+
+  // ── Bottom CTA
   ctaWrap: {
     position: 'absolute',
     left: 0, right: 0, bottom: 0,
     alignItems: 'center',
-    paddingHorizontal: 28,
-    gap: 22,
+    paddingHorizontal: 26,
+    gap: 18,
   },
   ctaBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 14,
-    paddingHorizontal: 36,
-    paddingVertical: 16,
-    backgroundColor: ACCENT,
+    paddingHorizontal: 38,
+    paddingVertical: 17,
+    backgroundColor: C.primary,
     borderRadius: 999,
-    minWidth: 220,
+    minWidth: 240,
     ...(Platform.OS === 'web'
-      ? ({ boxShadow: `0 0 32px ${Colors.accent.glow}, 0 0 64px ${Colors.accent.dim}` } as object)
+      ? ({ boxShadow: `0 10px 40px rgba(229,51,65,0.55), 0 0 80px rgba(229,51,65,0.25)` } as object)
       : {
-          shadowColor: ACCENT,
-          shadowOpacity: 0.55,
-          shadowRadius: 24,
-          shadowOffset: { width: 0, height: 0 },
+          shadowColor: C.primary,
+          shadowOpacity: 0.6,
+          shadowRadius: 28,
+          shadowOffset: { width: 0, height: 8 },
         }),
   },
   ctaLabel: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: F.display,
     fontSize: 14,
     letterSpacing: 4,
-    color: '#000000',
+    color: C.white,
   },
   ctaArrow: {
     width: 22, height: 22,
@@ -438,17 +521,14 @@ const styles = StyleSheet.create({
   microRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 10,
   },
-  microHair: {
-    width: 22, height: 1,
-    backgroundColor: 'rgba(255,255,255,0.18)',
-  },
+  microHair: { width: 18, height: 1, backgroundColor: C.hair },
   microText: {
-    fontFamily: 'Inter_500Medium',
-    fontSize: 10.5,
-    letterSpacing: 2.5,
-    color: 'rgba(255,255,255,0.40)',
+    fontFamily: F.body,
+    fontSize: 10,
+    letterSpacing: 2.2,
+    color: C.text25,
     textTransform: 'uppercase',
   },
 });
