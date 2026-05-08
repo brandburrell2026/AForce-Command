@@ -189,9 +189,11 @@ export default function WelcomeScreen() {
   const blueSize = Math.min(width, height) * 1.3;
   const redSize  = Math.min(width, height) * 1.1;
 
-  // Responsive headline size so we don't blow out narrow viewports
-  // and so it stays in proportion to the bigger AForce OS wordmark.
-  const headlineSize = Math.min(72, Math.max(42, width * 0.15));
+  // Responsive headline size — sized so the longest word
+  // ("non-negotiable.", 15 chars) always fits on ONE line within
+  // the editorial column's horizontal padding (26 each side).
+  // adjustsFontSizeToFit is unreliable on RN-Web, so we compute it.
+  const headlineSize = Math.min(72, Math.max(26, (width - 52) / 8));
 
   return (
     <View style={styles.root}>
@@ -251,9 +253,9 @@ export default function WelcomeScreen() {
         <View style={styles.headlineWrap}>
           <Animated.Text
             style={[styles.headline, { fontSize: headlineSize, lineHeight: headlineSize * 0.95 }, h1Style]}
-            numberOfLines={2}
+            numberOfLines={1}
             adjustsFontSizeToFit
-            minimumFontScale={0.7}
+            minimumFontScale={0.5}
           >
             Performance is
           </Animated.Text>
@@ -261,7 +263,7 @@ export default function WelcomeScreen() {
             style={[styles.headlineRed, { fontSize: headlineSize, lineHeight: headlineSize * 0.95 }, h2Style]}
             numberOfLines={1}
             adjustsFontSizeToFit
-            minimumFontScale={0.7}
+            minimumFontScale={0.5}
           >
             non-negotiable.
           </Animated.Text>
