@@ -36,7 +36,7 @@ import { useRouter } from 'expo-router';
 
 // ─── Deck-aligned palette ─────────────────────────────────────────
 const C = {
-  bg:       '#08080F',
+  bg:       '#000000',
   bgEdge:   '#04040A',
   primary:  '#E53341', // red — wordmark, "non-negotiable.", CTA, "Pause."
   accent:   '#F5D637', // yellow — "Lock in."
@@ -197,29 +197,8 @@ export default function WelcomeScreen() {
 
   return (
     <View style={styles.root}>
-      {/* ─── Ambient halos ───────────────────────────────────── */}
-      <View pointerEvents="none" style={StyleSheet.absoluteFill}>
-        <Animated.View
-          style={[
-            styles.haloBlue,
-            { width: blueSize, height: blueSize,
-              top: height * 0.05,
-              left: -blueSize * 0.45 },
-            blueGlowStyle,
-          ]}
-        />
-        <Animated.View
-          style={[
-            styles.haloRed,
-            { width: redSize, height: redSize,
-              bottom: -redSize * 0.45,
-              right: -redSize * 0.30 },
-            redGlowStyle,
-          ]}
-        />
-        {/* Vignette to deepen edges and lift the type. */}
-        <View style={styles.vignette} />
-      </View>
+      {/* Pure black canvas — matches the rest of the app.
+           (Ambient blue/red halos removed by request.) */}
 
       {/* ─── Top meta row ────────────────────────────────────── */}
       <Animated.View
