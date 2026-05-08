@@ -221,7 +221,7 @@ export default function WelcomeScreen() {
             adjustsFontSizeToFit
             minimumFontScale={0.5}
           >
-            AForce OS
+            AFORCE OS
           </Text>
           <Text style={styles.brandSubtitle}>
             THE PERFORMANCE OPERATING SYSTEM
