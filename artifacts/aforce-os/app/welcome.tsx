@@ -255,7 +255,7 @@ export default function WelcomeScreen() {
             adjustsFontSizeToFit
             minimumFontScale={0.7}
           >
-            non‑negotiable.
+            non-negotiable.
           </Animated.Text>
         </View>
 
