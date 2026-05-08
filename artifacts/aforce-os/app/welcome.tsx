@@ -482,11 +482,11 @@ const styles = StyleSheet.create({
 
   standard: {
     fontFamily: F.bodyR,
-    fontSize: 13,
-    lineHeight: 19,
+    fontSize: 18,
+    lineHeight: 25,
     color: C.text65,
     marginTop: 10,
-    maxWidth: 360,
+    maxWidth: 480,
   },
   standardEm: {
     fontFamily: F.body,
