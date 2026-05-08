@@ -189,11 +189,19 @@ export default function WelcomeScreen() {
   const blueSize = Math.min(width, height) * 1.3;
   const redSize  = Math.min(width, height) * 1.1;
 
-  // Responsive headline size — sized so the longest word
-  // ("non-negotiable.", 15 chars) always fits on ONE line within
-  // the editorial column's horizontal padding (26 each side).
-  // adjustsFontSizeToFit is unreliable on RN-Web, so we compute it.
-  const headlineSize = Math.min(72, Math.max(26, (width - 52) / 8));
+  // Responsive sizing — every text scale is computed from viewport
+  // width so the entire welcome screen fits without anything being
+  // clipped, on phone-portrait through desktop. adjustsFontSizeToFit
+  // is unreliable on RN-Web, so we compute everything explicitly.
+  const innerWidth = width - 52; // editorial padding 26 each side
+  // Headline: longest word "non-negotiable." (15 chars) must fit on one line.
+  const headlineSize = Math.min(72, Math.max(26, innerWidth / 8));
+  // AForce OS wordmark (9 chars including space) — fit one line.
+  const brandSize = Math.min(84, Math.max(40, innerWidth / 4.6));
+  // Standard line — scales gently with width.
+  const standardSize = Math.min(18, Math.max(13, innerWidth * 0.038));
+  // Tagline — proportional to headline.
+  const taglineSize = Math.max(20, Math.min(28, headlineSize * 0.42));
 
   return (
     <View style={styles.root}>
@@ -237,14 +245,19 @@ export default function WelcomeScreen() {
         {/* Brand row — "AForce" red display + tracked subtitle */}
         <Animated.View style={[styles.brandRow, brandStyle]}>
           <Text
-            style={styles.brand}
+            style={[styles.brand, { fontSize: brandSize, lineHeight: brandSize * 1.05 }]}
             numberOfLines={1}
             adjustsFontSizeToFit
             minimumFontScale={0.5}
           >
             AForce OS
           </Text>
-          <Text style={styles.brandSubtitle}>
+          <Text
+            style={styles.brandSubtitle}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.6}
+          >
             THE PERFORMANCE OPERATING SYSTEM
           </Text>
         </Animated.View>
@@ -283,7 +296,9 @@ export default function WelcomeScreen() {
         </View>
 
         {/* Standard line */}
-        <Animated.Text style={[styles.standard, stdStyle]}>
+        <Animated.Text
+          style={[styles.standard, { fontSize: standardSize, lineHeight: standardSize * 1.4 }, stdStyle]}
+        >
           This is beyond a hydration brand.{' '}
           <Text style={styles.standardEm}>This is a performance standard.</Text>
         </Animated.Text>
@@ -435,8 +450,6 @@ const styles = StyleSheet.create({
   },
   brand: {
     fontFamily: F.display,
-    fontSize: 72,
-    lineHeight: 76,
     color: C.primary,
     letterSpacing: -2.5,
     ...(Platform.OS === 'web'
@@ -482,11 +495,9 @@ const styles = StyleSheet.create({
 
   standard: {
     fontFamily: F.bodyR,
-    fontSize: 18,
-    lineHeight: 25,
     color: C.text65,
     marginTop: 10,
-    maxWidth: 480,
+    maxWidth: 520,
   },
   standardEm: {
     fontFamily: F.body,
