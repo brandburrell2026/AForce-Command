@@ -189,11 +189,14 @@ export default function WelcomeScreen() {
   const blueSize = Math.min(width, height) * 1.3;
   const redSize  = Math.min(width, height) * 1.1;
 
-  // Responsive headline size — sized so the longest word
-  // ("non-negotiable.", 15 chars) always fits on ONE line within
-  // the editorial column's horizontal padding (26 each side).
-  // adjustsFontSizeToFit is unreliable on RN-Web, so we compute it.
-  const headlineSize = Math.min(72, Math.max(26, (width - 52) / 8));
+  // Responsive sizing — adjustsFontSizeToFit is unreliable on
+  // RN-Web, so we compute every text scale from the editorial
+  // column's available inner width (capped at 640 max-width).
+  const innerWidth = Math.min(width, 640) - 52;
+  // Headline: longest word "non-negotiable." (15 chars) fits one line.
+  const headlineSize = Math.min(72, Math.max(26, innerWidth / 8));
+  // AFORCE OS wordmark — huge but always fits one line.
+  const brandSize = Math.min(128, Math.max(48, innerWidth / 4.4));
 
   return (
     <View style={styles.root}>
@@ -216,10 +219,10 @@ export default function WelcomeScreen() {
         {/* Brand row — "AForce" red display + tracked subtitle */}
         <Animated.View style={[styles.brandRow, brandStyle]}>
           <Text
-            style={styles.brand}
+            style={[styles.brand, { fontSize: brandSize, lineHeight: brandSize * 1.04 }]}
             numberOfLines={1}
             adjustsFontSizeToFit
-            minimumFontScale={0.5}
+            minimumFontScale={0.4}
           >
             AFORCE OS
           </Text>
@@ -412,10 +415,8 @@ const styles = StyleSheet.create({
   },
   brand: {
     fontFamily: F.display,
-    fontSize: 128,
-    lineHeight: 132,
     color: C.primary,
-    letterSpacing: -4,
+    letterSpacing: -3,
     ...(Platform.OS === 'web'
       ? ({ filter: 'drop-shadow(0 0 32px rgba(229,51,65,0.45))' } as object)
       : { textShadowColor: 'rgba(229,51,65,0.45)', textShadowRadius: 32, textShadowOffset: { width: 0, height: 0 } }),
