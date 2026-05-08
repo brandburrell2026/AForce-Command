@@ -233,9 +233,16 @@ export default function WelcomeScreen() {
       <View style={[styles.editorial, { paddingTop: insets.top + 64 }]}>
         {/* Brand row — "AForce" red display + tracked subtitle */}
         <Animated.View style={[styles.brandRow, brandStyle]}>
-          <Text style={styles.brand}>AForce</Text>
+          <Text
+            style={styles.brand}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.6}
+          >
+            AForce
+          </Text>
           <Text style={styles.brandSubtitle}>
-            THE PERFORMANCE{'\n'}OPERATING SYSTEM
+            THE PERFORMANCE OPERATING SYSTEM
           </Text>
         </Animated.View>
 
@@ -418,29 +425,27 @@ const styles = StyleSheet.create({
     gap: 22,
   },
   brandRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    gap: 14,
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    gap: 8,
     marginTop: 14,
   },
   brand: {
     fontFamily: F.display,
-    fontSize: 44,
-    lineHeight: 44,
+    fontSize: 84,
+    lineHeight: 84,
     color: C.primary,
-    letterSpacing: -1,
+    letterSpacing: -3,
     ...(Platform.OS === 'web'
-      ? ({ filter: 'drop-shadow(0 0 24px rgba(229,51,65,0.35))' } as object)
-      : { textShadowColor: 'rgba(229,51,65,0.35)', textShadowRadius: 24, textShadowOffset: { width: 0, height: 0 } }),
+      ? ({ filter: 'drop-shadow(0 0 32px rgba(229,51,65,0.45))' } as object)
+      : { textShadowColor: 'rgba(229,51,65,0.45)', textShadowRadius: 32, textShadowOffset: { width: 0, height: 0 } }),
   },
   brandSubtitle: {
     fontFamily: F.display,
-    fontSize: 9,
-    lineHeight: 12,
-    letterSpacing: 2.4,
+    fontSize: 10,
+    lineHeight: 13,
+    letterSpacing: 2.6,
     color: C.text45,
-    paddingBottom: 6,
-    flex: 1,
   },
 
   headlineWrap: { marginTop: 6 },
