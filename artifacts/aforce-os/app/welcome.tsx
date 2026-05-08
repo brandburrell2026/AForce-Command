@@ -189,8 +189,9 @@ export default function WelcomeScreen() {
   const blueSize = Math.min(width, height) * 1.3;
   const redSize  = Math.min(width, height) * 1.1;
 
-  // Responsive headline size so we don't blow out narrow viewports.
-  const headlineSize = Math.min(64, Math.max(40, width * 0.16));
+  // Responsive headline size so we don't blow out narrow viewports
+  // and so it stays in proportion to the bigger AForce OS wordmark.
+  const headlineSize = Math.min(72, Math.max(42, width * 0.15));
 
   return (
     <View style={styles.root}>
@@ -237,9 +238,9 @@ export default function WelcomeScreen() {
             style={styles.brand}
             numberOfLines={1}
             adjustsFontSizeToFit
-            minimumFontScale={0.6}
+            minimumFontScale={0.5}
           >
-            AForce
+            AForce OS
           </Text>
           <Text style={styles.brandSubtitle}>
             THE PERFORMANCE OPERATING SYSTEM
@@ -432,10 +433,10 @@ const styles = StyleSheet.create({
   },
   brand: {
     fontFamily: F.display,
-    fontSize: 84,
-    lineHeight: 84,
+    fontSize: 72,
+    lineHeight: 76,
     color: C.primary,
-    letterSpacing: -3,
+    letterSpacing: -2.5,
     ...(Platform.OS === 'web'
       ? ({ filter: 'drop-shadow(0 0 32px rgba(229,51,65,0.45))' } as object)
       : { textShadowColor: 'rgba(229,51,65,0.45)', textShadowRadius: 32, textShadowOffset: { width: 0, height: 0 } }),
