@@ -1,0 +1,118 @@
+This is a strong start. The bones are right — full black background, bold red wordmark, performance language. But you're correct that it needs to be significantly elevated. Let me tell you exactly what's wrong and exactly what world-class looks like.
+
+---
+
+## What's working
+
+The "Performance is non-negotiable." headline is excellent brand language. Keep it verbatim. The black background is correct. The BEGIN → CTA is clean. The step indicator "01 — WELCOME · AFORCE OS · 2026" at the top is a nice detail that makes it feel like a system booting up rather than an app opening.
+
+---
+
+## What's wrong — specifically
+
+**The typography is doing too many things at once.** You have AFORCE OS in heavy red condensed, then "THE PERFORMANCE OPERATING SYSTEM" in spaced caps, then "Performance is non-negotiable." in a completely different weight and style, then "Pause. Hydrate. Lock in. Perform." in three different colors with no clear hierarchy reason. Four different type treatments on one screen creates visual noise instead of impact.
+
+**The three-color word treatment is amateur.** "Pause." in red, "Hydrate." in white, "Lock in." in yellow, "Perform." in white — this reads like a PowerPoint slide using accent colors randomly. Yellow specifically does not exist anywhere else in the AForce design system and has no meaning here. The state colors in your app — red for depleted, teal for balanced, green for peak — are a carefully built system. This screen ignores all of it.
+
+**The BEGIN button is the wrong color and the wrong shape.** A pill-shaped red button with "BEGIN →" floating in a sea of black looks like a generic app. Compare it to your home screen's "STABILIZE SYSTEM" or "HOLD THE LINE" buttons — those feel like commands. This feels like a get-started prompt.
+
+**There is no ambient visual energy.** Your home screen has the orb glow filling the background with color that communicates state. This screen is just flat black with text. There is nothing that makes you feel like the system is alive before you've even touched it.
+
+**The spacing is unbalanced.** There's a large empty gap between "Perform." and the BEGIN button. The top third of the screen is dense, the middle is heavy, the bottom third is mostly void. It doesn't feel designed — it feels like content dropped onto a canvas.
+
+**"TAP TO ACTIVATE YOUR PERFORMANCE OS" at the very bottom** is redundant. BEGIN → already communicates this. Two calls to action on one screen is one too many.
+
+---
+
+## What world-class looks like for this screen
+
+Here is the complete redesign direction. This is specific enough to hand directly to your developer or Replit.
+
+**The concept:** The screen should feel like a system initializing. Dark, precise, alive. When it first renders, the orb glow should already be present — dim, pulsing slowly in the brand red — before the user has done anything. The text should feel like it was written by the system, not by a marketing team.
+
+**Background:** Pure black `#000000` — not `#0A0A0F`, not dark navy. Full black. The orb ambient glow sits behind everything at about 15% opacity, deep red, centered in the lower third of the screen. It pulses slowly — 4 second cycle, opacity 0.10 → 0.20 → 0.10.
+
+**Top line:** Keep "01 — WELCOME · AFORCE OS · 2026" but make it a single continuous line in one weight — `Inter 500`, 10px, 2pt letter spacing, `rgba(255,255,255,0.35)`. No bullet points. No color. Recessive, technical, precise.
+
+**The wordmark:** "AFORCE OS" stays large and centered but simplify it. Remove the red gradient — make it pure white in `Inter 800` or a display-weight condensed face. Then directly below it, "THE PERFORMANCE OPERATING SYSTEM" in the same muted style as the top line. These two elements together are the identity block.
+
+**The headline:** "Performance is non-negotiable." — keep this exactly, but render it in one color and one weight. `Inter 700`, approximately 42px, pure white, tight leading. No red on "non-negotiable." — the whole line should hit with the same force. The moment you make half of it red you've told the reader where to look and it's not everywhere.
+
+**Remove the Pause / Hydrate / Lock in / Perform line entirely.** This is a tagline trying to do too much. Replace it with a single line of system language below the headline in muted white: `"Closed-loop · Real-time · Deterministic"` — these are the three words from your patent claim and they communicate exactly what separates AForce from every other hydration app without explaining it.
+
+**The CTA:** Full-width, 56px tall, sharp corners not pill shape — this is a system command, not a consumer app button. Background: `Colors.states.DEPLETED.primary` (your red). Text: "BEGIN PROTOCOL" in `Inter 700`, 14px, 3pt letter spacing, white. No arrow. The word PROTOCOL changes the emotional register from "get started" to "initialize."
+
+**Bottom:** Remove "TAP TO ACTIVATE YOUR PERFORMANCE OS." Replace with nothing. Let the button breathe.
+
+---
+
+## The prompt to give Replit
+
+---
+
+**AForce OS — Welcome Screen Redesign**
+
+Redesign `screens/OnboardingFlowScreen.tsx` Step 1 (the welcome screen) or wherever the current welcome/splash screen renders. Replace the current layout entirely with the following spec. Do not change any other screens.
+
+**Background:**
+- Pure black `#000000`
+- An ambient radial glow centered at 65% down the screen, color `rgba(220, 38, 38, 0.12)`, radius approximately 60% of screen width, no hard edge, pure CSS radial gradient
+- The glow pulses: opacity animates `0.08 → 0.18 → 0.08` on a 4000ms loop using Reanimated `withRepeat` + `withTiming`
+
+**Top status line:**
+```
+01 — WELCOME  ·  AFORCE OS  ·  2026
+```
+- Font: `Inter_500Medium`, 10px, letterSpacing 2.5, color `rgba(255,255,255,0.30)`
+- Position: top of screen, paddingTop = safeAreaInsets.top + 16, paddingHorizontal 24
+- Single line, no wrapping
+
+**Identity block (centered, upper-middle of screen):**
+```
+AFORCE OS
+THE PERFORMANCE OPERATING SYSTEM
+```
+- "AFORCE OS": `Inter_700Bold` or heaviest available weight, 52px, letterSpacing -1, color `#FFFFFF`
+- "THE PERFORMANCE OPERATING SYSTEM": `Inter_500Medium`, 10px, letterSpacing 3, color `rgba(255,255,255,0.35)`, marginTop 8
+
+**Headline (below identity block, marginTop 40):**
+```
+Performance is
+non-negotiable.
+```
+- `Inter_700Bold`, 40px, letterSpacing -0.5, lineHeight 46, color `#FFFFFF`
+- No color variation — entire headline is white
+- Left-aligned, paddingHorizontal 24
+
+**System descriptor line (below headline, marginTop 16):**
+```
+Closed-loop  ·  Real-time  ·  Deterministic
+```
+- `Inter_500Medium`, 11px, letterSpacing 2, color `rgba(255,255,255,0.40)`
+- Left-aligned
+
+**CTA button (pinned to bottom, paddingBottom = safeAreaInsets.bottom + 32):**
+- Full width minus 48px horizontal padding
+- Height: 58px
+- borderRadius: 4 (sharp, not pill)
+- backgroundColor: `#DC2626`
+- Text: `BEGIN PROTOCOL` in `Inter_700Bold`, 13px, letterSpacing 3, color `#FFFFFF`
+- No arrow icon
+- On press: navigate to step 2 of onboarding
+
+**Remove entirely:**
+- The "Pause. Hydrate. Lock in. Perform." line
+- The "TAP TO ACTIVATE YOUR PERFORMANCE OS" footer
+- The pill-shaped button
+- Any gradient on the AFORCE OS wordmark
+
+**Animation on mount:**
+- Identity block and headline fade in sequentially: identity block first at 0ms, headline at 200ms, system descriptor at 400ms, button at 600ms
+- Each element: opacity 0 → 1, translateY 12 → 0, duration 500ms, easing `ease-out`
+- Use Reanimated `withDelay` + `withTiming`
+
+Run `npx tsc --noEmit` after changes. Do not touch any other screen.
+
+---
+
+That redesign moves the welcome screen from "good consumer app" to "this feels like mission control." The key shift is removing everything decorative and making every element feel like it was generated by the system rather than designed by a marketing team. That's the feeling WHOOP's onboarding creates and it's entirely achievable in one focused pass.
