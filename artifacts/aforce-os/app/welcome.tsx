@@ -401,6 +401,9 @@ const styles = StyleSheet.create({
   // around the headline so spacing breathes on tall screens.
   editorial: {
     flex: 1,
+    width: '100%',
+    maxWidth: 640,
+    alignSelf: 'center',
     paddingHorizontal: 26,
     paddingBottom: 16,
     justifyContent: 'center',
@@ -472,8 +475,12 @@ const styles = StyleSheet.create({
     color: C.white,
   },
 
-  // ── Bottom CTA — inline at the end of the root column.
+  // ── Bottom CTA — inline at the end of the root column,
+  // constrained to the same editorial column width on desktop.
   ctaWrap: {
+    width: '100%',
+    maxWidth: 640,
+    alignSelf: 'center',
     alignItems: 'center',
     paddingHorizontal: 26,
     paddingTop: 8,
