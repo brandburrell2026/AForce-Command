@@ -231,7 +231,7 @@ export default function WelcomeScreen() {
         {/* Headline — two-line reveal so "non-negotiable." lands hard */}
         <View style={styles.headlineWrap}>
           <Animated.Text
-            style={[styles.headline, { fontSize: headlineSize, lineHeight: headlineSize * 0.95 }, h1Style]}
+            style={[styles.headline, { fontSize: headlineSize, lineHeight: headlineSize * 1.12 }, h1Style]}
             numberOfLines={1}
             adjustsFontSizeToFit
             minimumFontScale={0.5}
@@ -239,7 +239,7 @@ export default function WelcomeScreen() {
             Performance is
           </Animated.Text>
           <Animated.Text
-            style={[styles.headlineRed, { fontSize: headlineSize * 0.86, lineHeight: headlineSize * 0.86 * 0.95 }, h2Style]}
+            style={[styles.headlineRed, { fontSize: headlineSize * 0.86, lineHeight: headlineSize * 0.86 * 1.18 }, h2Style]}
             numberOfLines={1}
             adjustsFontSizeToFit
             minimumFontScale={0.5}
