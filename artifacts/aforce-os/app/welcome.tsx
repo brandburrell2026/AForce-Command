@@ -414,10 +414,10 @@ const styles = StyleSheet.create({
   },
   brand: {
     fontFamily: F.display,
-    fontSize: 72,
-    lineHeight: 76,
+    fontSize: 54,
+    lineHeight: 60,
     color: C.primary,
-    letterSpacing: -2.5,
+    letterSpacing: -1.5,
     ...(Platform.OS === 'web'
       ? ({ filter: 'drop-shadow(0 0 32px rgba(229,51,65,0.45))' } as object)
       : { textShadowColor: 'rgba(229,51,65,0.45)', textShadowRadius: 32, textShadowOffset: { width: 0, height: 0 } }),
