@@ -196,7 +196,9 @@ export default function WelcomeScreen() {
   // Headline: longest word "non-negotiable." (15 chars) fits one line.
   const headlineSize = Math.min(72, Math.max(26, innerWidth / 8));
   // AFORCE OS wordmark — huge but always fits one line.
-  const brandSize = Math.min(128, Math.max(48, innerWidth / 4.4));
+  // 9 all-caps chars in Inter 900 at letterSpacing -2 measure
+  // roughly 0.58 × fontSize, so divide width by ~5.6 to be safe.
+  const brandSize = Math.min(120, Math.max(40, innerWidth / 5.6));
 
   return (
     <View style={styles.root}>
@@ -416,7 +418,7 @@ const styles = StyleSheet.create({
   brand: {
     fontFamily: F.display,
     color: C.primary,
-    letterSpacing: -3,
+    letterSpacing: -2,
     ...(Platform.OS === 'web'
       ? ({ filter: 'drop-shadow(0 0 32px rgba(229,51,65,0.45))' } as object)
       : { textShadowColor: 'rgba(229,51,65,0.45)', textShadowRadius: 32, textShadowOffset: { width: 0, height: 0 } }),
