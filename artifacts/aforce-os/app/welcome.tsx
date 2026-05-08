@@ -230,7 +230,7 @@ export default function WelcomeScreen() {
       </Animated.View>
 
       {/* ─── Editorial stack ─────────────────────────────────── */}
-      <View style={[styles.editorial, { paddingTop: insets.top + 76 }]}>
+      <View style={[styles.editorial, { paddingTop: insets.top + 64 }]}>
         {/* Brand row — "AForce" red display + tracked subtitle */}
         <Animated.View style={[styles.brandRow, brandStyle]}>
           <Text style={styles.brand}>AForce</Text>
@@ -279,11 +279,12 @@ export default function WelcomeScreen() {
         </Animated.Text>
       </View>
 
-      {/* ─── Bottom CTA ──────────────────────────────────────── */}
+      {/* ─── Bottom CTA — inline (not absolute) so it can never
+           collide with the editorial stack on tall viewports ─── */}
       <Animated.View
         style={[
           styles.ctaWrap,
-          { paddingBottom: Math.max(insets.bottom + 26, 34) },
+          { paddingBottom: Math.max(insets.bottom + 22, 30) },
           ctaWrap,
         ]}
       >
@@ -406,12 +407,15 @@ const styles = StyleSheet.create({
     color: C.text45,
   },
 
-  // ── Editorial stack
+  // ── Editorial stack — flex:1 so it claims available height and
+  // pushes the CTA against the bottom; justifies its children
+  // around the headline so spacing breathes on tall screens.
   editorial: {
     flex: 1,
     paddingHorizontal: 26,
-    justifyContent: 'flex-start',
-    gap: 24,
+    paddingBottom: 16,
+    justifyContent: 'center',
+    gap: 22,
   },
   brandRow: {
     flexDirection: 'row',
@@ -481,13 +485,12 @@ const styles = StyleSheet.create({
     color: C.white,
   },
 
-  // ── Bottom CTA
+  // ── Bottom CTA — inline at the end of the root column.
   ctaWrap: {
-    position: 'absolute',
-    left: 0, right: 0, bottom: 0,
     alignItems: 'center',
     paddingHorizontal: 26,
-    gap: 18,
+    paddingTop: 8,
+    gap: 16,
   },
   ctaBtn: {
     flexDirection: 'row',
