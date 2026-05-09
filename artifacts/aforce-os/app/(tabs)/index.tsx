@@ -63,11 +63,12 @@ const C = {
   redTint:  'rgba(224,24,24,0.12)',
   redBorder:'rgba(224,24,24,0.35)',
 };
+// Match the rest of the app — Inter only.
 const F = {
-  display: 'BebasNeue_400Regular',
-  body:    'DMSans_400Regular',
-  bodyM:   'DMSans_500Medium',
-  bodyB:   'DMSans_700Bold',
+  display: 'Inter_700Bold',
+  body:    'Inter_400Regular',
+  bodyM:   'Inter_500Medium',
+  bodyB:   'Inter_700Bold',
 };
 
 const COL = 380;          // max content width
