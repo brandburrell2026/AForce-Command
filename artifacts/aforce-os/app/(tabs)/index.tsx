@@ -106,6 +106,7 @@ export default function HomeScreen() {
   const ringProgress = useSharedValue(0);
   const livePulse    = useSharedValue(1);
   const glow         = useSharedValue(0.18);
+  const ringPulse    = useSharedValue(0); // 0 → 1 sonar pulse, looped
 
   React.useEffect(() => {
     const ease = Easing.out(Easing.cubic);
@@ -130,10 +131,16 @@ export default function HomeScreen() {
       ),
       -1, false,
     );
+    // Sonar ring pulse — 0 → 1 loop, restart from 0 each cycle.
+    ringPulse.value = withRepeat(
+      withTiming(1, { duration: 2200, easing: Easing.out(Easing.cubic) }),
+      -1, false,
+    );
     return () => {
       cancelAnimation(ringProgress);
       cancelAnimation(livePulse);
       cancelAnimation(glow);
+      cancelAnimation(ringPulse);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [readiness]);
@@ -171,7 +178,7 @@ export default function HomeScreen() {
           <Hero glow={glow} />
 
           {/* 3 — Readiness ring + side stats */}
-          <ReadinessBlock score={readiness} ringProgress={ringProgress} />
+          <ReadinessBlock score={readiness} ringProgress={ringProgress} ringPulse={ringPulse} />
 
           {/* 4 — HRV sparkline */}
           <SparklineCard
@@ -269,9 +276,11 @@ function Hero({ glow }: { glow: ReturnType<typeof useSharedValue<number>> }) {
 function ReadinessBlock({
   score,
   ringProgress,
+  ringPulse,
 }: {
   score: number;
   ringProgress: ReturnType<typeof useSharedValue<number>>;
+  ringPulse: ReturnType<typeof useSharedValue<number>>;
 }) {
   const SIZE = 132;
   const STROKE = 8;
@@ -280,11 +289,26 @@ function ReadinessBlock({
   const animatedCircleProps = useAnimatedProps(() => ({
     strokeDashoffset: CIRC * (1 - ringProgress.value),
   }));
+  // Sonar pulse — scale from 1 → 1.55, fade 0.55 → 0.
+  const pulseStyle = useAnimatedStyle(() => ({
+    opacity: 0.55 * (1 - ringPulse.value),
+    transform: [{ scale: 1 + ringPulse.value * 0.55 }],
+  }));
+  // Second pulse offset by 0.5 phase for continuous wave.
+  const pulseStyle2 = useAnimatedStyle(() => {
+    const v = (ringPulse.value + 0.5) % 1;
+    return {
+      opacity: 0.45 * (1 - v),
+      transform: [{ scale: 1 + v * 0.55 }],
+    };
+  });
 
   return (
     <View style={styles.readinessRow}>
-      <View style={{ width: SIZE, height: SIZE }}>
-        <Svg width={SIZE} height={SIZE}>
+      <View style={{ width: SIZE, height: SIZE, alignItems: 'center', justifyContent: 'center' }}>
+        <Animated.View pointerEvents="none" style={[styles.pulseRing, { width: SIZE, height: SIZE, borderRadius: SIZE / 2 }, pulseStyle]} />
+        <Animated.View pointerEvents="none" style={[styles.pulseRing, { width: SIZE, height: SIZE, borderRadius: SIZE / 2 }, pulseStyle2]} />
+        <Svg width={SIZE} height={SIZE} style={{ position: 'absolute' }}>
           <Defs>
             <LinearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
               <Stop offset="0" stopColor={C.red} stopOpacity="1" />
@@ -493,6 +517,11 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  pulseRing: {
+    position: 'absolute',
+    borderWidth: 1.5,
+    borderColor: C.red,
   },
   ringScore: {
     fontFamily: F.display,
