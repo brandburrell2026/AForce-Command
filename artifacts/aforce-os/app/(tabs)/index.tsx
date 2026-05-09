@@ -1,15 +1,11 @@
 /**
- * Home — AForce OS Hydration Control System.
+ * Home — AForce OS performance command surface (cinematic edition).
  *
- * Minimal, score-driven command surface. Every visible element
- * (headline, orb digit, status label, consequence line, CTA, command
- * preview) is derived from the live hydration score via
- * `getHydrationStatus(score)` so nothing can be in conflicting state.
- *
- * Preserves: Clerk auth gating, expo-router tabs, the score engine,
- * the Voice Engine (score-band + risk-timer hooks, voice button +
- * overlay), Phantom Band mirroring, cycle success overlay, score
- * breakdown sheet on orb tap, and the onboarding overlay.
+ * Premium dark dashboard inspired by elite fitness/recovery platforms.
+ * The Readiness ring is wired to the live hydration score from the
+ * scoring engine; remaining metrics (Strain / Recovery / Sleep / HRV /
+ * resting HR / active burn / SpO₂ / recovery time) are presentational
+ * placeholders until those signal sources land.
  */
 
 import React from 'react';
@@ -18,879 +14,658 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
+  Pressable,
   Platform,
+  useWindowDimensions,
 } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  useAnimatedProps,
+  withTiming,
+  withDelay,
+  withRepeat,
+  withSequence,
+  Easing,
+  cancelAnimation,
+} from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
-import { useUser } from '@clerk/expo';
-
-import { GradientBackground } from '@/components/GradientBackground';
-import { CycleSuccessOverlay } from '@/components/CycleSuccessOverlay';
-import { ScoreBreakdownSheet } from '@/components/ScoreBreakdownSheet';
-import { SocialModeSheet } from '@/components/SocialModeSheet';
-import { CommandConsole } from '@/components/home/CommandConsole';
-import { EntryActions } from '@/components/home/EntryActions';
-import { AIVideoPlayer } from '@/components/AIVideoPlayer';
-import { matchVideo } from '@/services/videoEngine';
-import { OnboardingOverlay } from '@/components/OnboardingOverlay';
-import { VoiceButton } from '@/components/VoiceButton';
-import { VoiceOverlay } from '@/components/VoiceOverlay';
-import { StatusPulseOrb } from '@/components/StatusPulseOrb';
-import { FlavorPickerModal, type FlavorChoice } from '@/components/FlavorPickerModal';
-import type { VoiceState } from '@/types/voice';
-
-import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
-import { WEB_TOP_PADDING, WEB_BOTTOM_PADDING, TAB_BAR_HEIGHT } from '@/constants/layout';
-import { useScoreBandVoice } from '@/hooks/useScoreBandVoice';
-import { useRiskTimerVoice } from '@/hooks/useRiskTimerVoice';
-import { useHeatGuard } from '@/hooks/useHeatGuard';
-import { DisplayedAccentProvider, useDisplayedAccent } from '@/hooks/useDisplayedAccent';
-import type { HeatRiskBand } from '@/types/heat';
-import {
-  getHeatBandFromCelsius,
-  TEMP_HEAT_BAND_COLOR,
-  TEMP_HEAT_BAND_LABEL,
-  type TempHeatBand,
-} from '@/utils/heatBand';
-import type { DrinkType } from '@/types';
+import Svg, {
+  Circle,
+  Path,
+  Defs,
+  LinearGradient,
+  Stop,
+  G,
+} from 'react-native-svg';
 
 import { useAppStore } from '@/store/useAppStore';
-import {
-  useEngineSlice,
-  useUserSlice,
-  useIntakeSlice,
-  useCycleSlice,
-  useActionsSlice,
-} from '@/store/slices';
-import { phantomBandService } from '@/services/phantomBandService';
-import { Colors } from '@/theme/colors';
-import {
-  getHydrationStatus,
-  formatTemperatureF,
-  minutesSince,
-} from '@/services/hydrationStatus';
-import type { FluidType } from '@/types';
+import { TAB_BAR_HEIGHT } from '@/constants/layout';
 
-// ─── Header ──────────────────────────────────────────────────────────
+const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
-function useNow(intervalMs: number = 30_000): Date {
-  const [now, setNow] = React.useState<Date>(() => new Date());
-  React.useEffect(() => {
-    const id = setInterval(() => setNow(new Date()), intervalMs);
-    return () => clearInterval(id);
-  }, [intervalMs]);
-  return now;
-}
+// ─── Tokens ───────────────────────────────────────────────────────
+const C = {
+  bg:       '#080808',
+  red:      '#E01818',
+  green:    '#4ade80',
+  amber:    '#f59e0b',
+  white:    '#ffffff',
+  text65:   'rgba(255,255,255,0.65)',
+  text45:   'rgba(255,255,255,0.45)',
+  text35:   'rgba(255,255,255,0.35)',
+  text25:   'rgba(255,255,255,0.25)',
+  cardBg:   'rgba(255,255,255,0.04)',
+  cardBorder: 'rgba(255,255,255,0.08)',
+  redTint:  'rgba(224,24,24,0.12)',
+  redBorder:'rgba(224,24,24,0.35)',
+};
+const F = {
+  display: 'BebasNeue_400Regular',
+  body:    'DMSans_400Regular',
+  bodyM:   'DMSans_500Medium',
+  bodyB:   'DMSans_700Bold',
+};
 
-function formatTime(date: Date): string {
-  return new Intl.DateTimeFormat(undefined, {
-    hour: 'numeric',
-    minute: '2-digit',
-  }).format(date);
-}
+const COL = 380;          // max content width
+const PAD = 22;           // outer horizontal padding
 
-interface HeaderProps {
-  greetingName: string;
-  city: string | null;
-  tempLabel: string | null;
-  onShare?: () => void;
-}
-
-function MinimalHeader({ greetingName, city, tempLabel, onShare }: HeaderProps) {
-  const now = useNow();
-  const segments = [city, formatTime(now), tempLabel].filter(
-    (s): s is string => !!s && s.length > 0,
-  );
-  return (
-    <View style={styles.header}>
-      <View style={styles.headerTopRow}>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.welcome}>Welcome, {greetingName}</Text>
-          <Text style={styles.brand}>AForce OS</Text>
-        </View>
-        {onShare && (
-          <TouchableOpacity
-            onPress={onShare}
-            activeOpacity={0.85}
-            style={styles.shareBtn}
-            accessibilityRole="button"
-            accessibilityLabel="Share your status"
-            testID="home-share-button"
-          >
-            <Feather name="share" size={15} color={Colors.text.primary} />
-          </TouchableOpacity>
-        )}
-      </View>
-      {segments.length > 0 && (
-        <View style={styles.statusBar} testID="home-location-line">
-          <View style={styles.statusDot} />
-          {segments.map((seg, i) => (
-            <React.Fragment key={`${seg}-${i}`}>
-              {i > 0 && <View style={styles.statusSep} />}
-              <Text style={styles.statusSegment}>{seg}</Text>
-            </React.Fragment>
-          ))}
-        </View>
-      )}
-    </View>
-  );
-}
-
-// ─── Score-driven body (consumes DisplayedAccentProvider) ────────────
-
-// ─── Live Signals strip (Heat + Social) ──────────────────────────────
-
-// Heat-pill colors and labels are sourced from the temperature-band
-// helper so this component, the voice escalation gate, and any other
-// heat-pill consumer share the same source of truth.
-const HEAT_BAND_COLOR = TEMP_HEAT_BAND_COLOR;
-const HEAT_BAND_LABEL = TEMP_HEAT_BAND_LABEL;
-
-interface SignalPillProps {
-  icon: React.ComponentProps<typeof Feather>['name'];
-  label: string;
-  value: string;
-  tint: string;
-  active?: boolean;
-  onPress: () => void;
-  testID: string;
-}
-
-function SignalPill({ icon, label, value, tint, active, onPress, testID }: SignalPillProps) {
-  return (
-    <TouchableOpacity
-      activeOpacity={0.85}
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityLabel={`${label} ${value}`}
-      testID={testID}
-      style={[
-        styles.signalPill,
-        {
-          borderColor: active ? tint : `${tint}55`,
-          backgroundColor: active ? `${tint}1A` : 'rgba(255,255,255,0.03)',
-        },
-      ]}
-    >
-      <Feather name={icon} size={12} color={tint} />
-      <Text style={styles.signalLabel}>{label}</Text>
-      <Text style={[styles.signalValue, { color: tint }]}>{value}</Text>
-    </TouchableOpacity>
-  );
-}
-
-interface BodyProps {
-  onOpenBreakdown: () => void;
-  onPrimaryCta: () => void;
-  onOpenSocial: () => void;
-  onTapHeat: () => void;
-  isCompletingCycle: boolean;
-  cycleProgress: { current: number; target: number };
-  lastIntakeMinutes: number | null;
-  voiceCoachEnabled: boolean;
-  orbSize: number;
-  heatBand: TempHeatBand;
-  heatTempLabel: string | null;
-  socialActive: boolean;
-  socialDrinks: number;
-}
-
-function ScoreDrivenBody({
-  onOpenBreakdown,
-  onPrimaryCta,
-  onOpenSocial,
-  onTapHeat,
-  isCompletingCycle,
-  cycleProgress,
-  lastIntakeMinutes,
-  voiceCoachEnabled,
-  orbSize,
-  heatBand,
-  heatTempLabel,
-  socialActive,
-  socialDrinks,
-}: BodyProps) {
-  const engine = useEngineSlice();
-  const userState = useUserSlice();
-  const intake = useIntakeSlice();
-  const { timerSeconds } = useCycleSlice();
-  // Use the in-flight tweened score when available so headline / orb /
-  // CTA all flip bands on the same frame.
-  const displayed = useDisplayedAccent();
-  const displayedScore = displayed?.displayedScore ?? engine.score;
-  const status = React.useMemo(
-    () => getHydrationStatus(displayedScore),
-    [displayedScore],
-  );
-  // Color the surrounding titles + CTA from the *orb's* live accent so
-  // the headline / STABLE label / "Maintain rhythm." / CTA all flip to
-  // the same hue the ring is currently rendering. Falls back to the
-  // band color from getHydrationStatus when no in-flight tween exists.
-  const orbColor = displayed?.primary ?? status.color.primary;
-
-  return (
-    <>
-      {/* 1 — Status headline above the orb */}
-      <Text
-        style={[styles.statusHeadline, { color: orbColor }]}
-        testID="home-status-headline"
-      >
-        {status.headline}
-      </Text>
-
-      {/* 2 — Status Pulse Orb */}
-      <View style={styles.orbWrap}>
-        <StatusPulseOrb
-          pulseConfig={engine.pulseConfig}
-          score={engine.score}
-          burstAt={intake.lastIntakeBurstAt}
-          onTap={onOpenBreakdown}
-          size={orbSize}
-          displayedAccent={
-            displayed
-              ? { primary: displayed.primary, glow: displayed.glow }
-              : undefined
-          }
-          displayedScore={displayedScore}
-        />
-      </View>
-
-      {/* 3 — Status label */}
-      <Text
-        style={[styles.statusLabel, { color: orbColor }]}
-        testID="home-status-label"
-      >
-        {status.label}
-      </Text>
-
-      {/* 4 — Consequence line */}
-      <Text style={styles.consequence} testID="home-consequence">
-        {status.consequence}
-      </Text>
-
-      {/* 5 — Primary action button */}
-      <TouchableOpacity
-        activeOpacity={0.85}
-        onPress={onPrimaryCta}
-        disabled={isCompletingCycle}
-        accessibilityRole="button"
-        accessibilityLabel={`${status.ctaText} — log hydration`}
-        testID="home-primary-cta"
-        style={[
-          styles.cta,
-          {
-            borderColor: orbColor,
-            backgroundColor: `${orbColor}1A`,
-            shadowColor: orbColor,
-            opacity: isCompletingCycle ? 0.55 : 1,
-          },
-        ]}
-      >
-        <Text style={[styles.ctaText, { color: orbColor }]}>
-          {status.ctaText}
-        </Text>
-      </TouchableOpacity>
-
-      {/* 6 — Next Command (light, not a heavy card) */}
-      <View style={styles.nextCommand} testID="home-command-preview">
-        <Text style={[styles.nextCommandEyebrow, { color: orbColor }]}>NEXT COMMAND</Text>
-        <Text style={styles.nextCommandText}>{status.command}</Text>
-        {engine.command?.estimatedImpact ? (
-          <Text style={styles.nextCommandImpact}>
-            Projected: {engine.command.estimatedImpact}
-          </Text>
-        ) : null}
-      </View>
-
-      {/* ── Layer 2: AI Coach · Live ─────────────────────────────────
-          Below-the-fold deeper-intelligence layer. Visually demoted
-          (lower opacity, generous top spacing) so it never competes
-          with the orb / CTA / Next Command above. */}
-      <View style={styles.coachSectionHeader}>
-        <View style={[styles.coachLiveDot, { backgroundColor: orbColor }]} />
-        <Text style={styles.coachSectionTitle}>AI COACH</Text>
-        <Text style={styles.coachSectionDot}>·</Text>
-        <Text style={[styles.coachSectionLive, { color: orbColor }]}>LIVE</Text>
-      </View>
-
-      <View style={styles.coachLayer}>
-        <View style={styles.coachWrapper} testID="home-ai-coach">
-          <CommandConsole
-            command={engine.command}
-            performanceState={engine.performanceState}
-            accentOverride={displayed?.primary}
-          />
-        </View>
-
-        {/* Cinematic AI Coach video card (tap → fullscreen overlay) */}
-        <View style={styles.coachVideoWrapper} testID="home-ai-coach-video">
-          <AIVideoPlayer
-            video={matchVideo({ engineOutput: engine, userState })}
-            command={engine.command}
-            timerSeconds={timerSeconds}
-            score={displayedScore}
-          />
-        </View>
-      </View>
-
-      {/* ── Layer 3: Telemetry — minimal secondary data ───────────── */}
-      <View style={styles.metaRow}>
-        <View style={styles.metaCell}>
-          <Text style={styles.metaLabel}>WATER CYCLE</Text>
-          <Text style={styles.metaValue} testID="home-cycle-progress">
-            {cycleProgress.current}/{cycleProgress.target}
-          </Text>
-        </View>
-        <View style={styles.metaDivider} />
-        <View style={styles.metaCell}>
-          <Text style={styles.metaLabel}>LAST INTAKE</Text>
-          <Text style={styles.metaValue} testID="home-last-intake">
-            {lastIntakeMinutes != null ? `${lastIntakeMinutes} min ago` : '—'}
-          </Text>
-        </View>
-      </View>
-
-      {/* Quick-action tile grid — Scan, Compete, Circles, Territory */}
-      <View style={styles.entryActionsRow}>
-        <EntryActions />
-      </View>
-
-      {/* Live Signals strip (Heat Guard + Social Mode).
-          The HEAT pill is hidden entirely when ambient temperature is
-          below 75 °F (band === 'NORMAL'). */}
-      <View style={styles.signalsRow} testID="home-live-signals">
-        {heatBand !== 'NORMAL' && (
-          <SignalPill
-            icon="thermometer"
-            label="HEAT"
-            value={heatTempLabel ? `${heatTempLabel} · ${HEAT_BAND_LABEL[heatBand]}` : HEAT_BAND_LABEL[heatBand]}
-            tint={HEAT_BAND_COLOR[heatBand]}
-            active
-            onPress={onTapHeat}
-            testID="home-heat-pill"
-          />
-        )}
-        <SignalPill
-          icon="users"
-          label="SOCIAL"
-          value={socialActive ? `${socialDrinks} drink${socialDrinks === 1 ? '' : 's'}` : 'OFF'}
-          tint={socialActive ? '#7C5CFF' : Colors.text.secondary}
-          active={socialActive}
-          onPress={onOpenSocial}
-          testID="home-social-pill"
-        />
-      </View>
-    </>
-  );
-}
-
-// ─── Screen ──────────────────────────────────────────────────────────
-
-interface HomeActions {
-  logIntake: (
-    fluidType: FluidType,
-    opts?: { silent?: boolean; ozOverride?: number; flavorLabel?: string },
-  ) => Promise<void>;
-  activateSocialMode: () => Promise<void>;
-  logSocialDrink: (type: DrinkType) => Promise<void>;
-  confirmSocialHydration: (confirmed: boolean) => Promise<void>;
-  deactivateSocialMode: () => Promise<void>;
-}
+// ─── Mock metric stream — until real signals are wired ────────────
+const STATS = [
+  { label: 'Strain',   value: '14.2', tone: C.amber },
+  { label: 'Recovery', value: '74%',  tone: C.green },
+  { label: 'Sleep',    value: '7h 12m', tone: C.green },
+  { label: 'HRV',      value: '62 ms', tone: C.green },
+];
+const METRICS: { icon: string; value: string; label: string }[] = [
+  { icon: '❤︎',  value: '54',   label: 'Resting HR' },
+  { icon: '🔥', value: '412',  label: 'Active Burn' },
+  { icon: '◉',  value: '98%',  label: 'SpO₂' },
+  { icon: '⏱', value: '6h',   label: 'Recovery Time' },
+];
+// 7-day HRV trend, normalized 0..1 for the sparkline
+const HRV_SERIES = [0.42, 0.55, 0.48, 0.62, 0.58, 0.71, 0.78];
+const HRV_CURRENT = '62 ms';
 
 export default function HomeScreen() {
-  const { state, dismissSuccess, completeOnboarding, voiceCoachEnabled } = useAppStore();
-  const layout = useResponsiveLayout();
-  const insets = useSafeAreaInsets();
   const router = useRouter();
-  const clerkUser = useUser().user;
+  const insets = useSafeAreaInsets();
+  const { width } = useWindowDimensions();
+  const colWidth = Math.min(width, COL);
 
-  const engine = useEngineSlice();
-  const userState = useUserSlice();
-  const intake = useIntakeSlice();
-  const {
-    logIntake,
-    activateSocialMode,
-    logSocialDrink,
-    confirmSocialHydration,
-    deactivateSocialMode,
-  } = useActionsSlice<HomeActions>();
-  const { showCycleSuccess, lastCycleResult, hasSeenOnboarding } = state;
+  // Live readiness — derive from live hydration score (0..100).
+  const { state } = useAppStore();
+  const liveScore = state?.engineOutput?.score ?? 83;
+  const readiness = Math.max(0, Math.min(100, Math.round(liveScore)));
 
-  // Voice Engine — preserve existing score-band + risk-timer hooks.
-  useScoreBandVoice();
-  useRiskTimerVoice();
-
-  // Mirror current performance level into the Phantom Band LED.
-  React.useEffect(() => {
-    phantomBandService.mirrorPerformance(engine.performanceState.level);
-  }, [engine.performanceState.level]);
-
-  // Local UI state.
-  const [breakdownOpen, setBreakdownOpen] = React.useState(false);
-  const [voiceOpen, setVoiceOpen] = React.useState(false);
-  const [voiceAutoStart, setVoiceAutoStart] = React.useState(false);
-  const [flavorOpen, setFlavorOpen] = React.useState(false);
-  const [socialOpen, setSocialOpen] = React.useState(false);
-  const [voiceBtnState, setVoiceBtnState] = React.useState<VoiceState>('idle');
-
-  // Heat Guard — auto-fires voice escalations on STABLE → ELEVATED+
-  // crossings. Mounted here so Heat warnings continue to surface even
-  // though the verbose Heat card is gone from the minimal home.
-  const onHeatEscalate = React.useCallback(() => {
-    setVoiceAutoStart(false);
-    setVoiceOpen(true);
-  }, []);
-  const heat = useHeatGuard({ onEscalate: onHeatEscalate });
+  // ─── Animation drivers ──────────────────────────────────────────
+  const ringProgress = useSharedValue(0);
+  const livePulse    = useSharedValue(1);
+  const glow         = useSharedValue(0.18);
 
   React.useEffect(() => {
-    setVoiceBtnState(voiceOpen ? 'listening' : 'idle');
-  }, [voiceOpen]);
+    const ease = Easing.out(Easing.cubic);
+    // Ring draws over 1.5s after the hero appears
+    ringProgress.value = withDelay(
+      450,
+      withTiming(readiness / 100, { duration: 1500, easing: Easing.out(Easing.cubic) }),
+    );
+    // LIVE dot pulse
+    livePulse.value = withRepeat(
+      withSequence(
+        withTiming(0.35, { duration: 700, easing: Easing.inOut(Easing.quad) }),
+        withTiming(1,    { duration: 700, easing: Easing.inOut(Easing.quad) }),
+      ),
+      -1, false,
+    );
+    // Hero glow pulse
+    glow.value = withRepeat(
+      withSequence(
+        withTiming(0.32, { duration: 2400, easing: Easing.inOut(Easing.quad) }),
+        withTiming(0.16, { duration: 2400, easing: Easing.inOut(Easing.quad) }),
+      ),
+      -1, false,
+    );
+    return () => {
+      cancelAnimation(ringProgress);
+      cancelAnimation(livePulse);
+      cancelAnimation(glow);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [readiness]);
 
-  // Band-initiated voice trigger from Phantom Band hardware.
+  // Re-target ring when score changes after first paint
   React.useEffect(() => {
-    return phantomBandService.on('voice_trigger', () => {
-      setVoiceAutoStart(true);
-      setVoiceOpen(true);
-    });
-  }, []);
+    ringProgress.value = withTiming(readiness / 100, { duration: 900, easing: Easing.out(Easing.cubic) });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [readiness]);
 
-  const openBreakdown = React.useCallback(() => {
-    if (Platform.OS !== 'web') {
-      Haptics.selectionAsync().catch(() => {});
-    }
-    setBreakdownOpen(true);
-  }, []);
-  const closeBreakdown = React.useCallback(() => setBreakdownOpen(false), []);
-  const openVoice = React.useCallback(() => {
-    setVoiceAutoStart(false);
-    setVoiceOpen(true);
-  }, []);
-  const closeVoice = React.useCallback(() => {
-    setVoiceOpen(false);
-    setVoiceAutoStart(false);
-  }, []);
-
-  // Primary CTA → haptic + open flavor picker → log intake.
-  const onPrimaryCta = React.useCallback(() => {
-    if (state.isCompletingCycle) return;
-    if (Platform.OS !== 'web') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
-    }
-    setFlavorOpen(true);
-  }, [state.isCompletingCycle]);
-
-  const onShare = React.useCallback(() => {
-    if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
-    const level = engine.performanceState.level;
-    const stateLabel =
-      level === 'PEAK' ? 'Peak'
-      : level === 'RECOVERING' ? 'Recovering'
-      : level === 'DEPLETED' ? 'Depleted'
-      : 'Balanced';
-    router.push(`/share?type=score&score=${engine.score}&state=${stateLabel}`);
-  }, [router, engine.score, engine.performanceState.level]);
-
-  const openSocial = React.useCallback(() => {
-    if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
-    setSocialOpen(true);
-  }, []);
-  const closeSocial = React.useCallback(() => setSocialOpen(false), []);
-  const onTapHeat = React.useCallback(() => {
-    if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
-    setVoiceAutoStart(false);
-    setVoiceOpen(true);
-  }, []);
-
-  const onChooseFlavor = React.useCallback(
-    (flavor: FlavorChoice | null) => {
-      setFlavorOpen(false);
-      if (Platform.OS !== 'web') {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy).catch(() => {});
-      }
-      const fluid: FluidType = flavor?.fluid ?? 'aforce_stick';
-      const opts = flavor
-        ? {
-            flavorLabel: flavor.label,
-            ...(flavor.ozOverride != null ? { ozOverride: flavor.ozOverride } : {}),
-          }
-        : undefined;
-      void logIntake?.(fluid, opts);
-    },
-    [logIntake],
-  );
-
-  // Header derived data.
-  const greetingName =
-    clerkUser?.firstName ||
-    clerkUser?.primaryEmailAddress?.emailAddress?.split('@')[0] ||
-    'Athlete';
-  const city = userState.weatherCity ?? null;
-  const tempLabel = formatTemperatureF(userState.weatherTempC);
-
-  // Cycle progress (units consumed / daily target). Spec asks for
-  // "Water Cycle 6/8" framing — we render units-against-target which
-  // is the closest existing metric.
-  const cycleProgress = React.useMemo(
-    () => ({
-      current: Math.max(0, Math.round(userState.unitsConsumedToday ?? 0)),
-      target: Math.max(1, Math.round(userState.dailyTarget ?? 8)),
-    }),
-    [userState.unitsConsumedToday, userState.dailyTarget],
-  );
-
-  // Last intake — newest event in the last 24h window.
-  const lastIntakeMinutes = React.useMemo(() => {
-    const events = intake.recentEvents ?? [];
-    if (events.length === 0) return null;
-    const latest = events.reduce<number>((acc, evt) => {
-      const ms = evt.loggedAt instanceof Date
-        ? evt.loggedAt.getTime()
-        : new Date(evt.loggedAt as unknown as string).getTime();
-      return Number.isFinite(ms) && ms > acc ? ms : acc;
-    }, 0);
-    return minutesSince(latest);
-  }, [intake.recentEvents]);
-
-  const topPadding = Platform.OS === 'web' ? WEB_TOP_PADDING : insets.top;
-  const bottomPadding = Platform.OS === 'web' ? WEB_BOTTOM_PADDING : insets.bottom + TAB_BAR_HEIGHT;
+  const handleBegin = () => {
+    if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy).catch(() => {});
+    router.push('/protocol');
+  };
+  const handleReport = () => router.push('/check');
 
   return (
     <View style={styles.root}>
-      <GradientBackground>
-        <DisplayedAccentProvider score={engine.score}>
-          <ScrollView
-            style={styles.scroll}
-            contentContainerStyle={[
-              styles.content,
-              {
-                paddingTop: topPadding + 12,
-                paddingBottom: bottomPadding + 32,
-                ...(layout.isWide
-                  ? { maxWidth: layout.contentMaxWidth, alignSelf: 'center', width: '100%' }
-                  : null),
-              },
-            ]}
-            showsVerticalScrollIndicator={false}
-          >
-            <MinimalHeader greetingName={greetingName} city={city} tempLabel={tempLabel} onShare={onShare} />
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={[
+          styles.scroll,
+          {
+            paddingTop: insets.top + 12,
+            paddingBottom: TAB_BAR_HEIGHT + insets.bottom + 32,
+          },
+        ]}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={[styles.col, { width: colWidth }]}>
+          {/* 1 — LIVE pill */}
+          <LivePill pulse={livePulse} />
 
-            <ScoreDrivenBody
-              onOpenBreakdown={openBreakdown}
-              onPrimaryCta={onPrimaryCta}
-              onOpenSocial={openSocial}
-              onTapHeat={onTapHeat}
-              isCompletingCycle={state.isCompletingCycle}
-              cycleProgress={cycleProgress}
-              lastIntakeMinutes={lastIntakeMinutes}
-              voiceCoachEnabled={voiceCoachEnabled}
-              orbSize={layout.orbSize}
-              heatBand={getHeatBandFromCelsius(userState.weatherTempC)}
-              heatTempLabel={tempLabel}
-              socialActive={!!userState.socialMode?.active}
-              socialDrinks={userState.socialMode?.drinks?.length ?? 0}
-            />
-          </ScrollView>
+          {/* 2 — Hero wordmark */}
+          <Hero glow={glow} />
 
-          {showCycleSuccess && lastCycleResult && (
-            <CycleSuccessOverlay result={lastCycleResult} onDismiss={dismissSuccess} />
-          )}
+          {/* 3 — Readiness ring + side stats */}
+          <ReadinessBlock score={readiness} ringProgress={ringProgress} />
 
-          <ScoreBreakdownSheet
-            visible={breakdownOpen}
-            onDismiss={closeBreakdown}
-            score={engine.score}
-            contributions={engine.breakdown}
-            performanceState={engine.performanceState}
+          {/* 4 — HRV sparkline */}
+          <SparklineCard
+            width={colWidth - PAD * 2}
+            series={HRV_SERIES}
+            current={HRV_CURRENT}
           />
 
-          <FlavorPickerModal
-            visible={flavorOpen}
-            format="both"
-            onCancel={() => setFlavorOpen(false)}
-            onConfirm={onChooseFlavor}
-          />
-
-          <SocialModeSheet
-            visible={socialOpen}
-            onDismiss={closeSocial}
-            socialMode={userState.socialMode}
-            social={engine.social}
-            onActivate={() => { void activateSocialMode?.(); }}
-            onLogDrink={(type) => { void logSocialDrink?.(type); }}
-            onConfirmHydration={(c) => { void confirmSocialHydration?.(c); }}
-            onDeactivate={() => { void deactivateSocialMode?.(); }}
-          />
-
-          <OnboardingOverlay visible={!hasSeenOnboarding} onDismiss={completeOnboarding} />
-
-          <View pointerEvents="box-none" style={[styles.voiceFab, { bottom: bottomPadding - 56 }]}>
-            <VoiceButton state={voiceBtnState} onPress={openVoice} />
+          {/* 5 — 2x2 metrics */}
+          <View style={styles.metricsGrid}>
+            {METRICS.map((m) => (
+              <MetricCard key={m.label} {...m} />
+            ))}
           </View>
 
-          <VoiceOverlay
-            visible={voiceOpen}
-            autoStart={voiceAutoStart}
-            onClose={closeVoice}
-          />
-        </DisplayedAccentProvider>
-      </GradientBackground>
+          {/* 6 — Tagline + chips */}
+          <View style={styles.taglineWrap}>
+            <Text style={styles.taglineLight}>
+              Performance is{' '}
+              <Text style={styles.taglineBold}>non-negotiable.</Text>
+            </Text>
+            <View style={styles.chipsRow}>
+              {['Closed-loop', 'Real-time', 'Deterministic'].map((c) => (
+                <View key={c} style={styles.chip}>
+                  <Text style={styles.chipText}>{c}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+
+          {/* 7 — Primary CTA */}
+          <Pressable
+            onPress={handleBegin}
+            accessibilityRole="button"
+            accessibilityLabel="Begin protocol"
+            style={({ pressed }) => [
+              styles.ctaPrimary,
+              pressed && { opacity: 0.85 },
+            ]}
+          >
+            <Text style={styles.ctaPrimaryText}>BEGIN PROTOCOL</Text>
+            <View style={styles.ctaArrowBadge}>
+              <Feather name="arrow-right" size={14} color={C.white} />
+            </View>
+          </Pressable>
+
+          {/* 8 — Secondary ghost CTA */}
+          <Pressable
+            onPress={handleReport}
+            accessibilityRole="button"
+            accessibilityLabel="View full report"
+            style={({ pressed }) => [
+              styles.ctaGhost,
+              pressed && { opacity: 0.7 },
+            ]}
+          >
+            <Text style={styles.ctaGhostText}>View Full Report</Text>
+          </Pressable>
+        </View>
+      </ScrollView>
     </View>
   );
 }
 
-// ─── Styles ──────────────────────────────────────────────────────────
+// ─── LivePill — pulsing red dot + label ───────────────────────────
+function LivePill({ pulse }: { pulse: ReturnType<typeof useSharedValue<number>> }) {
+  const dotStyle = useAnimatedStyle(() => ({ opacity: pulse.value }));
+  return (
+    <View style={styles.livePill}>
+      <Animated.View style={[styles.liveDot, dotStyle]} />
+      <Text style={styles.liveLabel}>LIVE MONITORING</Text>
+    </View>
+  );
+}
 
+// ─── Hero — AFORCE / OS wordmark + subtitle, with glow ────────────
+function Hero({ glow }: { glow: ReturnType<typeof useSharedValue<number>> }) {
+  const glowStyle = useAnimatedStyle(() => ({ opacity: glow.value }));
+  return (
+    <View style={styles.heroWrap}>
+      <Animated.View
+        pointerEvents="none"
+        style={[styles.heroGlow, glowStyle]}
+      />
+      <Text style={styles.heroLine}>
+        <Text style={styles.heroWhite}>AFORCE</Text>
+        <Text style={styles.heroRed}> OS</Text>
+      </Text>
+      <Text style={styles.heroSub}>THE PERFORMANCE OPERATING SYSTEM</Text>
+    </View>
+  );
+}
+
+// ─── ReadinessBlock — animated SVG ring + side stats ──────────────
+function ReadinessBlock({
+  score,
+  ringProgress,
+}: {
+  score: number;
+  ringProgress: ReturnType<typeof useSharedValue<number>>;
+}) {
+  const SIZE = 132;
+  const STROKE = 8;
+  const R = (SIZE - STROKE) / 2;
+  const CIRC = 2 * Math.PI * R;
+  const animatedCircleProps = useAnimatedProps(() => ({
+    strokeDashoffset: CIRC * (1 - ringProgress.value),
+  }));
+
+  return (
+    <View style={styles.readinessRow}>
+      <View style={{ width: SIZE, height: SIZE }}>
+        <Svg width={SIZE} height={SIZE}>
+          <Defs>
+            <LinearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
+              <Stop offset="0" stopColor={C.red} stopOpacity="1" />
+              <Stop offset="1" stopColor="#ff5a3c" stopOpacity="1" />
+            </LinearGradient>
+          </Defs>
+          {/* Track */}
+          <Circle
+            cx={SIZE / 2}
+            cy={SIZE / 2}
+            r={R}
+            stroke="rgba(255,255,255,0.08)"
+            strokeWidth={STROKE}
+            fill="none"
+          />
+          {/* Progress — rotated -90° so it draws from 12 o'clock */}
+          <G rotation="-90" origin={`${SIZE / 2}, ${SIZE / 2}`}>
+            <AnimatedCircle
+              cx={SIZE / 2}
+              cy={SIZE / 2}
+              r={R}
+              stroke="url(#ringGrad)"
+              strokeWidth={STROKE}
+              strokeLinecap="round"
+              fill="none"
+              strokeDasharray={CIRC}
+              animatedProps={animatedCircleProps}
+            />
+          </G>
+        </Svg>
+        <View style={styles.ringCenter} pointerEvents="none">
+          <Text style={styles.ringScore}>{score}</Text>
+          <Text style={styles.ringLabel}>READY</Text>
+        </View>
+      </View>
+
+      <View style={styles.statsCol}>
+        {STATS.map((s) => (
+          <View key={s.label} style={styles.statRow}>
+            <Text style={styles.statLabel}>{s.label.toUpperCase()}</Text>
+            <Text style={[styles.statValue, { color: s.tone }]}>{s.value}</Text>
+          </View>
+        ))}
+      </View>
+    </View>
+  );
+}
+
+// ─── SparklineCard — area chart + endpoint dot ────────────────────
+function SparklineCard({
+  width: w,
+  series,
+  current,
+}: { width: number; series: number[]; current: string }) {
+  const H = 78;
+  const PADX = 14;
+  const PADY = 12;
+  const innerW = w - PADX * 2;
+  const innerH = H;
+  const stepX = innerW / (series.length - 1);
+  const points = series.map((v, i) => ({
+    x: PADX + i * stepX,
+    y: PADY + (1 - v) * innerH,
+  }));
+  const linePath =
+    `M ${points[0].x} ${points[0].y} ` +
+    points
+      .slice(1)
+      .map((p, i) => {
+        const prev = points[i];
+        const mx = (prev.x + p.x) / 2;
+        return `Q ${mx} ${prev.y} ${mx} ${(prev.y + p.y) / 2} T ${p.x} ${p.y}`;
+      })
+      .join(' ');
+  const last = points[points.length - 1];
+  const baseY = PADY + innerH;
+  const fillPath = `${linePath} L ${last.x} ${baseY} L ${PADX} ${baseY} Z`;
+
+  return (
+    <View style={[styles.card, { paddingHorizontal: 0, paddingVertical: 0 }]}>
+      <View style={styles.cardHeader}>
+        <Text style={styles.cardTitle}>HEART RATE VARIABILITY</Text>
+        <Text style={styles.cardValue}>{current}</Text>
+      </View>
+      <Svg width={w} height={H + PADY * 2}>
+        <Defs>
+          <LinearGradient id="hrvFill" x1="0" y1="0" x2="0" y2="1">
+            <Stop offset="0" stopColor={C.green} stopOpacity="0.45" />
+            <Stop offset="1" stopColor={C.green} stopOpacity="0" />
+          </LinearGradient>
+        </Defs>
+        <Path d={fillPath} fill="url(#hrvFill)" />
+        <Path
+          d={linePath}
+          stroke={C.green}
+          strokeWidth={2}
+          fill="none"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <Circle cx={last.x} cy={last.y} r={5} fill={C.green} opacity={0.25} />
+        <Circle cx={last.x} cy={last.y} r={2.5} fill={C.green} />
+      </Svg>
+    </View>
+  );
+}
+
+// ─── MetricCard — single 2x2 cell ────────────────────────────────
+function MetricCard({ icon, value, label }: { icon: string; value: string; label: string }) {
+  const [hovered, setHovered] = React.useState(false);
+  const webHover =
+    Platform.OS === 'web'
+      ? {
+          onMouseEnter: () => setHovered(true),
+          onMouseLeave: () => setHovered(false),
+        }
+      : {};
+  return (
+    <View style={styles.metricCard} {...webHover}>
+      <Text style={styles.metricIcon}>{icon}</Text>
+      <Text style={styles.metricValue}>{value}</Text>
+      <Text style={styles.metricLabel}>{label.toUpperCase()}</Text>
+      <View style={[styles.metricAccent, { opacity: hovered ? 1 : 0 }]} />
+    </View>
+  );
+}
+
+// ─── Styles ───────────────────────────────────────────────────────
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: Colors.background.primary },
-  scroll: { flex: 1 },
-  content: { paddingHorizontal: 20, alignItems: 'stretch' },
+  root: { flex: 1, backgroundColor: C.bg },
+  scroll: { alignItems: 'center', paddingHorizontal: PAD },
+  col: { gap: 22 },
 
-  header: { marginBottom: 20 },
-  headerTopRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-  },
-  shareBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.12)',
-    backgroundColor: 'rgba(255,255,255,0.06)',
-    marginTop: 6,
-  },
-  welcome: {
-    fontFamily: 'Inter_500Medium',
-    fontSize: 13,
-    color: Colors.text.secondary,
-    letterSpacing: 0.6,
-  },
-  brand: {
-    fontFamily: 'Inter_700Bold',
-    fontSize: 26,
-    color: Colors.text.primary,
-    letterSpacing: -0.4,
-    marginTop: 1,
-  },
-  // Status-bar treatment for the city · time · temp line — sits as a
-  // discrete pill under the brand so it reads like a piece of HUD
-  // telemetry, not body copy.
-  statusBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  // Live pill
+  livePill: {
     alignSelf: 'flex-start',
-    marginTop: 8,
-    paddingVertical: 5,
-    paddingHorizontal: 10,
-    borderRadius: 100,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(255,255,255,0.10)',
-    backgroundColor: 'rgba(255,255,255,0.04)',
-  },
-  statusDot: {
-    width: 5,
-    height: 5,
-    borderRadius: 3,
-    backgroundColor: Colors.text.primary,
-    opacity: 0.85,
-    marginRight: 8,
-  },
-  statusSep: {
-    width: 3,
-    height: 3,
-    borderRadius: 2,
-    backgroundColor: Colors.text.muted,
-    marginHorizontal: 8,
-    opacity: 0.7,
-  },
-  statusSegment: {
-    fontFamily: 'Inter_600SemiBold',
-    fontSize: 12.5,
-    color: Colors.text.primary,
-    letterSpacing: 1.4,
-    textTransform: 'uppercase',
-  },
-
-  statusHeadline: {
-    fontFamily: 'Inter_700Bold',
-    fontSize: 22,
-    textAlign: 'center',
-    letterSpacing: -0.2,
-    marginBottom: 12,
-  },
-
-  orbWrap: { alignItems: 'center', marginBottom: 8 },
-
-  statusLabel: {
-    fontFamily: 'Inter_700Bold',
-    fontSize: 14,
-    textAlign: 'center',
-    letterSpacing: 4,
-    marginTop: 14,
-  },
-  consequence: {
-    fontFamily: 'Inter_400Regular',
-    fontSize: 13,
-    color: Colors.text.secondary,
-    textAlign: 'center',
-    marginTop: 6,
-    marginBottom: 22,
-    paddingHorizontal: 18,
-  },
-
-  cta: {
-    borderWidth: 1.5,
-    borderRadius: 14,
-    paddingVertical: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowOpacity: 0.35,
-    shadowRadius: 14,
-    shadowOffset: { width: 0, height: 0 },
-    elevation: 6,
-    marginBottom: 16,
-  },
-  ctaText: {
-    fontFamily: 'Inter_700Bold',
-    fontSize: 15,
-    letterSpacing: 3,
-  },
-
-  // "Next Command" — light, no card chrome. Sits as a quiet
-  // continuation of the CTA, not a competing surface.
-  nextCommand: {
-    paddingHorizontal: 4,
-    paddingTop: 4,
-    paddingBottom: 4,
-    marginBottom: 12,
-  },
-  nextCommandEyebrow: {
-    fontFamily: 'Inter_700Bold',
-    fontSize: 10,
-    letterSpacing: 2.5,
-    marginBottom: 6,
-  },
-  nextCommandText: {
-    fontFamily: 'Inter_500Medium',
-    fontSize: 15,
-    color: Colors.text.primary,
-    lineHeight: 22,
-  },
-  nextCommandImpact: {
-    fontFamily: 'Inter_500Medium',
-    fontSize: 11,
-    color: Colors.text.muted,
-    letterSpacing: 0.4,
-    marginTop: 6,
-  },
-
-  // Section header that visually separates the deeper-intelligence
-  // AI Coach layer from the decision/action layer above it.
-  coachSectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    marginTop: 44,
-    marginBottom: 12,
-    paddingHorizontal: 4,
-  },
-  coachLiveDot: { width: 6, height: 6, borderRadius: 3 },
-  coachSectionTitle: {
-    fontFamily: 'Inter_700Bold',
-    fontSize: 11,
-    color: Colors.text.secondary,
-    letterSpacing: 2.5,
-  },
-  coachSectionDot: {
-    fontFamily: 'Inter_700Bold',
-    fontSize: 11,
-    color: Colors.text.muted,
-  },
-  coachSectionLive: {
-    fontFamily: 'Inter_700Bold',
-    fontSize: 11,
-    letterSpacing: 2.5,
-  },
-  // Subtle visual demotion so the Coach layer never out-shouts the
-  // orb / CTA / Next Command above it.
-  coachLayer: { opacity: 0.96 },
-
-  metaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 14,
-    paddingHorizontal: 18,
-    borderRadius: 12,
-    backgroundColor: 'rgba(255,255,255,0.03)',
-    marginBottom: 16,
-  },
-  metaCell: { flex: 1 },
-  metaDivider: {
-    width: StyleSheet.hairlineWidth,
-    height: 28,
-    backgroundColor: Colors.border.subtle,
-    marginHorizontal: 12,
-  },
-  metaLabel: {
-    fontFamily: 'Inter_700Bold',
-    fontSize: 9,
-    color: Colors.text.secondary,
-    letterSpacing: 2,
-    marginBottom: 4,
-  },
-  metaValue: {
-    fontFamily: 'Inter_600SemiBold',
-    fontSize: 15,
-    color: Colors.text.primary,
-  },
-
-  // CommandConsole brings its own marginHorizontal: 20 — negate the
-  // surrounding scrollContent padding so the card stretches edge-to-edge
-  // like the other premium cards. Top spacing now comes from
-  // coachSectionHeader so this is flush with the section title.
-  coachWrapper: { marginHorizontal: -20, marginTop: 0 },
-  coachVideoWrapper: { marginHorizontal: -20, marginTop: 12 },
-
-  voiceFab: { position: 'absolute', right: 20, alignItems: 'flex-end' },
-
-  // Quick-action tile grid wrapper. Negative horizontal margin cancels
-  // the parent `content` 20px padding so EntryActions can apply its own
-  // 20px (matching the rest of the home rhythm) — keeps tiles flush
-  // with the metaRow / signalsRow above and below.
-  entryActionsRow: {
-    marginTop: 16,
-    marginHorizontal: -20,
-  },
-  signalsRow: {
-    flexDirection: 'row',
-    gap: 10,
-    marginTop: 16,
-  },
-  signalPill: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
     paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderRadius: 10,
+    paddingVertical: 6,
+    backgroundColor: C.redTint,
+    borderRadius: 999,
     borderWidth: 1,
+    borderColor: C.redBorder,
   },
-  signalLabel: {
-    fontFamily: 'Inter_700Bold',
+  liveDot: {
+    width: 7, height: 7, borderRadius: 7,
+    backgroundColor: C.red,
+    ...(Platform.OS === 'web'
+      ? ({ boxShadow: `0 0 10px ${C.red}` } as object)
+      : {
+          shadowColor: C.red, shadowOpacity: 0.9, shadowRadius: 6,
+          shadowOffset: { width: 0, height: 0 },
+        }),
+  },
+  liveLabel: {
+    fontFamily: F.bodyM,
+    fontSize: 10,
+    letterSpacing: 1.8,
+    color: C.red,
+  },
+
+  // Hero
+  heroWrap: { marginTop: 8, marginBottom: 4 },
+  heroGlow: {
+    position: 'absolute',
+    width: 280, height: 280, borderRadius: 280,
+    backgroundColor: C.red,
+    top: -70, left: -40,
+    ...(Platform.OS === 'web'
+      ? ({ filter: 'blur(80px)' } as object)
+      : {
+          shadowColor: C.red, shadowOpacity: 0.7, shadowRadius: 80,
+          shadowOffset: { width: 0, height: 0 },
+        }),
+  },
+  heroLine: {
+    fontFamily: F.display,
+    fontSize: 92,
+    lineHeight: 92,
+    letterSpacing: -1,
+  },
+  heroWhite: { color: C.white, fontFamily: F.display },
+  heroRed:   { color: C.red,   fontFamily: F.display },
+  heroSub: {
+    fontFamily: F.bodyM,
+    fontSize: 10,
+    letterSpacing: 2.4,
+    color: C.text35,
+    marginTop: 4,
+  },
+
+  // Readiness
+  readinessRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 22,
+    backgroundColor: C.cardBg,
+    borderWidth: 1,
+    borderColor: C.cardBorder,
+    borderRadius: 14,
+    padding: 18,
+  },
+  ringCenter: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  ringScore: {
+    fontFamily: F.display,
+    fontSize: 48,
+    lineHeight: 48,
+    color: C.white,
+  },
+  ringLabel: {
+    fontFamily: F.bodyM,
     fontSize: 9,
-    color: Colors.text.secondary,
-    letterSpacing: 1.6,
+    letterSpacing: 2.2,
+    color: C.text45,
+    marginTop: 2,
   },
-  signalValue: {
-    fontFamily: 'Inter_600SemiBold',
-    fontSize: 11,
-    letterSpacing: 0.5,
-    marginLeft: 'auto',
+  statsCol: { flex: 1, gap: 8 },
+  statRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'baseline',
+    paddingVertical: 4,
+    borderBottomWidth: 1,
+    borderBottomColor: C.cardBorder,
+  },
+  statLabel: {
+    fontFamily: F.bodyM,
+    fontSize: 9,
+    letterSpacing: 1.6,
+    color: C.text45,
+  },
+  statValue: {
+    fontFamily: F.display,
+    fontSize: 18,
+    letterSpacing: 0.2,
+  },
+
+  // Card / sparkline
+  card: {
+    backgroundColor: C.cardBg,
+    borderWidth: 1,
+    borderColor: C.cardBorder,
+    borderRadius: 14,
+    overflow: 'hidden',
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'baseline',
+    paddingHorizontal: 14,
+    paddingTop: 12,
+    paddingBottom: 4,
+  },
+  cardTitle: {
+    fontFamily: F.bodyM,
+    fontSize: 9,
+    letterSpacing: 1.8,
+    color: C.text45,
+  },
+  cardValue: {
+    fontFamily: F.display,
+    fontSize: 20,
+    color: C.white,
+  },
+
+  // Metrics 2x2
+  metricsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  metricCard: {
+    flexBasis: '48%',
+    flexGrow: 1,
+    backgroundColor: C.cardBg,
+    borderWidth: 1,
+    borderColor: C.cardBorder,
+    borderRadius: 14,
+    padding: 14,
+    overflow: 'hidden',
+    ...(Platform.OS === 'web' ? ({ cursor: 'pointer' } as object) : {}),
+  },
+  metricIcon: {
+    fontSize: 16,
+    color: C.text65,
+    marginBottom: 6,
+  },
+  metricValue: {
+    fontFamily: F.display,
+    fontSize: 36,
+    lineHeight: 38,
+    color: C.white,
+    letterSpacing: -0.5,
+  },
+  metricLabel: {
+    fontFamily: F.bodyM,
+    fontSize: 9,
+    letterSpacing: 1.8,
+    color: C.text45,
+    marginTop: 4,
+  },
+  metricAccent: {
+    position: 'absolute',
+    left: 0, right: 0, bottom: 0,
+    height: 2,
+    backgroundColor: C.red,
+  },
+
+  // Tagline + chips
+  taglineWrap: { gap: 12, marginTop: 4 },
+  taglineLight: {
+    fontFamily: F.body,
+    fontSize: 18,
+    lineHeight: 24,
+    color: C.text65,
+  },
+  taglineBold: {
+    fontFamily: F.bodyB,
+    color: C.white,
+  },
+  chipsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  chip: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: C.cardBorder,
+    backgroundColor: C.cardBg,
+  },
+  chipText: {
+    fontFamily: F.bodyM,
+    fontSize: 10,
+    letterSpacing: 1.4,
+    color: C.text65,
+  },
+
+  // CTAs
+  ctaPrimary: {
+    height: 56,
+    borderRadius: 4,
+    backgroundColor: C.red,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+    ...(Platform.OS === 'web'
+      ? ({ boxShadow: `0 12px 40px rgba(224,24,24,0.45)` } as object)
+      : {
+          shadowColor: C.red, shadowOpacity: 0.45, shadowRadius: 24,
+          shadowOffset: { width: 0, height: 10 },
+        }),
+  },
+  ctaPrimaryText: {
+    fontFamily: F.bodyB,
+    fontSize: 13,
+    letterSpacing: 3,
+    color: C.white,
+  },
+  ctaArrowBadge: {
+    width: 22, height: 22, borderRadius: 22,
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    alignItems: 'center', justifyContent: 'center',
+  },
+  ctaGhost: {
+    height: 48,
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: C.cardBorder,
+    backgroundColor: 'transparent',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  ctaGhostText: {
+    fontFamily: F.bodyM,
+    fontSize: 12,
+    letterSpacing: 2,
+    color: C.text65,
   },
 });
