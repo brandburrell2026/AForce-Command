@@ -1,275 +1,707 @@
 /**
- * Welcome — first-launch screen (System-Initializing edition).
+ * Home — AForce OS performance command surface (cinematic edition).
  *
- * Mission-control aesthetic: pure black, single ambient red glow
- * pulsing in the lower third, all-white typography in one weight.
- * Sequential fade-in cascade on mount.
+ * Premium dark dashboard inspired by elite fitness/recovery platforms.
+ * The Readiness ring is wired to the live hydration score from the
+ * scoring engine; remaining metrics (Strain / Recovery / Sleep / HRV /
+ * resting HR / active burn / SpO₂ / recovery time) are presentational
+ * placeholders until those signal sources land.
  */
 
 import React from 'react';
 import {
-  View, Text, StyleSheet, Pressable, Platform, useWindowDimensions,
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  Pressable,
+  Platform,
+  useWindowDimensions,
 } from 'react-native';
 import Animated, {
-  useSharedValue, useAnimatedStyle, withTiming, withDelay, withRepeat,
-  withSequence, Easing, cancelAnimation,
+  useSharedValue,
+  useAnimatedStyle,
+  useAnimatedProps,
+  withTiming,
+  withDelay,
+  withRepeat,
+  withSequence,
+  Easing,
+  cancelAnimation,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import Svg, {
+  Circle,
+  Path,
+  Defs,
+  LinearGradient,
+  Stop,
+  G,
+} from 'react-native-svg';
 
+import { useAppStore } from '@/store/useAppStore';
+import { TAB_BAR_HEIGHT } from '@/constants/layout';
+
+const AnimatedCircle = Animated.createAnimatedComponent(Circle);
+
+// ─── Tokens ───────────────────────────────────────────────────────
 const C = {
-  bg:        '#000000',
-  primary:   '#DC2626',
-  white:     '#FFFFFF',
-  text40:    'rgba(255,255,255,0.40)',
-  text35:    'rgba(255,255,255,0.35)',
-  text30:    'rgba(255,255,255,0.30)',
+  bg:       '#080808',
+  red:      '#E01818',
+  green:    '#4ade80',
+  amber:    '#f59e0b',
+  white:    '#ffffff',
+  text65:   'rgba(255,255,255,0.65)',
+  text45:   'rgba(255,255,255,0.45)',
+  text35:   'rgba(255,255,255,0.35)',
+  text25:   'rgba(255,255,255,0.25)',
+  cardBg:   'rgba(255,255,255,0.04)',
+  cardBorder: 'rgba(255,255,255,0.08)',
+  redTint:  'rgba(224,24,24,0.12)',
+  redBorder:'rgba(224,24,24,0.35)',
 };
-
+// Match the rest of the app — Inter only.
 const F = {
   display: 'Inter_700Bold',
-  body:    'Inter_500Medium',
+  body:    'Inter_400Regular',
+  bodyM:   'Inter_500Medium',
+  bodyB:   'Inter_700Bold',
 };
 
-const REVEAL = { dur: 500, ease: Easing.out(Easing.cubic) };
-const D = { identity: 0, headline: 200, descriptor: 400, button: 600 };
+const COL = 380;          // max content width
+const PAD = 22;           // outer horizontal padding
 
-export default function WelcomeScreen() {
+// ─── Mock metric stream — until real signals are wired ────────────
+const STATS = [
+  { label: 'Strain',   value: '14.2', tone: C.amber },
+  { label: 'Recovery', value: '74%',  tone: C.green },
+  { label: 'Sleep',    value: '7h 12m', tone: C.green },
+  { label: 'HRV',      value: '62 ms', tone: C.green },
+];
+const METRICS: { icon: string; value: string; label: string }[] = [
+  { icon: '❤︎',  value: '54',   label: 'Resting HR' },
+  { icon: '🔥', value: '412',  label: 'Active Burn' },
+  { icon: '◉',  value: '98%',  label: 'SpO₂' },
+  { icon: '⏱', value: '6h',   label: 'Recovery Time' },
+];
+// 7-day HRV trend, normalized 0..1 for the sparkline
+const HRV_SERIES = [0.42, 0.55, 0.48, 0.62, 0.58, 0.71, 0.78];
+const HRV_CURRENT = '62 ms';
+
+export default function HomeScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { width, height } = useWindowDimensions();
+  const { width } = useWindowDimensions();
+  const colWidth = Math.min(width, COL);
 
-  const glowO = useSharedValue(0.08);
+  // Live readiness — derive from live hydration score (0..100).
+  const { state } = useAppStore();
+  const liveScore = state?.engineOutput?.score ?? 83;
+  const readiness = Math.max(0, Math.min(100, Math.round(liveScore)));
 
-  const idO = useSharedValue(0);  const idY = useSharedValue(12);
-  const hO  = useSharedValue(0);  const hY  = useSharedValue(12);
-  const dO  = useSharedValue(0);  const dY  = useSharedValue(12);
-  const bO  = useSharedValue(0);  const bY  = useSharedValue(12);
-  const press = useSharedValue(0);
+  // ─── Animation drivers ──────────────────────────────────────────
+  const ringProgress = useSharedValue(0);
+  const livePulse    = useSharedValue(1);
+  const glow         = useSharedValue(0.18);
+  const ringPulse    = useSharedValue(0); // 0 → 1 sonar pulse, looped
 
   React.useEffect(() => {
-    glowO.value = withRepeat(
+    const ease = Easing.out(Easing.cubic);
+    // Ring draws over 1.5s after the hero appears
+    ringProgress.value = withDelay(
+      450,
+      withTiming(readiness / 100, { duration: 1500, easing: Easing.out(Easing.cubic) }),
+    );
+    // LIVE dot pulse
+    livePulse.value = withRepeat(
       withSequence(
-        withTiming(0.18, { duration: 2000, easing: Easing.inOut(Easing.quad) }),
-        withTiming(0.08, { duration: 2000, easing: Easing.inOut(Easing.quad) }),
+        withTiming(0.35, { duration: 700, easing: Easing.inOut(Easing.quad) }),
+        withTiming(1,    { duration: 700, easing: Easing.inOut(Easing.quad) }),
       ),
       -1, false,
     );
-
-    const reveal = (o: typeof idO, y: typeof idY, delay: number) => {
-      o.value = withDelay(delay, withTiming(1, { duration: REVEAL.dur, easing: REVEAL.ease }));
-      y.value = withDelay(delay, withTiming(0, { duration: REVEAL.dur, easing: REVEAL.ease }));
-    };
-    reveal(idO, idY, D.identity);
-    reveal(hO,  hY,  D.headline);
-    reveal(dO,  dY,  D.descriptor);
-    reveal(bO,  bY,  D.button);
-
+    // Hero glow pulse
+    glow.value = withRepeat(
+      withSequence(
+        withTiming(0.32, { duration: 2400, easing: Easing.inOut(Easing.quad) }),
+        withTiming(0.16, { duration: 2400, easing: Easing.inOut(Easing.quad) }),
+      ),
+      -1, false,
+    );
+    // Sonar ring pulse — 0 → 1 loop, restart from 0 each cycle.
+    ringPulse.value = withRepeat(
+      withTiming(1, { duration: 2200, easing: Easing.out(Easing.cubic) }),
+      -1, false,
+    );
     return () => {
-      cancelAnimation(glowO);
-      cancelAnimation(idO); cancelAnimation(idY);
-      cancelAnimation(hO);  cancelAnimation(hY);
-      cancelAnimation(dO);  cancelAnimation(dY);
-      cancelAnimation(bO);  cancelAnimation(bY);
-      cancelAnimation(press);
+      cancelAnimation(ringProgress);
+      cancelAnimation(livePulse);
+      cancelAnimation(glow);
+      cancelAnimation(ringPulse);
     };
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [readiness]);
 
-  const glowStyle = useAnimatedStyle(() => ({ opacity: glowO.value }));
-  const idStyle = useAnimatedStyle(() => ({ opacity: idO.value, transform: [{ translateY: idY.value }] }));
-  const hStyle  = useAnimatedStyle(() => ({ opacity: hO.value,  transform: [{ translateY: hY.value }] }));
-  const dStyle  = useAnimatedStyle(() => ({ opacity: dO.value,  transform: [{ translateY: dY.value }] }));
-  const bStyle  = useAnimatedStyle(() => ({ opacity: bO.value,  transform: [{ translateY: bY.value }] }));
-  const btnPressStyle = useAnimatedStyle(() => ({ transform: [{ scale: 1 - press.value * 0.02 }] }));
+  // Re-target ring when score changes after first paint
+  React.useEffect(() => {
+    ringProgress.value = withTiming(readiness / 100, { duration: 900, easing: Easing.out(Easing.cubic) });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [readiness]);
+
+  const enterApp = React.useCallback(async () => {
+    try { await AsyncStorage.setItem('aforce.welcomeSeen', '1'); } catch {}
+    router.replace('/(tabs)');
+  }, [router]);
 
   const handleBegin = () => {
-    if (Platform.OS !== 'web') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy).catch(() => {});
-    }
-    router.replace('/(auth)/sign-up');
+    if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy).catch(() => {});
+    enterApp();
   };
-  const onPressIn  = () => { press.value = withTiming(1, { duration: 90 }); };
-  const onPressOut = () => { press.value = withTiming(0, { duration: 180 }); };
-
-  // Ambient glow geometry — radius ~60% of screen width, centered
-  // at 65% down the screen. Bleeds soft, no hard edge.
-  const glowSize = Math.max(width, height) * 1.2;
+  const handleReport = () => enterApp();
 
   return (
     <View style={styles.root}>
-      {/* Ambient red glow — sits behind everything, pulses slowly */}
-      <Animated.View
-        pointerEvents="none"
-        style={[
-          styles.glow,
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={[
+          styles.scroll,
           {
-            width: glowSize,
-            height: glowSize,
-            borderRadius: glowSize / 2,
-            left: (width - glowSize) / 2,
-            top: height * 0.65 - glowSize / 2,
+            paddingTop: insets.top + 12,
+            paddingBottom: TAB_BAR_HEIGHT + insets.bottom + 32,
           },
-          glowStyle,
         ]}
-      />
-
-      {/* Top status line — recessive, technical */}
-      <View style={[styles.topRow, { paddingTop: insets.top + 16 }]}>
-        <Text style={styles.statusLine} numberOfLines={1}>
-          01 — WELCOME  ·  AFORCE OS  ·  2026
-        </Text>
-      </View>
-
-      {/* Center column — identity + headline + descriptor */}
-      <View style={styles.column}>
-        <View style={styles.center}>
-          <Animated.View style={[styles.identity, idStyle]}>
-            <Text style={styles.brand} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.5}>
-              AFORCE OS
-            </Text>
-            <Text style={styles.brandSub}>
-              THE PERFORMANCE OPERATING SYSTEM
-            </Text>
-          </Animated.View>
-
-          <Animated.View style={[styles.headlineWrap, hStyle]}>
-            <Text style={styles.headline}>Performance is</Text>
-            <Text style={styles.headline}>non-negotiable.</Text>
-          </Animated.View>
-
-          <Animated.Text style={[styles.descriptor, dStyle]}>
-            Closed-loop  ·  Real-time  ·  Deterministic
-          </Animated.Text>
-        </View>
-      </View>
-
-      {/* Bottom CTA — full width, sharp corners, system command */}
-      <Animated.View
-        style={[
-          styles.ctaWrap,
-          { paddingBottom: insets.bottom + 32 },
-          bStyle,
-        ]}
+        showsVerticalScrollIndicator={false}
       >
-        <Pressable
-          onPress={handleBegin}
-          onPressIn={onPressIn}
-          onPressOut={onPressOut}
-          accessible
-          accessibilityRole="button"
-          accessibilityLabel="Begin protocol"
-          hitSlop={8}
-        >
-          <Animated.View style={[styles.ctaBtn, btnPressStyle]}>
-            <Text style={styles.ctaLabel}>BEGIN PROTOCOL</Text>
-          </Animated.View>
-        </Pressable>
-      </Animated.View>
+        <View style={[styles.col, { width: colWidth }]}>
+          {/* 1 — LIVE pill */}
+          <LivePill pulse={livePulse} />
+
+          {/* 2 — Hero wordmark */}
+          <Hero glow={glow} />
+
+          {/* 3 — Readiness ring + side stats */}
+          <ReadinessBlock score={readiness} ringProgress={ringProgress} ringPulse={ringPulse} />
+
+          {/* 4 — HRV sparkline */}
+          <SparklineCard
+            width={colWidth - PAD * 2}
+            series={HRV_SERIES}
+            current={HRV_CURRENT}
+          />
+
+          {/* 5 — 2x2 metrics */}
+          <View style={styles.metricsGrid}>
+            {METRICS.map((m) => (
+              <MetricCard key={m.label} {...m} />
+            ))}
+          </View>
+
+          {/* 6 — Tagline + chips */}
+          <View style={styles.taglineWrap}>
+            <Text style={styles.taglineLight}>
+              Performance is{' '}
+              <Text style={styles.taglineBold}>non-negotiable.</Text>
+            </Text>
+            <View style={styles.chipsRow}>
+              {['Closed-loop', 'Real-time', 'Deterministic'].map((c) => (
+                <View key={c} style={styles.chip}>
+                  <Text style={styles.chipText}>{c}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+
+          {/* 7 — Primary CTA */}
+          <Pressable
+            onPress={handleBegin}
+            accessibilityRole="button"
+            accessibilityLabel="Begin protocol"
+            style={({ pressed }) => [
+              styles.ctaPrimary,
+              pressed && { opacity: 0.85 },
+            ]}
+          >
+            <Text style={styles.ctaPrimaryText}>BEGIN PROTOCOL</Text>
+            <View style={styles.ctaArrowBadge}>
+              <Feather name="arrow-right" size={14} color={C.white} />
+            </View>
+          </Pressable>
+
+          {/* 8 — Secondary ghost CTA */}
+          <Pressable
+            onPress={handleReport}
+            accessibilityRole="button"
+            accessibilityLabel="View full report"
+            style={({ pressed }) => [
+              styles.ctaGhost,
+              pressed && { opacity: 0.7 },
+            ]}
+          >
+            <Text style={styles.ctaGhostText}>View Full Report</Text>
+          </Pressable>
+        </View>
+      </ScrollView>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: C.bg,
-    overflow: 'hidden',
-  },
+// ─── LivePill — pulsing red dot + label ───────────────────────────
+function LivePill({ pulse }: { pulse: ReturnType<typeof useSharedValue<number>> }) {
+  const dotStyle = useAnimatedStyle(() => ({ opacity: pulse.value }));
+  return (
+    <View style={styles.livePill}>
+      <Animated.View style={[styles.liveDot, dotStyle]} />
+      <Text style={styles.liveLabel}>LIVE MONITORING</Text>
+    </View>
+  );
+}
 
-  glow: {
-    position: 'absolute',
-    backgroundColor: 'rgba(220,38,38,1)',
+// ─── Hero — AFORCE / OS wordmark + subtitle, with glow ────────────
+function Hero({ glow }: { glow: ReturnType<typeof useSharedValue<number>> }) {
+  const glowStyle = useAnimatedStyle(() => ({ opacity: glow.value }));
+  return (
+    <View style={styles.heroWrap}>
+      <Animated.View
+        pointerEvents="none"
+        style={[styles.heroGlow, glowStyle]}
+      />
+      <Text style={styles.heroLine}>
+        <Text style={styles.heroWhite}>AFORCE</Text>
+        <Text style={styles.heroRed}> OS</Text>
+      </Text>
+      <Text style={styles.heroSub}>THE PERFORMANCE OPERATING SYSTEM</Text>
+    </View>
+  );
+}
+
+// ─── ReadinessBlock — animated SVG ring + side stats ──────────────
+function ReadinessBlock({
+  score,
+  ringProgress,
+  ringPulse,
+}: {
+  score: number;
+  ringProgress: ReturnType<typeof useSharedValue<number>>;
+  ringPulse: ReturnType<typeof useSharedValue<number>>;
+}) {
+  const SIZE = 132;
+  const STROKE = 8;
+  const R = (SIZE - STROKE) / 2;
+  const CIRC = 2 * Math.PI * R;
+  const animatedCircleProps = useAnimatedProps(() => ({
+    strokeDashoffset: CIRC * (1 - ringProgress.value),
+  }));
+  // Sonar pulse — scale from 1 → 1.55, fade 0.55 → 0.
+  const pulseStyle = useAnimatedStyle(() => ({
+    opacity: 0.55 * (1 - ringPulse.value),
+    transform: [{ scale: 1 + ringPulse.value * 0.55 }],
+  }));
+  // Second pulse offset by 0.5 phase for continuous wave.
+  const pulseStyle2 = useAnimatedStyle(() => {
+    const v = (ringPulse.value + 0.5) % 1;
+    return {
+      opacity: 0.45 * (1 - v),
+      transform: [{ scale: 1 + v * 0.55 }],
+    };
+  });
+
+  return (
+    <View style={styles.readinessRow}>
+      <View style={{ width: SIZE, height: SIZE, alignItems: 'center', justifyContent: 'center' }}>
+        <Animated.View pointerEvents="none" style={[styles.pulseRing, { width: SIZE, height: SIZE, borderRadius: SIZE / 2 }, pulseStyle]} />
+        <Animated.View pointerEvents="none" style={[styles.pulseRing, { width: SIZE, height: SIZE, borderRadius: SIZE / 2 }, pulseStyle2]} />
+        <Svg width={SIZE} height={SIZE} style={{ position: 'absolute' }}>
+          <Defs>
+            <LinearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
+              <Stop offset="0" stopColor={C.red} stopOpacity="1" />
+              <Stop offset="1" stopColor="#ff5a3c" stopOpacity="1" />
+            </LinearGradient>
+          </Defs>
+          {/* Track */}
+          <Circle
+            cx={SIZE / 2}
+            cy={SIZE / 2}
+            r={R}
+            stroke="rgba(255,255,255,0.08)"
+            strokeWidth={STROKE}
+            fill="none"
+          />
+          {/* Progress — rotated -90° so it draws from 12 o'clock */}
+          <G rotation="-90" origin={`${SIZE / 2}, ${SIZE / 2}`}>
+            <AnimatedCircle
+              cx={SIZE / 2}
+              cy={SIZE / 2}
+              r={R}
+              stroke="url(#ringGrad)"
+              strokeWidth={STROKE}
+              strokeLinecap="round"
+              fill="none"
+              strokeDasharray={CIRC}
+              animatedProps={animatedCircleProps}
+            />
+          </G>
+        </Svg>
+        <View style={styles.ringCenter} pointerEvents="none">
+          <Text style={styles.ringScore}>{score}</Text>
+          <Text style={styles.ringLabel}>READY</Text>
+        </View>
+      </View>
+
+      <View style={styles.statsCol}>
+        {STATS.map((s) => (
+          <View key={s.label} style={styles.statRow}>
+            <Text style={styles.statLabel}>{s.label.toUpperCase()}</Text>
+            <Text style={[styles.statValue, { color: s.tone }]}>{s.value}</Text>
+          </View>
+        ))}
+      </View>
+    </View>
+  );
+}
+
+// ─── SparklineCard — area chart + endpoint dot ────────────────────
+function SparklineCard({
+  width: w,
+  series,
+  current,
+}: { width: number; series: number[]; current: string }) {
+  const H = 78;
+  const PADX = 14;
+  const PADY = 12;
+  const innerW = w - PADX * 2;
+  const innerH = H;
+  const stepX = innerW / (series.length - 1);
+  const points = series.map((v, i) => ({
+    x: PADX + i * stepX,
+    y: PADY + (1 - v) * innerH,
+  }));
+  const linePath =
+    `M ${points[0].x} ${points[0].y} ` +
+    points
+      .slice(1)
+      .map((p, i) => {
+        const prev = points[i];
+        const mx = (prev.x + p.x) / 2;
+        return `Q ${mx} ${prev.y} ${mx} ${(prev.y + p.y) / 2} T ${p.x} ${p.y}`;
+      })
+      .join(' ');
+  const last = points[points.length - 1];
+  const baseY = PADY + innerH;
+  const fillPath = `${linePath} L ${last.x} ${baseY} L ${PADX} ${baseY} Z`;
+
+  return (
+    <View style={[styles.card, { paddingHorizontal: 0, paddingVertical: 0 }]}>
+      <View style={styles.cardHeader}>
+        <Text style={styles.cardTitle}>HEART RATE VARIABILITY</Text>
+        <Text style={styles.cardValue}>{current}</Text>
+      </View>
+      <Svg width={w} height={H + PADY * 2}>
+        <Defs>
+          <LinearGradient id="hrvFill" x1="0" y1="0" x2="0" y2="1">
+            <Stop offset="0" stopColor={C.green} stopOpacity="0.45" />
+            <Stop offset="1" stopColor={C.green} stopOpacity="0" />
+          </LinearGradient>
+        </Defs>
+        <Path d={fillPath} fill="url(#hrvFill)" />
+        <Path
+          d={linePath}
+          stroke={C.green}
+          strokeWidth={2}
+          fill="none"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <Circle cx={last.x} cy={last.y} r={5} fill={C.green} opacity={0.25} />
+        <Circle cx={last.x} cy={last.y} r={2.5} fill={C.green} />
+      </Svg>
+    </View>
+  );
+}
+
+// ─── MetricCard — single 2x2 cell ────────────────────────────────
+function MetricCard({ icon, value, label }: { icon: string; value: string; label: string }) {
+  const [hovered, setHovered] = React.useState(false);
+  const webHover =
+    Platform.OS === 'web'
+      ? {
+          onMouseEnter: () => setHovered(true),
+          onMouseLeave: () => setHovered(false),
+        }
+      : {};
+  return (
+    <View style={styles.metricCard} {...webHover}>
+      <Text style={styles.metricIcon}>{icon}</Text>
+      <Text style={styles.metricValue}>{value}</Text>
+      <Text style={styles.metricLabel}>{label.toUpperCase()}</Text>
+      <View style={[styles.metricAccent, { opacity: hovered ? 1 : 0 }]} />
+    </View>
+  );
+}
+
+// ─── Styles ───────────────────────────────────────────────────────
+const styles = StyleSheet.create({
+  root: { flex: 1, backgroundColor: C.bg },
+  scroll: { alignItems: 'center', paddingHorizontal: PAD },
+  col: { gap: 22 },
+
+  // Live pill
+  livePill: {
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    backgroundColor: C.redTint,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: C.redBorder,
+  },
+  liveDot: {
+    width: 7, height: 7, borderRadius: 7,
+    backgroundColor: C.red,
     ...(Platform.OS === 'web'
-      ? ({ filter: 'blur(160px)' } as object)
+      ? ({ boxShadow: `0 0 10px ${C.red}` } as object)
       : {
-          shadowColor: '#DC2626',
-          shadowOpacity: 0.6,
-          shadowRadius: 160,
+          shadowColor: C.red, shadowOpacity: 0.9, shadowRadius: 6,
           shadowOffset: { width: 0, height: 0 },
         }),
   },
+  liveLabel: {
+    fontFamily: F.bodyM,
+    fontSize: 10,
+    letterSpacing: 1.8,
+    color: C.red,
+  },
 
-  topRow: {
+  // Hero
+  heroWrap: { marginTop: 8, marginBottom: 4 },
+  heroGlow: {
     position: 'absolute',
-    top: 0, left: 0, right: 0,
-    paddingHorizontal: 24,
-    zIndex: 5,
+    width: 280, height: 280, borderRadius: 280,
+    backgroundColor: C.red,
+    top: -70, left: -40,
+    ...(Platform.OS === 'web'
+      ? ({ filter: 'blur(80px)' } as object)
+      : {
+          shadowColor: C.red, shadowOpacity: 0.7, shadowRadius: 80,
+          shadowOffset: { width: 0, height: 0 },
+        }),
   },
-  statusLine: {
-    fontFamily: F.body,
-    fontSize: 10,
-    letterSpacing: 2.5,
-    color: C.text30,
-  },
-
-  column: {
-    flex: 1,
-    width: '100%',
-    maxWidth: 640,
-    alignSelf: 'center',
-    paddingHorizontal: 24,
-    justifyContent: 'center',
-  },
-  center: {
-    alignItems: 'flex-start',
-    gap: 40,
-  },
-
-  identity: {
-    alignItems: 'flex-start',
-    gap: 8,
-    width: '100%',
-  },
-  brand: {
+  heroLine: {
     fontFamily: F.display,
-    fontSize: 52,
-    lineHeight: 56,
+    fontSize: 92,
+    lineHeight: 92,
     letterSpacing: -1,
-    color: C.white,
   },
-  brandSub: {
-    fontFamily: F.body,
+  heroWhite: { color: C.white, fontFamily: F.display },
+  heroRed:   { color: C.red,   fontFamily: F.display },
+  heroSub: {
+    fontFamily: F.bodyM,
     fontSize: 10,
-    letterSpacing: 3,
+    letterSpacing: 2.4,
     color: C.text35,
+    marginTop: 4,
   },
 
-  headlineWrap: {
-    width: '100%',
+  // Readiness
+  readinessRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 22,
+    backgroundColor: C.cardBg,
+    borderWidth: 1,
+    borderColor: C.cardBorder,
+    borderRadius: 14,
+    padding: 18,
   },
-  headline: {
-    fontFamily: F.display,
-    fontSize: 40,
-    lineHeight: 46,
-    letterSpacing: -0.5,
-    color: C.white,
-  },
-
-  descriptor: {
-    fontFamily: F.body,
-    fontSize: 11,
-    letterSpacing: 2,
-    color: C.text40,
-  },
-
-  ctaWrap: {
-    paddingHorizontal: 24,
-    width: '100%',
-    maxWidth: 640,
-    alignSelf: 'center',
-  },
-  ctaBtn: {
-    height: 58,
-    borderRadius: 4,
-    backgroundColor: C.primary,
+  ringCenter: {
+    ...StyleSheet.absoluteFillObject,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  ctaLabel: {
+  pulseRing: {
+    position: 'absolute',
+    borderWidth: 1.5,
+    borderColor: C.red,
+  },
+  ringScore: {
     fontFamily: F.display,
+    fontSize: 48,
+    lineHeight: 48,
+    color: C.white,
+  },
+  ringLabel: {
+    fontFamily: F.bodyM,
+    fontSize: 9,
+    letterSpacing: 2.2,
+    color: C.text45,
+    marginTop: 2,
+  },
+  statsCol: { flex: 1, gap: 8 },
+  statRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'baseline',
+    paddingVertical: 4,
+    borderBottomWidth: 1,
+    borderBottomColor: C.cardBorder,
+  },
+  statLabel: {
+    fontFamily: F.bodyM,
+    fontSize: 9,
+    letterSpacing: 1.6,
+    color: C.text45,
+  },
+  statValue: {
+    fontFamily: F.display,
+    fontSize: 18,
+    letterSpacing: 0.2,
+  },
+
+  // Card / sparkline
+  card: {
+    backgroundColor: C.cardBg,
+    borderWidth: 1,
+    borderColor: C.cardBorder,
+    borderRadius: 14,
+    overflow: 'hidden',
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'baseline',
+    paddingHorizontal: 14,
+    paddingTop: 12,
+    paddingBottom: 4,
+  },
+  cardTitle: {
+    fontFamily: F.bodyM,
+    fontSize: 9,
+    letterSpacing: 1.8,
+    color: C.text45,
+  },
+  cardValue: {
+    fontFamily: F.display,
+    fontSize: 20,
+    color: C.white,
+  },
+
+  // Metrics 2x2
+  metricsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  metricCard: {
+    flexBasis: '48%',
+    flexGrow: 1,
+    backgroundColor: C.cardBg,
+    borderWidth: 1,
+    borderColor: C.cardBorder,
+    borderRadius: 14,
+    padding: 14,
+    overflow: 'hidden',
+    ...(Platform.OS === 'web' ? ({ cursor: 'pointer' } as object) : {}),
+  },
+  metricIcon: {
+    fontSize: 16,
+    color: C.text65,
+    marginBottom: 6,
+  },
+  metricValue: {
+    fontFamily: F.display,
+    fontSize: 36,
+    lineHeight: 38,
+    color: C.white,
+    letterSpacing: -0.5,
+  },
+  metricLabel: {
+    fontFamily: F.bodyM,
+    fontSize: 9,
+    letterSpacing: 1.8,
+    color: C.text45,
+    marginTop: 4,
+  },
+  metricAccent: {
+    position: 'absolute',
+    left: 0, right: 0, bottom: 0,
+    height: 2,
+    backgroundColor: C.red,
+  },
+
+  // Tagline + chips
+  taglineWrap: { gap: 12, marginTop: 4 },
+  taglineLight: {
+    fontFamily: F.body,
+    fontSize: 18,
+    lineHeight: 24,
+    color: C.text65,
+  },
+  taglineBold: {
+    fontFamily: F.bodyB,
+    color: C.white,
+  },
+  chipsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  chip: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: C.cardBorder,
+    backgroundColor: C.cardBg,
+  },
+  chipText: {
+    fontFamily: F.bodyM,
+    fontSize: 10,
+    letterSpacing: 1.4,
+    color: C.text65,
+  },
+
+  // CTAs
+  ctaPrimary: {
+    height: 56,
+    borderRadius: 4,
+    backgroundColor: C.red,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+    ...(Platform.OS === 'web'
+      ? ({ boxShadow: `0 12px 40px rgba(224,24,24,0.45)` } as object)
+      : {
+          shadowColor: C.red, shadowOpacity: 0.45, shadowRadius: 24,
+          shadowOffset: { width: 0, height: 10 },
+        }),
+  },
+  ctaPrimaryText: {
+    fontFamily: F.bodyB,
     fontSize: 13,
     letterSpacing: 3,
     color: C.white,
+  },
+  ctaArrowBadge: {
+    width: 22, height: 22, borderRadius: 22,
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    alignItems: 'center', justifyContent: 'center',
+  },
+  ctaGhost: {
+    height: 48,
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: C.cardBorder,
+    backgroundColor: 'transparent',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  ctaGhostText: {
+    fontFamily: F.bodyM,
+    fontSize: 12,
+    letterSpacing: 2,
+    color: C.text65,
   },
 });
