@@ -3,13 +3,27 @@ export default function Closing() {
 
   return (
     <div className="w-screen h-screen overflow-hidden relative bg-bg text-text font-body">
+      {/* Layered color washes — warm red on the left, lime energy on the right, deep magenta lift across the top. */}
       <div
         className="absolute inset-0 pointer-events-none"
-        style={{ background: "radial-gradient(ellipse 55% 60% at 22% 50%, rgba(229,51,65,0.10) 0%, transparent 60%)" }}
+        style={{ background: "radial-gradient(ellipse 60% 75% at 20% 55%, rgba(229,51,65,0.32) 0%, rgba(229,51,65,0.08) 45%, transparent 70%)" }}
       />
       <div
         className="absolute inset-0 pointer-events-none"
-        style={{ background: "radial-gradient(ellipse 50% 70% at 90% 50%, rgba(255,255,255,0.04) 0%, transparent 65%)" }}
+        style={{ background: "radial-gradient(ellipse 55% 70% at 88% 45%, rgba(182,255,0,0.18) 0%, rgba(182,255,0,0.04) 50%, transparent 72%)" }}
+      />
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{ background: "radial-gradient(ellipse 80% 40% at 50% 0%, rgba(160,40,200,0.18) 0%, transparent 65%)" }}
+      />
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{ background: "radial-gradient(ellipse 70% 35% at 50% 100%, rgba(255,120,40,0.14) 0%, transparent 65%)" }}
+      />
+      {/* Subtle film grain via tiny noise — keeps the color from looking flat. */}
+      <div
+        className="absolute inset-0 pointer-events-none opacity-[0.06] mix-blend-overlay"
+        style={{ backgroundImage: "radial-gradient(rgba(255,255,255,0.6) 1px, transparent 1px)", backgroundSize: "3px 3px" }}
       />
 
       <div className="absolute top-[5vh] left-[6vw] right-[6vw] flex justify-between items-center z-10">
@@ -19,18 +33,28 @@ export default function Closing() {
 
       <div className="absolute top-[11vh] bottom-[8vh] left-[5vw] w-[38vw] z-10 flex items-center justify-center">
         <div className="relative w-full flex items-center justify-center">
+          {/* Wider, more saturated halo behind the portrait. */}
           <div
-            className="absolute -inset-[6%] rounded-3xl pointer-events-none"
-            style={{ background: "radial-gradient(ellipse at 50% 55%, rgba(229,51,65,0.18) 0%, rgba(229,51,65,0.04) 45%, transparent 70%)", filter: "blur(40px)" }}
+            className="absolute -inset-[10%] rounded-3xl pointer-events-none"
+            style={{ background: "radial-gradient(ellipse at 30% 40%, rgba(229,51,65,0.45) 0%, rgba(229,51,65,0.10) 40%, transparent 70%), radial-gradient(ellipse at 75% 70%, rgba(182,255,0,0.25) 0%, transparent 60%)", filter: "blur(50px)" }}
           />
           <div
-            className="relative w-full rounded-2xl overflow-hidden ring-1 ring-text/10"
-            style={{ aspectRatio: "870 / 810", boxShadow: "0 30px 50px rgba(0,0,0,0.55)" }}
+            className="relative w-full rounded-2xl overflow-hidden ring-1 ring-primary/40"
+            style={{ aspectRatio: "870 / 810", boxShadow: "0 30px 60px rgba(229,51,65,0.35), 0 10px 30px rgba(0,0,0,0.55)" }}
           >
             <img
               src={`${base}brothers-tight.png`}
               alt="Brandon and Julius Burrell as children"
               className="absolute inset-0 w-full h-full object-cover"
+            />
+            {/* Warm cinematic color grade over the portrait — feels like a film still. */}
+            <div
+              className="absolute inset-0 pointer-events-none mix-blend-soft-light"
+              style={{ background: "linear-gradient(135deg, rgba(255,140,60,0.45) 0%, rgba(229,51,65,0.20) 45%, rgba(160,40,200,0.35) 100%)" }}
+            />
+            <div
+              className="absolute inset-0 pointer-events-none"
+              style={{ background: "linear-gradient(180deg, transparent 55%, rgba(0,0,0,0.45) 100%)" }}
             />
           </div>
         </div>
