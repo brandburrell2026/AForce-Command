@@ -1057,6 +1057,12 @@ export default function ProfileScreen() {
           <SignOutRow />
 
           <Text style={styles.version}>AForce OS v1.0.0 · Phase 1 Core</Text>
+          <Text style={styles.patent}>PATENT PENDING</Text>
+          <Text style={styles.patentSub}>
+            U.S. Provisional Patent Application · Docket AFG-101-US-P{'\n'}
+            Closed-Loop Real-Time Physiological Performance Operating System{'\n'}
+            and Methods of Use · Filed May 2026
+          </Text>
         </ScrollView>
       </GradientBackground>
     </View>
@@ -1443,6 +1449,15 @@ const styles = StyleSheet.create({
   version: {
     fontSize: 11, fontFamily: 'Inter_400Regular', color: Colors.text.muted,
     textAlign: 'center', marginTop: 12, marginBottom: 8,
+  },
+  patent: {
+    fontSize: 10, fontFamily: 'Inter_600SemiBold', color: Colors.text.muted,
+    letterSpacing: 2.5, textAlign: 'center', marginTop: 4,
+  },
+  patentSub: {
+    fontSize: 10, fontFamily: 'Inter_400Regular', color: Colors.text.muted,
+    textAlign: 'center', marginTop: 4, marginBottom: 16, lineHeight: 14,
+    opacity: 0.7,
   },
 });
 

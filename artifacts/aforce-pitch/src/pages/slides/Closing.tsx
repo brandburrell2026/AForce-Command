@@ -82,6 +82,10 @@ export default function Closing() {
         <div className="font-body uppercase tracking-[0.32em] text-[0.7vw] text-muted/50">
           Brandon &amp; Julius Burrell · Founders
         </div>
+        <div className="font-body text-[0.7vw] text-muted/40 text-center">
+          <span className="uppercase tracking-[0.28em] text-primary/80">Patent Pending</span>
+          <span className="text-muted/40"> · AFG-101-US-P</span>
+        </div>
         <div className="font-body text-[0.7vw] text-muted/40">
           © 2026 AForce. All rights reserved.
         </div>
