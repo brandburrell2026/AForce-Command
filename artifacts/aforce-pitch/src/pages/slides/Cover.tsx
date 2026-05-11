@@ -47,6 +47,16 @@ export default function Cover() {
           This is beyond a hydration brand. <span className="text-text/85">This is a performance standard.</span>
         </p>
       </div>
+
+      {/* Provisional patent notice — bottom-right corner. */}
+      <div className="absolute bottom-[6vh] right-[6vw] z-10 text-right">
+        <div className="font-body uppercase tracking-[0.32em] text-[0.85vw] text-primary font-semibold">
+          Patent Pending
+        </div>
+        <div className="font-body text-[0.75vw] text-text/55 mt-[0.4vh]">
+          U.S. Provisional Application Filed
+        </div>
+      </div>
     </div>
   );
 }
