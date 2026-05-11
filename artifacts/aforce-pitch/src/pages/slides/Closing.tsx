@@ -47,15 +47,6 @@ export default function Closing() {
               alt="Brandon and Julius Burrell as children"
               className="absolute inset-0 w-full h-full object-cover"
             />
-            {/* Warm cinematic color grade over the portrait — feels like a film still. */}
-            <div
-              className="absolute inset-0 pointer-events-none mix-blend-soft-light"
-              style={{ background: "linear-gradient(135deg, rgba(255,140,60,0.45) 0%, rgba(229,51,65,0.20) 45%, rgba(160,40,200,0.35) 100%)" }}
-            />
-            <div
-              className="absolute inset-0 pointer-events-none"
-              style={{ background: "linear-gradient(180deg, transparent 55%, rgba(0,0,0,0.45) 100%)" }}
-            />
           </div>
         </div>
       </div>
