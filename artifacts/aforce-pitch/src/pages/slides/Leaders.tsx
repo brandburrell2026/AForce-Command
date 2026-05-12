@@ -33,10 +33,10 @@ export default function Leaders() {
     },
     {
       name: "Mark Mendel",
-      role: "Advisor",
+      role: "Investment Banker · Finalis",
       color: "blue",
       photo: `${base}mark-mendel.jpg`,
-      bio: "Biotechnology and life sciences executive with over 30 years of experience across venture capital, product development, and company building. Advises early-stage companies on strategy, fundraising, and scientific validation, and brings deep expertise in translating innovation into scalable businesses.",
+      bio: "Investment banker at Finalis serving as AForce's banker on the $4M Seed raise. Brings 30+ years across venture capital, life sciences, and company building, advising early-stage companies on capital strategy, fundraising structure, and scaling innovation into durable businesses.",
     },
     {
       name: "Adam Sobol",

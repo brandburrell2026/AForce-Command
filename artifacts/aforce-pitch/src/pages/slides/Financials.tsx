@@ -293,6 +293,13 @@ export default function Financials() {
         </div>
       </div>
 
+      <div className="absolute top-[3vh] left-[6vw] right-[6vw] flex justify-end pointer-events-none z-20">
+        <div className="font-body text-[0.58vw] text-text/35 leading-snug max-w-[44vw] text-right">
+          <span className="text-text/50 uppercase tracking-[0.22em] font-semibold">Forward-Looking Statements · </span>
+          Management projections based on current assumptions; not guarantees of future performance. Actual results may differ materially. Informational only; not an offer to sell or solicitation to buy securities.
+        </div>
+      </div>
+
       <div className="absolute bottom-[1.8vh] left-[6vw] right-[6vw] flex items-baseline justify-between gap-[2vw]">
         <div className="font-display text-[1.2vw] leading-tight tracking-tight">
           <span className="text-text/55">The product creates entry. </span>

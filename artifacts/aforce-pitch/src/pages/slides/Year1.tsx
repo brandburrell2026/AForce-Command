@@ -95,7 +95,12 @@ export default function Year1() {
         </div>
       </div>
 
-      <div className="absolute bottom-[5vh] left-[6vw] right-[6vw]">
+      <div className="absolute bottom-[1.4vh] left-[6vw] right-[6vw] font-body text-[0.62vw] text-text/40 leading-snug max-w-[88vw]">
+        <span className="text-text/55 uppercase tracking-[0.22em] font-semibold">Forward-Looking Statements · </span>
+        Figures shown are management projections based on current assumptions about market conditions, execution, and capital deployment. They are not guarantees of future performance. Actual results may differ materially. Provided for informational purposes only; does not constitute an offer to sell or a solicitation to buy any securities.
+      </div>
+
+      <div className="absolute bottom-[7vh] left-[6vw] right-[6vw]">
         <div className="font-display text-[1.3vw] leading-tight tracking-tight mb-[1.6vh]">
           <span className="text-text/55">Performance creates retention. </span>
           <span className="text-accent">Retention drives revenue.</span>
