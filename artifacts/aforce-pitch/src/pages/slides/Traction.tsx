@@ -15,8 +15,8 @@ export default function Traction() {
       <div className="absolute inset-0 bg-gradient-to-b from-bg/0 via-bg/40 to-bg/80 pointer-events-none" />
 
       <div className="absolute top-[5vh] left-[6vw] right-[6vw] flex justify-between items-center z-10">
-        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-primary font-semibold">16 — Traction</div>
-        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-muted">16 / 23</div>
+        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-primary font-semibold">17 — Traction</div>
+        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-muted">17 / 24</div>
       </div>
 
       <div className="absolute top-[11vh] left-[6vw] right-[6vw] z-10">

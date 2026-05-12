@@ -112,8 +112,16 @@
                 "speakerNotes": ""
         },
         {
-                "id": "b7c8d9e0-f1a2-4345-ab6c-7d8e9f012345",
+                "id": "9a8b7c6d-5e4f-4032-8a1b-2c3d4e5f6a7b",
                 "position": 15,
+                "filepath": "src/pages/slides/Phantom.tsx",
+                "title": "Phantom (Phase 2)",
+                "description": "Drink today. Sense tomorrow. Same OS. Phantom is the ambient hydration sensor AForce will build in Phase 2 (2027+). Closes the Drink \u2192 Sense \u2192 Score \u2192 Coach loop into a physical sensing layer no CPG can follow into. $0 of this round funds Phantom \u2014 it's a vision artifact, not a 2026 deliverable.",
+                "speakerNotes": ""
+        },
+        {
+                "id": "b7c8d9e0-f1a2-4345-ab6c-7d8e9f012345",
+                "position": 16,
                 "filepath": "src/pages/slides/GTM.tsx",
                 "title": "Go-To-Market",
                 "description": "Build. Scale. Lead. Six phases from DTC launch to global category leader. We don't sell hydration \u2014 we install a daily performance system. Hardware scales. Software compounds. The OS creates retention.",
@@ -121,7 +129,7 @@
         },
         {
                 "id": "c8d9e0f1-a2b3-4456-bc7d-8e9f01234567",
-                "position": 16,
+                "position": 17,
                 "filepath": "src/pages/slides/Traction.tsx",
                 "title": "Traction",
                 "description": "Momentum before launch. $832K closed, 179 launch creators, 2.3M+ watching before product is on shelf, America's Real Deal Season 2 national TV premiere. Product ready. System ready. Demand building.",
@@ -129,7 +137,7 @@
         },
         {
                 "id": "c5d6e7f8-a9b0-4cde-fab1-23456789cdef",
-                "position": 17,
+                "position": 18,
                 "filepath": "src/pages/slides/Methodology.tsx",
                 "title": "Unit Economics",
                 "description": "Bottoms-up model: 40/25/20/15 product mix, $52\u00d75\u20137\u00d7/65%=$383 CLTV \u00f7 $49 CAC = 5:1 LTV:CAC. Benchmarked vs Liquid I.V./LMNT. SaaS layer modeled as upside.",
@@ -137,7 +145,7 @@
         },
         {
                 "id": "3a8b1c2d-4e5f-4067-9a1b-2c3d4e5f6071",
-                "position": 18,
+                "position": 19,
                 "filepath": "src/pages/slides/RecurringEngine.tsx",
                 "title": "Recurring Engine",
                 "description": "Every user becomes a system. Three layers: Product (entry), Subscription / OS (recurring intelligence), Data Loop (compounding asset). Performance creates habit. Habit creates subscription. Subscription creates enterprise value.",
@@ -145,7 +153,7 @@
         },
         {
                 "id": "f1a2b3c4-d5e6-4789-fa01-234567890abc",
-                "position": 19,
+                "position": 20,
                 "filepath": "src/pages/slides/Year1.tsx",
                 "title": "Path to $3.2M",
                 "description": "Growth driven by repeat behavior. 60,000 orders \u00d7 $52 AOV = $3.2M. Five-stage acquisition\u2192retention engine. Performance creates retention. Retention drives revenue.",
@@ -153,7 +161,7 @@
         },
         {
                 "id": "d9e0f1a2-b3c4-4567-cd8e-9f0123456789",
-                "position": 20,
+                "position": 21,
                 "filepath": "src/pages/slides/Financials.tsx",
                 "title": "Financial Projections",
                 "description": "Scaling a performance system. $3.2M (2026) \u2192 $13M (2027) \u2192 $27.8M (2028). EBITDA breakeven late 2027. The product creates entry. The system creates compounding value.",
@@ -161,7 +169,7 @@
         },
         {
                 "id": "a2b3c4d5-e6f7-4890-f012-345678901234",
-                "position": 21,
+                "position": 22,
                 "filepath": "src/pages/slides/Leaders.tsx",
                 "title": "Team",
                 "description": "Brandon Burrell, Julius Burrell \u2014 with advisors Mark Mendel, Adam Sobol, Thomas Masterbouni, and Chief Scientist Mark Satterfield.",
@@ -169,7 +177,7 @@
         },
         {
                 "id": "e0f1a2b3-c4d5-4678-de9f-012345678901",
-                "position": 22,
+                "position": 23,
                 "filepath": "src/pages/slides/Funding.tsx",
                 "title": "Funding & Use of Funds",
                 "description": "$4M Series Seed Preferred. Q1 2026 close. 40/20/20/10/10 allocation across inventory, GTM, OS, distribution, team.",
@@ -177,7 +185,7 @@
         },
         {
                 "id": "b3c4d5e6-f7a8-4901-1234-567890123456",
-                "position": 23,
+                "position": 24,
                 "filepath": "src/pages/slides/Closing.tsx",
                 "title": "The Ask",
                 "description": "Performance is non-negotiable. AForce makes sure you're always on. Where there are no off days. No missed moments. We're raising $4M to own the performance standard \u2014 scale product to meet demand, launch AForce OS + subscription layer, expand retail + direct channels, build the performance brand. The edge is control.",
