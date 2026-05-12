@@ -100,27 +100,38 @@ export default function Year1() {
         Figures shown are management projections based on current assumptions about market conditions, execution, and capital deployment. They are not guarantees of future performance. Actual results may differ materially. Provided for informational purposes only; does not constitute an offer to sell or a solicitation to buy any securities.
       </div>
 
-      <div className="absolute bottom-[7vh] left-[6vw] right-[6vw]">
-        <div className="font-display text-[1.3vw] leading-tight tracking-tight mb-[1.6vh]">
-          <span className="text-text/55">Performance creates retention. </span>
-          <span className="text-accent">Retention drives revenue.</span>
+      <div className="absolute bottom-[5.6vh] left-[6vw] right-[6vw]">
+        <div className="flex items-baseline justify-between gap-[2vw] mb-[1.2vh]">
+          <div className="font-display text-[1.2vw] leading-tight tracking-tight">
+            <span className="text-text/55">Performance creates retention. </span>
+            <span className="text-accent">Retention drives revenue.</span>
+          </div>
+          <div className="font-body text-[0.72vw] text-text/55 uppercase tracking-[0.22em] flex flex-wrap gap-x-[1.2vw] gap-y-[0.3vh] justify-end">
+            <span><span className="text-primary font-semibold">$52</span> AOV</span>
+            <span className="text-text/25">·</span>
+            <span><span className="text-blue font-semibold">5–7×</span> Repeat</span>
+            <span className="text-text/25">·</span>
+            <span><span className="text-text font-semibold">~10K</span> Customers '26</span>
+            <span className="text-text/25">·</span>
+            <span><span className="text-accent font-semibold">60K</span> Orders</span>
+          </div>
         </div>
-        <div className="border-t border-text/10 pt-[2vh] grid grid-cols-4 gap-[1.4vw]">
+        <div className="border-t border-text/10 pt-[1.6vh] grid grid-cols-4 gap-[1.4vw]">
           <div>
-            <div className="font-display text-[2.4vw] leading-none tracking-tight text-primary">$52</div>
-            <div className="font-body uppercase tracking-[0.22em] text-[0.7vw] text-text/65 mt-[0.8vh] leading-snug">Average<br/>order value</div>
+            <div className="font-display text-[2.4vw] leading-none tracking-tight text-primary">~$28</div>
+            <div className="font-body uppercase tracking-[0.22em] text-[0.7vw] text-text/65 mt-[0.8vh] leading-snug">Blended CAC<br/><span className="text-text/40 normal-case tracking-normal">DTC + Amazon · paid + organic</span></div>
           </div>
           <div>
-            <div className="font-display text-[2.4vw] leading-none tracking-tight text-blue">5–7×</div>
-            <div className="font-body uppercase tracking-[0.22em] text-[0.7vw] text-text/65 mt-[0.8vh] leading-snug">Annual repeat<br/>per customer</div>
+            <div className="font-display text-[2.4vw] leading-none tracking-tight text-blue">~$215</div>
+            <div className="font-body uppercase tracking-[0.22em] text-[0.7vw] text-text/65 mt-[0.8vh] leading-snug">24-Month LTV<br/><span className="text-text/40 normal-case tracking-normal">DTC + subscription tail</span></div>
           </div>
           <div>
-            <div className="font-display text-[2.4vw] leading-none tracking-tight text-text">~10K</div>
-            <div className="font-body uppercase tracking-[0.22em] text-[0.7vw] text-text/65 mt-[0.8vh] leading-snug">Active<br/>customers · 2026</div>
+            <div className="font-display text-[2.4vw] leading-none tracking-tight text-accent">~7.7×</div>
+            <div className="font-body uppercase tracking-[0.22em] text-[0.7vw] text-text/65 mt-[0.8vh] leading-snug">LTV : CAC<br/><span className="text-text/40 normal-case tracking-normal">3× threshold cleared</span></div>
           </div>
           <div>
-            <div className="font-display text-[2.4vw] leading-none tracking-tight text-accent">60K</div>
-            <div className="font-body uppercase tracking-[0.22em] text-[0.7vw] text-text/65 mt-[0.8vh] leading-snug">Total orders<br/>across DTC · Amazon · Retail</div>
+            <div className="font-display text-[2.4vw] leading-none tracking-tight text-text">~4 mo</div>
+            <div className="font-body uppercase tracking-[0.22em] text-[0.7vw] text-text/65 mt-[0.8vh] leading-snug">CAC Payback<br/><span className="text-text/40 normal-case tracking-normal">on contribution margin</span></div>
           </div>
         </div>
       </div>
