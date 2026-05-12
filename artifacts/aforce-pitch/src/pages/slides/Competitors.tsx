@@ -53,7 +53,7 @@ export default function Competitors() {
 
           {/* Left circle label */}
           <div className="absolute" style={{ left: "5%", top: "4%" }}>
-            <div className="font-body uppercase tracking-[0.32em] text-[1.6vw] text-blue font-semibold">Hydration Brands</div>
+            <div className="font-body uppercase tracking-[0.32em] text-[1.44vw] text-blue font-semibold">Hydration Brands</div>
             <div className="font-body text-[1.35vw] text-text/55 mt-[0.6vh]">Sell fuel · read nothing</div>
           </div>
 
@@ -62,14 +62,14 @@ export default function Competitors() {
             {hydration.map((c) => (
               <div key={c} className="flex items-center gap-[0.9vw]">
                 <div className="w-[0.95vw] h-[0.95vw] rounded-full bg-blue/60" />
-                <span className="font-body text-[2vw] text-text/85">{c}</span>
+                <span className="font-body text-[1.8vw] text-text/85">{c}</span>
               </div>
             ))}
           </div>
 
           {/* Right circle label */}
           <div className="absolute text-right" style={{ right: "5%", top: "4%" }}>
-            <div className="font-body uppercase tracking-[0.32em] text-[1.6vw] text-accent font-semibold">Wearable Platforms</div>
+            <div className="font-body uppercase tracking-[0.32em] text-[1.44vw] text-accent font-semibold">Wearable Platforms</div>
             <div className="font-body text-[1.35vw] text-text/55 mt-[0.6vh]">Read the body · sell no fuel</div>
           </div>
 
@@ -77,7 +77,7 @@ export default function Competitors() {
           <div className="absolute flex flex-col gap-[2.2vh] items-end" style={{ right: "7%", top: "32%" }}>
             {wearables.map((c) => (
               <div key={c} className="flex items-center gap-[0.9vw]">
-                <span className="font-body text-[2vw] text-text/85">{c}</span>
+                <span className="font-body text-[1.8vw] text-text/85">{c}</span>
                 <div className="w-[0.95vw] h-[0.95vw] rounded-full bg-accent/60" />
               </div>
             ))}
