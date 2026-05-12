@@ -52,51 +52,51 @@ export default function Competitors() {
           </svg>
 
           {/* Left circle label */}
-          <div className="absolute" style={{ left: "6%", top: "6%" }}>
-            <div className="font-body uppercase tracking-[0.32em] text-[1.15vw] text-blue font-semibold">Hydration Brands</div>
-            <div className="font-body text-[1.05vw] text-text/55 mt-[0.6vh]">Sell fuel · read nothing</div>
+          <div className="absolute" style={{ left: "5%", top: "4%" }}>
+            <div className="font-body uppercase tracking-[0.32em] text-[1.6vw] text-blue font-semibold">Hydration Brands</div>
+            <div className="font-body text-[1.35vw] text-text/55 mt-[0.6vh]">Sell fuel · read nothing</div>
           </div>
 
           {/* Left circle competitors — vertical stack */}
-          <div className="absolute flex flex-col gap-[1.8vh] items-start" style={{ left: "9%", top: "30%" }}>
+          <div className="absolute flex flex-col gap-[2.2vh] items-start" style={{ left: "7%", top: "32%" }}>
             {hydration.map((c) => (
-              <div key={c} className="flex items-center gap-[0.7vw]">
-                <div className="w-[0.7vw] h-[0.7vw] rounded-full bg-blue/60" />
-                <span className="font-body text-[1.4vw] text-text/80">{c}</span>
+              <div key={c} className="flex items-center gap-[0.9vw]">
+                <div className="w-[0.95vw] h-[0.95vw] rounded-full bg-blue/60" />
+                <span className="font-body text-[2vw] text-text/85">{c}</span>
               </div>
             ))}
           </div>
 
           {/* Right circle label */}
-          <div className="absolute text-right" style={{ right: "6%", top: "6%" }}>
-            <div className="font-body uppercase tracking-[0.32em] text-[1.15vw] text-accent font-semibold">Wearable Platforms</div>
-            <div className="font-body text-[1.05vw] text-text/55 mt-[0.6vh]">Read the body · sell no fuel</div>
+          <div className="absolute text-right" style={{ right: "5%", top: "4%" }}>
+            <div className="font-body uppercase tracking-[0.32em] text-[1.6vw] text-accent font-semibold">Wearable Platforms</div>
+            <div className="font-body text-[1.35vw] text-text/55 mt-[0.6vh]">Read the body · sell no fuel</div>
           </div>
 
           {/* Right circle competitors */}
-          <div className="absolute flex flex-col gap-[1.8vh] items-end" style={{ right: "9%", top: "30%" }}>
+          <div className="absolute flex flex-col gap-[2.2vh] items-end" style={{ right: "7%", top: "32%" }}>
             {wearables.map((c) => (
-              <div key={c} className="flex items-center gap-[0.7vw]">
-                <span className="font-body text-[1.4vw] text-text/80">{c}</span>
-                <div className="w-[0.7vw] h-[0.7vw] rounded-full bg-accent/60" />
+              <div key={c} className="flex items-center gap-[0.9vw]">
+                <span className="font-body text-[2vw] text-text/85">{c}</span>
+                <div className="w-[0.95vw] h-[0.95vw] rounded-full bg-accent/60" />
               </div>
             ))}
           </div>
 
           {/* Center — AForce */}
           <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center">
-            <div className="absolute w-[20vw] h-[20vw] rounded-full bg-primary/15 blur-3xl -z-10" />
-            <div className="font-body uppercase tracking-[0.32em] text-[1vw] text-primary/85 font-semibold mb-[1.2vh]">The Intersection</div>
-            <div className="relative px-[2vw] py-[1.4vh] rounded-full bg-primary/15 border border-primary/55 shadow-[0_0_60px_rgba(229,51,65,0.45)]">
-              <span className="font-display text-[3.4vw] leading-none text-primary tracking-tight">AForce</span>
+            <div className="absolute w-[26vw] h-[26vw] rounded-full bg-primary/20 blur-3xl -z-10" />
+            <div className="font-body uppercase tracking-[0.36em] text-[1.4vw] text-primary/90 font-semibold mb-[1.6vh]">The Intersection</div>
+            <div className="relative px-[2.6vw] py-[1.8vh] rounded-full bg-primary/15 border-2 border-primary/60 shadow-[0_0_80px_rgba(229,51,65,0.55)]">
+              <span className="font-display text-[6vw] leading-none text-primary tracking-tight">AForce</span>
             </div>
-            <div className="font-display text-[1.55vw] text-text mt-[1.6vh] tracking-tight">Performance OS</div>
-            <div className="font-body text-[1.05vw] text-text/65 mt-[0.6vh]">Drink · Sense · Coach · Compound</div>
+            <div className="font-display text-[2.4vw] text-text mt-[2vh] tracking-tight">Performance OS</div>
+            <div className="font-body text-[1.4vw] text-text/65 mt-[0.8vh]">Drink · Sense · Coach · Compound</div>
           </div>
 
           {/* Sub-tags below circles for quadrant logic */}
-          <div className="absolute bottom-[4%] left-[16%] font-body uppercase tracking-[0.28em] text-[0.95vw] text-text/45">$50B category</div>
-          <div className="absolute bottom-[4%] right-[16%] font-body uppercase tracking-[0.28em] text-[0.95vw] text-text/45">$80B category</div>
+          <div className="absolute bottom-[3%] left-[14%] font-body uppercase tracking-[0.28em] text-[1.2vw] text-text/45">$50B category</div>
+          <div className="absolute bottom-[3%] right-[14%] font-body uppercase tracking-[0.28em] text-[1.2vw] text-text/45">$80B category</div>
         </div>
       </div>
 
