@@ -141,7 +141,7 @@ export default function OSRoadmap() {
           <div className="absolute top-0 left-0 right-0 h-[0.5vh] bg-accent" />
           <div className="flex items-center justify-between mb-[1.6vh]">
             <div className="font-body uppercase tracking-[0.28em] text-[0.7vw] text-accent font-semibold">Phase 3 · Enterprise</div>
-            <div className="px-[0.7vw] py-[0.3vh] rounded-full border border-accent/55 bg-accent/15 font-body uppercase tracking-[0.18em] text-[0.6vw] text-accent font-semibold">2028</div>
+            <div className="px-[0.7vw] py-[0.3vh] rounded-full border border-accent/55 bg-accent/15 font-body uppercase tracking-[0.18em] text-[0.6vw] text-accent font-semibold">2027</div>
           </div>
           <div className="font-display text-[2.8vw] leading-[1] tracking-tight text-text mb-[0.6vh]">Guardian</div>
           <div className="font-body text-[0.9vw] text-text/65 leading-snug mb-[1.4vh]">Roster-wide risk + injury prevention. Five-figure ACV contracts with medical escalation paths.</div>
