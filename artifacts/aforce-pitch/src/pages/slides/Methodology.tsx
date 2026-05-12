@@ -25,8 +25,8 @@ export default function Methodology() {
       />
 
       <div className="absolute top-[6vh] left-[6vw] right-[6vw] flex justify-between items-center z-10">
-        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-blue font-semibold">24 — Unit Economics</div>
-        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-muted">24 / 28</div>
+        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-blue font-semibold">19 — Unit Economics</div>
+        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-muted">19 / 23</div>
       </div>
 
       <div className="absolute top-[12vh] left-[6vw] right-[6vw] flex justify-between items-end gap-[4vw]">
