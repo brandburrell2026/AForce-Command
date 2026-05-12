@@ -1,28 +1,26 @@
 export default function OSDashboards() {
-  // Demo roster — Duke Men's Basketball used as illustrative Clutch deployment.
+  // 2025-26 Duke Men's Basketball — illustrative Clutch deployment.
+  // Names, jerseys, positions sourced from artifacts/aforce-os/data/mockData.ts.
   const clutchRoster = [
-    { num: "02", name: "Flagg",     pos: "PF", tier: "PLATINUM", tierColor: "text-accent",  tierBg: "bg-accent/15 border-accent/55",   score: 96, action: "Hold" },
-    { num: "07", name: "Knueppel",  pos: "SG", tier: "PLATINUM", tierColor: "text-accent",  tierBg: "bg-accent/15 border-accent/55",   score: 93, action: "Hold" },
-    { num: "05", name: "Proctor",   pos: "PG", tier: "PLATINUM", tierColor: "text-accent",  tierBg: "bg-accent/15 border-accent/55",   score: 91, action: "Hold" },
-    { num: "09", name: "Maluach",   pos: "C",  tier: "PLATINUM", tierColor: "text-accent",  tierBg: "bg-accent/15 border-accent/55",   score: 88, action: "Hold" },
-    { num: "14", name: "James",     pos: "SF", tier: "STABLE",   tierColor: "text-blue",    tierBg: "bg-blue/15 border-blue/55",       score: 81, action: "Sip" },
-    { num: "01", name: "Evans",     pos: "SG", tier: "STABLE",   tierColor: "text-blue",    tierBg: "bg-blue/15 border-blue/55",       score: 79, action: "Sip" },
-    { num: "04", name: "Foster",    pos: "PG", tier: "STABLE",   tierColor: "text-blue",    tierBg: "bg-blue/15 border-blue/55",       score: 77, action: "Sip" },
-    { num: "21", name: "Ngongba",   pos: "C",  tier: "STABLE",   tierColor: "text-blue",    tierBg: "bg-blue/15 border-blue/55",       score: 75, action: "Sip" },
-    { num: "08", name: "Brown",     pos: "PF", tier: "RECOVERY", tierColor: "text-text",    tierBg: "bg-text/10 border-text/30",       score: 67, action: "RTD"  },
-    { num: "11", name: "Gillis",    pos: "F",  tier: "RECOVERY", tierColor: "text-text",    tierBg: "bg-text/10 border-text/30",       score: 64, action: "RTD"  },
-    { num: "03", name: "Hubbard",   pos: "G",  tier: "DEPLETED", tierColor: "text-primary", tierBg: "bg-primary/15 border-primary/55", score: 47, action: "Sub"  },
-    { num: "12", name: "Sarr",      pos: "SF", tier: "DEPLETED", tierColor: "text-primary", tierBg: "bg-primary/15 border-primary/55", score: 42, action: "Sub"  },
+    { num: "12", name: "C. Boozer",     pos: "PF", tier: "PLATINUM", tierColor: "text-accent",  tierBg: "bg-accent/15 border-accent/55",   score: 92, action: "Hold" },
+    { num: "03", name: "S. James",      pos: "SG", tier: "PLATINUM", tierColor: "text-accent",  tierBg: "bg-accent/15 border-accent/55",   score: 88, action: "Hold" },
+    { num: "01", name: "C. Foster",     pos: "SG", tier: "STABLE",   tierColor: "text-blue",    tierBg: "bg-blue/15 border-blue/55",       score: 86, action: "Sip"  },
+    { num: "02", name: "C. Boozer Jr",  pos: "PG", tier: "STABLE",   tierColor: "text-blue",    tierBg: "bg-blue/15 border-blue/55",       score: 81, action: "Sip"  },
+    { num: "21", name: "I. Evans",      pos: "SF", tier: "RECOVERY", tierColor: "text-text",    tierBg: "bg-text/10 border-text/30",       score: 74, action: "RTD"  },
+    { num: "07", name: "M. Brown",      pos: "PF", tier: "RECOVERY", tierColor: "text-text",    tierBg: "bg-text/10 border-text/30",       score: 71, action: "RTD"  },
+    { num: "13", name: "N. Khamenia",   pos: "SF", tier: "RECOVERY", tierColor: "text-text",    tierBg: "bg-text/10 border-text/30",       score: 65, action: "RTD"  },
+    { num: "34", name: "P. Ngongba",    pos: "C",  tier: "DEPLETED", tierColor: "text-primary", tierBg: "bg-primary/15 border-primary/55", score: 49, action: "Sub"  },
   ];
 
-  // Demo alerts — Los Angeles Lakers used as illustrative Guardian deployment.
+  // 2025-26 Los Angeles Lakers — illustrative Guardian deployment.
+  // Names, jerseys, positions sourced from artifacts/aforce-os/data/mockData.ts.
   const guardianAlerts = [
-    { sev: "CRITICAL", sevColor: "text-primary", sevBg: "bg-primary/20 border-primary/60", num: "23", body: "Cumulative load spike + sleep gap. Refusal trending. Recommend rest day.",            who: "James · F",     time: "0:42" },
-    { sev: "CRITICAL", sevColor: "text-primary", sevBg: "bg-primary/20 border-primary/60", num: "77", body: "Hydration debt 31h. Refusal pattern × 2 sessions. Medical screen suggested.",         who: "Dončić · G",    time: "0:58" },
-    { sev: "WATCH",    sevColor: "text-accent",  sevBg: "bg-accent/20 border-accent/60",   num: "15", body: "Calf strain probability 38% — hydration debt 22h. Restore protocol queued.",          who: "Reaves · G",    time: "1:18" },
-    { sev: "WATCH",    sevColor: "text-accent",  sevBg: "bg-accent/20 border-accent/60",   num: "28", body: "Sleep efficiency 62% three nights running. Hold 2-a-day until baseline returns.",    who: "Hachimura · F", time: "1:46" },
-    { sev: "MODERATE", sevColor: "text-blue",    sevBg: "bg-blue/20 border-blue/60",       num: "04", body: "Heat-index exposure 4 days running. Move tomorrow's session before 10am.",           who: "Knecht · G",    time: "2:05" },
-    { sev: "MODERATE", sevColor: "text-blue",    sevBg: "bg-blue/20 border-blue/60",       num: "07", body: "Sweat-sodium ratio drift. Re-balance Restore SKU intake for next 72h.",              who: "Vincent · G",   time: "2:33" },
+    { sev: "CRITICAL", sevColor: "text-primary", sevBg: "bg-primary/20 border-primary/60", num: "05", body: "Hydration debt 31h. Refusal pattern × 2 sessions. Medical screen suggested.",         who: "D. Ayton · C",      time: "0:42" },
+    { sev: "WATCH",    sevColor: "text-accent",  sevBg: "bg-accent/20 border-accent/60",   num: "10", body: "Calf strain probability 38% — hydration debt 22h. Restore protocol queued.",          who: "J. Hayes · C",      time: "0:58" },
+    { sev: "WATCH",    sevColor: "text-accent",  sevBg: "bg-accent/20 border-accent/60",   num: "77", body: "Cumulative load spike + sleep gap. Refusal trending. Recommend rest day.",            who: "L. Dončić · PG",    time: "1:18" },
+    { sev: "MODERATE", sevColor: "text-blue",    sevBg: "bg-blue/20 border-blue/60",       num: "01", body: "Sleep efficiency 62% three nights running. Hold 2-a-day until baseline returns.",    who: "D. Russell · PG",   time: "1:46" },
+    { sev: "MODERATE", sevColor: "text-blue",    sevBg: "bg-blue/20 border-blue/60",       num: "28", body: "Heat-index exposure 4 days running. Move tomorrow's session before 10am.",           who: "R. Hachimura · PF", time: "2:05" },
+    { sev: "MODERATE", sevColor: "text-blue",    sevBg: "bg-blue/20 border-blue/60",       num: "15", body: "Sweat-sodium ratio drift. Re-balance Restore SKU intake for next 72h.",              who: "A. Reaves · SG",    time: "2:33" },
   ];
 
   return (
@@ -166,28 +164,28 @@ export default function OSDashboards() {
             {/* Composite risk distribution row */}
             <div className="pb-[0.7vh] border-b border-text/8">
               <div className="flex items-center justify-between mb-[0.4vh]">
-                <span className="font-body uppercase tracking-[0.16em] text-text/50 text-[0.55vw] font-semibold">Composite Risk · 18 athletes</span>
+                <span className="font-body uppercase tracking-[0.16em] text-text/50 text-[0.55vw] font-semibold">Composite Risk · 8 athletes</span>
                 <span className="font-body text-text/45 text-[0.55vw]">updated 0:42 ago</span>
               </div>
               {/* Stacked bar */}
               <div className="flex h-[0.9vh] rounded-full overflow-hidden border border-text/10">
-                <div className="bg-accent" style={{ width: "47%" }} title="Optimal" />
-                <div className="bg-blue" style={{ width: "30%" }} title="Watch" />
-                <div className="bg-text/35" style={{ width: "15%" }} title="Moderate" />
-                <div className="bg-primary" style={{ width: "8%" }} title="Critical" />
+                <div className="bg-accent" style={{ width: "25%" }} title="Optimal" />
+                <div className="bg-blue" style={{ width: "37.5%" }} title="Watch" />
+                <div className="bg-text/35" style={{ width: "25%" }} title="Moderate" />
+                <div className="bg-primary" style={{ width: "12.5%" }} title="Critical" />
               </div>
               <div className="flex items-center justify-between mt-[0.4vh] font-body text-[0.55vw]">
-                <span className="flex items-center gap-[0.3vw]"><span className="w-[0.35vw] h-[0.35vw] bg-accent rounded-sm" /><span className="text-text/65">Optimal 8</span></span>
-                <span className="flex items-center gap-[0.3vw]"><span className="w-[0.35vw] h-[0.35vw] bg-blue rounded-sm" /><span className="text-text/65">Watch 5</span></span>
-                <span className="flex items-center gap-[0.3vw]"><span className="w-[0.35vw] h-[0.35vw] bg-text/35 rounded-sm" /><span className="text-text/65">Moderate 3</span></span>
-                <span className="flex items-center gap-[0.3vw]"><span className="w-[0.35vw] h-[0.35vw] bg-primary rounded-sm" /><span className="text-text/65 font-bold">Critical 2</span></span>
+                <span className="flex items-center gap-[0.3vw]"><span className="w-[0.35vw] h-[0.35vw] bg-accent rounded-sm" /><span className="text-text/65">Optimal 2</span></span>
+                <span className="flex items-center gap-[0.3vw]"><span className="w-[0.35vw] h-[0.35vw] bg-blue rounded-sm" /><span className="text-text/65">Watch 3</span></span>
+                <span className="flex items-center gap-[0.3vw]"><span className="w-[0.35vw] h-[0.35vw] bg-text/35 rounded-sm" /><span className="text-text/65">Moderate 2</span></span>
+                <span className="flex items-center gap-[0.3vw]"><span className="w-[0.35vw] h-[0.35vw] bg-primary rounded-sm" /><span className="text-text/65 font-bold">Critical 1</span></span>
               </div>
             </div>
 
             {/* Critical alerts — flex distributed to fill */}
             <div className="pt-[0.6vh] flex-1 flex flex-col min-h-0">
               <div className="flex items-center justify-between mb-[0.4vh]">
-                <span className="font-body uppercase tracking-[0.16em] text-text/50 text-[0.55vw] font-semibold">Active Alerts · 2 escalated</span>
+                <span className="font-body uppercase tracking-[0.16em] text-text/50 text-[0.55vw] font-semibold">Active Alerts · 1 escalated</span>
                 <span className="font-body uppercase tracking-[0.18em] text-accent text-[0.55vw] font-bold">View all 6 →</span>
               </div>
               <div className="flex-1 flex flex-col gap-[0.4vh] min-h-0">
