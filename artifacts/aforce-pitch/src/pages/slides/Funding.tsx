@@ -23,9 +23,9 @@ export default function Funding() {
     {
       pct: 20,
       dollars: "$800K",
-      bucket: "AForce OS Platform",
+      bucket: "AForce OS · AI Coach v1",
       buys: "25,000 MAUs on the OS",
-      proof: "Patent-pending · AI Coach v2 · Clutch beta with 3 pro teams",
+      proof: "AI Coach v1 + Clutch beta only · $0 funds Phantom hardware",
       colorHex: "#F5D637",
       colorClass: "text-accent",
       borderClass: "border-accent/55",

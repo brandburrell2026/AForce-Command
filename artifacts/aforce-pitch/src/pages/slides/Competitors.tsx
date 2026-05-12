@@ -1,6 +1,6 @@
 export default function Competitors() {
-  const hydration = ["Liquid IV", "LMNT", "Gatorade", "Prime", "BodyArmor"];
-  const wearables = ["WHOOP", "Oura", "Fitbit", "Garmin", "Apple Watch"];
+  const hydration = ["Liquid IV", "LMNT", "Gatorade"];
+  const wearables = ["WHOOP", "Oura", "Apple Watch"];
 
   return (
     <div className="w-screen h-screen overflow-hidden relative bg-bg text-text font-body">

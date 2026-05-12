@@ -107,6 +107,16 @@ export default function Methodology() {
               <span className="text-accent text-[1.4vw]">21:1 at OS bundle</span>
             </div>
           </div>
+
+          {/* Downside sensitivity — proves we've stress-tested the model */}
+          <div className="mt-[2vh] rounded-md border border-text/15 bg-bg-elev/40 px-[1.2vw] py-[1vh]">
+            <div className="font-body uppercase tracking-[0.26em] text-[0.7vw] text-text/55 font-semibold">Stress Test · Downside Case</div>
+            <div className="font-display text-[1.15vw] leading-tight tracking-tight mt-[0.6vh]">
+              <span className="text-text/65">$75 CAC · 4× repeat · 65% GM →</span>{" "}
+              <span className="text-text">2.8:1</span>
+              <span className="text-text/45 text-[0.95vw]"> LTV:CAC · still venture-grade</span>
+            </div>
+          </div>
         </div>
 
         <div className="flex flex-col gap-[3vh]">

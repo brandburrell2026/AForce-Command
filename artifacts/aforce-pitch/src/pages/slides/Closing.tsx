@@ -90,6 +90,9 @@ export default function Closing() {
           <div className="font-display text-[2.2vw] leading-[1.15] tracking-tight text-text">
             The edge is <span className="text-primary">control.</span>
           </div>
+          <div className="mt-[1.6vh] font-body uppercase tracking-[0.42em] text-[1vw] text-primary/85 font-semibold">
+            Performance is non-negotiable.
+          </div>
         </div>
       </div>
 
