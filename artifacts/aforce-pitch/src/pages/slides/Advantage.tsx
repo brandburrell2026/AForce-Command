@@ -5,7 +5,8 @@ export default function Advantage() {
       num: "01",
       title: "Premium Formulation",
       body: "Premium formulation with alkaline minerals and sea-derived functionals for performance, recovery, and longevity.",
-      defense: "Years of formulation IP. Not a SKU swap.",
+      defenseLabel: "Time to replicate",
+      defense: "3+ years formulation R&D. Proprietary alkaline + dulse blend. Not a SKU swap.",
       accent: "text-primary",
       ring: "ring-primary/35",
       bar: "bg-primary",
@@ -16,7 +17,8 @@ export default function Advantage() {
       num: "02",
       title: "Multi-Format Ecosystem",
       body: "Multi-format ecosystem across cans, sticks, subscriptions, and retail — every occasion, one brand.",
-      defense: "Compounds usage occasions and basket size.",
+      defenseLabel: "Time to replicate",
+      defense: "5 SKU formats. ~18 months to assemble, 36+ months to scale across channels.",
       accent: "text-blue",
       ring: "ring-blue/35",
       bar: "bg-blue",
@@ -27,7 +29,8 @@ export default function Advantage() {
       num: "03",
       title: "Closed-Loop Data",
       body: "Closed-loop behavior and performance data. Every signal sharpens the next recommendation — the model gets smarter every day.",
-      defense: "First-mover compounding. Not catchable by SKUs.",
+      defenseLabel: "Time to replicate",
+      defense: "Day-1 collection. Our 1,000-user month is a competitor's Year-1 floor. Compounds daily.",
       accent: "text-accent",
       ring: "ring-accent/35",
       bar: "bg-accent",
@@ -38,7 +41,8 @@ export default function Advantage() {
       num: "04",
       title: "AForce OS",
       body: "AForce OS turns product usage into daily performance intelligence — tracking, learning, and optimizing behavior across the system.",
-      defense: "No CPG brand has built this. No SaaS brand has the can.",
+      defenseLabel: "Time to replicate",
+      defense: "Patent-pending OS. 5,000+ engineering hours. No CPG has built it. No SaaS has the can.",
       accent: "text-text",
       ring: "ring-text/25",
       bar: "bg-text/70",
@@ -76,9 +80,16 @@ export default function Advantage() {
             System is <span className="text-blue">the moat.</span>
           </h2>
         </div>
-        <p className="font-body text-[1.05vw] text-text/65 max-w-[26vw] leading-snug pb-[1vh] text-right">
-          <span className="text-text">CPG is copied. Systems compound.</span> Four reinforcing moats no competitor has assembled — fused into one operating system.
-        </p>
+        <div className="flex flex-col items-end gap-[1.2vh] max-w-[28vw]">
+          <p className="font-body text-[1.05vw] text-text/65 leading-snug text-right">
+            <span className="text-text">CPG is copied. Systems compound.</span> Four reinforcing moats no competitor has assembled — fused into one operating system.
+          </p>
+          <div className="inline-flex items-center gap-[0.7vw] px-[1vw] py-[0.7vh] rounded-full border border-primary/40 bg-primary/[0.08]">
+            <span className="font-body uppercase tracking-[0.28em] text-[0.7vw] text-primary font-semibold">Patent-Protected</span>
+            <span className="w-[1px] h-[1.4vh] bg-primary/30" />
+            <span className="font-body text-[0.7vw] text-text/70">U.S. Prov. <span className="text-text font-semibold">64/057,695</span></span>
+          </div>
+        </div>
       </div>
 
       <div className="absolute top-[36vh] bottom-[18vh] left-[6vw] right-[6vw] grid grid-cols-4 gap-x-[0.9vw]">
@@ -102,7 +113,7 @@ export default function Advantage() {
               <div className="font-body text-[0.92vw] text-text/70 leading-snug mt-[1.4vh]">{p.body}</div>
 
               <div className="mt-auto pt-[1.6vh] border-t border-text/10">
-                <div className="font-body uppercase tracking-[0.22em] text-[0.65vw] text-text/45 font-semibold mb-[0.6vh]">Why it can't be copied</div>
+                <div className="font-body uppercase tracking-[0.22em] text-[0.65vw] text-text/45 font-semibold mb-[0.6vh]">{p.defenseLabel}</div>
                 <div className={`font-body text-[0.85vw] leading-snug ${p.accent}`}>{p.defense}</div>
               </div>
             </div>
