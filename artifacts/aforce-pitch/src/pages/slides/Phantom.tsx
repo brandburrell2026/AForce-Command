@@ -1,23 +1,41 @@
 export default function Phantom() {
   const base = import.meta.env.BASE_URL;
 
-  const pillars = [
+  const panels = [
     {
-      label: "Sense",
-      body: "Passive bio-signal capture — no log, no tap, no friction.",
+      n: "01",
+      label: "Hero · Phantom One",
+      img: `${base}phantom-hero.png`,
+      caption: "Minimal design with LED edge light. No screen. Premium and futuristic.",
       accent: "text-blue",
+      ring: "ring-blue/35",
       bar: "bg-blue",
     },
     {
-      label: "Close the loop",
-      body: "Turns the OS from inferred state into measured state.",
+      n: "02",
+      label: "LED State Feedback",
+      img: `${base}phantom-states.png`,
+      caption: "Real-time hydration status — communicated through color and pulse.",
       accent: "text-primary",
+      ring: "ring-primary/30",
       bar: "bg-primary",
     },
     {
-      label: "Permanent moat",
-      body: "Liquid IV can't ship hardware. WHOOP can't ship a can.",
+      n: "03",
+      label: "Phantom Meridian · Luxury",
+      img: `${base}phantom-meridian.png`,
+      caption: "Ceramic edition. Refined link bracelet. Same engine, jewelry-grade execution.",
+      accent: "text-text",
+      ring: "ring-text/20",
+      bar: "bg-text/70",
+    },
+    {
+      n: "04",
+      label: "Concept · Tech Stack",
+      img: `${base}phantom-tech.png`,
+      caption: "LED guide · sensor array · BLE · battery · haptic engine · soft-touch strap.",
       accent: "text-accent",
+      ring: "ring-accent/30",
       bar: "bg-accent",
     },
   ];
@@ -26,95 +44,79 @@ export default function Phantom() {
     <div className="w-screen h-screen overflow-hidden relative bg-bg text-text font-body">
       <div
         className="absolute inset-0 pointer-events-none"
-        style={{ background: "radial-gradient(ellipse 70% 55% at 30% 50%, rgba(84,120,213,0.18) 0%, transparent 65%)" }}
+        style={{ background: "radial-gradient(ellipse 70% 55% at 82% 28%, rgba(84,120,213,0.16) 0%, transparent 65%)" }}
       />
       <div
         className="absolute inset-0 pointer-events-none"
-        style={{ background: "radial-gradient(ellipse 60% 50% at 88% 80%, rgba(229,51,65,0.10) 0%, transparent 65%)" }}
+        style={{ background: "radial-gradient(ellipse 70% 55% at 18% 75%, rgba(229,51,65,0.10) 0%, transparent 65%)" }}
       />
 
       {/* Header */}
-      <div className="absolute top-[6vh] left-[6vw] right-[6vw] flex justify-between items-center z-10">
-        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-blue font-semibold">15 — Phantom</div>
+      <div className="absolute top-[5vh] left-[5vw] right-[5vw] flex justify-between items-center z-10">
+        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-blue font-semibold">15 — Phantom Hardware</div>
         <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-muted">15 / 24</div>
       </div>
 
-      {/* Two-column body: hero image (left) + content (right) */}
-      <div className="absolute top-[12vh] bottom-[10vh] left-[6vw] right-[6vw] grid grid-cols-[1.15fr_1fr] gap-[3vw] items-stretch">
-        {/* LEFT — hero photo (top-left quadrant of the composite via CSS crop) */}
-        <div className="relative rounded-2xl ring-1 ring-blue/30 overflow-hidden bg-bg-elev/40">
-          <div
-            className="absolute inset-0 pointer-events-none"
-            style={{ background: "radial-gradient(ellipse 60% 50% at 50% 50%, rgba(84,120,213,0.22) 0%, transparent 70%)" }}
-          />
-          <img
-            src={`${base}phantom-band.png`}
-            alt="Phantom One — hydration & performance band prototype"
-            className="absolute inset-0 w-full h-full object-cover select-none"
-            style={{ filter: "drop-shadow(0 0 60px rgba(84,120,213,0.35))" }}
-            draggable={false}
-          />
-
-          {/* Photo caption pill */}
-          <div className="absolute bottom-[2vh] left-[1.6vw] inline-flex items-center gap-[0.7vw] px-[1vw] py-[0.6vh] rounded-full border border-blue/40 bg-bg/70 backdrop-blur-sm z-10">
-            <span className="w-[0.5vw] h-[0.5vw] rounded-full bg-blue animate-pulse" />
-            <span className="font-body uppercase tracking-[0.28em] text-[0.65vw] text-blue font-semibold">Prototype · In Progress</span>
+      {/* Title row */}
+      <div className="absolute top-[10vh] left-[5vw] right-[5vw] flex justify-between items-end gap-[3vw]">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-[1.2vw] mb-[1vh]">
+            <div className="h-[2px] w-[3.5vw] bg-blue" />
+            <span className="font-body uppercase tracking-[0.32em] text-[1vw] text-blue font-semibold">Phase 2 · The Wearable</span>
           </div>
-          <div className="absolute top-[2vh] right-[1.6vw] font-body uppercase tracking-[0.28em] text-[0.65vw] text-text/70 font-semibold z-10">
-            Phantom One
-          </div>
+          <h2 className="font-display text-[4vw] leading-[0.92] tracking-tighter">
+            The OS, <span className="text-blue">on your wrist.</span>
+          </h2>
+          <p className="font-body text-[0.95vw] text-text/65 leading-snug mt-[1vh] max-w-[55vw]">
+            No screen. No notifications. One LED edge — real-time hydration state, communicated by color. Phantom is the only first-party device built around the AForce loop.
+          </p>
         </div>
-
-        {/* RIGHT — content stack */}
-        <div className="flex flex-col justify-between">
-          <div>
-            <div className="flex items-center gap-[1.2vw] mb-[1.2vh]">
-              <div className="h-[2px] w-[4vw] bg-blue" />
-              <span className="font-body uppercase tracking-[0.32em] text-[1.1vw] text-blue font-semibold">Phase 2 · 2027+</span>
-            </div>
-            <h2 className="font-display text-[4.2vw] leading-[0.92] tracking-tighter">
-              Drink today.
-            </h2>
-            <h2 className="font-display text-[4.2vw] leading-[0.92] tracking-tighter text-blue">
-              Sense tomorrow.
-            </h2>
-            <div className="font-display text-[1.5vw] leading-tight tracking-tight text-text/70 mt-[1.2vh]">
-              Same OS.
-            </div>
-
-            <p className="font-body text-[0.95vw] text-text/70 leading-snug mt-[2vh] max-w-[28vw]">
-              Phantom is the wearable AForce will build once the can is on shelf and the OS has 100K daily users teaching it what to listen for. <span className="text-text">No screen. One LED edge.</span> Real-time hydration state, communicated by color.
-            </p>
-          </div>
-
-          {/* 3 pillars — vertical stack */}
-          <div className="flex flex-col gap-[1.2vh] mt-[2vh]">
-            {pillars.map((p) => (
-              <div key={p.label} className="relative pl-[1vw]">
-                <div className={`absolute left-0 top-[0.4vh] bottom-[0.4vh] w-[3px] ${p.bar} rounded-full`} />
-                <div className={`font-body uppercase tracking-[0.28em] text-[0.7vw] font-semibold ${p.accent}`}>{p.label}</div>
-                <div className="font-body text-[0.95vw] text-text/75 leading-snug mt-[0.3vh]">{p.body}</div>
-              </div>
-            ))}
-          </div>
-
-          {/* Guardrail pill */}
-          <div className="mt-[2vh] inline-flex self-start items-center gap-[0.7vw] px-[1vw] py-[0.6vh] rounded-full border border-accent/40 bg-accent/[0.08]">
-            <span className="font-body uppercase tracking-[0.28em] text-[0.65vw] text-accent font-semibold">Vision Slide</span>
-            <span className="w-[1px] h-[1.4vh] bg-accent/30" />
-            <span className="font-body text-[0.65vw] text-text/70">$0 of this round funds Phantom</span>
-          </div>
+        <div className="inline-flex shrink-0 items-center gap-[0.7vw] px-[1vw] py-[0.6vh] rounded-full border border-accent/40 bg-accent/[0.08]">
+          <span className="font-body uppercase tracking-[0.28em] text-[0.65vw] text-accent font-semibold">Vision Slide</span>
+          <span className="w-[1px] h-[1.4vh] bg-accent/30" />
+          <span className="font-body text-[0.65vw] text-text/70">$0 of this round funds Phantom</span>
         </div>
       </div>
 
-      {/* Footer */}
-      <div className="absolute bottom-[3.5vh] left-[6vw] right-[6vw]">
-        <div className="border-t border-text/10 pt-[1.4vh] flex justify-between items-center">
-          <div className="font-display text-[1.3vw] leading-tight tracking-tight text-text/85">
-            <span className="text-text">CPG today.</span> <span className="text-blue">Sensing layer next.</span> <span className="text-accent">Same operating system.</span>
+      {/* 2x2 panel grid */}
+      <div className="absolute top-[28vh] bottom-[8vh] left-[5vw] right-[5vw] grid grid-cols-2 grid-rows-2 gap-[1.2vw]">
+        {panels.map((p) => (
+          <div
+            key={p.n}
+            className={`relative rounded-2xl ring-1 ${p.ring} bg-bg-elev/40 overflow-hidden flex flex-col`}
+          >
+            <div className={`absolute inset-x-0 top-0 h-[3px] ${p.bar} z-10`} />
+
+            {/* Photo */}
+            <div className="relative flex-1 overflow-hidden">
+              <img
+                src={p.img}
+                alt={p.label}
+                className="absolute inset-0 w-full h-full object-cover select-none"
+                draggable={false}
+              />
+            </div>
+
+            {/* Caption strip */}
+            <div className="relative px-[1.2vw] py-[1vh] border-t border-text/10 bg-bg/85 backdrop-blur-sm flex items-baseline gap-[0.8vw]">
+              <span className={`font-display text-[1.1vw] leading-none tracking-tight ${p.accent} shrink-0`}>{p.n}</span>
+              <div className="min-w-0 flex-1">
+                <div className={`font-body uppercase tracking-[0.26em] text-[0.65vw] font-semibold ${p.accent}`}>{p.label}</div>
+                <div className="font-body text-[0.78vw] text-text/70 leading-snug mt-[0.2vh] truncate">{p.caption}</div>
+              </div>
+            </div>
           </div>
-          <div className="font-body text-[0.78vw] text-text/55 uppercase tracking-[0.22em] text-right whitespace-nowrap leading-snug">
-            Roadmap signal · not a 2026 deliverable<br/>
+        ))}
+      </div>
+
+      {/* Footer */}
+      <div className="absolute bottom-[2.5vh] left-[5vw] right-[5vw]">
+        <div className="border-t border-text/10 pt-[1.2vh] flex justify-between items-center">
+          <div className="font-display text-[1.2vw] leading-tight tracking-tight text-text/85">
+            Glance the <span className="text-blue">color.</span> Know the <span className="text-text">state.</span> Trust the <span className="text-primary">loop.</span>
+          </div>
+          <div className="font-body text-[0.7vw] text-text/55 uppercase tracking-[0.22em] text-right whitespace-nowrap leading-snug">
+            Phantom One · 2027 &nbsp;·&nbsp; Meridian · 2027+<br/>
             $4M Seed funds the can. Phantom funds itself on data.
           </div>
         </div>
