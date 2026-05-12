@@ -87,9 +87,9 @@ export default function Leaders() {
         {leaders.map((l, i) => {
           const isLastOrphan = leaders.length % 3 === 1 && i === leaders.length - 1;
           return (
-          <div key={i} className={`bg-bg-elev rounded-lg p-[1vw] border-t-2 ${COLOR_BORDER[l.color]} ${isLastOrphan ? "col-start-2" : ""} flex flex-col min-h-0`}>
-            <div className="flex items-center gap-[0.9vw] mb-[0.8vh]">
-              <div className={`w-[3.8vw] h-[3.8vw] rounded-full overflow-hidden ring-2 ${COLOR_RING[l.color]} ring-offset-2 ring-offset-bg-elev shrink-0 bg-bg`}>
+          <div key={i} className={`bg-bg-elev rounded-lg p-[0.9vw] border-t-2 ${COLOR_BORDER[l.color]} ${isLastOrphan ? "col-start-2" : ""} flex flex-col min-h-0`}>
+            <div className="flex items-center gap-[0.8vw] mb-[0.6vh]">
+              <div className={`w-[3.2vw] h-[3.2vw] rounded-full overflow-hidden ring-2 ${COLOR_RING[l.color]} ring-offset-2 ring-offset-bg-elev shrink-0 bg-bg`}>
                 <img
                   src={l.photo}
                   alt={l.name}
@@ -97,12 +97,12 @@ export default function Leaders() {
                 />
               </div>
               <div className="min-w-0">
-                <div className="font-display text-[1.25vw] text-text leading-tight truncate">{l.name}</div>
-                <div className={`font-body text-[0.78vw] ${COLOR_TEXT[l.color]} uppercase tracking-[0.22em] mt-[0.3vh]`}>{l.role}</div>
+                <div className="font-display text-[1.5vw] text-text leading-tight truncate">{l.name}</div>
+                <div className={`font-body text-[0.95vw] ${COLOR_TEXT[l.color]} uppercase tracking-[0.22em] mt-[0.3vh]`}>{l.role}</div>
               </div>
             </div>
             <div className="h-[1px] bg-divider mb-[0.7vh]" />
-            <div className="font-body text-[0.72vw] text-text/70 leading-[1.35] overflow-hidden">{l.bio}</div>
+            <div className="font-body text-[0.92vw] text-text/75 leading-[1.4] overflow-hidden">{l.bio}</div>
           </div>
           );
         })}
