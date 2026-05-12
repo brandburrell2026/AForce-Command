@@ -131,7 +131,7 @@ export default function System() {
           Every <span className="text-blue">format</span> serves the same outcome: <span className="text-primary">sustained</span> <span className="text-accent">performance.</span>
         </div>
         <div className="font-body uppercase tracking-[0.32em] text-[0.78vw] text-muted text-right leading-snug whitespace-nowrap shrink-0">
-          <div>Spring 2026 Launch</div>
+          <div>Summer 2026 Launch</div>
           <div>Cans + Sticks · Day One</div>
         </div>
       </div>

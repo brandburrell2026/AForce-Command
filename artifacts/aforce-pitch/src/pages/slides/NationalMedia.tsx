@@ -40,7 +40,7 @@ export default function NationalMedia() {
 
   const timeline = [
     {
-      date: "Spring 2026",
+      date: "Summer 2026",
       label: "Launch",
       body: "Product launch + first production run.",
       accent: "text-text",
@@ -48,7 +48,7 @@ export default function NationalMedia() {
       align: "items-start text-left",
     },
     {
-      date: "Summer 2026",
+      date: "Fall 2026",
       label: "Filming",
       body: "America's Real Deal Season 2 production wraps.",
       accent: "text-blue",
@@ -56,7 +56,7 @@ export default function NationalMedia() {
       align: "items-center text-center",
     },
     {
-      date: "Fall 2026",
+      date: "Spring 2027",
       label: "Peak",
       body: "National broadcast on Amazon Prime + syndicated TV.",
       accent: "text-accent",

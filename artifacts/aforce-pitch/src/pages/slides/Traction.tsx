@@ -3,7 +3,7 @@ export default function Traction() {
     { value: "30M+", label: "Projected first-month impressions", sub: "from 179 launch creators" },
     { value: "3", label: "Pro team conversations", sub: "Clutch beta candidates" },
     { value: "10+", label: "Athlete advisors", sub: "founder network · NBA + Wall St" },
-    { value: "120d", label: "To Spring '26 launch", sub: "supply chain locked" },
+    { value: "120d", label: "To Summer '26 launch", sub: "supply chain locked" },
     { value: "100%", label: "Pre-seed coverage", sub: "$832K closed, $4M Seed open" },
   ];
 
@@ -54,7 +54,7 @@ export default function Traction() {
           <div className="font-body uppercase tracking-[0.2em] text-[0.75vw] text-text mb-[0.8vh]">Launch Creators</div>
           <div className="font-body text-[0.78vw] text-text/65 leading-snug mb-auto">Multi-platform creator network committed — TikTok, Instagram, YouTube.</div>
           <div className="pt-[0.8vh] border-t border-blue/20 mt-[0.8vh]">
-            <div className="font-body text-[0.62vw] text-text/55 uppercase tracking-[0.2em]">Signed · Activating Spring 2026</div>
+            <div className="font-body text-[0.62vw] text-text/55 uppercase tracking-[0.2em]">Signed · Activating Summer 2026</div>
           </div>
         </div>
 
@@ -108,7 +108,7 @@ export default function Traction() {
           </h3>
           <div className="font-body text-[0.78vw] text-text/55 uppercase tracking-[0.22em] text-right whitespace-nowrap leading-snug">
             Suppliers locked · Q2 2026 retail rollout<br/>
-            Spring 2026 launch is committed.
+            Summer 2026 launch is committed.
           </div>
         </div>
       </div>

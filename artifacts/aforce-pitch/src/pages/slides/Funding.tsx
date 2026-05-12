@@ -5,7 +5,7 @@ export default function Funding() {
       dollars: "$1.6M",
       bucket: "Inventory & Production",
       buys: "1.2M units shipped",
-      proof: "Spring 2026 launch fully funded · 3 SKUs · 2 formats",
+      proof: "Summer 2026 launch fully funded · 3 SKUs · 2 formats",
       colorHex: "#E53341",
       colorClass: "text-primary",
       borderClass: "border-primary/55",
