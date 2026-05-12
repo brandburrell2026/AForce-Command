@@ -15,10 +15,10 @@ export default function OSDashboards() {
   // 2025-26 Los Angeles Lakers — illustrative Guardian deployment.
   // Names, jerseys, positions sourced from artifacts/aforce-os/data/mockData.ts.
   const guardianAlerts = [
+    { sev: "CRITICAL", sevColor: "text-primary", sevBg: "bg-primary/20 border-primary/60", num: "23", body: "Cumulative load spike + sleep gap. Refusal trending. Recommend rest day.",            who: "L. James · SF",     time: "0:31" },
     { sev: "CRITICAL", sevColor: "text-primary", sevBg: "bg-primary/20 border-primary/60", num: "05", body: "Hydration debt 31h. Refusal pattern × 2 sessions. Medical screen suggested.",         who: "D. Ayton · C",      time: "0:42" },
     { sev: "WATCH",    sevColor: "text-accent",  sevBg: "bg-accent/20 border-accent/60",   num: "10", body: "Calf strain probability 38% — hydration debt 22h. Restore protocol queued.",          who: "J. Hayes · C",      time: "0:58" },
-    { sev: "WATCH",    sevColor: "text-accent",  sevBg: "bg-accent/20 border-accent/60",   num: "77", body: "Cumulative load spike + sleep gap. Refusal trending. Recommend rest day.",            who: "L. Dončić · PG",    time: "1:18" },
-    { sev: "MODERATE", sevColor: "text-blue",    sevBg: "bg-blue/20 border-blue/60",       num: "01", body: "Sleep efficiency 62% three nights running. Hold 2-a-day until baseline returns.",    who: "D. Russell · PG",   time: "1:46" },
+    { sev: "WATCH",    sevColor: "text-accent",  sevBg: "bg-accent/20 border-accent/60",   num: "77", body: "Sleep efficiency 62% three nights running. Hold 2-a-day until baseline returns.",    who: "L. Dončić · PG",    time: "1:46" },
     { sev: "MODERATE", sevColor: "text-blue",    sevBg: "bg-blue/20 border-blue/60",       num: "28", body: "Heat-index exposure 4 days running. Move tomorrow's session before 10am.",           who: "R. Hachimura · PF", time: "2:05" },
     { sev: "MODERATE", sevColor: "text-blue",    sevBg: "bg-blue/20 border-blue/60",       num: "15", body: "Sweat-sodium ratio drift. Re-balance Restore SKU intake for next 72h.",              who: "A. Reaves · SG",    time: "2:33" },
   ];
@@ -171,21 +171,21 @@ export default function OSDashboards() {
               <div className="flex h-[0.9vh] rounded-full overflow-hidden border border-text/10">
                 <div className="bg-accent" style={{ width: "25%" }} title="Optimal" />
                 <div className="bg-blue" style={{ width: "37.5%" }} title="Watch" />
-                <div className="bg-text/35" style={{ width: "25%" }} title="Moderate" />
-                <div className="bg-primary" style={{ width: "12.5%" }} title="Critical" />
+                <div className="bg-text/35" style={{ width: "12.5%" }} title="Moderate" />
+                <div className="bg-primary" style={{ width: "25%" }} title="Critical" />
               </div>
               <div className="flex items-center justify-between mt-[0.4vh] font-body text-[0.55vw]">
                 <span className="flex items-center gap-[0.3vw]"><span className="w-[0.35vw] h-[0.35vw] bg-accent rounded-sm" /><span className="text-text/65">Optimal 2</span></span>
                 <span className="flex items-center gap-[0.3vw]"><span className="w-[0.35vw] h-[0.35vw] bg-blue rounded-sm" /><span className="text-text/65">Watch 3</span></span>
-                <span className="flex items-center gap-[0.3vw]"><span className="w-[0.35vw] h-[0.35vw] bg-text/35 rounded-sm" /><span className="text-text/65">Moderate 2</span></span>
-                <span className="flex items-center gap-[0.3vw]"><span className="w-[0.35vw] h-[0.35vw] bg-primary rounded-sm" /><span className="text-text/65 font-bold">Critical 1</span></span>
+                <span className="flex items-center gap-[0.3vw]"><span className="w-[0.35vw] h-[0.35vw] bg-text/35 rounded-sm" /><span className="text-text/65">Moderate 1</span></span>
+                <span className="flex items-center gap-[0.3vw]"><span className="w-[0.35vw] h-[0.35vw] bg-primary rounded-sm" /><span className="text-text/65 font-bold">Critical 2</span></span>
               </div>
             </div>
 
             {/* Critical alerts — flex distributed to fill */}
             <div className="pt-[0.6vh] flex-1 flex flex-col min-h-0">
               <div className="flex items-center justify-between mb-[0.4vh]">
-                <span className="font-body uppercase tracking-[0.16em] text-text/50 text-[0.55vw] font-semibold">Active Alerts · 1 escalated</span>
+                <span className="font-body uppercase tracking-[0.16em] text-text/50 text-[0.55vw] font-semibold">Active Alerts · 2 escalated</span>
                 <span className="font-body uppercase tracking-[0.18em] text-accent text-[0.55vw] font-bold">View all 6 →</span>
               </div>
               <div className="flex-1 flex flex-col gap-[0.4vh] min-h-0">
