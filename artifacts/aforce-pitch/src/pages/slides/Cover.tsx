@@ -54,11 +54,13 @@ export default function Cover() {
           Patent Pending
         </div>
         <div className="font-body text-[0.72vw] text-text/55 mt-[0.4vh] leading-snug">
-          U.S. Provisional Patent Application filed May 2026
+          U.S. Provisional Patent Application No. <span className="text-text/80 font-semibold">64/057,695</span>
           <br />
           <span className="text-text/45">
-            "Closed-Loop Real-Time Physiological Performance Operating System and
-            Methods of Use" · Docket AFG-101-US-P · Inventors: B. Burrell, J. Burrell
+            Filed May 5, 2026 · "Closed-Loop Real-Time Physiological Performance
+            Operating System and Methods of Use"
+            <br />
+            Inventors: B. Burrell, J. Burrell · Docket AFG-101-US-P
           </span>
         </div>
       </div>
