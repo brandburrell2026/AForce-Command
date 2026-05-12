@@ -1,26 +1,28 @@
 export default function OSDashboards() {
+  // Demo roster — Duke Men's Basketball used as illustrative Clutch deployment.
   const clutchRoster = [
-    { num: "07", name: "J. Grant",      pos: "PG", tier: "PLATINUM", tierColor: "text-accent",  tierBg: "bg-accent/15 border-accent/55",   score: 96, action: "Hold" },
-    { num: "21", name: "A. Khalid",     pos: "SF", tier: "PLATINUM", tierColor: "text-accent",  tierBg: "bg-accent/15 border-accent/55",   score: 93, action: "Hold" },
-    { num: "15", name: "R. Vance",      pos: "G",  tier: "PLATINUM", tierColor: "text-accent",  tierBg: "bg-accent/15 border-accent/55",   score: 91, action: "Hold" },
-    { num: "06", name: "H. Tanaka",     pos: "G",  tier: "PLATINUM", tierColor: "text-accent",  tierBg: "bg-accent/15 border-accent/55",   score: 88, action: "Hold" },
-    { num: "11", name: "K. Moss",       pos: "SG", tier: "STABLE",   tierColor: "text-blue",    tierBg: "bg-blue/15 border-blue/55",       score: 81, action: "Sip" },
-    { num: "09", name: "L. Bautista",   pos: "F",  tier: "STABLE",   tierColor: "text-blue",    tierBg: "bg-blue/15 border-blue/55",       score: 79, action: "Sip" },
-    { num: "33", name: "T. Okafor",     pos: "C",  tier: "STABLE",   tierColor: "text-blue",    tierBg: "bg-blue/15 border-blue/55",       score: 77, action: "Sip" },
-    { num: "28", name: "C. Whitlock",   pos: "PF", tier: "STABLE",   tierColor: "text-blue",    tierBg: "bg-blue/15 border-blue/55",       score: 75, action: "Sip" },
-    { num: "17", name: "J. Singh",      pos: "PG", tier: "RECOVERY", tierColor: "text-text",    tierBg: "bg-text/10 border-text/30",       score: 67, action: "RTD"  },
-    { num: "23", name: "D. Reyes",      pos: "SF", tier: "RECOVERY", tierColor: "text-text",    tierBg: "bg-text/10 border-text/30",       score: 64, action: "RTD"  },
-    { num: "42", name: "N. Diaz",       pos: "C",  tier: "DEPLETED", tierColor: "text-primary", tierBg: "bg-primary/15 border-primary/55", score: 47, action: "Sub"  },
-    { num: "04", name: "M. Park",       pos: "PF", tier: "DEPLETED", tierColor: "text-primary", tierBg: "bg-primary/15 border-primary/55", score: 42, action: "Sub"  },
+    { num: "02", name: "Flagg",     pos: "PF", tier: "PLATINUM", tierColor: "text-accent",  tierBg: "bg-accent/15 border-accent/55",   score: 96, action: "Hold" },
+    { num: "07", name: "Knueppel",  pos: "SG", tier: "PLATINUM", tierColor: "text-accent",  tierBg: "bg-accent/15 border-accent/55",   score: 93, action: "Hold" },
+    { num: "05", name: "Proctor",   pos: "PG", tier: "PLATINUM", tierColor: "text-accent",  tierBg: "bg-accent/15 border-accent/55",   score: 91, action: "Hold" },
+    { num: "09", name: "Maluach",   pos: "C",  tier: "PLATINUM", tierColor: "text-accent",  tierBg: "bg-accent/15 border-accent/55",   score: 88, action: "Hold" },
+    { num: "14", name: "James",     pos: "SF", tier: "STABLE",   tierColor: "text-blue",    tierBg: "bg-blue/15 border-blue/55",       score: 81, action: "Sip" },
+    { num: "01", name: "Evans",     pos: "SG", tier: "STABLE",   tierColor: "text-blue",    tierBg: "bg-blue/15 border-blue/55",       score: 79, action: "Sip" },
+    { num: "04", name: "Foster",    pos: "PG", tier: "STABLE",   tierColor: "text-blue",    tierBg: "bg-blue/15 border-blue/55",       score: 77, action: "Sip" },
+    { num: "21", name: "Ngongba",   pos: "C",  tier: "STABLE",   tierColor: "text-blue",    tierBg: "bg-blue/15 border-blue/55",       score: 75, action: "Sip" },
+    { num: "08", name: "Brown",     pos: "PF", tier: "RECOVERY", tierColor: "text-text",    tierBg: "bg-text/10 border-text/30",       score: 67, action: "RTD"  },
+    { num: "11", name: "Gillis",    pos: "F",  tier: "RECOVERY", tierColor: "text-text",    tierBg: "bg-text/10 border-text/30",       score: 64, action: "RTD"  },
+    { num: "03", name: "Hubbard",   pos: "G",  tier: "DEPLETED", tierColor: "text-primary", tierBg: "bg-primary/15 border-primary/55", score: 47, action: "Sub"  },
+    { num: "12", name: "Sarr",      pos: "SF", tier: "DEPLETED", tierColor: "text-primary", tierBg: "bg-primary/15 border-primary/55", score: 42, action: "Sub"  },
   ];
 
+  // Demo alerts — Los Angeles Lakers used as illustrative Guardian deployment.
   const guardianAlerts = [
-    { sev: "CRITICAL", sevColor: "text-primary", sevBg: "bg-primary/20 border-primary/60", num: "04", body: "Cumulative load spike + sleep gap. Refusal trending. Recommend rest day.",            who: "M. Park · PF",       time: "0:42" },
-    { sev: "CRITICAL", sevColor: "text-primary", sevBg: "bg-primary/20 border-primary/60", num: "42", body: "Hydration debt 31h. Refusal pattern × 2 sessions. Medical screen suggested.",         who: "N. Diaz · C",        time: "0:58" },
-    { sev: "WATCH",    sevColor: "text-accent",  sevBg: "bg-accent/20 border-accent/60",   num: "11", body: "Calf strain probability 38% — hydration debt 22h. Restore protocol queued.",          who: "K. Moss · SG",       time: "1:18" },
-    { sev: "WATCH",    sevColor: "text-accent",  sevBg: "bg-accent/20 border-accent/60",   num: "17", body: "Sleep efficiency 62% three nights running. Hold 2-a-day until baseline returns.",    who: "J. Singh · PG",      time: "1:46" },
-    { sev: "MODERATE", sevColor: "text-blue",    sevBg: "bg-blue/20 border-blue/60",       num: "23", body: "Heat-index exposure 4 days running. Move tomorrow's session before 10am.",           who: "D. Reyes · SF",      time: "2:05" },
-    { sev: "MODERATE", sevColor: "text-blue",    sevBg: "bg-blue/20 border-blue/60",       num: "28", body: "Sweat-sodium ratio drift. Re-balance Restore SKU intake for next 72h.",              who: "C. Whitlock · PF",   time: "2:33" },
+    { sev: "CRITICAL", sevColor: "text-primary", sevBg: "bg-primary/20 border-primary/60", num: "23", body: "Cumulative load spike + sleep gap. Refusal trending. Recommend rest day.",            who: "James · F",     time: "0:42" },
+    { sev: "CRITICAL", sevColor: "text-primary", sevBg: "bg-primary/20 border-primary/60", num: "77", body: "Hydration debt 31h. Refusal pattern × 2 sessions. Medical screen suggested.",         who: "Dončić · G",    time: "0:58" },
+    { sev: "WATCH",    sevColor: "text-accent",  sevBg: "bg-accent/20 border-accent/60",   num: "15", body: "Calf strain probability 38% — hydration debt 22h. Restore protocol queued.",          who: "Reaves · G",    time: "1:18" },
+    { sev: "WATCH",    sevColor: "text-accent",  sevBg: "bg-accent/20 border-accent/60",   num: "28", body: "Sleep efficiency 62% three nights running. Hold 2-a-day until baseline returns.",    who: "Hachimura · F", time: "1:46" },
+    { sev: "MODERATE", sevColor: "text-blue",    sevBg: "bg-blue/20 border-blue/60",       num: "04", body: "Heat-index exposure 4 days running. Move tomorrow's session before 10am.",           who: "Knecht · G",    time: "2:05" },
+    { sev: "MODERATE", sevColor: "text-blue",    sevBg: "bg-blue/20 border-blue/60",       num: "07", body: "Sweat-sodium ratio drift. Re-balance Restore SKU intake for next 72h.",              who: "Vincent · G",   time: "2:33" },
   ];
 
   return (
@@ -66,7 +68,7 @@ export default function OSDashboards() {
             <div className="flex items-center gap-[0.55vw]">
               <span className="w-[0.7vw] h-[0.7vw] rounded-full bg-blue" />
               <span className="font-display font-bold text-text text-[1vw] tracking-tight">CLUTCH</span>
-              <span className="font-body uppercase tracking-[0.18em] text-blue/80 text-[0.55vw] font-semibold">Phase 2 · High School Coaches</span>
+              <span className="font-body uppercase tracking-[0.18em] text-blue/80 text-[0.55vw] font-semibold">Phase 2 · Duke Men's Basketball</span>
             </div>
             <div className="flex items-center gap-[0.7vw]">
               <span className="font-body uppercase tracking-[0.18em] text-text/55 text-[0.55vw]">Friday · Q3</span>
@@ -122,8 +124,8 @@ export default function OSDashboards() {
               <span className="font-body text-text/50 text-[0.6vw]">· auto-replenish queued × 7</span>
             </div>
             <div className="flex items-baseline gap-[0.5vw]">
-              <span className="font-display text-blue text-[1.1vw] leading-none font-bold">$1,200</span>
-              <span className="font-body uppercase tracking-[0.16em] text-text/50 text-[0.5vw]">/ team / yr · HS</span>
+              <span className="font-display text-blue text-[1.1vw] leading-none font-bold">$24K</span>
+              <span className="font-body uppercase tracking-[0.16em] text-text/50 text-[0.5vw]">/ program / yr · NCAA D1</span>
             </div>
           </div>
         </div>
@@ -140,10 +142,10 @@ export default function OSDashboards() {
             <div className="flex items-center gap-[0.55vw]">
               <span className="w-[0.7vw] h-[0.7vw] rounded-full bg-accent" />
               <span className="font-display font-bold text-text text-[1vw] tracking-tight">GUARDIAN</span>
-              <span className="font-body uppercase tracking-[0.18em] text-accent/80 text-[0.55vw] font-semibold">Phase 3 · College + Pro</span>
+              <span className="font-body uppercase tracking-[0.18em] text-accent/80 text-[0.55vw] font-semibold">Phase 3 · Los Angeles Lakers</span>
             </div>
             <div className="flex items-center gap-[0.7vw]">
-              <span className="font-body uppercase tracking-[0.18em] text-text/55 text-[0.55vw]">D1 · NCAA · Pro</span>
+              <span className="font-body uppercase tracking-[0.18em] text-text/55 text-[0.55vw]">NBA · Western Conf</span>
               <span className="font-body text-accent text-[0.7vw] font-bold tracking-tight tabular-nums">78<span className="text-text/40 text-[0.55vw]">/100</span></span>
               <span className="w-[0.4vw] h-[0.4vw] rounded-full bg-primary animate-pulse inline-block" />
               <span className="font-body uppercase tracking-[0.2em] text-primary text-[0.55vw] font-bold">Live</span>
@@ -164,7 +166,7 @@ export default function OSDashboards() {
             {/* Composite risk distribution row */}
             <div className="pb-[0.7vh] border-b border-text/8">
               <div className="flex items-center justify-between mb-[0.4vh]">
-                <span className="font-body uppercase tracking-[0.16em] text-text/50 text-[0.55vw] font-semibold">Composite Risk · 53 athletes</span>
+                <span className="font-body uppercase tracking-[0.16em] text-text/50 text-[0.55vw] font-semibold">Composite Risk · 18 athletes</span>
                 <span className="font-body text-text/45 text-[0.55vw]">updated 0:42 ago</span>
               </div>
               {/* Stacked bar */}
@@ -175,18 +177,18 @@ export default function OSDashboards() {
                 <div className="bg-primary" style={{ width: "8%" }} title="Critical" />
               </div>
               <div className="flex items-center justify-between mt-[0.4vh] font-body text-[0.55vw]">
-                <span className="flex items-center gap-[0.3vw]"><span className="w-[0.35vw] h-[0.35vw] bg-accent rounded-sm" /><span className="text-text/65">Optimal 25</span></span>
-                <span className="flex items-center gap-[0.3vw]"><span className="w-[0.35vw] h-[0.35vw] bg-blue rounded-sm" /><span className="text-text/65">Watch 16</span></span>
-                <span className="flex items-center gap-[0.3vw]"><span className="w-[0.35vw] h-[0.35vw] bg-text/35 rounded-sm" /><span className="text-text/65">Moderate 8</span></span>
-                <span className="flex items-center gap-[0.3vw]"><span className="w-[0.35vw] h-[0.35vw] bg-primary rounded-sm" /><span className="text-text/65 font-bold">Critical 4</span></span>
+                <span className="flex items-center gap-[0.3vw]"><span className="w-[0.35vw] h-[0.35vw] bg-accent rounded-sm" /><span className="text-text/65">Optimal 8</span></span>
+                <span className="flex items-center gap-[0.3vw]"><span className="w-[0.35vw] h-[0.35vw] bg-blue rounded-sm" /><span className="text-text/65">Watch 5</span></span>
+                <span className="flex items-center gap-[0.3vw]"><span className="w-[0.35vw] h-[0.35vw] bg-text/35 rounded-sm" /><span className="text-text/65">Moderate 3</span></span>
+                <span className="flex items-center gap-[0.3vw]"><span className="w-[0.35vw] h-[0.35vw] bg-primary rounded-sm" /><span className="text-text/65 font-bold">Critical 2</span></span>
               </div>
             </div>
 
             {/* Critical alerts — flex distributed to fill */}
             <div className="pt-[0.6vh] flex-1 flex flex-col min-h-0">
               <div className="flex items-center justify-between mb-[0.4vh]">
-                <span className="font-body uppercase tracking-[0.16em] text-text/50 text-[0.55vw] font-semibold">Active Alerts · 6 escalated</span>
-                <span className="font-body uppercase tracking-[0.18em] text-accent text-[0.55vw] font-bold">View all 12 →</span>
+                <span className="font-body uppercase tracking-[0.16em] text-text/50 text-[0.55vw] font-semibold">Active Alerts · 2 escalated</span>
+                <span className="font-body uppercase tracking-[0.18em] text-accent text-[0.55vw] font-bold">View all 6 →</span>
               </div>
               <div className="flex-1 flex flex-col gap-[0.4vh] min-h-0">
                 {guardianAlerts.map((a) => (
@@ -213,8 +215,8 @@ export default function OSDashboards() {
               <span className="font-body text-text/50 text-[0.6vw]">· athletic dept + medical staff</span>
             </div>
             <div className="flex items-baseline gap-[0.5vw]">
-              <span className="font-display text-accent text-[1.1vw] leading-none font-bold">$48K</span>
-              <span className="font-body uppercase tracking-[0.16em] text-text/50 text-[0.5vw]">/ roster / yr · D1 + Pro</span>
+              <span className="font-display text-accent text-[1.1vw] leading-none font-bold">$120K</span>
+              <span className="font-body uppercase tracking-[0.16em] text-text/50 text-[0.5vw]">/ franchise / yr · NBA</span>
             </div>
           </div>
         </div>
@@ -232,7 +234,7 @@ export default function OSDashboards() {
             <span className="text-text/55">One loop, scaled across every level of performance.</span>
           </h3>
           <div className="font-body text-[0.85vw] text-text/55 uppercase tracking-[0.22em] text-right whitespace-nowrap leading-snug">
-            HS team SaaS<br/>+ D1 / Pro five-figure ACV
+            NCAA D1 SaaS<br/>+ NBA franchise enterprise ACV
           </div>
         </div>
       </div>
