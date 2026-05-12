@@ -49,7 +49,7 @@ export default function Cover() {
       </div>
 
       {/* Provisional patent notice — bottom-right corner. */}
-      <div className="absolute bottom-[6vh] right-[6vw] z-10 text-right max-w-[36vw]">
+      <div className="absolute bottom-[6vh] right-[6vw] z-10 text-right max-w-[42vw]">
         <div className="font-body uppercase tracking-[0.32em] text-[0.85vw] text-primary font-semibold">
           Patent Pending
         </div>
@@ -57,8 +57,7 @@ export default function Cover() {
           U.S. Provisional Patent Application No. <span className="text-text/80 font-semibold">64/057,695</span>
           <br />
           <span className="text-text/45">
-            Filed May 5, 2026 · "Closed-Loop Real-Time Physiological Performance
-            Operating System and Methods of Use"
+            Filed May 5, 2026 · "Closed-Loop Real-Time Physiological Performance Operating System and Methods&nbsp;of&nbsp;Use"
             <br />
             Inventors: B. Burrell, J. Burrell · Docket AFG-101-US-P
           </span>
