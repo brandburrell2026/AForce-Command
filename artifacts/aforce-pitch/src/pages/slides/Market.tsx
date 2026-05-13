@@ -57,8 +57,8 @@ export default function Market() {
       />
 
       <div className="absolute top-[5vh] left-[6vw] right-[6vw] flex justify-between items-center z-10">
-        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-accent font-semibold">13 — Market</div>
-        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-muted">13 / 25</div>
+        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-accent font-semibold">12 — Market</div>
+        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-muted">12 / 22</div>
       </div>
 
       <div className="absolute top-[10vh] left-[6vw] right-[6vw] flex justify-between items-end gap-[4vw]">

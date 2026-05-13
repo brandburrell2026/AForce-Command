@@ -64,15 +64,15 @@ export default function Leaders() {
       role: "Advisor",
       color: "blue",
       photo: `${base}peter.jpg`,
-      bio: "35+ years building and repositioning global brands through strategic disruption and cultural insight. 20 years at Levi's across multiple leadership roles, including pioneering sustainability initiatives in 2005 with the NOIR concept. In addition, Peter has advised many of the world's leading lifestyle brands, from luxury houses to high street. A recognized thought leader and brand maverick, he specializes in defining clear, differentiated narratives by aligning business strategy with zeitgeist and human behavior.",
+      bio: "35+ years building and repositioning global brands through strategic disruption and cultural insight. 20 years at Levi's across multiple leadership roles, including pioneering sustainability with the NOIR concept. Has advised leading lifestyle brands from luxury houses to high street, specializing in differentiated brand narratives that align business strategy with zeitgeist and human behavior.",
     },
   ];
 
   return (
     <div className="w-screen h-screen overflow-hidden relative bg-bg text-text font-body">
       <div className="absolute top-[6vh] left-[6vw] right-[6vw] flex justify-between items-center z-10">
-        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-primary font-semibold">23 — Team</div>
-        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-muted">23 / 25</div>
+        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-primary font-semibold">20 — Team</div>
+        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-muted">20 / 22</div>
       </div>
 
       <div className="absolute top-[12vh] left-[6vw] right-[6vw] flex items-center gap-[1vw]">
@@ -102,7 +102,7 @@ export default function Leaders() {
               </div>
             </div>
             <div className="h-[1px] bg-divider mb-[0.7vh]" />
-            <div className="font-body text-[0.92vw] text-text/75 leading-[1.4] overflow-hidden">{l.bio}</div>
+            <div className="font-body text-[0.88vw] text-text/75 leading-[1.4]">{l.bio}</div>
           </div>
           );
         })}

@@ -7,8 +7,8 @@ export default function OSRoadmap() {
       <div className="absolute inset-0 bg-gradient-to-b from-bg/0 via-bg/40 to-bg/80 pointer-events-none" />
 
       <div className="absolute top-[5vh] left-[6vw] right-[6vw] flex justify-between items-center z-10">
-        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-accent font-semibold">11 — OS Roadmap</div>
-        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-muted">11 / 25</div>
+        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-accent font-semibold">10 — OS Roadmap</div>
+        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-muted">10 / 22</div>
       </div>
 
       <div className="absolute top-[12vh] left-[6vw] right-[6vw] z-10">
@@ -28,7 +28,7 @@ export default function OSRoadmap() {
         </div>
       </div>
 
-      <div className="absolute top-[40vh] bottom-[17vh] left-[6vw] right-[6vw] grid grid-cols-3 gap-[1.6vw] z-10">
+      <div className="absolute top-[40vh] bottom-[6vh] left-[6vw] right-[6vw] grid grid-cols-3 gap-[1.6vw] z-10">
 
         <div className="relative rounded-2xl bg-gradient-to-b from-primary/[0.14] via-primary/[0.04] to-transparent border border-primary/30 p-[1.8vw] pl-[12vw] flex flex-col overflow-visible">
           <div className="absolute top-0 left-0 right-0 h-[0.5vh] bg-primary rounded-t-2xl" />
@@ -160,39 +160,6 @@ export default function OSRoadmap() {
         </div>
       </div>
 
-      <div className="absolute bottom-[4vh] left-[6vw] right-[6vw] z-10">
-        <div className="flex items-center gap-[1vw] mb-[1.2vh]">
-          <div className="h-px w-[3vw] bg-accent" />
-          <div className="font-body uppercase tracking-[0.32em] text-[0.85vw] text-accent font-semibold">Compounding · TAM / SAM / SOM</div>
-        </div>
-        <div className="border-t border-text/10 pt-[1.6vh] grid grid-cols-[auto_auto_auto_1fr] gap-[2.6vw] items-end">
-          <div>
-            <div className="flex items-baseline gap-[0.6vw]">
-              <span className="font-body uppercase tracking-[0.24em] text-[0.7vw] text-primary font-bold">TAM</span>
-              <span className="font-display text-[2vw] leading-none tracking-tight text-primary font-bold tabular-nums">$216B+</span>
-            </div>
-            <div className="font-body uppercase tracking-[0.18em] text-[0.58vw] text-text/55 mt-[0.7vh] leading-snug">All 3 phases · global · by 2030</div>
-          </div>
-          <div>
-            <div className="flex items-baseline gap-[0.6vw]">
-              <span className="font-body uppercase tracking-[0.24em] text-[0.7vw] text-blue font-bold">SAM</span>
-              <span className="font-display text-[2vw] leading-none tracking-tight text-blue font-bold tabular-nums">$48B</span>
-            </div>
-            <div className="font-body uppercase tracking-[0.18em] text-[0.58vw] text-text/55 mt-[0.7vh] leading-snug">Serviceable today · US functional bev + team perf</div>
-          </div>
-          <div>
-            <div className="flex items-baseline gap-[0.6vw]">
-              <span className="font-body uppercase tracking-[0.24em] text-[0.7vw] text-accent font-bold">SOM</span>
-              <span className="font-display text-[2vw] leading-none tracking-tight text-accent font-bold tabular-nums">$1.4B</span>
-            </div>
-            <div className="font-body uppercase tracking-[0.18em] text-[0.58vw] text-text/55 mt-[0.7vh] leading-snug">Winnable by 2030 · ~3% bev + 8% teams + early enterprise / medical pilots</div>
-          </div>
-          <div className="font-body text-[0.62vw] text-text/55 uppercase tracking-[0.2em] text-right leading-snug">
-            <span className="text-text/85">Methodology.</span> TAM = sum of three phase markets, compounding through 2030.<br/>
-            SAM / SOM = US-only, bottom-up against published category benchmarks.
-          </div>
-        </div>
-      </div>
     </div>
   );
 }
