@@ -5,8 +5,8 @@ export default function Competitors() {
   return (
     <div className="w-screen h-screen overflow-hidden relative bg-bg text-text font-body">
       <div className="absolute top-[6vh] left-[6vw] right-[6vw] flex justify-between items-center z-10">
-        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-primary font-semibold">13 — Competitors</div>
-        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-muted">13 / 24</div>
+        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-primary font-semibold">14 — Competitors</div>
+        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-muted">14 / 25</div>
       </div>
 
       <div className="absolute top-[13vh] left-[6vw] right-[6vw] flex justify-between items-end gap-[3vw]">

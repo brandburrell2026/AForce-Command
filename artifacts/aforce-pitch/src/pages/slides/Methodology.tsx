@@ -6,6 +6,34 @@ export default function Methodology() {
     { label: "Canisters", pct: 15, why: "Basket + subscription", color: "#9CA3AF", text: "text-text/70" },
   ];
 
+  const benchmarks = [
+    {
+      brand: "Liquid I.V.",
+      freq: "6–8× / yr",
+      cac: "$45 – $65",
+      note: "Unilever acquisition disclosures · DTC repeat cohort",
+    },
+    {
+      brand: "LMNT",
+      freq: "7–10× / yr",
+      cac: "$38 – $55",
+      note: "Subscription-led model · 80%+ revenue from repeat",
+    },
+    {
+      brand: "Athletic Greens / AG1",
+      freq: "12× / yr",
+      cac: "$90 – $130",
+      note: "Subscription-only · high CAC justified by LTV",
+    },
+    {
+      brand: "AForce (modeled)",
+      freq: "5–7× / yr",
+      cac: "$49",
+      note: "Conservative vs. category. OS subscription increases retention.",
+      highlight: true,
+    },
+  ];
+
   let cum = 0;
   const segs = mix.map((m) => {
     const x = cum;
@@ -24,157 +52,157 @@ export default function Methodology() {
         style={{ background: "radial-gradient(ellipse 50% 45% at 85% 80%, rgba(229,51,65,0.07) 0%, transparent 70%)" }}
       />
 
-      <div className="absolute top-[6vh] left-[6vw] right-[6vw] flex justify-between items-center z-10">
-        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-blue font-semibold">18 — Unit Economics</div>
-        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-muted">18 / 24</div>
+      <div className="absolute top-[5vh] left-[6vw] right-[6vw] flex justify-between items-center z-10">
+        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-blue font-semibold">19 — Unit Economics</div>
+        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-muted">19 / 25</div>
       </div>
 
-      <div className="absolute top-[12vh] left-[6vw] right-[6vw] flex justify-between items-end gap-[4vw]">
+      <div className="absolute top-[10vh] left-[6vw] right-[6vw] flex justify-between items-end gap-[4vw]">
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-[1.2vw] mb-[1.4vh]">
-            <div className="h-[2px] w-[5vw] bg-blue" />
-            <span className="font-body uppercase tracking-[0.32em] text-[1.3vw] text-blue font-semibold">Bottoms-Up Model</span>
+          <div className="flex items-center gap-[1.2vw] mb-[1vh]">
+            <div className="h-[2px] w-[4vw] bg-blue" />
+            <span className="font-body uppercase tracking-[0.32em] text-[0.9vw] text-blue font-semibold">Bottoms-Up Model · Benchmarked Against Observed Category Data</span>
           </div>
-          <h2 className="font-display text-[4.4vw] leading-[0.92] tracking-tighter">
-            How we built <span className="text-blue">the numbers.</span>
+          <h2 className="font-display text-[3.2vw] leading-[0.95] tracking-tighter whitespace-nowrap">
+            Numbers built on <span className="text-blue">real benchmarks.</span>
           </h2>
         </div>
-        <p className="font-body text-[1.05vw] text-text/65 max-w-[24vw] leading-snug pb-[1vh] text-right">
-          Every assumption modeled from product pricing up — benchmarked against Liquid I.V., LMNT, and the broader functional beverage category.
+        <p className="font-body text-[0.85vw] text-text/65 max-w-[22vw] leading-snug pb-[0.6vh] text-right">
+          Every assumption modeled from product pricing up — benchmarked against Liquid I.V., LMNT, and AG1.
         </p>
       </div>
 
-      <div className="absolute top-[34vh] left-[6vw] right-[6vw]">
-        <div className="flex items-center gap-[1vw] mb-[1.6vh]">
+      {/* Product mix bar */}
+      <div className="absolute top-[24vh] left-[6vw] right-[6vw]">
+        <div className="flex items-center gap-[1vw] mb-[1.2vh]">
           <div className="h-px w-[3vw] bg-blue" />
-          <div className="font-body uppercase tracking-[0.32em] text-[0.9vw] text-blue font-semibold">Product Mix · Steady-State Blend</div>
+          <div className="font-body uppercase tracking-[0.32em] text-[0.85vw] text-blue font-semibold">Product Mix · Steady-State Blend</div>
         </div>
 
-        <div className="relative w-full h-[5vh] rounded-md overflow-hidden ring-1 ring-text/10 flex">
+        <div className="relative w-full h-[4vh] rounded-md overflow-hidden ring-1 ring-text/10 flex">
           {segs.map((s) => (
             <div
               key={s.label}
               className="h-full flex items-center justify-center"
               style={{ width: `${s.pct}%`, background: s.color, opacity: 0.92 }}
             >
-              <span className="font-display text-[1.4vw] tracking-tight" style={{ color: s.label === "Energy Drinks" ? "#08080F" : "#fff" }}>
+              <span className="font-display text-[1.2vw] tracking-tight" style={{ color: s.label === "Energy Drinks" ? "#08080F" : "#fff" }}>
                 {s.pct}%
               </span>
             </div>
           ))}
         </div>
 
-        <div className="flex w-full mt-[1.4vh]">
+        <div className="flex w-full mt-[1vh]">
           {mix.map((m) => (
             <div key={m.label} style={{ width: `${m.pct}%` }} className="px-[0.6vw] first:pl-0 last:pr-0">
-              <div className={`font-display text-[1.05vw] leading-tight ${m.text}`}>{m.label}</div>
-              <div className="font-body text-[0.78vw] text-text/55 mt-[0.4vh] leading-snug">{m.why}</div>
+              <div className={`font-display text-[0.95vw] leading-tight ${m.text}`}>{m.label}</div>
+              <div className="font-body text-[0.7vw] text-text/55 mt-[0.3vh] leading-snug">{m.why}</div>
             </div>
           ))}
         </div>
       </div>
 
-      <div className="absolute top-[51vh] bottom-[14vh] left-[6vw] right-[6vw] grid grid-cols-2 gap-[3vw]">
+      {/* Equation + Benchmarks */}
+      <div className="absolute top-[42vh] bottom-[10vh] left-[6vw] right-[6vw] grid grid-cols-2 gap-[2.4vw]">
+        {/* LEFT — equation + stress test */}
         <div>
-          <div className="flex items-center gap-[1vw] mb-[1.6vh]">
+          <div className="flex items-center gap-[1vw] mb-[1.2vh]">
             <div className="h-px w-[3vw] bg-primary" />
-            <div className="font-body uppercase tracking-[0.32em] text-[0.9vw] text-primary font-semibold">The Unit-Economic Equation</div>
+            <div className="font-body uppercase tracking-[0.32em] text-[0.85vw] text-primary font-semibold">The Unit-Economic Equation</div>
           </div>
 
-          <div className="font-display text-[1.85vw] leading-[1.25] tracking-tight">
+          <div className="font-display text-[1.55vw] leading-[1.25] tracking-tight">
             <div>
               <span className="text-text">$52</span>
-              <span className="text-text/45 text-[1.1vw]"> AOV</span>
+              <span className="text-text/45 text-[0.95vw]"> AOV</span>
               <span className="text-text/45"> × </span>
               <span className="text-text">5–7×</span>
-              <span className="text-text/45 text-[1.1vw]"> /yr</span>
+              <span className="text-text/45 text-[0.95vw]"> /yr</span>
               <span className="text-text/45"> × </span>
               <span className="text-text">65%</span>
-              <span className="text-text/45 text-[1.1vw]"> GM</span>
+              <span className="text-text/45 text-[0.95vw]"> GM</span>
             </div>
-            <div className="text-text/45 text-[1.4vw] my-[0.6vh]">=</div>
+            <div className="text-text/45 text-[1.2vw] my-[0.4vh]">=</div>
             <div>
               <span className="text-primary">$383 CLTV</span>
               <span className="text-text/45"> ÷ </span>
               <span className="text-text">$49</span>
-              <span className="text-text/45 text-[1.1vw]"> CAC</span>
+              <span className="text-text/45 text-[0.95vw]"> CAC</span>
             </div>
-            <div className="text-text/45 text-[1.4vw] my-[0.6vh]">=</div>
+            <div className="text-text/45 text-[1.2vw] my-[0.4vh]">=</div>
             <div>
               <span className="text-primary">5:1</span>
-              <span className="text-text/55 text-[1.4vw]"> LTV:CAC</span>
-              <span className="text-text/35 text-[1vw]"> · </span>
-              <span className="text-accent text-[1.4vw]">21:1 at OS bundle</span>
+              <span className="text-text/55 text-[1.2vw]"> LTV:CAC</span>
+              <span className="text-text/35 text-[0.9vw]"> · </span>
+              <span className="text-accent text-[1.2vw]">21:1 at OS bundle</span>
             </div>
           </div>
 
-          {/* Downside sensitivity — proves we've stress-tested the model */}
-          <div className="mt-[2vh] rounded-md border border-text/15 bg-bg-elev/40 px-[1.2vw] py-[1vh]">
-            <div className="font-body uppercase tracking-[0.26em] text-[0.7vw] text-text/55 font-semibold">Stress Test · Downside Case</div>
-            <div className="font-display text-[1.15vw] leading-tight tracking-tight mt-[0.6vh]">
+          <div className="mt-[1.6vh] rounded-md border border-text/15 bg-bg-elev/40 px-[1.1vw] py-[0.9vh]">
+            <div className="font-body uppercase tracking-[0.26em] text-[0.65vw] text-text/55 font-semibold">Stress Test · Downside Case</div>
+            <div className="font-display text-[1.05vw] leading-tight tracking-tight mt-[0.4vh]">
               <span className="text-text/65">$75 CAC · 4× repeat · 65% GM →</span>{" "}
               <span className="text-text">2.8:1</span>
-              <span className="text-text/45 text-[0.95vw]"> LTV:CAC · still venture-grade</span>
+              <span className="text-text/45 text-[0.85vw]"> LTV:CAC · still venture-grade</span>
+            </div>
+          </div>
+
+          <div className="mt-[1.6vh] rounded-md border border-accent/30 bg-accent/[0.04] px-[1.1vw] py-[0.9vh]">
+            <div className="font-body uppercase tracking-[0.26em] text-[0.65vw] text-accent font-semibold">AForce OS · SaaS Layer (Upside)</div>
+            <div className="font-body text-[0.82vw] text-text/75 leading-snug mt-[0.4vh]">
+              <span className="text-text">$5 / $15 mo tiers · 2.5–3 yr lifespan · 90%+ GM.</span> Modeled as upside — partial conversion only. Base case does not require it.
             </div>
           </div>
         </div>
 
-        <div className="flex flex-col gap-[3vh]">
-          <div>
-            <div className="flex items-center gap-[1vw] mb-[1.4vh]">
-              <div className="h-px w-[3vw] bg-text/40" />
-              <div className="font-body uppercase tracking-[0.32em] text-[0.9vw] text-text/75 font-semibold">Benchmarked Against</div>
-            </div>
-            <div className="font-display text-[1.4vw] leading-tight text-text">
-              Liquid I.V. · LMNT · Functional beverage category
-            </div>
-            <div className="font-body text-[0.95vw] text-text/65 mt-[1vh] leading-snug">
-              Industry CAC range <span className="text-text">$40 – $70</span>. We model <span className="text-text">$49</span> — conservative versus best-in-class, with upside as creator + organic mix scales.
-            </div>
+        {/* RIGHT — repeat purchase benchmark grid */}
+        <div>
+          <div className="flex items-center gap-[1vw] mb-[1.2vh]">
+            <div className="h-px w-[3vw] bg-text/40" />
+            <div className="font-body uppercase tracking-[0.32em] text-[0.85vw] text-text/75 font-semibold">Repeat Purchase Assumption · Benchmarked</div>
           </div>
 
-          <div>
-            <div className="flex items-center gap-[1vw] mb-[1.4vh]">
-              <div className="h-px w-[3vw] bg-accent" />
-              <div className="font-body uppercase tracking-[0.32em] text-[0.9vw] text-accent font-semibold">AForce OS · SaaS Layer</div>
+          <div className="rounded-md ring-1 ring-text/10 overflow-hidden">
+            {/* Header row */}
+            <div className="grid grid-cols-[1.3fr_0.9fr_0.9fr] gap-[0.6vw] bg-bg-elev/60 px-[1vw] py-[0.7vh] border-b border-text/10">
+              <div className="font-body uppercase tracking-[0.22em] text-[0.6vw] text-text/55 font-semibold">Brand</div>
+              <div className="font-body uppercase tracking-[0.22em] text-[0.6vw] text-text/55 font-semibold">Frequency</div>
+              <div className="font-body uppercase tracking-[0.22em] text-[0.6vw] text-text/55 font-semibold">CAC</div>
             </div>
-            <div className="grid grid-cols-3 gap-[1vw]">
-              <div>
-                <div className="font-display text-[1.5vw] text-text leading-none">$5 · $15</div>
-                <div className="font-body uppercase tracking-[0.22em] text-[0.65vw] text-text/55 mt-[0.6vh]">Monthly tiers</div>
+
+            {benchmarks.map((b) => (
+              <div
+                key={b.brand}
+                className={`grid grid-cols-[1.3fr_0.9fr_0.9fr] gap-[0.6vw] px-[1vw] py-[0.9vh] border-b border-text/8 last:border-0 ${
+                  b.highlight ? "bg-primary/[0.06]" : ""
+                }`}
+              >
+                <div>
+                  <div className={`font-display text-[1vw] leading-tight tracking-tight ${b.highlight ? "text-primary" : "text-text"}`}>
+                    {b.brand}
+                  </div>
+                  <div className="font-body text-[0.65vw] text-text/50 leading-snug mt-[0.3vh]">{b.note}</div>
+                </div>
+                <div className="font-display text-[1.05vw] text-text leading-none self-start mt-[0.2vh]">{b.freq}</div>
+                <div className="font-display text-[1.05vw] text-text leading-none self-start mt-[0.2vh]">{b.cac}</div>
               </div>
-              <div>
-                <div className="font-display text-[1.5vw] text-text leading-none">2.5–3 yr</div>
-                <div className="font-body uppercase tracking-[0.22em] text-[0.65vw] text-text/55 mt-[0.6vh]">Customer lifespan</div>
-              </div>
-              <div>
-                <div className="font-display text-[1.5vw] text-accent leading-none">90%+</div>
-                <div className="font-body uppercase tracking-[0.22em] text-[0.65vw] text-text/55 mt-[0.6vh]">Gross margin</div>
-              </div>
-            </div>
-            <div className="font-body text-[0.85vw] text-text/55 mt-[1vh] leading-snug italic">
-              Modeled as upside — partial conversion only. Base case does not require it.
-            </div>
+            ))}
           </div>
         </div>
       </div>
 
-      <div className="absolute bottom-[5vh] left-[6vw] right-[6vw]">
-        <div className="border-t border-text/10 pt-[2vh] flex items-center justify-between gap-[1vw] flex-wrap font-body text-[0.95vw]">
-          <span className="font-body uppercase tracking-[0.32em] text-[0.75vw] text-text/45 font-semibold">Build Order</span>
-          {[
-            "Product pricing",
-            "Mix",
-            "Frequency",
-            "Channel",
-            "CAC benchmark",
-            "SaaS overlay",
-          ].map((step, i, arr) => (
-            <span key={step} className="flex items-center gap-[1vw]">
-              <span className="text-text">{step}</span>
-              {i < arr.length - 1 && <span className="text-text/25">→</span>}
-            </span>
-          ))}
+      <div className="absolute bottom-[2.5vh] left-[6vw] right-[6vw]">
+        <div className="border-t border-text/10 pt-[1.2vh] flex items-baseline justify-between gap-[2vw]">
+          <div className="font-display text-[1.3vw] leading-tight tracking-tight">
+            <span className="text-text/55">AForce models </span>
+            <span className="text-text">conservative against the category.</span>
+            <span className="text-text/55"> The OS bundle is upside, </span>
+            <span className="text-primary">not a requirement.</span>
+          </div>
+          <div className="font-body text-[0.7vw] text-text/45 italic max-w-[28vw] text-right leading-snug">
+            Sources: Unilever investor disclosures · LMNT public statements · AG1 / Athletic Greens disclosed metrics
+          </div>
         </div>
       </div>
     </div>

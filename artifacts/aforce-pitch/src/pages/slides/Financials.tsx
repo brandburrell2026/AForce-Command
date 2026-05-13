@@ -1,12 +1,4 @@
 export default function Financials() {
-  // viewBox: 1300 × 460 (matches chart container aspect)
-  // Plot area: x [120, 1180], y [60, 400]
-  // Y scale: -$2M → $30M across 340px (10.625 px / $1M)
-  //   $30M → y=60     $20M → y=166.25
-  //   $10M → y=272.5  $0   → y=378.75
-  //   -$2M → y=400
-  // Year x positions: 2026 → 140, 2027 → 670, 2028 → 1180
-
   const revenue = [
     { year: "2026", value: 3.2, x: 140, y: 344.75 },
     { year: "2027", value: 13, x: 670, y: 240.625 },
@@ -34,6 +26,17 @@ export default function Financials() {
   const xPct = (x: number) => (x / VB_W) * 100;
   const yPct = (y: number) => (y / VB_H) * 100;
 
+  const assumptions = [
+    { label: "Year 1 customers", value: "~10,000", note: "60K orders ÷ 5.7× repeat" },
+    { label: "Year 2 customers", value: "~35,000", note: "3.5× growth + national retail" },
+    { label: "Year 3 customers", value: "~75,000", note: "2.1× growth + Whole Foods / Sprouts" },
+    { label: "AOV", value: "$52", note: "Benchmarked vs Liquid IV ($48) / LMNT ($55)" },
+    { label: "Repeat rate", value: "5–7× / yr", note: "Conservative vs Liquid IV (6–8×)" },
+    { label: "Gross margin", value: "62–65%", note: "Co-packer locked · $1.85–$2.40 COGS/unit" },
+    { label: "Blended CAC", value: "~$49", note: "DTC + paid social + creator · scales down" },
+    { label: "Retail doors", value: "2,500", note: "By EOY2 · NYC/LA/Miami → national mo 18" },
+  ];
+
   return (
     <div className="w-screen h-screen overflow-hidden relative bg-bg text-text font-body">
       <div
@@ -45,27 +48,28 @@ export default function Financials() {
         style={{ background: "radial-gradient(ellipse 30% 25% at 60% 70%, rgba(245,214,55,0.08) 0%, transparent 70%)" }}
       />
 
-      <div className="absolute top-[6vh] left-[6vw] right-[6vw] flex justify-between items-center z-10">
-        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-blue font-semibold">21 — Financial Projections</div>
-        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-muted">21 / 24</div>
+      <div className="absolute top-[5vh] left-[6vw] right-[6vw] flex justify-between items-center z-10">
+        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-blue font-semibold">22 — Financial Projections</div>
+        <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-muted">22 / 25</div>
       </div>
 
-      <div className="absolute top-[12vh] left-[6vw] right-[6vw] flex justify-between items-end gap-[4vw]">
+      <div className="absolute top-[10vh] left-[6vw] right-[6vw] flex justify-between items-end gap-[4vw]">
         <div className="min-w-0 flex-1 max-w-[58vw]">
-          <div className="flex items-center gap-[1.2vw] mb-[1.4vh]">
+          <div className="flex items-center gap-[1.2vw] mb-[1.2vh]">
             <div className="h-[2px] w-[5vw] bg-blue" />
-            <span className="font-body uppercase tracking-[0.32em] text-[1.3vw] text-blue font-semibold">Projections · 2026 — 2028</span>
+            <span className="font-body uppercase tracking-[0.32em] text-[1.05vw] text-blue font-semibold">Projections · 2026 — 2028 · Assumptions Disclosed</span>
           </div>
-          <h2 className="font-display text-[4vw] leading-[0.95] tracking-tighter text-balance">
+          <h2 className="font-display text-[3.6vw] leading-[0.95] tracking-tighter text-balance">
             Scaling a <span className="text-blue">performance system.</span>
           </h2>
         </div>
-        <p className="font-body text-[1.05vw] text-text/65 max-w-[24vw] leading-snug pb-[1vh] text-right">
-          Revenue growth driven by product velocity, repeat behavior, and software retention.
+        <p className="font-body text-[0.95vw] text-text/65 max-w-[24vw] leading-snug pb-[1vh] text-right">
+          <span className="text-text">8.7× revenue growth 2026 → 2028.</span> Q4 2027 breakeven · 62% GM '28 · 42% contribution margin '28.
         </p>
       </div>
 
-      <div className="absolute top-[30vh] bottom-[9vh] left-[6vw] right-[6vw]">
+      {/* Chart — top half */}
+      <div className="absolute top-[26vh] h-[36vh] left-[6vw] right-[6vw]">
         <div className="relative w-full h-full">
           <svg viewBox={`0 0 ${VB_W} ${VB_H}`} preserveAspectRatio="none" className="absolute inset-0 w-full h-full">
             <defs>
@@ -173,7 +177,7 @@ export default function Financials() {
             {yAxisTicks.map((t) => (
               <div
                 key={`ylabel-${t.label}`}
-                className="absolute font-body text-[0.85vw] text-text/35"
+                className="absolute font-body text-[0.7vw] text-text/35"
                 style={{
                   left: `${xPct(115)}%`,
                   top: `${yPct(t.y)}%`,
@@ -185,92 +189,59 @@ export default function Financials() {
               </div>
             ))}
 
-            <div
-              className="absolute"
-              style={{ left: `${xPct(160)}%`, top: `${yPct(82)}%` }}
-            >
-              <div className="font-display text-[4.6vw] text-blue leading-[0.85]">8.7×</div>
-              <div className="font-body uppercase tracking-[0.32em] text-[0.95vw] text-text/70 mt-[0.6vh]">Revenue Growth</div>
-              <div className="font-body text-[0.9vw] text-text/45 mt-[0.2vh]">2026 → 2028</div>
+            <div className="absolute" style={{ left: `${xPct(160)}%`, top: `${yPct(82)}%` }}>
+              <div className="font-display text-[3.6vw] text-blue leading-[0.85]">8.7×</div>
+              <div className="font-body uppercase tracking-[0.32em] text-[0.78vw] text-text/70 mt-[0.5vh]">Revenue Growth</div>
+              <div className="font-body text-[0.75vw] text-text/45 mt-[0.2vh]">2026 → 2028</div>
             </div>
 
             <div
-              className="absolute font-display text-[2.4vw] text-blue leading-none whitespace-nowrap"
-              style={{
-                left: `${xPct(1180)}%`,
-                top: `calc(${yPct(83.375)}% - 5.2vh)`,
-                transform: "translateX(-100%)",
-                paddingRight: "0.4vw",
-              }}
+              className="absolute font-display text-[1.9vw] text-blue leading-none whitespace-nowrap"
+              style={{ left: `${xPct(1180)}%`, top: `calc(${yPct(83.375)}% - 4.2vh)`, transform: "translateX(-100%)", paddingRight: "0.4vw" }}
             >
               $27.8M
             </div>
             <div
-              className="absolute font-display text-[1.4vw] text-blue/85 leading-none whitespace-nowrap"
-              style={{
-                left: `${xPct(670)}%`,
-                top: `calc(${yPct(240.625)}% - 3.4vh)`,
-                transform: "translateX(-50%)",
-              }}
+              className="absolute font-display text-[1.15vw] text-blue/85 leading-none whitespace-nowrap"
+              style={{ left: `${xPct(670)}%`, top: `calc(${yPct(240.625)}% - 2.8vh)`, transform: "translateX(-50%)" }}
             >
               $13M
             </div>
             <div
-              className="absolute font-display text-[1.2vw] text-blue/75 leading-none whitespace-nowrap"
-              style={{
-                left: `${xPct(140)}%`,
-                top: `calc(${yPct(344.75)}% - 3vh)`,
-                paddingLeft: "0.8vw",
-              }}
+              className="absolute font-display text-[1vw] text-blue/75 leading-none whitespace-nowrap"
+              style={{ left: `${xPct(140)}%`, top: `calc(${yPct(344.75)}% - 2.5vh)`, paddingLeft: "0.8vw" }}
             >
               $3.2M
             </div>
 
             <div
-              className="absolute font-body text-[0.95vw] text-primary whitespace-nowrap"
-              style={{
-                left: `${xPct(140)}%`,
-                top: `calc(${yPct(394.69)}% + 1vh)`,
-                paddingLeft: "0.8vw",
-              }}
+              className="absolute font-body text-[0.78vw] text-primary whitespace-nowrap"
+              style={{ left: `${xPct(140)}%`, top: `calc(${yPct(394.69)}% + 0.8vh)`, paddingLeft: "0.8vw" }}
             >
               −$1.5M
             </div>
             <div
-              className="absolute font-body text-[0.95vw] text-blue whitespace-nowrap"
-              style={{
-                left: `${xPct(1180)}%`,
-                top: `calc(${yPct(356.44)}% + 1vh)`,
-                transform: "translateX(-100%)",
-                paddingRight: "0.4vw",
-              }}
+              className="absolute font-body text-[0.78vw] text-blue whitespace-nowrap"
+              style={{ left: `${xPct(1180)}%`, top: `calc(${yPct(356.44)}% + 0.8vh)`, transform: "translateX(-100%)", paddingRight: "0.4vw" }}
             >
               +$2.1M
             </div>
 
             <div
               className="absolute"
-              style={{
-                left: `${xPct(breakEvenX)}%`,
-                top: `${yPct(110)}%`,
-                transform: "translateX(-50%)",
-              }}
+              style={{ left: `${xPct(breakEvenX)}%`, top: `${yPct(110)}%`, transform: "translateX(-50%)" }}
             >
-              <div className="border-l-2 border-accent pl-[0.7vw] py-[0.3vh]">
-                <div className="font-body uppercase tracking-[0.3em] text-[0.85vw] text-accent">Breakeven</div>
-                <div className="font-display text-[1.4vw] text-text leading-none mt-[0.4vh]">Q4 2027</div>
+              <div className="border-l-2 border-accent pl-[0.6vw] py-[0.3vh]">
+                <div className="font-body uppercase tracking-[0.3em] text-[0.7vw] text-accent">Breakeven</div>
+                <div className="font-display text-[1.15vw] text-text leading-none mt-[0.4vh]">Q4 2027</div>
               </div>
             </div>
 
             {revenue.map((r) => (
               <div
                 key={`year-${r.year}`}
-                className="absolute font-body uppercase tracking-[0.34em] text-[1vw] text-muted"
-                style={{
-                  left: `${xPct(r.x)}%`,
-                  top: `${yPct(435)}%`,
-                  transform: "translateX(-50%)",
-                }}
+                className="absolute font-body uppercase tracking-[0.34em] text-[0.85vw] text-muted"
+                style={{ left: `${xPct(r.x)}%`, top: `${yPct(435)}%`, transform: "translateX(-50%)" }}
               >
                 {r.year}
               </div>
@@ -278,47 +249,62 @@ export default function Financials() {
 
             <div className="absolute top-0 right-0 flex gap-[1.6vw]">
               <div className="flex items-center gap-[0.5vw]">
-                <div className="w-[1.6vw] h-[2px] bg-blue rounded" />
-                <span className="font-body uppercase tracking-[0.25em] text-[0.85vw] text-text/55">Revenue</span>
+                <div className="w-[1.4vw] h-[2px] bg-blue rounded" />
+                <span className="font-body uppercase tracking-[0.25em] text-[0.7vw] text-text/55">Revenue</span>
               </div>
               <div className="flex items-center gap-[0.5vw]">
-                <div
-                  className="w-[1.6vw] h-[2px] rounded"
-                  style={{ background: "linear-gradient(to right, #E53341, #F5D637 50%, #5478D5)" }}
-                />
-                <span className="font-body uppercase tracking-[0.25em] text-[0.85vw] text-text/55">EBITDA</span>
+                <div className="w-[1.4vw] h-[2px] rounded" style={{ background: "linear-gradient(to right, #E53341, #F5D637 50%, #5478D5)" }} />
+                <span className="font-body uppercase tracking-[0.25em] text-[0.7vw] text-text/55">EBITDA</span>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="absolute top-[3vh] left-[6vw] right-[6vw] flex justify-end pointer-events-none z-20">
-        <div className="font-body text-[0.58vw] text-text/35 leading-snug max-w-[44vw] text-right">
-          <span className="text-text/50 uppercase tracking-[0.22em] font-semibold">Forward-Looking Statements · </span>
-          Management projections based on current assumptions; not guarantees of future performance. Actual results may differ materially. Informational only; not an offer to sell or solicitation to buy securities.
+      {/* Key assumptions grid — bottom */}
+      <div className="absolute top-[64vh] bottom-[8vh] left-[6vw] right-[6vw]">
+        <div className="flex items-center gap-[1vw] mb-[1.2vh]">
+          <div className="h-px w-[3vw] bg-text/30" />
+          <div className="font-body uppercase tracking-[0.32em] text-[0.7vw] text-text/55 font-semibold">Key Assumptions — How We Build To These Numbers</div>
+          <div className="h-px flex-1 bg-text/10" />
+        </div>
+        <div className="grid grid-cols-4 gap-[0.9vw] grid-rows-2 h-[calc(100%-3.6vh)]">
+          {assumptions.map((a) => (
+            <div key={a.label} className="bg-bg-elev/40 border border-text/10 rounded-md px-[1vw] py-[1vh] flex flex-col">
+              <div className="font-body uppercase tracking-[0.22em] text-[0.6vw] text-text/55 font-semibold">{a.label}</div>
+              <div className="font-display text-[1.4vw] leading-none tracking-tight text-text mt-[0.7vh]">{a.value}</div>
+              <div className="font-body text-[0.65vw] text-text/55 leading-snug mt-auto pt-[0.7vh]">{a.note}</div>
+            </div>
+          ))}
         </div>
       </div>
 
-      <div className="absolute bottom-[1.8vh] left-[6vw] right-[6vw] flex items-baseline justify-between gap-[2vw]">
-        <div className="font-display text-[1.2vw] leading-tight tracking-tight">
+      <div className="absolute top-[3vh] left-[6vw] right-[6vw] flex justify-end pointer-events-none z-20">
+        <div className="font-body text-[0.55vw] text-text/35 leading-snug max-w-[44vw] text-right">
+          <span className="text-text/50 uppercase tracking-[0.22em] font-semibold">Forward-Looking Statements · </span>
+          Management projections based on current assumptions; not guarantees of future performance. Actual results may differ materially.
+        </div>
+      </div>
+
+      <div className="absolute bottom-[2vh] left-[6vw] right-[6vw] flex items-baseline justify-between gap-[2vw]">
+        <div className="font-display text-[1.05vw] leading-tight tracking-tight">
           <span className="text-text/55">The product creates entry. </span>
           <span className="text-blue">The system creates compounding value.</span>
         </div>
-        <div className="flex items-baseline gap-[2.2vw]">
-          <div className="flex items-baseline gap-[0.6vw]">
-            <span className="font-display text-[1.6vw] text-accent leading-none">Q4'27</span>
-            <span className="font-body uppercase tracking-[0.26em] text-[0.85vw] text-text/55">Breakeven</span>
+        <div className="flex items-baseline gap-[1.8vw]">
+          <div className="flex items-baseline gap-[0.5vw]">
+            <span className="font-display text-[1.3vw] text-accent leading-none">Q4'27</span>
+            <span className="font-body uppercase tracking-[0.26em] text-[0.7vw] text-text/55">Breakeven</span>
           </div>
-          <div className="w-[1px] h-[2vh] bg-divider" />
-          <div className="flex items-baseline gap-[0.6vw]">
-            <span className="font-display text-[1.6vw] text-blue leading-none">62%</span>
-            <span className="font-body uppercase tracking-[0.26em] text-[0.85vw] text-text/55">Gross Margin '28</span>
+          <div className="w-[1px] h-[1.6vh] bg-divider" />
+          <div className="flex items-baseline gap-[0.5vw]">
+            <span className="font-display text-[1.3vw] text-blue leading-none">62%</span>
+            <span className="font-body uppercase tracking-[0.26em] text-[0.7vw] text-text/55">GM '28</span>
           </div>
-          <div className="w-[1px] h-[2vh] bg-divider" />
-          <div className="flex items-baseline gap-[0.6vw]">
-            <span className="font-display text-[1.6vw] text-blue leading-none">42%</span>
-            <span className="font-body uppercase tracking-[0.26em] text-[0.85vw] text-text/55">Contribution Margin '28</span>
+          <div className="w-[1px] h-[1.6vh] bg-divider" />
+          <div className="flex items-baseline gap-[0.5vw]">
+            <span className="font-display text-[1.3vw] text-blue leading-none">42%</span>
+            <span className="font-body uppercase tracking-[0.26em] text-[0.7vw] text-text/55">Contribution '28</span>
           </div>
         </div>
       </div>

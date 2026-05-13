@@ -29,7 +29,7 @@ export default function Cover() {
 
       <div className="absolute top-[6vh] left-[6vw] right-[6vw] flex justify-between items-center z-10">
         <div className="font-body uppercase tracking-[0.32em] text-[1.5vw] text-primary font-semibold">01 — Cover</div>
-        <div className="font-body uppercase tracking-[0.32em] text-[1.1vw] text-muted">1 / 24</div>
+        <div className="font-body uppercase tracking-[0.32em] text-[1.1vw] text-muted">1 / 25</div>
       </div>
 
       <div className="absolute bottom-[6vh] left-[6vw] right-[55vw] z-10">
