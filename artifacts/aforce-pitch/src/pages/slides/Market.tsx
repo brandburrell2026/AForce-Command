@@ -67,7 +67,7 @@ export default function Market() {
             <div className="h-[2px] w-[5vw] bg-accent" />
             <span className="font-body uppercase tracking-[0.32em] text-[1.1vw] text-accent font-semibold">Bottoms-Up Sizing · Source-Cited</span>
           </div>
-          <h2 className="font-display text-[4.4vw] leading-[0.92] tracking-tighter">
+          <h2 className="font-display text-[3.8vw] leading-[0.95] tracking-tighter">
             A real market, <span className="text-accent">sized honestly.</span>
           </h2>
         </div>
@@ -77,7 +77,7 @@ export default function Market() {
       </div>
 
       {/* 3 phased cards */}
-      <div className="absolute top-[28vh] bottom-[12vh] left-[6vw] right-[6vw] grid grid-cols-3 gap-[1.4vw]">
+      <div className="absolute top-[32vh] bottom-[12vh] left-[6vw] right-[6vw] grid grid-cols-3 gap-[1.4vw]">
         {phases.map((p) => (
           <div key={p.phase} className={`relative rounded-2xl ring-1 ${p.ring} bg-bg-elev/40 overflow-hidden flex flex-col`}>
             <div className={`absolute inset-0 bg-gradient-to-b ${p.bg} pointer-events-none`} />

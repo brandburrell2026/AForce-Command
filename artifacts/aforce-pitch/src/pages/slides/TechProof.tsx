@@ -83,7 +83,7 @@ export default function TechProof() {
             <div className="h-[2px] w-[3.5vw] bg-accent" />
             <span className="font-body uppercase tracking-[0.32em] text-[1vw] text-accent font-semibold">Built Today vs. Roadmap</span>
           </div>
-          <h2 className="font-display text-[4.4vw] leading-[0.92] tracking-tighter">
+          <h2 className="font-display text-[3.8vw] leading-[0.95] tracking-tighter">
             Not a vision.
             <br />
             <span className="text-accent">A system already running.</span>
@@ -95,7 +95,7 @@ export default function TechProof() {
       </div>
 
       {/* Two-column body */}
-      <div className="absolute top-[28vh] bottom-[8vh] left-[6vw] right-[6vw] grid grid-cols-2 gap-[2vw]">
+      <div className="absolute top-[32vh] bottom-[8vh] left-[6vw] right-[6vw] grid grid-cols-2 gap-[2vw]">
         {/* LEFT — Built today */}
         <div className="relative rounded-2xl ring-1 ring-accent/30 bg-bg-elev/40 overflow-hidden flex flex-col">
           <div className="absolute inset-x-0 top-0 h-[3px] bg-accent" />
