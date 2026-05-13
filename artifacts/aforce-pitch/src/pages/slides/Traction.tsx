@@ -1,8 +1,8 @@
 export default function Traction() {
   const proofRows = [
     {
-      headline: "30M+ projected impressions",
-      sub: "179 signed creators · avg 168K reach · activating Summer 2026",
+      headline: "30M+ committed reach",
+      sub: "179 signed creators × avg 168K reach · contractual, not projected",
     },
     {
       headline: "3 pro team beta conversations",

@@ -46,16 +46,18 @@ export default function OSIntro() {
       </div>
 
       <div className="absolute top-[13vh] left-[6vw] right-[42vw]">
-        <div className="flex items-center gap-[1.2vw] mb-[1.6vh]">
+        <div className="flex items-center gap-[1.2vw] mb-[1.4vh]">
           <div className="h-[2px] w-[5vw] bg-accent" />
           <span className="font-body uppercase tracking-[0.32em] text-[1.1vw] text-accent font-semibold">The Intelligence Layer</span>
+        </div>
+        <div className="font-display text-[1.5vw] leading-[1.25] tracking-tight mb-[2vh]">
+          <span className="text-text">No wearable required.</span>
+          <span className="text-text/55"> Starts simple. </span>
+          <span className="text-accent">Gets smarter over time.</span>
         </div>
         <h2 className="font-display text-[5.4vw] leading-[0.92] tracking-tighter">
           The intelligence <span className="text-accent">layer.</span>
         </h2>
-        <p className="mt-[2.4vh] font-body text-[1.15vw] text-text/70 leading-snug max-w-[40vw]">
-          <span className="text-text">Product fuels the body.</span> AForce OS tells you what to do next.
-        </p>
       </div>
 
       <div className="absolute top-[44vh] left-[6vw] right-[42vw] space-y-[1.4vh]">
@@ -189,19 +191,6 @@ export default function OSIntro() {
         </div>
       </div>
 
-      <div className="absolute bottom-[5vh] left-[6vw] right-[42vw]">
-        <div className="border-t border-text/10 pt-[1.8vh]">
-          <div className="flex items-center gap-[1vw] mb-[1vh]">
-            <div className="h-px w-[3vw] bg-accent" />
-            <div className="font-body uppercase tracking-[0.32em] text-[0.85vw] text-accent font-semibold">No Friction</div>
-          </div>
-          <div className="font-display text-[1.5vw] leading-[1.25] tracking-tight">
-            <span className="text-text">No wearable required.</span>
-            <span className="text-text/55"> Starts simple. </span>
-            <span className="text-accent">Gets smarter over time.</span>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }
