@@ -78,24 +78,24 @@ async function applyDayRollover(userId: string, current: AforceUserStateRow): Pr
 function defaultSeed(): Omit<AforceUserStateRow, "updatedAt"> {
   // Mirrors `artifacts/aforce-os/data/mockData.ts:defaultUserState` so
   // first-load behavior matches what the old in-memory mock produced.
-  const lastIntake = new Date(Date.now() - 38 * 60 * 1000);
+  const lastIntake = new Date(Date.now() - 12 * 60 * 1000);
   const wake = new Date();
   wake.setHours(6, 30, 0, 0);
   return {
     userId: DEFAULT_USER_ID,
-    unitsConsumedToday: 4,
+    unitsConsumedToday: 5,
     ozConsumedToday: 60,
     aforceUnitsToday: 3,
     lastIntakeTime: lastIntake,
     lastIntakeType: "aforce_stick",
     symptomState: "none",
     symptoms: [],
-    urineSignal: 3,
+    urineSignal: 2,
     energyState: "steady",
-    heatLoad: 4,
+    heatLoad: 3,
     sweatRate: 3,
-    activityLevel: 5,
-    complianceStreak: 4,
+    activityLevel: 4,
+    complianceStreak: 5,
     dailyTarget: 8,
     ozTarget: 96,
     isSnoozed: false,
@@ -103,8 +103,8 @@ function defaultSeed(): Omit<AforceUserStateRow, "updatedAt"> {
     bodyWeightLbs: 180,
     isAwake: true,
     wakeTime: wake,
-    overnightLossOz: 14,
-    hasSeenMorningCommand: false,
+    overnightLossOz: 6,
+    hasSeenMorningCommand: true,
     appleHealth: null,
     confirmationDelta: null,
     confirmationDeltaSetAt: null,

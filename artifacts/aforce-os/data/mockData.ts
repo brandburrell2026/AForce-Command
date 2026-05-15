@@ -8,20 +8,23 @@ import type { UserState, UserProfile, HistoryEntry, RosterPlayer } from '../type
 
 // ─── Mock User State ──────────────────────────────────────────────────────────
 export const defaultUserState: UserState = {
-  unitsConsumedToday: 4,
+  // Demo seed: tuned so the scoring engine yields a BALANCED score
+  // (~80) on first home view after the lobby splash, matching the
+  // teal "Performance stable" reference design.
+  unitsConsumedToday: 5,
   aforceUnitsToday: 3,
   language: 'en',
   ozConsumedToday: 60,
-  lastIntakeTime: new Date(Date.now() - 38 * 60 * 1000),
+  lastIntakeTime: new Date(Date.now() - 12 * 60 * 1000),
   lastIntakeType: 'aforce_stick',
   symptomState: 'none',
   symptoms: [],
-  urineSignal: 3, // 1 clear → 8 dark
+  urineSignal: 2, // 1 clear → 8 dark
   energyState: 'steady',
-  heatLoad: 4,
+  heatLoad: 3,
   sweatRate: 3,
-  activityLevel: 5,
-  complianceStreak: 4,
+  activityLevel: 4,
+  complianceStreak: 5,
   dailyTarget: 8,
   ozTarget: 96,
   isSnoozed: false,
@@ -29,8 +32,8 @@ export const defaultUserState: UserState = {
   bodyWeightLbs: 180,
   isAwake: true,
   wakeTime: new Date(new Date().setHours(6, 30, 0, 0)),
-  overnightLossOz: 14,
-  hasSeenMorningCommand: false,
+  overnightLossOz: 6,
+  hasSeenMorningCommand: true,
   // Sensible dev defaults so the inventory-gated Recovery Protocol card
   // shows the full range of options out of the box. Real builds will
   // sync this from the inventory service / store.
