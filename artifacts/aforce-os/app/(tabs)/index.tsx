@@ -297,12 +297,23 @@ function ScoreDrivenBody({
         ) : null}
       </View>
 
-      {/* Quick-action tile grid — Scan, Compete, Circles, Territory.
-          Lifted above the Command Voice Engine section so the user's
-          fast-access actions sit immediately under the primary CTA
-          rather than buried below the cinematic coach card. */}
-      <View style={styles.entryActionsRow}>
-        <EntryActions />
+      {/* ── Telemetry — WATER CYCLE / LAST INTAKE ─────────────────
+          Lifted above the Command Voice Engine section so the live
+          telemetry sits right under the primary CTA. */}
+      <View style={styles.metaRow}>
+        <View style={styles.metaCell}>
+          <Text style={styles.metaLabel}>WATER CYCLE</Text>
+          <Text style={styles.metaValue} testID="home-cycle-progress">
+            {cycleProgress.current}/{cycleProgress.target}
+          </Text>
+        </View>
+        <View style={styles.metaDivider} />
+        <View style={styles.metaCell}>
+          <Text style={styles.metaLabel}>LAST INTAKE</Text>
+          <Text style={styles.metaValue} testID="home-last-intake">
+            {lastIntakeMinutes != null ? `${lastIntakeMinutes} min ago` : '—'}
+          </Text>
+        </View>
       </View>
 
       {/* ── Layer 2: AI Coach · Live ─────────────────────────────────
@@ -336,21 +347,9 @@ function ScoreDrivenBody({
         </View>
       </View>
 
-      {/* ── Layer 3: Telemetry — minimal secondary data ───────────── */}
-      <View style={styles.metaRow}>
-        <View style={styles.metaCell}>
-          <Text style={styles.metaLabel}>WATER CYCLE</Text>
-          <Text style={styles.metaValue} testID="home-cycle-progress">
-            {cycleProgress.current}/{cycleProgress.target}
-          </Text>
-        </View>
-        <View style={styles.metaDivider} />
-        <View style={styles.metaCell}>
-          <Text style={styles.metaLabel}>LAST INTAKE</Text>
-          <Text style={styles.metaValue} testID="home-last-intake">
-            {lastIntakeMinutes != null ? `${lastIntakeMinutes} min ago` : '—'}
-          </Text>
-        </View>
+      {/* Quick-action tile grid — Scan, Compete, Circles, Territory */}
+      <View style={styles.entryActionsRow}>
+        <EntryActions />
       </View>
 
       {/* Live Signals strip (Heat Guard).
