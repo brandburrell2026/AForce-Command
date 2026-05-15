@@ -65,7 +65,7 @@ const DRINK_ICON: Record<
   cocktail: 'glass-cocktail',
   liquor: 'bottle-tonic',
   hard_seltzer: 'bottle-soda-classic',
-  custom: 'glass-mug-variant',
+  custom: 'glass-flute',
 };
 
 export function SocialModeSheet({
