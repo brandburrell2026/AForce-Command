@@ -297,6 +297,14 @@ function ScoreDrivenBody({
         ) : null}
       </View>
 
+      {/* Quick-action tile grid — Scan, Compete, Circles, Territory.
+          Lifted above the Command Voice Engine section so the user's
+          fast-access actions sit immediately under the primary CTA
+          rather than buried below the cinematic coach card. */}
+      <View style={styles.entryActionsRow}>
+        <EntryActions />
+      </View>
+
       {/* ── Layer 2: AI Coach · Live ─────────────────────────────────
           Below-the-fold deeper-intelligence layer. Visually demoted
           (lower opacity, generous top spacing) so it never competes
@@ -343,11 +351,6 @@ function ScoreDrivenBody({
             {lastIntakeMinutes != null ? `${lastIntakeMinutes} min ago` : '—'}
           </Text>
         </View>
-      </View>
-
-      {/* Quick-action tile grid — Scan, Compete, Circles, Territory */}
-      <View style={styles.entryActionsRow}>
-        <EntryActions />
       </View>
 
       {/* Live Signals strip (Heat Guard).
