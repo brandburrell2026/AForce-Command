@@ -548,8 +548,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       }
     } catch (err) {
       // Fail-safe: clear loading flag so UI never soft-locks.
+      // Must dispatch CYCLE_FAILURE (not DISMISS_SUCCESS) — DISMISS_SUCCESS
+      // does not reset isCompletingCycle, leaving the home-screen CTAs
+      // (STABILIZE SYSTEM / EXECUTE COMMAND / Become AForce / etc.)
+      // permanently disabled after any failed intake.
       console.warn('[AForce] logIntake failed', err);
-      dispatch({ type: 'DISMISS_SUCCESS' });
+      dispatch({ type: 'CYCLE_FAILURE' });
     }
   }, [state.userState, state.isCompletingCycle]);
 

@@ -62,6 +62,7 @@ export type Action =
       };
     }
   | { type: 'DISMISS_SUCCESS' }
+  | { type: 'CYCLE_FAILURE' }
   | { type: 'SNOOZE' }
   | { type: 'TICK_TIMER' }
   | {

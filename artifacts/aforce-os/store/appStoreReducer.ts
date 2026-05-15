@@ -65,6 +65,18 @@ export function reducer(state: AppState, action: Action): AppState {
     }
     case 'DISMISS_SUCCESS':
       return { ...state, showCycleSuccess: false, lastCycleResult: null };
+    case 'CYCLE_FAILURE':
+      // Pair with CYCLE_START so a failed intake (network error, 401,
+      // server reject) clears the loading flag and re-enables every
+      // intake-driven CTA (primary status button, Become AForce,
+      // QuickActionInline, LogIntakeRow). Without this, a single
+      // failure soft-locks the home screen until reload.
+      return {
+        ...state,
+        isCompletingCycle: false,
+        showCycleSuccess: false,
+        lastCycleResult: null,
+      };
     case 'SNOOZE': {
       const updated: UserState = {
         ...state.userState,
