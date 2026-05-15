@@ -16,6 +16,8 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ClerkProvider, ClerkLoaded } from '@clerk/expo';
 import { tokenCache } from '@clerk/expo/token-cache';
 import { Text, View } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { router, usePathname } from 'expo-router';
 
 import { ClerkAuthBridge } from '@/components/ClerkAuthBridge';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
@@ -37,9 +39,39 @@ const queryClient = new QueryClient();
 const publishableKey = process.env['EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY'];
 const proxyUrl = process.env['EXPO_PUBLIC_CLERK_PROXY_URL'] || undefined;
 
+/**
+ * SplashGate — on the very first launch, redirects the user into the
+ * cinematic four-stage onboarding sequence at `/splash`. Once the
+ * sequence completes it persists `aforce.hasCompletedOnboarding=true`
+ * to AsyncStorage, so every subsequent launch skips the splash and
+ * the existing app boots normally. Nothing in the existing app
+ * changes — this gate runs once, in front, and then gets out of the
+ * way.
+ */
+function SplashGate() {
+  const pathname = usePathname();
+  const checkedRef = React.useRef(false);
+  useEffect(() => {
+    if (checkedRef.current) return;
+    checkedRef.current = true;
+    AsyncStorage.getItem('aforce.hasCompletedOnboarding')
+      .then((v) => {
+        if (v !== 'true' && pathname !== '/splash') {
+          router.replace('/splash');
+        }
+      })
+      .catch(() => {
+        // Storage failure is non-fatal: fall through into the regular
+        // app rather than blocking the user behind a missing flag.
+      });
+  }, [pathname]);
+  return null;
+}
+
 function RootLayoutNav() {
   return (
     <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="splash" options={{ headerShown: false, animation: 'fade' }} />
       <Stack.Screen name="welcome" options={{ headerShown: false, animation: 'fade' }} />
       <Stack.Screen name="(auth)" options={{ headerShown: false }} />
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
@@ -87,6 +119,7 @@ function AppShell() {
                       hook can call useAppStore() safely. */}
                   <ClerkAuthBridge />
                   <RootLayoutNav />
+                  <SplashGate />
                   <InvestorDemoMount />
                 </CartProvider>
               </AppProvider>
