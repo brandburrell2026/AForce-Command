@@ -248,8 +248,8 @@ export default function SplashScreen() {
           throughout the sequence. Rendered in a monospace face so it
           reads like a system readout, not body copy. */}
       <FadeIn show durationMs={2000} delayMs={200} style={styles.topHeader}>
-        <Text style={styles.welcomeKicker}>W E L C O M E</Text>
-        <Text style={styles.welcomeTitle}>AFORCE  OS</Text>
+        <Text style={styles.welcomeKicker}>WELCOME</Text>
+        <Text style={styles.welcomeTitle}>AFORCE OS</Text>
       </FadeIn>
 
       {/* The white ring is a 3s fade-in. From stage 3 onward the ring
@@ -418,16 +418,16 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   welcomeKicker: {
-    fontFamily: FONT_DIGITAL,
+    fontFamily: FONT_BOLD,
     color: TEXT_DIM,
-    fontSize: 10,
-    letterSpacing: 4,
-  },
-  welcomeTitle: {
-    fontFamily: FONT_DIGITAL,
-    color: TEXT_BRIGHT,
     fontSize: 18,
     letterSpacing: 6,
+  },
+  welcomeTitle: {
+    fontFamily: FONT_BOLD,
+    color: TEXT_BRIGHT,
+    fontSize: 44,
+    letterSpacing: 4,
     includeFontPadding: false,
   },
 });
