@@ -22,7 +22,8 @@
     "protocol": "Protocol",
     "journal": "Journal",
     "store": "Store",
-    "profile": "Profile"
+    "profile": "Profile",
+    "social": "Social"
   },
   "journal": {
     "title": "Hydration Journal",

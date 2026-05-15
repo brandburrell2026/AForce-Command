@@ -30,7 +30,6 @@ import { useUser } from '@clerk/expo';
 import { GradientBackground } from '@/components/GradientBackground';
 import { CycleSuccessOverlay } from '@/components/CycleSuccessOverlay';
 import { ScoreBreakdownSheet } from '@/components/ScoreBreakdownSheet';
-import { SocialModeSheet } from '@/components/SocialModeSheet';
 import { CommandConsole } from '@/components/home/CommandConsole';
 import { EntryActions } from '@/components/home/EntryActions';
 import { AIVideoPlayer } from '@/components/AIVideoPlayer';
@@ -55,7 +54,6 @@ import {
   TEMP_HEAT_BAND_LABEL,
   type TempHeatBand,
 } from '@/utils/heatBand';
-import type { DrinkType } from '@/types';
 
 import { useAppStore } from '@/store/useAppStore';
 import {
@@ -141,7 +139,7 @@ function MinimalHeader({ greetingName, city, tempLabel, onShare }: HeaderProps) 
 
 // ─── Score-driven body (consumes DisplayedAccentProvider) ────────────
 
-// ─── Live Signals strip (Heat + Social) ──────────────────────────────
+// ─── Live Signals strip (Heat) ───────────────────────────────────────
 
 // Heat-pill colors and labels are sourced from the temperature-band
 // helper so this component, the voice escalation gate, and any other
@@ -185,7 +183,6 @@ function SignalPill({ icon, label, value, tint, active, onPress, testID }: Signa
 interface BodyProps {
   onOpenBreakdown: () => void;
   onPrimaryCta: () => void;
-  onOpenSocial: () => void;
   onTapHeat: () => void;
   isCompletingCycle: boolean;
   cycleProgress: { current: number; target: number };
@@ -194,14 +191,11 @@ interface BodyProps {
   orbSize: number;
   heatBand: TempHeatBand;
   heatTempLabel: string | null;
-  socialActive: boolean;
-  socialDrinks: number;
 }
 
 function ScoreDrivenBody({
   onOpenBreakdown,
   onPrimaryCta,
-  onOpenSocial,
   onTapHeat,
   isCompletingCycle,
   cycleProgress,
@@ -210,8 +204,6 @@ function ScoreDrivenBody({
   orbSize,
   heatBand,
   heatTempLabel,
-  socialActive,
-  socialDrinks,
 }: BodyProps) {
   const engine = useEngineSlice();
   const userState = useUserSlice();
@@ -358,11 +350,12 @@ function ScoreDrivenBody({
         <EntryActions />
       </View>
 
-      {/* Live Signals strip (Heat Guard + Social Mode).
+      {/* Live Signals strip (Heat Guard).
           The HEAT pill is hidden entirely when ambient temperature is
-          below 75 °F (band === 'NORMAL'). */}
-      <View style={styles.signalsRow} testID="home-live-signals">
-        {heatBand !== 'NORMAL' && (
+          below 75 °F (band === 'NORMAL').
+          Social Mode lives on its own tab now (subscriber-only). */}
+      {heatBand !== 'NORMAL' && (
+        <View style={styles.signalsRow} testID="home-live-signals">
           <SignalPill
             icon="thermometer"
             label="HEAT"
@@ -372,17 +365,8 @@ function ScoreDrivenBody({
             onPress={onTapHeat}
             testID="home-heat-pill"
           />
-        )}
-        <SignalPill
-          icon="users"
-          label="SOCIAL"
-          value={socialActive ? `${socialDrinks} drink${socialDrinks === 1 ? '' : 's'}` : 'OFF'}
-          tint={socialActive ? '#7C5CFF' : Colors.text.secondary}
-          active={socialActive}
-          onPress={onOpenSocial}
-          testID="home-social-pill"
-        />
-      </View>
+        </View>
+      )}
     </>
   );
 }
@@ -394,10 +378,6 @@ interface HomeActions {
     fluidType: FluidType,
     opts?: { silent?: boolean; ozOverride?: number; flavorLabel?: string },
   ) => Promise<void>;
-  activateSocialMode: () => Promise<void>;
-  logSocialDrink: (type: DrinkType) => Promise<void>;
-  confirmSocialHydration: (confirmed: boolean) => Promise<void>;
-  deactivateSocialMode: () => Promise<void>;
 }
 
 export default function HomeScreen() {
@@ -410,13 +390,7 @@ export default function HomeScreen() {
   const engine = useEngineSlice();
   const userState = useUserSlice();
   const intake = useIntakeSlice();
-  const {
-    logIntake,
-    activateSocialMode,
-    logSocialDrink,
-    confirmSocialHydration,
-    deactivateSocialMode,
-  } = useActionsSlice<HomeActions>();
+  const { logIntake } = useActionsSlice<HomeActions>();
   const { showCycleSuccess, lastCycleResult, hasSeenOnboarding } = state;
 
   // Voice Engine — preserve existing score-band + risk-timer hooks.
@@ -433,7 +407,6 @@ export default function HomeScreen() {
   const [voiceOpen, setVoiceOpen] = React.useState(false);
   const [voiceAutoStart, setVoiceAutoStart] = React.useState(false);
   const [flavorOpen, setFlavorOpen] = React.useState(false);
-  const [socialOpen, setSocialOpen] = React.useState(false);
   const [voiceBtnState, setVoiceBtnState] = React.useState<VoiceState>('idle');
 
   // Heat Guard — auto-fires voice escalations on STABLE → ELEVATED+
@@ -493,11 +466,6 @@ export default function HomeScreen() {
     router.push(`/share?type=score&score=${engine.score}&state=${stateLabel}`);
   }, [router, engine.score, engine.performanceState.level]);
 
-  const openSocial = React.useCallback(() => {
-    if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
-    setSocialOpen(true);
-  }, []);
-  const closeSocial = React.useCallback(() => setSocialOpen(false), []);
   const onTapHeat = React.useCallback(() => {
     if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
     setVoiceAutoStart(false);
@@ -580,7 +548,6 @@ export default function HomeScreen() {
             <ScoreDrivenBody
               onOpenBreakdown={openBreakdown}
               onPrimaryCta={onPrimaryCta}
-              onOpenSocial={openSocial}
               onTapHeat={onTapHeat}
               isCompletingCycle={state.isCompletingCycle}
               cycleProgress={cycleProgress}
@@ -589,8 +556,6 @@ export default function HomeScreen() {
               orbSize={layout.orbSize}
               heatBand={getHeatBandFromCelsius(userState.weatherTempC)}
               heatTempLabel={tempLabel}
-              socialActive={!!userState.socialMode?.active}
-              socialDrinks={userState.socialMode?.drinks?.length ?? 0}
             />
           </ScrollView>
 
@@ -611,17 +576,6 @@ export default function HomeScreen() {
             format="both"
             onCancel={() => setFlavorOpen(false)}
             onConfirm={onChooseFlavor}
-          />
-
-          <SocialModeSheet
-            visible={socialOpen}
-            onDismiss={closeSocial}
-            socialMode={userState.socialMode}
-            social={engine.social}
-            onActivate={() => { void activateSocialMode?.(); }}
-            onLogDrink={(type) => { void logSocialDrink?.(type); }}
-            onConfirmHydration={(c) => { void confirmSocialHydration?.(c); }}
-            onDeactivate={() => { void deactivateSocialMode?.(); }}
           />
 
           <OnboardingOverlay visible={!hasSeenOnboarding} onDismiss={completeOnboarding} />

@@ -21,7 +21,8 @@
     "check": "Vérifier",
     "protocol": "Protocole",
     "store": "Boutique",
-    "profile": "Profil"
+    "profile": "Profil",
+    "social": "Social"
   },
   "home": {
     "welcome": "Bienvenue, {{name}}",
