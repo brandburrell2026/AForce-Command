@@ -375,6 +375,79 @@ function RotatingRing({
 }
 
 // ─── SweepingArc — red arc that travels around the ring (stage 2) ───
+/**
+ * TypewriterTagline — reveals the four-word manifesto one segment at
+ * a time in a digital monospace face, with a blinking cursor at the
+ * write head between words. Reads like a system log printing live.
+ */
+type Segment = { text: string; color: string };
+const TAGLINE_SEGMENTS: Segment[] = [
+  { text: 'Pause', color: '#E53935' },
+  { text: 'Hydrate', color: 'rgba(255,255,255,0.92)' },
+  { text: 'Lock in', color: '#FFC93C' },
+  { text: 'Perform', color: 'rgba(255,255,255,0.92)' },
+];
+const TAGLINE_STEP_MS = 520;
+
+function TypewriterTagline({ start }: { start: boolean }) {
+  const [revealed, setRevealed] = React.useState(0);
+  const cursor = useSharedValue(1);
+
+  React.useEffect(() => {
+    if (!start) return;
+    setRevealed(0);
+    const timers: ReturnType<typeof setTimeout>[] = [];
+    for (let i = 0; i < TAGLINE_SEGMENTS.length; i += 1) {
+      timers.push(setTimeout(() => setRevealed(i + 1), 600 + i * TAGLINE_STEP_MS));
+    }
+    return () => { timers.forEach((t) => clearTimeout(t)); };
+  }, [start]);
+
+  React.useEffect(() => {
+    if (!start) return;
+    cursor.value = withRepeat(
+      withSequence(
+        withTiming(0, { duration: 460, easing: Easing.linear }),
+        withTiming(1, { duration: 460, easing: Easing.linear }),
+      ),
+      -1,
+      false,
+    );
+    return () => { cancelAnimation(cursor); };
+  }, [start, cursor]);
+
+  const cursorStyle = useAnimatedStyle(() => ({ opacity: cursor.value }));
+  const allDone = revealed >= TAGLINE_SEGMENTS.length;
+
+  return (
+    <View style={styles.taglineRow}>
+      {TAGLINE_SEGMENTS.map((seg, i) => {
+        const isVisible = i < revealed;
+        const isLast = i === TAGLINE_SEGMENTS.length - 1;
+        return (
+          <View key={seg.text} style={styles.taglineSegment}>
+            <Text
+              style={[styles.taglineWord, { color: seg.color, opacity: isVisible ? 1 : 0 }]}
+            >
+              {seg.text}
+            </Text>
+            {!isLast && (
+              <Text
+                style={[styles.taglineArrowChar, { opacity: isVisible ? 1 : 0 }]}
+              >
+                {' → '}
+              </Text>
+            )}
+          </View>
+        );
+      })}
+      {!allDone && (
+        <Animated.Text style={[styles.taglineCursor, cursorStyle]}>▌</Animated.Text>
+      )}
+    </View>
+  );
+}
+
 function SweepingArc({ active }: { active: boolean }) {
   const rotate = useSharedValue(0);
   React.useEffect(() => {
@@ -530,15 +603,7 @@ export default function SplashScreen() {
       {showCopy && (
         <FadeIn show delayMs={400} style={styles.copyBlock}>
           <Text style={styles.copyHeadline}>Performance is non-negotiable.</Text>
-          <Text style={styles.tagline}>
-            <Text style={styles.taglineRed}>Pause</Text>
-            <Text style={styles.taglineArrow}>  →  </Text>
-            <Text style={styles.taglineWhite}>Hydrate</Text>
-            <Text style={styles.taglineArrow}>  →  </Text>
-            <Text style={styles.taglineYellow}>Lock in</Text>
-            <Text style={styles.taglineArrow}>  →  </Text>
-            <Text style={styles.taglineWhite}>Perform</Text>
-          </Text>
+          <TypewriterTagline start={showCopy} />
         </FadeIn>
       )}
 
@@ -642,28 +707,35 @@ const styles = StyleSheet.create({
     letterSpacing: -0.2,
     textAlign: 'center',
   },
-  tagline: {
-    fontFamily: FONT_BOLD,
-    fontSize: 20,
-    lineHeight: 26,
-    letterSpacing: -0.2,
-    textAlign: 'center',
+  taglineRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  taglineRed: {
-    fontFamily: FONT_BOLD,
-    color: '#E53935',
+  taglineSegment: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
-  taglineWhite: {
-    fontFamily: FONT_BOLD,
-    color: TEXT_BRIGHT,
+  taglineWord: {
+    fontFamily: FONT_DIGITAL,
+    fontSize: 17,
+    lineHeight: 22,
+    letterSpacing: 1,
   },
-  taglineYellow: {
-    fontFamily: FONT_BOLD,
-    color: '#FFC93C',
-  },
-  taglineArrow: {
-    fontFamily: FONT_MEDIUM,
+  taglineArrowChar: {
+    fontFamily: FONT_DIGITAL,
     color: TEXT_DIM,
+    fontSize: 17,
+    lineHeight: 22,
+    letterSpacing: 1,
+  },
+  taglineCursor: {
+    fontFamily: FONT_DIGITAL,
+    color: 'rgba(255,255,255,0.85)',
+    fontSize: 17,
+    lineHeight: 22,
+    marginLeft: 2,
   },
   ctaSlot: {
     position: 'absolute',
