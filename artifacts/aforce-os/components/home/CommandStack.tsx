@@ -24,9 +24,14 @@ import {
   useActionsSlice,
 } from '../../store/slices';
 import { useDisplayedAccent } from '../../hooks/useDisplayedAccent';
+import type { FluidType } from '../../types';
 
 interface ConfirmActions {
   confirmCommand: (followed: boolean) => Promise<void>;
+  logIntake: (
+    fluidType: FluidType,
+    opts?: { silent?: boolean; ozOverride?: number; flavorLabel?: string },
+  ) => Promise<void>;
 }
 
 interface Props {
@@ -38,7 +43,7 @@ function CommandStackImpl({ onOpenBreakdown }: Props) {
   const userState = useUserSlice();
   const { timerSeconds } = useCycleSlice();
   const { pendingConfirmation } = useConfirmationSlice();
-  const { confirmCommand } = useActionsSlice<ConfirmActions>();
+  const { confirmCommand, logIntake } = useActionsSlice<ConfirmActions>();
   // Pass the displayed-score accent so the AI Coach recolours in lockstep
   // with the orb digit. `undefined` when not under the provider.
   const displayed = useDisplayedAccent();
@@ -50,7 +55,16 @@ function CommandStackImpl({ onOpenBreakdown }: Props) {
       {pendingConfirmation && (
         <>
           <CommandConfirmPrompt
-            onAnswer={(followed) => { confirmCommand(followed); }}
+            onAnswer={(answer) => {
+              // WATER / AFORCE RTD → run the real intake calculation
+              // (immediate + delayed score impact, hydration math).
+              // MISSED IT → -3 confirmation penalty, no intake event.
+              if (answer.kind === 'intake') {
+                logIntake(answer.fluidType);
+              } else {
+                confirmCommand(false);
+              }
+            }}
             inClutch={!!userState.clutchActive}
           />
           <View style={styles.spacer} />

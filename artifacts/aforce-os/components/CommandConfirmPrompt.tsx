@@ -1,6 +1,11 @@
 /**
- * CommandConfirmPrompt — Asks the user "Did you follow the command?"
- * once the recheck timer hits 0. Honest +3 / -3 score swing per spec.
+ * CommandConfirmPrompt — Asks the user how they followed the last command
+ * once the recheck timer hits 0.
+ *
+ * Three answers:
+ *   • WATER     → real intake calculation (logIntake('water'))
+ *   • AFORCE RTD → real intake calculation (logIntake('aforce_rtd'))
+ *   • MISSED IT → -3 confirmation penalty (confirmCommand(false))
  *
  * Renders inline (not a modal) so it doesn't fight other overlays on
  * web, and so it stays anchored to the command region of Home where
@@ -12,61 +17,78 @@ import { View, Text, Pressable, StyleSheet, Platform } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { Colors } from '../theme/colors';
+import type { FluidType } from '../types';
+
+export type ConfirmAnswer =
+  | { kind: 'intake'; fluidType: Extract<FluidType, 'water' | 'aforce_rtd'> }
+  | { kind: 'missed' };
 
 interface Props {
-  onAnswer: (followed: boolean) => void;
+  onAnswer: (answer: ConfirmAnswer) => void;
   inClutch?: boolean;
 }
 
 export function CommandConfirmPrompt({ onAnswer, inClutch }: Props) {
   // Guard against double-taps and out-of-order async answers — once the
-  // user picks Yes/No we lock the prompt locally until the parent
+  // user picks an option we lock the prompt locally until the parent
   // unmounts it (after the store dispatch lands).
   const [submitted, setSubmitted] = React.useState(false);
 
-  const tap = (followed: boolean) => {
+  const tap = (answer: ConfirmAnswer) => {
     if (submitted) return;
     setSubmitted(true);
     if (Platform.OS !== 'web') {
       Haptics.impactAsync(
-        followed ? Haptics.ImpactFeedbackStyle.Light : Haptics.ImpactFeedbackStyle.Medium,
+        answer.kind === 'intake'
+          ? Haptics.ImpactFeedbackStyle.Light
+          : Haptics.ImpactFeedbackStyle.Medium,
       ).catch(() => {});
     }
-    onAnswer(followed);
+    onAnswer(answer);
   };
 
   return (
     <View style={styles.wrap} testID="command-confirm-prompt">
       <View style={styles.headerRow}>
         <Feather name="help-circle" size={14} color={Colors.text.primary} />
-        <Text style={styles.title}>DID YOU FOLLOW THE LAST COMMAND?</Text>
+        <Text style={styles.title}>WHAT DID YOU DRINK?</Text>
       </View>
       <Text style={styles.body}>
-        Recheck timer hit zero. Confirm so the score reflects what you
-        actually did{inClutch ? ' — Clutch is live, so misses cost more.' : '.'}
+        Recheck timer hit zero. Pick what you actually had so the score
+        runs the real calculation{inClutch ? ' — Clutch is live, so misses cost more.' : '.'}
       </Text>
       <View style={styles.row}>
         <Pressable
-          onPress={() => tap(true)}
+          onPress={() => tap({ kind: 'intake', fluidType: 'water' })}
           disabled={submitted}
-          style={({ pressed }) => [styles.btn, styles.yes, (pressed || submitted) && { opacity: 0.85 }]}
-          testID="command-confirm-yes"
-          accessibilityLabel="Yes, I followed the command"
+          style={({ pressed }) => [styles.btn, styles.water, (pressed || submitted) && { opacity: 0.85 }]}
+          testID="command-confirm-water"
+          accessibilityLabel="I had water"
         >
-          <Feather name="check" size={14} color="#0a1f12" />
-          <Text style={[styles.btnLabel, { color: '#0a1f12' }]}>YES · +3</Text>
+          <Feather name="droplet" size={14} color="#0a1f12" />
+          <Text style={[styles.btnLabel, { color: '#0a1f12' }]}>WATER</Text>
         </Pressable>
         <Pressable
-          onPress={() => tap(false)}
+          onPress={() => tap({ kind: 'intake', fluidType: 'aforce_rtd' })}
           disabled={submitted}
-          style={({ pressed }) => [styles.btn, styles.no, (pressed || submitted) && { opacity: 0.85 }]}
-          testID="command-confirm-no"
-          accessibilityLabel="No, I missed it"
+          style={({ pressed }) => [styles.btn, styles.rtd, (pressed || submitted) && { opacity: 0.85 }]}
+          testID="command-confirm-rtd"
+          accessibilityLabel="I had an AForce RTD"
         >
-          <Feather name="x" size={14} color="#fff" />
-          <Text style={[styles.btnLabel, { color: '#fff' }]}>NO · -3</Text>
+          <Feather name="zap" size={14} color="#0a1f12" />
+          <Text style={[styles.btnLabel, { color: '#0a1f12' }]}>AFORCE RTD</Text>
         </Pressable>
       </View>
+      <Pressable
+        onPress={() => tap({ kind: 'missed' })}
+        disabled={submitted}
+        style={({ pressed }) => [styles.btn, styles.missed, (pressed || submitted) && { opacity: 0.85 }]}
+        testID="command-confirm-missed"
+        accessibilityLabel="I missed the command"
+      >
+        <Feather name="x" size={14} color="#fff" />
+        <Text style={[styles.btnLabel, { color: '#fff' }]}>MISSED IT · -3</Text>
+      </Pressable>
     </View>
   );
 }
@@ -103,8 +125,9 @@ const styles = StyleSheet.create({
     paddingVertical: 11,
     borderRadius: 12,
   },
-  yes: { backgroundColor: Colors.success },
-  no: { backgroundColor: Colors.danger },
+  water: { backgroundColor: '#7DD3FC' },
+  rtd: { backgroundColor: Colors.success },
+  missed: { backgroundColor: Colors.danger },
   btnLabel: {
     fontSize: 12,
     letterSpacing: 1.4,
