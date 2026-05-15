@@ -47,6 +47,14 @@ export const requireAuth: RequestHandler = (req, res, next) => {
     (auth?.sessionClaims?.["userId"] as string | undefined) || auth?.userId;
 
   if (!userId) {
+    // Dev/preview convenience: when Clerk is configured but the caller
+    // hasn't completed sign-in (e.g. canvas iframe preview, ad-hoc
+    // curl, integration tests), fall back to the demo user so the app
+    // is usable end-to-end. Production still fails closed above.
+    if (!IS_PRODUCTION) {
+      req.userId = DEFAULT_USER_ID;
+      return next();
+    }
     res.status(401).json({ error: "Unauthorized" });
     return;
   }
