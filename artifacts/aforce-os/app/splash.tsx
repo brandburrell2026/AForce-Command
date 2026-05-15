@@ -37,13 +37,12 @@ const CRITICAL_RED = 'rgba(180,30,30,0.55)';
 const TEXT_DIM = 'rgba(255,255,255,0.55)';
 const TEXT_BRIGHT = 'rgba(255,255,255,0.92)';
 
-// Helvetica Neue is the iOS system font; on Android / web we fall back
-// to the closest available sans-serif. Weight 100-300 only.
-const HELVETICA = Platform.select({
-  ios: 'HelveticaNeue',
-  android: 'sans-serif-light',
-  default: 'Helvetica Neue, Helvetica, Arial, sans-serif',
-}) as string;
+// Match the rest of the app's typography exactly. The home screen
+// uses Inter_700Bold for big numbers / status labels (tracked caps)
+// and Inter_400Regular for body copy.
+const FONT_BOLD = 'Inter_700Bold';
+const FONT_MEDIUM = 'Inter_500Medium';
+const FONT_REGULAR = 'Inter_400Regular';
 
 const FADE_MS = 1200;
 const FADE_EASE = Easing.inOut(Easing.ease);
@@ -51,6 +50,10 @@ const RING_SIZE = 220;
 const RING_STROKE = 1.5;
 const RING_RADIUS = (RING_SIZE - RING_STROKE) / 2;
 const RING_CIRC = 2 * Math.PI * RING_RADIUS;
+// Soft halo behind the ring — same visual language as StatusPulseOrb's
+// dominant outer glow (GLOW_RATIO ≈ 1.85). Keeps the lobby feeling
+// part of the same product instead of a flat overlay.
+const HALO_SIZE = Math.round(RING_SIZE * 1.85);
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
@@ -85,8 +88,8 @@ function FadeIn({
   return <Animated.View style={[style, animStyle]}>{children}</Animated.View>;
 }
 
-// ─── RotatingRing — slow 18s/rev rotation ────────────────────────────
-function RotatingRing({ color }: { color: string }) {
+// ─── RotatingRing — slow 18s/rev rotation w/ ambient halo ───────────
+function RotatingRing({ color, glow }: { color: string; glow: string }) {
   const rotate = useSharedValue(0);
   React.useEffect(() => {
     rotate.value = withRepeat(
@@ -96,22 +99,38 @@ function RotatingRing({ color }: { color: string }) {
     );
     return () => cancelAnimation(rotate);
   }, [rotate]);
-  const style = useAnimatedStyle(() => ({
+  const ringStyle = useAnimatedStyle(() => ({
     transform: [{ rotateZ: `${rotate.value}deg` }],
   }));
   return (
-    <Animated.View style={[styles.ringWrap, style]}>
-      <Svg width={RING_SIZE} height={RING_SIZE}>
-        <Circle
-          cx={RING_SIZE / 2}
-          cy={RING_SIZE / 2}
-          r={RING_RADIUS}
-          stroke={color}
-          strokeWidth={RING_STROKE}
-          fill="none"
-        />
-      </Svg>
-    </Animated.View>
+    <View style={styles.ringWrap}>
+      {/* Soft outer halo — mirrors the StatusPulseOrb dominant glow so
+          the lobby reads as the same visual product. */}
+      <View
+        pointerEvents="none"
+        style={[
+          styles.halo,
+          {
+            width: HALO_SIZE,
+            height: HALO_SIZE,
+            borderRadius: HALO_SIZE / 2,
+            shadowColor: glow,
+          },
+        ]}
+      />
+      <Animated.View style={ringStyle}>
+        <Svg width={RING_SIZE} height={RING_SIZE}>
+          <Circle
+            cx={RING_SIZE / 2}
+            cy={RING_SIZE / 2}
+            r={RING_RADIUS}
+            stroke={color}
+            strokeWidth={RING_STROKE}
+            fill="none"
+          />
+        </Svg>
+      </Animated.View>
+    </View>
   );
 }
 
@@ -206,6 +225,7 @@ export default function SplashScreen() {
   }, [router]);
 
   const ringColor = stage >= 3 ? CRITICAL_RED : RING_WHITE;
+  const haloColor = stage >= 3 ? CRITICAL_RED : 'rgba(255,255,255,0.35)';
   const sweepActive = stage === 2;
   const showNumber = stage >= 3;
   const showCritical = stage >= 3;
@@ -220,7 +240,7 @@ export default function SplashScreen() {
       <View style={styles.center}>
         <FadeIn show durationMs={3000} delayMs={0} style={StyleSheet.absoluteFill}>
           <View style={styles.center}>
-            <RotatingRing color={ringColor} />
+            <RotatingRing color={ringColor} glow={haloColor} />
           </View>
         </FadeIn>
 
@@ -309,12 +329,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  // Soft radial halo behind the ring — matches the StatusPulseOrb
+  // dominant glow (large blur radius, low elevation, low opacity).
+  halo: {
+    position: 'absolute',
+    backgroundColor: 'transparent',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.55,
+    shadowRadius: 60,
+    // Android falls back to elevation only — keep low so it doesn't
+    // become a hard rectangle.
+    elevation: 0,
+  },
   number: {
-    fontFamily: HELVETICA,
-    fontWeight: '200',
+    fontFamily: FONT_BOLD,
     color: TEXT_BRIGHT,
     fontSize: 96,
-    letterSpacing: -2,
+    letterSpacing: -3,
     includeFontPadding: false,
   },
   belowRing: {
@@ -325,8 +356,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   eyebrow: {
-    fontFamily: HELVETICA,
-    fontWeight: '300',
+    fontFamily: FONT_BOLD,
     color: TEXT_DIM,
     fontSize: 11,
     letterSpacing: 4,
@@ -340,12 +370,11 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   copyLine: {
-    fontFamily: HELVETICA,
-    fontWeight: '200',
+    fontFamily: FONT_REGULAR,
     color: TEXT_BRIGHT,
     fontSize: 15,
     lineHeight: 22,
-    letterSpacing: 0.3,
+    letterSpacing: 0.2,
     textAlign: 'center',
   },
   ctaSlot: {
@@ -355,10 +384,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   ctaLabel: {
-    fontFamily: HELVETICA,
-    fontWeight: '300',
+    fontFamily: FONT_BOLD,
     color: TEXT_BRIGHT,
-    fontSize: 13,
+    fontSize: 12,
     letterSpacing: 6,
     paddingVertical: 12,
     paddingHorizontal: 24,
