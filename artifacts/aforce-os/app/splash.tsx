@@ -43,6 +43,16 @@ const TEXT_BRIGHT = 'rgba(255,255,255,0.92)';
 const FONT_BOLD = 'Inter_700Bold';
 const FONT_MEDIUM = 'Inter_500Medium';
 const FONT_REGULAR = 'Inter_400Regular';
+// "Digital" readout face for the WELCOME · AFORCE OS headline.
+// React Native ships a monospace family on every platform — Menlo on
+// iOS, monospace on Android, and a generic monospace stack on web.
+// Combined with wide tracking + uppercase this gives the lobby a
+// terminal / on-board-computer feel without bundling a custom font.
+const FONT_DIGITAL = Platform.select({
+  ios: 'Menlo',
+  android: 'monospace',
+  default: 'ui-monospace, Menlo, Consolas, monospace',
+}) as string;
 
 const FADE_MS = 1200;
 const FADE_EASE = Easing.inOut(Easing.ease);
@@ -234,6 +244,14 @@ export default function SplashScreen() {
 
   return (
     <View style={styles.root}>
+      {/* Top headline — fades in with the ring on stage 1 and stays
+          throughout the sequence. Rendered in a monospace face so it
+          reads like a system readout, not body copy. */}
+      <FadeIn show durationMs={2000} delayMs={200} style={styles.topHeader}>
+        <Text style={styles.welcomeKicker}>W E L C O M E</Text>
+        <Text style={styles.welcomeTitle}>AFORCE  OS</Text>
+      </FadeIn>
+
       {/* The white ring is a 3s fade-in. From stage 3 onward the ring
           color shifts to critical red — done via FadeIn keyed on
           `ringColor` so the new color crossfades over the old. */}
@@ -390,5 +408,26 @@ const styles = StyleSheet.create({
     letterSpacing: 6,
     paddingVertical: 12,
     paddingHorizontal: 24,
+  },
+  topHeader: {
+    position: 'absolute',
+    top: 80,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    gap: 8,
+  },
+  welcomeKicker: {
+    fontFamily: FONT_DIGITAL,
+    color: TEXT_DIM,
+    fontSize: 10,
+    letterSpacing: 4,
+  },
+  welcomeTitle: {
+    fontFamily: FONT_DIGITAL,
+    color: TEXT_BRIGHT,
+    fontSize: 18,
+    letterSpacing: 6,
+    includeFontPadding: false,
   },
 });
