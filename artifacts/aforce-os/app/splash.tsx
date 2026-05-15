@@ -672,9 +672,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   ctaLabel: {
-    fontFamily: FONT_BOLD,
-    color: TEXT_BRIGHT,
-    fontSize: 12,
+    fontFamily: 'Inter_800ExtraBold',
+    color: '#FFFFFF',
+    fontSize: 14,
     letterSpacing: 6,
     paddingVertical: 12,
     paddingHorizontal: 24,
