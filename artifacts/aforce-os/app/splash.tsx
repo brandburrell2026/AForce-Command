@@ -22,8 +22,8 @@ import {
   View, Text, Pressable, StyleSheet, Platform,
 } from 'react-native';
 import Animated, {
-  useSharedValue, useAnimatedStyle, withTiming, withRepeat,
-  Easing, cancelAnimation,
+  useSharedValue, useAnimatedStyle, useAnimatedProps, withTiming,
+  withRepeat, Easing, cancelAnimation,
 } from 'react-native-reanimated';
 import Svg, { Circle, Path } from 'react-native-svg';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -106,10 +106,13 @@ function FadeIn({
 // a subtle scale breath and the outer halo's opacity, identical to
 // the orb's `scaleAnim` + `glowAnim` pairing.
 function RotatingRing({
-  color, glow, critical,
-}: { color: string; glow: string; critical: boolean }) {
+  color, glow, critical, drawing,
+}: { color: string; glow: string; critical: boolean; drawing: boolean }) {
   const rotate = useSharedValue(0);
   const pulse = useSharedValue(0);
+  // 0 = nothing drawn, 1 = full O. While `drawing`, this animates
+  // from 0 → 1 over 3s, painting the stroke around the ring once.
+  const draw = useSharedValue(drawing ? 0 : 1);
 
   React.useEffect(() => {
     rotate.value = withRepeat(
@@ -121,8 +124,25 @@ function RotatingRing({
   }, [rotate]);
 
   React.useEffect(() => {
+    if (drawing) {
+      draw.value = 0;
+      draw.value = withTiming(1, {
+        duration: 3000,
+        easing: Easing.inOut(Easing.cubic),
+      });
+    } else {
+      // Snap to fully drawn — the parent flips `drawing` off only
+      // *after* the 3s window, so this is just a safety net.
+      draw.value = withTiming(1, { duration: 200 });
+    }
+  }, [drawing, draw]);
+
+  React.useEffect(() => {
     cancelAnimation(pulse);
     pulse.value = 0;
+    // Don't pulse while the ring is still drawing itself — let the
+    // stroke complete the O cleanly first.
+    if (drawing) return;
     if (critical) {
       // DEPLETED — collapse: sharp inward squeeze, slow release.
       pulse.value = withRepeat(
@@ -139,7 +159,7 @@ function RotatingRing({
       );
     }
     return () => cancelAnimation(pulse);
-  }, [critical, pulse]);
+  }, [critical, drawing, pulse]);
 
   const ringStyle = useAnimatedStyle(() => {
     const scale = critical
@@ -154,8 +174,16 @@ function RotatingRing({
   });
 
   const haloStyle = useAnimatedStyle(() => ({
-    opacity: 0.4 + pulse.value * 0.55,
+    // Halo stays dim while the stroke is still painting in.
+    opacity: (0.4 + pulse.value * 0.55) * draw.value,
     transform: [{ scale: 0.92 + pulse.value * 0.16 }],
+  }));
+
+  // SVG circles begin at 3 o'clock and run clockwise. We rotate the
+  // circle by -90° so the stroke appears to begin painting at 12
+  // o'clock (top), which reads more naturally as "drawing an O".
+  const animatedCircleProps = useAnimatedProps(() => ({
+    strokeDashoffset: RING_CIRC * (1 - draw.value),
   }));
 
   return (
@@ -176,14 +204,21 @@ function RotatingRing({
         ]}
       />
       <Animated.View style={ringStyle}>
-        <Svg width={RING_SIZE} height={RING_SIZE}>
-          <Circle
+        <Svg
+          width={RING_SIZE}
+          height={RING_SIZE}
+          style={{ transform: [{ rotate: '-90deg' }] }}
+        >
+          <AnimatedCircle
             cx={RING_SIZE / 2}
             cy={RING_SIZE / 2}
             r={RING_RADIUS}
             stroke={color}
             strokeWidth={RING_STROKE}
             fill="none"
+            strokeLinecap="round"
+            strokeDasharray={`${RING_CIRC} ${RING_CIRC}`}
+            animatedProps={animatedCircleProps}
           />
         </Svg>
       </Animated.View>
@@ -238,18 +273,22 @@ export default function SplashScreen() {
   const [stage, setStage] = React.useState<Stage>(1);
   const [showInitializing, setShowInitializing] = React.useState(false);
   const [showEnter, setShowEnter] = React.useState(false);
+  // Once the white stroke has finished painting a full O (3s), the
+  // ring shifts to critical red and starts the orb-style pulse — same
+  // visual language as the home screen's StatusPulseOrb.
+  const [ringDrawn, setRingDrawn] = React.useState(false);
 
-  // Stage 1 → reveal INITIALIZING after 2s, then ENTER after the ring
-  // fade completes (3s ring + small beat). The ring itself begins
-  // rotating immediately on mount so its arrival in the world is the
-  // 3s opacity fade, not a motion entrance.
+  // Stage 1 → reveal INITIALIZING after 2s, mark the ring complete at
+  // 3s so it flips to red + pulse, then bring up ENTER right after.
   React.useEffect(() => {
     if (stage !== 1) return;
     const t1 = setTimeout(() => setShowInitializing(true), 2000);
-    const t2 = setTimeout(() => setShowEnter(true), 3600);
+    const t2 = setTimeout(() => setRingDrawn(true), 3000);
+    const t3 = setTimeout(() => setShowEnter(true), 3600);
     return () => {
       clearTimeout(t1);
       clearTimeout(t2);
+      clearTimeout(t3);
     };
   }, [stage]);
 
@@ -281,8 +320,10 @@ export default function SplashScreen() {
     router.replace('/(tabs)');
   }, [router]);
 
-  const ringColor = stage >= 3 ? CRITICAL_RED : RING_WHITE;
-  const haloColor = stage >= 3 ? CRITICAL_RED : 'rgba(255,255,255,0.35)';
+  // Ring goes red the moment the O completes; halo follows.
+  const isCritical = ringDrawn || stage >= 3;
+  const ringColor = isCritical ? CRITICAL_RED : RING_WHITE;
+  const haloColor = isCritical ? CRITICAL_RED : 'rgba(255,255,255,0.35)';
   const sweepActive = stage === 2;
   const showNumber = stage >= 3;
   const showCritical = stage >= 3;
@@ -303,11 +344,14 @@ export default function SplashScreen() {
           color shifts to critical red — done via FadeIn keyed on
           `ringColor` so the new color crossfades over the old. */}
       <View style={styles.center}>
-        <FadeIn show durationMs={3000} delayMs={0} style={StyleSheet.absoluteFill}>
-          <View style={styles.center}>
-            <RotatingRing color={ringColor} glow={haloColor} critical={stage >= 3} />
-          </View>
-        </FadeIn>
+        <View style={[StyleSheet.absoluteFill, styles.center]}>
+          <RotatingRing
+            color={ringColor}
+            glow={haloColor}
+            critical={isCritical}
+            drawing={!ringDrawn}
+          />
+        </View>
 
         <SweepingArc active={sweepActive} />
 
