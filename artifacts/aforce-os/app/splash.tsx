@@ -637,9 +637,9 @@ const styles = StyleSheet.create({
   copyHeadline: {
     fontFamily: FONT_BOLD,
     color: TEXT_BRIGHT,
-    fontSize: 26,
-    lineHeight: 32,
-    letterSpacing: -0.3,
+    fontSize: 21,
+    lineHeight: 26,
+    letterSpacing: -0.2,
     textAlign: 'center',
   },
   tagline: {
