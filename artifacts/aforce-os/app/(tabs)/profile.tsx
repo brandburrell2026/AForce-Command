@@ -761,22 +761,6 @@ export default function ProfileScreen() {
                         Coach voice
                       </Text>
                       <View style={{ gap: 6 }}>
-                        <Pressable
-                          onPress={() => setSelectedVoiceId(null)}
-                          style={[
-                            voicePickerStyles.row,
-                            selectedVoiceId === null && voicePickerStyles.rowSelected,
-                          ]}
-                          testID="profile-voice-device"
-                        >
-                          <View style={{ flex: 1 }}>
-                            <Text style={voicePickerStyles.rowLabel}>Device default</Text>
-                            <Text style={voicePickerStyles.rowDesc}>Built-in iOS / Android voice. Works offline.</Text>
-                          </View>
-                          {selectedVoiceId === null ? (
-                            <Icon name="check" size={16} color={Colors.states.PEAK.primary} />
-                          ) : null}
-                        </Pressable>
                         {AFORCE_VOICES.map((v) => {
                           const selected = selectedVoiceId === v.id;
                           return (
@@ -803,7 +787,7 @@ export default function ProfileScreen() {
                         })}
                       </View>
                       <Text style={[styles.flagDesc, { marginTop: 10, fontSize: 11 }]}>
-                        ElevenLabs voices stream from our server. If the network drops, we fall back to your device voice.
+                        Premium AForce voices, streamed from our server.
                       </Text>
 
                       {/* AForce Command Voice Engine — intensity picker.

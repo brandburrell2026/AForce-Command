@@ -55,6 +55,7 @@ import i18n, { setLanguage as setI18nLanguage, type SupportedLanguage } from '..
 import { PRODUCTS } from '../data/products';
 import { phantomBandService } from '../services/phantomBandService';
 import { speak as ttsSpeak, setVoicePlaybackEnabled, setSelectedVoiceId as setTtsVoiceId } from '../services/textToSpeech';
+import { DEFAULT_VOICE_ID } from '../services/voiceCatalog';
 import {
   effectiveCommandLine,
   categoryAllowedForScope,
@@ -238,8 +239,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // the textToSpeech playback flag so non-React consumers see the same
   // value. Hydrated from storage on first effect.
   const [voiceCoachEnabled, setVoiceCoachEnabledState] = React.useState<boolean>(true);
-  // ElevenLabs voice picker (Profile). Null = device synthesizer (default).
-  const [selectedVoiceId, setSelectedVoiceIdState] = React.useState<string | null>(null);
+  // ElevenLabs voice picker (Profile). Defaults to Adam — the device
+  // synthesizer fallback is no longer user-selectable; it only kicks
+  // in silently when the network drops mid-stream.
+  const [selectedVoiceId, setSelectedVoiceIdState] = React.useState<string | null>(DEFAULT_VOICE_ID);
   // AForce Command Voice Engine — intensity + scope (defaults match
   // the spec: standard tone, all categories audible). Hydrated from
   // AsyncStorage on first effect; persisted on every setter call.
@@ -850,7 +853,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     AsyncStorage.getItem(SELECTED_VOICE_KEY)
       .then((raw) => {
-        const next = raw && raw.length > 0 ? raw : null;
+        // Picker no longer offers a "device default" row, so an
+        // empty/missing key falls through to Adam rather than null.
+        const next = raw && raw.length > 0 ? raw : DEFAULT_VOICE_ID;
         setSelectedVoiceIdState(next);
         setTtsVoiceId(next);
       })
