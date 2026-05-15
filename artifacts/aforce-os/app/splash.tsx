@@ -98,9 +98,19 @@ function FadeIn({
   return <Animated.View style={[style, animStyle]}>{children}</Animated.View>;
 }
 
-// ─── RotatingRing — slow 18s/rev rotation w/ ambient halo ───────────
-function RotatingRing({ color, glow }: { color: string; glow: string }) {
+// ─── RotatingRing — 18s rotation + StatusPulseOrb-style breathing ───
+//
+// Mirrors the hydration orb's BALANCED `steady_outward` wave when the
+// ring is white (stages 1-2) and its DEPLETED `collapsing` wave when
+// the ring shifts to critical red (stages 3-4). The pulse drives both
+// a subtle scale breath and the outer halo's opacity, identical to
+// the orb's `scaleAnim` + `glowAnim` pairing.
+function RotatingRing({
+  color, glow, critical,
+}: { color: string; glow: string; critical: boolean }) {
   const rotate = useSharedValue(0);
+  const pulse = useSharedValue(0);
+
   React.useEffect(() => {
     rotate.value = withRepeat(
       withTiming(360, { duration: 18_000, easing: Easing.linear }),
@@ -109,14 +119,50 @@ function RotatingRing({ color, glow }: { color: string; glow: string }) {
     );
     return () => cancelAnimation(rotate);
   }, [rotate]);
-  const ringStyle = useAnimatedStyle(() => ({
-    transform: [{ rotateZ: `${rotate.value}deg` }],
+
+  React.useEffect(() => {
+    cancelAnimation(pulse);
+    pulse.value = 0;
+    if (critical) {
+      // DEPLETED — collapse: sharp inward squeeze, slow release.
+      pulse.value = withRepeat(
+        withTiming(1, { duration: 1400, easing: Easing.inOut(Easing.quad) }),
+        -1,
+        true,
+      );
+    } else {
+      // BALANCED — steady outward sine breath.
+      pulse.value = withRepeat(
+        withTiming(1, { duration: 2600, easing: Easing.inOut(Easing.sin) }),
+        -1,
+        true,
+      );
+    }
+    return () => cancelAnimation(pulse);
+  }, [critical, pulse]);
+
+  const ringStyle = useAnimatedStyle(() => {
+    const scale = critical
+      ? 1 + (pulse.value - 0.5) * -0.06    // collapse inward (~0.97↔1.03)
+      : 1 + pulse.value * 0.05;            // expand outward (1.00↔1.05)
+    return {
+      transform: [
+        { rotateZ: `${rotate.value}deg` },
+        { scale },
+      ],
+    };
+  });
+
+  const haloStyle = useAnimatedStyle(() => ({
+    opacity: 0.4 + pulse.value * 0.55,
+    transform: [{ scale: 0.92 + pulse.value * 0.16 }],
   }));
+
   return (
     <View style={styles.ringWrap}>
-      {/* Soft outer halo — mirrors the StatusPulseOrb dominant glow so
-          the lobby reads as the same visual product. */}
-      <View
+      {/* Soft outer halo — mirrors the StatusPulseOrb dominant glow,
+          breathing in step with the ring's pulse. */}
+      <Animated.View
         pointerEvents="none"
         style={[
           styles.halo,
@@ -126,6 +172,7 @@ function RotatingRing({ color, glow }: { color: string; glow: string }) {
             borderRadius: HALO_SIZE / 2,
             shadowColor: glow,
           },
+          haloStyle,
         ]}
       />
       <Animated.View style={ringStyle}>
@@ -258,7 +305,7 @@ export default function SplashScreen() {
       <View style={styles.center}>
         <FadeIn show durationMs={3000} delayMs={0} style={StyleSheet.absoluteFill}>
           <View style={styles.center}>
-            <RotatingRing color={ringColor} glow={haloColor} />
+            <RotatingRing color={ringColor} glow={haloColor} critical={stage >= 3} />
           </View>
         </FadeIn>
 
