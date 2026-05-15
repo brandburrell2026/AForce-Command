@@ -380,7 +380,7 @@ export function AIVideoPlayer({ video, command, compact = true, timerSeconds, sc
         {/* Header */}
         <View style={styles.headerRow}>
           <View style={[styles.liveDot, { backgroundColor: accent }]} />
-          <Text style={[styles.eyebrow, { color: accent }]}>AI COACH · LIVE</Text>
+          <Text style={[styles.eyebrow, { color: accent }]}>COMMAND VOICE ENGINE · LIVE</Text>
           <View style={{ flex: 1 }} />
           <Feather name="maximize-2" size={12} color={Colors.text.muted} />
         </View>
@@ -413,7 +413,7 @@ export function AIVideoPlayer({ video, command, compact = true, timerSeconds, sc
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <View style={[styles.liveDot, { backgroundColor: accent }]} />
-              <Text style={[styles.eyebrow, { color: accent }]}>AI COACH</Text>
+              <Text style={[styles.eyebrow, { color: accent }]}>COMMAND VOICE ENGINE</Text>
               <View style={{ flex: 1 }} />
               <TouchableOpacity onPress={handleCollapse} hitSlop={12}>
                 <Feather name="x" size={22} color={Colors.text.primary} />
