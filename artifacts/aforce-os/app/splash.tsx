@@ -531,10 +531,13 @@ export default function SplashScreen() {
         <FadeIn show delayMs={400} style={styles.copyBlock}>
           <Text style={styles.copyHeadline}>Performance is non-negotiable.</Text>
           <Text style={styles.tagline}>
-            <Text style={styles.taglineRed}>Pause.</Text>
-            <Text style={styles.taglineWhite}> Hydrate.</Text>
-            <Text style={styles.taglineYellow}> Lock in.</Text>
-            <Text style={styles.taglineWhite}> Perform.</Text>
+            <Text style={styles.taglineRed}>Pause</Text>
+            <Text style={styles.taglineArrow}>  →  </Text>
+            <Text style={styles.taglineWhite}>Hydrate</Text>
+            <Text style={styles.taglineArrow}>  →  </Text>
+            <Text style={styles.taglineYellow}>Lock in</Text>
+            <Text style={styles.taglineArrow}>  →  </Text>
+            <Text style={styles.taglineWhite}>Perform</Text>
           </Text>
         </FadeIn>
       )}
@@ -657,6 +660,10 @@ const styles = StyleSheet.create({
   taglineYellow: {
     fontFamily: FONT_BOLD,
     color: '#FFC93C',
+  },
+  taglineArrow: {
+    fontFamily: FONT_MEDIUM,
+    color: TEXT_DIM,
   },
   ctaSlot: {
     position: 'absolute',
