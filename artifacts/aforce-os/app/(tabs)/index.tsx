@@ -491,10 +491,14 @@ export default function HomeScreen() {
   );
 
   // Header derived data.
+  // Personalized welcome — uses Clerk first name when signed in, falls
+  // back to the email local-part, then to 'Brandon' as the demo /
+  // pre-auth default so the home greeting always reads as a real
+  // person's account rather than a generic 'Athlete'.
   const greetingName =
     clerkUser?.firstName ||
     clerkUser?.primaryEmailAddress?.emailAddress?.split('@')[0] ||
-    'Athlete';
+    'Brandon';
   const city = userState.weatherCity ?? null;
   const tempLabel = formatTemperatureF(userState.weatherTempC);
 

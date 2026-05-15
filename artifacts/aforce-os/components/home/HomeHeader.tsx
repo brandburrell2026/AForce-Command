@@ -31,7 +31,7 @@ function HomeHeaderImpl() {
   const greetingName =
     clerkUser?.firstName ||
     clerkUser?.primaryEmailAddress?.emailAddress?.split('@')[0] ||
-    'Athlete';
+    'Brandon';
   const stateColor = engine.performanceState.color;
 
   const onShare = () => {
