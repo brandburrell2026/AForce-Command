@@ -23,7 +23,7 @@ import {
 } from 'react-native';
 import Animated, {
   useSharedValue, useAnimatedStyle, useAnimatedProps, withTiming,
-  withRepeat, Easing, cancelAnimation,
+  withRepeat, withSequence, interpolate, Easing, cancelAnimation,
 } from 'react-native-reanimated';
 import Svg, { Circle, Path } from 'react-native-svg';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -60,10 +60,15 @@ const RING_SIZE = 220;
 const RING_STROKE = 1.5;
 const RING_RADIUS = (RING_SIZE - RING_STROKE) / 2;
 const RING_CIRC = 2 * Math.PI * RING_RADIUS;
-// Soft halo behind the ring — same visual language as StatusPulseOrb's
-// dominant outer glow (GLOW_RATIO ≈ 1.85). Keeps the lobby feeling
-// part of the same product instead of a flat overlay.
-const HALO_SIZE = Math.round(RING_SIZE * 1.85);
+// Orb composition sizes — mirror StatusPulseOrb's GLOW_RATIO 1.85 so
+// the red pulse on this lobby reads as the same visual instrument as
+// the hydration orb on the home screen, just in DEPLETED red.
+const GLOW_SIZE = Math.round(RING_SIZE * 1.85);
+const RIPPLE_SIZE = RING_SIZE + 24;
+// A second, slightly brighter inner halo at 70% of the outer glow,
+// matching the orb's `innerGlow` layer.
+const INNER_GLOW_SIZE = Math.round(GLOW_SIZE * 0.7);
+const ORB_BG = '#0A0A0A';
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
@@ -110,6 +115,18 @@ function RotatingRing({
 }: { color: string; glow: string; critical: boolean; drawing: boolean }) {
   const rotate = useSharedValue(0);
   const pulse = useSharedValue(0);
+  // Continuous outward ripple — mirrors StatusPulseOrb's `rippleStyle`
+  // (scale 1 → 1.4, opacity 0.55 → 0). Only runs once the ring has
+  // finished drawing the O, then loops indefinitely.
+  const rippleScale = useSharedValue(1);
+  const rippleOpacity = useSharedValue(0);
+  // Inward collapse ring — DEPLETED accent. Squeezes from outside in,
+  // matching the orb's `collapseStyle` for the depleted band.
+  const collapseScale = useSharedValue(1.5);
+  const collapseOpacity = useSharedValue(0);
+  // Reveal of the orb body (filled disc + glow halos) — fades in
+  // smoothly the moment the stroke completes its O.
+  const orbReveal = useSharedValue(0);
   // 0 = nothing drawn, 1 = full O. While `drawing`, this animates
   // from 0 → 1 over 3s, painting the stroke around the ring once.
   const draw = useSharedValue(drawing ? 0 : 1);
@@ -139,27 +156,80 @@ function RotatingRing({
 
   React.useEffect(() => {
     cancelAnimation(pulse);
+    cancelAnimation(rippleScale);
+    cancelAnimation(rippleOpacity);
+    cancelAnimation(collapseScale);
+    cancelAnimation(collapseOpacity);
     pulse.value = 0;
+    rippleOpacity.value = 0;
+    collapseOpacity.value = 0;
+    orbReveal.value = withTiming(drawing ? 0 : 1, { duration: 600 });
     // Don't pulse while the ring is still drawing itself — let the
     // stroke complete the O cleanly first.
     if (drawing) return;
+
+    // ── Core breathing pulse (drives orb scale + glow opacity) ──
     if (critical) {
-      // DEPLETED — collapse: sharp inward squeeze, slow release.
       pulse.value = withRepeat(
         withTiming(1, { duration: 1400, easing: Easing.inOut(Easing.quad) }),
         -1,
         true,
       );
     } else {
-      // BALANCED — steady outward sine breath.
       pulse.value = withRepeat(
         withTiming(1, { duration: 2600, easing: Easing.inOut(Easing.sin) }),
         -1,
         true,
       );
     }
-    return () => cancelAnimation(pulse);
-  }, [critical, drawing, pulse]);
+
+    // ── Continuous outward ripple ring (matches orb's rippleStyle) ──
+    const rippleMs = 1800;
+    rippleScale.value = withRepeat(
+      withSequence(
+        withTiming(1, { duration: 0 }),
+        withTiming(1.4, { duration: rippleMs, easing: Easing.out(Easing.cubic) }),
+      ),
+      -1,
+      false,
+    );
+    rippleOpacity.value = withRepeat(
+      withSequence(
+        withTiming(0.55, { duration: 80 }),
+        withTiming(0, { duration: rippleMs, easing: Easing.out(Easing.quad) }),
+      ),
+      -1,
+      false,
+    );
+
+    // ── Inward collapse ring (only in DEPLETED / red mode) ──
+    if (critical) {
+      const collapseMs = 1600;
+      collapseScale.value = withRepeat(
+        withSequence(
+          withTiming(1.5, { duration: 0 }),
+          withTiming(1.02, { duration: collapseMs, easing: Easing.in(Easing.quad) }),
+        ),
+        -1,
+        false,
+      );
+      collapseOpacity.value = withRepeat(
+        withSequence(
+          withTiming(0.55, { duration: 100 }),
+          withTiming(0, { duration: collapseMs, easing: Easing.in(Easing.quad) }),
+        ),
+        -1,
+        false,
+      );
+    }
+    return () => {
+      cancelAnimation(pulse);
+      cancelAnimation(rippleScale);
+      cancelAnimation(rippleOpacity);
+      cancelAnimation(collapseScale);
+      cancelAnimation(collapseOpacity);
+    };
+  }, [critical, drawing, pulse, rippleScale, rippleOpacity, collapseScale, collapseOpacity, orbReveal]);
 
   const ringStyle = useAnimatedStyle(() => {
     const scale = critical
@@ -173,10 +243,28 @@ function RotatingRing({
     };
   });
 
-  const haloStyle = useAnimatedStyle(() => ({
-    // Halo stays dim while the stroke is still painting in.
-    opacity: (0.4 + pulse.value * 0.55) * draw.value,
-    transform: [{ scale: 0.92 + pulse.value * 0.16 }],
+  // ── Layered glow / ring styles (mirror StatusPulseOrb) ──
+  const outerGlowStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(pulse.value, [0, 1], [0.18, 0.42]) * orbReveal.value,
+    transform: [{ scale: interpolate(pulse.value, [0, 1], [0.98, 1.18]) }],
+  }));
+  const innerGlowStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(pulse.value, [0, 1], [0.32, 0.58]) * orbReveal.value,
+    transform: [{ scale: interpolate(pulse.value, [0, 1], [0.95, 1.08]) }],
+  }));
+  const orbBodyStyle = useAnimatedStyle(() => {
+    const scale = critical
+      ? 1 + (pulse.value - 0.5) * -0.06
+      : 1 + pulse.value * 0.05;
+    return { opacity: orbReveal.value, transform: [{ scale }] };
+  });
+  const rippleStyle = useAnimatedStyle(() => ({
+    opacity: rippleOpacity.value * orbReveal.value,
+    transform: [{ scale: rippleScale.value }],
+  }));
+  const collapseRingStyle = useAnimatedStyle(() => ({
+    opacity: collapseOpacity.value * orbReveal.value,
+    transform: [{ scale: collapseScale.value }],
   }));
 
   // SVG circles begin at 3 o'clock and run clockwise. We rotate the
@@ -188,21 +276,81 @@ function RotatingRing({
 
   return (
     <View style={styles.ringWrap}>
-      {/* Soft outer halo — mirrors the StatusPulseOrb dominant glow,
-          breathing in step with the ring's pulse. */}
+      {/* ── Outer soft glow halo ── */}
       <Animated.View
         pointerEvents="none"
         style={[
-          styles.halo,
+          styles.glow,
           {
-            width: HALO_SIZE,
-            height: HALO_SIZE,
-            borderRadius: HALO_SIZE / 2,
-            shadowColor: glow,
+            width: GLOW_SIZE,
+            height: GLOW_SIZE,
+            borderRadius: GLOW_SIZE / 2,
+            backgroundColor: glow,
           },
-          haloStyle,
+          outerGlowStyle,
         ]}
       />
+      {/* ── Inner brighter glow ── */}
+      <Animated.View
+        pointerEvents="none"
+        style={[
+          styles.glow,
+          {
+            width: INNER_GLOW_SIZE,
+            height: INNER_GLOW_SIZE,
+            borderRadius: INNER_GLOW_SIZE / 2,
+            backgroundColor: glow,
+          },
+          innerGlowStyle,
+        ]}
+      />
+      {/* ── Continuous outward ripple ring ── */}
+      <Animated.View
+        pointerEvents="none"
+        style={[
+          styles.pulseRing,
+          {
+            width: RIPPLE_SIZE,
+            height: RIPPLE_SIZE,
+            borderRadius: RIPPLE_SIZE / 2,
+            borderColor: color,
+          },
+          rippleStyle,
+        ]}
+      />
+      {/* ── Inward collapse ring (DEPLETED red only) ── */}
+      {critical && (
+        <Animated.View
+          pointerEvents="none"
+          style={[
+            styles.pulseRing,
+            {
+              width: RIPPLE_SIZE,
+              height: RIPPLE_SIZE,
+              borderRadius: RIPPLE_SIZE / 2,
+              borderColor: color,
+              borderStyle: 'dashed',
+            },
+            collapseRingStyle,
+          ]}
+        />
+      )}
+      {/* ── Filled inner disc with red border (the "orb") ── */}
+      <Animated.View
+        pointerEvents="none"
+        style={[
+          styles.orbBody,
+          {
+            width: RING_SIZE,
+            height: RING_SIZE,
+            borderRadius: RING_SIZE / 2,
+            backgroundColor: ORB_BG,
+            borderColor: color,
+          },
+          orbBodyStyle,
+        ]}
+      />
+      {/* ── Drawing stroke (paints the O during stage 1) ── */}
       <Animated.View style={ringStyle}>
         <Svg
           width={RING_SIZE}
@@ -438,17 +586,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  // Soft radial halo behind the ring — matches the StatusPulseOrb
-  // dominant glow (large blur radius, low elevation, low opacity).
-  halo: {
+  // Soft radial halo behind the orb — matches StatusPulseOrb's
+  // outer/inner glow layers. We use a low-opacity filled disc rather
+  // than a shadow so the look is consistent across iOS / Android.
+  glow: {
     position: 'absolute',
-    backgroundColor: 'transparent',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.55,
-    shadowRadius: 60,
-    // Android falls back to elevation only — keep low so it doesn't
-    // become a hard rectangle.
-    elevation: 0,
+  },
+  pulseRing: {
+    position: 'absolute',
+    borderWidth: 2,
+  },
+  orbBody: {
+    position: 'absolute',
+    borderWidth: 2.5,
   },
   number: {
     fontFamily: FONT_BOLD,
