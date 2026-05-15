@@ -34,8 +34,9 @@ import Animated, {
   Easing,
   cancelAnimation,
   interpolate,
+  runOnJS,
+  useAnimatedReaction,
   useAnimatedStyle,
-  useDerivedValue,
   useSharedValue,
   withRepeat,
   withSequence,
@@ -161,11 +162,19 @@ export function InvestorDemoOverlay({ visible, onClose }: Props) {
   }, [beat.score, beat.durationMs]);
 
   // Re-render the digit a few times per second while the score animates.
+  // useDerivedValue runs on the UI thread, so calling React's JS setter
+  // from inside it crashes on Android ("setDisplayedScore is not a
+  // function"). useAnimatedReaction + runOnJS is the correct bridge.
   const [displayedScore, setDisplayedScore] = React.useState(beat.score);
-  useDerivedValue(() => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-    (setDisplayedScore as (n: number) => void)(Math.round(scoreSV.value));
-  }, [scoreSV]);
+  useAnimatedReaction(
+    () => Math.round(scoreSV.value),
+    (next, prev) => {
+      if (next !== prev) {
+        runOnJS(setDisplayedScore)(next);
+      }
+    },
+    [scoreSV],
+  );
 
   // Orb pulse — faster on critical bands.
   const orbPulse = useSharedValue(0);
