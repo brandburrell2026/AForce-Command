@@ -529,9 +529,12 @@ export default function SplashScreen() {
       {/* Stage 4 copy lines */}
       {showCopy && (
         <FadeIn show delayMs={400} style={styles.copyBlock}>
-          <Text style={styles.copyLine}>Performance is non-negotiable.</Text>
-          <Text style={styles.copyLine}>
-            Most don&apos;t know they&apos;re operating without it.
+          <Text style={styles.copyHeadline}>Performance is non-negotiable.</Text>
+          <Text style={styles.tagline}>
+            <Text style={styles.taglineRed}>Pause.</Text>
+            <Text style={styles.taglineWhite}> Hydrate.</Text>
+            <Text style={styles.taglineYellow}> Lock in.</Text>
+            <Text style={styles.taglineWhite}> Perform.</Text>
           </Text>
         </FadeIn>
       )}
@@ -623,18 +626,37 @@ const styles = StyleSheet.create({
   copyBlock: {
     position: 'absolute',
     top: '50%',
-    marginTop: RING_SIZE / 2 + 76,
+    marginTop: RING_SIZE / 2 + 64,
     alignItems: 'center',
-    paddingHorizontal: 32,
-    gap: 10,
+    paddingHorizontal: 24,
+    gap: 18,
   },
-  copyLine: {
-    fontFamily: FONT_REGULAR,
+  copyHeadline: {
+    fontFamily: FONT_BOLD,
     color: TEXT_BRIGHT,
-    fontSize: 15,
-    lineHeight: 22,
-    letterSpacing: 0.2,
+    fontSize: 26,
+    lineHeight: 32,
+    letterSpacing: -0.3,
     textAlign: 'center',
+  },
+  tagline: {
+    fontFamily: FONT_BOLD,
+    fontSize: 20,
+    lineHeight: 26,
+    letterSpacing: -0.2,
+    textAlign: 'center',
+  },
+  taglineRed: {
+    fontFamily: FONT_BOLD,
+    color: '#E53935',
+  },
+  taglineWhite: {
+    fontFamily: FONT_BOLD,
+    color: TEXT_BRIGHT,
+  },
+  taglineYellow: {
+    fontFamily: FONT_BOLD,
+    color: '#FFC93C',
   },
   ctaSlot: {
     position: 'absolute',
