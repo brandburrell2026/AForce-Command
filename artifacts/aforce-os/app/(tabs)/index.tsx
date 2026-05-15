@@ -311,7 +311,7 @@ function ScoreDrivenBody({
           with the orb / CTA / Next Command above. */}
       <View style={styles.coachSectionHeader}>
         <View style={[styles.coachLiveDot, { backgroundColor: orbColor }]} />
-        <Text style={styles.coachSectionTitle}>AI COACH</Text>
+        <Text style={styles.coachSectionTitle}>AFORCE COMMAND</Text>
         <Text style={styles.coachSectionDot}>·</Text>
         <Text style={[styles.coachSectionLive, { color: orbColor }]}>LIVE</Text>
       </View>
