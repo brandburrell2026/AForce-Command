@@ -9,6 +9,7 @@ import { Feather } from '@expo/vector-icons';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
+import { DEMO_MODE } from '../services/demoMode';
 import React, { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
@@ -54,6 +55,16 @@ function SplashGate() {
   useEffect(() => {
     if (checkedRef.current) return;
     checkedRef.current = true;
+    // DEMO_MODE: always replay the cinematic lobby on cold start so
+    // the welcome → AFORCE OS → orb → CONTINUE sequence is the first
+    // thing seen every launch (and so the home re-seeds to the
+    // BALANCED ~80 score after CONTINUE). In production the
+    // AsyncStorage flag gates it to first-launch only.
+    if (DEMO_MODE) {
+      AsyncStorage.removeItem('aforce.hasCompletedOnboarding').catch(() => {});
+      if (pathname !== '/splash') router.replace('/splash');
+      return;
+    }
     AsyncStorage.getItem('aforce.hasCompletedOnboarding')
       .then((v) => {
         if (v !== 'true' && pathname !== '/splash') {
