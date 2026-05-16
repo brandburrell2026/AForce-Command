@@ -426,3 +426,9 @@ id = "nDvx49tfItGUKhn3YUVcw"
 uri = "file://exports/phantom-rfp/Phantom-Band-Tearsheet.md"
 type = "text"
 title = "Tear Sheet — Editable Source (Markdown)"
+
+[[outputs]]
+id = "g9Kl9cpGDuXmFpN1G6Da8"
+uri = "file://exports/AForce-Social-Mode-Spec.pdf"
+type = "pdf"
+title = "AForce OS — Social Mode Spec (PDF)"

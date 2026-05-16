@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>AForce OS — Social Mode Spec</title>
+<style>
+  @page { size: Letter; margin: 0.6in 0.55in; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body {
+    font-family: -apple-system, "Helvetica Neue", Arial, sans-serif;
+    color: #0a0a0a; background: #fff;
+    font-size: 10.5pt; line-height: 1.42;
+    margin: 0;
+  }
+  .cover {
+    background: #000; color: #fff;
+    padding: 110px 64px 64px;
+    margin: -1px -1px 28px;
+    page-break-after: always;
+    min-height: 9.2in;
+  }
+  .cover .eyebrow {
+    color: #B6FF00; letter-spacing: 4px; font-size: 10pt;
+    font-weight: 700; text-transform: uppercase;
+  }
+  .cover h1 {
+    font-size: 44pt; line-height: 1.05; margin: 16px 0 18px;
+    font-weight: 800; letter-spacing: -1px;
+  }
+  .cover h1 .accent { color: #B6FF00; }
+  .cover .sub {
+    color: rgba(255,255,255,0.65); font-size: 13pt; line-height: 1.5;
+    max-width: 520px; margin-bottom: 90px;
+  }
+  .cover .meta {
+    border-top: 1px solid rgba(255,255,255,0.14);
+    padding-top: 18px;
+    color: rgba(255,255,255,0.55);
+    font-size: 9pt;
+    display: flex; justify-content: space-between;
+  }
+  h1.section {
+    font-size: 18pt; margin: 28px 0 4px;
+    border-bottom: 2px solid #000; padding-bottom: 6px;
+    letter-spacing: -0.3px;
+  }
+  h2 {
+    font-size: 12pt; margin: 22px 0 6px;
+    text-transform: uppercase; letter-spacing: 1.2px;
+    color: #000;
+  }
+  h2 .num {
+    display: inline-block; min-width: 22px;
+    color: #B6FF00; background: #000; padding: 1px 6px;
+    margin-right: 8px; font-size: 9pt; border-radius: 3px;
+    vertical-align: 2px;
+  }
+  p { margin: 6px 0 8px; }
+  ul, ol { margin: 4px 0 8px; padding-left: 22px; }
+  li { margin-bottom: 3px; }
+  code {
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 9pt;
+    background: #f4f4f4; padding: 1px 4px; border-radius: 3px;
+  }
+  pre {
+    background: #0a0a0a; color: #B6FF00;
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 8.5pt; line-height: 1.45;
+    padding: 12px 14px; border-radius: 6px;
+    overflow-x: auto; white-space: pre-wrap;
+  }
+  table {
+    width: 100%; border-collapse: collapse;
+    margin: 8px 0 12px; font-size: 9.5pt;
+  }
+  th {
+    background: #000; color: #fff;
+    text-align: left; padding: 7px 9px;
+    font-weight: 600; font-size: 9pt;
+    letter-spacing: 0.4px; text-transform: uppercase;
+  }
+  td {
+    padding: 6px 9px; border-bottom: 1px solid #e6e6e6;
+    vertical-align: top;
+  }
+  tr:nth-child(even) td { background: #fafafa; }
+  .pill {
+    display: inline-block; padding: 1px 7px; border-radius: 100px;
+    font-size: 8.5pt; font-weight: 700; letter-spacing: 0.4px;
+  }
+  .pill.crit  { background: #FF2800; color: #fff; }
+  .pill.high  { background: #FFA01E; color: #000; }
+  .pill.mod   { background: #FFD700; color: #000; }
+  .pill.elev  { background: #00E5C8; color: #000; }
+  .pill.low   { background: #B6FF00; color: #000; }
+  .callout {
+    border-left: 3px solid #FF2800;
+    background: #fff5f3;
+    padding: 10px 14px;
+    margin: 12px 0;
+    font-size: 10pt;
+  }
+  .callout.good { border-left-color: #B6FF00; background: #f7ffd8; }
+  .callout strong { letter-spacing: 0.4px; }
+  .twocol { column-count: 2; column-gap: 22px; }
+  footer.pf {
+    margin-top: 28px; padding-top: 10px;
+    border-top: 1px solid #ddd;
+    color: #888; font-size: 8.5pt;
+    display: flex; justify-content: space-between;
+  }
+  .section-break { page-break-before: always; }
+</style>
+</head>
+<body>
+
+<section class="cover">
+  <div class="eyebrow">AForce OS · Product Specification</div>
+  <h1>Social <span class="accent">Mode.</span><br/>Full Spec.</h1>
+  <div class="sub">
+    The complete, code-accurate reference for the BAC estimator,
+    impairment escalation, transportation prompts, recovery flow,
+    and UI surfaces that power AForce OS Social Mode.
+  </div>
+  <div class="meta">
+    <div>Version 1.0 · Generated from production source</div>
+    <div>Confidential · Investor &amp; Engineering Use</div>
+  </div>
+</section>
+
+<h1 class="section">Overview</h1>
+<p>Social Mode is the subscriber-only "drink smart on nights out" experience inside AForce OS. It tracks per-drink hydration impact in real time, estimates BAC, escalates transportation safety prompts, and runs an 8-hour morning recovery protocol. The voice is <strong>calm, protective, never preachy</strong> — it never says "safe to drive," never moralizes, and never asserts legal compliance.</p>
+
+<h2><span class="num">1</span>Access &amp; paywall</h2>
+<table>
+  <thead><tr><th style="width:25%">Tier</th><th>Behavior</th></tr></thead>
+  <tbody>
+    <tr><td><code>core</code> (free)</td><td>Paywall card "Drink smart on nights out" with feature list + <strong>UPGRADE TO UNLOCK</strong> CTA pointing to Store. Brand purple <code>#7C5CFF</code>.</td></tr>
+    <tr><td>Athlete+ (any paid tier)</td><td>Full <code>SocialModeSheet</code> rendered inline on the Social tab, permanently mounted. Closing returns to Home.</td></tr>
+  </tbody>
+</table>
+<p style="font-size:9.5pt;color:#555">Source of truth: Stripe, mirrored via webhook. Any <code>planId</code> other than <code>core</code> unlocks Social Mode.</p>
+
+<h2><span class="num">2</span>Drink catalog</h2>
+<table>
+  <thead><tr><th>Type</th><th>Default oz</th><th>Default ABV</th><th>Decay ×</th><th>Active window</th><th>Sugar load</th><th>Risk weight</th></tr></thead>
+  <tbody>
+    <tr><td>beer</td><td>12</td><td>5.0%</td><td>1.15×</td><td>30 min</td><td>3</td><td>1.0</td></tr>
+    <tr><td>wine</td><td>5</td><td>12.5%</td><td>1.20×</td><td>30 min</td><td>4</td><td>1.3</td></tr>
+    <tr><td>cocktail</td><td>8</td><td>14.0%</td><td>1.30×</td><td>30 min</td><td>8</td><td>1.6</td></tr>
+    <tr><td>liquor</td><td>1.5</td><td>40.0%</td><td>1.35×</td><td>30 min</td><td>1</td><td>1.8</td></tr>
+    <tr><td>hard_seltzer</td><td>12</td><td>5.0%</td><td>1.15×</td><td>30 min</td><td>1</td><td>1.0</td></tr>
+    <tr><td>custom</td><td>6</td><td>12.0%</td><td>1.25×</td><td>30 min</td><td>4</td><td>1.4</td></tr>
+  </tbody>
+</table>
+<p style="font-size:9.5pt;color:#555">Decay multipliers are taken from the <strong>high end</strong> of each range — the user is opting <em>in</em> to Social Mode and wants the system to err on the protective side, not flatter them.</p>
+
+<h2><span class="num">3</span>BAC estimation — Widmark approximation</h2>
+<pre>gramsAlcohol = Σ ( drink.oz × ML_PER_OZ × (drink.abv/100) × 0.789 )
+bodyMassG    = bodyWeightLbs × 453.592      (floored to 80 lbs)
+r            = 0.68 (male / unspecified) | 0.55 (female)
+foodFactor   = 0.92 if ateRecently else 1.0
+bacRaw       = (gramsAlcohol / (bodyMassG × r)) × 100 × foodFactor
+elapsedH     = hours since first drink
+bacCurrent   = max(0, bacRaw − 0.015 × elapsedH)</pre>
+
+<p><strong>Output: a range, never a single number.</strong></p>
+<table>
+  <thead><tr><th>Field</th><th>Derivation</th></tr></thead>
+  <tbody>
+    <tr><td><code>rangeLow</code> / <code>rangeHigh</code></td><td>point estimate ± 0.01 (Widmark's ±15–20% literature error)</td></tr>
+    <tr><td><code>trend</code></td><td>current − BAC 15 min ago; |Δ| &lt; 0.005 = <code>steady</code>, else <code>rising</code>/<code>falling</code></td></tr>
+    <tr><td><code>confidence</code></td><td><code>high</code> if sex provided AND ≥50% drinks have explicit oz/abv AND ≤8 drinks; else <code>medium</code>; <code>low</code> once &gt;8 drinks</td></tr>
+    <tr><td><code>timeToClearMinutes</code></td><td><code>(bac − 0.005) / 0.015 × 60</code>, rounded <strong>up</strong> to nearest 5 min (conservative)</td></tr>
+    <tr><td><code>notes</code></td><td>i18n keys: <code>default_sex</code>, <code>default_strength</code>, <code>food_factored</code>, <code>many_drinks</code></td></tr>
+  </tbody>
+</table>
+<p style="font-size:9pt;color:#555">Constants: <code>ETHANOL_DENSITY = 0.789 g/mL</code> · <code>ML_PER_OZ = 29.5735</code> · <code>LBS_TO_G = 453.592</code> · <code>ELIMINATION = 0.015 /h</code> · <code>CLEAR_THRESHOLD = 0.005</code>.</p>
+
+<h2 class="section-break"><span class="num">4</span>Impairment escalation matrix</h2>
+<p>Mapping uses the <strong>midpoint of the BAC range</strong> so the trend is smooth across refreshes.</p>
+<table>
+  <thead><tr><th>BAC midpoint</th><th>Level</th><th>Safety card</th><th>Stop drinking?</th><th>Coach line</th></tr></thead>
+  <tbody>
+    <tr><td>&lt; 0.030</td><td><span class="pill low">LOW</span></td><td>hidden</td><td>no</td><td>standard hydration / pacing copy</td></tr>
+    <tr><td>0.030 – 0.049</td><td><span class="pill elev">ELEVATED</span></td><td>hidden</td><td>no</td><td>standard hydration / pacing copy</td></tr>
+    <tr><td>0.050 – 0.079</td><td><span class="pill mod">MODERATE</span></td><td>shown — caution</td><td>no</td><td>"Plan a ride before your next drink"</td></tr>
+    <tr><td>0.080 – 0.119</td><td><span class="pill high">HIGH</span></td><td>shown — warning</td><td><strong>yes</strong></td><td>"Do not drive. Use a rideshare."</td></tr>
+    <tr><td>≥ 0.120</td><td><span class="pill crit">CRITICAL</span></td><td>shown — critical</td><td><strong>yes</strong></td><td>"Stop alcohol intake. Recovery req."</td></tr>
+  </tbody>
+</table>
+<p style="font-size:9.5pt;color:#555">The safety card is hidden below MODERATE so users only see the legal-protection language when it actually applies. The "stop drinking" sub-prompt only appears at HIGH/CRITICAL.</p>
+
+<h2><span class="num">5</span>Recovery Mode</h2>
+<ul>
+  <li>Triggered when the user taps <strong>End Night</strong> in the Social sheet — engine writes <code>socialMode.endedAt</code>.</li>
+  <li><code>RECOVERY_WINDOW_MS = 8 hours</code>. Rollup flips <code>inRecoveryWindow = true</code> for that window.</li>
+  <li>During recovery, <code>RecoveryModeCard</code> renders:
+    <ol>
+      <li>Estimated time until BAC clears (<code>bac.timeToClearMinutes</code>)</li>
+      <li><strong>3-step morning protocol:</strong> water → AForce RTD → 7+ hours sleep</li>
+      <li>Standard disclaimer pair</li>
+    </ol>
+  </li>
+  <li>Home banner shifts to <strong>amber</strong> and reads <code>social.recovery_active</code>.</li>
+  <li>Rollup returns <code>null</code> when Social Mode is neither active nor in recovery window.</li>
+</ul>
+
+<h2><span class="num">6</span>Orb overlay</h2>
+<p><code>StatusPulseOrb</code> accepts an optional <code>socialOverlay?: { alcoholLoad: number; unstable: boolean }</code>:</p>
+<ul>
+  <li><code>alcoholLoad ∈ [0, 1]</code> — derived from the active decay multiplier; pushes a subtle <strong>violet</strong> outer ring.</li>
+  <li><code>unstable = true</code> when impairment is HIGH/CRITICAL — ring flips <strong>crimson</strong> and pulses faster.</li>
+  <li>Overlay is purely additive; never replaces the base hydration gradient.</li>
+</ul>
+
+<h2><span class="num">7</span>Voice &amp; copy rules</h2>
+<div class="callout">
+  <strong>NEVER:</strong> "stop drinking," "you should not," "irresponsible," "safe to drive,"
+  promise a specific BAC at a specific future time, assert legal compliance, give medical advice.
+</div>
+<div class="callout good">
+  <strong>STRONGEST positive language allowed:</strong> "your estimate is currently low."
+</div>
+<ul>
+  <li><strong>Escalation verbs</strong> (protective, describe outcomes, not character): <em>plan a ride, switch to water, arrange safe transport, stop alcohol intake</em>.</li>
+  <li>Headlines short. Bodies 1–2 sentences max.</li>
+</ul>
+
+<h2><span class="num">8</span>Mandatory disclaimer</h2>
+<p>Every surface that renders a BAC value, impairment level, transport prompt, or recovery time <strong>must</strong> render the standard pair:</p>
+<div class="callout"><strong>Estimate only · Not a legal or medical determination.</strong></div>
+<p style="font-size:9.5pt;color:#555">i18n keys: <code>social.estimate_only</code>, <code>social.not_legal_medical</code>. Translated in <strong>en, es, fr, de, pt, it</strong>.</p>
+
+<h2 class="section-break"><span class="num">9</span>Data model</h2>
+<pre>type DrinkType = 'beer'|'wine'|'cocktail'|'liquor'|'hard_seltzer'|'custom'
+
+DrinkLog {
+  id, type, loggedAt: Date,
+  multiplier,                    // hydration decay multiplier
+  hydrated: boolean | null,      // null = post-drink prompt pending
+  abv?, oz?                      // fall back to catalog defaults
+}
+
+SocialModeState {
+  active, startedAt, drinks[],
+  lastHydrationPromptAt?, endedAt?,
+  sex?: 'male'|'female'|'unspecified',
+  ateRecently?: boolean
+}
+
+BACEstimate              { rangeLow, rangeHigh, trend, confidence,
+                           timeToClearMinutes, notes[] }
+ImpairmentRiskState      { level, bacMidpoint }
+TransportationSafetyPrompt {
+  show, severity, titleKey, bodyKey, disclaimerKey, stopDrinking
+}
+RecoveryRecommendation   { stepKeys[], timeToClearMinutes,
+                           morningEstimateKey }
+HangoverRisk             { level: 'LOW'|'MODERATE'|'HIGH'|'CRITICAL',
+                           score: 0–100, reasons[] }</pre>
+
+<h2><span class="num">10</span>Engine rollup output (per tick)</h2>
+<p><code>buildSocialRollup(state, now)</code> returns either <code>null</code> or:</p>
+<pre>{
+  active,
+  inRecoveryWindow,
+  drinkCount,
+  hangoverRisk,
+  alcoholMultiplier,   // active decay multiplier or 1 when inactive
+  bac,
+  impairment,
+  transportation
+}</pre>
+<p>This is what the UI (<code>SocialModeSheet</code>, <code>SocialModeBanner</code>, <code>SocialSafetyCard</code>, home orb) all read from.</p>
+
+<h2><span class="num">11</span>UI surface inventory</h2>
+<table>
+  <thead><tr><th>Component</th><th>Role</th></tr></thead>
+  <tbody>
+    <tr><td><code>app/(tabs)/social.tsx</code></td><td>Tab entry — paywall for free, full sheet for paid</td></tr>
+    <tr><td><code>components/SocialModeSheet.tsx</code></td><td>Full session UI: activate, log drinks, BAC strip, hydration prompts, end night</td></tr>
+    <tr><td><code>components/SocialModeBanner.tsx</code></td><td>Home-screen amber/violet banner indicating active session or recovery</td></tr>
+    <tr><td><code>components/SocialSafetyCard.tsx</code></td><td>Transport safety card (only at MODERATE+)</td></tr>
+    <tr><td><code>components/StatusPulseOrb.tsx</code></td><td>Hydration orb with optional violet/crimson social ring</td></tr>
+    <tr><td><code>screens/JournalScreen.tsx</code></td><td>Past-night summaries</td></tr>
+  </tbody>
+</table>
+
+<h2><span class="num">12</span>Pinned test invariants</h2>
+<p>These live in <code>services/__tests__/bacEstimation.test.ts</code> and must continue to hold after any engine change:</p>
+<ul class="twocol">
+  <li>Zero drinks → zero BAC, zero clear time.</li>
+  <li>One beer → LOW band.</li>
+  <li>Four quick liquor shots → at least MODERATE.</li>
+  <li>Trend rising right after drinks; falling after long elimination.</li>
+  <li><code>timeToClearMinutes</code> non-negative and a multiple of 5.</li>
+  <li>Confidence degrades when sex is unspecified.</li>
+  <li>Food intake softens the estimate vs empty stomach.</li>
+  <li>Safety prompt hidden at LOW / ELEVATED.</li>
+  <li>Safety prompt escalates to "do not drive" at HIGH and CRITICAL.</li>
+  <li>Disclaimer key always returned.</li>
+</ul>
+
+<footer class="pf">
+  <div>AForce OS · Social Mode Spec · v1.0</div>
+  <div>Confidential</div>
+</footer>
+
+</body>
+</html>
