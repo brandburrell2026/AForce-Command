@@ -15,6 +15,7 @@
 import { speak as ttsSpeak, stop as ttsStop } from './ttsService';
 import { speakWithElevenLabs, stopElevenLabs } from './elevenLabsTts';
 import { resolvePersona } from './voicePersonaService';
+import { elevenLabsIdFor } from './voiceCatalog';
 import type { PerformanceLevel } from '../types';
 import type { SupportedLanguage } from './i18nService';
 
@@ -22,10 +23,12 @@ import type { SupportedLanguage } from './i18nService';
 // to false when the user toggles "Voice coach" off in Profile.
 let enabled = true;
 
-// Selected ElevenLabs voice id, mirrored from the user's Profile
-// picker. When set, speak() routes through ElevenLabs and falls back
-// to the device synthesizer only if the network/playback fails — so
-// the coach is never silent.
+// Selected coach id (e.g. 'rock'), mirrored from the user's Profile
+// picker. The catalog resolves it to the right ElevenLabs voiceId at
+// speak() time, so the coach identity layer is decoupled from the
+// underlying voice infrastructure. Falls back to the device
+// synthesizer only if the network/playback fails — so the coach is
+// never silent.
 let selectedVoiceId: string | null = null;
 
 export function setSelectedVoiceId(next: string | null): void {
@@ -70,8 +73,9 @@ export function speak(text: string, opts: SpeakOpts = {}): void {
   // If the user has picked an ElevenLabs voice, prefer that — but fall
   // back to the device synthesizer on any failure so the coach never
   // goes silent over a flaky network.
-  if (selectedVoiceId) {
-    speakWithElevenLabs({ text, voiceId: selectedVoiceId }).catch((err) => {
+  const elevenLabsId = elevenLabsIdFor(selectedVoiceId);
+  if (elevenLabsId) {
+    speakWithElevenLabs({ text, voiceId: elevenLabsId }).catch((err) => {
       console.warn('[AForce] ElevenLabs TTS failed, falling back to device:', err);
       void ttsSpeak(text, {
         ...(opts.language ? { language: opts.language } : {}),

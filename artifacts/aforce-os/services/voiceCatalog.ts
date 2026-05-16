@@ -1,64 +1,98 @@
 /**
- * AForce voice catalog — the four ElevenLabs voices the user can pick
- * from in Profile. These are platform "premade" voices (the always-free
- * stock catalog) so they're available on every ElevenLabs account
- * without needing a paid Voice Library subscription. IDs are stable.
+ * AForce Coach voice catalog.
  *
- * Why these four:
- *   - We want a coach persona that's confident and clear over a phone
- *     speaker mid-workout. Premade voices are tuned by the platform for
- *     narrator-grade clarity, which matches the AForce one-shot command
- *     style much better than the more conversational community voices.
- *   - Two men + two women so the user can pick the energy that lands
- *     for them: dominant/firm vs deep/energetic on the male side,
- *     mature/reassuring vs knowledgeable/professional on the female side.
- *   - Picked from the user's verified ElevenLabs account inventory so
- *     the picker never hits a 404 or a paid_plan_required upstream.
+ * The four signature AForce coaches. Each coach drives labels,
+ * notifications, overlays, and command identity across the OS. The
+ * ElevenLabs voice IDs are kept stable from the previous catalog so
+ * the existing streaming pipeline keeps working without re-binding —
+ * the coach identity is purely a re-label on top.
+ *
+ * Coach roster (per AForce OS Master Update Spec):
+ *   - Coach Rock  — Julius Burrell. Commanding, identity-driven,
+ *                   faith-based. Push mode authority.
+ *   - Coach BB    — Brandon Burrell. Precision, data, execution.
+ *                   Technical authority.
+ *   - Coach Surge — High energy, explosive, celebratory.
+ *                   Push and ignite.
+ *   - Coach Sage  — Calm, recovery-focused, grounded.
+ *                   Reset and breathe.
+ *
+ * NOTE on ElevenLabs IDs: These IDs are temporary holds — the four
+ * stock ElevenLabs voices that previously powered Adam/Charlie/
+ * Matilda/Sarah now back the four coaches so the demo continues to
+ * speak. The signature AForce coach voices replace them in a later
+ * pass alongside the full Voice Engine refresh.
  */
 
 export type VoiceGender = 'male' | 'female';
 
+/** Coach archetype — drives orb intensity, command cadence, copy tone. */
+export type CoachArchetype = 'push' | 'precision' | 'ignite' | 'recovery';
+
 export interface AForceVoice {
-  /** ElevenLabs voice_id used on the API. */
+  /** Stable coach id used across labels, notifications, and persistence. */
   id: string;
-  /** Friendly display name in the picker. */
+  /** ElevenLabs voice_id used on the API for streamed playback. */
+  voiceId: string;
+  /** Display name in the picker — always rendered prefixed with "Coach". */
   label: string;
-  /** Short coach-vibe description shown under the name. */
+  /** Persona archetype — read by command/overlay code. */
+  archetype: CoachArchetype;
+  /** Short coach-vibe description shown under the name in the picker. */
   description: string;
   gender: VoiceGender;
 }
 
 export const AFORCE_VOICES: AForceVoice[] = [
   {
-    id: 'pNInz6obpgDQGcFmaJgB',
-    label: 'Adam',
-    description: 'Dominant, firm — push mode authority.',
+    id: 'rock',
+    voiceId: 'pNInz6obpgDQGcFmaJgB',
+    label: 'Rock',
+    archetype: 'push',
+    description: 'Commanding, identity-driven — push mode authority.',
     gender: 'male',
   },
   {
-    id: 'IKne3meq5aSn9XLyUdCD',
-    label: 'Charlie',
-    description: 'Deep, confident, energetic — pre-game hype.',
+    id: 'bb',
+    voiceId: 'IKne3meq5aSn9XLyUdCD',
+    label: 'BB',
+    archetype: 'precision',
+    description: 'Precision, data, execution — technical authority.',
     gender: 'male',
   },
   {
-    id: 'EXAVITQu4vr4xnSDxMaL',
-    label: 'Sarah',
-    description: 'Mature, reassuring, confident — recovery & breathwork.',
+    id: 'surge',
+    voiceId: 'XrExE9yKIg1WjnnlVkGX',
+    label: 'Surge',
+    archetype: 'ignite',
+    description: 'High energy, explosive, celebratory — push and ignite.',
     gender: 'female',
   },
   {
-    id: 'XrExE9yKIg1WjnnlVkGX',
-    label: 'Matilda',
-    description: 'Knowledgeable, professional — focused coach.',
+    id: 'sage',
+    voiceId: 'EXAVITQu4vr4xnSDxMaL',
+    label: 'Sage',
+    archetype: 'recovery',
+    description: 'Calm, recovery-focused, grounded — reset and breathe.',
     gender: 'female',
   },
 ];
 
-/** Default voice (Adam) — used when nothing has been selected yet. */
-export const DEFAULT_VOICE_ID = 'pNInz6obpgDQGcFmaJgB';
+/** Default coach (Rock) — used when nothing has been selected yet. */
+export const DEFAULT_VOICE_ID = 'rock';
 
+/** Resolve a coach by either its stable id ('rock') or its ElevenLabs voiceId. */
 export function findVoice(voiceId: string | null | undefined): AForceVoice | null {
   if (!voiceId) return null;
-  return AFORCE_VOICES.find((v) => v.id === voiceId) ?? null;
+  return (
+    AFORCE_VOICES.find((v) => v.id === voiceId) ??
+    AFORCE_VOICES.find((v) => v.voiceId === voiceId) ??
+    null
+  );
+}
+
+/** Resolve the ElevenLabs streaming id for a coach id (or pass-through if already an EL id). */
+export function elevenLabsIdFor(coachOrVoiceId: string | null | undefined): string | null {
+  const coach = findVoice(coachOrVoiceId);
+  return coach ? coach.voiceId : null;
 }

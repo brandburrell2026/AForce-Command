@@ -239,9 +239,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // the textToSpeech playback flag so non-React consumers see the same
   // value. Hydrated from storage on first effect.
   const [voiceCoachEnabled, setVoiceCoachEnabledState] = React.useState<boolean>(true);
-  // ElevenLabs voice picker (Profile). Defaults to Adam — the device
+  // AForce Coach picker (Profile). Defaults to Coach Rock — the device
   // synthesizer fallback is no longer user-selectable; it only kicks
-  // in silently when the network drops mid-stream.
+  // in silently when the network drops mid-stream. The stored value is
+  // a stable coach id ('rock' | 'bb' | 'surge' | 'sage'); the catalog
+  // resolves it to the right ElevenLabs voiceId at playback time.
   const [selectedVoiceId, setSelectedVoiceIdState] = React.useState<string | null>(DEFAULT_VOICE_ID);
   // AForce Command Voice Engine — intensity + scope (defaults match
   // the spec: standard tone, all categories audible). Hydrated from
@@ -854,7 +856,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     AsyncStorage.getItem(SELECTED_VOICE_KEY)
       .then((raw) => {
         // Picker no longer offers a "device default" row, so an
-        // empty/missing key falls through to Adam rather than null.
+        // empty/missing key falls through to Coach Rock rather than
+        // null. Legacy ElevenLabs ids still resolve via the catalog's
+        // dual-lookup so existing installs keep their voice.
         const next = raw && raw.length > 0 ? raw : DEFAULT_VOICE_ID;
         setSelectedVoiceIdState(next);
         setTtsVoiceId(next);

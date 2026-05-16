@@ -772,7 +772,7 @@ export default function ProfileScreen() {
                             >
                               <View style={{ flex: 1 }}>
                                 <Text style={voicePickerStyles.rowLabel}>
-                                  {v.label}
+                                  Coach {v.label}
                                   <Text style={voicePickerStyles.rowGender}>
                                     {'  '}· {v.gender === 'male' ? 'M' : 'F'}
                                   </Text>
