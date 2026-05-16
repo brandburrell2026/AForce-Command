@@ -54,7 +54,7 @@ function avgColor(score: number): string {
   if (score >= 85) return '#B6FF00';
   if (score >= 65) return '#00E5C8';
   if (score >= 40) return '#FFA01E';
-  return '#FF0026';
+  return '#FF2800';
 }
 
 function formatDate(ymd: string): string {

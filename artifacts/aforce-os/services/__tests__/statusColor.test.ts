@@ -93,7 +93,7 @@ describe('getStatusColor — calm baseline', () => {
     expect(getStatusColor(78).primary).toBe('#B6FF00');  // STABLE WHOOP lime
     expect(getStatusColor(60).primary).toBe('#FFDE00');  // DECLINING WHOOP recovery yellow
     expect(getStatusColor(40).primary).toBe('#FF8C1A');  // RISK orange
-    expect(getStatusColor(15).primary).toBe('#FF0026');  // CRITICAL WHOOP recovery red
+    expect(getStatusColor(15).primary).toBe('#FF2800');  // CRITICAL WHOOP recovery red
   });
 
   it('attaches band + bandIndex consistently', () => {
@@ -105,7 +105,7 @@ describe('getStatusColor — calm baseline', () => {
 
   it('emits #RRGGBBAA glow strings with band-appropriate alpha', () => {
     // CRITICAL = tight + intense (alpha 0.70 → B3)
-    expect(getStatusColor(15).glow.toUpperCase()).toBe('#FF0026B3');
+    expect(getStatusColor(15).glow.toUpperCase()).toBe('#FF2800B3');
     // OPTIMAL = soft + wide (alpha 0.32 → 52)
     expect(getStatusColor(95).glow.toUpperCase()).toBe('#16EC0652');
     // DECLINING = minimal (alpha 0.20 → 33)
@@ -183,7 +183,7 @@ describe('Interpolation stops — wired for Reanimated', () => {
   });
 
   it('stops are ordered worst → best (index 0 = CRITICAL)', () => {
-    expect(PRIMARY_STOPS[0]).toBe('#FF0026');
+    expect(PRIMARY_STOPS[0]).toBe('#FF2800');
     expect(PRIMARY_STOPS[4]).toBe('#16EC06');
     expect(PRIMARY_STOPS_PRESSURE[0]).toBe('#FF0040');
     expect(PRIMARY_STOPS_PRESSURE[4]).toBe('#00FF00');

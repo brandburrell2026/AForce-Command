@@ -452,7 +452,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   errorText: {
-    color: '#FF0026',
+    color: '#FF2800',
     fontSize: 12,
     fontFamily: 'Inter_600SemiBold',
     marginTop: 12,

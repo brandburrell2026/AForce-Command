@@ -46,10 +46,10 @@ export const Colors = {
       text: '#FFA01E',
     },
     DEPLETED: {
-      primary: '#FF0026',
-      glow: 'rgba(255,0,38,0.40)',
-      dim: 'rgba(255,0,38,0.12)',
-      text: '#FF0026',
+      primary: '#FF2800',
+      glow: 'rgba(255,40,0,0.40)',
+      dim: 'rgba(255,40,0,0.12)',
+      text: '#FF2800',
     },
   },
 
@@ -87,7 +87,7 @@ export const Colors = {
 
   success: '#B6FF00',
   warning: '#FFA01E',
-  danger: '#FF0026',
+  danger: '#FF2800',
   info: '#0093E7',
 
   tabBar: {

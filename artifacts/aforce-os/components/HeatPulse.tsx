@@ -51,8 +51,8 @@ const COLOR_STOPS_OUTPUT = [
   "#FFC857", // ELEVATED — gold
   "#FFA01E", // WARNING  — amber
   "#FF5A1F", // HIGH     — red-orange
-  "#FF0026", // CRITICAL — WHOOP recovery red
-  "#FF0026",
+  "#FF2800", // CRITICAL — WHOOP recovery red
+  "#FF2800",
 ];
 
 interface ModeConfig {

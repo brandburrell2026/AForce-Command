@@ -21,7 +21,7 @@ import { Colors } from '../theme/colors';
  * can be added back later without touching the components.
  */
 export const GLOW_PALETTE: readonly string[] = [
-  Colors.states.DEPLETED.primary,    // #FF0026  WHOOP recovery red
+  Colors.states.DEPLETED.primary,    // #FF2800  WHOOP recovery red
 ] as const;
 
 /**

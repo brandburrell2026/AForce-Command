@@ -35,7 +35,7 @@ export const HEALTH_PROVIDERS: HealthProvider[] = [
     id: 'apple_health',
     name: 'Apple Health',
     pulls: 'HR · HRV · sleep · workouts',
-    brand: '#FF0026',
+    brand: '#FF2800',
     icon: 'heart',
   },
   {

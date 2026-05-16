@@ -20,7 +20,7 @@ describe('getHydrationStatus — spec acceptance criteria', () => {
     const s = getHydrationStatus(28);
     expect(s.label).toBe('DEPLETED');
     expect(s.band).toBe('CRITICAL');
-    expect(s.color.primary).toBe('#FF0026'); // WHOOP recovery red
+    expect(s.color.primary).toBe('#FF2800'); // WHOOP recovery red
     expect(s.headline).toBe('System under stress.');
     expect(s.consequence).toBe('Recovery window closing.');
     expect(s.ctaText).toBe('STABILIZE SYSTEM');

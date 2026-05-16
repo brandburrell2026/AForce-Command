@@ -34,7 +34,7 @@ export const TEMP_HEAT_BAND_COLOR: Record<TempHeatBand, string> = {
   NORMAL: 'rgba(255,255,255,0.30)',
   ELEVATED: '#FFA01E', // amber / orange
   HIGH: '#FF6A00',     // orange-red
-  CRITICAL: '#FF0026', // red
+  CRITICAL: '#FF2800', // red
 };
 
 export const TEMP_HEAT_BAND_LABEL: Record<TempHeatBand, string> = {

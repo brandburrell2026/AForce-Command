@@ -59,7 +59,7 @@ export const STATUS_BANDS: readonly StatusBandThreshold[] = [
 
 /** Hex primaries — calm baseline (WHOOP-cinematic tuned). */
 const PRIMARY: Record<StatusBand, string> = {
-  CRITICAL:  '#FF0026', // WHOOP recovery red
+  CRITICAL:  '#FF2800', // WHOOP recovery red
   RISK:      '#FF8C1A', // orange
   DECLINING: '#FFDE00', // WHOOP recovery yellow
   STABLE:    '#B6FF00', // WHOOP lime (hero accent)

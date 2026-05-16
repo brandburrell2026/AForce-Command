@@ -69,7 +69,7 @@ export const HEAT_BANDS: HeatBandDisplay[] = [
     band: "CRITICAL",
     label: "CRITICAL",
     range: [85, 100],
-    color: "#FF0026", // WHOOP recovery red
+    color: "#FF2800", // WHOOP recovery red
     flashing: true,
     visualMode: "red_collapse",
     urgency: "imminent",
