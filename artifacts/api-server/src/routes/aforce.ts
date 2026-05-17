@@ -330,6 +330,8 @@ interface PersistedSocialMode {
   endedAt?: string;
   sex?: "male" | "female" | "unspecified";
   ateRecently?: boolean;
+  /** Chunk #4: Recovery preset pre-biases environmental stress. */
+  preset?: "travel" | "heat" | "hard_block" | null;
 }
 
 async function readSocial(userId: string): Promise<PersistedSocialMode | null> {
@@ -337,21 +339,26 @@ async function readSocial(userId: string): Promise<PersistedSocialMode | null> {
   return (row.socialMode ?? null) as PersistedSocialMode | null;
 }
 
+const activateSchema = z.object({
+  preset: z.enum(["travel", "heat", "hard_block"]).nullable().optional(),
+});
 router.post("/social/activate", async (req, res) => {
   try {
     const userId = resolveUserId(req);
+    const { preset } = activateSchema.parse(req.body ?? {});
     const now = new Date().toISOString();
     const next: PersistedSocialMode = {
       active: true,
       startedAt: now,
       drinks: [],
+      ...(preset ? { preset } : {}),
     };
     const updated = await updateUserState(userId, { socialMode: next });
     broadcastState(userId, updated);
     res.json({ userState: updated });
   } catch (err) {
     logger.error({ err }, "POST /aforce/social/activate failed");
-    res.status(500).json({ error: "social_activate_failed" });
+    res.status(400).json({ error: "social_activate_failed" });
   }
 });
 

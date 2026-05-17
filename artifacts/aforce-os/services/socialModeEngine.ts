@@ -61,6 +61,7 @@ export function buildSocialRollup(state: UserState, performanceScore: number, no
       tempC: state.weatherTempC,
       humidity: state.weatherHumidity,
       activityLevel: state.activityLevel,
+      preset: sm.preset ?? null,
     }),
   });
 

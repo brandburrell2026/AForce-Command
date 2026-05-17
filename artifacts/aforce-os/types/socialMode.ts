@@ -40,6 +40,18 @@ export interface DrinkLog {
 // ─── Social session ───────────────────────────────────────────────────────────
 export type SocialContextSex = 'male' | 'female' | 'unspecified';
 
+/**
+ * Recovery presets — chunk #4 of the Master Update.
+ *
+ * A preset pre-biases the environmental-stress component of the
+ * Recovery Capacity Score so the user starts a session already calibrated
+ * for the context they're entering (long-haul travel, extreme heat, or
+ * a hard training block). The preset never *reduces* stress — it only
+ * raises the floor — so a hot day in Travel mode still respects the
+ * worst single signal.
+ */
+export type RecoveryPreset = 'travel' | 'heat' | 'hard_block';
+
 export interface SocialModeState {
   active: boolean;
   startedAt: Date;
@@ -50,6 +62,11 @@ export interface SocialModeState {
   /** Optional context for sharper BAC math. Defaults applied when missing. */
   sex?: SocialContextSex;
   ateRecently?: boolean;
+  /**
+   * Active recovery preset, if any. Selected when the user starts a
+   * session from the SocialModeSheet. `null` / omitted = no preset bias.
+   */
+  preset?: RecoveryPreset | null;
 }
 
 // ─── Hangover Risk ────────────────────────────────────────────────────────────

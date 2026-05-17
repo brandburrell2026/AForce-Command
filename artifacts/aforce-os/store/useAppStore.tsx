@@ -153,7 +153,7 @@ interface AppContextValue {
    */
   setLanguage: (lang: SupportedLanguage) => Promise<void>;
   /** Social Mode (alcohol mitigation) — start a fresh drinking session. */
-  activateSocialMode: () => Promise<void>;
+  activateSocialMode: (preset?: 'travel' | 'heat' | 'hard_block' | null) => Promise<void>;
   /** Log a single drink of the given alcohol type. */
   logSocialDrink: (
     type: 'beer' | 'wine' | 'cocktail' | 'liquor' | 'hard_seltzer' | 'custom',
@@ -657,9 +657,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   }, [state.userState, applyServerUserState]);
 
-  const activateSocialMode = useCallback(async () => {
+  const activateSocialMode = useCallback(async (
+    preset?: 'travel' | 'heat' | 'hard_block' | null,
+  ) => {
     try {
-      const { newUserState, engineOutput } = await postSocialActivate(state.userState);
+      const { newUserState, engineOutput } = await postSocialActivate(state.userState, preset);
       applyServerUserState(newUserState, engineOutput);
     } catch (err) {
       console.warn('[AForce] activateSocialMode failed', err);

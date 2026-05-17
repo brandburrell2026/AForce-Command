@@ -30,6 +30,73 @@
 
 export type RecoveryBand = 'peak' | 'stable' | 'declining' | 'critical';
 
+/* ─────────────────── recovery presets (chunk #4) ───────────────────
+ *
+ * Each preset carries a fixed environmental-stress floor on the 0–1
+ * scale. The floor is folded into `environmentalStress()` via max() so
+ * a preset can only *raise* baseline stress, never lower it. Values
+ * were chosen so a "clean" environment (cool, dry, sedentary) starts
+ * at roughly:
+ *
+ *   Travel     → Stable (mild dehydration / schedule disruption)
+ *   Hard block → Stable→Declining (training load)
+ *   Heat       → Declining (significant thermal pre-load)
+ *
+ * Designers can retune these numbers without touching downstream code.
+ */
+
+export type RecoveryPresetId = 'travel' | 'heat' | 'hard_block';
+
+export interface RecoveryPresetMeta {
+  readonly id: RecoveryPresetId;
+  readonly label: 'Travel' | 'Heat' | 'Hard Block';
+  /** Lucide icon name (must be present in `theme/icons.ts` ICON_MAP). */
+  readonly icon: 'plane' | 'thermometer' | 'dumbbell';
+  /** Stress floor 0–1 added via max(). */
+  readonly stressFloor: number;
+  /** One-line context for the UI chip. */
+  readonly blurb: string;
+}
+
+export const RECOVERY_PRESETS: Readonly<Record<RecoveryPresetId, RecoveryPresetMeta>> = {
+  travel: {
+    id: 'travel',
+    label: 'Travel',
+    icon: 'plane',
+    stressFloor: 0.30,
+    blurb: 'Cabin air, time zones, disrupted sleep.',
+  },
+  heat: {
+    id: 'heat',
+    label: 'Heat',
+    icon: 'thermometer',
+    stressFloor: 0.50,
+    blurb: 'Pre-loaded for hot, humid, or sun-exposed days.',
+  },
+  hard_block: {
+    id: 'hard_block',
+    label: 'Hard Block',
+    icon: 'dumbbell',
+    stressFloor: 0.40,
+    blurb: 'Stacked training days with limited recovery.',
+  },
+} as const;
+
+/** Convenience array for UI iteration in a stable order. */
+export const RECOVERY_PRESET_LIST: readonly RecoveryPresetMeta[] = [
+  RECOVERY_PRESETS.travel,
+  RECOVERY_PRESETS.heat,
+  RECOVERY_PRESETS.hard_block,
+] as const;
+
+/** Returns the preset metadata, or `null` for unknown / null inputs. */
+export function presetMetaFor(
+  id: RecoveryPresetId | null | undefined,
+): RecoveryPresetMeta | null {
+  if (!id) return null;
+  return RECOVERY_PRESETS[id] ?? null;
+}
+
 export interface RecoveryBandMeta {
   readonly band: RecoveryBand;
   /** Lowercase machine label — useful for telemetry / i18n keys. */
@@ -139,11 +206,19 @@ export function environmentalStress(input: {
   humidity?: number | null;
   /** Activity level 0–10 (e.g. `userState.activityLevel`). */
   activityLevel?: number | null;
+  /**
+   * Optional Recovery Preset (chunk #4). When set, the preset's
+   * `stressFloor` is folded in via max() so the score is pre-biased
+   * for the context the user opted into. The preset can only *raise*
+   * stress — never lower it.
+   */
+  preset?: RecoveryPresetId | null;
 }): number {
   const heat = input.tempC == null ? 0 : ramp(input.tempC, 22, 38);
   const humidity = input.humidity == null ? 0 : ramp(input.humidity, 40, 90);
   const activity = input.activityLevel == null ? 0 : ramp(input.activityLevel, 0, 10);
-  return Math.max(heat, humidity, activity);
+  const presetFloor = input.preset ? RECOVERY_PRESETS[input.preset]?.stressFloor ?? 0 : 0;
+  return Math.max(heat, humidity, activity, presetFloor);
 }
 
 /** Locate the band metadata for a given 0–100 score. Always returns one. */

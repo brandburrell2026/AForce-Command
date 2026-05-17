@@ -33,12 +33,14 @@ import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Colors } from '../theme/colors';
+import { Icon, type IconName } from './Icon';
 import { RecoveryCapacityCard } from './RecoveryCapacityCard';
 import { RecoveryModeCard } from './RecoveryModeCard';
 import { RecoveryModePaywall } from './RecoveryModePaywall';
 import { useAppStore } from '../store/useAppStore';
 import { gate } from '../featureFlags/subscriptionGate';
 import { RECOVERY_WINDOW_MS } from '../services/socialModeEngine';
+import { RECOVERY_PRESET_LIST, presetMetaFor, type RecoveryPresetId } from '../services/recoveryCapacity';
 import type { DrinkType, ScoreEngineOutput, SocialModeState } from '../types';
 
 interface Props {
@@ -46,7 +48,7 @@ interface Props {
   onDismiss: () => void;
   socialMode: SocialModeState | undefined;
   social: ScoreEngineOutput['social'];
-  onActivate: () => void;
+  onActivate: (preset?: RecoveryPresetId | null) => void;
   /** @deprecated retained for callsite compatibility; no UI invokes it post-3c. */
   onLogDrink: (type: DrinkType) => void;
   /** @deprecated retained for callsite compatibility; no UI invokes it post-3c. */
@@ -66,6 +68,13 @@ export function SocialModeSheet({
   const insets = useSafeAreaInsets();
   const opacity = useSharedValue(0);
   const translateY = useSharedValue(60);
+  // Local preset selection. Persists only until activation — once the
+  // session is live, the active preset comes from `socialMode.preset`.
+  const [selectedPreset, setSelectedPreset] = React.useState<RecoveryPresetId | null>(null);
+
+  // Reset the local selection whenever the sheet is closed so the user
+  // doesn't inherit a stale pick on their next open.
+  useEffect(() => { if (!visible) setSelectedPreset(null); }, [visible]);
 
   useEffect(() => {
     if (visible) {
@@ -104,8 +113,10 @@ export function SocialModeSheet({
 
   const handleActivate = () => {
     if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-    onActivate();
+    onActivate(selectedPreset);
   };
+
+  const activePreset = presetMetaFor(socialMode?.preset);
 
   const handleDeactivate = () => {
     if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
@@ -157,6 +168,46 @@ export function SocialModeSheet({
                 you can watch in real time.
               </Text>
 
+              <Text style={styles.sectionLabel}>OPTIONAL · PICK A CONTEXT</Text>
+              <View style={styles.presetRow}>
+                {RECOVERY_PRESET_LIST.map((p) => {
+                  const isSel = selectedPreset === p.id;
+                  return (
+                    <Pressable
+                      key={p.id}
+                      onPress={() => {
+                        if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
+                        setSelectedPreset(isSel ? null : p.id);
+                      }}
+                      style={[
+                        styles.presetChip,
+                        {
+                          borderColor: isSel ? `${TEAL}99` : 'rgba(255,255,255,0.10)',
+                          backgroundColor: isSel ? `${TEAL}1A` : 'rgba(255,255,255,0.03)',
+                        },
+                      ]}
+                      testID={`recovery-preset-${p.id}`}
+                      accessibilityRole="button"
+                      accessibilityState={{ selected: isSel }}
+                      accessibilityLabel={`${p.label} preset`}
+                    >
+                      <Icon
+                        name={p.icon as IconName}
+                        size={18}
+                        color={isSel ? TEAL : Colors.text.secondary}
+                      />
+                      <Text style={[
+                        styles.presetLabel,
+                        { color: isSel ? TEAL : Colors.text.primary },
+                      ]}>
+                        {p.label.toUpperCase()}
+                      </Text>
+                      <Text style={styles.presetBlurb} numberOfLines={2}>{p.blurb}</Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+
               <Pressable
                 onPress={handleActivate}
                 style={[styles.primaryBtn, { borderColor: `${TEAL}66`, backgroundColor: `${TEAL}14` }]}
@@ -165,7 +216,9 @@ export function SocialModeSheet({
                 accessibilityLabel="Start recovery session"
               >
                 <Feather name="play" size={16} color={TEAL} />
-                <Text style={[styles.primaryBtnText, { color: TEAL }]}>START RECOVERY SESSION</Text>
+                <Text style={[styles.primaryBtnText, { color: TEAL }]}>
+                  START RECOVERY SESSION
+                </Text>
               </Pressable>
             </>
           )}
@@ -173,6 +226,17 @@ export function SocialModeSheet({
           {/* ─── ACTIVE state ──────────────────────────────────────── */}
           {isActive && social && (
             <>
+              {activePreset && (
+                <View
+                  style={[styles.activePresetChip, { borderColor: `${TEAL}55`, backgroundColor: `${TEAL}14` }]}
+                  testID={`recovery-active-preset-${activePreset.id}`}
+                >
+                  <Icon name={activePreset.icon as IconName} size={14} color={TEAL} />
+                  <Text style={[styles.activePresetText, { color: TEAL }]}>
+                    {activePreset.label.toUpperCase()} PRESET
+                  </Text>
+                </View>
+              )}
               <RecoveryCapacityCard recovery={social.recoveryCapacity} />
 
               <View style={styles.statusRow}>
@@ -271,4 +335,28 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   primaryBtnText: { fontSize: 13, fontFamily: 'Inter_700Bold', letterSpacing: 1.4 },
+  sectionLabel: {
+    fontSize: 10, fontFamily: 'Inter_700Bold', color: Colors.text.muted,
+    letterSpacing: 1.6, marginTop: 4, marginBottom: 10,
+  },
+  presetRow: {
+    flexDirection: 'row', gap: 8, marginBottom: 14,
+  },
+  presetChip: {
+    flex: 1, minHeight: 92, paddingVertical: 12, paddingHorizontal: 10,
+    borderRadius: 14, borderWidth: 1, alignItems: 'center', gap: 4,
+  },
+  presetLabel: {
+    fontSize: 11, fontFamily: 'Inter_700Bold', letterSpacing: 1.2, marginTop: 4,
+  },
+  presetBlurb: {
+    fontSize: 10, lineHeight: 13, color: Colors.text.muted,
+    fontFamily: 'Inter_400Regular', textAlign: 'center', marginTop: 2,
+  },
+  activePresetChip: {
+    flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start',
+    paddingHorizontal: 10, paddingVertical: 5, borderRadius: 100, borderWidth: 1,
+    marginBottom: 10,
+  },
+  activePresetText: { fontSize: 10, fontFamily: 'Inter_700Bold', letterSpacing: 1.4 },
 });

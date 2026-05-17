@@ -29,7 +29,7 @@ import type { DrinkType } from '@/types';
 import { TAB_BAR_HEIGHT, WEB_TOP_PADDING, WEB_BOTTOM_PADDING } from '@/constants/layout';
 
 interface SocialActions {
-  activateSocialMode: () => Promise<void>;
+  activateSocialMode: (preset?: 'travel' | 'heat' | 'hard_block' | null) => Promise<void>;
   logSocialDrink: (type: DrinkType) => Promise<void>;
   confirmSocialHydration: (confirmed: boolean) => Promise<void>;
   deactivateSocialMode: () => Promise<void>;
@@ -78,7 +78,7 @@ export default function SocialScreen() {
             onDismiss={goHome}
             socialMode={userState.socialMode}
             social={engine.social}
-            onActivate={() => { void activateSocialMode?.(); }}
+            onActivate={(preset) => { void activateSocialMode?.(preset); }}
             onLogDrink={(type) => { void logSocialDrink?.(type); }}
             onConfirmHydration={(c) => { void confirmSocialHydration?.(c); }}
             onDeactivate={() => { void deactivateSocialMode?.(); }}

@@ -59,7 +59,7 @@ const AFORCE_BASE = `${API_BASE}/aforce`;
 // The Postgres row returns ISO date strings + nullable fields; the rest
 // of the app expects `Date` instances. Centralize the conversion so the
 // store never has to know the wire format.
-function normalizeUserState(row: Record<string, unknown>): UserState {
+export function normalizeUserState(row: Record<string, unknown>): UserState {
   const get = <T>(k: string): T => row[k] as T;
   const dateOrNull = (k: string): Date | null => {
     const v = row[k];
@@ -162,6 +162,13 @@ function normalizeSocialMode(raw: unknown): UserState['socialMode'] {
       ? { sex: r['sex'] as 'male' | 'female' | 'unspecified' }
       : {}),
     ...(typeof r['ateRecently'] === 'boolean' ? { ateRecently: r['ateRecently'] } : {}),
+    // Chunk #4: Recovery preset round-trip. Strict allow-list — any
+    // unknown value coming back from the server (or a stale persisted
+    // row from an older client) collapses to null so we never inject
+    // garbage into the environmental-stress floor calc downstream.
+    ...(r['preset'] === 'travel' || r['preset'] === 'heat' || r['preset'] === 'hard_block'
+      ? { preset: r['preset'] as 'travel' | 'heat' | 'hard_block' }
+      : {}),
   };
 }
 
@@ -355,8 +362,11 @@ export function postClutchFlag(userState: UserState, clutchActive: boolean) {
 export function postLanguage(userState: UserState, language: UserState['language']) {
   return postAndRecompute('/language', { language }, userState);
 }
-export function postSocialActivate(userState: UserState) {
-  return postAndRecompute('/social/activate', {}, userState);
+export function postSocialActivate(
+  userState: UserState,
+  preset?: 'travel' | 'heat' | 'hard_block' | null,
+) {
+  return postAndRecompute('/social/activate', preset ? { preset } : {}, userState);
 }
 export function postSocialDrink(
   userState: UserState,
