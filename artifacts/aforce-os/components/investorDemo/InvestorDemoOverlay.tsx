@@ -239,6 +239,49 @@ export function InvestorDemoOverlay({ visible, onClose }: Props) {
     titleFade.value = withTiming(1, { duration: 380, easing: Easing.out(Easing.quad) });
   }, [beatIndex]);
 
+  // ─── Chunk #7d v3 pacing ──────────────────────────────────────────
+  // Caption cross-fade: when the voice line changes between beats the
+  // old line previously snapped. Now we fade out → swap → fade in so
+  // the transcript breathes with the engine.
+  const captionFade = useSharedValue(1);
+  React.useEffect(() => {
+    captionFade.value = withSequence(
+      withTiming(0, { duration: 180, easing: Easing.in(Easing.quad) }),
+      withTiming(1, { duration: 340, easing: Easing.out(Easing.cubic) }),
+    );
+  }, [beatIndex]);
+
+  // Lifecycle pill scale-in: pop on every label transition (RECEIVED →
+  // TRANSMITTING → EXECUTED) so investors can SEE the state flip,
+  // not just read a snap-change.
+  const lifecyclePop = useSharedValue(1);
+  const lifecycleLabel =
+    playback === 'received'  ? 'RECEIVED'
+    : playback === 'playing' ? 'TRANSMITTING'
+    : playback === 'executed' ? 'EXECUTED'
+    : playback === 'error'   ? 'AUDIO RETRY'
+    : null;
+  React.useEffect(() => {
+    if (!lifecycleLabel) return;
+    lifecyclePop.value = 0.85;
+    lifecyclePop.value = withTiming(1, { duration: 240, easing: Easing.out(Easing.back(1.6)) });
+  }, [lifecycleLabel]);
+
+  // Brand dot breathing — eyebrow now feels alive instead of static.
+  const brandPulse = useSharedValue(0);
+  React.useEffect(() => {
+    if (!visible) {
+      cancelAnimation(brandPulse);
+      brandPulse.value = 0;
+      return;
+    }
+    brandPulse.value = withRepeat(
+      withTiming(1, { duration: 2400, easing: Easing.inOut(Easing.sin) }),
+      -1, true,
+    );
+    return () => cancelAnimation(brandPulse);
+  }, [visible]);
+
   /* --------------------------- styles --------------------------- */
 
   const accent = BAND_ACCENT[beat.band];
@@ -269,12 +312,20 @@ export function InvestorDemoOverlay({ visible, onClose }: Props) {
     transform: [{ translateY: interpolate(titleFade.value, [0, 1], [8, 0]) }],
   }));
 
-  const lifecycleLabel =
-    playback === 'received'  ? 'RECEIVED'
-    : playback === 'playing' ? 'TRANSMITTING'
-    : playback === 'executed' ? 'EXECUTED'
-    : playback === 'error'   ? 'AUDIO RETRY'
-    : null;
+  const captionStyle = useAnimatedStyle(() => ({
+    opacity: captionFade.value,
+    transform: [{ translateY: interpolate(captionFade.value, [0, 1], [6, 0]) }],
+  }));
+
+  const lifecyclePillStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(lifecyclePop.value, [0.85, 1], [0.4, 1]),
+    transform: [{ scale: lifecyclePop.value }],
+  }));
+
+  const brandDotStyle = useAnimatedStyle(() => ({
+    opacity:   interpolate(brandPulse.value, [0, 1], [0.55, 1]),
+    transform: [{ scale: interpolate(brandPulse.value, [0, 1], [0.85, 1.15]) }],
+  }));
 
   const onExit = React.useCallback(() => {
     clearAllTimers();
@@ -298,7 +349,7 @@ export function InvestorDemoOverlay({ visible, onClose }: Props) {
         {/* Top bar — eyebrow + EXIT */}
         <View style={styles.topBar}>
           <View style={styles.brandRow}>
-            <View style={[styles.brandDot, { backgroundColor: accent, shadowColor: accent }]} />
+            <Animated.View style={[styles.brandDot, { backgroundColor: accent, shadowColor: accent }, brandDotStyle]} />
             <Text style={styles.brandLabel} numberOfLines={1}>
               {BRAND_LANGUAGE.engineName.toUpperCase()} · INVESTOR DEMO
             </Text>
@@ -408,31 +459,33 @@ export function InvestorDemoOverlay({ visible, onClose }: Props) {
           <View style={styles.captionHeader}>
             <Text style={styles.captionEyebrow}>VOICE STREAM</Text>
             {lifecycleLabel ? (
-              <View
+              <Animated.View
                 style={[
                   styles.lifecyclePill,
                   {
                     borderColor: `${accent}66`,
                     backgroundColor: `${accent}1A`,
                   },
+                  lifecyclePillStyle,
                 ]}
               >
                 <Text style={[styles.lifecycleText, { color: accent }]}>{lifecycleLabel}</Text>
-              </View>
+              </Animated.View>
             ) : (
               <Text style={styles.lifecycleStandby}>STANDBY</Text>
             )}
           </View>
-          <Text
+          <Animated.Text
             numberOfLines={3}
             style={[
               styles.captionLine,
               !beat.voice && { color: Colors.text.muted, fontStyle: 'italic' },
               playback === 'executed' && { color: Colors.states.PEAK.primary },
+              captionStyle,
             ]}
           >
             {beat.voice?.line ?? 'Engine standing by. Awaiting performance event.'}
-          </Text>
+          </Animated.Text>
         </View>
       </View>
     </Modal>
