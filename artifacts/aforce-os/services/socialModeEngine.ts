@@ -14,10 +14,15 @@ import type { ScoreEngineOutput, UserState } from '../types';
 import { calculateHangoverRisk, activeDecayMultiplier } from '../utils/hangoverRisk';
 import { estimateBAC } from './bacEstimationService';
 import { impairmentFromBAC, transportationPromptFor } from './legalSafetyService';
+import {
+  computeRecoveryCapacity,
+  complianceFromStreak,
+  environmentalStress,
+} from './recoveryCapacity';
 
 export const RECOVERY_WINDOW_MS = 8 * 60 * 60 * 1000;
 
-export function buildSocialRollup(state: UserState, now: number = Date.now()): ScoreEngineOutput['social'] {
+export function buildSocialRollup(state: UserState, performanceScore: number, now: number = Date.now()): ScoreEngineOutput['social'] {
   const sm = state.socialMode;
   if (!sm) return null;
   const endedAtMs = sm.endedAt ? sm.endedAt.getTime() : null;
@@ -33,6 +38,11 @@ export function buildSocialRollup(state: UserState, now: number = Date.now()): S
     now,
   });
 
+  // ─── DEPRECATED in chunk #3b ────────────────────────────────────
+  // The BAC / impairment / transportation surfaces are scheduled for
+  // removal in chunk #3c. They are still wired here so existing UI
+  // components keep rendering until they are repurposed. The canonical
+  // replacement is `recoveryCapacity` below.
   const bac = estimateBAC({
     drinks: sm.drinks,
     bodyWeightLbs: state.bodyWeightLbs,
@@ -40,9 +50,19 @@ export function buildSocialRollup(state: UserState, now: number = Date.now()): S
     ateRecently: sm.ateRecently,
     now,
   });
-
   const impairment = impairmentFromBAC(bac);
   const transportation = transportationPromptFor(impairment.level);
+  // ────────────────────────────────────────────────────────────────
+
+  const recoveryCapacity = computeRecoveryCapacity({
+    autoPilotScore: performanceScore,
+    hydrationCompliance: complianceFromStreak(state.complianceStreak),
+    environmentalStress: environmentalStress({
+      tempC: state.weatherTempC,
+      humidity: state.weatherHumidity,
+      activityLevel: state.activityLevel,
+    }),
+  });
 
   return {
     active: sm.active,
@@ -53,5 +73,6 @@ export function buildSocialRollup(state: UserState, now: number = Date.now()): S
     bac,
     impairment,
     transportation,
+    recoveryCapacity,
   };
 }

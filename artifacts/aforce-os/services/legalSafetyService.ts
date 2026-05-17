@@ -1,4 +1,18 @@
 /**
+ * @deprecated
+ *
+ * Retired with chunk #3 of the Master Update. AForce no longer renders
+ * impairment tiers ("LOW/ELEVATED/MODERATE/HIGH/CRITICAL") or
+ * transportation safety prompts ("do not drive"). Recovery state is now
+ * a single non-medical 0–100 score with four bands; see
+ * `services/recoveryCapacity.ts`. The Critical band carries its own
+ * cinematic copy that does NOT make legal or medical claims.
+ *
+ * Kept temporarily so the deprecation rolls out cleanly. Chunk #3c
+ * removes the call sites; this file will then be deleted.
+ *
+ * ─────────────────────────────────────────────────────────────────────
+ *
  * Legal & transportation safety service.
  *
  * Maps an impairment level (and the BAC midpoint that produced it) to a

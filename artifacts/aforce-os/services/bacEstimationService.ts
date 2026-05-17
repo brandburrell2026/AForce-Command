@@ -1,4 +1,21 @@
 /**
+ * @deprecated
+ *
+ * As of chunk #3 of the Master Update, AForce no longer surfaces BAC,
+ * impairment tiers, or transportation prompts. The canonical replacement
+ * is `services/recoveryCapacity.ts` which produces a non-medical,
+ * non-legal Recovery Capacity Score (0–100, four named bands).
+ *
+ * This module is kept (not deleted) so:
+ *   - existing tests under `services/__tests__/bacEstimation.test.ts`
+ *     continue to compile and document the historical math, and
+ *   - the deprecation can roll out without breaking the build until
+ *     chunk #3c removes the call sites.
+ *
+ * Do NOT call `estimateBAC` from new code. Use `computeRecoveryCapacity`.
+ *
+ * ─────────────────────────────────────────────────────────────────────
+ *
  * BAC estimation service — Widmark approximation.
  *
  * SAFETY:

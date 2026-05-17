@@ -39,6 +39,12 @@ function makeSocialRollup(): NonNullable<ScoreEngineOutput['social']> {
     bac: { value: 0.04, range: [0.03, 0.05], trend: 'rising', confidence: 'med' } as never,
     impairment: { level: 'ELEVATED', label: 'Elevated', color: '#FFA01E' } as never,
     transportation: { show: false, title: '', body: '' } as never,
+    recoveryCapacity: {
+      score: 72,
+      band: 'stable',
+      meta: { band: 'stable', id: 'stable', label: 'Stable', color: '#3D7BFF', min: 60, max: 84 },
+      contributions: { autoPilot: 45, hydrationCompliance: 15, environmental: 12 },
+    } as never,
   };
 }
 

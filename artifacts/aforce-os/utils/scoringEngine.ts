@@ -806,7 +806,7 @@ export function calculateScore(userState: UserState): ScoreEngineOutput {
   const pulseConfig = buildPulseConfig(level);
   const reasons = generateReasons(userState);
   const riskTimer = calculateRiskTimer(userState, level);
-  const social = buildSocialRollup(userState);
+  const social = buildSocialRollup(userState, score);
   const command = generateCommand(level, userState, score, social);
   const prediction = buildPrediction(score, decayPerMinute);
 

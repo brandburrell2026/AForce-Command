@@ -1,5 +1,7 @@
 // Core TypeScript types for AForce OS
 
+import type { RecoveryCapacityScore } from '../services/recoveryCapacity';
+
 export type PerformanceLevel = 'PEAK' | 'BALANCED' | 'RECOVERING' | 'DEPLETED';
 
 // ─── Products ─────────────────────────────────────────────────────────────────
@@ -292,9 +294,27 @@ export interface ScoreEngineOutput {
     hangoverRisk: HangoverRisk;
     /** Alcohol decay multiplier currently applied (1 when none active). */
     alcoholMultiplier: number;
+    /**
+     * @deprecated BAC / impairment / transportation fields are scheduled
+     * for removal in chunk #3c of the Master Update. The new
+     * `recoveryCapacity` field below is the canonical replacement.
+     * Kept temporarily so existing UI surfaces (BACEstimateCard,
+     * SocialSafetyCard, ImpairmentRiskBadge) continue to render until
+     * they are repurposed.
+     */
     bac: BACEstimate;
+    /** @deprecated see `recoveryCapacity`. */
     impairment: ImpairmentRiskState;
+    /** @deprecated see `recoveryCapacity`. */
     transportation: TransportationSafetyPrompt;
+    /**
+     * Recovery Capacity Score — the AForce replacement for BAC math.
+     * Always populated when the social rollup itself is non-null.
+     * Computed by `services/recoveryCapacity.ts` from AutoPilot score,
+     * hydration compliance, and environmental stress (60 / 25 / 15
+     * weighting). See `services/recoveryCapacity.ts` for the formula.
+     */
+    recoveryCapacity: RecoveryCapacityScore;
   } | null;
 }
 
