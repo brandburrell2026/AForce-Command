@@ -22,7 +22,7 @@ import {
   Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Feather } from '@expo/vector-icons';
+import { Icon, type IconName } from '../../components/Icon';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { useUser } from '@clerk/expo';
@@ -118,7 +118,7 @@ function MinimalHeader({ greetingName, city, tempLabel, onShare }: HeaderProps) 
             accessibilityLabel="Share your status"
             testID="home-share-button"
           >
-            <Feather name="share" size={15} color={Colors.text.primary} />
+            <Icon name="share" size={15} color={Colors.text.primary} />
           </TouchableOpacity>
         )}
       </View>
@@ -148,7 +148,7 @@ const HEAT_BAND_COLOR = TEMP_HEAT_BAND_COLOR;
 const HEAT_BAND_LABEL = TEMP_HEAT_BAND_LABEL;
 
 interface SignalPillProps {
-  icon: React.ComponentProps<typeof Feather>['name'];
+  icon: IconName;
   label: string;
   value: string;
   tint: string;
@@ -173,7 +173,7 @@ function SignalPill({ icon, label, value, tint, active, onPress, testID }: Signa
         },
       ]}
     >
-      <Feather name={icon} size={12} color={tint} />
+      <Icon name={icon} size={12} color={tint} />
       <Text style={styles.signalLabel}>{label}</Text>
       <Text style={[styles.signalValue, { color: tint }]}>{value}</Text>
     </TouchableOpacity>

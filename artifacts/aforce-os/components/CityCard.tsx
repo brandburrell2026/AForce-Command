@@ -6,7 +6,7 @@
 
 import React from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { Icon } from './Icon';
 import { Colors } from '@/theme/colors';
 import type { TerritoryRegion } from '@/types/territory';
 import { territoryScore, statusLabel } from '@/services/territoryEngine';
@@ -55,7 +55,7 @@ export const CityCard: React.FC<Props> = ({ region, onChallenge, onJoin }) => {
         <Stat label="RECOVERY" value={`${Math.round(region.stats.recoveryEfficiency * 100)}%`} />
         <View style={[styles.stat, { flexDirection: 'row', alignItems: 'center', gap: 6 }]}>
           <Text style={styles.statLabel}>TREND</Text>
-          <Feather name={trendIcon} size={14} color={trendColor} />
+          <Icon name={trendIcon} size={14} color={trendColor} />
         </View>
       </View>
 

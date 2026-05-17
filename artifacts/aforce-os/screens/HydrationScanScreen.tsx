@@ -25,7 +25,7 @@ import Animated, {
   withSequence,
   withTiming,
 } from 'react-native-reanimated';
-import { Feather } from '@expo/vector-icons';
+import { Icon } from '../components/Icon';
 
 import { GradientBackground } from '@/components/GradientBackground';
 import { ScanResultCard } from '@/components/ScanResultCard';
@@ -245,7 +245,7 @@ export default function HydrationScanScreen() {
         >
           <View style={styles.headerRow}>
             <Pressable onPress={() => router.back()} style={styles.backBtn} hitSlop={10}>
-              <Feather name="chevron-left" size={20} color={Colors.text.primary} />
+              <Icon name="chevron-left" size={20} color={Colors.text.primary} />
             </Pressable>
             <View style={{ flex: 1 }}>
               <Text style={styles.eyebrow}>SCAN TO DECIDE</Text>
@@ -274,7 +274,7 @@ export default function HydrationScanScreen() {
               <View style={[styles.cornerTR, styles.corner]} />
               <View style={[styles.cornerBL, styles.corner]} />
               <View style={[styles.cornerBR, styles.corner]} />
-              <Feather
+              <Icon
                 name={Platform.OS === 'web' ? 'maximize' : 'camera'}
                 size={28}
                 color={scanning ? Colors.states.PEAK.primary : `${Colors.text.primary}99`}
@@ -288,7 +288,7 @@ export default function HydrationScanScreen() {
           {/* Mock scan tray */}
           <View style={styles.trayCard}>
             <View style={styles.trayHeader}>
-              <Feather name="zap" size={12} color={Colors.text.muted} />
+              <Icon name="zap" size={12} color={Colors.text.muted} />
               <Text style={styles.trayHeaderText}>SIMULATE SCAN</Text>
             </View>
             <View style={styles.trayChips}>
@@ -314,7 +314,7 @@ export default function HydrationScanScreen() {
                 { opacity: scanning ? 0.5 : pressed ? 0.7 : 1 },
               ]}
             >
-              <Feather name="grid" size={12} color={Colors.states.PEAK.primary} />
+              <Icon name="grid" size={12} color={Colors.states.PEAK.primary} />
               <Text style={[styles.chipText, { color: Colors.states.PEAK.primary }]}>
                 QR — aforce://product/aforce_stick
               </Text>
@@ -335,7 +335,7 @@ export default function HydrationScanScreen() {
                 returnKeyType="search"
               />
               <Pressable onPress={onManualSubmit} style={styles.manualBtn} disabled={scanning}>
-                <Feather name="search" size={14} color={Colors.text.primary} />
+                <Icon name="search" size={14} color={Colors.text.primary} />
               </Pressable>
             </View>
           </View>
@@ -343,7 +343,7 @@ export default function HydrationScanScreen() {
           {/* Result region */}
           {outcome?.ok === false && (
             <View style={styles.errorCard}>
-              <Feather name="alert-triangle" size={14} color={Colors.states.RECOVERING.primary} />
+              <Icon name="alert-triangle" size={14} color={Colors.states.RECOVERING.primary} />
               <Text style={styles.errorText}>{outcome.failure.message}</Text>
             </View>
           )}
@@ -385,7 +385,7 @@ export default function HydrationScanScreen() {
                     },
                   ]}
                 >
-                  <Feather name="check-circle" size={16} color={Colors.states.PEAK.primary} />
+                  <Icon name="check-circle" size={16} color={Colors.states.PEAK.primary} />
                   <Text style={[styles.primaryCtaText, { color: Colors.states.PEAK.primary }]}>
                     {logging ? 'LOGGING…' : `LOG ${result.product.productName.toUpperCase()}`}
                   </Text>
@@ -399,7 +399,7 @@ export default function HydrationScanScreen() {
 
           {!result && !outcome && (
             <View style={styles.emptyCard}>
-              <Feather name="camera" size={20} color={Colors.text.muted} />
+              <Icon name="camera" size={20} color={Colors.text.muted} />
               <Text style={styles.emptyTitle}>Awaiting scan</Text>
               <Text style={styles.emptyHint}>
                 {Platform.OS === 'web'
@@ -413,7 +413,7 @@ export default function HydrationScanScreen() {
           {serverScans && serverScans.length > 0 && (
             <View style={styles.historyCard}>
               <View style={styles.historyHeader}>
-                <Feather name="clock" size={12} color={Colors.text.muted} />
+                <Icon name="clock" size={12} color={Colors.text.muted} />
                 <Text style={styles.historyHeaderText}>RECENT SCANS</Text>
                 <Text style={styles.historySync}>SYNCED</Text>
               </View>

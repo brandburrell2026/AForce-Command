@@ -12,7 +12,7 @@ import {
   View, Text, StyleSheet, ScrollView, Pressable, RefreshControl, Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Feather } from '@expo/vector-icons';
+import { Icon } from '../components/Icon';
 import { useRouter } from 'expo-router';
 
 import { GradientBackground } from '@/components/GradientBackground';
@@ -58,7 +58,7 @@ export function AchievementsScreen() {
         >
           <View style={styles.headerRow}>
             <Pressable onPress={() => router.back()} style={styles.backButton} hitSlop={12} testID="achievements-back">
-              <Feather name="chevron-left" size={20} color={Colors.text.primary} />
+              <Icon name="chevron-left" size={20} color={Colors.text.primary} />
             </Pressable>
             <View style={{ flex: 1 }}>
               <Text style={styles.eyebrow}>RETENTION</Text>
@@ -85,7 +85,7 @@ export function AchievementsScreen() {
                   testID={`achievement-${a.code}`}
                 >
                   <View style={[styles.iconWrap, unlocked ? styles.iconWrapUnlocked : styles.iconWrapLocked]}>
-                    <Feather
+                    <Icon
                       // eslint-disable-next-line @typescript-eslint/no-explicit-any
                       name={a.icon as any}
                       size={18}

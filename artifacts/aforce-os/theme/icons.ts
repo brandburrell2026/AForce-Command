@@ -117,6 +117,22 @@ import {
   Wine,
   LogOut,
   Tent,
+  Coffee,
+  // Device / connectivity
+  Bluetooth,
+  WifiOff,
+  Loader,
+  Smartphone,
+  // Misc UI
+  Maximize,
+  Map,
+  Flag,
+  Send,
+  MessageSquare,
+  Ellipsis,
+  FileText,
+  Target,
+  Type,
   type LucideIcon,
 } from 'lucide-react-native';
 
@@ -270,6 +286,22 @@ export const ICON_MAP: Record<string, LucideIcon> = {
   wine: Wine,
   'log-out': LogOut,
   tent: Tent,
+  coffee: Coffee,
+  // device / connectivity
+  bluetooth: Bluetooth,
+  'wifi-off': WifiOff,
+  loader: Loader,
+  smartphone: Smartphone,
+  // misc UI
+  maximize: Maximize,
+  map: Map,
+  flag: Flag,
+  send: Send,
+  'message-square': MessageSquare,
+  'more-horizontal': Ellipsis,
+  'file-text': FileText,
+  target: Target,
+  type: Type,
 
   // ─── semantic AForce names (used as tab/route icons) ──────
   cruise: Ship,

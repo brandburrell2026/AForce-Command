@@ -14,7 +14,7 @@
 
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { Icon, type IconName } from './Icon';
 import { useTranslation } from 'react-i18next';
 
 import { Colors } from '../theme/colors';
@@ -31,7 +31,7 @@ const ACCENT: Record<TransportationSeverity, string> = {
   critical: '#E63946',
 };
 
-const ICON: Record<TransportationSeverity, React.ComponentProps<typeof Feather>['name']> = {
+const ICON: Record<TransportationSeverity, IconName> = {
   info:     'info',
   caution:  'alert-circle',
   warning:  'alert-triangle',
@@ -54,7 +54,7 @@ export function SocialSafetyCard({ prompt }: Props) {
     >
       <View style={styles.header}>
         <View style={[styles.iconWrap, { backgroundColor: `${accent}26` }]}>
-          <Feather name={ICON[prompt.severity]} size={18} color={accent} />
+          <Icon name={ICON[prompt.severity]} size={18} color={accent} />
         </View>
         <View style={{ flex: 1 }}>
           <Text style={[styles.eyebrow, { color: accent }]}>{t('social.safety_title')}</Text>
@@ -65,7 +65,7 @@ export function SocialSafetyCard({ prompt }: Props) {
       <Text style={styles.body}>{t(prompt.bodyKey)}</Text>
 
       <View style={styles.transportRow}>
-        <Feather name="navigation" size={14} color={accent} />
+        <Icon name="navigation" size={14} color={accent} />
         <Text style={[styles.transportText, { color: accent }]}>
           {t('social.safety_transportation')}
         </Text>
@@ -73,7 +73,7 @@ export function SocialSafetyCard({ prompt }: Props) {
 
       {prompt.stopDrinking && (
         <View style={styles.stopRow}>
-          <Feather name="slash" size={13} color={accent} />
+          <Icon name="slash" size={13} color={accent} />
           <Text style={[styles.stopText, { color: accent }]}>
             {t('social.safety_stop_drinking')}
           </Text>

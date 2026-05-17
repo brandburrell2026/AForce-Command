@@ -5,7 +5,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Pressable, View, Text, StyleSheet } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { Icon } from './Icon';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
@@ -64,7 +64,7 @@ function PhantomBandCardImpl() {
         </View>
         <Text style={styles.status}>{statusLine}</Text>
       </View>
-      <Feather name="chevron-right" size={18} color={Colors.text.muted} />
+      <Icon name="chevron-right" size={18} color={Colors.text.muted} />
     </Pressable>
   );
 }

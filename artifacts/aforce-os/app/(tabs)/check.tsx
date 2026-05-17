@@ -12,7 +12,7 @@ import {
   View, Text, StyleSheet, ScrollView, Pressable, Platform, TouchableOpacity,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Feather } from '@expo/vector-icons';
+import { Icon } from '../../components/Icon';
 
 import { GradientBackground } from '@/components/GradientBackground';
 import { Colors } from '@/theme/colors';
@@ -118,7 +118,7 @@ export default function CheckScreen() {
                       active && { borderColor: Colors.danger, backgroundColor: `${Colors.danger}1A` },
                     ]}
                   >
-                    <Feather
+                    <Icon
                       name={active ? 'alert-circle' : 'circle'}
                       size={12}
                       color={active ? Colors.danger : Colors.text.muted}
@@ -150,7 +150,7 @@ export default function CheckScreen() {
                   >
                     {selected && (
                       <View style={styles.scaleCheck}>
-                        <Feather name="check" size={14} color="#000" />
+                        <Icon name="check" size={14} color="#000" />
                       </View>
                     )}
                   </Pressable>
@@ -202,7 +202,7 @@ export default function CheckScreen() {
             activeOpacity={0.85}
           >
             <View style={[styles.confirmGlow, { backgroundColor: `${stateColor}1F` }]} />
-            <Feather name="check-circle" size={20} color={stateColor} />
+            <Icon name="check-circle" size={20} color={stateColor} />
             <Text style={styles.confirmText}>CONFIRM STATUS</Text>
           </TouchableOpacity>
         </ScrollView>

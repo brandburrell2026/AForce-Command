@@ -5,7 +5,7 @@
 
 import React from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { Icon } from './Icon';
 import { Colors } from '@/theme/colors';
 import type { CircleChallenge } from '@/types/circle';
 import { getUser } from '@/services/circleService';
@@ -40,7 +40,7 @@ export const CircleChallengeCard: React.FC<Props> = ({ challenge, onAccept }) =>
     <View style={styles.card}>
       <View style={styles.row}>
         <View style={styles.iconWrap}>
-          <Feather name="zap" size={14} color={Colors.states.PEAK.primary} />
+          <Icon name="zap" size={14} color={Colors.states.PEAK.primary} />
         </View>
         <View style={{ flex: 1, gap: 4 }}>
           <Text style={styles.eyebrow}>CHALLENGE</Text>

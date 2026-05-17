@@ -5,7 +5,7 @@
 
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, Platform } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { Icon } from '../components/Icon';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
@@ -63,7 +63,7 @@ export const CirclesScreen: React.FC = () => {
     <View style={[styles.root, { paddingTop: insets.top + 8 }]}>
       <View style={styles.headerRow}>
         <Pressable onPress={() => router.back()} style={styles.iconBtn} hitSlop={12} accessibilityLabel="Back">
-          <Feather name="chevron-left" size={22} color={Colors.text.primary} />
+          <Icon name="chevron-left" size={22} color={Colors.text.primary} />
         </Pressable>
         <View style={{ flex: 1, alignItems: 'center' }}>
           <Text style={styles.eyebrow}>AFORCE</Text>
@@ -73,7 +73,7 @@ export const CirclesScreen: React.FC = () => {
           onPress={() => router.push('/circles/manage')}
           style={styles.iconBtn} hitSlop={12} accessibilityLabel="Manage circle"
         >
-          <Feather name="user-plus" size={20} color={Colors.text.primary} />
+          <Icon name="user-plus" size={20} color={Colors.text.primary} />
         </Pressable>
       </View>
 
@@ -83,7 +83,7 @@ export const CirclesScreen: React.FC = () => {
           style={({ pressed }) => [styles.sharedBtn, pressed && { opacity: 0.85 }]}
           accessibilityLabel="Preview what others see about you"
         >
-          <Feather name="eye" size={14} color={Colors.text.primary} />
+          <Icon name="eye" size={14} color={Colors.text.primary} />
           <Text style={styles.sharedBtnText}>WHAT OTHERS SEE</Text>
         </Pressable>
       </View>

@@ -12,7 +12,7 @@
  * to React Native using the AForce OS palette.
  */
 
-import { Feather } from '@expo/vector-icons';
+import { Icon } from '../components/Icon';
 import { router } from 'expo-router';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
@@ -150,7 +150,7 @@ export default function RingHomeScreen() {
             accessibilityRole="button"
             accessibilityLabel="Back"
           >
-            <Feather name="chevron-left" size={22} color={Colors.text.secondary} />
+            <Icon name="chevron-left" size={22} color={Colors.text.secondary} />
           </Pressable>
 
           <View style={styles.identity}>
@@ -180,7 +180,7 @@ export default function RingHomeScreen() {
               </View>
             </View>
             <View style={styles.batteryRow}>
-              <Feather name="battery" size={12} color={Colors.text.muted} />
+              <Icon name="battery" size={12} color={Colors.text.muted} />
               <Text style={styles.batteryText}>{ring.batteryPct}%</Text>
             </View>
           </View>
@@ -223,7 +223,7 @@ export default function RingHomeScreen() {
         {/* Onset pill */}
         {ring.biometrics.gsrActive && (
           <View style={styles.pill}>
-            <Feather name="activity" size={14} color={Colors.states.BALANCED.primary} />
+            <Icon name="activity" size={14} color={Colors.states.BALANCED.primary} />
             <Text style={styles.pillText}>
               Sweat onset detected {onsetMin === 0 ? 'just now' : `${onsetMin} min ago`}
             </Text>
@@ -251,7 +251,7 @@ export default function RingHomeScreen() {
                 { borderColor: BAND_COLOR[band].primary + '33', backgroundColor: BAND_COLOR[band].dim },
               ]}
             >
-              <Feather name="bell" size={18} color={BAND_COLOR[band].primary} />
+              <Icon name="bell" size={18} color={BAND_COLOR[band].primary} />
             </View>
             <View style={styles.actionBody}>
               <Text style={styles.actionTitle}>{actionTitle}</Text>
@@ -265,7 +265,7 @@ export default function RingHomeScreen() {
                 onPress={() => Alert.alert('Logged', `Logged ${sipOz} ounces to your hydration timeline.`)}
                 accessibilityRole="button"
               >
-                <Feather name="check" size={16} color={Colors.text.primary} />
+                <Icon name="check" size={16} color={Colors.text.primary} />
                 <Text style={styles.actionPrimaryText}>I&apos;m having it now</Text>
               </Pressable>
 
@@ -279,7 +279,7 @@ export default function RingHomeScreen() {
                 }
                 accessibilityRole="button"
               >
-                <Feather name="bar-chart-2" size={14} color={Colors.text.muted} />
+                <Icon name="bar-chart-2" size={14} color={Colors.text.muted} />
                 <Text style={styles.actionSecondaryText}>View all signals</Text>
               </Pressable>
             </View>
@@ -305,7 +305,7 @@ export default function RingHomeScreen() {
             ]}
             accessibilityRole="button"
           >
-            <Feather
+            <Icon
               name={ring.sessionActive ? 'square' : 'play'}
               size={14}
               color={ring.sessionActive ? Colors.states.DEPLETED.primary : Colors.states.PEAK.primary}

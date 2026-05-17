@@ -29,10 +29,48 @@ import type { ViewStyle, StyleProp } from 'react-native';
 import {
   DEFAULT_STROKE_WIDTH,
   MIN_ICON_COLOR_DARK,
+  MIN_ICON_OPACITY,
   lookupIcon,
   resolveIconSize,
   type IconSizeToken,
 } from '../theme/icons';
+
+/**
+ * Dev-only alpha guard.
+ *
+ * The spec mandates that any icon rendered on a true-black surface
+ * carries at least `rgba(255,255,255,0.92)` worth of legibility.
+ * Existing call sites occasionally pass low-alpha tokens (e.g.
+ * `Colors.text.muted` at 0.30) which disappear on Android OLED.
+ *
+ * Rather than silently rewriting colour at runtime (which would
+ * change the visual intent of every callsite at once) we warn loudly
+ * in __DEV__ so the migration sweep is observable, and pass the
+ * colour through untouched in production. A future polish pass can
+ * flip this to a hard clamp.
+ */
+function warnIfTooFaint(name: string, color: string): void {
+  if (!__DEV__) return;
+  // Parse rgba(...) / rgb(...) / #rgba / #rrggbbaa for an alpha hint.
+  let alpha: number | null = null;
+  const rgba = /rgba?\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*(?:,\s*([\d.]+)\s*)?\)/i.exec(color);
+  if (rgba) {
+    alpha = rgba[1] != null ? parseFloat(rgba[1]) : 1;
+  } else if (/^#[0-9a-f]{8}$/i.test(color)) {
+    alpha = parseInt(color.slice(7, 9), 16) / 255;
+  } else if (/^#[0-9a-f]{4}$/i.test(color)) {
+    const a = color.slice(4, 5);
+    alpha = parseInt(a + a, 16) / 255;
+  }
+  if (alpha != null && alpha < MIN_ICON_OPACITY) {
+    // eslint-disable-next-line no-console
+    console.warn(
+      `[AForce/Icon] "${name}" rendered with color ${color} (alpha=${alpha.toFixed(2)}). ` +
+        `Below the ${MIN_ICON_OPACITY} minimum for dark UI — Android OLED will swallow it. ` +
+        `Use a brighter token or pass MIN_ICON_COLOR_DARK.`,
+    );
+  }
+}
 
 /**
  * Names come from the central `ICON_MAP`. The type stays `string`
@@ -64,6 +102,7 @@ export function Icon({
 }: IconProps) {
   const px = resolveIconSize(size);
   const tint = color ?? MIN_ICON_COLOR_DARK;
+  warnIfTooFaint(name, tint);
   const LucideComponent = lookupIcon(name);
 
   if (LucideComponent) {

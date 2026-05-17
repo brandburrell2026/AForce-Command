@@ -5,7 +5,7 @@
 
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { Icon, type IconName } from './Icon';
 import type { Command, PerformanceState } from '../types';
 import { Colors } from '../theme/colors';
 
@@ -14,7 +14,7 @@ interface Props {
   performanceState: PerformanceState;
 }
 
-const URGENCY_ICONS: Record<string, keyof typeof Feather.glyphMap> = {
+const URGENCY_ICONS: Record<string, IconName> = {
   low: 'check-circle',
   medium: 'zap',
   high: 'alert-triangle',
@@ -44,7 +44,7 @@ export function SystemCommandCard({ command, performanceState }: Props) {
           <Text style={styles.sectionLabel}>SYSTEM COMMAND</Text>
         </View>
         <View style={[styles.urgencyBadge, { backgroundColor: `${color}20`, borderColor: `${color}44` }]}>
-          <Feather name={urgencyIcon} size={10} color={color} />
+          <Icon name={urgencyIcon} size={10} color={color} />
           <Text style={[styles.urgencyLabel, { color }]}>{urgencyLabel}</Text>
         </View>
       </View>
@@ -59,7 +59,7 @@ export function SystemCommandCard({ command, performanceState }: Props) {
 
       {/* Impact */}
       <View style={styles.impactRow}>
-        <Feather name="trending-up" size={12} color={color} />
+        <Icon name="trending-up" size={12} color={color} />
         <Text style={[styles.impactText, { color }]}>Projected impact: {command.estimatedImpact}</Text>
       </View>
     </View>

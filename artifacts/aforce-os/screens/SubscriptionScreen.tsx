@@ -16,7 +16,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Feather } from '@expo/vector-icons';
+import { Icon } from '../components/Icon';
 import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
 
@@ -216,14 +216,14 @@ export default function SubscriptionScreen() {
         >
           <View style={styles.headerRow}>
             <Pressable onPress={() => router.back()} style={styles.backBtn} hitSlop={10}>
-              <Feather name="chevron-left" size={20} color={Colors.text.primary} />
+              <Icon name="chevron-left" size={20} color={Colors.text.primary} />
             </Pressable>
             <View style={{ flex: 1 }}>
               <Text style={styles.eyebrow}>AFORCE PRICING</Text>
               <Text style={styles.title}>Choose Your Plan</Text>
             </View>
             <Pressable onPress={() => router.push('/subscription/manage')} style={styles.manageBtn} hitSlop={10}>
-              <Feather name="settings" size={16} color={Colors.text.primary} />
+              <Icon name="settings" size={16} color={Colors.text.primary} />
             </Pressable>
           </View>
 
@@ -286,7 +286,7 @@ export default function SubscriptionScreen() {
           )}
 
           <View style={styles.trustRow}>
-            <Feather name="shield" size={12} color={Colors.text.muted} />
+            <Icon name="shield" size={12} color={Colors.text.muted} />
             <Text style={styles.trustText}>
               Secured by Stripe. Cancel anytime from Manage Plan.
             </Text>

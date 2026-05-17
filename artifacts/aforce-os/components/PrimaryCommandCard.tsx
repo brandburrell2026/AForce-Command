@@ -21,7 +21,7 @@
 
 import React from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { Icon } from './Icon';
 import type { Command, PerformanceState } from '../types';
 import { Colors } from '../theme/colors';
 
@@ -85,7 +85,7 @@ export function PrimaryCommandCard({
 
       {recheckMinutes > 0 && (
         <View style={styles.recheckRow}>
-          <Feather name="clock" size={12} color={Colors.text.muted} />
+          <Icon name="clock" size={12} color={Colors.text.muted} />
           <Text style={styles.recheckText}>
             Recheck in {recheckMinutes} {recheckMinutes === 1 ? 'minute' : 'minutes'}
           </Text>
@@ -104,7 +104,7 @@ export function PrimaryCommandCard({
         accessibilityLabel={`Log intake: ${command.action}`}
         testID="primary-command-cta"
       >
-        <Feather
+        <Icon
           name={isLogging ? 'loader' : 'check-circle'}
           size={18}
           color={isLogging ? Colors.text.muted : Colors.text.inverse}

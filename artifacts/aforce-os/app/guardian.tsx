@@ -6,7 +6,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Feather } from '@expo/vector-icons';
+import { Icon } from '../components/Icon';
 import { useRouter } from 'expo-router';
 
 import { GradientBackground } from '@/components/GradientBackground';
@@ -64,7 +64,7 @@ export default function GuardianScreen() {
           showsVerticalScrollIndicator={false}
         >
           <Pressable onPress={() => router.back()} style={styles.backBtn}>
-            <Feather name="chevron-left" size={20} color={Colors.text.secondary} />
+            <Icon name="chevron-left" size={20} color={Colors.text.secondary} />
             <Text style={styles.backText}>Profile</Text>
           </Pressable>
 
@@ -148,7 +148,7 @@ export default function GuardianScreen() {
               if (critical.length === 0) {
                 return (
                   <View style={[styles.alertCard, styles.alertCardClear, { borderColor: `${Colors.states.PEAK.primary}55` }]}>
-                    <Feather name="check-circle" size={18} color={Colors.states.PEAK.primary} />
+                    <Icon name="check-circle" size={18} color={Colors.states.PEAK.primary} />
                     <View style={{ flex: 1 }}>
                       <Text style={[styles.alertTitle, { color: Colors.states.PEAK.primary }]}>NO CRITICAL ALERTS</Text>
                       <Text style={styles.alertBody}>Roster within safe bounds. Continue standard monitoring.</Text>
@@ -165,7 +165,7 @@ export default function GuardianScreen() {
                     const rec = guardianRecommendation({ guardianRisk: p.guardianRisk, position: p.position });
                     return (
                       <View key={p.id} style={[styles.alertCard, { borderColor: Colors.danger }]}>
-                        <Feather name="alert-octagon" size={18} color={Colors.danger} />
+                        <Icon name="alert-octagon" size={18} color={Colors.danger} />
                         <View style={{ flex: 1 }}>
                           <Text style={styles.alertTitle}>CRITICAL · {p.name} ({p.position})</Text>
                           <Text style={styles.alertBody}>

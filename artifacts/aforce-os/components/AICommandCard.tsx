@@ -9,7 +9,7 @@
 
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { Icon, type IconName } from './Icon';
 import type { Command, PerformanceState } from '../types';
 import { Colors } from '../theme/colors';
 
@@ -33,7 +33,7 @@ interface Props {
   embedded?: boolean;
 }
 
-const URGENCY_ICONS: Record<string, keyof typeof Feather.glyphMap> = {
+const URGENCY_ICONS: Record<string, IconName> = {
   low: 'check-circle',
   medium: 'zap',
   high: 'alert-triangle',
@@ -63,7 +63,7 @@ export function AICommandCard({ command, performanceState, accentOverride, embed
         <Text style={styles.sectionLabel}>AFORCE COMMAND</Text>
         <View style={styles.headerRight}>
           <View style={[styles.urgencyBadge, { backgroundColor: `${color}1A`, borderColor: `${color}55` }]}>
-            <Feather name={icon} size={10} color={color} />
+            <Icon name={icon} size={10} color={color} />
             <Text style={[styles.urgencyLabel, { color }]}>{label}</Text>
           </View>
         </View>
@@ -76,7 +76,7 @@ export function AICommandCard({ command, performanceState, accentOverride, embed
       <Text style={styles.explanation}>{command.explanation}</Text>
 
       <View style={[styles.impactRow, { borderTopColor: Colors.border.subtle }]}>
-        <Feather name="trending-up" size={12} color={color} />
+        <Icon name="trending-up" size={12} color={color} />
         <Text style={[styles.impactText, { color }]}>Projected: {command.estimatedImpact}</Text>
       </View>
     </View>

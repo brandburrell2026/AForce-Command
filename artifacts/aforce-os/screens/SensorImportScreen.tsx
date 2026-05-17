@@ -15,7 +15,7 @@ import {
   View, Text, StyleSheet, ScrollView, Pressable, TextInput, ActivityIndicator, Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Feather } from '@expo/vector-icons';
+import { Icon } from '../components/Icon';
 import { useRouter } from 'expo-router';
 import * as DocumentPicker from 'expo-document-picker';
 
@@ -110,7 +110,7 @@ export function SensorImportScreen() {
         >
           <View style={styles.headerRow}>
             <Pressable onPress={() => router.back()} style={styles.backButton} hitSlop={12} testID="sensors-back">
-              <Feather name="chevron-left" size={20} color={Colors.text.primary} />
+              <Icon name="chevron-left" size={20} color={Colors.text.primary} />
             </Pressable>
             <View style={{ flex: 1 }}>
               <Text style={styles.eyebrow}>HARDWARE</Text>
@@ -133,7 +133,7 @@ export function SensorImportScreen() {
                 testID={`sensor-source-${s}`}
               >
                 <View style={styles.rowLeft}>
-                  <Feather
+                  <Icon
                     name={source === s ? 'check-circle' : 'circle'}
                     size={16}
                     color={source === s ? Colors.states.PEAK.primary : Colors.text.muted}
@@ -150,12 +150,12 @@ export function SensorImportScreen() {
           <View style={styles.card}>
             <Pressable onPress={onPickFile} style={styles.row} testID="sensor-pick-file">
               <View style={styles.rowLeft}>
-                <Feather name="file-plus" size={16} color={Colors.states.BALANCED.primary} />
+                <Icon name="file-plus" size={16} color={Colors.states.BALANCED.primary} />
                 <Text style={styles.rowLabel}>{pickedFileName ?? 'Pick a CSV / JSON file'}</Text>
               </View>
               {pickedFileName && (
                 <Pressable onPress={onClearPick} hitSlop={8} testID="sensor-clear-pick">
-                  <Feather name="x" size={14} color={Colors.text.muted} />
+                  <Icon name="x" size={14} color={Colors.text.muted} />
                 </Pressable>
               )}
             </Pressable>
@@ -215,7 +215,7 @@ export function SensorImportScreen() {
               <ActivityIndicator color={Colors.background.primary} />
             ) : (
               <>
-                <Feather name="upload-cloud" size={14} color={Colors.background.primary} />
+                <Icon name="upload-cloud" size={14} color={Colors.background.primary} />
                 <Text style={styles.primaryButtonLabel}>
                   {rowCount > 0 ? `IMPORT ${rowCount} ROWS` : 'NOTHING TO IMPORT'}
                 </Text>

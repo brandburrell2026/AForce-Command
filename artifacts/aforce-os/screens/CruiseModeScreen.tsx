@@ -33,7 +33,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
-import { Feather } from "@expo/vector-icons";
+import { Icon, type IconName } from '../components/Icon';
 
 import { GradientBackground } from "@/components/GradientBackground";
 import { FeatureGate } from "@/components/FeatureGate";
@@ -205,7 +205,7 @@ function CruiseModeBody() {
               accessibilityRole="button"
               accessibilityLabel="Back"
             >
-              <Feather name="chevron-left" size={20} color={Colors.text.secondary} />
+              <Icon name="chevron-left" size={20} color={Colors.text.secondary} />
             </Pressable>
             <View style={styles.headerCenter}>
               <Text style={styles.eyebrow}>ENTERPRISE · PREMIUM</Text>
@@ -301,7 +301,7 @@ function CruiseModeBody() {
                     style={[styles.portChip, active && styles.portChipActive]}
                     testID={`cruise-port-${p.id}`}
                   >
-                    <Feather
+                    <Icon
                       name="map-pin"
                       size={11}
                       color={active ? CRUISE.aqua : Colors.text.muted}
@@ -349,7 +349,7 @@ function CruiseModeBody() {
             </View>
             {effectiveSession.env.excursionRisk !== "none" && (
               <View style={[styles.inlineBanner, { borderColor: CRUISE.aqua + "55", backgroundColor: CRUISE.aqua + "10" }]}>
-                <Feather name="alert-triangle" size={13} color={CRUISE.aqua} />
+                <Icon name="alert-triangle" size={13} color={CRUISE.aqua} />
                 <Text style={styles.inlineBannerText}>
                   Excursion risk: <Text style={{ color: CRUISE.aqua }}>{titleCase(effectiveSession.env.excursionRisk)}</Text>
                 </Text>
@@ -372,7 +372,7 @@ function CruiseModeBody() {
                 <Row label="Excursion activity" value={`${profile.session.guest.excursionHours} hr`} />
                 <Row label="Sleep quality" value={`${profile.session.guest.sleepQualityPct}%`} />
                 <View style={styles.coachBlock}>
-                  <Feather name="message-circle" size={14} color={CRUISE.aqua} />
+                  <Icon name="message-circle" size={14} color={CRUISE.aqua} />
                   <Text style={styles.coachText}>
                     “You had elevated sun and alcohol exposure today. Complete a recovery
                     hydration cycle before dinner.”
@@ -393,7 +393,7 @@ function CruiseModeBody() {
                 </Text>
               </View>
               <View style={[styles.riskBadge, { backgroundColor: riskColor + "1F", borderColor: riskColor + "55" }]}>
-                <Feather
+                <Icon
                   name={evaluation.riskLevel === "RECOVERY_CRITICAL" ? "alert-octagon" : "activity"}
                   size={16}
                   color={riskColor}
@@ -418,7 +418,7 @@ function CruiseModeBody() {
             {PORT_DAY_CHECKLIST.map((item, i) => (
               <View key={item.id} style={[styles.checklistRow, i === PORT_DAY_CHECKLIST.length - 1 && { borderBottomWidth: 0 }]}>
                 <View style={[styles.checklistIcon, { backgroundColor: CRUISE.aquaSoft }]}>
-                  <Feather name={item.icon as keyof typeof Feather.glyphMap} size={13} color={CRUISE.aqua} />
+                  <Icon name={item.icon as IconName} size={13} color={CRUISE.aqua} />
                 </View>
                 <Text style={styles.checklistLabel}>{item.label}</Text>
               </View>
@@ -432,7 +432,7 @@ function CruiseModeBody() {
               {CRUISE_BADGES.map((b) => (
                 <View key={b.id} style={styles.badgeCell}>
                   <View style={[styles.badgeIcon, { backgroundColor: CRUISE.aquaSoft, borderColor: CRUISE.border }]}>
-                    <Feather name="award" size={16} color={CRUISE.aqua} />
+                    <Icon name="award" size={16} color={CRUISE.aqua} />
                   </View>
                   <Text style={styles.badgeTitle}>{b.title}</Text>
                   <Text style={styles.badgeHint}>{b.hint}</Text>
@@ -441,7 +441,7 @@ function CruiseModeBody() {
             </View>
             <View style={styles.qrRow}>
               <View style={[styles.qrBox, { borderColor: CRUISE.border }]}>
-                <Feather name="grid" size={28} color={CRUISE.aqua} />
+                <Icon name="grid" size={28} color={CRUISE.aqua} />
               </View>
               <View style={{ flex: 1, gap: 4 }}>
                 <Text style={styles.qrTitle}>QR scan to log AForce usage</Text>
@@ -450,7 +450,7 @@ function CruiseModeBody() {
                 </Text>
                 <Pressable style={[styles.cta, { borderColor: CRUISE.aqua }]}>
                   <Text style={[styles.ctaText, { color: CRUISE.aqua }]}>REORDER ONBOARD</Text>
-                  <Feather name="arrow-right" size={12} color={CRUISE.aqua} />
+                  <Icon name="arrow-right" size={12} color={CRUISE.aqua} />
                 </Pressable>
               </View>
             </View>
@@ -528,7 +528,7 @@ function EnvCell({
   return (
     <View style={styles.envCell}>
       <View style={[styles.envIcon, { backgroundColor: CRUISE.aquaSoft }]}>
-        <Feather name={icon as keyof typeof Feather.glyphMap} size={13} color={accent ?? CRUISE.aqua} />
+        <Icon name={icon as IconName} size={13} color={accent ?? CRUISE.aqua} />
       </View>
       <Text style={styles.envLabel}>{label}</Text>
       <Text style={[styles.envValue, accent ? { color: accent } : null]}>{value}</Text>
@@ -576,13 +576,13 @@ function NavRow({
       ]}
     >
       <View style={[styles.navIcon, { backgroundColor: CRUISE.aquaSoft }]}>
-        <Feather name={icon as keyof typeof Feather.glyphMap} size={14} color={CRUISE.aqua} />
+        <Icon name={icon as IconName} size={14} color={CRUISE.aqua} />
       </View>
       <View style={{ flex: 1 }}>
         <Text style={styles.navLabel}>{label}</Text>
         <Text style={styles.navHint}>{hint}</Text>
       </View>
-      <Feather name="chevron-right" size={14} color={Colors.text.muted} />
+      <Icon name="chevron-right" size={14} color={Colors.text.muted} />
     </Pressable>
   );
 }

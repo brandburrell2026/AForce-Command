@@ -16,7 +16,7 @@ import React from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, Modal, Platform, Pressable,
 } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { Icon } from './Icon';
 import * as Haptics from 'expo-haptics';
 import Animated, {
   useSharedValue, useAnimatedStyle, withRepeat, withTiming, withSequence,
@@ -382,7 +382,7 @@ export function AIVideoPlayer({ video, command, compact = true, timerSeconds, sc
           <View style={[styles.liveDot, { backgroundColor: accent }]} />
           <Text style={[styles.eyebrow, { color: accent }]}>COMMAND VOICE ENGINE · LIVE</Text>
           <View style={{ flex: 1 }} />
-          <Feather name="maximize-2" size={12} color={Colors.text.muted} />
+          <Icon name="maximize-2" size={12} color={Colors.text.muted} />
         </View>
 
         {/* Scene stage */}
@@ -416,7 +416,7 @@ export function AIVideoPlayer({ video, command, compact = true, timerSeconds, sc
               <Text style={[styles.eyebrow, { color: accent }]}>COMMAND VOICE ENGINE</Text>
               <View style={{ flex: 1 }} />
               <TouchableOpacity onPress={handleCollapse} hitSlop={12}>
-                <Feather name="x" size={22} color={Colors.text.primary} />
+                <Icon name="x" size={22} color={Colors.text.primary} />
               </TouchableOpacity>
             </View>
 

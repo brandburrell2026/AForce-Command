@@ -8,7 +8,7 @@
 
 import React from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { Icon } from './Icon';
 import { Colors } from '../theme/colors';
 import { phantomBandService } from '../services/phantomBandService';
 
@@ -43,7 +43,7 @@ export function PhantomBandLine({ onPress }: Props) {
       testID="phantom-band-line"
     >
       <View style={[styles.dot, { backgroundColor: tint }]} />
-      <Feather name="watch" size={11} color={Colors.text.muted} />
+      <Icon name="watch" size={11} color={Colors.text.muted} />
       <Text style={styles.text}>
         Phantom Band {connected ? 'connected' : 'not connected'}
       </Text>

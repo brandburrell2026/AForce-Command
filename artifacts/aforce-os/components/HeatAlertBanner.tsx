@@ -5,7 +5,7 @@
 
 import React from "react";
 import { View, Text, StyleSheet, Pressable } from "react-native";
-import { Feather } from "@expo/vector-icons";
+import { Icon, type IconName } from './Icon';
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 
@@ -50,7 +50,7 @@ function HeatAlertBannerImpl({ score, band }: Props) {
         style={[styles.innerBorder, { borderColor: innerBorder }]}
       />
       <View style={[styles.iconCell, { backgroundColor: `${accent}44` }]}>
-        <Feather name="thermometer" size={18} color={accent} />
+        <Icon name="thermometer" size={18} color={accent} />
       </View>
       <View style={styles.body}>
         <Text style={[styles.eyebrow, { color: accent }]}>
@@ -60,7 +60,7 @@ function HeatAlertBannerImpl({ score, band }: Props) {
           {bandDirective} · {t("home.heat_guard.score", { score })}
         </Text>
       </View>
-      <Feather name="chevron-right" size={18} color={accent} />
+      <Icon name="chevron-right" size={18} color={accent} />
     </Pressable>
   );
 }

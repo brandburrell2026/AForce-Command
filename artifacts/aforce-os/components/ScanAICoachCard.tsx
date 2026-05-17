@@ -18,7 +18,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, Pressable, Platform } from 'react-native';
 import * as Haptics from 'expo-haptics';
-import { Feather } from '@expo/vector-icons';
+import { Icon } from './Icon';
 
 import { Colors } from '@/theme/colors';
 import { getStatusColor } from '@/theme/statusColor';
@@ -153,7 +153,7 @@ export function ScanAICoachCard({
         <View style={[styles.badge, { backgroundColor: `${accent}1A`, borderColor: `${accent}66` }]}>
           {/* Status dot — the small pulsing signal next to AI COACH */}
           <View style={[styles.statusDot, { backgroundColor: accent, shadowColor: accent }]} />
-          <Feather name="message-circle" size={11} color={accent} />
+          <Icon name="message-circle" size={11} color={accent} />
           <Text style={[styles.badgeText, { color: accent }]}>AI COACH</Text>
         </View>
         {script.hasComparison && (
@@ -226,7 +226,7 @@ export function ScanAICoachCard({
         accessibilityLabel={isPlaying ? 'Stop AI Coach' : 'Hear AI Coach'}
         testID="scan-ai-coach-toggle"
       >
-        <Feather
+        <Icon
           name={isPlaying ? 'square' : 'play'}
           size={14}
           color={accent}

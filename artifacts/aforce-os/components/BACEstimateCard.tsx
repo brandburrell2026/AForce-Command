@@ -13,7 +13,7 @@
 
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { Icon, type IconName } from './Icon';
 import { useTranslation } from 'react-i18next';
 
 import { Colors } from '../theme/colors';
@@ -23,7 +23,7 @@ interface Props {
   bac: BACEstimate;
 }
 
-const TREND_ICON: Record<BACEstimate['trend'], React.ComponentProps<typeof Feather>['name']> = {
+const TREND_ICON: Record<BACEstimate['trend'], IconName> = {
   rising: 'trending-up',
   steady: 'minus',
   falling: 'trending-down',
@@ -71,7 +71,7 @@ export function BACEstimateCard({ bac }: Props) {
             {formatBAC(bac.rangeLow)}<Text style={styles.dash}>–</Text>{formatBAC(bac.rangeHigh)}
           </Text>
           <View style={styles.trendRow}>
-            <Feather name={TREND_ICON[bac.trend]} size={13} color={trendColor} />
+            <Icon name={TREND_ICON[bac.trend]} size={13} color={trendColor} />
             <Text style={[styles.trendText, { color: trendColor }]}>
               {t(`social.bac_trend_${bac.trend}`)}
             </Text>
@@ -84,7 +84,7 @@ export function BACEstimateCard({ bac }: Props) {
       </View>
 
       <View style={styles.disclaimerRow}>
-        <Feather name="info" size={11} color="rgba(255,255,255,0.45)" />
+        <Icon name="info" size={11} color="rgba(255,255,255,0.45)" />
         <Text style={styles.disclaimer}>
           {t('social.estimate_only')} · {t('social.not_legal_medical')}
         </Text>

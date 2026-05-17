@@ -4,7 +4,7 @@
 
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { Icon, type IconName } from './Icon';
 import { useTranslation } from 'react-i18next';
 import { Colors } from '../theme/colors';
 import { phantomSignalData } from '../data/mockData';
@@ -26,10 +26,10 @@ export function PhantomSignal() {
   );
 }
 
-function SignalItem({ icon, label, value }: { icon: keyof typeof Feather.glyphMap; label: string; value: string }) {
+function SignalItem({ icon, label, value }: { icon: IconName; label: string; value: string }) {
   return (
     <View style={styles.item}>
-      <Feather name={icon} size={12} color={Colors.text.muted} />
+      <Icon name={icon} size={12} color={Colors.text.muted} />
       <Text style={styles.itemLabel}>{label}</Text>
       <Text style={styles.itemValue}>{value}</Text>
     </View>

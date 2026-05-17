@@ -5,7 +5,7 @@
 
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { Icon } from '../components/Icon';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -40,7 +40,7 @@ export const FriendDetailScreen: React.FC = () => {
     return (
       <View style={[styles.root, { paddingTop: insets.top + 8 }]}>
         <Pressable onPress={() => router.back()} style={styles.iconBtn} hitSlop={12}>
-          <Feather name="chevron-left" size={22} color={Colors.text.primary} />
+          <Icon name="chevron-left" size={22} color={Colors.text.primary} />
         </Pressable>
         <View style={styles.empty}>
           <Text style={styles.emptyText}>That circle member isn't reachable.</Text>
@@ -59,7 +59,7 @@ export const FriendDetailScreen: React.FC = () => {
     <View style={[styles.root, { paddingTop: insets.top + 8 }]}>
       <View style={styles.headerRow}>
         <Pressable onPress={() => router.back()} style={styles.iconBtn} hitSlop={12} accessibilityLabel="Back">
-          <Feather name="chevron-left" size={22} color={Colors.text.primary} />
+          <Icon name="chevron-left" size={22} color={Colors.text.primary} />
         </Pressable>
         <Text style={styles.title}>CIRCLE</Text>
         <View style={styles.iconBtn} />
@@ -77,7 +77,7 @@ export const FriendDetailScreen: React.FC = () => {
           <Text style={styles.sub}>{user.city ?? '—'}</Text>
           <View style={styles.scoreRow}>
             <Text style={[styles.score, { color: accent }]}>{status.score}</Text>
-            <Feather
+            <Icon
               name={TREND_ICON[status.trend]} size={18}
               color={status.trend === 'up' ? Colors.states.PEAK.primary
                 : status.trend === 'down' ? Colors.states.DEPLETED.primary

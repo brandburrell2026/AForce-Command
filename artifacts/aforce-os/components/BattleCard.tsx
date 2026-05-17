@@ -5,7 +5,7 @@
 
 import React from 'react';
 import { View, Text, StyleSheet, Pressable, Platform } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { Icon } from './Icon';
 import * as Haptics from 'expo-haptics';
 import { Colors } from '@/theme/colors';
 import type { BattleView } from '@/services/battleService';
@@ -52,7 +52,7 @@ export const BattleCard: React.FC<Props> = ({ battle, onSupport }) => {
           accessibilityRole="button"
           accessibilityLabel={`Support ${battle.side1.name}`}
         >
-          <Feather name="arrow-up" size={12} color={Colors.text.primary} />
+          <Icon name="arrow-up" size={12} color={Colors.text.primary} />
           <Text style={styles.supportText}>SUPPORT {battle.side1.name.toUpperCase()}</Text>
         </Pressable>
         <Pressable
@@ -61,7 +61,7 @@ export const BattleCard: React.FC<Props> = ({ battle, onSupport }) => {
           accessibilityRole="button"
           accessibilityLabel={`Support ${battle.side2.name}`}
         >
-          <Feather name="arrow-up" size={12} color={Colors.text.primary} />
+          <Icon name="arrow-up" size={12} color={Colors.text.primary} />
           <Text style={styles.supportText}>SUPPORT {battle.side2.name.toUpperCase()}</Text>
         </Pressable>
       </View>

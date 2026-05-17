@@ -5,7 +5,7 @@
 
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { Icon } from './Icon';
 
 import type { CompetitorTeam } from '../types/competition';
 import { Colors } from '../theme/colors';
@@ -23,7 +23,7 @@ export function TeamCard({ team, yourRank }: Props) {
         <Text style={[styles.eyebrow, { color: accent }]}>YOUR TEAM</Text>
         {team.rank === 1 && (
           <View style={[styles.crown, { backgroundColor: accent }]}>
-            <Feather name="award" size={11} color={Colors.text.inverse} />
+            <Icon name="award" size={11} color={Colors.text.inverse} />
             <Text style={styles.crownText}>#1 THIS WEEK</Text>
           </View>
         )}

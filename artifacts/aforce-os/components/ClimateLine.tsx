@@ -16,7 +16,7 @@
 
 import React from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { Icon, type IconName } from './Icon';
 import { Colors } from '../theme/colors';
 import {
   getCurrentCityClimate,
@@ -28,7 +28,7 @@ interface Props {
   onPress?: () => void;
 }
 
-const CONDITION_ICON: Record<CityClimate['condition'], keyof typeof import('@expo/vector-icons').Feather.glyphMap> = {
+const CONDITION_ICON: Record<CityClimate['condition'], IconName> = {
   clear:  'sun',
   cloudy: 'cloud',
   rain:   'cloud-rain',
@@ -62,13 +62,13 @@ export function ClimateLine({ onPress }: Props) {
       testID="climate-line"
     >
       <View style={styles.row}>
-        <Feather name={CONDITION_ICON[climate.condition]} size={13} color={Colors.text.secondary} />
+        <Icon name={CONDITION_ICON[climate.condition]} size={13} color={Colors.text.secondary} />
         <Text style={styles.metric}>{climate.tempF.toFixed(0)}°F</Text>
         <Text style={styles.sep}>·</Text>
-        <Feather name="droplet" size={11} color={Colors.text.muted} />
+        <Icon name="droplet" size={11} color={Colors.text.muted} />
         <Text style={styles.metric}>{climate.humidityPct.toFixed(0)}% RH</Text>
         <Text style={styles.sep}>·</Text>
-        <Feather name="map-pin" size={11} color={Colors.text.muted} />
+        <Icon name="map-pin" size={11} color={Colors.text.muted} />
         <Text style={styles.city} numberOfLines={1}>{cityLabel}</Text>
         {climate.source === 'mock' && (
           <Text style={styles.mockTag}>·  est.</Text>

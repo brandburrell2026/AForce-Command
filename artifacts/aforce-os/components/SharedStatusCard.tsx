@@ -5,7 +5,7 @@
 
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { Icon } from './Icon';
 import { Colors } from '@/theme/colors';
 import type { SharedStatus, SharedStateLabel } from '@/types/circle';
 
@@ -56,7 +56,7 @@ const Stat: React.FC<StatProps> = ({ label, value, accent, icon }) => (
   <View style={styles.stat}>
     <Text style={styles.statLabel}>{label}</Text>
     <View style={styles.statValueRow}>
-      {icon ? <Feather name={icon} size={12} color={accent ?? Colors.text.primary} /> : null}
+      {icon ? <Icon name={icon} size={12} color={accent ?? Colors.text.primary} /> : null}
       <Text style={[styles.statValue, accent ? { color: accent } : null]}>{value}</Text>
     </View>
   </View>

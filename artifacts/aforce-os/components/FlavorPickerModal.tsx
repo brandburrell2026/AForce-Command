@@ -15,7 +15,7 @@
 
 import React, { useState } from 'react';
 import { Modal, View, Text, StyleSheet, Pressable, ScrollView, Image } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { Icon } from './Icon';
 import * as Haptics from 'expo-haptics';
 import { Colors } from '../theme/colors';
 import { FLAVOR_VARIANTS } from '../data/flavors';
@@ -198,7 +198,7 @@ export function FlavorPickerModal({ visible, format, onCancel, onConfirm }: Prop
           <View style={styles.headerRow}>
             <Text style={styles.title}>{titleText}</Text>
             <Pressable onPress={onCancel} hitSlop={12} accessibilityLabel="Cancel">
-              <Feather name="x" size={20} color={Colors.text.secondary} />
+              <Icon name="x" size={20} color={Colors.text.secondary} />
             </Pressable>
           </View>
           <Text style={styles.subtitle}>
@@ -221,7 +221,7 @@ export function FlavorPickerModal({ visible, format, onCancel, onConfirm }: Prop
               >
                 <View style={styles.waterHeader}>
                   <View style={styles.waterIcon}>
-                    <Feather name="droplet" size={20} color={WATER_ACCENT} />
+                    <Icon name="droplet" size={20} color={WATER_ACCENT} />
                   </View>
                   <View style={styles.cardBody}>
                     <Text style={styles.cardName}>Water</Text>

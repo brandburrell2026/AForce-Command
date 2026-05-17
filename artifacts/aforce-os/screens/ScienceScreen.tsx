@@ -14,7 +14,7 @@ import {
   View, Text, StyleSheet, ScrollView, Pressable, ActivityIndicator, Platform, Linking,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Feather } from '@expo/vector-icons';
+import { Icon } from '../components/Icon';
 import { useRouter } from 'expo-router';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
@@ -170,7 +170,7 @@ export function ScienceScreen() {
         >
           <View style={styles.headerRow}>
             <Pressable onPress={() => router.back()} style={styles.backButton} hitSlop={12} testID="science-back">
-              <Feather name="chevron-left" size={20} color={Colors.text.primary} />
+              <Icon name="chevron-left" size={20} color={Colors.text.primary} />
             </Pressable>
             <View style={{ flex: 1 }}>
               <Text style={styles.eyebrow}>VALIDATION</Text>
@@ -192,7 +192,7 @@ export function ScienceScreen() {
               <ActivityIndicator color={Colors.background.primary} />
             ) : (
               <>
-                <Feather name="download" size={14} color={Colors.background.primary} />
+                <Icon name="download" size={14} color={Colors.background.primary} />
                 <Text style={styles.exportLabel}>EXPORT METHODOLOGY PDF</Text>
               </>
             )}

@@ -11,7 +11,7 @@ import {
   Modal, View, Text, StyleSheet, Pressable, Platform,
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
-import { Feather } from '@expo/vector-icons';
+import { Icon } from './Icon';
 
 import { Colors } from '@/theme/colors';
 import type { GateCheck, SubscriptionPlanId } from '@/types/subscription';
@@ -51,7 +51,7 @@ export function UpgradePrompt({ gate, visible, onDismiss, onUpgrade }: Props) {
       <Pressable style={styles.scrim} onPress={onDismiss}>
         <Pressable style={[styles.sheet, { borderColor: `${accent}55` }]} onPress={() => {}}>
           <View style={[styles.iconWrap, { backgroundColor: `${accent}1A`, borderColor: `${accent}66` }]}>
-            <Feather name="lock" size={20} color={accent} />
+            <Icon name="lock" size={20} color={accent} />
           </View>
           <Text style={styles.eyebrow}>LOCKED FEATURE</Text>
           <Text style={styles.title}>{gate.featureLabel}</Text>
@@ -60,7 +60,7 @@ export function UpgradePrompt({ gate, visible, onDismiss, onUpgrade }: Props) {
           </Text>
 
           <View style={[styles.planChip, { backgroundColor: `${accent}14`, borderColor: `${accent}55` }]}>
-            <Feather name="zap" size={11} color={accent} />
+            <Icon name="zap" size={11} color={accent} />
             <Text style={[styles.planChipText, { color: accent }]}>
               {plan.name.toUpperCase()} · {plan.priceLabel}
             </Text>

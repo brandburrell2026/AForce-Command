@@ -12,7 +12,7 @@
  * to React Native using the AForce OS palette.
  */
 
-import { Feather } from '@expo/vector-icons';
+import { Icon } from '../components/Icon';
 import { router } from 'expo-router';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
@@ -142,7 +142,7 @@ export default function RingSportScreen() {
       {/* Sport pill */}
       <View style={styles.sportRow}>
         <View style={[styles.sportPill, { borderColor: LIME + '55', backgroundColor: LIME + '14' }]}>
-          <Feather name="activity" size={14} color={LIME} />
+          <Icon name="activity" size={14} color={LIME} />
           <Text style={[styles.sportPillText, { color: LIME }]}>{sportLabel}</Text>
         </View>
       </View>
@@ -156,25 +156,25 @@ export default function RingSportScreen() {
       {/* Metric grid */}
       <View style={styles.grid}>
         <Tile
-          icon={<Feather name="heart" size={14} color={RED} />}
+          icon={<Icon name="heart" size={14} color={RED} />}
           label="HR"
           value={ring.biometrics.heartRateBpm.toString()}
           unit="bpm"
         />
         <Tile
-          icon={<Feather name="droplet" size={14} color={TEAL} />}
+          icon={<Icon name="droplet" size={14} color={TEAL} />}
           label="SWEAT"
           value={sweatRateLh.toFixed(2)}
           unit="L/h"
         />
         <Tile
-          icon={<Feather name="thermometer" size={14} color={AMBER} />}
+          icon={<Icon name="thermometer" size={14} color={AMBER} />}
           label="TEMP"
           value={ring.biometrics.skinTempC.toFixed(1)}
           unit="°C"
         />
         <Tile
-          icon={<Feather name="zap" size={14} color={PURPLE} />}
+          icon={<Icon name="zap" size={14} color={PURPLE} />}
           label="GSR"
           value={ring.biometrics.gsrActive ? 'Active' : 'Idle'}
           unit={
@@ -221,7 +221,7 @@ export default function RingSportScreen() {
         {/* Next sip pill */}
         <View style={[styles.sipPill, { backgroundColor: AMBER }]}>
           <View style={styles.sipIcon}>
-            <Feather name="clock" size={20} color="#000" />
+            <Icon name="clock" size={20} color="#000" />
           </View>
           <View style={styles.sipMid}>
             <Text style={styles.sipLabel}>NEXT SIP IN</Text>
@@ -248,7 +248,7 @@ export default function RingSportScreen() {
           style={({ pressed }) => [styles.endBtn, pressed && { opacity: 0.85 }]}
           accessibilityRole="button"
         >
-          <Feather name="square" size={12} color={Colors.text.muted} />
+          <Icon name="square" size={12} color={Colors.text.muted} />
           <Text style={styles.endBtnText}>End session</Text>
         </Pressable>
       </View>

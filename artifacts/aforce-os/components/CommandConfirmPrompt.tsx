@@ -14,7 +14,7 @@
 
 import React from 'react';
 import { View, Text, Pressable, StyleSheet, Platform } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { Icon } from './Icon';
 import * as Haptics from 'expo-haptics';
 import { Colors } from '../theme/colors';
 import type { FluidType } from '../types';
@@ -50,7 +50,7 @@ export function CommandConfirmPrompt({ onAnswer, inClutch }: Props) {
   return (
     <View style={styles.wrap} testID="command-confirm-prompt">
       <View style={styles.headerRow}>
-        <Feather name="help-circle" size={14} color={Colors.text.primary} />
+        <Icon name="help-circle" size={14} color={Colors.text.primary} />
         <Text style={styles.title}>WHAT DID YOU DRINK?</Text>
       </View>
       <Text style={styles.body}>
@@ -65,7 +65,7 @@ export function CommandConfirmPrompt({ onAnswer, inClutch }: Props) {
           testID="command-confirm-water"
           accessibilityLabel="I had water"
         >
-          <Feather name="droplet" size={14} color="#0a1f12" />
+          <Icon name="droplet" size={14} color="#0a1f12" />
           <Text style={[styles.btnLabel, { color: '#0a1f12' }]}>WATER</Text>
         </Pressable>
         <Pressable
@@ -75,7 +75,7 @@ export function CommandConfirmPrompt({ onAnswer, inClutch }: Props) {
           testID="command-confirm-rtd"
           accessibilityLabel="I had an AForce RTD"
         >
-          <Feather name="zap" size={14} color="#0a1f12" />
+          <Icon name="zap" size={14} color="#0a1f12" />
           <Text style={[styles.btnLabel, { color: '#0a1f12' }]}>AFORCE RTD</Text>
         </Pressable>
       </View>
@@ -86,7 +86,7 @@ export function CommandConfirmPrompt({ onAnswer, inClutch }: Props) {
         testID="command-confirm-missed"
         accessibilityLabel="I missed the command"
       >
-        <Feather name="x" size={14} color="#fff" />
+        <Icon name="x" size={14} color="#fff" />
         <Text style={[styles.btnLabel, { color: '#fff' }]}>MISSED IT · -3</Text>
       </Pressable>
     </View>

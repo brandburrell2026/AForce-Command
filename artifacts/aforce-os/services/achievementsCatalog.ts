@@ -29,7 +29,7 @@ export interface AchievementDefinition {
   title: string;
   description: string;
   criterion: string;
-  /** Feather icon name for the badge tile. */
+  /** Icon name for the badge tile. */
   icon: string;
   /** Visual sort order on the grid (lower = earlier). */
   order: number;

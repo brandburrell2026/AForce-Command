@@ -9,7 +9,7 @@
 
 import React from 'react';
 import { View, Text, StyleSheet, Pressable, ActivityIndicator } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { Icon, type IconName } from './Icon';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
@@ -22,7 +22,7 @@ import { refreshEntitlement } from '../hooks/useEntitlement';
 const TEAL = '#7CD3E5';
 const AMBER = '#F4B23F';
 
-const FEATURES: { key: string; icon: React.ComponentProps<typeof Feather>['name'] }[] = [
+const FEATURES: { key: string; icon: IconName }[] = [
   { key: 'social.recovery_paywall_feat_morning', icon: 'sunrise' },
   { key: 'social.recovery_paywall_feat_steps',   icon: 'check-circle' },
   { key: 'social.recovery_paywall_feat_rtd',     icon: 'zap' },
@@ -61,7 +61,7 @@ export function RecoveryModePaywall() {
     <View style={[styles.card, { borderColor: `${TEAL}40` }]} testID="recovery-mode-paywall">
       <View style={styles.header}>
         <View style={[styles.iconWrap, { backgroundColor: `${TEAL}26` }]}>
-          <Feather name="lock" size={18} color={TEAL} />
+          <Icon name="lock" size={18} color={TEAL} />
         </View>
         <View style={{ flex: 1 }}>
           <Text style={[styles.eyebrow, { color: TEAL }]}>{t('social.recovery_paywall_eyebrow')}</Text>
@@ -74,7 +74,7 @@ export function RecoveryModePaywall() {
       <View style={styles.featuresBlock}>
         {FEATURES.map((f) => (
           <View key={f.key} style={styles.featureRow}>
-            <Feather name={f.icon} size={14} color={AMBER} style={styles.featureIcon} />
+            <Icon name={f.icon} size={14} color={AMBER} style={styles.featureIcon} />
             <Text style={styles.featureText}>{t(f.key)}</Text>
           </View>
         ))}
@@ -100,7 +100,7 @@ export function RecoveryModePaywall() {
         {busy ? (
           <ActivityIndicator size="small" color="#0A0A0F" />
         ) : (
-          <Feather name="arrow-right" size={16} color="#0A0A0F" />
+          <Icon name="arrow-right" size={16} color="#0A0A0F" />
         )}
         <Text style={styles.ctaText}>{t('social.recovery_paywall_cta')}</Text>
       </Pressable>

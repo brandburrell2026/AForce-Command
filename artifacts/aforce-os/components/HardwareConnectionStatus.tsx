@@ -5,14 +5,14 @@
 
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { Icon, type IconName } from './Icon';
 import { Colors } from '../theme/colors';
 import type { BandConnectionStatus } from '../types/hardware';
 
 const VARIANT: Record<BandConnectionStatus, {
   label: string;
   color: string;
-  icon: keyof typeof Feather.glyphMap;
+  icon: IconName;
 }> = {
   unpaired:     { label: 'UNPAIRED',     color: Colors.text.muted,             icon: 'bluetooth' },
   pairing:      { label: 'PAIRING…',     color: Colors.states.BALANCED.primary, icon: 'loader' },
@@ -28,7 +28,7 @@ export function HardwareConnectionStatus({ status }: { status: BandConnectionSta
       testID="band-connection-status"
       style={[styles.pill, { borderColor: `${v.color}55`, backgroundColor: `${v.color}14` }]}
     >
-      <Feather name={v.icon} size={10} color={v.color} />
+      <Icon name={v.icon} size={10} color={v.color} />
       <Text style={[styles.label, { color: v.color }]}>{v.label}</Text>
     </View>
   );

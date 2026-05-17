@@ -17,7 +17,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { Feather } from '@expo/vector-icons';
+import { Icon, type IconName } from '../components/Icon';
 import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
 
@@ -111,7 +111,7 @@ export default function ManageSubscriptionScreen() {
         >
           <View style={styles.headerRow}>
             <Pressable onPress={() => router.back()} style={styles.backBtn} hitSlop={10}>
-              <Feather name="chevron-left" size={20} color={Colors.text.primary} />
+              <Icon name="chevron-left" size={20} color={Colors.text.primary} />
             </Pressable>
             <View style={{ flex: 1 }}>
               <Text style={styles.eyebrow}>SUBSCRIPTION</Text>
@@ -132,7 +132,7 @@ export default function ManageSubscriptionScreen() {
             </View>
 
             <Pressable onPress={() => router.push('/subscription')} style={styles.changeBtn}>
-              <Feather name="repeat" size={14} color={Colors.text.primary} />
+              <Icon name="repeat" size={14} color={Colors.text.primary} />
               <Text style={styles.changeBtnText}>CHANGE PLAN</Text>
             </Pressable>
           </View>
@@ -169,7 +169,7 @@ export default function ManageSubscriptionScreen() {
               <SectionHeader label="PRODUCT SHIPMENTS" />
               <View style={styles.card}>
                 <View style={styles.shipmentTop}>
-                  <Feather name="package" size={16} color={Colors.states.PEAK.primary} />
+                  <Icon name="package" size={16} color={Colors.states.PEAK.primary} />
                   <View style={{ flex: 1 }}>
                     <Text style={styles.shipmentTitle}>Next delivery</Text>
                     <Text style={styles.shipmentDate}>{formatDate(sub.product.nextDeliveryAt)}</Text>
@@ -194,7 +194,7 @@ export default function ManageSubscriptionScreen() {
               <React.Fragment key={f.id}>
                 {i > 0 && <Divider />}
                 <View style={styles.featureRow}>
-                  <Feather name="check" size={14} color={Colors.states.PEAK.primary} />
+                  <Icon name="check" size={14} color={Colors.states.PEAK.primary} />
                   <View style={{ flex: 1 }}>
                     <Text style={styles.featureLabel}>{f.label}</Text>
                     {f.detail && <Text style={styles.featureDetail}>{f.detail}</Text>}
@@ -218,7 +218,7 @@ export default function ManageSubscriptionScreen() {
               disabled={busy}
               style={({ pressed }) => [styles.portalBtn, pressed && styles.portalBtnPressed]}
             >
-              <Feather name="external-link" size={14} color={Colors.text.primary} />
+              <Icon name="external-link" size={14} color={Colors.text.primary} />
               <Text style={styles.portalBtnText}>
                 {busy ? 'OPENING…' : 'MANAGE BILLING'}
               </Text>
@@ -245,11 +245,11 @@ function SectionHeader({ label, hint }: { label: string; hint?: string }) {
     </View>
   );
 }
-function Row({ icon, label, value }: { icon: keyof typeof Feather.glyphMap; label: string; value: string }) {
+function Row({ icon, label, value }: { icon: IconName; label: string; value: string }) {
   return (
     <View style={styles.row}>
       <View style={styles.rowLeft}>
-        <Feather name={icon} size={14} color={Colors.states.BALANCED.primary} />
+        <Icon name={icon} size={14} color={Colors.states.BALANCED.primary} />
         <Text style={styles.rowLabel}>{label}</Text>
       </View>
       <Text style={styles.rowValue}>{value}</Text>

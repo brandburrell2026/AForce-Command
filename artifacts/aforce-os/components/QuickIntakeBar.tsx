@@ -5,7 +5,7 @@
 
 import React from 'react';
 import { View, Text, StyleSheet, Pressable, Image, ScrollView } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { Icon } from './Icon';
 import * as Haptics from 'expo-haptics';
 import { Colors } from '../theme/colors';
 import { useAppStore } from '../store/useAppStore';
@@ -53,7 +53,7 @@ export function QuickIntakeBar({ accentColor }: Props) {
                 <Image source={p.image} style={styles.image} resizeMode="contain" />
               ) : (
                 <View style={styles.iconFallback}>
-                  <Feather name="droplet" size={28} color={Colors.text.secondary} />
+                  <Icon name="droplet" size={28} color={Colors.text.secondary} />
                 </View>
               )}
               <Text style={styles.name} numberOfLines={1}>{p.shortName}</Text>

@@ -16,7 +16,7 @@ import { View, Text, StyleSheet, Pressable, Platform } from 'react-native';
 import Animated, {
   useSharedValue, useAnimatedStyle, withTiming, withSpring,
 } from 'react-native-reanimated';
-import { Feather } from '@expo/vector-icons';
+import { Icon } from './Icon';
 import * as Haptics from 'expo-haptics';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -81,7 +81,7 @@ export function OnboardingOverlay({ visible, onDismiss }: Props) {
       <Animated.View style={[styles.card, cardStyle, { borderColor: `${accent}33` }]}>
         <View style={styles.cardHeader}>
           <View style={[styles.iconCircle, { backgroundColor: `${accent}1A`, borderColor: `${accent}55` }]}>
-            <Feather name={PAGE_ICONS[page]} size={22} color={accent} />
+            <Icon name={PAGE_ICONS[page]} size={22} color={accent} />
           </View>
           <View style={{ flex: 1 }}>
             <Text style={[styles.eyebrow, { color: accent }]}>{t(`onboarding.${pageKey}.eyebrow`)}</Text>
@@ -114,7 +114,7 @@ export function OnboardingOverlay({ visible, onDismiss }: Props) {
               accessibilityRole="button"
               accessibilityLabel={t('onboarding.back')}
             >
-              <Feather name="chevron-left" size={14} color={Colors.text.secondary} />
+              <Icon name="chevron-left" size={14} color={Colors.text.secondary} />
               <Text style={styles.backText}>{t('onboarding.back')}</Text>
             </Pressable>
           )}
@@ -135,7 +135,7 @@ export function OnboardingOverlay({ visible, onDismiss }: Props) {
             accessibilityLabel={isLast ? t('onboarding.start') : t('onboarding.next')}
           >
             <Text style={styles.nextText}>{isLast ? t('onboarding.start') : t('onboarding.next')}</Text>
-            <Feather name={isLast ? 'check' : 'arrow-right'} size={14} color="#000" />
+            <Icon name={isLast ? 'check' : 'arrow-right'} size={14} color="#000" />
           </Pressable>
         </View>
       </Animated.View>

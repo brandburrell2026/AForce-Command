@@ -6,6 +6,7 @@ import {
   Inter_800ExtraBold,
   useFonts,
 } from '@expo-google-fonts/inter';
+import { Icon } from '../components/Icon';
 import { Feather } from '@expo/vector-icons';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Stack } from 'expo-router';

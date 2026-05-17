@@ -6,7 +6,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, Pressable, Platform } from 'react-native';
 import * as Haptics from 'expo-haptics';
-import { Feather } from '@expo/vector-icons';
+import { Icon } from './Icon';
 
 import { Colors } from '@/theme/colors';
 import { COMPARE_PRODUCTS } from '@/data/productDatabase';
@@ -30,7 +30,7 @@ export function AForceReplacementCard({ result, onTakeAction, isLogging }: Props
       <View style={[styles.glow, { backgroundColor: `${accent}10` }]} />
       <View style={styles.headerRow}>
         <View style={[styles.badge, { backgroundColor: `${accent}1A`, borderColor: `${accent}66` }]}>
-          <Feather name="zap" size={11} color={accent} />
+          <Icon name="zap" size={11} color={accent} />
           <Text style={[styles.badgeText, { color: accent }]}>BEST AFORCE REPLACEMENT</Text>
         </View>
       </View>
@@ -49,7 +49,7 @@ export function AForceReplacementCard({ result, onTakeAction, isLogging }: Props
           { borderColor: `${accent}66`, opacity: isLogging ? 0.6 : pressed ? 0.85 : 1 },
         ]}
       >
-        <Feather name="arrow-right-circle" size={16} color={accent} />
+        <Icon name="arrow-right-circle" size={16} color={accent} />
         <Text style={[styles.ctaText, { color: accent }]} numberOfLines={2}>
           {isLogging ? 'LOGGING…' : result.recommendation.command.toUpperCase()}
         </Text>

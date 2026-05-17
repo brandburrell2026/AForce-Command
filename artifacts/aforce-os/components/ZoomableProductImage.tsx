@@ -40,7 +40,7 @@ import Animated, {
   Easing,
   runOnJS,
 } from 'react-native-reanimated';
-import { Feather } from '@expo/vector-icons';
+import { Icon } from './Icon';
 import * as Haptics from 'expo-haptics';
 
 import { Colors } from '@/theme/colors';
@@ -202,7 +202,7 @@ export function ZoomableProductImage({
               accessibilityLabel="Close zoomed image"
               testID="zoom-close"
             >
-              <Feather name="x" size={18} color={accent} />
+              <Icon name="x" size={18} color={accent} />
             </Pressable>
           </Animated.View>
         </Animated.View>

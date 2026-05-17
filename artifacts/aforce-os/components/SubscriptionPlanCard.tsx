@@ -12,7 +12,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, Pressable, Platform } from 'react-native';
 import * as Haptics from 'expo-haptics';
-import { Feather } from '@expo/vector-icons';
+import { Icon } from './Icon';
 
 import { Colors } from '@/theme/colors';
 import type { SubscriptionPlan, SubscriptionPlanId } from '@/types/subscription';
@@ -58,7 +58,7 @@ export function SubscriptionPlanCard({ plan, isCurrent, isProcessing, onSelect }
     >
       {plan.badge && (
         <View style={[styles.flagshipBadge, { backgroundColor: accent }]}>
-          <Feather name="star" size={10} color="#000" />
+          <Icon name="star" size={10} color="#000" />
           <Text style={styles.flagshipBadgeText}>{plan.badge}</Text>
         </View>
       )}
@@ -75,7 +75,7 @@ export function SubscriptionPlanCard({ plan, isCurrent, isProcessing, onSelect }
 
       {plan.userLimit && (
         <View style={styles.limitChip}>
-          <Feather name="users" size={11} color={Colors.text.secondary} />
+          <Icon name="users" size={11} color={Colors.text.secondary} />
           <Text style={styles.limitText}>Up to {plan.userLimit} members</Text>
         </View>
       )}
@@ -89,7 +89,7 @@ export function SubscriptionPlanCard({ plan, isCurrent, isProcessing, onSelect }
       <View style={styles.features}>
         {plan.features.slice(0, 6).map((f) => (
           <View key={f.id} style={styles.featureRow}>
-            <Feather name="check" size={12} color={accent} />
+            <Icon name="check" size={12} color={accent} />
             <Text style={styles.featureLabel} numberOfLines={2}>{f.label}</Text>
             {f.badge && (
               <View style={[styles.featureBadge, { borderColor: `${accent}66`, backgroundColor: `${accent}14` }]}>
@@ -105,7 +105,7 @@ export function SubscriptionPlanCard({ plan, isCurrent, isProcessing, onSelect }
 
       {plan.productSubscription && (
         <View style={[styles.productPanel, { borderColor: `${accent}33` }]}>
-          <Feather name="package" size={12} color={accent} />
+          <Icon name="package" size={12} color={accent} />
           <Text style={styles.productPanelText} numberOfLines={2}>
             {plan.productSubscription.allotments.map((a) => a.label).join(' · ')} — every month
           </Text>

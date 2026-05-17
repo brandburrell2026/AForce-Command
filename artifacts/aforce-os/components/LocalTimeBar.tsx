@@ -10,7 +10,7 @@
 
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { Icon } from './Icon';
 import { Colors } from '../theme/colors';
 
 function getTimeZoneAbbrev(date: Date): string {
@@ -62,7 +62,7 @@ export function LocalTimeBar() {
 
   return (
     <View style={styles.row} accessibilityRole="text" testID="local-time-bar">
-      <Feather name="clock" size={11} color={Colors.text.muted} />
+      <Icon name="clock" size={11} color={Colors.text.muted} />
       <Text style={styles.text} numberOfLines={1}>
         {dateLabel}
         <Text style={styles.dim}>  ·  </Text>

@@ -11,7 +11,7 @@
 
 import React from 'react';
 import { Pressable, View, Text, StyleSheet, Platform } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { Icon } from './Icon';
 import { useTranslation } from 'react-i18next';
 import * as Haptics from 'expo-haptics';
 
@@ -60,7 +60,7 @@ function SocialModeBannerImpl({ social, onPress }: Props) {
       ]}
     >
       <View style={[styles.iconWrap, { backgroundColor: `${accent}26` }]}>
-        <Feather name={social.inRecoveryWindow ? 'sunrise' : 'moon'} size={16} color={accent} />
+        <Icon name={social.inRecoveryWindow ? 'sunrise' : 'moon'} size={16} color={accent} />
       </View>
       <View style={{ flex: 1 }}>
         <Text style={[styles.title, { color: accent }]}>{t(titleKey)}</Text>
@@ -72,7 +72,7 @@ function SocialModeBannerImpl({ social, onPress }: Props) {
       {!social.inRecoveryWindow && social.drinkCount > 0 && (
         <ImpairmentRiskBadge impairment={social.impairment} />
       )}
-      <Feather name="chevron-right" size={18} color={accent} style={{ marginLeft: 6 }} />
+      <Icon name="chevron-right" size={18} color={accent} style={{ marginLeft: 6 }} />
     </Pressable>
   );
 }

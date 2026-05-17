@@ -17,7 +17,7 @@ import React from 'react';
 import {
   View, Text, StyleSheet, ScrollView, Pressable, Platform,
 } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { Icon, type IconName } from '../components/Icon';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
@@ -42,12 +42,12 @@ import {
   type JournalSharePayload,
 } from '@/services/journalShareCache';
 
-const BASE_FORMATS: { id: ShareFormat; label: string; icon: keyof typeof Feather.glyphMap }[] = [
+const BASE_FORMATS: { id: ShareFormat; label: string; icon: IconName }[] = [
   { id: 'card',  label: 'CARD',  icon: 'square'    },
   { id: 'story', label: 'STORY', icon: 'smartphone' },
   { id: 'text',  label: 'TEXT',  icon: 'type'      },
 ];
-const RECAP_FORMAT: { id: ShareFormat; label: string; icon: keyof typeof Feather.glyphMap } = {
+const RECAP_FORMAT: { id: ShareFormat; label: string; icon: IconName } = {
   id: 'recap', label: 'RECAP', icon: 'bar-chart-2',
 };
 
@@ -213,7 +213,7 @@ export const SharePreviewScreen: React.FC = () => {
   const SOCIAL_TARGETS: ReadonlyArray<{
     id: SocialPlatform;
     label: string;
-    icon: keyof typeof Feather.glyphMap;
+    icon: IconName;
     tint: string;
   }> = [
     { id: 'x',         label: 'X',         icon: 'twitter',          tint: '#FFFFFF' },
@@ -235,7 +235,7 @@ export const SharePreviewScreen: React.FC = () => {
           hitSlop={12}
           accessibilityLabel="Close share preview"
         >
-          <Feather name="x" size={20} color={Colors.text.primary} />
+          <Icon name="x" size={20} color={Colors.text.primary} />
         </Pressable>
         <Text style={styles.title}>SHARE</Text>
         <View style={styles.iconBtn} />
@@ -330,7 +330,7 @@ export const SharePreviewScreen: React.FC = () => {
                 testID={`share-to-${target.id}`}
               >
                 <View style={[styles.socialIconCircle, { borderColor: `${target.tint}55` }]}>
-                  <Feather name={target.icon} size={18} color={target.tint} />
+                  <Icon name={target.icon} size={18} color={target.tint} />
                 </View>
                 <Text style={styles.socialLabel} numberOfLines={1}>{target.label}</Text>
               </Pressable>
@@ -354,7 +354,7 @@ export const SharePreviewScreen: React.FC = () => {
                   accessibilityLabel={`${f.label} format`}
                   accessibilityState={{ selected: active }}
                 >
-                  <Feather name={f.icon} size={14} color={active ? Colors.text.inverse : Colors.text.primary} />
+                  <Icon name={f.icon} size={14} color={active ? Colors.text.inverse : Colors.text.primary} />
                   <Text style={[styles.formatBtnText, active && styles.formatBtnTextActive]}>
                     {f.label}
                   </Text>
@@ -406,7 +406,7 @@ export const SharePreviewScreen: React.FC = () => {
           accessibilityRole="button"
           accessibilityLabel="Open share sheet"
         >
-          <Feather name="share" size={16} color={Colors.text.inverse} />
+          <Icon name="share" size={16} color={Colors.text.inverse} />
           <Text style={styles.ctaText}>{sharing ? 'OPENING…' : 'SHARE'}</Text>
         </Pressable>
       </View>

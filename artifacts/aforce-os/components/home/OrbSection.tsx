@@ -8,7 +8,7 @@
 
 import React from 'react';
 import { View, Text, StyleSheet, Platform } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { Icon } from '../Icon';
 import * as Haptics from 'expo-haptics';
 import { useTranslation } from 'react-i18next';
 
@@ -81,7 +81,7 @@ function OrbSectionImpl({ onOpenBreakdown, orbSize }: Props) {
           testID="no-recent-intake"
           accessibilityLabel="No intake logged in the last 24 hours. Log a drink to start your day."
         >
-          <Feather name="droplet" size={12} color={Colors.text.muted} />
+          <Icon name="droplet" size={12} color={Colors.text.muted} />
           <Text style={[styles.predictionText, { color: Colors.text.secondary }]}>
             {t('home.no_recent_intake')}
           </Text>

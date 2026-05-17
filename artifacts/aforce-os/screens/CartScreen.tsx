@@ -25,7 +25,7 @@ import { useRouter } from "expo-router";
 import * as Haptics from "expo-haptics";
 import * as WebBrowser from "expo-web-browser";
 import * as Linking from "expo-linking";
-import { Feather } from "@expo/vector-icons";
+import { Icon, type IconName } from '../components/Icon';
 
 import { GradientBackground } from "@/components/GradientBackground";
 import { ZoomableProductImage } from "@/components/ZoomableProductImage";
@@ -140,7 +140,7 @@ export default function CartScreen() {
               accessibilityRole="button"
               accessibilityLabel="Back"
             >
-              <Feather name="chevron-left" size={20} color={Colors.text.primary} />
+              <Icon name="chevron-left" size={20} color={Colors.text.primary} />
             </Pressable>
             <View style={{ flex: 1 }}>
               <Text style={styles.eyebrow}>YOUR CART</Text>
@@ -155,7 +155,7 @@ export default function CartScreen() {
 
           {resolvedLines.length === 0 ? (
             <View style={styles.emptyCard}>
-              <Feather name="shopping-bag" size={28} color={Colors.text.muted} />
+              <Icon name="shopping-bag" size={28} color={Colors.text.muted} />
               <Text style={styles.emptyTitle}>Your cart is empty</Text>
               <Text style={styles.emptyHint}>
                 Browse the Store tab and add the formats your protocol needs.
@@ -164,7 +164,7 @@ export default function CartScreen() {
                 onPress={() => router.replace("/(tabs)/store")}
                 style={styles.emptyCta}
               >
-                <Feather name="grid" size={14} color={Colors.text.primary} />
+                <Icon name="grid" size={14} color={Colors.text.primary} />
                 <Text style={styles.emptyCtaText}>BROWSE STORE</Text>
               </Pressable>
             </View>
@@ -172,14 +172,14 @@ export default function CartScreen() {
             <>
               {shipGap > 0 ? (
                 <View style={styles.shipBanner}>
-                  <Feather name="truck" size={12} color={Colors.text.muted} />
+                  <Icon name="truck" size={12} color={Colors.text.muted} />
                   <Text style={styles.shipBannerText}>
                     Add {formatPrice(shipGap)} more for free shipping.
                   </Text>
                 </View>
               ) : (
                 <View style={[styles.shipBanner, { borderColor: `${Colors.states.PEAK.primary}55` }]}>
-                  <Feather name="check-circle" size={12} color={Colors.states.PEAK.primary} />
+                  <Icon name="check-circle" size={12} color={Colors.states.PEAK.primary} />
                   <Text style={[styles.shipBannerText, { color: Colors.states.PEAK.primary }]}>
                     Free shipping unlocked.
                   </Text>
@@ -215,7 +215,7 @@ export default function CartScreen() {
                           accessibilityRole="button"
                           accessibilityLabel="Decrease quantity"
                         >
-                          <Feather name="minus" size={14} color={Colors.text.primary} />
+                          <Icon name="minus" size={14} color={Colors.text.primary} />
                         </Pressable>
                         <Text style={styles.qtyText}>{line.qty}</Text>
                         <Pressable
@@ -224,7 +224,7 @@ export default function CartScreen() {
                           accessibilityRole="button"
                           accessibilityLabel="Increase quantity"
                         >
-                          <Feather name="plus" size={14} color={Colors.text.primary} />
+                          <Icon name="plus" size={14} color={Colors.text.primary} />
                         </Pressable>
                         <View style={{ flex: 1 }} />
                         <Text style={styles.lineSubtotal}>{formatPrice(line.lineSubtotalCents)}</Text>
@@ -237,7 +237,7 @@ export default function CartScreen() {
                       accessibilityRole="button"
                       accessibilityLabel={`Remove ${line.sku.title}`}
                     >
-                      <Feather name="x" size={14} color={Colors.text.muted} />
+                      <Icon name="x" size={14} color={Colors.text.muted} />
                     </Pressable>
                   </View>
                 );
@@ -267,7 +267,7 @@ export default function CartScreen() {
 
               {checkoutNotice && (
                 <View style={styles.noticeBox}>
-                  <Feather name="info" size={14} color={Colors.text.primary} />
+                  <Icon name="info" size={14} color={Colors.text.primary} />
                   <Text style={styles.noticeText}>{checkoutNotice}</Text>
                 </View>
               )}
@@ -286,7 +286,7 @@ export default function CartScreen() {
                 {pending ? (
                   <ActivityIndicator size="small" color="#000" />
                 ) : (
-                  <Feather name="lock" size={14} color="#000" />
+                  <Icon name="lock" size={14} color="#000" />
                 )}
                 <Text style={styles.checkoutBtnText}>
                   {pending ? "STARTING CHECKOUT…" : `SECURE CHECKOUT · ${formatPrice(totalCents)}`}

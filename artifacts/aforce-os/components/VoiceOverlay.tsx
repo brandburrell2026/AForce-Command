@@ -19,7 +19,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View, Text, StyleSheet, Modal, Pressable, Platform,
 } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { Icon } from './Icon';
 import { useRouter } from 'expo-router';
 
 import { useTranslation } from 'react-i18next';
@@ -265,7 +265,7 @@ export function VoiceOverlay({ visible, onClose, autoStart = false }: Props) {
             <Text style={styles.eyebrow}>{t('voice.eyebrow')}</Text>
             <View style={styles.headerRight}>
               <Pressable onPress={onClose} style={styles.closeBtn} accessibilityRole="button" accessibilityLabel={t('voice.close_a11y')}>
-                <Feather name="x" size={18} color={Colors.text.muted} />
+                <Icon name="x" size={18} color={Colors.text.muted} />
               </Pressable>
             </View>
           </View>
@@ -282,7 +282,7 @@ export function VoiceOverlay({ visible, onClose, autoStart = false }: Props) {
           {!VOICE_PLAYBACK_ENABLED && (
             <View style={styles.mutedPillRow}>
               <View style={styles.mutedPill} testID="voice-replies-muted-pill">
-                <Feather name="volume-x" size={10} color={Colors.text.muted} />
+                <Icon name="volume-x" size={10} color={Colors.text.muted} />
                 <Text style={styles.mutedPillText}>{t('voice.replies_muted')}</Text>
               </View>
             </View>
@@ -313,7 +313,7 @@ export function VoiceOverlay({ visible, onClose, autoStart = false }: Props) {
             accessibilityLabel={t('voice.mic_a11y')}
             testID="voice-mic-toggle"
           >
-            <Feather
+            <Icon
               name={voiceState === 'listening' ? 'square' : voiceState === 'processing' ? 'loader' : 'mic'}
               size={22}
               color={accent}

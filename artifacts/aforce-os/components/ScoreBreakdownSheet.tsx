@@ -7,7 +7,7 @@ import React, { useEffect } from 'react';
 import {
   View, Text, StyleSheet, Pressable, Platform, ScrollView,
 } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { Icon } from './Icon';
 import Animated, {
   useSharedValue, useAnimatedStyle, withTiming, withSpring, Easing,
 } from 'react-native-reanimated';
@@ -70,7 +70,7 @@ export function ScoreBreakdownSheet({ visible, onDismiss, score, contributions, 
             </View>
           </View>
           <Pressable hitSlop={12} onPress={onDismiss} style={styles.closeBtn}>
-            <Feather name="x" size={18} color={Colors.text.secondary} />
+            <Icon name="x" size={18} color={Colors.text.secondary} />
           </Pressable>
         </View>
 

@@ -30,7 +30,7 @@ import Animated, {
   cancelAnimation,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Feather } from '@expo/vector-icons';
+import { Icon } from '../components/Icon';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -227,7 +227,7 @@ export default function HomeScreen() {
           >
             <Text style={styles.ctaPrimaryText}>BEGIN PROTOCOL</Text>
             <View style={styles.ctaArrowBadge}>
-              <Feather name="arrow-right" size={14} color={C.white} />
+              <Icon name="arrow-right" size={14} color={C.white} />
             </View>
           </Pressable>
 

@@ -20,7 +20,7 @@ import Animated, {
   runOnJS,
   Easing,
 } from 'react-native-reanimated';
-import { Feather } from '@expo/vector-icons';
+import { Icon } from './Icon';
 import * as Haptics from 'expo-haptics';
 
 import type { CycleResult } from '../types';
@@ -119,7 +119,7 @@ export function CycleSuccessOverlay({ result, onDismiss }: Props) {
           <Animated.View pointerEvents="none" style={[styles.rippleRing, { borderColor: color }, r2]} />
           <Animated.View pointerEvents="none" style={[styles.rippleRing, { borderColor: color }, r3]} />
           <View style={[styles.iconCircle, { backgroundColor: `${color}20`, borderColor: `${color}66` }]}>
-            <Feather name={positive ? 'check' : 'arrow-down'} size={32} color={color} />
+            <Icon name={positive ? 'check' : 'arrow-down'} size={32} color={color} />
           </View>
         </View>
 
@@ -127,7 +127,7 @@ export function CycleSuccessOverlay({ result, onDismiss }: Props) {
         <View style={styles.scoreLine}>
           <Text style={[styles.scoreNum, { color }]}>{displayScore}</Text>
           <Animated.View style={[styles.gainPill, { borderColor: `${color}55`, backgroundColor: `${color}1A` }, gainStyle]}>
-            <Feather
+            <Icon
               name={positive ? 'trending-up' : 'trending-down'}
               size={12}
               color={color}
@@ -142,20 +142,20 @@ export function CycleSuccessOverlay({ result, onDismiss }: Props) {
         {/* Score path (from / arrow / to) */}
         <View style={styles.deltaRow}>
           <Text style={styles.deltaFrom}>was {result.scoreBefore}</Text>
-          <Feather name="arrow-right" size={12} color={Colors.text.muted} />
+          <Icon name="arrow-right" size={12} color={Colors.text.muted} />
           <Text style={[styles.deltaTo, { color }]}>now {result.scoreAfter}</Text>
         </View>
 
         {/* Next hint */}
         <View style={[styles.hintRow, { borderColor: Colors.border.subtle }]}>
-          <Feather name="clock" size={12} color={Colors.text.muted} />
+          <Icon name="clock" size={12} color={Colors.text.muted} />
           <Text style={styles.hintText}>{result.nextCycleHint}</Text>
         </View>
 
         {/* Dismiss */}
         <TouchableOpacity onPress={onDismiss} style={styles.dismissBtn} activeOpacity={0.7}>
           <Text style={styles.dismissText}>CONTINUE</Text>
-          <Feather name="arrow-right" size={12} color={Colors.text.muted} />
+          <Icon name="arrow-right" size={12} color={Colors.text.muted} />
         </TouchableOpacity>
       </Animated.View>
     </Animated.View>

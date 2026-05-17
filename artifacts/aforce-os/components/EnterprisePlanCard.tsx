@@ -11,7 +11,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, Pressable, Platform } from 'react-native';
 import * as Haptics from 'expo-haptics';
-import { Feather } from '@expo/vector-icons';
+import { Icon } from './Icon';
 
 import { Colors } from '@/theme/colors';
 import type { SubscriptionPlan, SubscriptionPlanId } from '@/types/subscription';
@@ -56,7 +56,7 @@ export function EnterprisePlanCard({ plan, isCurrent, isProcessing, onSelect }: 
         </View>
         {elite && (
           <View style={[styles.eliteBadge, { backgroundColor: accent }]}>
-            <Feather name="award" size={10} color="#000" />
+            <Icon name="award" size={10} color="#000" />
             <Text style={styles.eliteBadgeText}>ELITE</Text>
           </View>
         )}
@@ -74,13 +74,13 @@ export function EnterprisePlanCard({ plan, isCurrent, isProcessing, onSelect }: 
         <View style={styles.priceMeta}>
           {plan.setupFee != null && (
             <View style={styles.priceMetaItem}>
-              <Feather name="package" size={11} color={Colors.text.muted} />
+              <Icon name="package" size={11} color={Colors.text.muted} />
               <Text style={styles.priceMetaText}>{fmtUsd(plan.setupFee)} one-time setup</Text>
             </View>
           )}
           {plan.minimumTermMonths != null && (
             <View style={styles.priceMetaItem}>
-              <Feather name="calendar" size={11} color={Colors.text.muted} />
+              <Icon name="calendar" size={11} color={Colors.text.muted} />
               <Text style={styles.priceMetaText}>{plan.minimumTermMonths}-month minimum term</Text>
             </View>
           )}
@@ -98,7 +98,7 @@ export function EnterprisePlanCard({ plan, isCurrent, isProcessing, onSelect }: 
       <View style={styles.features}>
         {plan.features.map((f) => (
           <View key={f.id} style={styles.featureRow}>
-            <Feather name="check" size={13} color={accent} />
+            <Icon name="check" size={13} color={accent} />
             <Text style={styles.featureLabel} numberOfLines={2}>{f.label}</Text>
             {f.badge && (
               <View style={[styles.featureBadge, { borderColor: `${accent}66`, backgroundColor: `${accent}14` }]}>
@@ -112,7 +112,7 @@ export function EnterprisePlanCard({ plan, isCurrent, isProcessing, onSelect }: 
       {/* Value note */}
       {plan.valueNote && (
         <View style={[styles.valueNoteWrap, { borderColor: `${accent}44`, backgroundColor: `${accent}0D` }]}>
-          <Feather name="trending-down" size={12} color={accent} />
+          <Icon name="trending-down" size={12} color={accent} />
           <Text style={[styles.valueNoteText, { color: Colors.text.primary }]}>{plan.valueNote}</Text>
         </View>
       )}
@@ -147,7 +147,7 @@ export function EnterprisePlanCard({ plan, isCurrent, isProcessing, onSelect }: 
               : plan.ctaLabel.toUpperCase()}
         </Text>
         {!isCurrent && !isProcessing && (
-          <Feather name="arrow-right" size={14} color={isCurrent ? accent : elite ? '#000' : accent} />
+          <Icon name="arrow-right" size={14} color={isCurrent ? accent : elite ? '#000' : accent} />
         )}
       </Pressable>
     </View>

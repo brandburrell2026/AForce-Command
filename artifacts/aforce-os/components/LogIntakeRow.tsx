@@ -13,7 +13,7 @@
 
 import React from 'react';
 import { View, Text, StyleSheet, Pressable, Image } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { Icon, type IconName } from './Icon';
 import * as Haptics from 'expo-haptics';
 import { useTranslation } from 'react-i18next';
 import { Colors } from '../theme/colors';
@@ -35,7 +35,7 @@ interface Props {
 const OPTIONS: Array<{
   fluid: FluidType;
   labelKey: string;
-  icon: keyof typeof Feather.glyphMap;
+  icon: IconName;
 }> = [
   { fluid: 'aforce_stick', labelKey: 'logIntake.row_stick_label', icon: 'zap' },
   { fluid: 'aforce_rtd', labelKey: 'logIntake.row_rtd_label', icon: 'package' },
@@ -134,7 +134,7 @@ export function LogIntakeRow({ accentColor }: Props) {
                 <Image source={tileImage} style={styles.image} resizeMode="contain" />
               ) : (
                 <View style={styles.iconCircle}>
-                  <Feather name={opt.icon} size={22} color={accentColor} />
+                  <Icon name={opt.icon} size={22} color={accentColor} />
                 </View>
               )}
               <Text style={styles.label} numberOfLines={1}>

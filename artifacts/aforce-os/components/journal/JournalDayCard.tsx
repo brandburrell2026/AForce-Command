@@ -6,7 +6,7 @@
 
 import React, { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { Icon } from '../Icon';
 import { useTranslation } from 'react-i18next';
 import type { JournalRollup } from '@/types';
 import { Colors } from '@/theme/colors';
@@ -96,7 +96,7 @@ export default function JournalDayCard({ rollup }: Props) {
           <Text style={[styles.scoreVal, { color }]}>{rollup.avgScore}</Text>
           <Text style={styles.scoreLabel}>{t('journal.day_card_avg')}</Text>
         </View>
-        <Feather
+        <Icon
           name={open ? 'chevron-up' : 'chevron-down'}
           size={18}
           color="#5C6275"
@@ -114,7 +114,7 @@ export default function JournalDayCard({ rollup }: Props) {
             <Row label={t('journal.day_card_deficit')} value={`${rollup.endDeficitPct.toFixed(1)}%`} />
           )}
           <View style={styles.lessonRow}>
-            <Feather name="zap" size={11} color="#B6FF00" />
+            <Icon name="zap" size={11} color="#B6FF00" />
             <Text style={styles.lessonText}>{lesson}</Text>
           </View>
           {(rollup.autopilotSessions > 0 || rollup.socialSessions > 0) && (

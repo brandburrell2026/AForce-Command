@@ -15,7 +15,7 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { Feather } from '@expo/vector-icons';
+import { Icon } from '../components/Icon';
 
 import { GradientBackground } from '@/components/GradientBackground';
 import { Leaderboard } from '@/components/Leaderboard';
@@ -97,14 +97,14 @@ export default function CompetitionScreen() {
           {/* Header */}
           <View style={styles.headerRow}>
             <Pressable onPress={() => router.back()} hitSlop={12} style={styles.back}>
-              <Feather name="chevron-left" size={22} color={Colors.text.primary} />
+              <Icon name="chevron-left" size={22} color={Colors.text.primary} />
             </Pressable>
             <View style={{ flex: 1 }}>
               <Text style={styles.eyebrow}>SPORT MODE</Text>
               <Text style={styles.title}>Competition</Text>
             </View>
             <View style={[styles.statePill, { borderColor: `${Colors.states.PEAK.primary}55`, backgroundColor: `${Colors.states.PEAK.primary}15` }]}>
-              <Feather name="zap" size={10} color={Colors.states.PEAK.primary} />
+              <Icon name="zap" size={10} color={Colors.states.PEAK.primary} />
               <Text style={[styles.statePillText, { color: Colors.states.PEAK.primary }]}>LIVE</Text>
             </View>
           </View>
@@ -120,7 +120,7 @@ export default function CompetitionScreen() {
                 <Text style={styles.userMeta}>{me.user.city}, {me.user.state} · {me.user.state_label}</Text>
               </View>
               <View style={[styles.deltaPill, me.recentDelta > 0 ? { backgroundColor: `${Colors.states.PEAK.primary}1F` } : null]}>
-                <Feather name="arrow-up-right" size={11} color={Colors.states.PEAK.primary} />
+                <Icon name="arrow-up-right" size={11} color={Colors.states.PEAK.primary} />
                 <Text style={[styles.deltaText, { color: Colors.states.PEAK.primary }]}>+{me.recentDelta} spots</Text>
               </View>
             </View>
@@ -136,7 +136,7 @@ export default function CompetitionScreen() {
           {/* City-wins celebration ribbon (WOW moment) */}
           {snapshot.cityWinsAvailable && topCity && (
             <View style={[styles.celebrate, { borderColor: `${Colors.states.PEAK.primary}55` }]}>
-              <Feather name="award" size={14} color={Colors.states.PEAK.primary} />
+              <Icon name="award" size={14} color={Colors.states.PEAK.primary} />
               <Text style={styles.celebrateText}>
                 <Text style={{ color: Colors.states.PEAK.primary, fontFamily: 'Inter_700Bold' }}>{topCity.name}</Text>
                 {' leads the country this week.'}

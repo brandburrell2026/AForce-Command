@@ -6,7 +6,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Feather } from '@expo/vector-icons';
+import { Icon, type IconName } from '../components/Icon';
 import { useRouter } from 'expo-router';
 
 import { GradientBackground } from '@/components/GradientBackground';
@@ -45,7 +45,7 @@ export default function ClutchScreen() {
           showsVerticalScrollIndicator={false}
         >
           <Pressable onPress={() => router.back()} style={styles.backBtn}>
-            <Feather name="chevron-left" size={20} color={Colors.text.secondary} />
+            <Icon name="chevron-left" size={20} color={Colors.text.secondary} />
             <Text style={styles.backText}>Profile</Text>
           </Pressable>
 
@@ -119,7 +119,7 @@ export default function ClutchScreen() {
               { borderColor: heatModeOn ? Colors.states.RECOVERING.primary : Colors.border.medium },
             ]}>
               <View style={styles.heatHeader}>
-                <Feather name="thermometer" size={18} color={heatModeOn ? Colors.states.RECOVERING.primary : Colors.text.muted} />
+                <Icon name="thermometer" size={18} color={heatModeOn ? Colors.states.RECOVERING.primary : Colors.text.muted} />
                 <Text style={[styles.heatLabel, { color: heatModeOn ? Colors.states.RECOVERING.primary : Colors.text.secondary }]}>
                   HEAT MODE {heatModeOn ? 'ACTIVE' : 'STANDBY'}
                 </Text>
@@ -155,11 +155,11 @@ function PlanRow({ label, value, accent }: { label: string; value: string; accen
   );
 }
 
-function OpsRow({ icon, label, status }: { icon: keyof typeof Feather.glyphMap; label: string; status: string }) {
+function OpsRow({ icon, label, status }: { icon: IconName; label: string; status: string }) {
   const active = status === 'Active';
   return (
     <View style={styles.opsRow}>
-      <Feather name={icon} size={16} color={active ? Colors.clutch.primary : Colors.text.muted} />
+      <Icon name={icon} size={16} color={active ? Colors.clutch.primary : Colors.text.muted} />
       <Text style={styles.opsLabel}>{label}</Text>
       <Text style={[styles.opsStatus, active && { color: Colors.clutch.primary }]}>{status}</Text>
     </View>

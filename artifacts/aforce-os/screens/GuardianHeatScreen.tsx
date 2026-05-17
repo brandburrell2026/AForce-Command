@@ -17,7 +17,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
-import { Feather } from "@expo/vector-icons";
+import { Icon, type IconName } from '../components/Icon';
 
 import { GradientBackground } from "@/components/GradientBackground";
 import { Colors } from "@/theme/colors";
@@ -94,7 +94,7 @@ export default function GuardianHeatScreen() {
               accessibilityRole="button"
               accessibilityLabel="Back"
             >
-              <Feather name="chevron-left" size={20} color={Colors.text.primary} />
+              <Icon name="chevron-left" size={20} color={Colors.text.primary} />
             </Pressable>
             <View style={{ flex: 1 }}>
               <Text style={styles.eyebrow}>HEAT GUARD · TEAM</Text>
@@ -187,7 +187,7 @@ export default function GuardianHeatScreen() {
                       {a.riskScore}
                     </Text>
                     <Text style={styles.athleteScoreUnit}>RISK</Text>
-                    <Feather
+                    <Icon
                       name={
                         a.trend === "rising"
                           ? "trending-up"

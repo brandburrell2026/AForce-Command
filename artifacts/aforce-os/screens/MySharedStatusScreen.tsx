@@ -6,7 +6,7 @@
 
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, Switch, Platform } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { Icon } from '../components/Icon';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
@@ -63,7 +63,7 @@ export const MySharedStatusScreen: React.FC = () => {
     <View style={[styles.root, { paddingTop: insets.top + 8 }]}>
       <View style={styles.headerRow}>
         <Pressable onPress={() => router.back()} style={styles.iconBtn} hitSlop={12} accessibilityLabel="Back">
-          <Feather name="chevron-left" size={22} color={Colors.text.primary} />
+          <Icon name="chevron-left" size={22} color={Colors.text.primary} />
         </Pressable>
         <Text style={styles.title}>WHAT OTHERS SEE</Text>
         <View style={styles.iconBtn} />

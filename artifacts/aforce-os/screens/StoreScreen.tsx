@@ -25,7 +25,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import * as Haptics from "expo-haptics";
-import { Feather } from "@expo/vector-icons";
+import { Icon, type IconName } from '../components/Icon';
 
 import { GradientBackground } from "@/components/GradientBackground";
 import { ZoomableProductImage } from "@/components/ZoomableProductImage";
@@ -146,7 +146,7 @@ export default function StoreScreen() {
               accessibilityLabel={`Cart, ${itemCount} items`}
               hitSlop={10}
             >
-              <Feather name="shopping-bag" size={18} color={Colors.text.primary} />
+              <Icon name="shopping-bag" size={18} color={Colors.text.primary} />
               {itemCount > 0 && (
                 <View style={styles.cartIconBadge}>
                   <Text style={styles.cartIconBadgeText}>{itemCount}</Text>
@@ -450,7 +450,7 @@ export default function StoreScreen() {
                           }${selectedBundle ? ` (${selectedBundle.bundle.label})` : ""}`}
                           testID={`store-add-${sku.id}`}
                         >
-                          <Feather name="plus" size={14} color={accent} />
+                          <Icon name="plus" size={14} color={accent} />
                           <Text style={[styles.addBtnText, { color: accent }]}>
                             {isSubscribed
                               ? `SUBSCRIBE & ${subPricing.discountLabel.toUpperCase()}`
@@ -499,14 +499,14 @@ export default function StoreScreen() {
             accessibilityLabel={`View cart, ${itemCount} items, subtotal ${formatPrice(subtotalCents)}`}
           >
             <View style={styles.cartPillIcon}>
-              <Feather name="shopping-bag" size={14} color={Colors.text.primary} />
+              <Icon name="shopping-bag" size={14} color={Colors.text.primary} />
               <View style={styles.cartPillBadge}>
                 <Text style={styles.cartPillBadgeText}>{itemCount}</Text>
               </View>
             </View>
             <Text style={styles.cartPillText}>VIEW CART</Text>
             <Text style={styles.cartPillTotal}>{formatPrice(subtotalCents)}</Text>
-            <Feather name="chevron-right" size={16} color={Colors.text.primary} />
+            <Icon name="chevron-right" size={16} color={Colors.text.primary} />
           </Pressable>
         )}
       </GradientBackground>

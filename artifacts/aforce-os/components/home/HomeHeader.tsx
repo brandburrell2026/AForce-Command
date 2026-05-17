@@ -11,7 +11,7 @@
 
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { Icon } from '../Icon';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -58,7 +58,7 @@ function HomeHeaderImpl() {
           accessibilityLabel={t('home.share_a11y')}
           testID="home-share-button"
         >
-          <Feather name="share" size={14} color={Colors.text.primary} />
+          <Icon name="share" size={14} color={Colors.text.primary} />
         </TouchableOpacity>
         <View style={[styles.statePill, { borderColor: `${stateColor}55`, backgroundColor: `${stateColor}14` }]}>
           <View style={[styles.dot, { backgroundColor: stateColor }]} />

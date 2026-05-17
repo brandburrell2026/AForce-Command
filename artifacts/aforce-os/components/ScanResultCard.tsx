@@ -14,7 +14,7 @@ import Animated, {
   withDelay,
   Easing,
 } from 'react-native-reanimated';
-import { Feather } from '@expo/vector-icons';
+import { Icon } from './Icon';
 
 import { Colors } from '@/theme/colors';
 import type { ScanResult } from '@/types/scan';
@@ -63,7 +63,7 @@ export function ScanResultCard({ result }: Props) {
     <Animated.View style={[styles.card, { borderColor: `${color}55` }, animStyle]}>
       <View style={styles.headerRow}>
         <View style={[styles.iconWrap, { backgroundColor: `${color}1A`, borderColor: `${color}55` }]}>
-          <Feather
+          <Icon
             name={result.product.isAForce ? 'check-circle' : 'box'}
             size={16}
             color={color}

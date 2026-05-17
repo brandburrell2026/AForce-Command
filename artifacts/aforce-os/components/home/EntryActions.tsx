@@ -5,7 +5,7 @@
 
 import React from 'react';
 import { View, TouchableOpacity, StyleSheet, Platform } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { Icon } from '../Icon';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 
@@ -35,7 +35,7 @@ function EntryActionsImpl() {
           accessibilityLabel={item.label}
           testID={'testID' in item ? item.testID : undefined}
         >
-          <Feather name={item.icon} size={18} color={Colors.text.primary} />
+          <Icon name={item.icon} size={18} color={Colors.text.primary} />
         </TouchableOpacity>
       ))}
     </View>

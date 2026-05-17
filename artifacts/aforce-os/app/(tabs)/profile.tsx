@@ -9,12 +9,11 @@ import {
   View, Text, StyleSheet, ScrollView, Switch, TouchableOpacity, Platform, Pressable, Alert,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Feather } from '@expo/vector-icons';
+import { Icon, type IconName } from '../../components/Icon';
 import { useRouter } from 'expo-router';
 
 import { GradientBackground } from '@/components/GradientBackground';
 import { WhoopSnapshotCard } from '@/components/WhoopSnapshotCard';
-import { Icon } from '@/components/Icon';
 import { Colors } from '@/theme/colors';
 import { mockUserProfile } from '@/data/mockData';
 import { HEALTH_PROVIDERS, type HealthProviderId } from '@/data/healthProviders';
@@ -513,7 +512,7 @@ export default function ProfileScreen() {
                               },
                             ]}
                           >
-                            <Feather name={p.icon} size={16} color={p.brand} />
+                            <Icon name={p.icon} size={16} color={p.brand} />
                           </View>
                           <View style={styles.providerBody}>
                             <Text style={styles.deviceName}>{p.name}</Text>
@@ -565,7 +564,7 @@ export default function ProfileScreen() {
                                 accessibilityRole="button"
                                 accessibilityLabel="Refresh Apple Health"
                               >
-                                <Feather
+                                <Icon
                                   name="refresh-cw"
                                   size={12}
                                   color={Colors.text.secondary}
@@ -1077,7 +1076,7 @@ function SignOutRow() {
         accessibilityRole="button"
         accessibilityLabel="Sign out"
       >
-        <Feather name="log-out" size={14} color={Colors.text.primary} />
+        <Icon name="log-out" size={14} color={Colors.text.primary} />
         <Text style={signOutStyles.btnText}>Sign out</Text>
       </Pressable>
     </View>
@@ -1120,7 +1119,7 @@ function SnapshotCell({ label, value }: { label: string; value: string }) {
   );
 }
 
-function SettingRow({ icon, label, value }: { icon: keyof typeof Feather.glyphMap; label: string; value: string }) {
+function SettingRow({ icon, label, value }: { icon: IconName; label: string; value: string }) {
   return (
     <View style={styles.settingRow}>
       <View style={styles.settingLeft}>
@@ -1241,7 +1240,7 @@ function SubscriptionPanel() {
           accessibilityState={{ busy: portalBusy, disabled: portalBusy }}
         >
           <Text style={[styles.upgradeBtnText, { color: accent }]}>Manage</Text>
-          <Feather name="settings" size={14} color={accent} />
+          <Icon name="settings" size={14} color={accent} />
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.upgradeBtn, { borderColor: `${accent}44`, flex: 1, backgroundColor: `${accent}10` }]}
@@ -1249,7 +1248,7 @@ function SubscriptionPanel() {
           onPress={() => router.push('/subscription')}
         >
           <Text style={[styles.upgradeBtnText, { color: accent }]}>Upgrade</Text>
-          <Feather name="arrow-up-right" size={14} color={accent} />
+          <Icon name="arrow-up-right" size={14} color={accent} />
         </TouchableOpacity>
       </View>
     </View>

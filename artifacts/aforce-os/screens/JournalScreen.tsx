@@ -22,7 +22,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Feather } from '@expo/vector-icons';
+import { Icon } from '../components/Icon';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 import * as Print from 'expo-print';
@@ -177,7 +177,7 @@ export default function JournalScreen() {
               testID="journal-share-social"
               style={styles.shareBtn}
             >
-              <Feather name="share-2" size={14} color="#FFFFFF" />
+              <Icon name="share-2" size={14} color="#FFFFFF" />
               <Text style={styles.shareBtnText}>{t('journal.share_social')}</Text>
             </Pressable>
             <Pressable
@@ -190,7 +190,7 @@ export default function JournalScreen() {
               {exporting ? (
                 <ActivityIndicator size="small" color="#0A0A1E" />
               ) : (
-                <Feather name="share" size={14} color="#0A0A1E" />
+                <Icon name="share" size={14} color="#0A0A1E" />
               )}
               <Text style={styles.exportBtnText}>
                 {exporting ? t('journal.exporting') : t('journal.export_pdf')}

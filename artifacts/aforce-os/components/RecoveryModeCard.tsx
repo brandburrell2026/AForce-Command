@@ -8,7 +8,7 @@
 
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { Icon, type IconName } from './Icon';
 import { useTranslation } from 'react-i18next';
 
 import { Colors } from '../theme/colors';
@@ -18,7 +18,7 @@ interface Props {
   timeToClearMinutes: number;
 }
 
-const STEPS: { key: string; icon: React.ComponentProps<typeof Feather>['name'] }[] = [
+const STEPS: { key: string; icon: IconName }[] = [
   { key: 'social.recovery_step_water', icon: 'droplet' },
   { key: 'social.recovery_step_rtd',   icon: 'zap' },
   { key: 'social.recovery_step_sleep', icon: 'moon' },
@@ -44,7 +44,7 @@ export function RecoveryModeCard({ timeToClearMinutes }: Props) {
     <View style={[styles.card, { borderColor: `${TEAL}40` }]} testID="recovery-mode-card">
       <View style={styles.header}>
         <View style={[styles.iconWrap, { backgroundColor: `${TEAL}26` }]}>
-          <Feather name="sunrise" size={18} color={TEAL} />
+          <Icon name="sunrise" size={18} color={TEAL} />
         </View>
         <View style={{ flex: 1 }}>
           <Text style={[styles.eyebrow, { color: TEAL }]}>{t('social.recovery_card_title')}</Text>
@@ -57,7 +57,7 @@ export function RecoveryModeCard({ timeToClearMinutes }: Props) {
         <Text style={[styles.stepsLabel, { color: AMBER }]}>{t('social.recovery_steps_label')}</Text>
         {STEPS.map((s) => (
           <View key={s.key} style={styles.stepRow}>
-            <Feather name={s.icon} size={14} color={AMBER} style={styles.stepIcon} />
+            <Icon name={s.icon} size={14} color={AMBER} style={styles.stepIcon} />
             <Text style={styles.stepText}>{t(s.key)}</Text>
           </View>
         ))}

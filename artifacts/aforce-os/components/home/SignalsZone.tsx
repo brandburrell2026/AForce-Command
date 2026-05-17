@@ -10,7 +10,7 @@
 
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { Icon } from '../Icon';
 import * as Haptics from 'expo-haptics';
 import { useTranslation } from 'react-i18next';
 
@@ -94,9 +94,9 @@ function SignalsZoneImpl({ heatScore, onOpenSocial, includeEntryActions, entryAc
         accessibilityLabel={t('social.entry_button')}
         testID="home-social-entry"
       >
-        <Feather name="moon" size={16} color="#9D7CFB" />
+        <Icon name="moon" size={16} color="#9D7CFB" />
         <Text style={styles.socialEntryText}>{t('social.entry_button')}</Text>
-        <Feather name="chevron-right" size={16} color="#9D7CFB" />
+        <Icon name="chevron-right" size={16} color="#9D7CFB" />
       </TouchableOpacity>
     </>
   );

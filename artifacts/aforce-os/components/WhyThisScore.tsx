@@ -7,7 +7,7 @@
 
 import React from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { Icon } from './Icon';
 import type { ScoreReason } from '../types';
 import { Colors } from '../theme/colors';
 
@@ -21,7 +21,7 @@ function ReasonsList({ reasons }: { reasons: ScoreReason[] }) {
     <View style={styles.list}>
       {reasons.map((reason) => (
         <View key={reason.id} style={styles.reasonRow}>
-          <Feather
+          <Icon
             name={reason.weight === 'positive' ? 'arrow-up' : reason.weight === 'negative' ? 'arrow-down' : 'minus'}
             size={12}
             color={
@@ -57,7 +57,7 @@ function WhyThisScoreImpl({ reasons, onOpenBreakdown }: Props) {
       >
         <View style={styles.headerRow}>
           <Text style={styles.label}>WHY THIS SCORE</Text>
-          <Feather name="chevron-right" size={14} color={Colors.text.muted} />
+          <Icon name="chevron-right" size={14} color={Colors.text.muted} />
         </View>
         <ReasonsList reasons={reasons} />
       </Pressable>

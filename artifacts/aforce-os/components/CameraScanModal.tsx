@@ -18,7 +18,7 @@ import {
   Text,
   View,
 } from "react-native";
-import { Feather } from "@expo/vector-icons";
+import { Icon, type IconName } from './Icon';
 
 import { Colors } from "@/theme/colors";
 
@@ -120,7 +120,7 @@ function CameraScanBody({
     return (
       <View style={styles.container}>
         <View style={styles.centerBox}>
-          <Feather name="camera-off" size={36} color={Colors.text.muted} />
+          <Icon name="camera-off" size={36} color={Colors.text.muted} />
           <Text style={styles.statusTitle}>Camera access needed</Text>
           <Text style={styles.statusText}>
             AForce OS uses your camera to scan hydration product barcodes.
@@ -160,7 +160,7 @@ function CameraScanBody({
 
       <View style={styles.topBar}>
         <Pressable onPress={onClose} hitSlop={12} style={styles.iconBtn}>
-          <Feather name="x" size={22} color={Colors.text.primary} />
+          <Icon name="x" size={22} color={Colors.text.primary} />
         </Pressable>
         <Text style={styles.topBarTitle}>AFORCE HYDROSCAN</Text>
         <View style={{ width: 36 }} />
@@ -168,7 +168,7 @@ function CameraScanBody({
 
       {!armed && (
         <Pressable style={styles.rescanBtn} onPress={reArm}>
-          <Feather name="refresh-cw" size={14} color={Colors.text.primary} />
+          <Icon name="refresh-cw" size={14} color={Colors.text.primary} />
           <Text style={styles.rescanBtnText}>SCAN AGAIN</Text>
         </Pressable>
       )}

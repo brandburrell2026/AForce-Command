@@ -9,7 +9,7 @@ import {
   View, Text, StyleSheet, ScrollView, Pressable, Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Feather } from '@expo/vector-icons';
+import { Icon, type IconName } from '../components/Icon';
 import { useRouter } from 'expo-router';
 
 import { GradientBackground } from '@/components/GradientBackground';
@@ -88,7 +88,7 @@ export function PhantomBandScreen() {
           {/* Header */}
           <View style={styles.headerRow}>
             <Pressable onPress={() => router.back()} style={styles.backButton} hitSlop={12} testID="phantom-back">
-              <Feather name="chevron-left" size={20} color={Colors.text.primary} />
+              <Icon name="chevron-left" size={20} color={Colors.text.primary} />
             </Pressable>
             <View style={{ flex: 1 }}>
               <Text style={styles.eyebrow}>HARDWARE</Text>
@@ -160,7 +160,7 @@ export function PhantomBandScreen() {
                     testID={`phantom-gesture-${g}`}
                   >
                     <View style={styles.gestureLeft}>
-                      <Feather
+                      <Icon
                         name={gestureIcon(g)}
                         size={18}
                         color={Colors.states.BALANCED.primary}
@@ -189,7 +189,7 @@ export function PhantomBandScreen() {
                   testID={`phantom-haptic-${h.id}`}
                 >
                   <View style={styles.hapticLeft}>
-                    <Feather name="zap" size={14} color={Colors.states.PEAK.primary} />
+                    <Icon name="zap" size={14} color={Colors.states.PEAK.primary} />
                     <Text style={styles.hapticLabel}>{h.label}</Text>
                   </View>
                   <Text style={styles.hapticDesc}>{describeHaptic(h.id)}</Text>
@@ -210,7 +210,7 @@ export function PhantomBandScreen() {
             <View style={styles.divider} />
             <Pressable style={styles.deviceRow} onPress={() => { /* rename placeholder */ }} testID="phantom-rename">
               <Text style={styles.deviceLabel}>Rename Band</Text>
-              <Feather name="edit-2" size={14} color={Colors.text.muted} />
+              <Icon name="edit-2" size={14} color={Colors.text.muted} />
             </Pressable>
           </View>
 
@@ -243,19 +243,19 @@ function Stat({ label, value }: { label: string; value: string }) {
   );
 }
 
-function PrimaryButton({ label, icon, onPress, testID }: { label: string; icon: keyof typeof Feather.glyphMap; onPress: () => void; testID?: string }) {
+function PrimaryButton({ label, icon, onPress, testID }: { label: string; icon: IconName; onPress: () => void; testID?: string }) {
   return (
     <Pressable onPress={onPress} style={styles.primaryButton} testID={testID}>
-      <Feather name={icon} size={14} color={Colors.background.primary} />
+      <Icon name={icon} size={14} color={Colors.background.primary} />
       <Text style={styles.primaryButtonLabel}>{label}</Text>
     </Pressable>
   );
 }
 
-function SecondaryButton({ label, icon, onPress, testID }: { label: string; icon: keyof typeof Feather.glyphMap; onPress: () => void; testID?: string }) {
+function SecondaryButton({ label, icon, onPress, testID }: { label: string; icon: IconName; onPress: () => void; testID?: string }) {
   return (
     <Pressable onPress={onPress} style={styles.secondaryButton} testID={testID}>
-      <Feather name={icon} size={14} color={Colors.text.primary} />
+      <Icon name={icon} size={14} color={Colors.text.primary} />
       <Text style={styles.secondaryButtonLabel}>{label}</Text>
     </Pressable>
   );
@@ -270,7 +270,7 @@ function DeviceRow({ label, value }: { label: string; value: string }) {
   );
 }
 
-function gestureIcon(g: BandGesture): keyof typeof Feather.glyphMap {
+function gestureIcon(g: BandGesture): IconName {
   switch (g) {
     case 'single_tap':     return 'circle';
     case 'double_tap':     return 'mic';

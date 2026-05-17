@@ -14,7 +14,7 @@ import {
   View, Text, StyleSheet, ScrollView, Pressable, Switch, Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Feather } from '@expo/vector-icons';
+import { Icon, type IconName } from '../components/Icon';
 import { useRouter } from 'expo-router';
 
 import { GradientBackground } from '@/components/GradientBackground';
@@ -26,7 +26,7 @@ interface ToggleRow {
   key: NotificationSettingKey;
   label: string;
   hint: string;
-  icon: keyof typeof Feather.glyphMap;
+  icon: IconName;
 }
 
 const ROWS: ToggleRow[] = [
@@ -55,7 +55,7 @@ export default function NotificationsScreen() {
         >
           <View style={styles.headerRow}>
             <Pressable onPress={() => router.back()} style={styles.backBtn} hitSlop={12} testID="notifications-back">
-              <Feather name="chevron-left" size={20} color={Colors.text.primary} />
+              <Icon name="chevron-left" size={20} color={Colors.text.primary} />
             </Pressable>
             <View style={{ flex: 1 }}>
               <Text style={styles.eyebrow}>PREFERENCES</Text>
@@ -75,7 +75,7 @@ export default function NotificationsScreen() {
                 <View style={styles.row}>
                   <View style={styles.rowLeft}>
                     <View style={styles.iconWrap}>
-                      <Feather name={row.icon} size={14} color={Colors.states.BALANCED.primary} />
+                      <Icon name={row.icon} size={14} color={Colors.states.BALANCED.primary} />
                     </View>
                     <View style={{ flex: 1 }}>
                       <Text style={styles.rowLabel}>{row.label}</Text>

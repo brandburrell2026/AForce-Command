@@ -8,7 +8,7 @@
 
 import React from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { Icon } from './Icon';
 import type { ScoreReason } from '../types';
 import { Colors } from '../theme/colors';
 
@@ -34,7 +34,7 @@ export function WhyCompact({ reasons, onOpenBreakdown, limit = 2 }: Props) {
       <View style={styles.list}>
         {visible.map((r) => (
           <View key={r.id} style={styles.row}>
-            <Feather
+            <Icon
               name={r.weight === 'positive' ? 'arrow-up' : r.weight === 'negative' ? 'arrow-down' : 'minus'}
               size={11}
               color={

@@ -5,7 +5,7 @@
 
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { Icon } from '../Icon';
 import * as Haptics from 'expo-haptics';
 import { useTranslation } from 'react-i18next';
 
@@ -81,19 +81,19 @@ function PrimaryCTAImpl({ layout }: Props) {
         disabled={isCompletingCycle}
       >
         <View style={[styles.ctaGlow, { backgroundColor: `${stateColor}1F` }]} />
-        <Feather name="check-circle" size={20} color={isCompletingCycle ? Colors.text.muted : stateColor} />
+        <Icon name="check-circle" size={20} color={isCompletingCycle ? Colors.text.muted : stateColor} />
         <Text style={[styles.ctaText, { color: isCompletingCycle ? Colors.text.muted : Colors.text.primary }]}>
           {isCompletingCycle ? `${t('home.cta_become_aforce')}…` : t('home.cta_become_aforce')}
         </Text>
       </TouchableOpacity>
       {!userState.isSnoozed ? (
         <TouchableOpacity style={styles.snoozeBtn} onPress={onSnooze} activeOpacity={0.7}>
-          <Feather name="clock" size={12} color={Colors.text.muted} />
+          <Icon name="clock" size={12} color={Colors.text.muted} />
           <Text style={styles.snoozeText}>{t('home.snooze')}</Text>
         </TouchableOpacity>
       ) : (
         <View style={styles.snoozeBtn}>
-          <Feather name="moon" size={12} color={Colors.states.RECOVERING.primary} />
+          <Icon name="moon" size={12} color={Colors.states.RECOVERING.primary} />
           <Text style={[styles.snoozeText, { color: Colors.states.RECOVERING.primary }]}>
             {t('home.snoozed')}
           </Text>

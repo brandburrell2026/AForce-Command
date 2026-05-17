@@ -11,7 +11,7 @@
 
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { Icon } from './Icon';
 import type { PerformanceState } from '../types';
 import { Colors } from '../theme/colors';
 import { phantomSignalData } from '../data/mockData';
@@ -55,7 +55,7 @@ export function LiveStatusStrip({ performanceState, unitsToday, dailyTarget }: P
       {/* Line 1 — outside temp · outside humidity · city */}
       <View style={styles.row}>
         <View style={styles.metric}>
-          <Feather name="thermometer" size={11} color={Colors.text.muted} />
+          <Icon name="thermometer" size={11} color={Colors.text.muted} />
           <Text style={styles.metricText}>{climate.tempF}°F</Text>
         </View>
         <View style={styles.separator} />
@@ -64,12 +64,12 @@ export function LiveStatusStrip({ performanceState, unitsToday, dailyTarget }: P
           accessibilityLabel={`Humidity ${climate.humidityPct} percent in ${climate.city}`}
           testID="live-humidity"
         >
-          <Feather name="droplet" size={11} color={Colors.text.muted} />
+          <Icon name="droplet" size={11} color={Colors.text.muted} />
           <Text style={styles.metricText}>{climate.humidityPct}% RH</Text>
         </View>
         <View style={styles.separator} />
         <View style={styles.metric}>
-          <Feather name="map-pin" size={11} color={Colors.text.muted} />
+          <Icon name="map-pin" size={11} color={Colors.text.muted} />
           <Text style={styles.metricText} numberOfLines={1}>
             {climate.city}, {climate.region}
           </Text>
@@ -84,7 +84,7 @@ export function LiveStatusStrip({ performanceState, unitsToday, dailyTarget }: P
           <Text style={[styles.statusText, { color }]}>LIVE</Text>
         </View>
         <View style={styles.metric}>
-          <Feather name="activity" size={11} color={Colors.text.muted} />
+          <Icon name="activity" size={11} color={Colors.text.muted} />
           <Text style={styles.metricText}>{heartRateBPM} bpm</Text>
         </View>
         <View style={styles.separator} />

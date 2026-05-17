@@ -9,7 +9,7 @@
 
 import React from 'react';
 import { Pressable, StyleSheet, Text, View, Platform } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { Icon } from './Icon';
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 
@@ -63,9 +63,9 @@ export function RingStatusCard() {
       </View>
 
       <View style={styles.tail}>
-        <Feather name="battery" size={12} color={Colors.text.muted} />
+        <Icon name="battery" size={12} color={Colors.text.muted} />
         <Text style={styles.battery}>{ring.batteryPct}%</Text>
-        <Feather name="chevron-right" size={16} color={Colors.text.muted} style={{ marginLeft: 4 }} />
+        <Icon name="chevron-right" size={16} color={Colors.text.muted} style={{ marginLeft: 4 }} />
       </View>
     </Pressable>
   );

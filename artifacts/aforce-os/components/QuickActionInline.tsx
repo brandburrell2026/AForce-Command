@@ -8,7 +8,7 @@
 
 import React from 'react';
 import { View, Text, StyleSheet, Pressable, Platform } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { Icon, type IconName } from './Icon';
 import * as Haptics from 'expo-haptics';
 import { Colors } from '../theme/colors';
 import { useAppStore } from '../store/useAppStore';
@@ -17,7 +17,7 @@ import type { FluidType } from '../types';
 const ITEMS: ReadonlyArray<{
   id: FluidType;
   label: string;
-  icon: keyof typeof import('@expo/vector-icons').Feather.glyphMap;
+  icon: IconName;
 }> = [
   { id: 'water',         label: 'Water', icon: 'droplet' },
   { id: 'aforce_stick',  label: 'Stick', icon: 'zap' },
@@ -52,7 +52,7 @@ export function QuickActionInline() {
           accessibilityLabel={`Quick log ${item.label}`}
           testID={`quick-log-${item.id}`}
         >
-          <Feather name={item.icon} size={13} color={Colors.text.secondary} />
+          <Icon name={item.icon} size={13} color={Colors.text.secondary} />
           <Text style={styles.label}>{item.label}</Text>
         </Pressable>
       ))}

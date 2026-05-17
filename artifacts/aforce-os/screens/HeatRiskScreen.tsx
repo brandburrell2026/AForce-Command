@@ -21,7 +21,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
-import { Feather } from "@expo/vector-icons";
+import { Icon, type IconName } from '../components/Icon';
 
 import { GradientBackground } from "@/components/GradientBackground";
 import { HeatPulse } from "@/components/HeatPulse";
@@ -99,7 +99,7 @@ export default function HeatRiskScreen() {
               accessibilityRole="button"
               accessibilityLabel="Back"
             >
-              <Feather name="chevron-left" size={20} color={Colors.text.primary} />
+              <Icon name="chevron-left" size={20} color={Colors.text.primary} />
             </Pressable>
             <View style={{ flex: 1 }}>
               <Text style={styles.eyebrow}>HEAT GUARD · GUARDIAN</Text>
@@ -112,7 +112,7 @@ export default function HeatRiskScreen() {
               accessibilityLabel="Switch to team view"
               hitSlop={8}
             >
-              <Feather name="users" size={14} color={Colors.text.primary} />
+              <Icon name="users" size={14} color={Colors.text.primary} />
               <Text style={styles.teamBtnText}>TEAM</Text>
             </Pressable>
           </View>
@@ -136,7 +136,7 @@ export default function HeatRiskScreen() {
           {/* Local climate — humidity drives a real, named recommendation */}
           <View style={styles.climateCard} testID="climate-card">
             <View style={styles.climateHeader}>
-              <Feather name="map-pin" size={12} color={Colors.text.muted} />
+              <Icon name="map-pin" size={12} color={Colors.text.muted} />
               <Text style={styles.climateEyebrow}>
                 LOCAL CLIMATE · {climate.city.toUpperCase()}
                 {climate.region ? `, ${climate.region.toUpperCase()}` : ""}
@@ -144,11 +144,11 @@ export default function HeatRiskScreen() {
             </View>
             <View style={styles.climateRow}>
               <View style={styles.climateMetric}>
-                <Feather name="thermometer" size={14} color={Colors.text.secondary} />
+                <Icon name="thermometer" size={14} color={Colors.text.secondary} />
                 <Text style={styles.climateMetricText}>{climate.tempF}°F</Text>
               </View>
               <View style={styles.climateMetric}>
-                <Feather name="droplet" size={14} color={Colors.text.secondary} />
+                <Icon name="droplet" size={14} color={Colors.text.secondary} />
                 <Text style={styles.climateMetricText}>{climate.humidityPct}% RH</Text>
               </View>
               <Text style={styles.climateBand}>
@@ -170,12 +170,12 @@ export default function HeatRiskScreen() {
             <Text style={styles.commandDetail}>{score.commandDetail}</Text>
             <View style={styles.commandMetaRow}>
               <View style={styles.commandMetaItem}>
-                <Feather name="clock" size={12} color={Colors.text.secondary} />
+                <Icon name="clock" size={12} color={Colors.text.secondary} />
                 <Text style={styles.commandMetaText}>Recheck in {score.recheckMinutes} min</Text>
               </View>
               {score.cooldownMinutes > 0 && (
                 <View style={styles.commandMetaItem}>
-                  <Feather name="wind" size={12} color={Colors.text.secondary} />
+                  <Icon name="wind" size={12} color={Colors.text.secondary} />
                   <Text style={styles.commandMetaText}>Cooldown {score.cooldownMinutes} min</Text>
                 </View>
               )}
@@ -278,7 +278,7 @@ export default function HeatRiskScreen() {
             accessibilityLabel="Open Sweat Calculator"
           >
             <View style={styles.sweatCtaIcon}>
-              <Feather name="droplet" size={18} color={Colors.states.BALANCED.primary} />
+              <Icon name="droplet" size={18} color={Colors.states.BALANCED.primary} />
             </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.sweatCtaTitle}>Calculate your sweat rate</Text>
@@ -286,7 +286,7 @@ export default function HeatRiskScreen() {
                 ACSM-grade fluid &amp; sodium loss · personalized AForce protocol
               </Text>
             </View>
-            <Feather name="chevron-right" size={18} color={Colors.text.muted} />
+            <Icon name="chevron-right" size={18} color={Colors.text.muted} />
           </Pressable>
         </ScrollView>
       </GradientBackground>

@@ -12,7 +12,7 @@
 
 import React, { useEffect, useRef } from 'react';
 import { Pressable, StyleSheet, View, Animated, Easing, Platform } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { Icon } from './Icon';
 import * as Haptics from 'expo-haptics';
 import { Colors } from '../theme/colors';
 import type { VoiceState } from '../types/voice';
@@ -91,7 +91,7 @@ export function VoiceButton({ state, onPress, onPressIn, onPressOut }: Props) {
             pressed && { transform: [{ scale: 0.96 }] },
           ]}
         >
-          <Feather
+          <Icon
             name={state === 'processing' ? 'loader' : 'mic'}
             size={26}
             color={accent}

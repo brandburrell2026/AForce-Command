@@ -5,7 +5,7 @@
 
 import React from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { Icon } from './Icon';
 import { Colors } from '@/theme/colors';
 import type { CircleFeedItem, SharedStateLabel } from '@/types/circle';
 
@@ -49,7 +49,7 @@ export const CircleUserCard: React.FC<Props> = ({ item, onPress }) => {
         <View style={styles.scoreCol}>
           <Text style={[styles.score, { color: accent }]}>{item.score}</Text>
           <View style={styles.trendRow}>
-            <Feather name={trend.name} size={12} color={trend.color} />
+            <Icon name={trend.name} size={12} color={trend.color} />
           </View>
         </View>
       </View>

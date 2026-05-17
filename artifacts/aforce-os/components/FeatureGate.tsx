@@ -5,7 +5,7 @@
 
 import React from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { Icon } from './Icon';
 import { Colors } from '../theme/colors';
 import type { FeatureFlags } from '../types';
 import { useAppStore } from '../store/useAppStore';
@@ -42,7 +42,7 @@ export function FeatureGate({
   return (
     <View style={[styles.container, { borderColor: `${accentColor}33` }]}>
       <View style={[styles.iconWrap, { backgroundColor: `${accentColor}1A`, borderColor: `${accentColor}55` }]}>
-        <Feather name="lock" size={20} color={accentColor} />
+        <Icon name="lock" size={20} color={accentColor} />
       </View>
       <View style={styles.body}>
         <Text style={[styles.eyebrow, { color: accentColor }]}>DEMO LOCKED</Text>
@@ -56,7 +56,7 @@ export function FeatureGate({
           ]}
         >
           <Text style={[styles.ctaText, { color: accentColor }]}>{ctaLabel}</Text>
-          <Feather name="arrow-right" size={14} color={accentColor} />
+          <Icon name="arrow-right" size={14} color={accentColor} />
         </Pressable>
       </View>
     </View>

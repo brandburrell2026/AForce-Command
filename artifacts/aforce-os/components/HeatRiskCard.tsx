@@ -7,7 +7,7 @@
 
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
-import { Feather } from "@expo/vector-icons";
+import { Icon, type IconName } from './Icon';
 
 import { Colors } from "../theme/colors";
 import type { HeatRiskScore } from "../types/heat";
@@ -36,7 +36,7 @@ export function HeatRiskCard({ score, compact = false }: Props) {
       <View style={styles.header}>
         <Text style={[styles.bandLabel, { color: accent }]}>{display.label}</Text>
         <View style={styles.trendPill}>
-          <Feather name={trendIcon} size={12} color={Colors.text.secondary} />
+          <Icon name={trendIcon} size={12} color={Colors.text.secondary} />
           <Text style={styles.trendText}>{score.trend.toUpperCase()}</Text>
         </View>
       </View>

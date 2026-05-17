@@ -12,7 +12,7 @@
 
 import React from 'react';
 import { Modal, View, Text, StyleSheet, Pressable } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { Icon } from './Icon';
 import * as Haptics from 'expo-haptics';
 import { Colors } from '../theme/colors';
 
@@ -69,7 +69,7 @@ export function WaterAmountModal({ visible, accentColor, onCancel, onConfirm }: 
           <View style={styles.headerRow}>
             <Text style={styles.title}>LOG WATER</Text>
             <Pressable onPress={onCancel} hitSlop={12} accessibilityLabel="Cancel">
-              <Feather name="x" size={20} color={Colors.text.secondary} />
+              <Icon name="x" size={20} color={Colors.text.secondary} />
             </Pressable>
           </View>
           <Text style={styles.subtitle}>How much water did you drink?</Text>
@@ -81,7 +81,7 @@ export function WaterAmountModal({ visible, accentColor, onCancel, onConfirm }: 
               accessibilityLabel="Decrease ounces"
               hitSlop={8}
             >
-              <Feather name="minus" size={20} color={Colors.text.primary} />
+              <Icon name="minus" size={20} color={Colors.text.primary} />
             </Pressable>
             <View style={styles.amountDisplay}>
               <Text style={[styles.amountValue, { color: accentColor }]}>{oz}</Text>
@@ -93,7 +93,7 @@ export function WaterAmountModal({ visible, accentColor, onCancel, onConfirm }: 
               accessibilityLabel="Increase ounces"
               hitSlop={8}
             >
-              <Feather name="plus" size={20} color={Colors.text.primary} />
+              <Icon name="plus" size={20} color={Colors.text.primary} />
             </Pressable>
           </View>
 
@@ -135,7 +135,7 @@ export function WaterAmountModal({ visible, accentColor, onCancel, onConfirm }: 
             accessibilityLabel={`Log ${oz} ounces of water`}
             testID="water-confirm"
           >
-            <Feather name="droplet" size={16} color={Colors.text.inverse} />
+            <Icon name="droplet" size={16} color={Colors.text.inverse} />
             <Text style={styles.ctaText}>LOG {oz} OUNCES WATER</Text>
           </Pressable>
         </Pressable>

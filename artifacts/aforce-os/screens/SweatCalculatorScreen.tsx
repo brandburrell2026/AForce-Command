@@ -28,7 +28,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter, router as globalRouter } from 'expo-router';
-import { Feather } from '@expo/vector-icons';
+import { Icon, type IconName } from '../components/Icon';
 import Svg, { Defs, LinearGradient as SvgLinearGradient, Polygon, Stop } from 'react-native-svg';
 
 import { GradientBackground } from '@/components/GradientBackground';
@@ -262,7 +262,7 @@ export default function SweatCalculatorScreen() {
                 accessibilityRole="button"
                 accessibilityLabel="Back"
               >
-                <Feather name="chevron-left" size={20} color={Colors.text.primary} />
+                <Icon name="chevron-left" size={20} color={Colors.text.primary} />
               </Pressable>
               <View style={{ flex: 1 }}>
                 <Text style={styles.eyebrow}>SWEAT INTELLIGENCE</Text>
@@ -348,7 +348,7 @@ export default function SweatCalculatorScreen() {
 
             {validationError && (
               <View style={styles.errorRow} accessibilityLiveRegion="polite">
-                <Feather name="alert-circle" size={14} color={Colors.states.DEPLETED.primary} />
+                <Icon name="alert-circle" size={14} color={Colors.states.DEPLETED.primary} />
                 <Text style={styles.errorText}>{validationError}</Text>
               </View>
             )}
@@ -360,7 +360,7 @@ export default function SweatCalculatorScreen() {
               accessibilityState={{ disabled: !canCalculate }}
               disabled={!canCalculate}
             >
-              <Feather
+              <Icon
                 name="droplet"
                 size={16}
                 color={canCalculate ? Colors.text.inverse : Colors.text.muted}
@@ -377,7 +377,7 @@ export default function SweatCalculatorScreen() {
               style={styles.citationToggle}
               accessibilityRole="button"
             >
-              <Feather
+              <Icon
                 name={showCitations ? 'chevron-up' : 'chevron-down'}
                 size={14}
                 color={Colors.text.muted}
@@ -607,7 +607,7 @@ function ToggleRow({
 function ClimateLine({ climate, ambientTempC }: { climate: CityClimate; ambientTempC: number }) {
   return (
     <View style={styles.climateLine}>
-      <Feather name="sun" size={12} color={Colors.text.muted} />
+      <Icon name="sun" size={12} color={Colors.text.muted} />
       <Text style={styles.climateText}>
         Climate: {climate.city} · {Math.round(climate.tempF)}°F ({ambientTempC}°C) · {climate.humidityPct}% RH
       </Text>
@@ -679,7 +679,7 @@ function PerformanceHeader({ result }: { result: SweatSession }) {
 
       {result.audit.source === 'estimated' && (
         <View style={styles.estimatedBadge}>
-          <Feather name="info" size={10} color={Colors.states.RECOVERING.primary} />
+          <Icon name="info" size={10} color={Colors.states.RECOVERING.primary} />
           <Text style={styles.estimatedBadgeText}>ESTIMATED — measure with scale for precision</Text>
         </View>
       )}
@@ -782,7 +782,7 @@ function AIRecoveryDecision({
   return (
     <View style={styles.aiCard}>
       <View style={styles.aiHeader}>
-        <Feather name="cpu" size={14} color={urgencyColor} />
+        <Icon name="cpu" size={14} color={urgencyColor} />
         <Text style={[styles.aiEyebrow, { color: urgencyColor }]}>AI RECOVERY DECISION</Text>
       </View>
 
@@ -827,7 +827,7 @@ function RecoveryProtocolCard({
           testID="recovery-restock-cta"
           onPress={() => globalRouter.push('/(tabs)/store')}
         >
-          <Feather name="shopping-bag" size={14} color={Colors.text.inverse} />
+          <Icon name="shopping-bag" size={14} color={Colors.text.inverse} />
           <Text style={styles.restockBtnText}>Restock AForce</Text>
         </Pressable>
       </View>
@@ -851,7 +851,7 @@ function RecoveryProtocolCard({
         ))}
         <View style={styles.protocolStep}>
           <View style={[styles.protocolStepIdx, { backgroundColor: Colors.fill.medium }]}>
-            <Feather name="droplet" size={11} color={Colors.text.secondary} />
+            <Icon name="droplet" size={11} color={Colors.text.secondary} />
           </View>
           <View style={{ flex: 1 }}>
             <Text style={styles.protocolStepLabel}>{protocol.waterOz} ounces water</Text>
@@ -875,7 +875,7 @@ function labelForProduct(id: 'rtd' | 'stick' | 'canister'): string {
 function OptionalSupportCard({ result }: { result: SweatSession }) {
   // Symptom-aware add-ons. Light, optional, never prescriptive — these
   // amplify the protocol when conditions warrant.
-  const items: { icon: keyof typeof Feather.glyphMap; label: string; hint: string }[] = [];
+  const items: { icon: IconName; label: string; hint: string }[] = [];
 
   if (result.deficitPct >= 2) {
     items.push({ icon: 'moon', label: 'Cool-down rest', hint: '15–20 min low HR before next bout.' });
@@ -896,7 +896,7 @@ function OptionalSupportCard({ result }: { result: SweatSession }) {
         {items.map((it, i) => (
           <View key={i} style={styles.supportRow}>
             <View style={styles.supportIcon}>
-              <Feather name={it.icon} size={13} color={Colors.text.secondary} />
+              <Icon name={it.icon} size={13} color={Colors.text.secondary} />
             </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.supportLabel}>{it.label}</Text>
@@ -961,7 +961,7 @@ function AdvancedDataCard({ result }: { result: SweatSession }) {
         accessibilityState={{ expanded: open }}
       >
         <Text style={styles.cardEyebrow}>ADVANCED DATA</Text>
-        <Feather name={open ? 'chevron-up' : 'chevron-down'} size={16} color={Colors.text.muted} />
+        <Icon name={open ? 'chevron-up' : 'chevron-down'} size={16} color={Colors.text.muted} />
       </Pressable>
 
       {open && (
@@ -1062,7 +1062,7 @@ function ShareCardHandoff({ result }: { result: SweatSession }) {
         {result.deficitPct.toFixed(1)}% deficit · {result.prescription.aforceSticks} units · {result.autopilot.intervalMin} min recheck
       </Text>
       <View style={styles.shareCTA}>
-        <Feather name="share-2" size={13} color={Colors.text.primary} />
+        <Icon name="share-2" size={13} color={Colors.text.primary} />
         <Text style={styles.shareCTAText}>Share session</Text>
       </View>
 

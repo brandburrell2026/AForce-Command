@@ -14,7 +14,7 @@ import {
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
-import { Feather } from '@expo/vector-icons';
+import { Icon } from '../../components/Icon';
 
 import { GradientBackground } from '@/components/GradientBackground';
 import { SocialModeSheet } from '@/components/SocialModeSheet';
@@ -103,7 +103,7 @@ export default function SocialScreen() {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.iconWrap}>
-            <Feather name="users" size={28} color={PURPLE} />
+            <Icon name="users" size={28} color={PURPLE} />
           </View>
 
           <Text style={styles.eyebrow}>SOCIAL MODE</Text>
@@ -122,14 +122,14 @@ export default function SocialScreen() {
               'Estimated BAC + clear-by timer',
             ].map((line) => (
               <View key={line} style={styles.featureRow}>
-                <Feather name="check" size={14} color={PURPLE} />
+                <Icon name="check" size={14} color={PURPLE} />
                 <Text style={styles.featureText}>{line}</Text>
               </View>
             ))}
           </View>
 
           <View style={styles.planChip}>
-            <Feather name="lock" size={11} color={PURPLE} />
+            <Icon name="lock" size={11} color={PURPLE} />
             <Text style={styles.planChipText}>INCLUDED WITH ATHLETE +</Text>
           </View>
 

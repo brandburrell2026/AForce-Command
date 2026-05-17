@@ -5,7 +5,7 @@
 
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { Icon, type IconName } from './Icon';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming, Easing } from 'react-native-reanimated';
 
 import type { LeaderboardEntry, RankTrend } from '../types/competition';
@@ -22,7 +22,7 @@ function trendColor(t: RankTrend): string {
   if (t === 'new')  return Colors.states.BALANCED.primary;
   return Colors.text.muted;
 }
-function trendIcon(t: RankTrend): keyof typeof Feather.glyphMap {
+function trendIcon(t: RankTrend): IconName {
   if (t === 'up')   return 'arrow-up-right';
   if (t === 'down') return 'arrow-down-right';
   if (t === 'new')  return 'star';
@@ -84,7 +84,7 @@ export function RankingCard({ item, highlight }: Props) {
       <View style={styles.scoreCell}>
         <Text style={[styles.scoreText, { color: accent }]}>{fields.score}</Text>
         <View style={styles.trendRow}>
-          <Feather name={trendIcon(fields.trend)} size={10} color={trendColor(fields.trend)} />
+          <Icon name={trendIcon(fields.trend)} size={10} color={trendColor(fields.trend)} />
         </View>
       </View>
     </View>

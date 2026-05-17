@@ -6,7 +6,7 @@
 import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, FlatList, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Feather } from '@expo/vector-icons';
+import { Icon } from '../../components/Icon';
 
 import { GradientBackground } from '@/components/GradientBackground';
 import { useAppStore } from '@/store/useAppStore';
@@ -87,7 +87,7 @@ export default function ProtocolScreen() {
                         styles.stepDot,
                         { backgroundColor: step.complete ? stateColor : 'transparent', borderColor: stateColor },
                       ]}>
-                        {step.complete && <Feather name="check" size={10} color="#000" />}
+                        {step.complete && <Icon name="check" size={10} color="#000" />}
                       </View>
                       <View style={{ flex: 1 }}>
                         <Text style={[styles.stepLabel, step.complete && styles.stepLabelDone]}>{step.label}</Text>
@@ -130,7 +130,7 @@ export default function ProtocolScreen() {
           )}
           ListEmptyComponent={
             <View style={styles.empty}>
-              <Feather name="clock" size={32} color={Colors.text.muted} />
+              <Icon name="clock" size={32} color={Colors.text.muted} />
               <Text style={styles.emptyText}>No history yet. Complete your first cycle.</Text>
             </View>
           }
