@@ -18,6 +18,7 @@ import type {
 import type { UserSubscription } from '../types/subscription';
 import type { SweatAutopilot } from '../types/sweat';
 import type { HealthProviderId } from '../data/healthProviders';
+import type { UnitPreferences } from '../utils/units';
 
 export interface AppState {
   userState: UserState;
@@ -43,6 +44,13 @@ export interface AppState {
   sweatAutopilotSetAt?: number | null;
   /** User-facing notification preferences (persisted to AsyncStorage). */
   notificationSettings: NotificationSettings;
+  /**
+   * Display-unit preferences (lbs/kg, °F/°C, oz/mL). Every physical
+   * quantity is stored canonically in metric; this record only
+   * controls how those values are rendered. Persisted to AsyncStorage
+   * under the same hydration pattern as `notificationSettings`.
+   */
+  unitPreferences: UnitPreferences;
 }
 
 export type Action =
@@ -91,4 +99,12 @@ export type Action =
     }
   | { type: 'SET_NOTIFICATION_SETTING'; payload: { key: NotificationSettingKey; value: boolean } }
   | { type: 'SET_NOTIFICATION_SETTINGS'; payload: NotificationSettings }
+  | {
+      type: 'SET_UNIT_PREFERENCE';
+      payload:
+        | { key: 'weight'; value: UnitPreferences['weight'] }
+        | { key: 'temperature'; value: UnitPreferences['temperature'] }
+        | { key: 'volume'; value: UnitPreferences['volume'] };
+    }
+  | { type: 'SET_UNIT_PREFERENCES'; payload: UnitPreferences }
   | { type: 'ADD_HISTORY_ENTRY'; payload: HistoryEntry };

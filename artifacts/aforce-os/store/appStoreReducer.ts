@@ -203,6 +203,22 @@ export function reducer(state: AppState, action: Action): AppState {
     }
     case 'SET_NOTIFICATION_SETTINGS':
       return { ...state, notificationSettings: action.payload };
+    case 'SET_UNIT_PREFERENCE': {
+      // Single-key merge — mirrors SET_NOTIFICATION_SETTING. The
+      // discriminated payload keeps the value typed against the
+      // matching key, so accidentally writing 'lbs' into 'temperature'
+      // fails at compile time.
+      const { key, value } = action.payload;
+      return {
+        ...state,
+        unitPreferences: { ...state.unitPreferences, [key]: value },
+      };
+    }
+    case 'SET_UNIT_PREFERENCES':
+      // Full-record replace, used by the AsyncStorage hydration path
+      // so a corrupt-payload fallback always lands on a complete,
+      // sanitised UnitPreferences object.
+      return { ...state, unitPreferences: action.payload };
     case 'ADD_HISTORY_ENTRY': {
       // De-dupe by id so a re-seeded synthetic baseline never doubles up.
       const filtered = state.history.filter((h) => h.id !== action.payload.id);

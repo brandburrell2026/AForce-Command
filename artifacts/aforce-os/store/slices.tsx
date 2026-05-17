@@ -29,6 +29,7 @@ import type {
 } from '../types';
 import type { UserSubscription } from '../types/subscription';
 import type { SweatAutopilot } from '../types/sweat';
+import type { UnitPreferences } from '../utils/units';
 import type { AppState } from './appStoreTypes';
 
 // ─── Slice value shapes ──────────────────────────────────────────────
@@ -65,6 +66,8 @@ export interface OnboardingSlice {
 
 export type InventorySlice = InventoryState;
 
+export type UnitPreferencesSlice = UnitPreferences;
+
 export interface SweatAutopilotSlice {
   /**
    * Active autopilot snapshot derived from the most recent sweat
@@ -97,6 +100,7 @@ const ConfirmationContext = createContext<ConfirmationSlice | null>(null);
 const OnboardingContext = createContext<OnboardingSlice | null>(null);
 const InventoryContext = createContext<InventorySlice | null>(null);
 const SweatAutopilotContext = createContext<SweatAutopilotSlice | null>(null);
+const UnitPreferencesContext = createContext<UnitPreferencesSlice | null>(null);
 const ActionsContext = createContext<ActionsSlice | null>(null);
 
 // ─── Selector hooks ──────────────────────────────────────────────────
@@ -143,6 +147,15 @@ export function useInventorySlice(): InventorySlice {
 /** Active sweat-driven autopilot snapshot (null when expired / never set). */
 export function useSweatAutopilotSlice(): SweatAutopilotSlice {
   return required(useContext(SweatAutopilotContext), 'useSweatAutopilotSlice');
+}
+/**
+ * User-chosen display units (lbs/kg, °F/°C, oz/mL). Persisted across
+ * launches. Components calling display formatters from `utils/units`
+ * should read the relevant field from this slice instead of hard-
+ * coding 'lbs' / 'F' / 'oz'.
+ */
+export function useUnitPreferencesSlice(): UnitPreferencesSlice {
+  return required(useContext(UnitPreferencesContext), 'useUnitPreferencesSlice');
 }
 export function useActionsSlice<T = ActionsSlice>(): T {
   return required(useContext(ActionsContext), 'useActionsSlice') as unknown as T;
@@ -244,6 +257,11 @@ export function SliceProvider({ state, actions, now = Date.now, children }: Slic
     [state.sweatAutopilot, state.sweatAutopilotSetAt],
   );
 
+  const unitPreferencesValue = useMemo<UnitPreferencesSlice>(
+    () => state.unitPreferences,
+    [state.unitPreferences],
+  );
+
   // Actions identity is already stabilized by the parent AppProvider's
   // useMemo. Pass through unchanged so callback consumers don't re-render
   // unless an action actually changes identity.
@@ -259,9 +277,11 @@ export function SliceProvider({ state, actions, now = Date.now, children }: Slic
                     <OnboardingContext.Provider value={onboardingValue}>
                       <InventoryContext.Provider value={inventoryValue}>
                         <SweatAutopilotContext.Provider value={sweatAutopilotValue}>
-                          <ActionsContext.Provider value={actions}>
-                            {children}
-                          </ActionsContext.Provider>
+                          <UnitPreferencesContext.Provider value={unitPreferencesValue}>
+                            <ActionsContext.Provider value={actions}>
+                              {children}
+                            </ActionsContext.Provider>
+                          </UnitPreferencesContext.Provider>
                         </SweatAutopilotContext.Provider>
                       </InventoryContext.Provider>
                     </OnboardingContext.Provider>

@@ -25,8 +25,13 @@ import { DEFAULT_NOTIFICATION_SETTINGS } from '../types';
 import type { UserSubscription } from '../types/subscription';
 import type { SweatAutopilot } from '../types/sweat';
 import type { HealthProviderId } from '../data/healthProviders';
-import type { AppState } from './appStoreTypes';
+import type { AppState, Action } from './appStoreTypes';
 import { reducer } from './appStoreReducer';
+import {
+  DEFAULT_UNIT_PREFERENCES,
+  sanitizeUnitPreferences,
+  type UnitPreferences,
+} from '../utils/units';
 import { SliceProvider, type ActionsSlice } from './slices';
 import { defaultSubscription } from '../services/subscriptionService';
 import { generateCycleIdentityMessage, generateNextCycleHint } from '../utils/scoringEngine';
@@ -97,6 +102,7 @@ const initialState: AppState = {
   lastIntakeBurstAt: 0,
   hasSeenOnboarding: false,
   notificationSettings: DEFAULT_NOTIFICATION_SETTINGS,
+  unitPreferences: DEFAULT_UNIT_PREFERENCES,
 };
 
 /**
@@ -228,6 +234,16 @@ interface AppContextValue {
   notificationSettings: NotificationSettings;
   setNotificationSetting: (key: NotificationSettingKey, value: boolean) => void;
   /**
+   * Persisted unit-display preferences (lbs/kg, °F/°C, oz/mL) + setter.
+   * The setter is generic so passing a mismatched value (e.g. 'lbs'
+   * for the 'temperature' key) is a compile-time error.
+   */
+  unitPreferences: UnitPreferences;
+  setUnitPreference: <K extends keyof UnitPreferences>(
+    key: K,
+    value: UnitPreferences[K],
+  ) => void;
+  /**
    * Investor Demo overlay flag. Cinematic 60-second scripted flow that
    * walks through every Voice Engine state in sequence. Lives entirely
    * above the regular store — toggling this never mutates user data.
@@ -241,6 +257,7 @@ const SELECTED_VOICE_KEY = 'aforce.selectedVoiceId';
 const VOICE_INTENSITY_KEY = 'aforce.voiceIntensity';
 const VOICE_SCOPE_KEY = 'aforce.voiceScope';
 const NOTIFICATION_SETTINGS_KEY = 'aforce.notificationSettings';
+const UNIT_PREFERENCES_KEY = 'aforce.unitPreferences';
 
 const VOICE_INTENSITIES: ReadonlySet<VoiceIntensity> = new Set(['calm', 'standard', 'pressure']);
 const VOICE_SCOPES: ReadonlySet<VoiceScope> = new Set(['all', 'risk', 'commands', 'muted']);
@@ -972,6 +989,82 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     AsyncStorage.setItem(NOTIFICATION_SETTINGS_KEY, JSON.stringify(next)).catch(() => {});
   }, [state.notificationSettings]);
 
+  // Race-safe persistence for unit preferences. Two refs guard the
+  // critical path:
+  //   - `unitPrefsHydratedRef` flips true once the AsyncStorage read
+  //     resolves (success OR failure). The persist effect below is
+  //     gated on this so it can't write the in-memory defaults over
+  //     a real value still in flight from storage.
+  //   - `unitPrefsDirtyRef` flips true the moment the user toggles
+  //     a preference. The hydration handler honours this so a slow
+  //     AsyncStorage read can't clobber a fast user edit.
+  // Together they make both directions race-safe without coupling the
+  // setter to a stale closure snapshot of `state.unitPreferences`.
+  const unitPrefsHydratedRef = useRef(false);
+  const unitPrefsDirtyRef = useRef(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    AsyncStorage.getItem(UNIT_PREFERENCES_KEY)
+      .then((raw) => {
+        if (cancelled) return;
+        // If the user has already toggled a preference while the read
+        // was in flight, skip the apply — their choice wins over the
+        // stale stored value (the persist effect will save it for next
+        // launch). Still flag hydration complete so persistence can run.
+        if (unitPrefsDirtyRef.current) return;
+        if (!raw) return;
+        try {
+          const parsed = JSON.parse(raw);
+          dispatch({
+            type: 'SET_UNIT_PREFERENCES',
+            payload: sanitizeUnitPreferences(parsed),
+          });
+        } catch {
+          // ignore malformed payload — defaults remain in effect
+        }
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) unitPrefsHydratedRef.current = true;
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Persist on every change to the authoritative state, but only after
+  // hydration has completed. Reading from `state.unitPreferences`
+  // (not a closure capture) guarantees we always save the fully
+  // merged record, even under rapid back-to-back toggles.
+  useEffect(() => {
+    if (!unitPrefsHydratedRef.current) return;
+    AsyncStorage.setItem(
+      UNIT_PREFERENCES_KEY,
+      JSON.stringify(state.unitPreferences),
+    ).catch(() => {});
+  }, [state.unitPreferences]);
+
+  const setUnitPreference = useCallback(
+    <K extends keyof UnitPreferences>(key: K, value: UnitPreferences[K]) => {
+      // Mark dirty *before* dispatching so a hydration handler that
+      // resolves between this line and the next reducer commit still
+      // sees the dirty flag and yields to the user's choice.
+      unitPrefsDirtyRef.current = true;
+      dispatch({
+        // The discriminated SET_UNIT_PREFERENCE payload keeps key/value
+        // bound together at the type level — we re-narrow via the
+        // generic K to satisfy the discriminator.
+        type: 'SET_UNIT_PREFERENCE',
+        payload: { key, value } as Extract<
+          Action,
+          { type: 'SET_UNIT_PREFERENCE' }
+        >['payload'],
+      });
+    },
+    [],
+  );
+
   // Seed a synthetic baseline history entry on first mount so the
   // Hydration Journal day card shows a populated yesterday row instead
   // of stark emptiness for brand-new users. The entry is marked
@@ -1104,7 +1197,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     voiceIntensity, setVoiceIntensity,
     voiceScope, setVoiceScope,
     notificationSettings: state.notificationSettings, setNotificationSetting,
-  }), [state, logIntake, completeCycle, snooze, dismissSuccess, updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags, setSubscription, completeOnboarding, setAppleHealthSnapshot, setProviderBiometrics, confirmCommand, setLanguage, activateSocialMode, logSocialDrink, confirmSocialHydration, deactivateSocialMode, setSocialContext, activateCruiseMode, activateVoyageShield, setSweatAutopilot, voiceCoachEnabled, setVoiceCoachEnabled, selectedVoiceId, setSelectedVoiceId, voiceIntensity, setVoiceIntensity, voiceScope, setVoiceScope, isInvestorDemoActive, setInvestorDemoActive, setNotificationSetting]);
+    unitPreferences: state.unitPreferences, setUnitPreference,
+  }), [state, logIntake, completeCycle, snooze, dismissSuccess, updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags, setSubscription, completeOnboarding, setAppleHealthSnapshot, setProviderBiometrics, confirmCommand, setLanguage, activateSocialMode, logSocialDrink, confirmSocialHydration, deactivateSocialMode, setSocialContext, activateCruiseMode, activateVoyageShield, setSweatAutopilot, voiceCoachEnabled, setVoiceCoachEnabled, selectedVoiceId, setSelectedVoiceId, voiceIntensity, setVoiceIntensity, voiceScope, setVoiceScope, isInvestorDemoActive, setInvestorDemoActive, setNotificationSetting, setUnitPreference]);
 
   // Stable actions value for the sliced ActionsContext — same callbacks
   // as `value` minus `state`, so action consumers don't re-render when
@@ -1117,7 +1211,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     activateCruiseMode, activateVoyageShield,
     setSweatAutopilot,
     setNotificationSetting,
-  }), [logIntake, completeCycle, snooze, dismissSuccess, updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags, setSubscription, completeOnboarding, setAppleHealthSnapshot, setProviderBiometrics, confirmCommand, setLanguage, activateSocialMode, logSocialDrink, confirmSocialHydration, deactivateSocialMode, setSocialContext, activateCruiseMode, activateVoyageShield, setSweatAutopilot, setNotificationSetting]);
+    setUnitPreference,
+  }), [logIntake, completeCycle, snooze, dismissSuccess, updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags, setSubscription, completeOnboarding, setAppleHealthSnapshot, setProviderBiometrics, confirmCommand, setLanguage, activateSocialMode, logSocialDrink, confirmSocialHydration, deactivateSocialMode, setSocialContext, activateCruiseMode, activateVoyageShield, setSweatAutopilot, setNotificationSetting, setUnitPreference]);
 
   return (
     <AppContext.Provider value={value}>
@@ -1151,6 +1246,7 @@ export {
   useOnboardingSlice,
   useInventorySlice,
   useSweatAutopilotSlice,
+  useUnitPreferencesSlice,
   useActionsSlice,
 } from './slices';
 

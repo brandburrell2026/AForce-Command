@@ -25,6 +25,8 @@ import {
   type AppleHealthSnapshot,
 } from '@/services/appleHealth';
 import { useAppStore } from '@/store/useAppStore';
+import { useUnitPreferencesSlice } from '@/store/slices';
+import type { UnitPreferences } from '@/utils/units';
 import { DEFAULT_FLAGS, DEMO_ALL_ON_FLAGS } from '@/featureFlags/flags';
 import type { FeatureFlags } from '@/types';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
@@ -77,7 +79,9 @@ export default function ProfileScreen() {
     voiceIntensity, setVoiceIntensity,
     voiceScope, setVoiceScope,
     setInvestorDemoActive,
+    setUnitPreference,
   } = useAppStore();
+  const unitPreferences = useUnitPreferencesSlice();
   // Tracks the in-flight demo so we can disable the row + show the
   // active label without blocking the rest of Profile. Cleared once
   // the final dispatch settles.
@@ -995,6 +999,46 @@ export default function ProfileScreen() {
               </>
             );
 
+            // Preferences card — display units for the whole app.
+            // Three segmented controls; each writes through to
+            // setUnitPreference, which persists to AsyncStorage.
+            const preferencesBlock = (
+              <>
+                <SectionHeader label="PREFERENCES" hint="How values are displayed" />
+                <View style={styles.card}>
+                  <UnitPreferenceRow
+                    label="Weight"
+                    options={[
+                      { value: 'lbs', label: 'lbs' },
+                      { value: 'kg', label: 'kg' },
+                    ]}
+                    selected={unitPreferences.weight}
+                    onSelect={(v) => setUnitPreference('weight', v)}
+                  />
+                  <Divider />
+                  <UnitPreferenceRow
+                    label="Temperature"
+                    options={[
+                      { value: 'F', label: '°F' },
+                      { value: 'C', label: '°C' },
+                    ]}
+                    selected={unitPreferences.temperature}
+                    onSelect={(v) => setUnitPreference('temperature', v)}
+                  />
+                  <Divider />
+                  <UnitPreferenceRow
+                    label="Volume"
+                    options={[
+                      { value: 'oz', label: 'oz' },
+                      { value: 'mL', label: 'mL' },
+                    ]}
+                    selected={unitPreferences.volume}
+                    onSelect={(v) => setUnitPreference('volume', v)}
+                  />
+                </View>
+              </>
+            );
+
             if (layout.isWide) {
               // Two-column wide layout: compact info on the left,
               // tall demo flag list + phase entries + subscription
@@ -1010,6 +1054,7 @@ export default function ProfileScreen() {
                   </View>
                   <View style={[styles.col, styles.colRight]} testID="profile-right-col">
                     {settingsBlock}
+                    {preferencesBlock}
                     {voiceCard}
                     {demoModesCard}
                     {demoAccessCard}
@@ -1024,6 +1069,7 @@ export default function ProfileScreen() {
               <>
                 {profileCard}
                 {settingsBlock}
+                {preferencesBlock}
                 {voiceCard}
                 {goalsCard}
                 {protocolToolsCard}
@@ -1176,6 +1222,55 @@ function Divider() {
   return <View style={styles.divider} />;
 }
 
+/**
+ * Two-option segmented control used by the Preferences card. Generic
+ * over the value type so the key↔value binding stays sound (the same
+ * generic flows through to the parent's `setUnitPreference` call).
+ */
+function UnitPreferenceRow<T extends string>({
+  label,
+  options,
+  selected,
+  onSelect,
+}: {
+  label: string;
+  options: ReadonlyArray<{ value: T; label: string }>;
+  selected: T;
+  onSelect: (value: T) => void;
+}) {
+  return (
+    <View style={styles.unitPrefRow}>
+      <Text style={styles.unitPrefLabel}>{label}</Text>
+      <View style={styles.unitPrefSegment}>
+        {options.map((opt) => {
+          const active = opt.value === selected;
+          return (
+            <Pressable
+              key={String(opt.value)}
+              onPress={() => {
+                if (!active) onSelect(opt.value);
+              }}
+              accessibilityRole="button"
+              accessibilityState={{ selected: active }}
+              accessibilityLabel={`${label} ${opt.label}`}
+              style={[styles.unitPrefPill, active && styles.unitPrefPillActive]}
+            >
+              <Text
+                style={[
+                  styles.unitPrefPillText,
+                  active && styles.unitPrefPillTextActive,
+                ]}
+              >
+                {opt.label}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
+    </View>
+  );
+}
+
 function SubscriptionPanel() {
   const router = useRouter();
   const { state } = useAppStore();
@@ -1308,6 +1403,37 @@ const styles = StyleSheet.create({
   settingSubLabel: { fontSize: 11, color: Colors.text.muted, marginTop: 2 },
   settingValue: { fontSize: 14, fontFamily: 'Inter_500Medium', color: Colors.text.secondary },
   divider: { height: 1, backgroundColor: Colors.border.subtle, marginHorizontal: 16 },
+  unitPrefRow: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingHorizontal: 16, paddingVertical: 14, gap: 12,
+  },
+  unitPrefLabel: { fontSize: 15, fontFamily: 'Inter_500Medium', color: Colors.text.primary },
+  unitPrefSegment: {
+    flexDirection: 'row',
+    backgroundColor: Colors.fill.medium,
+    borderRadius: 999,
+    padding: 3,
+  },
+  unitPrefPill: {
+    minWidth: 48,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 999,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  unitPrefPillActive: {
+    backgroundColor: Colors.accent.primary,
+  },
+  unitPrefPillText: {
+    fontSize: 13,
+    fontFamily: 'Inter_600SemiBold',
+    color: Colors.text.secondary,
+    letterSpacing: 0.3,
+  },
+  unitPrefPillTextActive: {
+    color: Colors.text.inverse,
+  },
   hardwareRow: {
     flexDirection: 'row', alignItems: 'center', gap: 12,
     paddingHorizontal: 16, paddingVertical: 14,
