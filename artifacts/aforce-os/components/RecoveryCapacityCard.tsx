@@ -10,8 +10,12 @@
  * those were retired with the Social→Recovery refactor.
  */
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import Animated, {
+  useSharedValue, useAnimatedStyle, withTiming, withRepeat,
+  Easing, interpolate, interpolateColor,
+} from 'react-native-reanimated';
 
 import { Icon } from './Icon';
 import { Colors } from '../theme/colors';
@@ -35,6 +39,39 @@ export function RecoveryCapacityCard({ recovery }: Props) {
   const borderColor = tintFor(meta.color, 0.45);
   const fillColor = tintFor(meta.color, 0.08);
 
+  // ─── Chunk #7a polish ─────────────────────────────────────────────
+  // Smooth color cross-fade when the recovery band changes (e.g.
+  // Stable → Declining). We animate a 0→1 progress, snapshot the
+  // previous color, and interpolate to the current one over 600ms.
+  const prevColorRef = React.useRef<string>(meta.color);
+  const colorProg = useSharedValue(1);
+  useEffect(() => {
+    if (prevColorRef.current === meta.color) return;
+    colorProg.value = 0;
+    colorProg.value = withTiming(1, {
+      duration: 600,
+      easing: Easing.inOut(Easing.cubic),
+    });
+    prevColorRef.current = meta.color;
+  }, [meta.color, colorProg]);
+  const scoreColorStyle = useAnimatedStyle(() => ({
+    color: interpolateColor(colorProg.value, [0, 1], [prevColorRef.current, meta.color]),
+  }));
+
+  // Ambient halo behind the score number — soft 3s breathing tied to
+  // band color. Adds the "alive data" feel without box-shadows.
+  const halo = useSharedValue(0);
+  useEffect(() => {
+    halo.value = withRepeat(
+      withTiming(1, { duration: 3000, easing: Easing.inOut(Easing.quad) }),
+      -1, true,
+    );
+  }, [halo]);
+  const haloStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(halo.value, [0, 1], [0.18, 0.42]),
+    transform: [{ scale: interpolate(halo.value, [0, 1], [0.92, 1.08]) }],
+  }));
+
   return (
     <View
       style={[styles.card, { borderColor, backgroundColor: fillColor }]}
@@ -50,7 +87,13 @@ export function RecoveryCapacityCard({ recovery }: Props) {
       </View>
 
       <View style={styles.scoreRow}>
-        <Text style={[styles.score, { color: meta.color }]}>{score}</Text>
+        <View style={styles.scoreWrap}>
+          <Animated.View
+            pointerEvents="none"
+            style={[styles.halo, { backgroundColor: meta.color }, haloStyle]}
+          />
+          <Animated.Text style={[styles.score, scoreColorStyle]}>{score}</Animated.Text>
+        </View>
         <Text style={styles.scoreUnit}>/100</Text>
       </View>
 
@@ -134,6 +177,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-end',
     marginBottom: 14,
+  },
+  scoreWrap: {
+    position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  halo: {
+    position: 'absolute',
+    width: 96, height: 96, borderRadius: 96,
+    // Soft radial-ish wash — kept low alpha; band color tints it live.
+    opacity: 0.3,
   },
   score: {
     fontSize: 48,

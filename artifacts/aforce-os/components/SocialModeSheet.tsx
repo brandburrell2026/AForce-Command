@@ -26,7 +26,8 @@ import {
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import Animated, {
-  useSharedValue, useAnimatedStyle, withTiming, withSpring, Easing,
+  useSharedValue, useAnimatedStyle, withTiming, withSpring, withRepeat,
+  Easing, interpolate,
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import { useTranslation } from 'react-i18next';
@@ -42,6 +43,80 @@ import { gate } from '../featureFlags/subscriptionGate';
 import { RECOVERY_WINDOW_MS } from '../services/socialModeEngine';
 import { RECOVERY_PRESET_LIST, presetMetaFor, type RecoveryPresetId } from '../services/recoveryCapacity';
 import type { DrinkType, ScoreEngineOutput, SocialModeState } from '../types';
+
+/**
+ * ─── Chunk #7a polish primitives ──────────────────────────────────
+ * Tiny, additive Reanimated wrappers used by the modifier surface.
+ * Kept inline so the polish is self-contained and easy to audit.
+ */
+
+/** Soft repeating glow used behind live-timer pills. ~1.8s loop. */
+function PulseRing({ color }: { color: string }) {
+  const t = useSharedValue(0);
+  useEffect(() => {
+    t.value = withRepeat(
+      withTiming(1, { duration: 1800, easing: Easing.inOut(Easing.quad) }),
+      -1, true,
+    );
+  }, [t]);
+  const style = useAnimatedStyle(() => ({
+    opacity: interpolate(t.value, [0, 1], [0.35, 0.85]),
+    transform: [{ scale: interpolate(t.value, [0, 1], [1, 1.06]) }],
+  }));
+  return (
+    <Animated.View
+      pointerEvents="none"
+      style={[
+        StyleSheet.absoluteFill,
+        {
+          borderRadius: 100,
+          borderWidth: 1,
+          borderColor: `${color}AA`,
+          backgroundColor: `${color}10`,
+        },
+        style,
+      ]}
+    />
+  );
+}
+
+/**
+ * Press-to-scale wrapper. Built on `Animated.createAnimatedComponent(Pressable)`
+ * so the animated transform rides directly on the `Pressable` itself —
+ * no extra wrapper view to swallow `flex` from a parent row layout.
+ * Honors `disabled` and forwards every accessibility / test prop.
+ */
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+
+function PressableScale({
+  onPress, disabled, testID, accessibilityRole, accessibilityLabel,
+  style, children,
+}: {
+  onPress?: () => void;
+  disabled?: boolean;
+  testID?: string;
+  accessibilityRole?: 'button';
+  accessibilityLabel?: string;
+  style?: any;
+  children: React.ReactNode;
+}) {
+  const scale = useSharedValue(1);
+  const aStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
+  return (
+    <AnimatedPressable
+      onPress={onPress}
+      onPressIn={() => { scale.value = withTiming(0.96, { duration: 90 }); }}
+      onPressOut={() => { scale.value = withSpring(1, { damping: 14, stiffness: 260 }); }}
+      disabled={disabled}
+      testID={testID}
+      accessibilityRole={accessibilityRole}
+      accessibilityLabel={accessibilityLabel}
+      style={[style, aStyle]}
+    >
+      {children}
+    </AnimatedPressable>
+  );
+}
 
 /** Hours-and-minutes display for a future timestamp, or null when expired. */
 function formatRemaining(until: Date | undefined, now: number = Date.now()): string | null {
@@ -298,6 +373,7 @@ export function SocialModeSheet({
                       style={[styles.modifierPill, { borderColor: `${TEAL}55`, backgroundColor: `${TEAL}14` }]}
                       testID="recovery-modifier-cruise-active"
                     >
+                      <PulseRing color={TEAL} />
                       <Feather name="navigation" size={12} color={TEAL} />
                       <Text style={[styles.modifierPillText, { color: TEAL }]}>
                         CRUISE · {cruiseRemaining ?? '—'}
@@ -309,6 +385,7 @@ export function SocialModeSheet({
                       style={[styles.modifierPill, { borderColor: `${AMBER}66`, backgroundColor: `${AMBER}14` }]}
                       testID="recovery-modifier-shield-active"
                     >
+                      <PulseRing color={AMBER} />
                       <Feather name="shield" size={12} color={AMBER} />
                       <Text style={[styles.modifierPillText, { color: AMBER }]}>
                         SHIELD · {shieldRemaining ?? '—'}
@@ -319,7 +396,7 @@ export function SocialModeSheet({
               )}
 
               <View style={styles.modifierBtnRow}>
-                <Pressable
+                <PressableScale
                   onPress={handleCruise}
                   style={[
                     styles.modifierBtn,
@@ -333,8 +410,8 @@ export function SocialModeSheet({
                   <Text style={[styles.modifierBtnText, { color: TEAL }]}>
                     {cruiseActive ? 'EXTEND CRUISE' : 'CRUISE · 24H'}
                   </Text>
-                </Pressable>
-                <Pressable
+                </PressableScale>
+                <PressableScale
                   onPress={handleShield}
                   disabled={!shieldGate.allowed}
                   style={[
@@ -356,10 +433,10 @@ export function SocialModeSheet({
                   <Text style={[styles.modifierBtnText, { color: AMBER }]}>
                     {!shieldGate.allowed ? 'SHIELD · LOCKED' : shieldActive ? 'EXTEND SHIELD' : 'SHIELD · 12H'}
                   </Text>
-                </Pressable>
+                </PressableScale>
               </View>
 
-              <Pressable
+              <PressableScale
                 onPress={handleDeactivate}
                 style={[styles.primaryBtn, { borderColor: `${AMBER}66` }]}
                 testID="recovery-end-session"
@@ -368,7 +445,7 @@ export function SocialModeSheet({
               >
                 <Feather name="moon" size={16} color={AMBER} />
                 <Text style={[styles.primaryBtnText, { color: AMBER }]}>END SESSION</Text>
-              </Pressable>
+              </PressableScale>
             </>
           )}
 
@@ -470,6 +547,7 @@ const styles = StyleSheet.create({
   modifierPill: {
     flexDirection: 'row', alignItems: 'center', gap: 6,
     paddingHorizontal: 10, paddingVertical: 5, borderRadius: 100, borderWidth: 1,
+    overflow: 'hidden', // contains the PulseRing absolute halo
   },
   modifierPillText: { fontSize: 10, fontFamily: 'Inter_700Bold', letterSpacing: 1.4 },
   modifierBtnRow: { flexDirection: 'row', gap: 8, marginTop: 10 },
