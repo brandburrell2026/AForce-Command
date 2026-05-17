@@ -1,23 +1,30 @@
 /**
- * SocialModeSheet — Activation + control surface for Social Mode.
+ * SocialModeSheet — Recovery Mode control surface.
  *
- * - When mode is OFF: shows the calm intro + drink picker grid. Picking
- *   a drink also activates the mode (single-tap entry).
- * - When mode is ON: shows the live drink count, hangover risk badge,
- *   "Log next drink" button, hydration confirmation row (when prompted),
- *   and "End night" button (which transitions to Recovery Mode).
- * - When in Recovery: shows the recovery checklist and an "I'm done"
- *   button to clear the badge.
+ * Renamed in intent (not in filename — preserved for git history and
+ * callsite stability) by chunk #3c of the Master Update. AForce no
+ * longer presents this surface as a drink-logging tool. Instead it
+ * surfaces the Recovery Capacity Score with three explicit lifecycle
+ * states:
  *
- * Reuses the ScoreBreakdownSheet pattern: full-screen Animated.View
- * overlay + spring-in bottom sheet. No external modal lib.
+ *   - OFF       : intro copy + "Start Recovery Session" CTA.
+ *   - ACTIVE    : RecoveryCapacityCard + decay multiplier readout
+ *                 + "End Session" CTA.
+ *   - RECOVERY  : 8h post-session window — RecoveryCapacityCard
+ *                 + RecoveryModeCard checklist + "Done" CTA.
+ *
+ * All drink-picker grids, BAC numbers, impairment badges, and
+ * transportation-safety prompts were removed; the underlying API
+ * actions still exist (`onLogDrink`, `onConfirmHydration`) so callers
+ * compile, but no UI calls them. They will be retired in chunk #3d
+ * once every callsite is on the new lifecycle.
  */
 
 import React, { useEffect } from 'react';
 import {
   View, Text, StyleSheet, Pressable, Platform, ScrollView,
 } from 'react-native';
-import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Feather } from '@expo/vector-icons';
 import Animated, {
   useSharedValue, useAnimatedStyle, withTiming, withSpring, Easing,
 } from 'react-native-reanimated';
@@ -26,15 +33,12 @@ import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Colors } from '../theme/colors';
-import { HangoverRiskBadge } from './HangoverRiskBadge';
-import { ImpairmentRiskBadge } from './ImpairmentRiskBadge';
-import { BACEstimateCard } from './BACEstimateCard';
-import { SocialSafetyCard } from './SocialSafetyCard';
+import { RecoveryCapacityCard } from './RecoveryCapacityCard';
 import { RecoveryModeCard } from './RecoveryModeCard';
 import { RecoveryModePaywall } from './RecoveryModePaywall';
 import { useAppStore } from '../store/useAppStore';
 import { gate } from '../featureFlags/subscriptionGate';
-import { ALCOHOL_DRINKS, DRINK_TYPES_ORDER } from '../data/alcoholDrinks';
+import { RECOVERY_WINDOW_MS } from '../services/socialModeEngine';
 import type { DrinkType, ScoreEngineOutput, SocialModeState } from '../types';
 
 interface Props {
@@ -43,34 +47,19 @@ interface Props {
   socialMode: SocialModeState | undefined;
   social: ScoreEngineOutput['social'];
   onActivate: () => void;
+  /** @deprecated retained for callsite compatibility; no UI invokes it post-3c. */
   onLogDrink: (type: DrinkType) => void;
+  /** @deprecated retained for callsite compatibility; no UI invokes it post-3c. */
   onConfirmHydration: (confirmed: boolean) => void;
   onDeactivate: () => void;
 }
 
-const PURPLE = '#9D7CFB';
 const AMBER = '#F4B23F';
-
-// MaterialCommunityIcons has true drinkware glyphs (beer/wine/cocktail/
-// liquor) — Feather only carries `coffee`/`droplet`-style icons which
-// made the picker look like a hot-beverage menu. We map every DrinkType
-// to a literal beverage icon so users can tell at a glance which drink
-// they're logging.
-const DRINK_ICON: Record<
-  DrinkType,
-  React.ComponentProps<typeof MaterialCommunityIcons>['name']
-> = {
-  beer: 'beer',
-  wine: 'glass-wine',
-  cocktail: 'glass-cocktail',
-  liquor: 'bottle-tonic',
-  hard_seltzer: 'bottle-soda-classic',
-  custom: 'glass-flute',
-};
+const TEAL  = '#19E5C6';
 
 export function SocialModeSheet({
   visible, onDismiss, socialMode, social,
-  onActivate, onLogDrink, onConfirmHydration, onDeactivate,
+  onActivate, onDeactivate,
 }: Props) {
   const { t } = useTranslation();
   const { state } = useAppStore();
@@ -97,21 +86,30 @@ export function SocialModeSheet({
 
   if (!visible) return null;
 
-  const isActive = !!social?.active;
+  const isActive   = !!social?.active;
   const inRecovery = !!social?.inRecoveryWindow && !isActive;
-  const accent = inRecovery ? AMBER : PURPLE;
 
-  const lastDrink = socialMode?.drinks?.length
-    ? socialMode.drinks[socialMode.drinks.length - 1]
-    : null;
-  const showHydrationPrompt = isActive
-    && lastDrink != null
-    && lastDrink.hydrated == null
-    && (Date.now() - lastDrink.loggedAt.getTime()) < 8 * 60 * 1000;
+  // Accent follows the live band when we have one; otherwise fall back
+  // to the calm teal "Stable" tint for the OFF state.
+  const accent = social?.recoveryCapacity?.meta.color ?? TEAL;
 
-  const handleDrink = (type: DrinkType) => {
+  // Minutes remaining in the 8h recovery window, derived purely from
+  // session end time — no BAC math involved.
+  const recoveryMinutesLeft: number = (() => {
+    const endedAt = socialMode?.endedAt;
+    if (!endedAt) return 0;
+    const ms = RECOVERY_WINDOW_MS - (Date.now() - endedAt.getTime());
+    return Math.max(0, Math.round(ms / 60_000));
+  })();
+
+  const handleActivate = () => {
     if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-    onLogDrink(type);
+    onActivate();
+  };
+
+  const handleDeactivate = () => {
+    if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+    onDeactivate();
   };
 
   return (
@@ -131,11 +129,11 @@ export function SocialModeSheet({
       >
         <View style={styles.header}>
           <View style={{ flex: 1 }}>
-            <Text style={[styles.eyebrow, { color: accent }]}>{t('social.title')}</Text>
+            <Text style={[styles.eyebrow, { color: accent }]}>RECOVERY MODE</Text>
             <Text style={styles.headline}>
-              {inRecovery ? t('social.recovery_headline')
-                : isActive ? t('social.active_headline')
-                : t('social.intro_headline')}
+              {inRecovery ? 'Recovery window active'
+                : isActive ? 'Recovery session — live'
+                : 'Recovery capacity, on demand'}
             </Text>
           </View>
           <Pressable hitSlop={12} onPress={onDismiss} style={styles.closeBtn}>
@@ -143,155 +141,90 @@ export function SocialModeSheet({
           </Pressable>
         </View>
 
-        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 12 }} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={{ paddingBottom: 12 }}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* ─── OFF state ──────────────────────────────────────────── */}
           {!isActive && !inRecovery && (
             <>
-              <Text style={styles.body}>{t('social.intro_body')}</Text>
-              <Text style={styles.sectionLabel}>{t('social.pick_drink')}</Text>
-              <View style={styles.grid}>
-                {DRINK_TYPES_ORDER.map((type) => (
-                  <Pressable
-                    key={type}
-                    onPress={() => {
-                      if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
-                      // Single-tap entry from OFF state. The server's
-                      // /social/drink route auto-activates a fresh
-                      // session when one isn't already running, so we
-                      // call only the drink endpoint to avoid a
-                      // race where /activate could land after /drink
-                      // and clobber the just-logged drink.
-                      onLogDrink(type);
-                    }}
-                    style={({ pressed }) => [
-                      styles.drinkTile,
-                      { borderColor: `${PURPLE}55` },
-                      pressed && { opacity: 0.8 },
-                    ]}
-                    testID={`social-drink-${type}`}
-                  >
-                    <MaterialCommunityIcons name={DRINK_ICON[type]} size={22} color={PURPLE} />
-                    <Text style={styles.drinkLabel}>{t(`social.drink_${type}`)}</Text>
-                    <Text style={styles.drinkMeta}>+{Math.round((ALCOHOL_DRINKS[type].decayMultiplier - 1) * 100)}%</Text>
-                  </Pressable>
-                ))}
-              </View>
-            </>
-          )}
-
-          {isActive && social && (
-            <>
-              <View style={styles.statusRow}>
-                <View style={styles.statBlock}>
-                  <Text style={styles.statValue}>{social.drinkCount}</Text>
-                  <Text style={styles.statLabel}>{t('social.drinks')}</Text>
-                </View>
-                <View style={styles.statBlock}>
-                  <Text style={styles.statValue}>×{social.alcoholMultiplier.toFixed(2)}</Text>
-                  <Text style={styles.statLabel}>{t('social.decay_mult')}</Text>
-                </View>
-                <View style={[styles.statBlock, { alignItems: 'flex-end' }]}>
-                  <ImpairmentRiskBadge impairment={social.impairment} />
-                  <Text style={[styles.statLabel, { marginTop: 6 }]}>{t('social.impairment_label')}</Text>
-                </View>
-              </View>
-
-              {/* BAC + impairment surface — always rendered while active so
-                  the user can see the trend before things escalate. */}
-              <BACEstimateCard bac={social.bac} />
-
-              {/* Legal & transportation safety — only renders at MODERATE+. */}
-              <SocialSafetyCard prompt={social.transportation} />
-
-              <View style={styles.hangoverInline}>
-                <HangoverRiskBadge risk={social.hangoverRisk} showScore />
-                <Text style={styles.hangoverLabel}>{t('social.hangover_risk')}</Text>
-              </View>
-
-              {showHydrationPrompt && (
-                <View style={[styles.hydrateCard, { borderColor: `${PURPLE}55` }]} testID="social-hydration-prompt">
-                  <Text style={[styles.eyebrow, { color: PURPLE }]}>{t('social.hydration_check')}</Text>
-                  <Text style={styles.body}>{t('social.hydration_prompt')}</Text>
-                  <View style={styles.hydrateRow}>
-                    <Pressable
-                      onPress={() => onConfirmHydration(true)}
-                      style={[styles.choiceBtn, { borderColor: Colors.states.PEAK.primary }]}
-                      testID="social-hydrate-yes"
-                    >
-                      <Feather name="check" size={16} color={Colors.states.PEAK.primary} />
-                      <Text style={[styles.choiceText, { color: Colors.states.PEAK.primary }]}>
-                        {t('social.hydrated_yes')}
-                      </Text>
-                    </Pressable>
-                    <Pressable
-                      onPress={() => onConfirmHydration(false)}
-                      style={[styles.choiceBtn, { borderColor: Colors.text.muted }]}
-                      testID="social-hydrate-no"
-                    >
-                      <Feather name="x" size={16} color={Colors.text.muted} />
-                      <Text style={[styles.choiceText, { color: Colors.text.muted }]}>
-                        {t('social.hydrated_not_yet')}
-                      </Text>
-                    </Pressable>
-                  </View>
-                </View>
-              )}
-
-              <Text style={styles.sectionLabel}>{t('social.log_next_drink')}</Text>
-              <View style={styles.grid}>
-                {DRINK_TYPES_ORDER.map((type) => (
-                  <Pressable
-                    key={type}
-                    onPress={() => handleDrink(type)}
-                    style={({ pressed }) => [
-                      styles.drinkTile,
-                      { borderColor: `${PURPLE}55` },
-                      pressed && { opacity: 0.8 },
-                    ]}
-                    testID={`social-drink-${type}`}
-                  >
-                    <MaterialCommunityIcons name={DRINK_ICON[type]} size={20} color={PURPLE} />
-                    <Text style={styles.drinkLabel}>{t(`social.drink_${type}`)}</Text>
-                  </Pressable>
-                ))}
-              </View>
+              <Text style={styles.body}>
+                Start a session whenever you’re in elevated-stress mode —
+                travel, heat, late nights, hard training blocks. AForce
+                will blend your AutoPilot score, hydration compliance,
+                and environment into a single Recovery Capacity reading
+                you can watch in real time.
+              </Text>
 
               <Pressable
-                onPress={onDeactivate}
-                style={[styles.endNightBtn, { borderColor: `${AMBER}66` }]}
-                testID="social-end-night"
+                onPress={handleActivate}
+                style={[styles.primaryBtn, { borderColor: `${TEAL}66`, backgroundColor: `${TEAL}14` }]}
+                testID="recovery-start-session"
+                accessibilityRole="button"
+                accessibilityLabel="Start recovery session"
               >
-                <Feather name="moon" size={16} color={AMBER} />
-                <Text style={[styles.endNightText, { color: AMBER }]}>{t('social.end_night')}</Text>
+                <Feather name="play" size={16} color={TEAL} />
+                <Text style={[styles.primaryBtnText, { color: TEAL }]}>START RECOVERY SESSION</Text>
               </Pressable>
             </>
           )}
 
-          {inRecovery && social && (
+          {/* ─── ACTIVE state ──────────────────────────────────────── */}
+          {isActive && social && (
             <>
-              <Text style={styles.body}>{t('social.recovery_body')}</Text>
+              <RecoveryCapacityCard recovery={social.recoveryCapacity} />
+
               <View style={styles.statusRow}>
                 <View style={styles.statBlock}>
-                  <Text style={styles.statValue}>{social.drinkCount}</Text>
-                  <Text style={styles.statLabel}>{t('social.drinks_last_session')}</Text>
+                  <Text style={styles.statValue}>×{social.alcoholMultiplier.toFixed(2)}</Text>
+                  <Text style={styles.statLabel}>DECAY MULTIPLIER</Text>
                 </View>
                 <View style={[styles.statBlock, { alignItems: 'flex-end' }]}>
-                  <HangoverRiskBadge risk={social.hangoverRisk} showScore />
-                  <Text style={[styles.statLabel, { marginTop: 6 }]}>{t('social.hangover_risk')}</Text>
+                  <Text style={[styles.statValue, { color: accent }]}>
+                    {social.recoveryCapacity.meta.label.toUpperCase()}
+                  </Text>
+                  <Text style={styles.statLabel}>CURRENT BAND</Text>
                 </View>
               </View>
 
+              <Pressable
+                onPress={handleDeactivate}
+                style={[styles.primaryBtn, { borderColor: `${AMBER}66` }]}
+                testID="recovery-end-session"
+                accessibilityRole="button"
+                accessibilityLabel="End recovery session"
+              >
+                <Feather name="moon" size={16} color={AMBER} />
+                <Text style={[styles.primaryBtnText, { color: AMBER }]}>END SESSION</Text>
+              </Pressable>
+            </>
+          )}
+
+          {/* ─── RECOVERY window ──────────────────────────────────── */}
+          {inRecovery && social && (
+            <>
+              <Text style={styles.body}>
+                Your recovery window is still open. AForce keeps watching
+                your capacity until it closes — protect the score.
+              </Text>
+
+              <RecoveryCapacityCard recovery={social.recoveryCapacity} />
+
               {gate(state.subscription, 'recovery_mode_enabled').allowed ? (
-                <RecoveryModeCard timeToClearMinutes={social.bac.timeToClearMinutes} />
+                <RecoveryModeCard timeToClearMinutes={recoveryMinutesLeft} />
               ) : (
                 <RecoveryModePaywall />
               )}
 
               <Pressable
                 onPress={onDismiss}
-                style={[styles.endNightBtn, { borderColor: `${AMBER}66` }]}
+                style={[styles.primaryBtn, { borderColor: `${TEAL}66` }]}
+                accessibilityRole="button"
+                accessibilityLabel="Done"
               >
-                <Feather name="check" size={16} color={AMBER} />
-                <Text style={[styles.endNightText, { color: AMBER }]}>{t('social.recovery_done')}</Text>
+                <Feather name="check" size={16} color={TEAL} />
+                <Text style={[styles.primaryBtnText, { color: TEAL }]}>DONE</Text>
               </Pressable>
             </>
           )}
@@ -314,11 +247,6 @@ const styles = StyleSheet.create({
     borderTopWidth: 0,
     paddingHorizontal: 22,
   },
-  handle: {
-    width: 40, height: 4, borderRadius: 2,
-    backgroundColor: 'rgba(255,255,255,0.18)',
-    alignSelf: 'center', marginBottom: 18,
-  },
   header: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 12 },
   eyebrow: { fontSize: 11, fontFamily: 'Inter_700Bold', letterSpacing: 2, marginBottom: 4 },
   headline: { fontSize: 18, fontFamily: 'Inter_700Bold', color: Colors.text.primary, lineHeight: 23 },
@@ -327,24 +255,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.06)',
     alignItems: 'center', justifyContent: 'center',
   },
-  body: { fontSize: 14, fontFamily: 'Inter_400Regular', color: Colors.text.secondary, lineHeight: 20, marginBottom: 12 },
-  sectionLabel: {
-    fontSize: 11, fontFamily: 'Inter_700Bold', color: Colors.text.muted,
-    letterSpacing: 1.6, marginTop: 8, marginBottom: 10,
-  },
-  grid: {
-    flexDirection: 'row', flexWrap: 'wrap', gap: 10,
-    marginBottom: 14,
-  },
-  drinkTile: {
-    width: '31%', minHeight: 78,
-    paddingVertical: 12, paddingHorizontal: 8,
-    borderRadius: 14, borderWidth: 1,
-    backgroundColor: 'rgba(157,124,251,0.06)',
-    alignItems: 'center', justifyContent: 'center', gap: 4,
-  },
-  drinkLabel: { fontSize: 12, fontFamily: 'Inter_600SemiBold', color: Colors.text.primary, marginTop: 4 },
-  drinkMeta: { fontSize: 10, fontFamily: 'Inter_500Medium', color: Colors.text.muted, marginTop: 2 },
+  body: { fontSize: 14, fontFamily: 'Inter_400Regular', color: Colors.text.secondary, lineHeight: 20, marginBottom: 16 },
   statusRow: {
     flexDirection: 'row', justifyContent: 'space-between',
     paddingVertical: 14, paddingHorizontal: 14,
@@ -354,28 +265,10 @@ const styles = StyleSheet.create({
   statBlock: { flex: 1 },
   statValue: { fontSize: 22, fontFamily: 'Inter_700Bold', color: Colors.text.primary },
   statLabel: { fontSize: 10, fontFamily: 'Inter_700Bold', color: Colors.text.muted, letterSpacing: 1.4, marginTop: 2 },
-  hydrateCard: {
-    borderRadius: 16, borderWidth: 1, padding: 14, marginBottom: 14,
-    backgroundColor: 'rgba(157,124,251,0.07)',
-  },
-  hydrateRow: { flexDirection: 'row', gap: 10, marginTop: 8 },
-  choiceBtn: {
-    flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    gap: 6, paddingVertical: 12, borderRadius: 12, borderWidth: 1,
-  },
-  choiceText: { fontSize: 13, fontFamily: 'Inter_700Bold', letterSpacing: 0.5 },
-  endNightBtn: {
+  primaryBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
     gap: 8, paddingVertical: 14, borderRadius: 14, borderWidth: 1,
     marginTop: 8,
   },
-  endNightText: { fontSize: 13, fontFamily: 'Inter_700Bold', letterSpacing: 1.2 },
-  hangoverInline: {
-    flexDirection: 'row', alignItems: 'center', gap: 10,
-    marginBottom: 14,
-  },
-  hangoverLabel: {
-    fontSize: 11, fontFamily: 'Inter_500Medium', color: Colors.text.muted,
-    letterSpacing: 0.4,
-  },
+  primaryBtnText: { fontSize: 13, fontFamily: 'Inter_700Bold', letterSpacing: 1.4 },
 });

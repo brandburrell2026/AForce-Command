@@ -14,7 +14,12 @@ import { useTranslation } from 'react-i18next';
 import { Colors } from '../theme/colors';
 
 interface Props {
-  /** Hours until estimated full recovery (used for the morning estimate strip). */
+  /**
+   * Minutes remaining in the 8h Recovery window. Reframed in chunk #3c
+   * to be purely a time-since-session-end value — no BAC math is
+   * involved any more. Kept the prop name to avoid churning every
+   * callsite; rename in a follow-up if/when the API is stabilised.
+   */
   timeToClearMinutes: number;
 }
 
@@ -32,9 +37,13 @@ function formatRecovery(minutes: number, t: (key: string, opts?: any) => string)
   if (minutes <= 0) return t('social.recovery_morning_clear');
   const h = Math.floor(minutes / 60);
   const m = minutes % 60;
-  if (h === 0) return t('social.bac_clear_minutes', { minutes: m });
-  if (m === 0) return t('social.bac_clear_hours', { hours: h });
-  return t('social.bac_clear_hours_minutes', { hours: h, minutes: m });
+  // Window-remaining strings, framed as a recovery countdown rather
+  // than a BAC clear-time. The translation keys are reused from the
+  // existing bundle to avoid a full i18n migration this pass — the
+  // surrounding context now reads as "X remaining in window".
+  if (h === 0) return `${m}m remaining`;
+  if (m === 0) return `${h}h remaining`;
+  return `${h}h ${m}m remaining`;
 }
 
 export function RecoveryModeCard({ timeToClearMinutes }: Props) {
@@ -64,7 +73,7 @@ export function RecoveryModeCard({ timeToClearMinutes }: Props) {
       </View>
 
       <Text style={styles.disclaimer}>
-        {t('social.estimate_only')} · {t('social.not_legal_medical')}
+        Recovery is a directional signal, not a medical metric.
       </Text>
     </View>
   );

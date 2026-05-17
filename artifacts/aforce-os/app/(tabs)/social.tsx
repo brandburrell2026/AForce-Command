@@ -106,20 +106,21 @@ export default function SocialScreen() {
             <Icon name="users" size={28} color={PURPLE} />
           </View>
 
-          <Text style={styles.eyebrow}>SOCIAL MODE</Text>
-          <Text style={styles.title}>Drink smart on nights out</Text>
+          <Text style={styles.eyebrow}>RECOVERY MODE</Text>
+          <Text style={styles.title}>Recovery capacity, in real time</Text>
           <Text style={styles.body}>
-            Track beer, wine, cocktails, liquor, hard seltzer and champagne.
-            Get a real-time hydration recovery plan, BAC estimate, and
-            morning-after protocol — all tuned to what you actually drank.
+            One blended 0–100 score across your AutoPilot performance,
+            hydration compliance, and environmental stress. Watch it move
+            through Peak, Stable, Declining, and Critical bands as your
+            day evolves — and act before you fall.
           </Text>
 
           <View style={styles.featureList}>
             {[
-              'Per-drink hydration impact + decay curve',
-              'Live recovery prompts during the night',
-              'Morning-after protocol auto-generated',
-              'Estimated BAC + clear-by timer',
+              'Live Recovery Capacity Score (0–100)',
+              'Four cinematic state bands — Peak to Critical',
+              'AutoPilot + hydration + environment, blended',
+              '8-hour recovery window with morning checklist',
             ].map((line) => (
               <View key={line} style={styles.featureRow}>
                 <Icon name="check" size={14} color={PURPLE} />

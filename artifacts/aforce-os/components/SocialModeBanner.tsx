@@ -1,48 +1,28 @@
 /**
- * SocialModeBanner — Top-of-home indicator while Social Mode is active
- * (or while the 8h Recovery window is still open). Tap opens the
- * Social Mode sheet for full controls.
+ * SocialModeBanner — Top-of-home indicator while Recovery Mode is
+ * active (or while its 8h recovery window is still open). Tap opens
+ * the Recovery Mode sheet for full controls.
  *
- * In active mode the banner exposes the impairment badge + estimated
- * BAC range so users can see escalation at a glance without opening
- * the sheet. Subtle purple accent in active mode, amber in recovery,
- * crimson when impairment is HIGH/CRITICAL. Never says "don't drink".
+ * Reframed by chunk #3c of the Master Update: shows the live Recovery
+ * Capacity Score and band label, not drink counts or BAC ranges.
  */
 
 import React from 'react';
 import { Pressable, View, Text, StyleSheet, Platform } from 'react-native';
-import { Icon } from './Icon';
-import { useTranslation } from 'react-i18next';
 import * as Haptics from 'expo-haptics';
 
-import { ImpairmentRiskBadge } from './ImpairmentRiskBadge';
-import type { ScoreEngineOutput, ImpairmentRiskLevel } from '../types';
+import { Icon } from './Icon';
+import type { ScoreEngineOutput } from '../types';
 
 interface Props {
   social: NonNullable<ScoreEngineOutput['social']>;
   onPress: () => void;
 }
 
-const PURPLE = '#9D7CFB';
-const AMBER = '#F4B23F';
-const CRIMSON = '#FB7C7C';
-
-function accentFor(social: NonNullable<ScoreEngineOutput['social']>): string {
-  if (social.inRecoveryWindow) return AMBER;
-  const lvl: ImpairmentRiskLevel = social.impairment.level;
-  if (lvl === 'HIGH' || lvl === 'CRITICAL') return CRIMSON;
-  return PURPLE;
-}
-
-function formatRange(low: number, high: number): string {
-  return `${low.toFixed(2)}–${high.toFixed(2)}`;
-}
-
 function SocialModeBannerImpl({ social, onPress }: Props) {
-  const { t } = useTranslation();
-  const accent = accentFor(social);
-  const titleKey = social.inRecoveryWindow ? 'social.recovery_active' : 'social.mode_active';
-  const showBac = !social.inRecoveryWindow && social.drinkCount > 0;
+  const accent = social.recoveryCapacity.meta.color;
+  const bandLabel = social.recoveryCapacity.meta.label;
+  const title = social.inRecoveryWindow ? 'RECOVERY WINDOW' : 'RECOVERY MODE';
 
   return (
     <Pressable
@@ -51,7 +31,7 @@ function SocialModeBannerImpl({ social, onPress }: Props) {
         onPress();
       }}
       accessibilityRole="button"
-      accessibilityLabel={t(titleKey)}
+      accessibilityLabel={title}
       testID="social-mode-banner"
       style={({ pressed }) => [
         styles.banner,
@@ -60,18 +40,14 @@ function SocialModeBannerImpl({ social, onPress }: Props) {
       ]}
     >
       <View style={[styles.iconWrap, { backgroundColor: `${accent}26` }]}>
-        <Icon name={social.inRecoveryWindow ? 'sunrise' : 'moon'} size={16} color={accent} />
+        <Icon name={social.inRecoveryWindow ? 'sunrise' : 'activity'} size={16} color={accent} />
       </View>
       <View style={{ flex: 1 }}>
-        <Text style={[styles.title, { color: accent }]}>{t(titleKey)}</Text>
+        <Text style={[styles.title, { color: accent }]}>{title}</Text>
         <Text style={styles.subtitle}>
-          {t('social.drinks_logged', { count: social.drinkCount })}
-          {showBac ? `  ·  ${t('social.bac_label')} ${formatRange(social.bac.rangeLow, social.bac.rangeHigh)}` : ''}
+          {bandLabel} · {social.recoveryCapacity.score}/100
         </Text>
       </View>
-      {!social.inRecoveryWindow && social.drinkCount > 0 && (
-        <ImpairmentRiskBadge impairment={social.impairment} />
-      )}
       <Icon name="chevron-right" size={18} color={accent} style={{ marginLeft: 6 }} />
     </Pressable>
   );
@@ -81,21 +57,11 @@ export const SocialModeBanner = React.memo(SocialModeBannerImpl);
 
 const styles = StyleSheet.create({
   banner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginHorizontal: 16,
-    marginTop: 4,
-    marginBottom: 8,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    borderRadius: 18,
-    borderWidth: 1,
+    flexDirection: 'row', alignItems: 'center', gap: 12, marginHorizontal: 16,
+    marginTop: 4, marginBottom: 8, paddingHorizontal: 14, paddingVertical: 12,
+    borderRadius: 18, borderWidth: 1,
   },
-  iconWrap: {
-    width: 32, height: 32, borderRadius: 16,
-    alignItems: 'center', justifyContent: 'center',
-  },
+  iconWrap: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
   title: { fontSize: 12, fontFamily: 'Inter_700Bold', letterSpacing: 1.5 },
   subtitle: { fontSize: 12, fontFamily: 'Inter_500Medium', color: 'rgba(255,255,255,0.72)', marginTop: 2 },
 });
