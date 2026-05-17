@@ -1,0 +1,773 @@
+Keep the current app structure, current orb system, Recovery Capacity system, cinematic direction, and Social/Recovery framework already built.
+
+==================================================
+
+OPENING EXPERIENCE ==================================================
+KEEP:
+
+black cinematic background
+atmospheric orb
+layered energy rings
+breathing glow motion
+minimal typography
+“Pause → Hydrate → Lock In → Perform”
+Do NOT revert to a plain loading screen.
+
+FINAL FLOW:
+
+WELCOME ↓ AFORCE OS ↓ orb slowly activates ↓ INITIALIZING ↓ score emerges ↓ system state appears ↓ ENTER / CONTINUE
+
+System states:
+
+PEAK
+BALANCED
+DECLINING
+CRITICAL
+Animation rules:
+
+slow breathing pulse
+atmospheric drift
+soft glow expansion
+no fast spinning
+no gaming-style motion
+Goal: Feels like entering a performance operating system.
+
+================================================== 2. OPENING SCREEN SAFE AREA FIX
+
+The CONTINUE / ENTER button is overlapping or disappearing on Samsung Fold devices.
+
+Fix immediately.
+
+Correct layout order:
+
+Orb
+System text
+“Pause → Hydrate → Lock In → Perform”
+Spacer gap
+CONTINUE / ENTER button
+Bottom safe-area padding
+Required fixes:
+
+raise CTA slightly higher
+add responsive safe-area spacing
+prevent overlap with text
+nothing important should sit in bottom 8–12% of screen
+Test on:
+
+Samsung Fold
+Samsung Ultra
+Pixel
+iPhone Pro Max
+smaller iPhones
+DO NOT remove: “Pause → Hydrate → Lock In → Perform”
+
+================================================== 3. PROFILE SYSTEM
+
+Upgrade Profile into: PREMIUM PERFORMANCE PROFILE.
+
+Add:
+
+profile image
+display name
+nickname / alias
+city / territory
+country
+team / circle
+streak
+territory badge
+aura state
+height
+weight
+recovery goal
+Allow: real name OR nickname.
+
+Examples:
+
+Coach Rock
+MiamiPulse
+ApexFlow
+SurgeKing
+Profile should feel like: a luxury athlete identity card.
+
+================================================== 4. PERSONALIZATION ENGINE
+
+Add optional: BIOLOGICAL PROFILE.
+
+Options:
+
+Male
+Female
+Prefer not to say
+This quietly helps calibrate:
+
+hydration demand
+recovery modeling
+sweat/load estimation
+Recovery Capacity calculations
+Do NOT make this feel: medical or invasive.
+
+================================================== 5. UNIT PREFERENCES
+
+Add global unit settings.
+
+Support:
+
+lbs ↔ kg
+ft/in ↔ cm
+Fahrenheit ↔ Celsius
+oz ↔ mL/L
+Auto-detect region but allow manual override.
+
+Apply across:
+
+profile
+weather
+hydration goals
+fluid tracking
+recovery calculations
+================================================== 6. SIGNUP / LOGIN
+
+Require:
+
+Email OR
+Apple login OR
+Google login
+Reason:
+
+saved data
+retention
+CRM/email campaigns
+subscriptions
+onboarding recovery
+future launches
+beta invites
+Keep onboarding simple:
+
+email/login
+nickname
+city
+biological profile optional
+height
+weight
+unit preferences
+================================================== 7. BOTTOM NAVIGATION
+
+FINAL NAV:
+
+HOME CHECK PROTOCOL TIMELINE SOCIAL PROFILE
+
+REMOVE: STORE from bottom nav.
+
+Store should still exist through:
+
+HydroScan
+Recovery recommendations
+Product prompts
+Home recommendations
+Protocol suggestions
+The app should feel like: a premium OS, not an ecommerce app.
+
+================================================== 8. PERFORMANCE TIMELINE
+
+Rename: Hydration Journal
+
+TO: Performance Timeline
+
+Sections:
+
+Recovery
+Heat
+Hydration
+Corrections
+Territory Movement
+Streaks
+Add: WIN MOMENTS.
+
+Examples:
+
+Recovery restored after 3 corrections
+Heat recovery improved
+Territory momentum increased
+4-day streak active
+Stabilized faster than yesterday
+Remove: “Couldn’t load journal data”
+
+Replace with: “Your performance timeline begins after your first check.”
+
+================================================== 9. HYDROSCAN FINAL SYSTEM
+
+HydroScan becomes: PERSONALIZED HYDRATION INTELLIGENCE.
+
+Support:
+
+barcode scan
+camera scan
+manual search
+Smart Capture photo upload
+Users can:
+
+scan drinks
+type drinks
+upload intake photos
+Support:
+
+water
+coffee
+tea
+pre-workouts
+energy drinks
+sports drinks
+alcohol
+smoothies
+juices
+soda
+electrolyte drinks
+bottled water
+custom drinks
+================================================== 10. SMART CAPTURE
+
+Add: SMART CAPTURE.
+
+Users can:
+
+take photo
+upload photo
+AI estimates:
+
+hydration demand
+recovery load
+stimulant load
+acidic load
+correction recommendation
+DO NOT show: calories/macros.
+
+Add visible disclaimer directly on Smart Capture screen:
+
+“Smart Capture provides estimated hydration and recovery guidance only and is not a medical or nutritional diagnostic tool.”
+
+================================================== 11. HYDROSCAN PERSONALIZATION
+
+HydroScan recommendations adapt based on:
+
+weight
+height
+biological profile optional
+activity level
+workout intensity
+heat exposure
+humidity
+territory climate
+stimulant intake
+recovery state
+hydration consistency
+Future:
+
+Phantom Band
+sleep integration
+HRV integration
+The user should feel: “The system understands my body, intake, and environment.”
+
+================================================== 12. HYDROSCAN LANGUAGE
+
+REMOVE:
+
+Restricted
+Bad
+Toxic
+Dangerous
+USE:
+
+Recovery Support Recommended
+Elevated Recovery Load
+Stimulant Load Elevated
+Acidic Load Moderate
+Recovery Balance Suggested
+Hydration Support Recommended
+Recovery Stability Moderate
+Optimization Opportunity Detected
+HydroScan should guide, not shame.
+
+================================================== 13. ACIDIC LOAD SYSTEM
+
+Add: ACIDIC LOAD.
+
+States:
+
+Low
+Moderate
+Elevated
+Example: “Acidic Load Elevated” “Hydration support recommended.”
+
+For coffee: Do NOT say coffee is bad.
+
+Say: “Stimulant Load Elevated. Hydration support recommended.”
+
+================================================== 14. PRE-WORKOUT SUPPORT
+
+HydroScan recognizes:
+
+pre-workouts
+stimulant-heavy formulas
+pump blends
+energy formulas
+Examples: “Elevated stimulant load detected.” “Hydration demand may increase during training.” “Recovery support recommended after activity.”
+
+Do NOT attack pre-workouts.
+
+================================================== 15. SUPERFOOD SIGNALS
+
+When users scan AForce:
+
+Display: SUPERFOOD SIGNALS ACTIVE
+
+Examples:
+
+Mineral Support
+Recovery Support
+Electrolyte Efficiency
+Cellular Hydration Support
+Performance Support
+Add: “TAP TO LEARN WHY”
+
+Education layer can explain:
+
+seamoss
+dulse
+chlorella
+mineral support
+balanced hydration support
+Use compliant language:
+
+supports
+assists
+may help support
+contributes to
+Do NOT use:
+
+cures
+treats
+prevents disease
+AForce positioning: “Balanced hydration support with mineral-rich superfoods designed to support recovery, hydration efficiency, and performance.”
+
+Do NOT say sodium is bad.
+
+Say: “Hydration requires balance, not just sodium loading.”
+
+================================================== 16. AFORCE PRODUCT POSITIONING
+
+HydroScan should naturally recommend AForce without aggressive selling.
+
+Example: “Current intake may increase hydration demand.”
+
+Recommended:
+
+12 oz water
+AForce mineral recovery support
+Position AForce as:
+
+system fuel
+recovery support
+hydration efficiency support
+performance amplifier
+================================================== 17. URINE HYDRATION CHECK
+
+Use: URINE HYDRATION CHECK
+
+Subtitle: “Use urine color as a simple hydration signal. Not a medical test.”
+
+Inputs:
+
+Clear
+Light Yellow
+Yellow
+Dark Yellow
+Outputs:
+
+Hydration Appears Stable
+Good Hydration Range
+Hydration Support Suggested
+Hydration Correction Recommended
+================================================== 18. ORB INTELLIGENCE SYSTEM
+
+The orb is NOT decorative.
+
+The orb becomes: the visual expression of the user’s current system state.
+
+Orb reacts to:
+
+hydration behavior
+scanned intake
+stimulant load
+humidity
+heat
+recovery consistency
+activity level
+environmental stress
+correction behavior
+Orb states:
+
+PEAK
+
+stable glow
+smooth pulse
+BALANCED
+
+calm breathing motion
+DECLINING
+
+weakened glow
+unstable pulse
+CRITICAL
+
+darker atmosphere
+fragmented ring motion
+Do NOT make it cartoonish.
+
+================================================== 19. SCORE ENGINE
+
+Recovery Capacity dynamically adapts based on:
+
+hydration consistency
+humidity
+temperature
+stimulant intake
+activity level
+workout intensity
+scanned beverages
+recovery behavior
+correction behavior
+DO NOT publicly describe: “alcohol load” as part of scoring.
+
+Keep public language:
+
+recovery demand
+environmental stress
+hydration consistency
+stimulant intake
+activity level
+================================================== 20. HUMIDITY / HEAT MODE
+
+Humidity absolutely matters.
+
+Humidity quietly powers:
+
+Heat Mode
+Recovery Demand
+correction urgency
+environmental atmosphere
+score adjustments
+hydration recommendations
+Do NOT turn this into a weather app.
+
+================================================== 21. TERRITORY MOMENTUM
+
+Keep:
+
+city battles
+state battles
+teams
+circles
+territory movement
+Add:
+
+surging
+stabilizing
+recovery wave active
+heat pressure rising
+Examples:
+
+Miami Surging
+Florida Recovery Wave Active
+Texas Heat Pressure Rising
+DO NOT use exact GPS.
+
+Use stylized territory movement only.
+
+================================================== 22. FEATURED BATTLES
+
+Show: 1–3 FEATURED BATTLES ONLY.
+
+Examples:
+
+Miami vs NYC
+Texas vs California
+Southeast Recovery Challenge
+Keep: clean, cinematic, focused.
+
+================================================== 23. SOCIAL / SHARE SYSTEM
+
+Every share card should feel: elite and cinematic.
+
+Include:
+
+orb
+score
+system state
+city/team
+streak
+atmospheric background
+AFORCE OS branding
+CTA examples:
+
+Enter AForce OS
+Built to Perform
+Performance is earned
+Download the System
+Deep links should:
+
+open app if installed
+open download page if not installed
+================================================== 24. REFERRAL LOOP
+
+Add: territory referral system.
+
+Example: “Invite 3 people to strengthen your territory.”
+
+Rewards:
+
+badges
+streak boosts
+territory influence
+early Phantom access
+================================================== 25. VOICE COACH SYSTEM
+
+Keep:
+
+Coach Rock
+Coach BB
+Sage
+Surge
+Voice modes:
+
+Off
+Minimal
+Guided
+Immersive
+Voice should feel:
+
+intelligent
+calm
+premium
+strategic
+NOT: constant or overwhelming.
+
+================================================== 26. SOCIAL / CRUISE MODE POSITIONING
+
+PUBLIC AFORCE OS: Do NOT publicly center alcohol features.
+
+Avoid:
+
+BAC language
+intoxication scoring
+alcohol tracking
+alcohol load descriptions
+Public OS positioning remains:
+
+recovery
+hydration
+performance
+heat
+sleep
+travel
+workout recovery
+PRIVATE SOCIAL / CRUISE MODE: The system may intelligently account for:
+
+nightlife recovery demand
+elevated hydration demand
+next-day recovery
+environmental recovery stress
+social recovery patterns
+BUT: keep this subtle and optional.
+
+Do NOT turn the app into: “drinking technology.”
+
+================================================== 27. GUARDIAN + CLUTCH
+
+Build now. Lock public access.
+
+Visible ONLY to:
+
+Julius
+Brandon
+internal testing
+Guardian: Performance Readiness & Availability Intelligence
+
+Clutch: Live session/team mode
+
+Do NOT publicly release until tested.
+
+================================================== 28. PHANTOM BAND
+
+Phantom Band remains: supportive performance hardware.
+
+NOT medical hardware.
+
+Functions:
+
+haptics
+pulse feedback
+recovery alerts
+lock-in reinforcement
+heat stress awareness
+hydration reminders
+================================================== 29. COMPLIANCE / DISCLAIMERS
+
+HydroScan: “HydroScan provides performance and hydration guidance only. It is not intended to diagnose, treat, cure, or prevent medical conditions.”
+
+Smart Capture: “Smart Capture provides estimated hydration and recovery guidance only and is not a medical or nutritional diagnostic tool.”
+
+Urine Hydration Check: “Urine color is a general hydration signal and not a medical diagnostic tool.”
+
+Recovery Capacity: “Recovery Capacity is an estimated performance and hydration indicator based on user inputs and environmental factors.”
+
+Use:
+
+supports
+assists
+recovery support
+hydration guidance
+performance support
+Avoid:
+
+diagnosis claims
+treatment claims
+injury prevention claims
+cure claims
+================================================== 30. FINAL UX RULE
+
+Do NOT overload the app.
+
+The premium feeling comes from:
+
+restraint
+atmosphere
+motion
+identity
+intelligence
+emotional rhythm
+spacing
+confidence
+The app should feel: simple on the surface, powerful underneath.
+
+Goal: AFORCE OS should feel like a premium performance operating system, NOT a hydration tracker.
+
+
+
+
+
+AFORCE OS — FINAL LEGAL + COMPLIANCE FOUNDATION UPDATE
+
+==================================================
+
+REQUIRED LEGAL SCREENS ==================================================
+Add placeholder infrastructure now for:
+
+Terms of Service
+Privacy Policy
+Health Disclaimer
+These do NOT need full attorney-written versions yet, but the app architecture should support them now.
+
+================================================== 2. ACCOUNT CREATION ACKNOWLEDGMENT
+
+During signup/login add:
+
+“By continuing, you agree to the Terms of Service, Privacy Policy, and Health Disclaimer.”
+
+Make:
+
+Terms of Service clickable
+Privacy Policy clickable
+Health Disclaimer clickable
+================================================== 3. PROFILE / SETTINGS LEGAL SECTION
+
+Inside PROFILE → SETTINGS add:
+
+LEGAL
+
+Terms of Service
+Privacy Policy
+Health Disclaimer
+Keep this section: clean, minimal, and easy to access.
+
+================================================== 4. HEALTH DISCLAIMER PAGE
+
+Add a simple Health Disclaimer screen.
+
+Suggested structure:
+
+“AFORCE OS provides performance, hydration, and recovery guidance only.
+
+The platform is not intended to diagnose, treat, cure, or prevent medical conditions and should not replace professional medical advice.
+
+Recovery Capacity, HydroScan, Smart Capture, and related features are estimated wellness indicators based on user inputs and environmental factors.”
+
+================================================== 5. TERMS OF SERVICE PLACEHOLDER
+
+Add placeholder Terms architecture now.
+
+Topics later attorney review will cover:
+
+informational use only
+user responsibility
+AI guidance limitations
+wearable limitations
+no guarantees
+no emergency use
+account usage
+subscription terms
+dispute limitations
+================================================== 6. PRIVACY POLICY PLACEHOLDER
+
+Privacy structure should account for:
+
+profile data
+location/territory data
+hydration behavior
+environmental inputs
+wearable integrations
+intake uploads/photos
+analytics
+account/email collection
+================================================== 7. SMART CAPTURE DISCLAIMER
+
+Keep visible disclaimer directly on Smart Capture screen:
+
+“Smart Capture provides estimated hydration and recovery guidance only and is not a medical or nutritional diagnostic tool.”
+
+================================================== 8. URINE HYDRATION CHECK DISCLAIMER
+
+Keep:
+
+“Urine color is a general hydration signal and not a medical diagnostic tool.”
+
+================================================== 9. RECOVERY CAPACITY DISCLAIMER
+
+Keep:
+
+“Recovery Capacity is an estimated performance and hydration indicator based on user inputs and environmental factors.”
+
+================================================== 10. HYDROSCAN DISCLAIMER
+
+Keep:
+
+“HydroScan provides performance and hydration guidance only. It is not intended to diagnose, treat, cure, or prevent medical conditions.”
+
+================================================== 11. IMPORTANT PRODUCT POSITIONING RULE
+
+AFORCE OS should always be positioned publicly as:
+
+performance operating system
+recovery support platform
+hydration intelligence system
+wellness optimization platform
+NOT:
+
+medical device
+injury prevention system
+diagnostic technology
+treatment platform
+================================================== 12. FINAL UX RULE
+
+Do NOT make legal/compliance screens feel: scary, clinical, or overwhelming.
+
+The legal layer should feel: clean, minimal, professional, and premium.
