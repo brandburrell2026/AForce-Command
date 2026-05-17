@@ -19,6 +19,7 @@ import type { UserSubscription } from '../types/subscription';
 import type { SweatAutopilot } from '../types/sweat';
 import type { HealthProviderId } from '../data/healthProviders';
 import type { UnitPreferences } from '../utils/units';
+import type { ProfileIdentity } from '../utils/profileIdentity';
 
 export interface AppState {
   userState: UserState;
@@ -51,6 +52,14 @@ export interface AppState {
    * under the same hydration pattern as `notificationSettings`.
    */
   unitPreferences: UnitPreferences;
+  /**
+   * User-editable identity fields shown on the premium profile card
+   * (nickname, city, country, team/circle, territory badge, aura).
+   * Persisted to AsyncStorage under the same hydration pattern as
+   * `unitPreferences`. Display name + subscription tier intentionally
+   * NOT in here — those come from Clerk / Stripe respectively.
+   */
+  profileIdentity: ProfileIdentity;
 }
 
 export type Action =
@@ -107,4 +116,11 @@ export type Action =
         | { key: 'volume'; value: UnitPreferences['volume'] };
     }
   | { type: 'SET_UNIT_PREFERENCES'; payload: UnitPreferences }
+  // Partial merge for the edit-profile form — submit may carry any
+  // subset of identity fields, the reducer merges over the current
+  // record. Used by the modal's "Save" button.
+  | { type: 'UPDATE_PROFILE_IDENTITY'; payload: Partial<ProfileIdentity> }
+  // Full-record replace, used by the AsyncStorage hydration path so a
+  // corrupt-payload fallback always lands on a complete identity.
+  | { type: 'SET_PROFILE_IDENTITY'; payload: ProfileIdentity }
   | { type: 'ADD_HISTORY_ENTRY'; payload: HistoryEntry };

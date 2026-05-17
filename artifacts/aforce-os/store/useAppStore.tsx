@@ -32,6 +32,11 @@ import {
   sanitizeUnitPreferences,
   type UnitPreferences,
 } from '../utils/units';
+import {
+  DEFAULT_PROFILE_IDENTITY,
+  sanitizeProfileIdentity,
+  type ProfileIdentity,
+} from '../utils/profileIdentity';
 import { SliceProvider, type ActionsSlice } from './slices';
 import { defaultSubscription } from '../services/subscriptionService';
 import { generateCycleIdentityMessage, generateNextCycleHint } from '../utils/scoringEngine';
@@ -103,6 +108,7 @@ const initialState: AppState = {
   hasSeenOnboarding: false,
   notificationSettings: DEFAULT_NOTIFICATION_SETTINGS,
   unitPreferences: DEFAULT_UNIT_PREFERENCES,
+  profileIdentity: DEFAULT_PROFILE_IDENTITY,
 };
 
 /**
@@ -244,6 +250,15 @@ interface AppContextValue {
     value: UnitPreferences[K],
   ) => void;
   /**
+   * Persisted profile identity (nickname / city / country / circle /
+   * territory badge / aura) + partial-merge setter. Driven by the
+   * Edit Profile modal on the Profile tab. Empty strings are valid
+   * (clear a chip); the setter merges so unspecified keys keep their
+   * current value.
+   */
+  profileIdentity: ProfileIdentity;
+  setProfileIdentity: (patch: Partial<ProfileIdentity>) => void;
+  /**
    * Investor Demo overlay flag. Cinematic 60-second scripted flow that
    * walks through every Voice Engine state in sequence. Lives entirely
    * above the regular store — toggling this never mutates user data.
@@ -258,6 +273,7 @@ const VOICE_INTENSITY_KEY = 'aforce.voiceIntensity';
 const VOICE_SCOPE_KEY = 'aforce.voiceScope';
 const NOTIFICATION_SETTINGS_KEY = 'aforce.notificationSettings';
 const UNIT_PREFERENCES_KEY = 'aforce.unitPreferences';
+const PROFILE_IDENTITY_KEY = 'aforce.profileIdentity';
 
 const VOICE_INTENSITIES: ReadonlySet<VoiceIntensity> = new Set(['calm', 'standard', 'pressure']);
 const VOICE_SCOPES: ReadonlySet<VoiceScope> = new Set(['all', 'risk', 'commands', 'muted']);
@@ -1065,6 +1081,55 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     [],
   );
 
+  // ── Profile identity hydration / persistence (mirrors unit prefs) ──
+  // Same two-ref race-safe pattern: hydratedRef gates the persist
+  // effect so in-memory defaults can't overwrite a slow read; dirtyRef
+  // makes a fast user edit win over a stale stored value.
+  const profileIdentityHydratedRef = useRef(false);
+  const profileIdentityDirtyRef = useRef(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    AsyncStorage.getItem(PROFILE_IDENTITY_KEY)
+      .then((raw) => {
+        if (cancelled) return;
+        if (profileIdentityDirtyRef.current) return;
+        if (!raw) return;
+        try {
+          const parsed = JSON.parse(raw);
+          dispatch({
+            type: 'SET_PROFILE_IDENTITY',
+            payload: sanitizeProfileIdentity(parsed),
+          });
+        } catch {
+          // ignore malformed payload — defaults remain in effect
+        }
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) profileIdentityHydratedRef.current = true;
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!profileIdentityHydratedRef.current) return;
+    AsyncStorage.setItem(
+      PROFILE_IDENTITY_KEY,
+      JSON.stringify(state.profileIdentity),
+    ).catch(() => {});
+  }, [state.profileIdentity]);
+
+  const setProfileIdentity = useCallback((patch: Partial<ProfileIdentity>) => {
+    // Mark dirty before dispatch (same race-safe ordering as the unit
+    // prefs setter) so a hydration callback racing this edit will
+    // yield to the user's input.
+    profileIdentityDirtyRef.current = true;
+    dispatch({ type: 'UPDATE_PROFILE_IDENTITY', payload: patch });
+  }, []);
+
   // Seed a synthetic baseline history entry on first mount so the
   // Hydration Journal day card shows a populated yesterday row instead
   // of stark emptiness for brand-new users. The entry is marked
@@ -1198,7 +1263,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     voiceScope, setVoiceScope,
     notificationSettings: state.notificationSettings, setNotificationSetting,
     unitPreferences: state.unitPreferences, setUnitPreference,
-  }), [state, logIntake, completeCycle, snooze, dismissSuccess, updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags, setSubscription, completeOnboarding, setAppleHealthSnapshot, setProviderBiometrics, confirmCommand, setLanguage, activateSocialMode, logSocialDrink, confirmSocialHydration, deactivateSocialMode, setSocialContext, activateCruiseMode, activateVoyageShield, setSweatAutopilot, voiceCoachEnabled, setVoiceCoachEnabled, selectedVoiceId, setSelectedVoiceId, voiceIntensity, setVoiceIntensity, voiceScope, setVoiceScope, isInvestorDemoActive, setInvestorDemoActive, setNotificationSetting, setUnitPreference]);
+    profileIdentity: state.profileIdentity, setProfileIdentity,
+  }), [state, logIntake, completeCycle, snooze, dismissSuccess, updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags, setSubscription, completeOnboarding, setAppleHealthSnapshot, setProviderBiometrics, confirmCommand, setLanguage, activateSocialMode, logSocialDrink, confirmSocialHydration, deactivateSocialMode, setSocialContext, activateCruiseMode, activateVoyageShield, setSweatAutopilot, voiceCoachEnabled, setVoiceCoachEnabled, selectedVoiceId, setSelectedVoiceId, voiceIntensity, setVoiceIntensity, voiceScope, setVoiceScope, isInvestorDemoActive, setInvestorDemoActive, setNotificationSetting, setUnitPreference, setProfileIdentity]);
 
   // Stable actions value for the sliced ActionsContext — same callbacks
   // as `value` minus `state`, so action consumers don't re-render when
@@ -1212,7 +1278,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setSweatAutopilot,
     setNotificationSetting,
     setUnitPreference,
-  }), [logIntake, completeCycle, snooze, dismissSuccess, updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags, setSubscription, completeOnboarding, setAppleHealthSnapshot, setProviderBiometrics, confirmCommand, setLanguage, activateSocialMode, logSocialDrink, confirmSocialHydration, deactivateSocialMode, setSocialContext, activateCruiseMode, activateVoyageShield, setSweatAutopilot, setNotificationSetting, setUnitPreference]);
+    setProfileIdentity,
+  }), [logIntake, completeCycle, snooze, dismissSuccess, updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags, setSubscription, completeOnboarding, setAppleHealthSnapshot, setProviderBiometrics, confirmCommand, setLanguage, activateSocialMode, logSocialDrink, confirmSocialHydration, deactivateSocialMode, setSocialContext, activateCruiseMode, activateVoyageShield, setSweatAutopilot, setNotificationSetting, setUnitPreference, setProfileIdentity]);
 
   return (
     <AppContext.Provider value={value}>
@@ -1247,6 +1314,7 @@ export {
   useInventorySlice,
   useSweatAutopilotSlice,
   useUnitPreferencesSlice,
+  useProfileIdentitySlice,
   useActionsSlice,
 } from './slices';
 

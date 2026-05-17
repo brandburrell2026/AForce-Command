@@ -15,6 +15,7 @@ import type {
 } from '../../types';
 import type { UserSubscription } from '../../types/subscription';
 import { DEFAULT_NOTIFICATION_SETTINGS } from '../../types';
+import { DEFAULT_PROFILE_IDENTITY } from '../../utils/profileIdentity';
 
 export const FIXED_NOW = new Date('2026-04-22T12:00:00Z').getTime();
 
@@ -134,6 +135,7 @@ export function makeState(overrides: Partial<AppState> = {}): AppState {
     hasSeenOnboarding: false,
     notificationSettings: DEFAULT_NOTIFICATION_SETTINGS,
     unitPreferences: { weight: 'lbs', temperature: 'F', volume: 'oz' },
+    profileIdentity: { ...DEFAULT_PROFILE_IDENTITY },
     ...overrides,
   };
 }

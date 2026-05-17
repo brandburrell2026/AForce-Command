@@ -219,6 +219,21 @@ export function reducer(state: AppState, action: Action): AppState {
       // so a corrupt-payload fallback always lands on a complete,
       // sanitised UnitPreferences object.
       return { ...state, unitPreferences: action.payload };
+    case 'UPDATE_PROFILE_IDENTITY':
+      // Partial merge — the edit modal submits only the fields that
+      // actually changed (or all of them; either is fine). Empty
+      // strings ARE valid (user clearing a chip), so we don't filter
+      // them out. Reducer-only; persistence happens in the effect
+      // that watches `state.profileIdentity`.
+      return {
+        ...state,
+        profileIdentity: { ...state.profileIdentity, ...action.payload },
+      };
+    case 'SET_PROFILE_IDENTITY':
+      // Full-record replace, used by the AsyncStorage hydration path
+      // so a corrupt-payload fallback always lands on a complete,
+      // sanitised ProfileIdentity object.
+      return { ...state, profileIdentity: action.payload };
     case 'ADD_HISTORY_ENTRY': {
       // De-dupe by id so a re-seeded synthetic baseline never doubles up.
       const filtered = state.history.filter((h) => h.id !== action.payload.id);

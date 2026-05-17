@@ -25,7 +25,8 @@ import {
   type AppleHealthSnapshot,
 } from '@/services/appleHealth';
 import { useAppStore } from '@/store/useAppStore';
-import { useUnitPreferencesSlice } from '@/store/slices';
+import { useUnitPreferencesSlice, useProfileIdentitySlice } from '@/store/slices';
+import { EditProfileModal } from '@/components/EditProfileModal';
 import type { UnitPreferences } from '@/utils/units';
 import { DEFAULT_FLAGS, DEMO_ALL_ON_FLAGS } from '@/featureFlags/flags';
 import type { FeatureFlags, AuraState } from '@/types';
@@ -80,8 +81,13 @@ export default function ProfileScreen() {
     voiceScope, setVoiceScope,
     setInvestorDemoActive,
     setUnitPreference,
+    setProfileIdentity,
   } = useAppStore();
   const unitPreferences = useUnitPreferencesSlice();
+  const profileIdentity = useProfileIdentitySlice();
+  // Edit modal local state — kept in the screen rather than the store
+  // so closing the app doesn't leave the modal "open" on next launch.
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
   // Tracks the in-flight demo so we can disable the row + show the
   // active label without blocking the rest of Profile. Cleared once
   // the final dispatch settles.
@@ -304,22 +310,22 @@ export default function ProfileScreen() {
             // path drifts.
 
             // ── Premium identity card ──
-            // Builds a luxury athlete-identity layout: avatar + name +
-            // optional handle on the top row, location underneath, then
-            // a chip strip below the divider with tier, streak, team /
-            // circle, territory badge, and aura state. Every chip after
-            // the tier is opt-in via UserProfile so the card degrades
-            // gracefully when fields are missing (new user, no
-            // territory yet, etc.).
-            const handle = mockUserProfile.nickname
-              ? `@${mockUserProfile.nickname}`
+            // Avatar + name + optional handle on the top row, location
+            // underneath, then a chip strip below a divider with tier,
+            // streak, team/circle, territory badge, and aura. All
+            // identity fields after the tier come from the persisted
+            // ProfileIdentity slice (edited via the modal); only
+            // streakDays remains on mockUserProfile because it's
+            // engine-computed from compliance history, not a vanity
+            // field. Each chip is gated so the card degrades cleanly
+            // when a field is empty.
+            const handle = profileIdentity.nickname
+              ? `@${profileIdentity.nickname}`
               : null;
-            const locationLine = [mockUserProfile.city, mockUserProfile.country]
-              .filter(Boolean)
+            const locationLine = [profileIdentity.city, profileIdentity.country]
+              .filter((s) => s.length > 0)
               .join(' · ');
-            const auraColor = mockUserProfile.auraState
-              ? AURA_COLOR[mockUserProfile.auraState]
-              : Colors.accent.primary;
+            const auraColor = AURA_COLOR[profileIdentity.auraState];
             const profileCard = (
               <View style={[styles.profileCard, { borderColor: `${tier.color}33` }]}>
                 <View style={styles.profileCardTop}>
@@ -346,6 +352,15 @@ export default function ProfileScreen() {
                       </View>
                     ) : null}
                   </View>
+                  <Pressable
+                    onPress={() => setIsEditingProfile(true)}
+                    style={styles.profileEditBtn}
+                    hitSlop={10}
+                    accessibilityRole="button"
+                    accessibilityLabel="Edit profile identity"
+                  >
+                    <Icon name="edit-2" size={14} color={Colors.text.secondary} />
+                  </Pressable>
                 </View>
                 <View style={styles.profileChipDivider} />
                 <View style={styles.profileChipStrip}>
@@ -361,27 +376,25 @@ export default function ProfileScreen() {
                       color={Colors.states.RECOVERING.primary}
                     />
                   ) : null}
-                  {mockUserProfile.teamCircle ? (
+                  {profileIdentity.teamCircle ? (
                     <IdentityChip
                       icon="users"
-                      label={mockUserProfile.teamCircle.toUpperCase()}
+                      label={profileIdentity.teamCircle.toUpperCase()}
                       color={Colors.accent.secondary}
                     />
                   ) : null}
-                  {mockUserProfile.territoryBadge ? (
+                  {profileIdentity.territoryBadge ? (
                     <IdentityChip
                       icon="map"
-                      label={mockUserProfile.territoryBadge}
+                      label={profileIdentity.territoryBadge}
                       color={Colors.states.BALANCED.primary}
                     />
                   ) : null}
-                  {mockUserProfile.auraState ? (
-                    <IdentityChip
-                      icon="activity"
-                      label={`${mockUserProfile.auraState} AURA`}
-                      color={auraColor}
-                    />
-                  ) : null}
+                  <IdentityChip
+                    icon="activity"
+                    label={`${profileIdentity.auraState} AURA`}
+                    color={auraColor}
+                  />
                 </View>
               </View>
             );
@@ -1161,6 +1174,19 @@ export default function ProfileScreen() {
           </Text>
         </ScrollView>
       </GradientBackground>
+      <EditProfileModal
+        visible={isEditingProfile}
+        initialValue={profileIdentity}
+        onClose={() => setIsEditingProfile(false)}
+        onSave={(next) => {
+          // Full-payload save: the modal already trims + validates;
+          // dispatching the whole record (vs only the diff) keeps the
+          // reducer contract simple and makes the persist effect
+          // store exactly what the user saw.
+          setProfileIdentity(next);
+          setIsEditingProfile(false);
+        }}
+      />
     </View>
   );
 }
@@ -1498,6 +1524,11 @@ const styles = StyleSheet.create({
   profileLocationText: {
     fontSize: 12, fontFamily: 'Inter_500Medium', color: Colors.text.muted,
     letterSpacing: 0.3,
+  },
+  profileEditBtn: {
+    width: 36, height: 36, borderRadius: 18, borderWidth: 1,
+    borderColor: Colors.border.subtle, alignItems: 'center', justifyContent: 'center',
+    backgroundColor: Colors.background.primary,
   },
   profileChipDivider: {
     height: 1, backgroundColor: Colors.border.subtle,

@@ -30,6 +30,7 @@ import type {
 import type { UserSubscription } from '../types/subscription';
 import type { SweatAutopilot } from '../types/sweat';
 import type { UnitPreferences } from '../utils/units';
+import type { ProfileIdentity } from '../utils/profileIdentity';
 import type { AppState } from './appStoreTypes';
 
 // ─── Slice value shapes ──────────────────────────────────────────────
@@ -68,6 +69,8 @@ export type InventorySlice = InventoryState;
 
 export type UnitPreferencesSlice = UnitPreferences;
 
+export type ProfileIdentitySlice = ProfileIdentity;
+
 export interface SweatAutopilotSlice {
   /**
    * Active autopilot snapshot derived from the most recent sweat
@@ -101,6 +104,7 @@ const OnboardingContext = createContext<OnboardingSlice | null>(null);
 const InventoryContext = createContext<InventorySlice | null>(null);
 const SweatAutopilotContext = createContext<SweatAutopilotSlice | null>(null);
 const UnitPreferencesContext = createContext<UnitPreferencesSlice | null>(null);
+const ProfileIdentityContext = createContext<ProfileIdentitySlice | null>(null);
 const ActionsContext = createContext<ActionsSlice | null>(null);
 
 // ─── Selector hooks ──────────────────────────────────────────────────
@@ -156,6 +160,14 @@ export function useSweatAutopilotSlice(): SweatAutopilotSlice {
  */
 export function useUnitPreferencesSlice(): UnitPreferencesSlice {
   return required(useContext(UnitPreferencesContext), 'useUnitPreferencesSlice');
+}
+/**
+ * User-editable identity fields shown on the premium profile card —
+ * nickname, city, country, team/circle, territory badge, aura state.
+ * Persisted across launches. Driven by the Edit Profile modal.
+ */
+export function useProfileIdentitySlice(): ProfileIdentitySlice {
+  return required(useContext(ProfileIdentityContext), 'useProfileIdentitySlice');
 }
 export function useActionsSlice<T = ActionsSlice>(): T {
   return required(useContext(ActionsContext), 'useActionsSlice') as unknown as T;
@@ -262,6 +274,11 @@ export function SliceProvider({ state, actions, now = Date.now, children }: Slic
     [state.unitPreferences],
   );
 
+  const profileIdentityValue = useMemo<ProfileIdentitySlice>(
+    () => state.profileIdentity,
+    [state.profileIdentity],
+  );
+
   // Actions identity is already stabilized by the parent AppProvider's
   // useMemo. Pass through unchanged so callback consumers don't re-render
   // unless an action actually changes identity.
@@ -278,9 +295,11 @@ export function SliceProvider({ state, actions, now = Date.now, children }: Slic
                       <InventoryContext.Provider value={inventoryValue}>
                         <SweatAutopilotContext.Provider value={sweatAutopilotValue}>
                           <UnitPreferencesContext.Provider value={unitPreferencesValue}>
-                            <ActionsContext.Provider value={actions}>
-                              {children}
-                            </ActionsContext.Provider>
+                            <ProfileIdentityContext.Provider value={profileIdentityValue}>
+                              <ActionsContext.Provider value={actions}>
+                                {children}
+                              </ActionsContext.Provider>
+                            </ProfileIdentityContext.Provider>
                           </UnitPreferencesContext.Provider>
                         </SweatAutopilotContext.Provider>
                       </InventoryContext.Provider>
