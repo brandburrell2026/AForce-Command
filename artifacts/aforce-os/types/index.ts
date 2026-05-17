@@ -405,8 +405,36 @@ export const DEFAULT_NOTIFICATION_SETTINGS: NotificationSettings = {
 export type NotificationSettingKey = keyof NotificationSettings;
 
 // ─── Profile / Subscription ───────────────────────────────────────────────────
+/**
+ * Auras express the user's current "energy mode" — a soft identity
+ * signal shown on the premium profile card alongside their streak and
+ * territory badge. Distinct from the engine's hydration state band
+ * (PEAK / BALANCED / RECOVERING / DEPLETED), which is computed and
+ * not user-selectable.
+ */
+export type AuraState = 'IGNITE' | 'FLOW' | 'STORM' | 'CALM' | 'APEX';
+
 export interface UserProfile {
+  /** Legal / display name (may be a real name or an alias the user picked). */
   name: string;
+  /**
+   * Short alias / handle shown under the display name on the premium
+   * identity card. Examples from the brief: MiamiPulse, ApexFlow,
+   * SurgeKing. Optional — the card falls back to just the name.
+   */
+  nickname?: string;
+  /** City or territory the user reps (e.g. "Miami", "Brooklyn"). */
+  city?: string;
+  /** Country (2-letter code or display name, e.g. "USA"). */
+  country?: string;
+  /** Team / Circle affiliation shown as a chip on the identity card. */
+  teamCircle?: string;
+  /** Current consecutive-day streak — drives the flame chip. */
+  streakDays?: number;
+  /** Short territory badge label (e.g. "MIAMI HEAT ZONE", "BAY APEX"). */
+  territoryBadge?: string;
+  /** User-selected aura mode — see AuraState for the canonical set. */
+  auraState?: AuraState;
   subscriptionTier:
     | 'core' | 'athlete' | 'system'
     | 'team_starter' | 'team_growth' | 'team_pro'

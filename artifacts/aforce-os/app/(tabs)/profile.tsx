@@ -28,7 +28,7 @@ import { useAppStore } from '@/store/useAppStore';
 import { useUnitPreferencesSlice } from '@/store/slices';
 import type { UnitPreferences } from '@/utils/units';
 import { DEFAULT_FLAGS, DEMO_ALL_ON_FLAGS } from '@/featureFlags/flags';
-import type { FeatureFlags } from '@/types';
+import type { FeatureFlags, AuraState } from '@/types';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 import { LanguageSelector } from '@/components/LanguageSelector';
 import { useTranslation } from 'react-i18next';
@@ -303,19 +303,85 @@ export default function ProfileScreen() {
             // or two columns on Fold-open / tablet so neither code
             // path drifts.
 
+            // ── Premium identity card ──
+            // Builds a luxury athlete-identity layout: avatar + name +
+            // optional handle on the top row, location underneath, then
+            // a chip strip below the divider with tier, streak, team /
+            // circle, territory badge, and aura state. Every chip after
+            // the tier is opt-in via UserProfile so the card degrades
+            // gracefully when fields are missing (new user, no
+            // territory yet, etc.).
+            const handle = mockUserProfile.nickname
+              ? `@${mockUserProfile.nickname}`
+              : null;
+            const locationLine = [mockUserProfile.city, mockUserProfile.country]
+              .filter(Boolean)
+              .join(' · ');
+            const auraColor = mockUserProfile.auraState
+              ? AURA_COLOR[mockUserProfile.auraState]
+              : Colors.accent.primary;
             const profileCard = (
               <View style={[styles.profileCard, { borderColor: `${tier.color}33` }]}>
-                <View style={[styles.avatar, { backgroundColor: `${tier.color}20`, borderColor: `${tier.color}55` }]}>
-                  <Text style={[styles.avatarText, { color: tier.color }]}>
-                    {avatarInitial}
-                  </Text>
-                </View>
-                <View style={styles.profileInfo}>
-                  <Text style={styles.profileName}>{displayName}</Text>
-                  <View style={[styles.tierBadge, { backgroundColor: `${tier.color}15`, borderColor: `${tier.color}44` }]}>
-                    <Icon name="award" size={10} color={tier.color} />
-                    <Text style={[styles.tierLabel, { color: tier.color }]}>{tier.label.toUpperCase()}</Text>
+                <View style={styles.profileCardTop}>
+                  <View style={[styles.avatar, { backgroundColor: `${tier.color}20`, borderColor: `${tier.color}55` }]}>
+                    <Text style={[styles.avatarText, { color: tier.color }]}>
+                      {avatarInitial}
+                    </Text>
                   </View>
+                  <View style={styles.profileInfo}>
+                    <Text style={styles.profileName} numberOfLines={1}>
+                      {displayName}
+                    </Text>
+                    {handle ? (
+                      <Text style={styles.profileHandle} numberOfLines={1}>
+                        {handle}
+                      </Text>
+                    ) : null}
+                    {locationLine ? (
+                      <View style={styles.profileLocation}>
+                        <Icon name="map-pin" size={11} color={Colors.text.muted} />
+                        <Text style={styles.profileLocationText} numberOfLines={1}>
+                          {locationLine}
+                        </Text>
+                      </View>
+                    ) : null}
+                  </View>
+                </View>
+                <View style={styles.profileChipDivider} />
+                <View style={styles.profileChipStrip}>
+                  <IdentityChip
+                    icon="award"
+                    label={tier.label.toUpperCase()}
+                    color={tier.color}
+                  />
+                  {typeof mockUserProfile.streakDays === 'number' && mockUserProfile.streakDays > 0 ? (
+                    <IdentityChip
+                      icon="zap"
+                      label={`${mockUserProfile.streakDays}-DAY STREAK`}
+                      color={Colors.states.RECOVERING.primary}
+                    />
+                  ) : null}
+                  {mockUserProfile.teamCircle ? (
+                    <IdentityChip
+                      icon="users"
+                      label={mockUserProfile.teamCircle.toUpperCase()}
+                      color={Colors.accent.secondary}
+                    />
+                  ) : null}
+                  {mockUserProfile.territoryBadge ? (
+                    <IdentityChip
+                      icon="map"
+                      label={mockUserProfile.territoryBadge}
+                      color={Colors.states.BALANCED.primary}
+                    />
+                  ) : null}
+                  {mockUserProfile.auraState ? (
+                    <IdentityChip
+                      icon="activity"
+                      label={`${mockUserProfile.auraState} AURA`}
+                      color={auraColor}
+                    />
+                  ) : null}
                 </View>
               </View>
             );
@@ -1223,6 +1289,51 @@ function Divider() {
 }
 
 /**
+ * Per-aura accent colour used by the identity card chip strip. Kept
+ * here (not in theme/colors) because aura semantics are profile-scoped
+ * and the palette deliberately reuses the existing state colours so
+ * the card never introduces a foreign hue.
+ */
+const AURA_COLOR: Record<AuraState, string> = {
+  IGNITE: Colors.states.DEPLETED.primary,
+  FLOW: Colors.states.BALANCED.primary,
+  STORM: Colors.accent.secondary,
+  CALM: Colors.text.secondary,
+  APEX: Colors.states.PEAK.primary,
+};
+
+/**
+ * Compact identity chip used on the premium profile card. Tinted at
+ * 15% fill / 44% border off the supplied colour so a row of mixed
+ * chips reads as one consistent surface, never a rainbow.
+ */
+function IdentityChip({
+  icon,
+  label,
+  color,
+}: {
+  icon: IconName;
+  label: string;
+  color: string;
+}) {
+  return (
+    <View
+      style={[
+        styles.identityChip,
+        { backgroundColor: `${color}15`, borderColor: `${color}44` },
+      ]}
+      accessibilityRole="text"
+      accessibilityLabel={label}
+    >
+      <Icon name={icon} size={11} color={color} />
+      <Text style={[styles.identityChipLabel, { color }]} numberOfLines={1}>
+        {label}
+      </Text>
+    </View>
+  );
+}
+
+/**
  * Two-option segmented control used by the Preferences card. Generic
  * over the value type so the key↔value binding stays sound (the same
  * generic flows through to the parent's `setUnitPreference` call).
@@ -1362,24 +1473,46 @@ const styles = StyleSheet.create({
     letterSpacing: -0.5, marginBottom: 24,
   },
   profileCard: {
-    flexDirection: 'row', alignItems: 'center', gap: 16,
     backgroundColor: Colors.background.card, borderRadius: 20, borderWidth: 1,
-    padding: 20, marginBottom: 28,
+    padding: 20, marginBottom: 28, gap: 16,
+  },
+  profileCardTop: {
+    flexDirection: 'row', alignItems: 'center', gap: 16,
   },
   avatar: {
     width: 56, height: 56, borderRadius: 28, borderWidth: 2,
     alignItems: 'center', justifyContent: 'center',
   },
   avatarText: { fontSize: 24, fontFamily: 'Inter_700Bold' },
-  profileInfo: { flex: 1, gap: 8 },
+  profileInfo: { flex: 1, gap: 4 },
   profileName: {
     fontSize: 20, fontFamily: 'Inter_700Bold', color: Colors.text.primary, letterSpacing: -0.3,
   },
-  tierBadge: {
-    flexDirection: 'row', alignItems: 'center', gap: 5, alignSelf: 'flex-start',
-    paddingHorizontal: 10, paddingVertical: 4, borderRadius: 100, borderWidth: 1,
+  profileHandle: {
+    fontSize: 13, fontFamily: 'Inter_500Medium', color: Colors.accent.primary,
+    letterSpacing: 0.2,
   },
-  tierLabel: { fontSize: 9, fontFamily: 'Inter_700Bold', letterSpacing: 1.5 },
+  profileLocation: {
+    flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2,
+  },
+  profileLocationText: {
+    fontSize: 12, fontFamily: 'Inter_500Medium', color: Colors.text.muted,
+    letterSpacing: 0.3,
+  },
+  profileChipDivider: {
+    height: 1, backgroundColor: Colors.border.subtle,
+  },
+  profileChipStrip: {
+    flexDirection: 'row', flexWrap: 'wrap', gap: 6,
+  },
+  identityChip: {
+    flexDirection: 'row', alignItems: 'center', gap: 5,
+    paddingHorizontal: 10, paddingVertical: 5, borderRadius: 100, borderWidth: 1,
+    maxWidth: '100%',
+  },
+  identityChipLabel: {
+    fontSize: 9, fontFamily: 'Inter_700Bold', letterSpacing: 1.5,
+  },
   sectionHeader: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     marginBottom: 10, marginTop: 6,

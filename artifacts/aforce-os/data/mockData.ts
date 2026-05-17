@@ -43,6 +43,13 @@ export const defaultUserState: UserState = {
 // ─── Mock Profile ─────────────────────────────────────────────────────────────
 export const mockUserProfile: UserProfile = {
   name: 'Brandon',
+  nickname: 'MiamiPulse',
+  city: 'Miami',
+  country: 'USA',
+  teamCircle: 'South Beach Run Club',
+  streakDays: 12,
+  territoryBadge: 'MIAMI HEAT ZONE',
+  auraState: 'FLOW',
   subscriptionTier: 'core',
   dailyTarget: 8,
   bodyWeightLbs: 180,
