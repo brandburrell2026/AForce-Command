@@ -15,6 +15,7 @@ import { Redirect, Tabs } from 'expo-router';
 import { useAuth } from '@clerk/expo';
 import { Icon as NativeTabIcon, Label, NativeTabs } from 'expo-router/unstable-native-tabs';
 import { SymbolView } from 'expo-symbols';
+import * as Haptics from 'expo-haptics';
 import { Icon } from '../../components/Icon';
 import { Platform, Pressable, StyleSheet, View } from 'react-native';
 import { Colors } from '@/theme/colors';
@@ -79,9 +80,18 @@ function PlainTabButton(props: Record<string, unknown>) {
       accessibilityLabel?: string;
       testID?: string;
     };
+  // Chunk #7c: light haptic tick on tab switch (native only; no-op on
+  // web). Mirrors WHOOP's tactile feedback on bottom-bar selection.
+  const handlePress = React.useCallback(() => {
+    if (Platform.OS !== 'web') {
+      Haptics.selectionAsync().catch(() => {});
+    }
+    onPress?.();
+  }, [onPress]);
+
   return (
     <Pressable
-      onPress={onPress}
+      onPress={handlePress}
       accessibilityRole="button"
       accessibilityState={accessibilityState as never}
       accessibilityLabel={accessibilityLabel}

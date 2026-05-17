@@ -17,6 +17,10 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, Pressable, Platform } from 'react-native';
+import Animated, {
+  useSharedValue, useAnimatedStyle, withTiming, withSpring, withRepeat,
+  Easing, interpolate,
+} from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import { Icon } from './Icon';
 
@@ -119,6 +123,41 @@ export function ScanAICoachCard({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scanKey]);
 
+  // ─── Chunk #7b polish ──────────────────────────────────────────────
+  // Entrance choreography: each new scan re-mounts (or re-keys) this
+  // card, so we run a fade + slide-up + subtle scale to make the
+  // AI Coach feel like it's *arriving* rather than popping in.
+  const entryOpacity = useSharedValue(0);
+  const entryY = useSharedValue(14);
+  const entryScale = useSharedValue(0.98);
+  useEffect(() => {
+    entryOpacity.value = 0;
+    entryY.value = 14;
+    entryScale.value = 0.98;
+    entryOpacity.value = withTiming(1, { duration: 320, easing: Easing.out(Easing.cubic) });
+    entryY.value = withSpring(0, { damping: 18, stiffness: 220 });
+    entryScale.value = withSpring(1, { damping: 16, stiffness: 240 });
+  }, [scanKey, entryOpacity, entryY, entryScale]);
+
+  const cardEntryStyle = useAnimatedStyle(() => ({
+    opacity: entryOpacity.value,
+    transform: [{ translateY: entryY.value }, { scale: entryScale.value }],
+  }));
+
+  // Pulsing AI COACH status dot — slow 1.6s breathing in the band color
+  // so the badge reads as "live" while the coach surface is on screen.
+  const dotPulse = useSharedValue(0);
+  useEffect(() => {
+    dotPulse.value = withRepeat(
+      withTiming(1, { duration: 1600, easing: Easing.inOut(Easing.quad) }),
+      -1, true,
+    );
+  }, [dotPulse]);
+  const statusDotStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(dotPulse.value, [0, 1], [0.55, 1]),
+    transform: [{ scale: interpolate(dotPulse.value, [0, 1], [0.85, 1.15]) }],
+  }));
+
   const onToggle = () => {
     if (Platform.OS !== 'web') {
       Haptics.selectionAsync().catch(() => {});
@@ -135,7 +174,7 @@ export function ScanAICoachCard({
   };
 
   return (
-    <View
+    <Animated.View
       style={[
         styles.card,
         {
@@ -146,13 +185,14 @@ export function ScanAICoachCard({
           shadowOpacity: status.glowAlpha * 0.55,
           shadowRadius: status.glowRadius,
         },
+        cardEntryStyle,
       ]}
       testID="scan-ai-coach-card"
     >
       <View style={styles.headerRow}>
         <View style={[styles.badge, { backgroundColor: `${accent}1A`, borderColor: `${accent}66` }]}>
           {/* Status dot — the small pulsing signal next to AI COACH */}
-          <View style={[styles.statusDot, { backgroundColor: accent, shadowColor: accent }]} />
+          <Animated.View style={[styles.statusDot, { backgroundColor: accent, shadowColor: accent }, statusDotStyle]} />
           <Icon name="message-circle" size={11} color={accent} />
           <Text style={[styles.badgeText, { color: accent }]}>AI COACH</Text>
         </View>
@@ -235,7 +275,7 @@ export function ScanAICoachCard({
           {isPlaying ? 'STOP' : 'HEAR IT AGAIN'}
         </Text>
       </Pressable>
-    </View>
+    </Animated.View>
   );
 }
 
