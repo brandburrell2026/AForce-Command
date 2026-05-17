@@ -33,6 +33,9 @@ interface SocialActions {
   logSocialDrink: (type: DrinkType) => Promise<void>;
   confirmSocialHydration: (confirmed: boolean) => Promise<void>;
   deactivateSocialMode: () => Promise<void>;
+  /** Chunk #5 modifiers. */
+  activateCruiseMode: () => Promise<void>;
+  activateVoyageShield: () => Promise<void>;
 }
 
 const PURPLE = '#7C5CFF';
@@ -48,6 +51,8 @@ export default function SocialScreen() {
     logSocialDrink,
     confirmSocialHydration,
     deactivateSocialMode,
+    activateCruiseMode,
+    activateVoyageShield,
   } = useActionsSlice<SocialActions>();
 
   // Subscribers only. Free tier (`core`) sees the upgrade card.
@@ -82,6 +87,8 @@ export default function SocialScreen() {
             onLogDrink={(type) => { void logSocialDrink?.(type); }}
             onConfirmHydration={(c) => { void confirmSocialHydration?.(c); }}
             onDeactivate={() => { void deactivateSocialMode?.(); }}
+            onActivateCruise={() => { void activateCruiseMode?.(); }}
+            onActivateShield={() => { void activateVoyageShield?.(); }}
           />
         </GradientBackground>
       </View>

@@ -30,6 +30,49 @@
 
 export type RecoveryBand = 'peak' | 'stable' | 'declining' | 'critical';
 
+/* ──────────────── chunk #5: Cruise + Voyage Shield ───────────────
+ *
+ * Two stackable protective modifiers that can run alongside (or after)
+ * a regular Recovery session. They are pure time-bounded toggles
+ * stored as end-timestamps on `SocialModeState`, which keeps the
+ * server route surface tiny (just two POSTs) and makes the math
+ * trivially deterministic.
+ *
+ *   Cruise Mode    → extends the 8h recovery window to 24h for
+ *                    multi-day travel / vacation / recovery blocks.
+ *   Voyage Shield  → floors the Recovery Capacity Score at 60 (top of
+ *                    Stable) for 12h. Premium-gated; designed as a
+ *                    deliberate "hold the line" tool, not an everyday
+ *                    crutch. The shield does *not* alter the underlying
+ *                    components — only the final score readout — so
+ *                    once the shield expires the real score is back.
+ */
+
+export const CRUISE_WINDOW_MS = 24 * 60 * 60 * 1000;
+export const VOYAGE_SHIELD_WINDOW_MS = 12 * 60 * 60 * 1000;
+/** Minimum score the Voyage Shield clamps to — top of the Stable band. */
+export const VOYAGE_SHIELD_FLOOR = 60;
+
+/** Returns true when `until > now`. Handles undefined / Date / number. */
+export function isModifierActive(
+  until: Date | number | null | undefined,
+  now: number = Date.now(),
+): boolean {
+  if (until == null) return false;
+  const ms = until instanceof Date ? until.getTime() : until;
+  return Number.isFinite(ms) && ms > now;
+}
+
+/**
+ * Apply the Voyage Shield floor to a raw recovery score.
+ * No-op when `shielded` is false. The shield never *lowers* a score
+ * that is already above the floor.
+ */
+export function applyVoyageShield(score: number, shielded: boolean): number {
+  if (!shielded) return score;
+  return Math.max(score, VOYAGE_SHIELD_FLOOR);
+}
+
 /* ─────────────────── recovery presets (chunk #4) ───────────────────
  *
  * Each preset carries a fixed environmental-stress floor on the 0–1

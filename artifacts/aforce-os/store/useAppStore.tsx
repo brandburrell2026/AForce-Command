@@ -45,6 +45,8 @@ import {
   refreshWeather,
   subscribeToStateUpdates,
   postSocialActivate,
+  postSocialCruise,
+  postSocialShield,
   postSocialContext,
   postSocialDrink,
   postSocialHydrate,
@@ -163,6 +165,18 @@ interface AppContextValue {
   confirmSocialHydration: (confirmed: boolean) => Promise<void>;
   /** End the drinking session — flips into the 8h Recovery Mode window. */
   deactivateSocialMode: () => Promise<void>;
+  /**
+   * Chunk #5: engage Cruise Mode — extends the post-session recovery
+   * window from 8h to 24h for multi-day travel / vacation / recovery
+   * blocks. Re-engagement extends the timer.
+   */
+  activateCruiseMode: () => Promise<void>;
+  /**
+   * Chunk #5: engage Voyage Shield — floors the Recovery Capacity
+   * Score at 60 (top of Stable band) for 12h. Premium-gated; the
+   * server stays permissive so the gate lives client-side only.
+   */
+  activateVoyageShield: () => Promise<void>;
   /** Persist optional BAC context (sex, ate recently) for sharper estimates. */
   setSocialContext: (
     ctx: { sex?: 'male' | 'female' | 'unspecified'; ateRecently?: boolean },
@@ -698,6 +712,24 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   }, [state.userState, applyServerUserState]);
 
+  const activateCruiseMode = useCallback(async () => {
+    try {
+      const { newUserState, engineOutput } = await postSocialCruise(state.userState);
+      applyServerUserState(newUserState, engineOutput);
+    } catch (err) {
+      console.warn('[AForce] activateCruiseMode failed', err);
+    }
+  }, [state.userState, applyServerUserState]);
+
+  const activateVoyageShield = useCallback(async () => {
+    try {
+      const { newUserState, engineOutput } = await postSocialShield(state.userState);
+      applyServerUserState(newUserState, engineOutput);
+    } catch (err) {
+      console.warn('[AForce] activateVoyageShield failed', err);
+    }
+  }, [state.userState, applyServerUserState]);
+
   const setSocialContext = useCallback(async (
     ctx: { sex?: 'male' | 'female' | 'unspecified'; ateRecently?: boolean },
   ) => {
@@ -1064,6 +1096,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags,
     setSubscription, completeOnboarding, setAppleHealthSnapshot, setProviderBiometrics, confirmCommand, setLanguage,
     activateSocialMode, logSocialDrink, confirmSocialHydration, deactivateSocialMode, setSocialContext,
+    activateCruiseMode, activateVoyageShield,
     setSweatAutopilot,
     voiceCoachEnabled, setVoiceCoachEnabled,
     isInvestorDemoActive, setInvestorDemoActive,
@@ -1071,7 +1104,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     voiceIntensity, setVoiceIntensity,
     voiceScope, setVoiceScope,
     notificationSettings: state.notificationSettings, setNotificationSetting,
-  }), [state, logIntake, completeCycle, snooze, dismissSuccess, updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags, setSubscription, completeOnboarding, setAppleHealthSnapshot, setProviderBiometrics, confirmCommand, setLanguage, activateSocialMode, logSocialDrink, confirmSocialHydration, deactivateSocialMode, setSocialContext, setSweatAutopilot, voiceCoachEnabled, setVoiceCoachEnabled, selectedVoiceId, setSelectedVoiceId, voiceIntensity, setVoiceIntensity, voiceScope, setVoiceScope, isInvestorDemoActive, setInvestorDemoActive, setNotificationSetting]);
+  }), [state, logIntake, completeCycle, snooze, dismissSuccess, updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags, setSubscription, completeOnboarding, setAppleHealthSnapshot, setProviderBiometrics, confirmCommand, setLanguage, activateSocialMode, logSocialDrink, confirmSocialHydration, deactivateSocialMode, setSocialContext, activateCruiseMode, activateVoyageShield, setSweatAutopilot, voiceCoachEnabled, setVoiceCoachEnabled, selectedVoiceId, setSelectedVoiceId, voiceIntensity, setVoiceIntensity, voiceScope, setVoiceScope, isInvestorDemoActive, setInvestorDemoActive, setNotificationSetting]);
 
   // Stable actions value for the sliced ActionsContext — same callbacks
   // as `value` minus `state`, so action consumers don't re-render when
@@ -1081,9 +1114,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags,
     setSubscription, completeOnboarding, setAppleHealthSnapshot, setProviderBiometrics, confirmCommand, setLanguage,
     activateSocialMode, logSocialDrink, confirmSocialHydration, deactivateSocialMode, setSocialContext,
+    activateCruiseMode, activateVoyageShield,
     setSweatAutopilot,
     setNotificationSetting,
-  }), [logIntake, completeCycle, snooze, dismissSuccess, updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags, setSubscription, completeOnboarding, setAppleHealthSnapshot, setProviderBiometrics, confirmCommand, setLanguage, activateSocialMode, logSocialDrink, confirmSocialHydration, deactivateSocialMode, setSocialContext, setSweatAutopilot, setNotificationSetting]);
+  }), [logIntake, completeCycle, snooze, dismissSuccess, updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags, setSubscription, completeOnboarding, setAppleHealthSnapshot, setProviderBiometrics, confirmCommand, setLanguage, activateSocialMode, logSocialDrink, confirmSocialHydration, deactivateSocialMode, setSocialContext, activateCruiseMode, activateVoyageShield, setSweatAutopilot, setNotificationSetting]);
 
   return (
     <AppContext.Provider value={value}>

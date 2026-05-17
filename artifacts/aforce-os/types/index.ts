@@ -315,6 +315,24 @@ export interface ScoreEngineOutput {
      * weighting). See `services/recoveryCapacity.ts` for the formula.
      */
     recoveryCapacity: RecoveryCapacityScore;
+    /**
+     * Chunk #5: Cruise Mode currently active. While true, the post-
+     * session recovery window is 24h instead of the default 8h.
+     */
+    cruiseActive: boolean;
+    /**
+     * Chunk #5: Voyage Shield currently active. While true, the
+     * `recoveryCapacity.score` is floored at 60 (top of Stable band).
+     * The underlying `contributions` still reflect the true components.
+     */
+    voyageShieldActive: boolean;
+    /**
+     * Effective recovery-window length in ms — equal to either
+     * RECOVERY_WINDOW_MS (8h) or CRUISE_WINDOW_MS (24h) depending on
+     * whether Cruise is active. The UI uses this to render an accurate
+     * "time remaining" countdown.
+     */
+    windowMs: number;
   } | null;
 }
 

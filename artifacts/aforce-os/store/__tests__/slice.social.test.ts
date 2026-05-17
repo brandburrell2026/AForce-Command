@@ -45,6 +45,9 @@ function makeSocialRollup(): NonNullable<ScoreEngineOutput['social']> {
       meta: { band: 'stable', id: 'stable', label: 'Stable', color: '#3D7BFF', min: 60, max: 84 },
       contributions: { autoPilot: 45, hydrationCompliance: 15, environmental: 12 },
     } as never,
+    cruiseActive: false,
+    voyageShieldActive: false,
+    windowMs: 8 * 60 * 60 * 1000,
   };
 }
 

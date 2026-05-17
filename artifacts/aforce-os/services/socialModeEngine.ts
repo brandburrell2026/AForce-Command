@@ -18,18 +18,41 @@ import {
   computeRecoveryCapacity,
   complianceFromStreak,
   environmentalStress,
+  isModifierActive,
+  applyVoyageShield,
+  bandFor,
+  CRUISE_WINDOW_MS,
 } from './recoveryCapacity';
 
 export const RECOVERY_WINDOW_MS = 8 * 60 * 60 * 1000;
+
+/**
+ * Effective post-session recovery window length in ms. Cruise Mode, when
+ * active, lengthens the window from 8h to 24h. Returns the larger of
+ * the two so a partial-overlap Cruise (engaged mid-recovery) always
+ * wins.
+ */
+export function effectiveRecoveryWindowMs(
+  sm: NonNullable<UserState['socialMode']>,
+  now: number = Date.now(),
+): number {
+  return isModifierActive(sm.cruiseUntil, now) ? CRUISE_WINDOW_MS : RECOVERY_WINDOW_MS;
+}
 
 export function buildSocialRollup(state: UserState, performanceScore: number, now: number = Date.now()): ScoreEngineOutput['social'] {
   const sm = state.socialMode;
   if (!sm) return null;
   const endedAtMs = sm.endedAt ? sm.endedAt.getTime() : null;
+  const windowMs = effectiveRecoveryWindowMs(sm, now);
   const inRecoveryWindow = !sm.active
     && endedAtMs != null
-    && (now - endedAtMs) < RECOVERY_WINDOW_MS;
-  if (!sm.active && !inRecoveryWindow) return null;
+    && (now - endedAtMs) < windowMs;
+  const cruiseActive = isModifierActive(sm.cruiseUntil, now);
+  const voyageShieldActive = isModifierActive(sm.voyageShieldUntil, now);
+  // Voyage Shield is documented as an independent 12h floor — keep the
+  // rollup alive while the shield is active even if the base recovery
+  // window has expired, so the shield can actually apply its floor.
+  if (!sm.active && !inRecoveryWindow && !voyageShieldActive) return null;
 
   const hangoverRisk = calculateHangoverRisk({
     drinks: sm.drinks,
@@ -54,7 +77,7 @@ export function buildSocialRollup(state: UserState, performanceScore: number, no
   const transportation = transportationPromptFor(impairment.level);
   // ────────────────────────────────────────────────────────────────
 
-  const recoveryCapacity = computeRecoveryCapacity({
+  const rawRecovery = computeRecoveryCapacity({
     autoPilotScore: performanceScore,
     hydrationCompliance: complianceFromStreak(state.complianceStreak),
     environmentalStress: environmentalStress({
@@ -64,6 +87,16 @@ export function buildSocialRollup(state: UserState, performanceScore: number, no
       preset: sm.preset ?? null,
     }),
   });
+
+  // ─── Voyage Shield (chunk #5) ────────────────────────────────
+  // Apply the shield to the *final* score, not the component points,
+  // so the contributions readout still reflects reality and the shield
+  // is a clean "score floor" UX without faking inputs.
+  const shieldedScore = applyVoyageShield(rawRecovery.score, voyageShieldActive);
+  const shieldedMeta = bandFor(shieldedScore);
+  const recoveryCapacity = voyageShieldActive && shieldedScore !== rawRecovery.score
+    ? { ...rawRecovery, score: shieldedScore, band: shieldedMeta.band, meta: shieldedMeta }
+    : rawRecovery;
 
   return {
     active: sm.active,
@@ -75,5 +108,8 @@ export function buildSocialRollup(state: UserState, performanceScore: number, no
     impairment,
     transportation,
     recoveryCapacity,
+    cruiseActive,
+    voyageShieldActive,
+    windowMs,
   };
 }

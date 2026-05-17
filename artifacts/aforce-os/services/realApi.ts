@@ -169,6 +169,15 @@ function normalizeSocialMode(raw: unknown): UserState['socialMode'] {
     ...(r['preset'] === 'travel' || r['preset'] === 'heat' || r['preset'] === 'hard_block'
       ? { preset: r['preset'] as 'travel' | 'heat' | 'hard_block' }
       : {}),
+    // Chunk #5: Cruise Mode + Voyage Shield round-trip. ISO strings on
+    // the wire → Date in client state. Invalid values are dropped so a
+    // bad row never leaks into `isModifierActive`.
+    ...(typeof r['cruiseUntil'] === 'string' && !Number.isNaN(Date.parse(r['cruiseUntil']))
+      ? { cruiseUntil: new Date(r['cruiseUntil']) }
+      : {}),
+    ...(typeof r['voyageShieldUntil'] === 'string' && !Number.isNaN(Date.parse(r['voyageShieldUntil']))
+      ? { voyageShieldUntil: new Date(r['voyageShieldUntil']) }
+      : {}),
   };
 }
 
@@ -380,6 +389,14 @@ export function postSocialHydrate(userState: UserState, confirmed: boolean) {
 }
 export function postSocialDeactivate(userState: UserState) {
   return postAndRecompute('/social/deactivate', {}, userState);
+}
+/** Chunk #5: engage Cruise Mode — extends recovery window 8h → 24h. */
+export function postSocialCruise(userState: UserState) {
+  return postAndRecompute('/social/cruise', {}, userState);
+}
+/** Chunk #5: engage Voyage Shield — floors Recovery score at 60 for 12h. */
+export function postSocialShield(userState: UserState) {
+  return postAndRecompute('/social/shield', {}, userState);
 }
 export function postSocialContext(
   userState: UserState,

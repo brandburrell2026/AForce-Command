@@ -43,6 +43,17 @@ import { RECOVERY_WINDOW_MS } from '../services/socialModeEngine';
 import { RECOVERY_PRESET_LIST, presetMetaFor, type RecoveryPresetId } from '../services/recoveryCapacity';
 import type { DrinkType, ScoreEngineOutput, SocialModeState } from '../types';
 
+/** Hours-and-minutes display for a future timestamp, or null when expired. */
+function formatRemaining(until: Date | undefined, now: number = Date.now()): string | null {
+  if (!until) return null;
+  const ms = until.getTime() - now;
+  if (ms <= 0) return null;
+  const totalMin = Math.round(ms / 60_000);
+  const h = Math.floor(totalMin / 60);
+  const m = totalMin % 60;
+  return h > 0 ? `${h}H ${m}M` : `${m}M`;
+}
+
 interface Props {
   visible: boolean;
   onDismiss: () => void;
@@ -54,6 +65,10 @@ interface Props {
   /** @deprecated retained for callsite compatibility; no UI invokes it post-3c. */
   onConfirmHydration: (confirmed: boolean) => void;
   onDeactivate: () => void;
+  /** Chunk #5: engage Cruise Mode (extends recovery window 8h→24h). */
+  onActivateCruise: () => void;
+  /** Chunk #5: engage Voyage Shield (floors recovery score at 60 for 12h). */
+  onActivateShield: () => void;
 }
 
 const AMBER = '#F4B23F';
@@ -62,6 +77,7 @@ const TEAL  = '#19E5C6';
 export function SocialModeSheet({
   visible, onDismiss, socialMode, social,
   onActivate, onDeactivate,
+  onActivateCruise, onActivateShield,
 }: Props) {
   const { t } = useTranslation();
   const { state } = useAppStore();
@@ -102,12 +118,15 @@ export function SocialModeSheet({
   // to the calm teal "Stable" tint for the OFF state.
   const accent = social?.recoveryCapacity?.meta.color ?? TEAL;
 
-  // Minutes remaining in the 8h recovery window, derived purely from
-  // session end time — no BAC math involved.
+  // Minutes remaining in the recovery window, derived from session end
+  // time and the rollup's *effective* window (extends to 24h when
+  // Cruise is active — chunk #5). Falls back to the 8h constant if the
+  // rollup isn't present yet.
   const recoveryMinutesLeft: number = (() => {
     const endedAt = socialMode?.endedAt;
     if (!endedAt) return 0;
-    const ms = RECOVERY_WINDOW_MS - (Date.now() - endedAt.getTime());
+    const windowMs = social?.windowMs ?? RECOVERY_WINDOW_MS;
+    const ms = windowMs - (Date.now() - endedAt.getTime());
     return Math.max(0, Math.round(ms / 60_000));
   })();
 
@@ -121,6 +140,26 @@ export function SocialModeSheet({
   const handleDeactivate = () => {
     if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
     onDeactivate();
+  };
+
+  // ─── Chunk #5: Cruise / Voyage Shield modifiers ────────────────
+  const cruiseActive = !!social?.cruiseActive;
+  const shieldActive = !!social?.voyageShieldActive;
+  const cruiseRemaining = formatRemaining(socialMode?.cruiseUntil);
+  const shieldRemaining = formatRemaining(socialMode?.voyageShieldUntil);
+  // Reuse the existing Recovery Mode entitlement gate for both modifiers
+  // — anyone on Recovery+ already has the right plan, and a single gate
+  // keeps the upgrade story coherent until product splits them apart.
+  const shieldGate = gate(state.subscription, 'recovery_mode_enabled');
+
+  const handleCruise = () => {
+    if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    onActivateCruise();
+  };
+  const handleShield = () => {
+    if (!shieldGate.allowed) return;
+    if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    onActivateShield();
   };
 
   return (
@@ -252,6 +291,74 @@ export function SocialModeSheet({
                 </View>
               </View>
 
+              {(cruiseActive || shieldActive) && (
+                <View style={styles.modifierPillRow}>
+                  {cruiseActive && (
+                    <View
+                      style={[styles.modifierPill, { borderColor: `${TEAL}55`, backgroundColor: `${TEAL}14` }]}
+                      testID="recovery-modifier-cruise-active"
+                    >
+                      <Feather name="navigation" size={12} color={TEAL} />
+                      <Text style={[styles.modifierPillText, { color: TEAL }]}>
+                        CRUISE · {cruiseRemaining ?? '—'}
+                      </Text>
+                    </View>
+                  )}
+                  {shieldActive && (
+                    <View
+                      style={[styles.modifierPill, { borderColor: `${AMBER}66`, backgroundColor: `${AMBER}14` }]}
+                      testID="recovery-modifier-shield-active"
+                    >
+                      <Feather name="shield" size={12} color={AMBER} />
+                      <Text style={[styles.modifierPillText, { color: AMBER }]}>
+                        SHIELD · {shieldRemaining ?? '—'}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+              )}
+
+              <View style={styles.modifierBtnRow}>
+                <Pressable
+                  onPress={handleCruise}
+                  style={[
+                    styles.modifierBtn,
+                    { borderColor: cruiseActive ? `${TEAL}66` : 'rgba(255,255,255,0.08)' },
+                  ]}
+                  testID="recovery-engage-cruise"
+                  accessibilityRole="button"
+                  accessibilityLabel={cruiseActive ? 'Extend Cruise Mode' : 'Engage Cruise Mode (24h recovery window)'}
+                >
+                  <Feather name="navigation" size={14} color={TEAL} />
+                  <Text style={[styles.modifierBtnText, { color: TEAL }]}>
+                    {cruiseActive ? 'EXTEND CRUISE' : 'CRUISE · 24H'}
+                  </Text>
+                </Pressable>
+                <Pressable
+                  onPress={handleShield}
+                  disabled={!shieldGate.allowed}
+                  style={[
+                    styles.modifierBtn,
+                    {
+                      borderColor: shieldActive ? `${AMBER}66` : 'rgba(255,255,255,0.08)',
+                      opacity: shieldGate.allowed ? 1 : 0.45,
+                    },
+                  ]}
+                  testID="recovery-engage-shield"
+                  accessibilityRole="button"
+                  accessibilityLabel={
+                    !shieldGate.allowed
+                      ? 'Voyage Shield — upgrade to Recovery+'
+                      : shieldActive ? 'Extend Voyage Shield' : 'Engage Voyage Shield (12h score floor)'
+                  }
+                >
+                  <Feather name={shieldGate.allowed ? 'shield' : 'lock'} size={14} color={AMBER} />
+                  <Text style={[styles.modifierBtnText, { color: AMBER }]}>
+                    {!shieldGate.allowed ? 'SHIELD · LOCKED' : shieldActive ? 'EXTEND SHIELD' : 'SHIELD · 12H'}
+                  </Text>
+                </Pressable>
+              </View>
+
               <Pressable
                 onPress={handleDeactivate}
                 style={[styles.primaryBtn, { borderColor: `${AMBER}66` }]}
@@ -359,4 +466,17 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   activePresetText: { fontSize: 10, fontFamily: 'Inter_700Bold', letterSpacing: 1.4 },
+  modifierPillRow: { flexDirection: 'row', gap: 8, marginTop: 8, marginBottom: 4, flexWrap: 'wrap' },
+  modifierPill: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    paddingHorizontal: 10, paddingVertical: 5, borderRadius: 100, borderWidth: 1,
+  },
+  modifierPillText: { fontSize: 10, fontFamily: 'Inter_700Bold', letterSpacing: 1.4 },
+  modifierBtnRow: { flexDirection: 'row', gap: 8, marginTop: 10 },
+  modifierBtn: {
+    flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    gap: 6, paddingVertical: 12, borderRadius: 14, borderWidth: 1,
+    backgroundColor: 'rgba(255,255,255,0.02)',
+  },
+  modifierBtnText: { fontSize: 11, fontFamily: 'Inter_700Bold', letterSpacing: 1.2 },
 });

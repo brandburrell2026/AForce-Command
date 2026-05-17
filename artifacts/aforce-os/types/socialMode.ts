@@ -67,6 +67,20 @@ export interface SocialModeState {
    * session from the SocialModeSheet. `null` / omitted = no preset bias.
    */
   preset?: RecoveryPreset | null;
+  /**
+   * Chunk #5: Cruise Mode end timestamp. While `cruiseUntil > now`, the
+   * recovery window is treated as 24h (extended from 8h) so multi-day
+   * travel / vacation / recovery blocks stay in the protected envelope.
+   * Independent of `endedAt` — Cruise can be engaged mid-session.
+   */
+  cruiseUntil?: Date;
+  /**
+   * Chunk #5: Voyage Shield end timestamp. While
+   * `voyageShieldUntil > now`, the Recovery Capacity Score is floored
+   * at 60 (top of the Stable band) so a bad reading can't push the
+   * user into Declining/Critical. Premium-gated; one-shot 12h window.
+   */
+  voyageShieldUntil?: Date;
 }
 
 // ─── Hangover Risk ────────────────────────────────────────────────────────────

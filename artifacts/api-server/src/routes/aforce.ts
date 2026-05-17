@@ -332,6 +332,10 @@ interface PersistedSocialMode {
   ateRecently?: boolean;
   /** Chunk #4: Recovery preset pre-biases environmental stress. */
   preset?: "travel" | "heat" | "hard_block" | null;
+  /** Chunk #5: Cruise Mode end timestamp (ISO 8601). Extends window 8h→24h. */
+  cruiseUntil?: string;
+  /** Chunk #5: Voyage Shield end timestamp (ISO 8601). Floors score at 60 for 12h. */
+  voyageShieldUntil?: string;
 }
 
 async function readSocial(userId: string): Promise<PersistedSocialMode | null> {
@@ -459,6 +463,52 @@ router.post("/social/context", async (req, res) => {
   } catch (err) {
     logger.error({ err }, "POST /aforce/social/context failed");
     return res.status(400).json({ error: "social_context_failed" });
+  }
+});
+
+// ─── Chunk #5: Cruise Mode + Voyage Shield ────────────────────────
+// Both routes accept no body — engagement starts a fixed-duration
+// timer relative to "now". Re-engagement extends/resets the timer.
+// The Voyage Shield gate on the client is the source of truth for
+// the premium check; the server stays permissive so feature-flag
+// rollout and admin overrides remain trivial.
+
+const CRUISE_DURATION_MS = 24 * 60 * 60 * 1000;
+const VOYAGE_SHIELD_DURATION_MS = 12 * 60 * 60 * 1000;
+
+router.post("/social/cruise", async (req, res) => {
+  try {
+    const userId = resolveUserId(req);
+    const current = await readSocial(userId);
+    const nowMs = Date.now();
+    const cruiseUntil = new Date(nowMs + CRUISE_DURATION_MS).toISOString();
+    const next: PersistedSocialMode = current
+      ? { ...current, cruiseUntil }
+      : { active: false, startedAt: new Date(nowMs).toISOString(), drinks: [], cruiseUntil };
+    const updated = await updateUserState(userId, { socialMode: next });
+    broadcastState(userId, updated);
+    res.json({ userState: updated });
+  } catch (err) {
+    logger.error({ err }, "POST /aforce/social/cruise failed");
+    res.status(500).json({ error: "social_cruise_failed" });
+  }
+});
+
+router.post("/social/shield", async (req, res) => {
+  try {
+    const userId = resolveUserId(req);
+    const current = await readSocial(userId);
+    const nowMs = Date.now();
+    const voyageShieldUntil = new Date(nowMs + VOYAGE_SHIELD_DURATION_MS).toISOString();
+    const next: PersistedSocialMode = current
+      ? { ...current, voyageShieldUntil }
+      : { active: false, startedAt: new Date(nowMs).toISOString(), drinks: [], voyageShieldUntil };
+    const updated = await updateUserState(userId, { socialMode: next });
+    broadcastState(userId, updated);
+    res.json({ userState: updated });
+  } catch (err) {
+    logger.error({ err }, "POST /aforce/social/shield failed");
+    res.status(500).json({ error: "social_shield_failed" });
   }
 });
 

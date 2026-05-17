@@ -67,8 +67,8 @@ describe('Recovery preset survives client normalization', () => {
     const baseline = normalizeUserState(serverRow(undefined));
     const withHeat = normalizeUserState(serverRow('heat'));
 
-    const baselineRollup = buildSocialRollup(baseline, 100, new Date());
-    const heatRollup = buildSocialRollup(withHeat, 100, new Date());
+    const baselineRollup = buildSocialRollup(baseline, 100, Date.now());
+    const heatRollup = buildSocialRollup(withHeat, 100, Date.now());
 
     expect(baselineRollup).not.toBeNull();
     expect(heatRollup).not.toBeNull();
