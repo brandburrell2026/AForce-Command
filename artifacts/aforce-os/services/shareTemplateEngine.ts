@@ -67,6 +67,9 @@ export function generateShareVariations(ctx: ShareContext): ShareMessageVariatio
 
 /** Compose a text-format payload (X / Threads / iMessage). */
 export function composeTextShare(message: string): string {
-  // Single line + branding tag, separated by a line break.
-  return `${enforceTone(message)}\n— ${BRAND_TAG}`;
+  // Single line + branding tag + identity hashtag, each on its own line.
+  // #BecomeAForce is the cross-format identity-reinforcement layer — it
+  // mirrors the wordmark on ShareCard / ShareStory so a post that lands
+  // as text on X / Threads still carries the movement tag.
+  return `${enforceTone(message)}\n— ${BRAND_TAG}\n#BecomeAForce`;
 }

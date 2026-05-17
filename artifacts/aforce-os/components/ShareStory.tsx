@@ -62,7 +62,26 @@ export const ShareStory: React.FC<Props> = ({ broadcast, context }) => {
         ) : null}
       </View>
 
-      <Text style={styles.brand}>aforce.os</Text>
+      {/*
+        Identity-reinforcement footer for the story format. Story is the
+        hero share surface (9:16 IG/Snap/TikTok), so the BECOME AFORCE
+        wordmark sits as a proper end-frame CTA — larger than the card
+        treatment, centered, accent-tinted glow tied to current state.
+        Mirrored as #BecomeAForce in the text-share path.
+      */}
+      <View style={styles.becomeWrap}>
+        <Text
+          style={[
+            styles.becomeMark,
+            { textShadowColor: `${accent}66` },
+          ]}
+          accessibilityLabel="Become AForce"
+        >
+          BECOME AFORCE
+        </Text>
+        <Text style={styles.becomeTag}>#BecomeAForce</Text>
+        <Text style={styles.brand}>aforce.os</Text>
+      </View>
     </View>
   );
 };
@@ -132,13 +151,33 @@ const styles = StyleSheet.create({
     letterSpacing: 0.4,
     lineHeight: 22,
   },
+  becomeWrap: {
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 8,
+  },
+  becomeMark: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: '800',
+    letterSpacing: 6,
+    textAlign: 'center',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 16,
+  },
+  becomeTag: {
+    color: 'rgba(255,255,255,0.5)',
+    fontSize: 11,
+    letterSpacing: 2,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
   brand: {
     color: Colors.text.muted,
     fontSize: 11,
     letterSpacing: 2.5,
     fontWeight: '700',
     textAlign: 'center',
-    marginTop: 8,
   },
 });
 

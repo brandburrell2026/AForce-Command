@@ -60,10 +60,14 @@ describe('generateShareVariations', () => {
 });
 
 describe('composeTextShare', () => {
-  it('appends the AForce branding line', () => {
+  it('appends the AForce branding line and #BecomeAForce identity tag', () => {
     const out = composeTextShare('Balanced at 88. Stay on cadence.');
     expect(out).toContain(BRAND_TAG);
-    expect(out.split('\n').length).toBe(2);
+    // Identity-reinforcement layer: every text share carries the movement
+    // hashtag so posts that land as text on X / Threads mirror the
+    // wordmark baked into ShareCard / ShareStory.
+    expect(out).toContain('#BecomeAForce');
+    expect(out.split('\n').length).toBe(3);
   });
 
   it('does not double-brand if message already contains the tag', () => {

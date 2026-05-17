@@ -60,6 +60,23 @@ export const ShareCard: React.FC<Props> = ({ broadcast, context }) => {
       </View>
 
       <View style={styles.footer}>
+        {/*
+          Identity-reinforcement layer. Subtle, additive, never competes
+          with the headline. Accent-tinted glow on the wordmark ties it
+          to the same state color as the dot/badge above, so the whole
+          card reads as a coherent identity statement: state → message →
+          movement tag. Mirrored as #BecomeAForce in the text-share path.
+        */}
+        <Text
+          style={[
+            styles.becomeMark,
+            { textShadowColor: `${accent}55` },
+          ]}
+          accessibilityLabel="Become AForce"
+        >
+          BECOME AFORCE
+        </Text>
+        <Text style={styles.becomeTag}>#BecomeAForce</Text>
         <Text style={styles.brand}>aforce.os</Text>
       </View>
     </View>
@@ -127,7 +144,21 @@ const styles = StyleSheet.create({
     letterSpacing: 0.4,
     lineHeight: 19,
   },
-  footer: { marginTop: 8 },
+  footer: { marginTop: 8, gap: 4 },
+  becomeMark: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '800',
+    letterSpacing: 4,
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 12,
+  },
+  becomeTag: {
+    color: 'rgba(255,255,255,0.45)',
+    fontSize: 10,
+    letterSpacing: 1.5,
+    fontWeight: '600',
+  },
   brand: {
     color: Colors.text.muted,
     fontSize: 11,
