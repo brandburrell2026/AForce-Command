@@ -19,8 +19,9 @@
 
 import React from 'react';
 import {
-  View, Text, Pressable, StyleSheet, Platform,
+  View, Text, Pressable, StyleSheet, Platform, useWindowDimensions,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, {
   useSharedValue, useAnimatedStyle, useAnimatedProps, withTiming,
   withRepeat, withSequence, interpolate, Easing, cancelAnimation,
@@ -491,6 +492,18 @@ function SweepingArc({ active }: { active: boolean }) {
 
 export default function SplashScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const { height: winH } = useWindowDimensions();
+  // Responsive safe-area math for the absolutely-positioned chrome
+  // (top header + bottom CTA). Spec rule: nothing important may sit
+  // in the bottom 8–12% of the viewport, AND we must clear the
+  // device's own bottom inset (home indicator on iPhone, gesture bar
+  // on Pixel, the substantial bottom inset on Samsung Fold's inner
+  // display). We take the larger of the two so a tall flagship with
+  // no inset still gets the 10% breathing room, and a Fold with a
+  // big inset still clears the system chrome on top of that.
+  const ctaBottom = Math.max(insets.bottom + 28, Math.round(winH * 0.10));
+  const headerTop = Math.max(insets.top + 28, Math.round(winH * 0.08));
   const [stage, setStage] = React.useState<Stage>(1);
   const [showInitializing, setShowInitializing] = React.useState(false);
   const [showEnter, setShowEnter] = React.useState(false);
@@ -555,8 +568,11 @@ export default function SplashScreen() {
     <View style={styles.root}>
       {/* Top headline — fades in with the ring on stage 1 and stays
           throughout the sequence. Rendered in a monospace face so it
-          reads like a system readout, not body copy. */}
-      <FadeIn show durationMs={2000} delayMs={200} style={styles.topHeader}>
+          reads like a system readout, not body copy. `top` is the
+          larger of (device top inset + 28) and 8% of viewport height,
+          so it never tucks under the notch / status bar regardless of
+          form factor (iPhone Pro Max, Pixel, Fold inner/outer). */}
+      <FadeIn show durationMs={2000} delayMs={200} style={[styles.topHeader, { top: headerTop }]}>
         <Text style={styles.welcomeKicker}>WELCOME</Text>
         <Text style={styles.welcomeTitle}>AFORCE OS</Text>
       </FadeIn>
@@ -607,9 +623,30 @@ export default function SplashScreen() {
         </FadeIn>
       )}
 
-      {/* ENTER button — stage 1 */}
+      {/*
+        ENTER / CONTINUE button — stage 1 / stage 4.
+
+        Bottom offset is computed at render time as the larger of:
+          (a) device bottom inset + 28pt  (clears the home indicator
+              on iPhone, gesture bar on Pixel, AND the substantial
+              bottom inset on Samsung Fold's inner display)
+          (b) 10% of viewport height       (the spec's "nothing
+              important in bottom 8–12%" rule, applied even on a
+              device with zero inset)
+
+        `left: 0, right: 0` is added inline because an absolutely-
+        positioned child does not inherit its parent's
+        `alignItems:'center'` — without horizontal anchoring the CTA
+        can hug the left edge on some platforms (the original bug
+        report mentioned the CTA "overlapping or disappearing" — that
+        was the missing horizontal anchor + the hardcoded `bottom: 80`
+        compounding).
+      */}
       {stage === 1 && (
-        <FadeIn show={showEnter} style={styles.ctaSlot}>
+        <FadeIn
+          show={showEnter}
+          style={[styles.ctaSlot, { bottom: ctaBottom, left: 0, right: 0 }]}
+        >
           <Pressable
             onPress={onEnter}
             accessibilityRole="button"
@@ -621,9 +658,12 @@ export default function SplashScreen() {
         </FadeIn>
       )}
 
-      {/* CONTINUE button — stage 4 */}
       {showContinue && (
-        <FadeIn show delayMs={1400} style={styles.ctaSlot}>
+        <FadeIn
+          show
+          delayMs={1400}
+          style={[styles.ctaSlot, { bottom: ctaBottom, left: 0, right: 0 }]}
+        >
           <Pressable
             onPress={onContinue}
             accessibilityRole="button"
@@ -738,8 +778,12 @@ const styles = StyleSheet.create({
     marginLeft: 2,
   },
   ctaSlot: {
+    // `bottom` is set at render time from useSafeAreaInsets() +
+    // useWindowDimensions() so the CTA always clears the device's
+    // bottom chrome AND sits above the spec's bottom 8–12% safe band.
+    // `left: 0, right: 0` is also set inline so the absolutely-
+    // positioned button stays horizontally centered across platforms.
     position: 'absolute',
-    bottom: 80,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -752,8 +796,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
   },
   topHeader: {
+    // `top` is set at render time from useSafeAreaInsets() +
+    // useWindowDimensions() — same responsive math as ctaSlot,
+    // mirrored to the top edge so the WELCOME / AFORCE OS headline
+    // never tucks under the notch or status bar.
     position: 'absolute',
-    top: 80,
     left: 0,
     right: 0,
     alignItems: 'center',
