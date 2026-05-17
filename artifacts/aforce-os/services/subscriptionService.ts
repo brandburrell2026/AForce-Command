@@ -48,9 +48,14 @@ function buildSubscription(planId: SubscriptionPlanId): UserSubscription {
 }
 
 /**
- * Cold-start seed used by `useAppStore`. Everyone gets `core` until
- * `/api/entitlement` returns the real plan a few hundred ms later.
+ * Cold-start seed used by `useAppStore`.
+ *
+ * For the investor / demo build we seed `recovery_plus` so reviewers
+ * land directly inside the unlocked Social / Recovery experience
+ * (including the Cruise + Voyage Shield modifiers shipped in chunk #5).
+ * In production this is overwritten a few hundred ms later when
+ * `/api/entitlement` returns the real Stripe-mirrored plan.
  */
 export function defaultSubscription(): UserSubscription {
-  return buildSubscription('core');
+  return buildSubscription('recovery_plus');
 }
