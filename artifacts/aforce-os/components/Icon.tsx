@@ -1,46 +1,97 @@
 /**
- * Icon — Centralized icon entry point for the app.
+ * Icon — Centralized icon entry point for AForce OS.
  *
- * Right now this is a thin wrapper around Feather (which the existing
- * codebase uses everywhere) so the abstraction is a no-op visually
- * and bundles no extra weight. Its purpose is to give us a single
- * choke-point for future swaps:
+ * Per the AForce OS Master Update Spec ("Android Icon Fix") the
+ * app uses Lucide React Native as the single icon pack. The
+ * existing call sites pass Feather-style kebab-case names
+ * (`<Icon name="alert-triangle" />`) — this wrapper resolves them
+ * against the central name map in `theme/icons.ts` and falls back
+ * to Feather only for names we haven't mapped yet, so the migration
+ * sweep can land file-by-file without breakage.
  *
- *   - Material Symbols on Android (per platform)
- *   - SF Symbols-style sets on iOS
- *   - A custom AForce icon set
- *
- * When that day comes, we change this one file (and a name-mapping
- * table) instead of editing every screen.
- *
- * Migration policy: prefer `<Icon />` over `<Feather />` in NEW code.
- * Existing call sites can be migrated incrementally — both styles
- * render identically today.
+ * Token enforcement (from `theme/icons.ts`):
+ *   - size defaults to `md` (22 px)
+ *   - strokeWidth is locked at 2.2 so iOS + Android render at the
+ *     same visual weight
+ *   - color falls back to MIN_ICON_COLOR_DARK on true-black so
+ *     Android OLED never renders an invisible glyph
  *
  * Usage:
- *   import { Icon, type IconName } from '@/components/Icon';
- *   <Icon name="check-circle" size={20} color={Colors.text.primary} />
+ *   import { Icon } from '@/components/Icon';
+ *   <Icon name="check-circle" />            // md, lime tint default
+ *   <Icon name="droplet" size="lg" />       // 28 px
+ *   <Icon name="thermometer" size={20} />   // raw pixel size
  */
 
 import React from 'react';
 import { Feather } from '@expo/vector-icons';
-import type { TextStyle, StyleProp } from 'react-native';
+import type { ViewStyle, StyleProp } from 'react-native';
+import {
+  DEFAULT_STROKE_WIDTH,
+  MIN_ICON_COLOR_DARK,
+  lookupIcon,
+  resolveIconSize,
+  type IconSizeToken,
+} from '../theme/icons';
 
 /**
- * Currently reuses Feather's glyph map. When we swap implementations
- * we'll widen this to a union of supported names from the new set
- * (or expose a mapping object) — the type alias gives us the seam.
+ * Names come from the central `ICON_MAP`. The type stays `string`
+ * so existing call sites compile during the Feather→Lucide sweep;
+ * unmapped names route to the Feather fallback path at runtime and
+ * log a dev warning so we can finish the migration safely.
  */
-export type IconName = keyof typeof Feather.glyphMap;
+export type IconName = string;
 
 interface IconProps {
   name: IconName;
-  size?: number;
+  /** Size token (`'md'`) or raw pixel value. Defaults to `'md'` (22). */
+  size?: IconSizeToken | number;
+  /** Stroke color. Defaults to `MIN_ICON_COLOR_DARK` for dark UI. */
   color?: string;
-  style?: StyleProp<TextStyle>;
+  /** Override stroke width (rarely needed). Defaults to 2.2. */
+  strokeWidth?: number;
+  style?: StyleProp<ViewStyle>;
   testID?: string;
 }
 
-export function Icon({ name, size = 16, color, style, testID }: IconProps) {
-  return <Feather name={name} size={size} color={color} style={style} testID={testID} />;
+export function Icon({
+  name,
+  size,
+  color,
+  strokeWidth = DEFAULT_STROKE_WIDTH,
+  style,
+  testID,
+}: IconProps) {
+  const px = resolveIconSize(size);
+  const tint = color ?? MIN_ICON_COLOR_DARK;
+  const LucideComponent = lookupIcon(name);
+
+  if (LucideComponent) {
+    return (
+      <LucideComponent
+        size={px}
+        color={tint}
+        strokeWidth={strokeWidth}
+        style={style}
+        testID={testID}
+      />
+    );
+  }
+
+  if (__DEV__) {
+    // eslint-disable-next-line no-console
+    console.warn(
+      `[AForce/Icon] No Lucide mapping for "${name}" — falling back to Feather. ` +
+        `Add it to theme/icons.ts → ICON_MAP.`,
+    );
+  }
+  return (
+    <Feather
+      name={name as keyof typeof Feather.glyphMap}
+      size={px}
+      color={tint}
+      style={style as never}
+      testID={testID}
+    />
+  );
 }
