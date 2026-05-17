@@ -44,8 +44,23 @@ I prefer iterative development, with frequent, small updates. Ask before making 
   - iOS App Store: `pnpm eas:submit:ios`
   - Google Play (internal track): `pnpm eas:submit:android`
 - **One-time setup needed before first submit:**
-  - In `eas.json` `submit.production.ios`: replace `REPLACE_WITH_APP_STORE_CONNECT_APP_ID` and `REPLACE_WITH_APPLE_TEAM_ID` with the values from App Store Connect.
-  - For Android: place a Google Play service account JSON at `artifacts/aforce-os/google-service-account.json` (path already in `eas.json`); never commit it.
+  - **iOS** — instead of hand-editing `eas.json`, run the helper from repo root:
+    ```
+    EAS_ASC_APP_ID=1234567890 \
+    EAS_APPLE_TEAM_ID=ABCDE12345 \
+    pnpm --filter @workspace/scripts run eas-configure-submit
+    ```
+    The script validates formats (ASC ID = numeric, Team ID = 10 uppercase alphanumeric), is idempotent, and refuses placeholders. Find your two IDs at: App Store Connect → My Apps → AForce OS → App Information (ASC App ID) and developer.apple.com → Membership (Team ID).
+  - **Android** — place a Google Play service account JSON at `artifacts/aforce-os/google-service-account.json` (path already in `eas.json`); never commit it.
+
+## Release-Readiness Status (verified)
+- **Stripe webhook** — wired end-to-end via the Replit Stripe connector. The webhook secret is pulled from `settings.webhook_secret` on the connector (NOT from a `STRIPE_WEBHOOK_SECRET` env var). Verified by server boot log: `initStripe: managed webhook ensured` + `initStripe: syncBackfill complete`. No env var to set.
+- **EAS config** — `eas.json` profiles (development/preview/production) and submit blocks are complete; only the two iOS submit IDs need filling via the helper script above. Bundle IDs (`com.aforce.os`), permissions, splash, and icon are all set in `app.json`.
+- **App Store / Play Store screenshots** — Apple and Google only accept screenshots captured from a real device or simulator running a built binary. Replit's web preview of the Expo app cannot produce submission-grade assets. Capture path:
+  1. `pnpm --filter @workspace/aforce-os run eas:build:dev` to produce an iOS Simulator build.
+  2. Boot the build in Xcode Simulator on the required device families (6.7" iPhone, 6.5" iPhone, 13" iPad).
+  3. Capture with `xcrun simctl io booted screenshot <name>.png`.
+  4. For Android, run `eas:build:preview` to get an APK, install on a Pixel emulator, capture via Android Studio.
 
 ## Server Hardening
 - **Routing:** Express 5 with Zod input/output validation based on OpenAPI spec.
