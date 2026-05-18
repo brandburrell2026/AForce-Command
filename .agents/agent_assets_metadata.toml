@@ -432,3 +432,9 @@ id = "g9Kl9cpGDuXmFpN1G6Da8"
 uri = "file://exports/AForce-Social-Mode-Spec.pdf"
 type = "pdf"
 title = "AForce OS — Social Mode Spec (PDF)"
+
+[[outputs]]
+id = "97ZVChDTSzbErecuppDTy"
+uri = "file://.local/qr/aforce-os-expo.png"
+type = "image"
+title = "AForce OS — Expo Go QR Code"
