@@ -33,6 +33,20 @@ const SCOPES: { id: RegionKind; label: string }[] = [
 // the on-screen render.
 const FEATURED_BATTLES_MAX = 3;
 
+// Spec #4 — Territory Momentum bands. momentumScore is a signed -1..+1
+// delta vs the prior period; raw numbers feel like a stock ticker, not a
+// performance OS. We map to four semantic bands and let the label do the
+// talking, keeping the raw delta as a muted secondary line for power users.
+type MomentumTone = 'surging' | 'climbing' | 'holding' | 'cooling';
+interface MomentumBand { label: string; tone: MomentumTone; color: string; }
+
+function momentumBand(score: number): MomentumBand {
+  if (score >=  0.25) return { label: 'SURGING',  tone: 'surging',  color: Colors.states.PEAK.primary };
+  if (score >=  0.05) return { label: 'CLIMBING', tone: 'climbing', color: Colors.states.PEAK.primary };
+  if (score >  -0.05) return { label: 'HOLDING',  tone: 'holding',  color: Colors.text.secondary };
+  return                     { label: 'COOLING',  tone: 'cooling',  color: Colors.states.DEPLETED.primary };
+}
+
 export const TerritoryScreen: React.FC = () => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -131,30 +145,31 @@ export const TerritoryScreen: React.FC = () => {
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>TRENDING NOW</Text>
           <View style={styles.trendList}>
-            {trending.map(r => (
-              <Pressable
-                key={r.regionId}
-                onPress={() => setSelectedId(r.regionId)}
-                style={({ pressed }) => [styles.trendRow, pressed && { opacity: 0.85 }]}
-                accessibilityLabel={`${r.name}, momentum ${r.stats.momentumScore.toFixed(2)}`}
-              >
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.trendName}>{r.name}</Text>
-                  <Text style={styles.trendMeta}>Rank #{r.rank} · {r.stats.participants.toLocaleString()} active</Text>
-                </View>
-                <Icon
-                  name={r.stats.momentumScore >= 0 ? 'trending-up' : 'trending-down'}
-                  size={16}
-                  color={r.stats.momentumScore >= 0 ? Colors.states.PEAK.primary : Colors.states.DEPLETED.primary}
-                />
-                <Text style={[
-                  styles.trendDelta,
-                  { color: r.stats.momentumScore >= 0 ? Colors.states.PEAK.primary : Colors.states.DEPLETED.primary },
-                ]}>
-                  {r.stats.momentumScore >= 0 ? '+' : ''}{(r.stats.momentumScore * 100).toFixed(0)}
-                </Text>
-              </Pressable>
-            ))}
+            {trending.map(r => {
+              const band = momentumBand(r.stats.momentumScore);
+              const signed = `${r.stats.momentumScore >= 0 ? '+' : ''}${(r.stats.momentumScore * 100).toFixed(0)}`;
+              const iconName = band.tone === 'cooling'
+                ? 'trending-down'
+                : band.tone === 'holding' ? 'minus' : 'trending-up';
+              return (
+                <Pressable
+                  key={r.regionId}
+                  onPress={() => setSelectedId(r.regionId)}
+                  style={({ pressed }) => [styles.trendRow, pressed && { opacity: 0.85 }]}
+                  accessibilityLabel={`${r.name}, momentum ${band.label.toLowerCase()}, delta ${signed}`}
+                >
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.trendName}>{r.name}</Text>
+                    <Text style={styles.trendMeta}>Rank #{r.rank} · {r.stats.participants.toLocaleString()} active</Text>
+                  </View>
+                  <Icon name={iconName} size={16} color={band.color} />
+                  <View style={styles.trendBandWrap}>
+                    <Text style={[styles.trendBandLabel, { color: band.color }]}>{band.label}</Text>
+                    <Text style={styles.trendBandDelta}>{signed}</Text>
+                  </View>
+                </Pressable>
+              );
+            })}
           </View>
         </View>
       </ScrollView>
@@ -190,7 +205,9 @@ const styles = StyleSheet.create({
   },
   trendName: { color: Colors.text.primary, fontSize: 14, fontWeight: '600' },
   trendMeta: { color: Colors.text.muted, fontSize: 11, marginTop: 2 },
-  trendDelta: { fontSize: 13, fontWeight: '700', minWidth: 36, textAlign: 'right' },
+  trendBandWrap: { minWidth: 64, alignItems: 'flex-end', gap: 1 },
+  trendBandLabel: { fontSize: 10, fontWeight: '700', letterSpacing: 1.4 },
+  trendBandDelta: { fontSize: 10, fontWeight: '500', color: Colors.text.muted, letterSpacing: 0.4 },
 });
 
 export default TerritoryScreen;
