@@ -134,7 +134,7 @@ export default function HydrationScanScreen() {
     setScanning(true);
     if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
     try {
-      const out = await scan(source, state.engineOutput, state.userState);
+      const out = await scan(source, state.engineOutput, state.userState, state.profileIdentity);
       setOutcome(out);
       if (out.ok) {
         // Persist to server (best-effort — UI never blocks on this).
@@ -186,8 +186,9 @@ export default function HydrationScanScreen() {
     () => derivePersonalizationSignals({
       userState: state.userState,
       engineOutput: state.engineOutput,
+      profileIdentity: state.profileIdentity,
     }),
-    [state.userState, state.engineOutput],
+    [state.userState, state.engineOutput, state.profileIdentity],
   );
 
   // Resolve the AForce equivalent (if recommended) + build the AI Coach

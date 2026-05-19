@@ -30,6 +30,10 @@
 
 import type { ScoreEngineOutput, UserState } from '../types';
 import { activeDecayMultiplier } from './hangoverRisk';
+import {
+  ageFromBirthYear,
+  type ProfileIdentity,
+} from './profileIdentity';
 
 /**
  * Finite-number guard. `??` does not catch `NaN` (NaN is not nullish),
@@ -72,7 +76,7 @@ export interface PersonalizationReason {
   /** Short chip label (≤24 chars). */
   label: string;
   /** Stable machine key — useful for tests + telemetry. */
-  key: 'heat' | 'humidity' | 'activity' | 'recovery' | 'alcohol' | 'consistency' | 'mass';
+  key: 'heat' | 'humidity' | 'activity' | 'recovery' | 'alcohol' | 'consistency' | 'mass' | 'bodyModel';
 }
 
 export interface PersonalizationOutput {
@@ -151,6 +155,14 @@ export interface DeriveArgs {
    * `activeDecayMultiplier(drinks)`. Passed explicitly only from tests.
    */
   socialAlcoholMultiplier?: number;
+  /**
+   * The user-edited body model (height / birth year / biological sex).
+   * Slice 2 — when at least two body-model fields are filled in we
+   * surface a "BODY MODEL" reason so the user can see the system
+   * actually using their profile. Omit when no profile is loaded —
+   * the helper degrades gracefully.
+   */
+  profileIdentity?: ProfileIdentity | null;
 }
 
 export function derivePersonalizationSignals(args: DeriveArgs): PersonalizationOutput {
@@ -251,6 +263,33 @@ export function derivePersonalizationSignals(args: DeriveArgs): PersonalizationO
     reasons.push({ key: 'mass', label: `${Math.round(bodyWeightLbs)} lb body mass` });
   } else if (signals.bands.mass === 'low') {
     reasons.push({ key: 'mass', label: `${Math.round(bodyWeightLbs)} lb body mass` });
+  }
+
+  // Body model — surface only when the user has actually filled in at
+  // least two of the body fields beyond just weight, so the chip is
+  // an honest signal that the engine is using their profile rather
+  // than guessing. Placed near the bottom (lower physiological
+  // dominance) so heat/activity/recovery still win the top 3.
+  const pid = args.profileIdentity;
+  if (pid) {
+    const age = ageFromBirthYear(pid.birthYear);
+    const sexInitial =
+      pid.biologicalSex === 'male'
+        ? 'M'
+        : pid.biologicalSex === 'female'
+        ? 'F'
+        : null;
+    const heightCm =
+      typeof pid.heightCm === 'number' && Number.isFinite(pid.heightCm)
+        ? Math.round(pid.heightCm)
+        : null;
+    const parts: string[] = [];
+    if (heightCm != null) parts.push(`${heightCm}cm`);
+    if (sexInitial) parts.push(sexInitial);
+    if (age != null) parts.push(`${age}y`);
+    if (parts.length >= 2) {
+      reasons.push({ key: 'bodyModel', label: parts.join(' · ') });
+    }
   }
 
   // Cap to the 3 strongest reasons — UI is a single line.

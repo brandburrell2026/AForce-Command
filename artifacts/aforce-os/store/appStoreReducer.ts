@@ -10,6 +10,40 @@
 import type { UserState } from '../types';
 import type { AppState, Action } from './appStoreTypes';
 
+/**
+ * Canonical default body weight (lb). Matches `mockUserProfile.bodyWeightLbs`
+ * so a user who clears their saved weight falls back to the same baseline
+ * the engine starts with on a fresh install rather than carrying the stale
+ * value forward in-session.
+ */
+const DEFAULT_BODY_WEIGHT_LBS = 180;
+
+/**
+ * Compute the next UserState for a profile-identity change that may
+ * include a body-weight update. Three cases:
+ *   - finite number → mirror it into userState
+ *   - explicit `null`  → user cleared their weight, reset to default
+ *   - key absent (`undefined`) → leave userState untouched
+ *
+ * Centralised so UPDATE_ and SET_ branches stay in sync. Object identity
+ * is preserved when nothing changes so React-Query / context selectors
+ * don't re-render unnecessarily.
+ */
+function mirrorBodyWeight(
+  userState: UserState,
+  payload: { bodyWeightLbs?: number | null },
+): UserState {
+  if (!('bodyWeightLbs' in payload)) return userState;
+  const v = payload.bodyWeightLbs;
+  if (typeof v === 'number' && Number.isFinite(v)) {
+    if (userState.bodyWeightLbs === v) return userState;
+    return { ...userState, bodyWeightLbs: v };
+  }
+  // Explicit null (cleared) — reset to canonical default.
+  if (userState.bodyWeightLbs === DEFAULT_BODY_WEIGHT_LBS) return userState;
+  return { ...userState, bodyWeightLbs: DEFAULT_BODY_WEIGHT_LBS };
+}
+
 export function reducer(state: AppState, action: Action): AppState {
   switch (action.type) {
     case 'SET_SWEAT_AUTOPILOT': {
@@ -219,21 +253,41 @@ export function reducer(state: AppState, action: Action): AppState {
       // so a corrupt-payload fallback always lands on a complete,
       // sanitised UnitPreferences object.
       return { ...state, unitPreferences: action.payload };
-    case 'UPDATE_PROFILE_IDENTITY':
+    case 'UPDATE_PROFILE_IDENTITY': {
       // Partial merge — the edit modal submits only the fields that
       // actually changed (or all of them; either is fine). Empty
       // strings ARE valid (user clearing a chip), so we don't filter
       // them out. Reducer-only; persistence happens in the effect
       // that watches `state.profileIdentity`.
+      const nextIdentity = { ...state.profileIdentity, ...action.payload };
+      // Mirror body-model weight into UserState so the scoring engine,
+      // depletion math, and personalization helper see the live value.
+      // Three cases:
+      //   - finite number → mirror it
+      //   - explicit null → user cleared their weight, reset to the
+      //     canonical default (matches mockUserProfile.bodyWeightLbs)
+      //     so stale weight doesn't leak forward in-session
+      //   - key absent → leave userState untouched
+      const nextUserState = mirrorBodyWeight(state.userState, action.payload);
       return {
         ...state,
-        profileIdentity: { ...state.profileIdentity, ...action.payload },
+        profileIdentity: nextIdentity,
+        userState: nextUserState,
       };
-    case 'SET_PROFILE_IDENTITY':
+    }
+    case 'SET_PROFILE_IDENTITY': {
       // Full-record replace, used by the AsyncStorage hydration path
       // so a corrupt-payload fallback always lands on a complete,
-      // sanitised ProfileIdentity object.
-      return { ...state, profileIdentity: action.payload };
+      // sanitised ProfileIdentity object. Mirror the body weight on
+      // rehydrate too (or reset to default when the persisted value
+      // is null), otherwise a restart would lose it.
+      const nextUserState = mirrorBodyWeight(state.userState, action.payload);
+      return {
+        ...state,
+        profileIdentity: action.payload,
+        userState: nextUserState,
+      };
+    }
     case 'ADD_HISTORY_ENTRY': {
       // De-dupe by id so a re-seeded synthetic baseline never doubles up.
       const filtered = state.history.filter((h) => h.id !== action.payload.id);

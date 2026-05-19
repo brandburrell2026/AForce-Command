@@ -407,7 +407,15 @@ export default function ProfileScreen() {
                   <Divider />
                   <SettingRow icon="droplet" label="Daily Ounces Target" value={`${mockUserProfile.dailyTarget * 12} ounces`} />
                   <Divider />
-                  <SettingRow icon="user" label="Body Weight" value={`${mockUserProfile.bodyWeightLbs} lb`} />
+                  <SettingRow
+                    icon="user"
+                    label="Body Weight"
+                    value={
+                      profileIdentity.bodyWeightLbs != null
+                        ? `${profileIdentity.bodyWeightLbs} lb`
+                        : `${mockUserProfile.bodyWeightLbs} lb`
+                    }
+                  />
                   <Divider />
                   <SettingRow icon="activity" label="Activity Type" value={mockUserProfile.activityType} />
                   <Divider />

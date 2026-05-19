@@ -20,6 +20,7 @@ import { getDynamicCompareProduct } from './openFoodFactsService';
 import { derivePersonalizationSignals } from '../utils/personalizationSignals';
 import type { CompareInputs, CompareProduct, CompareResult } from '../types/comparison';
 import type { ScoreEngineOutput, UserState } from '../types';
+import type { ProfileIdentity } from '../utils/profileIdentity';
 import type {
   ScanOutcome,
   ScanRecommendation,
@@ -126,6 +127,7 @@ export async function scan(
   source: ScanSource,
   engineOutput: ScoreEngineOutput,
   userState: UserState,
+  profileIdentity?: ProfileIdentity | null,
 ): Promise<ScanOutcome> {
   await delay(LATENCY());
   const scanned = await recognize(source);
@@ -178,6 +180,7 @@ export async function scan(
   recommendation.personalization = derivePersonalizationSignals({
     userState,
     engineOutput,
+    profileIdentity,
   });
   const efficiency = computeHydrationEfficiency(product);
   const result: ScanResult = {

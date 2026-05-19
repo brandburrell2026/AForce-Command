@@ -63,25 +63,75 @@ describe('store · profileIdentity slice', () => {
     const start = makeState({
       profileIdentity: { ...DEFAULT_PROFILE_IDENTITY, nickname: 'Stale' },
     });
-    const next = reducer(start, {
-      type: 'SET_PROFILE_IDENTITY',
-      payload: {
-        nickname: 'Fresh',
-        city: 'NYC',
-        country: 'USA',
-        teamCircle: '',
-        territoryBadge: '',
-        auraState: 'APEX',
-      },
-    });
-    expect(next.profileIdentity).toEqual({
+    const fresh = {
       nickname: 'Fresh',
       city: 'NYC',
       country: 'USA',
       teamCircle: '',
       territoryBadge: '',
-      auraState: 'APEX',
+      auraState: 'APEX' as const,
+      bodyWeightLbs: 170,
+      heightCm: 180,
+      birthYear: 1990,
+      biologicalSex: 'male' as const,
+    };
+    const next = reducer(start, { type: 'SET_PROFILE_IDENTITY', payload: fresh });
+    expect(next.profileIdentity).toEqual(fresh);
+    // Body weight should also be mirrored into userState so the
+    // scoring engine + personalization helper see the live value
+    // without a separate dispatch.
+    expect(next.userState.bodyWeightLbs).toBe(170);
+  });
+
+  it('UPDATE_PROFILE_IDENTITY mirrors bodyWeightLbs into userState', () => {
+    const start = makeState();
+    const next = reducer(start, {
+      type: 'UPDATE_PROFILE_IDENTITY',
+      payload: { bodyWeightLbs: 195 },
     });
+    expect(next.profileIdentity.bodyWeightLbs).toBe(195);
+    expect(next.userState.bodyWeightLbs).toBe(195);
+  });
+
+  it('UPDATE_PROFILE_IDENTITY without bodyWeightLbs leaves userState untouched', () => {
+    const start = makeState();
+    const beforeWeight = start.userState.bodyWeightLbs;
+    const next = reducer(start, {
+      type: 'UPDATE_PROFILE_IDENTITY',
+      payload: { nickname: 'NoBodyChange' },
+    });
+    expect(next.userState.bodyWeightLbs).toBe(beforeWeight);
+  });
+
+  it('UPDATE_PROFILE_IDENTITY with bodyWeightLbs:null resets userState to the canonical default', () => {
+    // Seed a non-default custom weight so we can prove the reset actually fired.
+    const seeded = reducer(makeState(), {
+      type: 'UPDATE_PROFILE_IDENTITY',
+      payload: { bodyWeightLbs: 240 },
+    });
+    expect(seeded.userState.bodyWeightLbs).toBe(240);
+    const cleared = reducer(seeded, {
+      type: 'UPDATE_PROFILE_IDENTITY',
+      payload: { bodyWeightLbs: null },
+    });
+    expect(cleared.profileIdentity.bodyWeightLbs).toBeNull();
+    // Default = 180 (matches mockUserProfile.bodyWeightLbs).
+    expect(cleared.userState.bodyWeightLbs).toBe(180);
+  });
+
+  it('SET_PROFILE_IDENTITY with bodyWeightLbs:null resets userState to the canonical default', () => {
+    const seeded = reducer(makeState(), {
+      type: 'UPDATE_PROFILE_IDENTITY',
+      payload: { bodyWeightLbs: 240 },
+    });
+    const cleared = reducer(seeded, {
+      type: 'SET_PROFILE_IDENTITY',
+      payload: {
+        ...DEFAULT_PROFILE_IDENTITY,
+        bodyWeightLbs: null,
+      },
+    });
+    expect(cleared.userState.bodyWeightLbs).toBe(180);
   });
 
   it('AURA_STATES exposes all five canonical aura modes', () => {
@@ -107,6 +157,10 @@ describe('utils · sanitizeProfileIdentity', () => {
       teamCircle: 'South Beach Run Club',
       territoryBadge: 'MIAMI HEAT ZONE',
       auraState: 'FLOW' as const,
+      bodyWeightLbs: 175,
+      heightCm: 180,
+      birthYear: 1990,
+      biologicalSex: 'male' as const,
     };
     expect(sanitizeProfileIdentity(payload)).toEqual(payload);
   });
@@ -127,7 +181,37 @@ describe('utils · sanitizeProfileIdentity', () => {
       teamCircle: '',
       territoryBadge: '',
       auraState: 'FLOW',
+      bodyWeightLbs: null,
+      heightCm: null,
+      birthYear: null,
+      biologicalSex: 'unspecified',
     });
+  });
+
+  it('clamps body-model numbers out of guardrail range to null', () => {
+    const result = sanitizeProfileIdentity({
+      bodyWeightLbs: 5,        // < 60 lb
+      heightCm: 999,           // > 230 cm
+      birthYear: 1700,         // < 1900
+      biologicalSex: 'martian',
+    });
+    expect(result.bodyWeightLbs).toBeNull();
+    expect(result.heightCm).toBeNull();
+    expect(result.birthYear).toBeNull();
+    expect(result.biologicalSex).toBe('unspecified');
+  });
+
+  it('accepts in-range body-model numbers and rounds to integers', () => {
+    const result = sanitizeProfileIdentity({
+      bodyWeightLbs: 175.7,
+      heightCm: 180.4,
+      birthYear: 1990,
+      biologicalSex: 'female',
+    });
+    expect(result.bodyWeightLbs).toBe(176);
+    expect(result.heightCm).toBe(180);
+    expect(result.birthYear).toBe(1990);
+    expect(result.biologicalSex).toBe('female');
   });
 
   it('trims whitespace and caps fields at 48 chars', () => {

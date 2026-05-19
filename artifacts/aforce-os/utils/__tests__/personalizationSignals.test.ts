@@ -202,6 +202,57 @@ describe('derivePersonalizationSignals', () => {
     ).not.toThrow();
   });
 
+  it('adds a BODY MODEL reason when 2+ body-model fields are filled in', () => {
+    const out = derivePersonalizationSignals({
+      userState: mkUser(),
+      engineOutput: mkEngine('BALANCED'),
+      profileIdentity: {
+        nickname: '',
+        city: '',
+        country: '',
+        teamCircle: '',
+        territoryBadge: '',
+        auraState: 'FLOW',
+        bodyWeightLbs: 175,
+        heightCm: 180,
+        birthYear: 1990,
+        biologicalSex: 'male',
+      },
+    });
+    const bodyModel = out.reasons.find((r) => r.key === 'bodyModel');
+    expect(bodyModel).toBeDefined();
+    expect(bodyModel!.label).toMatch(/180cm/);
+    expect(bodyModel!.label).toMatch(/M/);
+  });
+
+  it('does NOT add a BODY MODEL reason when fewer than 2 body-model fields are set', () => {
+    const out = derivePersonalizationSignals({
+      userState: mkUser(),
+      engineOutput: mkEngine('BALANCED'),
+      profileIdentity: {
+        nickname: '',
+        city: '',
+        country: '',
+        teamCircle: '',
+        territoryBadge: '',
+        auraState: 'FLOW',
+        bodyWeightLbs: null,
+        heightCm: 180,
+        birthYear: null,
+        biologicalSex: 'unspecified',
+      },
+    });
+    expect(out.reasons.find((r) => r.key === 'bodyModel')).toBeUndefined();
+  });
+
+  it('omits the BODY MODEL reason when no profileIdentity is provided', () => {
+    const out = derivePersonalizationSignals({
+      userState: mkUser(),
+      engineOutput: mkEngine('BALANCED'),
+    });
+    expect(out.reasons.find((r) => r.key === 'bodyModel')).toBeUndefined();
+  });
+
   it('caps reasons to a maximum of 3', () => {
     const out = derivePersonalizationSignals({
       userState: mkUser({

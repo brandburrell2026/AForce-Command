@@ -1,17 +1,23 @@
 /**
- * EditProfileModal — bottom-sheet editor for the premium identity card.
+ * EditProfileModal — bottom-sheet editor for the premium identity card
+ * AND the BODY MODEL (weight / height / birth year / biological sex).
  *
  * Surfaced when the user taps the pencil icon on the profile header.
- * Edits the persisted `ProfileIdentity` slice (nickname / city /
- * country / team-circle / territory badge / aura). Display name and
+ * Edits the persisted `ProfileIdentity` slice. Display name and
  * subscription tier are intentionally NOT editable here — those come
  * from Clerk and Stripe respectively.
  *
  * UX notes:
  *   - Local draft state, committed only on "Save". Cancel reverts.
- *   - Each TextInput is hard-capped at 48 chars to match the sanitiser.
+ *   - Text fields hard-capped at 48 chars to match the sanitiser.
  *   - Aura is a single-select segmented control over AURA_STATES.
- *   - Empty strings are a valid save (clears the chip on the card).
+ *   - Body weight + height + birth year are numeric inputs with
+ *     guardrail ranges (sanitiser silently clamps junk to null).
+ *   - Biological sex is a segmented control. "Unspecified" is the
+ *     default and is treated by the engine as "no sex-specific
+ *     adjustment" — never a hidden assumption.
+ *   - Empty body fields are a valid save (clears the field; the
+ *     engine falls back to its built-in defaults).
  */
 
 import React, { useEffect, useState } from 'react';
@@ -29,7 +35,16 @@ import {
 import * as Haptics from 'expo-haptics';
 import { Icon } from './Icon';
 import { Colors } from '../theme/colors';
-import { AURA_STATES, type ProfileIdentity } from '../utils/profileIdentity';
+import {
+  AURA_STATES,
+  BIOLOGICAL_SEX_OPTIONS,
+  HEIGHT_CM_MAX,
+  HEIGHT_CM_MIN,
+  WEIGHT_LBS_MAX,
+  WEIGHT_LBS_MIN,
+  type BiologicalSex,
+  type ProfileIdentity,
+} from '../utils/profileIdentity';
 import type { AuraState } from '../types';
 
 const FIELD_MAX_LEN = 48;
@@ -42,20 +57,56 @@ const AURA_COLOR: Record<AuraState, string> = {
   APEX: Colors.states.PEAK.primary,
 };
 
-interface FieldSpec {
-  key: keyof Omit<ProfileIdentity, 'auraState'>;
+const SEX_LABEL: Record<BiologicalSex, string> = {
+  male: 'MALE',
+  female: 'FEMALE',
+  unspecified: 'PREFER NOT TO SAY',
+};
+
+interface TextFieldSpec {
+  key: 'nickname' | 'city' | 'country' | 'teamCircle' | 'territoryBadge';
   label: string;
   placeholder: string;
   autoCapitalize: 'none' | 'words' | 'characters';
 }
 
-const FIELDS: readonly FieldSpec[] = [
+const TEXT_FIELDS: readonly TextFieldSpec[] = [
   { key: 'nickname', label: 'Handle', placeholder: 'MiamiPulse', autoCapitalize: 'none' },
   { key: 'city', label: 'City', placeholder: 'Miami', autoCapitalize: 'words' },
   { key: 'country', label: 'Country', placeholder: 'USA', autoCapitalize: 'characters' },
   { key: 'teamCircle', label: 'Team / Circle', placeholder: 'South Beach Run Club', autoCapitalize: 'words' },
   { key: 'territoryBadge', label: 'Territory Badge', placeholder: 'MIAMI HEAT ZONE', autoCapitalize: 'characters' },
 ];
+
+interface NumericFieldSpec {
+  key: 'bodyWeightLbs' | 'heightCm' | 'birthYear';
+  label: string;
+  placeholder: string;
+  /** Inclusive guardrail; out-of-range or non-numeric saves as `null`. */
+  min: number;
+  max: number;
+  /** Max digit length (limits TextInput maxLength). */
+  digits: number;
+}
+
+const NUMERIC_FIELDS: readonly NumericFieldSpec[] = [
+  { key: 'bodyWeightLbs', label: 'Body Weight (lb)', placeholder: 'e.g. 175', min: WEIGHT_LBS_MIN, max: WEIGHT_LBS_MAX, digits: 3 },
+  { key: 'heightCm', label: 'Height (cm)', placeholder: 'e.g. 180', min: HEIGHT_CM_MIN, max: HEIGHT_CM_MAX, digits: 3 },
+  { key: 'birthYear', label: 'Birth Year', placeholder: 'e.g. 1990', min: 1900, max: new Date().getFullYear(), digits: 4 },
+];
+
+/** "" when the field is unset so the placeholder shows. */
+function numToInput(v: number | null): string {
+  return typeof v === 'number' && Number.isFinite(v) ? String(v) : '';
+}
+
+/** Treats empty / non-numeric input as `null` (unset). */
+function inputToNum(raw: string): number | null {
+  const trimmed = raw.trim();
+  if (trimmed === '') return null;
+  const n = Number(trimmed);
+  return Number.isFinite(n) ? n : null;
+}
 
 interface Props {
   visible: boolean;
@@ -69,9 +120,24 @@ export function EditProfileModal({ visible, initialValue, onClose, onSave }: Pro
   // whenever the modal is re-opened so a previous cancelled edit
   // doesn't leak back in.
   const [draft, setDraft] = useState<ProfileIdentity>(initialValue);
+  // Mirror the numeric fields as raw input strings so the user can
+  // freely edit (incl. clearing) without us coercing every keystroke.
+  // Committed back to `draft` on save via `inputToNum`.
+  const [numericText, setNumericText] = useState<Record<string, string>>(() => ({
+    bodyWeightLbs: numToInput(initialValue.bodyWeightLbs),
+    heightCm: numToInput(initialValue.heightCm),
+    birthYear: numToInput(initialValue.birthYear),
+  }));
 
   useEffect(() => {
-    if (visible) setDraft(initialValue);
+    if (visible) {
+      setDraft(initialValue);
+      setNumericText({
+        bodyWeightLbs: numToInput(initialValue.bodyWeightLbs),
+        heightCm: numToInput(initialValue.heightCm),
+        birthYear: numToInput(initialValue.birthYear),
+      });
+    }
   }, [visible, initialValue]);
 
   const setField = <K extends keyof ProfileIdentity>(key: K, value: ProfileIdentity[K]) => {
@@ -79,9 +145,17 @@ export function EditProfileModal({ visible, initialValue, onClose, onSave }: Pro
   };
 
   const handleSave = () => {
-    // Trim on submit so leading/trailing whitespace never lands in
-    // persisted state (the sanitiser would catch it on next hydrate
-    // anyway, but in-session reads would briefly show the whitespace).
+    // Trim text + coerce numeric drafts on submit so leading/trailing
+    // whitespace never lands in persisted state and out-of-range
+    // numbers fall back to `null` (the sanitiser also clamps on
+    // hydrate, but doing it here too keeps the UI honest).
+    const coerceNumeric = (raw: string, min: number, max: number): number | null => {
+      const n = inputToNum(raw);
+      if (n == null) return null;
+      const rounded = Math.round(n);
+      if (rounded < min || rounded > max) return null;
+      return rounded;
+    };
     const sanitized: ProfileIdentity = {
       nickname: draft.nickname.trim(),
       city: draft.city.trim(),
@@ -89,6 +163,10 @@ export function EditProfileModal({ visible, initialValue, onClose, onSave }: Pro
       teamCircle: draft.teamCircle.trim(),
       territoryBadge: draft.territoryBadge.trim(),
       auraState: draft.auraState,
+      bodyWeightLbs: coerceNumeric(numericText.bodyWeightLbs, WEIGHT_LBS_MIN, WEIGHT_LBS_MAX),
+      heightCm: coerceNumeric(numericText.heightCm, HEIGHT_CM_MIN, HEIGHT_CM_MAX),
+      birthYear: coerceNumeric(numericText.birthYear, 1900, new Date().getFullYear()),
+      biologicalSex: draft.biologicalSex,
     };
     Haptics.selectionAsync().catch(() => {});
     onSave(sanitized);
@@ -125,7 +203,7 @@ export function EditProfileModal({ visible, initialValue, onClose, onSave }: Pro
             contentContainerStyle={styles.bodyContent}
             keyboardShouldPersistTaps="handled"
           >
-            {FIELDS.map((field) => (
+            {TEXT_FIELDS.map((field) => (
               <View key={field.key} style={styles.field}>
                 <Text style={styles.fieldLabel}>{field.label.toUpperCase()}</Text>
                 <TextInput
@@ -142,6 +220,72 @@ export function EditProfileModal({ visible, initialValue, onClose, onSave }: Pro
               </View>
             ))}
 
+            <View style={styles.sectionDivider} />
+            <Text style={styles.sectionLabel}>BODY MODEL</Text>
+            <Text style={styles.sectionHint}>
+              Helps the system tune recommendations to your body. Skip any field — the engine falls back to safe defaults.
+            </Text>
+
+            {NUMERIC_FIELDS.map((field) => (
+              <View key={field.key} style={styles.field}>
+                <Text style={styles.fieldLabel}>{field.label.toUpperCase()}</Text>
+                <TextInput
+                  value={numericText[field.key]}
+                  onChangeText={(t) =>
+                    setNumericText((m) => ({ ...m, [field.key]: t.replace(/[^0-9]/g, '') }))
+                  }
+                  placeholder={field.placeholder}
+                  placeholderTextColor={Colors.text.muted}
+                  keyboardType="number-pad"
+                  inputMode="numeric"
+                  maxLength={field.digits}
+                  autoCorrect={false}
+                  style={styles.input}
+                  accessibilityLabel={field.label}
+                  testID={`edit-profile-${field.key}`}
+                />
+              </View>
+            ))}
+
+            <View style={styles.field}>
+              <Text style={styles.fieldLabel}>BIOLOGICAL SEX</Text>
+              <View style={styles.auraRow}>
+                {BIOLOGICAL_SEX_OPTIONS.map((sex) => {
+                  const selected = draft.biologicalSex === sex;
+                  return (
+                    <Pressable
+                      key={sex}
+                      onPress={() => {
+                        Haptics.selectionAsync().catch(() => {});
+                        setField('biologicalSex', sex);
+                      }}
+                      style={[
+                        styles.auraOption,
+                        selected && {
+                          backgroundColor: `${Colors.accent.primary}22`,
+                          borderColor: Colors.accent.primary,
+                        },
+                      ]}
+                      accessibilityRole="button"
+                      accessibilityState={{ selected }}
+                      accessibilityLabel={`Biological sex ${sex}`}
+                      testID={`edit-profile-sex-${sex}`}
+                    >
+                      <Text
+                        style={[
+                          styles.auraLabel,
+                          { color: selected ? Colors.accent.primary : Colors.text.secondary },
+                        ]}
+                      >
+                        {SEX_LABEL[sex]}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </View>
+
+            <View style={styles.sectionDivider} />
             <View style={styles.field}>
               <Text style={styles.fieldLabel}>AURA</Text>
               <View style={styles.auraRow}>
@@ -195,6 +339,7 @@ export function EditProfileModal({ visible, initialValue, onClose, onSave }: Pro
               style={[styles.btn, styles.btnPrimary]}
               accessibilityRole="button"
               accessibilityLabel="Save identity"
+              testID="edit-profile-save"
             >
               <Text style={styles.btnPrimaryText}>SAVE</Text>
             </Pressable>
@@ -254,6 +399,26 @@ const styles = StyleSheet.create({
     color: Colors.text.muted,
     letterSpacing: 2,
     marginBottom: 8,
+  },
+  sectionDivider: {
+    height: 1,
+    backgroundColor: Colors.border.subtle,
+    marginVertical: 8,
+  },
+  sectionLabel: {
+    fontSize: 11,
+    fontFamily: 'Inter_700Bold',
+    color: Colors.text.primary,
+    letterSpacing: 2.5,
+    marginTop: 8,
+    marginBottom: 6,
+  },
+  sectionHint: {
+    fontSize: 12,
+    fontFamily: 'Inter_400Regular',
+    color: Colors.text.muted,
+    marginBottom: 14,
+    lineHeight: 17,
   },
   input: {
     backgroundColor: Colors.background.primary,
