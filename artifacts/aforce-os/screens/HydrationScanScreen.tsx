@@ -33,6 +33,8 @@ import { ScanAICoachCard } from '@/components/ScanAICoachCard';
 import { ProductFitCard } from '@/components/ProductFitCard';
 import { AForceReplacementCard } from '@/components/AForceReplacementCard';
 import { CameraScanModal } from '@/components/CameraScanModal';
+import { AddDrinkModal } from '@/components/AddDrinkModal';
+import { DRINK_CATEGORIES } from '@/data/drinkCatalog';
 import { Colors } from '@/theme/colors';
 import { useAppStore } from '@/store/useAppStore';
 import { scan } from '@/services/hydrationScanService';
@@ -53,6 +55,7 @@ export default function HydrationScanScreen() {
   const [logging, setLogging] = useState(false);
   const [manualQuery, setManualQuery] = useState('');
   const [cameraOpen, setCameraOpen] = useState(false);
+  const [addDrinkOpen, setAddDrinkOpen] = useState(false);
 
   // Success flash overlay — fires after a successful log, fades a PEAK
   // tint over the screen, plays a Success haptic, and pops back to Home
@@ -235,6 +238,34 @@ export default function HydrationScanScreen() {
     runScan({ kind: 'manual', rawValue: q });
   };
 
+  // AddDrinkModal handler — logs any of the 13 supported drink categories
+  // (water, coffee, tea, sports/energy drinks, alcohol, custom, etc.) via
+  // the existing intake pipeline. Score impact uses the per-category
+  // hydration coefficient so a 12 oz coffee logs ≈10.2 oz water-equivalent
+  // while the history label preserves the real drink name.
+  const onConfirmDrink = async (args: {
+    categoryId: string;
+    name: string;
+    displayName: string;
+    enteredOz: number;
+    effectiveOz: number;
+    hydrationCoefficient: number;
+  }) => {
+    setAddDrinkOpen(false);
+    const cat = DRINK_CATEGORIES[args.categoryId as keyof typeof DRINK_CATEGORIES];
+    if (!cat) return;
+    setLogging(true);
+    try {
+      await logIntake(cat.fluidType, {
+        ozOverride: args.effectiveOz,
+        displayNameOverride: `${args.displayName} · ${args.enteredOz} oz`,
+      });
+      triggerSuccessFlash();
+    } finally {
+      setLogging(false);
+    }
+  };
+
   return (
     <View style={styles.root}>
       <GradientBackground>
@@ -321,7 +352,7 @@ export default function HydrationScanScreen() {
             </Pressable>
           </View>
 
-          {/* Manual search fallback */}
+          {/* Manual search — looks up AForce products via the comparison engine */}
           <View style={styles.manualCard}>
             <Text style={styles.manualLabel}>MANUAL SEARCH</Text>
             <View style={styles.manualRow}>
@@ -339,6 +370,35 @@ export default function HydrationScanScreen() {
               </Pressable>
             </View>
           </View>
+
+          {/* Personalized Hydration Intelligence — log any drink across the
+              13 supported categories with the correct hydration coefficient
+              applied. Custom drinks supported. */}
+          <Pressable
+            onPress={() => setAddDrinkOpen(true)}
+            disabled={logging}
+            style={({ pressed }) => [
+              styles.logAnyCta,
+              {
+                borderColor: Colors.states.PEAK.primary,
+                opacity: logging ? 0.6 : pressed ? 0.85 : 1,
+              },
+            ]}
+            accessibilityRole="button"
+            accessibilityLabel="Log any drink — coffee, tea, sports drinks, alcohol, custom"
+            testID="hydroscan-log-any-drink"
+          >
+            <Icon name="plus-circle" size={16} color={Colors.states.PEAK.primary} />
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.logAnyTitle, { color: Colors.states.PEAK.primary }]}>
+                LOG ANY DRINK
+              </Text>
+              <Text style={styles.logAnyHint}>
+                Coffee · Tea · Sports · Energy · Alcohol · Custom
+              </Text>
+            </View>
+            <Icon name="chevron-right" size={16} color={Colors.states.PEAK.primary} />
+          </Pressable>
 
           {/* Result region */}
           {outcome?.ok === false && (
@@ -443,6 +503,13 @@ export default function HydrationScanScreen() {
         visible={cameraOpen}
         onClose={() => setCameraOpen(false)}
         onScan={onCameraScan}
+      />
+
+      <AddDrinkModal
+        visible={addDrinkOpen}
+        accentColor={Colors.states.PEAK.primary}
+        onCancel={() => setAddDrinkOpen(false)}
+        onConfirm={onConfirmDrink}
       />
     </View>
   );
@@ -622,6 +689,20 @@ const styles = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
     backgroundColor: Colors.fill.medium,
     borderWidth: 1, borderColor: Colors.border.subtle,
+  },
+
+  logAnyCta: {
+    flexDirection: 'row', alignItems: 'center', gap: 12,
+    paddingVertical: 14, paddingHorizontal: 14,
+    borderRadius: 14, borderWidth: 1,
+    backgroundColor: Colors.background.card,
+  },
+  logAnyTitle: {
+    fontSize: 12, fontFamily: 'Inter_700Bold', letterSpacing: 2,
+  },
+  logAnyHint: {
+    fontSize: 10, fontFamily: 'Inter_500Medium',
+    color: Colors.text.muted, marginTop: 3, letterSpacing: 0.3,
   },
 
   errorCard: {

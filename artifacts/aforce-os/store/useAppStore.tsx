@@ -134,7 +134,19 @@ interface AppContextValue {
   state: AppState;
   logIntake: (
     fluidType: FluidType,
-    opts?: { silent?: boolean; ozOverride?: number; flavorLabel?: string },
+    opts?: {
+      silent?: boolean;
+      ozOverride?: number;
+      flavorLabel?: string;
+      /**
+       * When set, completely replaces the auto-built history action label
+       * ("Logged Stick — Berry Blast (12 ounces)") with a caller-supplied
+       * display name. Used by the AddDrinkModal so non-AForce drinks log
+       * as e.g. "Logged Coffee · Starbucks Pike Place (16 ounces)" rather
+       * than the misleading "Logged Water — Coffee...".
+       */
+      displayNameOverride?: string;
+    },
   ) => Promise<void>;
   completeCycle: () => Promise<void>;
   snooze: () => void;
@@ -505,7 +517,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const logIntake = useCallback(async (
     fluidType: FluidType,
-    opts?: { silent?: boolean; ozOverride?: number; flavorLabel?: string },
+    opts?: {
+      silent?: boolean;
+      ozOverride?: number;
+      flavorLabel?: string;
+      displayNameOverride?: string;
+    },
   ) => {
     if (state.isCompletingCycle) return;
     dispatch({ type: 'CYCLE_START' });
@@ -535,7 +552,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       };
       // When a flavor was chosen (e.g. Berry Blast +Dulse), surface it
       // in the history label so users can recall exactly what they drank.
-      const baseName = opts?.flavorLabel
+      // displayNameOverride (used by AddDrinkModal for non-AForce drinks)
+      // completely replaces the auto-built label so history reads e.g.
+      // "Logged Coffee · Starbucks Pike Place (16 ounces)" instead of
+      // a misleading "Logged Water — Coffee...".
+      const baseName = opts?.displayNameOverride
+        ? opts.displayNameOverride
+        : opts?.flavorLabel
         ? `${product.shortName} — ${opts.flavorLabel}`
         : product.shortName;
       // Race-safe: merge in latest client-only overlays (provider
@@ -564,7 +587,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         timestamp: log.loggedAt,
         score: log.scoreAfter,
         state: mergedEngine.performanceState.level,
-        action: `Logged ${baseName} (${log.ozAmount} ounces)`,
+        // When the caller passes a fully-formed display name (AddDrinkModal
+        // for non-AForce drinks), trust it verbatim — appending the engine's
+        // effective ounces here would produce nonsense like
+        // "Logged Coffee · Pike Place (16 oz) (10.2 ounces)" because
+        // ozOverride stores the water-equivalent, not the entered amount.
+        action: opts?.displayNameOverride
+          ? `Logged ${baseName}`
+          : `Logged ${baseName} (${log.ozAmount} ounces)`,
         unitsTaken: 1,
         fluidType,
       };
