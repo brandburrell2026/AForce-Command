@@ -6,7 +6,7 @@
 
 import React, { useState } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, Switch, TouchableOpacity, Platform, Pressable, Alert,
+  View, Text, StyleSheet, ScrollView, Switch, TouchableOpacity, Platform, Pressable, Alert, Image,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon, type IconName } from '../../components/Icon';
@@ -142,7 +142,15 @@ export default function ProfileScreen() {
   // to a real API. `useUser()` is safe here — ClerkProvider always
   // wraps the tab group via the root _layout.
   const { user: clerkUser } = useUser();
-  const displayName = clerkUser?.fullName ?? clerkUser?.firstName ?? mockUserProfile.name;
+  // "Real name OR alias" — the user-editable displayName wins over the
+  // Clerk-provided name when set. Empty string falls through to Clerk
+  // (the auth source of truth) and finally to the mock fixture so the
+  // card never renders blank.
+  const clerkName = clerkUser?.fullName ?? clerkUser?.firstName ?? mockUserProfile.name;
+  const profileIdentityForName = state.profileIdentity;
+  const displayName =
+    (profileIdentityForName.displayName && profileIdentityForName.displayName.trim()) ||
+    clerkName;
   const avatarInitial = displayName.charAt(0).toUpperCase();
   const [remindersEnabled, setRemindersEnabled] = useState(mockUserProfile.remindersEnabled);
   // Mocked OAuth state for the third-party health platforms shown in
@@ -326,14 +334,34 @@ export default function ProfileScreen() {
               .filter((s) => s.length > 0)
               .join(' · ');
             const auraColor = AURA_COLOR[profileIdentity.auraState];
+            // Body-model metric strip (height / weight / recovery goal).
+            // Each cell falls back to an em-dash when the field is unset
+            // so the row stays visually balanced rather than collapsing.
+            const heightLabel = profileIdentity.heightCm != null
+              ? `${profileIdentity.heightCm} cm`
+              : '—';
+            const weightLabel = profileIdentity.bodyWeightLbs != null
+              ? `${profileIdentity.bodyWeightLbs} lb`
+              : '—';
+            const recoveryGoalLabel = profileIdentity.recoveryGoal;
+            const hasAvatarImage = profileIdentity.avatarUri.length > 0;
             const profileCard = (
               <View style={[styles.profileCard, { borderColor: `${tier.color}33` }]}>
                 <View style={styles.profileCardTop}>
-                  <View style={[styles.avatar, { backgroundColor: `${tier.color}20`, borderColor: `${tier.color}55` }]}>
-                    <Text style={[styles.avatarText, { color: tier.color }]}>
-                      {avatarInitial}
-                    </Text>
-                  </View>
+                  {hasAvatarImage ? (
+                    <Image
+                      source={{ uri: profileIdentity.avatarUri }}
+                      style={[styles.avatar, { borderColor: `${tier.color}55` }]}
+                      accessibilityIgnoresInvertColors
+                      accessibilityLabel="Profile avatar"
+                    />
+                  ) : (
+                    <View style={[styles.avatar, { backgroundColor: `${tier.color}20`, borderColor: `${tier.color}55` }]}>
+                      <Text style={[styles.avatarText, { color: tier.color }]}>
+                        {avatarInitial}
+                      </Text>
+                    </View>
+                  )}
                   <View style={styles.profileInfo}>
                     <Text style={styles.profileName} numberOfLines={1}>
                       {displayName}
@@ -395,6 +423,27 @@ export default function ProfileScreen() {
                     label={`${profileIdentity.auraState} AURA`}
                     color={auraColor}
                   />
+                </View>
+                <View style={styles.profileMetricStrip}>
+                  <View style={styles.profileMetricCell}>
+                    <Text style={styles.profileMetricLabel}>HEIGHT</Text>
+                    <Text style={styles.profileMetricValue}>{heightLabel}</Text>
+                  </View>
+                  <View style={styles.profileMetricDivider} />
+                  <View style={styles.profileMetricCell}>
+                    <Text style={styles.profileMetricLabel}>WEIGHT</Text>
+                    <Text style={styles.profileMetricValue}>{weightLabel}</Text>
+                  </View>
+                  <View style={styles.profileMetricDivider} />
+                  <View style={styles.profileMetricCell}>
+                    <Text style={styles.profileMetricLabel}>RECOVERY GOAL</Text>
+                    <Text
+                      style={[styles.profileMetricValue, { color: auraColor }]}
+                      numberOfLines={1}
+                    >
+                      {recoveryGoalLabel}
+                    </Text>
+                  </View>
                 </View>
               </View>
             );
@@ -1543,6 +1592,29 @@ const styles = StyleSheet.create({
   },
   profileChipStrip: {
     flexDirection: 'row', flexWrap: 'wrap', gap: 6,
+  },
+  profileMetricStrip: {
+    flexDirection: 'row',
+    alignItems: 'stretch',
+    backgroundColor: Colors.background.primary,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: Colors.border.subtle,
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+    marginTop: 4,
+  },
+  profileMetricCell: {
+    flex: 1, alignItems: 'center', justifyContent: 'center', gap: 4,
+  },
+  profileMetricDivider: {
+    width: 1, backgroundColor: Colors.border.subtle, alignSelf: 'stretch', marginVertical: 4,
+  },
+  profileMetricLabel: {
+    fontSize: 9, fontFamily: 'Inter_700Bold', color: Colors.text.muted, letterSpacing: 1.5,
+  },
+  profileMetricValue: {
+    fontSize: 14, fontFamily: 'Inter_700Bold', color: Colors.text.primary, letterSpacing: 0.3,
   },
   identityChip: {
     flexDirection: 'row', alignItems: 'center', gap: 5,
