@@ -438,3 +438,9 @@ id = "97ZVChDTSzbErecuppDTy"
 uri = "file://.local/qr/aforce-os-expo.png"
 type = "image"
 title = "AForce OS — Expo Go QR Code"
+
+[[outputs]]
+id = "HCH2oCSN2LuS8I2psNNSX"
+uri = "file://.local/output/aforce-expo-qr.png"
+type = "image"
+title = "AForce OS — Expo Go QR"
