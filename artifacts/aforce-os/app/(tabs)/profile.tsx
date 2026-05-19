@@ -1179,28 +1179,42 @@ export default function ProfileScreen() {
               </>
             );
 
-            const phaseEntryRow = (
+            // Phase 9 — Feature locks. CLUTCH (`clutch_access_enabled`) and
+            // GUARDIAN (`guardian_intelligence_enabled`) are hidden from
+            // production navigation until released. Both default to OFF in
+            // `featureFlags/flags.ts`; the demo profile flips them ON so
+            // investors / coaches can still preview the full stack via the
+            // admin toggle. Destination screens additionally wrap their body
+            // in <FeatureGate>, so this is defense in depth — first hide the
+            // entry, then gate the surface.
+            const showClutchEntry = state.featureFlags.clutch_access_enabled;
+            const showGuardianEntry = state.featureFlags.guardian_intelligence_enabled;
+            const phaseEntryRow = !showClutchEntry && !showGuardianEntry ? null : (
               <View style={styles.phaseRow}>
-                <Pressable
-                  onPress={() => router.push('/clutch')}
-                  style={[styles.phaseCard, { borderColor: `${Colors.clutch.primary}55` }]}
-                >
-                  <View style={[styles.phaseIcon, { backgroundColor: `${Colors.clutch.primary}1A` }]}>
-                    <Icon name="users" size={20} color={Colors.clutch.primary} />
-                  </View>
-                  <Text style={[styles.phaseTitle, { color: Colors.clutch.primary }]}>CLUTCH</Text>
-                  <Text style={styles.phaseDesc}>Command the Team</Text>
-                </Pressable>
-                <Pressable
-                  onPress={() => router.push('/guardian')}
-                  style={[styles.phaseCard, { borderColor: `${Colors.guardian.primary}55` }]}
-                >
-                  <View style={[styles.phaseIcon, { backgroundColor: `${Colors.guardian.primary}1A` }]}>
-                    <Icon name="shield" size={20} color={Colors.guardian.primary} />
-                  </View>
-                  <Text style={[styles.phaseTitle, { color: Colors.guardian.primary }]}>GUARDIAN</Text>
-                  <Text style={styles.phaseDesc}>Protect the Roster</Text>
-                </Pressable>
+                {showClutchEntry ? (
+                  <Pressable
+                    onPress={() => router.push('/clutch')}
+                    style={[styles.phaseCard, { borderColor: `${Colors.clutch.primary}55` }]}
+                  >
+                    <View style={[styles.phaseIcon, { backgroundColor: `${Colors.clutch.primary}1A` }]}>
+                      <Icon name="users" size={20} color={Colors.clutch.primary} />
+                    </View>
+                    <Text style={[styles.phaseTitle, { color: Colors.clutch.primary }]}>CLUTCH</Text>
+                    <Text style={styles.phaseDesc}>Command the Team</Text>
+                  </Pressable>
+                ) : null}
+                {showGuardianEntry ? (
+                  <Pressable
+                    onPress={() => router.push('/guardian')}
+                    style={[styles.phaseCard, { borderColor: `${Colors.guardian.primary}55` }]}
+                  >
+                    <View style={[styles.phaseIcon, { backgroundColor: `${Colors.guardian.primary}1A` }]}>
+                      <Icon name="shield" size={20} color={Colors.guardian.primary} />
+                    </View>
+                    <Text style={[styles.phaseTitle, { color: Colors.guardian.primary }]}>GUARDIAN</Text>
+                    <Text style={styles.phaseDesc}>Protect the Roster</Text>
+                  </Pressable>
+                ) : null}
               </View>
             );
 

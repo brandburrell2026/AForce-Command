@@ -35,6 +35,7 @@ import {
   type CityClimate,
 } from "@/services/cityClimateService";
 import { SAMPLE_INPUTS } from "@/mocks/heatData";
+import { useAppStore } from "@/store/useAppStore";
 import type { HeatRiskBand } from "@/types/heat";
 
 const TONE_COLOR: Record<"info" | "warn" | "alert" | "critical", string> = {
@@ -46,6 +47,11 @@ const TONE_COLOR: Record<"info" | "warn" | "alert" | "critical", string> = {
 
 export default function HeatRiskScreen() {
   const router = useRouter();
+  // Phase 9 — Feature locks. The TEAM (Guardian roster) entry below is
+  // hidden in production where `guardian_intelligence_enabled` is OFF.
+  // Demo profile (DEMO_ALL_ON_FLAGS) flips it back on for previews.
+  const { state } = useAppStore();
+  const guardianEnabled = state.featureFlags.guardian_intelligence_enabled;
   const insets = useSafeAreaInsets();
   const [bandPattern, setBandPattern] = useState<HeatRiskBand>("ELEVATED");
   const previousScoreRef = useRef<number | null>(null);
@@ -105,16 +111,18 @@ export default function HeatRiskScreen() {
               <Text style={styles.eyebrow}>HEAT GUARD · GUARDIAN</Text>
               <Text style={styles.title}>Heat Risk Prediction</Text>
             </View>
-            <Pressable
-              onPress={() => router.push("/heat/guardian")}
-              style={styles.teamBtn}
-              accessibilityRole="button"
-              accessibilityLabel="Switch to team view"
-              hitSlop={8}
-            >
-              <Icon name="users" size={14} color={Colors.text.primary} />
-              <Text style={styles.teamBtnText}>TEAM</Text>
-            </Pressable>
+            {guardianEnabled ? (
+              <Pressable
+                onPress={() => router.push("/heat/guardian")}
+                style={styles.teamBtn}
+                accessibilityRole="button"
+                accessibilityLabel="Switch to team view"
+                hitSlop={8}
+              >
+                <Icon name="users" size={14} color={Colors.text.primary} />
+                <Text style={styles.teamBtnText}>TEAM</Text>
+              </Pressable>
+            ) : null}
           </View>
 
           <Text style={styles.disclaimer}>

@@ -16,13 +16,14 @@ import {
   Platform,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
+import { Redirect, useRouter } from "expo-router";
 import { Icon, type IconName } from '../components/Icon';
 
 import { GradientBackground } from "@/components/GradientBackground";
 import { Colors } from "@/theme/colors";
 import { HEAT_BANDS } from "@/services/heatRiskEngine";
 import { buildMockAlertFeed, buildMockRoster } from "@/mocks/heatData";
+import { useAppStore } from "@/store/useAppStore";
 import type { HeatRiskBand, TeamHeatAlertState, TeamHeatAthlete } from "@/types/heat";
 
 const ALERT_RANK: Record<TeamHeatAlertState, number> = {
@@ -50,6 +51,16 @@ function bandColor(band: HeatRiskBand): string {
 export default function GuardianHeatScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  // Phase 9 — Feature lock. Hard route-level gate: a deep link or
+  // manual navigation to `/heat/guardian` is bounced back to the
+  // consumer `/heat` surface when `guardian_intelligence_enabled` is
+  // OFF (production default). Demo profile flips the flag ON and the
+  // route renders normally. This complements the entry-hiding done in
+  // profile.tsx and HeatRiskScreen so the surface is hidden at both
+  // the link and the destination. The early-return is intentionally
+  // placed AFTER all hooks below to satisfy the Rules of Hooks.
+  const { state } = useAppStore();
+  const guardianEnabled = state.featureFlags.guardian_intelligence_enabled;
 
   const roster = useMemo(() => buildMockRoster(), []);
   const alerts = useMemo(() => buildMockAlertFeed(), []);
@@ -71,6 +82,10 @@ export default function GuardianHeatScreen() {
   }, [roster]);
 
   const topPadding = Platform.OS === "web" ? 24 : insets.top;
+
+  if (!guardianEnabled) {
+    return <Redirect href={'/heat' as never} />;
+  }
 
   return (
     <View style={styles.root}>
