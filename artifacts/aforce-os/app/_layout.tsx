@@ -16,6 +16,7 @@ import React, { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { StatusBar } from 'expo-status-bar';
 import { ClerkProvider, ClerkLoaded } from '@clerk/expo';
 import { tokenCache } from '@clerk/expo/token-cache';
 import { Text, View } from 'react-native';
@@ -126,6 +127,13 @@ function InvestorDemoMount() {
 function AppShell() {
   return (
     <SafeAreaProvider>
+      {/* Phase 1 (Opening Screen Safe-Area Fix): force light system
+          status-bar glyphs (clock, battery, signal) on every screen so
+          they remain visible against the pure-black opening canvas
+          (splash + welcome) and every other dark surface. Without this
+          the default dark glyphs render invisibly against #000000 in
+          the top safe-area chrome zone. */}
+      <StatusBar style="light" />
       <ErrorBoundary>
         <QueryClientProvider client={queryClient}>
           <GestureHandlerRootView style={{ flex: 1 }}>
