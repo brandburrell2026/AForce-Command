@@ -36,6 +36,7 @@ import { CameraScanModal } from '@/components/CameraScanModal';
 import { AddDrinkModal } from '@/components/AddDrinkModal';
 import { SmartCaptureModal } from '@/components/SmartCaptureModal';
 import { WhyThisForYouCard } from '@/components/WhyThisForYouCard';
+import { SuperfoodSignalsCard } from '@/components/SuperfoodSignalsCard';
 import { derivePersonalizationSignals } from '@/utils/personalizationSignals';
 import { DRINK_CATEGORIES } from '@/data/drinkCatalog';
 import { Colors } from '@/theme/colors';
@@ -532,6 +533,12 @@ export default function HydrationScanScreen() {
                 <WhyThisForYouCard
                   personalization={result.recommendation.personalization}
                   accentColor={Colors.accent.primary}
+                />
+              )}
+
+              {result.recommendation.superfoodSignals && (
+                <SuperfoodSignalsCard
+                  block={result.recommendation.superfoodSignals}
                 />
               )}
 

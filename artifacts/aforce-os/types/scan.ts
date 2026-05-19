@@ -68,6 +68,19 @@ export interface ScanRecommendation {
    * when no pre-workout signal is detected.
    */
   supportiveNotes?: readonly string[];
+  /**
+   * Superfood Signals — surfaced when HydroScan recognizes an
+   * AForce product. Carries the "SUPERFOOD SIGNALS ACTIVE" header,
+   * five signal chips (Mineral / Recovery / Electrolyte Efficiency /
+   * Cellular Hydration / Performance), the "TAP TO LEARN WHY" CTA,
+   * the education layer (seamoss / dulse / chlorella / mineral
+   * support / balanced hydration support), the AForce positioning
+   * statement, and the canonical sodium-balance note. All copy
+   * lives in `utils/superfoodSignals.ts` and is guarded by a
+   * compliant-language regression test (no cures / treats /
+   * prevents-disease wording). Omitted for non-AForce scans.
+   */
+  superfoodSignals?: import('../utils/superfoodSignals').SuperfoodSignalsBlock;
 }
 
 export interface ScanResult {

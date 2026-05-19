@@ -19,6 +19,7 @@ import { COMPARE_PRODUCTS } from '../data/productDatabase';
 import { getDynamicCompareProduct } from './openFoodFactsService';
 import { derivePersonalizationSignals } from '../utils/personalizationSignals';
 import { preWorkoutSupportFor } from '../utils/preWorkoutSupport';
+import { buildSuperfoodSignalsBlock } from '../utils/superfoodSignals';
 import type { CompareInputs, CompareProduct, CompareResult } from '../types/comparison';
 import type { ScoreEngineOutput, UserState } from '../types';
 import type { ProfileIdentity } from '../utils/profileIdentity';
@@ -198,6 +199,15 @@ export async function scan(
   });
   if (supportive) {
     recommendation.supportiveNotes = supportive;
+  }
+  // Superfood Signals — when the scanned product is AForce, attach
+  // the "SUPERFOOD SIGNALS ACTIVE" block (5 chips + TAP TO LEARN WHY
+  // CTA + education entries + positioning + canonical sodium-balance
+  // note). All copy comes from utils/superfoodSignals.ts which is
+  // guarded by a compliant-language regression test.
+  const superfood = buildSuperfoodSignalsBlock({ isAForce: scanned.isAForce });
+  if (superfood) {
+    recommendation.superfoodSignals = superfood;
   }
   const efficiency = computeHydrationEfficiency(product);
   const result: ScanResult = {
