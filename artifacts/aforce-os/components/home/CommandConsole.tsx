@@ -16,6 +16,7 @@ import { StyleSheet, View } from 'react-native';
 
 import type { Command, PerformanceState } from '../../types';
 import { Colors } from '../../theme/colors';
+import { useFeatureFlags } from '../../store/useAppStore';
 import { AICommandCard } from '../AICommandCard';
 import { VoiceStatusModule } from '../VoiceStatusModule';
 
@@ -27,6 +28,7 @@ interface Props {
 
 function CommandConsoleImpl({ command, performanceState, accentOverride }: Props) {
   const color = accentOverride ?? performanceState.color;
+  const flags = useFeatureFlags();
   return (
     <View style={[styles.frame, { borderColor: `${color}30` }]} testID="command-console">
       <AICommandCard
@@ -35,7 +37,7 @@ function CommandConsoleImpl({ command, performanceState, accentOverride }: Props
         accentOverride={accentOverride}
         embedded
       />
-      <VoiceStatusModule embedded />
+      {flags.voice_status_module_visible && <VoiceStatusModule embedded />}
     </View>
   );
 }

@@ -36,6 +36,11 @@ export const DEFAULT_FLAGS: FeatureFlags = {
 
   // Enterprise — Cruise Mode (premium add-on)
   cruise_mode_enabled: false,
+
+  // UX — on-screen Voice Engine status footer. Hidden by default while we
+  // declutter the home surface; audio engine (ElevenLabs + Expo Speech),
+  // score-band triggers, and InvestorDemoOverlay all keep functioning.
+  voice_status_module_visible: false,
 };
 
 /**
@@ -58,6 +63,7 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
   team_competition_enabled: true,
   global_leaderboard_enabled: true,
   cruise_mode_enabled: true,
+  voice_status_module_visible: true,
 };
 
 export function isFlagEnabled(flags: FeatureFlags, key: keyof FeatureFlags): boolean {

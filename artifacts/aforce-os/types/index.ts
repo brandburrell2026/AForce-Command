@@ -478,6 +478,9 @@ export interface FeatureFlags {
 
   // Enterprise — Cruise Mode (premium add-on for cruise lines & guests)
   cruise_mode_enabled: boolean;
+
+  // UX — Voice Engine on-screen status module (audio engine itself is unaffected)
+  voice_status_module_visible: boolean;
 }
 
 // ─── Hydration Journal ────────────────────────────────────────────────────────
