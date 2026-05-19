@@ -77,49 +77,67 @@ function bestAforceFor(inputs: CompareInputs): CompareResult | undefined {
   return results[0];
 }
 
-function buildRecommendation(
+export function buildRecommendation(
   scanned: ScannedProduct,
   inputs: CompareInputs,
   selfFit: CompareResult,
   bestAforce: CompareResult | undefined,
 ): ScanRecommendation {
   const stateLabel = inputs.state.charAt(0) + inputs.state.slice(1).toLowerCase();
+  // Tone — AForce is positioned as system fuel / mineral recovery
+  // support / hydration efficiency support / performance amplifier.
+  // Headlines read as natural system observations, never as a
+  // hard sell. Recommended pour standardized at 12 oz water.
+
   // CASE 1: scanned product is AForce and already optimal → log it.
+  // Frame as "active system fuel" — the user is already on it.
   if (scanned.isAForce && selfFit.verdict === 'optimal') {
     return {
-      headline: `${scanned.productName} is optimal for your current state.`,
+      headline: `${scanned.productName} is active system fuel for your ${stateLabel} state.`,
       detail: selfFit.whyItFits,
-      command: `Take 1 ${scanned.productName} now with 16 ounces water. Recheck in 20 minutes.`,
+      command: `Pair with 12 oz water. Recheck in 20 minutes.`,
       shouldLog: true,
     };
   }
   // CASE 2: AForce alternative exists and outperforms.
+  // Lead with a system observation, then surface the recommended
+  // pairing — water + AForce as mineral recovery support.
   if (bestAforce && bestAforce.product.id !== scanned.productId && bestAforce.fitScore > selfFit.fitScore + 4) {
     return {
-      headline: `${bestAforce.product.name} is a stronger fit for your ${stateLabel} state.`,
+      headline: `Current intake may increase hydration demand.`,
       detail: bestAforce.whyItFits,
       aforceEquivalentId: bestAforce.product.id,
-      command: `Take 1 ${bestAforce.product.name} now with 16 ounces water. Recheck in 20 minutes.`,
+      command: `Recommended: 12 oz water + ${bestAforce.product.name} for mineral recovery support.`,
       shouldLog: false,
     };
   }
-  // CASE 3: scanned product is acceptable, no clearly stronger AForce upgrade.
-  if (selfFit.verdict === 'optimal' || selfFit.verdict === 'strong') {
+  // CASE 3: scanned product is acceptable, no clearly stronger
+  // AForce upgrade. Frame as supporting their current state; offer
+  // the standard 12 oz water pairing. Includes 'acceptable' so a
+  // workable-but-not-stellar product still gets the supportive
+  // framing, not the sub-par observation copy.
+  if (
+    selfFit.verdict === 'optimal' ||
+    selfFit.verdict === 'strong' ||
+    selfFit.verdict === 'acceptable'
+  ) {
     return {
-      headline: `${scanned.productName} fits your current state.`,
+      headline: `${scanned.productName} supports your ${stateLabel} state.`,
       detail: selfFit.whyItFits,
-      command: `Take 1 ${scanned.productName} now with 16 ounces water. Recheck in 20 minutes.`,
+      command: `Pair with 12 oz water. Recheck in 20 minutes.`,
       shouldLog: true,
     };
   }
-  // CASE 4: scanned product is sub-par, no AForce uplift available.
+  // CASE 4: scanned product is sub-par. Use the natural observation
+  // framing. When an AForce uplift exists, position it as hydration
+  // efficiency support; otherwise recommend water alone.
   return {
-    headline: `${scanned.productName} is not optimal for your current state.`,
+    headline: `Current intake may increase hydration demand.`,
     detail: selfFit.whyItFits,
     aforceEquivalentId: bestAforce?.product.id,
     command: bestAforce
-      ? `Take 1 ${bestAforce.product.name} now with 16 ounces water. Recheck in 20 minutes.`
-      : `Take 16 ounces water now. Recheck in 20 minutes.`,
+      ? `Recommended: 12 oz water + ${bestAforce.product.name} for hydration efficiency support.`
+      : `Recommended: 12 oz water. Recheck in 20 minutes.`,
     shouldLog: false,
   };
 }
