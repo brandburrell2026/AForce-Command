@@ -456,11 +456,17 @@ export default function ProfileScreen() {
 
             const inviteCode = referralQ.data?.code ?? null;
             const inviteClaims = referralQ.data?.totalClaims ?? 0;
+            const inviteTier = referralQ.data?.tier ?? null;
+            const inviteNextTier = referralQ.data?.nextTier ?? null;
+            const inviteClaimsToNext = referralQ.data?.claimsToNextTier ?? 0;
             const inviteSubtitle = inviteCode == null
               ? 'Issuing your code…'
               : inviteClaims === 0
                 ? 'No one on board yet. Be the first to recruit.'
                 : `${inviteClaims} ${inviteClaims === 1 ? 'operator' : 'operators'} on board.`;
+            const inviteProgressLine = inviteNextTier
+              ? `${inviteClaimsToNext} more to ${inviteNextTier.label}`
+              : 'Top of the boards — General rank.';
             const handleShareInvite = async () => {
               if (!inviteCode) return;
               hapticSelection();
@@ -470,10 +476,19 @@ export default function ProfileScreen() {
                 url: 'https://aforce.app',
               });
             };
+            const handleViewLeaderboard = () => {
+              hapticSelection();
+              router.push('/leaderboard');
+            };
             const inviteCard = (
               <>
                 <SectionHeader label="INVITE" hint="Recruit operators to AForce OS" />
                 <View style={[styles.card, styles.inviteCard]}>
+                  {inviteTier ? (
+                    <View style={styles.inviteTierBadge} testID="profile-invite-tier">
+                      <Text style={styles.inviteTierLabel}>{inviteTier.label.toUpperCase()}</Text>
+                    </View>
+                  ) : null}
                   <Text style={styles.inviteEyebrow}>YOUR CODE</Text>
                   <Text
                     style={styles.inviteCodeText}
@@ -485,6 +500,9 @@ export default function ProfileScreen() {
                     {inviteCode ?? '— — — —'}
                   </Text>
                   <Text style={styles.inviteSubtitle}>{inviteSubtitle}</Text>
+                  <Text style={styles.inviteProgress} testID="profile-invite-progress">
+                    {inviteProgressLine}
+                  </Text>
                   <Pressable
                     onPress={handleShareInvite}
                     disabled={!inviteCode}
@@ -499,6 +517,19 @@ export default function ProfileScreen() {
                   >
                     <Icon name="send" size={14} color="#0A0A0F" />
                     <Text style={styles.inviteShareLabel}>SHARE INVITE</Text>
+                  </Pressable>
+                  <Pressable
+                    onPress={handleViewLeaderboard}
+                    style={({ pressed }) => [
+                      styles.inviteLeaderboardBtn,
+                      pressed && styles.inviteLeaderboardBtnPressed,
+                    ]}
+                    accessibilityRole="button"
+                    accessibilityLabel="View recruiters leaderboard"
+                    testID="profile-invite-leaderboard"
+                  >
+                    <Text style={styles.inviteLeaderboardLabel}>VIEW LEADERBOARD</Text>
+                    <Icon name="chevron-right" size={14} color={Colors.text.primary} />
                   </Pressable>
                 </View>
               </>
@@ -1790,6 +1821,28 @@ const styles = StyleSheet.create({
   inviteShareBtnPressed: { opacity: 0.85 },
   inviteShareLabel: {
     fontFamily: 'Inter_700Bold', fontSize: 12, color: '#0A0A0F', letterSpacing: 1.5,
+  },
+  inviteTierBadge: {
+    paddingVertical: 4, paddingHorizontal: 10, borderRadius: 999,
+    borderWidth: 1, borderColor: Colors.accent.primary,
+    backgroundColor: 'rgba(182,255,0,0.08)', marginBottom: 4,
+  },
+  inviteTierLabel: {
+    fontFamily: 'Inter_700Bold', fontSize: 10, letterSpacing: 2,
+    color: Colors.accent.primary,
+  },
+  inviteProgress: {
+    fontFamily: 'Inter_500Medium', fontSize: 11, letterSpacing: 1.2,
+    color: Colors.text.muted, marginTop: 2, textTransform: 'uppercase',
+  },
+  inviteLeaderboardBtn: {
+    marginTop: 12, paddingVertical: 8, paddingHorizontal: 14,
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+  },
+  inviteLeaderboardBtnPressed: { opacity: 0.6 },
+  inviteLeaderboardLabel: {
+    fontFamily: 'Inter_700Bold', fontSize: 11, letterSpacing: 1.8,
+    color: Colors.text.primary,
   },
   settingRow: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',

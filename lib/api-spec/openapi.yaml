@@ -95,6 +95,28 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /referrals/leaderboard:
+    get:
+      operationId: getReferralLeaderboard
+      tags: [referrals]
+      summary: Top recruiters + the caller's rank
+      description: >
+        Returns the top recruiters by total claims (anonymous handles
+        only — no PII) plus the caller's own rank if they have ranked.
+        Auth required.
+      responses:
+        "200":
+          description: Leaderboard
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReferralLeaderboard"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 components:
   schemas:
     HealthStatus:
@@ -111,6 +133,24 @@ components:
           type: string
       required:
         - error
+    ReferralTier:
+      type: object
+      description: A rung on the recruiter ladder (social-only, no entitlements).
+      properties:
+        id:
+          type: string
+          enum: [recruit, operator, captain, commander, general]
+        label:
+          type: string
+          description: Display label (e.g. "Captain")
+        claimsRequired:
+          type: integer
+          minimum: 0
+          description: Minimum total claims to reach this tier
+      required:
+        - id
+        - label
+        - claimsRequired
     ReferralInfo:
       type: object
       properties:
@@ -123,9 +163,68 @@ components:
           type: integer
           minimum: 0
           description: Count of users who have signed up using this code
+        handle:
+          type: string
+          description: >
+            Anonymous public handle derived from the invite code
+            (e.g. "Operator GQ55"). Stable per user, zero PII.
+        tier:
+          $ref: "#/components/schemas/ReferralTier"
+        nextTier:
+          $ref: "#/components/schemas/ReferralTier"
+        claimsToNextTier:
+          type: integer
+          minimum: 0
+          description: Claims remaining to reach next tier; 0 at top tier
       required:
         - code
         - totalClaims
+        - handle
+        - tier
+        - claimsToNextTier
+    ReferralLeaderboardEntry:
+      type: object
+      properties:
+        handle:
+          type: string
+        tier:
+          $ref: "#/components/schemas/ReferralTier"
+        claims:
+          type: integer
+          minimum: 0
+        rank:
+          type: integer
+          minimum: 1
+        isYou:
+          type: boolean
+      required:
+        - handle
+        - tier
+        - claims
+        - rank
+        - isYou
+    ReferralLeaderboard:
+      type: object
+      properties:
+        entries:
+          type: array
+          items:
+            $ref: "#/components/schemas/ReferralLeaderboardEntry"
+        yourRank:
+          type: integer
+          minimum: 0
+          description: 1-indexed rank; 0 means unranked (no claims yet)
+        yourClaims:
+          type: integer
+          minimum: 0
+        totalParticipants:
+          type: integer
+          minimum: 0
+      required:
+        - entries
+        - yourRank
+        - yourClaims
+        - totalParticipants
     ReferralClaimInput:
       type: object
       properties:

@@ -11,3 +11,7 @@ export * from "./healthStatus";
 export * from "./referralClaimInput";
 export * from "./referralClaimResult";
 export * from "./referralInfo";
+export * from "./referralLeaderboard";
+export * from "./referralLeaderboardEntry";
+export * from "./referralTier";
+export * from "./referralTierId";

@@ -25,6 +25,12 @@ export const getMyReferralInfoResponseCodeMax = 16;
 
 export const getMyReferralInfoResponseTotalClaimsMin = 0;
 
+export const getMyReferralInfoResponseTierClaimsRequiredMin = 0;
+
+export const getMyReferralInfoResponseNextTierClaimsRequiredMin = 0;
+
+export const getMyReferralInfoResponseClaimsToNextTierMin = 0;
+
 export const GetMyReferralInfoResponse = zod.object({
   code: zod
     .string()
@@ -35,6 +41,36 @@ export const GetMyReferralInfoResponse = zod.object({
     .number()
     .min(getMyReferralInfoResponseTotalClaimsMin)
     .describe("Count of users who have signed up using this code"),
+  handle: zod
+    .string()
+    .describe(
+      'Anonymous public handle derived from the invite code (e.g. \"Operator GQ55\"). Stable per user, zero PII.\n',
+    ),
+  tier: zod
+    .object({
+      id: zod.enum(["recruit", "operator", "captain", "commander", "general"]),
+      label: zod.string().describe('Display label (e.g. \"Captain\")'),
+      claimsRequired: zod
+        .number()
+        .min(getMyReferralInfoResponseTierClaimsRequiredMin)
+        .describe("Minimum total claims to reach this tier"),
+    })
+    .describe("A rung on the recruiter ladder (social-only, no entitlements)."),
+  nextTier: zod
+    .object({
+      id: zod.enum(["recruit", "operator", "captain", "commander", "general"]),
+      label: zod.string().describe('Display label (e.g. \"Captain\")'),
+      claimsRequired: zod
+        .number()
+        .min(getMyReferralInfoResponseNextTierClaimsRequiredMin)
+        .describe("Minimum total claims to reach this tier"),
+    })
+    .optional()
+    .describe("A rung on the recruiter ladder (social-only, no entitlements)."),
+  claimsToNextTier: zod
+    .number()
+    .min(getMyReferralInfoResponseClaimsToNextTierMin)
+    .describe("Claims remaining to reach next tier; 0 at top tier"),
 });
 
 /**
@@ -56,4 +92,58 @@ export const ClaimReferralBody = zod.object({
 export const ClaimReferralResponse = zod.object({
   ok: zod.boolean(),
   referrerUserId: zod.string(),
+});
+
+/**
+ * Returns the top recruiters by total claims (anonymous handles only — no PII) plus the caller's own rank if they have ranked. Auth required.
+
+ * @summary Top recruiters + the caller's rank
+ */
+export const getReferralLeaderboardResponseEntriesItemTierClaimsRequiredMin = 0;
+
+export const getReferralLeaderboardResponseEntriesItemClaimsMin = 0;
+
+export const getReferralLeaderboardResponseYourRankMin = 0;
+
+export const getReferralLeaderboardResponseYourClaimsMin = 0;
+
+export const getReferralLeaderboardResponseTotalParticipantsMin = 0;
+
+export const GetReferralLeaderboardResponse = zod.object({
+  entries: zod.array(
+    zod.object({
+      handle: zod.string(),
+      tier: zod
+        .object({
+          id: zod.enum([
+            "recruit",
+            "operator",
+            "captain",
+            "commander",
+            "general",
+          ]),
+          label: zod.string().describe('Display label (e.g. \"Captain\")'),
+          claimsRequired: zod
+            .number()
+            .min(getReferralLeaderboardResponseEntriesItemTierClaimsRequiredMin)
+            .describe("Minimum total claims to reach this tier"),
+        })
+        .describe(
+          "A rung on the recruiter ladder (social-only, no entitlements).",
+        ),
+      claims: zod
+        .number()
+        .min(getReferralLeaderboardResponseEntriesItemClaimsMin),
+      rank: zod.number().min(1),
+      isYou: zod.boolean(),
+    }),
+  ),
+  yourRank: zod
+    .number()
+    .min(getReferralLeaderboardResponseYourRankMin)
+    .describe("1-indexed rank; 0 means unranked (no claims yet)"),
+  yourClaims: zod.number().min(getReferralLeaderboardResponseYourClaimsMin),
+  totalParticipants: zod
+    .number()
+    .min(getReferralLeaderboardResponseTotalParticipantsMin),
 });

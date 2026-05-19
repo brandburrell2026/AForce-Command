@@ -22,6 +22,7 @@ import type {
   ReferralClaimInput,
   ReferralClaimResult,
   ReferralInfo,
+  ReferralLeaderboard,
 } from "./api.schemas";
 
 import { customFetch } from "../custom-fetch";
@@ -273,3 +274,81 @@ export const useClaimReferral = <
 > => {
   return useMutation(getClaimReferralMutationOptions(options));
 };
+
+/**
+ * Returns the top recruiters by total claims (anonymous handles only — no PII) plus the caller's own rank if they have ranked. Auth required.
+
+ * @summary Top recruiters + the caller's rank
+ */
+export const getGetReferralLeaderboardUrl = () => {
+  return `/api/referrals/leaderboard`;
+};
+
+export const getReferralLeaderboard = async (
+  options?: RequestInit,
+): Promise<ReferralLeaderboard> => {
+  return customFetch<ReferralLeaderboard>(getGetReferralLeaderboardUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetReferralLeaderboardQueryKey = () => {
+  return [`/api/referrals/leaderboard`] as const;
+};
+
+export const getGetReferralLeaderboardQueryOptions = <
+  TData = Awaited<ReturnType<typeof getReferralLeaderboard>>,
+  TError = ErrorType<ErrorResponse>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getReferralLeaderboard>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetReferralLeaderboardQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getReferralLeaderboard>>
+  > = ({ signal }) => getReferralLeaderboard({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getReferralLeaderboard>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetReferralLeaderboardQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getReferralLeaderboard>>
+>;
+export type GetReferralLeaderboardQueryError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Top recruiters + the caller's rank
+ */
+
+export function useGetReferralLeaderboard<
+  TData = Awaited<ReturnType<typeof getReferralLeaderboard>>,
+  TError = ErrorType<ErrorResponse>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getReferralLeaderboard>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetReferralLeaderboardQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}

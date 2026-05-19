@@ -5,6 +5,7 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+import type { ReferralTier } from "./referralTier";
 
 export interface ReferralInfo {
   /**
@@ -18,4 +19,14 @@ export interface ReferralInfo {
    * @minimum 0
    */
   totalClaims: number;
+  /** Anonymous public handle derived from the invite code (e.g. "Operator GQ55"). Stable per user, zero PII.
+   */
+  handle: string;
+  tier: ReferralTier;
+  nextTier?: ReferralTier;
+  /**
+   * Claims remaining to reach next tier; 0 at top tier
+   * @minimum 0
+   */
+  claimsToNextTier: number;
 }

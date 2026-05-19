@@ -24,9 +24,18 @@ import {
   GetMyReferralInfoResponse,
   ClaimReferralBody,
   ClaimReferralResponse,
+  GetReferralLeaderboardResponse,
 } from "@workspace/api-zod";
 import { requireAuth } from "../middlewares/requireAuth";
 import { DEFAULT_USER_ID } from "../lib/aforceState";
+import {
+  tierFor,
+  nextTierFor,
+  claimsToNextTier,
+  handleForCode,
+} from "../lib/referralTiers";
+
+const LEADERBOARD_TOP_N = 100;
 
 const router: IRouter = Router();
 
@@ -116,10 +125,117 @@ router.get("/me", async (req, res): Promise<void> => {
       .from(aforceReferralClaims)
       .where(eq(aforceReferralClaims.referrerUserId, userId));
     const totalClaims = row?.n ?? 0;
-    res.json(GetMyReferralInfoResponse.parse({ code, totalClaims }));
+    const tier = tierFor(totalClaims);
+    const nextTier = nextTierFor(totalClaims);
+    res.json(
+      GetMyReferralInfoResponse.parse({
+        code,
+        totalClaims,
+        handle: handleForCode(code),
+        tier,
+        ...(nextTier ? { nextTier } : {}),
+        claimsToNextTier: claimsToNextTier(totalClaims),
+      }),
+    );
   } catch (err) {
     req.log.error({ err }, "GET /referrals/me failed");
     res.status(500).json({ error: "referral_info_failed" });
+  }
+});
+
+// ─── GET /leaderboard ─────────────────────────────────────────────────────────
+//
+// Anonymous: every recruiter is shown as "Operator XXXX" derived from
+// their invite code (handleForCode). No PII (no email, no Clerk name).
+// The caller's own row carries isYou=true so the client can highlight
+// it; if the caller is unranked (0 claims) we report yourRank=0.
+router.get("/leaderboard", async (req, res): Promise<void> => {
+  const userId = resolveUserId(req);
+  try {
+    await ensureUserRow(userId);
+
+    // Top N recruiters with dense_rank — ties share a rank, the next
+    // bracket increments by 1 (so a 3-way tie at #1 is followed by #2,
+    // not #4). This matches how leaderboards typically read socially.
+    const topRows = await db.execute<{
+      user_id: string;
+      referral_code: string | null;
+      claims: number;
+      rank: number;
+    }>(sql`
+      SELECT
+        u.id            AS user_id,
+        u.referral_code AS referral_code,
+        c.claims        AS claims,
+        DENSE_RANK() OVER (ORDER BY c.claims DESC)::int AS rank
+      FROM (
+        SELECT referrer_user_id, COUNT(*)::int AS claims
+        FROM aforce_referral_claims
+        GROUP BY referrer_user_id
+      ) c
+      JOIN aforce_users u ON u.id = c.referrer_user_id
+      ORDER BY c.claims DESC, u.id ASC
+      LIMIT ${LEADERBOARD_TOP_N}
+    `);
+
+    const entries = topRows.rows.map((r) => ({
+      handle: handleForCode(r.referral_code),
+      tier: tierFor(r.claims),
+      claims: r.claims,
+      rank: r.rank,
+      isYou: r.user_id === userId,
+    }));
+
+    // Total number of users with at least 1 claim (the denominator).
+    const [totalRow] = await db
+      .select({ n: sql<number>`count(distinct referrer_user_id)::int` })
+      .from(aforceReferralClaims);
+    const totalParticipants = totalRow?.n ?? 0;
+
+    // Caller's own claim count + rank. Rank uses the same DENSE_RANK
+    // ordering as the leaderboard for consistency. yourRank=0 means
+    // the caller has 0 claims and is therefore not yet ranked.
+    const [meRow] = await db
+      .select({ n: sql<number>`count(*)::int` })
+      .from(aforceReferralClaims)
+      .where(eq(aforceReferralClaims.referrerUserId, userId));
+    const yourClaims = meRow?.n ?? 0;
+
+    let yourRank = 0;
+    if (yourClaims > 0) {
+      const fromTop = entries.find((e) => e.isYou);
+      if (fromTop) {
+        yourRank = fromTop.rank;
+      } else {
+        // Dense rank: count DISTINCT claim values above the caller so
+        // off-board ranks match the DENSE_RANK ordering used in the
+        // top-N query (ties share a rank, no gaps).
+        const rankRes = await db.execute<{ rank: number }>(sql`
+          SELECT (
+            1 + COUNT(DISTINCT c.claims)
+          )::int AS rank
+          FROM (
+            SELECT referrer_user_id, COUNT(*)::int AS claims
+            FROM aforce_referral_claims
+            GROUP BY referrer_user_id
+          ) c
+          WHERE c.claims > ${yourClaims}
+        `);
+        yourRank = rankRes.rows[0]?.rank ?? 0;
+      }
+    }
+
+    res.json(
+      GetReferralLeaderboardResponse.parse({
+        entries,
+        yourRank,
+        yourClaims,
+        totalParticipants,
+      }),
+    );
+  } catch (err) {
+    req.log.error({ err }, "GET /referrals/leaderboard failed");
+    res.status(500).json({ error: "referral_leaderboard_failed" });
   }
 });
 
