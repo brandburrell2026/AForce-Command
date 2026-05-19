@@ -40,14 +40,25 @@ import {
   BIOLOGICAL_SEX_OPTIONS,
   HEIGHT_CM_MAX,
   HEIGHT_CM_MIN,
+  RECOVERY_GOALS,
   WEIGHT_LBS_MAX,
   WEIGHT_LBS_MIN,
   type BiologicalSex,
   type ProfileIdentity,
+  type RecoveryGoal,
 } from '../utils/profileIdentity';
 import type { AuraState } from '../types';
 
 const FIELD_MAX_LEN = 48;
+const AVATAR_URI_MAX_LEN = 2048;
+
+const RECOVERY_GOAL_COLOR: Record<RecoveryGoal, string> = {
+  PERFORMANCE: Colors.states.PEAK.primary,
+  RECOVERY: Colors.states.RECOVERING.primary,
+  ENDURANCE: Colors.accent.secondary,
+  BALANCE: Colors.states.BALANCED.primary,
+  LONGEVITY: Colors.text.secondary,
+};
 
 const AURA_COLOR: Record<AuraState, string> = {
   IGNITE: Colors.states.DEPLETED.primary,
@@ -64,13 +75,21 @@ const SEX_LABEL: Record<BiologicalSex, string> = {
 };
 
 interface TextFieldSpec {
-  key: 'nickname' | 'city' | 'country' | 'teamCircle' | 'territoryBadge';
+  key: 'displayName' | 'nickname' | 'city' | 'country' | 'teamCircle' | 'territoryBadge';
   label: string;
   placeholder: string;
   autoCapitalize: 'none' | 'words' | 'characters';
+  hint?: string;
 }
 
 const TEXT_FIELDS: readonly TextFieldSpec[] = [
+  {
+    key: 'displayName',
+    label: 'Display Name',
+    placeholder: 'Coach Rock',
+    autoCapitalize: 'words',
+    hint: 'Real name or alias — your call. Leave empty to use your sign-in name.',
+  },
   { key: 'nickname', label: 'Handle', placeholder: 'MiamiPulse', autoCapitalize: 'none' },
   { key: 'city', label: 'City', placeholder: 'Miami', autoCapitalize: 'words' },
   { key: 'country', label: 'Country', placeholder: 'USA', autoCapitalize: 'characters' },
@@ -156,13 +175,29 @@ export function EditProfileModal({ visible, initialValue, onClose, onSave }: Pro
       if (rounded < min || rounded > max) return null;
       return rounded;
     };
+    // Avatar URI: drop unknown schemes on save so the modal can't
+    // persist a hostile <Image> source even if the sanitiser is
+    // later relaxed. Mirrors the rules in `asAvatarUri`.
+    const safeAvatar = (() => {
+      const raw = draft.avatarUri.trim();
+      if (raw.length === 0 || raw.length > AVATAR_URI_MAX_LEN) return '';
+      const lower = raw.toLowerCase();
+      const ok =
+        lower.startsWith('https://') ||
+        lower.startsWith('http://') ||
+        lower.startsWith('data:image/');
+      return ok ? raw : '';
+    })();
     const sanitized: ProfileIdentity = {
+      displayName: draft.displayName.trim(),
       nickname: draft.nickname.trim(),
+      avatarUri: safeAvatar,
       city: draft.city.trim(),
       country: draft.country.trim(),
       teamCircle: draft.teamCircle.trim(),
       territoryBadge: draft.territoryBadge.trim(),
       auraState: draft.auraState,
+      recoveryGoal: draft.recoveryGoal,
       bodyWeightLbs: coerceNumeric(numericText.bodyWeightLbs, WEIGHT_LBS_MIN, WEIGHT_LBS_MAX),
       heightCm: coerceNumeric(numericText.heightCm, HEIGHT_CM_MIN, HEIGHT_CM_MAX),
       birthYear: coerceNumeric(numericText.birthYear, 1900, new Date().getFullYear()),
@@ -203,6 +238,26 @@ export function EditProfileModal({ visible, initialValue, onClose, onSave }: Pro
             contentContainerStyle={styles.bodyContent}
             keyboardShouldPersistTaps="handled"
           >
+            <View style={styles.field}>
+              <Text style={styles.fieldLabel}>AVATAR IMAGE URL</Text>
+              <TextInput
+                value={draft.avatarUri}
+                onChangeText={(t) => setField('avatarUri', t)}
+                placeholder="https://… or data:image/…"
+                placeholderTextColor={Colors.text.muted}
+                maxLength={AVATAR_URI_MAX_LEN}
+                autoCapitalize="none"
+                autoCorrect={false}
+                keyboardType="url"
+                style={styles.input}
+                accessibilityLabel="Avatar image URL"
+                testID="edit-profile-avatarUri"
+              />
+              <Text style={styles.hint}>
+                Paste an https:// link or a data:image/ URI. Other schemes are dropped on save.
+              </Text>
+            </View>
+
             {TEXT_FIELDS.map((field) => (
               <View key={field.key} style={styles.field}>
                 <Text style={styles.fieldLabel}>{field.label.toUpperCase()}</Text>
@@ -216,7 +271,9 @@ export function EditProfileModal({ visible, initialValue, onClose, onSave }: Pro
                   autoCorrect={false}
                   style={styles.input}
                   accessibilityLabel={field.label}
+                  testID={`edit-profile-${field.key}`}
                 />
+                {field.hint ? <Text style={styles.hint}>{field.hint}</Text> : null}
               </View>
             ))}
 
@@ -286,6 +343,45 @@ export function EditProfileModal({ visible, initialValue, onClose, onSave }: Pro
             </View>
 
             <View style={styles.sectionDivider} />
+            <View style={styles.field}>
+              <Text style={styles.fieldLabel}>RECOVERY GOAL</Text>
+              <View style={styles.auraRow}>
+                {RECOVERY_GOALS.map((goal) => {
+                  const selected = draft.recoveryGoal === goal;
+                  const color = RECOVERY_GOAL_COLOR[goal];
+                  return (
+                    <Pressable
+                      key={goal}
+                      onPress={() => {
+                        Haptics.selectionAsync().catch(() => {});
+                        setField('recoveryGoal', goal);
+                      }}
+                      style={[
+                        styles.auraOption,
+                        selected && {
+                          backgroundColor: `${color}22`,
+                          borderColor: color,
+                        },
+                      ]}
+                      accessibilityRole="button"
+                      accessibilityState={{ selected }}
+                      accessibilityLabel={`Recovery goal ${goal}`}
+                      testID={`edit-profile-recoveryGoal-${goal}`}
+                    >
+                      <Text
+                        style={[
+                          styles.auraLabel,
+                          { color: selected ? color : Colors.text.secondary },
+                        ]}
+                      >
+                        {goal}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </View>
+
             <View style={styles.field}>
               <Text style={styles.fieldLabel}>AURA</Text>
               <View style={styles.auraRow}>
@@ -430,6 +526,13 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontFamily: 'Inter_500Medium',
     color: Colors.text.primary,
+  },
+  hint: {
+    fontSize: 11,
+    fontFamily: 'Inter_400Regular',
+    color: Colors.text.muted,
+    marginTop: 6,
+    lineHeight: 15,
   },
   auraRow: {
     flexDirection: 'row',

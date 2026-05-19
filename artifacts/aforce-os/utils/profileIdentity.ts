@@ -29,9 +29,39 @@ import type { AuraState } from '../types';
 
 export type BiologicalSex = 'male' | 'female' | 'unspecified';
 
+/**
+ * Recovery goal — what the athlete is optimizing for. Drives chip copy
+ * on the premium identity card and (in future slices) tunes the
+ * recovery-window math and AI coach voice scope.
+ *
+ * Order is the on-screen order in the editor's segmented control —
+ * keep PERFORMANCE first (most aggressive) through LONGEVITY (most
+ * sustainable) so the gradient reads intuitively.
+ */
+export type RecoveryGoal =
+  | 'PERFORMANCE'
+  | 'RECOVERY'
+  | 'ENDURANCE'
+  | 'BALANCE'
+  | 'LONGEVITY';
+
 export interface ProfileIdentity {
+  /**
+   * Display name shown as the primary headline on the identity card.
+   * EMPTY string means "use the Clerk-provided name". This is the
+   * "real name OR nickname" toggle — users can override their Clerk
+   * full name with something like "Coach Rock" or "SurgeKing".
+   */
+  displayName: string;
   /** Short alias / handle shown under the display name (e.g. "MiamiPulse"). */
   nickname: string;
+  /**
+   * Avatar image URI. Empty string means "fall back to the initial
+   * bubble". Accepts http(s):// or data: URIs; other schemes are
+   * dropped by the sanitiser so a hostile payload can't redirect the
+   * `<Image>` source to file://, javascript:, etc.
+   */
+  avatarUri: string;
   /** City or territory the user reps (e.g. "Miami"). */
   city: string;
   /** Country (display name, e.g. "USA"). */
@@ -42,6 +72,8 @@ export interface ProfileIdentity {
   territoryBadge: string;
   /** User-selected aura mode — see `AURA_STATES` for the canonical set. */
   auraState: AuraState;
+  /** What the athlete is optimizing for — see `RECOVERY_GOALS`. */
+  recoveryGoal: RecoveryGoal;
   // ── BODY MODEL (Slice 2) ────────────────────────────────────────
   /** Body weight in lbs. `null` = not set; engine falls back to its default. */
   bodyWeightLbs: number | null;
@@ -77,6 +109,15 @@ export const BIOLOGICAL_SEX_OPTIONS: readonly BiologicalSex[] = [
   'unspecified',
 ] as const;
 
+/** Canonical recovery-goal options, in display order. */
+export const RECOVERY_GOALS: readonly RecoveryGoal[] = [
+  'PERFORMANCE',
+  'RECOVERY',
+  'ENDURANCE',
+  'BALANCE',
+  'LONGEVITY',
+] as const;
+
 /**
  * Empty defaults so the card degrades to "no chip rendered" rather
  * than literal whitespace. Body-model fields default to null so the
@@ -84,12 +125,15 @@ export const BIOLOGICAL_SEX_OPTIONS: readonly BiologicalSex[] = [
  * of guessing.
  */
 export const DEFAULT_PROFILE_IDENTITY: ProfileIdentity = {
+  displayName: '',
   nickname: '',
+  avatarUri: '',
   city: '',
   country: '',
   teamCircle: '',
   territoryBadge: '',
   auraState: 'FLOW',
+  recoveryGoal: 'BALANCE',
   bodyWeightLbs: null,
   heightCm: null,
   birthYear: null,
@@ -98,6 +142,8 @@ export const DEFAULT_PROFILE_IDENTITY: ProfileIdentity = {
 
 /** Hard cap so a runaway paste can't blow out the chip strip layout. */
 const MAX_FIELD_LENGTH = 48;
+/** Avatar URIs can legitimately be long (data: URIs, signed URLs). */
+const MAX_AVATAR_URI_LENGTH = 2048;
 
 // ── BODY MODEL ranges ─────────────────────────────────────────────
 // Hard guardrails so a bad keypress or corrupted payload can't push
@@ -127,6 +173,34 @@ function isAura(v: unknown): v is AuraState {
 
 function isBiologicalSex(v: unknown): v is BiologicalSex {
   return v === 'male' || v === 'female' || v === 'unspecified';
+}
+
+function isRecoveryGoal(v: unknown): v is RecoveryGoal {
+  return (
+    v === 'PERFORMANCE' ||
+    v === 'RECOVERY' ||
+    v === 'ENDURANCE' ||
+    v === 'BALANCE' ||
+    v === 'LONGEVITY'
+  );
+}
+
+/**
+ * Whitelist avatar URI schemes. Only http(s):// and data: image URIs
+ * are accepted; anything else (file://, javascript:, ftp:, etc.) is
+ * dropped to empty so a hostile payload can't redirect the avatar
+ * <Image> source. Empty string = "no avatar, fall back to initial".
+ */
+function asAvatarUri(v: unknown): string {
+  if (typeof v !== 'string') return '';
+  const cleaned = v.replace(/[\u0000-\u001F\u007F]/g, '').trim();
+  if (cleaned.length === 0 || cleaned.length > MAX_AVATAR_URI_LENGTH) return '';
+  const lower = cleaned.toLowerCase();
+  const okScheme =
+    lower.startsWith('https://') ||
+    lower.startsWith('http://') ||
+    lower.startsWith('data:image/');
+  return okScheme ? cleaned : '';
 }
 
 function asTrimmedString(v: unknown, fallback: string): string {
@@ -161,7 +235,9 @@ export function sanitizeProfileIdentity(raw: unknown): ProfileIdentity {
   if (!raw || typeof raw !== 'object') return { ...DEFAULT_PROFILE_IDENTITY };
   const r = raw as Record<string, unknown>;
   return {
+    displayName: asTrimmedString(r.displayName, DEFAULT_PROFILE_IDENTITY.displayName),
     nickname: asTrimmedString(r.nickname, DEFAULT_PROFILE_IDENTITY.nickname),
+    avatarUri: asAvatarUri(r.avatarUri),
     city: asTrimmedString(r.city, DEFAULT_PROFILE_IDENTITY.city),
     country: asTrimmedString(r.country, DEFAULT_PROFILE_IDENTITY.country),
     teamCircle: asTrimmedString(r.teamCircle, DEFAULT_PROFILE_IDENTITY.teamCircle),
@@ -170,6 +246,9 @@ export function sanitizeProfileIdentity(raw: unknown): ProfileIdentity {
       DEFAULT_PROFILE_IDENTITY.territoryBadge,
     ),
     auraState: isAura(r.auraState) ? r.auraState : DEFAULT_PROFILE_IDENTITY.auraState,
+    recoveryGoal: isRecoveryGoal(r.recoveryGoal)
+      ? r.recoveryGoal
+      : DEFAULT_PROFILE_IDENTITY.recoveryGoal,
     bodyWeightLbs: asClampedNumber(r.bodyWeightLbs, WEIGHT_LBS_MIN, WEIGHT_LBS_MAX),
     heightCm: asClampedNumber(r.heightCm, HEIGHT_CM_MIN, HEIGHT_CM_MAX),
     birthYear: asBirthYear(r.birthYear),

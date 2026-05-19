@@ -64,12 +64,15 @@ describe('store · profileIdentity slice', () => {
       profileIdentity: { ...DEFAULT_PROFILE_IDENTITY, nickname: 'Stale' },
     });
     const fresh = {
+      displayName: 'Coach Rock',
       nickname: 'Fresh',
+      avatarUri: '',
       city: 'NYC',
       country: 'USA',
       teamCircle: '',
       territoryBadge: '',
       auraState: 'APEX' as const,
+      recoveryGoal: 'PERFORMANCE' as const,
       bodyWeightLbs: 170,
       heightCm: 180,
       birthYear: 1990,
@@ -151,12 +154,15 @@ describe('utils · sanitizeProfileIdentity', () => {
 
   it('round-trips a fully-valid payload', () => {
     const payload = {
+      displayName: 'Coach Rock',
       nickname: 'MiamiPulse',
+      avatarUri: 'https://cdn.example.com/me.jpg',
       city: 'Miami',
       country: 'USA',
       teamCircle: 'South Beach Run Club',
       territoryBadge: 'MIAMI HEAT ZONE',
       auraState: 'FLOW' as const,
+      recoveryGoal: 'PERFORMANCE' as const,
       bodyWeightLbs: 175,
       heightCm: 180,
       birthYear: 1990,
@@ -175,17 +181,66 @@ describe('utils · sanitizeProfileIdentity', () => {
       auraState: 'INVALID',
     });
     expect(result).toEqual({
+      displayName: '',
       nickname: '',
+      avatarUri: '',
       city: 'Miami',
       country: '',
       teamCircle: '',
       territoryBadge: '',
       auraState: 'FLOW',
+      recoveryGoal: 'BALANCE',
       bodyWeightLbs: null,
       heightCm: null,
       birthYear: null,
       biologicalSex: 'unspecified',
     });
+  });
+
+  it('accepts every canonical recovery goal', () => {
+    for (const goal of ['PERFORMANCE', 'RECOVERY', 'ENDURANCE', 'BALANCE', 'LONGEVITY'] as const) {
+      const result = sanitizeProfileIdentity({ recoveryGoal: goal });
+      expect(result.recoveryGoal).toBe(goal);
+    }
+  });
+
+  it('falls back to BALANCE recovery goal for invalid values', () => {
+    expect(sanitizeProfileIdentity({ recoveryGoal: 'WINNING' }).recoveryGoal).toBe('BALANCE');
+    expect(sanitizeProfileIdentity({ recoveryGoal: 42 }).recoveryGoal).toBe('BALANCE');
+    expect(sanitizeProfileIdentity({ recoveryGoal: null }).recoveryGoal).toBe('BALANCE');
+  });
+
+  it('accepts https / http / data:image avatar URIs', () => {
+    expect(sanitizeProfileIdentity({ avatarUri: 'https://cdn.example.com/a.png' }).avatarUri).toBe(
+      'https://cdn.example.com/a.png',
+    );
+    expect(sanitizeProfileIdentity({ avatarUri: 'http://example.com/a.jpg' }).avatarUri).toBe(
+      'http://example.com/a.jpg',
+    );
+    expect(
+      sanitizeProfileIdentity({ avatarUri: 'data:image/png;base64,iVBORw0KGgo=' }).avatarUri,
+    ).toBe('data:image/png;base64,iVBORw0KGgo=');
+  });
+
+  it('drops hostile / unknown avatar URI schemes to empty', () => {
+    expect(sanitizeProfileIdentity({ avatarUri: 'javascript:alert(1)' }).avatarUri).toBe('');
+    expect(sanitizeProfileIdentity({ avatarUri: 'file:///etc/passwd' }).avatarUri).toBe('');
+    expect(sanitizeProfileIdentity({ avatarUri: 'ftp://example.com/a.png' }).avatarUri).toBe('');
+    expect(sanitizeProfileIdentity({ avatarUri: 'data:text/html,<script>' }).avatarUri).toBe('');
+    expect(sanitizeProfileIdentity({ avatarUri: '   ' }).avatarUri).toBe('');
+    expect(sanitizeProfileIdentity({ avatarUri: 42 }).avatarUri).toBe('');
+  });
+
+  it('drops absurdly long avatar URIs to empty (DoS guard)', () => {
+    const huge = 'https://example.com/' + 'x'.repeat(3000);
+    expect(sanitizeProfileIdentity({ avatarUri: huge }).avatarUri).toBe('');
+  });
+
+  it('accepts a displayName (real name OR alias) up to 48 chars', () => {
+    expect(sanitizeProfileIdentity({ displayName: 'Coach Rock' }).displayName).toBe('Coach Rock');
+    expect(sanitizeProfileIdentity({ displayName: 'SurgeKing' }).displayName).toBe('SurgeKing');
+    expect(sanitizeProfileIdentity({ displayName: 'x'.repeat(100) }).displayName).toHaveLength(48);
+    expect(sanitizeProfileIdentity({ displayName: '' }).displayName).toBe('');
   });
 
   it('clamps body-model numbers out of guardrail range to null', () => {

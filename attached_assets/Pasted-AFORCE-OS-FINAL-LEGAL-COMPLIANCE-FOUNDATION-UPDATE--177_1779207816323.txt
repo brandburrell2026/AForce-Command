@@ -1,0 +1,116 @@
+AFORCE OS — FINAL LEGAL + COMPLIANCE FOUNDATION UPDATE
+
+==================================================
+
+REQUIRED LEGAL SCREENS ==================================================
+Add placeholder infrastructure now for:
+
+Terms of Service
+Privacy Policy
+Health Disclaimer
+These do NOT need full attorney-written versions yet, but the app architecture should support them now.
+
+================================================== 2. ACCOUNT CREATION ACKNOWLEDGMENT
+
+During signup/login add:
+
+“By continuing, you agree to the Terms of Service, Privacy Policy, and Health Disclaimer.”
+
+Make:
+
+Terms of Service clickable
+Privacy Policy clickable
+Health Disclaimer clickable
+================================================== 3. PROFILE / SETTINGS LEGAL SECTION
+
+Inside PROFILE → SETTINGS add:
+
+LEGAL
+
+Terms of Service
+Privacy Policy
+Health Disclaimer
+Keep this section: clean, minimal, and easy to access.
+
+================================================== 4. HEALTH DISCLAIMER PAGE
+
+Add a simple Health Disclaimer screen.
+
+Suggested structure:
+
+“AFORCE OS provides performance, hydration, and recovery guidance only.
+
+The platform is not intended to diagnose, treat, cure, or prevent medical conditions and should not replace professional medical advice.
+
+Recovery Capacity, HydroScan, Smart Capture, and related features are estimated wellness indicators based on user inputs and environmental factors.”
+
+================================================== 5. TERMS OF SERVICE PLACEHOLDER
+
+Add placeholder Terms architecture now.
+
+Topics later attorney review will cover:
+
+informational use only
+user responsibility
+AI guidance limitations
+wearable limitations
+no guarantees
+no emergency use
+account usage
+subscription terms
+dispute limitations
+================================================== 6. PRIVACY POLICY PLACEHOLDER
+
+Privacy structure should account for:
+
+profile data
+location/territory data
+hydration behavior
+environmental inputs
+wearable integrations
+intake uploads/photos
+analytics
+account/email collection
+================================================== 7. SMART CAPTURE DISCLAIMER
+
+Keep visible disclaimer directly on Smart Capture screen:
+
+“Smart Capture provides estimated hydration and recovery guidance only and is not a medical or nutritional diagnostic tool.”
+
+================================================== 8. URINE HYDRATION CHECK DISCLAIMER
+
+Keep:
+
+“Urine color is a general hydration signal and not a medical diagnostic tool.”
+
+================================================== 9. RECOVERY CAPACITY DISCLAIMER
+
+Keep:
+
+“Recovery Capacity is an estimated performance and hydration indicator based on user inputs and environmental factors.”
+
+================================================== 10. HYDROSCAN DISCLAIMER
+
+Keep:
+
+“HydroScan provides performance and hydration guidance only. It is not intended to diagnose, treat, cure, or prevent medical conditions.”
+
+================================================== 11. IMPORTANT PRODUCT POSITIONING RULE
+
+AFORCE OS should always be positioned publicly as:
+
+performance operating system
+recovery support platform
+hydration intelligence system
+wellness optimization platform
+NOT:
+
+medical device
+injury prevention system
+diagnostic technology
+treatment platform
+================================================== 12. FINAL UX RULE
+
+Do NOT make legal/compliance screens feel: scary, clinical, or overwhelming.
+
+The legal layer should feel: clean, minimal, professional, and premium.
