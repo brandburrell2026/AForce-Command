@@ -14,7 +14,7 @@ Status legend: ⏳ pending · 🔧 in progress · ✅ shipped · 🚫 blocked
 | #  | Phase                                              | Status | Notes |
 | -- | -------------------------------------------------- | ------ | ----- |
 | 1  | Opening Screen Safe-Area Fix                       | ✅     | Added `<StatusBar style="light" />` once at root layout so system glyphs (clock/battery/signal) stay visible against the pure-black opening canvas. Existing safe-area inset math on `app/splash.tsx` + `app/welcome.tsx` was already robust (`Math.max(insets.top + 28, winH * 0.08)`) and was left untouched. |
-| 2  | Profile + Units + Login                            | ⏳     | |
+| 2  | Profile + Units + Login                            | ✅     | Audit: Profile (Clerk user binding, sign-out button), Units (weight lbs/kg, temp F/C, volume oz/mL with persistent slice + 137 lines of tests), and Login (sign-in 254 lines, sign-up 375 lines with email/password + Google SSO) were already built. Real gap: `app/index.tsx` had no `isSignedIn` check — sign-in screens were unreachable. Surgical fix: added auth gate in `app/index.tsx` (respecting `DEMO_MODE` so pitch screenshots keep working) + defensive `(auth)/_layout.tsx` redirect when already signed-in. |
 | 3  | Bottom Navigation + Timeline                       | ⏳     | |
 | 4  | HydroScan Core                                     | ⏳     | |
 | 5  | Orb Intelligence                                   | ⏳     | |

@@ -2,28 +2,51 @@ import { Redirect } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React from 'react';
 import { View } from 'react-native';
+import { useAuth } from '@clerk/expo';
+
+import { DEMO_MODE } from '@/services/demoMode';
 
 /**
- * Root entry — gates first-open routing.
+ * Root entry — gates first-open routing AND Clerk sign-in.
  *
- * On the very first launch we route to `/welcome` (the cinematic
- * AFORCE OS intro). Once the user dismisses it via either CTA,
- * `aforce.welcomeSeen` is written to AsyncStorage and every
- * subsequent launch lands on the home tab directly.
+ * Phase 2 (Profile + Units + Login) added the missing auth gate. Prior
+ * to this, `(auth)/_layout.tsx` claimed "the root _layout decides
+ * whether to show this group or (tabs) based on isSignedIn" — but the
+ * decision logic didn't exist, so the sign-in stack was unreachable by
+ * normal navigation and signed-out users landed straight in `(tabs)`.
+ *
+ * Resolution order, top to bottom:
+ *
+ *   1. Wait for Clerk's `useAuth().isLoaded` AND the AsyncStorage
+ *      welcome flag to resolve. Render a black canvas while we wait
+ *      so the splash stays visually continuous.
+ *   2. If the user is NOT signed in AND DEMO_MODE is OFF → redirect
+ *      to `/(auth)/sign-in`. DEMO_MODE remains a deliberate escape
+ *      hatch for pitch / marketing screenshots (see services/demoMode).
+ *   3. Otherwise route as before: `/welcome` on first launch, else
+ *      `/(tabs)`.
  */
 export default function Index() {
-  const [target, setTarget] = React.useState<string | null>(null);
+  const { isLoaded, isSignedIn } = useAuth();
+  const [welcomeSeen, setWelcomeSeen] = React.useState<boolean | null>(null);
 
   React.useEffect(() => {
     let cancelled = false;
     AsyncStorage.getItem('aforce.welcomeSeen')
-      .then((v) => { if (!cancelled) setTarget(v ? '/(tabs)' : '/welcome'); })
-      .catch(() => { if (!cancelled) setTarget('/(tabs)'); });
+      .then((v) => { if (!cancelled) setWelcomeSeen(v === 'true' || v === '1' ? true : v != null); })
+      .catch(() => { if (!cancelled) setWelcomeSeen(true); });
     return () => { cancelled = true; };
   }, []);
 
-  // Render nothing on a black canvas while we resolve the flag — keeps
-  // the splash visually continuous instead of flashing the tab bar.
-  if (!target) return <View style={{ flex: 1, backgroundColor: '#000' }} />;
-  return <Redirect href={target as never} />;
+  // Black canvas while Clerk + AsyncStorage resolve — keeps the
+  // splash visually continuous instead of flashing the tab bar.
+  if (!isLoaded || welcomeSeen === null) {
+    return <View style={{ flex: 1, backgroundColor: '#000' }} />;
+  }
+
+  if (!isSignedIn && !DEMO_MODE) {
+    return <Redirect href={'/(auth)/sign-in' as never} />;
+  }
+
+  return <Redirect href={(welcomeSeen ? '/(tabs)' : '/welcome') as never} />;
 }
