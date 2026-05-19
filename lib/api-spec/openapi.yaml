@@ -10,6 +10,8 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: referrals
+    description: Social-only referral codes & attribution (spec #7)
 paths:
   /healthz:
     get:
@@ -24,6 +26,75 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /referrals/me:
+    get:
+      operationId: getMyReferralInfo
+      tags: [referrals]
+      summary: Get my referral code and attribution stats
+      description: >
+        Returns the current user's invite code (auto-generated on first
+        call) and the number of new users who have claimed it. Auth
+        required.
+      responses:
+        "200":
+          description: Referral info
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReferralInfo"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /referrals/claim:
+    post:
+      operationId: claimReferral
+      tags: [referrals]
+      summary: Claim a referral code at signup
+      description: >
+        Records that the current user signed up using another user's
+        invite code. One claim per user lifetime. Self-claims and
+        unknown codes are rejected. No reward is granted (social-only
+        leaderboard slice).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReferralClaimInput"
+      responses:
+        "200":
+          description: Claim recorded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReferralClaimResult"
+        "400":
+          description: Bad request (malformed code or self-claim)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Unknown referral code
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: User already claimed a referral
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 components:
   schemas:
     HealthStatus:
@@ -33,4 +104,46 @@ components:
           type: string
       required:
         - status
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+    ReferralInfo:
+      type: object
+      properties:
+        code:
+          type: string
+          minLength: 6
+          maxLength: 16
+          description: User's stable invite code (8 chars, ambiguity-safe alphabet)
+        totalClaims:
+          type: integer
+          minimum: 0
+          description: Count of users who have signed up using this code
+      required:
+        - code
+        - totalClaims
+    ReferralClaimInput:
+      type: object
+      properties:
+        code:
+          type: string
+          minLength: 6
+          maxLength: 16
+          description: Invite code shared by another user
+      required:
+        - code
+    ReferralClaimResult:
+      type: object
+      properties:
+        ok:
+          type: boolean
+        referrerUserId:
+          type: string
+      required:
+        - ok
+        - referrerUserId
 

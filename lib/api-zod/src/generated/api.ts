@@ -14,3 +14,46 @@ import * as zod from "zod";
 export const HealthCheckResponse = zod.object({
   status: zod.string(),
 });
+
+/**
+ * Returns the current user's invite code (auto-generated on first call) and the number of new users who have claimed it. Auth required.
+
+ * @summary Get my referral code and attribution stats
+ */
+export const getMyReferralInfoResponseCodeMin = 6;
+export const getMyReferralInfoResponseCodeMax = 16;
+
+export const getMyReferralInfoResponseTotalClaimsMin = 0;
+
+export const GetMyReferralInfoResponse = zod.object({
+  code: zod
+    .string()
+    .min(getMyReferralInfoResponseCodeMin)
+    .max(getMyReferralInfoResponseCodeMax)
+    .describe("User's stable invite code (8 chars, ambiguity-safe alphabet)"),
+  totalClaims: zod
+    .number()
+    .min(getMyReferralInfoResponseTotalClaimsMin)
+    .describe("Count of users who have signed up using this code"),
+});
+
+/**
+ * Records that the current user signed up using another user's invite code. One claim per user lifetime. Self-claims and unknown codes are rejected. No reward is granted (social-only leaderboard slice).
+
+ * @summary Claim a referral code at signup
+ */
+export const claimReferralBodyCodeMin = 6;
+export const claimReferralBodyCodeMax = 16;
+
+export const ClaimReferralBody = zod.object({
+  code: zod
+    .string()
+    .min(claimReferralBodyCodeMin)
+    .max(claimReferralBodyCodeMax)
+    .describe("Invite code shared by another user"),
+});
+
+export const ClaimReferralResponse = zod.object({
+  ok: zod.boolean(),
+  referrerUserId: zod.string(),
+});

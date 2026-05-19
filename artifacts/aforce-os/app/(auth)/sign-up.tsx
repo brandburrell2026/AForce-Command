@@ -11,7 +11,7 @@ import React from 'react';
 import {
   View, Text, StyleSheet, TextInput, Pressable, KeyboardAvoidingView, Platform,
 } from 'react-native';
-import { useSSO } from '@clerk/expo';
+import { useSSO, useAuth } from '@clerk/expo';
 import { useSignUp } from '@clerk/expo/legacy';
 import { Link, useRouter } from 'expo-router';
 import * as AuthSession from 'expo-auth-session';
@@ -19,6 +19,7 @@ import * as WebBrowser from 'expo-web-browser';
 import { GradientBackground } from '@/components/GradientBackground';
 import { Colors } from '@/theme/colors';
 import { extractClerkError } from '@/utils/clerkErrors';
+import { claimReferral, setAuthTokenGetter } from '@workspace/api-client-react';
 
 // Required by Clerk's OAuth/SSO flow on native to dismiss the in-app
 // browser once the redirect lands.
@@ -27,15 +28,38 @@ WebBrowser.maybeCompleteAuthSession();
 export default function SignUpScreen() {
   const { isLoaded, signUp, setActive } = useSignUp();
   const { startSSOFlow } = useSSO();
+  const { getToken } = useAuth();
   const router = useRouter();
   const [emailAddress, setEmailAddress] = React.useState('');
   const [firstName, setFirstName] = React.useState('');
   const [password, setPassword] = React.useState('');
+  const [referralCode, setReferralCode] = React.useState('');
   const [code, setCode] = React.useState('');
   const [pendingVerification, setPendingVerification] = React.useState(false);
   const [submitError, setSubmitError] = React.useState<string | null>(null);
   const [submitting, setSubmitting] = React.useState(false);
   const [oauthBusy, setOauthBusy] = React.useState(false);
+
+  /**
+   * Best-effort referral attribution. Fires after a successful signup
+   * (email-code or Google SSO). Failure is silent — referral is an
+   * opt-in bonus, not a blocker for entering the app.
+   *
+   * We register the auth token getter preemptively because
+   * ClerkAuthBridge's effect that does the same may not have fired by
+   * the time this call ships. The bridge will overwrite our
+   * registration on its next effect with an identical getter.
+   */
+  const tryClaimReferral = React.useCallback(async () => {
+    const normalized = referralCode.trim().toUpperCase();
+    if (normalized.length < 6) return;
+    try {
+      setAuthTokenGetter(() => getToken());
+      await claimReferral({ code: normalized });
+    } catch {
+      // Intentional: unknown/duplicate/self codes are non-blocking.
+    }
+  }, [referralCode, getToken]);
 
   const handleGoogle = async () => {
     setSubmitError(null);
@@ -50,6 +74,7 @@ export default function SignUpScreen() {
         // versions is no longer reliably invoked; activate the
         // session, then route ourselves.
         await ssoSetActive({ session: createdSessionId });
+        await tryClaimReferral();
         router.replace('/(tabs)');
       }
     } catch (err) {
@@ -86,6 +111,7 @@ export default function SignUpScreen() {
       const attempt = await signUp.attemptEmailAddressVerification({ code });
       if (attempt.status === 'complete') {
         await setActive({ session: attempt.createdSessionId });
+        await tryClaimReferral();
         router.replace('/(tabs)');
       } else {
         setSubmitError(`Verification incomplete (${attempt.status}).`);
@@ -199,6 +225,19 @@ export default function SignUpScreen() {
                 placeholder="At least 8 characters"
                 placeholderTextColor={Colors.text.muted}
                 accessibilityLabel="Password"
+              />
+
+              <Text style={styles.label}>Referral code (optional)</Text>
+              <TextInput
+                style={styles.input}
+                value={referralCode}
+                onChangeText={(v) => setReferralCode(v.toUpperCase())}
+                autoCapitalize="characters"
+                autoCorrect={false}
+                placeholder="e.g. K7M2P4Q9"
+                placeholderTextColor={Colors.text.muted}
+                accessibilityLabel="Referral code"
+                maxLength={16}
               />
               {submitError && <Text style={styles.error}>{submitError}</Text>}
 

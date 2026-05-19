@@ -5,18 +5,27 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import type {
+  MutationFunction,
   QueryFunction,
   QueryKey,
+  UseMutationOptions,
+  UseMutationResult,
   UseQueryOptions,
   UseQueryResult,
 } from "@tanstack/react-query";
 
-import type { HealthStatus } from "./api.schemas";
+import type {
+  ErrorResponse,
+  HealthStatus,
+  ReferralClaimInput,
+  ReferralClaimResult,
+  ReferralInfo,
+} from "./api.schemas";
 
 import { customFetch } from "../custom-fetch";
-import type { ErrorType } from "../custom-fetch";
+import type { ErrorType, BodyType } from "../custom-fetch";
 
 type AwaitedInput<T> = PromiseLike<T> | T;
 
@@ -99,3 +108,168 @@ export function useHealthCheck<
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
+
+/**
+ * Returns the current user's invite code (auto-generated on first call) and the number of new users who have claimed it. Auth required.
+
+ * @summary Get my referral code and attribution stats
+ */
+export const getGetMyReferralInfoUrl = () => {
+  return `/api/referrals/me`;
+};
+
+export const getMyReferralInfo = async (
+  options?: RequestInit,
+): Promise<ReferralInfo> => {
+  return customFetch<ReferralInfo>(getGetMyReferralInfoUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetMyReferralInfoQueryKey = () => {
+  return [`/api/referrals/me`] as const;
+};
+
+export const getGetMyReferralInfoQueryOptions = <
+  TData = Awaited<ReturnType<typeof getMyReferralInfo>>,
+  TError = ErrorType<ErrorResponse>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getMyReferralInfo>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetMyReferralInfoQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getMyReferralInfo>>
+  > = ({ signal }) => getMyReferralInfo({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getMyReferralInfo>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetMyReferralInfoQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getMyReferralInfo>>
+>;
+export type GetMyReferralInfoQueryError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Get my referral code and attribution stats
+ */
+
+export function useGetMyReferralInfo<
+  TData = Awaited<ReturnType<typeof getMyReferralInfo>>,
+  TError = ErrorType<ErrorResponse>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getMyReferralInfo>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetMyReferralInfoQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * Records that the current user signed up using another user's invite code. One claim per user lifetime. Self-claims and unknown codes are rejected. No reward is granted (social-only leaderboard slice).
+
+ * @summary Claim a referral code at signup
+ */
+export const getClaimReferralUrl = () => {
+  return `/api/referrals/claim`;
+};
+
+export const claimReferral = async (
+  referralClaimInput: ReferralClaimInput,
+  options?: RequestInit,
+): Promise<ReferralClaimResult> => {
+  return customFetch<ReferralClaimResult>(getClaimReferralUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(referralClaimInput),
+  });
+};
+
+export const getClaimReferralMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof claimReferral>>,
+    TError,
+    { data: BodyType<ReferralClaimInput> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof claimReferral>>,
+  TError,
+  { data: BodyType<ReferralClaimInput> },
+  TContext
+> => {
+  const mutationKey = ["claimReferral"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof claimReferral>>,
+    { data: BodyType<ReferralClaimInput> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return claimReferral(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type ClaimReferralMutationResult = NonNullable<
+  Awaited<ReturnType<typeof claimReferral>>
+>;
+export type ClaimReferralMutationBody = BodyType<ReferralClaimInput>;
+export type ClaimReferralMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Claim a referral code at signup
+ */
+export const useClaimReferral = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof claimReferral>>,
+    TError,
+    { data: BodyType<ReferralClaimInput> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof claimReferral>>,
+  TError,
+  { data: BodyType<ReferralClaimInput> },
+  TContext
+> => {
+  return useMutation(getClaimReferralMutationOptions(options));
+};

@@ -179,9 +179,42 @@ export const aforceUsers = pgTable("aforce_users", {
   // 'none' for users that have never subscribed.
   subscriptionStatus: text("subscription_status").notNull().default("none"),
   currentPeriodEnd: timestamp("current_period_end", { withTimezone: true }),
+  // Spec #7 — referral loop. Stable per-user invite code issued on first
+  // request (8 chars, ambiguity-safe alphabet). Nullable until first
+  // GET /api/referrals/me call so existing rows don't need a backfill.
+  // Globally unique so a code can map back to exactly one referrer.
+  referralCode: text("referral_code").unique(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+/* ─── Referral attribution (spec #7) ──────────────────────────────────────── */
+/**
+ * One row per successfully claimed referral. (referee_user_id) is UNIQUE
+ * so each new user can attribute to at most one referrer for life;
+ * self-claims are blocked in the route handler.
+ *
+ * Reward economy is intentionally NOT modeled here yet — this slice is
+ * social-only (referrer leaderboard count). Future slices may add a
+ * reward ledger that joins on this table.
+ */
+export const aforceReferralClaims = pgTable(
+  "aforce_referral_claims",
+  {
+    id: serial("id").primaryKey(),
+    referrerUserId: text("referrer_user_id").notNull(),
+    refereeUserId: text("referee_user_id").notNull(),
+    codeUsed: text("code_used").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => ({
+    refereeUq: uniqueIndex("aforce_referral_claims_referee_uq").on(t.refereeUserId),
+    referrerIdx: index("aforce_referral_claims_referrer_idx").on(t.referrerUserId),
+  }),
+);
+
+export type AforceReferralClaimRow = typeof aforceReferralClaims.$inferSelect;
+export type InsertAforceReferralClaim = typeof aforceReferralClaims.$inferInsert;
 
 export type AforceUserStateRow = typeof aforceUserState.$inferSelect;
 export type InsertAforceUserState = typeof aforceUserState.$inferInsert;

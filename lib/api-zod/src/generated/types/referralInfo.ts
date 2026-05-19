@@ -5,13 +5,6 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
-export interface HealthStatus {
-  status: string;
-}
-
-export interface ErrorResponse {
-  error: string;
-}
 
 export interface ReferralInfo {
   /**
@@ -25,18 +18,4 @@ export interface ReferralInfo {
    * @minimum 0
    */
   totalClaims: number;
-}
-
-export interface ReferralClaimInput {
-  /**
-   * Invite code shared by another user
-   * @minLength 6
-   * @maxLength 16
-   */
-  code: string;
-}
-
-export interface ReferralClaimResult {
-  ok: boolean;
-  referrerUserId: string;
 }

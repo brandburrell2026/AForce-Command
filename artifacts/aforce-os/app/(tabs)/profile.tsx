@@ -37,6 +37,8 @@ import { useAuth, useUser } from '@clerk/expo';
 import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
 import { createPortalSession } from '@/lib/api';
+import { useGetMyReferralInfo } from '@workspace/api-client-react';
+import { openShareSheet } from '@/services/shareService';
 import { refreshEntitlement } from '@/hooks/useEntitlement';
 import { AFORCE_VOICES } from '@/services/voiceCatalog';
 import {
@@ -85,6 +87,10 @@ export default function ProfileScreen() {
   } = useAppStore();
   const unitPreferences = useUnitPreferencesSlice();
   const profileIdentity = useProfileIdentitySlice();
+  // Spec #7 — referral loop. Server auto-issues a code on first read,
+  // so the hook is fired unconditionally; auth flows through the same
+  // bridge the rest of the app uses.
+  const referralQ = useGetMyReferralInfo();
   // Edit modal local state — kept in the screen rather than the store
   // so closing the app doesn't leave the modal "open" on next launch.
   const [isEditingProfile, setIsEditingProfile] = useState(false);
@@ -446,6 +452,56 @@ export default function ProfileScreen() {
                   </View>
                 </View>
               </View>
+            );
+
+            const inviteCode = referralQ.data?.code ?? null;
+            const inviteClaims = referralQ.data?.totalClaims ?? 0;
+            const inviteSubtitle = inviteCode == null
+              ? 'Issuing your code…'
+              : inviteClaims === 0
+                ? 'No one on board yet. Be the first to recruit.'
+                : `${inviteClaims} ${inviteClaims === 1 ? 'operator' : 'operators'} on board.`;
+            const handleShareInvite = async () => {
+              if (!inviteCode) return;
+              hapticSelection();
+              await openShareSheet({
+                format: 'text',
+                message: `Run AForce OS with me. Use code ${inviteCode}.`,
+                url: 'https://aforce.app',
+              });
+            };
+            const inviteCard = (
+              <>
+                <SectionHeader label="INVITE" hint="Recruit operators to AForce OS" />
+                <View style={[styles.card, styles.inviteCard]}>
+                  <Text style={styles.inviteEyebrow}>YOUR CODE</Text>
+                  <Text
+                    style={styles.inviteCodeText}
+                    accessibilityLabel={
+                      inviteCode ? `Your referral code is ${inviteCode}` : 'Loading referral code'
+                    }
+                    selectable
+                  >
+                    {inviteCode ?? '— — — —'}
+                  </Text>
+                  <Text style={styles.inviteSubtitle}>{inviteSubtitle}</Text>
+                  <Pressable
+                    onPress={handleShareInvite}
+                    disabled={!inviteCode}
+                    style={({ pressed }) => [
+                      styles.inviteShareBtn,
+                      !inviteCode && styles.inviteShareBtnDisabled,
+                      pressed && styles.inviteShareBtnPressed,
+                    ]}
+                    accessibilityRole="button"
+                    accessibilityLabel="Share invite code"
+                    testID="profile-invite-share"
+                  >
+                    <Icon name="send" size={14} color="#0A0A0F" />
+                    <Text style={styles.inviteShareLabel}>SHARE INVITE</Text>
+                  </Pressable>
+                </View>
+              </>
             );
 
             const goalsCard = (
@@ -1252,6 +1308,7 @@ export default function ProfileScreen() {
                 <View style={styles.twoCol} testID="profile-two-col">
                   <View style={[styles.col, styles.colLeft]}>
                     {profileCard}
+                    {inviteCard}
                     {goalsCard}
                     {protocolToolsCard}
                     {hardwareCard}
@@ -1274,6 +1331,7 @@ export default function ProfileScreen() {
             return (
               <>
                 {profileCard}
+                {inviteCard}
                 {settingsBlock}
                 {preferencesBlock}
                 {voiceCard}
@@ -1708,6 +1766,30 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: Colors.background.card, borderRadius: 16, borderWidth: 1,
     borderColor: Colors.border.subtle, marginBottom: 22, overflow: 'hidden',
+  },
+  inviteCard: {
+    paddingHorizontal: 20, paddingVertical: 22, alignItems: 'center', gap: 6,
+  },
+  inviteEyebrow: {
+    fontFamily: 'Inter_600SemiBold', fontSize: 10, letterSpacing: 2.5,
+    color: Colors.text.muted, textTransform: 'uppercase',
+  },
+  inviteCodeText: {
+    fontFamily: Platform.select({ ios: 'Menlo', android: 'monospace', default: 'monospace' }),
+    fontSize: 30, letterSpacing: 6, color: Colors.text.primary, marginTop: 4,
+  },
+  inviteSubtitle: {
+    fontFamily: 'Inter_400Regular', fontSize: 12, color: Colors.text.muted,
+    marginTop: 4, textAlign: 'center',
+  },
+  inviteShareBtn: {
+    marginTop: 16, paddingVertical: 12, paddingHorizontal: 22, borderRadius: 999,
+    backgroundColor: Colors.accent.primary, flexDirection: 'row', alignItems: 'center', gap: 8,
+  },
+  inviteShareBtnDisabled: { opacity: 0.4 },
+  inviteShareBtnPressed: { opacity: 0.85 },
+  inviteShareLabel: {
+    fontFamily: 'Inter_700Bold', fontSize: 12, color: '#0A0A0F', letterSpacing: 1.5,
   },
   settingRow: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
