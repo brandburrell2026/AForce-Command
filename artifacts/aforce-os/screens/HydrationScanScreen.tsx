@@ -285,8 +285,8 @@ export default function HydrationScanScreen() {
   };
 
   // AddDrinkModal handler — logs any of the 13 supported drink categories
-  // (water, coffee, tea, sports/energy drinks, alcohol, custom, etc.) via
-  // the existing intake pipeline. Score impact uses the per-category
+  // (water, coffee, tea, sports/energy drinks, social intake, custom, etc.)
+  // via the existing intake pipeline. Score impact uses the per-category
   // hydration coefficient so a 12 oz coffee logs ≈10.2 oz water-equivalent
   // while the history label preserves the real drink name.
   const onConfirmDrink = async (args: {
@@ -459,7 +459,7 @@ export default function HydrationScanScreen() {
               },
             ]}
             accessibilityRole="button"
-            accessibilityLabel="Log any drink — coffee, tea, sports drinks, alcohol, custom"
+            accessibilityLabel="Log any drink — coffee, tea, sports drinks, social intake, custom"
             testID="hydroscan-log-any-drink"
           >
             <Icon name="plus-circle" size={16} color={Colors.states.PEAK.primary} />
@@ -468,7 +468,7 @@ export default function HydrationScanScreen() {
                 LOG ANY DRINK
               </Text>
               <Text style={styles.logAnyHint}>
-                Coffee · Tea · Sports · Energy · Alcohol · Custom
+                Coffee · Tea · Sports · Energy · Social · Custom
               </Text>
             </View>
             <Icon name="chevron-right" size={16} color={Colors.states.PEAK.primary} />

@@ -8,7 +8,7 @@
  *   1. Live Hydration Score (status + AForce Rx)
  *   2. Ship Environment Factors (live OpenWeather)
  *   3. Guest Wellness Mode (pool day / excursion signals)
- *   4. Alcohol + Sun Risk Layer
+ *   4. Recovery Demand Layer (environmental + social load)
  *   5. Port Day / Excursion checklist
  *   6. Engagement / Rewards
  *   7. Cross-feature navigation strip
@@ -365,8 +365,8 @@ function CruiseModeBody() {
                 <Row label="Guest type" value={GUEST_TYPE_LABEL[profile.session.guest.guestType]} />
                 <Row label="Pool / deck time" value={`${profile.session.guest.poolHours} hr`} />
                 <Row
-                  label="Alcohol intake"
-                  value={`${profile.session.guest.alcoholDrinks} drink${profile.session.guest.alcoholDrinks === 1 ? "" : "s"}`}
+                  label="Social intake"
+                  value={`${profile.session.guest.alcoholDrinks} intake${profile.session.guest.alcoholDrinks === 1 ? "" : "s"}`}
                   valueColor={profile.session.guest.alcoholDrinks >= 3 ? Colors.states.DEPLETED.primary : Colors.text.primary}
                 />
                 <Row label="Excursion activity" value={`${profile.session.guest.excursionHours} hr`} />
@@ -374,16 +374,16 @@ function CruiseModeBody() {
                 <View style={styles.coachBlock}>
                   <Icon name="message-circle" size={14} color={CRUISE.aqua} />
                   <Text style={styles.coachText}>
-                    “You had elevated sun and alcohol exposure today. Complete a recovery
-                    hydration cycle before dinner.”
+                    “Your environmental and social recovery demand is elevated today.
+                    Complete a recovery hydration cycle before dinner.”
                   </Text>
                 </View>
               </View>
             </>
           )}
 
-          {/* ── 5. Alcohol + Sun Risk Layer ─────────────────────────── */}
-          <SectionHeader label="ALCOHOL + SUN RISK" hint="Combined load on hydration" />
+          {/* ── 5. Recovery Demand Layer ────────────────────────────── */}
+          <SectionHeader label="RECOVERY DEMAND" hint="Combined environmental and social load" />
           <View style={[styles.card, styles.riskCard, { borderColor: riskColor + "55" }]}>
             <View style={styles.riskHeader}>
               <View>
