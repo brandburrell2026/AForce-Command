@@ -117,6 +117,10 @@ export function RecoveryCapacityCard({ recovery }: Props) {
           max={15}
         />
       </View>
+
+      <Text style={styles.disclaimer}>
+        Recovery Capacity is a performance estimate, not a medical assessment.
+      </Text>
     </View>
   );
 }
@@ -227,5 +231,13 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontFamily: 'Inter_400Regular',
     color: 'rgba(255,255,255,0.45)',
+  },
+  disclaimer: {
+    fontSize: 10,
+    fontFamily: 'Inter_400Regular',
+    color: 'rgba(255,255,255,0.42)',
+    lineHeight: 14,
+    marginTop: 12,
+    letterSpacing: 0.2,
   },
 });

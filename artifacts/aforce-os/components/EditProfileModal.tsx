@@ -280,7 +280,7 @@ export function EditProfileModal({ visible, initialValue, onClose, onSave }: Pro
             <View style={styles.sectionDivider} />
             <Text style={styles.sectionLabel}>BODY MODEL</Text>
             <Text style={styles.sectionHint}>
-              Helps the system tune recommendations to your body. Skip any field — the engine falls back to safe defaults.
+              Optional. Helps the system tune recommendations to your body — skip any field and the engine falls back to safe defaults.
             </Text>
 
             {NUMERIC_FIELDS.map((field) => (
@@ -304,8 +304,15 @@ export function EditProfileModal({ visible, initialValue, onClose, onSave }: Pro
               </View>
             ))}
 
+            <View style={styles.sectionDivider} />
+            <Text style={styles.sectionLabel}>BIOLOGICAL PROFILE</Text>
+            <Text style={styles.sectionHint}>
+              Optional. Quietly calibrates hydration demand, sweat &amp; load
+              estimates, and Recovery Capacity. Not a medical record — used
+              only on-device to tune your numbers.
+            </Text>
+
             <View style={styles.field}>
-              <Text style={styles.fieldLabel}>BIOLOGICAL SEX</Text>
               <View style={styles.auraRow}>
                 {BIOLOGICAL_SEX_OPTIONS.map((sex) => {
                   const selected = draft.biologicalSex === sex;
@@ -325,7 +332,7 @@ export function EditProfileModal({ visible, initialValue, onClose, onSave }: Pro
                       ]}
                       accessibilityRole="button"
                       accessibilityState={{ selected }}
-                      accessibilityLabel={`Biological sex ${sex}`}
+                      accessibilityLabel={`Biological profile ${sex}`}
                       testID={`edit-profile-sex-${sex}`}
                     >
                       <Text

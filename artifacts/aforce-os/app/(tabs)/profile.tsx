@@ -1175,6 +1175,75 @@ export default function ProfileScreen() {
               </>
             );
 
+            const legalBlock = (
+              <>
+                <SectionHeader label="LEGAL" hint="Terms · privacy · disclaimers" />
+                <View style={styles.card}>
+                  <Pressable
+                    onPress={() => router.push('/legal/terms')}
+                    testID="profile-legal-terms"
+                    style={styles.settingRow}
+                  >
+                    <View style={styles.settingLeft}>
+                      <Icon name="file-text" size={16} color={Colors.text.secondary} />
+                      <View>
+                        <Text style={styles.settingLabel}>Terms of Service</Text>
+                        <Text style={styles.settingSubLabel}>How the app works · your account · subscriptions</Text>
+                      </View>
+                    </View>
+                    <Icon name="chevron-right" size={16} color={Colors.text.muted} />
+                  </Pressable>
+                  <Divider />
+                  <Pressable
+                    onPress={() => router.push('/legal/privacy')}
+                    testID="profile-legal-privacy"
+                    style={styles.settingRow}
+                  >
+                    <View style={styles.settingLeft}>
+                      <Icon name="shield" size={16} color={Colors.text.secondary} />
+                      <View>
+                        <Text style={styles.settingLabel}>Privacy Policy</Text>
+                        <Text style={styles.settingSubLabel}>What we collect · where it lives · your controls</Text>
+                      </View>
+                    </View>
+                    <Icon name="chevron-right" size={16} color={Colors.text.muted} />
+                  </Pressable>
+                  <Divider />
+                  <Pressable
+                    onPress={() => router.push('/legal/health-disclaimer')}
+                    testID="profile-legal-health"
+                    style={styles.settingRow}
+                  >
+                    <View style={styles.settingLeft}>
+                      <Icon name="activity" size={16} color={Colors.text.secondary} />
+                      <View>
+                        <Text style={styles.settingLabel}>Health Disclaimer</Text>
+                        <Text style={styles.settingSubLabel}>Performance tool · not medical advice</Text>
+                      </View>
+                    </View>
+                    <Icon name="chevron-right" size={16} color={Colors.text.muted} />
+                  </Pressable>
+                  <Divider />
+                  <Pressable
+                    onPress={() => {
+                      Linking.openURL('mailto:support@aforce.com?subject=AForce%20OS%20Support').catch(() => {});
+                    }}
+                    testID="profile-legal-support"
+                    style={styles.settingRow}
+                  >
+                    <View style={styles.settingLeft}>
+                      <Icon name="mail" size={16} color={Colors.text.secondary} />
+                      <View>
+                        <Text style={styles.settingLabel}>Contact Support</Text>
+                        <Text style={styles.settingSubLabel}>support@aforce.com · response within 24h</Text>
+                      </View>
+                    </View>
+                    <Icon name="chevron-right" size={16} color={Colors.text.muted} />
+                  </Pressable>
+                </View>
+              </>
+            );
+
             if (layout.isWide) {
               // Two-column wide layout: compact info on the left,
               // tall demo flag list + phase entries + subscription
@@ -1196,6 +1265,7 @@ export default function ProfileScreen() {
                     {demoAccessCard}
                     {phaseEntryRow}
                     {subscriptionBlock}
+                    {legalBlock}
                   </View>
                 </View>
               );
@@ -1215,6 +1285,7 @@ export default function ProfileScreen() {
                 {demoAccessCard}
                 {phaseEntryRow}
                 {subscriptionBlock}
+                {legalBlock}
               </>
             );
           })()}

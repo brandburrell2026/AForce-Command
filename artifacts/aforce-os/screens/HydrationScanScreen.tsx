@@ -610,6 +610,10 @@ export default function HydrationScanScreen() {
               ))}
             </View>
           )}
+
+          <Text style={styles.scanDisclaimer}>
+            HydroScan provides estimated product fit and hydration guidance only — not a medical or nutritional diagnostic.
+          </Text>
         </ScrollView>
       </GradientBackground>
       {/* Success flash overlay — pointerEvents='none' so it never blocks
@@ -862,5 +866,12 @@ const styles = StyleSheet.create({
   emptyHint: {
     fontSize: 12, fontFamily: 'Inter_400Regular',
     color: Colors.text.secondary, textAlign: 'center', lineHeight: 17,
+  },
+  scanDisclaimer: {
+    fontSize: 10, fontFamily: 'Inter_400Regular',
+    color: Colors.text.muted, textAlign: 'center',
+    lineHeight: 14, letterSpacing: 0.2,
+    marginTop: 18, marginBottom: 6,
+    paddingHorizontal: 8,
   },
 });

@@ -163,6 +163,9 @@ export default function CheckScreen() {
                 {HYDRATION_SIGNAL_SCALE.find((t) => t.value === urine)?.tier}
               </Text>
             </Text>
+            <Text style={styles.signalDisclaimer}>
+              A self-reported wellness signal — not a medical test.
+            </Text>
           </View>
 
           {/* Energy State */}
@@ -297,6 +300,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 4,
     marginBottom: 12,
+  },
+  signalDisclaimer: {
+    fontSize: 10,
+    fontFamily: 'Inter_400Regular',
+    color: Colors.text.muted,
+    marginTop: 10,
+    letterSpacing: 0.2,
+    lineHeight: 14,
   },
   scaleTile: {
     flex: 1,

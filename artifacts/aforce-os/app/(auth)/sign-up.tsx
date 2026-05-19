@@ -247,6 +247,16 @@ export default function SignUpScreen() {
                 </Link>
               </View>
 
+              <Text style={styles.acknowledgment}>
+                By creating an account you agree to our{' '}
+                <Link href="/legal/terms"><Text style={styles.acknowledgmentLink}>Terms</Text></Link>
+                ,{' '}
+                <Link href="/legal/privacy"><Text style={styles.acknowledgmentLink}>Privacy Policy</Text></Link>
+                , and{' '}
+                <Link href="/legal/health-disclaimer"><Text style={styles.acknowledgmentLink}>Health Disclaimer</Text></Link>
+                . AForce OS is a performance and wellness tool — not medical advice.
+              </Text>
+
               {/* Required for Clerk's bot sign-up protection */}
               <View nativeID="clerk-captcha" />
             </>
@@ -314,5 +324,13 @@ const styles = StyleSheet.create({
   oauthButtonText: {
     fontFamily: 'Inter_600SemiBold', fontSize: 14, color: Colors.text.primary,
     letterSpacing: 0.3,
+  },
+  acknowledgment: {
+    fontFamily: 'Inter_400Regular', fontSize: 11, lineHeight: 16,
+    color: Colors.text.muted, textAlign: 'center',
+    marginTop: 22, paddingHorizontal: 12,
+  },
+  acknowledgmentLink: {
+    fontFamily: 'Inter_600SemiBold', color: Colors.text.secondary,
   },
 });
