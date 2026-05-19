@@ -504,6 +504,36 @@ export default function HydrationScanScreen() {
             <Icon name="chevron-right" size={16} color={Colors.accent.primary} />
           </Pressable>
 
+          {/* Urine Hydration Check — simple color-based signal. Not a
+              medical test. Same CTA shape as the two above, tinted
+              with the BALANCED status color to signal it's a passive
+              read rather than an active scan. */}
+          <Pressable
+            onPress={() => router.push('/urine-check' as never)}
+            disabled={logging}
+            style={({ pressed }) => [
+              styles.logAnyCta,
+              {
+                borderColor: Colors.states.BALANCED.primary,
+                opacity: logging ? 0.6 : pressed ? 0.85 : 1,
+              },
+            ]}
+            accessibilityRole="button"
+            accessibilityLabel="Urine Hydration Check — use urine color as a simple hydration signal"
+            testID="hydroscan-urine-check"
+          >
+            <Icon name="droplet" size={16} color={Colors.states.BALANCED.primary} />
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.logAnyTitle, { color: Colors.states.BALANCED.primary }]}>
+                URINE HYDRATION CHECK
+              </Text>
+              <Text style={styles.logAnyHint}>
+                Simple color read · Not a medical test
+              </Text>
+            </View>
+            <Icon name="chevron-right" size={16} color={Colors.states.BALANCED.primary} />
+          </Pressable>
+
           {/* Result region */}
           {outcome?.ok === false && (
             <View style={styles.errorCard}>
