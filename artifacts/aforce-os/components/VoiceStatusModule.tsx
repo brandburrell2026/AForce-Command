@@ -61,7 +61,7 @@ import {
 } from '../services/voice/commandVoiceBus';
 
 const BAND_LABELS: Record<ScoreBand, string> = {
-  PEAK:     'PEAK',
+  PEAK:     'OPTIMAL',
   STABLE:   'STABLE',
   CORRECT:  'CORRECT',
   RISK:     'RISK',

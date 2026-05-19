@@ -117,7 +117,7 @@ export default function CompetitionScreen() {
               </View>
               <View style={{ flex: 1, marginLeft: 12 }}>
                 <Text style={styles.userName}>{me.user.name}</Text>
-                <Text style={styles.userMeta}>{me.user.city}, {me.user.state} · {me.user.state_label}</Text>
+                <Text style={styles.userMeta}>{me.user.city}, {me.user.state} · {me.user.state_label === 'PEAK' ? 'OPTIMAL' : me.user.state_label}</Text>
               </View>
               <View style={[styles.deltaPill, me.recentDelta > 0 ? { backgroundColor: `${Colors.states.PEAK.primary}1F` } : null]}>
                 <Icon name="arrow-up-right" size={11} color={Colors.states.PEAK.primary} />

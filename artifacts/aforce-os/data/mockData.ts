@@ -143,7 +143,7 @@ export const HYDRATION_SIGNAL_SCALE = [
 
 // ─── Energy state options ─────────────────────────────────────────────────────
 export const ENERGY_STATE_OPTIONS = [
-  { value: 'peak', label: 'PEAK', desc: 'Locked in. Elite output.', color: '#B6FF00' },
+  { value: 'peak', label: 'OPTIMAL', desc: 'Locked in. Elite output.', color: '#B6FF00' },
   { value: 'steady', label: 'STEADY', desc: 'On rhythm. Sustainable.', color: '#00E5C8' },
   { value: 'low', label: 'LOW', desc: 'Output is dropping.', color: '#FFA01E' },
   { value: 'crashed', label: 'CRASHED', desc: 'Performance compromised.', color: '#FF2800' },
