@@ -92,6 +92,11 @@ export function LiveStatusStrip({ performanceState, unitsToday, dailyTarget }: P
           <Text style={styles.metricText}>{unitsToday}/{dailyTarget} units</Text>
         </View>
       </View>
+
+      {/* Line 3 — performance framing: what the environment is doing to the body */}
+      <Text style={styles.insight} numberOfLines={1} testID="live-insight">
+        {climate.hydrationInsight}
+      </Text>
     </View>
   );
 }
@@ -151,5 +156,12 @@ const styles = StyleSheet.create({
     color: Colors.text.muted,
     letterSpacing: 0.6,
     textTransform: 'uppercase',
+  },
+  insight: {
+    color: Colors.text.muted,
+    fontSize: 11,
+    letterSpacing: 0.4,
+    fontStyle: 'italic',
+    marginTop: 2,
   },
 });
