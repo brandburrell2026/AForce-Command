@@ -63,6 +63,21 @@ export interface DrinkCategory {
   fluidType: FluidType;
   /** One-line plain-English description shown beneath the category. */
   description: string;
+  /**
+   * Per-oz acidic contribution in [0, 1]. Sodas, citrus juices, energy
+   * drinks, and pre-workout mixes carry the highest acid loads;
+   * water/tea/electrolyte mixes are effectively zero. Drives the
+   * "Acidic Load Elevated → Hydration support recommended" signal.
+   */
+  acidicWeight: number;
+  /**
+   * Per-oz stimulant (caffeine + ergogenic) contribution in [0, 1+].
+   * Pre-workout > energy drink > coffee > soda > tea. Drives the
+   * "Stimulant Load Elevated → Hydration support recommended" signal.
+   * Coffee carries weight here so the system can suggest hydration
+   * support WITHOUT framing the coffee itself as a problem.
+   */
+  stimulantWeight: number;
 }
 
 export interface CatalogDrink {
@@ -93,6 +108,8 @@ export const DRINK_CATEGORIES: Record<DrinkCategoryId, DrinkCategory> = {
     defaultOz: 16,
     fluidType: 'water',
     description: 'Plain tap, filtered, or well water. Baseline hydration.',
+    acidicWeight: 0,
+    stimulantWeight: 0,
   },
   bottled_water: {
     id: 'bottled_water',
@@ -103,6 +120,8 @@ export const DRINK_CATEGORIES: Record<DrinkCategoryId, DrinkCategory> = {
     defaultOz: 16.9,
     fluidType: 'water',
     description: 'Commercial bottled spring, mineral, or purified water.',
+    acidicWeight: 0,
+    stimulantWeight: 0,
   },
   coffee: {
     id: 'coffee',
@@ -113,6 +132,11 @@ export const DRINK_CATEGORIES: Record<DrinkCategoryId, DrinkCategory> = {
     defaultOz: 12,
     fluidType: 'water',
     description: 'Brewed, espresso, cold brew. Caffeine reduces net hydration.',
+    // Moderately acidic (pH ~5), high caffeine per oz. A 12 oz coffee
+    // alone lands the user in the "moderate" stimulant band, in line
+    // with the messaging brief — never names coffee, only the load.
+    acidicWeight: 0.5,
+    stimulantWeight: 1.0,
   },
   tea: {
     id: 'tea',
@@ -123,6 +147,8 @@ export const DRINK_CATEGORIES: Record<DrinkCategoryId, DrinkCategory> = {
     defaultOz: 12,
     fluidType: 'water',
     description: 'Black, green, herbal, oolong, matcha. Mostly hydrating.',
+    acidicWeight: 0.1,
+    stimulantWeight: 0.3,
   },
   pre_workout: {
     id: 'pre_workout',
@@ -133,6 +159,8 @@ export const DRINK_CATEGORIES: Record<DrinkCategoryId, DrinkCategory> = {
     defaultOz: 16,
     fluidType: 'water',
     description: 'High-caffeine stimulant mixes. Hydrates less than water.',
+    acidicWeight: 0.6,
+    stimulantWeight: 1.2,
   },
   energy_drink: {
     id: 'energy_drink',
@@ -143,6 +171,8 @@ export const DRINK_CATEGORIES: Record<DrinkCategoryId, DrinkCategory> = {
     defaultOz: 12,
     fluidType: 'water',
     description: 'Red Bull, Monster, Celsius, etc. High caffeine + sugar.',
+    acidicWeight: 0.8,
+    stimulantWeight: 1.1,
   },
   sports_drink: {
     id: 'sports_drink',
@@ -153,6 +183,8 @@ export const DRINK_CATEGORIES: Record<DrinkCategoryId, DrinkCategory> = {
     defaultOz: 20,
     fluidType: 'water',
     description: 'Gatorade, Powerade, BodyArmor. Sugar + electrolytes.',
+    acidicWeight: 0.3,
+    stimulantWeight: 0,
   },
   alcohol: {
     id: 'alcohol',
@@ -163,6 +195,10 @@ export const DRINK_CATEGORIES: Record<DrinkCategoryId, DrinkCategory> = {
     defaultOz: 12,
     fluidType: 'water',
     description: 'Beer, wine, spirits, cocktails. Net diuretic — minimal credit.',
+    // Wine/beer carry modest acid; no caffeine-style stimulant — alcohol
+    // hits its own decay path via the social-mode helper.
+    acidicWeight: 0.4,
+    stimulantWeight: 0,
   },
   smoothie: {
     id: 'smoothie',
@@ -173,6 +209,8 @@ export const DRINK_CATEGORIES: Record<DrinkCategoryId, DrinkCategory> = {
     defaultOz: 16,
     fluidType: 'water',
     description: 'Fruit/veggie blends. Water + fiber + sugars.',
+    acidicWeight: 0.2,
+    stimulantWeight: 0,
   },
   juice: {
     id: 'juice',
@@ -183,6 +221,9 @@ export const DRINK_CATEGORIES: Record<DrinkCategoryId, DrinkCategory> = {
     defaultOz: 8,
     fluidType: 'water',
     description: 'OJ, apple, cranberry, vegetable juice. Sugar-heavy.',
+    // Citrus / cranberry juices are highly acidic (pH ~3.5).
+    acidicWeight: 0.9,
+    stimulantWeight: 0,
   },
   soda: {
     id: 'soda',
@@ -193,6 +234,10 @@ export const DRINK_CATEGORIES: Record<DrinkCategoryId, DrinkCategory> = {
     defaultOz: 12,
     fluidType: 'water',
     description: 'Coke, Sprite, Pepsi, Dr Pepper. Sugar/caffeine load.',
+    // Phosphoric/citric acid drives a high acid load; caffeinated
+    // colas contribute a meaningful stimulant share too.
+    acidicWeight: 1.0,
+    stimulantWeight: 0.4,
   },
   electrolyte: {
     id: 'electrolyte',
@@ -203,6 +248,8 @@ export const DRINK_CATEGORIES: Record<DrinkCategoryId, DrinkCategory> = {
     defaultOz: 16,
     fluidType: 'water',
     description: 'LMNT, Liquid IV, Pedialyte. Outperforms plain water.',
+    acidicWeight: 0,
+    stimulantWeight: 0,
   },
   custom: {
     id: 'custom',
@@ -213,6 +260,8 @@ export const DRINK_CATEGORIES: Record<DrinkCategoryId, DrinkCategory> = {
     defaultOz: 12,
     fluidType: 'water',
     description: 'Anything not in the catalog. Conservative default.',
+    acidicWeight: 0,
+    stimulantWeight: 0,
   },
 };
 

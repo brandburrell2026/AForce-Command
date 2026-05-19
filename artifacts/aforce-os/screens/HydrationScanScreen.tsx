@@ -187,6 +187,7 @@ export default function HydrationScanScreen() {
       userState: state.userState,
       engineOutput: state.engineOutput,
       profileIdentity: state.profileIdentity,
+      recentIntake: state.userState.intakeEvents ?? null,
     }),
     [state.userState, state.engineOutput, state.profileIdentity],
   );
@@ -274,6 +275,7 @@ export default function HydrationScanScreen() {
       await logIntake(cat.fluidType, {
         ozOverride: args.effectiveOz,
         displayNameOverride: `${args.displayName} \u00b7 ${args.enteredOz} oz`,
+        categoryId: args.categoryId,
       });
       triggerSuccessFlash();
     } finally {
@@ -302,6 +304,7 @@ export default function HydrationScanScreen() {
       await logIntake(cat.fluidType, {
         ozOverride: args.effectiveOz,
         displayNameOverride: `${args.displayName} · ${args.enteredOz} oz`,
+        categoryId: args.categoryId,
       });
       triggerSuccessFlash();
     } finally {
@@ -328,6 +331,7 @@ export default function HydrationScanScreen() {
       await logIntake(cat.fluidType, {
         ozOverride: args.effectiveOz,
         displayNameOverride: `${args.displayName} · ${args.enteredOz} oz`,
+        categoryId: args.categoryId,
       });
       triggerSuccessFlash();
     } finally {

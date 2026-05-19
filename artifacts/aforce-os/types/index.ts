@@ -37,6 +37,14 @@ export interface IntakeEvent {
   id: string;
   fluidType: FluidType;
   flavor?: ProductFlavor;
+  /**
+   * Optional drink-catalog category (e.g. 'coffee', 'soda', 'juice'). When
+   * present, drives the Acidic Load / Stimulant Load personalization
+   * signals — the engine can't otherwise tell coffee from water because
+   * the underlying FluidType is the same. Backward-compatible: events
+   * persisted before this field existed simply contribute zero load.
+   */
+  categoryId?: string;
   oz: number;
   loggedAt: Date;
   /** Raw flavor / oz score before the 20-min absorption cap. */

@@ -267,4 +267,100 @@ describe('derivePersonalizationSignals', () => {
     });
     expect(out.reasons.length).toBe(3);
   });
+
+  // ─── Acidic Load + Stimulant Load ────────────────────────────────
+  // These regressions guarantee the elevated-load chips survive the
+  // top-3 truncation even when every other personalization signal
+  // is firing. Without this, the user never sees "Stimulant Load
+  // Elevated" / "Acidic Load Elevated" — which is the entire point
+  // of this slice.
+
+  const NOW_LOAD = new Date('2026-05-19T12:00:00Z').getTime();
+  const HOUR_MS = 60 * 60 * 1000;
+
+  it('surfaces Stimulant Load Elevated even when 4+ other signals fire', () => {
+    const out = derivePersonalizationSignals({
+      userState: mkUser({
+        weatherTempC: 35,
+        weatherHumidity: 90,
+        activityLevel: 9,
+        complianceStreak: 7,
+        bodyWeightLbs: 220,
+      }),
+      engineOutput: mkEngine('DEPLETED'),
+      socialAlcoholMultiplier: 1.3,
+      recentIntake: [
+        { categoryId: 'coffee', oz: 12, loggedAt: NOW_LOAD - HOUR_MS },
+        { categoryId: 'coffee', oz: 12, loggedAt: NOW_LOAD - 2 * HOUR_MS },
+      ],
+      nowMs: NOW_LOAD,
+    });
+    expect(out.reasons.length).toBe(3);
+    expect(out.reasons.map((r) => r.key)).toContain('stimulantLoad');
+    const stim = out.reasons.find((r) => r.key === 'stimulantLoad');
+    expect(stim?.label).toBe('Stimulant Load Elevated');
+  });
+
+  it('surfaces Acidic Load Elevated alongside Stimulant Load when both fire', () => {
+    const out = derivePersonalizationSignals({
+      userState: mkUser({
+        weatherTempC: 35,
+        activityLevel: 9,
+      }),
+      engineOutput: mkEngine('DEPLETED'),
+      recentIntake: [
+        { categoryId: 'coffee', oz: 16, loggedAt: NOW_LOAD - HOUR_MS },
+        { categoryId: 'coffee', oz: 12, loggedAt: NOW_LOAD - 2 * HOUR_MS },
+        { categoryId: 'soda', oz: 20, loggedAt: NOW_LOAD - HOUR_MS },
+      ],
+      nowMs: NOW_LOAD,
+    });
+    const keys = out.reasons.map((r) => r.key);
+    expect(keys).toContain('stimulantLoad');
+    expect(keys).toContain('acidicLoad');
+    expect(out.reasons.length).toBe(3);
+  });
+
+  it('moderate load only fills empty chip slots — never displaces other reasons', () => {
+    const out = derivePersonalizationSignals({
+      userState: mkUser({
+        weatherTempC: 35,
+        weatherHumidity: 90,
+        activityLevel: 9,
+      }),
+      engineOutput: mkEngine('DEPLETED'),
+      recentIntake: [
+        { categoryId: 'coffee', oz: 12, loggedAt: NOW_LOAD - HOUR_MS },
+      ],
+      nowMs: NOW_LOAD,
+    });
+    // heat, humidity, activity already fill 3 slots → moderate
+    // stimulant load must NOT be inserted (would push activity out).
+    expect(out.reasons.length).toBe(3);
+    expect(out.reasons.map((r) => r.key)).not.toContain('stimulantLoad');
+  });
+
+  it('moderate load DOES fill an open slot when fewer than 3 reasons exist', () => {
+    const out = derivePersonalizationSignals({
+      userState: mkUser({ weatherTempC: 35 }),
+      engineOutput: mkEngine('BALANCED'),
+      recentIntake: [
+        { categoryId: 'coffee', oz: 12, loggedAt: NOW_LOAD - HOUR_MS },
+      ],
+      nowMs: NOW_LOAD,
+    });
+    expect(out.reasons.map((r) => r.key)).toContain('stimulantLoad');
+    const stim = out.reasons.find((r) => r.key === 'stimulantLoad');
+    expect(stim?.label).toBe('Stimulant Load Moderate');
+  });
+
+  it('omits load reasons entirely when recentIntake is not provided', () => {
+    const out = derivePersonalizationSignals({
+      userState: mkUser({ weatherTempC: 35 }),
+      engineOutput: mkEngine('BALANCED'),
+    });
+    const keys = out.reasons.map((r) => r.key);
+    expect(keys).not.toContain('stimulantLoad');
+    expect(keys).not.toContain('acidicLoad');
+  });
 });

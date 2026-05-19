@@ -34,6 +34,12 @@ import {
   ageFromBirthYear,
   type ProfileIdentity,
 } from './profileIdentity';
+import {
+  acidicLoadLabel,
+  computeLoadSignals,
+  stimulantLoadLabel,
+  type LoadEvent,
+} from './loadSignals';
 
 /**
  * Finite-number guard. `??` does not catch `NaN` (NaN is not nullish),
@@ -76,7 +82,7 @@ export interface PersonalizationReason {
   /** Short chip label (≤24 chars). */
   label: string;
   /** Stable machine key — useful for tests + telemetry. */
-  key: 'heat' | 'humidity' | 'activity' | 'recovery' | 'alcohol' | 'consistency' | 'mass' | 'bodyModel';
+  key: 'heat' | 'humidity' | 'activity' | 'recovery' | 'alcohol' | 'consistency' | 'mass' | 'bodyModel' | 'acidicLoad' | 'stimulantLoad';
 }
 
 export interface PersonalizationOutput {
@@ -163,6 +169,21 @@ export interface DeriveArgs {
    * the helper degrades gracefully.
    */
   profileIdentity?: ProfileIdentity | null;
+  /**
+   * Recent intake events (typically `userState.intakeEvents` for the
+   * rolling 24h window). When provided, the helper computes Acidic
+   * Load and Stimulant Load signals over the last 6h and surfaces
+   * "Acidic Load Elevated" / "Stimulant Load Elevated" chips with the
+   * canonical phrasing from `loadSignals`. Coffee is NEVER named in
+   * the chip — only the abstract load — so the tone stays informative
+   * rather than judgmental. Omit to skip those signals entirely.
+   */
+  recentIntake?: LoadEvent[] | null;
+  /**
+   * Test seam — override "now" so timestamp-windowed load math is
+   * deterministic. Defaults to `Date.now()`.
+   */
+  nowMs?: number;
 }
 
 export function derivePersonalizationSignals(args: DeriveArgs): PersonalizationOutput {
@@ -292,8 +313,41 @@ export function derivePersonalizationSignals(args: DeriveArgs): PersonalizationO
     }
   }
 
-  // Cap to the 3 strongest reasons — UI is a single line.
+  // Acidic Load + Stimulant Load — computed from the rolling 6h
+  // intake window. Elevated bands are HIGH-PRIORITY and unshifted to
+  // the front so they survive the top-3 truncation below — the whole
+  // point of this slice is to surface hydration-support recommendations
+  // when the user's intake mix demands it, even when other signals
+  // (heat, activity, etc.) are competing for chip slots. Moderate
+  // bands are LOW-PRIORITY: they ride in `moderateLoad` and only
+  // fill remaining slots after the primary reasons have been kept.
+  const moderateLoad: PersonalizationReason[] = [];
+  if (args.recentIntake && args.recentIntake.length > 0) {
+    const loads = computeLoadSignals(args.recentIntake, args.nowMs);
+    // Elevated → front of the queue so the chip is always shown.
+    // Order: stimulant before acidic so when both are elevated,
+    // "Stimulant Load Elevated" lands in slot 1 (matches the AI
+    // coach's spoken priority).
+    if (loads.acidic.band === 'elevated') {
+      reasons.unshift({ key: 'acidicLoad', label: acidicLoadLabel('elevated') });
+    } else if (loads.acidic.band === 'moderate') {
+      moderateLoad.push({ key: 'acidicLoad', label: acidicLoadLabel('moderate') });
+    }
+    if (loads.stimulant.band === 'elevated') {
+      reasons.unshift({ key: 'stimulantLoad', label: stimulantLoadLabel('elevated') });
+    } else if (loads.stimulant.band === 'moderate') {
+      moderateLoad.push({ key: 'stimulantLoad', label: stimulantLoadLabel('moderate') });
+    }
+  }
+
+  // Cap to the 3 strongest reasons — UI is a single line. Moderate
+  // load chips only fill remaining slots after the primary reasons,
+  // and never displace higher-signal chips.
   const top = reasons.slice(0, 3);
+  if (top.length < 3 && moderateLoad.length > 0) {
+    const room = 3 - top.length;
+    top.push(...moderateLoad.slice(0, room));
+  }
 
   const summary =
     top.length === 0

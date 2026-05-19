@@ -146,6 +146,14 @@ interface AppContextValue {
        * than the misleading "Logged Water — Coffee...".
        */
       displayNameOverride?: string;
+      /**
+       * Optional drink-catalog category (e.g. 'coffee', 'soda', 'juice').
+       * When set, the just-logged IntakeEvent is tagged client-side so
+       * the Acidic Load / Stimulant Load helper can attribute it
+       * correctly. Backward-compatible: omitting it means the event
+       * simply contributes zero to those loads.
+       */
+      categoryId?: string;
     },
   ) => Promise<void>;
   completeCycle: () => Promise<void>;
@@ -522,6 +530,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       ozOverride?: number;
       flavorLabel?: string;
       displayNameOverride?: string;
+      categoryId?: string;
     },
   ) => {
     if (state.isCompletingCycle) return;
@@ -568,8 +577,21 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       // was derived from the request-time snapshot which may have
       // been clobbered by a concurrent connect/disconnect.
       const latest = userStateRef.current;
+      // Tag the just-logged intake event with the drink-catalog
+      // categoryId (when the caller provided one) so the Acidic Load /
+      // Stimulant Load helper can attribute it. The server doesn't
+      // persist categoryId yet, so we patch the newest event here —
+      // matching by log.id is exact (the server returns the same id it
+      // wrote into intakeEvents). Backward-compatible: if no categoryId,
+      // the array is left as-is.
+      const taggedIntakeEvents = opts?.categoryId && newUserState.intakeEvents
+        ? newUserState.intakeEvents.map((ev) =>
+            ev.id === log.id ? { ...ev, categoryId: opts.categoryId } : ev,
+          )
+        : newUserState.intakeEvents;
       const mergedUserState: UserState = {
         ...newUserState,
+        ...(taggedIntakeEvents ? { intakeEvents: taggedIntakeEvents } : {}),
         biometrics: latest.biometrics,
         appleHealth: latest.appleHealth,
       };

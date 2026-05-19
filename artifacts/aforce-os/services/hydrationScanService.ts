@@ -181,6 +181,7 @@ export async function scan(
     userState,
     engineOutput,
     profileIdentity,
+    recentIntake: userState.intakeEvents ?? null,
   });
   const efficiency = computeHydrationEfficiency(product);
   const result: ScanResult = {
