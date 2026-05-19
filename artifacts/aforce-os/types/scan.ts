@@ -57,6 +57,17 @@ export interface ScanRecommendation {
    * Optional so older persisted scans still type-check.
    */
   personalization?: import('../utils/personalizationSignals').PersonalizationOutput;
+  /**
+   * Pre-Workout Support — surfaced when HydroScan recognizes a
+   * pre-workout, stimulant-heavy formula, pump blend, or energy
+   * formula (either in the scanned product itself or in the user's
+   * recent intake). Always supportive, NEVER an attack on the
+   * supplement: lines come from `utils/preWorkoutSupport.ts` and
+   * talk about what the body needs next (hydration during training,
+   * recovery after), not about the product being a problem. Omitted
+   * when no pre-workout signal is detected.
+   */
+  supportiveNotes?: readonly string[];
 }
 
 export interface ScanResult {

@@ -18,6 +18,7 @@ import { computeComparison, inferInputs } from './comparisonEngine';
 import { COMPARE_PRODUCTS } from '../data/productDatabase';
 import { getDynamicCompareProduct } from './openFoodFactsService';
 import { derivePersonalizationSignals } from '../utils/personalizationSignals';
+import { preWorkoutSupportFor } from '../utils/preWorkoutSupport';
 import type { CompareInputs, CompareProduct, CompareResult } from '../types/comparison';
 import type { ScoreEngineOutput, UserState } from '../types';
 import type { ProfileIdentity } from '../utils/profileIdentity';
@@ -183,6 +184,21 @@ export async function scan(
     profileIdentity,
     recentIntake: userState.intakeEvents ?? null,
   });
+  // Pre-Workout Support — recognize pre-workouts, stimulant-heavy
+  // formulas, pump blends, and energy formulas across BOTH surfaces:
+  // the scanned product itself (by name keyword) and the user's
+  // recent intake (by drink-catalog category). When detected, attach
+  // three supportive lines — these talk about the body's needs
+  // (hydration during training, recovery after), never about the
+  // supplement being a problem. Pre-workouts are never attacked.
+  const scannedText = `${scanned.brand ?? ''} ${scanned.productName ?? ''}`;
+  const supportive = preWorkoutSupportFor({
+    recentIntake: userState.intakeEvents ?? null,
+    scannedText,
+  });
+  if (supportive) {
+    recommendation.supportiveNotes = supportive;
+  }
   const efficiency = computeHydrationEfficiency(product);
   const result: ScanResult = {
     scannedAt: new Date().toISOString(),
