@@ -119,7 +119,7 @@ export function RecoveryCapacityCard({ recovery }: Props) {
       </View>
 
       <Text style={styles.disclaimer}>
-        Recovery Capacity is a performance estimate, not a medical assessment.
+        Recovery Capacity is an estimated performance and hydration indicator based on user inputs and environmental factors.
       </Text>
     </View>
   );

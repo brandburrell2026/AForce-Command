@@ -642,7 +642,7 @@ export default function HydrationScanScreen() {
           )}
 
           <Text style={styles.scanDisclaimer}>
-            HydroScan provides estimated product fit and hydration guidance only — not a medical or nutritional diagnostic.
+            HydroScan provides performance and hydration guidance only. It is not intended to diagnose, treat, cure, or prevent medical conditions.
           </Text>
         </ScrollView>
       </GradientBackground>

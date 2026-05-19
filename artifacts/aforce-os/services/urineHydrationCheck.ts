@@ -37,7 +37,7 @@ export interface UrineCheckResult {
 }
 
 export const URINE_DISCLAIMER =
-  'Use urine color as a simple hydration signal. Not a medical test.';
+  'Urine color is a general hydration signal and not a medical diagnostic tool.';
 
 /** Color spectrum + swatch hex for the UI tiles. Order matters — clear → dark. */
 export const URINE_COLOR_OPTIONS: readonly UrineColorOption[] = [

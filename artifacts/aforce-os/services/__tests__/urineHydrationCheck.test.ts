@@ -24,7 +24,7 @@ describe('Urine Hydration Check — color → verdict mapping (spec)', () => {
 
   it('exposes the non-medical disclaimer verbatim per spec', () => {
     expect(URINE_DISCLAIMER).toBe(
-      'Use urine color as a simple hydration signal. Not a medical test.',
+      'Urine color is a general hydration signal and not a medical diagnostic tool.',
     );
   });
 
