@@ -1,14 +1,19 @@
 /**
- * JournalScreen — Hydration Journal.
+ * JournalScreen — Performance Timeline.
  *
  * Layout:
- *   1. Header with title + Export PDF button
+ *   1. Header with title + Export PDF button (eyebrow: PERFORMANCE TIMELINE)
  *   2. Range picker (7 / 30 / 90 days)
- *   3. Chart of score over time (with band color zones)
- *   4. Daily timeline — collapsible day cards backed by /journal/rollups
+ *   3. Section summary tiles: Recovery / Heat / Hydration /
+ *      Corrections / Territory Movement / Streaks
+ *   4. Win Moments — derived achievement strip
+ *   5. Chart of score over time (with band color zones)
+ *   6. Daily detail — collapsible day cards backed by /journal/rollups
  *
  * Snapshots are written by the store's debounced writer effect — this
- * screen is read-only.
+ * screen is read-only. The route filename stays `journal.tsx` to
+ * preserve all existing deep links; only the user-facing copy was
+ * rebranded from "Hydration Journal" to "Performance Timeline".
  */
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -30,6 +35,11 @@ import * as Sharing from 'expo-sharing';
 import JournalRangePicker, { type JournalRange } from '@/components/journal/JournalRangePicker';
 import JournalChart from '@/components/journal/JournalChart';
 import JournalDayCard from '@/components/journal/JournalDayCard';
+import PerformanceSections from '@/components/journal/PerformanceSections';
+import {
+  deriveSectionSummary,
+  deriveWinMoments,
+} from '@/services/performanceTimeline';
 import { fetchJournalRollups, fetchJournalTimeline } from '@/services/realApi';
 import { useUserSlice } from '@/store/slices';
 import {
@@ -108,6 +118,18 @@ export default function JournalScreen() {
 
   const complianceStreak = userState.complianceStreak ?? 0;
 
+  // Performance Timeline derivations — section summary tiles +
+  // Win Moments. Both are pure functions of the visible rollup
+  // window and the current compliance streak.
+  const sectionSummary = useMemo(
+    () => deriveSectionSummary(rollups, complianceStreak),
+    [rollups, complianceStreak],
+  );
+  const winMoments = useMemo(
+    () => deriveWinMoments(rollups, complianceStreak),
+    [rollups, complianceStreak],
+  );
+
   const onShareJournal = useCallback(() => {
     // Hand the journal context off to the existing /share screen so the
     // user gets the full voice / format / platform picker. The route
@@ -165,7 +187,7 @@ export default function JournalScreen() {
       >
         <View style={styles.header}>
           <View style={{ flex: 1 }}>
-            <Text style={styles.eyebrow}>HYDRATION JOURNAL</Text>
+            <Text style={styles.eyebrow}>{t('journal.eyebrow')}</Text>
             <Text style={styles.title}>{t('journal.title')}</Text>
             <Text style={styles.subtitle}>{t('journal.subtitle')}</Text>
           </View>
@@ -210,35 +232,48 @@ export default function JournalScreen() {
           <Text style={styles.pdfError} accessibilityRole="alert">{pdfError}</Text>
         )}
 
-        <View style={styles.chartCard}>
-          <Text style={styles.chartTitle}>{t('journal.chart_title')}</Text>
-          {loading ? (
-            <View style={[styles.chartPlaceholder, { width: chartWidth }]}>
-              <ActivityIndicator color="#B6FF00" />
-            </View>
-          ) : (
-            <JournalChart
-              data={snapshots}
-              width={chartWidth}
-              height={220}
-              weeklyCompliancePct={weeklyCompliancePct}
-              complianceStreak={complianceStreak}
-            />
-          )}
-        </View>
+        {/* On a load error OR an empty window, the screen collapses
+            to a single friendly line. We never show partial / stale
+            derived data alongside the empty-state copy — per the
+            "performance OS, not an e-commerce app" tone, the user
+            either sees a complete timeline or sees the welcome line. */}
+        {error || (!loading && rollups.length === 0) ? (
+          <View style={styles.emptyCard}>
+            <Text style={styles.emptyBody}>
+              {t('journal.empty_state')}
+            </Text>
+          </View>
+        ) : (
+          <>
+            {!loading && rollups.length > 0 && (
+              <PerformanceSections
+                sections={sectionSummary}
+                winMoments={winMoments}
+              />
+            )}
 
-        {error && <Text style={styles.errorText}>{error}</Text>}
-
-        <View style={{ marginTop: 16 }}>
-          {loading && rollups.length === 0 ? null : reversedRollups.length === 0 ? (
-            <View style={styles.emptyCard}>
-              <Text style={styles.emptyTitle}>{t('journal.empty_title')}</Text>
-              <Text style={styles.emptyBody}>{t('journal.empty_body')}</Text>
+            <View style={styles.chartCard}>
+              <Text style={styles.chartTitle}>{t('journal.chart_title')}</Text>
+              {loading ? (
+                <View style={[styles.chartPlaceholder, { width: chartWidth }]}>
+                  <ActivityIndicator color="#B6FF00" />
+                </View>
+              ) : (
+                <JournalChart
+                  data={snapshots}
+                  width={chartWidth}
+                  height={220}
+                  weeklyCompliancePct={weeklyCompliancePct}
+                  complianceStreak={complianceStreak}
+                />
+              )}
             </View>
-          ) : (
-            reversedRollups.map((r) => <JournalDayCard key={r.date} rollup={r} />)
-          )}
-        </View>
+
+            <View style={{ marginTop: 16 }}>
+              {reversedRollups.map((r) => <JournalDayCard key={r.date} rollup={r} />)}
+            </View>
+          </>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -276,7 +311,7 @@ function buildReportHtml(
 
   return `<!doctype html>
 <html><head><meta charset="utf-8" />
-<title>AForce Hydration Journal — ${range}d</title>
+<title>AForce Performance Timeline — ${range}d</title>
 <style>
   body { font-family: -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif; color: #111; padding: 32px; }
   h1 { margin: 0 0 4px 0; font-size: 22px; }
@@ -293,7 +328,7 @@ function buildReportHtml(
 </style>
 </head>
 <body>
-  <h1>AForce Hydration Journal</h1>
+  <h1>AForce Performance Timeline</h1>
   <div class="meta">${range}-day window · Generated ${escapeHtml(generated)}</div>
 
   <h2>Summary</h2>
@@ -325,7 +360,7 @@ function buildReportHtml(
     <tbody>${dailyRows || '<tr><td colspan="10" style="text-align:center;color:#999;padding:20px">No rollup data in this window.</td></tr>'}</tbody>
   </table>
 
-  <div class="footer">AForce OS · Hydration Journal · This report is for personal use; not medical advice.</div>
+  <div class="footer">AForce OS · Performance Timeline · This report is for personal use; not medical advice.</div>
 </body></html>`;
 }
 

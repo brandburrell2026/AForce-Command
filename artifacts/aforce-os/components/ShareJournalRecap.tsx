@@ -1,5 +1,5 @@
 /**
- * Share format: Hydration Journal Recap.
+ * Share format: Performance Timeline Recap.
  *
  * Square (Instagram-grid) card that exports the user's actual journal
  * window — chart + summary stats — instead of the identity-headline
@@ -65,7 +65,7 @@ export const ShareJournalRecap: React.FC<Props> = ({ rollups, rangeDays }) => {
       <View style={styles.topRow}>
         <View style={styles.brandRow}>
           <View style={styles.dot} />
-          <Text style={styles.eyebrow}>AFORCE · {rangeDays}-DAY JOURNAL</Text>
+          <Text style={styles.eyebrow}>AFORCE · {rangeDays}-DAY TIMELINE</Text>
         </View>
         <View style={styles.scoreBadge}>
           <Text style={styles.scoreBadgeText}>{stats.avgScore}</Text>
