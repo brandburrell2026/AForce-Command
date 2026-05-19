@@ -133,7 +133,7 @@ export default function CartScreen() {
             <Pressable
               onPress={() => {
                 if (router.canGoBack()) router.back();
-                else router.replace("/(tabs)/store");
+                else router.replace("/store");
               }}
               style={styles.backBtn}
               hitSlop={12}
@@ -158,10 +158,10 @@ export default function CartScreen() {
               <Icon name="shopping-bag" size={28} color={Colors.text.muted} />
               <Text style={styles.emptyTitle}>Your cart is empty</Text>
               <Text style={styles.emptyHint}>
-                Browse the Store tab and add the formats your protocol needs.
+                Browse the Store and add the formats your protocol needs.
               </Text>
               <Pressable
-                onPress={() => router.replace("/(tabs)/store")}
+                onPress={() => router.replace("/store")}
                 style={styles.emptyCta}
               >
                 <Icon name="grid" size={14} color={Colors.text.primary} />

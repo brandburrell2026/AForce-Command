@@ -65,7 +65,7 @@ export default function SocialScreen() {
     if (Platform.OS !== 'web') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
     }
-    router.push('/(tabs)/store');
+    router.push('/store');
   }, [router]);
 
   const goHome = React.useCallback(() => {

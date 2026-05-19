@@ -825,7 +825,7 @@ function RecoveryProtocolCard({
           accessibilityRole="button"
           accessibilityLabel="Restock AForce — open the AForce shop"
           testID="recovery-restock-cta"
-          onPress={() => globalRouter.push('/(tabs)/store')}
+          onPress={() => globalRouter.push('/store')}
         >
           <Icon name="shopping-bag" size={14} color={Colors.text.inverse} />
           <Text style={styles.restockBtnText}>Restock AForce</Text>

@@ -1,11 +1,17 @@
 /**
  * AForce OS Tab Layout — 6 tabs:
- *   Home    = Hydration Control Center
- *   Check   = Performance Signals
- *   Protocol= AForce Protocol
- *   Journal = Journal
- *   Store   = AForce Shopping
- *   Profile = Profile & Settings
+ *   Home     = Hydration Control Center
+ *   Check    = Performance Signals
+ *   Protocol = AForce Protocol
+ *   Timeline = Chronological hydration/recovery feed (route file: journal.tsx)
+ *   Social   = Circles / Territory
+ *   Profile  = Profile & Settings
+ *
+ * Store is NOT a bottom-tab destination. It lives at `/store` (root
+ * Stack route) and is reached only from contextual surfaces:
+ * HydroScan results, Recovery recommendations, product prompts, Home
+ * recommendations, and Protocol suggestions. The app is a performance
+ * OS, not an e-commerce shell.
  */
 
 import React from 'react';
@@ -40,16 +46,12 @@ function NativeTabLayout() {
         <Label>{t('tabs.protocol')}</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="journal">
-        <NativeTabIcon sf={{ default: 'book.closed.circle', selected: 'book.closed.circle.fill' }} />
+        <NativeTabIcon sf={{ default: 'clock.arrow.circlepath', selected: 'clock.arrow.circlepath' }} />
         <Label>{t('tabs.journal')}</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="social">
         <NativeTabIcon sf={{ default: 'wineglass', selected: 'wineglass.fill' }} />
         <Label>{t('tabs.social')}</Label>
-      </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="store">
-        <NativeTabIcon sf={{ default: 'bag.circle', selected: 'bag.circle.fill' }} />
-        <Label>{t('tabs.store')}</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="profile">
         <NativeTabIcon sf={{ default: 'person.circle', selected: 'person.circle.fill' }} />
@@ -217,8 +219,8 @@ function ClassicTabLayout() {
         options={{
           title: t('tabs.journal'),
           tabBarIcon: ({ color, size }) =>
-            isIOS ? <SymbolView name="book.closed.circle" tintColor={color} size={size} />
-                  : <Icon name="book-open" size={22} color={color} />,
+            isIOS ? <SymbolView name="clock.arrow.circlepath" tintColor={color} size={size} />
+                  : <Icon name="clock" size={22} color={color} />,
         }}
       />
       <Tabs.Screen
@@ -228,15 +230,6 @@ function ClassicTabLayout() {
           tabBarIcon: ({ color, size }) =>
             isIOS ? <SymbolView name="wineglass" tintColor={color} size={size} />
                   : <Icon name="users" size={22} color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="store"
-        options={{
-          title: t('tabs.store'),
-          tabBarIcon: ({ color, size }) =>
-            isIOS ? <SymbolView name="bag.circle" tintColor={color} size={size} />
-                  : <Icon name="shopping-bag" size={22} color={color} />,
         }}
       />
       <Tabs.Screen
