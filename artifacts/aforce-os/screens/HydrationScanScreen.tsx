@@ -34,6 +34,7 @@ import { ProductFitCard } from '@/components/ProductFitCard';
 import { AForceReplacementCard } from '@/components/AForceReplacementCard';
 import { CameraScanModal } from '@/components/CameraScanModal';
 import { AddDrinkModal } from '@/components/AddDrinkModal';
+import { SmartCaptureModal } from '@/components/SmartCaptureModal';
 import { DRINK_CATEGORIES } from '@/data/drinkCatalog';
 import { Colors } from '@/theme/colors';
 import { useAppStore } from '@/store/useAppStore';
@@ -56,6 +57,7 @@ export default function HydrationScanScreen() {
   const [manualQuery, setManualQuery] = useState('');
   const [cameraOpen, setCameraOpen] = useState(false);
   const [addDrinkOpen, setAddDrinkOpen] = useState(false);
+  const [smartCaptureOpen, setSmartCaptureOpen] = useState(false);
 
   // Success flash overlay — fires after a successful log, fades a PEAK
   // tint over the screen, plays a Success haptic, and pops back to Home
@@ -238,6 +240,32 @@ export default function HydrationScanScreen() {
     runScan({ kind: 'manual', rawValue: q });
   };
 
+  // Shared handler for any modal that confirms a drink (AddDrinkModal +
+  // SmartCaptureModal's "Log Correction" button). Logs through the
+  // existing intake pipeline with category-correct hydration coefficient
+  // applied to ozOverride and the real drink preserved in history.
+  const logDrinkFromModal = async (args: {
+    categoryId: string;
+    name: string;
+    displayName: string;
+    enteredOz: number;
+    effectiveOz: number;
+    hydrationCoefficient: number;
+  }) => {
+    const cat = DRINK_CATEGORIES[args.categoryId as keyof typeof DRINK_CATEGORIES];
+    if (!cat) return;
+    setLogging(true);
+    try {
+      await logIntake(cat.fluidType, {
+        ozOverride: args.effectiveOz,
+        displayNameOverride: `${args.displayName} \u00b7 ${args.enteredOz} oz`,
+      });
+      triggerSuccessFlash();
+    } finally {
+      setLogging(false);
+    }
+  };
+
   // AddDrinkModal handler — logs any of the 13 supported drink categories
   // (water, coffee, tea, sports/energy drinks, alcohol, custom, etc.) via
   // the existing intake pipeline. Score impact uses the per-category
@@ -252,6 +280,32 @@ export default function HydrationScanScreen() {
     hydrationCoefficient: number;
   }) => {
     setAddDrinkOpen(false);
+    const cat = DRINK_CATEGORIES[args.categoryId as keyof typeof DRINK_CATEGORIES];
+    if (!cat) return;
+    setLogging(true);
+    try {
+      await logIntake(cat.fluidType, {
+        ozOverride: args.effectiveOz,
+        displayNameOverride: `${args.displayName} · ${args.enteredOz} oz`,
+      });
+      triggerSuccessFlash();
+    } finally {
+      setLogging(false);
+    }
+  };
+
+  // SmartCaptureModal "LOG CORRECTION" — same logging path as onConfirmDrink
+  // but sourced from the AI's correctionRecommendation rather than a
+  // manual category pick.
+  const onSmartCaptureLog = async (args: {
+    categoryId: string;
+    name: string;
+    displayName: string;
+    enteredOz: number;
+    effectiveOz: number;
+    hydrationCoefficient: number;
+  }) => {
+    setSmartCaptureOpen(false);
     const cat = DRINK_CATEGORIES[args.categoryId as keyof typeof DRINK_CATEGORIES];
     if (!cat) return;
     setLogging(true);
@@ -400,6 +454,36 @@ export default function HydrationScanScreen() {
             <Icon name="chevron-right" size={16} color={Colors.states.PEAK.primary} />
           </Pressable>
 
+          {/* Smart Capture — AI-powered photo analysis for hydration demand,
+              recovery load, stimulants, acidic burden + correction. Same CTA
+              shape as LOG ANY DRINK but tinted with the WHOOP lime accent
+              to signal it's the premium AI surface. */}
+          <Pressable
+            onPress={() => setSmartCaptureOpen(true)}
+            disabled={logging}
+            style={({ pressed }) => [
+              styles.logAnyCta,
+              {
+                borderColor: Colors.accent.primary,
+                opacity: logging ? 0.6 : pressed ? 0.85 : 1,
+              },
+            ]}
+            accessibilityRole="button"
+            accessibilityLabel="Smart Capture — photograph a food or drink for AI hydration analysis"
+            testID="hydroscan-smart-capture"
+          >
+            <Icon name="camera" size={16} color={Colors.accent.primary} />
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.logAnyTitle, { color: Colors.accent.primary }]}>
+                SMART CAPTURE
+              </Text>
+              <Text style={styles.logAnyHint}>
+                Snap any food or drink · AI estimates load + correction
+              </Text>
+            </View>
+            <Icon name="chevron-right" size={16} color={Colors.accent.primary} />
+          </Pressable>
+
           {/* Result region */}
           {outcome?.ok === false && (
             <View style={styles.errorCard}>
@@ -510,6 +594,13 @@ export default function HydrationScanScreen() {
         accentColor={Colors.states.PEAK.primary}
         onCancel={() => setAddDrinkOpen(false)}
         onConfirm={onConfirmDrink}
+      />
+
+      <SmartCaptureModal
+        visible={smartCaptureOpen}
+        accentColor={Colors.accent.primary}
+        onCancel={() => setSmartCaptureOpen(false)}
+        onLogCorrection={onSmartCaptureLog}
       />
     </View>
   );

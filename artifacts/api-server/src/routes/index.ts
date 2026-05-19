@@ -12,6 +12,8 @@ import circleRouter from "./circle";
 import privacyRouter from "./privacy";
 import voiceTtsRouter from "./voiceTts";
 import designTokensRouter from "./designTokens";
+// Note: smartCaptureRouter is mounted directly in app.ts BEFORE the global
+// 64kB express.json() limiter (base64 photos blow past 64kB instantly).
 
 const router: IRouter = Router();
 
