@@ -27,6 +27,12 @@ const SCOPES: { id: RegionKind; label: string }[] = [
   { id: 'team',  label: 'TEAM' },
 ];
 
+// Spec #5 — restraint cap. We surface at most 3 featured battles on the
+// Territory home so the rivalry shelf reads as a curated highlight, not a
+// firehose. Additional battles still live in the service; this only gates
+// the on-screen render.
+const FEATURED_BATTLES_MAX = 3;
+
 export const TerritoryScreen: React.FC = () => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -40,7 +46,10 @@ export const TerritoryScreen: React.FC = () => {
   const regions = React.useMemo(() => getRegions(scope), [scope]);
   const markers = React.useMemo(() => buildMarkers(regions, layer), [regions, layer]);
   const selected = selectedId ? getRegionById(selectedId) : regions[0];
-  const battles = React.useMemo(() => listBattles(), [bv]);
+  const battles = React.useMemo(
+    () => listBattles().slice(0, FEATURED_BATTLES_MAX),
+    [bv],
+  );
 
   const trending = React.useMemo(
     () => [...regions].sort((a, b) => b.stats.momentumScore - a.stats.momentumScore).slice(0, 4),
@@ -110,7 +119,7 @@ export const TerritoryScreen: React.FC = () => {
 
         {battles.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionLabel}>ACTIVE BATTLES</Text>
+            <Text style={styles.sectionLabel}>FEATURED BATTLES</Text>
             <View style={styles.list}>
               {battles.map(b => (
                 <BattleCard key={b.id} battle={b} onSupport={handleSupport} />
