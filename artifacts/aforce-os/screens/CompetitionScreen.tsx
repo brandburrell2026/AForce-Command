@@ -76,7 +76,7 @@ export default function CompetitionScreen() {
   // Build visible scope tabs from the enabled set.
   const scopes: { kind: CompetitionScope; label: string }[] = enabledScopeKinds.map((k) => ({
     kind: k,
-    label: k === 'individual' ? 'Individual' : k.charAt(0).toUpperCase() + k.slice(1),
+    label: k.toUpperCase(),
   }));
 
   const me = snapshot.context;

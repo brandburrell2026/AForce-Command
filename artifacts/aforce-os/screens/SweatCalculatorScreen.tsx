@@ -1063,7 +1063,7 @@ function ShareCardHandoff({ result }: { result: SweatSession }) {
       </Text>
       <View style={styles.shareCTA}>
         <Icon name="share-2" size={13} color={Colors.text.primary} />
-        <Text style={styles.shareCTAText}>Share session</Text>
+        <Text style={styles.shareCTAText}>SHARE RECAP</Text>
       </View>
 
       <Text style={styles.shareUrl}>drinkaforce.com</Text>

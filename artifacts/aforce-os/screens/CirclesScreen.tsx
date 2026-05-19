@@ -154,7 +154,7 @@ export const CirclesScreen: React.FC = () => {
               </View>
               <Text style={styles.pulseHint}>
                 {pulseDelta > 0
-                  ? 'Tap to see what they\'re doing differently.'
+                  ? 'Study their cadence.'
                   : pulseDelta < 0
                     ? 'You\'re leading the circle right now — keep the rhythm.'
                     : 'Dead even. One AForce stick decides the day.'}
