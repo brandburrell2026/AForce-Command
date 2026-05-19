@@ -17,6 +17,7 @@ import { recognize } from './productRecognitionService';
 import { computeComparison, inferInputs } from './comparisonEngine';
 import { COMPARE_PRODUCTS } from '../data/productDatabase';
 import { getDynamicCompareProduct } from './openFoodFactsService';
+import { derivePersonalizationSignals } from '../utils/personalizationSignals';
 import type { CompareInputs, CompareProduct, CompareResult } from '../types/comparison';
 import type { ScoreEngineOutput, UserState } from '../types';
 import type {
@@ -170,6 +171,14 @@ export async function scan(
   }
   const bestAforce = bestAforceFor(inputs);
   const recommendation = buildRecommendation(scanned, inputs, selfFit, bestAforce);
+  // Personalization layer — derive the dominant signals (heat, humidity,
+  // activity, recovery, alcohol, consistency, mass) from current user
+  // state + engine output and attach them so the UI can render
+  // "Why this for you" chips. Pure derivation; never throws.
+  recommendation.personalization = derivePersonalizationSignals({
+    userState,
+    engineOutput,
+  });
   const efficiency = computeHydrationEfficiency(product);
   const result: ScanResult = {
     scannedAt: new Date().toISOString(),

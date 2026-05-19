@@ -47,6 +47,16 @@ export interface ScanRecommendation {
   command: string;
   /** Whether logging the scanned product as-is is recommended. */
   shouldLog: boolean;
+  /**
+   * Personalization layer — dominant signals that shaped this
+   * recommendation (heat, humidity, activity, recovery, alcohol,
+   * consistency, mass). Surfaced as chips in `WhyThisForYouCard` so
+   * the user feels the system reading their body + environment, not
+   * a one-size-fits-all rule.
+   *
+   * Optional so older persisted scans still type-check.
+   */
+  personalization?: import('../utils/personalizationSignals').PersonalizationOutput;
 }
 
 export interface ScanResult {

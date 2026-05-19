@@ -36,6 +36,8 @@ import { Icon } from './Icon';
 import { Colors } from '../theme/colors';
 import { DRINK_CATEGORIES, type DrinkCategoryId } from '../data/drinkCatalog';
 import { postSmartCapture, type SmartCaptureResult, type LoadLevel } from '../services/smartCaptureApi';
+import { WhyThisForYouCard } from './WhyThisForYouCard';
+import type { PersonalizationOutput } from '../utils/personalizationSignals';
 
 interface Props {
   visible: boolean;
@@ -54,6 +56,13 @@ interface Props {
     effectiveOz: number;
     hydrationCoefficient: number;
   }) => void;
+  /**
+   * Snapshot of the dominant personalization signals from the live
+   * store. Rendered as chips inside the result card so users feel the
+   * AI recommendation is adapting to their body + environment. Optional
+   * so old call sites keep compiling.
+   */
+  personalization?: PersonalizationOutput;
 }
 
 type Stage =
@@ -67,7 +76,7 @@ const DISCLAIMER =
   'Smart Capture provides estimated hydration and recovery guidance only ' +
   'and is not a medical or nutritional diagnostic tool.';
 
-export function SmartCaptureModal({ visible, accentColor, onCancel, onLogCorrection }: Props) {
+export function SmartCaptureModal({ visible, accentColor, onCancel, onLogCorrection, personalization }: Props) {
   const [stage, setStage] = useState<Stage>({ kind: 'choose' });
 
   // Reset every time the modal opens so a previous analysis doesn't bleed in.
@@ -225,6 +234,7 @@ export function SmartCaptureModal({ visible, accentColor, onCancel, onLogCorrect
               localUri={stage.localUri}
               result={stage.result}
               accentColor={accentColor}
+              personalization={personalization}
               onRetake={retake}
               onLog={logCorrection}
             />
@@ -339,10 +349,11 @@ function ResultStage(props: {
   localUri: string;
   result: SmartCaptureResult;
   accentColor: string;
+  personalization?: PersonalizationOutput;
   onRetake: () => void;
   onLog: () => void;
 }) {
-  const { localUri, result, accentColor, onRetake, onLog } = props;
+  const { localUri, result, accentColor, personalization, onRetake, onLog } = props;
   const cat = DRINK_CATEGORIES[result.correctionRecommendation.drinkCategory];
 
   return (
@@ -358,6 +369,10 @@ function ResultStage(props: {
           <Text style={styles.resultSummary} numberOfLines={2}>{result.itemSummary}</Text>
         </View>
       </View>
+
+      {personalization && (
+        <WhyThisForYouCard personalization={personalization} accentColor={accentColor} />
+      )}
 
       <View style={styles.loadsGrid}>
         <LoadCard label="HYDRATION DEMAND" item={result.hydrationDemand} />

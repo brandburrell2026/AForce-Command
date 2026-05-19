@@ -1,0 +1,265 @@
+/**
+ * Personalization Signals — pure, dependency-free helper.
+ *
+ * Reads the physiological + environmental + behavioral inputs already
+ * present in `UserState` and `ScoreEngineOutput` and condenses them
+ * into a tiny structure the UI uses to render a "Why this for you"
+ * line under HydroScan + Smart Capture recommendations.
+ *
+ * Inputs (all already wired in the app):
+ *   - bodyWeightLbs           → mass-scaled fluid turnover
+ *   - activityLevel (0..10)   → exertion-driven demand
+ *   - weatherTempC            → live ambient temperature
+ *   - weatherHumidity         → humidity premium on heat
+ *   - heatLoad (0..10)        → coarse fallback when no live weather
+ *   - performanceState.level  → DEPLETED / RECOVERING / BALANCED / PEAK
+ *   - complianceStreak        → hydration consistency (days in a row)
+ *   - socialAlcoholMultiplier → alcohol-driven diuresis (>1 when active)
+ *
+ * Output:
+ *   - `signals` — derived per-axis levels (low/normal/elevated/high)
+ *   - `reasons` — ordered list of the dominant drivers (most → least
+ *     impactful) so the UI can show 1–3 short chips.
+ *   - `summary` — a single-line eyebrow string used above the reasons.
+ *
+ * The ranking is deterministic and matches the physiological weight of
+ * each signal in `utils/depletionRate.ts`: heat × humidity dominates,
+ * activity is next, then recovery/depletion, then alcohol, then
+ * consistency (positive reinforcement), then mass (small effect).
+ */
+
+import type { ScoreEngineOutput, UserState } from '../types';
+import { activeDecayMultiplier } from './hangoverRisk';
+
+/**
+ * Finite-number guard. `??` does not catch `NaN` (NaN is not nullish),
+ * so corrupted persisted state could otherwise leak NaN into bands +
+ * labels. Use everywhere we accept a raw number from `UserState`.
+ */
+function safeNum(v: unknown, fallback: number): number {
+  return typeof v === 'number' && Number.isFinite(v) ? v : fallback;
+}
+
+export type SignalLevel = 'low' | 'normal' | 'elevated' | 'high';
+
+export interface PersonalizationSignals {
+  /** Ambient °C — null when neither weather nor heatLoad provided. */
+  tempC: number | null;
+  /** Humidity % — null when no live data. */
+  humidityPct: number | null;
+  /** Activity level 0..10. */
+  activity: number;
+  /** Body weight in lbs, sanitized. */
+  bodyWeightLbs: number;
+  /** Hydration streak in days. */
+  consistencyDays: number;
+  /** True when alcohol multiplier > 1. */
+  alcoholActive: boolean;
+  /** Performance level passed through from the engine. */
+  performanceLevel: ScoreEngineOutput['performanceState']['level'];
+  /** Per-axis bands. */
+  bands: {
+    heat: SignalLevel;
+    humidity: SignalLevel;
+    activity: SignalLevel;
+    recovery: SignalLevel;
+    consistency: SignalLevel;
+    mass: SignalLevel;
+  };
+}
+
+export interface PersonalizationReason {
+  /** Short chip label (≤24 chars). */
+  label: string;
+  /** Stable machine key — useful for tests + telemetry. */
+  key: 'heat' | 'humidity' | 'activity' | 'recovery' | 'alcohol' | 'consistency' | 'mass';
+}
+
+export interface PersonalizationOutput {
+  signals: PersonalizationSignals;
+  reasons: PersonalizationReason[];
+  /** One-line eyebrow, e.g. "Tuned to your body, intake & environment". */
+  summary: string;
+}
+
+// ─── Thresholds (kept in lock-step with depletionRate.ts) ─────────────
+
+const HEAT_ELEVATED_C = 27;
+const HEAT_HIGH_C = 32;
+const HUMIDITY_ELEVATED = 60;
+const HUMIDITY_HIGH = 80;
+const ACTIVITY_ELEVATED = 4;
+const ACTIVITY_HIGH = 7;
+const STREAK_STRONG_DAYS = 5;
+const WEIGHT_HIGH_LBS = 200;
+const WEIGHT_LOW_LBS = 120;
+
+// ─── Pure helpers ─────────────────────────────────────────────────────
+
+function heatBand(tempC: number | null): SignalLevel {
+  if (tempC == null) return 'normal';
+  if (tempC >= HEAT_HIGH_C) return 'high';
+  if (tempC >= HEAT_ELEVATED_C) return 'elevated';
+  if (tempC < 10) return 'low';
+  return 'normal';
+}
+
+function humidityBand(humidityPct: number | null): SignalLevel {
+  if (humidityPct == null) return 'normal';
+  if (humidityPct >= HUMIDITY_HIGH) return 'high';
+  if (humidityPct >= HUMIDITY_ELEVATED) return 'elevated';
+  return 'normal';
+}
+
+function activityBand(activity: number): SignalLevel {
+  if (activity >= ACTIVITY_HIGH) return 'high';
+  if (activity >= ACTIVITY_ELEVATED) return 'elevated';
+  return 'normal';
+}
+
+function recoveryBand(level: ScoreEngineOutput['performanceState']['level']): SignalLevel {
+  if (level === 'DEPLETED') return 'high';        // high RECOVERY DEMAND
+  if (level === 'RECOVERING') return 'elevated';
+  if (level === 'PEAK') return 'low';             // low RECOVERY DEMAND
+  return 'normal';
+}
+
+function consistencyBand(streakDays: number): SignalLevel {
+  if (streakDays >= STREAK_STRONG_DAYS) return 'high';   // strong streak
+  if (streakDays >= 2) return 'elevated';
+  return 'normal';
+}
+
+function massBand(lbs: number): SignalLevel {
+  if (lbs >= WEIGHT_HIGH_LBS) return 'elevated';
+  if (lbs <= WEIGHT_LOW_LBS) return 'low';
+  return 'normal';
+}
+
+function heatLoadToTempCFallback(heatLoad: number): number {
+  return 20 + Math.max(0, Math.min(10, heatLoad)) * 1.2;
+}
+
+// ─── Public API ───────────────────────────────────────────────────────
+
+export interface DeriveArgs {
+  userState: UserState;
+  engineOutput: ScoreEngineOutput;
+  /**
+   * Override the alcohol multiplier. Normally omitted — the helper
+   * reads `userState.socialMode` and computes it via
+   * `activeDecayMultiplier(drinks)`. Passed explicitly only from tests.
+   */
+  socialAlcoholMultiplier?: number;
+}
+
+export function derivePersonalizationSignals(args: DeriveArgs): PersonalizationOutput {
+  const { userState: u, engineOutput: e } = args;
+
+  const tempC: number | null =
+    typeof u.weatherTempC === 'number' && Number.isFinite(u.weatherTempC)
+      ? u.weatherTempC
+      : typeof u.heatLoad === 'number' && Number.isFinite(u.heatLoad)
+      ? heatLoadToTempCFallback(u.heatLoad)
+      : null;
+
+  const humidityPct: number | null =
+    typeof u.weatherHumidity === 'number' && Number.isFinite(u.weatherHumidity)
+      ? u.weatherHumidity
+      : null;
+
+  const activity = Math.max(0, Math.min(10, safeNum(u.activityLevel, 0)));
+  const bodyWeightLbs = Math.max(60, safeNum(u.bodyWeightLbs, 150));
+  const consistencyDays = Math.max(0, Math.round(safeNum(u.complianceStreak, 0)));
+
+  // Auto-derive the alcohol multiplier from socialMode unless the caller
+  // explicitly overrides (test seam). Wrapped so a malformed drinks
+  // array never throws at the call site — bad state → no alcohol chip.
+  let socialAlcoholMultiplier = 1;
+  if (typeof args.socialAlcoholMultiplier === 'number') {
+    socialAlcoholMultiplier = args.socialAlcoholMultiplier;
+  } else {
+    try {
+      const sm = u.socialMode;
+      if (sm && sm.active && Array.isArray(sm.drinks) && sm.drinks.length > 0) {
+        socialAlcoholMultiplier = activeDecayMultiplier(sm.drinks);
+      }
+    } catch {
+      socialAlcoholMultiplier = 1;
+    }
+  }
+  const alcoholActive = Number.isFinite(socialAlcoholMultiplier) && socialAlcoholMultiplier > 1;
+
+  const signals: PersonalizationSignals = {
+    tempC,
+    humidityPct,
+    activity,
+    bodyWeightLbs,
+    consistencyDays,
+    alcoholActive,
+    performanceLevel: e.performanceState.level,
+    bands: {
+      heat: heatBand(tempC),
+      humidity: humidityBand(humidityPct),
+      activity: activityBand(activity),
+      recovery: recoveryBand(e.performanceState.level),
+      consistency: consistencyBand(consistencyDays),
+      mass: massBand(bodyWeightLbs),
+    },
+  };
+
+  // Order reasons by physiological dominance, most impactful first.
+  const reasons: PersonalizationReason[] = [];
+
+  if (signals.bands.heat === 'high' && tempC != null) {
+    reasons.push({ key: 'heat', label: `Heat ${Math.round(tempC)}°C` });
+  } else if (signals.bands.heat === 'elevated' && tempC != null) {
+    reasons.push({ key: 'heat', label: `Warm ${Math.round(tempC)}°C` });
+  }
+
+  if (signals.bands.humidity === 'high' && humidityPct != null) {
+    reasons.push({ key: 'humidity', label: `Humid ${Math.round(humidityPct)}%` });
+  } else if (signals.bands.humidity === 'elevated' && humidityPct != null) {
+    reasons.push({ key: 'humidity', label: `Humidity ${Math.round(humidityPct)}%` });
+  }
+
+  if (signals.bands.activity === 'high') {
+    reasons.push({ key: 'activity', label: `High activity ${activity}/10` });
+  } else if (signals.bands.activity === 'elevated') {
+    reasons.push({ key: 'activity', label: `Active ${activity}/10` });
+  }
+
+  if (signals.bands.recovery === 'high') {
+    reasons.push({ key: 'recovery', label: 'Depleted state' });
+  } else if (signals.bands.recovery === 'elevated') {
+    reasons.push({ key: 'recovery', label: 'Recovering' });
+  } else if (signals.bands.recovery === 'low') {
+    reasons.push({ key: 'recovery', label: 'Peak recovery' });
+  }
+
+  if (alcoholActive) {
+    reasons.push({ key: 'alcohol', label: 'Alcohol in window' });
+  }
+
+  if (signals.bands.consistency === 'high') {
+    reasons.push({ key: 'consistency', label: `${consistencyDays}-day streak` });
+  } else if (signals.bands.consistency === 'elevated') {
+    reasons.push({ key: 'consistency', label: `${consistencyDays}-day streak` });
+  }
+
+  if (signals.bands.mass === 'elevated') {
+    reasons.push({ key: 'mass', label: `${Math.round(bodyWeightLbs)} lb body mass` });
+  } else if (signals.bands.mass === 'low') {
+    reasons.push({ key: 'mass', label: `${Math.round(bodyWeightLbs)} lb body mass` });
+  }
+
+  // Cap to the 3 strongest reasons — UI is a single line.
+  const top = reasons.slice(0, 3);
+
+  const summary =
+    top.length === 0
+      ? 'Tuned to your body, intake & environment'
+      : 'Why this for you';
+
+  return { signals, reasons: top, summary };
+}

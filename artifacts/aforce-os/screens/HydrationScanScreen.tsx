@@ -35,6 +35,8 @@ import { AForceReplacementCard } from '@/components/AForceReplacementCard';
 import { CameraScanModal } from '@/components/CameraScanModal';
 import { AddDrinkModal } from '@/components/AddDrinkModal';
 import { SmartCaptureModal } from '@/components/SmartCaptureModal';
+import { WhyThisForYouCard } from '@/components/WhyThisForYouCard';
+import { derivePersonalizationSignals } from '@/utils/personalizationSignals';
 import { DRINK_CATEGORIES } from '@/data/drinkCatalog';
 import { Colors } from '@/theme/colors';
 import { useAppStore } from '@/store/useAppStore';
@@ -175,6 +177,18 @@ export default function HydrationScanScreen() {
   };
 
   const result: ScanResult | null = outcome?.ok ? outcome.result : null;
+
+  // Live personalization snapshot — passed into SmartCaptureModal so the
+  // "Why this for you" chips appear inside the AI capture result too.
+  // Re-derived on every render against the current store state; pure math
+  // so cost is negligible.
+  const personalization = useMemo(
+    () => derivePersonalizationSignals({
+      userState: state.userState,
+      engineOutput: state.engineOutput,
+    }),
+    [state.userState, state.engineOutput],
+  );
 
   // Resolve the AForce equivalent (if recommended) + build the AI Coach
   // narrative once per scan. Pure derivation — re-computed only when the
@@ -509,6 +523,13 @@ export default function HydrationScanScreen() {
                 />
               )}
 
+              {result.recommendation.personalization && (
+                <WhyThisForYouCard
+                  personalization={result.recommendation.personalization}
+                  accentColor={Colors.accent.primary}
+                />
+              )}
+
               {result.recommendation.aforceEquivalentId && (
                 <AForceReplacementCard
                   result={result}
@@ -599,6 +620,7 @@ export default function HydrationScanScreen() {
       <SmartCaptureModal
         visible={smartCaptureOpen}
         accentColor={Colors.accent.primary}
+        personalization={personalization}
         onCancel={() => setSmartCaptureOpen(false)}
         onLogCorrection={onSmartCaptureLog}
       />
