@@ -84,7 +84,18 @@ function SplashGate() {
 
 function RootLayoutNav() {
   return (
-    <Stack screenOptions={{ headerShown: false }}>
+    <Stack
+      screenOptions={{
+        headerShown: false,
+        // Force every screen container to pure black (#000000) so the
+        // brief frame between mount and the screen's own background
+        // paint matches the WHOOP-cinematic canvas. Without this,
+        // React Navigation's default light-gray (rgb(242,242,242)) on
+        // iOS / web shows through and reads as a "blank white flash"
+        // in the Replit preview iframe before the splash fades in.
+        contentStyle: { backgroundColor: '#000000' },
+      }}
+    >
       <Stack.Screen name="splash" options={{ headerShown: false, animation: 'fade' }} />
       <Stack.Screen name="welcome" options={{ headerShown: false, animation: 'fade' }} />
       <Stack.Screen name="(auth)" options={{ headerShown: false }} />
