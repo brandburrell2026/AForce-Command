@@ -1,15 +1,15 @@
 import type { ReactNode } from "react";
 
-export const TOTAL_SLIDES = 31;
+export const TOTAL_SLIDES = 26;
 
 const SECTIONS: Array<{ name: string; range: [number, number] }> = [
-  { name: "Positioning", range: [1, 7] },
-  { name: "Product & Ecosystem", range: [8, 13] },
-  { name: "People", range: [14, 16] },
-  { name: "Target & Market", range: [17, 20] },
-  { name: "Go To Market", range: [21, 25] },
-  { name: "Economics", range: [26, 28] },
-  { name: "The Ask & Future", range: [29, 31] },
+  { name: "Opening", range: [1, 5] },
+  { name: "Ritual & Loop", range: [6, 8] },
+  { name: "Product & OS", range: [9, 13] },
+  { name: "The Platform", range: [14, 17] },
+  { name: "Market & GTM", range: [18, 20] },
+  { name: "Economics", range: [21, 23] },
+  { name: "Team & Ask", range: [24, 26] },
 ];
 
 export function sectionFor(slide: number): { index: number; name: string } {

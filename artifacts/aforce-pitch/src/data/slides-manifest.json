@@ -1,219 +1,184 @@
 [
   {
-    "id": "01-executive-summary",
+    "id": "01-cover",
     "position": 1,
     "filepath": "src/pages/slides/ExecutiveSummary.tsx",
-    "title": "Executive Summary",
-    "description": "AForce is a behavioral performance ecosystem — ritual, readiness, accountability, recurring engagement. Pause. Hydrate. Lock in. Perform. Build proof before scale."
+    "title": "Cover",
+    "description": "AForce — a behavioral performance ecosystem. Performance is non-negotiable. Pause. Hydrate. Lock in. Perform."
   },
   {
-    "id": "02-the-noise",
+    "id": "02-human-truth",
     "position": 2,
-    "filepath": "src/pages/slides/TheNoise.tsx",
-    "title": "The Noise",
-    "description": "The category is loud by design. Energy. Hype. Spike. Crash. Overstimulated and interchangeable."
-  },
-  {
-    "id": "03-category-problem",
-    "position": 3,
-    "filepath": "src/pages/slides/CategoryProblem.tsx",
-    "title": "The Category Problem",
-    "description": "Crowded. Repetitive. Interchangeable. Every brand promises energy, hydration, recovery, performance. Consumers no longer hear the message."
-  },
-  {
-    "id": "04-the-silence",
-    "position": 4,
-    "filepath": "src/pages/slides/TheSilence.tsx",
-    "title": "The Silence",
-    "description": "Performance is not built in noise. A black-screen pause."
-  },
-  {
-    "id": "05-category-shift",
-    "position": 5,
-    "filepath": "src/pages/slides/CategoryShift.tsx",
-    "title": "The Category Shift",
-    "description": "AForce is not a hydration brand. It is a behavioral performance ecosystem. Hydration is the entry point — recurring engagement, accountability, retention, optimization, ecosystem adoption is the opportunity."
-  },
-  {
-    "id": "06-non-negotiable",
-    "position": 6,
-    "filepath": "src/pages/slides/NonNegotiable.tsx",
-    "title": "Performance Is Non-Negotiable",
-    "description": "There is a certain kind of person who does not get to be off. The founder, the athlete, the performer, the surgeon. Performance is non-negotiable."
-  },
-  {
-    "id": "07-the-ritual",
-    "position": 7,
-    "filepath": "src/pages/slides/TheRitual.tsx",
-    "title": "The Ritual",
-    "description": "Pause. Hydrate. Lock in. Perform. The behavioral operating system. Everything — onboarding, retention, OS, packaging, community, subscription — is built around this ritual."
-  },
-  {
-    "id": "08-the-product",
-    "position": 8,
-    "filepath": "src/pages/slides/TheProduct.tsx",
-    "title": "The Product",
-    "description": "Two formats — RTD and hydration sticks. Premium alkaline hydration, functional ingredients. The moat is not the formulation. The moat is the behavior."
-  },
-  {
-    "id": "09-why-alkaline",
-    "position": 9,
-    "filepath": "src/pages/slides/WhyAlkaline.tsx",
-    "title": "Why Alkaline",
-    "description": "AForce stands for Alkaline Force. Premium alkaline hydration at pH 8.8. Balance under pressure. Others spike performance. AForce stabilizes it."
-  },
-  {
-    "id": "10-one-system",
-    "position": 10,
-    "filepath": "src/pages/slides/OneSystem.tsx",
-    "title": "One System. Multiple Formats.",
-    "description": "RTD for sustained daily readiness — office, gym, recovery, performance days. Sticks for travel, portability, immediate correction. One system. Every moment."
-  },
-  {
-    "id": "11-the-os",
-    "position": 11,
-    "filepath": "src/pages/slides/TheOS.tsx",
-    "title": "The OS",
-    "description": "Human first. System second. The OS reinforces ritual, accountability, readiness, consistency, habit formation. The OS proves the promise — it does not become the story."
-  },
-  {
-    "id": "12-performance-ecosystem",
-    "position": 12,
-    "filepath": "src/pages/slides/PerformanceEcosystem.tsx",
-    "title": "The Performance Ecosystem",
-    "description": "AForce OS Core (Free) · Professionals Mode ($14.99/mo) · Professionals Membership ($64.99/mo). The goal is not to sell hydration. The goal is to build recurring performance behavior."
-  },
-  {
-    "id": "13-performance-loop",
-    "position": 13,
-    "filepath": "src/pages/slides/PerformanceLoop.tsx",
-    "title": "The Performance Loop",
-    "description": "Drink → Ritual → Reinforcement → Retention. The loop improves with every cycle. Not a product cycle — a recurring behavioral system."
-  },
-  {
-    "id": "14-founders",
-    "position": 14,
-    "filepath": "src/pages/slides/Founders.tsx",
-    "title": "The Founders",
-    "description": "Brandon Burrell — NBA, Wall Street, Entrepreneurship. Julius — Wall Street, high-performance environments. Lived experience, not a constructed story."
-  },
-  {
-    "id": "15-human-truth",
-    "position": 15,
     "filepath": "src/pages/slides/HumanTruth.tsx",
     "title": "The Human Truth",
-    "description": "Performance is not built in the moment. It is built in the ritual before it. Quiet. Focused. Controlled. This is where AForce lives."
+    "description": "The best performers understand this: performance is built before the moment. Quiet preparation. Silence before execution."
   },
   {
-    "id": "16-team-advisors",
+    "id": "03-founder-proof",
+    "position": 3,
+    "filepath": "src/pages/slides/Founders.tsx",
+    "title": "Founder Proof",
+    "description": "Brandon and Julius Burrell. NBA. Wall Street. Entrepreneurship. Lived experience where failure has consequences."
+  },
+  {
+    "id": "04-category-problem",
+    "position": 4,
+    "filepath": "src/pages/slides/CategoryProblem.tsx",
+    "title": "The Category Problem",
+    "description": "Most brands react after performance drops. AForce prepares people before performance begins."
+  },
+  {
+    "id": "05-the-shift",
+    "position": 5,
+    "filepath": "src/pages/slides/CategoryShift.tsx",
+    "title": "The Shift",
+    "description": "AForce is not a hydration brand. Hydration is the entry point. Behavior is the moat. The OS compounds retention."
+  },
+  {
+    "id": "06-the-ritual",
+    "position": 6,
+    "filepath": "src/pages/slides/TheRitual.tsx",
+    "title": "The Ritual",
+    "description": "Pause. Hydrate. Lock in. Perform. The ritual becomes the operating system."
+  },
+  {
+    "id": "07-non-negotiable",
+    "position": 7,
+    "filepath": "src/pages/slides/NonNegotiable.tsx",
+    "title": "Performance Is Non-Negotiable",
+    "description": "The founder before the raise. The athlete before the game. The surgeon before the operation. The performer backstage."
+  },
+  {
+    "id": "08-the-loop",
+    "position": 8,
+    "filepath": "src/pages/slides/PerformanceLoop.tsx",
+    "title": "The Loop",
+    "description": "The product creates entry. The ritual creates behavior. The OS creates retention. Drink → Ritual → Reinforcement → Retention."
+  },
+  {
+    "id": "09-the-product",
+    "position": 9,
+    "filepath": "src/pages/slides/TheProduct.tsx",
+    "title": "The Product",
+    "description": "Two formats. One system. RTD and sticks. Premium packaging. The moat is not the formulation — the moat is the behavior."
+  },
+  {
+    "id": "10-why-alkaline",
+    "position": 10,
+    "filepath": "src/pages/slides/WhyAlkaline.tsx",
+    "title": "Why Alkaline",
+    "description": "AForce stands for Alkaline Force. pH 8.8. Balance under pressure. Sustained readiness."
+  },
+  {
+    "id": "11-intelligence-layer",
+    "position": 11,
+    "filepath": "src/pages/slides/TheOS.tsx",
+    "title": "The Intelligence Layer",
+    "description": "Score. Command. Improve. From beverage to infrastructure."
+  },
+  {
+    "id": "12-system-running",
+    "position": 12,
+    "filepath": "src/pages/slides/SystemRunning.tsx",
+    "title": "Not a Vision. A System Running.",
+    "description": "TestFlight. Patent pending. Functional app. Closed-loop engine. Live now — not roadmap."
+  },
+  {
+    "id": "13-product-tour",
+    "position": 13,
+    "filepath": "src/pages/slides/OneSystem.tsx",
+    "title": "Product Tour",
+    "description": "Hydration score. Recovery mode. Command layer. The OS is real and tangible."
+  },
+  {
+    "id": "14-performance-layer",
+    "position": 14,
+    "filepath": "src/pages/slides/PerformanceEcosystem.tsx",
+    "title": "Building the Performance Layer",
+    "description": "AI Coach. Clutch. Guardian. A phased expansion roadmap — not a guaranteed outcome."
+  },
+  {
+    "id": "15-performance-at-scale",
+    "position": 15,
+    "filepath": "src/pages/slides/Timeline.tsx",
+    "title": "Performance at Scale",
+    "description": "Team dashboards. NCAA. Sports. Enterprise. Operators. Phase 2+ expansion — narrative elasticity."
+  },
+  {
+    "id": "16-system-is-moat",
     "position": 16,
-    "filepath": "src/pages/slides/TeamAdvisors.tsx",
-    "title": "Team & Advisors",
-    "description": "Built by people who understand pressure, scaling, performance, behavior, global brand building, retention systems, recurring consumer ecosystems."
+    "filepath": "src/pages/slides/RetentionIsProduct.tsx",
+    "title": "The System Is the Moat",
+    "description": "Closed-loop data. Lock-in. Ecosystem. Personalized reinforcement. The behavior is the moat."
   },
   {
-    "id": "17-target-user",
+    "id": "17-category-of-one",
     "position": 17,
+    "filepath": "src/pages/slides/CompetitiveLandscape.tsx",
+    "title": "Category of One",
+    "description": "Hydration brands sell fuel. Wearables read the body. AForce creates behavioral infrastructure."
+  },
+  {
+    "id": "18-target-user",
+    "position": 18,
     "filepath": "src/pages/slides/TargetUser.tsx",
     "title": "The Target User",
-    "description": "High-performance professionals. Initial focus: finance, entrepreneurship, performance operators. Launch market: Miami / Brickell."
+    "description": "Brickell. Finance. Founders. Operators. Pressure professions. Quiet luxury performance — not fitness influencer aesthetic."
   },
   {
-    "id": "18-why-miami",
-    "position": 18,
-    "filepath": "src/pages/slides/WhyMiami.tsx",
-    "title": "Why Miami / Brickell",
-    "description": "Audience density, founder access, finance + performance overlap, lower category saturation, founder credibility. A concentrated proof engine — not a national launch."
-  },
-  {
-    "id": "19-performance-economy",
+    "id": "19-build-proof",
     "position": 19,
-    "filepath": "src/pages/slides/PerformanceEconomy.tsx",
-    "title": "The Performance Economy",
-    "description": "Functional beverages, hydration systems, behavioral coaching, performance optimization — all converging toward sustained performance. AForce sits at the intersection of product, behavior, data, ritual, accountability, retention."
-  },
-  {
-    "id": "20-competitive-landscape",
-    "position": 20,
-    "filepath": "src/pages/slides/CompetitiveLandscape.tsx",
-    "title": "Competitive Landscape",
-    "description": "The category has drinks. AForce has a loop. Behavioral system is the moat."
-  },
-  {
-    "id": "21-build-proof",
-    "position": 21,
     "filepath": "src/pages/slides/BuildProof.tsx",
-    "title": "Build Proof Before Scale",
-    "description": "The first phase is not about awareness — it is about validation. Repeat purchase. Subscription behavior. Ecosystem engagement. Onboarding scalability. CAC. Retention. Ritual adoption."
+    "title": "Build Proof of Habit Before Scale",
+    "description": "Repeat purchase. Retention. CAC. MAU. Subscription. Ritual adoption. Disciplined scaling."
   },
   {
-    "id": "22-proof-model",
-    "position": 22,
+    "id": "20-traction",
+    "position": 20,
     "filepath": "src/pages/slides/ProofModel.tsx",
-    "title": "The Proof of Concept Model",
-    "description": "Phase 1: Miami → NYC. 50–100 highly selected users. Controlled rollout. Founder-led activation. The ritual becomes the behavioral loop."
+    "title": "Traction",
+    "description": "$832k raised. National TV exposure. 2.3M+ audience. Beta momentum. Actual, committed, measurable."
   },
   {
-    "id": "23-go-to-market",
-    "position": 23,
-    "filepath": "src/pages/slides/GoToMarket.tsx",
-    "title": "Go To Market",
-    "description": "Meta, Google, founder-led content, referral loops, event-led acquisition, ritual onboarding. No broad retail. No mass creators. No scale before proof."
-  },
-  {
-    "id": "24-the-event",
-    "position": 24,
-    "filepath": "src/pages/slides/TheEvent.tsx",
-    "title": "The Event",
-    "description": "One high-conviction performance ritual experience in Brickell. Not a launch party — a preparation experience. Creates content, testimonials, founder credibility, NPS data, community identity."
-  },
-  {
-    "id": "25-retention-is-product",
-    "position": 25,
-    "filepath": "src/pages/slides/RetentionIsProduct.tsx",
-    "title": "Retention Is The Product",
-    "description": "The ritual is the retention engine. Not the ingredients. Not the can. Not the app. The behavior. The OS transforms hydration from consumption into accountability."
-  },
-  {
-    "id": "26-unit-economics",
-    "position": 26,
+    "id": "21-unit-economics",
+    "position": 21,
     "filepath": "src/pages/slides/UnitEconomics.tsx",
     "title": "Unit Economics",
-    "description": "Proof targets: CAC under threshold, subscription conversion 20%+, repeat purchase 28–32%, strong contribution margin, recurring subscription revenue, free-to-paid ecosystem conversion."
+    "description": "CAC. LTV. Repeat purchase. Bundle economics. The emotional story converted into an investable model."
   },
   {
-    "id": "27-growth-model",
-    "position": 27,
+    "id": "22-path-to-3-2m",
+    "position": 22,
     "filepath": "src/pages/slides/GrowthModel.tsx",
-    "title": "Growth Model",
-    "description": "Acquisition → Ritual → Retention → Subscription → Expansion. The product creates entry. The ritual creates behavior. The OS creates compounding value."
+    "title": "Path to $3.2M",
+    "description": "60k orders. Acquisition engine. Retention engine. Simple. Believable. Operator-driven."
   },
   {
-    "id": "28-timeline",
-    "position": 28,
-    "filepath": "src/pages/slides/Timeline.tsx",
-    "title": "Timeline",
-    "description": "May–June 2026 infrastructure + seeding · July 2026 controlled soft launch · Aug–Oct 2026 retention + proof building · January 2027 America's Real Deal filming · February 2027 full scale rollout."
+    "id": "23-financial-model",
+    "position": 23,
+    "filepath": "src/pages/slides/PerformanceEconomy.tsx",
+    "title": "Financial Model",
+    "description": "Growth curve. Breakeven. Assumptions. Clean. Readable. Operator-grade."
   },
   {
-    "id": "29-the-ask",
-    "position": 29,
+    "id": "24-team",
+    "position": 24,
+    "filepath": "src/pages/slides/TeamAdvisors.tsx",
+    "title": "Team",
+    "description": "Peter. Kristel. Mark Mendel. Mark Satterfield. Founder credibility materially upgraded by advisor depth."
+  },
+  {
+    "id": "25-the-ask",
+    "position": 25,
     "filepath": "src/pages/slides/TheAsk.tsx",
     "title": "The Ask",
-    "description": "This is a proof-of-concept raise. Not a scale raise. Capital funds proof of habit, onboarding validation, retention validation, OS engagement, ecosystem adoption, CAC testing, ritual adoption, operational proof. The next round funds scale."
+    "description": "Use of funds. 18-month runway. Infrastructure logic. Disciplined. Controlled. Credible."
   },
   {
-    "id": "30-the-future",
-    "position": 30,
-    "filepath": "src/pages/slides/TheFuture.tsx",
-    "title": "The Future",
-    "description": "Once proof is established: national expansion, premium retail, larger subscription base, deeper ecosystem engagement, predictive intelligence, enterprise/team systems, wearable integrations, performance identity/community. But first: prove the ritual."
-  },
-  {
-    "id": "31-final",
-    "position": 31,
+    "id": "26-final-close",
+    "position": 26,
     "filepath": "src/pages/slides/FinalSlide.tsx",
     "title": "Performance Is Non-Negotiable",
-    "description": "AForce makes sure you are always on. Pause. Hydrate. Lock in. Perform. This is not a hydration brand. This is a behavioral performance ecosystem."
+    "description": "AForce makes sure you are always on. Pause. Hydrate. Lock in. Perform. This is not a hydration brand. It is a behavioral performance ecosystem."
   }
 ]

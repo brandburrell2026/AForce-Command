@@ -9,7 +9,7 @@ const ARCHETYPES = [
 
 export default function NonNegotiable() {
   return (
-    <SlideChrome slide={6}>
+    <SlideChrome slide={7}>
       <div className="absolute inset-0 flex flex-col justify-center px-[6vw]">
         <div className="font-body uppercase tracking-[0.4em] text-[0.85vw] text-primary font-semibold mb-[3vh]">
           Performance is Non-Negotiable

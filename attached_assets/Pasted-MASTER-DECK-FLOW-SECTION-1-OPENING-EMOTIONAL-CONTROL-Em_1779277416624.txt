@@ -1,0 +1,598 @@
+MASTER DECK FLOW
+
+SECTION 1 — OPENING EMOTIONAL CONTROL
+
+(Emotion before explanation)
+
+⸻
+
+SLIDE 1 — COVER
+
+USE:
+
+* New deck cover slide
+* Product can render
+* “Performance is non-negotiable.”
+
+KEEP:
+
+* black cinematic background
+* emotional restraint
+* “Pause. Hydrate. Lock in. Perform.”
+
+GOAL:
+Immediate category separation.
+
+⸻
+
+SLIDE 2 — THE HUMAN TRUTH
+
+FROM:
+
+* Peter & Kristel deck
+
+CONTENT:
+“The best performers understand this:
+performance is built before the moment.”
+
+Visuals:
+
+* empty gym
+* founder alone
+* dark office
+* preparation
+* silence before execution
+
+GOAL:
+Create emotional tension immediately.
+
+⸻
+
+SLIDE 3 — FOUNDER PROOF
+
+USE:
+
+* newer Founder Proof slide
+
+KEEP:
+
+* NBA
+* Wall Street
+* entrepreneurship
+* “failure has consequences”
+
+REMOVE:
+
+* excessive small text
+
+GOAL:
+Show this brand came from lived pressure.
+
+⸻
+
+SLIDE 4 — THE CATEGORY PROBLEM
+
+MERGE:
+
+* “The Noise”
+* “Every other brand shows up after performance breaks down.”
+
+VISUAL:
+Fast cuts:
+
+* Celsius
+* chaos
+* overstimulation
+* noise
+* social media overload
+
+ONE KEY LINE:
+
+“Most brands react after performance drops.
+AForce prepares people before performance begins.”
+
+GOAL:
+Frame entire market incorrectly positioned.
+
+⸻
+
+SLIDE 5 — THE SHIFT
+
+TITLE:
+
+“AForce is not a hydration brand.”
+
+USE:
+
+* Peter/Kristel emotional copy
+* New deck structure
+
+FINAL MESSAGE:
+Hydration is the entry point.
+Behavior is the moat.
+The OS compounds retention.
+
+GOAL:
+Introduce system thesis.
+
+⸻
+
+SECTION 2 — THE RITUAL + BEHAVIORAL LOOP
+
+⸻
+
+SLIDE 6 — THE RITUAL
+
+FULL SCREEN:
+Pause.
+Hydrate.
+Lock in.
+Perform.
+
+Minimal copy.
+
+Small subtext:
+“The ritual becomes the operating system.”
+
+GOAL:
+Anchor entire behavioral framework.
+
+⸻
+
+SLIDE 7 — PERFORMANCE IS NON-NEGOTIABLE
+
+USE:
+
+* strongest elements from both decks
+
+VISUALS:
+
+* founder before raise
+* athlete before game
+* surgeon before operation
+* performer backstage
+
+GOAL:
+Define target identity.
+
+⸻
+
+SLIDE 8 — THE LOOP
+
+TITLE:
+
+“The product creates entry.
+
+The ritual creates behavior.
+The OS creates retention.”
+
+SHOW:
+Drink → Ritual → Reinforcement → Retention
+
+GOAL:
+This is one of the most important slides in the deck.
+
+Keep extremely clean.
+
+⸻
+
+SECTION 3 — PRODUCT + OS
+
+⸻
+
+SLIDE 9 — THE PRODUCT
+
+USE:
+
+* newer product lineup slide
+
+SHOW:
+
+* RTD
+* sticks
+* premium packaging
+
+KEEP COPY MINIMAL.
+
+KEY MESSAGE:
+“One system. Multiple formats.”
+
+⸻
+
+SLIDE 10 — WHY ALKALINE
+
+FROM:
+
+* Peter & Kristel deck
+
+KEEP:
+
+* pH 8.8
+* balance under pressure
+* sustained readiness
+
+REMOVE:
+Anything medically aggressive.
+
+GOAL:
+Position alkaline as symbolic philosophy.
+
+NOT:
+health cure language.
+
+⸻
+
+SLIDE 11 — THE INTELLIGENCE LAYER
+
+USE:
+
+* newer OS slide
+
+KEEP:
+
+* Score
+* Command
+* Improve
+
+This slide is extremely strong.
+
+GOAL:
+Move from beverage → infrastructure.
+
+⸻
+
+SLIDE 12 — NOT A VISION. A SYSTEM RUNNING.
+
+USE:
+
+* current “Tech Proof” slide
+
+KEEP:
+
+* TestFlight
+* patent pending
+* functional app
+* closed-loop engine
+
+VERY IMPORTANT:
+Separate:
+
+* live now
+* roadmap later
+
+GOAL:
+Reduce investor disbelief.
+
+⸻
+
+SLIDE 13 — PRODUCT TOUR
+
+USE:
+
+* OS screenshots
+
+SHOW:
+
+* hydration score
+* recovery mode
+* command layer
+
+GOAL:
+Make OS feel real and tangible.
+
+⸻
+
+SECTION 4 — THE BIGGER PLATFORM
+
+⸻
+
+SLIDE 14 — BUILDING THE PERFORMANCE LAYER
+
+USE:
+
+* AI Coach
+* Clutch
+* Guardian
+
+BUT:
+Tone down enterprise futurism slightly.
+
+FRAME AS:
+phased expansion roadmap.
+
+NOT:
+guaranteed outcome.
+
+⸻
+
+SLIDE 15 — PERFORMANCE AT SCALE
+
+USE:
+
+* team dashboard concepts
+
+KEEP:
+
+* NCAA
+* sports
+* enterprise
+* operators
+
+BUT:
+Make this clearly:
+
+* Phase 2+
+* future expansion
+
+GOAL:
+Show narrative elasticity.
+
+⸻
+
+SLIDE 16 — SYSTEM IS THE MOAT
+
+THIS IS A CORE SLIDE.
+
+KEEP:
+
+* closed-loop data
+* lock-in
+* ecosystem
+* personalized reinforcement
+
+This slide is one of the strongest in the deck.
+
+⸻
+
+SLIDE 17 — CATEGORY OF ONE
+
+USE:
+
+* competitor Venn diagram
+
+Hydration brands:
+
+* sell fuel
+
+Wearables:
+
+* read the body
+
+AForce:
+
+* creates behavioral infrastructure
+
+GOAL:
+This is the clearest moat articulation.
+
+⸻
+
+SECTION 5 — MARKET + GTM
+
+⸻
+
+SLIDE 18 — TARGET USER
+
+MERGE:
+
+* Brickell
+* finance
+* founders
+* operators
+* pressure professions
+
+VISUAL:
+Quiet luxury performance.
+
+NOT:
+fitness influencer aesthetic.
+
+⸻
+
+SLIDE 19 — BUILD PROOF OF HABIT BEFORE SCALE
+
+KEEP THIS ENTIRE STRUCTURE.
+
+This is arguably the BEST strategic slide in the entire deck.
+
+KEEP:
+
+* repeat purchase
+* retention
+* CAC
+* MAU
+* subscription
+* ritual adoption
+
+GOAL:
+Demonstrate disciplined scaling.
+
+⸻
+
+SLIDE 20 — TRACTION
+
+USE:
+
+* newer traction slide
+
+KEEP:
+
+* $832k raised
+* TV exposure
+* 2.3M+ audience
+* beta momentum
+
+REMOVE:
+Anything speculative.
+
+ONLY show:
+
+* actual traction
+* committed traction
+* measurable momentum
+
+⸻
+
+SECTION 6 — ECONOMICS
+
+⸻
+
+SLIDE 21 — UNIT ECONOMICS
+
+KEEP:
+
+* CAC
+* LTV
+* repeat purchase
+* bundle economics
+
+This slide is essential.
+
+It converts:
+
+* emotional story
+    into:
+* investable model.
+
+⸻
+
+SLIDE 22 — PATH TO $3.2M
+
+KEEP:
+
+* 60k orders
+* acquisition engine
+* retention engine
+
+BUT:
+Make assumptions visually cleaner.
+
+GOAL:
+Simple.
+Believable.
+Operator-driven.
+
+⸻
+
+SLIDE 23 — FINANCIAL MODEL
+
+KEEP:
+
+* growth curve
+* breakeven
+* assumptions
+
+BUT:
+Reduce visual clutter.
+
+Need:
+
+* cleaner chart
+* easier readability
+
+⸻
+
+SECTION 7 — TEAM + ASK
+
+⸻
+
+SLIDE 24 — TEAM
+
+USE:
+
+* advisor slide
+
+KEEP:
+
+* Peter
+* Kristel
+* Mark Mendel
+* advisors
+* founder credibility
+
+This materially upgrades investor confidence.
+
+⸻
+
+SLIDE 25 — THE ASK
+
+USE:
+
+* newer ask slide
+
+KEEP:
+
+* use of funds
+* 18-month runway
+* infrastructure logic
+
+REMOVE:
+Anything overly aggressive.
+
+GOAL:
+Disciplined.
+Controlled.
+Credible.
+
+⸻
+
+FINAL CLOSE
+
+⸻
+
+SLIDE 26 — FINAL EMOTIONAL CLOSE
+
+USE:
+
+* final slide from new deck
+* but blend Peter/Kristel emotional restraint
+
+FINAL COPY:
+
+“Performance is non-negotiable.”
+
+Pause.
+Hydrate.
+Lock in.
+Perform.
+
+AForce is not a hydration brand.
+It is a behavioral performance ecosystem.
+
+⸻
+
+IMPORTANT DESIGN RULES
+
+DO:
+
+* cinematic restraint
+* black negative space
+* premium typography
+* silence
+* pacing
+* fewer words
+* emotional sequencing
+* one core message per slide
+
+⸻
+
+DO NOT:
+
+* over-explain
+* use startup jargon
+* use biohacking language
+* look like Celsius
+* look like wellness
+* use crowded charts
+* overpromise AI
+* overpromise enterprise
+
+⸻
+
+MOST IMPORTANT STRATEGIC PRINCIPLE
+
+The deck should feel like:
+
+“AForce already understands where the category is going before everyone else.”
+
+That is the emotional/intellectual feeling sophisticated investors should leave with.

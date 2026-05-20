@@ -3,7 +3,7 @@ import SlideChrome from "@/components/SlideChrome";
 export default function TheProduct() {
   const base = import.meta.env.BASE_URL;
   return (
-    <SlideChrome slide={8}>
+    <SlideChrome slide={9}>
       <div
         className="absolute inset-0 pointer-events-none"
         style={{

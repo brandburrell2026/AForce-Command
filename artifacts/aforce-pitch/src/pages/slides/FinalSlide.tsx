@@ -3,7 +3,7 @@ import SlideChrome from "@/components/SlideChrome";
 export default function FinalSlide() {
   const base = import.meta.env.BASE_URL;
   return (
-    <SlideChrome slide={31} hideChrome>
+    <SlideChrome slide={26} hideChrome>
       <div className="absolute inset-0 bg-black" />
 
       <div className="absolute inset-y-0 right-[-6vw] w-[40vw] flex items-center justify-center opacity-55">

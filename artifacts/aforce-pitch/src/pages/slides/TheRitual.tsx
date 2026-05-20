@@ -21,7 +21,7 @@ const BUILT_AROUND = [
 
 export default function TheRitual() {
   return (
-    <SlideChrome slide={7}>
+    <SlideChrome slide={6}>
       <div className="absolute inset-0 flex flex-col justify-center px-[6vw]">
         <div className="font-body uppercase tracking-[0.4em] text-[0.85vw] text-text/45 font-semibold mb-[3vh]">
           The Ritual

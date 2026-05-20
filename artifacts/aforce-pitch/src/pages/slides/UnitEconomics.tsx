@@ -11,7 +11,7 @@ const TARGETS = [
 
 export default function UnitEconomics() {
   return (
-    <SlideChrome slide={26}>
+    <SlideChrome slide={21}>
       <div className="absolute inset-0 flex flex-col justify-center px-[6vw] py-[12vh]">
         <div className="font-body uppercase tracking-[0.4em] text-[0.85vw] text-text/45 font-semibold mb-[3vh]">
           Unit Economics

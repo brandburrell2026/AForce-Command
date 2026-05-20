@@ -11,7 +11,7 @@ const REASONS = [
 export default function WhyAlkaline() {
   const base = import.meta.env.BASE_URL;
   return (
-    <SlideChrome slide={9}>
+    <SlideChrome slide={10}>
       <div className="absolute inset-y-0 right-[2vw] w-[40vw] flex items-center justify-center">
         <div
           className="absolute w-[32vw] h-[32vw] rounded-full opacity-55 blur-[6vw]"

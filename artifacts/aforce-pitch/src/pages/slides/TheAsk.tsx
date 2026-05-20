@@ -13,7 +13,7 @@ const FUNDS = [
 
 export default function TheAsk() {
   return (
-    <SlideChrome slide={29}>
+    <SlideChrome slide={25}>
       <div className="absolute inset-0 flex flex-col justify-center px-[6vw]">
         <div className="font-body uppercase tracking-[0.4em] text-[0.85vw] text-primary font-semibold mb-[3vh]">
           The Ask

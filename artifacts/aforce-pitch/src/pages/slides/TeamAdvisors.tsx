@@ -12,10 +12,10 @@ const ADVISORS = [
 export default function TeamAdvisors() {
   const base = import.meta.env.BASE_URL;
   return (
-    <SlideChrome slide={16}>
+    <SlideChrome slide={24}>
       <div className="absolute inset-0 flex flex-col px-[6vw] pt-[12vh] pb-[10vh]">
         <div className="font-body uppercase tracking-[0.4em] text-[0.85vw] text-text/45 font-semibold mb-[3vh]">
-          Team & Advisors
+          Team
         </div>
 
         <h2 className="font-display text-[4.2vw] leading-[0.95] tracking-tighter mb-[5vh]">
