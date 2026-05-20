@@ -9,71 +9,73 @@ const REASONS = [
 ];
 
 export default function WhyAlkaline() {
+  const base = import.meta.env.BASE_URL;
   return (
     <SlideChrome slide={9}>
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          background:
-            "radial-gradient(ellipse 55% 70% at 78% 50%, rgba(84,120,213,0.10) 0%, transparent 70%)",
-        }}
-      />
-      <div className="absolute inset-0 grid grid-cols-12 gap-[3vw] px-[6vw] py-[14vh]">
-        <div className="col-span-7 flex flex-col justify-center">
-          <div className="font-body uppercase tracking-[0.4em] text-[0.85vw] text-text/45 font-semibold mb-[3vh]">
-            Why Alkaline
-          </div>
-          <div className="font-display text-[3vw] leading-[1] tracking-tight text-text mb-[1vh]">
-            AForce stands for
-          </div>
-          <h2 className="font-display text-[6vw] leading-[0.9] tracking-tighter">
-            <span className="text-primary">Alkaline</span>
-            <br />
-            Force.
-          </h2>
-          <div className="mt-[4vh] font-body text-[1.05vw] text-text/65 leading-[1.6] max-w-[40vw]">
-            The name is intentional. Most hydration and energy products focus on stimulation. AForce focuses on{" "}
-            <span className="text-text">balance, readiness, and sustained performance under pressure</span>.
-          </div>
-        </div>
-
-        <div className="col-span-5 flex flex-col justify-center">
-          <div className="border border-text/15 rounded-sm p-[2.5vw] mb-[3vh]">
-            <div className="font-body uppercase tracking-[0.35em] text-[0.75vw] text-text/45 font-semibold mb-[1.5vh]">
-              The Foundation
-            </div>
-            <div className="flex items-baseline gap-[1vw]">
-              <div className="font-display text-[6vw] leading-none tracking-tighter text-text">
-                8.8
-              </div>
-              <div className="font-display text-[1.6vw] tracking-tight text-text/55">pH</div>
-            </div>
-            <div className="font-body text-[0.85vw] text-text/45 mt-[1.5vh] uppercase tracking-[0.25em]">
-              Premium alkaline hydration
-            </div>
-          </div>
-
-          <div>
-            <div className="font-body uppercase tracking-[0.32em] text-[0.7vw] text-text/40 font-semibold mb-[1.2vh]">
-              Why it matters
-            </div>
-            {REASONS.map((r) => (
-              <div
-                key={r}
-                className="font-body text-[0.95vw] text-text/75 py-[0.6vh] border-b border-text/8"
-              >
-                — {r}
-              </div>
-            ))}
-          </div>
-        </div>
+      <div className="absolute inset-y-0 right-[2vw] w-[40vw] flex items-center justify-center">
+        <div
+          className="absolute w-[32vw] h-[32vw] rounded-full opacity-55 blur-[6vw]"
+          style={{
+            background:
+              "radial-gradient(circle, rgba(84,120,213,0.65) 0%, rgba(84,120,213,0.18) 45%, transparent 72%)",
+          }}
+        />
+        <div
+          className="absolute bottom-[12vh] w-[20vw] h-[2.5vh] rounded-[50%] blur-[2vw] opacity-65"
+          style={{
+            background:
+              "radial-gradient(ellipse, rgba(0,0,0,0.85) 0%, transparent 70%)",
+          }}
+        />
+        <img
+          src={`${base}can-berry.png`}
+          alt=""
+          className="relative h-[72vh] object-contain"
+          style={{
+            filter:
+              "drop-shadow(0 30px 50px rgba(0,0,0,0.55)) drop-shadow(0 0 60px rgba(84,120,213,0.35))",
+          }}
+        />
       </div>
 
-      <div className="absolute bottom-[14vh] right-[6vw] text-right max-w-[35vw]">
-        <div className="font-display text-[1.5vw] leading-[1.2] tracking-tight italic text-text/80">
-          "Others spike performance.
+      <div
+        className="absolute inset-y-0 left-0 w-[58vw] pointer-events-none"
+        style={{
+          background:
+            "linear-gradient(to right, var(--slide-bg) 70%, transparent 100%)",
+        }}
+      />
+
+      <div className="absolute inset-0 flex flex-col justify-center px-[6vw] pointer-events-none">
+        <div className="font-body uppercase tracking-[0.4em] text-[0.85vw] text-text/45 font-semibold mb-[3vh]">
+          Why Alkaline
+        </div>
+        <div className="font-display text-[2.6vw] leading-[1] tracking-tight text-text mb-[1vh]">
+          AForce stands for
+        </div>
+        <h2 className="font-display text-[5.4vw] leading-[0.9] tracking-tighter">
+          <span className="text-primary">Alkaline</span>
           <br />
-          <span className="text-primary not-italic">AForce stabilizes it."</span>
+          Force.
+        </h2>
+
+        <div className="mt-[4vh] flex items-baseline gap-[1.5vw] border-l-2 border-primary/40 pl-[1.5vw]">
+          <div className="font-display text-[4vw] leading-none tracking-tighter text-text">8.8</div>
+          <div className="font-display text-[1.4vw] tracking-tight text-text/55">pH</div>
+        </div>
+
+        <div className="mt-[4vh] max-w-[42vw]">
+          <div className="font-body uppercase tracking-[0.32em] text-[0.7vw] text-text/40 font-semibold mb-[1vh]">
+            Why it matters
+          </div>
+          {REASONS.map((r) => (
+            <div
+              key={r}
+              className="font-body text-[0.95vw] text-text/75 py-[0.5vh] border-b border-text/8"
+            >
+              — {r}
+            </div>
+          ))}
         </div>
       </div>
     </SlideChrome>
