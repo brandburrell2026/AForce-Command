@@ -26,5 +26,8 @@
     "vite": "catalog:",
     "wouter": "^3.7.1",
     "zod": "catalog:"
+  },
+  "dependencies": {
+    "framer-motion": "catalog:"
   }
 }

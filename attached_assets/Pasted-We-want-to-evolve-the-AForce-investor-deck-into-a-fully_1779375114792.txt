@@ -1,0 +1,73 @@
+We want to evolve the AForce investor deck into a fully cinematic, emotionally controlled presentation experience inspired by premium brand storytelling and modern keynote design.
+
+The deck should NOT feel like a traditional startup or hydration investor presentation.
+
+Creative Direction:
+- Quiet before the storm
+- Cinematic restraint
+- Controlled focus
+- Premium darkness
+- Emotional pacing
+- Silence and tension
+- Luxury performance aesthetic
+- Michael Mann / Nike discipline campaign energy
+- Minimal but powerful typography
+- Emotional sequencing over dense information
+
+We want to add:
+1. Cinematic transitions between slides
+2. Ambient background music throughout the deck
+3. Sound design moments tied to emotional transitions
+4. Embedded short cinematic video loops
+5. Motion graphics and subtle animated lighting
+6. Smooth pacing and scene-based progression
+7. Apple keynote-level presentation quality
+8. Interactive full-screen presentation mode
+9. Dynamic opening sequence
+10. Dark premium visual system with restrained motion
+
+Music Direction:
+- Atmospheric
+- Minimal
+- Tension-building
+- Premium cinematic ambient
+- Performance preparation energy
+- No hype EDM or aggressive fitness music
+- Think:
+  - Hans Zimmer tension
+  - TRON ambient textures
+  - luxury sports documentary scoring
+  - quiet intensity before execution
+
+Suggested moments:
+- Slow atmospheric opening
+- Deep bass pulses during transitions
+- Silence pauses before major statements
+- Subtle rise during “Pause. Hydrate. Lock in. Perform.”
+- Emotional cinematic ending
+
+Technical Goals:
+- Build presentation using React / Next.js or advanced presentation framework
+- Fullscreen cinematic mode
+- Smooth GPU-accelerated transitions
+- Embedded audio controls
+- Video background support
+- Optimized for investor meetings and large displays
+- Responsive on desktop and iPad
+- Exportable presentation mode if possible
+
+Slide Experience Goals:
+- Large typography
+- Minimal copy on screen
+- Motion-driven storytelling
+- Emotional pacing
+- Black screen pauses
+- Cinematic fades
+- Controlled reveals
+- Immersive atmosphere
+
+Please redesign the investor deck experience to feel like:
+“This is not a beverage company presentation.
+This is the introduction of a behavioral performance ecosystem.”
+
+The deck should feel emotionally unforgettable, premium, disciplined, and investor-grade.
