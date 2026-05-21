@@ -1,53 +1,58 @@
 import SlideChrome from "@/components/SlideChrome";
 
-const ARCHETYPES = [
-  { role: "The founder", moment: "before the raise" },
-  { role: "The athlete", moment: "before warm-up" },
-  { role: "The performer", moment: "backstage" },
-  { role: "The surgeon", moment: "before rounds" },
+const PERSONAS = [
+  { who: "The founder", when: "before the raise" },
+  { who: "The athlete", when: "before warm-up" },
+  { who: "The performer", when: "backstage" },
+  { who: "The surgeon", when: "before rounds" },
 ];
+
+const PRESSURE = ["Pressure", "Responsibility", "Expectations", "Constant performance demands"];
 
 export default function NonNegotiable() {
   return (
-    <SlideChrome slide={7}>
-      <div className="absolute inset-0 flex flex-col justify-center px-[6vw]">
-        <div className="font-body uppercase tracking-[0.4em] text-[0.85vw] text-primary font-semibold mb-[3vh]">
-          Performance is Non-Negotiable
+    <SlideChrome slide={6}>
+      <div className="absolute inset-0 flex flex-col justify-center px-[8vw]">
+        <div className="font-body uppercase tracking-[0.4em] text-[0.85vw] text-text/45 font-semibold mb-[3vh]">
+          Performance Is Non-Negotiable
         </div>
 
-        <h2 className="font-display text-[5.2vw] leading-[0.95] tracking-tighter max-w-[70vw]">
-          There is a certain kind of person
+        <h2 className="font-display text-[4.4vw] leading-[1.05] tracking-tight max-w-[70vw] text-text/90">
+          There is a certain kind of person who
           <br />
-          <span className="text-text/45">who does not get to be off.</span>
+          <span className="text-primary">does not get to be off.</span>
         </h2>
 
-        <div className="mt-[6vh] max-w-[55vw]">
-          <div className="font-body text-[1.1vw] text-text/65 leading-[1.6]">
-            People operating under{" "}
-            <span className="text-text">pressure</span>,{" "}
-            <span className="text-text">responsibility</span>,{" "}
-            <span className="text-text">expectations</span>, and constant performance demands.
+        <div className="mt-[6vh] grid grid-cols-12 gap-[3vw]">
+          <div className="col-span-7 flex flex-col gap-[1.6vh]">
+            {PERSONAS.map((p) => (
+              <div key={p.who} className="flex items-baseline gap-[1vw]">
+                <span className="font-display text-[2.4vw] leading-none tracking-tight text-text">
+                  {p.who}
+                </span>
+                <span className="font-body text-[1.1vw] text-text/45 italic">{p.when}.</span>
+              </div>
+            ))}
           </div>
-        </div>
 
-        <div className="mt-[6vh] grid grid-cols-4 gap-[1.5vw] max-w-[80vw]">
-          {ARCHETYPES.map((a) => (
-            <div
-              key={a.role}
-              className="border-t border-text/15 pt-[2vh]"
-            >
-              <div className="font-display text-[1.6vw] leading-[1.1] tracking-tight text-text">
-                {a.role}
-              </div>
-              <div className="font-body text-[0.9vw] text-text/50 mt-[0.6vh] uppercase tracking-[0.25em]">
-                {a.moment}
-              </div>
+          <div className="col-span-5 border-l border-text/10 pl-[2vw]">
+            <div className="font-body uppercase tracking-[0.32em] text-[0.75vw] text-text/40 font-semibold mb-[1.5vh]">
+              Operating under
             </div>
-          ))}
-        </div>
-
-        <div className="mt-[7vh] font-display text-[2vw] tracking-tight text-text">
-          Performance is <span className="text-primary">non-negotiable</span>.
+            <div className="flex flex-wrap gap-[0.6vw]">
+              {PRESSURE.map((p) => (
+                <span
+                  key={p}
+                  className="px-[1vw] py-[0.6vh] border border-text/15 rounded-full font-body text-[0.9vw] text-text/75"
+                >
+                  {p}
+                </span>
+              ))}
+            </div>
+            <div className="mt-[4vh] font-display text-[1.8vw] leading-[1.15] tracking-tight text-primary">
+              Performance is non-negotiable.
+            </div>
+          </div>
         </div>
       </div>
     </SlideChrome>

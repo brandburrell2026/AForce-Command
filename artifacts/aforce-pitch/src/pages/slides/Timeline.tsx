@@ -1,64 +1,38 @@
 import SlideChrome from "@/components/SlideChrome";
 
-const VERTICALS = [
-  {
-    tag: "NCAA",
-    role: "Team-level readiness, hydration discipline, recovery cohort dashboards.",
-  },
-  {
-    tag: "Pro Sports",
-    role: "Pre-game protocol, performance lock-in, individualized profiles.",
-  },
-  {
-    tag: "Enterprise",
-    role: "Operator wellness, sustained execution, retention systems.",
-  },
-  {
-    tag: "Tactical",
-    role: "First responders, military, extreme-environment performance.",
-  },
+const PHASES = [
+  { when: "May–June 2026", what: "Infrastructure + seeding", color: "text-text" },
+  { when: "July 2026", what: "Controlled soft launch", color: "text-text" },
+  { when: "Aug–Oct 2026", what: "Retention + proof building", color: "text-accent" },
+  { when: "January 2027", what: "America's Real Deal filming", color: "text-primary" },
+  { when: "February 2027", what: "Full scale rollout begins", color: "text-primary" },
 ];
 
-export default function PerformanceAtScale() {
+export default function Timeline() {
   return (
-    <SlideChrome slide={15}>
+    <SlideChrome slide={28}>
       <div className="absolute inset-0 flex flex-col justify-center px-[8vw]">
         <div className="font-body uppercase tracking-[0.4em] text-[0.85vw] text-text/45 font-semibold mb-[3vh]">
-          Performance at Scale
+          Timeline
         </div>
 
-        <h2 className="font-display text-[4.4vw] leading-[0.95] tracking-tighter max-w-[68vw]">
-          Same loop.
+        <h2 className="font-display text-[5vw] leading-[0.95] tracking-tighter max-w-[80vw]">
+          Build proof.
           <br />
-          <span className="text-primary">Different environments.</span>
+          <span className="text-primary">Then scale.</span>
         </h2>
 
-        <div className="mt-[2vh] font-display text-[1.3vw] leading-[1.2] tracking-tight text-text/55 max-w-[55vw]">
-          Phase 2+ expansion — narrative elasticity, not promise.
-        </div>
-
-        <div className="mt-[7vh] grid grid-cols-4 gap-[1.5vw] max-w-[80vw]">
-          {VERTICALS.map((v, i) => (
-            <div
-              key={v.tag}
-              className="border-t border-text/20 pt-[2vh]"
-            >
-              <div className="font-body uppercase tracking-[0.32em] text-[0.65vw] text-text/35 font-semibold tabular-nums mb-[1.2vh]">
-                {String(i + 1).padStart(2, "0")}
+        <div className="mt-[7vh] flex flex-col gap-[2vh] max-w-[80vw]">
+          {PHASES.map((p) => (
+            <div key={p.when} className="grid grid-cols-12 gap-[2vw] items-baseline border-b border-text/8 pb-[1.6vh]">
+              <div className="col-span-4 font-body uppercase tracking-[0.32em] text-[0.85vw] text-text/55 font-semibold tabular-nums">
+                {p.when}
               </div>
-              <div className="font-display text-[1.9vw] leading-none tracking-tight text-text">
-                {v.tag}
-              </div>
-              <div className="font-body text-[0.82vw] text-text/55 mt-[1.5vh] leading-[1.5]">
-                {v.role}
+              <div className={`col-span-8 font-display text-[2vw] leading-[1.1] tracking-tight ${p.color}`}>
+                {p.what}
               </div>
             </div>
           ))}
-        </div>
-
-        <div className="mt-[7vh] font-display text-[1.4vw] leading-[1.2] tracking-tight max-w-[60vw]">
-          <span className="text-text/55">But proof first.</span>{" "}
-          <span className="text-primary">Brickell before NCAA.</span>
         </div>
       </div>
     </SlideChrome>

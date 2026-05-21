@@ -13,39 +13,46 @@ const FUNDS = [
 
 export default function TheAsk() {
   return (
-    <SlideChrome slide={25}>
-      <div className="absolute inset-0 flex flex-col justify-center px-[6vw]">
-        <div className="font-body uppercase tracking-[0.4em] text-[0.85vw] text-primary font-semibold mb-[3vh]">
+    <SlideChrome slide={29}>
+      <div className="absolute inset-0 flex flex-col justify-center px-[8vw]">
+        <div className="font-body uppercase tracking-[0.4em] text-[0.85vw] text-text/45 font-semibold mb-[3vh]">
           The Ask
         </div>
 
-        <h2 className="font-display text-[5.2vw] leading-[0.95] tracking-tighter max-w-[70vw]">
-          This is a
+        <h2 className="font-display text-[5.4vw] leading-[0.95] tracking-tighter max-w-[80vw]">
+          A proof-of-concept raise.
           <br />
-          <span className="text-primary">proof-of-concept</span> raise.
+          <span className="text-text/45">Not a scale raise.</span>
         </h2>
-        <div className="font-display text-[2vw] leading-[1.15] tracking-tight text-text/55 mt-[2vh]">
-          Not a scale raise.
-        </div>
 
-        <div className="mt-[7vh] grid grid-cols-12 gap-[3vw]">
+        <div className="mt-[6vh] grid grid-cols-12 gap-[3vw] items-start">
           <div className="col-span-7">
-            <div className="font-body uppercase tracking-[0.32em] text-[0.75vw] text-text/40 font-semibold mb-[1.5vh]">
+            <div className="font-body uppercase tracking-[0.32em] text-[0.7vw] text-text/40 font-semibold mb-[1.5vh]">
               The capital funds
             </div>
-            <div className="grid grid-cols-2 gap-y-[0.8vh] gap-x-[1.5vw]">
-              {FUNDS.map((f) => (
-                <div key={f} className="font-body text-[1.05vw] text-text/85">
-                  — {f}
+            <div className="grid grid-cols-2 gap-x-[2vw] gap-y-[1vh]">
+              {FUNDS.map((f, i) => (
+                <div key={f} className="flex items-baseline gap-[0.8vw]">
+                  <span className="font-body text-[0.7vw] tracking-[0.4em] uppercase text-text/35 font-semibold tabular-nums">
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
+                  <span className="font-display text-[1.3vw] leading-[1.2] tracking-tight text-text/90">
+                    {f}
+                  </span>
                 </div>
               ))}
             </div>
           </div>
-          <div className="col-span-5 border-l border-text/15 pl-[2vw] flex flex-col justify-end">
-            <div className="font-display text-[2.4vw] leading-[1.15] tracking-tight text-text">
+
+          <div className="col-span-5 border-l border-text/10 pl-[2vw]">
+            <div className="font-body uppercase tracking-[0.32em] text-[0.7vw] text-text/40 font-semibold mb-[1vh]">
               The next round
-              <br />
-              <span className="text-primary">funds scale.</span>
+            </div>
+            <div className="font-display text-[2.6vw] leading-[1.1] tracking-tight text-primary">
+              Funds scale.
+            </div>
+            <div className="mt-[3vh] font-body text-[1vw] text-text/55 leading-[1.55]">
+              This phase is engineered to produce the validated metrics required for the scale round.
             </div>
           </div>
         </div>

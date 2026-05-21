@@ -1,54 +1,52 @@
 import SlideChrome from "@/components/SlideChrome";
 
 const STAGES = [
-  { tag: "01", label: "Drink", role: "the product creates entry" },
-  { tag: "02", label: "Ritual", role: "the ritual creates behavior" },
-  { tag: "03", label: "Reinforcement", role: "the OS reinforces the ritual" },
-  { tag: "04", label: "Retention", role: "the loop compounds" },
+  { n: "01", t: "Drink", s: "the product creates entry", color: "text-primary" },
+  { n: "02", t: "Ritual", s: "the ritual creates behavior", color: "text-text" },
+  { n: "03", t: "Reinforcement", s: "the OS reinforces the ritual", color: "text-accent" },
+  { n: "04", t: "Retention", s: "the loop compounds", color: "text-text/70" },
 ];
 
-export default function TheLoop() {
+export default function PerformanceLoop() {
   return (
-    <SlideChrome slide={8}>
-      <div className="absolute inset-0 flex flex-col justify-center px-[8vw]">
-        <div className="font-body uppercase tracking-[0.4em] text-[0.85vw] text-text/45 font-semibold mb-[4vh]">
-          The Loop
+    <SlideChrome slide={13}>
+      <div className="absolute inset-0 flex flex-col justify-center px-[6vw]">
+        <div className="font-body uppercase tracking-[0.4em] text-[0.85vw] text-text/45 font-semibold mb-[3vh]">
+          The Performance Loop
         </div>
 
-        <h2 className="font-display text-[3.6vw] leading-[1] tracking-tighter max-w-[68vw]">
-          The product creates <span className="text-primary">entry.</span>
+        <h2 className="font-display text-[4.6vw] leading-[1] tracking-tighter max-w-[80vw] mb-[6vh]">
+          A recurring
           <br />
-          The ritual creates <span className="text-primary">behavior.</span>
-          <br />
-          The OS creates <span className="text-primary">retention.</span>
+          <span className="text-primary">behavioral system.</span>
         </h2>
 
-        <div className="mt-[8vh] flex items-stretch gap-[1.5vw] max-w-[80vw]">
+        <div className="grid grid-cols-9 gap-[1vw] items-end">
           {STAGES.map((s, i) => (
-            <div key={s.tag} className="flex-1 flex items-stretch">
-              <div className="flex-1 flex flex-col">
-                <div className="font-body uppercase tracking-[0.32em] text-[0.7vw] text-text/35 font-semibold tabular-nums">
-                  {s.tag}
+            <div key={s.n} className="contents">
+              <div className="col-span-2">
+                <div className="font-body text-[0.7vw] tracking-[0.4em] uppercase text-text/35 font-semibold mb-[0.5vh] tabular-nums">
+                  {s.n}
                 </div>
-                <div className="font-display text-[2.4vw] leading-[1] tracking-tight text-text mt-[1.5vh]">
-                  {s.label}
+                <div className={`font-display text-[2.4vw] leading-none tracking-tight ${s.color}`}>
+                  {s.t}
                 </div>
-                <div className="font-body text-[0.85vw] text-text/55 mt-[1.5vh] leading-[1.5] max-w-[15vw]">
-                  {s.role}
+                <div className="font-body text-[0.85vw] text-text/45 leading-[1.5] mt-[0.5vh]">
+                  {s.s}
                 </div>
               </div>
               {i < STAGES.length - 1 && (
-                <div className="flex items-start pt-[2.5vh] px-[0.5vw]">
-                  <span className="font-display text-[1.8vw] text-primary/60 leading-none">→</span>
+                <div className="col-span-1 flex items-center justify-center pb-[2vh]">
+                  <span className="font-display text-[2vw] text-primary leading-none">→</span>
                 </div>
               )}
             </div>
           ))}
         </div>
 
-        <div className="mt-[10vh] max-w-[60vw] font-display text-[1.5vw] leading-[1.2] tracking-tight">
-          <span className="text-text/55">Not a product cycle.</span>{" "}
-          <span className="text-text">A recurring behavioral system.</span>
+        <div className="mt-[8vh] font-body text-[1.1vw] text-text/65 leading-[1.6] max-w-[55vw]">
+          <span className="text-text/35">Not a product cycle.</span>{" "}
+          <span className="text-text">The loop improves with every cycle.</span>
         </div>
       </div>
     </SlideChrome>

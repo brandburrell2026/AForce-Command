@@ -1,61 +1,49 @@
 import SlideChrome from "@/components/SlideChrome";
 
-export default function PathTo32M() {
+const FLOW = ["Acquisition", "Ritual", "Retention", "Subscription", "Expansion"];
+
+export default function GrowthModel() {
   return (
-    <SlideChrome slide={22}>
+    <SlideChrome slide={27}>
       <div className="absolute inset-0 flex flex-col justify-center px-[8vw]">
         <div className="font-body uppercase tracking-[0.4em] text-[0.85vw] text-text/45 font-semibold mb-[3vh]">
-          Path to $3.2M
+          Growth Model
         </div>
 
-        <h2 className="font-display text-[5.4vw] leading-[0.92] tracking-tighter max-w-[80vw]">
-          <span className="text-primary">60,000</span> orders.
+        <h2 className="font-display text-[4.6vw] leading-[1] tracking-tighter max-w-[80vw]">
+          Performance creates retention.
           <br />
-          <span className="text-text/45">Operator-driven.</span>
+          <span className="text-primary">Retention drives revenue.</span>
         </h2>
 
-        <div className="mt-[8vh] grid grid-cols-2 gap-[4vw] max-w-[78vw]">
-          <div className="border-t border-text/20 pt-[2.5vh]">
-            <div className="font-body uppercase tracking-[0.32em] text-[0.7vw] text-primary font-semibold mb-[1.5vh]">
-              Acquisition Engine
+        <div className="mt-[7vh] flex items-center gap-[1vw] max-w-[88vw]">
+          {FLOW.map((f, i) => (
+            <div key={f} className="flex items-center gap-[1vw]">
+              <div className="border-l-2 border-primary pl-[1vw]">
+                <div className="font-body text-[0.65vw] tracking-[0.4em] uppercase text-text/35 font-semibold mb-[0.4vh] tabular-nums">
+                  {String(i + 1).padStart(2, "0")}
+                </div>
+                <div className="font-display text-[1.7vw] leading-none tracking-tight text-text">
+                  {f}
+                </div>
+              </div>
+              {i < FLOW.length - 1 && (
+                <span className="font-display text-[1.4vw] text-primary leading-none">→</span>
+              )}
             </div>
-            <div className="space-y-[1vh] font-body text-[0.95vw] text-text/75 leading-[1.55]">
-              <div>— Meta + Google paid social.</div>
-              <div>— Founder-led content & referral.</div>
-              <div>— High-conviction event activation.</div>
-              <div>— Founder access in Brickell density.</div>
-            </div>
-          </div>
-          <div className="border-t border-text/20 pt-[2.5vh]">
-            <div className="font-body uppercase tracking-[0.32em] text-[0.7vw] text-primary font-semibold mb-[1.5vh]">
-              Retention Engine
-            </div>
-            <div className="space-y-[1vh] font-body text-[0.95vw] text-text/75 leading-[1.55]">
-              <div>— Subscription bundles, ritual onboarding.</div>
-              <div>— OS reinforcement (Score / Command).</div>
-              <div>— Streaks, habit, identity.</div>
-              <div>— Free-to-paid ecosystem conversion.</div>
-            </div>
-          </div>
+          ))}
         </div>
 
-        <div className="mt-[7vh] grid grid-cols-3 gap-[2vw] max-w-[70vw]">
-          <div className="border-t border-text/15 pt-[1.5vh]">
-            <div className="font-display text-[2.4vw] leading-none tracking-tight text-text">60k</div>
-            <div className="font-body uppercase tracking-[0.25em] text-[0.7vw] text-text/45 mt-[0.6vh] font-semibold">Orders target</div>
+        <div className="mt-[8vh] max-w-[55vw] flex flex-col gap-[0.6vh]">
+          <div className="font-body text-[1.05vw] text-text/55 leading-[1.55]">
+            The product creates <span className="text-text">entry.</span>
           </div>
-          <div className="border-t border-text/15 pt-[1.5vh]">
-            <div className="font-display text-[2.4vw] leading-none tracking-tight text-text">$53</div>
-            <div className="font-body uppercase tracking-[0.25em] text-[0.7vw] text-text/45 mt-[0.6vh] font-semibold">Avg basket</div>
+          <div className="font-body text-[1.05vw] text-text/55 leading-[1.55]">
+            The ritual creates <span className="text-text">behavior.</span>
           </div>
-          <div className="border-t border-text/15 pt-[1.5vh]">
-            <div className="font-display text-[2.4vw] leading-none tracking-tight text-text">$3.2M</div>
-            <div className="font-body uppercase tracking-[0.25em] text-[0.7vw] text-text/45 mt-[0.6vh] font-semibold">Revenue path</div>
+          <div className="font-body text-[1.05vw] text-text/55 leading-[1.55]">
+            The OS creates <span className="text-text">compounding value.</span>
           </div>
-        </div>
-
-        <div className="mt-[5vh] font-body text-[0.85vw] text-text/40 max-w-[60vw] leading-[1.6]">
-          Simple. Believable. Two engines, one ritual.
         </div>
       </div>
     </SlideChrome>

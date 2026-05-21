@@ -1,52 +1,60 @@
 import SlideChrome from "@/components/SlideChrome";
 
-export default function TheShift() {
+const OPPORTUNITY = [
+  "Recurring engagement",
+  "Accountability",
+  "Retention",
+  "Optimization",
+  "Ecosystem adoption",
+];
+
+export default function CategoryShift() {
   return (
     <SlideChrome slide={5}>
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          background:
-            "radial-gradient(ellipse 60% 50% at 70% 50%, rgba(229,51,65,0.06) 0%, transparent 70%)",
-        }}
-      />
-
       <div className="absolute inset-0 flex flex-col justify-center px-[8vw]">
-        <div className="font-body uppercase tracking-[0.4em] text-[0.85vw] text-text/45 font-semibold mb-[4vh]">
-          The Shift
+        <div className="font-body uppercase tracking-[0.4em] text-[0.85vw] text-text/45 font-semibold mb-[3vh]">
+          The Category Shift
         </div>
 
-        <h2 className="font-display text-[5.6vw] leading-[0.92] tracking-tighter max-w-[80vw]">
-          AForce is <span className="text-text/45">not</span>
+        <h2 className="font-display text-[5.2vw] leading-[0.95] tracking-tighter max-w-[80vw]">
+          AForce is not a
           <br />
-          a <span className="text-primary">hydration brand.</span>
+          <span className="text-text/40">hydration brand.</span>
         </h2>
 
-        <div className="mt-[8vh] max-w-[68vw] grid grid-cols-3 gap-[2vw]">
-          <div className="border-t border-text/15 pt-[2vh]">
-            <div className="font-body uppercase tracking-[0.3em] text-[0.7vw] text-text/40 font-semibold mb-[1vh]">
-              Hydration
-            </div>
-            <div className="font-display text-[1.6vw] leading-[1.15] tracking-tight text-text">
-              is the <span className="text-primary">entry point.</span>
-            </div>
-          </div>
-          <div className="border-t border-text/15 pt-[2vh]">
-            <div className="font-body uppercase tracking-[0.3em] text-[0.7vw] text-text/40 font-semibold mb-[1vh]">
-              Behavior
-            </div>
-            <div className="font-display text-[1.6vw] leading-[1.15] tracking-tight text-text">
-              is the <span className="text-primary">moat.</span>
+        <div className="mt-[3vh] font-display text-[3.2vw] leading-[1.1] tracking-tight text-primary max-w-[70vw]">
+          It is a behavioral performance ecosystem.
+        </div>
+
+        <div className="mt-[6vh] grid grid-cols-12 gap-[3vw] items-start">
+          <div className="col-span-6">
+            <div className="font-body text-[1.05vw] text-text/55 leading-[1.7] max-w-[34vw]">
+              Hydration is the entry point.
+              <br />
+              The larger opportunity is the system around it.
             </div>
           </div>
-          <div className="border-t border-text/15 pt-[2vh]">
-            <div className="font-body uppercase tracking-[0.3em] text-[0.7vw] text-text/40 font-semibold mb-[1vh]">
-              The OS
+          <div className="col-span-6 border-l border-text/10 pl-[2vw]">
+            <div className="font-body uppercase tracking-[0.32em] text-[0.7vw] text-text/40 font-semibold mb-[1.5vh]">
+              The opportunity
             </div>
-            <div className="font-display text-[1.6vw] leading-[1.15] tracking-tight text-text">
-              <span className="text-primary">compounds</span> retention.
+            <div className="flex flex-wrap gap-[0.6vw]">
+              {OPPORTUNITY.map((o) => (
+                <span
+                  key={o}
+                  className="px-[1vw] py-[0.6vh] border border-text/15 rounded-full font-body text-[0.9vw] text-text/75"
+                >
+                  {o}
+                </span>
+              ))}
             </div>
           </div>
+        </div>
+
+        <div className="mt-[7vh] font-display text-[1.6vw] leading-[1.3] tracking-tight text-text/85 max-w-[55vw]">
+          Others react after performance drops.
+          <br />
+          <span className="text-text">AForce prepares people before performance begins.</span>
         </div>
       </div>
     </SlideChrome>

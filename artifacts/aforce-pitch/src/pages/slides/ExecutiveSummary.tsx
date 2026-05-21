@@ -1,6 +1,6 @@
 import SlideChrome from "@/components/SlideChrome";
 
-export default function Cover() {
+export default function ExecutiveSummary() {
   const base = import.meta.env.BASE_URL;
   return (
     <SlideChrome slide={1} hideChrome>
@@ -33,28 +33,32 @@ export default function Cover() {
       </div>
 
       <div
-        className="absolute inset-y-0 left-0 w-[58vw] pointer-events-none"
+        className="absolute inset-y-0 left-0 w-[60vw] pointer-events-none"
         style={{
-          background:
-            "linear-gradient(to right, #000 64%, transparent 100%)",
+          background: "linear-gradient(to right, #000 64%, transparent 100%)",
         }}
       />
 
-      <div className="absolute inset-0 flex flex-col justify-between px-[8vw] py-[10vh] pointer-events-none">
+      <div className="absolute inset-0 flex flex-col justify-between px-[8vw] py-[8vh] pointer-events-none">
         <div className="flex items-baseline justify-between">
           <div className="font-display text-[2vw] leading-none tracking-tight text-primary">
             AForce
           </div>
           <div className="font-body uppercase tracking-[0.4em] text-[0.7vw] text-text/30 font-semibold">
-            Phase 1 · Proof of Concept · May 2026
+            Investor Deck · Phase 1 · Proof of Concept · May 2026
           </div>
         </div>
 
-        <div>
-          <h1 className="font-display text-[6.2vw] leading-[0.9] tracking-tighter max-w-[55vw]">
-            Performance
+        <div className="max-w-[55vw]">
+          <div className="font-body uppercase tracking-[0.4em] text-[0.8vw] text-text/45 font-semibold mb-[2vh]">
+            Executive Summary
+          </div>
+          <h1 className="font-display text-[5.6vw] leading-[0.9] tracking-tighter">
+            A behavioral
             <br />
-            is <span className="text-primary">non-negotiable.</span>
+            <span className="text-primary">performance</span>
+            <br />
+            ecosystem.
           </h1>
           <div className="mt-[4vh] flex flex-wrap gap-x-[1.5vw] gap-y-[1vh] font-display text-[1.8vw] leading-none tracking-tight">
             <span className="text-primary">Pause.</span>
@@ -64,12 +68,18 @@ export default function Cover() {
           </div>
         </div>
 
-        <div className="max-w-[40vw]">
-          <div className="font-body uppercase tracking-[0.4em] text-[0.7vw] text-text/40 font-semibold mb-[1vh]">
-            AForce
+        <div className="max-w-[44vw] flex flex-col gap-[0.8vh]">
+          <div className="font-body text-[1vw] text-text/55 leading-[1.6]">
+            The product creates <span className="text-text">entry.</span>
           </div>
-          <div className="font-display text-[1.4vw] leading-[1.2] tracking-tight text-text/85">
-            A behavioral performance ecosystem.
+          <div className="font-body text-[1vw] text-text/55 leading-[1.6]">
+            The ritual creates <span className="text-text">behavior.</span>
+          </div>
+          <div className="font-body text-[1vw] text-text/55 leading-[1.6]">
+            The OS creates <span className="text-text">retention.</span>
+          </div>
+          <div className="mt-[1.5vh] font-body uppercase tracking-[0.3em] text-[0.7vw] text-text/35 font-semibold">
+            Before America's Real Deal we build proof. After, we build scale.
           </div>
         </div>
       </div>

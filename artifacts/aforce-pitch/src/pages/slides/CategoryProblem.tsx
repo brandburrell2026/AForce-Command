@@ -1,57 +1,51 @@
 import SlideChrome from "@/components/SlideChrome";
 
-const NOISE = [
-  "Energy",
-  "Spike",
-  "Crash",
-  "Hype",
-  "Stimulation",
-  "Overstimulation",
-  "Reactive",
-  "Loud",
-  "Interchangeable",
-  "After the fact",
-];
+const PROMISES = ["Energy", "Hydration", "Recovery", "Performance"];
 
 export default function CategoryProblem() {
   return (
-    <SlideChrome slide={4}>
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute inset-0 flex flex-wrap content-start gap-x-[2vw] gap-y-[1.5vh] px-[6vw] pt-[18vh] opacity-[0.10]">
-          {Array.from({ length: 6 }).flatMap((_, row) =>
-            NOISE.map((w) => (
-              <span
-                key={`${row}-${w}`}
-                className="font-display text-[2.2vw] tracking-tight text-text"
-              >
-                {w}
-              </span>
-            )),
-          )}
-        </div>
-      </div>
-
-      <div className="absolute inset-0 flex flex-col justify-center px-[8vw] pointer-events-none">
-        <div className="font-body uppercase tracking-[0.4em] text-[0.85vw] text-text/45 font-semibold mb-[4vh]">
+    <SlideChrome slide={3}>
+      <div className="absolute inset-0 flex flex-col justify-center px-[8vw]">
+        <div className="font-body uppercase tracking-[0.4em] text-[0.85vw] text-text/45 font-semibold mb-[3vh]">
           The Category Problem
         </div>
 
-        <h2 className="font-display text-[4.2vw] leading-[0.95] tracking-tighter max-w-[70vw]">
-          <span className="text-text/50">Most brands react</span>
+        <h2 className="font-display text-[5.4vw] leading-[0.95] tracking-tighter max-w-[78vw]">
+          Crowded.
           <br />
-          <span className="text-text">after performance drops.</span>
+          Repetitive.
+          <br />
+          <span className="text-primary">Interchangeable.</span>
         </h2>
 
-        <div className="mt-[4vh] h-[2px] w-[10vw] bg-primary/70" />
+        <div className="mt-[6vh] grid grid-cols-12 gap-[3vw] items-start">
+          <div className="col-span-5">
+            <div className="font-body uppercase tracking-[0.32em] text-[0.75vw] text-text/40 font-semibold mb-[1.5vh]">
+              Every brand promises
+            </div>
+            <div className="flex flex-wrap gap-[0.6vw]">
+              {PROMISES.map((p) => (
+                <span
+                  key={p}
+                  className="px-[1.2vw] py-[0.7vh] border border-text/15 rounded-full font-body text-[1vw] text-text/70"
+                >
+                  {p}
+                </span>
+              ))}
+            </div>
+          </div>
 
-        <div className="mt-[4vh] font-display text-[3.4vw] leading-[1] tracking-tighter max-w-[70vw]">
-          AForce <span className="text-primary">prepares people</span>
-          <br />
-          <span className="text-text">before performance begins.</span>
-        </div>
-
-        <div className="mt-[6vh] max-w-[50vw] font-body text-[0.95vw] text-text/55 leading-[1.6]">
-          The category is loud by design — chaos, overstimulation, social media noise. The frame is wrong. Performance is built before the moment, not chased after it.
+          <div className="col-span-7 border-l border-text/10 pl-[2vw]">
+            <div className="font-body text-[1.2vw] text-text/65 leading-[1.55] max-w-[42vw]">
+              Consumers no longer hear the message.
+            </div>
+            <div className="font-display text-[2.4vw] leading-[1.1] tracking-tight text-text mt-[1vh]">
+              The category has become <span className="text-primary">noise.</span>
+            </div>
+            <div className="mt-[3vh] font-body text-[1vw] text-text/45 leading-[1.6] max-w-[40vw]">
+              Most brands create spikes. Very few create sustained readiness.
+            </div>
+          </div>
         </div>
       </div>
     </SlideChrome>
