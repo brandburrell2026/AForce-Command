@@ -256,7 +256,7 @@ export default function UrineHydrationCheckScreen() {
         >
           <View style={[styles.confirmGlow, { backgroundColor: `${stateColor}1F` }]} />
           <Icon name="check-circle" size={20} color={stateColor} />
-          <Text style={styles.confirmText}>Confirm status</Text>
+          <Text style={styles.confirmText}>Complete cycle</Text>
         </TouchableOpacity>
       </ScrollView>
     </GradientBackground>
