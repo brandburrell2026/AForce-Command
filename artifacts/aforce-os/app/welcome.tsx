@@ -153,11 +153,7 @@ export default function HomeScreen() {
   }, [readiness]);
 
   const enterApp = React.useCallback(async () => {
-    try {
-      await AsyncStorage.setItem('aforce.welcomeSeen', '1');
-      // Match SplashGate's flag so subsequent launches skip welcome.
-      await AsyncStorage.setItem('aforce.hasCompletedOnboarding', 'true');
-    } catch {}
+    try { await AsyncStorage.setItem('aforce.welcomeSeen', '1'); } catch {}
     router.replace('/(tabs)');
   }, [router]);
 
@@ -204,20 +200,11 @@ export default function HomeScreen() {
             ))}
           </View>
 
-          {/* 6 — Tagline + protocol line + chips */}
+          {/* 6 — Tagline + chips */}
           <View style={styles.taglineWrap}>
             <Text style={styles.taglineLight}>
               Performance is{' '}
               <Text style={styles.taglineBold}>non-negotiable.</Text>
-            </Text>
-            <Text style={styles.protocolLine}>
-              <Text style={styles.protocolRed}>Pause</Text>
-              <Text style={styles.protocolArrow}>{'  →  '}</Text>
-              <Text style={styles.protocolWhite}>Hydrate</Text>
-              <Text style={styles.protocolArrow}>{'  →  '}</Text>
-              <Text style={styles.protocolAmber}>Lock in</Text>
-              <Text style={styles.protocolArrow}>{'  →  '}</Text>
-              <Text style={styles.protocolWhite}>Perform</Text>
             </Text>
             <View style={styles.chipsRow}>
               {['Closed-loop', 'Real-time', 'Deterministic'].map((c) => (
@@ -358,7 +345,10 @@ function ReadinessBlock({
             />
           </G>
         </Svg>
-        {/* Orb center intentionally blank. */}
+        <View style={styles.ringCenter} pointerEvents="none">
+          <Text style={styles.ringScore}>{score}</Text>
+          <Text style={styles.ringLabel}>READY</Text>
+        </View>
       </View>
 
       <View style={styles.statsCol}>
@@ -656,16 +646,6 @@ const styles = StyleSheet.create({
     fontFamily: F.bodyB,
     color: C.white,
   },
-  protocolLine: {
-    fontFamily: F.bodyM,
-    fontSize: 15,
-    letterSpacing: 1.2,
-    lineHeight: 22,
-  },
-  protocolRed:   { color: C.red,   fontFamily: F.bodyB },
-  protocolAmber: { color: C.amber, fontFamily: F.bodyB },
-  protocolWhite: { color: C.white, fontFamily: F.bodyB },
-  protocolArrow: { color: C.text35, fontFamily: F.body },
   chipsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   chip: {
     paddingHorizontal: 12,
