@@ -93,7 +93,7 @@ export const mockHistory: HistoryEntry[] = [
     timestamp: new Date(Date.now() - 240 * 60 * 1000),
     score: 55,
     state: 'DEPLETED',
-    action: 'Recovery protocol activated. Drink 20 oz with electrolytes.',
+    action: 'Recovery mode recommended. Drink 20 oz with electrolytes.',
     unitsTaken: 2,
     fluidType: 'aforce_stick',
   },
