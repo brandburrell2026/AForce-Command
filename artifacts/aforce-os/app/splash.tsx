@@ -594,7 +594,7 @@ export default function SplashScreen() {
 
         {showNumber && (
           <FadeIn show durationMs={FADE_MS}>
-            <Text style={styles.number}>31</Text>
+            <Text style={styles.number}>44</Text>
           </FadeIn>
         )}
       </View>
