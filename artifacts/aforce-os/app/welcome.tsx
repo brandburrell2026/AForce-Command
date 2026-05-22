@@ -1,707 +1,775 @@
 /**
- * Home — AForce OS performance command surface (cinematic edition).
+ * AForce OS — Cinematic Onboarding Lobby
  *
- * Premium dark dashboard inspired by elite fitness/recovery platforms.
- * The Readiness ring is wired to the live hydration score from the
- * scoring engine; remaining metrics (Strain / Recovery / Sleep / HRV /
- * resting HR / active burn / SpO₂ / recovery time) are presentational
- * placeholders until those signal sources land.
+ * Four-stage opening sequence shown only on a user's very first open.
+ * Once stage 4 completes (CONTINUE tap), `hasCompletedOnboarding` is
+ * persisted to AsyncStorage and the user is routed into the existing
+ * `(tabs)` app. The gate in `app/_layout.tsx` skips this entire
+ * sequence on every subsequent launch.
+ *
+ * Strict design constraints (per spec):
+ *   - Background: #000000 only
+ *   - Ring stroke: 1.5px thin (white in stages 1-2, critical red in 3-4)
+ *   - Critical red: rgba(180,30,30,0.55)
+ *   - Font: Helvetica Neue, weight 100-300 only
+ *   - All transitions: opacity fade 1.2s ease only — no slides, no
+ *     bounces, no bright colors.
+ *   - Nothing in the existing app is touched.
  */
 
 import React from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  Pressable,
-  Platform,
-  useWindowDimensions,
+  View, Text, Pressable, StyleSheet, Platform,
 } from 'react-native';
 import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  useAnimatedProps,
-  withTiming,
-  withDelay,
-  withRepeat,
-  withSequence,
-  Easing,
-  cancelAnimation,
+  useSharedValue, useAnimatedStyle, useAnimatedProps, withTiming,
+  withRepeat, withSequence, interpolate, Easing, cancelAnimation,
 } from 'react-native-reanimated';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Icon } from '../components/Icon';
-import * as Haptics from 'expo-haptics';
-import { useRouter } from 'expo-router';
+import Svg, { Circle, Path } from 'react-native-svg';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Svg, {
-  Circle,
-  Path,
-  Defs,
-  LinearGradient,
-  Stop,
-  G,
-} from 'react-native-svg';
+import { useRouter } from 'expo-router';
 
-import { useAppStore } from '@/store/useAppStore';
-import { TAB_BAR_HEIGHT } from '@/constants/layout';
+const ONBOARDING_KEY = 'aforce.hasCompletedOnboarding';
+
+const BG = '#000000';
+const RING_WHITE = 'rgba(255,255,255,0.85)';
+const CRITICAL_RED = 'rgba(180,30,30,0.55)';
+const TEXT_DIM = 'rgba(255,255,255,0.55)';
+const TEXT_BRIGHT = 'rgba(255,255,255,0.92)';
+
+// Match the rest of the app's typography exactly. The home screen
+// uses Inter_700Bold for big numbers / status labels (tracked caps)
+// and Inter_400Regular for body copy.
+const FONT_BOLD = 'Inter_700Bold';
+const FONT_MEDIUM = 'Inter_500Medium';
+const FONT_REGULAR = 'Inter_400Regular';
+// "Digital" readout face for the WELCOME · AFORCE OS headline.
+// React Native ships a monospace family on every platform — Menlo on
+// iOS, monospace on Android, and a generic monospace stack on web.
+// Combined with wide tracking + uppercase this gives the lobby a
+// terminal / on-board-computer feel without bundling a custom font.
+const FONT_DIGITAL = Platform.select({
+  ios: 'Menlo',
+  android: 'monospace',
+  default: 'ui-monospace, Menlo, Consolas, monospace',
+}) as string;
+
+const FADE_MS = 1200;
+const FADE_EASE = Easing.inOut(Easing.ease);
+const RING_SIZE = 220;
+const RING_STROKE = 1.5;
+const RING_RADIUS = (RING_SIZE - RING_STROKE) / 2;
+const RING_CIRC = 2 * Math.PI * RING_RADIUS;
+// Orb composition sizes — mirror StatusPulseOrb's GLOW_RATIO 1.85 so
+// the red pulse on this lobby reads as the same visual instrument as
+// the hydration orb on the home screen, just in DEPLETED red.
+const GLOW_SIZE = Math.round(RING_SIZE * 1.85);
+const RIPPLE_SIZE = RING_SIZE + 24;
+// A second, slightly brighter inner halo at 70% of the outer glow,
+// matching the orb's `innerGlow` layer.
+const INNER_GLOW_SIZE = Math.round(GLOW_SIZE * 0.7);
+const ORB_BG = '#0A0A0A';
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
-// ─── Tokens ───────────────────────────────────────────────────────
-const C = {
-  bg:       '#080808',
-  red:      '#E01818',
-  green:    '#4ade80',
-  amber:    '#f59e0b',
-  white:    '#ffffff',
-  text65:   'rgba(255,255,255,0.65)',
-  text45:   'rgba(255,255,255,0.45)',
-  text35:   'rgba(255,255,255,0.35)',
-  text25:   'rgba(255,255,255,0.25)',
-  cardBg:   'rgba(255,255,255,0.04)',
-  cardBorder: 'rgba(255,255,255,0.08)',
-  redTint:  'rgba(224,24,24,0.12)',
-  redBorder:'rgba(224,24,24,0.35)',
-};
-// Match the rest of the app — Inter only.
-const F = {
-  display: 'Inter_700Bold',
-  body:    'Inter_400Regular',
-  bodyM:   'Inter_500Medium',
-  bodyB:   'Inter_700Bold',
-};
+type Stage = 1 | 2 | 3 | 4;
 
-const COL = 380;          // max content width
-const PAD = 22;           // outer horizontal padding
-
-// ─── Mock metric stream — until real signals are wired ────────────
-const STATS = [
-  { label: 'Strain',   value: '14.2', tone: C.amber },
-  { label: 'Recovery', value: '74%',  tone: C.green },
-  { label: 'Sleep',    value: '7h 12m', tone: C.green },
-  { label: 'HRV',      value: '62 ms', tone: C.green },
-];
-const METRICS: { icon: string; value: string; label: string }[] = [
-  { icon: '❤︎',  value: '54',   label: 'Resting HR' },
-  { icon: '🔥', value: '412',  label: 'Active Burn' },
-  { icon: '◉',  value: '98%',  label: 'SpO₂' },
-  { icon: '⏱', value: '6h',   label: 'Recovery Time' },
-];
-// 7-day HRV trend, normalized 0..1 for the sparkline
-const HRV_SERIES = [0.42, 0.55, 0.48, 0.62, 0.58, 0.71, 0.78];
-const HRV_CURRENT = '62 ms';
-
-export default function HomeScreen() {
-  const router = useRouter();
-  const insets = useSafeAreaInsets();
-  const { width } = useWindowDimensions();
-  const colWidth = Math.min(width, COL);
-
-  // Live readiness — derive from live hydration score (0..100).
-  const { state } = useAppStore();
-  const liveScore = state?.engineOutput?.score ?? 83;
-  const readiness = Math.max(0, Math.min(100, Math.round(liveScore)));
-
-  // ─── Animation drivers ──────────────────────────────────────────
-  const ringProgress = useSharedValue(0);
-  const livePulse    = useSharedValue(1);
-  const glow         = useSharedValue(0.18);
-  const ringPulse    = useSharedValue(0); // 0 → 1 sonar pulse, looped
-
-  React.useEffect(() => {
-    const ease = Easing.out(Easing.cubic);
-    // Ring draws over 1.5s after the hero appears
-    ringProgress.value = withDelay(
-      450,
-      withTiming(readiness / 100, { duration: 1500, easing: Easing.out(Easing.cubic) }),
-    );
-    // LIVE dot pulse
-    livePulse.value = withRepeat(
-      withSequence(
-        withTiming(0.35, { duration: 700, easing: Easing.inOut(Easing.quad) }),
-        withTiming(1,    { duration: 700, easing: Easing.inOut(Easing.quad) }),
-      ),
-      -1, false,
-    );
-    // Hero glow pulse
-    glow.value = withRepeat(
-      withSequence(
-        withTiming(0.32, { duration: 2400, easing: Easing.inOut(Easing.quad) }),
-        withTiming(0.16, { duration: 2400, easing: Easing.inOut(Easing.quad) }),
-      ),
-      -1, false,
-    );
-    // Sonar ring pulse — 0 → 1 loop, restart from 0 each cycle.
-    ringPulse.value = withRepeat(
-      withTiming(1, { duration: 2200, easing: Easing.out(Easing.cubic) }),
-      -1, false,
-    );
-    return () => {
-      cancelAnimation(ringProgress);
-      cancelAnimation(livePulse);
-      cancelAnimation(glow);
-      cancelAnimation(ringPulse);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [readiness]);
-
-  // Re-target ring when score changes after first paint
-  React.useEffect(() => {
-    ringProgress.value = withTiming(readiness / 100, { duration: 900, easing: Easing.out(Easing.cubic) });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [readiness]);
-
-  const enterApp = React.useCallback(async () => {
-    try { await AsyncStorage.setItem('aforce.welcomeSeen', '1'); } catch {}
-    router.replace('/(tabs)');
-  }, [router]);
-
-  const handleBegin = () => {
-    if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy).catch(() => {});
-    enterApp();
-  };
-  const handleReport = () => enterApp();
-
-  return (
-    <View style={styles.root}>
-      <ScrollView
-        style={{ flex: 1 }}
-        contentContainerStyle={[
-          styles.scroll,
-          {
-            paddingTop: insets.top + 12,
-            paddingBottom: TAB_BAR_HEIGHT + insets.bottom + 32,
-          },
-        ]}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={[styles.col, { width: colWidth }]}>
-          {/* 1 — LIVE pill */}
-          <LivePill pulse={livePulse} />
-
-          {/* 2 — Hero wordmark */}
-          <Hero glow={glow} />
-
-          {/* 3 — Readiness ring + side stats */}
-          <ReadinessBlock score={readiness} ringProgress={ringProgress} ringPulse={ringPulse} />
-
-          {/* 4 — HRV sparkline */}
-          <SparklineCard
-            width={colWidth - PAD * 2}
-            series={HRV_SERIES}
-            current={HRV_CURRENT}
-          />
-
-          {/* 5 — 2x2 metrics */}
-          <View style={styles.metricsGrid}>
-            {METRICS.map((m) => (
-              <MetricCard key={m.label} {...m} />
-            ))}
-          </View>
-
-          {/* 6 — Tagline + chips */}
-          <View style={styles.taglineWrap}>
-            <Text style={styles.taglineLight}>
-              Performance is{' '}
-              <Text style={styles.taglineBold}>non-negotiable.</Text>
-            </Text>
-            <View style={styles.chipsRow}>
-              {['Closed-loop', 'Real-time', 'Deterministic'].map((c) => (
-                <View key={c} style={styles.chip}>
-                  <Text style={styles.chipText}>{c}</Text>
-                </View>
-              ))}
-            </View>
-          </View>
-
-          {/* 7 — Primary CTA */}
-          <Pressable
-            onPress={handleBegin}
-            accessibilityRole="button"
-            accessibilityLabel="Begin protocol"
-            style={({ pressed }) => [
-              styles.ctaPrimary,
-              pressed && { opacity: 0.85 },
-            ]}
-          >
-            <Text style={styles.ctaPrimaryText}>BEGIN PROTOCOL</Text>
-            <View style={styles.ctaArrowBadge}>
-              <Icon name="arrow-right" size={14} color={C.white} />
-            </View>
-          </Pressable>
-
-          {/* 8 — Secondary ghost CTA */}
-          <Pressable
-            onPress={handleReport}
-            accessibilityRole="button"
-            accessibilityLabel="View full report"
-            style={({ pressed }) => [
-              styles.ctaGhost,
-              pressed && { opacity: 0.7 },
-            ]}
-          >
-            <Text style={styles.ctaGhostText}>View Full Report</Text>
-          </Pressable>
-        </View>
-      </ScrollView>
-    </View>
-  );
-}
-
-// ─── LivePill — pulsing red dot + label ───────────────────────────
-function LivePill({ pulse }: { pulse: ReturnType<typeof useSharedValue<number>> }) {
-  const dotStyle = useAnimatedStyle(() => ({ opacity: pulse.value }));
-  return (
-    <View style={styles.livePill}>
-      <Animated.View style={[styles.liveDot, dotStyle]} />
-      <Text style={styles.liveLabel}>LIVE MONITORING</Text>
-    </View>
-  );
-}
-
-// ─── Hero — AFORCE / OS wordmark + subtitle, with glow ────────────
-function Hero({ glow }: { glow: ReturnType<typeof useSharedValue<number>> }) {
-  const glowStyle = useAnimatedStyle(() => ({ opacity: glow.value }));
-  return (
-    <View style={styles.heroWrap}>
-      <Animated.View
-        pointerEvents="none"
-        style={[styles.heroGlow, glowStyle]}
-      />
-      <Text style={styles.heroLine}>
-        <Text style={styles.heroWhite}>AFORCE</Text>
-        <Text style={styles.heroRed}> OS</Text>
-      </Text>
-      <Text style={styles.heroSub}>THE PERFORMANCE OPERATING SYSTEM</Text>
-    </View>
-  );
-}
-
-// ─── ReadinessBlock — animated SVG ring + side stats ──────────────
-function ReadinessBlock({
-  score,
-  ringProgress,
-  ringPulse,
+// ─── FadeIn — pure 1.2s opacity ease, no transforms ──────────────────
+function FadeIn({
+  show, delayMs = 0, durationMs = FADE_MS, children, style,
 }: {
-  score: number;
-  ringProgress: ReturnType<typeof useSharedValue<number>>;
-  ringPulse: ReturnType<typeof useSharedValue<number>>;
+  show: boolean;
+  delayMs?: number;
+  durationMs?: number;
+  children: React.ReactNode;
+  style?: object;
 }) {
-  const SIZE = 132;
-  const STROKE = 8;
-  const R = (SIZE - STROKE) / 2;
-  const CIRC = 2 * Math.PI * R;
-  const animatedCircleProps = useAnimatedProps(() => ({
-    strokeDashoffset: CIRC * (1 - ringProgress.value),
-  }));
-  // Sonar pulse — scale from 1 → 1.55, fade 0.55 → 0.
-  const pulseStyle = useAnimatedStyle(() => ({
-    opacity: 0.55 * (1 - ringPulse.value),
-    transform: [{ scale: 1 + ringPulse.value * 0.55 }],
-  }));
-  // Second pulse offset by 0.5 phase for continuous wave.
-  const pulseStyle2 = useAnimatedStyle(() => {
-    const v = (ringPulse.value + 0.5) % 1;
+  const opacity = useSharedValue(show ? 0 : 0);
+  React.useEffect(() => {
+    if (show) {
+      opacity.value = 0;
+      const t = setTimeout(() => {
+        opacity.value = withTiming(1, {
+          duration: durationMs,
+          easing: FADE_EASE,
+        });
+      }, delayMs);
+      return () => clearTimeout(t);
+    }
+    opacity.value = withTiming(0, { duration: durationMs, easing: FADE_EASE });
+    return undefined;
+  }, [show, delayMs, durationMs, opacity]);
+  const animStyle = useAnimatedStyle(() => ({ opacity: opacity.value }));
+  return <Animated.View style={[style, animStyle]}>{children}</Animated.View>;
+}
+
+// ─── RotatingRing — 18s rotation + StatusPulseOrb-style breathing ───
+//
+// Mirrors the hydration orb's BALANCED `steady_outward` wave when the
+// ring is white (stages 1-2) and its DEPLETED `collapsing` wave when
+// the ring shifts to critical red (stages 3-4). The pulse drives both
+// a subtle scale breath and the outer halo's opacity, identical to
+// the orb's `scaleAnim` + `glowAnim` pairing.
+function RotatingRing({
+  color, glow, critical, drawing,
+}: { color: string; glow: string; critical: boolean; drawing: boolean }) {
+  const rotate = useSharedValue(0);
+  const pulse = useSharedValue(0);
+  // Continuous outward ripple — mirrors StatusPulseOrb's `rippleStyle`
+  // (scale 1 → 1.4, opacity 0.55 → 0). Only runs once the ring has
+  // finished drawing the O, then loops indefinitely.
+  const rippleScale = useSharedValue(1);
+  const rippleOpacity = useSharedValue(0);
+  // Inward collapse ring — DEPLETED accent. Squeezes from outside in,
+  // matching the orb's `collapseStyle` for the depleted band.
+  const collapseScale = useSharedValue(1.5);
+  const collapseOpacity = useSharedValue(0);
+  // Reveal of the orb body (filled disc + glow halos) — fades in
+  // smoothly the moment the stroke completes its O.
+  const orbReveal = useSharedValue(0);
+  // 0 = nothing drawn, 1 = full O. While `drawing`, this animates
+  // from 0 → 1 over 3s, painting the stroke around the ring once.
+  const draw = useSharedValue(drawing ? 0 : 1);
+
+  React.useEffect(() => {
+    rotate.value = withRepeat(
+      withTiming(360, { duration: 18_000, easing: Easing.linear }),
+      -1,
+      false,
+    );
+    return () => cancelAnimation(rotate);
+  }, [rotate]);
+
+  React.useEffect(() => {
+    if (drawing) {
+      draw.value = 0;
+      draw.value = withTiming(1, {
+        duration: 3000,
+        easing: Easing.inOut(Easing.cubic),
+      });
+    } else {
+      // Snap to fully drawn — the parent flips `drawing` off only
+      // *after* the 3s window, so this is just a safety net.
+      draw.value = withTiming(1, { duration: 200 });
+    }
+  }, [drawing, draw]);
+
+  React.useEffect(() => {
+    cancelAnimation(pulse);
+    cancelAnimation(rippleScale);
+    cancelAnimation(rippleOpacity);
+    cancelAnimation(collapseScale);
+    cancelAnimation(collapseOpacity);
+    pulse.value = 0;
+    rippleOpacity.value = 0;
+    collapseOpacity.value = 0;
+    orbReveal.value = withTiming(drawing ? 0 : 1, { duration: 600 });
+    // Don't pulse while the ring is still drawing itself — let the
+    // stroke complete the O cleanly first.
+    if (drawing) return;
+
+    // ── Core breathing pulse (drives orb scale + glow opacity) ──
+    if (critical) {
+      pulse.value = withRepeat(
+        withTiming(1, { duration: 1400, easing: Easing.inOut(Easing.quad) }),
+        -1,
+        true,
+      );
+    } else {
+      pulse.value = withRepeat(
+        withTiming(1, { duration: 2600, easing: Easing.inOut(Easing.sin) }),
+        -1,
+        true,
+      );
+    }
+
+    // ── Continuous outward ripple ring (matches orb's rippleStyle) ──
+    const rippleMs = 1800;
+    rippleScale.value = withRepeat(
+      withSequence(
+        withTiming(1, { duration: 0 }),
+        withTiming(1.4, { duration: rippleMs, easing: Easing.out(Easing.cubic) }),
+      ),
+      -1,
+      false,
+    );
+    rippleOpacity.value = withRepeat(
+      withSequence(
+        withTiming(0.55, { duration: 80 }),
+        withTiming(0, { duration: rippleMs, easing: Easing.out(Easing.quad) }),
+      ),
+      -1,
+      false,
+    );
+
+    // ── Inward collapse ring (only in DEPLETED / red mode) ──
+    if (critical) {
+      const collapseMs = 1600;
+      collapseScale.value = withRepeat(
+        withSequence(
+          withTiming(1.5, { duration: 0 }),
+          withTiming(1.02, { duration: collapseMs, easing: Easing.in(Easing.quad) }),
+        ),
+        -1,
+        false,
+      );
+      collapseOpacity.value = withRepeat(
+        withSequence(
+          withTiming(0.55, { duration: 100 }),
+          withTiming(0, { duration: collapseMs, easing: Easing.in(Easing.quad) }),
+        ),
+        -1,
+        false,
+      );
+    }
+    return () => {
+      cancelAnimation(pulse);
+      cancelAnimation(rippleScale);
+      cancelAnimation(rippleOpacity);
+      cancelAnimation(collapseScale);
+      cancelAnimation(collapseOpacity);
+    };
+  }, [critical, drawing, pulse, rippleScale, rippleOpacity, collapseScale, collapseOpacity, orbReveal]);
+
+  const ringStyle = useAnimatedStyle(() => {
+    const scale = critical
+      ? 1 + (pulse.value - 0.5) * -0.06    // collapse inward (~0.97↔1.03)
+      : 1 + pulse.value * 0.05;            // expand outward (1.00↔1.05)
     return {
-      opacity: 0.45 * (1 - v),
-      transform: [{ scale: 1 + v * 0.55 }],
+      transform: [
+        { rotateZ: `${rotate.value}deg` },
+        { scale },
+      ],
     };
   });
 
-  return (
-    <View style={styles.readinessRow}>
-      <View style={{ width: SIZE, height: SIZE, alignItems: 'center', justifyContent: 'center' }}>
-        <Animated.View pointerEvents="none" style={[styles.pulseRing, { width: SIZE, height: SIZE, borderRadius: SIZE / 2 }, pulseStyle]} />
-        <Animated.View pointerEvents="none" style={[styles.pulseRing, { width: SIZE, height: SIZE, borderRadius: SIZE / 2 }, pulseStyle2]} />
-        <Svg width={SIZE} height={SIZE} style={{ position: 'absolute' }}>
-          <Defs>
-            <LinearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
-              <Stop offset="0" stopColor={C.red} stopOpacity="1" />
-              <Stop offset="1" stopColor="#ff5a3c" stopOpacity="1" />
-            </LinearGradient>
-          </Defs>
-          {/* Track */}
-          <Circle
-            cx={SIZE / 2}
-            cy={SIZE / 2}
-            r={R}
-            stroke="rgba(255,255,255,0.08)"
-            strokeWidth={STROKE}
-            fill="none"
-          />
-          {/* Progress — rotated -90° so it draws from 12 o'clock */}
-          <G rotation="-90" origin={`${SIZE / 2}, ${SIZE / 2}`}>
-            <AnimatedCircle
-              cx={SIZE / 2}
-              cy={SIZE / 2}
-              r={R}
-              stroke="url(#ringGrad)"
-              strokeWidth={STROKE}
-              strokeLinecap="round"
-              fill="none"
-              strokeDasharray={CIRC}
-              animatedProps={animatedCircleProps}
-            />
-          </G>
-        </Svg>
-        <View style={styles.ringCenter} pointerEvents="none">
-          <Text style={styles.ringScore}>{score}</Text>
-          <Text style={styles.ringLabel}>READY</Text>
-        </View>
-      </View>
-
-      <View style={styles.statsCol}>
-        {STATS.map((s) => (
-          <View key={s.label} style={styles.statRow}>
-            <Text style={styles.statLabel}>{s.label.toUpperCase()}</Text>
-            <Text style={[styles.statValue, { color: s.tone }]}>{s.value}</Text>
-          </View>
-        ))}
-      </View>
-    </View>
-  );
-}
-
-// ─── SparklineCard — area chart + endpoint dot ────────────────────
-function SparklineCard({
-  width: w,
-  series,
-  current,
-}: { width: number; series: number[]; current: string }) {
-  const H = 78;
-  const PADX = 14;
-  const PADY = 12;
-  const innerW = w - PADX * 2;
-  const innerH = H;
-  const stepX = innerW / (series.length - 1);
-  const points = series.map((v, i) => ({
-    x: PADX + i * stepX,
-    y: PADY + (1 - v) * innerH,
+  // ── Layered glow / ring styles (mirror StatusPulseOrb) ──
+  const outerGlowStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(pulse.value, [0, 1], [0.18, 0.42]) * orbReveal.value,
+    transform: [{ scale: interpolate(pulse.value, [0, 1], [0.98, 1.18]) }],
   }));
-  const linePath =
-    `M ${points[0].x} ${points[0].y} ` +
-    points
-      .slice(1)
-      .map((p, i) => {
-        const prev = points[i];
-        const mx = (prev.x + p.x) / 2;
-        return `Q ${mx} ${prev.y} ${mx} ${(prev.y + p.y) / 2} T ${p.x} ${p.y}`;
-      })
-      .join(' ');
-  const last = points[points.length - 1];
-  const baseY = PADY + innerH;
-  const fillPath = `${linePath} L ${last.x} ${baseY} L ${PADX} ${baseY} Z`;
+  const innerGlowStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(pulse.value, [0, 1], [0.32, 0.58]) * orbReveal.value,
+    transform: [{ scale: interpolate(pulse.value, [0, 1], [0.95, 1.08]) }],
+  }));
+  const orbBodyStyle = useAnimatedStyle(() => {
+    const scale = critical
+      ? 1 + (pulse.value - 0.5) * -0.06
+      : 1 + pulse.value * 0.05;
+    return { opacity: orbReveal.value, transform: [{ scale }] };
+  });
+  const rippleStyle = useAnimatedStyle(() => ({
+    opacity: rippleOpacity.value * orbReveal.value,
+    transform: [{ scale: rippleScale.value }],
+  }));
+  const collapseRingStyle = useAnimatedStyle(() => ({
+    opacity: collapseOpacity.value * orbReveal.value,
+    transform: [{ scale: collapseScale.value }],
+  }));
+
+  // SVG circles begin at 3 o'clock and run clockwise. We rotate the
+  // circle by -90° so the stroke appears to begin painting at 12
+  // o'clock (top), which reads more naturally as "drawing an O".
+  const animatedCircleProps = useAnimatedProps(() => ({
+    strokeDashoffset: RING_CIRC * (1 - draw.value),
+  }));
 
   return (
-    <View style={[styles.card, { paddingHorizontal: 0, paddingVertical: 0 }]}>
-      <View style={styles.cardHeader}>
-        <Text style={styles.cardTitle}>HEART RATE VARIABILITY</Text>
-        <Text style={styles.cardValue}>{current}</Text>
-      </View>
-      <Svg width={w} height={H + PADY * 2}>
-        <Defs>
-          <LinearGradient id="hrvFill" x1="0" y1="0" x2="0" y2="1">
-            <Stop offset="0" stopColor={C.green} stopOpacity="0.45" />
-            <Stop offset="1" stopColor={C.green} stopOpacity="0" />
-          </LinearGradient>
-        </Defs>
-        <Path d={fillPath} fill="url(#hrvFill)" />
-        <Path
-          d={linePath}
-          stroke={C.green}
-          strokeWidth={2}
-          fill="none"
-          strokeLinecap="round"
-          strokeLinejoin="round"
+    <View style={styles.ringWrap}>
+      {/* ── Outer soft glow halo ── */}
+      <Animated.View
+        pointerEvents="none"
+        style={[
+          styles.glow,
+          {
+            width: GLOW_SIZE,
+            height: GLOW_SIZE,
+            borderRadius: GLOW_SIZE / 2,
+            backgroundColor: glow,
+          },
+          outerGlowStyle,
+        ]}
+      />
+      {/* ── Inner brighter glow ── */}
+      <Animated.View
+        pointerEvents="none"
+        style={[
+          styles.glow,
+          {
+            width: INNER_GLOW_SIZE,
+            height: INNER_GLOW_SIZE,
+            borderRadius: INNER_GLOW_SIZE / 2,
+            backgroundColor: glow,
+          },
+          innerGlowStyle,
+        ]}
+      />
+      {/* ── Continuous outward ripple ring ── */}
+      <Animated.View
+        pointerEvents="none"
+        style={[
+          styles.pulseRing,
+          {
+            width: RIPPLE_SIZE,
+            height: RIPPLE_SIZE,
+            borderRadius: RIPPLE_SIZE / 2,
+            borderColor: color,
+          },
+          rippleStyle,
+        ]}
+      />
+      {/* ── Inward collapse ring (DEPLETED red only) ── */}
+      {critical && (
+        <Animated.View
+          pointerEvents="none"
+          style={[
+            styles.pulseRing,
+            {
+              width: RIPPLE_SIZE,
+              height: RIPPLE_SIZE,
+              borderRadius: RIPPLE_SIZE / 2,
+              borderColor: color,
+              borderStyle: 'dashed',
+            },
+            collapseRingStyle,
+          ]}
         />
-        <Circle cx={last.x} cy={last.y} r={5} fill={C.green} opacity={0.25} />
-        <Circle cx={last.x} cy={last.y} r={2.5} fill={C.green} />
-      </Svg>
+      )}
+      {/* ── Filled inner disc with red border (the "orb") ── */}
+      <Animated.View
+        pointerEvents="none"
+        style={[
+          styles.orbBody,
+          {
+            width: RING_SIZE,
+            height: RING_SIZE,
+            borderRadius: RING_SIZE / 2,
+            backgroundColor: ORB_BG,
+            borderColor: color,
+          },
+          orbBodyStyle,
+        ]}
+      />
+      {/* ── Drawing stroke (paints the O during stage 1) ── */}
+      <Animated.View style={ringStyle}>
+        <Svg
+          width={RING_SIZE}
+          height={RING_SIZE}
+          style={{ transform: [{ rotate: '-90deg' }] }}
+        >
+          <AnimatedCircle
+            cx={RING_SIZE / 2}
+            cy={RING_SIZE / 2}
+            r={RING_RADIUS}
+            stroke={color}
+            strokeWidth={RING_STROKE}
+            fill="none"
+            strokeLinecap="round"
+            strokeDasharray={`${RING_CIRC} ${RING_CIRC}`}
+            animatedProps={animatedCircleProps}
+          />
+        </Svg>
+      </Animated.View>
     </View>
   );
 }
 
-// ─── MetricCard — single 2x2 cell ────────────────────────────────
-function MetricCard({ icon, value, label }: { icon: string; value: string; label: string }) {
-  const [hovered, setHovered] = React.useState(false);
-  const webHover =
-    Platform.OS === 'web'
-      ? {
-          onMouseEnter: () => setHovered(true),
-          onMouseLeave: () => setHovered(false),
-        }
-      : {};
+// ─── SweepingArc — red arc that travels around the ring (stage 2) ───
+/**
+ * TypewriterTagline — reveals the four-word manifesto one segment at
+ * a time in a digital monospace face, with a blinking cursor at the
+ * write head between words. Reads like a system log printing live.
+ */
+type Segment = { text: string; color: string };
+const TAGLINE_SEGMENTS: Segment[] = [
+  { text: 'Pause', color: '#E53935' },
+  { text: 'Hydrate', color: 'rgba(255,255,255,0.92)' },
+  { text: 'Lock in', color: '#FFC93C' },
+  { text: 'Perform', color: 'rgba(255,255,255,0.92)' },
+];
+const TAGLINE_STEP_MS = 520;
+
+function TypewriterTagline({ start }: { start: boolean }) {
+  const [revealed, setRevealed] = React.useState(0);
+  const cursor = useSharedValue(1);
+
+  React.useEffect(() => {
+    if (!start) return;
+    setRevealed(0);
+    const timers: ReturnType<typeof setTimeout>[] = [];
+    for (let i = 0; i < TAGLINE_SEGMENTS.length; i += 1) {
+      timers.push(setTimeout(() => setRevealed(i + 1), 600 + i * TAGLINE_STEP_MS));
+    }
+    return () => { timers.forEach((t) => clearTimeout(t)); };
+  }, [start]);
+
+  React.useEffect(() => {
+    if (!start) return;
+    cursor.value = withRepeat(
+      withSequence(
+        withTiming(0, { duration: 460, easing: Easing.linear }),
+        withTiming(1, { duration: 460, easing: Easing.linear }),
+      ),
+      -1,
+      false,
+    );
+    return () => { cancelAnimation(cursor); };
+  }, [start, cursor]);
+
+  const cursorStyle = useAnimatedStyle(() => ({ opacity: cursor.value }));
+  const allDone = revealed >= TAGLINE_SEGMENTS.length;
+
   return (
-    <View style={styles.metricCard} {...webHover}>
-      <Text style={styles.metricIcon}>{icon}</Text>
-      <Text style={styles.metricValue}>{value}</Text>
-      <Text style={styles.metricLabel}>{label.toUpperCase()}</Text>
-      <View style={[styles.metricAccent, { opacity: hovered ? 1 : 0 }]} />
+    <View style={styles.taglineRow}>
+      {TAGLINE_SEGMENTS.map((seg, i) => {
+        const isVisible = i < revealed;
+        const isLast = i === TAGLINE_SEGMENTS.length - 1;
+        return (
+          <View key={seg.text} style={styles.taglineSegment}>
+            <Text
+              style={[styles.taglineWord, { color: seg.color, opacity: isVisible ? 1 : 0 }]}
+            >
+              {seg.text}
+            </Text>
+            {!isLast && (
+              <Text
+                style={[styles.taglineArrowChar, { opacity: isVisible ? 1 : 0 }]}
+              >
+                {' → '}
+              </Text>
+            )}
+          </View>
+        );
+      })}
+      {!allDone && (
+        <Animated.Text style={[styles.taglineCursor, cursorStyle]}>▌</Animated.Text>
+      )}
     </View>
   );
 }
 
-// ─── Styles ───────────────────────────────────────────────────────
+function SweepingArc({ active }: { active: boolean }) {
+  const rotate = useSharedValue(0);
+  React.useEffect(() => {
+    if (!active) return;
+    rotate.value = 0;
+    rotate.value = withRepeat(
+      withTiming(360, { duration: 1_200, easing: Easing.linear }),
+      -1,
+      false,
+    );
+    return () => cancelAnimation(rotate);
+  }, [active, rotate]);
+  const style = useAnimatedStyle(() => ({
+    transform: [{ rotateZ: `${rotate.value}deg` }],
+  }));
+  if (!active) return null;
+  // Arc length ≈ 90° of the ring circumference.
+  const arcLen = RING_CIRC * 0.25;
+  const dash = `${arcLen} ${RING_CIRC - arcLen}`;
+  return (
+    <Animated.View style={[styles.ringWrap, style]} pointerEvents="none">
+      <Svg width={RING_SIZE} height={RING_SIZE}>
+        <Circle
+          cx={RING_SIZE / 2}
+          cy={RING_SIZE / 2}
+          r={RING_RADIUS}
+          stroke={CRITICAL_RED}
+          strokeWidth={RING_STROKE * 1.6}
+          fill="none"
+          strokeDasharray={dash}
+          strokeLinecap="round"
+          // Start arc at top of ring (12 o'clock) — SVG circles begin
+          // at 3 o'clock by default, so rotate -90° via the path-style
+          // dashoffset trick is unnecessary because we rotate the
+          // entire animated wrapper. Dashoffset stays at 0.
+        />
+      </Svg>
+    </Animated.View>
+  );
+}
+
+export default function SplashScreen() {
+  const router = useRouter();
+  const [stage, setStage] = React.useState<Stage>(1);
+  const [showInitializing, setShowInitializing] = React.useState(false);
+  const [showEnter, setShowEnter] = React.useState(false);
+  // Once the white stroke has finished painting a full O (3s), the
+  // ring shifts to critical red and starts the orb-style pulse — same
+  // visual language as the home screen's StatusPulseOrb.
+  const [ringDrawn, setRingDrawn] = React.useState(false);
+
+  // Stage 1 → reveal INITIALIZING after 2s, mark the ring complete at
+  // 3s so it flips to red + pulse, then bring up ENTER right after.
+  React.useEffect(() => {
+    if (stage !== 1) return;
+    const t1 = setTimeout(() => setShowInitializing(true), 2000);
+    const t2 = setTimeout(() => setRingDrawn(true), 3000);
+    const t3 = setTimeout(() => setShowEnter(true), 3600);
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
+    };
+  }, [stage]);
+
+  // Stage 2 — sweep for exactly 2s, then advance to stage 3.
+  React.useEffect(() => {
+    if (stage !== 2) return;
+    const t = setTimeout(() => setStage(3), 2000);
+    return () => clearTimeout(t);
+  }, [stage]);
+
+  // Stage 3 — hold at critical red for 1.6s, then bring in stage 4
+  // copy beneath the ring. Stage 3 and 4 share the same visual root
+  // (number + critical ring); stage 4 simply layers two more lines.
+  React.useEffect(() => {
+    if (stage !== 3) return;
+    const t = setTimeout(() => setStage(4), 1600);
+    return () => clearTimeout(t);
+  }, [stage]);
+
+  const onEnter = React.useCallback(() => setStage(2), []);
+
+  const onContinue = React.useCallback(async () => {
+    try {
+      await AsyncStorage.setItem(ONBOARDING_KEY, 'true');
+    } catch {
+      // Persistence failure is non-fatal — the user can still enter
+      // the app; they may just see the splash again next launch.
+    }
+    router.replace('/(tabs)');
+  }, [router]);
+
+  // Ring goes red the moment the O completes; halo follows.
+  const isCritical = ringDrawn || stage >= 3;
+  const ringColor = isCritical ? CRITICAL_RED : RING_WHITE;
+  const haloColor = isCritical ? CRITICAL_RED : 'rgba(255,255,255,0.35)';
+  const sweepActive = stage === 2;
+  const showNumber = stage >= 3;
+  const showCritical = stage >= 3;
+  const showCopy = stage === 4;
+  const showContinue = stage === 4;
+
+  return (
+    <View style={styles.root}>
+      {/* Top headline — fades in with the ring on stage 1 and stays
+          throughout the sequence. Rendered in a monospace face so it
+          reads like a system readout, not body copy. */}
+      <FadeIn show durationMs={2000} delayMs={200} style={styles.topHeader}>
+        <Text style={styles.welcomeKicker}>WELCOME</Text>
+        <Text style={styles.welcomeTitle}>AFORCE OS</Text>
+      </FadeIn>
+
+      {/* The white ring is a 3s fade-in. From stage 3 onward the ring
+          color shifts to critical red — done via FadeIn keyed on
+          `ringColor` so the new color crossfades over the old. */}
+      <View style={styles.center}>
+        <View style={[StyleSheet.absoluteFill, styles.center]}>
+          <RotatingRing
+            color={ringColor}
+            glow={haloColor}
+            critical={isCritical}
+            drawing={!ringDrawn}
+          />
+        </View>
+
+        <SweepingArc active={sweepActive} />
+
+        {showNumber && (
+          <FadeIn show durationMs={FADE_MS}>
+            <Text style={styles.number}>31</Text>
+          </FadeIn>
+        )}
+      </View>
+
+      {/* INITIALIZING under the ring (stage 1 only) */}
+      {stage === 1 && (
+        <FadeIn show={showInitializing} style={styles.belowRing}>
+          <Text style={styles.eyebrow}>I N I T I A L I Z I N G</Text>
+        </FadeIn>
+      )}
+
+      {/* CRITICAL label (stages 3-4) */}
+      {showCritical && (
+        <FadeIn show style={styles.belowRing}>
+          <Text style={[styles.eyebrow, { color: CRITICAL_RED }]}>
+            C R I T I C A L
+          </Text>
+        </FadeIn>
+      )}
+
+      {/* Stage 4 copy lines */}
+      {showCopy && (
+        <FadeIn show delayMs={400} style={styles.copyBlock}>
+          <Text style={styles.copyHeadline}>Performance is non-negotiable.</Text>
+          <TypewriterTagline start={showCopy} />
+        </FadeIn>
+      )}
+
+      {/* ENTER button — stage 1 */}
+      {stage === 1 && (
+        <FadeIn show={showEnter} style={styles.ctaSlot}>
+          <Pressable
+            onPress={onEnter}
+            accessibilityRole="button"
+            accessibilityLabel="Enter"
+            hitSlop={16}
+          >
+            <Text style={styles.ctaLabel}>E N T E R</Text>
+          </Pressable>
+        </FadeIn>
+      )}
+
+      {/* CONTINUE button — stage 4 */}
+      {showContinue && (
+        <FadeIn show delayMs={1400} style={styles.ctaSlot}>
+          <Pressable
+            onPress={onContinue}
+            accessibilityRole="button"
+            accessibilityLabel="Continue"
+            hitSlop={16}
+          >
+            <Text style={styles.ctaLabel}>C O N T I N U E</Text>
+          </Pressable>
+        </FadeIn>
+      )}
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: C.bg },
-  scroll: { alignItems: 'center', paddingHorizontal: PAD },
-  col: { gap: 22 },
-
-  // Live pill
-  livePill: {
-    alignSelf: 'flex-start',
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    backgroundColor: C.redTint,
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: C.redBorder,
-  },
-  liveDot: {
-    width: 7, height: 7, borderRadius: 7,
-    backgroundColor: C.red,
-    ...(Platform.OS === 'web'
-      ? ({ boxShadow: `0 0 10px ${C.red}` } as object)
-      : {
-          shadowColor: C.red, shadowOpacity: 0.9, shadowRadius: 6,
-          shadowOffset: { width: 0, height: 0 },
-        }),
-  },
-  liveLabel: {
-    fontFamily: F.bodyM,
-    fontSize: 10,
-    letterSpacing: 1.8,
-    color: C.red,
-  },
-
-  // Hero
-  heroWrap: { marginTop: 8, marginBottom: 4 },
-  heroGlow: {
-    position: 'absolute',
-    width: 280, height: 280, borderRadius: 280,
-    backgroundColor: C.red,
-    top: -70, left: -40,
-    ...(Platform.OS === 'web'
-      ? ({ filter: 'blur(80px)' } as object)
-      : {
-          shadowColor: C.red, shadowOpacity: 0.7, shadowRadius: 80,
-          shadowOffset: { width: 0, height: 0 },
-        }),
-  },
-  heroLine: {
-    fontFamily: F.display,
-    fontSize: 92,
-    lineHeight: 92,
-    letterSpacing: -1,
-  },
-  heroWhite: { color: C.white, fontFamily: F.display },
-  heroRed:   { color: C.red,   fontFamily: F.display },
-  heroSub: {
-    fontFamily: F.bodyM,
-    fontSize: 10,
-    letterSpacing: 2.4,
-    color: C.text35,
-    marginTop: 4,
-  },
-
-  // Readiness
-  readinessRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 22,
-    backgroundColor: C.cardBg,
-    borderWidth: 1,
-    borderColor: C.cardBorder,
-    borderRadius: 14,
-    padding: 18,
-  },
-  ringCenter: {
-    ...StyleSheet.absoluteFillObject,
+  root: {
+    flex: 1,
+    backgroundColor: BG,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  center: {
+    width: RING_SIZE,
+    height: RING_SIZE,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  ringWrap: {
+    width: RING_SIZE,
+    height: RING_SIZE,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  // Soft radial halo behind the orb — matches StatusPulseOrb's
+  // outer/inner glow layers. We use a low-opacity filled disc rather
+  // than a shadow so the look is consistent across iOS / Android.
+  glow: {
+    position: 'absolute',
   },
   pulseRing: {
     position: 'absolute',
-    borderWidth: 1.5,
-    borderColor: C.red,
+    borderWidth: 2,
   },
-  ringScore: {
-    fontFamily: F.display,
-    fontSize: 48,
-    lineHeight: 48,
-    color: C.white,
+  orbBody: {
+    position: 'absolute',
+    borderWidth: 2.5,
   },
-  ringLabel: {
-    fontFamily: F.bodyM,
-    fontSize: 9,
-    letterSpacing: 2.2,
-    color: C.text45,
-    marginTop: 2,
+  number: {
+    fontFamily: FONT_BOLD,
+    color: TEXT_BRIGHT,
+    fontSize: 96,
+    letterSpacing: -3,
+    includeFontPadding: false,
   },
-  statsCol: { flex: 1, gap: 8 },
-  statRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'baseline',
-    paddingVertical: 4,
-    borderBottomWidth: 1,
-    borderBottomColor: C.cardBorder,
+  belowRing: {
+    position: 'absolute',
+    top: '50%',
+    marginTop: RING_SIZE / 2 + 36,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  statLabel: {
-    fontFamily: F.bodyM,
-    fontSize: 9,
-    letterSpacing: 1.6,
-    color: C.text45,
+  eyebrow: {
+    fontFamily: FONT_BOLD,
+    color: TEXT_DIM,
+    fontSize: 11,
+    letterSpacing: 4,
   },
-  statValue: {
-    fontFamily: F.display,
-    fontSize: 18,
-    letterSpacing: 0.2,
+  copyBlock: {
+    position: 'absolute',
+    top: '50%',
+    marginTop: RING_SIZE / 2 + 64,
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    gap: 18,
   },
-
-  // Card / sparkline
-  card: {
-    backgroundColor: C.cardBg,
-    borderWidth: 1,
-    borderColor: C.cardBorder,
-    borderRadius: 14,
-    overflow: 'hidden',
+  copyHeadline: {
+    fontFamily: FONT_BOLD,
+    color: TEXT_BRIGHT,
+    fontSize: 21,
+    lineHeight: 26,
+    letterSpacing: -0.2,
+    textAlign: 'center',
   },
-  cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'baseline',
-    paddingHorizontal: 14,
-    paddingTop: 12,
-    paddingBottom: 4,
-  },
-  cardTitle: {
-    fontFamily: F.bodyM,
-    fontSize: 9,
-    letterSpacing: 1.8,
-    color: C.text45,
-  },
-  cardValue: {
-    fontFamily: F.display,
-    fontSize: 20,
-    color: C.white,
-  },
-
-  // Metrics 2x2
-  metricsGrid: {
+  taglineRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  metricCard: {
-    flexBasis: '48%',
-    flexGrow: 1,
-    backgroundColor: C.cardBg,
-    borderWidth: 1,
-    borderColor: C.cardBorder,
-    borderRadius: 14,
-    padding: 14,
-    overflow: 'hidden',
-    ...(Platform.OS === 'web' ? ({ cursor: 'pointer' } as object) : {}),
-  },
-  metricIcon: {
-    fontSize: 16,
-    color: C.text65,
-    marginBottom: 6,
-  },
-  metricValue: {
-    fontFamily: F.display,
-    fontSize: 36,
-    lineHeight: 38,
-    color: C.white,
-    letterSpacing: -0.5,
-  },
-  metricLabel: {
-    fontFamily: F.bodyM,
-    fontSize: 9,
-    letterSpacing: 1.8,
-    color: C.text45,
-    marginTop: 4,
-  },
-  metricAccent: {
-    position: 'absolute',
-    left: 0, right: 0, bottom: 0,
-    height: 2,
-    backgroundColor: C.red,
-  },
-
-  // Tagline + chips
-  taglineWrap: { gap: 12, marginTop: 4 },
-  taglineLight: {
-    fontFamily: F.body,
-    fontSize: 18,
-    lineHeight: 24,
-    color: C.text65,
-  },
-  taglineBold: {
-    fontFamily: F.bodyB,
-    color: C.white,
-  },
-  chipsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  chip: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: C.cardBorder,
-    backgroundColor: C.cardBg,
-  },
-  chipText: {
-    fontFamily: F.bodyM,
-    fontSize: 10,
-    letterSpacing: 1.4,
-    color: C.text65,
-  },
-
-  // CTAs
-  ctaPrimary: {
-    height: 56,
-    borderRadius: 4,
-    backgroundColor: C.red,
+  taglineSegment: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: 12,
-    ...(Platform.OS === 'web'
-      ? ({ boxShadow: `0 12px 40px rgba(224,24,24,0.45)` } as object)
-      : {
-          shadowColor: C.red, shadowOpacity: 0.45, shadowRadius: 24,
-          shadowOffset: { width: 0, height: 10 },
-        }),
   },
-  ctaPrimaryText: {
-    fontFamily: F.bodyB,
-    fontSize: 13,
-    letterSpacing: 3,
-    color: C.white,
+  taglineWord: {
+    fontFamily: FONT_BOLD,
+    fontSize: 20,
+    lineHeight: 26,
+    letterSpacing: -0.2,
   },
-  ctaArrowBadge: {
-    width: 22, height: 22, borderRadius: 22,
-    backgroundColor: 'rgba(255,255,255,0.18)',
-    alignItems: 'center', justifyContent: 'center',
+  taglineArrowChar: {
+    fontFamily: FONT_MEDIUM,
+    color: TEXT_DIM,
+    fontSize: 20,
+    lineHeight: 26,
+    letterSpacing: -0.2,
   },
-  ctaGhost: {
-    height: 48,
-    borderRadius: 4,
-    borderWidth: 1,
-    borderColor: C.cardBorder,
-    backgroundColor: 'transparent',
+  taglineCursor: {
+    fontFamily: FONT_BOLD,
+    color: 'rgba(255,255,255,0.85)',
+    fontSize: 20,
+    lineHeight: 26,
+    marginLeft: 2,
+  },
+  ctaSlot: {
+    position: 'absolute',
+    bottom: 80,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  ctaGhostText: {
-    fontFamily: F.bodyM,
-    fontSize: 12,
-    letterSpacing: 2,
-    color: C.text65,
+  ctaLabel: {
+    fontFamily: 'Inter_800ExtraBold',
+    color: '#FFFFFF',
+    fontSize: 14,
+    letterSpacing: 6,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+  },
+  topHeader: {
+    position: 'absolute',
+    top: 80,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    gap: 8,
+  },
+  welcomeKicker: {
+    fontFamily: FONT_BOLD,
+    color: TEXT_DIM,
+    fontSize: 18,
+    letterSpacing: 6,
+  },
+  welcomeTitle: {
+    fontFamily: FONT_BOLD,
+    color: TEXT_BRIGHT,
+    fontSize: 44,
+    letterSpacing: 4,
+    includeFontPadding: false,
   },
 });
