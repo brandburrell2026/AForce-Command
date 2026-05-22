@@ -64,10 +64,8 @@ export function tokensForDeviceClass(cls: DeviceClass): LayoutTokens {
     case 'narrow':
       // Galaxy Fold cover screen / sub-320 width. Everything tightens up
       // so the orb, gutter, and CTA don't clip horizontally.
-      // Orb sizes shrunk ~15% across all classes to improve information
-      // density and let more actionable modules sit above the fold.
       return {
-        orbSize: 133,
+        orbSize: 156,
         contentMaxWidth: 320,
         gutter: 12,
         ctaPaddingV: 14,
@@ -76,7 +74,7 @@ export function tokensForDeviceClass(cls: DeviceClass): LayoutTokens {
       };
     case 'compact':
       return {
-        orbSize: 155,
+        orbSize: 182,
         contentMaxWidth: 480,
         gutter: 16,
         ctaPaddingV: 16,
@@ -85,7 +83,7 @@ export function tokensForDeviceClass(cls: DeviceClass): LayoutTokens {
       };
     case 'standard':
       return {
-        orbSize: 177,
+        orbSize: 208,
         contentMaxWidth: 480,
         gutter: 20,
         ctaPaddingV: 18,
@@ -94,7 +92,7 @@ export function tokensForDeviceClass(cls: DeviceClass): LayoutTokens {
       };
     case 'large':
       return {
-        orbSize: 199,
+        orbSize: 234,
         contentMaxWidth: 520,
         gutter: 22,
         ctaPaddingV: 20,
@@ -103,7 +101,7 @@ export function tokensForDeviceClass(cls: DeviceClass): LayoutTokens {
       };
     case 'foldOpen':
       return {
-        orbSize: 232,
+        orbSize: 273,
         contentMaxWidth: 620,
         gutter: 28,
         ctaPaddingV: 22,
@@ -112,7 +110,7 @@ export function tokensForDeviceClass(cls: DeviceClass): LayoutTokens {
       };
     case 'tablet':
       return {
-        orbSize: 265,
+        orbSize: 312,
         contentMaxWidth: 700,
         gutter: 32,
         ctaPaddingV: 24,
@@ -124,7 +122,7 @@ export function tokensForDeviceClass(cls: DeviceClass): LayoutTokens {
       // the full 1280+ viewport — cap it so the dark luxury card stays
       // composed and centered.
       return {
-        orbSize: 272,
+        orbSize: 320,
         contentMaxWidth: 760,
         gutter: 40,
         ctaPaddingV: 24,
