@@ -283,25 +283,6 @@ export default function JournalChart({
               <Stop offset="0.75" stopColor="rgba(255,255,255,0.085)" />
               <Stop offset="1" stopColor="rgba(255,255,255,0)" />
             </LinearGradient>
-
-            {/* Continuous "river of light" band — an ultra-wide, ultra-faint
-                stroke under the constellation that visually connects every
-                anchor into a single luminous current. Feathers in/out at
-                both ends so it never has a hard edge. */}
-            <LinearGradient id="signalBand" x1="0" y1="0" x2="1" y2="0">
-              <Stop offset="0" stopColor="rgba(255,255,255,0)" />
-              <Stop offset="0.18" stopColor="rgba(255,255,255,0.055)" />
-              <Stop offset="0.5" stopColor="rgba(255,255,255,0.07)" />
-              <Stop offset="0.82" stopColor="rgba(255,255,255,0.055)" />
-              <Stop offset="1" stopColor="rgba(255,255,255,0)" />
-            </LinearGradient>
-            <LinearGradient id="signalBandOuter" x1="0" y1="0" x2="1" y2="0">
-              <Stop offset="0" stopColor="rgba(255,255,255,0)" />
-              <Stop offset="0.2" stopColor="rgba(255,255,255,0.025)" />
-              <Stop offset="0.5" stopColor="rgba(255,255,255,0.032)" />
-              <Stop offset="0.8" stopColor="rgba(255,255,255,0.025)" />
-              <Stop offset="1" stopColor="rgba(255,255,255,0)" />
-            </LinearGradient>
           </Defs>
 
           {/* Vignette / fog backdrop */}
@@ -332,31 +313,6 @@ export default function JournalChart({
             fill="url(#featherH)"
             pointerEvents="none"
           />
-
-          {/* River of light — two ultra-wide, ultra-faint stacked strokes
-              that follow the trend path. Together they form one continuous
-              luminous band visually connecting every anchor in the
-              constellation. Sits *under* all other line + node layers. */}
-          {pathD && (
-            <Path
-              d={pathD}
-              stroke="url(#signalBandOuter)"
-              strokeWidth={150}
-              fill="none"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          )}
-          {pathD && (
-            <Path
-              d={pathD}
-              stroke="url(#signalBand)"
-              strokeWidth={80}
-              fill="none"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          )}
 
           {/* Softened trend line — three stacked strokes simulate a
               gaussian-blurred glow without needing SVG filters (which
