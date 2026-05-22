@@ -294,7 +294,7 @@ function ScoreDrivenBody({
 
       {/* 6 — Next Command (light, not a heavy card) */}
       <View style={styles.nextCommand} testID="home-command-preview">
-        <Text style={[styles.nextCommandEyebrow, { color: orbColor }]}>NEXT COMMAND</Text>
+        <Text style={[styles.nextCommandEyebrow, { color: orbColor }]}>Next command</Text>
         <Text style={styles.nextCommandText}>{status.command}</Text>
         {engine.command?.estimatedImpact ? (
           <Text style={styles.nextCommandImpact}>
@@ -316,7 +316,7 @@ function ScoreDrivenBody({
       </View>
       {lastIntakeMinutes != null && (
         <View style={styles.lastIntakeRow}>
-          <Text style={styles.metaLabel}>LAST INTAKE</Text>
+          <Text style={styles.metaLabel}>Last intake</Text>
           <Text style={styles.metaValue} testID="home-last-intake">
             {lastIntakeMinutes} min ago
           </Text>
@@ -345,7 +345,7 @@ function ScoreDrivenBody({
         <View style={styles.signalsRow} testID="home-live-signals">
           <SignalPill
             icon="thermometer"
-            label="HEAT"
+            label="Heat"
             value={heatTempLabel ? `${heatTempLabel} · ${HEAT_BAND_LABEL[heatBand]}` : HEAT_BAND_LABEL[heatBand]}
             tint={HEAT_BAND_COLOR[heatBand]}
             active
@@ -654,38 +654,38 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   statusSegment: {
-    fontFamily: 'Inter_600SemiBold',
-    fontSize: 12.5,
+    fontFamily: 'Inter_500Medium',
+    fontSize: 12,
     color: Colors.text.primary,
-    letterSpacing: 1.4,
-    textTransform: 'uppercase',
+    letterSpacing: 0.2,
   },
 
   statusHeadline: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Inter_600SemiBold',
     fontSize: 22,
     textAlign: 'center',
-    letterSpacing: -0.2,
-    marginBottom: 12,
+    letterSpacing: -0.3,
+    marginBottom: 14,
   },
 
-  orbWrap: { alignItems: 'center', marginBottom: 8 },
+  orbWrap: { alignItems: 'center', marginBottom: 10 },
 
   statusLabel: {
-    fontFamily: 'Inter_700Bold',
-    fontSize: 14,
+    fontFamily: 'Inter_500Medium',
+    fontSize: 12,
     textAlign: 'center',
-    letterSpacing: 4,
-    marginTop: 14,
+    letterSpacing: 1.6,
+    marginTop: 18,
   },
   consequence: {
     fontFamily: 'Inter_400Regular',
-    fontSize: 13,
+    fontSize: 14,
     color: Colors.text.secondary,
     textAlign: 'center',
-    marginTop: 6,
-    marginBottom: 22,
-    paddingHorizontal: 18,
+    marginTop: 8,
+    marginBottom: 28,
+    paddingHorizontal: 24,
+    lineHeight: 20,
   },
 
   cta: {
@@ -698,40 +698,42 @@ const styles = StyleSheet.create({
     shadowRadius: 14,
     shadowOffset: { width: 0, height: 0 },
     elevation: 6,
-    marginBottom: 16,
+    marginBottom: 20,
   },
   ctaText: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Inter_600SemiBold',
     fontSize: 15,
-    letterSpacing: 3,
+    letterSpacing: 1.2,
   },
 
-  // "Next Command" — light, no card chrome. Sits as a quiet
+  // "Next command" — light, no card chrome. Sits as a quiet
   // continuation of the CTA, not a competing surface.
   nextCommand: {
     paddingHorizontal: 4,
-    paddingTop: 4,
-    paddingBottom: 4,
-    marginBottom: 12,
+    paddingTop: 8,
+    paddingBottom: 8,
+    marginTop: 12,
+    marginBottom: 16,
   },
   nextCommandEyebrow: {
-    fontFamily: 'Inter_700Bold',
-    fontSize: 10,
-    letterSpacing: 2.5,
-    marginBottom: 6,
+    fontFamily: 'Inter_500Medium',
+    fontSize: 12,
+    letterSpacing: 0.2,
+    marginBottom: 8,
   },
   nextCommandText: {
     fontFamily: 'Inter_500Medium',
-    fontSize: 15,
+    fontSize: 16,
     color: Colors.text.primary,
-    lineHeight: 22,
+    lineHeight: 24,
+    letterSpacing: -0.1,
   },
   nextCommandImpact: {
-    fontFamily: 'Inter_500Medium',
-    fontSize: 11,
+    fontFamily: 'Inter_400Regular',
+    fontSize: 12,
     color: Colors.text.muted,
-    letterSpacing: 0.4,
-    marginTop: 6,
+    letterSpacing: 0.1,
+    marginTop: 8,
   },
 
   // Section header that visually separates the deeper-intelligence
@@ -782,24 +784,25 @@ const styles = StyleSheet.create({
     marginHorizontal: 12,
   },
   metaLabel: {
-    fontFamily: 'Inter_700Bold',
-    fontSize: 9,
+    fontFamily: 'Inter_400Regular',
+    fontSize: 12,
     color: Colors.text.secondary,
-    letterSpacing: 2,
+    letterSpacing: 0.1,
     marginBottom: 4,
   },
   metaValue: {
-    fontFamily: 'Inter_600SemiBold',
-    fontSize: 15,
+    fontFamily: 'Inter_500Medium',
+    fontSize: 14,
     color: Colors.text.primary,
+    letterSpacing: -0.1,
   },
   lastIntakeRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginHorizontal: 20,
-    marginTop: 10,
-    marginBottom: 16,
+    marginTop: 14,
+    marginBottom: 20,
     paddingHorizontal: 4,
   },
 
@@ -817,7 +820,8 @@ const styles = StyleSheet.create({
   // 20px (matching the rest of the home rhythm) — keeps tiles flush
   // with the metaRow / signalsRow above and below.
   entryActionsRow: {
-    marginTop: 16,
+    marginTop: 20,
+    marginBottom: 8,
     marginHorizontal: -20,
   },
   signalsRow: {
@@ -836,15 +840,15 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   signalLabel: {
-    fontFamily: 'Inter_700Bold',
-    fontSize: 9,
+    fontFamily: 'Inter_500Medium',
+    fontSize: 11,
     color: Colors.text.secondary,
-    letterSpacing: 1.6,
+    letterSpacing: 0.2,
   },
   signalValue: {
-    fontFamily: 'Inter_600SemiBold',
-    fontSize: 11,
-    letterSpacing: 0.5,
+    fontFamily: 'Inter_500Medium',
+    fontSize: 12,
+    letterSpacing: 0.1,
     marginLeft: 'auto',
   },
 });

@@ -1,0 +1,88 @@
+Refine the typography system across the entire AForce OS home screen to feel more premium, minimal, intelligent, and luxury athletic focused.
+
+The current UI direction is strong, but the typography should move away from a gamer/cyberpunk aesthetic and closer to:
+- Apple Fitness
+- WHOOP
+- Nike Training Club
+- Porsche UI systems
+- luxury performance technology
+
+Typography updates:
+
+1. Reduce ALL CAPS usage by approximately 60%
+- Reserve ALL CAPS only for critical alerts or emergency states
+- Convert most labels to title case or sentence case
+
+Examples:
+- “COMMAND VOICE ENGINE” → “Recovery Coach”
+- “NEXT COMMAND” → “Next command”
+- “LAST INTAKE” → “Last intake”
+
+2. Create a cleaner typography hierarchy
+Use:
+- Large bold typography only for the hydration/performance score
+- Semibold for primary headlines
+- Regular weight for supporting text
+- Light weight for metadata and timestamps
+
+Hierarchy example:
+- Large score: “100”
+- Headline: “System optimized.”
+- Supporting line: “Output is locked in.”
+- Metadata: “Last intake • 0 min ago”
+
+3. Increase whitespace and spacing
+- Add more vertical padding between sections
+- Add more breathing room around text blocks
+- Improve line spacing and visual rhythm
+- Reduce cramped feeling between labels and cards
+
+4. Reduce visual noise
+- Remove unnecessary labels where the interface is already obvious
+- Simplify metadata presentation
+- Avoid over explaining every module
+
+5. Adjust tracking and letter spacing
+- Reduce aggressive letter spacing on headings
+- Tighten typography slightly for a more premium feel
+- Avoid sci fi or gaming UI typography styles
+
+6. Refine font weight consistency
+- Too many elements currently feel overly bold
+- Use fewer heavy weights overall
+- Make the UI feel calmer and more confident
+
+7. Messaging tone refinement
+Shift copy tone toward:
+- elite performance
+- intelligent coaching
+- recovery optimization
+- calm confidence
+
+Examples:
+- “Recovery stable”
+- “Hydration improving”
+- “Peak zone detected”
+- “Stay consistent”
+
+Avoid excessive militaristic or aggressive commands across the entire experience.
+
+8. Overall typography goal
+The interface should feel like:
+“a luxury athletic operating system”
+
+NOT:
+- gamer HUD
+- cyberpunk dashboard
+- hacking interface
+- esports UI
+
+Focus heavily on:
+- clarity
+- confidence
+- premium restraint
+- readability
+- emotional calmness
+
+Do not redesign the structure of the app.
+This is strictly a typography, spacing, and UI polish refinement pass.

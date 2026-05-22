@@ -98,7 +98,7 @@ export function WaterCycleBar({ unitsConsumed, dailyTarget, performanceState }: 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.label}>WATER CYCLE</Text>
+        <Text style={styles.label}>Water cycle</Text>
         <Text style={[styles.count, { color }]}>
           {unitsConsumed} / {dailyTarget}
         </Text>
@@ -135,15 +135,15 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   label: {
-    fontSize: 10,
-    fontFamily: 'Inter_700Bold',
+    fontSize: 12,
+    fontFamily: 'Inter_500Medium',
     color: Colors.text.muted,
-    letterSpacing: 2,
+    letterSpacing: 0.2,
   },
   count: {
     fontSize: 13,
-    fontFamily: 'Inter_700Bold',
-    letterSpacing: -0.3,
+    fontFamily: 'Inter_600SemiBold',
+    letterSpacing: -0.2,
   },
   cells: {
     flexDirection: 'row',
