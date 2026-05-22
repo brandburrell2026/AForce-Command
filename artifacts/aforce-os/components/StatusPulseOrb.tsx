@@ -72,6 +72,15 @@ interface Props {
    * underneath.
    */
   voiceActive?: boolean;
+  /**
+   * Optional live trend coming from `useScoreTrend`. Rising lifts the
+   * outer glow opacity by a small factor (the orb visibly "leans in"
+   * when the user is climbing); falling softens it (a quiet inward
+   * fade that signals decay without changing the kinetic behaviour).
+   * No new animations introduced — this is a coefficient on the
+   * existing glow tween so the orb stays in one visual language.
+   */
+  trend?: 'rising' | 'falling' | 'flat';
 }
 
 const DEFAULT_ORB_SIZE = 200;
@@ -84,7 +93,7 @@ const COLOR_MAP: Record<PulseConfig['colorMode'], { primary: string; glow: strin
   red:   { primary: Colors.states.DEPLETED.primary,   glow: Colors.states.DEPLETED.glow },
 };
 
-export function StatusPulseOrb({ pulseConfig, score, burstAt = 0, onTap, size, socialOverlay, displayedAccent, displayedScore, voiceActive = false }: Props) {
+export function StatusPulseOrb({ pulseConfig, score, burstAt = 0, onTap, size, socialOverlay, displayedAccent, displayedScore, voiceActive = false, trend = 'flat' }: Props) {
   const { pulseSpeed, glowStrength, pulseIntensity, waveBehavior, colorMode, animations } = pulseConfig;
   const baseColors = COLOR_MAP[colorMode];
   // Override colour ONLY — kinetic behaviour (waveBehavior, flare,
@@ -283,14 +292,26 @@ export function StatusPulseOrb({ pulseConfig, score, burstAt = 0, onTap, size, s
     );
   }, [burstAt]);
 
+  // Trend coefficient — multiplies the existing glow tween so the orb
+  // visibly leans into a rising score and softens on a falling one.
+  // No new animation primitives, just a static multiplier.
+  const trendGlowMul = trend === 'rising' ? 1.18 : trend === 'falling' ? 0.82 : 1.0;
+  const trendScaleBoost = trend === 'rising' ? 0.04 : 0;
+
   const outerGlowStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(glowAnim.value, [0, 1], [0.28, 0.55 + glowStrength * 0.45]),
-    transform: [{ scale: interpolate(glowAnim.value, [0, 1], [0.98, 1.18]) }],
+    opacity: Math.min(
+      1,
+      interpolate(glowAnim.value, [0, 1], [0.28, 0.55 + glowStrength * 0.45]) * trendGlowMul,
+    ),
+    transform: [{ scale: interpolate(glowAnim.value, [0, 1], [0.98, 1.18 + trendScaleBoost]) }],
   }));
 
   const innerGlowStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(pulseAnim.value, [0, 1], [0.45, 0.75 + pulseIntensity * 0.25]),
-    transform: [{ scale: interpolate(pulseAnim.value, [0, 1], [0.95, 1.08]) }],
+    opacity: Math.min(
+      1,
+      interpolate(pulseAnim.value, [0, 1], [0.45, 0.75 + pulseIntensity * 0.25]) * trendGlowMul,
+    ),
+    transform: [{ scale: interpolate(pulseAnim.value, [0, 1], [0.95, 1.08 + trendScaleBoost]) }],
   }));
 
   const orbStyle = useAnimatedStyle(() => ({

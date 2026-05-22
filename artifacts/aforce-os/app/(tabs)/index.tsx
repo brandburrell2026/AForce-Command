@@ -34,6 +34,9 @@ import { CommandConsole } from '@/components/home/CommandConsole';
 import { WaterCycleBar } from '@/components/WaterCycleBar';
 import { EntryActions } from '@/components/home/EntryActions';
 import { BiometricIntelligenceStack } from '@/components/home/BiometricIntelligenceStack';
+import { LiveStatusLine } from '@/components/home/LiveStatusLine';
+import { useScoreTrend } from '@/hooks/useScoreTrend';
+import { getStatusVerb } from '@/services/statusVerb';
 import { AIVideoPlayer } from '@/components/AIVideoPlayer';
 import { matchVideo } from '@/services/videoEngine';
 import { OnboardingOverlay } from '@/components/OnboardingOverlay';
@@ -218,6 +221,13 @@ function ScoreDrivenBody({
     () => getHydrationStatus(displayedScore),
     [displayedScore],
   );
+  // Live trend over the rendered score — drives the trend arrow,
+  // live status verb, and the orb's glow lean-in / soft-fade response.
+  const trend = useScoreTrend(displayedScore);
+  const statusVerb = React.useMemo(
+    () => getStatusVerb(engine.performanceState.level, trend.direction),
+    [engine.performanceState.level, trend.direction],
+  );
   // Color the surrounding titles + CTA from the *orb's* live accent so
   // the headline / STABLE label / "Maintain rhythm." / CTA all flip to
   // the same hue the ring is currently rendering. Falls back to the
@@ -248,6 +258,7 @@ function ScoreDrivenBody({
               : undefined
           }
           displayedScore={displayedScore}
+          trend={trend.direction}
         />
       </View>
 
@@ -258,6 +269,18 @@ function ScoreDrivenBody({
       >
         {status.label}
       </Text>
+
+      {/* 3a — Live Status Line — trend arrow + delta window + status verb.
+          Sits between the status label and the consequence line so the
+          orb reads as a real-time signal, not a static dial. */}
+      <LiveStatusLine
+        direction={trend.direction}
+        delta={trend.delta}
+        ageSec={trend.ageSec}
+        verb={statusVerb}
+        accent={orbColor}
+        testID="home-live-status-line"
+      />
 
       {/* 4 — Consequence line */}
       <Text style={styles.consequence} testID="home-consequence">
