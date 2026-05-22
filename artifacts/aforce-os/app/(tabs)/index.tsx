@@ -33,7 +33,6 @@ import { ScoreBreakdownSheet } from '@/components/ScoreBreakdownSheet';
 import { CommandConsole } from '@/components/home/CommandConsole';
 import { WaterCycleBar } from '@/components/WaterCycleBar';
 import { EntryActions } from '@/components/home/EntryActions';
-import { BiometricIntelligenceStack } from '@/components/home/BiometricIntelligenceStack';
 import { LiveStatusLine } from '@/components/home/LiveStatusLine';
 import { useScoreTrend } from '@/hooks/useScoreTrend';
 import { getStatusVerb } from '@/services/statusVerb';
@@ -347,11 +346,10 @@ function ScoreDrivenBody({
         </View>
       )}
 
-      {/* Biometric Intelligence — three AI-driven biometric modules
-          (Sweat Loss / Performance Forecast / Recovery Load). Sits
-          above the AI Coach video so the data-forward modules read
-          first; replaces the Sleep section per the redesign brief. */}
-      <BiometricIntelligenceStack />
+      {/* Biometric Intelligence now lives as three tiles inside
+          EntryActions (Sweat / Forecast / Recovery), each opening a
+          BiometricDetailSheet on tap. Keeps the home surface light
+          while the data stays one tap away. */}
 
       {/* Command Voice Engine — cinematic AI Coach video card
           (tap → fullscreen overlay). The "AFORCE COMMAND" text card
