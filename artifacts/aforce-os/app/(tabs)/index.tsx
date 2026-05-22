@@ -99,8 +99,7 @@ interface HeaderProps {
 }
 
 function MinimalHeader({ greetingName, city, tempLabel, onShare }: HeaderProps) {
-  const now = useNow();
-  const segments = [city, formatTime(now), tempLabel].filter(
+  const segments = [city, tempLabel].filter(
     (s): s is string => !!s && s.length > 0,
   );
   return (
