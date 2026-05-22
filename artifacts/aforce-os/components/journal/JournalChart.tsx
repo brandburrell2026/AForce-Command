@@ -70,26 +70,14 @@ function classify(curr: number, prev: number | undefined): DotKind {
 }
 
 /**
- * Catmull–Rom → cubic-Bezier path. Smooth curve through every point
- * without overshoot — the calm line the spec asks for.
+ * Straight-segment line path — point-to-point, no curve smoothing.
+ * Classic line-chart-with-markers feel.
  */
-function smoothPath(points: { x: number; y: number }[]): string {
+function linePath(points: { x: number; y: number }[]): string {
   if (points.length === 0) return '';
-  if (points.length === 1) return `M${points[0].x},${points[0].y}`;
-  const tension = 0.5;
-  let d = `M${points[0].x.toFixed(2)},${points[0].y.toFixed(2)}`;
-  for (let i = 0; i < points.length - 1; i++) {
-    const p0 = points[i - 1] ?? points[i];
-    const p1 = points[i];
-    const p2 = points[i + 1];
-    const p3 = points[i + 2] ?? p2;
-    const cp1x = p1.x + ((p2.x - p0.x) / 6) * tension * 2;
-    const cp1y = p1.y + ((p2.y - p0.y) / 6) * tension * 2;
-    const cp2x = p2.x - ((p3.x - p1.x) / 6) * tension * 2;
-    const cp2y = p2.y - ((p3.y - p1.y) / 6) * tension * 2;
-    d += ` C${cp1x.toFixed(2)},${cp1y.toFixed(2)} ${cp2x.toFixed(2)},${cp2y.toFixed(2)} ${p2.x.toFixed(2)},${p2.y.toFixed(2)}`;
-  }
-  return d;
+  return points
+    .map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x.toFixed(2)},${p.y.toFixed(2)}`)
+    .join(' ');
 }
 
 function scoreBandColor(score: number): string {
@@ -136,7 +124,7 @@ export default function JournalChart({
       return { x, y, score: d.score, kind };
     });
 
-    const lineD = smoothPath(pts);
+    const lineD = linePath(pts);
     const bottomY = PADDING.top + innerH;
     const fillD = pts.length
       ? `${lineD} L${pts[pts.length - 1].x.toFixed(2)},${bottomY.toFixed(2)} L${pts[0].x.toFixed(2)},${bottomY.toFixed(2)} Z`
