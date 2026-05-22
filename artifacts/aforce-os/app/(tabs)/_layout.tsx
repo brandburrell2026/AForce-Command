@@ -37,6 +37,10 @@ function NativeTabLayout() {
         <NativeTabIcon sf={{ default: 'bolt.circle', selected: 'bolt.circle.fill' }} />
         <Label>{t('tabs.home')}</Label>
       </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="scan">
+        <NativeTabIcon sf={{ default: 'viewfinder.circle', selected: 'viewfinder.circle.fill' }} />
+        <Label>{t('tabs.scan')}</Label>
+      </NativeTabs.Trigger>
       <NativeTabs.Trigger name="protocol">
         <NativeTabIcon sf={{ default: 'list.bullet.circle', selected: 'list.bullet.circle.fill' }} />
         <Label>{t('tabs.protocol')}</Label>
@@ -190,6 +194,15 @@ function ClassicTabLayout() {
           tabBarIcon: ({ color, size }) =>
             isIOS ? <SymbolView name="bolt.circle" tintColor={color} size={size} />
                   : <Icon name="zap" size={22} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="scan"
+        options={{
+          title: t('tabs.scan'),
+          tabBarIcon: ({ color, size }) =>
+            isIOS ? <SymbolView name="viewfinder.circle" tintColor={color} size={size} />
+                  : <Icon name="maximize" size={22} color={color} />,
         }}
       />
       <Tabs.Screen

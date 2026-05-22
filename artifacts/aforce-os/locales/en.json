@@ -22,7 +22,8 @@
     "journal": "Timeline",
     "store": "Store",
     "profile": "Profile",
-    "social": "Social"
+    "social": "Social",
+    "scan": "Scanner"
   },
   "journal": {
     "title": "Performance Timeline",

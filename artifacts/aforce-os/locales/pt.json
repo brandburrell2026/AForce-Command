@@ -21,7 +21,8 @@
     "protocol": "Protocolo",
     "store": "Loja",
     "profile": "Perfil",
-    "social": "Social"
+    "social": "Social",
+    "scan": "Scanner"
   },
   "home": {
     "welcome": "Bem-vindo, {{name}}",
