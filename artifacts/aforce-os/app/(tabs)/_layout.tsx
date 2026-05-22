@@ -37,10 +37,6 @@ function NativeTabLayout() {
         <NativeTabIcon sf={{ default: 'bolt.circle', selected: 'bolt.circle.fill' }} />
         <Label>{t('tabs.home')}</Label>
       </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="check">
-        <NativeTabIcon sf={{ default: 'waveform.path.ecg', selected: 'waveform.path.ecg.rectangle.fill' }} />
-        <Label>{t('tabs.check')}</Label>
-      </NativeTabs.Trigger>
       <NativeTabs.Trigger name="protocol">
         <NativeTabIcon sf={{ default: 'list.bullet.circle', selected: 'list.bullet.circle.fill' }} />
         <Label>{t('tabs.protocol')}</Label>
@@ -194,15 +190,6 @@ function ClassicTabLayout() {
           tabBarIcon: ({ color, size }) =>
             isIOS ? <SymbolView name="bolt.circle" tintColor={color} size={size} />
                   : <Icon name="zap" size={22} color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="check"
-        options={{
-          title: t('tabs.check'),
-          tabBarIcon: ({ color, size }) =>
-            isIOS ? <SymbolView name="waveform.path.ecg" tintColor={color} size={size} />
-                  : <Icon name="activity" size={22} color={color} />,
         }}
       />
       <Tabs.Screen

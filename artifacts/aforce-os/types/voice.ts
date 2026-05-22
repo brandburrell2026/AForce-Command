@@ -46,7 +46,7 @@ export type VoiceSymptomId =
 
 /** Friendly screen handle the classifier uses; voiceService maps to a route. */
 export type VoiceScreenTarget =
-  | 'home' | 'profile' | 'journal' | 'store' | 'check' | 'protocol'
+  | 'home' | 'profile' | 'journal' | 'store' | 'protocol'
   | 'scan' | 'cart' | 'rewards' | 'circles' | 'share' | 'ring'
   | 'competition' | 'territory' | 'science' | 'sweat' | 'heat'
   | 'cruise' | 'subscription';

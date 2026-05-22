@@ -60,7 +60,6 @@ const SCREEN_ROUTE: Record<VoiceScreenTarget, string> = {
   profile:      '/profile',
   journal:      '/journal',
   store:        '/store',
-  check:        '/check',
   protocol:     '/protocol',
   scan:         '/scan',
   cart:         '/cart',
@@ -79,7 +78,7 @@ const SCREEN_ROUTE: Record<VoiceScreenTarget, string> = {
 
 const SCREEN_LABEL: Record<VoiceScreenTarget, string> = {
   home: 'Home', profile: 'Profile', journal: 'Journal', store: 'Store',
-  check: 'Performance Signals', protocol: 'Protocol', scan: 'HydroScan',
+  protocol: 'Protocol', scan: 'HydroScan',
   cart: 'Cart', rewards: 'Rewards', circles: 'Circles', share: 'Share',
   ring: 'Ring', competition: 'Competition', territory: 'Territory',
   science: 'Science', sweat: 'Sweat', heat: 'Heat Risk', cruise: 'Cruise',
@@ -171,8 +170,8 @@ function buildResponse(
         return {
           ...base,
           spoken: 'Symptom not recognized.',
-          detail: 'Tap Performance Signals to log it manually.',
-          action: { type: 'NAVIGATE', route: '/check' },
+          detail: 'Open your profile to log it manually.',
+          action: { type: 'NONE' },
         };
       }
       const labels = symptoms.map((s) => SYMPTOM_LABEL[s]);

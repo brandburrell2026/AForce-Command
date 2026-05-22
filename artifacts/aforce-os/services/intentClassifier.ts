@@ -63,7 +63,6 @@ const SCREEN_KEYWORDS: Array<{ screen: VoiceScreenTarget; pattern: RegExp }> = [
   { screen: 'journal',     pattern: /\b(journal|history|timeline|log\s+book)\b/ },
   { screen: 'store',       pattern: /\b(store|shop|catalog|catalogue)\b/ },
   { screen: 'cart',        pattern: /\b(cart|basket|checkout)\b/ },
-  { screen: 'check',       pattern: /\b(check|signals?|symptoms?\s+screen)\b/ },
   { screen: 'protocol',    pattern: /\b(protocol|recovery\s+screen)\b/ },
   { screen: 'scan',        pattern: /\b(scan(ner)?|hydroscan|barcode)\b/ },
   { screen: 'ring',        pattern: /\b(ring|calm\s+coach|sport\s+mode)\b/ },
