@@ -29,8 +29,9 @@ import { Colors } from '../theme/colors';
 import { getStatusColor } from '../theme/statusColor';
 import { useAppStore } from '../store/useAppStore';
 import { useDisplayedAccent } from '../hooks/useDisplayedAccent';
-import { speak, stopSpeaking } from '../services/textToSpeech';
-import { buildVideoCoachLine } from '../services/videoCoachVoice';
+// Voice playback intentionally disabled — ElevenLabs voice will be wired
+// in here later. Until then the Recovery Coach card / overlay is silent.
+// (Previous imports: speak, stopSpeaking, buildVideoCoachLine.)
 
 // ─── Public props ─────────────────────────────────────────────────────────────
 interface Props {
@@ -339,28 +340,9 @@ export function AIVideoPlayer({ video, command, compact = true, timerSeconds, sc
   const handleCollapse = React.useCallback(() => setExpanded(false), []);
 
   // ─── AI Coach voice ────────────────────────────────────────────────────────
-  // When the user opens the full-screen overlay, speak the same content
-  // they see — overlay title + subtitle + command action + explanation —
-  // tuned by the video's themeLevel persona (DEPLETED lands with controlled
-  // urgency, PEAK is calm, etc.). Stop speaking on close / unmount so the
-  // coach never talks over a navigated-away screen.
-  React.useEffect(() => {
-    if (!expanded) return;
-    const line = buildVideoCoachLine(video, command);
-    if (!line) return;
-    speak(line, { level: video.themeLevel });
-    return () => {
-      stopSpeaking();
-    };
-  }, [
-    expanded,
-    video.videoId,
-    video.themeLevel,
-    video.overlayTitle,
-    video.overlaySubtitle,
-    command.action,
-    command.explanation,
-  ]);
+  // Voice playback is intentionally disabled here. The Recovery Coach card
+  // and full-screen overlay render silently; an ElevenLabs-backed voice
+  // will be wired in later. Do NOT call speak() / stopSpeaking() here.
 
   // ─── Inline / compact ──────────────────────────────────────────────────────
   return (
