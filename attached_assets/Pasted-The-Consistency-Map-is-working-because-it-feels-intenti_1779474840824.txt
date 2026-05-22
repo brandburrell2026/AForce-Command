@@ -1,0 +1,101 @@
+The “Consistency Map” is working because it feels:
+
+* intentional
+* minimal
+* ambient
+* premium
+* easy to understand
+
+The “Score Over Time” chart breaks the aesthetic because it becomes visually chaotic and too analytical.
+
+Here’s the exact prompt you should give Replit to redesign ONLY the “Score Over Time” section while keeping the Consistency Map aesthetic:
+
+⸻
+
+Remove the current “Score Over Time” chart completely.
+
+The current visualization feels too chaotic, cluttered, and data-heavy.
+We want the screen to maintain the same premium aesthetic as the “Consistency Map.”
+
+REDESIGN GOAL:
+Create a clean, elegant, minimal “Performance Trend” visualization that matches the glowing constellation aesthetic of the Consistency Map.
+
+NEW DESIGN DIRECTION:
+
+OPTION 1 (PREFERRED):
+Replace the current chart with a sparse constellation-style trend map.
+
+DESIGN:
+
+* floating glowing dots only
+* NO vertical lines
+* NO dense scatter plotting
+* NO overlapping data
+* use soft curved connections between only major trend points
+* preserve lots of negative space
+* dark ambient background
+* subtle grid lines at very low opacity
+* smooth glowing halo around dots
+
+COLORS:
+
+* Cyan = on track
+* Lime = completed
+* Amber = missed
+* Thin soft white line for overall trend
+
+ANIMATION:
+
+* slow ambient pulsing
+* smooth fade-in
+* subtle glow breathing effect
+
+LAYOUT:
+
+* fewer points
+* focus on weekly averages instead of every single event
+* make the visualization feel calm and premium
+* data should feel “curated,” not noisy
+
+REMOVE:
+
+* vertical spikes
+* excessive labels
+* hard chart lines
+* dense clustering
+* chart junk
+
+ADD:
+
+* smooth score trend indicator
+* subtle weekly milestone markers
+* clean typography
+* more spacing between elements
+
+ALTERNATIVE OPTION:
+If the constellation trend still feels busy, replace the chart entirely with:
+
+* a single smooth glowing line graph
+* one neon line only
+* tiny minimal dots
+* gradient fade underneath
+* no grid clutter
+* no multi-series data
+
+STYLE REFERENCES:
+
+* Oura Ring
+* WHOOP
+* Apple Health
+* Tesla UI
+* Arc Browser
+* sci-fi biometric dashboards
+
+IMPORTANT:
+The UI should feel emotionally calming and luxurious.
+Less data density.
+More atmosphere.
+Minimal but intelligent.
+
+The “Consistency Map” is the visual benchmark for the entire page.
+Everything should feel cohesive with that aesthetic.
