@@ -22,6 +22,12 @@ export interface BiometricSheetPayload {
   subline?: string;
   metrics?: BiometricFooterMetric[];
   confidence?: 'high' | 'low';
+  /** Optional accent-tinted CTA rendered above the close button. */
+  primaryAction?: {
+    label: string;
+    icon?: IconName;
+    onPress: () => void;
+  };
 }
 
 interface Props {
@@ -58,6 +64,25 @@ export function BiometricDetailSheet({ visible, payload, onDismiss }: Props) {
               confidence={payload.confidence}
               testID="biometric-detail-card"
             />
+          ) : null}
+          {payload?.primaryAction ? (
+            <Pressable
+              onPress={() => {
+                payload.primaryAction?.onPress();
+                onDismiss();
+              }}
+              style={[styles.primaryBtn, { borderColor: payload.accent }]}
+              accessibilityRole="button"
+              accessibilityLabel={payload.primaryAction.label}
+              testID="biometric-detail-primary"
+            >
+              {payload.primaryAction.icon ? (
+                <Icon name={payload.primaryAction.icon} size={16} color={payload.accent} />
+              ) : null}
+              <Text style={[styles.primaryText, { color: payload.accent }]}>
+                {payload.primaryAction.label.toUpperCase()}
+              </Text>
+            </Pressable>
           ) : null}
           <Pressable
             onPress={onDismiss}
@@ -100,12 +125,27 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     marginBottom: 18,
   },
+  primaryBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    marginTop: 18,
+    paddingVertical: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  primaryText: {
+    fontFamily: 'Inter_700Bold',
+    fontSize: 12,
+    letterSpacing: 2.4,
+  },
   closeBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    marginTop: 18,
+    marginTop: 10,
     paddingVertical: 12,
     borderRadius: 12,
     borderWidth: StyleSheet.hairlineWidth,

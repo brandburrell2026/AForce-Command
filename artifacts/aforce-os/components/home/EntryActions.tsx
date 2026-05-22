@@ -104,6 +104,11 @@ function EntryActionsImpl() {
           { label: 'EFFICIENCY', value: `${sweat.efficiencyPct}%`, valueColor: sweatAccent },
           { label: 'INTENSITY', value: capitalize(sweat.intensity) },
         ],
+        primaryAction: {
+          label: 'Open Sweat Calculator',
+          icon: 'sliders',
+          onPress: () => router.push('/sweat'),
+        },
       };
     }
     if (openKey === 'forecast') {
