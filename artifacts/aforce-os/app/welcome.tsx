@@ -1112,7 +1112,6 @@ export default function SplashScreen() {
           throughout the sequence. Rendered in a monospace face so it
           reads like a system readout, not body copy. */}
       <FadeIn show durationMs={2000} delayMs={200} style={styles.topHeader}>
-        <Text style={styles.welcomeKicker}>WELCOME</Text>
         {/* Wordmark — AFORCE dominant, thin hairline separator, OS as
             integrated system suffix. Letter-spacing and weight balance
             tuned for an Apple Vision Pro / WHOOP register. */}
