@@ -143,6 +143,23 @@ function RotatingRing({
   // 0 = nothing drawn, 1 = full O. While `drawing`, this animates
   // from 0 → 1 over 3s, painting the stroke around the ring once.
   const draw = useSharedValue(drawing ? 0 : 1);
+  // ── Dynamic state boot ────────────────────────────────────────────
+  // `bandSweep` cycles 0→1 continuously during the pre-critical phase
+  // and drives the colour of every chrome element on the orb (stroke,
+  // body border, both glow halos, ripple + collapse rings). It maps
+  // through red → amber → teal → lime as it climbs, so the whole orb
+  // visibly walks up the bands instead of locking to a single hue.
+  // `settle` ramps 0→1 the moment `critical` flips true, blending the
+  // sweep tint into the static `color`/`glow` props supplied by the
+  // parent (CRITICAL_RED + halo).
+  const bandSweep = useSharedValue(0);
+  const settle = useSharedValue(critical ? 1 : 0);
+  // Stash the resting props in shared values so derived workers stay
+  // reactive when the parent flips white → CRITICAL_RED.
+  const colorSV = useSharedValue(color);
+  const glowSV = useSharedValue(glow);
+  React.useEffect(() => { colorSV.value = color; }, [color, colorSV]);
+  React.useEffect(() => { glowSV.value = glow; }, [glow, glowSV]);
 
   React.useEffect(() => {
     rotate.value = withRepeat(
@@ -166,6 +183,34 @@ function RotatingRing({
       draw.value = withTiming(1, { duration: 200 });
     }
   }, [drawing, draw]);
+
+  // Sweep through the four bands as long as the orb hasn't entered
+  // its critical resting state. ~3.4s per full red→lime traverse,
+  // looping back-and-forth (boomerang) so the boot keeps breathing
+  // through colour even after the O completes — until `critical`
+  // flips and `settle` blends it into CRITICAL_RED.
+  React.useEffect(() => {
+    cancelAnimation(bandSweep);
+    cancelAnimation(settle);
+    if (!critical) {
+      bandSweep.value = 0;
+      bandSweep.value = withRepeat(
+        withTiming(1, { duration: 3400, easing: Easing.inOut(Easing.cubic) }),
+        -1,
+        true,
+      );
+      settle.value = withTiming(0, { duration: 400 });
+    } else {
+      settle.value = withTiming(1, {
+        duration: 900,
+        easing: Easing.out(Easing.cubic),
+      });
+    }
+    return () => {
+      cancelAnimation(bandSweep);
+      cancelAnimation(settle);
+    };
+  }, [critical, bandSweep, settle]);
 
   React.useEffect(() => {
     cancelAnimation(pulse);
@@ -256,28 +301,58 @@ function RotatingRing({
     };
   });
 
+  // ── Band-sweep tints (worklet helpers) ─────────────────────────────
+  // Both helpers run inside animated style worklets. They blend the
+  // live sweep colour with the resting prop colour using `settle`.
+  const tintRing = (): string => {
+    'worklet';
+    const swept = interpolateColor(
+      bandSweep.value,
+      [0, 0.25, 0.5, 0.75, 1],
+      [BOOT_RED, BOOT_AMBER, BOOT_TEAL, BOOT_LIME, BOOT_LIME],
+    );
+    return interpolateColor(settle.value, [0, 1], [swept, colorSV.value]);
+  };
+  const tintGlow = (): string => {
+    'worklet';
+    const swept = interpolateColor(
+      bandSweep.value,
+      [0, 0.25, 0.5, 0.75, 1],
+      [BOOT_RED, BOOT_AMBER, BOOT_TEAL, BOOT_LIME, BOOT_LIME],
+    );
+    return interpolateColor(settle.value, [0, 1], [swept, glowSV.value]);
+  };
+
   // ── Layered glow / ring styles (mirror StatusPulseOrb) ──
   const outerGlowStyle = useAnimatedStyle(() => ({
     opacity: interpolate(pulse.value, [0, 1], [0.18, 0.42]) * orbReveal.value,
     transform: [{ scale: interpolate(pulse.value, [0, 1], [0.98, 1.18]) }],
+    backgroundColor: tintGlow(),
   }));
   const innerGlowStyle = useAnimatedStyle(() => ({
     opacity: interpolate(pulse.value, [0, 1], [0.32, 0.58]) * orbReveal.value,
     transform: [{ scale: interpolate(pulse.value, [0, 1], [0.95, 1.08]) }],
+    backgroundColor: tintGlow(),
   }));
   const orbBodyStyle = useAnimatedStyle(() => {
     const scale = critical
       ? 1 + (pulse.value - 0.5) * -0.06
       : 1 + pulse.value * 0.05;
-    return { opacity: orbReveal.value, transform: [{ scale }] };
+    return {
+      opacity: orbReveal.value,
+      transform: [{ scale }],
+      borderColor: tintRing(),
+    };
   });
   const rippleStyle = useAnimatedStyle(() => ({
     opacity: rippleOpacity.value * orbReveal.value,
     transform: [{ scale: rippleScale.value }],
+    borderColor: tintRing(),
   }));
   const collapseRingStyle = useAnimatedStyle(() => ({
     opacity: collapseOpacity.value * orbReveal.value,
     transform: [{ scale: collapseScale.value }],
+    borderColor: tintRing(),
   }));
 
   // SVG circles begin at 3 o'clock and run clockwise. We rotate the
@@ -289,17 +364,10 @@ function RotatingRing({
   // fully drawn (draw.value === 1) we hand off to the static `color`
   // prop, which the parent flips from white → CRITICAL_RED via a
   // separate crossfade.
-  const animatedCircleProps = useAnimatedProps(() => {
-    const sweepStroke = interpolateColor(
-      draw.value,
-      [0, 0.25, 0.5, 0.75, 1],
-      [BOOT_RED, BOOT_AMBER, BOOT_TEAL, BOOT_LIME, color],
-    );
-    return {
-      strokeDashoffset: RING_CIRC * (1 - draw.value),
-      stroke: sweepStroke,
-    };
-  });
+  const animatedCircleProps = useAnimatedProps(() => ({
+    strokeDashoffset: RING_CIRC * (1 - draw.value),
+    stroke: tintRing(),
+  }));
 
   return (
     <View style={styles.ringWrap}>
