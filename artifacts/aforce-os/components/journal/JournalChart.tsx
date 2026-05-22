@@ -119,7 +119,7 @@ function scoreBandColor(score: number): string {
 export default function JournalChart({
   data,
   width,
-  height = 305,
+  height = 350,
   weeklyCompliancePct,
   complianceStreak,
 }: Props) {
