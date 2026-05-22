@@ -544,7 +544,8 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter_600SemiBold',
     fontSize: 13,
     letterSpacing: 0.6,
-    marginBottom: 10,
+    marginTop: 4,
+    marginBottom: 24,
   },
   chartPlaceholder: {
     height: 220,

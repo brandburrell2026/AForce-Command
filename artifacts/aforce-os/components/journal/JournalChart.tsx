@@ -263,15 +263,17 @@ export default function JournalChart({
                 never has a hard terminus. */}
             <LinearGradient id="trendStroke" x1="0" y1="0" x2="1" y2="0">
               <Stop offset="0" stopColor="rgba(255,255,255,0)" />
-              <Stop offset="0.18" stopColor="rgba(255,255,255,0.34)" />
-              <Stop offset="0.82" stopColor="rgba(255,255,255,0.34)" />
+              <Stop offset="0.25" stopColor="rgba(255,255,255,0.27)" />
+              <Stop offset="0.5" stopColor="rgba(255,255,255,0.30)" />
+              <Stop offset="0.75" stopColor="rgba(255,255,255,0.27)" />
               <Stop offset="1" stopColor="rgba(255,255,255,0)" />
             </LinearGradient>
 
             <LinearGradient id="trendGlow" x1="0" y1="0" x2="1" y2="0">
               <Stop offset="0" stopColor="rgba(255,255,255,0)" />
-              <Stop offset="0.2" stopColor="rgba(255,255,255,0.13)" />
-              <Stop offset="0.8" stopColor="rgba(255,255,255,0.13)" />
+              <Stop offset="0.25" stopColor="rgba(255,255,255,0.10)" />
+              <Stop offset="0.5" stopColor="rgba(255,255,255,0.11)" />
+              <Stop offset="0.75" stopColor="rgba(255,255,255,0.10)" />
               <Stop offset="1" stopColor="rgba(255,255,255,0)" />
             </LinearGradient>
           </Defs>
