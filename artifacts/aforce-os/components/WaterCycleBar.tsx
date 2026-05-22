@@ -11,6 +11,7 @@ import Animated, {
   withTiming,
   withSpring,
   withDelay,
+  withRepeat,
   Easing,
 } from 'react-native-reanimated';
 import type { PerformanceState } from '../types';
@@ -95,6 +96,30 @@ export function WaterCycleBar({ unitsConsumed, dailyTarget, performanceState }: 
     prevCount.current = unitsConsumed;
   }, [unitsConsumed]);
 
+  // "You are here" caret: a tiny downward-pointing chevron that hovers
+  // above the next cell the user needs to fill. Drives a slow 1.8s
+  // vertical breath so the marker feels alive (matches the rest of the
+  // home zone's ambient motion). Hidden once the day is complete.
+  const nextIdx = unitsConsumed < CELL_COUNT ? unitsConsumed : -1;
+  const caretY = useSharedValue(0);
+  const caretOpacity = useSharedValue(0);
+  useEffect(() => {
+    if (nextIdx < 0) {
+      caretOpacity.value = withTiming(0, { duration: 300 });
+      return;
+    }
+    caretOpacity.value = withTiming(1, { duration: 420, easing: Easing.out(Easing.cubic) });
+    caretY.value = withRepeat(
+      withTiming(1, { duration: 1800, easing: Easing.inOut(Easing.sin) }),
+      -1,
+      true,
+    );
+  }, [nextIdx, caretOpacity, caretY]);
+  const caretStyle = useAnimatedStyle(() => ({
+    opacity: caretOpacity.value,
+    transform: [{ translateY: -2 + caretY.value * 4 }],
+  }));
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -103,19 +128,40 @@ export function WaterCycleBar({ unitsConsumed, dailyTarget, performanceState }: 
           {unitsConsumed} / {dailyTarget}
         </Text>
       </View>
-      {/* Cells row bleeds out to the card edges via negative margin so
-          the 8 cells stretch the full section width rather than sitting
-          inside the 20px inner gutter. Header still respects the gutter. */}
-      <View style={styles.cells}>
-        {Array.from({ length: CELL_COUNT }).map((_, i) => (
-          <Cell
-            key={i}
-            index={i}
-            filled={i < unitsConsumed}
-            color={color}
-            isNew={isNew && i === unitsConsumed - 1}
-          />
-        ))}
+      {/* Cells row. Above it sits the floating caret marker that points
+          down at the next-to-fill cell. The caret is positioned by
+          percentage so it stays aligned regardless of available width. */}
+      <View style={styles.cellsWrap}>
+        {nextIdx >= 0 && (
+          <Animated.View
+            pointerEvents="none"
+            style={[
+              styles.caret,
+              caretStyle,
+              {
+                left: `${((nextIdx + 0.5) / CELL_COUNT) * 100}%`,
+              },
+            ]}
+          >
+            <View
+              style={[
+                styles.caretTriangle,
+                { borderTopColor: color, shadowColor: color },
+              ]}
+            />
+          </Animated.View>
+        )}
+        <View style={styles.cells}>
+          {Array.from({ length: CELL_COUNT }).map((_, i) => (
+            <Cell
+              key={i}
+              index={i}
+              filled={i < unitsConsumed}
+              color={color}
+              isNew={isNew && i === unitsConsumed - 1}
+            />
+          ))}
+        </View>
       </View>
     </View>
   );
@@ -151,10 +197,39 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter_600SemiBold',
     letterSpacing: -0.2,
   },
+  cellsWrap: {
+    // Reserves space for the floating caret marker above the cells so
+    // it doesn't collide with the header row.
+    paddingTop: 14,
+    position: 'relative',
+  },
   cells: {
     flexDirection: 'row',
     gap: 8,
     justifyContent: 'space-between',
+  },
+  caret: {
+    position: 'absolute',
+    top: 0,
+    marginLeft: -5, // half the triangle base so center lines up exactly
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 10,
+    height: 10,
+    // Soft glow so the marker reads as luminous, not flat.
+    shadowOpacity: 0.55,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 0 },
+    elevation: 4,
+  },
+  caretTriangle: {
+    width: 0,
+    height: 0,
+    borderLeftWidth: 5,
+    borderRightWidth: 5,
+    borderTopWidth: 6,
+    borderLeftColor: 'transparent',
+    borderRightColor: 'transparent',
   },
   cell: {
     flex: 1,
