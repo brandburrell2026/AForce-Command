@@ -45,12 +45,10 @@ const proxyUrl = process.env['EXPO_PUBLIC_CLERK_PROXY_URL'] || undefined;
 
 /**
  * SplashGate — on the very first launch, redirects the user into the
- * cinematic four-stage onboarding sequence at `/splash`. Once the
- * sequence completes it persists `aforce.hasCompletedOnboarding=true`
- * to AsyncStorage, so every subsequent launch skips the splash and
- * the existing app boots normally. Nothing in the existing app
- * changes — this gate runs once, in front, and then gets out of the
- * way.
+ * single Welcome screen at `/welcome`. Once the user taps BEGIN
+ * PROTOCOL, `welcome.tsx` persists `aforce.hasCompletedOnboarding=true`
+ * to AsyncStorage, so every subsequent launch skips the welcome and
+ * the existing app boots normally.
  */
 function SplashGate() {
   const pathname = usePathname();
@@ -58,20 +56,16 @@ function SplashGate() {
   useEffect(() => {
     if (checkedRef.current) return;
     checkedRef.current = true;
-    // DEMO_MODE: always replay the cinematic lobby on cold start so
-    // the welcome → AFORCE OS → orb → CONTINUE sequence is the first
-    // thing seen every launch (and so the home re-seeds to the
-    // BALANCED ~80 score after CONTINUE). In production the
-    // AsyncStorage flag gates it to first-launch only.
+    // DEMO_MODE: always replay the welcome on cold start.
     if (DEMO_MODE) {
       AsyncStorage.removeItem('aforce.hasCompletedOnboarding').catch(() => {});
-      if (pathname !== '/splash') router.replace('/splash');
+      if (pathname !== '/welcome') router.replace('/welcome');
       return;
     }
     AsyncStorage.getItem('aforce.hasCompletedOnboarding')
       .then((v) => {
-        if (v !== 'true' && pathname !== '/splash') {
-          router.replace('/splash');
+        if (v !== 'true' && pathname !== '/welcome') {
+          router.replace('/welcome');
         }
       })
       .catch(() => {
@@ -96,7 +90,6 @@ function RootLayoutNav() {
         contentStyle: { backgroundColor: '#000000' },
       }}
     >
-      <Stack.Screen name="splash" options={{ headerShown: false, animation: 'fade' }} />
       <Stack.Screen name="welcome" options={{ headerShown: false, animation: 'fade' }} />
       <Stack.Screen name="(auth)" options={{ headerShown: false }} />
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
