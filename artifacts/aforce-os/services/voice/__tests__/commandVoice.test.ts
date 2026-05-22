@@ -140,7 +140,7 @@ describe('RISK_THRESHOLDS + thresholdFor', () => {
 
 describe('riskTimerLine', () => {
   it('returns the spec phrase verbatim at standard intensity', () => {
-    expect(riskTimerLine(16)).toBe('Early risk detected. Hydration correction recommended.');
+    expect(riskTimerLine(16)).toBe('Recommended next action. Recheck in 15 mins.');
     expect(riskTimerLine(8)).toBe('Performance risk rising. Take action now.');
     expect(riskTimerLine(4)).toBe('High risk state. Immediate hydration required.');
     expect(riskTimerLine(0)).toBe('Hydration command failed. Recovery protocol activated.');

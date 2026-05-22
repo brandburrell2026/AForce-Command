@@ -136,8 +136,8 @@ export const RISK_THRESHOLDS: ReadonlyArray<RiskThreshold> = Object.freeze([16, 
 
 const RISK_TIMER_LINES: Readonly<Record<RiskThreshold, Readonly<Record<VoiceIntensity, string>>>> = Object.freeze({
   16: Object.freeze({
-    calm:     'Early risk detected. Hydration correction recommended.',
-    standard: 'Early risk detected. Hydration correction recommended.',
+    calm:     'Recommended next action. Recheck in 15 mins.',
+    standard: 'Recommended next action. Recheck in 15 mins.',
     pressure: 'Early risk. Correct hydration.',
   }),
   8: Object.freeze({
