@@ -80,7 +80,14 @@ export default function CompetitionScreen() {
         >
           {/* Header */}
           <View style={styles.headerRow}>
-            <Pressable onPress={() => router.back()} hitSlop={12} style={styles.back} accessibilityLabel="Back">
+            <Pressable
+              onPress={() => router.replace('/(tabs)')}
+              hitSlop={12}
+              style={styles.back}
+              accessibilityRole="button"
+              accessibilityLabel="Back to home"
+              testID="community-back"
+            >
               <Icon name="chevron-left" size={22} color={Colors.text.primary} />
             </Pressable>
             <View style={{ flex: 1 }}>
