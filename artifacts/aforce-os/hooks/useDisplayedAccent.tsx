@@ -22,29 +22,16 @@
  *   provider is opt-in per screen.
  */
 
-import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import {
   useSharedValue,
   withTiming,
-  withSequence,
   useAnimatedReaction,
   runOnJS,
   Easing,
 } from 'react-native-reanimated';
 
 import { levelForScore, accentForLevel, type BandAccent } from '../utils/scoreBand';
-
-/**
- * Module-level flag — the dynamic state boot animation should fire
- * once per cold start, not every time the home tab gains focus or the
- * provider remounts (e.g. after switching tabs and back).
- */
-let bootPlayed = false;
-
-/** Test-only reset hook. */
-export function __resetBootForTests(): void {
-  bootPlayed = false;
-}
 
 export interface DisplayedAccent extends BandAccent {
   /** The currently-rendered score (in-flight tween value, rounded). */
@@ -67,31 +54,12 @@ interface ProviderProps {
  * root, after the engine slice is available.
  */
 export function DisplayedAccentProvider({ score, durationMs = 900, children }: ProviderProps) {
-  // Dynamic state boot — on cold start, sweep the ring 0 → 100 → score
-  // so it visibly passes through every band (red → amber → teal → lime)
-  // and then settles into the user's actual state. After that first
-  // sequence, behaviour returns to the standard "tween from previous
-  // to new" pattern. The boot only fires once per app session.
-  const bootThisMount = useRef(!bootPlayed);
-  const animated = useSharedValue(bootThisMount.current ? 0 : score);
-  const [displayed, setDisplayed] = useState(bootThisMount.current ? 0 : score);
-  const hasBooted = useRef(!bootThisMount.current);
+  // Initialize at the engine's current score so the first paint is correct
+  // (no flash from 0). Subsequent score changes tween via withTiming.
+  const animated = useSharedValue(score);
+  const [displayed, setDisplayed] = useState(score);
 
   useEffect(() => {
-    if (!hasBooted.current) {
-      // Phase 1: 0 → 100  (sweep through every band)
-      // Phase 2: 100 → score (settle into the user's actual band)
-      // Easing.inOut feels intentional, not jittery, on both phases.
-      const sweepMs = 1300;
-      const settleMs = 700;
-      animated.value = withSequence(
-        withTiming(100, { duration: sweepMs, easing: Easing.inOut(Easing.cubic) }),
-        withTiming(score, { duration: settleMs, easing: Easing.out(Easing.cubic) }),
-      );
-      hasBooted.current = true;
-      bootPlayed = true;
-      return;
-    }
     animated.value = withTiming(score, {
       duration: durationMs,
       easing: Easing.out(Easing.cubic),
