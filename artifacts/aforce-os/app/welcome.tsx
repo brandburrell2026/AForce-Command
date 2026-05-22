@@ -81,7 +81,11 @@ const ORB_BG = '#0A0A0A';
 const BOOT_RED = '#E53935';
 const BOOT_AMBER = '#FFC93C';
 const BOOT_TEAL = '#1FB8A6';
-const BOOT_LIME = '#B6FF00';
+// Aurora palette — pivoted from WHOOP lime to a biometric cyan/teal so
+// the lobby reads as elite recovery intelligence rather than gaming neon.
+// Name kept as BOOT_LIME to preserve all downstream references that
+// treat this as the boot sweep's terminal color.
+const BOOT_LIME = '#5EEAD4';
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
@@ -489,7 +493,7 @@ type Segment = { text: string; color: string };
 const TAGLINE_SEGMENTS: Segment[] = [
   { text: 'Pause', color: 'rgba(255,255,255,0.55)' },
   { text: 'Hydrate', color: '#1FB8A6' },
-  { text: 'Lock In', color: '#B6FF00' },
+  { text: 'Lock In', color: '#5EEAD4' },
   { text: 'Perform', color: 'rgba(255,255,255,0.96)' },
 ];
 const TAGLINE_STEP_MS = 520;
@@ -653,7 +657,7 @@ export default function SplashScreen() {
   // narrative escalates at stage 3, after ENTER is pressed.
   const isCritical = stage >= 3;
   const ringColor = isCritical ? CRITICAL_RED : BOOT_LIME;
-  const haloColor = isCritical ? CRITICAL_RED : 'rgba(182,255,0,0.35)';
+  const haloColor = isCritical ? CRITICAL_RED : 'rgba(94,234,212,0.40)';
   const sweepActive = stage === 2;
   const showNumber = stage >= 3;
   const showCritical = stage >= 3;
@@ -693,7 +697,7 @@ export default function SplashScreen() {
       {/* INITIALIZING under the ring (stage 1 only) */}
       {stage === 1 && (
         <FadeIn show={showInitializing} style={styles.belowRing}>
-          <Text style={styles.eyebrow}>I N I T I A L I Z I N G</Text>
+          <Text style={styles.eyebrow}>S Y N C   A C T I V E</Text>
         </FadeIn>
       )}
 
