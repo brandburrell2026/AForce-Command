@@ -27,6 +27,7 @@ import Animated, {
   Easing, cancelAnimation,
 } from 'react-native-reanimated';
 import Svg, { Circle, Path } from 'react-native-svg';
+import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 
@@ -86,6 +87,14 @@ const BOOT_TEAL = '#1FB8A6';
 // Name kept as BOOT_LIME to preserve all downstream references that
 // treat this as the boot sweep's terminal color.
 const BOOT_LIME = '#5EEAD4';
+
+// Aurora palette — used by the living biometric core, the outer HUD
+// arcs, the atmospheric backdrop, and the CTA glow.
+const AURORA = '#5EEAD4';
+const AURORA_BRIGHT = '#AAFFE8';
+const AURORA_DIM = 'rgba(94,234,212,0.20)';
+const AURORA_MID = 'rgba(94,234,212,0.45)';
+const AURORA_HALO = 'rgba(31,184,166,0.16)';
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
@@ -478,6 +487,283 @@ function RotatingRing({
   );
 }
 
+// ─── LivingCore ── content rendered inside the ring's orb body ──────
+//
+// Transforms the previously empty center disc into an alive biometric
+// nucleus: a faint cyan halo that breathes, a sine waveform, a slow
+// horizontal scan sweep, and two counter-rotating orbits carrying
+// particle motes. Pointer-events disabled — purely decorative.
+const CORE_SIZE = RING_SIZE - 24;
+const CORE_HALF = CORE_SIZE / 2;
+
+function LivingCore({ critical }: { critical: boolean }) {
+  const scan = useSharedValue(0);
+  const wave = useSharedValue(0);
+  const breathe = useSharedValue(0);
+  const orbitA = useSharedValue(0);
+  const orbitB = useSharedValue(0);
+
+  React.useEffect(() => {
+    scan.value = withRepeat(
+      withTiming(1, { duration: 3600, easing: Easing.inOut(Easing.sin) }),
+      -1, true,
+    );
+    wave.value = withRepeat(
+      withTiming(1, { duration: 2400, easing: Easing.inOut(Easing.sin) }),
+      -1, true,
+    );
+    breathe.value = withRepeat(
+      withTiming(1, { duration: 3000, easing: Easing.inOut(Easing.sin) }),
+      -1, true,
+    );
+    orbitA.value = withRepeat(
+      withTiming(360, { duration: 14000, easing: Easing.linear }),
+      -1, false,
+    );
+    orbitB.value = withRepeat(
+      withTiming(-360, { duration: 22000, easing: Easing.linear }),
+      -1, false,
+    );
+    return () => {
+      cancelAnimation(scan);
+      cancelAnimation(wave);
+      cancelAnimation(breathe);
+      cancelAnimation(orbitA);
+      cancelAnimation(orbitB);
+    };
+  }, [scan, wave, breathe, orbitA, orbitB]);
+
+  const haloStyle = useAnimatedStyle(() => ({
+    opacity: critical ? 0 : interpolate(breathe.value, [0, 1], [0.35, 0.7]),
+    transform: [{ scale: interpolate(breathe.value, [0, 1], [0.92, 1.06]) }],
+  }));
+  const waveStyle = useAnimatedStyle(() => ({
+    opacity: critical ? 0 : interpolate(wave.value, [0, 1], [0.5, 0.92]),
+    transform: [{ scaleY: interpolate(wave.value, [0, 1], [1, 1.2]) }],
+  }));
+  const scanStyle = useAnimatedStyle(() => ({
+    top: interpolate(scan.value, [0, 1], [CORE_HALF * 0.35, CORE_HALF * 1.65]),
+    opacity: critical ? 0 : interpolate(scan.value, [0, 0.5, 1], [0.35, 0.85, 0.35]),
+  }));
+  const orbitAStyle = useAnimatedStyle(() => ({
+    transform: [{ rotateZ: `${orbitA.value}deg` }],
+    opacity: critical ? 0 : 1,
+  }));
+  const orbitBStyle = useAnimatedStyle(() => ({
+    transform: [{ rotateZ: `${orbitB.value}deg` }],
+    opacity: critical ? 0 : 1,
+  }));
+
+  // Two full sine periods across the core width.
+  const waveformPath = React.useMemo(() => {
+    const W = CORE_SIZE;
+    const amp = 7;
+    const k = (Math.PI * 4) / W;
+    const pts: string[] = [];
+    for (let x = 0; x <= W; x += 2) {
+      const y = Math.sin(k * x) * amp;
+      pts.push(`${x === 0 ? 'M' : 'L'}${x.toFixed(1)},${y.toFixed(2)}`);
+    }
+    return pts.join(' ');
+  }, []);
+
+  return (
+    <View
+      pointerEvents="none"
+      style={[
+        styles.coreWrap,
+        { width: CORE_SIZE, height: CORE_SIZE, borderRadius: CORE_HALF },
+      ]}
+    >
+      {/* Soft breathing halo */}
+      <Animated.View
+        style={[
+          styles.coreHalo,
+          {
+            width: CORE_SIZE * 0.85,
+            height: CORE_SIZE * 0.85,
+            borderRadius: (CORE_SIZE * 0.85) / 2,
+            backgroundColor: AURORA_DIM,
+          },
+          haloStyle,
+        ]}
+      />
+
+      {/* Sine waveform — centered vertically */}
+      <Animated.View
+        style={[
+          StyleSheet.absoluteFill,
+          { alignItems: 'center', justifyContent: 'center' },
+          waveStyle,
+        ]}
+      >
+        <Svg width={CORE_SIZE} height={40}>
+          <Path
+            d={waveformPath}
+            stroke={AURORA_BRIGHT}
+            strokeWidth={1}
+            fill="none"
+            transform="translate(0,20)"
+          />
+        </Svg>
+      </Animated.View>
+
+      {/* Horizontal scan sweep */}
+      <Animated.View
+        style={[
+          styles.scanLine,
+          { width: CORE_SIZE * 0.74, backgroundColor: AURORA_BRIGHT },
+          scanStyle,
+        ]}
+      />
+
+      {/* Orbiting particles — group A (clockwise, slower) */}
+      <Animated.View style={[StyleSheet.absoluteFill, orbitAStyle]}>
+        <View
+          style={[
+            styles.particle,
+            { top: 14, left: CORE_HALF - 2, backgroundColor: AURORA_BRIGHT },
+          ]}
+        />
+        <View
+          style={[
+            styles.particleSmall,
+            {
+              top: CORE_HALF * 1.45,
+              left: CORE_HALF * 1.55,
+              backgroundColor: AURORA,
+            },
+          ]}
+        />
+      </Animated.View>
+
+      {/* Orbiting particles — group B (counter-clockwise, faster decay) */}
+      <Animated.View style={[StyleSheet.absoluteFill, orbitBStyle]}>
+        <View
+          style={[
+            styles.particleSmall,
+            {
+              top: CORE_HALF * 0.55,
+              left: CORE_HALF * 0.4,
+              backgroundColor: AURORA,
+            },
+          ]}
+        />
+        <View
+          style={[
+            styles.particle,
+            {
+              top: CORE_HALF * 1.65,
+              left: CORE_HALF * 0.7,
+              backgroundColor: AURORA_BRIGHT,
+            },
+          ]}
+        />
+      </Animated.View>
+    </View>
+  );
+}
+
+// ─── AuroraArcs ── thin rotating HUD arcs outside the ring ──────────
+//
+// Two slim arc segments orbiting the outside of the ring at different
+// speeds (one clockwise, one counter-clockwise). Reads as biometric
+// telemetry — barely-there structure rather than a bold accent.
+const HUD_SIZE = RING_SIZE + 64;
+const HUD_RADIUS = (HUD_SIZE - 2) / 2;
+const HUD_CIRC = 2 * Math.PI * HUD_RADIUS;
+const HUD_INNER_SIZE = RING_SIZE + 28;
+const HUD_INNER_RADIUS = (HUD_INNER_SIZE - 2) / 2;
+const HUD_INNER_CIRC = 2 * Math.PI * HUD_INNER_RADIUS;
+
+function AuroraArcs({ critical }: { critical: boolean }) {
+  const rotA = useSharedValue(0);
+  const rotB = useSharedValue(0);
+
+  React.useEffect(() => {
+    rotA.value = withRepeat(
+      withTiming(360, { duration: 26000, easing: Easing.linear }),
+      -1, false,
+    );
+    rotB.value = withRepeat(
+      withTiming(-360, { duration: 38000, easing: Easing.linear }),
+      -1, false,
+    );
+    return () => {
+      cancelAnimation(rotA);
+      cancelAnimation(rotB);
+    };
+  }, [rotA, rotB]);
+
+  const styleA = useAnimatedStyle(() => ({
+    transform: [{ rotateZ: `${rotA.value}deg` }],
+    opacity: critical ? 0.15 : 0.85,
+  }));
+  const styleB = useAnimatedStyle(() => ({
+    transform: [{ rotateZ: `${rotB.value}deg` }],
+    opacity: critical ? 0.12 : 0.7,
+  }));
+
+  // Outer arc: ~25% of circumference. Inner arcs: two short segments.
+  const outerArc = HUD_CIRC * 0.22;
+  const outerDash = `${outerArc} ${HUD_CIRC - outerArc}`;
+  const innerSegA = HUD_INNER_CIRC * 0.10;
+  const innerSegB = HUD_INNER_CIRC * 0.06;
+  const innerDash = `${innerSegA} ${HUD_INNER_CIRC * 0.32} ${innerSegB} ${HUD_INNER_CIRC - innerSegA - innerSegB - HUD_INNER_CIRC * 0.32}`;
+
+  return (
+    <View pointerEvents="none" style={styles.hudWrap}>
+      <Animated.View style={[styles.hudArcWrap, { width: HUD_SIZE, height: HUD_SIZE }, styleA]}>
+        <Svg width={HUD_SIZE} height={HUD_SIZE}>
+          <Circle
+            cx={HUD_SIZE / 2}
+            cy={HUD_SIZE / 2}
+            r={HUD_RADIUS}
+            stroke={AURORA}
+            strokeWidth={0.8}
+            fill="none"
+            strokeDasharray={outerDash}
+            strokeLinecap="round"
+          />
+        </Svg>
+      </Animated.View>
+      <Animated.View style={[styles.hudArcWrap, { width: HUD_INNER_SIZE, height: HUD_INNER_SIZE }, styleB]}>
+        <Svg width={HUD_INNER_SIZE} height={HUD_INNER_SIZE}>
+          <Circle
+            cx={HUD_INNER_SIZE / 2}
+            cy={HUD_INNER_SIZE / 2}
+            r={HUD_INNER_RADIUS}
+            stroke={AURORA_BRIGHT}
+            strokeWidth={0.6}
+            fill="none"
+            strokeDasharray={innerDash}
+            strokeLinecap="round"
+          />
+        </Svg>
+      </Animated.View>
+    </View>
+  );
+}
+
+// ─── AtmosphereBackdrop ── ambient depth behind everything ──────────
+//
+// A top-down cyan-tinted vertical gradient plus two soft cyan radial
+// glows (top and bottom-center) produce the "screen larger than the
+// device" feel. All pointerEvents:none, all behind the orb.
+function AtmosphereBackdrop() {
+  return (
+    <View pointerEvents="none" style={StyleSheet.absoluteFill}>
+      <LinearGradient
+        colors={['rgba(31,184,166,0.18)', 'rgba(8,28,28,0.15)', 'rgba(0,0,0,0)']}
+        locations={[0, 0.35, 0.75]}
+        style={StyleSheet.absoluteFill}
+      />
+      <View style={[styles.atmosphereGlow, styles.atmosphereGlowTop]} />
+      <View style={[styles.atmosphereGlow, styles.atmosphereGlowBottom]} />
+    </View>
+  );
+}
+
 // ─── SweepingArc — red arc that travels around the ring (stage 2) ───
 /**
  * TypewriterTagline — reveals the four-word manifesto one segment at
@@ -492,11 +778,12 @@ type Segment = { text: string; color: string };
 // frames the moment as OS-level, not app-level.
 const TAGLINE_SEGMENTS: Segment[] = [
   { text: 'Pause', color: 'rgba(255,255,255,0.55)' },
-  { text: 'Hydrate', color: '#1FB8A6' },
+  { text: 'Recover', color: '#1FB8A6' },
+  { text: 'Hydrate', color: '#40E0C8' },
   { text: 'Lock In', color: '#5EEAD4' },
   { text: 'Perform', color: 'rgba(255,255,255,0.96)' },
 ];
-const TAGLINE_STEP_MS = 520;
+const TAGLINE_STEP_MS = 460;
 
 function TypewriterTagline({ start }: { start: boolean }) {
   const [revealed, setRevealed] = React.useState(0);
@@ -669,6 +956,9 @@ export default function SplashScreen() {
 
   return (
     <View style={styles.root}>
+      {/* Ambient atmospheric backdrop — depth + soft cyan glow halo. */}
+      <AtmosphereBackdrop />
+
       {/* Top headline — fades in with the ring on stage 1 and stays
           throughout the sequence. Rendered in a monospace face so it
           reads like a system readout, not body copy. */}
@@ -681,6 +971,11 @@ export default function SplashScreen() {
           color shifts to critical red — done via FadeIn keyed on
           `ringColor` so the new color crossfades over the old. */}
       <View style={styles.center}>
+        {/* Outer biometric HUD arcs — sit behind the ring chrome. */}
+        <View style={[StyleSheet.absoluteFill, styles.center]}>
+          <AuroraArcs critical={isCritical} />
+        </View>
+
         <View style={[StyleSheet.absoluteFill, styles.center]}>
           <RotatingRing
             color={ringColor}
@@ -690,6 +985,15 @@ export default function SplashScreen() {
           />
         </View>
 
+        {/* Living biometric core — rendered above the orb body, below
+            the rotating stroke. Pointer-events disabled so taps still
+            land on whatever sits beneath. */}
+        {ringDrawn && (
+          <View style={[StyleSheet.absoluteFill, styles.center]}>
+            <LivingCore critical={isCritical} />
+          </View>
+        )}
+
         <SweepingArc active={sweepActive} />
 
       </View>
@@ -697,7 +1001,7 @@ export default function SplashScreen() {
       {/* INITIALIZING under the ring (stage 1 only) */}
       {stage === 1 && (
         <FadeIn show={showInitializing} style={styles.belowRing}>
-          <Text style={styles.eyebrow}>S Y N C   A C T I V E</Text>
+          <Text style={[styles.eyebrow, styles.eyebrowAurora]}>PERFORMANCE SYNC ACTIVE</Text>
         </FadeIn>
       )}
 
@@ -718,16 +1022,17 @@ export default function SplashScreen() {
         </FadeIn>
       )}
 
-      {/* ENTER button — stage 1 */}
+      {/* BEGIN PROTOCOL button — stage 1 */}
       {stage === 1 && (
         <FadeIn show={showEnter} style={styles.ctaSlot}>
           <Pressable
             onPress={onEnter}
             accessibilityRole="button"
-            accessibilityLabel="Enter"
+            accessibilityLabel="Begin protocol"
             hitSlop={16}
+            style={styles.ctaButton}
           >
-            <Text style={styles.ctaLabel}>E N T E R</Text>
+            <Text style={styles.ctaLabel}>BEGIN PROTOCOL</Text>
           </Pressable>
         </FadeIn>
       )}
@@ -740,8 +1045,9 @@ export default function SplashScreen() {
             accessibilityRole="button"
             accessibilityLabel="Continue"
             hitSlop={16}
+            style={styles.ctaButton}
           >
-            <Text style={styles.ctaLabel}>C O N T I N U E</Text>
+            <Text style={styles.ctaLabel}>CONTINUE</Text>
           </Pressable>
         </FadeIn>
       )}
@@ -802,6 +1108,78 @@ const styles = StyleSheet.create({
     fontSize: 11,
     letterSpacing: 4,
   },
+  eyebrowAurora: {
+    color: AURORA_BRIGHT,
+    letterSpacing: 3.5,
+    fontSize: 10.5,
+  },
+  // Living biometric core — content rendered inside the orb body.
+  coreWrap: {
+    overflow: 'hidden',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  coreHalo: {
+    position: 'absolute',
+  },
+  scanLine: {
+    position: 'absolute',
+    height: 1,
+    opacity: 0.6,
+    borderRadius: 0.5,
+    shadowColor: AURORA_BRIGHT,
+    shadowOpacity: 0.9,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 0 },
+  },
+  particle: {
+    position: 'absolute',
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    shadowColor: AURORA_BRIGHT,
+    shadowOpacity: 0.9,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 0 },
+  },
+  particleSmall: {
+    position: 'absolute',
+    width: 2.5,
+    height: 2.5,
+    borderRadius: 1.25,
+    shadowColor: AURORA,
+    shadowOpacity: 0.7,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 0 },
+  },
+  // Outer HUD arcs.
+  hudWrap: {
+    width: RING_SIZE,
+    height: RING_SIZE,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  hudArcWrap: {
+    position: 'absolute',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  // Atmospheric backdrop.
+  atmosphereGlow: {
+    position: 'absolute',
+    width: 520,
+    height: 520,
+    borderRadius: 260,
+    backgroundColor: AURORA_HALO,
+    alignSelf: 'center',
+  },
+  atmosphereGlowTop: {
+    top: -240,
+  },
+  atmosphereGlowBottom: {
+    bottom: -260,
+    opacity: 0.5,
+  },
   copyBlock: {
     position: 'absolute',
     top: '50%',
@@ -854,13 +1232,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  ctaButton: {
+    paddingHorizontal: 36,
+    paddingVertical: 18,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: AURORA_MID,
+    backgroundColor: 'rgba(10,28,30,0.55)',
+    shadowColor: AURORA,
+    shadowOpacity: 0.55,
+    shadowRadius: 24,
+    shadowOffset: { width: 0, height: 0 },
+    elevation: 12,
+  },
   ctaLabel: {
     fontFamily: 'Inter_800ExtraBold',
-    color: '#FFFFFF',
-    fontSize: 14,
-    letterSpacing: 6,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
+    color: AURORA_BRIGHT,
+    fontSize: 13,
+    letterSpacing: 5,
+    textAlign: 'center',
   },
   topHeader: {
     position: 'absolute',
