@@ -541,9 +541,9 @@ const styles = StyleSheet.create({
   },
   chartTitle: {
     color: '#FFFFFF',
-    fontFamily: 'Inter_600SemiBold',
-    fontSize: 13,
-    letterSpacing: 0.6,
+    fontFamily: 'Inter_700Bold',
+    fontSize: 20,
+    letterSpacing: -0.2,
     marginTop: 4,
     marginBottom: 24,
   },

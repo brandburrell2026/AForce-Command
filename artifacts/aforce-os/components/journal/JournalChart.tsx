@@ -208,17 +208,10 @@ export default function JournalChart({
     );
   }
 
-  const trendSymbol = trendDiff > TREND_THRESHOLD ? '↑'
-    : trendDiff < -TREND_THRESHOLD ? '↓'
-    : '—';
-  const trendColor = trendDiff > TREND_THRESHOLD
-    ? Colors.states.PEAK.primary
-    : trendDiff < -TREND_THRESHOLD
-      ? Colors.states.DEPLETED.primary
-      : Colors.text.secondary;
-  const avgColor = scoreBandColor(avg);
-  const compliancePctClamped = Math.max(0, Math.min(100, Math.round(weeklyCompliancePct)));
-  const streakClamped = Math.max(0, Math.round(complianceStreak));
+  // Legend stats below the chart were removed per latest spec — the
+  // KPI summary cards above the chart already cover Avg / Consistency /
+  // Streak. Trend is implied by the chart's slope.
+  void avg; void trendDiff; void weeklyCompliancePct; void complianceStreak;
 
   return (
     <View style={{ width }}>
@@ -377,25 +370,6 @@ export default function JournalChart({
           })}
         </Svg>
       </Animated.View>
-
-      <View style={styles.legend}>
-        <View style={styles.legendCell}>
-          <Text style={styles.legendK}>Avg score</Text>
-          <Text style={[styles.legendV, { color: avgColor }]}>{avg}</Text>
-        </View>
-        <View style={styles.legendCell}>
-          <Text style={styles.legendK}>Trend</Text>
-          <Text style={[styles.legendV, { color: trendColor }]}>{trendSymbol}</Text>
-        </View>
-        <View style={styles.legendCell}>
-          <Text style={styles.legendK}>Consistency</Text>
-          <Text style={[styles.legendV, { color: Colors.states.PEAK.primary }]}>{compliancePctClamped}%</Text>
-        </View>
-        <View style={styles.legendCell}>
-          <Text style={styles.legendK}>Streak</Text>
-          <Text style={[styles.legendV, { color: Colors.states.PEAK.primary }]}>{streakClamped}d</Text>
-        </View>
-      </View>
     </View>
   );
 }
@@ -412,28 +386,5 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontFamily: 'Inter_500Medium',
     letterSpacing: 0.4,
-  },
-  legend: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: 6,
-    marginTop: 18,
-    gap: 8,
-  },
-  legendCell: {
-    flex: 1,
-    alignItems: 'flex-start',
-    gap: 4,
-  },
-  legendK: {
-    fontSize: 11,
-    color: 'rgba(255,255,255,0.42)',
-    fontFamily: 'Inter_500Medium',
-    letterSpacing: 0.1,
-  },
-  legendV: {
-    fontSize: 16,
-    fontFamily: 'Inter_600SemiBold',
-    letterSpacing: -0.3,
   },
 });
