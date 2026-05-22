@@ -28,6 +28,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import Svg, { Circle, Path } from 'react-native-svg';
 import { LinearGradient } from 'expo-linear-gradient';
+import * as Haptics from 'expo-haptics';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 
@@ -665,6 +666,130 @@ function LivingCore({ critical }: { critical: boolean }) {
   );
 }
 
+// ─── CriticalCore ── red-state biometric intelligence ──────────────
+//
+// Replaces LivingCore when the system flips to critical. Communicates
+// physiological strain: a double-thump heartbeat pulse, a faster red
+// warning scan, and a disrupted waveform that jitters in amplitude.
+// No orbits — the system feels degraded, not flowing.
+function CriticalCore() {
+  const heartbeat = useSharedValue(0);
+  const scan = useSharedValue(0);
+  const jitter = useSharedValue(0);
+
+  React.useEffect(() => {
+    // Double-thump heartbeat: quick beat → quick beat → long rest.
+    heartbeat.value = withRepeat(
+      withSequence(
+        withTiming(1, { duration: 110, easing: Easing.out(Easing.quad) }),
+        withTiming(0.25, { duration: 180, easing: Easing.inOut(Easing.quad) }),
+        withTiming(0.95, { duration: 110, easing: Easing.out(Easing.quad) }),
+        withTiming(0, { duration: 280, easing: Easing.inOut(Easing.quad) }),
+        withTiming(0, { duration: 520 }),
+      ),
+      -1, false,
+    );
+    scan.value = withRepeat(
+      withTiming(1, { duration: 1800, easing: Easing.inOut(Easing.sin) }),
+      -1, true,
+    );
+    jitter.value = withRepeat(
+      withTiming(1, { duration: 420, easing: Easing.inOut(Easing.quad) }),
+      -1, true,
+    );
+    return () => {
+      cancelAnimation(heartbeat);
+      cancelAnimation(scan);
+      cancelAnimation(jitter);
+    };
+  }, [heartbeat, scan, jitter]);
+
+  const heartbeatStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(heartbeat.value, [0, 1], [0.15, 0.55]),
+    transform: [{ scale: interpolate(heartbeat.value, [0, 1], [0.92, 1.04]) }],
+  }));
+  const scanStyle = useAnimatedStyle(() => ({
+    top: interpolate(scan.value, [0, 1], [CORE_HALF * 0.35, CORE_HALF * 1.65]),
+    opacity: interpolate(scan.value, [0, 0.5, 1], [0.3, 0.85, 0.3]),
+  }));
+  const waveStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(jitter.value, [0, 1], [0.45, 0.85]),
+    transform: [
+      { scaleY: interpolate(jitter.value, [0, 1], [0.7, 1.35]) },
+      { translateY: interpolate(jitter.value, [0, 0.5, 1], [0, -2, 1]) },
+    ],
+  }));
+
+  // Disrupted waveform — same width but irregular sine envelope.
+  const disruptedPath = React.useMemo(() => {
+    const W = CORE_SIZE;
+    const amp = 8;
+    const k = (Math.PI * 5) / W;
+    const pts: string[] = [];
+    for (let x = 0; x <= W; x += 2) {
+      const env = 1 - Math.abs((x - W / 2) / (W / 2)) * 0.4;
+      const noise = Math.sin(x * 0.7) * 1.5;
+      const y = Math.sin(k * x) * amp * env + noise;
+      pts.push(`${x === 0 ? 'M' : 'L'}${x.toFixed(1)},${y.toFixed(2)}`);
+    }
+    return pts.join(' ');
+  }, []);
+
+  return (
+    <View
+      pointerEvents="none"
+      style={[
+        styles.coreWrap,
+        { width: CORE_SIZE, height: CORE_SIZE, borderRadius: CORE_HALF },
+      ]}
+    >
+      {/* Heartbeat halo */}
+      <Animated.View
+        style={[
+          styles.coreHalo,
+          {
+            width: CORE_SIZE * 0.78,
+            height: CORE_SIZE * 0.78,
+            borderRadius: (CORE_SIZE * 0.78) / 2,
+            backgroundColor: 'rgba(180,30,30,0.28)',
+          },
+          heartbeatStyle,
+        ]}
+      />
+      {/* Disrupted waveform */}
+      <Animated.View
+        style={[
+          StyleSheet.absoluteFill,
+          { alignItems: 'center', justifyContent: 'center' },
+          waveStyle,
+        ]}
+      >
+        <Svg width={CORE_SIZE} height={48}>
+          <Path
+            d={disruptedPath}
+            stroke={CRITICAL_RED_BRIGHT}
+            strokeWidth={1}
+            fill="none"
+            transform="translate(0,24)"
+          />
+        </Svg>
+      </Animated.View>
+      {/* Warning scan sweep — red */}
+      <Animated.View
+        style={[
+          styles.scanLine,
+          {
+            width: CORE_SIZE * 0.74,
+            backgroundColor: CRITICAL_RED_BRIGHT,
+            shadowColor: CRITICAL_RED_BRIGHT,
+          },
+          scanStyle,
+        ]}
+      />
+    </View>
+  );
+}
+
 // ─── AuroraArcs ── thin rotating HUD arcs outside the ring ──────────
 //
 // Two slim arc segments orbiting the outside of the ring at different
@@ -938,9 +1063,20 @@ export default function SplashScreen() {
     return () => clearTimeout(t);
   }, [stage]);
 
-  const onEnter = React.useCallback(() => setStage(2), []);
+  const onEnter = React.useCallback(() => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+    setStage(2);
+  }, []);
+
+  // Fire a warning haptic the moment the system flips to critical.
+  React.useEffect(() => {
+    if (stage === 3) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => {});
+    }
+  }, [stage]);
 
   const onContinue = React.useCallback(async () => {
+    Haptics.selectionAsync().catch(() => {});
     try {
       await AsyncStorage.setItem(ONBOARDING_KEY, 'true');
     } catch {
@@ -998,12 +1134,17 @@ export default function SplashScreen() {
           />
         </View>
 
-        {/* Living biometric core — rendered above the orb body, below
-            the rotating stroke. Pointer-events disabled so taps still
-            land on whatever sits beneath. */}
-        {ringDrawn && (
+        {/* Living biometric core — pre-critical = flowing Aurora life,
+            critical = strained heartbeat + warning scan + disrupted
+            waveform. Pointer-events disabled. */}
+        {ringDrawn && !isCritical && (
           <View style={[StyleSheet.absoluteFill, styles.center]}>
-            <LivingCore critical={isCritical} />
+            <LivingCore critical={false} />
+          </View>
+        )}
+        {ringDrawn && isCritical && (
+          <View style={[StyleSheet.absoluteFill, styles.center]}>
+            <CriticalCore />
           </View>
         )}
 
@@ -1011,18 +1152,20 @@ export default function SplashScreen() {
 
       </View>
 
-      {/* INITIALIZING under the ring (stage 1 only) */}
+      {/* Stage 1 status block — proprietary AI system language */}
       {stage === 1 && (
         <FadeIn show={showInitializing} style={styles.belowRing}>
           <Text style={[styles.eyebrow, styles.eyebrowAurora]}>PERFORMANCE SYNC ACTIVE</Text>
+          <Text style={styles.statusSubline}>Recovery optimized · Hydration stable</Text>
         </FadeIn>
       )}
 
-      {/* CRITICAL label (stages 3-4) */}
+      {/* Critical status block (stages 3-4) */}
       {showCritical && (
         <FadeIn show style={styles.belowRing}>
-          <Text style={[styles.eyebrow, { color: CRITICAL_RED }]}>
-            C R I T I C A L
+          <Text style={[styles.eyebrow, styles.eyebrowCritical]}>RECOVERY LOAD CRITICAL</Text>
+          <Text style={[styles.statusSubline, styles.statusSublineCritical]}>
+            Hydration deficit · Performance degradation predicted
           </Text>
         </FadeIn>
       )}
@@ -1125,6 +1268,22 @@ const styles = StyleSheet.create({
     color: AURORA_BRIGHT,
     letterSpacing: 3.5,
     fontSize: 10.5,
+  },
+  eyebrowCritical: {
+    color: CRITICAL_RED_BRIGHT,
+    letterSpacing: 3.5,
+    fontSize: 10.5,
+  },
+  statusSubline: {
+    fontFamily: FONT_MEDIUM,
+    color: 'rgba(255,255,255,0.5)',
+    fontSize: 10,
+    letterSpacing: 1.2,
+    marginTop: 8,
+    textAlign: 'center',
+  },
+  statusSublineCritical: {
+    color: 'rgba(255,150,150,0.75)',
   },
   // Living biometric core — content rendered inside the orb body.
   coreWrap: {
