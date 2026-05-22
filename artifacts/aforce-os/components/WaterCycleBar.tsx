@@ -123,12 +123,15 @@ export function WaterCycleBar({ unitsConsumed, dailyTarget, performanceState }: 
 
 const styles = StyleSheet.create({
   container: {
-    marginHorizontal: 20,
+    // Full-bleed: no side margins, no side borders. The card stretches
+    // edge-to-edge across the entire section so there is no black gutter
+    // flanking the Water Cycle. Hairlines kept on top + bottom only so
+    // the section still reads as a contained block in the stack.
     paddingHorizontal: 20,
     paddingVertical: 16,
     backgroundColor: Colors.background.card,
-    borderRadius: 16,
-    borderWidth: 1,
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
     borderColor: Colors.border.subtle,
   },
   header: {
@@ -152,7 +155,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 8,
     justifyContent: 'space-between',
-    marginHorizontal: -8,
   },
   cell: {
     flex: 1,
