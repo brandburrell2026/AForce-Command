@@ -12,7 +12,7 @@
  * call site does not need updates.
  */
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import Animated, {
@@ -194,8 +194,20 @@ export default function JournalChart({
   // so we can hold the previous frame visible while the fade-out plays,
   // then swap to the new data exactly at the opacity trough.
   const [renderedData, setRenderedData] = useState<JournalSnapshot[]>(data);
+  // Track the dataset we most recently kicked a fade toward. Comparing
+  // against this (not `renderedData`) prevents the effect from re-firing
+  // when `runOnJS(setRenderedData)` lands and re-renders the component
+  // — that swap is already the result of the in-flight animation, not
+  // a new prop change. Also makes rapid range toggles (7d→30d→90d) safe:
+  // each new `data` cancels the prior sequence and starts a fresh fade
+  // from whatever opacity we're currently at, always targeting the
+  // newest data. Reanimated cancels prior `withSequence` calls, so the
+  // previous callback fires with `finished=false` and we never apply a
+  // stale swap.
+  const lastTargetRef = useRef<JournalSnapshot[]>(data);
   useEffect(() => {
-    if (renderedData === data) return;
+    if (data === lastTargetRef.current) return;
+    lastTargetRef.current = data;
     fade.value = withSequence(
       withTiming(0.12, { duration: 220, easing: Easing.in(Easing.cubic) }, (finished) => {
         if (finished) {
@@ -204,10 +216,6 @@ export default function JournalChart({
       }),
       withTiming(1, { duration: 360, easing: Easing.out(Easing.cubic) }),
     );
-    // We intentionally exclude `renderedData` from deps — including it
-    // would re-fire this effect inside the runOnJS callback and double-
-    // animate the fade. We only care about `data` reference changes.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, fade]);
 
   const { points, pathD, avg, trendDiff } = useMemo(() => {
