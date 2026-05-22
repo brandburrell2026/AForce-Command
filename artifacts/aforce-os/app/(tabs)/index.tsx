@@ -31,6 +31,7 @@ import { GradientBackground } from '@/components/GradientBackground';
 import { CycleSuccessOverlay } from '@/components/CycleSuccessOverlay';
 import { ScoreBreakdownSheet } from '@/components/ScoreBreakdownSheet';
 import { CommandConsole } from '@/components/home/CommandConsole';
+import { WaterCycleBar } from '@/components/WaterCycleBar';
 import { EntryActions } from '@/components/home/EntryActions';
 import { AIVideoPlayer } from '@/components/AIVideoPlayer';
 import { matchVideo } from '@/services/videoEngine';
@@ -297,24 +298,25 @@ function ScoreDrivenBody({
         ) : null}
       </View>
 
-      {/* ── Telemetry — WATER CYCLE / LAST INTAKE ─────────────────
-          Lifted above the Command Voice Engine section so the live
-          telemetry sits right under the primary CTA. */}
-      <View style={styles.metaRow}>
-        <View style={styles.metaCell}>
-          <Text style={styles.metaLabel}>WATER CYCLE</Text>
-          <Text style={styles.metaValue} testID="home-cycle-progress">
-            {cycleProgress.current}/{cycleProgress.target}
-          </Text>
-        </View>
-        <View style={styles.metaDivider} />
-        <View style={styles.metaCell}>
+      {/* ── Telemetry — WATER CYCLE 8-cell bar ─────────────────────
+          Visual progress bar (8 cells) that fills + recolors based on
+          current performanceState (red Depleted, yellow Recovering,
+          green Peak, etc). Replaces the older text-only counter. */}
+      <View testID="home-cycle-progress" accessibilityLabel={`Water cycle ${cycleProgress.current} of ${cycleProgress.target}`}>
+        <WaterCycleBar
+          unitsConsumed={cycleProgress.current}
+          dailyTarget={cycleProgress.target}
+          performanceState={engine.performanceState}
+        />
+      </View>
+      {lastIntakeMinutes != null && (
+        <View style={styles.lastIntakeRow}>
           <Text style={styles.metaLabel}>LAST INTAKE</Text>
           <Text style={styles.metaValue} testID="home-last-intake">
-            {lastIntakeMinutes != null ? `${lastIntakeMinutes} min ago` : '—'}
+            {lastIntakeMinutes} min ago
           </Text>
         </View>
-      </View>
+      )}
 
       {/* ── Layer 2: AI Coach · Live ─────────────────────────────────
           Below-the-fold deeper-intelligence layer. Visually demoted
@@ -807,6 +809,15 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter_600SemiBold',
     fontSize: 15,
     color: Colors.text.primary,
+  },
+  lastIntakeRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginHorizontal: 20,
+    marginTop: 10,
+    marginBottom: 16,
+    paddingHorizontal: 4,
   },
 
   // CommandConsole brings its own marginHorizontal: 20 — negate the
