@@ -19,7 +19,7 @@
 
 import React from 'react';
 import {
-  View, Text, Pressable, StyleSheet, Platform,
+  View, Text, Pressable, StyleSheet, Platform, useWindowDimensions,
 } from 'react-native';
 import Animated, {
   useSharedValue, useAnimatedStyle, useAnimatedProps, withTiming,
@@ -1023,8 +1023,23 @@ function SweepingArc({ active }: { active: boolean }) {
   );
 }
 
+// Three responsive tiers covering every Samsung Fold form factor:
+//   • narrow  — Fold-cover (~360dp)        → tighter wordmark
+//   • normal  — phones (~380–599dp)        → default
+//   • wide    — unfolded Fold inner (~673dp+) → upscaled wordmark
+const WORDMARK_TIERS = {
+  narrow: { primary: 36, primaryTrack: 8,  suffix: 16, suffixTrack: 4, divider: 24 },
+  normal: { primary: 46, primaryTrack: 12, suffix: 20, suffixTrack: 6, divider: 30 },
+  wide:   { primary: 60, primaryTrack: 14, suffix: 26, suffixTrack: 7, divider: 38 },
+} as const;
+
 export default function SplashScreen() {
   const router = useRouter();
+  const { width } = useWindowDimensions();
+  const wordmarkScale =
+    width < 380 ? WORDMARK_TIERS.narrow
+    : width >= 600 ? WORDMARK_TIERS.wide
+    : WORDMARK_TIERS.normal;
   const [stage, setStage] = React.useState<Stage>(1);
   const [showInitializing, setShowInitializing] = React.useState(false);
   const [showEnter, setShowEnter] = React.useState(false);
@@ -1114,11 +1129,41 @@ export default function SplashScreen() {
       <FadeIn show durationMs={2000} delayMs={200} style={styles.topHeader}>
         {/* Wordmark — AFORCE dominant, thin hairline separator, OS as
             integrated system suffix. Letter-spacing and weight balance
-            tuned for an Apple Vision Pro / WHOOP register. */}
+            tuned for an Apple Vision Pro / WHOOP register.
+            Responsive: scales down on narrow Fold-cover (≤380dp) and up
+            on the unfolded inner display (≥600dp) so proportions hold
+            across every Samsung Galaxy Fold form factor. */}
         <View style={styles.wordmarkRow}>
-          <Text style={styles.wordmarkPrimary}>AFORCE</Text>
-          <View style={styles.wordmarkDivider} />
-          <Text style={styles.wordmarkSuffix}>OS</Text>
+          <Text
+            style={[
+              styles.wordmarkPrimary,
+              {
+                fontSize: wordmarkScale.primary,
+                letterSpacing: wordmarkScale.primaryTrack,
+                marginLeft: wordmarkScale.primaryTrack,
+              },
+            ]}
+            numberOfLines={1}
+            allowFontScaling={false}
+          >
+            AFORCE
+          </Text>
+          <View
+            style={[styles.wordmarkDivider, { height: wordmarkScale.divider }]}
+          />
+          <Text
+            style={[
+              styles.wordmarkSuffix,
+              {
+                fontSize: wordmarkScale.suffix,
+                letterSpacing: wordmarkScale.suffixTrack,
+              },
+            ]}
+            numberOfLines={1}
+            allowFontScaling={false}
+          >
+            OS
+          </Text>
         </View>
       </FadeIn>
 

@@ -97,20 +97,39 @@ function SweatLossSnapshot() {
       </View>
       <View style={styles.snapshotMetricsRow}>
         <View style={styles.snapshotMetric}>
-          <Text style={styles.snapshotMetricLabel}>SODIUM</Text>
-          <Text style={styles.snapshotMetricValue}>{snap.sodiumLossMg} mg</Text>
+          <Text style={styles.snapshotMetricLabel} numberOfLines={1}>SODIUM</Text>
+          <Text
+            style={styles.snapshotMetricValue}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.75}
+          >
+            {snap.sodiumLossMg} mg
+          </Text>
         </View>
         <View style={styles.snapshotMetricDivider} />
         <View style={styles.snapshotMetric}>
-          <Text style={styles.snapshotMetricLabel}>EFFICIENCY</Text>
-          <Text style={[styles.snapshotMetricValue, { color: accent }]}>
+          <Text style={styles.snapshotMetricLabel} numberOfLines={1}>EFFICIENCY</Text>
+          <Text
+            style={[styles.snapshotMetricValue, { color: accent }]}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.75}
+          >
             {snap.efficiencyPct}%
           </Text>
         </View>
         <View style={styles.snapshotMetricDivider} />
         <View style={styles.snapshotMetric}>
-          <Text style={styles.snapshotMetricLabel}>INTENSITY</Text>
-          <Text style={styles.snapshotMetricValue}>{intensityLabel}</Text>
+          <Text style={styles.snapshotMetricLabel} numberOfLines={1}>INTENSITY</Text>
+          <Text
+            style={styles.snapshotMetricValue}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.75}
+          >
+            {intensityLabel}
+          </Text>
         </View>
       </View>
       <Text style={styles.snapshotHint}>
