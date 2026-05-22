@@ -118,7 +118,7 @@ function scoreBandColor(score: number): string {
 export default function JournalChart({
   data,
   width,
-  height = 240,
+  height = 280,
   weeklyCompliancePct,
   complianceStreak,
 }: Props) {
@@ -247,15 +247,15 @@ export default function JournalChart({
                 never has a hard terminus. */}
             <LinearGradient id="trendStroke" x1="0" y1="0" x2="1" y2="0">
               <Stop offset="0" stopColor="rgba(255,255,255,0)" />
-              <Stop offset="0.18" stopColor="rgba(255,255,255,0.42)" />
-              <Stop offset="0.82" stopColor="rgba(255,255,255,0.42)" />
+              <Stop offset="0.18" stopColor="rgba(255,255,255,0.34)" />
+              <Stop offset="0.82" stopColor="rgba(255,255,255,0.34)" />
               <Stop offset="1" stopColor="rgba(255,255,255,0)" />
             </LinearGradient>
 
             <LinearGradient id="trendGlow" x1="0" y1="0" x2="1" y2="0">
               <Stop offset="0" stopColor="rgba(255,255,255,0)" />
-              <Stop offset="0.2" stopColor="rgba(255,255,255,0.16)" />
-              <Stop offset="0.8" stopColor="rgba(255,255,255,0.16)" />
+              <Stop offset="0.2" stopColor="rgba(255,255,255,0.13)" />
+              <Stop offset="0.8" stopColor="rgba(255,255,255,0.13)" />
               <Stop offset="1" stopColor="rgba(255,255,255,0)" />
             </LinearGradient>
           </Defs>
@@ -301,13 +301,18 @@ export default function JournalChart({
             </>
           )}
 
-          {/* Constellation anchors — 4 stacked halos + a tiny core.
-              Cyan reads "electric"; amber reads "warm/organic" — same
-              radii, the perceptual difference is in the hue itself. */}
+          {/* Constellation anchors — 5 depth-layered rings simulate
+              the holographic falloff: ultra-soft outer atmosphere →
+              breathing mid halos → solid inner glow → tiny crisp
+              center. Cyan reads "electric"; amber reads "warm/organic"
+              — same radii, the perceptual difference is in the hue. */}
           {points.map((p, i) => {
             const c = DOT[p.kind];
             return (
               <React.Fragment key={`dot-${i}`}>
+                {/* Ultra-soft outer atmosphere */}
+                <Circle cx={p.x} cy={p.y} r={38} fill={c} opacity={0.04} />
+                {/* Breathing outer halo */}
                 <AnimatedCircle
                   cx={p.x}
                   cy={p.y}
@@ -315,6 +320,7 @@ export default function JournalChart({
                   fill={c}
                   animatedProps={haloOuterProps}
                 />
+                {/* Breathing mid halo */}
                 <AnimatedCircle
                   cx={p.x}
                   cy={p.y}
@@ -322,8 +328,12 @@ export default function JournalChart({
                   fill={c}
                   animatedProps={haloMidProps}
                 />
-                <Circle cx={p.x} cy={p.y} r={8} fill={c} opacity={0.22} />
+                {/* Solid inner glow */}
+                <Circle cx={p.x} cy={p.y} r={8} fill={c} opacity={0.28} />
+                {/* Soft core */}
                 <Circle cx={p.x} cy={p.y} r={3.5} fill={c} />
+                {/* Tiny crisp pinpoint center */}
+                <Circle cx={p.x} cy={p.y} r={1.5} fill="#FFFFFF" opacity={0.9} />
               </React.Fragment>
             );
           })}
