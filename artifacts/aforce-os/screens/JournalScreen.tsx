@@ -36,6 +36,9 @@ import JournalRangePicker, { type JournalRange } from '@/components/journal/Jour
 import JournalChart from '@/components/journal/JournalChart';
 import JournalDayCard from '@/components/journal/JournalDayCard';
 import PerformanceSections from '@/components/journal/PerformanceSections';
+import StreakHero from '@/components/journal/StreakHero';
+import KPISummary from '@/components/journal/KPISummary';
+import HeatmapCalendar from '@/components/journal/HeatmapCalendar';
 import {
   deriveSectionSummary,
   deriveWinMoments,
@@ -246,12 +249,47 @@ export default function JournalScreen() {
         ) : (
           <>
             {!loading && rollups.length > 0 && (
-              <PerformanceSections
-                sections={sectionSummary}
-                winMoments={winMoments}
-              />
+              <>
+                {/* Section 1 — pulsing streak hero */}
+                <StreakHero streakDays={complianceStreak} />
+
+                {/* Section 2 — 3 KPI cards */}
+                <KPISummary
+                  kpis={[
+                    {
+                      label: 'Avg score',
+                      value: String(
+                        rollups.length > 0
+                          ? Math.round(
+                              rollups.reduce((a, r) => a + r.avgScore, 0) /
+                                rollups.length,
+                            )
+                          : 0,
+                      ),
+                      accent: Colors.states.PEAK.primary,
+                      delta: kpiTrend(rollups, 'avgScore'),
+                    },
+                    {
+                      label: 'Consistency',
+                      value: `${weeklyCompliancePct}%`,
+                      accent: Colors.states.BALANCED.primary,
+                      delta: null,
+                    },
+                    {
+                      label: 'Streak',
+                      value: `${complianceStreak}d`,
+                      accent: Colors.states.PEAK.primary,
+                      delta: null,
+                    },
+                  ]}
+                />
+
+                {/* Section 3 — heatmap calendar */}
+                <HeatmapCalendar rollups={rollups} />
+              </>
             )}
 
+            {/* Section 4 — trend chart (already redesigned) */}
             <View style={styles.chartCard}>
               <Text style={styles.chartTitle}>{t('journal.chart_title')}</Text>
               {loading ? (
@@ -269,6 +307,15 @@ export default function JournalScreen() {
               )}
             </View>
 
+            {!loading && rollups.length > 0 && (
+              <View style={{ marginTop: 16 }}>
+                <PerformanceSections
+                  sections={sectionSummary}
+                  winMoments={winMoments}
+                />
+              </View>
+            )}
+
             <View style={{ marginTop: 16 }}>
               {reversedRollups.map((r) => <JournalDayCard key={r.date} rollup={r} />)}
             </View>
@@ -277,6 +324,27 @@ export default function JournalScreen() {
       </ScrollView>
     </SafeAreaView>
   );
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+/**
+ * Delta of a numeric rollup field, first-half avg vs second-half avg,
+ * rounded to a whole number. Returns null when there's not enough data
+ * to draw a meaningful trend (so the KPI card hides the chip).
+ */
+function kpiTrend(
+  rollups: JournalRollup[],
+  field: 'avgScore',
+): number | null {
+  if (rollups.length < 4) return null;
+  const mid = Math.floor(rollups.length / 2);
+  const firstHalf = rollups.slice(0, mid);
+  const secondHalf = rollups.slice(mid);
+  const fAvg = firstHalf.reduce((a, r) => a + r[field], 0) / firstHalf.length;
+  const sAvg = secondHalf.reduce((a, r) => a + r[field], 0) / secondHalf.length;
+  const d = Math.round(sAvg - fAvg);
+  return d === 0 ? null : d;
 }
 
 // ─── PDF report builder ────────────────────────────────────────────────────────
