@@ -1113,7 +1113,14 @@ export default function SplashScreen() {
           reads like a system readout, not body copy. */}
       <FadeIn show durationMs={2000} delayMs={200} style={styles.topHeader}>
         <Text style={styles.welcomeKicker}>WELCOME</Text>
-        <Text style={styles.welcomeTitle}>AFORCE OS</Text>
+        {/* Wordmark — AFORCE dominant, thin hairline separator, OS as
+            integrated system suffix. Letter-spacing and weight balance
+            tuned for an Apple Vision Pro / WHOOP register. */}
+        <View style={styles.wordmarkRow}>
+          <Text style={styles.wordmarkPrimary}>AFORCE</Text>
+          <View style={styles.wordmarkDivider} />
+          <Text style={styles.wordmarkSuffix}>OS</Text>
+        </View>
       </FadeIn>
 
       {/* The white ring is a 3s fade-in. From stage 3 onward the ring
@@ -1441,16 +1448,40 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   welcomeKicker: {
-    fontFamily: FONT_BOLD,
-    color: TEXT_DIM,
-    fontSize: 18,
-    letterSpacing: 6,
+    fontFamily: FONT_MEDIUM,
+    color: 'rgba(255,255,255,0.40)',
+    fontSize: 10,
+    letterSpacing: 8,
+    marginBottom: 4,
   },
-  welcomeTitle: {
+  wordmarkRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  wordmarkPrimary: {
     fontFamily: FONT_BOLD,
     color: TEXT_BRIGHT,
-    fontSize: 44,
-    letterSpacing: 4,
+    fontSize: 32,
+    letterSpacing: 10,
     includeFontPadding: false,
+    // Optical balance: AFORCE shifts right by its own added tracking
+    // on the last glyph, so nudge left to keep the group centered.
+    marginLeft: 10,
+  },
+  wordmarkDivider: {
+    width: StyleSheet.hairlineWidth,
+    height: 22,
+    backgroundColor: 'rgba(255,255,255,0.22)',
+    marginHorizontal: 14,
+  },
+  wordmarkSuffix: {
+    fontFamily: FONT_MEDIUM,
+    color: 'rgba(255,255,255,0.72)',
+    fontSize: 14,
+    letterSpacing: 5,
+    includeFontPadding: false,
+    // Sit slightly above the AFORCE baseline — system-suffix register.
+    marginTop: -2,
   },
 });
