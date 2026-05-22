@@ -41,7 +41,7 @@ export default function StreakHero({ streakDays }: Props) {
 
   const headline =
     streakDays > 0
-      ? `${streakDays}-day streak active`
+      ? `${streakDays}-day momentum`
       : 'Begin your first cycle';
   const sub =
     streakDays > 0
