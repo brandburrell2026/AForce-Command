@@ -177,7 +177,7 @@ function EntryActionsImpl() {
             accessibilityLabel={item.label}
             testID={`home-tile-${item.key}`}
           >
-            <Icon name={item.icon} size={20} color={Colors.text.primary} />
+            <Icon name={item.icon} size={28} color={Colors.text.primary} />
             <Text style={styles.tileLabel}>{item.label.toUpperCase()}</Text>
             {item.accent ? (
               <View style={[styles.statusDot, { backgroundColor: item.accent }]} />
@@ -199,12 +199,12 @@ export const EntryActions = React.memo(EntryActionsImpl);
 const styles = StyleSheet.create({
   actionRow: { flexDirection: 'row', paddingHorizontal: 20, gap: 8 },
   actionTile: {
-    width: 64, height: 64,
+    flex: 1, height: 76,
     alignItems: 'center', justifyContent: 'center',
     borderRadius: 14, backgroundColor: Colors.fill.light,
     borderWidth: 1, borderColor: Colors.border.subtle,
     position: 'relative',
-    gap: 4,
+    gap: 6,
   },
   tileLabel: {
     fontFamily: 'Inter_700Bold',
