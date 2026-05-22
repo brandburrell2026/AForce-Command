@@ -317,6 +317,37 @@ function ScoreDrivenBody({
         </View>
       )}
 
+      {/* ── Layer 2: AI Coach · Live ─────────────────────────────────
+          Below-the-fold deeper-intelligence layer. Visually demoted
+          (lower opacity, generous top spacing) so it never competes
+          with the orb / CTA / Next Command above. */}
+      <View style={styles.coachSectionHeader}>
+        <View style={[styles.coachLiveDot, { backgroundColor: orbColor }]} />
+        <Text style={styles.coachSectionTitle}>AFORCE COMMAND</Text>
+        <Text style={styles.coachSectionDot}>·</Text>
+        <Text style={[styles.coachSectionLive, { color: orbColor }]}>LIVE</Text>
+      </View>
+
+      <View style={styles.coachLayer}>
+        <View style={styles.coachWrapper} testID="home-ai-coach">
+          <CommandConsole
+            command={engine.command}
+            performanceState={engine.performanceState}
+            accentOverride={displayed?.primary}
+          />
+        </View>
+
+        {/* Cinematic AI Coach video card (tap → fullscreen overlay) */}
+        <View style={styles.coachVideoWrapper} testID="home-ai-coach-video">
+          <AIVideoPlayer
+            video={matchVideo({ engineOutput: engine, userState })}
+            command={engine.command}
+            timerSeconds={timerSeconds}
+            score={displayedScore}
+          />
+        </View>
+      </View>
+
       {/* Quick-action tile grid — Scan, Compete, Circles, Territory */}
       <View style={styles.entryActionsRow}>
         <EntryActions />
