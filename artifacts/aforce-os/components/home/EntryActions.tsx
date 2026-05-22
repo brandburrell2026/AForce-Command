@@ -1,6 +1,11 @@
 /**
- * EntryActions — bottom-zone "quick action" tile grid (Scan, Compete,
- * Circles, Territory). Stateless / store-free; purely presentational.
+ * EntryActions — bottom-zone "quick action" tile grid.
+ *
+ * Compete / Circles / Territory tiles were promoted to a dedicated
+ * Competition bottom tab (see app/(tabs)/competition.tsx), so the home
+ * surface keeps only the biometric quick-check (Urine). Layout is a
+ * single fixed-size tile, left-aligned, so the row reads as an
+ * intentional element rather than a stretched single cell.
  */
 
 import React from 'react';
@@ -12,10 +17,7 @@ import { useRouter } from 'expo-router';
 import { Colors } from '../../theme/colors';
 
 const TILES = [
-  { key: 'urine',     icon: 'droplet',     label: 'Urine',     route: '/urine-check' },
-  { key: 'compete',   icon: 'award',       label: 'Compete',   route: '/competition' },
-  { key: 'circles',   icon: 'users',       label: 'Circles',   route: '/circles',   testID: 'home-circles-button' },
-  { key: 'territory', icon: 'map',         label: 'Territory', route: '/territory', testID: 'home-territory-button' },
+  { key: 'urine', icon: 'droplet', label: 'Urine', route: '/urine-check' },
 ] as const;
 
 function EntryActionsImpl() {
@@ -33,9 +35,8 @@ function EntryActionsImpl() {
           style={styles.actionTile}
           accessibilityRole="button"
           accessibilityLabel={item.label}
-          testID={'testID' in item ? item.testID : undefined}
         >
-          <Icon name={item.icon} size={18} color={Colors.text.primary} />
+          <Icon name={item.icon} size={20} color={Colors.text.primary} />
         </TouchableOpacity>
       ))}
     </View>
@@ -47,7 +48,7 @@ export const EntryActions = React.memo(EntryActionsImpl);
 const styles = StyleSheet.create({
   actionRow: { flexDirection: 'row', paddingHorizontal: 20, gap: 8 },
   actionTile: {
-    flex: 1, aspectRatio: 1,
+    width: 64, height: 64,
     alignItems: 'center', justifyContent: 'center',
     borderRadius: 14, backgroundColor: Colors.fill.light,
     borderWidth: 1, borderColor: Colors.border.subtle,

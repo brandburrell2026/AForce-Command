@@ -22,7 +22,8 @@
     "store": "Shop",
     "profile": "Profil",
     "social": "Social",
-    "scan": "Scanner"
+    "scan": "Scanner",
+    "competition": "Wettkampf"
   },
   "home": {
     "welcome": "Willkommen, {{name}}",

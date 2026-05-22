@@ -23,7 +23,8 @@
     "store": "Store",
     "profile": "Profile",
     "social": "Social",
-    "scan": "Scanner"
+    "scan": "Scanner",
+    "competition": "Compete"
   },
   "journal": {
     "title": "Performance Timeline",

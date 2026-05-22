@@ -1,11 +1,18 @@
 /**
- * AForce OS Tab Layout — 6 tabs:
- *   Home     = Hydration Control Center
- *   Check    = Performance Signals
- *   Protocol = AForce Protocol
- *   Timeline = Chronological hydration/recovery feed (route file: journal.tsx)
- *   Social   = Circles / Territory
- *   Profile  = Profile & Settings
+ * AForce OS Tab Layout — 7 tabs:
+ *   Home        = Hydration Control Center
+ *   Scan        = Performance Signals
+ *   Protocol    = AForce Protocol
+ *   Timeline    = Chronological hydration/recovery feed (route file: journal.tsx)
+ *   Competition = Leaderboards + Circles + Territory hub
+ *   Social      = Social drinking mode
+ *   Profile     = Profile & Settings
+ *
+ * Compete / Circles / Territory were lifted off the Home screen and
+ * promoted to a dedicated Competition tab so Home can stay focused on
+ * recovery / biometrics / guidance. Circles and Territory live as root
+ * Stack routes (`app/circles.tsx`, `app/territory.tsx`) navigated into
+ * from the Competition hub.
  *
  * Store is NOT a bottom-tab destination. It lives at `/store` (root
  * Stack route) and is reached only from contextual surfaces:
@@ -48,6 +55,10 @@ function NativeTabLayout() {
       <NativeTabs.Trigger name="journal">
         <NativeTabIcon sf={{ default: 'clock.arrow.circlepath', selected: 'clock.arrow.circlepath' }} />
         <Label>{t('tabs.journal')}</Label>
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="competition">
+        <NativeTabIcon sf={{ default: 'trophy', selected: 'trophy.fill' }} />
+        <Label>{t('tabs.competition')}</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="social">
         <NativeTabIcon sf={{ default: 'wineglass', selected: 'wineglass.fill' }} />
@@ -244,6 +255,15 @@ function ClassicTabLayout() {
           tabBarIcon: ({ color, size }) =>
             isIOS ? <SymbolView name="clock.arrow.circlepath" tintColor={color} size={size} />
                   : <Icon name="clock" size={22} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="competition"
+        options={{
+          title: t('tabs.competition'),
+          tabBarIcon: ({ color, size }) =>
+            isIOS ? <SymbolView name="trophy" tintColor={color} size={size} />
+                  : <Icon name="award" size={22} color={color} />,
         }}
       />
       <Tabs.Screen
