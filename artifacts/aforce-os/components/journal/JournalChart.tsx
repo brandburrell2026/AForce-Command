@@ -32,6 +32,7 @@ import Svg, {
   Rect,
   Stop,
 } from 'react-native-svg';
+const AnimatedPath = Animated.createAnimatedComponent(Path);
 import type { JournalSnapshot } from '@/types';
 import { Colors } from '@/theme/colors';
 
@@ -125,12 +126,15 @@ export default function JournalChart({
   const innerW = Math.max(40, width - PADDING.left - PADDING.right);
   const innerH = Math.max(40, height - PADDING.top - PADDING.bottom);
 
-  // Two slow oscillators running on the UI thread.
-  //   `breath`  — 2.6s, drives halo opacity/scale (the "alive" feeling)
-  //   `drift`   — 6.0s, drives a tiny vertical translation of the whole
-  //               constellation (the "floating signal" feeling)
+  // Three slow oscillators running on the UI thread.
+  //   `breath`   — 2.6s, drives halo opacity/scale (the "alive" feeling)
+  //   `drift`    — 6.0s, drives a tiny vertical translation of the whole
+  //                constellation (the "floating signal" feeling)
+  //   `shimmer`  — 4.8s, drives a barely-perceptible opacity shimmer on
+  //                the trend line itself (the "signal flow" feeling)
   const breath = useSharedValue(0);
   const drift = useSharedValue(0);
+  const shimmer = useSharedValue(0);
   useEffect(() => {
     breath.value = withRepeat(
       withTiming(1, { duration: 2600, easing: Easing.inOut(Easing.quad) }),
@@ -142,11 +146,17 @@ export default function JournalChart({
       -1,
       true,
     );
+    shimmer.value = withRepeat(
+      withTiming(1, { duration: 4800, easing: Easing.inOut(Easing.sin) }),
+      -1,
+      true,
+    );
     return () => {
       cancelAnimation(breath);
       cancelAnimation(drift);
+      cancelAnimation(shimmer);
     };
-  }, [breath, drift]);
+  }, [breath, drift, shimmer]);
 
   const haloOuterProps = useAnimatedProps(() => ({
     opacity: 0.06 + breath.value * 0.06,
@@ -156,6 +166,10 @@ export default function JournalChart({
   }));
   const driftStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: -2 + drift.value * 4 }],
+  }));
+  // ±~8% line opacity drift around 0.93 — never lower than 0.85.
+  const lineShimmerProps = useAnimatedProps(() => ({
+    opacity: 0.86 + shimmer.value * 0.14,
   }));
 
   const { points, pathD, avg, trendDiff } = useMemo(() => {
@@ -256,17 +270,17 @@ export default function JournalChart({
                 never has a hard terminus. */}
             <LinearGradient id="trendStroke" x1="0" y1="0" x2="1" y2="0">
               <Stop offset="0" stopColor="rgba(255,255,255,0)" />
-              <Stop offset="0.25" stopColor="rgba(255,255,255,0.27)" />
-              <Stop offset="0.5" stopColor="rgba(255,255,255,0.30)" />
-              <Stop offset="0.75" stopColor="rgba(255,255,255,0.27)" />
+              <Stop offset="0.25" stopColor="rgba(255,255,255,0.22)" />
+              <Stop offset="0.5" stopColor="rgba(255,255,255,0.25)" />
+              <Stop offset="0.75" stopColor="rgba(255,255,255,0.22)" />
               <Stop offset="1" stopColor="rgba(255,255,255,0)" />
             </LinearGradient>
 
             <LinearGradient id="trendGlow" x1="0" y1="0" x2="1" y2="0">
               <Stop offset="0" stopColor="rgba(255,255,255,0)" />
-              <Stop offset="0.25" stopColor="rgba(255,255,255,0.10)" />
-              <Stop offset="0.5" stopColor="rgba(255,255,255,0.11)" />
-              <Stop offset="0.75" stopColor="rgba(255,255,255,0.10)" />
+              <Stop offset="0.25" stopColor="rgba(255,255,255,0.085)" />
+              <Stop offset="0.5" stopColor="rgba(255,255,255,0.095)" />
+              <Stop offset="0.75" stopColor="rgba(255,255,255,0.085)" />
               <Stop offset="1" stopColor="rgba(255,255,255,0)" />
             </LinearGradient>
           </Defs>
@@ -304,32 +318,46 @@ export default function JournalChart({
               gaussian-blurred glow without needing SVG filters (which
               are unreliable across react-native-svg backends). */}
           {pathD && (
-            <>
-              <Path
-                d={pathD}
-                stroke="url(#trendGlow)"
-                strokeWidth={5.5}
-                fill="none"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <Path
-                d={pathD}
-                stroke="url(#trendGlow)"
-                strokeWidth={2.7}
-                fill="none"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <Path
-                d={pathD}
-                stroke="url(#trendStroke)"
-                strokeWidth={0.9}
-                fill="none"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </>
+            <AnimatedPath
+              d={pathD}
+              fill="none"
+              animatedProps={lineShimmerProps}
+            >
+              {/* Wrapper opacity rides the shimmer — children just paint */}
+            </AnimatedPath>
+          )}
+          {pathD && (
+            <AnimatedPath
+              d={pathD}
+              stroke="url(#trendGlow)"
+              strokeWidth={5}
+              fill="none"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              animatedProps={lineShimmerProps}
+            />
+          )}
+          {pathD && (
+            <AnimatedPath
+              d={pathD}
+              stroke="url(#trendGlow)"
+              strokeWidth={2.4}
+              fill="none"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              animatedProps={lineShimmerProps}
+            />
+          )}
+          {pathD && (
+            <AnimatedPath
+              d={pathD}
+              stroke="url(#trendStroke)"
+              strokeWidth={0.8}
+              fill="none"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              animatedProps={lineShimmerProps}
+            />
           )}
 
           {/* Constellation anchors — 5 depth-layered rings simulate

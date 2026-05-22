@@ -46,8 +46,8 @@ function KPICard({ kpi }: { kpi: KPI }) {
         ? Colors.states.RECOVERING.primary
         : Colors.text.muted;
   return (
-    <View style={[styles.card, { borderColor: `${accent}0C` }]}>
-      <View style={[styles.glow, { backgroundColor: `${accent}05` }]} />
+    <View style={[styles.card, { borderColor: `${accent}08` }]}>
+      <View style={[styles.glow, { backgroundColor: `${accent}03` }]} />
       <Text style={styles.label}>{label}</Text>
       <View style={styles.valueRow}>
         <Text style={[styles.value, { color: accent }]}>{value}</Text>
@@ -76,11 +76,11 @@ const styles = StyleSheet.create({
   },
   card: {
     flex: 1,
-    paddingVertical: 18,
+    paddingVertical: 20,
     paddingHorizontal: 16,
-    borderRadius: 16,
+    borderRadius: 18,
     borderWidth: StyleSheet.hairlineWidth,
-    backgroundColor: 'rgba(255,255,255,0.02)',
+    backgroundColor: 'rgba(255,255,255,0.012)',
     overflow: 'hidden',
   },
   glow: {
