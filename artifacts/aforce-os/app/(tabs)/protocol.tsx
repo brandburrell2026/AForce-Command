@@ -130,7 +130,7 @@ export default function ProtocolScreen() {
 
               <View style={styles.summaryRow}>
                 <SummaryCard label="Hydration goal" value={`${userState.dailyTarget}/${userState.dailyTarget} units`} color={stateColor} />
-                <SummaryCard label="Recovery progress" value={`${userState.unitsConsumedToday}/${userState.dailyTarget} units`} color={stateColor} />
+                <SummaryCard label="Recovery completed" value={`${userState.unitsConsumedToday}/${userState.dailyTarget} units`} color={stateColor} />
                 <SummaryCard label="Streak" value={`${userState.complianceStreak}d`} color={Colors.states.PEAK.primary} />
               </View>
 
