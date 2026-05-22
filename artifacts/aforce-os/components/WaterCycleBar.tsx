@@ -103,6 +103,9 @@ export function WaterCycleBar({ unitsConsumed, dailyTarget, performanceState }: 
           {unitsConsumed} / {dailyTarget}
         </Text>
       </View>
+      {/* Cells row bleeds out to the card edges via negative margin so
+          the 8 cells stretch the full section width rather than sitting
+          inside the 20px inner gutter. Header still respects the gutter. */}
       <View style={styles.cells}>
         {Array.from({ length: CELL_COUNT }).map((_, i) => (
           <Cell
@@ -147,24 +150,25 @@ const styles = StyleSheet.create({
   },
   cells: {
     flexDirection: 'row',
-    gap: 6,
+    gap: 8,
     justifyContent: 'space-between',
+    marginHorizontal: -8,
   },
   cell: {
     flex: 1,
-    height: 28,
-    borderRadius: 6,
+    height: 32,
+    borderRadius: 7,
     overflow: 'hidden',
     position: 'relative',
   },
   cellBase: {
     ...StyleSheet.absoluteFillObject,
-    borderRadius: 6,
+    borderRadius: 7,
     borderWidth: 1,
     backgroundColor: Colors.fill.light,
   },
   cellFill: {
     ...StyleSheet.absoluteFillObject,
-    borderRadius: 6,
+    borderRadius: 7,
   },
 });
