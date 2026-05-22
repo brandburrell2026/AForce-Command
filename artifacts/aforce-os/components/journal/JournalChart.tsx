@@ -308,7 +308,7 @@ export default function JournalChart({
               <Path
                 d={pathD}
                 stroke="url(#trendGlow)"
-                strokeWidth={6}
+                strokeWidth={5.5}
                 fill="none"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -316,7 +316,7 @@ export default function JournalChart({
               <Path
                 d={pathD}
                 stroke="url(#trendGlow)"
-                strokeWidth={3}
+                strokeWidth={2.7}
                 fill="none"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -324,7 +324,7 @@ export default function JournalChart({
               <Path
                 d={pathD}
                 stroke="url(#trendStroke)"
-                strokeWidth={1}
+                strokeWidth={0.9}
                 fill="none"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -339,17 +339,23 @@ export default function JournalChart({
               — same radii, the perceptual difference is in the hue. */}
           {points.map((p, i) => {
             const c = DOT[p.kind];
+            // Amber nodes were visually dominating the left side of the
+            // constellation — same radii but a warmer hue reads bigger.
+            // Soften them with a per-kind opacity multiplier so the
+            // hierarchy stays balanced across the whole signal.
+            const k = p.kind === 'missed' ? 0.7 : 1;
             return (
               <React.Fragment key={`dot-${i}`}>
                 {/* Ultra-soft outer atmosphere */}
-                <Circle cx={p.x} cy={p.y} r={38} fill={c} opacity={0.04} />
+                <Circle cx={p.x} cy={p.y} r={p.kind === 'missed' ? 32 : 38} fill={c} opacity={0.04 * k} />
                 {/* Breathing outer halo */}
                 <AnimatedCircle
                   cx={p.x}
                   cy={p.y}
-                  r={26}
+                  r={p.kind === 'missed' ? 22 : 26}
                   fill={c}
                   animatedProps={haloOuterProps}
+                  opacity={k}
                 />
                 {/* Breathing mid halo */}
                 <AnimatedCircle
@@ -358,9 +364,10 @@ export default function JournalChart({
                   r={16}
                   fill={c}
                   animatedProps={haloMidProps}
+                  opacity={k}
                 />
                 {/* Solid inner glow */}
-                <Circle cx={p.x} cy={p.y} r={8} fill={c} opacity={0.28} />
+                <Circle cx={p.x} cy={p.y} r={8} fill={c} opacity={0.28 * k} />
                 {/* Soft core */}
                 <Circle cx={p.x} cy={p.y} r={3.5} fill={c} />
                 {/* Tiny crisp pinpoint center */}

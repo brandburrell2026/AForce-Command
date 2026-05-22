@@ -46,7 +46,7 @@ function KPICard({ kpi }: { kpi: KPI }) {
         ? Colors.states.RECOVERING.primary
         : Colors.text.muted;
   return (
-    <View style={[styles.card, { borderColor: `${accent}14` }]}>
+    <View style={[styles.card, { borderColor: `${accent}0C` }]}>
       <View style={[styles.glow, { backgroundColor: `${accent}05` }]} />
       <Text style={styles.label}>{label}</Text>
       <View style={styles.valueRow}>
@@ -79,7 +79,7 @@ const styles = StyleSheet.create({
     paddingVertical: 18,
     paddingHorizontal: 16,
     borderRadius: 16,
-    borderWidth: 1,
+    borderWidth: StyleSheet.hairlineWidth,
     backgroundColor: 'rgba(255,255,255,0.02)',
     overflow: 'hidden',
   },
