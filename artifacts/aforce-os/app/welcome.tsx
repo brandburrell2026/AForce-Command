@@ -184,21 +184,20 @@ function RotatingRing({
     }
   }, [drawing, draw]);
 
-  // Sweep through the four bands as long as the orb hasn't entered
-  // its critical resting state. ~3.4s per full red→lime traverse,
-  // looping back-and-forth (boomerang) so the boot keeps breathing
-  // through colour even after the O completes — until `critical`
-  // flips and `settle` blends it into CRITICAL_RED.
+  // One-way boot: sweep 0 → 1 (red → amber → teal → LIME) over the
+  // same 3s the O takes to draw, then hold at lime. The orb stays
+  // green for the entire pre-ENTER window — that's the user's invite
+  // into the system. The moment `critical` flips (stage 3+), `settle`
+  // ramps 0 → 1 and crossfades the chrome into CRITICAL_RED.
   React.useEffect(() => {
     cancelAnimation(bandSweep);
     cancelAnimation(settle);
     if (!critical) {
       bandSweep.value = 0;
-      bandSweep.value = withRepeat(
-        withTiming(1, { duration: 3400, easing: Easing.inOut(Easing.cubic) }),
-        -1,
-        true,
-      );
+      bandSweep.value = withTiming(1, {
+        duration: 3000,
+        easing: Easing.inOut(Easing.cubic),
+      });
       settle.value = withTiming(0, { duration: 400 });
     } else {
       settle.value = withTiming(1, {
@@ -641,10 +640,14 @@ export default function SplashScreen() {
     router.replace('/(tabs)');
   }, [router]);
 
-  // Ring goes red the moment the O completes; halo follows.
-  const isCritical = ringDrawn || stage >= 3;
-  const ringColor = isCritical ? CRITICAL_RED : RING_WHITE;
-  const haloColor = isCritical ? CRITICAL_RED : 'rgba(255,255,255,0.35)';
+  // Ring holds at LIME for the entire pre-ENTER window — the band
+  // sweep inside RotatingRing settles there, and the orb breathes in
+  // healthy/green mode (outward pulse, no collapse ring) while the
+  // user reads the manifesto. Critical red only kicks in once the
+  // narrative escalates at stage 3, after ENTER is pressed.
+  const isCritical = stage >= 3;
+  const ringColor = isCritical ? CRITICAL_RED : BOOT_LIME;
+  const haloColor = isCritical ? CRITICAL_RED : 'rgba(182,255,0,0.35)';
   const sweepActive = stage === 2;
   const showNumber = stage >= 3;
   const showCritical = stage >= 3;
