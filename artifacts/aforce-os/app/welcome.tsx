@@ -976,8 +976,8 @@ export default function SplashScreen() {
           throughout the sequence. Rendered in a monospace face so it
           reads like a system readout, not body copy. */}
       <FadeIn show durationMs={2000} delayMs={200} style={styles.topHeader}>
-        <Text style={[styles.welcomeKicker, isCritical && { color: CRITICAL_RED_BRIGHT, opacity: 0.85 }]}>WELCOME</Text>
-        <Text style={[styles.welcomeTitle, isCritical && { color: CRITICAL_RED_BRIGHT }]}>AFORCE OS</Text>
+        <Text style={styles.welcomeKicker}>WELCOME</Text>
+        <Text style={styles.welcomeTitle}>AFORCE OS</Text>
       </FadeIn>
 
       {/* The white ring is a 3s fade-in. From stage 3 onward the ring
