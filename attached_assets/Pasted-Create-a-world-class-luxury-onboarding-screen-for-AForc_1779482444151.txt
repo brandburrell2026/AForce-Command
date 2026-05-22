@@ -1,0 +1,249 @@
+Create a world-class luxury onboarding screen for “AForce OS” — an AI-powered performance operating system focused on hydration intelligence, recovery optimization, and elite human performance.
+
+The screen should feel:
+- cinematic
+- futuristic
+- emotionally powerful
+- minimal
+- premium
+- biometric
+- military-grade
+- Apple-level polished
+
+This should NOT feel like:
+- a hydration app
+- a supplement brand
+- a fitness tracker
+- a gaming interface
+
+It should feel like:
+Tesla UI × WHOOP × Iron Man HUD × Apple Vision Pro × luxury athletic recovery system.
+
+DESIGN GOAL
+Create a perfect 10/10 onboarding experience that instantly communicates:
+- elite performance
+- discipline
+- recovery intelligence
+- biometric optimization
+- futuristic wellness
+- calm power
+
+LAYOUT
+
+TOP SECTION
+Minimal and elegant.
+
+Small text:
+“WELCOME”
+
+Large bold typography:
+“AFORCE OS”
+
+Typography should feel:
+- luxurious
+- confident
+- cinematic
+- perfectly spaced
+
+Use:
+- SF Pro Display
+- ultra-clean kerning
+- strong hierarchy
+- breathing room
+
+MAIN VISUAL
+The central ring system is the hero.
+
+Transform the ring into a living biometric intelligence engine.
+
+The ring should:
+- pulse subtly
+- glow softly
+- react like an active AI core
+- feel alive
+- contain layered transparency
+- include depth and motion
+
+Use:
+- concentric biometric rings
+- glassmorphism
+- ambient glow
+- dynamic gradients
+- subtle rotating energy
+- neural pulse animation
+
+The center should NOT feel empty.
+
+Inside the center include:
+- a live AI pulse
+- subtle waveform animation
+- biometric particles
+- hydration energy pulse
+- performance sync indicator
+
+The ring should feel like:
+“the core of a performance operating system.”
+
+COLOR SYSTEM
+Move away from lime green.
+
+Use a premium biometric palette:
+- deep black backgrounds
+- emerald teal
+- electric aqua
+- cyan-green glow
+- subtle gradient lighting
+
+Avoid:
+- radioactive green
+- cheap neon
+- gaming aesthetics
+
+The glow should feel:
+- expensive
+- intelligent
+- calm
+- elite
+
+COPY SECTION
+
+Replace:
+“INITIALIZING”
+
+With a more intelligent AI system message.
+
+Options to inspire from:
+- Syncing Biometrics
+- Calibrating Recovery Engine
+- Performance Sync Active
+- Building Recovery Profile
+- Recovery Intelligence Online
+- Hydration System Active
+
+Below that, keep:
+
+“Performance is non-negotiable.”
+
+Make this feel iconic.
+
+Typography:
+- bold
+- emotionally powerful
+- highly readable
+- premium white
+
+FLOW SEQUENCE
+
+Current:
+“Pause → Hydrate → Lock In → Perform”
+
+Upgrade this section into a premium behavioral performance framework.
+
+Possible refined version:
+Pause → Recover → Hydrate → Lock In → Perform
+
+or
+
+Recover → Hydrate → Stabilize → Lock In → Perform
+
+The active word should glow subtly.
+
+The sequence should feel:
+- ritualistic
+- intelligent
+- elite
+- addictive
+- systemized
+
+CTA BUTTON
+
+Replace:
+“ENTER”
+
+With a more premium CTA:
+- Begin Protocol
+- Activate Performance
+- Enter AForce OS
+- Initialize System
+- Continue Protocol
+
+Preferred:
+“BEGIN PROTOCOL”
+
+The button should feel:
+- touch-responsive
+- alive
+- elite
+- luxurious
+
+Add:
+- glow edge lighting
+- subtle depth
+- glass effect
+- premium animation feedback
+
+MOTION DESIGN
+
+Add:
+- slow breathing animations
+- pulse transitions
+- subtle floating movement
+- AI scanning effects
+- ambient energy shifts
+- biometric wave motion
+
+Motion should feel:
+- calm
+- expensive
+- intelligent
+- cinematic
+
+Never:
+- flashy
+- aggressive
+- over-animated
+
+BACKGROUND
+
+Add subtle environmental depth:
+- dark atmospheric gradients
+- radial lighting
+- soft biometric textures
+- invisible grid systems
+- ambient shadows
+
+The background should feel infinite and immersive.
+
+USER EXPERIENCE GOAL
+
+When the user opens the app they should feel:
+- focused
+- elevated
+- optimized
+- disciplined
+- calm
+- powerful
+
+The onboarding should psychologically communicate:
+“You are entering a performance system.”
+
+FINAL FEELING
+
+The final design should feel like:
+- the future of recovery
+- elite athlete intelligence
+- Apple-designed military wellness tech
+- biometric luxury
+- a billion-dollar platform
+
+This should be App Store feature-quality and visually capable of competing with:
+- WHOOP
+- Oura
+- Tesla UI
+- Apple Fitness+
+- Levels
+- Ultrahuman
+- Nike elite campaign aesthetics
+
+The experience should feel:
+minimal + intelligent + cinematic + elite + addictive.

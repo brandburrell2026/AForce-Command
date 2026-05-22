@@ -305,6 +305,11 @@ function RotatingRing({
   // live sweep colour with the resting prop colour using `settle`.
   const tintRing = (): string => {
     'worklet';
+    // Once settle has effectively completed, return the resting color
+    // directly. Interpolating through a translucent CRITICAL_RED can
+    // read as muddy yellow at mid-blend, and any frame where the
+    // settle value floats short of 1.0 leaves the border stuck there.
+    if (settle.value >= 0.98) return colorSV.value;
     const swept = interpolateColor(
       bandSweep.value,
       [0, 0.25, 0.5, 0.75, 1],
@@ -314,6 +319,7 @@ function RotatingRing({
   };
   const tintGlow = (): string => {
     'worklet';
+    if (settle.value >= 0.98) return glowSV.value;
     const swept = interpolateColor(
       bandSweep.value,
       [0, 0.25, 0.5, 0.75, 1],
