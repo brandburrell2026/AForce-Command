@@ -81,7 +81,16 @@ export default function CompetitionScreen() {
           {/* Header */}
           <View style={styles.headerRow}>
             <Pressable
-              onPress={() => router.replace('/(tabs)')}
+              onPress={() => {
+                // When this tab is reached via the iOS "More" overflow
+                // (7 tabs → 5 visible + More), the screen is pushed
+                // onto the More navigation stack. `router.replace` on
+                // a group route ('/(tabs)') doesn't pop that stack, so
+                // we pop first if we can, then route Home as a
+                // fallback for the normal in-tab case.
+                if (router.canGoBack()) router.back();
+                else router.replace('/');
+              }}
               hitSlop={12}
               style={styles.back}
               accessibilityRole="button"
