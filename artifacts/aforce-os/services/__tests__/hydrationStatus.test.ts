@@ -65,7 +65,7 @@ describe('getHydrationStatus — every band boundary', () => {
 
   it('uses CTAs that exactly match the brand spec', () => {
     expect(getHydrationStatus(95).ctaText).toBe('HOLD THE LINE');
-    expect(getHydrationStatus(78).ctaText).toBe('MAINTAIN SYSTEM');
+    expect(getHydrationStatus(78).ctaText).toBe('MAINTAIN PERFORMANCE');
     expect(getHydrationStatus(60).ctaText).toBe('CORRECT NOW');
     expect(getHydrationStatus(40).ctaText).toBe('EXECUTE COMMAND');
     expect(getHydrationStatus(15).ctaText).toBe('STABILIZE SYSTEM');

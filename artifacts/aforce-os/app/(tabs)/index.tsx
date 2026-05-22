@@ -729,9 +729,12 @@ const styles = StyleSheet.create({
     letterSpacing: -0.1,
   },
   nextCommandImpact: {
-    fontFamily: 'Inter_400Regular',
-    fontSize: 12,
-    color: Colors.text.muted,
+    // Contrast bump (Inter_500Medium @ 13 + brighter alpha) so this
+    // line stays legible in sunlight / motion without breaking the
+    // dark luxury hierarchy. Previously Inter_400Regular @ 12 / 30%.
+    fontFamily: 'Inter_500Medium',
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.70)',
     letterSpacing: 0.1,
     marginTop: 8,
   },
@@ -784,9 +787,12 @@ const styles = StyleSheet.create({
     marginHorizontal: 12,
   },
   metaLabel: {
-    fontFamily: 'Inter_400Regular',
+    // Contrast bump (Inter_500Medium @ 12 + brighter alpha) for the
+    // "Last intake" / meta-row labels — beautiful on OLED but weak in
+    // sunlight at the previous 55% alpha. Now 75%.
+    fontFamily: 'Inter_500Medium',
     fontSize: 12,
-    color: Colors.text.secondary,
+    color: 'rgba(255,255,255,0.75)',
     letterSpacing: 0.1,
     marginBottom: 4,
   },

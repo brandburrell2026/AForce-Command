@@ -61,7 +61,7 @@ const CONTENT: Record<
   STABLE: {
     headline: 'Performance stable.',
     consequence: 'Maintain rhythm.',
-    ctaText: 'MAINTAIN SYSTEM',
+    ctaText: 'MAINTAIN PERFORMANCE',
     command: 'Drink 12 oz within the next 45 minutes.',
   },
   DECLINING: {
