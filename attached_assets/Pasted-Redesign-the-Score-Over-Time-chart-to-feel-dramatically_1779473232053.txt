@@ -1,0 +1,127 @@
+Redesign the “Score Over Time” chart to feel dramatically more premium, intelligent, minimal, and luxury performance focused.
+
+The current chart feels:
+- noisy
+- developer generated
+- too dense
+- visually chaotic
+
+It does not match the premium quality of the rest of the AForce OS interface.
+
+Replace the current graph with a much more refined visualization system inspired by:
+- WHOOP
+- Oura
+- Formula 1 telemetry
+- Apple Health trends
+- luxury sports dashboards
+- Tesla energy visualizations
+
+Chart redesign requirements:
+
+1. Replace harsh line graph styling
+Remove the jagged white line chart.
+
+Instead use:
+- elegant glowing data points
+- smooth curved interpolation
+- subtle connected flow lines
+- soft neon pulses
+- intelligent spacing between data points
+
+The graph should feel:
+- calm
+- futuristic
+- premium
+- emotionally intelligent
+
+NOT:
+- stock trading app
+- debugging graph
+- developer analytics chart
+
+2. Introduce premium dot based visualization
+Use:
+- glowing dots
+- gradient pulse points
+- adaptive node sizing
+- subtle animated transitions
+
+Dots should represent:
+- hydration states
+- recovery peaks
+- depletion periods
+- stabilization moments
+
+Higher performance states should glow brighter and feel more energized.
+
+3. Add smooth visual rhythm
+The chart should breathe visually.
+
+Improve:
+- padding
+- vertical spacing
+- horizontal rhythm
+- curve smoothness
+- animation timing
+
+The visualization should feel fluid and expensive.
+
+4. Add intelligent state coloring
+Instead of random white spikes:
+use controlled performance color logic.
+
+Examples:
+- green = optimized
+- amber = recovering
+- red = depleted
+- cyan = balanced
+
+Use subtle gradients and restrained glow.
+Avoid esports RGB intensity.
+
+5. Add premium motion design
+Implement:
+- smooth animated transitions
+- soft pulsing active states
+- subtle live telemetry movement
+- elegant hover/tap interactions
+
+The graph should feel alive.
+
+6. Simplify the chart visually
+Reduce clutter:
+- fewer hard lines
+- fewer visual spikes
+- cleaner axis system
+- more negative space
+
+Luxury interfaces prioritize restraint.
+
+7. Upgrade the emotional feel
+The chart should feel like:
+- a performance intelligence system
+- athlete telemetry
+- recovery monitoring AI
+- Formula 1 level optimization data
+
+NOT:
+- generic fitness tracking
+- spreadsheet analytics
+- crypto trading chart
+
+8. Optional premium enhancements
+Explore:
+- floating insight markers
+- peak recovery highlights
+- hydration rhythm indicators
+- trend momentum glow
+- projected recovery path
+
+9. Overall visual direction
+The final chart should look:
+10x more premium than the current implementation.
+
+The user should immediately think:
+“This feels like next generation human performance technology.”
+
+The chart should become one of the signature visual experiences inside AForce OS.
