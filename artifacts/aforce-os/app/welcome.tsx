@@ -23,7 +23,8 @@ import {
 } from 'react-native';
 import Animated, {
   useSharedValue, useAnimatedStyle, useAnimatedProps, withTiming,
-  withRepeat, withSequence, interpolate, Easing, cancelAnimation,
+  withRepeat, withSequence, interpolate, interpolateColor,
+  Easing, cancelAnimation,
 } from 'react-native-reanimated';
 import Svg, { Circle, Path } from 'react-native-svg';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -69,6 +70,18 @@ const RIPPLE_SIZE = RING_SIZE + 24;
 // matching the orb's `innerGlow` layer.
 const INNER_GLOW_SIZE = Math.round(GLOW_SIZE * 0.7);
 const ORB_BG = '#0A0A0A';
+
+// ─── Dynamic state boot palette ──────────────────────────────────────
+// As the O draws around the ring (0 → 1 over 3s) the stroke sweeps
+// through every performance band — same narrative arc as the home
+// orb's boot. At 0–25% the ring is critical red, 25–50% amber, 50–75%
+// teal, 75–100% WHOOP lime. The moment the O completes the ring
+// settles into the screen's actual state (CRITICAL on this lobby) via
+// the static `color` prop crossfade.
+const BOOT_RED = '#E53935';
+const BOOT_AMBER = '#FFC93C';
+const BOOT_TEAL = '#1FB8A6';
+const BOOT_LIME = '#B6FF00';
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
@@ -270,9 +283,23 @@ function RotatingRing({
   // SVG circles begin at 3 o'clock and run clockwise. We rotate the
   // circle by -90° so the stroke appears to begin painting at 12
   // o'clock (top), which reads more naturally as "drawing an O".
-  const animatedCircleProps = useAnimatedProps(() => ({
-    strokeDashoffset: RING_CIRC * (1 - draw.value),
-  }));
+  // While the O is being painted, the stroke colour sweeps through
+  // every performance band (red → amber → teal → lime) so the boot
+  // reads as the user climbing out of depletion. Once the ring is
+  // fully drawn (draw.value === 1) we hand off to the static `color`
+  // prop, which the parent flips from white → CRITICAL_RED via a
+  // separate crossfade.
+  const animatedCircleProps = useAnimatedProps(() => {
+    const sweepStroke = interpolateColor(
+      draw.value,
+      [0, 0.25, 0.5, 0.75, 1],
+      [BOOT_RED, BOOT_AMBER, BOOT_TEAL, BOOT_LIME, color],
+    );
+    return {
+      strokeDashoffset: RING_CIRC * (1 - draw.value),
+      stroke: sweepStroke,
+    };
+  });
 
   return (
     <View style={styles.ringWrap}>
