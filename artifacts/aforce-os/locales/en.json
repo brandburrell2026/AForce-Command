@@ -28,7 +28,7 @@
   "journal": {
     "title": "Performance Timeline",
     "eyebrow": "PERFORMANCE TIMELINE",
-    "subtitle": "Your longitudinal score history",
+    "subtitle": "Your performance rhythm over time",
     "empty_state": "Your performance timeline begins after your first check.",
     "range_7": "7d",
     "range_30": "30d",
