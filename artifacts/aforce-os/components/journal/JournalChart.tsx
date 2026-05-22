@@ -12,8 +12,9 @@
  * call site does not need updates.
  */
 
-import React, { useEffect, useMemo } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import * as Haptics from 'expo-haptics';
 import Animated, {
   cancelAnimation,
   Easing,
@@ -68,12 +69,12 @@ function classify(score: number): DotKind {
 function bucketize(
   data: JournalSnapshot[],
   targetBuckets: number,
-): { t: number; score: number }[] {
+): { t: number; score: number; at: string }[] {
   if (data.length === 0) return [];
   if (data.length <= targetBuckets) {
-    return data.map((d) => ({ t: new Date(d.at).getTime(), score: d.score }));
+    return data.map((d) => ({ t: new Date(d.at).getTime(), score: d.score, at: d.at }));
   }
-  const buckets: { t: number; score: number }[] = [];
+  const buckets: { t: number; score: number; at: string }[] = [];
   const size = data.length / targetBuckets;
   for (let i = 0; i < targetBuckets; i++) {
     const start = Math.floor(i * size);
@@ -85,9 +86,17 @@ function bucketize(
     buckets.push({
       t: new Date(data[midIdx].at).getTime(),
       score: sum / slice.length,
+      at: data[midIdx].at,
     });
   }
   return buckets;
+}
+
+/** Short, friendly label for the tap-to-reveal bubble. */
+function formatBubbleDate(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '';
+  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 }
 
 /** Smooth Catmull-Rom curve, intentionally soft. */
@@ -175,7 +184,7 @@ export default function JournalChart({
   const { points, pathD, avg, trendDiff } = useMemo(() => {
     if (data.length === 0) {
       return {
-        points: [] as { x: number; y: number; score: number; kind: DotKind }[],
+        points: [] as { x: number; y: number; score: number; kind: DotKind; at: string }[],
         pathD: '',
         avg: 0,
         trendDiff: 0,
@@ -194,7 +203,7 @@ export default function JournalChart({
       const y =
         PADDING.top +
         (1 - (b.score - SCORE_MIN) / (SCORE_MAX - SCORE_MIN)) * innerH;
-      return { x, y, score: b.score, kind: classify(b.score) };
+      return { x, y, score: b.score, kind: classify(b.score), at: b.at };
     });
 
     const sumScore = data.reduce((acc, d) => acc + d.score, 0);
@@ -227,8 +236,27 @@ export default function JournalChart({
   // Streak. Trend is implied by the chart's slope.
   void avg; void trendDiff; void weeklyCompliancePct; void complianceStreak;
 
+  // Tap-to-reveal: tapping a constellation node shows a small floating
+  // bubble with that node's date + score. Tap again (or tap a different
+  // node) updates / dismisses. Light selection haptic on every tap;
+  // web is a no-op since touch precision is unreliable without a finger.
+  const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
+  const handleNodeTap = useCallback((i: number) => {
+    if (Platform.OS !== 'web') {
+      Haptics.selectionAsync().catch(() => {});
+    }
+    setSelectedIdx((prev) => (prev === i ? null : i));
+  }, []);
+  // Reset selection if the underlying data set changes (e.g. range switch).
+  useEffect(() => {
+    setSelectedIdx(null);
+  }, [data]);
+
+  const HIT = 28; // generous touch target around each node
+  const selected = selectedIdx != null ? points[selectedIdx] : null;
+
   return (
-    <View style={{ width }}>
+    <View style={{ width, height }}>
       <Animated.View style={driftStyle}>
         <Svg width={width} height={height}>
           <Defs>
@@ -397,6 +425,50 @@ export default function JournalChart({
             );
           })}
         </Svg>
+
+        {/* Invisible hit targets — one per constellation node. Sit on
+            top of the SVG so the user can tap any node to reveal its
+            date + score. Hit area is intentionally generous (HIT px)
+            so fingertips land easily on what visually are 3.5px cores. */}
+        {points.map((p, i) => (
+          <Pressable
+            key={`hit-${i}`}
+            onPress={() => handleNodeTap(i)}
+            accessibilityRole="button"
+            accessibilityLabel={`${formatBubbleDate(p.at)}, score ${Math.round(p.score)}`}
+            style={{
+              position: 'absolute',
+              left: p.x - HIT,
+              top: p.y - HIT,
+              width: HIT * 2,
+              height: HIT * 2,
+              borderRadius: HIT,
+            }}
+          />
+        ))}
+
+        {/* Floating reveal bubble for the currently-selected node.
+            Renders above the node, centered horizontally; clamps within
+            the chart so it never escapes the card edges. */}
+        {selected && (
+          <View
+            pointerEvents="none"
+            style={[
+              styles.bubble,
+              {
+                left: Math.max(8, Math.min(width - 116, selected.x - 54)),
+                top: Math.max(4, selected.y - 56),
+                borderColor: `${DOT[selected.kind]}55`,
+                shadowColor: DOT[selected.kind],
+              },
+            ]}
+          >
+            <Text style={styles.bubbleDate}>{formatBubbleDate(selected.at)}</Text>
+            <Text style={[styles.bubbleScore, { color: DOT[selected.kind] }]}>
+              {Math.round(selected.score)}
+            </Text>
+          </View>
+        )}
       </Animated.View>
     </View>
   );
@@ -414,5 +486,32 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontFamily: 'Inter_500Medium',
     letterSpacing: 0.4,
+  },
+  bubble: {
+    position: 'absolute',
+    width: 108,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    backgroundColor: 'rgba(10,12,18,0.92)',
+    alignItems: 'center',
+    shadowOpacity: 0.35,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 0 },
+    elevation: 6,
+  },
+  bubbleDate: {
+    fontSize: 10,
+    color: 'rgba(255,255,255,0.55)',
+    fontFamily: 'Inter_500Medium',
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+    marginBottom: 2,
+  },
+  bubbleScore: {
+    fontSize: 22,
+    fontFamily: 'Inter_700Bold',
+    letterSpacing: -0.5,
   },
 });
