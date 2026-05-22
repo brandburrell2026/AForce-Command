@@ -17,7 +17,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useRouter, useNavigation } from 'expo-router';
 import { Icon } from '../components/Icon';
 
 import { GradientBackground } from '@/components/GradientBackground';
@@ -47,6 +47,20 @@ const SECTIONS: { key: SectionKey; label: string; icon: string }[] = [
 
 export default function CompetitionScreen() {
   const router = useRouter();
+  // Tab-level navigator handle — used to jump back to the Home tab
+  // explicitly. `router.replace('/')` is unreliable inside route
+  // groups + the iOS More overflow, so we drive the parent tab
+  // navigator directly when we need to leave Community.
+  const navigation = useNavigation();
+  const goHomeTab = React.useCallback(() => {
+    const parent =
+      (navigation as { getParent?: () => unknown }).getParent?.() ?? navigation;
+    try {
+      (parent as { navigate: (name: string) => void }).navigate('index');
+    } catch {
+      router.replace('/');
+    }
+  }, [navigation, router]);
   const insets = useSafeAreaInsets();
   const { state } = useAppStore();
   const { engineOutput, userState, featureFlags } = state;
@@ -106,13 +120,11 @@ export default function CompetitionScreen() {
                   setSectionHistory((h) => h.slice(0, -1));
                   return;
                 }
-                // 2. Otherwise leave the tab. When Community is
-                //    reached via the iOS "More" overflow (7 tabs → 5
-                //    visible + More), the screen sits inside the More
-                //    nav stack — `router.back()` pops it. The Home
-                //    fallback handles the normal in-tab case.
-                if (router.canGoBack()) router.back();
-                else router.replace('/');
+                // 2. Otherwise leave the tab. Drive the parent tab
+                //    navigator directly — this works whether the
+                //    screen was reached via a bottom tab tap or the
+                //    iOS "More" overflow stack (7 tabs → 5 visible).
+                goHomeTab();
               }}
               hitSlop={12}
               style={styles.back}
