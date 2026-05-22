@@ -36,6 +36,7 @@ const ONBOARDING_KEY = 'aforce.hasCompletedOnboarding';
 const BG = '#000000';
 const RING_WHITE = 'rgba(255,255,255,0.85)';
 const CRITICAL_RED = 'rgba(180,30,30,0.55)';
+const CRITICAL_RED_BRIGHT = '#FF5A5A';
 const TEXT_DIM = 'rgba(255,255,255,0.55)';
 const TEXT_BRIGHT = 'rgba(255,255,255,0.92)';
 
@@ -785,7 +786,7 @@ const TAGLINE_SEGMENTS: Segment[] = [
 ];
 const TAGLINE_STEP_MS = 460;
 
-function TypewriterTagline({ start }: { start: boolean }) {
+function TypewriterTagline({ start, critical }: { start: boolean; critical?: boolean }) {
   const [revealed, setRevealed] = React.useState(0);
   const cursor = useSharedValue(1);
 
@@ -823,7 +824,15 @@ function TypewriterTagline({ start }: { start: boolean }) {
         return (
           <View key={seg.text} style={styles.taglineSegment}>
             <Text
-              style={[styles.taglineWord, { color: seg.color, opacity: isVisible ? 1 : 0 }]}
+              style={[
+                styles.taglineWord,
+                {
+                  color: critical && seg.color !== 'rgba(255,255,255,0.55)' && seg.color !== 'rgba(255,255,255,0.96)'
+                    ? CRITICAL_RED_BRIGHT
+                    : seg.color,
+                  opacity: isVisible ? 1 : 0,
+                },
+              ]}
             >
               {seg.text}
             </Text>
@@ -1018,7 +1027,7 @@ export default function SplashScreen() {
       {showCopy && (
         <FadeIn show delayMs={400} style={styles.copyBlock}>
           <Text style={styles.copyHeadline}>Performance is non-negotiable.</Text>
-          <TypewriterTagline start={showCopy} />
+          <TypewriterTagline start={showCopy} critical={isCritical} />
         </FadeIn>
       )}
 
