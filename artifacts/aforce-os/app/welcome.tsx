@@ -579,11 +579,6 @@ export default function SplashScreen() {
 
         <SweepingArc active={sweepActive} />
 
-        {showNumber && (
-          <FadeIn show durationMs={FADE_MS}>
-            <Text style={styles.number}>31</Text>
-          </FadeIn>
-        )}
       </View>
 
       {/* INITIALIZING under the ring (stage 1 only) */}
