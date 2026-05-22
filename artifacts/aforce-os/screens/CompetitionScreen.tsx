@@ -52,6 +52,21 @@ export default function CompetitionScreen() {
   const { engineOutput, userState, featureFlags } = state;
 
   const [section, setSection] = React.useState<SectionKey>('rankings');
+  // Section visit history — back chevron steps back through the
+  // sections you've actually visited (Rank → Challenges → Battles →
+  // ← Challenges ← Rank ← Home) instead of jumping straight to Home
+  // on the first tap. Empty stack means we're at the original section
+  // entry point and back exits the tab.
+  const [sectionHistory, setSectionHistory] = React.useState<SectionKey[]>([]);
+  const goToSection = React.useCallback(
+    (next: SectionKey) => {
+      setSectionHistory((prev) =>
+        next === section ? prev : [...prev, section],
+      );
+      setSection(next);
+    },
+    [section],
+  );
 
   // ── Snapshot (shared across Rankings + Teams) ─────────────────────
   const snapshot = React.useMemo(() => {
@@ -82,19 +97,31 @@ export default function CompetitionScreen() {
           <View style={styles.headerRow}>
             <Pressable
               onPress={() => {
-                // When this tab is reached via the iOS "More" overflow
-                // (7 tabs → 5 visible + More), the screen is pushed
-                // onto the More navigation stack. `router.replace` on
-                // a group route ('/(tabs)') doesn't pop that stack, so
-                // we pop first if we can, then route Home as a
-                // fallback for the normal in-tab case.
+                // 1. If the user has stepped through Community
+                //    sections (Rank → Challenges → Battles → …),
+                //    walk them back through that history first.
+                if (sectionHistory.length > 0) {
+                  const prev = sectionHistory[sectionHistory.length - 1]!;
+                  setSection(prev);
+                  setSectionHistory((h) => h.slice(0, -1));
+                  return;
+                }
+                // 2. Otherwise leave the tab. When Community is
+                //    reached via the iOS "More" overflow (7 tabs → 5
+                //    visible + More), the screen sits inside the More
+                //    nav stack — `router.back()` pops it. The Home
+                //    fallback handles the normal in-tab case.
                 if (router.canGoBack()) router.back();
                 else router.replace('/');
               }}
               hitSlop={12}
               style={styles.back}
               accessibilityRole="button"
-              accessibilityLabel="Back to home"
+              accessibilityLabel={
+                sectionHistory.length > 0
+                  ? 'Back to previous section'
+                  : 'Back to home'
+              }
               testID="community-back"
             >
               <Icon name="chevron-left" size={22} color={Colors.text.primary} />
@@ -121,7 +148,7 @@ export default function CompetitionScreen() {
               return (
                 <Pressable
                   key={s.key}
-                  onPress={() => setSection(s.key)}
+                  onPress={() => goToSection(s.key)}
                   style={[styles.sectionBtn, active && styles.sectionBtnActive]}
                   accessibilityRole="button"
                   accessibilityLabel={s.label}
