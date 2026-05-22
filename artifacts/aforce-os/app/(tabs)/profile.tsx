@@ -1254,6 +1254,16 @@ export default function ProfileScreen() {
                   />
                   <Divider />
                   <UnitPreferenceRow
+                    label="Height"
+                    options={[
+                      { value: 'ft', label: 'ft' },
+                      { value: 'cm', label: 'cm' },
+                    ]}
+                    selected={unitPreferences.height}
+                    onSelect={(v) => setUnitPreference('height', v)}
+                  />
+                  <Divider />
+                  <UnitPreferenceRow
                     label="Temperature"
                     options={[
                       { value: 'F', label: '°F' },

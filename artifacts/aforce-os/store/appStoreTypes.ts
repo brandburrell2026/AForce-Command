@@ -113,7 +113,8 @@ export type Action =
       payload:
         | { key: 'weight'; value: UnitPreferences['weight'] }
         | { key: 'temperature'; value: UnitPreferences['temperature'] }
-        | { key: 'volume'; value: UnitPreferences['volume'] };
+        | { key: 'volume'; value: UnitPreferences['volume'] }
+        | { key: 'height'; value: UnitPreferences['height'] };
     }
   | { type: 'SET_UNIT_PREFERENCES'; payload: UnitPreferences }
   // Partial merge for the edit-profile form — submit may carry any

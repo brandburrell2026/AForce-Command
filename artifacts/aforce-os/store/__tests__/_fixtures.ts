@@ -135,7 +135,7 @@ export function makeState(overrides: Partial<AppState> = {}): AppState {
     lastIntakeBurstAt: 0,
     hasSeenOnboarding: false,
     notificationSettings: DEFAULT_NOTIFICATION_SETTINGS,
-    unitPreferences: { weight: 'lbs', temperature: 'F', volume: 'oz' },
+    unitPreferences: { weight: 'lbs', temperature: 'F', volume: 'oz', height: 'ft' },
     profileIdentity: { ...DEFAULT_PROFILE_IDENTITY },
     ...overrides,
   };

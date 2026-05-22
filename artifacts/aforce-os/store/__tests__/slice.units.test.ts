@@ -48,15 +48,15 @@ describe('store · units slice', () => {
       type: 'SET_UNIT_PREFERENCE',
       payload: { key: 'volume', value: 'mL' },
     });
-    expect(b.unitPreferences).toEqual({ weight: 'lbs', temperature: 'C', volume: 'mL' });
+    expect(b.unitPreferences).toEqual({ weight: 'lbs', temperature: 'C', volume: 'mL', height: 'ft' });
   });
 
   it('SET_UNIT_PREFERENCES replaces the entire record (used by hydration)', () => {
     const next = reducer(makeState(), {
       type: 'SET_UNIT_PREFERENCES',
-      payload: { weight: 'kg', temperature: 'C', volume: 'mL' },
+      payload: { weight: 'kg', temperature: 'C', volume: 'mL', height: 'cm' },
     });
-    expect(next.unitPreferences).toEqual({ weight: 'kg', temperature: 'C', volume: 'mL' });
+    expect(next.unitPreferences).toEqual({ weight: 'kg', temperature: 'C', volume: 'mL', height: 'cm' });
   });
 
   it('three rapid SET_UNIT_PREFERENCE calls persist the fully merged record (no clobber)', () => {
@@ -68,7 +68,7 @@ describe('store · units slice', () => {
     s = reducer(s, { type: 'SET_UNIT_PREFERENCE', payload: { key: 'weight', value: 'kg' } });
     s = reducer(s, { type: 'SET_UNIT_PREFERENCE', payload: { key: 'temperature', value: 'C' } });
     s = reducer(s, { type: 'SET_UNIT_PREFERENCE', payload: { key: 'volume', value: 'mL' } });
-    expect(s.unitPreferences).toEqual({ weight: 'kg', temperature: 'C', volume: 'mL' });
+    expect(s.unitPreferences).toEqual({ weight: 'kg', temperature: 'C', volume: 'mL', height: 'ft' });
   });
 
   it('user edit then hydration-style SET_UNIT_PREFERENCES would overwrite (race documented)', () => {
@@ -82,7 +82,7 @@ describe('store · units slice', () => {
     });
     const clobbered = reducer(edited, {
       type: 'SET_UNIT_PREFERENCES',
-      payload: { weight: 'lbs', temperature: 'F', volume: 'oz' },
+      payload: { weight: 'lbs', temperature: 'F', volume: 'oz', height: 'ft' },
     });
     expect(clobbered.unitPreferences.weight).toBe('lbs');
   });

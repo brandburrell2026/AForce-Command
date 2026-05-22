@@ -22,17 +22,20 @@
 export type WeightUnit = 'lbs' | 'kg';
 export type TemperatureUnit = 'F' | 'C';
 export type VolumeUnit = 'oz' | 'mL';
+export type HeightUnit = 'ft' | 'cm';
 
 export interface UnitPreferences {
   weight: WeightUnit;
   temperature: TemperatureUnit;
   volume: VolumeUnit;
+  height: HeightUnit;
 }
 
 export const DEFAULT_UNIT_PREFERENCES: UnitPreferences = {
   weight: 'lbs',
   temperature: 'F',
   volume: 'oz',
+  height: 'ft',
 };
 
 export const KG_PER_LB = 0.45359237;
@@ -102,6 +105,9 @@ export function isTemperatureUnit(v: unknown): v is TemperatureUnit {
 export function isVolumeUnit(v: unknown): v is VolumeUnit {
   return v === 'oz' || v === 'mL';
 }
+export function isHeightUnit(v: unknown): v is HeightUnit {
+  return v === 'ft' || v === 'cm';
+}
 
 export function sanitizeUnitPreferences(raw: unknown): UnitPreferences {
   if (!raw || typeof raw !== 'object') return { ...DEFAULT_UNIT_PREFERENCES };
@@ -112,5 +118,6 @@ export function sanitizeUnitPreferences(raw: unknown): UnitPreferences {
       ? r.temperature
       : DEFAULT_UNIT_PREFERENCES.temperature,
     volume: isVolumeUnit(r.volume) ? r.volume : DEFAULT_UNIT_PREFERENCES.volume,
+    height: isHeightUnit(r.height) ? r.height : DEFAULT_UNIT_PREFERENCES.height,
   };
 }
