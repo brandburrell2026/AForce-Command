@@ -1,23 +1,23 @@
 /**
  * Urine Hydration Check — AForce OS.
  *
- * Single-purpose screen that maps a urine color signal to a hydration
- * verdict. Pure logic lives in services/urineHydrationCheck.ts. The
- * screen only renders inputs (four color tiles), the non-medical
- * disclaimer, and the result card.
+ * Primary purpose: map a urine color signal to a hydration verdict
+ * (pure logic in services/urineHydrationCheck.ts).
  *
- * Tone matches the HydroScan rebrand — natural observation, never an
- * aggressive sell, 12 oz pour as the standard, AForce positioned as
- * mineral recovery / hydration efficiency support.
+ * Also hosts the Performance Signals + Energy State self-report
+ * sections that previously lived on the removed "Check" tab — they
+ * feed the same engine recalculation. The urine color picker is the
+ * existing block and is intentionally left untouched.
  */
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   Pressable,
+  TouchableOpacity,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -25,6 +25,9 @@ import { useRouter } from 'expo-router';
 import { GradientBackground } from '@/components/GradientBackground';
 import { Colors } from '@/theme/colors';
 import { Icon } from '@/components/Icon';
+import { useAppStore } from '@/store/useAppStore';
+import { SYMPTOM_CATALOG, ENERGY_STATE_OPTIONS } from '@/data/mockData';
+import type { UserState } from '@/types';
 import {
   assessUrineColor,
   URINE_COLOR_OPTIONS,
@@ -41,12 +44,55 @@ const SEVERITY_COLOR: Record<UrineSeverity, string> = {
   correction: Colors.states.DEPLETED.primary,
 };
 
+// Lazy haptics — same pattern as elsewhere; never reject on web.
+const hapticSelection = () => {
+  import('expo-haptics')
+    .then((m) => m.selectionAsync().catch(() => {}))
+    .catch(() => {});
+};
+const hapticImpactHeavy = () => {
+  import('expo-haptics')
+    .then((m) => m.impactAsync(m.ImpactFeedbackStyle.Heavy).catch(() => {}))
+    .catch(() => {});
+};
+
 export default function UrineHydrationCheckScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [selection, setSelection] = useState<UrineColor | null>(null);
   const result: UrineCheckResult | null = selection ? assessUrineColor(selection) : null;
   const accent = result ? SEVERITY_COLOR[result.severity] : Colors.accent.primary;
+
+  // ── Performance Signals + Energy State (merged in from the old Check tab) ──
+  const { state, updateSymptoms, updateEnergyState, confirmStatus } = useAppStore();
+  const { userState, engineOutput } = state;
+  const stateColor = engineOutput.performanceState.color;
+
+  const [symptoms, setSymptoms] = useState<string[]>(userState.symptoms);
+  const [energy, setEnergy] = useState<UserState['energyState']>(userState.energyState);
+
+  useEffect(() => { setSymptoms(userState.symptoms); }, [userState.symptoms]);
+  useEffect(() => { setEnergy(userState.energyState); }, [userState.energyState]);
+
+  const toggleSymptom = (id: string) => {
+    hapticSelection();
+    setSymptoms((prev) =>
+      prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]
+    );
+  };
+
+  const handleConfirm = async () => {
+    hapticImpactHeavy();
+    try {
+      await Promise.all([
+        updateSymptoms(symptoms),
+        updateEnergyState(energy),
+      ]);
+      await confirmStatus();
+    } catch (err) {
+      console.error('Confirm status failed:', err);
+    }
+  };
 
   return (
     <GradientBackground>
@@ -78,7 +124,7 @@ export default function UrineHydrationCheckScreen() {
           <Text style={styles.subtitle}>{URINE_DISCLAIMER}</Text>
         </View>
 
-        {/* Color tiles */}
+        {/* Color tiles — UNCHANGED */}
         <View style={styles.tileGrid}>
           {URINE_COLOR_OPTIONS.map((opt) => {
             const active = selection === opt.color;
@@ -134,6 +180,84 @@ export default function UrineHydrationCheckScreen() {
             </Text>
           </View>
         )}
+
+        {/* ── Performance Signals (merged from removed Check tab) ─────────── */}
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionLabel}>Performance signals</Text>
+          <Text style={styles.sectionHint}>{symptoms.length} active</Text>
+        </View>
+        <View style={styles.card}>
+          <View style={styles.chipRow}>
+            {SYMPTOM_CATALOG.map((s) => {
+              const active = symptoms.includes(s.id);
+              return (
+                <Pressable
+                  key={s.id}
+                  onPress={() => toggleSymptom(s.id)}
+                  style={[
+                    styles.chip,
+                    active && { borderColor: Colors.danger, backgroundColor: `${Colors.danger}1A` },
+                  ]}
+                >
+                  <Icon
+                    name={active ? 'alert-circle' : 'circle'}
+                    size={12}
+                    color={active ? Colors.danger : Colors.text.muted}
+                  />
+                  <Text style={[styles.chipText, active && { color: Colors.danger }]}>
+                    {s.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        </View>
+
+        {/* ── Energy State ──────────────────────────────────────────────── */}
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionLabel}>Energy state</Text>
+        </View>
+        <View style={styles.energyGrid}>
+          {ENERGY_STATE_OPTIONS.map((opt) => {
+            const selected = energy === opt.value;
+            return (
+              <Pressable
+                key={opt.value}
+                onPress={() => { hapticSelection(); setEnergy(opt.value); }}
+                style={[
+                  styles.energyTile,
+                  {
+                    borderColor: selected ? opt.color : Colors.border.medium,
+                    backgroundColor: selected ? `${opt.color}14` : Colors.background.card,
+                  },
+                ]}
+              >
+                <Text style={[styles.energyLabel, { color: opt.color }]}>{opt.label}</Text>
+                <Text style={styles.energyDesc}>{opt.desc}</Text>
+              </Pressable>
+            );
+          })}
+        </View>
+
+        {/* ── Live score preview ────────────────────────────────────────── */}
+        <View style={[styles.previewCard, { borderColor: `${stateColor}33` }]}>
+          <Text style={styles.previewLabel}>Current score</Text>
+          <Text style={[styles.previewScore, { color: stateColor }]}>{engineOutput.score}</Text>
+          <Text style={styles.previewState}>
+            {engineOutput.performanceState.level} · {engineOutput.command.action}
+          </Text>
+        </View>
+
+        {/* ── Confirm Status ────────────────────────────────────────────── */}
+        <TouchableOpacity
+          style={[styles.confirmBtn, { borderColor: `${stateColor}66` }]}
+          onPress={handleConfirm}
+          activeOpacity={0.85}
+        >
+          <View style={[styles.confirmGlow, { backgroundColor: `${stateColor}1F` }]} />
+          <Icon name="check-circle" size={20} color={stateColor} />
+          <Text style={styles.confirmText}>Confirm status</Text>
+        </TouchableOpacity>
       </ScrollView>
     </GradientBackground>
   );
@@ -257,5 +381,124 @@ const styles = StyleSheet.create({
     color: 'rgba(255,255,255,0.55)',
     fontSize: 14,
     lineHeight: 21,
+  },
+
+  // ── Performance Signals / Energy State (merged sections) ────────────
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 32,
+    marginBottom: 12,
+  },
+  sectionLabel: {
+    fontSize: 12,
+    fontFamily: 'Inter_500Medium',
+    color: Colors.text.muted,
+    letterSpacing: 0.2,
+  },
+  sectionHint: {
+    fontSize: 11,
+    fontFamily: 'Inter_500Medium',
+    color: Colors.text.secondary,
+    letterSpacing: 0.1,
+  },
+  card: {
+    backgroundColor: Colors.background.card,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: Colors.border.subtle,
+    padding: 16,
+  },
+  chipRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  chip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 100,
+    borderWidth: 1,
+    borderColor: Colors.border.medium,
+    backgroundColor: Colors.fill.light,
+  },
+  chipText: {
+    fontSize: 13,
+    fontFamily: 'Inter_500Medium',
+    color: Colors.text.secondary,
+  },
+  energyGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+  },
+  energyTile: {
+    width: '48%',
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    borderRadius: 14,
+    borderWidth: 1,
+  },
+  energyLabel: {
+    fontSize: 13,
+    fontFamily: 'Inter_600SemiBold',
+    letterSpacing: 0.4,
+    marginBottom: 4,
+  },
+  energyDesc: {
+    fontSize: 11,
+    fontFamily: 'Inter_400Regular',
+    color: Colors.text.secondary,
+  },
+  previewCard: {
+    backgroundColor: Colors.background.card,
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: 18,
+    marginTop: 24,
+    marginBottom: 16,
+    alignItems: 'center',
+  },
+  previewLabel: {
+    fontSize: 12,
+    fontFamily: 'Inter_500Medium',
+    color: Colors.text.muted,
+    letterSpacing: 0.2,
+    marginBottom: 6,
+  },
+  previewScore: {
+    fontSize: 44,
+    fontFamily: 'Inter_700Bold',
+    letterSpacing: -2,
+    lineHeight: 50,
+    marginBottom: 4,
+  },
+  previewState: {
+    fontSize: 12,
+    fontFamily: 'Inter_500Medium',
+    color: Colors.text.secondary,
+    textAlign: 'center',
+  },
+  confirmBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    paddingVertical: 18,
+    borderRadius: 16,
+    borderWidth: 1.5,
+    backgroundColor: Colors.background.elevated,
+    overflow: 'hidden',
+  },
+  confirmGlow: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
+  confirmText: {
+    fontSize: 15,
+    fontFamily: 'Inter_600SemiBold',
+    color: Colors.text.primary,
+    letterSpacing: 0.6,
   },
 });
