@@ -68,7 +68,7 @@ const CONTENT: Record<
     headline: 'Correction needed.',
     consequence: 'Hydration deficit beginning to impact output.',
     ctaText: 'CORRECT NOW',
-    command: 'Drink 16 oz water with 1 AForce stick.',
+    command: 'Increase electrolyte intake. Drink 16 oz now.',
   },
   RISK: {
     headline: 'Performance compromised.',

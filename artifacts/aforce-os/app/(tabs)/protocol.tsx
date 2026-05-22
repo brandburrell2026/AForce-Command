@@ -39,6 +39,20 @@ export default function ProtocolScreen() {
   const bottomPadding = Platform.OS === 'web' ? WEB_BOTTOM_PADDING : insets.bottom + TAB_BAR_HEIGHT;
   const stateColor = engineOutput.performanceState.color;
 
+  // Recovery momentum — compares the two most recent history scores so
+  // the section header can quietly surface whether the user is trending
+  // up, holding steady, or sliding. Drives the small label next to
+  // "Command history" and feeds future intelligence widgets.
+  const historyTrendLabel = useMemo(() => {
+    if (history.length < 2) return 'Awaiting signal';
+    const latest = history[0]?.score ?? 0;
+    const prior = history[1]?.score ?? 0;
+    const delta = latest - prior;
+    if (delta > 1) return 'Recovery trending upward';
+    if (delta < -1) return 'Hydration softening';
+    return 'Hydration stable';
+  }, [history]);
+
   return (
     <View style={styles.root}>
       <GradientBackground>
@@ -64,16 +78,16 @@ export default function ProtocolScreen() {
           showsVerticalScrollIndicator={false}
           ListHeaderComponent={
             <View style={styles.header}>
-              <Text style={styles.eyebrow}>PROTOCOL</Text>
+              <Text style={styles.eyebrow}>Protocol</Text>
               <Text style={styles.title}>AForce Protocol</Text>
 
               {/* Current stage — derived synchronously from engineOutput
                   so it updates in real time on every score change. */}
               <View style={[styles.stageCard, { borderColor: `${stateColor}33` }]}>
                 <View style={styles.stageHeader}>
-                  <Text style={[styles.stageLabel, { color: stateColor }]}>STAGE</Text>
-                  <View style={[styles.stagePill, { backgroundColor: `${stateColor}1A`, borderColor: `${stateColor}55` }]}>
-                    <Text style={[styles.stagePillText, { color: stateColor }]}>ACTIVE</Text>
+                  <Text style={[styles.stageLabel, { color: stateColor }]}>Stage</Text>
+                  <View style={[styles.stagePill, { backgroundColor: `${stateColor}14`, borderColor: `${stateColor}40` }]}>
+                    <Text style={[styles.stagePillText, { color: stateColor }]}>Active</Text>
                   </View>
                 </View>
                 <Text style={styles.stageName}>{protocol.stage}</Text>
@@ -99,14 +113,14 @@ export default function ProtocolScreen() {
 
                 <View style={[styles.stageFooter, { borderTopColor: Colors.border.subtle }]}>
                   <View style={styles.footerCol}>
-                    <Text style={styles.footerLabel}>NEXT RECHECK</Text>
+                    <Text style={styles.footerLabel}>Next recheck</Text>
                     <Text style={[styles.footerValue, { color: stateColor }]}>
                       {protocol.nextRecheckMinutes} min
                     </Text>
                   </View>
                   <View style={styles.footerSep} />
                   <View style={styles.footerCol}>
-                    <Text style={styles.footerLabel}>WEEKLY COMPLIANCE</Text>
+                    <Text style={styles.footerLabel}>Recovery consistency</Text>
                     <Text style={[styles.footerValue, { color: Colors.states.PEAK.primary }]}>
                       {protocol.weeklyCompliancePct}%
                     </Text>
@@ -115,23 +129,30 @@ export default function ProtocolScreen() {
               </View>
 
               <View style={styles.summaryRow}>
-                <SummaryCard label="TARGET" value={`${userState.dailyTarget} units`} color={stateColor} />
-                <SummaryCard label="COMPLETED" value={`${userState.unitsConsumedToday} units`} color={stateColor} />
-                <SummaryCard label="STREAK" value={`${userState.complianceStreak}d`} color={Colors.states.PEAK.primary} />
+                <SummaryCard label="Hydration goal" value={`${userState.dailyTarget} units`} color={stateColor} />
+                <SummaryCard label="Recovery progress" value={`${userState.unitsConsumedToday} units`} color={stateColor} />
+                <SummaryCard label="Streak" value={`${userState.complianceStreak}d`} color={Colors.states.PEAK.primary} />
               </View>
 
-              <Text style={styles.sectionTitle}>COMMAND HISTORY</Text>
+              <View style={styles.sectionHeaderRow}>
+                <Text style={styles.sectionTitle}>Command history</Text>
+                <Text style={styles.sectionTrend}>{historyTrendLabel}</Text>
+              </View>
             </View>
           }
-          renderItem={({ item }) => (
-            <View style={layout.isWide ? styles.historyCellWide : undefined}>
-              <HistoryRow entry={item} />
-            </View>
-          )}
+          renderItem={({ item, index }) => {
+            const prev = history[index + 1];
+            const delta = prev ? item.score - prev.score : null;
+            return (
+              <View style={layout.isWide ? styles.historyCellWide : undefined}>
+                <HistoryRow entry={item} delta={delta} />
+              </View>
+            );
+          }}
           ListEmptyComponent={
             <View style={styles.empty}>
               <Icon name="clock" size={32} color={Colors.text.muted} />
-              <Text style={styles.emptyText}>No history yet. Complete your first cycle.</Text>
+              <Text style={styles.emptyText}>Recovery log is empty. Complete your first cycle to begin tracking.</Text>
             </View>
           }
         />
@@ -149,9 +170,17 @@ function SummaryCard({ label, value, color }: { label: string; value: string; co
   );
 }
 
-function HistoryRow({ entry }: { entry: HistoryEntry }) {
+function HistoryRow({ entry, delta }: { entry: HistoryEntry; delta: number | null }) {
   const stateColors = getStateColors(entry.state);
   const color = stateColors.primary;
+  // Recovery direction chip — only render when we have a previous entry
+  // to compare against and the score actually moved.
+  const trend =
+    delta == null || delta === 0
+      ? null
+      : delta > 0
+        ? { icon: 'trending-up' as const, color: Colors.states.PEAK.primary, sign: '+' }
+        : { icon: 'trending-down' as const, color: Colors.states.RECOVERING.primary, sign: '' };
   return (
     <View style={styles.historyRow}>
       <View style={styles.timelineColumn}>
@@ -160,10 +189,18 @@ function HistoryRow({ entry }: { entry: HistoryEntry }) {
       </View>
       <View style={[styles.historyCard, { borderColor: Colors.border.subtle }]}>
         <View style={styles.historyCardHeader}>
-          <View style={[styles.historyStateBadge, { backgroundColor: `${color}1A`, borderColor: `${color}44` }]}>
+          <View style={[styles.historyStateBadge, { backgroundColor: `${color}14`, borderColor: `${color}33` }]}>
             <Text style={[styles.historyState, { color }]}>{entry.state}</Text>
           </View>
           <View style={styles.historyMeta}>
+            {trend && (
+              <View style={[styles.trendChip, { borderColor: `${trend.color}40` }]}>
+                <Icon name={trend.icon} size={11} color={trend.color} />
+                <Text style={[styles.trendText, { color: trend.color }]}>
+                  {trend.sign}{delta}
+                </Text>
+              </View>
+            )}
             <Text style={styles.historyScore}>{entry.score}</Text>
             <Text style={styles.historyTime}>{formatTimeAgo(entry.timestamp)}</Text>
           </View>
@@ -179,12 +216,12 @@ const styles = StyleSheet.create({
   content: { paddingHorizontal: 20 },
   header: { marginBottom: 8 },
   eyebrow: {
-    fontSize: 10, fontFamily: 'Inter_700Bold', color: Colors.text.muted,
-    letterSpacing: 3, marginBottom: 4, marginTop: 8,
+    fontSize: 12, fontFamily: 'Inter_500Medium', color: Colors.text.muted,
+    letterSpacing: 0.2, marginBottom: 6, marginTop: 8,
   },
   title: {
-    fontSize: 28, fontFamily: 'Inter_700Bold', color: Colors.text.primary,
-    letterSpacing: -0.5, marginBottom: 18,
+    fontSize: 28, fontFamily: 'Inter_600SemiBold', color: Colors.text.primary,
+    letterSpacing: -0.5, marginBottom: 20,
   },
   stageCard: {
     backgroundColor: Colors.background.card,
@@ -198,17 +235,17 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   stageLabel: {
-    fontSize: 10, fontFamily: 'Inter_700Bold', letterSpacing: 2.5,
+    fontSize: 12, fontFamily: 'Inter_500Medium', letterSpacing: 0.2,
   },
   stagePill: {
     paddingHorizontal: 10, paddingVertical: 4, borderRadius: 100, borderWidth: 1,
   },
   stagePillText: {
-    fontSize: 9, fontFamily: 'Inter_700Bold', letterSpacing: 1.5,
+    fontSize: 11, fontFamily: 'Inter_500Medium', letterSpacing: 0.2,
   },
   stageName: {
-    fontSize: 22, fontFamily: 'Inter_700Bold', color: Colors.text.primary,
-    letterSpacing: -0.4, marginBottom: 6,
+    fontSize: 22, fontFamily: 'Inter_600SemiBold', color: Colors.text.primary,
+    letterSpacing: -0.4, marginBottom: 8,
   },
   stageDesc: {
     fontSize: 13, fontFamily: 'Inter_400Regular', color: Colors.text.secondary,
@@ -235,23 +272,31 @@ const styles = StyleSheet.create({
   footerCol: { flex: 1 },
   footerSep: { width: 1, backgroundColor: Colors.border.subtle, marginHorizontal: 8 },
   footerLabel: {
-    fontSize: 9, fontFamily: 'Inter_700Bold', color: Colors.text.muted,
-    letterSpacing: 1.5, marginBottom: 4,
+    fontSize: 11, fontFamily: 'Inter_500Medium', color: Colors.text.muted,
+    letterSpacing: 0.2, marginBottom: 4,
   },
-  footerValue: { fontSize: 16, fontFamily: 'Inter_700Bold', letterSpacing: -0.3 },
-  summaryRow: { flexDirection: 'row', gap: 10, marginBottom: 24 },
+  footerValue: { fontSize: 16, fontFamily: 'Inter_600SemiBold', letterSpacing: -0.3 },
+  summaryRow: { flexDirection: 'row', gap: 10, marginBottom: 28 },
   summaryCard: {
     flex: 1, backgroundColor: Colors.background.card, borderRadius: 12,
     borderWidth: 1, padding: 14, alignItems: 'center',
   },
   summaryLabel: {
-    fontSize: 9, fontFamily: 'Inter_700Bold', color: Colors.text.muted,
-    letterSpacing: 1.5, marginBottom: 6,
+    fontSize: 11, fontFamily: 'Inter_500Medium', color: Colors.text.muted,
+    letterSpacing: 0.1, marginBottom: 6, textAlign: 'center',
   },
-  summaryValue: { fontSize: 15, fontFamily: 'Inter_700Bold', letterSpacing: -0.3 },
+  summaryValue: { fontSize: 15, fontFamily: 'Inter_600SemiBold', letterSpacing: -0.3 },
+  sectionHeaderRow: {
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    marginBottom: 14,
+  },
   sectionTitle: {
-    fontSize: 10, fontFamily: 'Inter_700Bold', color: Colors.text.muted,
-    letterSpacing: 2.5, marginBottom: 12,
+    fontSize: 12, fontFamily: 'Inter_500Medium', color: Colors.text.muted,
+    letterSpacing: 0.2,
+  },
+  sectionTrend: {
+    fontSize: 11, fontFamily: 'Inter_400Regular',
+    color: Colors.text.secondary, letterSpacing: 0.1,
   },
   historyRow: { flexDirection: 'row', gap: 14, marginBottom: 2 },
   timelineColumn: { alignItems: 'center', width: 16, paddingTop: 16 },
@@ -267,10 +312,16 @@ const styles = StyleSheet.create({
   historyStateBadge: {
     paddingHorizontal: 10, paddingVertical: 3, borderRadius: 100, borderWidth: 1,
   },
-  historyState: { fontSize: 9, fontFamily: 'Inter_700Bold', letterSpacing: 1.5 },
+  historyState: { fontSize: 11, fontFamily: 'Inter_500Medium', letterSpacing: 0.2 },
   historyMeta: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  historyScore: { fontSize: 15, fontFamily: 'Inter_700Bold', color: Colors.text.primary },
+  historyScore: { fontSize: 15, fontFamily: 'Inter_600SemiBold', color: Colors.text.primary, letterSpacing: -0.2 },
   historyTime: { fontSize: 11, fontFamily: 'Inter_400Regular', color: Colors.text.muted },
+  trendChip: {
+    flexDirection: 'row', alignItems: 'center', gap: 4,
+    paddingHorizontal: 8, paddingVertical: 3,
+    borderRadius: 100, borderWidth: StyleSheet.hairlineWidth,
+  },
+  trendText: { fontSize: 11, fontFamily: 'Inter_500Medium', letterSpacing: -0.1 },
   historyAction: {
     fontSize: 13, fontFamily: 'Inter_500Medium', color: Colors.text.secondary, lineHeight: 18,
   },
