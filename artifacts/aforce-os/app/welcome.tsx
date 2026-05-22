@@ -381,11 +381,16 @@ function RotatingRing({
  * write head between words. Reads like a system log printing live.
  */
 type Segment = { text: string; color: string };
+// Narrative colour arc: soft gray (rest) → teal (replenish) → lime
+// (peak readiness) → white (execute). The sequence mirrors the dynamic
+// state boot on home — the user moves from depleted through the bands
+// and lands on performance. INITIALIZING above the tagline stays — it
+// frames the moment as OS-level, not app-level.
 const TAGLINE_SEGMENTS: Segment[] = [
-  { text: 'Pause', color: '#E53935' },
-  { text: 'Hydrate', color: 'rgba(255,255,255,0.92)' },
-  { text: 'Lock in', color: '#FFC93C' },
-  { text: 'Perform', color: 'rgba(255,255,255,0.92)' },
+  { text: 'Pause', color: 'rgba(255,255,255,0.55)' },
+  { text: 'Hydrate', color: '#1FB8A6' },
+  { text: 'Lock In', color: '#B6FF00' },
+  { text: 'Perform', color: 'rgba(255,255,255,0.96)' },
 ];
 const TAGLINE_STEP_MS = 520;
 
