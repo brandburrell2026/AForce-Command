@@ -18,10 +18,12 @@ import * as Haptics from 'expo-haptics';
 import Animated, {
   cancelAnimation,
   Easing,
+  runOnJS,
   useAnimatedProps,
   useAnimatedStyle,
   useSharedValue,
   withRepeat,
+  withSequence,
   withTiming,
 } from 'react-native-reanimated';
 import Svg, {
@@ -173,7 +175,14 @@ export default function JournalChart({
   const haloMidProps = useAnimatedProps(() => ({
     opacity: 0.12 + breath.value * 0.10,
   }));
+  // Crossfade opacity — fades the whole constellation out when `data`
+  // changes (range switch from 7d → 30d → 90d), swaps the underlying
+  // dataset at the trough, then fades back in. Combined with the drift
+  // transform below so motion + opacity feel like one organic gesture
+  // rather than a hard re-render.
+  const fade = useSharedValue(1);
   const driftStyle = useAnimatedStyle(() => ({
+    opacity: fade.value,
     transform: [{ translateY: -2 + drift.value * 4 }],
   }));
   // ±~8% line opacity drift around 0.93 — never lower than 0.85.
@@ -181,8 +190,28 @@ export default function JournalChart({
     opacity: 0.86 + shimmer.value * 0.14,
   }));
 
+  // Deferred dataset: we render `renderedData` (not the incoming prop)
+  // so we can hold the previous frame visible while the fade-out plays,
+  // then swap to the new data exactly at the opacity trough.
+  const [renderedData, setRenderedData] = useState<JournalSnapshot[]>(data);
+  useEffect(() => {
+    if (renderedData === data) return;
+    fade.value = withSequence(
+      withTiming(0.12, { duration: 220, easing: Easing.in(Easing.cubic) }, (finished) => {
+        if (finished) {
+          runOnJS(setRenderedData)(data);
+        }
+      }),
+      withTiming(1, { duration: 360, easing: Easing.out(Easing.cubic) }),
+    );
+    // We intentionally exclude `renderedData` from deps — including it
+    // would re-fire this effect inside the runOnJS callback and double-
+    // animate the fade. We only care about `data` reference changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data, fade]);
+
   const { points, pathD, avg, trendDiff } = useMemo(() => {
-    if (data.length === 0) {
+    if (renderedData.length === 0) {
       return {
         points: [] as { x: number; y: number; score: number; kind: DotKind; at: string }[],
         pathD: '',
@@ -190,7 +219,7 @@ export default function JournalChart({
         trendDiff: 0,
       };
     }
-    const buckets = bucketize(data, TARGET_ANCHORS);
+    const buckets = bucketize(renderedData, TARGET_ANCHORS);
     const tMin = buckets[0].t;
     const tMax = buckets[buckets.length - 1].t;
     const tSpan = Math.max(1, tMax - tMin);
@@ -206,24 +235,24 @@ export default function JournalChart({
       return { x, y, score: b.score, kind: classify(b.score), at: b.at };
     });
 
-    const sumScore = data.reduce((acc, d) => acc + d.score, 0);
-    const avgScore = Math.round(sumScore / data.length);
+    const sumScore = renderedData.reduce((acc, d) => acc + d.score, 0);
+    const avgScore = Math.round(sumScore / renderedData.length);
 
-    const mid = Math.floor(data.length / 2);
+    const mid = Math.floor(renderedData.length / 2);
     let trend = 0;
-    if (data.length >= 2 && mid > 0) {
+    if (renderedData.length >= 2 && mid > 0) {
       const firstAvg =
-        data.slice(0, mid).reduce((a, d) => a + d.score, 0) / mid;
+        renderedData.slice(0, mid).reduce((a, d) => a + d.score, 0) / mid;
       const secondAvg =
-        data.slice(mid).reduce((a, d) => a + d.score, 0) /
-        (data.length - mid);
+        renderedData.slice(mid).reduce((a, d) => a + d.score, 0) /
+        (renderedData.length - mid);
       trend = secondAvg - firstAvg;
     }
 
     return { points: pts, pathD: smoothPath(pts), avg: avgScore, trendDiff: trend };
-  }, [data, innerH, innerW]);
+  }, [renderedData, innerH, innerW]);
 
-  if (data.length === 0) {
+  if (renderedData.length === 0) {
     return (
       <View style={[styles.empty, { width, height }]}>
         <Text style={styles.emptyText}>Awaiting signal</Text>
@@ -248,9 +277,11 @@ export default function JournalChart({
     setSelectedIdx((prev) => (prev === i ? null : i));
   }, []);
   // Reset selection if the underlying data set changes (e.g. range switch).
+  // Tied to `renderedData` so the bubble clears at the same instant the
+  // new constellation appears, not before the crossfade swap.
   useEffect(() => {
     setSelectedIdx(null);
-  }, [data]);
+  }, [renderedData]);
 
   const HIT = 28; // generous touch target around each node
   const selected = selectedIdx != null ? points[selectedIdx] : null;
