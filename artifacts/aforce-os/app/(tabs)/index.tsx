@@ -286,6 +286,12 @@ function ScoreDrivenBody({
         </Text>
       </TouchableOpacity>
 
+      {/* Quick-action tile grid — Scan, Compete, Circles, Territory.
+          Sits directly under the primary CTA per spec. */}
+      <View style={styles.entryActionsRow}>
+        <EntryActions />
+      </View>
+
       {/* 6 — Next Command (light, not a heavy card) */}
       <View style={styles.nextCommand} testID="home-command-preview">
         <Text style={[styles.nextCommandEyebrow, { color: orbColor }]}>NEXT COMMAND</Text>
@@ -329,11 +335,6 @@ function ScoreDrivenBody({
             score={displayedScore}
           />
         </View>
-      </View>
-
-      {/* Quick-action tile grid — Scan, Compete, Circles, Territory */}
-      <View style={styles.entryActionsRow}>
-        <EntryActions />
       </View>
 
       {/* Live Signals strip (Heat Guard).
