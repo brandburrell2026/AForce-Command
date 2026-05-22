@@ -87,30 +87,6 @@ function EntryActionsImpl() {
 
   // ── Sheet payload builders ────────────────────────────────────────
   const payload: BiometricSheetPayload | null = React.useMemo(() => {
-    if (openKey === 'sweat') {
-      return {
-        eyebrow: 'SWEAT LOSS',
-        accent: sweatAccent,
-        icon: 'droplet',
-        heroValue: `${sweat.fluidLossOz} oz`,
-        heroLabel: `projected · ${sweat.intensity} intensity`,
-        subline:
-          sweat.efficiencyPct >= 100
-            ? `Replacement on track · ${sweat.efficiencyPct}% efficiency`
-            : `Replacement gap · ${100 - sweat.efficiencyPct}% behind loss`,
-        confidence: sweat.confidence,
-        metrics: [
-          { label: 'SODIUM', value: `${sweat.sodiumLossMg} mg` },
-          { label: 'EFFICIENCY', value: `${sweat.efficiencyPct}%`, valueColor: sweatAccent },
-          { label: 'INTENSITY', value: capitalize(sweat.intensity) },
-        ],
-        primaryAction: {
-          label: 'Open Sweat Calculator',
-          icon: 'sliders',
-          onPress: () => router.push('/sweat'),
-        },
-      };
-    }
     if (openKey === 'forecast') {
       return {
         eyebrow: 'PERFORMANCE FORECAST',
@@ -164,6 +140,12 @@ function EntryActionsImpl() {
     if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
     if (key === 'urine') {
       router.push('/urine-check');
+      return;
+    }
+    if (key === 'sweat') {
+      // Sweat Loss snapshot is now rendered inline at the top of the
+      // Sweat Calculator screen — single unified surface.
+      router.push('/sweat');
       return;
     }
     setOpenKey(key);

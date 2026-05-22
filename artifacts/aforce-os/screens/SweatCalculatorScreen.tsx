@@ -44,7 +44,8 @@ import {
   pickRecoveryProtocol,
   type RecoveryProtocolPlan,
 } from '@/services/recoveryProtocolService';
-import { useActionsSlice, useInventorySlice } from '@/store/slices';
+import { useActionsSlice, useInventorySlice, useUserSlice } from '@/store/slices';
+import { deriveSweatLoss } from '@/services/biometricIntelligence';
 import {
   getCurrentCityClimate,
   getCurrentCityClimateSync,
@@ -65,6 +66,59 @@ const DEFICIT_COLOR: Record<string, string> = {
   impaired: Colors.states.RECOVERING.primary,
   danger: Colors.states.DEPLETED.primary,
 };
+
+// ── Live Sweat Loss snapshot ─────────────────────────────────────────
+// Mirrors what the home Sweat tile used to surface in its detail sheet
+// — projected fluid loss, sodium, efficiency, intensity — so the user
+// lands on the calculator with the live read already in view.
+function SweatLossSnapshot() {
+  const user = useUserSlice();
+  const snap = React.useMemo(() => deriveSweatLoss(user), [user]);
+
+  const accent =
+    snap.efficiencyPct >= 100 ? Colors.states.PEAK.primary
+    : snap.efficiencyPct >= 60 ? Colors.states.BALANCED.primary
+    : Colors.states.RECOVERING.primary;
+
+  const intensityLabel =
+    snap.intensity.charAt(0).toUpperCase() + snap.intensity.slice(1);
+
+  return (
+    <View style={[styles.snapshotCard, { borderColor: accent + '55' }]}>
+      <View style={styles.snapshotHeaderRow}>
+        <Text style={[styles.snapshotEyebrow, { color: accent }]}>SWEAT LOSS · LIVE</Text>
+        {snap.confidence === 'low' ? (
+          <Text style={styles.snapshotConfidence}>EST.</Text>
+        ) : null}
+      </View>
+      <View style={styles.snapshotHeroRow}>
+        <Text style={styles.snapshotHero}>{snap.fluidLossOz}</Text>
+        <Text style={styles.snapshotHeroUnit}>oz projected</Text>
+      </View>
+      <View style={styles.snapshotMetricsRow}>
+        <View style={styles.snapshotMetric}>
+          <Text style={styles.snapshotMetricLabel}>SODIUM</Text>
+          <Text style={styles.snapshotMetricValue}>{snap.sodiumLossMg} mg</Text>
+        </View>
+        <View style={styles.snapshotMetricDivider} />
+        <View style={styles.snapshotMetric}>
+          <Text style={styles.snapshotMetricLabel}>EFFICIENCY</Text>
+          <Text style={[styles.snapshotMetricValue, { color: accent }]}>
+            {snap.efficiencyPct}%
+          </Text>
+        </View>
+        <View style={styles.snapshotMetricDivider} />
+        <View style={styles.snapshotMetric}>
+          <Text style={styles.snapshotMetricLabel}>INTENSITY</Text>
+          <Text style={styles.snapshotMetricValue}>{intensityLabel}</Text>
+        </View>
+      </View>
+      <Text style={styles.snapshotHint}>
+        Run a calculation below for a calibrated reading.
+      </Text>
+    </View>
+  );
+}
 
 export default function SweatCalculatorScreen() {
   const router = useRouter();
@@ -274,6 +328,8 @@ export default function SweatCalculatorScreen() {
               Measure your sweat rate, sodium loss, and the exact AForce
               replacement protocol — calibrated to ACSM and Baker 2017.
             </Text>
+
+            <SweatLossSnapshot />
 
             <ModeSegment mode={mode} onChange={setMode} />
 
@@ -1131,6 +1187,75 @@ const styles = StyleSheet.create({
   },
   title: { color: Colors.text.primary, fontSize: 26, fontWeight: '800', letterSpacing: -0.4 },
   subhead: { color: Colors.text.secondary, fontSize: 13, lineHeight: 18 },
+
+  snapshotCard: {
+    backgroundColor: Colors.background.card,
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: 16,
+    gap: 12,
+  },
+  snapshotHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  snapshotEyebrow: {
+    fontSize: 10,
+    letterSpacing: 1.6,
+    fontWeight: '700',
+  },
+  snapshotConfidence: {
+    fontSize: 9,
+    letterSpacing: 1.2,
+    fontWeight: '700',
+    color: Colors.text.secondary,
+  },
+  snapshotHeroRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 8,
+  },
+  snapshotHero: {
+    fontSize: 38,
+    fontWeight: '800',
+    letterSpacing: -0.6,
+    color: Colors.text.primary,
+  },
+  snapshotHeroUnit: {
+    fontSize: 13,
+    color: Colors.text.secondary,
+  },
+  snapshotMetricsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  snapshotMetric: {
+    flex: 1,
+    gap: 4,
+  },
+  snapshotMetricDivider: {
+    width: StyleSheet.hairlineWidth,
+    alignSelf: 'stretch',
+    backgroundColor: Colors.border.medium,
+    marginHorizontal: 8,
+  },
+  snapshotMetricLabel: {
+    fontSize: 9,
+    letterSpacing: 1.2,
+    fontWeight: '700',
+    color: Colors.text.secondary,
+  },
+  snapshotMetricValue: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: Colors.text.primary,
+  },
+  snapshotHint: {
+    fontSize: 11,
+    color: Colors.text.secondary,
+    lineHeight: 15,
+  },
 
   segment: {
     flexDirection: 'row',
