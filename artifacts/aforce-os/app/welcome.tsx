@@ -548,7 +548,10 @@ export default function SplashScreen() {
   const sweepActive = stage === 2;
   const showNumber = stage >= 3;
   const showCritical = stage >= 3;
-  const showCopy = stage === 4;
+  // Surface the manifesto from the very first frame so the opening
+  // view already shows "Performance is non-negotiable." + the four-
+  // word protocol tagline, not just at stage 4.
+  const showCopy = true;
   const showContinue = stage === 4;
 
   return (
