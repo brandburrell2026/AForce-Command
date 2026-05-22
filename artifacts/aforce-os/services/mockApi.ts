@@ -187,12 +187,43 @@ export function deriveProtocol(
   return {
     stage,
     description: PROTOCOL_DESCRIPTION[stage],
-    steps: [
-      { id: 's1', label: 'Confirm hydration signal', window: 'Now', complete: userState.urineSignal > 0 },
-      { id: 's2', label: 'Log next intake', window: `Within ${engineOutput.riskTimer.minutes} min`, complete: false },
-      { id: 's3', label: 'Recheck performance signals', window: 'After intake', complete: false },
-      { id: 's4', label: 'Confirm Status', window: 'End of cycle', complete: false },
-    ],
+    steps: (() => {
+      // Step completion is driven off live `userState` so the moment a
+      // drink is logged the protocol checklist advances in real time.
+      // - s1 = any hydration signal on record (urine pick or first intake)
+      // - s2 = at least one intake logged this cycle
+      // - s3 = halfway through the daily target (signals due for recheck)
+      // - s4 = daily target reached → cycle ready to close
+      const intakes = userState.unitsConsumedToday;
+      const target = Math.max(1, userState.dailyTarget);
+      const halfway = Math.ceil(target / 2);
+      return [
+        {
+          id: 's1',
+          label: 'Confirm hydration signal',
+          window: 'Now',
+          complete: userState.urineSignal > 0 || intakes > 0,
+        },
+        {
+          id: 's2',
+          label: 'Log next intake',
+          window: `Within ${engineOutput.riskTimer.minutes} min`,
+          complete: intakes >= 1,
+        },
+        {
+          id: 's3',
+          label: 'Recheck performance signals',
+          window: 'After intake',
+          complete: intakes >= halfway,
+        },
+        {
+          id: 's4',
+          label: 'Confirm Status',
+          window: 'End of cycle',
+          complete: intakes >= target,
+        },
+      ];
+    })(),
     nextRecheckMinutes: engineOutput.riskTimer.minutes,
     weeklyCompliancePct,
   };
