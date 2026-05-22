@@ -1462,26 +1462,26 @@ const styles = StyleSheet.create({
   wordmarkPrimary: {
     fontFamily: FONT_BOLD,
     color: TEXT_BRIGHT,
-    fontSize: 32,
-    letterSpacing: 10,
+    fontSize: 46,
+    letterSpacing: 12,
     includeFontPadding: false,
     // Optical balance: AFORCE shifts right by its own added tracking
     // on the last glyph, so nudge left to keep the group centered.
-    marginLeft: 10,
+    marginLeft: 12,
   },
   wordmarkDivider: {
     width: StyleSheet.hairlineWidth,
-    height: 22,
+    height: 30,
     backgroundColor: 'rgba(255,255,255,0.22)',
-    marginHorizontal: 14,
+    marginHorizontal: 16,
   },
   wordmarkSuffix: {
     fontFamily: FONT_MEDIUM,
     color: 'rgba(255,255,255,0.72)',
-    fontSize: 14,
-    letterSpacing: 5,
+    fontSize: 20,
+    letterSpacing: 6,
     includeFontPadding: false,
     // Sit slightly above the AFORCE baseline — system-suffix register.
-    marginTop: -2,
+    marginTop: -3,
   },
 });
