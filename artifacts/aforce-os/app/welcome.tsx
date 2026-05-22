@@ -1449,10 +1449,10 @@ const styles = StyleSheet.create({
   },
   welcomeKicker: {
     fontFamily: FONT_MEDIUM,
-    color: 'rgba(255,255,255,0.40)',
-    fontSize: 10,
-    letterSpacing: 8,
-    marginBottom: 4,
+    color: 'rgba(255,255,255,0.55)',
+    fontSize: 16,
+    letterSpacing: 12,
+    marginBottom: 8,
   },
   wordmarkRow: {
     flexDirection: 'row',
