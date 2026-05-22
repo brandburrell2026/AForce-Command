@@ -1,20 +1,19 @@
 /**
- * Score Over Time — premium performance telemetry chart.
+ * Score Over Time — calm, readable telemetry chart.
  *
- * Cinematic visual language inspired by WHOOP / Oura / F1 telemetry:
- *   • smooth catmull-rom → cubic-bezier curve (no jagged polyline)
- *   • soft gradient area fill, color-shifted by score band
- *   • subtle band guides at PEAK / BALANCED thresholds
- *   • glowing per-point dots, color-coded by performance state
- *   • pulsing "now" node on the most recent reading
- *   • sentence-case stat strip below the chart
+ * Visual language (per latest spec):
+ *   • white score line on a soft green area fill
+ *   • semantic dots per reading:
+ *       🟢 lime    — command completed (stable / improving)
+ *       🟠 amber   — missed command   (score dropped meaningfully)
+ *       🔵 cyan    — intake logged    (score jumped up)
+ *   • restrained guides at 85 / 65, no extra tick clutter
  *
- * Built on `react-native-svg` + `react-native-reanimated` (already deps).
- * No external chart libs. Pure component — same Props contract as before,
- * so callers are unaffected.
+ * Built on `react-native-svg` (already a dep). Same Props as before, so
+ * callers don't change.
  */
 
-import React, { useEffect, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Svg, {
   Circle,
@@ -22,22 +21,11 @@ import Svg, {
   LinearGradient,
   Line,
   Path,
-  RadialGradient,
   Stop,
   Text as SvgText,
 } from 'react-native-svg';
-import Animated, {
-  cancelAnimation,
-  Easing,
-  useAnimatedProps,
-  useSharedValue,
-  withRepeat,
-  withTiming,
-} from 'react-native-reanimated';
 import type { JournalSnapshot } from '@/types';
 import { Colors } from '@/theme/colors';
-
-const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 interface Props {
   data: JournalSnapshot[];
@@ -54,18 +42,36 @@ const SCORE_MIN = 0;
 const SCORE_MAX = 100;
 const TREND_THRESHOLD = 3;
 
-/** Map a score (0..100) to the matching state-band color. */
-function scoreBandColor(score: number): string {
-  if (score >= 85) return Colors.states.PEAK.primary;
-  if (score >= 65) return Colors.states.BALANCED.primary;
-  if (score >= 40) return Colors.states.RECOVERING.primary;
-  return Colors.states.DEPLETED.primary;
+// Semantic dot palette — kept restrained, not esports RGB.
+const DOT = {
+  completed: Colors.states.PEAK.primary,        // 🟢 lime
+  missed:    Colors.states.RECOVERING.primary,  // 🟠 amber
+  intake:    Colors.states.BALANCED.primary,    // 🔵 cyan
+} as const;
+
+type DotKind = keyof typeof DOT;
+
+// Soft green for the area fill under the line — single, calm color.
+const AREA_GREEN = Colors.states.PEAK.primary;
+
+/**
+ * Classify each reading vs the one before it:
+ *   - big jump up (≥ +4)   → intake logged
+ *   - big drop  (≤ -4)     → missed command
+ *   - otherwise            → command completed / holding
+ * First reading always reads as `completed` (no prior to compare).
+ */
+function classify(curr: number, prev: number | undefined): DotKind {
+  if (prev == null) return 'completed';
+  const delta = curr - prev;
+  if (delta >= 4) return 'intake';
+  if (delta <= -4) return 'missed';
+  return 'completed';
 }
 
 /**
- * Catmull–Rom → cubic-Bezier path. Produces a smooth curve through every
- * point without overshoot, which is exactly the calm, fluid line the
- * spec asks for (no jagged polyline, no spreadsheet-app vibe).
+ * Catmull–Rom → cubic-Bezier path. Smooth curve through every point
+ * without overshoot — the calm line the spec asks for.
  */
 function smoothPath(points: { x: number; y: number }[]): string {
   if (points.length === 0) return '';
@@ -86,6 +92,13 @@ function smoothPath(points: { x: number; y: number }[]): string {
   return d;
 }
 
+function scoreBandColor(score: number): string {
+  if (score >= 85) return Colors.states.PEAK.primary;
+  if (score >= 65) return Colors.states.BALANCED.primary;
+  if (score >= 40) return Colors.states.RECOVERING.primary;
+  return Colors.states.DEPLETED.primary;
+}
+
 export default function JournalChart({
   data,
   width,
@@ -96,41 +109,14 @@ export default function JournalChart({
   const innerW = Math.max(40, width - PADDING.left - PADDING.right);
   const innerH = Math.max(40, height - PADDING.top - PADDING.bottom);
 
-  // Slow, calm pulse for the most-recent "now" node — telemetry breath.
-  const pulse = useSharedValue(0);
-  useEffect(() => {
-    pulse.value = withRepeat(
-      withTiming(1, { duration: 1600, easing: Easing.inOut(Easing.quad) }),
-      -1,
-      true,
-    );
-    return () => cancelAnimation(pulse);
-  }, [pulse]);
-  const pulseProps = useAnimatedProps(() => ({
-    r: 9 + pulse.value * 6,
-    opacity: 0.35 - pulse.value * 0.3,
-  }));
-
-  const {
-    points,
-    pathD,
-    areaD,
-    avg,
-    trendDiff,
-    lastPoint,
-    lastColor,
-    areaTopColor,
-  } = useMemo(() => {
+  const { points, pathD, areaD, avg, trendDiff } = useMemo(() => {
     if (data.length === 0) {
       return {
-        points: [] as { x: number; y: number; score: number }[],
+        points: [] as { x: number; y: number; score: number; kind: DotKind }[],
         pathD: '',
         areaD: '',
         avg: 0,
         trendDiff: 0,
-        lastPoint: null as null | { x: number; y: number; score: number },
-        lastColor: Colors.text.muted,
-        areaTopColor: 'rgba(255,255,255,0.18)',
       };
     }
     const ts = data.map((d) => new Date(d.at).getTime());
@@ -139,8 +125,6 @@ export default function JournalChart({
     const tSpan = Math.max(1, tMax - tMin);
 
     const pts = data.map((d, i) => {
-      // Single-point series: center horizontally so it doesn't slam the
-      // left edge — feels like an intentional reading, not a layout bug.
       const x =
         data.length === 1
           ? PADDING.left + innerW / 2
@@ -148,11 +132,11 @@ export default function JournalChart({
       const y =
         PADDING.top +
         (1 - (d.score - SCORE_MIN) / (SCORE_MAX - SCORE_MIN)) * innerH;
-      return { x, y, score: d.score };
+      const kind = classify(d.score, data[i - 1]?.score);
+      return { x, y, score: d.score, kind };
     });
 
     const lineD = smoothPath(pts);
-    // Close the smoothed line into a soft area for the gradient fill.
     const bottomY = PADDING.top + innerH;
     const fillD = pts.length
       ? `${lineD} L${pts[pts.length - 1].x.toFixed(2)},${bottomY.toFixed(2)} L${pts[0].x.toFixed(2)},${bottomY.toFixed(2)} Z`
@@ -171,17 +155,7 @@ export default function JournalChart({
       trend = secondAvg - firstAvg;
     }
 
-    const last = pts[pts.length - 1];
-    return {
-      points: pts,
-      pathD: lineD,
-      areaD: fillD,
-      avg: avgScore,
-      trendDiff: trend,
-      lastPoint: last,
-      lastColor: scoreBandColor(last.score),
-      areaTopColor: scoreBandColor(avgScore),
-    };
+    return { points: pts, pathD: lineD, areaD: fillD, avg: avgScore, trendDiff: trend };
   }, [data, innerH, innerW]);
 
   if (data.length === 0) {
@@ -208,32 +182,27 @@ export default function JournalChart({
   const compliancePctClamped = Math.max(0, Math.min(100, Math.round(weeklyCompliancePct)));
   const streakClamped = Math.max(0, Math.round(complianceStreak));
 
+  // Tally dot kinds for the legend so the user knows what each color
+  // represents at a glance — no separate help screen needed.
+  const counts = points.reduce(
+    (acc, p) => ({ ...acc, [p.kind]: acc[p.kind] + 1 }),
+    { completed: 0, missed: 0, intake: 0 } as Record<DotKind, number>,
+  );
+
   return (
     <View style={{ width }}>
       <Svg width={width} height={height}>
         <Defs>
-          {/* Area gradient — band-tinted at the top, fully transparent
-              at the baseline. Restraint over saturation. */}
+          {/* Soft green area fill — single hue, low alpha, fades to
+              transparent at the baseline. Calm, not saturated. */}
           <LinearGradient id="areaFill" x1="0" y1="0" x2="0" y2="1">
-            <Stop offset="0" stopColor={areaTopColor} stopOpacity="0.32" />
-            <Stop offset="0.55" stopColor={areaTopColor} stopOpacity="0.10" />
-            <Stop offset="1" stopColor={areaTopColor} stopOpacity="0" />
+            <Stop offset="0" stopColor={AREA_GREEN} stopOpacity="0.22" />
+            <Stop offset="0.6" stopColor={AREA_GREEN} stopOpacity="0.07" />
+            <Stop offset="1" stopColor={AREA_GREEN} stopOpacity="0" />
           </LinearGradient>
-          {/* Line gradient — fades subtly from the band color into white
-              so the leading edge feels alive without esports glare. */}
-          <LinearGradient id="lineStroke" x1="0" y1="0" x2="1" y2="0">
-            <Stop offset="0" stopColor="rgba(255,255,255,0.55)" />
-            <Stop offset="1" stopColor={lastColor} />
-          </LinearGradient>
-          {/* Soft halo behind the live node. */}
-          <RadialGradient id="liveHalo" cx="50%" cy="50%" r="50%">
-            <Stop offset="0" stopColor={lastColor} stopOpacity="0.55" />
-            <Stop offset="1" stopColor={lastColor} stopOpacity="0" />
-          </RadialGradient>
         </Defs>
 
-        {/* Quiet horizontal guides at the meaningful thresholds only —
-            85 (peak) and 65 (balanced). No tick clutter at 0/50/100. */}
+        {/* Quiet horizontal guides at the meaningful thresholds only. */}
         {[85, 65].map((v) => (
           <React.Fragment key={`guide-${v}`}>
             <Line
@@ -257,71 +226,51 @@ export default function JournalChart({
           </React.Fragment>
         ))}
 
-        {/* Gradient area under the curve */}
+        {/* Green area fill under the curve */}
         {areaD && <Path d={areaD} fill="url(#areaFill)" />}
 
-        {/* Smooth line — a soft underlayer for ambient glow, then the
-            crisp gradient stroke on top. */}
+        {/* Crisp white score line — single, clean stroke. No halo, no
+            gradient, no esports glow. */}
         {pathD && (
-          <>
-            <Path
-              d={pathD}
-              stroke={lastColor}
-              strokeOpacity={0.18}
-              strokeWidth={6}
-              fill="none"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            <Path
-              d={pathD}
-              stroke="url(#lineStroke)"
-              strokeWidth={1.75}
-              fill="none"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </>
+          <Path
+            d={pathD}
+            stroke="rgba(255,255,255,0.92)"
+            strokeWidth={1.75}
+            fill="none"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
         )}
 
-        {/* Per-point glowing dots — color-coded by performance band.
-            Higher scores get a brighter dot; depleted reads stay muted
-            so the eye lands on recovery, not the crash. */}
+        {/* Semantic dots — one per reading, color-coded by event kind. */}
         {points.map((p, i) => {
-          const isLast = i === points.length - 1;
-          const dotColor = scoreBandColor(p.score);
-          const intensity = Math.max(0.35, Math.min(1, p.score / 100));
-          if (isLast) return null; // rendered separately with pulse below
+          const c = DOT[p.kind];
           return (
             <React.Fragment key={`dot-${i}`}>
+              {/* Soft halo */}
+              <Circle cx={p.x} cy={p.y} r={5.5} fill={c} opacity={0.18} />
+              {/* Solid core with a thin black ring so the dot reads on
+                  the line without competing with it. */}
               <Circle
                 cx={p.x}
                 cy={p.y}
-                r={5}
-                fill={dotColor}
-                opacity={0.12 * intensity}
+                r={3.2}
+                fill={c}
+                stroke="#000"
+                strokeWidth={1}
               />
-              <Circle cx={p.x} cy={p.y} r={2.2} fill={dotColor} opacity={0.85 * intensity} />
             </React.Fragment>
           );
         })}
-
-        {/* "Now" node — soft pulsing halo + a steady core. The pulse is
-            slow (1.6s) so it reads as telemetry, not a notification. */}
-        {lastPoint && (
-          <>
-            <Circle cx={lastPoint.x} cy={lastPoint.y} r={18} fill="url(#liveHalo)" />
-            <AnimatedCircle
-              cx={lastPoint.x}
-              cy={lastPoint.y}
-              fill={lastColor}
-              animatedProps={pulseProps}
-            />
-            <Circle cx={lastPoint.x} cy={lastPoint.y} r={4.5} fill={lastColor} />
-            <Circle cx={lastPoint.x} cy={lastPoint.y} r={1.6} fill="#FFFFFF" />
-          </>
-        )}
       </Svg>
+
+      {/* Dot legend — sentence case, monoline icons rendered as inline
+          colored circles. Keeps the visual vocabulary self-explanatory. */}
+      <View style={styles.dotLegend}>
+        <LegendDot color={DOT.completed} label="Completed" count={counts.completed} />
+        <LegendDot color={DOT.intake}    label="Intake"    count={counts.intake} />
+        <LegendDot color={DOT.missed}    label="Missed"    count={counts.missed} />
+      </View>
 
       <View style={styles.legend}>
         <View style={styles.legendCell}>
@@ -345,6 +294,16 @@ export default function JournalChart({
   );
 }
 
+function LegendDot({ color, label, count }: { color: string; label: string; count: number }) {
+  return (
+    <View style={styles.legendDotRow}>
+      <View style={[styles.legendDotSwatch, { backgroundColor: color }]} />
+      <Text style={styles.legendDotLabel}>{label}</Text>
+      <Text style={styles.legendDotCount}>{count}</Text>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   empty: {
     alignItems: 'center',
@@ -357,6 +316,34 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontFamily: 'Inter_500Medium',
     letterSpacing: 0.4,
+  },
+  dotLegend: {
+    flexDirection: 'row',
+    gap: 16,
+    paddingHorizontal: 6,
+    marginTop: 12,
+  },
+  legendDotRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  legendDotSwatch: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  legendDotLabel: {
+    fontSize: 11,
+    fontFamily: 'Inter_500Medium',
+    color: 'rgba(255,255,255,0.55)',
+    letterSpacing: 0.1,
+  },
+  legendDotCount: {
+    fontSize: 11,
+    fontFamily: 'Inter_600SemiBold',
+    color: 'rgba(255,255,255,0.85)',
+    letterSpacing: -0.1,
   },
   legend: {
     flexDirection: 'row',
