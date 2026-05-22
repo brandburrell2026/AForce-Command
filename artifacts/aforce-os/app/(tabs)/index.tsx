@@ -33,6 +33,7 @@ import { ScoreBreakdownSheet } from '@/components/ScoreBreakdownSheet';
 import { CommandConsole } from '@/components/home/CommandConsole';
 import { WaterCycleBar } from '@/components/WaterCycleBar';
 import { EntryActions } from '@/components/home/EntryActions';
+import { BiometricIntelligenceStack } from '@/components/home/BiometricIntelligenceStack';
 import { AIVideoPlayer } from '@/components/AIVideoPlayer';
 import { matchVideo } from '@/services/videoEngine';
 import { OnboardingOverlay } from '@/components/OnboardingOverlay';
@@ -322,6 +323,12 @@ function ScoreDrivenBody({
           </Text>
         </View>
       )}
+
+      {/* Biometric Intelligence — three AI-driven biometric modules
+          (Sweat Loss / Performance Forecast / Recovery Load). Sits
+          above the AI Coach video so the data-forward modules read
+          first; replaces the Sleep section per the redesign brief. */}
+      <BiometricIntelligenceStack />
 
       {/* Command Voice Engine — cinematic AI Coach video card
           (tap → fullscreen overlay). The "AFORCE COMMAND" text card
