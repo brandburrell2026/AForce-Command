@@ -1,16 +1,15 @@
 /**
- * Performance Trend — sparse constellation-style trend visualization.
+ * Performance Trend — ambient signal visualization.
  *
- * Matches the Consistency Map aesthetic: floating glowing dots, soft
- * white curve between them, generous negative space. The raw snapshot
- * stream is bucketed into ~8 evenly-spaced periods (weekly when the
- * range is 7d, multi-day buckets for 30 / 90d) so the chart never feels
- * crowded.
+ * Refined per the "less chart, more atmosphere" brief:
+ *   • atmospheric vignette + soft fog backdrop inside the card
+ *   • aggressive bucketing → at most ~5 trend anchors (luxury = less)
+ *   • softened trend line — stacked-stroke glow, not a single hard line
+ *   • multi-layered breathing halos around every anchor
+ *   • slow vertical drift on the constellation (floating signal feel)
  *
- * Color per dot:
- *   • lime  — completed   (avg score ≥ 85)
- *   • cyan  — on track    (65 ≤ score < 85)
- *   • amber — missed      (score < 65)
+ * The component is layout-stable: props are unchanged, the JournalScreen
+ * call site does not need updates.
  */
 
 import React, { useEffect, useMemo } from 'react';
@@ -19,6 +18,7 @@ import Animated, {
   cancelAnimation,
   Easing,
   useAnimatedProps,
+  useAnimatedStyle,
   useSharedValue,
   withRepeat,
   withTiming,
@@ -27,8 +27,9 @@ import Svg, {
   Circle,
   Defs,
   LinearGradient,
-  Line,
   Path,
+  RadialGradient,
+  Rect,
   Stop,
 } from 'react-native-svg';
 import type { JournalSnapshot } from '@/types';
@@ -44,8 +45,8 @@ interface Props {
   complianceStreak: number;
 }
 
-const PADDING = { top: 28, right: 22, bottom: 22, left: 22 };
-const TARGET_BUCKETS = 8;
+const PADDING = { top: 36, right: 26, bottom: 26, left: 26 };
+const TARGET_ANCHORS = 5;
 const SCORE_MIN = 0;
 const SCORE_MAX = 100;
 const TREND_THRESHOLD = 3;
@@ -63,10 +64,6 @@ function classify(score: number): DotKind {
   return 'missed';
 }
 
-/**
- * Reduce N raw snapshots to at most `targetBuckets` evenly-spaced
- * average points. Keeps the chart sparse no matter the range.
- */
 function bucketize(
   data: JournalSnapshot[],
   targetBuckets: number,
@@ -92,10 +89,7 @@ function bucketize(
   return buckets;
 }
 
-/**
- * Catmull–Rom smoothed path through the bucket points — the curve is
- * intentionally soft, no overshoot, no sharp corners.
- */
+/** Smooth Catmull-Rom curve, intentionally soft. */
 function smoothPath(points: { x: number; y: number }[]): string {
   if (points.length === 0) return '';
   if (points.length === 1) return `M${points[0].x},${points[0].y}`;
@@ -124,26 +118,44 @@ function scoreBandColor(score: number): string {
 export default function JournalChart({
   data,
   width,
-  height = 220,
+  height = 240,
   weeklyCompliancePct,
   complianceStreak,
 }: Props) {
   const innerW = Math.max(40, width - PADDING.left - PADDING.right);
   const innerH = Math.max(40, height - PADDING.top - PADDING.bottom);
 
-  // Slow ambient breath — drives the dot halo pulse. UI thread.
+  // Two slow oscillators running on the UI thread.
+  //   `breath`  — 2.6s, drives halo opacity/scale (the "alive" feeling)
+  //   `drift`   — 6.0s, drives a tiny vertical translation of the whole
+  //               constellation (the "floating signal" feeling)
   const breath = useSharedValue(0);
+  const drift = useSharedValue(0);
   useEffect(() => {
     breath.value = withRepeat(
       withTiming(1, { duration: 2600, easing: Easing.inOut(Easing.quad) }),
       -1,
       true,
     );
-    return () => cancelAnimation(breath);
-  }, [breath]);
+    drift.value = withRepeat(
+      withTiming(1, { duration: 6000, easing: Easing.inOut(Easing.sin) }),
+      -1,
+      true,
+    );
+    return () => {
+      cancelAnimation(breath);
+      cancelAnimation(drift);
+    };
+  }, [breath, drift]);
 
-  const haloProps = useAnimatedProps(() => ({
-    opacity: 0.10 + breath.value * 0.12,
+  const haloOuterProps = useAnimatedProps(() => ({
+    opacity: 0.06 + breath.value * 0.06,
+  }));
+  const haloMidProps = useAnimatedProps(() => ({
+    opacity: 0.12 + breath.value * 0.10,
+  }));
+  const driftStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: -2 + drift.value * 4 }],
   }));
 
   const { points, pathD, avg, trendDiff } = useMemo(() => {
@@ -155,7 +167,7 @@ export default function JournalChart({
         trendDiff: 0,
       };
     }
-    const buckets = bucketize(data, TARGET_BUCKETS);
+    const buckets = bucketize(data, TARGET_ANCHORS);
     const tMin = buckets[0].t;
     const tMax = buckets[buckets.length - 1].t;
     const tSpan = Math.max(1, tMax - tMin);
@@ -208,65 +220,115 @@ export default function JournalChart({
   const compliancePctClamped = Math.max(0, Math.min(100, Math.round(weeklyCompliancePct)));
   const streakClamped = Math.max(0, Math.round(complianceStreak));
 
-  // 3 quiet horizontal guide lines, evenly spaced — just enough to
-  // anchor the eye without becoming chart junk.
-  const guideRatios = [0.25, 0.5, 0.75];
-
   return (
     <View style={{ width }}>
-      <Svg width={width} height={height}>
-        <Defs>
-          <LinearGradient id="trendStroke" x1="0" y1="0" x2="1" y2="0">
-            <Stop offset="0" stopColor="rgba(255,255,255,0.0)" />
-            <Stop offset="0.1" stopColor="rgba(255,255,255,0.55)" />
-            <Stop offset="0.9" stopColor="rgba(255,255,255,0.55)" />
-            <Stop offset="1" stopColor="rgba(255,255,255,0.0)" />
-          </LinearGradient>
-        </Defs>
+      <Animated.View style={driftStyle}>
+        <Svg width={width} height={height}>
+          <Defs>
+            {/* Atmospheric vignette — radial fog from center, fades to
+                near-black at the edges. Gives the chart depth without
+                introducing a hard frame. */}
+            <RadialGradient
+              id="vignette"
+              cx="50%"
+              cy="50%"
+              rx="65%"
+              ry="65%"
+              fx="50%"
+              fy="50%"
+            >
+              <Stop offset="0" stopColor="rgba(40,55,80,0.18)" />
+              <Stop offset="0.6" stopColor="rgba(10,12,20,0.04)" />
+              <Stop offset="1" stopColor="rgba(0,0,0,0)" />
+            </RadialGradient>
 
-        {/* Very faint guide lines — almost imperceptible */}
-        {guideRatios.map((r, i) => (
-          <Line
-            key={`g-${i}`}
-            x1={PADDING.left}
-            x2={PADDING.left + innerW}
-            y1={PADDING.top + innerH * r}
-            y2={PADDING.top + innerH * r}
-            stroke="rgba(255,255,255,0.04)"
-            strokeWidth={1}
+            {/* Stacked-stroke glow gradient for the trend line — fades
+                in at the left edge and out at the right so the line
+                never has a hard terminus. */}
+            <LinearGradient id="trendStroke" x1="0" y1="0" x2="1" y2="0">
+              <Stop offset="0" stopColor="rgba(255,255,255,0)" />
+              <Stop offset="0.18" stopColor="rgba(255,255,255,0.42)" />
+              <Stop offset="0.82" stopColor="rgba(255,255,255,0.42)" />
+              <Stop offset="1" stopColor="rgba(255,255,255,0)" />
+            </LinearGradient>
+
+            <LinearGradient id="trendGlow" x1="0" y1="0" x2="1" y2="0">
+              <Stop offset="0" stopColor="rgba(255,255,255,0)" />
+              <Stop offset="0.2" stopColor="rgba(255,255,255,0.16)" />
+              <Stop offset="0.8" stopColor="rgba(255,255,255,0.16)" />
+              <Stop offset="1" stopColor="rgba(255,255,255,0)" />
+            </LinearGradient>
+          </Defs>
+
+          {/* Vignette / fog backdrop */}
+          <Rect
+            x={0}
+            y={0}
+            width={width}
+            height={height}
+            fill="url(#vignette)"
           />
-        ))}
 
-        {/* Thin soft white trend curve — only between major points */}
-        {pathD && (
-          <Path
-            d={pathD}
-            stroke="url(#trendStroke)"
-            strokeWidth={1}
-            fill="none"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        )}
-
-        {/* Constellation dots — outer halo + mid halo + core */}
-        {points.map((p, i) => {
-          const c = DOT[p.kind];
-          return (
-            <React.Fragment key={`dot-${i}`}>
-              <AnimatedCircle
-                cx={p.x}
-                cy={p.y}
-                r={18}
-                fill={c}
-                animatedProps={haloProps}
+          {/* Softened trend line — three stacked strokes simulate a
+              gaussian-blurred glow without needing SVG filters (which
+              are unreliable across react-native-svg backends). */}
+          {pathD && (
+            <>
+              <Path
+                d={pathD}
+                stroke="url(#trendGlow)"
+                strokeWidth={6}
+                fill="none"
+                strokeLinecap="round"
+                strokeLinejoin="round"
               />
-              <Circle cx={p.x} cy={p.y} r={10} fill={c} opacity={0.2} />
-              <Circle cx={p.x} cy={p.y} r={4.5} fill={c} />
-            </React.Fragment>
-          );
-        })}
-      </Svg>
+              <Path
+                d={pathD}
+                stroke="url(#trendGlow)"
+                strokeWidth={3}
+                fill="none"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <Path
+                d={pathD}
+                stroke="url(#trendStroke)"
+                strokeWidth={1}
+                fill="none"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </>
+          )}
+
+          {/* Constellation anchors — 4 stacked halos + a tiny core.
+              Cyan reads "electric"; amber reads "warm/organic" — same
+              radii, the perceptual difference is in the hue itself. */}
+          {points.map((p, i) => {
+            const c = DOT[p.kind];
+            return (
+              <React.Fragment key={`dot-${i}`}>
+                <AnimatedCircle
+                  cx={p.x}
+                  cy={p.y}
+                  r={26}
+                  fill={c}
+                  animatedProps={haloOuterProps}
+                />
+                <AnimatedCircle
+                  cx={p.x}
+                  cy={p.y}
+                  r={16}
+                  fill={c}
+                  animatedProps={haloMidProps}
+                />
+                <Circle cx={p.x} cy={p.y} r={8} fill={c} opacity={0.22} />
+                <Circle cx={p.x} cy={p.y} r={3.5} fill={c} />
+              </React.Fragment>
+            );
+          })}
+        </Svg>
+      </Animated.View>
 
       <View style={styles.legend}>
         <View style={styles.legendCell}>
