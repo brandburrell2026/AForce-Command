@@ -38,7 +38,6 @@ import JournalDayCard from '@/components/journal/JournalDayCard';
 import PerformanceSections from '@/components/journal/PerformanceSections';
 import StreakHero from '@/components/journal/StreakHero';
 import KPISummary from '@/components/journal/KPISummary';
-import HeatmapCalendar from '@/components/journal/HeatmapCalendar';
 import {
   deriveSectionSummary,
   deriveWinMoments,
@@ -284,8 +283,6 @@ export default function JournalScreen() {
                   ]}
                 />
 
-                {/* Section 3 — heatmap calendar */}
-                <HeatmapCalendar rollups={rollups} />
               </>
             )}
 
