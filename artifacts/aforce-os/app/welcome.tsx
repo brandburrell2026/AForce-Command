@@ -972,8 +972,8 @@ export default function SplashScreen() {
           throughout the sequence. Rendered in a monospace face so it
           reads like a system readout, not body copy. */}
       <FadeIn show durationMs={2000} delayMs={200} style={styles.topHeader}>
-        <Text style={styles.welcomeKicker}>WELCOME</Text>
-        <Text style={styles.welcomeTitle}>AFORCE OS</Text>
+        <Text style={[styles.welcomeKicker, isCritical && { color: CRITICAL_RED_BRIGHT, opacity: 0.85 }]}>WELCOME</Text>
+        <Text style={[styles.welcomeTitle, isCritical && { color: CRITICAL_RED_BRIGHT }]}>AFORCE OS</Text>
       </FadeIn>
 
       {/* The white ring is a 3s fade-in. From stage 3 onward the ring
@@ -1046,7 +1046,7 @@ export default function SplashScreen() {
         </FadeIn>
       )}
 
-      {/* CONTINUE button — stage 4 */}
+      {/* CONTINUE button — stage 4 (always critical, so render in red) */}
       {showContinue && (
         <FadeIn show delayMs={1400} style={styles.ctaSlot}>
           <Pressable
@@ -1054,9 +1054,9 @@ export default function SplashScreen() {
             accessibilityRole="button"
             accessibilityLabel="Continue"
             hitSlop={16}
-            style={styles.ctaButton}
+            style={[styles.ctaButton, styles.ctaButtonCritical]}
           >
-            <Text style={styles.ctaLabel}>CONTINUE</Text>
+            <Text style={[styles.ctaLabel, styles.ctaLabelCritical]}>CONTINUE</Text>
           </Pressable>
         </FadeIn>
       )}
@@ -1260,6 +1260,14 @@ const styles = StyleSheet.create({
     fontSize: 13,
     letterSpacing: 5,
     textAlign: 'center',
+  },
+  ctaButtonCritical: {
+    borderColor: 'rgba(255,90,90,0.55)',
+    backgroundColor: 'rgba(40,8,8,0.55)',
+    shadowColor: CRITICAL_RED_BRIGHT,
+  },
+  ctaLabelCritical: {
+    color: CRITICAL_RED_BRIGHT,
   },
   topHeader: {
     position: 'absolute',
