@@ -751,16 +751,20 @@ function AuroraArcs({ critical }: { critical: boolean }) {
 // A top-down cyan-tinted vertical gradient plus two soft cyan radial
 // glows (top and bottom-center) produce the "screen larger than the
 // device" feel. All pointerEvents:none, all behind the orb.
-function AtmosphereBackdrop() {
+function AtmosphereBackdrop({ critical }: { critical?: boolean }) {
+  const gradient = critical
+    ? ['rgba(140,20,20,0.28)', 'rgba(40,8,8,0.18)', 'rgba(0,0,0,0)'] as const
+    : ['rgba(31,184,166,0.18)', 'rgba(8,28,28,0.15)', 'rgba(0,0,0,0)'] as const;
+  const glowColor = critical ? 'rgba(180,30,30,0.22)' : AURORA_HALO;
   return (
     <View pointerEvents="none" style={StyleSheet.absoluteFill}>
       <LinearGradient
-        colors={['rgba(31,184,166,0.18)', 'rgba(8,28,28,0.15)', 'rgba(0,0,0,0)']}
+        colors={gradient}
         locations={[0, 0.35, 0.75]}
         style={StyleSheet.absoluteFill}
       />
-      <View style={[styles.atmosphereGlow, styles.atmosphereGlowTop]} />
-      <View style={[styles.atmosphereGlow, styles.atmosphereGlowBottom]} />
+      <View style={[styles.atmosphereGlow, styles.atmosphereGlowTop, { backgroundColor: glowColor }]} />
+      <View style={[styles.atmosphereGlow, styles.atmosphereGlowBottom, { backgroundColor: glowColor }]} />
     </View>
   );
 }
@@ -966,7 +970,7 @@ export default function SplashScreen() {
   return (
     <View style={styles.root}>
       {/* Ambient atmospheric backdrop — depth + soft cyan glow halo. */}
-      <AtmosphereBackdrop />
+      <AtmosphereBackdrop critical={isCritical} />
 
       {/* Top headline — fades in with the ring on stage 1 and stays
           throughout the sequence. Rendered in a monospace face so it
