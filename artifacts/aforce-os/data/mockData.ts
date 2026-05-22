@@ -75,7 +75,7 @@ export const mockHistory: HistoryEntry[] = [
     timestamp: new Date(Date.now() - 115 * 60 * 1000),
     score: 65,
     state: 'RECOVERING',
-    action: 'Hydration correction recommended. Recheck in 15 minutes.',
+    action: 'Recommended next action.',
     unitsTaken: 1,
     fluidType: 'aforce_stick',
   },
