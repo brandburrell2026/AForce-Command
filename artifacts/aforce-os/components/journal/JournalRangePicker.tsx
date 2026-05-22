@@ -2,8 +2,9 @@
  * Segmented control for the Journal range picker (7d / 30d / 90d).
  */
 
-import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import React, { useCallback } from 'react';
+import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import * as Haptics from 'expo-haptics';
 import { useTranslation } from 'react-i18next';
 import { Colors } from '@/theme/colors';
 
@@ -18,6 +19,18 @@ const RANGES: JournalRange[] = [7, 30, 90];
 
 export default function JournalRangePicker({ value, onChange }: Props) {
   const { t } = useTranslation();
+  // Selection tick when switching range; no-op when the user taps the
+  // already-active cell so haptics never fire without a real change.
+  const handlePress = useCallback(
+    (next: JournalRange) => {
+      if (next === value) return;
+      if (Platform.OS !== 'web') {
+        Haptics.selectionAsync().catch(() => {});
+      }
+      onChange(next);
+    },
+    [value, onChange],
+  );
   return (
     <View style={styles.container} accessibilityRole="radiogroup">
       {RANGES.map((r) => {
@@ -25,7 +38,7 @@ export default function JournalRangePicker({ value, onChange }: Props) {
         return (
           <Pressable
             key={r}
-            onPress={() => onChange(r)}
+            onPress={() => handlePress(r)}
             accessibilityRole="radio"
             accessibilityState={{ selected: active }}
             style={[styles.cell, active && styles.cellActive]}

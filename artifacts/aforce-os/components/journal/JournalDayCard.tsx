@@ -4,8 +4,9 @@
  * AForce units, sessions.
  */
 
-import React, { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import React, { useCallback, useState } from 'react';
+import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import * as Haptics from 'expo-haptics';
 import { Icon } from '../Icon';
 import { useTranslation } from 'react-i18next';
 import type { JournalRollup } from '@/types';
@@ -78,9 +79,20 @@ export default function JournalDayCard({ rollup }: Props) {
 
   const lesson = getTodaysLesson(rollup);
 
+  // Light tactile tick on expand/collapse — matches the WHOOP-style
+  // selection feedback used elsewhere in the app (tab switch, range
+  // picker). Web is a no-op; native ignores errors silently so a
+  // missing haptics engine never breaks the press.
+  const handleToggle = useCallback(() => {
+    if (Platform.OS !== 'web') {
+      Haptics.selectionAsync().catch(() => {});
+    }
+    setOpen((o) => !o);
+  }, []);
+
   return (
     <Pressable
-      onPress={() => setOpen((o) => !o)}
+      onPress={handleToggle}
       accessibilityRole="button"
       accessibilityState={{ expanded: open }}
       style={styles.card}
