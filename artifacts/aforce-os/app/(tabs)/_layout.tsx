@@ -4,7 +4,9 @@
  *   Scan        = Performance Signals
  *   Protocol    = AForce Protocol
  *   Timeline    = Chronological hydration/recovery feed (route file: journal.tsx)
- *   Competition = Leaderboards + Circles + Territory hub
+ *   Community   = Rankings + Challenges + Battles + Teams + Map hub
+ *                 (route file stays `competition.tsx` to keep deep
+ *                 links stable; only the user-facing label changed)
  *   Social      = Social drinking mode
  *   Profile     = Profile & Settings
  *
