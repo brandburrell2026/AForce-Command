@@ -50,12 +50,15 @@ function buildSubscription(planId: SubscriptionPlanId): UserSubscription {
 /**
  * Cold-start seed used by `useAppStore`.
  *
- * For the investor / demo build we seed `recovery_plus` so reviewers
- * land directly inside the unlocked Social / Recovery experience
- * (including the Cruise + Voyage Shield modifiers shipped in chunk #5).
- * In production this is overwritten a few hundred ms later when
- * `/api/entitlement` returns the real Stripe-mirrored plan.
+ * For the investor / demo build we seed the top consumer tier
+ * (`elite`) so every locked mode — Social, Recovery, Cruise, Voyage
+ * Shield, and every Athlete / System / Elite feature — is unlocked on
+ * first launch. `elite` inherits from all lower tiers via
+ * `inheritsFromId`, so `getEffectiveFlags('elite')` returns every
+ * feature flag in the catalog. In production this is overwritten a few
+ * hundred ms later when `/api/entitlement` returns the real
+ * Stripe-mirrored plan for the signed-in user.
  */
 export function defaultSubscription(): UserSubscription {
-  return buildSubscription('recovery_plus');
+  return buildSubscription('elite');
 }
