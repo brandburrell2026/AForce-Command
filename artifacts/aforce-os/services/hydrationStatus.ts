@@ -68,7 +68,7 @@ const CONTENT: Record<
     headline: 'Correction needed.',
     consequence: 'Hydration deficit beginning to impact output.',
     ctaText: 'CORRECT NOW',
-    command: 'Drink 16 ounces of water now to correct your recovery curve.',
+    command: 'Drink 16 oz water with 1 AForce stick.',
   },
   RISK: {
     headline: 'Performance compromised.',

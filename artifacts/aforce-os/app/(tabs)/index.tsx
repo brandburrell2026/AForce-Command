@@ -30,7 +30,7 @@ import { useUser } from '@clerk/expo';
 import { GradientBackground } from '@/components/GradientBackground';
 import { CycleSuccessOverlay } from '@/components/CycleSuccessOverlay';
 import { ScoreBreakdownSheet } from '@/components/ScoreBreakdownSheet';
-import { RecoveryCoachCard } from '@/components/home/RecoveryCoachCard';
+import { CommandConsole } from '@/components/home/CommandConsole';
 import { WaterCycleBar } from '@/components/WaterCycleBar';
 import { EntryActions } from '@/components/home/EntryActions';
 import { AIVideoPlayer } from '@/components/AIVideoPlayer';
@@ -183,19 +183,27 @@ function SignalPill({ icon, label, value, tint, active, onPress, testID }: Signa
 interface BodyProps {
   onOpenBreakdown: () => void;
   onPrimaryCta: () => void;
-  onOpenVoice: () => void;
+  onTapHeat: () => void;
   isCompletingCycle: boolean;
   cycleProgress: { current: number; target: number };
+  lastIntakeMinutes: number | null;
+  voiceCoachEnabled: boolean;
   orbSize: number;
+  heatBand: TempHeatBand;
+  heatTempLabel: string | null;
 }
 
 function ScoreDrivenBody({
   onOpenBreakdown,
   onPrimaryCta,
-  onOpenVoice,
+  onTapHeat,
   isCompletingCycle,
   cycleProgress,
+  lastIntakeMinutes,
+  voiceCoachEnabled,
   orbSize,
+  heatBand,
+  heatTempLabel,
 }: BodyProps) {
   const engine = useEngineSlice();
   const userState = useUserSlice();
@@ -278,9 +286,21 @@ function ScoreDrivenBody({
         </Text>
       </TouchableOpacity>
 
+      {/* 6 — Next Command (light, not a heavy card) */}
+      <View style={styles.nextCommand} testID="home-command-preview">
+        <Text style={[styles.nextCommandEyebrow, { color: orbColor }]}>NEXT COMMAND</Text>
+        <Text style={styles.nextCommandText}>{status.command}</Text>
+        {engine.command?.estimatedImpact ? (
+          <Text style={styles.nextCommandImpact}>
+            Projected: {engine.command.estimatedImpact}
+          </Text>
+        ) : null}
+      </View>
+
       {/* ── Telemetry — WATER CYCLE 8-cell bar ─────────────────────
           Visual progress bar (8 cells) that fills + recolors based on
-          current performanceState. */}
+          current performanceState (red Depleted, yellow Recovering,
+          green Peak, etc). Replaces the older text-only counter. */}
       <View testID="home-cycle-progress" accessibilityLabel={`Water cycle ${cycleProgress.current} of ${cycleProgress.target}`}>
         <WaterCycleBar
           unitsConsumed={cycleProgress.current}
@@ -288,18 +308,68 @@ function ScoreDrivenBody({
           performanceState={engine.performanceState}
         />
       </View>
+      {lastIntakeMinutes != null && (
+        <View style={styles.lastIntakeRow}>
+          <Text style={styles.metaLabel}>LAST INTAKE</Text>
+          <Text style={styles.metaValue} testID="home-last-intake">
+            {lastIntakeMinutes} min ago
+          </Text>
+        </View>
+      )}
 
-      {/* ── Recovery Coach — signature AI hero card ─────────────────
-          The primary intelligence surface above the bottom nav. Replaces
-          the legacy AFORCE COMMAND LIVE / Coach video stack. */}
-      <RecoveryCoachCard
-        command={engine.command}
-        performanceState={engine.performanceState}
-        accentOverride={displayed?.primary}
-        projectedScore={Math.max(0, Math.min(100, Math.round(displayedScore + 10)))}
-        recheckSeconds={timerSeconds}
-        onVoicePress={onOpenVoice}
-      />
+      {/* ── Layer 2: AI Coach · Live ─────────────────────────────────
+          Below-the-fold deeper-intelligence layer. Visually demoted
+          (lower opacity, generous top spacing) so it never competes
+          with the orb / CTA / Next Command above. */}
+      <View style={styles.coachSectionHeader}>
+        <View style={[styles.coachLiveDot, { backgroundColor: orbColor }]} />
+        <Text style={styles.coachSectionTitle}>AFORCE COMMAND</Text>
+        <Text style={styles.coachSectionDot}>·</Text>
+        <Text style={[styles.coachSectionLive, { color: orbColor }]}>LIVE</Text>
+      </View>
+
+      <View style={styles.coachLayer}>
+        <View style={styles.coachWrapper} testID="home-ai-coach">
+          <CommandConsole
+            command={engine.command}
+            performanceState={engine.performanceState}
+            accentOverride={displayed?.primary}
+          />
+        </View>
+
+        {/* Cinematic AI Coach video card (tap → fullscreen overlay) */}
+        <View style={styles.coachVideoWrapper} testID="home-ai-coach-video">
+          <AIVideoPlayer
+            video={matchVideo({ engineOutput: engine, userState })}
+            command={engine.command}
+            timerSeconds={timerSeconds}
+            score={displayedScore}
+          />
+        </View>
+      </View>
+
+      {/* Quick-action tile grid — Scan, Compete, Circles, Territory */}
+      <View style={styles.entryActionsRow}>
+        <EntryActions />
+      </View>
+
+      {/* Live Signals strip (Heat Guard).
+          The HEAT pill is hidden entirely when ambient temperature is
+          below 75 °F (band === 'NORMAL').
+          Social Mode lives on its own tab now (subscriber-only). */}
+      {heatBand !== 'NORMAL' && (
+        <View style={styles.signalsRow} testID="home-live-signals">
+          <SignalPill
+            icon="thermometer"
+            label="HEAT"
+            value={heatTempLabel ? `${heatTempLabel} · ${HEAT_BAND_LABEL[heatBand]}` : HEAT_BAND_LABEL[heatBand]}
+            tint={HEAT_BAND_COLOR[heatBand]}
+            active
+            onPress={onTapHeat}
+            testID="home-heat-pill"
+          />
+        </View>
+      )}
     </>
   );
 }
@@ -485,10 +555,14 @@ export default function HomeScreen() {
             <ScoreDrivenBody
               onOpenBreakdown={openBreakdown}
               onPrimaryCta={onPrimaryCta}
-              onOpenVoice={openVoice}
+              onTapHeat={onTapHeat}
               isCompletingCycle={state.isCompletingCycle}
               cycleProgress={cycleProgress}
+              lastIntakeMinutes={lastIntakeMinutes}
+              voiceCoachEnabled={voiceCoachEnabled}
               orbSize={layout.orbSize}
+              heatBand={getHeatBandFromCelsius(userState.weatherTempC)}
+              heatTempLabel={tempLabel}
             />
           </ScrollView>
 
