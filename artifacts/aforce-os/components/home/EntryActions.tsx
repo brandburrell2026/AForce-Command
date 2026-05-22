@@ -12,7 +12,7 @@ import { useRouter } from 'expo-router';
 import { Colors } from '../../theme/colors';
 
 const TILES = [
-  { key: 'scan',      icon: 'maximize',    label: 'Scan',      route: '/scan' },
+  { key: 'urine',     icon: 'droplet',     label: 'Urine',     route: '/urine-check' },
   { key: 'compete',   icon: 'award',       label: 'Compete',   route: '/competition' },
   { key: 'circles',   icon: 'users',       label: 'Circles',   route: '/circles',   testID: 'home-circles-button' },
   { key: 'territory', icon: 'map',         label: 'Territory', route: '/territory', testID: 'home-territory-button' },
