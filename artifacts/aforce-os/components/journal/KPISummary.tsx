@@ -71,13 +71,13 @@ function KPICard({ kpi }: { kpi: KPI }) {
 const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
-    gap: 10,
-    marginBottom: 18,
+    gap: 12,
+    marginBottom: 20,
   },
   card: {
     flex: 1,
-    paddingVertical: 20,
-    paddingHorizontal: 16,
+    paddingVertical: 22,
+    paddingHorizontal: 18,
     borderRadius: 18,
     borderWidth: StyleSheet.hairlineWidth,
     backgroundColor: 'rgba(255,255,255,0.012)',

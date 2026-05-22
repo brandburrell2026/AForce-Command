@@ -168,14 +168,37 @@ function ClassicTabLayout() {
         tabBarStyle: {
           position: 'absolute',
           backgroundColor: isIOS ? 'transparent' : Colors.tabBar.background,
-          borderTopWidth: 1,
-          borderTopColor: Colors.border.subtle,
+          borderTopWidth: StyleSheet.hairlineWidth,
+          borderTopColor: 'rgba(255,255,255,0.04)',
           elevation: 0,
           height: isWeb ? TAB_BAR_HEIGHT : undefined,
         },
         tabBarBackground: () =>
           isIOS ? (
-            <BlurView intensity={95} tint="dark" style={StyleSheet.absoluteFill} />
+            <View style={StyleSheet.absoluteFill}>
+              {/* Max-intensity dark glass — Vision Pro / iOS 17 HUD feel */}
+              <BlurView intensity={100} tint="dark" style={StyleSheet.absoluteFill} />
+              {/* Whisper-thin dark wash to deepen the floating glass effect
+                  without sacrificing the translucency from the blur */}
+              <View
+                style={[
+                  StyleSheet.absoluteFill,
+                  { backgroundColor: 'rgba(0,0,0,0.18)' },
+                ]}
+              />
+              {/* Soft top edge fade — a 1.5px gradient line that dissolves
+                  into the glass rather than terminating crisply */}
+              <View
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  height: 1.5,
+                  backgroundColor: 'rgba(255,255,255,0.05)',
+                }}
+              />
+            </View>
           ) : (
             <View style={[StyleSheet.absoluteFill, { backgroundColor: Colors.tabBar.background }]} />
           ),

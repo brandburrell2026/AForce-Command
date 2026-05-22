@@ -270,17 +270,19 @@ export default function JournalChart({
                 never has a hard terminus. */}
             <LinearGradient id="trendStroke" x1="0" y1="0" x2="1" y2="0">
               <Stop offset="0" stopColor="rgba(255,255,255,0)" />
-              <Stop offset="0.25" stopColor="rgba(255,255,255,0.22)" />
-              <Stop offset="0.5" stopColor="rgba(255,255,255,0.25)" />
-              <Stop offset="0.75" stopColor="rgba(255,255,255,0.22)" />
+              <Stop offset="0.20" stopColor="rgba(255,255,255,0.15)" />
+              <Stop offset="0.35" stopColor="rgba(255,255,255,0.20)" />
+              <Stop offset="0.5" stopColor="rgba(255,255,255,0.22)" />
+              <Stop offset="0.65" stopColor="rgba(255,255,255,0.20)" />
+              <Stop offset="0.80" stopColor="rgba(255,255,255,0.15)" />
               <Stop offset="1" stopColor="rgba(255,255,255,0)" />
             </LinearGradient>
 
             <LinearGradient id="trendGlow" x1="0" y1="0" x2="1" y2="0">
               <Stop offset="0" stopColor="rgba(255,255,255,0)" />
-              <Stop offset="0.25" stopColor="rgba(255,255,255,0.085)" />
-              <Stop offset="0.5" stopColor="rgba(255,255,255,0.095)" />
-              <Stop offset="0.75" stopColor="rgba(255,255,255,0.085)" />
+              <Stop offset="0.25" stopColor="rgba(255,255,255,0.07)" />
+              <Stop offset="0.5" stopColor="rgba(255,255,255,0.08)" />
+              <Stop offset="0.75" stopColor="rgba(255,255,255,0.07)" />
               <Stop offset="1" stopColor="rgba(255,255,255,0)" />
             </LinearGradient>
           </Defs>
