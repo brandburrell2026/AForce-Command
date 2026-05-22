@@ -118,7 +118,7 @@ function scoreBandColor(score: number): string {
 export default function JournalChart({
   data,
   width,
-  height = 280,
+  height = 305,
   weeklyCompliancePct,
   complianceStreak,
 }: Props) {
@@ -232,15 +232,31 @@ export default function JournalChart({
               id="vignette"
               cx="50%"
               cy="50%"
-              rx="65%"
-              ry="65%"
+              rx="70%"
+              ry="70%"
               fx="50%"
               fy="50%"
             >
               <Stop offset="0" stopColor="rgba(40,55,80,0.18)" />
-              <Stop offset="0.6" stopColor="rgba(10,12,20,0.04)" />
+              <Stop offset="0.55" stopColor="rgba(10,12,20,0.03)" />
               <Stop offset="1" stopColor="rgba(0,0,0,0)" />
             </RadialGradient>
+
+            {/* Edge-feather mask — fades the chart toward the card
+                background at every side so the rectangular SVG never
+                shows a hard boundary. */}
+            <LinearGradient id="featherV" x1="0" y1="0" x2="0" y2="1">
+              <Stop offset="0" stopColor="#000" stopOpacity="0.55" />
+              <Stop offset="0.18" stopColor="#000" stopOpacity="0" />
+              <Stop offset="0.82" stopColor="#000" stopOpacity="0" />
+              <Stop offset="1" stopColor="#000" stopOpacity="0.55" />
+            </LinearGradient>
+            <LinearGradient id="featherH" x1="0" y1="0" x2="1" y2="0">
+              <Stop offset="0" stopColor="#000" stopOpacity="0.45" />
+              <Stop offset="0.12" stopColor="#000" stopOpacity="0" />
+              <Stop offset="0.88" stopColor="#000" stopOpacity="0" />
+              <Stop offset="1" stopColor="#000" stopOpacity="0.45" />
+            </LinearGradient>
 
             {/* Stacked-stroke glow gradient for the trend line — fades
                 in at the left edge and out at the right so the line
@@ -267,6 +283,26 @@ export default function JournalChart({
             width={width}
             height={height}
             fill="url(#vignette)"
+          />
+
+          {/* Feathered edges — overlay rects fade to card color at
+              every border. Drawn before the trend so dots/glow can
+              still bleed into the feathered zone naturally. */}
+          <Rect
+            x={0}
+            y={0}
+            width={width}
+            height={height}
+            fill="url(#featherV)"
+            pointerEvents="none"
+          />
+          <Rect
+            x={0}
+            y={0}
+            width={width}
+            height={height}
+            fill="url(#featherH)"
+            pointerEvents="none"
           />
 
           {/* Softened trend line — three stacked strokes simulate a

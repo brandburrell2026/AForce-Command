@@ -35,7 +35,7 @@ export default function StreakHero({ streakDays }: Props) {
   }, [pulse]);
 
   const haloStyle = useAnimatedStyle(() => ({
-    opacity: 0.25 + pulse.value * 0.35,
+    opacity: 0.10 + pulse.value * 0.14,
     transform: [{ scale: 1 + pulse.value * 0.12 }],
   }));
 
@@ -78,13 +78,13 @@ const styles = StyleSheet.create({
   },
   halo: {
     position: 'absolute',
-    width: 220,
-    height: 220,
-    borderRadius: 110,
+    width: 260,
+    height: 260,
+    borderRadius: 130,
     backgroundColor: LIME,
-    opacity: 0.25,
-    left: -90,
-    top: -110,
+    opacity: 0.10,
+    left: -120,
+    top: -150,
   },
   iconWrap: {
     width: 40,

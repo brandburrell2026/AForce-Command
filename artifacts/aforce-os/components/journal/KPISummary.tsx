@@ -47,7 +47,7 @@ function KPICard({ kpi }: { kpi: KPI }) {
         : Colors.text.muted;
   return (
     <View style={[styles.card, { borderColor: `${accent}22` }]}>
-      <View style={[styles.glow, { backgroundColor: `${accent}0A` }]} />
+      <View style={[styles.glow, { backgroundColor: `${accent}07` }]} />
       <Text style={styles.label}>{label}</Text>
       <View style={styles.valueRow}>
         <Text style={[styles.value, { color: accent }]}>{value}</Text>
