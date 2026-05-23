@@ -1,4 +1,5 @@
 import SlideChrome from "@/components/SlideChrome";
+import PatentBadge from "@/components/PatentBadge";
 
 export default function ExecutiveSummary() {
   const base = import.meta.env.BASE_URL;
@@ -40,12 +41,15 @@ export default function ExecutiveSummary() {
       />
 
       <div className="absolute inset-0 flex flex-col justify-between px-[8vw] py-[8vh] pointer-events-none">
-        <div className="flex items-baseline justify-between">
+        <div className="flex items-start justify-between">
           <div className="font-display text-[2vw] leading-none tracking-tight text-primary">
             AForce
           </div>
-          <div className="font-body uppercase tracking-[0.4em] text-[0.7vw] text-text/30 font-semibold">
-            Investor Deck · Phase 1 · Proof of Concept · May 2026
+          <div className="flex flex-col items-end gap-[1.2vh]">
+            <div className="font-body uppercase tracking-[0.4em] text-[0.7vw] text-text/30 font-semibold">
+              Investor Deck · Phase 1 · Proof of Concept · May 2026
+            </div>
+            <PatentBadge />
           </div>
         </div>
 
