@@ -639,6 +639,21 @@ export default function ProfileScreen() {
                   </Pressable>
                   <Divider />
                   <Pressable
+                    onPress={() => router.push('/social-v2')}
+                    testID="profile-social-v2-link"
+                    style={styles.settingRow}
+                  >
+                    <View style={styles.settingLeft}>
+                      <Icon name="users" size={16} color="#B6FF00" />
+                      <View>
+                        <Text style={styles.settingLabel}>Social Mode v2 · Preview</Text>
+                        <Text style={styles.settingSubLabel}>5-block spec · tap PLAY DEMO inside</Text>
+                      </View>
+                    </View>
+                    <Icon name="chevron-right" size={16} color={Colors.text.muted} />
+                  </Pressable>
+                  <Divider />
+                  <Pressable
                     onPress={() => router.push('/achievements')}
                     testID="profile-achievements-link"
                     style={styles.settingRow}
