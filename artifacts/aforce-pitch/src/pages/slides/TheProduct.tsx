@@ -1,4 +1,5 @@
 import SlideChrome from "@/components/SlideChrome";
+import PatentBadge from "@/components/PatentBadge";
 
 import canSoursop from "@assets/CAN_3D_Soursop_11oz_1779553713234.png";
 import canBerry from "@assets/CAN_3D_Berry_11oz_1779553713236.png";
@@ -69,10 +70,11 @@ export default function TheProduct() {
   return (
     <SlideChrome slide={8}>
       <div className="absolute inset-0 flex flex-col px-[5vw] pt-[5vh] pb-[3.5vh]">
-        <div className="flex items-baseline gap-[1vw]">
+        <div className="flex items-baseline justify-between gap-[1vw]">
           <span className="font-body uppercase tracking-[0.35em] text-[0.85vw] text-primary font-semibold">
             08 — Product
           </span>
+          <PatentBadge />
         </div>
         <div className="mt-[1.2vh] flex items-center gap-[1vw]">
           <div className="h-px w-[3vw] bg-primary" />

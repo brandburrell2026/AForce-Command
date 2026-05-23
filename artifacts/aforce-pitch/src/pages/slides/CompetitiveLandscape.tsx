@@ -1,4 +1,5 @@
 import SlideChrome from "@/components/SlideChrome";
+import PatentBadge from "@/components/PatentBadge";
 
 const THEM = ["Sell products", "Create spikes", "Focus on stimulation"];
 const US = [
@@ -13,8 +14,11 @@ export default function CompetitiveLandscape() {
   return (
     <SlideChrome slide={20}>
       <div className="absolute inset-0 flex flex-col justify-center px-[8vw]">
-        <div className="font-body uppercase tracking-[0.4em] text-[0.85vw] text-text/45 font-semibold mb-[3vh]">
-          Competitive Landscape
+        <div className="flex items-center justify-between mb-[3vh]">
+          <div className="font-body uppercase tracking-[0.4em] text-[0.85vw] text-text/45 font-semibold">
+            Competitive Landscape
+          </div>
+          <PatentBadge />
         </div>
 
         <h2 className="font-display text-[5.6vw] leading-[0.95] tracking-tighter max-w-[75vw]">
