@@ -320,7 +320,16 @@ export default function ProfileScreen() {
            * command center without hunting for the tab bar.
            */}
           <Pressable
-            onPress={() => router.replace('/(tabs)' as never)}
+            onPress={() => {
+              // Profile is often reached via the iOS "More" overflow
+              // (7 tabs → 5 visible + More), which puts this screen
+              // inside the More navigation stack. `router.replace('/(tabs)')`
+              // on a group route won't pop that stack, so we pop first
+              // when we can and fall back to a root replace otherwise.
+              // Same pattern as goHome() in app/(tabs)/social.tsx.
+              if (router.canGoBack()) router.back();
+              else router.replace('/');
+            }}
             style={styles.backHomeBtn}
             hitSlop={8}
             accessibilityRole="button"
