@@ -14,11 +14,17 @@ export default function CompetitiveLandscape() {
   return (
     <SlideChrome slide={20}>
       <div className="absolute inset-0 flex flex-col justify-center px-[8vw]">
-        <div className="flex items-center justify-between mb-[3vh]">
+        <div className="flex items-start justify-between mb-[3vh] gap-[2vw]">
           <div className="font-body uppercase tracking-[0.4em] text-[0.85vw] text-text/45 font-semibold">
             Competitive Landscape
           </div>
-          <PatentBadge />
+          <div className="flex flex-col items-end gap-[1.4vh] max-w-[28vw]">
+            <div className="font-body text-[0.85vw] leading-[1.5] text-text/65 text-right">
+              <span className="text-text/90 font-semibold">CPG is copied. Systems compound.</span>{" "}
+              No competitor has fused product, data, and protocol into one operating system.
+            </div>
+            <PatentBadge />
+          </div>
         </div>
 
         <h2 className="font-display text-[5.6vw] leading-[0.95] tracking-tighter max-w-[75vw]">

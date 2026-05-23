@@ -1,5 +1,4 @@
 import SlideChrome from "@/components/SlideChrome";
-import PatentBadge from "@/components/PatentBadge";
 
 const REINFORCES = ["Ritual", "Accountability", "Readiness", "Consistency", "Habit formation"];
 const SYSTEM = [
@@ -17,11 +16,8 @@ export default function TheOS() {
   return (
     <SlideChrome slide={11}>
       <div className="absolute inset-0 flex flex-col justify-center px-[8vw]">
-        <div className="flex items-center justify-between mb-[3vh]">
-          <div className="font-body uppercase tracking-[0.4em] text-[0.85vw] text-text/45 font-semibold">
-            The OS
-          </div>
-          <PatentBadge />
+        <div className="font-body uppercase tracking-[0.4em] text-[0.85vw] text-text/45 font-semibold mb-[3vh]">
+          The OS
         </div>
 
         <h2 className="font-display text-[5vw] leading-[0.95] tracking-tighter">
