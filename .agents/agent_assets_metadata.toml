@@ -444,3 +444,9 @@ id = "HCH2oCSN2LuS8I2psNNSX"
 uri = "file://.local/output/aforce-expo-qr.png"
 type = "image"
 title = "AForce OS — Expo Go QR"
+
+[[outputs]]
+id = "3Af1oyD6dpxuXHh1-YUVO"
+uri = "file://attached_assets/generated_audio/aforce_cinematic_bed.mp3"
+type = "audio"
+title = "aforce cinematic bed"
