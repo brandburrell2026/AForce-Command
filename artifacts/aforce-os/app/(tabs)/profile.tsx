@@ -313,6 +313,23 @@ export default function ProfileScreen() {
           ]}
           showsVerticalScrollIndicator={false}
         >
+          {/*
+           * Quick jump back to Home. Profile is a tab, so the OS tab
+           * bar already lets you switch — but on tall scroll surfaces
+           * users repeatedly asked for an in-content way back to the
+           * command center without hunting for the tab bar.
+           */}
+          <Pressable
+            onPress={() => router.replace('/(tabs)' as never)}
+            style={styles.backHomeBtn}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel="Back to Home"
+            testID="profile-back-home"
+          >
+            <Icon name="chevron-left" size={14} color={Colors.text.secondary} />
+            <Text style={styles.backHomeText}>HOME</Text>
+          </Pressable>
           <Text style={styles.eyebrow}>PROFILE</Text>
           <Text style={styles.title}>Commander</Text>
 
@@ -1746,6 +1763,25 @@ function SubscriptionPanel() {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: Colors.background.primary },
   content: { paddingHorizontal: 20 },
+  backHomeBtn: {
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 100,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+    marginTop: 4,
+    marginBottom: 12,
+  },
+  backHomeText: {
+    fontSize: 10,
+    fontFamily: 'Inter_700Bold',
+    color: Colors.text.secondary,
+    letterSpacing: 1.4,
+  },
   eyebrow: {
     fontSize: 10, fontFamily: 'Inter_700Bold', color: Colors.text.muted,
     letterSpacing: 3, marginBottom: 4, marginTop: 8,
