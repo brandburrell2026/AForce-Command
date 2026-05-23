@@ -1,10 +1,12 @@
 import SlideChrome from "@/components/SlideChrome";
 
 const WORDS = [
-  "ENERGY", "STIMULATION", "HYPE", "CHAOS", "CLUTTER", "OVERLOAD",
-  "BUZZ", "SPIKE", "CRASH", "PUMP", "BOOST", "RUSH",
-  "LOUD", "FAST", "MORE", "NOW", "HIT", "GO",
-  "AMPED", "WIRED", "EDGE", "PEAK", "HYPER", "GRIND",
+  "RED BULL", "MONSTER", "CELSIUS", "PRIME", "GATORADE", "POWERADE",
+  "LIQUID I.V.", "BODYARMOR", "BANG", "C4", "GHOST", "REIGN",
+  "ROCKSTAR", "ALANI NU", "ZOA", "NOCCO", "ELECTROLIT", "PEDIALYTE",
+  "LMNT", "NUUN", "AG1", "ATHLETIC GREENS", "RECESS", "OLIPOP",
+  "POPPI", "LIQUID DEATH", "ESSENTIA", "FIJI", "SMART WATER", "VOSS",
+  "VITA COCO", "5-HOUR ENERGY",
 ];
 
 export default function TheNoise() {
