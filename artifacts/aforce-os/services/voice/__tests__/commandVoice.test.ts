@@ -70,18 +70,18 @@ describe('scoreBand', () => {
 
 describe('scoreBandLine', () => {
   it('returns the spec line at standard intensity for every band', () => {
-    expect(scoreBandLine(95)).toBe('System optimized. Hydration status is elite.');
-    expect(scoreBandLine(75)).toBe('Performance stable. Maintain hydration rhythm.');
-    expect(scoreBandLine(60)).toBe('Hydration score declining. Correct now.');
-    expect(scoreBandLine(40)).toBe('Risk increasing. Drink 12 ounces with AForce now.');
-    expect(scoreBandLine(10)).toBe('Hydration command failed. Recovery protocol activated.'.replace('Hydration command failed.', 'Critical hydration risk.').replace('Recovery protocol activated.', 'Execute recovery command immediately.'));
+    expect(scoreBandLine(95)).toBe('Flow state active. Hydration is elite.');
+    expect(scoreBandLine(75)).toBe('Recovery stable. Hydration maintained.');
+    expect(scoreBandLine(60)).toBe('Recovery window opening. Time for a water cycle.');
+    expect(scoreBandLine(40)).toBe('Recovery window open. Complete a water cycle with AForce.');
+    expect(scoreBandLine(10)).toBe('Recovery needed. Complete one water cycle now.');
   });
 
   it('shortens to a sharper variant under pressure intensity', () => {
     const standard = scoreBandLine(40, 'standard');
     const pressure = scoreBandLine(40, 'pressure');
     expect(pressure.length).toBeLessThan(standard.length);
-    expect(pressure).toBe('Risk rising. Twelve ounces. AForce. Now.');
+    expect(pressure).toBe('Twelve ounces. AForce. Now.');
   });
 
   it('returns a longer measured line under calm intensity', () => {
@@ -140,17 +140,17 @@ describe('RISK_THRESHOLDS + thresholdFor', () => {
 
 describe('riskTimerLine', () => {
   it('returns the spec phrase verbatim at standard intensity', () => {
-    expect(riskTimerLine(16)).toBe('Recommended next action. Recheck in 15 mins.');
-    expect(riskTimerLine(8)).toBe('Performance risk rising. Take action now.');
-    expect(riskTimerLine(4)).toBe('High risk state. Immediate hydration required.');
-    expect(riskTimerLine(0)).toBe('Hydration command failed. Recovery protocol activated.');
+    expect(riskTimerLine(16)).toBe('Recommended next step. Recheck in 15 minutes.');
+    expect(riskTimerLine(8)).toBe('Recovery window opening. Time for a water cycle.');
+    expect(riskTimerLine(4)).toBe('Recovery window open. Time for hydration.');
+    expect(riskTimerLine(0)).toBe('Recovery still pending. Open a water cycle to reset.');
   });
 
   it('shortens under pressure intensity', () => {
-    expect(riskTimerLine(16, 'pressure')).toBe('Early risk. Correct hydration.');
-    expect(riskTimerLine(8, 'pressure')).toBe('Risk rising. Act now.');
-    expect(riskTimerLine(4, 'pressure')).toBe('High risk. Hydrate now.');
-    expect(riskTimerLine(0, 'pressure')).toBe('Command failed. Recovery Protocol active.');
+    expect(riskTimerLine(16, 'pressure')).toBe('Next step. Hydrate soon.');
+    expect(riskTimerLine(8, 'pressure')).toBe('Recovery opening. Hydrate.');
+    expect(riskTimerLine(4, 'pressure')).toBe('Recovery open. Hydrate.');
+    expect(riskTimerLine(0, 'pressure')).toBe('Recovery pending. Water cycle now.');
   });
 
   it('every threshold + intensity returns a non-empty line', () => {
@@ -171,9 +171,9 @@ describe('completionRewardLine', () => {
   it('exposes the three spec phrases', () => {
     const lines = getCompletionRewardLines();
     expect(lines).toHaveLength(3);
-    expect(lines).toContain('Hydration cycle complete. System reset.');
-    expect(lines).toContain('Command executed. Performance restored.');
-    expect(lines).toContain('Recovery confirmed. You are back in range.');
+    expect(lines).toContain('Water cycle complete. Hydration reset.');
+    expect(lines).toContain('Recovery confirmed. You are back in flow.');
+    expect(lines).toContain('Reset complete. Balance restored.');
   });
 
   it('is deterministic given a numeric seed', () => {

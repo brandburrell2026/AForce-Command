@@ -428,11 +428,11 @@ const RECOMMENDED_PRODUCT: Record<HydrationStatus, string> = {
 };
 
 const STATUS_COMMANDS: Record<HydrationStatus, string> = {
-  OPTIMAL:   'Hold the line. Maintain hydration rhythm.',
-  STABLE:    'Drink 12 oz of water within the next 45 minutes.',
-  DECLINING: 'Drink 16 oz of water and take 1 AForce stick now.',
-  RISK:      'Drink 20 oz of water with electrolytes now. Recovery window is open.',
-  CRITICAL:  'Immediate hydration required. Drink 20 oz now and begin recovery protocol.',
+  OPTIMAL:   'Flow state active. Hold your rhythm.',
+  STABLE:    'Sip 12 oz of water within the next 45 minutes.',
+  DECLINING: 'Open a water cycle: 16 oz of water with 1 AForce stick.',
+  RISK:      'Recovery window open. Complete a water cycle with electrolytes.',
+  CRITICAL:  'Recovery needed. Complete one water cycle now to reset.',
 };
 
 export function generateHydrationCommand(

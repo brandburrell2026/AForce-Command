@@ -261,11 +261,11 @@ describe('calculateHydrationCycleBoost', () => {
 
 describe('generateHydrationCommand', () => {
   it('returns the band default when no context overrides', () => {
-    expect(generateHydrationCommand(95, inputs())).toBe('Hold the line. Maintain hydration rhythm.');
-    expect(generateHydrationCommand(75, inputs())).toBe('Drink 12 oz of water within the next 45 minutes.');
-    expect(generateHydrationCommand(60, inputs())).toBe('Drink 16 oz of water and take 1 AForce stick now.');
-    expect(generateHydrationCommand(40, inputs())).toBe('Drink 20 oz of water with electrolytes now. Recovery window is open.');
-    expect(generateHydrationCommand(20, inputs())).toBe('Immediate hydration required. Drink 20 oz now and begin recovery protocol.');
+    expect(generateHydrationCommand(95, inputs())).toBe('Flow state active. Hold your rhythm.');
+    expect(generateHydrationCommand(75, inputs())).toBe('Sip 12 oz of water within the next 45 minutes.');
+    expect(generateHydrationCommand(60, inputs())).toBe('Open a water cycle: 16 oz of water with 1 AForce stick.');
+    expect(generateHydrationCommand(40, inputs())).toBe('Recovery window open. Complete a water cycle with electrolytes.');
+    expect(generateHydrationCommand(20, inputs())).toBe('Recovery needed. Complete one water cycle now to reset.');
   });
   it('overrides with sleep prep within 2h when below optimal', () => {
     expect(generateHydrationCommand(60, inputs({ minutesUntilBedtime: 60 })))
@@ -281,7 +281,7 @@ describe('generateHydrationCommand', () => {
   });
   it('does not override at OPTIMAL', () => {
     expect(generateHydrationCommand(95, inputs({ workout: 'hard', temperatureF: 100 })))
-      .toBe('Hold the line. Maintain hydration rhythm.');
+      .toBe('Flow state active. Hold your rhythm.');
   });
 });
 
@@ -330,7 +330,7 @@ describe('getHydrationScore', () => {
     expect(out.riskLevel).toBe('LOW');
     expect(out.recheckMinutes).toBe(60);
     expect(out.pressureMode).toBe(false);
-    expect(out.command).toBe('Hold the line. Maintain hydration rhythm.');
+    expect(out.command).toBe('Flow state active. Hold your rhythm.');
     expect(out.dailyWaterTargetOz).toBeGreaterThan(0);
     expect(out.confidence).toBeGreaterThan(70);
     expect(typeof out.nextEvaluationTime).toBe('string');

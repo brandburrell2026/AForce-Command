@@ -263,7 +263,7 @@ export function ScanAICoachCard({
           },
         ]}
         accessibilityRole="button"
-        accessibilityLabel={isPlaying ? 'Stop AI Coach' : 'Hear AI Coach'}
+        accessibilityLabel={isPlaying ? 'Stop Recovery Coach' : 'Hear Recovery Coach'}
         testID="scan-ai-coach-toggle"
       >
         <Icon

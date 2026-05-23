@@ -89,29 +89,29 @@ export function scoreBand(score: number): ScoreBand {
 
 const SCORE_BAND_LINES: Readonly<Record<ScoreBand, Readonly<Record<VoiceIntensity, string>>>> = Object.freeze({
   PEAK: Object.freeze({
-    calm:     'System optimized. Hydration status is elite. Hold the line.',
-    standard: 'System optimized. Hydration status is elite.',
-    pressure: 'System optimized. Hold elite status.',
+    calm:     'Flow state active. Hydration is elite. Enjoy the rhythm.',
+    standard: 'Flow state active. Hydration is elite.',
+    pressure: 'Flow state. Hold it.',
   }),
   STABLE: Object.freeze({
-    calm:     'Performance stable. Maintain hydration rhythm. You are in range.',
-    standard: 'Performance stable. Maintain hydration rhythm.',
-    pressure: 'Stable. Maintain rhythm.',
+    calm:     'Recovery stable. Hydration maintained. You are in a good rhythm.',
+    standard: 'Recovery stable. Hydration maintained.',
+    pressure: 'Stable. Hold the rhythm.',
   }),
   CORRECT: Object.freeze({
-    calm:     'Hydration score declining. Correct now to protect performance.',
-    standard: 'Hydration score declining. Correct now.',
-    pressure: 'Score dropping. Correct now.',
+    calm:     'Recovery window opening. A water cycle now will keep you in flow.',
+    standard: 'Recovery window opening. Time for a water cycle.',
+    pressure: 'Water cycle. Now.',
   }),
   RISK: Object.freeze({
-    calm:     'Risk increasing. Drink twelve ounces with AForce now to stabilize.',
-    standard: 'Risk increasing. Drink 12 ounces with AForce now.',
-    pressure: 'Risk rising. Twelve ounces. AForce. Now.',
+    calm:     'Recovery window open. Twelve ounces with AForce will restore balance.',
+    standard: 'Recovery window open. Complete a water cycle with AForce.',
+    pressure: 'Twelve ounces. AForce. Now.',
   }),
   CRITICAL: Object.freeze({
-    calm:     'Critical hydration risk. Execute Recovery Protocol immediately.',
-    standard: 'Critical hydration risk. Execute recovery command immediately.',
-    pressure: 'Critical risk. Execute Recovery Protocol now.',
+    calm:     'Recovery needed. Complete one water cycle now to reset.',
+    standard: 'Recovery needed. Complete one water cycle now.',
+    pressure: 'Recovery now. One water cycle.',
   }),
 });
 
@@ -136,24 +136,24 @@ export const RISK_THRESHOLDS: ReadonlyArray<RiskThreshold> = Object.freeze([16, 
 
 const RISK_TIMER_LINES: Readonly<Record<RiskThreshold, Readonly<Record<VoiceIntensity, string>>>> = Object.freeze({
   16: Object.freeze({
-    calm:     'Recommended next action. Recheck in 15 mins.',
-    standard: 'Recommended next action. Recheck in 15 mins.',
-    pressure: 'Early risk. Correct hydration.',
+    calm:     'Recommended next step. Recheck in 15 minutes.',
+    standard: 'Recommended next step. Recheck in 15 minutes.',
+    pressure: 'Next step. Hydrate soon.',
   }),
   8: Object.freeze({
-    calm:     'Performance risk rising. Take action now to hold the line.',
-    standard: 'Performance risk rising. Take action now.',
-    pressure: 'Risk rising. Act now.',
+    calm:     'Recovery window opening. A water cycle now keeps you in flow.',
+    standard: 'Recovery window opening. Time for a water cycle.',
+    pressure: 'Recovery opening. Hydrate.',
   }),
   4: Object.freeze({
-    calm:     'High Risk State. Immediate hydration required.',
-    standard: 'High risk state. Immediate hydration required.',
-    pressure: 'High risk. Hydrate now.',
+    calm:     'Recovery window open. Hydration will restore your rhythm.',
+    standard: 'Recovery window open. Time for hydration.',
+    pressure: 'Recovery open. Hydrate.',
   }),
   0: Object.freeze({
-    calm:     'Hydration command failed. Recovery Protocol activated.',
-    standard: 'Hydration command failed. Recovery protocol activated.',
-    pressure: 'Command failed. Recovery Protocol active.',
+    calm:     'Recovery still pending. Open a water cycle to reset.',
+    standard: 'Recovery still pending. Open a water cycle to reset.',
+    pressure: 'Recovery pending. Water cycle now.',
   }),
 });
 
@@ -203,9 +203,9 @@ export function riskTimerLine(threshold: RiskThreshold, intensity: VoiceIntensit
  * ------------------------------------------------------------------ */
 
 const COMPLETION_REWARD_LINES: ReadonlyArray<string> = Object.freeze([
-  'Hydration cycle complete. System reset.',
-  'Command executed. Performance restored.',
-  'Recovery confirmed. You are back in range.',
+  'Water cycle complete. Hydration reset.',
+  'Recovery confirmed. You are back in flow.',
+  'Reset complete. Balance restored.',
 ]);
 
 /**

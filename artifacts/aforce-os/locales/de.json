@@ -126,7 +126,7 @@
     },
     "voice_section": {
       "label": "VOICE",
-      "row_label": "AI voice replies",
+      "row_label": "Recovery Coach voice",
       "muted": "Muted",
       "enabled": "On",
       "muted_detail": "AForce shows on-screen prompts only — voice input still works."
