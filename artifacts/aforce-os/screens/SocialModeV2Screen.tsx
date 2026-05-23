@@ -180,7 +180,7 @@ export default function SocialModeV2Screen() {
 
   const heatStress = (user.weatherTempC ?? 0) >= 28 || (user.weatherHumidity ?? 0) >= 70;
 
-  const inputs: Inputs = {
+  const liveInputs: Inputs = {
     recoveryCapacity, waterCycles, trend, missedConsecutive: 0, heatStress,
   };
 
@@ -189,11 +189,49 @@ export default function SocialModeV2Screen() {
   const [showDisclaimer, setShowDisclaimer] = React.useState(false);
   const [memory, setMemory] = React.useState<PersistedMemory | null>(null);
 
+  // ─── Demo script ───────────────────────────────────────────────────
+  // Four 9-second beats that drive the screen through every atmosphere:
+  //   CALM (high RC, high cycles) → FLOW → RECOVERY → PROTECT.
+  // While the demo is running we replace `inputs` with the current
+  // beat so Signal / Command / Forecast / Aura / Atmosphere all
+  // re-derive from the scripted state. Total runtime ~36s.
+  const DEMO_BEATS: readonly { name: Atmosphere; inputs: Inputs }[] = React.useMemo(() => [
+    { name: 'CALM',     inputs: { recoveryCapacity: 88, waterCycles: 7, trend: 'improving', missedConsecutive: 0, heatStress: false } },
+    { name: 'FLOW',     inputs: { recoveryCapacity: 68, waterCycles: 4, trend: 'stable',    missedConsecutive: 0, heatStress: true  } },
+    { name: 'RECOVERY', inputs: { recoveryCapacity: 52, waterCycles: 2, trend: 'declining', missedConsecutive: 0, heatStress: false } },
+    { name: 'PROTECT',  inputs: { recoveryCapacity: 38, waterCycles: 1, trend: 'declining', missedConsecutive: 2, heatStress: true  } },
+  ], []);
+  const BEAT_MS = 9000;
+  const [demoBeat, setDemoBeat] = React.useState<number | null>(null);
+  const demoActive = demoBeat !== null;
+
+  React.useEffect(() => {
+    if (!demoActive) return;
+    const id = setTimeout(() => {
+      setDemoBeat((b) => {
+        if (b === null) return null;
+        return b + 1 >= DEMO_BEATS.length ? null : b + 1;
+      });
+    }, BEAT_MS);
+    return () => clearTimeout(id);
+  }, [demoActive, demoBeat, DEMO_BEATS.length]);
+
+  const inputs: Inputs = demoActive ? DEMO_BEATS[demoBeat]!.inputs : liveInputs;
+
   const signal = deriveSignal(inputs);
   const aura = deriveAura(inputs, sessionComplete);
   const atmosphere = deriveAtmosphere(inputs);
   const command = deriveCommand(inputs);
   const forecast = deriveForecast(inputs);
+
+  const startDemo = React.useCallback(() => {
+    if (Platform.OS !== 'web') {
+      Haptics.selectionAsync().catch(() => {});
+    }
+    setSessionComplete(false);
+    setDemoBeat(0);
+  }, []);
+  const stopDemo = React.useCallback(() => setDemoBeat(null), []);
 
   // First-activation disclaimer + prior session hydration. Runs once.
   React.useEffect(() => {
@@ -375,6 +413,46 @@ export default function SocialModeV2Screen() {
             <Text style={[styles.resetText, { color: meta.color }]}>RESET TOMORROW</Text>
           </Pressable>
 
+          {/* Demo controls — scripted CALM → FLOW → RECOVERY → PROTECT.
+              Hidden from production-grade UI; mark with subtle styling. */}
+          <View style={styles.demoWrap}>
+            {demoActive ? (
+              <>
+                <View style={styles.demoBeats}>
+                  {DEMO_BEATS.map((b, i) => (
+                    <View
+                      key={b.name}
+                      style={[
+                        styles.demoDot,
+                        i === demoBeat && { backgroundColor: meta.color, borderColor: meta.color },
+                      ]}
+                    />
+                  ))}
+                </View>
+                <Text style={[styles.demoBeatLabel, { color: meta.color }]}>
+                  {DEMO_BEATS[demoBeat!]!.name} · {(demoBeat ?? 0) + 1}/{DEMO_BEATS.length}
+                </Text>
+                <Pressable
+                  onPress={stopDemo}
+                  style={({ pressed }) => [styles.demoBtn, pressed && { opacity: 0.85 }]}
+                  accessibilityRole="button"
+                  accessibilityLabel="Stop demo"
+                >
+                  <Text style={styles.demoBtnText}>STOP DEMO</Text>
+                </Pressable>
+              </>
+            ) : (
+              <Pressable
+                onPress={startDemo}
+                style={({ pressed }) => [styles.demoBtn, pressed && { opacity: 0.85 }]}
+                accessibilityRole="button"
+                accessibilityLabel="Play Social Mode demo"
+              >
+                <Text style={styles.demoBtnText}>▶  PLAY DEMO</Text>
+              </Pressable>
+            )}
+          </View>
+
           {/* Compliance disclaimer — first activation only */}
           {showDisclaimer ? (
             <Pressable
@@ -511,6 +589,30 @@ const styles = StyleSheet.create({
   },
   resetText: {
     fontFamily: 'Inter_700Bold', fontSize: 12, letterSpacing: 2.4,
+  },
+  demoWrap: {
+    marginTop: 4, alignItems: 'center', gap: 10,
+  },
+  demoBeats: {
+    flexDirection: 'row', gap: 6,
+  },
+  demoDot: {
+    width: 8, height: 8, borderRadius: 4,
+    borderWidth: 1, borderColor: BORDER,
+    backgroundColor: 'transparent',
+  },
+  demoBeatLabel: {
+    fontFamily: 'Inter_700Bold', fontSize: 10, letterSpacing: 2,
+  },
+  demoBtn: {
+    paddingVertical: 10, paddingHorizontal: 18,
+    borderRadius: 100,
+    borderWidth: StyleSheet.hairlineWidth, borderColor: BORDER,
+    backgroundColor: 'rgba(255,255,255,0.03)',
+  },
+  demoBtnText: {
+    fontFamily: 'Inter_700Bold', fontSize: 10, letterSpacing: 2,
+    color: FAINT,
   },
   disclaimer: {
     marginTop: 8, padding: 14, borderRadius: 12,
