@@ -481,6 +481,11 @@ export interface FeatureFlags {
 
   // UX — Voice Engine on-screen status module (audio engine itself is unaffected)
   voice_status_module_visible: boolean;
+
+  // Sleep Mode — Phase 1 (water-only pre-sleep protocol + morning trend
+  // sentence). Internal-only flag: ships ON for internal builds and OFF
+  // for the public production binary so we can dogfood before launch.
+  sleep_mode_enabled: boolean;
 }
 
 // ─── Hydration Journal ────────────────────────────────────────────────────────

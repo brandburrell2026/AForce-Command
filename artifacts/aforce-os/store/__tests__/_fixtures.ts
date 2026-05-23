@@ -106,6 +106,7 @@ export const baseFlags: FeatureFlags = {
   global_leaderboard_enabled: false,
   cruise_mode_enabled: false,
   voice_status_module_visible: false,
+  sleep_mode_enabled: false,
 };
 
 export const baseSubscription: UserSubscription = {

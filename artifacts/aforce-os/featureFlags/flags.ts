@@ -41,6 +41,10 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   // declutter the home surface; audio engine (ElevenLabs + Expo Speech),
   // score-band triggers, and InvestorDemoOverlay all keep functioning.
   voice_status_module_visible: false,
+
+  // Sleep Mode — Phase 1. Internal: true, Public: false per spec. The
+  // build switches this manually before cutting a public release.
+  sleep_mode_enabled: true,
 };
 
 /**
@@ -64,6 +68,7 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
   global_leaderboard_enabled: true,
   cruise_mode_enabled: true,
   voice_status_module_visible: true,
+  sleep_mode_enabled: true,
 };
 
 export function isFlagEnabled(flags: FeatureFlags, key: keyof FeatureFlags): boolean {

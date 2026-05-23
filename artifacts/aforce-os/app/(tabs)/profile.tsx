@@ -654,6 +654,21 @@ export default function ProfileScreen() {
                   </Pressable>
                   <Divider />
                   <Pressable
+                    onPress={() => router.push('/sleep')}
+                    testID="profile-sleep-link"
+                    style={styles.settingRow}
+                  >
+                    <View style={styles.settingLeft}>
+                      <Icon name="moon" size={16} color="#7C9CFF" />
+                      <View>
+                        <Text style={styles.settingLabel}>Sleep Mode · Phase 1</Text>
+                        <Text style={styles.settingSubLabel}>Water-only pre-sleep · morning recovery sentence</Text>
+                      </View>
+                    </View>
+                    <Icon name="chevron-right" size={16} color={Colors.text.muted} />
+                  </Pressable>
+                  <Divider />
+                  <Pressable
                     onPress={() => router.push('/achievements')}
                     testID="profile-achievements-link"
                     style={styles.settingRow}
