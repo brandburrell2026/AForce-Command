@@ -96,6 +96,16 @@ export default function SocialScreen() {
             onActivateCruise={() => { void activateCruiseMode?.(); }}
             onActivateShield={() => { void activateVoyageShield?.(); }}
           />
+          <View style={styles.v2Pill} pointerEvents="box-none">
+            <Pressable
+              onPress={() => router.push('/social-v2')}
+              style={({ pressed }) => [styles.v2Btn, pressed && { opacity: 0.85 }]}
+              accessibilityRole="button"
+              accessibilityLabel="Preview new Social Mode v2"
+            >
+              <Text style={styles.v2BtnText}>TRY SOCIAL MODE V2 →</Text>
+            </Pressable>
+          </View>
         </GradientBackground>
       </View>
     );
@@ -234,5 +244,19 @@ const styles = StyleSheet.create({
     fontSize: 12, letterSpacing: 1.4,
     fontFamily: 'Inter_700Bold',
     color: '#0a0014',
+  },
+  v2Pill: {
+    position: 'absolute', left: 0, right: 0, bottom: 24,
+    alignItems: 'center',
+  },
+  v2Btn: {
+    paddingVertical: 10, paddingHorizontal: 18,
+    borderRadius: 100,
+    borderWidth: 1, borderColor: 'rgba(182,255,0,0.55)',
+    backgroundColor: 'rgba(182,255,0,0.12)',
+  },
+  v2BtnText: {
+    fontFamily: 'Inter_700Bold', fontSize: 10, letterSpacing: 2,
+    color: '#B6FF00',
   },
 });
