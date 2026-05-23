@@ -1,0 +1,88 @@
+# ──────────────────────────────────────────────────────────────────────────────
+# CODEOWNERS — AForce OS monorepo
+#
+# Syntax: <glob>  <owner1> [<owner2> ...]
+# The LAST matching pattern wins. More-specific globs go LOWER in the file.
+#
+# Replace the placeholder handles below with real GitHub usernames or
+# `@org/team-slug` references before enabling branch protection. Until you
+# do, GitHub will silently treat patterns as un-owned.
+#
+# Recommended GitHub setup once handles are filled in:
+#   Settings → Branches → Add rule for `main`:
+#     • Require pull request before merging
+#     • Require review from Code Owners
+#     • Require approvals: 1 (bump to 2 for the OWNER-only paths below)
+#     • Require status checks to pass (typecheck, test)
+#     • Require linear history
+#     • Do not allow bypassing the above settings
+# ──────────────────────────────────────────────────────────────────────────────
+
+# Default: every file needs the owner's sign-off unless overridden below.
+*                                       @OWNER_HANDLE
+
+# ── Mobile app (Expo) ────────────────────────────────────────────────────────
+artifacts/aforce-os/                    @OWNER_HANDLE @MOBILE_LEAD_HANDLE
+artifacts/aforce-os/**/*.ts             @MOBILE_LEAD_HANDLE
+artifacts/aforce-os/**/*.tsx            @MOBILE_LEAD_HANDLE
+
+# ── Backend (API server + DB) ────────────────────────────────────────────────
+artifacts/api-server/                   @OWNER_HANDLE @BACKEND_LEAD_HANDLE
+artifacts/api-server/**/*.ts            @BACKEND_LEAD_HANDLE
+lib/db/                                 @OWNER_HANDLE @BACKEND_LEAD_HANDLE
+lib/db/migrations/                      @OWNER_HANDLE @BACKEND_LEAD_HANDLE
+
+# ── API contract (binding on both mobile & server) ───────────────────────────
+# Any change here regenerates client code, so it needs backend sign-off.
+lib/api-spec/                           @OWNER_HANDLE @BACKEND_LEAD_HANDLE
+lib/api-client-react/                   @OWNER_HANDLE @BACKEND_LEAD_HANDLE
+lib/api-zod/                            @OWNER_HANDLE @BACKEND_LEAD_HANDLE
+
+# ── Investor deck (marketing surface) ────────────────────────────────────────
+artifacts/aforce-pitch/                 @OWNER_HANDLE
+
+# ── Design surfaces (canvas sandbox, tokens, theme, locales) ─────────────────
+artifacts/mockup-sandbox/               @OWNER_HANDLE @DESIGN_LEAD_HANDLE
+design/                                 @OWNER_HANDLE @DESIGN_LEAD_HANDLE
+artifacts/aforce-os/theme/              @OWNER_HANDLE @DESIGN_LEAD_HANDLE
+artifacts/aforce-os/i18n/               @OWNER_HANDLE @DESIGN_LEAD_HANDLE
+
+# ── Feature flags (release gating — owner must approve every flip) ───────────
+artifacts/aforce-os/featureFlags/       @OWNER_HANDLE
+artifacts/aforce-os/types/index.ts      @OWNER_HANDLE @MOBILE_LEAD_HANDLE
+
+# ── Payments / pricing / subscriptions (revenue-impacting) ───────────────────
+artifacts/aforce-os/services/productPricingService.ts   @OWNER_HANDLE
+artifacts/api-server/src/stripe/                        @OWNER_HANDLE @BACKEND_LEAD_HANDLE
+artifacts/api-server/src/routes/checkout*.ts            @OWNER_HANDLE @BACKEND_LEAD_HANDLE
+artifacts/api-server/src/routes/webhooks*.ts            @OWNER_HANDLE @BACKEND_LEAD_HANDLE
+
+# ── Auth (security-sensitive) ────────────────────────────────────────────────
+artifacts/aforce-os/app/(auth)/                         @OWNER_HANDLE @BACKEND_LEAD_HANDLE
+artifacts/api-server/src/middleware/                    @OWNER_HANDLE @BACKEND_LEAD_HANDLE
+artifacts/api-server/src/auth/                          @OWNER_HANDLE @BACKEND_LEAD_HANDLE
+
+# ── Compliance & legal-sensitive copy (Cruise, Sleep, AI Coach) ──────────────
+# Wording here is reviewed against the medical/safety claim policy.
+artifacts/aforce-os/screens/CruiseModeScreen.tsx        @OWNER_HANDLE
+artifacts/aforce-os/screens/SleepModeScreen.tsx         @OWNER_HANDLE
+artifacts/aforce-os/services/cruiseModeService.ts       @OWNER_HANDLE
+artifacts/aforce-os/services/voice/                     @OWNER_HANDLE
+
+# ── Build, CI, infra, repo-level config (owner only) ─────────────────────────
+.github/                                @OWNER_HANDLE
+.replit                                 @OWNER_HANDLE
+replit.md                               @OWNER_HANDLE
+replit.nix                              @OWNER_HANDLE
+CONTRIBUTING.md                         @OWNER_HANDLE
+package.json                            @OWNER_HANDLE
+pnpm-lock.yaml                          @OWNER_HANDLE
+pnpm-workspace.yaml                     @OWNER_HANDLE
+tsconfig.base.json                      @OWNER_HANDLE
+tsconfig.json                           @OWNER_HANDLE
+scripts/                                @OWNER_HANDLE
+
+# ── Generated code & secrets (do not hand-edit / do not commit) ──────────────
+# Listed for documentation; .gitignore should already exclude them.
+**/.env                                 @OWNER_HANDLE
+**/google-service-account.json          @OWNER_HANDLE
