@@ -66,6 +66,10 @@ function NativeTabLayout() {
         <NativeTabIcon sf={{ default: 'wineglass', selected: 'wineglass.fill' }} />
         <Label>{t('tabs.social')}</Label>
       </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="sleep">
+        <NativeTabIcon sf={{ default: 'moon.circle', selected: 'moon.circle.fill' }} />
+        <Label>{t('tabs.sleep')}</Label>
+      </NativeTabs.Trigger>
       <NativeTabs.Trigger name="profile">
         <NativeTabIcon sf={{ default: 'person.circle', selected: 'person.circle.fill' }} />
         <Label>{t('tabs.profile')}</Label>
@@ -275,6 +279,15 @@ function ClassicTabLayout() {
           tabBarIcon: ({ color, size }) =>
             isIOS ? <SymbolView name="wineglass" tintColor={color} size={size} />
                   : <Icon name="users" size={22} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="sleep"
+        options={{
+          title: t('tabs.sleep'),
+          tabBarIcon: ({ color, size }) =>
+            isIOS ? <SymbolView name="moon.circle" tintColor={color} size={size} />
+                  : <Icon name="moon" size={22} color={color} />,
         }}
       />
       <Tabs.Screen

@@ -23,7 +23,8 @@
     "profile": "Profilo",
     "social": "Social",
     "scan": "Scanner",
-    "competition": "Comunità"
+    "competition": "Comunità",
+    "sleep": "Sleep"
   },
   "home": {
     "welcome": "Benvenuto, {{name}}",
