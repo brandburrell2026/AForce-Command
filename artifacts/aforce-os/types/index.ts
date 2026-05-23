@@ -476,8 +476,23 @@ export interface FeatureFlags {
   team_competition_enabled: boolean;
   global_leaderboard_enabled: boolean;
 
-  // Enterprise — Cruise Mode (premium add-on for cruise lines & guests)
+  // Enterprise — Cruise Mode (premium add-on for cruise lines & guests).
+  // Master switch. Phase 1 public release lights up Journey Pulse,
+  // Guest Readiness Signal, Today's Flow, and Port Signal. Phases 2/3
+  // are gated independently by the per-feature flags below.
   cruise_mode_enabled: boolean;
+  /** Block 6 — itinerary/weather/time-of-day pulse summary. */
+  cruise_journey_pulse_enabled: boolean;
+  /** Phase 3 — DELIVER TO STATEROOM / ADD TO JOURNEY CTAs. */
+  cruise_commerce_enabled: boolean;
+  /** Phase 3 — in-stateroom product inventory + restock prompts. */
+  cruise_inventory_enabled: boolean;
+  /** Phase 3 — stateroom delivery scheduling for water/AForce product. */
+  cruise_stateroom_delivery_enabled: boolean;
+  /** Block 7 — 8pm–10pm evening-before-port water command. */
+  cruise_pre_port_enabled: boolean;
+  /** Block 8 — 6am–9am morning-of-port READY / RESET FIRST signal. */
+  cruise_excursion_readiness_enabled: boolean;
 
   // UX — Voice Engine on-screen status module (audio engine itself is unaffected)
   voice_status_module_visible: boolean;

@@ -105,6 +105,12 @@ export const baseFlags: FeatureFlags = {
   team_competition_enabled: false,
   global_leaderboard_enabled: false,
   cruise_mode_enabled: false,
+  cruise_journey_pulse_enabled: false,
+  cruise_commerce_enabled: false,
+  cruise_inventory_enabled: false,
+  cruise_stateroom_delivery_enabled: false,
+  cruise_pre_port_enabled: false,
+  cruise_excursion_readiness_enabled: false,
   voice_status_module_visible: false,
   sleep_mode_enabled: false,
 };

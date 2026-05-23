@@ -23,11 +23,25 @@ export type CruiseGuestType =
   | "party"
   | "excursion";
 
+/**
+ * Per Cruise Mode spec (2026-05): the four Guest Readiness Signal
+ * states map cleanly onto the original score bands, but the labels
+ * are now compliance-vetted and never imply medical or safety status.
+ *
+ *   LOCKED_IN     — was OPTIMIZED        (score ≥ 80)
+ *   BALANCED      — was MONITOR          (score 60–79)
+ *   RECOVERING    — was DEHYDRATION_RISK (score 40–59)
+ *   RESET_NEEDED  — was RECOVERY_NEEDED  (score < 40)
+ *
+ * Underscores in the union are a token-friendly convention; the
+ * human-readable label ("LOCKED IN", "RESET NEEDED") lives in
+ * STATUS_LABEL below.
+ */
 export type CruiseStatus =
-  | "OPTIMIZED"
-  | "MONITOR"
-  | "DEHYDRATION_RISK"
-  | "RECOVERY_NEEDED";
+  | "LOCKED_IN"
+  | "BALANCED"
+  | "RECOVERING"
+  | "RESET_NEEDED";
 
 export type CruiseRiskLevel = "LOW" | "MODERATE" | "HIGH" | "RECOVERY_CRITICAL";
 
@@ -68,11 +82,37 @@ export interface CruiseEvaluation {
 }
 
 const STATUS_LABEL: Record<CruiseStatus, string> = {
-  OPTIMIZED: "Optimized",
-  MONITOR: "Monitor",
-  DEHYDRATION_RISK: "Dehydration Risk",
-  RECOVERY_NEEDED: "Recovery Needed",
+  LOCKED_IN: "LOCKED IN",
+  BALANCED: "BALANCED",
+  RECOVERING: "RECOVERING",
+  RESET_NEEDED: "RESET NEEDED",
 };
+
+/**
+ * Block 3 — Port Signal "Journey Intensity" maps the underlying
+ * environmental excursionRisk into the compliance-vetted vocabulary
+ * required by the spec (LOW / MODERATE / ELEVATED). "high" intentionally
+ * surfaces as "ELEVATED" so we never imply route or activity advice.
+ * "none" is reserved for sea days and hides the line entirely.
+ */
+export type JourneyIntensity = "LOW" | "MODERATE" | "ELEVATED";
+
+export const JOURNEY_INTENSITY_LABEL: Record<JourneyIntensity, string> = {
+  LOW: "LOW",
+  MODERATE: "MODERATE",
+  ELEVATED: "ELEVATED",
+};
+
+export function deriveJourneyIntensity(
+  excursionRisk: EnvironmentFactors["excursionRisk"],
+): JourneyIntensity | null {
+  switch (excursionRisk) {
+    case "none":     return null;
+    case "low":      return "LOW";
+    case "moderate": return "MODERATE";
+    case "high":     return "ELEVATED";
+  }
+}
 
 export const RISK_LABEL: Record<CruiseRiskLevel, string> = {
   LOW: "Low",
@@ -174,10 +214,10 @@ export function evaluateCruise(s: CruiseSession): CruiseEvaluation {
   score = clamp(Math.round(score - totalLoad), 0, 100);
 
   let status: CruiseStatus;
-  if (score >= 80) status = "OPTIMIZED";
-  else if (score >= 60) status = "MONITOR";
-  else if (score >= 40) status = "DEHYDRATION_RISK";
-  else status = "RECOVERY_NEEDED";
+  if (score >= 80) status = "LOCKED_IN";
+  else if (score >= 60) status = "BALANCED";
+  else if (score >= 40) status = "RECOVERING";
+  else status = "RESET_NEEDED";
 
   let riskLevel: CruiseRiskLevel;
   const riskScore = totalLoad + (100 - score) * 0.4;
@@ -187,14 +227,14 @@ export function evaluateCruise(s: CruiseSession): CruiseEvaluation {
   else riskLevel = "LOW";
 
   let recommendation: string;
-  if (status === "OPTIMIZED") {
-    recommendation = "Hydration locked. Maintain — sip water every 45 min.";
-  } else if (status === "MONITOR") {
-    recommendation = "Drink 8–12 ounces water and complete one AForce hydration cycle.";
-  } else if (status === "DEHYDRATION_RISK") {
-    recommendation = "Drink 12–16 ounces water + 1 AForce stick now. Recheck in 20 min.";
+  if (status === "LOCKED_IN") {
+    recommendation = "Ready for your next experience. Sip water every 45 min to maintain.";
+  } else if (status === "BALANCED") {
+    recommendation = "Ready for your next experience. Drink 8–12 ounces of water and complete one water cycle.";
+  } else if (status === "RECOVERING") {
+    recommendation = "Recovery available. Drink 12–16 ounces of water now. Recheck in 20 min.";
   } else {
-    recommendation = "Recovery cycle: 16 ounces water + 1 AForce + 5 min seated cool-down.";
+    recommendation = "Reset recommended. Complete a water cycle and take 5 minutes of seated cool-down.";
   }
 
   const nextCheckMinutes =

@@ -45,6 +45,8 @@ import {
   CRUISE_BADGES,
   GUEST_TYPE_LABEL,
   RISK_LABEL,
+  JOURNEY_INTENSITY_LABEL,
+  deriveJourneyIntensity,
   type CruiseDemoProfile,
   type CruiseRiskLevel,
   type CruiseStatus,
@@ -70,10 +72,10 @@ const CRUISE = {
 } as const;
 
 const STATUS_COLOR: Record<CruiseStatus, string> = {
-  OPTIMIZED: Colors.states.PEAK.primary,
-  MONITOR: Colors.states.BALANCED.primary,
-  DEHYDRATION_RISK: Colors.states.RECOVERING.primary,
-  RECOVERY_NEEDED: Colors.states.DEPLETED.primary,
+  LOCKED_IN: Colors.states.PEAK.primary,
+  BALANCED: Colors.states.BALANCED.primary,
+  RECOVERING: Colors.states.RECOVERING.primary,
+  RESET_NEEDED: Colors.states.DEPLETED.primary,
 };
 
 const RISK_COLOR: Record<CruiseRiskLevel, string> = {
@@ -162,6 +164,9 @@ function CruiseModeBody() {
   const topPadding = Platform.OS === "web" ? 24 : insets.top;
   const statusColor = STATUS_COLOR[evaluation.status];
   const riskColor = RISK_COLOR[evaluation.riskLevel];
+  // Block 3 — Port Signal: compliance-vetted LOW/MODERATE/ELEVATED label.
+  // `null` on sea days hides the inline banner entirely.
+  const journeyIntensity = deriveJourneyIntensity(effectiveSession.env.excursionRisk);
   const isLiveSource = matchedLiveEnv?.source === "openweather";
   const sourceLabel = envLoading
     ? "Fetching…"
@@ -235,8 +240,8 @@ function CruiseModeBody() {
             })}
           </View>
 
-          {/* ── 1. Live Hydration Score ─────────────────────────────── */}
-          <SectionHeader label="LIVE HYDRATION SCORE" />
+          {/* ── 1. Guest Readiness Signal ───────────────────────────── */}
+          <SectionHeader label="GUEST READINESS SIGNAL" hint="Ready for your next experience." />
           <View style={styles.card}>
             <View style={styles.orbRow}>
               <View style={[styles.orb, { borderColor: statusColor + "55", backgroundColor: statusColor + "12" }]}>
@@ -255,6 +260,39 @@ function CruiseModeBody() {
                 </Text>
               </View>
             </View>
+          </View>
+
+          {/* ── Block 2 — Today's Flow ──────────────────────────────────
+              Spec: shows journey rhythm ONLY. Never implies prescription,
+              route advice, or activity safety. Beats vary by day mode
+              (sea_day vs port_day) so the user sees a plausible cadence
+              tied to the active demo profile. ADJUST MY DAY is a hook
+              for the upcoming itinerary editor (Phase 2 surface). */}
+          <SectionHeader label="TODAY'S FLOW" hint="Your journey rhythm" />
+          <View style={styles.card}>
+            <View style={styles.flowRow}>
+              {(effectiveSession.env.dayMode === "port_day"
+                ? ["Breakfast", "Port", "Recovery Window", "Dinner"]
+                : ["Pool", "Recovery Window", "Explore", "Dinner"]
+              ).map((beat, i, arr) => (
+                <React.Fragment key={beat}>
+                  <View style={styles.flowBeat}>
+                    <View style={[styles.flowDot, { backgroundColor: CRUISE.aqua }]} />
+                    <Text style={styles.flowBeatLabel}>{beat}</Text>
+                  </View>
+                  {i < arr.length - 1 && <View style={styles.flowConnector} />}
+                </React.Fragment>
+              ))}
+            </View>
+            <Pressable
+              style={[styles.cta, { borderColor: CRUISE.aqua, alignSelf: "flex-start", marginTop: 14 }]}
+              accessibilityRole="button"
+              accessibilityLabel="Adjust my day"
+              testID="cruise-adjust-my-day"
+            >
+              <Text style={[styles.ctaText, { color: CRUISE.aqua }]}>ADJUST MY DAY</Text>
+              <Icon name="edit-2" size={12} color={CRUISE.aqua} />
+            </Pressable>
           </View>
 
           {/* ── 2. Ship Environment Factors (LIVE) ──────────────────── */}
@@ -347,11 +385,11 @@ function CruiseModeBody() {
                 value={matchedLiveEnv ? `${matchedLiveEnv.windKts} kts` : "—"}
               />
             </View>
-            {effectiveSession.env.excursionRisk !== "none" && (
+            {journeyIntensity && (
               <View style={[styles.inlineBanner, { borderColor: CRUISE.aqua + "55", backgroundColor: CRUISE.aqua + "10" }]}>
-                <Icon name="alert-triangle" size={13} color={CRUISE.aqua} />
+                <Icon name="activity" size={13} color={CRUISE.aqua} />
                 <Text style={styles.inlineBannerText}>
-                  Excursion risk: <Text style={{ color: CRUISE.aqua }}>{titleCase(effectiveSession.env.excursionRisk)}</Text>
+                  Journey Intensity: <Text style={{ color: CRUISE.aqua }}>{JOURNEY_INTENSITY_LABEL[journeyIntensity]}</Text>
                 </Text>
               </View>
             )}
@@ -448,8 +486,19 @@ function CruiseModeBody() {
                 <Text style={styles.qrHint}>
                   Scan the can or stick at any onboard bar to log it instantly.
                 </Text>
+                {/*
+                 * Spec — Commerce Layer:
+                 *   • Water always first. Never force product.
+                 *   • Replace BUY NOW with DELIVER TO STATEROOM
+                 *     (or ADD TO JOURNEY) when commerce ships.
+                 *
+                 * The CTA copy below already uses the spec wording;
+                 * the actual checkout flow is gated separately by
+                 * `cruise_commerce_enabled` / `cruise_stateroom_delivery_enabled`
+                 * upstream — this label is informational until then.
+                 */}
                 <Pressable style={[styles.cta, { borderColor: CRUISE.aqua }]}>
-                  <Text style={[styles.ctaText, { color: CRUISE.aqua }]}>REORDER ONBOARD</Text>
+                  <Text style={[styles.ctaText, { color: CRUISE.aqua }]}>DELIVER TO STATEROOM</Text>
                   <Icon name="arrow-right" size={12} color={CRUISE.aqua} />
                 </Pressable>
               </View>
@@ -495,6 +544,14 @@ function CruiseModeBody() {
             />
             <Text style={styles.brandLine}>
               Built for Royal Caribbean, Carnival, Norwegian, Disney, Virgin Voyages, and luxury cruise lines.
+            </Text>
+          </View>
+
+          {/* ── Compliance disclaimer (per spec — must always render) ── */}
+          <View style={styles.disclaimerCard} accessibilityRole="text">
+            <Text style={styles.disclaimerText}>
+              Cruise Mode provides estimated recovery and hydration guidance
+              only and is not a medical, diagnostic, safety, or navigation tool.
             </Text>
           </View>
         </ScrollView>
@@ -1022,6 +1079,60 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontFamily: "Inter_700Bold",
     letterSpacing: 1.2,
+  },
+
+  // Block 2 — Today's Flow rhythm pills
+  flowRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    flexWrap: "wrap",
+    rowGap: 10,
+  },
+  flowBeat: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 100,
+    borderWidth: 1,
+    borderColor: CRUISE.border,
+    backgroundColor: CRUISE.aquaSoft,
+  },
+  flowDot: {
+    width: 5,
+    height: 5,
+    borderRadius: 3,
+  },
+  flowBeatLabel: {
+    fontSize: 11,
+    fontFamily: "Inter_500Medium",
+    color: Colors.text.primary,
+    letterSpacing: 0.3,
+  },
+  flowConnector: {
+    width: 10,
+    height: 1,
+    backgroundColor: CRUISE.borderSoft,
+    marginHorizontal: 2,
+  },
+
+  // Compliance disclaimer (always last on the screen)
+  disclaimerCard: {
+    marginTop: 20,
+    marginHorizontal: 4,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: CRUISE.borderSoft,
+    backgroundColor: "rgba(255,255,255,0.02)",
+  },
+  disclaimerText: {
+    fontSize: 11,
+    lineHeight: 16,
+    color: Colors.text.muted,
+    fontFamily: "Inter_400Regular",
   },
 
   // Cross-nav row

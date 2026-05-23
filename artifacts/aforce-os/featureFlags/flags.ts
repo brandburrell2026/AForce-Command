@@ -34,8 +34,17 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   team_competition_enabled: true,
   global_leaderboard_enabled: true,
 
-  // Enterprise — Cruise Mode (premium add-on)
-  cruise_mode_enabled: false,
+  // Enterprise — Cruise Mode (premium add-on). Per spec: master switch
+  // is ON for internal builds, OFF for the public production binary.
+  // Each Phase 2/3 sub-feature ships OFF by default and lights up on
+  // its own staged release; see Release Plan in REPLIT.md / spec.
+  cruise_mode_enabled: true,
+  cruise_journey_pulse_enabled: false,
+  cruise_commerce_enabled: false,
+  cruise_inventory_enabled: false,
+  cruise_stateroom_delivery_enabled: false,
+  cruise_pre_port_enabled: false,
+  cruise_excursion_readiness_enabled: false,
 
   // UX — on-screen Voice Engine status footer. Hidden by default while we
   // declutter the home surface; audio engine (ElevenLabs + Expo Speech),
@@ -67,6 +76,12 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
   team_competition_enabled: true,
   global_leaderboard_enabled: true,
   cruise_mode_enabled: true,
+  cruise_journey_pulse_enabled: true,
+  cruise_commerce_enabled: true,
+  cruise_inventory_enabled: true,
+  cruise_stateroom_delivery_enabled: true,
+  cruise_pre_port_enabled: true,
+  cruise_excursion_readiness_enabled: true,
   voice_status_module_visible: true,
   sleep_mode_enabled: true,
 };
