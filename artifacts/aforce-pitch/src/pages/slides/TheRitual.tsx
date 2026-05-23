@@ -1,4 +1,5 @@
 import SlideChrome from "@/components/SlideChrome";
+import VideoBackdrop from "@/components/VideoBackdrop";
 
 const STEPS = [
   { word: "Pause.", color: "text-primary" },
@@ -22,6 +23,11 @@ const BUILT_AROUND = [
 export default function TheRitual() {
   return (
     <SlideChrome slide={7}>
+      <VideoBackdrop
+        src="video/s07-ritual.mp4"
+        opacity={0.45}
+        overlay="linear-gradient(to right, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.78) 50%, rgba(0,0,0,0.62) 100%)"
+      />
       <div className="absolute inset-0 flex flex-col justify-center px-[6vw]">
         <div className="font-body uppercase tracking-[0.4em] text-[0.85vw] text-text/45 font-semibold mb-[3vh]">
           The Ritual

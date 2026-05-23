@@ -1,11 +1,18 @@
 import SlideChrome from "@/components/SlideChrome";
 import PatentBadge from "@/components/PatentBadge";
+import VideoBackdrop from "@/components/VideoBackdrop";
 
 export default function ExecutiveSummary() {
   const base = import.meta.env.BASE_URL;
   return (
     <SlideChrome slide={1} hideChrome>
       <div className="absolute inset-0 bg-black" />
+
+      <VideoBackdrop
+        src="video/s01-hero.mp4"
+        opacity={0.6}
+        overlay="linear-gradient(to right, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.72) 55%, rgba(0,0,0,0.35) 100%)"
+      />
 
       <div className="absolute inset-y-0 right-0 w-[48vw] flex items-center justify-center">
         <div
