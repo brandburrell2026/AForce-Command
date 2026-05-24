@@ -2,6 +2,7 @@
 type ModuleMap = Record<string, () => Promise<Record<string, unknown>>>;
 export const modules: ModuleMap = {
   "./components/mockups/aforce-flow/Ecosystem.tsx": () => import("../components/mockups/aforce-flow/Ecosystem.tsx"),
+  "./components/mockups/aforce-loop/Cinematic.tsx": () => import("../components/mockups/aforce-loop/Cinematic.tsx"),
   "./components/mockups/aforce-os-screens/CheckIn.tsx": () => import("../components/mockups/aforce-os-screens/CheckIn.tsx"),
   "./components/mockups/aforce-os-screens/Hydration.tsx": () => import("../components/mockups/aforce-os-screens/Hydration.tsx"),
   "./components/mockups/aforce-os-screens/Readiness.tsx": () => import("../components/mockups/aforce-os-screens/Readiness.tsx"),
