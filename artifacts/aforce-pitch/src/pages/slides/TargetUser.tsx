@@ -1,5 +1,5 @@
 import SlideChrome from "@/components/SlideChrome";
-import operatorImg from "@assets/generated_images/professionals_01_hedge_fund_5am.png";
+import operatorImg from "@assets/generated_images/surgeon_scrub_B.png";
 
 const TRAITS = [
   "Operate under pressure",
