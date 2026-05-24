@@ -360,6 +360,24 @@ uri = "file://attached_assets/generated_images/system_transit_terminal.png"
 type = "image"
 title = "generated_image"
 
+[[generated]]
+id = "Qiky4Hi9Ejg40RqPsoVuL"
+uri = "file://attached_assets/generated_images/system_every_moment_A.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "5A7UlSXjkislEkujPIhQ9"
+uri = "file://attached_assets/generated_images/system_every_moment_B.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "woFm6bxMuAUoXpdNTC_jN"
+uri = "file://attached_assets/generated_images/system_every_moment_C.png"
+type = "image"
+title = "generated_image"
+
 [[outputs]]
 id = "fILTiXCCTKYfWe9d8R46M"
 uri = "file://attached_assets/tester-share/aforce-tester-qr.png"
@@ -1175,3 +1193,21 @@ id = "k8V6IxYcouUN2WucQz2BN"
 uri = "file://attached_assets/generated_images/system_transit_terminal.png"
 type = "image"
 title = "03 — Transit terminal, leather weekender"
+
+[[outputs]]
+id = "wtaruT84VI_EtrhyP2L1-"
+uri = "file://attached_assets/generated_images/system_every_moment_A.png"
+type = "image"
+title = "Variant A — Office window + SUV interior"
+
+[[outputs]]
+id = "qclwiRg2wVwhbr5oWdWDS"
+uri = "file://attached_assets/generated_images/system_every_moment_B.png"
+type = "image"
+title = "Variant B — Desk profile + private aviation lounge"
+
+[[outputs]]
+id = "KsyegrSVBD7-RSKzcR6yJ"
+uri = "file://attached_assets/generated_images/system_every_moment_C.png"
+type = "image"
+title = "Variant C — Overhead desk + chauffeured car w/ skyline reflection"
