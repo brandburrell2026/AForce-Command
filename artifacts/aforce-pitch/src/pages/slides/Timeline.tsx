@@ -18,19 +18,20 @@ export default function Timeline() {
           backgroundImage: `url(${bgImg})`,
           backgroundSize: "cover",
           backgroundPosition: "center right",
-          opacity: 0.9,
+          opacity: 0.78,
+          filter: "contrast(1.08) brightness(1.02)",
         }}
       />
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
           background:
-            "linear-gradient(90deg, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.78) 40%, rgba(0,0,0,0.4) 75%, rgba(0,0,0,0.1) 100%)",
+            "linear-gradient(90deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.68) 40%, rgba(0,0,0,0.32) 75%, rgba(0,0,0,0.08) 100%)",
         }}
       />
 
       <div className="absolute inset-0 flex flex-col justify-center px-[8vw]">
-        <div className="font-body uppercase tracking-[0.4em] text-[0.85vw] text-text/45 font-semibold mb-[3vh]">
+        <div className="font-body uppercase tracking-[0.4em] text-[0.85vw] text-text/60 font-semibold mb-[3vh]">
           Timeline
         </div>
 
@@ -42,8 +43,8 @@ export default function Timeline() {
 
         <div className="mt-[7vh] flex flex-col gap-[2vh] max-w-[80vw]">
           {PHASES.map((p) => (
-            <div key={p.when} className="grid grid-cols-12 gap-[2vw] items-baseline border-b border-text/8 pb-[1.6vh]">
-              <div className="col-span-4 font-body uppercase tracking-[0.32em] text-[0.85vw] text-text/55 font-semibold tabular-nums">
+            <div key={p.when} className="grid grid-cols-12 gap-[2vw] items-baseline border-b border-text/15 pb-[1.6vh]">
+              <div className="col-span-4 font-body uppercase tracking-[0.32em] text-[0.85vw] text-text/70 font-semibold tabular-nums">
                 {p.when}
               </div>
               <div className={`col-span-8 font-display text-[2vw] leading-[1.1] tracking-tight ${p.color}`}>

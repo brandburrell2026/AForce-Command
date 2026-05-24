@@ -18,20 +18,20 @@ export default function WhyMiami() {
           backgroundImage: `url(${bgImg})`,
           backgroundSize: "cover",
           backgroundPosition: "center right",
-          filter: "contrast(1.05) brightness(0.95)",
-          opacity: 0.9,
+          filter: "contrast(1.12) brightness(1.02)",
+          opacity: 0.78,
         }}
       />
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
           background:
-            "linear-gradient(90deg, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.72) 38%, rgba(0,0,0,0.3) 72%, rgba(0,0,0,0.05) 100%)",
+            "linear-gradient(90deg, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.62) 38%, rgba(0,0,0,0.25) 72%, rgba(0,0,0,0.05) 100%)",
         }}
       />
 
       <div className="absolute inset-0 flex flex-col justify-center px-[8vw]">
-        <div className="font-body uppercase tracking-[0.4em] text-[0.85vw] text-text/45 font-semibold mb-[3vh]">
+        <div className="font-body uppercase tracking-[0.4em] text-[0.85vw] text-text/60 font-semibold mb-[3vh]">
           Why Miami / Brickell
         </div>
 
@@ -44,18 +44,18 @@ export default function WhyMiami() {
         <div className="mt-[7vh] grid grid-cols-5 gap-x-[2vw] max-w-[80vw]">
           {REASONS.map((r) => (
             <div key={r.k}>
-              <div className="font-body text-[0.7vw] tracking-[0.4em] uppercase text-text/35 font-semibold mb-[1vh] tabular-nums">
+              <div className="font-body text-[0.7vw] tracking-[0.4em] uppercase text-text/50 font-semibold mb-[1vh] tabular-nums">
                 {r.k}
               </div>
-              <div className="font-display text-[1.4vw] leading-[1.15] tracking-tight text-text/90">
+              <div className="font-display text-[1.4vw] leading-[1.15] tracking-tight text-text">
                 {r.t}
               </div>
             </div>
           ))}
         </div>
 
-        <div className="mt-[8vh] font-body text-[1.1vw] text-text/55 leading-[1.6] max-w-[55vw]">
-          <span className="text-text/35">This is not a national launch.</span>
+        <div className="mt-[8vh] font-body text-[1.1vw] text-text/70 leading-[1.6] max-w-[55vw]">
+          <span className="text-text/45">This is not a national launch.</span>
           <br />
           This is a concentrated proof engine.
         </div>
