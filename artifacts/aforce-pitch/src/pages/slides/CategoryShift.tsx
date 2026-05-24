@@ -1,5 +1,7 @@
 import SlideChrome from "@/components/SlideChrome";
 
+import shiftBg from "@assets/category_shift_B.png";
+
 const OPPORTUNITY = [
   "Recurring engagement",
   "Accountability",
@@ -11,6 +13,22 @@ const OPPORTUNITY = [
 export default function CategoryShift() {
   return (
     <SlideChrome slide={5}>
+      <div
+        className="absolute inset-0 bg-cover bg-center"
+        style={{
+          backgroundImage: `url(${shiftBg})`,
+          backgroundPosition: "right center",
+          filter: "grayscale(1) contrast(1.1)",
+          opacity: 0.9,
+        }}
+      />
+      <div
+        className="absolute inset-0"
+        style={{
+          background:
+            "linear-gradient(90deg, rgba(0,0,0,0.96) 0%, rgba(0,0,0,0.88) 40%, rgba(0,0,0,0.5) 75%, rgba(0,0,0,0.2) 100%)",
+        }}
+      />
       <div className="absolute inset-0 flex flex-col justify-center px-[8vw]">
         <div className="font-body uppercase tracking-[0.4em] text-[0.85vw] text-text/45 font-semibold mb-[3vh]">
           The Category Shift
