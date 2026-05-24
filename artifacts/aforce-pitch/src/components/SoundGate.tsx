@@ -20,7 +20,11 @@ export default function SoundGate({ onUnlock }: { onUnlock: () => void }) {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  const handleEnter = () => {
+  const handleEnter = (e?: React.MouseEvent | React.PointerEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     if (dismissing) return;
     setDismissing(true);
     onUnlock();
@@ -32,11 +36,19 @@ export default function SoundGate({ onUnlock }: { onUnlock: () => void }) {
       {visible && (
         <motion.div
           key="sound-gate"
+          role="button"
+          tabIndex={0}
           initial={{ opacity: 0 }}
           animate={{ opacity: dismissing ? 0 : 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.8, ease: [0.22, 0.61, 0.36, 1] }}
-          onClick={handleEnter}
+          onPointerDownCapture={(e) => {
+            e.stopPropagation();
+          }}
+          onClickCapture={(e) => {
+            e.stopPropagation();
+            handleEnter(e);
+          }}
           className="fixed inset-0 z-[9999] flex cursor-pointer flex-col items-center justify-center bg-black"
           style={{
             background:
