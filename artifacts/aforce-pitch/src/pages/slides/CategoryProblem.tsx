@@ -1,10 +1,27 @@
 import SlideChrome from "@/components/SlideChrome";
 
+import noiseBg from "@assets/category_noise_C.png";
+
 const PROMISES = ["Energy", "Hydration", "Recovery", "Performance"];
 
 export default function CategoryProblem() {
   return (
     <SlideChrome slide={3}>
+      <div
+        className="absolute inset-0 bg-cover bg-center"
+        style={{
+          backgroundImage: `url(${noiseBg})`,
+          filter: "grayscale(1) contrast(1.08)",
+          opacity: 0.35,
+        }}
+      />
+      <div
+        className="absolute inset-0"
+        style={{
+          background:
+            "linear-gradient(90deg, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.72) 45%, rgba(0,0,0,0.6) 100%)",
+        }}
+      />
       <div className="absolute inset-0 flex flex-col justify-center px-[8vw]">
         <div className="font-body uppercase tracking-[0.4em] text-[0.85vw] text-text/45 font-semibold mb-[3vh]">
           The Category Problem
