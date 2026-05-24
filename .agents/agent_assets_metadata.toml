@@ -378,6 +378,24 @@ uri = "file://attached_assets/generated_images/system_every_moment_C.png"
 type = "image"
 title = "generated_image"
 
+[[generated]]
+id = "29UwCo7WPlsQQoucnwzo3"
+uri = "file://attached_assets/generated_images/system_every_moment_can_A.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "DVlOCgUJSL0iHzxbE1Pgd"
+uri = "file://attached_assets/generated_images/system_every_moment_can_B.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "XzLOo8a9kOa72y1yncUDr"
+uri = "file://attached_assets/generated_images/system_every_moment_can_C.png"
+type = "image"
+title = "generated_image"
+
 [[outputs]]
 id = "fILTiXCCTKYfWe9d8R46M"
 uri = "file://attached_assets/tester-share/aforce-tester-qr.png"
@@ -1211,3 +1229,21 @@ id = "KsyegrSVBD7-RSKzcR6yJ"
 uri = "file://attached_assets/generated_images/system_every_moment_C.png"
 type = "image"
 title = "Variant C — Overhead desk + chauffeured car w/ skyline reflection"
+
+[[outputs]]
+id = "fVUmpUIPl1XQ-qTU0cdd8"
+uri = "file://attached_assets/generated_images/system_every_moment_can_A.png"
+type = "image"
+title = "Variant A — Office window + SUV interior (with AForce can)"
+
+[[outputs]]
+id = "A-qKdtZuEFBA_4qRxQ6w_"
+uri = "file://attached_assets/generated_images/system_every_moment_can_B.png"
+type = "image"
+title = "Variant B — Desk profile + private aviation lounge (with AForce can)"
+
+[[outputs]]
+id = "0F2W_z-rlRc68XPrhY1Ls"
+uri = "file://attached_assets/generated_images/system_every_moment_can_C.png"
+type = "image"
+title = "Variant C — Overhead desk + chauffeured car (with AForce can)"
