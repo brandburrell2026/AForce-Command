@@ -18,15 +18,15 @@ export default function CategoryShift() {
         style={{
           backgroundImage: `url(${shiftBg})`,
           backgroundPosition: "right center",
-          filter: "grayscale(1) contrast(1.15) brightness(1.15)",
-          opacity: 1,
+          filter: "grayscale(1) contrast(1.08) brightness(0.85)",
+          opacity: 0.65,
         }}
       />
       <div
         className="absolute inset-0"
         style={{
           background:
-            "linear-gradient(90deg, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.7) 35%, rgba(0,0,0,0.25) 65%, rgba(0,0,0,0) 100%)",
+            "linear-gradient(90deg, rgba(0,0,0,0.94) 0%, rgba(0,0,0,0.78) 35%, rgba(0,0,0,0.4) 65%, rgba(0,0,0,0.55) 88%, rgba(0,0,0,0.85) 100%)",
         }}
       />
       <div className="absolute inset-0 flex flex-col justify-center px-[8vw]">
@@ -41,26 +41,26 @@ export default function CategoryShift() {
         </h2>
 
         <div className="mt-[3vh] font-display text-[3.2vw] leading-[1.1] tracking-tight text-primary max-w-[70vw]">
-          It is a behavioral performance ecosystem.
+          It is a performance operating system.
         </div>
 
         <div className="mt-[6vh] grid grid-cols-12 gap-[3vw] items-start">
           <div className="col-span-6">
-            <div className="font-body text-[1.05vw] text-text/55 leading-[1.7] max-w-[34vw]">
+            <div className="font-body text-[1.15vw] text-text/80 leading-[1.7] max-w-[34vw]">
               Hydration is the entry point.
               <br />
               The larger opportunity is the system around it.
             </div>
           </div>
           <div className="col-span-6 border-l border-text/10 pl-[2vw]">
-            <div className="font-body uppercase tracking-[0.32em] text-[0.7vw] text-text/40 font-semibold mb-[1.5vh]">
+            <div className="font-body uppercase tracking-[0.32em] text-[0.75vw] text-text/55 font-semibold mb-[1.5vh]">
               The opportunity
             </div>
             <div className="flex flex-wrap gap-[0.6vw]">
               {OPPORTUNITY.map((o) => (
                 <span
                   key={o}
-                  className="px-[1vw] py-[0.6vh] border border-text/15 rounded-full font-body text-[0.9vw] text-text/75"
+                  className="px-[1vw] py-[0.6vh] border border-text/25 rounded-full font-body text-[0.95vw] text-text/90"
                 >
                   {o}
                 </span>
