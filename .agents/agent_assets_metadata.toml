@@ -564,6 +564,24 @@ uri = "file://attached_assets/performance_eco_ecoC_diffusion.png"
 type = "image"
 title = "generated_image"
 
+[[generated]]
+id = "o41RaPTeYoXx0JRx2S_ge"
+uri = "file://attached_assets/launch_activation_launchA_table.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "ttyGy5P8Uwb_V_aTg8x2s"
+uri = "file://attached_assets/launch_activation_launchB_overhead.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "GKiT_Nyx3vW6iqAZYtPD1"
+uri = "file://attached_assets/launch_activation_launchC_intimate.png"
+type = "image"
+title = "generated_image"
+
 [[outputs]]
 id = "fILTiXCCTKYfWe9d8R46M"
 uri = "file://attached_assets/tester-share/aforce-tester-qr.png"
@@ -1583,3 +1601,21 @@ id = "i3bpdkm5ZV5515y997Q6N"
 uri = "file://attached_assets/performance_eco_ecoC_diffusion.png"
 type = "image"
 title = "C — Thermal diffusion, ghosted mesh"
+
+[[outputs]]
+id = "BUeMKgOs-c6Imn-ofp9Qr"
+uri = "file://attached_assets/launch_activation_launchA_table.png"
+type = "image"
+title = "A — Low-angle table, host distant"
+
+[[outputs]]
+id = "J830x-LEx72-Kkni8AnF-"
+uri = "file://attached_assets/launch_activation_launchB_overhead.png"
+type = "image"
+title = "B — Overhead pin-spot, host in doorway"
+
+[[outputs]]
+id = "I_MbMzrmgUoevke8WE1u4"
+uri = "file://attached_assets/launch_activation_launchC_intimate.png"
+type = "image"
+title = "C — Intimate three cans, red rim light"
