@@ -1,5 +1,5 @@
 import SlideChrome from "@/components/SlideChrome";
-import transitImg from "@assets/generated_images/system_transit_terminal.png";
+import transitImg from "@assets/generated_images/system_every_moment_real_B.png";
 
 const RTD_USES = ["Office", "Gym", "Recovery", "Performance days"];
 const STICK_USES = ["Travel", "Portability", "Immediate correction", "Convenience"];
