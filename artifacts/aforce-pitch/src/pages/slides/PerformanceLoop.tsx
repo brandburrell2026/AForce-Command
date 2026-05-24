@@ -96,7 +96,7 @@ function LoopDiagram() {
   // remains crisp in the deck's vw scale.
   const RING_R = 380; // radius of node centers (out of 500 half)
   const ARC_R = 380; // arc radius (matches node ring)
-  const NODE_R = 64; // visual node radius
+  const NODE_R = 96; // visual node radius
 
   const arcs = STAGES.map((_, i) => {
     const a1 = START_DEG + i * STEP_DEG;
@@ -111,7 +111,7 @@ function LoopDiagram() {
   });
 
   return (
-    <div className="relative" style={{ width: "44vh", height: "44vh" }}>
+    <div className="relative" style={{ width: "56vh", height: "56vh" }}>
       {/* Soft radial backlight */}
       <div
         className="absolute inset-0 rounded-full"
@@ -159,9 +159,9 @@ function LoopDiagram() {
 
       {/* Center label */}
       <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none">
-        <div className="font-body uppercase tracking-[0.4em] text-[0.6vw] text-text/35 mb-[0.6vh]">The Loop</div>
-        <div className="font-display text-[1.4vw] tracking-tighter text-text leading-none">Day 1</div>
-        <div className="font-body text-[0.65vw] text-text/40 mt-[0.6vh] tabular-nums">→ Day 7 → Day 28 → Day 90</div>
+        <div className="font-body uppercase tracking-[0.4em] text-[0.85vw] text-text/40 mb-[1vh]">The Loop</div>
+        <div className="font-display text-[3.2vw] tracking-tighter text-text leading-none">Day 1</div>
+        <div className="font-body text-[0.95vw] text-text/45 mt-[1vh] tabular-nums">→ Day 7 → Day 28 → Day 90</div>
       </div>
 
       {/* Nodes */}
@@ -178,7 +178,7 @@ function LoopDiagram() {
               left: `${cx}%`,
               top: `${cy}%`,
               transform: "translate(-50%, -50%)",
-              width: "11vw",
+              width: "14vw",
             }}
           >
             <div
@@ -195,15 +195,15 @@ function LoopDiagram() {
                   : "0 0 24px rgba(0,0,0,0.6)",
               }}
             >
-              <div className="font-body uppercase tracking-[0.3em] text-[0.5vw] text-text/30 tabular-nums absolute -top-[1.8vh]">
+              <div className="font-body uppercase tracking-[0.3em] text-[0.75vw] text-text/35 tabular-nums absolute -top-[2.4vh]">
                 {String(i + 1).padStart(2, "0")}
               </div>
-              <div className="text-text/75" style={{ width: "22px", height: "22px" }}>
+              <div className="text-text/80" style={{ width: "34px", height: "34px" }}>
                 <stage.Icon />
               </div>
             </div>
-            <div className="mt-[1vh] font-body text-[0.85vw] text-text font-light tracking-tight">{stage.label}</div>
-            <div className="mt-[0.3vh] font-body text-[0.65vw] text-text/40 leading-snug">{stage.caption}</div>
+            <div className="mt-[1.4vh] font-body text-[1.25vw] text-text font-light tracking-tight">{stage.label}</div>
+            <div className="mt-[0.4vh] font-body text-[0.9vw] text-text/45 leading-snug">{stage.caption}</div>
           </div>
         );
       })}
@@ -280,9 +280,9 @@ export default function PerformanceLoop() {
 function Stat({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
   return (
     <div className="flex items-baseline justify-between">
-      <span className="font-body uppercase tracking-[0.3em] text-[0.65vw] text-text/45">{label}</span>
+      <span className="font-body uppercase tracking-[0.3em] text-[0.8vw] text-text/45">{label}</span>
       <span
-        className={`font-display text-[1.4vw] tracking-tight tabular-nums ${
+        className={`font-display text-[2vw] tracking-tight tabular-nums ${
           accent ? "text-[#E25C5C]" : "text-text"
         }`}
       >
