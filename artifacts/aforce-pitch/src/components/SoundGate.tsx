@@ -6,18 +6,22 @@ export default function SoundGate({ onUnlock }: { onUnlock: () => void }) {
   const [dismissing, setDismissing] = useState(false);
 
   useEffect(() => {
+    const dismiss = () => handleEnter();
     const onKey = (e: KeyboardEvent) => {
-      if (
-        e.key === "Enter" ||
-        e.key === " " ||
-        e.key === "ArrowRight" ||
-        e.key === "ArrowDown"
-      ) {
-        handleEnter();
-      }
+      // any key dismisses
+      if (e.key) dismiss();
     };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    const onPointer = () => dismiss();
+    window.addEventListener("keydown", onKey, true);
+    window.addEventListener("pointerdown", onPointer, true);
+    window.addEventListener("touchstart", onPointer, true);
+    window.addEventListener("mousedown", onPointer, true);
+    return () => {
+      window.removeEventListener("keydown", onKey, true);
+      window.removeEventListener("pointerdown", onPointer, true);
+      window.removeEventListener("touchstart", onPointer, true);
+      window.removeEventListener("mousedown", onPointer, true);
+    };
   }, []);
 
   const handleEnter = (e?: React.MouseEvent | React.PointerEvent) => {
