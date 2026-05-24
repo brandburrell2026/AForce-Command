@@ -672,6 +672,24 @@ uri = "file://attached_assets/roadmap_rmC_voidsplit.png"
 type = "image"
 title = "generated_image"
 
+[[generated]]
+id = "A8EVBdHDYzeypvAa0yyR7"
+uri = "file://attached_assets/slide11_appA_trio.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "2sDyabYq-C2FYDWuZd4mA"
+uri = "file://attached_assets/slide11_appB_quad.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "rXCdbgL-NWwaHpMB_9M7C"
+uri = "file://attached_assets/slide11_appC_lineup.png"
+type = "image"
+title = "generated_image"
+
 [[outputs]]
 id = "fILTiXCCTKYfWe9d8R46M"
 uri = "file://attached_assets/tester-share/aforce-tester-qr.png"
@@ -1799,3 +1817,21 @@ id = "AO3Mr2tRktf3p_pnFYsUa"
 uri = "file://attached_assets/roadmap_rmC_voidsplit.png"
 type = "image"
 title = "C — Imperceptible vertical tonal split"
+
+[[outputs]]
+id = "kfKFksi88VlEnShcdsvwm"
+uri = "file://attached_assets/slide11_appA_trio.png"
+type = "image"
+title = "A — Trio, center hero, warm bloom"
+
+[[outputs]]
+id = "v-7yRcQbXo1mKjlJQdvPj"
+uri = "file://attached_assets/slide11_appB_quad.png"
+type = "image"
+title = "B — Editorial quad cascade"
+
+[[outputs]]
+id = "msyHvDbz6SPP5WC4WA10f"
+uri = "file://attached_assets/slide11_appC_lineup.png"
+type = "image"
+title = "C — Horizontal cinematic lineup"
