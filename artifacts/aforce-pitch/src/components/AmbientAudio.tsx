@@ -35,13 +35,7 @@ export default function AmbientAudio({
       activeRef.current = next;
       currentSrcRef.current = resolvedSrc;
       if (enabledRef.current) {
-        const p = next.play();
-        if (p && typeof p.catch === "function") {
-          p.catch(() => {
-            // Autoplay blocked — starts on user gesture via HUD toggle.
-          });
-        }
-        fade(next, targetVolumeRef.current, 2500);
+        tryPlayWithGestureFallback(next, targetVolumeRef.current, 2500);
       }
       return;
     }
@@ -51,13 +45,7 @@ export default function AmbientAudio({
     currentSrcRef.current = resolvedSrc;
 
     if (enabledRef.current) {
-      const p = next.play();
-      if (p && typeof p.catch === "function") {
-        p.catch(() => {
-          // ignore — gesture-gated
-        });
-      }
-      fade(next, targetVolumeRef.current, 2200);
+      tryPlayWithGestureFallback(next, targetVolumeRef.current, 2200);
       fade(previous, 0, 2200, () => {
         try {
           previous.pause();
@@ -79,11 +67,7 @@ export default function AmbientAudio({
     const a = activeRef.current;
     if (!a) return;
     if (enabled) {
-      const p = a.play();
-      if (p && typeof p.catch === "function") {
-        p.catch(() => {});
-      }
-      fade(a, volume, 2200);
+      tryPlayWithGestureFallback(a, volume, 2200);
     } else {
       fade(a, 0, 600, () => {
         try {
@@ -114,6 +98,38 @@ export default function AmbientAudio({
   }, []);
 
   return null;
+}
+
+function tryPlayWithGestureFallback(
+  el: HTMLAudioElement,
+  target: number,
+  ms: number,
+) {
+  const attempt = () => {
+    const p = el.play();
+    if (p && typeof p.then === "function") {
+      p.then(() => fade(el, target, ms)).catch(() => {
+        // Autoplay blocked — retry on the next user gesture.
+        const onGesture = () => {
+          window.removeEventListener("pointerdown", onGesture);
+          window.removeEventListener("keydown", onGesture);
+          window.removeEventListener("touchstart", onGesture);
+          const p2 = el.play();
+          if (p2 && typeof p2.then === "function") {
+            p2.then(() => fade(el, target, ms)).catch(() => {});
+          } else {
+            fade(el, target, ms);
+          }
+        };
+        window.addEventListener("pointerdown", onGesture, { once: true });
+        window.addEventListener("keydown", onGesture, { once: true });
+        window.addEventListener("touchstart", onGesture, { once: true });
+      });
+    } else {
+      fade(el, target, ms);
+    }
+  };
+  attempt();
 }
 
 const rafMap = new WeakMap<HTMLAudioElement, number>();
