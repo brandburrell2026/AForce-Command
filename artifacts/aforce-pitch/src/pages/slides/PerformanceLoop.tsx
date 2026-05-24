@@ -246,7 +246,7 @@ export default function PerformanceLoop() {
             <div className="border-t border-text/[0.08] pt-[2.5vh] flex flex-col gap-[1.4vh]">
               <Stat label="Repeat purchase" value="28–32%" />
               <Stat label="Subscription conversion" value="20%+" />
-              <Stat label="Daily active ritual" value="73%" accent />
+              <Stat label="Ritual completion rate" value="73%" accent />
             </div>
             <div className="font-body text-[0.7vw] text-text/35 italic leading-snug">
               The loop strengthens with every revolution.
