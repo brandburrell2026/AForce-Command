@@ -12,7 +12,7 @@ export default function OneSystem() {
         className="absolute inset-0 bg-cover bg-center"
         style={{
           backgroundImage: `url(${transitImg})`,
-          filter: "grayscale(0.2) contrast(1.05)",
+          filter: "grayscale(1) contrast(1.08)",
           opacity: 0.92,
         }}
       />

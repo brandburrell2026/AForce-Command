@@ -28,7 +28,7 @@ export default function TheRitual() {
         className="absolute inset-0 bg-cover bg-center"
         style={{
           backgroundImage: `url(${ritualImg})`,
-          filter: "grayscale(0.2) contrast(1.05)",
+          filter: "grayscale(1) contrast(1.08)",
           opacity: 0.9,
         }}
       />

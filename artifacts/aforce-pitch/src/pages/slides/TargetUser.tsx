@@ -20,7 +20,7 @@ export default function TargetUser() {
           className="absolute inset-0 bg-cover bg-center"
           style={{
             backgroundImage: `url(${operatorImg})`,
-            filter: "grayscale(0.35) contrast(1.05)",
+            filter: "grayscale(1) contrast(1.08)",
             opacity: 0.95,
           }}
         />
