@@ -450,6 +450,24 @@ uri = "file://attached_assets/category_noise_C.png"
 type = "image"
 title = "generated_image"
 
+[[generated]]
+id = "f58W1RHl-12FUWqyOVsxO"
+uri = "file://attached_assets/category_shift_A.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "R0DI5Fzj2mhmzpvWz0kWV"
+uri = "file://attached_assets/category_shift_B.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "WcJc63_JSnJGmvGi0Z2qu"
+uri = "file://attached_assets/category_shift_C.png"
+type = "image"
+title = "generated_image"
+
 [[outputs]]
 id = "fILTiXCCTKYfWe9d8R46M"
 uri = "file://attached_assets/tester-share/aforce-tester-qr.png"
@@ -1355,3 +1373,21 @@ id = "yVNNfVfgj9jgNNoFplvvB"
 uri = "file://attached_assets/category_noise_C.png"
 type = "image"
 title = "Variant C — cooler wall, condensation, faint red glow"
+
+[[outputs]]
+id = "gMJAdnwYbb35j2RxUwvX5"
+uri = "file://attached_assets/category_shift_A.png"
+type = "image"
+title = "Variant A — tunnel from behind, red exit ahead"
+
+[[outputs]]
+id = "qZf-y0-MuqmjRp_Sh_Rv7"
+uri = "file://attached_assets/category_shift_B.png"
+type = "image"
+title = "Variant B — taping wrists, red rim light"
+
+[[outputs]]
+id = "ljOgbySnHswInZj64GTF9"
+uri = "file://attached_assets/category_shift_C.png"
+type = "image"
+title = "Variant C — stadium tunnel mouth, cold breath"
