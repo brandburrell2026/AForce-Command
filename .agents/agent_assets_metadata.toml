@@ -48,6 +48,42 @@ uri = "file://attached_assets/generated_images/founder_07_reflective_window.png"
 type = "image"
 title = "aforce founder 07_reflective_window"
 
+[[generated]]
+id = "FdkFpsQ-MerF-DZMJ4eYV"
+uri = "file://attached_assets/generated_images/montage_03_entrepreneur_glass_tower.png"
+type = "image"
+title = "aforce montage 03_entrepreneur_glass_tower"
+
+[[generated]]
+id = "LFQgNJqkcH_uzRplGovY_"
+uri = "file://attached_assets/generated_images/montage_01_hedge_fund_5am.png"
+type = "image"
+title = "aforce montage 01_hedge_fund_5am"
+
+[[generated]]
+id = "ny0ZJ08hcUh6Pu-fLX19f"
+uri = "file://attached_assets/generated_images/montage_02_athlete_backstage.png"
+type = "image"
+title = "aforce montage 02_athlete_backstage"
+
+[[generated]]
+id = "SEMrTFeLptfD76k0B6y8R"
+uri = "file://attached_assets/generated_images/montage_04_surgeon_scrubbing.png"
+type = "image"
+title = "aforce montage 04_surgeon_scrubbing"
+
+[[generated]]
+id = "hPdCMIR1UUDCp6-vBKq_3"
+uri = "file://attached_assets/generated_images/montage_05_performer_before_stage.png"
+type = "image"
+title = "aforce montage 05_performer_before_stage"
+
+[[generated]]
+id = "SVzNshhFmY8mGOqPChflm"
+uri = "file://attached_assets/generated_images/montage_06_executive_red_eye.png"
+type = "image"
+title = "aforce montage 06_executive_red_eye"
+
 [[outputs]]
 id = "fILTiXCCTKYfWe9d8R46M"
 uri = "file://attached_assets/tester-share/aforce-tester-qr.png"
@@ -545,3 +581,39 @@ id = "zHXnYC5cIzoOB39qqBeY9"
 uri = "file://attached_assets/generated_images/founder_07_reflective_window.png"
 type = "image"
 title = "07 — Reflective moment (skyline)"
+
+[[outputs]]
+id = "jDPaTESSgmQ_Ieaw48Ul7"
+uri = "file://attached_assets/generated_images/montage_01_hedge_fund_5am.png"
+type = "image"
+title = "01 — Hedge fund operator, 5am"
+
+[[outputs]]
+id = "O2Z2lXSyANV-zFSQSXsyn"
+uri = "file://attached_assets/generated_images/montage_02_athlete_backstage.png"
+type = "image"
+title = "02 — Athlete backstage"
+
+[[outputs]]
+id = "0BtQxqJWMR-OCi1p_pIoI"
+uri = "file://attached_assets/generated_images/montage_03_entrepreneur_glass_tower.png"
+type = "image"
+title = "03 — Entrepreneur, glass tower"
+
+[[outputs]]
+id = "GQIhamtgLl7nRDdmVUub4"
+uri = "file://attached_assets/generated_images/montage_04_surgeon_scrubbing.png"
+type = "image"
+title = "04 — Surgeon before procedure"
+
+[[outputs]]
+id = "63jqUWtQVQXoUwj6pvLcG"
+uri = "file://attached_assets/generated_images/montage_05_performer_before_stage.png"
+type = "image"
+title = "05 — Performer, stage entrance"
+
+[[outputs]]
+id = "Pibzk2zq5ixHmW-nS_A5R"
+uri = "file://attached_assets/generated_images/montage_06_executive_red_eye.png"
+type = "image"
+title = "06 — Executive on the red-eye"
