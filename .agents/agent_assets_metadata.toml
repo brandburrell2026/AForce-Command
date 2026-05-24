@@ -636,6 +636,24 @@ uri = "file://attached_assets/scale_econ_scaleC_lattice.png"
 type = "image"
 title = "generated_image"
 
+[[generated]]
+id = "SzkeTS0qv7AcGTAiQ6MWn"
+uri = "file://attached_assets/roadmap_rollA_progression.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "10FpEiRJ8F-S8sJj2tsoW"
+uri = "file://attached_assets/roadmap_rollB_diffusion.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "sCt5Gd8tOEPlzf4m1zT5e"
+uri = "file://attached_assets/roadmap_rollC_pulse.png"
+type = "image"
+title = "generated_image"
+
 [[outputs]]
 id = "fILTiXCCTKYfWe9d8R46M"
 uri = "file://attached_assets/tester-share/aforce-tester-qr.png"
@@ -1727,3 +1745,21 @@ id = "Vq8fUZ7yocfyG2oC17zNb"
 uri = "file://attached_assets/scale_econ_scaleC_lattice.png"
 type = "image"
 title = "C — Architectural lattice cluster"
+
+[[outputs]]
+id = "K4Mje7AcEhUS1ZLk6CRl2"
+uri = "file://attached_assets/roadmap_rollA_progression.png"
+type = "image"
+title = "A — Faint horizontal expansion lines"
+
+[[outputs]]
+id = "0ThTItNzC3vng5CXMvMjU"
+uri = "file://attached_assets/roadmap_rollB_diffusion.png"
+type = "image"
+title = "B — L→R warm diffusion"
+
+[[outputs]]
+id = "V7GTbYUqHTZ9sd2RxJw9_"
+uri = "file://attached_assets/roadmap_rollC_pulse.png"
+type = "image"
+title = "C — Single subtle timeline pulse"
