@@ -1,4 +1,5 @@
 import SlideChrome from "@/components/SlideChrome";
+import bgImg from "@assets/slide11_appA_trio.png";
 import { Hydration } from "@/components/os-screens/Hydration";
 import { Streak } from "@/components/os-screens/Streak";
 import { CheckIn } from "@/components/os-screens/CheckIn";
@@ -81,6 +82,24 @@ function PhoneFrame({ index, label, caption, children }: { index: number; label:
 export default function TheOS() {
   return (
     <SlideChrome slide={11}>
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          backgroundImage: `url(${bgImg})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          opacity: 0.18,
+          filter: "grayscale(0.4) contrast(1.05) brightness(0.8)",
+        }}
+      />
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background:
+            "radial-gradient(ellipse 60% 70% at 50% 55%, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.78) 100%)",
+        }}
+      />
+
       <div className="absolute inset-0 flex flex-col px-[6vw] pt-[10vh] pb-[9vh]">
         <div className="flex items-end justify-between gap-[3vw]">
           <div className="min-w-0">
