@@ -6,21 +6,21 @@ export default function FinalSlide() {
     <SlideChrome slide={31} hideChrome>
       <div className="absolute inset-0 bg-black" />
 
-      <div className="absolute inset-y-0 right-0 w-[46vw] flex items-center justify-center">
+      <div className="absolute inset-y-0 right-0 w-[50vw] flex items-center justify-center">
         <div
-          className="absolute w-[32vw] h-[32vw] rounded-full opacity-45 blur-[7vw]"
+          className="absolute w-[34vw] h-[34vw] rounded-full opacity-30 blur-[8vw]"
           style={{
             background:
-              "radial-gradient(circle, rgba(84,120,213,0.45) 0%, transparent 72%)",
+              "radial-gradient(circle, rgba(226,92,92,0.55) 0%, transparent 72%)",
           }}
         />
         <img
-          src={`${base}brothers-tight.png`}
-          alt="The founders"
+          src={`${base}brothers-childhood.png`}
+          alt="The founders as children"
           className="relative h-[92vh] w-full object-cover object-center"
           style={{
             filter:
-              "grayscale(0.15) contrast(1.05) drop-shadow(0 30px 50px rgba(0,0,0,0.6))",
+              "grayscale(1) contrast(1.08) brightness(0.96) drop-shadow(0 30px 50px rgba(0,0,0,0.6))",
             maskImage:
               "linear-gradient(to right, transparent 0%, #000 22%, #000 100%)",
             WebkitMaskImage:
