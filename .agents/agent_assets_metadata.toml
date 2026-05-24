@@ -510,6 +510,24 @@ uri = "file://attached_assets/hydration_science_C.png"
 type = "image"
 title = "generated_image"
 
+[[generated]]
+id = "x_BPxvaDRAhm4Ph7f7kdt"
+uri = "file://attached_assets/human_truth_lockerA_tunnel.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "mQJVYdEtysp-xKLqSXz82"
+uri = "file://attached_assets/human_truth_lockerB_room.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "jYD1IrNIFk4qFczptP2mf"
+uri = "file://attached_assets/human_truth_lockerC_floor.png"
+type = "image"
+title = "generated_image"
+
 [[outputs]]
 id = "fILTiXCCTKYfWe9d8R46M"
 uri = "file://attached_assets/tester-share/aforce-tester-qr.png"
@@ -1475,3 +1493,21 @@ id = "j1IBr9XlB8FP0sqOJP_Sw"
 uri = "file://attached_assets/hydration_science_C.png"
 type = "image"
 title = "C — diffusion bands lower third"
+
+[[outputs]]
+id = "ZrzvNmNLBduRaL0wbPPef"
+uri = "file://attached_assets/human_truth_lockerA_tunnel.png"
+type = "image"
+title = "A — Tunnel bench"
+
+[[outputs]]
+id = "7NRdj2T_5O1pcf0g8khEb"
+uri = "file://attached_assets/human_truth_lockerB_room.png"
+type = "image"
+title = "B — Blacked locker room, pin-spot"
+
+[[outputs]]
+id = "WEFlBKZZYeN1cOW4XwPQ4"
+uri = "file://attached_assets/human_truth_lockerC_floor.png"
+type = "image"
+title = "C — Floor, pulse-line ghosted"
