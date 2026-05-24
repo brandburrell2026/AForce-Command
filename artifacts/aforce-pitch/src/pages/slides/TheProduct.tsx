@@ -102,7 +102,7 @@ export default function TheProduct() {
                   alt={`${f.name} can`}
                   className="max-h-full object-contain"
                   style={{
-                    maxWidth: "55%",
+                    maxWidth: "72%",
                     filter: `drop-shadow(0 18px 28px rgba(0,0,0,0.6)) drop-shadow(0 0 32px ${f.glow})`,
                   }}
                 />
@@ -111,7 +111,7 @@ export default function TheProduct() {
                   alt={`${f.name} stick`}
                   className="max-h-full object-contain"
                   style={{
-                    maxWidth: "42%",
+                    maxWidth: "52%",
                     filter: `drop-shadow(0 14px 22px rgba(0,0,0,0.6)) drop-shadow(0 0 24px ${f.glow})`,
                   }}
                 />
