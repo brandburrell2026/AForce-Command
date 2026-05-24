@@ -58,6 +58,18 @@ export default function UnitEconomics() {
           Proof targets — not historical claims. The model becomes investable when the loop repeats predictably.
         </div>
       </div>
+
+      {/* Forward-looking statements — legal disclaimer */}
+      <div className="absolute left-[8vw] right-[8vw] bottom-[10vh] pointer-events-none">
+        <div className="border-t border-text/10 pt-[1.4vh]">
+          <div className="font-body text-[0.62vw] leading-[1.55] text-text/35 tracking-wide">
+            <span className="uppercase tracking-[0.32em] text-text/55 font-semibold mr-[0.6vw]">
+              Forward-looking statements
+            </span>
+            Figures shown are management projections based on current assumptions about market conditions, execution, and capital deployment. They are not guarantees of future performance. Actual results may differ materially. Provided for informational purposes only; do not constitute an offer to sell or a solicitation to buy any securities.
+          </div>
+        </div>
+      </div>
     </SlideChrome>
   );
 }
