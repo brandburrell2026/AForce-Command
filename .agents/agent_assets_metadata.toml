@@ -1871,3 +1871,27 @@ id = "u8nEUTXiq5oipuADJIP8T"
 uri = "file://attached_assets/slide12_loopC_orbit.png"
 type = "image"
 title = "C — Nested orbital loops"
+
+[[outputs]]
+id = "E4UjIDzggKxMIDriov5w0"
+uri = "file://artifacts/aforce-pitch/public/audio/act1-opening.mp3"
+type = "audio"
+title = "act1 opening tension"
+
+[[outputs]]
+id = "CIUyorfKQAHrsx6SaAkgh"
+uri = "file://artifacts/aforce-pitch/public/audio/act2-momentum.mp3"
+type = "audio"
+title = "act2 controlled momentum"
+
+[[outputs]]
+id = "aPpxI6Px4gJALeYzR5MNQ"
+uri = "file://artifacts/aforce-pitch/public/audio/act3-propulsion.mp3"
+type = "audio"
+title = "act3 cinematic propulsion"
+
+[[outputs]]
+id = "KO-gjT9aFJiKQzZ0N7918"
+uri = "file://artifacts/aforce-pitch/public/audio/act4-resolution.mp3"
+type = "audio"
+title = "act4 warm resolution"

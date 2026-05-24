@@ -15,6 +15,18 @@ function getSlideIndex(pathname: string): number {
   return slides.findIndex((s) => s.position === position);
 }
 
+function ambientTrackFor(position: number): string {
+  const base = import.meta.env.BASE_URL;
+  // Act 1 — sparse tension (opening): slides 1-7
+  // Act 2 — controlled momentum (middle): slides 8-17
+  // Act 3 — premium propulsion (economics/scale): slides 18-26
+  // Act 4 — warm resolution (final): slides 27-31
+  if (position <= 7) return `${base}audio/act1-opening.mp3`;
+  if (position <= 17) return `${base}audio/act2-momentum.mp3`;
+  if (position <= 26) return `${base}audio/act3-propulsion.mp3`;
+  return `${base}audio/act4-resolution.mp3`;
+}
+
 function toggleFullscreen() {
   const el = document.documentElement;
   if (!document.fullscreenElement) {
@@ -193,7 +205,7 @@ function SlideEditor() {
         )}
       </AnimatePresence>
 
-      <AmbientAudio enabled={audioOn} />
+      <AmbientAudio enabled={audioOn} src={ambientTrackFor(currentSlide?.position ?? 1)} />
       <SectionInterstitial
         label={interstitial?.label ?? null}
         token={interstitial?.token ?? 0}
