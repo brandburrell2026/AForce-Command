@@ -11,15 +11,15 @@ export default function CategoryProblem() {
         className="absolute inset-0 bg-cover bg-center"
         style={{
           backgroundImage: `url(${noiseBg})`,
-          filter: "grayscale(1) contrast(1.08)",
-          opacity: 0.35,
+          filter: "grayscale(1) contrast(1.15) brightness(1.1)",
+          opacity: 0.85,
         }}
       />
       <div
         className="absolute inset-0"
         style={{
           background:
-            "linear-gradient(90deg, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.72) 45%, rgba(0,0,0,0.6) 100%)",
+            "linear-gradient(90deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.55) 40%, rgba(0,0,0,0.15) 100%)",
         }}
       />
       <div className="absolute inset-0 flex flex-col justify-center px-[8vw]">
