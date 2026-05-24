@@ -2,6 +2,7 @@
 type ModuleMap = Record<string, () => Promise<Record<string, unknown>>>;
 export const modules: ModuleMap = {
   "./components/mockups/aforce-flow/Ecosystem.tsx": () => import("../components/mockups/aforce-flow/Ecosystem.tsx"),
+  "./components/mockups/aforce-flow/Versus.tsx": () => import("../components/mockups/aforce-flow/Versus.tsx"),
   "./components/mockups/aforce-loop/Cinematic.tsx": () => import("../components/mockups/aforce-loop/Cinematic.tsx"),
   "./components/mockups/aforce-os-screens/CheckIn.tsx": () => import("../components/mockups/aforce-os-screens/CheckIn.tsx"),
   "./components/mockups/aforce-os-screens/Hydration.tsx": () => import("../components/mockups/aforce-os-screens/Hydration.tsx"),
@@ -14,9 +15,9 @@ export const modules: ModuleMap = {
   "./components/mockups/aforce-ring/SportMode.tsx": () => import("../components/mockups/aforce-ring/SportMode.tsx"),
   "./components/mockups/recovery-mode/Locked.tsx": () => import("../components/mockups/recovery-mode/Locked.tsx"),
   "./components/mockups/recovery-mode/Unlocked.tsx": () => import("../components/mockups/recovery-mode/Unlocked.tsx"),
-  "./components/mockups/score-band/Default.tsx": () => import("../components/mockups/score-band/Default.tsx"),
-  "./components/mockups/score-band/Hero.tsx": () => import("../components/mockups/score-band/Hero.tsx"),
   "./components/mockups/welcome-luxury/Aurora.tsx": () => import("../components/mockups/welcome-luxury/Aurora.tsx"),
   "./components/mockups/welcome-luxury/Obsidian.tsx": () => import("../components/mockups/welcome-luxury/Obsidian.tsx"),
-  "./components/mockups/welcome-luxury/Quantum.tsx": () => import("../components/mockups/welcome-luxury/Quantum.tsx")
+  "./components/mockups/welcome-luxury/Quantum.tsx": () => import("../components/mockups/welcome-luxury/Quantum.tsx"),
+  "./components/mockups/score-band/Default.tsx": () => import("../components/mockups/score-band/Default.tsx"),
+  "./components/mockups/score-band/Hero.tsx": () => import("../components/mockups/score-band/Hero.tsx")
 };
