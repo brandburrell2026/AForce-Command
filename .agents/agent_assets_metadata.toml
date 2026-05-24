@@ -84,6 +84,36 @@ uri = "file://attached_assets/generated_images/montage_06_executive_red_eye.png"
 type = "image"
 title = "aforce montage 06_executive_red_eye"
 
+[[generated]]
+id = "YTkphzoiTeuWVcxklohte"
+uri = "file://attached_assets/generated_images/brickell_01_glass_towers_predawn.png"
+type = "image"
+title = "brickell 01_glass_towers_predawn"
+
+[[generated]]
+id = "gKFXoUeVBNnnw6sauhp4L"
+uri = "file://attached_assets/generated_images/brickell_03_finance_lobby_blue_hour.png"
+type = "image"
+title = "brickell 03_finance_lobby_blue_hour"
+
+[[generated]]
+id = "RwvXiVAPalpWAmmnl58RR"
+uri = "file://attached_assets/generated_images/brickell_04_penthouse_window_sunrise.png"
+type = "image"
+title = "brickell 04_penthouse_window_sunrise"
+
+[[generated]]
+id = "3IV5O1FIXB0HPWMdpCEW-"
+uri = "file://attached_assets/generated_images/brickell_05_running_path_river_dawn.png"
+type = "image"
+title = "brickell 05_running_path_river_dawn"
+
+[[generated]]
+id = "c3C68t-cARsW3t03lyXy9"
+uri = "file://attached_assets/generated_images/brickell_06_underground_garage_executive.png"
+type = "image"
+title = "brickell 06_underground_garage_executive"
+
 [[outputs]]
 id = "fILTiXCCTKYfWe9d8R46M"
 uri = "file://attached_assets/tester-share/aforce-tester-qr.png"
@@ -617,3 +647,39 @@ id = "Pibzk2zq5ixHmW-nS_A5R"
 uri = "file://attached_assets/generated_images/montage_06_executive_red_eye.png"
 type = "image"
 title = "06 — Executive on the red-eye"
+
+[[outputs]]
+id = "qPJ_Zs0PxVoi7QLgEyGZs"
+uri = "file://attached_assets/generated_images/brickell_01_glass_towers_predawn.png"
+type = "image"
+title = "01 — Glass towers, predawn"
+
+[[outputs]]
+id = "iFw_SVvschof8IsVvpUs9"
+uri = "file://attached_assets/generated_images/brickell_02_empty_street_5am.png"
+type = "image"
+title = "02 — Empty street, 5am"
+
+[[outputs]]
+id = "a_brPDdJ5kleA_HZOn-5q"
+uri = "file://attached_assets/generated_images/brickell_03_finance_lobby_blue_hour.png"
+type = "image"
+title = "03 — Finance lobby, blue hour"
+
+[[outputs]]
+id = "GEmQiVt6IwTFVdR_sUC_o"
+uri = "file://attached_assets/generated_images/brickell_04_penthouse_window_sunrise.png"
+type = "image"
+title = "04 — Penthouse window, sunrise"
+
+[[outputs]]
+id = "hZrURyM0lVNVwKsp1jGY6"
+uri = "file://attached_assets/generated_images/brickell_05_running_path_river_dawn.png"
+type = "image"
+title = "05 — Riverfront path, dawn"
+
+[[outputs]]
+id = "9HJyBKk2fM21NkrPlCpWV"
+uri = "file://attached_assets/generated_images/brickell_06_underground_garage_executive.png"
+type = "image"
+title = "06 — Underground garage"
