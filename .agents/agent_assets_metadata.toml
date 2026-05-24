@@ -618,6 +618,24 @@ uri = "file://attached_assets/unit_econ_recurC_mesh.png"
 type = "image"
 title = "generated_image"
 
+[[generated]]
+id = "qeePc0f_39HyblBW5tgb6"
+uri = "file://attached_assets/scale_econ_scaleA_flow.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "72svBW3wbK7_gr5FR5loU"
+uri = "file://attached_assets/scale_econ_scaleB_loops.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "WuorEpOmo0YImG6zVFzz-"
+uri = "file://attached_assets/scale_econ_scaleC_lattice.png"
+type = "image"
+title = "generated_image"
+
 [[outputs]]
 id = "fILTiXCCTKYfWe9d8R46M"
 uri = "file://attached_assets/tester-share/aforce-tester-qr.png"
@@ -1691,3 +1709,21 @@ id = "M4qhbnFOKDcNUBh8gDDEE"
 uri = "file://attached_assets/unit_econ_recurC_mesh.png"
 type = "image"
 title = "C — Ledger mesh, bloom intersections"
+
+[[outputs]]
+id = "BI_mf8m8WJpCNViK_79GN"
+uri = "file://attached_assets/scale_econ_scaleA_flow.png"
+type = "image"
+title = "A — Five flows converging to bloom"
+
+[[outputs]]
+id = "QyhHFhPEsvvttGCcIwTAX"
+uri = "file://attached_assets/scale_econ_scaleB_loops.png"
+type = "image"
+title = "B — Compounding nested loop pulses"
+
+[[outputs]]
+id = "Vq8fUZ7yocfyG2oC17zNb"
+uri = "file://attached_assets/scale_econ_scaleC_lattice.png"
+type = "image"
+title = "C — Architectural lattice cluster"
