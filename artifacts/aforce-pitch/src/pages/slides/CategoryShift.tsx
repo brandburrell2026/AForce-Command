@@ -18,15 +18,15 @@ export default function CategoryShift() {
         style={{
           backgroundImage: `url(${shiftBg})`,
           backgroundPosition: "right center",
-          filter: "grayscale(1) contrast(1.1)",
-          opacity: 0.9,
+          filter: "grayscale(1) contrast(1.15) brightness(1.15)",
+          opacity: 1,
         }}
       />
       <div
         className="absolute inset-0"
         style={{
           background:
-            "linear-gradient(90deg, rgba(0,0,0,0.96) 0%, rgba(0,0,0,0.88) 40%, rgba(0,0,0,0.5) 75%, rgba(0,0,0,0.2) 100%)",
+            "linear-gradient(90deg, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.7) 35%, rgba(0,0,0,0.25) 65%, rgba(0,0,0,0) 100%)",
         }}
       />
       <div className="absolute inset-0 flex flex-col justify-center px-[8vw]">
