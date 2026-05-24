@@ -690,6 +690,24 @@ uri = "file://attached_assets/slide11_appC_lineup.png"
 type = "image"
 title = "generated_image"
 
+[[generated]]
+id = "-BiDTQv4GPzV0LNZY69EM"
+uri = "file://attached_assets/slide12_loopA_neural.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "NmwjRtDx2AsOvBFEKIxpC"
+uri = "file://attached_assets/slide12_loopB_waveform.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "uYoSiiZrZHOjKP5fELgzC"
+uri = "file://attached_assets/slide12_loopC_orbit.png"
+type = "image"
+title = "generated_image"
+
 [[outputs]]
 id = "fILTiXCCTKYfWe9d8R46M"
 uri = "file://attached_assets/tester-share/aforce-tester-qr.png"
@@ -1835,3 +1853,21 @@ id = "msyHvDbz6SPP5WC4WA10f"
 uri = "file://attached_assets/slide11_appC_lineup.png"
 type = "image"
 title = "C — Horizontal cinematic lineup"
+
+[[outputs]]
+id = "dSXH99LaodTXlEOFKR_1Q"
+uri = "file://attached_assets/slide12_loopA_neural.png"
+type = "image"
+title = "A — Neural pathway network"
+
+[[outputs]]
+id = "OZFS7X66sZUrlM7cKXLpo"
+uri = "file://attached_assets/slide12_loopB_waveform.png"
+type = "image"
+title = "B — Stacked telemetry waveforms"
+
+[[outputs]]
+id = "u8nEUTXiq5oipuADJIP8T"
+uri = "file://attached_assets/slide12_loopC_orbit.png"
+type = "image"
+title = "C — Nested orbital loops"
