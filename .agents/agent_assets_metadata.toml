@@ -582,6 +582,24 @@ uri = "file://attached_assets/launch_activation_launchC_intimate.png"
 type = "image"
 title = "generated_image"
 
+[[generated]]
+id = "oxeh-jqS3j2SWmE-vYrkt"
+uri = "file://attached_assets/launch_activation_launchA2_table.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "JmbrJX_3yHlNivP8mslb5"
+uri = "file://attached_assets/launch_activation_launchB2_overhead.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "3Hx65dOsvFMipUVvpD6_u"
+uri = "file://attached_assets/launch_activation_launchC2_intimate.png"
+type = "image"
+title = "generated_image"
+
 [[outputs]]
 id = "fILTiXCCTKYfWe9d8R46M"
 uri = "file://attached_assets/tester-share/aforce-tester-qr.png"
@@ -1619,3 +1637,21 @@ id = "I_MbMzrmgUoevke8WE1u4"
 uri = "file://attached_assets/launch_activation_launchC_intimate.png"
 type = "image"
 title = "C — Intimate three cans, red rim light"
+
+[[outputs]]
+id = "2sfmovev6pjIz2GypqTe_"
+uri = "file://attached_assets/launch_activation_launchA2_table.png"
+type = "image"
+title = "A — Low-angle table, AFORCE wordmark"
+
+[[outputs]]
+id = "YG44srQniCCGlG1MbYU8D"
+uri = "file://attached_assets/launch_activation_launchB2_overhead.png"
+type = "image"
+title = "B — Overhead pin-spot, AFORCE wordmark"
+
+[[outputs]]
+id = "1e1mwkeX7TggQbxlNqid3"
+uri = "file://attached_assets/launch_activation_launchC2_intimate.png"
+type = "image"
+title = "C — Intimate three cans, AFORCE wordmark"
