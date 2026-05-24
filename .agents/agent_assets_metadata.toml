@@ -468,6 +468,24 @@ uri = "file://attached_assets/category_shift_C.png"
 type = "image"
 title = "generated_image"
 
+[[generated]]
+id = "hDlsrH4GduPbtr9BDnUBk"
+uri = "file://attached_assets/non_negotiable_A.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "yLmm8IrFw36lq-8WKOdII"
+uri = "file://attached_assets/non_negotiable_B.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "MLjXGTnx75I4Xix12hbD_"
+uri = "file://attached_assets/non_negotiable_C.png"
+type = "image"
+title = "generated_image"
+
 [[outputs]]
 id = "fILTiXCCTKYfWe9d8R46M"
 uri = "file://attached_assets/tester-share/aforce-tester-qr.png"
@@ -1391,3 +1409,21 @@ id = "ljOgbySnHswInZj64GTF9"
 uri = "file://attached_assets/category_shift_C.png"
 type = "image"
 title = "Variant C — stadium tunnel mouth, cold breath"
+
+[[outputs]]
+id = "1w73a5DTC7Wf3zYMItlYT"
+uri = "file://attached_assets/non_negotiable_A.png"
+type = "image"
+title = "Variant A — seated on bench, head bowed, low red rim"
+
+[[outputs]]
+id = "ZubEN90F2IriRzGvz9oF8"
+uri = "file://attached_assets/non_negotiable_B.png"
+type = "image"
+title = "Variant B — lone figure in vast black void"
+
+[[outputs]]
+id = "Ne_CkWvvmg9-ZCWm_7CDM"
+uri = "file://attached_assets/non_negotiable_C.png"
+type = "image"
+title = "Variant C — taped hands tight crop, red key light"
