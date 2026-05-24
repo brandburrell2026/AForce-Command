@@ -18,8 +18,8 @@ const STAGES: Stage[] = [
 
 const CENTER = 50;
 const RADIUS = 30;
-const LABEL_RADIUS = 41.5;
-const NUMBER_RADIUS = 36;
+const LABEL_RADIUS = 44;
+const NUMBER_RADIUS = 38;
 
 function polar(r: number, deg: number) {
   const rad = ((deg - 90) * Math.PI) / 180; // -90 so 0deg = top
@@ -100,9 +100,11 @@ export default function RetentionIsProduct() {
         <div className="col-span-7 relative">
           <div className="absolute inset-0 flex items-center justify-center">
             <svg
-              viewBox="0 0 100 100"
+              viewBox="-12 -4 124 108"
               className="w-full h-full max-h-[72vh]"
               preserveAspectRatio="xMidYMid meet"
+              overflow="visible"
+              style={{ overflow: "visible" }}
               aria-label="Retention flywheel: Behavior, Accountability, Ritual, Subscription, Community, Retention"
             >
               <defs>
@@ -234,9 +236,9 @@ export default function RetentionIsProduct() {
                       x={numP.x}
                       y={numP.y + numYOffset}
                       fill="currentColor"
-                      fontSize="1.3"
+                      fontSize="1.56"
                       fontFamily="Manrope, sans-serif"
-                      fontWeight="600"
+                      fontWeight="700"
                       letterSpacing="0.55"
                       textAnchor={anchor}
                       className="text-text/35"
@@ -248,7 +250,7 @@ export default function RetentionIsProduct() {
                       x={labelP.x}
                       y={labelP.y + yOffset}
                       fill={stage.accent ? "var(--slide-primary)" : "currentColor"}
-                      fontSize="2.6"
+                      fontSize="3.12"
                       fontFamily="Archivo Black, Manrope, sans-serif"
                       fontWeight="900"
                       letterSpacing="-0.05"
@@ -264,37 +266,37 @@ export default function RetentionIsProduct() {
               {/* Center mark */}
               <text
                 x={CENTER}
-                y={CENTER - 2.5}
+                y={CENTER - 2.8}
                 fill="currentColor"
-                fontSize="1.4"
-                fontFamily="Manrope, sans-serif"
-                fontWeight="700"
-                letterSpacing="0.65"
+                fontSize="2.4"
+                fontFamily="Archivo Black, Manrope, sans-serif"
+                fontWeight="900"
+                letterSpacing="0.4"
                 textAnchor="middle"
-                className="text-text/55"
+                className="text-text"
                 style={{ textTransform: "uppercase" }}
               >
                 Behavior Compounds
               </text>
               <line
-                x1={CENTER - 6}
-                y1={CENTER - 0.5}
-                x2={CENTER + 6}
-                y2={CENTER - 0.5}
+                x1={CENTER - 7}
+                y1={CENTER - 0.2}
+                x2={CENTER + 7}
+                y2={CENTER - 0.2}
                 stroke="var(--slide-primary)"
-                strokeWidth="0.18"
+                strokeWidth="0.22"
                 strokeLinecap="round"
               />
               <text
                 x={CENTER}
-                y={CENTER + 2.4}
+                y={CENTER + 3.2}
                 fill="currentColor"
-                fontSize="1.05"
+                fontSize="1.5"
                 fontFamily="Manrope, sans-serif"
-                fontWeight="600"
+                fontWeight="700"
                 letterSpacing="0.5"
                 textAnchor="middle"
-                className="text-text/40"
+                className="text-text/65"
                 style={{ textTransform: "uppercase" }}
               >
                 Day 1 · Day 7 · Day 28 · Day 90
