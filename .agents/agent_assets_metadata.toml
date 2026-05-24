@@ -150,6 +150,12 @@ uri = "file://attached_assets/generated_images/event_05_corridor_before_event.pn
 type = "image"
 title = "aforce event 05_corridor_before_event"
 
+[[generated]]
+id = "uW0jDvboyXodP81S6CoFS"
+uri = "file://attached_assets/generated_images/product_ecosystem_brickell_desk.png"
+type = "image"
+title = "AForce product ecosystem desk scene"
+
 [[outputs]]
 id = "fILTiXCCTKYfWe9d8R46M"
 uri = "file://attached_assets/tester-share/aforce-tester-qr.png"
@@ -755,3 +761,9 @@ id = "on-3gH_jTGD0Ii-Xdub4E"
 uri = "file://attached_assets/generated_images/event_06_pre_performance_focus.png"
 type = "image"
 title = "06 — The minute before performance"
+
+[[outputs]]
+id = "TMnftvgC3fnr6ZWZZxh0b"
+uri = "file://attached_assets/generated_images/product_ecosystem_brickell_desk.png"
+type = "image"
+title = "Slide 8 — Product ecosystem (Brickell desk, 5:15am)"
