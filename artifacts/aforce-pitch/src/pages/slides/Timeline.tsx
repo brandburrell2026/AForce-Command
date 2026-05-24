@@ -1,4 +1,5 @@
 import SlideChrome from "@/components/SlideChrome";
+import bgImg from "@assets/roadmap_rmA_voidwarm.png";
 
 const PHASES = [
   { when: "May–June 2026", what: "Infrastructure + seeding", color: "text-text" },
@@ -11,6 +12,23 @@ const PHASES = [
 export default function Timeline() {
   return (
     <SlideChrome slide={28}>
+      <div
+        className="absolute inset-0"
+        style={{
+          backgroundImage: `url(${bgImg})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center right",
+          opacity: 0.9,
+        }}
+      />
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background:
+            "linear-gradient(90deg, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.78) 40%, rgba(0,0,0,0.4) 75%, rgba(0,0,0,0.1) 100%)",
+        }}
+      />
+
       <div className="absolute inset-0 flex flex-col justify-center px-[8vw]">
         <div className="font-body uppercase tracking-[0.4em] text-[0.85vw] text-text/45 font-semibold mb-[3vh]">
           Timeline
