@@ -27,6 +27,7 @@ export default function TheNoise() {
                 fontSize: `${1.8 + ((i * 7) % 6) * 0.8}vw`,
                 opacity: 0.55 + ((i * 11) % 7) / 14,
                 transform: `rotate(${((i * 13) % 7) - 3}deg)`,
+                marginLeft: w === "PEDIALYTE" ? "1.2vw" : undefined,
               }}
             >
               {w}
