@@ -63,13 +63,11 @@ export default function FinalSlide() {
         </div>
       </div>
 
-      <div className="absolute bottom-[5vh] left-[6vw] right-[6vw] flex justify-between items-center">
-        <div className="font-body uppercase tracking-[0.4em] text-[0.7vw] text-text/30 font-semibold">
-          AForce
-        </div>
-        <div className="font-body uppercase tracking-[0.4em] text-[0.7vw] text-text/30 font-semibold">
-          Phase 1 · Proof of Concept · May 2026
-        </div>
+      <div className="absolute bottom-[3.5vh] left-[6vw] font-body uppercase tracking-[0.4em] text-[0.7vw] text-text/30 font-semibold">
+        AForce
+      </div>
+      <div className="absolute bottom-[3.5vh] right-0 w-[55vw] pr-[2vw] flex justify-center font-body uppercase tracking-[0.4em] text-[0.7vw] text-text/35 font-semibold">
+        Phase 1 · Proof of Concept · May 2026
       </div>
     </SlideChrome>
   );
