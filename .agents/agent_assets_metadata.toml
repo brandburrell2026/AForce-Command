@@ -114,6 +114,42 @@ uri = "file://attached_assets/generated_images/brickell_06_underground_garage_ex
 type = "image"
 title = "brickell 06_underground_garage_executive"
 
+[[generated]]
+id = "dsVtgJgx7friLYPlDtxFc"
+uri = "file://attached_assets/generated_images/event_03_quiet_conversation.png"
+type = "image"
+title = "aforce event 03_quiet_conversation"
+
+[[generated]]
+id = "r-kZ75sf9ClVdb9f1pZyy"
+uri = "file://attached_assets/generated_images/event_02_preparation_room.png"
+type = "image"
+title = "aforce event 02_preparation_room"
+
+[[generated]]
+id = "w9TXHLzBogs1aoTekiIbl"
+uri = "file://attached_assets/generated_images/event_01_hydration_station.png"
+type = "image"
+title = "aforce event 01_hydration_station"
+
+[[generated]]
+id = "Bz4FwwYUNb7_05y-_QSFo"
+uri = "file://attached_assets/generated_images/event_04_founder_with_member.png"
+type = "image"
+title = "aforce event 04_founder_with_member"
+
+[[generated]]
+id = "l5UWC6eFhxjKJLHG6KHba"
+uri = "file://attached_assets/generated_images/event_06_pre_performance_focus.png"
+type = "image"
+title = "aforce event 06_pre_performance_focus"
+
+[[generated]]
+id = "qw6F7FIIBFnEBKiwEWl2L"
+uri = "file://attached_assets/generated_images/event_05_corridor_before_event.png"
+type = "image"
+title = "aforce event 05_corridor_before_event"
+
 [[outputs]]
 id = "fILTiXCCTKYfWe9d8R46M"
 uri = "file://attached_assets/tester-share/aforce-tester-qr.png"
@@ -683,3 +719,39 @@ id = "9HJyBKk2fM21NkrPlCpWV"
 uri = "file://attached_assets/generated_images/brickell_06_underground_garage_executive.png"
 type = "image"
 title = "06 — Underground garage"
+
+[[outputs]]
+id = "Up5F4PpN-enHsKdO_Sbk6"
+uri = "file://attached_assets/generated_images/event_01_hydration_station.png"
+type = "image"
+title = "01 — Hydration ritual station"
+
+[[outputs]]
+id = "ghQ14HGXYGh5du2sR3B8q"
+uri = "file://attached_assets/generated_images/event_02_preparation_room.png"
+type = "image"
+title = "02 — Private preparation room"
+
+[[outputs]]
+id = "X8FocJBxLN_4pxAFdzcC_"
+uri = "file://attached_assets/generated_images/event_03_quiet_conversation.png"
+type = "image"
+title = "03 — Quiet conversation"
+
+[[outputs]]
+id = "_JkBMiuokqjMtLoshdK-M"
+uri = "file://attached_assets/generated_images/event_04_founder_with_member.png"
+type = "image"
+title = "04 — Founder with a member"
+
+[[outputs]]
+id = "ElSVIYfLJoo7Kk95GvKBo"
+uri = "file://attached_assets/generated_images/event_05_corridor_before_event.png"
+type = "image"
+title = "05 — Corridor before the event"
+
+[[outputs]]
+id = "on-3gH_jTGD0Ii-Xdub4E"
+uri = "file://attached_assets/generated_images/event_06_pre_performance_focus.png"
+type = "image"
+title = "06 — The minute before performance"
