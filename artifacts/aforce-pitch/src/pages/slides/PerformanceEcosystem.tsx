@@ -97,7 +97,7 @@ function Connector({ active }: { active?: boolean }) {
 function StageNode({ index, stage }: { index: number; stage: Stage }) {
   return (
     <div className="flex flex-col items-center text-center" style={{ width: "9.5vw" }}>
-      <div className="font-body uppercase tracking-[0.32em] text-[0.55vw] text-text/30 tabular-nums mb-[1.4vh]">
+      <div className="font-body uppercase tracking-[0.32em] text-[0.75vw] text-text/75 font-bold tabular-nums mb-[1.4vh]">
         {String(index + 1).padStart(2, "0")}
       </div>
       <div
@@ -118,8 +118,8 @@ function StageNode({ index, stage }: { index: number; stage: Stage }) {
           <stage.Icon />
         </div>
       </div>
-      <div className="mt-[2vh] font-body text-[1vw] text-text font-light tracking-tight">{stage.label}</div>
-      <div className="mt-[0.6vh] font-body text-[0.7vw] text-text/40 leading-snug max-w-[8.5vw]">{stage.caption}</div>
+      <div className="mt-[2vh] font-display text-[1.15vw] text-text font-bold tracking-tight">{stage.label}</div>
+      <div className="mt-[0.6vh] font-body text-[0.72vw] text-text/55 leading-snug max-w-[8.5vw]">{stage.caption}</div>
     </div>
   );
 }
@@ -127,26 +127,23 @@ function StageNode({ index, stage }: { index: number; stage: Stage }) {
 export default function PerformanceEcosystem() {
   return (
     <SlideChrome slide={12}>
-      <div className="absolute inset-0 flex flex-col px-[6vw] py-[6vh]">
+      <div className="absolute inset-0 flex flex-col px-[6vw] pt-[10vh] pb-[9vh]">
         {/* Header */}
-        <div className="flex items-baseline justify-between">
-          <div>
-            <div className="font-body uppercase tracking-[0.4em] text-[0.85vw] text-text/45 font-semibold mb-[2vh]">
-              The Performance Ecosystem
-            </div>
-            <h2 className="font-display text-[4.2vw] leading-[0.95] tracking-tighter">
+        <div className="flex items-end justify-between gap-[3vw]">
+          <div className="min-w-0">
+            <h2 className="font-display text-[3.6vw] leading-[1] tracking-tighter">
               <span className="text-text">Every stage </span>
               <span className="text-text/45">earns the next.</span>
             </h2>
-            <div className="mt-[2vh] font-body text-[1vw] text-text/55 max-w-[55vw] leading-[1.5]">
+            <div className="mt-[1.6vh] font-body text-[0.95vw] text-text/55 max-w-[55vw] leading-[1.5]">
               A closed behavioral loop. <span className="text-text/85">Each surface compounds the one before it.</span>
             </div>
           </div>
-          <div className="text-right">
-            <div className="font-body uppercase tracking-[0.32em] text-[0.65vw] text-text/35">
+          <div className="text-right shrink-0">
+            <div className="font-body uppercase tracking-[0.32em] text-[0.65vw] text-text/55 font-semibold">
               Seven stages · One ritual
             </div>
-            <div className="font-body text-[0.7vw] text-text/30 mt-[0.6vh] italic">
+            <div className="font-body text-[0.7vw] text-text/35 mt-[0.6vh] italic">
               The OS is the connective tissue.
             </div>
           </div>
@@ -165,12 +162,12 @@ export default function PerformanceEcosystem() {
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between border-t border-text/[0.08] pt-[2vh]">
-          <div className="font-body uppercase tracking-[0.3em] text-[0.6vw] text-text/35">
+        <div className="flex items-center justify-between border-t border-text/[0.08] pt-[1.6vh]">
+          <div className="font-body uppercase tracking-[0.3em] text-[0.62vw] text-text/55 font-semibold">
             Product · Ritual · Reinforcement · Accountability · Subscription · Retention · Community
           </div>
-          <div className="font-body text-[0.7vw] text-text/45">
-            The loop is the moat. <span className="text-text/85">Performance compounds.</span>
+          <div className="font-body text-[0.72vw] text-text/55 italic">
+            The loop is the moat. <span className="text-text not-italic font-semibold">Performance compounds.</span>
           </div>
         </div>
       </div>

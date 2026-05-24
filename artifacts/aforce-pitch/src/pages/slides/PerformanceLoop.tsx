@@ -111,7 +111,7 @@ function LoopDiagram() {
   });
 
   return (
-    <div className="relative" style={{ width: "56vh", height: "56vh" }}>
+    <div className="relative" style={{ width: "66vh", height: "66vh" }}>
       {/* Soft radial backlight */}
       <div
         className="absolute inset-0 rounded-full"
@@ -178,7 +178,7 @@ function LoopDiagram() {
               left: `${cx}%`,
               top: `${cy}%`,
               transform: "translate(-50%, -50%)",
-              width: "14vw",
+              width: "9vw",
             }}
           >
             <div
@@ -195,15 +195,15 @@ function LoopDiagram() {
                   : "0 0 24px rgba(0,0,0,0.6)",
               }}
             >
-              <div className="font-body uppercase tracking-[0.3em] text-[0.75vw] text-text/35 tabular-nums absolute -top-[2.4vh]">
+              <div className="font-body uppercase tracking-[0.3em] text-[0.85vw] text-text/75 font-bold tabular-nums absolute -top-[2.6vh] left-1/2 -translate-x-1/2">
                 {String(i + 1).padStart(2, "0")}
               </div>
               <div className="text-text/80" style={{ width: "34px", height: "34px" }}>
                 <stage.Icon />
               </div>
             </div>
-            <div className="mt-[1.4vh] font-body text-[1.25vw] text-text font-light tracking-tight">{stage.label}</div>
-            <div className="mt-[0.4vh] font-body text-[0.9vw] text-text/45 leading-snug">{stage.caption}</div>
+            <div className="mt-[1.2vh] font-display text-[1.1vw] text-text font-bold tracking-tight whitespace-nowrap">{stage.label}</div>
+            <div className="mt-[0.3vh] font-body text-[0.7vw] text-text/55 leading-tight">{stage.caption}</div>
           </div>
         );
       })}
@@ -214,24 +214,21 @@ function LoopDiagram() {
 export default function PerformanceLoop() {
   return (
     <SlideChrome slide={13}>
-      <div className="absolute inset-0 flex flex-col px-[6vw] py-[6vh]">
+      <div className="absolute inset-0 flex flex-col px-[6vw] pt-[10vh] pb-[9vh]">
         {/* Header */}
-        <div className="flex items-baseline justify-between">
-          <div>
-            <div className="font-body uppercase tracking-[0.4em] text-[0.85vw] text-text/45 font-semibold mb-[2vh]">
-              The Performance Loop
-            </div>
-            <h2 className="font-display text-[4.2vw] leading-[0.95] tracking-tighter">
+        <div className="flex items-end justify-between gap-[3vw]">
+          <div className="min-w-0">
+            <h2 className="font-display text-[3.4vw] leading-[1] tracking-tighter">
               <span className="text-text">The loop is the moat.</span>
               <br />
               <span className="text-text/45">Every cycle compounds.</span>
             </h2>
           </div>
-          <div className="text-right">
-            <div className="font-body uppercase tracking-[0.32em] text-[0.65vw] text-text/35">
+          <div className="text-right shrink-0">
+            <div className="font-body uppercase tracking-[0.32em] text-[0.65vw] text-text/55 font-semibold">
               One ritual · Repeated daily
             </div>
-            <div className="font-body text-[0.7vw] text-text/30 mt-[0.6vh] italic">
+            <div className="font-body text-[0.7vw] text-text/35 mt-[0.6vh] italic">
               Behavior, not awareness, is the asset.
             </div>
           </div>
@@ -264,12 +261,12 @@ export default function PerformanceLoop() {
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between border-t border-text/[0.08] pt-[2vh]">
-          <div className="font-body uppercase tracking-[0.3em] text-[0.6vw] text-text/35">
+        <div className="flex items-center justify-between border-t border-text/[0.08] pt-[1.6vh]">
+          <div className="font-body uppercase tracking-[0.3em] text-[0.62vw] text-text/55 font-semibold">
             Drink · Ritual · Check-in · Streak · Repeat · Subscribe · Retain
           </div>
-          <div className="font-body text-[0.7vw] text-text/45">
-            A recurring behavioral system. <span className="text-text/85">Engineered to be inevitable.</span>
+          <div className="font-body text-[0.72vw] text-text/55 italic">
+            A recurring behavioral system. <span className="text-text not-italic font-semibold">Engineered to be inevitable.</span>
           </div>
         </div>
       </div>
