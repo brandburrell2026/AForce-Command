@@ -6,29 +6,33 @@ export default function FinalSlide() {
     <SlideChrome slide={31} hideChrome>
       <div className="absolute inset-0 bg-black" />
 
-      <div className="absolute inset-y-0 right-[-6vw] w-[40vw] flex items-center justify-center opacity-55">
+      <div className="absolute inset-y-0 right-0 w-[46vw] flex items-center justify-center">
         <div
-          className="absolute w-[30vw] h-[30vw] rounded-full opacity-50 blur-[7vw]"
+          className="absolute w-[32vw] h-[32vw] rounded-full opacity-45 blur-[7vw]"
           style={{
             background:
-              "radial-gradient(circle, rgba(84,120,213,0.50) 0%, transparent 72%)",
+              "radial-gradient(circle, rgba(84,120,213,0.45) 0%, transparent 72%)",
           }}
         />
         <img
-          src={`${base}can-berry.png`}
-          alt=""
-          className="relative h-[80vh] object-contain"
+          src={`${base}brothers-tight.png`}
+          alt="The founders"
+          className="relative h-[92vh] w-full object-cover object-center"
           style={{
             filter:
-              "drop-shadow(0 30px 50px rgba(0,0,0,0.6)) drop-shadow(0 0 60px rgba(84,120,213,0.30))",
+              "grayscale(0.15) contrast(1.05) drop-shadow(0 30px 50px rgba(0,0,0,0.6))",
+            maskImage:
+              "linear-gradient(to right, transparent 0%, #000 22%, #000 100%)",
+            WebkitMaskImage:
+              "linear-gradient(to right, transparent 0%, #000 22%, #000 100%)",
           }}
         />
       </div>
 
       <div
-        className="absolute inset-y-0 left-0 w-[65vw] pointer-events-none"
+        className="absolute inset-y-0 left-0 w-[58vw] pointer-events-none"
         style={{
-          background: "linear-gradient(to right, #000 65%, transparent 100%)",
+          background: "linear-gradient(to right, #000 55%, rgba(0,0,0,0.7) 80%, transparent 100%)",
         }}
       />
 
