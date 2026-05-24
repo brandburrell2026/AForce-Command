@@ -8,7 +8,6 @@ export default function SoundGate({ onUnlock }: { onUnlock: () => void }) {
   useEffect(() => {
     const dismiss = () => handleEnter();
     const onKey = (e: KeyboardEvent) => {
-      // any key dismisses
       if (e.key) dismiss();
     };
     const onPointer = () => dismiss();
@@ -16,11 +15,14 @@ export default function SoundGate({ onUnlock }: { onUnlock: () => void }) {
     window.addEventListener("pointerdown", onPointer, true);
     window.addEventListener("touchstart", onPointer, true);
     window.addEventListener("mousedown", onPointer, true);
+    // Failsafe: never block the deck. Auto-dismiss after 2.5s even without input.
+    const autoDismiss = window.setTimeout(() => dismiss(), 2500);
     return () => {
       window.removeEventListener("keydown", onKey, true);
       window.removeEventListener("pointerdown", onPointer, true);
       window.removeEventListener("touchstart", onPointer, true);
       window.removeEventListener("mousedown", onPointer, true);
+      window.clearTimeout(autoDismiss);
     };
   }, []);
 
