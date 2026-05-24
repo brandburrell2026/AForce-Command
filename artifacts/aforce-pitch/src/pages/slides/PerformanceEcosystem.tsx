@@ -1,4 +1,5 @@
 import SlideChrome from "@/components/SlideChrome";
+import bgImg from "@assets/slide12_loopA_neural.png";
 import type { ReactNode } from "react";
 
 type Stage = {
@@ -127,6 +128,24 @@ function StageNode({ index, stage }: { index: number; stage: Stage }) {
 export default function PerformanceEcosystem() {
   return (
     <SlideChrome slide={12}>
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          backgroundImage: `url(${bgImg})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center right",
+          opacity: 0.22,
+          filter: "contrast(1.05) brightness(0.9)",
+        }}
+      />
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background:
+            "linear-gradient(90deg, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.65) 40%, rgba(0,0,0,0.4) 75%, rgba(0,0,0,0.25) 100%)",
+        }}
+      />
+
       <div className="absolute inset-0 flex flex-col px-[6vw] pt-[10vh] pb-[9vh]">
         {/* Header */}
         <div className="flex items-end justify-between gap-[3vw]">
