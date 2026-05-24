@@ -1,5 +1,5 @@
 import SlideChrome from "@/components/SlideChrome";
-import VideoBackdrop from "@/components/VideoBackdrop";
+import eventImg from "@assets/generated_images/event_02_hydration_station.png";
 
 const STEPS = [
   { word: "Pause.", color: "text-primary" },
@@ -20,10 +20,28 @@ const CREATES = [
 export default function TheEvent() {
   return (
     <SlideChrome slide={24}>
-      <VideoBackdrop
-        src="video/s24-event.mp4"
-        opacity={0.55}
-        overlay="linear-gradient(to right, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.72) 50%, rgba(0,0,0,0.55) 100%)"
+      <div className="absolute inset-0 bg-black" />
+      <div
+        className="absolute inset-0 bg-cover bg-center"
+        style={{
+          backgroundImage: `url(${eventImg})`,
+          filter: "grayscale(0.15) contrast(1.04)",
+          opacity: 0.95,
+        }}
+      />
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background:
+            "linear-gradient(90deg, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.78) 32%, rgba(0,0,0,0.45) 60%, rgba(0,0,0,0.15) 100%)",
+        }}
+      />
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background:
+            "linear-gradient(180deg, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0) 18%, rgba(0,0,0,0) 78%, rgba(0,0,0,0.7) 100%)",
+        }}
       />
       <div className="absolute inset-0 flex flex-col justify-center px-[8vw]">
         <div className="font-body uppercase tracking-[0.4em] text-[0.85vw] text-text/45 font-semibold mb-[3vh]">
