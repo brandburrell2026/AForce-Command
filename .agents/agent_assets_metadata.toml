@@ -414,6 +414,24 @@ uri = "file://attached_assets/generated_images/scene_bg_C.png"
 type = "image"
 title = "generated_image"
 
+[[generated]]
+id = "boDhxt1PcB2TPm0TlDLUp"
+uri = "file://attached_assets/generated_images/surgeon_scrub_A.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "gqUXsr4BTVDbTq4oaXuS6"
+uri = "file://attached_assets/generated_images/surgeon_scrub_B.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "OcofC5dGJq3tF9VDxOVUt"
+uri = "file://attached_assets/generated_images/surgeon_scrub_C.png"
+type = "image"
+title = "generated_image"
+
 [[outputs]]
 id = "fILTiXCCTKYfWe9d8R46M"
 uri = "file://attached_assets/tester-share/aforce-tester-qr.png"
@@ -1283,3 +1301,21 @@ id = "lna0qQ243DL0zvzBTMfgg"
 uri = "file://attached_assets/generated_images/system_every_moment_real_C.png"
 type = "image"
 title = "Variant C — Lamp-lit desk + chauffeured car (AForce on desk)"
+
+[[outputs]]
+id = "AVxCFAPULC-GBxMO4SJwg"
+uri = "file://attached_assets/generated_images/surgeon_scrub_A.png"
+type = "image"
+title = "Variant A — Tight profile, masked face + lathered hands"
+
+[[outputs]]
+id = "OQL2kTRQg7fsWWladTVKd"
+uri = "file://attached_assets/generated_images/surgeon_scrub_B.png"
+type = "image"
+title = "Variant B — Back-3/4 wide, corridor depth, red exit glow"
+
+[[outputs]]
+id = "NJk7hbBG23AiuBRNzf4jr"
+uri = "file://attached_assets/generated_images/surgeon_scrub_C.png"
+type = "image"
+title = "Variant C — Macro lathered hands + droplets, silhouette behind"
