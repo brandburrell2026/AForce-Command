@@ -68,35 +68,24 @@ const FLAVORS: Flavor[] = [
 export default function TheProduct() {
   return (
     <SlideChrome slide={8}>
-      <div className="absolute inset-0 flex flex-col px-[5vw] pt-[5vh] pb-[3.5vh]">
-        <div className="flex items-baseline gap-[1vw]">
-          <span className="font-body uppercase tracking-[0.35em] text-[0.85vw] text-primary font-semibold">
-            08 — Product
-          </span>
-        </div>
-        <div className="mt-[1.2vh] flex items-center gap-[1vw]">
+      <div className="absolute inset-0 flex flex-col px-[6vw] pt-[11vh] pb-[10vh]">
+        <div className="flex items-center gap-[1vw]">
           <div className="h-px w-[3vw] bg-primary" />
           <span className="font-body uppercase tracking-[0.4em] text-[0.75vw] text-text/55 font-semibold">
             The Lineup
           </span>
         </div>
 
-        <h2 className="mt-[2.2vh] font-display text-[4.6vw] leading-[1] tracking-tighter">
+        <h2 className="mt-[1.8vh] font-display text-[3.8vw] leading-[1.02] tracking-tighter">
           One <span className="text-[#E25C5C]">system.</span> Delivered through{" "}
           <span className="text-primary">product.</span>
         </h2>
 
-        <div className="mt-[1.4vh] font-body text-[1vw] text-text/55">
+        <div className="mt-[1.2vh] font-body text-[0.95vw] text-text/55">
           Three signature flavors. Two formats. One performance loop.
         </div>
 
-        <div className="mt-[2vh] font-body italic text-[1.05vw] text-text/85">
-          <span className="text-[#E25C5C] not-italic mr-[0.4vw]">“</span>AForce is the system we
-          built to <span className="text-[#E25C5C]">stay sharp</span> when performance wasn&apos;t
-          optional.
-        </div>
-
-        <div className="flex-1 grid grid-cols-3 gap-[1.6vw] mt-[2.4vh] min-h-0">
+        <div className="flex-1 grid grid-cols-3 gap-[1.6vw] mt-[2.2vh] min-h-0">
           {FLAVORS.map((f) => (
             <div
               key={f.name}
