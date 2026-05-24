@@ -1,15 +1,27 @@
 import SlideChrome from "@/components/SlideChrome";
+import heroImg from "@assets/human_truth_lockerC_floor.png";
 
 const PAUSE_QUALITIES = ["Quiet", "Focused", "Controlled"];
 
 export default function HumanTruth() {
   return (
     <SlideChrome slide={15}>
+      {/* Hero photo — anonymous athlete in stillness, right third */}
+      <div
+        className="absolute inset-0"
+        style={{
+          backgroundImage: `url(${heroImg})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center right",
+          filter: "contrast(1.05) brightness(0.95)",
+        }}
+      />
+      {/* L→R scrim — protect left-side typography */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
           background:
-            "radial-gradient(ellipse 80% 60% at 30% 50%, rgba(84,120,213,0.07) 0%, transparent 70%)",
+            "linear-gradient(90deg, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.78) 38%, rgba(0,0,0,0.32) 70%, rgba(0,0,0,0.05) 100%)",
         }}
       />
 
