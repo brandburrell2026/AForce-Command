@@ -432,6 +432,24 @@ uri = "file://attached_assets/generated_images/surgeon_scrub_C.png"
 type = "image"
 title = "generated_image"
 
+[[generated]]
+id = "gOzwN0oVedwH3fI15pTJk"
+uri = "file://attached_assets/category_noise_A.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "kGbnEznb6dsJp2X0dBORl"
+uri = "file://attached_assets/category_noise_B.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "K9GH8gZ_tUboitqLeA-nx"
+uri = "file://attached_assets/category_noise_C.png"
+type = "image"
+title = "generated_image"
+
 [[outputs]]
 id = "fILTiXCCTKYfWe9d8R46M"
 uri = "file://attached_assets/tester-share/aforce-tester-qr.png"
@@ -1319,3 +1337,21 @@ id = "NJk7hbBG23AiuBRNzf4jr"
 uri = "file://attached_assets/generated_images/surgeon_scrub_C.png"
 type = "image"
 title = "Variant C — Macro lathered hands + droplets, silhouette behind"
+
+[[outputs]]
+id = "xu53Td9fHXySgP85AkVG2"
+uri = "file://attached_assets/category_noise_A.png"
+type = "image"
+title = "Variant A — dense shelf wall"
+
+[[outputs]]
+id = "F1IFmJqjsQSoshtCXsjFD"
+uri = "file://attached_assets/category_noise_B.png"
+type = "image"
+title = "Variant B — vertical shelving, perspective recede"
+
+[[outputs]]
+id = "yVNNfVfgj9jgNNoFplvvB"
+uri = "file://attached_assets/category_noise_C.png"
+type = "image"
+title = "Variant C — cooler wall, condensation, faint red glow"
