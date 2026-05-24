@@ -270,6 +270,42 @@ uri = "file://attached_assets/generated_images/brickell_06_skyline_silhouette_mo
 type = "image"
 title = "generated_image"
 
+[[generated]]
+id = "-ocOH88fF9vQyIlza1V7I"
+uri = "file://attached_assets/generated_images/event_01_venue_establishing.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "TQZ_nOjMu5NEd4KSNPqy6"
+uri = "file://attached_assets/generated_images/event_02_hydration_station.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "t0Pfh_R_S1IQLJ8QjArOm"
+uri = "file://attached_assets/generated_images/event_03_preparation_room.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "K53j7EQei1dz2KdVqANBV"
+uri = "file://attached_assets/generated_images/event_04_quiet_conversation.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "yCVEKEkFBF-QgaKaa1TWW"
+uri = "file://attached_assets/generated_images/event_05_founder_interaction.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "Etd0ZC3JbLYn43Vgdx39E"
+uri = "file://attached_assets/generated_images/event_06_pre_performance_moment.png"
+type = "image"
+title = "generated_image"
+
 [[outputs]]
 id = "fILTiXCCTKYfWe9d8R46M"
 uri = "file://attached_assets/tester-share/aforce-tester-qr.png"
@@ -995,3 +1031,39 @@ id = "Ro4agz0Ojh_pgD0SFHfbX"
 uri = "file://attached_assets/generated_images/brickell_06_skyline_silhouette_moody.png"
 type = "image"
 title = "06 — Skyline silhouette"
+
+[[outputs]]
+id = "IRFKjjkCPERd_XtrRBfw8"
+uri = "file://attached_assets/generated_images/event_01_venue_establishing.png"
+type = "image"
+title = "01 — The venue"
+
+[[outputs]]
+id = "KXjCU527hKjoZDyJ9Dc3V"
+uri = "file://attached_assets/generated_images/event_02_hydration_station.png"
+type = "image"
+title = "02 — Hydration ritual station"
+
+[[outputs]]
+id = "sIC1j4NMvBdNQQZ_788PH"
+uri = "file://attached_assets/generated_images/event_03_preparation_room.png"
+type = "image"
+title = "03 — Preparation room"
+
+[[outputs]]
+id = "Y6iFAoZqESj7pCpp9xfIW"
+uri = "file://attached_assets/generated_images/event_04_quiet_conversation.png"
+type = "image"
+title = "04 — Quiet conversation"
+
+[[outputs]]
+id = "vbBkgsIzmo57ADo2P0vTO"
+uri = "file://attached_assets/generated_images/event_05_founder_interaction.png"
+type = "image"
+title = "05 — Founder briefing"
+
+[[outputs]]
+id = "3VpW82asQtL1j3Ev24_y5"
+uri = "file://attached_assets/generated_images/event_06_pre_performance_moment.png"
+type = "image"
+title = "06 — Before entry"
