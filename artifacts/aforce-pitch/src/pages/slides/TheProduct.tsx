@@ -3,9 +3,9 @@ import SlideChrome from "@/components/SlideChrome";
 import canSoursop from "@assets/CAN_3D_Soursop_11oz_1779553713234.png";
 import canBerry from "@assets/CAN_3D_Berry_11oz_1779553713236.png";
 import canMelon from "@assets/CAN_3D_MELON_11oz_1779553713237.png";
-import stickBerry from "@assets/Stick_3D_Berry_nobg.png";
-import stickSoursop from "@assets/Stick_3D_Soursop_nobg.png";
-import stickWatermelon from "@assets/Stick_3D_Watermelon_nobg.png";
+import stickBerry from "@assets/Stick_Berry_v2_nobg.png";
+import stickSoursop from "@assets/Stick_Soursop_v2_nobg.png";
+import stickWatermelon from "@assets/Stick_Watermelon_v2_nobg.png";
 
 type Flavor = {
   label: string;
