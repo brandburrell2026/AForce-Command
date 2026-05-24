@@ -324,6 +324,24 @@ uri = "file://attached_assets/generated_images/silence_athlete_courtside_bench.p
 type = "image"
 title = "generated_image"
 
+[[generated]]
+id = "ZaYdI4jJZ7mV3sy-OTwQC"
+uri = "file://attached_assets/generated_images/prep_athlete_taping_wrists.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "Q1BwsphMZ8LJe-jRnQxmt"
+uri = "file://attached_assets/generated_images/prep_founder_desk_5am.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "JVMvCl7iEtzT2kw26M7pX"
+uri = "file://attached_assets/generated_images/prep_backstage_corridor.png"
+type = "image"
+title = "generated_image"
+
 [[outputs]]
 id = "fILTiXCCTKYfWe9d8R46M"
 uri = "file://attached_assets/tester-share/aforce-tester-qr.png"
@@ -1103,3 +1121,21 @@ id = "1I9R62yF4s3-2-OnlFc7p"
 uri = "file://attached_assets/generated_images/silence_athlete_courtside_bench.png"
 type = "image"
 title = "03 — Courtside bench (skip — visible logos)"
+
+[[outputs]]
+id = "I2cslqPmunAjOrYJbrfY6"
+uri = "file://attached_assets/generated_images/prep_athlete_taping_wrists.png"
+type = "image"
+title = "01 — Wrist taping, locker room"
+
+[[outputs]]
+id = "3vemGxtnl0Bq21q5oT4nC"
+uri = "file://attached_assets/generated_images/prep_founder_desk_5am.png"
+type = "image"
+title = "02 — Founder at desk, 5am skyline (my pick)"
+
+[[outputs]]
+id = "2q-Kn-YPAuPdkYPvKY9wd"
+uri = "file://attached_assets/generated_images/prep_backstage_corridor.png"
+type = "image"
+title = "03 — Backstage corridor (most cinematic)"
