@@ -50,7 +50,7 @@ export default function ExecutiveSummary() {
 
       <div className="absolute inset-0 flex flex-col justify-between px-[8vw] py-[8vh] pointer-events-none">
         <div className="flex items-start justify-between">
-          <div className="font-display text-[2vw] leading-none tracking-tight text-primary">
+          <div className="font-display text-[3vw] leading-none tracking-tight text-primary">
             AForce<span className="text-[0.4em] align-super tracking-normal ml-[0.12em] text-primary/80">™</span>
           </div>
           <div className="flex flex-col items-end gap-[1.2vh]">
