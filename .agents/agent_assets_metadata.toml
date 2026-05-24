@@ -1270,16 +1270,16 @@ title = "Variant C — Overhead desk + chauffeured car (with AForce can)"
 id = "wMVydgJs0_RdH-z1Q3vA-"
 uri = "file://attached_assets/generated_images/system_every_moment_real_A.png"
 type = "image"
-title = "Variant A — Office + SUV (real can composited)"
+title = "Variant A — Office + SUV (AForce on desk)"
 
 [[outputs]]
 id = "stbfiAOdw9wnfFTp0BL9x"
 uri = "file://attached_assets/generated_images/system_every_moment_real_B.png"
 type = "image"
-title = "Variant B — Desk profile + private aviation (real can composited)"
+title = "Variant B — Desk profile + private aviation (AForce on desk)"
 
 [[outputs]]
 id = "lna0qQ243DL0zvzBTMfgg"
 uri = "file://attached_assets/generated_images/system_every_moment_real_C.png"
 type = "image"
-title = "Variant C — Across-desk + chauffeured car (real can composited)"
+title = "Variant C — Lamp-lit desk + chauffeured car (AForce on desk)"
