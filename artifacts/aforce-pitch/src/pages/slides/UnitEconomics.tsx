@@ -2,11 +2,11 @@ import SlideChrome from "@/components/SlideChrome";
 import bgImg from "@assets/unit_econ_recurC_mesh.png";
 
 const TARGETS = [
-  { k: "CAC", v: "Under target", note: "Cost-efficient acquisition" },
-  { k: "Subscription conversion", v: "20%+", note: "Free → paid ecosystem" },
-  { k: "Repeat purchase", v: "28–32%", note: "Behavioral retention" },
-  { k: "Contribution margin", v: "Strong", note: "Premium positioning" },
-  { k: "Recurring revenue", v: "Compounding", note: "Subscription base" },
+  { v: "Efficient CAC", note: "Disciplined acquisition model" },
+  { v: "20%+ attach target", note: "Subscription conversion" },
+  { v: "62–65%", note: "Projected gross margin" },
+  { v: "28–32%", note: "Repeat purchase rate" },
+  { v: "Compounding", note: "Recurring revenue model" },
 ];
 
 export default function UnitEconomics() {
@@ -18,15 +18,15 @@ export default function UnitEconomics() {
           backgroundImage: `url(${bgImg})`,
           backgroundSize: "cover",
           backgroundPosition: "center right",
-          filter: "contrast(1.05) brightness(0.95)",
-          opacity: 0.88,
+          filter: "contrast(1.02) brightness(0.82)",
+          opacity: 0.74,
         }}
       />
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
           background:
-            "linear-gradient(90deg, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.72) 38%, rgba(0,0,0,0.32) 72%, rgba(0,0,0,0.05) 100%)",
+            "linear-gradient(90deg, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.78) 40%, rgba(0,0,0,0.42) 72%, rgba(0,0,0,0.18) 100%)",
         }}
       />
 
@@ -41,16 +41,13 @@ export default function UnitEconomics() {
           <span className="text-primary">once the behavior repeats.</span>
         </h2>
 
-        <div className="mt-[6vh] grid grid-cols-5 gap-x-[1.5vw] max-w-[85vw]">
+        <div className="mt-[7vh] grid grid-cols-5 gap-x-[2.6vw] max-w-[88vw]">
           {TARGETS.map((t) => (
-            <div key={t.k} className="border-l-2 border-text/15 pl-[1.1vw]">
-              <div className="font-body uppercase tracking-[0.32em] text-[0.65vw] text-text/40 font-semibold mb-[0.6vh] leading-[1.3]">
-                {t.k}
-              </div>
-              <div className="font-display text-[1.6vw] leading-[1.05] tracking-tight text-text">
+            <div key={t.v} className="border-l border-text/15 pl-[1.3vw]">
+              <div className="font-display text-[1.7vw] leading-[1.05] tracking-tight text-text">
                 {t.v}
               </div>
-              <div className="font-body text-[0.75vw] text-text/45 leading-[1.4] mt-[0.6vh]">
+              <div className="font-body uppercase tracking-[0.24em] text-[0.7vw] text-text/55 font-semibold mt-[1.4vh] leading-[1.4]">
                 {t.note}
               </div>
             </div>
