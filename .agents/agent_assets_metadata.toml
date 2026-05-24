@@ -198,6 +198,42 @@ uri = "file://attached_assets/generated_images/founders_bw_06_reflective_window.
 type = "image"
 title = "generated_image"
 
+[[generated]]
+id = "FM6m4wPymyWOsq2KKEXA9"
+uri = "file://attached_assets/generated_images/professionals_01_hedge_fund_5am.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "0bVrIuYqwMNWfZYvmsLip"
+uri = "file://attached_assets/generated_images/professionals_02_athlete_backstage.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "5b5OP1j3ePkuBZl8JK5Xd"
+uri = "file://attached_assets/generated_images/professionals_03_entrepreneur_glass_tower.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "klWyWk2vXpIBRjTecHEzU"
+uri = "file://attached_assets/generated_images/professionals_04_surgeon_scrubbing.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "faQZY-ujh5OsYUivbol4D"
+uri = "file://attached_assets/generated_images/professionals_05_performer_before_stage.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "u92OrgKmdZ5sd99m0yWD5"
+uri = "file://attached_assets/generated_images/professionals_06_executive_red_eye.png"
+type = "image"
+title = "generated_image"
+
 [[outputs]]
 id = "fILTiXCCTKYfWe9d8R46M"
 uri = "file://attached_assets/tester-share/aforce-tester-qr.png"
@@ -851,3 +887,39 @@ id = "0m7yq8T0fNrPCbEJ5yRAv"
 uri = "file://attached_assets/generated_images/founders_bw_06_reflective_window.png"
 type = "image"
 title = "06 — Reflective window"
+
+[[outputs]]
+id = "5u3TT8XxF6Bx-sJ2L4rhU"
+uri = "file://attached_assets/generated_images/professionals_01_hedge_fund_5am.png"
+type = "image"
+title = "01 — Hedge fund operator, 5am"
+
+[[outputs]]
+id = "9D2PXBKH689g0unvaIAzm"
+uri = "file://attached_assets/generated_images/professionals_02_athlete_backstage.png"
+type = "image"
+title = "02 — Athlete backstage"
+
+[[outputs]]
+id = "IQJFRz0YnoGxLYdxeDkvR"
+uri = "file://attached_assets/generated_images/professionals_03_entrepreneur_glass_tower.png"
+type = "image"
+title = "03 — Entrepreneur, glass tower"
+
+[[outputs]]
+id = "5eMNgsu6hHHj9n_DtdWKx"
+uri = "file://attached_assets/generated_images/professionals_04_surgeon_scrubbing.png"
+type = "image"
+title = "04 — Surgeon scrubbing in"
+
+[[outputs]]
+id = "kTDbpnMWm_21WhbhODuT4"
+uri = "file://attached_assets/generated_images/professionals_05_performer_before_stage.png"
+type = "image"
+title = "05 — Performer, wings of the stage"
+
+[[outputs]]
+id = "IYZci7ORTA4qYwfD8MHIX"
+uri = "file://attached_assets/generated_images/professionals_06_executive_red_eye.png"
+type = "image"
+title = "06 — Executive, red-eye flight"
