@@ -162,6 +162,42 @@ uri = "file://attached_assets/generated_images/slide8_product_ecosystem_v2.png"
 type = "image"
 title = "generated_image"
 
+[[generated]]
+id = "s3gpX1yDph4WKGWZLMVB1"
+uri = "file://attached_assets/generated_images/founders_bw_01_brickell_dawn_walk.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "RYOuNWXN6kEGIqKvxM32Q"
+uri = "file://attached_assets/generated_images/founders_bw_02_late_night_desk.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "ptU7-s8BMb6eHmr5V4iYp"
+uri = "file://attached_assets/generated_images/founders_bw_03_focus_before_meeting.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "nFvrCyAh_FZiNcK9Askt2"
+uri = "file://attached_assets/generated_images/founders_bw_04_quiet_intensity_portrait.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "zyM2Ird5kFhCWQKCWs24a"
+uri = "file://attached_assets/generated_images/founders_bw_05_preparation_ritual_bathroom.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "Wu9nyiJ6x82YSS1KiAN-u"
+uri = "file://attached_assets/generated_images/founders_bw_06_reflective_window.png"
+type = "image"
+title = "generated_image"
+
 [[outputs]]
 id = "fILTiXCCTKYfWe9d8R46M"
 uri = "file://attached_assets/tester-share/aforce-tester-qr.png"
@@ -779,3 +815,39 @@ id = "NpdfNuCr8ywOZpC9VvcxT"
 uri = "file://attached_assets/generated_images/slide8_product_ecosystem_v2.png"
 type = "image"
 title = "Slide 8 — Product Ecosystem (Brickell, 5:15am)"
+
+[[outputs]]
+id = "khOyYQXBYXU3D-lss4jY0"
+uri = "file://attached_assets/generated_images/founders_bw_01_brickell_dawn_walk.png"
+type = "image"
+title = "01 — Brickell dawn walk"
+
+[[outputs]]
+id = "n5tWD_yicJn0G5Mw-TwkT"
+uri = "file://attached_assets/generated_images/founders_bw_02_late_night_desk.png"
+type = "image"
+title = "02 — Late night at the desk"
+
+[[outputs]]
+id = "lbfMUfpDkMEkRtB5CsJ5z"
+uri = "file://attached_assets/generated_images/founders_bw_03_focus_before_meeting.png"
+type = "image"
+title = "03 — Focus before the meeting"
+
+[[outputs]]
+id = "kaGY-ljygd5VvccgfN1jk"
+uri = "file://attached_assets/generated_images/founders_bw_04_quiet_intensity_portrait.png"
+type = "image"
+title = "04 — Quiet intensity portrait"
+
+[[outputs]]
+id = "_cQbuua9l2p5pfv8LrzLF"
+uri = "file://attached_assets/generated_images/founders_bw_05_preparation_ritual_bathroom.png"
+type = "image"
+title = "05 — Preparation ritual"
+
+[[outputs]]
+id = "0m7yq8T0fNrPCbEJ5yRAv"
+uri = "file://attached_assets/generated_images/founders_bw_06_reflective_window.png"
+type = "image"
+title = "06 — Reflective window"
