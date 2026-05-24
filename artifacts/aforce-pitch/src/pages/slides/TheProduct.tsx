@@ -120,9 +120,9 @@ export default function TheProduct() {
                 <img
                   src={f.stick}
                   alt={`${f.name} stick`}
-                  className="max-h-[85%] object-contain"
+                  className="max-h-full object-contain"
                   style={{
-                    maxWidth: "28%",
+                    maxWidth: "42%",
                     filter: `drop-shadow(0 14px 22px rgba(0,0,0,0.6)) drop-shadow(0 0 24px ${f.glow})`,
                   }}
                 />
