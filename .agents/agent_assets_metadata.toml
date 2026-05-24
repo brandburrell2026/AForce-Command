@@ -6,6 +6,48 @@ uri = "file://attached_assets/generated_images/aforce_brickell_predawn_desk.png"
 type = "image"
 title = "aforce brickell predawn desk"
 
+[[generated]]
+id = "aWJhxuKNnRpyoqLr9CZe8"
+uri = "file://attached_assets/generated_images/founder_01_walking_brickell_dawn.png"
+type = "image"
+title = "aforce founder 01_walking_brickell_dawn"
+
+[[generated]]
+id = "xD6CFfVFS6mllNIISoTMd"
+uri = "file://attached_assets/generated_images/founder_02_late_night_desk.png"
+type = "image"
+title = "aforce founder 02_late_night_desk"
+
+[[generated]]
+id = "ysoBbsxjNPzFU8ZFSKyGb"
+uri = "file://attached_assets/generated_images/founder_03_focused_before_meeting.png"
+type = "image"
+title = "aforce founder 03_focused_before_meeting"
+
+[[generated]]
+id = "EposWYkISLH_l0zNbbMQO"
+uri = "file://attached_assets/generated_images/founder_05_preparation_ritual.png"
+type = "image"
+title = "aforce founder 05_preparation_ritual"
+
+[[generated]]
+id = "JEW0N7TKUwjPaELoW0f7k"
+uri = "file://attached_assets/generated_images/founder_04_quiet_intensity_mirror.png"
+type = "image"
+title = "aforce founder 04_quiet_intensity_mirror"
+
+[[generated]]
+id = "ZiVj4pqj3vtcuE4-da2ko"
+uri = "file://attached_assets/generated_images/founder_06_training_environment.png"
+type = "image"
+title = "aforce founder 06_training_environment"
+
+[[generated]]
+id = "-IX7SbwW_UufUQ8SGnCZ8"
+uri = "file://attached_assets/generated_images/founder_07_reflective_window.png"
+type = "image"
+title = "aforce founder 07_reflective_window"
+
 [[outputs]]
 id = "fILTiXCCTKYfWe9d8R46M"
 uri = "file://attached_assets/tester-share/aforce-tester-qr.png"
@@ -461,3 +503,45 @@ id = "ZstOG9RPDc4DVesicE7xE"
 uri = "file://attached_assets/generated_images/aforce_brickell_predawn_desk.png"
 type = "image"
 title = "AForce — Brickell 5:15am (cinematic editorial)"
+
+[[outputs]]
+id = "xuckfkQNiUF7eFWG-eHhw"
+uri = "file://attached_assets/generated_images/founder_01_walking_brickell_dawn.png"
+type = "image"
+title = "01 — Walking Brickell at dawn"
+
+[[outputs]]
+id = "cSguJ-e973APZFKXhbUqm"
+uri = "file://attached_assets/generated_images/founder_02_late_night_desk.png"
+type = "image"
+title = "02 — Late night at the desk"
+
+[[outputs]]
+id = "XASLIEVMcapkVkxcmNSx4"
+uri = "file://attached_assets/generated_images/founder_03_focused_before_meeting.png"
+type = "image"
+title = "03 — Focused before the meeting"
+
+[[outputs]]
+id = "IzUYnxZh0ndPEysNF4sbJ"
+uri = "file://attached_assets/generated_images/founder_04_quiet_intensity_mirror.png"
+type = "image"
+title = "04 — Quiet intensity (mirror)"
+
+[[outputs]]
+id = "t71Is3-8q_sfnf6qnVR9S"
+uri = "file://attached_assets/generated_images/founder_05_preparation_ritual.png"
+type = "image"
+title = "05 — Preparation ritual"
+
+[[outputs]]
+id = "i-SI9AspgHTA1SfW4hi7f"
+uri = "file://attached_assets/generated_images/founder_06_training_environment.png"
+type = "image"
+title = "06 — Training environment"
+
+[[outputs]]
+id = "zHXnYC5cIzoOB39qqBeY9"
+uri = "file://attached_assets/generated_images/founder_07_reflective_window.png"
+type = "image"
+title = "07 — Reflective moment (skyline)"
