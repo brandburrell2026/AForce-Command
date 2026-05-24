@@ -1,0 +1,129 @@
+Prompt for Cinematic Motion System Across the Deck (Replit / Framer / Motion Designer)
+
+Create ultra-premium cinematic motion backgrounds for the AForce investor deck.
+
+Style direction:
+Minimal. Dark. Controlled. Institutional luxury.
+Think: Apple keynote meets Formula 1 telemetry meets Nike performance psychology.
+
+DO NOT create flashy startup animations.
+DO NOT use bright neon cyberpunk effects.
+Motion should feel expensive, calm, intelligent, and disciplined.
+
+Global visual rules:
+
+* Matte black background
+* Soft deep red ambient glow
+* White typography remains untouched
+* Motion opacity under 15%
+* Smooth slow animation only
+* No rapid movement
+* No particle explosions
+* No lens flares
+* No stock-tech visuals
+* Motion should enhance tension, not distract
+
+Animation frame rate:
+24fps cinematic feel
+
+Movement behavior:
+
+* slow breathing light
+* pulse waves
+* subtle orbital movement
+* ambient waveform drift
+* low-frequency motion
+* restrained transitions
+
+⸻
+
+SLIDE 2 — “The loop is the moat.”
+
+Create:
+
+* subtle rotating concentric rings behind the behavioral loop
+* glowing path traveling slowly between stages
+* faint red pulse every few seconds
+* ambient diffusion around “Day 1”
+* minimal neural-style connections
+
+Mood:
+Behavior compounding.
+Ritual intelligence.
+System momentum.
+
+⸻
+
+SLIDE 6 — “There is a certain kind of person…”
+
+Create:
+
+* ultra subtle heartbeat waveform
+* slow red breathing ambient light
+* slight silhouette edge glow
+* minimal atmospheric particles
+* low-frequency pulse synced to emotional tension
+
+Mood:
+Pressure.
+Responsibility.
+Controlled intensity.
+
+⸻
+
+SLIDE 11 — AForce OS / App Slide
+
+Create:
+
+* live animated UI mockups
+* readiness score increasing slowly
+* streak counter incrementing
+* subtle swipe interactions
+* glowing red reflections beneath devices
+* floating cinematic device movement
+
+Important:
+Motion must feel like a luxury operating system, not a mobile app ad.
+
+Mood:
+Precision.
+Focus.
+Performance optimization.
+
+⸻
+
+FINAL SLIDE — “Once proof is established — scale.”
+
+Create:
+
+* slow expanding grid system
+* ambient red horizon glow
+* soft orbital expansion
+* subtle network activation points
+* cinematic fade-to-black ending
+
+Mood:
+Inevitable scale.
+Quiet dominance.
+Controlled expansion.
+
+⸻
+
+TRANSITION RULES
+
+Use:
+
+* fade transitions
+* ambient dissolves
+* slow cinematic cuts
+
+Avoid:
+
+* zoom spins
+* glitch effects
+* bounce animations
+* aggressive parallax
+* TikTok-style motion
+
+The deck should feel like:
+A billion-dollar performance company before the world discovers it.

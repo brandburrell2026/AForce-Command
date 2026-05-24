@@ -1,3 +1,4 @@
+import CinematicMotion from "@/components/CinematicMotion";
 import SlideChrome from "@/components/SlideChrome";
 import type { ReactNode } from "react";
 
@@ -214,6 +215,7 @@ function LoopDiagram() {
 export default function PerformanceLoop() {
   return (
     <SlideChrome slide={13}>
+      <CinematicMotion variant="concentric-rings" />
       <div className="absolute inset-0 flex flex-col px-[6vw] pt-[10vh] pb-[9vh]">
         {/* Header */}
         <div className="flex items-end justify-between gap-[3vw]">

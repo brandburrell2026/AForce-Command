@@ -1,3 +1,4 @@
+import CinematicMotion from "@/components/CinematicMotion";
 import SlideChrome from "@/components/SlideChrome";
 
 export default function FinalSlide() {
@@ -5,6 +6,7 @@ export default function FinalSlide() {
   return (
     <SlideChrome slide={31} hideChrome>
       <div className="absolute inset-0 bg-black" />
+      <CinematicMotion variant="expanding-grid" />
 
       <div className="absolute inset-y-0 right-0 w-[55vw] flex items-center justify-end pr-[2vw]">
         <div

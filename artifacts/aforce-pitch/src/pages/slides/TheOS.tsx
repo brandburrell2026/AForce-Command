@@ -1,3 +1,4 @@
+import CinematicMotion from "@/components/CinematicMotion";
 import SlideChrome from "@/components/SlideChrome";
 import bgImg from "@assets/slide11_appA_trio.png";
 import { Hydration } from "@/components/os-screens/Hydration";
@@ -99,6 +100,7 @@ export default function TheOS() {
             "radial-gradient(ellipse 55% 65% at 50% 55%, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0.68) 100%)",
         }}
       />
+      <CinematicMotion variant="device-glow" />
 
       <div className="absolute inset-0 flex flex-col px-[6vw] pt-[10vh] pb-[9vh]">
         <div className="flex items-end justify-between gap-[3vw]">
