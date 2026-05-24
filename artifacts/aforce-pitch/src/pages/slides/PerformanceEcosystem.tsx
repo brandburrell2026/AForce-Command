@@ -1,5 +1,6 @@
 import SlideChrome from "@/components/SlideChrome";
 import bgImg from "@assets/slide12_loopA_neural.png";
+import { motion } from "framer-motion";
 import type { ReactNode } from "react";
 
 type Stage = {
@@ -81,9 +82,9 @@ const STAGES: Stage[] = [
   { label: "Community", caption: "Shared performance circle", Icon: IconCommunity },
 ];
 
-function Connector({ active }: { active?: boolean }) {
+function Connector({ active, delay = 0 }: { active?: boolean; delay?: number }) {
   return (
-    <div className="relative flex-1 flex items-center justify-center mx-[0.4vw]" aria-hidden="true">
+    <div className="relative flex-1 flex items-center justify-center mx-[0.4vw] overflow-hidden" aria-hidden="true">
       <div className="h-px w-full bg-text/[0.10]" />
       {active && (
         <div
@@ -91,6 +92,16 @@ function Connector({ active }: { active?: boolean }) {
           style={{ boxShadow: "0 0 10px rgba(226,92,92,0.55)" }}
         />
       )}
+      <motion.div
+        className="absolute h-[2px] w-[12%] rounded-full"
+        style={{
+          background:
+            "linear-gradient(90deg, transparent 0%, rgba(226,92,92,0.65) 50%, transparent 100%)",
+        }}
+        initial={{ left: "-15%" }}
+        animate={{ left: ["-15%", "115%"] }}
+        transition={{ duration: 9, repeat: Infinity, ease: "linear", delay }}
+      />
     </div>
   );
 }
@@ -134,16 +145,45 @@ export default function PerformanceEcosystem() {
           backgroundImage: `url(${bgImg})`,
           backgroundSize: "cover",
           backgroundPosition: "center right",
-          opacity: 0.5,
-          filter: "contrast(1.1) brightness(0.95)",
+          opacity: 0.32,
+          filter: "contrast(1.0) brightness(0.72)",
+          maskImage:
+            "radial-gradient(ellipse 55% 55% at 50% 55%, #000 20%, rgba(0,0,0,0.6) 55%, rgba(0,0,0,0.18) 80%, transparent 100%)",
+          WebkitMaskImage:
+            "radial-gradient(ellipse 55% 55% at 50% 55%, #000 20%, rgba(0,0,0,0.6) 55%, rgba(0,0,0,0.18) 80%, transparent 100%)",
+        }}
+      />
+      {/* Corner scrims — kill upper-right and lower-right branch noise */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background:
+            "radial-gradient(ellipse 38% 42% at 100% 0%, rgba(0,0,0,0.85) 0%, transparent 70%), radial-gradient(ellipse 42% 45% at 100% 100%, rgba(0,0,0,0.85) 0%, transparent 70%)",
         }}
       />
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
           background:
-            "linear-gradient(90deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.55) 35%, rgba(0,0,0,0.25) 70%, rgba(0,0,0,0.05) 100%)",
+            "linear-gradient(90deg, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.55) 30%, rgba(0,0,0,0.35) 60%, rgba(0,0,0,0.55) 92%, rgba(0,0,0,0.75) 100%)",
         }}
+      />
+      {/* Ambient red breathing glow — center-bottom, very restrained */}
+      <motion.div
+        className="absolute pointer-events-none"
+        aria-hidden="true"
+        style={{
+          left: "50%",
+          bottom: "-10vh",
+          transform: "translateX(-50%)",
+          width: "70vw",
+          height: "40vh",
+          background:
+            "radial-gradient(ellipse at center, rgba(226,92,92,0.10) 0%, transparent 70%)",
+          filter: "blur(7vw)",
+        }}
+        animate={{ opacity: [0.55, 0.9, 0.55] }}
+        transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
       />
 
       <div className="absolute inset-0 flex flex-col px-[6vw] pt-[10vh] pb-[9vh]">
@@ -173,7 +213,12 @@ export default function PerformanceEcosystem() {
           <div className="w-full flex items-center justify-between">
             {STAGES.map((stage, i) => (
               <div key={stage.label} className="flex items-center" style={{ flex: i === 0 ? "0 0 auto" : "1 1 auto" }}>
-                {i > 0 && <Connector active={STAGES[i - 1].accent || stage.accent} />}
+                {i > 0 && (
+                  <Connector
+                    active={STAGES[i - 1].accent || stage.accent}
+                    delay={(i - 1) * 0.9}
+                  />
+                )}
                 <StageNode index={i} stage={stage} />
               </div>
             ))}
