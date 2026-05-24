@@ -156,6 +156,12 @@ uri = "file://attached_assets/generated_images/product_ecosystem_brickell_desk.p
 type = "image"
 title = "AForce product ecosystem desk scene"
 
+[[generated]]
+id = "eXeytEL9SRCo5vmaCcBuZ"
+uri = "file://attached_assets/generated_images/slide8_product_ecosystem_v2.png"
+type = "image"
+title = "generated_image"
+
 [[outputs]]
 id = "fILTiXCCTKYfWe9d8R46M"
 uri = "file://attached_assets/tester-share/aforce-tester-qr.png"
@@ -767,3 +773,9 @@ id = "TMnftvgC3fnr6ZWZZxh0b"
 uri = "file://attached_assets/generated_images/product_ecosystem_brickell_desk.png"
 type = "image"
 title = "Slide 8 — Product ecosystem (Brickell desk, 5:15am)"
+
+[[outputs]]
+id = "NpdfNuCr8ywOZpC9VvcxT"
+uri = "file://attached_assets/generated_images/slide8_product_ecosystem_v2.png"
+type = "image"
+title = "Slide 8 — Product Ecosystem (Brickell, 5:15am)"
