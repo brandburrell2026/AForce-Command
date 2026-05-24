@@ -13,7 +13,7 @@ export default function HumanTruth() {
           backgroundImage: `url(${heroImg})`,
           backgroundSize: "cover",
           backgroundPosition: "center right",
-          filter: "contrast(1.05) brightness(0.95)",
+          filter: "grayscale(1) contrast(1.08) brightness(0.95)",
         }}
       />
       {/* L→R scrim — protect left-side typography */}
