@@ -600,6 +600,24 @@ uri = "file://attached_assets/launch_activation_launchC2_intimate.png"
 type = "image"
 title = "generated_image"
 
+[[generated]]
+id = "04UJaH3Ix876rbazgJKL8"
+uri = "file://attached_assets/unit_econ_recurA_loops.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "V6dM3zHDpO_cfmC_95PUA"
+uri = "file://attached_assets/unit_econ_recurB_sine.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "usxSPczqNSFpEFjPzMto_"
+uri = "file://attached_assets/unit_econ_recurC_mesh.png"
+type = "image"
+title = "generated_image"
+
 [[outputs]]
 id = "fILTiXCCTKYfWe9d8R46M"
 uri = "file://attached_assets/tester-share/aforce-tester-qr.png"
@@ -1655,3 +1673,21 @@ id = "1e1mwkeX7TggQbxlNqid3"
 uri = "file://attached_assets/launch_activation_launchC2_intimate.png"
 type = "image"
 title = "C — Intimate three cans, AFORCE wordmark"
+
+[[outputs]]
+id = "aHnZvaxKme04ZSUBO97_h"
+uri = "file://attached_assets/unit_econ_recurA_loops.png"
+type = "image"
+title = "A — Concentric waveform rings"
+
+[[outputs]]
+id = "aL3uxvSx9cVKIj40dVgyA"
+uri = "file://attached_assets/unit_econ_recurB_sine.png"
+type = "image"
+title = "B — Stacked sine traces, red pulse crowns"
+
+[[outputs]]
+id = "M4qhbnFOKDcNUBh8gDDEE"
+uri = "file://attached_assets/unit_econ_recurC_mesh.png"
+type = "image"
+title = "C — Ledger mesh, bloom intersections"
