@@ -1,5 +1,7 @@
 import SlideChrome from "@/components/SlideChrome";
 
+import nnBg from "@assets/non_negotiable_B.png";
+
 const PERSONAS = [
   { who: "The founder", when: "before the raise" },
   { who: "The athlete", when: "before warm-up" },
@@ -12,6 +14,21 @@ const PRESSURE = ["Pressure", "Responsibility", "Expectations", "Constant perfor
 export default function NonNegotiable() {
   return (
     <SlideChrome slide={6}>
+      <div
+        className="absolute inset-0 bg-cover bg-center"
+        style={{
+          backgroundImage: `url(${nnBg})`,
+          filter: "grayscale(1) contrast(1.12) brightness(1.05)",
+          opacity: 0.9,
+        }}
+      />
+      <div
+        className="absolute inset-0"
+        style={{
+          background:
+            "linear-gradient(90deg, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.62) 45%, rgba(0,0,0,0.4) 100%)",
+        }}
+      />
       <div className="absolute inset-0 flex flex-col justify-center px-[8vw]">
         <div className="font-body uppercase tracking-[0.4em] text-[0.85vw] text-text/45 font-semibold mb-[3vh]">
           Performance Is Non-Negotiable
