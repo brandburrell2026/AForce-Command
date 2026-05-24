@@ -1,79 +1,177 @@
 import SlideChrome from "@/components/SlideChrome";
+import type { ReactNode } from "react";
 
-const TIERS = [
-  {
-    name: "AForce OS Core",
-    price: "Free",
-    purpose: "Low-friction ecosystem adoption",
-    features: ["Onboarding", "Hydration score", "Reminders", "Streaks", "Behavioral engagement"],
-    accent: "border-text/15",
-    priceColor: "text-text/55",
-  },
-  {
-    name: "Professionals Mode",
-    price: "$14.99 / mo",
-    purpose: "Deeper accountability and reinforcement",
-    features: ["Advanced coaching", "Recovery scoring", "Wearable integrations", "Optimization tools"],
-    accent: "border-accent",
-    priceColor: "text-accent",
-  },
-  {
-    name: "Professionals Membership",
-    price: "$64.99 / mo",
-    purpose: "Recurring lifestyle behavior",
-    features: ["RTDs", "Hydration sticks", "Athlete Mode access", "Premium recovery", "Ecosystem access"],
-    accent: "border-primary",
-    priceColor: "text-primary",
-  },
+type Stage = {
+  label: string;
+  caption: string;
+  Icon: () => ReactNode;
+  accent?: boolean;
+};
+
+// Minimal line icons — 1px stroke, 24x24 viewBox, soft white.
+const stroke = "currentColor";
+const sw = 1;
+
+function IconProduct() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke={stroke} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round">
+      <rect x="8" y="3" width="8" height="18" rx="1.5" />
+      <line x1="8" y1="9" x2="16" y2="9" />
+    </svg>
+  );
+}
+function IconRitual() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke={stroke} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="9" />
+      <circle cx="12" cy="12" r="4.5" />
+    </svg>
+  );
+}
+function IconReinforcement() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke={stroke} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 12h6l2-5 2 10 2-5h4" />
+    </svg>
+  );
+}
+function IconAccountability() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke={stroke} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="4 13 10 19 20 6" />
+    </svg>
+  );
+}
+function IconSubscription() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke={stroke} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 12a8 8 0 0 1 14-5.3" />
+      <polyline points="18 3 18 7 14 7" />
+      <path d="M20 12a8 8 0 0 1-14 5.3" />
+      <polyline points="6 21 6 17 10 17" />
+    </svg>
+  );
+}
+function IconRetention() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke={stroke} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="3 18 9 12 13 16 21 6" />
+    </svg>
+  );
+}
+function IconCommunity() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke={stroke} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="8" cy="10" r="3" />
+      <circle cx="16" cy="10" r="3" />
+      <path d="M3 20c0-3 2.5-5 5-5s5 2 5 5" />
+      <path d="M11 20c0-3 2.5-5 5-5s5 2 5 5" />
+    </svg>
+  );
+}
+
+const STAGES: Stage[] = [
+  { label: "Product", caption: "Entry point", Icon: IconProduct },
+  { label: "Ritual", caption: "Pause. Hydrate. Lock in.", Icon: IconRitual },
+  { label: "Reinforcement", caption: "Contextual behavioral nudges", Icon: IconReinforcement, accent: true },
+  { label: "Accountability", caption: "Daily readiness verdict", Icon: IconAccountability },
+  { label: "Subscription", caption: "Commit to the standard", Icon: IconSubscription },
+  { label: "Retention", caption: "Habit compounds", Icon: IconRetention },
+  { label: "Community", caption: "Shared performance circle", Icon: IconCommunity },
 ];
+
+function Connector({ active }: { active?: boolean }) {
+  return (
+    <div className="relative flex-1 flex items-center justify-center mx-[0.4vw]" aria-hidden="true">
+      <div className="h-px w-full bg-text/[0.10]" />
+      {active && (
+        <div
+          className="absolute h-1 w-1 rounded-full bg-[#E25C5C]"
+          style={{ boxShadow: "0 0 10px rgba(226,92,92,0.55)" }}
+        />
+      )}
+    </div>
+  );
+}
+
+function StageNode({ index, stage }: { index: number; stage: Stage }) {
+  return (
+    <div className="flex flex-col items-center text-center" style={{ width: "9.5vw" }}>
+      <div className="font-body uppercase tracking-[0.32em] text-[0.55vw] text-text/30 tabular-nums mb-[1.4vh]">
+        {String(index + 1).padStart(2, "0")}
+      </div>
+      <div
+        className="relative flex items-center justify-center rounded-full border"
+        style={{
+          width: "5.6vw",
+          height: "5.6vw",
+          borderColor: stage.accent ? "rgba(226,92,92,0.45)" : "rgba(255,255,255,0.10)",
+        }}
+      >
+        {stage.accent && (
+          <div
+            className="absolute inset-0 rounded-full"
+            style={{ boxShadow: "inset 0 0 30px rgba(226,92,92,0.10), 0 0 36px rgba(226,92,92,0.08)" }}
+          />
+        )}
+        <div className="text-text/75" style={{ width: "1.9vw", height: "1.9vw" }}>
+          <stage.Icon />
+        </div>
+      </div>
+      <div className="mt-[2vh] font-body text-[1vw] text-text font-light tracking-tight">{stage.label}</div>
+      <div className="mt-[0.6vh] font-body text-[0.7vw] text-text/40 leading-snug max-w-[8.5vw]">{stage.caption}</div>
+    </div>
+  );
+}
 
 export default function PerformanceEcosystem() {
   return (
     <SlideChrome slide={12}>
-      <div className="absolute inset-0 flex flex-col justify-center px-[6vw]">
-        <div className="font-body uppercase tracking-[0.4em] text-[0.85vw] text-text/45 font-semibold mb-[3vh]">
-          The Performance Ecosystem
-        </div>
-
-        <h2 className="font-display text-[3.6vw] leading-[1] tracking-tighter max-w-[75vw] mb-[5vh]">
-          The goal is not to sell hydration.
-          <br />
-          <span className="text-primary">The goal is recurring performance behavior.</span>
-        </h2>
-
-        <div className="grid grid-cols-3 gap-[1.8vw]">
-          {TIERS.map((t) => (
-            <div
-              key={t.name}
-              className={`border-l-2 ${t.accent} pl-[1.4vw] py-[1vh] flex flex-col gap-[1.2vh]`}
-            >
-              <div>
-                <div className="font-body uppercase tracking-[0.32em] text-[0.7vw] text-text/40 font-semibold mb-[0.5vh]">
-                  Tier
-                </div>
-                <div className="font-display text-[1.8vw] leading-[1.05] tracking-tight text-text">
-                  {t.name}
-                </div>
-                <div className={`font-display text-[1.3vw] tracking-tight mt-[0.5vh] ${t.priceColor}`}>
-                  {t.price}
-                </div>
-              </div>
-              <div className="font-body text-[0.85vw] uppercase tracking-[0.2em] text-text/40 font-semibold leading-[1.5]">
-                {t.purpose}
-              </div>
-              <div className="flex flex-col gap-[0.5vh] mt-[0.5vh]">
-                {t.features.map((f) => (
-                  <div key={f} className="font-body text-[0.85vw] text-text/70 leading-[1.4]">
-                    — {f}
-                  </div>
-                ))}
-              </div>
+      <div className="absolute inset-0 flex flex-col px-[6vw] py-[6vh]">
+        {/* Header */}
+        <div className="flex items-baseline justify-between">
+          <div>
+            <div className="font-body uppercase tracking-[0.4em] text-[0.85vw] text-text/45 font-semibold mb-[2vh]">
+              The Performance Ecosystem
             </div>
-          ))}
+            <h2 className="font-display text-[4.2vw] leading-[0.95] tracking-tighter">
+              <span className="text-text">Every stage </span>
+              <span className="text-text/45">earns the next.</span>
+            </h2>
+            <div className="mt-[2vh] font-body text-[1vw] text-text/55 max-w-[55vw] leading-[1.5]">
+              A closed behavioral loop. <span className="text-text/85">Each surface compounds the one before it.</span>
+            </div>
+          </div>
+          <div className="text-right">
+            <div className="font-body uppercase tracking-[0.32em] text-[0.65vw] text-text/35">
+              Seven stages · One ritual
+            </div>
+            <div className="font-body text-[0.7vw] text-text/30 mt-[0.6vh] italic">
+              The OS is the connective tissue.
+            </div>
+          </div>
         </div>
 
-        <div className="mt-[5vh] font-body uppercase tracking-[0.4em] text-[0.7vw] text-text/35 font-semibold">
-          Performance is non-negotiable.
+        {/* Flow */}
+        <div className="flex-1 flex items-center">
+          <div className="w-full flex items-center justify-between">
+            {STAGES.map((stage, i) => (
+              <div key={stage.label} className="flex items-center" style={{ flex: i === 0 ? "0 0 auto" : "1 1 auto" }}>
+                {i > 0 && <Connector active={STAGES[i - 1].accent || stage.accent} />}
+                <StageNode index={i} stage={stage} />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="flex items-center justify-between border-t border-text/[0.08] pt-[2vh]">
+          <div className="font-body uppercase tracking-[0.3em] text-[0.6vw] text-text/35">
+            Product · Ritual · Reinforcement · Accountability · Subscription · Retention · Community
+          </div>
+          <div className="font-body text-[0.7vw] text-text/45">
+            The loop is the moat. <span className="text-text/85">Performance compounds.</span>
+          </div>
         </div>
       </div>
     </SlideChrome>
