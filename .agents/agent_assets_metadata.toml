@@ -486,6 +486,12 @@ uri = "file://attached_assets/non_negotiable_C.png"
 type = "image"
 title = "generated_image"
 
+[[generated]]
+id = "LMXixVg3R6bOAwb61cm8E"
+uri = "file://attached_assets/non_negotiable_B2.png"
+type = "image"
+title = "generated_image"
+
 [[outputs]]
 id = "fILTiXCCTKYfWe9d8R46M"
 uri = "file://attached_assets/tester-share/aforce-tester-qr.png"
@@ -1427,3 +1433,9 @@ id = "Ne_CkWvvmg9-ZCWm_7CDM"
 uri = "file://attached_assets/non_negotiable_C.png"
 type = "image"
 title = "Variant C — taped hands tight crop, red key light"
+
+[[outputs]]
+id = "RHJRYf61EtW9q1vyp2V0e"
+uri = "file://attached_assets/non_negotiable_B2.png"
+type = "image"
+title = "Slide 6 — figure on right, negative space left"

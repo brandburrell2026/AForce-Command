@@ -1,6 +1,6 @@
 import SlideChrome from "@/components/SlideChrome";
 
-import nnBg from "@assets/non_negotiable_B.png";
+import nnBg from "@assets/non_negotiable_B2.png";
 
 const PERSONAS = [
   { who: "The founder", when: "before the raise" },
@@ -15,7 +15,7 @@ export default function NonNegotiable() {
   return (
     <SlideChrome slide={6}>
       <div
-        className="absolute inset-0 bg-cover bg-center"
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{
           backgroundImage: `url(${nnBg})`,
           filter: "grayscale(1) contrast(1.12) brightness(1.05)",
@@ -26,7 +26,7 @@ export default function NonNegotiable() {
         className="absolute inset-0"
         style={{
           background:
-            "linear-gradient(90deg, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.62) 45%, rgba(0,0,0,0.4) 100%)",
+            "linear-gradient(90deg, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.58) 40%, rgba(0,0,0,0.3) 70%, rgba(0,0,0,0.15) 100%)",
         }}
       />
       <div className="absolute inset-0 flex flex-col justify-center px-[8vw]">
