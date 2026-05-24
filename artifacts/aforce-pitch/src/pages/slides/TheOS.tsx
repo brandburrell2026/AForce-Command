@@ -88,15 +88,15 @@ export default function TheOS() {
           backgroundImage: `url(${bgImg})`,
           backgroundSize: "cover",
           backgroundPosition: "center",
-          opacity: 0.18,
-          filter: "grayscale(0.4) contrast(1.05) brightness(0.8)",
+          opacity: 0.42,
+          filter: "grayscale(0.25) contrast(1.1) brightness(0.85)",
         }}
       />
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
           background:
-            "radial-gradient(ellipse 60% 70% at 50% 55%, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.78) 100%)",
+            "radial-gradient(ellipse 55% 65% at 50% 55%, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0.68) 100%)",
         }}
       />
 

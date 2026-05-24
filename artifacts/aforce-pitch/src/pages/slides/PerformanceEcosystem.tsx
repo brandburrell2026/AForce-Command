@@ -134,15 +134,15 @@ export default function PerformanceEcosystem() {
           backgroundImage: `url(${bgImg})`,
           backgroundSize: "cover",
           backgroundPosition: "center right",
-          opacity: 0.22,
-          filter: "contrast(1.05) brightness(0.9)",
+          opacity: 0.5,
+          filter: "contrast(1.1) brightness(0.95)",
         }}
       />
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
           background:
-            "linear-gradient(90deg, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.65) 40%, rgba(0,0,0,0.4) 75%, rgba(0,0,0,0.25) 100%)",
+            "linear-gradient(90deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.55) 35%, rgba(0,0,0,0.25) 70%, rgba(0,0,0,0.05) 100%)",
         }}
       />
 
