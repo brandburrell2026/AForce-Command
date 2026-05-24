@@ -5,6 +5,7 @@ import { useLocation } from "wouter";
 import AmbientAudio from "@/components/AmbientAudio";
 import PresentationHUD from "@/components/PresentationHUD";
 import SectionInterstitial from "@/components/SectionInterstitial";
+import SoundGate from "@/components/SoundGate";
 import { isSectionFirstSlide, sectionFor } from "@/components/SlideChrome";
 import { slides } from "@/slideLoader";
 
@@ -206,6 +207,7 @@ function SlideEditor() {
       </AnimatePresence>
 
       <AmbientAudio enabled={audioOn} src={ambientTrackFor(currentSlide?.position ?? 1)} />
+      <SoundGate onUnlock={() => setAudioOn(true)} />
       <SectionInterstitial
         label={interstitial?.label ?? null}
         token={interstitial?.token ?? 0}
