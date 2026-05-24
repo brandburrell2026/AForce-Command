@@ -654,6 +654,24 @@ uri = "file://attached_assets/roadmap_rollC_pulse.png"
 type = "image"
 title = "generated_image"
 
+[[generated]]
+id = "oLbsDMydlqqFDhE0XQP6X"
+uri = "file://attached_assets/roadmap_rmA_voidwarm.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "TnfA55lzMjfs2pv0kqVoL"
+uri = "file://attached_assets/roadmap_rmB_voidgold.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "GgRn2gQKPj4JT7utB_VUy"
+uri = "file://attached_assets/roadmap_rmC_voidsplit.png"
+type = "image"
+title = "generated_image"
+
 [[outputs]]
 id = "fILTiXCCTKYfWe9d8R46M"
 uri = "file://attached_assets/tester-share/aforce-tester-qr.png"
@@ -1763,3 +1781,21 @@ id = "V7GTbYUqHTZ9sd2RxJw9_"
 uri = "file://attached_assets/roadmap_rollC_pulse.png"
 type = "image"
 title = "C — Single subtle timeline pulse"
+
+[[outputs]]
+id = "JwG3j8Zb7H8T9yVus7YRl"
+uri = "file://attached_assets/roadmap_rmA_voidwarm.png"
+type = "image"
+title = "A — Void with warm-red corner bloom"
+
+[[outputs]]
+id = "uGOAToocK_B3_1dAGGCNj"
+uri = "file://attached_assets/roadmap_rmB_voidgold.png"
+type = "image"
+title = "B — Void with warm-gold bottom diffusion"
+
+[[outputs]]
+id = "AO3Mr2tRktf3p_pnFYsUa"
+uri = "file://attached_assets/roadmap_rmC_voidsplit.png"
+type = "image"
+title = "C — Imperceptible vertical tonal split"
