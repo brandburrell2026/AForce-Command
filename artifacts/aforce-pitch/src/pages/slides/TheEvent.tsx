@@ -1,5 +1,5 @@
 import SlideChrome from "@/components/SlideChrome";
-import eventImg from "@assets/generated_images/event_02_hydration_station.png";
+import eventImg from "@assets/launch_activation_launchC2_intimate.png";
 
 const STEPS = [
   { word: "Pause.", color: "text-primary" },
