@@ -1,5 +1,5 @@
 import SlideChrome from "@/components/SlideChrome";
-import bgImg from "@assets/why_miami_miamiA_diffusion.png";
+import bgImg from "@assets/generated_images/slide18_athlete_darkness.png";
 
 const REASONS = [
   { k: "01", t: "Audience density" },

@@ -708,6 +708,12 @@ uri = "file://attached_assets/slide12_loopC_orbit.png"
 type = "image"
 title = "generated_image"
 
+[[generated]]
+id = "nyvmFatiQ3St3f56wj-cU"
+uri = "file://attached_assets/generated_images/slide18_athlete_darkness.png"
+type = "image"
+title = "slide18 athlete darkness"
+
 [[outputs]]
 id = "fILTiXCCTKYfWe9d8R46M"
 uri = "file://attached_assets/tester-share/aforce-tester-qr.png"
