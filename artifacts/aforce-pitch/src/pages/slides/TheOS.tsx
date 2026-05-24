@@ -46,7 +46,7 @@ function PhoneFrame({ index, label, caption, children }: { index: number; label:
 
   return (
     <div className="flex flex-col items-center">
-      <div className="font-body uppercase tracking-[0.3em] text-[0.55vw] text-text/35 mb-[1vh] tabular-nums">
+      <div className="font-body uppercase tracking-[0.3em] text-[0.75vw] text-text/75 font-bold mb-[1vh] tabular-nums">
         {String(index + 1).padStart(2, "0")}
       </div>
       <div
@@ -72,8 +72,8 @@ function PhoneFrame({ index, label, caption, children }: { index: number; label:
           {children}
         </div>
       </div>
-      <div className="mt-[1.5vh] font-body text-[0.85vw] text-text/85 font-light">{label}</div>
-      <div className="font-body text-[0.7vw] text-text/40 mt-[0.4vh]">{caption}</div>
+      <div className="mt-[1.5vh] font-display text-[1.05vw] text-text font-bold tracking-tight">{label}</div>
+      <div className="font-body text-[0.7vw] text-text/50 mt-[0.4vh] leading-[1.35] text-center">{caption}</div>
     </div>
   );
 }
@@ -81,29 +81,26 @@ function PhoneFrame({ index, label, caption, children }: { index: number; label:
 export default function TheOS() {
   return (
     <SlideChrome slide={11}>
-      <div className="absolute inset-0 flex flex-col px-[6vw] py-[6vh]">
-        <div className="flex items-baseline justify-between">
-          <div>
-            <div className="font-body uppercase tracking-[0.4em] text-[0.85vw] text-text/45 font-semibold mb-[2vh]">
-              The OS
-            </div>
-            <h2 className="font-display text-[4.2vw] leading-[0.95] tracking-tighter">
+      <div className="absolute inset-0 flex flex-col px-[6vw] pt-[10vh] pb-[9vh]">
+        <div className="flex items-end justify-between gap-[3vw]">
+          <div className="min-w-0">
+            <h2 className="font-display text-[3.6vw] leading-[1] tracking-tighter">
               <span className="text-text">Human first.</span>
               <span className="text-text/45"> System second.</span>
             </h2>
-            <div className="mt-[2vh] font-body text-[1vw] text-text/55 max-w-[55vw] leading-[1.5]">
+            <div className="mt-[1.6vh] font-body text-[0.95vw] text-text/55 max-w-[55vw] leading-[1.5]">
               The OS proves the promise. <span className="text-text/85">It does not become the story.</span>
             </div>
           </div>
-          <div className="text-right">
-            <div className="font-body uppercase tracking-[0.32em] text-[0.65vw] text-text/35">
+          <div className="text-right shrink-0">
+            <div className="font-body uppercase tracking-[0.32em] text-[0.65vw] text-text/55 font-semibold">
               Six surfaces · One ritual
             </div>
-            <div className="font-body text-[0.7vw] text-text/30 mt-[0.6vh] italic">Dark-mode only. Designed to disappear.</div>
+            <div className="font-body text-[0.7vw] text-text/35 mt-[0.6vh] italic">Dark-mode only. Designed to disappear.</div>
           </div>
         </div>
 
-        <div className="flex-1 flex items-center justify-center mt-[3vh]">
+        <div className="flex-1 flex items-center justify-center mt-[2.5vh] min-h-0">
           <div className="grid grid-cols-6 gap-[1.6vw]">
             {SCREENS.map((s, i) => (
               <PhoneFrame key={s.label} index={i} label={s.label} caption={s.caption}>
@@ -113,11 +110,11 @@ export default function TheOS() {
           </div>
         </div>
 
-        <div className="mt-[3vh] flex items-center justify-between border-t border-text/[0.08] pt-[2vh]">
-          <div className="font-body uppercase tracking-[0.3em] text-[0.6vw] text-text/35">
+        <div className="mt-[2vh] flex items-center justify-between border-t border-text/[0.08] pt-[1.6vh]">
+          <div className="font-body uppercase tracking-[0.3em] text-[0.62vw] text-text/55 font-semibold">
             Hydration · Streak · Check-in · Reinforcement · Readiness · Protocol
           </div>
-          <div className="font-body text-[0.7vw] text-text/45">
+          <div className="font-body text-[0.72vw] text-text/55 italic">
             The OS quietly reinforces ritual, accountability, and retention.
           </div>
         </div>
