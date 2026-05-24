@@ -1,208 +1,129 @@
 import SlideChrome from "@/components/SlideChrome";
 
-type Metric = {
-  label: string;
-  value: string;
-  unit?: string;
-  caption: string;
-  spark: number[];
-  accent?: boolean;
-};
+type Kpi = { value: string; label: string };
 
-const METRICS: Metric[] = [
-  {
-    label: "CAC Target",
-    value: "< $24",
-    caption: "Founder-led, no paid scale",
-    spark: [42, 38, 33, 30, 27, 24, 22],
-  },
-  {
-    label: "Repeat Purchase",
-    value: "28–32",
-    unit: "%",
-    caption: "Within 30 days",
-    spark: [12, 16, 19, 22, 25, 28, 30],
-  },
-  {
-    label: "Subscription Conversion",
-    value: "20",
-    unit: "%+",
-    caption: "OS Core → Professionals",
-    spark: [4, 7, 11, 14, 17, 19, 21],
-  },
-  {
-    label: "Ritual Adoption",
-    value: "65",
-    unit: "%",
-    caption: "Day 7 protocol completion",
-    spark: [22, 31, 39, 48, 54, 60, 65],
-  },
-  {
-    label: "OS Engagement",
-    value: "0.42",
-    caption: "DAU / MAU",
-    spark: [0.18, 0.22, 0.27, 0.31, 0.35, 0.39, 0.42],
-  },
-  {
-    label: "Ecosystem Participation",
-    value: "24",
-    unit: "%",
-    caption: "Circles · Territory · Coach",
-    spark: [3, 6, 9, 13, 17, 21, 24],
-  },
+const KPIS: Kpi[] = [
+  { value: "$27.8M", label: "2028 Revenue Target" },
+  { value: "Q4 2027", label: "Breakeven" },
+  { value: "62–65%", label: "Gross Margin" },
+  { value: "5–7×", label: "Repeat Purchase Frequency" },
 ];
 
-function Spark({ data, accent = false }: { data: number[]; accent?: boolean }) {
-  const min = Math.min(...data);
-  const max = Math.max(...data);
-  const span = max - min || 1;
-  const pts = data
-    .map((v, i) => {
-      const x = (i / (data.length - 1)) * 100;
-      const y = 100 - ((v - min) / span) * 100;
-      return `${x},${y}`;
-    })
-    .join(" ");
-  return (
-    <svg
-      viewBox="0 0 100 100"
-      preserveAspectRatio="none"
-      className="w-full h-full"
-      aria-hidden
-    >
-      <polyline
-        points={pts}
-        fill="none"
-        stroke={accent ? "var(--slide-primary)" : "currentColor"}
-        strokeWidth={accent ? 1.8 : 1.2}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        vectorEffect="non-scaling-stroke"
-      />
-    </svg>
-  );
-}
+type Allocation = {
+  index: string;
+  title: string;
+  detail: string;
+};
 
-function HeroArc({ pct }: { pct: number }) {
-  const r = 46;
-  const c = 2 * Math.PI * r;
-  const offset = c * (1 - pct);
-  return (
-    <svg viewBox="0 0 120 120" className="w-full h-full -rotate-90" aria-hidden>
-      <circle
-        cx={60}
-        cy={60}
-        r={r}
-        fill="none"
-        stroke="currentColor"
-        strokeWidth={1}
-        className="text-text/15"
-      />
-      <circle
-        cx={60}
-        cy={60}
-        r={r}
-        fill="none"
-        stroke="var(--slide-primary)"
-        strokeWidth={2}
-        strokeLinecap="round"
-        strokeDasharray={c}
-        strokeDashoffset={offset}
-        style={{ filter: "drop-shadow(0 0 6px rgba(229,51,65,0.55))" }}
-      />
-    </svg>
-  );
-}
+const ALLOCATIONS: Allocation[] = [
+  {
+    index: "01",
+    title: "Product + Inventory",
+    detail: "Initial production, hydration sticks, cans, fulfillment",
+  },
+  {
+    index: "02",
+    title: "AForce OS",
+    detail: "AI coach, onboarding, retention engine, behavioral loop",
+  },
+  {
+    index: "03",
+    title: "Customer Acquisition",
+    detail: "Meta, Google, referral loops, launch events",
+  },
+  {
+    index: "04",
+    title: "Team + Operations",
+    detail: "Key hires, infrastructure, Miami rollout",
+  },
+];
 
 export default function BuildProof() {
   return (
     <SlideChrome slide={21}>
-      <div className="absolute inset-0 flex flex-col px-[8vw] pt-[12vh] pb-[10vh]">
-        {/* Header */}
-        <div className="flex items-start justify-between gap-[2vw]">
-          <div className="font-body uppercase tracking-[0.4em] text-[0.85vw] text-text/45 font-semibold">
-            Proof Metrics · Phase 1
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background:
+            "radial-gradient(ellipse 55% 45% at 85% 15%, rgba(226,92,92,0.10) 0%, transparent 70%)",
+        }}
+      />
+
+      <div className="absolute inset-0 flex flex-col px-[8vw] pt-[10vh] pb-[9vh]">
+        {/* Eyebrow */}
+        <div className="flex items-center justify-between">
+          <div className="font-body uppercase tracking-[0.4em] text-[0.78vw] text-text/45 font-semibold">
+            The Raise · Phase 1 Capital
           </div>
-          <div className="font-body text-[0.85vw] leading-[1.5] text-text/65 text-right max-w-[28vw]">
-            <span className="text-text/90 font-semibold">Disciplined execution.</span>{" "}
-            Measured proof. Controlled scale.
+          <div className="font-body uppercase tracking-[0.32em] text-[0.7vw] text-text/40 font-semibold">
+            $4,000,000 · 18 Months · Proof Before Scale
           </div>
         </div>
 
         {/* Headline */}
-        <h2 className="font-display text-[4.4vw] leading-[0.95] tracking-tighter max-w-[80vw] mt-[2vh]">
-          Not awareness.
-          <br />
-          <span className="text-primary">Validation.</span>
+        <h2 className="font-display text-[5vw] leading-[0.95] tracking-tighter mt-[2.2vh] max-w-[88vw]">
+          <span className="text-text">$4M buys an </span>
+          <span className="text-primary">unfair 18 months.</span>
         </h2>
 
-        {/* Dashboard */}
-        <div className="mt-[5vh] flex-1 grid grid-cols-12 gap-[2.4vw] items-stretch">
-          {/* Hero metric — D28 Retention */}
-          <div className="col-span-4 flex flex-col justify-between border-l border-text/15 pl-[1.6vw]">
-            <div className="font-body uppercase tracking-[0.32em] text-[0.7vw] text-primary/80 font-semibold">
-              North Star · Day 28 Retention
-            </div>
-            <div className="relative mt-[1vh]">
-              <div className="absolute inset-0 -z-10 flex items-center justify-center">
-                <div className="size-[18vw] opacity-90">
-                  <HeroArc pct={0.38} />
-                </div>
-              </div>
-              <div className="flex items-baseline gap-[0.4vw] pl-[1vw] pt-[3vh]">
-                <span className="font-display text-[7.5vw] leading-[0.85] tracking-tighter text-text">
-                  38
-                </span>
-                <span className="font-display text-[2.2vw] leading-[1] tracking-tight text-primary">
-                  %
-                </span>
-              </div>
-            </div>
-            <div className="font-body text-[0.8vw] leading-[1.5] text-text/55 mt-[1.5vh]">
-              The behavior holds, or it does not.
-              <br />
-              <span className="text-text/85">This is the only number that matters.</span>
-            </div>
-          </div>
-
-          {/* 6-metric grid */}
-          <div className="col-span-8 grid grid-cols-3 grid-rows-2 gap-[1.6vw]">
-            {METRICS.map((m) => (
-              <div
-                key={m.label}
-                className="border-l border-text/15 pl-[1.2vw] flex flex-col justify-between"
-              >
-                <div className="font-body uppercase tracking-[0.28em] text-[0.62vw] text-text/45 font-semibold">
-                  {m.label}
-                </div>
-                <div className="flex items-baseline gap-[0.25vw] mt-[1vh]">
-                  <span className="font-display text-[3.2vw] leading-[0.9] tracking-tighter text-text tabular-nums">
-                    {m.value}
-                  </span>
-                  {m.unit && (
-                    <span className="font-display text-[1.2vw] leading-[1] tracking-tight text-text/55">
-                      {m.unit}
-                    </span>
-                  )}
-                </div>
-                <div className="text-text/30 h-[2.4vh] mt-[0.8vh]">
-                  <Spark data={m.spark} accent={m.accent} />
-                </div>
-                <div className="font-body text-[0.65vw] tracking-[0.04em] text-text/45 mt-[0.6vh]">
-                  {m.caption}
-                </div>
-              </div>
-            ))}
-          </div>
+        <div className="mt-[1.8vh] font-body text-[1.05vw] text-text/65 leading-[1.55] max-w-[60vw]">
+          Every dollar in this round is tied to{" "}
+          <span className="text-text">measurable proof</span> — not vanity
+          scale.
         </div>
 
-        {/* Footer */}
-        <div className="mt-[3vh] flex items-baseline justify-between gap-[3vw]">
-          <div className="font-body uppercase tracking-[0.32em] text-[0.7vw] text-text/35 font-semibold">
-            Phase 1 · Brickell → NYC · 50–100 selected users
+        {/* KPI row */}
+        <div className="mt-[5vh] grid grid-cols-4 gap-[1.4vw]">
+          {KPIS.map((k) => (
+            <div
+              key={k.label}
+              className="relative rounded-[0.6vw] px-[1.4vw] py-[2.2vh] overflow-hidden"
+              style={{
+                background:
+                  "linear-gradient(180deg, rgba(255,255,255,0.025) 0%, rgba(255,255,255,0) 100%)",
+                border: "1px solid rgba(226,92,92,0.22)",
+                boxShadow:
+                  "inset 0 0 30px rgba(226,92,92,0.06), 0 0 24px rgba(226,92,92,0.04)",
+              }}
+            >
+              <div className="font-display text-[2.4vw] leading-[1] tracking-tight text-text tabular-nums">
+                {k.value}
+              </div>
+              <div className="mt-[1vh] font-body uppercase tracking-[0.28em] text-[0.65vw] text-text/55 font-semibold">
+                {k.label}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Allocation row */}
+        <div className="mt-[4vh] grid grid-cols-4 gap-[1.4vw]">
+          {ALLOCATIONS.map((a) => (
+            <div
+              key={a.index}
+              className="border-t border-text/15 pt-[1.6vh]"
+            >
+              <div className="font-body uppercase tracking-[0.32em] text-[0.7vw] text-primary font-semibold tabular-nums">
+                {a.index}
+              </div>
+              <div className="mt-[1vh] font-display text-[1.55vw] leading-[1.1] tracking-tight text-text">
+                {a.title}
+              </div>
+              <div className="mt-[1.2vh] font-body text-[0.8vw] text-text/55 leading-[1.55]">
+                {a.detail}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Bottom statement */}
+        <div className="mt-auto pt-[3vh] flex items-baseline justify-between gap-[3vw]">
+          <div className="font-display text-[1.8vw] leading-[1.15] tracking-tight text-text">
+            The raise funds <span className="text-primary">proof</span> — not
+            scale.
           </div>
-          <div className="font-display text-[1.4vw] leading-[1.15] tracking-tight text-text/85">
-            Do they come back? <span className="text-primary">That is the proof.</span>
+          <div className="font-body uppercase tracking-[0.32em] text-[0.7vw] text-text/40 font-semibold text-right">
+            Disciplined capital · Measured outcomes
           </div>
         </div>
       </div>
