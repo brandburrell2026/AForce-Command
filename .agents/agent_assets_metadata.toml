@@ -342,6 +342,24 @@ uri = "file://attached_assets/generated_images/prep_backstage_corridor.png"
 type = "image"
 title = "generated_image"
 
+[[generated]]
+id = "aApJbuS3FjM8gOVGQURaz"
+uri = "file://attached_assets/generated_images/system_split_diptych.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "0WChNTHA2n7fSa1HwKz-W"
+uri = "file://attached_assets/generated_images/system_desk_readiness.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "3o8Q61BEZSJmsmBnkjcpH"
+uri = "file://attached_assets/generated_images/system_transit_terminal.png"
+type = "image"
+title = "generated_image"
+
 [[outputs]]
 id = "fILTiXCCTKYfWe9d8R46M"
 uri = "file://attached_assets/tester-share/aforce-tester-qr.png"
@@ -1139,3 +1157,21 @@ id = "2q-Kn-YPAuPdkYPvKY9wd"
 uri = "file://attached_assets/generated_images/prep_backstage_corridor.png"
 type = "image"
 title = "03 — Backstage corridor (most cinematic)"
+
+[[outputs]]
+id = "u1Uiq5FOVQEYIlzUg5eaN"
+uri = "file://attached_assets/generated_images/system_split_diptych.png"
+type = "image"
+title = "01 — True split diptych (delivers the brief)"
+
+[[outputs]]
+id = "2gF6Z5fZAvwjA-0mr-BWA"
+uri = "file://attached_assets/generated_images/system_desk_readiness.png"
+type = "image"
+title = "02 — Desk readiness, dawn skyline"
+
+[[outputs]]
+id = "k8V6IxYcouUN2WucQz2BN"
+uri = "file://attached_assets/generated_images/system_transit_terminal.png"
+type = "image"
+title = "03 — Transit terminal, leather weekender"
