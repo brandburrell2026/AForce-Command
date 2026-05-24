@@ -5,15 +5,17 @@ import juliusImg from "@assets/JuliusB_1779635759805.jpg";
 const FOUNDERS = [
   {
     name: "Brandon Burrell",
+    role: "Founder",
     img: brandonImg,
     objectPos: "center 20%",
-    tags: ["NBA", "Wall Street", "Entrepreneurship"],
+    tags: ["Wall Street", "Entrepreneurship"],
   },
   {
     name: "Julius",
+    role: "Co-Founder",
     img: juliusImg,
     objectPos: "center 20%",
-    tags: ["Wall Street", "High-performance environments"],
+    tags: ["Entrepreneurship", "High-performance environments"],
   },
 ];
 
@@ -72,7 +74,7 @@ export default function Founders() {
               {/* Name + tags */}
               <div className="border-l-2 border-primary pl-[1.4vw] pt-[0.4vh]">
                 <div className="font-body uppercase tracking-[0.32em] text-[0.7vw] text-text/40 font-semibold mb-[0.6vh]">
-                  Founder
+                  {f.role}
                 </div>
                 <div className="font-display text-[2vw] leading-[1.05] tracking-tight text-text">
                   {f.name}
