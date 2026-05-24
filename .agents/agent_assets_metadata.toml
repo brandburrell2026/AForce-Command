@@ -528,6 +528,24 @@ uri = "file://attached_assets/human_truth_lockerC_floor.png"
 type = "image"
 title = "generated_image"
 
+[[generated]]
+id = "BLAW0tvtdpsoNHHNgcIkO"
+uri = "file://attached_assets/why_miami_miamiA_diffusion.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "5t5s-MUmeLHOSeOtm6niO"
+uri = "file://attached_assets/why_miami_miamiB_silhouette.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "E7DMUIHLrd9k-JUkR5qaz"
+uri = "file://attached_assets/why_miami_miamiC_reflection.png"
+type = "image"
+title = "generated_image"
+
 [[outputs]]
 id = "fILTiXCCTKYfWe9d8R46M"
 uri = "file://attached_assets/tester-share/aforce-tester-qr.png"
@@ -1511,3 +1529,21 @@ id = "WEFlBKZZYeN1cOW4XwPQ4"
 uri = "file://attached_assets/human_truth_lockerC_floor.png"
 type = "image"
 title = "C — Floor, pulse-line ghosted"
+
+[[outputs]]
+id = "hognv-6OxgvMw4zoEcbKE"
+uri = "file://attached_assets/why_miami_miamiA_diffusion.png"
+type = "image"
+title = "A — IR heat-diffusion (no architecture)"
+
+[[outputs]]
+id = "tyMKTTOG5FujT3HBFMaHx"
+uri = "file://attached_assets/why_miami_miamiB_silhouette.png"
+type = "image"
+title = "B — Dissolved tower silhouette, red haze"
+
+[[outputs]]
+id = "V5X_Qth-T7pjel-6wxCFR"
+uri = "file://attached_assets/why_miami_miamiC_reflection.png"
+type = "image"
+title = "C — Water-reflection light shards"
