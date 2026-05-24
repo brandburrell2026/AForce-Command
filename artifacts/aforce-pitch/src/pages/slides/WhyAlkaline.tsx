@@ -1,5 +1,7 @@
 import SlideChrome from "@/components/SlideChrome";
 
+import waBg from "@assets/hydration_science_B.png";
+
 const WHY = [
   "Supports hydration efficiency",
   "Helps maintain mineral balance",
@@ -11,6 +13,21 @@ const WHY = [
 export default function WhyAlkaline() {
   return (
     <SlideChrome slide={9}>
+      <div
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        style={{
+          backgroundImage: `url(${waBg})`,
+          filter: "contrast(1.08) brightness(1.05)",
+          opacity: 0.85,
+        }}
+      />
+      <div
+        className="absolute inset-0"
+        style={{
+          background:
+            "linear-gradient(90deg, rgba(0,0,0,0.78) 0%, rgba(0,0,0,0.55) 55%, rgba(0,0,0,0.35) 100%)",
+        }}
+      />
       <div className="absolute inset-0 flex flex-col justify-center px-[8vw]">
         <div className="font-body uppercase tracking-[0.4em] text-[0.85vw] text-text/45 font-semibold mb-[3vh]">
           Why Alkaline
