@@ -80,7 +80,7 @@ export default function SlideChrome({
           </div>
           <div className="absolute bottom-[5vh] left-[6vw] right-[6vw] flex justify-between items-center">
             <div className="font-body uppercase tracking-[0.4em] text-[0.7vw] text-text/30 font-semibold">
-              AForce
+              AForce<span className="text-[0.55em] align-super tracking-normal ml-[0.15em]">™</span>
             </div>
             <div className="font-body uppercase tracking-[0.4em] text-[0.7vw] text-text/30 font-semibold">
               Phase 1 · Proof of Concept
