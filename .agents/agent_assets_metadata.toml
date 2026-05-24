@@ -1,5 +1,10 @@
 uploads = []
-generated = []
+
+[[generated]]
+id = "lHv1SRb2o6Ge9NAhAQ1AW"
+uri = "file://attached_assets/generated_images/aforce_brickell_predawn_desk.png"
+type = "image"
+title = "aforce brickell predawn desk"
 
 [[outputs]]
 id = "fILTiXCCTKYfWe9d8R46M"
@@ -450,3 +455,9 @@ id = "3Af1oyD6dpxuXHh1-YUVO"
 uri = "file://attached_assets/generated_audio/aforce_cinematic_bed.mp3"
 type = "audio"
 title = "aforce cinematic bed"
+
+[[outputs]]
+id = "ZstOG9RPDc4DVesicE7xE"
+uri = "file://attached_assets/generated_images/aforce_brickell_predawn_desk.png"
+type = "image"
+title = "AForce — Brickell 5:15am (cinematic editorial)"
