@@ -546,6 +546,24 @@ uri = "file://attached_assets/why_miami_miamiC_reflection.png"
 type = "image"
 title = "generated_image"
 
+[[generated]]
+id = "UPoqBE5gwpuD6UJxr61Ci"
+uri = "file://attached_assets/performance_eco_ecoA_neural.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "TlRpCOf_UXuDYO6EAdI0V"
+uri = "file://attached_assets/performance_eco_ecoB_dataflow.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "SiDKLA2XPm8V4z9jT6Q7G"
+uri = "file://attached_assets/performance_eco_ecoC_diffusion.png"
+type = "image"
+title = "generated_image"
+
 [[outputs]]
 id = "fILTiXCCTKYfWe9d8R46M"
 uri = "file://attached_assets/tester-share/aforce-tester-qr.png"
@@ -1547,3 +1565,21 @@ id = "V5X_Qth-T7pjel-6wxCFR"
 uri = "file://attached_assets/why_miami_miamiC_reflection.png"
 type = "image"
 title = "C — Water-reflection light shards"
+
+[[outputs]]
+id = "SOhXuB8So4YxVk8WO7qdR"
+uri = "file://attached_assets/performance_eco_ecoA_neural.png"
+type = "image"
+title = "A — Neural constellation, red bloom node"
+
+[[outputs]]
+id = "hiLsrtGBKOPAIZ9IKWZS5"
+uri = "file://attached_assets/performance_eco_ecoB_dataflow.png"
+type = "image"
+title = "B — Horizontal signal flows, pulse intersections"
+
+[[outputs]]
+id = "i3bpdkm5ZV5515y997Q6N"
+uri = "file://attached_assets/performance_eco_ecoC_diffusion.png"
+type = "image"
+title = "C — Thermal diffusion, ghosted mesh"
