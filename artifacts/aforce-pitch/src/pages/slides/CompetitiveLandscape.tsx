@@ -1,5 +1,6 @@
 import SlideChrome from "@/components/SlideChrome";
 import PatentBadge from "@/components/PatentBadge";
+import Disclosure from "@/components/Disclosure";
 
 const THEM = [
   { label: "Spikes", rot: -7, x: 6, y: 4, size: 3.4, op: 0.55 },
@@ -116,6 +117,11 @@ export default function CompetitiveLandscape() {
           </div>
         </div>
       </div>
+
+      <Disclosure
+        label="Trademarks"
+        body="Third-party names and marks referenced in this deck are the property of their respective owners. References are for comparative and illustrative purposes only and do not imply endorsement or affiliation."
+      />
     </SlideChrome>
   );
 }

@@ -1,4 +1,5 @@
 import SlideChrome from "@/components/SlideChrome";
+import Disclosure from "@/components/Disclosure";
 import bgImg from "@assets/performance_eco_ecoA_neural.png";
 
 const CONVERGING = [
@@ -78,6 +79,11 @@ export default function PerformanceEconomy() {
           </div>
         </div>
       </div>
+
+      <Disclosure
+        label="Market sizing"
+        body="Category framing based on third-party industry research and management estimates. Market sizes are directional, not guarantees of addressable or capturable opportunity."
+      />
     </SlideChrome>
   );
 }

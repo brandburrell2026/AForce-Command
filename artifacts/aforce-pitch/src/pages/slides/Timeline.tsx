@@ -1,4 +1,5 @@
 import SlideChrome from "@/components/SlideChrome";
+import Disclosure from "@/components/Disclosure";
 import bgImg from "@assets/roadmap_rmA_voidwarm.png";
 
 const PHASES = [
@@ -54,6 +55,11 @@ export default function Timeline() {
           ))}
         </div>
       </div>
+
+      <Disclosure
+        label="Roadmap"
+        body="Roadmap and timing are management plans, not commitments. Subject to change based on execution, market conditions, regulatory factors, and capital deployment."
+      />
     </SlideChrome>
   );
 }

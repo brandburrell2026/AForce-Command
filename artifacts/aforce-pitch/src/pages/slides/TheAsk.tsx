@@ -1,4 +1,5 @@
 import SlideChrome from "@/components/SlideChrome";
+import Disclosure from "@/components/Disclosure";
 
 const FUNDS = [
   "Proof of habit",
@@ -57,6 +58,11 @@ export default function TheAsk() {
           </div>
         </div>
       </div>
+
+      <Disclosure
+        label="Securities notice"
+        body="This presentation does not constitute an offer to sell or a solicitation of an offer to buy any securities. Any offer or sale will be made only to qualified investors pursuant to definitive transaction documents and applicable exemptions under U.S. and other securities laws."
+      />
     </SlideChrome>
   );
 }

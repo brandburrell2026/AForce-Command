@@ -1,4 +1,5 @@
 import SlideChrome from "@/components/SlideChrome";
+import Disclosure from "@/components/Disclosure";
 
 import waBg from "@assets/hydration_science_B.png";
 
@@ -70,6 +71,11 @@ export default function WhyAlkaline() {
           </div>
         </div>
       </div>
+
+      <Disclosure
+        label="Wellness disclosure"
+        body="AForce is a performance and wellness product. It is not a medical device and is not intended to diagnose, treat, cure, or prevent any disease. Statements have not been evaluated by the FDA. Consult a qualified physician before changing hydration, supplementation, or training routines."
+      />
     </SlideChrome>
   );
 }

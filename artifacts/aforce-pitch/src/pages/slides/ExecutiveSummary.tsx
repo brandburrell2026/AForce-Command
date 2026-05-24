@@ -1,6 +1,7 @@
 import SlideChrome from "@/components/SlideChrome";
 import PatentBadge from "@/components/PatentBadge";
 import VideoBackdrop from "@/components/VideoBackdrop";
+import Disclosure from "@/components/Disclosure";
 
 export default function ExecutiveSummary() {
   const base = import.meta.env.BASE_URL;
@@ -94,6 +95,11 @@ export default function ExecutiveSummary() {
           </div>
         </div>
       </div>
+
+      <Disclosure
+        label="Confidential"
+        body="For discussion purposes only. This presentation does not constitute an offer to sell or a solicitation of an offer to buy any securities. Recipients agree to keep all contents confidential."
+      />
     </SlideChrome>
   );
 }
