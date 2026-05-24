@@ -10,6 +10,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
+    "sharp": "^0.34.5",
     "stripe": "^22.0.2"
   },
   "devDependencies": {

@@ -396,6 +396,24 @@ uri = "file://attached_assets/generated_images/system_every_moment_can_C.png"
 type = "image"
 title = "generated_image"
 
+[[generated]]
+id = "h8rLibfWqrhZNumjf1Yy_"
+uri = "file://attached_assets/generated_images/scene_bg_A.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "12sYL_wj2VOBmkFdMeCYP"
+uri = "file://attached_assets/generated_images/scene_bg_B.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "EQ9I5z9VTsMR9KsM1b2xt"
+uri = "file://attached_assets/generated_images/scene_bg_C.png"
+type = "image"
+title = "generated_image"
+
 [[outputs]]
 id = "fILTiXCCTKYfWe9d8R46M"
 uri = "file://attached_assets/tester-share/aforce-tester-qr.png"
@@ -1247,3 +1265,21 @@ id = "0F2W_z-rlRc68XPrhY1Ls"
 uri = "file://attached_assets/generated_images/system_every_moment_can_C.png"
 type = "image"
 title = "Variant C — Overhead desk + chauffeured car (with AForce can)"
+
+[[outputs]]
+id = "wMVydgJs0_RdH-z1Q3vA-"
+uri = "file://attached_assets/generated_images/system_every_moment_real_A.png"
+type = "image"
+title = "Variant A — Office + SUV (real can composited)"
+
+[[outputs]]
+id = "stbfiAOdw9wnfFTp0BL9x"
+uri = "file://attached_assets/generated_images/system_every_moment_real_B.png"
+type = "image"
+title = "Variant B — Desk profile + private aviation (real can composited)"
+
+[[outputs]]
+id = "lna0qQ243DL0zvzBTMfgg"
+uri = "file://attached_assets/generated_images/system_every_moment_real_C.png"
+type = "image"
+title = "Variant C — Across-desk + chauffeured car (real can composited)"
