@@ -1,4 +1,5 @@
 import SlideChrome from "@/components/SlideChrome";
+import bgImg from "@assets/performance_eco_ecoA_neural.png";
 
 const CONVERGING = [
   "Functional beverages",
@@ -12,6 +13,24 @@ const INTERSECTION = ["Product", "Behavior", "Data", "Ritual", "Accountability",
 export default function PerformanceEconomy() {
   return (
     <SlideChrome slide={19}>
+      <div
+        className="absolute inset-0"
+        style={{
+          backgroundImage: `url(${bgImg})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center right",
+          filter: "contrast(1.05) brightness(0.95)",
+          opacity: 0.9,
+        }}
+      />
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background:
+            "linear-gradient(90deg, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.7) 40%, rgba(0,0,0,0.3) 75%, rgba(0,0,0,0.05) 100%)",
+        }}
+      />
+
       <div className="absolute inset-0 flex flex-col justify-center px-[8vw]">
         <div className="font-body uppercase tracking-[0.4em] text-[0.85vw] text-text/45 font-semibold mb-[3vh]">
           The Performance Economy
