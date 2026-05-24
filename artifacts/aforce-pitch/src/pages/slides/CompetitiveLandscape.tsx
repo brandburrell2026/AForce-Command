@@ -24,7 +24,7 @@ const US = [
 export default function CompetitiveLandscape() {
   return (
     <SlideChrome slide={20}>
-      <div className="absolute inset-0 flex flex-col px-[8vw] pt-[12vh] pb-[10vh]">
+      <div className="absolute inset-0 flex flex-col px-[8vw] pt-[10vh] pb-[18vh]">
         {/* Header row */}
         <div className="flex items-start justify-between gap-[2vw]">
           <div className="font-body uppercase tracking-[0.4em] text-[0.85vw] text-text/45 font-semibold">
