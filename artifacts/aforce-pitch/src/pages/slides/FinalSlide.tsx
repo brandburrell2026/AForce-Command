@@ -6,7 +6,7 @@ export default function FinalSlide() {
     <SlideChrome slide={31} hideChrome>
       <div className="absolute inset-0 bg-black" />
 
-      <div className="absolute inset-y-0 right-0 w-[50vw] flex items-center justify-center">
+      <div className="absolute inset-y-0 right-0 w-[55vw] flex items-center justify-end pr-[2vw]">
         <div
           className="absolute w-[34vw] h-[34vw] rounded-full opacity-30 blur-[8vw]"
           style={{
@@ -17,22 +17,22 @@ export default function FinalSlide() {
         <img
           src={`${base}brothers-childhood.png`}
           alt="The founders as children"
-          className="relative h-[92vh] w-full object-cover object-center"
+          className="relative h-[88vh] w-auto max-w-full object-contain"
           style={{
             filter:
               "grayscale(1) contrast(1.08) brightness(0.96) drop-shadow(0 30px 50px rgba(0,0,0,0.6))",
             maskImage:
-              "linear-gradient(to right, transparent 0%, #000 22%, #000 100%)",
+              "linear-gradient(to right, transparent 0%, #000 14%, #000 100%)",
             WebkitMaskImage:
-              "linear-gradient(to right, transparent 0%, #000 22%, #000 100%)",
+              "linear-gradient(to right, transparent 0%, #000 14%, #000 100%)",
           }}
         />
       </div>
 
       <div
-        className="absolute inset-y-0 left-0 w-[58vw] pointer-events-none"
+        className="absolute inset-y-0 left-0 w-[52vw] pointer-events-none"
         style={{
-          background: "linear-gradient(to right, #000 55%, rgba(0,0,0,0.7) 80%, transparent 100%)",
+          background: "linear-gradient(to right, #000 60%, rgba(0,0,0,0.78) 85%, transparent 100%)",
         }}
       />
 
