@@ -234,6 +234,42 @@ uri = "file://attached_assets/generated_images/professionals_06_executive_red_ey
 type = "image"
 title = "generated_image"
 
+[[generated]]
+id = "vaeDRNEGDIJVLyqcxsYUs"
+uri = "file://attached_assets/generated_images/brickell_01_skyline_biscayne_dawn.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "vtBnqBEkZzRFBt8-Rkc6z"
+uri = "file://attached_assets/generated_images/brickell_02_street_level_tower.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "U1bFFIjNE1WnlsB9GdvmV"
+uri = "file://attached_assets/generated_images/brickell_03_empty_financial_street.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "EcSjnFEzkeI7O9T1azZEb"
+uri = "file://attached_assets/generated_images/brickell_04_office_window_sunrise.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "tk9GTrn2LOrMsjJbKMgPF"
+uri = "file://attached_assets/generated_images/brickell_05_lobby_marble_dawn.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "9QvIUIBUAZTkaPOSj7-X0"
+uri = "file://attached_assets/generated_images/brickell_06_skyline_silhouette_moody.png"
+type = "image"
+title = "generated_image"
+
 [[outputs]]
 id = "fILTiXCCTKYfWe9d8R46M"
 uri = "file://attached_assets/tester-share/aforce-tester-qr.png"
@@ -923,3 +959,39 @@ id = "IYZci7ORTA4qYwfD8MHIX"
 uri = "file://attached_assets/generated_images/professionals_06_executive_red_eye.png"
 type = "image"
 title = "06 — Executive, red-eye flight"
+
+[[outputs]]
+id = "EpaN3WZ6r3TSwWYIzx99S"
+uri = "file://attached_assets/generated_images/brickell_01_skyline_biscayne_dawn.png"
+type = "image"
+title = "01 — Skyline from Biscayne Bay"
+
+[[outputs]]
+id = "z1Iw1OLYJ5YrJWyiY0giL"
+uri = "file://attached_assets/generated_images/brickell_02_street_level_tower.png"
+type = "image"
+title = "02 — Tower face, low angle"
+
+[[outputs]]
+id = "QrL02NAIPoJ9ufWVoCryx"
+uri = "file://attached_assets/generated_images/brickell_03_empty_financial_street.png"
+type = "image"
+title = "03 — Empty financial street"
+
+[[outputs]]
+id = "4jYVxgtfbdDwLbvf-zFLh"
+uri = "file://attached_assets/generated_images/brickell_04_office_window_sunrise.png"
+type = "image"
+title = "04 — Corner office at sunrise"
+
+[[outputs]]
+id = "jx7xQf4K9LDYlUYepDYOe"
+uri = "file://attached_assets/generated_images/brickell_05_lobby_marble_dawn.png"
+type = "image"
+title = "05 — Marble lobby"
+
+[[outputs]]
+id = "Ro4agz0Ojh_pgD0SFHfbX"
+uri = "file://attached_assets/generated_images/brickell_06_skyline_silhouette_moody.png"
+type = "image"
+title = "06 — Skyline silhouette"
