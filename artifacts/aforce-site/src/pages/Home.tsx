@@ -3,10 +3,28 @@ import { EarlyAccessCapture } from '@/components/EarlyAccessCapture';
 import { WaveformBackground } from '@/components/WaveformBackground';
 
 // Product imagery — sticks and drinks are the star of this page.
-import stickHero from '@/assets/products/stick-hero.png';
-import drinkCanHero from '@/assets/products/drink-can-hero.png';
-import sticksRow from '@/assets/products/sticks-row.png';
-import stickPour from '@/assets/products/stick-pour.png';
+import stickWatermelon from '@/assets/products/stick-watermelon.png';
+import stickBerry from '@/assets/products/stick-berry.png';
+import stickSoursop from '@/assets/products/stick-soursop.png';
+import canWatermelon from '@/assets/products/can-watermelon.png';
+import canBerry from '@/assets/products/can-berry.png';
+import canSoursop from '@/assets/products/can-soursop.png';
+
+const stickHero = stickWatermelon;
+const drinkCanHero = canWatermelon;
+const stickPour = stickBerry;
+
+const STICKS = [
+  { src: stickWatermelon, name: 'Watermelon Surge', sub: '+ Chlorella' },
+  { src: stickBerry, name: 'Berry Blast', sub: '+ Dulse' },
+  { src: stickSoursop, name: 'Soursop Edge', sub: '+ Seamoss' },
+];
+
+const CANS = [
+  { src: canWatermelon, name: 'Watermelon Surge', sub: '+ Chlorella' },
+  { src: canBerry, name: 'Berry Blast', sub: '+ Dulse' },
+  { src: canSoursop, name: 'Soursop Edge', sub: '+ Seamoss' },
+];
 
 // Editorial / context imagery (supporting, not the star).
 import appMockup1 from '@/assets/images/app-mockup-1.png';
@@ -126,14 +144,40 @@ export default function Home() {
             </h2>
           </div>
 
-          <div className="relative w-full aspect-[16/9] rounded-2xl overflow-hidden border border-white/5 mb-12">
-            <img
-              src={sticksRow}
-              alt="Three AForce hydration sticks lined up on an obsidian surface with a deep red horizon glow"
-              className="absolute inset-0 w-full h-full object-cover"
-              loading="lazy"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
+          <div className="relative w-full rounded-2xl overflow-hidden border border-white/5 mb-8 bg-black p-8 lg:p-12">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_60%,rgba(180,20,30,0.18)_0%,transparent_60%)]" />
+            <div className="relative grid grid-cols-3 gap-6 lg:gap-12 items-end">
+              {STICKS.map((s) => (
+                <div key={s.name} className="flex flex-col items-center text-center">
+                  <img
+                    src={s.src}
+                    alt={`AForce ${s.name} hydration stick`}
+                    className="w-full max-w-[220px] h-auto drop-shadow-[0_30px_60px_rgba(0,0,0,0.7)]"
+                    loading="lazy"
+                  />
+                  <div className="mt-6 text-sm font-bold tracking-wide">{s.name}</div>
+                  <div className="text-xs text-white/50 mt-1">{s.sub}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="relative w-full rounded-2xl overflow-hidden border border-white/5 mb-12 bg-[#020202] p-8 lg:p-12">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_70%,rgba(180,20,30,0.14)_0%,transparent_60%)]" />
+            <div className="relative grid grid-cols-3 gap-6 lg:gap-12 items-end">
+              {CANS.map((c) => (
+                <div key={c.name} className="flex flex-col items-center text-center">
+                  <img
+                    src={c.src}
+                    alt={`AForce ${c.name} performance drink can`}
+                    className="w-full max-w-[200px] h-auto drop-shadow-[0_30px_60px_rgba(0,0,0,0.7)]"
+                    loading="lazy"
+                  />
+                  <div className="mt-6 text-sm font-bold tracking-wide">{c.name}</div>
+                  <div className="text-xs text-white/50 mt-1">{c.sub}</div>
+                </div>
+              ))}
+            </div>
           </div>
 
           <div className="grid md:grid-cols-2 gap-8">
