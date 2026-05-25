@@ -42,6 +42,7 @@ import { GradientBackground } from '@/components/GradientBackground';
 import { Icon } from '@/components/Icon';
 import { Colors } from '@/theme/colors';
 import { useEngineSlice, useUserSlice } from '@/store/slices';
+import { deriveSocialSharedContext } from '@/services/socialState';
 import { TAB_BAR_HEIGHT, WEB_TOP_PADDING, WEB_BOTTOM_PADDING } from '@/constants/layout';
 
 /* ────────────────────────── Engine (hidden) ─────────────────────────
@@ -395,6 +396,11 @@ export default function SocialModeV2Screen() {
                 <Text style={styles.crewState}>{c.state}</Text>
               </View>
             ))}
+          </Section>
+
+          {/* Block 6 — Shared Context (one-sentence room read of Crew) */}
+          <Section label="SHARED CONTEXT">
+            <Text style={styles.forecast}>{deriveSocialSharedContext(crew)}</Text>
           </Section>
 
           {/* Reset */}
