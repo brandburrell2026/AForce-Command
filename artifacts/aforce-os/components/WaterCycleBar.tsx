@@ -69,20 +69,29 @@ function Cell({
     opacity: opacity.value,
   }));
 
+  // Teardrop = a square with three rounded corners and one sharp
+  // corner, rotated 45° so the sharp corner points up. The fill is
+  // an absolute-positioned overlay inside the rotated parent, so it
+  // inherits the drop silhouette via `overflow: 'hidden'` without
+  // any SVG dependency.
   return (
     <Animated.View style={[styles.cell, animStyle]}>
-      {/* Empty cell base */}
-      <View style={[styles.cellBase, { borderColor: filled ? color : Colors.border.medium }]} />
-      {/* Filled overlay */}
-      {filled && (
-        <Animated.View
-          style={[
-            styles.cellFill,
-            { backgroundColor: color },
-            fillStyle,
-          ]}
-        />
-      )}
+      <View
+        style={[
+          styles.drop,
+          { borderColor: filled ? color : Colors.border.medium },
+        ]}
+      >
+        {filled && (
+          <Animated.View
+            style={[
+              styles.dropFill,
+              { backgroundColor: color },
+              fillStyle,
+            ]}
+          />
+        )}
+      </View>
     </Animated.View>
   );
 }
@@ -207,6 +216,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 8,
     justifyContent: 'space-between',
+    alignItems: 'center',
   },
   caret: {
     position: 'absolute',
@@ -231,21 +241,33 @@ const styles = StyleSheet.create({
     borderLeftColor: 'transparent',
     borderRightColor: 'transparent',
   },
+  // Cell is the layout slot for one drop. It stays flex:1 so the
+  // eight drops distribute evenly across the row (which keeps the
+  // caret's percentage-based positioning correct). The drop itself
+  // is a fixed 24×24 square; its rotated bounding box is ~34px, so
+  // the slot is sized to clear that.
   cell: {
     flex: 1,
-    height: 32,
-    borderRadius: 7,
-    overflow: 'hidden',
-    position: 'relative',
+    height: 34,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  cellBase: {
-    ...StyleSheet.absoluteFillObject,
-    borderRadius: 7,
+  // Drop silhouette: three rounded corners (BL / BR / TL) + one
+  // sharp corner (TR), then rotated 45° so the sharp corner points
+  // straight up. `overflow: 'hidden'` clips the fill to the drop.
+  drop: {
+    width: 24,
+    height: 24,
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 0,
+    borderBottomRightRadius: 12,
+    borderBottomLeftRadius: 12,
     borderWidth: 1,
     backgroundColor: Colors.fill.light,
+    overflow: 'hidden',
+    transform: [{ rotate: '45deg' }],
   },
-  cellFill: {
+  dropFill: {
     ...StyleSheet.absoluteFillObject,
-    borderRadius: 7,
   },
 });
