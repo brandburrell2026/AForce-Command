@@ -1,0 +1,321 @@
+Update to previous recovery architecture.
+
+Do NOT treat Recovery as a separate product.
+
+Recovery must plug into existing OS architecture.
+
+No redesign.
+
+No new navigation.
+
+No extra tabs.
+
+No changes to current approved UI.
+
+Build as hidden engine inputs only.
+
+————————————————————
+
+CORE RULE
+
+Recovery Layer feeds existing systems.
+
+Existing systems remain primary.
+
+Current systems:
+
+Profile Orb Coach Timeline HydroJournal Commands Community HydroScan Social Guardian Clutch
+
+Recovery sits underneath.
+
+Not beside.
+
+————————————————————
+
+PROFILE
+
+YES → Connect.
+
+Do NOT add more profile fields.
+
+Use existing:
+
+Age Range
+
+Weight
+
+Height
+
+Units
+
+Climate
+
+Activity
+
+Language
+
+Sleep preferences
+
+Future:
+
+Optional birth year.
+
+NOT required.
+
+Recovery reads profile.
+
+Profile does not display recovery.
+
+————————————————————
+
+ORB
+
+YES → Main destination.
+
+Recovery should appear through Orb.
+
+Example:
+
+Recovery: 81
+
+Pressure: 34
+
+Trend: ↑
+
+Command: Complete 1 Cycle
+
+No separate Recovery screen.
+
+Orb remains home.
+
+————————————————————
+
+REAL TIME
+
+YES → But event-driven.
+
+Not live streaming.
+
+Updates:
+
+Water logged
+
+Journal
+
+Sleep
+
+Heat
+
+HydroScan
+
+Workout
+
+Social
+
+Commands completed
+
+No constant recalculation.
+
+Recalculate quietly.
+
+————————————————————
+
+AI
+
+YES → Hidden.
+
+No AI branding.
+
+No AI chat.
+
+No AI badge.
+
+AI only:
+
+learns patterns
+
+prioritizes inputs
+
+creates stories
+
+suggests commands
+
+Never say:
+
+AI detected.
+
+Say:
+
+Your system responded.
+
+————————————————————
+
+COACH MODE
+
+YES → Biggest missing connection.
+
+Coach should become quieter.
+
+Voice OFF:
+
+Text only
+
+Micro cards
+
+Orb pulse
+
+Voice ON:
+
+Short commands
+
+Example:
+
+Recovery appears elevated.
+
+Complete one cycle.
+
+No long speaking.
+
+No Siri behavior.
+
+Recovery should feed Coach.
+
+Coach should not explain recovery.
+
+————————————————————
+
+TIMELINE
+
+YES
+
+Save:
+
+Pressure
+
+Fingerprint
+
+Story
+
+No new visuals.
+
+Use existing Timeline.
+
+————————————————————
+
+HYDROJOURNAL
+
+YES
+
+Recovery learns from Journal.
+
+Journal remains unchanged.
+
+————————————————————
+
+SOCIAL
+
+PARTIAL
+
+Social affects recovery.
+
+Recovery does not live inside Social.
+
+Example:
+
+Recovery Cost
+
+Sleep Cost
+
+Recovery Window
+
+————————————————————
+
+GUARDIAN
+
+YES
+
+Team Recovery
+
+Recovery Story
+
+No personal data.
+
+————————————————————
+
+CLUTCH
+
+YES
+
+Pressure
+
+Fingerprint
+
+Command
+
+————————————————————
+
+PHANTOM (Future)
+
+Feeds:
+
+Pressure
+
+Fingerprint
+
+Recovery
+
+No redesign.
+
+————————————————————
+
+RELEASE PLAN
+
+Phase 1
+
+Hidden
+
+Phase 2
+
+Internal Preview
+
+Phase 3
+
+Pressure
+
+Phase 4
+
+Fingerprint
+
+Phase 5
+
+Identity
+
+————————————————————
+
+IMPORTANT
+
+Current MVP remains:
+
+Pause
+
+Hydrate
+
+Lock In
+
+Perform
+
+Build architecture.
+
+Do not release.
+
+Do not expose.
+
+Internal preview only.
+
+No visual changes.
+
+
+
+
+
+Sent from my Galaxy
