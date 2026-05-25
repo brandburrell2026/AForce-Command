@@ -21,41 +21,6 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import Svg, { Path } from 'react-native-svg';
-
-// Classic water-drop silhouette — sharp vertical tip with a long
-// pinched neck flaring into a wide round bulb. Kept in sync with
-// the same DROP_PATH in components/WaterCycleBar.tsx.
-const DROP_PATH =
-  'M12 1.5 C 9 7 4 11 4 16 A 8 8 0 0 0 20 16 C 20 11 15 7 12 1.5 Z';
-
-/**
- * UrineDropCluster — three teardrop SVGs arranged in a triangle
- * (one above, two below). All three share the same urine color so
- * the swatch reads as a small fluid cluster instead of a flat
- * circle.
- */
-function UrineDropCluster({ color }: { color: string }) {
-  // Single upright drop filled with the urine color — matches the
-  // URINE tab icon style. Centred in the same 56×56 swatch slot.
-  return (
-    <View style={swatchStyles.cluster}>
-      <Svg width={44} height={44} viewBox="0 0 24 24">
-        <Path d={DROP_PATH} fill={color} />
-      </Svg>
-    </View>
-  );
-}
-
-const swatchStyles = StyleSheet.create({
-  cluster: {
-    width: 56,
-    height: 56,
-    marginBottom: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
 
 import { GradientBackground } from '@/components/GradientBackground';
 import { Colors } from '@/theme/colors';
@@ -179,7 +144,7 @@ export default function UrineHydrationCheckScreen() {
                   },
                 ]}
               >
-                <UrineDropCluster color={opt.hex} />
+                <View style={[styles.swatch, { backgroundColor: opt.hex }]} />
                 <Text style={styles.tileLabel}>{opt.label.toUpperCase()}</Text>
               </Pressable>
             );

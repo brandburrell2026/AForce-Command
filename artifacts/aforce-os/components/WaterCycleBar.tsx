@@ -18,12 +18,10 @@ import Svg, { Path } from 'react-native-svg';
 import type { PerformanceState } from '../types';
 import { Colors } from '../theme/colors';
 
-// Classic water-drop silhouette — sharp vertical tip with a long
-// pinched neck flaring into a wide round bulb. Tip at (12,1.5),
-// shoulders pulled in at x=9/x=15 to taper the neck, bulb arc
-// centred at (12,16) radius 8. Drawn in a 24×24 viewBox.
+// Symmetric teardrop path: tip at top (12,1), bulb at bottom centred
+// on (12,16) with radius 10. Drawn in a 24×24 viewbox.
 const DROP_PATH =
-  'M12 1.5 C 9 7 4 11 4 16 A 8 8 0 0 0 20 16 C 20 11 15 7 12 1.5 Z';
+  'M12 1 C 12 1 22 12 22 16 A 10 10 0 1 1 2 16 C 2 12 12 1 12 1 Z';
 
 interface Props {
   unitsConsumed: number;
@@ -77,9 +75,11 @@ function Cell({
     opacity: opacity.value,
   }));
 
-  // Teardrop unit — same vertical-tip shape used by the urine
-  // swatch cluster. Outline path always renders; the filled copy on
-  // top fades in via Reanimated opacity when the unit is consumed.
+  // Symmetric teardrop rendered as an SVG path so the tip can sit
+  // perfectly vertical (the CSS rotated-square trick can only produce
+  // a diagonal point). Two stacked paths: the outline always renders,
+  // the filled copy on top fades in via opacity when the unit is
+  // consumed.
   const strokeColor = filled ? color : Colors.border.medium;
   return (
     <Animated.View style={[styles.cell, animStyle]}>
@@ -260,10 +260,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  // Drop wrapper: 24×24 box that hosts the outline SVG plus an
-  // absolute-positioned fill SVG overlay. Silhouette + vertical tip
-  // live entirely in the SVG path, so no rotation or borderRadius
-  // hackery is needed here.
+  // Drop wrapper: hosts the outline SVG plus the absolute-positioned
+  // fill SVG overlay. The teardrop silhouette + vertical tip live in
+  // the SVG path itself, so no rotation or border-radius hackery here.
   drop: {
     width: 24,
     height: 24,
