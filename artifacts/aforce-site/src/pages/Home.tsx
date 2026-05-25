@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { EarlyAccessCapture } from '@/components/EarlyAccessCapture';
 import { WaveformBackground } from '@/components/WaveformBackground';
+import { AmbientAudio } from '@/components/AmbientAudio';
 
 // Product imagery — sticks and drinks are the star of this page.
 import stickWatermelon from '@/assets/products/stick-watermelon.png';
@@ -67,12 +68,35 @@ export default function Home() {
   };
 
   return (
-    <div className="bg-black min-h-screen text-white overflow-hidden relative">
+    <div className="bg-black min-h-screen text-white overflow-hidden relative font-sans">
       <WaveformBackground />
+      <AmbientAudio />
+
+      {/* ─── Fixed Top Nav ───────────────────────────────────────── */}
+      <nav className="fixed top-0 inset-x-0 z-50 backdrop-blur-md bg-black/40 border-b border-white/[0.04]">
+        <div className="max-w-7xl mx-auto px-6 lg:px-12 h-16 flex items-center justify-between">
+          <a href="/" className="flex items-center gap-3">
+            <div className="w-1.5 h-1.5 rounded-full bg-primary pulse-dot" />
+            <span className="text-sm font-bold tracking-[0.3em] uppercase">AForce</span>
+          </a>
+          <div className="hidden md:flex items-center gap-10 text-[11px] uppercase tracking-[0.25em] text-white/55">
+            <a href="#product" className="hover:text-white transition-colors">Product</a>
+            <a href="#loop" className="hover:text-white transition-colors">The Loop</a>
+            <a href="#os" className="hover:text-white transition-colors">OS</a>
+            <a href="#ecosystem" className="hover:text-white transition-colors">Ecosystem</a>
+          </div>
+          <a
+            href={AFORCE_OS_URL}
+            className="text-[11px] uppercase tracking-[0.25em] text-white/80 hover:text-white transition-colors border border-white/15 hover:border-primary/60 px-4 py-2 rounded-full"
+          >
+            Early Access
+          </a>
+        </div>
+      </nav>
 
       {/* ─── Hero — Product Forward ───────────────────────────────── */}
-      <section className="relative w-full min-h-[100dvh] flex items-center pt-20 pb-24 px-6 sm:px-12 lg:px-24 z-10">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,rgba(180,20,30,0.22)_0%,transparent_60%)]" />
+      <section className="relative w-full min-h-[100dvh] flex items-center pt-32 pb-24 px-6 sm:px-12 lg:px-24 z-10">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,rgba(180,20,30,0.22)_0%,transparent_60%)] breathe" />
 
         <div className="relative z-10 max-w-7xl mx-auto w-full grid lg:grid-cols-12 gap-12 items-center">
           {/* Copy column */}
@@ -138,14 +162,18 @@ export default function Home() {
       </section>
 
       {/* ─── Product Showcase — Sticks & Drinks ──────────────────── */}
-      <section className="relative w-full py-32 px-6 lg:px-24 z-10 border-t border-white/5 bg-[#020202]">
+      <section id="product" className="relative w-full py-40 px-6 lg:px-24 z-10 border-t border-white/5 bg-[#020202] grain">
         <div className="max-w-7xl mx-auto">
-          <div className="mb-16 max-w-3xl">
-            <span className="text-primary uppercase tracking-[0.25em] text-xs font-bold block mb-4">
-              The Product
-            </span>
-            <h2 className="text-4xl md:text-6xl font-bold tracking-tight leading-tight">
-              Two formats.<br />One performance system.
+          <div className="mb-20 max-w-3xl">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="w-8 h-px bg-primary" />
+              <span className="text-primary uppercase tracking-[0.3em] text-[10px] font-bold">
+                01 / The Product
+              </span>
+            </div>
+            <h2 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.05]">
+              Two formats.<br />
+              <span className="text-white/55">One performance system.</span>
             </h2>
           </div>
 
@@ -242,18 +270,23 @@ export default function Home() {
       </section>
 
       {/* ─── The Loop ────────────────────────────────────────────── */}
-      <section className="relative w-full py-32 px-6 lg:px-24 z-10 border-t border-white/5 bg-gradient-to-b from-black to-black/90">
-        <div className="max-w-7xl mx-auto">
-          <div className="mb-20 text-center">
-            <h2 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">
-              The Behavioral Loop
+      <section id="loop" className="relative w-full py-40 px-6 lg:px-24 z-10 border-t border-white/5 bg-black overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_120%,rgba(180,20,30,0.18)_0%,transparent_60%)] breathe" />
+        <div className="relative max-w-6xl mx-auto">
+          <div className="mb-24 max-w-3xl">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="w-8 h-px bg-primary" />
+              <span className="text-primary uppercase tracking-[0.3em] text-[10px] font-bold">
+                02 / The Loop
+              </span>
+            </div>
+            <h2 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.05]">
+              Systems<br />
+              <span className="text-white/55">that compound.</span>
             </h2>
-            <p className="text-white/50 text-lg">Systems that compound over time.</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 relative">
-            <div className="hidden lg:block absolute top-1/2 left-0 w-full h-[1px] bg-white/10 -translate-y-1/2 z-0" />
-
+          <div className="border-t border-white/[0.06]">
             {[
               { title: 'Product', desc: 'Precision sticks and drinks — the ritual unit.' },
               { title: 'Ritual', desc: 'Daily routines cemented through friction-free action.' },
@@ -265,13 +298,17 @@ export default function Home() {
             ].map((stage, i) => (
               <div
                 key={stage.title}
-                className="relative z-10 group bg-black border border-white/5 p-8 rounded-2xl hover:border-primary/40 transition-colors duration-500 hover:bg-primary/5"
+                className="group grid grid-cols-12 items-baseline gap-6 py-8 lg:py-10 border-b border-white/[0.06] hover:border-primary/40 transition-colors duration-500"
               >
-                <div className="text-primary font-mono text-sm mb-4">
+                <div className="col-span-2 lg:col-span-1 text-primary/70 group-hover:text-primary font-mono text-xs tracking-[0.3em] transition-colors duration-500">
                   0{i + 1}
                 </div>
-                <h3 className="text-xl font-bold mb-2">{stage.title}</h3>
-                <p className="text-white/50 text-sm">{stage.desc}</p>
+                <h3 className="col-span-10 lg:col-span-4 text-2xl md:text-3xl lg:text-4xl font-bold tracking-tight group-hover:translate-x-2 transition-transform duration-500">
+                  {stage.title}
+                </h3>
+                <p className="col-start-3 lg:col-start-6 col-span-10 lg:col-span-7 text-white/50 group-hover:text-white/75 text-base lg:text-lg leading-relaxed transition-colors duration-500">
+                  {stage.desc}
+                </p>
               </div>
             ))}
           </div>
@@ -279,10 +316,11 @@ export default function Home() {
       </section>
 
       {/* ─── AForce OS — supporting, the proof layer ─────────────── */}
-      <section className="relative w-full py-40 px-6 lg:px-24 z-10 overflow-hidden bg-[#020202] border-t border-white/5">
-        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-20 items-center">
+      <section id="os" className="relative w-full py-40 px-6 lg:px-24 z-10 overflow-hidden bg-[#020202] border-t border-white/5">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_30%_50%,rgba(180,20,30,0.12)_0%,transparent_60%)] breathe" />
+        <div className="relative max-w-7xl mx-auto grid lg:grid-cols-2 gap-20 items-center">
           <div className="order-2 lg:order-1 relative h-[640px] w-full">
-            <div className="absolute inset-0 bg-primary/20 blur-[120px] rounded-full" />
+            <div className="absolute inset-0 bg-primary/20 blur-[120px] rounded-full breathe" />
             <img
               ref={addToParallax}
               data-speed="0.04"
@@ -308,19 +346,23 @@ export default function Home() {
               loading="lazy"
             />
           </div>
-          <div className="order-1 lg:order-2 flex flex-col gap-8">
-            <span className="text-primary uppercase tracking-[0.25em] text-xs font-bold">
-              AForce OS
-            </span>
-            <h2 className="text-4xl md:text-6xl font-bold tracking-tight">
-              The proof layer for the product.
+          <div className="order-1 lg:order-2 flex flex-col gap-10">
+            <div className="flex items-center gap-4">
+              <div className="w-8 h-px bg-primary" />
+              <span className="text-primary uppercase tracking-[0.3em] text-[10px] font-bold">
+                03 / AForce OS
+              </span>
+            </div>
+            <h2 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.05]">
+              The proof layer<br />
+              <span className="text-white/55">for the product.</span>
             </h2>
-            <p className="text-white/60 text-xl leading-relaxed font-light">
+            <p className="text-white/65 text-lg lg:text-xl leading-relaxed font-light max-w-lg">
               Every stick poured, every can opened, every ritual closed — fed back
               into a behavioral telemetry stream you actually use. The OS exists
               so the product compounds.
             </p>
-            <ul className="space-y-4 mt-2">
+            <ul className="space-y-5 mt-2">
               {[
                 'Real-time hydration telemetry',
                 'Actionable behavioral triggers',
@@ -329,18 +371,19 @@ export default function Home() {
               ].map((item) => (
                 <li
                   key={item}
-                  className="flex items-center gap-4 text-white/80"
+                  className="flex items-center gap-4 text-white/80 text-sm uppercase tracking-[0.15em]"
                 >
-                  <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                  <div className="w-1 h-1 rounded-full bg-primary pulse-dot" />
                   {item}
                 </li>
               ))}
             </ul>
             <a
               href={AFORCE_OS_URL}
-              className="inline-flex items-center gap-2 mt-4 text-sm uppercase tracking-wider font-semibold text-primary hover:text-white transition-colors"
+              className="inline-flex items-center gap-3 mt-4 text-xs uppercase tracking-[0.3em] font-bold text-white hover:text-primary transition-colors group"
             >
-              Open AForce OS →
+              <span>Open AForce OS</span>
+              <span className="inline-block transition-transform duration-500 group-hover:translate-x-1">→</span>
             </a>
           </div>
         </div>
@@ -349,9 +392,17 @@ export default function Home() {
       {/* ─── Who It's For ────────────────────────────────────────── */}
       <section className="relative w-full py-40 px-6 lg:px-24 z-10 border-t border-white/5">
         <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-5xl font-serif italic text-white/80 leading-snug">
-              "There is a certain kind of person who does not get to be off."
+          <div className="text-center mb-20 max-w-3xl mx-auto">
+            <div className="flex items-center justify-center gap-4 mb-8">
+              <div className="w-8 h-px bg-primary" />
+              <span className="text-primary uppercase tracking-[0.3em] text-[10px] font-bold">
+                04 / Identity
+              </span>
+              <div className="w-8 h-px bg-primary" />
+            </div>
+            <h2 className="text-3xl md:text-5xl lg:text-6xl font-serif italic text-white/85 leading-[1.15] tracking-tight">
+              "There is a certain kind of person<br />
+              who does not get to be off."
             </h2>
           </div>
 
@@ -391,12 +442,17 @@ export default function Home() {
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(180,20,30,0.10)_0%,transparent_70%)]" />
 
         <div className="relative max-w-7xl mx-auto">
-          <div className="text-center mb-20 max-w-3xl mx-auto">
-            <span className="text-primary uppercase tracking-[0.25em] text-xs font-bold block mb-4">
-              The Performance Economy
-            </span>
-            <h2 className="text-4xl md:text-6xl font-bold tracking-tight leading-tight">
-              Every behavior is a node.<br />Every node compounds.
+          <div className="text-center mb-24 max-w-3xl mx-auto">
+            <div className="flex items-center justify-center gap-4 mb-6">
+              <div className="w-8 h-px bg-primary" />
+              <span className="text-primary uppercase tracking-[0.3em] text-[10px] font-bold">
+                05 / The Economy
+              </span>
+              <div className="w-8 h-px bg-primary" />
+            </div>
+            <h2 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.05]">
+              Every behavior is a node.<br />
+              <span className="text-white/55">Every node compounds.</span>
             </h2>
           </div>
 
@@ -490,15 +546,21 @@ export default function Home() {
       </section>
 
       {/* ─── Community / Events ──────────────────────────────────── */}
-      <section className="relative w-full py-40 px-6 lg:px-24 z-10 bg-black border-t border-white/5">
-        <div className="max-w-5xl mx-auto text-center">
-          <span className="text-primary uppercase tracking-[0.25em] text-xs font-bold block mb-6">
-            The Ecosystem
-          </span>
-          <h2 className="text-4xl md:text-6xl font-bold tracking-tight leading-tight mb-6">
-            Physical spaces that mirror the digital rigor.
+      <section id="ecosystem" className="relative w-full py-48 px-6 lg:px-24 z-10 bg-black border-t border-white/5 overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_50%,rgba(180,20,30,0.10)_0%,transparent_55%)] breathe" />
+        <div className="relative max-w-5xl mx-auto text-center">
+          <div className="flex items-center justify-center gap-4 mb-8">
+            <div className="w-8 h-px bg-primary" />
+            <span className="text-primary uppercase tracking-[0.3em] text-[10px] font-bold">
+              06 / The Ecosystem
+            </span>
+            <div className="w-8 h-px bg-primary" />
+          </div>
+          <h2 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.05] mb-10">
+            Physical spaces that mirror<br />
+            <span className="text-white/55">the digital rigor.</span>
           </h2>
-          <p className="text-white/50 max-w-2xl mx-auto text-lg leading-relaxed">
+          <p className="text-white/55 max-w-2xl mx-auto text-lg lg:text-xl font-light leading-relaxed">
             Soho House meets a performance lab. Members-only rooms built around
             recovery, hydration, and the people who refuse to slip.
           </p>
@@ -506,41 +568,53 @@ export default function Home() {
       </section>
 
       {/* ─── Future ──────────────────────────────────────────────── */}
-      <section className="relative w-full py-60 px-6 lg:px-24 z-10 flex flex-col items-center justify-center text-center overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(180,20,30,0.15)_0%,rgba(0,0,0,1)_70%)]" />
+      <section className="relative w-full py-72 px-6 lg:px-24 z-10 flex flex-col items-center justify-center text-center overflow-hidden border-t border-white/5">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(180,20,30,0.22)_0%,rgba(0,0,0,1)_70%)] breathe" />
 
-        <div className="relative z-10">
-          <h2 className="text-5xl md:text-7xl font-bold tracking-tight text-white/90">
-            Once proof is established{' '}
-            <span className="text-primary">— scale.</span>
+        <div className="relative z-10 flex flex-col items-center gap-12">
+          <div className="flex items-center gap-4">
+            <div className="w-8 h-px bg-primary" />
+            <span className="text-primary uppercase tracking-[0.3em] text-[10px] font-bold">
+              07 / The Future
+            </span>
+            <div className="w-8 h-px bg-primary" />
+          </div>
+          <h2 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight leading-[1.02] text-white/95 max-w-5xl">
+            Once proof is established<br />
+            <span className="text-glow-primary">— scale.</span>
           </h2>
+          <div className="w-px h-16 bg-gradient-to-b from-primary/60 to-transparent mt-4" />
         </div>
       </section>
 
       {/* ─── Footer ──────────────────────────────────────────────── */}
-      <footer className="relative w-full py-24 px-6 lg:px-24 z-10 border-t border-white/5 bg-black">
-        <div className="max-w-7xl mx-auto flex flex-col lg:flex-row justify-between items-start lg:items-center gap-16">
-          <div className="max-w-sm">
-            <h3 className="text-2xl font-bold tracking-tight mb-6">AForce</h3>
-            <p className="text-white/40 text-sm mb-8">
+      <footer className="relative w-full pt-24 pb-12 px-6 lg:px-24 z-10 border-t border-white/[0.06] bg-black">
+        <div className="max-w-7xl mx-auto flex flex-col lg:flex-row justify-between items-start gap-16 mb-20">
+          <div className="max-w-sm flex flex-col gap-6">
+            <div className="flex items-center gap-3">
+              <div className="w-1.5 h-1.5 rounded-full bg-primary pulse-dot" />
+              <h3 className="text-sm font-bold tracking-[0.3em] uppercase">AForce</h3>
+            </div>
+            <p className="text-white/45 text-sm leading-relaxed">
               Hydration sticks, performance drinks, and the behavioral OS that
               makes them compound.
             </p>
             <EarlyAccessCapture source="footer_cta" buttonText="Join" />
           </div>
 
-          <div className="flex gap-16 text-sm">
-            <div className="flex flex-col gap-4">
-              <a href="#" className="text-white/50 hover:text-white transition-colors">Manifesto</a>
-              <a href="#" className="text-white/50 hover:text-white transition-colors">Science</a>
-              <a href="#" className="text-white/50 hover:text-white transition-colors">Team</a>
-            </div>
-            <div className="flex flex-col gap-4">
-              <a href={AFORCE_OS_URL} className="text-white/50 hover:text-white transition-colors">AForce OS</a>
-              <a href="#" className="text-white/50 hover:text-white transition-colors">Investors</a>
-              <a href="#" className="text-white/50 hover:text-white transition-colors">Contact</a>
-            </div>
+          <div className="grid grid-cols-2 gap-x-20 gap-y-6 text-[11px] uppercase tracking-[0.25em]">
+            <a href="#" className="text-white/55 hover:text-white transition-colors">Manifesto</a>
+            <a href={AFORCE_OS_URL} className="text-white/55 hover:text-white transition-colors">AForce OS</a>
+            <a href="#" className="text-white/55 hover:text-white transition-colors">Science</a>
+            <a href="#" className="text-white/55 hover:text-white transition-colors">Investors</a>
+            <a href="#" className="text-white/55 hover:text-white transition-colors">Team</a>
+            <a href="#" className="text-white/55 hover:text-white transition-colors">Contact</a>
           </div>
+        </div>
+
+        <div className="max-w-7xl mx-auto pt-8 border-t border-white/[0.04] flex flex-col md:flex-row justify-between items-start md:items-center gap-4 text-[10px] uppercase tracking-[0.3em] text-white/30">
+          <span>© AForce — Performance is non-negotiable.</span>
+          <span>Built for the relentless.</span>
         </div>
       </footer>
     </div>
