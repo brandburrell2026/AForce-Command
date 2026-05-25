@@ -548,6 +548,8 @@ export interface FeatureFlags {
   spec_hydroJournal: boolean;
   /** Rule #4 — HydroScan flow + Current Moment classifier + water-first order. */
   spec_hydroScan: boolean;
+  /** Rule #3 — Profile is source of truth (10 domains + unit auto/override). */
+  spec_profileSource: boolean;
 }
 
 /**
@@ -575,7 +577,8 @@ export type SpecFlagName =
   | 'orb'
   | 'timelineLock'
   | 'hydroJournal'
-  | 'hydroScan';
+  | 'hydroScan'
+  | 'profileSource';
 
 // ─── Hydration Journal ────────────────────────────────────────────────────────
 /**

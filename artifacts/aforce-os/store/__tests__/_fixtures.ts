@@ -133,6 +133,7 @@ export const baseFlags: FeatureFlags = {
   spec_timelineLock: true,
   spec_hydroJournal: true,
   spec_hydroScan: true,
+  spec_profileSource: true,
 };
 
 export const baseSubscription: UserSubscription = {

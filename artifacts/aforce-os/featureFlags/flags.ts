@@ -78,6 +78,7 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   spec_timelineLock: true,
   spec_hydroJournal: true,
   spec_hydroScan: true,
+  spec_profileSource: true,
 };
 
 /**
@@ -132,6 +133,7 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
   spec_timelineLock: true,
   spec_hydroJournal: true,
   spec_hydroScan: true,
+  spec_profileSource: true,
 };
 
 export function isFlagEnabled(flags: FeatureFlags, key: keyof FeatureFlags): boolean {
