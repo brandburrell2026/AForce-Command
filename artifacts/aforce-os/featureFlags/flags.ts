@@ -80,6 +80,7 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   spec_hydroScan: true,
   spec_profileSource: true,
   spec_sharedContextLayer: true,
+  spec_uiFreeze: true,
 };
 
 /**
@@ -136,6 +137,7 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
   spec_hydroScan: true,
   spec_profileSource: true,
   spec_sharedContextLayer: true,
+  spec_uiFreeze: true,
 };
 
 export function isFlagEnabled(flags: FeatureFlags, key: keyof FeatureFlags): boolean {

@@ -135,6 +135,7 @@ export const baseFlags: FeatureFlags = {
   spec_hydroScan: true,
   spec_profileSource: true,
   spec_sharedContextLayer: true,
+  spec_uiFreeze: true,
 };
 
 export const baseSubscription: UserSubscription = {

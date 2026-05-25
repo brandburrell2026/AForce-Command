@@ -552,6 +552,8 @@ export interface FeatureFlags {
   spec_profileSource: boolean;
   /** Rule #2 — Shared Context Layer manifest (13 inputs / 5 outputs / One Orb). */
   spec_sharedContextLayer: boolean;
+  /** Rule #1 — UI Freeze keystone (14 frozen surfaces + 3 prohibitions). */
+  spec_uiFreeze: boolean;
 }
 
 /**
@@ -581,7 +583,8 @@ export type SpecFlagName =
   | 'hydroJournal'
   | 'hydroScan'
   | 'profileSource'
-  | 'sharedContextLayer';
+  | 'sharedContextLayer'
+  | 'uiFreeze';
 
 // ─── Hydration Journal ────────────────────────────────────────────────────────
 /**
