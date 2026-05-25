@@ -30,9 +30,9 @@ const CANS = [
 import osRecoveryGreen from '@/assets/images/os-recovery-green.png';
 import osRecoveryRed from '@/assets/images/os-recovery-red.png';
 import osTimeline from '@/assets/images/os-timeline.png';
-import person1 from '@/assets/images/person-1.jpg';
-import person2 from '@/assets/images/person-2.jpg';
-import person3 from '@/assets/images/person-3.jpg';
+import scene1 from '@/assets/images/scene-1.png';
+import scene2 from '@/assets/images/scene-2.png';
+import scene3 from '@/assets/images/scene-3.png';
 
 // Cross-artifact link target for the AForce OS mobile app, wired by
 // vite.config.ts from REPLIT_EXPO_DEV_DOMAIN in development.
@@ -357,9 +357,9 @@ export default function Home() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
-              { src: person1, label: 'Founders', sub: 'Operators who run hot.' },
-              { src: person2, label: 'Surgeons', sub: 'Hands that cannot shake.' },
-              { src: person3, label: 'Performers', sub: 'Bodies under load.' },
+              { src: scene1, label: 'Non-Negotiable', sub: 'Performance is the standard.' },
+              { src: scene2, label: 'The Floor', sub: 'Where preparation lives.' },
+              { src: scene3, label: 'The Room', sub: 'Members who do not slip.' },
             ].map((p, i) => (
               <div
                 key={p.label}
