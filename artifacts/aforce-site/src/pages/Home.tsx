@@ -116,17 +116,17 @@ export default function Home() {
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_60%,rgba(180,20,30,0.32)_0%,transparent_55%)] blur-2xl" />
             <img
               ref={addToParallax}
-              data-speed="0.05"
+              data-speed="0.03"
               src={stickHero}
-              alt="AForce hydration stick — matte black sachet on black"
-              className="absolute left-1/2 top-1/2 -translate-x-[70%] -translate-y-1/2 w-[70%] max-w-[420px] drop-shadow-[0_30px_80px_rgba(180,20,30,0.35)] z-20"
+              alt="AForce hydration stick — Watermelon Surge"
+              className="absolute left-1/2 top-1/2 -translate-x-[110%] -translate-y-[48%] w-[45%] max-w-[260px] drop-shadow-[0_20px_50px_rgba(0,0,0,0.7)] z-10 opacity-70 saturate-75"
             />
             <img
               ref={addToParallax}
-              data-speed="-0.04"
+              data-speed="-0.05"
               src={drinkCanHero}
-              alt="AForce performance drink can — matte black aluminum"
-              className="absolute left-1/2 top-1/2 translate-x-[-10%] -translate-y-[45%] w-[55%] max-w-[340px] drop-shadow-[0_30px_80px_rgba(0,0,0,0.9)] z-10 opacity-95"
+              alt="AForce performance drink can — Watermelon Surge"
+              className="absolute left-1/2 top-1/2 -translate-x-[35%] -translate-y-1/2 w-[80%] max-w-[460px] drop-shadow-[0_40px_100px_rgba(180,20,30,0.45)] z-20"
             />
           </div>
         </div>
@@ -144,39 +144,45 @@ export default function Home() {
             </h2>
           </div>
 
-          <div className="relative w-full rounded-2xl overflow-hidden border border-white/5 mb-8 bg-black p-8 lg:p-12">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_60%,rgba(180,20,30,0.18)_0%,transparent_60%)]" />
-            <div className="relative grid grid-cols-3 gap-6 lg:gap-12 items-end">
-              {STICKS.map((s) => (
-                <div key={s.name} className="flex flex-col items-center text-center">
-                  <img
-                    src={s.src}
-                    alt={`AForce ${s.name} hydration stick`}
-                    className="w-full max-w-[220px] h-auto drop-shadow-[0_30px_60px_rgba(0,0,0,0.7)]"
-                    loading="lazy"
-                  />
-                  <div className="mt-6 text-sm font-bold tracking-wide">{s.name}</div>
-                  <div className="text-xs text-white/50 mt-1">{s.sub}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="relative w-full rounded-2xl overflow-hidden border border-white/5 mb-12 bg-[#020202] p-8 lg:p-12">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_70%,rgba(180,20,30,0.14)_0%,transparent_60%)]" />
-            <div className="relative grid grid-cols-3 gap-6 lg:gap-12 items-end">
+          <div className="relative w-full rounded-2xl overflow-hidden border border-primary/15 mb-8 bg-gradient-to-b from-black to-[#0a0303] p-10 lg:p-16">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_65%,rgba(180,20,30,0.32)_0%,transparent_65%)]" />
+            <div className="relative grid grid-cols-3 gap-8 lg:gap-16 items-end">
               {CANS.map((c) => (
                 <div key={c.name} className="flex flex-col items-center text-center">
                   <img
                     src={c.src}
                     alt={`AForce ${c.name} performance drink can`}
-                    className="w-full max-w-[200px] h-auto drop-shadow-[0_30px_60px_rgba(0,0,0,0.7)]"
+                    className="w-full max-w-[320px] h-auto drop-shadow-[0_40px_90px_rgba(180,20,30,0.4)]"
                     loading="lazy"
                   />
-                  <div className="mt-6 text-sm font-bold tracking-wide">{c.name}</div>
-                  <div className="text-xs text-white/50 mt-1">{c.sub}</div>
+                  <div className="mt-8 text-base font-bold tracking-wide">{c.name}</div>
+                  <div className="text-xs text-white/55 mt-1">{c.sub}</div>
                 </div>
               ))}
+            </div>
+            <div className="absolute top-6 left-6 text-primary font-mono text-[10px] tracking-[0.3em] uppercase">
+              The Drink
+            </div>
+          </div>
+
+          <div className="relative w-full rounded-2xl overflow-hidden border border-white/5 mb-12 bg-[#020202] p-6 lg:p-10">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_70%,rgba(180,20,30,0.08)_0%,transparent_60%)]" />
+            <div className="relative grid grid-cols-3 gap-4 lg:gap-10 items-end">
+              {STICKS.map((s) => (
+                <div key={s.name} className="flex flex-col items-center text-center opacity-90">
+                  <img
+                    src={s.src}
+                    alt={`AForce ${s.name} hydration stick`}
+                    className="w-full max-w-[150px] h-auto drop-shadow-[0_20px_40px_rgba(0,0,0,0.7)]"
+                    loading="lazy"
+                  />
+                  <div className="mt-5 text-xs font-bold tracking-wide text-white/80">{s.name}</div>
+                  <div className="text-[10px] text-white/40 mt-1">{s.sub}</div>
+                </div>
+              ))}
+            </div>
+            <div className="absolute top-5 left-5 text-white/40 font-mono text-[10px] tracking-[0.3em] uppercase">
+              The Stick
             </div>
           </div>
 
