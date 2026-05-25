@@ -14,8 +14,15 @@ import Animated, {
   withRepeat,
   Easing,
 } from 'react-native-reanimated';
+import Svg, { Path } from 'react-native-svg';
 import type { PerformanceState } from '../types';
 import { Colors } from '../theme/colors';
+
+// Same symmetric vertical-tip teardrop used by the urine swatch
+// cluster. Tip at (12,1), bulb arc centred at (12,16) radius 10,
+// drawn in a 24×24 viewBox.
+const DROP_PATH =
+  'M12 1 C 12 1 22 12 22 16 A 10 10 0 1 1 2 16 C 2 12 12 1 12 1 Z';
 
 interface Props {
   unitsConsumed: number;
@@ -69,25 +76,27 @@ function Cell({
     opacity: opacity.value,
   }));
 
-  // Circular unit — matches the urine-check swatch shape. Outline ring
-  // always renders; the filled disc on top fades in via opacity when
-  // the unit is consumed.
+  // Teardrop unit — same vertical-tip shape used by the urine
+  // swatch cluster. Outline path always renders; the filled copy on
+  // top fades in via Reanimated opacity when the unit is consumed.
+  const strokeColor = filled ? color : Colors.border.medium;
   return (
     <Animated.View style={[styles.cell, animStyle]}>
-      <View
-        style={[
-          styles.drop,
-          { borderColor: filled ? color : Colors.border.medium },
-        ]}
-      >
-        {filled && (
-          <Animated.View
-            style={[
-              styles.dropFill,
-              { backgroundColor: color },
-              fillStyle,
-            ]}
+      <View style={styles.drop}>
+        <Svg width={24} height={24} viewBox="0 0 24 24">
+          <Path
+            d={DROP_PATH}
+            stroke={strokeColor}
+            strokeWidth={1}
+            fill="transparent"
           />
+        </Svg>
+        {filled && (
+          <Animated.View style={[styles.dropFill, fillStyle]}>
+            <Svg width={24} height={24} viewBox="0 0 24 24">
+              <Path d={DROP_PATH} fill={color} />
+            </Svg>
+          </Animated.View>
         )}
       </View>
     </Animated.View>
@@ -250,17 +259,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  // Disc — matches the circular swatch shape used on the urine check
-  // tile. The fill is an absolute-positioned overlay; the parent's
-  // borderRadius + overflow:hidden keeps the fade-in clipped to the
-  // circle.
+  // Drop wrapper: 24×24 box that hosts the outline SVG plus an
+  // absolute-positioned fill SVG overlay. Silhouette + vertical tip
+  // live entirely in the SVG path, so no rotation or borderRadius
+  // hackery is needed here.
   drop: {
     width: 24,
     height: 24,
-    borderRadius: 12,
-    borderWidth: 1,
-    backgroundColor: Colors.fill.light,
-    overflow: 'hidden',
   },
   dropFill: {
     ...StyleSheet.absoluteFillObject,
