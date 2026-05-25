@@ -8,8 +8,10 @@ import {
   deriveRecoveryStory,
   deriveFingerprint,
   deriveRecoverySnapshot,
+  recoveryInputsFromState,
   type RecoveryInputs,
 } from '../recoveryEngine';
+import { baseUser, baseEngine, makeUserState, makeEngine } from '../../store/__tests__/_fixtures';
 
 const base: RecoveryInputs = {
   score: 75,
@@ -113,5 +115,65 @@ describe('recoveryEngine — pure derivations', () => {
       fingerprint: expect.stringMatching(/^[0-9a-f]{8}$/),
       story: expect.any(String),
     });
+  });
+});
+
+describe('recoveryEngine — recoveryInputsFromState (store bridge)', () => {
+  it('maps the canonical UserState/ScoreEngineOutput fields into RecoveryInputs', () => {
+    const inputs = recoveryInputsFromState(baseUser, baseEngine);
+    expect(inputs).toEqual({
+      score: baseEngine.score,
+      decayPerMinute: baseEngine.prediction.decayPerMinute,
+      waterCycles: baseUser.unitsConsumedToday,
+      urineSignal: baseUser.urineSignal,
+      heatLoad: baseUser.heatLoad,
+      activityLevel: baseUser.activityLevel,
+      overnightLossOz: baseUser.overnightLossOz,
+      drinkCount: 0,
+      complianceStreak: baseUser.complianceStreak,
+      energyState: baseUser.energyState,
+    });
+  });
+
+  it('drinkCount falls back to 0 when socialMode is absent', () => {
+    const user = makeUserState();
+    expect(user.socialMode).toBeUndefined();
+    expect(recoveryInputsFromState(user, baseEngine).drinkCount).toBe(0);
+  });
+
+  it('drinkCount reads the length of socialMode.drinks when present', () => {
+    const user = makeUserState({
+      socialMode: {
+        active: true,
+        startTime: new Date(),
+        drinks: [
+          { id: 'd1', kind: 'beer', loggedAt: new Date(), ozAmount: 12 },
+          { id: 'd2', kind: 'wine', loggedAt: new Date(), ozAmount: 5 },
+        ],
+      },
+    });
+    expect(recoveryInputsFromState(user, baseEngine).drinkCount).toBe(2);
+  });
+
+  it('propagates engine score and decayPerMinute changes verbatim', () => {
+    const engine = makeEngine({
+      score: 41,
+      prediction: { decayPerMinute: 0.95, minutesToDepleted: 12, label: 'Falling fast' },
+    });
+    const inputs = recoveryInputsFromState(baseUser, engine);
+    expect(inputs.score).toBe(41);
+    expect(inputs.decayPerMinute).toBeCloseTo(0.95);
+  });
+
+  it('full pipeline: store fixtures → recoveryInputsFromState → deriveRecoverySnapshot yields a valid snapshot', () => {
+    const snap = deriveRecoverySnapshot(recoveryInputsFromState(baseUser, baseEngine));
+    expect(snap.recovery).toBeGreaterThanOrEqual(0);
+    expect(snap.recovery).toBeLessThanOrEqual(100);
+    expect(snap.pressure).toBeGreaterThanOrEqual(0);
+    expect(snap.pressure).toBeLessThanOrEqual(100);
+    expect(snap.trend).toMatch(/^(rising|stable|declining)$/);
+    expect(snap.fingerprint).toMatch(/^[0-9a-f]{8}$/);
+    expect(snap.story).not.toMatch(/\b(ai|engine)\b/i);
+    expect(snap.command).not.toMatch(/\bAI\b/i);
   });
 });

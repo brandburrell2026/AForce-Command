@@ -573,6 +573,50 @@ router.post("/journal/snapshot", async (req, res) => {
   }
 });
 
+// ─── Recovery Layer snapshot ───────────────────────────────────────────────────
+// Returns the most recent snapshot row that actually carries Recovery
+// Layer fields. Rows persisted with `spec_recovery` OFF leave the five
+// recovery columns NULL, so we filter them out — the response shape
+// must be either a fully-populated recovery payload or `null`, never a
+// half-populated record.
+router.get("/recovery/snapshot", async (req, res) => {
+  try {
+    const userId = resolveUserId(req);
+    const [row] = await db
+      .select({
+        capturedAt: aforceScoreSnapshots.capturedAt,
+        recovery: aforceScoreSnapshots.recoveryScore,
+        pressure: aforceScoreSnapshots.pressureScore,
+        trend: aforceScoreSnapshots.recoveryTrend,
+        fingerprint: aforceScoreSnapshots.recoveryFingerprint,
+        story: aforceScoreSnapshots.recoveryStory,
+      })
+      .from(aforceScoreSnapshots)
+      .where(
+        and(
+          eq(aforceScoreSnapshots.userId, userId),
+          sql`${aforceScoreSnapshots.recoveryScore} IS NOT NULL`,
+        ),
+      )
+      .orderBy(desc(aforceScoreSnapshots.capturedAt))
+      .limit(1);
+    if (!row) return res.json({ snapshot: null });
+    return res.json({
+      snapshot: {
+        capturedAt: row.capturedAt,
+        recovery: row.recovery,
+        pressure: row.pressure,
+        trend: row.trend,
+        fingerprint: row.fingerprint,
+        story: row.story,
+      },
+    });
+  } catch (err) {
+    logger.error({ err }, "GET /aforce/recovery/snapshot failed");
+    return res.status(500).json({ error: "recovery_snapshot_failed" });
+  }
+});
+
 const daysQuery = z.object({
   days: z.coerce.number().int().min(1).max(365).default(7),
 });
