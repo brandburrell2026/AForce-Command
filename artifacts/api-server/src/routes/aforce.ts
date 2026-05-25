@@ -549,6 +549,13 @@ const snapshotSchema = z.object({
   socialActive: z.boolean().default(false),
   autopilotActive: z.boolean().default(false),
   reason: z.string().max(280).default(""),
+  // Recovery Layer — all optional; persisted only when the client opts
+  // in (i.e. `spec_recovery` is on). Server is content-agnostic.
+  recoveryScore: z.number().int().min(0).max(100).optional(),
+  pressureScore: z.number().int().min(0).max(100).optional(),
+  recoveryTrend: z.enum(["rising", "stable", "declining"]).optional(),
+  recoveryFingerprint: z.string().regex(/^[0-9a-f]{8}$/).optional(),
+  recoveryStory: z.string().max(280).optional(),
 });
 
 router.post("/journal/snapshot", async (req, res) => {

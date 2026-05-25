@@ -63,6 +63,10 @@ import {
   postSocialDeactivate,
   postJournalSnapshot,
 } from '../services/realApi';
+import {
+  deriveRecoverySnapshot,
+  recoveryInputsFromState,
+} from '../services/recoveryEngine';
 import i18n, { setLanguage as setI18nLanguage, type SupportedLanguage } from '../services/i18nService';
 import { PRODUCTS } from '../data/products';
 import { phantomBandService } from '../services/phantomBandService';
@@ -875,6 +879,22 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const deficitPct = 0;
     const socialActive = !!state.userState.socialMode?.active;
     const reason = state.engineOutput.command?.action?.slice(0, 240) ?? '';
+    // Recovery Layer — only attached when `spec_recovery` is on, so
+    // production snapshots are byte-identical to before the layer landed.
+    const recoveryFields = state.featureFlags.spec_recovery
+      ? (() => {
+          const snap = deriveRecoverySnapshot(
+            recoveryInputsFromState(state.userState, state.engineOutput),
+          );
+          return {
+            recoveryScore: snap.recovery,
+            pressureScore: snap.pressure,
+            recoveryTrend: snap.trend,
+            recoveryFingerprint: snap.fingerprint,
+            recoveryStory: snap.story.slice(0, 280),
+          };
+        })()
+      : {};
     postJournalSnapshot({
       score: state.engineOutput.score,
       level,
@@ -888,6 +908,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       socialActive,
       autopilotActive: autopilot != null,
       reason,
+      ...recoveryFields,
     })
       .then(() => {
         // Only commit the debounce window on success.

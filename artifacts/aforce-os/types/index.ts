@@ -616,6 +616,12 @@ export interface JournalSnapshot {
   socialActive: boolean;
   autopilotActive: boolean;
   reason: string;
+  /** Recovery Layer — null/undefined on rows written before `spec_recovery`. */
+  recoveryScore?: number | null;
+  pressureScore?: number | null;
+  recoveryTrend?: 'rising' | 'stable' | 'declining' | null;
+  recoveryFingerprint?: string | null;
+  recoveryStory?: string | null;
 }
 
 /** One row from `aforce_intake_logs` flattened into the timeline. */

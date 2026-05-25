@@ -549,6 +549,12 @@ export interface JournalSnapshotPayload {
   socialActive: boolean;
   autopilotActive: boolean;
   reason: string;
+  /** Recovery Layer — only sent when `spec_recovery` is on. */
+  recoveryScore?: number;
+  pressureScore?: number;
+  recoveryTrend?: 'rising' | 'stable' | 'declining';
+  recoveryFingerprint?: string;
+  recoveryStory?: string;
 }
 
 export async function postJournalSnapshot(payload: JournalSnapshotPayload): Promise<void> {

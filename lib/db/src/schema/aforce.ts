@@ -141,6 +141,13 @@ export const aforceScoreSnapshots = pgTable(
     socialActive: boolean("social_active").notNull().default(false),
     autopilotActive: boolean("autopilot_active").notNull().default(false),
     reason: text("reason").notNull().default(""),
+    // Recovery Layer — nullable, written only when `spec_recovery` is on.
+    // See artifacts/aforce-os/services/recoveryEngine.ts for derivation.
+    recoveryScore: integer("recovery_score"),
+    pressureScore: integer("pressure_score"),
+    recoveryTrend: text("recovery_trend"), // 'rising' | 'stable' | 'declining'
+    recoveryFingerprint: text("recovery_fingerprint"), // 8-char hex
+    recoveryStory: text("recovery_story"),
     capturedAt: timestamp("captured_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => ({
