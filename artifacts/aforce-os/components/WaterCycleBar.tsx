@@ -137,9 +137,10 @@ export function WaterCycleBar({ unitsConsumed, dailyTarget, performanceState }: 
           {unitsConsumed} / {dailyTarget}
         </Text>
       </View>
-      {/* Cells row. Above it sits the floating caret marker that points
-          down at the next-to-fill cell. The caret is positioned by
-          percentage so it stays aligned regardless of available width. */}
+      {/* Cells column. To the left sits the floating caret marker that
+          points right at the next-to-fill drop. The caret is positioned
+          by percentage along the column height so it stays aligned
+          regardless of available height. */}
       <View style={styles.cellsWrap}>
         {nextIdx >= 0 && (
           <Animated.View
@@ -148,14 +149,14 @@ export function WaterCycleBar({ unitsConsumed, dailyTarget, performanceState }: 
               styles.caret,
               caretStyle,
               {
-                left: `${((nextIdx + 0.5) / CELL_COUNT) * 100}%`,
+                top: `${((nextIdx + 0.5) / CELL_COUNT) * 100}%`,
               },
             ]}
           >
             <View
               style={[
                 styles.caretTriangle,
-                { borderTopColor: color, shadowColor: color },
+                { borderLeftColor: color, shadowColor: color },
               ]}
             />
           </Animated.View>
@@ -207,21 +208,20 @@ const styles = StyleSheet.create({
     letterSpacing: -0.2,
   },
   cellsWrap: {
-    // Reserves space for the floating caret marker above the cells so
-    // it doesn't collide with the header row.
-    paddingTop: 14,
+    // Reserves space on the left for the floating caret marker so it
+    // doesn't collide with the drop column.
+    paddingLeft: 14,
     position: 'relative',
   },
   cells: {
-    flexDirection: 'row',
+    flexDirection: 'column',
     gap: 8,
-    justifyContent: 'space-between',
     alignItems: 'center',
   },
   caret: {
     position: 'absolute',
-    top: 0,
-    marginLeft: -5, // half the triangle base so center lines up exactly
+    left: 0,
+    marginTop: -5, // half the triangle base so center lines up exactly
     alignItems: 'center',
     justifyContent: 'center',
     width: 10,
@@ -235,11 +235,11 @@ const styles = StyleSheet.create({
   caretTriangle: {
     width: 0,
     height: 0,
-    borderLeftWidth: 5,
-    borderRightWidth: 5,
-    borderTopWidth: 6,
-    borderLeftColor: 'transparent',
-    borderRightColor: 'transparent',
+    borderTopWidth: 5,
+    borderBottomWidth: 5,
+    borderLeftWidth: 6,
+    borderTopColor: 'transparent',
+    borderBottomColor: 'transparent',
   },
   // Cell is the layout slot for one drop. It stays flex:1 so the
   // eight drops distribute evenly across the row (which keeps the
@@ -247,7 +247,7 @@ const styles = StyleSheet.create({
   // is a fixed 24×24 square; its rotated bounding box is ~34px, so
   // the slot is sized to clear that.
   cell: {
-    flex: 1,
+    width: 34,
     height: 34,
     alignItems: 'center',
     justifyContent: 'center',
