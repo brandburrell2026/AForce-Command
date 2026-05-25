@@ -1,0 +1,295 @@
+Create a dedicated standalone page on the AForce website called:
+
+/founders
+
+This page should tell the story of Brandon Burrell and Julius Burrell with emotional depth, cinematic restraint, and institutional credibility.
+
+This is NOT a generic “About Us” page.
+
+This should feel like:
+
+* the origin story of a future global performance brand
+* a luxury founder documentary
+* a cinematic narrative experience
+* emotionally intelligent and culturally powerful
+
+Inspired by:
+
+* Nike founder storytelling
+* Apple founder mythology
+* Formula 1 documentaries
+* A24 pacing
+* luxury editorial design
+* modern performance culture
+
+⸻
+
+CORE EMOTIONAL FEELING
+
+The page should communicate:
+
+* brotherhood
+* resilience
+* ambition
+* pressure
+* discipline
+* vision
+* performance under responsibility
+
+The story should feel:
+earned, not manufactured.
+
+No startup clichés.
+No fake hustle culture.
+
+The emotional core:
+Two brothers building a behavioral-performance movement rooted in discipline, ritual, and identity.
+
+⸻
+
+VISUAL STYLE
+
+Use:
+
+* matte black environment
+* cinematic black-and-white photography
+* restrained red atmospheric glow
+* oversized editorial typography
+* minimal luxury layouts
+* emotional negative space
+* documentary-style pacing
+
+Motion:
+
+* slow cinematic fades
+* subtle ambient movement
+* restrained transitions
+* emotional timing
+* elegant scroll storytelling
+
+DO NOT:
+
+* overcrowd the page
+* use corporate founder headshots
+* add cheesy startup language
+* create a LinkedIn-style biography page
+
+⸻
+
+PAGE STRUCTURE
+
+OPENING HERO
+
+Full-screen cinematic founder image.
+
+Use:
+
+* Brandon and Julius imagery
+* monochrome treatment
+* soft red ambient edge glow
+* emotional darkness
+* subtle atmospheric grain
+
+Headline:
+
+“Built under pressure.”
+
+Subheadline:
+
+“AForce was not created from trends.
+It was built from responsibility, discipline, and the belief that performance is earned daily.”
+
+⸻
+
+SECTION 1 — THE BEGINNING
+
+Headline:
+
+“Before AForce, there was the standard.”
+
+Tell the story:
+
+* growing up together
+* discipline
+* ambition
+* pressure
+* responsibility
+* wanting more
+* understanding performance early
+
+Tone:
+cinematic and emotionally intelligent.
+
+Avoid:
+overexplaining.
+
+Use:
+editorial storytelling.
+
+⸻
+
+SECTION 2 — BRANDON BURRELL
+
+Create a dedicated cinematic founder section.
+
+Position Brandon as:
+
+* visionary founder
+* operator
+* systems thinker
+* performance-minded builder
+* globally experienced executive
+
+Highlight:
+
+* finance background
+* hospitality leadership
+* global operational experience
+* performance philosophy
+* ecosystem thinking
+
+Visual style:
+dark editorial portraiture
+subtle telemetry overlays
+restrained motion
+
+⸻
+
+SECTION 3 — JULIUS BURRELL
+
+Create a parallel founder section.
+
+Position Julius as:
+
+* operational force
+* grounded builder
+* execution-minded partner
+* cultural backbone
+* trusted co-founder
+
+The relationship between the brothers should feel:
+authentic, earned, and unbreakable.
+
+⸻
+
+SECTION 4 — WHY AFORCE EXISTS
+
+Headline:
+
+“Performance is non-negotiable.”
+
+Explain:
+AForce was built for people operating under pressure:
+
+* founders
+* athletes
+* surgeons
+* performers
+* executives
+* creators
+* operators
+
+People who:
+“do not get to be off.”
+
+This section should connect:
+identity + ritual + accountability + hydration + behavioral systems.
+
+⸻
+
+SECTION 5 — THE VISION
+
+Headline:
+
+“The future is behavioral.”
+
+Explain:
+AForce is becoming:
+
+* a performance operating system
+* a ritual ecosystem
+* a behavioral intelligence platform
+* a premium identity brand
+
+Use:
+
+* expanding neural systems
+* subtle ecosystem visuals
+* cinematic horizon glow
+
+Mood:
+inevitable scale.
+
+⸻
+
+SECTION 6 — BROTHERHOOD
+
+Create the emotional core of the page.
+
+Use:
+a childhood photo or meaningful founder image.
+
+Convert:
+
+* cinematic monochrome
+* restrained red ambient treatment
+* subtle fade into darkness
+
+Headline:
+
+“Built together.”
+
+Minimal copy.
+Maximum emotional impact.
+
+This section should feel:
+human, grounded, unforgettable.
+
+⸻
+
+FINAL SECTION
+
+End with:
+
+“The loop is the moat.”
+
+Then:
+AForce logo emerging slowly from darkness.
+
+Single CTA:
+“Enter the Loop”
+
+⸻
+
+MOTION + AUDIO
+
+Use:
+
+* cinematic fades
+* restrained motion
+* emotional pacing
+* ambient transitions
+* subtle heartbeat/waveform atmosphere
+
+Optional audio:
+deep cinematic ambient score
+muted by default
+
+Inspired by:
+Hans Zimmer × Apple launch films × modern luxury documentary.
+
+⸻
+
+FINAL CREATIVE RULE
+
+This page should feel like:
+the origin story of a future iconic global performance brand.
+
+The user should leave feeling:
+
+* emotional connection
+* trust
+* ambition
+* belief in the founders
+* belief in the mission
+* belief in the inevitability of AForce.
