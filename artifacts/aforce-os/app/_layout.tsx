@@ -91,6 +91,7 @@ function RootLayoutNav() {
       }}
     >
       <Stack.Screen name="welcome" options={{ headerShown: false, animation: 'fade' }} />
+      <Stack.Screen name="(activation)" options={{ headerShown: false, animation: 'fade' }} />
       <Stack.Screen name="(auth)" options={{ headerShown: false }} />
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="competition" options={{ headerShown: false, presentation: 'card' }} />
