@@ -225,7 +225,7 @@
     "social_take_rtd_explanation": "Recovery window opening ({{score}}/100). Electrolytes now make morning easier.",
     "social_slow_intake_action": "Sip water between drinks. You're at {{count}} so far — pace from here.",
     "social_slow_intake_explanation": "Spacing drinks to 30+ minutes keeps the rhythm steady and the morning clean.",
-    "social_recovery_action": "Sip 20 ounces of water and take 1 AForce RTD before sleep.",
+    "social_recovery_action": "Sip 20 ounces of water before sleep.",
     "social_recovery_explanation": "Recovery window is open. Two units of fluid + electrolytes now is the difference.",
     "social_stop_action": "Pause alcohol. Recovery window is open.",
     "social_stop_explanation": "You're in a high-impact window. Switch to water and begin your recovery.",

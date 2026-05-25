@@ -65,7 +65,7 @@ export const VIDEO_LIBRARY: Record<string, VideoConfig> = {
     videoUrl: '/videos/depletion_emergency_01.mp4',
     durationSec: 6,
     overlayTitle: 'CORRECT NOW',
-    overlaySubtitle: 'AForce Stick + 20 ounces. Immediate.',
+    overlaySubtitle: '20 ounces of water. Immediate.',
     themeLevel: 'DEPLETED',
   },
   morning_reset_01: {
