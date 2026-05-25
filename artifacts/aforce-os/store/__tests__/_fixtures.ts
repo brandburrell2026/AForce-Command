@@ -132,6 +132,7 @@ export const baseFlags: FeatureFlags = {
   spec_orb: true,
   spec_timelineLock: true,
   spec_hydroJournal: true,
+  spec_hydroScan: true,
 };
 
 export const baseSubscription: UserSubscription = {

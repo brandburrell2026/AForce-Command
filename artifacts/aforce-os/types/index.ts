@@ -546,6 +546,8 @@ export interface FeatureFlags {
   spec_timelineLock: boolean;
   /** Rule #5 — HydroJournal memory (sources + recovery contributors). */
   spec_hydroJournal: boolean;
+  /** Rule #4 — HydroScan flow + Current Moment classifier + water-first order. */
+  spec_hydroScan: boolean;
 }
 
 /**
@@ -572,7 +574,8 @@ export type SpecFlagName =
   | 'notifications'
   | 'orb'
   | 'timelineLock'
-  | 'hydroJournal';
+  | 'hydroJournal'
+  | 'hydroScan';
 
 // ─── Hydration Journal ────────────────────────────────────────────────────────
 /**

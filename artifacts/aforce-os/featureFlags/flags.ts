@@ -77,6 +77,7 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   spec_orb: true,
   spec_timelineLock: true,
   spec_hydroJournal: true,
+  spec_hydroScan: true,
 };
 
 /**
@@ -130,6 +131,7 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
   spec_orb: true,
   spec_timelineLock: true,
   spec_hydroJournal: true,
+  spec_hydroScan: true,
 };
 
 export function isFlagEnabled(flags: FeatureFlags, key: keyof FeatureFlags): boolean {
