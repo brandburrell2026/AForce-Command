@@ -16,6 +16,7 @@ import type { HistoryEntry } from '@/types';
 import { deriveProtocol } from '@/services/mockApi';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 import { WEB_TOP_PADDING, WEB_BOTTOM_PADDING, TAB_BAR_HEIGHT } from '@/constants/layout';
+import { RecoveryCircleChip } from '@/components/protocol/RecoveryCircleChip';
 
 export default function ProtocolScreen() {
   const { state } = useAppStore();
@@ -80,6 +81,11 @@ export default function ProtocolScreen() {
             <View style={styles.header}>
               <Text style={styles.eyebrow}>Protocol</Text>
               <Text style={styles.title}>AForce Protocol</Text>
+
+              {/* Recovery Circle cadence — spec Rule #11 minimum
+                  surface: a single read-only checkpoint chip. No
+                  feed, no invites, no member list. */}
+              <RecoveryCircleChip />
 
               {/* Current stage — derived synchronously from engineOutput
                   so it updates in real time on every score change. */}

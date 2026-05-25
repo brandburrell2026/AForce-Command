@@ -34,6 +34,7 @@ import { CommandConsole } from '@/components/home/CommandConsole';
 import { WaterCycleBar } from '@/components/WaterCycleBar';
 import { EntryActions } from '@/components/home/EntryActions';
 import { LiveStatusLine } from '@/components/home/LiveStatusLine';
+import { NotificationBanner } from '@/components/home/NotificationBanner';
 import { useScoreTrend } from '@/hooks/useScoreTrend';
 import { getStatusVerb } from '@/services/statusVerb';
 import { AIVideoPlayer } from '@/components/AIVideoPlayer';
@@ -563,6 +564,11 @@ export default function HomeScreen() {
             showsVerticalScrollIndicator={false}
           >
             <MinimalHeader greetingName={greetingName} city={city} tempLabel={tempLabel} onShare={onShare} />
+
+            {/* Spec Rule #10 cadence (Day 0/1/3/7) — single in-app
+                banner gated by spec_notifications. Self-hides when
+                nothing is due or when all 4 have been delivered. */}
+            <NotificationBanner />
 
             <ScoreDrivenBody
               onOpenBreakdown={openBreakdown}

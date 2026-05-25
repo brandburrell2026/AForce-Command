@@ -21,6 +21,8 @@ import { Colors } from '../../theme/colors';
 import { LocalTimeBar } from '../LocalTimeBar';
 import { LiveStatusStrip } from '../LiveStatusStrip';
 import { useEngineSlice, useUserSlice } from '../../store/slices';
+import { CoachModePip } from './CoachModePip';
+import { SocialModePip } from './SocialModePip';
 
 function HomeHeaderImpl() {
   const { t } = useTranslation();
@@ -64,6 +66,19 @@ function HomeHeaderImpl() {
           <View style={[styles.dot, { backgroundColor: stateColor }]} />
           <Text style={[styles.stateLabel, { color: stateColor }]}>{engine.performanceState.level}</Text>
         </View>
+      </View>
+
+      {/* Coach posture pip — Spec Rule #12 visible touchpoint.
+          Tells the user which voice/haptic mode the coach is in
+          (Silent / Ambient / Spoken) and routes to Profile to
+          change it. Self-hides when spec_coachV2 is off. */}
+      <View style={styles.coachPipRow}>
+        <CoachModePip />
+        {/* Social Mode one-tap toggle — Spec Rule #13. When ON the
+            pip shows live decay/min so the cost of the choice is
+            visible. Full Social Mode surfaces live in their own
+            tab; this is the home-zone shortcut. */}
+        <SocialModePip />
       </View>
 
       <LocalTimeBar />
@@ -110,4 +125,11 @@ const styles = StyleSheet.create({
   },
   dot: { width: 6, height: 6, borderRadius: 3 },
   stateLabel: { fontSize: 10, fontFamily: 'Inter_700Bold', letterSpacing: 1.5 },
+  coachPipRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    paddingHorizontal: 20,
+    paddingBottom: 6,
+    gap: 8,
+  },
 });

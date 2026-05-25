@@ -45,6 +45,7 @@ import { scan } from '@/services/hydrationScanService';
 import { listSimulatableBarcodes } from '@/services/productRecognitionService';
 import { buildScanCoachScript } from '@/services/scanCoachVoice';
 import { speak as speakCoach, stopSpeaking } from '@/services/textToSpeech';
+import { useCoachMode, shouldSpeak, shouldHaptic } from '@/services/coachMode';
 import { COMPARE_PRODUCTS } from '@/data/productDatabase';
 import { usePostScan, useScanHistory } from '@/hooks/useServerHistory';
 import type { ScanOutcome, ScanResult, ScanSource } from '@/types/scan';
@@ -214,12 +215,25 @@ export default function HydrationScanScreen() {
     };
   }, []);
 
-  // Stable refs — voice handlers depend on nothing from render scope, so
-  // wrap them so the card's auto-speak effect deps stay stable across
-  // unrelated re-renders (logging state, animation frames, etc.).
-  const handleCoachSpeak = useCallback((text: string, level: PerformanceLevel) => {
-    speakCoach(text, { level });
-  }, []);
+  // Coach Mode handoff (Spec Rule #12): the scan verdict respects the
+  // user's voice posture. In 'spoken' mode the existing ElevenLabs +
+  // fallback TTS path runs. In 'ambient' mode we suppress speech but
+  // still fire a single confirmation haptic so the user feels the
+  // verdict land. In 'silent' mode the card stays fully quiet — the
+  // visible side-by-side narrative is the only output.
+  const coachMode = useCoachMode();
+  const handleCoachSpeak = useCallback(
+    (text: string, level: PerformanceLevel) => {
+      if (shouldSpeak(coachMode)) {
+        speakCoach(text, { level });
+        return;
+      }
+      if (shouldHaptic(coachMode) && Platform.OS !== 'web') {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+      }
+    },
+    [coachMode],
+  );
   const handleCoachStop = useCallback(() => {
     stopSpeaking();
   }, []);
