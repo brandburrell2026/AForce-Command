@@ -46,6 +46,7 @@ import { listSimulatableBarcodes } from '@/services/productRecognitionService';
 import { buildScanCoachScript } from '@/services/scanCoachVoice';
 import { speak as speakCoach, stopSpeaking } from '@/services/textToSpeech';
 import { useCoachMode, shouldSpeak, shouldHaptic } from '@/services/coachMode';
+import { useRecoverySnapshotFromStore } from '@/services/useRecoverySnapshot';
 import { COMPARE_PRODUCTS } from '@/data/productDatabase';
 import { usePostScan, useScanHistory } from '@/hooks/useServerHistory';
 import type { ScanOutcome, ScanResult, ScanSource } from '@/types/scan';
@@ -179,6 +180,12 @@ export default function HydrationScanScreen() {
   };
 
   const result: ScanResult | null = outcome?.ok ? outcome.result : null;
+
+  // Recovery Layer — null in production (flag default OFF). When on,
+  // a one-line context strip annotates the scan verdict with the
+  // user's current recovery + pressure so the call is framed against
+  // their state, not just the product.
+  const recoveryLayer = useRecoverySnapshotFromStore();
 
   // Live personalization snapshot — passed into SmartCaptureModal so the
   // "Why this for you" chips appear inside the AI capture result too.
@@ -560,6 +567,27 @@ export default function HydrationScanScreen() {
             <>
               <ScanResultCard result={result} />
 
+              {recoveryLayer ? (
+                <View
+                  style={styles.recoveryStrip}
+                  testID="scan-recovery-strip"
+                  accessible
+                  accessibilityLabel={`Recovery ${recoveryLayer.recovery}. Pressure ${recoveryLayer.pressure}. Trend ${recoveryLayer.trend}.`}
+                >
+                  <Text
+                    style={styles.recoveryStripText}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
+                    RECOVERY {recoveryLayer.recovery}  ·  PRESSURE {recoveryLayer.pressure}  ·  {
+                      recoveryLayer.trend === 'rising' ? 'TREND ↑'
+                      : recoveryLayer.trend === 'declining' ? 'TREND ↓'
+                      : 'TREND —'
+                    }
+                  </Text>
+                </View>
+              ) : null}
+
               {coachScript && (
                 <ScanAICoachCard
                   script={coachScript}
@@ -885,6 +913,18 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderRadius: 14, padding: 12,
   },
   errorText: { fontSize: 12, fontFamily: 'Inter_500Medium', color: Colors.text.primary, flex: 1 },
+
+  recoveryStrip: {
+    alignSelf: 'stretch', maxWidth: '100%',
+    marginTop: 4, paddingHorizontal: 10, paddingVertical: 5,
+    borderRadius: 999, borderWidth: StyleSheet.hairlineWidth,
+    borderColor: Colors.border.subtle,
+    backgroundColor: 'rgba(255,255,255,0.02)',
+  },
+  recoveryStripText: {
+    fontSize: 9, fontFamily: 'Inter_700Bold', letterSpacing: 1.6,
+    color: Colors.text.secondary, flexShrink: 1,
+  },
 
   primaryCta: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,

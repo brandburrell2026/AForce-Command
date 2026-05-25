@@ -17,6 +17,7 @@ import { deriveProtocol } from '@/services/mockApi';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 import { WEB_TOP_PADDING, WEB_BOTTOM_PADDING, TAB_BAR_HEIGHT } from '@/constants/layout';
 import { RecoveryCircleChip } from '@/components/protocol/RecoveryCircleChip';
+import { useRecoverySnapshotFromStore } from '@/services/useRecoverySnapshot';
 
 export default function ProtocolScreen() {
   const { state } = useAppStore();
@@ -35,6 +36,10 @@ export default function ProtocolScreen() {
     () => deriveProtocol(userState, engineOutput),
     [userState, engineOutput],
   );
+
+  // Recovery Layer — null in production (flag default OFF). When on,
+  // a compact card slots in between the stage card and the summary row.
+  const recoveryLayer = useRecoverySnapshotFromStore();
 
   const topPadding = Platform.OS === 'web' ? WEB_TOP_PADDING : insets.top;
   const bottomPadding = Platform.OS === 'web' ? WEB_BOTTOM_PADDING : insets.bottom + TAB_BAR_HEIGHT;
@@ -134,6 +139,33 @@ export default function ProtocolScreen() {
                 </View>
               </View>
 
+              {recoveryLayer ? (
+                <View
+                  style={[styles.recoveryCard, { borderColor: `${stateColor}33` }]}
+                  testID="protocol-recovery-card"
+                  accessible
+                  accessibilityLabel={`Recovery ${recoveryLayer.recovery}. Pressure ${recoveryLayer.pressure}. Trend ${recoveryLayer.trend}.`}
+                >
+                  <View style={styles.recoveryHeaderRow}>
+                    <Text style={[styles.recoveryEyebrow, { color: stateColor }]}>Recovery layer</Text>
+                    <Text style={styles.recoveryFingerprint}>{recoveryLayer.fingerprint}</Text>
+                  </View>
+                  <View style={styles.recoveryTilesRow}>
+                    <RecoveryTile label="Recovery" value={String(recoveryLayer.recovery)} />
+                    <RecoveryTile label="Pressure" value={String(recoveryLayer.pressure)} />
+                    <RecoveryTile
+                      label="Trend"
+                      value={
+                        recoveryLayer.trend === 'rising' ? '↑'
+                        : recoveryLayer.trend === 'declining' ? '↓'
+                        : '—'
+                      }
+                    />
+                  </View>
+                  <Text style={styles.recoveryStory}>{recoveryLayer.story}</Text>
+                </View>
+              ) : null}
+
               <View style={styles.summaryRow}>
                 <SummaryCard label="Hydration goal" value={`${userState.dailyTarget}/${userState.dailyTarget} units`} color={stateColor} />
                 <SummaryCard label="Completed" value={`${userState.unitsConsumedToday}/${userState.dailyTarget} units`} color={stateColor} />
@@ -172,6 +204,15 @@ function SummaryCard({ label, value, color }: { label: string; value: string; co
     <View style={[styles.summaryCard, { borderColor: `${color}22` }]}>
       <Text style={styles.summaryLabel}>{label}</Text>
       <Text style={[styles.summaryValue, { color }]}>{value}</Text>
+    </View>
+  );
+}
+
+function RecoveryTile({ label, value }: { label: string; value: string }) {
+  return (
+    <View style={styles.recoveryTile}>
+      <Text style={styles.recoveryTileLabel}>{label}</Text>
+      <Text style={styles.recoveryTileValue}>{value}</Text>
     </View>
   );
 }
@@ -282,6 +323,42 @@ const styles = StyleSheet.create({
     letterSpacing: 0.2, marginBottom: 4,
   },
   footerValue: { fontSize: 16, fontFamily: 'Inter_600SemiBold', letterSpacing: -0.3 },
+  recoveryCard: {
+    backgroundColor: Colors.background.card,
+    borderRadius: 14, borderWidth: 1,
+    padding: 14, marginBottom: 16, gap: 10,
+  },
+  recoveryHeaderRow: {
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+  },
+  recoveryEyebrow: {
+    fontSize: 11, fontFamily: 'Inter_700Bold', letterSpacing: 1.6,
+    textTransform: 'uppercase',
+  },
+  recoveryFingerprint: {
+    fontSize: 10, fontFamily: 'Inter_500Medium',
+    color: Colors.text.muted, letterSpacing: 1.4,
+  },
+  recoveryTilesRow: { flexDirection: 'row', gap: 8 },
+  recoveryTile: {
+    flex: 1, paddingVertical: 8, paddingHorizontal: 6,
+    borderRadius: 10,
+    borderWidth: StyleSheet.hairlineWidth, borderColor: Colors.border.subtle,
+    backgroundColor: 'rgba(255,255,255,0.02)',
+    alignItems: 'center', gap: 2,
+  },
+  recoveryTileLabel: {
+    fontSize: 9, fontFamily: 'Inter_700Bold', letterSpacing: 1.4,
+    color: Colors.text.muted,
+  },
+  recoveryTileValue: {
+    fontSize: 18, fontFamily: 'Inter_600SemiBold', letterSpacing: 0.2,
+    color: Colors.text.primary,
+  },
+  recoveryStory: {
+    fontSize: 12, fontFamily: 'Inter_400Regular', lineHeight: 17,
+    color: Colors.text.secondary,
+  },
   summaryRow: { flexDirection: 'row', gap: 10, marginBottom: 28 },
   summaryCard: {
     flex: 1, backgroundColor: Colors.background.card, borderRadius: 12,
