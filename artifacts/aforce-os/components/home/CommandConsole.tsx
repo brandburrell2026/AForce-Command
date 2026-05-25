@@ -19,6 +19,7 @@ import { Colors } from '../../theme/colors';
 import { useFeatureFlags } from '../../store/useAppStore';
 import { AICommandCard } from '../AICommandCard';
 import { VoiceStatusModule } from '../VoiceStatusModule';
+import { useRecoverySnapshotFromStore } from '../../services/useRecoverySnapshot';
 
 interface Props {
   command: Command;
@@ -29,10 +30,18 @@ interface Props {
 function CommandConsoleImpl({ command, performanceState, accentOverride }: Props) {
   const color = accentOverride ?? performanceState.color;
   const flags = useFeatureFlags();
+  // Phase 3 (Recovery Layer): when `spec_recovery` is on, swap the
+  // headline `action` for the Recovery engine's short imperative.
+  // Hook returns null in production (flag default OFF) — no change.
+  const recovery = useRecoverySnapshotFromStore();
+  const displayCommand: Command =
+    recovery != null && recovery.command
+      ? { ...command, action: recovery.command }
+      : command;
   return (
     <View style={[styles.frame, { borderColor: `${color}30` }]} testID="command-console">
       <AICommandCard
-        command={command}
+        command={displayCommand}
         performanceState={performanceState}
         accentOverride={accentOverride}
         embedded
