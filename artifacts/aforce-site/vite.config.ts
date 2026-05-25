@@ -26,20 +26,8 @@ if (!basePath) {
   );
 }
 
-// Cross-artifact link target for the AForce OS mobile app.
-// In Replit dev, the OS artifact runs on the Expo dev domain; in
-// production, the published Expo web URL takes its place. Falling back
-// to "/" keeps the link sensible when neither is set (local preview).
-const expoDevDomain = process.env.REPLIT_EXPO_DEV_DOMAIN;
-const aforceOsUrl =
-  process.env.AFORCE_OS_URL ??
-  (expoDevDomain ? `https://${expoDevDomain}/` : "/");
-
 export default defineConfig({
   base: basePath,
-  define: {
-    "import.meta.env.VITE_AFORCE_OS_URL": JSON.stringify(aforceOsUrl),
-  },
   plugins: [
     react(),
     tailwindcss(),
