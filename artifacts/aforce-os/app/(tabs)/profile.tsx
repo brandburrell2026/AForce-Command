@@ -32,6 +32,12 @@ import { DEFAULT_FLAGS, DEMO_ALL_ON_FLAGS } from '@/featureFlags/flags';
 import type { FeatureFlags, AuraState } from '@/types';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 import { LanguageSelector } from '@/components/LanguageSelector';
+import {
+  COACH_MODES,
+  setCoachMode,
+  useCoachModeSetting,
+  type CoachMode,
+} from '@/services/coachMode';
 import { useTranslation } from 'react-i18next';
 import { useAuth, useUser } from '@clerk/expo';
 import * as WebBrowser from 'expo-web-browser';
@@ -87,6 +93,7 @@ export default function ProfileScreen() {
     setProfileIdentity,
   } = useAppStore();
   const unitPreferences = useUnitPreferencesSlice();
+  const coachMode = useCoachModeSetting();
   const profileIdentity = useProfileIdentitySlice();
   const devMode = useDevMode();
   // Spec #7 — referral loop. Server auto-issues a code on first read,
@@ -1275,6 +1282,18 @@ export default function ProfileScreen() {
                   <View style={{ paddingHorizontal: 14, paddingVertical: 4 }}>
                     <LanguageSelector onPersist={(lang) => setLanguage(lang)} />
                   </View>
+                  <Divider />
+                  <UnitPreferenceRow<CoachMode>
+                    label="Coach"
+                    options={COACH_MODES.map((m) => ({
+                      value: m,
+                      label: m.charAt(0).toUpperCase() + m.slice(1),
+                    }))}
+                    selected={coachMode}
+                    onSelect={(v) => {
+                      void setCoachMode(v);
+                    }}
+                  />
                 </View>
               </>
             );
