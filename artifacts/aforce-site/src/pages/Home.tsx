@@ -29,6 +29,9 @@ const CANS = [
 // Editorial / context imagery (supporting, not the star).
 import appMockup1 from '@/assets/images/app-mockup-1.png';
 import appMockup2 from '@/assets/images/app-mockup-2.png';
+import osRecoveryGreen from '@/assets/images/os-recovery-green.png';
+import osRecoveryRed from '@/assets/images/os-recovery-red.png';
+import osTimeline from '@/assets/images/os-timeline.png';
 import portraitFounder from '@/assets/images/portrait-founder.png';
 import portraitSurgeon from '@/assets/images/portrait-surgeon.png';
 import portraitAthlete from '@/assets/images/portrait-athlete.png';
@@ -282,22 +285,30 @@ export default function Home() {
       {/* ─── AForce OS — supporting, the proof layer ─────────────── */}
       <section className="relative w-full py-40 px-6 lg:px-24 z-10 overflow-hidden bg-[#020202] border-t border-white/5">
         <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-20 items-center">
-          <div className="order-2 lg:order-1 relative h-[600px] w-full">
+          <div className="order-2 lg:order-1 relative h-[640px] w-full">
             <div className="absolute inset-0 bg-primary/20 blur-[120px] rounded-full" />
             <img
               ref={addToParallax}
-              data-speed="0.05"
-              src={appMockup1}
-              alt="AForce OS interface — readiness and streaks"
-              className="absolute left-0 w-[80%] max-w-[400px] z-20 shadow-2xl drop-shadow-[0_0_50px_rgba(0,0,0,0.8)]"
+              data-speed="0.04"
+              src={osRecoveryRed}
+              alt="AForce OS — Recovery Load Critical protocol screen"
+              className="absolute left-0 top-10 w-[60%] max-w-[280px] z-10 -rotate-[6deg] drop-shadow-[0_30px_60px_rgba(180,20,30,0.35)] opacity-90"
               loading="lazy"
             />
             <img
               ref={addToParallax}
-              data-speed="-0.05"
-              src={appMockup2}
-              alt="AForce OS metrics dashboard"
-              className="absolute right-0 top-20 w-[70%] max-w-[350px] z-10 opacity-60"
+              data-speed="-0.06"
+              src={osRecoveryGreen}
+              alt="AForce OS — Performance Sync Active protocol screen"
+              className="absolute left-1/2 -translate-x-1/2 top-0 w-[65%] max-w-[320px] z-30 drop-shadow-[0_40px_80px_rgba(0,0,0,0.9)]"
+              loading="lazy"
+            />
+            <img
+              ref={addToParallax}
+              data-speed="0.05"
+              src={osTimeline}
+              alt="AForce OS — Performance Timeline dashboard"
+              className="absolute right-0 top-16 w-[60%] max-w-[280px] z-20 rotate-[6deg] drop-shadow-[0_30px_60px_rgba(0,0,0,0.8)] opacity-95"
               loading="lazy"
             />
           </div>
