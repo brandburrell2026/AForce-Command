@@ -76,6 +76,7 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   spec_notifications: false,
   spec_orb: true,
   spec_timelineLock: true,
+  spec_hydroJournal: true,
 };
 
 /**
@@ -128,6 +129,7 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
   spec_notifications: true,
   spec_orb: true,
   spec_timelineLock: true,
+  spec_hydroJournal: true,
 };
 
 export function isFlagEnabled(flags: FeatureFlags, key: keyof FeatureFlags): boolean {

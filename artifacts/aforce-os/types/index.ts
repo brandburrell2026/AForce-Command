@@ -544,6 +544,8 @@ export interface FeatureFlags {
   spec_orb: boolean;
   /** Rule #6 — Timeline Lock invariant (protected fields + allowed actions). */
   spec_timelineLock: boolean;
+  /** Rule #5 — HydroJournal memory (sources + recovery contributors). */
+  spec_hydroJournal: boolean;
 }
 
 /**
@@ -569,7 +571,8 @@ export type SpecFlagName =
   | 'recoveryCircle'
   | 'notifications'
   | 'orb'
-  | 'timelineLock';
+  | 'timelineLock'
+  | 'hydroJournal';
 
 // ─── Hydration Journal ────────────────────────────────────────────────────────
 /**
