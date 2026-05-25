@@ -15,8 +15,8 @@
  *   - no snapshot exists yet AND the seed write hasn't completed
  *   - all five checkpoints (Day 0/1/3/7/30) have been completed
  */
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useEffect, useState, useCallback } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 
 import { Colors } from '@/theme/colors';
 import { useFeatureFlags } from '@/store/useAppStore';
@@ -26,6 +26,7 @@ import {
   nextCheckpoint,
   type RecoveryCircleSnapshot,
 } from '@/services/recoveryCircle';
+import { RecoveryCircleMembersModal } from './RecoveryCircleMembersModal';
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
@@ -41,6 +42,9 @@ function relativeDaysLabel(dueAtIso: string, now: number): string {
 export function RecoveryCircleChip() {
   const flags = useFeatureFlags();
   const [snapshot, setSnapshot] = useState<RecoveryCircleSnapshot | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const openModal = useCallback(() => setModalOpen(true), []);
+  const closeModal = useCallback(() => setModalOpen(false), []);
 
   // Seed-and-load: the hidden service only reads, so we ensure a
   // snapshot exists on first mount when the flag is on. Day 0 is
@@ -72,18 +76,34 @@ export function RecoveryCircleChip() {
   const label = due ? `Day ${due.day} check-in · due now` : `Next check-in · Day ${upcoming!.day}`;
   const meta = due ? '' : relativeDaysLabel(upcoming!.dueAt, now);
   const accent = due ? Colors.accent.primary : Colors.text.secondary;
+  const memberCount = snapshot.members.length;
 
   return (
-    <View
-      style={[styles.chip, { borderColor: due ? `${accent}40` : Colors.border.subtle }]}
-      accessibilityRole="text"
-      accessibilityLabel={due ? `Recovery Circle ${label}` : `Recovery Circle ${label} ${meta}`}
-      testID="recovery-circle-chip"
-    >
-      <View style={[styles.dot, { backgroundColor: accent }]} />
-      <Text style={styles.label}>{label}</Text>
-      {meta ? <Text style={styles.meta}>{meta}</Text> : null}
-    </View>
+    <>
+      <TouchableOpacity
+        onPress={openModal}
+        activeOpacity={0.85}
+        style={[styles.chip, { borderColor: due ? `${accent}40` : Colors.border.subtle }]}
+        accessibilityRole="button"
+        accessibilityLabel={
+          due
+            ? `Recovery Circle ${label}. ${memberCount} members. Tap to manage.`
+            : `Recovery Circle ${label} ${meta}. ${memberCount} members. Tap to manage.`
+        }
+        testID="recovery-circle-chip"
+      >
+        <View style={[styles.dot, { backgroundColor: accent }]} />
+        <Text style={styles.label}>{label}</Text>
+        {meta ? <Text style={styles.meta}>{meta}</Text> : null}
+        <Text style={styles.count}>· {memberCount}/3</Text>
+      </TouchableOpacity>
+      <RecoveryCircleMembersModal
+        visible={modalOpen}
+        snapshot={snapshot}
+        onClose={closeModal}
+        onChange={setSnapshot}
+      />
+    </>
   );
 }
 
@@ -114,6 +134,12 @@ const styles = StyleSheet.create({
   meta: {
     fontSize: 11,
     fontFamily: 'Inter_400Regular',
+    color: Colors.text.muted,
+    letterSpacing: 0.1,
+  },
+  count: {
+    fontSize: 11,
+    fontFamily: 'Inter_500Medium',
     color: Colors.text.muted,
     letterSpacing: 0.1,
   },

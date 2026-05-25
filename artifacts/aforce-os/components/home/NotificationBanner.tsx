@@ -31,6 +31,10 @@ import {
   type NotificationsSnapshot,
   type ScheduledNotification,
 } from '@/services/notifications';
+import {
+  scheduleCadenceNotifications,
+  cancelCadenceNotification,
+} from '@/services/pushNotifications';
 
 export function NotificationBanner() {
   const flags = useFeatureFlags();
@@ -45,7 +49,13 @@ export function NotificationBanner() {
     }
     let cancelled = false;
     void ensureNotificationsSnapshot(new Date().toISOString()).then((s) => {
-      if (!cancelled) setSnapshot(s);
+      if (cancelled) return;
+      setSnapshot(s);
+      // Mirror the cadence to native local-notifications so the user
+      // also receives the Day 0/1/3/7 nudges when the app is closed.
+      // No-op on web / when permission is denied — the in-app banner
+      // is still the source of truth.
+      void scheduleCadenceNotifications(s.startAt, s.delivered);
     });
     return () => {
       cancelled = true;
@@ -65,6 +75,9 @@ export function NotificationBanner() {
     if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
     const next = await recordDelivery(due.day, new Date().toISOString());
     if (next) setSnapshot(next);
+    // Cancel the matching native slot so the OS doesn't deliver a
+    // second copy of a notification the user just dismissed in-app.
+    void cancelCadenceNotification(due.day);
   }, [due]);
 
   if (!flags.spec_notifications || !snapshot || !due) return null;

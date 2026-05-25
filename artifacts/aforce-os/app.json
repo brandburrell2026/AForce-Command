@@ -76,7 +76,13 @@
           "background": false
         }
       ],
-      "expo-audio"
+      "expo-audio",
+      [
+        "expo-notifications",
+        {
+          "color": "#B6FF00"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

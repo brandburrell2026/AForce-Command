@@ -59,7 +59,7 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   // gate NEW architecture work added in later spec rules; existing
   // visible surfaces stay governed by their pre-existing flags above.
   spec_activation: true,
-  spec_social: false,
+  spec_social: true,
   spec_sleep: false,
   spec_cruise: false,
   spec_coachV2: true,

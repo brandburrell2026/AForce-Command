@@ -42,7 +42,11 @@ import { GradientBackground } from '@/components/GradientBackground';
 import { Icon } from '@/components/Icon';
 import { Colors } from '@/theme/colors';
 import { useEngineSlice, useUserSlice } from '@/store/slices';
-import { deriveSocialSharedContext } from '@/services/socialState';
+import {
+  deriveSocialSharedContext,
+  useHiddenSocialState,
+  type CrewMember,
+} from '@/services/socialState';
 import { TAB_BAR_HEIGHT, WEB_TOP_PADDING, WEB_BOTTOM_PADDING } from '@/constants/layout';
 
 /* ────────────────────────── Engine (hidden) ─────────────────────────
@@ -219,11 +223,37 @@ export default function SocialModeV2Screen() {
 
   const inputs: Inputs = demoActive ? DEMO_BEATS[demoBeat]!.inputs : liveInputs;
 
-  const signal = deriveSignal(inputs);
+  // Aura + Atmosphere stay on the local derivation — the hidden
+  // service deliberately does NOT model those (they're presentation
+  // state, not spec-mandated surfaces).
   const aura = deriveAura(inputs, sessionComplete);
   const atmosphere = deriveAtmosphere(inputs);
-  const command = deriveCommand(inputs);
-  const forecast = deriveForecast(inputs);
+
+  // Signal / Command / Forecast / Crew / Shared Context now come from
+  // the shared `useHiddenSocialState` snapshot when `spec_social` is
+  // on, so notifications + multi-device sync work can read from a
+  // single source. Drink count maps from the existing socialMode
+  // store (read-only here). Falls back to the local derivations when
+  // the flag is off so legacy behavior remains intact.
+  const drinkCount = user.socialMode?.drinks?.length ?? 0;
+  const crewForHook: CrewMember[] = React.useMemo(
+    () => [
+      { name: 'maya', state: 'LOCKED IN' },
+      { name: 'kenji', state: 'FLOW' },
+      { name: 'rae', state: 'RECOVERING' },
+    ],
+    [],
+  );
+  const hiddenSnapshot = useHiddenSocialState({
+    recoveryCapacity: inputs.recoveryCapacity,
+    waterCycles: inputs.waterCycles,
+    drinkCount,
+    crew: crewForHook,
+    sessionMemory: null,
+  });
+  const signal: SignalState = hiddenSnapshot ? hiddenSnapshot.signal : deriveSignal(inputs);
+  const command = hiddenSnapshot ? hiddenSnapshot.command : deriveCommand(inputs);
+  const forecast = hiddenSnapshot ? hiddenSnapshot.forecast : deriveForecast(inputs);
 
   const startDemo = React.useCallback(() => {
     if (Platform.OS !== 'web') {
