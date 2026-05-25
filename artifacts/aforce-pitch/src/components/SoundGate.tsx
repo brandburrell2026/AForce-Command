@@ -48,11 +48,7 @@ export default function SoundGate({ onUnlock }: { onUnlock: () => void }) {
           animate={{ opacity: dismissing ? 0 : 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.8, ease: [0.22, 0.61, 0.36, 1] }}
-          onPointerDownCapture={(e) => {
-            e.stopPropagation();
-          }}
-          onClickCapture={(e) => {
-            e.stopPropagation();
+          onClick={(e) => {
             handleEnter(e);
           }}
           className="fixed inset-0 z-[9999] flex cursor-pointer flex-col items-center justify-center bg-black"
