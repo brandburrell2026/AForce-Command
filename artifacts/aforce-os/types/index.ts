@@ -550,6 +550,8 @@ export interface FeatureFlags {
   spec_hydroScan: boolean;
   /** Rule #3 — Profile is source of truth (10 domains + unit auto/override). */
   spec_profileSource: boolean;
+  /** Rule #2 — Shared Context Layer manifest (13 inputs / 5 outputs / One Orb). */
+  spec_sharedContextLayer: boolean;
 }
 
 /**
@@ -578,7 +580,8 @@ export type SpecFlagName =
   | 'timelineLock'
   | 'hydroJournal'
   | 'hydroScan'
-  | 'profileSource';
+  | 'profileSource'
+  | 'sharedContextLayer';
 
 // ─── Hydration Journal ────────────────────────────────────────────────────────
 /**

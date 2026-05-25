@@ -134,6 +134,7 @@ export const baseFlags: FeatureFlags = {
   spec_hydroJournal: true,
   spec_hydroScan: true,
   spec_profileSource: true,
+  spec_sharedContextLayer: true,
 };
 
 export const baseSubscription: UserSubscription = {
