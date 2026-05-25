@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { Link } from 'wouter';
 import { EarlyAccessCapture } from '@/components/EarlyAccessCapture';
 import { WaveformBackground } from '@/components/WaveformBackground';
 import { AmbientAudio } from '@/components/AmbientAudio';
@@ -75,22 +76,21 @@ export default function Home() {
       {/* ─── Fixed Top Nav ───────────────────────────────────────── */}
       <nav className="fixed top-0 inset-x-0 z-50 backdrop-blur-md bg-black/40 border-b border-white/[0.04]">
         <div className="max-w-7xl mx-auto px-6 lg:px-12 h-16 flex items-center justify-between">
-          <a href="/" className="flex items-center gap-3">
+          <Link href="/" className="flex items-center gap-3">
             <div className="w-1.5 h-1.5 rounded-full bg-primary pulse-dot" />
             <span className="text-sm font-bold tracking-[0.3em] uppercase">AForce</span>
-          </a>
-          <div className="hidden md:flex items-center gap-10 text-[11px] uppercase tracking-[0.25em] text-white/55">
+          </Link>
+          <div className="hidden md:flex items-center gap-8 text-[11px] uppercase tracking-[0.25em] text-white/55">
             <a href="#product" className="hover:text-white transition-colors">Product</a>
             <a href="#loop" className="hover:text-white transition-colors">The Loop</a>
-            <a href="#os" className="hover:text-white transition-colors">OS</a>
             <a href="#ecosystem" className="hover:text-white transition-colors">Ecosystem</a>
-            <a href="/products" className="text-white hover:text-primary transition-colors">Shop</a>
-            <a href="/manifesto" className="text-white hover:text-primary transition-colors">Manifesto</a>
-            <a href="/science" className="text-white hover:text-primary transition-colors">Science</a>
-            <a href="/os" className="text-white hover:text-primary transition-colors">OS</a>
-            <a href="/investors" className="text-white hover:text-primary transition-colors">Investors</a>
-            <a href="/founders" className="text-white hover:text-primary transition-colors">Founders</a>
-            <a href="/contact" className="text-white hover:text-primary transition-colors">Contact</a>
+            <Link href="/products" className="text-white hover:text-primary transition-colors">Shop</Link>
+            <Link href="/manifesto" className="text-white hover:text-primary transition-colors">Manifesto</Link>
+            <Link href="/science" className="text-white hover:text-primary transition-colors">Science</Link>
+            <Link href="/os" className="text-white hover:text-primary transition-colors">OS</Link>
+            <Link href="/investors" className="text-white hover:text-primary transition-colors">Investors</Link>
+            <Link href="/founders" className="text-white hover:text-primary transition-colors">Founders</Link>
+            <Link href="/contact" className="text-white hover:text-primary transition-colors">Contact</Link>
           </div>
           <a
             href={AFORCE_OS_URL}
