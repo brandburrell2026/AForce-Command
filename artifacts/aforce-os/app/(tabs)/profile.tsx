@@ -47,6 +47,7 @@ import {
   type VoiceScope,
 } from '@/services/voice/commandVoice';
 import { replayLastCommand, getLastCommand } from '@/services/voice/commandVoiceBus';
+import { useDevMode, setDevMode } from '@/services/devMode';
 
 // Lazy-loaded haptics — `expo-haptics` rejects on web (no native
 // module). The `import('expo-haptics')` form bundles the module on
@@ -87,6 +88,7 @@ export default function ProfileScreen() {
   } = useAppStore();
   const unitPreferences = useUnitPreferencesSlice();
   const profileIdentity = useProfileIdentitySlice();
+  const devMode = useDevMode();
   // Spec #7 — referral loop. Server auto-issues a code on first read,
   // so the hook is fired unconditionally; auth flows through the same
   // bridge the rest of the app uses.
@@ -1327,6 +1329,32 @@ export default function ProfileScreen() {
               </>
             );
 
+            const developerBlock = (
+              <>
+                <SectionHeader label="DEVELOPER" hint="Internal tools · not for production users" />
+                <View style={styles.card}>
+                  <View style={styles.settingRow} testID="profile-dev-mode">
+                    <View style={styles.settingLeft}>
+                      <Icon name="settings" size={16} color={Colors.text.secondary} />
+                      <View>
+                        <Text style={styles.settingLabel}>Developer Mode</Text>
+                        <Text style={styles.settingSubLabel}>
+                          Adds the legacy Recovery/Cruise tab next to Social
+                        </Text>
+                      </View>
+                    </View>
+                    <Switch
+                      value={devMode}
+                      onValueChange={(v) => { void setDevMode(v); }}
+                      trackColor={{ false: 'rgba(255,255,255,0.12)', true: '#B6FF00' }}
+                      thumbColor={Platform.OS === 'android' ? '#0a0014' : undefined}
+                      accessibilityLabel="Toggle Developer Mode"
+                    />
+                  </View>
+                </View>
+              </>
+            );
+
             const legalBlock = (
               <>
                 <SectionHeader label="LEGAL" hint="Terms · privacy · disclaimers" />
@@ -1418,6 +1446,7 @@ export default function ProfileScreen() {
                     {demoAccessCard}
                     {phaseEntryRow}
                     {subscriptionBlock}
+                    {developerBlock}
                     {legalBlock}
                   </View>
                 </View>
@@ -1439,6 +1468,7 @@ export default function ProfileScreen() {
                 {demoAccessCard}
                 {phaseEntryRow}
                 {subscriptionBlock}
+                {developerBlock}
                 {legalBlock}
               </>
             );

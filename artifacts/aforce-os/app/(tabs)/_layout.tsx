@@ -35,11 +35,13 @@ import { Icon } from '../../components/Icon';
 import { Platform, Pressable, StyleSheet, View } from 'react-native';
 import { Colors } from '@/theme/colors';
 import { DEMO_MODE } from '@/services/demoMode';
+import { useDevMode } from '@/services/devMode';
 import { TAB_BAR_HEIGHT } from '@/constants/layout';
 import { useTranslation } from 'react-i18next';
 
 function NativeTabLayout() {
   const { t } = useTranslation();
+  const devMode = useDevMode();
   return (
     <NativeTabs>
       <NativeTabs.Trigger name="index">
@@ -66,6 +68,12 @@ function NativeTabLayout() {
         <NativeTabIcon sf={{ default: 'wineglass', selected: 'wineglass.fill' }} />
         <Label>{t('tabs.social')}</Label>
       </NativeTabs.Trigger>
+      {devMode ? (
+        <NativeTabs.Trigger name="social-legacy">
+          <NativeTabIcon sf={{ default: 'wineglass.fill', selected: 'wineglass.fill' }} />
+          <Label>Legacy</Label>
+        </NativeTabs.Trigger>
+      ) : null}
       <NativeTabs.Trigger name="sleep">
         <NativeTabIcon sf={{ default: 'moon.circle', selected: 'moon.circle.fill' }} />
         <Label>{t('tabs.sleep')}</Label>
@@ -157,6 +165,7 @@ const plainTabButtonStyles = StyleSheet.create({
 
 function ClassicTabLayout() {
   const { t } = useTranslation();
+  const devMode = useDevMode();
   const isIOS = Platform.OS === 'ios';
   const isWeb = Platform.OS === 'web';
 
@@ -278,6 +287,19 @@ function ClassicTabLayout() {
           title: t('tabs.social'),
           tabBarIcon: ({ color, size }) =>
             isIOS ? <SymbolView name="wineglass" tintColor={color} size={size} />
+                  : <Icon name="users" size={22} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="social-legacy"
+        options={{
+          // Hidden from the tab bar unless Developer Mode is on. The
+          // route still exists, so `/social-legacy` deep links work
+          // either way for QA.
+          href: devMode ? '/social-legacy' : null,
+          title: 'Legacy',
+          tabBarIcon: ({ color, size }) =>
+            isIOS ? <SymbolView name="wineglass.fill" tintColor={color} size={size} />
                   : <Icon name="users" size={22} color={color} />,
         }}
       />

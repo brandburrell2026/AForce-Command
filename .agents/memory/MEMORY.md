@@ -1,0 +1,1 @@
+- [Expo tabs hide pattern](expo-router-hide-tab.md) — how to register a route in `(tabs)/` but conditionally hide its tab-bar button.
