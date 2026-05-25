@@ -86,7 +86,10 @@ export default function Home() {
             <a href="#ecosystem" className="hover:text-white transition-colors">Ecosystem</a>
             <a href="/manifesto" className="text-white hover:text-primary transition-colors">Manifesto</a>
             <a href="/science" className="text-white hover:text-primary transition-colors">Science</a>
+            <a href="/os" className="text-white hover:text-primary transition-colors">OS</a>
+            <a href="/investors" className="text-white hover:text-primary transition-colors">Investors</a>
             <a href="/founders" className="text-white hover:text-primary transition-colors">Founders</a>
+            <a href="/contact" className="text-white hover:text-primary transition-colors">Contact</a>
           </div>
           <a
             href={AFORCE_OS_URL}

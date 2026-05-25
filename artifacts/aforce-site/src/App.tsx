@@ -7,6 +7,9 @@ import Home from "@/pages/Home";
 import Manifesto from "@/pages/Manifesto";
 import Science from "@/pages/Science";
 import Founders from "@/pages/Founders";
+import OS from "@/pages/OS";
+import Investors from "@/pages/Investors";
+import Contact from "@/pages/Contact";
 
 const queryClient = new QueryClient();
 
@@ -17,6 +20,9 @@ function Router() {
       <Route path="/manifesto" component={Manifesto} />
       <Route path="/science" component={Science} />
       <Route path="/founders" component={Founders} />
+      <Route path="/os" component={OS} />
+      <Route path="/investors" component={Investors} />
+      <Route path="/contact" component={Contact} />
       <Route component={NotFound} />
     </Switch>
   );
