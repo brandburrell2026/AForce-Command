@@ -1,0 +1,525 @@
+Do not redesign.
+
+Keep existing visuals.
+
+Build architecture once.
+
+Release later.
+
+RULE #1 UI FREEZE
+
+Keep exactly:
+
+Home
+
+Orb
+
+Timeline
+
+Performance Signal
+
+Heat map
+
+Glow nodes
+
+Journal
+
+HydroScan
+
+Profile
+
+Sleep
+
+Community
+
+Cards
+
+Spacing
+
+Graphs
+
+No redesign.
+
+Do not move screens.
+
+Do not rebuild navigation.
+
+RULE #2 ONE ENGINE
+
+Shared Context Layer.
+
+Inputs:
+
+Profile Weather Temperature Humidity Water Cycles Timeline HydroScan Journal Sleep Activity Social Cruise
+
+Outputs:
+
+Signal Recovery Protocol Memory Recommendations
+
+Keep engines separate.
+
+Do NOT merge.
+
+One Orb.
+
+RULE #3 PROFILE = SOURCE OF TRUTH
+
+Profile controls:
+
+Language Units Coach Sleep Timeline Journal Notifications HydroScan Social Cruise
+
+Support:
+
+°F / °C
+
+lbs / kg
+
+ft / cm
+
+oz / mL
+
+Auto + override.
+
+RULE #4 HYDROSCAN
+
+Keep current UI.
+
+Flow:
+
+Scan → Context → Command → Confirm → Orb → Timeline → Journal
+
+Add:
+
+Current Moment
+
+Examples:
+
+Warm + Stable
+
+Cool + Recovery
+
+Indoor + Building
+
+Add confidence.
+
+Water first.
+
+Optional support second.
+
+RULE #5 HYDROJOURNAL
+
+Keep exact visuals.
+
+Connect:
+
+Timeline
+
+Commands
+
+Hydration
+
+Mood
+
+Water
+
+Recovery
+
+Orb
+
+Add:
+
+Recovery Contributors
+
+Water
+
+Timing
+
+Minerals
+
+Environment
+
+Journal becomes memory.
+
+RULE #6 TIMELINE LOCK
+
+DO NOT CHANGE.
+
+Protect:
+
+Performance Timeline
+
+7d / 30d / 90d
+
+Momentum
+
+Avg Score
+
+Consistency
+
+Streak
+
+Heat map
+
+Signal curve
+
+Win Moments
+
+Allowed:
+
+Tap node
+
+Replay
+
+Day Story
+
+Export
+
+Micro motion only.
+
+RULE #7 ORB
+
+Keep visuals.
+
+Tap →
+
+Score Reasons
+
+Examples:
+
+Water +8
+
+Heat -3
+
+Sleep +4
+
+Correction +7
+
+Add replay.
+
+RULE #8 PRODUCT EXPERIENCE
+
+Keep products.
+
+No store.
+
+Tap product:
+
+Product Peek
+
+Grow 150%
+
+Blur
+
+Soft glow
+
+Slow float
+
+No buy button.
+
+Keep:
+
+drinkaforce.com
+
+Share
+
+Story
+
+Export
+
+Inventory hidden.
+
+RULE #9 ACTIVATION FLOW
+
+Build:
+
+Buy
+
+Activate
+
+Install
+
+First Command
+
+Return
+
+Subscribe
+
+Headline:
+
+YOUR RECOVERY SYSTEM IS READY
+
+Button:
+
+ACTIVATE NOW
+
+Activation:
+
+Recovery Activated
+
+Do not open dashboard.
+
+Open:
+
+First Command
+
+Drink 12 oz water.
+
+Completion:
+
+Water Cycle Complete
+
+Signal Unlocked
+
+Unlock:
+
+Timeline
+
+Journal
+
+Protocol
+
+HydroScan
+
+RULE #10 NOTIFICATIONS
+
+Day 0
+
+Welcome
+
+Day 1
+
+Signal active
+
+Day 3
+
+Recovery rhythm building
+
+Day 7
+
+Recovery Story
+
+Max:
+
+1/day
+
+RULE #11 RECOVERY CIRCLE
+
+Build hidden.
+
+No referral wording.
+
+Day 0
+
+Day 1
+
+Day 3
+
+Day 7
+
+Day 30
+
+Max:
+
+3 people
+
+No feed.
+
+RULE #12 COACH MODE
+
+Reduce talking.
+
+Modes:
+
+Silent
+
+Ambient (default)
+
+Spoken
+
+Voice OFF:
+
+Orb
+
+Microcopy
+
+Haptic
+
+Examples:
+
+Recover now
+
+Water first
+
+Signal rising
+
+Meeting aware.
+
+RULE #13 SOCIAL MODE
+
+Build.
+
+Hide.
+
+Keep:
+
+Signal
+
+Command
+
+Forecast
+
+Session Memory
+
+Crew
+
+Shared Context.
+
+RULE #14 SLEEP
+
+Build.
+
+Hide.
+
+Keep UI.
+
+States:
+
+Idle
+
+Prepare
+
+Wind Down
+
+Recovery
+
+Morning Restore
+
+Replace:
+
+No Data Yet
+
+With:
+
+Waiting for recovery signals.
+
+Connect Journal.
+
+RULE #15 CRUISE
+
+Build.
+
+Hide.
+
+Keep:
+
+Journey
+
+Port
+
+Recovery
+
+Pre-Port
+
+Excursion
+
+No public access.
+
+RULE #16 LANGUAGE SYSTEM
+
+Profile:
+
+Language
+
+English — English
+
+Change >
+
+Open selector.
+
+Visible:
+
+English Spanish French German Portuguese Italian
+
+Build hidden:
+
+Arabic Chinese Japanese Korean Hindi
+
+Do not expose hidden languages.
+
+Language updates:
+
+Coach
+
+Timeline
+
+Journal
+
+Sleep
+
+Community
+
+Notifications
+
+Activation
+
+Share
+
+Export
+
+Keep brand words unchanged.
+
+RULE #17 FEATURE FLAGS
+
+activation=true
+
+social=false
+
+sleep=false
+
+cruise=false
+
+coachV2=false
+
+premium=false
+
+inventory=false
+
+phantom=false
+
+enterprise=false
+
+language_ar=false language_zh=false language_ja=false language_ko=false language_hi=false
+
+Build.
+
+Hide.
+
+RULE #18 FUTURE READY
+
+Prepare:
+
+Phantom
+
+BLE
+
+Meridian
+
+Premium
+
+Enterprise
+
+Inventory
+
+No visible UI.
+
+FINAL RULE
+
+Do not redesign.
+
+Keep visuals.
+
+Build once.
+
+Release later.
+
+Make AForce OS feel alive.
