@@ -1,1 +1,1 @@
-- [Expo tabs hide pattern](expo-router-hide-tab.md) — how to register a route in `(tabs)/` but conditionally hide its tab-bar button.
+- [Recovery Layer phasing](recovery-phasing.md) — Recovery is hidden in Phase 1 (6 surfaces); Guardian + Clutch recovery feeds land in Phase 2, not Phase 1.
