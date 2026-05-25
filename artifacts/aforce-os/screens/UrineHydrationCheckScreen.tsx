@@ -21,6 +21,55 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import Svg, { Path } from 'react-native-svg';
+
+// Symmetric teardrop path: tip at top (12,1), bulb at bottom centred
+// on (12,16) with radius 10. Drawn in a 24×24 viewBox.
+const DROP_PATH =
+  'M12 1 C 12 1 22 12 22 16 A 10 10 0 1 1 2 16 C 2 12 12 1 12 1 Z';
+
+/**
+ * UrineDropCluster — three teardrop SVGs arranged in a triangle
+ * (one above, two below). All three share the same urine color so
+ * the swatch reads as a small fluid cluster instead of a flat
+ * circle.
+ */
+function UrineDropCluster({ color }: { color: string }) {
+  return (
+    <View style={swatchStyles.cluster}>
+      <View style={swatchStyles.topDrop}>
+        <Svg width={22} height={22} viewBox="0 0 24 24">
+          <Path d={DROP_PATH} fill={color} />
+        </Svg>
+      </View>
+      <View style={swatchStyles.bottomRow}>
+        <Svg width={18} height={18} viewBox="0 0 24 24">
+          <Path d={DROP_PATH} fill={color} />
+        </Svg>
+        <Svg width={18} height={18} viewBox="0 0 24 24">
+          <Path d={DROP_PATH} fill={color} />
+        </Svg>
+      </View>
+    </View>
+  );
+}
+
+const swatchStyles = StyleSheet.create({
+  cluster: {
+    width: 56,
+    height: 56,
+    marginBottom: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  topDrop: {
+    marginBottom: -2,
+  },
+  bottomRow: {
+    flexDirection: 'row',
+    gap: 4,
+  },
+});
 
 import { GradientBackground } from '@/components/GradientBackground';
 import { Colors } from '@/theme/colors';
@@ -144,7 +193,7 @@ export default function UrineHydrationCheckScreen() {
                   },
                 ]}
               >
-                <View style={[styles.swatch, { backgroundColor: opt.hex }]} />
+                <UrineDropCluster color={opt.hex} />
                 <Text style={styles.tileLabel}>{opt.label.toUpperCase()}</Text>
               </Pressable>
             );
