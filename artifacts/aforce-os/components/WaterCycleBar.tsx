@@ -252,16 +252,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  // Drop silhouette: three rounded corners (BL / BR / TL) + one
-  // sharp corner (TR), then rotated 45° so the sharp corner points
-  // straight up. `overflow: 'hidden'` clips the fill to the drop.
+  // Drop silhouette: three rounded corners (TL / TR / BR) + one
+  // sharp corner (BL), then rotated 45° so the sharp corner points
+  // straight DOWN (water falling). `overflow: 'hidden'` clips the
+  // fill to the drop.
   drop: {
     width: 24,
     height: 24,
     borderTopLeftRadius: 12,
-    borderTopRightRadius: 0,
+    borderTopRightRadius: 12,
     borderBottomRightRadius: 12,
-    borderBottomLeftRadius: 12,
+    borderBottomLeftRadius: 0,
     borderWidth: 1,
     backgroundColor: Colors.fill.light,
     overflow: 'hidden',
