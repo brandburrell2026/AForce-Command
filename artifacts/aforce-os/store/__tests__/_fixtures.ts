@@ -129,6 +129,7 @@ export const baseFlags: FeatureFlags = {
   spec_language_hi: false,
   spec_recoveryCircle: false,
   spec_notifications: false,
+  spec_orb: true,
 };
 
 export const baseSubscription: UserSubscription = {

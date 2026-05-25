@@ -74,6 +74,7 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   spec_language_hi: false,
   spec_recoveryCircle: false,
   spec_notifications: false,
+  spec_orb: true,
 };
 
 /**
@@ -124,6 +125,7 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
   spec_language_hi: false,
   spec_recoveryCircle: true,
   spec_notifications: true,
+  spec_orb: true,
 };
 
 export function isFlagEnabled(flags: FeatureFlags, key: keyof FeatureFlags): boolean {

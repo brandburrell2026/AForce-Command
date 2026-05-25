@@ -540,6 +540,8 @@ export interface FeatureFlags {
   spec_recoveryCircle: boolean;
   /** Rule #10 — Welcome cadence notifications (Day 0/1/3/7, 1/day). */
   spec_notifications: boolean;
+  /** Rule #7 — Orb tap → Score Reasons + Replay. */
+  spec_orb: boolean;
 }
 
 /**
@@ -563,7 +565,8 @@ export type SpecFlagName =
   | 'language_ko'
   | 'language_hi'
   | 'recoveryCircle'
-  | 'notifications';
+  | 'notifications'
+  | 'orb';
 
 // ─── Hydration Journal ────────────────────────────────────────────────────────
 /**
