@@ -538,6 +538,8 @@ export interface FeatureFlags {
   spec_language_hi: boolean;
   /** Rule #11 — Recovery Circle (Day 0/1/3/7/30, max 3, no feed). */
   spec_recoveryCircle: boolean;
+  /** Rule #10 — Welcome cadence notifications (Day 0/1/3/7, 1/day). */
+  spec_notifications: boolean;
 }
 
 /**
@@ -560,7 +562,8 @@ export type SpecFlagName =
   | 'language_ja'
   | 'language_ko'
   | 'language_hi'
-  | 'recoveryCircle';
+  | 'recoveryCircle'
+  | 'notifications';
 
 // ─── Hydration Journal ────────────────────────────────────────────────────────
 /**
