@@ -714,6 +714,72 @@ uri = "file://attached_assets/generated_images/slide18_athlete_darkness.png"
 type = "image"
 title = "slide18 athlete darkness"
 
+[[generated]]
+id = "-01d9NmuxqCJ8JMo-bS9P"
+uri = "file://artifacts/aforce-site/src/assets/images/app-mockup-1.png"
+type = "image"
+title = "iphone app mockup interface"
+
+[[generated]]
+id = "jY-xcLtmF6EoPjLcSsPGT"
+uri = "file://artifacts/aforce-site/src/assets/images/app-mockup-2.png"
+type = "image"
+title = "iphone app mockup metrics"
+
+[[generated]]
+id = "8qUaH_O-C_xnG7ImIv0FW"
+uri = "file://artifacts/aforce-site/src/assets/images/portrait-founder.png"
+type = "image"
+title = "cinematic founder portrait"
+
+[[generated]]
+id = "QjLNgyIPA-WrhqUZ0Lq_Q"
+uri = "file://artifacts/aforce-site/src/assets/images/portrait-surgeon.png"
+type = "image"
+title = "cinematic surgeon portrait"
+
+[[generated]]
+id = "b08nJcra3Ux_P9P9DUgNs"
+uri = "file://artifacts/aforce-site/src/assets/images/portrait-athlete.png"
+type = "image"
+title = "cinematic athlete portrait"
+
+[[generated]]
+id = "26BiAtr08xlufTjzCez2Z"
+uri = "file://artifacts/aforce-site/src/assets/images/event-paddock.png"
+type = "image"
+title = "premium f1 paddock event"
+
+[[generated]]
+id = "3aQZBFwacGBAge3fjnbo4"
+uri = "file://artifacts/aforce-site/src/assets/images/event-hydration.png"
+type = "image"
+title = "premium hydration station"
+
+[[generated]]
+id = "PVZZiw1oBNa2TiUb7Fw0c"
+uri = "file://artifacts/aforce-site/src/assets/products/stick-hero.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "xj9mjn7sP_lJdsZFYTp9j"
+uri = "file://artifacts/aforce-site/src/assets/products/drink-can-hero.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "C5kjwJkF7UMQ6PAXkmp9S"
+uri = "file://artifacts/aforce-site/src/assets/products/sticks-row.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "aoesN-ZW1dM1tW-JzrMZ1"
+uri = "file://artifacts/aforce-site/src/assets/products/stick-pour.png"
+type = "image"
+title = "generated_image"
+
 [[outputs]]
 id = "fILTiXCCTKYfWe9d8R46M"
 uri = "file://attached_assets/tester-share/aforce-tester-qr.png"
