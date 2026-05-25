@@ -86,6 +86,14 @@ function EntryActionsImpl() {
     : load.strain === 'elevated' ? Colors.states.RECOVERING.primary
     : Colors.states.DEPLETED.primary;
 
+  // Urine signal is the 1–8 darkness scale (lower = better hydration).
+  // 1–3 light: PEAK · 4 mid: BALANCED · 5–6 dim: RECOVERING · 7–8 dark: DEPLETED.
+  const urineAccent =
+    user.urineSignal <= 3 ? Colors.states.PEAK.primary
+    : user.urineSignal === 4 ? Colors.states.BALANCED.primary
+    : user.urineSignal <= 6 ? Colors.states.RECOVERING.primary
+    : Colors.states.DEPLETED.primary;
+
   // ── Sheet payload builders ────────────────────────────────────────
   const payload: BiometricSheetPayload | null = React.useMemo(() => {
     if (openKey === 'forecast') {
@@ -131,7 +139,7 @@ function EntryActionsImpl() {
     label: string;
     accent: string | null;
   }> = [
-    { key: 'urine',    icon: 'droplet',       label: 'Urine',    accent: null },
+    { key: 'urine',    icon: 'droplet',       label: 'Urine',    accent: urineAccent },
     { key: 'sweat',    icon: 'cloud-drizzle', label: 'Sweat',    accent: sweatAccent },
     { key: 'forecast', icon: 'trending-up',   label: 'Forecast', accent: trajectoryAccent },
     { key: 'recovery', icon: 'activity',      label: 'Recovery', accent: loadAccent },
