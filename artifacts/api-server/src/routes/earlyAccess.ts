@@ -19,6 +19,7 @@ import { desc, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db, earlyAccessSignups } from "@workspace/db";
 import { requireAdmin } from "../middlewares/requireAdmin";
+import { sendEmailAndForget } from "../lib/mailer";
 
 const router: IRouter = Router();
 
@@ -36,6 +37,26 @@ const signupLimiter = rateLimit({
   message: { error: "rate_limited", scope: "early_access_signup" },
 });
 
+// Short "you're on the list" confirmation. Intentionally plain — the sibling
+// welcome-email task owns richer onboarding content. Fire-and-forget so a mail
+// provider outage cannot block the 200 response.
+function sendEarlyAccessConfirmation(email: string): void {
+  sendEmailAndForget({
+    to: email,
+    subject: "You're on the AForce early-access list",
+    text:
+      "Thanks for signing up for AForce early access.\n\n" +
+      "You're on the list — we'll be in touch as soon as your spot opens up.\n\n" +
+      "— The AForce team",
+    html:
+      `<div style="font:14px/1.5 -apple-system,system-ui,sans-serif;color:#111">` +
+      `<p>Thanks for signing up for <strong>AForce</strong> early access.</p>` +
+      `<p>You're on the list — we'll be in touch as soon as your spot opens up.</p>` +
+      `<p style="color:#666">— The AForce team</p>` +
+      `</div>`,
+  });
+}
+
 // ─── POST / — public signup capture ──────────────────────────────────────────
 router.post("/", signupLimiter, async (req, res): Promise<void> => {
   const parsed = SignupBody.safeParse(req.body);
@@ -44,10 +65,19 @@ router.post("/", signupLimiter, async (req, res): Promise<void> => {
     return;
   }
   try {
-    await db
+    // .returning() yields the inserted row only when there was no conflict, so
+    // an empty array means "duplicate email — row already existed". We use
+    // that signal to suppress resending the confirmation email.
+    const inserted = await db
       .insert(earlyAccessSignups)
       .values({ email: parsed.data.email, source: parsed.data.source })
-      .onConflictDoNothing({ target: earlyAccessSignups.email });
+      .onConflictDoNothing({ target: earlyAccessSignups.email })
+      .returning({ id: earlyAccessSignups.id });
+
+    if (inserted.length > 0) {
+      sendEarlyAccessConfirmation(parsed.data.email);
+    }
+
     res.json({ ok: true });
   } catch (err) {
     req.log.error({ err }, "POST /early-access failed");
