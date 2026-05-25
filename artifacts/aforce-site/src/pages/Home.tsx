@@ -27,16 +27,9 @@ const CANS = [
 ];
 
 // Editorial / context imagery (supporting, not the star).
-import appMockup1 from '@/assets/images/app-mockup-1.png';
-import appMockup2 from '@/assets/images/app-mockup-2.png';
 import osRecoveryGreen from '@/assets/images/os-recovery-green.png';
 import osRecoveryRed from '@/assets/images/os-recovery-red.png';
 import osTimeline from '@/assets/images/os-timeline.png';
-import portraitFounder from '@/assets/images/portrait-founder.png';
-import portraitSurgeon from '@/assets/images/portrait-surgeon.png';
-import portraitAthlete from '@/assets/images/portrait-athlete.png';
-import eventPaddock from '@/assets/images/event-paddock.png';
-import eventHydration from '@/assets/images/event-hydration.png';
 
 // Cross-artifact link target for the AForce OS mobile app, wired by
 // vite.config.ts from REPLIT_EXPO_DEV_DOMAIN in development.
@@ -352,37 +345,27 @@ export default function Home() {
 
       {/* ─── Who It's For ────────────────────────────────────────── */}
       <section className="relative w-full py-40 px-6 lg:px-24 z-10 border-t border-white/5">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-24 max-w-4xl mx-auto">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-16">
             <h2 className="text-3xl md:text-5xl font-serif italic text-white/80 leading-snug">
               "There is a certain kind of person who does not get to be off."
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-white/5 border border-white/5 rounded-xl overflow-hidden">
             {[
-              { src: portraitFounder, alt: 'Tech founder portrait', label: 'Founders' },
-              { src: portraitSurgeon, alt: 'Surgeon portrait', label: 'Surgeons' },
-              { src: portraitAthlete, alt: 'Athlete portrait', label: 'Performers' },
-            ].map((p, i) => (
+              { label: 'Founders', sub: 'Operators who run hot.' },
+              { label: 'Surgeons', sub: 'Hands that cannot shake.' },
+              { label: 'Performers', sub: 'Bodies under load.' },
+            ].map((p) => (
               <div
                 key={p.label}
-                className={`group relative aspect-[3/4] overflow-hidden rounded-lg ${
-                  i === 1 ? 'mt-0 md:mt-12' : ''
-                }`}
+                className="bg-black px-8 py-14 text-center hover:bg-primary/5 transition-colors duration-500"
               >
-                <img
-                  src={p.src}
-                  alt={p.alt}
-                  className="w-full h-full object-cover filter grayscale transition-all duration-700 group-hover:grayscale-0 group-hover:scale-105"
-                  loading="lazy"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
-                <div className="absolute bottom-6 left-6">
-                  <p className="uppercase tracking-widest text-xs font-bold text-primary">
-                    {p.label}
-                  </p>
-                </div>
+                <p className="uppercase tracking-[0.25em] text-xs font-bold text-primary mb-3">
+                  {p.label}
+                </p>
+                <p className="text-white/60 text-sm">{p.sub}</p>
               </div>
             ))}
           </div>
@@ -493,38 +476,18 @@ export default function Home() {
       </section>
 
       {/* ─── Community / Events ──────────────────────────────────── */}
-      <section className="relative w-full py-40 z-10 bg-black border-t border-white/5">
-        <div className="max-w-7xl mx-auto px-6 lg:px-24">
-          <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-8">
-            <h2 className="text-4xl md:text-5xl font-bold tracking-tight">
-              The Ecosystem
-            </h2>
-            <p className="text-white/50 max-w-md md:text-right">
-              Physical spaces that mirror the digital rigor. Soho House meets a
-              performance lab.
-            </p>
-          </div>
-        </div>
-
-        <div className="w-full flex gap-4 overflow-x-auto pb-8 snap-x snap-mandatory hide-scrollbar">
-          <div className="min-w-[80vw] md:min-w-[60vw] lg:min-w-[50vw] aspect-video relative snap-center first:ml-6 lg:first:ml-24">
-            <img
-              src={eventPaddock}
-              alt="Premium event space"
-              className="w-full h-full object-cover rounded-xl"
-              loading="lazy"
-            />
-            <div className="absolute inset-0 border border-white/10 rounded-xl pointer-events-none" />
-          </div>
-          <div className="min-w-[80vw] md:min-w-[60vw] lg:min-w-[50vw] aspect-video relative snap-center pr-6 lg:pr-24">
-            <img
-              src={eventHydration}
-              alt="Hydration station at an AForce event"
-              className="w-full h-full object-cover rounded-xl"
-              loading="lazy"
-            />
-            <div className="absolute inset-0 border border-white/10 rounded-xl pointer-events-none" />
-          </div>
+      <section className="relative w-full py-40 px-6 lg:px-24 z-10 bg-black border-t border-white/5">
+        <div className="max-w-5xl mx-auto text-center">
+          <span className="text-primary uppercase tracking-[0.25em] text-xs font-bold block mb-6">
+            The Ecosystem
+          </span>
+          <h2 className="text-4xl md:text-6xl font-bold tracking-tight leading-tight mb-6">
+            Physical spaces that mirror the digital rigor.
+          </h2>
+          <p className="text-white/50 max-w-2xl mx-auto text-lg leading-relaxed">
+            Soho House meets a performance lab. Members-only rooms built around
+            recovery, hydration, and the people who refuse to slip.
+          </p>
         </div>
       </section>
 
