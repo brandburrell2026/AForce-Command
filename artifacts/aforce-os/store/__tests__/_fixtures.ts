@@ -130,6 +130,7 @@ export const baseFlags: FeatureFlags = {
   spec_recoveryCircle: false,
   spec_notifications: false,
   spec_orb: true,
+  spec_timelineLock: true,
 };
 
 export const baseSubscription: UserSubscription = {

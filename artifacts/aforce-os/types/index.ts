@@ -542,6 +542,8 @@ export interface FeatureFlags {
   spec_notifications: boolean;
   /** Rule #7 — Orb tap → Score Reasons + Replay. */
   spec_orb: boolean;
+  /** Rule #6 — Timeline Lock invariant (protected fields + allowed actions). */
+  spec_timelineLock: boolean;
 }
 
 /**
@@ -566,7 +568,8 @@ export type SpecFlagName =
   | 'language_hi'
   | 'recoveryCircle'
   | 'notifications'
-  | 'orb';
+  | 'orb'
+  | 'timelineLock';
 
 // ─── Hydration Journal ────────────────────────────────────────────────────────
 /**

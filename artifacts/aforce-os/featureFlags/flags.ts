@@ -75,6 +75,7 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   spec_recoveryCircle: false,
   spec_notifications: false,
   spec_orb: true,
+  spec_timelineLock: true,
 };
 
 /**
@@ -126,6 +127,7 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
   spec_recoveryCircle: true,
   spec_notifications: true,
   spec_orb: true,
+  spec_timelineLock: true,
 };
 
 export function isFlagEnabled(flags: FeatureFlags, key: keyof FeatureFlags): boolean {
