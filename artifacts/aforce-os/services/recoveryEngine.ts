@@ -30,10 +30,7 @@
  * "Build architecture. Do not release. Do not expose.").
  */
 
-import { useMemo } from 'react';
-
 import type { ScoreEngineOutput, UserState } from '../types';
-import { useFeatureFlags } from '../store/useAppStore';
 
 export type RecoveryTrend = 'rising' | 'stable' | 'declining';
 
@@ -209,28 +206,3 @@ export function recoveryInputsFromState(
   };
 }
 
-/**
- * React hook — returns the derived snapshot, or `null` when
- * `spec_recovery` is off. Phase 1: no surface consumes this yet. The
- * hook exists so the next wave of work (Orb line, Coach command,
- * Timeline story, Journal write) can read from one shared source.
- */
-export function useHiddenRecoveryState(inputs: RecoveryInputs): RecoverySnapshot | null {
-  const flags = useFeatureFlags();
-  return useMemo(() => {
-    if (!flags.spec_recovery) return null;
-    return deriveRecoverySnapshot(inputs);
-  }, [
-    flags.spec_recovery,
-    inputs.score,
-    inputs.decayPerMinute,
-    inputs.waterCycles,
-    inputs.urineSignal,
-    inputs.heatLoad,
-    inputs.activityLevel,
-    inputs.overnightLossOz,
-    inputs.drinkCount,
-    inputs.complianceStreak,
-    inputs.energyState,
-  ]);
-}
