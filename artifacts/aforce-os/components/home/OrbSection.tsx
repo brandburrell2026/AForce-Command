@@ -21,6 +21,7 @@ import {
   subscribePlayback,
   type PlaybackState,
 } from '../../services/voice/commandVoiceBus';
+import { useRecoverySnapshotFromStore } from '../../services/useRecoverySnapshot';
 
 interface Props {
   onOpenBreakdown: () => void;
@@ -57,6 +58,15 @@ function OrbSectionImpl({ onOpenBreakdown, orbSize }: Props) {
   const [playback, setPlayback] = React.useState<PlaybackState>(() => getPlaybackState());
   React.useEffect(() => subscribePlayback(setPlayback), []);
   const voiceActive = playback === 'received' || playback === 'playing';
+
+  // Recovery Layer — null in production (flag default OFF). When on,
+  // adds a small "RECOVERY · PRESSURE · TREND" strip beneath the
+  // prediction line. Zero new pixels until the flag flips.
+  const recovery = useRecoverySnapshotFromStore();
+  const trendArrow =
+    recovery?.trend === 'rising' ? '↑'
+    : recovery?.trend === 'declining' ? '↓'
+    : '·';
 
   return (
     <View style={styles.orbContainer}>
@@ -100,6 +110,21 @@ function OrbSectionImpl({ onOpenBreakdown, orbSize }: Props) {
           </Text>
         </View>
       )}
+      {recovery ? (
+        <View
+          style={[
+            styles.recoveryStrip,
+            { borderColor: `${stateColor}22` },
+          ]}
+          testID="recovery-strip"
+          accessible
+          accessibilityLabel={`Recovery ${recovery.recovery}. Pressure ${recovery.pressure}. Trend ${recovery.trend}.`}
+        >
+          <Text style={[styles.recoveryText, { color: Colors.text.secondary }]}>
+            RECOVERY {recovery.recovery}  ·  PRESSURE {recovery.pressure}  {trendArrow}
+          </Text>
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -122,4 +147,11 @@ const styles = StyleSheet.create({
     fontSize: 11, fontFamily: 'Inter_600SemiBold', letterSpacing: 0.4,
   },
   dot: { width: 6, height: 6, borderRadius: 3 },
+  recoveryStrip: {
+    marginTop: 8, paddingHorizontal: 10, paddingVertical: 4,
+    borderRadius: 999, borderWidth: StyleSheet.hairlineWidth,
+  },
+  recoveryText: {
+    fontSize: 9, fontFamily: 'Inter_700Bold', letterSpacing: 1.6,
+  },
 });

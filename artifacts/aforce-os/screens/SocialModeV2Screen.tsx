@@ -47,6 +47,7 @@ import {
   useHiddenSocialState,
   type CrewMember,
 } from '@/services/socialState';
+import { useRecoverySnapshotFromStore } from '@/services/useRecoverySnapshot';
 import { TAB_BAR_HEIGHT, WEB_TOP_PADDING, WEB_BOTTOM_PADDING } from '@/constants/layout';
 
 /* ────────────────────────── Engine (hidden) ─────────────────────────
@@ -255,6 +256,10 @@ export default function SocialModeV2Screen() {
   const command = hiddenSnapshot ? hiddenSnapshot.command : deriveCommand(inputs);
   const forecast = hiddenSnapshot ? hiddenSnapshot.forecast : deriveForecast(inputs);
 
+  // Recovery Layer — null in production (flag default OFF). When on,
+  // adds a new "RECOVERY LAYER" section with the three engine outputs.
+  const recoveryLayer = useRecoverySnapshotFromStore();
+
   const startDemo = React.useCallback(() => {
     if (Platform.OS !== 'web') {
       Haptics.selectionAsync().catch(() => {});
@@ -433,6 +438,29 @@ export default function SocialModeV2Screen() {
             <Text style={styles.forecast}>{deriveSocialSharedContext(crew)}</Text>
           </Section>
 
+          {/* Recovery Layer — gated on `spec_recovery`. Hidden in prod. */}
+          {recoveryLayer ? (
+            <Section label="RECOVERY LAYER">
+              <View style={styles.recoveryRow}>
+                <View style={styles.recoveryTile}>
+                  <Text style={styles.recoveryTileLabel}>RECOVERY</Text>
+                  <Text style={styles.recoveryTileValue}>{recoveryLayer.recovery}</Text>
+                </View>
+                <View style={styles.recoveryTile}>
+                  <Text style={styles.recoveryTileLabel}>PRESSURE</Text>
+                  <Text style={styles.recoveryTileValue}>{recoveryLayer.pressure}</Text>
+                </View>
+                <View style={styles.recoveryTile}>
+                  <Text style={styles.recoveryTileLabel}>TREND</Text>
+                  <Text style={styles.recoveryTileValue}>
+                    {recoveryLayer.trend === 'rising' ? '↑' : recoveryLayer.trend === 'declining' ? '↓' : '—'}
+                  </Text>
+                </View>
+              </View>
+              <Text style={styles.forecast}>{recoveryLayer.story}</Text>
+            </Section>
+          ) : null}
+
           {/* Reset */}
           <Pressable
             onPress={onReset}
@@ -579,6 +607,24 @@ const styles = StyleSheet.create({
   },
   forecast: {
     fontFamily: 'Inter_400Regular', fontSize: 15, lineHeight: 22,
+    color: Colors.text.primary,
+  },
+  recoveryRow: {
+    flexDirection: 'row', gap: 10, marginBottom: 4,
+  },
+  recoveryTile: {
+    flex: 1, paddingVertical: 10, paddingHorizontal: 8,
+    borderRadius: 10,
+    borderWidth: StyleSheet.hairlineWidth, borderColor: BORDER,
+    backgroundColor: 'rgba(255,255,255,0.02)',
+    alignItems: 'center', gap: 4,
+  },
+  recoveryTileLabel: {
+    fontFamily: 'Inter_700Bold', fontSize: 9, letterSpacing: 1.6,
+    color: FAINT,
+  },
+  recoveryTileValue: {
+    fontFamily: 'Inter_700Bold', fontSize: 20, letterSpacing: 0.5,
     color: Colors.text.primary,
   },
   memoryDate: {
