@@ -70,12 +70,12 @@ function PrivateAccess() {
     return (
       <div className="grid md:grid-cols-2 gap-px bg-white/[0.05] border border-white/[0.05]">
         {[
-          { k: 'Investor deck', d: 'Latest narrative + positioning.' },
-          { k: 'Financial projections', d: 'Operating model + assumptions.' },
-          { k: 'Roadmap', d: 'Quarterly milestones + dependencies.' },
-          { k: 'Founder updates', d: 'Monthly investor letter archive.' },
-          { k: 'Media assets', d: 'Brand kit + editorial library.' },
-          { k: 'Diligence room', d: 'Cap table, contracts, references.' },
+          { k: 'Investor deck', d: 'Latest narrative + positioning.', href: '/aforce-pitch/', cta: 'Open →' },
+          { k: 'Financial projections', d: 'Operating model + assumptions.', href: '/contact', cta: 'Request →' },
+          { k: 'Roadmap', d: 'Quarterly milestones + dependencies.', href: '/contact', cta: 'Request →' },
+          { k: 'Founder updates', d: 'Monthly investor letter archive.', href: '/contact', cta: 'Request →' },
+          { k: 'Media assets', d: 'Brand kit + editorial library.', href: '/contact', cta: 'Request →' },
+          { k: 'Diligence room', d: 'Cap table, contracts, references.', href: '/contact', cta: 'Request →' },
         ].map((doc) => (
           <div key={doc.k} className="bg-black p-8 group flex flex-col gap-3 hover:bg-[#050505] transition-colors">
             <div className="flex items-center gap-3">
@@ -83,7 +83,7 @@ function PrivateAccess() {
               <h3 className="text-base font-bold tracking-tight">{doc.k}</h3>
             </div>
             <p className="text-sm text-white/55 leading-relaxed">{doc.d}</p>
-            <a href="/contact" className="mt-auto text-[10px] uppercase tracking-[0.3em] text-primary/80 group-hover:text-primary transition-colors">Request →</a>
+            <a href={doc.href} className="mt-auto text-[10px] uppercase tracking-[0.3em] text-primary/80 group-hover:text-primary transition-colors">{doc.cta}</a>
           </div>
         ))}
       </div>
