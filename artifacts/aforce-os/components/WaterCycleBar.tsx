@@ -14,8 +14,14 @@ import Animated, {
   withRepeat,
   Easing,
 } from 'react-native-reanimated';
+import Svg, { Path } from 'react-native-svg';
 import type { PerformanceState } from '../types';
 import { Colors } from '../theme/colors';
+
+// Symmetric teardrop path: tip at top (12,1), bulb at bottom centred
+// on (12,16) with radius 10. Drawn in a 24×24 viewbox.
+const DROP_PATH =
+  'M12 1 C 12 1 22 12 22 16 A 10 10 0 1 1 2 16 C 2 12 12 1 12 1 Z';
 
 interface Props {
   unitsConsumed: number;
@@ -69,27 +75,29 @@ function Cell({
     opacity: opacity.value,
   }));
 
-  // Teardrop = a square with three rounded corners and one sharp
-  // corner, rotated 45° so the sharp corner points up. The fill is
-  // an absolute-positioned overlay inside the rotated parent, so it
-  // inherits the drop silhouette via `overflow: 'hidden'` without
-  // any SVG dependency.
+  // Symmetric teardrop rendered as an SVG path so the tip can sit
+  // perfectly vertical (the CSS rotated-square trick can only produce
+  // a diagonal point). Two stacked paths: the outline always renders,
+  // the filled copy on top fades in via opacity when the unit is
+  // consumed.
+  const strokeColor = filled ? color : Colors.border.medium;
   return (
     <Animated.View style={[styles.cell, animStyle]}>
-      <View
-        style={[
-          styles.drop,
-          { borderColor: filled ? color : Colors.border.medium },
-        ]}
-      >
-        {filled && (
-          <Animated.View
-            style={[
-              styles.dropFill,
-              { backgroundColor: color },
-              fillStyle,
-            ]}
+      <View style={styles.drop}>
+        <Svg width={24} height={24} viewBox="0 0 24 24">
+          <Path
+            d={DROP_PATH}
+            stroke={strokeColor}
+            strokeWidth={1}
+            fill="transparent"
           />
+        </Svg>
+        {filled && (
+          <Animated.View style={[styles.dropFill, fillStyle]}>
+            <Svg width={24} height={24} viewBox="0 0 24 24">
+              <Path d={DROP_PATH} fill={color} />
+            </Svg>
+          </Animated.View>
         )}
       </View>
     </Animated.View>
@@ -252,20 +260,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  // Drop silhouette: three rounded corners (TL / BR / BL) + one
-  // sharp corner (TR), then rotated 45° so the sharp corner points
-  // straight UP. `overflow: 'hidden'` clips the fill to the drop.
+  // Drop wrapper: hosts the outline SVG plus the absolute-positioned
+  // fill SVG overlay. The teardrop silhouette + vertical tip live in
+  // the SVG path itself, so no rotation or border-radius hackery here.
   drop: {
     width: 24,
     height: 24,
-    borderTopLeftRadius: 12,
-    borderTopRightRadius: 0,
-    borderBottomRightRadius: 12,
-    borderBottomLeftRadius: 12,
-    borderWidth: 1,
-    backgroundColor: Colors.fill.light,
-    overflow: 'hidden',
-    transform: [{ rotate: '45deg' }],
   },
   dropFill: {
     ...StyleSheet.absoluteFillObject,
