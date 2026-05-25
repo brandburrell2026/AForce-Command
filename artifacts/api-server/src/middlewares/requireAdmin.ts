@@ -1,13 +1,23 @@
 /**
- * requireAdmin — gate Express routes behind an allow-listed admin
- * email on the caller's Clerk session.
+ * requireAdmin — gate Express routes behind admin privileges on the
+ * caller's Clerk session.
  *
- * Allow-list source: ADMIN_EMAILS env var, comma-separated, matched
- * case-insensitively against the verified primary email on the
- * session. When ADMIN_EMAILS is unset OR CLERK_SECRET_KEY is unset,
- * the route fails closed in production (503/401) but opens for the
- * local demo user in development so the admin view is reachable
- * without configuring Clerk for ad-hoc work.
+ * Allow-list source (managed, no redeploy needed):
+ *   1. Clerk organization role — any membership whose role is
+ *      "admin" or "org:admin" grants admin.
+ *   2. Clerk user publicMetadata — `role: "admin"` or
+ *      `isAdmin: true` grants admin. Editable from the Clerk
+ *      dashboard or via the Clerk API.
+ *
+ * Bootstrap fallback (optional):
+ *   ADMIN_EMAILS — comma-separated, matched case-insensitively
+ *   against the caller's verified Clerk emails. Intended to seed
+ *   the first admin before any Clerk metadata is set; can be
+ *   removed once at least one admin is managed via Clerk.
+ *
+ * When CLERK_SECRET_KEY is unset the route fails closed in
+ * production (503) but opens in development so the admin view is
+ * reachable for local work without configuring Clerk.
  */
 
 import type { RequestHandler } from "express";
@@ -15,7 +25,7 @@ import { getAuth, clerkClient } from "@clerk/express";
 
 const IS_PRODUCTION = process.env["NODE_ENV"] === "production";
 
-function parseAllowlist(): Set<string> {
+function parseBootstrapEmails(): Set<string> {
   const raw = process.env["ADMIN_EMAILS"] ?? "";
   return new Set(
     raw
@@ -25,9 +35,28 @@ function parseAllowlist(): Set<string> {
   );
 }
 
-export const requireAdmin: RequestHandler = async (req, res, next) => {
-  const allowlist = parseAllowlist();
+function metadataGrantsAdmin(meta: unknown): boolean {
+  if (!meta || typeof meta !== "object") return false;
+  const m = meta as Record<string, unknown>;
+  if (m["isAdmin"] === true) return true;
+  const role = m["role"];
+  if (typeof role === "string" && role.toLowerCase() === "admin") return true;
+  const roles = m["roles"];
+  if (Array.isArray(roles)) {
+    return roles.some(
+      (r) => typeof r === "string" && r.toLowerCase() === "admin",
+    );
+  }
+  return false;
+}
 
+function orgMembershipGrantsAdmin(role: string | undefined | null): boolean {
+  if (!role) return false;
+  const normalized = role.toLowerCase();
+  return normalized === "admin" || normalized === "org:admin";
+}
+
+export const requireAdmin: RequestHandler = async (req, res, next) => {
   // Dev convenience: when Clerk isn't wired up at all, only allow the
   // admin surface outside of production. Production always fails
   // closed so a missing key can never leak the signup list.
@@ -47,27 +76,53 @@ export const requireAdmin: RequestHandler = async (req, res, next) => {
       return;
     }
 
-    if (allowlist.size === 0) {
-      // No allow-list configured. In production this is operator
-      // misconfiguration — refuse rather than letting any signed-in
-      // user pull the list. In dev it's fine to wave through.
-      if (IS_PRODUCTION) {
-        res.status(503).json({ error: "admin_not_configured" });
-        return;
-      }
+    // 1. Session-level org role check — cheap, no extra API call.
+    if (orgMembershipGrantsAdmin(auth?.orgRole)) {
       return next();
     }
 
     const user = await clerkClient.users.getUser(userId);
-    const emails = (user.emailAddresses ?? [])
-      .map((e) => e.emailAddress?.toLowerCase())
-      .filter((e): e is string => Boolean(e));
 
-    if (!emails.some((e) => allowlist.has(e))) {
-      res.status(403).json({ error: "forbidden" });
-      return;
+    // 2. publicMetadata / privateMetadata flag check.
+    if (
+      metadataGrantsAdmin(user.publicMetadata) ||
+      metadataGrantsAdmin(user.privateMetadata)
+    ) {
+      return next();
     }
-    next();
+
+    // 3. Any active org membership where the role is admin.
+    try {
+      const memberships =
+        await clerkClient.users.getOrganizationMembershipList({ userId });
+      const list = Array.isArray(memberships)
+        ? memberships
+        : ((memberships as { data?: unknown[] }).data ?? []);
+      if (
+        list.some((m) =>
+          orgMembershipGrantsAdmin((m as { role?: string }).role),
+        )
+      ) {
+        return next();
+      }
+    } catch (err) {
+      // Org lookups can fail when orgs aren't enabled on the Clerk
+      // instance; don't treat that as a hard error, just fall through.
+      req.log.debug?.({ err }, "requireAdmin: org membership lookup skipped");
+    }
+
+    // 4. Bootstrap fallback: ADMIN_EMAILS env allow-list.
+    const bootstrap = parseBootstrapEmails();
+    if (bootstrap.size > 0) {
+      const emails = (user.emailAddresses ?? [])
+        .map((e) => e.emailAddress?.toLowerCase())
+        .filter((e): e is string => Boolean(e));
+      if (emails.some((e) => bootstrap.has(e))) {
+        return next();
+      }
+    }
+
+    res.status(403).json({ error: "forbidden" });
   } catch (err) {
     req.log.error({ err }, "requireAdmin failed");
     res.status(500).json({ error: "admin_check_failed" });

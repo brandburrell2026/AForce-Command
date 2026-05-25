@@ -8,7 +8,8 @@
  *   GET  /admin/export.csv       → admin CSV download
  *   GET  /admin                  → admin minimal HTML view
  *
- * Admin routes are gated by requireAdmin (ADMIN_EMAILS allow-list).
+ * Admin routes are gated by requireAdmin (Clerk role / metadata, with
+ * an optional ADMIN_EMAILS bootstrap fallback).
  * The public POST is rate-limited to keep bots from filling the table.
  */
 
