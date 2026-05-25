@@ -113,6 +113,20 @@ export const baseFlags: FeatureFlags = {
   cruise_excursion_readiness_enabled: false,
   voice_status_module_visible: false,
   sleep_mode_enabled: false,
+  spec_activation: true,
+  spec_social: false,
+  spec_sleep: false,
+  spec_cruise: false,
+  spec_coachV2: false,
+  spec_premium: false,
+  spec_inventory: false,
+  spec_phantom: false,
+  spec_enterprise: false,
+  spec_language_ar: false,
+  spec_language_zh: false,
+  spec_language_ja: false,
+  spec_language_ko: false,
+  spec_language_hi: false,
 };
 
 export const baseSubscription: UserSubscription = {

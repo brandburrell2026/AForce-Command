@@ -501,7 +501,63 @@ export interface FeatureFlags {
   // sentence). Internal-only flag: ships ON for internal builds and OFF
   // for the public production binary so we can dogfood before launch.
   sleep_mode_enabled: boolean;
+
+  // ─── Spec v18 flags (Rule #17) ───────────────────────────────────────
+  // These gate NEW architecture work being built per the 18-rule spec.
+  // They are ADDITIVE: they do not override the existing tab-visibility
+  // or feature flags above. Existing visible surfaces (Social V2, Sleep
+  // tab, Cruise tab, Coach voice, etc.) remain governed by their
+  // pre-existing flags. The `spec_*` flags only gate the new builds
+  // added in later spec rules (Activation flow, Recovery Circle, Coach
+  // V2 mode triad, hidden languages, Phantom/Premium/Enterprise stubs).
+  //
+  // Default values follow the spec exactly:
+  //   spec_activation       = true   (Rule #9)
+  //   spec_social           = false  (Rule #13 — build, hide future iterations)
+  //   spec_sleep            = false  (Rule #14 — build, hide future iterations)
+  //   spec_cruise           = false  (Rule #15 — build, hide future iterations)
+  //   spec_coachV2          = false  (Rule #12 — new Silent/Ambient/Spoken triad)
+  //   spec_premium          = false  (Rule #18 — future stub)
+  //   spec_inventory        = false  (Rule #8 — product peek; no store/buy)
+  //   spec_phantom          = false  (Rule #18 — BLE Phantom hardware stub)
+  //   spec_enterprise       = false  (Rule #18 — Meridian enterprise stub)
+  //   spec_language_{ar,zh,ja,ko,hi} = false (Rule #16 — built, not selectable)
+  spec_activation: boolean;
+  spec_social: boolean;
+  spec_sleep: boolean;
+  spec_cruise: boolean;
+  spec_coachV2: boolean;
+  spec_premium: boolean;
+  spec_inventory: boolean;
+  spec_phantom: boolean;
+  spec_enterprise: boolean;
+  spec_language_ar: boolean;
+  spec_language_zh: boolean;
+  spec_language_ja: boolean;
+  spec_language_ko: boolean;
+  spec_language_hi: boolean;
 }
+
+/**
+ * Stable string union of the spec v18 flag names (without `spec_`
+ * prefix). Use with `getSpecFlag(flags, 'activation')` for ergonomic
+ * reads that mirror the spec document.
+ */
+export type SpecFlagName =
+  | 'activation'
+  | 'social'
+  | 'sleep'
+  | 'cruise'
+  | 'coachV2'
+  | 'premium'
+  | 'inventory'
+  | 'phantom'
+  | 'enterprise'
+  | 'language_ar'
+  | 'language_zh'
+  | 'language_ja'
+  | 'language_ko'
+  | 'language_hi';
 
 // ─── Hydration Journal ────────────────────────────────────────────────────────
 /**

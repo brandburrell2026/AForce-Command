@@ -7,7 +7,7 @@
  * (e.g. tied to subscription tier). For demo, an admin toggle in Profile flips them.
  */
 
-import type { FeatureFlags } from '../types';
+import type { FeatureFlags, SpecFlagName } from '../types';
 
 export const DEFAULT_FLAGS: FeatureFlags = {
   // Phase 2 — Clutch Access (Command the Team)
@@ -54,6 +54,24 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   // Sleep Mode — Phase 1. Internal: true, Public: false per spec. The
   // build switches this manually before cutting a public release.
   sleep_mode_enabled: true,
+
+  // ─── Spec v18 (Rule #17) ─── Values match the spec verbatim. These
+  // gate NEW architecture work added in later spec rules; existing
+  // visible surfaces stay governed by their pre-existing flags above.
+  spec_activation: true,
+  spec_social: false,
+  spec_sleep: false,
+  spec_cruise: false,
+  spec_coachV2: false,
+  spec_premium: false,
+  spec_inventory: false,
+  spec_phantom: false,
+  spec_enterprise: false,
+  spec_language_ar: false,
+  spec_language_zh: false,
+  spec_language_ja: false,
+  spec_language_ko: false,
+  spec_language_hi: false,
 };
 
 /**
@@ -84,8 +102,36 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
   cruise_excursion_readiness_enabled: true,
   voice_status_module_visible: true,
   sleep_mode_enabled: true,
+
+  // Spec v18 — demo profile turns on every spec flag EXCEPT the hidden
+  // languages. Those JSON resource files don't exist yet (Rule #16
+  // creates them); flipping them on now would crash i18next on lookup.
+  spec_activation: true,
+  spec_social: true,
+  spec_sleep: true,
+  spec_cruise: true,
+  spec_coachV2: true,
+  spec_premium: true,
+  spec_inventory: true,
+  spec_phantom: true,
+  spec_enterprise: true,
+  spec_language_ar: false,
+  spec_language_zh: false,
+  spec_language_ja: false,
+  spec_language_ko: false,
+  spec_language_hi: false,
 };
 
 export function isFlagEnabled(flags: FeatureFlags, key: keyof FeatureFlags): boolean {
   return Boolean(flags[key]);
+}
+
+/**
+ * Ergonomic read for spec v18 flags. Mirrors the spec document so
+ * callers can write `getSpecFlag(flags, 'activation')` instead of
+ * the prefixed `flags.spec_activation`. Useful when porting copy
+ * directly from the 18-rule spec into code.
+ */
+export function getSpecFlag(flags: FeatureFlags, name: SpecFlagName): boolean {
+  return Boolean(flags[`spec_${name}` as keyof FeatureFlags]);
 }
