@@ -2,6 +2,9 @@ import { defineConfig } from 'vitest/config';
 import path from 'node:path';
 
 export default defineConfig({
+  esbuild: {
+    jsx: 'automatic',
+  },
   resolve: {
     alias: {
       // Mirror the aforce-os tsconfig path alias so tests can resolve
@@ -17,8 +20,12 @@ export default defineConfig({
       'artifacts/aforce-os/hooks/__tests__/**/*.test.ts',
       'artifacts/api-server/src/**/__tests__/**/*.test.ts',
       'artifacts/api-server/src/lib/__tests__/**/*.test.ts',
+      'artifacts/aforce-site/src/**/__tests__/**/*.test.{ts,tsx}',
     ],
     environment: 'node',
+    environmentMatchGlobs: [
+      ['artifacts/aforce-site/**', 'happy-dom'],
+    ],
     reporters: 'default',
   },
 });
