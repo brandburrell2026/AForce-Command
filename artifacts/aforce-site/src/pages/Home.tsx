@@ -84,6 +84,7 @@ export default function Home() {
             <a href="#loop" className="hover:text-white transition-colors">The Loop</a>
             <a href="#os" className="hover:text-white transition-colors">OS</a>
             <a href="#ecosystem" className="hover:text-white transition-colors">Ecosystem</a>
+            <a href="/products" className="text-white hover:text-primary transition-colors">Shop</a>
             <a href="/manifesto" className="text-white hover:text-primary transition-colors">Manifesto</a>
             <a href="/science" className="text-white hover:text-primary transition-colors">Science</a>
             <a href="/os" className="text-white hover:text-primary transition-colors">OS</a>

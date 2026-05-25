@@ -1,6 +1,7 @@
 import { Link } from 'wouter';
 
 const LINKS = [
+  { href: '/products', label: 'Shop' },
   { href: '/manifesto', label: 'Manifesto' },
   { href: '/science', label: 'Science' },
   { href: '/os', label: 'OS' },

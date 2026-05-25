@@ -10,6 +10,7 @@ import Founders from "@/pages/Founders";
 import OS from "@/pages/OS";
 import Investors from "@/pages/Investors";
 import Contact from "@/pages/Contact";
+import Products from "@/pages/Products";
 
 const queryClient = new QueryClient();
 
@@ -23,6 +24,8 @@ function Router() {
       <Route path="/os" component={OS} />
       <Route path="/investors" component={Investors} />
       <Route path="/contact" component={Contact} />
+      <Route path="/products" component={Products} />
+      <Route path="/shop" component={Products} />
       <Route component={NotFound} />
     </Switch>
   );
