@@ -12,7 +12,17 @@
  * service, so no UI change is needed.
  */
 
-import { getCurrentLanguage, type SupportedLanguage } from './i18nService';
+import { SUPPORTED_LANGUAGES, getCurrentLanguage, type SupportedLanguage } from './i18nService';
+
+/** Narrow any active language to the visible 6 that have voice
+ *  vocabulary; hidden languages fall back to English for command
+ *  matching since their templates don't exist yet. */
+function narrowToVoiceLang(): SupportedLanguage {
+  const cur = getCurrentLanguage();
+  return (SUPPORTED_LANGUAGES as readonly string[]).includes(cur)
+    ? (cur as SupportedLanguage)
+    : 'en';
+}
 
 export type VoiceCommand =
   | 'log_water'
@@ -83,7 +93,7 @@ export async function stopListening(): Promise<void> {
  * command id or null. Falls back to English vocabulary if the user's
  * language has no match — handy for code-switchers.
  */
-export function matchCommand(text: string, lang: SupportedLanguage = getCurrentLanguage()): VoiceCommand | null {
+export function matchCommand(text: string, lang: SupportedLanguage = narrowToVoiceLang()): VoiceCommand | null {
   const needle = text.toLowerCase().trim();
   if (!needle) return null;
   const buckets: Array<Record<VoiceCommand, readonly string[]>> = [
