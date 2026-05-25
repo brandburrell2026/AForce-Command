@@ -171,23 +171,23 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="relative w-full rounded-2xl overflow-hidden border border-white/5 mb-12 bg-[#020202] p-6 lg:p-10">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_70%,rgba(180,20,30,0.08)_0%,transparent_60%)]" />
-            <div className="relative grid grid-cols-3 gap-4 lg:gap-10 items-end">
+          <div className="relative w-full rounded-2xl overflow-hidden border border-white/5 mb-12 bg-[#020202] p-10 lg:p-16">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_70%,rgba(180,20,30,0.12)_0%,transparent_60%)]" />
+            <div className="relative grid grid-cols-3 gap-6 lg:gap-14 items-end">
               {STICKS.map((s) => (
-                <div key={s.name} className="flex flex-col items-center text-center opacity-90">
+                <div key={s.name} className="flex flex-col items-center text-center">
                   <img
                     src={s.src}
                     alt={`AForce ${s.name} hydration stick`}
-                    className="w-full max-w-[150px] h-auto drop-shadow-[0_20px_40px_rgba(0,0,0,0.7)]"
+                    className="w-full max-w-[280px] h-auto drop-shadow-[0_30px_70px_rgba(0,0,0,0.8)]"
                     loading="lazy"
                   />
-                  <div className="mt-5 text-xs font-bold tracking-wide text-white/80">{s.name}</div>
-                  <div className="text-[10px] text-white/40 mt-1">{s.sub}</div>
+                  <div className="mt-8 text-base font-bold tracking-wide">{s.name}</div>
+                  <div className="text-xs text-white/55 mt-1">{s.sub}</div>
                 </div>
               ))}
             </div>
-            <div className="absolute top-5 left-5 text-white/40 font-mono text-[10px] tracking-[0.3em] uppercase">
+            <div className="absolute top-6 left-6 text-white/40 font-mono text-[10px] tracking-[0.3em] uppercase">
               The Stick
             </div>
           </div>
