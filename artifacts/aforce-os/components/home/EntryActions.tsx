@@ -15,55 +15,8 @@
 
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
 import { Icon, type IconName } from '../Icon';
 
-// Classic water-drop silhouette — same shape used elsewhere in the
-// app (WaterCycleBar, Urine swatch). 24×24 viewBox.
-const DROP_PATH =
-  'M12 1.5 C 9 7 4 11 4 16 A 8 8 0 0 0 20 16 C 20 11 15 7 12 1.5 Z';
-
-/**
- * UrineDroplets — three-drop glyph for the URINE quick-action tile.
- * Renders one larger drop with two smaller drops below it, in the
- * tile's text color. Sized to match the 28px footprint of the
- * Feather icons used by the other three tiles.
- */
-function UrineDroplets({ color }: { color: string }) {
-  return (
-    <View style={dropletStyles.glyph}>
-      <View style={dropletStyles.topRow}>
-        <Svg width={16} height={16} viewBox="0 0 24 24">
-          <Path d={DROP_PATH} fill={color} />
-        </Svg>
-      </View>
-      <View style={dropletStyles.bottomRow}>
-        <Svg width={11} height={11} viewBox="0 0 24 24">
-          <Path d={DROP_PATH} fill={color} />
-        </Svg>
-        <Svg width={11} height={11} viewBox="0 0 24 24">
-          <Path d={DROP_PATH} fill={color} />
-        </Svg>
-      </View>
-    </View>
-  );
-}
-
-const dropletStyles = StyleSheet.create({
-  glyph: {
-    width: 28,
-    height: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  topRow: {
-    marginBottom: -1,
-  },
-  bottomRow: {
-    flexDirection: 'row',
-    gap: 2,
-  },
-});
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 
@@ -212,11 +165,7 @@ function EntryActionsImpl() {
             accessibilityLabel={item.label}
             testID={`home-tile-${item.key}`}
           >
-            {item.key === 'urine' ? (
-              <UrineDroplets color={Colors.text.primary} />
-            ) : (
-              <Icon name={item.icon} size={28} color={Colors.text.primary} />
-            )}
+            <Icon name={item.icon} size={28} color={Colors.text.primary} />
             <Text style={styles.tileLabel}>{item.label.toUpperCase()}</Text>
             {item.accent ? (
               <View style={[styles.statusDot, { backgroundColor: item.accent }]} />
