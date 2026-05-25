@@ -30,6 +30,9 @@ const CANS = [
 import osRecoveryGreen from '@/assets/images/os-recovery-green.png';
 import osRecoveryRed from '@/assets/images/os-recovery-red.png';
 import osTimeline from '@/assets/images/os-timeline.png';
+import person1 from '@/assets/images/person-1.jpg';
+import person2 from '@/assets/images/person-2.jpg';
+import person3 from '@/assets/images/person-3.jpg';
 
 // Cross-artifact link target for the AForce OS mobile app, wired by
 // vite.config.ts from REPLIT_EXPO_DEV_DOMAIN in development.
@@ -352,20 +355,31 @@ export default function Home() {
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-white/5 border border-white/5 rounded-xl overflow-hidden">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
-              { label: 'Founders', sub: 'Operators who run hot.' },
-              { label: 'Surgeons', sub: 'Hands that cannot shake.' },
-              { label: 'Performers', sub: 'Bodies under load.' },
-            ].map((p) => (
+              { src: person1, label: 'Founders', sub: 'Operators who run hot.' },
+              { src: person2, label: 'Surgeons', sub: 'Hands that cannot shake.' },
+              { src: person3, label: 'Performers', sub: 'Bodies under load.' },
+            ].map((p, i) => (
               <div
                 key={p.label}
-                className="bg-black px-8 py-14 text-center hover:bg-primary/5 transition-colors duration-500"
+                className={`group relative aspect-[3/4] overflow-hidden rounded-lg ${
+                  i === 1 ? 'mt-0 md:mt-12' : ''
+                }`}
               >
-                <p className="uppercase tracking-[0.25em] text-xs font-bold text-primary mb-3">
-                  {p.label}
-                </p>
-                <p className="text-white/60 text-sm">{p.sub}</p>
+                <img
+                  src={p.src}
+                  alt={p.label}
+                  className="w-full h-full object-cover filter grayscale contrast-110 transition-all duration-700 group-hover:grayscale-0 group-hover:scale-105"
+                  loading="lazy"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
+                <div className="absolute bottom-6 left-6">
+                  <p className="uppercase tracking-[0.25em] text-xs font-bold text-primary mb-1">
+                    {p.label}
+                  </p>
+                  <p className="text-white/70 text-sm">{p.sub}</p>
+                </div>
               </div>
             ))}
           </div>
