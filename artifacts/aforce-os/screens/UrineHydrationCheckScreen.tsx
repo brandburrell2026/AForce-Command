@@ -36,37 +36,13 @@ const DROP_PATH =
  * circle.
  */
 function UrineDropCluster({ color }: { color: string }) {
-  // Falling-rain layout — six drops scattered across the swatch
-  // footprint at varied sizes / tilts / opacities, matching the
-  // reference raindrop pattern. Positions are absolute inside a
-  // 56×56 box. Tilt angles are gentle so the drops still read as
-  // upright water-drops, not commas.
-  const drops = [
-    { x: 6,  y: 2,  size: 14, rot: -12, op: 1.0 },
-    { x: 30, y: 0,  size: 18, rot: 14,  op: 0.85 },
-    { x: 2,  y: 24, size: 12, rot: 18,  op: 0.7 },
-    { x: 22, y: 22, size: 20, rot: -10, op: 1.0 },
-    { x: 42, y: 16, size: 14, rot: 8,   op: 0.8 },
-    { x: 14, y: 42, size: 10, rot: -16, op: 0.65 },
-  ];
+  // Single upright drop filled with the urine color — matches the
+  // URINE tab icon style. Centred in the same 56×56 swatch slot.
   return (
     <View style={swatchStyles.cluster}>
-      {drops.map((d, i) => (
-        <View
-          key={i}
-          style={{
-            position: 'absolute',
-            left: d.x,
-            top: d.y,
-            opacity: d.op,
-            transform: [{ rotate: `${d.rot}deg` }],
-          }}
-        >
-          <Svg width={d.size} height={d.size} viewBox="0 0 24 24">
-            <Path d={DROP_PATH} fill={color} />
-          </Svg>
-        </View>
-      ))}
+      <Svg width={44} height={44} viewBox="0 0 24 24">
+        <Path d={DROP_PATH} fill={color} />
+      </Svg>
     </View>
   );
 }
@@ -76,7 +52,8 @@ const swatchStyles = StyleSheet.create({
     width: 56,
     height: 56,
     marginBottom: 14,
-    position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
 
