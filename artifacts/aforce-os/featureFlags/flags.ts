@@ -81,6 +81,11 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   spec_profileSource: true,
   spec_sharedContextLayer: true,
   spec_uiFreeze: true,
+
+  // Recovery Layer — hidden engine. Phase 1 build, no visible surfaces.
+  // Stays OFF in DEFAULT_FLAGS so the production binary cannot expose
+  // it ahead of internal-preview readiness (Phase 2 in the spec).
+  spec_recovery: false,
 };
 
 /**
@@ -138,6 +143,10 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
   spec_profileSource: true,
   spec_sharedContextLayer: true,
   spec_uiFreeze: true,
+  // Demo profile lights the hidden Recovery engine so internal viewers
+  // can inspect outputs via dev tools even before any visible surface
+  // consumes them.
+  spec_recovery: true,
 };
 
 export function isFlagEnabled(flags: FeatureFlags, key: keyof FeatureFlags): boolean {

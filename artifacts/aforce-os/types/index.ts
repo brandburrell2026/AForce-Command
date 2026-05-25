@@ -554,6 +554,14 @@ export interface FeatureFlags {
   spec_sharedContextLayer: boolean;
   /** Rule #1 — UI Freeze keystone (14 frozen surfaces + 3 prohibitions). */
   spec_uiFreeze: boolean;
+  /**
+   * Recovery Layer (post-v18 architecture update) — hidden engine that
+   * feeds existing surfaces (Orb, Coach, Timeline, HydroJournal,
+   * Social, Guardian, Clutch). Phase 1 ships the engine only with no
+   * visible UI; later phases route the outputs into the existing
+   * surfaces. Default OFF: build, do not release.
+   */
+  spec_recovery: boolean;
 }
 
 /**
@@ -584,7 +592,8 @@ export type SpecFlagName =
   | 'hydroScan'
   | 'profileSource'
   | 'sharedContextLayer'
-  | 'uiFreeze';
+  | 'uiFreeze'
+  | 'recovery';
 
 // ─── Hydration Journal ────────────────────────────────────────────────────────
 /**
