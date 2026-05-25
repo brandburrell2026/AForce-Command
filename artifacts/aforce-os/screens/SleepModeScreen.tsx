@@ -327,11 +327,24 @@ export default function SleepModeScreen() {
               <Text style={styles.healthLabel}>
                 {Platform.OS === 'ios' ? 'APPLE HEALTH' : 'GOOGLE HEALTH CONNECT'}
               </Text>
-              <Text style={styles.healthValue}>
-                {sleepLastNight != null
-                  ? `${sleepLastNight.toFixed(1)}h last night`
-                  : 'No data yet'}
-              </Text>
+              {sleepLastNight != null ? (
+                <Text style={styles.healthValue}>
+                  {`${sleepLastNight.toFixed(1)}h last night`}
+                </Text>
+              ) : (
+                <Pressable
+                  accessibilityRole="link"
+                  accessibilityLabel="Connect Journal"
+                  onPress={() => {
+                    Haptics.selectionAsync().catch(() => {});
+                    router.push('/(tabs)/journal');
+                  }}
+                  hitSlop={8}>
+                  <Text style={[styles.healthValue, styles.healthValueLink]}>
+                    Waiting for recovery signals. Connect Journal.
+                  </Text>
+                </Pressable>
+              )}
             </View>
             {sevenNightAvg != null ? (
               <View style={styles.healthRow}>
@@ -477,6 +490,10 @@ const styles = StyleSheet.create({
   healthValue: {
     fontFamily: 'Inter_500Medium', fontSize: 14,
     color: Colors.text.primary,
+  },
+  healthValueLink: {
+    color: LIME,
+    textDecorationLine: 'underline',
   },
   complianceFinePrint: {
     marginTop: 4,
