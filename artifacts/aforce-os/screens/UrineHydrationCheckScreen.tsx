@@ -23,10 +23,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import Svg, { Path } from 'react-native-svg';
 
-// Symmetric teardrop path: tip at top (12,1), bulb at bottom centred
-// on (12,16) with radius 10. Drawn in a 24×24 viewBox.
+// Classic water-drop silhouette — sharp vertical tip with a long
+// pinched neck flaring into a wide round bulb. Kept in sync with
+// the same DROP_PATH in components/WaterCycleBar.tsx.
 const DROP_PATH =
-  'M12 1 C 12 1 22 12 22 16 A 10 10 0 1 1 2 16 C 2 12 12 1 12 1 Z';
+  'M12 1.5 C 9 7 4 11 4 16 A 8 8 0 0 0 20 16 C 20 11 15 7 12 1.5 Z';
 
 /**
  * UrineDropCluster — three teardrop SVGs arranged in a triangle

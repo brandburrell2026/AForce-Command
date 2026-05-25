@@ -18,11 +18,12 @@ import Svg, { Path } from 'react-native-svg';
 import type { PerformanceState } from '../types';
 import { Colors } from '../theme/colors';
 
-// Same symmetric vertical-tip teardrop used by the urine swatch
-// cluster. Tip at (12,1), bulb arc centred at (12,16) radius 10,
-// drawn in a 24×24 viewBox.
+// Classic water-drop silhouette — sharp vertical tip with a long
+// pinched neck flaring into a wide round bulb. Tip at (12,1.5),
+// shoulders pulled in at x=9/x=15 to taper the neck, bulb arc
+// centred at (12,16) radius 8. Drawn in a 24×24 viewBox.
 const DROP_PATH =
-  'M12 1 C 12 1 22 12 22 16 A 10 10 0 1 1 2 16 C 2 12 12 1 12 1 Z';
+  'M12 1.5 C 9 7 4 11 4 16 A 8 8 0 0 0 20 16 C 20 11 15 7 12 1.5 Z';
 
 interface Props {
   unitsConsumed: number;
