@@ -93,7 +93,7 @@ export default function Home() {
             <Link href="/contact" className="text-white hover:text-primary transition-colors">Contact</Link>
           </div>
           <a
-            href={AFORCE_OS_URL}
+            href="#early-access"
             className="text-[11px] uppercase tracking-[0.25em] text-white/80 hover:text-white transition-colors border border-white/15 hover:border-primary/60 px-4 py-2 rounded-full"
           >
             Early Access
@@ -128,7 +128,8 @@ export default function Home() {
             </p>
 
             <div
-              className="flex flex-col sm:flex-row items-stretch sm:items-center gap-6 mt-2 fade-up w-full max-w-lg"
+              id="early-access"
+              className="flex flex-col sm:flex-row items-stretch sm:items-center gap-6 mt-2 fade-up w-full max-w-lg scroll-mt-24"
               style={{ animationDelay: '0.35s' }}
             >
               <EarlyAccessCapture source="hero_cta" className="flex-1" />
