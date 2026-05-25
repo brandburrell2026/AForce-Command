@@ -1967,3 +1967,9 @@ id = "KO-gjT9aFJiKQzZ0N7918"
 uri = "file://artifacts/aforce-pitch/public/audio/act4-resolution.mp3"
 type = "audio"
 title = "act4 warm resolution"
+
+[[outputs]]
+id = "P5wlaeYw6kV1qELTnk8d5"
+uri = "file://exports/aforce-os-spec.pdf"
+type = "pdf"
+title = "AForce OS — Product & Technical Specification"
