@@ -72,6 +72,7 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   spec_language_ja: false,
   spec_language_ko: false,
   spec_language_hi: false,
+  spec_recoveryCircle: false,
 };
 
 /**
@@ -120,6 +121,7 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
   spec_language_ja: false,
   spec_language_ko: false,
   spec_language_hi: false,
+  spec_recoveryCircle: true,
 };
 
 export function isFlagEnabled(flags: FeatureFlags, key: keyof FeatureFlags): boolean {

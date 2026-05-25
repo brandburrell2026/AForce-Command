@@ -536,6 +536,8 @@ export interface FeatureFlags {
   spec_language_ja: boolean;
   spec_language_ko: boolean;
   spec_language_hi: boolean;
+  /** Rule #11 — Recovery Circle (Day 0/1/3/7/30, max 3, no feed). */
+  spec_recoveryCircle: boolean;
 }
 
 /**
@@ -557,7 +559,8 @@ export type SpecFlagName =
   | 'language_zh'
   | 'language_ja'
   | 'language_ko'
-  | 'language_hi';
+  | 'language_hi'
+  | 'recoveryCircle';
 
 // ─── Hydration Journal ────────────────────────────────────────────────────────
 /**
