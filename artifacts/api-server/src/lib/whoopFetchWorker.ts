@@ -25,7 +25,7 @@
  * the real WhoopTokenManager.
  */
 
-import { and, eq, lte, sql } from "drizzle-orm";
+import { and, eq, lte, sql, type SQL } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import {
   aforceUserState,
@@ -301,13 +301,21 @@ export async function* iterWhoopTokenUserIds(
   const cutoff = opts.updatedAtMax;
   let cursor: { updatedAt: Date; userId: string } | null = null;
   for (;;) {
-    const conditions = [
-      cursor
-        ? sql`(${aforceWhoopTokens.updatedAt}, ${aforceWhoopTokens.userId}) > (${cursor.updatedAt}, ${cursor.userId})`
-        : undefined,
-      cutoff ? lte(aforceWhoopTokens.updatedAt, cutoff) : undefined,
-    ].filter((c): c is NonNullable<typeof c> => c !== undefined);
-    const where =
+    // Explicit `SQL[]` annotation: without it, the mixed
+    // `sql<unknown> | SQL | undefined` array entries combined with
+    // the type-guard `.filter` widen `conditions` to `any[]` under
+    // strict-noImplicitAny (TS7022 cascade onto `where`, `rows`,
+    // `last`). Annotating the seed type pins the inference.
+    const conditions: SQL[] = [];
+    if (cursor) {
+      conditions.push(
+        sql`(${aforceWhoopTokens.updatedAt}, ${aforceWhoopTokens.userId}) > (${cursor.updatedAt}, ${cursor.userId})`,
+      );
+    }
+    if (cutoff) {
+      conditions.push(lte(aforceWhoopTokens.updatedAt, cutoff));
+    }
+    const where: SQL | undefined =
       conditions.length === 0
         ? undefined
         : conditions.length === 1

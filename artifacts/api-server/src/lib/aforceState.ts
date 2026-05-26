@@ -117,6 +117,11 @@ function defaultSeed(): Omit<AforceUserStateRow, "updatedAt"> {
     language: "en",
     intakeEvents: [],
     socialMode: null,
+    // Multi-provider biometrics blob — nullable jsonb. Populated by
+    // the WHOOP / Apple Health / Oura fetch workers (freshest-wins);
+    // seed starts empty so the demand engine falls back to its
+    // heatLoad-derived defaults until the first provider write.
+    biometrics: null,
   };
 }
 
