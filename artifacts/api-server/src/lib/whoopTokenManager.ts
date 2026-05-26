@@ -33,6 +33,7 @@
  */
 
 import type { WhoopTokens, WhoopTokenStore } from "@workspace/db";
+import type { WhoopRefreshCoordinator } from "./whoopRefreshRegistry";
 
 export const WHOOP_TOKEN_ENDPOINT =
   "https://api.prod.whoop.com/oauth/oauth2/token";
@@ -60,6 +61,16 @@ export interface WhoopTokenManagerOptions {
   nowMs?: () => number;
   /** Refresh proactively when this many ms remain on the access token. Default 60_000. */
   refreshSkewMs?: number;
+  /**
+   * Optional refresh coordinator. When provided, the manager delegates
+   * refresh-singleflight to this function instead of its own
+   * per-manager `inflight` slot. The fetch worker passes a coordinator
+   * bound to a process-level registry so two manager INSTANCES for the
+   * same user (e.g. two concurrent `runWhoopFetchOnce` calls) still
+   * collapse to one WHOOP POST. Default: per-manager singleflight,
+   * which is sufficient when only one manager exists per user.
+   */
+  refreshCoordinator?: WhoopRefreshCoordinator;
 }
 
 export interface WhoopTokenManager {
@@ -169,7 +180,25 @@ export function createWhoopTokenManager(
   // every caller gets the same WhoopTokens (or the same rejection).
   // The promise is cleared on settle (resolve OR reject) so the next
   // call after a failure retries cleanly rather than caching the error.
+  //
+  // Scope: when `opts.refreshCoordinator` is provided, the manager
+  // delegates singleflight to that function — which can dedupe across
+  // multiple manager instances (process-level, keyed by userId). When
+  // no coordinator is passed, the per-manager `inflight` slot below is
+  // used; this preserves the PR #17 behavior for direct test callers
+  // and any caller that only ever holds one manager per user.
   let inflight: Promise<WhoopTokens> | null = null;
+  const defaultCoordinator: WhoopRefreshCoordinator = (impl) => {
+    if (inflight) return inflight;
+    const p = impl().finally(() => {
+      // Owner-check — only the original creator clears its slot.
+      if (inflight === p) inflight = null;
+    });
+    inflight = p;
+    return p;
+  };
+  const coordinate: WhoopRefreshCoordinator =
+    opts.refreshCoordinator ?? defaultCoordinator;
 
   async function refreshImpl(): Promise<WhoopTokens> {
     const current = await opts.store.read();
@@ -213,16 +242,7 @@ export function createWhoopTokenManager(
   }
 
   function refresh(): Promise<WhoopTokens> {
-    if (inflight) return inflight;
-    const p = refreshImpl().finally(() => {
-      // Clear ONLY if we're still the owner — defensive in case
-      // someone (e.g. setTokens) replaces inflight while ours is
-      // still pending. Today nothing else writes inflight, but
-      // pinning the owner makes the invariant explicit.
-      if (inflight === p) inflight = null;
-    });
-    inflight = p;
-    return p;
+    return coordinate(refreshImpl);
   }
 
   return {

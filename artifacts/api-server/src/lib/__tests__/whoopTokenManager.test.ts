@@ -383,6 +383,122 @@ describe("createWhoopTokenManager — refresh singleflight", () => {
   });
 });
 
+describe("createWhoopTokenManager — refreshCoordinator (process-level singleflight)", () => {
+  it("two MANAGER INSTANCES sharing one registry coordinator for the same user collapse to ONE POST", async () => {
+    // The critical property: the fetch worker mints a fresh manager
+    // per runWhoopFetchOnce invocation. Two concurrent invocations
+    // for the same user would each hold their own per-manager
+    // singleflight slot — but if both are given the SAME process-level
+    // coordinator, only one POST should fire.
+    const { createWhoopRefreshRegistry } = await import(
+      "../whoopRefreshRegistry"
+    );
+    const registry = createWhoopRefreshRegistry();
+    const coord = registry.coordinatorFor("user-shared");
+
+    // Two independent stores both holding the same expired tokens —
+    // mirrors what two fresh Drizzle-backed stores would look like
+    // for the same userId.
+    const seedA = await (async () => {
+      const s = createInMemoryWhoopTokenStore();
+      await s.write({
+        accessToken: "old",
+        refreshToken: "r0",
+        expiresAt: 0,
+        scope: null,
+      });
+      return s;
+    })();
+    const seedB = await (async () => {
+      const s = createInMemoryWhoopTokenStore();
+      await s.write({
+        accessToken: "old",
+        refreshToken: "r0",
+        expiresAt: 0,
+        scope: null,
+      });
+      return s;
+    })();
+
+    const gate = makeGatedFetch({
+      access_token: "fresh",
+      refresh_token: "r1",
+      expires_in: 3600,
+    });
+
+    const managerA = createWhoopTokenManager({
+      store: seedA,
+      config: CONFIG,
+      fetchImpl: gate.fetchImpl,
+      nowMs: () => 1_000_000,
+      refreshCoordinator: coord,
+    });
+    const managerB = createWhoopTokenManager({
+      store: seedB,
+      config: CONFIG,
+      fetchImpl: gate.fetchImpl,
+      nowMs: () => 1_000_000,
+      refreshCoordinator: coord,
+    });
+
+    const pending = [managerA.refresh(), managerB.refresh()];
+    await Promise.resolve();
+    expect(gate.calls).toBe(1);
+    expect(registry.size()).toBe(1);
+    gate.release();
+    const [ra, rb] = await Promise.all(pending);
+    expect(gate.calls).toBe(1);
+    // Both managers got the same token bundle by identity — proves
+    // they awaited the same promise.
+    expect(ra).toBe(rb);
+    // Registry slot cleared on settle.
+    expect(registry.size()).toBe(0);
+  });
+
+  it("WITHOUT a shared coordinator, two manager instances DO fire two POSTs (preserves per-manager-default behavior)", async () => {
+    // Sanity: confirms the coordinator is what enables cross-instance
+    // dedupe — the per-manager default behaves as PR #17 specified.
+    const seedA = createInMemoryWhoopTokenStore();
+    const seedB = createInMemoryWhoopTokenStore();
+    await seedA.write({
+      accessToken: "old",
+      refreshToken: "rA",
+      expiresAt: 0,
+      scope: null,
+    });
+    await seedB.write({
+      accessToken: "old",
+      refreshToken: "rB",
+      expiresAt: 0,
+      scope: null,
+    });
+    let calls = 0;
+    const fetchImpl: typeof fetch = (async () => {
+      calls += 1;
+      return new Response(
+        JSON.stringify({
+          access_token: `fresh-${calls}`,
+          refresh_token: "r1",
+          expires_in: 3600,
+        }),
+        { status: 200, headers: { "content-type": "application/json" } },
+      );
+    }) as unknown as typeof fetch;
+    const a = createWhoopTokenManager({
+      store: seedA,
+      config: CONFIG,
+      fetchImpl,
+    });
+    const b = createWhoopTokenManager({
+      store: seedB,
+      config: CONFIG,
+      fetchImpl,
+    });
+    await Promise.all([a.refresh(), b.refresh()]);
+    expect(calls).toBe(2);
+  });
+});
+
 describe("createWhoopTokenManager.setTokens / signOut / peek", () => {
   it("round-trips through the store", async () => {
     const store = createInMemoryWhoopTokenStore();

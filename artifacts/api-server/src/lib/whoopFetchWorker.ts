@@ -29,6 +29,7 @@ import { eq, sql } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import {
   aforceUserState,
+  aforceWhoopTokens,
   createDrizzleWhoopTokenStoreForUser,
   type WhoopTokenStore,
 } from "@workspace/db";
@@ -38,6 +39,7 @@ import {
   getWhoopOAuthConfigFromEnv,
   type WhoopTokenManager,
 } from "./whoopTokenManager";
+import type { WhoopRefreshRegistry } from "./whoopRefreshRegistry";
 import {
   fetchWhoopSnapshot,
   whoopSnapshotToProviderBlob,
@@ -224,18 +226,48 @@ export function createDrizzleUserStateRepo(
 export function buildDefaultWhoopFetchDeps(
   db: NodePgDatabase<Record<string, unknown>>,
   userId: string,
-  opts: { log?: Pick<Logger, "info" | "warn" | "error"> } = {},
+  opts: {
+    log?: Pick<Logger, "info" | "warn" | "error">;
+    /** Process-level singleflight registry. When provided, the manager
+     *  shares an inflight slot with every other manager built for the
+     *  same userId through the same registry. Required for the cron
+     *  sweep + admin trigger to coexist without racing refresh
+     *  tokens. */
+    refreshRegistry?: WhoopRefreshRegistry;
+  } = {},
 ): RunWhoopFetchOnceDeps {
   const config = getWhoopOAuthConfigFromEnv();
   const store: WhoopTokenStore = createDrizzleWhoopTokenStoreForUser(
     db,
     userId,
   );
-  const tokenManager = createWhoopTokenManager({ store, config });
+  const tokenManager = createWhoopTokenManager({
+    store,
+    config,
+    refreshCoordinator: opts.refreshRegistry?.coordinatorFor(userId),
+  });
   return {
     tokenManager,
     stateRepo: createDrizzleUserStateRepo(db),
     log: opts.log,
   };
+}
+
+/**
+ * Enumerate every userId with stored WHOOP tokens. Used by the cron
+ * sweep to decide who to fetch this tick. Returns userIds in stable
+ * `updated_at ASC` order so a sweep can claim by oldest-first if it
+ * ever grows beyond a single pass.
+ *
+ * Hidden-infra: no HTTP route consumes this yet.
+ */
+export async function listWhoopTokenUserIds(
+  db: NodePgDatabase<Record<string, unknown>>,
+): Promise<string[]> {
+  const rows = await db
+    .select({ userId: aforceWhoopTokens.userId })
+    .from(aforceWhoopTokens)
+    .orderBy(aforceWhoopTokens.updatedAt);
+  return rows.map((r) => r.userId);
 }
 
