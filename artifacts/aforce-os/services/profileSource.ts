@@ -24,6 +24,24 @@
  */
 import { useFeatureFlags } from '@/store/useAppStore';
 
+// Re-export the pure BODY MODEL accessor + sleep selector so callers
+// can import everything profile-source from one place. The pure
+// helpers live in `profileBodyModel.ts` so they can be unit-tested
+// without traversing the react-native store hook.
+export {
+  getRequiredBodyModel,
+  getBodyModelOrDefaults,
+  MissingProfileFieldError,
+  BODY_MODEL_DEFAULTS,
+  selectFreshestSleepHours,
+  SLEEP_PROVIDERS,
+} from './profileBodyModel';
+export type {
+  RequiredBodyModel,
+  BodyModelField,
+  FreshestSleep,
+} from './profileBodyModel';
+
 /** The ten Profile-owned domains, in spec order. */
 export const PROFILE_DOMAINS = [
   'language',
@@ -131,6 +149,11 @@ export interface ProfileSourceState {
   unitVariants: typeof UNIT_VARIANTS;
   unitLabels: typeof UNIT_LABELS;
 }
+
+// BODY MODEL accessor + sleep selector live in `./profileBodyModel.ts`
+// and are re-exported at the top of this file. Kept out of this
+// module's body so the hook below (which depends on react-native via
+// useAppStore) doesn't taint the pure helpers' import graph.
 
 /**
  * Hidden hook. Returns the domain + unit manifests plus an
