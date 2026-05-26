@@ -691,21 +691,6 @@ export default function ProfileScreen() {
                 <SectionHeader label="PROTOCOL TOOLS" hint="Sport-science calculators" />
                 <View style={styles.card}>
                   <Pressable
-                    onPress={() => router.push('/sweat')}
-                    testID="profile-sweat-link"
-                    style={styles.settingRow}
-                  >
-                    <View style={styles.settingLeft}>
-                      <Icon name="droplet" size={16} color={Colors.states.BALANCED.primary} />
-                      <View>
-                        <Text style={styles.settingLabel}>Sweat Calculator</Text>
-                        <Text style={styles.settingSubLabel}>ACSM sweat-rate · Baker sodium · AForce Rx</Text>
-                      </View>
-                    </View>
-                    <Icon name="chevron-right" size={16} color={Colors.text.muted} />
-                  </Pressable>
-                  <Divider />
-                  <Pressable
                     onPress={() => router.push('/sensors')}
                     testID="profile-sensors-link"
                     style={styles.settingRow}
