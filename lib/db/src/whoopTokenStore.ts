@@ -108,6 +108,75 @@ export function createInMemoryWhoopTokenStore(
 }
 
 /**
+ * Phase B operational helper — encrypt plaintext columns into the
+ * enc columns for rows that pre-date the encryption opt-in (or for
+ * any row whose enc cols are NULL for any reason). Idempotent and
+ * batched: only touches rows where at least one of the enc columns
+ * is NULL, processes up to `batchSize` rows per call, and returns
+ * the number of rows updated.
+ *
+ * Run from a cron (`maybeStartWhoopTokenBackfill`) until it returns
+ * 0 for a sustained window, then ops can flip reads to enc-only and
+ * eventually drop the plaintext columns (Phase C, separate PR).
+ *
+ * Safety:
+ *   - Idempotent: WHERE access_token_enc IS NULL OR refresh_token_enc
+ *     IS NULL — re-running on an already-encrypted row is a no-op.
+ *   - Batched via a `user_id IN (SELECT ... LIMIT batchSize)` subquery
+ *     (Postgres UPDATE has no LIMIT clause). Bounds row-lock blast
+ *     radius and lets the cron make incremental progress without
+ *     long-running transactions.
+ *   - Same-key invariant: caller must pass the same key used by the
+ *     runtime store factories. Mixing keys across backfill runs
+ *     would leave rows decryptable only with whichever key wrote
+ *     each individual ciphertext.
+ *   - Does NOT touch plaintext columns. Phase B is purely additive
+ *     enc fill; Phase C will drop plaintext.
+ */
+export async function backfillWhoopTokenEncryption(
+  db: NodePgDatabase<Record<string, unknown>>,
+  encryptionKey: string,
+  batchSize: number,
+): Promise<number> {
+  if (typeof encryptionKey !== "string" || encryptionKey.trim() === "") {
+    throw new Error(
+      "backfillWhoopTokenEncryption: encryptionKey must be a non-empty string",
+    );
+  }
+  if (!Number.isFinite(batchSize) || batchSize <= 0) {
+    throw new Error(
+      "backfillWhoopTokenEncryption: batchSize must be a positive number",
+    );
+  }
+  // COALESCE on each enc column so a mixed row (one side already
+  // encrypted, the other NULL) doesn't get its non-NULL side
+  // needlessly re-encrypted with a fresh IV. The plaintext value of
+  // a non-NULL encrypted column never changes here, so reads stay
+  // byte-stable.
+  const result = await db.execute<{ user_id: string }>(sql`
+    update aforce_whoop_tokens
+       set access_token_enc  = coalesce(
+             access_token_enc,
+             pgp_sym_encrypt(access_token, ${encryptionKey})
+           ),
+           refresh_token_enc = coalesce(
+             refresh_token_enc,
+             pgp_sym_encrypt(refresh_token, ${encryptionKey})
+           ),
+           updated_at        = now()
+     where user_id in (
+       select user_id from aforce_whoop_tokens
+        where access_token_enc is null
+           or refresh_token_enc is null
+        limit ${batchSize}
+        for update skip locked
+     )
+     returning user_id
+  `);
+  return result.rows.length;
+}
+
+/**
  * Per-user, Postgres-backed store. Pass the user's id once; the
  * returned store talks only about that user.
  */

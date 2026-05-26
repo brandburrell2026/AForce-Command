@@ -6,6 +6,7 @@ import { attachAforceHub } from "./lib/aforceHub";
 import { initStripe } from "./lib/initStripe";
 import { maybeStartWhoopFetchSweep } from "./lib/whoopFetchSweepBootstrap";
 import { maybeStartWhoopAuthStatePurge } from "./lib/whoopAuthStatePurgeBootstrap";
+import { maybeStartWhoopTokenBackfill } from "./lib/whoopTokenBackfillBootstrap";
 import { getWhoopRefreshRegistry } from "./lib/whoopRegistry";
 
 const rawPort = process.env["PORT"];
@@ -47,6 +48,16 @@ server.listen(port, () => {
   // Hygiene only — table is bounded by inflight authorize attempts
   // per TTL window.
   maybeStartWhoopAuthStatePurge({
+    db,
+    log: logger,
+  });
+  // Hidden-infra: only ticks when WHOOP_TOKEN_BACKFILL_INTERVAL_MS is
+  // set to a positive number AND WHOOP_TOKEN_ENCRYPTION_KEY is set.
+  // Phase B of pgcrypto rollout — fills enc columns for legacy rows
+  // written before encryption was enabled. Once it reports filled=0
+  // for a sustained window, Phase C can flip reads to enc-only and
+  // drop the plaintext columns.
+  maybeStartWhoopTokenBackfill({
     db,
     log: logger,
   });

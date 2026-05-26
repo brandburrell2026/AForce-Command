@@ -14,11 +14,12 @@
  *   - optional `scope` round-trip and null preserved
  */
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
-import { eq, inArray } from "drizzle-orm";
+import { eq, inArray, sql } from "drizzle-orm";
 import {
   db,
   aforceWhoopTokens,
   createDrizzleWhoopTokenStoreForUser,
+  backfillWhoopTokenEncryption,
 } from "@workspace/db";
 
 const TEST_PREFIX = "test_whoop_user_";
@@ -34,6 +35,10 @@ const SEED_USERS = [
   user("enc_rotate"),
   user("enc_isolation"),
   user("enc_mixed"),
+  user("bf_a"),
+  user("bf_b"),
+  user("bf_already"),
+  user("bf_mixed"),
 ];
 
 const KEY_A = "test-symmetric-key-A-do-not-use-in-prod";
@@ -288,6 +293,180 @@ describe("createDrizzleWhoopTokenStoreForUser", () => {
     expect(got?.refreshToken).toBe("OLD_RT");
     // Sanity: keyless read of the same row returns the NEW value.
     expect((await keyless.read())?.accessToken).toBe("NEW_AT");
+  });
+
+  // ──────────────────────────────────────────────────────────────────
+  // pgcrypto backfill helper (Phase B).
+  // ──────────────────────────────────────────────────────────────────
+
+  it("backfill: encrypts only rows with NULL enc columns, leaves already-encrypted rows alone, is idempotent", async () => {
+    // Legacy rows: written by the keyless store, enc cols null.
+    const writerA = createDrizzleWhoopTokenStoreForUser(db, user("bf_a"));
+    const writerB = createDrizzleWhoopTokenStoreForUser(db, user("bf_b"));
+    await writerA.write({
+      accessToken: "BF_A_AT",
+      refreshToken: "BF_A_RT",
+      expiresAt: Date.UTC(2031, 0, 1),
+      scope: null,
+    });
+    await writerB.write({
+      accessToken: "BF_B_AT",
+      refreshToken: "BF_B_RT",
+      expiresAt: Date.UTC(2031, 0, 1),
+      scope: null,
+    });
+    // Already-encrypted row: keyed store. Capture the original enc
+    // bytes so we can prove backfill doesn't re-encrypt it (which
+    // would change the ciphertext because pgp_sym_encrypt uses a
+    // fresh random IV every call).
+    const keyed = createDrizzleWhoopTokenStoreForUser(
+      db,
+      user("bf_already"),
+      { encryptionKey: KEY_A },
+    );
+    await keyed.write({
+      accessToken: "BF_ALREADY_AT",
+      refreshToken: "BF_ALREADY_RT",
+      expiresAt: Date.UTC(2031, 0, 1),
+      scope: null,
+    });
+    const beforeAlready = await db
+      .select()
+      .from(aforceWhoopTokens)
+      .where(eq(aforceWhoopTokens.userId, user("bf_already")));
+    const originalEnc = Buffer.from(beforeAlready[0]!.accessTokenEnc!);
+
+    // Backfill runs across the WHOLE table, not just our test rows,
+    // so prior tests in this file may have left some other NULL-enc
+    // legacy rows. Count them up front so the assertion is exact
+    // against actual table state, not just our two seeded rows.
+    const nullBefore = await db
+      .select({ userId: aforceWhoopTokens.userId })
+      .from(aforceWhoopTokens)
+      .where(
+        sql`${aforceWhoopTokens.accessTokenEnc} is null or ${aforceWhoopTokens.refreshTokenEnc} is null`,
+      );
+    expect(nullBefore.map((r) => r.userId)).toEqual(
+      expect.arrayContaining([user("bf_a"), user("bf_b")]),
+    );
+
+    // First backfill pass — should encrypt every NULL-enc row.
+    const filled = await backfillWhoopTokenEncryption(db, KEY_A, 50);
+    expect(filled).toBe(nullBefore.length);
+
+    // Both legacy rows now decrypt back to their plaintext via the
+    // keyed reader.
+    for (const u of [user("bf_a"), user("bf_b")]) {
+      const reader = createDrizzleWhoopTokenStoreForUser(db, u, {
+        encryptionKey: KEY_A,
+      });
+      const got = await reader.read();
+      expect(got).not.toBeNull();
+      // Tamper-then-read confirms read went through pgp_sym_decrypt.
+      await db
+        .update(aforceWhoopTokens)
+        .set({ accessToken: "TAMPER" })
+        .where(eq(aforceWhoopTokens.userId, u));
+      const decrypted = await reader.read();
+      expect(decrypted?.accessToken).not.toBe("TAMPER");
+    }
+
+    // Already-encrypted row is byte-for-byte untouched.
+    const afterAlready = await db
+      .select()
+      .from(aforceWhoopTokens)
+      .where(eq(aforceWhoopTokens.userId, user("bf_already")));
+    expect(Buffer.from(afterAlready[0]!.accessTokenEnc!).equals(originalEnc)).toBe(
+      true,
+    );
+
+    // Idempotency: a second pass finds nothing to do.
+    const filled2 = await backfillWhoopTokenEncryption(db, KEY_A, 50);
+    expect(filled2).toBe(0);
+  });
+
+  it("backfill on a mixed row (only one enc col NULL) leaves the non-NULL side byte-stable via COALESCE", async () => {
+    // Set up a fully-encrypted row, then NULL out only one enc
+    // column — simulating a row where (e.g.) a schema migration
+    // backfilled half. The other side must NOT be re-encrypted with
+    // a fresh IV.
+    const keyed = createDrizzleWhoopTokenStoreForUser(db, user("bf_mixed"), {
+      encryptionKey: KEY_A,
+    });
+    await keyed.write({
+      accessToken: "BF_MIXED_AT",
+      refreshToken: "BF_MIXED_RT",
+      expiresAt: Date.UTC(2031, 0, 1),
+      scope: null,
+    });
+    const before = (
+      await db
+        .select()
+        .from(aforceWhoopTokens)
+        .where(eq(aforceWhoopTokens.userId, user("bf_mixed")))
+    )[0]!;
+    const originalRefreshEnc = Buffer.from(before.refreshTokenEnc!);
+    await db
+      .update(aforceWhoopTokens)
+      .set({ accessTokenEnc: null })
+      .where(eq(aforceWhoopTokens.userId, user("bf_mixed")));
+
+    await backfillWhoopTokenEncryption(db, KEY_A, 50);
+
+    const after = (
+      await db
+        .select()
+        .from(aforceWhoopTokens)
+        .where(eq(aforceWhoopTokens.userId, user("bf_mixed")))
+    )[0]!;
+    // The NULL side is now filled.
+    expect(after.accessTokenEnc).not.toBeNull();
+    // And the side that was already encrypted is byte-identical
+    // (COALESCE short-circuited the pgp_sym_encrypt re-run).
+    expect(
+      Buffer.from(after.refreshTokenEnc!).equals(originalRefreshEnc),
+    ).toBe(true);
+  });
+
+  it("backfill respects batchSize", async () => {
+    // Reset bf_a + bf_b to NULL enc to simulate two legacy rows.
+    // Use an exclusion list to also clear any other NULL-enc rows
+    // first (they were filled by the previous test) so this test
+    // observes exactly the 2 rows we seeded.
+    await db
+      .update(aforceWhoopTokens)
+      .set({ accessTokenEnc: null, refreshTokenEnc: null })
+      .where(inArray(aforceWhoopTokens.userId, [user("bf_a"), user("bf_b")]));
+    const nullCount = (
+      await db
+        .select({ userId: aforceWhoopTokens.userId })
+        .from(aforceWhoopTokens)
+        .where(
+          sql`${aforceWhoopTokens.accessTokenEnc} is null or ${aforceWhoopTokens.refreshTokenEnc} is null`,
+        )
+    ).length;
+    expect(nullCount).toBe(2);
+    const first = await backfillWhoopTokenEncryption(db, KEY_A, 1);
+    expect(first).toBe(1);
+    const second = await backfillWhoopTokenEncryption(db, KEY_A, 1);
+    expect(second).toBe(1);
+    const third = await backfillWhoopTokenEncryption(db, KEY_A, 1);
+    expect(third).toBe(0);
+  });
+
+  it("backfill rejects empty key and non-positive batchSize", async () => {
+    await expect(backfillWhoopTokenEncryption(db, "", 10)).rejects.toThrow(
+      /must be a non-empty string/,
+    );
+    await expect(backfillWhoopTokenEncryption(db, "   ", 10)).rejects.toThrow(
+      /must be a non-empty string/,
+    );
+    await expect(backfillWhoopTokenEncryption(db, KEY_A, 0)).rejects.toThrow(
+      /must be a positive number/,
+    );
+    await expect(backfillWhoopTokenEncryption(db, KEY_A, -1)).rejects.toThrow(
+      /must be a positive number/,
+    );
   });
 
   it("keyed write does not break per-user isolation", async () => {
