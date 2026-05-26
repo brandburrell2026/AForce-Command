@@ -78,7 +78,13 @@ if (whoopClientId && whoopClientSecret && whoopRedirectUri) {
         clientSecret: whoopClientSecret,
       },
       redirectUri: whoopRedirectUri,
-      tokenStoreFor: (userId) => createDrizzleWhoopTokenStoreForUser(db, userId),
+      tokenStoreFor: (userId) =>
+        createDrizzleWhoopTokenStoreForUser(db, userId, {
+          // Hidden-infra opt-in: unset = unchanged plaintext behavior.
+          // Whitespace-only is treated as unset by the store factory.
+          encryptionKey: process.env["WHOOP_TOKEN_ENCRYPTION_KEY"] ?? null,
+          log: logger,
+        }),
       successRedirectUrl: process.env["WHOOP_OAUTH_SUCCESS_URL"],
     }),
   );

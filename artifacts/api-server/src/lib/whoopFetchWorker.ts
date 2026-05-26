@@ -241,6 +241,14 @@ export function buildDefaultWhoopFetchDeps(
   const store: WhoopTokenStore = createDrizzleWhoopTokenStoreForUser(
     db,
     userId,
+    {
+      // Same env opt-in used by the OAuth callback wiring (see
+      // `routes/index.ts`); fetch sweep + admin trigger must see the
+      // same enc state to avoid plaintext-only writes overwriting
+      // dual-written rows when the key is configured.
+      encryptionKey: process.env["WHOOP_TOKEN_ENCRYPTION_KEY"] ?? null,
+      log: opts.log,
+    },
   );
   const tokenManager = createWhoopTokenManager({
     store,

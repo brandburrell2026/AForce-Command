@@ -11,7 +11,23 @@
  *   aforce_confirmations — append-only ±3 confirmation answers
  */
 
-import { pgTable, text, integer, real, boolean, timestamp, jsonb, serial, bigint, index, uniqueIndex } from "drizzle-orm/pg-core";
+import { pgTable, text, integer, real, boolean, timestamp, jsonb, serial, bigint, index, uniqueIndex, customType } from "drizzle-orm/pg-core";
+
+/**
+ * Postgres `bytea` column — Drizzle doesn't ship a first-class bytea
+ * helper, so we declare it via `customType`. Used for pgcrypto
+ * ciphertext (see `aforceWhoopTokens.accessTokenEnc`).
+ *
+ * The driver returns `Buffer`; we type as `Uint8Array` (Buffer's
+ * superclass) so callers can stay platform-agnostic. On the write
+ * side we only ever pass these columns via raw `sql` template (e.g.
+ * `pgp_sym_encrypt($t, $k)`) so a `toDriver` mapping is unused.
+ */
+const customBytea = customType<{ data: Uint8Array; driverData: Buffer }>({
+  dataType() {
+    return "bytea";
+  },
+});
 
 export const aforceUserState = pgTable("aforce_user_state", {
   userId: text("user_id").primaryKey(),
@@ -601,6 +617,18 @@ export const aforceWhoopTokens = pgTable(
     userId: text("user_id").primaryKey(),
     accessToken: text("access_token").notNull(),
     refreshToken: text("refresh_token").notNull(),
+    /** pgcrypto-encrypted access token (`pgp_sym_encrypt` with the
+     *  deployment's `WHOOP_TOKEN_ENCRYPTION_KEY`). Nullable so the
+     *  rollout is purely additive — rows written before encryption
+     *  is enabled stay readable via the plaintext column. Phase A of
+     *  the encryption migration: writes are DUAL (plaintext + enc)
+     *  when a key is configured; reads prefer enc and fall back to
+     *  plaintext on decrypt failure or null enc. Phase B (future
+     *  PR) will backfill enc, flip reads to enc-only, then drop the
+     *  plaintext columns. */
+    accessTokenEnc: customBytea("access_token_enc"),
+    /** See accessTokenEnc — same lifecycle, same rollout phase. */
+    refreshTokenEnc: customBytea("refresh_token_enc"),
     expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
     /** Space-separated scopes the user granted (e.g. 'offline read:recovery …').
      *  Null when the WHOOP token endpoint didn't echo `scope` back. */

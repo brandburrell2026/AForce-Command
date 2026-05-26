@@ -37,6 +37,46 @@ export interface WhoopTokens {
 }
 
 /**
+ * Minimal logger shape — keeps this lib pino-free. The store only
+ * needs `warn` (decrypt fallback) and `error` (unrecoverable).
+ */
+export interface WhoopTokenStoreLogger {
+  warn: (obj: Record<string, unknown>, msg?: string) => void;
+}
+
+export interface DrizzleWhoopTokenStoreOptions {
+  /**
+   * **Phase A invariant — all writers in the same deployment MUST
+   * agree on this key.** If some writers run keyed and others
+   * keyless against the same row, the keyless writes will update the
+   * plaintext column but leave the enc column stale; a subsequent
+   * keyed read will then prefer the stale enc value and return an
+   * outdated token. The runtime call sites (OAuth callback in
+   * `routes/index.ts` and fetch sweep in `whoopFetchWorker.ts`) both
+   * read the same `WHOOP_TOKEN_ENCRYPTION_KEY` env var to keep this
+   * invariant. Any new writer must do the same.
+   *
+   * pgcrypto symmetric key. When set, the Drizzle store DUAL-WRITES
+   * (plaintext column + `pgp_sym_encrypt(token, key)` ciphertext
+   * column) and PREFERS the encrypted column on read. When the
+   * ciphertext column is null (legacy row) OR `pgp_sym_decrypt`
+   * throws (wrong key, corruption), the store falls back to the
+   * plaintext column and the read still succeeds.
+   *
+   * **Hidden-infra contract**: unset (default) = unchanged behavior.
+   * Plaintext-only writes/reads, encrypted columns stay null.
+   *
+   * **Rollout phase A** (this PR): dual-write + prefer-enc-on-read.
+   * No backfill of legacy rows. Phase B (future) will backfill, flip
+   * reads to enc-only, then drop the plaintext columns.
+   */
+  encryptionKey?: string | null;
+  /** Optional logger for decrypt fallback / dual-write failure
+   *  paths. Defaults to a no-op. */
+  log?: WhoopTokenStoreLogger;
+}
+
+/**
  * Per-user storage adapter. Once a store is created it is bound to
  * a single `userId`; the manager doesn't need to know about user
  * identity, which keeps the mobile/server manager surfaces
@@ -74,6 +114,7 @@ export function createInMemoryWhoopTokenStore(
 export function createDrizzleWhoopTokenStoreForUser(
   db: NodePgDatabase<Record<string, unknown>>,
   userId: string,
+  opts: DrizzleWhoopTokenStoreOptions = {},
 ): WhoopTokenStore {
   if (!userId) {
     // Refuse to bind to an empty user id — would otherwise let one
@@ -84,8 +125,70 @@ export function createDrizzleWhoopTokenStoreForUser(
     );
   }
 
+  // Strict opt-in: only non-empty string keys enable encryption.
+  // Empty/whitespace-only keys are a misconfiguration that would
+  // otherwise yield trivially-decryptable ciphertext; refuse.
+  const encryptionKey =
+    typeof opts.encryptionKey === "string" && opts.encryptionKey.trim() !== ""
+      ? opts.encryptionKey
+      : null;
+  const log = opts.log;
+
   return {
     async read() {
+      if (encryptionKey) {
+        // Prefer enc, fall back to plaintext on null OR decrypt
+        // failure. COALESCE alone isn't enough because a wrong-key
+        // decrypt throws (it doesn't return null), so we do the
+        // fallback in two queries: try enc first, catch, fall back.
+        try {
+          const rows = await db.execute<{
+            access_token: string;
+            refresh_token: string;
+            expires_at: Date;
+            scope: string | null;
+            access_token_enc_present: boolean;
+            refresh_token_enc_present: boolean;
+            access_token_dec: string | null;
+            refresh_token_dec: string | null;
+          }>(sql`
+            select
+              access_token,
+              refresh_token,
+              expires_at,
+              scope,
+              access_token_enc is not null as access_token_enc_present,
+              refresh_token_enc is not null as refresh_token_enc_present,
+              case when access_token_enc is not null
+                then pgp_sym_decrypt(access_token_enc, ${encryptionKey})
+                else null end as access_token_dec,
+              case when refresh_token_enc is not null
+                then pgp_sym_decrypt(refresh_token_enc, ${encryptionKey})
+                else null end as refresh_token_dec
+            from aforce_whoop_tokens
+            where user_id = ${userId}
+            limit 1
+          `);
+          const row = rows.rows[0];
+          if (!row) return null;
+          return {
+            accessToken: row.access_token_dec ?? row.access_token,
+            refreshToken: row.refresh_token_dec ?? row.refresh_token,
+            expiresAt: new Date(row.expires_at).getTime(),
+            scope: row.scope,
+          };
+        } catch (err) {
+          // Wrong key / corrupted ciphertext — fall back to plaintext
+          // column and log. Phase A guarantees plaintext is always
+          // populated, so the user keeps working through a botched
+          // key rotation; ops sees the warning.
+          log?.warn(
+            { err: err instanceof Error ? err.message : String(err), userId },
+            "whoopTokenStore: pgp_sym_decrypt failed, falling back to plaintext column",
+          );
+        }
+      }
+
       const rows = await db
         .select()
         .from(aforceWhoopTokens)
@@ -103,6 +206,34 @@ export function createDrizzleWhoopTokenStoreForUser(
     async write(t) {
       // UPSERT — first connect writes the row; refreshes UPDATE in
       // place. `updated_at` bumps on every write for ops visibility.
+      //
+      // When a key is configured we DUAL-WRITE: plaintext columns
+      // stay populated (Phase A), AND `pgp_sym_encrypt` ciphertext
+      // lands in the enc columns. A raw `sql` template handles the
+      // pgcrypto call since the encrypted columns are bytea.
+      if (encryptionKey) {
+        await db.execute(sql`
+          insert into aforce_whoop_tokens
+            (user_id, access_token, refresh_token,
+             access_token_enc, refresh_token_enc,
+             expires_at, scope)
+          values
+            (${userId}, ${t.accessToken}, ${t.refreshToken},
+             pgp_sym_encrypt(${t.accessToken}, ${encryptionKey}),
+             pgp_sym_encrypt(${t.refreshToken}, ${encryptionKey}),
+             ${new Date(t.expiresAt)}, ${t.scope ?? null})
+          on conflict (user_id) do update set
+            access_token = excluded.access_token,
+            refresh_token = excluded.refresh_token,
+            access_token_enc = excluded.access_token_enc,
+            refresh_token_enc = excluded.refresh_token_enc,
+            expires_at = excluded.expires_at,
+            scope = excluded.scope,
+            updated_at = now()
+        `);
+        return;
+      }
+
       await db
         .insert(aforceWhoopTokens)
         .values({

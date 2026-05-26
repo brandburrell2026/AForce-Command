@@ -24,7 +24,10 @@
  */
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import type { Logger } from "pino";
-import { purgeExpiredWhoopAuthStates } from "./whoopAuthStateStore";
+import {
+  purgeExpiredWhoopAuthStates,
+  WHOOP_AUTH_STATE_DEFAULT_TTL_MS,
+} from "./whoopAuthStateStore";
 
 export interface MaybeStartWhoopAuthStatePurgeOpts {
   db: NodePgDatabase<Record<string, unknown>>;
@@ -34,10 +37,11 @@ export interface MaybeStartWhoopAuthStatePurgeOpts {
   /** Override for tests. Defaults to
    *  `WHOOP_AUTH_STATE_PURGE_INTERVAL_MS`. */
   envVarName?: string;
-  /** Override the TTL. Defaults to 10 min — must match the store's
-   *  default TTL so we don't reap rows that `consume` would still
-   *  accept. If the deployment overrides the store TTL, override
-   *  this too. */
+  /** Override the TTL. Defaults to
+   *  {@link WHOOP_AUTH_STATE_DEFAULT_TTL_MS} — same single source of
+   *  truth used by the store factories, so the purge can never reap
+   *  rows `consume` would still accept. If a deployment overrides
+   *  the store TTL, it must override this too. */
   ttlMs?: number;
   /** TEST SEAM: override the purge fn. Defaults to
    *  `purgeExpiredWhoopAuthStates`. */
@@ -56,8 +60,6 @@ export type WhoopAuthStatePurgeHandle = {
   intervalMs: number;
   ttlMs: number;
 };
-
-const DEFAULT_TTL_MS = 10 * 60 * 1000;
 
 export function maybeStartWhoopAuthStatePurge(
   opts: MaybeStartWhoopAuthStatePurgeOpts,
@@ -78,7 +80,7 @@ export function maybeStartWhoopAuthStatePurge(
     return null;
   }
 
-  const ttlMs = opts.ttlMs ?? DEFAULT_TTL_MS;
+  const ttlMs = opts.ttlMs ?? WHOOP_AUTH_STATE_DEFAULT_TTL_MS;
   const purgeFn = opts.purgeFn ?? purgeExpiredWhoopAuthStates;
   const now = opts.now ?? Date.now;
   const log = opts.log;

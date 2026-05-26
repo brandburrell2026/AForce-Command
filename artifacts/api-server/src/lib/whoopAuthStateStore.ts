@@ -33,6 +33,18 @@ import { sql } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import { aforceWhoopAuthStates } from "@workspace/db";
 
+/**
+ * Default TTL for an in-flight WHOOP OAuth state record. Generous for
+ * a flow that should take < 30s. EXPORTED so the purge cron
+ * (`whoopAuthStatePurgeBootstrap`) can default to the same value —
+ * if the store and purge defaults drift, the purge could reap rows
+ * that `consume` would still accept.
+ *
+ * Single source of truth: any deployment that overrides the store
+ * TTL must also pass `ttlMs` to the purge bootstrap.
+ */
+export const WHOOP_AUTH_STATE_DEFAULT_TTL_MS = 10 * 60 * 1000;
+
 export interface WhoopAuthStateRecord {
   /** PKCE verifier minted alongside this state. */
   codeVerifier: string;
@@ -50,14 +62,14 @@ export interface WhoopAuthStateStore {
 }
 
 export interface InMemoryWhoopAuthStateStoreOptions {
-  /** Default 10 minutes — generous for a flow that should take < 30s. */
+  /** Defaults to {@link WHOOP_AUTH_STATE_DEFAULT_TTL_MS}. */
   ttlMs?: number;
 }
 
 export function createInMemoryWhoopAuthStateStore(
   opts: InMemoryWhoopAuthStateStoreOptions = {},
 ): WhoopAuthStateStore {
-  const ttlMs = opts.ttlMs ?? 10 * 60 * 1000;
+  const ttlMs = opts.ttlMs ?? WHOOP_AUTH_STATE_DEFAULT_TTL_MS;
   const map = new Map<string, WhoopAuthStateRecord>();
   return {
     async put(state, record) {
@@ -77,7 +89,7 @@ export function createInMemoryWhoopAuthStateStore(
 }
 
 export interface DrizzleWhoopAuthStateStoreOptions {
-  /** Default 10 minutes — matches the in-memory store. */
+  /** Defaults to {@link WHOOP_AUTH_STATE_DEFAULT_TTL_MS}. */
   ttlMs?: number;
 }
 
@@ -101,7 +113,7 @@ export function createDrizzleWhoopAuthStateStore(
   db: NodePgDatabase<Record<string, unknown>>,
   opts: DrizzleWhoopAuthStateStoreOptions = {},
 ): WhoopAuthStateStore {
-  const ttlMs = opts.ttlMs ?? 10 * 60 * 1000;
+  const ttlMs = opts.ttlMs ?? WHOOP_AUTH_STATE_DEFAULT_TTL_MS;
   return {
     async put(state, record) {
       if (!state) throw new Error("state must be non-empty");
