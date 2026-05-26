@@ -688,7 +688,7 @@ export default function ProfileScreen() {
 
             const protocolToolsCard = (
               <>
-                <SectionHeader label="PROTOCOL TOOLS" hint="Sport-science calculators" />
+                <SectionHeader label="PROTOCOL TOOLS" />
                 <View style={styles.card}>
                   <Pressable
                     onPress={() => router.push('/sensors')}
