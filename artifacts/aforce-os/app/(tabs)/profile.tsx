@@ -4,7 +4,7 @@
  * Phase 2 (Clutch) and Phase 3 (Guardian).
  */
 
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, Switch, TouchableOpacity, Platform, Pressable, Alert, Image,
 } from 'react-native';
@@ -54,6 +54,7 @@ import {
 } from '@/services/voice/commandVoice';
 import { replayLastCommand, getLastCommand } from '@/services/voice/commandVoiceBus';
 import { useDevMode, setDevMode } from '@/services/devMode';
+import { getJsonAforceApi } from '@/services/aforceApiClient';
 
 // Lazy-loaded haptics — `expo-haptics` rejects on web (no native
 // module). The `import('expo-haptics')` form bundles the module on
@@ -96,6 +97,43 @@ export default function ProfileScreen() {
   const coachMode = useCoachModeSetting();
   const profileIdentity = useProfileIdentitySlice();
   const devMode = useDevMode();
+
+  // ──────────────────────────────────────────────────────────────────
+  // WHOOP token encryption status — admin-only readout. Hidden behind
+  // Developer Mode so it never appears for end users. Fetched lazily
+  // when devMode flips on, refreshable via a button. Endpoint is
+  // gated server-side by requireAdmin; non-admin callers see 401/403
+  // and we surface that as an error string.
+  // ──────────────────────────────────────────────────────────────────
+  type EncryptionStatus = {
+    total: number;
+    encrypted: number;
+    plaintextOnly: number;
+    halfEncrypted: number;
+    encryptionKeyConfigured: boolean;
+    backfillCronEnabled: boolean;
+  };
+  const [encStatus, setEncStatus] = useState<EncryptionStatus | null>(null);
+  const [encError, setEncError] = useState<string | null>(null);
+  const [encLoading, setEncLoading] = useState<boolean>(false);
+  const refreshEncStatus = useCallback(async () => {
+    setEncLoading(true);
+    setEncError(null);
+    try {
+      const data = await getJsonAforceApi<EncryptionStatus>(
+        '/admin/whoop/encryption-status',
+      );
+      setEncStatus(data);
+    } catch (err) {
+      setEncError(err instanceof Error ? err.message : 'request failed');
+      setEncStatus(null);
+    } finally {
+      setEncLoading(false);
+    }
+  }, []);
+  useEffect(() => {
+    if (devMode) void refreshEncStatus();
+  }, [devMode, refreshEncStatus]);
   // Spec #7 — referral loop. Server auto-issues a code on first read,
   // so the hook is fired unconditionally; auth flows through the same
   // bridge the rest of the app uses.
@@ -1348,6 +1386,10 @@ export default function ProfileScreen() {
               </>
             );
 
+            const encPct =
+              encStatus && encStatus.total > 0
+                ? Math.round((encStatus.encrypted / encStatus.total) * 1000) / 10
+                : 0;
             const developerBlock = (
               <>
                 <SectionHeader label="DEVELOPER" hint="Internal tools · not for production users" />
@@ -1371,6 +1413,109 @@ export default function ProfileScreen() {
                     />
                   </View>
                 </View>
+
+                {devMode && (
+                  <View style={styles.card} testID="profile-whoop-encryption-status">
+                    <View style={styles.encHeaderRow}>
+                      <View style={styles.settingLeft}>
+                        <Icon name="shield" size={16} color="#B6FF00" />
+                        <View>
+                          <Text style={styles.settingLabel}>WHOOP token encryption</Text>
+                          <Text style={styles.settingSubLabel}>
+                            Phase B backfill progress · admin only
+                          </Text>
+                        </View>
+                      </View>
+                      <Pressable
+                        onPress={() => { void refreshEncStatus(); }}
+                        style={styles.encRefreshBtn}
+                        accessibilityLabel="Refresh encryption status"
+                        testID="profile-whoop-encryption-refresh"
+                      >
+                        <Text style={styles.encRefreshLabel}>
+                          {encLoading ? '…' : 'Refresh'}
+                        </Text>
+                      </Pressable>
+                    </View>
+
+                    {encError ? (
+                      <Text style={styles.encError} testID="profile-whoop-encryption-error">
+                        {encError}
+                      </Text>
+                    ) : encStatus ? (
+                      <>
+                        <View style={styles.encHeroRow}>
+                          <Text style={styles.encHeroPct} testID="profile-whoop-encryption-pct">
+                            {encPct.toFixed(1)}%
+                          </Text>
+                          <Text style={styles.encHeroLabel}>
+                            {encStatus.encrypted.toLocaleString()} /{' '}
+                            {encStatus.total.toLocaleString()} rows encrypted
+                          </Text>
+                        </View>
+                        <View style={styles.encBarTrack}>
+                          <View
+                            style={[
+                              styles.encBarFill,
+                              { width: `${Math.min(100, encPct)}%` },
+                            ]}
+                          />
+                        </View>
+                        <View style={styles.encStatGrid}>
+                          <View style={styles.encStatCell}>
+                            <Text style={styles.encStatNum}>
+                              {encStatus.plaintextOnly.toLocaleString()}
+                            </Text>
+                            <Text style={styles.encStatLabel}>plaintext only</Text>
+                          </View>
+                          <View style={styles.encStatCell}>
+                            <Text
+                              style={[
+                                styles.encStatNum,
+                                encStatus.halfEncrypted > 0 && { color: '#FFB800' },
+                              ]}
+                            >
+                              {encStatus.halfEncrypted.toLocaleString()}
+                            </Text>
+                            <Text style={styles.encStatLabel}>partial</Text>
+                          </View>
+                          <View style={styles.encStatCell}>
+                            <Text style={styles.encStatNum}>
+                              {encStatus.encrypted.toLocaleString()}
+                            </Text>
+                            <Text style={styles.encStatLabel}>encrypted</Text>
+                          </View>
+                        </View>
+                        <View style={styles.encFlagRow}>
+                          <Text
+                            style={[
+                              styles.encFlag,
+                              encStatus.encryptionKeyConfigured
+                                ? styles.encFlagOn
+                                : styles.encFlagOff,
+                            ]}
+                          >
+                            KEY {encStatus.encryptionKeyConfigured ? 'ON' : 'OFF'}
+                          </Text>
+                          <Text
+                            style={[
+                              styles.encFlag,
+                              encStatus.backfillCronEnabled
+                                ? styles.encFlagOn
+                                : styles.encFlagOff,
+                            ]}
+                          >
+                            CRON {encStatus.backfillCronEnabled ? 'ON' : 'OFF'}
+                          </Text>
+                        </View>
+                      </>
+                    ) : (
+                      <Text style={styles.settingSubLabel}>
+                        {encLoading ? 'Loading…' : 'Tap Refresh to load.'}
+                      </Text>
+                    )}
+                  </View>
+                )}
               </>
             );
 
@@ -1930,6 +2075,74 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: Colors.background.card, borderRadius: 16, borderWidth: 1,
     borderColor: Colors.border.subtle, marginBottom: 22, overflow: 'hidden',
+  },
+  encHeaderRow: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingHorizontal: 18, paddingTop: 16, paddingBottom: 10,
+  },
+  encRefreshBtn: {
+    paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999,
+    borderWidth: 1, borderColor: 'rgba(182,255,0,0.32)',
+    backgroundColor: 'rgba(182,255,0,0.08)',
+  },
+  encRefreshLabel: {
+    fontFamily: 'Inter_600SemiBold', fontSize: 10, letterSpacing: 1.5,
+    color: '#B6FF00', textTransform: 'uppercase',
+  },
+  encError: {
+    paddingHorizontal: 18, paddingBottom: 16, color: '#FF6B6B',
+    fontFamily: 'Inter_400Regular', fontSize: 12,
+  },
+  encHeroRow: {
+    flexDirection: 'row', alignItems: 'baseline', gap: 10,
+    paddingHorizontal: 18, paddingTop: 4,
+  },
+  encHeroPct: {
+    fontFamily: 'Inter_700Bold', fontSize: 36, color: '#B6FF00',
+    letterSpacing: -1,
+  },
+  encHeroLabel: {
+    fontFamily: 'Inter_400Regular', fontSize: 12, color: Colors.text.muted,
+    flexShrink: 1,
+  },
+  encBarTrack: {
+    marginHorizontal: 18, marginTop: 10, height: 6, borderRadius: 3,
+    backgroundColor: 'rgba(255,255,255,0.06)', overflow: 'hidden',
+  },
+  encBarFill: {
+    height: '100%', backgroundColor: '#B6FF00', borderRadius: 3,
+  },
+  encStatGrid: {
+    flexDirection: 'row', marginTop: 14, paddingHorizontal: 18, gap: 12,
+  },
+  encStatCell: {
+    flex: 1, paddingVertical: 10, paddingHorizontal: 12, borderRadius: 12,
+    borderWidth: 1, borderColor: Colors.border.subtle,
+    backgroundColor: 'rgba(255,255,255,0.02)',
+  },
+  encStatNum: {
+    fontFamily: 'Inter_700Bold', fontSize: 18, color: Colors.text.primary,
+  },
+  encStatLabel: {
+    fontFamily: 'Inter_500Medium', fontSize: 9, letterSpacing: 1.2,
+    color: Colors.text.muted, textTransform: 'uppercase', marginTop: 2,
+  },
+  encFlagRow: {
+    flexDirection: 'row', gap: 8, paddingHorizontal: 18,
+    paddingTop: 12, paddingBottom: 16,
+  },
+  encFlag: {
+    fontFamily: 'Inter_600SemiBold', fontSize: 10, letterSpacing: 1.5,
+    paddingHorizontal: 10, paddingVertical: 4, borderRadius: 4,
+    borderWidth: 1,
+  },
+  encFlagOn: {
+    color: '#B6FF00', borderColor: 'rgba(182,255,0,0.4)',
+    backgroundColor: 'rgba(182,255,0,0.08)',
+  },
+  encFlagOff: {
+    color: Colors.text.muted, borderColor: 'rgba(255,255,255,0.12)',
+    backgroundColor: 'rgba(255,255,255,0.02)',
   },
   inviteCard: {
     paddingHorizontal: 20, paddingVertical: 22, alignItems: 'center', gap: 6,

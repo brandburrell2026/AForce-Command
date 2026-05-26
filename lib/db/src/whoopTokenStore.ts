@@ -177,6 +177,57 @@ export async function backfillWhoopTokenEncryption(
 }
 
 /**
+ * Operational readout — count rows by encryption status. Used by the
+ * admin endpoint so ops can watch Phase B backfill progress and
+ * decide when it's safe to move to Phase C (flip reads to enc-only).
+ *
+ *   - total: every row in the table
+ *   - encrypted: both enc cols populated
+ *   - plaintextOnly: both enc cols NULL (pre-Phase-A legacy rows)
+ *   - halfEncrypted: exactly one enc col NULL (should be 0 in
+ *     steady state; non-zero means a partial write somewhere — the
+ *     backfill's COALESCE will fill the gap on next tick)
+ *
+ * Single SQL roundtrip via FILTER aggregates so the four counts are
+ * computed from one table scan.
+ */
+export async function getWhoopTokenEncryptionStatus(
+  db: NodePgDatabase<Record<string, unknown>>,
+): Promise<{
+  total: number;
+  encrypted: number;
+  plaintextOnly: number;
+  halfEncrypted: number;
+}> {
+  const result = await db.execute<{
+    total: string;
+    encrypted: string;
+    plaintext_only: string;
+    half_encrypted: string;
+  }>(sql`
+    select
+      count(*)::text as total,
+      count(*) filter (
+        where access_token_enc is not null and refresh_token_enc is not null
+      )::text as encrypted,
+      count(*) filter (
+        where access_token_enc is null and refresh_token_enc is null
+      )::text as plaintext_only,
+      count(*) filter (
+        where (access_token_enc is null) <> (refresh_token_enc is null)
+      )::text as half_encrypted
+    from aforce_whoop_tokens
+  `);
+  const row = result.rows[0];
+  return {
+    total: row ? Number(row.total) : 0,
+    encrypted: row ? Number(row.encrypted) : 0,
+    plaintextOnly: row ? Number(row.plaintext_only) : 0,
+    halfEncrypted: row ? Number(row.half_encrypted) : 0,
+  };
+}
+
+/**
  * Per-user, Postgres-backed store. Pass the user's id once; the
  * returned store talks only about that user.
  */

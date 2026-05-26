@@ -43,17 +43,49 @@ import {
 } from "../lib/whoopFetchWorker";
 import type { WhoopRefreshRegistry } from "../lib/whoopRefreshRegistry";
 import { requireAdmin } from "../middlewares/requireAdmin";
+import { getWhoopTokenEncryptionStatus } from "@workspace/db";
+
+export interface WhoopTokenEncryptionStatus {
+  total: number;
+  encrypted: number;
+  plaintextOnly: number;
+  halfEncrypted: number;
+  /** Whether the runtime store is configured with an encryption key.
+   *  Used by the UI to tell "backfill is opt-out" from "we never
+   *  enabled encryption." */
+  encryptionKeyConfigured: boolean;
+  /** Whether the backfill cron is configured to run (interval set). */
+  backfillCronEnabled: boolean;
+}
 
 export interface WhoopAdminDeps {
   /** Per-user fetch runner. The router never reaches the DB / WHOOP
    *  directly — the runner closes over those. Tests pass a mock. */
   runOnce: (userId: string) => Promise<WhoopFetchOutcome>;
+  /** Encryption-status readout. Tests pass a mock so they don't need
+   *  a real DB. */
+  encryptionStatus: () => Promise<WhoopTokenEncryptionStatus>;
 }
 
 export function buildWhoopAdminRouter(deps: WhoopAdminDeps): IRouter {
   const router: IRouter = Router();
 
   router.use("/admin/whoop", requireAdmin);
+
+  router.get("/admin/whoop/encryption-status", async (_req, res) => {
+    // No throw-path in the helper but the route is defensive: if
+    // pgcrypto is missing or the table is gone, surface 500 rather
+    // than crashing the admin shell.
+    try {
+      const status = await deps.encryptionStatus();
+      res.status(200).json(status);
+    } catch (err) {
+      res.status(500).json({
+        error: "encryption_status_failed",
+        message: err instanceof Error ? err.message : "unknown_error",
+      });
+    }
+  });
 
   router.post("/admin/whoop/fetch/:userId", async (req, res) => {
     const userId = req.params["userId"];
@@ -107,5 +139,20 @@ export function buildDefaultWhoopAdminRouter(opts: {
           refreshRegistry: opts.refreshRegistry,
         }),
       ),
+    encryptionStatus: async () => {
+      const counts = await getWhoopTokenEncryptionStatus(opts.db);
+      const keyRaw = process.env["WHOOP_TOKEN_ENCRYPTION_KEY"];
+      const intervalRaw = process.env["WHOOP_TOKEN_BACKFILL_INTERVAL_MS"];
+      return {
+        ...counts,
+        encryptionKeyConfigured:
+          typeof keyRaw === "string" && keyRaw.trim() !== "",
+        backfillCronEnabled:
+          typeof intervalRaw === "string" &&
+          intervalRaw !== "" &&
+          Number.isFinite(Number(intervalRaw)) &&
+          Number(intervalRaw) > 0,
+      };
+    },
   });
 }

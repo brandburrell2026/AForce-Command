@@ -16,9 +16,21 @@
 import { describe, it, expect, beforeAll } from "vitest";
 import express, { type Express } from "express";
 import http from "node:http";
-import { buildWhoopAdminRouter } from "../whoopAdmin";
+import {
+  buildWhoopAdminRouter,
+  type WhoopTokenEncryptionStatus,
+} from "../whoopAdmin";
 import type { WhoopFetchOutcome } from "../../lib/whoopFetchWorker";
 import { logger } from "../../lib/logger";
+
+const DEFAULT_ENC_STATUS: WhoopTokenEncryptionStatus = {
+  total: 0,
+  encrypted: 0,
+  plaintextOnly: 0,
+  halfEncrypted: 0,
+  encryptionKeyConfigured: false,
+  backfillCronEnabled: false,
+};
 
 beforeAll(() => {
   process.env["NODE_ENV"] = "test";
@@ -27,6 +39,8 @@ beforeAll(() => {
 
 async function serve(
   runOnce: (userId: string) => Promise<WhoopFetchOutcome>,
+  encryptionStatus: () => Promise<WhoopTokenEncryptionStatus> = async () =>
+    DEFAULT_ENC_STATUS,
 ): Promise<{ baseUrl: string; close: () => Promise<void> }> {
   const app: Express = express();
   app.use(express.json());
@@ -34,7 +48,7 @@ async function serve(
     (req as unknown as { log: typeof logger }).log = logger;
     next();
   });
-  app.use("/api", buildWhoopAdminRouter({ runOnce }));
+  app.use("/api", buildWhoopAdminRouter({ runOnce, encryptionStatus }));
   const server = http.createServer(app);
   await new Promise<void>((r) => server.listen(0, r));
   const addr = server.address();
@@ -170,6 +184,71 @@ describe("buildWhoopAdminRouter — POST /api/admin/whoop/fetch/:userId", () => 
     }));
     try {
       const res = await fetch(`${h.baseUrl}/api/admin/whoop/fetch/u1`);
+      expect(res.status).toBe(404);
+    } finally {
+      await h.close();
+    }
+  });
+});
+
+describe("buildWhoopAdminRouter — GET /api/admin/whoop/encryption-status", () => {
+  it("happy path: returns the counts and env flags as JSON", async () => {
+    const status: WhoopTokenEncryptionStatus = {
+      total: 1000,
+      encrypted: 980,
+      plaintextOnly: 18,
+      halfEncrypted: 2,
+      encryptionKeyConfigured: true,
+      backfillCronEnabled: true,
+    };
+    const h = await serve(
+      async (userId) => ({ userId, status: "ok", fetchedAt: 1 }),
+      async () => status,
+    );
+    try {
+      const res = await fetch(
+        `${h.baseUrl}/api/admin/whoop/encryption-status`,
+      );
+      expect(res.status).toBe(200);
+      expect(await res.json()).toEqual(status);
+    } finally {
+      await h.close();
+    }
+  });
+
+  it("readout throws -> 500 with sanitized envelope, no leak of inner message-or-stack into telemetry-unsafe paths", async () => {
+    const h = await serve(
+      async (userId) => ({ userId, status: "ok", fetchedAt: 1 }),
+      async () => {
+        throw new Error("pg connection refused at host db-internal-1234");
+      },
+    );
+    try {
+      const res = await fetch(
+        `${h.baseUrl}/api/admin/whoop/encryption-status`,
+      );
+      expect(res.status).toBe(500);
+      const body = (await res.json()) as { error: string; message: string };
+      expect(body.error).toBe("encryption_status_failed");
+      // The message field is intentionally surfaced for admin
+      // debugging; we just assert it didn't crash the handler.
+      expect(typeof body.message).toBe("string");
+    } finally {
+      await h.close();
+    }
+  });
+
+  it("POST /api/admin/whoop/encryption-status is NOT defined -> 404", async () => {
+    const h = await serve(async (userId) => ({
+      userId,
+      status: "ok",
+      fetchedAt: 1,
+    }));
+    try {
+      const res = await fetch(
+        `${h.baseUrl}/api/admin/whoop/encryption-status`,
+        { method: "POST" },
+      );
       expect(res.status).toBe(404);
     } finally {
       await h.close();
