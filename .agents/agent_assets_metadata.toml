@@ -1973,3 +1973,9 @@ id = "P5wlaeYw6kV1qELTnk8d5"
 uri = "file://exports/aforce-os-spec.pdf"
 type = "pdf"
 title = "AForce OS Spec — Guardian + Clutch in Phase 2"
+
+[[outputs]]
+id = "IZlnv1LrQlhlCg3nlMBNe"
+uri = "file://dist/aforce-spec.pdf"
+type = "pdf"
+title = "AForce OS — Combined Spec (Developer + Product + Design)"
