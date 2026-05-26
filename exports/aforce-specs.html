@@ -1,0 +1,3288 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang xml:lang>
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <meta name="author" content="Generated 2026-05-26" />
+  <title>AForce — Complete Specifications</title>
+  <style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+
+ul.task-list[class]{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+font-size: inherit;
+width: 0.8em;
+margin: 0 0.8em 0.2em -1.6em;
+vertical-align: middle;
+}
+.display.math{display: block; text-align: center; margin: 0.5rem auto;}
+</style>
+  <style type="text/css">body{font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif;max-width:780px;margin:2em auto;color:#111;line-height:1.55;padding:0 1em}
+h1{border-bottom:2px solid #B6FF00;padding-bottom:.3em;margin-top:2em;color:#000}
+h2{border-bottom:1px solid #ddd;padding-bottom:.2em;color:#222}
+h3{color:#333}
+code{background:#f4f4f4;padding:1px 5px;border-radius:3px;font-size:.9em}
+pre{background:#0b0b0b;color:#e6ffb8;padding:1em;border-radius:6px;overflow:auto;font-size:.82em;line-height:1.4}
+pre code{background:none;color:inherit;padding:0}
+blockquote{border-left:4px solid #B6FF00;margin:1em 0;padding:.4em 1em;background:#fafafa;color:#444}
+table{border-collapse:collapse;margin:1em 0;font-size:.9em}
+table th,table td{border:1px solid #ddd;padding:.4em .7em}
+table th{background:#f4f4f4}
+a{color:#0a7;text-decoration:none}
+hr{border:none;border-top:1px solid #eee;margin:2em 0}
+#TOC{background:#fafafa;padding:1em 1.5em;border-radius:6px;border:1px solid #eee}
+</style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">AForce — Complete Specifications</h1>
+<p class="author">Generated 2026-05-26</p>
+</header>
+<nav id="TOC" role="doc-toc">
+<ul>
+<li><a href="#replit.md" id="toc-replit.md">📄 replit.md</a></li>
+<li><a href="#overview" id="toc-overview">Overview</a></li>
+<li><a href="#user-preferences" id="toc-user-preferences">User
+Preferences</a></li>
+<li><a href="#system-architecture" id="toc-system-architecture">System
+Architecture</a>
+<ul>
+<li><a href="#core-technologies" id="toc-core-technologies">Core
+Technologies</a></li>
+<li><a href="#uiux-decisions" id="toc-uiux-decisions">UI/UX
+Decisions</a></li>
+<li><a href="#authentication-identity" id="toc-authentication-identity">Authentication &amp; Identity</a></li>
+<li><a href="#subscription-entitlement" id="toc-subscription-entitlement">Subscription &amp;
+Entitlement</a></li>
+<li><a href="#publishing-distribution" id="toc-publishing-distribution">Publishing &amp; Distribution</a></li>
+<li><a href="#release-readiness-status-verified" id="toc-release-readiness-status-verified">Release-Readiness Status
+(verified)</a></li>
+<li><a href="#server-hardening" id="toc-server-hardening">Server
+Hardening</a></li>
+<li><a href="#technical-implementations-feature-specifications" id="toc-technical-implementations-feature-specifications">Technical
+Implementations &amp; Feature Specifications</a></li>
+<li><a href="#architecture-diagram" id="toc-architecture-diagram">Architecture Diagram</a></li>
+</ul></li>
+<li><a href="#external-dependencies" id="toc-external-dependencies">External Dependencies</a></li>
+<li><a href="#aforce_final_spec.md" id="toc-aforce_final_spec.md">📄
+AFORCE_FINAL_SPEC.md</a></li>
+<li><a href="#aforce-os-final-spec-core-product" id="toc-aforce-os-final-spec-core-product">AFORCE OS — Final Spec (Core
+Product)</a>
+<ul>
+<li><a href="#implementation-order" id="toc-implementation-order">Implementation Order</a></li>
+<li><a href="#hard-rules" id="toc-hard-rules">Hard Rules</a></li>
+<li><a href="#product-surface-high-level" id="toc-product-surface-high-level">Product Surface
+(high-level)</a></li>
+<li><a href="#design-language" id="toc-design-language">Design
+Language</a></li>
+<li><a href="#out-of-scope-this-document" id="toc-out-of-scope-this-document">Out of Scope (this
+document)</a></li>
+</ul></li>
+<li><a href="#aforce_phase_status.md" id="toc-aforce_phase_status.md">📄
+AFORCE_PHASE_STATUS.md</a></li>
+<li><a href="#aforce-os-phase-status" id="toc-aforce-os-phase-status">AFORCE OS — Phase Status</a>
+<ul>
+<li><a href="#core-phases-aforce_final_spec.md" id="toc-core-phases-aforce_final_spec.md">Core Phases
+(AFORCE_FINAL_SPEC.md)</a></li>
+<li><a href="#addon-phases-aforce_social_cruise_addon.md" id="toc-addon-phases-aforce_social_cruise_addon.md">Addon Phases
+(AFORCE_SOCIAL_CRUISE_ADDON.md)</a></li>
+</ul></li>
+<li><a href="#aforce_social_cruise_addon.md" id="toc-aforce_social_cruise_addon.md">📄
+AFORCE_SOCIAL_CRUISE_ADDON.md</a></li>
+<li><a href="#aforce-os-social-cruise-enhancement-layer-addon" id="toc-aforce-os-social-cruise-enhancement-layer-addon">AFORCE OS —
+Social + Cruise Enhancement Layer (Addon)</a>
+<ul>
+<li><a href="#activation-order" id="toc-activation-order">Activation
+Order</a></li>
+<li><a href="#social-additions-1" id="toc-social-additions-1">Social
+Additions</a></li>
+<li><a href="#cruise-additions-1" id="toc-cruise-additions-1">Cruise
+Additions</a></li>
+<li><a href="#explicitly-out-of-scope-never-build-under-this-addon" id="toc-explicitly-out-of-scope-never-build-under-this-addon">Explicitly
+Out of Scope (never build under this addon)</a></li>
+<li><a href="#hard-rules-1" id="toc-hard-rules-1">Hard Rules</a></li>
+</ul></li>
+<li><a href="#designaforce-design-tokens.md" id="toc-designaforce-design-tokens.md">📄
+design/aforce-design-tokens.md</a></li>
+<li><a href="#aforce-os-design-tokens-whoop-cinematic-edition" id="toc-aforce-os-design-tokens-whoop-cinematic-edition">AForce OS
+Design Tokens — WHOOP-Cinematic Edition</a>
+<ul>
+<li><a href="#design-philosophy" id="toc-design-philosophy">Design
+Philosophy</a></li>
+<li><a href="#colors" id="toc-colors">1. Colors</a></li>
+<li><a href="#typography-inter" id="toc-typography-inter">2. Typography
+(Inter)</a></li>
+<li><a href="#spacing" id="toc-spacing">3. Spacing</a></li>
+<li><a href="#radii" id="toc-radii">4. Radii</a></li>
+<li><a href="#component-dimensions" id="toc-component-dimensions">5.
+Component Dimensions</a></li>
+<li><a href="#iphone-14-pro-layout" id="toc-iphone-14-pro-layout">6.
+iPhone 14 Pro Layout</a></li>
+<li><a href="#shadows-glows" id="toc-shadows-glows">7. Shadows /
+Glows</a></li>
+<li><a href="#how-to-use-in-figma" id="toc-how-to-use-in-figma">How to
+Use in Figma</a></li>
+</ul></li>
+<li><a href="#artifactsaforce-osdocssocial-mode-safety-spec.md" id="toc-artifactsaforce-osdocssocial-mode-safety-spec.md">📄
+artifacts/aforce-os/docs/social-mode-safety-spec.md</a></li>
+<li><a href="#social-mode-safety-estimation-spec" id="toc-social-mode-safety-estimation-spec">Social Mode — Safety &amp;
+Estimation Spec</a>
+<ul>
+<li><a href="#voice-tone" id="toc-voice-tone">1. Voice &amp;
+tone</a></li>
+<li><a href="#bac-estimation-widmark-approximation" id="toc-bac-estimation-widmark-approximation">2. BAC estimation (Widmark
+approximation)</a></li>
+<li><a href="#impairment-escalation-matrix" id="toc-impairment-escalation-matrix">3. Impairment escalation
+matrix</a></li>
+<li><a href="#disclaimer-policy" id="toc-disclaimer-policy">4.
+Disclaimer policy</a></li>
+<li><a href="#recovery-mode" id="toc-recovery-mode">5. Recovery
+Mode</a></li>
+<li><a href="#orb-overlay" id="toc-orb-overlay">6. Orb overlay</a></li>
+<li><a href="#test-invariants" id="toc-test-invariants">7. Test
+invariants</a></li>
+</ul></li>
+<li><a href="#artifactsaforce-osdocstestflight_checklist.md" id="toc-artifactsaforce-osdocstestflight_checklist.md">📄
+artifacts/aforce-os/docs/TESTFLIGHT_CHECKLIST.md</a></li>
+<li><a href="#aforce-os-testflight-submit-checklist" id="toc-aforce-os-testflight-submit-checklist">AForce OS — TestFlight
+Submit Checklist</a>
+<ul>
+<li><a href="#phase-0-prerequisites-do-once" id="toc-phase-0-prerequisites-do-once">Phase 0 — Prerequisites (do
+once)</a></li>
+<li><a href="#phase-1-app-store-connect-setup-do-once" id="toc-phase-1-app-store-connect-setup-do-once">Phase 1 — App Store
+Connect setup (do once)</a></li>
+<li><a href="#phase-2-pre-build-sanity-checks" id="toc-phase-2-pre-build-sanity-checks">Phase 2 — Pre-build sanity
+checks</a></li>
+<li><a href="#phase-3-build-with-eas" id="toc-phase-3-build-with-eas">Phase 3 — Build with EAS</a></li>
+<li><a href="#phase-4-submit-to-testflight" id="toc-phase-4-submit-to-testflight">Phase 4 — Submit to
+TestFlight</a></li>
+<li><a href="#phase-5-iterate" id="toc-phase-5-iterate">Phase 5 —
+Iterate</a></li>
+<li><a href="#common-gotchas" id="toc-common-gotchas">Common
+gotchas</a></li>
+<li><a href="#useful-links" id="toc-useful-links">Useful links</a></li>
+</ul></li>
+<li><a href="#artifactsapi-serverdocsscaling-architecture.md" id="toc-artifactsapi-serverdocsscaling-architecture.md">📄
+artifacts/api-server/docs/scaling-architecture.md</a></li>
+<li><a href="#aforce-os-scaling-architecture-50m-concurrent-users" id="toc-aforce-os-scaling-architecture-50m-concurrent-users">AForce OS —
+Scaling Architecture (50M+ Concurrent Users)</a>
+<ul>
+<li><a href="#design-principles" id="toc-design-principles">1. Design
+principles</a></li>
+<li><a href="#layer-map" id="toc-layer-map">2. Layer map</a></li>
+<li><a href="#services-boundaries-scaling-pattern" id="toc-services-boundaries-scaling-pattern">3. Services (boundaries +
+scaling pattern)</a></li>
+<li><a href="#database-strategy" id="toc-database-strategy">4. Database
+strategy</a></li>
+<li><a href="#caching-rules" id="toc-caching-rules">5. Caching
+rules</a></li>
+<li><a href="#event-driven-core" id="toc-event-driven-core">6.
+Event-driven core</a></li>
+<li><a href="#real-time-delivery" id="toc-real-time-delivery">7.
+Real-time delivery</a></li>
+<li><a href="#ai-decisioning-at-scale" id="toc-ai-decisioning-at-scale">8. AI decisioning at scale</a></li>
+<li><a href="#rate-limiting-abuse-protection" id="toc-rate-limiting-abuse-protection">9. Rate limiting + abuse
+protection</a></li>
+<li><a href="#observability" id="toc-observability">10.
+Observability</a></li>
+<li><a href="#failover-strategy" id="toc-failover-strategy">11. Failover
+strategy</a></li>
+<li><a href="#load-testing" id="toc-load-testing">12. Load
+testing</a></li>
+<li><a href="#performance-targets-slos" id="toc-performance-targets-slos">13. Performance targets
+(SLOs)</a></li>
+<li><a href="#codebase-conventions" id="toc-codebase-conventions">14.
+Codebase conventions</a></li>
+<li><a href="#deployment" id="toc-deployment">15. Deployment</a></li>
+</ul></li>
+<li><a href="#artifactsapi-serverdocsload-testing-plan.md" id="toc-artifactsapi-serverdocsload-testing-plan.md">📄
+artifacts/api-server/docs/load-testing-plan.md</a></li>
+<li><a href="#aforce-os-load-testing-plan" id="toc-aforce-os-load-testing-plan">AForce OS — Load Testing Plan</a>
+<ul>
+<li><a href="#objective" id="toc-objective">Objective</a></li>
+<li><a href="#tooling" id="toc-tooling">Tooling</a></li>
+<li><a href="#stages" id="toc-stages">Stages</a></li>
+<li><a href="#scenarios" id="toc-scenarios">Scenarios</a></li>
+<li><a href="#bottleneck-detection-process" id="toc-bottleneck-detection-process">Bottleneck detection
+process</a></li>
+<li><a href="#acceptance-gates" id="toc-acceptance-gates">Acceptance
+gates</a></li>
+<li><a href="#schedule" id="toc-schedule">Schedule</a></li>
+</ul></li>
+<li><a href="#artifactsapi-serverdocsfailover-strategy.md" id="toc-artifactsapi-serverdocsfailover-strategy.md">📄
+artifacts/api-server/docs/failover-strategy.md</a></li>
+<li><a href="#aforce-os-failover-resilience-strategy" id="toc-aforce-os-failover-resilience-strategy">AForce OS — Failover
+&amp; Resilience Strategy</a>
+<ul>
+<li><a href="#failure-domains" id="toc-failure-domains">Failure
+domains</a></li>
+<li><a href="#multi-region-topology" id="toc-multi-region-topology">Multi-region topology</a></li>
+<li><a href="#circuit-breakers" id="toc-circuit-breakers">Circuit
+breakers</a></li>
+<li><a href="#retries-with-backoff" id="toc-retries-with-backoff">Retries with backoff</a></li>
+<li><a href="#degraded-modes" id="toc-degraded-modes">Degraded
+modes</a></li>
+<li><a href="#kill-switches" id="toc-kill-switches">Kill
+switches</a></li>
+<li><a href="#traffic-shedding" id="toc-traffic-shedding">Traffic
+shedding</a></li>
+<li><a href="#runbooks" id="toc-runbooks">Runbooks</a></li>
+<li><a href="#recovery-objectives" id="toc-recovery-objectives">Recovery
+objectives</a></li>
+<li><a href="#game-days" id="toc-game-days">Game days</a></li>
+</ul></li>
+<li><a href="#artifactsapi-serverloadtestsspec.md" id="toc-artifactsapi-serverloadtestsspec.md">📄
+artifacts/api-server/loadtests/spec.md</a></li>
+<li><a href="#load-test-spec" id="toc-load-test-spec">Load Test
+Spec</a></li>
+</ul>
+</nav>
+<p>\newpage</p>
+<h1 id="replit.md">📄 replit.md</h1>
+<h1 id="overview">Overview</h1>
+<p>AForce OS is a real-time human performance operating system,
+delivered as a React Native / Expo mobile application with an Express 5
+and PostgreSQL API server. Its core purpose is to provide hydration
+intelligence and AI-driven insights to enhance athletic performance and
+overall wellness. Key features include personalized hydration tracking,
+AI coaching, social engagement through “Circles” and “Territory”
+features, and integrated e-commerce capabilities via Stripe for
+purchases and subscriptions. The system is designed for high scalability
+to support a user base of over 50 million.</p>
+<h1 id="user-preferences">User Preferences</h1>
+<p>I prefer iterative development, with frequent, small updates. Ask
+before making major changes.</p>
+<h1 id="system-architecture">System Architecture</h1>
+<h2 id="core-technologies">Core Technologies</h2>
+<ul>
+<li><strong>Monorepo:</strong> pnpm workspaces.</li>
+<li><strong>Backend:</strong> Node.js (v24), Express 5, PostgreSQL,
+Drizzle ORM, Zod.</li>
+<li><strong>Mobile:</strong> React Native / Expo SDK 54 with Expo Router
+6, React Native Reanimated 3, <code>i18next</code>,
+<code>@tanstack/react-query</code>.</li>
+<li><strong>State Management (mobile):</strong> React Context +
+<code>useReducer</code> (slice-based store).</li>
+<li><strong>API Tools:</strong> Orval for OpenAPI codegen, generating
+React Query hooks.</li>
+</ul>
+<h2 id="uiux-decisions">UI/UX Decisions</h2>
+<ul>
+<li><strong>Color Scheme:</strong> WHOOP-Cinematic edition — pure black
+<code>#000000</code> canvas, WHOOP lime <code>#B6FF00</code> hero
+accent, near-invisible borders, WHOOP recovery colors
+(green/yellow/red). Design tokens exported via
+<code>design/aforce-tokens.json</code> (Tokens Studio format) and
+human-readable <code>design/aforce-design-tokens.md</code>.</li>
+<li><strong>Design Language:</strong> WHOOP-cinematic dark aesthetic.
+Content floats on pure black. Data-forward: big numbers, small tracked
+labels. Soft radial glows, never hard box shadows. Generous spacing
+throughout.</li>
+<li><strong>Visuals:</strong> Stylized maps for “Territory” and smooth
+animations with Reanimated.</li>
+</ul>
+<h2 id="authentication-identity">Authentication &amp; Identity</h2>
+<ul>
+<li><strong>Provider:</strong> Clerk (<code>@clerk/expo</code> for
+mobile, <code>@clerk/express</code> for server).</li>
+<li><strong>Sign-in:</strong> Custom email/password and Google SSO.</li>
+<li><strong>Integration:</strong> Token bridging between Clerk and the
+OpenAPI client.</li>
+<li><strong>Auth-gated routes:</strong> Implemented on both mobile and
+server-side.</li>
+</ul>
+<h2 id="subscription-entitlement">Subscription &amp; Entitlement</h2>
+<ul>
+<li><strong>Source of Truth:</strong> Stripe, with webhook events
+mirrored to PostgreSQL via <code>stripe-replit-sync</code>.</li>
+<li><strong>Client-side:</strong> <code>useEntitlement.ts</code> hook
+for paywall gating based on plan tier.</li>
+<li><strong>Security:</strong> Server-side computation for pricing,
+shipping, and tax; webhook signature verification.</li>
+</ul>
+<h2 id="publishing-distribution">Publishing &amp; Distribution</h2>
+<ul>
+<li><strong>Build service:</strong> Expo Application Services (EAS
+Build) — configured in <code>artifacts/aforce-os/eas.json</code> with
+<code>development</code>, <code>preview</code>, and
+<code>production</code> profiles.</li>
+<li><strong>Bundle IDs:</strong> iOS <code>com.aforce.os</code>, Android
+<code>com.aforce.os</code> (set in <code>app.json</code>).</li>
+<li><strong>App icon / splash / adaptive icon:</strong> WHOOP-cinematic
+branded set in <code>assets/images/</code> (<code>icon.png</code>,
+<code>splash.png</code>, <code>adaptive-icon.png</code>,
+<code>favicon.png</code>) — pure black background with WHOOP lime
+<code>#B6FF00</code> mark.</li>
+<li><strong>Build commands</strong> (run from
+<code>artifacts/aforce-os/</code> after <code>pnpm eas:login</code> +
+<code>pnpm eas:configure</code>):
+<ul>
+<li>iOS production: <code>pnpm eas:build:ios</code></li>
+<li>Android production: <code>pnpm eas:build:android</code></li>
+<li>Both: <code>pnpm eas:build:all</code></li>
+<li>Internal preview (no store submission):
+<code>pnpm eas:build:preview</code></li>
+</ul></li>
+<li><strong>Submit commands:</strong>
+<ul>
+<li>iOS App Store: <code>pnpm eas:submit:ios</code></li>
+<li>Google Play (internal track):
+<code>pnpm eas:submit:android</code></li>
+</ul></li>
+<li><strong>One-time setup needed before first submit:</strong>
+<ul>
+<li><p><strong>iOS</strong> — instead of hand-editing
+<code>eas.json</code>, run the helper from repo root:</p>
+<pre><code>EAS_ASC_APP_ID=1234567890 \
+EAS_APPLE_TEAM_ID=ABCDE12345 \
+pnpm --filter @workspace/scripts run eas-configure-submit</code></pre>
+<p>The script validates formats (ASC ID = numeric, Team ID = 10
+uppercase alphanumeric), is idempotent, and refuses placeholders. Find
+your two IDs at: App Store Connect → My Apps → AForce OS → App
+Information (ASC App ID) and developer.apple.com → Membership (Team
+ID).</p></li>
+<li><p><strong>Android</strong> — place a Google Play service account
+JSON at <code>artifacts/aforce-os/google-service-account.json</code>
+(path already in <code>eas.json</code>); never commit it.</p></li>
+</ul></li>
+</ul>
+<h2 id="release-readiness-status-verified">Release-Readiness Status
+(verified)</h2>
+<ul>
+<li><strong>Stripe webhook</strong> — wired end-to-end via the Replit
+Stripe connector. The webhook secret is pulled from
+<code>settings.webhook_secret</code> on the connector (NOT from a
+<code>STRIPE_WEBHOOK_SECRET</code> env var). Verified by server boot
+log: <code>initStripe: managed webhook ensured</code> +
+<code>initStripe: syncBackfill complete</code>. No env var to set.</li>
+<li><strong>EAS config</strong> — <code>eas.json</code> profiles
+(development/preview/production) and submit blocks are complete; only
+the two iOS submit IDs need filling via the helper script above. Bundle
+IDs (<code>com.aforce.os</code>), permissions, splash, and icon are all
+set in <code>app.json</code>.</li>
+<li><strong>App Store / Play Store screenshots</strong> — Apple and
+Google only accept screenshots captured from a real device or simulator
+running a built binary. Replit’s web preview of the Expo app cannot
+produce submission-grade assets. Capture path:
+<ol type="1">
+<li><code>pnpm --filter @workspace/aforce-os run eas:build:dev</code> to
+produce an iOS Simulator build.</li>
+<li>Boot the build in Xcode Simulator on the required device families
+(6.7” iPhone, 6.5” iPhone, 13” iPad).</li>
+<li>Capture with
+<code>xcrun simctl io booted screenshot &lt;name&gt;.png</code>.</li>
+<li>For Android, run <code>eas:build:preview</code> to get an APK,
+install on a Pixel emulator, capture via Android Studio.</li>
+</ol></li>
+</ul>
+<h2 id="server-hardening">Server Hardening</h2>
+<ul>
+<li><strong>Routing:</strong> Express 5 with Zod input/output validation
+based on OpenAPI spec.</li>
+<li><strong>Concurrency:</strong> <code>SELECT ... FOR UPDATE</code> for
+serializing concurrent user actions.</li>
+<li><strong>Rate Limiting &amp; Cache:</strong> OpenWeather API proxied
+with in-memory TTL cache; rate limits on public and authenticated
+endpoints.</li>
+<li><strong>Logging:</strong> Structured logging for request handlers
+and non-request code.</li>
+<li><strong>Real-time:</strong> REST mutations are broadcast over a
+shared HTTP/WebSocket server.</li>
+</ul>
+<h2 id="technical-implementations-feature-specifications">Technical
+Implementations &amp; Feature Specifications</h2>
+<ul>
+<li><strong>Persistence &amp; Real-Time Backend:</strong> PostgreSQL via
+Drizzle ORM; REST API broadcasts mutations to WebSocket clients.</li>
+<li><strong>Per-Event Hydration Scoring:</strong> Defined point values,
+absorption caps, and release curves.</li>
+<li><strong>AForce Protocol Screen:</strong> Synchronous derivation of
+protocol stage based on user state.</li>
+<li><strong>Water Cycle / “Become AForce”:</strong> Modals for tracking
+water and hydration stick intake, with flavor inference.</li>
+<li><strong>Social Mode:</strong> Alcohol intake impacts hydration
+scores and decay rates.</li>
+<li><strong>Multi-Provider Health Signals:</strong> Integration with
+various health platforms (e.g., Apple Health, Oura) using a
+“freshest-wins” logic.</li>
+<li><strong>Hydration Depletion Math:</strong> Pure, dependency-free
+helper for score-points-per-minute decay based on physiological
+standards.</li>
+<li><strong>AI Coach Voice Engine:</strong> Utilizes ElevenLabs for
+voice output, providing verdict-aware comparisons after HydroScans and
+guiding users through performance events. Features include status color
+systems, video overlay voices, and a “Cinematic v2” refinement with a
+playback lifecycle state machine.</li>
+<li><strong>Investor Demo:</strong> A scripted 60-second full-screen
+overlay showcasing the Voice Engine’s states and capabilities for
+investors.</li>
+<li><strong>API Server:</strong> Designed for scalability for 50M+
+users, includes Stripe integration, auth-gated routes, and social graph
+routes.</li>
+<li><strong>Store + Subscription System:</strong> Defines SKU pricing,
+discounts, bundles, and five consumer subscription tiers with feature
+gating.</li>
+</ul>
+<h2 id="architecture-diagram">Architecture Diagram</h2>
+<ul>
+<li><strong><code>app/</code></strong>: Root layouts, screens, tab bar,
+gated routes.</li>
+<li><strong><code>components/</code></strong>: Reusable UI
+elements.</li>
+<li><strong><code>services/</code></strong>: Business logic.</li>
+<li><strong><code>store/</code></strong>: Slice-based reducer
+state.</li>
+<li><strong><code>utils/</code></strong>: Pure helpers.</li>
+<li><strong><code>featureFlags/</code></strong>: Feature toggles.</li>
+<li><strong><code>theme/</code></strong>: WHOOP-Cinematic color system,
+typography, spacing, radii, shadows, status color engine.</li>
+<li><strong><code>design/</code></strong>: Figma design tokens
+(<code>aforce-tokens.json</code>) and human-readable spec
+(<code>aforce-design-tokens.md</code>). Download endpoint:
+<code>GET /api/design-tokens</code>. Design guide:
+<code>GET /api/design-guide</code>.</li>
+<li><strong><code>types/</code></strong>: Global type definitions.</li>
+<li><strong><code>data/</code></strong>: Mock data, product definitions,
+templates.</li>
+</ul>
+<h1 id="external-dependencies">External Dependencies</h1>
+<ul>
+<li><strong>Stripe:</strong> Payment processing, subscriptions.</li>
+<li><strong>stripe-replit-sync:</strong> Stripe webhook mirroring to
+PostgreSQL.</li>
+<li><strong>Clerk:</strong> Authentication service.</li>
+<li><strong>Expo SDK 54:</strong> React Native development
+framework.</li>
+<li><strong>Expo WebBrowser / AuthSession:</strong> OAuth, in-app
+browser.</li>
+<li><strong>Expo Speech:</strong> Text-to-speech fallback.</li>
+<li><strong><span class="citation" data-cites="expo-google-fonts/inter">@expo-google-fonts/inter</span>:</strong>
+Custom font.</li>
+<li><strong>React Native Reanimated:</strong> Declarative
+animations.</li>
+<li><strong>React Native Gesture Handler:</strong> Gesture
+recognition.</li>
+<li><strong>PostgreSQL:</strong> Primary database.</li>
+<li><strong>Drizzle ORM:</strong> Schema and query layer.</li>
+<li><strong>Orval:</strong> OpenAPI codegen.</li>
+<li><strong>Zod:</strong> Schema validation.</li>
+<li><strong>pnpm workspaces:</strong> Monorepo management.</li>
+<li><strong>esbuild:</strong> Bundling.</li>
+<li><strong>OpenWeather API:</strong> Environmental data.</li>
+<li><strong>ElevenLabs:</strong> Text-to-speech service.</li>
+<li><strong>i18next:</strong> Localization.</li>
+</ul>
+<p>\newpage</p>
+<h1 id="aforce_final_spec.md">📄 AFORCE_FINAL_SPEC.md</h1>
+<h1 id="aforce-os-final-spec-core-product">AFORCE OS — Final Spec (Core
+Product)</h1>
+<blockquote>
+<p><strong>Authoritative core-product reference.</strong> This document
+captures the baseline AForce OS product. Social Mode and Cruise Mode
+enhancement layers live in a separate document —
+<code>AFORCE_SOCIAL_CRUISE_ADDON.md</code> — and <strong>must not be
+merged into this spec</strong> under any circumstance.</p>
+</blockquote>
+<h2 id="implementation-order">Implementation Order</h2>
+<p>Implement one phase at a time. Stop after each phase. Never rebuild.
+Analyze current code first. Protect existing architecture.</p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Phase</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Opening Screen Safe-Area Fix</td>
+<td>—</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Profile + Units + Login</td>
+<td>—</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Bottom Navigation + Timeline</td>
+<td>—</td>
+</tr>
+<tr>
+<td>4</td>
+<td>HydroScan Core</td>
+<td>—</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Orb Intelligence</td>
+<td>—</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Heat + Territory</td>
+<td>—</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Share System + BECOME AFORCE footer</td>
+<td>—</td>
+</tr>
+<tr>
+<td>8</td>
+<td>Legal + Compliance</td>
+<td>—</td>
+</tr>
+<tr>
+<td>9</td>
+<td>Feature Locks (Guardian / Clutch hidden)</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<p>Live status is tracked in <code>AFORCE_PHASE_STATUS.md</code>.</p>
+<h2 id="hard-rules">Hard Rules</h2>
+<ul>
+<li>One phase per session. Stop after the phase ships. Wait for
+approval.</li>
+<li>Never rebuild existing surfaces. Patch, do not redesign.</li>
+<li>Analyze current code first. Touch only files relevant to the
+phase.</li>
+<li>Protect the existing architecture (pnpm monorepo, Expo Router stack,
+WHOOP-cinematic dark aesthetic, slice-based store, Drizzle/Zod server
+contracts).</li>
+<li>Social Mode and Cruise Mode additions stay in the addon document and
+are not implemented until <strong>all</strong> core phases are
+stable.</li>
+</ul>
+<h2 id="product-surface-high-level">Product Surface (high-level)</h2>
+<h3 id="mobile-artifactsaforce-os-expo-sdk-54-expo-router-6">Mobile —
+<code>artifacts/aforce-os</code> (Expo SDK 54 / Expo Router 6)</h3>
+<ul>
+<li><strong>Opening sequence</strong>: <code>app/splash.tsx</code>
+(cinematic four-stage lobby shown on first launch only) →
+<code>app/welcome.tsx</code> (home dashboard, also reachable from the
+home tab).</li>
+<li><strong>Tab bar</strong>: <code>app/(tabs)/</code> —
+<code>index</code>, <code>profile</code>, plus the rest of the primary
+tabs. Bottom navigation includes the Timeline surface.</li>
+<li><strong>HydroScan</strong>: <code>app/scan.tsx</code> →
+<code>screens/HydrationScanScreen.tsx</code>.</li>
+<li><strong>Orb</strong>: hydration-score orb surface backed by the live
+scoring engine. Driven by <code>services/</code>, animated with
+Reanimated 3.</li>
+<li><strong>Heat / Territory</strong>: <code>app/heat.tsx</code>,
+<code>app/territory.tsx</code>.</li>
+<li><strong>Share</strong>: <code>app/share.tsx</code> →
+<code>screens/SharePreviewScreen.tsx</code>. The invite + “BECOME
+AFORCE” footer lives in the Profile invite card (spec #7 referral
+loop).</li>
+<li><strong>Legal</strong>: <code>app/legal/</code>.</li>
+<li><strong>Feature locks</strong>: Guardian (heat/guardian) and Clutch
+surfaces are hidden from production navigation until released.</li>
+</ul>
+<h3 id="api-server-artifactsapi-server">API server —
+<code>artifacts/api-server</code></h3>
+<ul>
+<li>Express 5, Postgres + Drizzle, Zod input/output validation derived
+from <code>lib/api-spec/openapi.yaml</code>.</li>
+<li>Auth-gated routes via Clerk (<code>@clerk/express</code>).</li>
+<li>Stripe entitlements mirrored via the managed
+<code>stripe-replit-sync</code> webhook (no
+<code>STRIPE_WEBHOOK_SECRET</code> env var — pulled from the Replit
+connector at boot).</li>
+<li>OpenWeather proxy with in-memory TTL cache.</li>
+<li>WebSocket broadcaster shared with the HTTP server.</li>
+</ul>
+<h3 id="shared-libs-lib">Shared libs — <code>lib/</code></h3>
+<ul>
+<li><code>api-spec</code> (OpenAPI source of truth, regenerates
+<code>api-client-react</code>
+<ul>
+<li><code>api-zod</code> on
+<code>pnpm --filter @workspace/api-spec run codegen</code>).</li>
+</ul></li>
+<li><code>db</code> (Drizzle schemas + migrations).</li>
+</ul>
+<h2 id="design-language">Design Language</h2>
+<p>WHOOP-cinematic dark aesthetic. Pure black canvas
+(<code>#000000</code>), WHOOP lime hero accent (<code>#B6FF00</code>),
+near-invisible borders, WHOOP recovery status colors (green / yellow /
+red). Soft radial glows, never hard box shadows. Big numbers, small
+tracked labels. Generous spacing. Tokens exported via
+<code>design/aforce-tokens.json</code> (Tokens Studio) and the
+human-readable <code>design/aforce-design-tokens.md</code>.</p>
+<h2 id="out-of-scope-this-document">Out of Scope (this document)</h2>
+<ul>
+<li>Social Mode contexts, Morning Reset, Moments Engine</li>
+<li>Cruise Mode Voyage Recovery, Recovery Concierge, Cruise
+contexts</li>
+<li>Recovery Journey, Journey Summary, Phantom — <strong>not
+built</strong>, kept as architecture-only stubs</li>
+</ul>
+<p>See <code>AFORCE_SOCIAL_CRUISE_ADDON.md</code> for the enhancement
+layer that sits on top of this core once it is stable.</p>
+<p>\newpage</p>
+<h1 id="aforce_phase_status.md">📄 AFORCE_PHASE_STATUS.md</h1>
+<h1 id="aforce-os-phase-status">AFORCE OS — Phase Status</h1>
+<p>Live tracker for the implementation order defined in
+<code>AFORCE_FINAL_SPEC.md</code> (core) and
+<code>AFORCE_SOCIAL_CRUISE_ADDON.md</code> (enhancement layer).</p>
+<p>Update this file at the end of every phase. One phase at a time. Stop
+after each phase and wait for approval before continuing.</p>
+<p>Status legend: ⏳ pending · 🔧 in progress · ✅ shipped · 🚫
+blocked</p>
+<h2 id="core-phases-aforce_final_spec.md">Core Phases
+(AFORCE_FINAL_SPEC.md)</h2>
+<table>
+<colgroup>
+<col style="width: 3%" />
+<col style="width: 79%" />
+<col style="width: 9%" />
+<col style="width: 7%" />
+</colgroup>
+<thead>
+<tr>
+<th>#</th>
+<th>Phase</th>
+<th>Status</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Opening Screen Safe-Area Fix</td>
+<td>✅</td>
+<td>Added <code>&lt;StatusBar style=&quot;light&quot; /&gt;</code> once at root
+layout so system glyphs (clock/battery/signal) stay visible against the
+pure-black opening canvas. Existing safe-area inset math on
+<code>app/splash.tsx</code> + <code>app/welcome.tsx</code> was already
+robust (<code>Math.max(insets.top + 28, winH * 0.08)</code>) and was
+left untouched.</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Profile + Units + Login</td>
+<td>✅</td>
+<td>Audit: Profile (Clerk user binding, sign-out button), Units (weight
+lbs/kg, temp F/C, volume oz/mL with persistent slice + 137 lines of
+tests), and Login (sign-in 254 lines, sign-up 375 lines with
+email/password + Google SSO) were already built. Real gap:
+<code>app/index.tsx</code> had no <code>isSignedIn</code> check —
+sign-in screens were unreachable. Surgical fix: added auth gate in
+<code>app/index.tsx</code> (respecting <code>DEMO_MODE</code> so pitch
+screenshots keep working) + defensive <code>(auth)/_layout.tsx</code>
+redirect when already signed-in.</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Bottom Navigation + Timeline</td>
+<td>✅</td>
+<td>Audit: already fully shipped. 6 tabs (Home, Check, Protocol,
+Timeline, Social, Profile) with dual implementations —
+<code>NativeTabs</code> on iOS (liquid glass) + classic
+<code>Tabs</code> on Android/web with custom <code>PlainTabButton</code>
+(haptic tick, WHOOP-cinematic styling, lime active tint, transparent
+BlurView on iOS, 84px web height). Timeline = <code>JournalScreen</code>
+(“PERFORMANCE TIMELINE” eyebrow, 7/30/90 range picker, section summaries
+Recovery/Heat/Hydration/Corrections/Territory/Streaks, Win Moments
+strip, score-over-time chart with band zones, collapsible day cards from
+<code>/journal/rollups</code>, Export PDF). Route file stays
+<code>journal.tsx</code> for deep-link stability; user-facing label
+“Timeline” via i18n (<code>tabs.journal</code>). Store correctly
+excluded from bottom nav. No code changes required.</td>
+</tr>
+<tr>
+<td>4</td>
+<td>HydroScan Core</td>
+<td>✅</td>
+<td>Audit: already fully shipped. Route <code>app/scan.tsx</code> →
+<code>HydrationScanScreen</code> (907 lines): scan → recognize → score →
+recommend → log into live store, with success flash overlay (20% PEAK
+tint + Haptics.Success + router.back at 800ms per spec §11). Companion:
+<code>app/urine-check.tsx</code> →
+<code>UrineHydrationCheckScreen</code> (261 lines). Services:
+<code>hydrationScanService</code>, <code>hydrationScoreService</code>,
+<code>hydrationStatus</code>, <code>productRecognitionService</code>,
+<code>scanCoachVoice</code> (174 lines, voice-coach script builder),
+<code>urineHydrationCheck</code>, <code>beverageComparisonEngine</code>
+(204 lines), <code>openFoodFactsService</code>. Components:
+ScanResultCard, ScanAICoachCard, ProductFitCard, AForceReplacementCard,
+CameraScanModal (Expo Camera barcode scanner on native), AddDrinkModal,
+SmartCaptureModal, WhyThisForYouCard, SuperfoodSignalsCard. Mock barcode
+tray + manual search field for web preview where Expo Camera is
+unavailable. Tests: <code>hydrationScanRecommendation.test.ts</code>,
+<code>scanCoachVoice.test.ts</code>, <code>drinkCatalog.test.ts</code>.
+No code changes required.</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Orb Intelligence</td>
+<td>✅</td>
+<td>Audit: already fully shipped. <code>StatusPulseOrb</code> (550
+lines, Reanimated 3): pulse fully driven by <code>pulseConfig</code>
+from service layer — 4 <code>waveBehavior</code> modes plus
+<code>flareOnPeak</code> (rhythmic accent ring at PEAK),
+<code>collapseOnDepletion</code> (tense inward squeeze at DEPLETED),
+<code>burstOnIntake</code> (outward shockwave on every successful
+intake), continuous secondary ripple ring in BALANCED/PEAK. Tappable to
+open Score Breakdown sheet. Optional <code>socialOverlay</code> (alcohol
+load ring, crimson on HIGH/CRITICAL impairment) and
+<code>displayedAccent</code> (locks orb digit color to tweened display
+score, while pulse motion still reflects true physiological state).
+Backed by <code>hydrationScoreService</code> (217 lines) +
+<code>hydrationStatus</code> (125 lines,
+<code>getHydrationStatus()</code> returns
+headline/label/consequence/CTA). Mounted on Home tab
+(<code>app/(tabs)/index.tsx</code> line 238) inside the 5-step layout
+(headline → orb → label → consequence → CTA). Tests:
+<code>hydrationStatus.test.ts</code>, <code>statusColor.test.ts</code>.
+No code changes required.</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Heat + Territory</td>
+<td>✅</td>
+<td>Audit: already fully shipped. Routes <code>app/heat.tsx</code> →
+<code>HeatRiskScreen</code> (436 lines) and
+<code>app/territory.tsx</code> → <code>TerritoryScreen</code> (213
+lines). Services: <code>heatRiskEngine</code> (389 lines),
+<code>heatProtocolService</code> (183 lines),
+<code>territoryEngine</code> (69 lines). Components:
+<code>HeatAlertBanner</code>, <code>HeatPulse</code>,
+<code>HeatRiskCard</code>, <code>MapLayerToggle</code>,
+<code>TerritoryMap</code> (stylized map per spec). OpenWeather proxied
+through API server with in-memory TTL cache + rate limiting. Tests:
+<code>territoryEngine.test.ts</code>. Guardian
+(<code>app/heat/guardian.tsx</code> → <code>GuardianHeatScreen</code>,
+297 lines) is correctly <strong>feature-locked</strong> per spec:
+<code>guardian_intelligence_enabled</code>,
+<code>guardian_body_map_enabled</code>,
+<code>guardian_alerts_enabled</code> all <code>false</code> in
+production (<code>featureFlags/flags.ts</code>), <code>true</code> only
+in demo profile. Subscription gate ties Guardian Mode to Elite plan. No
+code changes required.</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Share System + BECOME AFORCE footer</td>
+<td>✅</td>
+<td>Audit: already fully shipped. Route <code>app/share.tsx</code> →
+<code>SharePreviewScreen</code> (577 lines). Screens:
+<code>MySharedStatusScreen</code> (162 lines). Components:
+<code>ShareCard</code> (170 lines), <code>ShareStory</code> (184 lines),
+<code>SharedStatusCard</code> (90 lines),
+<code>ShareJournalRecap</code>, <code>ShareText</code>. Services:
+<code>journalShareContext</code>, <code>journalShareCache</code>,
+<code>shareBroadcastEngine</code>, <code>shareTemplateEngine</code>,
+<code>shareAccentRotation</code>. BECOME AFORCE invite card lives in the
+Profile tab (referenced lines 483-496, rendered at 1342 + 1365), backed
+by <code>useGetMyReferralInfo</code> OpenAPI hook — server auto-issues
+code on first read, then returns code + totalClaims + tier + nextTier +
+claimsToNextTier (tier ladder). Referral spec #7 slices 1–3 (referral
+code generation, tier ladder, anonymous leaderboard) previously shipped.
+Tests: <code>journalShareCache.test.ts</code>,
+<code>journalShareContext.test.ts</code>,
+<code>shareAccentRotation.test.ts</code>,
+<code>shareBroadcastEngine.test.ts</code>,
+<code>shareTemplateEngine.test.ts</code> all green. No code changes
+required.</td>
+</tr>
+<tr>
+<td>8</td>
+<td>Legal + Compliance</td>
+<td>✅</td>
+<td>Audit: already fully shipped. <code>app/legal/_layout.tsx</code>
+Stack hosts three routes — <code>terms.tsx</code> (Acceptance, What
+AForce OS is, Your account, Subscriptions, Acceptable use, Disclaimer of
+warranties, Limitation of liability, Changes), <code>privacy.tsx</code>
+(What we collect, How we use it, Where it lives, Your controls, Third
+parties Clerk/Stripe/ElevenLabs/OpenWeather, Children under 16,
+Changes), <code>health-disclaimer.tsx</code> (Performance not medicine,
+Talk to a professional first, Estimates have limits, In an emergency,
+You are in charge). All three render through shared
+<code>LegalDocumentScreen</code> (166 lines) with
+eyebrow/title/updatedAt/intro/sections/footer chrome. Both sign-in (line
+176) and sign-up (line 291) link to all three legal pages.
+<code>legalSafetyService.ts</code> (94 lines) provides
+<code>impairmentFromBAC()</code> +
+<code>transportationPromptFor()</code> with mandatory “not a
+legal/medical determination” disclaimer for Social Mode safety; consumed
+by <code>socialModeEngine</code> and surfaced via
+<code>SocialSafetyCard</code> (severity-tinted accent). Tests:
+<code>bacEstimation.test.ts</code>
+(<code>describe(&#39;legalSafetyService&#39;)</code> block + “always returns
+disclaimer key” test). TestFlight checklist documents final-pass items
+(mailing address fill-in) for counsel review before public launch. No
+code changes required.</td>
+</tr>
+<tr>
+<td>9</td>
+<td>Feature Locks (Guardian / Clutch hidden)</td>
+<td>✅</td>
+<td>Audit: flag infrastructure already shipped
+(<code>featureFlags/flags.ts</code>: <code>DEFAULT_FLAGS</code> has
+<code>clutch_access_enabled</code>,
+<code>clutch_heat_mode_enabled</code>,
+<code>clutch_inventory_enabled</code>, <code>clutch_clip_enabled</code>,
+<code>guardian_intelligence_enabled</code>,
+<code>guardian_body_map_enabled</code>,
+<code>guardian_alerts_enabled</code> all <code>false</code>;
+<code>DEMO_ALL_ON_FLAGS</code> flips them ON for investor previews).
+Destination screens already wrap their bodies in
+<code>&lt;FeatureGate&gt;</code> (locked placeholder + “Activate Demo”
+CTA). <strong>Real gaps found and fixed</strong>: (1)
+<code>app/(tabs)/profile.tsx</code> <code>phaseEntryRow</code> rendered
+CLUTCH + GUARDIAN entry cards unconditionally (mounted twice at lines
+1354 + 1375), exposing them in production navigation. Surgical fix:
+gated each card on its own flag (<code>showClutchEntry</code> /
+<code>showGuardianEntry</code>); row returns <code>null</code> when
+neither flag is on. (2) <code>screens/HeatRiskScreen.tsx</code> header
+“TEAM” button surfaced the Guardian roster route to consumer users.
+Surgical fix: added <code>useAppStore</code> import +
+<code>guardianEnabled</code> check; button only renders when
+<code>guardian_intelligence_enabled</code> is true. (3) Architect code
+review identified that <code>/heat/guardian</code> was still directly
+reachable via deep link even with both entries hidden. Surgical fix:
+added route-level <code>&lt;Redirect href=&quot;/heat&quot; /&gt;</code> at the
+top of <code>GuardianHeatScreen</code> when
+<code>guardian_intelligence_enabled</code> is OFF (early return placed
+after all <code>useMemo</code> calls to respect Rules of Hooks). Triple
+defense in depth: entry hidden → surface gated → route bounced. Demo
+profile preserves full preview. Typecheck + 883/883 tests green.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="addon-phases-aforce_social_cruise_addon.md">Addon Phases
+(AFORCE_SOCIAL_CRUISE_ADDON.md)</h2>
+<p>Locked until <strong>all core phases above show ✅</strong>.</p>
+<h3 id="social-additions">Social Additions</h3>
+<table>
+<thead>
+<tr>
+<th>Phase</th>
+<th>Status</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Contexts</td>
+<td>⏳</td>
+<td>Locked until core complete</td>
+</tr>
+<tr>
+<td>Morning Reset</td>
+<td>⏳</td>
+<td>Locked until core complete</td>
+</tr>
+<tr>
+<td>Moments Engine</td>
+<td>⏳</td>
+<td>Locked until core complete</td>
+</tr>
+</tbody>
+</table>
+<h3 id="cruise-additions">Cruise Additions</h3>
+<table style="width:100%;">
+<colgroup>
+<col style="width: 64%" />
+<col style="width: 19%" />
+<col style="width: 16%" />
+</colgroup>
+<thead>
+<tr>
+<th>Phase</th>
+<th>Status</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Voyage Recovery</td>
+<td>⏳</td>
+<td>Locked until Social additions complete</td>
+</tr>
+<tr>
+<td>Recovery Concierge</td>
+<td>⏳</td>
+<td>Locked until Voyage Recovery complete</td>
+</tr>
+<tr>
+<td>Cruise Contexts</td>
+<td>⏳</td>
+<td>Locked until Recovery Concierge complete</td>
+</tr>
+</tbody>
+</table>
+<h3 id="explicitly-not-built">Explicitly Not Built</h3>
+<ul>
+<li>Recovery Journey — architecture only</li>
+<li>Journey Summary — architecture only</li>
+<li>Phantom — architecture only</li>
+</ul>
+<p>\newpage</p>
+<h1 id="aforce_social_cruise_addon.md">📄
+AFORCE_SOCIAL_CRUISE_ADDON.md</h1>
+<h1 id="aforce-os-social-cruise-enhancement-layer-addon">AFORCE OS —
+Social + Cruise Enhancement Layer (Addon)</h1>
+<blockquote>
+<p><strong>Addon, not a rewrite.</strong> This document describes
+additions that layer on top of the core product defined in
+<code>AFORCE_FINAL_SPEC.md</code>. Do <strong>not</strong> merge any of
+this into the core spec. Do <strong>not</strong> start implementing any
+of this until all nine core phases have shipped and been approved.</p>
+</blockquote>
+<h2 id="activation-order">Activation Order</h2>
+<p>After Phase 9 of the core spec is complete and approved:</p>
+<ol type="1">
+<li>Read this document.</li>
+<li>Apply additions only — do not redesign Social Mode.</li>
+<li>Apply additions only — do not redesign Cruise Mode.</li>
+<li>Stop after completion.</li>
+</ol>
+<h2 id="social-additions-1">Social Additions</h2>
+<p>Apply in order. Stop after each.</p>
+<ul>
+<li><strong>Contexts</strong> — add Social Mode contexts (e.g. session
+types and modifiers) without altering the existing Social Mode
+surface.</li>
+<li><strong>Morning Reset</strong> — additive morning ritual
+screen.</li>
+<li><strong>Moments Engine</strong> — additive event/moment capture
+pipeline.</li>
+</ul>
+<p><strong>STOP</strong> after Social additions before starting
+Cruise.</p>
+<h2 id="cruise-additions-1">Cruise Additions</h2>
+<p>Apply in order. Stop after each.</p>
+<ul>
+<li><strong>Voyage Recovery</strong> — Cruise-mode recovery layer.</li>
+<li><strong>Recovery Concierge</strong> — concierge surface that sits on
+top of Voyage Recovery.</li>
+<li><strong>Cruise Contexts</strong> — Cruise-mode contexts, additive
+only.</li>
+</ul>
+<p><strong>STOP</strong> after Cruise additions.</p>
+<h2 id="explicitly-out-of-scope-never-build-under-this-addon">Explicitly
+Out of Scope (never build under this addon)</h2>
+<ul>
+<li><strong>Recovery Journey</strong> — architecture only.</li>
+<li><strong>Journey Summary</strong> — architecture only.</li>
+<li><strong>Phantom</strong> — architecture only.</li>
+</ul>
+<p>These three remain conceptual placeholders. Do not implement
+surfaces, services, routes, or storage for them.</p>
+<h2 id="hard-rules-1">Hard Rules</h2>
+<ul>
+<li>Never modify existing Social Mode or Cruise Mode behavior — only add
+new contexts/screens/services alongside the existing ones.</li>
+<li>Never merge this document into
+<code>AFORCE_FINAL_SPEC.md</code>.</li>
+<li>Never start an addon until the core phase 9 is approved.</li>
+<li>One addition per session. Stop after each. Wait for approval.</li>
+</ul>
+<p>\newpage</p>
+<h1 id="designaforce-design-tokens.md">📄
+design/aforce-design-tokens.md</h1>
+<h1 id="aforce-os-design-tokens-whoop-cinematic-edition">AForce OS
+Design Tokens — WHOOP-Cinematic Edition</h1>
+<blockquote>
+<p><strong>Source of truth</strong>:
+<code>artifacts/aforce-os/theme/*</code> <strong>Figma import</strong>:
+<code>design/aforce-tokens.json</code> (Tokens Studio for Figma, W3C
+format) <strong>Version</strong>: 2.0.0 — WHOOP-Cinematic</p>
+</blockquote>
+<hr />
+<h2 id="design-philosophy">Design Philosophy</h2>
+<p>AForce OS follows WHOOP’s cinematic design language: - <strong>Pure
+black canvas</strong> — backgrounds start at <code>#000000</code>, not
+dark gray - <strong>Content floats on darkness</strong> — no visible
+card borders, structure comes from spacing - <strong>One hero
+color</strong> — WHOOP Lime <code>#B6FF00</code> is the signature accent
+- <strong>Data-forward</strong> — big numbers, small labels, no
+decoration - <strong>Generous spacing</strong> — when in doubt, add more
+whitespace - <strong>Soft glows, never hard shadows</strong> — status
+colors radiate outward</p>
+<hr />
+<h2 id="colors">1. Colors</h2>
+<h3 id="backgrounds-pure-black-to-near-invisible-elevation">Backgrounds
+(pure black to near-invisible elevation)</h3>
+<table>
+<thead>
+<tr>
+<th>Token</th>
+<th>Hex</th>
+<th>Usage</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>bg.primary</code></td>
+<td><code>#000000</code></td>
+<td>Screen background, canvas</td>
+</tr>
+<tr>
+<td><code>bg.secondary</code></td>
+<td><code>#050508</code></td>
+<td>Slight elevation (barely visible)</td>
+</tr>
+<tr>
+<td><code>bg.card</code></td>
+<td><code>#0A0A0F</code></td>
+<td>Card surfaces</td>
+</tr>
+<tr>
+<td><code>bg.elevated</code></td>
+<td><code>#101018</code></td>
+<td>Elevated panels, sheets</td>
+</tr>
+<tr>
+<td><code>bg.surface</code></td>
+<td><code>#141420</code></td>
+<td>Highest elevation (modals)</td>
+</tr>
+<tr>
+<td><code>bg.overlay</code></td>
+<td><code>rgba(0,0,0,0.92)</code></td>
+<td>Fullscreen overlays</td>
+</tr>
+</tbody>
+</table>
+<h3 id="text">Text</h3>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Token</th>
+<th>Value</th>
+<th>Usage</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>text.primary</code></td>
+<td><code>#FFFFFF</code></td>
+<td>Headlines, scores, primary content</td>
+</tr>
+<tr>
+<td><code>text.secondary</code></td>
+<td><code>rgba(255,255,255,0.55)</code></td>
+<td>Body text, descriptions</td>
+</tr>
+<tr>
+<td><code>text.muted</code></td>
+<td><code>rgba(255,255,255,0.30)</code></td>
+<td>Labels, metadata</td>
+</tr>
+<tr>
+<td><code>text.ghost</code></td>
+<td><code>rgba(255,255,255,0.18)</code></td>
+<td>Placeholder, disabled</td>
+</tr>
+<tr>
+<td><code>text.inverse</code></td>
+<td><code>#000000</code></td>
+<td>Text on light/accent backgrounds</td>
+</tr>
+</tbody>
+</table>
+<h3 id="borders-whoop-level-invisible">Borders (WHOOP-level
+invisible)</h3>
+<table>
+<thead>
+<tr>
+<th>Token</th>
+<th>Value</th>
+<th>Usage</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>border.subtle</code></td>
+<td><code>rgba(255,255,255,0.04)</code></td>
+<td>Barely-there separators</td>
+</tr>
+<tr>
+<td><code>border.medium</code></td>
+<td><code>rgba(255,255,255,0.08)</code></td>
+<td>Section dividers</td>
+</tr>
+<tr>
+<td><code>border.strong</code></td>
+<td><code>rgba(255,255,255,0.14)</code></td>
+<td>Active/selected borders</td>
+</tr>
+<tr>
+<td><code>border.accent</code></td>
+<td><code>rgba(182,255,0,0.20)</code></td>
+<td>Accent-tinted border</td>
+</tr>
+</tbody>
+</table>
+<h3 id="fills-glass-on-black">Fills (glass-on-black)</h3>
+<table>
+<thead>
+<tr>
+<th>Token</th>
+<th>Value</th>
+<th>Usage</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>fill.light</code></td>
+<td><code>rgba(255,255,255,0.02)</code></td>
+<td>Barely-there card fill</td>
+</tr>
+<tr>
+<td><code>fill.medium</code></td>
+<td><code>rgba(255,255,255,0.05)</code></td>
+<td>Default card fill</td>
+</tr>
+<tr>
+<td><code>fill.strong</code></td>
+<td><code>rgba(255,255,255,0.10)</code></td>
+<td>Active/pressed fill</td>
+</tr>
+</tbody>
+</table>
+<h3 id="hero-accent-whoop-lime">Hero Accent (WHOOP Lime)</h3>
+<table>
+<thead>
+<tr>
+<th>Token</th>
+<th>Value</th>
+<th>Usage</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>accent.primary</code></td>
+<td><code>#B6FF00</code></td>
+<td>Primary accent, CTA, active states</td>
+</tr>
+<tr>
+<td><code>accent.glow</code></td>
+<td><code>rgba(182,255,0,0.50)</code></td>
+<td>Orb glow, button glow</td>
+</tr>
+<tr>
+<td><code>accent.dim</code></td>
+<td><code>rgba(182,255,0,0.12)</code></td>
+<td>Accent-tinted backgrounds</td>
+</tr>
+<tr>
+<td><code>accent.subtle</code></td>
+<td><code>rgba(182,255,0,0.06)</code></td>
+<td>Very faint accent wash</td>
+</tr>
+<tr>
+<td><code>accent.secondary</code></td>
+<td><code>#0093E7</code></td>
+<td>WHOOP teal, secondary data</td>
+</tr>
+</tbody>
+</table>
+<h3 id="performance-states-4-bands">Performance States (4 bands)</h3>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th>State</th>
+<th>Primary</th>
+<th>Glow</th>
+<th>Dim</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Peak</strong></td>
+<td><code>#B6FF00</code></td>
+<td><code>rgba(182,255,0,0.50)</code></td>
+<td><code>rgba(182,255,0,0.12)</code></td>
+</tr>
+<tr>
+<td><strong>Balanced</strong></td>
+<td><code>#00E5C8</code></td>
+<td><code>rgba(0,229,200,0.40)</code></td>
+<td><code>rgba(0,229,200,0.12)</code></td>
+</tr>
+<tr>
+<td><strong>Recovering</strong></td>
+<td><code>#FFA01E</code></td>
+<td><code>rgba(255,160,30,0.40)</code></td>
+<td><code>rgba(255,160,30,0.12)</code></td>
+</tr>
+<tr>
+<td><strong>Depleted</strong></td>
+<td><code>#FF2D55</code></td>
+<td><code>rgba(255,45,85,0.40)</code></td>
+<td><code>rgba(255,45,85,0.12)</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="score-status-5-bands">Score Status (5 bands)</h3>
+<table>
+<thead>
+<tr>
+<th>Band</th>
+<th>Primary</th>
+<th>Pressure Mode</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Optimal</strong> (85-100)</td>
+<td><code>#16EC06</code></td>
+<td><code>#00FF00</code></td>
+</tr>
+<tr>
+<td><strong>Stable</strong> (70-84)</td>
+<td><code>#B6FF00</code></td>
+<td><code>#A0FF20</code></td>
+</tr>
+<tr>
+<td><strong>Declining</strong> (50-69)</td>
+<td><code>#FFDE00</code></td>
+<td><code>#FFC000</code></td>
+</tr>
+<tr>
+<td><strong>Risk</strong> (30-49)</td>
+<td><code>#FF8C1A</code></td>
+<td><code>#FF7A00</code></td>
+</tr>
+<tr>
+<td><strong>Critical</strong> (0-29)</td>
+<td><code>#FF0026</code></td>
+<td><code>#FF0040</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="whoop-integration-palette">WHOOP Integration Palette</h3>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Token</th>
+<th>Value</th>
+<th>Usage</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>whoop.lime</code></td>
+<td><code>#B6FF00</code></td>
+<td>WHOOP wordmark, connected status</td>
+</tr>
+<tr>
+<td><code>whoop.teal</code></td>
+<td><code>#0093E7</code></td>
+<td>Strain bar fill</td>
+</tr>
+<tr>
+<td><code>whoop.recovery-green</code></td>
+<td><code>#16EC06</code></td>
+<td>Recovery &gt;= 67%</td>
+</tr>
+<tr>
+<td><code>whoop.recovery-yellow</code></td>
+<td><code>#FFDE00</code></td>
+<td>Recovery 34-66%</td>
+</tr>
+<tr>
+<td><code>whoop.recovery-red</code></td>
+<td><code>#FF0026</code></td>
+<td>Recovery &lt;= 33%</td>
+</tr>
+<tr>
+<td><code>whoop.ring-track</code></td>
+<td><code>rgba(255,255,255,0.08)</code></td>
+<td>Ring background track</td>
+</tr>
+<tr>
+<td><code>whoop.strain-track</code></td>
+<td><code>rgba(0,147,231,0.15)</code></td>
+<td>Strain bar background</td>
+</tr>
+</tbody>
+</table>
+<h3 id="opacity-scale">Opacity Scale</h3>
+<p>Use for layering content on pure black:</p>
+<p><code>0.02</code> - <code>0.04</code> - <code>0.06</code> -
+<code>0.08</code> - <code>0.10</code> - <code>0.14</code> -
+<code>0.20</code> - <code>0.30</code> - <code>0.55</code> -
+<code>1.00</code></p>
+<hr />
+<h2 id="typography-inter">2. Typography (Inter)</h2>
+<h3 id="scale">Scale</h3>
+<table>
+<thead>
+<tr>
+<th>Token</th>
+<th>Size</th>
+<th>Weight</th>
+<th>Tracking</th>
+<th>Usage</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>display-hero</code></td>
+<td>80px</td>
+<td>Bold</td>
+<td>-1.5px</td>
+<td>Hero score in cinematic view</td>
+</tr>
+<tr>
+<td><code>display-score</code></td>
+<td>64px</td>
+<td>Bold</td>
+<td>-1.5px</td>
+<td>Score inside orb</td>
+</tr>
+<tr>
+<td><code>display-mega</code></td>
+<td>48px</td>
+<td>Bold</td>
+<td>-0.5px</td>
+<td>Large feature numbers</td>
+</tr>
+<tr>
+<td><code>display-title</code></td>
+<td>36px</td>
+<td>Bold</td>
+<td>-0.5px</td>
+<td>Screen titles</td>
+</tr>
+<tr>
+<td><code>h1</code></td>
+<td>28px</td>
+<td>Bold</td>
+<td>0</td>
+<td>Section headings</td>
+</tr>
+<tr>
+<td><code>h2</code></td>
+<td>24px</td>
+<td>SemiBold</td>
+<td>0</td>
+<td>Card headings</td>
+</tr>
+<tr>
+<td><code>h3</code></td>
+<td>20px</td>
+<td>SemiBold</td>
+<td>0</td>
+<td>Subheadings</td>
+</tr>
+<tr>
+<td><code>body-lg</code></td>
+<td>17px</td>
+<td>Medium</td>
+<td>0</td>
+<td>Primary body</td>
+</tr>
+<tr>
+<td><code>body-base</code></td>
+<td>15px</td>
+<td>Regular</td>
+<td>0</td>
+<td>Default body</td>
+</tr>
+<tr>
+<td><code>body-sm</code></td>
+<td>13px</td>
+<td>Regular</td>
+<td>0</td>
+<td>Secondary body</td>
+</tr>
+<tr>
+<td><code>caption</code></td>
+<td>11px</td>
+<td>Medium</td>
+<td>0</td>
+<td>Metadata</td>
+</tr>
+<tr>
+<td><code>eyebrow</code></td>
+<td>11px</td>
+<td>Bold</td>
+<td>3px</td>
+<td>Section labels (UPPERCASE)</td>
+</tr>
+<tr>
+<td><code>eyebrow-sm</code></td>
+<td>9px</td>
+<td>Bold</td>
+<td>3px</td>
+<td>Tiny labels (UPPERCASE)</td>
+</tr>
+<tr>
+<td><code>metric-label</code></td>
+<td>9px</td>
+<td>SemiBold</td>
+<td>2px</td>
+<td>Metric labels (UPPERCASE)</td>
+</tr>
+<tr>
+<td><code>metric-value</code></td>
+<td>24px</td>
+<td>Bold</td>
+<td>-0.5px</td>
+<td>Metric numbers</td>
+</tr>
+<tr>
+<td><code>pill</code></td>
+<td>10px</td>
+<td>Bold</td>
+<td>1px</td>
+<td>Pill/tag text (UPPERCASE)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="spacing">3. Spacing</h2>
+<p><code>0</code> - <code>4</code> - <code>8</code> - <code>12</code> -
+<code>16</code> - <code>20</code> - <code>24</code> - <code>28</code> -
+<code>32</code> - <code>40</code> - <code>48</code> - <code>56</code> -
+<code>64</code> - <code>80</code> - <code>96</code></p>
+<p><strong>WHOOP rule</strong>: sections should have 40-64px between
+them. Cards should have 20px internal padding. Never let elements feel
+crowded.</p>
+<hr />
+<h2 id="radii">4. Radii</h2>
+<table>
+<thead>
+<tr>
+<th>Token</th>
+<th>Value</th>
+<th>Usage</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>none</code></td>
+<td>0</td>
+<td>Sharp edges (rare)</td>
+</tr>
+<tr>
+<td><code>sm</code></td>
+<td>8px</td>
+<td>Small chips, pills</td>
+</tr>
+<tr>
+<td><code>md</code></td>
+<td>12px</td>
+<td>Cards, inputs</td>
+</tr>
+<tr>
+<td><code>lg</code></td>
+<td>16px</td>
+<td>Metric cards, sections</td>
+</tr>
+<tr>
+<td><code>xl</code></td>
+<td>20px</td>
+<td>Large cards</td>
+</tr>
+<tr>
+<td><code>2xl</code></td>
+<td>24px</td>
+<td>Sheets, modals</td>
+</tr>
+<tr>
+<td><code>3xl</code></td>
+<td>32px</td>
+<td>Hero containers</td>
+</tr>
+<tr>
+<td><code>full</code></td>
+<td>9999px</td>
+<td>Circles, rounded pills</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="component-dimensions">5. Component Dimensions</h2>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Token</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Orb</strong></td>
+<td><code>orb-size</code></td>
+<td>200px</td>
+</tr>
+<tr>
+<td><strong>Orb ring stroke</strong></td>
+<td><code>orb-stroke</code></td>
+<td>6px</td>
+</tr>
+<tr>
+<td><strong>Orb glow blur</strong></td>
+<td><code>orb-glow-radius</code></td>
+<td>32px</td>
+</tr>
+<tr>
+<td><strong>Recovery ring</strong></td>
+<td><code>ring-size</code></td>
+<td>132px</td>
+</tr>
+<tr>
+<td><strong>Recovery ring stroke</strong></td>
+<td><code>ring-stroke</code></td>
+<td>8px</td>
+</tr>
+<tr>
+<td><strong>Strain bar height</strong></td>
+<td><code>strain-bar-height</code></td>
+<td>6px</td>
+</tr>
+<tr>
+<td><strong>CTA button height</strong></td>
+<td><code>cta-height</code></td>
+<td>56px</td>
+</tr>
+<tr>
+<td><strong>CTA radius</strong></td>
+<td><code>cta-radius</code></td>
+<td>14px</td>
+</tr>
+<tr>
+<td><strong>Status pill height</strong></td>
+<td><code>pill-height</code></td>
+<td>28px</td>
+</tr>
+<tr>
+<td><strong>Share button</strong></td>
+<td><code>share-btn-size</code></td>
+<td>36px</td>
+</tr>
+<tr>
+<td><strong>Content padding</strong></td>
+<td><code>content-padding</code></td>
+<td>20px</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="iphone-14-pro-layout">6. iPhone 14 Pro Layout</h2>
+<table>
+<thead>
+<tr>
+<th>Constant</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Screen size</td>
+<td>393 x 852</td>
+</tr>
+<tr>
+<td>Status bar</td>
+<td>54px</td>
+</tr>
+<tr>
+<td>Safe area top</td>
+<td>59px</td>
+</tr>
+<tr>
+<td>Safe area bottom</td>
+<td>34px</td>
+</tr>
+<tr>
+<td>Tab bar</td>
+<td>84px</td>
+</tr>
+<tr>
+<td>Content padding</td>
+<td>20px each side</td>
+</tr>
+<tr>
+<td>Usable content width</td>
+<td>353px</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="shadows-glows">7. Shadows / Glows</h2>
+<p>WHOOP never uses hard box shadows. Everything is a soft radial glow
+that matches the status color:</p>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th>Token</th>
+<th>Color</th>
+<th>Blur</th>
+<th>Usage</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>orb-glow</code></td>
+<td><code>rgba(182,255,0,0.50)</code></td>
+<td>40px</td>
+<td>Orb ambient glow</td>
+</tr>
+<tr>
+<td><code>glow-peak</code></td>
+<td><code>rgba(182,255,0,0.35)</code></td>
+<td>24px</td>
+<td>Peak state elements</td>
+</tr>
+<tr>
+<td><code>glow-balanced</code></td>
+<td><code>rgba(0,229,200,0.25)</code></td>
+<td>18px</td>
+<td>Balanced state</td>
+</tr>
+<tr>
+<td><code>glow-recovering</code></td>
+<td><code>rgba(255,160,30,0.30)</code></td>
+<td>14px</td>
+<td>Recovering state</td>
+</tr>
+<tr>
+<td><code>glow-depleted</code></td>
+<td><code>rgba(255,45,85,0.40)</code></td>
+<td>12px</td>
+<td>Depleted state</td>
+</tr>
+<tr>
+<td><code>cta-glow</code></td>
+<td><code>rgba(182,255,0,0.20)</code></td>
+<td>16px</td>
+<td>CTA button ambient</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="how-to-use-in-figma">How to Use in Figma</h2>
+<ol type="1">
+<li>Open Tokens Studio plugin (Cmd+P, type “Tokens Studio”)</li>
+<li>Import <code>aforce-tokens.json</code> (three-dot menu, Tools, Load
+from file)</li>
+<li>Push to Figma Variables (Tools, Export to Figma Variables)</li>
+<li>Every color, font size, spacing value becomes a Figma Variable</li>
+<li>When building frames, use variables for all fills/strokes/text</li>
+<li>When the codebase changes, ask Replit to re-export, then re-import –
+everything stays in sync</li>
+</ol>
+<p>\newpage</p>
+<h1 id="artifactsaforce-osdocssocial-mode-safety-spec.md">📄
+artifacts/aforce-os/docs/social-mode-safety-spec.md</h1>
+<h1 id="social-mode-safety-estimation-spec">Social Mode — Safety &amp;
+Estimation Spec</h1>
+<p>This document is the canonical reference for the BAC estimator,
+impairment escalation, transportation prompts, and recovery flow that
+power <strong>AForce OS Social Mode</strong>. Anyone touching the
+engine, UI, or copy must read this first.</p>
+<hr />
+<h2 id="voice-tone">1. Voice &amp; tone</h2>
+<p>Social Mode is <strong>calm, protective, never preachy</strong>.</p>
+<ul>
+<li>The system <strong>never</strong> moralizes, lectures, or shames the
+user for drinking. It does not use words like “stop drinking”, “you
+should not”, or “irresponsible”.</li>
+<li>The system <strong>never</strong> says the user is “safe to drive”
+or implies legal compliance. The strongest positive language allowed is
+“your estimate is currently low” — it never crosses into
+permission.</li>
+<li>When escalating, the system uses protective verbs: <em>plan a ride,
+switch to water, arrange safe transport, stop alcohol intake</em>. It
+describes outcomes, not character.</li>
+<li>Headlines are short. Bodies are 1–2 sentences max.</li>
+</ul>
+<hr />
+<h2 id="bac-estimation-widmark-approximation">2. BAC estimation (Widmark
+approximation)</h2>
+<p>Implemented in <code>services/bacEstimationService.ts</code>.</p>
+<pre><code>gramsAlcohol = sum( drink.oz * (drink.abv/100) * 0.789 * 29.5735 )
+bodyMassG    = bodyWeightLbs * 453.592
+r            = 0.68  (male / unspecified)  |  0.55  (female)
+foodFactor   = 0.92  if ateRecently else 1
+bacRaw       = (gramsAlcohol / (bodyMassG * r)) * 100 * foodFactor
+elapsedH     = hours since first drink
+bacCurrent   = max(0, bacRaw - 0.015 * elapsedH)</code></pre>
+<p>The output is a <strong>range</strong> widened by ±0.01 around the
+point estimate. We never display a single false-precision number.</p>
+<table>
+<colgroup>
+<col style="width: 22%" />
+<col style="width: 77%" />
+</colgroup>
+<thead>
+<tr>
+<th>Field</th>
+<th>How it’s derived</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>rangeLow</code> / <code>rangeHigh</code></td>
+<td>Point estimate ± 0.01.</td>
+</tr>
+<tr>
+<td><code>trend</code></td>
+<td>Compare current BAC to BAC 15 min ago; |Δ| &lt; 0.005 =
+<code>steady</code>.</td>
+</tr>
+<tr>
+<td><code>confidence</code></td>
+<td><code>high</code> if sex is provided AND ≥50% of drinks have
+explicit oz/abv AND ≤8 drinks.</td>
+</tr>
+<tr>
+<td><code>timeToClearMinutes</code></td>
+<td><code>(bacCurrent − 0.005) / 0.015 * 60</code>, rounded
+<strong>up</strong> to nearest 5 min.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="inputs">Inputs</h3>
+<ul>
+<li><code>drinks</code>: <code>{ type, loggedAt, abv?, oz? }[]</code> —
+<code>abv</code>/<code>oz</code> fall back to the catalog defaults when
+omitted.</li>
+<li><code>bodyWeightLbs</code>: floored to 80 lbs to avoid
+divide-by-tiny errors.</li>
+<li><code>sex</code>: optional.
+<code>&#39;male&#39; | &#39;female&#39; | &#39;unspecified&#39;</code>.</li>
+<li><code>ateRecently</code>: optional boolean.</li>
+</ul>
+<h3 id="drink-catalog-dataalcoholdrinks.ts">Drink catalog
+(<code>data/alcoholDrinks.ts</code>)</h3>
+<table>
+<colgroup>
+<col style="width: 22%" />
+<col style="width: 16%" />
+<col style="width: 18%" />
+<col style="width: 26%" />
+<col style="width: 16%" />
+</colgroup>
+<thead>
+<tr>
+<th>Type</th>
+<th>Default oz</th>
+<th>Default ABV</th>
+<th>Decay multiplier</th>
+<th>Sugar load</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>beer</code></td>
+<td>12</td>
+<td>5.0</td>
+<td>1.15</td>
+<td>3</td>
+</tr>
+<tr>
+<td><code>wine</code></td>
+<td>5</td>
+<td>12.5</td>
+<td>1.20</td>
+<td>4</td>
+</tr>
+<tr>
+<td><code>cocktail</code></td>
+<td>8</td>
+<td>14.0</td>
+<td>1.30</td>
+<td>8</td>
+</tr>
+<tr>
+<td><code>liquor</code></td>
+<td>1.5</td>
+<td>40.0</td>
+<td>1.35</td>
+<td>1</td>
+</tr>
+<tr>
+<td><code>hard_seltzer</code></td>
+<td>12</td>
+<td>5.0</td>
+<td>1.15</td>
+<td>1</td>
+</tr>
+<tr>
+<td><code>custom</code></td>
+<td>6</td>
+<td>12.0</td>
+<td>1.25</td>
+<td>4</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="impairment-escalation-matrix">3. Impairment escalation
+matrix</h2>
+<p>Implemented in <code>services/legalSafetyService.ts</code>. Mapping
+uses the <strong>midpoint</strong> of the BAC range so trend is smooth
+across refreshes.</p>
+<table>
+<colgroup>
+<col style="width: 16%" />
+<col style="width: 12%" />
+<col style="width: 12%" />
+<col style="width: 16%" />
+<col style="width: 41%" />
+</colgroup>
+<thead>
+<tr>
+<th>BAC midpoint</th>
+<th>Level</th>
+<th>Safety card</th>
+<th>Stop drinking?</th>
+<th>Coach command</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>&lt; 0.030</td>
+<td><code>LOW</code></td>
+<td>hidden</td>
+<td>no</td>
+<td>(standard hydration / pacing copy)</td>
+</tr>
+<tr>
+<td>0.030 – 0.049</td>
+<td><code>ELEVATED</code></td>
+<td>hidden</td>
+<td>no</td>
+<td>(standard hydration / pacing copy)</td>
+</tr>
+<tr>
+<td>0.050 – 0.079</td>
+<td><code>MODERATE</code></td>
+<td>shown — caution</td>
+<td>no</td>
+<td>“Plan a ride before your next drink”</td>
+</tr>
+<tr>
+<td>0.080 – 0.119</td>
+<td><code>HIGH</code></td>
+<td>shown — warning</td>
+<td><strong>yes</strong></td>
+<td>“Do not drive. Use a rideshare.”</td>
+</tr>
+<tr>
+<td>≥ 0.120</td>
+<td><code>CRITICAL</code></td>
+<td>shown — critical</td>
+<td><strong>yes</strong></td>
+<td>“Stop alcohol intake. Recovery req.”</td>
+</tr>
+</tbody>
+</table>
+<p>The safety card is hidden at <code>LOW</code> and
+<code>ELEVATED</code> so the user only sees the legal-protection
+language when it actually applies. The “stop drinking” sub-prompt only
+appears at HIGH/CRITICAL.</p>
+<hr />
+<h2 id="disclaimer-policy">4. Disclaimer policy</h2>
+<p>Every surface that shows a BAC value, impairment level,
+transportation prompt, or recovery time <strong>must</strong> render the
+standard disclaimer pair:</p>
+<blockquote>
+<p><strong>Estimate only · Not a legal or medical
+determination.</strong></p>
+</blockquote>
+<p>The i18n keys are <code>social.estimate_only</code> and
+<code>social.not_legal_medical</code>. They are translated in all 6
+supported locales (<code>en</code>, <code>es</code>, <code>fr</code>,
+<code>de</code>, <code>pt</code>, <code>it</code>).</p>
+<p>The system <strong>never</strong>:</p>
+<ul>
+<li>Tells the user they are “safe to drive”.</li>
+<li>Promises a specific BAC at a specific future time.</li>
+<li>Asserts compliance with any legal limit (those vary by jurisdiction
+and by individual physiology).</li>
+<li>Provides medical advice (kidney/liver concerns, medication
+interactions, etc.).</li>
+</ul>
+<hr />
+<h2 id="recovery-mode">5. Recovery Mode</h2>
+<p>Triggered when the user taps <strong>End Night</strong> in the Social
+Mode sheet. Engine sets <code>socialMode.endedAt</code> and the rollup
+flips <code>inRecoveryWindow = true</code> for the next 8 hours
+(<code>RECOVERY_WINDOW_MS = 8 * 60 * 60 * 1000</code> in
+<code>socialModeEngine.ts</code>).</p>
+<p>While in recovery the UI renders <code>RecoveryModeCard</code>
+showing:</p>
+<ol type="1">
+<li>The estimated time until BAC clears (from
+<code>bac.timeToClearMinutes</code>).</li>
+<li>A 3-step morning protocol — water → AForce RTD → 7+ hours
+sleep.</li>
+<li>The standard disclaimer pair.</li>
+</ol>
+<p>The home banner shifts to amber and reads
+<code>social.recovery_active</code>.</p>
+<hr />
+<h2 id="orb-overlay">6. Orb overlay</h2>
+<p><code>StatusPulseOrb</code> accepts
+<code>socialOverlay?: { alcoholLoad: number; unstable: boolean }</code>.</p>
+<ul>
+<li><code>alcoholLoad</code> ∈ [0, 1] is derived from the active decay
+multiplier and pushes a subtle violet outer ring.</li>
+<li><code>unstable = true</code> when impairment is HIGH or CRITICAL —
+the ring flips crimson and pulses faster.</li>
+</ul>
+<p>The overlay is purely additive; it never replaces the normal
+hydration gradient.</p>
+<hr />
+<h2 id="test-invariants">7. Test invariants</h2>
+<p><code>services/__tests__/bacEstimation.test.ts</code> pins:</p>
+<ul>
+<li>Zero drinks → zero BAC, zero clear time.</li>
+<li>One beer → LOW band.</li>
+<li>Four quick liquor shots → at least MODERATE.</li>
+<li>Trend: rising right after drinks, falling after long
+elimination.</li>
+<li>Time-to-clear is non-negative and a multiple of 5 minutes.</li>
+<li>Confidence degrades when sex is unspecified.</li>
+<li>Food intake softens the BAC estimate vs an empty stomach.</li>
+<li>Safety prompt is hidden at LOW/ELEVATED.</li>
+<li>Safety prompt escalates to “do not drive” at HIGH and CRITICAL.</li>
+<li>Safety disclaimer key is always returned.</li>
+</ul>
+<p>These invariants must continue to hold after any change to the engine
+or the impairment thresholds.</p>
+<p>\newpage</p>
+<h1 id="artifactsaforce-osdocstestflight_checklist.md">📄
+artifacts/aforce-os/docs/TESTFLIGHT_CHECKLIST.md</h1>
+<h1 id="aforce-os-testflight-submit-checklist">AForce OS — TestFlight
+Submit Checklist</h1>
+<p>A step-by-step runbook for getting an internal beta build of AForce
+OS into TestFlight for the team. Estimated total time on a fresh setup:
+<strong>3–6 hours</strong> (most of it waiting on Apple).</p>
+<hr />
+<h2 id="phase-0-prerequisites-do-once">Phase 0 — Prerequisites (do
+once)</h2>
+<h3 id="apple-developer-program">0.1 Apple Developer Program</h3>
+<ul class="task-list">
+<li><label><input type="checkbox"></input>Enroll at
+https://developer.apple.com/programs/ ($99/yr individual, ~$299/yr
+organization).</label></li>
+<li><label><input type="checkbox"></input>Wait for approval (usually same-day
+for individuals, up to a few business days for
+organizations).</label></li>
+<li><label><input type="checkbox"></input>Confirm enrollment is active in <a href="https://appstoreconnect.apple.com/">App Store
+Connect</a>.</label></li>
+</ul>
+<h3 id="expo-eas-account">0.2 Expo / EAS account</h3>
+<ul class="task-list">
+<li><label><input type="checkbox"></input>Sign up at https://expo.dev/signup
+if you don’t have one.</label></li>
+<li><label><input type="checkbox"></input>On your local machine:
+<code>npm install -g eas-cli</code></label></li>
+<li><label><input type="checkbox"></input><code>eas login</code> and confirm
+with <code>eas whoami</code>.</label></li>
+</ul>
+<h3 id="privacy-policy-live-at-a-real-url">0.3 Privacy policy live at a
+real URL</h3>
+<ul class="task-list">
+<li><label><input type="checkbox"></input>Take
+<code>legal/privacy-policy.md</code>, fill in the mailing address and
+any TBD fields.</label></li>
+<li><label><input type="checkbox"></input>Have it reviewed by counsel
+(HealthKit + CCPA + GDPR).</label></li>
+<li><label><input type="checkbox"></input>Publish at a stable URL,
+e.g. <code>https://drinkaforce.com/privacy</code>. (A Notion public page
+or a static HTML file works for beta; you’ll need a real domain page for
+App Store production.)</label></li>
+<li><label><input type="checkbox"></input>Save the URL — you’ll paste it into
+App Store Connect.</label></li>
+</ul>
+<hr />
+<h2 id="phase-1-app-store-connect-setup-do-once">Phase 1 — App Store
+Connect setup (do once)</h2>
+<h3 id="create-the-app-record">1.1 Create the app record</h3>
+<ul class="task-list">
+<li><label><input type="checkbox"></input>Go to App Store Connect → <strong>My
+Apps</strong> → <strong>+</strong> → <strong>New
+App</strong>.</label></li>
+<li><label><input type="checkbox"></input>Platform:
+<strong>iOS</strong></label></li>
+<li><label><input type="checkbox"></input>Name: <strong>AForce OS</strong>
+(must be unique on the App Store)</label></li>
+<li><label><input type="checkbox"></input>Primary Language: English
+(U.S.)</label></li>
+<li><label><input type="checkbox"></input>Bundle ID:
+<code>com.aforce.os</code> — if it doesn’t appear in the dropdown,
+register it first at developer.apple.com → <strong>Certificates,
+Identifiers &amp; Profiles</strong> → <strong>Identifiers</strong> →
+<strong>+</strong>.</label></li>
+<li><label><input type="checkbox"></input>SKU: <code>AFORCE-OS-001</code> (any
+unique string)</label></li>
+<li><label><input type="checkbox"></input>User Access: <strong>Full
+Access</strong></label></li>
+<li><label><input type="checkbox"></input>Click
+<strong>Create</strong>.</label></li>
+</ul>
+<h3 id="fill-in-app-information">1.2 Fill in App Information</h3>
+<ul class="task-list">
+<li><label><input type="checkbox"></input><strong>Privacy Policy URL</strong>
+→ paste the URL from 0.3</label></li>
+<li><label><input type="checkbox"></input><strong>Category</strong> → Primary:
+Health &amp; Fitness; Secondary: Lifestyle (or your choice)</label></li>
+<li><label><input type="checkbox"></input><strong>Content Rights</strong> →
+declare whether the app contains third-party content</label></li>
+<li><label><input type="checkbox"></input><strong>Age Rating</strong> → walk
+through the questionnaire (likely 4+)</label></li>
+</ul>
+<h3 id="app-privacy-questionnaire-app-store-connect-app-privacy">1.3 App
+Privacy questionnaire (App Store Connect → App Privacy)</h3>
+<p>This is required before TestFlight external testing and before App
+Store submission. For internal-only TestFlight you can defer it, but
+it’s faster to do it now.</p>
+<p>Declare data collection for: - [ ] <strong>Health &amp;
+Fitness</strong> — used for App Functionality, <strong>not</strong>
+linked to user identity if you keep it client-side; linked if you sync
+to your backend - [ ] <strong>Contact Info → Email</strong> — used for
+App Functionality (auth) - [ ] <strong>Identifiers → User ID</strong> —
+used for App Functionality - [ ] <strong>Usage Data → Product
+Interaction</strong> — used for Analytics - [ ] <strong>Diagnostics →
+Crash Data, Performance Data</strong> — used for App Functionality</p>
+<p>For each category, confirm: data is <strong>not used for
+tracking</strong> and <strong>not shared with third parties for
+advertising</strong>.</p>
+<hr />
+<h2 id="phase-2-pre-build-sanity-checks">Phase 2 — Pre-build sanity
+checks</h2>
+<p>Run these before every build.</p>
+<ul class="task-list">
+<li><label><input type="checkbox"></input><code>pnpm --filter @workspace/aforce-os run typecheck</code>
+passes</label></li>
+<li><label><input type="checkbox"></input><code>app.json</code>
+<code>version</code> is correct (currently
+<code>1.0.0</code>)</label></li>
+<li><label><input type="checkbox"></input><code>app.json</code>
+<code>ios.bundleIdentifier</code> is <code>com.aforce.os</code> and
+matches App Store Connect</label></li>
+<li><label><input type="checkbox"></input>All <code>infoPlist</code>
+permission strings read like a human wrote them (Apple rejects
+placeholder text)</label></li>
+<li><label><input type="checkbox"></input>App icon at
+<code>assets/images/icon.png</code> is <strong>1024 × 1024 PNG, no
+transparency, no alpha channel</strong> (Apple’s hard
+requirement)</label></li>
+<li><label><input type="checkbox"></input>Smoke-test on a real iPhone: sign
+in, log a drink, scan a barcode, grant HealthKit, view recovery score,
+sign out. Simulator does <strong>not</strong> support HealthKit, so a
+physical device is required.</label></li>
+<li><label><input type="checkbox"></input>No <code>console.log</code> of
+secrets, no hard-coded test API keys, <code>EXPO_PUBLIC_*</code> env
+vars set for production</label></li>
+<li><label><input type="checkbox"></input>Backend (api-server) is deployed and
+reachable from a non-Replit network</label></li>
+</ul>
+<hr />
+<h2 id="phase-3-build-with-eas">Phase 3 — Build with EAS</h2>
+<p>From the repo root.</p>
+<h3 id="first-time-only-configure-credentials">3.1 First-time only:
+configure credentials</h3>
+<ul class="task-list">
+<li><label><input type="checkbox"></input><code>cd artifacts/aforce-os</code></label></li>
+<li><label><input type="checkbox"></input><code>eas build:configure</code> —
+confirms <code>eas.json</code> (already present) and links to your Expo
+project</label></li>
+<li><label><input type="checkbox"></input><code>eas credentials</code> → iOS →
+<strong>Set up a new distribution certificate</strong>. EAS can manage
+certificates and provisioning profiles for you; say yes.</label></li>
+</ul>
+<h3 id="build-for-testflight">3.2 Build for TestFlight</h3>
+<ul class="task-list">
+<li><label><input type="checkbox"></input><code>eas build --profile production --platform ios</code></label></li>
+<li><label><input type="checkbox"></input>Wait ~15–30 minutes for the build to
+finish on EAS’s macOS workers</label></li>
+<li><label><input type="checkbox"></input>Build artifact (<code>.ipa</code>)
+appears in your Expo dashboard</label></li>
+</ul>
+<p>The <code>production</code> profile in <code>eas.json</code> is the
+right one for TestFlight — <code>distribution</code> defaults to “store”
+(App Store Connect), which is what TestFlight reads from. The
+<code>preview</code> profile (<code>distribution: internal</code>) is
+only for ad-hoc IPAs you sideload outside TestFlight.</p>
+<hr />
+<h2 id="phase-4-submit-to-testflight">Phase 4 — Submit to
+TestFlight</h2>
+<h3 id="upload">4.1 Upload</h3>
+<ul class="task-list">
+<li><label><input type="checkbox"></input><code>eas submit --profile production --platform ios</code></label></li>
+<li><label><input type="checkbox"></input>Pick the build from the previous
+step</label></li>
+<li><label><input type="checkbox"></input>Provide your Apple ID and an <a href="https://account.apple.com/account/manage">app-specific
+password</a> (or use API key — recommended for CI)</label></li>
+<li><label><input type="checkbox"></input>Wait for upload + Apple’s processing
+(~15–60 minutes; you’ll get an email)</label></li>
+</ul>
+<h3 id="configure-the-testflight-build-app-store-connect-testflight-tab">4.2
+Configure the TestFlight build (App Store Connect → TestFlight tab)</h3>
+<ul class="task-list">
+<li><label><input type="checkbox"></input>Once Apple finishes processing, the
+build appears under <strong>iOS Builds</strong></label></li>
+<li><label><input type="checkbox"></input>Click the build → fill in
+<strong>Test Information</strong>:</label>
+<ul>
+<li><strong>What to Test:</strong> “First internal build of AForce OS.
+Please test: sign-in, hydration logging, barcode scan, HealthKit grant
+flow, recovery score, sign-out. Report bugs to
+bburrell@alkalineforce.com.”</li>
+<li><strong>Beta App Description:</strong> short paragraph from the
+pitch deck</li>
+<li><strong>Email:</strong> bburrell@alkalineforce.com</li>
+<li><strong>Privacy Policy URL:</strong> same as in Phase 1.2</li>
+</ul></li>
+<li><label><input type="checkbox"></input><strong>Export Compliance:</strong>
+answer the encryption question. AForce OS uses standard HTTPS only →
+choose <strong>“Uses standard encryption exempt from export
+compliance”</strong> (ITSAppUsesNonExemptEncryption =
+false).</label></li>
+</ul>
+<h3 id="add-internal-testers-no-apple-review-needed">4.3 Add internal
+testers (no Apple review needed)</h3>
+<ul class="task-list">
+<li><label><input type="checkbox"></input>App Store Connect → TestFlight →
+<strong>Internal Testing</strong> → <strong>+</strong> → create a group
+called “AForce Team”</label></li>
+<li><label><input type="checkbox"></input>Add team members by email (must have
+an App Store Connect role on your team — invite them via <strong>Users
+and Access</strong> first)</label></li>
+<li><label><input type="checkbox"></input>Enable the build for the
+group</label></li>
+<li><label><input type="checkbox"></input>Up to <strong>100 internal
+testers</strong>, each on up to 30 devices, no Apple review</label></li>
+</ul>
+<h3 id="optional-add-external-testers-light-apple-review">4.4 (Optional)
+Add external testers (light Apple review)</h3>
+<ul class="task-list">
+<li><label><input type="checkbox"></input>TestFlight → <strong>External
+Testing</strong> → <strong>+</strong> → create a group like “Friends
+&amp; Family Beta”</label></li>
+<li><label><input type="checkbox"></input>Add testers by email — they don’t
+need an App Store Connect account</label></li>
+<li><label><input type="checkbox"></input>Submit the build for <strong>Beta
+App Review</strong> (usually 1–2 business days)</label></li>
+<li><label><input type="checkbox"></input>Apple will check: app launches,
+HealthKit usage matches the declared purpose, no broken core
+flows</label></li>
+<li><label><input type="checkbox"></input>Up to <strong>10,000 external
+testers</strong>, each build is valid for 90 days</label></li>
+</ul>
+<hr />
+<h2 id="phase-5-iterate">Phase 5 — Iterate</h2>
+<p>For each new beta build:</p>
+<ul class="task-list">
+<li><label><input type="checkbox"></input>Bump <code>ios.buildNumber</code> in
+<code>app.json</code> (or rely on
+<code>appVersionSource: &quot;remote&quot;</code> in <code>eas.json</code>, which
+auto-increments — already set)</label></li>
+<li><label><input type="checkbox"></input><code>eas build --profile production --platform ios</code></label></li>
+<li><label><input type="checkbox"></input><code>eas submit --profile production --platform ios</code></label></li>
+<li><label><input type="checkbox"></input>Update <strong>What to Test</strong>
+with the changes since the last build</label></li>
+<li><label><input type="checkbox"></input>Internal testers get the build
+immediately; external testers get it after Apple’s quick re-check
+(subsequent reviews are usually &lt;24h)</label></li>
+</ul>
+<hr />
+<h2 id="common-gotchas">Common gotchas</h2>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Fix</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Build fails: “Missing privacy manifest”</td>
+<td>Add <code>app.json</code> → <code>ios.privacyManifests</code> or
+rely on Expo SDK 54+ defaults; check Expo release notes for your
+SDK</td>
+</tr>
+<tr>
+<td>App Store Connect: “Invalid Bundle. The bundle identifier cannot be
+registered”</td>
+<td>Someone else already registered <code>com.aforce.os</code>. Pick a
+new one and update <code>app.json</code></td>
+</tr>
+<tr>
+<td>TestFlight: “Build is missing compliance”</td>
+<td>Export Compliance not answered (Phase 4.2)</td>
+</tr>
+<tr>
+<td>HealthKit prompt never appears</td>
+<td>You’re testing in the simulator. Use a real device</td>
+</tr>
+<tr>
+<td>Crash on launch in TestFlight only</td>
+<td>Almost always a missing <code>EXPO_PUBLIC_*</code> env var that’s
+set locally but not baked into the production build. Set it in EAS:
+<code>eas secret:create</code></td>
+</tr>
+<tr>
+<td>Apple rejects: “Health data used for advertising”</td>
+<td>Your privacy policy or App Privacy answers are inconsistent.
+HealthKit data must never be marketed-as-used for ads</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="useful-links">Useful links</h2>
+<ul>
+<li><a href="https://docs.expo.dev/build/introduction/">EAS Build
+docs</a></li>
+<li><a href="https://docs.expo.dev/submit/introduction/">EAS Submit
+docs</a></li>
+<li><a href="https://developer.apple.com/testflight/">TestFlight
+overview</a></li>
+<li><a href="https://appstoreconnect.apple.com/">App Store
+Connect</a></li>
+<li><a href="https://developer.apple.com/app-store/review/guidelines/#health-and-health-research">Apple’s
+HealthKit review guidelines</a></li>
+</ul>
+<p>\newpage</p>
+<h1 id="artifactsapi-serverdocsscaling-architecture.md">📄
+artifacts/api-server/docs/scaling-architecture.md</h1>
+<h1 id="aforce-os-scaling-architecture-50m-concurrent-users">AForce OS —
+Scaling Architecture (50M+ Concurrent Users)</h1>
+<blockquote>
+<p>Status: blueprint. The shipped api-server is a single Express service
+today. This document describes how to evolve it into a
+globally-distributed platform that survives 50M+ concurrent users
+without crashing. The
+<code>src/{cache,events,queues,middleware,observability,health,config}</code>
+skeletons exist to make that evolution incremental, not a rewrite.</p>
+</blockquote>
+<hr />
+<h2 id="design-principles">1. Design principles</h2>
+<ol type="1">
+<li><strong>Horizontal-first.</strong> Every service scales by adding
+pods, not bigger boxes.</li>
+<li><strong>Stateless app tier.</strong> No request handler holds
+session state in memory — it lives in Redis or the DB. Pods are
+interchangeable and disposable.</li>
+<li><strong>Event-driven.</strong> Heavy work runs after the response.
+The HTTP path stays thin; durable side-effects (analytics, leaderboards,
+notifications) flow through Kafka.</li>
+<li><strong>Cache-first reads.</strong> Anything user-facing reads cache
+first, DB second.</li>
+<li><strong>Region-aware.</strong> Users hit the closest edge POP and
+the closest read replica. Writes route to the home region.</li>
+<li><strong>Graceful degradation &gt; total failure.</strong> If AI is
+down we serve a deterministic template. If competition is degraded we
+serve a stale leaderboard slice. The Home screen never goes blank.</li>
+<li><strong>No single point of failure.</strong> Multi-AZ everywhere.
+Multi-region for the critical read path. Multi-provider for AI.</li>
+<li><strong>Real-time and heavy compute are separated.</strong> A slow
+AI request can never block a pulse update.</li>
+</ol>
+<h2 id="layer-map">2. Layer map</h2>
+<pre><code>        ┌──────────────────────────────────────────────────────────────────┐
+        │  CLIENT (Expo iOS / Android / Web, Phantom Band BLE)             │
+        └──────────────────────────────────────────────────────────────────┘
+                              │  HTTPS / WSS / SSE
+                              ▼
+┌───────────────────────────────────────────────────────────────────────────┐
+│ 1. EDGE / CDN / API GATEWAY                                               │
+│    Cloudflare (or AWS CloudFront + AWS WAF). TLS termination, geo-routing,│
+│    DDoS scrubbing, edge caching of static assets and idempotent GETs,     │
+│    rate limiting at the edge, bot detection.                              │
+└───────────────────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌───────────────────────────────────────────────────────────────────────────┐
+│ 2. AUTH                                                                   │
+│    Clerk (managed) for JWT issuance + refresh. Tokens validated at the    │
+│    edge gateway via JWKS so app pods see a verified `userId` already.     │
+└───────────────────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌───────────────────────────────────────────────────────────────────────────┐
+│ 3. APP SERVICES (stateless, autoscaled, region-replicated)                │
+│    auth-bff │ user-profile │ current-state │ scoring-engine │ pulse │ ai  │
+│    intake   │ scan-bff     │ competition   │ subscription   │ team  │     │
+│    guardian │ notification │ hardware-sync │ analytics-bff                │
+└───────────────────────────────────────────────────────────────────────────┘
+              │                │                  │                │
+              ▼                ▼                  ▼                ▼
+       ┌────────────┐    ┌──────────┐     ┌──────────────┐  ┌────────────┐
+       │ 4. REAL-   │    │ 5. CACHE │     │ 6. EVENTS    │  │ 7. AI      │
+       │   TIME     │    │  Redis   │     │ Kafka /      │  │ Provider   │
+       │ WS/SSE     │    │ Cluster  │     │ Redpanda     │  │ Router     │
+       │ fanout     │    │          │     │              │  │            │
+       └────────────┘    └──────────┘     └──────────────┘  └────────────┘
+                              │                  │                │
+                              ▼                  ▼                ▼
+                    ┌────────────────┐  ┌──────────────┐  ┌────────────┐
+                    │ 8. POSTGRES    │  │ 9. WORKERS   │  │ 10. ANALYT.│
+                    │ primary +      │  │ async jobs,  │  │  Snowflake │
+                    │ region read    │  │ DLQ, retries │  │  / BigQuery│
+                    │ replicas,      │  │              │  │  + S3 raw  │
+                    │ sharded        │  │              │  │            │
+                    └────────────────┘  └──────────────┘  └────────────┘
+
+         ┌───────────────────────────────────────────────────────────────┐
+         │ 11. OBSERVABILITY: OpenTelemetry → Tempo, Prometheus, Loki   │
+         │     PagerDuty + synthetic checks + SLO dashboards            │
+         └───────────────────────────────────────────────────────────────┘</code></pre>
+<h2 id="services-boundaries-scaling-pattern">3. Services (boundaries +
+scaling pattern)</h2>
+<table style="width:100%;">
+<colgroup>
+<col style="width: 15%" />
+<col style="width: 15%" />
+<col style="width: 26%" />
+<col style="width: 25%" />
+<col style="width: 15%" />
+</colgroup>
+<thead>
+<tr>
+<th>Service</th>
+<th>Sync calls</th>
+<th>Async events emitted</th>
+<th>Owns DB tables</th>
+<th>Scales on</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>auth-bff</td>
+<td>Clerk JWKS</td>
+<td><code>user.signed_in</code></td>
+<td>(none — Clerk owns identity)</td>
+<td>RPS</td>
+</tr>
+<tr>
+<td>user-profile</td>
+<td>profile reads/writes</td>
+<td><code>profile.updated</code></td>
+<td>users, profiles</td>
+<td>RPS</td>
+</tr>
+<tr>
+<td>current-state</td>
+<td>hot reads of state</td>
+<td>(consumes intake events)</td>
+<td>(read-only over Redis + Postgres)</td>
+<td>RPS</td>
+</tr>
+<tr>
+<td>scoring-engine</td>
+<td>recomputes on demand</td>
+<td><code>score.recomputed</code></td>
+<td>(stateless; reads events)</td>
+<td>CPU</td>
+</tr>
+<tr>
+<td>pulse</td>
+<td>streams pulse cfg</td>
+<td><code>pulse.changed</code></td>
+<td>(Redis only)</td>
+<td>WS conn count</td>
+</tr>
+<tr>
+<td>ai-command</td>
+<td>LLM calls</td>
+<td><code>ai.command.generated</code></td>
+<td>command_history (immutable)</td>
+<td>concurrent LLM calls</td>
+</tr>
+<tr>
+<td>intake</td>
+<td>logs intake</td>
+<td><code>intake.logged</code></td>
+<td>intake_events (sharded by user_id)</td>
+<td>write QPS</td>
+</tr>
+<tr>
+<td>scan-bff</td>
+<td>scan recognize</td>
+<td><code>scan.completed</code></td>
+<td>scan_events</td>
+<td>write QPS</td>
+</tr>
+<tr>
+<td>competition</td>
+<td>leaderboard reads</td>
+<td><code>rank.changed</code></td>
+<td>leaderboard_rollups</td>
+<td>read QPS + fanout</td>
+</tr>
+<tr>
+<td>subscription</td>
+<td>billing webhook</td>
+<td><code>subscription.changed</code></td>
+<td>subscriptions, plans</td>
+<td>webhook QPS</td>
+</tr>
+<tr>
+<td>team / clutch</td>
+<td>team grid reads</td>
+<td><code>team.member.changed</code></td>
+<td>teams, team_members</td>
+<td>RPS + WS</td>
+</tr>
+<tr>
+<td>guardian</td>
+<td>risk evaluation</td>
+<td><code>guardian.alert</code></td>
+<td>risk_events</td>
+<td>event lag</td>
+</tr>
+<tr>
+<td>notification</td>
+<td>push/SMS/email</td>
+<td>(consumer, not producer)</td>
+<td>notification_log</td>
+<td>queue depth</td>
+</tr>
+<tr>
+<td>hardware-sync</td>
+<td>BLE telemetry ingest</td>
+<td><code>hardware.signal</code></td>
+<td>hardware_events (TTL 30d)</td>
+<td>ingest QPS</td>
+</tr>
+<tr>
+<td>analytics-bff</td>
+<td>warehouse reads</td>
+<td>(consumes everything)</td>
+<td>(warehouse owns it)</td>
+<td>read QPS</td>
+</tr>
+</tbody>
+</table>
+<p>Each service ships with: <code>/healthz</code> (liveness),
+<code>/healthz/deep</code> (readiness), explicit shutdown hooks (drain
+WS, finish in-flight jobs, deregister from LB), and an OpenTelemetry
+instrumentor.</p>
+<h2 id="database-strategy">4. Database strategy</h2>
+<h3 id="postgresql-transactional">4.1 PostgreSQL (transactional)</h3>
+<ul>
+<li><strong>Sharding key</strong> = <code>user_id</code> for high-volume
+tables (<code>intake_events</code>, <code>scan_events</code>,
+<code>command_history</code>, <code>hardware_events</code>).</li>
+<li><strong>Partitioning</strong> = monthly range partitions on the same
+tables. Drop or archive partitions older than 13 months to
+S3/Parquet.</li>
+<li><strong>Read replicas</strong> in every active region. Reads route
+to the closest replica via a <code>db.replicaUrl(region)</code> helper.
+Stale reads are tolerable for analytics and trends; writes route to the
+primary.</li>
+<li><strong>Connection pooling</strong> via PgBouncer in transaction
+mode. Each pod opens a small pool (≤20) and lets PgBouncer
+multiplex.</li>
+<li><strong>Migrations</strong> via Drizzle: forward-only, online (no
+<code>DROP COLUMN</code> without a 3-phase deploy: write-both →
+read-from-new → drop-old).</li>
+</ul>
+<h3 id="hot-state-redis-cluster">4.2 Hot state (Redis Cluster)</h3>
+<p>Lives in Redis, not Postgres: - <code>user:{id}:state</code> —
+current performance state (TTL 1h, refreshed on every intake/score
+recompute). - <code>user:{id}:pulse</code> — pulse config (TTL 1h). -
+<code>home:{id}:payload</code> — fully-baked Home screen JSON (TTL 5min,
+invalidated on intake). - <code>lb:{scope}:{slice}</code> — sliced
+leaderboard pages (TTL 30s). - <code>team:{id}:grid</code> — Clutch team
+grid snapshot (TTL 15s). - <code>flag:{key}</code> — kill switches and
+feature flags (TTL 60s, refreshed in BG).</p>
+<p>Failure mode: if Redis is unreachable, services degrade to
+“DB-direct” with a visible <code>X-Cache: bypass</code> header so we can
+spot it in logs.</p>
+<h3 id="event-log-kafka-redpanda">4.3 Event log (Kafka / Redpanda)</h3>
+<ul>
+<li>Topics partitioned by <code>user_id</code> so per-user ordering is
+preserved.</li>
+<li>7-day retention on hot topics, archived to S3 hourly.</li>
+<li>Schema registry (Avro/JSON Schema) to enforce contracts.</li>
+</ul>
+<h3 id="warehouse-snowflake-bigquery">4.4 Warehouse (Snowflake /
+BigQuery)</h3>
+<ul>
+<li>Loaded continuously from Kafka via a connector. Owns long-term
+history, cohort metrics, predictive features. Never on the hot
+path.</li>
+</ul>
+<h3 id="object-storage-s3">4.5 Object storage (S3)</h3>
+<ul>
+<li>Scan images, profile photos, raw event archives, exported share
+images.</li>
+</ul>
+<h2 id="caching-rules">5. Caching rules</h2>
+<table>
+<colgroup>
+<col style="width: 15%" />
+<col style="width: 33%" />
+<col style="width: 8%" />
+<col style="width: 42%" />
+</colgroup>
+<thead>
+<tr>
+<th>Layer</th>
+<th>What</th>
+<th>TTL</th>
+<th>Invalidation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CDN edge</td>
+<td>static assets, marketing pages</td>
+<td>30d</td>
+<td>versioned URLs</td>
+</tr>
+<tr>
+<td>API gateway</td>
+<td>idempotent GETs by URL+token</td>
+<td>60s</td>
+<td>none — short TTL</td>
+</tr>
+<tr>
+<td>Redis</td>
+<td>user state, pulse, home</td>
+<td>1h</td>
+<td>event-driven (<code>intake.logged</code> busts)</td>
+</tr>
+<tr>
+<td>Redis</td>
+<td>leaderboard slices</td>
+<td>30s</td>
+<td>TTL-only; stale-while-revalidate ok</td>
+</tr>
+<tr>
+<td>Redis</td>
+<td>feature flags</td>
+<td>60s</td>
+<td>pub/sub on config change</td>
+</tr>
+<tr>
+<td>App memory</td>
+<td>tone rules, plan catalog</td>
+<td>proc.</td>
+<td>redeploy</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Never cache:</strong> Heat Guard alerts at HIGH_RISK or
+CRITICAL, Guardian alerts, billing state. Safety-critical reads always
+go to source of truth.</p>
+<h2 id="event-driven-core">6. Event-driven core</h2>
+<p>Every state-changing action emits exactly one event. See
+<code>src/events/schemas.ts</code> for the canonical envelope
+(<code>eventId</code>, <code>eventType</code>, <code>userId</code>,
+<code>occurredAt</code>, <code>schemaVersion</code>,
+<code>payload</code>). All consumers must be idempotent — keyed on
+<code>eventId</code> — and recoverable from a DLQ.</p>
+<p>Event topics: - <code>intake.logged</code>,
+<code>symptom.updated</code>, <code>urine.signal.updated</code>,
+<code>energy.updated</code>, <code>protocol.completed</code>,
+<code>score.recomputed</code>, <code>ai.command.generated</code>,
+<code>heat.risk.changed</code>, <code>rank.changed</code>,
+<code>hardware.signal</code>, <code>subscription.changed</code>,
+<code>share.created</code>.</p>
+<p>Replay: every consumer ships with a <code>--from-offset</code> mode
+for backfill after a schema change.</p>
+<h2 id="real-time-delivery">7. Real-time delivery</h2>
+<table>
+<colgroup>
+<col style="width: 14%" />
+<col style="width: 44%" />
+<col style="width: 40%" />
+</colgroup>
+<thead>
+<tr>
+<th>Channel</th>
+<th>Use</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>WebSocket</td>
+<td>Pulse updates, Clutch grid, voice</td>
+<td>bidirectional, low latency</td>
+</tr>
+<tr>
+<td>SSE</td>
+<td>Score updates, Heat Guard alerts</td>
+<td>one-way, survives proxies easily</td>
+</tr>
+<tr>
+<td>Push (FCM)</td>
+<td>Background notifications</td>
+<td>OS-native, works when app closed</td>
+</tr>
+<tr>
+<td>Polling</td>
+<td>Trends, history (1m+ cadence)</td>
+<td>cheap fallback</td>
+</tr>
+</tbody>
+</table>
+<p>Fanout: sticky-routed at the LB so a single user’s WS lives on one
+pod. Cross-pod broadcast uses Redis pub/sub. For 1M+ concurrent sockets
+we route fanout through a dedicated <code>pulse-edge</code> service
+tier, not the app pods.</p>
+<h2 id="ai-decisioning-at-scale">8. AI decisioning at scale</h2>
+<p><code>src/services/ai/router.ts</code> (skeleton) encapsulates: -
+<strong>Provider abstraction</strong> — Anthropic, OpenAI, Gemini behind
+one interface. - <strong>Primary + fallback</strong> — fail over within
+800ms. - <strong>Deterministic templates</strong> — if all providers
+fail, fall back to the AForce Voice Engine templates (already shipped).
+The user gets a calm, on-brand line instead of an error. -
+<strong>Per-user rate limit</strong> — max N AI commands per minute
+(token bucket in Redis). Beyond that, serve a templated reply. -
+<strong>Repeat-pattern cache</strong> — same context within 60s returns
+the cached line. - <strong>Async generation</strong> — non-urgent
+commands (morning reset, recap) run as queue jobs, not synchronous
+HTTP.</p>
+<h2 id="rate-limiting-abuse-protection">9. Rate limiting + abuse
+protection</h2>
+<ul>
+<li><strong>Edge:</strong> Cloudflare WAF — per-IP burst limit, bot
+challenge, geoblock.</li>
+<li><strong>Gateway:</strong> per-token sliding window (see
+<code>middleware/rateLimiter.ts</code>).</li>
+<li><strong>Per-endpoint:</strong> scan, voice, AI command have stricter
+buckets than reads.</li>
+<li><strong>Idempotency keys</strong> on every mutating endpoint (see
+<code>middleware/idempotency.ts</code>) prevent duplicate
+intake/subscription charges on retry storms.</li>
+<li><strong>Auth tokens:</strong> short-lived (15min) + refresh;
+rotation on suspicious use.</li>
+<li><strong>Leaderboard anti-gaming:</strong> server-side score
+derivation only; clients cannot post a rank.</li>
+</ul>
+<h2 id="observability">10. Observability</h2>
+<p>OpenTelemetry → Tempo (traces), Prometheus (metrics), Loki (logs).
+SLOs (initial targets): - Home payload p95 &lt; 300ms (read replica +
+Redis) - Intake log p95 &lt; 200ms (write to Postgres, fire-and-forget
+event) - Pulse delta &lt; 150ms (WS push) - AI command p95 &lt; 1s
+normal, p99 &lt; 3s, fallback at 800ms - Leaderboard cached p95 &lt;
+300ms - Uptime: 99.95% per region, 99.99% globally (multi-region)</p>
+<p>Alerts: PagerDuty on SLO burn rate (fast burn = page, slow burn =
+ticket), queue lag &gt; 60s, Redis hit ratio &lt; 90%, DB replication
+lag &gt; 5s, AI provider error rate &gt; 2%.</p>
+<p>Synthetic checks: every region runs the Home payload, intake log, and
+AI command flows every 60s.</p>
+<h2 id="failover-strategy">11. Failover strategy</h2>
+<p>See <code>docs/failover-strategy.md</code>. Summary: -
+<strong>Region:</strong> active/active for reads, active/passive for
+writes (DB primary in one region with sub-second replication, promote on
+failure). - <strong>DB:</strong> Patroni-managed Postgres with automated
+failover. - <strong>Cache:</strong> Redis Cluster with 3 replicas/shard;
+failover automatic. - <strong>Queue:</strong> Kafka with rf=3 across
+AZs; broker loss is invisible. - <strong>AI:</strong> provider failover
+inside <code>ai/router.ts</code>; deterministic template as ground
+floor. - <strong>Circuit breakers</strong> per downstream — open at 50%
+errors over 30s. - <strong>Traffic shedding:</strong> if a service
+breaches its SLO, the gateway sheds read traffic (returns cached/stale)
+before write traffic.</p>
+<h2 id="load-testing">12. Load testing</h2>
+<p>See <code>docs/load-testing-plan.md</code> and
+<code>loadtests/</code>. Targets validated at 100K, 1M, and
+architectural assumptions for 10M+ concurrent users. Tooling: k6 for
+HTTP, Artillery for WS, Locust for distributed multi-region runs.</p>
+<h2 id="performance-targets-slos">13. Performance targets (SLOs)</h2>
+<table>
+<colgroup>
+<col style="width: 27%" />
+<col style="width: 17%" />
+<col style="width: 17%" />
+<col style="width: 37%" />
+</colgroup>
+<thead>
+<tr>
+<th>Flow</th>
+<th>Latency (p95)</th>
+<th>Latency (p99)</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Home payload</td>
+<td>300ms</td>
+<td>600ms</td>
+<td>cached + edge POP</td>
+</tr>
+<tr>
+<td>Intake log</td>
+<td>200ms</td>
+<td>400ms</td>
+<td>write-fast, event-async</td>
+</tr>
+<tr>
+<td>Pulse update</td>
+<td>150ms</td>
+<td>300ms</td>
+<td>WS push</td>
+</tr>
+<tr>
+<td>AI command (normal)</td>
+<td>1000ms</td>
+<td>3000ms</td>
+<td>fallback at 800ms</td>
+</tr>
+<tr>
+<td>AI command (degraded)</td>
+<td>50ms</td>
+<td>100ms</td>
+<td>template path</td>
+</tr>
+<tr>
+<td>Leaderboard</td>
+<td>300ms</td>
+<td>600ms</td>
+<td>cached slice</td>
+</tr>
+<tr>
+<td>Scan recognize</td>
+<td>500ms</td>
+<td>1500ms</td>
+<td>local DB hit fast, network slow</td>
+</tr>
+<tr>
+<td>Heat Guard alert</td>
+<td>100ms</td>
+<td>250ms</td>
+<td>precomputed, never cached</td>
+</tr>
+</tbody>
+</table>
+<h2 id="codebase-conventions">14. Codebase conventions</h2>
+<ul>
+<li><code>src/services/&lt;domain&gt;/</code> — owns its routes,
+repository, types, and tests.</li>
+<li><code>src/events/</code> — schemas + bus interface only.
+Producers/consumers live with their owning service.</li>
+<li><code>src/queues/</code> — job definitions + worker
+entrypoints.</li>
+<li><code>src/cache/</code> — typed cache wrappers per domain.</li>
+<li><code>src/middleware/</code> — generic, no business logic.</li>
+<li><code>src/observability/</code> — metrics + tracing setup.
+Auto-loaded at boot.</li>
+<li><code>src/health/</code> — liveness + readiness. Drained gracefully
+on SIGTERM.</li>
+<li><code>src/config/</code> — feature flags + kill switches. Never read
+env directly in business logic — go through <code>config/</code>.</li>
+</ul>
+<h2 id="deployment">15. Deployment</h2>
+<ul>
+<li>Containers built per service via Buildpacks or Docker.</li>
+<li>Orchestration: Kubernetes (EKS/GKE) with Karpenter or
+cluster-autoscaler.</li>
+<li>Deploys: blue/green for the gateway, rolling for stateless services,
+canary (5% → 25% → 100%) for risky changes (scoring engine, AI
+router).</li>
+<li>Secrets: cloud secret manager, never in env files.</li>
+<li>IaC: Terraform for cloud, Helm for K8s.</li>
+<li>CI: typecheck → unit tests → integration tests → load smoke →
+deploy.</li>
+</ul>
+<hr />
+<p><strong>Where the current codebase fits.</strong> The shipped
+api-server today is one process serving <code>/healthz</code>,
+<code>/scans</code>, <code>/cycles</code>,
+<code>/checkout/session</code>. The modules under
+<code>src/{cache,events,queues,middleware,observability,health, config}</code>
+are the integration seams: each one ships with a working in-memory or
+no-op default so the server keeps booting, and a clear interface to swap
+in the real Redis/Kafka/Prometheus client when we’re ready.</p>
+<p>\newpage</p>
+<h1 id="artifactsapi-serverdocsload-testing-plan.md">📄
+artifacts/api-server/docs/load-testing-plan.md</h1>
+<h1 id="aforce-os-load-testing-plan">AForce OS — Load Testing Plan</h1>
+<h2 id="objective">Objective</h2>
+<p>Validate that AForce OS holds its SLOs under realistic and
+pathological traffic up to 10M concurrent users, with architectural
+confidence to 50M+.</p>
+<h2 id="tooling">Tooling</h2>
+<table>
+<colgroup>
+<col style="width: 22%" />
+<col style="width: 15%" />
+<col style="width: 62%" />
+</colgroup>
+<thead>
+<tr>
+<th>Tier</th>
+<th>Tool</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>HTTP REST</td>
+<td>k6</td>
+<td>scripting, percentile output, cloud distribution</td>
+</tr>
+<tr>
+<td>WebSocket / SSE</td>
+<td>Artillery</td>
+<td>first-class WS, ramp-and-hold profiles</td>
+</tr>
+<tr>
+<td>Massive distrib.</td>
+<td>Locust</td>
+<td>trivially horizontal, multi-region runners</td>
+</tr>
+<tr>
+<td>Chaos / soak</td>
+<td>toxiproxy</td>
+<td>inject latency, packet loss, partial failures</td>
+</tr>
+</tbody>
+</table>
+<h2 id="stages">Stages</h2>
+<table>
+<colgroup>
+<col style="width: 8%" />
+<col style="width: 21%" />
+<col style="width: 12%" />
+<col style="width: 57%" />
+</colgroup>
+<thead>
+<tr>
+<th>Stage</th>
+<th>Concurrent users</th>
+<th>Duration</th>
+<th>Goal</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>S1</td>
+<td>1K</td>
+<td>5 min</td>
+<td>Smoke — every endpoint responds 2xx</td>
+</tr>
+<tr>
+<td>S2</td>
+<td>10K</td>
+<td>15 min</td>
+<td>Single-region capacity</td>
+</tr>
+<tr>
+<td>S3</td>
+<td>100K</td>
+<td>30 min</td>
+<td>Cross-AZ scale, cache effectiveness</td>
+</tr>
+<tr>
+<td>S4</td>
+<td>1M</td>
+<td>1 h</td>
+<td>Multi-region, realistic mix</td>
+</tr>
+<tr>
+<td>S5</td>
+<td>10M</td>
+<td>30 min</td>
+<td>Burst — measure p99, error budget burn</td>
+</tr>
+<tr>
+<td>S6</td>
+<td>50M (modeled)</td>
+<td>n/a</td>
+<td>Architectural review only — capacity planning</td>
+</tr>
+</tbody>
+</table>
+<h2 id="scenarios">Scenarios</h2>
+<h3 id="a.-home-payload-read-read-heavy">A. Home payload read
+(read-heavy)</h3>
+<ul>
+<li>80% of total traffic.</li>
+<li>Verifies CDN, edge cache, Redis hot state.</li>
+<li>Pass: p95 &lt; 300ms, error rate &lt; 0.1%, cache hit ratio &gt;
+95%.</li>
+</ul>
+<h3 id="b.-intake-log-write-heavy">B. Intake log (write-heavy)</h3>
+<ul>
+<li>10% of traffic.</li>
+<li>Verifies Postgres write path + Kafka emit + idempotency.</li>
+<li>Pass: p95 &lt; 200ms, no duplicate events under retry, queue lag
+&lt; 5s.</li>
+</ul>
+<h3 id="c.-pulse-stream-long-lived-ws">C. Pulse stream (long-lived
+WS)</h3>
+<ul>
+<li>1M concurrent sockets.</li>
+<li>Verifies fanout layer, sticky routing, pod memory under WS
+pressure.</li>
+<li>Pass: median push &lt; 150ms, no socket drops &gt; 0.5%.</li>
+</ul>
+<h3 id="d.-ai-command-slow-upstream">D. AI command (slow upstream)</h3>
+<ul>
+<li>5% of traffic, with toxiproxy adding +500ms to upstream LLM.</li>
+<li>Verifies fallback at 800ms and template ground floor.</li>
+<li>Pass: zero user-facing 5xx, fallback rate visible in metrics.</li>
+</ul>
+<h3 id="e.-leaderboard-fanout-event-spike">E. Leaderboard fanout (event
+spike)</h3>
+<ul>
+<li>Spike from 100 RPS to 50K RPS over 10s on
+<code>competition.update</code>.</li>
+<li>Verifies cache stampede protection (single-flight + jitter) and
+stale serving.</li>
+<li>Pass: p95 &lt; 300ms, no cache thrashing, no DB saturation.</li>
+</ul>
+<h3 id="f.-scan-storm">F. Scan storm</h3>
+<ul>
+<li>100K scans/min from 100K distinct devices.</li>
+<li>Verifies per-device rate limiter, scan-event partitioning.</li>
+<li>Pass: per-device limit enforced, no other endpoints degrade.</li>
+</ul>
+<h3 id="g.-voice-flood">G. Voice flood</h3>
+<ul>
+<li>10K voice commands/min.</li>
+<li>Verifies AI rate limit + template fallback + idempotency.</li>
+<li>Pass: AI provider not saturated (fallback rate climbs
+gracefully).</li>
+</ul>
+<h3 id="h.-subscription-webhook-storm">H. Subscription webhook
+storm</h3>
+<ul>
+<li>10K Stripe webhooks/min during a campaign launch.</li>
+<li>Verifies webhook idempotency + queue absorption.</li>
+<li>Pass: no duplicate plan changes, queue drains within 60s.</li>
+</ul>
+<h2 id="bottleneck-detection-process">Bottleneck detection process</h2>
+<p>For each stage, capture: - gateway p50/p95/p99 + error rate -
+per-service p95 - DB CPU + replication lag - Redis hit ratio + memory -
+Kafka consumer lag per topic - WS connection count + push latency - AI
+provider success rate + fallback rate - pod CPU/memory + autoscaler
+events</p>
+<p>Bottlenecks are isolated by walking the trace span with the longest
+contribution to p95. The first bottleneck removed informs the next
+stage’s target capacity.</p>
+<h2 id="acceptance-gates">Acceptance gates</h2>
+<ul>
+<li>All stage A–H <strong>pass</strong> with the SLOs in
+<code>scaling-architecture.md</code> §13.</li>
+<li>Error budget burn is documented per stage; &gt; 1h SLO burn at S5
+fails the release.</li>
+</ul>
+<h2 id="schedule">Schedule</h2>
+<ul>
+<li>S1–S2: nightly in CI against staging.</li>
+<li>S3: weekly, off-peak, against staging-large.</li>
+<li>S4–S5: monthly, scheduled, against a dedicated load
+environment.</li>
+<li>S6: quarterly capacity review, no live traffic.</li>
+</ul>
+<p>See <code>loadtests/spec.md</code> and
+<code>loadtests/k6-home-payload.js</code> for the executable starting
+point.</p>
+<p>\newpage</p>
+<h1 id="artifactsapi-serverdocsfailover-strategy.md">📄
+artifacts/api-server/docs/failover-strategy.md</h1>
+<h1 id="aforce-os-failover-resilience-strategy">AForce OS — Failover
+&amp; Resilience Strategy</h1>
+<h2 id="failure-domains">Failure domains</h2>
+<table>
+<colgroup>
+<col style="width: 23%" />
+<col style="width: 23%" />
+<col style="width: 52%" />
+</colgroup>
+<thead>
+<tr>
+<th>Domain</th>
+<th>Blast radius</th>
+<th>Recovery primitive</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Single pod</td>
+<td>one user → none</td>
+<td>LB removes pod on <code>/healthz</code> fail</td>
+</tr>
+<tr>
+<td>AZ</td>
+<td>one AZ</td>
+<td>multi-AZ deployment, instant</td>
+</tr>
+<tr>
+<td>Region</td>
+<td>one region</td>
+<td>multi-region active/active for read</td>
+</tr>
+<tr>
+<td>Postgres primary</td>
+<td>writes globally</td>
+<td>Patroni auto-promote replica</td>
+</tr>
+<tr>
+<td>Redis shard</td>
+<td>hot reads</td>
+<td>Redis Cluster automatic failover</td>
+</tr>
+<tr>
+<td>Kafka broker</td>
+<td>event ingest</td>
+<td>rf=3, no observable impact</td>
+</tr>
+<tr>
+<td>AI provider</td>
+<td>AI commands</td>
+<td>provider switch + template fallback</td>
+</tr>
+<tr>
+<td>Stripe</td>
+<td>new subscribers</td>
+<td>retry queue + degraded UI</td>
+</tr>
+<tr>
+<td>Push provider</td>
+<td>notifications</td>
+<td>provider failover (FCM ↔︎ APNs)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="multi-region-topology">Multi-region topology</h2>
+<ul>
+<li><strong>Reads</strong> — active/active. Each region runs its own app
+tier + Redis + read replica. Closest region wins via geo DNS.</li>
+<li><strong>Writes</strong> — active/passive. One Postgres primary at a
+time. On failure, Patroni promotes a replica in another region; DNS for
+<code>db-write.aforce</code> flips within ~30s. App tier sees a brief
+503 burst, mitigated with retry-on-503 in the SDK.</li>
+<li><strong>Fanout / WS</strong> — sticky to region; cross-region
+broadcast is async.</li>
+</ul>
+<h2 id="circuit-breakers">Circuit breakers</h2>
+<p>Every outbound call (DB, Redis, AI, Stripe, push) goes through a
+breaker: - Closed → all calls flow. - Open at ≥ 50% error rate over 30s,
+or p99 &gt; 5× baseline. - Half-open after 60s — let one probe
+through.</p>
+<p>Breaker state is exported as a metric and surfaced on the SRE
+dashboard.</p>
+<h2 id="retries-with-backoff">Retries with backoff</h2>
+<ul>
+<li>Idempotent reads: up to 3 attempts, full jitter, max 1s total
+budget.</li>
+<li>Idempotent writes (with idempotency-key): same.</li>
+<li>Non-idempotent writes: never auto-retried; surfaced to client.</li>
+</ul>
+<h2 id="degraded-modes">Degraded modes</h2>
+<table>
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 79%" />
+</colgroup>
+<thead>
+<tr>
+<th>Subsystem</th>
+<th>Degraded behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>AI router</td>
+<td>Deterministic template from voice engine</td>
+</tr>
+<tr>
+<td>Competition</td>
+<td>Last cached leaderboard slice (TTL extended to 5min)</td>
+</tr>
+<tr>
+<td>Pulse fanout</td>
+<td>Client polls <code>/state</code> every 10s instead of WS</td>
+</tr>
+<tr>
+<td>Hardware sync</td>
+<td>Phantom Band local-only; reconcile on next connection</td>
+</tr>
+<tr>
+<td>Stripe</td>
+<td>“Upgrade unavailable, try again shortly” instead of 5xx</td>
+</tr>
+<tr>
+<td>Notification</td>
+<td>Drop non-critical pushes; keep Heat/Guardian alerts</td>
+</tr>
+<tr>
+<td>Analytics</td>
+<td>Frontend hides trends with <code>data not yet available</code></td>
+</tr>
+</tbody>
+</table>
+<p>Critical safety paths (Heat Guard at HIGH_RISK / CRITICAL, Guardian
+alerts) <strong>never</strong> degrade. They bypass cache, run with
+elevated rate-limit quotas, and have their own dedicated worker
+pool.</p>
+<h2 id="kill-switches">Kill switches</h2>
+<p><code>src/config/featureFlags.ts</code> exposes runtime flags
+hot-reloaded from Redis: - <code>kill.ai_router</code> — force template
+fallback. - <code>kill.competition_writes</code> — block leaderboard
+updates during a hot incident. - <code>kill.scan_recognition</code> —
+return generic “manual entry” if recognizer is poisoned. -
+<code>kill.voice_overlay</code> — hide the voice button entirely. -
+<code>degrade.home_payload</code> — serve last-good cache only, no
+recompute.</p>
+<p>Flag flips are auditable (who, when, why) and the runbook page
+renders the current flag set.</p>
+<h2 id="traffic-shedding">Traffic shedding</h2>
+<p>When a service trips its SLO, the gateway sheds traffic in this
+order: 1. Drop synthetic check traffic. 2. Drop unauthenticated read
+traffic (returning a 503 + <code>Retry-After</code>). 3. Serve cached
+payloads with <code>X-Stale: true</code>. 4. Reject non-essential write
+traffic (e.g. <code>analytics.event</code> ingest). 5. Last resort —
+reject all but Heat Guard / Guardian / billing.</p>
+<h2 id="runbooks">Runbooks</h2>
+<p>Live at <code>/runbooks/</code> in the on-call wiki: - DB primary
+down - Region down - Redis cluster split-brain - AI provider 5xx storm -
+Kafka consumer lag &gt; 5min - Subscription webhook flood - Phantom Band
+firmware bad release</p>
+<p>Each runbook includes: how to detect, how to mitigate (with
+kill-switch commands), how to verify recovery, and what to write up
+post-incident.</p>
+<h2 id="recovery-objectives">Recovery objectives</h2>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>Target</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>RTO (region failover)</td>
+<td>5 min</td>
+</tr>
+<tr>
+<td>RPO (region failover)</td>
+<td>30 s</td>
+</tr>
+<tr>
+<td>RTO (DB primary)</td>
+<td>60 s</td>
+</tr>
+<tr>
+<td>RPO (DB primary)</td>
+<td>5 s</td>
+</tr>
+<tr>
+<td>RTO (single service)</td>
+<td>30 s</td>
+</tr>
+</tbody>
+</table>
+<h2 id="game-days">Game days</h2>
+<p>Quarterly chaos days exercise: kill a primary, kill an AZ, saturate
+Redis, poison the AI provider. Pass = SLOs held, runbooks executed
+without escalation, post-mortem filed within 72h.</p>
+<p>\newpage</p>
+<h1 id="artifactsapi-serverloadtestsspec.md">📄
+artifacts/api-server/loadtests/spec.md</h1>
+<h1 id="load-test-spec">Load Test Spec</h1>
+<table>
+<colgroup>
+<col style="width: 6%" />
+<col style="width: 10%" />
+<col style="width: 29%" />
+<col style="width: 7%" />
+<col style="width: 9%" />
+<col style="width: 35%" />
+</colgroup>
+<thead>
+<tr>
+<th>Stage</th>
+<th>Tool</th>
+<th>Script</th>
+<th>VUs</th>
+<th>Duration</th>
+<th>Pass criteria</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>S1</td>
+<td>k6</td>
+<td>k6-home-payload.js</td>
+<td>1K</td>
+<td>5min</td>
+<td>p95 &lt; 300ms, errors &lt; 0.1%</td>
+</tr>
+<tr>
+<td>S2</td>
+<td>k6</td>
+<td>k6-home-payload.js</td>
+<td>10K</td>
+<td>15min</td>
+<td>p95 &lt; 350ms, cache hit &gt; 95%</td>
+</tr>
+<tr>
+<td>S3</td>
+<td>k6</td>
+<td>k6-intake-write.js (TBD)</td>
+<td>100K</td>
+<td>30min</td>
+<td>p95 &lt; 250ms, no dup intakes</td>
+</tr>
+<tr>
+<td>S4</td>
+<td>Artillery</td>
+<td>ws-pulse.yaml (TBD)</td>
+<td>1M ws</td>
+<td>1h</td>
+<td>median push &lt; 150ms, drops &lt; 0.5%</td>
+</tr>
+<tr>
+<td>S5</td>
+<td>Locust</td>
+<td>distributed-burst.py (TBD)</td>
+<td>10M</td>
+<td>30min</td>
+<td>error budget burn &lt; 1h</td>
+</tr>
+</tbody>
+</table>
+<p>Run <code>k6 run loadtests/k6-home-payload.js</code> against
+<code>BASE_URL=https://staging…</code>.</p>
+</body>
+</html>
