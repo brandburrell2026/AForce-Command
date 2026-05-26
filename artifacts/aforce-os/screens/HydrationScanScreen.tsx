@@ -445,7 +445,7 @@ export default function HydrationScanScreen() {
               />
             </View>
             <Text style={styles.viewfinderLabel}>
-              {scanning ? 'IDENTIFYING…' : Platform.OS === 'web' ? 'PREVIEW MODE — USE MOCK SCAN' : 'TAP TO OPEN CAMERA'}
+              {scanning ? 'IDENTIFYING…' : Platform.OS === 'web' ? 'PREVIEW MODE — TEST RESULTS USING SAMPLE INPUT' : 'TAP TO OPEN CAMERA'}
             </Text>
           </Pressable>
 
