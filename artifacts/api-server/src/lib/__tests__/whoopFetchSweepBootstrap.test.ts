@@ -6,7 +6,14 @@
  * "valid env" test, and we stop it before it can tick (first tick
  * fires at +intervalMs, not synchronously).
  */
-import { describe, it, expect, vi } from "vitest";
+import {
+  describe,
+  it,
+  expect,
+  vi,
+  beforeEach,
+  afterEach,
+} from "vitest";
 import { maybeStartWhoopFetchSweep } from "../whoopFetchSweepBootstrap";
 import { createWhoopRefreshRegistry } from "../whoopRefreshRegistry";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
@@ -103,6 +110,62 @@ describe("maybeStartWhoopFetchSweep", () => {
     // cleanly. First tick fires at +60s — we never let it run, so the
     // fakeDb is never touched.
     handle?.stop();
+  });
+
+  describe("first tick — sweep wiring via test seams", () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it("threads dbNow cutoff and pageSize into the iterator factory on first tick", async () => {
+      // Regression guard for the architect's PR-21 round-2 follow-up:
+      // a future refactor must NOT silently drop the cutoff or
+      // pageSize when wiring the iterator — this test fails loudly
+      // if either is missing. Uses the bootstrap's `iterFactory` /
+      // `dbNow` test seams so we don't need a real DB or to mock
+      // the worker module.
+      const log = silentLog();
+      const fixedNow = new Date("2026-03-15T12:34:56Z");
+      const dbNowSpy = vi.fn(async () => fixedNow);
+      const iterFactorySpy = vi.fn(
+        () =>
+          // Empty page set — streaming sweep finishes immediately
+          // with a zero tally. We only care that the factory was
+          // called with the right args.
+          (async function* (): AsyncGenerator<readonly string[]> {})(),
+      );
+
+      const handle = maybeStartWhoopFetchSweep({
+        db: fakeDb(),
+        refreshRegistry: createWhoopRefreshRegistry(),
+        log,
+        env: { WHOOP_FETCH_SWEEP_INTERVAL_MS: "1000" },
+        pageSize: 250,
+        iterFactory: iterFactorySpy,
+        dbNow: dbNowSpy,
+      });
+      expect(handle).not.toBeNull();
+      try {
+        // Advance past intervalMs so the first tick fires, then drain
+        // the microtask queue so the async runSweep gets to call
+        // dbNow + iterFactory.
+        await vi.advanceTimersByTimeAsync(1000);
+        // Extra microtask flush — runSweep awaits dbNow then iterates
+        // a generator, which needs a couple of microtask hops.
+        for (let i = 0; i < 5; i++) await Promise.resolve();
+
+        expect(dbNowSpy).toHaveBeenCalledTimes(1);
+        expect(iterFactorySpy).toHaveBeenCalledTimes(1);
+        const [, factoryOpts] = iterFactorySpy.mock.calls[0]!;
+        expect(factoryOpts.cutoff).toBe(fixedNow);
+        expect(factoryOpts.pageSize).toBe(250);
+      } finally {
+        handle?.stop();
+      }
+    });
   });
 
   it("respects a custom env var name (override)", () => {

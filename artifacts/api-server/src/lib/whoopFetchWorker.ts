@@ -330,6 +330,72 @@ export async function* iterWhoopTokenUserIds(
 }
 
 /**
+ * Sweep-mode iterator: same semantics as `iterWhoopTokenUserIds` but
+ * the snapshot `cutoff` is REQUIRED (not optional). Use this from any
+ * code path that processes users while ALSO writing to
+ * `aforce_whoop_tokens` (e.g. the fetch sweep, which refreshes tokens
+ * and bumps `updated_at`) — without the cutoff, the keyset cursor
+ * re-promotes mutated rows and you'll re-process users within a
+ * single pass. See the long comment on `iterWhoopTokenUserIds` for
+ * the full rationale.
+ *
+ * Runtime guard: rejects missing / non-Date / invalid-Date cutoffs at
+ * call time so a future refactor can't silently drop it and re-
+ * introduce the round-1 PR-21 regression. The base iterator is left
+ * cutoff-OPTIONAL for ad-hoc tools and read-only queries that don't
+ * mutate the row's `updated_at`.
+ */
+export function iterWhoopTokenUserIdsForSweep(
+  db: NodePgDatabase<Record<string, unknown>>,
+  opts: { cutoff: Date; pageSize?: number },
+): AsyncGenerator<string[], void, void> {
+  if (
+    !opts ||
+    !(opts.cutoff instanceof Date) ||
+    Number.isNaN(opts.cutoff.getTime())
+  ) {
+    throw new Error(
+      "iterWhoopTokenUserIdsForSweep: `cutoff` must be a valid Date — " +
+        "the sweep path requires a snapshot cutoff to prevent same-user " +
+        "re-processing when token refreshes bump updated_at past the cursor.",
+    );
+  }
+  return iterWhoopTokenUserIds(db, {
+    pageSize: opts.pageSize,
+    updatedAtMax: opts.cutoff,
+  });
+}
+
+/**
+ * Return the DB's current `now()`. Using DB-clock instead of the
+ * Node process clock removes a small but real correctness risk: the
+ * sweep's snapshot cutoff is compared against `updated_at` values
+ * that the token store writes via DB `now()` (see
+ * `WhoopTokenStore.write`). If the app clock is skewed behind the DB
+ * clock, a row written by an in-sweep refresh could land at a
+ * timestamp <= an app-derived cutoff and still be eligible — re-
+ * introducing the round-1 PR-21 bug under clock skew. Comparing
+ * cutoff to writes that share the same clock source closes that
+ * window.
+ */
+export async function getDbNow(
+  db: NodePgDatabase<Record<string, unknown>>,
+): Promise<Date> {
+  const result = await db.execute(sql`SELECT now() AS now`);
+  const row = result.rows?.[0] as { now?: Date | string } | undefined;
+  // node-postgres usually parses timestamptz (OID 1184) into a Date,
+  // but a project that customizes type parsers (or routes the query
+  // through a driver layer that doesn't) can return an ISO string.
+  // Normalize both shapes rather than depending on type-parser config.
+  const raw = row?.now;
+  const dt = raw instanceof Date ? raw : raw != null ? new Date(raw) : null;
+  if (!dt || Number.isNaN(dt.getTime())) {
+    throw new Error("getDbNow: SELECT now() returned no usable row");
+  }
+  return dt;
+}
+
+/**
  * Backwards-compat drain of `iterWhoopTokenUserIds` to one array.
  * Convenient for tests and ad-hoc tooling, but NOT for the sweep hot
  * path — at scale this re-materializes the cliff the iterator was

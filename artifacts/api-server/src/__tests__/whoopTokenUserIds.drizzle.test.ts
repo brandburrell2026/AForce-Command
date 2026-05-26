@@ -22,7 +22,9 @@ import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { eq, inArray } from "drizzle-orm";
 import { db, aforceWhoopTokens } from "@workspace/db";
 import {
+  getDbNow,
   iterWhoopTokenUserIds,
+  iterWhoopTokenUserIdsForSweep,
   listWhoopTokenUserIds,
 } from "../lib/whoopFetchWorker";
 
@@ -255,6 +257,95 @@ describe("iterWhoopTokenUserIds — updatedAtMax snapshot cutoff", () => {
     } finally {
       await cleanSeedRows();
     }
+  });
+});
+
+describe("iterWhoopTokenUserIdsForSweep — runtime cutoff guard", () => {
+  // These don't touch the DB — the guard throws synchronously before
+  // any query is issued. The base iterator's behavior is already
+  // covered by the cutoff tests above.
+  it("throws when cutoff is missing", () => {
+    expect(() =>
+      // @ts-expect-error — exercising the runtime guard against a
+      // future refactor that drops the cutoff.
+      iterWhoopTokenUserIdsForSweep(db, {}),
+    ).toThrow(/cutoff.*must be a valid Date/);
+  });
+
+  it("throws when opts is entirely omitted (not just cutoff)", () => {
+    // Guard hardening: a future refactor that drops the whole opts
+    // arg should still surface the custom diagnostic, not a generic
+    // 'Cannot read properties of undefined' TypeError.
+    expect(() =>
+      // @ts-expect-error — exercising the undefined-opts branch.
+      iterWhoopTokenUserIdsForSweep(db),
+    ).toThrow(/cutoff.*must be a valid Date/);
+  });
+
+  it("throws when cutoff is not a Date", () => {
+    expect(() =>
+      iterWhoopTokenUserIdsForSweep(db, {
+        // @ts-expect-error — runtime guard.
+        cutoff: "2026-01-01T00:00:00Z",
+      }),
+    ).toThrow(/cutoff.*must be a valid Date/);
+  });
+
+  it("throws on Invalid Date (NaN time)", () => {
+    expect(() =>
+      iterWhoopTokenUserIdsForSweep(db, { cutoff: new Date("not-a-date") }),
+    ).toThrow(/cutoff.*must be a valid Date/);
+  });
+
+  it("accepts a valid Date and delegates to the base iterator", async () => {
+    await seedRows();
+    try {
+      const seedSet = new Set(SEED);
+      const got: string[] = [];
+      for await (const page of iterWhoopTokenUserIdsForSweep(db, {
+        cutoff: new Date("2026-01-02T12:00:00Z"),
+        pageSize: 100,
+      })) {
+        for (const id of page) if (seedSet.has(id)) got.push(id);
+      }
+      expect(got).toEqual([u("a01"), u("a02")]);
+    } finally {
+      await cleanSeedRows();
+    }
+  });
+});
+
+describe("getDbNow — DB-clock cutoff source", () => {
+  it("normalizes an ISO-string `now` from a driver without a Date parser", async () => {
+    // Locks `getDbNow`'s parser-agnostic branch: if a future env or
+    // a custom pg type-parser config returns timestamptz as an ISO
+    // string instead of a Date, the helper must still return a
+    // valid Date — not throw, not pass the string through.
+    const fakeDb = {
+      execute: async (_q: unknown) => ({
+        rows: [{ now: "2026-04-01T12:00:00.000Z" }],
+      }),
+    } as unknown as Parameters<typeof getDbNow>[0];
+    const result = await getDbNow(fakeDb);
+    expect(result).toBeInstanceOf(Date);
+    expect(result.toISOString()).toBe("2026-04-01T12:00:00.000Z");
+  });
+
+  it("returns a Date close to the app clock (sanity bound: within 5s)", async () => {
+    // The whole point of getDbNow vs `new Date()` is that the DB
+    // clock is the SAME source as the token store's `now()`. We can't
+    // assert "no skew" from a test, but we CAN assert the result is
+    // a real Date in a sane envelope (rules out null, type confusion,
+    // far-future clocks).
+    const before = Date.now();
+    const dbNow = await getDbNow(db);
+    const after = Date.now();
+    expect(dbNow).toBeInstanceOf(Date);
+    expect(Number.isNaN(dbNow.getTime())).toBe(false);
+    // 5s envelope is wide enough to absorb any reasonable replica
+    // lag / NTP drift in a Replit-hosted PG without false positives.
+    expect(dbNow.getTime()).toBeGreaterThan(before - 5_000);
+    expect(dbNow.getTime()).toBeLessThan(after + 5_000);
   });
 });
 

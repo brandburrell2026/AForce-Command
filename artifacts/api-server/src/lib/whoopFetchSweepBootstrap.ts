@@ -27,7 +27,8 @@ import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import type { Logger } from "pino";
 import {
   buildDefaultWhoopFetchDeps,
-  iterWhoopTokenUserIds,
+  getDbNow,
+  iterWhoopTokenUserIdsForSweep,
   runWhoopFetchOnce,
 } from "./whoopFetchWorker";
 import type { WhoopRefreshRegistry } from "./whoopRefreshRegistry";
@@ -52,6 +53,17 @@ export interface MaybeStartWhoopFetchSweepOpts {
    *  `WHOOP_TOKEN_USERS_DEFAULT_PAGE_SIZE` (500). Process memory during
    *  a sweep stays bounded at O(pageSize) regardless of table size. */
   pageSize?: number;
+  /** TEST SEAM: override the iterator factory. Defaults to
+   *  `iterWhoopTokenUserIdsForSweep`. Production code should not pass
+   *  this — it exists so the bootstrap can be unit-tested without a
+   *  real DB. */
+  iterFactory?: (
+    db: NodePgDatabase<Record<string, unknown>>,
+    opts: { cutoff: Date; pageSize?: number },
+  ) => AsyncIterable<readonly string[]>;
+  /** TEST SEAM: override the DB-clock cutoff source. Defaults to
+   *  `getDbNow`. Production code should not pass this. */
+  dbNow?: (db: NodePgDatabase<Record<string, unknown>>) => Promise<Date>;
 }
 
 export type WhoopFetchSweepHandle = {
@@ -81,22 +93,25 @@ export function maybeStartWhoopFetchSweep(
   }
 
   const log = opts.log;
+  const iterFactory = opts.iterFactory ?? iterWhoopTokenUserIdsForSweep;
+  const dbNow = opts.dbNow ?? getDbNow;
   const stop = startWhoopFetchSweepLoop({
     intervalMs,
     log,
     runSweep: async () => {
-      // Snapshot cutoff captured BEFORE creating the iterator. The
-      // sweep refreshes tokens, which bumps `updated_at` on the row,
-      // which would re-promote the row past the keyset cursor and
-      // cause the same user to be re-processed in a later page of
-      // the same sweep. The cutoff freezes the page set to the rows
-      // that existed (with their updated_at value) at sweep start.
-      // New users created during the sweep are picked up next tick.
-      const sweepStartCutoff = new Date();
+      // Snapshot cutoff captured from the DB clock (not `new Date()`)
+      // BEFORE creating the iterator. The token store writes
+      // `updated_at` via DB `now()`; if the app clock lagged the DB
+      // clock, an in-sweep refresh could land at a timestamp <= an
+      // app-derived cutoff and re-trigger the round-1 PR-21 bug.
+      // Comparing cutoff to writes that share the same clock source
+      // closes that window. New users created during the sweep are
+      // picked up next tick.
+      const sweepStartCutoff = await dbNow(opts.db);
       return runWhoopFetchSweepStreaming({
-        pages: iterWhoopTokenUserIds(opts.db, {
+        pages: iterFactory(opts.db, {
+          cutoff: sweepStartCutoff,
           pageSize: opts.pageSize,
-          updatedAtMax: sweepStartCutoff,
         }),
         concurrency: opts.concurrency,
         log,
