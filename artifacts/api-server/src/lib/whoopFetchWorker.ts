@@ -78,6 +78,7 @@ export type WhoopFetchOutcomeStatus =
   | "ok"
   | "skipped_no_token"
   | "skipped_no_state"
+  | "skipped_locked"
   | "error";
 
 export interface WhoopFetchOutcome {

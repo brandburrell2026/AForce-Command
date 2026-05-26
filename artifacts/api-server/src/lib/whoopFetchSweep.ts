@@ -44,6 +44,26 @@ export interface WhoopFetchSweepResult extends WhoopFetchSweepTally {
   durationMs: number;
 }
 
+/**
+ * Multi-replica singleflight seam. When provided, every per-user
+ * `runOnce` call is wrapped in `acquireLock(userId, () => runOnce(uid))`.
+ * The lock is expected to be non-blocking — `acquired: false` means
+ * another replica is already processing this user, so we tally the
+ * outcome as `skipped_locked` and move on (we'll catch the user next
+ * sweep). When the lock function itself throws (DB error, connection
+ * timeout, etc.), we tally as `error` — same path as a fn-throw,
+ * since lock state is ambiguous and we can't safely re-run.
+ *
+ * Structural shape (not an import from `whoopAdvisoryLock`) so the
+ * sweep stays decoupled from the lock implementation — the bootstrap
+ * does the actual wiring. Any non-blocking distributed lock satisfying
+ * this shape works (Redis SETNX, etcd, etc.) if WHOOP ever migrates.
+ */
+export type AcquireUserSweepLock = <T>(
+  userId: string,
+  fn: () => Promise<T>,
+) => Promise<{ acquired: true; value: T } | { acquired: false }>;
+
 export interface RunWhoopFetchSweepArgs {
   /** Users to fetch this pass — produced by `listWhoopTokenUserIds`. */
   userIds: readonly string[];
@@ -57,6 +77,10 @@ export interface RunWhoopFetchSweepArgs {
    *  collapse to one POST, but unrelated users can run in parallel
    *  up to this cap. */
   concurrency?: number;
+  /** Optional multi-replica singleflight. See `AcquireUserSweepLock`.
+   *  Absent => single-replica behavior (no cross-process safety) —
+   *  every user is processed by this replica. */
+  acquireLock?: AcquireUserSweepLock;
   /** Defaults to `Date.now`. */
   nowMs?: () => number;
   log?: Pick<Logger, "info" | "warn" | "error">;
@@ -79,7 +103,13 @@ export async function runWhoopFetchSweep(
 
   const tally: WhoopFetchSweepTally = {
     total: args.userIds.length,
-    byStatus: { ok: 0, skipped_no_token: 0, skipped_no_state: 0, error: 0 },
+    byStatus: {
+      ok: 0,
+      skipped_no_token: 0,
+      skipped_no_state: 0,
+      skipped_locked: 0,
+      error: 0,
+    },
   };
 
   if (args.userIds.length === 0) {
@@ -104,17 +134,36 @@ export async function runWhoopFetchSweep(
     return id;
   };
 
+  const acquireLock = args.acquireLock;
   async function worker(): Promise<void> {
     for (;;) {
       const userId = next();
       if (userId === null) return;
       try {
-        const out = await args.runOnce(userId);
-        tally.byStatus[out.status] += 1;
+        if (acquireLock !== undefined) {
+          // Multi-replica path: wrap runOnce in the distributed lock.
+          // `acquired:false` is the "another replica owns this user
+          // right now" signal — tally as skipped_locked and move on,
+          // do NOT call runOnce (would defeat the lock's purpose).
+          const lockOut = await acquireLock(
+            userId,
+            () => args.runOnce(userId),
+          );
+          if (lockOut.acquired) {
+            tally.byStatus[lockOut.value.status] += 1;
+          } else {
+            tally.byStatus.skipped_locked += 1;
+          }
+        } else {
+          const out = await args.runOnce(userId);
+          tally.byStatus[out.status] += 1;
+        }
       } catch (err) {
         // `runWhoopFetchOnce` is contractually never-throws, but
         // defend against a future regression so one bad user can't
-        // crash the sweep.
+        // crash the sweep. Same path catches acquireLock throws —
+        // lock state is ambiguous on throw, treating as error (not
+        // skip, not retry) is the only safe call.
         tally.byStatus.error += 1;
         log?.error(
           { userId, err: err instanceof Error ? err.name : "unknown_error" },
@@ -153,6 +202,8 @@ export interface RunWhoopFetchSweepStreamingArgs {
   runOnce: RunWhoopFetchSweepArgs["runOnce"];
   /** Forwarded to per-page `runWhoopFetchSweep`. Default 4. */
   concurrency?: number;
+  /** Forwarded to per-page `runWhoopFetchSweep`. See `AcquireUserSweepLock`. */
+  acquireLock?: AcquireUserSweepLock;
   /** Defaults to `Date.now`. */
   nowMs?: () => number;
   log?: Pick<Logger, "info" | "warn" | "error">;
@@ -182,7 +233,13 @@ export async function runWhoopFetchSweepStreaming(
   const startedAt = now();
   const tally: WhoopFetchSweepTally = {
     total: 0,
-    byStatus: { ok: 0, skipped_no_token: 0, skipped_no_state: 0, error: 0 },
+    byStatus: {
+      ok: 0,
+      skipped_no_token: 0,
+      skipped_no_state: 0,
+      skipped_locked: 0,
+      error: 0,
+    },
   };
   let pageCount = 0;
 
@@ -196,6 +253,7 @@ export async function runWhoopFetchSweepStreaming(
       userIds: page,
       runOnce: args.runOnce,
       concurrency: args.concurrency,
+      acquireLock: args.acquireLock,
       nowMs: args.nowMs,
       log: args.log,
     });

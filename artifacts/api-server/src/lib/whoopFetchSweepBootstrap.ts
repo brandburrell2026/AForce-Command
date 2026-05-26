@@ -15,16 +15,19 @@
  * Hidden-infra: server boot calls this unconditionally; the env gate
  * lives here. Default deployments have the env unset and pay nothing.
  *
- * Multi-replica note: this gives single-replica process safety only.
- * Horizontal scaling with the sweep enabled needs a distributed lock
- * (Postgres advisory lock keyed by `hashtext(user_id)` or a
- * `whoop_sweep_claims` table with SKIP LOCKED) — see
- * `whoopRefreshRegistry.ts` for the full rationale. Tracked as
- * follow-up.
+ * Multi-replica note: by default this gives single-replica process
+ * safety only. Set `WHOOP_FETCH_SWEEP_MULTI_REPLICA=1` (or any truthy
+ * value — see `parseMultiReplica`) to enable the cross-process
+ * singleflight via Postgres advisory locks (`whoopAdvisoryLock.ts`).
+ * The lock is keyed by `hashtextextended(userId, namespace)`; on
+ * acquired:false the sweep tallies the user as `skipped_locked` and
+ * moves on. Default OFF preserves the hidden-infra contract (no
+ * behavior change for deployments that don't opt in).
  */
 
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import type { Logger } from "pino";
+import { pool as defaultPool } from "@workspace/db";
 import {
   buildDefaultWhoopFetchDeps,
   getDbNow,
@@ -35,7 +38,12 @@ import type { WhoopRefreshRegistry } from "./whoopRefreshRegistry";
 import {
   runWhoopFetchSweepStreaming,
   startWhoopFetchSweepLoop,
+  type AcquireUserSweepLock,
 } from "./whoopFetchSweep";
+import {
+  withWhoopUserAdvisoryLock,
+  type PgPoolLike,
+} from "./whoopAdvisoryLock";
 
 export interface MaybeStartWhoopFetchSweepOpts {
   db: NodePgDatabase<Record<string, unknown>>;
@@ -64,6 +72,30 @@ export interface MaybeStartWhoopFetchSweepOpts {
   /** TEST SEAM: override the DB-clock cutoff source. Defaults to
    *  `getDbNow`. Production code should not pass this. */
   dbNow?: (db: NodePgDatabase<Record<string, unknown>>) => Promise<Date>;
+  /** TEST SEAM: override the multi-replica env var name. Defaults to
+   *  `WHOOP_FETCH_SWEEP_MULTI_REPLICA`. */
+  multiReplicaEnvVarName?: string;
+  /** TEST SEAM: override the connection pool used by the advisory
+   *  lock. Defaults to the shared `@workspace/db` pool. */
+  pool?: PgPoolLike;
+  /** TEST SEAM: override the acquireLock builder. When set, takes
+   *  precedence over the env-gated default. Use to inject a fake
+   *  lock in unit tests without touching env. */
+  acquireLock?: AcquireUserSweepLock;
+}
+
+/**
+ * Parse the multi-replica env flag. Truthy values: "1", "true",
+ * "yes", "on" (case-insensitive). Everything else (including unset,
+ * empty, "0", "false") is OFF. Strict whitelist instead of generic
+ * truthiness so a typo doesn't silently enable distributed locking
+ * in a single-replica deployment (where it would only cost a tiny
+ * amount of DB chatter, but the principle is "explicit opt-in").
+ */
+function parseMultiReplica(raw: string | undefined): boolean {
+  if (raw === undefined) return false;
+  const v = raw.trim().toLowerCase();
+  return v === "1" || v === "true" || v === "yes" || v === "on";
 }
 
 export type WhoopFetchSweepHandle = {
@@ -95,6 +127,22 @@ export function maybeStartWhoopFetchSweep(
   const log = opts.log;
   const iterFactory = opts.iterFactory ?? iterWhoopTokenUserIdsForSweep;
   const dbNow = opts.dbNow ?? getDbNow;
+  const multiReplicaVarName =
+    opts.multiReplicaEnvVarName ?? "WHOOP_FETCH_SWEEP_MULTI_REPLICA";
+  const multiReplica = parseMultiReplica(env[multiReplicaVarName]);
+  // Resolution order: explicit test override > env-gated default >
+  // undefined (single-replica path). The explicit override lets unit
+  // tests inject a fake lock without setting env. The env path is
+  // what production deployments use.
+  let acquireLock: AcquireUserSweepLock | undefined = opts.acquireLock;
+  if (acquireLock === undefined && multiReplica) {
+    const lockPool = opts.pool ?? defaultPool;
+    acquireLock = <T>(
+      userId: string,
+      fn: () => Promise<T>,
+    ): Promise<{ acquired: true; value: T } | { acquired: false }> =>
+      withWhoopUserAdvisoryLock(lockPool, userId, fn);
+  }
   const stop = startWhoopFetchSweepLoop({
     intervalMs,
     log,
@@ -114,6 +162,7 @@ export function maybeStartWhoopFetchSweep(
           pageSize: opts.pageSize,
         }),
         concurrency: opts.concurrency,
+        acquireLock,
         log,
         runOnce: (userId) =>
           runWhoopFetchOnce(
@@ -128,7 +177,7 @@ export function maybeStartWhoopFetchSweep(
   });
 
   log.info(
-    { intervalMs },
+    { intervalMs, multiReplica: acquireLock !== undefined },
     "whoopFetchSweep:bootstrap started",
   );
 

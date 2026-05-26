@@ -168,6 +168,129 @@ describe("maybeStartWhoopFetchSweep", () => {
     });
   });
 
+  describe("WHOOP_FETCH_SWEEP_MULTI_REPLICA env gate", () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    // Helper: spin up the loop, advance to the first tick, capture
+    // whether the injected iterFactory's per-user runOnce was wrapped
+    // by an acquireLock. We do this by passing an explicit
+    // `acquireLock` override OR by observing that the env-gated path
+    // produced one via the `multiReplica` field on the bootstrap log.
+    async function bootAndPeekFirstTick(env: Record<string, string>) {
+      const log = silentLog();
+      const dbNowSpy = vi.fn(async () => new Date("2026-04-01T00:00:00Z"));
+      const iterFactorySpy = vi.fn(
+        () => (async function* (): AsyncGenerator<readonly string[]> {})(),
+      );
+      const handle = maybeStartWhoopFetchSweep({
+        db: fakeDb(),
+        refreshRegistry: createWhoopRefreshRegistry(),
+        log,
+        env: { WHOOP_FETCH_SWEEP_INTERVAL_MS: "1000", ...env },
+        iterFactory: iterFactorySpy,
+        dbNow: dbNowSpy,
+      });
+      try {
+        await vi.advanceTimersByTimeAsync(1000);
+        for (let i = 0; i < 5; i++) await Promise.resolve();
+      } finally {
+        handle?.stop();
+      }
+      // The bootstrap startup info log carries `{ multiReplica }` —
+      // the only externally observable signal of whether the env
+      // gate enabled the lock seam. Verified against
+      // whoopFetchSweepBootstrap.ts:182.
+      const startupCall = log.info.mock.calls.find(
+        (c) => c[1] === "whoopFetchSweep:bootstrap started",
+      );
+      const startupMeta = startupCall?.[0] as
+        | { multiReplica: boolean }
+        | undefined;
+      return { multiReplica: startupMeta?.multiReplica ?? false };
+    }
+
+    it("env var unset => acquireLock is NOT wired (single-replica default, hidden-infra)", async () => {
+      const { multiReplica } = await bootAndPeekFirstTick({});
+      expect(multiReplica).toBe(false);
+    });
+
+    it.each([["0"], ["false"], ["no"], ["off"], ["FALSE"], ["bogus"], [""]])(
+      "falsy / unknown value %j => acquireLock NOT wired (strict whitelist)",
+      async (raw) => {
+        const { multiReplica } = await bootAndPeekFirstTick({
+          WHOOP_FETCH_SWEEP_MULTI_REPLICA: raw,
+        });
+        expect(multiReplica).toBe(false);
+      },
+    );
+
+    it.each([["1"], ["true"], ["yes"], ["on"], ["TRUE"], ["  YES  "]])(
+      "truthy value %j => acquireLock IS wired",
+      async (raw) => {
+        const { multiReplica } = await bootAndPeekFirstTick({
+          WHOOP_FETCH_SWEEP_MULTI_REPLICA: raw,
+        });
+        expect(multiReplica).toBe(true);
+      },
+    );
+
+    it("explicit acquireLock override takes precedence over env (test seam)", async () => {
+      const log = silentLog();
+      // env is OFF, but we pass an explicit acquireLock — bootstrap
+      // should still wire it (test override always wins).
+      const fakeLock = vi.fn(
+        async <T>(_userId: string, fn: () => Promise<T>) => ({
+          acquired: true as const,
+          value: await fn(),
+        }),
+      );
+      const handle = maybeStartWhoopFetchSweep({
+        db: fakeDb(),
+        refreshRegistry: createWhoopRefreshRegistry(),
+        log,
+        env: { WHOOP_FETCH_SWEEP_INTERVAL_MS: "1000" },
+        acquireLock: fakeLock,
+      });
+      try {
+        const startupCall = log.info.mock.calls.find(
+          (c) => c[1] === "whoopFetchSweep:bootstrap started",
+        );
+        const startupMeta = startupCall?.[0] as { multiReplica: boolean };
+        expect(startupMeta.multiReplica).toBe(true);
+      } finally {
+        handle?.stop();
+      }
+    });
+
+    it("custom multiReplicaEnvVarName override is honored", async () => {
+      const log = silentLog();
+      const handle = maybeStartWhoopFetchSweep({
+        db: fakeDb(),
+        refreshRegistry: createWhoopRefreshRegistry(),
+        log,
+        env: {
+          WHOOP_FETCH_SWEEP_INTERVAL_MS: "1000",
+          CUSTOM_MR_FLAG: "1",
+        },
+        multiReplicaEnvVarName: "CUSTOM_MR_FLAG",
+      });
+      try {
+        const startupCall = log.info.mock.calls.find(
+          (c) => c[1] === "whoopFetchSweep:bootstrap started",
+        );
+        const startupMeta = startupCall?.[0] as { multiReplica: boolean };
+        expect(startupMeta.multiReplica).toBe(true);
+      } finally {
+        handle?.stop();
+      }
+    });
+  });
+
   it("respects a custom env var name (override)", () => {
     const log = silentLog();
     const handle = maybeStartWhoopFetchSweep({

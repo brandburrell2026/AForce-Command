@@ -57,6 +57,7 @@ describe("runWhoopFetchSweep", () => {
       ok: 3,
       skipped_no_token: 1,
       skipped_no_state: 1,
+      skipped_locked: 0,
       error: 1,
     });
     expect(result.startedAt).toBe(1_000_000);
@@ -79,6 +80,7 @@ describe("runWhoopFetchSweep", () => {
       ok: 0,
       skipped_no_token: 0,
       skipped_no_state: 0,
+      skipped_locked: 0,
       error: 0,
     });
   });
@@ -131,6 +133,70 @@ describe("runWhoopFetchSweep", () => {
     expect(result.byStatus.ok).toBe(userIds.length);
   });
 
+  it("acquireLock acquired:true => runs runOnce inside the lock and tallies the user's status", async () => {
+    // Multi-replica path: lock wraps runOnce, the wrapped value's
+    // status feeds the tally exactly like the single-replica path.
+    const runOnceCalls: string[] = [];
+    const lockedUsers: string[] = [];
+    const result = await runWhoopFetchSweep({
+      userIds: ["a", "b"],
+      runOnce: async (id) => {
+        runOnceCalls.push(id);
+        return { status: "ok" as const };
+      },
+      acquireLock: async (userId, fn) => {
+        lockedUsers.push(userId);
+        const value = await fn();
+        return { acquired: true as const, value };
+      },
+    });
+    expect(runOnceCalls.sort()).toEqual(["a", "b"]);
+    expect(lockedUsers.sort()).toEqual(["a", "b"]);
+    expect(result.byStatus.ok).toBe(2);
+    expect(result.byStatus.skipped_locked).toBe(0);
+    expect(result.byStatus.error).toBe(0);
+  });
+
+  it("acquireLock acquired:false => tallies skipped_locked AND does NOT call runOnce (lock owns the user)", async () => {
+    // Critical invariant: when the lock declines, we must NOT invoke
+    // runOnce. Otherwise we defeat the cross-replica singleflight
+    // and double-process the user.
+    const runOnceCalls: string[] = [];
+    const result = await runWhoopFetchSweep({
+      userIds: ["a", "b", "c"],
+      runOnce: async (id) => {
+        runOnceCalls.push(id);
+        return { status: "ok" as const };
+      },
+      acquireLock: async (userId, fn) => {
+        if (userId === "b") return { acquired: false as const };
+        return { acquired: true as const, value: await fn() };
+      },
+    });
+    expect(runOnceCalls.sort()).toEqual(["a", "c"]);
+    expect(result.byStatus.ok).toBe(2);
+    expect(result.byStatus.skipped_locked).toBe(1);
+    expect(result.byStatus.error).toBe(0);
+    expect(result.total).toBe(3);
+  });
+
+  it("acquireLock throws => absorbed into byStatus.error, sweep continues", async () => {
+    // A pool/DB error from the lock itself is ambiguous (we don't
+    // know if the lock landed). Same path as a runOnce throw: tally
+    // error, don't crash the sweep.
+    const result = await runWhoopFetchSweep({
+      userIds: ["good", "throws", "good2"],
+      runOnce: async () => ({ status: "ok" as const }),
+      acquireLock: async (userId, fn) => {
+        if (userId === "throws") throw new Error("pool exhausted");
+        return { acquired: true as const, value: await fn() };
+      },
+    });
+    expect(result.byStatus.ok).toBe(2);
+    expect(result.byStatus.error).toBe(1);
+    expect(result.byStatus.skipped_locked).toBe(0);
+  });
+
   it("uses Date.now by default when nowMs is not provided", async () => {
     const before = Date.now();
     const result = await runWhoopFetchSweep({
@@ -158,6 +224,7 @@ describe("runWhoopFetchSweepStreaming", () => {
       ok: 0,
       skipped_no_token: 0,
       skipped_no_state: 0,
+      skipped_locked: 0,
       error: 0,
     });
     expect(result.startedAt).toBe(5_000);
@@ -198,6 +265,7 @@ describe("runWhoopFetchSweepStreaming", () => {
       ok: 4,
       skipped_no_token: 1,
       skipped_no_state: 1,
+      skipped_locked: 0,
       error: 1,
     });
   });
@@ -254,6 +322,33 @@ describe("runWhoopFetchSweepStreaming", () => {
     // finishedAt is whatever nowMs returned at the streaming exit.
     expect(result.finishedAt).toBeGreaterThan(result.startedAt);
     expect(result.durationMs).toBe(result.finishedAt - result.startedAt);
+  });
+
+  it("forwards acquireLock through to every page — declines tally skipped_locked across page boundaries", async () => {
+    // Regression guard: streaming must propagate the lock seam into
+    // the per-page sweep. If a refactor drops the `acquireLock:` arg
+    // in the runWhoopFetchSweep call below, this test fails loudly
+    // (no skipped_locked tally, all runOnce calls executed).
+    const runOnceCalls: string[] = [];
+    const result = await runWhoopFetchSweepStreaming({
+      pages: pagesOf(["a", "b"], ["c", "d"]),
+      runOnce: async (id) => {
+        runOnceCalls.push(id);
+        return { status: "ok" as const };
+      },
+      acquireLock: async (userId, fn) => {
+        // Decline every other user — spread across both pages.
+        if (userId === "b" || userId === "d") {
+          return { acquired: false as const };
+        }
+        return { acquired: true as const, value: await fn() };
+      },
+      nowMs: () => 0,
+    });
+    expect(runOnceCalls.sort()).toEqual(["a", "c"]);
+    expect(result.byStatus.ok).toBe(2);
+    expect(result.byStatus.skipped_locked).toBe(2);
+    expect(result.total).toBe(4);
   });
 
   it("lazily pulls pages: the next page is fetched only AFTER the previous one drains", async () => {
@@ -313,6 +408,7 @@ describe("startWhoopFetchSweepLoop", () => {
             ok: 0,
             skipped_no_token: 0,
             skipped_no_state: 0,
+            skipped_locked: 0,
             error: 0,
           },
           startedAt: 0,
@@ -346,6 +442,7 @@ describe("startWhoopFetchSweepLoop", () => {
             ok: 0,
             skipped_no_token: 0,
             skipped_no_state: 0,
+            skipped_locked: 0,
             error: 0,
           },
           startedAt: 0,
@@ -379,6 +476,7 @@ describe("startWhoopFetchSweepLoop", () => {
             ok: 0,
             skipped_no_token: 0,
             skipped_no_state: 0,
+            skipped_locked: 0,
             error: 0,
           },
           startedAt: 0,
@@ -438,6 +536,7 @@ describe("startWhoopFetchSweepLoop", () => {
             ok: 0,
             skipped_no_token: 0,
             skipped_no_state: 0,
+            skipped_locked: 0,
             error: 0,
           },
           startedAt: 0,
