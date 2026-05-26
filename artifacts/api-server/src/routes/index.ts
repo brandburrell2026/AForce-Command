@@ -17,8 +17,11 @@ import earlyAccessRouter from "./earlyAccess";
 import adminDemandRouter from "./adminDemand";
 import adminDemandFromStateRouter from "./adminDemandFromState";
 import { buildWhoopOAuthRouter } from "./whoopOAuth";
+import { buildDefaultWhoopAdminRouter } from "./whoopAdmin";
 import { createInMemoryWhoopAuthStateStore } from "../lib/whoopAuthStateStore";
 import { createDrizzleWhoopTokenStoreForUser, db } from "@workspace/db";
+import { getWhoopRefreshRegistry } from "../lib/whoopRegistry";
+import { logger } from "../lib/logger";
 // Note: smartCaptureRouter is mounted directly in app.ts BEFORE the global
 // 64kB express.json() limiter (base64 photos blow past 64kB instantly).
 
@@ -60,6 +63,16 @@ if (whoopClientId && whoopClientSecret && whoopRedirectUri) {
       redirectUri: whoopRedirectUri,
       tokenStoreFor: (userId) => createDrizzleWhoopTokenStoreForUser(db, userId),
       successRedirectUrl: process.env["WHOOP_OAUTH_SUCCESS_URL"],
+    }),
+  );
+  // Admin trigger shares the OAuth env gate AND the process-singleton
+  // refresh registry that the cron sweep uses — so admin-triggered
+  // fetches mid-sweep cannot double-refresh tokens for the same user.
+  router.use(
+    buildDefaultWhoopAdminRouter({
+      db,
+      refreshRegistry: getWhoopRefreshRegistry(),
+      log: logger,
     }),
   );
 }

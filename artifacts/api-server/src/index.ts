@@ -1,8 +1,11 @@
 import { createServer } from "node:http";
+import { db } from "@workspace/db";
 import app from "./app";
 import { logger } from "./lib/logger";
 import { attachAforceHub } from "./lib/aforceHub";
 import { initStripe } from "./lib/initStripe";
+import { maybeStartWhoopFetchSweep } from "./lib/whoopFetchSweepBootstrap";
+import { getWhoopRefreshRegistry } from "./lib/whoopRegistry";
 
 const rawPort = process.env["PORT"];
 
@@ -28,6 +31,15 @@ server.listen(port, () => {
   // Fire-and-forget — initStripe handles its own errors and falls back
   // gracefully if the Stripe integration isn't connected yet.
   void initStripe();
+  // Hidden-infra: WHOOP fetch sweep only starts when
+  // WHOOP_FETCH_SWEEP_INTERVAL_MS is set to a positive number. Shares
+  // the process-singleton WhoopRefreshRegistry with the admin trigger
+  // route so concurrent fetches for the same user collapse to one POST.
+  maybeStartWhoopFetchSweep({
+    db,
+    refreshRegistry: getWhoopRefreshRegistry(),
+    log: logger,
+  });
 });
 
 server.on("error", (err) => {
