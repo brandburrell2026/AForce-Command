@@ -1,2 +1,3 @@
 - [AForce build-lock reversal](aforce-build-lock.md) — "Build once, Evaluate everything, Release later — no hiding"; gating decisions must surface gates to evaluators, never hide modules.
+- [AForce Water-First wording lock](aforce-water-first.md) — coach copy must start with `HYDRATE NOW` / `Start with water`; products never lead, scans/recommendations never change score; launch i18n = en/es/fr/de/pt/it only.
 - [aforce-os icon map discipline](aforce-icons.md) — Icon name strings must exist in `theme/icons.ts` ICON_MAP; lucide name ≠ map key (e.g. `refresh-cw` not `refresh-ccw`, no `link`).

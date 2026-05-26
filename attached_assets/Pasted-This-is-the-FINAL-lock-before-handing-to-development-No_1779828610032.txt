@@ -1,0 +1,180 @@
+This is the FINAL lock before handing to development.
+
+No redesign.
+
+No rebuilding.
+
+No moving navigation.
+
+No adding tabs.
+
+No dashboard expansion.
+
+Current UX remains approved.
+
+Goal: Ship the engine correctly. Preserve simplicity. Allow future expansion without rebuilding.
+
+Build once. Expose over time.
+
+————————————————————
+
+FINAL WORDING + ENGINE LOCKS
+
+WATER-FIRST COMMAND SYSTEM
+Update all recommendation logic to:
+
+Water → Command → Optional AForce Support → Score Update
+
+Rule: Products never come before water.
+
+Remove any default recommendation language that starts with:
+
+“AForce Stick + Water”
+
+Replace with:
+
+HYDRATE NOW
+
+Start with Water
+
+Optional hydration support may be recommended after hydration needs are evaluated.
+
+Reason: Build trust. Behavior first. Product second.
+
+————————————————————
+
+SCORE PROTECTION RULE
+Add globally across all engines:
+
+Only completed actions may modify score.
+
+Recommendations never increase score.
+
+Scans never increase score.
+
+Product selection never increases score.
+
+HydroScan remains advisory.
+
+Scores only change from completed behavior.
+
+————————————————————
+
+LANGUAGE / LOCALIZATION LOCK
+Launch Languages:
+
+English
+
+Spanish
+
+French
+
+German
+
+Portuguese
+
+Italian
+
+Rule:
+
+No country-specific prioritization.
+
+Localization remains modular.
+
+Remove Denmark references if they still exist anywhere.
+
+Language architecture must support future expansion without rebuild.
+
+————————————————————
+
+ENGINE / UI GOVERNANCE
+Add this rule:
+
+Architecture may expand.
+
+Navigation may not.
+
+Engine becomes smarter.
+
+Screens remain simpler.
+
+Feature flags control exposure.
+
+Internal preview stays available.
+
+Public unlocks occur by phase.
+
+————————————————————
+
+PRODUCT POSITIONING RULE
+Never force product recommendations.
+
+Decision order:
+
+Context
+
+Recovery
+
+Behavior
+
+Learning
+
+Optional support
+
+Rule:
+
+Products support behavior.
+
+Products do not drive behavior.
+
+————————————————————
+
+SCALE WORDING UPDATE
+Replace:
+
+“Designed for 50M+ users”
+
+With:
+
+“Designed for horizontal scaling.”
+
+Cleaner engineering language.
+
+————————————————————
+
+KEEP EXISTING MVP
+Do NOT remove:
+
+Orb
+
+Timeline
+
+HydroScan
+
+Coach
+
+Journal
+
+Recovery
+
+Feature Flags
+
+Internal Preview
+
+Keep:
+
+Build 100% Show 10% Unlock over time
+
+One Engine. Multiple Experiences.
+
+————————————————————
+
+FINAL APPROVAL
+
+Approved for implementation after these wording updates.
+
+No additional architecture changes.
+
+Ship phase-by-phase.
+
+Pause → Hydrate → Lock In → Perform

@@ -16,8 +16,8 @@ export const VIDEO_LIBRARY: Record<string, VideoConfig> = {
     scene: 'water_stream',
     videoUrl: '/videos/hydration_action_01.mp4',
     durationSec: 8,
-    overlayTitle: 'INTAKE NOW',
-    overlaySubtitle: 'Recommendation: 16 ounces of water',
+    overlayTitle: 'HYDRATE NOW',
+    overlaySubtitle: 'Start with water — 16 ounces.',
     themeLevel: 'BALANCED',
   },
   hydration_action_02: {

@@ -1,6 +1,30 @@
 # Overview
 
-AForce OS is a real-time human performance operating system, delivered as a React Native / Expo mobile application with an Express 5 and PostgreSQL API server. Its core purpose is to provide hydration intelligence and AI-driven insights to enhance athletic performance and overall wellness. Key features include personalized hydration tracking, AI coaching, social engagement through "Circles" and "Territory" features, and integrated e-commerce capabilities via Stripe for purchases and subscriptions. The system is designed for high scalability to support a user base of over 50 million.
+AForce OS is a real-time human performance operating system, delivered as a React Native / Expo mobile application with an Express 5 and PostgreSQL API server. Its core purpose is to provide hydration intelligence and AI-driven insights to enhance athletic performance and overall wellness. Key features include personalized hydration tracking, AI coaching, social engagement through "Circles" and "Territory" features, and integrated e-commerce capabilities via Stripe for purchases and subscriptions. The system is designed for horizontal scaling.
+
+# FINAL BUILD LOCK (locked; do not redesign)
+
+Approved for implementation. No redesign, no rebuilding, no moving navigation, no adding tabs, no dashboard expansion. Build once. Expose over time.
+
+## Water-First Command System
+Recommendation order is **Water → Command → Optional support → Score Update**. Products never come before water. Default recommendation copy must begin with `HYDRATE NOW` / `Start with water`; optional hydration support may be suggested only after hydration needs are evaluated. Behavior first, product second.
+
+## Score Protection Rule
+Only completed actions modify score. Recommendations, scans (HydroScan stays advisory), and product selection never increase score. Scores only change from completed behavior.
+
+## Language / Localization Lock
+Launch languages: English, Spanish, French, German, Portuguese, Italian. No country-specific prioritization. Architecture stays modular so future languages can be added without rebuild. Hidden locales remain resource-only behind flags; they are not in the LanguageSelector.
+
+## Engine / UI Governance
+Architecture may expand. Navigation may not. The engine becomes smarter; screens remain simpler. Feature flags control exposure. Internal preview stays available. Public unlocks ship phase-by-phase.
+
+## Product Positioning Rule
+Decision order: Context → Recovery → Behavior → Learning → Optional support. Products support behavior; products do not drive behavior. Never force product recommendations.
+
+## MVP Surfaces (do not remove)
+Orb · Timeline · HydroScan · Coach · Journal · Recovery · Feature Flags · Internal Preview. Principle: Build 100% · Show 10% · Unlock over time. One Engine. Multiple Experiences.
+
+Mantra: **Pause → Hydrate → Lock In → Perform**.
 
 # User Preferences
 
@@ -79,7 +103,7 @@ I prefer iterative development, with frequent, small updates. Ask before making 
 - **Hydration Depletion Math:** Pure, dependency-free helper for score-points-per-minute decay based on physiological standards.
 - **AI Coach Voice Engine:** Utilizes ElevenLabs for voice output, providing verdict-aware comparisons after HydroScans and guiding users through performance events. Features include status color systems, video overlay voices, and a "Cinematic v2" refinement with a playback lifecycle state machine.
 - **Investor Demo:** A scripted 60-second full-screen overlay showcasing the Voice Engine's states and capabilities for investors.
-- **API Server:** Designed for scalability for 50M+ users, includes Stripe integration, auth-gated routes, and social graph routes.
+- **API Server:** Designed for horizontal scaling, includes Stripe integration, auth-gated routes, and social graph routes.
 - **Store + Subscription System:** Defines SKU pricing, discounts, bundles, and five consumer subscription tiers with feature gating.
 
 ## Architecture Diagram
