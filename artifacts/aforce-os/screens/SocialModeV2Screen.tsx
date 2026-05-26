@@ -461,6 +461,22 @@ export default function SocialModeV2Screen() {
             </Section>
           ) : null}
 
+          {/* See full controls — opens the original Recovery/Cruise UI
+              for everyone, not just Developer Mode. The V2 surface stays
+              minimal; this link is the documented escape hatch. */}
+          <Pressable
+            onPress={() => router.push('/social-legacy')}
+            style={({ pressed }) => [
+              styles.fullControlsLink,
+              pressed && { opacity: 0.7 },
+            ]}
+            accessibilityRole="link"
+            accessibilityLabel="See full controls"
+          >
+            <Text style={styles.fullControlsLabel}>SEE FULL CONTROLS</Text>
+            <Icon name="chevron-right" size={14} color={FAINT} />
+          </Pressable>
+
           {/* Reset */}
           <Pressable
             onPress={onReset}
@@ -694,6 +710,15 @@ const styles = StyleSheet.create({
   },
   demoBtnText: {
     fontFamily: 'Inter_700Bold', fontSize: 10, letterSpacing: 2,
+    color: FAINT,
+  },
+  fullControlsLink: {
+    marginTop: 18, marginBottom: 4,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    gap: 6, paddingVertical: 12,
+  },
+  fullControlsLabel: {
+    fontFamily: 'Inter_700Bold', fontSize: 11, letterSpacing: 2,
     color: FAINT,
   },
   disclaimer: {
