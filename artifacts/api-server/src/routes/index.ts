@@ -18,7 +18,11 @@ import adminDemandRouter from "./adminDemand";
 import adminDemandFromStateRouter from "./adminDemandFromState";
 import { buildWhoopOAuthRouter } from "./whoopOAuth";
 import { buildDefaultWhoopAdminRouter } from "./whoopAdmin";
-import { createInMemoryWhoopAuthStateStore } from "../lib/whoopAuthStateStore";
+import {
+  createInMemoryWhoopAuthStateStore,
+  createDrizzleWhoopAuthStateStore,
+  type WhoopAuthStateStore,
+} from "../lib/whoopAuthStateStore";
 import { createDrizzleWhoopTokenStoreForUser, db } from "@workspace/db";
 import { getWhoopRefreshRegistry } from "../lib/whoopRegistry";
 import { logger } from "../lib/logger";
@@ -53,9 +57,22 @@ const whoopClientId = process.env["WHOOP_CLIENT_ID"];
 const whoopClientSecret = process.env["WHOOP_CLIENT_SECRET"];
 const whoopRedirectUri = process.env["WHOOP_OAUTH_REDIRECT_URI"];
 if (whoopClientId && whoopClientSecret && whoopRedirectUri) {
+  // Hidden-infra env gate. Default = in-memory (preserves zero
+  // behavior change for single-replica deploys). Strict whitelist
+  // for the opt-in value, matching the WHOOP_FETCH_SWEEP_MULTI_REPLICA
+  // pattern (PR #24) so a typo can't half-enable the Drizzle path.
+  const driverRaw = process.env["WHOOP_AUTH_STATE_STORE_DRIVER"];
+  const useDrizzleAuthState = driverRaw === "drizzle";
+  const authStateStore: WhoopAuthStateStore = useDrizzleAuthState
+    ? createDrizzleWhoopAuthStateStore(db)
+    : createInMemoryWhoopAuthStateStore();
+  logger.info(
+    { driver: useDrizzleAuthState ? "drizzle" : "memory" },
+    "whoopOAuth: auth-state store initialized",
+  );
   router.use(
     buildWhoopOAuthRouter({
-      authStateStore: createInMemoryWhoopAuthStateStore(),
+      authStateStore,
       oauthConfig: {
         clientId: whoopClientId,
         clientSecret: whoopClientSecret,

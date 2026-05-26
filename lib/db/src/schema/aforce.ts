@@ -630,3 +630,48 @@ export const aforceWhoopTokens = pgTable(
 
 export type AforceWhoopTokensRow = typeof aforceWhoopTokens.$inferSelect;
 export type InsertAforceWhoopTokens = typeof aforceWhoopTokens.$inferInsert;
+
+/**
+ * WHOOP OAuth in-flight state store — backs the PKCE / state handoff
+ * between `/whoop/oauth/start` and `/whoop/oauth/callback`. Replaces
+ * the per-process in-memory map so an authorize started on replica A
+ * can be completed on replica B (the last gap on the auth path under
+ * horizontal scale).
+ *
+ * Lifecycle: rows are written at `start` and DELETEd at `callback`
+ * (single-use, atomic via DELETE ... RETURNING). Rows that go
+ * unconsumed expire by TTL; consume returns null for expired rows
+ * AND deletes them in the same statement so a stale state can never
+ * be replayed. The TTL window is short (minutes), so a row count
+ * staying small in steady state is the operational contract — a
+ * background sweep helper is exposed for ops cleanup.
+ */
+export const aforceWhoopAuthStates = pgTable(
+  "aforce_whoop_auth_states",
+  {
+    /** The random `state` param returned to the OAuth client and
+     *  echoed back by the provider. Primary key — uniqueness is
+     *  guaranteed by the issuer (cryptographic random) AND enforced
+     *  here so put-collision is a hard error, not silent overwrite
+     *  (matches in-memory contract: last-write-wins via UPSERT). */
+    state: text("state").primaryKey(),
+    /** PKCE verifier minted alongside this state. */
+    codeVerifier: text("code_verifier").notNull(),
+    /** Authenticated user who started the flow. */
+    userId: text("user_id").notNull(),
+    /** Insertion time; used for TTL on consume. */
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => ({
+    // Supports the background expiry sweep:
+    // `DELETE FROM aforce_whoop_auth_states WHERE created_at < $1`.
+    createdIdx: index("aforce_whoop_auth_states_created_idx").on(t.createdAt),
+  }),
+);
+
+export type AforceWhoopAuthStatesRow =
+  typeof aforceWhoopAuthStates.$inferSelect;
+export type InsertAforceWhoopAuthStates =
+  typeof aforceWhoopAuthStates.$inferInsert;
