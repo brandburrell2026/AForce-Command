@@ -110,6 +110,7 @@ function RootLayoutNav() {
       <Stack.Screen name="notifications" options={{ headerShown: false, presentation: 'card' }} />
       <Stack.Screen name="leaderboard" options={{ headerShown: false, presentation: 'card' }} />
       <Stack.Screen name="legal" options={{ headerShown: false, presentation: 'card' }} />
+      <Stack.Screen name="modules" options={{ headerShown: false, presentation: 'card' }} />
     </Stack>
   );
 }

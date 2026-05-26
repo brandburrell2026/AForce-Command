@@ -1,2 +1,2 @@
-- [AForce architecture lock](architecture-lock.md) — FINAL lock: no redesign / no new screens / Build 100%, Show 10%, flag-gated phases. Engine modules + compliance copy rules.
-- [Recovery Layer phasing](recovery-phasing.md) — Recovery is hidden in Phase 1 (6 surfaces); Guardian + Clutch recovery feeds land in Phase 2; Pressure/Fingerprint/Identity reveal in Phase 3/4/5.
+- [AForce build-lock reversal](aforce-build-lock.md) — "Build once, Evaluate everything, Release later — no hiding"; gating decisions must surface gates to evaluators, never hide modules.
+- [aforce-os icon map discipline](aforce-icons.md) — Icon name strings must exist in `theme/icons.ts` ICON_MAP; lucide name ≠ map key (e.g. `refresh-cw` not `refresh-ccw`, no `link`).

@@ -662,6 +662,30 @@ export default function ProfileScreen() {
               </>
             );
 
+            const modulesCard = (
+              <>
+                <SectionHeader label="MODULES" hint="Every engine module · internal evaluation" />
+                <View style={styles.card}>
+                  <Pressable
+                    onPress={() => router.push('/modules')}
+                    testID="profile-modules-link"
+                    style={styles.settingRow}
+                  >
+                    <View style={styles.settingLeft}>
+                      <Icon name="grid" size={16} color="#B6FF00" />
+                      <View>
+                        <Text style={styles.settingLabel}>All Modules</Text>
+                        <Text style={styles.settingSubLabel}>
+                          Social · Sleep · Cruise · Guardian · Clutch · Phantom · Recovery · Science · Providers · Protocol · Timeline · HydroScan
+                        </Text>
+                      </View>
+                    </View>
+                    <Icon name="chevron-right" size={16} color={Colors.text.muted} />
+                  </Pressable>
+                </View>
+              </>
+            );
+
             const protocolToolsCard = (
               <>
                 <SectionHeader label="PROTOCOL TOOLS" hint="Sport-science calculators" />
@@ -1596,6 +1620,7 @@ export default function ProfileScreen() {
                 <View style={styles.twoCol} testID="profile-two-col">
                   <View style={[styles.col, styles.colLeft]}>
                     {profileCard}
+                    {modulesCard}
                     {inviteCard}
                     {goalsCard}
                     {protocolToolsCard}
@@ -1620,6 +1645,7 @@ export default function ProfileScreen() {
             return (
               <>
                 {profileCard}
+                {modulesCard}
                 {inviteCard}
                 {settingsBlock}
                 {preferencesBlock}
