@@ -16,6 +16,9 @@ import referralsRouter from "./referrals";
 import earlyAccessRouter from "./earlyAccess";
 import adminDemandRouter from "./adminDemand";
 import adminDemandFromStateRouter from "./adminDemandFromState";
+import { buildWhoopOAuthRouter } from "./whoopOAuth";
+import { createInMemoryWhoopAuthStateStore } from "../lib/whoopAuthStateStore";
+import { createDrizzleWhoopTokenStoreForUser, db } from "@workspace/db";
 // Note: smartCaptureRouter is mounted directly in app.ts BEFORE the global
 // 64kB express.json() limiter (base64 photos blow past 64kB instantly).
 
@@ -38,5 +41,27 @@ router.use("/referrals", referralsRouter);
 router.use("/early-access", earlyAccessRouter);
 router.use(adminDemandRouter);
 router.use(adminDemandFromStateRouter);
+
+// Hidden-infra mount: the WHOOP OAuth routes only exist when all three
+// env vars are set. With nothing configured (default dev / test), the
+// router is not mounted and `/api/whoop/oauth/*` 404s — there is no
+// half-configured surface that can leak.
+const whoopClientId = process.env["WHOOP_CLIENT_ID"];
+const whoopClientSecret = process.env["WHOOP_CLIENT_SECRET"];
+const whoopRedirectUri = process.env["WHOOP_OAUTH_REDIRECT_URI"];
+if (whoopClientId && whoopClientSecret && whoopRedirectUri) {
+  router.use(
+    buildWhoopOAuthRouter({
+      authStateStore: createInMemoryWhoopAuthStateStore(),
+      oauthConfig: {
+        clientId: whoopClientId,
+        clientSecret: whoopClientSecret,
+      },
+      redirectUri: whoopRedirectUri,
+      tokenStoreFor: (userId) => createDrizzleWhoopTokenStoreForUser(db, userId),
+      successRedirectUrl: process.env["WHOOP_OAUTH_SUCCESS_URL"],
+    }),
+  );
+}
 
 export default router;

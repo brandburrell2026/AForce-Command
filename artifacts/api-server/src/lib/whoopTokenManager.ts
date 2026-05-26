@@ -93,6 +93,66 @@ export function getWhoopOAuthConfigFromEnv(): WhoopOAuthConfig {
   return { clientId, clientSecret };
 }
 
+export interface ExchangeAuthorizationCodeArgs {
+  code: string;
+  codeVerifier: string;
+  redirectUri: string;
+  config: WhoopOAuthConfig;
+  fetchImpl?: typeof fetch;
+  nowMs?: () => number;
+}
+
+/**
+ * Exchange a WHOOP authorization code for a token bundle. Standalone
+ * (not on the per-user manager) because at callback time we don't yet
+ * have a manager bound — we recover the userId from the auth-state
+ * record, run this exchange, then persist via the user's token store.
+ *
+ * Throws on:
+ *   - HTTP non-2xx (WHOOP rejected the code or PKCE failed)
+ *   - Malformed JSON payload (missing access_token / refresh_token /
+ *     expires_in)
+ * Caller (the callback route) converts to a 502 — never bubbles the
+ * underlying error message, which can contain the code.
+ */
+export async function exchangeAuthorizationCode(
+  args: ExchangeAuthorizationCodeArgs,
+): Promise<WhoopTokens> {
+  const fetchImpl = args.fetchImpl ?? fetch;
+  const now = args.nowMs ?? ((): number => Date.now());
+  const body = new URLSearchParams({
+    grant_type: "authorization_code",
+    code: args.code,
+    redirect_uri: args.redirectUri,
+    client_id: args.config.clientId,
+    client_secret: args.config.clientSecret,
+    code_verifier: args.codeVerifier,
+  });
+  const res = await fetchImpl(WHOOP_TOKEN_ENDPOINT, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: body.toString(),
+  });
+  if (!res.ok) {
+    throw new Error(`WHOOP code exchange failed: HTTP ${res.status}`);
+  }
+  const json = (await res.json()) as WhoopTokenResponse;
+  if (
+    typeof json.access_token !== "string" ||
+    typeof json.refresh_token !== "string" ||
+    typeof json.expires_in !== "number" ||
+    !Number.isFinite(json.expires_in)
+  ) {
+    throw new Error("WHOOP code exchange failed: malformed payload");
+  }
+  return {
+    accessToken: json.access_token,
+    refreshToken: json.refresh_token,
+    expiresAt: now() + json.expires_in * 1000,
+    scope: json.scope ?? null,
+  };
+}
+
 export function createWhoopTokenManager(
   opts: WhoopTokenManagerOptions,
 ): WhoopTokenManager {
