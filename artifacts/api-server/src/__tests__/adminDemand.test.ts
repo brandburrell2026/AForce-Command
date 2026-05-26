@@ -1,15 +1,21 @@
 /**
- * Route-level tests for /api/admin/demand/snapshot.
+ * Route-level tests for /api/admin/demand/snapshot[s].
  *
- * Verifies (1) admin gate is enforced via the requireAdmin
- * middleware, (2) POST + GET both run the shared engine and return
- * the canonical { inputs, outputs } envelope, (3) Zod input
- * validation rejects bad payloads with 400 + structured issues,
- * (4) the server's response matches the engine's pure computation
- * byte-for-byte (no compliance drift, no string mutation), and
- * (5) the engine module under the route is the same module the
- * mobile shim re-exports — parity is guaranteed structurally
- * because both code paths import @workspace/demand-engine.
+ * Verifies:
+ *   (1) admin gate is enforced via the requireAdmin middleware
+ *       (proved by route matching at the mounted prefix).
+ *   (2) POST + GET run the shared engine and return the canonical
+ *       { inputs, outputs, snapshot } envelope.
+ *   (3) Zod input validation rejects bad payloads with 400 + issues.
+ *   (4) The server's `outputs` matches the engine's pure computation
+ *       byte-for-byte (no compliance drift, no string mutation).
+ *   (5) Persistence: each compute writes to the snapshot repo,
+ *       attributes to admin_debug by default, generates a server-side
+ *       clientSnapshotId, is idempotent on (userId, clientSnapshotId),
+ *       and surfaces via GET /snapshots ordered by computedAt DESC.
+ *
+ * Tests inject an in-memory repo via `buildAdminDemandRouter` so the
+ * suite never touches the real Postgres.
  */
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import express, { type Express } from "express";
@@ -18,14 +24,20 @@ import {
   computeHydrationDemand,
   type HydrationDemandInputs,
 } from "@workspace/demand-engine";
-import adminDemandRouter from "../routes/adminDemand";
+import {
+  createInMemoryDemandSnapshotRepo,
+  type DemandSnapshotRepo,
+} from "@workspace/db";
+import { buildAdminDemandRouter } from "../routes/adminDemand";
 import { logger } from "../lib/logger";
 
 // requireAdmin's dev-convenience branch (NODE_ENV !== "production"
-// AND no CLERK_SECRET_KEY) lets all requests through. That's the
-// same fall-open the rest of the admin surfaces use in test.
+// AND no CLERK_SECRET_KEY) lets all requests through. Same fall-open
+// the rest of the admin surfaces use in test.
 process.env["NODE_ENV"] = "test";
 delete process.env["CLERK_SECRET_KEY"];
+
+let repo: DemandSnapshotRepo;
 
 function buildApp(): Express {
   const app = express();
@@ -34,7 +46,7 @@ function buildApp(): Express {
     (req as unknown as { log: typeof logger }).log = logger;
     next();
   });
-  app.use("/api", adminDemandRouter);
+  app.use("/api", buildAdminDemandRouter(repo));
   return app;
 }
 
@@ -42,6 +54,7 @@ let server: http.Server;
 let baseUrl = "";
 
 beforeAll(async () => {
+  repo = createInMemoryDemandSnapshotRepo();
   await new Promise<void>((resolve) => {
     server = buildApp().listen(0, () => {
       const addr = server.address();
@@ -82,7 +95,6 @@ describe("/api/admin/demand/snapshot", () => {
     };
     expect(json.inputs).toEqual(inputs);
     expect(json.outputs).toEqual(computeHydrationDemand(inputs));
-    // Sanity: no compliance drift in the command string.
     expect(json.outputs.command).not.toMatch(
       /(treats|prevents|cures|blood pressure|pH|alkaline)/i,
     );
@@ -162,19 +174,201 @@ describe("/api/admin/demand/snapshot", () => {
   });
 
   it("requireAdmin runs ahead of the route — proven by the dev fall-open branch executing", async () => {
-    // In NODE_ENV=test with no CLERK_SECRET_KEY, requireAdmin's
-    // dev branch lets the request through and the handler runs.
-    // If the middleware were NOT mounted, the same request would
-    // either run anyway (handler is identical) OR fail in a
-    // different way — so to make this assertion meaningful we
-    // verify the mount point exists by sending an obviously-bad
-    // payload and asserting we get the route's 400, not a 404.
-    // 404 would mean the router wasn't matched at all.
     const res = await fetch(`${baseUrl}/api/admin/demand/snapshot`, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({}),
     });
+    expect(res.status).toBe(400);
+  });
+});
+
+describe("/api/admin/demand/snapshot persistence (PR #12)", () => {
+  it("POST persists the snapshot and returns the stored row metadata", async () => {
+    const inputs = { weightLbs: 175, activityLevel: 5 };
+    const res = await fetch(`${baseUrl}/api/admin/demand/snapshot`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        ...inputs,
+        userId: "user_persist_a",
+        clientSnapshotId: "snap_persist_a_1",
+        source: "mobile_self",
+        computedAt: "2026-05-26T10:00:00.000Z",
+      }),
+    });
+    expect(res.status).toBe(200);
+    const json = (await res.json()) as {
+      snapshot: {
+        id: number;
+        userId: string;
+        clientSnapshotId: string;
+        source: string;
+        computedAt: string;
+        targetOz: number;
+        remainingOz: number;
+        load: string;
+        command: string;
+      };
+      outputs: ReturnType<typeof computeHydrationDemand>;
+    };
+    expect(json.snapshot.userId).toBe("user_persist_a");
+    expect(json.snapshot.clientSnapshotId).toBe("snap_persist_a_1");
+    expect(json.snapshot.source).toBe("mobile_self");
+    expect(json.snapshot.computedAt).toBe("2026-05-26T10:00:00.000Z");
+    // Denorm columns mirror outputs verbatim.
+    expect(json.snapshot.targetOz).toBe(json.outputs.targetOz);
+    expect(json.snapshot.remainingOz).toBe(json.outputs.remainingOz);
+    expect(json.snapshot.load).toBe(json.outputs.load);
+    expect(json.snapshot.command).toBe(json.outputs.command);
+
+    const stored = await repo.listForUser("user_persist_a");
+    expect(stored).toHaveLength(1);
+    expect(stored[0]?.clientSnapshotId).toBe("snap_persist_a_1");
+  });
+
+  it("POST without userId attributes to 'admin_debug' and generates a server-side clientSnapshotId", async () => {
+    const before = await repo.countForUser("admin_debug");
+    const res = await fetch(`${baseUrl}/api/admin/demand/snapshot`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ weightLbs: 160, activityLevel: 4 }),
+    });
+    expect(res.status).toBe(200);
+    const json = (await res.json()) as {
+      snapshot: { userId: string; clientSnapshotId: string; source: string };
+    };
+    expect(json.snapshot.userId).toBe("admin_debug");
+    expect(json.snapshot.source).toBe("admin_debug");
+    expect(json.snapshot.clientSnapshotId).toMatch(/^snap_\d+_[a-z0-9]+$/);
+    const after = await repo.countForUser("admin_debug");
+    expect(after).toBe(before + 1);
+  });
+
+  it("POST is idempotent on (userId, clientSnapshotId) — replay returns the original canonical row and flags `replayed`", async () => {
+    const body = {
+      weightLbs: 190,
+      activityLevel: 7,
+      userId: "user_idem",
+      clientSnapshotId: "snap_idem_fixed",
+    };
+    const first = await fetch(`${baseUrl}/api/admin/demand/snapshot`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    const firstJson = (await first.json()) as {
+      snapshot: { id: number; createdAt: string };
+      inputs: { weightLbs: number };
+      outputs: { targetOz: number };
+      replayed: boolean;
+    };
+    expect(firstJson.replayed).toBe(false);
+    expect(firstJson.inputs.weightLbs).toBe(190);
+
+    const second = await fetch(`${baseUrl}/api/admin/demand/snapshot`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      // Different inputs to prove first-write-wins at the envelope.
+      body: JSON.stringify({ ...body, weightLbs: 999 }),
+    });
+    const secondJson = (await second.json()) as {
+      snapshot: { id: number; createdAt: string };
+      inputs: { weightLbs: number };
+      outputs: { targetOz: number };
+      replayed: boolean;
+    };
+
+    // Same canonical row at the storage layer.
+    expect(secondJson.snapshot.id).toBe(firstJson.snapshot.id);
+    expect(secondJson.snapshot.createdAt).toBe(firstJson.snapshot.createdAt);
+
+    // Envelope reflects the canonical (first) write, NOT the second
+    // attempt's mutated inputs. This is the bug the architect caught.
+    expect(secondJson.replayed).toBe(true);
+    expect(secondJson.inputs.weightLbs).toBe(190);
+    expect(secondJson.outputs.targetOz).toBe(firstJson.outputs.targetOz);
+
+    const rows = await repo.listForUser("user_idem");
+    expect(rows).toHaveLength(1);
+    expect(
+      (rows[0]?.inputs as { weightLbs: number }).weightLbs,
+    ).toBe(190);
+  });
+
+  it("GET /snapshots returns rows for the user ordered by computedAt DESC + total count", async () => {
+    const userId = "user_list";
+    const times = [
+      "2026-05-26T08:00:00.000Z",
+      "2026-05-26T09:00:00.000Z",
+      "2026-05-26T07:00:00.000Z",
+    ];
+    for (let i = 0; i < times.length; i++) {
+      const r = await fetch(`${baseUrl}/api/admin/demand/snapshot`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          weightLbs: 170 + i,
+          activityLevel: 5,
+          userId,
+          clientSnapshotId: `snap_list_${i}`,
+          computedAt: times[i],
+        }),
+      });
+      expect(r.status).toBe(200);
+    }
+    const listRes = await fetch(
+      `${baseUrl}/api/admin/demand/snapshots?userId=${userId}`,
+    );
+    expect(listRes.status).toBe(200);
+    const listJson = (await listRes.json()) as {
+      snapshots: Array<{ clientSnapshotId: string; computedAt: string }>;
+      total: number;
+    };
+    expect(listJson.total).toBe(3);
+    expect(listJson.snapshots.map((s) => s.clientSnapshotId)).toEqual([
+      "snap_list_1", // 09:00 — newest
+      "snap_list_0", // 08:00
+      "snap_list_2", // 07:00 — oldest
+    ]);
+  });
+
+  it("GET /snapshots respects the limit query param", async () => {
+    const userId = "user_limit";
+    for (let i = 0; i < 5; i++) {
+      await fetch(`${baseUrl}/api/admin/demand/snapshot`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          weightLbs: 170,
+          activityLevel: 5,
+          userId,
+          clientSnapshotId: `snap_limit_${i}`,
+          computedAt: new Date(2026, 4, 26, 0, i).toISOString(),
+        }),
+      });
+    }
+    const listRes = await fetch(
+      `${baseUrl}/api/admin/demand/snapshots?userId=${userId}&limit=2`,
+    );
+    expect(listRes.status).toBe(200);
+    const listJson = (await listRes.json()) as {
+      snapshots: unknown[];
+      total: number;
+    };
+    expect(listJson.snapshots).toHaveLength(2);
+    expect(listJson.total).toBe(5);
+  });
+
+  it("GET /snapshots rejects missing userId with 400", async () => {
+    const res = await fetch(`${baseUrl}/api/admin/demand/snapshots`);
+    expect(res.status).toBe(400);
+  });
+
+  it("GET /snapshots rejects unknown query fields (strict schema)", async () => {
+    const res = await fetch(
+      `${baseUrl}/api/admin/demand/snapshots?userId=u&extra=nope`,
+    );
     expect(res.status).toBe(400);
   });
 });

@@ -475,3 +475,71 @@ export const aforceHydroScans = pgTable(
 
 export type AforceHydroScanRow = typeof aforceHydroScans.$inferSelect;
 export type InsertAforceHydroScan = typeof aforceHydroScans.$inferInsert;
+
+/* ─── Hydration Demand snapshots (append-only) ────────────────────────────── */
+/**
+ * Append-only history of Hydration Demand Engine computations. One
+ * row per snapshot, ordered by `computedAt`. Stores the canonical
+ * `HydrationDemandInputs` and `HydrationDemandOutputs` from
+ * `@workspace/demand-engine` as JSONB so the row remains forward-
+ * compatible with new input/output fields without a migration.
+ *
+ * The flat columns (`targetOz`, `remainingOz`, `load`, `command`,
+ * `source`) are denormalized copies of fields inside `inputs` /
+ * `outputs` so list / filter queries can run without unpacking
+ * JSONB on every row.
+ *
+ * Idempotency: `(user_id, client_snapshot_id)` is UNIQUE so an
+ * accidental retry from the mobile client (or a re-fired admin
+ * debug call) returns the original row instead of duplicating.
+ * The route layer generates `client_snapshot_id` server-side when
+ * the caller doesn't supply one — every row therefore carries a
+ * stable id.
+ *
+ * Indexed by `(user_id, computed_at DESC)` so per-user history
+ * pulls its newest rows first without a sort over the table.
+ *
+ * Hidden-infra only — no UI consumes this table today.
+ */
+export const aforceDemandSnapshots = pgTable(
+  "aforce_demand_snapshots",
+  {
+    id: serial("id").primaryKey(),
+    userId: text("user_id").notNull(),
+    /** Stable per-(user, snapshot) id used for idempotent retries. */
+    clientSnapshotId: text("client_snapshot_id").notNull(),
+    /** Where the snapshot came from — drives admin filtering.
+     *  Examples: 'admin_debug' | 'mobile_self' | 'background_job'. */
+    source: text("source").notNull().default("admin_debug"),
+    /** Wall-clock when the engine was run (caller-supplied when known,
+     *  else server-set). Used for ordering and longitudinal charts. */
+    computedAt: timestamp("computed_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    /** Full `HydrationDemandInputs` shape — authoritative. */
+    inputs: jsonb("inputs").notNull(),
+    /** Full `HydrationDemandOutputs` shape — authoritative. */
+    outputs: jsonb("outputs").notNull(),
+    // Denormalized read accelerators (copies of fields in outputs).
+    targetOz: integer("target_oz").notNull(),
+    remainingOz: integer("remaining_oz").notNull(),
+    load: text("load").notNull(), // 'low' | 'moderate' | 'high'
+    command: text("command").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => ({
+    userTimeIdx: index("aforce_demand_snap_user_time_idx").on(
+      t.userId,
+      t.computedAt,
+    ),
+    userClientUq: uniqueIndex("aforce_demand_snap_user_client_uq").on(
+      t.userId,
+      t.clientSnapshotId,
+    ),
+  }),
+);
+
+export type AforceDemandSnapshotRow = typeof aforceDemandSnapshots.$inferSelect;
+export type InsertAforceDemandSnapshot = typeof aforceDemandSnapshots.$inferInsert;
