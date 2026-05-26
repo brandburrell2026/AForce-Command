@@ -218,6 +218,7 @@ export default function ProfileScreen() {
   // small "Live from Apple Health" panel so the user can see the
   // numbers AForce is pulling.
   const [appleSnapshot, setAppleSnapshot] = useState<AppleHealthSnapshot | null>(null);
+  const [healthOpen, setHealthOpen] = useState(false);
 
   const refreshAppleSnapshot = React.useCallback(async () => {
     if (!isAppleHealthSupported()) return;
@@ -811,7 +812,34 @@ export default function ProfileScreen() {
 
                 <SectionHeader label="HEALTH PLATFORMS" hint="Pull biometrics from these services" />
                 <View style={styles.card}>
-                  {HEALTH_PROVIDERS.map((p, i) => {
+                  <Pressable
+                    onPress={() => setHealthOpen((v) => !v)}
+                    style={styles.settingRow}
+                    accessibilityRole="button"
+                    accessibilityLabel={healthOpen ? 'Collapse health platforms' : 'Expand health platforms'}
+                    testID="health-platforms-toggle"
+                  >
+                    <View style={styles.settingLeft}>
+                      <Icon name="activity" size={16} color={Colors.text.secondary} />
+                      <View>
+                        <Text style={styles.settingLabel}>
+                          {linkedProviders.size > 0
+                            ? `${linkedProviders.size} connected`
+                            : 'Select a service'}
+                        </Text>
+                        <Text style={styles.settingSubLabel}>
+                          {HEALTH_PROVIDERS.length} services available
+                        </Text>
+                      </View>
+                    </View>
+                    <Icon
+                      name={healthOpen ? 'chevron-up' : 'chevron-down'}
+                      size={16}
+                      color={Colors.text.muted}
+                    />
+                  </Pressable>
+                  {healthOpen && <Divider />}
+                  {healthOpen && [...HEALTH_PROVIDERS].sort((a, b) => a.name.localeCompare(b.name)).map((p, i, arr) => {
                     const linked = linkedProviders.has(p.id);
                     return (
                       <React.Fragment key={p.id}>
