@@ -24,6 +24,16 @@ import type { ProviderSnapshot } from '../types/biometrics';
 import { fetchWhoopSnapshot, toProviderSnapshot } from './whoop';
 
 export const WHOOP_TOKEN_ENDPOINT = 'https://api.prod.whoop.com/oauth/oauth2/token';
+export const WHOOP_AUTHORIZE_ENDPOINT = 'https://api.prod.whoop.com/oauth/oauth2/auth';
+
+/** Default scopes AForce requests. `offline` is required to get a refresh_token. */
+export const WHOOP_DEFAULT_SCOPES = [
+  'offline',
+  'read:recovery',
+  'read:cycles',
+  'read:sleep',
+  'read:profile',
+] as const;
 
 /** Wire shape returned by the WHOOP token endpoint. */
 export interface WhoopTokenResponse {
@@ -203,6 +213,107 @@ export function createWhoopTokenManager(opts: WhoopTokenManagerOptions): WhoopTo
     peek() {
       return opts.store.read();
     },
+  };
+}
+
+// ─── PKCE + authorization-code exchange ─────────────────────────────────────
+
+/** RFC 4648 §5 base64url, no padding. Operates on raw bytes. */
+export function base64UrlEncode(bytes: Uint8Array): string {
+  let bin = '';
+  for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]!);
+  const b64 = typeof btoa === 'function' ? btoa(bin) : Buffer.from(bin, 'binary').toString('base64');
+  return b64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+/** Cryptographically random PKCE verifier (RFC 7636 §4.1, 43-char min). */
+export function generatePkceVerifier(byteLength = 32): string {
+  const buf = new Uint8Array(byteLength);
+  // globalThis.crypto is available in modern RN, Node 18+, and browsers.
+  globalThis.crypto.getRandomValues(buf);
+  return base64UrlEncode(buf);
+}
+
+/** SHA-256(verifier), base64url-encoded. */
+export async function deriveCodeChallenge(verifier: string): Promise<string> {
+  const data = new TextEncoder().encode(verifier);
+  const digest = await globalThis.crypto.subtle.digest('SHA-256', data);
+  return base64UrlEncode(new Uint8Array(digest));
+}
+
+export interface BuildAuthorizationUrlInput {
+  clientId: string;
+  redirectUri: string;
+  /** PKCE S256 challenge (from deriveCodeChallenge). */
+  codeChallenge: string;
+  /** CSRF token — caller must verify it on callback. */
+  state: string;
+  /** Defaults to WHOOP_DEFAULT_SCOPES. */
+  scopes?: readonly string[];
+}
+
+/**
+ * Build the WHOOP OAuth2 authorization URL. PKCE S256 is mandatory
+ * for native + web clients.
+ */
+export function buildWhoopAuthorizationUrl(input: BuildAuthorizationUrlInput): string {
+  const params = new URLSearchParams({
+    response_type: 'code',
+    client_id: input.clientId,
+    redirect_uri: input.redirectUri,
+    scope: (input.scopes ?? WHOOP_DEFAULT_SCOPES).join(' '),
+    state: input.state,
+    code_challenge: input.codeChallenge,
+    code_challenge_method: 'S256',
+  });
+  return `${WHOOP_AUTHORIZE_ENDPOINT}?${params.toString()}`;
+}
+
+export interface ExchangeAuthorizationCodeInput {
+  code: string;
+  redirectUri: string;
+  codeVerifier: string;
+  clientId: string;
+  clientSecret: string;
+  fetchImpl?: typeof fetch;
+  nowMs?: () => number;
+}
+
+/**
+ * Pure code → tokens exchange. Does NOT persist; caller decides
+ * whether to feed the result into a WhoopTokenManager via
+ * `manager.setTokens(...)`. Throws on HTTP error so the caller can
+ * surface a clear failure to the (future) sign-in UI.
+ */
+export async function exchangeWhoopAuthorizationCode(
+  input: ExchangeAuthorizationCodeInput,
+): Promise<WhoopTokens> {
+  const fetchImpl = input.fetchImpl ?? fetch;
+  const now = input.nowMs ?? (() => Date.now());
+  const body = new URLSearchParams({
+    grant_type: 'authorization_code',
+    code: input.code,
+    redirect_uri: input.redirectUri,
+    client_id: input.clientId,
+    client_secret: input.clientSecret,
+    code_verifier: input.codeVerifier,
+  });
+  const res = await fetchImpl(WHOOP_TOKEN_ENDPOINT, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: body.toString(),
+  });
+  if (!res.ok) {
+    throw new Error(`WHOOP authorization-code exchange failed: HTTP ${res.status}`);
+  }
+  const json = (await res.json()) as WhoopTokenResponse;
+  if (!json.access_token || !json.refresh_token || typeof json.expires_in !== 'number') {
+    throw new Error('WHOOP authorization-code exchange returned malformed payload');
+  }
+  return {
+    accessToken: json.access_token,
+    refreshToken: json.refresh_token,
+    expiresAt: now() + json.expires_in * 1000,
   };
 }
 
