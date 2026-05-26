@@ -160,7 +160,18 @@ export function createWhoopTokenManager(
   const now = opts.nowMs ?? ((): number => Date.now());
   const skew = opts.refreshSkewMs ?? 60_000;
 
-  async function refresh(): Promise<WhoopTokens> {
+  // Singleflight: while a refresh is in-flight for this manager (which
+  // is per-user), additional callers await the same promise instead of
+  // each firing their own POST. WHOOP rotates refresh tokens, so two
+  // concurrent refreshes would race — the first to land invalidates
+  // the refresh token the second is still using, returning invalid_grant
+  // for the loser. Singleflight collapses that into one network call;
+  // every caller gets the same WhoopTokens (or the same rejection).
+  // The promise is cleared on settle (resolve OR reject) so the next
+  // call after a failure retries cleanly rather than caching the error.
+  let inflight: Promise<WhoopTokens> | null = null;
+
+  async function refreshImpl(): Promise<WhoopTokens> {
     const current = await opts.store.read();
     if (!current?.refreshToken) {
       throw new Error("WHOOP refresh failed: no refresh token stored");
@@ -199,6 +210,19 @@ export function createWhoopTokenManager(
     };
     await opts.store.write(next);
     return next;
+  }
+
+  function refresh(): Promise<WhoopTokens> {
+    if (inflight) return inflight;
+    const p = refreshImpl().finally(() => {
+      // Clear ONLY if we're still the owner — defensive in case
+      // someone (e.g. setTokens) replaces inflight while ours is
+      // still pending. Today nothing else writes inflight, but
+      // pinning the owner makes the invariant explicit.
+      if (inflight === p) inflight = null;
+    });
+    inflight = p;
+    return p;
   }
 
   return {

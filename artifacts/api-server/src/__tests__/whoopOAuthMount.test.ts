@@ -76,7 +76,10 @@ beforeEach(async () => {
   }
 });
 
-describe("WHOOP OAuth router env-gated mount", () => {
+// The dynamic re-import of `routes/index.ts` pulls in Stripe SDK,
+// Clerk, Drizzle, etc. — cold imports under full-suite contention
+// can exceed vitest's 5s default. Cold-path tests need more headroom.
+describe("WHOOP OAuth router env-gated mount", { timeout: 30_000 }, () => {
   it("all three env vars present -> /api/whoop/oauth/start is mounted (200)", async () => {
     const h = await buildAppWithEnv({
       WHOOP_CLIENT_ID: "cid",

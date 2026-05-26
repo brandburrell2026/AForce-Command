@@ -58,6 +58,38 @@ function makeFetchThrow(): typeof fetch {
   }) as unknown as typeof fetch;
 }
 
+/**
+ * Fetch impl that holds every call open on an externally-resolved
+ * promise. Lets a test fire N concurrent refresh() calls, assert
+ * exactly one network call has been made, then release the response.
+ */
+function makeGatedFetch(payload: WhoopTokenResponse): {
+  fetchImpl: typeof fetch;
+  calls: number;
+  release: () => void;
+} {
+  let release: () => void = () => {};
+  const gate = new Promise<void>((r) => {
+    release = r;
+  });
+  const state = { calls: 0 };
+  const fetchImpl: typeof fetch = (async () => {
+    state.calls += 1;
+    await gate;
+    return new Response(JSON.stringify(payload), {
+      status: 200,
+      headers: { "content-type": "application/json" },
+    });
+  }) as unknown as typeof fetch;
+  return {
+    fetchImpl,
+    get calls() {
+      return state.calls;
+    },
+    release,
+  };
+}
+
 describe("in-memory WhoopTokenStore", () => {
   it("round-trips read/write/clear", async () => {
     const store = createInMemoryWhoopTokenStore();
@@ -225,6 +257,129 @@ describe("createWhoopTokenManager.refresh", () => {
     await expect(manager.refresh()).rejects.toThrow(/malformed/);
     // Store untouched.
     expect((await store.read())?.accessToken).toBe("OLD");
+  });
+});
+
+describe("createWhoopTokenManager — refresh singleflight", () => {
+  it("N concurrent refresh() calls share one inflight promise (one POST, identical result)", async () => {
+    const store = createInMemoryWhoopTokenStore();
+    await store.write({
+      accessToken: "old",
+      refreshToken: "r0",
+      expiresAt: 0,
+      scope: "offline",
+    });
+    const gate = makeGatedFetch({
+      access_token: "fresh",
+      refresh_token: "r1",
+      expires_in: 3600,
+      scope: "offline",
+    });
+    const manager = createWhoopTokenManager({
+      store,
+      config: CONFIG,
+      fetchImpl: gate.fetchImpl,
+      nowMs: () => 1_000_000,
+    });
+
+    // Fire 5 concurrent refresh() calls; none can resolve until the
+    // gated fetch is released.
+    const pending = [
+      manager.refresh(),
+      manager.refresh(),
+      manager.refresh(),
+      manager.refresh(),
+      manager.refresh(),
+    ];
+    // Yield once so the inflight fetch is registered.
+    await Promise.resolve();
+    expect(gate.calls).toBe(1);
+    gate.release();
+    const results = await Promise.all(pending);
+    // Still exactly one network call.
+    expect(gate.calls).toBe(1);
+    // Every caller observed the same token bundle (object identity is
+    // strong evidence the inflight promise was shared, not just the
+    // value).
+    for (const r of results) expect(r).toBe(results[0]);
+    expect(results[0]!.accessToken).toBe("fresh");
+    // Store reflects the single write.
+    expect(await store.read()).toEqual(results[0]);
+  });
+
+  it("inflight is cleared on rejection — a follow-up refresh attempts a new POST", async () => {
+    const store = createInMemoryWhoopTokenStore();
+    await store.write({
+      accessToken: "old",
+      refreshToken: "r0",
+      expiresAt: 0,
+      scope: null,
+    });
+    let call = 0;
+    const fetchImpl: typeof fetch = (async () => {
+      call += 1;
+      if (call === 1) return new Response("nope", { status: 500 });
+      return new Response(
+        JSON.stringify({
+          access_token: "fresh",
+          refresh_token: "r1",
+          expires_in: 3600,
+        }),
+        { status: 200, headers: { "content-type": "application/json" } },
+      );
+    }) as unknown as typeof fetch;
+    const manager = createWhoopTokenManager({
+      store,
+      config: CONFIG,
+      fetchImpl,
+      nowMs: () => 1_000_000,
+    });
+    // First batch: both concurrent calls share one failing POST.
+    const [a, b] = await Promise.allSettled([manager.refresh(), manager.refresh()]);
+    expect(a.status).toBe("rejected");
+    expect(b.status).toBe("rejected");
+    expect(call).toBe(1);
+    // Second call AFTER settlement must fire a fresh POST — we did
+    // NOT cache the failure.
+    const next = await manager.refresh();
+    expect(call).toBe(2);
+    expect(next.accessToken).toBe("fresh");
+  });
+
+  it("getValidAccessToken — concurrent near-expired callers collapse to one refresh", async () => {
+    const store = createInMemoryWhoopTokenStore();
+    // expiresAt within the default 60s skew of now() -> all callers
+    // will trigger refresh.
+    await store.write({
+      accessToken: "old",
+      refreshToken: "r0",
+      expiresAt: 1_000_500,
+      scope: null,
+    });
+    const gate = makeGatedFetch({
+      access_token: "fresh",
+      refresh_token: "r1",
+      expires_in: 3600,
+    });
+    const manager = createWhoopTokenManager({
+      store,
+      config: CONFIG,
+      fetchImpl: gate.fetchImpl,
+      nowMs: () => 1_000_000,
+    });
+    const pending = [
+      manager.getValidAccessToken(),
+      manager.getValidAccessToken(),
+      manager.getValidAccessToken(),
+    ];
+    // Yield so store reads + the inflight fetch register.
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(gate.calls).toBe(1);
+    gate.release();
+    const tokens = await Promise.all(pending);
+    expect(gate.calls).toBe(1);
+    for (const t of tokens) expect(t).toBe("fresh");
   });
 });
 
