@@ -11,7 +11,7 @@
  *   aforce_confirmations — append-only ±3 confirmation answers
  */
 
-import { pgTable, text, integer, real, boolean, timestamp, jsonb, serial, index, uniqueIndex } from "drizzle-orm/pg-core";
+import { pgTable, text, integer, real, boolean, timestamp, jsonb, serial, bigint, index, uniqueIndex } from "drizzle-orm/pg-core";
 
 export const aforceUserState = pgTable("aforce_user_state", {
   userId: text("user_id").primaryKey(),
@@ -571,3 +571,45 @@ export const aforceDemandSnapshots = pgTable(
 
 export type AforceDemandSnapshotRow = typeof aforceDemandSnapshots.$inferSelect;
 export type InsertAforceDemandSnapshot = typeof aforceDemandSnapshots.$inferInsert;
+
+/**
+ * WHOOP OAuth2 tokens — server-side per-user persistence so the
+ * server can refresh and pull biometrics autonomously, independent
+ * of the mobile client's SecureStore.
+ *
+ * One row per `(userId)` — a user has at most one WHOOP connection.
+ * `expiresAt` is `timestamptz` for native DB ordering / index range
+ * scans; the in-app `WhoopTokens` shape converts to/from epoch ms
+ * at the store boundary.
+ *
+ * The refresh token rotates per WHOOP's OAuth contract: every
+ * successful refresh writes a new `refreshToken` here. `accessToken`
+ * is short-lived (~1 hour) and refreshed proactively within a 60s
+ * skew window by the server token manager.
+ *
+ * Hidden-infra: no UI/route writes here yet. PR #14 lands the
+ * schema + store + manager; the OAuth callback route and the
+ * biometrics fetch worker land in follow-up PRs.
+ *
+ * Note: tokens are stored as-is. Postgres at-rest encryption is the
+ * baseline; if/when we add envelope encryption (KMS / pgcrypto) it
+ * will be a transparent change at the store boundary.
+ */
+export const aforceWhoopTokens = pgTable("aforce_whoop_tokens", {
+  userId: text("user_id").primaryKey(),
+  accessToken: text("access_token").notNull(),
+  refreshToken: text("refresh_token").notNull(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  /** Space-separated scopes the user granted (e.g. 'offline read:recovery …').
+   *  Null when the WHOOP token endpoint didn't echo `scope` back. */
+  scope: text("scope"),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+export type AforceWhoopTokensRow = typeof aforceWhoopTokens.$inferSelect;
+export type InsertAforceWhoopTokens = typeof aforceWhoopTokens.$inferInsert;

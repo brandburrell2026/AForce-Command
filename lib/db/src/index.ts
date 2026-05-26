@@ -16,3 +16,4 @@ export const db = drizzle(pool, { schema });
 export * from "./schema";
 export * from "./scanRepo";
 export * from "./demandSnapshotRepo";
+export * from "./whoopTokenStore";
