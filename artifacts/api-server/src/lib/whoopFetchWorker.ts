@@ -25,7 +25,7 @@
  * the real WhoopTokenManager.
  */
 
-import { eq, sql } from "drizzle-orm";
+import { and, eq, lte, sql } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import {
   aforceUserState,
@@ -284,14 +284,34 @@ export const WHOOP_TOKEN_USERS_DEFAULT_PAGE_SIZE = 500;
  */
 export async function* iterWhoopTokenUserIds(
   db: NodePgDatabase<Record<string, unknown>>,
-  opts: { pageSize?: number } = {},
+  opts: { pageSize?: number; updatedAtMax?: Date } = {},
 ): AsyncGenerator<string[], void, void> {
   const pageSize = Math.max(1, opts.pageSize ?? WHOOP_TOKEN_USERS_DEFAULT_PAGE_SIZE);
+  // Snapshot cutoff. The sweep itself UPDATES `updated_at` on every
+  // successful token refresh (see WhoopTokenStore.write). Without a
+  // cutoff, a row processed early in the sweep gets its updated_at
+  // bumped past the cursor and reappears in a later page — the same
+  // user gets re-processed within one sweep, inflating fetch load and
+  // logs. The singleflight registry would deduplicate CONCURRENT
+  // double-fetches but does nothing for sequential ones a page apart.
+  // Callers running a sweep MUST pass `updatedAtMax = new Date()`
+  // captured BEFORE the iterator is created so the page set is fixed
+  // for the lifetime of the sweep.
+  const cutoff = opts.updatedAtMax;
   let cursor: { updatedAt: Date; userId: string } | null = null;
   for (;;) {
-    const where = cursor
-      ? sql`(${aforceWhoopTokens.updatedAt}, ${aforceWhoopTokens.userId}) > (${cursor.updatedAt}, ${cursor.userId})`
-      : undefined;
+    const conditions = [
+      cursor
+        ? sql`(${aforceWhoopTokens.updatedAt}, ${aforceWhoopTokens.userId}) > (${cursor.updatedAt}, ${cursor.userId})`
+        : undefined,
+      cutoff ? lte(aforceWhoopTokens.updatedAt, cutoff) : undefined,
+    ].filter((c): c is NonNullable<typeof c> => c !== undefined);
+    const where =
+      conditions.length === 0
+        ? undefined
+        : conditions.length === 1
+          ? conditions[0]
+          : and(...conditions);
     const rows = await db
       .select({
         userId: aforceWhoopTokens.userId,
@@ -318,7 +338,7 @@ export async function* iterWhoopTokenUserIds(
  */
 export async function listWhoopTokenUserIds(
   db: NodePgDatabase<Record<string, unknown>>,
-  opts: { pageSize?: number } = {},
+  opts: { pageSize?: number; updatedAtMax?: Date } = {},
 ): Promise<string[]> {
   const out: string[] = [];
   for await (const page of iterWhoopTokenUserIds(db, opts)) {

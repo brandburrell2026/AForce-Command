@@ -29,8 +29,13 @@ import {
 import type { WhoopFetchOutcomeStatus } from "../whoopFetchWorker";
 import {
   runWhoopFetchSweep,
+  runWhoopFetchSweepStreaming,
   startWhoopFetchSweepLoop,
 } from "../whoopFetchSweep";
+
+async function* pagesOf<T>(...pages: T[][]): AsyncGenerator<T[]> {
+  for (const p of pages) yield p;
+}
 
 describe("runWhoopFetchSweep", () => {
   it("tallies mixed outcomes by status", async () => {
@@ -136,6 +141,155 @@ describe("runWhoopFetchSweep", () => {
     expect(result.startedAt).toBeGreaterThanOrEqual(before);
     expect(result.finishedAt).toBeLessThanOrEqual(after);
     expect(result.durationMs).toBeGreaterThanOrEqual(0);
+  });
+});
+
+describe("runWhoopFetchSweepStreaming", () => {
+  it("returns a zero tally with one aggregate log when the iterator yields nothing", async () => {
+    const info: unknown[][] = [];
+    const result = await runWhoopFetchSweepStreaming({
+      pages: pagesOf<string>(),
+      runOnce: async () => ({ status: "ok" }),
+      nowMs: () => 5_000,
+      log: { info: (...a) => info.push(a), warn: () => {}, error: () => {} },
+    });
+    expect(result.total).toBe(0);
+    expect(result.byStatus).toEqual({
+      ok: 0,
+      skipped_no_token: 0,
+      skipped_no_state: 0,
+      error: 0,
+    });
+    expect(result.startedAt).toBe(5_000);
+    expect(result.finishedAt).toBe(5_000);
+    // One aggregate done log; no per-page done logs (no pages were processed).
+    expect(info).toHaveLength(1);
+    expect(info[0]?.[1]).toBe("whoopFetchSweepStreaming:done");
+    expect((info[0]?.[0] as { pageCount: number }).pageCount).toBe(0);
+  });
+
+  it("aggregates tally across multiple pages and never re-materializes the full list", async () => {
+    // 3 pages of varied size + status mix. The tally must equal the
+    // element-wise sum across pages.
+    const plan: Record<string, WhoopFetchOutcomeStatus> = {
+      a: "ok",
+      b: "skipped_no_token",
+      c: "ok",
+      d: "error",
+      e: "skipped_no_state",
+      f: "ok",
+      g: "ok",
+    };
+    const seen: string[] = [];
+    const result = await runWhoopFetchSweepStreaming({
+      pages: pagesOf(["a", "b"], ["c", "d", "e"], ["f", "g"]),
+      runOnce: async (id) => {
+        seen.push(id);
+        return { status: plan[id]! };
+      },
+      nowMs: () => 0,
+    });
+    // Every userId from every page was processed exactly once, in
+    // page order (sort to compare independent of intra-page worker
+    // scheduling).
+    expect(seen.slice().sort()).toEqual(["a", "b", "c", "d", "e", "f", "g"]);
+    expect(result.total).toBe(7);
+    expect(result.byStatus).toEqual({
+      ok: 4,
+      skipped_no_token: 1,
+      skipped_no_state: 1,
+      error: 1,
+    });
+  });
+
+  it("skips empty pages without invoking the per-page sweep (contract leniency)", async () => {
+    let runOnceCalls = 0;
+    const result = await runWhoopFetchSweepStreaming({
+      pages: pagesOf<string>([], ["solo"], []),
+      runOnce: async () => {
+        runOnceCalls += 1;
+        return { status: "ok" };
+      },
+      nowMs: () => 0,
+    });
+    expect(runOnceCalls).toBe(1);
+    expect(result.total).toBe(1);
+    expect(result.byStatus.ok).toBe(1);
+  });
+
+  it("one page's throwing runner is absorbed and does NOT prevent subsequent pages from running", async () => {
+    // A throw inside `runOnce` would already be absorbed by
+    // `runWhoopFetchSweep`. Pin the cross-page guarantee: page 1's
+    // error tally rolls forward into the aggregate, and page 2 still
+    // executes.
+    const seen: string[] = [];
+    const result = await runWhoopFetchSweepStreaming({
+      pages: pagesOf(["bad"], ["good"]),
+      runOnce: async (id) => {
+        seen.push(id);
+        if (id === "bad") throw new Error("nope");
+        return { status: "ok" };
+      },
+      nowMs: () => 0,
+    });
+    expect(seen).toEqual(["bad", "good"]);
+    expect(result.byStatus.error).toBe(1);
+    expect(result.byStatus.ok).toBe(1);
+    expect(result.total).toBe(2);
+  });
+
+  it("startedAt is the first nowMs call, finishedAt is the last (across all pages)", async () => {
+    // nowMs is called once at entry, then per-page (start + end), then
+    // once at exit. We want startedAt = first call (entry), finishedAt
+    // = last call (exit). The aggregate `durationMs` measures the full
+    // streaming run, not any single page.
+    let n = 0;
+    const stamps = [100, 200, 300, 400, 500, 600, 700];
+    const result = await runWhoopFetchSweepStreaming({
+      pages: pagesOf(["a"], ["b"]),
+      runOnce: async () => ({ status: "ok" }),
+      nowMs: () => stamps[n++]!,
+    });
+    expect(result.startedAt).toBe(100);
+    // finishedAt is whatever nowMs returned at the streaming exit.
+    expect(result.finishedAt).toBeGreaterThan(result.startedAt);
+    expect(result.durationMs).toBe(result.finishedAt - result.startedAt);
+  });
+
+  it("lazily pulls pages: the next page is fetched only AFTER the previous one drains", async () => {
+    // Critical for memory bounds: if the iterator were drained eagerly
+    // into an array, we'd defeat the streaming wrapper. Prove laziness
+    // by parking the runner mid-page-1 and asserting page 2 hasn't
+    // been requested yet.
+    const pageStarts: number[] = [];
+    let release!: () => void;
+    const gate = new Promise<void>((r) => {
+      release = r;
+    });
+    async function* lazyPages(): AsyncGenerator<readonly string[]> {
+      pageStarts.push(1);
+      yield ["a"];
+      pageStarts.push(2);
+      yield ["b"];
+    }
+    const sweep = runWhoopFetchSweepStreaming({
+      pages: lazyPages(),
+      runOnce: async (id) => {
+        if (id === "a") await gate;
+        return { status: "ok" };
+      },
+      nowMs: () => 0,
+    });
+    // Yield enough microtasks for page 1 to be requested and the
+    // worker to park inside runOnce("a").
+    for (let i = 0; i < 10; i++) await Promise.resolve();
+    expect(pageStarts).toEqual([1]);
+    // Release page 1's runner. Streaming proceeds to request page 2.
+    release();
+    const result = await sweep;
+    expect(pageStarts).toEqual([1, 2]);
+    expect(result.total).toBe(2);
+    expect(result.byStatus.ok).toBe(2);
   });
 });
 

@@ -141,6 +141,87 @@ export async function runWhoopFetchSweep(
   return result;
 }
 
+export interface RunWhoopFetchSweepStreamingArgs {
+  /** Source of pages — typically `iterWhoopTokenUserIds(db)`. Each page
+   *  is processed by a fresh `runWhoopFetchSweep` call under the same
+   *  concurrency cap, then dropped from memory before the next page is
+   *  fetched. Memory stays bounded at O(pageSize) regardless of how
+   *  many users have stored WHOOP tokens. */
+  pages: AsyncIterable<readonly string[]>;
+  /** Per-user runner. Same contract as `runWhoopFetchSweep` — outcomes
+   *  tallied, thrown errors absorbed into `byStatus.error`. */
+  runOnce: RunWhoopFetchSweepArgs["runOnce"];
+  /** Forwarded to per-page `runWhoopFetchSweep`. Default 4. */
+  concurrency?: number;
+  /** Defaults to `Date.now`. */
+  nowMs?: () => number;
+  log?: Pick<Logger, "info" | "warn" | "error">;
+}
+
+/**
+ * Streaming variant of `runWhoopFetchSweep`. Consumes an async iterable
+ * of userId pages (typically the keyset paginator), runs the in-page
+ * worker pool to completion, accumulates the cross-page tally, and
+ * moves to the next page only after the current page drains.
+ *
+ * Why per-page sequential (not page-parallel): the page boundary IS
+ * the back-pressure. Running pages concurrently would balloon memory
+ * back to O(N) and defeat the streaming wrapper's purpose. Per-page
+ * worker-pool concurrency still gives intra-page parallelism, which
+ * is where the real fetch latency lives.
+ *
+ * The per-page `runWhoopFetchSweep` still emits its own `done` log —
+ * useful telemetry at high page counts so you can watch progress mid-
+ * sweep. The streaming wrapper adds one final aggregate `done` log on
+ * top.
+ */
+export async function runWhoopFetchSweepStreaming(
+  args: RunWhoopFetchSweepStreamingArgs,
+): Promise<WhoopFetchSweepResult> {
+  const now = args.nowMs ?? ((): number => Date.now());
+  const startedAt = now();
+  const tally: WhoopFetchSweepTally = {
+    total: 0,
+    byStatus: { ok: 0, skipped_no_token: 0, skipped_no_state: 0, error: 0 },
+  };
+  let pageCount = 0;
+
+  for await (const page of args.pages) {
+    pageCount += 1;
+    // Skip the empty-page log noise from `runWhoopFetchSweep` by
+    // bailing here — a well-behaved iterator never yields an empty
+    // page, but the contract doesn't forbid it.
+    if (page.length === 0) continue;
+    const pageResult = await runWhoopFetchSweep({
+      userIds: page,
+      runOnce: args.runOnce,
+      concurrency: args.concurrency,
+      nowMs: args.nowMs,
+      log: args.log,
+    });
+    tally.total += pageResult.total;
+    const statuses = Object.keys(tally.byStatus) as Array<
+      keyof typeof tally.byStatus
+    >;
+    for (const k of statuses) {
+      tally.byStatus[k] += pageResult.byStatus[k];
+    }
+  }
+
+  const finishedAt = now();
+  const result: WhoopFetchSweepResult = {
+    ...tally,
+    startedAt,
+    finishedAt,
+    durationMs: finishedAt - startedAt,
+  };
+  args.log?.info(
+    { ...tally, pageCount, durationMs: result.durationMs },
+    "whoopFetchSweepStreaming:done",
+  );
+  return result;
+}
+
 export interface StartWhoopFetchSweepLoopArgs {
   /** Interval between sweep starts, in ms. Must be > 0. The interval
    *  is measured from the END of one sweep to the START of the next

@@ -19,7 +19,7 @@
  *   - listWhoopTokenUserIds returns the concatenated stream
  */
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
-import { inArray } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { db, aforceWhoopTokens } from "@workspace/db";
 import {
   iterWhoopTokenUserIds,
@@ -171,6 +171,87 @@ describe("iterWhoopTokenUserIds — keyset pagination", () => {
       const i_b01 = flat.indexOf(u("b01"));
       expect(i_a03).toBeGreaterThanOrEqual(0);
       expect(i_b01).toBeGreaterThan(i_a03);
+    } finally {
+      await cleanSeedRows();
+    }
+  });
+});
+
+describe("iterWhoopTokenUserIds — updatedAtMax snapshot cutoff", () => {
+  it("excludes rows with updated_at > cutoff (sweep-start snapshot semantics)", async () => {
+    await seedRows();
+    try {
+      // Cutoff between T2 and T_DUP — only the first two seed users
+      // should be yielded.
+      const cutoff = new Date("2026-01-02T12:00:00Z");
+      const seedSet = new Set(SEED);
+      const got: string[] = [];
+      for await (const page of iterWhoopTokenUserIds(db, {
+        pageSize: 100,
+        updatedAtMax: cutoff,
+      })) {
+        for (const id of page) if (seedSet.has(id)) got.push(id);
+      }
+      expect(got).toEqual([u("a01"), u("a02")]);
+    } finally {
+      await cleanSeedRows();
+    }
+  });
+
+  it("rows whose updated_at gets bumped MID-ITERATION past cutoff are NOT re-yielded", async () => {
+    // Architect-requested regression. This is the bug a naive
+    // pagination (no cutoff) would have: the sweep refreshes a
+    // token, the row's updated_at jumps to NOW(), and on a later
+    // page the cursor `(updatedAt, userId) > (prev)` matches it
+    // again under its new timestamp. The cutoff freezes the page
+    // set to rows that EXISTED with that updated_at at sweep start.
+    await seedRows();
+    try {
+      const cutoff = new Date("2026-01-05T00:00:00Z"); // includes all seeds
+      const seedSet = new Set(SEED);
+      const yielded: string[] = [];
+      const iter = iterWhoopTokenUserIds(db, {
+        pageSize: 1, // forces a separate query per row -> tests interleaving
+        updatedAtMax: cutoff,
+      });
+      // Pull page 1.
+      const first = await iter.next();
+      expect(first.done).toBe(false);
+      const page1 = (first.value ?? []).filter((id) => seedSet.has(id));
+      yielded.push(...page1);
+      expect(page1).toEqual([u("a01")]);
+
+      // SIMULATE the sweep refreshing a01's token: bump its
+      // updated_at to AFTER the cutoff. A no-cutoff iterator would
+      // re-emit a01 on a later page; a cutoff iterator must not.
+      await db
+        .update(aforceWhoopTokens)
+        .set({ updatedAt: new Date("2026-01-06T00:00:00Z") })
+        .where(eq(aforceWhoopTokens.userId, u("a01")));
+
+      // Drain the rest of the iterator.
+      for (;;) {
+        const next = await iter.next();
+        if (next.done) break;
+        const page = (next.value ?? []).filter((id) => seedSet.has(id));
+        yielded.push(...page);
+      }
+
+      // a01 appears exactly once (in page 1, before the bump).
+      const a01Count = yielded.filter((id) => id === u("a01")).length;
+      expect(a01Count).toBe(1);
+      // The remaining seed users are still yielded in (updated_at,
+      // user_id) order — the bumped row stays excluded because its
+      // NEW updated_at is past the cutoff.
+      expect(yielded).toEqual([
+        u("a01"),
+        u("a02"),
+        u("a03"),
+        u("b01"),
+        u("b02"),
+        u("c01"),
+        u("c02"),
+      ]);
     } finally {
       await cleanSeedRows();
     }

@@ -27,12 +27,12 @@ import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import type { Logger } from "pino";
 import {
   buildDefaultWhoopFetchDeps,
-  listWhoopTokenUserIds,
+  iterWhoopTokenUserIds,
   runWhoopFetchOnce,
 } from "./whoopFetchWorker";
 import type { WhoopRefreshRegistry } from "./whoopRefreshRegistry";
 import {
-  runWhoopFetchSweep,
+  runWhoopFetchSweepStreaming,
   startWhoopFetchSweepLoop,
 } from "./whoopFetchSweep";
 
@@ -48,6 +48,10 @@ export interface MaybeStartWhoopFetchSweepOpts {
    *  default). The singleflight registry collapses same-user concurrent
    *  refreshes, so this caps unrelated-user parallelism only. */
   concurrency?: number;
+  /** Override the keyset page size. Defaults to
+   *  `WHOOP_TOKEN_USERS_DEFAULT_PAGE_SIZE` (500). Process memory during
+   *  a sweep stays bounded at O(pageSize) regardless of table size. */
+  pageSize?: number;
 }
 
 export type WhoopFetchSweepHandle = {
@@ -81,9 +85,19 @@ export function maybeStartWhoopFetchSweep(
     intervalMs,
     log,
     runSweep: async () => {
-      const userIds = await listWhoopTokenUserIds(opts.db);
-      return runWhoopFetchSweep({
-        userIds,
+      // Snapshot cutoff captured BEFORE creating the iterator. The
+      // sweep refreshes tokens, which bumps `updated_at` on the row,
+      // which would re-promote the row past the keyset cursor and
+      // cause the same user to be re-processed in a later page of
+      // the same sweep. The cutoff freezes the page set to the rows
+      // that existed (with their updated_at value) at sweep start.
+      // New users created during the sweep are picked up next tick.
+      const sweepStartCutoff = new Date();
+      return runWhoopFetchSweepStreaming({
+        pages: iterWhoopTokenUserIds(opts.db, {
+          pageSize: opts.pageSize,
+          updatedAtMax: sweepStartCutoff,
+        }),
         concurrency: opts.concurrency,
         log,
         runOnce: (userId) =>
