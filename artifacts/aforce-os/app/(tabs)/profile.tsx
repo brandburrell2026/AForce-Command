@@ -206,6 +206,9 @@ export default function ProfileScreen() {
     clerkName;
   const avatarInitial = displayName.charAt(0).toUpperCase();
   const [remindersEnabled, setRemindersEnabled] = useState(mockUserProfile.remindersEnabled);
+  // Active group on the premium tab bar. Defaults to PERFORMANCE so the
+  // user lands on engine modules / goals on first open.
+  const [profileTab, setProfileTab] = useState<ProfileTabId>('performance');
   // Mocked OAuth state for the third-party health platforms shown in
   // the "HEALTH PLATFORMS" card. In a real build, each id would map
   // to its provider SDK / OAuth grant. Here we toggle locally so the
@@ -555,7 +558,7 @@ export default function ProfileScreen() {
             };
             const inviteCard = (
               <>
-                <CollapsibleSection label="INVITE" hint="Recruit operators to AForce OS">
+                <SectionHeader label="INVITE" hint="Recruit operators to AForce OS" />
                 <View style={[styles.card, styles.inviteCard]}>
                   {inviteTier ? (
                     <View style={styles.inviteTierBadge} testID="profile-invite-tier">
@@ -605,13 +608,12 @@ export default function ProfileScreen() {
                     <Icon name="chevron-right" size={14} color={Colors.text.primary} />
                   </Pressable>
                 </View>
-              </CollapsibleSection>
               </>
             );
 
             const goalsCard = (
               <>
-                <CollapsibleSection label="GOALS">
+                <SectionHeader label="GOALS" />
                 <View style={styles.card}>
                   <SettingRow icon="target" label="Daily Target" value={`${mockUserProfile.dailyTarget} units`} />
                   <Divider />
@@ -660,13 +662,12 @@ export default function ProfileScreen() {
                     <Icon name="chevron-right" size={16} color={Colors.text.muted} />
                   </Pressable>
                 </View>
-              </CollapsibleSection>
               </>
             );
 
             const modulesCard = (
               <>
-                <CollapsibleSection label="MODULES" hint="Every engine module · internal evaluation">
+                <SectionHeader label="MODULES" hint="Every engine module · internal evaluation" />
                 <View style={styles.card}>
                   <Pressable
                     onPress={() => router.push('/modules')}
@@ -685,13 +686,12 @@ export default function ProfileScreen() {
                     <Icon name="chevron-right" size={16} color={Colors.text.muted} />
                   </Pressable>
                 </View>
-              </CollapsibleSection>
               </>
             );
 
             const protocolToolsCard = (
               <>
-                <CollapsibleSection label="PROTOCOL TOOLS">
+                <SectionHeader label="PROTOCOL TOOLS" />
                 <View style={styles.card}>
                   <Pressable
                     onPress={() => router.push('/sensors')}
@@ -768,13 +768,12 @@ export default function ProfileScreen() {
                     <Icon name="chevron-right" size={16} color={Colors.text.muted} />
                   </Pressable>
                 </View>
-              </CollapsibleSection>
               </>
             );
 
             const hardwareCard = (
               <>
-                <CollapsibleSection label="HARDWARE">
+                <SectionHeader label="HARDWARE" />
                 <View style={styles.card}>
                   <Pressable onPress={() => router.push('/phantom')} testID="profile-phantom-link">
                     <HardwareRow
@@ -792,13 +791,12 @@ export default function ProfileScreen() {
                     status="UNPAIRED"
                   />
                 </View>
-              </CollapsibleSection>
               </>
             );
 
             const connectedDevicesCard = (
               <>
-                <CollapsibleSection label="CONNECTED DEVICES">
+                <SectionHeader label="CONNECTED DEVICES" />
                 <View style={styles.card}>
                   {mockUserProfile.connectedDevices.map((device, i) => (
                     <React.Fragment key={device}>
@@ -813,9 +811,7 @@ export default function ProfileScreen() {
                     </React.Fragment>
                   ))}
                 </View>
-                </CollapsibleSection>
-
-                <CollapsibleSection label="HEALTH PLATFORMS" hint="Pull biometrics from these services">
+                <SectionHeader label="HEALTH PLATFORMS" hint="Pull biometrics from these services" />
                 <View style={styles.card}>
                   {[...HEALTH_PROVIDERS].sort((a, b) => a.name.localeCompare(b.name)).map((p, i) => {
                     const linked = linkedProviders.has(p.id);
@@ -942,13 +938,12 @@ export default function ProfileScreen() {
                     );
                   })}
                 </View>
-              </CollapsibleSection>
               </>
             );
 
             const demoAccessCard = (
               <>
-                <CollapsibleSection label="DEMO ACCESS" hint="Preview Phase 2 + Phase 3">
+                <SectionHeader label="DEMO ACCESS" hint="Preview Phase 2 + Phase 3" />
                 <View style={styles.card}>
                   <Pressable
                     onPress={() => setFeatureFlags(allOn ? DEFAULT_FLAGS : DEMO_ALL_ON_FLAGS)}
@@ -971,13 +966,12 @@ export default function ProfileScreen() {
 
                   <FlagRow flag="phantom_wearable_enabled" label="PHANTOM Band" desc="Private consumer wearable" color={Colors.states.BALANCED.primary} state={state} onToggle={toggleFlag} />
                 </View>
-              </CollapsibleSection>
               </>
             );
 
             const demoModesCard = (
               <>
-                <CollapsibleSection label={t('profile.demo_modes.label')} hint={t('profile.demo_modes.hint')}>
+                <SectionHeader label={t('profile.demo_modes.label')} hint={t('profile.demo_modes.hint')} />
                 <View style={styles.card}>
                   <View style={{ paddingHorizontal: 14, paddingTop: 12, paddingBottom: 6 }}>
                     <Text style={{ color: Colors.text.secondary, fontSize: 12, lineHeight: 17 }}>
@@ -1051,7 +1045,6 @@ export default function ProfileScreen() {
                     </Pressable>
                   )}
                 </View>
-              </CollapsibleSection>
               </>
             );
 
@@ -1062,7 +1055,7 @@ export default function ProfileScreen() {
             // refresh via AsyncStorage in the store.
             const voiceCard = (
               <>
-                <CollapsibleSection label={t('profile.voice_section.label')}>
+                <SectionHeader label={t('profile.voice_section.label')} />
                 <View style={styles.card}>
                   <View style={styles.settingRow}>
                     <View style={styles.settingLeft}>
@@ -1282,7 +1275,6 @@ export default function ProfileScreen() {
                     </View>
                   ) : null}
                 </View>
-              </CollapsibleSection>
               </>
             );
 
@@ -1327,15 +1319,14 @@ export default function ProfileScreen() {
 
             const subscriptionBlock = (
               <>
-                <CollapsibleSection label="SUBSCRIPTION">
+                <SectionHeader label="SUBSCRIPTION" />
                 <SubscriptionPanel />
-              </CollapsibleSection>
               </>
             );
 
             const settingsBlock = (
               <>
-                <CollapsibleSection label={t('profile.settings').toUpperCase()}>
+                <SectionHeader label={t('profile.settings').toUpperCase()} />
                 <View style={styles.card}>
                   <View style={{ paddingHorizontal: 14, paddingVertical: 4 }}>
                     <LanguageSelector onPersist={(lang) => setLanguage(lang)} />
@@ -1353,7 +1344,6 @@ export default function ProfileScreen() {
                     }}
                   />
                 </View>
-              </CollapsibleSection>
               </>
             );
 
@@ -1362,7 +1352,7 @@ export default function ProfileScreen() {
             // setUnitPreference, which persists to AsyncStorage.
             const preferencesBlock = (
               <>
-                <CollapsibleSection label="PREFERENCES" hint="How values are displayed">
+                <SectionHeader label="PREFERENCES" hint="How values are displayed" />
                 <View style={styles.card}>
                   <UnitPreferenceRow
                     label="Weight"
@@ -1404,7 +1394,6 @@ export default function ProfileScreen() {
                     onSelect={(v) => setUnitPreference('volume', v)}
                   />
                 </View>
-              </CollapsibleSection>
               </>
             );
 
@@ -1414,7 +1403,7 @@ export default function ProfileScreen() {
                 : 0;
             const developerBlock = (
               <>
-                <CollapsibleSection label="DEVELOPER" hint="Internal tools · not for production users">
+                <SectionHeader label="DEVELOPER" hint="Internal tools · not for production users" />
                 <View style={styles.card}>
                   <View style={styles.settingRow} testID="profile-dev-mode">
                     <View style={styles.settingLeft}>
@@ -1538,13 +1527,12 @@ export default function ProfileScreen() {
                     )}
                   </View>
                 )}
-              </CollapsibleSection>
               </>
             );
 
             const legalBlock = (
               <>
-                <CollapsibleSection label="LEGAL" hint="Terms · privacy · disclaimers">
+                <SectionHeader label="LEGAL" hint="Terms · privacy · disclaimers" />
                 <View style={styles.card}>
                   <Pressable
                     onPress={() => router.push('/legal/terms')}
@@ -1608,35 +1596,38 @@ export default function ProfileScreen() {
                     <Icon name="chevron-right" size={16} color={Colors.text.muted} />
                   </Pressable>
                 </View>
-              </CollapsibleSection>
               </>
             );
 
+            // Group sections by tab. Identity (`profileCard`) always renders
+            // above the tab bar — it's the user's avatar/tier card, not a
+            // group of settings. PhaseEntryRow ships under ACCOUNT so the
+            // CLUTCH / GUARDIAN entries live next to subscription tier.
+            const tabSections: Record<ProfileTabId, React.ReactNode[]> = {
+              performance: [modulesCard, goalsCard, protocolToolsCard, voiceCard, demoModesCard],
+              devices: [hardwareCard, connectedDevicesCard],
+              account: [inviteCard, subscriptionBlock, phaseEntryRow, settingsBlock, preferencesBlock],
+              developer: [demoAccessCard, developerBlock, legalBlock],
+            };
+            const activeSections = tabSections[profileTab];
+            const tabBar = (
+              <ProfileTabBar active={profileTab} onChange={setProfileTab} />
+            );
+
             if (layout.isWide) {
-              // Two-column wide layout: compact info on the left,
-              // tall demo flag list + phase entries + subscription
-              // on the right. Roughly balances column heights.
+              // Two-column wide layout: identity card + tab bar on the
+              // left, active tab's sections fill the right column. Keeps
+              // the avatar visible while swapping groups.
               return (
                 <View style={styles.twoCol} testID="profile-two-col">
                   <View style={[styles.col, styles.colLeft]}>
                     {profileCard}
-                    {modulesCard}
-                    {inviteCard}
-                    {goalsCard}
-                    {protocolToolsCard}
-                    {hardwareCard}
-                    {connectedDevicesCard}
+                    {tabBar}
                   </View>
                   <View style={[styles.col, styles.colRight]} testID="profile-right-col">
-                    {settingsBlock}
-                    {preferencesBlock}
-                    {voiceCard}
-                    {demoModesCard}
-                    {demoAccessCard}
-                    {phaseEntryRow}
-                    {subscriptionBlock}
-                    {developerBlock}
-                    {legalBlock}
+                    {activeSections.map((node, i) => (
+                      <React.Fragment key={`wide-${profileTab}-${i}`}>{node}</React.Fragment>
+                    ))}
                   </View>
                 </View>
               );
@@ -1645,21 +1636,10 @@ export default function ProfileScreen() {
             return (
               <>
                 {profileCard}
-                {modulesCard}
-                {inviteCard}
-                {settingsBlock}
-                {preferencesBlock}
-                {voiceCard}
-                {goalsCard}
-                {protocolToolsCard}
-                {hardwareCard}
-                {connectedDevicesCard}
-                {demoModesCard}
-                {demoAccessCard}
-                {phaseEntryRow}
-                {subscriptionBlock}
-                {developerBlock}
-                {legalBlock}
+                {tabBar}
+                {activeSections.map((node, i) => (
+                  <React.Fragment key={`narrow-${profileTab}-${i}`}>{node}</React.Fragment>
+                ))}
               </>
             );
           })()}
@@ -1750,44 +1730,56 @@ function SectionHeader({ label, hint }: { label: string; hint?: string }) {
   );
 }
 
-// Collapsible wrapper around a profile section. Renders a Pressable header
-// (label + optional hint + chevron) and conditionally reveals its children.
-// All profile sections render through this so the screen reads as a clean
-// list of dropdowns by default.
-function CollapsibleSection({
-  label,
-  hint,
-  defaultOpen = false,
-  children,
+// Premium pill tab bar for the Profile screen. Horizontal-scrollable so
+// every group label fits on small phones without truncation. Active pill
+// uses WHOOP lime fill on black text with a soft glow; inactive pills are
+// hairline outlines on the cinematic black canvas.
+type ProfileTabId = 'performance' | 'devices' | 'account' | 'developer';
+const PROFILE_TABS: ReadonlyArray<{ id: ProfileTabId; label: string }> = [
+  { id: 'performance', label: 'PERFORMANCE' },
+  { id: 'devices', label: 'DEVICES' },
+  { id: 'account', label: 'ACCOUNT' },
+  { id: 'developer', label: 'DEVELOPER' },
+];
+
+function ProfileTabBar({
+  active,
+  onChange,
 }: {
-  label: string;
-  hint?: string;
-  defaultOpen?: boolean;
-  children: React.ReactNode;
+  active: ProfileTabId;
+  onChange: (id: ProfileTabId) => void;
 }) {
-  const [open, setOpen] = useState(defaultOpen);
   return (
-    <>
-      <Pressable
-        onPress={() => setOpen((v) => !v)}
-        style={styles.sectionHeader}
-        accessibilityRole="button"
-        accessibilityState={{ expanded: open }}
-        accessibilityLabel={`${label}${open ? ' collapse' : ' expand'}`}
-        testID={`section-${label.replace(/\s+/g, '-').toLowerCase()}`}
+    <View style={styles.tabBarWrap} testID="profile-tab-bar">
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.tabBarRow}
       >
-        <View style={{ flex: 1 }}>
-          <Text style={styles.sectionLabel} accessibilityRole="header">{label}</Text>
-          {hint ? <Text style={styles.sectionHint}>{hint}</Text> : null}
-        </View>
-        <Icon
-          name={open ? 'chevron-up' : 'chevron-down'}
-          size={14}
-          color={Colors.text.muted}
-        />
-      </Pressable>
-      {open ? children : null}
-    </>
+        {PROFILE_TABS.map((tab) => {
+          const isActive = tab.id === active;
+          return (
+            <Pressable
+              key={tab.id}
+              onPress={() => onChange(tab.id)}
+              style={[styles.tabPill, isActive && styles.tabPillActive]}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: isActive }}
+              accessibilityLabel={tab.label}
+              testID={`profile-tab-${tab.id}`}
+              hitSlop={8}
+            >
+              <Text
+                style={[styles.tabPillLabel, isActive && styles.tabPillLabelActive]}
+                numberOfLines={1}
+              >
+                {tab.label}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </ScrollView>
+    </View>
   );
 }
 
@@ -2132,6 +2124,46 @@ const styles = StyleSheet.create({
   sectionHeader: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     marginBottom: 10, marginTop: 6,
+  },
+  tabBarWrap: {
+    marginTop: 4,
+    marginBottom: 22,
+    paddingBottom: 14,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: Colors.border.subtle,
+  },
+  tabBarRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 2,
+    paddingVertical: 2,
+  },
+  tabPill: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: Colors.border.subtle,
+    backgroundColor: 'transparent',
+  },
+  tabPillActive: {
+    backgroundColor: Colors.accent.primary,
+    borderColor: Colors.accent.primary,
+    shadowColor: Colors.accent.primary,
+    shadowOpacity: 0.35,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 0 },
+    elevation: 6,
+  },
+  tabPillLabel: {
+    fontSize: 11,
+    fontFamily: 'Inter_700Bold',
+    letterSpacing: 2,
+    color: Colors.text.muted,
+  },
+  tabPillLabelActive: {
+    color: '#000000',
   },
   sectionLabel: {
     fontSize: 10, fontFamily: 'Inter_700Bold', color: Colors.text.muted, letterSpacing: 2.5,
