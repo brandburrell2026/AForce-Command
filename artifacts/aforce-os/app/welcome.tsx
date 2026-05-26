@@ -1098,10 +1098,8 @@ export default function SplashScreen() {
       // Persistence failure is non-fatal — the user can still enter
       // the app; they may just see the splash again next launch.
     }
-    // Hand off into the Activation funnel (Rule #9). The funnel
-    // itself short-circuits to /(tabs) for users who have already
-    // passed it, so re-entries don't re-block the dashboard.
-    router.replace('/(activation)/ready');
+    // Activation funnel removed — enter the app directly.
+    router.replace('/(tabs)');
   }, [router]);
 
   // Ring holds at LIME for the entire pre-ENTER window — the band
