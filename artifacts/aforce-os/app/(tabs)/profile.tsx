@@ -218,7 +218,6 @@ export default function ProfileScreen() {
   // small "Live from Apple Health" panel so the user can see the
   // numbers AForce is pulling.
   const [appleSnapshot, setAppleSnapshot] = useState<AppleHealthSnapshot | null>(null);
-  const [healthOpen, setHealthOpen] = useState(false);
 
   const refreshAppleSnapshot = React.useCallback(async () => {
     if (!isAppleHealthSupported()) return;
@@ -556,7 +555,7 @@ export default function ProfileScreen() {
             };
             const inviteCard = (
               <>
-                <SectionHeader label="INVITE" hint="Recruit operators to AForce OS" />
+                <CollapsibleSection label="INVITE" hint="Recruit operators to AForce OS">
                 <View style={[styles.card, styles.inviteCard]}>
                   {inviteTier ? (
                     <View style={styles.inviteTierBadge} testID="profile-invite-tier">
@@ -606,12 +605,13 @@ export default function ProfileScreen() {
                     <Icon name="chevron-right" size={14} color={Colors.text.primary} />
                   </Pressable>
                 </View>
+              </CollapsibleSection>
               </>
             );
 
             const goalsCard = (
               <>
-                <SectionHeader label="GOALS" />
+                <CollapsibleSection label="GOALS">
                 <View style={styles.card}>
                   <SettingRow icon="target" label="Daily Target" value={`${mockUserProfile.dailyTarget} units`} />
                   <Divider />
@@ -660,12 +660,13 @@ export default function ProfileScreen() {
                     <Icon name="chevron-right" size={16} color={Colors.text.muted} />
                   </Pressable>
                 </View>
+              </CollapsibleSection>
               </>
             );
 
             const modulesCard = (
               <>
-                <SectionHeader label="MODULES" hint="Every engine module · internal evaluation" />
+                <CollapsibleSection label="MODULES" hint="Every engine module · internal evaluation">
                 <View style={styles.card}>
                   <Pressable
                     onPress={() => router.push('/modules')}
@@ -684,12 +685,13 @@ export default function ProfileScreen() {
                     <Icon name="chevron-right" size={16} color={Colors.text.muted} />
                   </Pressable>
                 </View>
+              </CollapsibleSection>
               </>
             );
 
             const protocolToolsCard = (
               <>
-                <SectionHeader label="PROTOCOL TOOLS" />
+                <CollapsibleSection label="PROTOCOL TOOLS">
                 <View style={styles.card}>
                   <Pressable
                     onPress={() => router.push('/sensors')}
@@ -766,12 +768,13 @@ export default function ProfileScreen() {
                     <Icon name="chevron-right" size={16} color={Colors.text.muted} />
                   </Pressable>
                 </View>
+              </CollapsibleSection>
               </>
             );
 
             const hardwareCard = (
               <>
-                <SectionHeader label="HARDWARE" />
+                <CollapsibleSection label="HARDWARE">
                 <View style={styles.card}>
                   <Pressable onPress={() => router.push('/phantom')} testID="profile-phantom-link">
                     <HardwareRow
@@ -789,12 +792,13 @@ export default function ProfileScreen() {
                     status="UNPAIRED"
                   />
                 </View>
+              </CollapsibleSection>
               </>
             );
 
             const connectedDevicesCard = (
               <>
-                <SectionHeader label="CONNECTED DEVICES" />
+                <CollapsibleSection label="CONNECTED DEVICES">
                 <View style={styles.card}>
                   {mockUserProfile.connectedDevices.map((device, i) => (
                     <React.Fragment key={device}>
@@ -809,37 +813,11 @@ export default function ProfileScreen() {
                     </React.Fragment>
                   ))}
                 </View>
+                </CollapsibleSection>
 
-                <SectionHeader label="HEALTH PLATFORMS" hint="Pull biometrics from these services" />
+                <CollapsibleSection label="HEALTH PLATFORMS" hint="Pull biometrics from these services">
                 <View style={styles.card}>
-                  <Pressable
-                    onPress={() => setHealthOpen((v) => !v)}
-                    style={styles.settingRow}
-                    accessibilityRole="button"
-                    accessibilityLabel={healthOpen ? 'Collapse health platforms' : 'Expand health platforms'}
-                    testID="health-platforms-toggle"
-                  >
-                    <View style={styles.settingLeft}>
-                      <Icon name="activity" size={16} color={Colors.text.secondary} />
-                      <View>
-                        <Text style={styles.settingLabel}>
-                          {linkedProviders.size > 0
-                            ? `${linkedProviders.size} connected`
-                            : 'Select a service'}
-                        </Text>
-                        <Text style={styles.settingSubLabel}>
-                          {HEALTH_PROVIDERS.length} services available
-                        </Text>
-                      </View>
-                    </View>
-                    <Icon
-                      name={healthOpen ? 'chevron-up' : 'chevron-down'}
-                      size={16}
-                      color={Colors.text.muted}
-                    />
-                  </Pressable>
-                  {healthOpen && <Divider />}
-                  {healthOpen && [...HEALTH_PROVIDERS].sort((a, b) => a.name.localeCompare(b.name)).map((p, i, arr) => {
+                  {[...HEALTH_PROVIDERS].sort((a, b) => a.name.localeCompare(b.name)).map((p, i) => {
                     const linked = linkedProviders.has(p.id);
                     return (
                       <React.Fragment key={p.id}>
@@ -964,12 +942,13 @@ export default function ProfileScreen() {
                     );
                   })}
                 </View>
+              </CollapsibleSection>
               </>
             );
 
             const demoAccessCard = (
               <>
-                <SectionHeader label="DEMO ACCESS" hint="Preview Phase 2 + Phase 3" />
+                <CollapsibleSection label="DEMO ACCESS" hint="Preview Phase 2 + Phase 3">
                 <View style={styles.card}>
                   <Pressable
                     onPress={() => setFeatureFlags(allOn ? DEFAULT_FLAGS : DEMO_ALL_ON_FLAGS)}
@@ -992,12 +971,13 @@ export default function ProfileScreen() {
 
                   <FlagRow flag="phantom_wearable_enabled" label="PHANTOM Band" desc="Private consumer wearable" color={Colors.states.BALANCED.primary} state={state} onToggle={toggleFlag} />
                 </View>
+              </CollapsibleSection>
               </>
             );
 
             const demoModesCard = (
               <>
-                <SectionHeader label={t('profile.demo_modes.label')} hint={t('profile.demo_modes.hint')} />
+                <CollapsibleSection label={t('profile.demo_modes.label')} hint={t('profile.demo_modes.hint')}>
                 <View style={styles.card}>
                   <View style={{ paddingHorizontal: 14, paddingTop: 12, paddingBottom: 6 }}>
                     <Text style={{ color: Colors.text.secondary, fontSize: 12, lineHeight: 17 }}>
@@ -1071,6 +1051,7 @@ export default function ProfileScreen() {
                     </Pressable>
                   )}
                 </View>
+              </CollapsibleSection>
               </>
             );
 
@@ -1081,7 +1062,7 @@ export default function ProfileScreen() {
             // refresh via AsyncStorage in the store.
             const voiceCard = (
               <>
-                <SectionHeader label={t('profile.voice_section.label')} />
+                <CollapsibleSection label={t('profile.voice_section.label')}>
                 <View style={styles.card}>
                   <View style={styles.settingRow}>
                     <View style={styles.settingLeft}>
@@ -1301,6 +1282,7 @@ export default function ProfileScreen() {
                     </View>
                   ) : null}
                 </View>
+              </CollapsibleSection>
               </>
             );
 
@@ -1345,14 +1327,15 @@ export default function ProfileScreen() {
 
             const subscriptionBlock = (
               <>
-                <SectionHeader label="SUBSCRIPTION" />
+                <CollapsibleSection label="SUBSCRIPTION">
                 <SubscriptionPanel />
+              </CollapsibleSection>
               </>
             );
 
             const settingsBlock = (
               <>
-                <SectionHeader label={t('profile.settings').toUpperCase()} />
+                <CollapsibleSection label={t('profile.settings').toUpperCase()}>
                 <View style={styles.card}>
                   <View style={{ paddingHorizontal: 14, paddingVertical: 4 }}>
                     <LanguageSelector onPersist={(lang) => setLanguage(lang)} />
@@ -1370,6 +1353,7 @@ export default function ProfileScreen() {
                     }}
                   />
                 </View>
+              </CollapsibleSection>
               </>
             );
 
@@ -1378,7 +1362,7 @@ export default function ProfileScreen() {
             // setUnitPreference, which persists to AsyncStorage.
             const preferencesBlock = (
               <>
-                <SectionHeader label="PREFERENCES" hint="How values are displayed" />
+                <CollapsibleSection label="PREFERENCES" hint="How values are displayed">
                 <View style={styles.card}>
                   <UnitPreferenceRow
                     label="Weight"
@@ -1420,6 +1404,7 @@ export default function ProfileScreen() {
                     onSelect={(v) => setUnitPreference('volume', v)}
                   />
                 </View>
+              </CollapsibleSection>
               </>
             );
 
@@ -1429,7 +1414,7 @@ export default function ProfileScreen() {
                 : 0;
             const developerBlock = (
               <>
-                <SectionHeader label="DEVELOPER" hint="Internal tools · not for production users" />
+                <CollapsibleSection label="DEVELOPER" hint="Internal tools · not for production users">
                 <View style={styles.card}>
                   <View style={styles.settingRow} testID="profile-dev-mode">
                     <View style={styles.settingLeft}>
@@ -1553,12 +1538,13 @@ export default function ProfileScreen() {
                     )}
                   </View>
                 )}
+              </CollapsibleSection>
               </>
             );
 
             const legalBlock = (
               <>
-                <SectionHeader label="LEGAL" hint="Terms · privacy · disclaimers" />
+                <CollapsibleSection label="LEGAL" hint="Terms · privacy · disclaimers">
                 <View style={styles.card}>
                   <Pressable
                     onPress={() => router.push('/legal/terms')}
@@ -1622,6 +1608,7 @@ export default function ProfileScreen() {
                     <Icon name="chevron-right" size={16} color={Colors.text.muted} />
                   </Pressable>
                 </View>
+              </CollapsibleSection>
               </>
             );
 
@@ -1760,6 +1747,47 @@ function SectionHeader({ label, hint }: { label: string; hint?: string }) {
       <Text style={styles.sectionLabel} accessibilityRole="header">{label}</Text>
       {hint && <Text style={styles.sectionHint}>{hint}</Text>}
     </View>
+  );
+}
+
+// Collapsible wrapper around a profile section. Renders a Pressable header
+// (label + optional hint + chevron) and conditionally reveals its children.
+// All profile sections render through this so the screen reads as a clean
+// list of dropdowns by default.
+function CollapsibleSection({
+  label,
+  hint,
+  defaultOpen = false,
+  children,
+}: {
+  label: string;
+  hint?: string;
+  defaultOpen?: boolean;
+  children: React.ReactNode;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <>
+      <Pressable
+        onPress={() => setOpen((v) => !v)}
+        style={styles.sectionHeader}
+        accessibilityRole="button"
+        accessibilityState={{ expanded: open }}
+        accessibilityLabel={`${label}${open ? ' collapse' : ' expand'}`}
+        testID={`section-${label.replace(/\s+/g, '-').toLowerCase()}`}
+      >
+        <View style={{ flex: 1 }}>
+          <Text style={styles.sectionLabel} accessibilityRole="header">{label}</Text>
+          {hint ? <Text style={styles.sectionHint}>{hint}</Text> : null}
+        </View>
+        <Icon
+          name={open ? 'chevron-up' : 'chevron-down'}
+          size={14}
+          color={Colors.text.muted}
+        />
+      </Pressable>
+      {open ? children : null}
+    </>
   );
 }
 
