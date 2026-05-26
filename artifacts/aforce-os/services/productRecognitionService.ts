@@ -26,6 +26,16 @@ const BARCODE_INDEX: Record<string, string> = {
   '850000000055': 'aforce_berry_blast',
   '850000000062': 'aforce_watermelon_surge',
   '850000000079': 'aforce_soursop_edge',
+  // Flavor × format SKU matrix
+  '850000000086': 'aforce_sku_berry_stick',
+  '850000000093': 'aforce_sku_watermelon_stick',
+  '850000000109': 'aforce_sku_soursop_stick',
+  '850000000116': 'aforce_sku_berry_rtd',
+  '850000000123': 'aforce_sku_watermelon_rtd',
+  '850000000130': 'aforce_sku_soursop_rtd',
+  '850000000147': 'aforce_sku_berry_canister',
+  '850000000154': 'aforce_sku_watermelon_canister',
+  '850000000161': 'aforce_sku_soursop_canister',
   // Competitors
   '052000338874': 'gatorade',
   '850000111234': 'liquid_iv',
@@ -63,8 +73,35 @@ const PRODUCT_TO_FLUID: Record<string, FluidType> = {
   aforce_berry_blast: 'aforce_stick',
   aforce_watermelon_surge: 'aforce_stick',
   aforce_soursop_edge: 'aforce_stick',
+  // Flavor × format SKUs log against their physical format's FluidType.
+  aforce_sku_berry_stick: 'aforce_stick',
+  aforce_sku_watermelon_stick: 'aforce_stick',
+  aforce_sku_soursop_stick: 'aforce_stick',
+  aforce_sku_berry_rtd: 'aforce_rtd',
+  aforce_sku_watermelon_rtd: 'aforce_rtd',
+  aforce_sku_soursop_rtd: 'aforce_rtd',
+  aforce_sku_berry_canister: 'aforce_canister',
+  aforce_sku_watermelon_canister: 'aforce_canister',
+  aforce_sku_soursop_canister: 'aforce_canister',
   water: 'water',
 };
+
+/**
+ * Curated AForce shelf-SKU list for the Preview Scan tray's
+ * "AForce Products" tab and the picker dropdown. Order = how chips
+ * render (grouped by format: Stick → RTD → Canister).
+ */
+export const AFORCE_SHELF_SKUS: readonly string[] = [
+  'aforce_sku_berry_stick',
+  'aforce_sku_watermelon_stick',
+  'aforce_sku_soursop_stick',
+  'aforce_sku_berry_rtd',
+  'aforce_sku_watermelon_rtd',
+  'aforce_sku_soursop_rtd',
+  'aforce_sku_berry_canister',
+  'aforce_sku_watermelon_canister',
+  'aforce_sku_soursop_canister',
+];
 
 function fromCatalog(productId: string): CompareProduct | undefined {
   return COMPARE_PRODUCTS.find((p) => p.id === productId);

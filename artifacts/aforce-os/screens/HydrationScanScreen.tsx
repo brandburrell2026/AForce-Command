@@ -12,7 +12,7 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, Platform, Pressable, TextInput,
+  View, Text, StyleSheet, ScrollView, Platform, Pressable, TextInput, Modal,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -42,7 +42,7 @@ import { DRINK_CATEGORIES } from '@/data/drinkCatalog';
 import { Colors } from '@/theme/colors';
 import { useAppStore } from '@/store/useAppStore';
 import { scan } from '@/services/hydrationScanService';
-import { listSimulatableBarcodes } from '@/services/productRecognitionService';
+import { listSimulatableBarcodes, AFORCE_SHELF_SKUS } from '@/services/productRecognitionService';
 import { buildScanCoachScript } from '@/services/scanCoachVoice';
 import { speak as speakCoach, stopSpeaking } from '@/services/textToSpeech';
 import { useCoachMode, shouldSpeak, shouldHaptic } from '@/services/coachMode';
@@ -63,6 +63,12 @@ export default function HydrationScanScreen() {
   const [cameraOpen, setCameraOpen] = useState(false);
   const [addDrinkOpen, setAddDrinkOpen] = useState(false);
   const [smartCaptureOpen, setSmartCaptureOpen] = useState(false);
+  // Preview Scan tray — split into "Other Brands" (competitor SKUs) and
+  // "AForce Products" (the 9 flavor × format shelf SKUs). The AForce tab
+  // also exposes a dropdown picker that lists every AForce product by
+  // full name for evaluators who want to pick one explicitly.
+  const [previewTab, setPreviewTab] = useState<'other' | 'aforce'>('aforce');
+  const [aforcePickerOpen, setAforcePickerOpen] = useState(false);
 
   // Success flash overlay — fires after a successful log, fades a PEAK
   // tint over the screen, plays a Success haptic, and pops back to Home
@@ -131,6 +137,38 @@ export default function HydrationScanScreen() {
   }));
 
   const simulatable = useMemo(() => listSimulatableBarcodes(), []);
+
+  // Other-brand chips for the "Other Brands" tab — every simulatable
+  // barcode whose product is NOT an AForce SKU. Keeps the preview varied
+  // (Gatorade / LMNT / Liquid IV / Pedialyte / Prime / Water).
+  const otherBrandChips = useMemo(() => {
+    return simulatable.filter((it) => {
+      const p = COMPARE_PRODUCTS.find((cp) => cp.id === it.productId);
+      return p ? !p.isAForce : true;
+    });
+  }, [simulatable]);
+
+  // AForce chip list — the 9 flavor × format shelf SKUs in stable order.
+  // shortLabel strips "AForce " for a compact chip ("Berry Blast + Dulse
+  // Stick"). Routed via QR slug so we don't need a separate barcode lookup.
+  const aforceSkuChips = useMemo(() => {
+    return AFORCE_SHELF_SKUS
+      .map((id) => COMPARE_PRODUCTS.find((p) => p.id === id))
+      .filter((p): p is NonNullable<typeof p> => p !== undefined)
+      .map((p) => ({
+        productId: p.id,
+        shortLabel: p.name.replace(/^AForce\s+/i, ''),
+      }));
+  }, []);
+
+  // Picker rows — same 9 SKUs but with the full "AForce …" name for the
+  // dropdown modal opened from the "Select from all AForce products" CTA.
+  const aforcePickerRows = useMemo(() => {
+    return AFORCE_SHELF_SKUS
+      .map((id) => COMPARE_PRODUCTS.find((p) => p.id === id))
+      .filter((p): p is NonNullable<typeof p> => p !== undefined)
+      .map((p) => ({ productId: p.id, name: p.name }));
+  }, []);
 
   const runScan = async (source: ScanSource) => {
     if (scanning) return;
@@ -411,41 +449,132 @@ export default function HydrationScanScreen() {
             </Text>
           </Pressable>
 
-          {/* Mock scan tray */}
+          {/* Preview Scan tray — tabbed: AForce Products + Other Brands.
+              AForce tab shows the 9 flavor × format shelf SKUs and a
+              dropdown picker for the full list. */}
           <View style={styles.trayCard}>
             <View style={styles.trayHeader}>
               <Icon name="zap" size={12} color={Colors.text.muted} />
-              <Text style={styles.trayHeaderText}>SIMULATE SCAN</Text>
+              <Text style={styles.trayHeaderText}>PREVIEW SCAN</Text>
             </View>
-            <View style={styles.trayChips}>
-              {simulatable.slice(0, 7).map((it) => (
+
+            <View style={styles.tabRow}>
+              <Pressable
+                onPress={() => setPreviewTab('aforce')}
+                style={[styles.tabPill, previewTab === 'aforce' && styles.tabPillActive]}
+                testID="preview-tab-aforce"
+              >
+                <Text style={[styles.tabPillText, previewTab === 'aforce' && styles.tabPillTextActive]}>
+                  AForce Products
+                </Text>
+              </Pressable>
+              <Pressable
+                onPress={() => setPreviewTab('other')}
+                style={[styles.tabPill, previewTab === 'other' && styles.tabPillActive]}
+                testID="preview-tab-other"
+              >
+                <Text style={[styles.tabPillText, previewTab === 'other' && styles.tabPillTextActive]}>
+                  Other Brands
+                </Text>
+              </Pressable>
+            </View>
+
+            {previewTab === 'aforce' ? (
+              <>
+                <View style={styles.trayChips}>
+                  {aforceSkuChips.map((it) => (
+                    <Pressable
+                      key={it.productId}
+                      onPress={() => runScan({ kind: 'qr', rawValue: `aforce://product/${it.productId}` })}
+                      disabled={scanning}
+                      style={({ pressed }) => [
+                        styles.chip,
+                        { opacity: scanning ? 0.5 : pressed ? 0.7 : 1 },
+                      ]}
+                      testID={`preview-aforce-chip-${it.productId}`}
+                    >
+                      <Text style={styles.chipText} numberOfLines={1}>{it.shortLabel}</Text>
+                    </Pressable>
+                  ))}
+                </View>
                 <Pressable
-                  key={it.code}
-                  onPress={() => runScan({ kind: 'barcode', rawValue: it.code })}
+                  onPress={() => setAforcePickerOpen(true)}
                   disabled={scanning}
                   style={({ pressed }) => [
-                    styles.chip,
-                    { opacity: scanning ? 0.5 : pressed ? 0.7 : 1 },
+                    styles.pickerCta,
+                    { opacity: scanning ? 0.5 : pressed ? 0.85 : 1 },
                   ]}
+                  testID="preview-aforce-picker-open"
                 >
-                  <Text style={styles.chipText} numberOfLines={1}>{it.label}</Text>
+                  <Icon name="list" size={14} color={Colors.states.PEAK.primary} />
+                  <Text style={[styles.chipText, { color: Colors.states.PEAK.primary }]}>
+                    Select an AForce product
+                  </Text>
                 </Pressable>
-              ))}
-            </View>
-            <Pressable
-              onPress={() => runScan({ kind: 'qr', rawValue: 'aforce://product/aforce_stick' })}
-              disabled={scanning}
-              style={({ pressed }) => [
-                styles.qrChip,
-                { opacity: scanning ? 0.5 : pressed ? 0.7 : 1 },
-              ]}
-            >
-              <Icon name="grid" size={12} color={Colors.states.PEAK.primary} />
-              <Text style={[styles.chipText, { color: Colors.states.PEAK.primary }]}>
-                QR — aforce://product/aforce_stick
-              </Text>
-            </Pressable>
+              </>
+            ) : (
+              <View style={styles.trayChips}>
+                {otherBrandChips.map((it) => (
+                  <Pressable
+                    key={it.code}
+                    onPress={() => runScan({ kind: 'barcode', rawValue: it.code })}
+                    disabled={scanning}
+                    style={({ pressed }) => [
+                      styles.chip,
+                      { opacity: scanning ? 0.5 : pressed ? 0.7 : 1 },
+                    ]}
+                  >
+                    <Text style={styles.chipText} numberOfLines={1}>{it.label}</Text>
+                  </Pressable>
+                ))}
+              </View>
+            )}
           </View>
+
+          {/* AForce product picker modal — full list from AFORCE_SHELF_SKUS. */}
+          <Modal
+            visible={aforcePickerOpen}
+            transparent
+            animationType="fade"
+            onRequestClose={() => setAforcePickerOpen(false)}
+          >
+            <Pressable
+              style={styles.pickerBackdrop}
+              onPress={() => setAforcePickerOpen(false)}
+            >
+              <Pressable style={styles.pickerSheet} onPress={(e) => e.stopPropagation()}>
+                <View style={styles.pickerHeader}>
+                  <Text style={styles.pickerTitle}>AForce Products</Text>
+                  <Pressable
+                    onPress={() => setAforcePickerOpen(false)}
+                    hitSlop={10}
+                    accessibilityLabel="Close picker"
+                  >
+                    <Icon name="x" size={18} color={Colors.text.primary} />
+                  </Pressable>
+                </View>
+                <ScrollView style={{ maxHeight: 420 }}>
+                  {aforcePickerRows.map((p) => (
+                    <Pressable
+                      key={p.productId}
+                      onPress={() => {
+                        setAforcePickerOpen(false);
+                        runScan({ kind: 'qr', rawValue: `aforce://product/${p.productId}` });
+                      }}
+                      style={({ pressed }) => [
+                        styles.pickerRow,
+                        pressed && { backgroundColor: Colors.fill.light },
+                      ]}
+                      testID={`preview-aforce-picker-row-${p.productId}`}
+                    >
+                      <Text style={styles.pickerRowText}>{p.name}</Text>
+                      <Icon name="chevron-right" size={14} color={Colors.text.muted} />
+                    </Pressable>
+                  ))}
+                </ScrollView>
+              </Pressable>
+            </Pressable>
+          </Modal>
 
           {/* Manual search — looks up AForce products via the comparison engine */}
           <View style={styles.manualCard}>
@@ -841,6 +970,70 @@ const styles = StyleSheet.create({
     borderRadius: 100, borderWidth: 1, borderColor: `${Colors.states.PEAK.primary}55`,
     backgroundColor: `${Colors.states.PEAK.primary}10`,
     alignSelf: 'flex-start',
+  },
+  tabRow: {
+    flexDirection: 'row', gap: 6,
+    padding: 3,
+    borderRadius: 100,
+    backgroundColor: Colors.fill.light,
+    alignSelf: 'flex-start',
+  },
+  tabPill: {
+    paddingHorizontal: 12, paddingVertical: 6,
+    borderRadius: 100,
+  },
+  tabPillActive: {
+    backgroundColor: Colors.background.card,
+    borderWidth: 1, borderColor: Colors.border.medium,
+  },
+  tabPillText: {
+    fontSize: 11, fontFamily: 'Inter_600SemiBold',
+    color: Colors.text.muted, letterSpacing: 0.4,
+  },
+  tabPillTextActive: {
+    color: Colors.text.primary,
+  },
+  pickerCta: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    paddingHorizontal: 10, paddingVertical: 8,
+    borderRadius: 100, borderWidth: 1,
+    borderColor: `${Colors.states.PEAK.primary}55`,
+    backgroundColor: `${Colors.states.PEAK.primary}10`,
+    alignSelf: 'flex-start',
+  },
+  pickerBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'flex-end',
+  },
+  pickerSheet: {
+    backgroundColor: Colors.background.card,
+    borderTopLeftRadius: 20, borderTopRightRadius: 20,
+    borderWidth: 1, borderColor: Colors.border.subtle,
+    paddingHorizontal: 16, paddingTop: 16, paddingBottom: 28,
+  },
+  pickerHeader: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingBottom: 12,
+    borderBottomWidth: 1, borderBottomColor: Colors.border.subtle,
+    marginBottom: 4,
+  },
+  pickerTitle: {
+    fontFamily: 'Inter_700Bold',
+    fontSize: 14, letterSpacing: 1.2,
+    color: Colors.text.primary,
+    textTransform: 'uppercase',
+  },
+  pickerRow: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingVertical: 14, paddingHorizontal: 6,
+    borderBottomWidth: 1, borderBottomColor: Colors.border.subtle,
+  },
+  pickerRowText: {
+    flex: 1,
+    fontFamily: 'Inter_600SemiBold',
+    fontSize: 13,
+    color: Colors.text.primary,
   },
 
   compareCta: {
