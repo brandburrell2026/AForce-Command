@@ -15,6 +15,7 @@ import designTokensRouter from "./designTokens";
 import referralsRouter from "./referrals";
 import earlyAccessRouter from "./earlyAccess";
 import adminDemandRouter from "./adminDemand";
+import adminDemandFromStateRouter from "./adminDemandFromState";
 // Note: smartCaptureRouter is mounted directly in app.ts BEFORE the global
 // 64kB express.json() limiter (base64 photos blow past 64kB instantly).
 
@@ -36,5 +37,6 @@ router.use(designTokensRouter);
 router.use("/referrals", referralsRouter);
 router.use("/early-access", earlyAccessRouter);
 router.use(adminDemandRouter);
+router.use(adminDemandFromStateRouter);
 
 export default router;

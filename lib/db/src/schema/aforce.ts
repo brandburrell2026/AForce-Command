@@ -48,6 +48,34 @@ export const aforceUserState = pgTable("aforce_user_state", {
     sleepHoursLastNight: number | null;
     fetchedAt: number;
   } | null>(),
+  /**
+   * Multi-provider biometric snapshots, keyed by `HealthProviderId`
+   * (e.g. 'whoop' | 'samsung_health' | 'oura' | 'apple_health' …).
+   * Each entry mirrors the mobile `ProviderSnapshot` shape — only
+   * the fields a given provider actually exposes are populated;
+   * absent fields stay null so the server can be honest about
+   * what's connected. `appleHealth` above is the legacy single-
+   * provider column kept for backward compatibility; new wiring
+   * should write here instead.
+   *
+   * Hidden-infra: the server-side Hydration Demand adapter reads
+   * freshest-wins sleep across providers from this blob. No UI
+   * writes to it yet.
+   */
+  biometrics: jsonb("biometrics").$type<Record<string, {
+    providerId: string;
+    restingHeartRate?: number | null;
+    hrvSdnn?: number | null;
+    sleepHoursLastNight?: number | null;
+    stepsToday?: number | null;
+    workoutMinutesToday?: number | null;
+    strain?: number | null;
+    recoveryPct?: number | null;
+    readinessScore?: number | null;
+    stressScore?: number | null;
+    trainingLoad?: number | null;
+    fetchedAt: number;
+  }> | null>(),
   // Confirmation loop (T2)
   confirmationDelta: integer("confirmation_delta"),
   confirmationDeltaSetAt: timestamp("confirmation_delta_set_at", { withTimezone: true }),
