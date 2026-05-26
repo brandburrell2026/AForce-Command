@@ -22,7 +22,7 @@ const HEAT_RESET: HeatProtocol = {
   durationMinutes: 5,
   tone: "info",
   actions: [
-    { id: "drink", label: "Drink 12–16 ounces fluids now", detail: "AForce stick or RTD preferred." },
+    { id: "drink", label: "Drink 12–16 ounces fluids now", detail: "Stick or RTD preferred." },
     { id: "shade", label: "Step out of direct sun for 3 min" },
     { id: "breathe", label: "Reset breathing — 4 in, 6 out" },
   ],
@@ -36,7 +36,7 @@ const SHADE_RECOVERY: HeatProtocol = {
   tone: "warn",
   actions: [
     { id: "stop", label: "Stop activity and sit in shade" },
-    { id: "drink", label: "Drink 16–20 ounces fluids", detail: "AForce stick or canister mix." },
+    { id: "drink", label: "Drink 16–20 ounces fluids", detail: "Stick or canister mix." },
     { id: "cool", label: "Cool neck and forearms with water or ice" },
     { id: "watch", label: "Watch for dizziness or nausea" },
   ],

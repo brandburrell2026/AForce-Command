@@ -131,10 +131,10 @@ function buildBreakdown(state: UserState): { score: number; contributions: Score
   const contributions: ScoreContribution[] = [
     { id: 'base', label: 'Base intake (ounces vs target)', delta: baseIntake, maxMagnitude: 45,
       hint: `${state.ozConsumedToday} of ${state.ozTarget} ounces` },
-    { id: 'aforce_bonus', label: 'AForce protocol bonus', delta: aforceBonus, maxMagnitude: 50,
+    { id: 'aforce_bonus', label: 'Protocol bonus', delta: aforceBonus, maxMagnitude: 50,
       hint: aforceUnits === 0
-        ? 'Log an AForce stick or RTD'
-        : `${aforceUnits} AForce intake${aforceUnits === 1 ? '' : 's'} today` },
+        ? 'Log a stick or RTD'
+        : `${aforceUnits} intake${aforceUnits === 1 ? '' : 's'} today` },
     { id: 'recency', label: 'Decay since last intake', delta: recency, maxMagnitude: 35,
       hint: `${minutesSinceLast} min · ${decayPerMinute.toFixed(2)} pts/min${state.clutchActive ? ' (clutch ×1.3)' : ''}` },
     { id: 'confirmation', label: 'Last command confirmation', delta: confirmation, maxMagnitude: 3,

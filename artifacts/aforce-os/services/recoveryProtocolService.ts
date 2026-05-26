@@ -81,7 +81,7 @@ export function pickRecoveryProtocol(
       reason: 'restock',
       steps: [],
       waterOz,
-      headline: 'Restock AForce to start your recovery protocol.',
+      headline: 'Restock your supply to start the recovery protocol.',
       reasoning:
         'No sticks, RTD, or canister on hand — your tracked inventory is empty.',
     };
@@ -94,9 +94,9 @@ export function pickRecoveryProtocol(
   // light "stay topped up" suggestion using whatever the user has.
   if (remaining === 0) {
     if (inv.rtd > 0) {
-      steps.push({ productId: 'rtd', count: 1, label: '1 AForce RTD' });
+      steps.push({ productId: 'rtd', count: 1, label: '1 RTD' });
     } else if (inv.sticks > 0) {
-      steps.push({ productId: 'stick', count: 1, label: '1 AForce stick' });
+      steps.push({ productId: 'stick', count: 1, label: '1 stick' });
     } else if (inv.canister > 0) {
       steps.push({ productId: 'canister', count: 1, label: '1 canister scoop' });
     }
@@ -114,7 +114,7 @@ export function pickRecoveryProtocol(
   if (inv.rtd > 0 && remaining > 0) {
     const rtdCount = Math.min(remaining, inv.rtd, 1);
     if (rtdCount > 0) {
-      steps.push({ productId: 'rtd', count: rtdCount, label: `${rtdCount} AForce RTD` });
+      steps.push({ productId: 'rtd', count: rtdCount, label: `${rtdCount} RTD` });
       remaining -= rtdCount;
     }
   }
@@ -126,7 +126,7 @@ export function pickRecoveryProtocol(
       steps.push({
         productId: 'stick',
         count: stickCount,
-        label: `${stickCount} AForce stick${stickCount > 1 ? 's' : ''}`,
+        label: `${stickCount} stick${stickCount > 1 ? 's' : ''}`,
       });
       remaining -= stickCount;
     }

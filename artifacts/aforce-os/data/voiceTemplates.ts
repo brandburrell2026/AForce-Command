@@ -98,7 +98,7 @@ export const VOICE_TEMPLATES: Readonly<TemplateMap> = Object.freeze({
   next_action: {
     peak:       t('next_action', 'peak',       'Peak. Maintain current cadence.',                    'Score {score}.'),
     balanced:   t('next_action', 'balanced',   '{action}',                                           'Score {score}. Recheck {recheck} min.'),
-    recovering: t('next_action', 'recovering', 'Take 1 AForce stick now. Recheck in {recheck} min.', 'Score {score}.'),
+    recovering: t('next_action', 'recovering', 'Take 1 stick now. Recheck in {recheck} min.', 'Score {score}.'),
     depleted:   t('next_action', 'depleted',   'Stop activity. Take 2 sticks now.',                  'Score {score}. Recheck {recheck} min.'),
   },
   recovery_command: {
@@ -132,10 +132,10 @@ export const VOICE_TEMPLATES: Readonly<TemplateMap> = Object.freeze({
     depleted:   t('morning_reset', 'depleted',   'Severe overnight deficit. Drink {oz} ounces and take 1 stick now.', 'Recheck {recheck} min.'),
   },
   product_comparison: {
-    peak:       t('product_comparison', 'peak',       'AForce stick is the strongest fit. Hold cadence.', 'Score {score}.'),
-    balanced:   t('product_comparison', 'balanced',   'AForce stick is the strongest fit for your state.','Drink 1 now.'),
-    recovering: t('product_comparison', 'recovering', 'AForce RTD is the strongest fit. Drink 1 now.',    'Recheck {recheck} min.'),
-    depleted:   t('product_comparison', 'depleted',   'AForce RTD plus 1 stick is the strongest fit now.','Recheck {recheck} min.'),
+    peak:       t('product_comparison', 'peak',       'A stick is the strongest fit. Hold cadence.', 'Score {score}.'),
+    balanced:   t('product_comparison', 'balanced',   'A stick is the strongest fit for your state.','Drink 1 now.'),
+    recovering: t('product_comparison', 'recovering', 'An RTD is the strongest fit. Drink 1 now.',    'Recheck {recheck} min.'),
+    depleted:   t('product_comparison', 'depleted',   'An RTD plus 1 stick is the strongest fit now.','Recheck {recheck} min.'),
   },
   subscription_locked: {
     peak:       t('subscription_locked', 'peak',       'Locked feature. Upgrade to unlock.',     'Score {score}.'),

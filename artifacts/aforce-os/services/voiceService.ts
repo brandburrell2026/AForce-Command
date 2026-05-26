@@ -45,10 +45,10 @@ const SYMPTOM_LABEL: Record<VoiceSymptomId, string> = {
 
 const FLUID_LABEL: Record<string, string> = {
   water:           'water',
-  aforce_stick:    'AForce stick',
-  aforce_rtd:      'AForce RTD',
-  aforce_canister: 'AForce canister',
-  aforce_bulk_bag: 'AForce bulk',
+  aforce_stick:    'stick',
+  aforce_rtd:      'RTD',
+  aforce_canister: 'canister',
+  aforce_bulk_bag: 'bulk mix',
 };
 
 /**
@@ -138,7 +138,7 @@ function buildResponse(
     case 'COMPLETE_CYCLE': {
       return {
         ...base,
-        spoken: 'Cycle complete. One AForce stick logged.',
+        spoken: 'Cycle complete. One stick logged.',
         detail: `Hydration score moves to ${score + 4}.`,
         action: { type: 'COMPLETE_CYCLE' },
       };

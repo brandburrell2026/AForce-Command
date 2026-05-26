@@ -17,7 +17,7 @@ export const VIDEO_LIBRARY: Record<string, VideoConfig> = {
     videoUrl: '/videos/hydration_action_01.mp4',
     durationSec: 8,
     overlayTitle: 'INTAKE NOW',
-    overlaySubtitle: 'AForce Stick + 16 ounces water',
+    overlaySubtitle: 'Stick + 16 ounces water',
     themeLevel: 'BALANCED',
   },
   hydration_action_02: {

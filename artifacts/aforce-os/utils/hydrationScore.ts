@@ -430,7 +430,7 @@ const RECOMMENDED_PRODUCT: Record<HydrationStatus, string> = {
 const STATUS_COMMANDS: Record<HydrationStatus, string> = {
   OPTIMAL:   'Flow state active. Hold your rhythm.',
   STABLE:    'Sip 12 oz of water within the next 45 minutes.',
-  DECLINING: 'Open a water cycle: 16 oz of water with 1 AForce stick.',
+  DECLINING: 'Open a water cycle: 16 oz of water with 1 stick.',
   RISK:      'Recovery window open. Complete a water cycle with electrolytes.',
   CRITICAL:  'Recovery needed. Complete one water cycle now to reset.',
 };
@@ -442,7 +442,7 @@ export function generateHydrationCommand(
   // Sleep prep takes priority whenever bedtime is within 2 hours.
   const tilBed = inputs.minutesUntilBedtime;
   if (typeof tilBed === 'number' && tilBed >= 0 && tilBed <= 120) {
-    return 'Drink 20 oz of water and take 1 AForce RTD before sleep.';
+    return 'Drink 20 oz of water and take 1 RTD before sleep.';
   }
   // Heat command — overrides STABLE/DECLINING when significant heat exposure.
   if ((inputs.temperatureF ?? 0) > 85 && score < 85) {

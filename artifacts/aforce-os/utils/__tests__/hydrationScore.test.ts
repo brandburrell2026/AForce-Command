@@ -263,13 +263,13 @@ describe('generateHydrationCommand', () => {
   it('returns the band default when no context overrides', () => {
     expect(generateHydrationCommand(95, inputs())).toBe('Flow state active. Hold your rhythm.');
     expect(generateHydrationCommand(75, inputs())).toBe('Sip 12 oz of water within the next 45 minutes.');
-    expect(generateHydrationCommand(60, inputs())).toBe('Open a water cycle: 16 oz of water with 1 AForce stick.');
+    expect(generateHydrationCommand(60, inputs())).toBe('Open a water cycle: 16 oz of water with 1 stick.');
     expect(generateHydrationCommand(40, inputs())).toBe('Recovery window open. Complete a water cycle with electrolytes.');
     expect(generateHydrationCommand(20, inputs())).toBe('Recovery needed. Complete one water cycle now to reset.');
   });
   it('overrides with sleep prep within 2h when below optimal', () => {
     expect(generateHydrationCommand(60, inputs({ minutesUntilBedtime: 60 })))
-      .toBe('Drink 20 oz of water and take 1 AForce RTD before sleep.');
+      .toBe('Drink 20 oz of water and take 1 RTD before sleep.');
   });
   it('overrides with heat command above 85°F', () => {
     expect(generateHydrationCommand(60, inputs({ temperatureF: 95 })))
@@ -394,7 +394,7 @@ describe('getHydrationScore', () => {
     const out = getHydrationScore(inputs({
       thirstLevel: 3, minutesUntilBedtime: 90,
     }));
-    expect(out.command).toBe('Drink 20 oz of water and take 1 AForce RTD before sleep.');
+    expect(out.command).toBe('Drink 20 oz of water and take 1 RTD before sleep.');
   });
 
   it('detects pressure mode on a 15+ point drop since last check', () => {
