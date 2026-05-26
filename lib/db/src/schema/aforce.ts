@@ -413,3 +413,65 @@ export const aforcePrivacy = pgTable("aforce_privacy", {
 
 export type AforcePrivacyRow = typeof aforcePrivacy.$inferSelect;
 export type InsertAforcePrivacy = typeof aforcePrivacy.$inferInsert;
+
+/* ─── HydroScan history (append-only) ─────────────────────────────────────── */
+/**
+ * Append-only HydroScan history. One row per scan, ordered by
+ * `scannedAt`. Stores the rich `ScanResult` payload defined in
+ * `artifacts/aforce-os/types/scan.ts` as JSONB so the row remains
+ * forward-compatible with personalization / superfood / supportive-note
+ * additions to the type without a migration.
+ *
+ * The flat columns (`verdict`, `currentFitScore`, `productId`,
+ * `evaluatedAgainstState`, `isAForce`) are denormalized copies of
+ * fields inside `payload` so list/filter queries can run without
+ * unpacking JSONB on every row.
+ *
+ * Indexed by `(user_id, scanned_at DESC)` so per-user history pulls
+ * its newest rows first without a sort over the table.
+ *
+ * Hidden-infra only — no route or UI consumes this table today.
+ */
+export const aforceHydroScans = pgTable(
+  "aforce_hydro_scans",
+  {
+    id: serial("id").primaryKey(),
+    userId: text("user_id").notNull(),
+    /** Stable client-supplied id (e.g. `scan_<ts>_<rand>`); UNIQUE so
+     *  retries from the mobile client are idempotent. */
+    clientScanId: text("client_scan_id").notNull(),
+    scannedAt: timestamp("scanned_at", { withTimezone: true }).notNull(),
+    sourceKind: text("source_kind").notNull(), // barcode | qr | aforce_product | nfc | manual
+    rawValue: text("raw_value").notNull().default(""),
+    productId: text("product_id"),
+    productName: text("product_name").notNull(),
+    brand: text("brand"),
+    category: text("category"),
+    isAForce: boolean("is_aforce").notNull().default(false),
+    verdict: text("verdict").notNull(), // optimal | strong | acceptable | suboptimal | avoid
+    currentFitScore: integer("current_fit_score").notNull(),
+    efficiency: real("efficiency").notNull(),
+    efficiencyLabel: text("efficiency_label").notNull().default(""),
+    evaluatedAgainstState: text("evaluated_against_state").notNull(),
+    aforceEquivalentId: text("aforce_equivalent_id"),
+    /** Full ScanResult shape. Authoritative — flat columns are
+     *  denormalized read accelerators. */
+    payload: jsonb("payload").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => ({
+    userTimeIdx: index("aforce_hydro_scans_user_time_idx").on(
+      t.userId,
+      t.scannedAt,
+    ),
+    userClientUq: uniqueIndex("aforce_hydro_scans_user_client_uq").on(
+      t.userId,
+      t.clientScanId,
+    ),
+  }),
+);
+
+export type AforceHydroScanRow = typeof aforceHydroScans.$inferSelect;
+export type InsertAforceHydroScan = typeof aforceHydroScans.$inferInsert;
