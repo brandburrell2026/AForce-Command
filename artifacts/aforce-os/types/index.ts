@@ -562,6 +562,13 @@ export interface FeatureFlags {
    * surfaces. Default OFF: build, do not release.
    */
   spec_recovery: boolean;
+  /**
+   * Hydration Demand Engine™ — pure module that replaces generic
+   * 8-glasses logic with an input-driven daily target. Phase 1 ships
+   * the module only; outputs are NOT consumed by any visible surface
+   * yet. Default OFF; flip in DEMO_ALL_ON for internal preview.
+   */
+  spec_demand_engine: boolean;
 }
 
 /**
@@ -593,7 +600,8 @@ export type SpecFlagName =
   | 'profileSource'
   | 'sharedContextLayer'
   | 'uiFreeze'
-  | 'recovery';
+  | 'recovery'
+  | 'demand_engine';
 
 // ─── Hydration Journal ────────────────────────────────────────────────────────
 /**

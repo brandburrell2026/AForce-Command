@@ -145,10 +145,10 @@ describe('recoveryEngine — recoveryInputsFromState (store bridge)', () => {
     const user = makeUserState({
       socialMode: {
         active: true,
-        startTime: new Date(),
+        startedAt: new Date(),
         drinks: [
-          { id: 'd1', kind: 'beer', loggedAt: new Date(), ozAmount: 12 },
-          { id: 'd2', kind: 'wine', loggedAt: new Date(), ozAmount: 5 },
+          { id: 'd1', type: 'beer', loggedAt: new Date(), oz: 12, multiplier: 1, hydrated: null },
+          { id: 'd2', type: 'wine', loggedAt: new Date(), oz: 5, multiplier: 1, hydrated: null },
         ],
       },
     });

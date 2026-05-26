@@ -137,6 +137,7 @@ export const baseFlags: FeatureFlags = {
   spec_sharedContextLayer: true,
   spec_uiFreeze: true,
   spec_recovery: false,
+  spec_demand_engine: false,
 };
 
 export const baseSubscription: UserSubscription = {
