@@ -1,0 +1,1533 @@
+This is the FINAL architecture lock.
+
+No redesign.
+
+No new navigation.
+
+No dashboard expansion.
+
+No moving tabs.
+
+No Timeline redesign.
+
+No Orb redesign.
+
+Current MVP remains approved.
+
+Goal:
+
+Build engine now.
+
+Preview internally.
+
+Enable by phase.
+
+Pause → Hydrate → Lock In → Perform
+
+Rule:
+
+Build 100%.
+
+Show 10%.
+
+Unlock over time.
+
+One Engine.
+
+Multiple Experiences.
+
+Engine gets smarter.
+
+Screens stay simpler.
+
+No additional icons.
+
+No additional tabs.
+
+No dashboard expansion.
+
+Everything below exists in architecture.
+
+————————————————————
+
+CORE PRINCIPLE
+
+Build once.
+
+Expose later.
+
+One source of truth.
+
+One command system.
+
+One intelligence layer.
+
+Feature flags control release.
+
+Internal preview remains available.
+
+Public unlocks over time.
+
+————————————————————
+
+PROFILE = SOURCE OF TRUTH
+
+Everything reads from Profile.
+
+No duplicate profile systems.
+
+Required:
+
+Weight
+
+Activity Level
+
+Goal
+
+Optional:
+
+Height
+
+Sweat Profile
+
+Environment
+
+Sleep Preference
+
+Language
+
+Units
+
+Connected Providers
+
+Future:
+
+Birth Year (optional)
+
+Profile feeds:
+
+Orb
+
+Recovery
+
+Hydration
+
+HydroScan
+
+Timeline
+
+Journal
+
+Coach
+
+Protocol
+
+Social
+
+Guardian
+
+Clutch
+
+————————————————————
+
+ACTIVITY PROFILE
+
+Options:
+
+Low
+
+Moderate
+
+High
+
+Athlete
+
+Effects:
+
+Hydration
+
+Recovery
+
+Heat
+
+Commands
+
+Timeline
+
+————————————————————
+
+SWEAT PROFILE
+
+Options:
+
+Low
+
+Moderate
+
+High
+
+Very High
+
+Effects:
+
+Hydration
+
+Electrolytes
+
+Recovery
+
+Workout Demand
+
+————————————————————
+
+ENVIRONMENT PROFILE
+
+Options:
+
+Mostly Indoor
+
+Mixed
+
+Mostly Outdoor
+
+Hot Climate
+
+Travel Often
+
+Sleep Preference:
+
+Cool Sleeper
+
+Neutral
+
+Warm Sleeper
+
+Combine with:
+
+Weather
+
+Humidity
+
+Timezone
+
+————————————————————
+
+HYDRATION DEMAND ENGINE™
+
+Purpose:
+
+Replace generic hydration rules.
+
+Inputs:
+
+Weight
+
+Activity
+
+Sweat
+
+Environment
+
+Heat
+
+Humidity
+
+Sleep
+
+Recovery
+
+Water Cycles
+
+Outputs:
+
+Today Target
+
+Remaining
+
+Command
+
+Hydration Load
+
+Example:
+
+Target: 108 oz
+
+Remaining: 36 oz
+
+Hydration Load: Moderate
+
+Command: Complete 1 Water Cycle
+
+No 8-glasses logic.
+
+————————————————————
+
+ELECTROLYTE NEED
+
+Outputs:
+
+Low
+
+Moderate
+
+High
+
+Inputs:
+
+Sweat
+
+Heat
+
+Activity
+
+Recovery
+
+Hydration
+
+Cycles
+
+Do not show medical values.
+
+————————————————————
+
+PRELOAD™
+
+Purpose:
+
+Prepare before demand.
+
+Inputs:
+
+Weather
+
+Recovery
+
+Schedule
+
+Heat
+
+Activity
+
+Outputs:
+
+Tomorrow Demand
+
+Preparation Command
+
+Example:
+
+Heat Elevated Tomorrow
+
+Command:
+
+Complete one cycle tonight.
+
+Only actions.
+
+No forecasts.
+
+————————————————————
+
+AFORCE FORMAT ENGINE™
+
+Formats:
+
+Water
+
+RTD
+
+Hydration Stick
+
+Canister
+
+Future Energy
+
+Selection:
+
+Context
+
+Recovery
+
+Behavior
+
+Learning:
+
+Preferred Format
+
+AUTO
+
+Rule:
+
+Never push product.
+
+Earn trust.
+
+————————————————————
+
+BIOMETRIC PROVIDERS
+
+Provider
+
+↓
+
+Normalization Layer
+
+↓
+
+Engine
+
+↓
+
+Orb
+
+Launch:
+
+Apple Health
+
+Google Health Connect
+
+Samsung Health
+
+Oura
+
+Performance:
+
+Garmin
+
+WHOOP
+
+Fitbit
+
+Polar
+
+Future:
+
+Phantom
+
+Meridian
+
+Ring
+
+Enterprise
+
+Fallback:
+
+Generic Provider
+
+Priority:
+
+Phantom
+
+Wearables
+
+Phone
+
+Manual
+
+Inputs:
+
+Heart Rate
+
+Resting HR
+
+Sleep
+
+Workout
+
+Steps
+
+Recovery
+
+Activity
+
+————————————————————
+
+AFORCE INTELLIGENCE LAYER™
+
+Internal only.
+
+Never exposed.
+
+Purpose:
+
+Translate signals into action.
+
+Primary:
+
+OpenAI
+
+Secondary:
+
+Claude
+
+Future:
+
+Replaceable models
+
+Inputs:
+
+Profile
+
+Recovery
+
+Weather
+
+Hydration
+
+Journal
+
+Timeline
+
+HydroScan
+
+Outputs:
+
+Command
+
+Coach
+
+Orb
+
+Story
+
+Target
+
+Users never see model names.
+
+————————————————————
+
+RECOVERY READINESS™
+
+Purpose:
+
+Turn recovery into action.
+
+Inputs:
+
+Sleep
+
+Hydration
+
+Activity
+
+Recovery
+
+Heart Rate
+
+Thermal
+
+Outputs:
+
+READY
+
+BUILDING
+
+RESET
+
+Command
+
+No diagnostics.
+
+————————————————————
+
+THERMAL RHYTHM™
+
+Purpose:
+
+Adapt recovery timing.
+
+Inputs:
+
+Sleep
+
+Environment
+
+Hydration
+
+Recovery
+
+Temperature Trend
+
+Outputs:
+
+Recovery Environment
+
+GOOD
+
+WARM
+
+RECOVERING
+
+Command:
+
+Adjust hydration timing.
+
+No hormone tracking.
+
+No menopause mode.
+
+No temperature dashboard.
+
+————————————————————
+
+ORB
+
+Single destination.
+
+Display only:
+
+Recovery
+
+Target
+
+Pressure
+
+Trend
+
+Command
+
+No additional surfaces.
+
+————————————————————
+
+HYDROSCAN
+
+Reads:
+
+Profile
+
+Target
+
+Electrolytes
+
+Recovery
+
+Environment
+
+Rule:
+
+Scan never raises score.
+
+Only completed actions update score.
+
+————————————————————
+
+JOURNAL + TIMELINE
+
+Store:
+
+Water
+
+Format
+
+Recovery
+
+Command
+
+Environment
+
+Target
+
+Completion
+
+Timeline unchanged.
+
+————————————————————
+
+COACH MODE
+
+Recovery drives Coach.
+
+Voice:
+
+Minimal
+
+Text-first
+
+Examples:
+
+Water first
+
+Complete one cycle
+
+Recovery building
+
+————————————————————
+
+PUBLIC / CLUTCH / GUARDIAN
+
+One Engine.
+
+Different visibility.
+
+PUBLIC
+
+Recovery
+
+Target
+
+Command
+
+Preload
+
+HydroScan
+
+CLUTCH
+
+Recovery
+
+Pressure
+
+Heat Load
+
+Session Readiness
+
+Preload
+
+GUARDIAN
+
+Completion
+
+Recovery Trend
+
+Hydration Trend
+
+Readiness
+
+Command Follow Rate
+
+No duplicate logic.
+
+————————————————————
+
+RECOVERY LAYER
+
+Hidden.
+
+Feature flags only.
+
+Internal preview enabled.
+
+Phase 3:
+
+Recovery Pressure™
+
+Phase 4:
+
+Recovery Fingerprint™
+
+Phase 5:
+
+Recovery Identity™
+
+No new screens.
+
+————————————————————
+
+COMPLIANCE
+
+Avoid:
+
+Treats
+
+Prevents
+
+Blood pressure
+
+Blood pH
+
+Alkaline bloodstream
+
+Medical electrolyte claims
+
+Use:
+
+Supports hydration
+
+Supports recovery
+
+Supports performance habits
+
+Supports hydration behavior
+
+FINAL RULE:
+
+Build full engine.
+
+Preview internally.
+
+Enable by phase.
+
+Keep UI.
+
+
+
+
+
+
+
+
+
+This is the FINAL architecture lock.
+
+No redesign.
+
+No new navigation.
+
+No dashboard expansion.
+
+No moving tabs.
+
+No Timeline redesign.
+
+No Orb redesign.
+
+Current MVP remains approved.
+
+Goal:
+
+Build engine now.
+
+Preview internally.
+
+Enable by phase.
+
+Pause → Hydrate → Lock In → Perform
+
+Rule:
+
+Build 100%.
+
+Show 10%.
+
+Unlock over time.
+
+One Engine.
+
+Multiple Experiences.
+
+Engine gets smarter.
+
+Screens stay simpler.
+
+No additional icons.
+
+No additional tabs.
+
+No dashboard expansion.
+
+Everything below exists in architecture.
+
+————————————————————
+
+CORE PRINCIPLE
+
+Build once.
+
+Expose later.
+
+One source of truth.
+
+One command system.
+
+One intelligence layer.
+
+Feature flags control release.
+
+Internal preview remains available.
+
+Public unlocks over time.
+
+————————————————————
+
+PROFILE = SOURCE OF TRUTH
+
+Everything reads from Profile.
+
+No duplicate profile systems.
+
+Required:
+
+Weight
+
+Activity Level
+
+Goal
+
+Optional:
+
+Height
+
+Sweat Profile
+
+Environment
+
+Sleep Preference
+
+Language
+
+Units
+
+Connected Providers
+
+Future:
+
+Birth Year (optional)
+
+Profile feeds:
+
+Orb
+
+Recovery
+
+Hydration
+
+HydroScan
+
+Timeline
+
+Journal
+
+Coach
+
+Protocol
+
+Social
+
+Guardian
+
+Clutch
+
+————————————————————
+
+ACTIVITY PROFILE
+
+Options:
+
+Low
+
+Moderate
+
+High
+
+Athlete
+
+Effects:
+
+Hydration
+
+Recovery
+
+Heat
+
+Commands
+
+Timeline
+
+————————————————————
+
+SWEAT PROFILE
+
+Options:
+
+Low
+
+Moderate
+
+High
+
+Very High
+
+Effects:
+
+Hydration
+
+Electrolytes
+
+Recovery
+
+Workout Demand
+
+————————————————————
+
+ENVIRONMENT PROFILE
+
+Options:
+
+Mostly Indoor
+
+Mixed
+
+Mostly Outdoor
+
+Hot Climate
+
+Travel Often
+
+Sleep Preference:
+
+Cool Sleeper
+
+Neutral
+
+Warm Sleeper
+
+Combine with:
+
+Weather
+
+Humidity
+
+Timezone
+
+————————————————————
+
+HYDRATION DEMAND ENGINE™
+
+Purpose:
+
+Replace generic hydration rules.
+
+Inputs:
+
+Weight
+
+Activity
+
+Sweat
+
+Environment
+
+Heat
+
+Humidity
+
+Sleep
+
+Recovery
+
+Water Cycles
+
+Outputs:
+
+Today Target
+
+Remaining
+
+Command
+
+Hydration Load
+
+Example:
+
+Target: 108 oz
+
+Remaining: 36 oz
+
+Hydration Load: Moderate
+
+Command: Complete 1 Water Cycle
+
+No 8-glasses logic.
+
+————————————————————
+
+ELECTROLYTE NEED
+
+Outputs:
+
+Low
+
+Moderate
+
+High
+
+Inputs:
+
+Sweat
+
+Heat
+
+Activity
+
+Recovery
+
+Hydration
+
+Cycles
+
+Do not show medical values.
+
+————————————————————
+
+PRELOAD™
+
+Purpose:
+
+Prepare before demand.
+
+Inputs:
+
+Weather
+
+Recovery
+
+Schedule
+
+Heat
+
+Activity
+
+Outputs:
+
+Tomorrow Demand
+
+Preparation Command
+
+Example:
+
+Heat Elevated Tomorrow
+
+Command:
+
+Complete one cycle tonight.
+
+Only actions.
+
+No forecasts.
+
+————————————————————
+
+AFORCE FORMAT ENGINE™
+
+Formats:
+
+Water
+
+RTD
+
+Hydration Stick
+
+Canister
+
+Future Energy
+
+Selection:
+
+Context
+
+Recovery
+
+Behavior
+
+Learning:
+
+Preferred Format
+
+AUTO
+
+Rule:
+
+Never push product.
+
+Earn trust.
+
+————————————————————
+
+BIOMETRIC PROVIDERS
+
+Provider
+
+↓
+
+Normalization Layer
+
+↓
+
+Engine
+
+↓
+
+Orb
+
+Launch:
+
+Apple Health
+
+Google Health Connect
+
+Samsung Health
+
+Oura
+
+Performance:
+
+Garmin
+
+WHOOP
+
+Fitbit
+
+Polar
+
+Future:
+
+Phantom
+
+Meridian
+
+Ring
+
+Enterprise
+
+Fallback:
+
+Generic Provider
+
+Priority:
+
+Phantom
+
+Wearables
+
+Phone
+
+Manual
+
+Inputs:
+
+Heart Rate
+
+Resting HR
+
+Sleep
+
+Workout
+
+Steps
+
+Recovery
+
+Activity
+
+————————————————————
+
+AFORCE INTELLIGENCE LAYER™
+
+Internal only.
+
+Never exposed.
+
+Purpose:
+
+Translate signals into action.
+
+Primary:
+
+OpenAI
+
+Secondary:
+
+Claude
+
+Future:
+
+Replaceable models
+
+Inputs:
+
+Profile
+
+Recovery
+
+Weather
+
+Hydration
+
+Journal
+
+Timeline
+
+HydroScan
+
+Outputs:
+
+Command
+
+Coach
+
+Orb
+
+Story
+
+Target
+
+Users never see model names.
+
+————————————————————
+
+RECOVERY READINESS™
+
+Purpose:
+
+Turn recovery into action.
+
+Inputs:
+
+Sleep
+
+Hydration
+
+Activity
+
+Recovery
+
+Heart Rate
+
+Thermal
+
+Outputs:
+
+READY
+
+BUILDING
+
+RESET
+
+Command
+
+No diagnostics.
+
+————————————————————
+
+THERMAL RHYTHM™
+
+Purpose:
+
+Adapt recovery timing.
+
+Inputs:
+
+Sleep
+
+Environment
+
+Hydration
+
+Recovery
+
+Temperature Trend
+
+Outputs:
+
+Recovery Environment
+
+GOOD
+
+WARM
+
+RECOVERING
+
+Command:
+
+Adjust hydration timing.
+
+No hormone tracking.
+
+No menopause mode.
+
+No temperature dashboard.
+
+————————————————————
+
+ORB
+
+Single destination.
+
+Display only:
+
+Recovery
+
+Target
+
+Pressure
+
+Trend
+
+Command
+
+No additional surfaces.
+
+————————————————————
+
+HYDROSCAN
+
+Reads:
+
+Profile
+
+Target
+
+Electrolytes
+
+Recovery
+
+Environment
+
+Rule:
+
+Scan never raises score.
+
+Only completed actions update score.
+
+————————————————————
+
+JOURNAL + TIMELINE
+
+Store:
+
+Water
+
+Format
+
+Recovery
+
+Command
+
+Environment
+
+Target
+
+Completion
+
+Timeline unchanged.
+
+————————————————————
+
+COACH MODE
+
+Recovery drives Coach.
+
+Voice:
+
+Minimal
+
+Text-first
+
+Examples:
+
+Water first
+
+Complete one cycle
+
+Recovery building
+
+————————————————————
+
+PUBLIC / CLUTCH / GUARDIAN
+
+One Engine.
+
+Different visibility.
+
+PUBLIC
+
+Recovery
+
+Target
+
+Command
+
+Preload
+
+HydroScan
+
+CLUTCH
+
+Recovery
+
+Pressure
+
+Heat Load
+
+Session Readiness
+
+Preload
+
+GUARDIAN
+
+Completion
+
+Recovery Trend
+
+Hydration Trend
+
+Readiness
+
+Command Follow Rate
+
+No duplicate logic.
+
+————————————————————
+
+RECOVERY LAYER
+
+Hidden.
+
+Feature flags only.
+
+Internal preview enabled.
+
+Phase 3:
+
+Recovery Pressure™
+
+Phase 4:
+
+Recovery Fingerprint™
+
+Phase 5:
+
+Recovery Identity™
+
+No new screens.
+
+————————————————————
+
+COMPLIANCE
+
+Avoid:
+
+Treats
+
+Prevents
+
+Blood pressure
+
+Blood pH
+
+Alkaline bloodstream
+
+Medical electrolyte claims
+
+Use:
+
+Supports hydration
+
+Supports recovery
+
+Supports performance habits
+
+Supports hydration behavior
+
+FINAL RULE:
+
+Build full engine.
+
+Preview internally.
+
+Enable by phase.
+
+Keep UI.
+
+Ship intelligently.

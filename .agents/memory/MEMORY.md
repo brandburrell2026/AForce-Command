@@ -1,1 +1,2 @@
-- [Recovery Layer phasing](recovery-phasing.md) — Recovery is hidden in Phase 1 (6 surfaces); Guardian + Clutch recovery feeds land in Phase 2, not Phase 1.
+- [AForce architecture lock](architecture-lock.md) — FINAL lock: no redesign / no new screens / Build 100%, Show 10%, flag-gated phases. Engine modules + compliance copy rules.
+- [Recovery Layer phasing](recovery-phasing.md) — Recovery is hidden in Phase 1 (6 surfaces); Guardian + Clutch recovery feeds land in Phase 2; Pressure/Fingerprint/Identity reveal in Phase 3/4/5.
