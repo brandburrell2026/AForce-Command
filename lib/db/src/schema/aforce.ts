@@ -595,21 +595,38 @@ export type InsertAforceDemandSnapshot = typeof aforceDemandSnapshots.$inferInse
  * baseline; if/when we add envelope encryption (KMS / pgcrypto) it
  * will be a transparent change at the store boundary.
  */
-export const aforceWhoopTokens = pgTable("aforce_whoop_tokens", {
-  userId: text("user_id").primaryKey(),
-  accessToken: text("access_token").notNull(),
-  refreshToken: text("refresh_token").notNull(),
-  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
-  /** Space-separated scopes the user granted (e.g. 'offline read:recovery …').
-   *  Null when the WHOOP token endpoint didn't echo `scope` back. */
-  scope: text("scope"),
-  createdAt: timestamp("created_at", { withTimezone: true })
-    .notNull()
-    .defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true })
-    .notNull()
-    .defaultNow(),
-});
+export const aforceWhoopTokens = pgTable(
+  "aforce_whoop_tokens",
+  {
+    userId: text("user_id").primaryKey(),
+    accessToken: text("access_token").notNull(),
+    refreshToken: text("refresh_token").notNull(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    /** Space-separated scopes the user granted (e.g. 'offline read:recovery …').
+     *  Null when the WHOOP token endpoint didn't echo `scope` back. */
+    scope: text("scope"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => ({
+    // Composite index supporting keyset pagination over the fetch
+    // sweep: `WHERE (updated_at, user_id) > ($1, $2) ORDER BY
+    // updated_at, user_id LIMIT N`. user_id is included in the index
+    // (not just the sort) so duplicate updated_at values (possible
+    // after bulk imports — DEFAULT NOW() collisions at ms resolution)
+    // get a stable tie-break and the keyset boundary stays correct.
+    // Without this index, the sweep page query degrades to a full
+    // table sort once the row count gets non-trivial.
+    updatedUserIdx: index("aforce_whoop_tokens_updated_user_idx").on(
+      t.updatedAt,
+      t.userId,
+    ),
+  }),
+);
 
 export type AforceWhoopTokensRow = typeof aforceWhoopTokens.$inferSelect;
 export type InsertAforceWhoopTokens = typeof aforceWhoopTokens.$inferInsert;

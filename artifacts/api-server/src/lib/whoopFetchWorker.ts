@@ -254,20 +254,76 @@ export function buildDefaultWhoopFetchDeps(
 }
 
 /**
- * Enumerate every userId with stored WHOOP tokens. Used by the cron
- * sweep to decide who to fetch this tick. Returns userIds in stable
- * `updated_at ASC` order so a sweep can claim by oldest-first if it
- * ever grows beyond a single pass.
+ * Default keyset page size for `iterWhoopTokenUserIds`. 500 is a
+ * compromise: large enough that the per-page round-trip overhead is
+ * negligible vs. fetch work, small enough that one page comfortably
+ * fits in memory even at 50M users.
+ */
+export const WHOOP_TOKEN_USERS_DEFAULT_PAGE_SIZE = 500;
+
+/**
+ * Streaming iteration over every userId with stored WHOOP tokens, in
+ * stable `(updated_at ASC, user_id ASC)` order. Keyset pagination — NOT
+ * OFFSET — so cost is O(pageSize · log N) per page regardless of how
+ * deep we've iterated. Requires the composite index
+ * `aforce_whoop_tokens_updated_user_idx` on `(updated_at, user_id)`.
  *
- * Hidden-infra: no HTTP route consumes this yet.
+ * Why the tuple keyset: `updated_at` can repeat across rows (DEFAULT
+ * NOW() at ms resolution, especially after bulk imports). A simple
+ * `WHERE updated_at > $1` boundary would either skip rows sharing the
+ * cursor's timestamp or re-yield them depending on `>` vs `>=`. The
+ * row-value comparison `(updated_at, user_id) > ($t, $u)` matches the
+ * lexicographic order of the ORDER BY exactly, so the boundary is
+ * always correct.
+ *
+ * Yields one page (string[]) at a time so callers can fan out work
+ * per-page with bounded memory. The current sweep bootstrap drains
+ * the iterator via `listWhoopTokenUserIds` (still O(N) memory) — a
+ * later PR will rewire the sweep to consume the iterator directly
+ * for true bounded memory across the full table.
+ */
+export async function* iterWhoopTokenUserIds(
+  db: NodePgDatabase<Record<string, unknown>>,
+  opts: { pageSize?: number } = {},
+): AsyncGenerator<string[], void, void> {
+  const pageSize = Math.max(1, opts.pageSize ?? WHOOP_TOKEN_USERS_DEFAULT_PAGE_SIZE);
+  let cursor: { updatedAt: Date; userId: string } | null = null;
+  for (;;) {
+    const where = cursor
+      ? sql`(${aforceWhoopTokens.updatedAt}, ${aforceWhoopTokens.userId}) > (${cursor.updatedAt}, ${cursor.userId})`
+      : undefined;
+    const rows = await db
+      .select({
+        userId: aforceWhoopTokens.userId,
+        updatedAt: aforceWhoopTokens.updatedAt,
+      })
+      .from(aforceWhoopTokens)
+      .where(where)
+      .orderBy(aforceWhoopTokens.updatedAt, aforceWhoopTokens.userId)
+      .limit(pageSize);
+    if (rows.length === 0) return;
+    yield rows.map((r) => r.userId);
+    if (rows.length < pageSize) return;
+    const last = rows[rows.length - 1]!;
+    cursor = { updatedAt: last.updatedAt, userId: last.userId };
+  }
+}
+
+/**
+ * Backwards-compat drain of `iterWhoopTokenUserIds` to one array.
+ * Convenient for tests and ad-hoc tooling, but NOT for the sweep hot
+ * path — at scale this re-materializes the cliff the iterator was
+ * built to remove. Use `iterWhoopTokenUserIds` directly in production
+ * code that streams.
  */
 export async function listWhoopTokenUserIds(
   db: NodePgDatabase<Record<string, unknown>>,
+  opts: { pageSize?: number } = {},
 ): Promise<string[]> {
-  const rows = await db
-    .select({ userId: aforceWhoopTokens.userId })
-    .from(aforceWhoopTokens)
-    .orderBy(aforceWhoopTokens.updatedAt);
-  return rows.map((r) => r.userId);
+  const out: string[] = [];
+  for await (const page of iterWhoopTokenUserIds(db, opts)) {
+    out.push(...page);
+  }
+  return out;
 }
 
