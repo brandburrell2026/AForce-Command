@@ -178,7 +178,7 @@ export default function Science() {
             <Reveal delay={250} className="lg:col-span-6 lg:pt-20">
               <p className="text-lg md:text-xl text-white/65 font-light leading-relaxed">
                 Repetition. Reinforcement. Habit formation. Accountability.
-                Streak psychology. Contextual nudges. AForce treats every
+                Streak psychology. Contextual nudges. AForce frames every
                 interaction as a node in a loop that strengthens over time.
               </p>
             </Reveal>

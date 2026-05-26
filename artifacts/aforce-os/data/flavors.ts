@@ -39,7 +39,7 @@ export const FLAVOR_VARIANTS: FlavorVariant[] = [
     flavor: 'berry',
     functionalIngredient: 'Dulse',
     tagline: 'Mineral driven hydration. Built for balance.',
-    bio: 'Berry Blast with Dulse is formulated for mineral support and system balance. Dulse delivers naturally occurring trace minerals that support hydration efficiency and recovery. This blend is designed to stabilize performance and maintain consistency throughout the day.',
+    bio: 'Berry Blast with Dulse is formulated for mineral support and system balance. Dulse delivers naturally occurring trace minerals that support hydration efficiency and recovery. This blend is designed to support sustained performance and maintain consistency throughout the day.',
     bestUse: [
       'Daily hydration',
       'Recovery support',

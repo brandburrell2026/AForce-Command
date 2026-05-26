@@ -48,8 +48,8 @@ export default function WhyAlkaline() {
             </div>
 
             <div className="mt-[5vh] flex items-baseline gap-[2vw] font-display text-[2vw] tracking-tight">
-              <span className="text-text/40">Others spike performance.</span>
-              <span className="text-primary">AForce stabilizes it.</span>
+              <span className="text-text/40">Others chase spikes.</span>
+              <span className="text-primary">AForce supports sustained performance.</span>
             </div>
           </div>
 
