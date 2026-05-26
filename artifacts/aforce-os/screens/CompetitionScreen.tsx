@@ -620,28 +620,28 @@ const styles = StyleSheet.create({
   },
   heatBlobWrap: {
     position: 'absolute',
-    width: 140, height: 140,
+    width: 90, height: 90,
     alignItems: 'center', justifyContent: 'center',
   },
   heatBlobOuter: {
     position: 'absolute',
-    width: 140, height: 140, borderRadius: 70,
-    opacity: 0.18,
+    width: 90, height: 90, borderRadius: 45,
+    opacity: 0.08,
   },
   heatBlobMid: {
     position: 'absolute',
-    width: 80, height: 80, borderRadius: 40,
-    opacity: 0.32,
+    width: 44, height: 44, borderRadius: 22,
+    opacity: 0.16,
   },
   heatBlobCore: {
     position: 'absolute',
-    width: 30, height: 30, borderRadius: 15,
-    opacity: 0.85,
+    width: 10, height: 10, borderRadius: 5,
+    opacity: 0.95,
   },
   mapHeroVignette: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: '#0A0A0A',
-    opacity: 0.35,
+    opacity: 0.55,
   },
   mapHeroLabel: {
     position: 'absolute', bottom: 12, left: 14,
