@@ -480,38 +480,20 @@ export default function HydrationScanScreen() {
             </View>
 
             {previewTab === 'aforce' ? (
-              <>
-                <View style={styles.trayChips}>
-                  {aforceSkuChips.map((it) => (
-                    <Pressable
-                      key={it.productId}
-                      onPress={() => runScan({ kind: 'qr', rawValue: `aforce://product/${it.productId}` })}
-                      disabled={scanning}
-                      style={({ pressed }) => [
-                        styles.chip,
-                        { opacity: scanning ? 0.5 : pressed ? 0.7 : 1 },
-                      ]}
-                      testID={`preview-aforce-chip-${it.productId}`}
-                    >
-                      <Text style={styles.chipText} numberOfLines={1}>{it.shortLabel}</Text>
-                    </Pressable>
-                  ))}
-                </View>
-                <Pressable
-                  onPress={() => setAforcePickerOpen(true)}
-                  disabled={scanning}
-                  style={({ pressed }) => [
-                    styles.pickerCta,
-                    { opacity: scanning ? 0.5 : pressed ? 0.85 : 1 },
-                  ]}
-                  testID="preview-aforce-picker-open"
-                >
-                  <Icon name="list" size={14} color={Colors.states.PEAK.primary} />
-                  <Text style={[styles.chipText, { color: Colors.states.PEAK.primary }]}>
-                    Select an AForce product
-                  </Text>
-                </Pressable>
-              </>
+              <Pressable
+                onPress={() => setAforcePickerOpen(true)}
+                disabled={scanning}
+                style={({ pressed }) => [
+                  styles.pickerCta,
+                  { opacity: scanning ? 0.5 : pressed ? 0.85 : 1 },
+                ]}
+                testID="preview-aforce-picker-open"
+              >
+                <Icon name="list" size={14} color={Colors.states.PEAK.primary} />
+                <Text style={[styles.chipText, { color: Colors.states.PEAK.primary }]}>
+                  Select an AForce product
+                </Text>
+              </Pressable>
             ) : (
               <View style={styles.trayChips}>
                 {otherBrandChips.map((it) => (
