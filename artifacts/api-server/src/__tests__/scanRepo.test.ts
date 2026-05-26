@@ -79,11 +79,11 @@ describe("HydroScanRepo (in-memory)", () => {
     expect(bRows.map((r) => r.clientScanId)).toEqual(["b1"]);
   });
 
-  it("listForUser honors limit, defaults to 50, hard-caps at 200", async () => {
+  it("listForUser honors limit, defaults to 50, hard-caps at 500", async () => {
     expect(HYDRO_SCAN_LIST_DEFAULT_LIMIT).toBe(50);
-    expect(HYDRO_SCAN_LIST_MAX_LIMIT).toBe(200);
+    expect(HYDRO_SCAN_LIST_MAX_LIMIT).toBe(500);
     const repo = createInMemoryHydroScanRepo();
-    for (let i = 0; i < 300; i += 1) {
+    for (let i = 0; i < 600; i += 1) {
       await repo.insert(
         sample({
           clientScanId: `s_${i}`,
@@ -93,7 +93,7 @@ describe("HydroScanRepo (in-memory)", () => {
     }
     expect((await repo.listForUser("user_a")).length).toBe(50);
     expect((await repo.listForUser("user_a", { limit: 10 })).length).toBe(10);
-    expect((await repo.listForUser("user_a", { limit: 500 })).length).toBe(200);
+    expect((await repo.listForUser("user_a", { limit: 1000 })).length).toBe(500);
     expect((await repo.listForUser("user_a", { limit: 0 })).length).toBe(50);
     expect((await repo.listForUser("user_a", { limit: -3 })).length).toBe(50);
     expect((await repo.listForUser("user_a", { limit: Number.NaN })).length).toBe(50);

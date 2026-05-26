@@ -16,7 +16,7 @@
  *     a duplicate. This lets the mobile client retry on flaky
  *     network without contaminating history.
  *   - `listForUser` returns rows sorted by `scannedAt` DESC, capped
- *     at the caller's `limit` (default 50, max 200 — matching the
+ *     at the caller's `limit` (default 50, max 500 — matching the
  *     existing `/api/scans` route convention).
  *   - `countForUser` returns the total row count for a user without
  *     materializing the rows themselves.
@@ -59,7 +59,8 @@ export interface HydroScanRecord extends HydroScanInsert {
 }
 
 export interface ListOptions {
-  /** Defaults to 50. Hard-capped at 200. */
+  /** Defaults to 50. Hard-capped at 500 (matches the legacy
+   *  in-memory store's per-device retention ceiling). */
   limit?: number;
 }
 
@@ -70,7 +71,7 @@ export interface HydroScanRepo {
 }
 
 const DEFAULT_LIMIT = 50;
-const MAX_LIMIT = 200;
+const MAX_LIMIT = 500;
 
 function clampLimit(limit?: number): number {
   if (!Number.isFinite(limit ?? NaN)) return DEFAULT_LIMIT;
