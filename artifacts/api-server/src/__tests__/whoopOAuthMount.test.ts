@@ -133,3 +133,93 @@ describe("WHOOP OAuth router env-gated mount", { timeout: 30_000 }, () => {
     expect(res.status).toBe(404);
   });
 });
+
+/**
+ * WHOOP_AUTH_STATE_STORE_DRIVER gate (PR #26 follow-up).
+ *
+ * Contract: the driver is a strict literal whitelist. Only the exact
+ * string "drizzle" selects the Postgres-backed store; everything else
+ * (unset, empty, capitalization variants, "true", "1", typos) falls
+ * back to in-memory. This locks in the hidden-infra invariant — a
+ * typo cannot silently route OAuth callbacks through Postgres in a
+ * deployment that didn't explicitly opt in.
+ *
+ * Observability strategy: the bootstrap emits a one-shot
+ * `logger.info({ driver }, "whoopOAuth: auth-state store initialized")`
+ * line at import time. We spy on `logger.info` BEFORE the dynamic
+ * re-import of routes/index and read the driver field back. This is
+ * the only externally observable signal — the store factory is
+ * called inside the `if (whoopClientId && ...)` block with no
+ * outward seam, by design (it's hidden infra).
+ */
+describe("WHOOP_AUTH_STATE_STORE_DRIVER gate", { timeout: 30_000 }, () => {
+  // We do NOT reuse `buildAppWithEnv` here: the driver-selection log
+  // fires at routes/index *import* time, and `vi.resetModules()`
+  // invalidates any logger instance imported before the reset. The
+  // helper below resets modules first, then imports a fresh logger,
+  // spies on it, THEN imports routes/index — so the routes/index
+  // module graph shares the same (spied) logger module instance.
+  async function bootAndCaptureDriver(
+    driverEnv: string | undefined,
+  ): Promise<string | undefined> {
+    const prev = {
+      WHOOP_CLIENT_ID: process.env["WHOOP_CLIENT_ID"],
+      WHOOP_CLIENT_SECRET: process.env["WHOOP_CLIENT_SECRET"],
+      WHOOP_OAUTH_REDIRECT_URI: process.env["WHOOP_OAUTH_REDIRECT_URI"],
+      WHOOP_AUTH_STATE_STORE_DRIVER:
+        process.env["WHOOP_AUTH_STATE_STORE_DRIVER"],
+    };
+    const next: Record<string, string | undefined> = {
+      WHOOP_CLIENT_ID: "cid",
+      WHOOP_CLIENT_SECRET: "secret",
+      WHOOP_OAUTH_REDIRECT_URI: "https://example.test/cb",
+      WHOOP_AUTH_STATE_STORE_DRIVER: driverEnv,
+    };
+    for (const [k, v] of Object.entries(next)) {
+      if (v === undefined) delete process.env[k];
+      else process.env[k] = v;
+    }
+    vi.resetModules();
+    try {
+      const { logger: freshLogger } = (await import("../lib/logger")) as {
+        logger: typeof logger;
+      };
+      const infoSpy = vi
+        .spyOn(freshLogger, "info")
+        .mockImplementation(() => freshLogger);
+      try {
+        await import("../routes/index");
+        const call = infoSpy.mock.calls.find(
+          (c) => c[1] === "whoopOAuth: auth-state store initialized",
+        );
+        const meta = call?.[0] as { driver?: string } | undefined;
+        return meta?.driver;
+      } finally {
+        infoSpy.mockRestore();
+      }
+    } finally {
+      for (const [k, v] of Object.entries(prev)) {
+        if (v === undefined) delete process.env[k];
+        else process.env[k] = v;
+      }
+    }
+  }
+
+  it('exact "drizzle" => drizzle store wired', async () => {
+    expect(await bootAndCaptureDriver("drizzle")).toBe("drizzle");
+  });
+
+  it.each([
+    ["unset", undefined],
+    ["empty", ""],
+    ["DRIZZLE", "DRIZZLE"],
+    ["Drizzle", "Drizzle"],
+    [" drizzle ", " drizzle "],
+    ["true", "true"],
+    ["1", "1"],
+    ["postgres", "postgres"],
+    ["bogus", "bogus"],
+  ])("%s => falls back to in-memory (strict whitelist)", async (_label, raw) => {
+    expect(await bootAndCaptureDriver(raw)).toBe("memory");
+  });
+});

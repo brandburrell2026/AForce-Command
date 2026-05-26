@@ -5,6 +5,7 @@ import { logger } from "./lib/logger";
 import { attachAforceHub } from "./lib/aforceHub";
 import { initStripe } from "./lib/initStripe";
 import { maybeStartWhoopFetchSweep } from "./lib/whoopFetchSweepBootstrap";
+import { maybeStartWhoopAuthStatePurge } from "./lib/whoopAuthStatePurgeBootstrap";
 import { getWhoopRefreshRegistry } from "./lib/whoopRegistry";
 
 const rawPort = process.env["PORT"];
@@ -38,6 +39,15 @@ server.listen(port, () => {
   maybeStartWhoopFetchSweep({
     db,
     refreshRegistry: getWhoopRefreshRegistry(),
+    log: logger,
+  });
+  // Hidden-infra: only ticks when WHOOP_AUTH_STATE_PURGE_INTERVAL_MS
+  // is set to a positive number. Reaps abandoned OAuth authorize rows
+  // from `aforce_whoop_auth_states` that `consume` never deleted.
+  // Hygiene only — table is bounded by inflight authorize attempts
+  // per TTL window.
+  maybeStartWhoopAuthStatePurge({
+    db,
     log: logger,
   });
 });
