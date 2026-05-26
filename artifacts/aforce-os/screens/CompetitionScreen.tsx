@@ -441,12 +441,15 @@ function MapSection({ cityName, cityScore, onOpen }: MapProps) {
       />
       <Pressable onPress={onOpen} style={styles.mapCard} accessibilityRole="button" accessibilityLabel="Open Territory map">
         <View style={styles.mapHero}>
-          <View style={[styles.mapDot, { top: 24,  left: 38, backgroundColor: Colors.states.PEAK.primary }]} />
-          <View style={[styles.mapDot, { top: 70,  left: 96, backgroundColor: Colors.states.PEAK.primary }]} />
-          <View style={[styles.mapDot, { top: 44,  right: 70, backgroundColor: Colors.states.BALANCED.primary }]} />
-          <View style={[styles.mapDot, { bottom: 30, left: 60, backgroundColor: Colors.states.RECOVERING.primary }]} />
-          <View style={[styles.mapDot, { bottom: 22, right: 36, backgroundColor: Colors.states.DEPLETED.primary }]} />
-          <Text style={styles.mapHeroLabel}>HYDRATION TOPOGRAPHY</Text>
+          <HeatBlob top={-20}  left={-10}   color={Colors.states.PEAK.primary} />
+          <HeatBlob top={30}   left={80}    color={Colors.states.PEAK.primary} />
+          <HeatBlob top={-10}  right={40}   color={Colors.states.BALANCED.primary} />
+          <HeatBlob bottom={-20} left={50}  color={Colors.states.RECOVERING.primary} />
+          <HeatBlob bottom={-10} right={-20} color={Colors.states.DEPLETED.primary} />
+          <HeatBlob top={70}   right={-30}  color={Colors.states.BALANCED.primary} />
+          <HeatBlob bottom={20} left={-30}  color={Colors.states.RECOVERING.primary} />
+          <View style={styles.mapHeroVignette} pointerEvents="none" />
+          <Text style={styles.mapHeroLabel}>HYDRATION HEAT MAP</Text>
         </View>
         <View style={styles.mapBody}>
           <View style={{ flex: 1 }}>
@@ -462,6 +465,20 @@ function MapSection({ cityName, cityScore, onOpen }: MapProps) {
           <Icon name="arrow-up-right" size={18} color={Colors.text.primary} />
         </View>
       </Pressable>
+    </View>
+  );
+}
+
+// Heat-map blob — stacked translucent circles approximate a radial glow.
+function HeatBlob({
+  top, left, right, bottom, color,
+}: { top?: number; left?: number; right?: number; bottom?: number; color: string }) {
+  const pos = { top, left, right, bottom };
+  return (
+    <View style={[styles.heatBlobWrap, pos]} pointerEvents="none">
+      <View style={[styles.heatBlobOuter, { backgroundColor: color }]} />
+      <View style={[styles.heatBlobMid,   { backgroundColor: color }]} />
+      <View style={[styles.heatBlobCore,  { backgroundColor: color }]} />
     </View>
   );
 }
@@ -600,6 +617,31 @@ const styles = StyleSheet.create({
     position: 'absolute',
     width: 10, height: 10, borderRadius: 5,
     shadowColor: '#fff', shadowOpacity: 0.6, shadowRadius: 6,
+  },
+  heatBlobWrap: {
+    position: 'absolute',
+    width: 140, height: 140,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  heatBlobOuter: {
+    position: 'absolute',
+    width: 140, height: 140, borderRadius: 70,
+    opacity: 0.18,
+  },
+  heatBlobMid: {
+    position: 'absolute',
+    width: 80, height: 80, borderRadius: 40,
+    opacity: 0.32,
+  },
+  heatBlobCore: {
+    position: 'absolute',
+    width: 30, height: 30, borderRadius: 15,
+    opacity: 0.85,
+  },
+  mapHeroVignette: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: '#0A0A0A',
+    opacity: 0.35,
   },
   mapHeroLabel: {
     position: 'absolute', bottom: 12, left: 14,
