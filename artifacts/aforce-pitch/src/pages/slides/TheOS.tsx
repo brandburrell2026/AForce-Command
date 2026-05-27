@@ -1,143 +1,39 @@
-import CinematicMotion from "@/components/CinematicMotion";
 import SlideChrome from "@/components/SlideChrome";
-import bgImg from "@assets/slide11_appA_trio.png";
-import { Hydration } from "@/components/os-screens/Hydration";
-import { Streak } from "@/components/os-screens/Streak";
-import { CheckIn } from "@/components/os-screens/CheckIn";
-import { Reinforce } from "@/components/os-screens/Reinforce";
-import { Readiness } from "@/components/os-screens/Readiness";
-import { Subscribe } from "@/components/os-screens/Subscribe";
-import { useLayoutEffect, useRef, useState } from "react";
-import type { ComponentType, ReactNode } from "react";
 
-const PHONE_W = 390;
-const PHONE_H = 844;
-
-type ScreenSpec = {
-  label: string;
-  caption: string;
-  Component: ComponentType;
-};
-
-const SCREENS: ScreenSpec[] = [
-  { label: "Hydration", caption: "Real-time hydration score", Component: Hydration },
-  { label: "Streak", caption: "Ritual continuity, measured", Component: Streak },
-  { label: "Check-in", caption: "Pause. Hydrate. Lock in. Perform.", Component: CheckIn },
-  { label: "Reinforcement", caption: "Behavioral nudges, contextual", Component: Reinforce },
-  { label: "Readiness", caption: "Daily verdict", Component: Readiness },
-  { label: "Protocol", caption: "Commit to your standard", Component: Subscribe },
+const PRINCIPLES = [
+  { tag: "Human", line: "The OS adapts to the person. Never the reverse." },
+  { tag: "Quiet", line: "It reinforces ritual without demanding attention." },
+  { tag: "Honest", line: "Only completed behavior moves the score." },
+  { tag: "Compounding", line: "Every cycle strengthens the next." },
 ];
-
-function PhoneFrame({ index, label, caption, children }: { index: number; label: string; caption: string; children: ReactNode }) {
-  const frameRef = useRef<HTMLDivElement>(null);
-  const [scale, setScale] = useState(0.36);
-
-  useLayoutEffect(() => {
-    const el = frameRef.current;
-    if (!el) return;
-    const update = () => setScale(el.clientWidth / PHONE_W);
-    update();
-    if (typeof ResizeObserver === "undefined") {
-      window.addEventListener("resize", update);
-      return () => window.removeEventListener("resize", update);
-    }
-    const ro = new ResizeObserver(update);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
-
-  return (
-    <div className="flex flex-col items-center">
-      <div className="font-body uppercase tracking-[0.3em] text-[0.75vw] text-text/75 font-bold mb-[1vh] tabular-nums">
-        {String(index + 1).padStart(2, "0")}
-      </div>
-      <div
-        ref={frameRef}
-        className="relative rounded-[1.2vw] border border-white/[0.08] overflow-hidden"
-        style={{
-          width: "11vw",
-          aspectRatio: `${PHONE_W} / ${PHONE_H}`,
-          boxShadow: "0 0 40px rgba(255,255,255,0.02)",
-        }}
-      >
-        <div
-          aria-hidden="true"
-          inert
-          className="pointer-events-none select-none"
-          style={{
-            width: `${PHONE_W}px`,
-            height: `${PHONE_H}px`,
-            transform: `scale(${scale})`,
-            transformOrigin: "top left",
-          }}
-        >
-          {children}
-        </div>
-      </div>
-      <div className="mt-[1.5vh] font-display text-[1.05vw] text-text font-bold tracking-tight">{label}</div>
-      <div className="font-body text-[0.7vw] text-text/50 mt-[0.4vh] leading-[1.35] text-center">{caption}</div>
-    </div>
-  );
-}
 
 export default function TheOS() {
   return (
-    <SlideChrome slide={11}>
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          backgroundImage: `url(${bgImg})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          opacity: 0.42,
-          filter: "grayscale(0.25) contrast(1.1) brightness(0.85)",
-        }}
-      />
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          background:
-            "radial-gradient(ellipse 55% 65% at 50% 55%, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0.68) 100%)",
-        }}
-      />
-      <CinematicMotion variant="device-glow" />
-
-      <div className="absolute inset-0 flex flex-col px-[6vw] pt-[10vh] pb-[9vh]">
-        <div className="flex items-end justify-between gap-[3vw]">
-          <div className="min-w-0">
-            <h2 className="font-display text-[3.6vw] leading-[1] tracking-tighter">
-              <span className="text-text">Human first.</span>
-              <span className="text-text/45"> System second.</span>
-            </h2>
-            <div className="mt-[1.6vh] font-body text-[0.95vw] text-text/55 max-w-[55vw] leading-[1.5]">
-              The OS proves the promise. <span className="text-text/85">It does not become the story.</span>
-            </div>
+    <SlideChrome slide={7}>
+      <div className="absolute inset-0 grid grid-cols-12 px-[9vw] py-[14vh]">
+        <div className="col-span-5">
+          <div className="font-body uppercase tracking-[0.32em] text-[0.75vw] text-text/45 font-medium mb-[3vh]">
+            The OS
           </div>
-          <div className="text-right shrink-0">
-            <div className="font-body uppercase tracking-[0.32em] text-[0.65vw] text-text/55 font-semibold">
-              Six surfaces · One ritual
-            </div>
-            <div className="font-body text-[0.7vw] text-text/35 mt-[0.6vh] italic">Dark-mode only. Designed to disappear.</div>
-          </div>
+          <h2 className="font-display font-light text-[4.4vw] leading-[1.04] tracking-tight">
+            Human first.<br />
+            <span className="italic text-text/75">System second.</span>
+          </h2>
+          <p className="mt-[4vh] font-display font-light text-[1.4vw] text-text/60 leading-[1.4] max-w-[28vw]">
+            A quiet behavioral layer beneath the product. It does not demand. It returns the moment.
+          </p>
         </div>
 
-        <div className="flex-1 flex items-center justify-center mt-[2.5vh] min-h-0">
-          <div className="grid grid-cols-6 gap-[1.6vw]">
-            {SCREENS.map((s, i) => (
-              <PhoneFrame key={s.label} index={i} label={s.label} caption={s.caption}>
-                <s.Component />
-              </PhoneFrame>
-            ))}
-          </div>
-        </div>
-
-        <div className="mt-[2vh] flex items-center justify-between border-t border-text/[0.08] pt-[1.6vh]">
-          <div className="font-body uppercase tracking-[0.3em] text-[0.62vw] text-text/55 font-semibold">
-            Hydration · Streak · Check-in · Reinforcement · Readiness · Protocol
-          </div>
-          <div className="font-body text-[0.72vw] text-text/55 italic">
-            The OS quietly reinforces ritual, accountability, and retention.
-          </div>
+        <div className="col-span-7 pl-[5vw] flex flex-col justify-center gap-[3vh] border-l border-divider">
+          {PRINCIPLES.map((p, i) => (
+            <div key={p.tag} className="grid grid-cols-12 gap-[1.5vw] items-baseline pb-[2vh] border-b border-divider last:border-b-0">
+              <div className="col-span-1 font-body tabular-nums text-[0.7vw] text-text/35 tracking-[0.32em]">
+                {String(i + 1).padStart(2, "0")}
+              </div>
+              <div className="col-span-3 font-display text-[2vw] font-light text-text">{p.tag}</div>
+              <div className="col-span-8 font-display text-[1.3vw] font-light text-text/65 italic">{p.line}</div>
+            </div>
+          ))}
         </div>
       </div>
     </SlideChrome>

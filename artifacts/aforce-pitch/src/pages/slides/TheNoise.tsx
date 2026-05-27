@@ -1,65 +1,41 @@
 import SlideChrome from "@/components/SlideChrome";
 
-const WORDS = [
-  "RED BULL", "MONSTER", "CELSIUS", "PRIME", "GATORADE", "POWERADE",
-  "LIQUID I.V.", "BODYARMOR", "BANG", "C4", "GHOST", "REIGN",
-  "ROCKSTAR", "ALANI NU", "ZOA", "NOCCO", "ELECTROLIT", "PEDIALYTE",
-  "LMNT", "NUUN", "AG1", "ATHLETIC GREENS", "RECESS", "OLIPOP",
-  "POPPI", "LIQUID DEATH", "ESSENTIA", "FIJI", "SMART WATER", "VOSS",
-  "VITA COCO", "5-HOUR ENERGY", "RED BULL", "MONSTER", "CELSIUS", "PRIME",
-  "GATORADE", "POWERADE", "LIQUID I.V.", "BODYARMOR", "BANG", "C4",
-  "GHOST", "REIGN", "ROCKSTAR", "ALANI NU", "ZOA", "NOCCO",
-  "ELECTROLIT", "LMNT", "NUUN", "AG1", "RECESS", "OLIPOP",
-  "POPPI", "LIQUID DEATH", "ESSENTIA", "FIJI", "SMART WATER", "VOSS",
-  "VITA COCO", "PRIME", "CELSIUS", "RED BULL",
+const NOISE = [
+  "More products.",
+  "More claims.",
+  "More routines.",
+  "More optimization.",
+  "More content.",
+  "More noise.",
 ];
 
 export default function TheNoise() {
   return (
     <SlideChrome slide={2}>
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute inset-0 flex flex-wrap items-start justify-start gap-x-[1.6vw] gap-y-[1.2vh] p-[4vw] opacity-[0.42]">
-          {WORDS.map((w, i) => (
-            <span
-              key={`${w}-${i}`}
-              className="font-display tracking-tighter text-text leading-none"
-              style={{
-                fontSize:
-                  w === "PEDIALYTE"
-                    ? "2.64vw"
-                    : `${1.8 + ((i * 7) % 6) * 0.8}vw`,
-                opacity: 0.55 + ((i * 11) % 7) / 14,
-                transform: `rotate(${((i * 13) % 7) - 3}deg)`,
-                marginLeft: w === "PEDIALYTE" ? "4.5vw" : undefined,
-              }}
-            >
-              {w}
-            </span>
+      <div className="absolute inset-0 flex flex-col justify-center px-[9vw]">
+        <div className="font-body uppercase tracking-[0.32em] text-[0.75vw] text-text/45 font-medium mb-[5vh]">
+          The Problem
+        </div>
+
+        <h2 className="font-display font-light text-[5vw] leading-[1.05] tracking-tight max-w-[60vw]">
+          Performance has become <span className="italic text-text/65">noise.</span>
+        </h2>
+
+        <div className="mt-[7vh] grid grid-cols-2 gap-x-[6vw] gap-y-[2.4vh] max-w-[56vw]">
+          {NOISE.map((line, i) => (
+            <div key={line} className="flex items-baseline gap-[1.2vw]">
+              <span className="font-body tabular-nums text-[0.7vw] text-text/35 tracking-[0.2em]">
+                {String(i + 1).padStart(2, "0")}
+              </span>
+              <span className="font-display text-[1.8vw] font-light text-text/70">{line}</span>
+            </div>
           ))}
         </div>
 
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background:
-              "radial-gradient(ellipse 55% 45% at 30% 55%, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.55) 55%, rgba(0,0,0,0) 100%)",
-          }}
-        />
-      </div>
-
-      <div className="absolute inset-0 flex flex-col justify-center items-start px-[8vw]">
-        <div className="font-body uppercase tracking-[0.4em] text-[0.85vw] text-text/45 font-semibold mb-[4vh]">
-          The Noise
-        </div>
-        <h2 className="font-display text-[6.6vw] leading-[0.92] tracking-tighter">
-          The category is
-          <br />
-          <span className="text-primary">loud.</span>
-        </h2>
-        <div className="mt-[5vh] max-w-[45vw] font-body text-[1.1vw] text-text/55 leading-[1.6]">
-          Energy. Stimulation. Hype. Chaos. Clutter. Overload.
-          <br />
-          Fast cuts. Loud. Overstimulated.
+        <div className="mt-[7vh] pt-[3vh] border-t border-divider max-w-[42vw]">
+          <p className="font-display text-[1.5vw] font-light text-text/80 leading-[1.35]">
+            The signal is gone. The category has confused activity with readiness.
+          </p>
         </div>
       </div>
     </SlideChrome>

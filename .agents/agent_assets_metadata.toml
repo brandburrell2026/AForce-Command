@@ -786,6 +786,30 @@ uri = "file://artifacts/mockup-sandbox/public/images/aforce-documentary-hero.png
 type = "image"
 title = "Athlete pausing to hydrate"
 
+[[generated]]
+id = "-r_aW59_vP7i2EKzlkGHm"
+uri = "file://artifacts/aforce-pitch/public/images/doc-noise.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "59VS-fpdT4tY3At1yaEeO"
+uri = "file://artifacts/aforce-pitch/public/images/doc-silence.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "WCXz92YbsLKfh-j1Ta0Qd"
+uri = "file://artifacts/aforce-pitch/public/images/doc-ritual.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "8FSNb2y5ROM8-MAb3aEHt"
+uri = "file://artifacts/aforce-pitch/public/images/doc-final.png"
+type = "image"
+title = "generated_image"
+
 [[outputs]]
 id = "fILTiXCCTKYfWe9d8R46M"
 uri = "file://attached_assets/tester-share/aforce-tester-qr.png"

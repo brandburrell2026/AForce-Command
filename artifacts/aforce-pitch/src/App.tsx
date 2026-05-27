@@ -18,13 +18,14 @@ function getSlideIndex(pathname: string): number {
 
 function ambientTrackFor(position: number): string {
   const base = import.meta.env.BASE_URL;
-  // Act 1 — sparse tension (opening): slides 1-7
-  // Act 2 — controlled momentum (middle): slides 8-17
-  // Act 3 — premium propulsion (economics/scale): slides 18-26
-  // Act 4 — warm resolution (final): slides 27-31
-  if (position <= 7) return `${base}audio/act1-opening.mp3`;
-  if (position <= 17) return `${base}audio/act2-momentum.mp3`;
-  if (position <= 26) return `${base}audio/act3-propulsion.mp3`;
+  // 15-slide structure (Documentary Warm cut):
+  // Act 1 — sparse tension (Tension):          slides 1-3
+  // Act 2 — controlled momentum (Shift+Product): slides 4-7
+  // Act 3 — premium propulsion (System+People+Proof): slides 8-13
+  // Act 4 — warm resolution (Close):           slides 14-15
+  if (position <= 3) return `${base}audio/act1-opening.mp3`;
+  if (position <= 7) return `${base}audio/act2-momentum.mp3`;
+  if (position <= 13) return `${base}audio/act3-propulsion.mp3`;
   return `${base}audio/act4-resolution.mp3`;
 }
 
@@ -226,7 +227,7 @@ function SlideEditor() {
 
 function AllSlides() {
   return (
-    <div className="bg-black">
+    <div className="bg-bg">
       {slides.map((slide) => (
         <div
           key={slide.id}
@@ -283,7 +284,7 @@ function SlideViewer() {
 
   return (
     <div
-      className="slide-viewer h-screen w-screen overflow-hidden bg-black flex items-center justify-center"
+      className="slide-viewer h-screen w-screen overflow-hidden bg-bg flex items-center justify-center"
       onClick={() => iframeRef.current?.focus()}
     >
       <iframe

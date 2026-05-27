@@ -15,8 +15,7 @@ export default function SoundGate({ onUnlock }: { onUnlock: () => void }) {
     window.addEventListener("pointerdown", onPointer, true);
     window.addEventListener("touchstart", onPointer, true);
     window.addEventListener("mousedown", onPointer, true);
-    // Failsafe: never block the deck. Auto-dismiss after 2.5s even without input.
-    const autoDismiss = window.setTimeout(() => dismiss(), 2500);
+    const autoDismiss = window.setTimeout(() => dismiss(), 2200);
     return () => {
       window.removeEventListener("keydown", onKey, true);
       window.removeEventListener("pointerdown", onPointer, true);
@@ -34,7 +33,7 @@ export default function SoundGate({ onUnlock }: { onUnlock: () => void }) {
     if (dismissing) return;
     setDismissing(true);
     onUnlock();
-    window.setTimeout(() => setVisible(false), 900);
+    window.setTimeout(() => setVisible(false), 700);
   };
 
   return (
@@ -47,89 +46,53 @@ export default function SoundGate({ onUnlock }: { onUnlock: () => void }) {
           initial={{ opacity: 0 }}
           animate={{ opacity: dismissing ? 0 : 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.8, ease: [0.22, 0.61, 0.36, 1] }}
-          onClick={(e) => {
-            handleEnter(e);
-          }}
-          className="fixed inset-0 z-[9999] flex cursor-pointer flex-col items-center justify-center bg-black"
-          style={{
-            background:
-              "radial-gradient(ellipse at center, #0a0a0a 0%, #000 65%)",
-          }}
+          transition={{ duration: 0.7, ease: [0.22, 0.61, 0.36, 1] }}
+          onClick={(e) => handleEnter(e)}
+          className="fixed inset-0 z-[9999] cursor-pointer"
+          style={{ background: "rgba(244,241,234,0.92)" }}
         >
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.25, duration: 1.1, ease: [0.22, 0.61, 0.36, 1] }}
-            className="flex flex-col items-center"
-          >
-            <div
-              className="font-bold tracking-tight text-[#E25C5C]"
-              style={{ fontSize: "3.6vw", lineHeight: 1 }}
+          <div className="absolute inset-0 flex flex-col items-center justify-center">
+            <motion.div
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.15, duration: 1.0, ease: [0.22, 0.61, 0.36, 1] }}
+              className="flex flex-col items-center"
             >
-              AForce
-              <sup
-                className="text-white/40"
-                style={{ fontSize: "1.1vw", marginLeft: "0.2vw" }}
-              >
-                ™
-              </sup>
-            </div>
-
-            <div
-              className="mt-[3vh] text-white/90"
-              style={{
-                fontSize: "1.05vw",
-                letterSpacing: "0.4em",
-                fontWeight: 300,
-              }}
-            >
-              INVESTOR DECK
-            </div>
-
-            <div className="mt-[7vh] flex flex-col items-center">
-              <motion.div
-                animate={{ opacity: [0.4, 1, 0.4] }}
-                transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
-                className="rounded-full bg-[#E25C5C]"
-                style={{
-                  width: "0.5vw",
-                  height: "0.5vw",
-                  boxShadow: "0 0 20px rgba(226,92,92,0.6)",
-                }}
-              />
               <div
-                className="mt-[2.2vh] text-white"
-                style={{
-                  fontSize: "0.95vw",
-                  letterSpacing: "0.35em",
-                  fontWeight: 400,
-                }}
+                className="font-body uppercase text-[#2d2a26]/55 font-medium"
+                style={{ fontSize: "0.7vw", letterSpacing: "0.32em" }}
               >
-                TAP TO BEGIN
+                AForce
+                <sup className="ml-[0.2em] text-[0.55em] align-super tracking-normal">™</sup>
+              </div>
+
+              <div
+                className="mt-[3vh] font-display italic font-light text-[#2d2a26]"
+                style={{ fontSize: "2.8vw", lineHeight: 1 }}
+              >
+                Pause.
+              </div>
+
+              <div
+                className="mt-[7vh] font-body uppercase text-[#2d2a26]/65 font-medium"
+                style={{ fontSize: "0.75vw", letterSpacing: "0.32em" }}
+              >
+                Tap to begin
               </div>
               <div
-                className="mt-[1vh] text-white/35"
-                style={{
-                  fontSize: "0.7vw",
-                  letterSpacing: "0.3em",
-                  fontWeight: 300,
-                }}
+                className="mt-[1.2vh] font-body uppercase text-[#2d2a26]/40 font-medium"
+                style={{ fontSize: "0.62vw", letterSpacing: "0.3em" }}
               >
-                SOUND ON · USE ARROW KEYS TO NAVIGATE
+                Sound on · Use arrow keys to navigate
               </div>
-            </div>
-          </motion.div>
+            </motion.div>
+          </div>
 
           <div
-            className="absolute bottom-[5vh] text-white/25"
-            style={{
-              fontSize: "0.62vw",
-              letterSpacing: "0.35em",
-              fontWeight: 300,
-            }}
+            className="absolute bottom-[4.5vh] left-0 right-0 text-center font-body uppercase text-[#2d2a26]/30 font-medium"
+            style={{ fontSize: "0.6vw", letterSpacing: "0.32em" }}
           >
-            CONFIDENTIAL · FOR DISCUSSION PURPOSES ONLY
+            Confidential · For discussion purposes only
           </div>
         </motion.div>
       )}

@@ -41,15 +41,15 @@ export default function PresentationHUD({
   return (
     <>
       <div
-        className="fixed bottom-0 left-0 right-0 h-[2px] z-[60] pointer-events-none"
-        style={{ background: "rgba(255,255,255,0.06)" }}
+        className="fixed bottom-0 left-0 right-0 h-[1px] z-[60] pointer-events-none"
+        style={{ background: "rgba(45,42,38,0.08)" }}
       >
         <div
           className="h-full"
           style={{
             width: `${progress}%`,
             background:
-              "linear-gradient(90deg, rgba(229,51,65,0.0) 0%, rgba(229,51,65,0.95) 100%)",
+              "linear-gradient(90deg, rgba(45,42,38,0) 0%, rgba(45,42,38,0.55) 100%)",
             transition: "width 700ms cubic-bezier(0.22, 0.61, 0.36, 1)",
           }}
         />
@@ -68,15 +68,15 @@ export default function PresentationHUD({
             e.stopPropagation();
             onToggleAudio();
           }}
-          className="group relative w-[2.4vw] h-[2.4vw] min-w-[36px] min-h-[36px] rounded-full flex items-center justify-center border border-white/15 backdrop-blur-md hover:border-white/35 transition-colors"
-          style={{ background: "rgba(8,9,14,0.55)" }}
+          className="group relative w-[2.4vw] h-[2.4vw] min-w-[36px] min-h-[36px] rounded-full flex items-center justify-center border border-[#2d2a26]/15 backdrop-blur-md hover:border-[#2d2a26]/40 transition-colors"
+          style={{ background: "rgba(244,241,234,0.7)" }}
           title={audioOn ? "Mute ambient audio (M)" : "Play ambient audio (M)"}
         >
           <svg
             viewBox="0 0 24 24"
             className="w-[1.1vw] h-[1.1vw] min-w-[16px] min-h-[16px]"
             fill="none"
-            stroke={audioOn ? "rgba(182,255,0,0.9)" : "rgba(255,255,255,0.55)"}
+            stroke={audioOn ? "rgba(45,42,38,0.85)" : "rgba(45,42,38,0.45)"}
             strokeWidth="1.6"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -94,14 +94,6 @@ export default function PresentationHUD({
               </>
             )}
           </svg>
-          {audioOn && (
-            <span
-              className="absolute inset-0 rounded-full pointer-events-none"
-              style={{
-                boxShadow: "0 0 14px rgba(182,255,0,0.35)",
-              }}
-            />
-          )}
         </button>
 
         <button
@@ -110,15 +102,15 @@ export default function PresentationHUD({
             e.stopPropagation();
             onToggleFullscreen();
           }}
-          className="w-[2.4vw] h-[2.4vw] min-w-[36px] min-h-[36px] rounded-full flex items-center justify-center border border-white/15 backdrop-blur-md hover:border-white/35 transition-colors"
-          style={{ background: "rgba(8,9,14,0.55)" }}
+          className="w-[2.4vw] h-[2.4vw] min-w-[36px] min-h-[36px] rounded-full flex items-center justify-center border border-[#2d2a26]/15 backdrop-blur-md hover:border-[#2d2a26]/40 transition-colors"
+          style={{ background: "rgba(244,241,234,0.7)" }}
           title={isFullscreen ? "Exit fullscreen (F)" : "Enter fullscreen (F)"}
         >
           <svg
             viewBox="0 0 24 24"
             className="w-[1.1vw] h-[1.1vw] min-w-[16px] min-h-[16px]"
             fill="none"
-            stroke="rgba(255,255,255,0.6)"
+            stroke="rgba(45,42,38,0.55)"
             strokeWidth="1.6"
             strokeLinecap="round"
             strokeLinejoin="round"

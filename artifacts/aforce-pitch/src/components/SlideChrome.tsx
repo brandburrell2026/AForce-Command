@@ -1,16 +1,16 @@
 import { motion } from "framer-motion";
 import type { ReactNode } from "react";
 
-export const TOTAL_SLIDES = 31;
+export const TOTAL_SLIDES = 15;
 
 const SECTIONS: Array<{ name: string; range: [number, number] }> = [
-  { name: "Positioning", range: [1, 7] },
-  { name: "Product & Ecosystem", range: [8, 13] },
-  { name: "People", range: [14, 16] },
-  { name: "Target Group & Market", range: [17, 20] },
-  { name: "Go to Market", range: [21, 25] },
-  { name: "Economics", range: [26, 28] },
-  { name: "The Ask & Future", range: [29, 31] },
+  { name: "Tension", range: [1, 3] },
+  { name: "The Shift", range: [4, 5] },
+  { name: "The Product", range: [6, 7] },
+  { name: "The System", range: [8, 9] },
+  { name: "The People", range: [10, 11] },
+  { name: "The Proof", range: [12, 13] },
+  { name: "The Close", range: [14, 15] },
 ];
 
 export function sectionFor(slide: number): { index: number; name: string } {
@@ -39,26 +39,14 @@ export default function SlideChrome({
   hideChrome = false,
 }: ChromeProps) {
   const { index, name } = sectionFor(slide);
-  const label = eyebrow ?? `Section ${index} · ${name}`;
+  const label = eyebrow ?? `${String(index).padStart(2, "0")} · ${name}`;
   return (
     <div className="w-screen h-screen overflow-hidden relative bg-bg text-text font-body">
       <motion.div
-        className="absolute inset-0 pointer-events-none z-[5]"
-        initial={{ opacity: 0.55 }}
-        animate={{ opacity: [0.55, 0.85, 0.55] }}
-        transition={{ duration: 18, ease: "easeInOut", repeat: Infinity }}
-        style={{
-          background:
-            "radial-gradient(ellipse 70% 60% at 50% 50%, transparent 50%, rgba(0,0,0,0.45) 100%)",
-          mixBlendMode: "multiply",
-        }}
-      />
-
-      <motion.div
         className="absolute inset-0 w-full h-full"
-        initial={{ opacity: 0, scale: 0.985, filter: "blur(6px)" }}
-        animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
-        transition={{ duration: 0.95, ease: [0.22, 0.61, 0.36, 1], delay: 0.05 }}
+        initial={{ opacity: 0, y: 6 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.9, ease: [0.22, 0.61, 0.36, 1], delay: 0.05 }}
       >
         {children}
       </motion.div>
@@ -68,22 +56,22 @@ export default function SlideChrome({
           className="absolute inset-0 pointer-events-none z-20"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 0.8, delay: 0.5 }}
+          transition={{ duration: 0.8, delay: 0.4 }}
         >
-          <div className="absolute top-[5vh] left-[6vw] right-[6vw] flex justify-between items-center">
-            <div className="font-body uppercase tracking-[0.4em] text-[0.85vw] text-text/45 font-semibold">
+          <div className="absolute top-[4.5vh] left-[5vw] right-[5vw] flex justify-between items-center">
+            <div className="font-body uppercase tracking-[0.32em] text-[0.7vw] text-text/45 font-medium">
               {label}
             </div>
-            <div className="font-body uppercase tracking-[0.4em] text-[0.85vw] text-text/45 font-semibold tabular-nums">
+            <div className="font-body uppercase tracking-[0.32em] text-[0.7vw] text-text/45 font-medium tabular-nums">
               {String(slide).padStart(2, "0")} / {String(TOTAL_SLIDES).padStart(2, "0")}
             </div>
           </div>
-          <div className="absolute bottom-[5vh] left-[6vw] right-[6vw] flex justify-between items-center">
-            <div className="font-body uppercase tracking-[0.4em] text-[0.7vw] text-text/30 font-semibold">
-              AForce<span className="text-[0.55em] align-super tracking-normal ml-[0.15em]">™</span>
+          <div className="absolute bottom-[4.5vh] left-[5vw] right-[5vw] flex justify-between items-center">
+            <div className="font-body uppercase tracking-[0.32em] text-[0.65vw] text-text/35 font-medium">
+              AForce<span className="text-[0.6em] align-super tracking-normal ml-[0.15em]">™</span>
             </div>
-            <div className="font-body uppercase tracking-[0.4em] text-[0.7vw] text-text/30 font-semibold">
-              Phase 1 · Proof of Concept
+            <div className="font-body uppercase tracking-[0.32em] text-[0.65vw] text-text/35 font-medium">
+              Investor Briefing · 2026
             </div>
           </div>
         </motion.div>
