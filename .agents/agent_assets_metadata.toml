@@ -2033,3 +2033,93 @@ id = "-BOOSx8x36oTZyXAaK-l5"
 uri = "file://exports/aforce-specs.pdf"
 type = "pdf"
 title = "AForce — Complete Specifications (PDF)"
+
+[[outputs]]
+id = "-hOikzTydcTDUoMe1kFCP"
+uri = "file://screenshots/deck-01-cover.jpg"
+type = "image"
+title = "01 — Executive Summary"
+
+[[outputs]]
+id = "A6RZb3rL4AGagXcTdSeFw"
+uri = "file://screenshots/deck-02-noise.jpg"
+type = "image"
+title = "02 — The Noise"
+
+[[outputs]]
+id = "5C7_xmNq-cYiJV8p7YHt8"
+uri = "file://screenshots/deck-03-silence.jpg"
+type = "image"
+title = "03 — The Silence"
+
+[[outputs]]
+id = "bkmNeZNbRMr1H3xNeY33H"
+uri = "file://screenshots/deck-04-shift.jpg"
+type = "image"
+title = "04 — The Category Shift"
+
+[[outputs]]
+id = "3cYXhj55YI_wKC0jI6Yjo"
+uri = "file://screenshots/deck-05-ritual.jpg"
+type = "image"
+title = "05 — The Ritual"
+
+[[outputs]]
+id = "sERiwkFOiXIwAgz1nt52q"
+uri = "file://screenshots/deck-06-product.jpg"
+type = "image"
+title = "06 — The Product"
+
+[[outputs]]
+id = "zeIwNsvVUErU1sAQzZmVQ"
+uri = "file://screenshots/deck-07-os.jpg"
+type = "image"
+title = "07 — The OS"
+
+[[outputs]]
+id = "gcLT0NNwHE4lvdITA1jsr"
+uri = "file://screenshots/deck-08-loop.jpg"
+type = "image"
+title = "08 — The Performance Loop"
+
+[[outputs]]
+id = "8WUNHANlYDq8FO-izyjrY"
+uri = "file://screenshots/deck-09-subscription.jpg"
+type = "image"
+title = "09 — The Subscription Ecosystem"
+
+[[outputs]]
+id = "YiN3aHgzjGG9qFl2pae5v"
+uri = "file://screenshots/deck-10-target.jpg"
+type = "image"
+title = "10 — The Target User"
+
+[[outputs]]
+id = "U-tMZJ3ImE5RuVulhQyTk"
+uri = "file://screenshots/deck-11-founders.jpg"
+type = "image"
+title = "11 — The Founders"
+
+[[outputs]]
+id = "3-DXdZ6UBoS0pFjthLaxt"
+uri = "file://screenshots/deck-12-proof.jpg"
+type = "image"
+title = "12 — Proof Before Scale"
+
+[[outputs]]
+id = "BYqEVWqWbTTK-ZzR5hY_2"
+uri = "file://screenshots/deck-13-economics.jpg"
+type = "image"
+title = "13 — Unit Economics & Growth"
+
+[[outputs]]
+id = "5ZCltC2EWrHJ5A4zA1VJh"
+uri = "file://screenshots/deck-14-ask.jpg"
+type = "image"
+title = "14 — The Ask"
+
+[[outputs]]
+id = "llwb4jCbTxjeO4v-0Eo4N"
+uri = "file://screenshots/deck-15-final.jpg"
+type = "image"
+title = "15 — The Final Word"
