@@ -828,6 +828,12 @@ uri = "file://artifacts/aforce-pitch/public/images/founder-julius.png"
 type = "image"
 title = "generated_image"
 
+[[generated]]
+id = "5VmQZgTlwxpoQaZxOm4Pc"
+uri = "file://artifacts/aforce-pitch/public/images/cover-bg.png"
+type = "image"
+title = "generated_image"
+
 [[outputs]]
 id = "fILTiXCCTKYfWe9d8R46M"
 uri = "file://attached_assets/tester-share/aforce-tester-qr.png"
@@ -2213,3 +2219,9 @@ id = "VYTR__OiUcaWTkOkZfcgK"
 uri = "file://screenshots/v3-15-final.jpg"
 type = "image"
 title = "15 — The Final Word"
+
+[[outputs]]
+id = "-A7rS9T2kfXNoJ5VuoaFS"
+uri = "file://screenshots/v5-01-cover.jpg"
+type = "image"
+title = "01 — Executive Summary (new hero)"
