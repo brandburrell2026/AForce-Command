@@ -834,6 +834,96 @@ uri = "file://artifacts/aforce-pitch/public/images/cover-bg.png"
 type = "image"
 title = "generated_image"
 
+[[generated]]
+id = "osdQHi_CR0_G_XRFXju3a"
+uri = "file://artifacts/aforce-pitch/public/images/bg/01-cover.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "VfwUiBOw42JMZ3htKYI6D"
+uri = "file://artifacts/aforce-pitch/public/images/bg/02-noise.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "PdqvuKoEniTvBCaPHYDUk"
+uri = "file://artifacts/aforce-pitch/public/images/bg/03-silence.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "XXuyMyEMXAJQsVAUwQs6B"
+uri = "file://artifacts/aforce-pitch/public/images/bg/04-shift.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "v8XaGSbXjjXt3qoOojdeC"
+uri = "file://artifacts/aforce-pitch/public/images/bg/05-ritual.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "w66XaorN1OQv1dDvevPG2"
+uri = "file://artifacts/aforce-pitch/public/images/bg/06-product.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "mu9CMLTpjtmPOCbw_39Ri"
+uri = "file://artifacts/aforce-pitch/public/images/bg/07-os.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "LjAy_PkEiCXzrNRjxSf19"
+uri = "file://artifacts/aforce-pitch/public/images/bg/08-loop.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "HR_vXIx6qkeoagOd2Qnmr"
+uri = "file://artifacts/aforce-pitch/public/images/bg/09-subscription.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "Ck250jkCQsn3mXpCGwHzZ"
+uri = "file://artifacts/aforce-pitch/public/images/bg/10-target.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "Uf7aU0bXaMcbbmTujRFQ7"
+uri = "file://artifacts/aforce-pitch/public/images/bg/11-founders.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "a5N5tEDbqEgviU426A7Yk"
+uri = "file://artifacts/aforce-pitch/public/images/bg/12-proof.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "BHiQO8mMdZNfm3Lphcgy_"
+uri = "file://artifacts/aforce-pitch/public/images/bg/13-economics.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "3J5k9jAiaDRRCRhDVv9Hw"
+uri = "file://artifacts/aforce-pitch/public/images/bg/14-ask.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "jKbt72IfX8eq76gSz4cIW"
+uri = "file://artifacts/aforce-pitch/public/images/bg/15-final.png"
+type = "image"
+title = "generated_image"
+
 [[outputs]]
 id = "fILTiXCCTKYfWe9d8R46M"
 uri = "file://attached_assets/tester-share/aforce-tester-qr.png"
@@ -2225,3 +2315,33 @@ id = "-A7rS9T2kfXNoJ5VuoaFS"
 uri = "file://screenshots/v5-01-cover.jpg"
 type = "image"
 title = "01 — Executive Summary (new hero)"
+
+[[outputs]]
+id = "w5lmmMaYW_nZnca87Q1xX"
+uri = "file://screenshots/v6-01.jpg"
+type = "image"
+title = "01 — Cover"
+
+[[outputs]]
+id = "gyfORJeiOA4YAobudgFqT"
+uri = "file://screenshots/v6-03.jpg"
+type = "image"
+title = "03 — The Truth (lockers backdrop)"
+
+[[outputs]]
+id = "IXEQAU0UX4NxAZXkAb-Hg"
+uri = "file://screenshots/v6-07.jpg"
+type = "image"
+title = "07 — The OS (architectural drawings backdrop)"
+
+[[outputs]]
+id = "vJ32b9XvbaHQ5Ks4Z1jEU"
+uri = "file://screenshots/v6-12.jpg"
+type = "image"
+title = "12 — The Proof (coastline backdrop)"
+
+[[outputs]]
+id = "fcNktev5dtXzVUglRloQC"
+uri = "file://screenshots/v6-15.jpg"
+type = "image"
+title = "15 — The Final Word"

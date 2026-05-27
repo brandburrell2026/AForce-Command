@@ -3,6 +3,12 @@ import type { ReactNode } from "react";
 
 export const TOTAL_SLIDES = 15;
 
+const BG_NAMES = [
+  "cover", "noise", "silence", "shift", "ritual",
+  "product", "os", "loop", "subscription", "target",
+  "founders", "proof", "economics", "ask", "final",
+];
+
 const SECTIONS: Array<{ name: string; range: [number, number] }> = [
   { name: "Tension", range: [1, 3] },
   { name: "The Shift", range: [4, 5] },
@@ -47,10 +53,30 @@ export default function SlideChrome({
   const subtle = invertChrome ? "text-bg/35" : "text-text/40";
   const stroke = invertChrome ? "border-bg/35" : "border-text/40";
 
+  const base = import.meta.env.BASE_URL;
+  const bgSlug = String(slide).padStart(2, "0");
+  const bgUrl = `${base}images/bg/${bgSlug}-${BG_NAMES[slide - 1]}.png`;
+
   return (
     <div className="w-screen h-screen overflow-hidden relative bg-bg text-text font-body">
+      {/* themed background plate — very faded so it reads as paper texture */}
+      <div
+        aria-hidden
+        className="absolute inset-0 z-0 bg-cover bg-center"
+        style={{
+          backgroundImage: `url(${bgUrl})`,
+          opacity: 0.16,
+          mixBlendMode: "multiply",
+        }}
+      />
+      {/* cream wash to keep type crisp */}
+      <div
+        aria-hidden
+        className="absolute inset-0 z-0 bg-bg/40 pointer-events-none"
+      />
+
       <motion.div
-        className="absolute inset-0 w-full h-full"
+        className="absolute inset-0 w-full h-full z-10"
         initial={{ opacity: 0, y: 6 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.7, ease: [0.22, 0.61, 0.36, 1], delay: 0.05 }}
