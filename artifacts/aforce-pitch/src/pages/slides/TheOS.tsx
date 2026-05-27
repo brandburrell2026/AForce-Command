@@ -31,14 +31,14 @@ export default function TheOS() {
 
         <div className="col-span-7 pl-[3vw] flex flex-col justify-center gap-[2vh] border-l border-divider">
           {PRINCIPLES.map((p, i) => (
-            <div key={p.tag} className="grid grid-cols-12 gap-[1.5vw] items-baseline pb-[1.8vh] border-b border-divider last:border-b-0">
+            <div key={p.tag} className="grid grid-cols-12 gap-[1.2vw] items-baseline pb-[1.8vh] border-b border-divider last:border-b-0">
               <div className="col-span-1 font-display tabular-nums text-[0.7vw] text-text/40 tracking-[0.32em] font-semibold">
                 {String(i + 1).padStart(2, "0")}
               </div>
-              <div className="col-span-3 font-display font-black text-[2.2vw] leading-none tracking-[-0.03em] text-text">
+              <div className="col-span-4 font-display font-black text-[1.9vw] leading-none tracking-[-0.03em] text-text">
                 {p.tag}
               </div>
-              <div className="col-span-8 font-display text-[1.15vw] font-medium text-text/70 leading-[1.4]">
+              <div className="col-span-7 font-display text-[1.05vw] font-medium text-text/70 leading-[1.4]">
                 {p.line}
               </div>
             </div>

@@ -22,12 +22,12 @@ export default function TheProduct() {
             Alkaline Force, pH 8.8. The formulation enters. The behavior retains.
           </p>
 
-          <div className="mt-auto pt-[5vh] grid grid-cols-2 gap-x-[3vw] border-t border-divider">
+          <div className="mt-[4vh] pt-[2.5vh] grid grid-cols-2 gap-x-[3vw] border-t border-divider">
             <ProductBlock tag="01 · Format" name="The RTD" line="Sustained daily readiness." meta="Ready to drink · 16oz · pH 8.8" />
             <ProductBlock tag="02 · Format" name="The Stick" line="Travel. Immediate correction." meta="Hydration stick · Single serve · pH 8.8" accent />
           </div>
 
-          <div className="mt-[3vh] font-display text-[1.1vw] font-semibold text-text/85 max-w-[42vw]">
+          <div className="mt-auto pt-[3vh] font-display text-[1.05vw] font-semibold text-text/85 max-w-[42vw]">
             The moat is not the formulation. <span className="text-red">The moat is the behavior.</span>
           </div>
         </div>
@@ -36,7 +36,7 @@ export default function TheProduct() {
           <img
             src={`${base}images/hero-can.png`}
             alt=""
-            className="w-full h-full object-contain"
+            className="w-full max-h-[68vh] object-contain"
           />
         </div>
       </div>
@@ -46,17 +46,17 @@ export default function TheProduct() {
 
 function ProductBlock({ tag, name, line, meta, accent }: { tag: string; name: string; line: string; meta: string; accent?: boolean }) {
   return (
-    <div className="pt-[2.5vh]">
-      <div className="font-display uppercase tracking-[0.28em] text-[0.6vw] font-semibold text-text/45 mb-[1.5vh]">
+    <div>
+      <div className="font-display uppercase tracking-[0.28em] text-[0.6vw] font-semibold text-text/45 mb-[1.2vh]">
         {tag}
       </div>
-      <div className={`font-display font-black text-[2.8vw] leading-[1] tracking-[-0.03em] ${accent ? "text-blue" : "text-text"}`}>
+      <div className={`font-display font-black text-[2.4vw] leading-[1] tracking-[-0.03em] ${accent ? "text-blue" : "text-text"}`}>
         {name}
       </div>
-      <div className="mt-[1.8vh] font-display text-[1vw] font-medium text-text/70 leading-[1.4]">
+      <div className="mt-[1.4vh] font-display text-[0.95vw] font-medium text-text/70 leading-[1.4]">
         {line}
       </div>
-      <div className="mt-[1.8vh] font-display uppercase tracking-[0.2em] text-[0.6vw] font-semibold text-text/40">
+      <div className="mt-[1.2vh] font-display uppercase tracking-[0.2em] text-[0.55vw] font-semibold text-text/40">
         {meta}
       </div>
     </div>

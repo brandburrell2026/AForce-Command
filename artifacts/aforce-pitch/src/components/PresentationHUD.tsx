@@ -17,7 +17,7 @@ export default function PresentationHUD({
   currentIndex,
   total,
 }: Props) {
-  const [visible, setVisible] = useState(true);
+  const [visible, setVisible] = useState(false);
   const progress = total > 0 ? ((currentIndex + 1) / total) * 100 : 0;
 
   useEffect(() => {
@@ -27,7 +27,6 @@ export default function PresentationHUD({
       window.clearTimeout(timeout);
       timeout = window.setTimeout(() => setVisible(false), 2200);
     };
-    reveal();
     const onMove = () => reveal();
     window.addEventListener("mousemove", onMove);
     window.addEventListener("touchstart", onMove);

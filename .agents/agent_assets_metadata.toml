@@ -2123,3 +2123,93 @@ id = "llwb4jCbTxjeO4v-0Eo4N"
 uri = "file://screenshots/deck-15-final.jpg"
 type = "image"
 title = "15 — The Final Word"
+
+[[outputs]]
+id = "YNotAAp-m6LOok8NnTXG-"
+uri = "file://screenshots/v2-01-cover.jpg"
+type = "image"
+title = "01 — Executive Summary"
+
+[[outputs]]
+id = "JfMKm3OhnTS8ov4ZWXxY1"
+uri = "file://screenshots/v3-02-noise.jpg"
+type = "image"
+title = "02 — The Noise"
+
+[[outputs]]
+id = "UakU6JdkV4C4rT8IL6ul4"
+uri = "file://screenshots/v2-03-silence.jpg"
+type = "image"
+title = "03 — The Silence"
+
+[[outputs]]
+id = "v4toLA7Vul90Fn3DbUbjE"
+uri = "file://screenshots/v3-04-shift.jpg"
+type = "image"
+title = "04 — The Category Shift"
+
+[[outputs]]
+id = "mm4uxgL00KYhPbzccGz4k"
+uri = "file://screenshots/v3-05-ritual.jpg"
+type = "image"
+title = "05 — The Ritual"
+
+[[outputs]]
+id = "7LcGiXVjj5qIZ3WC3pT0V"
+uri = "file://screenshots/v3-06-product.jpg"
+type = "image"
+title = "06 — The Product"
+
+[[outputs]]
+id = "dIcYevA8lVgCFguPn8wiX"
+uri = "file://screenshots/v2-07-os.jpg"
+type = "image"
+title = "07 — The OS"
+
+[[outputs]]
+id = "TbiZMRstGmQjsc_5xJ45Y"
+uri = "file://screenshots/v3-08-loop.jpg"
+type = "image"
+title = "08 — The Performance Loop"
+
+[[outputs]]
+id = "VSKMR62Dnctuo4TC4iIce"
+uri = "file://screenshots/v3-09-subscription.jpg"
+type = "image"
+title = "09 — The Subscription Ecosystem"
+
+[[outputs]]
+id = "P2r3XXY9bS8a9YoMopNbt"
+uri = "file://screenshots/v3-10-target.jpg"
+type = "image"
+title = "10 — The Target User"
+
+[[outputs]]
+id = "UxbyrewJITyLFKPs9yxAb"
+uri = "file://screenshots/v3-11-founders.jpg"
+type = "image"
+title = "11 — The Founders"
+
+[[outputs]]
+id = "-6D897qi_lBAU6CckFouX"
+uri = "file://screenshots/v3-12-proof.jpg"
+type = "image"
+title = "12 — Proof Before Scale"
+
+[[outputs]]
+id = "FYb2PokhQPnJ956QU90d-"
+uri = "file://screenshots/v3-13-economics.jpg"
+type = "image"
+title = "13 — Unit Economics & Growth"
+
+[[outputs]]
+id = "DBjugRkCVi4D1OXBA2PkN"
+uri = "file://screenshots/v2-14-ask.jpg"
+type = "image"
+title = "14 — The Ask"
+
+[[outputs]]
+id = "VYTR__OiUcaWTkOkZfcgK"
+uri = "file://screenshots/v3-15-final.jpg"
+type = "image"
+title = "15 — The Final Word"

@@ -91,13 +91,13 @@ export default function SlideChrome({
           </div>
 
           {/* BOTTOM CHROME — confidential line + bold statement */}
-          <div className="absolute bottom-[4vh] left-[5vw] right-[5vw]">
-            <div className={`flex items-center justify-between border-t ${stroke}/30 pt-[1.6vh]`}>
-              <div className={`font-display uppercase tracking-[0.28em] text-[0.6vw] ${subtle} font-medium`}>
+          <div className="absolute bottom-[3.6vh] left-[5vw] right-[8vw]">
+            <div className={`flex items-center justify-between gap-[3vw] border-t ${stroke}/30 pt-[1.4vh]`}>
+              <div className={`font-display uppercase tracking-[0.28em] text-[0.6vw] ${subtle} font-medium whitespace-nowrap`}>
                 Confidential · For discussion purposes only
               </div>
-              <div className={`font-display uppercase tracking-[0.28em] text-[0.65vw] ${ink} font-semibold`}>
-                Before America's real deal we build proof. After, we build scale.
+              <div className={`font-display uppercase tracking-[0.28em] text-[0.62vw] ${ink} font-semibold whitespace-nowrap`}>
+                Build proof before scale.
               </div>
             </div>
           </div>

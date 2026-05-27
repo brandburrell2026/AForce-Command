@@ -1,10 +1,10 @@
 import SlideChrome from "@/components/SlideChrome";
 
 const USES = [
-  { tag: "01", label: "Product & Inventory", body: "Two formats. Phase 1 production at concierge scale." },
-  { tag: "02", label: "OS Build", body: "The behavioral engine. Coaching layer. Retention surfaces." },
-  { tag: "03", label: "Founder-Led Activation", body: "The Brickell event. Curated cohorts. Hand-installed ritual." },
-  { tag: "04", label: "Proof Infrastructure", body: "Measurement. Cohort science. Subscription instrumentation." },
+  { tag: "01", label: "Product", body: "Two formats. Phase 1 production at concierge scale." },
+  { tag: "02", label: "OS Build", body: "Behavioral engine. Coaching layer. Retention surfaces." },
+  { tag: "03", label: "Activation", body: "Brickell event. Curated cohorts. Founder-installed ritual." },
+  { tag: "04", label: "Proof", body: "Measurement. Cohort science. Subscription instrumentation." },
 ];
 
 export default function TheAsk() {
@@ -43,14 +43,14 @@ export default function TheAsk() {
           </div>
           <div className="grid grid-cols-1 gap-y-[1.4vh]">
             {USES.map((u) => (
-              <div key={u.label} className="grid grid-cols-12 gap-[1.5vw] items-baseline pb-[1.6vh] border-b border-divider last:border-b-0">
+              <div key={u.label} className="grid grid-cols-12 gap-[1.2vw] items-baseline pb-[1.6vh] border-b border-divider last:border-b-0">
                 <div className="col-span-1 font-display tabular-nums text-[0.7vw] text-text/40 tracking-[0.32em] font-semibold">
                   {u.tag}
                 </div>
-                <div className="col-span-4 font-display font-black text-[1.6vw] tracking-[-0.025em] text-text">
+                <div className="col-span-3 font-display font-black text-[1.8vw] tracking-[-0.025em] text-text leading-none">
                   {u.label}
                 </div>
-                <div className="col-span-7 font-display text-[1vw] font-medium text-text/65 leading-[1.45]">
+                <div className="col-span-8 font-display text-[1vw] font-medium text-text/65 leading-[1.45]">
                   {u.body}
                 </div>
               </div>
