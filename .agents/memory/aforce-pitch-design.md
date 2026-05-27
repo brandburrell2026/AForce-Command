@@ -3,17 +3,24 @@ name: aforce-pitch design language
 description: Visual + structural conventions for the AForce investor deck (artifacts/aforce-pitch).
 ---
 
-The deck is 15 slides in "Documentary Warm + Scandinavian discipline":
-cream paper `#f4f1ea`, charcoal ink `#2d2a26`, Cormorant Garamond display
-(use italic on a single emphasis word per headline), Inter for tiny
-all-caps tracked labels, hairline rules, generous whitespace, warm
-desaturated documentary photography on hero slides only.
+The deck is 15 slides in a **bold magazine** language (Wallpaper / i-D /
+the AForce executive-summary reference): cream paper `#f4f1ea`, near-
+black ink `#1a1815`, **red `#e53341`** and **blue `#2d4a8a`** accent
+colors, Inter at weight 900 for display, Inter 500/uppercase/tracked
+`0.28-0.32em` for tiny eyebrows. The red `AForce™` wordmark sits top-
+left, `INVESTOR DECK · PHASE 1 · PROOF OF CONCEPT` + red outline
+`PATENT-PROTECTED` pill sit top-right, `CONFIDENTIAL …` + the bold
+`Before America's real deal we build proof. After, we build scale.`
+statement sit bottom on a hairline. Hero slides may carry warm
+desaturated documentary photography or the AForce can hero.
 
-**Why:** the user picked this direction after seeing three canvas variants
-(Editorial / Scandi / Documentary) and explicitly asked to blend
-Documentary Warm's emotional warmth with Scandinavian typographic
-restraint. Mood target: Nike restraint + Apple simplicity + WHOOP
-behavioral intelligence + Scandinavian calm.
+**Why:** the user rejected the earlier Cormorant Garamond /
+Scandinavian-quiet cut and shared a screenshot of their original
+"executive summary" slide, asking for "high fashion magazine" — bold
+sans, colored accent words (red `performance`, red/black/blue/black
+`Pause. Hydrate. Lock in. Perform.`), AForce red wordmark, magazine
+chrome, product hero photography. Headline rule: **one** emphasis word
+per H1 in red (or blue) for contrast against the deep ink.
 
 **How to apply:**
 - Slide count is locked at 15. Any new content goes in an existing slot,

@@ -810,6 +810,24 @@ uri = "file://artifacts/aforce-pitch/public/images/doc-final.png"
 type = "image"
 title = "generated_image"
 
+[[generated]]
+id = "ikkh622ZbV26PCNuEYO9V"
+uri = "file://artifacts/aforce-pitch/public/images/hero-can.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "n8C4BVxjElimDrG9zJcjH"
+uri = "file://artifacts/aforce-pitch/public/images/founder-brandon.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "f7X5qolev4PamJ81biOSS"
+uri = "file://artifacts/aforce-pitch/public/images/founder-julius.png"
+type = "image"
+title = "generated_image"
+
 [[outputs]]
 id = "fILTiXCCTKYfWe9d8R46M"
 uri = "file://attached_assets/tester-share/aforce-tester-qr.png"

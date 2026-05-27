@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Inter:wght@300;400;500;600&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap");
 @import "tailwindcss";
 
 @theme inline {
@@ -7,7 +7,8 @@
   --color-text: var(--slide-text);
   --color-muted: var(--slide-muted);
   --color-divider: var(--slide-divider);
-  --color-accent: var(--slide-accent);
+  --color-red: var(--slide-red);
+  --color-blue: var(--slide-blue);
   --font-display: var(--font-display-family);
   --font-body: var(--font-body-family);
 }
@@ -15,11 +16,13 @@
 :root {
   --slide-bg: #f4f1ea;
   --slide-bg-elev: #ece8df;
-  --slide-text: #2d2a26;
-  --slide-muted: rgba(45, 42, 38, 0.55);
-  --slide-divider: rgba(45, 42, 38, 0.18);
-  --slide-accent: #8a3a1c;
-  --font-display-family: "Cormorant Garamond", "Georgia", serif;
+  --slide-text: #18161300;
+  --slide-text: #1a1815;
+  --slide-muted: rgba(26, 24, 21, 0.55);
+  --slide-divider: rgba(26, 24, 21, 0.16);
+  --slide-red: #e53341;
+  --slide-blue: #2d4a8a;
+  --font-display-family: "Inter", system-ui, sans-serif;
   --font-body-family: "Inter", system-ui, sans-serif;
   color-scheme: light;
 }
@@ -36,6 +39,7 @@ body {
   background: var(--slide-bg);
   color: var(--slide-text);
   font-family: var(--font-body-family);
+  font-feature-settings: "ss01", "cv11";
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;

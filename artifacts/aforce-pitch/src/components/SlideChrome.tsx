@@ -30,6 +30,7 @@ interface ChromeProps {
   eyebrow?: string;
   children: ReactNode;
   hideChrome?: boolean;
+  invertChrome?: boolean;
 }
 
 export default function SlideChrome({
@@ -37,16 +38,22 @@ export default function SlideChrome({
   eyebrow,
   children,
   hideChrome = false,
+  invertChrome = false,
 }: ChromeProps) {
   const { index, name } = sectionFor(slide);
   const label = eyebrow ?? `${String(index).padStart(2, "0")} · ${name}`;
+  const ink = invertChrome ? "text-bg" : "text-text";
+  const muted = invertChrome ? "text-bg/55" : "text-text/55";
+  const subtle = invertChrome ? "text-bg/35" : "text-text/40";
+  const stroke = invertChrome ? "border-bg/35" : "border-text/40";
+
   return (
     <div className="w-screen h-screen overflow-hidden relative bg-bg text-text font-body">
       <motion.div
         className="absolute inset-0 w-full h-full"
         initial={{ opacity: 0, y: 6 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.9, ease: [0.22, 0.61, 0.36, 1], delay: 0.05 }}
+        transition={{ duration: 0.7, ease: [0.22, 0.61, 0.36, 1], delay: 0.05 }}
       >
         {children}
       </motion.div>
@@ -56,22 +63,42 @@ export default function SlideChrome({
           className="absolute inset-0 pointer-events-none z-20"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 0.8, delay: 0.4 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
         >
-          <div className="absolute top-[4.5vh] left-[5vw] right-[5vw] flex justify-between items-center">
-            <div className="font-body uppercase tracking-[0.32em] text-[0.7vw] text-text/45 font-medium">
+          {/* TOP CHROME — AForce wordmark left, investor briefing line + patent badge right */}
+          <div className="absolute top-[4.5vh] left-[5vw] right-[5vw] flex justify-between items-start">
+            <div className={`font-display font-extrabold tracking-tight text-[1.4vw] text-red leading-none`}>
+              AForce<span className="text-[0.55em] align-super tracking-normal ml-[0.1em] font-medium">™</span>
+            </div>
+            <div className="flex items-center gap-[1.4vw]">
+              <div className={`font-display uppercase tracking-[0.28em] text-[0.7vw] ${muted} font-medium`}>
+                Investor Deck · Phase 1 · Proof of Concept
+              </div>
+              <div className={`uppercase tracking-[0.22em] text-[0.62vw] font-semibold text-red border border-red px-[0.7vw] py-[0.35vh] rounded-full`}>
+                Patent-Protected
+              </div>
+            </div>
+          </div>
+
+          {/* SECTION + PAGE COUNT — second row, subtle */}
+          <div className="absolute top-[10vh] left-[5vw] right-[5vw] flex justify-between items-center">
+            <div className={`font-display uppercase tracking-[0.32em] text-[0.62vw] ${subtle} font-medium`}>
               {label}
             </div>
-            <div className="font-body uppercase tracking-[0.32em] text-[0.7vw] text-text/45 font-medium tabular-nums">
+            <div className={`font-display uppercase tracking-[0.32em] text-[0.62vw] ${subtle} font-medium tabular-nums`}>
               {String(slide).padStart(2, "0")} / {String(TOTAL_SLIDES).padStart(2, "0")}
             </div>
           </div>
-          <div className="absolute bottom-[4.5vh] left-[5vw] right-[5vw] flex justify-between items-center">
-            <div className="font-body uppercase tracking-[0.32em] text-[0.65vw] text-text/35 font-medium">
-              AForce<span className="text-[0.6em] align-super tracking-normal ml-[0.15em]">™</span>
-            </div>
-            <div className="font-body uppercase tracking-[0.32em] text-[0.65vw] text-text/35 font-medium">
-              Investor Briefing · 2026
+
+          {/* BOTTOM CHROME — confidential line + bold statement */}
+          <div className="absolute bottom-[4vh] left-[5vw] right-[5vw]">
+            <div className={`flex items-center justify-between border-t ${stroke}/30 pt-[1.6vh]`}>
+              <div className={`font-display uppercase tracking-[0.28em] text-[0.6vw] ${subtle} font-medium`}>
+                Confidential · For discussion purposes only
+              </div>
+              <div className={`font-display uppercase tracking-[0.28em] text-[0.65vw] ${ink} font-semibold`}>
+                Before America's real deal we build proof. After, we build scale.
+              </div>
             </div>
           </div>
         </motion.div>

@@ -10,40 +10,47 @@ const USES = [
 export default function TheAsk() {
   return (
     <SlideChrome slide={14}>
-      <div className="absolute inset-0 grid grid-cols-12 px-[9vw] py-[13vh]">
-        <div className="col-span-5">
-          <div className="font-body uppercase tracking-[0.32em] text-[0.75vw] text-text/45 font-medium mb-[3vh]">
-            The Ask
+      <div className="absolute inset-0 grid grid-cols-12 px-[5vw] pt-[16vh] pb-[12vh] gap-x-[4vw]">
+        <div className="col-span-5 flex flex-col">
+          <div className="flex items-center gap-[1vw] mb-[3.5vh]">
+            <span className="font-display uppercase tracking-[0.32em] text-[0.72vw] font-semibold text-text">
+              The Ask
+            </span>
+            <span className="block h-[2px] w-[3vw] bg-red" />
           </div>
-          <h2 className="font-display font-light text-[5vw] leading-[1] tracking-tight">
+
+          <h2 className="font-display font-black tracking-[-0.035em] text-[5.4vw] leading-[0.92] text-text">
             A proof-of-concept raise.<br />
-            <span className="italic text-text/75">Not a scale raise.</span>
+            <span className="text-text/55 font-light italic">Not a scale raise.</span>
           </h2>
-          <div className="mt-[6vh] pt-[3vh] border-t border-divider max-w-[28vw]">
-            <div className="font-display font-light tabular-nums text-[4.8vw] leading-[1]">
+
+          <div className="mt-auto pt-[3vh] border-t-2 border-text/85 max-w-[28vw]">
+            <div className="font-display font-black tabular-nums text-[6vw] leading-[0.95] tracking-[-0.04em] text-red">
               $1.5M
             </div>
-            <div className="mt-[2vh] font-body uppercase tracking-[0.28em] text-[0.7vw] text-text/50 font-medium">
+            <div className="mt-[1.5vh] font-display uppercase tracking-[0.28em] text-[0.65vw] font-semibold text-text/55">
               SAFE · Phase 1
             </div>
-            <p className="mt-[2.5vh] font-display text-[1.15vw] italic text-text/60 leading-[1.5]">
-              The capital funds proof of habit. The next round funds scale.
+            <p className="mt-[2vh] font-display text-[1.05vw] text-text/70 leading-[1.5] font-medium">
+              The capital funds <span className="text-text font-semibold">proof of habit.</span> The next round funds <span className="text-text font-semibold">scale.</span>
             </p>
           </div>
         </div>
 
-        <div className="col-span-7 pl-[5vw] flex flex-col justify-center border-l border-divider">
-          <div className="font-body uppercase tracking-[0.32em] text-[0.7vw] text-text/40 font-medium mb-[3vh]">
+        <div className="col-span-7 pl-[3vw] flex flex-col justify-center border-l border-divider">
+          <div className="font-display uppercase tracking-[0.28em] text-[0.65vw] font-semibold text-text/45 mb-[3vh]">
             Use of Funds
           </div>
-          <div className="grid grid-cols-1 gap-y-[1.6vh]">
+          <div className="grid grid-cols-1 gap-y-[1.4vh]">
             {USES.map((u) => (
               <div key={u.label} className="grid grid-cols-12 gap-[1.5vw] items-baseline pb-[1.6vh] border-b border-divider last:border-b-0">
-                <div className="col-span-1 font-body tabular-nums text-[0.7vw] text-text/35 tracking-[0.32em]">
+                <div className="col-span-1 font-display tabular-nums text-[0.7vw] text-text/40 tracking-[0.32em] font-semibold">
                   {u.tag}
                 </div>
-                <div className="col-span-4 font-display text-[1.6vw] font-light text-text">{u.label}</div>
-                <div className="col-span-7 font-display text-[1.1vw] font-light italic text-text/60 leading-[1.4]">
+                <div className="col-span-4 font-display font-black text-[1.6vw] tracking-[-0.025em] text-text">
+                  {u.label}
+                </div>
+                <div className="col-span-7 font-display text-[1vw] font-medium text-text/65 leading-[1.45]">
                   {u.body}
                 </div>
               </div>

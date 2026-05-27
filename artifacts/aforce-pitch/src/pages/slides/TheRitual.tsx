@@ -1,39 +1,38 @@
 import SlideChrome from "@/components/SlideChrome";
 
 const STEPS = [
-  { word: "Pause.", caption: "Interrupt the noise." },
-  { word: "Hydrate.", caption: "Restore the system." },
-  { word: "Lock In.", caption: "Choose the standard." },
-  { word: "Perform.", caption: "The outcome follows.", italic: true },
+  { word: "Pause.", caption: "Interrupt the noise.", color: "text-red" },
+  { word: "Hydrate.", caption: "Restore the system.", color: "text-text" },
+  { word: "Lock In.", caption: "Choose the standard.", color: "text-blue" },
+  { word: "Perform.", caption: "The outcome follows.", color: "text-text" },
 ];
 
 export default function TheRitual() {
   return (
     <SlideChrome slide={5}>
-      <div className="absolute inset-0 flex flex-col justify-between px-[9vw] py-[15vh]">
-        <div>
-          <div className="font-body uppercase tracking-[0.32em] text-[0.75vw] text-text/45 font-medium">
+      <div className="absolute inset-0 flex flex-col px-[5vw] pt-[16vh] pb-[12vh]">
+        <div className="flex items-center gap-[1vw] mb-[3.5vh]">
+          <span className="font-display uppercase tracking-[0.32em] text-[0.72vw] font-semibold text-text">
             The Ritual
-          </div>
-          <h2 className="mt-[3vh] font-display font-light text-[2.6vw] leading-[1.25] text-text/65 max-w-[50vw]">
-            A four-beat operating system for the moment before the moment.
-          </h2>
+          </span>
+          <span className="block h-[2px] w-[3vw] bg-red" />
         </div>
 
-        <div className="grid grid-cols-4 gap-x-[3vw]">
+        <h2 className="font-display font-bold tracking-tight text-[2.4vw] leading-[1.15] text-text/75 max-w-[58vw] mb-[6vh]">
+          A four-beat operating system<br />
+          for the <span className="text-text font-black">moment before the moment.</span>
+        </h2>
+
+        <div className="my-auto grid grid-cols-4 gap-x-[2.5vw]">
           {STEPS.map((s, i) => (
-            <div key={s.word} className="border-t border-text/25 pt-[2.5vh]">
-              <div className="font-body tabular-nums text-[0.7vw] text-text/35 tracking-[0.32em] mb-[2.5vh]">
+            <div key={s.word} className="border-t-2 border-text/85 pt-[2.5vh]">
+              <div className="font-display tabular-nums text-[0.7vw] text-text/45 tracking-[0.32em] mb-[2vh] font-semibold">
                 {String(i + 1).padStart(2, "0")}
               </div>
-              <div
-                className={`font-display font-light text-[4.2vw] leading-[1] tracking-tight ${
-                  s.italic ? "italic text-text/85" : "text-text"
-                }`}
-              >
+              <div className={`font-display font-black text-[4.6vw] leading-[0.95] tracking-[-0.035em] ${s.color}`}>
                 {s.word}
               </div>
-              <div className="mt-[3vh] font-body text-[0.85vw] text-text/55 leading-[1.5]">
+              <div className="mt-[3vh] font-display text-[0.95vw] text-text/70 leading-[1.4] font-medium">
                 {s.caption}
               </div>
             </div>
