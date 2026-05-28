@@ -66,10 +66,10 @@ export default function Cover() {
         </h1>
 
         {/* ritual row */}
-        <div className="mt-[5vh] font-display font-light text-[2.2vw] leading-none tracking-[-0.02em] flex flex-wrap gap-x-[1.4vw]">
-          <span className="text-red font-normal">Pause.</span>
+        <div className="mt-[5vh] font-display font-bold text-[2.2vw] leading-none tracking-[-0.02em] flex flex-wrap gap-x-[1.4vw]">
+          <span className="text-red">Pause.</span>
           <span className="text-text">Hydrate.</span>
-          <span className="text-blue font-normal">Lock in.</span>
+          <span className="text-blue">Lock in.</span>
           <span className="text-text">Perform.</span>
         </div>
 
@@ -86,7 +86,7 @@ export default function Cover() {
             Confidential · For discussion purposes only
           </div>
           <div className="font-display uppercase tracking-[0.28em] text-[0.6vw] text-text font-semibold whitespace-nowrap">
-            Build proof before scale.
+            Before America's real deal we build proof. After, we build scale.
           </div>
         </div>
       </motion.div>
