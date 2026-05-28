@@ -4,23 +4,50 @@ export default function Cover() {
   const base = import.meta.env.BASE_URL;
   return (
     <div className="w-screen h-screen overflow-hidden relative bg-bg text-text font-body">
-      {/* RIGHT — product hero on a soft cream-to-grey backdrop */}
+      {/* RIGHT — product hero resting on an editorial concrete plinth */}
       <div
-        className="absolute inset-y-0 right-0 w-[45%] flex items-center justify-center"
+        className="absolute inset-y-0 right-0 w-[45%] overflow-hidden"
         style={{
           background:
-            "radial-gradient(120% 80% at 35% 50%, rgba(232,229,221,1) 0%, rgba(218,215,206,1) 70%, rgba(204,201,192,1) 100%)",
+            "radial-gradient(120% 80% at 35% 45%, rgba(236,232,224,1) 0%, rgba(222,218,209,1) 70%, rgba(206,202,193,1) 100%)",
         }}
       >
+        {/* concrete plinth the can rests on */}
+        <div
+          aria-hidden
+          className="absolute left-0 right-0 bottom-0 h-[26%] z-0"
+          style={{
+            background:
+              "linear-gradient(180deg, rgba(244,241,234,1) 0%, rgba(232,228,218,1) 35%, rgba(214,209,197,1) 100%)",
+            boxShadow:
+              "inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -1px 0 rgba(0,0,0,0.05)",
+          }}
+        />
+        {/* soft contact shadow under the can on the plinth */}
+        <div
+          aria-hidden
+          className="absolute left-1/2 -translate-x-1/2 z-0"
+          style={{
+            bottom: "26%",
+            width: "30%",
+            height: "2.2vh",
+            transform: "translateX(-50%) translateY(50%)",
+            background:
+              "radial-gradient(ellipse at center, rgba(0,0,0,0.32) 0%, rgba(0,0,0,0.12) 45%, rgba(0,0,0,0) 70%)",
+            filter: "blur(3px)",
+          }}
+        />
+        {/* the can — bottom anchored just above the plinth top */}
         <img
           src={`${base}images/aforce-can.png`}
           alt="AForce Berry Blast + Dulse"
-          className="h-[80vh] w-auto object-contain drop-shadow-[0_30px_60px_rgba(0,0,0,0.18)]"
+          className="absolute left-1/2 -translate-x-1/2 h-[72vh] w-auto object-contain z-10 drop-shadow-[0_40px_50px_rgba(0,0,0,0.18)]"
+          style={{ bottom: "calc(26% - 1vh)" }}
         />
         {/* soft gradient bleed into cream on the left edge so the seam disappears */}
         <div
           aria-hidden
-          className="absolute inset-y-0 left-0 w-[6vw] pointer-events-none"
+          className="absolute inset-y-0 left-0 w-[6vw] pointer-events-none z-20"
           style={{
             background:
               "linear-gradient(to right, rgba(244,241,234,1) 0%, rgba(244,241,234,0) 100%)",
