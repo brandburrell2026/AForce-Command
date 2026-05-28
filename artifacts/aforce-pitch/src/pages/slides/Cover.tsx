@@ -15,20 +15,18 @@ export default function Cover() {
         {/* concrete plinth the can rests on */}
         <div
           aria-hidden
-          className="absolute left-0 right-0 bottom-0 h-[26%] z-0"
+          className="absolute left-0 right-0 bottom-0 h-[21%] z-0"
           style={{
             background:
-              "linear-gradient(180deg, rgba(244,241,234,1) 0%, rgba(232,228,218,1) 35%, rgba(214,209,197,1) 100%)",
-            boxShadow:
-              "inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -1px 0 rgba(0,0,0,0.05)",
+              "linear-gradient(180deg, rgba(222,218,209,1) 0%, rgba(228,224,214,1) 25%, rgba(214,209,197,1) 100%)",
           }}
         />
         {/* soft contact shadow under the can on the plinth */}
         <div
           aria-hidden
-          className="absolute left-1/2 -translate-x-1/2 z-0"
+          className="absolute left-1/2 z-0"
           style={{
-            bottom: "26%",
+            bottom: "21%",
             width: "30%",
             height: "2.2vh",
             transform: "translateX(-50%) translateY(50%)",
@@ -42,7 +40,7 @@ export default function Cover() {
           src={`${base}images/aforce-can.png`}
           alt="AForce Berry Blast + Dulse"
           className="absolute left-1/2 -translate-x-1/2 h-[72vh] w-auto object-contain z-10 drop-shadow-[0_40px_50px_rgba(0,0,0,0.18)]"
-          style={{ bottom: "calc(26% - 1vh)" }}
+          style={{ bottom: "calc(21% - 1vh)" }}
         />
       </div>
 
