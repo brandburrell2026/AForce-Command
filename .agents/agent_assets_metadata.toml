@@ -936,6 +936,12 @@ uri = "file://artifacts/aforce-pitch/public/images/cover-hero.png"
 type = "image"
 title = "behavioral ecosystem hero"
 
+[[generated]]
+id = "9893O3Qk4fkDINAy4DjYX"
+uri = "file://attached_assets/generated_images/cinematic_documentary_photograph_female_76a9.png"
+type = "image"
+title = "generated_image"
+
 [[outputs]]
 id = "fILTiXCCTKYfWe9d8R46M"
 uri = "file://attached_assets/tester-share/aforce-tester-qr.png"
