@@ -13,7 +13,7 @@ import canBerry from '@/assets/products/can-berry.png';
 import canSoursop from '@/assets/products/can-soursop.png';
 
 const stickHero = stickWatermelon;
-const drinkCanHero = canWatermelon;
+const drinkCanHero = canBerry;
 const stickPour = stickBerry;
 
 const STICKS = [
