@@ -65,14 +65,13 @@ export default function SlideChrome({
         className="absolute inset-0 z-0 bg-cover bg-center"
         style={{
           backgroundImage: `url(${bgUrl})`,
-          opacity: 0.28,
-          mixBlendMode: "multiply",
+          opacity: 0.45,
         }}
       />
       {/* cream wash to keep type crisp */}
       <div
         aria-hidden
-        className="absolute inset-0 z-0 bg-bg/40 pointer-events-none"
+        className="absolute inset-0 z-0 bg-bg/70 pointer-events-none"
       />
 
       <motion.div

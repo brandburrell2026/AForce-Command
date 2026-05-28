@@ -2375,3 +2375,39 @@ id = "s_uPVFVSHjQHLj0VVN-jF"
 uri = "file://screenshots/v7-15.jpg"
 type = "image"
 title = "15 — Final Word (victory silhouette)"
+
+[[outputs]]
+id = "3K7qJAEhaQiJq5VSEDZUb"
+uri = "file://screenshots/v8-01.jpg"
+type = "image"
+title = "01 — Cover (singer)"
+
+[[outputs]]
+id = "iFt7fK3Yc4t3vC5sFElmP"
+uri = "file://screenshots/v8-03.jpg"
+type = "image"
+title = "03 — The Truth (doctor in corridor)"
+
+[[outputs]]
+id = "rpYv0tO9GwyxpDb7gGekc"
+uri = "file://screenshots/v8-04.jpg"
+type = "image"
+title = "04 — The Shift (teacher at window)"
+
+[[outputs]]
+id = "hWJUSkL9fYrq9n5Q17whf"
+uri = "file://screenshots/v8-05.jpg"
+type = "image"
+title = "05 — The Ritual (barista)"
+
+[[outputs]]
+id = "HwDOqj5jOfS97o9AUYrL8"
+uri = "file://screenshots/v8b-13.jpg"
+type = "image"
+title = "13 — Economics (conductor)"
+
+[[outputs]]
+id = "imNf3ZpbMG78GpED8jyTi"
+uri = "file://screenshots/v8-15.jpg"
+type = "image"
+title = "15 — Final Word (singer triumph)"
