@@ -81,7 +81,7 @@ export default function Cover() {
         </div>
 
         {/* bottom rule */}
-        <div className="mt-auto pt-[2.4vh] border-t border-text/25 flex items-center justify-between gap-[2vw]">
+        <div className="mt-auto pt-[2.4vh] border-t border-text/25 flex flex-col gap-[1vh]">
           <div className="font-display uppercase tracking-[0.28em] text-[0.6vw] text-text/55 font-medium whitespace-nowrap">
             Confidential · For discussion purposes only
           </div>
@@ -104,8 +104,8 @@ export default function Cover() {
             ™
           </span>
         </div>
-        <div className="flex items-center gap-[1.4vw]">
-          <div className="font-display uppercase tracking-[0.28em] text-[0.7vw] text-text/55 font-medium">
+        <div className="flex flex-col items-end gap-[1vh]">
+          <div className="font-display uppercase tracking-[0.28em] text-[0.7vw] text-text/55 font-medium whitespace-nowrap">
             Investor Deck · Phase 1 · Proof of Concept · May 2026
           </div>
           <div className="uppercase tracking-[0.22em] text-[0.62vw] font-semibold text-red border border-red px-[0.7vw] py-[0.35vh] rounded-full">
