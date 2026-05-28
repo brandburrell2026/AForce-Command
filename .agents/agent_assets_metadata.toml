@@ -924,6 +924,12 @@ uri = "file://artifacts/aforce-pitch/public/images/bg/15-final.png"
 type = "image"
 title = "generated_image"
 
+[[generated]]
+id = "oO4pIYex8wovfQQDx9DZL"
+uri = "file://artifacts/aforce-pitch/public/images/hero-figure.png"
+type = "image"
+title = "generated_image"
+
 [[outputs]]
 id = "fILTiXCCTKYfWe9d8R46M"
 uri = "file://attached_assets/tester-share/aforce-tester-qr.png"
@@ -2411,3 +2417,9 @@ id = "imNf3ZpbMG78GpED8jyTi"
 uri = "file://screenshots/v8-15.jpg"
 type = "image"
 title = "15 — Final Word (singer triumph)"
+
+[[outputs]]
+id = "Z5vkmWSoUvKekYc53pCF0"
+uri = "file://screenshots/v9c-01.jpg"
+type = "image"
+title = "01 — The Ritual (matches reference)"
