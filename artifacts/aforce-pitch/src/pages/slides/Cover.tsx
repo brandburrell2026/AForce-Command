@@ -44,15 +44,6 @@ export default function Cover() {
           className="absolute left-1/2 -translate-x-1/2 h-[72vh] w-auto object-contain z-10 drop-shadow-[0_40px_50px_rgba(0,0,0,0.18)]"
           style={{ bottom: "calc(26% - 1vh)" }}
         />
-        {/* soft gradient bleed into cream on the left edge so the seam disappears */}
-        <div
-          aria-hidden
-          className="absolute inset-y-0 left-0 w-[6vw] pointer-events-none z-20"
-          style={{
-            background:
-              "linear-gradient(to right, rgba(244,241,234,1) 0%, rgba(244,241,234,0) 100%)",
-          }}
-        />
       </div>
 
       {/* LEFT — cream wash holds the typography */}
