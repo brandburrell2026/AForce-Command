@@ -90,10 +90,13 @@ export default function Cover() {
         </div>
         <div className="flex items-center gap-[1.4vw]">
           <div className="font-display uppercase tracking-[0.28em] text-[0.7vw] text-text/55 font-medium">
-            Investor Deck · Phase 1 · Proof of Concept
+            Investor Deck · Phase 1 · Proof of Concept · May 2026
           </div>
           <div className="uppercase tracking-[0.22em] text-[0.62vw] font-semibold text-red border border-red px-[0.7vw] py-[0.35vh] rounded-full">
             Patent-Protected
+          </div>
+          <div className="font-display uppercase tracking-[0.28em] text-[0.7vw] text-text/70 font-medium whitespace-nowrap">
+            U.S. Prov. 64/057,695
           </div>
         </div>
       </motion.div>
