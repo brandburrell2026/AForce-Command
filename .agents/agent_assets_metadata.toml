@@ -2345,3 +2345,33 @@ id = "fcNktev5dtXzVUglRloQC"
 uri = "file://screenshots/v6-15.jpg"
 type = "image"
 title = "15 — The Final Word"
+
+[[outputs]]
+id = "2DUO22TSgftNLCGWnCbwU"
+uri = "file://screenshots/v7-01.jpg"
+type = "image"
+title = "01 — Cover"
+
+[[outputs]]
+id = "zYaiyAYmAfRnofdrk3Fyn"
+uri = "file://screenshots/v7-04.jpg"
+type = "image"
+title = "04 — The Shift (athlete at window)"
+
+[[outputs]]
+id = "5MYa9HT7L_1oyzN99It1T"
+uri = "file://screenshots/v7-08.jpg"
+type = "image"
+title = "08 — Performance Loop (runner on track)"
+
+[[outputs]]
+id = "3JXkm1WfZKPQjDK3irDkr"
+uri = "file://screenshots/v7-10.jpg"
+type = "image"
+title = "10 — The Target (athlete on Brickell rooftop)"
+
+[[outputs]]
+id = "s_uPVFVSHjQHLj0VVN-jF"
+uri = "file://screenshots/v7-15.jpg"
+type = "image"
+title = "15 — Final Word (victory silhouette)"

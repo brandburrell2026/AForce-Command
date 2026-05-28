@@ -65,7 +65,7 @@ export default function SlideChrome({
         className="absolute inset-0 z-0 bg-cover bg-center"
         style={{
           backgroundImage: `url(${bgUrl})`,
-          opacity: 0.16,
+          opacity: 0.28,
           mixBlendMode: "multiply",
         }}
       />
