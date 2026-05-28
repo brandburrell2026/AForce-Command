@@ -4,13 +4,18 @@ export default function Cover() {
   const base = import.meta.env.BASE_URL;
   return (
     <div className="w-screen h-screen overflow-hidden relative bg-bg text-text font-body">
-      {/* RIGHT — cinematic editorial hero */}
-      <div className="absolute inset-y-0 right-0 w-[45%] overflow-hidden bg-bg">
+      {/* RIGHT — product hero on a soft cream-to-grey backdrop */}
+      <div
+        className="absolute inset-y-0 right-0 w-[45%] flex items-center justify-center"
+        style={{
+          background:
+            "radial-gradient(120% 80% at 35% 50%, rgba(232,229,221,1) 0%, rgba(218,215,206,1) 70%, rgba(204,201,192,1) 100%)",
+        }}
+      >
         <img
-          src={`${base}images/cover-hero.png`}
-          alt="The quiet moment before a high performer begins their day"
-          className="w-full h-full object-cover"
-          style={{ objectPosition: "30% center" }}
+          src={`${base}images/aforce-can.png`}
+          alt="AForce Berry Blast + Dulse"
+          className="h-[80vh] w-auto object-contain drop-shadow-[0_30px_60px_rgba(0,0,0,0.18)]"
         />
         {/* soft gradient bleed into cream on the left edge so the seam disappears */}
         <div
@@ -87,16 +92,10 @@ export default function Cover() {
           <div className="font-display uppercase tracking-[0.28em] text-[0.7vw] text-text/55 font-medium">
             Investor Deck · Phase 1 · Proof of Concept · May 2026
           </div>
-          <div
-            className="uppercase tracking-[0.22em] text-[0.62vw] font-semibold text-red border border-red px-[0.7vw] py-[0.35vh] rounded-full"
-            style={{ backgroundColor: "rgba(244,241,234,0.92)" }}
-          >
+          <div className="uppercase tracking-[0.22em] text-[0.62vw] font-semibold text-red border border-red px-[0.7vw] py-[0.35vh] rounded-full">
             Patent-Protected
           </div>
-          <div
-            className="font-display uppercase tracking-[0.28em] text-[0.7vw] text-white font-medium whitespace-nowrap px-[0.6vw] py-[0.35vh] rounded-full"
-            style={{ backgroundColor: "rgba(0,0,0,0.45)", backdropFilter: "blur(4px)" }}
-          >
+          <div className="font-display uppercase tracking-[0.28em] text-[0.7vw] text-text/70 font-medium whitespace-nowrap">
             U.S. Prov. 64/057,695
           </div>
         </div>
