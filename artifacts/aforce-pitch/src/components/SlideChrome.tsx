@@ -93,7 +93,7 @@ export default function SlideChrome({
           {/* TOP CHROME — AForce wordmark left, investor briefing line + patent badge right */}
           <div className="absolute top-[4.5vh] left-[5vw] right-[5vw] flex justify-between items-start">
             <div className={`font-display font-extrabold tracking-tight text-[1.4vw] text-red leading-none`}>
-              AForce<span className="text-[0.55em] align-super tracking-normal ml-[0.1em] font-medium">™</span>
+              AFORCE<span className="text-[0.55em] align-super tracking-normal ml-[0.1em] font-medium">™</span>
             </div>
             <div className="flex items-center gap-[1.4vw]">
               <div className={`font-display uppercase tracking-[0.28em] text-[0.7vw] ${muted} font-medium`}>

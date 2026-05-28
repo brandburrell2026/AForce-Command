@@ -44,7 +44,7 @@ export function Reinforce() {
         </div>
       </div>
       <div className="w-full flex justify-center mt-auto z-10">
-        <span className="text-[11px] text-white/30 font-light">AForce learns from your last 28 days.</span>
+        <span className="text-[11px] text-white/30 font-light">AFORCE learns from your last 28 days.</span>
       </div>
     </div>
   );

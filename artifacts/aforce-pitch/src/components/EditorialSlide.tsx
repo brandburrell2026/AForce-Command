@@ -95,7 +95,7 @@ export default function EditorialSlide({
         transition={{ duration: 0.6, delay: 0.45 }}
       >
         <div className="font-display font-extrabold tracking-tight text-[1.4vw] text-red leading-none">
-          AForce
+          AFORCE
           <span className="text-[0.55em] align-super tracking-normal ml-[0.1em] font-medium">
             ™
           </span>
