@@ -59,8 +59,7 @@ export default function SoundGate({ onUnlock }: { onUnlock: () => void }) {
           className="fixed inset-0 z-[9999] cursor-pointer bg-bg"
         >
           <div className="absolute top-[4.5vh] left-[5vw] font-display font-extrabold tracking-tight text-red text-[1.4vw] leading-none">
-            AFORCE
-            <span className="text-[0.55em] align-super tracking-normal ml-[0.1em] font-medium">™</span>
+            AForce
           </div>
 
           <div className="absolute inset-0 flex flex-col items-center justify-center">

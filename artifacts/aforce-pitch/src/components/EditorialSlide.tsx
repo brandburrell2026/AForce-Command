@@ -95,10 +95,7 @@ export default function EditorialSlide({
         transition={{ duration: 0.6, delay: 0.45 }}
       >
         <div className="font-display font-extrabold tracking-tight text-[1.4vw] text-red leading-none">
-          AFORCE
-          <span className="text-[0.55em] align-super tracking-normal ml-[0.1em] font-medium">
-            ™
-          </span>
+          AForce
         </div>
         <div className="font-display uppercase tracking-[0.32em] text-[0.72vw] text-text/60 font-medium">
           {phaseLabel}

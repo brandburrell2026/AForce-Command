@@ -18,7 +18,7 @@ export default function CategoryShift() {
       footer={
         <>
           <p>The category sells moments. A drink. A spike. A scroll.</p>
-          <p>AFORCE™ builds readiness.</p>
+          <p>AForce builds readiness.</p>
           <p>A ritual. A loop. A system.</p>
         </>
       }

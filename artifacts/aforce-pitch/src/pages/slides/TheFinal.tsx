@@ -15,7 +15,7 @@ export default function TheFinal() {
       }
       footer={
         <>
-          <p>AFORCE™ makes sure you are always on.</p>
+          <p>AForce makes sure you are always on.</p>
           <p>Pause. Hydrate. Lock in. Perform.</p>
         </>
       }
