@@ -54,7 +54,7 @@ export default function NonNegotiable() {
           {MANTRA.map((step, i) => (
             <div key={step} className="flex items-center gap-[1.1vw]">
               <span
-                className={`font-body uppercase tracking-[0.3em] text-[0.72vw] font-semibold ${
+                className={`font-body uppercase tracking-[0.3em] text-[0.72vw] font-bold ${
                   i === 0 ? "text-red" : "text-text/35"
                 }`}
               >
