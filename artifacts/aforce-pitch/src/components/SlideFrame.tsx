@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 import { sectionFor, TOTAL_SLIDES } from "@/components/SlideChrome";
+import Wordmark from "@/components/Wordmark";
 
 interface SlideFrameProps {
   slide: number;
@@ -39,9 +40,7 @@ export default function SlideFrame({
 
       {/* TOP CHROME */}
       <div className="absolute top-[4.5vh] left-[5vw] right-[5vw] flex justify-between items-start z-20 pointer-events-none">
-        <div className="font-display font-extrabold tracking-tight text-[1.4vw] text-red leading-none">
-          AForce
-        </div>
+        <Wordmark className="h-[1.5vw]" />
         <div
           className={`uppercase tracking-[0.22em] text-[0.62vw] font-semibold border px-[0.7vw] py-[0.35vh] rounded-full ${pill}`}
         >

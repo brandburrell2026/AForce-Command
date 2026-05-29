@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 
+import Wordmark from "@/components/Wordmark";
+
 export const TOTAL_SLIDES = 14;
 
 const BG_NAMES = [
@@ -79,9 +81,7 @@ export default function SlideChrome({
         <div className="absolute inset-0 pointer-events-none z-20">
           {/* TOP CHROME — AForce wordmark left, investor briefing line + patent badge right */}
           <div className="absolute top-[4.5vh] left-[5vw] right-[5vw] flex justify-between items-start">
-            <div className={`font-display font-extrabold tracking-tight text-[1.4vw] text-red leading-none`}>
-              AForce
-            </div>
+            <Wordmark className="h-[1.5vw]" />
             <div className="flex items-center gap-[1.4vw]">
               <div className={`font-body uppercase tracking-[0.28em] text-[0.7vw] ${muted} font-medium`}>
                 Investor Deck · Phase 1 · Proof of Concept

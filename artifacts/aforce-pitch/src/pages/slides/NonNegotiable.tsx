@@ -1,4 +1,5 @@
 import { sectionFor, TOTAL_SLIDES } from "@/components/SlideChrome";
+import Wordmark from "@/components/Wordmark";
 
 const MANTRA = ["Pause", "Hydrate", "Lock In", "Perform"];
 
@@ -12,9 +13,7 @@ export default function NonNegotiable() {
     <div className="w-screen h-screen overflow-hidden relative bg-bg text-text font-body">
       {/* ───────── MASTHEAD ───────── */}
       <div className="absolute top-[5vh] left-[5vw] right-[5vw] z-20 flex items-start justify-between">
-        <div className="font-display font-semibold text-[2.6vw] leading-none tracking-[-0.01em] text-red">
-          AForce
-        </div>
+        <Wordmark className="h-[2.2vw]" />
         <div className="font-body uppercase tracking-[0.22em] text-[0.6vw] font-semibold text-red border border-red px-[0.7vw] py-[0.35vh] rounded-full">
           Patent-Protected
         </div>

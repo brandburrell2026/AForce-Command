@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 import { sectionFor, TOTAL_SLIDES } from "@/components/SlideChrome";
+import Wordmark from "@/components/Wordmark";
 
 interface EditorialSlideProps {
   slide: number;
@@ -85,9 +86,7 @@ export default function EditorialSlide({
 
       {/* TOP CHROME — wordmark + patent badge on the cream side */}
       <div className="absolute top-[4.5vh] left-[5vw] z-20 flex flex-col items-start gap-[1.4vh] pointer-events-none">
-        <div className="font-display font-extrabold tracking-tight text-[1.4vw] text-red leading-none">
-          AForce
-        </div>
+        <Wordmark className="h-[1.5vw]" />
         <div className="uppercase tracking-[0.22em] text-[0.62vw] font-semibold text-red border border-red px-[0.7vw] py-[0.35vh] rounded-full">
           Patent-Protected
         </div>
