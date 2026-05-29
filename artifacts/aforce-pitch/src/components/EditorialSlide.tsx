@@ -9,7 +9,8 @@ interface EditorialSlideProps {
   headline: ReactNode;
   /** One supporting sentence. Per the deck rules: one message, one thought. */
   support: ReactNode;
-  heroSrc: string;
+  /** Optional hero photograph. When omitted the slide is a full-width text layout. */
+  heroSrc?: string;
   heroObjectPosition?: string;
   phaseLabel?: string;
 }
@@ -34,27 +35,33 @@ export default function EditorialSlide({
 
   return (
     <div className="w-screen h-screen overflow-hidden relative bg-bg text-text font-body">
-      {/* RIGHT — full-bleed hero photograph */}
-      <div className="absolute inset-y-0 right-0 w-[55%]">
-        <img
-          src={heroSrc}
-          alt=""
-          className="w-full h-full object-cover"
-          style={{ objectPosition: heroObjectPosition }}
-        />
-        {/* soft gradient bleed into cream so the seam disappears */}
-        <div
-          aria-hidden
-          className="absolute inset-y-0 left-0 w-[14vw] pointer-events-none"
-          style={{
-            background:
-              "linear-gradient(to right, rgba(244,241,234,1) 0%, rgba(244,241,234,0) 100%)",
-          }}
-        />
-      </div>
+      {/* RIGHT — full-bleed hero photograph (optional) */}
+      {heroSrc && (
+        <div className="absolute inset-y-0 right-0 w-[55%]">
+          <img
+            src={heroSrc}
+            alt=""
+            className="w-full h-full object-cover"
+            style={{ objectPosition: heroObjectPosition }}
+          />
+          {/* soft gradient bleed into cream so the seam disappears */}
+          <div
+            aria-hidden
+            className="absolute inset-y-0 left-0 w-[14vw] pointer-events-none"
+            style={{
+              background:
+                "linear-gradient(to right, rgba(244,241,234,1) 0%, rgba(244,241,234,0) 100%)",
+            }}
+          />
+        </div>
+      )}
 
       {/* LEFT — cream wash holds the typography */}
-      <div className="absolute inset-y-0 left-0 w-[55%] flex flex-col px-[5vw] pt-[12vh] pb-[5vh] z-10">
+      <div
+        className={`absolute inset-y-0 left-0 flex flex-col px-[5vw] pt-[12vh] pb-[5vh] z-10 ${
+          heroSrc ? "w-[55%]" : "w-full"
+        }`}
+      >
         <div className="mb-[5vh]">
           <span className="font-display uppercase tracking-[0.32em] text-[0.78vw] text-blue font-semibold border-b-2 border-blue pb-[0.6vh]">
             {eyebrow}
