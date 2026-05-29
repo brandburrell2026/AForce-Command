@@ -83,7 +83,7 @@ export default function SlideChrome({
               AForce
             </div>
             <div className="flex items-center gap-[1.4vw]">
-              <div className={`font-display uppercase tracking-[0.28em] text-[0.7vw] ${muted} font-medium`}>
+              <div className={`font-body uppercase tracking-[0.28em] text-[0.7vw] ${muted} font-medium`}>
                 Investor Deck · Phase 1 · Proof of Concept
               </div>
               <div className={`uppercase tracking-[0.22em] text-[0.62vw] font-semibold text-red border border-red px-[0.7vw] py-[0.35vh] rounded-full`}>
@@ -94,10 +94,10 @@ export default function SlideChrome({
 
           {/* SECTION + PAGE COUNT — second row, subtle */}
           <div className="absolute top-[10vh] left-[5vw] right-[5vw] flex justify-between items-center">
-            <div className={`font-display uppercase tracking-[0.32em] text-[0.62vw] ${subtle} font-medium`}>
+            <div className={`font-body uppercase tracking-[0.32em] text-[0.62vw] ${subtle} font-medium`}>
               {label}
             </div>
-            <div className={`font-display uppercase tracking-[0.32em] text-[0.62vw] ${subtle} font-medium tabular-nums`}>
+            <div className={`font-body uppercase tracking-[0.32em] text-[0.62vw] ${subtle} font-medium tabular-nums`}>
               {String(slide).padStart(2, "0")} / {String(TOTAL_SLIDES).padStart(2, "0")}
             </div>
           </div>
@@ -105,10 +105,10 @@ export default function SlideChrome({
           {/* BOTTOM CHROME — confidential line + bold statement */}
           <div className="absolute bottom-[3.6vh] left-[5vw] right-[8vw]">
             <div className={`flex items-center justify-between gap-[3vw] border-t ${stroke}/30 pt-[1.4vh]`}>
-              <div className={`font-display uppercase tracking-[0.28em] text-[0.6vw] ${subtle} font-medium whitespace-nowrap`}>
+              <div className={`font-body uppercase tracking-[0.28em] text-[0.6vw] ${subtle} font-medium whitespace-nowrap`}>
                 Confidential · For discussion purposes only
               </div>
-              <div className={`font-display uppercase tracking-[0.28em] text-[0.62vw] ${ink} font-semibold whitespace-nowrap`}>
+              <div className={`font-body uppercase tracking-[0.28em] text-[0.62vw] ${ink} font-semibold whitespace-nowrap`}>
                 Build proof before scale.
               </div>
             </div>

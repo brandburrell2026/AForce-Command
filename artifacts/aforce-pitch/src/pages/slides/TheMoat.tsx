@@ -45,7 +45,7 @@ export default function TheMoat() {
               <div className="font-display text-[1.7vw] text-text font-normal leading-tight mb-[1.6vh]">
                 {p.t}
               </div>
-              <p className="font-display text-[0.95vw] leading-[1.5] text-text/65">
+              <p className="font-body text-[0.9vw] leading-[1.55] text-text/65">
                 {p.d}
               </p>
             </div>

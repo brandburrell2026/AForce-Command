@@ -49,7 +49,7 @@ export default function WhiteSpace() {
             <div className="text-blue font-normal">white space.</div>
           </h1>
 
-          <p className="mt-[4vh] max-w-[30vw] font-display text-[1.15vw] leading-[1.5] text-text/70">
+          <p className="mt-[4vh] max-w-[30vw] font-body text-[1.15vw] leading-[1.55] text-text/70">
             AForce owns the moment before execution — the one space the category
             left empty.
           </p>

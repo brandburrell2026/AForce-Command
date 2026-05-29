@@ -19,14 +19,14 @@ export default function ThePrize() {
             </span>
           </div>
 
-          <div className="font-display font-light tracking-[-0.04em] text-[8vw] leading-[0.9] text-text">
-            $4.2<span className="text-red font-normal">B</span>
+          <div className="font-display font-normal tracking-[0.01em] text-[8vw] leading-[0.9] text-text">
+            $4.2<span className="text-red">B</span>
           </div>
           <div className="mt-[2vh] font-display uppercase tracking-[0.22em] text-[0.8vw] text-text/55 font-medium">
             U.S. performance hydration by 2030 · illustrative
           </div>
 
-          <p className="mt-[4vh] max-w-[34vw] font-display text-[1.15vw] leading-[1.5] text-text/70">
+          <p className="mt-[4vh] max-w-[34vw] font-body text-[1.1vw] leading-[1.55] text-text/70">
             The market is evolving beyond energy into readiness, recovery, and
             daily ritual — and nobody owns the behavior.
           </p>

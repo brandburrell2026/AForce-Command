@@ -40,7 +40,7 @@ export default function RoadToRealDeal() {
                 <div className="mt-[1.4vh] font-display text-[1.7vw] text-text font-normal leading-tight">
                   {s.t}
                 </div>
-                <div className="mt-[1.2vh] font-display text-[0.95vw] leading-[1.45] text-text/60">
+                <div className="mt-[1.2vh] font-body text-[0.9vw] leading-[1.5] text-text/60">
                   {s.m}
                 </div>
               </div>

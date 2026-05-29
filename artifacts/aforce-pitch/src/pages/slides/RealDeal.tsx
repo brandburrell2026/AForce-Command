@@ -2,7 +2,7 @@ import SlideFrame from "@/components/SlideFrame";
 
 const BADGES = [
   { k: "Platform", v: "National Television" },
-  { k: "Status", v: "Selected — Hundreds Reviewed" },
+  { k: "Status", v: "Selected · Hundreds Reviewed" },
   { k: "On Air", v: "January 2027" },
 ];
 
@@ -21,7 +21,7 @@ export default function RealDeal() {
           <div className="text-blue font-normal">America's Real Deal.</div>
         </h1>
 
-        <p className="mt-[4vh] max-w-[46vw] font-display text-[1.2vw] leading-[1.5] text-text/70">
+        <p className="mt-[4vh] max-w-[46vw] font-body text-[1.15vw] leading-[1.55] text-text/70">
           Chosen from hundreds of companies for a nationally televised
           investment platform. This raise builds the proof we walk in with.
         </p>

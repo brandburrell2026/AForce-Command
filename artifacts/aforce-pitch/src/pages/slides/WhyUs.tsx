@@ -17,7 +17,7 @@ export default function WhyUs() {
             We lived the <span className="text-red font-normal">gap.</span>
           </h1>
 
-          <div className="mt-[4vh] max-w-[40vw] space-y-[2.4vh] font-display text-[1.1vw] leading-[1.55] text-text/75">
+          <div className="mt-[4vh] max-w-[40vw] space-y-[2.4vh] font-body text-[1.05vw] leading-[1.6] text-text/75">
             <p>
               High performers have endless tools for energy and almost none for
               readiness. We spent years in rooms where the margin between good and

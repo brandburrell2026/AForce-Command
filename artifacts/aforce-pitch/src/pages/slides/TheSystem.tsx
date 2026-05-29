@@ -23,7 +23,7 @@ export default function TheSystem() {
           The system.
         </h1>
 
-        <p className="mt-[2.4vh] max-w-[52vw] font-display text-[1.3vw] leading-[1.45] text-text/75">
+        <p className="mt-[2.4vh] max-w-[52vw] font-body text-[1.25vw] leading-[1.5] text-text/75">
           Products create <span className="text-red font-medium">acquisition.</span> The OS
           creates <span className="text-blue font-medium">retention.</span>
         </p>

@@ -43,7 +43,7 @@ export default function CategoryNoise() {
             <div>is <span className="text-red font-normal">noise.</span></div>
           </h1>
 
-          <p className="mt-[4vh] max-w-[34vw] font-display text-[1.15vw] leading-[1.5] text-text/70">
+          <p className="mt-[4vh] max-w-[34vw] font-body text-[1.1vw] leading-[1.55] text-text/70">
             Every brand competes for attention. Almost none compete for
             composure.
           </p>

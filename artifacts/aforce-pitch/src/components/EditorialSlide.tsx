@@ -64,20 +64,20 @@ export default function EditorialSlide({
           {headline}
         </h1>
 
-        <div className="mt-[4vh] max-w-[34vw] font-display text-[1.15vw] leading-[1.5] text-text/70 font-normal">
+        <div className="mt-[4vh] max-w-[34vw] font-body text-[1.1vw] leading-[1.55] text-text/70 font-normal">
           {support}
         </div>
 
         <div className="mt-auto pt-[2.4vh] border-t border-text/25 flex justify-between items-end gap-[2vw]">
           <div className="flex flex-col gap-[1vh] min-w-0">
-            <div className="font-display uppercase tracking-[0.28em] text-[0.6vw] text-text/55 font-medium whitespace-nowrap">
+            <div className="font-body uppercase tracking-[0.28em] text-[0.6vw] text-text/55 font-medium whitespace-nowrap">
               Confidential · For discussion purposes only
             </div>
-            <div className="font-display uppercase tracking-[0.28em] text-[0.6vw] text-text font-semibold whitespace-nowrap">
+            <div className="font-body uppercase tracking-[0.28em] text-[0.6vw] text-text font-semibold whitespace-nowrap">
               {topLabel} · {phaseLabel}
             </div>
           </div>
-          <div className="font-display uppercase tracking-[0.28em] text-[0.7vw] text-text/60 font-medium tabular-nums shrink-0">
+          <div className="font-body uppercase tracking-[0.28em] text-[0.7vw] text-text/60 font-medium tabular-nums shrink-0">
             {pageLabel}
           </div>
         </div>

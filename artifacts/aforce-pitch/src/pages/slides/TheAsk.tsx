@@ -18,10 +18,10 @@ export default function TheAsk() {
         </div>
 
         <div className="flex items-end gap-[2.5vw]">
-          <div className="font-display font-light tracking-[-0.04em] text-[9vw] leading-[0.85] text-text">
-            $4<span className="text-red font-normal">M</span>
+          <div className="font-display font-normal tracking-[0.01em] text-[9vw] leading-[0.85] text-text">
+            $4<span className="text-red">M</span>
           </div>
-          <div className="mb-[2vh] font-display text-[1.3vw] leading-[1.4] text-text/70 max-w-[26vw]">
+          <div className="mb-[2vh] font-body text-[1.2vw] leading-[1.5] text-text/70 max-w-[26vw]">
             A proof-of-concept raise. The capital funds proof of habit; the next
             round funds scale.
           </div>

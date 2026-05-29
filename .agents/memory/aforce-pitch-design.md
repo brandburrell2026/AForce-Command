@@ -3,13 +3,25 @@ name: aforce-pitch design language
 description: Visual + structural conventions for the AForce investor deck (artifacts/aforce-pitch).
 ---
 
-The deck is a **14-slide editorial** investor deck in a luxury-restraint
-magazine language: cream paper `#f4f1ea`, near-black ink, **red `#e41e2b`**
-and **blue `#2f5bff`** accent colors, Inter for display. The red `AForce`
-wordmark sits top-left (no ™ — see `aforce-wordmark.md`), an outline
+The deck is a **14-slide editorial** investor deck in a **high-end luxury
+fashion-magazine** language (Vogue/Harper's Bazaar): cream paper `#f4f1ea`,
+near-black ink, **red `#e41e2b`** and **blue `#2f5bff`** accent colors. The red
+`AForce` wordmark sits top-left (no ™ — see `aforce-wordmark.md`), an outline
 `Patent-Protected` pill top-right, and a hairline bottom rule carrying the
 `CONFIDENTIAL …` note + section/page count. Hero slides may carry warm
-documentary photography or the AForce can hero.
+documentary photography or the AForce can hero. Slide 1 (`NonNegotiable.tsx`)
+is a bespoke magazine *cover* (large serif masthead, issue line, standfirst).
+
+**Type system (serif display / sans body):** display uses high-contrast
+**Bodoni Moda** via the `--font-display-family` token in `index.css`
+(`font-display`); **all running prose, support copy, and chrome microcopy use
+Inter** (`font-body`). Eyebrows, headlines, big numerals, and the masthead are
+serif. **Why:** high-contrast Bodoni renders em-dashes and hyphens as
+near-invisible hairlines at body sizes — they vanish in any serif sentence.
+**How to apply:** keep em-dashes/hyphens out of serif (`font-display`) text;
+put any text containing `—`/`-` (or running prose generally) in `font-body`. On
+large serif figures use slight *positive* tracking (`tracking-[0.01em]`), never
+negative — negative tracking collapses serif glyphs into each other.
 
 **Per-slide rule:** ONE headline + ONE supporting thought + ONE image/chart,
 with massive whitespace. One emphasis word per H1 in red or blue.

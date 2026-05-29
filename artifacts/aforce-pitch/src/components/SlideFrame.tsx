@@ -54,18 +54,18 @@ export default function SlideFrame({
         className={`absolute bottom-[4vh] left-[5vw] right-[5vw] z-20 pointer-events-none flex justify-between items-end gap-[2vw] border-t ${ruleColor} pt-[1.6vh]`}
       >
         <div
-          className={`font-display uppercase tracking-[0.28em] text-[0.6vw] ${muted} font-medium whitespace-nowrap`}
+          className={`font-body uppercase tracking-[0.28em] text-[0.6vw] ${muted} font-medium whitespace-nowrap`}
         >
           Confidential · For discussion purposes only
         </div>
         <div className="flex items-end gap-[2vw]">
           <div
-            className={`font-display uppercase tracking-[0.28em] text-[0.6vw] ${ink} font-semibold whitespace-nowrap`}
+            className={`font-body uppercase tracking-[0.28em] text-[0.6vw] ${ink} font-semibold whitespace-nowrap`}
           >
             {topLabel} · {phaseLabel}
           </div>
           <div
-            className={`font-display uppercase tracking-[0.28em] text-[0.7vw] ${muted} font-medium tabular-nums`}
+            className={`font-body uppercase tracking-[0.28em] text-[0.7vw] ${muted} font-medium tabular-nums`}
           >
             {pageLabel}
           </div>

@@ -37,7 +37,7 @@ export default function TheRitual() {
           ))}
         </div>
 
-        <p className="mt-[7vh] font-display text-[1.15vw] leading-[1.5] text-text/60 text-center max-w-[44vw]">
+        <p className="mt-[7vh] font-body text-[1.15vw] leading-[1.55] text-text/60 text-center max-w-[44vw]">
           One behavior, four beats. The system that turns hydration into
           readiness.
         </p>
