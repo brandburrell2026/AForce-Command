@@ -12,6 +12,16 @@ interface EditorialSlideProps {
   heroObjectPosition?: string;
   sectionLabel?: string;
   phaseLabel?: string;
+  /**
+   * Opt-in (slide-specific): dissolve the photo's left edge into the
+   * cream page instead of washing cream *over* the photo. Avoids the
+   * muddy grey seam that the default bleed produces on dark images.
+   */
+  heroMaskFade?: boolean;
+  /** Opt-in: extra cinematic grade rendered over the hero (vignette etc.). */
+  heroOverlay?: ReactNode;
+  /** Opt-in: editorial accent rule + roomier footer for a premium feel. */
+  accent?: boolean;
 }
 
 export default function EditorialSlide({
@@ -23,6 +33,9 @@ export default function EditorialSlide({
   heroObjectPosition = "center",
   sectionLabel,
   phaseLabel = "Phase 1 — Proof of Concept",
+  heroMaskFade = false,
+  heroOverlay,
+  accent = false,
 }: EditorialSlideProps) {
   const { index, name } = sectionFor(slide);
   const topLabel = sectionLabel ?? `Section ${index} — ${name}`;
@@ -36,17 +49,35 @@ export default function EditorialSlide({
           src={heroSrc}
           alt=""
           className="w-full h-full object-cover"
-          style={{ objectPosition: heroObjectPosition }}
-        />
-        {/* soft gradient bleed into cream on the left edge so the seam disappears */}
-        <div
-          aria-hidden
-          className="absolute inset-y-0 left-0 w-[14vw] pointer-events-none"
           style={{
-            background:
-              "linear-gradient(to right, rgba(244,241,234,1) 0%, rgba(244,241,234,0) 100%)",
+            objectPosition: heroObjectPosition,
+            ...(heroMaskFade
+              ? {
+                  WebkitMaskImage:
+                    "linear-gradient(to right, transparent 0%, rgba(0,0,0,0.6) 9%, #000 18%)",
+                  maskImage:
+                    "linear-gradient(to right, transparent 0%, rgba(0,0,0,0.6) 9%, #000 18%)",
+                }
+              : {}),
           }}
         />
+        {heroMaskFade ? (
+          /* cinematic grade — handled by heroOverlay; no cream wash needed */
+          heroOverlay
+        ) : (
+          <>
+            {/* soft gradient bleed into cream on the left edge so the seam disappears */}
+            <div
+              aria-hidden
+              className="absolute inset-y-0 left-0 w-[14vw] pointer-events-none"
+              style={{
+                background:
+                  "linear-gradient(to right, rgba(244,241,234,1) 0%, rgba(244,241,234,0) 100%)",
+              }}
+            />
+            {heroOverlay}
+          </>
+        )}
       </div>
 
       {/* LEFT — cream wash holds the typography */}
@@ -57,9 +88,21 @@ export default function EditorialSlide({
         transition={{ duration: 0.7, ease: [0.22, 0.61, 0.36, 1], delay: 0.1 }}
       >
         {/* eyebrow */}
-        <div className="font-display uppercase tracking-[0.32em] text-[0.78vw] text-blue font-semibold mb-[6vh]">
+        <div className={`font-display uppercase tracking-[0.32em] text-[0.78vw] text-blue font-semibold ${accent ? "mb-[2.4vh]" : "mb-[6vh]"}`}>
           {eyebrow}
         </div>
+
+        {/* editorial accent rule */}
+        {accent ? (
+          <motion.div
+            aria-hidden
+            className="h-px bg-blue/50 mb-[3vh] origin-left"
+            initial={{ scaleX: 0, opacity: 0 }}
+            animate={{ scaleX: 1, opacity: 1 }}
+            transition={{ duration: 0.8, ease: [0.22, 0.61, 0.36, 1], delay: 0.4 }}
+            style={{ width: "4.5vw" }}
+          />
+        ) : null}
 
         {/* hero stack */}
         <h1 className="font-display font-light tracking-[-0.02em] text-[6.6vw] leading-[1.02] text-text">
@@ -67,7 +110,7 @@ export default function EditorialSlide({
         </h1>
 
         {/* footer copy */}
-        <div className="mt-auto pt-[4vh] font-display text-[1vw] leading-[1.55] text-text/70 font-normal italic">
+        <div className="mt-auto pt-[4vh] font-display text-[1vw] leading-[1.6] text-text/70 font-normal italic">
           {footer}
         </div>
       </motion.div>
