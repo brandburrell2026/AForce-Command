@@ -20,13 +20,12 @@ export default function NonNegotiable() {
         </div>
       </div>
 
-      {/* ───────── RIGHT — inset framed editorial figure ───────── */}
-      <div className="absolute top-[16vh] right-[4vw] bottom-[13vh] w-[41%] z-0">
+      {/* ───────── RIGHT — inset framed editorial figure (full image) ───────── */}
+      <div className="absolute top-[11vh] bottom-[8vh] right-[4vw] aspect-[1196/1438] max-w-[45%] z-0">
         <img
-          src={`${base}images/bg/16-silence-hooded2-crop.png`}
+          src={`${base}images/bg/16-silence-hooded3.png`}
           alt=""
           className="w-full h-full object-cover"
-          style={{ objectPosition: "50% 12%" }}
         />
       </div>
 
