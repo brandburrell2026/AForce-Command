@@ -3,12 +3,15 @@ name: aforce-pitch design language
 description: Visual + structural conventions for the AForce investor deck (artifacts/aforce-pitch).
 ---
 
-The deck is a **15-slide editorial** investor deck: cream paper `#f4f1ea`,
+The deck is an **editorial** investor deck: cream paper `#f4f1ea`,
 near-black ink, **red `#e41e2b`** and **blue `#2f5bff`** accent colors. The red
 `AForce` wordmark sits top-left (no ™ — see `aforce-wordmark.md`), an outline
 `Patent-Protected` pill top-right, and a hairline bottom rule carrying the
 `CONFIDENTIAL …` note + section/page count. Hero slides may carry warm
-documentary photography or the AForce can hero.
+documentary photography or the AForce can hero. A single full-bleed dark
+cinematic slide is allowed as mid-deck punctuation (slide 10 / The Proof Engine
+uses `SlideFrame invert` + a full-bleed hooded-athlete photo); the deck no
+longer has a separate dark "Close" back-cover.
 
 **Type system: Inter for everything.** Both `--font-display-family` and
 `--font-body-family` in `index.css` are Inter. **Why:** a high-contrast
@@ -23,16 +26,18 @@ figures. Not worth it given the rejection.
 **Per-slide rule:** ONE headline + ONE supporting thought + ONE image/chart,
 with massive whitespace. One emphasis word per H1 in red or blue.
 
-**Why:** the user approved a full rebuild from the prior 15-slide structure
-into a new 15-slide narrative per investor (Peter & Kristel) feedback.
-Numbers are intentionally illustrative and labeled "illustrative"; capital
-raise is $4M.
+**Why:** the user approved a full rebuild into a new narrative per investor
+(Peter & Kristel) feedback. Numbers are intentionally illustrative and labeled
+"illustrative"; capital raise is $4M.
 
 **How to apply:**
-- Slide count is 15. Sections in `SlideChrome.tsx`: Stakes 1-3, Opportunity
-  4-6, System 7-9, Team 10-11, Plan 12-14. Keep `SECTIONS` ranges contiguous
-  (no gaps) so `sectionFor()` never returns undefined, and keep
-  `TOTAL_SLIDES === manifest length`.
+- The deck ends on "The Ask" (no dark back-cover slide). Sections live in
+  `SlideChrome.tsx` (Stakes / Opportunity / System / Team / Plan). Keep
+  `SECTIONS` ranges contiguous (no gaps) so `sectionFor()` never returns
+  undefined, keep `TOTAL_SLIDES === manifest length`, and keep `BG_NAMES`
+  length === slide count. **Changing slide count means touching 4 places in
+  lockstep: manifest, `TOTAL_SLIDES`, `SECTIONS` ranges, `BG_NAMES`, plus the
+  `ambientTrackFor` act ranges in `App.tsx`** — stale ranges break silently.
 - Slides live in `src/pages/slides/*.tsx`, registered in
   `src/data/slides-manifest.json` (strict Zod), eager-globbed by
   `slideLoader.ts`. Run `pnpm --filter @workspace/aforce-pitch run
