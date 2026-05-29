@@ -58,7 +58,7 @@ I prefer iterative development, with frequent, small updates. Ask before making 
 ## Publishing & Distribution
 - **Build service:** Expo Application Services (EAS Build) — configured in `artifacts/aforce-os/eas.json` with `development`, `preview`, and `production` profiles.
 - **Bundle IDs:** iOS `com.aforce.os`, Android `com.aforce.os` (set in `app.json`).
-- **App icon / splash / adaptive icon:** WHOOP-cinematic branded set in `assets/images/` (`icon.png`, `splash.png`, `adaptive-icon.png`, `favicon.png`) — pure black background with WHOOP lime `#B6FF00` mark.
+- **App icon / splash / adaptive icon:** branded set in `assets/images/` (`icon.png`, `splash.png`, `adaptive-icon.png`, `favicon.png`). `icon.png` / `adaptive-icon.png` / `favicon.png` use a metallic silver water-drop mark on a pure black background; `splash.png` remains the WHOOP-cinematic splash.
 - **Build commands** (run from `artifacts/aforce-os/` after `pnpm eas:login` + `pnpm eas:configure`):
   - iOS production: `pnpm eas:build:ios`
   - Android production: `pnpm eas:build:android`
