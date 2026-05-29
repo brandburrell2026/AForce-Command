@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&family=Inter:wght@300;400;500;600;700;800;900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap");
 @import "tailwindcss";
 
 @theme inline {
@@ -22,7 +22,7 @@
   --slide-divider: rgba(26, 24, 21, 0.16);
   --slide-red: #e41e2b;
   --slide-blue: #2f5bff;
-  --font-display-family: "Bodoni Moda", "Didot", "Times New Roman", Georgia, serif;
+  --font-display-family: "Inter", system-ui, sans-serif;
   --font-body-family: "Inter", system-ui, sans-serif;
   color-scheme: light;
 }
@@ -39,6 +39,7 @@ body {
   background: var(--slide-bg);
   color: var(--slide-text);
   font-family: var(--font-body-family);
+  font-feature-settings: "ss01", "cv11";
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;

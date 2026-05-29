@@ -3,25 +3,22 @@ name: aforce-pitch design language
 description: Visual + structural conventions for the AForce investor deck (artifacts/aforce-pitch).
 ---
 
-The deck is a **14-slide editorial** investor deck in a **high-end luxury
-fashion-magazine** language (Vogue/Harper's Bazaar): cream paper `#f4f1ea`,
+The deck is a **14-slide editorial** investor deck: cream paper `#f4f1ea`,
 near-black ink, **red `#e41e2b`** and **blue `#2f5bff`** accent colors. The red
 `AForce` wordmark sits top-left (no ™ — see `aforce-wordmark.md`), an outline
 `Patent-Protected` pill top-right, and a hairline bottom rule carrying the
 `CONFIDENTIAL …` note + section/page count. Hero slides may carry warm
-documentary photography or the AForce can hero. Slide 1 (`NonNegotiable.tsx`)
-is a bespoke magazine *cover* (large serif masthead, issue line, standfirst).
+documentary photography or the AForce can hero.
 
-**Type system (serif display / sans body):** display uses high-contrast
-**Bodoni Moda** via the `--font-display-family` token in `index.css`
-(`font-display`); **all running prose, support copy, and chrome microcopy use
-Inter** (`font-body`). Eyebrows, headlines, big numerals, and the masthead are
-serif. **Why:** high-contrast Bodoni renders em-dashes and hyphens as
-near-invisible hairlines at body sizes — they vanish in any serif sentence.
-**How to apply:** keep em-dashes/hyphens out of serif (`font-display`) text;
-put any text containing `—`/`-` (or running prose generally) in `font-body`. On
-large serif figures use slight *positive* tracking (`tracking-[0.01em]`), never
-negative — negative tracking collapses serif glyphs into each other.
+**Type system: Inter for everything.** Both `--font-display-family` and
+`--font-body-family` in `index.css` are Inter. **Why:** a high-contrast
+serif (Bodoni Moda) magazine treatment was tried for display and the user
+**rejected it — change the font back to Inter**. Do not reintroduce a serif
+display face without an explicit ask. **Serif gotcha (if ever revisited):**
+high-contrast Bodoni renders em-dashes/hyphens as near-invisible hairlines in
+running text, and negative letter-tracking collapses serif glyphs — so a serif
+display would force Inter for all prose/chrome and positive tracking on big
+figures. Not worth it given the rejection.
 
 **Per-slide rule:** ONE headline + ONE supporting thought + ONE image/chart,
 with massive whitespace. One emphasis word per H1 in red or blue.
