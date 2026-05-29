@@ -9,12 +9,12 @@ import type { UserState, UserProfile, HistoryEntry, RosterPlayer } from '../type
 // ─── Mock User State ──────────────────────────────────────────────────────────
 export const defaultUserState: UserState = {
   // Demo seed: tuned so the scoring engine yields a BALANCED score
-  // (~80) on first home view after the lobby splash, matching the
+  // (76) on first home view after the lobby splash, matching the
   // teal "Performance stable" reference design.
   unitsConsumedToday: 5,
   aforceUnitsToday: 3,
   language: 'en',
-  ozConsumedToday: 60,
+  ozConsumedToday: 45,
   lastIntakeTime: new Date(Date.now() - 12 * 60 * 1000),
   lastIntakeType: 'aforce_stick',
   symptomState: 'none',
