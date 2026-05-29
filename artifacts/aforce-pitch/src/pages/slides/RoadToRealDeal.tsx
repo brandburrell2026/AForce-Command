@@ -8,8 +8,16 @@ const STOPS = [
 ];
 
 export default function RoadToRealDeal() {
+  const base = import.meta.env.BASE_URL;
   return (
     <SlideFrame slide={12}>
+      {/* America's Real Deal logo — destination mark */}
+      <img
+        src={`${base}images/brand/americas-real-deal.png`}
+        alt="America's Real Deal"
+        className="absolute top-[13vh] right-[6vw] w-[15vw] h-auto z-0 drop-shadow-[0_14px_24px_rgba(0,0,0,0.1)]"
+      />
+
       <div className="absolute inset-0 flex flex-col justify-center px-[5vw]">
         <div className="mb-[4vh]">
           <span className="font-display uppercase tracking-[0.32em] text-[0.78vw] text-blue font-semibold border-b-2 border-blue pb-[0.6vh]">
