@@ -1,4 +1,7 @@
+import { motion, useReducedMotion } from "framer-motion";
 import SlideFrame from "@/components/SlideFrame";
+
+const EASE = [0.16, 1, 0.3, 1] as const;
 
 const STOPS = [
   { date: "Jun 2026", t: "Soft Launch", m: "First concierge cohort" },
@@ -9,50 +12,129 @@ const STOPS = [
 
 export default function RoadToRealDeal() {
   const base = import.meta.env.BASE_URL;
+  const reduce = useReducedMotion();
+  const last = STOPS.length - 1;
+
   return (
     <SlideFrame slide={12}>
-      {/* America's Real Deal logo — destination mark */}
-      <img
-        src={`${base}images/brand/americas-real-deal.png`}
-        alt="America's Real Deal"
-        className="absolute top-[13vh] right-[6vw] w-[15vw] h-auto z-0 drop-shadow-[0_14px_24px_rgba(0,0,0,0.1)]"
-      />
+      <div className="absolute inset-0 flex flex-col justify-center px-[5vw] pt-[12vh] pb-[10vh]">
+        {/* header */}
+        <div className="flex items-end justify-between">
+          <div>
+            <motion.div
+              className="mb-[3.5vh]"
+              initial={reduce ? false : { opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={reduce ? undefined : { duration: 0.5, ease: EASE }}
+            >
+              <span className="font-display uppercase tracking-[0.32em] text-[0.78vw] text-blue font-semibold border-b-2 border-blue pb-[0.6vh]">
+                The Road
+              </span>
+            </motion.div>
 
-      <div className="absolute inset-0 flex flex-col justify-center px-[5vw]">
-        <div className="mb-[4vh]">
-          <span className="font-display uppercase tracking-[0.32em] text-[0.78vw] text-blue font-semibold border-b-2 border-blue pb-[0.6vh]">
-            The Road
-          </span>
+            <motion.h1
+              className="font-display font-light tracking-[-0.025em] text-[4.2vw] leading-[1.02] text-text"
+              initial={reduce ? false : { opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={reduce ? undefined : { duration: 0.6, ease: EASE, delay: 0.08 }}
+            >
+              Road to{" "}
+              <span className="text-blue font-normal">America's Real Deal.</span>
+            </motion.h1>
+          </div>
+
+          {/* destination mark */}
+          <motion.div
+            className="flex flex-col items-end pb-[0.5vh]"
+            initial={reduce ? false : { opacity: 0, x: 18 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={reduce ? undefined : { duration: 0.7, ease: EASE, delay: 0.2 }}
+          >
+            <span className="font-display uppercase tracking-[0.28em] text-[0.62vw] text-text/40 font-semibold mb-[1.4vh]">
+              The Destination
+            </span>
+            <img
+              src={`${base}images/brand/americas-real-deal.png`}
+              alt="America's Real Deal"
+              className="w-[13vw] h-auto"
+            />
+          </motion.div>
         </div>
 
-        <h1 className="font-display font-light tracking-[-0.025em] text-[4.4vw] leading-[1.02] text-text">
-          Road to{" "}
-          <span className="text-blue font-normal">America's Real Deal.</span>
-        </h1>
-
         {/* timeline */}
-        <div className="mt-[8vh] relative">
-          <div className="absolute left-0 right-0 top-[0.6vh] h-px bg-text/20" />
-          <div className="grid grid-cols-4 gap-[2vw]">
-            {STOPS.map((s, i) => (
-              <div
-                key={s.date}
-                className="relative pt-[3vh]"
-              >
-                <div
-                  className={`absolute -top-[0.4vh] left-0 w-[1.2vw] h-[1.2vw] rounded-full ${i === STOPS.length - 1 ? "bg-red" : "bg-text/30"}`}
-                />
-                <div className="font-display uppercase tracking-[0.22em] text-[0.7vw] text-text/50 font-medium">
-                  {s.date}
-                </div>
-                <div className="mt-[1.4vh] font-display text-[1.7vw] text-text font-normal leading-tight">
-                  {s.t}
-                </div>
-                <div className="mt-[1.2vh] font-body text-[0.9vw] leading-[1.5] text-text/60">
-                  {s.m}
-                </div>
-              </div>
-            ))}
+        <div className="mt-[11vh] relative">
+          {/* base rail */}
+          <div className="absolute left-0 right-0 top-[0.75vh] h-[2px] bg-text/12" />
+          {/* animated progress fill */}
+          <motion.div
+            className="absolute left-0 top-[0.75vh] h-[2px] bg-blue origin-left"
+            style={{ right: 0 }}
+            initial={reduce ? false : { scaleX: 0 }}
+            animate={{ scaleX: 1 }}
+            transition={reduce ? undefined : { duration: 1.1, ease: EASE, delay: 0.35 }}
+          />
+
+          <div className="grid grid-cols-4 gap-[2.5vw]">
+            {STOPS.map((s, i) => {
+              const isLast = i === last;
+              return (
+                <motion.div
+                  key={s.date}
+                  className="relative pt-[4.5vh]"
+                  initial={reduce ? false : { opacity: 0, y: 18 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={
+                    reduce ? undefined : { duration: 0.5, ease: EASE, delay: 0.4 + i * 0.12 }
+                  }
+                >
+                  {/* phase index */}
+                  <div
+                    className={`font-display tracking-[0.1em] text-[0.7vw] font-semibold mb-[1.2vh] ${
+                      isLast ? "text-red" : "text-text/30"
+                    }`}
+                  >
+                    {String(i + 1).padStart(2, "0")}
+                  </div>
+
+                  {/* node on the rail */}
+                  {isLast ? (
+                    <span className="absolute -top-[0.35vh] left-0 flex items-center justify-center">
+                      <motion.span
+                        className="absolute w-[2.2vw] h-[2.2vw] rounded-full border border-red/40"
+                        initial={reduce ? false : { scale: 0.6, opacity: 0.7 }}
+                        animate={
+                          reduce
+                            ? undefined
+                            : { scale: [0.9, 1.5, 0.9], opacity: [0.6, 0, 0.6] }
+                        }
+                        transition={
+                          reduce
+                            ? undefined
+                            : { duration: 2.4, ease: "easeInOut", repeat: Infinity, delay: 2 }
+                        }
+                      />
+                      <span className="w-[1.4vw] h-[1.4vw] rounded-full bg-red shadow-[0_4px_12px_rgba(228,30,43,0.4)]" />
+                    </span>
+                  ) : (
+                    <span className="absolute top-0 left-0 w-[1.1vw] h-[1.1vw] rounded-full bg-blue ring-[0.35vw] ring-bg" />
+                  )}
+
+                  <div className="font-display uppercase tracking-[0.22em] text-[0.7vw] text-text/45 font-medium">
+                    {s.date}
+                  </div>
+                  <div
+                    className={`mt-[1.4vh] font-display text-[1.7vw] leading-tight ${
+                      isLast ? "text-red font-normal" : "text-text font-normal"
+                    }`}
+                  >
+                    {s.t}
+                  </div>
+                  <div className="mt-[1.2vh] font-body text-[0.92vw] leading-[1.5] text-text/60 max-w-[15vw]">
+                    {s.m}
+                  </div>
+                </motion.div>
+              );
+            })}
           </div>
         </div>
       </div>
