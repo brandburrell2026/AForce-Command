@@ -20,8 +20,6 @@ interface EditorialSlideProps {
   heroMaskFade?: boolean;
   /** Opt-in: extra cinematic grade rendered over the hero (vignette etc.). */
   heroOverlay?: ReactNode;
-  /** Opt-in: editorial accent rule + roomier footer for a premium feel. */
-  accent?: boolean;
 }
 
 export default function EditorialSlide({
@@ -35,7 +33,6 @@ export default function EditorialSlide({
   phaseLabel = "Phase 1 — Proof of Concept",
   heroMaskFade = false,
   heroOverlay,
-  accent = false,
 }: EditorialSlideProps) {
   const { index, name } = sectionFor(slide);
   const topLabel = sectionLabel ?? `Section ${index} — ${name}`;
@@ -82,66 +79,57 @@ export default function EditorialSlide({
 
       {/* LEFT — cream wash holds the typography */}
       <motion.div
-        className="absolute inset-y-0 left-0 w-[55%] flex flex-col px-[5vw] pt-[10vh] pb-[8vh] z-10"
+        className="absolute inset-y-0 left-0 w-[55%] flex flex-col px-[5vw] pt-[12vh] pb-[5vh] z-10"
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.7, ease: [0.22, 0.61, 0.36, 1], delay: 0.1 }}
       >
-        {/* eyebrow */}
-        <div className={`font-display uppercase tracking-[0.32em] text-[0.78vw] text-blue font-semibold ${accent ? "mb-[2.4vh]" : "mb-[6vh]"}`}>
-          {eyebrow}
+        {/* eyebrow — underlined, matching the Cover */}
+        <div className="mb-[5vh]">
+          <span className="font-display uppercase tracking-[0.32em] text-[0.78vw] text-blue font-semibold border-b-2 border-blue pb-[0.6vh]">
+            {eyebrow}
+          </span>
         </div>
 
-        {/* editorial accent rule */}
-        {accent ? (
-          <motion.div
-            aria-hidden
-            className="h-px bg-blue/50 mb-[3vh] origin-left"
-            initial={{ scaleX: 0, opacity: 0 }}
-            animate={{ scaleX: 1, opacity: 1 }}
-            transition={{ duration: 0.8, ease: [0.22, 0.61, 0.36, 1], delay: 0.4 }}
-            style={{ width: "4.5vw" }}
-          />
-        ) : null}
-
-        {/* hero stack */}
-        <h1 className="font-display font-light tracking-[-0.02em] text-[6.6vw] leading-[1.02] text-text">
+        {/* hero stack — matching the Cover's scale */}
+        <h1 className="font-display font-light tracking-[-0.025em] text-[5.6vw] leading-[1.02] text-text">
           {headline}
         </h1>
 
         {/* footer copy */}
-        <div className="mt-auto pt-[4vh] font-display text-[1vw] leading-[1.6] text-text/70 font-normal italic">
+        <div className="mt-[4vh] font-display text-[1vw] leading-[1.6] text-text/70 font-normal italic">
           {footer}
+        </div>
+
+        {/* bottom rule — matching the Cover */}
+        <div className="mt-auto pt-[2.4vh] border-t border-text/25 flex justify-between items-end gap-[2vw]">
+          <div className="flex flex-col gap-[1vh] min-w-0">
+            <div className="font-display uppercase tracking-[0.28em] text-[0.6vw] text-text/55 font-medium whitespace-nowrap">
+              Confidential · For discussion purposes only
+            </div>
+            <div className="font-display uppercase tracking-[0.28em] text-[0.6vw] text-text font-semibold whitespace-nowrap">
+              {topLabel} · {phaseLabel}
+            </div>
+          </div>
+          <div className="font-display uppercase tracking-[0.28em] text-[0.7vw] text-text/60 font-medium tabular-nums shrink-0">
+            {pageLabel}
+          </div>
         </div>
       </motion.div>
 
-      {/* TOP CHROME */}
+      {/* TOP CHROME — AForce wordmark + patent badge, kept on the cream
+          left side so they stay legible over any photograph */}
       <motion.div
-        className="absolute top-[4.5vh] left-[5vw] right-[5vw] flex justify-between items-start z-20 pointer-events-none"
+        className="absolute top-[4.5vh] left-[5vw] z-20 flex flex-col items-start gap-[1.4vh] pointer-events-none"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.6, delay: 0.35 }}
       >
-        <div className="font-display uppercase tracking-[0.32em] text-[0.72vw] text-text/60 font-medium">
-          {topLabel}
-        </div>
-        <div className="font-display uppercase tracking-[0.32em] text-[0.72vw] text-text/60 font-medium tabular-nums">
-          {pageLabel}
-        </div>
-      </motion.div>
-
-      {/* BOTTOM CHROME */}
-      <motion.div
-        className="absolute bottom-[4.5vh] left-[5vw] right-[5vw] flex justify-between items-end z-20 pointer-events-none"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.6, delay: 0.45 }}
-      >
         <div className="font-display font-extrabold tracking-tight text-[1.4vw] text-red leading-none">
           AForce
         </div>
-        <div className="font-display uppercase tracking-[0.32em] text-[0.72vw] text-text/60 font-medium">
-          {phaseLabel}
+        <div className="uppercase tracking-[0.22em] text-[0.62vw] font-semibold text-red border border-red px-[0.7vw] py-[0.35vh] rounded-full">
+          Patent-Protected
         </div>
       </motion.div>
     </div>

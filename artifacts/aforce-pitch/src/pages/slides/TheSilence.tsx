@@ -9,7 +9,6 @@ export default function TheSilence() {
       heroSrc={`${base}images/bg/03-silence.png`}
       heroObjectPosition="68% 42%"
       heroMaskFade
-      accent
       heroOverlay={
         <div
           aria-hidden
