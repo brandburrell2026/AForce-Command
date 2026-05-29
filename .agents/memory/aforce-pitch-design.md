@@ -29,7 +29,7 @@ Numbers are intentionally illustrative and labeled "illustrative"; capital
 raise is $4M.
 
 **How to apply:**
-- Slide count is 14. Sections in `SlideChrome.tsx`: Stakes 1-3, Opportunity
+- Slide count is 15. Sections in `SlideChrome.tsx`: Stakes 1-3, Opportunity
   4-6, System 7-9, Team 10-11, Plan 12-14. Keep `SECTIONS` ranges contiguous
   (no gaps) so `sectionFor()` never returns undefined, and keep
   `TOTAL_SLIDES === manifest length`.
