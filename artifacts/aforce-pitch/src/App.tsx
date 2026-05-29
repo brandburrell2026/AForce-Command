@@ -18,14 +18,14 @@ function getSlideIndex(pathname: string): number {
 
 function ambientTrackFor(position: number): string {
   const base = import.meta.env.BASE_URL;
-  // 15-slide structure (Documentary Warm cut):
-  // Act 1 — sparse tension (Tension):          slides 1-3
-  // Act 2 — controlled momentum (Shift+Product): slides 4-7
-  // Act 3 — premium propulsion (System+People+Proof): slides 8-13
-  // Act 4 — warm resolution (Close):           slides 14-15
+  // 14-slide structure:
+  // Act 1 — sparse tension (The Stakes):           slides 1-3
+  // Act 2 — controlled momentum (The Opportunity): slides 4-6
+  // Act 3 — premium propulsion (System + Team):    slides 7-11
+  // Act 4 — warm resolution (The Plan):            slides 12-14
   if (position <= 3) return `${base}audio/act1-opening.mp3`;
-  if (position <= 7) return `${base}audio/act2-momentum.mp3`;
-  if (position <= 13) return `${base}audio/act3-propulsion.mp3`;
+  if (position <= 6) return `${base}audio/act2-momentum.mp3`;
+  if (position <= 11) return `${base}audio/act3-propulsion.mp3`;
   return `${base}audio/act4-resolution.mp3`;
 }
 

@@ -1,22 +1,20 @@
 import { motion } from "framer-motion";
 import type { ReactNode } from "react";
 
-export const TOTAL_SLIDES = 15;
+export const TOTAL_SLIDES = 14;
 
 const BG_NAMES = [
-  "cover", "noise", "silence", "shift", "ritual",
-  "product", "os", "loop", "subscription", "target",
-  "founders", "proof", "economics", "ask", "final",
+  "final", "shift", "realdeal", "prize", "noise",
+  "whitespace", "ritual", "system", "moat", "proof",
+  "founders", "road", "economics", "ask",
 ];
 
 const SECTIONS: Array<{ name: string; range: [number, number] }> = [
-  { name: "Tension", range: [1, 3] },
-  { name: "The Shift", range: [4, 5] },
-  { name: "The Product", range: [6, 7] },
-  { name: "The System", range: [8, 9] },
-  { name: "The People", range: [10, 11] },
-  { name: "The Proof", range: [12, 13] },
-  { name: "The Close", range: [14, 15] },
+  { name: "The Stakes", range: [1, 3] },
+  { name: "The Opportunity", range: [4, 6] },
+  { name: "The System", range: [7, 9] },
+  { name: "The Team", range: [10, 11] },
+  { name: "The Plan", range: [12, 14] },
 ];
 
 export function sectionFor(slide: number): { index: number; name: string } {

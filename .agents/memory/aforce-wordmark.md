@@ -5,7 +5,7 @@ description: Brand mark in the pitch deck renders as "AForce" (mixed case, no �
 
 The pitch deck displays the brand as **AForce** — mixed case, no trademark superscript.
 
-**Why:** User reverted an earlier all-caps "AFORCE™" treatment. Mixed-case "AForce" is the canonical wordmark for slide chrome and body copy.
+**Why:** User reverted an earlier all-caps "AFORCE™" treatment. Mixed-case "AForce" is the canonical wordmark for slide chrome and body copy. A later deck rebuild reintroduced a `AForce™` superscript in `SlideFrame`/`EditorialSlide`; it was removed again to comply with this rule.
 
 **How to apply:**
 - Any new slide or chrome that shows the wordmark must use the literal string `AForce` — not `AFORCE`, not `AForce™`, no `<span>™</span>` superscript.
