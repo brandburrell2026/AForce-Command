@@ -2,4 +2,4 @@
 - [AForce Water-First wording lock](aforce-water-first.md) — coach copy must start with `HYDRATE NOW` / `Start with water`; products never lead, scans/recommendations never change score; launch i18n = en/es/fr/de/pt/it only.
 - [aforce-os icon map discipline](aforce-icons.md) — Icon name strings must exist in `theme/icons.ts` ICON_MAP; lucide name ≠ map key (e.g. `refresh-cw` not `refresh-ccw`, no `link`).
 - [AForce wordmark](aforce-wordmark.md) — pitch deck brand mark is the official AFORCE logo *artwork* via the shared `Wordmark` image component; never typeset the logo as text.
-- [aforce-pitch design language](aforce-pitch-design.md) — 14-slide cream editorial deck; Inter for ALL type (a serif/Bodoni magazine display was tried and user rejected it — don't reintroduce serif display without an explicit ask).
+- [aforce-pitch design language](aforce-pitch-design.md) — 15-slide cream editorial deck; Inter for ALL type (a serif/Bodoni magazine display was tried and user rejected it — don't reintroduce serif display without an explicit ask).

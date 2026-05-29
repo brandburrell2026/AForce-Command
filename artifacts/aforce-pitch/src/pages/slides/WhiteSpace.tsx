@@ -11,20 +11,27 @@ const FAINT = [
   { t: "GHOST", top: "74%", left: "93%", rot: -6 },
 ];
 
-// The full AForce lineup — cans + sticks — floating in the white space it owns.
-// kind drives sizing: cans are wider/shorter, sticks are tall + slim.
-const LINEUP = [
-  { src: "products/stick-watermelon.png", kind: "stick", h: 50, bottom: 18, left: 1, z: 10 },
-  { src: "products/can-watermelon.png", kind: "can", h: 58, bottom: 9, left: 10, z: 20 },
-  { src: "products/stick-soursop.png", kind: "stick", h: 56, bottom: 13, left: 27, z: 15 },
-  { src: "products/can-berry.png", kind: "can", h: 64, bottom: 6, left: 36, z: 30 },
-  { src: "products/stick-berry.png", kind: "stick", h: 56, bottom: 13, left: 54, z: 15 },
-  { src: "products/can-soursop.png", kind: "can", h: 58, bottom: 9, left: 64, z: 20 },
-] as const;
+// floor line (vh above frame bottom) — products stand here, reflections drop below.
+const FLOOR = 16;
+
+// Back row: the three sticks — set back, smaller, soft-focus for depth.
+const STICKS = [
+  { src: "stick-watermelon", h: 48, left: 2 },
+  { src: "stick-soursop", h: 50, left: 40 },
+  { src: "stick-berry", h: 48, left: 67 },
+];
+
+// Front row: the three cans — hero center, sharp, lit. Reflected on the floor.
+const CANS = [
+  { src: "can-watermelon", h: 56, left: 8, hero: false },
+  { src: "can-berry", h: 64, left: 33, hero: true },
+  { src: "can-soursop", h: 56, left: 61, hero: false },
+];
 
 export default function WhiteSpace() {
   const base = import.meta.env.BASE_URL;
   const reduce = useReducedMotion();
+  const img = (s: string) => `${base}images/products/${s}.png`;
 
   return (
     <SlideFrame slide={6}>
@@ -39,19 +46,15 @@ export default function WhiteSpace() {
             initial={reduce ? false : { opacity: 0, rotate: n.rot }}
             animate={
               reduce
-                ? { opacity: 0.06, rotate: n.rot }
-                : { opacity: 0.06, rotate: [n.rot - 1.5, n.rot + 1.5, n.rot - 1.5] }
+                ? { opacity: 0.05, rotate: n.rot }
+                : { opacity: 0.05, rotate: [n.rot - 1.5, n.rot + 1.5, n.rot - 1.5] }
             }
             transition={
               reduce
                 ? undefined
                 : {
                     opacity: { duration: 0.8, ease: EASE, delay: 0.1 },
-                    rotate: {
-                      duration: 6 + i,
-                      repeat: Infinity,
-                      ease: "easeInOut",
-                    },
+                    rotate: { duration: 6 + i, repeat: Infinity, ease: "easeInOut" },
                   }
             }
           >
@@ -59,58 +62,122 @@ export default function WhiteSpace() {
           </motion.div>
         ))}
 
-        {/* the white space itself — a luminous pocket the lineup owns */}
-        <motion.div
-          aria-hidden
-          className="absolute right-0 top-1/2 -translate-y-1/2 w-[60vw] h-[88vh] rounded-full pointer-events-none"
-          style={{
-            background:
-              "radial-gradient(closest-side, rgba(255,255,255,0.85), rgba(255,255,255,0.35) 55%, rgba(244,241,234,0) 78%)",
-          }}
-          initial={reduce ? false : { opacity: 0, scale: 0.85 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={reduce ? undefined : { duration: 1, ease: EASE }}
-        />
+        {/* the product stage */}
+        <div className="absolute right-0 bottom-0 top-0 w-[58%] z-10">
+          {/* cinematic spotlight — a bright cone of clarity behind the hero */}
+          <motion.div
+            aria-hidden
+            className="absolute pointer-events-none"
+            style={{
+              left: "10%",
+              right: "0%",
+              bottom: `${FLOOR - 6}vh`,
+              height: "82vh",
+              background:
+                "radial-gradient(closest-side at 45% 60%, rgba(255,255,255,0.95), rgba(255,255,255,0.45) 48%, rgba(244,241,234,0) 76%)",
+            }}
+            initial={reduce ? false : { opacity: 0, scale: 0.9 }}
+            animate={
+              reduce
+                ? { opacity: 1, scale: 1 }
+                : { opacity: [0.85, 1, 0.85], scale: 1 }
+            }
+            transition={
+              reduce
+                ? undefined
+                : {
+                    scale: { duration: 1, ease: EASE },
+                    opacity: { duration: 6, repeat: Infinity, ease: "easeInOut" },
+                  }
+            }
+          />
 
-        {/* the full product family — the clarity amid the noise */}
-        <div className="absolute right-0 bottom-0 top-0 w-[56%] z-10">
-          {LINEUP.map((p, i) => (
+          {/* glossy floor sheen the lineup stands on */}
+          <div
+            aria-hidden
+            className="absolute left-0 right-0 pointer-events-none"
+            style={{
+              bottom: 0,
+              height: `${FLOOR}vh`,
+              background:
+                "linear-gradient(to top, rgba(255,255,255,0.55), rgba(255,255,255,0) 85%)",
+            }}
+          />
+
+          {/* back row — sticks, soft-focus, receding */}
+          {STICKS.map((p, i) => (
             <motion.img
               key={p.src}
-              src={`${base}images/${p.src}`}
+              src={img(p.src)}
               alt=""
-              className="absolute w-auto object-contain drop-shadow-[0_30px_40px_rgba(0,0,0,0.14)]"
+              className="absolute w-auto object-contain"
               style={{
                 height: `${p.h}vh`,
-                bottom: `${p.bottom}vh`,
+                bottom: `${FLOOR + 4}vh`,
                 left: `${p.left}%`,
-                zIndex: p.z,
+                zIndex: 10,
+                filter: "blur(1.6px) brightness(0.97)",
+                opacity: 0.8,
               }}
-              initial={reduce ? false : { opacity: 0, y: 28 }}
-              animate={
-                reduce
-                  ? { opacity: 1, y: 0 }
-                  : { opacity: 1, y: [0, p.kind === "can" ? -10 : -7, 0] }
-              }
-              transition={
-                reduce
-                  ? undefined
-                  : {
-                      opacity: { duration: 0.7, ease: EASE, delay: 0.25 + i * 0.08 },
-                      y: {
-                        duration: 5 + i * 0.4,
-                        repeat: Infinity,
-                        ease: "easeInOut",
-                        delay: 1 + i * 0.12,
-                      },
-                    }
-              }
+              initial={reduce ? false : { opacity: 0, y: 26 }}
+              animate={{ opacity: 0.8, y: 0 }}
+              transition={reduce ? undefined : { duration: 0.7, ease: EASE, delay: 0.2 + i * 0.07 }}
             />
+          ))}
+
+          {/* front row — cans, sharp, with floor reflections */}
+          {CANS.map((p, i) => (
+            <div key={p.src}>
+              {/* reflection */}
+              <motion.img
+                src={img(p.src)}
+                alt=""
+                aria-hidden
+                className="absolute w-auto object-contain"
+                style={{
+                  height: `${p.h}vh`,
+                  bottom: `${FLOOR - p.h}vh`,
+                  left: `${p.left}%`,
+                  zIndex: p.hero ? 28 : 18,
+                  transform: "scaleY(-1)",
+                  opacity: 0.22,
+                  WebkitMaskImage:
+                    "linear-gradient(to top, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0) 55%)",
+                  maskImage:
+                    "linear-gradient(to top, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0) 55%)",
+                }}
+                initial={reduce ? false : { opacity: 0 }}
+                animate={{ opacity: 0.22 }}
+                transition={reduce ? undefined : { duration: 0.8, ease: EASE, delay: 0.5 + i * 0.08 }}
+              />
+              {/* the can */}
+              <motion.img
+                src={img(p.src)}
+                alt=""
+                className="absolute w-auto object-contain"
+                style={{
+                  height: `${p.h}vh`,
+                  bottom: `${FLOOR}vh`,
+                  left: `${p.left}%`,
+                  zIndex: p.hero ? 30 : 20,
+                  filter: p.hero
+                    ? "drop-shadow(0 26px 34px rgba(0,0,0,0.22))"
+                    : "drop-shadow(0 22px 28px rgba(0,0,0,0.16))",
+                }}
+                initial={reduce ? false : { opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={
+                  reduce
+                    ? undefined
+                    : { duration: 0.75, ease: EASE, delay: 0.3 + i * 0.1 }
+                }
+              />
+            </div>
           ))}
         </div>
 
         {/* the message — one statement */}
-        <div className="absolute inset-y-0 left-0 w-[46%] flex flex-col justify-center px-[5vw] z-20">
+        <div className="absolute inset-y-0 left-0 w-[44%] flex flex-col justify-center px-[5vw] z-20">
           <motion.div
             className="mb-[5vh]"
             initial={reduce ? false : { opacity: 0, y: 12 }}
