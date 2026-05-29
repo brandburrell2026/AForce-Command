@@ -2435,3 +2435,9 @@ id = "Z5vkmWSoUvKekYc53pCF0"
 uri = "file://screenshots/v9c-01.jpg"
 type = "image"
 title = "01 — The Ritual (matches reference)"
+
+[[outputs]]
+id = "Ql9tCHgk0iLLIjoUrRbFo"
+uri = "file://artifacts/aforce-os/assets/images/icon.png"
+type = "image"
+title = "AForce OS — App Icon"
