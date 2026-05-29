@@ -26,7 +26,7 @@ export default function NonNegotiable() {
           src={`${base}images/bg/16-silence-hooded-crop.png`}
           alt=""
           className="w-full h-full object-cover"
-          style={{ objectPosition: "50% 30%" }}
+          style={{ objectPosition: "50% 0%" }}
         />
       </div>
 
