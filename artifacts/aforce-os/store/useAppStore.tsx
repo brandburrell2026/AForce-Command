@@ -953,6 +953,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // commands. textToSpeech.speak (called inside the bus) is debounced
   // by 500ms on identical text so re-renders never double-trigger.
   const lastSpokenCommandIdRef = useRef<string | null>(null);
+  // Startup suppression: don't greet the user with a command voiceover
+  // the moment the app comes on. The first system command seen after
+  // mount (including any that lands while persisted state hydrates) is
+  // captured silently; only a genuine command change afterwards speaks.
+  const systemVoiceMountedAtRef = useRef(Date.now());
+  const SYSTEM_VOICE_STARTUP_GRACE_MS = 3000;
   useEffect(() => {
     if (!voiceCoachEnabled) return;
     if (!categoryAllowedForScope('system_command', voiceScopeRef.current)) return;
@@ -960,6 +966,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     if (!cmd?.action) return;
     if (lastSpokenCommandIdRef.current === cmd.id) return;
     lastSpokenCommandIdRef.current = cmd.id;
+    // Within the startup grace window we capture the command id above
+    // but stay silent, so opening the app never triggers a voiceover.
+    if (Date.now() - systemVoiceMountedAtRef.current < SYSTEM_VOICE_STARTUP_GRACE_MS) return;
     const intensity = voiceIntensityRef.current;
     const level = state.engineOutput.performanceState.level;
     const line = effectiveCommandLine(cmd.action, intensity, level);
