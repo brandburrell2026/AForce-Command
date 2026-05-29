@@ -17,21 +17,22 @@ export default function TheSystem() {
   const base = import.meta.env.BASE_URL;
   const reduce = useReducedMotion();
   const phone = `${base}aforce-os-phone.png`;
+  const phoneBack = `${base}recovery-coach-phone.png`;
 
   return (
     <SlideFrame slide={8}>
       <div className="absolute inset-0 overflow-hidden">
-        {/* right — the AForce OS, floating */}
+        {/* right — the AForce OS, two screens floating */}
         <div className="absolute right-0 top-0 bottom-0 w-[50%] z-10 flex items-center justify-center">
-          {/* soft glow behind the device */}
+          {/* soft glow behind the devices */}
           <motion.div
             aria-hidden
             className="absolute pointer-events-none"
             style={{
               top: "50%",
               left: "50%",
-              width: "62vh",
-              height: "62vh",
+              width: "66vh",
+              height: "66vh",
               transform: "translate(-50%,-52%)",
               background:
                 "radial-gradient(closest-side, rgba(47,91,255,0.16), rgba(255,255,255,0.6) 42%, rgba(244,241,234,0) 72%)",
@@ -50,31 +51,57 @@ export default function TheSystem() {
             aria-hidden
             className="absolute pointer-events-none"
             style={{
-              bottom: "7vh",
+              bottom: "6.5vh",
               left: "50%",
               transform: "translateX(-50%)",
-              width: "30vh",
+              width: "42vh",
               height: "6vh",
               background:
                 "radial-gradient(closest-side, rgba(0,0,0,0.22), rgba(0,0,0,0) 72%)",
-              filter: "blur(9px)",
+              filter: "blur(10px)",
             }}
           />
 
-          {/* the device */}
-          <motion.img
-            src={phone}
-            alt="AForce OS — the AI Coach running on mobile"
-            className="relative w-auto object-contain"
-            style={{
-              height: "84vh",
-              filter: "drop-shadow(0 30px 50px rgba(0,0,0,0.28))",
-            }}
-            initial={reduce ? false : { opacity: 0, x: 46 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={reduce ? undefined : { duration: 0.8, ease: EASE, delay: 0.2 }}
-          />
+          {/* the two devices, staggered for depth */}
+          <div className="relative" style={{ width: "78vh", height: "84vh" }}>
+            {/* back device — Recovery Coach */}
+            <div
+              className="absolute left-1/2 top-1/2"
+              style={{ transform: "translate(-50%, -50%) translate(-15vh, -3vh)" }}
+            >
+              <motion.img
+                src={phoneBack}
+                alt="AForce OS — Recovery Coach issuing the HYDRATE NOW command"
+                className="w-auto object-contain"
+                style={{
+                  height: "70vh",
+                  filter: "drop-shadow(0 26px 44px rgba(0,0,0,0.22))",
+                }}
+                initial={reduce ? false : { opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={reduce ? undefined : { duration: 0.8, ease: EASE, delay: 0.15 }}
+              />
+            </div>
 
+            {/* front device — the AI Coach */}
+            <div
+              className="absolute left-1/2 top-1/2 z-10"
+              style={{ transform: "translate(-50%, -50%) translate(15vh, 3vh)" }}
+            >
+              <motion.img
+                src={phone}
+                alt="AForce OS — the AI Coach running on mobile"
+                className="w-auto object-contain"
+                style={{
+                  height: "80vh",
+                  filter: "drop-shadow(0 32px 54px rgba(0,0,0,0.30))",
+                }}
+                initial={reduce ? false : { opacity: 0, y: 22 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={reduce ? undefined : { duration: 0.8, ease: EASE, delay: 0.3 }}
+              />
+            </div>
+          </div>
         </div>
 
         {/* left — the message + the loop */}
