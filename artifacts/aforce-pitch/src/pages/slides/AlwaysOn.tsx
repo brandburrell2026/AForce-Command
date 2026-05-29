@@ -6,7 +6,7 @@ export default function AlwaysOn() {
     <EditorialSlide
       slide={2}
       eyebrow="Who We Serve"
-      heroSrc={`${base}images/bg/02-alwayson-a.png`}
+      heroSrc={`${base}images/bg/02-alwayson-c.png`}
       heroObjectPosition="center"
       headline={
         <>
