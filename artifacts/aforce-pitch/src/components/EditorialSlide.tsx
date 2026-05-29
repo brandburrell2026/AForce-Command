@@ -126,7 +126,7 @@ export default function EditorialSlide({
         transition={{ duration: 0.6, delay: 0.35 }}
       >
         <div className="font-display font-extrabold tracking-tight text-[1.4vw] text-red leading-none">
-          AForce
+          AForce<sup className="text-[0.55em] align-super tracking-normal ml-[0.04em]">™</sup>
         </div>
         <div className="uppercase tracking-[0.22em] text-[0.62vw] font-semibold text-red border border-red px-[0.7vw] py-[0.35vh] rounded-full">
           Patent-Protected

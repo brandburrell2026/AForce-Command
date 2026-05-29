@@ -99,7 +99,7 @@ export default function Cover() {
         transition={{ duration: 0.6, delay: 0.35 }}
       >
         <div className="font-display font-extrabold tracking-tight text-[1.4vw] text-red leading-none">
-          AForce
+          AForce<sup className="text-[0.55em] align-super tracking-normal ml-[0.04em]">™</sup>
         </div>
         <div className="flex flex-col items-end gap-[1vh]">
           <div className="font-display uppercase tracking-[0.28em] text-[0.7vw] text-text/55 font-medium whitespace-nowrap">
