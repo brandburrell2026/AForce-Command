@@ -5,10 +5,10 @@ const EASE = [0.16, 1, 0.3, 1] as const;
 
 // Pushed to the far edges — the noise the category left behind.
 const FAINT = [
-  { t: "MONSTER", top: "12%", left: "70%", rot: -8 },
-  { t: "CELSIUS", top: "84%", left: "64%", rot: 6 },
-  { t: "PRIME", top: "22%", left: "92%", rot: 5 },
-  { t: "GHOST", top: "74%", left: "93%", rot: -6 },
+  { t: "RED BULL", top: "12%", left: "60%", rot: -8 },
+  { t: "GHOST", top: "84%", left: "64%", rot: 6 },
+  { t: "PRIME", top: "22%", left: "90%", rot: 5 },
+  { t: "LMNT", top: "74%", left: "92%", rot: -6 },
 ];
 
 // floor line (vh above frame bottom) — products stand here, reflections drop below.
