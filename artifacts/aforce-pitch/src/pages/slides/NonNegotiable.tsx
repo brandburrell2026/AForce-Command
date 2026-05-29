@@ -19,12 +19,12 @@ export default function NonNegotiable() {
         </div>
       </div>
 
-      {/* ───────── RIGHT — inset framed editorial figure (full image) ───────── */}
-      <div className="absolute top-[11vh] bottom-[8vh] right-[4vw] aspect-[1196/1438] max-w-[45%] z-0">
+      {/* ───────── RIGHT — the can, hero product ───────── */}
+      <div className="absolute top-[10vh] bottom-[8vh] right-[3vw] w-[42%] z-0 flex items-center justify-center">
         <img
-          src={`${base}images/bg/16-silence-hooded3.png`}
-          alt=""
-          className="w-full h-full object-cover"
+          src={`${base}images/aforce-can.png`}
+          alt="AForce"
+          className="h-full w-auto object-contain drop-shadow-[0_40px_55px_rgba(0,0,0,0.18)]"
         />
       </div>
 
