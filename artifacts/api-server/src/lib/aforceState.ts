@@ -84,7 +84,9 @@ function defaultSeed(): Omit<AforceUserStateRow, "updatedAt"> {
   return {
     userId: DEFAULT_USER_ID,
     unitsConsumedToday: 5,
-    ozConsumedToday: 60,
+    // 45 of 96 oz keeps the seeded engine score at a BALANCED 76 (matches
+    // artifacts/aforce-os/data/mockData.ts:defaultUserState).
+    ozConsumedToday: 45,
     aforceUnitsToday: 3,
     lastIntakeTime: lastIntake,
     lastIntakeType: "aforce_stick",
