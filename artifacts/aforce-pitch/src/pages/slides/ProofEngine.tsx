@@ -7,7 +7,7 @@ export default function ProofEngine() {
       slide={10}
       eyebrow="The Proof Engine"
       heroSrc={`${base}images/bg/10-miami.jpg`}
-      heroObjectPosition="30% center"
+      heroObjectPosition="55% center"
       headline={
         <>
           <div>A concentrated</div>
