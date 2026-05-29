@@ -948,6 +948,12 @@ uri = "file://artifacts/aforce-pitch/public/images/bg/16-silence-woman.png"
 type = "image"
 title = "generated_image"
 
+[[generated]]
+id = "PqlJni73KYp1jQH9BWlYN"
+uri = "file://artifacts/aforce-pitch/public/images/bg/16-silence-light.png"
+type = "image"
+title = "generated_image"
+
 [[outputs]]
 id = "fILTiXCCTKYfWe9d8R46M"
 uri = "file://attached_assets/tester-share/aforce-tester-qr.png"
