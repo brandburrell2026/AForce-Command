@@ -6,8 +6,8 @@ export default function ProofEngine() {
     <EditorialSlide
       slide={10}
       eyebrow="The Proof Engine"
-      heroSrc={`${base}images/bg/12-proof.png`}
-      heroObjectPosition="center"
+      heroSrc={`${base}images/bg/10-miami.jpg`}
+      heroObjectPosition="30% center"
       headline={
         <>
           <div>A concentrated</div>
