@@ -1,5 +1,3 @@
-import { motion } from "framer-motion";
-
 import SlideFrame from "@/components/SlideFrame";
 
 export default function NonNegotiable() {
@@ -31,17 +29,12 @@ export default function NonNegotiable() {
           }}
         />
 
-        <motion.div
-          className="absolute left-[5vw] bottom-[18vh] max-w-[68%]"
-          initial={{ opacity: 0, y: 14 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.9, ease: [0.22, 0.61, 0.36, 1], delay: 0.25 }}
-        >
+        <div className="absolute left-[5vw] bottom-[18vh] max-w-[68%]">
           <h1 className="font-display font-light tracking-[-0.03em] text-[6vw] leading-[0.98] text-[#F5F4F1]">
             <div>Performance is</div>
             <div className="text-red font-normal">non-negotiable.</div>
           </h1>
-        </motion.div>
+        </div>
       </div>
     </SlideFrame>
   );

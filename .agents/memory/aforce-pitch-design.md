@@ -32,6 +32,8 @@ raise is $4M.
   `EditorialSlide.tsx` is the photo-split single-support-line layout.
 - `ambientTrackFor` in `App.tsx` maps slides to audio acts — keep ranges in
   lockstep with slide-count changes. Stale ranges break silently after a cut.
-- To screenshot a slide bypassing the SoundGate splash, append `?nogate=1`.
+- Slides render statically (no framer-motion). Per user request the intro
+  splash sound-gate and all slide entrance/transition animations were removed;
+  do not reintroduce motion or a gate without an explicit ask.
 - Google Fonts `@import` must come *before* `@import "tailwindcss"` in
   `index.css` or the production CSS parser drops the font import.

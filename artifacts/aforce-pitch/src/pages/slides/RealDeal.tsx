@@ -1,5 +1,3 @@
-import { motion } from "framer-motion";
-
 import SlideFrame from "@/components/SlideFrame";
 
 const BADGES = [
@@ -30,12 +28,9 @@ export default function RealDeal() {
 
         <div className="mt-[6vh] flex gap-[1.6vw]">
           {BADGES.map((b, i) => (
-            <motion.div
+            <div
               key={b.v}
               className="border border-text/20 rounded-[0.4vw] px-[1.6vw] py-[1.6vh] bg-bg-elev/60"
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.55, delay: 0.45 + i * 0.14 }}
             >
               <div className="font-display uppercase tracking-[0.28em] text-[0.6vw] text-text/45 font-medium">
                 {b.k}
@@ -43,7 +38,7 @@ export default function RealDeal() {
               <div className="mt-[1vh] font-display text-[1.25vw] leading-tight text-text font-medium">
                 {b.v}
               </div>
-            </motion.div>
+            </div>
           ))}
         </div>
       </div>

@@ -1,12 +1,8 @@
-import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 
 import AmbientAudio from "@/components/AmbientAudio";
 import PresentationHUD from "@/components/PresentationHUD";
-import SectionInterstitial from "@/components/SectionInterstitial";
-import SoundGate from "@/components/SoundGate";
-import { isSectionFirstSlide, sectionFor } from "@/components/SlideChrome";
 import { slides } from "@/slideLoader";
 
 function getSlideIndex(pathname: string): number {
@@ -41,45 +37,15 @@ function toggleFullscreen() {
 function SlideEditor() {
   const [location, navigate] = useLocation();
   const currentIndex = getSlideIndex(location);
-  const previousIndexRef = useRef<number>(-1);
   const [audioOn, setAudioOn] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(
     typeof document !== "undefined" && !!document.fullscreenElement,
   );
-  const [interstitial, setInterstitial] = useState<{
-    label: string;
-    token: number;
-  } | null>(null);
 
   const navigationDisabledRef = useRef(window.parent !== window.parent.parent);
   const touchHandledRefStable = useRef(false);
 
   const currentSlide = currentIndex >= 0 ? slides[currentIndex] : null;
-  const direction = useMemo(() => {
-    const prev = previousIndexRef.current;
-    if (prev === -1 || currentIndex === -1) return 1;
-    return currentIndex >= prev ? 1 : -1;
-  }, [currentIndex]);
-
-  useEffect(() => {
-    if (currentIndex === -1) return undefined;
-    const prev = previousIndexRef.current;
-    if (
-      prev !== -1 &&
-      currentIndex !== prev &&
-      currentSlide &&
-      isSectionFirstSlide(currentSlide.position) &&
-      currentSlide.position !== slides[0].position
-    ) {
-      const { name } = sectionFor(currentSlide.position);
-      setInterstitial({ label: name, token: Date.now() });
-      const t = window.setTimeout(() => setInterstitial(null), 1400);
-      previousIndexRef.current = currentIndex;
-      return () => window.clearTimeout(t);
-    }
-    previousIndexRef.current = currentIndex;
-    return undefined;
-  }, [currentIndex, currentSlide]);
 
   useEffect(() => {
     const onChange = () => setIsFullscreen(!!document.fullscreenElement);
@@ -188,31 +154,9 @@ function SlideEditor() {
 
   return (
     <div className="select-none">
-      <AnimatePresence mode="wait" initial={false}>
-        {currentSlide && (
-          <motion.div
-            key={currentSlide.id}
-            initial={{ opacity: 0, scale: 1.015, x: direction * 18 }}
-            animate={{ opacity: 1, scale: 1, x: 0 }}
-            exit={{ opacity: 0, scale: 0.99, x: -direction * 12 }}
-            transition={{
-              opacity: { duration: 0.55, ease: [0.22, 0.61, 0.36, 1] },
-              scale: { duration: 0.7, ease: [0.22, 0.61, 0.36, 1] },
-              x: { duration: 0.7, ease: [0.22, 0.61, 0.36, 1] },
-            }}
-            style={{ willChange: "opacity, transform" }}
-          >
-            <currentSlide.Component />
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {currentSlide && <currentSlide.Component />}
 
       <AmbientAudio enabled={audioOn} src={ambientTrackFor(currentSlide?.position ?? 1)} />
-      <SoundGate onUnlock={() => setAudioOn(true)} />
-      <SectionInterstitial
-        label={interstitial?.label ?? null}
-        token={interstitial?.token ?? 0}
-      />
       <PresentationHUD
         audioOn={audioOn}
         onToggleAudio={() => setAudioOn((v) => !v)}

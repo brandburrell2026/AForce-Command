@@ -1,5 +1,3 @@
-import { motion } from "framer-motion";
-
 import SlideFrame from "@/components/SlideFrame";
 
 const PILLARS = [
@@ -37,12 +35,9 @@ export default function TheMoat() {
 
         <div className="mt-[7vh] grid grid-cols-3 gap-[3vw]">
           {PILLARS.map((p, i) => (
-            <motion.div
+            <div
               key={p.n}
               className="border-t-2 border-text/80 pt-[2vh]"
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.55, delay: 0.4 + i * 0.16 }}
             >
               <div className="font-display text-[1.4vw] text-red font-light tabular-nums mb-[1.4vh]">
                 {p.n}
@@ -53,7 +48,7 @@ export default function TheMoat() {
               <p className="font-display text-[0.95vw] leading-[1.5] text-text/65">
                 {p.d}
               </p>
-            </motion.div>
+            </div>
           ))}
         </div>
       </div>

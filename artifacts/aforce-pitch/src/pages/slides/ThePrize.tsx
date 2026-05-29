@@ -1,5 +1,3 @@
-import { motion } from "framer-motion";
-
 import SlideFrame from "@/components/SlideFrame";
 
 const BARS = [
@@ -43,11 +41,9 @@ export default function ThePrize() {
                   <div className="font-display text-[1.1vw] font-medium text-text mb-[1.2vh]">
                     {b.label}
                   </div>
-                  <motion.div
+                  <div
                     className={`w-full rounded-t-[0.3vw] ${i === BARS.length - 1 ? "bg-red" : "bg-text/20"}`}
-                    initial={{ height: 0 }}
-                    animate={{ height: `${b.h}%` }}
-                    transition={{ duration: 0.8, delay: 0.3 + i * 0.14, ease: [0.22, 0.61, 0.36, 1] }}
+                    style={{ height: `${b.h}%` }}
                   />
                 </div>
               ))}

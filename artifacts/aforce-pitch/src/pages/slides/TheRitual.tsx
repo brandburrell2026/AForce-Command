@@ -1,5 +1,3 @@
-import { motion } from "framer-motion";
-
 import SlideFrame from "@/components/SlideFrame";
 
 const BEATS: Array<{ word: string; tone: string }> = [
@@ -21,16 +19,9 @@ export default function TheRitual() {
 
         <div className="flex items-baseline justify-center gap-[3vw] flex-wrap">
           {BEATS.map((beat, i) => (
-            <motion.div
+            <div
               key={beat.word}
               className="flex items-baseline"
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{
-                duration: 0.6,
-                ease: [0.22, 0.61, 0.36, 1],
-                delay: 0.3 + i * 0.18,
-              }}
             >
               <span
                 className={`font-display font-light tracking-[-0.03em] text-[4.6vw] leading-none ${beat.tone}`}
@@ -42,19 +33,14 @@ export default function TheRitual() {
                   /
                 </span>
               )}
-            </motion.div>
+            </div>
           ))}
         </div>
 
-        <motion.p
-          className="mt-[7vh] font-display text-[1.15vw] leading-[1.5] text-text/60 text-center max-w-[44vw]"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.7, delay: 1.1 }}
-        >
+        <p className="mt-[7vh] font-display text-[1.15vw] leading-[1.5] text-text/60 text-center max-w-[44vw]">
           One behavior, four beats. The system that turns hydration into
           readiness.
-        </motion.p>
+        </p>
       </div>
     </SlideFrame>
   );

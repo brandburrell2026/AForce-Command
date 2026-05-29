@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import type { ReactNode } from "react";
 
 import { sectionFor, TOTAL_SLIDES } from "@/components/SlideChrome";
@@ -34,22 +33,12 @@ export default function SlideFrame({
 
   return (
     <div className={`w-screen h-screen overflow-hidden relative ${bg} ${ink} font-body`}>
-      <motion.div
-        className="absolute inset-0 z-10"
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.7, ease: [0.22, 0.61, 0.36, 1], delay: 0.1 }}
-      >
+      <div className="absolute inset-0 z-10">
         {children}
-      </motion.div>
+      </div>
 
       {/* TOP CHROME */}
-      <motion.div
-        className="absolute top-[4.5vh] left-[5vw] right-[5vw] flex justify-between items-start z-20 pointer-events-none"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.6, delay: 0.35 }}
-      >
+      <div className="absolute top-[4.5vh] left-[5vw] right-[5vw] flex justify-between items-start z-20 pointer-events-none">
         <div className="font-display font-extrabold tracking-tight text-[1.4vw] text-red leading-none">
           AForce
         </div>
@@ -58,14 +47,11 @@ export default function SlideFrame({
         >
           Patent-Protected
         </div>
-      </motion.div>
+      </div>
 
       {/* BOTTOM RULE */}
-      <motion.div
+      <div
         className={`absolute bottom-[4vh] left-[5vw] right-[5vw] z-20 pointer-events-none flex justify-between items-end gap-[2vw] border-t ${ruleColor} pt-[1.6vh]`}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.6, delay: 0.4 }}
       >
         <div
           className={`font-display uppercase tracking-[0.28em] text-[0.6vw] ${muted} font-medium whitespace-nowrap`}
@@ -84,7 +70,7 @@ export default function SlideFrame({
             {pageLabel}
           </div>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 }

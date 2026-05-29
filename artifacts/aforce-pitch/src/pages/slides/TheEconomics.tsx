@@ -1,5 +1,3 @@
-import { motion } from "framer-motion";
-
 import SlideFrame from "@/components/SlideFrame";
 
 const METRICS = [
@@ -39,12 +37,9 @@ export default function TheEconomics() {
 
           <div className="grid grid-cols-2 gap-x-[3vw]">
             {METRICS.map((m, i) => (
-              <motion.div
+              <div
                 key={m.k}
                 className="flex items-baseline justify-between border-b border-text/15 py-[1.6vh]"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.4, delay: 0.35 + i * 0.08 }}
               >
                 <span className="font-display uppercase tracking-[0.16em] text-[0.72vw] text-text/55 font-medium">
                   {m.k}
@@ -52,7 +47,7 @@ export default function TheEconomics() {
                 <span className="font-display text-[1.5vw] text-text font-light tabular-nums">
                   {m.v}
                 </span>
-              </motion.div>
+              </div>
             ))}
           </div>
         </div>
@@ -66,11 +61,9 @@ export default function TheEconomics() {
             <div className="flex items-end justify-between gap-[2.5vw] h-[38vh]">
               {FORECAST.map((b, i) => (
                 <div key={b.year} className="flex-1 flex flex-col items-center justify-end h-full">
-                  <motion.div
+                  <div
                     className={`w-full rounded-t-[0.3vw] ${i === FORECAST.length - 1 ? "bg-blue" : "bg-text/20"}`}
-                    initial={{ height: 0 }}
-                    animate={{ height: `${b.h}%` }}
-                    transition={{ duration: 0.8, delay: 0.4 + i * 0.16, ease: [0.22, 0.61, 0.36, 1] }}
+                    style={{ height: `${b.h}%` }}
                   />
                 </div>
               ))}

@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import type { ReactNode } from "react";
 
 import { sectionFor, TOTAL_SLIDES } from "@/components/SlideChrome";
@@ -54,12 +53,7 @@ export default function EditorialSlide({
       </div>
 
       {/* LEFT — cream wash holds the typography */}
-      <motion.div
-        className="absolute inset-y-0 left-0 w-[55%] flex flex-col px-[5vw] pt-[12vh] pb-[5vh] z-10"
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.7, ease: [0.22, 0.61, 0.36, 1], delay: 0.1 }}
-      >
+      <div className="absolute inset-y-0 left-0 w-[55%] flex flex-col px-[5vw] pt-[12vh] pb-[5vh] z-10">
         <div className="mb-[5vh]">
           <span className="font-display uppercase tracking-[0.32em] text-[0.78vw] text-blue font-semibold border-b-2 border-blue pb-[0.6vh]">
             {eyebrow}
@@ -87,22 +81,17 @@ export default function EditorialSlide({
             {pageLabel}
           </div>
         </div>
-      </motion.div>
+      </div>
 
       {/* TOP CHROME — wordmark + patent badge on the cream side */}
-      <motion.div
-        className="absolute top-[4.5vh] left-[5vw] z-20 flex flex-col items-start gap-[1.4vh] pointer-events-none"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.6, delay: 0.35 }}
-      >
+      <div className="absolute top-[4.5vh] left-[5vw] z-20 flex flex-col items-start gap-[1.4vh] pointer-events-none">
         <div className="font-display font-extrabold tracking-tight text-[1.4vw] text-red leading-none">
           AForce
         </div>
         <div className="uppercase tracking-[0.22em] text-[0.62vw] font-semibold text-red border border-red px-[0.7vw] py-[0.35vh] rounded-full">
           Patent-Protected
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 }

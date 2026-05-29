@@ -1,5 +1,3 @@
-import { motion } from "framer-motion";
-
 import SlideFrame from "@/components/SlideFrame";
 
 const NOISE = [
@@ -17,7 +15,7 @@ export default function CategoryNoise() {
       <div className="absolute inset-0">
         {/* the chaos — competitor wordmarks scattered, faded */}
         {NOISE.map((n) => (
-          <motion.div
+          <div
             key={n.t}
             className="absolute font-display font-extrabold tracking-tight text-text whitespace-nowrap select-none"
             style={{
@@ -27,12 +25,9 @@ export default function CategoryNoise() {
               transform: `rotate(${n.rot}deg)`,
               opacity: n.o,
             }}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: n.o }}
-            transition={{ duration: 0.8, delay: 0.3 + Math.random() * 0.4 }}
           >
             {n.t}
-          </motion.div>
+          </div>
         ))}
 
         {/* the message */}

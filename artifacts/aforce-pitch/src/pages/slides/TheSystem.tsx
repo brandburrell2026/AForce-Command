@@ -1,5 +1,3 @@
-import { motion } from "framer-motion";
-
 import SlideFrame from "@/components/SlideFrame";
 
 const FLOW = [
@@ -33,12 +31,9 @@ export default function TheSystem() {
         {/* flow */}
         <div className="mt-[7vh] flex items-stretch gap-[0.6vw]">
           {FLOW.map((n, i) => (
-            <motion.div
+            <div
               key={n.t}
               className="flex items-center"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.4 + i * 0.12 }}
             >
               <div className="flex flex-col items-center justify-center border border-text/20 rounded-[0.4vw] bg-bg-elev/60 px-[1.5vw] py-[2.2vh] min-w-[9vw]">
                 <div className="font-display uppercase tracking-[0.22em] text-[0.55vw] text-text/40 font-medium mb-[0.8vh]">
@@ -51,7 +46,7 @@ export default function TheSystem() {
               {i < FLOW.length - 1 && (
                 <div className="px-[0.5vw] text-text/30 font-display text-[1.2vw]">→</div>
               )}
-            </motion.div>
+            </div>
           ))}
         </div>
       </div>

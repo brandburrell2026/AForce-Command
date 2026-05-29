@@ -1,5 +1,3 @@
-import { motion } from "framer-motion";
-
 import SlideFrame from "@/components/SlideFrame";
 
 const STOPS = [
@@ -29,12 +27,9 @@ export default function RoadToRealDeal() {
           <div className="absolute left-0 right-0 top-[0.6vh] h-px bg-text/20" />
           <div className="grid grid-cols-4 gap-[2vw]">
             {STOPS.map((s, i) => (
-              <motion.div
+              <div
                 key={s.date}
                 className="relative pt-[3vh]"
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.55, delay: 0.4 + i * 0.16 }}
               >
                 <div
                   className={`absolute -top-[0.4vh] left-0 w-[1.2vw] h-[1.2vw] rounded-full ${i === STOPS.length - 1 ? "bg-red" : "bg-text/30"}`}
@@ -48,7 +43,7 @@ export default function RoadToRealDeal() {
                 <div className="mt-[1.2vh] font-display text-[0.95vw] leading-[1.45] text-text/60">
                   {s.m}
                 </div>
-              </motion.div>
+              </div>
             ))}
           </div>
         </div>

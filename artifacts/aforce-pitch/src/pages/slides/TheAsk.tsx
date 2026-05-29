@@ -1,5 +1,3 @@
-import { motion } from "framer-motion";
-
 import SlideFrame from "@/components/SlideFrame";
 
 const USE = [
@@ -33,13 +31,10 @@ export default function TheAsk() {
         <div className="mt-[6vh] max-w-[60vw]">
           <div className="flex w-full h-[3.2vh] rounded-full overflow-hidden">
             {USE.map((u, i) => (
-              <motion.div
+              <div
                 key={u.label}
                 className={u.color}
                 style={{ width: `${u.pct}%` }}
-                initial={{ scaleX: 0, originX: 0 }}
-                animate={{ scaleX: 1 }}
-                transition={{ duration: 0.6, delay: 0.4 + i * 0.12, ease: [0.22, 0.61, 0.36, 1] }}
               />
             ))}
           </div>

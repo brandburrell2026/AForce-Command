@@ -1,5 +1,3 @@
-import { motion } from "framer-motion";
-
 import SlideFrame from "@/components/SlideFrame";
 
 const FAINT = [
@@ -32,13 +30,10 @@ export default function WhiteSpace() {
         ))}
 
         {/* the single can — the clarity amid the noise */}
-        <motion.img
+        <img
           src={`${base}images/aforce-can.png`}
           alt="AForce"
           className="absolute right-[16%] top-1/2 -translate-y-1/2 h-[64vh] w-auto object-contain z-10 drop-shadow-[0_40px_50px_rgba(0,0,0,0.16)]"
-          initial={{ opacity: 0, scale: 0.94 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.9, delay: 0.35, ease: [0.22, 0.61, 0.36, 1] }}
         />
 
         {/* the message */}

@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import type { ReactNode } from "react";
 
 export const TOTAL_SLIDES = 14;
@@ -72,22 +71,12 @@ export default function SlideChrome({
         className="absolute inset-0 z-0 bg-bg/70 pointer-events-none"
       />
 
-      <motion.div
-        className="absolute inset-0 w-full h-full z-10"
-        initial={{ opacity: 0, y: 6 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.7, ease: [0.22, 0.61, 0.36, 1], delay: 0.05 }}
-      >
+      <div className="absolute inset-0 w-full h-full z-10">
         {children}
-      </motion.div>
+      </div>
 
       {!hideChrome && (
-        <motion.div
-          className="absolute inset-0 pointer-events-none z-20"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-        >
+        <div className="absolute inset-0 pointer-events-none z-20">
           {/* TOP CHROME — AForce wordmark left, investor briefing line + patent badge right */}
           <div className="absolute top-[4.5vh] left-[5vw] right-[5vw] flex justify-between items-start">
             <div className={`font-display font-extrabold tracking-tight text-[1.4vw] text-red leading-none`}>
@@ -124,7 +113,7 @@ export default function SlideChrome({
               </div>
             </div>
           </div>
-        </motion.div>
+        </div>
       )}
     </div>
   );
