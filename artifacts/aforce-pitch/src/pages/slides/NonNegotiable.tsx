@@ -6,8 +6,8 @@ export default function NonNegotiable() {
     <EditorialSlide
       slide={1}
       eyebrow="The Silence"
-      heroSrc={`${base}images/bg/16-silence-woman.png`}
-      heroObjectPosition="center"
+      heroSrc={`${base}images/bg/16-silence-figure.png`}
+      heroObjectPosition="60% center"
       headline={
         <>
           <div>Performance is</div>
