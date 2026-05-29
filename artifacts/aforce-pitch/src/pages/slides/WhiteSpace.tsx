@@ -14,18 +14,19 @@ const FAINT = [
 // floor line (vh above frame bottom) — products stand here, reflections drop below.
 const FLOOR = 16;
 
-// Back row: the three sticks — set back, smaller, soft-focus for depth.
+// Back row: the three sticks — set back, soft-focus, nestled in the gaps
+// between the cans so each one peeks out for depth.
 const STICKS = [
-  { src: "stick-watermelon", h: 48, left: 2 },
-  { src: "stick-soursop", h: 50, left: 40 },
-  { src: "stick-berry", h: 48, left: 67 },
+  { src: "stick-watermelon", h: 48, left: 0 },
+  { src: "stick-soursop", h: 50, left: 30 },
+  { src: "stick-berry", h: 48, left: 62 },
 ];
 
 // Front row: the three cans — hero center, sharp, lit. Reflected on the floor.
 const CANS = [
-  { src: "can-watermelon", h: 56, left: 8, hero: false },
-  { src: "can-berry", h: 64, left: 33, hero: true },
-  { src: "can-soursop", h: 56, left: 61, hero: false },
+  { src: "can-watermelon", h: 56, left: 9, hero: false },
+  { src: "can-berry", h: 64, left: 38, hero: true },
+  { src: "can-soursop", h: 56, left: 70, hero: false },
 ];
 
 export default function WhiteSpace() {
@@ -63,7 +64,7 @@ export default function WhiteSpace() {
         ))}
 
         {/* the product stage */}
-        <div className="absolute right-0 bottom-0 top-0 w-[58%] z-10">
+        <div className="absolute right-0 bottom-0 top-0 w-[62%] z-10">
           {/* cinematic spotlight — a bright cone of clarity behind the hero */}
           <motion.div
             aria-hidden
