@@ -41,8 +41,12 @@ raise is $4M.
   `EditorialSlide.tsx` is the photo-split single-support-line layout.
 - `ambientTrackFor` in `App.tsx` maps slides to audio acts — keep ranges in
   lockstep with slide-count changes. Stale ranges break silently after a cut.
-- Slides render statically (no framer-motion). Per user request the intro
-  splash sound-gate and all slide entrance/transition animations were removed;
-  do not reintroduce motion or a gate without an explicit ask.
+- Motion policy: the intro splash sound-gate and global slide
+  entrance/transition animations stay removed — do not reintroduce a gate or
+  blanket slide transitions without an explicit ask. **Per-slide** framer-motion
+  is allowed when the user explicitly asks to make a slide "more dynamic" (e.g.
+  ThePrize / slide 4 has count-up + staggered bar-growth). Any such motion must
+  gate every entrance behind `useReducedMotion()` so reduced-motion users see the
+  final resting state (count-up/glow/bars and all fade/slide reveals disabled).
 - Google Fonts `@import` must come *before* `@import "tailwindcss"` in
   `index.css` or the production CSS parser drops the font import.
