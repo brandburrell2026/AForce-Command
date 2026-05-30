@@ -160,7 +160,7 @@ export default function TheEconomics() {
               </motion.div>
 
               <motion.div
-                className="flex flex-col rounded-[0.6vw] bg-blue px-[1.2vw] py-[1.4vh]"
+                className="flex flex-col rounded-[0.6vw] bg-black px-[1.2vw] py-[1.4vh]"
                 initial={reduce ? false : { opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={reduce ? undefined : { duration: 0.5, ease: EASE, delay: 0.46 }}
