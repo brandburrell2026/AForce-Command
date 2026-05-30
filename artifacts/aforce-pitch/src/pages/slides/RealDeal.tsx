@@ -14,7 +14,7 @@ export default function RealDeal() {
       <img
         src={`${base}images/brand/americas-real-deal.png`}
         alt="America's Real Deal"
-        className="absolute top-1/2 right-[6vw] -translate-y-1/2 w-[22vw] h-auto z-0 drop-shadow-[0_18px_30px_rgba(0,0,0,0.12)]"
+        className="absolute top-1/2 right-[6vw] -translate-y-1/2 w-[22vw] h-auto z-0"
       />
 
       <div className="absolute inset-0 flex flex-col justify-center px-[5vw] pr-[30vw]">
