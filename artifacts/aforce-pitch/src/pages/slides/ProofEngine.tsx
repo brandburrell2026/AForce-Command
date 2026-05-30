@@ -1,7 +1,11 @@
 import { motion, useReducedMotion } from "framer-motion";
 import SlideFrame from "@/components/SlideFrame";
+import { FLORIDA_PATH } from "./floridaPath";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
+
+// Miami / Brickell in the Florida outline's coordinate system (viewBox 0 0 73 80).
+const MIAMI = { x: 60.4, y: 56.2 };
 
 const PROOF = [
   {
@@ -21,24 +25,6 @@ const PROOF = [
     accent: true,
   },
 ];
-
-// Phyllotaxis spiral: dense at the center, sparse at the edge — a literal
-// picture of a concentrated proving ground. Inner points glow red.
-const DOTS = Array.from({ length: 46 }, (_, i) => {
-  const golden = 2.399963229728653;
-  const t = i / 46;
-  const radius = Math.sqrt(t) * 47; // 0 → 47 (% from center)
-  const angle = i * golden;
-  return {
-    x: 50 + radius * Math.cos(angle),
-    y: 50 + radius * Math.sin(angle),
-    size: 0.5 + (1 - t) * 1.05,
-    accent: radius < 17,
-    t,
-  };
-});
-
-const RINGS = [38, 66, 92]; // diameter as % of the square
 
 export default function ProofEngine() {
   const reduce = useReducedMotion();
@@ -114,80 +100,61 @@ export default function ProofEngine() {
           </div>
         </div>
 
-        {/* RIGHT — the concentration graphic */}
+        {/* RIGHT — the proving ground, on the map */}
         <div className="w-[48%] flex items-center justify-center pr-[6vw] pl-[1vw]">
           <motion.div
-            className="relative aspect-square w-[36vw] mb-[7vh]"
-            initial={reduce ? false : { opacity: 0, scale: 0.92 }}
+            className="relative aspect-square w-[34vw] mb-[7vh]"
+            initial={reduce ? false : { opacity: 0, scale: 0.94 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={reduce ? undefined : { duration: 0.8, ease: EASE, delay: 0.3 }}
           >
-            {/* soft pulsing glow behind the core */}
-            {!reduce && (
-              <motion.div
-                aria-hidden
-                className="pointer-events-none absolute left-1/2 top-1/2 h-[34%] w-[34%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-red/30 blur-[2.4vw]"
-                animate={{ opacity: [0.35, 0.8, 0.35], scale: [0.85, 1.08, 0.85] }}
-                transition={{ duration: 4.5, ease: "easeInOut", repeat: Infinity, delay: 1 }}
-              />
-            )}
-
-            {/* concentric rings */}
-            {RINGS.map((d, i) => (
-              <motion.div
-                key={d}
-                aria-hidden
-                className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border ${
-                  i === 0 ? "border-red/35" : "border-text/25"
-                }`}
-                style={{ width: `${d}%`, height: `${d}%` }}
-                initial={reduce ? false : { opacity: 0, scale: 0.6 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={
-                  reduce ? undefined : { duration: 0.7, ease: EASE, delay: 0.3 + i * 0.1 }
-                }
-              />
-            ))}
-
-            {/* converging dots */}
-            {DOTS.map((dot, i) => (
-              <motion.span
-                key={i}
-                aria-hidden
-                className={`absolute -translate-x-1/2 -translate-y-1/2 rounded-full ${
-                  dot.accent ? "bg-red" : "bg-text/55"
-                }`}
-                style={{
-                  left: `${dot.x}%`,
-                  top: `${dot.y}%`,
-                  width: `${dot.size}vw`,
-                  height: `${dot.size}vw`,
-                }}
-                initial={reduce ? false : { opacity: 0, scale: 0 }}
-                animate={{ opacity: dot.accent ? 1 : 0.85, scale: 1 }}
-                transition={
-                  reduce
-                    ? undefined
-                    : { duration: 0.45, ease: EASE, delay: 0.45 + dot.t * 0.6 }
-                }
-              />
-            ))}
-
-            {/* glowing core — the beachhead, marked red */}
-            <motion.div
-              className="absolute left-1/2 top-1/2 flex h-[17%] w-[17%] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-red shadow-[0_0_3vw_rgba(228,30,43,0.6)]"
-              initial={reduce ? false : { opacity: 0, scale: 0 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={
-                reduce
-                  ? undefined
-                  : { type: "spring", stiffness: 140, damping: 14, delay: 0.55 }
-              }
+            <svg
+              viewBox="0 4 70 64"
+              className="h-full w-full overflow-visible"
+              role="img"
+              aria-label="Map of Florida with Miami and Brickell highlighted"
             >
-              <span className="h-[42%] w-[42%] rounded-full bg-bg shadow-[0_0_0.8vw_rgba(255,255,255,0.7)]" />
-            </motion.div>
+              {/* Florida landmass */}
+              <motion.path
+                d={FLORIDA_PATH}
+                fill="#1a1815"
+                fillOpacity={0.07}
+                stroke="#1a1815"
+                strokeOpacity={0.32}
+                strokeWidth={0.45}
+                strokeLinejoin="round"
+                initial={reduce ? false : { opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={reduce ? undefined : { duration: 0.9, ease: EASE, delay: 0.35 }}
+              />
 
-            {/* core label */}
+              {/* pulsing halo at Miami / Brickell */}
+              {!reduce && (
+                <motion.circle
+                  cx={MIAMI.x}
+                  cy={MIAMI.y}
+                  fill="#e41e2b"
+                  fillOpacity={0.22}
+                  initial={{ r: 2.3, opacity: 0.5 }}
+                  animate={{ r: [2.3, 7.5, 2.3], opacity: [0.5, 0, 0.5] }}
+                  transition={{ duration: 3, ease: "easeInOut", repeat: Infinity, delay: 1.1 }}
+                />
+              )}
+
+              {/* the marker — always solid red, just fades in */}
+              <motion.circle
+                cx={MIAMI.x}
+                cy={MIAMI.y}
+                r={2.4}
+                fill="#e41e2b"
+                initial={reduce ? false : { opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={reduce ? undefined : { duration: 0.5, ease: EASE, delay: 0.8 }}
+              />
+              <circle cx={MIAMI.x} cy={MIAMI.y} r={0.9} fill="#f4f1ea" />
+            </svg>
+
+            {/* map caption */}
             <motion.div
               className="absolute left-1/2 top-full mt-[1.8vh] -translate-x-1/2 text-center"
               initial={reduce ? false : { opacity: 0, y: 8 }}

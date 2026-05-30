@@ -13,9 +13,13 @@ separate dark "Close" back-cover. **Slide 10 / The Proof Engine** is a
 data-forward cream slide (NOT dark cinematic — a full-bleed hooded-athlete
 `SlideFrame invert` version was tried and the user rejected it): left column =
 eyebrow/headline ("A concentrated / proving ground.") + support + three proof
-rows; right column = a phyllotaxis "concentration" graphic (dots densifying into
-a glowing blue core with a red Brickell beachhead pin, concentric rings, pulsing
-glow). Don't revert it to bare text or to the dark photo version without an ask.
+rows; right column = an actual **map of Florida** (public-domain outline path in
+`floridaPath.ts`, `FLORIDA_PATH`, viewBox `0 4 70 64`) with a solid **red marker
+at Miami/Brickell** (`MIAMI = {x:60.4, y:56.2}`) + a pulsing red halo, and a
+"Miami · Brickell / The beachhead" caption below. (An earlier phyllotaxis
+dots-into-glowing-core graphic was replaced by the user's request for a real
+map.) Don't revert it to the abstract graphic, bare text, or the dark photo
+version without an ask.
 
 **Type system: Inter for everything.** Both `--font-display-family` and
 `--font-body-family` in `index.css` are Inter. **Why:** a high-contrast
