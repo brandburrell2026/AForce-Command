@@ -52,7 +52,7 @@ export default function TheMoat() {
         className="absolute right-[-8vw] bottom-[-10vh] h-[55vh] w-[55vh] rounded-full"
         style={{
           background:
-            "radial-gradient(circle, rgba(47,91,255,0.10) 0%, rgba(47,91,255,0) 68%)",
+            "radial-gradient(circle, rgba(228,30,43,0.10) 0%, rgba(228,30,43,0) 68%)",
           filter: "blur(8px)",
         }}
       />
@@ -65,7 +65,7 @@ export default function TheMoat() {
           animate={{ opacity: 1, y: 0 }}
           transition={reduce ? undefined : { duration: 0.5, ease: EASE }}
         >
-          <span className="font-display uppercase tracking-[0.34em] text-[0.78vw] text-blue font-semibold border-b-2 border-blue pb-[0.6vh]">
+          <span className="font-display uppercase tracking-[0.34em] text-[0.78vw] text-red font-semibold border-b-2 border-red pb-[0.6vh]">
             The Moat
           </span>
         </motion.div>
@@ -93,8 +93,8 @@ export default function TheMoat() {
         {/* the three layers */}
         <div className="mt-[6vh] grid grid-cols-3 gap-[3vw] items-stretch">
           {PILLARS.map((p, i) => {
-            const fill = p.accent ? "bg-blue" : "bg-text/75";
-            const lvlTone = p.accent ? "text-blue" : "text-text/45";
+            const fill = p.accent ? "bg-red" : "bg-text/75";
+            const lvlTone = p.accent ? "text-red" : "text-text/45";
             return (
               <motion.div
                 key={p.n}
@@ -109,7 +109,7 @@ export default function TheMoat() {
                 <motion.span
                   aria-hidden
                   className={`block h-[2px] origin-left ${
-                    p.accent ? "bg-blue" : "bg-text/80"
+                    p.accent ? "bg-red" : "bg-text/80"
                   }`}
                   initial={reduce ? false : { scaleX: 0 }}
                   animate={{ scaleX: 1 }}
@@ -121,7 +121,7 @@ export default function TheMoat() {
                 <div className="pt-[2vh] flex flex-1 flex-col">
                   <div
                     className={`font-display text-[1.4vw] font-light tabular-nums mb-[1.4vh] ${
-                      p.accent ? "text-blue" : "text-red"
+                      p.accent ? "text-red" : "text-red"
                     }`}
                   >
                     {p.n}

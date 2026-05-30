@@ -19,14 +19,14 @@ export default function RealDeal() {
 
       <div className="absolute inset-0 flex flex-col justify-center px-[5vw] pr-[30vw]">
         <div className="mb-[5vh]">
-          <span className="font-display uppercase tracking-[0.32em] text-[0.78vw] text-blue font-semibold border-b-2 border-blue pb-[0.6vh]">
+          <span className="font-display uppercase tracking-[0.32em] text-[0.78vw] text-red font-semibold border-b-2 border-red pb-[0.6vh]">
             Validation
           </span>
         </div>
 
         <h1 className="font-display font-light tracking-[-0.025em] text-[5.4vw] leading-[1.02] text-text max-w-[80%]">
           <div>Selected for</div>
-          <div className="text-blue font-normal">America's Real Deal.</div>
+          <div className="text-red font-normal">America's Real Deal.</div>
         </h1>
 
         <p className="mt-[4vh] max-w-[46vw] font-body text-[1.15vw] leading-[1.55] text-text/70">

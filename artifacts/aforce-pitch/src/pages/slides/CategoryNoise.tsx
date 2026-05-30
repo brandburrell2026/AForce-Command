@@ -73,7 +73,7 @@ export default function CategoryNoise() {
             animate={{ opacity: 1, y: 0 }}
             transition={reduce ? undefined : { duration: 0.4, ease: EASE }}
           >
-            <span className="font-display uppercase tracking-[0.32em] text-[0.78vw] text-blue font-semibold border-b-2 border-blue pb-[0.6vh]">
+            <span className="font-display uppercase tracking-[0.32em] text-[0.78vw] text-red font-semibold border-b-2 border-red pb-[0.6vh]">
               The Problem
             </span>
           </motion.div>

@@ -8,7 +8,7 @@ type Beat = { idx: string; word: string; note: string; tone: string; dot: string
 
 const BEATS: Beat[] = [
   { idx: "01", word: "Pause", note: "Stop the noise", tone: "text-red", dot: "bg-red" },
-  { idx: "02", word: "Hydrate", note: "Start with water", tone: "text-blue", dot: "bg-blue", accent: true },
+  { idx: "02", word: "Hydrate", note: "Start with water", tone: "text-red", dot: "bg-red", accent: true },
   { idx: "03", word: "Lock in", note: "Set the intent", tone: "text-text", dot: "bg-text/30" },
   { idx: "04", word: "Perform", note: "Execute clean", tone: "text-text", dot: "bg-text/30" },
 ];
@@ -26,11 +26,11 @@ export default function TheRitual() {
           animate={{ opacity: 1, y: 0 }}
           transition={reduce ? undefined : { duration: 0.5, ease: EASE }}
         >
-          <span className="h-[2px] w-[3vw] bg-blue" />
-          <span className="font-display uppercase tracking-[0.34em] text-[0.78vw] text-blue font-semibold">
+          <span className="h-[2px] w-[3vw] bg-red" />
+          <span className="font-display uppercase tracking-[0.34em] text-[0.78vw] text-red font-semibold">
             The Ritual
           </span>
-          <span className="h-[2px] w-[3vw] bg-blue" />
+          <span className="h-[2px] w-[3vw] bg-red" />
         </motion.div>
 
         {/* kicker */}
@@ -81,7 +81,7 @@ export default function TheRitual() {
                     {beat.accent && !reduce && (
                       <motion.span
                         aria-hidden
-                        className="absolute h-[1vw] w-[1vw] rounded-full bg-blue/30"
+                        className="absolute h-[1vw] w-[1vw] rounded-full bg-red/30"
                         animate={{ scale: [1, 2.2, 1], opacity: [0.55, 0, 0.55] }}
                         transition={{ duration: 2.6, repeat: Infinity, ease: "easeInOut" }}
                       />

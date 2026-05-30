@@ -25,7 +25,7 @@ export default function AlwaysOn() {
         {/* LEFT — eyebrow + headline + support */}
         <div className="flex flex-col">
           <div className="mb-[5vh]">
-            <span className="font-display uppercase tracking-[0.32em] text-[0.78vw] text-blue font-semibold border-b-2 border-blue pb-[0.6vh]">
+            <span className="font-display uppercase tracking-[0.32em] text-[0.78vw] text-red font-semibold border-b-2 border-red pb-[0.6vh]">
               Who We Serve
             </span>
           </div>

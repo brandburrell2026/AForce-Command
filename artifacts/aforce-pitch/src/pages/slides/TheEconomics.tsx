@@ -13,8 +13,8 @@ const METRICS = [
 ];
 
 const FORECAST = [
-  { year: "Y1", h: 26, fill: "bg-blue/30" },
-  { year: "Y2", h: 54, fill: "bg-blue/60" },
+  { year: "Y1", h: 26, fill: "bg-red/30" },
+  { year: "Y2", h: 54, fill: "bg-red/60" },
   { year: "Y3", h: 100, fill: "bg-red" },
 ];
 
@@ -32,7 +32,7 @@ export default function TheEconomics() {
             animate={{ opacity: 1, y: 0 }}
             transition={reduce ? undefined : { duration: 0.5, ease: EASE }}
           >
-            <span className="font-display uppercase tracking-[0.32em] text-[0.78vw] text-blue font-semibold border-b-2 border-blue pb-[0.6vh]">
+            <span className="font-display uppercase tracking-[0.32em] text-[0.78vw] text-red font-semibold border-b-2 border-red pb-[0.6vh]">
               The Economics
             </span>
           </motion.div>

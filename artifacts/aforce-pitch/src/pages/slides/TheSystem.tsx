@@ -3,14 +3,14 @@ import SlideFrame from "@/components/SlideFrame";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
-// product/acquisition stages (red) flow into OS/retention stages (blue).
-const FLOW: Array<{ t: string; k: string; c: "red" | "blue" }> = [
+// product/acquisition stages (red) flow into OS/retention stages (dark).
+const FLOW: Array<{ t: string; k: string; c: "red" | "dark" }> = [
   { t: "Hydration", k: "Product", c: "red" },
   { t: "Daily Use", k: "Habit", c: "red" },
-  { t: "Tracking", k: "OS", c: "blue" },
-  { t: "Ritual", k: "Behavior", c: "blue" },
-  { t: "Subscription", k: "Revenue", c: "blue" },
-  { t: "Community", k: "Moat", c: "blue" },
+  { t: "Tracking", k: "OS", c: "dark" },
+  { t: "Ritual", k: "Behavior", c: "dark" },
+  { t: "Subscription", k: "Revenue", c: "dark" },
+  { t: "Community", k: "Moat", c: "dark" },
 ];
 
 export default function TheSystem() {
@@ -35,7 +35,7 @@ export default function TheSystem() {
               height: "66vh",
               transform: "translate(-50%,-52%)",
               background:
-                "radial-gradient(closest-side, rgba(47,91,255,0.16), rgba(255,255,255,0.6) 42%, rgba(244,241,234,0) 72%)",
+                "radial-gradient(closest-side, rgba(26,24,21,0.10), rgba(255,255,255,0.6) 42%, rgba(244,241,234,0) 72%)",
             }}
             initial={reduce ? false : { opacity: 0 }}
             animate={reduce ? { opacity: 1 } : { opacity: [0.85, 1, 0.85] }}
@@ -112,8 +112,8 @@ export default function TheSystem() {
             animate={{ opacity: 1, y: 0 }}
             transition={reduce ? undefined : { duration: 0.5, ease: EASE }}
           >
-            <span className="h-[2px] w-[3vw] bg-blue" />
-            <span className="font-display uppercase tracking-[0.34em] text-[0.78vw] text-blue font-semibold">
+            <span className="h-[2px] w-[3vw] bg-red" />
+            <span className="font-display uppercase tracking-[0.34em] text-[0.78vw] text-red font-semibold">
               The System
             </span>
           </motion.div>
@@ -134,7 +134,7 @@ export default function TheSystem() {
             transition={reduce ? undefined : { duration: 0.55, ease: EASE, delay: 0.22 }}
           >
             Products create <span className="text-red font-medium">acquisition.</span> The OS
-            creates <span className="text-blue font-medium">retention.</span>
+            creates <span className="text-text font-medium">retention.</span>
           </motion.p>
 
           {/* the loop — product stages flow into OS stages */}
@@ -158,7 +158,7 @@ export default function TheSystem() {
                 >
                   <span
                     className={`h-[0.7vw] w-[0.7vw] rounded-full shrink-0 z-10 ring-4 ring-bg ${
-                      n.c === "red" ? "bg-red" : "bg-blue"
+                      n.c === "red" ? "bg-red" : "bg-text/70"
                     }`}
                   />
                   <div className="flex items-baseline gap-[0.9vw]">

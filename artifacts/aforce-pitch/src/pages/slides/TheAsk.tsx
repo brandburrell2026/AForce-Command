@@ -5,7 +5,7 @@ const EASE = [0.16, 1, 0.3, 1] as const;
 
 const USE = [
   { pct: 40, label: "Product & Inventory", sub: "Launch SKUs + concierge stock", color: "bg-red" },
-  { pct: 25, label: "Marketing & Activation", sub: "Brickell density + activation", color: "bg-blue" },
+  { pct: 25, label: "Marketing & Activation", sub: "Brickell density + activation", color: "bg-red/45" },
   { pct: 20, label: "Technology & OS", sub: "AForce OS + AI coach", color: "bg-text/80" },
   { pct: 15, label: "Team & Operations", sub: "Founders + operators", color: "bg-text/35" },
 ];
@@ -22,7 +22,7 @@ export default function TheAsk() {
           animate={{ opacity: 1, y: 0 }}
           transition={reduce ? undefined : { duration: 0.5, ease: EASE }}
         >
-          <span className="font-display uppercase tracking-[0.32em] text-[0.78vw] text-blue font-semibold border-b-2 border-blue pb-[0.6vh]">
+          <span className="font-display uppercase tracking-[0.32em] text-[0.78vw] text-red font-semibold border-b-2 border-red pb-[0.6vh]">
             The Ask
           </span>
         </motion.div>

@@ -23,7 +23,7 @@ const PROOF = [
 ];
 
 // Phyllotaxis spiral: dense at the center, sparse at the edge — a literal
-// picture of a concentrated proving ground. Inner points glow blue.
+// picture of a concentrated proving ground. Inner points glow red.
 const DOTS = Array.from({ length: 46 }, (_, i) => {
   const golden = 2.399963229728653;
   const t = i / 46;
@@ -54,7 +54,7 @@ export default function ProofEngine() {
             animate={{ opacity: 1, y: 0 }}
             transition={reduce ? undefined : { duration: 0.5, ease: EASE }}
           >
-            <span className="font-display uppercase tracking-[0.34em] text-[0.78vw] text-blue font-semibold border-b-2 border-blue pb-[0.6vh]">
+            <span className="font-display uppercase tracking-[0.34em] text-[0.78vw] text-red font-semibold border-b-2 border-red pb-[0.6vh]">
               The Proof Engine
             </span>
           </motion.div>
@@ -66,7 +66,7 @@ export default function ProofEngine() {
             transition={reduce ? undefined : { duration: 0.6, ease: EASE, delay: 0.08 }}
           >
             <div>A concentrated</div>
-            <div className="text-blue font-normal">proving ground.</div>
+            <div className="text-red font-normal">proving ground.</div>
           </motion.h1>
 
           <motion.p
@@ -126,7 +126,7 @@ export default function ProofEngine() {
             {!reduce && (
               <motion.div
                 aria-hidden
-                className="pointer-events-none absolute left-1/2 top-1/2 h-[34%] w-[34%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-blue/30 blur-[2.4vw]"
+                className="pointer-events-none absolute left-1/2 top-1/2 h-[34%] w-[34%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-red/30 blur-[2.4vw]"
                 animate={{ opacity: [0.35, 0.8, 0.35], scale: [0.85, 1.08, 0.85] }}
                 transition={{ duration: 4.5, ease: "easeInOut", repeat: Infinity, delay: 1 }}
               />
@@ -138,7 +138,7 @@ export default function ProofEngine() {
                 key={d}
                 aria-hidden
                 className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border ${
-                  i === 0 ? "border-blue/35" : "border-text/25"
+                  i === 0 ? "border-red/35" : "border-text/25"
                 }`}
                 style={{ width: `${d}%`, height: `${d}%` }}
                 initial={reduce ? false : { opacity: 0, scale: 0.6 }}
@@ -155,7 +155,7 @@ export default function ProofEngine() {
                 key={i}
                 aria-hidden
                 className={`absolute -translate-x-1/2 -translate-y-1/2 rounded-full ${
-                  dot.accent ? "bg-blue" : "bg-text/55"
+                  dot.accent ? "bg-red" : "bg-text/55"
                 }`}
                 style={{
                   left: `${dot.x}%`,
@@ -175,7 +175,7 @@ export default function ProofEngine() {
 
             {/* glowing core — the beachhead, marked red */}
             <motion.div
-              className="absolute left-1/2 top-1/2 flex h-[17%] w-[17%] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-blue shadow-[0_0_3vw_rgba(47,91,255,0.65)]"
+              className="absolute left-1/2 top-1/2 flex h-[17%] w-[17%] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-red shadow-[0_0_3vw_rgba(228,30,43,0.6)]"
               initial={reduce ? false : { opacity: 0, scale: 0 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={
@@ -184,7 +184,7 @@ export default function ProofEngine() {
                   : { type: "spring", stiffness: 140, damping: 14, delay: 0.55 }
               }
             >
-              <span className="h-[42%] w-[42%] rounded-full bg-red shadow-[0_0_0.8vw_rgba(225,29,42,0.7)]" />
+              <span className="h-[42%] w-[42%] rounded-full bg-bg shadow-[0_0_0.8vw_rgba(255,255,255,0.7)]" />
             </motion.div>
 
             {/* core label */}
@@ -194,7 +194,7 @@ export default function ProofEngine() {
               animate={{ opacity: 1, y: 0 }}
               transition={reduce ? undefined : { duration: 0.6, ease: EASE, delay: 0.9 }}
             >
-              <div className="font-display uppercase tracking-[0.28em] text-[0.78vw] text-blue font-semibold whitespace-nowrap">
+              <div className="font-display uppercase tracking-[0.28em] text-[0.78vw] text-red font-semibold whitespace-nowrap">
                 Miami · Brickell
               </div>
               <div className="font-display uppercase tracking-[0.24em] text-[0.6vw] text-text/45 font-medium mt-[0.7vh] whitespace-nowrap">

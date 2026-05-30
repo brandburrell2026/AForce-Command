@@ -27,7 +27,7 @@ export default function RoadToRealDeal() {
               animate={{ opacity: 1, y: 0 }}
               transition={reduce ? undefined : { duration: 0.5, ease: EASE }}
             >
-              <span className="font-display uppercase tracking-[0.32em] text-[0.78vw] text-blue font-semibold border-b-2 border-blue pb-[0.6vh]">
+              <span className="font-display uppercase tracking-[0.32em] text-[0.78vw] text-red font-semibold border-b-2 border-red pb-[0.6vh]">
                 The Road
               </span>
             </motion.div>
@@ -39,7 +39,7 @@ export default function RoadToRealDeal() {
               transition={reduce ? undefined : { duration: 0.6, ease: EASE, delay: 0.08 }}
             >
               Road to{" "}
-              <span className="text-blue font-normal">America's Real Deal.</span>
+              <span className="text-red font-normal">America's Real Deal.</span>
             </motion.h1>
           </div>
 
@@ -67,7 +67,7 @@ export default function RoadToRealDeal() {
           <div className="absolute left-0 right-0 top-[0.75vh] h-[2px] bg-text/12" />
           {/* animated progress fill */}
           <motion.div
-            className="absolute left-0 top-[0.75vh] h-[2px] bg-blue origin-left"
+            className="absolute left-0 top-[0.75vh] h-[2px] bg-red origin-left"
             style={{ right: 0 }}
             initial={reduce ? false : { scaleX: 0 }}
             animate={{ scaleX: 1 }}
@@ -116,7 +116,7 @@ export default function RoadToRealDeal() {
                       <span className="w-[1.4vw] h-[1.4vw] rounded-full bg-red shadow-[0_4px_12px_rgba(228,30,43,0.4)]" />
                     </span>
                   ) : (
-                    <span className="absolute top-0 left-0 w-[1.1vw] h-[1.1vw] rounded-full bg-blue ring-[0.35vw] ring-bg" />
+                    <span className="absolute top-0 left-0 w-[1.1vw] h-[1.1vw] rounded-full bg-red ring-[0.35vw] ring-bg" />
                   )}
 
                   <div className="font-display uppercase tracking-[0.22em] text-[0.7vw] text-text/45 font-medium">

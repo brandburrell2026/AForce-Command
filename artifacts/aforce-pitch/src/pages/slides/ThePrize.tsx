@@ -45,7 +45,7 @@ export default function ThePrize() {
               transition: { duration: 0.6, ease: EASE },
             })}
           >
-            <span className="font-display uppercase tracking-[0.32em] text-[0.78vw] text-blue font-semibold border-b-2 border-blue pb-[0.6vh]">
+            <span className="font-display uppercase tracking-[0.32em] text-[0.78vw] text-red font-semibold border-b-2 border-red pb-[0.6vh]">
               The Prize
             </span>
           </motion.div>
