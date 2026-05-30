@@ -8,10 +8,14 @@ near-black ink, **red `#e41e2b`** and **blue `#2f5bff`** accent colors. The red
 `AForce` wordmark sits top-left (no ™ — see `aforce-wordmark.md`), an outline
 `Patent-Protected` pill top-right, and a hairline bottom rule carrying the
 `CONFIDENTIAL …` note + section/page count. Hero slides may carry warm
-documentary photography or the AForce can hero. A single full-bleed dark
-cinematic slide is allowed as mid-deck punctuation (slide 10 / The Proof Engine
-uses `SlideFrame invert` + a full-bleed hooded-athlete photo); the deck no
-longer has a separate dark "Close" back-cover.
+documentary photography or the AForce can hero. The deck no longer has a
+separate dark "Close" back-cover. **Slide 10 / The Proof Engine** is a
+data-forward cream slide (NOT dark cinematic — a full-bleed hooded-athlete
+`SlideFrame invert` version was tried and the user rejected it): left column =
+eyebrow/headline ("A concentrated / proving ground.") + support + three proof
+rows; right column = a phyllotaxis "concentration" graphic (dots densifying into
+a glowing blue core with a red Brickell beachhead pin, concentric rings, pulsing
+glow). Don't revert it to bare text or to the dark photo version without an ask.
 
 **Type system: Inter for everything.** Both `--font-display-family` and
 `--font-body-family` in `index.css` are Inter. **Why:** a high-contrast
