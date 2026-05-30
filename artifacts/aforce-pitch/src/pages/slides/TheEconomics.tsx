@@ -4,7 +4,7 @@ import SlideFrame from "@/components/SlideFrame";
 const EASE = [0.16, 1, 0.3, 1] as const;
 
 const STATS = [
-  { k: "CAC Target", v: "$32", note: "Stop / pivot at $50" },
+  { k: "CAC Target", v: "$32", note: "Stop / pivot at $50", red: true },
   { k: "LTV", v: "$792", note: "$99/mo · 8 mo avg" },
   { k: "LTV : CAC", v: "24.8×", note: "At $32 CAC", hero: true },
   { k: "Sub Conversion", v: "20%+", note: "Of first purchases" },
@@ -12,16 +12,16 @@ const STATS = [
 
 const MARGINS = [
   { k: "Cans", v: "78%", note: "$1.09 COGS · $5 retail" },
-  { k: "Sticks", v: "86%", note: "$0.69 COGS · $5 retail" },
-  { k: "Sub Blended", v: "52%", note: "$47 COGS · $99 price" },
+  { k: "Sticks", v: "80%", note: "$0.69 COGS · $3.50 retail" },
+  { k: "Sub Blended", v: "53%", note: "$47 COGS · $99 price" },
 ];
 
 const BARS = [
-  { k: "Sticks single", v: 86, fill: "bg-text" },
   { k: "OS Advanced", v: 95, fill: "bg-red" },
-  { k: "Cans single", v: 78, fill: "bg-text/60" },
-  { k: "Full subscription bundle", v: 52, fill: "bg-red/60" },
-  { k: "Starter bundle", v: 72, fill: "bg-text/35" },
+  { k: "Sticks single", v: 80, fill: "bg-text" },
+  { k: "Cans single", v: 78, fill: "bg-text/70" },
+  { k: "Starter bundle", v: 58, fill: "bg-text/35" },
+  { k: "Full subscription bundle", v: 53, fill: "bg-red/60" },
 ];
 
 const SNAPSHOT = [
@@ -84,7 +84,7 @@ export default function TheEconomics() {
                   </span>
                   <span
                     className={`font-display text-[2.4vw] leading-[1.05] tabular-nums ${
-                      s.hero ? "text-red font-normal" : "text-text font-light"
+                      s.hero || s.red ? "text-red font-normal" : "text-text font-light"
                     }`}
                   >
                     {s.v}
@@ -138,7 +138,10 @@ export default function TheEconomics() {
                 <div className="font-body text-[0.64vw] text-text/55 leading-[1.5] mt-[0.8vh]">
                   30 sticks/mo · OS Sport access · Entry ritual bundle
                 </div>
-                <div className="font-body text-[0.58vw] text-text/40 leading-[1.4] mt-[0.8vh]">
+                <div className="font-display text-[0.58vw] text-text/60 leading-[1.4] mt-[0.8vh] font-semibold uppercase tracking-[0.12em]">
+                  58% margin
+                </div>
+                <div className="font-body text-[0.58vw] text-text/40 leading-[1.4] mt-[0.6vh]">
                   Upsell to full system at day 30
                 </div>
               </motion.div>
@@ -156,10 +159,10 @@ export default function TheEconomics() {
                   $99<span className="text-[0.8vw] text-bg/50">/mo</span>
                 </span>
                 <div className="font-body text-[0.64vw] text-bg/70 leading-[1.5] mt-[0.8vh]">
-                  24 cans + 30 sticks/mo · OS Advanced · $290 retail value
+                  24 cans + 30 sticks/mo · OS Advanced · $225 retail value
                 </div>
                 <div className="font-body text-[0.58vw] text-red leading-[1.4] mt-[0.8vh] font-semibold">
-                  66% off standalone retail
+                  56% off standalone retail
                 </div>
               </motion.div>
             </div>

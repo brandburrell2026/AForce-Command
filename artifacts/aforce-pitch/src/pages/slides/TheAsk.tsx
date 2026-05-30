@@ -118,9 +118,6 @@ export default function TheAsk() {
           animate={{ opacity: 1, y: 0 }}
           transition={reduce ? undefined : { duration: 0.6, ease: EASE, delay: 0.6 }}
         >
-          <div className="font-body italic text-[0.92vw] text-text/45 mb-[1.4vh]">
-            “Build proof of habit before building scale.”
-          </div>
           <div className="font-display text-[2vw] font-light tracking-[-0.02em] leading-[1.15] text-text">
             This raise funds the proof.{" "}
             <span className="text-red font-normal">The next round funds the scale.</span>
