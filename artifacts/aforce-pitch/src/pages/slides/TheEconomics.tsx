@@ -6,7 +6,12 @@ const EASE = [0.16, 1, 0.3, 1] as const;
 
 const STATS = [
   { k: "CAC Target", v: "$32", note: "Stop / pivot at $50", red: true },
-  { k: "LTV", v: "$952", note: "$119/mo · 8 mo avg" },
+  {
+    k: "LTV",
+    v: "$952",
+    note: "$119/mo · 8 mo avg",
+    subnote: "Based on comparable subscription wellness brands · conservative benchmark",
+  },
   { k: "LTV : CAC", v: "29.8×", note: "At $32 CAC", hero: true },
   { k: "Sub Conversion", v: "20%+", note: "Of first purchases" },
 ];
@@ -27,9 +32,9 @@ const BARS = [
 
 const SNAPSHOT = [
   { k: "Total customers", v: "1,200" },
-  { k: "Active subscribers", v: "264", red: true },
-  { k: "Monthly sub rev", v: "$31,416" },
-  { k: "ARR run rate", v: "$377K", red: true },
+  { k: "Active subscribers", v: "144", red: true },
+  { k: "Monthly sub rev", v: "$17,136" },
+  { k: "ARR run rate", v: "$205K", red: true },
   { k: "Repeat rate", v: "30%" },
   { k: "NPS target", v: "55+", red: true },
 ];
@@ -93,6 +98,11 @@ export default function TheEconomics() {
                   <span className="font-body text-[0.66vw] text-text/45 leading-[1.3] mt-[0.3vh]">
                     {s.note}
                   </span>
+                  {s.subnote ? (
+                    <span className="font-body italic text-[0.56vw] tracking-[0.05em] text-[#999] leading-[1.3] mt-[0.2vh]">
+                      {s.subnote}
+                    </span>
+                  ) : null}
                 </motion.div>
               ))}
             </div>
@@ -238,8 +248,33 @@ export default function TheEconomics() {
                   </div>
                 ))}
               </div>
+              <div className="mt-[1.6vh] pt-[1.4vh] border-t border-bg/[0.08] flex items-center justify-center gap-[1.6vw]">
+                <div className="flex flex-col items-center">
+                  <span className="font-display uppercase tracking-[0.2em] text-[0.55vw] text-bg/40 font-medium">
+                    Monthly Burn
+                  </span>
+                  <span className="font-display text-[1vw] font-semibold text-bg tabular-nums leading-[1.1] mt-[0.3vh]">
+                    ~$150K
+                  </span>
+                </div>
+                <span className="text-bg/25 text-[1vw] leading-none">|</span>
+                <div className="flex flex-col items-center">
+                  <span className="font-display uppercase tracking-[0.2em] text-[0.55vw] text-bg/40 font-medium">
+                    Runway on $4M
+                  </span>
+                  <span className="font-display text-[1vw] font-semibold text-bg tabular-nums leading-[1.1] mt-[0.3vh]">
+                    26 months
+                  </span>
+                </div>
+              </div>
             </motion.div>
           </div>
+        </div>
+        <div className="mx-auto max-w-[70vw] text-center font-body italic text-[#aaa] text-[0.58vw] tracking-[0.05em] leading-[1.4] mt-[1.5vh]">
+          All financial projections are illustrative and forward-looking. Unit economics
+          based on actual vendor quotes from iLabs (March 2026) and Bev-Hub (2026).
+          Subscription retention benchmarks based on comparable wellness brands. Actual
+          results may vary materially.
         </div>
       </div>
     </SlideFrame>
