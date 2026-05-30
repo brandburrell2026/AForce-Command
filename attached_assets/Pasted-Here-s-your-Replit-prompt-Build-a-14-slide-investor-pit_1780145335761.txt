@@ -1,0 +1,54 @@
+Here's your Replit prompt:
+
+---
+
+**Build a 14-slide investor pitch deck for AForce as a single HTML file with full CSS and JS.**
+
+**Brand system:**
+- Background: `#EDE8DF` (cream)
+- Primary text: `#0D0D0D` (black)
+- Accent: `#E8192C` (red)
+- No blue anywhere — remove all blue from section labels, underlines, and highlights
+- Font: Use Google Fonts — `Inter` for body, `Bebas Neue` or `Barlow Condensed` for display headlines
+- Zero bullet points anywhere in the deck
+- Maximum one dominant statement per slide
+- Generous negative space — slides should feel like silence
+
+**Slide structure (14 slides, one job each):**
+
+1. **Performance is non-negotiable.** — Black background, white text, single line, nothing else
+2. **Built for people who don't get to be off.** — Cream background, black text, single line
+3. **America's Real Deal** — Selected from hundreds. January 2027. This raise builds the proof we walk in with. Show the ARD logo placeholder
+4. **$4.1B** — U.S. performance hydration market by 2030. One number, one sentence, simple upward bar chart in red/grey
+5. **The category is noise.** — MONSTER, CELSIUS, PRIME, RED BULL ghosted large in background. One line of copy
+6. **The white space.** — AForce owns the moment before execution. Positioning grid: competitors on stimulation axis, AForce alone on readiness axis
+7. **One behavior. Four beats.** — PAUSE → HYDRATE → LOCK IN → PERFORM horizontal flow, large type, red dot on PAUSE only
+8. **The system.** — Two column layout. Left: the 6-item list (Hydration through Community) with PRODUCT/HABIT/OS/BEHAVIOR/REVENUE/MOAT labels. Right: placeholder rectangle for phone mockup image
+9. **The more you use it, the harder it is to leave.** — Three columns: Performance Data / Streak Psychology / Identity Formation. No bullets — one sentence each, one metric label each
+10. **A concentrated proving ground.** — Miami/Brickell. Three stats: Year-round / High-density / One market. Clean grid layout
+11. **We lived the gap.** — Two founder photo placeholders side by side, B&W treatment. Brandon + Julius. Two sentence founder story below names
+12. **Road to America's Real Deal.** — Horizontal timeline: Jul 2026 → Aug 2026 → Oct 2026 → Jan 2027. Jan 2027 node is red and bold, others grey. ARD logo at end
+13. **Behavior compounds into revenue.** — CAC / LTV / Gross Margin / LTV:CAC in a clean 4-stat grid. Bar chart right side Y1/Y2/Y3 in red. All numbers are placeholders marked clearly as `[INSERT]`
+14. **$4M** — Use of funds: 40% Product & Inventory / 25% Marketing & Activation / 35% Tech & OS Development. Horizontal bar in red/blue/grey. One closing line: *"This raise funds the proof. The next round funds the scale."*
+
+**Technical requirements:**
+- Each slide is full viewport (`100vw x 100vh`)
+- Navigation: left/right arrow keys + clickable dots at bottom
+- Slide number shown bottom right in small caps (`01 / 14` format)
+- `CONFIDENTIAL · FOR DISCUSSION PURPOSES ONLY` bottom left on every slide
+- `PATENT-PROTECTED` top right on every slide in a pill/badge
+- AFORCE logo top left on every slide in red bold caps
+- Smooth fade transition between slides (200ms)
+- All images are placeholder rectangles with labels — no external image dependencies
+- Export-ready: single self-contained HTML file, no build tools needed
+
+**Design rules:**
+- No borders, no drop shadows, no gradients
+- Section label above each headline in small caps, spaced tracking, red, with a short red rule line left of it
+- Headline is always the largest element on the slide — nothing competes with it
+- Supporting copy is max 2 lines, grey `#666`, small
+- The deck should feel like a Nike campaign, not a startup template
+
+---
+
+Paste that directly into Replit's AI prompt and it will build the full file in one shot. Once you have it running, drop your real numbers into slides 13 and 14 and you're done.
