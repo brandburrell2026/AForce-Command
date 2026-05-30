@@ -1,125 +1,94 @@
-import { Fragment } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import SlideFrame from "@/components/SlideFrame";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
-type Beat = { idx: string; word: string; note: string; tone: string; dot: string; accent?: boolean };
+type Line = { word: string; accent?: boolean };
 
-const BEATS: Beat[] = [
-  { idx: "01", word: "Pause", note: "Stop the noise", tone: "text-red", dot: "bg-red" },
-  { idx: "02", word: "Hydrate", note: "Start with water", tone: "text-red", dot: "bg-red", accent: true },
-  { idx: "03", word: "Lock in", note: "Set the intent", tone: "text-text", dot: "bg-text/30" },
-  { idx: "04", word: "Perform", note: "Execute clean", tone: "text-text", dot: "bg-text/30" },
+const HEADLINE: Line[] = [
+  { word: "Pause." },
+  { word: "Hydrate." },
+  { word: "Lock in.", accent: true },
+  { word: "Perform." },
+];
+
+const BODY = [
+  "This is not a tagline.",
+  "It is the behavioral operating system.",
+  "The ritual creates accountability.",
+  "Accountability creates retention.",
 ];
 
 export default function TheRitual() {
   const reduce = useReducedMotion();
+  const base = import.meta.env.BASE_URL;
+  const photo = `${base}images/bg/16-silence-hooded2.png`;
 
   return (
     <SlideFrame slide={7}>
-      <div className="absolute inset-0 flex flex-col items-center justify-center px-[6vw]">
-        {/* eyebrow */}
+      <div className="absolute inset-0">
+        {/* RIGHT — full-height portrait, bleeding off the right edge */}
         <motion.div
-          className="mb-[2.6vh] flex items-center gap-[1vw]"
-          initial={reduce ? false : { opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={reduce ? undefined : { duration: 0.5, ease: EASE }}
+          className="absolute inset-y-0 right-0 w-[52%]"
+          initial={reduce ? false : { opacity: 0, scale: 1.04 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={reduce ? undefined : { duration: 1.1, ease: EASE }}
         >
-          <span className="h-[2px] w-[3vw] bg-red" />
-          <span className="font-display uppercase tracking-[0.34em] text-[0.78vw] text-red font-semibold">
-            The Ritual
-          </span>
-          <span className="h-[2px] w-[3vw] bg-red" />
+          <img
+            src={photo}
+            alt=""
+            aria-hidden
+            className="h-full w-full object-cover object-center"
+          />
+          {/* soft fade so the photo melts into the cream canvas on the left */}
+          <div className="absolute inset-y-0 left-0 w-[32%] bg-gradient-to-r from-bg via-bg/60 to-transparent" />
+          {/* bottom scrim keeps the shared footer chrome legible over the dark figure */}
+          <div className="absolute inset-x-0 bottom-0 h-[15vh] bg-gradient-to-t from-bg to-transparent" />
         </motion.div>
 
-        {/* kicker */}
-        <motion.h1
-          className="mb-[7vh] font-display font-light tracking-[-0.025em] text-[2.5vw] leading-[1.05] text-text/85 text-center"
-          initial={reduce ? false : { opacity: 0, y: 14 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={reduce ? undefined : { duration: 0.55, ease: EASE, delay: 0.08 }}
-        >
-          One behavior. <span className="text-text">Four beats.</span>
-        </motion.h1>
+        {/* LEFT — the ritual, stated plainly */}
+        <div className="absolute inset-y-0 left-0 z-10 flex w-[56%] flex-col justify-center px-[5vw]">
+          {/* eyebrow */}
+          <motion.div
+            className="mb-[3.4vh]"
+            initial={reduce ? false : { opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={reduce ? undefined : { duration: 0.5, ease: EASE }}
+          >
+            <span className="font-display uppercase tracking-[0.34em] text-[0.78vw] text-red font-semibold border-b-2 border-red pb-[0.6vh]">
+              The Ritual
+            </span>
+          </motion.div>
 
-        {/* the four beats — a sequence in time, on a single rail */}
-        <div className="relative w-full max-w-[78vw]">
-          {/* the rail behind the dots */}
-          <motion.span
-            aria-hidden
-            className="absolute left-0 right-0 h-px bg-text/15 origin-left"
-            style={{ top: "calc(50% - 0.05vh)" }}
-            initial={reduce ? false : { scaleX: 0 }}
-            animate={{ scaleX: 1 }}
-            transition={reduce ? undefined : { duration: 0.9, ease: EASE, delay: 0.25 }}
-          />
-
-          <div className="relative flex items-stretch justify-between">
-            {BEATS.map((beat, i) => (
-              <Fragment key={beat.word}>
-                <motion.div
-                  className="flex flex-1 flex-col items-center text-center"
-                  initial={reduce ? false : { opacity: 0, y: 22 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={reduce ? undefined : { duration: 0.5, ease: EASE, delay: 0.3 + i * 0.1 }}
-                >
-                  {/* index */}
-                  <span className="font-display uppercase tracking-[0.4em] text-[0.72vw] text-text/35 font-semibold tabular-nums">
-                    {beat.idx}
-                  </span>
-
-                  {/* word */}
-                  <span
-                    className={`mt-[1.4vh] font-display font-light tracking-[-0.03em] text-[3.9vw] leading-[0.92] ${beat.tone}`}
-                  >
-                    {beat.word}
-                  </span>
-
-                  {/* node on the rail */}
-                  <span className="relative my-[2.4vh] flex h-[1vw] w-[1vw] items-center justify-center">
-                    {beat.accent && !reduce && (
-                      <motion.span
-                        aria-hidden
-                        className="absolute h-[1vw] w-[1vw] rounded-full bg-red/30"
-                        animate={{ scale: [1, 2.2, 1], opacity: [0.55, 0, 0.55] }}
-                        transition={{ duration: 2.6, repeat: Infinity, ease: "easeInOut" }}
-                      />
-                    )}
-                    <span className={`h-[0.62vw] w-[0.62vw] rounded-full ring-4 ring-bg ${beat.dot}`} />
-                  </span>
-
-                  {/* note */}
-                  <span className="font-body text-[0.95vw] leading-none text-text/45">{beat.note}</span>
-                </motion.div>
-
-                {/* connector */}
-                {i < BEATS.length - 1 && (
-                  <motion.span
-                    aria-hidden
-                    className="flex w-[2vw] shrink-0 items-center justify-center font-display font-light text-[1.6vw] leading-none text-text/20"
-                    style={{ alignSelf: "center" }}
-                    initial={reduce ? false : { opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={reduce ? undefined : { duration: 0.4, ease: EASE, delay: 0.5 + i * 0.1 }}
-                  >
-                    &rarr;
-                  </motion.span>
-                )}
-              </Fragment>
+          {/* headline — one beat per line */}
+          <h1 className="font-display font-light tracking-[-0.03em] text-[5.4vw] leading-[0.98] text-text">
+            {HEADLINE.map((line, i) => (
+              <motion.div
+                key={line.word}
+                initial={reduce ? false : { opacity: 0, y: 18 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={
+                  reduce ? undefined : { duration: 0.5, ease: EASE, delay: 0.1 + i * 0.08 }
+                }
+                className={line.accent ? "text-red font-normal" : undefined}
+              >
+                {line.word}
+              </motion.div>
             ))}
-          </div>
-        </div>
+          </h1>
 
-        {/* one supporting thought */}
-        <motion.p
-          className="mt-[8vh] max-w-[44vw] text-center font-body text-[1.15vw] leading-[1.55] text-text/60"
-          initial={reduce ? false : { opacity: 0, y: 14 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={reduce ? undefined : { duration: 0.55, ease: EASE, delay: 0.85 }}
-        >
-          One behavior, four beats. The system that turns hydration into readiness.
-        </motion.p>
+          {/* body — four short, declarative lines */}
+          <motion.div
+            className="mt-[4.5vh] font-body text-[1.05vw] leading-[1.7] text-text/65"
+            initial={reduce ? false : { opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={reduce ? undefined : { duration: 0.55, ease: EASE, delay: 0.5 }}
+          >
+            {BODY.map((line) => (
+              <div key={line}>{line}</div>
+            ))}
+          </motion.div>
+        </div>
       </div>
     </SlideFrame>
   );
