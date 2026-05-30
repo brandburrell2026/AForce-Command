@@ -5,10 +5,10 @@ const EASE = [0.16, 1, 0.3, 1] as const;
 
 const USE = [
   {
-    pct: 40,
+    pct: 35,
     label: "Product & Inventory",
     sub: "Launch SKUs + concierge stock",
-    amount: "$1,600,000",
+    amount: "$1,400,000",
     bar: "bg-red",
   },
   {
@@ -19,11 +19,18 @@ const USE = [
     bar: "bg-text",
   },
   {
-    pct: 35,
+    pct: 25,
     label: "Tech & OS Development",
     sub: "AForce OS build, app, retention infrastructure",
-    amount: "$1,400,000",
-    bar: "bg-text/40",
+    amount: "$1,000,000",
+    bar: "bg-text/55",
+  },
+  {
+    pct: 15,
+    label: "Team & Operations",
+    sub: "Salaries, legal, insurance, overhead · ~$50K/mo",
+    amount: "$600,000",
+    bar: "bg-text/30",
   },
 ];
 
@@ -64,13 +71,13 @@ export default function TheAsk() {
           </motion.div>
         </div>
 
-        {/* use of funds — three full-width allocation bars */}
-        <div className="mt-[4.5vh] max-w-[78vw]">
-          <div className="font-display uppercase tracking-[0.22em] text-[0.68vw] text-text/40 font-medium mb-[2vh]">
+        {/* use of funds — four full-width allocation bars */}
+        <div className="mt-[3.4vh] max-w-[78vw]">
+          <div className="font-display uppercase tracking-[0.22em] text-[0.68vw] text-text/40 font-medium mb-[1.6vh]">
             Use of funds
           </div>
 
-          <div className="flex flex-col gap-[2.2vh]">
+          <div className="flex flex-col gap-[1.7vh]">
             {USE.map((u, i) => (
               <motion.div
                 key={u.label}
@@ -113,7 +120,7 @@ export default function TheAsk() {
         </div>
 
         <motion.div
-          className="mt-[5vh] text-center"
+          className="mt-[3.6vh] text-center"
           initial={reduce ? false : { opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
           transition={reduce ? undefined : { duration: 0.6, ease: EASE, delay: 0.6 }}
