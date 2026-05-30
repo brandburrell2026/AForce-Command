@@ -5,30 +5,30 @@ const EASE = [0.16, 1, 0.3, 1] as const;
 
 const STATS = [
   { k: "CAC Target", v: "$32", note: "Stop / pivot at $50", red: true },
-  { k: "LTV", v: "$792", note: "$99/mo · 8 mo avg" },
-  { k: "LTV : CAC", v: "24.8×", note: "At $32 CAC", hero: true },
+  { k: "LTV", v: "$952", note: "$119/mo · 8 mo avg" },
+  { k: "LTV : CAC", v: "29.8×", note: "At $32 CAC", hero: true },
   { k: "Sub Conversion", v: "20%+", note: "Of first purchases" },
 ];
 
 const MARGINS = [
-  { k: "Cans", v: "78%", note: "$1.09 COGS · $5 retail" },
+  { k: "Cans", v: "67%", note: "$1.65 COGS · $5 retail" },
   { k: "Sticks", v: "80%", note: "$0.69 COGS · $3.50 retail" },
-  { k: "Sub Blended", v: "53%", note: "$47 COGS · $99 price" },
+  { k: "Sub Blended", v: "49%", note: "$60 COGS · $119 price" },
 ];
 
 const BARS = [
   { k: "OS Advanced", v: 95, fill: "bg-red" },
   { k: "Sticks single", v: 80, fill: "bg-text" },
-  { k: "Cans single", v: 78, fill: "bg-text/70" },
+  { k: "Cans single", v: 67, fill: "bg-text/70" },
   { k: "Starter bundle", v: 58, fill: "bg-text/35" },
-  { k: "Full subscription bundle", v: 53, fill: "bg-red/60" },
+  { k: "Full subscription bundle", v: 49, fill: "bg-red/60" },
 ];
 
 const SNAPSHOT = [
   { k: "Total customers", v: "1,200" },
   { k: "Active subscribers", v: "264", red: true },
-  { k: "Monthly sub rev", v: "$26,136" },
-  { k: "ARR run rate", v: "$313K", red: true },
+  { k: "Monthly sub rev", v: "$31,416" },
+  { k: "ARR run rate", v: "$377K", red: true },
   { k: "Repeat rate", v: "30%" },
   { k: "NPS target", v: "55+", red: true },
 ];
@@ -156,13 +156,13 @@ export default function TheEconomics() {
                   Full System
                 </span>
                 <span className="font-display text-[1.7vw] font-light text-bg leading-[1.1] mt-[0.5vh]">
-                  $99<span className="text-[0.8vw] text-bg/50">/mo</span>
+                  $119<span className="text-[0.8vw] text-bg/50">/mo</span>
                 </span>
                 <div className="font-body text-[0.64vw] text-bg/70 leading-[1.5] mt-[0.8vh]">
-                  24 cans + 30 sticks/mo · OS Advanced · $225 retail value
+                  24 cans + 30 sticks/mo · OS Advanced access · $225 retail value
                 </div>
                 <div className="font-body text-[0.58vw] text-red leading-[1.4] mt-[0.8vh] font-semibold">
-                  56% off standalone retail
+                  47% off standalone retail
                 </div>
               </motion.div>
             </div>
