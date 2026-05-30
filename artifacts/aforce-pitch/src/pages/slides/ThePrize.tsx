@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { motion, animate, useReducedMotion, type MotionProps } from "framer-motion";
+import { motion, animate, type MotionProps } from "framer-motion";
+import { useReducedMotion } from "@/lib/useReducedMotion";
 import SlideFrame from "@/components/SlideFrame";
 
 const BARS = [

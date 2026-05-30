@@ -66,7 +66,16 @@ with massive whitespace. One emphasis word per H1 in red or blue.
   blanket slide transitions without an explicit ask. **Per-slide** framer-motion
   is allowed when the user explicitly asks to make a slide "more dynamic" (e.g.
   ThePrize / slide 4 has count-up + staggered bar-growth). Any such motion must
-  gate every entrance behind `useReducedMotion()` so reduced-motion users see the
-  final resting state (count-up/glow/bars and all fade/slide reveals disabled).
+  gate every entrance/loop behind `useReducedMotion()` so reduced-motion users see
+  the final resting state (count-up/glow/bars and all fade/slide reveals disabled).
+- **Export = static, live = animated.** Slides import `useReducedMotion` from the
+  local wrapper `src/lib/useReducedMotion.ts` (NOT directly from framer-motion).
+  The wrapper returns `true` when the system prefers reduced motion OR when
+  `window.location.pathname` ends with `/allslides` (the headless PDF/PPTX export
+  route), else `false`. **Why:** the user wanted exports fully static while the
+  live `/slideN` presentation keeps its animations. **How to apply:** any NEW
+  animated slide must import `useReducedMotion` from this wrapper and gate every
+  entrance + `repeat: Infinity` loop on `reduce`, or it will animate mid-capture
+  during export.
 - Google Fonts `@import` must come *before* `@import "tailwindcss"` in
   `index.css` or the production CSS parser drops the font import.

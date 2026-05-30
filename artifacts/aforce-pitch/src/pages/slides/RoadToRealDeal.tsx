@@ -1,4 +1,5 @@
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
+import { useReducedMotion } from "@/lib/useReducedMotion";
 import SlideFrame from "@/components/SlideFrame";
 
 const EASE = [0.16, 1, 0.3, 1] as const;

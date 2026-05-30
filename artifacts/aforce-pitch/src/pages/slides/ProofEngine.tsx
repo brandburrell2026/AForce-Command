@@ -1,4 +1,5 @@
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
+import { useReducedMotion } from "@/lib/useReducedMotion";
 import SlideFrame from "@/components/SlideFrame";
 import { FLORIDA_PATH } from "./floridaPath";
 

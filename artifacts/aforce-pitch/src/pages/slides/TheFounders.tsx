@@ -1,4 +1,5 @@
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
+import { useReducedMotion } from "@/lib/useReducedMotion";
 import SlideFrame from "@/components/SlideFrame";
 import brandon from "@assets/BrandonBB_1780089392262.jpeg";
 import julius from "@assets/JuliusB_1780089406464.jpg";
