@@ -117,7 +117,7 @@ export default function ProofEngine() {
         {/* RIGHT — the concentration graphic */}
         <div className="w-[48%] flex items-center justify-center pr-[6vw] pl-[1vw]">
           <motion.div
-            className="relative aspect-square w-[40vw]"
+            className="relative aspect-square w-[36vw] mb-[7vh]"
             initial={reduce ? false : { opacity: 0, scale: 0.92 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={reduce ? undefined : { duration: 0.8, ease: EASE, delay: 0.3 }}
@@ -189,7 +189,7 @@ export default function ProofEngine() {
 
             {/* core label */}
             <motion.div
-              className="absolute left-1/2 top-[74.5%] -translate-x-1/2 text-center"
+              className="absolute left-1/2 top-full mt-[1.8vh] -translate-x-1/2 text-center"
               initial={reduce ? false : { opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={reduce ? undefined : { duration: 0.6, ease: EASE, delay: 0.9 }}
