@@ -59,18 +59,23 @@ export default function TheFounders() {
           </motion.h1>
 
           <motion.div
-            className="mt-[4vh] max-w-[36vw] space-y-[2.2vh] font-body text-[1.1vw] leading-[1.6] text-text/75"
+            className="mt-[4vh] max-w-[34vw] space-y-[1.8vh] font-body text-[1.0vw] leading-[1.55]"
             initial={reduce ? false : { opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
             transition={reduce ? undefined : { duration: 0.6, ease: EASE, delay: 0.18 }}
           >
-            <p>
-              For years our edge came down to composure under pressure — not
-              another stimulant. AForce is the ritual we wished we'd had, built
-              from inside that pressure.
+            <p className="text-text">
+              In the NBA there are no off nights. On Wall Street there are no
+              missed moments. For years our edge came down to one thing: showing
+              up ready when it mattered most.
             </p>
-            <p className="text-text/55 italic">
-              We are not selling hydration. We are installing a standard.
+            <p className="text-text">
+              We didn't have AForce. We needed it. Every decision we made under
+              pressure without it is why we built it.
+            </p>
+            <p className="text-text/55 italic text-[0.92vw]">
+              We are not selling hydration. We are installing the standard we
+              wish we'd had.
             </p>
           </motion.div>
         </div>

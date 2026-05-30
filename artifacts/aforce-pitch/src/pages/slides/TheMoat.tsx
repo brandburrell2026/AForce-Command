@@ -10,6 +10,7 @@ type Pillar = {
   meter: string;
   level: string;
   depth: number;
+  bar: string;
   accent?: boolean;
 };
 
@@ -17,26 +18,29 @@ const PILLARS: Pillar[] = [
   {
     n: "01",
     t: "Performance Data",
-    d: "Every cycle teaches the OS more about the user than any competitor can see.",
+    d: "Every cycle teaches the OS more about you than any competitor can see.",
     meter: "Data depth",
     level: "Accrues daily",
-    depth: 0.42,
+    depth: 0.2,
+    bar: "bg-red",
   },
   {
     n: "02",
     t: "Streak Psychology",
-    d: "Consistency compounds. Breaking the streak costs more than starting it did.",
+    d: "Breaking the streak costs more psychologically than starting it did.",
     meter: "Habit lock",
     level: "Compounds weekly",
-    depth: 0.72,
+    depth: 0.45,
+    bar: "bg-text",
   },
   {
     n: "03",
     t: "Identity Formation",
-    d: "AForce stops being a product and becomes part of who the user is.",
+    d: "AForce stops being a product and becomes part of how this person defines being on.",
     meter: "Identity",
     level: "Becomes permanent",
-    depth: 1,
+    depth: 0.85,
+    bar: "bg-red",
     accent: true,
   },
 ];
@@ -87,13 +91,13 @@ export default function TheMoat() {
           animate={{ opacity: 1, y: 0 }}
           transition={reduce ? undefined : { duration: 0.55, ease: EASE, delay: 0.18 }}
         >
-          Three layers accrue with every cycle. Each one widens the moat.
+          Three layers of lock-in accrue with every cycle.
         </motion.p>
 
         {/* the three layers */}
         <div className="mt-[6vh] grid grid-cols-3 gap-[3vw] items-stretch">
           {PILLARS.map((p, i) => {
-            const fill = p.accent ? "bg-red" : "bg-text/75";
+            const fill = p.bar;
             const lvlTone = p.accent ? "text-red" : "text-text/45";
             return (
               <motion.div
@@ -164,6 +168,17 @@ export default function TheMoat() {
             );
           })}
         </div>
+
+        <motion.p
+          className="mt-[4.5vh] mx-auto max-w-[60vw] text-center font-body italic text-[0.82vw] leading-[1.6] text-text/45"
+          initial={reduce ? false : { opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={reduce ? undefined : { duration: 0.6, ease: EASE, delay: 0.95 }}
+        >
+          What stops a well-funded competitor from building the same loop?
+          Behavioral data accumulation, streak psychology, and identity
+          attachment. These cannot be bought. They are earned through daily use.
+        </motion.p>
       </div>
     </SlideFrame>
   );

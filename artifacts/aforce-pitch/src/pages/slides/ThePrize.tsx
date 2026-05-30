@@ -164,6 +164,18 @@ export default function ThePrize() {
                 </div>
               ))}
             </motion.div>
+
+            <motion.p
+              className="mt-[2.2vh] font-body italic text-[0.82vw] tracking-[0.03em] leading-[1.55] text-text/50 max-w-[40vw]"
+              {...enter({
+                initial: { opacity: 0, y: 12 },
+                animate: { opacity: 1, y: 0 },
+                transition: { duration: 0.6, ease: EASE, delay: 0.85 },
+              })}
+            >
+              The window is now. Behavioral readiness is replacing stimulation
+              as the performance category standard — and nobody owns it yet.
+            </motion.p>
           </div>
         </div>
       </div>
