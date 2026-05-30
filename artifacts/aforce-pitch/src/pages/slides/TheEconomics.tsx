@@ -3,19 +3,34 @@ import SlideFrame from "@/components/SlideFrame";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
-const METRICS = [
-  { k: "CAC", v: "< $45" },
-  { k: "LTV", v: "$210" },
-  { k: "Sub. Conversion", v: "20%+" },
-  { k: "Repeat Purchase", v: "28–32%" },
-  { k: "Gross Margin", v: "~68%" },
-  { k: "LTV / CAC", v: "3.4×", hero: true },
+const STATS = [
+  { k: "CAC Target", v: "$32", note: "Stop / pivot at $50" },
+  { k: "LTV", v: "$792", note: "$99/mo · 8 mo avg" },
+  { k: "LTV : CAC", v: "24.8×", note: "At $32 CAC", hero: true },
+  { k: "Sub Conversion", v: "20%+", note: "Of first purchases" },
 ];
 
-const FORECAST = [
-  { year: "Y1", h: 26, fill: "bg-red/30" },
-  { year: "Y2", h: 54, fill: "bg-red/60" },
-  { year: "Y3", h: 100, fill: "bg-red" },
+const MARGINS = [
+  { k: "Cans", v: "78%", note: "$1.09 COGS · $5 retail" },
+  { k: "Sticks", v: "86%", note: "$0.69 COGS · $5 retail" },
+  { k: "Sub Blended", v: "52%", note: "$47 COGS · $99 price" },
+];
+
+const BARS = [
+  { k: "Sticks single", v: 86, fill: "bg-text" },
+  { k: "OS Advanced", v: 95, fill: "bg-red" },
+  { k: "Cans single", v: 78, fill: "bg-text/60" },
+  { k: "Full subscription bundle", v: 52, fill: "bg-red/60" },
+  { k: "Starter bundle", v: 72, fill: "bg-text/35" },
+];
+
+const SNAPSHOT = [
+  { k: "Total customers", v: "1,200" },
+  { k: "Active subscribers", v: "264", red: true },
+  { k: "Monthly sub rev", v: "$26,136" },
+  { k: "ARR run rate", v: "$313K", red: true },
+  { k: "Repeat rate", v: "30%" },
+  { k: "NPS target", v: "55+", red: true },
 ];
 
 export default function TheEconomics() {
@@ -23,125 +38,203 @@ export default function TheEconomics() {
 
   return (
     <SlideFrame slide={13}>
-      <div className="absolute inset-0 flex pt-[12vh] pb-[10vh]">
-        {/* LEFT — metrics table */}
-        <div className="w-[54%] flex flex-col justify-center px-[5vw]">
-          <motion.div
-            className="mb-[3.5vh]"
-            initial={reduce ? false : { opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={reduce ? undefined : { duration: 0.5, ease: EASE }}
-          >
-            <span className="font-display uppercase tracking-[0.32em] text-[0.78vw] text-red font-semibold border-b-2 border-red pb-[0.6vh]">
-              The Economics
-            </span>
-          </motion.div>
-
-          <motion.h1
-            className="font-display font-light tracking-[-0.025em] text-[3.7vw] leading-[1.02] text-text mb-[1.4vh]"
-            initial={reduce ? false : { opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={reduce ? undefined : { duration: 0.6, ease: EASE, delay: 0.08 }}
-          >
-            Behavior compounds{" "}
-            <span className="text-red font-normal">into revenue.</span>
-          </motion.h1>
-          <div className="font-display uppercase tracking-[0.2em] text-[0.7vw] text-text/40 font-medium mb-[3.5vh]">
-            Illustrative assumptions
-          </div>
-
-          <div className="grid grid-cols-2 gap-x-[3vw]">
-            {METRICS.map((m, i) => (
-              <motion.div
-                key={m.k}
-                className={`flex items-baseline justify-between py-[1.7vh] ${
-                  m.hero ? "border-b-2 border-red/60" : "border-b border-text/15"
-                }`}
-                initial={reduce ? false : { opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={
-                  reduce ? undefined : { duration: 0.45, ease: EASE, delay: 0.25 + i * 0.07 }
-                }
-              >
-                <span
-                  className={`font-display uppercase tracking-[0.16em] text-[0.72vw] font-medium ${
-                    m.hero ? "text-red" : "text-text/55"
-                  }`}
-                >
-                  {m.k}
-                </span>
-                <span
-                  className={`font-display text-[1.5vw] tabular-nums ${
-                    m.hero ? "text-red font-normal" : "text-text font-light"
-                  }`}
-                >
-                  {m.v}
-                </span>
-              </motion.div>
-            ))}
-          </div>
+      <div className="absolute inset-0 flex flex-col px-[5vw] pt-[11vh] pb-[9vh]">
+        {/* HEADER */}
+        <motion.div
+          initial={reduce ? false : { opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={reduce ? undefined : { duration: 0.5, ease: EASE }}
+        >
+          <span className="font-display uppercase tracking-[0.32em] text-[0.78vw] text-red font-semibold border-b-2 border-red pb-[0.6vh]">
+            The Economics
+          </span>
+        </motion.div>
+        <motion.h1
+          className="font-display font-light tracking-[-0.025em] text-[3vw] leading-[1.02] text-text mt-[2.2vh]"
+          initial={reduce ? false : { opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={reduce ? undefined : { duration: 0.6, ease: EASE, delay: 0.08 }}
+        >
+          Behavior compounds <span className="text-red font-normal">into revenue.</span>
+        </motion.h1>
+        <div className="font-display uppercase tracking-[0.2em] text-[0.66vw] text-text/40 font-medium mt-[1vh]">
+          Unit economics · Real numbers · Based on actual vendor quotes
         </div>
 
-        {/* RIGHT — revenue forecast */}
-        <div className="w-[46%] flex items-center pr-[6vw] pl-[2vw]">
-          <div className="w-full">
-            <div className="flex items-end justify-between mb-[3vh]">
-              <div className="font-display uppercase tracking-[0.22em] text-[0.7vw] text-text/45 font-medium">
-                Revenue forecast · illustrative
-              </div>
+        {/* BODY — two columns */}
+        <div className="flex-1 flex gap-[3vw] mt-[3.2vh] min-h-0">
+          {/* LEFT */}
+          <div className="w-[54%] min-w-0 flex flex-col">
+            {/* 2x2 stat grid */}
+            <div className="grid grid-cols-2 gap-x-[2.5vw] gap-y-[1.4vh]">
+              {STATS.map((s, i) => (
+                <motion.div
+                  key={s.k}
+                  className={`flex flex-col py-[1.2vh] border-b ${
+                    s.hero ? "border-red/60" : "border-text/15"
+                  }`}
+                  initial={reduce ? false : { opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={
+                    reduce ? undefined : { duration: 0.45, ease: EASE, delay: 0.2 + i * 0.06 }
+                  }
+                >
+                  <span className="font-display uppercase tracking-[0.16em] text-[0.66vw] text-text/50 font-medium">
+                    {s.k}
+                  </span>
+                  <span
+                    className={`font-display text-[2.4vw] leading-[1.05] tabular-nums ${
+                      s.hero ? "text-red font-normal" : "text-text font-light"
+                    }`}
+                  >
+                    {s.v}
+                  </span>
+                  <span className="font-body text-[0.66vw] text-text/45 leading-[1.3] mt-[0.3vh]">
+                    {s.note}
+                  </span>
+                </motion.div>
+              ))}
+            </div>
+
+            {/* margin boxes */}
+            <div className="grid grid-cols-3 gap-[1vw] mt-[2.4vh]">
+              {MARGINS.map((m, i) => (
+                <motion.div
+                  key={m.k}
+                  className="flex flex-col px-[1vw] py-[1.2vh] rounded-[0.5vw] bg-text/[0.04]"
+                  initial={reduce ? false : { opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={
+                    reduce ? undefined : { duration: 0.45, ease: EASE, delay: 0.3 + i * 0.05 }
+                  }
+                >
+                  <span className="font-display uppercase tracking-[0.14em] text-[0.6vw] text-text/45 font-medium">
+                    {m.k}
+                  </span>
+                  <span className="font-display text-[1.7vw] font-light text-text tabular-nums leading-[1.1]">
+                    {m.v}
+                  </span>
+                  <span className="font-body text-[0.58vw] text-text/40 leading-[1.25] mt-[0.2vh]">
+                    {m.note}
+                  </span>
+                </motion.div>
+              ))}
+            </div>
+
+            {/* subscription tiers */}
+            <div className="grid grid-cols-2 gap-[1.2vw] mt-[2.4vh]">
               <motion.div
-                className="text-right"
-                initial={reduce ? false : { opacity: 0, y: 8 }}
+                className="flex flex-col rounded-[0.6vw] border border-text/15 px-[1.2vw] py-[1.4vh]"
+                initial={reduce ? false : { opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={reduce ? undefined : { duration: 0.5, ease: EASE, delay: 0.9 }}
+                transition={reduce ? undefined : { duration: 0.5, ease: EASE, delay: 0.4 }}
               >
-                <span className="font-display text-[2vw] text-red font-normal leading-none">
-                  ≈ 4×
+                <span className="font-display uppercase tracking-[0.2em] text-[0.58vw] text-text/45 font-semibold">
+                  Starter
                 </span>
-                <div className="font-display uppercase tracking-[0.2em] text-[0.6vw] text-text/45 mt-[0.6vh]">
-                  in 36 months
+                <span className="font-display text-[1.7vw] font-light text-text leading-[1.1] mt-[0.4vh]">
+                  $49<span className="text-[0.8vw] text-text/50">/mo</span>
+                </span>
+                <div className="font-body text-[0.64vw] text-text/55 leading-[1.5] mt-[0.8vh]">
+                  30 sticks/mo · OS Sport access · Entry ritual bundle
+                </div>
+                <div className="font-body text-[0.58vw] text-text/40 leading-[1.4] mt-[0.8vh]">
+                  Upsell to full system at day 30
+                </div>
+              </motion.div>
+
+              <motion.div
+                className="flex flex-col rounded-[0.6vw] bg-text px-[1.2vw] py-[1.4vh]"
+                initial={reduce ? false : { opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={reduce ? undefined : { duration: 0.5, ease: EASE, delay: 0.46 }}
+              >
+                <span className="inline-flex w-fit font-display uppercase tracking-[0.2em] text-[0.55vw] text-bg font-semibold bg-red rounded-full px-[0.6vw] py-[0.3vh]">
+                  Full System
+                </span>
+                <span className="font-display text-[1.7vw] font-light text-bg leading-[1.1] mt-[0.5vh]">
+                  $99<span className="text-[0.8vw] text-bg/50">/mo</span>
+                </span>
+                <div className="font-body text-[0.64vw] text-bg/70 leading-[1.5] mt-[0.8vh]">
+                  24 cans + 30 sticks/mo · OS Advanced · $290 retail value
+                </div>
+                <div className="font-body text-[0.58vw] text-red leading-[1.4] mt-[0.8vh] font-semibold">
+                  66% off standalone retail
                 </div>
               </motion.div>
             </div>
+          </div>
 
-            <div className="flex items-end justify-between gap-[2.5vw] h-[34vh]">
-              {FORECAST.map((b, i) => (
-                <div
-                  key={b.year}
-                  className="flex-1 flex flex-col items-center justify-end h-full"
-                >
+          {/* RIGHT */}
+          <div className="w-[43%] min-w-0 flex flex-col">
+            {/* gross margin bars */}
+            <div>
+              <div className="font-display uppercase tracking-[0.22em] text-[0.66vw] text-text/45 font-medium mb-[1.8vh]">
+                Gross margin by product
+              </div>
+              <div className="flex flex-col gap-[1.5vh]">
+                {BARS.map((b, i) => (
                   <motion.div
-                    className="font-display text-[1.1vw] text-text/70 font-light tabular-nums mb-[1vh]"
-                    initial={reduce ? false : { opacity: 0 }}
-                    animate={{ opacity: 1 }}
+                    key={b.k}
+                    initial={reduce ? false : { opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
                     transition={
-                      reduce ? undefined : { duration: 0.4, ease: EASE, delay: 0.7 + i * 0.18 }
+                      reduce ? undefined : { duration: 0.45, ease: EASE, delay: 0.3 + i * 0.05 }
                     }
                   >
-                    {b.h}
+                    <div className="flex items-baseline justify-between mb-[0.5vh]">
+                      <span className="font-body text-[0.66vw] text-text/60 leading-none">
+                        {b.k}
+                      </span>
+                      <span className="font-display text-[0.78vw] text-text font-normal tabular-nums leading-none">
+                        {b.v}%
+                      </span>
+                    </div>
+                    <div className="h-[1.1vh] w-full rounded-full bg-text/10 overflow-hidden">
+                      <motion.div
+                        className={`h-full rounded-full ${b.fill}`}
+                        style={{ width: `${b.v}%`, transformOrigin: "left" }}
+                        initial={reduce ? false : { scaleX: 0 }}
+                        animate={{ scaleX: 1 }}
+                        transition={
+                          reduce
+                            ? undefined
+                            : { duration: 0.7, ease: EASE, delay: 0.36 + i * 0.05 }
+                        }
+                      />
+                    </div>
                   </motion.div>
-                  <motion.div
-                    className={`w-full rounded-t-[0.3vw] origin-bottom ${b.fill}`}
-                    style={{ height: `${b.h}%` }}
-                    initial={reduce ? false : { scaleY: 0 }}
-                    animate={{ scaleY: 1 }}
-                    transition={
-                      reduce ? undefined : { duration: 0.7, ease: EASE, delay: 0.45 + i * 0.18 }
-                    }
-                  />
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-            <div className="flex justify-between gap-[2.5vw] mt-[1.4vh] border-t border-text/20 pt-[1.2vh]">
-              {FORECAST.map((b) => (
-                <div
-                  key={b.year}
-                  className="flex-1 text-center font-display uppercase tracking-[0.18em] text-[0.72vw] text-text/50"
-                >
-                  {b.year}
-                </div>
-              ))}
-            </div>
+
+            {/* October snapshot */}
+            <motion.div
+              className="mt-[3vh] rounded-[0.6vw] bg-text px-[1.6vw] py-[1.8vh]"
+              initial={reduce ? false : { opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={reduce ? undefined : { duration: 0.5, ease: EASE, delay: 0.55 }}
+            >
+              <div className="font-display uppercase tracking-[0.22em] text-[0.6vw] text-bg/45 font-medium mb-[1.4vh]">
+                October snapshot
+              </div>
+              <div className="grid grid-cols-3 gap-x-[1.5vw] gap-y-[1.6vh]">
+                {SNAPSHOT.map((s) => (
+                  <div key={s.k} className="flex flex-col">
+                    <span
+                      className={`font-display text-[1.4vw] leading-[1.05] tabular-nums ${
+                        s.red ? "text-red font-normal" : "text-bg font-light"
+                      }`}
+                    >
+                      {s.v}
+                    </span>
+                    <span className="font-display uppercase tracking-[0.1em] text-[0.55vw] text-bg/45 font-medium mt-[0.3vh]">
+                      {s.k}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
           </div>
         </div>
       </div>

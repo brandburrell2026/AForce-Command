@@ -4,10 +4,27 @@ import SlideFrame from "@/components/SlideFrame";
 const EASE = [0.16, 1, 0.3, 1] as const;
 
 const USE = [
-  { pct: 40, label: "Product & Inventory", sub: "Launch SKUs + concierge stock", color: "bg-red" },
-  { pct: 25, label: "Marketing & Activation", sub: "Brickell density + activation", color: "bg-red/45" },
-  { pct: 20, label: "Technology & OS", sub: "AForce OS + AI coach", color: "bg-text/80" },
-  { pct: 15, label: "Team & Operations", sub: "Founders + operators", color: "bg-text/35" },
+  {
+    pct: 40,
+    label: "Product & Inventory",
+    sub: "Launch SKUs + concierge stock",
+    amount: "$1,600,000",
+    bar: "bg-red",
+  },
+  {
+    pct: 25,
+    label: "Marketing & Activation",
+    sub: "Brickell + NYC density, event, paid acquisition",
+    amount: "$1,000,000",
+    bar: "bg-text",
+  },
+  {
+    pct: 35,
+    label: "Tech & OS Development",
+    sub: "AForce OS build, app, retention infrastructure",
+    amount: "$1,400,000",
+    bar: "bg-text/40",
+  },
 ];
 
 export default function TheAsk() {
@@ -17,7 +34,7 @@ export default function TheAsk() {
     <SlideFrame slide={14}>
       <div className="absolute inset-0 flex flex-col justify-center px-[5vw] pt-[12vh] pb-[10vh]">
         <motion.div
-          className="mb-[3.5vh]"
+          className="mb-[2.6vh]"
           initial={reduce ? false : { opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={reduce ? undefined : { duration: 0.5, ease: EASE }}
@@ -37,57 +54,57 @@ export default function TheAsk() {
             $4<span className="text-red">M</span>
           </motion.div>
           <motion.div
-            className="mb-[2vh] font-body text-[1.15vw] leading-[1.55] text-text/70 max-w-[26vw]"
+            className="mb-[1.8vh] font-body text-[1.1vw] leading-[1.5] text-text/70 max-w-[26vw]"
             initial={reduce ? false : { opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
             transition={reduce ? undefined : { duration: 0.6, ease: EASE, delay: 0.28 }}
           >
-            A proof-of-concept raise. This capital funds proof of habit; the next
+            A proof-of-concept raise. This capital funds proof of habit. The next
             round funds scale.
           </motion.div>
         </div>
 
-        {/* use of funds — stacked bar */}
-        <div className="mt-[6vh] max-w-[68vw]">
-          <div className="font-display uppercase tracking-[0.22em] text-[0.68vw] text-text/40 font-medium mb-[1.8vh]">
+        {/* use of funds — three full-width allocation bars */}
+        <div className="mt-[4.5vh] max-w-[78vw]">
+          <div className="font-display uppercase tracking-[0.22em] text-[0.68vw] text-text/40 font-medium mb-[2vh]">
             Use of funds
           </div>
-          <div className="flex w-full h-[3.4vh] rounded-full overflow-hidden gap-[0.3vw]">
-            {USE.map((u, i) => (
-              <motion.div
-                key={u.label}
-                className={`${u.color} ${i === 0 ? "rounded-l-full" : ""} ${
-                  i === USE.length - 1 ? "rounded-r-full" : ""
-                }`}
-                style={{ width: `${u.pct}%`, transformOrigin: "left" }}
-                initial={reduce ? false : { scaleX: 0, opacity: 0 }}
-                animate={{ scaleX: 1, opacity: 1 }}
-                transition={
-                  reduce ? undefined : { duration: 0.6, ease: EASE, delay: 0.45 + i * 0.12 }
-                }
-              />
-            ))}
-          </div>
-          <div className="mt-[2.6vh] grid grid-cols-4 gap-[2vw]">
+
+          <div className="flex flex-col gap-[2.2vh]">
             {USE.map((u, i) => (
               <motion.div
                 key={u.label}
                 initial={reduce ? false : { opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={
-                  reduce ? undefined : { duration: 0.45, ease: EASE, delay: 0.6 + i * 0.1 }
+                  reduce ? undefined : { duration: 0.5, ease: EASE, delay: 0.3 + i * 0.08 }
                 }
               >
-                <div className="flex items-baseline gap-[0.5vw]">
-                  <span className={`h-[0.7vw] w-[0.7vw] rounded-full ${u.color}`} />
-                  <span className="font-display text-[1.9vw] font-light text-text tabular-nums leading-none">
-                    {u.pct}%
+                <div className="flex items-baseline justify-between mb-[0.9vh]">
+                  <div className="flex items-baseline gap-[1vw]">
+                    <span className="font-display text-[1.7vw] font-light text-text tabular-nums leading-none">
+                      {u.pct}%
+                    </span>
+                    <span className="font-display uppercase tracking-[0.18em] text-[0.78vw] text-text/70 font-medium">
+                      {u.label}
+                    </span>
+                  </div>
+                  <span className="font-display text-[1vw] text-text/55 font-light tabular-nums">
+                    {u.amount}
                   </span>
                 </div>
-                <div className="mt-[1vh] font-display uppercase tracking-[0.16em] text-[0.65vw] text-text/60 font-medium">
-                  {u.label}
+                <div className="h-[1.5vh] w-full rounded-full bg-text/10 overflow-hidden">
+                  <motion.div
+                    className={`h-full rounded-full ${u.bar}`}
+                    style={{ width: `${u.pct}%`, transformOrigin: "left" }}
+                    initial={reduce ? false : { scaleX: 0 }}
+                    animate={{ scaleX: 1 }}
+                    transition={
+                      reduce ? undefined : { duration: 0.7, ease: EASE, delay: 0.36 + i * 0.08 }
+                    }
+                  />
                 </div>
-                <div className="mt-[0.6vh] font-body text-[0.78vw] leading-[1.4] text-text/45">
+                <div className="mt-[0.8vh] font-body text-[0.78vw] leading-[1.4] text-text/45">
                   {u.sub}
                 </div>
               </motion.div>
@@ -96,13 +113,18 @@ export default function TheAsk() {
         </div>
 
         <motion.div
-          className="mt-[7vh] font-display text-[2vw] font-light tracking-[-0.02em] text-text"
+          className="mt-[5vh] text-center"
           initial={reduce ? false : { opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={reduce ? undefined : { duration: 0.6, ease: EASE, delay: 1.05 }}
+          transition={reduce ? undefined : { duration: 0.6, ease: EASE, delay: 0.6 }}
         >
-          Built for people who don't get{" "}
-          <span className="text-red font-normal">to be off.</span>
+          <div className="font-body italic text-[0.92vw] text-text/45 mb-[1.4vh]">
+            “Build proof of habit before building scale.”
+          </div>
+          <div className="font-display text-[2vw] font-light tracking-[-0.02em] leading-[1.15] text-text">
+            This raise funds the proof.{" "}
+            <span className="text-red font-normal">The next round funds the scale.</span>
+          </div>
         </motion.div>
       </div>
     </SlideFrame>
