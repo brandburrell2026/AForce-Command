@@ -11,8 +11,9 @@ const STATS = [
     v: "$952",
     note: "$119/mo · 8 mo avg",
     subnote: "Based on comparable subscription wellness brands · conservative benchmark",
+    blue: true,
   },
-  { k: "LTV : CAC", v: "29.8×", note: "At $32 CAC", hero: true },
+  { k: "LTV : CAC", v: "29.8×", note: "At $32 CAC", hero: true, blue: true },
   { k: "Sub Conversion", v: "20%+", note: "Of first purchases" },
 ];
 
@@ -33,7 +34,7 @@ const BARS = [
 const SNAPSHOT = [
   { k: "Total customers", v: "1,200" },
   { k: "Active subscribers", v: "144", red: true },
-  { k: "Monthly sub rev", v: "$17,136" },
+  { k: "Monthly sub rev", v: "$17,136", blue: true },
   { k: "ARR run rate", v: "$205K", red: true },
   { k: "Repeat rate", v: "30%" },
   { k: "NPS target", v: "55+", red: true },
@@ -90,8 +91,8 @@ export default function TheEconomics() {
                   </span>
                   <span
                     className={`font-display text-[2.4vw] leading-[1.05] tabular-nums ${
-                      s.hero || s.red ? "text-red font-normal" : "text-text font-light"
-                    }`}
+                      s.blue ? "text-blue" : s.hero || s.red ? "text-red" : "text-text"
+                    } ${s.hero || s.red ? "font-normal" : "font-light"}`}
                   >
                     {s.v}
                   </span>
@@ -237,8 +238,8 @@ export default function TheEconomics() {
                   <div key={s.k} className="flex flex-col">
                     <span
                       className={`font-display text-[1.4vw] leading-[1.05] tabular-nums ${
-                        s.red ? "text-red font-normal" : "text-bg font-light"
-                      }`}
+                        s.blue ? "text-blue" : s.red ? "text-red" : "text-bg"
+                      } ${s.red ? "font-normal" : "font-light"}`}
                     >
                       {s.v}
                     </span>
