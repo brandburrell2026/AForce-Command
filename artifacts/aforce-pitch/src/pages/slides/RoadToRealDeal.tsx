@@ -4,8 +4,8 @@ import SlideFrame from "@/components/SlideFrame";
 const EASE = [0.16, 1, 0.3, 1] as const;
 
 const STOPS = [
-  { date: "Jun 2026", t: "Soft Launch", m: "First concierge cohort" },
-  { date: "Jul 2026", t: "Proof of Concept", m: "Habit + retention validated" },
+  { date: "Jul 2026", t: "Soft Launch", m: "First concierge cohort" },
+  { date: "Aug 2026", t: "Proof of Concept", m: "Habit + retention validated" },
   { date: "Oct 2026", t: "Community Scale", m: "Brickell density compounding" },
   { date: "Jan 2027", t: "National Television", m: "America's Real Deal, on air" },
 ];
