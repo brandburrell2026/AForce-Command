@@ -4,12 +4,12 @@ import SlideFrame from "@/components/SlideFrame";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
-type Line = { word: string; accent?: boolean };
+type Line = { word: string; tone?: "red" | "blue" };
 
 const HEADLINE: Line[] = [
-  { word: "Pause." },
+  { word: "Pause.", tone: "red" },
   { word: "Hydrate." },
-  { word: "Lock in.", accent: true },
+  { word: "Lock in.", tone: "blue" },
   { word: "Perform." },
 ];
 
@@ -71,7 +71,13 @@ export default function TheRitual() {
                 transition={
                   reduce ? undefined : { duration: 0.5, ease: EASE, delay: 0.1 + i * 0.08 }
                 }
-                className={line.accent ? "text-red font-normal" : undefined}
+                className={
+                  line.tone === "blue"
+                    ? "text-blue font-normal"
+                    : line.tone === "red"
+                      ? "text-red font-normal"
+                      : undefined
+                }
               >
                 {line.word}
               </motion.div>

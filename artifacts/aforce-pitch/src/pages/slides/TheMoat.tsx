@@ -41,7 +41,7 @@ const PILLARS: Pillar[] = [
     meter: "Identity",
     level: "Becomes permanent",
     depth: 0.85,
-    bar: "bg-red",
+    bar: "bg-blue",
     accent: true,
   },
 ];
@@ -70,7 +70,7 @@ export default function TheMoat() {
           animate={{ opacity: 1, y: 0 }}
           transition={reduce ? undefined : { duration: 0.5, ease: EASE }}
         >
-          <span className="font-display uppercase tracking-[0.34em] text-[0.78vw] text-red font-semibold border-b-2 border-red pb-[0.6vh]">
+          <span className="font-display uppercase tracking-[0.34em] text-[0.78vw] text-blue font-semibold border-b-2 border-blue pb-[0.6vh]">
             The Moat
           </span>
         </motion.div>
@@ -99,7 +99,7 @@ export default function TheMoat() {
         <div className="mt-[6vh] grid grid-cols-3 gap-[3vw] items-stretch">
           {PILLARS.map((p, i) => {
             const fill = p.bar;
-            const lvlTone = p.accent ? "text-red" : "text-text/45";
+            const lvlTone = p.accent ? "text-blue" : "text-text/45";
             return (
               <motion.div
                 key={p.n}
@@ -114,7 +114,7 @@ export default function TheMoat() {
                 <motion.span
                   aria-hidden
                   className={`block h-[2px] origin-left ${
-                    p.accent ? "bg-red" : "bg-text/80"
+                    p.accent ? "bg-blue" : "bg-text/80"
                   }`}
                   initial={reduce ? false : { scaleX: 0 }}
                   animate={{ scaleX: 1 }}
@@ -126,7 +126,7 @@ export default function TheMoat() {
                 <div className="pt-[2vh] flex flex-1 flex-col">
                   <div
                     className={`font-display text-[1.4vw] font-light tabular-nums mb-[1.4vh] ${
-                      p.accent ? "text-red" : "text-red"
+                      p.accent ? "text-blue" : "text-red"
                     }`}
                   >
                     {p.n}

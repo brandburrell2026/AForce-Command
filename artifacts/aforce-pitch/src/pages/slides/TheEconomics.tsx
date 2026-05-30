@@ -6,30 +6,30 @@ const EASE = [0.16, 1, 0.3, 1] as const;
 
 const STATS = [
   { k: "CAC Target", v: "$32", note: "Stop / pivot at $50", red: true },
-  { k: "LTV", v: "$952", note: "$119/mo · 8 mo avg" },
-  { k: "LTV : CAC", v: "29.8×", note: "At $32 CAC", hero: true },
+  { k: "LTV", v: "$952", note: "$119/mo · 8 mo avg", blue: true },
+  { k: "LTV : CAC", v: "29.8×", note: "At $32 CAC", hero: true, blue: true },
   { k: "Sub Conversion", v: "20%+", note: "Of first purchases" },
 ];
 
 const MARGINS = [
   { k: "Cans", v: "67%", note: "$1.65 COGS · $5 retail" },
   { k: "Sticks", v: "80%", note: "$0.69 COGS · $3.50 retail" },
-  { k: "Sub Blended", v: "49%", note: "$60 COGS · $119 price" },
+  { k: "Sub Blended", v: "49%", note: "$60 COGS · $119 price", blue: true },
 ];
 
 const BARS = [
-  { k: "OS Advanced", v: 95, fill: "bg-red" },
+  { k: "OS Advanced", v: 95, fill: "bg-blue" },
   { k: "Sticks single", v: 80, fill: "bg-text" },
   { k: "Cans single", v: 67, fill: "bg-text/70" },
   { k: "Starter bundle", v: 58, fill: "bg-text/35" },
-  { k: "Full subscription bundle", v: 49, fill: "bg-red/60" },
+  { k: "Full subscription bundle", v: 49, fill: "bg-blue/60" },
 ];
 
 const SNAPSHOT = [
   { k: "Total customers", v: "1,200" },
-  { k: "Active subscribers", v: "264", red: true },
+  { k: "Active subscribers", v: "264", blue: true },
   { k: "Monthly sub rev", v: "$31,416" },
-  { k: "ARR run rate", v: "$377K", red: true },
+  { k: "ARR run rate", v: "$377K", blue: true },
   { k: "Repeat rate", v: "30%" },
   { k: "NPS target", v: "55+", red: true },
 ];
@@ -72,7 +72,11 @@ export default function TheEconomics() {
                 <motion.div
                   key={s.k}
                   className={`flex flex-col py-[1.2vh] border-b ${
-                    s.hero ? "border-red/60" : "border-text/15"
+                    s.hero
+                      ? s.blue
+                        ? "border-blue/60"
+                        : "border-red/60"
+                      : "border-text/15"
                   }`}
                   initial={reduce ? false : { opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -85,7 +89,11 @@ export default function TheEconomics() {
                   </span>
                   <span
                     className={`font-display text-[2.4vw] leading-[1.05] tabular-nums ${
-                      s.hero || s.red ? "text-red font-normal" : "text-text font-light"
+                      s.blue
+                        ? "text-blue font-normal"
+                        : s.hero || s.red
+                          ? "text-red font-normal"
+                          : "text-text font-light"
                     }`}
                   >
                     {s.v}
@@ -112,7 +120,11 @@ export default function TheEconomics() {
                   <span className="font-display uppercase tracking-[0.14em] text-[0.6vw] text-text/45 font-medium">
                     {m.k}
                   </span>
-                  <span className="font-display text-[1.7vw] font-light text-text tabular-nums leading-[1.1]">
+                  <span
+                    className={`font-display text-[1.7vw] font-light tabular-nums leading-[1.1] ${
+                      m.blue ? "text-blue" : "text-text"
+                    }`}
+                  >
                     {m.v}
                   </span>
                   <span className="font-body text-[0.58vw] text-text/40 leading-[1.25] mt-[0.2vh]">
@@ -148,7 +160,7 @@ export default function TheEconomics() {
               </motion.div>
 
               <motion.div
-                className="flex flex-col rounded-[0.6vw] bg-text px-[1.2vw] py-[1.4vh]"
+                className="flex flex-col rounded-[0.6vw] bg-blue px-[1.2vw] py-[1.4vh]"
                 initial={reduce ? false : { opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={reduce ? undefined : { duration: 0.5, ease: EASE, delay: 0.46 }}
@@ -227,7 +239,11 @@ export default function TheEconomics() {
                   <div key={s.k} className="flex flex-col">
                     <span
                       className={`font-display text-[1.4vw] leading-[1.05] tabular-nums ${
-                        s.red ? "text-red font-normal" : "text-bg font-light"
+                        s.blue
+                          ? "text-blue font-normal"
+                          : s.red
+                            ? "text-red font-normal"
+                            : "text-bg font-light"
                       }`}
                     >
                       {s.v}

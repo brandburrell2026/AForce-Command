@@ -24,7 +24,7 @@ const USE = [
     label: "Tech & OS Development",
     sub: "AForce OS build, app, retention infrastructure",
     amount: "$1,000,000",
-    bar: "bg-text/55",
+    bar: "bg-blue",
   },
   {
     pct: 15,
@@ -127,7 +127,7 @@ export default function TheAsk() {
         >
           <div className="font-display text-[2vw] font-light tracking-[-0.02em] leading-[1.12] text-text">
             This raise funds the proof.{" "}
-            <span className="text-red font-normal">The next round funds the scale.</span>
+            <span className="text-blue font-normal">The next round funds the scale.</span>
           </div>
         </motion.div>
       </div>

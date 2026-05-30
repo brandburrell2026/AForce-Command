@@ -10,8 +10,13 @@ the lit grey concrete wall behind the figure on slide 7, so all light slides
 share that grey-wall mood (the flat cream `#f4f1ea` look was retired at the
 user's request — don't revert to flat cream). The `--slide-bg` token is the
 grey mid-tone `#e4e0d8` so `bg-bg`/`ring-bg`/`from-bg` elements sit on the same
-grey; ink is near-black, accents are **red `#e41e2b`** (the `--slide-blue` token
-is also mapped to red per the deck lock). The red
+grey; ink is near-black. **Three-color brand system** (tokens in `index.css`):
+**red `--slide-red` `#e41e2b`** = urgency/acquisition/PAUSE, **blue
+`--slide-blue` `#2f5bff`** = system/OS/LOCK IN/retention, **black** = body +
+HYDRATE/PERFORM. Use `text-blue`/`bg-blue`/`border-blue` for OS/retention
+elements, `text-red`/etc. for acquisition/urgency — each color carries fixed
+meaning. (Blue was previously collapsed to red; it is now true blue — do not
+re-collapse it.) The red
 `AForce` wordmark sits top-left (no ™ — see `aforce-wordmark.md`), an outline
 `Patent-Protected` pill top-right, and a hairline bottom rule carrying the
 `CONFIDENTIAL …` note + section/page count. Hero slides may carry warm

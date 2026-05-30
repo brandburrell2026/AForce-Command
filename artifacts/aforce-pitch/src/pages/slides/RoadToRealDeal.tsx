@@ -40,7 +40,7 @@ export default function RoadToRealDeal() {
               transition={reduce ? undefined : { duration: 0.6, ease: EASE, delay: 0.08 }}
             >
               Road to{" "}
-              <span className="text-red font-normal">America's Real Deal.</span>
+              <span className="text-blue font-normal">America's Real Deal.</span>
             </motion.h1>
           </div>
 
@@ -51,7 +51,7 @@ export default function RoadToRealDeal() {
             animate={{ opacity: 1, x: 0 }}
             transition={reduce ? undefined : { duration: 0.7, ease: EASE, delay: 0.2 }}
           >
-            <span className="font-display uppercase tracking-[0.28em] text-[0.62vw] text-text/40 font-semibold mb-[1.4vh]">
+            <span className="font-display uppercase tracking-[0.28em] text-[0.62vw] text-blue font-semibold mb-[1.4vh]">
               The Destination
             </span>
             <img
@@ -91,7 +91,7 @@ export default function RoadToRealDeal() {
                   {/* phase index */}
                   <div
                     className={`font-display tracking-[0.1em] text-[0.7vw] font-semibold mb-[1.2vh] ${
-                      isLast ? "text-red" : "text-text/30"
+                      isLast ? "text-blue" : "text-text/30"
                     }`}
                   >
                     {String(i + 1).padStart(2, "0")}
@@ -101,7 +101,7 @@ export default function RoadToRealDeal() {
                   {isLast ? (
                     <span className="absolute -top-[0.35vh] left-0 flex items-center justify-center">
                       <motion.span
-                        className="absolute w-[2.2vw] h-[2.2vw] rounded-full border border-red/40"
+                        className="absolute w-[2.2vw] h-[2.2vw] rounded-full border border-blue/40"
                         initial={reduce ? false : { scale: 0.6, opacity: 0.7 }}
                         animate={
                           reduce
@@ -114,7 +114,7 @@ export default function RoadToRealDeal() {
                             : { duration: 2.4, ease: "easeInOut", repeat: Infinity, delay: 2 }
                         }
                       />
-                      <span className="w-[1.4vw] h-[1.4vw] rounded-full bg-red shadow-[0_4px_12px_rgba(228,30,43,0.4)]" />
+                      <span className="w-[1.4vw] h-[1.4vw] rounded-full bg-blue shadow-[0_4px_12px_rgba(47,91,255,0.4)]" />
                     </span>
                   ) : (
                     <span className="absolute top-0 left-0 w-[1.1vw] h-[1.1vw] rounded-full bg-red ring-[0.35vw] ring-bg" />
@@ -125,7 +125,7 @@ export default function RoadToRealDeal() {
                   </div>
                   <div
                     className={`mt-[1.4vh] font-display text-[1.7vw] leading-tight ${
-                      isLast ? "text-red font-normal" : "text-text font-normal"
+                      isLast ? "text-blue font-normal" : "text-text font-normal"
                     }`}
                   >
                     {s.t}

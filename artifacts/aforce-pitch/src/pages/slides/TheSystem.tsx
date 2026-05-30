@@ -5,13 +5,13 @@ import SlideFrame from "@/components/SlideFrame";
 const EASE = [0.16, 1, 0.3, 1] as const;
 
 // the system surfaces — product/acquisition first, OS/retention after.
-const FLOW: Array<{ t: string; k: string }> = [
+const FLOW: Array<{ t: string; k: string; blue?: boolean }> = [
   { t: "Hydration", k: "Product" },
   { t: "Daily Use", k: "Habit" },
-  { t: "Tracking", k: "OS" },
+  { t: "Tracking", k: "OS", blue: true },
   { t: "Ritual", k: "Behavior" },
-  { t: "Subscription", k: "Revenue" },
-  { t: "Community", k: "Moat" },
+  { t: "Subscription", k: "Revenue", blue: true },
+  { t: "Community", k: "Moat", blue: true },
 ];
 
 export default function TheSystem() {
@@ -135,7 +135,7 @@ export default function TheSystem() {
             transition={reduce ? undefined : { duration: 0.55, ease: EASE, delay: 0.22 }}
           >
             Products create <span className="text-red font-medium">acquisition.</span> The OS
-            creates <span className="text-text font-medium">retention.</span>
+            creates <span className="text-blue font-medium">retention.</span>
           </motion.p>
 
           {/* the system as six surfaces — clean grid, no bullets */}
@@ -155,7 +155,11 @@ export default function TheSystem() {
                 <div className="font-display font-semibold tracking-[-0.01em] text-[1.3vw] leading-[1.05] text-text">
                   {n.t}
                 </div>
-                <div className="mt-[0.6vh] font-display uppercase tracking-[0.24em] text-[0.6vw] text-text/40 font-semibold">
+                <div
+                  className={`mt-[0.6vh] font-display uppercase tracking-[0.24em] text-[0.6vw] font-semibold ${
+                    n.blue ? "text-blue" : "text-text/40"
+                  }`}
+                >
                   {n.k}
                 </div>
               </motion.div>
