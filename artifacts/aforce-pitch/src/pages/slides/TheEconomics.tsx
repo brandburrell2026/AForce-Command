@@ -33,9 +33,9 @@ const BARS = [
 
 const SNAPSHOT = [
   { k: "Total customers", v: "1,200" },
-  { k: "Active subscribers", v: "144", red: true },
+  { k: "Active subscribers", v: "144", blue: true, strong: true },
   { k: "Monthly sub rev", v: "$17,136", blue: true },
-  { k: "ARR run rate", v: "$205K", red: true },
+  { k: "ARR run rate", v: "$205K", blue: true, strong: true },
   { k: "Repeat rate", v: "30%" },
   { k: "NPS target", v: "55+", red: true },
 ];
@@ -239,7 +239,7 @@ export default function TheEconomics() {
                     <span
                       className={`font-display text-[1.4vw] leading-[1.05] tabular-nums ${
                         s.blue ? "text-blue" : s.red ? "text-red" : "text-bg"
-                      } ${s.red ? "font-normal" : "font-light"}`}
+                      } ${s.red || s.strong ? "font-normal" : "font-light"}`}
                     >
                       {s.v}
                     </span>
