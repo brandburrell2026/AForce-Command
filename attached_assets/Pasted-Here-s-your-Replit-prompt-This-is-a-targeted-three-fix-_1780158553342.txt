@@ -1,0 +1,119 @@
+Here's your Replit prompt:
+
+---
+
+**This is a targeted three-fix revision on the existing AForce 14-slide deck HTML file. Make only these three changes. Do not touch anything else.**
+
+---
+
+**FIX 1 — System slide (slide 08): eliminate bullet points**
+
+Remove all six bullet points entirely. Replace with this layout:
+
+Left side — keep the existing headline and subline exactly as they are:
+- Headline: `The system.`
+- Subline: `Products create acquisition. The OS creates retention.`
+
+Below the subline — replace the bullet list with two clean rows of three stat-style boxes each, no bullets, no dots:
+
+Row 1:
+- Box 1: Large label `HYDRATION` · small caps tag beneath `PRODUCT`
+- Box 2: Large label `DAILY USE` · small caps tag beneath `HABIT`
+- Box 3: Large label `TRACKING` · small caps tag beneath `OS`
+
+Row 2:
+- Box 4: Large label `RITUAL` · small caps tag beneath `BEHAVIOR`
+- Box 5: Large label `SUBSCRIPTION` · small caps tag beneath `REVENUE`
+- Box 6: Large label `COMMUNITY` · small caps tag beneath `MOAT`
+
+Each box: cream background `#EDE8DF`, thin `1px solid rgba(0,0,0,0.08)` border, padding `16px 20px`, border-radius `4px`. Label in Barlow Condensed Bold 20px black. Tag in Barlow 9px letter-spacing 2px grey `#999` uppercase. No bullets. No dots. No dashes. Clean grid — `display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;`
+
+Right side — keep the phone mockup images exactly as they are. Do not move or resize them.
+
+---
+
+**FIX 2 — Ask slide (slide 14): make $4M the dominant element**
+
+The $4M must be the biggest single thing on the slide. Nothing competes with it.
+
+Replace the current layout with this:
+
+Top section — full width, centered horizontally:
+- `$4` in Barlow Condensed Bold, `160px`, color `#0D0D0D`
+- `M` immediately following in same font, same size, color `#E8192C`
+- These sit on one line, centered, at the very top of the content area
+- Directly beneath in grey 14px centered: `A proof-of-concept raise. This capital funds proof of habit. The next round funds scale.`
+
+Middle section — USE OF FUNDS label with red rule, then four allocation bars stacked vertically, full content width:
+
+Each bar row layout:
+- Left: percentage in Barlow Condensed Bold 28px · category name in small caps 10px letter-spacing 2px · description in grey 11px beneath
+- Right: dollar amount in Barlow Condensed 18px grey, right-aligned
+- Below the text row: full-width colored bar, height `8px`, border-radius `4px`, showing proportional fill only (not full width track)
+
+Bar 1 — `#E8192C` red, 35% width fill:
+- `35%` · `PRODUCT & INVENTORY` · `$1,400,000`
+- Description: Launch SKUs + concierge stock
+
+Bar 2 — `#0D0D0D` black, 25% width fill:
+- `25%` · `MARKETING & ACTIVATION` · `$1,000,000`
+- Description: Brickell + NYC density, event, paid acquisition
+
+Bar 3 — `#555555` dark grey, 25% width fill:
+- `25%` · `TECH & OS DEVELOPMENT` · `$1,000,000`
+- Description: AForce OS build, app, retention infrastructure
+
+Bar 4 — `#999999` light grey, 15% width fill:
+- `15%` · `TEAM & OPERATIONS` · `$600,000`
+- Description: Salaries, legal, insurance, overhead · ~$50K/mo
+
+Bottom closing statement — centered, Barlow Condensed Bold, `40px`:
+- Line 1: `This raise funds the proof.` — `#0D0D0D`
+- Line 2: `The next round funds the scale.` — `#E8192C`
+
+The hierarchy must be unmistakable: `$4M` is the largest element. The closing statement is the second largest. Everything else is subordinate.
+
+---
+
+**FIX 3 — Proving ground slide (slide 10): one dominant statement, map does the work**
+
+Remove the three-row list layout — Year-round, High-density, One market.
+
+Replace with this:
+
+Left side:
+- Keep section label `THE PROOF ENGINE` exactly as is
+- Keep headline `A concentrated` / `proving ground.` in red exactly as is
+- Keep the two lines of body copy exactly as is
+- Below body copy — one single centered statement in Barlow Condensed Bold 22px black, max-width 480px:
+`Miami. Brickell. One market. One data set. One proof before the national stage.`
+- Below that statement — three minimal inline stats on one line, separated by thin vertical dividers `|`:
+`YEAR-ROUND DEMAND  |  HIGH-DENSITY TARGET  |  PROVE THEN SCALE`
+Style: 9px, letter-spacing 2px, grey `#999`, uppercase, centered
+
+Right side:
+- Keep the Florida map outline exactly as is
+- Keep the red dot on Miami/Brickell exactly as is
+- Keep the `MIAMI · BRICKELL` and `THE BEACHHEAD` labels exactly as is
+
+---
+
+**DO NOT CHANGE anything else in the deck. Specifically:**
+- Slides 1 and 2 — black opening slides — do not touch
+- Slide 7 — the ritual athlete photo slide — do not touch
+- Slide 9 — the moat slide — do not touch
+- Slide 11 — the founder slide — do not touch
+- Slide 13 — the economics slide — do not touch
+- All navigation, transitions, dot indicators, slide numbers, footers
+- The brand system — cream, red, black only
+
+---
+
+**Final check before saving:**
+- Slide 08: zero bullet points or dots anywhere on the slide
+- Slide 14: `$4M` is visually the largest element on the page — if anything is competing with it in size, reduce it
+- Slide 10: no list rows — one statement, three inline labels, map does the visual work
+
+---
+
+Paste this directly into Replit as a targeted revision. Three fixes only. Everything else stays exactly as it is.

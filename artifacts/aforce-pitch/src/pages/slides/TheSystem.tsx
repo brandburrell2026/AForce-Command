@@ -4,14 +4,14 @@ import SlideFrame from "@/components/SlideFrame";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
-// product/acquisition stages (red) flow into OS/retention stages (dark).
-const FLOW: Array<{ t: string; k: string; c: "red" | "dark" }> = [
-  { t: "Hydration", k: "Product", c: "red" },
-  { t: "Daily Use", k: "Habit", c: "red" },
-  { t: "Tracking", k: "OS", c: "dark" },
-  { t: "Ritual", k: "Behavior", c: "dark" },
-  { t: "Subscription", k: "Revenue", c: "dark" },
-  { t: "Community", k: "Moat", c: "dark" },
+// the system surfaces — product/acquisition first, OS/retention after.
+const FLOW: Array<{ t: string; k: string }> = [
+  { t: "Hydration", k: "Product" },
+  { t: "Daily Use", k: "Habit" },
+  { t: "Tracking", k: "OS" },
+  { t: "Ritual", k: "Behavior" },
+  { t: "Subscription", k: "Revenue" },
+  { t: "Community", k: "Moat" },
 ];
 
 export default function TheSystem() {
@@ -138,41 +138,28 @@ export default function TheSystem() {
             creates <span className="text-text font-medium">retention.</span>
           </motion.p>
 
-          {/* the loop — product stages flow into OS stages */}
-          <div className="relative mt-[5vh] max-w-[34vw]">
-            <span
-              aria-hidden
-              className="absolute top-[1vh] bottom-[1vh] left-[0.35vw] w-px bg-text/15"
-            />
-            <div className="flex flex-col gap-[2.3vh]">
-              {FLOW.map((n, i) => (
-                <motion.div
-                  key={n.t}
-                  className="flex items-center gap-[1.4vw]"
-                  initial={reduce ? false : { opacity: 0, x: -16 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={
-                    reduce
-                      ? undefined
-                      : { duration: 0.4, ease: EASE, delay: 0.18 + i * 0.05 }
-                  }
-                >
-                  <span
-                    className={`h-[0.7vw] w-[0.7vw] rounded-full shrink-0 z-10 ring-4 ring-bg ${
-                      n.c === "red" ? "bg-red" : "bg-text/70"
-                    }`}
-                  />
-                  <div className="flex items-baseline gap-[0.9vw]">
-                    <span className="font-display font-light text-[1.55vw] leading-none text-text">
-                      {n.t}
-                    </span>
-                    <span className="font-display uppercase tracking-[0.24em] text-[0.62vw] text-text/40 font-semibold">
-                      {n.k}
-                    </span>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
+          {/* the system as six surfaces — clean grid, no bullets */}
+          <div className="mt-[5vh] grid grid-cols-3 gap-[0.7vw] max-w-[40vw]">
+            {FLOW.map((n, i) => (
+              <motion.div
+                key={n.t}
+                className="rounded-[4px] border border-text/10 bg-bg-elev px-[1.1vw] py-[1.5vh]"
+                initial={reduce ? false : { opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={
+                  reduce
+                    ? undefined
+                    : { duration: 0.4, ease: EASE, delay: 0.18 + i * 0.05 }
+                }
+              >
+                <div className="font-display font-semibold tracking-[-0.01em] text-[1.3vw] leading-[1.05] text-text">
+                  {n.t}
+                </div>
+                <div className="mt-[0.6vh] font-display uppercase tracking-[0.24em] text-[0.6vw] text-text/40 font-semibold">
+                  {n.k}
+                </div>
+              </motion.div>
+            ))}
           </div>
         </div>
       </div>

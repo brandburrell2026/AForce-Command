@@ -40,45 +40,44 @@ export default function TheAsk() {
 
   return (
     <SlideFrame slide={14}>
-      <div className="absolute inset-0 flex flex-col justify-center px-[5vw] pt-[12vh] pb-[10vh]">
+      <div className="absolute inset-0 flex flex-col items-center justify-center px-[5vw] pt-[9vh] pb-[9vh] text-center">
         <motion.div
-          className="mb-[2.6vh]"
+          className="mb-[1.6vh]"
           initial={reduce ? false : { opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={reduce ? undefined : { duration: 0.5, ease: EASE }}
         >
-          <span className="font-display uppercase tracking-[0.32em] text-[0.78vw] text-red font-semibold border-b-2 border-red pb-[0.6vh]">
+          <span className="font-display uppercase tracking-[0.32em] text-[0.78vw] text-red font-semibold">
             The Ask
           </span>
         </motion.div>
 
-        <div className="flex items-end gap-[2.5vw]">
-          <motion.div
-            className="font-display font-normal tracking-[0.01em] text-[8.5vw] leading-[0.82] text-text"
-            initial={reduce ? false : { opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={reduce ? undefined : { duration: 0.7, ease: EASE, delay: 0.08 }}
-          >
-            $4<span className="text-red">M</span>
-          </motion.div>
-          <motion.div
-            className="mb-[1.8vh] font-body text-[1.1vw] leading-[1.5] text-text/70 max-w-[26vw]"
-            initial={reduce ? false : { opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={reduce ? undefined : { duration: 0.6, ease: EASE, delay: 0.28 }}
-          >
-            A proof-of-concept raise. This capital funds proof of habit. The next
-            round funds scale.
-          </motion.div>
-        </div>
+        {/* $4M — the single dominant element */}
+        <motion.div
+          className="font-display font-normal tracking-[0.005em] text-[8vw] leading-[0.84] text-text"
+          initial={reduce ? false : { opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={reduce ? undefined : { duration: 0.7, ease: EASE, delay: 0.08 }}
+        >
+          $4<span className="text-red">M</span>
+        </motion.div>
+        <motion.p
+          className="mt-[1.6vh] max-w-[36vw] font-body text-[1.05vw] leading-[1.5] text-text/65"
+          initial={reduce ? false : { opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={reduce ? undefined : { duration: 0.6, ease: EASE, delay: 0.28 }}
+        >
+          A proof-of-concept raise. This capital funds proof of habit. The next
+          round funds scale.
+        </motion.p>
 
         {/* use of funds — four full-width allocation bars */}
-        <div className="mt-[3.4vh] max-w-[78vw]">
-          <div className="font-display uppercase tracking-[0.22em] text-[0.68vw] text-text/40 font-medium mb-[1.6vh]">
+        <div className="mt-[2.6vh] w-full max-w-[62vw] text-left">
+          <div className="inline-block font-display uppercase tracking-[0.22em] text-[0.68vw] text-text/45 font-semibold mb-[1.6vh] border-b-2 border-red pb-[0.7vh]">
             Use of funds
           </div>
 
-          <div className="flex flex-col gap-[1.7vh]">
+          <div className="flex flex-col gap-[1.4vh]">
             {USE.map((u, i) => (
               <motion.div
                 key={u.label}
@@ -121,12 +120,12 @@ export default function TheAsk() {
         </div>
 
         <motion.div
-          className="mt-[3.6vh] text-center"
+          className="mt-[2.4vh] text-center"
           initial={reduce ? false : { opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
           transition={reduce ? undefined : { duration: 0.6, ease: EASE, delay: 0.6 }}
         >
-          <div className="font-display text-[2vw] font-light tracking-[-0.02em] leading-[1.15] text-text">
+          <div className="font-display text-[2vw] font-light tracking-[-0.02em] leading-[1.12] text-text">
             This raise funds the proof.{" "}
             <span className="text-red font-normal">The next round funds the scale.</span>
           </div>

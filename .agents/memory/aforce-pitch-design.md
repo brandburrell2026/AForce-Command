@@ -19,8 +19,11 @@ documentary photography or the AForce can hero. The deck no longer has a
 separate dark "Close" back-cover. **Slide 10 / The Proof Engine** is a
 data-forward cream slide (NOT dark cinematic — a full-bleed hooded-athlete
 `SlideFrame invert` version was tried and the user rejected it): left column =
-eyebrow/headline ("A concentrated / proving ground.") + support + three proof
-rows; right column = an actual **map of Florida** (public-domain outline path in
+eyebrow/headline ("A concentrated / proving ground.") + support + **one
+dominant statement** ("Miami. Brickell. One market…") followed by inline
+pipe-separated labels (the earlier three stacked proof rows were retired —
+don't reintroduce a multi-row list without an ask); right column = an actual
+**map of Florida** (public-domain outline path in
 `floridaPath.ts`, `FLORIDA_PATH`, viewBox `0 4 70 64`) with a solid **red marker
 at Miami/Brickell** (`MIAMI = {x:60.4, y:56.2}`) + a pulsing red halo, and a
 "Miami · Brickell / The beachhead" caption below. (An earlier phyllotaxis
