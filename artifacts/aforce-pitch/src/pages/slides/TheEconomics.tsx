@@ -19,9 +19,9 @@ const MARGINS = [
 
 const BARS = [
   { k: "OS Advanced", v: 95, fill: "bg-blue" },
-  { k: "Sticks single", v: 80, fill: "bg-text" },
-  { k: "Cans single", v: 67, fill: "bg-text/70" },
-  { k: "Starter bundle", v: 58, fill: "bg-text/35" },
+  { k: "Sticks single", v: 80, fill: "bg-slate" },
+  { k: "Cans single", v: 67, fill: "bg-cool-gray" },
+  { k: "Starter bundle", v: 58, fill: "bg-light-gray" },
   { k: "Full subscription bundle", v: 49, fill: "bg-blue/60" },
 ];
 
@@ -226,7 +226,7 @@ export default function TheEconomics() {
 
             {/* October snapshot */}
             <motion.div
-              className="mt-[3vh] rounded-[0.6vw] bg-text px-[1.6vw] py-[1.8vh]"
+              className="mt-[3vh] rounded-[0.6vw] bg-charcoal px-[1.6vw] py-[1.8vh]"
               initial={reduce ? false : { opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={reduce ? undefined : { duration: 0.5, ease: EASE, delay: 0.55 }}

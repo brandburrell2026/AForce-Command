@@ -35,14 +35,14 @@ export default function SlideFrame({
   const topLabel = `Section ${index} — ${name}`;
   const pageLabel = `${String(slide).padStart(2, "0")} / ${String(TOTAL_SLIDES).padStart(2, "0")}`;
 
-  const ink = invert ? "text-[#F5F4F1]" : "text-text";
-  const muted = invert ? "text-[#F5F4F1]/55" : "text-text/55";
-  const ruleColor = invert ? "border-[#F5F4F1]/20" : "border-text/25";
-  const pill = invert ? "text-[#F5F4F1] border-[#F5F4F1]/70" : "text-red border-red";
+  const ink = invert ? "text-cream" : "text-text";
+  const muted = invert ? "text-cream/55" : "text-text/55";
+  const ruleColor = invert ? "border-cream/20" : "border-text/25";
+  const pill = invert ? "text-cream border-cream/70" : "text-red border-red";
 
   return (
     <div
-      className={`w-screen h-screen overflow-hidden relative ${ink} font-body ${invert ? "bg-[#0B0D12]" : ""}`}
+      className={`w-screen h-screen overflow-hidden relative ${ink} font-body ${invert ? "bg-black" : ""}`}
       style={invert ? undefined : { background: PAPER_BG }}
     >
       <div className="absolute inset-0 z-10">

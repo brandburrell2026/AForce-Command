@@ -9,6 +9,12 @@
   --color-divider: var(--slide-divider);
   --color-red: var(--slide-red);
   --color-blue: var(--slide-blue);
+  --color-black: var(--slide-black);
+  --color-charcoal: var(--slide-charcoal);
+  --color-slate: var(--slide-slate);
+  --color-cool-gray: var(--slide-cool-gray);
+  --color-light-gray: var(--slide-light-gray);
+  --color-cream: var(--slide-cream);
   --font-display: var(--font-display-family);
   --font-body: var(--font-body-family);
 }
@@ -22,8 +28,15 @@
   --slide-text: #1a1815;
   --slide-muted: rgba(26, 24, 21, 0.55);
   --slide-divider: rgba(26, 24, 21, 0.16);
+  /* AForce brand palette (mood board) */
   --slide-red: #e41e2b;
   --slide-blue: #2f5bff;
+  --slide-black: #0b0d12;
+  --slide-charcoal: #1c1f26;
+  --slide-slate: #343a45;
+  --slide-cool-gray: #6b7280;
+  --slide-light-gray: #e5e7eb;
+  --slide-cream: #f5f4f1;
   --font-display-family: "Inter", system-ui, sans-serif;
   --font-body-family: "Inter", system-ui, sans-serif;
   color-scheme: light;

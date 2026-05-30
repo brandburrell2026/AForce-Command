@@ -16,7 +16,14 @@ grey; ink is near-black. **Three-color brand system** (tokens in `index.css`):
 HYDRATE/PERFORM. Use `text-blue`/`bg-blue`/`border-blue` for OS/retention
 elements, `text-red`/etc. for acquisition/urgency — each color carries fixed
 meaning. (Blue was previously collapsed to red; it is now true blue — do not
-re-collapse it.) The red
+re-collapse it.) The full 9-color mood board also defines a **neutral ramp**
+(charcoal `#1c1f26`, slate `#343a45`, cool-gray `#6b7280`, light-gray `#e5e7eb`,
+white `#fff`, cream `#f5f4f1`) — all are CSS tokens consumed via utilities
+(`bg-charcoal`/`bg-slate`/`bg-cool-gray`/`bg-light-gray`/`text-cream`); the
+cool neutrals live on dark surfaces + chart bars, not on the warm light paper.
+**Note:** the Tailwind `black` token is deliberately remapped to brand black
+`#0b0d12` (not `#000`), so `bg-black`/`text-black` everywhere (incl. OS phone
+mockups) render brand black. The red
 `AForce` wordmark sits top-left (no ™ — see `aforce-wordmark.md`), an outline
 `Patent-Protected` pill top-right, and a hairline bottom rule carrying the
 `CONFIDENTIAL …` note + section/page count. Hero slides may carry warm
