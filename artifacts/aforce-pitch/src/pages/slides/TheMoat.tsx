@@ -83,7 +83,7 @@ export default function TheMoat() {
           transition={reduce ? undefined : { duration: 0.6, ease: EASE, delay: 0.08 }}
         >
           The more you use it, the harder it is{" "}
-          <span className="text-red font-normal">to leave.</span>
+          <span className="text-blue font-normal">to leave.</span>
         </motion.h1>
 
         <motion.p
