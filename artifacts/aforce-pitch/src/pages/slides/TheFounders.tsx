@@ -108,7 +108,7 @@ export default function TheFounders() {
                   className="pointer-events-none absolute inset-x-0 bottom-0 h-[28%]"
                   style={{
                     background:
-                      "linear-gradient(to top, rgba(244,241,234,0.92) 0%, rgba(244,241,234,0) 100%)",
+                      "linear-gradient(to top, rgba(228,224,216,0.92) 0%, rgba(228,224,216,0) 100%)",
                   }}
                 />
               </div>

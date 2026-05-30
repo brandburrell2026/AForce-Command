@@ -3,8 +3,15 @@ name: aforce-pitch design language
 description: Visual + structural conventions for the AForce investor deck (artifacts/aforce-pitch).
 ---
 
-The deck is an **editorial** investor deck: cream paper `#f4f1ea`,
-near-black ink, **red `#e41e2b`** and **blue `#2f5bff`** accent colors. The red
+The deck is an **editorial** investor deck on a **warm grey "paper"** canvas:
+the shared `SlideFrame` paints every light slide with a `PAPER_BG` radial
+gradient (lighter top-center `#efece6` → `#d6d1c8` lower corners) that mirrors
+the lit grey concrete wall behind the figure on slide 7, so all light slides
+share that grey-wall mood (the flat cream `#f4f1ea` look was retired at the
+user's request — don't revert to flat cream). The `--slide-bg` token is the
+grey mid-tone `#e4e0d8` so `bg-bg`/`ring-bg`/`from-bg` elements sit on the same
+grey; ink is near-black, accents are **red `#e41e2b`** (the `--slide-blue` token
+is also mapped to red per the deck lock). The red
 `AForce` wordmark sits top-left (no ™ — see `aforce-wordmark.md`), an outline
 `Patent-Protected` pill top-right, and a hairline bottom rule carrying the
 `CONFIDENTIAL …` note + section/page count. Hero slides may carry warm

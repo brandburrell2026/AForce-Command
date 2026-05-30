@@ -12,6 +12,15 @@ interface SlideFrameProps {
 }
 
 /**
+ * Atmospheric grey-toned "paper" — an overhead-lit warm-grey wall, lighter at
+ * the top-center and settling into soft grey toward the lower corners. Mirrors
+ * the lit concrete wall behind the figure on slide 7 so every light slide
+ * shares the same mood.
+ */
+const PAPER_BG =
+  "radial-gradient(125% 115% at 50% -5%, #efece6 0%, #e4e0d8 52%, #d6d1c8 100%)";
+
+/**
  * Shared chrome for every slide: AForce wordmark + Patent-Protected pill on
  * top, and the confidential / section / page rule on the bottom. Content is
  * supplied as children and owns its own layout.
@@ -26,14 +35,16 @@ export default function SlideFrame({
   const topLabel = `Section ${index} — ${name}`;
   const pageLabel = `${String(slide).padStart(2, "0")} / ${String(TOTAL_SLIDES).padStart(2, "0")}`;
 
-  const bg = invert ? "bg-[#0B0D12]" : "bg-bg";
   const ink = invert ? "text-[#F5F4F1]" : "text-text";
   const muted = invert ? "text-[#F5F4F1]/55" : "text-text/55";
   const ruleColor = invert ? "border-[#F5F4F1]/20" : "border-text/25";
   const pill = invert ? "text-[#F5F4F1] border-[#F5F4F1]/70" : "text-red border-red";
 
   return (
-    <div className={`w-screen h-screen overflow-hidden relative ${bg} ${ink} font-body`}>
+    <div
+      className={`w-screen h-screen overflow-hidden relative ${ink} font-body ${invert ? "bg-[#0B0D12]" : ""}`}
+      style={invert ? undefined : { background: PAPER_BG }}
+    >
       <div className="absolute inset-0 z-10">
         {children}
       </div>

@@ -14,8 +14,10 @@
 }
 
 :root {
-  --slide-bg: #f4f1ea;
-  --slide-bg-elev: #ece8df;
+  /* Warm grey "paper" — the mid-tone of the SlideFrame PAPER_BG wall, so every
+     bg-bg / ring-bg / from-bg element sits on the same grey as the canvas. */
+  --slide-bg: #e4e0d8;
+  --slide-bg-elev: #edeae3;
   --slide-text: #18161300;
   --slide-text: #1a1815;
   --slide-muted: rgba(26, 24, 21, 0.55);

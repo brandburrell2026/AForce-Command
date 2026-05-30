@@ -40,10 +40,10 @@ export default function TheRitual() {
             aria-hidden
             className="h-full w-full object-cover object-center"
           />
-          {/* soft fade so the photo melts into the cream canvas on the left */}
-          <div className="absolute inset-y-0 left-0 w-[32%] bg-gradient-to-r from-bg via-bg/60 to-transparent" />
+          {/* soft fade so the photo melts into the grey canvas on the left */}
+          <div className="absolute inset-y-0 left-0 w-[32%] bg-gradient-to-r from-[#e7e3db] via-[#e7e3db]/60 to-transparent" />
           {/* bottom scrim keeps the shared footer chrome legible over the dark figure */}
-          <div className="absolute inset-x-0 bottom-0 h-[15vh] bg-gradient-to-t from-bg to-transparent" />
+          <div className="absolute inset-x-0 bottom-0 h-[15vh] bg-gradient-to-t from-[#d9d4cb] to-transparent" />
         </motion.div>
 
         {/* LEFT — the ritual, stated plainly */}
