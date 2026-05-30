@@ -66,16 +66,17 @@ with massive whitespace. One emphasis word per H1 in red or blue.
   `SECTIONS` ranges contiguous (no gaps) so `sectionFor()` never returns
   undefined, keep `TOTAL_SLIDES === manifest length`, and keep `BG_NAMES`
   length === slide count. **Changing slide count means touching 4 places in
-  lockstep: manifest, `TOTAL_SLIDES`, `SECTIONS` ranges, `BG_NAMES`, plus the
-  `ambientTrackFor` act ranges in `App.tsx`** — stale ranges break silently.
+  lockstep: manifest, `TOTAL_SLIDES`, `SECTIONS` ranges, `BG_NAMES`** — stale
+  ranges break silently.
 - Slides live in `src/pages/slides/*.tsx`, registered in
   `src/data/slides-manifest.json` (strict Zod), eager-globbed by
   `slideLoader.ts`. Run `pnpm --filter @workspace/aforce-pitch run
   validate-slides` after manifest changes.
 - Shared chrome is `SlideFrame.tsx` (supports `invert` for black slides);
   `EditorialSlide.tsx` is the photo-split single-support-line layout.
-- `ambientTrackFor` in `App.tsx` maps slides to audio acts — keep ranges in
-  lockstep with slide-count changes. Stale ranges break silently after a cut.
+- Ambient music has been removed from the deck (no `AmbientAudio`, no
+  `public/audio`, no mute control). Do not reintroduce a soundtrack without an
+  explicit ask.
 - Motion policy: the intro splash sound-gate and global slide
   entrance/transition animations stay removed — do not reintroduce a gate or
   blanket slide transitions without an explicit ask. **Per-slide** framer-motion

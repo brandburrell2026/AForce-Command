@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 
-import AmbientAudio from "@/components/AmbientAudio";
 import PresentationHUD from "@/components/PresentationHUD";
 import { slides } from "@/slideLoader";
 
@@ -10,19 +9,6 @@ function getSlideIndex(pathname: string): number {
   if (!match) return -1;
   const position = parseInt(match[1], 10);
   return slides.findIndex((s) => s.position === position);
-}
-
-function ambientTrackFor(position: number): string {
-  const base = import.meta.env.BASE_URL;
-  // 14-slide structure:
-  // Act 1 — sparse tension (The Stakes):           slides 1-3
-  // Act 2 — controlled momentum (The Opportunity): slides 4-6
-  // Act 3 — premium propulsion (System + Team):    slides 7-11
-  // Act 4 — warm resolution (The Plan):            slides 12-14
-  if (position <= 3) return `${base}audio/act1-opening.mp3`;
-  if (position <= 6) return `${base}audio/act2-momentum.mp3`;
-  if (position <= 11) return `${base}audio/act3-propulsion.mp3`;
-  return `${base}audio/act4-resolution.mp3`;
 }
 
 function toggleFullscreen() {
@@ -37,7 +23,6 @@ function toggleFullscreen() {
 function SlideEditor() {
   const [location, navigate] = useLocation();
   const currentIndex = getSlideIndex(location);
-  const [audioOn, setAudioOn] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(
     typeof document !== "undefined" && !!document.fullscreenElement,
   );
@@ -60,11 +45,6 @@ function SlideEditor() {
       if (event.key === "f" || event.key === "F") {
         event.preventDefault();
         toggleFullscreen();
-        return;
-      }
-      if (event.key === "m" || event.key === "M") {
-        event.preventDefault();
-        setAudioOn((v) => !v);
         return;
       }
       if (navigationDisabledRef.current) return;
@@ -156,10 +136,7 @@ function SlideEditor() {
     <div className="select-none">
       {currentSlide && <currentSlide.Component />}
 
-      <AmbientAudio enabled={audioOn} src={ambientTrackFor(currentSlide?.position ?? 1)} />
       <PresentationHUD
-        audioOn={audioOn}
-        onToggleAudio={() => setAudioOn((v) => !v)}
         onToggleFullscreen={toggleFullscreen}
         isFullscreen={isFullscreen}
         currentIndex={Math.max(0, currentIndex)}
@@ -213,7 +190,7 @@ function SlideViewer() {
         toggleFullscreen();
         return;
       }
-      if (event.key !== "ArrowLeft" && event.key !== "ArrowRight" && event.key !== " " && event.key !== "m" && event.key !== "M") return;
+      if (event.key !== "ArrowLeft" && event.key !== "ArrowRight" && event.key !== " ") return;
       if (event.key === " ") event.preventDefault();
       iframeRef.current?.contentWindow?.dispatchEvent(
         new KeyboardEvent("keydown", { key: event.key, code: event.code, bubbles: true }),
