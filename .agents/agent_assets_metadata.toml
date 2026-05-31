@@ -2465,3 +2465,9 @@ id = "Ql9tCHgk0iLLIjoUrRbFo"
 uri = "file://artifacts/aforce-os/assets/images/icon.png"
 type = "image"
 title = "AForce OS — App Icon"
+
+[[outputs]]
+id = "qVAUcbEAWHiNOFQUJUJZC"
+uri = "file://exports/AForce-OS-Technical-Audit.pdf"
+type = "pdf"
+title = "AForce OS — Technical Audit (PDF)"
