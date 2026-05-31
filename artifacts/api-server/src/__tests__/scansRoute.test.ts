@@ -1,17 +1,36 @@
 /**
- * Route-level legacy-compatibility tests for /api/scans.
+ * Route-level tests for /api/scans.
  *
- * These tests assert that swapping the in-memory store onto the
- * Drizzle-backed HydroScanRepo did NOT introduce externally
- * observable drift on the edge inputs the architect flagged:
- *   - `body.id === ""` is accepted verbatim, not regenerated.
- *   - `body.loggedAt` is echoed in the response exactly as sent
- *     (no Date normalization round-trip).
- *   - `?limit` accepts negative values and applies tail-trimming
- *     slice semantics (legacy used Array.slice(0, N)).
+ * Two responsibilities:
+ *
+ *  1. SECURITY (IDOR): the endpoint must isolate scan data by the
+ *     authenticated Clerk user (`req.userId` from requireAuth) and must
+ *     IGNORE the client-supplied `x-device-id` header entirely. A caller
+ *     can no longer read or write another user's scans by spoofing that
+ *     header, and an unauthenticated caller is rejected.
+ *
+ *  2. LEGACY CONTRACT: swapping the in-memory store onto the Drizzle-backed
+ *     HydroScanRepo did NOT introduce externally observable drift on the
+ *     edge inputs the architect flagged:
+ *       - `body.id === ""` is accepted verbatim, not regenerated.
+ *       - `body.loggedAt` is echoed in the response exactly as sent.
+ *       - `?limit` accepts negative values and applies tail-trimming slice.
+ *
+ * Auth is exercised through the REAL requireAuth middleware. We set a dummy
+ * CLERK_SECRET_KEY and mock @clerk/express's getAuth() so each request's
+ * identity is driven by an `x-auth-user` test header. This proves the route
+ * keys off the verified user id, not the device header.
  */
-import { describe, it, expect, beforeAll, afterAll, beforeEach } from "vitest";
-import express, { type Express } from "express";
+import {
+  describe,
+  it,
+  expect,
+  beforeAll,
+  afterAll,
+  beforeEach,
+  vi,
+} from "vitest";
+import express, { type Express, type Request } from "express";
 import http from "node:http";
 import { eq } from "drizzle-orm";
 import { db, aforceHydroScans } from "@workspace/db";
@@ -19,6 +38,17 @@ import scansRouter from "../routes/scans";
 import { logger } from "../lib/logger";
 
 process.env["NODE_ENV"] = "test";
+// requireAuth only consults Clerk when a secret key is present; with the
+// mock below, getAuth() returns the identity carried in the x-auth-user
+// header so each test request can act as a distinct user.
+process.env["CLERK_SECRET_KEY"] = "sk_test_dummy_for_scans_route";
+
+vi.mock("@clerk/express", () => ({
+  getAuth: (req: Request) => {
+    const u = req.header("x-auth-user");
+    return { userId: u && u.length > 0 ? u : null, sessionClaims: null };
+  },
+}));
 
 const TEST_USER_PREFIX = "test_scans_route_";
 
@@ -65,14 +95,95 @@ beforeEach(async () => {
   await cleanupTestRows();
 });
 
-const device = (suffix: string) => `${TEST_USER_PREFIX}${suffix}_${Date.now()}`;
+const user = (suffix: string) => `${TEST_USER_PREFIX}${suffix}_${Date.now()}`;
+
+/** Authenticated request helper — identity is carried in x-auth-user. */
+function authHeaders(userId: string, extra?: Record<string, string>) {
+  return { "content-type": "application/json", "x-auth-user": userId, ...extra };
+}
+
+describe("/api/scans — IDOR / authorization", () => {
+  // NOTE: requireAuth's hard 401/503 fail-closed only fires in production
+  // (IS_PRODUCTION is read at module load). That production gate is proven
+  // directly in requireAuth.test.ts. Here we prove the dev-convenience
+  // fallback still cannot leak a real user's data: an unauthenticated caller
+  // is mapped to the isolated demo user, never to a seeded real user.
+  it("dev fallback maps an unauthenticated caller to the demo user, never a real user's data", async () => {
+    const real = user("real_owner");
+    await fetch(`${baseUrl}/api/scans`, {
+      method: "POST",
+      headers: authHeaders(real),
+      body: JSON.stringify({ id: "real_only", productName: "secret" }),
+    });
+
+    // No auth header at all → demo user, must not contain the real row.
+    const anon = (await (
+      await fetch(`${baseUrl}/api/scans`)
+    ).json()) as { scans: Array<{ id: string }> };
+    expect(anon.scans.find((s) => s.id === "real_only")).toBeUndefined();
+  });
+
+  it("isolates scans by authenticated user — user B cannot see user A's data", async () => {
+    const a = user("owner_a");
+    const b = user("owner_b");
+
+    await fetch(`${baseUrl}/api/scans`, {
+      method: "POST",
+      headers: authHeaders(a),
+      body: JSON.stringify({ id: "a_scan", productName: "A-only" }),
+    });
+
+    // B reads — must see nothing belonging to A.
+    const bView = (await (
+      await fetch(`${baseUrl}/api/scans`, { headers: authHeaders(b) })
+    ).json()) as { scans: Array<{ id: string }> };
+    expect(bView.scans).toHaveLength(0);
+
+    // A reads — must see only its own row.
+    const aView = (await (
+      await fetch(`${baseUrl}/api/scans`, { headers: authHeaders(a) })
+    ).json()) as { scans: Array<{ id: string }> };
+    expect(aView.scans.map((s) => s.id)).toEqual(["a_scan"]);
+  });
+
+  it("ignores a spoofed x-device-id header — identity comes from auth only", async () => {
+    const a = user("spoof_a");
+    const victim = user("spoof_victim");
+
+    // A writes a scan while LYING with someone else's device id header.
+    await fetch(`${baseUrl}/api/scans`, {
+      method: "POST",
+      headers: authHeaders(a, { "x-device-id": victim }),
+      body: JSON.stringify({ id: "owned_by_a", productName: "A" }),
+    });
+
+    // The victim's authenticated view must NOT contain the spoofed write.
+    const victimView = (await (
+      await fetch(`${baseUrl}/api/scans`, {
+        headers: authHeaders(victim),
+      })
+    ).json()) as { scans: Array<{ id: string }> };
+    expect(victimView.scans).toHaveLength(0);
+
+    // Attacker cannot READ the victim's data by spoofing x-device-id either:
+    // identity is the attacker (a), so they only ever see their own row.
+    const attackerView = (await (
+      await fetch(`${baseUrl}/api/scans`, {
+        headers: authHeaders(a, { "x-device-id": victim }),
+      })
+    ).json()) as { scans: Array<{ id: string; deviceId: string }> };
+    expect(attackerView.scans.map((s) => s.id)).toEqual(["owned_by_a"]);
+    // The persisted owner is the authenticated user, not the spoofed header.
+    expect(attackerView.scans[0]?.deviceId).toBe(a);
+  });
+});
 
 describe("/api/scans — legacy contract preservation", () => {
   it("body.id === '' is accepted verbatim (not regenerated)", async () => {
-    const d = device("empty_id");
+    const u = user("empty_id");
     const res = await fetch(`${baseUrl}/api/scans`, {
       method: "POST",
-      headers: { "content-type": "application/json", "x-device-id": d },
+      headers: authHeaders(u),
       body: JSON.stringify({ id: "", productName: "X", fitScore: 10 }),
     });
     const json = (await res.json()) as { scan: { id: string } };
@@ -81,11 +192,11 @@ describe("/api/scans — legacy contract preservation", () => {
   });
 
   it("body.loggedAt is echoed verbatim, even if non-ISO", async () => {
-    const d = device("logged_at_echo");
+    const u = user("logged_at_echo");
     const raw = "2026/05/01 12:00 PT"; // not a valid ISO, but legacy echoed it
     const res = await fetch(`${baseUrl}/api/scans`, {
       method: "POST",
-      headers: { "content-type": "application/json", "x-device-id": d },
+      headers: authHeaders(u),
       body: JSON.stringify({
         id: "scan_logged",
         loggedAt: raw,
@@ -98,7 +209,7 @@ describe("/api/scans — legacy contract preservation", () => {
 
     // And on the way out via GET, the same raw string still echoes.
     const getRes = await fetch(`${baseUrl}/api/scans`, {
-      headers: { "x-device-id": d },
+      headers: authHeaders(u),
     });
     const getJson = (await getRes.json()) as {
       scans: Array<{ loggedAt: string }>;
@@ -107,11 +218,11 @@ describe("/api/scans — legacy contract preservation", () => {
   });
 
   it("?limit=-1 returns all-but-the-last-1 (legacy slice semantics)", async () => {
-    const d = device("neg_limit");
+    const u = user("neg_limit");
     for (let i = 0; i < 3; i += 1) {
       await fetch(`${baseUrl}/api/scans`, {
         method: "POST",
-        headers: { "content-type": "application/json", "x-device-id": d },
+        headers: authHeaders(u),
         body: JSON.stringify({
           id: `scan_${i}`,
           loggedAt: new Date(2026, 0, 1, 0, 0, i).toISOString(),
@@ -121,7 +232,7 @@ describe("/api/scans — legacy contract preservation", () => {
     }
     // Default GET — 3 rows.
     const all = (await (
-      await fetch(`${baseUrl}/api/scans`, { headers: { "x-device-id": d } })
+      await fetch(`${baseUrl}/api/scans`, { headers: authHeaders(u) })
     ).json()) as { scans: Array<{ id: string }> };
     expect(all.scans).toHaveLength(3);
 
@@ -129,7 +240,7 @@ describe("/api/scans — legacy contract preservation", () => {
     // (newest-first ordering preserved).
     const neg = (await (
       await fetch(`${baseUrl}/api/scans?limit=-1`, {
-        headers: { "x-device-id": d },
+        headers: authHeaders(u),
       })
     ).json()) as { scans: Array<{ id: string }> };
     expect(neg.scans.map((s) => s.id)).toEqual(["scan_2", "scan_1"]);
@@ -138,12 +249,12 @@ describe("/api/scans — legacy contract preservation", () => {
   it("?limit with large histories — negative slice runs over 500-row ceiling, not 200", async () => {
     // Seed 250 rows so a -1 slice should return 249 (legacy semantics
     // over a >200 history); a -50 slice should return 200.
-    const d = device("big_neg");
+    const u = user("big_neg");
     const SEED = 250;
     for (let i = 0; i < SEED; i += 1) {
       await fetch(`${baseUrl}/api/scans`, {
         method: "POST",
-        headers: { "content-type": "application/json", "x-device-id": d },
+        headers: authHeaders(u),
         body: JSON.stringify({
           id: `s_${i}`,
           // Strictly ascending so DESC ordering is well-defined.
@@ -154,21 +265,21 @@ describe("/api/scans — legacy contract preservation", () => {
     }
     const negOne = (await (
       await fetch(`${baseUrl}/api/scans?limit=-1`, {
-        headers: { "x-device-id": d },
+        headers: authHeaders(u),
       })
     ).json()) as { scans: unknown[] };
     expect(negOne.scans.length).toBe(SEED - 1);
 
     const negFifty = (await (
       await fetch(`${baseUrl}/api/scans?limit=-50`, {
-        headers: { "x-device-id": d },
+        headers: authHeaders(u),
       })
     ).json()) as { scans: unknown[] };
     expect(negFifty.scans.length).toBe(SEED - 50);
   });
 
   it("ordering contract: rows come back scannedAt DESC even when loggedAt is backfilled out of order", async () => {
-    const d = device("ordering");
+    const u = user("ordering");
     // Insert in mixed wall-clock order; loggedAt is what should sort.
     const inserts = [
       { id: "old", loggedAt: "2026-05-01T08:00:00Z" },
@@ -178,27 +289,22 @@ describe("/api/scans — legacy contract preservation", () => {
     for (const i of inserts) {
       await fetch(`${baseUrl}/api/scans`, {
         method: "POST",
-        headers: { "content-type": "application/json", "x-device-id": d },
+        headers: authHeaders(u),
         body: JSON.stringify({ ...i, productName: i.id }),
       });
     }
     const rows = (await (
-      await fetch(`${baseUrl}/api/scans`, { headers: { "x-device-id": d } })
+      await fetch(`${baseUrl}/api/scans`, { headers: authHeaders(u) })
     ).json()) as { scans: Array<{ id: string }> };
     expect(rows.scans.map((r) => r.id)).toEqual(["new", "mid", "old"]);
   });
 
-  it("missing x-device-id returns 400", async () => {
-    const res = await fetch(`${baseUrl}/api/scans`);
-    expect(res.status).toBe(400);
-  });
-
   it("replay POST with same id returns the original row, not the mutated attempt", async () => {
-    const d = device("replay");
+    const u = user("replay");
     const r1 = (await (
       await fetch(`${baseUrl}/api/scans`, {
         method: "POST",
-        headers: { "content-type": "application/json", "x-device-id": d },
+        headers: authHeaders(u),
         body: JSON.stringify({
           id: "scan_dup",
           productName: "First",
@@ -210,7 +316,7 @@ describe("/api/scans — legacy contract preservation", () => {
     const r2 = (await (
       await fetch(`${baseUrl}/api/scans`, {
         method: "POST",
-        headers: { "content-type": "application/json", "x-device-id": d },
+        headers: authHeaders(u),
         body: JSON.stringify({
           id: "scan_dup",
           productName: "Different",

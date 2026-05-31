@@ -70,7 +70,7 @@
     "zod-validation-error": "^3.4.0"
   },
   "dependencies": {
-    "@clerk/expo": "^3.2.1",
+    "@clerk/expo": "3.2.2",
     "@expo-google-fonts/bebas-neue": "^0.4.1",
     "@expo-google-fonts/dm-sans": "^0.4.2",
     "@kingstinct/react-native-healthkit": "^14.0.0",

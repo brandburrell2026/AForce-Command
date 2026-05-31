@@ -4,6 +4,7 @@ import {
   createDrizzleHydroScanRepo,
   type HydroScanRecord,
 } from "@workspace/db";
+import { requireAuth } from "../middlewares/requireAuth";
 
 const router: IRouter = Router();
 
@@ -40,12 +41,18 @@ interface ScanResponse {
 const PUBLIC_SOURCES = ["barcode", "qr", "manual", "camera"] as const;
 type PublicSource = (typeof PUBLIC_SOURCES)[number];
 
-function deviceIdOf(req: Request): string | null {
-  const raw = req.header("x-device-id");
-  if (!raw || typeof raw !== "string") return null;
-  const trimmed = raw.trim();
-  if (trimmed.length < 6 || trimmed.length > 128) return null;
-  return trimmed;
+/**
+ * Owner of a scan request is the authenticated Clerk user (`req.userId`),
+ * populated by `requireAuth`. We deliberately do NOT read the client-supplied
+ * `x-device-id` header for authorization: trusting it allowed any caller to
+ * read or write another user's scans by spoofing the header (IDOR). All
+ * persistence is now keyed by the verified user id only.
+ */
+function userIdOf(req: Request): string | null {
+  const uid = req.userId;
+  if (typeof uid !== "string") return null;
+  const trimmed = uid.trim();
+  return trimmed.length > 0 ? trimmed : null;
 }
 
 function coercePublicSource(v: unknown): PublicSource {
@@ -84,10 +91,10 @@ function toResponse(rec: HydroScanRecord): ScanResponse {
   };
 }
 
-router.get("/scans", async (req, res) => {
-  const deviceId = deviceIdOf(req);
-  if (!deviceId) {
-    res.status(400).json({ error: "missing or invalid x-device-id header" });
+router.get("/scans", requireAuth, async (req, res) => {
+  const userId = userIdOf(req);
+  if (!userId) {
+    res.status(401).json({ error: "unauthorized" });
     return;
   }
   // Replicate the legacy in-memory route's exact limit math, including
@@ -111,7 +118,7 @@ router.get("/scans", async (req, res) => {
   );
   const LEGACY_MAX_PER_DEVICE = 500;
   try {
-    const rows = await repo.listForUser(deviceId, {
+    const rows = await repo.listForUser(userId, {
       limit: LEGACY_MAX_PER_DEVICE,
     });
     const sliced = rows.slice(0, limit);
@@ -122,10 +129,10 @@ router.get("/scans", async (req, res) => {
   }
 });
 
-router.post("/scans", async (req, res) => {
-  const deviceId = deviceIdOf(req);
-  if (!deviceId) {
-    res.status(400).json({ error: "missing or invalid x-device-id header" });
+router.post("/scans", requireAuth, async (req, res) => {
+  const userId = userIdOf(req);
+  if (!userId) {
+    res.status(401).json({ error: "unauthorized" });
     return;
   }
   const body = req.body ?? {};
@@ -146,7 +153,7 @@ router.post("/scans", async (req, res) => {
 
   try {
     const stored = await repo.insert({
-      userId: deviceId,
+      userId,
       clientScanId,
       scannedAt: safeScannedAt,
       sourceKind: coercePublicSource(body.source),

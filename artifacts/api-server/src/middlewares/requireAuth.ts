@@ -43,8 +43,10 @@ export const requireAuth: RequestHandler = (req, res, next) => {
   }
 
   const auth = getAuth(req);
+  // Clerk session JWTs carry the user id in the standard `sub` claim;
+  // prefer it, then fall back to the resolved auth.userId.
   const userId =
-    (auth?.sessionClaims?.["userId"] as string | undefined) || auth?.userId;
+    (auth?.sessionClaims?.["sub"] as string | undefined) || auth?.userId;
 
   if (!userId) {
     // Dev/preview convenience: when Clerk is configured but the caller
