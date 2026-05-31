@@ -9,7 +9,7 @@
 
 import React from 'react';
 
-import { CruiseScreen, Placeholder, Row, Section } from './_shared';
+import { CruiseScreen, Placeholder, Row, Section } from '@/components/cruise/CruiseShared';
 
 export default function CruiseRecoveryScreen() {
   return (
