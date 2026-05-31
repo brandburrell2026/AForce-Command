@@ -92,6 +92,20 @@ import { inferFlavorFromLabel } from '../utils/inferFlavorFromLabel';
 // promise resolution being immediate-after-microtask in tests; for the
 // initial render, we accept a one-tick zero state and refresh on mount.)
 import { calculateScore as _initialOnly } from '../utils/scoringEngine';
+import type { AppContextValue } from './app/types';
+import {
+  VOICE_COACH_KEY,
+  SELECTED_VOICE_KEY,
+  VOICE_INTENSITY_KEY,
+  VOICE_SCOPE_KEY,
+  NOTIFICATION_SETTINGS_KEY,
+  UNIT_PREFERENCES_KEY,
+  PROFILE_IDENTITY_KEY,
+  VOICE_INTENSITIES,
+  VOICE_SCOPES,
+} from './app/constants';
+import { buildSyntheticBaselineEntry } from './app/helpers';
+import { useStoreActions } from './app/actions';
 
 // Initial render only — engine output is then immediately refreshed via
 // /v1/home from the service layer in an effect (see AppProvider mount).
@@ -114,193 +128,6 @@ const initialState: AppState = {
   unitPreferences: DEFAULT_UNIT_PREFERENCES,
   profileIdentity: DEFAULT_PROFILE_IDENTITY,
 };
-
-/**
- * Seed a synthetic baseline history entry when no real cycles exist yet.
- * Stamped to "yesterday" so day-1 users see a populated journal day card
- * instead of a stark empty state. Marked with `isSynthetic: true` so
- * downstream consumers (Insights, Streak Math) can opt out.
- */
-function buildSyntheticBaselineEntry(level: 'PEAK' | 'BALANCED' | 'RECOVERING' | 'DEPLETED', score: number): HistoryEntry {
-  const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000);
-  return {
-    id: 'synthetic-baseline',
-    timestamp: yesterday,
-    score,
-    state: level,
-    action: 'Baseline reading — start logging to replace this synthetic snapshot.',
-    unitsTaken: 0,
-    isSynthetic: true,
-  };
-}
-
-interface AppContextValue {
-  state: AppState;
-  logIntake: (
-    fluidType: FluidType,
-    opts?: {
-      silent?: boolean;
-      ozOverride?: number;
-      flavorLabel?: string;
-      /**
-       * When set, completely replaces the auto-built history action label
-       * ("Logged Stick — Berry Blast (12 ounces)") with a caller-supplied
-       * display name. Used by the AddDrinkModal so non-AForce drinks log
-       * as e.g. "Logged Coffee · Starbucks Pike Place (16 ounces)" rather
-       * than the misleading "Logged Water — Coffee...".
-       */
-      displayNameOverride?: string;
-      /**
-       * Optional drink-catalog category (e.g. 'coffee', 'soda', 'juice').
-       * When set, the just-logged IntakeEvent is tagged client-side so
-       * the Acidic Load / Stimulant Load helper can attribute it
-       * correctly. Backward-compatible: omitting it means the event
-       * simply contributes zero to those loads.
-       */
-      categoryId?: string;
-    },
-  ) => Promise<void>;
-  completeCycle: () => Promise<void>;
-  snooze: () => void;
-  dismissSuccess: () => void;
-  updateSymptoms: (symptoms: string[]) => Promise<void>;
-  updateUrineSignal: (signal: number) => Promise<void>;
-  updateEnergyState: (energy: UserState['energyState']) => Promise<void>;
-  confirmStatus: () => Promise<void>;
-  setFeatureFlags: (flags: FeatureFlags) => void;
-  setSubscription: (sub: UserSubscription) => void;
-  completeOnboarding: () => void;
-  setAppleHealthSnapshot: (snapshot: AppleHealthInputs | null) => void;
-  /**
-   * Push a snapshot from any non-Apple-Health provider (Oura / WHOOP /
-   * Garmin / Strava / Samsung / Google Health Connect) into UserState
-   * .biometrics. The score engine immediately re-aggregates across all
-   * connected providers. Pass null to disconnect that provider.
-   */
-  setProviderBiometrics: (providerId: HealthProviderId, snapshot: ProviderSnapshot | null) => void;
-  /**
-   * Resolve the post-recheck "Did you follow the command?" prompt (T2).
-   * Yes → +3 score. No → -3 score and (in Clutch mode, T3) a 10-min
-   * +0.5 pts/min decay boost.
-   */
-  confirmCommand: (followed: boolean) => Promise<void>;
-  /**
-   * Persist the user's chosen UI language. Updates i18next immediately,
-   * mirrors the choice into UserState so the orb / breakdown re-render,
-   * and POSTs to the server so it survives reload.
-   */
-  setLanguage: (lang: SupportedLanguage) => Promise<void>;
-  /** Social Mode (alcohol mitigation) — start a fresh drinking session. */
-  activateSocialMode: (preset?: 'travel' | 'heat' | 'hard_block' | null) => Promise<void>;
-  /** Log a single drink of the given alcohol type. */
-  logSocialDrink: (
-    type: 'beer' | 'wine' | 'cocktail' | 'liquor' | 'hard_seltzer' | 'custom',
-    opts?: { abv?: number; oz?: number },
-  ) => Promise<void>;
-  /** Resolve the post-drink hydration prompt (true = drank water/RTD). */
-  confirmSocialHydration: (confirmed: boolean) => Promise<void>;
-  /** End the drinking session — flips into the 8h Recovery Mode window. */
-  deactivateSocialMode: () => Promise<void>;
-  /**
-   * Chunk #5: engage Cruise Mode — extends the post-session recovery
-   * window from 8h to 24h for multi-day travel / vacation / recovery
-   * blocks. Re-engagement extends the timer.
-   */
-  activateCruiseMode: () => Promise<void>;
-  /**
-   * Chunk #5: engage Voyage Shield — floors the Recovery Capacity
-   * Score at 60 (top of Stable band) for 12h. Premium-gated; the
-   * server stays permissive so the gate lives client-side only.
-   */
-  activateVoyageShield: () => Promise<void>;
-  /** Persist optional BAC context (sex, ate recently) for sharper estimates. */
-  setSocialContext: (
-    ctx: { sex?: 'male' | 'female' | 'unspecified'; ateRecently?: boolean },
-  ) => Promise<void>;
-  /**
-   * Snapshot the autopilot derived from a fresh sweat session into
-   * the store. Pass null to clear (e.g. when the recovery window
-   * expires). useHeatGuard reads this and surfaces interval/urgency
-   * for any consumer that drives recheck cadence.
-   */
-  setSweatAutopilot: (autopilot: SweatAutopilot | null) => void;
-  /**
-   * Voice Coach (T3): when true, the AForce voice persona reads each
-   * new AI command aloud (debounced inside textToSpeech.speak). The
-   * preference is mirrored into AsyncStorage + the textToSpeech
-   * playback flag so refreshes / non-React callers see the same value.
-   */
-  voiceCoachEnabled: boolean;
-  setVoiceCoachEnabled: (next: boolean) => void;
-  /**
-   * Selected ElevenLabs voice id, or null when the user prefers the
-   * device synthesizer. Persisted to AsyncStorage and mirrored into
-   * `textToSpeech.setSelectedVoiceId` so any non-React caller sees the
-   * same value.
-   */
-  selectedVoiceId: string | null;
-  setSelectedVoiceId: (next: string | null) => void;
-  /**
-   * AForce Command Voice Engine — intensity setting. Drives Pressure
-   * Mode behaviour: 'calm' speaks every line in full, 'standard' is
-   * the default (spec phrases verbatim, auto-engages Pressure Mode
-   * when DEPLETED), 'pressure' forces Pressure Mode for every system
-   * command regardless of band.
-   */
-  voiceIntensity: VoiceIntensity;
-  setVoiceIntensity: (next: VoiceIntensity) => void;
-  /**
-   * AForce Command Voice Engine — scope setting. Controls which
-   * categories of voice events are allowed to fire:
-   *   'all'       — every category (default)
-   *   'risk'      — score-band + risk-timer alerts only
-   *   'commands'  — system commands + completion rewards only
-   *   'muted'     — nothing speaks (separate from voiceCoachEnabled,
-   *                 which is the master toggle)
-   */
-  voiceScope: VoiceScope;
-  setVoiceScope: (next: VoiceScope) => void;
-  /** Persisted notification preferences + setter. */
-  notificationSettings: NotificationSettings;
-  setNotificationSetting: (key: NotificationSettingKey, value: boolean) => void;
-  /**
-   * Persisted unit-display preferences (lbs/kg, °F/°C, oz/mL) + setter.
-   * The setter is generic so passing a mismatched value (e.g. 'lbs'
-   * for the 'temperature' key) is a compile-time error.
-   */
-  unitPreferences: UnitPreferences;
-  setUnitPreference: <K extends keyof UnitPreferences>(
-    key: K,
-    value: UnitPreferences[K],
-  ) => void;
-  /**
-   * Persisted profile identity (nickname / city / country / circle /
-   * territory badge / aura) + partial-merge setter. Driven by the
-   * Edit Profile modal on the Profile tab. Empty strings are valid
-   * (clear a chip); the setter merges so unspecified keys keep their
-   * current value.
-   */
-  profileIdentity: ProfileIdentity;
-  setProfileIdentity: (patch: Partial<ProfileIdentity>) => void;
-  /**
-   * Investor Demo overlay flag. Cinematic 60-second scripted flow that
-   * walks through every Voice Engine state in sequence. Lives entirely
-   * above the regular store — toggling this never mutates user data.
-   */
-  isInvestorDemoActive: boolean;
-  setInvestorDemoActive: (next: boolean) => void;
-}
-
-const VOICE_COACH_KEY = 'aforce.voiceCoachEnabled';
-const SELECTED_VOICE_KEY = 'aforce.selectedVoiceId';
-const VOICE_INTENSITY_KEY = 'aforce.voiceIntensity';
-const VOICE_SCOPE_KEY = 'aforce.voiceScope';
-const NOTIFICATION_SETTINGS_KEY = 'aforce.notificationSettings';
-const UNIT_PREFERENCES_KEY = 'aforce.unitPreferences';
-const PROFILE_IDENTITY_KEY = 'aforce.profileIdentity';
-
-const VOICE_INTENSITIES: ReadonlySet<VoiceIntensity> = new Set(['calm', 'standard', 'pressure']);
-const VOICE_SCOPES: ReadonlySet<VoiceScope> = new Set(['all', 'risk', 'commands', 'muted']);
 
 const AppContext = createContext<AppContextValue | null>(null);
 
@@ -527,320 +354,43 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const logIntake = useCallback(async (
-    fluidType: FluidType,
-    opts?: {
-      silent?: boolean;
-      ozOverride?: number;
-      flavorLabel?: string;
-      displayNameOverride?: string;
-      categoryId?: string;
-    },
-  ) => {
-    if (state.isCompletingCycle) return;
-    dispatch({ type: 'CYCLE_START' });
-    try {
-      // Allow callers (e.g. the manual water amount picker) to override
-      // the default per-serving oz so the score impact reflects what was
-      // actually consumed (e.g. a 24 oz water bottle instead of 12 oz).
-      // Map flavorLabel (display string) → ProductFlavor for the
-      // hydration scoring engine. Watermelon/Berry/Soursop bonuses
-      // depend on this. Fallback to the product's default flavor.
-      const flavor = inferFlavorFromLabel(opts?.flavorLabel) ?? PRODUCTS[fluidType].flavor;
-      const { log, newUserState, engineOutput } = await postIntakeLog(state.userState, {
-        fluidType,
-        ...(opts?.ozOverride != null ? { ozAmount: opts.ozOverride } : {}),
-        ...(flavor ? { flavor } : {}),
-      });
-      const product = PRODUCTS[fluidType];
-      const result: CycleResult = {
-        id: log.id,
-        timestamp: log.loggedAt,
-        scoreBefore: log.scoreBefore,
-        scoreAfter: log.scoreAfter,
-        gainDisplay: `${log.scoreAfter - log.scoreBefore >= 0 ? '+' : ''}${log.scoreAfter - log.scoreBefore}`,
-        identityMessage: generateCycleIdentityMessage(engineOutput.performanceState.level),
-        nextCycleHint: generateNextCycleHint(engineOutput.performanceState.level),
-        state: engineOutput.performanceState.level,
-      };
-      // When a flavor was chosen (e.g. Berry Blast +Dulse), surface it
-      // in the history label so users can recall exactly what they drank.
-      // displayNameOverride (used by AddDrinkModal for non-AForce drinks)
-      // completely replaces the auto-built label so history reads e.g.
-      // "Logged Coffee · Starbucks Pike Place (16 ounces)" instead of
-      // a misleading "Logged Water — Coffee...".
-      const baseName = opts?.displayNameOverride
-        ? opts.displayNameOverride
-        : opts?.flavorLabel
-        ? `${product.shortName} — ${opts.flavorLabel}`
-        : product.shortName;
-      // Race-safe: merge in latest client-only overlays (provider
-      // biometrics + appleHealth) and recompute engineOutput from the
-      // merged state so the score/command/timer dispatched here
-      // reflects actual overlays — the server-computed `engineOutput`
-      // was derived from the request-time snapshot which may have
-      // been clobbered by a concurrent connect/disconnect.
-      const latest = userStateRef.current;
-      // Tag the just-logged intake event with the drink-catalog
-      // categoryId (when the caller provided one) so the Acidic Load /
-      // Stimulant Load helper can attribute it. The server doesn't
-      // persist categoryId yet, so we patch the newest event here —
-      // matching by log.id is exact (the server returns the same id it
-      // wrote into intakeEvents). Backward-compatible: if no categoryId,
-      // the array is left as-is.
-      const taggedIntakeEvents = opts?.categoryId && newUserState.intakeEvents
-        ? newUserState.intakeEvents.map((ev) =>
-            ev.id === log.id ? { ...ev, categoryId: opts.categoryId } : ev,
-          )
-        : newUserState.intakeEvents;
-      const mergedUserState: UserState = {
-        ...newUserState,
-        ...(taggedIntakeEvents ? { intakeEvents: taggedIntakeEvents } : {}),
-        biometrics: latest.biometrics,
-        appleHealth: latest.appleHealth,
-      };
-      const mergedEngine = _initialOnly(mergedUserState);
-      // Derive user-visible success state from the merged engine so
-      // the success card and history entry stay coherent with the
-      // overlay-corrected level (otherwise a mid-flight provider
-      // connect could land 'PEAK' state with a server-computed
-      // 'BALANCED' level in the success card).
-      result.state = mergedEngine.performanceState.level;
-      result.identityMessage = generateCycleIdentityMessage(mergedEngine.performanceState.level);
-      result.nextCycleHint = generateNextCycleHint(mergedEngine.performanceState.level);
-      const historyEntry: HistoryEntry = {
-        id: log.id,
-        timestamp: log.loggedAt,
-        score: log.scoreAfter,
-        state: mergedEngine.performanceState.level,
-        // When the caller passes a fully-formed display name (AddDrinkModal
-        // for non-AForce drinks), trust it verbatim — appending the engine's
-        // effective ounces here would produce nonsense like
-        // "Logged Coffee · Pike Place (16 oz) (10.2 ounces)" because
-        // ozOverride stores the water-equivalent, not the entered amount.
-        action: opts?.displayNameOverride
-          ? `Logged ${baseName}`
-          : `Logged ${baseName} (${log.ozAmount} ounces)`,
-        unitsTaken: 1,
-        fluidType,
-      };
-      dispatch({ type: 'CYCLE_SUCCESS', payload: { result, newUserState: mergedUserState, engineOutput: mergedEngine, historyEntry, silent: opts?.silent } });
-      // AForce Command Voice Engine — completion reward voice. Fires
-      // on user-initiated cycles (silent sips from the Phantom Band
-      // get `silent: true` and stay quiet so background auto-logging
-      // doesn't keep speaking). Honors the master toggle + scope: a
-      // completion is a 'commands' category event (not a 'risk' one),
-      // so it stays silent under 'risk' / 'muted' scope.
-      if (
-        !opts?.silent
-        && voiceCoachEnabledRef.current
-        && categoryAllowedForScope('completion', voiceScopeRef.current)
-      ) {
-        commandSpeak(completionRewardLine(), {
-          level: mergedEngine.performanceState.level,
-          intensity: voiceIntensityRef.current,
-          category: 'completion',
-        });
-      }
-      // AForce Command Voice Engine — visual "COMMAND EXECUTED" badge.
-      // Fires on every user-initiated cycle regardless of voice
-      // settings: the badge is the reward, voice is one of several
-      // ways to express it. Stays silent for silent-sip events
-      // (Phantom Band auto-logging) so background activity doesn't
-      // pulse the orb.
-      if (!opts?.silent) {
-        markCycleExecuted();
-        // Auto-dismiss the hero overlay on the same cadence as the
-        // executed badge so the two cinematic moments end together.
-        setTimeout(() => dispatch({ type: 'DISMISS_SUCCESS' }), 2400);
-      }
-    } catch (err) {
-      // Fail-safe: clear loading flag so UI never soft-locks.
-      // Must dispatch CYCLE_FAILURE (not DISMISS_SUCCESS) — DISMISS_SUCCESS
-      // does not reset isCompletingCycle, leaving the home-screen CTAs
-      // (STABILIZE SYSTEM / EXECUTE COMMAND / Become AForce / etc.)
-      // permanently disabled after any failed intake.
-      console.warn('[AForce] logIntake failed', err);
-      dispatch({ type: 'CYCLE_FAILURE' });
-    }
-  }, [state.userState, state.isCompletingCycle]);
-
-  // Generic "complete cycle" — defaults to AForce stick (primary intake)
-  const completeCycle = useCallback(() => logIntake('aforce_stick'), [logIntake]);
-
-  const snooze = useCallback(() => dispatch({ type: 'SNOOZE' }), []);
-  const dismissSuccess = useCallback(() => dispatch({ type: 'DISMISS_SUCCESS' }), []);
-
-  const updateSymptoms = useCallback(async (symptoms: string[]) => {
-    const { newUserState, engineOutput } = await postSignalsUpdate(state.userState, symptoms);
-    applyServerUserState(newUserState, engineOutput);
-  }, [state.userState, applyServerUserState]);
-
-  const updateUrineSignal = useCallback(async (signal: number) => {
-    const { newUserState, engineOutput } = await postUrineSignalUpdate(state.userState, signal);
-    applyServerUserState(newUserState, engineOutput);
-  }, [state.userState, applyServerUserState]);
-
-  const updateEnergyState = useCallback(async (energy: UserState['energyState']) => {
-    const { newUserState, engineOutput } = await postEnergyStateUpdate(state.userState, energy);
-    applyServerUserState(newUserState, engineOutput);
-  }, [state.userState, applyServerUserState]);
-
-  const confirmStatus = useCallback(async () => {
-    const { newUserState, engineOutput } = await postCheckin(state.userState);
-    applyServerUserState(newUserState, engineOutput);
-  }, [state.userState, applyServerUserState]);
-
-  const setFeatureFlags = useCallback((flags: FeatureFlags) => {
-    dispatch({ type: 'SET_FLAGS', payload: flags });
-    // Mirror clutch_access_enabled into UserState so the engine's decay
-    // function picks up the ×1.3 multiplier (T3) without needing flags
-    // drilled into its API.
-    const clutchActive = !!flags.clutch_access_enabled;
-    if ((state.userState.clutchActive ?? false) !== clutchActive) {
-      // Persist the flag server-side so it survives reload and is
-      // available to any other connected client.
-      postClutchFlag(state.userState, clutchActive)
-        .then(({ newUserState, engineOutput }) => {
-          applyServerUserState(newUserState, engineOutput);
-        })
-        .catch(() => {});
-    }
-  }, [state.userState]);
-
-  const confirmCommand = useCallback(async (followed: boolean) => {
-    try {
-      // Server applies confirmationDelta + (in Clutch, on No)
-      // clutchDecayBoostUntil. Compliance streak is intentionally NOT
-      // mutated server-side — it already contributes to the score via
-      // the `consistency` term, so a ±3 swing here would double-count.
-      const { newUserState, engineOutput } = await postConfirmCommand(state.userState, followed);
-      // Race-safe: same client-owns-overlays merge as logIntake.
-      const latest = userStateRef.current;
-      const mergedUserState: UserState = {
-        ...newUserState,
-        biometrics: latest.biometrics,
-        appleHealth: latest.appleHealth,
-      };
-      const mergedEngine = _initialOnly(mergedUserState);
-      dispatch({ type: 'CONFIRM_COMMAND', payload: { newUserState: mergedUserState, engineOutput: mergedEngine } });
-    } catch (err) {
-      console.warn('[AForce] confirmCommand failed', err);
-      // Local fallback so the UI doesn't soft-lock if the server is
-      // unreachable; the next reconnect will re-sync state.
-      const inClutch = !!state.userState.clutchActive;
-      const merged: UserState = {
-        ...state.userState,
-        confirmationDelta: followed ? 3 : -3,
-        confirmationDeltaSetAt: new Date(),
-        clutchDecayBoostUntil: !followed && inClutch
-          ? new Date(Date.now() + 10 * 60 * 1000)
-          : state.userState.clutchDecayBoostUntil,
-      };
-      dispatch({ type: 'CONFIRM_COMMAND', payload: { newUserState: merged, engineOutput: state.engineOutput } });
-    }
-  }, [state.userState, state.engineOutput]);
-
-  const setLanguage = useCallback(async (lang: SupportedLanguage) => {
-    // Update i18n + local state instantly so the UI re-renders without
-    // waiting for the server round-trip. The server POST is fire-and-forget;
-    // a failed write just means the choice doesn't persist to other devices.
-    await setI18nLanguage(lang);
-    const optimistic: UserState = { ...state.userState, language: lang };
-    // Recompute engineOutput now (after i18n.changeLanguage resolves) so
-    // the AI command strings are fresh. Reusing `state.engineOutput`
-    // would clobber the localized output produced by the
-    // `languageChanged` listener with stale, pre-switch text.
-    applyServerUserState(optimistic, _initialOnly(optimistic));
-    try {
-      const { newUserState, engineOutput } = await postLanguage(state.userState, lang);
-      applyServerUserState(newUserState, engineOutput);
-    } catch (err) {
-      console.warn('[AForce] setLanguage persist failed', err);
-    }
-  }, [state.userState, applyServerUserState]);
-
-  const activateSocialMode = useCallback(async (
-    preset?: 'travel' | 'heat' | 'hard_block' | null,
-  ) => {
-    try {
-      const { newUserState, engineOutput } = await postSocialActivate(state.userState, preset);
-      applyServerUserState(newUserState, engineOutput);
-    } catch (err) {
-      console.warn('[AForce] activateSocialMode failed', err);
-    }
-  }, [state.userState, applyServerUserState]);
-
-  const logSocialDrink = useCallback(async (
-    type: 'beer' | 'wine' | 'cocktail' | 'liquor' | 'hard_seltzer' | 'custom',
-    opts: { abv?: number; oz?: number } = {},
-  ) => {
-    try {
-      const { newUserState, engineOutput } = await postSocialDrink(state.userState, type, opts);
-      applyServerUserState(newUserState, engineOutput);
-    } catch (err) {
-      console.warn('[AForce] logSocialDrink failed', err);
-    }
-  }, [state.userState, applyServerUserState]);
-
-  const confirmSocialHydration = useCallback(async (confirmed: boolean) => {
-    try {
-      const { newUserState, engineOutput } = await postSocialHydrate(state.userState, confirmed);
-      applyServerUserState(newUserState, engineOutput);
-    } catch (err) {
-      console.warn('[AForce] confirmSocialHydration failed', err);
-    }
-  }, [state.userState, applyServerUserState]);
-
-  const deactivateSocialMode = useCallback(async () => {
-    try {
-      const { newUserState, engineOutput } = await postSocialDeactivate(state.userState);
-      applyServerUserState(newUserState, engineOutput);
-    } catch (err) {
-      console.warn('[AForce] deactivateSocialMode failed', err);
-    }
-  }, [state.userState, applyServerUserState]);
-
-  const activateCruiseMode = useCallback(async () => {
-    try {
-      const { newUserState, engineOutput } = await postSocialCruise(state.userState);
-      applyServerUserState(newUserState, engineOutput);
-    } catch (err) {
-      console.warn('[AForce] activateCruiseMode failed', err);
-    }
-  }, [state.userState, applyServerUserState]);
-
-  const activateVoyageShield = useCallback(async () => {
-    try {
-      const { newUserState, engineOutput } = await postSocialShield(state.userState);
-      applyServerUserState(newUserState, engineOutput);
-    } catch (err) {
-      console.warn('[AForce] activateVoyageShield failed', err);
-    }
-  }, [state.userState, applyServerUserState]);
-
-  const setSocialContext = useCallback(async (
-    ctx: { sex?: 'male' | 'female' | 'unspecified'; ateRecently?: boolean },
-  ) => {
-    try {
-      const { newUserState, engineOutput } = await postSocialContext(state.userState, ctx);
-      applyServerUserState(newUserState, engineOutput);
-    } catch (err) {
-      console.warn('[AForce] setSocialContext failed', err);
-    }
-  }, [state.userState, applyServerUserState]);
-
-  const setSubscription = useCallback((sub: UserSubscription) => {
-    dispatch({ type: 'SET_SUBSCRIPTION', payload: sub });
-    AsyncStorage.setItem('aforce.subscription', JSON.stringify(sub)).catch(() => {});
-  }, []);
-
-  const setSweatAutopilot = useCallback((autopilot: SweatAutopilot | null) => {
-    dispatch({
-      type: 'SET_SWEAT_AUTOPILOT',
-      payload: { autopilot, setAt: autopilot ? Date.now() : null },
-    });
-  }, []);
+  // Action handlers — extracted into a factory hook so the bodies live
+  // outside this (very large) provider. The factory receives dispatch /
+  // the merge helper / refs the provider owns and returns the same
+  // callbacks (bodies byte-identical to before).
+  const {
+    logIntake,
+    completeCycle,
+    snooze,
+    dismissSuccess,
+    updateSymptoms,
+    updateUrineSignal,
+    updateEnergyState,
+    confirmStatus,
+    setFeatureFlags,
+    confirmCommand,
+    setLanguage,
+    activateSocialMode,
+    logSocialDrink,
+    confirmSocialHydration,
+    deactivateSocialMode,
+    activateCruiseMode,
+    activateVoyageShield,
+    setSocialContext,
+    setSubscription,
+    setSweatAutopilot,
+    completeOnboarding,
+    setAppleHealthSnapshot,
+    setProviderBiometrics,
+  } = useStoreActions({
+    state,
+    dispatch,
+    applyServerUserState,
+    userStateRef,
+    voiceCoachEnabledRef,
+    voiceScopeRef,
+    voiceIntensityRef,
+  });
 
   // ─── Hydration Journal snapshot writer ──────────────────────────────
   // Persists a `aforce_score_snapshots` row after each engine refresh,
@@ -1254,72 +804,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       })
       .catch(() => {});
   }, []);
-
-  const completeOnboarding = useCallback(() => {
-    dispatch({ type: 'COMPLETE_ONBOARDING' });
-  }, []);
-
-  // Push an Apple Health snapshot into the score. Pass null to clear
-  // (e.g. on disconnect). The engine immediately recomputes so HRV /
-  // sleep show up in the orb and breakdown without waiting for the
-  // next /v1/home tick.
-  const setAppleHealthSnapshot = useCallback((snapshot: AppleHealthInputs | null) => {
-    const baseBio = state.userState.biometrics ?? {};
-    const merged: UserState = snapshot
-      ? {
-          ...state.userState,
-          appleHealth: snapshot,
-          biometrics: {
-            ...baseBio,
-            apple_health: {
-              providerId: 'apple_health' as const,
-              restingHeartRate: snapshot.restingHeartRate,
-              hrvSdnn: snapshot.hrvSdnn,
-              sleepHoursLastNight: snapshot.sleepHoursLastNight,
-              stepsToday: snapshot.stepsToday,
-              fetchedAt: snapshot.fetchedAt,
-            },
-          },
-        }
-      : (() => {
-          const { appleHealth: _drop, ...rest } = state.userState;
-          const { apple_health: _dropBio, ...restBio } = baseBio;
-          return { ...(rest as UserState), biometrics: restBio };
-        })();
-    fetchHome(merged)
-      .then(({ engineOutput }) => {
-        dispatch({ type: 'SET_APPLE_HEALTH', payload: { snapshot, engineOutput } });
-      })
-      .catch((err) => {
-        console.warn('[AForce] setAppleHealthSnapshot refresh failed', err);
-      });
-  }, [state.userState]);
-
-  // Push a snapshot from any non-Apple health platform (Oura / WHOOP /
-  // Strava / Garmin / Samsung / Google Health) into UserState.biometrics.
-  // The score engine immediately picks it up via the multi-provider
-  // aggregator. Pass null to disconnect.
-  const setProviderBiometrics = useCallback((
-    providerId: HealthProviderId,
-    snapshot: ProviderSnapshot | null,
-  ) => {
-    const baseBio = state.userState.biometrics ?? {};
-    let nextBio: ProviderBiometrics;
-    if (snapshot) {
-      nextBio = { ...baseBio, [providerId]: snapshot };
-    } else {
-      const { [providerId]: _drop, ...rest } = baseBio;
-      nextBio = rest;
-    }
-    const merged: UserState = { ...state.userState, biometrics: nextBio };
-    fetchHome(merged)
-      .then(({ engineOutput }) => {
-        dispatch({ type: 'SET_PROVIDER_BIOMETRICS', payload: { providerId, snapshot, engineOutput } });
-      })
-      .catch((err) => {
-        console.warn('[AForce] setProviderBiometrics refresh failed', err);
-      });
-  }, [state.userState]);
 
   // Sync i18n with the language returned by the server on every userState
   // change. This lets a fresh app boot land on the user's saved language
