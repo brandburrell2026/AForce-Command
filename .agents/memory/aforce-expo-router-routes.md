@@ -36,3 +36,20 @@ missing-default-export error above; everything else was normal warnings
 The most likely "crash" trigger was either that error-level log or the blank
 headless-preview heuristic. Fix the routing gotcha first; do not blind-edit a
 healthy app chasing a phantom crash.
+
+# Stale Metro bundle makes the "crash" recur AFTER the on-disk fix
+
+After moving `_shared.tsx` out of `app/`, the running Metro bundle kept emitting
+`UnableToResolveError Unable to resolve module ./_shared from .../excursion.tsx`
+(and `recovery.tsx`) plus old `[DIAG]` `window.onerror` output — even though the
+files on disk were already correct (git clean, all 5 screens importing
+`@/components/cruise/CruiseShared`, no DIAG in `_layout.tsx`). The bundle was
+stale. Cure: clear Metro/Expo caches (`artifacts/aforce-os/.expo/web/cache`,
+`node_modules/.cache/metro`, `/tmp/metro-*`) then restart the expo workflow; the
+fresh boot is clean.
+
+**Verification gotcha:** the `/tmp/logs/browser_console_*.log` files do NOT rotate
+on workflow restart and `ls -t` can keep returning the pre-restart file, so bash
+`cat`/`rg` over them shows phantom stale errors. For post-restart truth use the
+screenshot tool's inline browser logs (or a fresh `refresh_all_logs`), not the
+old /tmp file.
