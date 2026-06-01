@@ -35,6 +35,10 @@ import {
   scheduleCadenceNotifications,
   cancelCadenceNotification,
 } from '@/services/pushNotifications';
+import {
+  recordReminderShown,
+  recordReminderResponse,
+} from '@/services/analytics';
 
 export function NotificationBanner() {
   const flags = useFeatureFlags();
@@ -70,9 +74,17 @@ export function NotificationBanner() {
       )
     : null;
 
+  // Internal analytics (Priority #4) — a due reminder reaching the
+  // surface is a "shown"; the service dedupes per reminder slot.
+  useEffect(() => {
+    if (due) void recordReminderShown(due.day, new Date().toISOString());
+  }, [due?.day]);
+
   const onDismiss = useCallback(async () => {
     if (!due) return;
     if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
+    // Dismiss is the user's response to the reminder.
+    void recordReminderResponse(due.day, new Date().toISOString());
     const next = await recordDelivery(due.day, new Date().toISOString());
     if (next) setSnapshot(next);
     // Cancel the matching native slot so the OS doesn't deliver a

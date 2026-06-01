@@ -25,6 +25,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
+
+import { recordOnboardingCompleted } from '@/services/analytics';
 import React from 'react';
 import {
   KeyboardAvoidingView,
@@ -126,6 +128,9 @@ export default function Onboarding() {
       // Non-fatal — the user still enters the app; they may just see
       // the welcome again next cold start.
     }
+    // Internal analytics (Priority #4) — record onboarding completion at
+    // its precise moment. Best-effort; never blocks entry to the app.
+    void recordOnboardingCompleted(new Date().toISOString());
     router.replace('/(tabs)');
   }, [goal, activityLevel, weightText, heightText, sex, setProfileIdentity]);
 

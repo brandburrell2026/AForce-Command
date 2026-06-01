@@ -36,6 +36,7 @@ import { EntryActions } from '@/components/home/EntryActions';
 import { LiveStatusLine } from '@/components/home/LiveStatusLine';
 import { NotificationBanner } from '@/components/home/NotificationBanner';
 import { DailyWinBanner } from '@/components/home/DailyWinBanner';
+import { useAnalyticsRecorder } from '@/hooks/useAnalyticsRecorder';
 import { useScoreTrend } from '@/hooks/useScoreTrend';
 import { getStatusVerb } from '@/services/statusVerb';
 import { AIVideoPlayer } from '@/components/AIVideoPlayer';
@@ -413,6 +414,10 @@ export default function HomeScreen() {
   // Voice Engine — preserve existing score-band + risk-timer hooks.
   useScoreBandVoice();
   useRiskTimerVoice();
+
+  // Internal Analytics Layer (Priority #4) — records session, streak,
+  // and win signals. No UI, no navigation; powers the engine only.
+  useAnalyticsRecorder();
 
   // Mirror current performance level into the Phantom Band LED.
   React.useEffect(() => {

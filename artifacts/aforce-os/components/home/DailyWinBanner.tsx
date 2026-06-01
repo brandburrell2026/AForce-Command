@@ -2,10 +2,9 @@
  * DailyWinBanner — Priority #3 (Daily Wins Engine) surface.
  *
  * A single, quiet, one-line positive reinforcement at the top of the
- * home screen. It reads the live slices, derives the recovery snapshot,
- * and shows only the most meaningful win (`topDailyWin`). When there is
- * nothing to celebrate yet it renders nothing — never a guilt or
- * penalty message.
+ * home screen. It shows only the most meaningful win (`useTopDailyWin`).
+ * When there is nothing to celebrate yet it renders nothing — never a
+ * guilt or penalty message.
  *
  * No new screen, tab, or navigation: it slots in beside the existing
  * NotificationBanner. No feature flag — wins are part of the core
@@ -16,48 +15,10 @@ import { View, Text, StyleSheet } from 'react-native';
 
 import { Colors } from '@/theme/colors';
 import { Icon } from '@/components/Icon';
-import { useEngineSlice, useUserSlice } from '@/store/slices';
-import { topDailyWin } from '@/utils/dailyWins';
-import {
-  deriveRecoverySnapshot,
-  recoveryInputsFromState,
-} from '@/services/recoveryEngine';
-
-/** Engine ignores ±3 correction confirmations older than 30 minutes. */
-const CORRECTION_FRESH_MS = 30 * 60 * 1000;
+import { useTopDailyWin } from '@/hooks/useTopDailyWin';
 
 export function DailyWinBanner() {
-  const engine = useEngineSlice();
-  const userState = useUserSlice();
-
-  const win = React.useMemo(() => {
-    const snapshot = deriveRecoverySnapshot(
-      recoveryInputsFromState(userState, engine),
-    );
-
-    const setAt = userState.confirmationDeltaSetAt;
-    const setMs =
-      setAt instanceof Date
-        ? setAt.getTime()
-        : setAt
-          ? new Date(setAt as unknown as string).getTime()
-          : NaN;
-    const correctionCompleted =
-      (userState.confirmationDelta ?? 0) > 0 &&
-      Number.isFinite(setMs) &&
-      Date.now() - setMs <= CORRECTION_FRESH_MS;
-
-    return topDailyWin({
-      complianceStreak: userState.complianceStreak,
-      unitsConsumedToday: userState.unitsConsumedToday,
-      dailyTarget: userState.dailyTarget,
-      ozConsumedToday: userState.ozConsumedToday,
-      ozTarget: userState.ozTarget,
-      correctionCompleted,
-      recoveryTrend: snapshot.trend,
-      recovery: snapshot.recovery,
-    });
-  }, [userState, engine]);
+  const win = useTopDailyWin();
 
   if (!win) return null;
 
