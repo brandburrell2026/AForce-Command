@@ -26,7 +26,7 @@ import { makeState } from './_fixtures';
 describe('store · units slice', () => {
   it('initial state seeds DEFAULT_UNIT_PREFERENCES (imperial defaults)', () => {
     const s = makeState();
-    expect(s.unitPreferences).toEqual({ weight: 'lbs', temperature: 'F', volume: 'oz' });
+    expect(s.unitPreferences).toEqual({ weight: 'lbs', temperature: 'F', volume: 'oz', height: 'ft' });
   });
 
   it('SET_UNIT_PREFERENCE changes a single field without touching the others', () => {
@@ -116,7 +116,7 @@ describe('utils · units sanitiser', () => {
       temperature: 'C',
       volume: 'mL',
     });
-    expect(out).toEqual({ weight: 'lbs', temperature: 'C', volume: 'mL' });
+    expect(out).toEqual({ weight: 'lbs', temperature: 'C', volume: 'mL', height: 'ft' });
   });
 
   it('partial payload (missing keys) is completed with defaults', () => {
@@ -124,12 +124,13 @@ describe('utils · units sanitiser', () => {
       weight: 'lbs',
       temperature: 'C',
       volume: 'oz',
+      height: 'ft',
     });
   });
 
   it('accepts a fully-valid payload unchanged', () => {
     const payload = { weight: 'kg' as const, temperature: 'C' as const, volume: 'mL' as const };
-    expect(sanitizeUnitPreferences(payload)).toEqual(payload);
+    expect(sanitizeUnitPreferences(payload)).toEqual({ ...payload, height: 'ft' });
   });
 });
 
