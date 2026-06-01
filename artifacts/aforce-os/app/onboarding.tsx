@@ -7,8 +7,10 @@
  * already lives — so this wizard captures intent and body model only,
  * it does NOT rebuild those moments.
  *
- * Reached from welcome.tsx once `aforce.hasCompletedOnboarding` is set,
- * so it never traps the user: relaunching skips straight into the app.
+ * Reached from welcome.tsx once `aforce.hasSeenWelcome` is set; this
+ * screen sets the separate `aforce.hasCompletedOnboarding` flag on
+ * finish/skip, so an interrupted first run resumes here rather than
+ * skipping setup.
  *
  * Persistence is Profile-side only (zero engine / server change):
  *   - goal          → ProfileIdentity.recoveryGoal (already engine-wired)

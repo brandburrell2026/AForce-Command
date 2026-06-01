@@ -9,3 +9,4 @@
 - [AForce pre-existing failing tests](aforce-stale-tests.md) — slice.units.test.ts has 4 stale failures (test predates `height` unit pref in utils/units.ts); not a regression, out of scope for refactors.
 - [aforce-os white screen = stale Metro cache](aforce-metro-stale-cache.md) — crash-before-Clerk / blank web after a big refactor is usually a stale incremental bundle; clear caches + full rebuild, don't chase a code bug first.
 - [AForce first-run gating](aforce-onboarding-gate.md) — first-run uses TWO flags (hasSeenWelcome + hasCompletedOnboarding) via pure firstRunRoute; never mark onboarding done before the wizard finishes.
+- [AForce explainability drivers](aforce-explainability.md) — plain 4-driver score "why" (Water/Sleep/Heat/Recovery) rolls up the SAME contributions; one jargon-free sentence each; scoring tests must live in utils/__tests__.

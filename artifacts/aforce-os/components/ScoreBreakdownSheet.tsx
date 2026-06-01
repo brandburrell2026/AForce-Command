@@ -15,6 +15,8 @@ import * as Haptics from 'expo-haptics';
 
 import { Colors } from '../theme/colors';
 import type { ScoreContribution, PerformanceState } from '../types';
+import { ScoreDrivers } from './ScoreDrivers';
+import { buildScoreDrivers } from '../utils/scoring/drivers';
 
 interface Props {
   visible: boolean;
@@ -53,6 +55,7 @@ export function ScoreBreakdownSheet({ visible, onDismiss, score, contributions, 
   const neutral = contributions.filter((c) => c.delta === 0);
   const totalPositive = positives.reduce((s, c) => s + c.delta, 0);
   const totalNegative = negatives.reduce((s, c) => s + c.delta, 0);
+  const drivers = buildScoreDrivers(contributions);
 
   return (
     <Animated.View style={[styles.overlay, overlayStyle]} pointerEvents="auto">
@@ -84,6 +87,9 @@ export function ScoreBreakdownSheet({ visible, onDismiss, score, contributions, 
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
         >
+          <ScoreDrivers drivers={drivers} />
+
+          <Text style={styles.detailsLabel}>DETAILS</Text>
           {[...positives, ...negatives, ...neutral].map((c) => (
             <ContributionRow key={c.id} c={c} />
           ))}
@@ -191,6 +197,10 @@ const styles = StyleSheet.create({
   summaryValue: { fontSize: 18, fontFamily: 'Inter_700Bold', letterSpacing: -0.5 },
   list: { },
   listContent: { paddingBottom: 16 },
+  detailsLabel: {
+    fontSize: 10, fontFamily: 'Inter_700Bold', color: Colors.text.muted,
+    letterSpacing: 2, marginBottom: 12,
+  },
   row: { marginBottom: 14 },
   rowHeader: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
