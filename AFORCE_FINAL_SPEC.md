@@ -21,6 +21,7 @@ Analyze current code first. Protect existing architecture.
 | 7  | Share System + BECOME AFORCE footer                | —      |
 | 8  | Legal + Compliance                                 | —      |
 | 9  | Feature Locks (Guardian / Clutch hidden)           | —      |
+| 10 | Investor Demo Overlay                              | Pending |
 
 Live status is tracked in `AFORCE_PHASE_STATUS.md`.
 
@@ -34,6 +35,47 @@ Live status is tracked in `AFORCE_PHASE_STATUS.md`.
   server contracts).
 - Social Mode and Cruise Mode additions stay in the addon document
   and are not implemented until **all** core phases are stable.
+
+## Phase 10 — Investor Demo Overlay
+
+**Status: Pending**
+
+A scripted 60-second full-screen cinematic overlay. Triggered only when the
+`demo_mode_enabled` feature flag is ON. Never visible in production. Never
+accessible via standard navigation.
+
+### Script — 6 acts, 10 seconds each
+
+**Act 1 — Opening (0:00–0:10)**
+Black screen. AForce wordmark fades in gold. Subtitle: "The Performance
+Operating System." Orb pulses once.
+
+**Act 2 — Readiness Score (0:10–0:20)**
+Orb animates from Depleted → Recovering → Balanced → Peak. Score climbs from 14
+to 97. Lime glow intensifies. Label: "From depleted to peak. In real time."
+
+**Act 3 — HydroScan (0:20–0:30)**
+Scan animation. Product recognized. Score updates. Voice Engine fires: "You're
+back in range. Lock in." Label: "AI-powered hydration intelligence."
+
+**Act 4 — Social Mode (0:30–0:40)**
+BAC overlay appears on orb. Crimson ring pulses. Safety card visible. Recovery
+Mode activates. Label: "Performance protection. Even off the clock."
+
+**Act 5 — Territory + Heat Guard (0:40–0:50)**
+Stylized map activates. Heat Guard band flips to WARNING. Guardian alert fires.
+Label: "Environmental intelligence. Real-time."
+
+**Act 6 — The Standard (0:50–1:00)**
+All surfaces collapse back to the clean orb at PEAK. One line fades in: "Built
+for people who don't get to be off." AForce wordmark. Fade to black.
+
+### Hard Rules
+
+- `demo_mode_enabled` must be `false` in all production builds.
+- No real user data is used — all demo state is seeded from `data/demoProfile.ts`.
+- Overlay dismisses on tap at any point.
+- Auto-dismisses at 60 seconds and returns to `welcome.tsx`.
 
 ## Product Surface (high-level)
 
