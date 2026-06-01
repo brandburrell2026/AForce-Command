@@ -36,6 +36,7 @@ import { EntryActions } from '@/components/home/EntryActions';
 import { LiveStatusLine } from '@/components/home/LiveStatusLine';
 import { NotificationBanner } from '@/components/home/NotificationBanner';
 import { DailyWinBanner } from '@/components/home/DailyWinBanner';
+import { SmartQuickActions } from '@/components/home/SmartQuickActions';
 import { useAnalyticsRecorder } from '@/hooks/useAnalyticsRecorder';
 import { useScoreTrend } from '@/hooks/useScoreTrend';
 import { getStatusVerb } from '@/services/statusVerb';
@@ -579,6 +580,11 @@ export default function HomeScreen() {
             {/* Priority #3 — Daily Wins: one quiet, positive line.
                 Self-hides when no win is earned (never a downer). */}
             <DailyWinBanner />
+
+            {/* Priority #6 — Passive Logging: up to three one-tap log
+                actions (Repeat Last · Log 12 oz · Complete Cycle) so a
+                hydration log takes under two seconds. No forms, no nav. */}
+            <SmartQuickActions />
 
             <ScoreDrivenBody
               onOpenBreakdown={openBreakdown}

@@ -131,6 +131,46 @@ describe('computeAnalyticsMetrics', () => {
     expect(m.streak.changes).toBe(4);
   });
 
+  it('reports neutral logging metrics when nothing has been logged', () => {
+    const m = computeAnalyticsMetrics([]);
+    expect(m.logging.count).toBe(0);
+    expect(m.logging.medianTimeToLogMs).toBeNull();
+    expect(m.logging.underTwoSecondsRate).toBeNull();
+  });
+
+  it('computes Time-To-Log median and the under-2s rate', () => {
+    const base = Date.parse('2026-01-01T08:00:00.000Z');
+    const m = computeAnalyticsMetrics([
+      { type: 'log_action', at: at(base), meta: { ttlMs: 800, source: 'log_water' } },
+      { type: 'log_action', at: at(base + HOUR), meta: { ttlMs: 1500, source: 'repeat_last' } },
+      { type: 'log_action', at: at(base + 2 * HOUR), meta: { ttlMs: 5000, source: 'complete_cycle' } },
+    ]);
+    expect(m.logging.count).toBe(3);
+    expect(m.logging.medianTimeToLogMs).toBe(1500);
+    expect(m.logging.underTwoSecondsRate).toBeCloseTo(2 / 3);
+  });
+
+  it('averages the two middle Time-To-Log values for an even count', () => {
+    const base = Date.parse('2026-01-01T08:00:00.000Z');
+    const m = computeAnalyticsMetrics([
+      { type: 'log_action', at: at(base), meta: { ttlMs: 400, source: 'log_water' } },
+      { type: 'log_action', at: at(base + HOUR), meta: { ttlMs: 600, source: 'log_water' } },
+    ]);
+    expect(m.logging.medianTimeToLogMs).toBe(500);
+    expect(m.logging.underTwoSecondsRate).toBe(1);
+  });
+
+  it('ignores log events with a missing or negative ttl', () => {
+    const base = Date.parse('2026-01-01T08:00:00.000Z');
+    const m = computeAnalyticsMetrics([
+      { type: 'log_action', at: at(base), meta: { source: 'log_water' } },
+      { type: 'log_action', at: at(base + HOUR), meta: { ttlMs: -1, source: 'log_water' } },
+      { type: 'log_action', at: at(base + 2 * HOUR), meta: { ttlMs: 1200, source: 'log_water' } },
+    ]);
+    expect(m.logging.count).toBe(1);
+    expect(m.logging.medianTimeToLogMs).toBe(1200);
+  });
+
   it('is order-independent (sorts events by time before computing)', () => {
     const base = Date.parse('2026-01-01T08:00:00.000Z');
     const ordered: AnalyticsEvent[] = [

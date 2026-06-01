@@ -194,7 +194,25 @@ export function recordStreakChanged(
   );
 }
 
-/** Load the log and compute the five engine-facing metrics. */
+/**
+ * One row per completed log. Unlike the deduped recorders above, every
+ * log is a distinct real action, so this always appends. `ttlMs` is the
+ * client-measured Time-To-Log (surface-ready → tap); `source` is the
+ * quick-action id (or 'manual').
+ */
+export function recordLogAction(
+  ttlMs: number,
+  source: string,
+  nowIso: string,
+): Promise<AnalyticsSnapshot> {
+  const ttl = Number.isFinite(ttlMs) && ttlMs >= 0 ? Math.round(ttlMs) : 0;
+  return appendIf(
+    { type: 'log_action', at: nowIso, meta: { ttlMs: ttl, source } },
+    () => true,
+  );
+}
+
+/** Load the log and compute the engine-facing metrics. */
 export async function getAnalyticsMetrics(): Promise<AnalyticsMetrics> {
   const snap = await getAnalyticsSnapshot();
   return computeAnalyticsMetrics(snap?.events ?? []);

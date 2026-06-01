@@ -18,7 +18,8 @@ export type AnalyticsEventType =
   | 'win'
   | 'reminder_shown'
   | 'reminder_response'
-  | 'streak_changed';
+  | 'streak_changed'
+  | 'log_action';
 
 export interface AnalyticsEvent {
   type: AnalyticsEventType;
@@ -60,6 +61,14 @@ export interface AnalyticsMetrics {
     max: number | null;
     /** Number of recorded streak transitions. */
     changes: number;
+  };
+  logging: {
+    /** Total one-tap log actions recorded. */
+    count: number;
+    /** Median Time-To-Log in ms (KPI target < 2000), or null. */
+    medianTimeToLogMs: number | null;
+    /** Fraction of logs completed under 2s, or null when none recorded. */
+    underTwoSecondsRate: number | null;
   };
 }
 
@@ -113,6 +122,16 @@ function reminderSlotSet(
     slots.add(slot != null ? String(slot) : e.at);
   }
   return slots;
+}
+
+/** Median of a numeric list, or null when empty. */
+function median(values: number[]): number | null {
+  if (values.length === 0) return null;
+  const sorted = [...values].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  return sorted.length % 2 === 0
+    ? (sorted[mid - 1] + sorted[mid]) / 2
+    : sorted[mid];
 }
 
 /** Consecutive active days ending at the most recent active day. */
@@ -176,6 +195,13 @@ export function computeAnalyticsMetrics(
       ? Number(lastStreak.meta?.value)
       : null;
 
+  // ── Time To Log (passive logging KPI) ──────────────────────────────
+  const logTtls = events
+    .filter((e) => e.type === 'log_action')
+    .map((e) => Number(e.meta?.ttlMs))
+    .filter((n) => Number.isFinite(n) && n >= 0);
+  const underTwoSeconds = logTtls.filter((n) => n < 2000).length;
+
   return {
     timeToFirstWinMs,
     onboarding: {
@@ -200,6 +226,12 @@ export function computeAnalyticsMetrics(
       current: currentStreak,
       max: streakValues.length > 0 ? Math.max(...streakValues) : null,
       changes: streakEvents.length,
+    },
+    logging: {
+      count: logTtls.length,
+      medianTimeToLogMs: median(logTtls),
+      underTwoSecondsRate:
+        logTtls.length > 0 ? underTwoSeconds / logTtls.length : null,
     },
   };
 }
