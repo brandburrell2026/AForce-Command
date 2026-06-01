@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="author" content="Generated 2026-05-26" />
+  <meta name="author" content="Generated 2026-06-01" />
   <title>AForce — Complete Specifications</title>
   <style>
 code{white-space: pre-wrap;}
@@ -41,12 +41,24 @@ hr{border:none;border-top:1px solid #eee;margin:2em 0}
 <body>
 <header id="title-block-header">
 <h1 class="title">AForce — Complete Specifications</h1>
-<p class="author">Generated 2026-05-26</p>
+<p class="author">Generated 2026-06-01</p>
 </header>
 <nav id="TOC" role="doc-toc">
 <ul>
-<li><a href="#replit.md" id="toc-replit.md">📄 replit.md</a></li>
+<li><a href="#page_facing_up-replitmd" id="toc-page_facing_up-replitmd">📄 replit.md</a></li>
 <li><a href="#overview" id="toc-overview">Overview</a></li>
+<li><a href="#final-build-lock-locked-do-not-redesign" id="toc-final-build-lock-locked-do-not-redesign">FINAL BUILD LOCK
+(locked; do not redesign)</a>
+<ul>
+<li><a href="#water-first-command-system" id="toc-water-first-command-system">Water-First Command System</a></li>
+<li><a href="#score-protection-rule" id="toc-score-protection-rule">Score Protection Rule</a></li>
+<li><a href="#language--localization-lock" id="toc-language--localization-lock">Language / Localization
+Lock</a></li>
+<li><a href="#engine--ui-governance" id="toc-engine--ui-governance">Engine / UI Governance</a></li>
+<li><a href="#product-positioning-rule" id="toc-product-positioning-rule">Product Positioning Rule</a></li>
+<li><a href="#mvp-surfaces-do-not-remove" id="toc-mvp-surfaces-do-not-remove">MVP Surfaces (do not
+remove)</a></li>
+</ul></li>
 <li><a href="#user-preferences" id="toc-user-preferences">User
 Preferences</a></li>
 <li><a href="#system-architecture" id="toc-system-architecture">System
@@ -56,22 +68,22 @@ Architecture</a>
 Technologies</a></li>
 <li><a href="#uiux-decisions" id="toc-uiux-decisions">UI/UX
 Decisions</a></li>
-<li><a href="#authentication-identity" id="toc-authentication-identity">Authentication &amp; Identity</a></li>
-<li><a href="#subscription-entitlement" id="toc-subscription-entitlement">Subscription &amp;
+<li><a href="#authentication--identity" id="toc-authentication--identity">Authentication &amp; Identity</a></li>
+<li><a href="#subscription--entitlement" id="toc-subscription--entitlement">Subscription &amp;
 Entitlement</a></li>
-<li><a href="#publishing-distribution" id="toc-publishing-distribution">Publishing &amp; Distribution</a></li>
+<li><a href="#publishing--distribution" id="toc-publishing--distribution">Publishing &amp; Distribution</a></li>
 <li><a href="#release-readiness-status-verified" id="toc-release-readiness-status-verified">Release-Readiness Status
 (verified)</a></li>
 <li><a href="#server-hardening" id="toc-server-hardening">Server
 Hardening</a></li>
-<li><a href="#technical-implementations-feature-specifications" id="toc-technical-implementations-feature-specifications">Technical
+<li><a href="#technical-implementations--feature-specifications" id="toc-technical-implementations--feature-specifications">Technical
 Implementations &amp; Feature Specifications</a></li>
 <li><a href="#architecture-diagram" id="toc-architecture-diagram">Architecture Diagram</a></li>
 </ul></li>
 <li><a href="#external-dependencies" id="toc-external-dependencies">External Dependencies</a></li>
-<li><a href="#aforce_final_spec.md" id="toc-aforce_final_spec.md">📄
+<li><a href="#page_facing_up-aforce_final_specmd" id="toc-page_facing_up-aforce_final_specmd">📄
 AFORCE_FINAL_SPEC.md</a></li>
-<li><a href="#aforce-os-final-spec-core-product" id="toc-aforce-os-final-spec-core-product">AFORCE OS — Final Spec (Core
+<li><a href="#aforce-os--final-spec-core-product" id="toc-aforce-os--final-spec-core-product">AFORCE OS — Final Spec (Core
 Product)</a>
 <ul>
 <li><a href="#implementation-order" id="toc-implementation-order">Implementation Order</a></li>
@@ -83,18 +95,18 @@ Language</a></li>
 <li><a href="#out-of-scope-this-document" id="toc-out-of-scope-this-document">Out of Scope (this
 document)</a></li>
 </ul></li>
-<li><a href="#aforce_phase_status.md" id="toc-aforce_phase_status.md">📄
+<li><a href="#page_facing_up-aforce_phase_statusmd" id="toc-page_facing_up-aforce_phase_statusmd">📄
 AFORCE_PHASE_STATUS.md</a></li>
-<li><a href="#aforce-os-phase-status" id="toc-aforce-os-phase-status">AFORCE OS — Phase Status</a>
+<li><a href="#aforce-os--phase-status" id="toc-aforce-os--phase-status">AFORCE OS — Phase Status</a>
 <ul>
-<li><a href="#core-phases-aforce_final_spec.md" id="toc-core-phases-aforce_final_spec.md">Core Phases
+<li><a href="#core-phases-aforce_final_specmd" id="toc-core-phases-aforce_final_specmd">Core Phases
 (AFORCE_FINAL_SPEC.md)</a></li>
-<li><a href="#addon-phases-aforce_social_cruise_addon.md" id="toc-addon-phases-aforce_social_cruise_addon.md">Addon Phases
+<li><a href="#addon-phases-aforce_social_cruise_addonmd" id="toc-addon-phases-aforce_social_cruise_addonmd">Addon Phases
 (AFORCE_SOCIAL_CRUISE_ADDON.md)</a></li>
 </ul></li>
-<li><a href="#aforce_social_cruise_addon.md" id="toc-aforce_social_cruise_addon.md">📄
+<li><a href="#page_facing_up-aforce_social_cruise_addonmd" id="toc-page_facing_up-aforce_social_cruise_addonmd">📄
 AFORCE_SOCIAL_CRUISE_ADDON.md</a></li>
-<li><a href="#aforce-os-social-cruise-enhancement-layer-addon" id="toc-aforce-os-social-cruise-enhancement-layer-addon">AFORCE OS —
+<li><a href="#aforce-os--social--cruise-enhancement-layer-addon" id="toc-aforce-os--social--cruise-enhancement-layer-addon">AFORCE OS —
 Social + Cruise Enhancement Layer (Addon)</a>
 <ul>
 <li><a href="#activation-order" id="toc-activation-order">Activation
@@ -107,102 +119,123 @@ Additions</a></li>
 Out of Scope (never build under this addon)</a></li>
 <li><a href="#hard-rules-1" id="toc-hard-rules-1">Hard Rules</a></li>
 </ul></li>
-<li><a href="#designaforce-design-tokens.md" id="toc-designaforce-design-tokens.md">📄
+<li><a href="#page_facing_up-designaforce-design-tokensmd" id="toc-page_facing_up-designaforce-design-tokensmd">📄
 design/aforce-design-tokens.md</a></li>
-<li><a href="#aforce-os-design-tokens-whoop-cinematic-edition" id="toc-aforce-os-design-tokens-whoop-cinematic-edition">AForce OS
+<li><a href="#aforce-os-design-tokens--whoop-cinematic-edition" id="toc-aforce-os-design-tokens--whoop-cinematic-edition">AForce OS
 Design Tokens — WHOOP-Cinematic Edition</a>
 <ul>
 <li><a href="#design-philosophy" id="toc-design-philosophy">Design
 Philosophy</a></li>
-<li><a href="#colors" id="toc-colors">1. Colors</a></li>
-<li><a href="#typography-inter" id="toc-typography-inter">2. Typography
-(Inter)</a></li>
-<li><a href="#spacing" id="toc-spacing">3. Spacing</a></li>
-<li><a href="#radii" id="toc-radii">4. Radii</a></li>
-<li><a href="#component-dimensions" id="toc-component-dimensions">5.
+<li><a href="#1-colors" id="toc-1-colors">1. Colors</a></li>
+<li><a href="#2-typography-inter" id="toc-2-typography-inter">2.
+Typography (Inter)</a></li>
+<li><a href="#3-spacing" id="toc-3-spacing">3. Spacing</a></li>
+<li><a href="#4-radii" id="toc-4-radii">4. Radii</a></li>
+<li><a href="#5-component-dimensions" id="toc-5-component-dimensions">5.
 Component Dimensions</a></li>
-<li><a href="#iphone-14-pro-layout" id="toc-iphone-14-pro-layout">6.
+<li><a href="#6-iphone-14-pro-layout" id="toc-6-iphone-14-pro-layout">6.
 iPhone 14 Pro Layout</a></li>
-<li><a href="#shadows-glows" id="toc-shadows-glows">7. Shadows /
+<li><a href="#7-shadows--glows" id="toc-7-shadows--glows">7. Shadows /
 Glows</a></li>
 <li><a href="#how-to-use-in-figma" id="toc-how-to-use-in-figma">How to
 Use in Figma</a></li>
 </ul></li>
-<li><a href="#artifactsaforce-osdocssocial-mode-safety-spec.md" id="toc-artifactsaforce-osdocssocial-mode-safety-spec.md">📄
+<li><a href="#page_facing_up-artifactsaforce-osdocssocial-mode-safety-specmd" id="toc-page_facing_up-artifactsaforce-osdocssocial-mode-safety-specmd">📄
 artifacts/aforce-os/docs/social-mode-safety-spec.md</a></li>
-<li><a href="#social-mode-safety-estimation-spec" id="toc-social-mode-safety-estimation-spec">Social Mode — Safety &amp;
+<li><a href="#social-mode--safety--estimation-spec" id="toc-social-mode--safety--estimation-spec">Social Mode — Safety &amp;
 Estimation Spec</a>
 <ul>
-<li><a href="#voice-tone" id="toc-voice-tone">1. Voice &amp;
+<li><a href="#1-voice--tone" id="toc-1-voice--tone">1. Voice &amp;
 tone</a></li>
-<li><a href="#bac-estimation-widmark-approximation" id="toc-bac-estimation-widmark-approximation">2. BAC estimation (Widmark
-approximation)</a></li>
-<li><a href="#impairment-escalation-matrix" id="toc-impairment-escalation-matrix">3. Impairment escalation
+<li><a href="#2-bac-estimation-widmark-approximation" id="toc-2-bac-estimation-widmark-approximation">2. BAC estimation
+(Widmark approximation)</a></li>
+<li><a href="#3-impairment-escalation-matrix" id="toc-3-impairment-escalation-matrix">3. Impairment escalation
 matrix</a></li>
-<li><a href="#disclaimer-policy" id="toc-disclaimer-policy">4.
+<li><a href="#4-disclaimer-policy" id="toc-4-disclaimer-policy">4.
 Disclaimer policy</a></li>
-<li><a href="#recovery-mode" id="toc-recovery-mode">5. Recovery
+<li><a href="#5-recovery-mode" id="toc-5-recovery-mode">5. Recovery
 Mode</a></li>
-<li><a href="#orb-overlay" id="toc-orb-overlay">6. Orb overlay</a></li>
-<li><a href="#test-invariants" id="toc-test-invariants">7. Test
+<li><a href="#6-orb-overlay" id="toc-6-orb-overlay">6. Orb
+overlay</a></li>
+<li><a href="#7-test-invariants" id="toc-7-test-invariants">7. Test
 invariants</a></li>
 </ul></li>
-<li><a href="#artifactsaforce-osdocstestflight_checklist.md" id="toc-artifactsaforce-osdocstestflight_checklist.md">📄
+<li><a href="#page_facing_up-docsvalidation-methodologymd" id="toc-page_facing_up-docsvalidation-methodologymd">📄
+docs/validation-methodology.md</a></li>
+<li><a href="#aforce-os--validation-methodology" id="toc-aforce-os--validation-methodology">AForce OS — Validation
+Methodology</a>
+<ul>
+<li><a href="#1-sweat-rate-per-session" id="toc-1-sweat-rate-per-session">1. Sweat rate (per session)</a></li>
+<li><a href="#2-sodium-replacement-bands" id="toc-2-sodium-replacement-bands">2. Sodium replacement bands</a></li>
+<li><a href="#3-heat-index-heat-guard-activation" id="toc-3-heat-index-heat-guard-activation">3. Heat Index (Heat Guard
+activation)</a></li>
+<li><a href="#4-estimated-blood-alcohol-concentration-social-mode" id="toc-4-estimated-blood-alcohol-concentration-social-mode">4.
+Estimated blood alcohol concentration (Social Mode)</a></li>
+<li><a href="#5-recovery--readiness-adjustments-apple-health-overlay" id="toc-5-recovery--readiness-adjustments-apple-health-overlay">5.
+Recovery &amp; readiness adjustments (Apple Health overlay)</a></li>
+<li><a href="#6-per-event-hydration-impact-the-score-itself" id="toc-6-per-event-hydration-impact-the-score-itself">6. Per-event
+hydration impact (the score itself)</a></li>
+<li><a href="#7-compliance-streak--retention" id="toc-7-compliance-streak--retention">7. Compliance streak &amp;
+retention</a></li>
+<li><a href="#how-to-validate-this-in-the-field" id="toc-how-to-validate-this-in-the-field">How to validate this in the
+field</a></li>
+</ul></li>
+<li><a href="#page_facing_up-artifactsaforce-osdocstestflight_checklistmd" id="toc-page_facing_up-artifactsaforce-osdocstestflight_checklistmd">📄
 artifacts/aforce-os/docs/TESTFLIGHT_CHECKLIST.md</a></li>
-<li><a href="#aforce-os-testflight-submit-checklist" id="toc-aforce-os-testflight-submit-checklist">AForce OS — TestFlight
+<li><a href="#aforce-os--testflight-submit-checklist" id="toc-aforce-os--testflight-submit-checklist">AForce OS — TestFlight
 Submit Checklist</a>
 <ul>
-<li><a href="#phase-0-prerequisites-do-once" id="toc-phase-0-prerequisites-do-once">Phase 0 — Prerequisites (do
+<li><a href="#phase-0--prerequisites-do-once" id="toc-phase-0--prerequisites-do-once">Phase 0 — Prerequisites (do
 once)</a></li>
-<li><a href="#phase-1-app-store-connect-setup-do-once" id="toc-phase-1-app-store-connect-setup-do-once">Phase 1 — App Store
+<li><a href="#phase-1--app-store-connect-setup-do-once" id="toc-phase-1--app-store-connect-setup-do-once">Phase 1 — App Store
 Connect setup (do once)</a></li>
-<li><a href="#phase-2-pre-build-sanity-checks" id="toc-phase-2-pre-build-sanity-checks">Phase 2 — Pre-build sanity
+<li><a href="#phase-2--pre-build-sanity-checks" id="toc-phase-2--pre-build-sanity-checks">Phase 2 — Pre-build sanity
 checks</a></li>
-<li><a href="#phase-3-build-with-eas" id="toc-phase-3-build-with-eas">Phase 3 — Build with EAS</a></li>
-<li><a href="#phase-4-submit-to-testflight" id="toc-phase-4-submit-to-testflight">Phase 4 — Submit to
+<li><a href="#phase-3--build-with-eas" id="toc-phase-3--build-with-eas">Phase 3 — Build with EAS</a></li>
+<li><a href="#phase-4--submit-to-testflight" id="toc-phase-4--submit-to-testflight">Phase 4 — Submit to
 TestFlight</a></li>
-<li><a href="#phase-5-iterate" id="toc-phase-5-iterate">Phase 5 —
+<li><a href="#phase-5--iterate" id="toc-phase-5--iterate">Phase 5 —
 Iterate</a></li>
 <li><a href="#common-gotchas" id="toc-common-gotchas">Common
 gotchas</a></li>
 <li><a href="#useful-links" id="toc-useful-links">Useful links</a></li>
 </ul></li>
-<li><a href="#artifactsapi-serverdocsscaling-architecture.md" id="toc-artifactsapi-serverdocsscaling-architecture.md">📄
+<li><a href="#page_facing_up-artifactsapi-serverdocsscaling-architecturemd" id="toc-page_facing_up-artifactsapi-serverdocsscaling-architecturemd">📄
 artifacts/api-server/docs/scaling-architecture.md</a></li>
-<li><a href="#aforce-os-scaling-architecture-50m-concurrent-users" id="toc-aforce-os-scaling-architecture-50m-concurrent-users">AForce OS —
-Scaling Architecture (50M+ Concurrent Users)</a>
+<li><a href="#aforce-os--scaling-architecture-50m-concurrent-users" id="toc-aforce-os--scaling-architecture-50m-concurrent-users">AForce OS
+— Scaling Architecture (50M+ Concurrent Users)</a>
 <ul>
-<li><a href="#design-principles" id="toc-design-principles">1. Design
-principles</a></li>
-<li><a href="#layer-map" id="toc-layer-map">2. Layer map</a></li>
-<li><a href="#services-boundaries-scaling-pattern" id="toc-services-boundaries-scaling-pattern">3. Services (boundaries +
-scaling pattern)</a></li>
-<li><a href="#database-strategy" id="toc-database-strategy">4. Database
-strategy</a></li>
-<li><a href="#caching-rules" id="toc-caching-rules">5. Caching
+<li><a href="#1-design-principles" id="toc-1-design-principles">1.
+Design principles</a></li>
+<li><a href="#2-layer-map" id="toc-2-layer-map">2. Layer map</a></li>
+<li><a href="#3-services-boundaries--scaling-pattern" id="toc-3-services-boundaries--scaling-pattern">3. Services (boundaries
++ scaling pattern)</a></li>
+<li><a href="#4-database-strategy" id="toc-4-database-strategy">4.
+Database strategy</a></li>
+<li><a href="#5-caching-rules" id="toc-5-caching-rules">5. Caching
 rules</a></li>
-<li><a href="#event-driven-core" id="toc-event-driven-core">6.
+<li><a href="#6-event-driven-core" id="toc-6-event-driven-core">6.
 Event-driven core</a></li>
-<li><a href="#real-time-delivery" id="toc-real-time-delivery">7.
+<li><a href="#7-real-time-delivery" id="toc-7-real-time-delivery">7.
 Real-time delivery</a></li>
-<li><a href="#ai-decisioning-at-scale" id="toc-ai-decisioning-at-scale">8. AI decisioning at scale</a></li>
-<li><a href="#rate-limiting-abuse-protection" id="toc-rate-limiting-abuse-protection">9. Rate limiting + abuse
+<li><a href="#8-ai-decisioning-at-scale" id="toc-8-ai-decisioning-at-scale">8. AI decisioning at scale</a></li>
+<li><a href="#9-rate-limiting--abuse-protection" id="toc-9-rate-limiting--abuse-protection">9. Rate limiting + abuse
 protection</a></li>
-<li><a href="#observability" id="toc-observability">10.
+<li><a href="#10-observability" id="toc-10-observability">10.
 Observability</a></li>
-<li><a href="#failover-strategy" id="toc-failover-strategy">11. Failover
-strategy</a></li>
-<li><a href="#load-testing" id="toc-load-testing">12. Load
+<li><a href="#11-failover-strategy" id="toc-11-failover-strategy">11.
+Failover strategy</a></li>
+<li><a href="#12-load-testing" id="toc-12-load-testing">12. Load
 testing</a></li>
-<li><a href="#performance-targets-slos" id="toc-performance-targets-slos">13. Performance targets
+<li><a href="#13-performance-targets-slos" id="toc-13-performance-targets-slos">13. Performance targets
 (SLOs)</a></li>
-<li><a href="#codebase-conventions" id="toc-codebase-conventions">14.
-Codebase conventions</a></li>
-<li><a href="#deployment" id="toc-deployment">15. Deployment</a></li>
+<li><a href="#14-codebase-conventions" id="toc-14-codebase-conventions">14. Codebase conventions</a></li>
+<li><a href="#15-deployment" id="toc-15-deployment">15.
+Deployment</a></li>
 </ul></li>
-<li><a href="#artifactsapi-serverdocsload-testing-plan.md" id="toc-artifactsapi-serverdocsload-testing-plan.md">📄
+<li><a href="#page_facing_up-artifactsapi-serverdocsload-testing-planmd" id="toc-page_facing_up-artifactsapi-serverdocsload-testing-planmd">📄
 artifacts/api-server/docs/load-testing-plan.md</a></li>
-<li><a href="#aforce-os-load-testing-plan" id="toc-aforce-os-load-testing-plan">AForce OS — Load Testing Plan</a>
+<li><a href="#aforce-os--load-testing-plan" id="toc-aforce-os--load-testing-plan">AForce OS — Load Testing Plan</a>
 <ul>
 <li><a href="#objective" id="toc-objective">Objective</a></li>
 <li><a href="#tooling" id="toc-tooling">Tooling</a></li>
@@ -214,9 +247,9 @@ process</a></li>
 gates</a></li>
 <li><a href="#schedule" id="toc-schedule">Schedule</a></li>
 </ul></li>
-<li><a href="#artifactsapi-serverdocsfailover-strategy.md" id="toc-artifactsapi-serverdocsfailover-strategy.md">📄
+<li><a href="#page_facing_up-artifactsapi-serverdocsfailover-strategymd" id="toc-page_facing_up-artifactsapi-serverdocsfailover-strategymd">📄
 artifacts/api-server/docs/failover-strategy.md</a></li>
-<li><a href="#aforce-os-failover-resilience-strategy" id="toc-aforce-os-failover-resilience-strategy">AForce OS — Failover
+<li><a href="#aforce-os--failover--resilience-strategy" id="toc-aforce-os--failover--resilience-strategy">AForce OS — Failover
 &amp; Resilience Strategy</a>
 <ul>
 <li><a href="#failure-domains" id="toc-failure-domains">Failure
@@ -236,24 +269,59 @@ shedding</a></li>
 objectives</a></li>
 <li><a href="#game-days" id="toc-game-days">Game days</a></li>
 </ul></li>
-<li><a href="#artifactsapi-serverloadtestsspec.md" id="toc-artifactsapi-serverloadtestsspec.md">📄
+<li><a href="#page_facing_up-artifactsapi-serverloadtestsspecmd" id="toc-page_facing_up-artifactsapi-serverloadtestsspecmd">📄
 artifacts/api-server/loadtests/spec.md</a></li>
 <li><a href="#load-test-spec" id="toc-load-test-spec">Load Test
 Spec</a></li>
 </ul>
 </nav>
-<p>\newpage</p>
-<h1 id="replit.md">📄 replit.md</h1>
+<hr />
+<h1 id="page_facing_up-replitmd">📄 replit.md</h1>
 <h1 id="overview">Overview</h1>
 <p>AForce OS is a real-time human performance operating system,
 delivered as a React Native / Expo mobile application with an Express 5
 and PostgreSQL API server. Its core purpose is to provide hydration
 intelligence and AI-driven insights to enhance athletic performance and
 overall wellness. Key features include personalized hydration tracking,
-AI coaching, social engagement through “Circles” and “Territory”
+AI coaching, social engagement through &quot;Circles&quot; and &quot;Territory&quot;
 features, and integrated e-commerce capabilities via Stripe for
-purchases and subscriptions. The system is designed for high scalability
-to support a user base of over 50 million.</p>
+purchases and subscriptions. The system is designed for horizontal
+scaling.</p>
+<h1 id="final-build-lock-locked-do-not-redesign">FINAL BUILD LOCK
+(locked; do not redesign)</h1>
+<p>Approved for implementation. No redesign, no rebuilding, no moving
+navigation, no adding tabs, no dashboard expansion. Build once. Expose
+over time.</p>
+<h2 id="water-first-command-system">Water-First Command System</h2>
+<p>Recommendation order is <strong>Water → Command → Optional support →
+Score Update</strong>. Products never come before water. Default
+recommendation copy must begin with <code>HYDRATE NOW</code> /
+<code>Start with water</code>; optional hydration support may be
+suggested only after hydration needs are evaluated. Behavior first,
+product second.</p>
+<h2 id="score-protection-rule">Score Protection Rule</h2>
+<p>Only completed actions modify score. Recommendations, scans
+(HydroScan stays advisory), and product selection never increase score.
+Scores only change from completed behavior.</p>
+<h2 id="language--localization-lock">Language / Localization Lock</h2>
+<p>Launch languages: English, Spanish, French, German, Portuguese,
+Italian. No country-specific prioritization. Architecture stays modular
+so future languages can be added without rebuild. Hidden locales remain
+resource-only behind flags; they are not in the LanguageSelector.</p>
+<h2 id="engine--ui-governance">Engine / UI Governance</h2>
+<p>Architecture may expand. Navigation may not. The engine becomes
+smarter; screens remain simpler. Feature flags control exposure.
+Internal preview stays available. Public unlocks ship
+phase-by-phase.</p>
+<h2 id="product-positioning-rule">Product Positioning Rule</h2>
+<p>Decision order: Context → Recovery → Behavior → Learning → Optional
+support. Products support behavior; products do not drive behavior.
+Never force product recommendations.</p>
+<h2 id="mvp-surfaces-do-not-remove">MVP Surfaces (do not remove)</h2>
+<p>Orb · Timeline · HydroScan · Coach · Journal · Recovery · Feature
+Flags · Internal Preview. Principle: Build 100% · Show 10% · Unlock over
+time. One Engine. Multiple Experiences.</p>
+<p>Mantra: <strong>Pause → Hydrate → Lock In → Perform</strong>.</p>
 <h1 id="user-preferences">User Preferences</h1>
 <p>I prefer iterative development, with frequent, small updates. Ask
 before making major changes.</p>
@@ -283,10 +351,10 @@ human-readable <code>design/aforce-design-tokens.md</code>.</li>
 Content floats on pure black. Data-forward: big numbers, small tracked
 labels. Soft radial glows, never hard box shadows. Generous spacing
 throughout.</li>
-<li><strong>Visuals:</strong> Stylized maps for “Territory” and smooth
+<li><strong>Visuals:</strong> Stylized maps for &quot;Territory&quot; and smooth
 animations with Reanimated.</li>
 </ul>
-<h2 id="authentication-identity">Authentication &amp; Identity</h2>
+<h2 id="authentication--identity">Authentication &amp; Identity</h2>
 <ul>
 <li><strong>Provider:</strong> Clerk (<code>@clerk/expo</code> for
 mobile, <code>@clerk/express</code> for server).</li>
@@ -296,7 +364,7 @@ OpenAPI client.</li>
 <li><strong>Auth-gated routes:</strong> Implemented on both mobile and
 server-side.</li>
 </ul>
-<h2 id="subscription-entitlement">Subscription &amp; Entitlement</h2>
+<h2 id="subscription--entitlement">Subscription &amp; Entitlement</h2>
 <ul>
 <li><strong>Source of Truth:</strong> Stripe, with webhook events
 mirrored to PostgreSQL via <code>stripe-replit-sync</code>.</li>
@@ -305,7 +373,7 @@ for paywall gating based on plan tier.</li>
 <li><strong>Security:</strong> Server-side computation for pricing,
 shipping, and tax; webhook signature verification.</li>
 </ul>
-<h2 id="publishing-distribution">Publishing &amp; Distribution</h2>
+<h2 id="publishing--distribution">Publishing &amp; Distribution</h2>
 <ul>
 <li><strong>Build service:</strong> Expo Application Services (EAS
 Build) — configured in <code>artifacts/aforce-os/eas.json</code> with
@@ -313,11 +381,13 @@ Build) — configured in <code>artifacts/aforce-os/eas.json</code> with
 <code>production</code> profiles.</li>
 <li><strong>Bundle IDs:</strong> iOS <code>com.aforce.os</code>, Android
 <code>com.aforce.os</code> (set in <code>app.json</code>).</li>
-<li><strong>App icon / splash / adaptive icon:</strong> WHOOP-cinematic
-branded set in <code>assets/images/</code> (<code>icon.png</code>,
+<li><strong>App icon / splash / adaptive icon:</strong> branded set in
+<code>assets/images/</code> (<code>icon.png</code>,
 <code>splash.png</code>, <code>adaptive-icon.png</code>,
-<code>favicon.png</code>) — pure black background with WHOOP lime
-<code>#B6FF00</code> mark.</li>
+<code>favicon.png</code>). <code>icon.png</code> /
+<code>adaptive-icon.png</code> / <code>favicon.png</code> use a metallic
+silver water-drop mark on a pure black background;
+<code>splash.png</code> remains the WHOOP-cinematic splash.</li>
 <li><strong>Build commands</strong> (run from
 <code>artifacts/aforce-os/</code> after <code>pnpm eas:login</code> +
 <code>pnpm eas:configure</code>):
@@ -336,19 +406,18 @@ branded set in <code>assets/images/</code> (<code>icon.png</code>,
 </ul></li>
 <li><strong>One-time setup needed before first submit:</strong>
 <ul>
-<li><p><strong>iOS</strong> — instead of hand-editing
-<code>eas.json</code>, run the helper from repo root:</p>
+<li><strong>iOS</strong> — instead of hand-editing
+<code>eas.json</code>, run the helper from repo root:
 <pre><code>EAS_ASC_APP_ID=1234567890 \
 EAS_APPLE_TEAM_ID=ABCDE12345 \
 pnpm --filter @workspace/scripts run eas-configure-submit</code></pre>
-<p>The script validates formats (ASC ID = numeric, Team ID = 10
-uppercase alphanumeric), is idempotent, and refuses placeholders. Find
-your two IDs at: App Store Connect → My Apps → AForce OS → App
-Information (ASC App ID) and developer.apple.com → Membership (Team
-ID).</p></li>
-<li><p><strong>Android</strong> — place a Google Play service account
-JSON at <code>artifacts/aforce-os/google-service-account.json</code>
-(path already in <code>eas.json</code>); never commit it.</p></li>
+The script validates formats (ASC ID = numeric, Team ID = 10 uppercase
+alphanumeric), is idempotent, and refuses placeholders. Find your two
+IDs at: App Store Connect → My Apps → AForce OS → App Information (ASC
+App ID) and developer.apple.com → Membership (Team ID).</li>
+<li><strong>Android</strong> — place a Google Play service account JSON
+at <code>artifacts/aforce-os/google-service-account.json</code> (path
+already in <code>eas.json</code>); never commit it.</li>
 </ul></li>
 </ul>
 <h2 id="release-readiness-status-verified">Release-Readiness Status
@@ -367,13 +436,13 @@ IDs (<code>com.aforce.os</code>), permissions, splash, and icon are all
 set in <code>app.json</code>.</li>
 <li><strong>App Store / Play Store screenshots</strong> — Apple and
 Google only accept screenshots captured from a real device or simulator
-running a built binary. Replit’s web preview of the Expo app cannot
+running a built binary. Replit&#39;s web preview of the Expo app cannot
 produce submission-grade assets. Capture path:
 <ol type="1">
 <li><code>pnpm --filter @workspace/aforce-os run eas:build:dev</code> to
 produce an iOS Simulator build.</li>
 <li>Boot the build in Xcode Simulator on the required device families
-(6.7” iPhone, 6.5” iPhone, 13” iPad).</li>
+(6.7&quot; iPhone, 6.5&quot; iPhone, 13&quot; iPad).</li>
 <li>Capture with
 <code>xcrun simctl io booted screenshot &lt;name&gt;.png</code>.</li>
 <li>For Android, run <code>eas:build:preview</code> to get an APK,
@@ -394,7 +463,7 @@ and non-request code.</li>
 <li><strong>Real-time:</strong> REST mutations are broadcast over a
 shared HTTP/WebSocket server.</li>
 </ul>
-<h2 id="technical-implementations-feature-specifications">Technical
+<h2 id="technical-implementations--feature-specifications">Technical
 Implementations &amp; Feature Specifications</h2>
 <ul>
 <li><strong>Persistence &amp; Real-Time Backend:</strong> PostgreSQL via
@@ -403,26 +472,26 @@ Drizzle ORM; REST API broadcasts mutations to WebSocket clients.</li>
 absorption caps, and release curves.</li>
 <li><strong>AForce Protocol Screen:</strong> Synchronous derivation of
 protocol stage based on user state.</li>
-<li><strong>Water Cycle / “Become AForce”:</strong> Modals for tracking
+<li><strong>Water Cycle / &quot;Become AForce&quot;:</strong> Modals for tracking
 water and hydration stick intake, with flavor inference.</li>
 <li><strong>Social Mode:</strong> Alcohol intake impacts hydration
 scores and decay rates.</li>
 <li><strong>Multi-Provider Health Signals:</strong> Integration with
 various health platforms (e.g., Apple Health, Oura) using a
-“freshest-wins” logic.</li>
+&quot;freshest-wins&quot; logic.</li>
 <li><strong>Hydration Depletion Math:</strong> Pure, dependency-free
 helper for score-points-per-minute decay based on physiological
 standards.</li>
 <li><strong>AI Coach Voice Engine:</strong> Utilizes ElevenLabs for
 voice output, providing verdict-aware comparisons after HydroScans and
 guiding users through performance events. Features include status color
-systems, video overlay voices, and a “Cinematic v2” refinement with a
+systems, video overlay voices, and a &quot;Cinematic v2&quot; refinement with a
 playback lifecycle state machine.</li>
 <li><strong>Investor Demo:</strong> A scripted 60-second full-screen
-overlay showcasing the Voice Engine’s states and capabilities for
+overlay showcasing the Voice Engine&#39;s states and capabilities for
 investors.</li>
-<li><strong>API Server:</strong> Designed for scalability for 50M+
-users, includes Stripe integration, auth-gated routes, and social graph
+<li><strong>API Server:</strong> Designed for horizontal scaling,
+includes Stripe integration, auth-gated routes, and social graph
 routes.</li>
 <li><strong>Store + Subscription System:</strong> Defines SKU pricing,
 discounts, bundles, and five consumer subscription tiers with feature
@@ -461,8 +530,7 @@ framework.</li>
 <li><strong>Expo WebBrowser / AuthSession:</strong> OAuth, in-app
 browser.</li>
 <li><strong>Expo Speech:</strong> Text-to-speech fallback.</li>
-<li><strong><span class="citation" data-cites="expo-google-fonts/inter">@expo-google-fonts/inter</span>:</strong>
-Custom font.</li>
+<li><strong>@expo-google-fonts/inter:</strong> Custom font.</li>
 <li><strong>React Native Reanimated:</strong> Declarative
 animations.</li>
 <li><strong>React Native Gesture Handler:</strong> Gesture
@@ -477,9 +545,9 @@ recognition.</li>
 <li><strong>ElevenLabs:</strong> Text-to-speech service.</li>
 <li><strong>i18next:</strong> Localization.</li>
 </ul>
-<p>\newpage</p>
-<h1 id="aforce_final_spec.md">📄 AFORCE_FINAL_SPEC.md</h1>
-<h1 id="aforce-os-final-spec-core-product">AFORCE OS — Final Spec (Core
+<hr />
+<h1 id="page_facing_up-aforce_final_specmd">📄 AFORCE_FINAL_SPEC.md</h1>
+<h1 id="aforce-os--final-spec-core-product">AFORCE OS — Final Spec (Core
 Product)</h1>
 <blockquote>
 <p><strong>Authoritative core-product reference.</strong> This document
@@ -563,7 +631,7 @@ are not implemented until <strong>all</strong> core phases are
 stable.</li>
 </ul>
 <h2 id="product-surface-high-level">Product Surface (high-level)</h2>
-<h3 id="mobile-artifactsaforce-os-expo-sdk-54-expo-router-6">Mobile —
+<h3 id="mobile--artifactsaforce-os-expo-sdk-54--expo-router-6">Mobile —
 <code>artifacts/aforce-os</code> (Expo SDK 54 / Expo Router 6)</h3>
 <ul>
 <li><strong>Opening sequence</strong>: <code>app/splash.tsx</code>
@@ -581,14 +649,14 @@ Reanimated 3.</li>
 <li><strong>Heat / Territory</strong>: <code>app/heat.tsx</code>,
 <code>app/territory.tsx</code>.</li>
 <li><strong>Share</strong>: <code>app/share.tsx</code> →
-<code>screens/SharePreviewScreen.tsx</code>. The invite + “BECOME
-AFORCE” footer lives in the Profile invite card (spec #7 referral
+<code>screens/SharePreviewScreen.tsx</code>. The invite + &quot;BECOME
+AFORCE&quot; footer lives in the Profile invite card (spec #7 referral
 loop).</li>
 <li><strong>Legal</strong>: <code>app/legal/</code>.</li>
 <li><strong>Feature locks</strong>: Guardian (heat/guardian) and Clutch
 surfaces are hidden from production navigation until released.</li>
 </ul>
-<h3 id="api-server-artifactsapi-server">API server —
+<h3 id="api-server--artifactsapi-server">API server —
 <code>artifacts/api-server</code></h3>
 <ul>
 <li>Express 5, Postgres + Drizzle, Zod input/output validation derived
@@ -601,7 +669,7 @@ connector at boot).</li>
 <li>OpenWeather proxy with in-memory TTL cache.</li>
 <li>WebSocket broadcaster shared with the HTTP server.</li>
 </ul>
-<h3 id="shared-libs-lib">Shared libs — <code>lib/</code></h3>
+<h3 id="shared-libs--lib">Shared libs — <code>lib/</code></h3>
 <ul>
 <li><code>api-spec</code> (OpenAPI source of truth, regenerates
 <code>api-client-react</code>
@@ -629,9 +697,10 @@ built</strong>, kept as architecture-only stubs</li>
 </ul>
 <p>See <code>AFORCE_SOCIAL_CRUISE_ADDON.md</code> for the enhancement
 layer that sits on top of this core once it is stable.</p>
-<p>\newpage</p>
-<h1 id="aforce_phase_status.md">📄 AFORCE_PHASE_STATUS.md</h1>
-<h1 id="aforce-os-phase-status">AFORCE OS — Phase Status</h1>
+<hr />
+<h1 id="page_facing_up-aforce_phase_statusmd">📄
+AFORCE_PHASE_STATUS.md</h1>
+<h1 id="aforce-os--phase-status">AFORCE OS — Phase Status</h1>
 <p>Live tracker for the implementation order defined in
 <code>AFORCE_FINAL_SPEC.md</code> (core) and
 <code>AFORCE_SOCIAL_CRUISE_ADDON.md</code> (enhancement layer).</p>
@@ -639,15 +708,9 @@ layer that sits on top of this core once it is stable.</p>
 after each phase and wait for approval before continuing.</p>
 <p>Status legend: ⏳ pending · 🔧 in progress · ✅ shipped · 🚫
 blocked</p>
-<h2 id="core-phases-aforce_final_spec.md">Core Phases
+<h2 id="core-phases-aforce_final_specmd">Core Phases
 (AFORCE_FINAL_SPEC.md)</h2>
 <table>
-<colgroup>
-<col style="width: 3%" />
-<col style="width: 79%" />
-<col style="width: 9%" />
-<col style="width: 7%" />
-</colgroup>
 <thead>
 <tr>
 <th>#</th>
@@ -692,12 +755,12 @@ Timeline, Social, Profile) with dual implementations —
 <code>Tabs</code> on Android/web with custom <code>PlainTabButton</code>
 (haptic tick, WHOOP-cinematic styling, lime active tint, transparent
 BlurView on iOS, 84px web height). Timeline = <code>JournalScreen</code>
-(“PERFORMANCE TIMELINE” eyebrow, 7/30/90 range picker, section summaries
+(&quot;PERFORMANCE TIMELINE&quot; eyebrow, 7/30/90 range picker, section summaries
 Recovery/Heat/Hydration/Corrections/Territory/Streaks, Win Moments
 strip, score-over-time chart with band zones, collapsible day cards from
 <code>/journal/rollups</code>, Export PDF). Route file stays
 <code>journal.tsx</code> for deep-link stability; user-facing label
-“Timeline” via i18n (<code>tabs.journal</code>). Store correctly
+&quot;Timeline&quot; via i18n (<code>tabs.journal</code>). Store correctly
 excluded from bottom nav. No code changes required.</td>
 </tr>
 <tr>
@@ -814,13 +877,13 @@ eyebrow/title/updatedAt/intro/sections/footer chrome. Both sign-in (line
 176) and sign-up (line 291) link to all three legal pages.
 <code>legalSafetyService.ts</code> (94 lines) provides
 <code>impairmentFromBAC()</code> +
-<code>transportationPromptFor()</code> with mandatory “not a
-legal/medical determination” disclaimer for Social Mode safety; consumed
+<code>transportationPromptFor()</code> with mandatory &quot;not a
+legal/medical determination&quot; disclaimer for Social Mode safety; consumed
 by <code>socialModeEngine</code> and surfaced via
 <code>SocialSafetyCard</code> (severity-tinted accent). Tests:
 <code>bacEstimation.test.ts</code>
-(<code>describe(&#39;legalSafetyService&#39;)</code> block + “always returns
-disclaimer key” test). TestFlight checklist documents final-pass items
+(<code>describe(&#39;legalSafetyService&#39;)</code> block + &quot;always returns
+disclaimer key&quot; test). TestFlight checklist documents final-pass items
 (mailing address fill-in) for counsel review before public launch. No
 code changes required.</td>
 </tr>
@@ -838,7 +901,7 @@ code changes required.</td>
 <code>guardian_alerts_enabled</code> all <code>false</code>;
 <code>DEMO_ALL_ON_FLAGS</code> flips them ON for investor previews).
 Destination screens already wrap their bodies in
-<code>&lt;FeatureGate&gt;</code> (locked placeholder + “Activate Demo”
+<code>&lt;FeatureGate&gt;</code> (locked placeholder + &quot;Activate Demo&quot;
 CTA). <strong>Real gaps found and fixed</strong>: (1)
 <code>app/(tabs)/profile.tsx</code> <code>phaseEntryRow</code> rendered
 CLUTCH + GUARDIAN entry cards unconditionally (mounted twice at lines
@@ -846,7 +909,7 @@ CLUTCH + GUARDIAN entry cards unconditionally (mounted twice at lines
 gated each card on its own flag (<code>showClutchEntry</code> /
 <code>showGuardianEntry</code>); row returns <code>null</code> when
 neither flag is on. (2) <code>screens/HeatRiskScreen.tsx</code> header
-“TEAM” button surfaced the Guardian roster route to consumer users.
+&quot;TEAM&quot; button surfaced the Guardian roster route to consumer users.
 Surgical fix: added <code>useAppStore</code> import +
 <code>guardianEnabled</code> check; button only renders when
 <code>guardian_intelligence_enabled</code> is true. (3) Architect code
@@ -861,7 +924,7 @@ profile preserves full preview. Typecheck + 883/883 tests green.</td>
 </tr>
 </tbody>
 </table>
-<h2 id="addon-phases-aforce_social_cruise_addon.md">Addon Phases
+<h2 id="addon-phases-aforce_social_cruise_addonmd">Addon Phases
 (AFORCE_SOCIAL_CRUISE_ADDON.md)</h2>
 <p>Locked until <strong>all core phases above show ✅</strong>.</p>
 <h3 id="social-additions">Social Additions</h3>
@@ -892,12 +955,7 @@ profile preserves full preview. Typecheck + 883/883 tests green.</td>
 </tbody>
 </table>
 <h3 id="cruise-additions">Cruise Additions</h3>
-<table style="width:100%;">
-<colgroup>
-<col style="width: 64%" />
-<col style="width: 19%" />
-<col style="width: 16%" />
-</colgroup>
+<table>
 <thead>
 <tr>
 <th>Phase</th>
@@ -929,10 +987,10 @@ profile preserves full preview. Typecheck + 883/883 tests green.</td>
 <li>Journey Summary — architecture only</li>
 <li>Phantom — architecture only</li>
 </ul>
-<p>\newpage</p>
-<h1 id="aforce_social_cruise_addon.md">📄
+<hr />
+<h1 id="page_facing_up-aforce_social_cruise_addonmd">📄
 AFORCE_SOCIAL_CRUISE_ADDON.md</h1>
-<h1 id="aforce-os-social-cruise-enhancement-layer-addon">AFORCE OS —
+<h1 id="aforce-os--social--cruise-enhancement-layer-addon">AFORCE OS —
 Social + Cruise Enhancement Layer (Addon)</h1>
 <blockquote>
 <p><strong>Addon, not a rewrite.</strong> This document describes
@@ -952,7 +1010,7 @@ of this until all nine core phases have shipped and been approved.</p>
 <h2 id="social-additions-1">Social Additions</h2>
 <p>Apply in order. Stop after each.</p>
 <ul>
-<li><strong>Contexts</strong> — add Social Mode contexts (e.g. session
+<li><strong>Contexts</strong> — add Social Mode contexts (e.g. session
 types and modifiers) without altering the existing Social Mode
 surface.</li>
 <li><strong>Morning Reset</strong> — additive morning ritual
@@ -990,10 +1048,10 @@ new contexts/screens/services alongside the existing ones.</li>
 <li>Never start an addon until the core phase 9 is approved.</li>
 <li>One addition per session. Stop after each. Wait for approval.</li>
 </ul>
-<p>\newpage</p>
-<h1 id="designaforce-design-tokens.md">📄
+<hr />
+<h1 id="page_facing_up-designaforce-design-tokensmd">📄
 design/aforce-design-tokens.md</h1>
-<h1 id="aforce-os-design-tokens-whoop-cinematic-edition">AForce OS
+<h1 id="aforce-os-design-tokens--whoop-cinematic-edition">AForce OS
 Design Tokens — WHOOP-Cinematic Edition</h1>
 <blockquote>
 <p><strong>Source of truth</strong>:
@@ -1003,17 +1061,23 @@ format) <strong>Version</strong>: 2.0.0 — WHOOP-Cinematic</p>
 </blockquote>
 <hr />
 <h2 id="design-philosophy">Design Philosophy</h2>
-<p>AForce OS follows WHOOP’s cinematic design language: - <strong>Pure
-black canvas</strong> — backgrounds start at <code>#000000</code>, not
-dark gray - <strong>Content floats on darkness</strong> — no visible
-card borders, structure comes from spacing - <strong>One hero
-color</strong> — WHOOP Lime <code>#B6FF00</code> is the signature accent
-- <strong>Data-forward</strong> — big numbers, small labels, no
-decoration - <strong>Generous spacing</strong> — when in doubt, add more
-whitespace - <strong>Soft glows, never hard shadows</strong> — status
-colors radiate outward</p>
+<p>AForce OS follows WHOOP&#39;s cinematic design language:</p>
+<ul>
+<li><strong>Pure black canvas</strong> — backgrounds start at
+<code>#000000</code>, not dark gray</li>
+<li><strong>Content floats on darkness</strong> — no visible card
+borders, structure comes from spacing</li>
+<li><strong>One hero color</strong> — WHOOP Lime <code>#B6FF00</code> is
+the signature accent</li>
+<li><strong>Data-forward</strong> — big numbers, small labels, no
+decoration</li>
+<li><strong>Generous spacing</strong> — when in doubt, add more
+whitespace</li>
+<li><strong>Soft glows, never hard shadows</strong> — status colors
+radiate outward</li>
+</ul>
 <hr />
-<h2 id="colors">1. Colors</h2>
+<h2 id="1-colors">1. Colors</h2>
 <h3 id="backgrounds-pure-black-to-near-invisible-elevation">Backgrounds
 (pure black to near-invisible elevation)</h3>
 <table>
@@ -1059,11 +1123,6 @@ colors radiate outward</p>
 </table>
 <h3 id="text">Text</h3>
 <table>
-<colgroup>
-<col style="width: 33%" />
-<col style="width: 33%" />
-<col style="width: 33%" />
-</colgroup>
 <thead>
 <tr>
 <th>Token</th>
@@ -1198,12 +1257,6 @@ invisible)</h3>
 </table>
 <h3 id="performance-states-4-bands">Performance States (4 bands)</h3>
 <table>
-<colgroup>
-<col style="width: 25%" />
-<col style="width: 25%" />
-<col style="width: 25%" />
-<col style="width: 25%" />
-</colgroup>
 <thead>
 <tr>
 <th>State</th>
@@ -1278,11 +1331,6 @@ invisible)</h3>
 </table>
 <h3 id="whoop-integration-palette">WHOOP Integration Palette</h3>
 <table>
-<colgroup>
-<col style="width: 33%" />
-<col style="width: 33%" />
-<col style="width: 33%" />
-</colgroup>
 <thead>
 <tr>
 <th>Token</th>
@@ -1335,7 +1383,7 @@ invisible)</h3>
 <code>0.20</code> - <code>0.30</code> - <code>0.55</code> -
 <code>1.00</code></p>
 <hr />
-<h2 id="typography-inter">2. Typography (Inter)</h2>
+<h2 id="2-typography-inter">2. Typography (Inter)</h2>
 <h3 id="scale">Scale</h3>
 <table>
 <thead>
@@ -1463,7 +1511,7 @@ invisible)</h3>
 </tbody>
 </table>
 <hr />
-<h2 id="spacing">3. Spacing</h2>
+<h2 id="3-spacing">3. Spacing</h2>
 <p><code>0</code> - <code>4</code> - <code>8</code> - <code>12</code> -
 <code>16</code> - <code>20</code> - <code>24</code> - <code>28</code> -
 <code>32</code> - <code>40</code> - <code>48</code> - <code>56</code> -
@@ -1472,7 +1520,7 @@ invisible)</h3>
 them. Cards should have 20px internal padding. Never let elements feel
 crowded.</p>
 <hr />
-<h2 id="radii">4. Radii</h2>
+<h2 id="4-radii">4. Radii</h2>
 <table>
 <thead>
 <tr>
@@ -1525,7 +1573,7 @@ crowded.</p>
 </tbody>
 </table>
 <hr />
-<h2 id="component-dimensions">5. Component Dimensions</h2>
+<h2 id="5-component-dimensions">5. Component Dimensions</h2>
 <table>
 <thead>
 <tr>
@@ -1593,7 +1641,7 @@ crowded.</p>
 </tbody>
 </table>
 <hr />
-<h2 id="iphone-14-pro-layout">6. iPhone 14 Pro Layout</h2>
+<h2 id="6-iphone-14-pro-layout">6. iPhone 14 Pro Layout</h2>
 <table>
 <thead>
 <tr>
@@ -1633,16 +1681,10 @@ crowded.</p>
 </tbody>
 </table>
 <hr />
-<h2 id="shadows-glows">7. Shadows / Glows</h2>
+<h2 id="7-shadows--glows">7. Shadows / Glows</h2>
 <p>WHOOP never uses hard box shadows. Everything is a soft radial glow
 that matches the status color:</p>
 <table>
-<colgroup>
-<col style="width: 25%" />
-<col style="width: 25%" />
-<col style="width: 25%" />
-<col style="width: 25%" />
-</colgroup>
 <thead>
 <tr>
 <th>Token</th>
@@ -1693,34 +1735,34 @@ that matches the status color:</p>
 <hr />
 <h2 id="how-to-use-in-figma">How to Use in Figma</h2>
 <ol type="1">
-<li>Open Tokens Studio plugin (Cmd+P, type “Tokens Studio”)</li>
+<li>Open Tokens Studio plugin (Cmd+P, type &quot;Tokens Studio&quot;)</li>
 <li>Import <code>aforce-tokens.json</code> (three-dot menu, Tools, Load
 from file)</li>
 <li>Push to Figma Variables (Tools, Export to Figma Variables)</li>
 <li>Every color, font size, spacing value becomes a Figma Variable</li>
 <li>When building frames, use variables for all fills/strokes/text</li>
-<li>When the codebase changes, ask Replit to re-export, then re-import –
-everything stays in sync</li>
+<li>When the codebase changes, ask Replit to re-export, then re-import
+-- everything stays in sync</li>
 </ol>
-<p>\newpage</p>
-<h1 id="artifactsaforce-osdocssocial-mode-safety-spec.md">📄
+<hr />
+<h1 id="page_facing_up-artifactsaforce-osdocssocial-mode-safety-specmd">📄
 artifacts/aforce-os/docs/social-mode-safety-spec.md</h1>
-<h1 id="social-mode-safety-estimation-spec">Social Mode — Safety &amp;
+<h1 id="social-mode--safety--estimation-spec">Social Mode — Safety &amp;
 Estimation Spec</h1>
 <p>This document is the canonical reference for the BAC estimator,
 impairment escalation, transportation prompts, and recovery flow that
 power <strong>AForce OS Social Mode</strong>. Anyone touching the
 engine, UI, or copy must read this first.</p>
 <hr />
-<h2 id="voice-tone">1. Voice &amp; tone</h2>
+<h2 id="1-voice--tone">1. Voice &amp; tone</h2>
 <p>Social Mode is <strong>calm, protective, never preachy</strong>.</p>
 <ul>
 <li>The system <strong>never</strong> moralizes, lectures, or shames the
-user for drinking. It does not use words like “stop drinking”, “you
-should not”, or “irresponsible”.</li>
-<li>The system <strong>never</strong> says the user is “safe to drive”
+user for drinking. It does not use words like &quot;stop drinking&quot;, &quot;you
+should not&quot;, or &quot;irresponsible&quot;.</li>
+<li>The system <strong>never</strong> says the user is &quot;safe to drive&quot;
 or implies legal compliance. The strongest positive language allowed is
-“your estimate is currently low” — it never crosses into
+&quot;your estimate is currently low&quot; — it never crosses into
 permission.</li>
 <li>When escalating, the system uses protective verbs: <em>plan a ride,
 switch to water, arrange safe transport, stop alcohol intake</em>. It
@@ -1728,8 +1770,8 @@ describes outcomes, not character.</li>
 <li>Headlines are short. Bodies are 1–2 sentences max.</li>
 </ul>
 <hr />
-<h2 id="bac-estimation-widmark-approximation">2. BAC estimation (Widmark
-approximation)</h2>
+<h2 id="2-bac-estimation-widmark-approximation">2. BAC estimation
+(Widmark approximation)</h2>
 <p>Implemented in <code>services/bacEstimationService.ts</code>.</p>
 <pre><code>gramsAlcohol = sum( drink.oz * (drink.abv/100) * 0.789 * 29.5735 )
 bodyMassG    = bodyWeightLbs * 453.592
@@ -1741,14 +1783,10 @@ bacCurrent   = max(0, bacRaw - 0.015 * elapsedH)</code></pre>
 <p>The output is a <strong>range</strong> widened by ±0.01 around the
 point estimate. We never display a single false-precision number.</p>
 <table>
-<colgroup>
-<col style="width: 22%" />
-<col style="width: 77%" />
-</colgroup>
 <thead>
 <tr>
 <th>Field</th>
-<th>How it’s derived</th>
+<th>How it&#39;s derived</th>
 </tr>
 </thead>
 <tbody>
@@ -1784,16 +1822,9 @@ divide-by-tiny errors.</li>
 <code>&#39;male&#39; | &#39;female&#39; | &#39;unspecified&#39;</code>.</li>
 <li><code>ateRecently</code>: optional boolean.</li>
 </ul>
-<h3 id="drink-catalog-dataalcoholdrinks.ts">Drink catalog
+<h3 id="drink-catalog-dataalcoholdrinksts">Drink catalog
 (<code>data/alcoholDrinks.ts</code>)</h3>
 <table>
-<colgroup>
-<col style="width: 22%" />
-<col style="width: 16%" />
-<col style="width: 18%" />
-<col style="width: 26%" />
-<col style="width: 16%" />
-</colgroup>
 <thead>
 <tr>
 <th>Type</th>
@@ -1849,19 +1880,12 @@ divide-by-tiny errors.</li>
 </tbody>
 </table>
 <hr />
-<h2 id="impairment-escalation-matrix">3. Impairment escalation
+<h2 id="3-impairment-escalation-matrix">3. Impairment escalation
 matrix</h2>
 <p>Implemented in <code>services/legalSafetyService.ts</code>. Mapping
 uses the <strong>midpoint</strong> of the BAC range so trend is smooth
 across refreshes.</p>
 <table>
-<colgroup>
-<col style="width: 16%" />
-<col style="width: 12%" />
-<col style="width: 12%" />
-<col style="width: 16%" />
-<col style="width: 41%" />
-</colgroup>
 <thead>
 <tr>
 <th>BAC midpoint</th>
@@ -1891,30 +1915,30 @@ across refreshes.</p>
 <td><code>MODERATE</code></td>
 <td>shown — caution</td>
 <td>no</td>
-<td>“Plan a ride before your next drink”</td>
+<td>&quot;Plan a ride before your next drink&quot;</td>
 </tr>
 <tr>
 <td>0.080 – 0.119</td>
 <td><code>HIGH</code></td>
 <td>shown — warning</td>
 <td><strong>yes</strong></td>
-<td>“Do not drive. Use a rideshare.”</td>
+<td>&quot;Do not drive. Use a rideshare.&quot;</td>
 </tr>
 <tr>
 <td>≥ 0.120</td>
 <td><code>CRITICAL</code></td>
 <td>shown — critical</td>
 <td><strong>yes</strong></td>
-<td>“Stop alcohol intake. Recovery req.”</td>
+<td>&quot;Stop alcohol intake. Recovery req.&quot;</td>
 </tr>
 </tbody>
 </table>
 <p>The safety card is hidden at <code>LOW</code> and
 <code>ELEVATED</code> so the user only sees the legal-protection
-language when it actually applies. The “stop drinking” sub-prompt only
+language when it actually applies. The &quot;stop drinking&quot; sub-prompt only
 appears at HIGH/CRITICAL.</p>
 <hr />
-<h2 id="disclaimer-policy">4. Disclaimer policy</h2>
+<h2 id="4-disclaimer-policy">4. Disclaimer policy</h2>
 <p>Every surface that shows a BAC value, impairment level,
 transportation prompt, or recovery time <strong>must</strong> render the
 standard disclaimer pair:</p>
@@ -1928,7 +1952,7 @@ supported locales (<code>en</code>, <code>es</code>, <code>fr</code>,
 <code>de</code>, <code>pt</code>, <code>it</code>).</p>
 <p>The system <strong>never</strong>:</p>
 <ul>
-<li>Tells the user they are “safe to drive”.</li>
+<li>Tells the user they are &quot;safe to drive&quot;.</li>
 <li>Promises a specific BAC at a specific future time.</li>
 <li>Asserts compliance with any legal limit (those vary by jurisdiction
 and by individual physiology).</li>
@@ -1936,7 +1960,7 @@ and by individual physiology).</li>
 interactions, etc.).</li>
 </ul>
 <hr />
-<h2 id="recovery-mode">5. Recovery Mode</h2>
+<h2 id="5-recovery-mode">5. Recovery Mode</h2>
 <p>Triggered when the user taps <strong>End Night</strong> in the Social
 Mode sheet. Engine sets <code>socialMode.endedAt</code> and the rollup
 flips <code>inRecoveryWindow = true</code> for the next 8 hours
@@ -1954,7 +1978,7 @@ sleep.</li>
 <p>The home banner shifts to amber and reads
 <code>social.recovery_active</code>.</p>
 <hr />
-<h2 id="orb-overlay">6. Orb overlay</h2>
+<h2 id="6-orb-overlay">6. Orb overlay</h2>
 <p><code>StatusPulseOrb</code> accepts
 <code>socialOverlay?: { alcoholLoad: number; unstable: boolean }</code>.</p>
 <ul>
@@ -1966,7 +1990,7 @@ the ring flips crimson and pulses faster.</li>
 <p>The overlay is purely additive; it never replaces the normal
 hydration gradient.</p>
 <hr />
-<h2 id="test-invariants">7. Test invariants</h2>
+<h2 id="7-test-invariants">7. Test invariants</h2>
 <p><code>services/__tests__/bacEstimation.test.ts</code> pins:</p>
 <ul>
 <li>Zero drinks → zero BAC, zero clear time.</li>
@@ -1978,26 +2002,270 @@ elimination.</li>
 <li>Confidence degrades when sex is unspecified.</li>
 <li>Food intake softens the BAC estimate vs an empty stomach.</li>
 <li>Safety prompt is hidden at LOW/ELEVATED.</li>
-<li>Safety prompt escalates to “do not drive” at HIGH and CRITICAL.</li>
+<li>Safety prompt escalates to &quot;do not drive&quot; at HIGH and CRITICAL.</li>
 <li>Safety disclaimer key is always returned.</li>
 </ul>
 <p>These invariants must continue to hold after any change to the engine
 or the impairment thresholds.</p>
-<p>\newpage</p>
-<h1 id="artifactsaforce-osdocstestflight_checklist.md">📄
+<hr />
+<h1 id="page_facing_up-docsvalidation-methodologymd">📄
+docs/validation-methodology.md</h1>
+<h1 id="aforce-os--validation-methodology">AForce OS — Validation
+Methodology</h1>
+<p>Version: v1.0 — April 2026</p>
+<p>This document captures every numerical model the AForce OS hydration
+engine uses, with the published reference it draws from and the
+limitations a sports-science partner needs to know before designing a
+real-world validation study.</p>
+<p>Each section is structured the same way:</p>
+<ol type="1">
+<li><strong>What we compute</strong></li>
+<li><strong>Formula / decision rule</strong></li>
+<li><strong>Reference</strong></li>
+<li><strong>Limitations &amp; known gaps</strong></li>
+</ol>
+<hr />
+<h2 id="1-sweat-rate-per-session">1. Sweat rate (per session)</h2>
+<p><strong>What we compute.</strong> Volume of fluid lost during a
+discrete activity session, in millilitres per hour (mL · h⁻¹), used to
+size both the Hydration Score replenishment target and the post-session
+AForce sodium prescription.</p>
+<p><strong>Formula.</strong></p>
+<pre><code>sweat_rate_ml_per_h = (pre_weight_kg − post_weight_kg) × 1000
+                     + fluid_in_ml − urine_out_ml
+                     all divided by duration_h</code></pre>
+<p>A 1 kg net loss over 1 hour = 1000 mL · h⁻¹.</p>
+<p><strong>Reference.</strong> ACSM Position Stand: <em>Exercise and
+Fluid Replacement</em>, Sawka et al., Med Sci Sports Exerc 39(2):
+377–390, 2007.</p>
+<p><strong>Limitations.</strong></p>
+<ul>
+<li>Treats every gram lost as water. Glycogen + substrate oxidation can
+account for ~50–100 g · h⁻¹ that isn&#39;t actually fluid loss.</li>
+<li>Doesn&#39;t model respiratory water loss separately from sweat.</li>
+<li>Assumes accurate scale (±0.1 kg).</li>
+</ul>
+<hr />
+<h2 id="2-sodium-replacement-bands">2. Sodium replacement bands</h2>
+<p><strong>What we compute.</strong> Per-session sodium target (mg)
+split into low / moderate / high bands, used by the AForce prescription
+engine and the Sweat Autopilot recovery window to pick stick vs RTD
+ratios.</p>
+<p><strong>Formula.</strong></p>
+<table>
+<thead>
+<tr>
+<th>Sweat sodium</th>
+<th>Band</th>
+<th>mg · L⁻¹ losses</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Low</td>
+<td>Salty 1</td>
+<td>&lt; 500</td>
+</tr>
+<tr>
+<td>Moderate</td>
+<td>Salty 2</td>
+<td>500 – 800</td>
+</tr>
+<tr>
+<td>High</td>
+<td>Salty 3</td>
+<td>800 – 1200</td>
+</tr>
+<tr>
+<td>Very high</td>
+<td>Salty 4</td>
+<td>&gt; 1200</td>
+</tr>
+</tbody>
+</table>
+<p>Per-session prescription =
+<code>sweat_loss_L × band_concentration</code>, capped at 2300 mg per 4
+h to stay below the upper-limit chronic sodium recommendation.</p>
+<p><strong>Reference.</strong> Baker LB, <em>Sweating Rate and Sweat
+Sodium Concentration in Athletes: A Review of Methodology and
+Intra/Interindividual Variability</em>. Sports Med 47 (Suppl 1):
+111–128, 2017.</p>
+<p><strong>Limitations.</strong></p>
+<ul>
+<li>Bands assume a healthy adult. Hypertensive users should
+override.</li>
+<li>Heat-acclimatized athletes drift toward the low band over
+weeks.</li>
+<li>Genetic variants in CFTR can produce sweat sodium &gt; 1500 mg · L⁻¹
+outside the modelled range.</li>
+</ul>
+<hr />
+<h2 id="3-heat-index-heat-guard-activation">3. Heat Index (Heat Guard
+activation)</h2>
+<p><strong>What we compute.</strong> Apparent temperature in °F used to
+flip the Heat Guard band from
+<code>safe → caution → warning → critical</code> and adjust recheck
+cadence in the scoring engine.</p>
+<p><strong>Formula.</strong> Rothfusz regression (NWS 1990), used at
+ambient ≥ 80 °F:</p>
+<pre><code>HI = -42.379 + 2.04901523·T + 10.14333127·R
+     - 0.22475541·T·R - 6.83783e-3·T²
+     - 5.481717e-2·R² + 1.22874e-3·T²·R
+     + 8.5282e-4·T·R² - 1.99e-6·T²·R²</code></pre>
+<p>with a low-humidity adjustment when
+<code>R &lt; 13 % AND 80 ≤ T ≤ 112</code> and a high-humidity adjustment
+when <code>R &gt; 85 % AND 80 ≤ T ≤ 87</code>.</p>
+<p><strong>Reference.</strong> Rothfusz LP, <em>The Heat Index
+Equation</em>, NWS Tech. Attachment SR 90-23, 1990. NWS Heat Index page
+(current).</p>
+<p><strong>Limitations.</strong></p>
+<ul>
+<li>Defined for shade; we do not adjust for direct solar radiation.</li>
+<li>Not validated below 80 °F — we suppress Heat Guard entirely when
+ambient &lt; 75 °F.</li>
+<li>Wet-bulb globe temperature (WBGT) is the gold standard for elite
+athletes — Rothfusz is a consumer-friendly approximation.</li>
+</ul>
+<hr />
+<h2 id="4-estimated-blood-alcohol-concentration-social-mode">4.
+Estimated blood alcohol concentration (Social Mode)</h2>
+<p><strong>What we compute.</strong> Real-time BAC estimate during
+Social Mode used for the conservative 0.06 % &quot;drink water&quot; prompt and
+the 8 h Recovery Mode window after deactivation.</p>
+<p><strong>Formula.</strong> Widmark equation (refined NHTSA form):</p>
+<pre><code>BAC% = (alcohol_g / (body_weight_g × r)) × 100
+       − β · hours_since_first_drink
+
+r       = 0.68 (male) | 0.55 (female)   Widmark factor
+β       = 0.015 % · h⁻¹                 elimination rate (Forrest 1986 mean)
+food_r  = ×0.85 multiplier when ate_recently</code></pre>
+<p>Alcohol grams per drink default =
+<code>oz × abv × 0.789 × 29.5735</code>.</p>
+<p><strong>Reference.</strong> Widmark EMP, 1932 (translation:
+<em>Principles and Applications of Medicolegal Alcohol
+Determination</em>, 1981). Forrest ARW, <em>The Estimation of Widmark&#39;s
+Factor</em>, J Forensic Sci Soc 1986.</p>
+<p><strong>Limitations.</strong></p>
+<ul>
+<li>Population-average factors — actual r ranges 0.49–0.78.</li>
+<li>Elimination rate accelerates with chronic drinking (β can reach
+0.025).</li>
+<li>Gastric absorption rate ignored — we don&#39;t model time-to-peak
+(~30–90 min).</li>
+<li>Not a legal BAC. Visual disclaimer is shown in-app.</li>
+</ul>
+<hr />
+<h2 id="5-recovery--readiness-adjustments-apple-health-overlay">5.
+Recovery &amp; readiness adjustments (Apple Health overlay)</h2>
+<p><strong>What we compute.</strong> Up-to-±10 point adjustment to the
+displayed Hydration Score based on resting heart rate, HRV (SDNN), and
+last-night sleep hours.</p>
+<p><strong>Decision rule (sums clamped to ±10).</strong></p>
+<pre><code>delta_rhr   = clamp(  (rhr_today − rhr_baseline) ×  -0.4 , -3, +3 )
+delta_hrv   = clamp(  (hrv_today − hrv_baseline) ×  +0.05, -3, +3 )
+delta_sleep = clamp(  (sleep_h − 7.5) ×             +1.5 , -4, +4 )
+
+readiness_delta = clamp(delta_rhr + delta_hrv + delta_sleep, -10, +10)</code></pre>
+<p><code>*_baseline</code> is a 14-day rolling median pulled from
+HealthKit.</p>
+<p><strong>Reference.</strong> Recovery proxy validated against Whoop /
+Oura internal whitepapers; baseline-relative HRV scoring follows Plews
+et al., <em>Heart Rate Variability and Training Intensity Distribution
+in Elite Rowers</em>, Int J Sports Physiol Perform 2014.</p>
+<p><strong>Limitations.</strong></p>
+<ul>
+<li>Baseline noise is high in the first 14 days of HealthKit
+history.</li>
+<li>Single SDNN sample is less reliable than RMSSD over 5 min — Apple
+exposes both but only SDNN at-rest is consistent across watches.</li>
+<li>Sleep score only counts duration, not sleep stages.</li>
+</ul>
+<hr />
+<h2 id="6-per-event-hydration-impact-the-score-itself">6. Per-event
+hydration impact (the score itself)</h2>
+<p><strong>What we compute.</strong> Score delta credited to a single
+intake event, broken into immediate + delayed components so the orb
+visibly fills over the 20-minute absorption window.</p>
+<p><strong>Decision rule.</strong></p>
+<pre><code>base_impact = (oz / 12) × per-fluid_weight × flavor_multiplier
+            × (heat_guard_active ? 1.15 : 1.0)
+
+cap_adjusted = min(base_impact, 12)        # 20-min absorption cap
+
+immediate    = cap_adjusted × 0.40         # released at log time
+delayed      = cap_adjusted × 0.60         # eased over 20 min</code></pre>
+<p><code>per-fluid_weight</code>: water 0.9, AForce stick 1.4, AForce
+RTD 1.3, canister 1.2. Flavor: watermelon 1.05, berry 1.05, soursop 1.10
+(and a +1 bonus when scoreBefore &lt; 60), unflavored 1.0.</p>
+<p><strong>Reference.</strong> Internal model — calibrated from pilot
+field data (n=42, summer 2025). NOT yet peer-reviewed.</p>
+<p><strong>Limitations.</strong></p>
+<ul>
+<li>The 20-min cap is a UX choice (so users see progress quickly), not a
+physiological constant.</li>
+<li>Caffeine, electrolyte content of competitor drinks, and oral
+rehydration solution coefficients are not modelled in v1.</li>
+</ul>
+<hr />
+<h2 id="7-compliance-streak--retention">7. Compliance streak &amp;
+retention</h2>
+<p><strong>What we compute.</strong> Day count of consecutive &quot;command
+followed&quot; days, used by the consistency term in the scoring engine and
+as the unlock criterion for the streak achievement family.</p>
+<p><strong>Decision rule.</strong> A day &quot;counts&quot; when both:</p>
+<ol type="1">
+<li>The user opened the app at least once between 06:00–22:00
+local.</li>
+<li><code>confirmed_count_for_day / commands_for_day ≥ 0.6</code>.</li>
+</ol>
+<p>A miss-day that is followed by 3 consecutive hit-days restores 50 %
+of the lost streak (the &quot;comeback&quot; rule).</p>
+<p><strong>Reference.</strong> Self-determination theory streak
+heuristics, Ryan &amp; Deci 2000. Behavioural-design &quot;loss-aversion
+light&quot; pattern, Eyal <em>Hooked</em> 2014.</p>
+<p><strong>Limitations.</strong></p>
+<ul>
+<li>Time-zone changes during travel can lose a day.</li>
+<li>Sleep-shifted users (graveyard-shift workers) need a custom
+06:00–22:00 window.</li>
+</ul>
+<hr />
+<h2 id="how-to-validate-this-in-the-field">How to validate this in the
+field</h2>
+<p>To convert this from an internal model into a study-ready
+protocol:</p>
+<ol type="1">
+<li><strong>Sweat rate / sodium.</strong> Recruit n ≥ 30 athletes,
+collect absorbent-patch sweat (forearm + back) during a standardized
+45-min cycling bout at 65 % VO₂max in 32 °C / 50 % RH. Compare
+patch-derived sweat sodium to the band our app would have assigned.</li>
+<li><strong>Heat Index.</strong> Co-locate a WBGT meter for 14 outdoor
+sessions spanning 70–105 °F. Plot Rothfusz-HI vs WBGT — quantify the gap
+for the user&#39;s region.</li>
+<li><strong>BAC.</strong> Single-blind n ≥ 12 alcohol-challenge with
+breathalyser ground truth at +30 / +60 / +120 min. Report MAE for our
+Widmark estimate.</li>
+<li><strong>Score validity.</strong> A 4-week diary study comparing
+self-reported thirst / mood / urine colour to the displayed score. Look
+for monotonicity, not absolute calibration.</li>
+</ol>
+<p>Open questions are tracked in <code>replit.md</code> under
+&quot;Validation gaps&quot;.</p>
+<hr />
+<h1 id="page_facing_up-artifactsaforce-osdocstestflight_checklistmd">📄
 artifacts/aforce-os/docs/TESTFLIGHT_CHECKLIST.md</h1>
-<h1 id="aforce-os-testflight-submit-checklist">AForce OS — TestFlight
+<h1 id="aforce-os--testflight-submit-checklist">AForce OS — TestFlight
 Submit Checklist</h1>
 <p>A step-by-step runbook for getting an internal beta build of AForce
 OS into TestFlight for the team. Estimated total time on a fresh setup:
 <strong>3–6 hours</strong> (most of it waiting on Apple).</p>
 <hr />
-<h2 id="phase-0-prerequisites-do-once">Phase 0 — Prerequisites (do
+<h2 id="phase-0--prerequisites-do-once">Phase 0 — Prerequisites (do
 once)</h2>
-<h3 id="apple-developer-program">0.1 Apple Developer Program</h3>
+<h3 id="01-apple-developer-program">0.1 Apple Developer Program</h3>
 <ul class="task-list">
-<li><label><input type="checkbox"></input>Enroll at
-https://developer.apple.com/programs/ ($99/yr individual, ~$299/yr
+<li><label><input type="checkbox"></input>Enroll at <a href="https://developer.apple.com/programs/">https://developer.apple.com/programs/</a>
+(<span class="math inline">99/<em>y</em><em>r</em><em>i</em><em>n</em><em>d</em><em>i</em><em>v</em><em>i</em><em>d</em><em>u</em><em>a</em><em>l</em>, </span>299/yr
 organization).</label></li>
 <li><label><input type="checkbox"></input>Wait for approval (usually same-day
 for individuals, up to a few business days for
@@ -2005,34 +2273,34 @@ organizations).</label></li>
 <li><label><input type="checkbox"></input>Confirm enrollment is active in <a href="https://appstoreconnect.apple.com/">App Store
 Connect</a>.</label></li>
 </ul>
-<h3 id="expo-eas-account">0.2 Expo / EAS account</h3>
+<h3 id="02-expo--eas-account">0.2 Expo / EAS account</h3>
 <ul class="task-list">
-<li><label><input type="checkbox"></input>Sign up at https://expo.dev/signup
-if you don’t have one.</label></li>
+<li><label><input type="checkbox"></input>Sign up at <a href="https://expo.dev/signup">https://expo.dev/signup</a> if you don&#39;t
+have one.</label></li>
 <li><label><input type="checkbox"></input>On your local machine:
 <code>npm install -g eas-cli</code></label></li>
 <li><label><input type="checkbox"></input><code>eas login</code> and confirm
 with <code>eas whoami</code>.</label></li>
 </ul>
-<h3 id="privacy-policy-live-at-a-real-url">0.3 Privacy policy live at a
-real URL</h3>
+<h3 id="03-privacy-policy-live-at-a-real-url">0.3 Privacy policy live at
+a real URL</h3>
 <ul class="task-list">
 <li><label><input type="checkbox"></input>Take
 <code>legal/privacy-policy.md</code>, fill in the mailing address and
 any TBD fields.</label></li>
 <li><label><input type="checkbox"></input>Have it reviewed by counsel
 (HealthKit + CCPA + GDPR).</label></li>
-<li><label><input type="checkbox"></input>Publish at a stable URL,
-e.g. <code>https://drinkaforce.com/privacy</code>. (A Notion public page
-or a static HTML file works for beta; you’ll need a real domain page for
-App Store production.)</label></li>
-<li><label><input type="checkbox"></input>Save the URL — you’ll paste it into
+<li><label><input type="checkbox"></input>Publish at a stable URL, e.g.
+<code>https://drinkaforce.com/privacy</code>. (A Notion public page or a
+static HTML file works for beta; you&#39;ll need a real domain page for App
+Store production.)</label></li>
+<li><label><input type="checkbox"></input>Save the URL — you&#39;ll paste it into
 App Store Connect.</label></li>
 </ul>
 <hr />
-<h2 id="phase-1-app-store-connect-setup-do-once">Phase 1 — App Store
+<h2 id="phase-1--app-store-connect-setup-do-once">Phase 1 — App Store
 Connect setup (do once)</h2>
-<h3 id="create-the-app-record">1.1 Create the app record</h3>
+<h3 id="11-create-the-app-record">1.1 Create the app record</h3>
 <ul class="task-list">
 <li><label><input type="checkbox"></input>Go to App Store Connect → <strong>My
 Apps</strong> → <strong>+</strong> → <strong>New
@@ -2044,7 +2312,7 @@ App</strong>.</label></li>
 <li><label><input type="checkbox"></input>Primary Language: English
 (U.S.)</label></li>
 <li><label><input type="checkbox"></input>Bundle ID:
-<code>com.aforce.os</code> — if it doesn’t appear in the dropdown,
+<code>com.aforce.os</code> — if it doesn&#39;t appear in the dropdown,
 register it first at developer.apple.com → <strong>Certificates,
 Identifiers &amp; Profiles</strong> → <strong>Identifiers</strong> →
 <strong>+</strong>.</label></li>
@@ -2055,7 +2323,7 @@ Access</strong></label></li>
 <li><label><input type="checkbox"></input>Click
 <strong>Create</strong>.</label></li>
 </ul>
-<h3 id="fill-in-app-information">1.2 Fill in App Information</h3>
+<h3 id="12-fill-in-app-information">1.2 Fill in App Information</h3>
 <ul class="task-list">
 <li><label><input type="checkbox"></input><strong>Privacy Policy URL</strong>
 → paste the URL from 0.3</label></li>
@@ -2066,24 +2334,31 @@ declare whether the app contains third-party content</label></li>
 <li><label><input type="checkbox"></input><strong>Age Rating</strong> → walk
 through the questionnaire (likely 4+)</label></li>
 </ul>
-<h3 id="app-privacy-questionnaire-app-store-connect-app-privacy">1.3 App
-Privacy questionnaire (App Store Connect → App Privacy)</h3>
+<h3 id="13-app-privacy-questionnaire-app-store-connect--app-privacy">1.3
+App Privacy questionnaire (App Store Connect → App Privacy)</h3>
 <p>This is required before TestFlight external testing and before App
 Store submission. For internal-only TestFlight you can defer it, but
-it’s faster to do it now.</p>
-<p>Declare data collection for: - [ ] <strong>Health &amp;
+it&#39;s faster to do it now.</p>
+<p>Declare data collection for:</p>
+<ul class="task-list">
+<li><label><input type="checkbox"></input><strong>Health &amp;
 Fitness</strong> — used for App Functionality, <strong>not</strong>
 linked to user identity if you keep it client-side; linked if you sync
-to your backend - [ ] <strong>Contact Info → Email</strong> — used for
-App Functionality (auth) - [ ] <strong>Identifiers → User ID</strong> —
-used for App Functionality - [ ] <strong>Usage Data → Product
-Interaction</strong> — used for Analytics - [ ] <strong>Diagnostics →
-Crash Data, Performance Data</strong> — used for App Functionality</p>
+to your backend</label></li>
+<li><label><input type="checkbox"></input><strong>Contact Info →
+Email</strong> — used for App Functionality (auth)</label></li>
+<li><label><input type="checkbox"></input><strong>Identifiers → User
+ID</strong> — used for App Functionality</label></li>
+<li><label><input type="checkbox"></input><strong>Usage Data → Product
+Interaction</strong> — used for Analytics</label></li>
+<li><label><input type="checkbox"></input><strong>Diagnostics → Crash Data,
+Performance Data</strong> — used for App Functionality</label></li>
+</ul>
 <p>For each category, confirm: data is <strong>not used for
 tracking</strong> and <strong>not shared with third parties for
 advertising</strong>.</p>
 <hr />
-<h2 id="phase-2-pre-build-sanity-checks">Phase 2 — Pre-build sanity
+<h2 id="phase-2--pre-build-sanity-checks">Phase 2 — Pre-build sanity
 checks</h2>
 <p>Run these before every build.</p>
 <ul class="task-list">
@@ -2100,7 +2375,7 @@ permission strings read like a human wrote them (Apple rejects
 placeholder text)</label></li>
 <li><label><input type="checkbox"></input>App icon at
 <code>assets/images/icon.png</code> is <strong>1024 × 1024 PNG, no
-transparency, no alpha channel</strong> (Apple’s hard
+transparency, no alpha channel</strong> (Apple&#39;s hard
 requirement)</label></li>
 <li><label><input type="checkbox"></input>Smoke-test on a real iPhone: sign
 in, log a drink, scan a barcode, grant HealthKit, view recovery score,
@@ -2113,9 +2388,9 @@ vars set for production</label></li>
 reachable from a non-Replit network</label></li>
 </ul>
 <hr />
-<h2 id="phase-3-build-with-eas">Phase 3 — Build with EAS</h2>
+<h2 id="phase-3--build-with-eas">Phase 3 — Build with EAS</h2>
 <p>From the repo root.</p>
-<h3 id="first-time-only-configure-credentials">3.1 First-time only:
+<h3 id="31-first-time-only-configure-credentials">3.1 First-time only:
 configure credentials</h3>
 <ul class="task-list">
 <li><label><input type="checkbox"></input><code>cd artifacts/aforce-os</code></label></li>
@@ -2126,33 +2401,33 @@ project</label></li>
 <strong>Set up a new distribution certificate</strong>. EAS can manage
 certificates and provisioning profiles for you; say yes.</label></li>
 </ul>
-<h3 id="build-for-testflight">3.2 Build for TestFlight</h3>
+<h3 id="32-build-for-testflight">3.2 Build for TestFlight</h3>
 <ul class="task-list">
 <li><label><input type="checkbox"></input><code>eas build --profile production --platform ios</code></label></li>
 <li><label><input type="checkbox"></input>Wait ~15–30 minutes for the build to
-finish on EAS’s macOS workers</label></li>
+finish on EAS&#39;s macOS workers</label></li>
 <li><label><input type="checkbox"></input>Build artifact (<code>.ipa</code>)
 appears in your Expo dashboard</label></li>
 </ul>
 <p>The <code>production</code> profile in <code>eas.json</code> is the
-right one for TestFlight — <code>distribution</code> defaults to “store”
+right one for TestFlight — <code>distribution</code> defaults to &quot;store&quot;
 (App Store Connect), which is what TestFlight reads from. The
 <code>preview</code> profile (<code>distribution: internal</code>) is
 only for ad-hoc IPAs you sideload outside TestFlight.</p>
 <hr />
-<h2 id="phase-4-submit-to-testflight">Phase 4 — Submit to
+<h2 id="phase-4--submit-to-testflight">Phase 4 — Submit to
 TestFlight</h2>
-<h3 id="upload">4.1 Upload</h3>
+<h3 id="41-upload">4.1 Upload</h3>
 <ul class="task-list">
 <li><label><input type="checkbox"></input><code>eas submit --profile production --platform ios</code></label></li>
 <li><label><input type="checkbox"></input>Pick the build from the previous
 step</label></li>
 <li><label><input type="checkbox"></input>Provide your Apple ID and an <a href="https://account.apple.com/account/manage">app-specific
 password</a> (or use API key — recommended for CI)</label></li>
-<li><label><input type="checkbox"></input>Wait for upload + Apple’s processing
-(~15–60 minutes; you’ll get an email)</label></li>
+<li><label><input type="checkbox"></input>Wait for upload + Apple&#39;s processing
+(~15–60 minutes; you&#39;ll get an email)</label></li>
 </ul>
-<h3 id="configure-the-testflight-build-app-store-connect-testflight-tab">4.2
+<h3 id="42-configure-the-testflight-build-app-store-connect--testflight-tab">4.2
 Configure the TestFlight build (App Store Connect → TestFlight tab)</h3>
 <ul class="task-list">
 <li><label><input type="checkbox"></input>Once Apple finishes processing, the
@@ -2160,27 +2435,26 @@ build appears under <strong>iOS Builds</strong></label></li>
 <li><label><input type="checkbox"></input>Click the build → fill in
 <strong>Test Information</strong>:</label>
 <ul>
-<li><strong>What to Test:</strong> “First internal build of AForce OS.
+<li><strong>What to Test:</strong> &quot;First internal build of AForce OS.
 Please test: sign-in, hydration logging, barcode scan, HealthKit grant
-flow, recovery score, sign-out. Report bugs to
-bburrell@alkalineforce.com.”</li>
+flow, recovery score, sign-out. Report bugs to <a href="mailto:bburrell@alkalineforce.com">bburrell@alkalineforce.com</a>.&quot;</li>
 <li><strong>Beta App Description:</strong> short paragraph from the
 pitch deck</li>
-<li><strong>Email:</strong> bburrell@alkalineforce.com</li>
+<li><strong>Email:</strong> <a href="mailto:bburrell@alkalineforce.com">bburrell@alkalineforce.com</a></li>
 <li><strong>Privacy Policy URL:</strong> same as in Phase 1.2</li>
 </ul></li>
 <li><label><input type="checkbox"></input><strong>Export Compliance:</strong>
 answer the encryption question. AForce OS uses standard HTTPS only →
-choose <strong>“Uses standard encryption exempt from export
-compliance”</strong> (ITSAppUsesNonExemptEncryption =
+choose <strong>&quot;Uses standard encryption exempt from export
+compliance&quot;</strong> (ITSAppUsesNonExemptEncryption =
 false).</label></li>
 </ul>
-<h3 id="add-internal-testers-no-apple-review-needed">4.3 Add internal
+<h3 id="43-add-internal-testers-no-apple-review-needed">4.3 Add internal
 testers (no Apple review needed)</h3>
 <ul class="task-list">
 <li><label><input type="checkbox"></input>App Store Connect → TestFlight →
 <strong>Internal Testing</strong> → <strong>+</strong> → create a group
-called “AForce Team”</label></li>
+called &quot;AForce Team&quot;</label></li>
 <li><label><input type="checkbox"></input>Add team members by email (must have
 an App Store Connect role on your team — invite them via <strong>Users
 and Access</strong> first)</label></li>
@@ -2189,13 +2463,13 @@ group</label></li>
 <li><label><input type="checkbox"></input>Up to <strong>100 internal
 testers</strong>, each on up to 30 devices, no Apple review</label></li>
 </ul>
-<h3 id="optional-add-external-testers-light-apple-review">4.4 (Optional)
-Add external testers (light Apple review)</h3>
+<h3 id="44-optional-add-external-testers-light-apple-review">4.4
+(Optional) Add external testers (light Apple review)</h3>
 <ul class="task-list">
 <li><label><input type="checkbox"></input>TestFlight → <strong>External
-Testing</strong> → <strong>+</strong> → create a group like “Friends
-&amp; Family Beta”</label></li>
-<li><label><input type="checkbox"></input>Add testers by email — they don’t
+Testing</strong> → <strong>+</strong> → create a group like &quot;Friends
+&amp; Family Beta&quot;</label></li>
+<li><label><input type="checkbox"></input>Add testers by email — they don&#39;t
 need an App Store Connect account</label></li>
 <li><label><input type="checkbox"></input>Submit the build for <strong>Beta
 App Review</strong> (usually 1–2 business days)</label></li>
@@ -2206,7 +2480,7 @@ flows</label></li>
 testers</strong>, each build is valid for 90 days</label></li>
 </ul>
 <hr />
-<h2 id="phase-5-iterate">Phase 5 — Iterate</h2>
+<h2 id="phase-5--iterate">Phase 5 — Iterate</h2>
 <p>For each new beta build:</p>
 <ul class="task-list">
 <li><label><input type="checkbox"></input>Bump <code>ios.buildNumber</code> in
@@ -2218,16 +2492,12 @@ auto-increments — already set)</label></li>
 <li><label><input type="checkbox"></input>Update <strong>What to Test</strong>
 with the changes since the last build</label></li>
 <li><label><input type="checkbox"></input>Internal testers get the build
-immediately; external testers get it after Apple’s quick re-check
+immediately; external testers get it after Apple&#39;s quick re-check
 (subsequent reviews are usually &lt;24h)</label></li>
 </ul>
 <hr />
 <h2 id="common-gotchas">Common gotchas</h2>
 <table>
-<colgroup>
-<col style="width: 50%" />
-<col style="width: 50%" />
-</colgroup>
 <thead>
 <tr>
 <th>Symptom</th>
@@ -2236,33 +2506,33 @@ immediately; external testers get it after Apple’s quick re-check
 </thead>
 <tbody>
 <tr>
-<td>Build fails: “Missing privacy manifest”</td>
+<td>Build fails: &quot;Missing privacy manifest&quot;</td>
 <td>Add <code>app.json</code> → <code>ios.privacyManifests</code> or
 rely on Expo SDK 54+ defaults; check Expo release notes for your
 SDK</td>
 </tr>
 <tr>
-<td>App Store Connect: “Invalid Bundle. The bundle identifier cannot be
-registered”</td>
+<td>App Store Connect: &quot;Invalid Bundle. The bundle identifier cannot be
+registered&quot;</td>
 <td>Someone else already registered <code>com.aforce.os</code>. Pick a
 new one and update <code>app.json</code></td>
 </tr>
 <tr>
-<td>TestFlight: “Build is missing compliance”</td>
+<td>TestFlight: &quot;Build is missing compliance&quot;</td>
 <td>Export Compliance not answered (Phase 4.2)</td>
 </tr>
 <tr>
 <td>HealthKit prompt never appears</td>
-<td>You’re testing in the simulator. Use a real device</td>
+<td>You&#39;re testing in the simulator. Use a real device</td>
 </tr>
 <tr>
 <td>Crash on launch in TestFlight only</td>
-<td>Almost always a missing <code>EXPO_PUBLIC_*</code> env var that’s
+<td>Almost always a missing <code>EXPO_PUBLIC_*</code> env var that&#39;s
 set locally but not baked into the production build. Set it in EAS:
 <code>eas secret:create</code></td>
 </tr>
 <tr>
-<td>Apple rejects: “Health data used for advertising”</td>
+<td>Apple rejects: &quot;Health data used for advertising&quot;</td>
 <td>Your privacy policy or App Privacy answers are inconsistent.
 HealthKit data must never be marketed-as-used for ads</td>
 </tr>
@@ -2279,14 +2549,14 @@ docs</a></li>
 overview</a></li>
 <li><a href="https://appstoreconnect.apple.com/">App Store
 Connect</a></li>
-<li><a href="https://developer.apple.com/app-store/review/guidelines/#health-and-health-research">Apple’s
+<li><a href="https://developer.apple.com/app-store/review/guidelines/#health-and-health-research">Apple&#39;s
 HealthKit review guidelines</a></li>
 </ul>
-<p>\newpage</p>
-<h1 id="artifactsapi-serverdocsscaling-architecture.md">📄
+<hr />
+<h1 id="page_facing_up-artifactsapi-serverdocsscaling-architecturemd">📄
 artifacts/api-server/docs/scaling-architecture.md</h1>
-<h1 id="aforce-os-scaling-architecture-50m-concurrent-users">AForce OS —
-Scaling Architecture (50M+ Concurrent Users)</h1>
+<h1 id="aforce-os--scaling-architecture-50m-concurrent-users">AForce OS
+— Scaling Architecture (50M+ Concurrent Users)</h1>
 <blockquote>
 <p>Status: blueprint. The shipped api-server is a single Express service
 today. This document describes how to evolve it into a
@@ -2296,7 +2566,7 @@ without crashing. The
 skeletons exist to make that evolution incremental, not a rewrite.</p>
 </blockquote>
 <hr />
-<h2 id="design-principles">1. Design principles</h2>
+<h2 id="1-design-principles">1. Design principles</h2>
 <ol type="1">
 <li><strong>Horizontal-first.</strong> Every service scales by adding
 pods, not bigger boxes.</li>
@@ -2318,7 +2588,7 @@ Multi-region for the critical read path. Multi-provider for AI.</li>
 <li><strong>Real-time and heavy compute are separated.</strong> A slow
 AI request can never block a pulse update.</li>
 </ol>
-<h2 id="layer-map">2. Layer map</h2>
+<h2 id="2-layer-map">2. Layer map</h2>
 <pre><code>        ┌──────────────────────────────────────────────────────────────────┐
         │  CLIENT (Expo iOS / Android / Web, Phantom Band BLE)             │
         └──────────────────────────────────────────────────────────────────┘
@@ -2367,16 +2637,9 @@ AI request can never block a pulse update.</li>
          │ 11. OBSERVABILITY: OpenTelemetry → Tempo, Prometheus, Loki   │
          │     PagerDuty + synthetic checks + SLO dashboards            │
          └───────────────────────────────────────────────────────────────┘</code></pre>
-<h2 id="services-boundaries-scaling-pattern">3. Services (boundaries +
-scaling pattern)</h2>
-<table style="width:100%;">
-<colgroup>
-<col style="width: 15%" />
-<col style="width: 15%" />
-<col style="width: 26%" />
-<col style="width: 25%" />
-<col style="width: 15%" />
-</colgroup>
+<h2 id="3-services-boundaries--scaling-pattern">3. Services (boundaries
++ scaling pattern)</h2>
+<table>
 <thead>
 <tr>
 <th>Service</th>
@@ -2498,8 +2761,8 @@ scaling pattern)</h2>
 <code>/healthz/deep</code> (readiness), explicit shutdown hooks (drain
 WS, finish in-flight jobs, deregister from LB), and an OpenTelemetry
 instrumentor.</p>
-<h2 id="database-strategy">4. Database strategy</h2>
-<h3 id="postgresql-transactional">4.1 PostgreSQL (transactional)</h3>
+<h2 id="4-database-strategy">4. Database strategy</h2>
+<h3 id="41-postgresql-transactional">4.1 PostgreSQL (transactional)</h3>
 <ul>
 <li><strong>Sharding key</strong> = <code>user_id</code> for high-volume
 tables (<code>intake_events</code>, <code>scan_events</code>,
@@ -2518,45 +2781,46 @@ multiplex.</li>
 <code>DROP COLUMN</code> without a 3-phase deploy: write-both →
 read-from-new → drop-old).</li>
 </ul>
-<h3 id="hot-state-redis-cluster">4.2 Hot state (Redis Cluster)</h3>
-<p>Lives in Redis, not Postgres: - <code>user:{id}:state</code> —
-current performance state (TTL 1h, refreshed on every intake/score
-recompute). - <code>user:{id}:pulse</code> — pulse config (TTL 1h). -
-<code>home:{id}:payload</code> — fully-baked Home screen JSON (TTL 5min,
-invalidated on intake). - <code>lb:{scope}:{slice}</code> — sliced
-leaderboard pages (TTL 30s). - <code>team:{id}:grid</code> — Clutch team
-grid snapshot (TTL 15s). - <code>flag:{key}</code> — kill switches and
-feature flags (TTL 60s, refreshed in BG).</p>
+<h3 id="42-hot-state-redis-cluster">4.2 Hot state (Redis Cluster)</h3>
+<p>Lives in Redis, not Postgres:</p>
+<ul>
+<li><code>user:{id}:state</code> — current performance state (TTL 1h,
+refreshed on every intake/score recompute).</li>
+<li><code>user:{id}:pulse</code> — pulse config (TTL 1h).</li>
+<li><code>home:{id}:payload</code> — fully-baked Home screen JSON (TTL
+5min, invalidated on intake).</li>
+<li><code>lb:{scope}:{slice}</code> — sliced leaderboard pages (TTL
+30s).</li>
+<li><code>team:{id}:grid</code> — Clutch team grid snapshot (TTL
+15s).</li>
+<li><code>flag:{key}</code> — kill switches and feature flags (TTL 60s,
+refreshed in BG).</li>
+</ul>
 <p>Failure mode: if Redis is unreachable, services degrade to
-“DB-direct” with a visible <code>X-Cache: bypass</code> header so we can
+&quot;DB-direct&quot; with a visible <code>X-Cache: bypass</code> header so we can
 spot it in logs.</p>
-<h3 id="event-log-kafka-redpanda">4.3 Event log (Kafka / Redpanda)</h3>
+<h3 id="43-event-log-kafka--redpanda">4.3 Event log (Kafka /
+Redpanda)</h3>
 <ul>
 <li>Topics partitioned by <code>user_id</code> so per-user ordering is
 preserved.</li>
 <li>7-day retention on hot topics, archived to S3 hourly.</li>
 <li>Schema registry (Avro/JSON Schema) to enforce contracts.</li>
 </ul>
-<h3 id="warehouse-snowflake-bigquery">4.4 Warehouse (Snowflake /
+<h3 id="44-warehouse-snowflake--bigquery">4.4 Warehouse (Snowflake /
 BigQuery)</h3>
 <ul>
 <li>Loaded continuously from Kafka via a connector. Owns long-term
 history, cohort metrics, predictive features. Never on the hot
 path.</li>
 </ul>
-<h3 id="object-storage-s3">4.5 Object storage (S3)</h3>
+<h3 id="45-object-storage-s3">4.5 Object storage (S3)</h3>
 <ul>
 <li>Scan images, profile photos, raw event archives, exported share
 images.</li>
 </ul>
-<h2 id="caching-rules">5. Caching rules</h2>
+<h2 id="5-caching-rules">5. Caching rules</h2>
 <table>
-<colgroup>
-<col style="width: 15%" />
-<col style="width: 33%" />
-<col style="width: 8%" />
-<col style="width: 42%" />
-</colgroup>
 <thead>
 <tr>
 <th>Layer</th>
@@ -2607,29 +2871,26 @@ images.</li>
 <p><strong>Never cache:</strong> Heat Guard alerts at HIGH_RISK or
 CRITICAL, Guardian alerts, billing state. Safety-critical reads always
 go to source of truth.</p>
-<h2 id="event-driven-core">6. Event-driven core</h2>
+<h2 id="6-event-driven-core">6. Event-driven core</h2>
 <p>Every state-changing action emits exactly one event. See
 <code>src/events/schemas.ts</code> for the canonical envelope
 (<code>eventId</code>, <code>eventType</code>, <code>userId</code>,
 <code>occurredAt</code>, <code>schemaVersion</code>,
 <code>payload</code>). All consumers must be idempotent — keyed on
 <code>eventId</code> — and recoverable from a DLQ.</p>
-<p>Event topics: - <code>intake.logged</code>,
-<code>symptom.updated</code>, <code>urine.signal.updated</code>,
-<code>energy.updated</code>, <code>protocol.completed</code>,
-<code>score.recomputed</code>, <code>ai.command.generated</code>,
-<code>heat.risk.changed</code>, <code>rank.changed</code>,
-<code>hardware.signal</code>, <code>subscription.changed</code>,
-<code>share.created</code>.</p>
+<p>Event topics:</p>
+<ul>
+<li><code>intake.logged</code>, <code>symptom.updated</code>,
+<code>urine.signal.updated</code>, <code>energy.updated</code>,
+<code>protocol.completed</code>, <code>score.recomputed</code>,
+<code>ai.command.generated</code>, <code>heat.risk.changed</code>,
+<code>rank.changed</code>, <code>hardware.signal</code>,
+<code>subscription.changed</code>, <code>share.created</code>.</li>
+</ul>
 <p>Replay: every consumer ships with a <code>--from-offset</code> mode
 for backfill after a schema change.</p>
-<h2 id="real-time-delivery">7. Real-time delivery</h2>
+<h2 id="7-real-time-delivery">7. Real-time delivery</h2>
 <table>
-<colgroup>
-<col style="width: 14%" />
-<col style="width: 44%" />
-<col style="width: 40%" />
-</colgroup>
 <thead>
 <tr>
 <th>Channel</th>
@@ -2660,24 +2921,27 @@ for backfill after a schema change.</p>
 </tr>
 </tbody>
 </table>
-<p>Fanout: sticky-routed at the LB so a single user’s WS lives on one
+<p>Fanout: sticky-routed at the LB so a single user&#39;s WS lives on one
 pod. Cross-pod broadcast uses Redis pub/sub. For 1M+ concurrent sockets
 we route fanout through a dedicated <code>pulse-edge</code> service
 tier, not the app pods.</p>
-<h2 id="ai-decisioning-at-scale">8. AI decisioning at scale</h2>
-<p><code>src/services/ai/router.ts</code> (skeleton) encapsulates: -
-<strong>Provider abstraction</strong> — Anthropic, OpenAI, Gemini behind
-one interface. - <strong>Primary + fallback</strong> — fail over within
-800ms. - <strong>Deterministic templates</strong> — if all providers
-fail, fall back to the AForce Voice Engine templates (already shipped).
-The user gets a calm, on-brand line instead of an error. -
-<strong>Per-user rate limit</strong> — max N AI commands per minute
-(token bucket in Redis). Beyond that, serve a templated reply. -
-<strong>Repeat-pattern cache</strong> — same context within 60s returns
-the cached line. - <strong>Async generation</strong> — non-urgent
-commands (morning reset, recap) run as queue jobs, not synchronous
-HTTP.</p>
-<h2 id="rate-limiting-abuse-protection">9. Rate limiting + abuse
+<h2 id="8-ai-decisioning-at-scale">8. AI decisioning at scale</h2>
+<p><code>src/services/ai/router.ts</code> (skeleton) encapsulates:</p>
+<ul>
+<li><strong>Provider abstraction</strong> — Anthropic, OpenAI, Gemini
+behind one interface.</li>
+<li><strong>Primary + fallback</strong> — fail over within 800ms.</li>
+<li><strong>Deterministic templates</strong> — if all providers fail,
+fall back to the AForce Voice Engine templates (already shipped). The
+user gets a calm, on-brand line instead of an error.</li>
+<li><strong>Per-user rate limit</strong> — max N AI commands per minute
+(token bucket in Redis). Beyond that, serve a templated reply.</li>
+<li><strong>Repeat-pattern cache</strong> — same context within 60s
+returns the cached line.</li>
+<li><strong>Async generation</strong> — non-urgent commands (morning
+reset, recap) run as queue jobs, not synchronous HTTP.</li>
+</ul>
+<h2 id="9-rate-limiting--abuse-protection">9. Rate limiting + abuse
 protection</h2>
 <ul>
 <li><strong>Edge:</strong> Cloudflare WAF — per-IP burst limit, bot
@@ -2694,44 +2958,50 @@ rotation on suspicious use.</li>
 <li><strong>Leaderboard anti-gaming:</strong> server-side score
 derivation only; clients cannot post a rank.</li>
 </ul>
-<h2 id="observability">10. Observability</h2>
+<h2 id="10-observability">10. Observability</h2>
 <p>OpenTelemetry → Tempo (traces), Prometheus (metrics), Loki (logs).
-SLOs (initial targets): - Home payload p95 &lt; 300ms (read replica +
-Redis) - Intake log p95 &lt; 200ms (write to Postgres, fire-and-forget
-event) - Pulse delta &lt; 150ms (WS push) - AI command p95 &lt; 1s
-normal, p99 &lt; 3s, fallback at 800ms - Leaderboard cached p95 &lt;
-300ms - Uptime: 99.95% per region, 99.99% globally (multi-region)</p>
+SLOs (initial targets):</p>
+<ul>
+<li>Home payload p95 &lt; 300ms (read replica + Redis)</li>
+<li>Intake log p95 &lt; 200ms (write to Postgres, fire-and-forget
+event)</li>
+<li>Pulse delta &lt; 150ms (WS push)</li>
+<li>AI command p95 &lt; 1s normal, p99 &lt; 3s, fallback at 800ms</li>
+<li>Leaderboard cached p95 &lt; 300ms</li>
+<li>Uptime: 99.95% per region, 99.99% globally (multi-region)</li>
+</ul>
 <p>Alerts: PagerDuty on SLO burn rate (fast burn = page, slow burn =
 ticket), queue lag &gt; 60s, Redis hit ratio &lt; 90%, DB replication
 lag &gt; 5s, AI provider error rate &gt; 2%.</p>
 <p>Synthetic checks: every region runs the Home payload, intake log, and
 AI command flows every 60s.</p>
-<h2 id="failover-strategy">11. Failover strategy</h2>
-<p>See <code>docs/failover-strategy.md</code>. Summary: -
-<strong>Region:</strong> active/active for reads, active/passive for
+<h2 id="11-failover-strategy">11. Failover strategy</h2>
+<p>See <code>docs/failover-strategy.md</code>. Summary:</p>
+<ul>
+<li><strong>Region:</strong> active/active for reads, active/passive for
 writes (DB primary in one region with sub-second replication, promote on
-failure). - <strong>DB:</strong> Patroni-managed Postgres with automated
-failover. - <strong>Cache:</strong> Redis Cluster with 3 replicas/shard;
-failover automatic. - <strong>Queue:</strong> Kafka with rf=3 across
-AZs; broker loss is invisible. - <strong>AI:</strong> provider failover
-inside <code>ai/router.ts</code>; deterministic template as ground
-floor. - <strong>Circuit breakers</strong> per downstream — open at 50%
-errors over 30s. - <strong>Traffic shedding:</strong> if a service
-breaches its SLO, the gateway sheds read traffic (returns cached/stale)
-before write traffic.</p>
-<h2 id="load-testing">12. Load testing</h2>
+failure).</li>
+<li><strong>DB:</strong> Patroni-managed Postgres with automated
+failover.</li>
+<li><strong>Cache:</strong> Redis Cluster with 3 replicas/shard;
+failover automatic.</li>
+<li><strong>Queue:</strong> Kafka with rf=3 across AZs; broker loss is
+invisible.</li>
+<li><strong>AI:</strong> provider failover inside
+<code>ai/router.ts</code>; deterministic template as ground floor.</li>
+<li><strong>Circuit breakers</strong> per downstream — open at 50%
+errors over 30s.</li>
+<li><strong>Traffic shedding:</strong> if a service breaches its SLO,
+the gateway sheds read traffic (returns cached/stale) before write
+traffic.</li>
+</ul>
+<h2 id="12-load-testing">12. Load testing</h2>
 <p>See <code>docs/load-testing-plan.md</code> and
 <code>loadtests/</code>. Targets validated at 100K, 1M, and
 architectural assumptions for 10M+ concurrent users. Tooling: k6 for
 HTTP, Artillery for WS, Locust for distributed multi-region runs.</p>
-<h2 id="performance-targets-slos">13. Performance targets (SLOs)</h2>
+<h2 id="13-performance-targets-slos">13. Performance targets (SLOs)</h2>
 <table>
-<colgroup>
-<col style="width: 27%" />
-<col style="width: 17%" />
-<col style="width: 17%" />
-<col style="width: 37%" />
-</colgroup>
 <thead>
 <tr>
 <th>Flow</th>
@@ -2791,7 +3061,7 @@ HTTP, Artillery for WS, Locust for distributed multi-region runs.</p>
 </tr>
 </tbody>
 </table>
-<h2 id="codebase-conventions">14. Codebase conventions</h2>
+<h2 id="14-codebase-conventions">14. Codebase conventions</h2>
 <ul>
 <li><code>src/services/&lt;domain&gt;/</code> — owns its routes,
 repository, types, and tests.</li>
@@ -2808,7 +3078,7 @@ on SIGTERM.</li>
 <li><code>src/config/</code> — feature flags + kill switches. Never read
 env directly in business logic — go through <code>config/</code>.</li>
 </ul>
-<h2 id="deployment">15. Deployment</h2>
+<h2 id="15-deployment">15. Deployment</h2>
 <ul>
 <li>Containers built per service via Buildpacks or Docker.</li>
 <li>Orchestration: Kubernetes (EKS/GKE) with Karpenter or
@@ -2829,22 +3099,17 @@ api-server today is one process serving <code>/healthz</code>,
 <code>src/{cache,events,queues,middleware,observability,health, config}</code>
 are the integration seams: each one ships with a working in-memory or
 no-op default so the server keeps booting, and a clear interface to swap
-in the real Redis/Kafka/Prometheus client when we’re ready.</p>
-<p>\newpage</p>
-<h1 id="artifactsapi-serverdocsload-testing-plan.md">📄
+in the real Redis/Kafka/Prometheus client when we&#39;re ready.</p>
+<hr />
+<h1 id="page_facing_up-artifactsapi-serverdocsload-testing-planmd">📄
 artifacts/api-server/docs/load-testing-plan.md</h1>
-<h1 id="aforce-os-load-testing-plan">AForce OS — Load Testing Plan</h1>
+<h1 id="aforce-os--load-testing-plan">AForce OS — Load Testing Plan</h1>
 <h2 id="objective">Objective</h2>
 <p>Validate that AForce OS holds its SLOs under realistic and
 pathological traffic up to 10M concurrent users, with architectural
 confidence to 50M+.</p>
 <h2 id="tooling">Tooling</h2>
 <table>
-<colgroup>
-<col style="width: 22%" />
-<col style="width: 15%" />
-<col style="width: 62%" />
-</colgroup>
 <thead>
 <tr>
 <th>Tier</th>
@@ -2877,12 +3142,6 @@ confidence to 50M+.</p>
 </table>
 <h2 id="stages">Stages</h2>
 <table>
-<colgroup>
-<col style="width: 8%" />
-<col style="width: 21%" />
-<col style="width: 12%" />
-<col style="width: 57%" />
-</colgroup>
 <thead>
 <tr>
 <th>Stage</th>
@@ -2931,7 +3190,7 @@ confidence to 50M+.</p>
 </tbody>
 </table>
 <h2 id="scenarios">Scenarios</h2>
-<h3 id="a.-home-payload-read-read-heavy">A. Home payload read
+<h3 id="a-home-payload-read-read-heavy">A. Home payload read
 (read-heavy)</h3>
 <ul>
 <li>80% of total traffic.</li>
@@ -2939,14 +3198,14 @@ confidence to 50M+.</p>
 <li>Pass: p95 &lt; 300ms, error rate &lt; 0.1%, cache hit ratio &gt;
 95%.</li>
 </ul>
-<h3 id="b.-intake-log-write-heavy">B. Intake log (write-heavy)</h3>
+<h3 id="b-intake-log-write-heavy">B. Intake log (write-heavy)</h3>
 <ul>
 <li>10% of traffic.</li>
 <li>Verifies Postgres write path + Kafka emit + idempotency.</li>
 <li>Pass: p95 &lt; 200ms, no duplicate events under retry, queue lag
 &lt; 5s.</li>
 </ul>
-<h3 id="c.-pulse-stream-long-lived-ws">C. Pulse stream (long-lived
+<h3 id="c-pulse-stream-long-lived-ws">C. Pulse stream (long-lived
 WS)</h3>
 <ul>
 <li>1M concurrent sockets.</li>
@@ -2954,13 +3213,13 @@ WS)</h3>
 pressure.</li>
 <li>Pass: median push &lt; 150ms, no socket drops &gt; 0.5%.</li>
 </ul>
-<h3 id="d.-ai-command-slow-upstream">D. AI command (slow upstream)</h3>
+<h3 id="d-ai-command-slow-upstream">D. AI command (slow upstream)</h3>
 <ul>
 <li>5% of traffic, with toxiproxy adding +500ms to upstream LLM.</li>
 <li>Verifies fallback at 800ms and template ground floor.</li>
 <li>Pass: zero user-facing 5xx, fallback rate visible in metrics.</li>
 </ul>
-<h3 id="e.-leaderboard-fanout-event-spike">E. Leaderboard fanout (event
+<h3 id="e-leaderboard-fanout-event-spike">E. Leaderboard fanout (event
 spike)</h3>
 <ul>
 <li>Spike from 100 RPS to 50K RPS over 10s on
@@ -2969,35 +3228,40 @@ spike)</h3>
 stale serving.</li>
 <li>Pass: p95 &lt; 300ms, no cache thrashing, no DB saturation.</li>
 </ul>
-<h3 id="f.-scan-storm">F. Scan storm</h3>
+<h3 id="f-scan-storm">F. Scan storm</h3>
 <ul>
 <li>100K scans/min from 100K distinct devices.</li>
 <li>Verifies per-device rate limiter, scan-event partitioning.</li>
 <li>Pass: per-device limit enforced, no other endpoints degrade.</li>
 </ul>
-<h3 id="g.-voice-flood">G. Voice flood</h3>
+<h3 id="g-voice-flood">G. Voice flood</h3>
 <ul>
 <li>10K voice commands/min.</li>
 <li>Verifies AI rate limit + template fallback + idempotency.</li>
 <li>Pass: AI provider not saturated (fallback rate climbs
 gracefully).</li>
 </ul>
-<h3 id="h.-subscription-webhook-storm">H. Subscription webhook
-storm</h3>
+<h3 id="h-subscription-webhook-storm">H. Subscription webhook storm</h3>
 <ul>
 <li>10K Stripe webhooks/min during a campaign launch.</li>
 <li>Verifies webhook idempotency + queue absorption.</li>
 <li>Pass: no duplicate plan changes, queue drains within 60s.</li>
 </ul>
 <h2 id="bottleneck-detection-process">Bottleneck detection process</h2>
-<p>For each stage, capture: - gateway p50/p95/p99 + error rate -
-per-service p95 - DB CPU + replication lag - Redis hit ratio + memory -
-Kafka consumer lag per topic - WS connection count + push latency - AI
-provider success rate + fallback rate - pod CPU/memory + autoscaler
-events</p>
+<p>For each stage, capture:</p>
+<ul>
+<li>gateway p50/p95/p99 + error rate</li>
+<li>per-service p95</li>
+<li>DB CPU + replication lag</li>
+<li>Redis hit ratio + memory</li>
+<li>Kafka consumer lag per topic</li>
+<li>WS connection count + push latency</li>
+<li>AI provider success rate + fallback rate</li>
+<li>pod CPU/memory + autoscaler events</li>
+</ul>
 <p>Bottlenecks are isolated by walking the trace span with the longest
 contribution to p95. The first bottleneck removed informs the next
-stage’s target capacity.</p>
+stage&#39;s target capacity.</p>
 <h2 id="acceptance-gates">Acceptance gates</h2>
 <ul>
 <li>All stage A–H <strong>pass</strong> with the SLOs in
@@ -3016,18 +3280,13 @@ environment.</li>
 <p>See <code>loadtests/spec.md</code> and
 <code>loadtests/k6-home-payload.js</code> for the executable starting
 point.</p>
-<p>\newpage</p>
-<h1 id="artifactsapi-serverdocsfailover-strategy.md">📄
+<hr />
+<h1 id="page_facing_up-artifactsapi-serverdocsfailover-strategymd">📄
 artifacts/api-server/docs/failover-strategy.md</h1>
-<h1 id="aforce-os-failover-resilience-strategy">AForce OS — Failover
+<h1 id="aforce-os--failover--resilience-strategy">AForce OS — Failover
 &amp; Resilience Strategy</h1>
 <h2 id="failure-domains">Failure domains</h2>
 <table>
-<colgroup>
-<col style="width: 23%" />
-<col style="width: 23%" />
-<col style="width: 52%" />
-</colgroup>
 <thead>
 <tr>
 <th>Domain</th>
@@ -3096,9 +3355,12 @@ broadcast is async.</li>
 </ul>
 <h2 id="circuit-breakers">Circuit breakers</h2>
 <p>Every outbound call (DB, Redis, AI, Stripe, push) goes through a
-breaker: - Closed → all calls flow. - Open at ≥ 50% error rate over 30s,
-or p99 &gt; 5× baseline. - Half-open after 60s — let one probe
-through.</p>
+breaker:</p>
+<ul>
+<li>Closed → all calls flow.</li>
+<li>Open at ≥ 50% error rate over 30s, or p99 &gt; 5× baseline.</li>
+<li>Half-open after 60s — let one probe through.</li>
+</ul>
 <p>Breaker state is exported as a metric and surfaced on the SRE
 dashboard.</p>
 <h2 id="retries-with-backoff">Retries with backoff</h2>
@@ -3110,10 +3372,6 @@ budget.</li>
 </ul>
 <h2 id="degraded-modes">Degraded modes</h2>
 <table>
-<colgroup>
-<col style="width: 20%" />
-<col style="width: 79%" />
-</colgroup>
 <thead>
 <tr>
 <th>Subsystem</th>
@@ -3139,7 +3397,7 @@ budget.</li>
 </tr>
 <tr>
 <td>Stripe</td>
-<td>“Upgrade unavailable, try again shortly” instead of 5xx</td>
+<td>&quot;Upgrade unavailable, try again shortly&quot; instead of 5xx</td>
 </tr>
 <tr>
 <td>Notification</td>
@@ -3157,27 +3415,43 @@ elevated rate-limit quotas, and have their own dedicated worker
 pool.</p>
 <h2 id="kill-switches">Kill switches</h2>
 <p><code>src/config/featureFlags.ts</code> exposes runtime flags
-hot-reloaded from Redis: - <code>kill.ai_router</code> — force template
-fallback. - <code>kill.competition_writes</code> — block leaderboard
-updates during a hot incident. - <code>kill.scan_recognition</code> —
-return generic “manual entry” if recognizer is poisoned. -
-<code>kill.voice_overlay</code> — hide the voice button entirely. -
-<code>degrade.home_payload</code> — serve last-good cache only, no
-recompute.</p>
+hot-reloaded from Redis:</p>
+<ul>
+<li><code>kill.ai_router</code> — force template fallback.</li>
+<li><code>kill.competition_writes</code> — block leaderboard updates
+during a hot incident.</li>
+<li><code>kill.scan_recognition</code> — return generic &quot;manual entry&quot;
+if recognizer is poisoned.</li>
+<li><code>kill.voice_overlay</code> — hide the voice button
+entirely.</li>
+<li><code>degrade.home_payload</code> — serve last-good cache only, no
+recompute.</li>
+</ul>
 <p>Flag flips are auditable (who, when, why) and the runbook page
 renders the current flag set.</p>
 <h2 id="traffic-shedding">Traffic shedding</h2>
 <p>When a service trips its SLO, the gateway sheds traffic in this
-order: 1. Drop synthetic check traffic. 2. Drop unauthenticated read
-traffic (returning a 503 + <code>Retry-After</code>). 3. Serve cached
-payloads with <code>X-Stale: true</code>. 4. Reject non-essential write
-traffic (e.g. <code>analytics.event</code> ingest). 5. Last resort —
-reject all but Heat Guard / Guardian / billing.</p>
+order:</p>
+<ol type="1">
+<li>Drop synthetic check traffic.</li>
+<li>Drop unauthenticated read traffic (returning a 503 +
+<code>Retry-After</code>).</li>
+<li>Serve cached payloads with <code>X-Stale: true</code>.</li>
+<li>Reject non-essential write traffic (e.g.
+<code>analytics.event</code> ingest).</li>
+<li>Last resort — reject all but Heat Guard / Guardian / billing.</li>
+</ol>
 <h2 id="runbooks">Runbooks</h2>
-<p>Live at <code>/runbooks/</code> in the on-call wiki: - DB primary
-down - Region down - Redis cluster split-brain - AI provider 5xx storm -
-Kafka consumer lag &gt; 5min - Subscription webhook flood - Phantom Band
-firmware bad release</p>
+<p>Live at <code>/runbooks/</code> in the on-call wiki:</p>
+<ul>
+<li>DB primary down</li>
+<li>Region down</li>
+<li>Redis cluster split-brain</li>
+<li>AI provider 5xx storm</li>
+<li>Kafka consumer lag &gt; 5min</li>
+<li>Subscription webhook flood</li>
+<li>Phantom Band firmware bad release</li>
+</ul>
 <p>Each runbook includes: how to detect, how to mitigate (with
 kill-switch commands), how to verify recovery, and what to write up
 post-incident.</p>
@@ -3216,19 +3490,11 @@ post-incident.</p>
 <p>Quarterly chaos days exercise: kill a primary, kill an AZ, saturate
 Redis, poison the AI provider. Pass = SLOs held, runbooks executed
 without escalation, post-mortem filed within 72h.</p>
-<p>\newpage</p>
-<h1 id="artifactsapi-serverloadtestsspec.md">📄
+<hr />
+<h1 id="page_facing_up-artifactsapi-serverloadtestsspecmd">📄
 artifacts/api-server/loadtests/spec.md</h1>
 <h1 id="load-test-spec">Load Test Spec</h1>
 <table>
-<colgroup>
-<col style="width: 6%" />
-<col style="width: 10%" />
-<col style="width: 29%" />
-<col style="width: 7%" />
-<col style="width: 9%" />
-<col style="width: 35%" />
-</colgroup>
 <thead>
 <tr>
 <th>Stage</th>
