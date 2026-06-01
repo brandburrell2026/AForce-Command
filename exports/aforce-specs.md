@@ -177,6 +177,7 @@ Analyze current code first. Protect existing architecture.
 | 7  | Share System + BECOME AFORCE footer                | —      |
 | 8  | Legal + Compliance                                 | —      |
 | 9  | Feature Locks (Guardian / Clutch hidden)           | —      |
+| 10 | Investor Demo Overlay                              | Pending |
 
 Live status is tracked in `AFORCE_PHASE_STATUS.md`.
 
@@ -190,6 +191,77 @@ Live status is tracked in `AFORCE_PHASE_STATUS.md`.
   server contracts).
 - Social Mode and Cruise Mode additions stay in the addon document
   and are not implemented until **all** core phases are stable.
+
+## Final Refinement Locks
+
+> Refinement locks only — **not** architecture changes. No redesign, no new
+> navigation, no new tabs, no new screens, no dashboard expansion. Goal: increase
+> retention, reduce friction, protect free mode, improve future Phantom rollout.
+> Keep AForce OS simple externally and powerful internally.
+
+**Lock #1 — Impact Engine confidence.**
+Impact confidence increases as signal quality improves. Impact uses existing
+surfaces only — no new UI. *Purpose:* protect the loop —
+Signal → Command → Action → Impact → Learning. No rebuilds required.
+
+**Lock #2 — Manual-first engine rule.**
+The core hydration loop must function using phone + manual inputs only. Wearables
+and future Phantom signals increase confidence but are not required. *Purpose:*
+protect free users, protect onboarding, prevent hardware dependency.
+
+**Lock #3 — Reminder guardrail.**
+Completed goals reduce correction urgency and reminder frequency. *Purpose:*
+reduce notification fatigue, improve long-term retention.
+
+**Lock #4 — Verification layer rule.**
+The verification layer resolves to the highest-confidence signal source available
+and degrades gracefully downward. Priority: (1) Phantom Signals →
+(2) Connected Wearables → (3) Phone + Manual Inputs. *Purpose:* protect the
+future Phantom rollout without creating dependencies.
+
+These are refinement locks only. No architecture rebuilds. No additional
+user-facing modules.
+
+## Phase 10 — Investor Demo Overlay
+
+**Status: Pending**
+
+A scripted 60-second full-screen cinematic overlay. Triggered only when the
+`demo_mode_enabled` feature flag is ON. Never visible in production. Never
+accessible via standard navigation.
+
+### Script — 6 acts, 10 seconds each
+
+**Act 1 — Opening (0:00–0:10)**
+Black screen. AForce wordmark fades in gold. Subtitle: "The Performance
+Operating System." Orb pulses once.
+
+**Act 2 — Readiness Score (0:10–0:20)**
+Orb animates from Depleted → Recovering → Balanced → Peak. Score climbs from 14
+to 97. Lime glow intensifies. Label: "From depleted to peak. In real time."
+
+**Act 3 — HydroScan (0:20–0:30)**
+Scan animation. Product recognized. Score updates. Voice Engine fires: "You're
+back in range. Lock in." Label: "AI-powered hydration intelligence."
+
+**Act 4 — Social Mode (0:30–0:40)**
+BAC overlay appears on orb. Crimson ring pulses. Safety card visible. Recovery
+Mode activates. Label: "Performance protection. Even off the clock."
+
+**Act 5 — Territory + Heat Guard (0:40–0:50)**
+Stylized map activates. Heat Guard band flips to WARNING. Guardian alert fires.
+Label: "Environmental intelligence. Real-time."
+
+**Act 6 — The Standard (0:50–1:00)**
+All surfaces collapse back to the clean orb at PEAK. One line fades in: "Built
+for people who don't get to be off." AForce wordmark. Fade to black.
+
+### Hard Rules
+
+- `demo_mode_enabled` must be `false` in all production builds.
+- No real user data is used — all demo state is seeded from `data/demoProfile.ts`.
+- Overlay dismisses on tap at any point.
+- Auto-dismisses at 60 seconds and returns to `welcome.tsx`.
 
 ## Product Surface (high-level)
 
@@ -386,6 +458,10 @@ AForce OS follows WHOOP's cinematic design language:
 - **Data-forward** — big numbers, small labels, no decoration
 - **Generous spacing** — when in doubt, add more whitespace
 - **Soft glows, never hard shadows** — status colors radiate outward
+
+### Color System Lock (v2.0.0)
+
+The canonical AForce OS color system is WHOOP-Cinematic. Pure black `#000000` canvas. WHOOP lime `#B6FF00` as the sole hero accent. Coral `#E8613A` as the pulse ring accent only — no other use cases. All teal palette values (`#1DB594`, `#0F6E56`, `#060F0D`) are deprecated as of 2026-06-01 and must not appear in any new screen, component, or token. The opening screen (`welcome.tsx` / `AForceOSPreview.tsx`) must be migrated to WHOOP-Cinematic tokens before any Cursor build session begins. Any developer encountering teal in the codebase should replace it with the WHOOP-Cinematic equivalent and flag it in the PR.
 
 ---
 
@@ -954,6 +1030,25 @@ canister 1.2. Flavor: watermelon 1.05, berry 1.05, soursop 1.10
   physiological constant.
 - Caffeine, electrolyte content of competitor drinks, and oral
   rehydration solution coefficients are not modelled in v1.
+
+**Founder Decision — v1 Launch Stance (resolved 2026-06-01).**
+The per-event hydration scoring model (n=42, summer 2025) is approved for v1
+App Store launch under the following conditions:
+
+1. The score is presented as a relative performance indicator, not a clinical
+   hydration measurement. Language across all surfaces must reflect this —
+   "your readiness score" not "your hydration level."
+2. The health disclaimer screen (`app/legal/health-disclaimer.tsx`) must be
+   shown on first launch, before the orb is visible. No exceptions.
+3. HydroScan results are advisory only. The word "recommendation" is permitted.
+   The word "prescription" is not.
+4. A peer-review validation study (n≥30, standardized protocol per Section 7)
+   is targeted for completion before Series A close. Results will be used to
+   recalibrate scoring coefficients in v1.1.
+5. Any marketing claim referencing the scoring engine must be reviewed against
+   this methodology before publication. The CMO and founder must both sign off.
+
+This decision is final for v1. It is logged here as the authoritative record.
 
 ---
 
