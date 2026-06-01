@@ -40,6 +40,8 @@ const BG = '#000000';
 const RING_WHITE = 'rgba(255,255,255,0.85)';
 const CRITICAL_RED = 'rgba(180,30,30,0.55)';
 const CRITICAL_RED_BRIGHT = '#FF5A5A';
+// Official AForce wordmark coral (sampled from the brand logo artwork).
+const BRAND_CORAL = '#D85048';
 const TEXT_DIM = 'rgba(255,255,255,0.55)';
 const TEXT_BRIGHT = 'rgba(255,255,255,0.92)';
 
@@ -1153,6 +1155,12 @@ export default function SplashScreen() {
           >
             AFORCE
           </Text>
+          <Text
+            style={[styles.wordmarkTm, { fontSize: wordmarkScale.suffix * 0.5 }]}
+            allowFontScaling={false}
+          >
+            ™
+          </Text>
           <View
             style={[styles.wordmarkDivider, { height: wordmarkScale.divider }]}
           />
@@ -1495,13 +1503,21 @@ const styles = StyleSheet.create({
   },
   wordmarkPrimary: {
     fontFamily: FONT_EXTRABOLD,
-    color: TEXT_BRIGHT,
+    color: BRAND_CORAL,
     fontSize: 46,
     letterSpacing: 2,
     includeFontPadding: false,
     // Optical balance: AFORCE shifts right by its own added tracking
     // on the last glyph, so nudge left to keep the group centered.
     marginLeft: 12,
+  },
+  wordmarkTm: {
+    fontFamily: FONT_BOLD,
+    color: BRAND_CORAL,
+    includeFontPadding: false,
+    alignSelf: 'flex-start',
+    marginTop: 4,
+    marginLeft: 2,
   },
   wordmarkDivider: {
     width: StyleSheet.hairlineWidth,
