@@ -47,6 +47,7 @@ const TEXT_BRIGHT = 'rgba(255,255,255,0.92)';
 // uses Inter_700Bold for big numbers / status labels (tracked caps)
 // and Inter_400Regular for body copy.
 const FONT_BOLD = 'Inter_700Bold';
+const FONT_EXTRABOLD = 'Inter_800ExtraBold';
 const FONT_MEDIUM = 'Inter_500Medium';
 const FONT_REGULAR = 'Inter_400Regular';
 // "Digital" readout face for the WELCOME · AFORCE OS headline.
@@ -1029,9 +1030,9 @@ function SweepingArc({ active }: { active: boolean }) {
 //   • normal  — phones (~380–599dp)        → default
 //   • wide    — unfolded Fold inner (~673dp+) → upscaled wordmark
 const WORDMARK_TIERS = {
-  narrow: { primary: 36, primaryTrack: 8,  suffix: 16, suffixTrack: 4, divider: 24 },
-  normal: { primary: 46, primaryTrack: 12, suffix: 20, suffixTrack: 6, divider: 30 },
-  wide:   { primary: 60, primaryTrack: 14, suffix: 26, suffixTrack: 7, divider: 38 },
+  narrow: { primary: 36, primaryTrack: 1, suffix: 16, suffixTrack: 4, divider: 24 },
+  normal: { primary: 46, primaryTrack: 2, suffix: 20, suffixTrack: 6, divider: 30 },
+  wide:   { primary: 60, primaryTrack: 3, suffix: 26, suffixTrack: 7, divider: 38 },
 } as const;
 
 export default function SplashScreen() {
@@ -1493,10 +1494,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   wordmarkPrimary: {
-    fontFamily: FONT_BOLD,
+    fontFamily: FONT_EXTRABOLD,
     color: TEXT_BRIGHT,
     fontSize: 46,
-    letterSpacing: 12,
+    letterSpacing: 2,
     includeFontPadding: false,
     // Optical balance: AFORCE shifts right by its own added tracking
     // on the last glyph, so nudge left to keep the group centered.
