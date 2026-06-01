@@ -200,6 +200,25 @@ canister 1.2. Flavor: watermelon 1.05, berry 1.05, soursop 1.10
 - Caffeine, electrolyte content of competitor drinks, and oral
   rehydration solution coefficients are not modelled in v1.
 
+**Founder Decision — v1 Launch Stance (resolved 2026-06-01).**
+The per-event hydration scoring model (n=42, summer 2025) is approved for v1
+App Store launch under the following conditions:
+
+1. The score is presented as a relative performance indicator, not a clinical
+   hydration measurement. Language across all surfaces must reflect this —
+   "your readiness score" not "your hydration level."
+2. The health disclaimer screen (`app/legal/health-disclaimer.tsx`) must be
+   shown on first launch, before the orb is visible. No exceptions.
+3. HydroScan results are advisory only. The word "recommendation" is permitted.
+   The word "prescription" is not.
+4. A peer-review validation study (n≥30, standardized protocol per Section 7)
+   is targeted for completion before Series A close. Results will be used to
+   recalibrate scoring coefficients in v1.1.
+5. Any marketing claim referencing the scoring engine must be reviewed against
+   this methodology before publication. The CMO and founder must both sign off.
+
+This decision is final for v1. It is logged here as the authoritative record.
+
 ---
 
 ## 7. Compliance streak & retention
