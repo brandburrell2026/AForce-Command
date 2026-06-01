@@ -97,6 +97,24 @@ function parseInRange(text: string, min: number, max: number): number | null {
   return n;
 }
 
+type HeightUnit = 'ft' | 'cm';
+
+/**
+ * Convert feet + inches to centimeters, returning null when the input is
+ * invalid or falls outside HEIGHT_CM_MIN/MAX. Mirrors the cm path
+ * (parseInRange), which also rejects out-of-range values rather than clamping.
+ */
+function feetInchesToCm(feetText: string, inchesText: string): number | null {
+  const ft = Number.parseInt(feetText.trim(), 10);
+  if (!Number.isFinite(ft)) return null;
+  const rawIn = inchesText.trim();
+  const inches = rawIn === '' ? 0 : Number.parseInt(rawIn, 10);
+  if (!Number.isFinite(inches) || inches < 0 || inches > 11) return null;
+  const cm = Math.round((ft * 12 + inches) * 2.54);
+  if (cm < HEIGHT_CM_MIN || cm > HEIGHT_CM_MAX) return null;
+  return cm;
+}
+
 export default function Onboarding() {
   const { setProfileIdentity } = useAppStore();
 
@@ -104,6 +122,9 @@ export default function Onboarding() {
   const [goal, setGoal] = React.useState<RecoveryGoal | null>(null);
   const [activityLevel, setActivityLevel] = React.useState<number | null>(null);
   const [weightText, setWeightText] = React.useState('');
+  const [heightUnit, setHeightUnit] = React.useState<HeightUnit>('ft');
+  const [feetText, setFeetText] = React.useState('');
+  const [inchesText, setInchesText] = React.useState('');
   const [heightText, setHeightText] = React.useState('');
   const [sex, setSex] = React.useState<BiologicalSex>('unspecified');
 
@@ -118,7 +139,10 @@ export default function Onboarding() {
     if (activityLevel != null) patch.activityLevel = activityLevel;
     const w = parseInRange(weightText, WEIGHT_LBS_MIN, WEIGHT_LBS_MAX);
     if (w != null) patch.bodyWeightLbs = w;
-    const h = parseInRange(heightText, HEIGHT_CM_MIN, HEIGHT_CM_MAX);
+    const h =
+      heightUnit === 'cm'
+        ? parseInRange(heightText, HEIGHT_CM_MIN, HEIGHT_CM_MAX)
+        : feetInchesToCm(feetText, inchesText);
     if (h != null) patch.heightCm = h;
     if (sex !== 'unspecified') patch.biologicalSex = sex;
     setProfileIdentity(patch);
@@ -132,7 +156,17 @@ export default function Onboarding() {
     // its precise moment. Best-effort; never blocks entry to the app.
     void recordOnboardingCompleted(new Date().toISOString());
     router.replace('/(tabs)');
-  }, [goal, activityLevel, weightText, heightText, sex, setProfileIdentity]);
+  }, [
+    goal,
+    activityLevel,
+    weightText,
+    heightUnit,
+    feetText,
+    inchesText,
+    heightText,
+    sex,
+    setProfileIdentity,
+  ]);
 
   const goNext = React.useCallback(() => {
     tap();
@@ -317,17 +351,88 @@ export default function Onboarding() {
               </View>
 
               <View style={styles.field}>
-                <Text style={styles.fieldLabel}>HEIGHT (CM)</Text>
-                <TextInput
-                  value={heightText}
-                  onChangeText={setHeightText}
-                  keyboardType="number-pad"
-                  placeholder="e.g. 180"
-                  placeholderTextColor={Colors.text.ghost}
-                  style={styles.input}
-                  maxLength={3}
-                  accessibilityLabel="Height in centimeters"
-                />
+                <View style={styles.heightHeader}>
+                  <Text style={styles.fieldLabel}>HEIGHT</Text>
+                  <View style={styles.unitToggle}>
+                    {(['ft', 'cm'] as const).map((unit) => {
+                      const active = heightUnit === unit;
+                      return (
+                        <Pressable
+                          key={unit}
+                          onPress={() => {
+                            tap();
+                            setHeightUnit(unit);
+                          }}
+                          style={[
+                            styles.unitPill,
+                            active && styles.unitPillActive,
+                          ]}
+                          accessibilityRole="button"
+                          accessibilityState={{ selected: active }}
+                          accessibilityLabel={
+                            unit === 'ft'
+                              ? 'Height in feet and inches'
+                              : 'Height in centimeters'
+                          }
+                        >
+                          <Text
+                            style={[
+                              styles.unitPillLabel,
+                              active && styles.unitPillLabelActive,
+                            ]}
+                          >
+                            {unit === 'ft' ? 'FT / IN' : 'CM'}
+                          </Text>
+                        </Pressable>
+                      );
+                    })}
+                  </View>
+                </View>
+
+                {heightUnit === 'cm' ? (
+                  <View style={styles.inputWrap}>
+                    <TextInput
+                      value={heightText}
+                      onChangeText={setHeightText}
+                      keyboardType="number-pad"
+                      placeholder="e.g. 180"
+                      placeholderTextColor={Colors.text.ghost}
+                      style={styles.inputFlex}
+                      maxLength={3}
+                      accessibilityLabel="Height in centimeters"
+                    />
+                    <Text style={styles.inputSuffix}>cm</Text>
+                  </View>
+                ) : (
+                  <View style={styles.heightRow}>
+                    <View style={styles.inputWrap}>
+                      <TextInput
+                        value={feetText}
+                        onChangeText={setFeetText}
+                        keyboardType="number-pad"
+                        placeholder="e.g. 5"
+                        placeholderTextColor={Colors.text.ghost}
+                        style={styles.inputFlex}
+                        maxLength={1}
+                        accessibilityLabel="Height feet"
+                      />
+                      <Text style={styles.inputSuffix}>ft</Text>
+                    </View>
+                    <View style={styles.inputWrap}>
+                      <TextInput
+                        value={inchesText}
+                        onChangeText={setInchesText}
+                        keyboardType="number-pad"
+                        placeholder="e.g. 11"
+                        placeholderTextColor={Colors.text.ghost}
+                        style={styles.inputFlex}
+                        maxLength={2}
+                        accessibilityLabel="Height inches"
+                      />
+                      <Text style={styles.inputSuffix}>in</Text>
+                    </View>
+                  </View>
+                )}
               </View>
 
               <View style={styles.field}>
@@ -502,6 +607,62 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter_600SemiBold',
     fontSize: 18,
     color: Colors.text.primary,
+  },
+  heightHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  unitToggle: {
+    flexDirection: 'row',
+    gap: 6,
+  },
+  unitPill: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 9,
+    borderWidth: 1,
+    borderColor: Colors.border.subtle,
+    backgroundColor: Colors.background.card,
+  },
+  unitPillActive: {
+    borderColor: Colors.accent.primary,
+    backgroundColor: Colors.accent.subtle,
+  },
+  unitPillLabel: {
+    fontFamily: 'Inter_600SemiBold',
+    fontSize: 11,
+    letterSpacing: 1,
+    color: Colors.text.secondary,
+  },
+  unitPillLabelActive: { color: Colors.accent.primary },
+  heightRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  inputWrap: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.background.card,
+    borderWidth: 1,
+    borderColor: Colors.border.subtle,
+    borderRadius: 14,
+    paddingHorizontal: 18,
+  },
+  inputFlex: {
+    flex: 1,
+    paddingVertical: 16,
+    fontFamily: 'Inter_600SemiBold',
+    fontSize: 18,
+    color: Colors.text.primary,
+  },
+  inputSuffix: {
+    fontFamily: 'Inter_500Medium',
+    fontSize: 13,
+    color: Colors.text.muted,
+    marginLeft: 8,
   },
   segment: {
     flexDirection: 'row',
