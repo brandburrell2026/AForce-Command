@@ -35,6 +35,7 @@ import { WaterCycleBar } from '@/components/WaterCycleBar';
 import { EntryActions } from '@/components/home/EntryActions';
 import { LiveStatusLine } from '@/components/home/LiveStatusLine';
 import { NotificationBanner } from '@/components/home/NotificationBanner';
+import { DailyWinBanner } from '@/components/home/DailyWinBanner';
 import { useScoreTrend } from '@/hooks/useScoreTrend';
 import { getStatusVerb } from '@/services/statusVerb';
 import { AIVideoPlayer } from '@/components/AIVideoPlayer';
@@ -569,6 +570,10 @@ export default function HomeScreen() {
                 banner gated by spec_notifications. Self-hides when
                 nothing is due or when all 4 have been delivered. */}
             <NotificationBanner />
+
+            {/* Priority #3 — Daily Wins: one quiet, positive line.
+                Self-hides when no win is earned (never a downer). */}
+            <DailyWinBanner />
 
             <ScoreDrivenBody
               onOpenBreakdown={openBreakdown}
