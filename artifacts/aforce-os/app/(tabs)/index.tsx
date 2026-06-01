@@ -35,8 +35,6 @@ import { WaterCycleBar } from '@/components/WaterCycleBar';
 import { EntryActions } from '@/components/home/EntryActions';
 import { LiveStatusLine } from '@/components/home/LiveStatusLine';
 import { NotificationBanner } from '@/components/home/NotificationBanner';
-import { DailyWinBanner } from '@/components/home/DailyWinBanner';
-import { SmartQuickActions } from '@/components/home/SmartQuickActions';
 import { SmartModesBanner } from '@/components/home/SmartModesBanner';
 import { useAnalyticsRecorder } from '@/hooks/useAnalyticsRecorder';
 import { useScoreTrend } from '@/hooks/useScoreTrend';
@@ -320,17 +318,6 @@ function ScoreDrivenBody({
         <EntryActions />
       </View>
 
-      {/* 6 — Next Command (light, not a heavy card) */}
-      <View style={styles.nextCommand} testID="home-command-preview">
-        <Text style={[styles.nextCommandEyebrow, { color: orbColor }]}>Next command</Text>
-        <Text style={styles.nextCommandText}>{status.command}</Text>
-        {engine.command?.estimatedImpact ? (
-          <Text style={styles.nextCommandImpact}>
-            Projected: {engine.command.estimatedImpact}
-          </Text>
-        ) : null}
-      </View>
-
       {/* ── Telemetry — WATER CYCLE 8-cell bar ─────────────────────
           Visual progress bar (8 cells) that fills + recolors based on
           current performanceState (red Depleted, yellow Recovering,
@@ -578,15 +565,6 @@ export default function HomeScreen() {
                 nothing is due or when all 4 have been delivered. */}
             <NotificationBanner />
 
-            {/* Priority #3 — Daily Wins: one quiet, positive line.
-                Self-hides when no win is earned (never a downer). */}
-            <DailyWinBanner />
-
-            {/* Priority #6 — Passive Logging: up to three one-tap log
-                actions (Repeat Last · Log 12 oz · Complete Cycle) so a
-                hydration log takes under two seconds. No forms, no nav. */}
-            <SmartQuickActions />
-
             {/* Priority #7 — Smart Modes: surfaces the active context mode
                 (Heat · Workout · Travel · Recovery) and water-first
                 guidance. Additive, self-hides when no mode is active. */}
@@ -760,39 +738,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter_600SemiBold',
     fontSize: 15,
     letterSpacing: 1.2,
-  },
-
-  // "Next command" — light, no card chrome. Sits as a quiet
-  // continuation of the CTA, not a competing surface.
-  nextCommand: {
-    paddingHorizontal: 4,
-    paddingTop: 8,
-    paddingBottom: 8,
-    marginTop: 12,
-    marginBottom: 16,
-  },
-  nextCommandEyebrow: {
-    fontFamily: 'Inter_500Medium',
-    fontSize: 12,
-    letterSpacing: 0.2,
-    marginBottom: 8,
-  },
-  nextCommandText: {
-    fontFamily: 'Inter_500Medium',
-    fontSize: 16,
-    color: Colors.text.primary,
-    lineHeight: 24,
-    letterSpacing: -0.1,
-  },
-  nextCommandImpact: {
-    // Contrast bump (Inter_500Medium @ 13 + brighter alpha) so this
-    // line stays legible in sunlight / motion without breaking the
-    // dark luxury hierarchy. Previously Inter_400Regular @ 12 / 30%.
-    fontFamily: 'Inter_500Medium',
-    fontSize: 13,
-    color: 'rgba(255,255,255,0.70)',
-    letterSpacing: 0.1,
-    marginTop: 8,
   },
 
   // Section header that visually separates the deeper-intelligence
