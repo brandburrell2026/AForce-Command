@@ -55,16 +55,33 @@ interface ParsedTime { h: number; m: number }
 
 function parseHHMM(s: string | null | undefined): ParsedTime | null {
   if (!s) return null;
-  const m = /^(\d{1,2}):(\d{2})$/.exec(s.trim());
+  // Accepts both 24-hour ("23:00") and regular 12-hour ("11:00 PM") input.
+  const m = /^(\d{1,2}):(\d{2})\s*([AaPp][Mm])?$/.exec(s.trim());
   if (!m) return null;
-  const h = Number(m[1]);
+  let h = Number(m[1]);
   const min = Number(m[2]);
-  if (!(h >= 0 && h <= 23 && min >= 0 && min <= 59)) return null;
+  const ap = m[3]?.toLowerCase();
+  if (!(min >= 0 && min <= 59)) return null;
+  if (ap) {
+    if (!(h >= 1 && h <= 12)) return null;
+    if (ap === 'pm' && h !== 12) h += 12;
+    if (ap === 'am' && h === 12) h = 0;
+  } else if (!(h >= 0 && h <= 23)) {
+    return null;
+  }
   return { h, m: min };
 }
 
+/** 24-hour HH:MM — used only for persistence so storage stays unambiguous. */
 function formatHHMM(t: ParsedTime): string {
   return `${String(t.h).padStart(2, '0')}:${String(t.m).padStart(2, '0')}`;
+}
+
+/** Regular 12-hour clock with AM/PM — used for everything the user sees. */
+function format12(t: ParsedTime): string {
+  const ap = t.h >= 12 ? 'PM' : 'AM';
+  const h12 = t.h % 12 === 0 ? 12 : t.h % 12;
+  return `${h12}:${String(t.m).padStart(2, '0')} ${ap}`;
 }
 
 /** Minutes from `now` until the next occurrence of HH:MM (today or tomorrow). */
@@ -128,7 +145,7 @@ export default function SleepModeScreen() {
         const parsed = parseHHMM(storedTime);
         if (parsed) {
           setTarget(parsed);
-          setDraft(formatHHMM(parsed));
+          setDraft(format12(parsed));
         }
         if (storedAvg) {
           const n = Number(storedAvg);
@@ -177,7 +194,7 @@ export default function SleepModeScreen() {
     const parsed = parseHHMM(draft);
     if (!parsed) {
       // Reject invalid input: revert draft to last good value.
-      setDraft(target ? formatHHMM(target) : '23:00');
+      setDraft(target ? format12(target) : '11:00 PM');
       setEditing(false);
       return;
     }
@@ -287,14 +304,14 @@ export default function SleepModeScreen() {
                 <TextInput
                   value={draft}
                   onChangeText={setDraft}
-                  placeholder="HH:MM"
+                  placeholder="h:mm AM/PM"
                   placeholderTextColor="rgba(255,255,255,0.3)"
                   autoFocus
                   keyboardType={Platform.OS === 'web' ? 'default' : 'numbers-and-punctuation'}
                   style={styles.timeInput}
-                  maxLength={5}
+                  maxLength={8}
                   onSubmitEditing={commitTarget}
-                  accessibilityLabel="Sleep target time (24-hour HH:MM)"
+                  accessibilityLabel="Sleep target time (12-hour, e.g. 11:00 PM)"
                 />
                 <Pressable
                   onPress={commitTarget}
@@ -308,9 +325,9 @@ export default function SleepModeScreen() {
                 onPress={() => setEditing(true)}
                 style={styles.timeRow}
                 accessibilityRole="button"
-                accessibilityLabel={`Edit sleep target time, currently ${target ? formatHHMM(target) : 'unset'}`}
+                accessibilityLabel={`Edit sleep target time, currently ${target ? format12(target) : 'unset'}`}
               >
-                <Text style={styles.timeDisplay}>{target ? formatHHMM(target) : '—:—'}</Text>
+                <Text style={styles.timeDisplay}>{target ? format12(target) : '—:—'}</Text>
                 <Text style={styles.timeHint}>TAP TO EDIT</Text>
               </Pressable>
             )}
