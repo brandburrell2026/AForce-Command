@@ -16,6 +16,10 @@ AForce OS follows WHOOP's cinematic design language:
 - **Generous spacing** — when in doubt, add more whitespace
 - **Soft glows, never hard shadows** — status colors radiate outward
 
+### Color System Lock (v2.0.0)
+
+The canonical AForce OS color system is WHOOP-Cinematic. Pure black `#000000` canvas. WHOOP lime `#B6FF00` as the sole hero accent. Coral `#E8613A` as the pulse ring accent only — no other use cases. All teal palette values (`#1DB594`, `#0F6E56`, `#060F0D`) are deprecated as of 2026-06-01 and must not appear in any new screen, component, or token. The opening screen (`welcome.tsx` / `AForceOSPreview.tsx`) must be migrated to WHOOP-Cinematic tokens before any Cursor build session begins. Any developer encountering teal in the codebase should replace it with the WHOOP-Cinematic equivalent and flag it in the PR.
+
 ---
 
 ## 1. Colors
