@@ -40,8 +40,6 @@ const BG = '#000000';
 const RING_WHITE = 'rgba(255,255,255,0.85)';
 const CRITICAL_RED = 'rgba(180,30,30,0.55)';
 const CRITICAL_RED_BRIGHT = '#FF5A5A';
-// Official AForce wordmark coral (sampled from the brand logo artwork).
-const BRAND_CORAL = '#D85048';
 const TEXT_DIM = 'rgba(255,255,255,0.55)';
 const TEXT_BRIGHT = 'rgba(255,255,255,0.92)';
 
@@ -1503,7 +1501,7 @@ const styles = StyleSheet.create({
   },
   wordmarkPrimary: {
     fontFamily: FONT_EXTRABOLD,
-    color: BRAND_CORAL,
+    color: TEXT_BRIGHT,
     fontSize: 46,
     letterSpacing: 2,
     includeFontPadding: false,
@@ -1513,7 +1511,7 @@ const styles = StyleSheet.create({
   },
   wordmarkTm: {
     fontFamily: FONT_BOLD,
-    color: BRAND_CORAL,
+    color: TEXT_BRIGHT,
     includeFontPadding: false,
     alignSelf: 'flex-start',
     marginTop: 4,
