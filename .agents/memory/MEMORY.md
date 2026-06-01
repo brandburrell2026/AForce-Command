@@ -8,3 +8,4 @@
 - [AForce dependency hardening](aforce-dependency-hardening.md) — Clerk CVE fix is exact peer-pinned (not caret) floor versions; never bump react past Expo's 19.1.0; restart expo after any install; uuid CVE accepted (build-only via xcode).
 - [AForce pre-existing failing tests](aforce-stale-tests.md) — slice.units.test.ts has 4 stale failures (test predates `height` unit pref in utils/units.ts); not a regression, out of scope for refactors.
 - [aforce-os white screen = stale Metro cache](aforce-metro-stale-cache.md) — crash-before-Clerk / blank web after a big refactor is usually a stale incremental bundle; clear caches + full rebuild, don't chase a code bug first.
+- [AForce first-run gating](aforce-onboarding-gate.md) — first-run uses TWO flags (hasSeenWelcome + hasCompletedOnboarding) via pure firstRunRoute; never mark onboarding done before the wizard finishes.

@@ -29,6 +29,7 @@ import { InvestorDemoOverlay } from '@/components/investorDemo/InvestorDemoOverl
 import { AppProvider, useAppStore } from '@/store/useAppStore';
 import { CartProvider } from '@/store/useCartStore';
 import { initI18n } from '@/services/i18nService';
+import { firstRunRoute } from '@/utils/firstRunRoute';
 
 // Bootstrap i18next as soon as the JS bundle loads so even the first
 // frame (SplashScreen, ErrorBoundary fallbacks) has access to t(). The
@@ -43,12 +44,20 @@ const queryClient = new QueryClient();
 const publishableKey = process.env['EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY'];
 const proxyUrl = process.env['EXPO_PUBLIC_CLERK_PROXY_URL'] || undefined;
 
+const WELCOME_SEEN_KEY = 'aforce.hasSeenWelcome';
+const ONBOARDING_DONE_KEY = 'aforce.hasCompletedOnboarding';
+
 /**
- * SplashGate — on the very first launch, redirects the user into the
- * single Welcome screen at `/welcome`. Once the user taps BEGIN
- * PROTOCOL, `welcome.tsx` persists `aforce.hasCompletedOnboarding=true`
- * to AsyncStorage, so every subsequent launch skips the welcome and
- * the existing app boots normally.
+ * SplashGate — first-run router. Two independent flags drive it:
+ *   - `hasSeenWelcome`        set when the user taps CONTINUE on the
+ *                             welcome lobby (welcome.tsx).
+ *   - `hasCompletedOnboarding` set only when the onboarding wizard
+ *                             finishes / is skipped (onboarding.tsx).
+ *
+ * Decision logic lives in the pure `firstRunRoute` helper so it can be
+ * unit-tested. A cold start mid-onboarding (seen welcome, not yet
+ * completed) correctly resumes at `/onboarding` instead of silently
+ * skipping setup. DEMO_MODE wipes both flags and replays from welcome.
  */
 function SplashGate() {
   const pathname = usePathname();
@@ -56,17 +65,19 @@ function SplashGate() {
   useEffect(() => {
     if (checkedRef.current) return;
     checkedRef.current = true;
-    // DEMO_MODE: always replay the welcome on cold start.
     if (DEMO_MODE) {
-      AsyncStorage.removeItem('aforce.hasCompletedOnboarding').catch(() => {});
+      AsyncStorage.multiRemove([WELCOME_SEEN_KEY, ONBOARDING_DONE_KEY]).catch(() => {});
       if (pathname !== '/welcome') router.replace('/welcome');
       return;
     }
-    AsyncStorage.getItem('aforce.hasCompletedOnboarding')
-      .then((v) => {
-        if (v !== 'true' && pathname !== '/welcome') {
-          router.replace('/welcome');
-        }
+    AsyncStorage.multiGet([WELCOME_SEEN_KEY, ONBOARDING_DONE_KEY])
+      .then((entries) => {
+        const map = Object.fromEntries(entries);
+        const target = firstRunRoute({
+          seenWelcome: map[WELCOME_SEEN_KEY] === 'true',
+          completedOnboarding: map[ONBOARDING_DONE_KEY] === 'true',
+        });
+        if (target && pathname !== target) router.replace(target);
       })
       .catch(() => {
         // Storage failure is non-fatal: fall through into the regular
@@ -91,6 +102,7 @@ function RootLayoutNav() {
       }}
     >
       <Stack.Screen name="welcome" options={{ headerShown: false, animation: 'fade' }} />
+      <Stack.Screen name="onboarding" options={{ headerShown: false, animation: 'fade' }} />
       <Stack.Screen name="(auth)" options={{ headerShown: false }} />
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="competition" options={{ headerShown: false, presentation: 'card' }} />

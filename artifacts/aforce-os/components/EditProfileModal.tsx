@@ -202,6 +202,9 @@ export function EditProfileModal({ visible, initialValue, onClose, onSave }: Pro
       heightCm: coerceNumeric(numericText.heightCm, HEIGHT_CM_MIN, HEIGHT_CM_MAX),
       birthYear: coerceNumeric(numericText.birthYear, 1900, new Date().getFullYear()),
       biologicalSex: draft.biologicalSex,
+      // The identity editor doesn't expose activity level (onboarding
+      // owns it) — preserve the captured value rather than dropping it.
+      activityLevel: draft.activityLevel,
     };
     Haptics.selectionAsync().catch(() => {});
     onSave(sanitized);

@@ -2,10 +2,12 @@
  * AForce OS — Cinematic Onboarding Lobby
  *
  * Four-stage opening sequence shown only on a user's very first open.
- * Once stage 4 completes (CONTINUE tap), `hasCompletedOnboarding` is
- * persisted to AsyncStorage and the user is routed into the existing
- * `(tabs)` app. The gate in `app/_layout.tsx` skips this entire
- * sequence on every subsequent launch.
+ * Once stage 4 completes (CONTINUE tap), `hasSeenWelcome` is persisted
+ * to AsyncStorage and the user is routed into the onboarding wizard
+ * (`/onboarding`). Completion of that wizard sets the separate
+ * `hasCompletedOnboarding` flag. The gate in `app/_layout.tsx` uses
+ * both flags so an interrupted first run resumes at onboarding rather
+ * than skipping it.
  *
  * Strict design constraints (per spec):
  *   - Background: #000000 only
@@ -32,7 +34,7 @@ import * as Haptics from 'expo-haptics';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 
-const ONBOARDING_KEY = 'aforce.hasCompletedOnboarding';
+const WELCOME_SEEN_KEY = 'aforce.hasSeenWelcome';
 
 const BG = '#000000';
 const RING_WHITE = 'rgba(255,255,255,0.85)';
@@ -1093,13 +1095,15 @@ export default function SplashScreen() {
   const onContinue = React.useCallback(async () => {
     Haptics.selectionAsync().catch(() => {});
     try {
-      await AsyncStorage.setItem(ONBOARDING_KEY, 'true');
+      await AsyncStorage.setItem(WELCOME_SEEN_KEY, 'true');
     } catch {
       // Persistence failure is non-fatal — the user can still enter
       // the app; they may just see the splash again next launch.
     }
-    // Activation funnel removed — enter the app directly.
-    router.replace('/(tabs)');
+    // First-run setup: route into the onboarding wizard (Goal →
+    // Activity → Profile). The wizard then drops the user into (tabs)
+    // where the first command / first water cycle / first win live.
+    router.replace('/onboarding');
   }, [router]);
 
   // Ring holds at LIME for the entire pre-ENTER window — the band

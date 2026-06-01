@@ -77,6 +77,7 @@ describe('store · profileIdentity slice', () => {
       heightCm: 180,
       birthYear: 1990,
       biologicalSex: 'male' as const,
+      activityLevel: null,
     };
     const next = reducer(start, { type: 'SET_PROFILE_IDENTITY', payload: fresh });
     expect(next.profileIdentity).toEqual(fresh);
@@ -167,6 +168,7 @@ describe('utils · sanitizeProfileIdentity', () => {
       heightCm: 180,
       birthYear: 1990,
       biologicalSex: 'male' as const,
+      activityLevel: 7,
     };
     expect(sanitizeProfileIdentity(payload)).toEqual(payload);
   });
@@ -194,6 +196,7 @@ describe('utils · sanitizeProfileIdentity', () => {
       heightCm: null,
       birthYear: null,
       biologicalSex: 'unspecified',
+      activityLevel: null,
     });
   });
 

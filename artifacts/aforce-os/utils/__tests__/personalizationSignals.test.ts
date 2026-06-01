@@ -220,6 +220,7 @@ describe('derivePersonalizationSignals', () => {
         heightCm: 180,
         birthYear: 1990,
         biologicalSex: 'male',
+        activityLevel: null,
       },
     });
     const bodyModel = out.reasons.find((r) => r.key === 'bodyModel');
@@ -246,6 +247,7 @@ describe('derivePersonalizationSignals', () => {
         heightCm: 180,
         birthYear: null,
         biologicalSex: 'unspecified',
+        activityLevel: null,
       },
     });
     expect(out.reasons.find((r) => r.key === 'bodyModel')).toBeUndefined();

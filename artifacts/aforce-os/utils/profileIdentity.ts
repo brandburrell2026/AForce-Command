@@ -87,6 +87,13 @@ export interface ProfileIdentity {
    * adjustment" rather than a hidden assumption.
    */
   biologicalSex: BiologicalSex;
+  /**
+   * Day-to-day activity level on a 0..10 scale (0 = mostly sedentary,
+   * 10 = pro athlete). `null` = not set; the hydration-demand adapter
+   * falls back to the server-derived `UserState.activityLevel`. Owned
+   * by the onboarding wizard as the Profile-side override.
+   */
+  activityLevel: number | null;
 }
 
 /**
@@ -138,6 +145,7 @@ export const DEFAULT_PROFILE_IDENTITY: ProfileIdentity = {
   heightCm: null,
   birthYear: null,
   biologicalSex: 'unspecified',
+  activityLevel: null,
 };
 
 /** Hard cap so a runaway paste can't blow out the chip strip layout. */
@@ -154,6 +162,9 @@ export const WEIGHT_LBS_MIN = 60;
 export const WEIGHT_LBS_MAX = 500;
 export const HEIGHT_CM_MIN = 120;
 export const HEIGHT_CM_MAX = 230;
+/** Activity level scale used by the hydration-demand engine. */
+export const ACTIVITY_LEVEL_MIN = 0;
+export const ACTIVITY_LEVEL_MAX = 10;
 const BIRTH_YEAR_MIN = 1900;
 /** Computed lazily so tests / fixtures aren't tied to the wall clock. */
 function birthYearMaxFor(now: Date): number {
@@ -255,6 +266,11 @@ export function sanitizeProfileIdentity(raw: unknown): ProfileIdentity {
     biologicalSex: isBiologicalSex(r.biologicalSex)
       ? r.biologicalSex
       : DEFAULT_PROFILE_IDENTITY.biologicalSex,
+    activityLevel: asClampedNumber(
+      r.activityLevel,
+      ACTIVITY_LEVEL_MIN,
+      ACTIVITY_LEVEL_MAX,
+    ),
   };
 }
 

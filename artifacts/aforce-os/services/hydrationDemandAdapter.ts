@@ -73,7 +73,10 @@ export function buildHydrationDemandInputs(
 
   const inputs: HydrationDemandInputs = {
     weightLbs: body.bodyWeightLbs,
-    activityLevel: clampActivity(user.activityLevel),
+    // Profile is the source of truth when the user set their activity
+    // level (onboarding / editor); otherwise fall back to the
+    // server-derived UserState value. Mirrors the body-weight rule.
+    activityLevel: clampActivity(profile.activityLevel ?? user.activityLevel),
   };
 
   if (sleepSource) inputs.sleepHours = sleepSource.hours;
