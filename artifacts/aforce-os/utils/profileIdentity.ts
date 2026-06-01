@@ -27,7 +27,7 @@
 
 import type { AuraState } from '../types';
 
-export type BiologicalSex = 'male' | 'female' | 'unspecified';
+export type BiologicalSex = 'male' | 'female' | 'non-binary' | 'unspecified';
 
 /**
  * Recovery goal — what the athlete is optimizing for. Drives chip copy
@@ -113,6 +113,7 @@ export const AURA_STATES: readonly AuraState[] = [
 export const BIOLOGICAL_SEX_OPTIONS: readonly BiologicalSex[] = [
   'male',
   'female',
+  'non-binary',
   'unspecified',
 ] as const;
 
@@ -183,7 +184,9 @@ function isAura(v: unknown): v is AuraState {
 }
 
 function isBiologicalSex(v: unknown): v is BiologicalSex {
-  return v === 'male' || v === 'female' || v === 'unspecified';
+  return (
+    v === 'male' || v === 'female' || v === 'non-binary' || v === 'unspecified'
+  );
 }
 
 function isRecoveryGoal(v: unknown): v is RecoveryGoal {

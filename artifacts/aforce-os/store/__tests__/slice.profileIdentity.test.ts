@@ -272,6 +272,11 @@ describe('utils · sanitizeProfileIdentity', () => {
     expect(result.biologicalSex).toBe('female');
   });
 
+  it('preserves the non-binary biological-sex option', () => {
+    const result = sanitizeProfileIdentity({ biologicalSex: 'non-binary' });
+    expect(result.biologicalSex).toBe('non-binary');
+  });
+
   it('trims whitespace and caps fields at 48 chars', () => {
     const long = 'x'.repeat(100);
     const result = sanitizeProfileIdentity({

@@ -88,6 +88,7 @@ const ACTIVITY_OPTIONS: readonly ActivityOption[] = [
 const SEX_OPTIONS: readonly { value: BiologicalSex; label: string }[] = [
   { value: 'male', label: 'Male' },
   { value: 'female', label: 'Female' },
+  { value: 'non-binary', label: 'Non-Binary' },
   { value: 'unspecified', label: 'Prefer not to say' },
 ] as const;
 

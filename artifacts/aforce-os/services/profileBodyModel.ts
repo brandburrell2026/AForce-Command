@@ -22,7 +22,7 @@
  * fabricating a number.
  */
 
-import type { ProfileIdentity } from '../utils/profileIdentity';
+import type { BiologicalSex, ProfileIdentity } from '../utils/profileIdentity';
 import type { ProviderBiometrics } from '../types/biometrics';
 import type { HealthProviderId } from '../data/healthProviders';
 
@@ -30,7 +30,7 @@ export interface RequiredBodyModel {
   bodyWeightLbs: number;
   heightCm: number;
   birthYear: number;
-  biologicalSex: 'male' | 'female' | 'unspecified';
+  biologicalSex: BiologicalSex;
 }
 
 export type BodyModelField = keyof RequiredBodyModel;

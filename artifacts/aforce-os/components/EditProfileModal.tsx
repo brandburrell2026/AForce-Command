@@ -71,6 +71,7 @@ const AURA_COLOR: Record<AuraState, string> = {
 const SEX_LABEL: Record<BiologicalSex, string> = {
   male: 'MALE',
   female: 'FEMALE',
+  'non-binary': 'NON-BINARY',
   unspecified: 'PREFER NOT TO SAY',
 };
 
