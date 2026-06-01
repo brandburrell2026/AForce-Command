@@ -1,0 +1,65 @@
+Here it is.
+
+---
+
+**REPLIT AI PROMPT:**
+
+> I am building a mobile app called AForce OS. It is a premium performance readiness system — not a wellness app, not a fitness tracker. The aesthetic is dark, cinematic, and disciplined. Think Apple meets Whoop meets Christopher Nolan.
+>
+> I need you to build the opening splash/home screen of the app in React Native (or React if mobile web). Here are the exact specifications:
+>
+> **LAYOUT — top to bottom:**
+>
+> 1. Top: AFORCE wordmark in bold white, all caps, large. Directly below it, a small contained pill/badge with a fine teal border that reads "OS" in spaced teal uppercase letters. These two elements together form the logo lockup.
+>
+> 2. Center top: A single line in small spaced uppercase teal letters that reads: "PERFORMANCE SYNC ACTIVE" — this appears ABOVE the circular visualization, not below it.
+>
+> 3. Center: A large circular visualization. Dark near-black fill inside. Concentric teal rings radiating outward at low opacity — like sonar or a targeting system. Inside the circle, a slow HRV-style waveform — not flat, not medical, just a calm breathing wave animation. Around the outer edge of the inner circle, a coral/orange accent ring that pulses slowly — one full pulse every 4 seconds, like a single breath. The pulse should glow slightly brighter then return to resting state. The overall feeling is: the system is alive, active, and already working.
+>
+> 4. Below the circle: One personalized line in small muted text — "Today's protocol is ready." — this sits between the circle and the main headline.
+>
+> 5. Headline: "Performance is non-negotiable." — bold, white, centered, large. This is the most important line on the screen.
+>
+> 6. Below headline: The protocol sequence — "Pause → Hydrate → Lock In → Perform" — each word animates in one at a time, left to right, with a 0.4 second delay between each. Pause and Perform in muted white. Hydrate and Lock In in teal. The arrows between them are small and muted.
+>
+> 7. Bottom: A full-width rounded button with a fine teal border, dark fill, and teal uppercase spaced text that reads: "BEGIN PROTOCOL" — on press it should scale down slightly then release (haptic feel). No fill change on press — just the scale micro-interaction.
+>
+> **COLORS:**
+> - Background: #060F0D (near black with deep teal undertone)
+> - Primary teal: #1DB594
+> - Muted teal: #0F6E56
+> - Coral accent: #E8613A
+> - White: #F5F5F5
+> - Muted text: #4A7A6D
+>
+> **ANIMATION RULES:**
+> - Everything fades in on load — staggered, top to bottom, 0.3 seconds between each element
+> - The coral ring pulses continuously — slow, breathing rhythm, never stops
+> - The waveform animates continuously — calm, slow, never stops
+> - The protocol words animate in sequence once, then hold
+> - Nothing bounces. Nothing flashes. Nothing feels like a consumer app. Every animation is slow, intentional, and controlled.
+>
+> **TYPOGRAPHY:**
+> - Wordmark: bold, wide-tracked, sans-serif — use font-weight 800
+> - Headlines: bold, clean sans-serif
+> - Labels and UI text: spaced uppercase, light weight, teal
+> - Body/supporting text: regular weight, muted
+>
+> **FEELING:**
+> The user opens this screen and feels: the system was already running. I just showed up. It should not feel like a splash screen. It should feel like walking into a command center that was prepared for you.
+>
+> Do not use purple. Do not use gradients that look like a wellness app. Do not use confetti, badges, streaks, or any gamification visual language. This is not that kind of app.
+>
+> Please build this as a single self-contained file with all animations included. Make it pixel-perfect and production-ready.
+
+---
+
+**ALSO TELL REPLIT:**
+
+> Use Expo React Native if building mobile. If building React web, use Framer Motion for all animations. Do not use any third-party UI component libraries — build everything from scratch to match the custom aesthetic exactly.
+
+---
+
+Paste this directly into Replit AI. It has everything it needs — colors, layout order, animation behavior, typography rules, and the feeling you're building toward.
+
+Once Replit builds it, send me a screenshot and I'll tell you exactly what to refine next.
