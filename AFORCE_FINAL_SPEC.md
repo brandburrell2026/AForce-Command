@@ -36,6 +36,36 @@ Live status is tracked in `AFORCE_PHASE_STATUS.md`.
 - Social Mode and Cruise Mode additions stay in the addon document
   and are not implemented until **all** core phases are stable.
 
+## Final Refinement Locks
+
+> Refinement locks only — **not** architecture changes. No redesign, no new
+> navigation, no new tabs, no new screens, no dashboard expansion. Goal: increase
+> retention, reduce friction, protect free mode, improve future Phantom rollout.
+> Keep AForce OS simple externally and powerful internally.
+
+**Lock #1 — Impact Engine confidence.**
+Impact confidence increases as signal quality improves. Impact uses existing
+surfaces only — no new UI. *Purpose:* protect the loop —
+Signal → Command → Action → Impact → Learning. No rebuilds required.
+
+**Lock #2 — Manual-first engine rule.**
+The core hydration loop must function using phone + manual inputs only. Wearables
+and future Phantom signals increase confidence but are not required. *Purpose:*
+protect free users, protect onboarding, prevent hardware dependency.
+
+**Lock #3 — Reminder guardrail.**
+Completed goals reduce correction urgency and reminder frequency. *Purpose:*
+reduce notification fatigue, improve long-term retention.
+
+**Lock #4 — Verification layer rule.**
+The verification layer resolves to the highest-confidence signal source available
+and degrades gracefully downward. Priority: (1) Phantom Signals →
+(2) Connected Wearables → (3) Phone + Manual Inputs. *Purpose:* protect the
+future Phantom rollout without creating dependencies.
+
+These are refinement locks only. No architecture rebuilds. No additional
+user-facing modules.
+
 ## Phase 10 — Investor Demo Overlay
 
 **Status: Pending**
