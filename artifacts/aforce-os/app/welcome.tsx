@@ -910,7 +910,6 @@ type Segment = { text: string; color: string };
 // frames the moment as OS-level, not app-level.
 const TAGLINE_SEGMENTS: Segment[] = [
   { text: 'Pause', color: 'rgba(255,255,255,0.55)' },
-  { text: 'Recover', color: '#1FB8A6' },
   { text: 'Hydrate', color: '#40E0C8' },
   { text: 'Lock In', color: '#5EEAD4' },
   { text: 'Perform', color: 'rgba(255,255,255,0.96)' },
@@ -1212,7 +1211,6 @@ export default function SplashScreen() {
       {stage === 1 && (
         <FadeIn show={showInitializing} style={styles.belowRing}>
           <Text style={[styles.eyebrow, styles.eyebrowAurora]}>PERFORMANCE SYNC ACTIVE</Text>
-          <Text style={styles.statusSubline}>Recovery optimized · Hydration stable</Text>
         </FadeIn>
       )}
 
@@ -1220,9 +1218,6 @@ export default function SplashScreen() {
       {showCritical && (
         <FadeIn show style={styles.belowRing}>
           <Text style={[styles.eyebrow, styles.eyebrowCritical]}>RECOVERY LOAD CRITICAL</Text>
-          <Text style={[styles.statusSubline, styles.statusSublineCritical]}>
-            Hydration deficit · Performance degradation predicted
-          </Text>
         </FadeIn>
       )}
 
@@ -1329,17 +1324,6 @@ const styles = StyleSheet.create({
     color: CRITICAL_RED_BRIGHT,
     letterSpacing: 3.5,
     fontSize: 10.5,
-  },
-  statusSubline: {
-    fontFamily: FONT_MEDIUM,
-    color: 'rgba(255,255,255,0.5)',
-    fontSize: 10,
-    letterSpacing: 1.2,
-    marginTop: 8,
-    textAlign: 'center',
-  },
-  statusSublineCritical: {
-    color: 'rgba(255,150,150,0.75)',
   },
   // Living biometric core — content rendered inside the orb body.
   coreWrap: {
