@@ -15,3 +15,4 @@
 - [AForce adaptive reminders](aforce-adaptive-reminders.md) — no recurring reminder generator exists; "smart reminders" = a pure policy that gates the fixed welcome cadence (levels + rules + hard fatigue guardrails).
 - [AForce Time-To-Log KPI](aforce-time-to-log.md) — friction metric measured surface-active→tap (re-anchor on focus), recorded at tap not after write; derive fn stays pure; additive home row, no flag.
 - [AForce Smart Modes + Friction Score](aforce-smart-modes.md) — exactly 4 pure modes; only reminderMultiplier (default-1 no-op) is live, target multiplier is guidance-only; travel dormant; Friction's time-to-first-log is onboarding→first-log latency, NOT per-log median.
+- [AForce Impact Engine & Verification Layer](aforce-impact-verification.md) — pure no-UI engines; Impact only MEASURES (Score-Protection), Verification puts Phantom above wearables with phone as the unconditional floor.

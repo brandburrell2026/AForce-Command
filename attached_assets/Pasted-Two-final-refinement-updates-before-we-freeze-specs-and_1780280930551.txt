@@ -1,0 +1,130 @@
+Two final refinement updates before we freeze specs and hand off to the development team.
+
+These are NOT architecture rebuilds.
+
+These are refinement passes only.
+
+No redesign.
+
+No new navigation.
+
+No new screens.
+
+No dashboard expansion.
+
+Keep current UI.
+
+Keep current architecture.
+
+Build inside existing systems.
+
+REFINEMENT #1 — IMPACT ENGINE™
+
+Purpose:
+
+Close the loop.
+
+Current:
+
+Signal → Command → Action
+
+New:
+
+Signal → Command → Action → Impact
+
+Question:
+
+Did the command improve the outcome?
+
+Inputs:
+
+Completed Actions
+Recovery Changes
+Hydration Changes
+Environmental Shifts
+Behavior Completion
+Outputs:
+
+Impact Summary
+Trend Change
+Reinforcement
+Command Confidence
+Examples:
+
+Recovery improved
+Heat pressure reduced
+Stabilized faster
+Recovery trend rising
+Rules:
+
+Keep Impact simple
+Do NOT create new screens
+Use existing surfaces only
+Impact uses best available signal source:
+Self-report → Phone Inputs → Connected Wearables → Future Phantom Signals
+
+Same engine; signal quality upgrades over time
+Impact confidence increases as signal quality improves
+Build loop-shaped from day one
+Why it matters:
+
+Before Impact:
+
+Signal → Command → Stop
+
+After Impact:
+
+Signal → Command → Measure → Learn → Improve
+
+Command Confidence allows the system to learn which actions work best over time.
+
+We did not add a feature.
+
+We closed the loop.
+
+REFINEMENT #2 — VERIFICATION LAYER (PHANTOM POSITIONING)
+
+Move Phantom outside standard wearable grouping.
+
+Create:
+
+Verification Layer
+
+Sources:
+
+Phone Inputs
+Connected Wearables
+Phantom Devices
+Priority Order:
+
+Phantom Signals
+Connected Wearables
+Phone + Manual Inputs
+Rules:
+
+Resolve to highest-confidence signal source available
+Degrade gracefully downward
+Loop must function at every tier
+Users without Phantom receive full functionality
+Phantom increases confidence
+Phantom does NOT create dependency
+Goal:
+
+Position Phantom as native infrastructure.
+
+Not another wearable integration.
+
+No UI changes.
+
+No navigation changes.
+
+No redesign.
+
+FINAL RULES
+
+No architecture rebuilds
+No additional user-facing modules
+No new tabs
+No feature expansion
+Protect simplicity
+Lock after this.
