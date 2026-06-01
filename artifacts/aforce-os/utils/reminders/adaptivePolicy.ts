@@ -70,6 +70,12 @@ export interface ReminderContext {
   remindersSentToday: number;
   /** Minutes since last reminder, or null if none yet (min-gap guardrail). */
   minutesSinceLastReminder: number | null;
+  /**
+   * Smart Modes intensity multiplier (Priority #7). Defaults to 1 (no-op)
+   * so existing behavior is unchanged; modes sharpen (heat/workout) or
+   * soften (recovery) cadence by scaling intensity before clamping.
+   */
+  intensityMultiplier?: number;
 }
 
 export type ReminderReason =
@@ -136,6 +142,7 @@ export function evaluateReminderPolicy(ctx: ReminderContext): ReminderDecision {
   if (recentWorkout) intensity += 0.2; // increase after workouts
   if (heat) intensity += 0.2; // increase during heat
   if (goalMet) intensity *= 0.4; // reduce after goal met
+  if (ctx.intensityMultiplier != null) intensity *= ctx.intensityMultiplier; // Smart Modes (#7)
   intensity = clamp(intensity, 0, 1);
 
   // Translate intensity into a frequency budget, then clamp to the hard

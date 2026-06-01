@@ -67,12 +67,93 @@ export interface AnalyticsMetrics {
     count: number;
     /** Median Time-To-Log in ms (KPI target < 2000), or null. */
     medianTimeToLogMs: number | null;
+    /** ms from the onboarding/first-session anchor to the first log, or null. */
+    timeToFirstLogMs: number | null;
     /** Fraction of logs completed under 2s, or null when none recorded. */
     underTwoSecondsRate: number | null;
+  };
+  /**
+   * Friction Score — internal "ease of use" KPI. A 0..100 composite
+   * (higher = less friction) rolling up the five readiness signals. No
+   * user-facing surface; it exists to grade onboarding + habit health.
+   */
+  friction: {
+    /** 0..100 composite, or null when no component is available. */
+    score: number | null;
+    /** Per-signal normalized ease 0..1 (1 = best), null when unavailable. */
+    components: {
+      timeToFirstLog: number | null;
+      timeToFirstWin: number | null;
+      reminderResponse: number | null;
+      dailyActiveUsage: number | null;
+      loggingCompletion: number | null;
+    };
   };
 }
 
 const MS_PER_DAY = 86_400_000;
+
+// ── Friction Score tuning ─────────────────────────────────────────────
+/** First log at/under this (ms = 15 min after onboarding) is frictionless. */
+const FRICTION_FIRST_LOG_TARGET_MS = 900_000;
+/** First win at/under this (ms ≈ 1h) is frictionless. */
+const FRICTION_WIN_TARGET_MS = 3_600_000;
+/** Day-streak that scores a full daily-active-usage signal. */
+const FRICTION_STREAK_TARGET_DAYS = 7;
+
+function clamp01(n: number): number {
+  return Math.min(1, Math.max(0, n));
+}
+
+/** Lower elapsed value → higher ease; bounded to [0,1]. */
+function easeFromElapsed(targetMs: number, valueMs: number): number {
+  if (valueMs <= 0) return 1;
+  return clamp01(targetMs / valueMs);
+}
+
+interface FrictionInputs {
+  timeToFirstLogMs: number | null;
+  timeToFirstWinMs: number | null;
+  reminderResponseRate: number | null;
+  activeDays: number;
+  currentDayStreak: number;
+  loggingCompletionRate: number | null;
+}
+
+function computeFriction(inputs: FrictionInputs): AnalyticsMetrics['friction'] {
+  const components = {
+    timeToFirstLog:
+      inputs.timeToFirstLogMs == null
+        ? null
+        : easeFromElapsed(FRICTION_FIRST_LOG_TARGET_MS, inputs.timeToFirstLogMs),
+    timeToFirstWin:
+      inputs.timeToFirstWinMs == null
+        ? null
+        : easeFromElapsed(FRICTION_WIN_TARGET_MS, inputs.timeToFirstWinMs),
+    reminderResponse:
+      inputs.reminderResponseRate == null
+        ? null
+        : clamp01(inputs.reminderResponseRate),
+    dailyActiveUsage:
+      inputs.activeDays === 0
+        ? null
+        : clamp01(inputs.currentDayStreak / FRICTION_STREAK_TARGET_DAYS),
+    loggingCompletion:
+      inputs.loggingCompletionRate == null
+        ? null
+        : clamp01(inputs.loggingCompletionRate),
+  };
+  const available = Object.values(components).filter(
+    (v): v is number => v != null,
+  );
+  const score =
+    available.length === 0
+      ? null
+      : Math.round(
+          (available.reduce((a, b) => a + b, 0) / available.length) * 100,
+        );
+  return { score, components };
+}
 
 function timeOf(e: AnalyticsEvent): number {
   return Date.parse(e.at);
@@ -175,6 +256,19 @@ export function computeAnalyticsMetrics(
       ? timeOf(firstWin) - timeOf(winAnchor)
       : null;
 
+  // ── Time To First Log ──────────────────────────────────────────────
+  // Same anchor as the win: how quickly a new user makes their first log.
+  // `events` is time-sorted, so the first log_action at/after the anchor is
+  // the relevant one — a stray pre-anchor log does not nullify the signal.
+  const firstLogAfterAnchor = winAnchor
+    ? events.find(
+        (e) => e.type === 'log_action' && timeOf(e) >= timeOf(winAnchor),
+      )
+    : undefined;
+  const timeToFirstLogMs = firstLogAfterAnchor
+    ? timeOf(firstLogAfterAnchor) - timeOf(winAnchor!)
+    : null;
+
   // ── Reminder response ──────────────────────────────────────────────
   // Only count responses to slots that were actually shown, so the rate
   // is always a clean fraction in [0, 1] even if a stray response or log
@@ -202,6 +296,14 @@ export function computeAnalyticsMetrics(
     .filter((n) => Number.isFinite(n) && n >= 0);
   const underTwoSeconds = logTtls.filter((n) => n < 2000).length;
 
+  // ── Shared derived values (also feed the Friction Score) ───────────
+  const responseRate = shown > 0 ? responded / shown : null;
+  const activeDays = new Set(sessionDayIndices).size;
+  const dayStreak = currentDayStreak(sessionDayIndices);
+  const medianTimeToLogMs = median(logTtls);
+  const underTwoSecondsRate =
+    logTtls.length > 0 ? underTwoSeconds / logTtls.length : null;
+
   return {
     timeToFirstWinMs,
     onboarding: {
@@ -214,13 +316,13 @@ export function computeAnalyticsMetrics(
     retention: {
       firstSeenAt: firstSession?.at ?? null,
       lastActiveAt: lastSession?.at ?? null,
-      activeDays: new Set(sessionDayIndices).size,
-      currentDayStreak: currentDayStreak(sessionDayIndices),
+      activeDays,
+      currentDayStreak: dayStreak,
     },
     reminders: {
       shown,
       responded,
-      responseRate: shown > 0 ? responded / shown : null,
+      responseRate,
     },
     streak: {
       current: currentStreak,
@@ -229,9 +331,17 @@ export function computeAnalyticsMetrics(
     },
     logging: {
       count: logTtls.length,
-      medianTimeToLogMs: median(logTtls),
-      underTwoSecondsRate:
-        logTtls.length > 0 ? underTwoSeconds / logTtls.length : null,
+      medianTimeToLogMs,
+      timeToFirstLogMs,
+      underTwoSecondsRate,
     },
+    friction: computeFriction({
+      timeToFirstLogMs,
+      timeToFirstWinMs,
+      reminderResponseRate: responseRate,
+      activeDays,
+      currentDayStreak: dayStreak,
+      loggingCompletionRate: underTwoSecondsRate,
+    }),
   };
 }

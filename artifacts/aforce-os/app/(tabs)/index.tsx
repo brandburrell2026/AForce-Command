@@ -37,6 +37,7 @@ import { LiveStatusLine } from '@/components/home/LiveStatusLine';
 import { NotificationBanner } from '@/components/home/NotificationBanner';
 import { DailyWinBanner } from '@/components/home/DailyWinBanner';
 import { SmartQuickActions } from '@/components/home/SmartQuickActions';
+import { SmartModesBanner } from '@/components/home/SmartModesBanner';
 import { useAnalyticsRecorder } from '@/hooks/useAnalyticsRecorder';
 import { useScoreTrend } from '@/hooks/useScoreTrend';
 import { getStatusVerb } from '@/services/statusVerb';
@@ -585,6 +586,11 @@ export default function HomeScreen() {
                 actions (Repeat Last · Log 12 oz · Complete Cycle) so a
                 hydration log takes under two seconds. No forms, no nav. */}
             <SmartQuickActions />
+
+            {/* Priority #7 — Smart Modes: surfaces the active context mode
+                (Heat · Workout · Travel · Recovery) and water-first
+                guidance. Additive, self-hides when no mode is active. */}
+            <SmartModesBanner />
 
             <ScoreDrivenBody
               onOpenBreakdown={openBreakdown}

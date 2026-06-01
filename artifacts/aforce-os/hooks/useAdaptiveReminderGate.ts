@@ -23,6 +23,7 @@ import {
   type ReminderLevel,
 } from '@/utils/reminders/adaptivePolicy';
 import type { NotificationsSnapshot } from '@/services/notifications';
+import { useSmartModes } from '@/hooks/useSmartModes';
 
 function todayKey(): string {
   return new Date().toISOString().slice(0, 10);
@@ -65,6 +66,7 @@ export function useAdaptiveReminderGate(
   snapshot: NotificationsSnapshot | null,
 ): ReminderDecision {
   const userState = useUserSlice();
+  const { reminderIntensityMultiplier } = useSmartModes();
 
   const [level, setLevel] = React.useState<ReminderLevel>('standard');
   const [responseRate, setResponseRate] = React.useState<number | null>(null);
@@ -106,6 +108,7 @@ export function useAdaptiveReminderGate(
       goalProgress,
       remindersSentToday: sentToday,
       minutesSinceLastReminder: minutesSinceLast,
+      intensityMultiplier: reminderIntensityMultiplier,
     });
   }, [
     level,
@@ -117,5 +120,6 @@ export function useAdaptiveReminderGate(
     userState.biometrics,
     userState.weatherTempC,
     userState.weatherHumidity,
+    reminderIntensityMultiplier,
   ]);
 }

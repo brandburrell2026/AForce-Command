@@ -1,0 +1,153 @@
+approve Priority #6 — Passive Logging Improvements.
+
+The evidence shown indicates:
+
+✅ Quick logging actions implemented
+✅ Time-to-log work documented (aforce-time-to-log.md)
+✅ Memory index updated
+✅ Fresh code review requested
+✅ Task marked complete after verification
+✅ Checkpoint created
+
+This is arguably one of the most important retention features in the entire roadmap because it attacks friction directly.
+
+⸻
+
+Current Status
+
+Completed
+
+🟢 Priority #1 — Onboarding Engine
+
+🟢 Priority #2 — Explainability Layer
+
+🟢 Priority #3 — Daily Wins Engine
+
+🟢 Priority #4 — Analytics Layer
+
+🟢 Priority #5 — Adaptive Reminders
+
+🟢 Priority #6 — Passive Logging Improvements
+
+⸻
+
+Remaining
+
+🟡 Priority #7 — Smart Modes
+
+⸻
+
+Guidance for Priority #7
+
+Keep it extremely constrained.
+
+Build ONLY
+
+Heat Mode
+
+Triggers:
+
+* High temperature
+* Outdoor activity
+* Increased hydration demand
+
+Behavior:
+
+* Increase hydration targets
+* Increase reminder sensitivity
+
+⸻
+
+Workout Mode
+
+Triggers:
+
+* Exercise detected
+* Workout started
+
+Behavior:
+
+* Pre-workout hydration
+* Post-workout recovery reminders
+
+⸻
+
+Travel Mode
+
+Triggers:
+
+* Travel day
+* Time-zone change
+
+Behavior:
+
+* Increased hydration guidance
+* Travel recovery support
+
+⸻
+
+Recovery Mode
+
+Triggers:
+
+* Poor recovery trend
+* Elevated hydration deficit
+
+Behavior:
+
+* Softer reminder cadence
+* Recovery-focused guidance
+
+⸻
+
+Explicitly Reject
+
+❌ Nutrition tracking
+
+❌ Calorie counting
+
+❌ Food logging
+
+❌ Marketplace
+
+❌ Social feed
+
+❌ Community tab
+
+❌ Additional navigation
+
+❌ New dashboards
+
+❌ More than 4 modes
+
+⸻
+
+What I’d Add Before Release
+
+One final KPI:
+
+Friction Score
+
+Track:
+
+* Time to first log
+* Time to first win
+* Reminder response rate
+* Daily active usage
+* Logging completion rate
+
+This becomes your internal “ease of use” metric.
+
+⸻
+
+Product Assessment
+
+The roadmap has been executed in the correct order:
+
+1. Onboarding → value
+2. Explainability → trust
+3. Daily wins → reinforcement
+4. Analytics → measurement
+5. Adaptive reminders → habits
+6. Passive logging → low friction
+7. Smart modes → context

@@ -26,6 +26,80 @@ describe('computeAnalyticsMetrics', () => {
     expect(m.streak.max).toBeNull();
   });
 
+  describe('friction score', () => {
+    it('is null with all-null components when no events', () => {
+      const m = computeAnalyticsMetrics([]);
+      expect(m.friction.score).toBeNull();
+      expect(m.friction.components).toEqual({
+        timeToFirstLog: null,
+        timeToFirstWin: null,
+        reminderResponse: null,
+        dailyActiveUsage: null,
+        loggingCompletion: null,
+      });
+    });
+
+    it('scores a frictionless onboarding at/near 100', () => {
+      const base = Date.parse('2026-03-01T08:00:00.000Z');
+      const m = computeAnalyticsMetrics([
+        { type: 'session_open', at: at(base) },
+        { type: 'onboarding_completed', at: at(base + 1000) },
+        { type: 'win', at: at(base + 60_000) }, // first win well under 1h
+        { type: 'reminder_shown', at: at(base + 2000), meta: { reminderDay: 1 } },
+        {
+          type: 'reminder_response',
+          at: at(base + 2500),
+          meta: { reminderDay: 1 },
+        },
+        { type: 'log_action', at: at(base + 3000), meta: { ttlMs: 800 } },
+      ]);
+      expect(m.friction.components.timeToFirstLog).toBe(1); // 800ms < 2000
+      expect(m.friction.components.timeToFirstWin).toBe(1); // 60s < 1h
+      expect(m.friction.components.reminderResponse).toBe(1); // 1/1
+      expect(m.friction.components.loggingCompletion).toBe(1); // under 2s
+      expect(m.friction.score).toBeGreaterThanOrEqual(80);
+    });
+
+    it('uses true time-to-first-log (anchor → first log), not median TTL', () => {
+      const base = Date.parse('2026-03-02T08:00:00.000Z');
+      const m = computeAnalyticsMetrics([
+        { type: 'onboarding_completed', at: at(base) },
+        // First log 30 min after onboarding → ease(900000, 1_800_000) = 0.5,
+        // even though the per-log TTL (4000ms) is fast.
+        { type: 'log_action', at: at(base + 1_800_000), meta: { ttlMs: 4000 } },
+      ]);
+      expect(m.logging.timeToFirstLogMs).toBe(1_800_000);
+      expect(m.friction.components.timeToFirstLog).toBeCloseTo(0.5);
+      expect(m.friction.components.loggingCompletion).toBe(0); // 4000ms ≥ 2s
+      // No sessions → daily active usage unavailable; no reminders/wins.
+      expect(m.friction.components.reminderResponse).toBeNull();
+      expect(m.friction.components.timeToFirstWin).toBeNull();
+      expect(m.friction.components.dailyActiveUsage).toBeNull();
+      // averages only available components: mean(0.5, 0) * 100 = 25
+      expect(m.friction.score).toBe(25);
+    });
+
+    it('time-to-first-log is null without an anchor', () => {
+      const m = computeAnalyticsMetrics([
+        { type: 'log_action', at: at(0), meta: { ttlMs: 800 } },
+      ]);
+      expect(m.logging.timeToFirstLogMs).toBeNull();
+      expect(m.friction.components.timeToFirstLog).toBeNull();
+    });
+
+    it('ignores a pre-anchor log and measures from anchor to first later log', () => {
+      const base = Date.parse('2026-03-02T08:00:00.000Z');
+      const m = computeAnalyticsMetrics([
+        // Log logged DURING onboarding, before the anchor — must not count.
+        { type: 'log_action', at: at(base - 60_000), meta: { ttlMs: 800 } },
+        { type: 'onboarding_completed', at: at(base) },
+        { type: 'log_action', at: at(base + 120_000), meta: { ttlMs: 900 } },
+      ]);
+      // 2 min after the anchor, not the pre-anchor log.
+      expect(m.logging.timeToFirstLogMs).toBe(120_000);
+    });
+  });
+
   it('measures Time To First Win from onboarding completion to first win', () => {
     const base = Date.parse('2026-01-01T08:00:00.000Z');
     const events: AnalyticsEvent[] = [
