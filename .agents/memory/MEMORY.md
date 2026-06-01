@@ -12,3 +12,4 @@
 - [AForce explainability drivers](aforce-explainability.md) — plain 4-driver score "why" (Water/Sleep/Heat/Recovery) rolls up the SAME contributions; one jargon-free sentence each; scoring tests must live in utils/__tests__.
 - [AForce Daily Wins engine](aforce-daily-wins.md) — positive-only, one-line reinforcement on home; pure helper shows top win from REAL signals, renders nothing (never a downer) when none; retention not gamification.
 - [AForce Analytics Layer](aforce-analytics.md) — INTERNAL no-UI analytics; keep math in the pure metrics module (service/hooks untestable), persisted appends MUST go through the serialized write queue, signals never fabricated.
+- [AForce adaptive reminders](aforce-adaptive-reminders.md) — no recurring reminder generator exists; "smart reminders" = a pure policy that gates the fixed welcome cadence (levels + rules + hard fatigue guardrails).

@@ -39,6 +39,7 @@ import {
   recordReminderShown,
   recordReminderResponse,
 } from '@/services/analytics';
+import { useAdaptiveReminderGate } from '@/hooks/useAdaptiveReminderGate';
 
 export function NotificationBanner() {
   const flags = useFeatureFlags();
@@ -66,7 +67,7 @@ export function NotificationBanner() {
     };
   }, [flags.spec_notifications]);
 
-  const due: ScheduledNotification | null = snapshot
+  const cadenceDue: ScheduledNotification | null = snapshot
     ? dueNotifications(
         deriveScheduledNotifications(snapshot.startAt),
         Date.now(),
@@ -74,8 +75,15 @@ export function NotificationBanner() {
       )
     : null;
 
+  // Adaptive reminder policy (Priority #5) — smarter gate on top of the
+  // cadence: suppresses during sleep / after goal / when ignored, and
+  // enforces the anti-fatigue cap + min-gap. Internal; no UI/settings.
+  const decision = useAdaptiveReminderGate(snapshot);
+  const due = decision.allow ? cadenceDue : null;
+
   // Internal analytics (Priority #4) — a due reminder reaching the
-  // surface is a "shown"; the service dedupes per reminder slot.
+  // surface is a "shown"; the service dedupes per reminder slot. Only
+  // count it when the adaptive gate actually lets it through.
   useEffect(() => {
     if (due) void recordReminderShown(due.day, new Date().toISOString());
   }, [due?.day]);
