@@ -36,12 +36,19 @@ dominant statement** ("Miami. Brickell. One market…") followed by inline
 pipe-separated labels (the earlier three stacked proof rows were retired —
 don't reintroduce a multi-row list without an ask); right column = an actual
 **map of Florida** (public-domain outline path in
-`floridaPath.ts`, `FLORIDA_PATH`, viewBox `0 4 70 64`) with a solid **red marker
-at Miami/Brickell** (`MIAMI = {x:60.4, y:56.2}`) + a pulsing red halo, and a
+`floridaPath.ts`, `FLORIDA_PATH`, viewBox `0 4 70 64`) with a marker
+at Miami/Brickell (`MIAMI = {x:60.4, y:56.2}`) and a
 "Miami · Brickell / The beachhead" caption below. (An earlier phyllotaxis
 dots-into-glowing-core graphic was replaced by the user's request for a real
-map.) Don't revert it to the abstract graphic, bare text, or the dark photo
-version without an ask.
+map.) The map was later elevated on a "make the state look a million times
+better" ask into a **layered premium data-map**: sculpted radial-gradient
+landmass fill + elevation drop-shadow + a blurred red edge-glow aura, an
+interior graticule grid clipped to the state, a coastal red heat radial +
+a density-dot scatter concentrated on Miami, animated radar ping rings, and a
+refined crosshair marker (ring + red dot + cream center). All SVG `<defs>` ids
+are namespaced via `useId()` to avoid cross-mount collisions. Keep the real-map
+treatment; don't revert to the abstract graphic, bare text, the dark photo
+version, or the earlier flat single-dot outline without an ask.
 
 **Type system: Inter for everything.** Both `--font-display-family` and
 `--font-body-family` in `index.css` are Inter. **Why:** a high-contrast
