@@ -1,0 +1,169 @@
+/**
+ * Apple HealthKit bridge for AForce OS.
+ *
+ * This module isolates every call to @kingstinct/react-native-healthkit
+ * behind a tiny async API so the rest of the app can request
+ * permission, check status, and pull recent samples without caring
+ * about platform availability.
+ *
+ * Important contract:
+ *   - On non-iOS platforms (Android, web) every function resolves to a
+ *     safe "unavailable" result. The Profile screen surfaces this so
+ *     the user knows real Apple Health requires a native iOS build.
+ *   - We never fabricate data. If a permission is denied or the
+ *     module isn't linked, we return null and the score engine simply
+ *     doesn't receive an Apple Health contribution.
+ */
+
+import { Platform } from 'react-native';
+
+export interface AppleHealthSnapshot {
+  /** Most recent resting heart rate sample (bpm). */
+  restingHeartRate: number | null;
+  /** Most recent HRV (SDNN, ms). */
+  hrvSdnn: number | null;
+  /** Total step count for the current local day. */
+  stepsToday: number | null;
+  /** Total sleep duration for the prior night (hours). */
+  sleepHoursLastNight: number | null;
+}
+
+const EMPTY_SNAPSHOT: AppleHealthSnapshot = {
+  restingHeartRate: null,
+  hrvSdnn: null,
+  stepsToday: null,
+  sleepHoursLastNight: null,
+};
+
+export function isAppleHealthSupported(): boolean {
+  return Platform.OS === 'ios';
+}
+
+/**
+ * Lazily import the native module. Imported this way so Metro doesn't
+ * try to resolve the native side on web/Android, where the package's
+ * Nitro module isn't linked.
+ */
+async function loadHealthKit(): Promise<any | null> {
+  if (!isAppleHealthSupported()) return null;
+  try {
+    const mod = await import('@kingstinct/react-native-healthkit');
+    return mod;
+  } catch (err) {
+    console.warn('[AppleHealth] failed to load native module', err);
+    return null;
+  }
+}
+
+/**
+ * Request read access to the metrics we feed into the AForce engine.
+ * Returns true only if the request was actually shown AND HealthKit
+ * is available — false in every other case (web, Android, native
+ * build without entitlement, user cancellation).
+ */
+export async function requestAppleHealthPermissions(): Promise<boolean> {
+  const HK = await loadHealthKit();
+  if (!HK) return false;
+  try {
+    await HK.requestAuthorization({
+      toRead: [
+        'HKQuantityTypeIdentifierHeartRate',
+        'HKQuantityTypeIdentifierRestingHeartRate',
+        'HKQuantityTypeIdentifierHeartRateVariabilitySDNN',
+        'HKQuantityTypeIdentifierStepCount',
+        'HKCategoryTypeIdentifierSleepAnalysis',
+        'HKWorkoutTypeIdentifier',
+      ],
+      toShare: ['HKQuantityTypeIdentifierDietaryWater'],
+    });
+    return true;
+  } catch (err) {
+    console.warn('[AppleHealth] requestAuthorization failed', err);
+    return false;
+  }
+}
+
+/**
+ * Pull a snapshot of the metrics that influence the AForce score.
+ * Any field we can't read is left as null — never substituted with
+ * a placeholder.
+ */
+export async function fetchAppleHealthSnapshot(): Promise<AppleHealthSnapshot> {
+  const HK = await loadHealthKit();
+  if (!HK) return EMPTY_SNAPSHOT;
+
+  const startOfDay = new Date();
+  startOfDay.setHours(0, 0, 0, 0);
+  const now = new Date();
+  const lastNightStart = new Date(now.getTime() - 18 * 60 * 60 * 1000);
+
+  const safe = async <T>(fn: () => Promise<T>): Promise<T | null> => {
+    try {
+      return await fn();
+    } catch (err) {
+      console.warn('[AppleHealth] sample fetch failed', err);
+      return null;
+    }
+  };
+
+  const mostRecentQuantity = async (identifier: string, unit: string): Promise<number | null> => {
+    const samples = await HK.queryQuantitySamples(identifier, {
+      ascending: false,
+      limit: 1,
+      unit,
+      filter: { date: { startDate: new Date(0), endDate: now } },
+    });
+    if (!Array.isArray(samples) || samples.length === 0) return null;
+    return samples[0]?.quantity ?? null;
+  };
+
+  const restingHeartRate = await safe(() =>
+    mostRecentQuantity('HKQuantityTypeIdentifierRestingHeartRate', 'count/min'),
+  );
+
+  const hrvSdnn = await safe(() =>
+    mostRecentQuantity('HKQuantityTypeIdentifierHeartRateVariabilitySDNN', 'ms'),
+  );
+
+  const stepsToday = await safe(async () => {
+    const samples = await HK.queryQuantitySamples('HKQuantityTypeIdentifierStepCount', {
+      ascending: true,
+      limit: 0,
+      unit: 'count',
+      filter: { date: { startDate: startOfDay, endDate: now } },
+    });
+    if (!Array.isArray(samples)) return null;
+    return samples.reduce(
+      (sum: number, s: { quantity: number }) => sum + (s.quantity ?? 0),
+      0,
+    );
+  });
+
+  const sleepHoursLastNight = await safe(async () => {
+    const samples = await HK.queryCategorySamples('HKCategoryTypeIdentifierSleepAnalysis', {
+      ascending: true,
+      limit: 0,
+      filter: { date: { startDate: lastNightStart, endDate: now } },
+    });
+    if (!Array.isArray(samples)) return null;
+    const ms = samples.reduce(
+      (sum: number, s: { startDate: string | Date; endDate: string | Date; value: number }) => {
+        // value 0 = INBED, 1 = ASLEEP_UNSPECIFIED, 3..5 = ASLEEP_CORE/DEEP/REM, 2 = AWAKE.
+        const isAsleep = s.value === 1 || s.value === 3 || s.value === 4 || s.value === 5;
+        if (!isAsleep) return sum;
+        const start = new Date(s.startDate).getTime();
+        const end = new Date(s.endDate).getTime();
+        return sum + Math.max(0, end - start);
+      },
+      0,
+    );
+    return ms / (1000 * 60 * 60);
+  });
+
+  return {
+    restingHeartRate: restingHeartRate ?? null,
+    hrvSdnn: hrvSdnn ?? null,
+    stepsToday: stepsToday ?? null,
+    sleepHoursLastNight: sleepHoursLastNight ?? null,
+  };
+}

@@ -2471,3 +2471,9 @@ id = "qVAUcbEAWHiNOFQUJUJZC"
 uri = "file://exports/AForce-OS-Technical-Audit.pdf"
 type = "pdf"
 title = "AForce OS — Technical Audit (PDF)"
+
+[[outputs]]
+id = "jpKTpEUqrFTc8vJaazRzf"
+uri = "file://exports/aforce-os-standalone.zip"
+type = "unspecified"
+title = "AForce OS — Standalone Developer Repo (app + libs only)"

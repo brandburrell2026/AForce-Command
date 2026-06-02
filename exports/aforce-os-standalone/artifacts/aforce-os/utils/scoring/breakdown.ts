@@ -1,0 +1,399 @@
+import type {
+  UserState,
+  PerformanceLevel,
+  ScoreContribution,
+  ScorePrediction,
+} from '../../types';
+import { activeDecayMultiplier, socialIntakePoints, SOCIAL_INTAKE_MAX_PENALTY } from '../hangoverRisk';
+import { aggregateBiometrics } from '../biometricsAggregator';
+import { materializedIntakePoints } from '../../services/hydrationScoreService';
+import { depletionRatePerMinute } from '../depletionRate';
+
+export function resolveState(score: number): PerformanceLevel {
+  if (score >= 90) return 'PEAK';
+  if (score >= 75) return 'BALANCED';
+  if (score >= 60) return 'RECOVERING';
+  return 'DEPLETED';
+}
+
+// ─── Score Breakdown ──────────────────────────────────────────────────────────
+export function buildBreakdown(state: UserState): { score: number; contributions: ScoreContribution[]; decayPerMinute: number; minutesSinceLast: number } {
+  const minutesSinceLast = minutesSince(state.lastIntakeTime);
+
+  // Per-event hydration scoring (replaces the old running-aggregate
+  // baseIntake + aforceBonus model). Each event carries its own
+  // pre-computed impact decomposition; the materializer ramps the
+  // delayed portion in linearly over the absorption window so the orb
+  // keeps moving for ~10–25 min after a log — feels like the body
+  // absorbing in real time. When `intakeEvents` is empty (legacy
+  // state pre-migration), we fall back to the running-aggregate so
+  // the score still renders.
+  // TODO(remove): legacy baseIntake/aforceBonus running-aggregate
+  // fallback. Safe to delete once we've confirmed no production rows
+  // are missing `intakeEvents` (migration shipped 2026-Q1).
+  const events = state.intakeEvents ?? [];
+  let baseIntake: number;
+  let aforceBonus: number;
+  if (events.length > 0) {
+    const m = materializedIntakePoints(events, new Date());
+    baseIntake = Math.round(m.waterPoints);
+    aforceBonus = Math.round(m.aforcePoints);
+  } else {
+    const ozRatio = Math.min(1, state.ozConsumedToday / state.ozTarget);
+    baseIntake = Math.round(45 * ozRatio);
+    aforceBonus = Math.min(50, Math.max(0, (state.aforceUnitsToday ?? 0) * 12));
+  }
+
+  // Per spec: continuous decay model (replaces the old tiered "recency").
+  // Score(t) = previous − decay × time + inputs. We translate that into
+  // a single contribution called "decay since last intake" so the
+  // breakdown UI keeps its bar-and-label shape while the score itself
+  // honors the spec formula.
+  const decayPerMinute = computeDecayPerMinute(state);
+  // Continuous decay — no artificial cap. The final score is clamped
+  // to 0..100 below, so a long deficit naturally pins the user at 0
+  // (DEPLETED) instead of plateauing inside the band.
+  const decayMagnitude = computeDecayPoints(state, minutesSinceLast);
+  const decayContribution = -Math.round(decayMagnitude);
+  // Stored under id="recency" so any saved rows / tests that key off
+  // that id continue to work — the label and meaning have been
+  // upgraded to match the spec.
+  const recency = decayContribution;
+
+  const consistency = Math.min(15, state.complianceStreak * 2);
+
+  let context = 5;
+  if (state.heatLoad >= 8) context -= 12;
+  else if (state.heatLoad >= 6) context -= 7;
+  else if (state.heatLoad >= 4) context -= 3;
+  if (state.sweatRate >= 6) context -= 4;
+  if (state.activityLevel >= 8) context -= 5;
+  else if (state.activityLevel >= 5) context -= 2;
+
+  const recoveryMomentum = Math.min(15, Math.max(0, 15 - minutesSinceLast / 4));
+
+  let symptomPenalty = 0;
+  if (state.symptomState === 'severe') symptomPenalty = -22;
+  else if (state.symptomState === 'moderate') symptomPenalty = -14;
+  else if (state.symptomState === 'mild') symptomPenalty = -6;
+  symptomPenalty -= Math.min(8, state.symptoms.length * 2);
+
+  const urinePenalty = -Math.max(0, (state.urineSignal - 3)) * 4;
+  const outputStress = -Math.min(10, Math.floor(state.sweatRate * state.activityLevel / 12));
+  const sleepCarry = state.overnightLossOz > 8 && !state.hasSeenMorningCommand
+    ? -Math.min(10, Math.floor((state.overnightLossOz - 8) * 0.8))
+    : 0;
+
+  const recovery = computeRecoverySignal(state);
+  const confirmation = computeConfirmationDelta(state);
+
+  // Per-event social-mode penalty: each logged alcohol drink moves the
+  // score immediately (alcohol diuresis ≈ 5 oz of net water loss per
+  // standard drink), with `/social/hydrate` confirmations cutting the
+  // penalty by 60 %. See `socialIntakePoints` for the time profile.
+  const socialDrinks = state.socialMode?.drinks ?? [];
+  const socialIntake = socialIntakePoints(socialDrinks);
+
+  const raw = baseIntake + aforceBonus + recency + consistency + context + recoveryMomentum
+            + symptomPenalty + urinePenalty + outputStress + sleepCarry
+            + recovery.delta + confirmation + socialIntake.penalty;
+  const score = Math.max(0, Math.min(100, Math.round(raw)));
+
+  const aforceUnits = state.aforceUnitsToday ?? 0;
+  const contributions: ScoreContribution[] = [
+    { id: 'base', label: 'Base intake (ounces vs target)', delta: baseIntake, maxMagnitude: 45,
+      hint: `${state.ozConsumedToday} of ${state.ozTarget} ounces` },
+    { id: 'aforce_bonus', label: 'Protocol bonus', delta: aforceBonus, maxMagnitude: 50,
+      hint: aforceUnits === 0
+        ? 'Log a stick or RTD'
+        : `${aforceUnits} intake${aforceUnits === 1 ? '' : 's'} today` },
+    { id: 'recency', label: 'Decay since last intake', delta: recency, maxMagnitude: 35,
+      hint: `${minutesSinceLast} min · ${decayPerMinute.toFixed(2)} pts/min${state.clutchActive ? ' (clutch ×1.3)' : ''}` },
+    { id: 'confirmation', label: 'Last command confirmation', delta: confirmation, maxMagnitude: 3,
+      hint: confirmation > 0 ? 'Followed last recheck' : confirmation < 0 ? 'Missed last recheck' : 'No recent recheck' },
+    { id: 'consistency', label: 'Compliance streak', delta: consistency, maxMagnitude: 15,
+      hint: `${state.complianceStreak}-day streak` },
+    { id: 'context', label: 'Context (heat / sweat / activity)', delta: context, maxMagnitude: 20,
+      hint: `Heat ${state.heatLoad} · Sweat ${state.sweatRate} · Activity ${state.activityLevel}` },
+    { id: 'recovery', label: 'Recovery momentum', delta: Math.round(recoveryMomentum), maxMagnitude: 15,
+      hint: 'Aggressive restoration after deficit' },
+    { id: 'symptom', label: 'Performance signals', delta: symptomPenalty, maxMagnitude: 30,
+      hint: state.symptoms.length ? `${state.symptoms.length} active` : 'None active' },
+    { id: 'urine', label: 'Hydration signal (1-8)', delta: urinePenalty, maxMagnitude: 20,
+      hint: `Level ${state.urineSignal}/8` },
+    { id: 'output', label: 'Output stress', delta: outputStress, maxMagnitude: 10,
+      hint: 'Sweat × activity load' },
+    { id: 'sleep', label: 'Overnight carryover', delta: sleepCarry, maxMagnitude: 10,
+      hint: state.overnightLossOz > 8 ? `${state.overnightLossOz} ounces loss` : 'No deficit carry' },
+    { id: 'health_signals', label: recovery.label, delta: recovery.delta, maxMagnitude: 10,
+      hint: recovery.hint },
+  ];
+
+  // Only surface the Social-mode row when there is something to show —
+  // an empty row at delta 0 is just visual noise on the breakdown sheet.
+  if (socialIntake.activeDrinks > 0) {
+    const hydratedNote = socialIntake.hydratedDrinks > 0
+      ? ` · ${socialIntake.hydratedDrinks} hydrated (-60 %)`
+      : '';
+    contributions.push({
+      id: 'social_intake',
+      label: 'Social mode intake',
+      delta: Math.round(socialIntake.penalty),
+      maxMagnitude: SOCIAL_INTAKE_MAX_PENALTY,
+      hint: `${socialIntake.activeDrinks} drink${socialIntake.activeDrinks === 1 ? '' : 's'} active${hydratedNote}`,
+    });
+  }
+
+  return { score, contributions, decayPerMinute, minutesSinceLast };
+}
+
+/**
+ * Continuous decay (points / minute) — physiologically grounded.
+ *
+ * The previous formula (`BaseDecay = 0.4×weight/150 + 0.1×activity`,
+ * additive heat/humidity terms) was ~5× too aggressive at rest and
+ * catastrophic in heat (sitting in 35 °C depleted PEAK→DEPLETED in
+ * 17 minutes). The math has been re-grounded against ACSM/IOM/ISO 7933
+ * sources and lives in `utils/depletionRate.ts` so it can be unit-
+ * tested in plain node/vitest. See that file's header for the full
+ * physiology references and anchor scenarios.
+ *
+ * This wrapper just adapts UserState → DepletionInputs and folds in
+ * the social-mode multiplier (which depends on the drinks list, kept
+ * outside the pure helper so the helper stays zero-dep).
+ */
+function computeDecayPerMinute(state: UserState): number {
+  const socialDecayMultiplier = state.socialMode?.active
+    ? activeDecayMultiplier(state.socialMode.drinks)
+    : 1;
+
+  // Multi-provider activity floor: when any connected health platform
+  // (WHOOP strain, Strava workout minutes, Garmin GPS workout, Apple
+  // Health steps, etc.) shows the user has been more active than the
+  // manual `activityLevel` slider, use the inferred level as a FLOOR.
+  // This way a heavy training day automatically depletes faster even
+  // if the user never bumped the activity axis themselves.
+  let activityLevel = state.activityLevel;
+  if (state.biometrics && Object.keys(state.biometrics).length > 0) {
+    const agg = aggregateBiometrics(state.biometrics);
+    if (agg.inferredActivityLevel > activityLevel) {
+      activityLevel = agg.inferredActivityLevel;
+    }
+  }
+
+  // NOTE: the +0.5 missed-command boost is NOT folded into the per-min
+  // rate here, because the rate is reported to the prediction strip and
+  // multiplied by elapsed time in `computeDecayPoints`. Folding it in
+  // would (a) misreport the steady-state rate after the 10-min window
+  // expires and (b) retroactively apply the boost to time the user
+  // spent before they ever missed the recheck. The boost is integrated
+  // separately in `computeDecayPoints` over its true active overlap.
+  return depletionRatePerMinute({
+    bodyWeightLbs: state.bodyWeightLbs,
+    activityLevel,
+    weatherTempC: state.weatherTempC,
+    weatherHumidity: state.weatherHumidity,
+    heatLoad: state.heatLoad,
+    isAwake: state.isAwake,
+    clutchActive: state.clutchActive,
+    socialDecayMultiplier,
+  });
+}
+
+/**
+ * Total decay (in score points) accumulated over `minutesSinceLast`
+ * minutes since the last intake. Splits into:
+ *   - Baseline: `decayPerMinute × minutesSinceLast`
+ *   - Boost overlap: `0.5 × (overlap minutes between the active 10-min
+ *     missed-command window and the [lastIntake, now] interval)`.
+ *
+ * Boost integration only counts the slice of the boost window that
+ * actually fell after the last intake — anything before the intake has
+ * no remaining decay to apply (intake reset the score).
+ */
+function computeDecayPoints(state: UserState, minutesSinceLast: number): number {
+  const baseline = computeDecayPerMinute(state) * Math.max(0, minutesSinceLast);
+
+  let boost = 0;
+  if (state.clutchDecayBoostUntil) {
+    const boostEndMs = state.clutchDecayBoostUntil.getTime();
+    const boostStartMs = boostEndMs - 10 * 60 * 1000;
+    const intakeMs = state.lastIntakeTime.getTime();
+    const nowMs = Date.now();
+    const overlapStart = Math.max(boostStartMs, intakeMs);
+    const overlapEnd = Math.min(boostEndMs, nowMs);
+    if (overlapEnd > overlapStart) {
+      boost = 0.5 * ((overlapEnd - overlapStart) / 60000);
+    }
+  }
+  return baseline + boost;
+}
+
+/**
+ * ±3 swing from the post-recheck confirmation loop (T2). Stale entries
+ * (older than 30 minutes) are ignored so the bonus / penalty does not
+ * stick to the score forever.
+ */
+function computeConfirmationDelta(state: UserState): number {
+  if (state.confirmationDelta == null) return 0;
+  if (!state.confirmationDeltaSetAt) return 0;
+  const ageMin = (Date.now() - state.confirmationDeltaSetAt.getTime()) / 60000;
+  if (ageMin > 30) return 0;
+  return Math.max(-3, Math.min(3, Math.round(state.confirmationDelta)));
+}
+
+export function buildPrediction(score: number, decayPerMinute: number): ScorePrediction {
+  // System-language prediction copy (Performance Command Engine spec).
+  // Reads as telemetry: decisive, time-bound, no soft hedging.
+  if (score <= 40) {
+    return { decayPerMinute, minutesToDepleted: 0, label: 'Performance compromised. Correction required.' };
+  }
+  if (decayPerMinute <= 0) {
+    return { decayPerMinute, minutesToDepleted: null, label: 'System holding. No decay detected.' };
+  }
+  const minutes = Math.max(1, Math.round((score - 40) / decayPerMinute));
+  if (minutes >= 240) {
+    return { decayPerMinute, minutesToDepleted: minutes, label: `Stable. Degradation outside 4-hour window.` };
+  }
+  if (minutes >= 60) {
+    const h = Math.floor(minutes / 60);
+    const m = minutes % 60;
+    return { decayPerMinute, minutesToDepleted: minutes, label: `Performance degradation in ${h}h ${m}m.` };
+  }
+  return { decayPerMinute, minutesToDepleted: minutes, label: `Performance degradation in ${minutes} min. Correction required.` };
+}
+
+/**
+ * Translate the user's connected health platforms into a -10..+10
+ * adjustment to the score. The previous version only read Apple Health;
+ * the score now derives from any combination of the seven providers
+ * in `data/healthProviders.ts` (Apple Health, Oura, Samsung Health,
+ * Google Health Connect, Garmin, WHOOP, Strava).
+ *
+ * Aggregation lives in `utils/biometricsAggregator.ts`; this wrapper
+ * just adapts UserState → that helper, with a fallback to the legacy
+ * `appleHealth` field if `biometrics` was never populated.
+ *
+ * The ±10 clamp is preserved end-to-end so multi-provider data can
+ * never dominate the score.
+ */
+export function computeRecoverySignal(state: UserState): { delta: number; hint: string; label: string } {
+  // Prefer the multi-provider record when present.
+  if (state.biometrics && Object.keys(state.biometrics).length > 0) {
+    const agg = aggregateBiometrics(state.biometrics);
+    const label = agg.sources.length === 1
+      ? 'Health platform (HRV / sleep / strain)'
+      : `Health platforms (${agg.sources.length} connected)`;
+    if (agg.recoveryDelta === 0 && agg.hint.startsWith('No') === false) {
+      return { delta: 0, hint: agg.hint, label };
+    }
+    return { delta: agg.recoveryDelta, hint: agg.hint, label };
+  }
+
+  // Legacy fallback — preserved so existing callers / saved states
+  // that only have `appleHealth` still get a recovery contribution.
+  const snap = state.appleHealth;
+  if (!snap) return { delta: 0, hint: 'Not connected', label: 'Health platforms (none connected)' };
+
+  const parts: string[] = [];
+  let delta = 0;
+
+  if (snap.hrvSdnn != null) {
+    if (snap.hrvSdnn >= 60) { delta += 5; parts.push(`HRV ${Math.round(snap.hrvSdnn)}ms (high)`); }
+    else if (snap.hrvSdnn >= 40) { delta += 2; parts.push(`HRV ${Math.round(snap.hrvSdnn)}ms`); }
+    else if (snap.hrvSdnn >= 30) { parts.push(`HRV ${Math.round(snap.hrvSdnn)}ms`); }
+    else { delta -= 5; parts.push(`HRV ${Math.round(snap.hrvSdnn)}ms (low)`); }
+  }
+
+  if (snap.sleepHoursLastNight != null) {
+    const h = snap.sleepHoursLastNight;
+    if (h >= 7 && h <= 9) { delta += 5; parts.push(`Sleep ${h.toFixed(1)}h`); }
+    else if (h >= 6) { delta += 2; parts.push(`Sleep ${h.toFixed(1)}h`); }
+    else if (h >= 4) { delta -= 3; parts.push(`Sleep ${h.toFixed(1)}h (short)`); }
+    else { delta -= 5; parts.push(`Sleep ${h.toFixed(1)}h (deficit)`); }
+  }
+
+  // Clamp to ±10 so a single platform can never dominate the score.
+  delta = Math.max(-10, Math.min(10, delta));
+
+  if (parts.length === 0) return { delta: 0, hint: 'Awaiting data', label: 'Apple Health (HRV + sleep)' };
+  return { delta, hint: parts.join(' · '), label: 'Apple Health (HRV + sleep)' };
+}
+
+// ─── Score Calculation ────────────────────────────────────────────────────────
+export function calculateBaseScore(state: UserState): number {
+  // Per-event hydration scoring — mirrors buildBreakdown so the score
+  // and the prediction strip agree. Falls back to the legacy running-
+  // aggregate when no events are present.
+  // TODO(remove): legacy baseIntake/aforceBonus running-aggregate
+  // fallback. Safe to delete once we've confirmed no production rows
+  // are missing `intakeEvents` (migration shipped 2026-Q1).
+  const events = state.intakeEvents ?? [];
+  let baseIntake: number;
+  let aforceBonus: number;
+  if (events.length > 0) {
+    const m = materializedIntakePoints(events, new Date());
+    baseIntake = Math.round(m.waterPoints);
+    aforceBonus = Math.round(m.aforcePoints);
+  } else {
+    const ozRatio = Math.min(1, state.ozConsumedToday / state.ozTarget);
+    baseIntake = Math.round(45 * ozRatio);
+    aforceBonus = Math.min(50, Math.max(0, (state.aforceUnitsToday ?? 0) * 12));
+  }
+
+  // Continuous decay (per spec) replaces the tiered recency tier.
+  const minutesSinceLast = minutesSince(state.lastIntakeTime);
+  const recency = -Math.round(computeDecayPoints(state, minutesSinceLast));
+
+  // consistency_score: 0–15 based on streak
+  const consistency = Math.min(15, state.complianceStreak * 2);
+
+  // context_modifier: -15..+5 from heat/sweat/activity
+  let context = 5;
+  if (state.heatLoad >= 8) context -= 12;
+  else if (state.heatLoad >= 6) context -= 7;
+  else if (state.heatLoad >= 4) context -= 3;
+  if (state.sweatRate >= 6) context -= 4;
+  if (state.activityLevel >= 8) context -= 5;
+  else if (state.activityLevel >= 5) context -= 2;
+
+  // recovery_momentum: 0–15 — how aggressively recent intake is restoring deficit
+  const recoveryMomentum = Math.min(15, Math.max(0, 15 - minutesSinceLast / 4));
+
+  // symptom_penalty
+  let symptomPenalty = 0;
+  if (state.symptomState === 'severe') symptomPenalty = -22;
+  else if (state.symptomState === 'moderate') symptomPenalty = -14;
+  else if (state.symptomState === 'mild') symptomPenalty = -6;
+  symptomPenalty -= Math.min(8, state.symptoms.length * 2);
+
+  // urine_signal_penalty: 1 = optimal, 8 = critical
+  const urinePenalty = -Math.max(0, (state.urineSignal - 3)) * 4;
+
+  // output_stress_penalty (sweat × activity)
+  const outputStress = -Math.min(10, Math.floor(state.sweatRate * state.activityLevel / 12));
+
+  // Sleep mode carryover deficit
+  const sleepCarry = state.overnightLossOz > 8 && !state.hasSeenMorningCommand
+    ? -Math.min(10, Math.floor((state.overnightLossOz - 8) * 0.8))
+    : 0;
+
+  const recovery = computeRecoverySignal(state);
+
+  const confirmation = computeConfirmationDelta(state);
+
+  // Per-event social-mode penalty — must mirror buildBreakdown so that
+  // ScoreEngineOutput.score and the contribution sum agree.
+  const socialIntake = socialIntakePoints(state.socialMode?.drinks ?? []);
+
+  const raw = baseIntake + aforceBonus + recency + consistency + context + recoveryMomentum
+            + symptomPenalty + urinePenalty + outputStress + sleepCarry
+            + recovery.delta + confirmation + socialIntake.penalty;
+
+  return Math.max(0, Math.min(100, Math.round(raw)));
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+export function minutesSince(date: Date): number {
+  return Math.floor((Date.now() - date.getTime()) / 60000);
+}

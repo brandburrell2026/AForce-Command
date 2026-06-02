@@ -1,0 +1,92 @@
+{
+  "expo": {
+    "name": "AForce OS",
+    "slug": "aforce-os",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "aforce-os",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/images/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#000000"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.aforce.os",
+      "buildNumber": "1",
+      "entitlements": {
+        "com.apple.developer.healthkit": true,
+        "com.apple.developer.healthkit.access": []
+      },
+      "infoPlist": {
+        "NSCameraUsageDescription": "AForce OS uses your camera to scan hydration product barcodes.",
+        "NSLocationWhenInUseUsageDescription": "AForce OS uses your location to show local temperature and humidity, which drive your personalized hydration recommendations.",
+        "NSHealthShareUsageDescription": "AForce OS reads heart rate, HRV, sleep, and workout data from Apple Health to personalize your hydration and recovery score.",
+        "NSHealthUpdateUsageDescription": "AForce OS writes hydration logs to Apple Health so they appear alongside your other health data."
+      }
+    },
+    "android": {
+      "backgroundColor": "#000000",
+      "package": "com.aforce.os",
+      "versionCode": 1,
+      "icon": "./assets/images/icon.png",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "backgroundColor": "#000000"
+      },
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/images/favicon.png",
+      "backgroundColor": "#000000"
+    },
+    "plugins": [
+      [
+        "expo-router",
+        {
+          "origin": "https://replit.com/"
+        }
+      ],
+      "expo-font",
+      "expo-web-browser",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "AForce OS uses your camera to scan hydration product barcodes."
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "AForce OS uses your location to show local temperature and humidity, which drive your personalized hydration recommendations."
+        }
+      ],
+      [
+        "@kingstinct/react-native-healthkit",
+        {
+          "NSHealthShareUsageDescription": "AForce OS reads heart rate, HRV, sleep, and workout data from Apple Health to personalize your hydration and recovery score.",
+          "NSHealthUpdateUsageDescription": "AForce OS writes hydration logs to Apple Health so they appear alongside your other health data.",
+          "background": false
+        }
+      ],
+      "expo-audio",
+      [
+        "expo-notifications",
+        {
+          "color": "#B6FF00"
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    }
+  }
+}

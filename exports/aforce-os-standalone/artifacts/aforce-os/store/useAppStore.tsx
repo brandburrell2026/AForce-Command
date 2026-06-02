@@ -1,0 +1,886 @@
+/**
+ * AForce OS App Store
+ * React Context + useReducer state container backed by the mockApi service layer.
+ *
+ * Source of truth for: userState, engineOutput (score/state/pulseConfig/command),
+ * cycle history, feature flags, and overlay UI state.
+ */
+
+import React, { createContext, useContext, useReducer, useCallback, useEffect, useMemo, useRef } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import type {
+  UserState,
+  AppleHealthInputs,
+  CycleResult,
+  HistoryEntry,
+  FluidType,
+  FeatureFlags,
+  ProviderSnapshot,
+  ProviderBiometrics,
+  ScoreEngineOutput,
+  NotificationSettings,
+  NotificationSettingKey,
+} from '../types';
+import { DEFAULT_NOTIFICATION_SETTINGS } from '../types';
+import type { UserSubscription } from '../types/subscription';
+import type { SweatAutopilot } from '../types/sweat';
+import type { HealthProviderId } from '../data/healthProviders';
+import type { AppState, Action } from './appStoreTypes';
+import { reducer } from './appStoreReducer';
+import {
+  DEFAULT_UNIT_PREFERENCES,
+  sanitizeUnitPreferences,
+  type UnitPreferences,
+} from '../utils/units';
+import {
+  DEFAULT_PROFILE_IDENTITY,
+  sanitizeProfileIdentity,
+  type ProfileIdentity,
+} from '../utils/profileIdentity';
+import { SliceProvider, type ActionsSlice } from './slices';
+import { defaultSubscription } from '../services/subscriptionService';
+import { generateCycleIdentityMessage, generateNextCycleHint } from '../utils/scoringEngine';
+import { defaultUserState, mockHistory } from '../data/mockData';
+import { DEFAULT_FLAGS } from '../featureFlags/flags';
+import {
+  fetchHome,
+  postIntakeLog,
+  postSignalsUpdate,
+  postUrineSignalUpdate,
+  postEnergyStateUpdate,
+  postCheckin,
+  postClutchFlag,
+  postConfirmCommand,
+  postLanguage,
+  refreshWeather,
+  subscribeToStateUpdates,
+  postSocialActivate,
+  postSocialCruise,
+  postSocialShield,
+  postSocialContext,
+  postSocialDrink,
+  postSocialHydrate,
+  postSocialDeactivate,
+  postJournalSnapshot,
+} from '../services/realApi';
+import {
+  deriveRecoverySnapshot,
+  recoveryInputsFromState,
+} from '../services/recoveryEngine';
+import i18n, { setLanguage as setI18nLanguage, type SupportedLanguage } from '../services/i18nService';
+import { PRODUCTS } from '../data/products';
+import { phantomBandService } from '../services/phantomBandService';
+import { speak as ttsSpeak, setVoicePlaybackEnabled, setSelectedVoiceId as setTtsVoiceId } from '../services/textToSpeech';
+import { DEFAULT_VOICE_ID } from '../services/voiceCatalog';
+import {
+  effectiveCommandLine,
+  categoryAllowedForScope,
+  completionRewardLine,
+  type VoiceIntensity,
+  type VoiceScope,
+} from '../services/voice/commandVoice';
+import { commandSpeak, markCycleExecuted, setSpeakerImpl as setBusSpeakerImpl } from '../services/voice/commandVoiceBus';
+
+// Flavor inference moved to `utils/inferFlavorFromLabel` so it can be
+// unit-tested in isolation. Substring-based: "Berry Blast" and
+// "Berry Blast + Dulse" both resolve to the same canonical token.
+import { inferFlavorFromLabel } from '../utils/inferFlavorFromLabel';
+
+// Service-only synchronous bootstrapping helper. The store NEVER calls
+// the scoring engine directly — it always asks the mock API for engineOutput.
+// (We use the synchronous helper from mockApi internals via fetchHome's
+// promise resolution being immediate-after-microtask in tests; for the
+// initial render, we accept a one-tick zero state and refresh on mount.)
+import { calculateScore as _initialOnly } from '../utils/scoringEngine';
+import type { AppContextValue } from './app/types';
+import {
+  VOICE_COACH_KEY,
+  SELECTED_VOICE_KEY,
+  VOICE_INTENSITY_KEY,
+  VOICE_SCOPE_KEY,
+  NOTIFICATION_SETTINGS_KEY,
+  UNIT_PREFERENCES_KEY,
+  PROFILE_IDENTITY_KEY,
+  VOICE_INTENSITIES,
+  VOICE_SCOPES,
+} from './app/constants';
+import { buildSyntheticBaselineEntry } from './app/helpers';
+import { useStoreActions } from './app/actions';
+
+// Initial render only — engine output is then immediately refreshed via
+// /v1/home from the service layer in an effect (see AppProvider mount).
+const initialEngineOutput = _initialOnly(defaultUserState);
+
+const initialState: AppState = {
+  userState: defaultUserState,
+  engineOutput: initialEngineOutput,
+  history: mockHistory,
+  lastCycleResult: null,
+  isCompletingCycle: false,
+  showCycleSuccess: false,
+  timerSeconds: initialEngineOutput.riskTimer.minutes * 60,
+  pendingConfirmation: false,
+  featureFlags: DEFAULT_FLAGS,
+  subscription: defaultSubscription(),
+  lastIntakeBurstAt: 0,
+  hasSeenOnboarding: false,
+  notificationSettings: DEFAULT_NOTIFICATION_SETTINGS,
+  unitPreferences: DEFAULT_UNIT_PREFERENCES,
+  profileIdentity: DEFAULT_PROFILE_IDENTITY,
+};
+
+const AppContext = createContext<AppContextValue | null>(null);
+
+export function AppProvider({ children }: { children: React.ReactNode }) {
+  const [state, dispatch] = useReducer(reducer, initialState);
+  // Voice Coach toggle (T3) — defaults ON; mirrored to AsyncStorage +
+  // the textToSpeech playback flag so non-React consumers see the same
+  // value. Hydrated from storage on first effect.
+  const [voiceCoachEnabled, setVoiceCoachEnabledState] = React.useState<boolean>(true);
+  // AForce Coach picker (Profile). Defaults to Coach Rock — the device
+  // synthesizer fallback is no longer user-selectable; it only kicks
+  // in silently when the network drops mid-stream. The stored value is
+  // a stable coach id ('rock' | 'bb' | 'surge' | 'sage'); the catalog
+  // resolves it to the right ElevenLabs voiceId at playback time.
+  const [selectedVoiceId, setSelectedVoiceIdState] = React.useState<string | null>(DEFAULT_VOICE_ID);
+  // AForce Command Voice Engine — intensity + scope (defaults match
+  // the spec: standard tone, all categories audible). Hydrated from
+  // AsyncStorage on first effect; persisted on every setter call.
+  const [voiceIntensity, setVoiceIntensityState] = React.useState<VoiceIntensity>('standard');
+  const [voiceScope, setVoiceScopeState] = React.useState<VoiceScope>('all');
+  // Investor Demo overlay — purely transient UI flag. Never persisted
+  // (every demo run starts fresh) and never reads/writes engine state.
+  const [isInvestorDemoActive, setInvestorDemoActiveState] = React.useState<boolean>(false);
+  const setInvestorDemoActive = useCallback((next: boolean) => {
+    setInvestorDemoActiveState(next);
+  }, []);
+  // Latest intensity + scope mirrored into refs so the auto-speak +
+  // completion side-effects can read the current preference without
+  // taking them as deps (they would otherwise re-run on every toggle
+  // and re-trigger the same line).
+  const voiceIntensityRef = useRef(voiceIntensity);
+  const voiceScopeRef = useRef(voiceScope);
+  const voiceCoachEnabledRef = useRef(voiceCoachEnabled);
+  useEffect(() => { voiceIntensityRef.current = voiceIntensity; }, [voiceIntensity]);
+  useEffect(() => { voiceScopeRef.current = voiceScope; }, [voiceScope]);
+  useEffect(() => { voiceCoachEnabledRef.current = voiceCoachEnabled; }, [voiceCoachEnabled]);
+
+  // Wire the AForce Command Voice Engine bus to the real TTS speaker
+  // exactly once on mount. The bus defaults to a silent noop so it can
+  // be unit-tested in Node without dragging in expo-audio / expo-speech.
+  useEffect(() => {
+    setBusSpeakerImpl((text, opts) => ttsSpeak(text, opts ?? {}));
+    return () => setBusSpeakerImpl(null);
+  }, []);
+
+  // Live countdown timer (drives recheck)
+  useEffect(() => {
+    const interval = setInterval(() => dispatch({ type: 'TICK_TIMER' }), 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Ref-backed latest snapshot of the full UserState. Long-lived
+  // intervals (30s poll, 15min weather) close over `state.userState` at
+  // mount time and would otherwise pass STALE state to the merge layer
+  // — including dropping client-only fields like `biometrics` /
+  // `appleHealth` that landed AFTER the effect last ran. Reading
+  // `userStateRef.current` inside the interval callbacks makes every
+  // tick use the freshest state without re-creating timers on every
+  // change.
+  const userStateRef = useRef(state.userState);
+  useEffect(() => { userStateRef.current = state.userState; }, [state.userState]);
+
+  // Race-safe wrapper for every SET_USER_STATE dispatched from a
+  // server response.
+  //
+  // INVARIANT: client-only overlays (`biometrics`, `appleHealth`) are
+  // owned exclusively by the device. Service responses NEVER produce
+  // overlay data — they only echo whatever the request sent. Therefore
+  // at dispatch time we always replace the payload's overlays with the
+  // LATEST client state from `userStateRef.current`, regardless of
+  // what the payload carries. This handles every race uniformly:
+  //   - payload missing overlays (server-pushed WS update)         → use latest
+  //   - payload carrying empty `{}` (request had no providers)     → use latest
+  //   - payload carrying stale partial subset (e.g. `{whoop}` while
+  //     current is `{whoop, oura}` because user connected oura
+  //     mid-flight)                                                 → use latest superset
+  //   - payload carrying stale superset (request had `{whoop}` but
+  //     user disconnected mid-flight, current is `{}`)              → use empty current
+  //
+  // Engine output is then recomputed from the merged state so
+  // score/command/timer reflect the actual overlays — the service-
+  // computed `engineOutput` reflects the request-time snapshot which
+  // may have been clobbered by the overlay swap.
+  const applyServerUserState = useCallback((
+    newUserState: UserState,
+    _engineOutput: ScoreEngineOutput,
+  ) => {
+    const latest = userStateRef.current;
+    const merged: UserState = {
+      ...newUserState,
+      biometrics: latest.biometrics,
+      appleHealth: latest.appleHealth,
+    };
+    dispatch({
+      type: 'SET_USER_STATE',
+      payload: { newUserState: merged, engineOutput: _initialOnly(merged) },
+    });
+  }, []);
+
+  // Periodic /state refresh — keeps the engine output current (decay
+  // ticks, weather staleness, etc.) and rehydrates from server in case
+  // a WS push was missed.
+  useEffect(() => {
+    let cancelled = false;
+    const refresh = async () => {
+      const current = userStateRef.current;
+      try {
+        const { engineOutput, userState } = await fetchHome(current);
+        if (cancelled) return;
+        // If server returned a newer state (e.g. from another device or
+        // a fresh weather lookup), adopt it; otherwise just refresh the
+        // engine. We compare a few fields rather than deep-equal to keep
+        // this cheap.
+        const drift =
+          userState.weatherFetchedAt !== current.weatherFetchedAt ||
+          userState.unitsConsumedToday !== current.unitsConsumedToday ||
+          userState.urineSignal !== current.urineSignal ||
+          // Pick up a language change persisted from another device when
+          // the WS push was missed — without this, the Profile picker on
+          // device A would never reach device B until a stronger drift
+          // (intake / weather refresh) triggered the swap.
+          userState.language !== current.language;
+        if (drift) {
+          applyServerUserState(userState, engineOutput);
+        } else {
+          dispatch({ type: 'REFRESH_ENGINE', payload: { engineOutput } });
+        }
+      } catch {
+        // swallow — UI keeps last known engineOutput
+      }
+    };
+    refresh();
+    const interval = setInterval(refresh, 30 * 1000); // every 30s
+    return () => { cancelled = true; clearInterval(interval); };
+    // Mount-once timer; reads latest state via userStateRef.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // When the user switches languages, the AI command strings (action /
+  // explanation) live inside engineOutput and were rendered with the
+  // OLD locale. Re-derive engineOutput locally so the coach card and
+  // any TTS playback pick up the new language on the very next frame —
+  // no server round trip required.
+  useEffect(() => {
+    const handler = () => {
+      dispatch({
+        type: 'REFRESH_ENGINE',
+        payload: { engineOutput: _initialOnly(state.userState) },
+      });
+    };
+    i18n.on('languageChanged', handler);
+    return () => { i18n.off('languageChanged', handler); };
+  }, [state.userState]);
+
+  // Ref-backed latest snapshot of the client-only overlay so the WS
+  // subscription (mounted once) always reads the *current* appleHealth
+  // value rather than a stale closure over the initial render.
+  const overlayRef = useRef<{ appleHealth?: AppleHealthInputs; biometrics?: ProviderBiometrics }>({});
+  useEffect(() => {
+    overlayRef.current = {
+      appleHealth: state.userState.appleHealth,
+      biometrics: state.userState.biometrics,
+    };
+  }, [state.userState.appleHealth, state.userState.biometrics]);
+
+  // Live state pushes from the api-server. The server broadcasts after
+  // every mutation, so this catches changes from other clients (or
+  // server-initiated updates like the weather refresh) without waiting
+  // for the 30s poll. Subscribe once per mount; the overlay getter
+  // pulls from `overlayRef` so updates to appleHealth + biometrics
+  // (both client-only) never get clobbered by a server push.
+  useEffect(() => {
+    const unsubscribe = subscribeToStateUpdates(
+      (next) => applyServerUserState(next, _initialOnly(next)),
+      () => ({
+        appleHealth: overlayRef.current.appleHealth,
+        biometrics: overlayRef.current.biometrics,
+      }),
+    );
+    return unsubscribe;
+  }, []);
+
+  // Weather: fetch once on mount, then every 15 min. Uses Denver as a
+  // safe default (matches the existing climate strip) so we never block
+  // the UI on a permission prompt; if expo-location grants real coords
+  // later the next tick will use them.
+  useEffect(() => {
+    let cancelled = false;
+    const DEFAULT_LAT = 39.7392;
+    const DEFAULT_LON = -104.9903;
+    const tick = async (lat: number, lon: number) => {
+      try {
+        // Read latest userState via ref so a tick that fires AFTER a
+        // provider connect / Apple-Health snapshot lands carries those
+        // overlays into the merge, instead of the mount-time closure
+        // that lacked them.
+        const { newUserState, engineOutput } = await refreshWeather(userStateRef.current, lat, lon);
+        if (cancelled) return;
+        applyServerUserState(newUserState, engineOutput);
+      } catch (err) {
+        console.warn('[AForce] weather refresh failed', err);
+      }
+    };
+    let lat = DEFAULT_LAT;
+    let lon = DEFAULT_LON;
+    // Best-effort geolocation — only on web/native where the API exists.
+    // Failures fall through to the Denver default.
+    (async () => {
+      try {
+        const Location = await import('expo-location');
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status === 'granted') {
+          const pos = await Location.getCurrentPositionAsync({});
+          lat = pos.coords.latitude;
+          lon = pos.coords.longitude;
+        }
+      } catch {
+        // fall back to Denver
+      }
+      if (!cancelled) tick(lat, lon);
+    })();
+    const interval = setInterval(() => tick(lat, lon), 15 * 60 * 1000);
+    return () => { cancelled = true; clearInterval(interval); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Action handlers — extracted into a factory hook so the bodies live
+  // outside this (very large) provider. The factory receives dispatch /
+  // the merge helper / refs the provider owns and returns the same
+  // callbacks (bodies byte-identical to before).
+  const {
+    logIntake,
+    completeCycle,
+    snooze,
+    dismissSuccess,
+    updateSymptoms,
+    updateUrineSignal,
+    updateEnergyState,
+    confirmStatus,
+    setFeatureFlags,
+    confirmCommand,
+    setLanguage,
+    activateSocialMode,
+    logSocialDrink,
+    confirmSocialHydration,
+    deactivateSocialMode,
+    activateCruiseMode,
+    activateVoyageShield,
+    setSocialContext,
+    setSubscription,
+    setSweatAutopilot,
+    completeOnboarding,
+    setAppleHealthSnapshot,
+    setProviderBiometrics,
+  } = useStoreActions({
+    state,
+    dispatch,
+    applyServerUserState,
+    userStateRef,
+    voiceCoachEnabledRef,
+    voiceScopeRef,
+    voiceIntensityRef,
+  });
+
+  // ─── Hydration Journal snapshot writer ──────────────────────────────
+  // Persists a `aforce_score_snapshots` row after each engine refresh,
+  // debounced so we don't flood the table:
+  //   - On first render after mount
+  //   - At least every 5 minutes
+  //   - Immediately on band change (PEAK ↔ BALANCED ↔ RECOVERING ↔ DEPLETED)
+  // Writes are fire-and-forget — a network failure never breaks the UI.
+  // Crucially, `lastSnapshotRef.at/level` only advance on a *successful*
+  // POST so a transient network failure doesn't suppress retries until
+  // the next 5 min window or band change. An `inFlight` flag prevents
+  // duplicate writes while a request is in flight.
+  const lastSnapshotRef = useRef<{ at: number; level: string | null; inFlight: boolean }>({
+    at: 0,
+    level: null,
+    inFlight: false,
+  });
+  useEffect(() => {
+    const now = Date.now();
+    const level = state.engineOutput.performanceState.level;
+    const last = lastSnapshotRef.current;
+    if (last.inFlight) return;
+    const FIVE_MIN = 5 * 60 * 1000;
+    const elapsed = now - last.at;
+    const bandChanged = last.level !== null && last.level !== level;
+    const shouldWrite = last.at === 0 || bandChanged || elapsed >= FIVE_MIN;
+    if (!shouldWrite) return;
+    lastSnapshotRef.current = { ...last, inFlight: true };
+    // Sodium delivered ≈ AForce units × 25 mg (matches the prescription
+    // spec rule). Sodium lost & deficit % aren't carried on the
+    // autopilot snapshot itself (only urgency / interval), so they
+    // default to 0; future work can plumb the underlying SweatSession.
+    const autopilot = state.sweatAutopilot ?? null;
+    const sodiumDeliveredMg = state.userState.aforceUnitsToday * 25;
+    const sodiumLostMg = 0;
+    const deficitPct = 0;
+    const socialActive = !!state.userState.socialMode?.active;
+    const reason = state.engineOutput.command?.action?.slice(0, 240) ?? '';
+    // Recovery Layer — only attached when `spec_recovery` is on, so
+    // production snapshots are byte-identical to before the layer landed.
+    const recoveryFields = state.featureFlags.spec_recovery
+      ? (() => {
+          const snap = deriveRecoverySnapshot(
+            recoveryInputsFromState(state.userState, state.engineOutput),
+          );
+          return {
+            recoveryScore: snap.recovery,
+            pressureScore: snap.pressure,
+            recoveryTrend: snap.trend,
+            recoveryFingerprint: snap.fingerprint,
+            recoveryStory: snap.story.slice(0, 280),
+          };
+        })()
+      : {};
+    postJournalSnapshot({
+      score: state.engineOutput.score,
+      level,
+      ozConsumedToday: state.userState.ozConsumedToday,
+      aforceUnitsToday: state.userState.aforceUnitsToday,
+      unitsConsumedToday: state.userState.unitsConsumedToday,
+      sodiumDeliveredMg,
+      sodiumLostMg,
+      deficitPct,
+      clutchActive: !!state.userState.clutchActive,
+      socialActive,
+      autopilotActive: autopilot != null,
+      reason,
+      ...recoveryFields,
+    })
+      .then(() => {
+        // Only commit the debounce window on success.
+        lastSnapshotRef.current = { at: now, level, inFlight: false };
+      })
+      .catch((err) => {
+        // Roll back: leave `at` / `level` untouched so the very next
+        // engine refresh retries (network down, auth not yet ready).
+        lastSnapshotRef.current = { at: last.at, level: last.level, inFlight: false };
+        console.warn('[Journal] snapshot write failed', err);
+      });
+  }, [
+    state.engineOutput.score,
+    state.engineOutput.performanceState.level,
+    state.userState.ozConsumedToday,
+    state.userState.aforceUnitsToday,
+    state.userState.unitsConsumedToday,
+    state.userState.clutchActive,
+    state.userState.socialMode?.active,
+    state.sweatAutopilot,
+    state.engineOutput.command?.action,
+  ]);
+
+  // ─── T1: Phantom Band auto-log ─────────────────────────────────────────
+  // Subscribe once: every BLE sip notification is silently logged as an
+  // intake. We use a ref-backed `logIntake` so the listener always sees
+  // the latest closure (state.userState moves a lot) without resubscribing.
+  const logIntakeRef = useRef(logIntake);
+  useEffect(() => { logIntakeRef.current = logIntake; }, [logIntake]);
+  useEffect(() => {
+    return phantomBandService.on('sip', (event) => {
+      void logIntakeRef.current(event.fluidType, { silent: true, ozOverride: event.oz });
+    });
+  }, []);
+
+  // ─── AForce Command Voice Engine — system command voice ────────────────
+  // Routes through commandSpeak() so the bus records every utterance for
+  // the Voice Status module + replay. Pressure Mode kicks in when the
+  // user picks 'pressure' intensity OR when intensity is 'standard' AND
+  // the user is currently DEPLETED (the engine self-sharpens when risk
+  // is real). Scope is honored — 'risk' and 'muted' suppress system
+  // commands. textToSpeech.speak (called inside the bus) is debounced
+  // by 500ms on identical text so re-renders never double-trigger.
+  const lastSpokenCommandIdRef = useRef<string | null>(null);
+  // Startup suppression: don't greet the user with a command voiceover
+  // the moment the app comes on. The first system command seen after
+  // mount (including any that lands while persisted state hydrates) is
+  // captured silently; only a genuine command change afterwards speaks.
+  const systemVoiceMountedAtRef = useRef(Date.now());
+  const SYSTEM_VOICE_STARTUP_GRACE_MS = 3000;
+  useEffect(() => {
+    if (!voiceCoachEnabled) return;
+    if (!categoryAllowedForScope('system_command', voiceScopeRef.current)) return;
+    const cmd = state.engineOutput.command;
+    if (!cmd?.action) return;
+    if (lastSpokenCommandIdRef.current === cmd.id) return;
+    lastSpokenCommandIdRef.current = cmd.id;
+    // Within the startup grace window we capture the command id above
+    // but stay silent, so opening the app never triggers a voiceover.
+    if (Date.now() - systemVoiceMountedAtRef.current < SYSTEM_VOICE_STARTUP_GRACE_MS) return;
+    const intensity = voiceIntensityRef.current;
+    const level = state.engineOutput.performanceState.level;
+    const line = effectiveCommandLine(cmd.action, intensity, level);
+    commandSpeak(line, { level, intensity, category: 'system_command' });
+  }, [
+    voiceCoachEnabled,
+    state.engineOutput.command?.id,
+    state.engineOutput.command?.action,
+    state.engineOutput.performanceState.level,
+    state.userState.language,
+  ]);
+
+  // Hydrate persisted Voice Coach preference once on mount.
+  useEffect(() => {
+    AsyncStorage.getItem(VOICE_COACH_KEY)
+      .then((raw) => {
+        if (raw == null) return;
+        const next = raw === 'true';
+        setVoiceCoachEnabledState(next);
+        setVoicePlaybackEnabled(next);
+      })
+      .catch(() => {});
+  }, []);
+
+  const setVoiceCoachEnabled = useCallback((next: boolean) => {
+    setVoiceCoachEnabledState(next);
+    setVoicePlaybackEnabled(next);
+    AsyncStorage.setItem(VOICE_COACH_KEY, String(next)).catch(() => {});
+  }, []);
+
+  // Hydrate persisted ElevenLabs voice selection on mount + mirror into
+  // textToSpeech so non-React callers see it immediately.
+  useEffect(() => {
+    AsyncStorage.getItem(SELECTED_VOICE_KEY)
+      .then((raw) => {
+        // Picker no longer offers a "device default" row, so an
+        // empty/missing key falls through to Coach Rock rather than
+        // null. Legacy ElevenLabs ids still resolve via the catalog's
+        // dual-lookup so existing installs keep their voice.
+        const next = raw && raw.length > 0 ? raw : DEFAULT_VOICE_ID;
+        setSelectedVoiceIdState(next);
+        setTtsVoiceId(next);
+      })
+      .catch(() => {});
+  }, []);
+
+  const setSelectedVoiceId = useCallback((next: string | null) => {
+    const normalized = next && next.length > 0 ? next : null;
+    setSelectedVoiceIdState(normalized);
+    setTtsVoiceId(normalized);
+    if (normalized) {
+      AsyncStorage.setItem(SELECTED_VOICE_KEY, normalized).catch(() => {});
+    } else {
+      AsyncStorage.removeItem(SELECTED_VOICE_KEY).catch(() => {});
+    }
+  }, []);
+
+  // Hydrate persisted Command Voice Engine intensity + scope on mount.
+  // Both fields tolerate unknown / corrupt values by falling back to
+  // their spec defaults so a forward-incompat change can never brick
+  // the engine.
+  useEffect(() => {
+    AsyncStorage.getItem(VOICE_INTENSITY_KEY)
+      .then((raw) => {
+        if (raw && VOICE_INTENSITIES.has(raw as VoiceIntensity)) {
+          setVoiceIntensityState(raw as VoiceIntensity);
+        }
+      })
+      .catch(() => {});
+    AsyncStorage.getItem(VOICE_SCOPE_KEY)
+      .then((raw) => {
+        if (raw && VOICE_SCOPES.has(raw as VoiceScope)) {
+          setVoiceScopeState(raw as VoiceScope);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const setVoiceIntensity = useCallback((next: VoiceIntensity) => {
+    if (!VOICE_INTENSITIES.has(next)) return;
+    setVoiceIntensityState(next);
+    AsyncStorage.setItem(VOICE_INTENSITY_KEY, next).catch(() => {});
+  }, []);
+
+  const setVoiceScope = useCallback((next: VoiceScope) => {
+    if (!VOICE_SCOPES.has(next)) return;
+    setVoiceScopeState(next);
+    AsyncStorage.setItem(VOICE_SCOPE_KEY, next).catch(() => {});
+  }, []);
+
+  // Hydrate persisted notification settings on mount; ignore corrupt
+  // payloads so a forward-incompat key change can't brick the toggles.
+  useEffect(() => {
+    AsyncStorage.getItem(NOTIFICATION_SETTINGS_KEY)
+      .then((raw) => {
+        if (!raw) return;
+        try {
+          const parsed = JSON.parse(raw) as Partial<NotificationSettings>;
+          if (parsed && typeof parsed === 'object') {
+            dispatch({
+              type: 'SET_NOTIFICATION_SETTINGS',
+              payload: { ...DEFAULT_NOTIFICATION_SETTINGS, ...parsed },
+            });
+          }
+        } catch {
+          // ignore malformed payload
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const setNotificationSetting = useCallback((key: NotificationSettingKey, value: boolean) => {
+    dispatch({ type: 'SET_NOTIFICATION_SETTING', payload: { key, value } });
+    // Persist the merged shape so reload always restores every toggle.
+    const next = { ...state.notificationSettings, [key]: value };
+    AsyncStorage.setItem(NOTIFICATION_SETTINGS_KEY, JSON.stringify(next)).catch(() => {});
+  }, [state.notificationSettings]);
+
+  // Race-safe persistence for unit preferences. Two refs guard the
+  // critical path:
+  //   - `unitPrefsHydratedRef` flips true once the AsyncStorage read
+  //     resolves (success OR failure). The persist effect below is
+  //     gated on this so it can't write the in-memory defaults over
+  //     a real value still in flight from storage.
+  //   - `unitPrefsDirtyRef` flips true the moment the user toggles
+  //     a preference. The hydration handler honours this so a slow
+  //     AsyncStorage read can't clobber a fast user edit.
+  // Together they make both directions race-safe without coupling the
+  // setter to a stale closure snapshot of `state.unitPreferences`.
+  const unitPrefsHydratedRef = useRef(false);
+  const unitPrefsDirtyRef = useRef(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    AsyncStorage.getItem(UNIT_PREFERENCES_KEY)
+      .then((raw) => {
+        if (cancelled) return;
+        // If the user has already toggled a preference while the read
+        // was in flight, skip the apply — their choice wins over the
+        // stale stored value (the persist effect will save it for next
+        // launch). Still flag hydration complete so persistence can run.
+        if (unitPrefsDirtyRef.current) return;
+        if (!raw) return;
+        try {
+          const parsed = JSON.parse(raw);
+          dispatch({
+            type: 'SET_UNIT_PREFERENCES',
+            payload: sanitizeUnitPreferences(parsed),
+          });
+        } catch {
+          // ignore malformed payload — defaults remain in effect
+        }
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) unitPrefsHydratedRef.current = true;
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Persist on every change to the authoritative state, but only after
+  // hydration has completed. Reading from `state.unitPreferences`
+  // (not a closure capture) guarantees we always save the fully
+  // merged record, even under rapid back-to-back toggles.
+  useEffect(() => {
+    if (!unitPrefsHydratedRef.current) return;
+    AsyncStorage.setItem(
+      UNIT_PREFERENCES_KEY,
+      JSON.stringify(state.unitPreferences),
+    ).catch(() => {});
+  }, [state.unitPreferences]);
+
+  const setUnitPreference = useCallback(
+    <K extends keyof UnitPreferences>(key: K, value: UnitPreferences[K]) => {
+      // Mark dirty *before* dispatching so a hydration handler that
+      // resolves between this line and the next reducer commit still
+      // sees the dirty flag and yields to the user's choice.
+      unitPrefsDirtyRef.current = true;
+      dispatch({
+        // The discriminated SET_UNIT_PREFERENCE payload keeps key/value
+        // bound together at the type level — we re-narrow via the
+        // generic K to satisfy the discriminator.
+        type: 'SET_UNIT_PREFERENCE',
+        payload: { key, value } as Extract<
+          Action,
+          { type: 'SET_UNIT_PREFERENCE' }
+        >['payload'],
+      });
+    },
+    [],
+  );
+
+  // ── Profile identity hydration / persistence (mirrors unit prefs) ──
+  // Same two-ref race-safe pattern: hydratedRef gates the persist
+  // effect so in-memory defaults can't overwrite a slow read; dirtyRef
+  // makes a fast user edit win over a stale stored value.
+  const profileIdentityHydratedRef = useRef(false);
+  const profileIdentityDirtyRef = useRef(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    AsyncStorage.getItem(PROFILE_IDENTITY_KEY)
+      .then((raw) => {
+        if (cancelled) return;
+        if (profileIdentityDirtyRef.current) return;
+        if (!raw) return;
+        try {
+          const parsed = JSON.parse(raw);
+          dispatch({
+            type: 'SET_PROFILE_IDENTITY',
+            payload: sanitizeProfileIdentity(parsed),
+          });
+        } catch {
+          // ignore malformed payload — defaults remain in effect
+        }
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) profileIdentityHydratedRef.current = true;
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!profileIdentityHydratedRef.current) return;
+    AsyncStorage.setItem(
+      PROFILE_IDENTITY_KEY,
+      JSON.stringify(state.profileIdentity),
+    ).catch(() => {});
+  }, [state.profileIdentity]);
+
+  const setProfileIdentity = useCallback((patch: Partial<ProfileIdentity>) => {
+    // Mark dirty before dispatch (same race-safe ordering as the unit
+    // prefs setter) so a hydration callback racing this edit will
+    // yield to the user's input.
+    profileIdentityDirtyRef.current = true;
+    dispatch({ type: 'UPDATE_PROFILE_IDENTITY', payload: patch });
+  }, []);
+
+  // Seed a synthetic baseline history entry on first mount so the
+  // Hydration Journal day card shows a populated yesterday row instead
+  // of stark emptiness for brand-new users. The entry is marked
+  // `isSynthetic` so downstream consumers (Insights, Streak Math) can
+  // opt out. Real cycles always replace it via ADD_HISTORY_ENTRY id de-dupe.
+  const baselineSeededRef = useRef(false);
+  useEffect(() => {
+    if (baselineSeededRef.current) return;
+    if (state.history.some((h) => !h.isSynthetic)) {
+      baselineSeededRef.current = true;
+      return;
+    }
+    if (state.history.some((h) => h.id === 'synthetic-baseline')) {
+      baselineSeededRef.current = true;
+      return;
+    }
+    baselineSeededRef.current = true;
+    const level = state.engineOutput.performanceState.level;
+    const score = state.engineOutput.score;
+    dispatch({
+      type: 'ADD_HISTORY_ENTRY',
+      payload: buildSyntheticBaselineEntry(level, score),
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Hydrate persisted subscription on mount.
+  useEffect(() => {
+    AsyncStorage.getItem('aforce.subscription')
+      .then((raw) => {
+        if (!raw) return;
+        try {
+          const parsed = JSON.parse(raw) as UserSubscription;
+          if (parsed && parsed.planId) {
+            dispatch({ type: 'SET_SUBSCRIPTION', payload: parsed });
+          }
+        } catch {
+          // Ignore malformed payloads.
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  // Sync i18n with the language returned by the server on every userState
+  // change. This lets a fresh app boot land on the user's saved language
+  // without the picker having to be opened.
+  useEffect(() => {
+    const lang = state.userState.language;
+    if (lang) {
+      setI18nLanguage(lang).catch(() => { /* i18n init failure is non-fatal */ });
+    }
+  }, [state.userState.language]);
+
+  const value = useMemo<AppContextValue>(() => ({
+    state, logIntake, completeCycle, snooze, dismissSuccess,
+    updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags,
+    setSubscription, completeOnboarding, setAppleHealthSnapshot, setProviderBiometrics, confirmCommand, setLanguage,
+    activateSocialMode, logSocialDrink, confirmSocialHydration, deactivateSocialMode, setSocialContext,
+    activateCruiseMode, activateVoyageShield,
+    setSweatAutopilot,
+    voiceCoachEnabled, setVoiceCoachEnabled,
+    isInvestorDemoActive, setInvestorDemoActive,
+    selectedVoiceId, setSelectedVoiceId,
+    voiceIntensity, setVoiceIntensity,
+    voiceScope, setVoiceScope,
+    notificationSettings: state.notificationSettings, setNotificationSetting,
+    unitPreferences: state.unitPreferences, setUnitPreference,
+    profileIdentity: state.profileIdentity, setProfileIdentity,
+  }), [state, logIntake, completeCycle, snooze, dismissSuccess, updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags, setSubscription, completeOnboarding, setAppleHealthSnapshot, setProviderBiometrics, confirmCommand, setLanguage, activateSocialMode, logSocialDrink, confirmSocialHydration, deactivateSocialMode, setSocialContext, activateCruiseMode, activateVoyageShield, setSweatAutopilot, voiceCoachEnabled, setVoiceCoachEnabled, selectedVoiceId, setSelectedVoiceId, voiceIntensity, setVoiceIntensity, voiceScope, setVoiceScope, isInvestorDemoActive, setInvestorDemoActive, setNotificationSetting, setUnitPreference, setProfileIdentity]);
+
+  // Stable actions value for the sliced ActionsContext — same callbacks
+  // as `value` minus `state`, so action consumers don't re-render when
+  // unrelated state mutates.
+  const actions = useMemo<ActionsSlice>(() => ({
+    logIntake, completeCycle, snooze, dismissSuccess,
+    updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags,
+    setSubscription, completeOnboarding, setAppleHealthSnapshot, setProviderBiometrics, confirmCommand, setLanguage,
+    activateSocialMode, logSocialDrink, confirmSocialHydration, deactivateSocialMode, setSocialContext,
+    activateCruiseMode, activateVoyageShield,
+    setSweatAutopilot,
+    setNotificationSetting,
+    setUnitPreference,
+    setProfileIdentity,
+  }), [logIntake, completeCycle, snooze, dismissSuccess, updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags, setSubscription, completeOnboarding, setAppleHealthSnapshot, setProviderBiometrics, confirmCommand, setLanguage, activateSocialMode, logSocialDrink, confirmSocialHydration, deactivateSocialMode, setSocialContext, activateCruiseMode, activateVoyageShield, setSweatAutopilot, setNotificationSetting, setUnitPreference, setProfileIdentity]);
+
+  return (
+    <AppContext.Provider value={value}>
+      <SliceProvider state={state} actions={actions}>
+        {children}
+      </SliceProvider>
+    </AppContext.Provider>
+  );
+}
+
+export function useAppStore() {
+  const ctx = useContext(AppContext);
+  if (!ctx) throw new Error('useAppStore must be used inside AppProvider');
+  return ctx;
+}
+
+// ─── Focused selector hooks ────────────────────────────────────────────
+// Re-exported from `./slices` so existing call sites keep working but
+// now read from per-slice contexts. Subscribers re-render only when
+// *their* slice changes (not on every store mutation).
+
+export {
+  useEngineSlice as useEngineOutput,
+  useUserSlice as useUserState,
+  useSubscriptionSlice as useSubscription,
+  useFlagsSlice as useFeatureFlags,
+  useSocialSlice,
+  useIntakeSlice,
+  useCycleSlice,
+  useConfirmationSlice,
+  useOnboardingSlice,
+  useInventorySlice,
+  useSweatAutopilotSlice,
+  useUnitPreferencesSlice,
+  useProfileIdentitySlice,
+  useActionsSlice,
+} from './slices';
+

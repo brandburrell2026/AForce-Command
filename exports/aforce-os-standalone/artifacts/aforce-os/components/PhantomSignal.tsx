@@ -1,0 +1,74 @@
+/**
+ * PhantomSignal — Mock contextual data strip showing environmental signals.
+ */
+
+import React from 'react';
+import { View, Text, StyleSheet } from 'react-native';
+import { Icon, type IconName } from './Icon';
+import { useTranslation } from 'react-i18next';
+import { Colors } from '../theme/colors';
+import { phantomSignalData } from '../data/mockData';
+
+export function PhantomSignal() {
+  const { t } = useTranslation();
+  const { estimatedCoreTemp, activityLabel, hrv, vo2Estimate } = phantomSignalData;
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>{t('home.phantom_signal.title')}</Text>
+      <View style={styles.grid}>
+        <SignalItem icon="thermometer" label={t('home.phantom_signal.core_temp')} value={`${estimatedCoreTemp.toFixed(1)}°F`} />
+        <SignalItem icon="wind" label={t('home.phantom_signal.hrv')} value={`${hrv} ms`} />
+        <SignalItem icon="activity" label={t('home.phantom_signal.vo2')} value={`${vo2Estimate}`} />
+        <SignalItem icon="zap" label={t('home.phantom_signal.mode')} value={activityLabel} />
+      </View>
+    </View>
+  );
+}
+
+function SignalItem({ icon, label, value }: { icon: IconName; label: string; value: string }) {
+  return (
+    <View style={styles.item}>
+      <Icon name={icon} size={12} color={Colors.text.muted} />
+      <Text style={styles.itemLabel}>{label}</Text>
+      <Text style={styles.itemValue}>{value}</Text>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    marginHorizontal: 20,
+    padding: 16,
+    backgroundColor: Colors.fill.light,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Colors.border.subtle,
+  },
+  title: {
+    fontSize: 9,
+    fontFamily: 'Inter_700Bold',
+    color: Colors.text.muted,
+    letterSpacing: 2,
+    marginBottom: 12,
+  },
+  grid: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  item: {
+    alignItems: 'center',
+    gap: 4,
+  },
+  itemLabel: {
+    fontSize: 8,
+    fontFamily: 'Inter_600SemiBold',
+    color: Colors.text.muted,
+    letterSpacing: 1.5,
+  },
+  itemValue: {
+    fontSize: 12,
+    fontFamily: 'Inter_600SemiBold',
+    color: Colors.text.secondary,
+  },
+});

@@ -1,0 +1,17 @@
+node_modules/
+dist/
+*.tsbuildinfo
+.expo/
+web-build/
+static-build/
+.DS_Store
+*.log
+
+# Secrets — never commit
+.env
+.env.*
+google-service-account.json
+
+# Native build output
+ios/
+android/
