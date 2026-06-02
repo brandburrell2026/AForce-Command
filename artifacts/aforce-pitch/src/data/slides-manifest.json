@@ -11,6 +11,7 @@
   { "id": "s10-proof-engine", "position": 10, "filepath": "src/pages/slides/ProofEngine.tsx", "title": "The Proof Engine", "description": "Miami and Brickell provide a concentrated population of high-performance consumers." },
   { "id": "s11-founders", "position": 11, "filepath": "src/pages/slides/TheFounders.tsx", "title": "The Founders", "description": "Lived conviction. The founders built the standard they needed — not a beverage looking for a story." },
   { "id": "s12-road", "position": 12, "filepath": "src/pages/slides/RoadToRealDeal.tsx", "title": "Road To America's Real Deal", "description": "Soft launch. Proof of concept. Community scale. National television." },
-  { "id": "s13-economics", "position": 13, "filepath": "src/pages/slides/TheEconomics.tsx", "title": "The Economics", "description": "CAC, LTV, subscription conversion, repeat purchase, gross margin, revenue forecast. Illustrative assumptions." },
-  { "id": "s14-ask", "position": 14, "filepath": "src/pages/slides/TheAsk.tsx", "title": "The Ask", "description": "$4M raise. Product and inventory, marketing, technology, team and operations. Built for people who don't get to be off." }
+  { "id": "s13-proof", "position": 13, "filepath": "src/pages/slides/WhatProofLooksLike.tsx", "title": "What Proof Looks Like", "description": "If these are true by January 2027, the model is proven. The binary proof points behind Phase 1 — retention, activation, weekly engagement, ritual adoption." },
+  { "id": "s14-economics", "position": 14, "filepath": "src/pages/slides/TheEconomics.tsx", "title": "The Economics", "description": "CAC, LTV, subscription conversion, repeat purchase, gross margin, revenue forecast. Illustrative assumptions." },
+  { "id": "s15-ask", "position": 15, "filepath": "src/pages/slides/TheAsk.tsx", "title": "The Ask", "description": "$4M raise. Product and inventory, marketing, technology, team and operations. Built for people who don't get to be off." }
 ]

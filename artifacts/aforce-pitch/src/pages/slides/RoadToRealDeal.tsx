@@ -11,26 +11,35 @@ const STOPS = [
   { date: "Jan 2027", t: "National Television", m: "America's Real Deal, on air" },
 ];
 
-const KPIS: Array<{ t: string; accent: string; items: string[] }> = [
+const PRIMARY = {
+  t: "Behavioral",
+  tag: "Primary Proof",
+  items: [
+    "Ritual adoption rate",
+    "Weekly active users",
+    "Streak participation",
+    "Day 30 retention above 50%",
+  ],
+};
+
+const SECONDARY: Array<{ t: string; tag: string; accent: string; items: string[] }> = [
+  {
+    t: "Ecosystem",
+    tag: "Secondary",
+    accent: "text-blue",
+    items: ["OS activation above 50%", "Monthly active users", "3+ weekly engagements"],
+  },
   {
     t: "Commerce",
-    accent: "text-red",
-    items: ["CAC below $50", "Subscription conversion above 20%", "Repeat purchase above 30%"],
-  },
-  {
-    t: "Behavior",
-    accent: "text-blue",
-    items: ["OS activation above 50%", "3+ weekly engagements", "Streak participation growth"],
-  },
-  {
-    t: "Community",
-    accent: "text-blue",
-    items: ["Active member growth", "Referral participation", "Founder content engagement"],
+    tag: "Third",
+    accent: "text-text/70",
+    items: ["Subscription conversion above 20%", "Repeat purchase above 30%", "AOV tracking"],
   },
   {
     t: "Financial",
-    accent: "text-red",
-    items: ["LTV / CAC above 5×", "Positive contribution margin"],
+    tag: "Guardrails",
+    accent: "text-text/40",
+    items: ["CAC below $32 · stop at $50", "LTV / CAC above 5×", "Positive contribution margin"],
   },
 ];
 
@@ -86,7 +95,7 @@ export default function RoadToRealDeal() {
         </div>
 
         {/* timeline */}
-        <div className="mt-[7vh] relative">
+        <div className="mt-[6vh] relative">
           {/* base rail */}
           <div className="absolute left-0 right-0 top-[0.75vh] h-[2px] bg-text/12" />
           {/* animated progress fill */}
@@ -162,14 +171,14 @@ export default function RoadToRealDeal() {
           </div>
         </div>
 
-        {/* PHASE 1 SUCCESS METRICS */}
+        {/* PHASE 1 SUCCESS METRICS — priority hierarchy */}
         <motion.div
-          className="mt-[8vh]"
+          className="mt-[6vh]"
           initial={reduce ? false : { opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={reduce ? undefined : { duration: 0.6, ease: EASE, delay: 0.9 }}
         >
-          <div className="flex items-baseline gap-[1.4vw] mb-[2.2vh]">
+          <div className="flex items-baseline gap-[1.4vw] mb-[2.4vh]">
             <span className="font-display uppercase tracking-[0.3em] text-[0.72vw] text-red font-semibold whitespace-nowrap">
               Phase 1 Success Metrics
             </span>
@@ -178,28 +187,63 @@ export default function RoadToRealDeal() {
               retention, and ecosystem engagement.
             </span>
           </div>
-          <div className="grid grid-cols-4 gap-[2.5vw]">
-            {KPIS.map((col, i) => (
+
+          {/* PRIMARY — behavioral proof sits above everything */}
+          <motion.div
+            className="border-l-2 border-red pl-[1.4vw] mb-[2.8vh]"
+            initial={reduce ? false : { opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={reduce ? undefined : { duration: 0.5, ease: EASE, delay: 0.98 }}
+          >
+            <div className="flex items-baseline gap-[0.9vw] mb-[1.4vh]">
+              <span className="font-display uppercase tracking-[0.2em] text-[0.96vw] text-red font-semibold">
+                {PRIMARY.t}
+              </span>
+              <span className="font-display uppercase tracking-[0.26em] text-[0.6vw] text-red/70 font-semibold">
+                {PRIMARY.tag}
+              </span>
+            </div>
+            <div className="grid grid-cols-4 gap-[2.5vw]">
+              {PRIMARY.items.map((item) => (
+                <div
+                  key={item}
+                  className="flex gap-[0.5vw] font-body text-[0.86vw] leading-[1.35] text-text/85"
+                >
+                  <span className="text-red leading-[1.35]">·</span>
+                  <span>{item}</span>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+
+          {/* SECONDARY — supporting tiers, de-emphasized */}
+          <div className="grid grid-cols-3 gap-[2.5vw]">
+            {SECONDARY.map((col, i) => (
               <motion.div
                 key={col.t}
                 initial={reduce ? false : { opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={
-                  reduce ? undefined : { duration: 0.45, ease: EASE, delay: 0.98 + i * 0.08 }
+                  reduce ? undefined : { duration: 0.45, ease: EASE, delay: 1.08 + i * 0.08 }
                 }
               >
-                <div
-                  className={`font-display uppercase tracking-[0.22em] text-[0.66vw] font-semibold mb-[1.2vh] ${col.accent}`}
-                >
-                  {col.t}
+                <div className="flex items-baseline gap-[0.7vw] mb-[1vh]">
+                  <span
+                    className={`font-display uppercase tracking-[0.22em] text-[0.66vw] font-semibold ${col.accent}`}
+                  >
+                    {col.t}
+                  </span>
+                  <span className="font-display uppercase tracking-[0.24em] text-[0.54vw] text-text/35 font-semibold">
+                    {col.tag}
+                  </span>
                 </div>
-                <ul className="space-y-[0.7vh]">
+                <ul className="space-y-[0.6vh]">
                   {col.items.map((item) => (
                     <li
                       key={item}
-                      className="flex gap-[0.5vw] font-body text-[0.78vw] leading-[1.35] text-text/65"
+                      className="flex gap-[0.5vw] font-body text-[0.74vw] leading-[1.3] text-text/55"
                     >
-                      <span className="text-red leading-[1.35]">·</span>
+                      <span className="text-red/70 leading-[1.3]">·</span>
                       <span>{item}</span>
                     </li>
                   ))}
