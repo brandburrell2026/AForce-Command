@@ -135,11 +135,37 @@ export default function TheSystem() {
             transition={reduce ? undefined : { duration: 0.55, ease: EASE, delay: 0.22 }}
           >
             Products create <span className="text-red font-medium">acquisition.</span> The OS
-            creates <span className="text-blue font-medium">retention.</span>
+            creates <span className="text-blue font-medium">retention</span> — culture,
+            community, and membership.
           </motion.p>
 
+          {/* the two territories — acquisition vs. controlled focus */}
+          <motion.div
+            className="mt-[2.8vh] grid grid-cols-2 gap-[1.6vw] max-w-[40vw]"
+            initial={reduce ? false : { opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={reduce ? undefined : { duration: 0.5, ease: EASE, delay: 0.3 }}
+          >
+            <div className="border-l-2 border-red pl-[1vw]">
+              <div className="font-display uppercase tracking-[0.2em] text-[0.6vw] text-red font-semibold">
+                Territory 01 · Acquisition
+              </div>
+              <div className="mt-[0.6vh] font-body text-[0.82vw] leading-[1.4] text-text/65">
+                Performance is universal.
+              </div>
+            </div>
+            <div className="border-l-2 border-blue pl-[1vw]">
+              <div className="font-display uppercase tracking-[0.2em] text-[0.6vw] text-blue font-semibold">
+                Territory 02 · Retention
+              </div>
+              <div className="mt-[0.6vh] font-body text-[0.82vw] leading-[1.4] text-text/65">
+                Controlled focus before execution — culture, community, membership.
+              </div>
+            </div>
+          </motion.div>
+
           {/* the system as six surfaces — clean grid, no bullets */}
-          <div className="mt-[5vh] grid grid-cols-3 gap-[0.7vw] max-w-[40vw]">
+          <div className="mt-[3vh] grid grid-cols-3 gap-[0.7vw] max-w-[40vw]">
             {FLOW.map((n, i) => (
               <motion.div
                 key={n.t}

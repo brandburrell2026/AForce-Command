@@ -60,24 +60,39 @@ export default function TheFounders() {
           </motion.h1>
 
           <motion.div
-            className="mt-[4vh] max-w-[34vw] space-y-[1.8vh] font-body text-[1.0vw] leading-[1.55]"
+            className="mt-[3.4vh] max-w-[35vw] space-y-[1.4vh] font-body text-[0.92vw] leading-[1.5]"
             initial={reduce ? false : { opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
             transition={reduce ? undefined : { duration: 0.6, ease: EASE, delay: 0.18 }}
           >
             <p className="text-text">
-              In the NBA there are no off nights. On Wall Street there are no
-              missed moments. For years our edge came down to one thing: showing
-              up ready when it mattered most.
+              <span className="font-medium">Brandon Burrell</span> built his career
+              across Wall Street, global hospitality, and entrepreneurship —
+              environments where preparation and execution determined outcomes.
             </p>
             <p className="text-text">
-              We didn't have AForce. We needed it. Every decision we made under
-              pressure without it is why we built it.
+              <span className="font-medium">Julius Burrell</span> spent years
+              competing at an elite level in professional basketball, where
+              performance was measured daily and discipline was non-negotiable.
             </p>
-            <p className="text-text/55 italic text-[0.92vw]">
-              We are not selling hydration. We are installing the standard we
-              wish we'd had.
+            <p className="text-text/65">
+              Across business, sport, and life they recognized the same truth: the
+              highest performers all face the same challenge — showing up ready when
+              it matters most. AForce was built to help people prepare before
+              execution.
             </p>
+          </motion.div>
+
+          <motion.div
+            className="mt-[3.2vh] flex items-center gap-[1vw]"
+            initial={reduce ? false : { opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={reduce ? undefined : { duration: 0.6, ease: EASE, delay: 0.3 }}
+          >
+            <span className="h-[2px] w-[2.4vw] bg-red" />
+            <span className="font-display uppercase tracking-[0.24em] text-[0.82vw] text-text font-semibold">
+              Performance begins before the moment.
+            </span>
           </motion.div>
         </div>
 

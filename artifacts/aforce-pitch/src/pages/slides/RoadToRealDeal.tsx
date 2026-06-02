@@ -11,6 +11,29 @@ const STOPS = [
   { date: "Jan 2027", t: "National Television", m: "America's Real Deal, on air" },
 ];
 
+const KPIS: Array<{ t: string; accent: string; items: string[] }> = [
+  {
+    t: "Commerce",
+    accent: "text-red",
+    items: ["CAC below $50", "Subscription conversion above 20%", "Repeat purchase above 30%"],
+  },
+  {
+    t: "Behavior",
+    accent: "text-blue",
+    items: ["OS activation above 50%", "3+ weekly engagements", "Streak participation growth"],
+  },
+  {
+    t: "Community",
+    accent: "text-blue",
+    items: ["Active member growth", "Referral participation", "Founder content engagement"],
+  },
+  {
+    t: "Financial",
+    accent: "text-red",
+    items: ["LTV / CAC above 5×", "Positive contribution margin"],
+  },
+];
+
 export default function RoadToRealDeal() {
   const base = import.meta.env.BASE_URL;
   const reduce = useReducedMotion();
@@ -63,7 +86,7 @@ export default function RoadToRealDeal() {
         </div>
 
         {/* timeline */}
-        <div className="mt-[11vh] relative">
+        <div className="mt-[7vh] relative">
           {/* base rail */}
           <div className="absolute left-0 right-0 top-[0.75vh] h-[2px] bg-text/12" />
           {/* animated progress fill */}
@@ -138,6 +161,53 @@ export default function RoadToRealDeal() {
             })}
           </div>
         </div>
+
+        {/* PHASE 1 SUCCESS METRICS */}
+        <motion.div
+          className="mt-[8vh]"
+          initial={reduce ? false : { opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={reduce ? undefined : { duration: 0.6, ease: EASE, delay: 0.9 }}
+        >
+          <div className="flex items-baseline gap-[1.4vw] mb-[2.2vh]">
+            <span className="font-display uppercase tracking-[0.3em] text-[0.72vw] text-red font-semibold whitespace-nowrap">
+              Phase 1 Success Metrics
+            </span>
+            <span className="font-body italic text-[0.72vw] leading-[1.4] text-text/45">
+              Phase 1 is not about awareness — it is about proving behavior,
+              retention, and ecosystem engagement.
+            </span>
+          </div>
+          <div className="grid grid-cols-4 gap-[2.5vw]">
+            {KPIS.map((col, i) => (
+              <motion.div
+                key={col.t}
+                initial={reduce ? false : { opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={
+                  reduce ? undefined : { duration: 0.45, ease: EASE, delay: 0.98 + i * 0.08 }
+                }
+              >
+                <div
+                  className={`font-display uppercase tracking-[0.22em] text-[0.66vw] font-semibold mb-[1.2vh] ${col.accent}`}
+                >
+                  {col.t}
+                </div>
+                <ul className="space-y-[0.7vh]">
+                  {col.items.map((item) => (
+                    <li
+                      key={item}
+                      className="flex gap-[0.5vw] font-body text-[0.78vw] leading-[1.35] text-text/65"
+                    >
+                      <span className="text-red leading-[1.35]">·</span>
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
       </div>
     </SlideFrame>
   );
