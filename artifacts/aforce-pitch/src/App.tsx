@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 
 import PresentationHUD from "@/components/PresentationHUD";
+import SizzleReel from "@/pages/SizzleReel";
 import { slides } from "@/slideLoader";
 
 function getSlideIndex(pathname: string): number {
@@ -228,6 +229,7 @@ export default function App() {
     if (
       location !== "/" &&
       location !== "/allslides" &&
+      location !== "/sizzle" &&
       getSlideIndex(location) === -1
     ) {
       if (slides.length > 0) {
@@ -255,6 +257,7 @@ export default function App() {
   }, [navigate]);
 
   if (location === "/") return <SlideViewer />;
+  if (location === "/sizzle") return <SizzleReel />;
   if (location === "/allslides") return <AllSlides />;
   return <SlideEditor />;
 }
