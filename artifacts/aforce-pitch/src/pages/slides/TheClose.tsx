@@ -45,15 +45,16 @@ export default function TheClose() {
         }}
       />
 
-      {/* the brand, landing in the open lower-right — the last thing they see */}
-      <motion.div
-        className="absolute right-[5vw] bottom-[14vh] z-[5]"
-        initial={reduce ? false : { opacity: 0, y: 14 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={reduce ? undefined : { duration: 0.7, ease: EASE, delay: 1.1 }}
-      >
-        <Wordmark className="h-[6vw]" />
-      </motion.div>
+      {/* the brand, alone in the open right column — the last thing they see */}
+      <div className="absolute right-[6vw] top-1/2 -translate-y-1/2 z-[5]">
+        <motion.div
+          initial={reduce ? false : { opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={reduce ? undefined : { duration: 0.7, ease: EASE, delay: 1.1 }}
+        >
+          <Wordmark className="h-[6vw]" />
+        </motion.div>
+      </div>
 
       <div className="absolute inset-0 flex flex-col justify-center px-[5vw]">
         {/* eyebrow */}
