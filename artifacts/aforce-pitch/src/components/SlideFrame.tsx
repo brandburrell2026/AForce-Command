@@ -8,6 +8,8 @@ interface SlideFrameProps {
   /** Dark cinematic mode — black canvas, light chrome. */
   invert?: boolean;
   phaseLabel?: string;
+  /** Hide the small header wordmark (e.g. when the slide shows its own large brand mark). */
+  hideTopWordmark?: boolean;
   children: ReactNode;
 }
 
@@ -29,6 +31,7 @@ export default function SlideFrame({
   slide,
   invert = false,
   phaseLabel = "Phase 1 — Proof of Concept",
+  hideTopWordmark = false,
   children,
 }: SlideFrameProps) {
   const { index, name } = sectionFor(slide);
@@ -51,7 +54,7 @@ export default function SlideFrame({
 
       {/* TOP CHROME */}
       <div className="absolute top-[4.5vh] left-[5vw] right-[5vw] flex justify-between items-start z-20 pointer-events-none">
-        <Wordmark className="h-[1.5vw]" />
+        {hideTopWordmark ? <span /> : <Wordmark className="h-[1.5vw]" />}
         <div
           className={`uppercase tracking-[0.22em] text-[0.62vw] font-semibold border px-[0.7vw] py-[0.35vh] rounded-full ${pill}`}
         >
