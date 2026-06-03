@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { useReducedMotion } from "@/lib/useReducedMotion";
 import SlideFrame from "@/components/SlideFrame";
+import Wordmark from "@/components/Wordmark";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -43,6 +44,16 @@ export default function TheClose() {
             "radial-gradient(circle, rgba(228,30,43,0.10) 0%, rgba(228,30,43,0) 70%)",
         }}
       />
+
+      {/* the brand, landing in the open lower-right — the last thing they see */}
+      <motion.div
+        className="absolute right-[5vw] bottom-[14vh] z-[5]"
+        initial={reduce ? false : { opacity: 0, y: 14 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={reduce ? undefined : { duration: 0.7, ease: EASE, delay: 1.1 }}
+      >
+        <Wordmark className="h-[6vw]" />
+      </motion.div>
 
       <div className="absolute inset-0 flex flex-col justify-center px-[5vw]">
         {/* eyebrow */}
