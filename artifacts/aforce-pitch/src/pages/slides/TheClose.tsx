@@ -98,23 +98,23 @@ export default function TheClose() {
 
         {/* the full arc — identity in, scale out */}
         <motion.div
-          className="mt-[5.5vh] flex items-center flex-wrap gap-x-[0.9vw] gap-y-[1vh]"
+          className="mt-[6vh] flex items-center flex-wrap gap-x-[1.2vw] gap-y-[1.2vh]"
           initial={reduce ? false : { opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={reduce ? undefined : { duration: 0.6, ease: EASE, delay: 0.9 }}
         >
-          <span className="block w-[2.4vw] h-[2px] bg-red mr-[0.4vw]" />
+          <span className="block w-[3.2vw] h-[3px] bg-red mr-[0.6vw]" />
           {ARC.map((node, i) => (
-            <span key={node.w} className="flex items-center gap-x-[0.9vw]">
+            <span key={node.w} className="flex items-center gap-x-[1.2vw]">
               <span
-                className={`font-display uppercase tracking-[0.16em] text-[0.92vw] font-semibold ${toneText(
+                className={`font-display uppercase tracking-[0.16em] text-[1.4vw] font-semibold ${toneText(
                   node.tone,
                 )}`}
               >
                 {node.w}
               </span>
               {i < ARC.length - 1 && (
-                <span className="font-display text-[0.92vw] text-text/30">→</span>
+                <span className="font-display text-[1.4vw] text-text/30">→</span>
               )}
             </span>
           ))}
