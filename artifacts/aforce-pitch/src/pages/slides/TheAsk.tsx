@@ -17,21 +17,21 @@ const USE = [
     label: "Marketing & Activation",
     sub: "Brickell + NYC density, event, paid acquisition",
     amount: "$1,000,000",
-    bar: "bg-text",
+    bar: "bg-red",
   },
   {
     pct: 25,
     label: "Tech & OS Development",
     sub: "AForce OS build, app, retention infrastructure",
     amount: "$1,000,000",
-    bar: "bg-blue",
+    bar: "bg-red",
   },
   {
     pct: 15,
     label: "Team & Operations",
     sub: "Salaries, legal, insurance, overhead · ~$50K/mo",
     amount: "$600,000",
-    bar: "bg-text/30",
+    bar: "bg-red",
   },
 ];
 

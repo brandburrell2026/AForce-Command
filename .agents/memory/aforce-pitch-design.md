@@ -114,3 +114,14 @@ with massive whitespace. One emphasis word per H1 in red or blue.
   (no halo). Don't reintroduce branded photos or a scattered red "notification"
   dot layer; keep only the single intentional pulsing red ping above the
   right-side tagline.
+- **Slide 17 / TheAsk "Use of funds" bars are all RED, never blue.** The closing
+  line colors "This raise funds the proof" red and "The next round funds the
+  scale" blue. Since every use-of-funds bar belongs to *this* raise, a blue bar
+  (was Tech & OS) misreads as "next round" money — so all four bars are solid
+  `bg-red`, length encodes the %, and blue stays reserved for the next-round
+  text only. Don't reintroduce blue/black/faded bars here. (Graduated red-opacity
+  ramp was tried and rejected — the 15% bar became near-invisible.)
+- **Slide 8 / WhiteSpace persona lineup = Athlete · CEO · DJ · Surgeon**, same
+  desaturated cinematic portrait treatment. CEO (`08-ceo-woman.png`) is a Black
+  businesswoman; Surgeon (`08-surgeon-woman.png`) is an Indian woman — keep the
+  diverse casting unless asked otherwise.
