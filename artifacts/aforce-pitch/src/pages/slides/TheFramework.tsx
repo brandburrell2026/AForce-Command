@@ -34,10 +34,34 @@ const toneBg = (t: Tone) =>
 
 export default function TheFramework() {
   const reduce = useReducedMotion();
+  const base = import.meta.env.BASE_URL;
+  const photo = `${base}images/bg/11-framework.png`;
 
   return (
     <SlideFrame slide={11}>
       <div className="absolute inset-0">
+        {/* cinematic ascent — a real staircase echoing the compounding chain,
+            bleeding off the lower-right and melting into the paper */}
+        <motion.div
+          className="absolute bottom-0 right-0 w-[46%] h-[64%]"
+          initial={reduce ? false : { opacity: 0, scale: 1.05 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={reduce ? undefined : { duration: 1.2, ease: EASE, delay: 0.2 }}
+        >
+          <img
+            src={photo}
+            alt=""
+            aria-hidden
+            className="h-full w-full object-cover object-center"
+          />
+          {/* fade the left edge into the grey canvas */}
+          <div className="absolute inset-y-0 left-0 w-[42%] bg-gradient-to-r from-[#e7e3db] via-[#e7e3db]/70 to-transparent" />
+          {/* fade the top edge so the photo emerges out of the paper */}
+          <div className="absolute inset-x-0 top-0 h-[38%] bg-gradient-to-b from-[#e7e3db] via-[#e7e3db]/55 to-transparent" />
+          {/* bottom scrim keeps the shared footer chrome legible */}
+          <div className="absolute inset-x-0 bottom-0 h-[24%] bg-gradient-to-t from-[#d9d4cb] to-transparent" />
+        </motion.div>
+
         {/* header */}
         <div className="absolute top-[14vh] left-[5vw] right-[5vw]">
           <motion.div

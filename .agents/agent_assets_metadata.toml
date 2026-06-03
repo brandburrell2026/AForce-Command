@@ -966,6 +966,12 @@ uri = "file://artifacts/aforce-pitch/public/images/bg/02-alwayson-c.png"
 type = "image"
 title = "generated_image"
 
+[[generated]]
+id = "u4NCfkS-10FNb-KqRdrgW"
+uri = "file://artifacts/aforce-pitch/public/images/bg/11-framework.png"
+type = "image"
+title = "ascending staircase figure"
+
 [[outputs]]
 id = "fILTiXCCTKYfWe9d8R46M"
 uri = "file://attached_assets/tester-share/aforce-tester-qr.png"
