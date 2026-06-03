@@ -996,6 +996,24 @@ uri = "file://artifacts/aforce-pitch/public/images/bg/17-ask.png"
 type = "image"
 title = "Lone figure facing a vast dawn horizon for The Ask closing slide"
 
+[[generated]]
+id = "eEcno_HvdP_WhNgKYWxgY"
+uri = "file://artifacts/aforce-pitch/public/images/bg/08-ceo.png"
+type = "image"
+title = "CEO persona portrait for slide 8 lineup"
+
+[[generated]]
+id = "QyE1_bxXjKcBzze4oOyqx"
+uri = "file://artifacts/aforce-pitch/public/images/bg/08-dj.png"
+type = "image"
+title = "DJ persona portrait for slide 8 lineup"
+
+[[generated]]
+id = "MStNF7ccY73JjvNQQfpjo"
+uri = "file://artifacts/aforce-pitch/public/images/bg/08-trader.png"
+type = "image"
+title = "Trader persona portrait for slide 8 lineup"
+
 [[outputs]]
 id = "fILTiXCCTKYfWe9d8R46M"
 uri = "file://attached_assets/tester-share/aforce-tester-qr.png"
