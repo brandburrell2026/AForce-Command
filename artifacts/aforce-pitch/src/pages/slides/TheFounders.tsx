@@ -90,8 +90,8 @@ export default function TheFounders() {
             animate={{ opacity: 1, y: 0 }}
             transition={reduce ? undefined : { duration: 0.6, ease: EASE, delay: 0.3 }}
           >
-            <span className="h-[2px] w-[2.4vw] bg-red" />
-            <span className="font-display uppercase tracking-[0.24em] text-[0.82vw] text-text font-semibold">
+            <span className="h-[2px] w-[3vw] bg-red" />
+            <span className="font-display uppercase tracking-[0.24em] text-[1.18vw] text-text font-semibold">
               Performance begins before the moment.
             </span>
           </motion.div>
