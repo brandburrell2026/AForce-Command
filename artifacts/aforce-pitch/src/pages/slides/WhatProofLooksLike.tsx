@@ -19,10 +19,11 @@ export default function WhatProofLooksLike() {
 
   return (
     <SlideFrame slide={15}>
-      {/* cinematic backdrop — a lone athlete alone in a vast, light-filled
-          stadium at dawn: proof is earned, not bought. The figure sits behind
-          the framing column on the left; the bright open haze backs the proof
-          list on the right. A graduated paper veil keeps every line crisp. */}
+      {/* cinematic backdrop — a lone musician performer alone on a vast,
+          light-filled stage at dawn: proof is earned, not bought. The figure
+          sits behind the framing column on the left; the bright open haze backs
+          the proof list on the right. A graduated paper veil keeps every line
+          crisp. */}
       <div aria-hidden className="absolute inset-0 overflow-hidden">
         <motion.img
           src={photo}
@@ -45,7 +46,7 @@ export default function WhatProofLooksLike() {
         />
       </div>
 
-      {/* faint depth glow, lower-left — by the runner on the track */}
+      {/* faint depth glow, lower-left — by the performer on the stage */}
       <div
         aria-hidden
         className="absolute left-[-8vw] bottom-[-10vh] h-[52vh] w-[52vh] rounded-full"
@@ -87,21 +88,24 @@ export default function WhatProofLooksLike() {
             animate={{ opacity: 1, y: 0 }}
             transition={reduce ? undefined : { duration: 0.6, ease: EASE, delay: 0.2 }}
           >
-            If these are true by{" "}
-            <span className="text-red font-normal">January 2027</span>, the model
-            is proven.
+            By{" "}
+            <span className="text-red font-normal">January 2027</span>, these are
+            true. The model is proven.
           </motion.p>
 
           <motion.div
-            className="mt-[5vh] flex items-center gap-[1vw]"
+            className="mt-[5vh]"
             initial={reduce ? false : { opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={reduce ? undefined : { duration: 0.5, ease: EASE, delay: 0.9 }}
+            transition={reduce ? undefined : { duration: 0.5, ease: EASE, delay: 0.5 }}
           >
-            <span className="w-[2.2vw] h-[2px] bg-red" />
-            <span className="font-display uppercase tracking-[0.24em] text-[0.7vw] text-text font-semibold">
-              Binary. Measurable. Proven before we scale.
-            </span>
+            <span className="block w-[2.4vw] h-[2px] bg-red mb-[2vh]" />
+            <p className="font-display font-medium tracking-[-0.015em] text-[1.95vw] leading-[1.1] text-text">
+              Binary. Measurable.
+              <span className="block text-red font-semibold">
+                Proven before we scale.
+              </span>
+            </p>
           </motion.div>
         </div>
 
