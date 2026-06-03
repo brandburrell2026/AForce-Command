@@ -978,6 +978,12 @@ uri = "file://artifacts/aforce-pitch/public/images/bg/12-moat.png"
 type = "image"
 title = "moat fortress reflection"
 
+[[generated]]
+id = "b2lAevvmw5wpc16M9R8bB"
+uri = "file://artifacts/aforce-pitch/public/images/bg/15-proof.png"
+type = "image"
+title = "lone runner empty stadium dawn"
+
 [[outputs]]
 id = "fILTiXCCTKYfWe9d8R46M"
 uri = "file://attached_assets/tester-share/aforce-tester-qr.png"
