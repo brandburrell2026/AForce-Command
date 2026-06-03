@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { useReducedMotion } from "@/lib/useReducedMotion";
 import SlideFrame from "@/components/SlideFrame";
-import Wordmark from "@/components/Wordmark";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -310,26 +309,17 @@ export default function CategoryNoise() {
           />
 
           <motion.div
-            className="relative mt-[3.6vh]"
-            initial={reduce ? false : { opacity: 0, scale: 0.9, y: 10 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            transition={reduce ? undefined : { duration: 0.8, ease: EASE, delay: 0.5 }}
-          >
-            <Wordmark className="h-[3.8vw] drop-shadow-[0_0.4vw_1.4vw_rgba(228,30,43,0.28)]" />
-          </motion.div>
-
-          <motion.div
-            className="relative mt-[3.4vh] h-px bg-red"
+            className="relative mt-[3.6vh] h-px bg-red"
             initial={reduce ? false : { width: 0, opacity: 0 }}
             animate={{ width: "5vw", opacity: 1 }}
-            transition={reduce ? undefined : { duration: 0.7, ease: EASE, delay: 0.95 }}
+            transition={reduce ? undefined : { duration: 0.7, ease: EASE, delay: 0.5 }}
           />
 
           <motion.div
-            className="relative mt-[3.4vh] font-display uppercase tracking-[0.4em] text-[0.9vw] text-text font-semibold"
-            initial={reduce ? false : { opacity: 0, y: 10 }}
+            className="relative mt-[3.6vh] font-display uppercase tracking-[0.32em] text-[1.6vw] leading-[1.4] text-text font-semibold drop-shadow-[0_0.4vw_1.4vw_rgba(228,30,43,0.12)]"
+            initial={reduce ? false : { opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={reduce ? undefined : { duration: 0.6, ease: EASE, delay: 1.1 }}
+            transition={reduce ? undefined : { duration: 0.7, ease: EASE, delay: 0.7 }}
           >
             Composure <span className="text-red">before</span> execution.
           </motion.div>
