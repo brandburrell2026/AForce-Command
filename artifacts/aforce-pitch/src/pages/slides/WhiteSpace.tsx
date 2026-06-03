@@ -7,7 +7,7 @@ const EASE = [0.16, 1, 0.3, 1] as const;
 // The people who don't get to be off — each caught in the moment before
 // execution. Same cinematic, desaturated treatment across the lineup.
 const PEOPLE = [
-  { src: "08-athlete-black", label: "Athlete", pos: "center" },
+  { src: "08-athlete-black", label: "Athlete", pos: "72% center" },
   { src: "08-ceo-woman", label: "CEO", pos: "center" },
   { src: "08-dj2", label: "DJ", pos: "center" },
   { src: "08-surgeon-woman", label: "Surgeon", pos: "center" },
