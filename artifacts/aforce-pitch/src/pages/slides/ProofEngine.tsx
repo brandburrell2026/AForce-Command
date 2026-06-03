@@ -82,15 +82,19 @@ export default function ProofEngine() {
           </motion.p>
 
           {/* one dominant statement — the map does the rest */}
-          <motion.p
-            className="mt-[5vh] max-w-[30vw] font-display font-medium tracking-[-0.01em] text-[1.55vw] leading-[1.35] text-text"
+          <motion.div
+            className="mt-[5vh] max-w-[36vw]"
             initial={reduce ? false : { opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={reduce ? undefined : { duration: 0.5, ease: EASE, delay: 0.32 }}
           >
-            Miami. Brickell. One market. One data set. One proof before the
-            national stage.
-          </motion.p>
+            <p className="font-display font-medium tracking-[-0.01em] text-[1.35vw] leading-[1.35] text-text/70">
+              Miami. Brickell. One market. One data set.
+            </p>
+            <p className="mt-[1.4vh] font-display font-semibold tracking-[-0.02em] text-[2.8vw] leading-[1.05] text-red">
+              One proof before the national stage.
+            </p>
+          </motion.div>
 
           <motion.div
             className="mt-[3vh] flex items-center gap-[1.1vw] font-display uppercase tracking-[0.22em] text-[0.64vw] text-text/45 font-semibold"
