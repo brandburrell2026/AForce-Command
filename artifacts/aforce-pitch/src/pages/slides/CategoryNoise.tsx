@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { useReducedMotion } from "@/lib/useReducedMotion";
 import SlideFrame from "@/components/SlideFrame";
+import Wordmark from "@/components/Wordmark";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -196,28 +197,58 @@ export default function CategoryNoise() {
           </motion.p>
         </div>
 
-        {/* RIGHT — the stillness */}
-        <motion.div
-          className="absolute inset-y-0 right-0 z-10 flex w-[40%] flex-col items-center justify-center px-[3vw] text-center"
-          initial={reduce ? false : { opacity: 0, y: 14 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={reduce ? undefined : { duration: 0.7, ease: EASE, delay: 0.45 }}
-        >
+        {/* RIGHT — the stillness, anchored by the real AForce mark */}
+        <div className="absolute inset-y-0 right-0 z-10 flex w-[40%] flex-col items-center justify-center px-[3vw] text-center">
+          {/* spotlight that lifts the mark off the page */}
+          <div
+            aria-hidden
+            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[34vw] h-[34vw] pointer-events-none"
+            style={{
+              background:
+                "radial-gradient(circle at center, rgba(239,236,230,0.95) 0%, rgba(239,236,230,0.6) 38%, rgba(239,236,230,0) 70%)",
+            }}
+          />
+
           <motion.span
             aria-hidden
-            className="block rounded-full bg-red"
-            style={{ width: "0.9vw", height: "0.9vw" }}
-            animate={reduce ? undefined : { opacity: [0.5, 1, 0.5], scale: [1, 1.35, 1] }}
-            transition={reduce ? undefined : { duration: 2.4, ease: "easeInOut", repeat: Infinity }}
+            className="relative block rounded-full bg-red"
+            style={{ width: "0.85vw", height: "0.85vw" }}
+            initial={reduce ? false : { opacity: 0, scale: 0 }}
+            animate={
+              reduce ? { opacity: 1 } : { opacity: [0.5, 1, 0.5], scale: [1, 1.35, 1] }
+            }
+            transition={
+              reduce
+                ? undefined
+                : { duration: 2.4, ease: "easeInOut", repeat: Infinity, delay: 0.6 }
+            }
           />
-          <div className="mt-[4vh] font-display font-light tracking-[-0.03em] text-[5vw] leading-none text-text">
-            AForce.
-          </div>
-          <div className="mt-[3vh] h-px w-[4vw] bg-red" />
-          <div className="mt-[3vh] font-display uppercase tracking-[0.36em] text-[0.85vw] text-red font-semibold">
-            Composure before execution.
-          </div>
-        </motion.div>
+
+          <motion.div
+            className="relative mt-[4.5vh]"
+            initial={reduce ? false : { opacity: 0, scale: 0.9, y: 10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={reduce ? undefined : { duration: 0.8, ease: EASE, delay: 0.5 }}
+          >
+            <Wordmark className="h-[5.2vw] drop-shadow-[0_0.4vw_1.4vw_rgba(228,30,43,0.28)]" />
+          </motion.div>
+
+          <motion.div
+            className="relative mt-[4vh] h-px bg-red"
+            initial={reduce ? false : { width: 0, opacity: 0 }}
+            animate={{ width: "5vw", opacity: 1 }}
+            transition={reduce ? undefined : { duration: 0.7, ease: EASE, delay: 0.95 }}
+          />
+
+          <motion.div
+            className="relative mt-[3.4vh] font-display uppercase tracking-[0.4em] text-[0.9vw] text-text font-semibold"
+            initial={reduce ? false : { opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={reduce ? undefined : { duration: 0.6, ease: EASE, delay: 1.1 }}
+          >
+            Composure <span className="text-red">before</span> execution.
+          </motion.div>
+        </div>
       </div>
     </SlideFrame>
   );
