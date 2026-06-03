@@ -17,7 +17,7 @@ type Founder = {
 const FOUNDERS: Founder[] = [
   {
     name: "Brandon",
-    role: "Co-Founder",
+    role: "Founder",
     src: brandon,
     position: "center 24%",
     accent: "bg-red",
