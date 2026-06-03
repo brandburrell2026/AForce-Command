@@ -7,37 +7,15 @@ import Wordmark from "@/components/Wordmark";
 const EASE = [0.16, 1, 0.3, 1] as const;
 
 // The noisy category, made literal — the competitor product wall.
+// Ordered so the two green cans (Prime, Monster) never sit adjacent.
+// Positioned absolutely (left/bottom) so every can paints — a flex row with
+// negative margins silently dropped the final child.
 const COMPETITORS = [
-  { s: "comp-redbull", rot: -6, h: "30vh" },
-  { s: "comp-prime", rot: 5, h: "32vh" },
-  { s: "comp-ghost", rot: -3, h: "31vh" },
-];
-
-type Brand = {
-  t: string;
-  top: string;
-  left: string;
-  size: string;
-  rot: number;
-  o: number;
-  blur?: number;
-};
-
-// The category, shouting over itself — loud names up front, smaller echoes
-// blurring into the din. Fills the whole left canvas with real density.
-const BRANDS: Brand[] = [
-  { t: "MONSTER", top: "20%", left: "1%", size: "8vw", rot: -7, o: 0.2 },
-  { t: "CELSIUS", top: "30%", left: "21%", size: "5.4vw", rot: 5, o: 0.16, blur: 1 },
-  { t: "RED BULL", top: "44%", left: "2%", size: "6.8vw", rot: -4, o: 0.21 },
-  { t: "PRIME", top: "60%", left: "22%", size: "6vw", rot: 8, o: 0.15 },
-  { t: "GHOST", top: "75%", left: "1%", size: "5.2vw", rot: -11, o: 0.15, blur: 1 },
-  { t: "LMNT", top: "87%", left: "27%", size: "3.8vw", rot: 13, o: 0.12 },
-  { t: "GATORADE", top: "23%", left: "34%", size: "3.2vw", rot: -16, o: 0.1, blur: 1.5 },
-  { t: "CELSIUS", top: "52%", left: "37%", size: "3vw", rot: 18, o: 0.09, blur: 1.5 },
-  { t: "MONSTER", top: "68%", left: "41%", size: "2.6vw", rot: -9, o: 0.08, blur: 2 },
-  { t: "PRIME", top: "11%", left: "27%", size: "2.8vw", rot: 6, o: 0.1, blur: 1.5 },
-  { t: "RED BULL", top: "91%", left: "14%", size: "2.4vw", rot: -6, o: 0.08, blur: 2 },
-  { t: "GHOST", top: "38%", left: "41%", size: "2.2vw", rot: 14, o: 0.07, blur: 2 },
+  { s: "comp-redbull", rot: -5, h: "40vh", left: "1vw" },
+  { s: "comp-prime", rot: 4, h: "43vh", left: "7.5vw" },
+  { s: "comp-ghost", rot: -3, h: "42vh", left: "15vw" },
+  { s: "comp-celsius", rot: 5, h: "40vh", left: "22.5vw" },
+  { s: "comp-monster", rot: -4, h: "43vh", left: "29vw" },
 ];
 
 type Frag = { t: string; top: string; left: string; size: string; rot: number; o: number };
@@ -150,42 +128,6 @@ export default function CategoryNoise() {
       <div className="absolute inset-0 overflow-hidden">
         {/* LEFT — the chaos */}
         <div className="absolute inset-y-0 left-0 w-[60%] overflow-hidden">
-          {BRANDS.map((b, i) => (
-            <motion.div
-              key={`${b.t}-${i}`}
-              aria-hidden
-              className="absolute font-display font-extrabold tracking-tight text-text whitespace-nowrap select-none"
-              style={{
-                top: b.top,
-                left: b.left,
-                fontSize: b.size,
-                filter: b.blur ? `blur(${b.blur}px)` : undefined,
-              }}
-              initial={reduce ? false : { opacity: 0, scale: 0.9, rotate: b.rot }}
-              animate={
-                reduce
-                  ? { opacity: b.o }
-                  : { opacity: b.o, scale: 1, rotate: b.rot, y: [0, i % 2 ? 7 : -7, 0] }
-              }
-              transition={
-                reduce
-                  ? undefined
-                  : {
-                      opacity: { duration: 0.6, ease: EASE, delay: 0.04 + i * 0.04 },
-                      scale: { duration: 0.6, ease: EASE, delay: 0.04 + i * 0.04 },
-                      y: {
-                        duration: 6 + (i % 4),
-                        ease: "easeInOut",
-                        repeat: Infinity,
-                        delay: i * 0.2,
-                      },
-                    }
-              }
-            >
-              {b.t}
-            </motion.div>
-          ))}
-
           {FRAGMENTS.map((f, i) => (
             <motion.div
               key={`f-${f.t}-${i}`}
@@ -245,15 +187,17 @@ export default function CategoryNoise() {
         </div>
 
         {/* the category, made literal — the competitor product wall, crowding the noise side */}
-        <div className="absolute bottom-[7vh] left-[13.5vw] z-[12] flex items-end gap-[1.6vw]">
+        <div className="absolute bottom-[6vh] left-[2vw] right-0 h-[46vh] z-[12]">
           {COMPETITORS.map((c, i) => (
             <motion.img
               key={c.s}
               src={can(c.s)}
               alt=""
               aria-hidden
-              className="w-auto object-contain drop-shadow-[0_1.8vh_2.6vh_rgba(0,0,0,0.3)]"
-              style={{ height: c.h }}
+              loading="eager"
+              decoding="sync"
+              className="absolute bottom-0 w-auto object-contain drop-shadow-[0_2vh_3vh_rgba(0,0,0,0.34)]"
+              style={{ height: c.h, left: c.left, zIndex: i, transformOrigin: "bottom center" }}
               initial={reduce ? false : { opacity: 0, y: 26, rotate: c.rot, scale: 0.94 }}
               animate={
                 reduce

@@ -24,3 +24,13 @@ key, and `?v=N` cache-busters can break SPA routing (blank page). Trust it only 
 layout, not animation state.
 **How to apply:** to verify animated/just-edited mockups live, use `type=app_preview`
 (captures fresh through the local `localhost:80` proxy, no external cache).
+
+## app_preview screenshot can drop the LAST DOM-ordered image
+When a slide/page has several large images, the `app_preview` screenshot may consistently
+omit ONLY the last-painted (last DOM-ordered) image — every other element renders. The
+signature: the same image renders fine when it is NOT last, and reordering just moves the
+gap to whatever is now last. This is a capture-timing artifact (last image not composited
+at snapshot), NOT a CSS/layout bug. `loading="eager"`/`decoding="sync"` did not fix it.
+**How to apply:** before chasing a CSS bug, confirm via: (a) all images serve 200, (b) the
+element is a valid positioned child with sane coords/z, (c) the missing item changes with
+DOM order. If so, trust the live deck and stop debugging CSS.
