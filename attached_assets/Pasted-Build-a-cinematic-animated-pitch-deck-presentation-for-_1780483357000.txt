@@ -1,0 +1,205 @@
+Build a cinematic, animated pitch deck presentation for 
+AForce — a behavioral performance hydration brand. The 
+deck should feel like a film trailer meets investor 
+presentation. Premium, composed, high contrast. Use the 
+existing AForce brand system: off-white background 
+(#F5F2EE), black headlines, red accent (#C0392B), clean 
+sans-serif typography.
+
+OPENING SIZZLE REEL — Play automatically before slide 1
+Build a 45-second animated sequence directly in the 
+presentation:
+
+ACT 1 (0:00 to 0:18) — THE NOISE
+Full screen rapid-cut montage effect. Flash the following 
+words in large bold white text on dark background, each 
+appearing and disappearing fast with a flicker effect:
+PERFORM. DELIVER. SHOW UP. BE READY. DO IT AGAIN.
+Layer these competitor brand names behind in gray, 
+overlapping, rotating slightly, building in density:
+MONSTER · CELSIUS · PRIME · RED BULL · GHOST · LMNT
+Add visual static and fragmented notification dot elements 
+in the background. Audio cue: layered notification sounds, 
+building heartbeat (use Web Audio API to generate 
+programmatically — no external audio files needed).
+Intensity builds to a peak at 0:18.
+
+ACT 2 (0:18 to 0:28) — THE SHIFT
+Hard cut to pure black. Hold 1 full second of silence.
+Then a single low sine wave tone fades in (Web Audio API).
+Slow fade up from black. The AForce logo appears centered 
+in red. Below it, the following words appear one at a time 
+with a 1.2 second pause between each:
+Pause.
+Hydrate.
+Lock in.
+Perform.
+Each word fades in gently — no snap, no flash. Composed.
+
+ACT 3 (0:28 to 0:45) — THE LOCK IN
+A single clean rhythmic pulse begins in the audio 
+(programmatic tone, low and steady).
+The AForce OS score graphic animates on screen — a circle 
+filling from 0 to 79, the number counting up.
+Then cut to black. Two lines of white text appear:
+"This is not about energy."
+"This is about readiness."
+Final frame: AForce wordmark in red on black.
+Held for 3 seconds.
+Final line fades in beneath it in small white caps:
+"PERFORMANCE BEGINS BEFORE THE MOMENT."
+Slow fade to the first deck slide.
+
+SLIDE 1 — Performance is non-negotiable
+Full bleed dark background (#1A1A1A). Large stark white 
+centered typography. Subtle red pulse glow animation 
+behind the text on load. No clutter.
+
+SLIDE 2 — Built for people who don't get to be off
+Dark gradient background. The audience categories 
+(FOUNDERS · ENTREPRENEURS · CREATORS · BUSINESS LEADERS · 
+MEDICAL PROFESSIONALS · STUDENTS · ATHLETES) fade in 
+sequentially one at a time, 0.4 seconds apart. Each word 
+lands with weight before the next appears.
+
+SLIDE 3 — The Problem (The category is noise)
+Split screen. LEFT: dense chaotic cluster of competitor 
+names in varying sizes and rotations, overlapping, with 
+fragmented notification dots and visual static. Animated 
+on load — names drift and pulse slightly.
+RIGHT: pure white space. Single centered text in black: 
+"AForce." Below in small red caps: "COMPOSURE BEFORE 
+EXECUTION."
+On slide load, the left side chaos animates in first for 
+1.5 seconds, then the right side cuts in hard. The 
+contrast is the message.
+Section label top left in red caps: THE PROBLEM
+Headline top left: "The category is noise."
+
+SLIDE 4 — ARD Validation (Selected for America's Real Deal)
+Off-white background. ARD logo fades in with a slow zoom 
+(1.2 seconds). Section label and headline appear first. 
+The three stat boxes (Platform: National Television / 
+Status: Selected · Hundreds Reviewed / On Air: January 
+2027) appear sequentially on load, 0.6 seconds apart. 
+The arrival feels earned, not dumped on screen.
+
+SLIDE 5 — The Prize ($4.2B market)
+Bar chart animates in from the bottom up, bars growing 
+one at a time left to right. The 2030 bar is red, all 
+others gray. Dollar values count up as each bar rises. 
+Section label: THE PRIZE. Keep existing layout and copy.
+
+SLIDE 6 — The Problem slide (competitor names)
+Already handled in Slide 3 above — skip or merge.
+
+SLIDE 7 — The White Space (product shot)
+AForce can lineup slides in from the right, arriving 
+against the clean background. Competitor names in the 
+background (RED BULL, GHOST, PRIME, LMNT) fade out 
+simultaneously as the cans arrive. The visual message: 
+they fade, we enter. Section label: THE OPENING. 
+Headline: "The white space."
+
+SLIDE 8 — The Ritual (Pause. Hydrate. Lock in. Perform.)
+Full bleed split layout. Left side: the four ritual words 
+appear one at a time on load, 1 second apart. Each word 
+is large. Pause in red. Hydrate in black. Lock in in blue. 
+Perform in black. Right side: full bleed high contrast 
+athlete image (dark, slightly desaturated). Body copy 
+fades in after all four words have landed.
+
+SLIDE 9 — The System
+The six framework boxes (Hydration/Product, Daily Use/
+Habit, Tracking/OS, Ritual/Behavior, Subscription/
+Revenue, Community/Moat) animate in sequentially left 
+to right, top row then bottom row. Phone mockups fade 
+in last. Section label: THE SYSTEM. Headline: "The system."
+
+SLIDE 10 — The Moat
+Three columns animate in sequentially left to right. 
+The progress bar at the bottom of each column fills 
+from left to right as the column appears. Labels 
+(DATA DEPTH ACCRUES DAILY / HABIT LOCK COMPOUNDS WEEKLY / 
+IDENTITY BECOMES PERMANENT) fade in after their bars fill.
+Section label: THE MOAT.
+
+SLIDE 11 — The Proof Engine (Miami map)
+Florida map fades in. The Miami/Brickell pin pulses red 
+on arrival — a slow expanding ring animation. The red 
+glow on the map intensifies around Miami on load.
+Section label: THE PROOF ENGINE.
+
+SLIDE 12 — The Founders
+Two founder photos fade in simultaneously from grayscale 
+to slightly warmer tone on load. The red dash and name 
+labels animate in beneath each photo. Section label: 
+THE FOUNDERS. Headline: "We lived the gap."
+
+SLIDE 13 — The Advisors
+Three advisor cards fade in sequentially. Name bold, 
+title and company in red, area of contribution in muted 
+gray below. Section label: THE ADVISORS. Headline: 
+"The people behind the people."
+
+SLIDE 14 — The Framework
+The progression chain appears one step at a time across 
+the slide with a connecting arrow drawing in between 
+each step:
+IDENTITY > RITUAL > BEHAVIOR > OS > RETENTION > 
+MEMBERSHIP > SCALE
+Each word and its descriptor beneath it lands 0.8 
+seconds apart. The full chain should take about 6 
+seconds to complete. Bottom line fades in last in italic:
+"Each step earns the next. None can be skipped."
+Section label: THE FRAMEWORK.
+
+SLIDE 15 — The Road (milestones)
+Timeline draws in from left to right, the line 
+animating across the slide. Each milestone dot appears 
+as the line reaches it, with the label fading in 
+beneath. Milestone 04 (JAN 2027 · National Stage) 
+appears last and is styled differently — slightly 
+larger, the text in the blue used for ARD elsewhere 
+in the deck. Section label: THE ROAD.
+
+SLIDE 16 — What Proof Looks Like
+The five proof statements appear one at a time, 
+0.8 seconds apart. Each numbered 01 through 05. 
+The closing line fades in last in italic after all 
+five have landed.
+
+SLIDE 17 — The Economics
+All key numbers (CAC $32, LTV $952, LTV:CAC 29.8x, 
+Sub Conversion 20%+) count up from zero on load. 
+The gross margin bars fill left to right sequentially. 
+The October Snapshot box fades in last with a subtle 
+border highlight. Label the snapshot clearly as 
+PROJECTED or ACTUAL depending on status.
+
+SLIDE 18 — The Ask ($4M)
+The $4M figure animates in large, centered. The four 
+use-of-funds bars fill left to right sequentially, 
+each with its percentage and dollar amount counting 
+up as the bar fills. The closing line appears last:
+"This raise funds the proof. The next round funds 
+the scale."
+
+GLOBAL SETTINGS — Apply across all slides:
+- Smooth crossfade transitions between all slides 
+  (400ms)
+- All headlines appear 200ms before body copy
+- All section labels (red caps) appear first on 
+  every slide, 300ms before the headline
+- Consistent red pulse dot in top right corner of 
+  every slide as a brand anchor (small, subtle)
+- All number statistics count up from zero on entry
+- Navigation: arrow keys and click to advance
+- Add a minimal slide progress indicator at the 
+  bottom center — small red dots, one per slide, 
+  current slide filled
+- Make it fully responsive and presentable 
+  fullscreen in a browser
+- No external dependencies except standard web 
+  technologies (HTML, CSS, JavaScript, Web Audio 
+  API for programmatic sound)
