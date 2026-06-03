@@ -984,6 +984,12 @@ uri = "file://artifacts/aforce-pitch/public/images/bg/15-proof.png"
 type = "image"
 title = "lone runner empty stadium dawn"
 
+[[generated]]
+id = "l08PSW4GXCEuJRxyzZEZn"
+uri = "file://artifacts/aforce-pitch/public/images/bg/12-moat-deep.png"
+type = "image"
+title = "still deep water distant monolith mist"
+
 [[outputs]]
 id = "fILTiXCCTKYfWe9d8R46M"
 uri = "file://attached_assets/tester-share/aforce-tester-qr.png"
