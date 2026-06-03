@@ -56,14 +56,15 @@ export default function TheAsk() {
           transition={reduce ? undefined : { duration: 1.4, ease: EASE }}
         />
         {/* warm temperature veil so the cool image harmonizes with the paper */}
-        <div className="absolute inset-0 bg-[#e7e3db]/30" />
-        {/* radial legibility scrim — denser through the central content band,
-            opening up at the top and bottom edges where the horizon can breathe */}
+        <div className="absolute inset-0 bg-[#eceae4]/55" />
+        {/* radial legibility scrim — denser through the central content band so
+            text and numbers stay crisp; the figure recedes to a faint trace and
+            the image breathes only at the very top and bottom edges */}
         <div
           className="absolute inset-0"
           style={{
             background:
-              "radial-gradient(120% 80% at 50% 48%, rgba(228,224,216,0.86) 0%, rgba(228,224,216,0.80) 44%, rgba(231,227,219,0.56) 76%, rgba(231,227,219,0.30) 100%)",
+              "radial-gradient(130% 88% at 50% 46%, rgba(236,234,228,0.96) 0%, rgba(236,234,228,0.93) 48%, rgba(236,234,228,0.74) 78%, rgba(236,234,228,0.46) 100%)",
           }}
         />
       </div>
@@ -155,7 +156,7 @@ export default function TheAsk() {
         >
           <div className="font-display text-[2vw] font-bold tracking-[-0.02em] leading-[1.12] text-text">
             <span className="text-red">This raise funds the proof.</span>{" "}
-            <span className="text-text/45 font-bold">The next round funds the scale.</span>
+            <span className="text-text/70 font-bold">The next round funds the scale.</span>
           </div>
         </motion.div>
       </div>
