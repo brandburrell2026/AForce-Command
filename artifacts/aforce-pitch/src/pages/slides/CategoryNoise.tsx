@@ -7,22 +7,15 @@ import Wordmark from "@/components/Wordmark";
 const EASE = [0.16, 1, 0.3, 1] as const;
 
 // The noisy category, made literal — the competitor product wall.
-// Energy + hydration rivals crowd together: Red Bull, Prime, Liquid IV,
-// Ghost, Gatorade, Celsius, Monster, LMNT. Heights are tuned per packshot
-// aspect (bottles tall, stick packs/pouches shorter). Ordered so the green
-// cans (Prime, Ghost, Monster) never sit directly adjacent.
-// Positioned absolutely (left/bottom) so every product paints — a flex row
-// with negative margins silently dropped the final child.
+// Ordered so the two green cans (Prime, Monster) never sit adjacent.
+// Positioned absolutely (left/bottom) so every can paints — a flex row with
+// negative margins silently dropped the final child.
 const COMPETITORS = [
-  { s: "comp-redbull", rot: -5, h: "40vh", left: "0vw" },
-  { s: "comp-prime", rot: 4, h: "43vh", left: "4vw" },
-  { s: "comp-liquidiv", rot: -4, h: "39vh", left: "9vw" },
-  { s: "comp-ghost", rot: -3, h: "42vh", left: "12.5vw" },
-  { s: "comp-gatorade", rot: 3, h: "41vh", left: "16.5vw" },
-  { s: "comp-celsius", rot: 5, h: "40vh", left: "25vw" },
-  { s: "comp-monster", rot: -4, h: "43vh", left: "31vw" },
-  { s: "comp-lmnt", rot: 6, h: "40vh", left: "37.5vw" },
-  { s: "comp-bodyarmor", rot: -4, h: "42vh", left: "20vw" },
+  { s: "comp-redbull", rot: -5, h: "40vh", left: "1vw" },
+  { s: "comp-prime", rot: 4, h: "43vh", left: "7.5vw" },
+  { s: "comp-ghost", rot: -3, h: "42vh", left: "15vw" },
+  { s: "comp-celsius", rot: 5, h: "40vh", left: "22.5vw" },
+  { s: "comp-monster", rot: -4, h: "43vh", left: "29vw" },
 ];
 
 type Frag = { t: string; top: string; left: string; size: string; rot: number; o: number };
@@ -35,9 +28,6 @@ const FRAGMENTS: Frag[] = [
   { t: "NEW", top: "26%", left: "8%", size: "1.1vw", rot: 4, o: 0.2 },
   { t: "BUY NOW", top: "83%", left: "15%", size: "0.95vw", rot: -8, o: 0.16 },
   { t: "CLEAN ENERGY", top: "48%", left: "27%", size: "0.9vw", rot: 12, o: 0.13 },
-  { t: "GATORADE", top: "30%", left: "22%", size: "1.25vw", rot: 5, o: 0.2 },
-  { t: "LIQUID IV", top: "62%", left: "24%", size: "1.15vw", rot: -6, o: 0.19 },
-  { t: "LMNT", top: "18%", left: "11%", size: "1.1vw", rot: 8, o: 0.2 },
 ];
 
 type Dot = { top: string; left: string; s: string; o: number; red?: boolean };
