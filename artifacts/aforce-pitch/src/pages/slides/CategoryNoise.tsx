@@ -349,7 +349,7 @@ export default function CategoryNoise() {
             className={`block h-[0.55vw] w-[0.55vw] rounded-full ${soundOn ? "bg-red" : "bg-text/30"}`}
           />
           <span className="font-display uppercase tracking-[0.28em] text-[0.6vw] text-text font-semibold">
-            {soundOn ? "Sound On" : "Muted"}
+            {soundOn ? "Sound On" : "Tap for sound"}
           </span>
         </motion.button>
       </div>
