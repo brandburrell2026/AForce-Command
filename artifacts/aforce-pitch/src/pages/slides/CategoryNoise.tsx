@@ -32,20 +32,6 @@ const FRAGMENTS: Frag[] = [
   { t: "CLEAN ENERGY", top: "48%", left: "27%", size: "0.9vw", rot: 12, o: 0.13 },
 ];
 
-type Dot = { top: string; left: string; s: string; o: number; red?: boolean };
-
-// Notification-style pings — the constant noise of the category.
-const DOTS: Dot[] = [
-  { top: "20%", left: "31%", s: "0.7vw", o: 0.6, red: true },
-  { top: "33%", left: "12%", s: "0.5vw", o: 0.25 },
-  { top: "46%", left: "33%", s: "0.45vw", o: 0.22 },
-  { top: "58%", left: "6%", s: "0.6vw", o: 0.55, red: true },
-  { top: "72%", left: "20%", s: "0.45vw", o: 0.22 },
-  { top: "40%", left: "44%", s: "0.4vw", o: 0.2 },
-  { top: "78%", left: "38%", s: "0.55vw", o: 0.5, red: true },
-  { top: "14%", left: "40%", s: "0.4vw", o: 0.18 },
-];
-
 export default function CategoryNoise() {
   const reduce = useReducedMotion();
   const base = import.meta.env.BASE_URL;
@@ -144,30 +130,6 @@ export default function CategoryNoise() {
             </motion.div>
           ))}
 
-          {DOTS.map((d, i) => (
-            <motion.span
-              key={`d-${i}`}
-              aria-hidden
-              className={`absolute rounded-full ${d.red ? "bg-red" : "bg-text"}`}
-              style={{ top: d.top, left: d.left, width: d.s, height: d.s }}
-              initial={reduce ? false : { opacity: 0, scale: 0 }}
-              animate={
-                reduce
-                  ? { opacity: d.o }
-                  : d.red
-                    ? { opacity: [d.o, 1, d.o], scale: [1, 1.45, 1] }
-                    : { opacity: d.o, scale: 1 }
-              }
-              transition={
-                reduce
-                  ? undefined
-                  : d.red
-                    ? { duration: 1.8, ease: "easeInOut", repeat: Infinity, delay: i * 0.3 }
-                    : { duration: 0.4, ease: EASE, delay: 0.5 + i * 0.05 }
-              }
-            />
-          ))}
-
           {/* the noise dissolves into the paper at the top and bottom edges —
               composed, never hard-cut at the frame */}
           <div
@@ -198,8 +160,15 @@ export default function CategoryNoise() {
               aria-hidden
               loading="eager"
               decoding="sync"
-              className="absolute bottom-0 w-auto object-contain drop-shadow-[0_2vh_3vh_rgba(0,0,0,0.34)]"
-              style={{ height: c.h, left: c.left, zIndex: i, transformOrigin: "bottom center" }}
+              className="absolute bottom-0 w-auto object-contain"
+              style={{
+                height: c.h,
+                left: c.left,
+                zIndex: i,
+                transformOrigin: "bottom center",
+                filter:
+                  "drop-shadow(2px 0 0 #efece6) drop-shadow(-2px 0 0 #efece6) drop-shadow(0 2px 0 #efece6) drop-shadow(0 -2px 0 #efece6) drop-shadow(0 1.4vh 2vh rgba(0,0,0,0.2))",
+              }}
               initial={reduce ? false : { opacity: 0, y: 26, rotate: c.rot, scale: 0.94 }}
               animate={
                 reduce

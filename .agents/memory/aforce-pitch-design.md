@@ -102,3 +102,15 @@ with massive whitespace. One emphasis word per H1 in red or blue.
   during export.
 - Google Fonts `@import` must come *before* `@import "tailwindcss"` in
   `index.css` or the production CSS parser drops the font import.
+- **Slide 7 / CategoryNoise competitor wall = charcoal SILHOUETTES, never
+  real-brand product photos.** Real competitor cans/bottles in a circulating
+  investor deck are IP exposure, so `comp-*.png` are derived charcoal
+  silhouettes. **Technique:** flatten a trimmed cutout to a solid fill while
+  keeping its alpha via `magick in.png -channel RGB -fill '#23262c' -colorize
+  100 +channel out.png` (anti-aliased edges survive). To separate OVERLAPPING
+  silhouettes, the img `filter` stacks 4-direction **paper-colored** (`#efece6`)
+  0-blur `drop-shadow`s + a soft ground shadow — the paper outline is invisible
+  on the paper background and only shows in the gaps between overlapping shapes
+  (no halo). Don't reintroduce branded photos or a scattered red "notification"
+  dot layer; keep only the single intentional pulsing red ping above the
+  right-side tagline.
