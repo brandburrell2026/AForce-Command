@@ -71,9 +71,10 @@ export default function TheFounders() {
               environments where preparation and execution determined outcomes.
             </p>
             <p className="text-text">
-              <span className="font-medium">Julius Burrell</span> spent years
-              competing at an elite level in professional basketball, where
-              performance was measured daily and discipline was non-negotiable.
+              <span className="font-medium">Julius Burrell</span> competed as a
+              collegiate baseball player and went on to build businesses
+              internationally — arenas where performance was measured daily and
+              discipline was non-negotiable.
             </p>
             <p className="text-text/65">
               Across business, sport, and life they recognized the same truth: the
