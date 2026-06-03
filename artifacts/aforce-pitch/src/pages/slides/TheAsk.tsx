@@ -10,28 +10,24 @@ const USE = [
     label: "Product & Inventory",
     sub: "Launch SKUs + concierge stock",
     amount: "$1,400,000",
-    bar: "bg-red",
   },
   {
     pct: 25,
     label: "Marketing & Activation",
     sub: "Brickell + NYC density, event, paid acquisition",
     amount: "$1,000,000",
-    bar: "bg-red",
   },
   {
     pct: 25,
     label: "Tech & OS Development",
     sub: "AForce OS build, app, retention infrastructure",
     amount: "$1,000,000",
-    bar: "bg-red",
   },
   {
     pct: 15,
     label: "Team & Operations",
     sub: "Salaries, legal, insurance, overhead · ~$50K/mo",
     amount: "$600,000",
-    bar: "bg-red",
   },
 ];
 
@@ -99,47 +95,61 @@ export default function TheAsk() {
           round funds scale.
         </motion.p>
 
-        {/* use of funds — four full-width allocation bars */}
-        <div className="mt-[2.6vh] w-full max-w-[62vw] text-left">
-          <div className="inline-block font-display uppercase tracking-[0.22em] text-[0.68vw] text-text/45 font-semibold mb-[1.6vh] border-b-2 border-red pb-[0.7vh]">
-            Use of funds
+        {/* use of funds — one $4M, split to scale */}
+        <div className="mt-[2.8vh] w-full max-w-[64vw] text-left">
+          <div className="flex items-baseline justify-between mb-[1.4vh]">
+            <span className="inline-block font-display uppercase tracking-[0.22em] text-[0.68vw] text-text/45 font-semibold border-b-2 border-red pb-[0.6vh]">
+              Use of funds
+            </span>
+            <span className="font-display uppercase tracking-[0.2em] text-[0.66vw] text-text/35 tabular-nums">
+              $4,000,000 total
+            </span>
           </div>
 
-          <div className="flex flex-col gap-[1.4vh]">
+          {/* single allocation bar — the whole raise at once, split to scale */}
+          <motion.div
+            className="flex h-[2.1vh] w-full gap-[4px]"
+            initial={reduce ? false : { opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={reduce ? undefined : { duration: 0.5, ease: EASE, delay: 0.3 }}
+          >
             {USE.map((u, i) => (
               <motion.div
                 key={u.label}
+                className="h-full bg-red first:rounded-l-full last:rounded-r-full"
+                style={{ width: `${u.pct}%`, transformOrigin: "left" }}
+                initial={reduce ? false : { scaleX: 0 }}
+                animate={{ scaleX: 1 }}
+                transition={
+                  reduce ? undefined : { duration: 0.7, ease: EASE, delay: 0.36 + i * 0.07 }
+                }
+              />
+            ))}
+          </motion.div>
+
+          {/* breakdown — one column per allocation, tied to the bar above */}
+          <div className="mt-[2.2vh] grid grid-cols-4 gap-[1.8vw]">
+            {USE.map((u, i) => (
+              <motion.div
+                key={u.label}
+                className="border-t-2 border-red/80 pt-[1.1vh]"
                 initial={reduce ? false : { opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={
-                  reduce ? undefined : { duration: 0.5, ease: EASE, delay: 0.3 + i * 0.08 }
+                  reduce ? undefined : { duration: 0.5, ease: EASE, delay: 0.46 + i * 0.07 }
                 }
               >
-                <div className="flex items-baseline justify-between mb-[0.9vh]">
-                  <div className="flex items-baseline gap-[1vw]">
-                    <span className="font-display text-[1.7vw] font-light text-text tabular-nums leading-none">
-                      {u.pct}%
-                    </span>
-                    <span className="font-display uppercase tracking-[0.18em] text-[0.78vw] text-text/70 font-medium">
-                      {u.label}
-                    </span>
-                  </div>
-                  <span className="font-display text-[1vw] text-text/55 font-light tabular-nums">
-                    {u.amount}
-                  </span>
+                <div className="font-display font-light text-text tabular-nums leading-none">
+                  <span className="text-[2.2vw]">{u.pct}</span>
+                  <span className="text-[1vw] text-text/50">%</span>
                 </div>
-                <div className="h-[1.5vh] w-full rounded-full bg-text/10 overflow-hidden">
-                  <motion.div
-                    className={`h-full rounded-full ${u.bar}`}
-                    style={{ width: `${u.pct}%`, transformOrigin: "left" }}
-                    initial={reduce ? false : { scaleX: 0 }}
-                    animate={{ scaleX: 1 }}
-                    transition={
-                      reduce ? undefined : { duration: 0.7, ease: EASE, delay: 0.36 + i * 0.08 }
-                    }
-                  />
+                <div className="mt-[1vh] font-display uppercase tracking-[0.16em] text-[0.72vw] text-text font-semibold leading-[1.3]">
+                  {u.label}
                 </div>
-                <div className="mt-[0.8vh] font-body text-[0.78vw] leading-[1.4] text-text/45">
+                <div className="mt-[0.6vh] font-display text-[0.84vw] text-red font-medium tabular-nums">
+                  {u.amount}
+                </div>
+                <div className="mt-[0.8vh] font-body text-[0.72vw] leading-[1.45] text-text/45">
                   {u.sub}
                 </div>
               </motion.div>
