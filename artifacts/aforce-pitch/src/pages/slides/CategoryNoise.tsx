@@ -18,7 +18,7 @@ type Brand = {
 // The category, shouting over itself — loud names up front, smaller echoes
 // blurring into the din. Fills the whole left canvas with real density.
 const BRANDS: Brand[] = [
-  { t: "MONSTER", top: "15%", left: "1%", size: "8vw", rot: -7, o: 0.24 },
+  { t: "MONSTER", top: "20%", left: "1%", size: "8vw", rot: -7, o: 0.2 },
   { t: "CELSIUS", top: "30%", left: "21%", size: "5.4vw", rot: 5, o: 0.16, blur: 1 },
   { t: "RED BULL", top: "44%", left: "2%", size: "6.8vw", rot: -4, o: 0.21 },
   { t: "PRIME", top: "60%", left: "22%", size: "6vw", rot: 8, o: 0.15 },
@@ -139,6 +139,25 @@ export default function CategoryNoise() {
               }
             />
           ))}
+
+          {/* the noise dissolves into the paper at the top and bottom edges —
+              composed, never hard-cut at the frame */}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-x-0 top-0 h-[16%]"
+            style={{
+              background:
+                "linear-gradient(to bottom, rgba(239,236,230,0.96) 0%, rgba(239,236,230,0) 100%)",
+            }}
+          />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-x-0 bottom-0 h-[20%]"
+            style={{
+              background:
+                "linear-gradient(to top, rgba(239,236,230,0.96) 0%, rgba(239,236,230,0) 100%)",
+            }}
+          />
         </div>
 
         {/* paper wash — clears the calm side and dissolves the noise into it */}
@@ -161,7 +180,7 @@ export default function CategoryNoise() {
             className="absolute -inset-x-[5vw] -inset-y-[5vh] -z-10"
             style={{
               background:
-                "radial-gradient(62% 62% at 28% 48%, rgba(239,236,230,0.96) 0%, rgba(239,236,230,0) 100%)",
+                "radial-gradient(72% 70% at 26% 46%, rgba(239,236,230,0.98) 0%, rgba(239,236,230,0.86) 34%, rgba(239,236,230,0) 100%)",
             }}
           />
           <motion.div
