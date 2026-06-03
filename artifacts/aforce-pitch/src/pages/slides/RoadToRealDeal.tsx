@@ -15,37 +15,23 @@ const STOPS = [
   { date: "Jan 2027", t: "National Stage", m: "America's Real Deal. We arrive with proof." },
 ];
 
-const PRIMARY = {
-  t: "Behavioral",
-  tag: "Primary Proof",
-  items: [
-    "Ritual adoption rate",
-    "Weekly active users",
-    "Streak participation",
-    "Day 30 retention above 50%",
-  ],
-};
-
-const SECONDARY: Array<{ t: string; tag: string; accent: string; items: string[] }> = [
+// The four numbers that define "proven." Data-forward scoreboard, color-coded
+// by proof tier (red = behavioral, blue = ecosystem, neutral = commerce/financial).
+const TARGETS = [
+  { value: ">50%", label: "Day 30 retention", tier: "Behavioral", value_c: "text-red", bar: "bg-red" },
+  { value: ">50%", label: "OS activation", tier: "Ecosystem", value_c: "text-blue", bar: "bg-blue" },
   {
-    t: "Ecosystem",
-    tag: "Secondary",
-    accent: "text-blue",
-    items: ["OS activation above 50%", "Monthly active users", "3+ weekly engagements"],
+    value: ">20%",
+    label: "Subscription conversion",
+    tier: "Commerce",
+    value_c: "text-text",
+    bar: "bg-text/55",
   },
-  {
-    t: "Commerce",
-    tag: "Third",
-    accent: "text-text/70",
-    items: ["Subscription conversion above 20%", "Repeat purchase above 30%", "AOV tracking"],
-  },
-  {
-    t: "Financial",
-    tag: "Guardrails",
-    accent: "text-text/40",
-    items: ["CAC below $32 · stop at $50", "LTV / CAC above 5×", "Positive contribution margin"],
-  },
+  { value: ">5×", label: "LTV / CAC", tier: "Financial", value_c: "text-text", bar: "bg-text/35" },
 ];
+
+const SIGNALS =
+  "Also tracked — ritual adoption · weekly & monthly active users · streak participation · 3+ weekly engagements · repeat purchase >30% · AOV · CAC < $32 (stop at $50) · positive contribution margin";
 
 export default function RoadToRealDeal() {
   const reduce = useReducedMotion();
@@ -152,16 +138,16 @@ export default function RoadToRealDeal() {
           </div>
         </div>
 
-        {/* PHASE 1 SUCCESS METRICS — priority hierarchy */}
+        {/* PHASE 1 PROOF SCOREBOARD — the four numbers that define "proven" */}
         <motion.div
-          className="mt-[6vh]"
+          className="mt-[7vh]"
           initial={reduce ? false : { opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={reduce ? undefined : { duration: 0.6, ease: EASE, delay: 0.9 }}
+          transition={reduce ? undefined : { duration: 0.6, ease: EASE, delay: 0.55 }}
         >
-          <div className="flex items-baseline gap-[1.4vw] mb-[2.4vh]">
+          <div className="flex items-baseline gap-[1.4vw] mb-[2.6vh]">
             <span className="font-display uppercase tracking-[0.3em] text-[0.72vw] text-red font-semibold whitespace-nowrap">
-              Phase 1 Success Metrics
+              What “Proven” Looks Like
             </span>
             <span className="font-body italic text-[0.72vw] leading-[1.4] text-text/45">
               Phase 1 is not about awareness — it is about proving behavior,
@@ -169,69 +155,44 @@ export default function RoadToRealDeal() {
             </span>
           </div>
 
-          {/* PRIMARY — behavioral proof sits above everything */}
-          <motion.div
-            className="border-l-2 border-red pl-[1.4vw] mb-[2.8vh]"
-            initial={reduce ? false : { opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={reduce ? undefined : { duration: 0.5, ease: EASE, delay: 0.98 }}
-          >
-            <div className="flex items-baseline gap-[0.9vw] mb-[1.4vh]">
-              <span className="font-display uppercase tracking-[0.2em] text-[0.96vw] text-red font-semibold">
-                {PRIMARY.t}
-              </span>
-              <span className="font-display uppercase tracking-[0.26em] text-[0.6vw] text-red/70 font-semibold">
-                {PRIMARY.tag}
-              </span>
-            </div>
-            <div className="grid grid-cols-4 gap-[2.5vw]">
-              {PRIMARY.items.map((item) => (
-                <div
-                  key={item}
-                  className="flex gap-[0.5vw] font-body text-[0.86vw] leading-[1.35] text-text/85"
-                >
-                  <span className="text-red leading-[1.35]">·</span>
-                  <span>{item}</span>
-                </div>
-              ))}
-            </div>
-          </motion.div>
-
-          {/* SECONDARY — supporting tiers, de-emphasized */}
-          <div className="grid grid-cols-3 gap-[2.5vw]">
-            {SECONDARY.map((col, i) => (
+          {/* big-number proof targets */}
+          <div className="grid grid-cols-4 gap-[2.5vw]">
+            {TARGETS.map((tgt, i) => (
               <motion.div
-                key={col.t}
-                initial={reduce ? false : { opacity: 0, y: 12 }}
+                key={tgt.label}
+                className="relative pt-[1.6vh]"
+                initial={reduce ? false : { opacity: 0, y: 14 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={
-                  reduce ? undefined : { duration: 0.45, ease: EASE, delay: 1.08 + i * 0.08 }
+                  reduce ? undefined : { duration: 0.5, ease: EASE, delay: 0.62 + i * 0.08 }
                 }
               >
-                <div className="flex items-baseline gap-[0.7vw] mb-[1vh]">
-                  <span
-                    className={`font-display uppercase tracking-[0.22em] text-[0.66vw] font-semibold ${col.accent}`}
-                  >
-                    {col.t}
-                  </span>
-                  <span className="font-display uppercase tracking-[0.24em] text-[0.54vw] text-text/35 font-semibold">
-                    {col.tag}
-                  </span>
+                {/* accent bar */}
+                <span className={`absolute top-0 left-0 h-[2px] w-[2.4vw] ${tgt.bar}`} />
+                <div
+                  className={`font-display font-light tracking-[-0.03em] text-[3.4vw] leading-[0.95] ${tgt.value_c}`}
+                >
+                  {tgt.value}
                 </div>
-                <ul className="space-y-[0.6vh]">
-                  {col.items.map((item) => (
-                    <li
-                      key={item}
-                      className="flex gap-[0.5vw] font-body text-[0.74vw] leading-[1.3] text-text/55"
-                    >
-                      <span className="text-red/70 leading-[1.3]">·</span>
-                      <span>{item}</span>
-                    </li>
-                  ))}
-                </ul>
+                <div className="mt-[1.4vh] font-display text-[1vw] leading-tight text-text/85">
+                  {tgt.label}
+                </div>
+                <div className="mt-[0.8vh] font-display uppercase tracking-[0.24em] text-[0.58vw] text-text/40 font-semibold">
+                  {tgt.tier}
+                </div>
               </motion.div>
             ))}
           </div>
+
+          {/* supporting qualitative signals — one quiet line */}
+          <motion.p
+            className="mt-[3vh] font-body text-[0.74vw] leading-[1.4] text-text/45"
+            initial={reduce ? false : { opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={reduce ? undefined : { duration: 0.6, ease: EASE, delay: 1.0 }}
+          >
+            {SIGNALS}
+          </motion.p>
         </motion.div>
       </div>
     </SlideFrame>
