@@ -18,10 +18,11 @@ const COMPETITORS = [
   { s: "comp-prime", rot: 4, h: "43vh", left: "4vw" },
   { s: "comp-liquidiv", rot: -4, h: "39vh", left: "9vw" },
   { s: "comp-ghost", rot: -3, h: "42vh", left: "12.5vw" },
-  { s: "comp-gatorade", rot: 3, h: "41vh", left: "17vw" },
+  { s: "comp-gatorade", rot: 3, h: "41vh", left: "16.5vw" },
   { s: "comp-celsius", rot: 5, h: "40vh", left: "25vw" },
   { s: "comp-monster", rot: -4, h: "43vh", left: "31vw" },
-  { s: "comp-lmnt", rot: 6, h: "40vh", left: "38vw" },
+  { s: "comp-lmnt", rot: 6, h: "40vh", left: "37.5vw" },
+  { s: "comp-bodyarmor", rot: -4, h: "42vh", left: "20vw" },
 ];
 
 type Frag = { t: string; top: string; left: string; size: string; rot: number; o: number };
