@@ -230,8 +230,14 @@ export default function TheEconomics() {
               animate={{ opacity: 1, y: 0 }}
               transition={reduce ? undefined : { duration: 0.5, ease: EASE, delay: 0.55 }}
             >
-              <div className="font-display uppercase tracking-[0.22em] text-[0.6vw] text-bg/45 font-medium mb-[1.4vh]">
-                October snapshot
+              <div className="flex items-center gap-[0.7vw] mb-[1.4vh]">
+                <span className="font-display uppercase tracking-[0.22em] text-[0.6vw] text-bg/45 font-medium">
+                  Projected
+                </span>
+                <span className="text-bg/20 text-[0.6vw] leading-none">·</span>
+                <span className="font-display uppercase tracking-[0.22em] text-[0.6vw] text-bg/45 font-medium">
+                  October snapshot
+                </span>
               </div>
               <div className="grid grid-cols-3 gap-x-[1.5vw] gap-y-[1.6vh]">
                 {SNAPSHOT.map((s) => (
