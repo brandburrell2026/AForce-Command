@@ -48,9 +48,36 @@ const PILLARS: Pillar[] = [
 
 export default function TheMoat() {
   const reduce = useReducedMotion();
+  const base = import.meta.env.BASE_URL;
+  const photo = `${base}images/bg/12-moat.png`;
 
   return (
     <SlideFrame slide={12}>
+      {/* cinematic backdrop — a still moat mirroring a monolithic fortress;
+          the literal moat. The calm reflection (and its warm light streak)
+          sits behind the copy; a graduated paper veil keeps text crisp. */}
+      <div aria-hidden className="absolute inset-0 overflow-hidden">
+        <motion.img
+          src={photo}
+          alt=""
+          className="absolute inset-0 h-full w-full origin-bottom scale-[1.4] object-cover object-bottom"
+          initial={reduce ? false : { opacity: 0, scale: 1.46 }}
+          animate={{ opacity: 1, scale: 1.4 }}
+          transition={reduce ? undefined : { duration: 1.4, ease: EASE }}
+        />
+        {/* warm temperature veil so the cool image harmonizes with the paper */}
+        <div className="absolute inset-0 bg-[#e7e3db]/35" />
+        {/* legibility scrim — lighter at top/bottom so the moat breathes, denser
+            through the central copy band */}
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              "linear-gradient(to bottom, rgba(231,227,219,0.62) 0%, rgba(231,227,219,0.80) 40%, rgba(228,224,216,0.82) 66%, rgba(220,215,206,0.62) 86%, rgba(214,209,200,0.92) 100%)",
+          }}
+        />
+      </div>
+
       {/* faint depth glow, lower-right — the moat */}
       <div
         aria-hidden

@@ -972,6 +972,12 @@ uri = "file://artifacts/aforce-pitch/public/images/bg/11-framework.png"
 type = "image"
 title = "ascending staircase figure"
 
+[[generated]]
+id = "PJAbCeCXdws6RBidn2T6X"
+uri = "file://artifacts/aforce-pitch/public/images/bg/12-moat.png"
+type = "image"
+title = "moat fortress reflection"
+
 [[outputs]]
 id = "fILTiXCCTKYfWe9d8R46M"
 uri = "file://attached_assets/tester-share/aforce-tester-qr.png"
