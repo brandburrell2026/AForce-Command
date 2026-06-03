@@ -990,6 +990,12 @@ uri = "file://artifacts/aforce-pitch/public/images/bg/12-moat-deep.png"
 type = "image"
 title = "still deep water distant monolith mist"
 
+[[generated]]
+id = "emu6jn0F1zQ6mTtG5Epqm"
+uri = "file://artifacts/aforce-pitch/public/images/bg/17-ask.png"
+type = "image"
+title = "Lone figure facing a vast dawn horizon for The Ask closing slide"
+
 [[outputs]]
 id = "fILTiXCCTKYfWe9d8R46M"
 uri = "file://attached_assets/tester-share/aforce-tester-qr.png"

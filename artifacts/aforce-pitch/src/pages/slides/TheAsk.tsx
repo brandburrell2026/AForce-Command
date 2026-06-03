@@ -37,9 +37,37 @@ const USE = [
 
 export default function TheAsk() {
   const reduce = useReducedMotion();
+  const base = import.meta.env.BASE_URL;
+  const photo = `${base}images/bg/17-ask.png`;
 
   return (
     <SlideFrame slide={17}>
+      {/* closing backdrop — a lone figure facing a vast dawn horizon: the
+          forward look, the scale ahead. Held far behind the numbers by a
+          center-dense veil so the $4M and the use-of-funds bars stay crisp;
+          the image breathes only at the top and bottom edges. */}
+      <div aria-hidden className="absolute inset-0 overflow-hidden">
+        <motion.img
+          src={photo}
+          alt=""
+          className="absolute inset-0 h-full w-full origin-center scale-[1.04] object-cover object-center"
+          initial={reduce ? false : { opacity: 0, scale: 1.1 }}
+          animate={{ opacity: 1, scale: 1.04 }}
+          transition={reduce ? undefined : { duration: 1.4, ease: EASE }}
+        />
+        {/* warm temperature veil so the cool image harmonizes with the paper */}
+        <div className="absolute inset-0 bg-[#e7e3db]/30" />
+        {/* radial legibility scrim — denser through the central content band,
+            opening up at the top and bottom edges where the horizon can breathe */}
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              "radial-gradient(120% 80% at 50% 48%, rgba(228,224,216,0.86) 0%, rgba(228,224,216,0.80) 44%, rgba(231,227,219,0.56) 76%, rgba(231,227,219,0.30) 100%)",
+          }}
+        />
+      </div>
+
       <div className="absolute inset-0 flex flex-col items-center justify-center px-[5vw] pt-[9vh] pb-[9vh] text-center">
         <motion.div
           className="mb-[1.6vh]"
