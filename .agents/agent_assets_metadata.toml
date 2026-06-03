@@ -1018,7 +1018,7 @@ title = "Trader persona portrait for slide 8 lineup"
 id = "m3hwb7JggIuOp8jqGXNXG"
 uri = "file://artifacts/aforce-pitch/public/images/bg/08-athlete-face.png"
 type = "image"
-title = "athlete face portrait"
+title = "black male athlete face"
 
 [[generated]]
 id = "uZHx-oD7ZZrzG_X9KAb58"
@@ -1031,6 +1031,12 @@ id = "BxCIoein8MMyQ9Npj3aDw"
 uri = "file://artifacts/aforce-pitch/public/images/bg/08-trader-woman.png"
 type = "image"
 title = "black woman trader portrait"
+
+[[generated]]
+id = "vfkkgkIKoGlnHeEjsEXFU"
+uri = "file://artifacts/aforce-pitch/public/images/bg/08-surgeon-woman.png"
+type = "image"
+title = "black woman surgeon portrait"
 
 [[outputs]]
 id = "fILTiXCCTKYfWe9d8R46M"

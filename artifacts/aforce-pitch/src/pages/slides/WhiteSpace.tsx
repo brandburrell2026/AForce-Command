@@ -10,7 +10,7 @@ const PEOPLE = [
   { src: "08-athlete-face", label: "Athlete", pos: "center" },
   { src: "08-ceo-woman", label: "CEO", pos: "center" },
   { src: "08-dj", label: "DJ", pos: "center" },
-  { src: "08-trader-woman", label: "Trader", pos: "center" },
+  { src: "08-surgeon-woman", label: "Surgeon", pos: "center" },
 ];
 
 export default function WhiteSpace() {
