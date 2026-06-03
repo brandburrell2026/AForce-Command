@@ -64,7 +64,7 @@ export default function CategoryNoise() {
   useEffect(() => {
     const audio = new Audio(`${base}audio/category-noise.mp3`);
     audio.loop = true;
-    audio.volume = 0.32;
+    audio.volume = 1;
     audioRef.current = audio;
 
     const onPlay = () => {
