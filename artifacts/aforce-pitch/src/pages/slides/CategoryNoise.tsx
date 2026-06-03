@@ -28,6 +28,9 @@ const FRAGMENTS: Frag[] = [
   { t: "NEW", top: "26%", left: "8%", size: "1.1vw", rot: 4, o: 0.2 },
   { t: "BUY NOW", top: "83%", left: "15%", size: "0.95vw", rot: -8, o: 0.16 },
   { t: "CLEAN ENERGY", top: "48%", left: "27%", size: "0.9vw", rot: 12, o: 0.13 },
+  { t: "GATORADE", top: "30%", left: "22%", size: "1.25vw", rot: 5, o: 0.2 },
+  { t: "LIQUID IV", top: "62%", left: "24%", size: "1.15vw", rot: -6, o: 0.19 },
+  { t: "LMNT", top: "18%", left: "11%", size: "1.1vw", rot: 8, o: 0.2 },
 ];
 
 type Dot = { top: string; left: string; s: string; o: number; red?: boolean };
