@@ -48,37 +48,9 @@ const PILLARS: Pillar[] = [
 
 export default function TheMoat() {
   const reduce = useReducedMotion();
-  const base = import.meta.env.BASE_URL;
-  const photo = `${base}images/bg/12-moat-deep.png`;
 
   return (
     <SlideFrame slide={12}>
-      {/* cinematic backdrop — a vast, mirror-still moat at blue hour with a
-          lone monolith on the far horizon: depth and quiet permanence. The
-          misty horizon light sits behind the headline; the glass-calm water
-          backs the copy. A graduated paper veil keeps every line crisp. */}
-      <div aria-hidden className="absolute inset-0 overflow-hidden">
-        <motion.img
-          src={photo}
-          alt=""
-          className="absolute inset-0 h-full w-full origin-center scale-[1.06] object-cover object-center"
-          initial={reduce ? false : { opacity: 0, scale: 1.12 }}
-          animate={{ opacity: 1, scale: 1.06 }}
-          transition={reduce ? undefined : { duration: 1.4, ease: EASE }}
-        />
-        {/* warm temperature veil so the cool image harmonizes with the paper */}
-        <div className="absolute inset-0 bg-[#e7e3db]/28" />
-        {/* legibility scrim — lighter at top so the misty horizon breathes,
-            firmer through the copy band, protective over the dark lower water */}
-        <div
-          className="absolute inset-0"
-          style={{
-            background:
-              "linear-gradient(to bottom, rgba(231,227,219,0.42) 0%, rgba(231,227,219,0.62) 42%, rgba(228,224,216,0.70) 68%, rgba(222,217,208,0.66) 86%, rgba(214,209,200,0.90) 100%)",
-          }}
-        />
-      </div>
-
       {/* faint depth glow, lower-right — the moat */}
       <div
         aria-hidden
