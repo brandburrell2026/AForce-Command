@@ -1038,6 +1038,12 @@ uri = "file://artifacts/aforce-pitch/public/images/bg/08-surgeon-woman.png"
 type = "image"
 title = "black woman surgeon portrait"
 
+[[generated]]
+id = "yCxFZ7PcgmicH-HnjyFSp"
+uri = "file://artifacts/aforce-pitch/public/images/bg/08-dj2.png"
+type = "image"
+title = "cinematic dj portrait"
+
 [[outputs]]
 id = "fILTiXCCTKYfWe9d8R46M"
 uri = "file://attached_assets/tester-share/aforce-tester-qr.png"

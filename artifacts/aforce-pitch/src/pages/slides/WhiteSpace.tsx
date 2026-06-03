@@ -9,7 +9,7 @@ const EASE = [0.16, 1, 0.3, 1] as const;
 const PEOPLE = [
   { src: "16-silence-hooded3", label: "Athlete", pos: "16% 26%" },
   { src: "08-ceo-woman", label: "CEO", pos: "center" },
-  { src: "08-dj", label: "DJ", pos: "center" },
+  { src: "08-dj2", label: "DJ", pos: "center" },
   { src: "08-surgeon-woman", label: "Surgeon", pos: "center" },
 ];
 
