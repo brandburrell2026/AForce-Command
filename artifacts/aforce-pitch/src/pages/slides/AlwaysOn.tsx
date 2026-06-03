@@ -38,6 +38,24 @@ export default function AlwaysOn() {
       >
         Different environments. Same discipline. Performance is universal.
       </motion.div>
+
+      {/* deck-wide disclaimer — shown once, here on slide 2 */}
+      <motion.p
+        className="absolute bottom-[3.5vh] left-[10vw] right-[10vw] mx-auto max-w-[72vw] text-center font-body text-[0.6vw] leading-[1.6] tracking-[0.02em] text-white/30"
+        initial={reduce ? false : { opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={reduce ? undefined : { duration: 0.9, ease: EASE, delay: 1.1 }}
+      >
+        This presentation is confidential and intended solely for the recipient
+        for discussion purposes only. It does not constitute an offer to sell or
+        a solicitation of an offer to buy any securities, nor shall it form the
+        basis of any contract or investment decision. It contains forward-looking
+        statements and projections that involve risks, uncertainties, and
+        assumptions; actual results may differ materially. No representation or
+        warranty, express or implied, is made as to the accuracy or completeness
+        of the information herein, and AForce undertakes no obligation to update
+        it. Past performance is not indicative of future results.
+      </motion.p>
     </div>
   );
 }
