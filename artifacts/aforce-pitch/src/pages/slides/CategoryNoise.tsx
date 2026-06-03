@@ -7,15 +7,21 @@ import Wordmark from "@/components/Wordmark";
 const EASE = [0.16, 1, 0.3, 1] as const;
 
 // The noisy category, made literal — the competitor product wall.
-// Ordered so the two green cans (Prime, Monster) never sit adjacent.
-// Positioned absolutely (left/bottom) so every can paints — a flex row with
-// negative margins silently dropped the final child.
+// Energy + hydration rivals crowd together: Red Bull, Prime, Liquid IV,
+// Ghost, Gatorade, Celsius, Monster, LMNT. Heights are tuned per packshot
+// aspect (bottles tall, stick packs/pouches shorter). Ordered so the green
+// cans (Prime, Ghost, Monster) never sit directly adjacent.
+// Positioned absolutely (left/bottom) so every product paints — a flex row
+// with negative margins silently dropped the final child.
 const COMPETITORS = [
-  { s: "comp-redbull", rot: -5, h: "40vh", left: "1vw" },
-  { s: "comp-prime", rot: 4, h: "43vh", left: "7.5vw" },
-  { s: "comp-ghost", rot: -3, h: "42vh", left: "15vw" },
-  { s: "comp-celsius", rot: 5, h: "40vh", left: "22.5vw" },
-  { s: "comp-monster", rot: -4, h: "43vh", left: "29vw" },
+  { s: "comp-redbull", rot: -5, h: "40vh", left: "0vw" },
+  { s: "comp-prime", rot: 4, h: "43vh", left: "4vw" },
+  { s: "comp-liquidiv", rot: -4, h: "39vh", left: "9vw" },
+  { s: "comp-ghost", rot: -3, h: "42vh", left: "12.5vw" },
+  { s: "comp-gatorade", rot: 3, h: "31vh", left: "16.5vw" },
+  { s: "comp-celsius", rot: 5, h: "40vh", left: "23vw" },
+  { s: "comp-monster", rot: -4, h: "43vh", left: "28.5vw" },
+  { s: "comp-lmnt", rot: 6, h: "22vh", left: "34vw" },
 ];
 
 type Frag = { t: string; top: string; left: string; size: string; rot: number; o: number };
