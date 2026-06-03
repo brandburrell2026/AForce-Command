@@ -5,10 +5,14 @@ import SlideFrame from "@/components/SlideFrame";
 const EASE = [0.16, 1, 0.3, 1] as const;
 
 const STOPS = [
-  { date: "Jul 2026", t: "Soft Launch", m: "First concierge cohort" },
-  { date: "Aug 2026", t: "Proof of Concept", m: "Habit + retention validated" },
-  { date: "Oct 2026", t: "Community Scale", m: "Brickell density compounding" },
-  { date: "Jan 2027", t: "National Television", m: "America's Real Deal, on air" },
+  { date: "Jul 2026", t: "First Cohort", m: "Concierge launch, first behavioral data" },
+  { date: "Aug 2026", t: "Habit Validated", m: "Ritual adoption and retention confirmed" },
+  {
+    date: "Oct 2026",
+    t: "Ecosystem Proven",
+    m: "OS engagement, subscription conversion, community density",
+  },
+  { date: "Jan 2027", t: "National Stage", m: "America's Real Deal. We arrive with proof." },
 ];
 
 const PRIMARY = {
@@ -44,7 +48,6 @@ const SECONDARY: Array<{ t: string; tag: string; accent: string; items: string[]
 ];
 
 export default function RoadToRealDeal() {
-  const base = import.meta.env.BASE_URL;
   const reduce = useReducedMotion();
   const last = STOPS.length - 1;
 
@@ -52,46 +55,37 @@ export default function RoadToRealDeal() {
     <SlideFrame slide={12}>
       <div className="absolute inset-0 flex flex-col justify-center px-[5vw] pt-[12vh] pb-[10vh]">
         {/* header */}
-        <div className="flex items-end justify-between">
-          <div>
-            <motion.div
-              className="mb-[3.5vh]"
-              initial={reduce ? false : { opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={reduce ? undefined : { duration: 0.5, ease: EASE }}
-            >
-              <span className="font-display uppercase tracking-[0.32em] text-[0.78vw] text-red font-semibold border-b-2 border-red pb-[0.6vh]">
-                The Road
-              </span>
-            </motion.div>
-
-            <motion.h1
-              className="font-display font-light tracking-[-0.025em] text-[4.2vw] leading-[1.02] text-text"
-              initial={reduce ? false : { opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={reduce ? undefined : { duration: 0.6, ease: EASE, delay: 0.08 }}
-            >
-              Road to{" "}
-              <span className="text-blue font-normal">America's Real Deal.</span>
-            </motion.h1>
-          </div>
-
-          {/* destination mark */}
+        <div>
           <motion.div
-            className="flex flex-col items-end pb-[0.5vh]"
-            initial={reduce ? false : { opacity: 0, x: 18 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={reduce ? undefined : { duration: 0.7, ease: EASE, delay: 0.2 }}
+            className="mb-[3.5vh]"
+            initial={reduce ? false : { opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={reduce ? undefined : { duration: 0.5, ease: EASE }}
           >
-            <span className="font-display uppercase tracking-[0.28em] text-[0.62vw] text-blue font-semibold mb-[1.4vh]">
-              The Destination
+            <span className="font-display uppercase tracking-[0.32em] text-[0.78vw] text-red font-semibold border-b-2 border-red pb-[0.6vh]">
+              The Road
             </span>
-            <img
-              src={`${base}images/brand/americas-real-deal.png`}
-              alt="America's Real Deal"
-              className="w-[13vw] h-auto"
-            />
           </motion.div>
+
+          <motion.h1
+            className="font-display font-light tracking-[-0.025em] text-[4.2vw] leading-[1.02] text-text"
+            initial={reduce ? false : { opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={reduce ? undefined : { duration: 0.6, ease: EASE, delay: 0.08 }}
+          >
+            Building proof before the{" "}
+            <span className="text-blue font-normal">national stage.</span>
+          </motion.h1>
+
+          <motion.p
+            className="mt-[2.6vh] font-body text-[1.05vw] leading-[1.5] text-text/60 max-w-[42vw]"
+            initial={reduce ? false : { opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={reduce ? undefined : { duration: 0.6, ease: EASE, delay: 0.18 }}
+          >
+            We've already secured the platform. This raise builds the proof we
+            walk in with.
+          </motion.p>
         </div>
 
         {/* timeline */}
@@ -129,24 +123,11 @@ export default function RoadToRealDeal() {
                     {String(i + 1).padStart(2, "0")}
                   </div>
 
-                  {/* node on the rail */}
+                  {/* node on the rail — arrival, gently differentiated */}
                   {isLast ? (
-                    <span className="absolute -top-[0.35vh] left-0 flex items-center justify-center">
-                      <motion.span
-                        className="absolute w-[2.2vw] h-[2.2vw] rounded-full border border-blue/40"
-                        initial={reduce ? false : { scale: 0.6, opacity: 0.7 }}
-                        animate={
-                          reduce
-                            ? undefined
-                            : { scale: [0.9, 1.5, 0.9], opacity: [0.6, 0, 0.6] }
-                        }
-                        transition={
-                          reduce
-                            ? undefined
-                            : { duration: 2.4, ease: "easeInOut", repeat: Infinity, delay: 2 }
-                        }
-                      />
-                      <span className="w-[1.4vw] h-[1.4vw] rounded-full bg-blue shadow-[0_4px_12px_rgba(47,91,255,0.4)]" />
+                    <span className="absolute -top-[0.3vh] left-0 flex items-center justify-center">
+                      <span className="absolute w-[2vw] h-[2vw] rounded-full border border-blue/25" />
+                      <span className="w-[1.3vw] h-[1.3vw] rounded-full bg-blue shadow-[0_4px_14px_rgba(47,91,255,0.35)]" />
                     </span>
                   ) : (
                     <span className="absolute top-0 left-0 w-[1.1vw] h-[1.1vw] rounded-full bg-red ring-[0.35vw] ring-bg" />
