@@ -107,7 +107,7 @@ export default function TheClose() {
           {ARC.map((node, i) => (
             <span key={node.w} className="flex items-center gap-x-[1.2vw]">
               <span
-                className={`font-display uppercase tracking-[0.16em] text-[1.4vw] font-semibold ${toneText(
+                className={`font-display uppercase tracking-[0.16em] text-[1.4vw] font-bold ${toneText(
                   node.tone,
                 )}`}
               >
