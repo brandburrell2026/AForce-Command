@@ -153,9 +153,9 @@ export default function TheAsk() {
           animate={{ opacity: 1, y: 0 }}
           transition={reduce ? undefined : { duration: 0.6, ease: EASE, delay: 0.6 }}
         >
-          <div className="font-display text-[2vw] font-light tracking-[-0.02em] leading-[1.12] text-text">
+          <div className="font-display text-[2vw] font-bold tracking-[-0.02em] leading-[1.12] text-text">
             <span className="text-red">This raise funds the proof.</span>{" "}
-            <span className="text-text/45 font-normal">The next round funds the scale.</span>
+            <span className="text-text/45 font-bold">The next round funds the scale.</span>
           </div>
         </motion.div>
       </div>
