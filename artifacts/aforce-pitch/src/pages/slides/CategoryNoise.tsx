@@ -6,8 +6,12 @@ import Wordmark from "@/components/Wordmark";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
-// The real AForce lineup — the composed answer standing still against the din.
-const CANS = ["can-watermelon", "can-berry", "can-soursop"];
+// The noisy category, made literal — the competitor product wall.
+const COMPETITORS = [
+  { s: "comp-redbull", rot: -6, h: "30vh" },
+  { s: "comp-prime", rot: 5, h: "32vh" },
+  { s: "comp-ghost", rot: -3, h: "31vh" },
+];
 
 type Brand = {
   t: string;
@@ -240,6 +244,41 @@ export default function CategoryNoise() {
           />
         </div>
 
+        {/* the category, made literal — the competitor product wall, crowding the noise side */}
+        <div className="absolute bottom-[7vh] left-[13.5vw] z-[12] flex items-end gap-[1.6vw]">
+          {COMPETITORS.map((c, i) => (
+            <motion.img
+              key={c.s}
+              src={can(c.s)}
+              alt=""
+              aria-hidden
+              className="w-auto object-contain drop-shadow-[0_1.8vh_2.6vh_rgba(0,0,0,0.3)]"
+              style={{ height: c.h }}
+              initial={reduce ? false : { opacity: 0, y: 26, rotate: c.rot, scale: 0.94 }}
+              animate={
+                reduce
+                  ? { opacity: 1, rotate: c.rot }
+                  : { opacity: 1, y: [0, i % 2 ? 6 : -6, 0], rotate: c.rot, scale: 1 }
+              }
+              transition={
+                reduce
+                  ? undefined
+                  : {
+                      opacity: { duration: 0.6, ease: EASE, delay: 0.4 + i * 0.12 },
+                      rotate: { duration: 0.6, ease: EASE, delay: 0.4 + i * 0.12 },
+                      scale: { duration: 0.6, ease: EASE, delay: 0.4 + i * 0.12 },
+                      y: {
+                        duration: 5 + i,
+                        ease: "easeInOut",
+                        repeat: Infinity,
+                        delay: 1 + i * 0.3,
+                      },
+                    }
+              }
+            />
+          ))}
+        </div>
+
         {/* paper wash — clears the calm side and dissolves the noise into it */}
         <div
           aria-hidden
@@ -331,39 +370,6 @@ export default function CategoryNoise() {
           >
             <Wordmark className="h-[3.8vw] drop-shadow-[0_0.4vw_1.4vw_rgba(228,30,43,0.28)]" />
           </motion.div>
-
-          {/* the real products — the composed lineup, standing still */}
-          <div className="relative mt-[3.4vh] flex items-end justify-center gap-[1.2vw]">
-            {CANS.map((c, i) => (
-              <motion.img
-                key={c}
-                src={can(c)}
-                alt=""
-                aria-hidden
-                className="h-[24vh] w-auto object-contain drop-shadow-[0_1.4vh_2.2vh_rgba(0,0,0,0.22)]"
-                initial={reduce ? false : { opacity: 0, y: 18, scale: 0.92 }}
-                animate={
-                  reduce
-                    ? { opacity: 1 }
-                    : { opacity: 1, y: [0, i % 2 ? 5 : -5, 0], scale: 1 }
-                }
-                transition={
-                  reduce
-                    ? undefined
-                    : {
-                        opacity: { duration: 0.6, ease: EASE, delay: 0.45 + i * 0.1 },
-                        scale: { duration: 0.6, ease: EASE, delay: 0.45 + i * 0.1 },
-                        y: {
-                          duration: 5 + i,
-                          ease: "easeInOut",
-                          repeat: Infinity,
-                          delay: 1 + i * 0.3,
-                        },
-                      }
-                }
-              />
-            ))}
-          </div>
 
           <motion.div
             className="relative mt-[3.4vh] h-px bg-red"
