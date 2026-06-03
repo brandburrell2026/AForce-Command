@@ -9,7 +9,7 @@ const NOISE = [
 
 export default function CategoryNoise() {
   return (
-    <SlideFrame slide={5}>
+    <SlideFrame slide={7}>
       <div className="absolute inset-0 overflow-hidden">
         {/* the chaos — three competitor wordmarks, overlapping, static */}
         {NOISE.map((n) => (

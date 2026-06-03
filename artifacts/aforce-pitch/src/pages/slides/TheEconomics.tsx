@@ -44,7 +44,7 @@ export default function TheEconomics() {
   const reduce = useReducedMotion();
 
   return (
-    <SlideFrame slide={14}>
+    <SlideFrame slide={15}>
       <div className="absolute inset-0 flex flex-col px-[5vw] pt-[11vh] pb-[9vh]">
         {/* HEADER */}
         <motion.div

@@ -34,7 +34,7 @@ export default function ThePrize() {
   }, [reduce]);
 
   return (
-    <SlideFrame slide={4}>
+    <SlideFrame slide={6}>
       <div className="absolute inset-0 flex">
         {/* LEFT — the number */}
         <div className="w-[52%] flex flex-col justify-center px-[5vw]">

@@ -36,7 +36,7 @@ export default function WhiteSpace() {
   const img = (s: string) => `${base}images/products/${s}.png`;
 
   return (
-    <SlideFrame slide={6}>
+    <SlideFrame slide={8}>
       <div className="absolute inset-0 overflow-hidden">
         {/* faint competitor noise, banished to the edges */}
         {FAINT.map((n, i) => (

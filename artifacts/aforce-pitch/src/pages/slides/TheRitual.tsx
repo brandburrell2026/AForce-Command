@@ -26,7 +26,7 @@ export default function TheRitual() {
   const photo = `${base}images/bg/16-silence-hooded2.png`;
 
   return (
-    <SlideFrame slide={7}>
+    <SlideFrame slide={9}>
       <div className="absolute inset-0">
         {/* RIGHT — full-height portrait, bleeding off the right edge */}
         <motion.div
