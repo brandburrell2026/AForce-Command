@@ -2525,3 +2525,9 @@ id = "jpKTpEUqrFTc8vJaazRzf"
 uri = "file://exports/aforce-os-standalone.zip"
 type = "unspecified"
 title = "AForce OS — Standalone Developer Repo (app + libs only)"
+
+[[outputs]]
+id = "89ncb1GcgzhM-YalToe1B"
+uri = "file://artifacts/aforce-pitch/public/audio/category-noise.mp3"
+type = "audio"
+title = "category noise bed"

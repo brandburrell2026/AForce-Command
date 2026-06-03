@@ -1,9 +1,13 @@
+import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { useReducedMotion } from "@/lib/useReducedMotion";
 import SlideFrame from "@/components/SlideFrame";
 import Wordmark from "@/components/Wordmark";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
+
+// The real AForce lineup — the composed answer standing still against the din.
+const CANS = ["can-watermelon", "can-berry", "can-soursop"];
 
 type Brand = {
   t: string;
@@ -60,6 +64,82 @@ const DOTS: Dot[] = [
 
 export default function CategoryNoise() {
   const reduce = useReducedMotion();
+  const base = import.meta.env.BASE_URL;
+  const can = (s: string) => `${base}images/products/${s}.png`;
+
+  // The category noise — scoped to this slide only: it starts when the slide
+  // mounts and stops the moment we navigate away. The label tracks the audio
+  // element's real play/pause state, so it stays honest even when the browser
+  // blocks autoplay-with-sound until the first user gesture.
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const btnRef = useRef<HTMLButtonElement | null>(null);
+  // Tears down the autoplay-unlock fallback. Called once the audio starts (so
+  // it's no longer needed) or the moment the user takes explicit control via
+  // the toggle (so a later stray gesture can't restart what they just muted).
+  const disarmRef = useRef<(() => void) | null>(null);
+  const [soundOn, setSoundOn] = useState(false);
+
+  useEffect(() => {
+    const audio = new Audio(`${base}audio/category-noise.mp3`);
+    audio.loop = true;
+    audio.volume = 0.32;
+    audioRef.current = audio;
+
+    const onPlay = () => {
+      setSoundOn(true);
+      // Playback is unlocked; the gesture fallback has done its job.
+      disarmRef.current?.();
+    };
+    const onPause = () => setSoundOn(false);
+    audio.addEventListener("play", onPlay);
+    audio.addEventListener("pause", onPause);
+
+    // Autoplay-block fallback: unlock on the first page gesture. We ignore
+    // gestures on the toggle button itself — its own onClick manages playback,
+    // so handling it here too would double-act on a single click.
+    const unlock = (e: Event) => {
+      if (btnRef.current && e.target instanceof Node && btnRef.current.contains(e.target)) {
+        return;
+      }
+      audio.play().catch(() => {});
+      disarmRef.current?.();
+    };
+    const disarm = () => {
+      window.removeEventListener("pointerdown", unlock);
+      window.removeEventListener("keydown", unlock);
+      disarmRef.current = null;
+    };
+    disarmRef.current = disarm;
+    window.addEventListener("pointerdown", unlock);
+    window.addEventListener("keydown", unlock);
+
+    // Try to start immediately. In normal deck use the slide is reached via a
+    // key/click, so the page already has user activation and this succeeds.
+    audio.play().catch(() => {});
+
+    return () => {
+      disarm();
+      audio.removeEventListener("play", onPlay);
+      audio.removeEventListener("pause", onPause);
+      audio.pause();
+      audio.currentTime = 0;
+      audioRef.current = null;
+    };
+  }, [base]);
+
+  // Intent-driven: act on the audio element's actual state, never stale React
+  // state. The play/pause listeners above keep `soundOn` in sync. Explicit use
+  // disarms the autoplay-unlock fallback so it can't fight the user's choice.
+  const toggleSound = () => {
+    disarmRef.current?.();
+    const audio = audioRef.current;
+    if (!audio) return;
+    if (audio.paused) {
+      audio.play().catch(() => {});
+    } else {
+      audio.pause();
+    }
+  };
 
   return (
     <SlideFrame slide={7}>
@@ -244,16 +324,49 @@ export default function CategoryNoise() {
           />
 
           <motion.div
-            className="relative mt-[4.5vh]"
+            className="relative mt-[3.6vh]"
             initial={reduce ? false : { opacity: 0, scale: 0.9, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             transition={reduce ? undefined : { duration: 0.8, ease: EASE, delay: 0.5 }}
           >
-            <Wordmark className="h-[5.2vw] drop-shadow-[0_0.4vw_1.4vw_rgba(228,30,43,0.28)]" />
+            <Wordmark className="h-[3.8vw] drop-shadow-[0_0.4vw_1.4vw_rgba(228,30,43,0.28)]" />
           </motion.div>
 
+          {/* the real products — the composed lineup, standing still */}
+          <div className="relative mt-[3.4vh] flex items-end justify-center gap-[1.2vw]">
+            {CANS.map((c, i) => (
+              <motion.img
+                key={c}
+                src={can(c)}
+                alt=""
+                aria-hidden
+                className="h-[24vh] w-auto object-contain drop-shadow-[0_1.4vh_2.2vh_rgba(0,0,0,0.22)]"
+                initial={reduce ? false : { opacity: 0, y: 18, scale: 0.92 }}
+                animate={
+                  reduce
+                    ? { opacity: 1 }
+                    : { opacity: 1, y: [0, i % 2 ? 5 : -5, 0], scale: 1 }
+                }
+                transition={
+                  reduce
+                    ? undefined
+                    : {
+                        opacity: { duration: 0.6, ease: EASE, delay: 0.45 + i * 0.1 },
+                        scale: { duration: 0.6, ease: EASE, delay: 0.45 + i * 0.1 },
+                        y: {
+                          duration: 5 + i,
+                          ease: "easeInOut",
+                          repeat: Infinity,
+                          delay: 1 + i * 0.3,
+                        },
+                      }
+                }
+              />
+            ))}
+          </div>
+
           <motion.div
-            className="relative mt-[4vh] h-px bg-red"
+            className="relative mt-[3.4vh] h-px bg-red"
             initial={reduce ? false : { width: 0, opacity: 0 }}
             animate={{ width: "5vw", opacity: 1 }}
             transition={reduce ? undefined : { duration: 0.7, ease: EASE, delay: 0.95 }}
@@ -268,6 +381,27 @@ export default function CategoryNoise() {
             Composure <span className="text-red">before</span> execution.
           </motion.div>
         </div>
+
+        {/* sound toggle — the category noise plays only on this slide */}
+        <motion.button
+          ref={btnRef}
+          type="button"
+          onClick={toggleSound}
+          aria-label={soundOn ? "Mute category noise" : "Play category noise"}
+          aria-pressed={soundOn}
+          className="absolute bottom-[10vh] left-[5vw] z-30 flex items-center gap-[0.6vw] rounded-full border border-text/20 bg-[#efece6]/70 px-[1vw] py-[0.7vh] backdrop-blur-sm transition-colors hover:border-red/60"
+          initial={reduce ? false : { opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={reduce ? undefined : { duration: 0.5, ease: EASE, delay: 0.7 }}
+        >
+          <span
+            aria-hidden
+            className={`block h-[0.55vw] w-[0.55vw] rounded-full ${soundOn ? "bg-red" : "bg-text/30"}`}
+          />
+          <span className="font-display uppercase tracking-[0.28em] text-[0.6vw] text-text font-semibold">
+            {soundOn ? "Sound On" : "Muted"}
+          </span>
+        </motion.button>
       </div>
     </SlideFrame>
   );
