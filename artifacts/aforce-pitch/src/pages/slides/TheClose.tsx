@@ -46,7 +46,7 @@ export default function TheClose() {
       />
 
       {/* the brand, alone in the open right column — the last thing they see */}
-      <div className="absolute right-[6vw] top-1/2 -translate-y-1/2 z-[5]">
+      <div className="absolute left-[5vw] top-[8vh] z-[5]">
         <motion.div
           initial={reduce ? false : { opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
