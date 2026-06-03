@@ -1014,6 +1014,24 @@ uri = "file://artifacts/aforce-pitch/public/images/bg/08-trader.png"
 type = "image"
 title = "Trader persona portrait for slide 8 lineup"
 
+[[generated]]
+id = "m3hwb7JggIuOp8jqGXNXG"
+uri = "file://artifacts/aforce-pitch/public/images/bg/08-athlete-face.png"
+type = "image"
+title = "athlete face portrait"
+
+[[generated]]
+id = "uZHx-oD7ZZrzG_X9KAb58"
+uri = "file://artifacts/aforce-pitch/public/images/bg/08-ceo-woman.png"
+type = "image"
+title = "white woman ceo portrait"
+
+[[generated]]
+id = "BxCIoein8MMyQ9Npj3aDw"
+uri = "file://artifacts/aforce-pitch/public/images/bg/08-trader-woman.png"
+type = "image"
+title = "black woman trader portrait"
+
 [[outputs]]
 id = "fILTiXCCTKYfWe9d8R46M"
 uri = "file://attached_assets/tester-share/aforce-tester-qr.png"
