@@ -316,7 +316,7 @@ export default function CategoryNoise() {
           />
 
           <motion.div
-            className="relative mt-[3.6vh] font-display uppercase tracking-[0.32em] text-[1.6vw] leading-[1.4] text-text font-semibold drop-shadow-[0_0.4vw_1.4vw_rgba(228,30,43,0.12)]"
+            className="relative mt-[3.6vh] font-display uppercase tracking-[0.28em] text-[2.4vw] leading-[1.35] text-text font-semibold drop-shadow-[0_0.4vw_1.4vw_rgba(228,30,43,0.12)]"
             initial={reduce ? false : { opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={reduce ? undefined : { duration: 0.7, ease: EASE, delay: 0.7 }}
