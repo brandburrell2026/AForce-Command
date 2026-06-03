@@ -160,15 +160,8 @@ export default function CategoryNoise() {
               aria-hidden
               loading="eager"
               decoding="sync"
-              className="absolute bottom-0 w-auto object-contain"
-              style={{
-                height: c.h,
-                left: c.left,
-                zIndex: i,
-                transformOrigin: "bottom center",
-                filter:
-                  "drop-shadow(2px 0 0 #efece6) drop-shadow(-2px 0 0 #efece6) drop-shadow(0 2px 0 #efece6) drop-shadow(0 -2px 0 #efece6) drop-shadow(0 1.4vh 2vh rgba(0,0,0,0.2))",
-              }}
+              className="absolute bottom-0 w-auto object-contain drop-shadow-[0_2vh_3vh_rgba(0,0,0,0.34)]"
+              style={{ height: c.h, left: c.left, zIndex: i, transformOrigin: "bottom center" }}
               initial={reduce ? false : { opacity: 0, y: 26, rotate: c.rot, scale: 0.94 }}
               animate={
                 reduce
