@@ -8,28 +8,28 @@ const USE = [
   {
     pct: 35,
     label: "Product & Inventory",
-    sub: "Launch SKUs + concierge stock",
+    sub: "First products to market. Concierge launch stock ready to ship.",
     amount: "$1,400,000",
     bar: "bg-red",
   },
   {
     pct: 25,
     label: "Marketing & Activation",
-    sub: "Brickell + NYC density, event, paid acquisition",
+    sub: "Brickell and New York density. Events and paid acquisition.",
     amount: "$1,000,000",
     bar: "bg-red",
   },
   {
     pct: 25,
     label: "Tech & OS Development",
-    sub: "AForce OS build, app, retention infrastructure",
+    sub: "AForce OS build, app infrastructure, and retention engine.",
     amount: "$1,000,000",
     bar: "bg-red",
   },
   {
     pct: 15,
     label: "Team & Operations",
-    sub: "Salaries, legal, insurance, overhead · ~$50K/mo",
+    sub: "Core team, legal, insurance, and overhead.",
     amount: "$600,000",
     bar: "bg-red",
   },
@@ -37,36 +37,11 @@ const USE = [
 
 export default function TheAsk() {
   const reduce = useReducedMotion();
-  const base = import.meta.env.BASE_URL;
-  const photo = `${base}images/bg/17-ask.png`;
 
   return (
     <SlideFrame slide={17}>
-      {/* closing backdrop — a lone figure facing a vast dawn horizon: the
-          forward look, the scale ahead. Held far behind the numbers by a
-          center-dense veil so the $4M and the use-of-funds bars stay crisp;
-          the image breathes only at the top and bottom edges. */}
-      <div aria-hidden className="absolute inset-0 overflow-hidden">
-        <motion.img
-          src={photo}
-          alt=""
-          className="absolute inset-0 h-full w-full origin-center scale-[1.04] object-cover object-center"
-          initial={reduce ? false : { opacity: 0, scale: 1.1 }}
-          animate={{ opacity: 1, scale: 1.04 }}
-          transition={reduce ? undefined : { duration: 1.4, ease: EASE }}
-        />
-        {/* warm temperature veil so the cool image harmonizes with the paper */}
-        <div className="absolute inset-0 bg-[#e7e3db]/30" />
-        {/* radial legibility scrim — denser through the central content band,
-            opening up at the top and bottom edges where the horizon can breathe */}
-        <div
-          className="absolute inset-0"
-          style={{
-            background:
-              "radial-gradient(120% 80% at 50% 48%, rgba(228,224,216,0.86) 0%, rgba(228,224,216,0.80) 44%, rgba(231,227,219,0.56) 76%, rgba(231,227,219,0.30) 100%)",
-          }}
-        />
-      </div>
+      {/* clean off-white deck background — confident and clear, no fog */}
+      <div aria-hidden className="absolute inset-0 bg-[#F5F2EE]" />
 
       <div className="absolute inset-0 flex flex-col items-center justify-center px-[5vw] pt-[9vh] pb-[9vh] text-center">
         <motion.div
@@ -95,8 +70,7 @@ export default function TheAsk() {
           animate={{ opacity: 1, y: 0 }}
           transition={reduce ? undefined : { duration: 0.6, ease: EASE, delay: 0.28 }}
         >
-          A proof-of-concept raise. This capital funds proof of habit. The next
-          round funds scale.
+          This raise funds one thing: proof. The next round funds scale.
         </motion.p>
 
         {/* use of funds — four full-width allocation bars */}
@@ -147,13 +121,22 @@ export default function TheAsk() {
           </div>
         </div>
 
+        {/* thin red rule — clean separation from the use-of-funds section */}
+        <motion.div
+          aria-hidden
+          className="mt-[3vh] h-px w-full max-w-[62vw] bg-red origin-center"
+          initial={reduce ? false : { scaleX: 0, opacity: 0 }}
+          animate={{ scaleX: 1, opacity: 1 }}
+          transition={reduce ? undefined : { duration: 0.6, ease: EASE, delay: 0.56 }}
+        />
+
         <motion.div
           className="mt-[2.4vh] text-center"
           initial={reduce ? false : { opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={reduce ? undefined : { duration: 0.6, ease: EASE, delay: 0.6 }}
+          transition={reduce ? undefined : { duration: 0.6, ease: EASE, delay: 0.66 }}
         >
-          <div className="font-display text-[2vw] font-bold tracking-[-0.02em] leading-[1.12] text-text">
+          <div className="font-display text-[2.4vw] font-bold tracking-[-0.02em] leading-[1.12] text-text">
             <span className="text-red">This raise funds the proof.</span>{" "}
             <span className="text-text/45 font-bold">The next round funds the scale.</span>
           </div>
