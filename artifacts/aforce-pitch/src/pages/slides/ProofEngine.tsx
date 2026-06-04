@@ -113,7 +113,7 @@ export default function ProofEngine() {
         {/* RIGHT — the proving ground, on the map */}
         <div className="w-[48%] flex items-center justify-center pr-[6vw] pl-[1vw]">
           <motion.div
-            className="relative aspect-square w-[40vw] mb-[7vh]"
+            className="relative aspect-square w-[37vw] mb-[7vh]"
             initial={reduce ? false : { opacity: 0, scale: 0.94 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={reduce ? undefined : { duration: 0.8, ease: EASE, delay: 0.3 }}
