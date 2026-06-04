@@ -335,10 +335,10 @@ export default function ProofEngine() {
               animate={{ opacity: 1, y: 0 }}
               transition={reduce ? undefined : { duration: 0.6, ease: EASE, delay: 1.1 }}
             >
-              <div className="font-display uppercase tracking-[0.28em] text-[0.78vw] text-red font-semibold whitespace-nowrap">
+              <div className="font-display uppercase tracking-[0.28em] text-[1.7vw] text-red font-semibold whitespace-nowrap">
                 Miami · Brickell
               </div>
-              <div className="font-display uppercase tracking-[0.24em] text-[0.6vw] text-text/45 font-medium mt-[0.7vh] whitespace-nowrap">
+              <div className="font-display uppercase tracking-[0.24em] text-[1.0vw] text-text/45 font-medium mt-[1vh] whitespace-nowrap">
                 The beachhead
               </div>
             </motion.div>
