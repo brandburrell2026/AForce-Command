@@ -34,25 +34,47 @@ export default function WhatProofLooksLike() {
           transition={reduce ? undefined : { duration: 1.4, ease: EASE }}
         />
         {/* warm temperature veil so the cool image harmonizes with the paper */}
-        <div className="absolute inset-0 bg-[#e7e3db]/32" />
+        <div className="absolute inset-0 bg-[#e7e3db]/22" />
         {/* legibility scrim — lighter at top (lets the light burst breathe),
-            denser through the central copy band */}
+            denser through the central copy band. Eased back so the stage
+            photo reads with more drama. */}
         <div
           className="absolute inset-0"
           style={{
             background:
-              "linear-gradient(to bottom, rgba(231,227,219,0.46) 0%, rgba(231,227,219,0.72) 32%, rgba(228,224,216,0.82) 60%, rgba(228,224,216,0.72) 82%, rgba(220,215,206,0.80) 100%)",
+              "linear-gradient(to bottom, rgba(231,227,219,0.34) 0%, rgba(231,227,219,0.56) 32%, rgba(228,224,216,0.66) 60%, rgba(228,224,216,0.56) 82%, rgba(220,215,206,0.66) 100%)",
+          }}
+        />
+        {/* right-side wash keeps the proof cards legible over the open haze */}
+        <div
+          className="absolute inset-y-0 right-0 w-[58%]"
+          style={{
+            background:
+              "linear-gradient(to right, rgba(231,227,219,0) 0%, rgba(231,227,219,0.34) 38%, rgba(231,227,219,0.5) 100%)",
           }}
         />
       </div>
 
-      {/* faint depth glow, lower-left — by the performer on the stage */}
-      <div
+      {/* stage glow, lower-left — energy by the performer */}
+      <motion.div
         aria-hidden
-        className="absolute left-[-8vw] bottom-[-10vh] h-[52vh] w-[52vh] rounded-full"
+        className="absolute left-[-10vw] bottom-[-12vh] h-[60vh] w-[60vh] rounded-full"
         style={{
           background:
-            "radial-gradient(circle, rgba(228,30,43,0.09) 0%, rgba(228,30,43,0) 68%)",
+            "radial-gradient(circle, rgba(228,30,43,0.16) 0%, rgba(228,30,43,0) 66%)",
+          filter: "blur(6px)",
+        }}
+        initial={reduce ? false : { opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={reduce ? undefined : { duration: 1.6, ease: EASE }}
+      />
+      {/* cool accent halo behind the proof list — ties to the OS blue */}
+      <div
+        aria-hidden
+        className="absolute right-[-6vw] top-[8vh] h-[46vh] w-[46vh] rounded-full"
+        style={{
+          background:
+            "radial-gradient(circle, rgba(47,91,255,0.10) 0%, rgba(47,91,255,0) 70%)",
           filter: "blur(8px)",
         }}
       />
@@ -112,41 +134,53 @@ export default function WhatProofLooksLike() {
         {/* divider */}
         <div aria-hidden className="self-stretch w-px bg-text/12 my-[4vh]" />
 
-        {/* RIGHT — the binary proof points */}
-        <div className="flex flex-1 flex-col justify-center gap-[2.2vh]">
+        {/* RIGHT — the binary proof points, as proven cards */}
+        <div className="flex flex-1 flex-col justify-center gap-[1.8vh]">
           {PROOFS.map((p, i) => (
             <motion.div
               key={p}
-              className="flex items-center gap-[1.6vw] border-b border-text/12 pb-[2.2vh]"
-              initial={reduce ? false : { opacity: 0, x: 18 }}
+              className="group relative flex items-center gap-[1.4vw] overflow-hidden rounded-[10px] border border-text/[0.08] bg-cream/55 px-[1.5vw] py-[1.9vh] backdrop-blur-[3px] shadow-[0_2px_18px_-12px_rgba(26,24,19,0.5)]"
+              initial={reduce ? false : { opacity: 0, x: 24 }}
               animate={{ opacity: 1, x: 0 }}
               transition={
                 reduce ? undefined : { duration: 0.5, ease: EASE, delay: 0.35 + i * 0.1 }
               }
             >
-              <span className="w-[3vw] shrink-0 font-display font-light tabular-nums text-[2.4vw] leading-none text-text/25">
-                {String(i + 1).padStart(2, "0")}
-              </span>
-              <span className="flex-1 font-body text-[1.25vw] leading-[1.3] text-text/85">
-                {p}
-              </span>
+              {/* red edge accent */}
               <span
                 aria-hidden
-                className="flex shrink-0 items-center justify-center rounded-[3px] border border-red text-red"
-                style={{ width: "1.7vw", height: "1.7vw" }}
+                className="absolute inset-y-0 left-0 w-[4px] bg-red"
+              />
+              <span className="w-[3.2vw] shrink-0 font-display font-normal tabular-nums text-[2.7vw] leading-none text-red/45">
+                {String(i + 1).padStart(2, "0")}
+              </span>
+              <span className="flex-1 font-body font-medium text-[1.3vw] leading-[1.3] text-text/90">
+                {p}
+              </span>
+              <motion.span
+                aria-hidden
+                className="flex shrink-0 items-center justify-center rounded-[5px] bg-red text-cream shadow-[0_0_0_5px_rgba(228,30,43,0.10)]"
+                style={{ width: "2vw", height: "2vw" }}
+                initial={reduce ? false : { scale: 0, rotate: -12 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={
+                  reduce
+                    ? undefined
+                    : { type: "spring", stiffness: 360, damping: 15, delay: 0.55 + i * 0.1 }
+                }
               >
                 <svg
                   viewBox="0 0 24 24"
-                  className="h-[0.95vw] w-[0.95vw]"
+                  className="h-[1.1vw] w-[1.1vw]"
                   fill="none"
                   stroke="currentColor"
-                  strokeWidth="3"
+                  strokeWidth="3.5"
                   strokeLinecap="round"
                   strokeLinejoin="round"
                 >
                   <path d="M5 13l4 4L19 7" />
                 </svg>
-              </span>
+              </motion.span>
             </motion.div>
           ))}
         </div>
