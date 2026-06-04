@@ -111,8 +111,8 @@ export default function WhatProofLooksLike() {
             transition={reduce ? undefined : { duration: 0.6, ease: EASE, delay: 0.2 }}
           >
             By{" "}
-            <span className="text-red font-normal">January 2027</span>, these are
-            true. The model is proven.
+            <span className="text-red font-normal">January 2027</span>, the model
+            is proven.
           </motion.p>
 
           <motion.div
