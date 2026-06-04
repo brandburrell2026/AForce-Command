@@ -10,28 +10,32 @@ const USE = [
     label: "Product & Inventory",
     sub: "Launch SKUs + concierge stock",
     amount: "$1,400,000",
-    bar: "bg-red",
+    grad: "linear-gradient(90deg, #e41e2b 0%, #ff5246 100%)",
+    glow: "rgba(228,30,43,0.45)",
   },
   {
     pct: 25,
     label: "Marketing & Activation",
     sub: "Brickell + NYC density, event, paid acquisition",
     amount: "$1,000,000",
-    bar: "bg-red",
+    grad: "linear-gradient(90deg, #e41e2b 0%, #ff5246 100%)",
+    glow: "rgba(228,30,43,0.45)",
   },
   {
     pct: 25,
     label: "Tech & OS Development",
     sub: "AForce OS build, app, retention infrastructure",
     amount: "$1,000,000",
-    bar: "bg-red",
+    grad: "linear-gradient(90deg, #2f5bff 0%, #6b8bff 100%)",
+    glow: "rgba(47,91,255,0.45)",
   },
   {
     pct: 15,
     label: "Team & Operations",
     sub: "Salaries, legal, insurance, overhead · ~$50K/mo",
     amount: "$600,000",
-    bar: "bg-red",
+    grad: "linear-gradient(90deg, #3a352f 0%, #6b645c 100%)",
+    glow: "rgba(26,24,19,0.32)",
   },
 ];
 
@@ -56,18 +60,41 @@ export default function TheAsk() {
           transition={reduce ? undefined : { duration: 1.4, ease: EASE }}
         />
         {/* warm temperature veil so the cool image harmonizes with the paper */}
-        <div className="absolute inset-0 bg-[#eceae4]/55" />
-        {/* radial legibility scrim — denser through the central content band so
-            text and numbers stay crisp; the figure recedes to a faint trace and
-            the image breathes only at the very top and bottom edges */}
+        <div className="absolute inset-0 bg-[#eceae4]/42" />
+        {/* radial legibility scrim — eased back so the dawn horizon breathes
+            more, while the central content band stays crisp behind the numbers */}
         <div
           className="absolute inset-0"
           style={{
             background:
-              "radial-gradient(130% 88% at 50% 46%, rgba(236,234,228,0.96) 0%, rgba(236,234,228,0.93) 48%, rgba(236,234,228,0.74) 78%, rgba(236,234,228,0.46) 100%)",
+              "radial-gradient(130% 88% at 50% 46%, rgba(236,234,228,0.9) 0%, rgba(236,234,228,0.84) 48%, rgba(236,234,228,0.58) 78%, rgba(236,234,228,0.3) 100%)",
           }}
         />
       </div>
+
+      {/* hero glow behind the $4M — red energy */}
+      <motion.div
+        aria-hidden
+        className="absolute left-1/2 top-[20vh] h-[40vh] w-[40vh] -translate-x-1/2 rounded-full"
+        style={{
+          background:
+            "radial-gradient(circle, rgba(228,30,43,0.16) 0%, rgba(228,30,43,0) 68%)",
+          filter: "blur(8px)",
+        }}
+        initial={reduce ? false : { opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={reduce ? undefined : { duration: 1.4, ease: EASE }}
+      />
+      {/* cool OS-blue accent halo, lower-right */}
+      <div
+        aria-hidden
+        className="absolute right-[-6vw] bottom-[2vh] h-[40vh] w-[40vh] rounded-full"
+        style={{
+          background:
+            "radial-gradient(circle, rgba(47,91,255,0.10) 0%, rgba(47,91,255,0) 70%)",
+          filter: "blur(8px)",
+        }}
+      />
 
       <div className="absolute inset-0 flex flex-col items-center justify-center px-[5vw] pt-[9vh] pb-[9vh] text-center">
         <motion.div
@@ -118,21 +145,26 @@ export default function TheAsk() {
               >
                 <div className="flex items-baseline justify-between mb-[0.9vh]">
                   <div className="flex items-baseline gap-[1vw]">
-                    <span className="font-display text-[1.7vw] font-light text-text tabular-nums leading-none">
+                    <span className="font-display text-[1.95vw] font-normal text-text tabular-nums leading-none">
                       {u.pct}%
                     </span>
-                    <span className="font-display uppercase tracking-[0.18em] text-[0.78vw] text-text/70 font-medium">
+                    <span className="font-display uppercase tracking-[0.18em] text-[0.82vw] text-text/75 font-semibold">
                       {u.label}
                     </span>
                   </div>
-                  <span className="font-display text-[1vw] text-text/55 font-light tabular-nums">
+                  <span className="font-display text-[1.1vw] text-text/75 font-normal tabular-nums">
                     {u.amount}
                   </span>
                 </div>
-                <div className="h-[1.5vh] w-full rounded-full bg-text/10 overflow-hidden">
+                <div className="h-[1.9vh] w-full rounded-full bg-text/[0.07] overflow-hidden">
                   <motion.div
-                    className={`h-full rounded-full ${u.bar}`}
-                    style={{ width: `${u.pct}%`, transformOrigin: "left" }}
+                    className="h-full rounded-full"
+                    style={{
+                      width: `${u.pct}%`,
+                      transformOrigin: "left",
+                      background: u.grad,
+                      boxShadow: `0 0 16px -2px ${u.glow}`,
+                    }}
                     initial={reduce ? false : { scaleX: 0 }}
                     animate={{ scaleX: 1 }}
                     transition={
