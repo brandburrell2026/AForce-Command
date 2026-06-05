@@ -19,6 +19,11 @@ import {
   recordStreakChanged,
   recordWin,
 } from '@/services/analytics';
+import {
+  emitAppOpened,
+  emitSessionStarted,
+  initAnalytics,
+} from '@/analytics/event_dispatcher';
 import { useUserSlice } from '@/store/slices';
 import { useTopDailyWin } from '@/hooks/useTopDailyWin';
 
@@ -29,6 +34,12 @@ export function useAnalyticsRecorder(): void {
   // Session open — once per launch (the service dedupes to one per day).
   React.useEffect(() => {
     void recordSessionOpen(new Date().toISOString());
+    // Internal analytics pipeline (Task #39): flush any events left from
+    // a previous run, then emit this launch. All consent-gated no-ops
+    // until the user opts in. session_started self-dedupes per day.
+    void initAnalytics();
+    void emitAppOpened();
+    void emitSessionStarted();
   }, []);
 
   // Streak progression — service only appends when the value changes.

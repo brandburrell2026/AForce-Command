@@ -54,6 +54,7 @@ import {
 } from '@/services/voice/commandVoice';
 import { replayLastCommand, getLastCommand } from '@/services/voice/commandVoiceBus';
 import { useDevMode, setDevMode } from '@/services/devMode';
+import { AnalyticsConsentRow } from '@/components/settings/AnalyticsConsentRow';
 import { getJsonAforceApi } from '@/services/aforceApiClient';
 
 // Lazy-loaded haptics — `expo-haptics` rejects on web (no native
@@ -1343,6 +1344,8 @@ export default function ProfileScreen() {
                       void setCoachMode(v);
                     }}
                   />
+                  <Divider />
+                  <AnalyticsConsentRow />
                 </View>
               </>
             );

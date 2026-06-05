@@ -216,3 +216,29 @@ export interface PortalSession { url: string }
 export async function createPortalSession(returnUrl: string): Promise<PortalSession> {
   return request<PortalSession>("POST", "/stripe/portal-session", { returnUrl });
 }
+
+// ─── Internal analytics ──────────────────────────────────────────────────────
+// INTERNAL pipeline only — no consumer-facing analytics. The dispatcher
+// flushes consent-gated event batches here; ingestion is idempotent on
+// eventId server-side. `forgetAnalytics` powers delete-my-data.
+import type { AnalyticsEventEnvelope } from "@workspace/analytics-contract";
+
+export interface AnalyticsIngestResult {
+  received: number;
+  accepted: number;
+  deduped: number;
+}
+
+export async function postAnalyticsBatch(
+  events: AnalyticsEventEnvelope[],
+): Promise<AnalyticsIngestResult> {
+  return request<AnalyticsIngestResult>("POST", "/aforce/analytics", { events });
+}
+
+export async function forgetAnalytics(
+  analyticsId: string,
+): Promise<{ deleted: number }> {
+  return request<{ deleted: number }>("POST", "/aforce/analytics/forget", {
+    analytics_id: analyticsId,
+  });
+}

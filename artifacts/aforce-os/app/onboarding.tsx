@@ -27,6 +27,7 @@ import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 
 import { recordOnboardingCompleted } from '@/services/analytics';
+import { emit } from '@/analytics/event_dispatcher';
 import React from 'react';
 import {
   KeyboardAvoidingView,
@@ -156,6 +157,9 @@ export default function Onboarding() {
     // Internal analytics (Priority #4) — record onboarding completion at
     // its precise moment. Best-effort; never blocks entry to the app.
     void recordOnboardingCompleted(new Date().toISOString());
+    // Internal analytics pipeline (Task #39) — consent-gated no-op until
+    // the user opts in.
+    void emit('onboarding_completed');
     router.replace('/(tabs)');
   }, [
     goal,

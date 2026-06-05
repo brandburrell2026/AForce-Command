@@ -25,6 +25,7 @@ import socialRouter from "./aforce/social";
 import journalRouter from "./aforce/journal";
 import sensorsRouter from "./aforce/sensors";
 import achievementsRouter from "./aforce/achievements";
+import analyticsRouter from "./aforce/analytics";
 
 const router: IRouter = Router();
 
@@ -38,6 +39,7 @@ router.use(statusRouter);
 router.use(socialRouter);
 router.use(journalRouter);
 router.use(sensorsRouter);
+router.use(analyticsRouter);
 router.use(achievementsRouter);
 
 export default router;

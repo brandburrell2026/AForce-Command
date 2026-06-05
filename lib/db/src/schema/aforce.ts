@@ -458,6 +458,52 @@ export const aforcePrivacy = pgTable("aforce_privacy", {
 export type AforcePrivacyRow = typeof aforcePrivacy.$inferSelect;
 export type InsertAforcePrivacy = typeof aforcePrivacy.$inferInsert;
 
+/* ─── Internal analytics events (append-only, idempotent) ─────────────────── */
+/**
+ * INTERNAL analytics event sink. Append-only, written by the consent-
+ * gated mobile dispatcher via POST /api/aforce/analytics. There is no
+ * consumer-facing analytics surface — only restricted admins read
+ * aggregates from this table.
+ *
+ * Privacy by design:
+ *   - `analyticsId` is the PSEUDONYMOUS analytics identity generated
+ *     client-side after consent. The Clerk user id is intentionally NOT
+ *     stored here, so analytics rows cannot be trivially joined to a
+ *     person. delete-my-data matches on this id (an unguessable random
+ *     value only the owning device holds).
+ *   - `eventId` is UNIQUE so retries / multi-flush are idempotent: the
+ *     ingest path uses ON CONFLICT DO NOTHING and an event lands at most
+ *     once.
+ *
+ * The envelope shape mirrors `@workspace/analytics-contract`
+ * (AnalyticsEventEnvelope); `payload` stays JSONB so new event fields
+ * are additive without a migration.
+ */
+export const aforceAnalyticsEvents = pgTable(
+  "aforce_analytics_events",
+  {
+    id: serial("id").primaryKey(),
+    eventId: text("event_id").notNull(),
+    analyticsId: text("analytics_id").notNull(),
+    eventType: text("event_type").notNull(),
+    occurredAt: timestamp("occurred_at", { withTimezone: true }).notNull(),
+    schemaVersion: integer("schema_version").notNull().default(1),
+    payload: jsonb("payload").$type<Record<string, unknown>>().notNull().default({}),
+    receivedAt: timestamp("received_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => ({
+    eventIdUq: uniqueIndex("aforce_analytics_events_event_id_uq").on(t.eventId),
+    analyticsIdx: index("aforce_analytics_events_analytics_idx").on(t.analyticsId),
+    typeTimeIdx: index("aforce_analytics_events_type_time_idx").on(
+      t.eventType,
+      t.occurredAt,
+    ),
+  }),
+);
+
+export type AforceAnalyticsEventRow = typeof aforceAnalyticsEvents.$inferSelect;
+export type InsertAforceAnalyticsEvent = typeof aforceAnalyticsEvents.$inferInsert;
+
 /* ─── HydroScan history (append-only) ─────────────────────────────────────── */
 /**
  * Append-only HydroScan history. One row per scan, ordered by

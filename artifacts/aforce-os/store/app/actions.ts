@@ -49,6 +49,7 @@ import {
   type VoiceScope,
 } from '../../services/voice/commandVoice';
 import { commandSpeak, markCycleExecuted } from '../../services/voice/commandVoiceBus';
+import { emit } from '../../analytics/event_dispatcher';
 
 interface StoreActionsDeps {
   state: AppState;
@@ -198,6 +199,15 @@ export function useStoreActions({
       // pulse the orb.
       if (!opts?.silent) {
         markCycleExecuted();
+        // Internal analytics pipeline (Task #39) — a completed,
+        // user-initiated intake is the canonical score-moving behavior
+        // (silent Phantom-Band auto-sips are excluded). Consent-gated +
+        // best-effort; never blocks the cycle.
+        void emit('water_cycle_logged', { fluidType, oz: log.ozAmount });
+        void emit('hydration_score_updated', {
+          score: log.scoreAfter,
+          level: mergedEngine.performanceState.level,
+        });
         // Auto-dismiss the hero overlay on the same cadence as the
         // executed badge so the two cinematic moments end together.
         setTimeout(() => dispatch({ type: 'DISMISS_SUCCESS' }), 2400);

@@ -1,0 +1,13 @@
+{
+  "name": "@workspace/analytics-contract",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./zod": "./src/zod.ts"
+  },
+  "dependencies": {
+    "zod": "catalog:"
+  }
+}

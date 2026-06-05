@@ -39,6 +39,7 @@ import {
   recordReminderShown,
   recordReminderResponse,
 } from '@/services/analytics';
+import { emit } from '@/analytics/event_dispatcher';
 import { useAdaptiveReminderGate } from '@/hooks/useAdaptiveReminderGate';
 
 export function NotificationBanner() {
@@ -93,6 +94,8 @@ export function NotificationBanner() {
     if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
     // Dismiss is the user's response to the reminder.
     void recordReminderResponse(due.day, new Date().toISOString());
+    // Internal analytics pipeline (Task #39) — consent-gated no-op until opt-in.
+    void emit('notification_opened', { slot: String(due.day) });
     const next = await recordDelivery(due.day, new Date().toISOString());
     if (next) setSnapshot(next);
     // Cancel the matching native slot so the OS doesn't deliver a
