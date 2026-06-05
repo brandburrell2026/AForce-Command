@@ -25,12 +25,16 @@ layout, not animation state.
 **How to apply:** to verify animated/just-edited mockups live, use `type=app_preview`
 (captures fresh through the local `localhost:80` proxy, no external cache).
 
-## app_preview screenshot can drop the LAST DOM-ordered image
-When a slide/page has several large images, the `app_preview` screenshot may consistently
-omit ONLY the last-painted (last DOM-ordered) image — every other element renders. The
-signature: the same image renders fine when it is NOT last, and reordering just moves the
-gap to whatever is now last. This is a capture-timing artifact (last image not composited
-at snapshot), NOT a CSS/layout bug. `loading="eager"`/`decoding="sync"` did not fix it.
-**How to apply:** before chasing a CSS bug, confirm via: (a) all images serve 200, (b) the
-element is a valid positioned child with sane coords/z, (c) the missing item changes with
-DOM order. If so, trust the live deck and stop debugging CSS.
+## app_preview screenshot drops the LAST items of a STAGGERED entrance animation
+When a row/grid reveals with a per-item framer-motion stagger
+(`delay: base + i * step`, `initial={{opacity:0}}`), the `app_preview` screenshot is
+captured at a fixed early-ish moment and shows only the items whose delay+duration have
+already completed. The trailing items (highest `i`) are still at opacity 0 → they look
+"missing" or like blank/paper columns, even though images serve 200 and the DOM is correct.
+The tell: the gap is exactly at the stagger boundary (e.g. 8 cols, `delay 0.12 + i*0.1`,
+`dur 0.8` → last settles ~1.6s; capture ~1.45s shows cols 0–5, hides 6–7), and it moves
+if you change the stagger. NOT a 404, CSS, layout, or decode bug.
+**How to apply:** before chasing CSS, confirm (a) all images serve 200 (curl), (b) the file
+maps all N items, (c) no console image errors. Then to actually SEE the settled frame,
+tighten the reveal so it finishes before capture (e.g. `dur 0.6, delay 0.08 + i*0.05` →
+~1s) — also a legit polish for wide lineups. The live deck was always fine.
