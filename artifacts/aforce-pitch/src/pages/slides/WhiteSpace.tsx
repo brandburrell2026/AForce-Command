@@ -11,10 +11,6 @@ const PEOPLE = [
   { src: "08-ceo-woman", label: "CEO", pos: "center" },
   { src: "08-dj2", label: "DJ", pos: "center" },
   { src: "08-surgeon-woman", label: "Surgeon", pos: "center" },
-  { src: "08-trader", label: "Trader", pos: "58% 32%" },
-  { src: "08-pilot", label: "Pilot", pos: "52% 28%" },
-  { src: "08-firefighter", label: "Firefighter", pos: "center 38%" },
-  { src: "08-chef", label: "Chef", pos: "46% 30%" },
 ];
 
 export default function WhiteSpace() {
@@ -26,7 +22,7 @@ export default function WhiteSpace() {
     <SlideFrame slide={8}>
       <div className="absolute inset-0">
         {/* RIGHT — the lineup of high-performers, a row of full-height portraits */}
-        <div className="absolute inset-y-0 right-0 flex w-[74%] gap-[2px]">
+        <div className="absolute inset-y-0 right-0 flex w-[64%] gap-[2px]">
           {PEOPLE.map((p, i) => (
             <motion.div
               key={p.src}
@@ -34,7 +30,7 @@ export default function WhiteSpace() {
               initial={reduce ? false : { opacity: 0, y: 18 }}
               animate={{ opacity: 1, y: 0 }}
               transition={
-                reduce ? undefined : { duration: 0.6, ease: EASE, delay: 0.08 + i * 0.05 }
+                reduce ? undefined : { duration: 0.8, ease: EASE, delay: 0.12 + i * 0.1 }
               }
             >
               <img
@@ -47,8 +43,8 @@ export default function WhiteSpace() {
               {/* bottom scrim so the label and footer chrome stay legible */}
               <div className="absolute inset-x-0 bottom-0 h-[30%] bg-gradient-to-t from-black/60 to-transparent" />
               {/* persona label — lifted clear of the shared footer chrome */}
-              <div className="absolute bottom-[9.5vh] left-0 right-0 px-[0.3vw] text-center">
-                <span className="font-display uppercase tracking-[0.16em] text-[0.6vw] text-white/85 font-semibold">
+              <div className="absolute bottom-[9.5vh] left-0 right-0 text-center">
+                <span className="font-display uppercase tracking-[0.3em] text-[0.72vw] text-white/85 font-semibold">
                   {p.label}
                 </span>
               </div>
