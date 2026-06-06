@@ -17,6 +17,7 @@ import { Colors } from '../theme/colors';
 import type { ScoreContribution, PerformanceState } from '../types';
 import { ScoreDrivers } from './ScoreDrivers';
 import { buildScoreDrivers } from '../utils/scoring/drivers';
+import { emit } from '../analytics/event_dispatcher';
 
 interface Props {
   visible: boolean;
@@ -35,6 +36,14 @@ export function ScoreBreakdownSheet({ visible, onDismiss, score, contributions, 
       if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
       opacity.value = withTiming(1, { duration: 220, easing: Easing.out(Easing.quad) });
       translateY.value = withSpring(0, { damping: 18, stiffness: 220 });
+      // Internal analytics pipeline (Task #39) — the explainability /
+      // impact surface was shown. Key it by the most impactful driver
+      // being explained. Consent-gated; one emit per open.
+      const top = contributions.reduce<ScoreContribution | null>(
+        (best, c) => (!best || Math.abs(c.delta) > Math.abs(best.delta) ? c : best),
+        null,
+      );
+      void emit('impact_shown', { impactKey: top?.id ?? 'score_breakdown' });
     } else {
       opacity.value = withTiming(0, { duration: 180 });
       translateY.value = withTiming(60, { duration: 180 });

@@ -22,6 +22,7 @@ import {
   type PlaybackState,
 } from '../../services/voice/commandVoiceBus';
 import { useRecoverySnapshotFromStore } from '../../services/useRecoverySnapshot';
+import { emit } from '../../analytics/event_dispatcher';
 
 interface Props {
   onOpenBreakdown: () => void;
@@ -58,6 +59,18 @@ function OrbSectionImpl({ onOpenBreakdown, orbSize }: Props) {
   const [playback, setPlayback] = React.useState<PlaybackState>(() => getPlaybackState());
   React.useEffect(() => subscribePlayback(setPlayback), []);
   const voiceActive = playback === 'received' || playback === 'playing';
+
+  // Internal analytics pipeline (Task #39) — emit only on a REAL orb
+  // performance-state transition (never on first mount). Consent-gated +
+  // best-effort via the dispatcher.
+  const prevLevel = React.useRef(engine.performanceState.level);
+  React.useEffect(() => {
+    const next = engine.performanceState.level;
+    if (prevLevel.current !== next) {
+      void emit('orb_state_changed', { from: prevLevel.current, to: next });
+      prevLevel.current = next;
+    }
+  }, [engine.performanceState.level]);
 
   // Recovery Layer — null in production (flag default OFF). When on,
   // adds a small "RECOVERY · PRESSURE · TREND" strip beneath the

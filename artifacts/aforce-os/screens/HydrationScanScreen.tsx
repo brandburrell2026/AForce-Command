@@ -42,6 +42,7 @@ import { DRINK_CATEGORIES } from '@/data/drinkCatalog';
 import { Colors } from '@/theme/colors';
 import { useAppStore } from '@/store/useAppStore';
 import { scan } from '@/services/hydrationScanService';
+import { emit } from '@/analytics/event_dispatcher';
 import { listSimulatableBarcodes, AFORCE_SHELF_SKUS } from '@/services/productRecognitionService';
 import { buildScanCoachScript } from '@/services/scanCoachVoice';
 import { speak as speakCoach, stopSpeaking } from '@/services/textToSpeech';
@@ -178,6 +179,10 @@ export default function HydrationScanScreen() {
       const out = await scan(source, state.engineOutput, state.userState, state.profileIdentity);
       setOutcome(out);
       if (out.ok) {
+        // Internal analytics pipeline (Task #39) — a real receipt/product
+        // scan completed. sourceKind distinguishes barcode / qr / manual.
+        // Consent-gated + best-effort; never blocks the scan UX.
+        void emit('receipt_scanned', { sourceKind: source.kind });
         // Persist to server (best-effort — UI never blocks on this).
         postScanMut.mutate({
           loggedAt: new Date().toISOString(),
@@ -186,6 +191,7 @@ export default function HydrationScanScreen() {
           productId: out.result.product.productId,
           productName: out.result.product.productName,
           brand: out.result.product.brand ?? null,
+          isAForce: out.result.product.isAForce,
           verdict: out.result.verdict,
           fitScore: out.result.currentFitScore,
           scoreBefore: state.engineOutput.score,

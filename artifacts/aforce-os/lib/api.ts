@@ -74,6 +74,7 @@ async function request<T>(
   method: "GET" | "POST",
   path: string,
   body?: unknown,
+  extraHeaders?: Record<string, string>,
 ): Promise<T> {
   const deviceId = await getDeviceId();
   const url = `${getApiBase()}${path}`;
@@ -87,6 +88,7 @@ async function request<T>(
       "content-type": "application/json",
       "x-device-id": deviceId,
       ...auth,
+      ...(extraHeaders ?? {}),
     },
     body: body == null ? undefined : JSON.stringify(body),
   });
@@ -98,6 +100,31 @@ async function request<T>(
   return (await res.json()) as T;
 }
 
+/**
+ * Internal analytics identity header (Task #39). Returns the pseudonymous
+ * analytics id under `x-aforce-analytics-id` ONLY when the user has granted
+ * analytics consent AND an id already exists — so backend-owned events
+ * (receipt_verified / receipt_activated / subscription_started) can be keyed
+ * to the same anon identity the mobile dispatcher uses, never the Clerk user
+ * id. Returns {} otherwise so callers attach nothing and the server stays a
+ * strict no-op for non-consenting users.
+ *
+ * Lazy import of privacy_manager avoids a static cycle (privacy_manager
+ * imports forgetAnalytics from this module).
+ */
+async function consentedAnalyticsHeader(): Promise<Record<string, string>> {
+  try {
+    const { isConsentGranted, getAnalyticsId } = await import(
+      "../analytics/privacy_manager"
+    );
+    if (!(await isConsentGranted())) return {};
+    const id = await getAnalyticsId();
+    return id ? { "x-aforce-analytics-id": id } : {};
+  } catch {
+    return {};
+  }
+}
+
 // ─── Scans ───────────────────────────────────────────────────────────────────
 export interface ServerScan {
   id: string;
@@ -107,6 +134,10 @@ export interface ServerScan {
   productId: string | null;
   productName: string;
   brand: string | null;
+  /** Whether the scanned product is an AForce SKU. Sent on POST so the
+   *  server can emit the backend-owned `receipt_activated` analytics event;
+   *  not echoed back in the GET response (kept out of the legacy shape). */
+  isAForce?: boolean;
   verdict: string;
   fitScore: number;
   scoreBefore: number;
@@ -121,7 +152,12 @@ export async function fetchScans(limit = 50): Promise<ServerScan[]> {
 }
 
 export async function postScan(scan: Omit<ServerScan, "id"> & { id?: string }): Promise<ServerScan> {
-  const data = await request<{ scan: ServerScan }>("POST", "/scans", scan);
+  const data = await request<{ scan: ServerScan }>(
+    "POST",
+    "/scans",
+    scan,
+    await consentedAnalyticsHeader(),
+  );
   return data.scan;
 }
 
@@ -162,7 +198,12 @@ export async function createCheckoutSession(input: {
   planId: string;
   returnUrl: string;
 }): Promise<CheckoutSession> {
-  return request<CheckoutSession>("POST", "/checkout/session", input);
+  return request<CheckoutSession>(
+    "POST",
+    "/checkout/session",
+    input,
+    await consentedAnalyticsHeader(),
+  );
 }
 
 export interface CartCheckoutSession extends CheckoutSession {

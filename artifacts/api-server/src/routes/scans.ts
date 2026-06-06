@@ -5,6 +5,12 @@ import {
   type HydroScanRecord,
 } from "@workspace/db";
 import { requireAuth } from "../middlewares/requireAuth";
+import {
+  recordServerAnalyticsEvents,
+  deterministicEventId,
+  analyticsIdFromHeader,
+  type ServerAnalyticsInput,
+} from "../lib/serverAnalytics";
 
 const router: IRouter = Router();
 
@@ -184,6 +190,33 @@ router.post("/scans", requireAuth, async (req, res) => {
       // is dropped on the way into history.
       payload: { ...body, loggedAtRaw },
     });
+
+    // INTERNAL analytics (Task #39) — backend-owned events, emitted only
+    // on REAL observed behavior and ONLY when the client forwarded a
+    // consented pseudonymous analytics id. Fire-and-forget: never blocks
+    // or fails the scan response, never alters scan behavior.
+    const analyticsId = analyticsIdFromHeader(req.header("x-aforce-analytics-id"));
+    if (analyticsId) {
+      const events: ServerAnalyticsInput[] = [];
+      const verdict = typeof body.verdict === "string" ? body.verdict : "unknown";
+      if (verdict !== "unknown") {
+        events.push({
+          eventId: deterministicEventId(`receipt_verified:${userId}:${clientScanId}`),
+          eventType: "receipt_verified",
+          analyticsId,
+          payload: { verdict },
+        });
+      }
+      if (body.isAForce === true) {
+        events.push({
+          eventId: deterministicEventId(`receipt_activated:${userId}:${clientScanId}`),
+          eventType: "receipt_activated",
+          analyticsId,
+        });
+      }
+      if (events.length > 0) void recordServerAnalyticsEvents(events);
+    }
+
     res.status(201).json({ scan: toResponse(stored) });
   } catch (err) {
     req.log?.error({ err }, "scans:insert failed");

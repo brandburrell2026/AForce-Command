@@ -42,3 +42,23 @@ would need a storage-level transaction instead.
 **Scope boundary:** the layer only records + derives and exposes a
 metrics getter for the engine to read. Active consumption (e.g. adaptive
 reminders reacting to response rate / time-to-first-win) is a later phase.
+
+**Server-side emit path (Phase-1 backend events):** events the server
+owns (receipt_verified/activated, subscription_started) are minted with a
+DETERMINISTIC eventId (`evt_<sha256(seed)>`) seeded from a stable domain
+key (the subscription id, scan id, etc.), NOT a random id. **Why:** that
+is the only thing making them idempotent across Stripe webhook redelivery
+and created-vs-updated double-fires — dedupe is `ON CONFLICT DO NOTHING`
+on eventId, so a non-deterministic id would store duplicates. Subscription
+emission listens to BOTH `customer.subscription.created` AND `.updated`
+(an SCA/3DS sub is born `incomplete` and only flips active on a later
+update); the deterministic id collapses both to one row.
+
+**Pseudonymity guard at INGRESS, not just at insert (the privacy
+trap):** the `anon_` analytics_id must be validated the moment it enters
+the server (`analyticsIdFromHeader` rejects anything not matching
+`^anon_[a-z0-9]+_[a-z0-9]+$`), because the checkout path writes it into
+Stripe subscription metadata BEFORE any DB insert ever runs. Relying only
+on the contract schema at insert time would let a hand-crafted request
+park a Clerk `user_...` id in Stripe metadata. The header is the single
+trust boundary — guard there.

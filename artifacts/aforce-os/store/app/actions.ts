@@ -88,6 +88,12 @@ export function useStoreActions({
   ) => {
     if (state.isCompletingCycle) return;
     dispatch({ type: 'CYCLE_START' });
+    if (!opts?.silent) {
+      // Internal analytics pipeline (Task #39) — a user-initiated intake
+      // begins a hydration ritual. Silent Phantom-Band auto-sips are
+      // excluded. Consent-gated + best-effort; never blocks the cycle.
+      void emit('ritual_started', { ritualId: fluidType });
+    }
     try {
       // Allow callers (e.g. the manual water amount picker) to override
       // the default per-serving oz so the score impact reflects what was
@@ -208,6 +214,18 @@ export function useStoreActions({
           score: log.scoreAfter,
           level: mergedEngine.performanceState.level,
         });
+        void emit('ritual_completed', { ritualId: fluidType });
+        // Daily hydration goal just reached — emit only on the crossing
+        // transition. The server increments unitsConsumedToday by exactly
+        // 1 per log, so prev = new − 1; this fires once, on the log that
+        // first reaches the target (and again only on a later day's cross).
+        if (
+          mergedUserState.dailyTarget > 0
+          && mergedUserState.unitsConsumedToday - 1 < mergedUserState.dailyTarget
+          && mergedUserState.unitsConsumedToday >= mergedUserState.dailyTarget
+        ) {
+          void emit('water_goal_completed');
+        }
         // Auto-dismiss the hero overlay on the same cadence as the
         // executed badge so the two cinematic moments end together.
         setTimeout(() => dispatch({ type: 'DISMISS_SUCCESS' }), 2400);
@@ -267,6 +285,11 @@ export function useStoreActions({
   }, [state.userState]);
 
   const confirmCommand = useCallback(async (followed: boolean) => {
+    if (followed) {
+      // Internal analytics pipeline (Task #39) — user followed the coach
+      // command. Tied to the real tap, independent of server success.
+      void emit('command_followed', { commandId: state.engineOutput.command.id });
+    }
     try {
       // Server applies confirmationDelta + (in Clutch, on No)
       // clutchDecayBoostUntil. Compliance streak is intentionally NOT

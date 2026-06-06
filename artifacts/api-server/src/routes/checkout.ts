@@ -29,6 +29,7 @@ import { checkoutLimiter } from '../middlewares/rateLimits';
 import { requireAuth } from '../middlewares/requireAuth';
 import { db, aforceUsers } from '@workspace/db';
 import { eq, sql } from 'drizzle-orm';
+import { analyticsIdFromHeader } from '../lib/serverAnalytics';
 
 /**
  * Look up the active Stripe price id for a given local plan id by
@@ -241,6 +242,7 @@ router.post('/checkout/session', requireAuth, checkoutLimiter, async (req: Reque
     // since the only join key from Stripe back to the Clerk user is the
     // stored stripe_customer_id (the webhook recovery path also relies
     // on it via Customer.metadata.userId).
+    const analyticsId = analyticsIdFromHeader(req.header('x-aforce-analytics-id'));
     const customerId = userId ? await ensureStripeCustomer(userId) : null;
     if (!customerId) {
       logger.warn({ userId, planId }, 'Refusing checkout — could not persist Stripe customer linkage');
@@ -260,7 +262,15 @@ router.post('/checkout/session', requireAuth, checkoutLimiter, async (req: Reque
       // even if customer creation failed for some reason.
       metadata: { planId, kind: 'subscription', userId },
       subscription_data: {
-        metadata: { planId, userId },
+        // analytics_id is the consented pseudonymous id (when present) so
+        // the webhook can emit `subscription_started` keyed to the same
+        // anon identity — never the Clerk user id. Internal analytics only;
+        // does not affect pricing, entitlement, or any payment behavior.
+        metadata: {
+          planId,
+          userId,
+          ...(analyticsId ? { analytics_id: analyticsId } : {}),
+        },
       },
     });
 
