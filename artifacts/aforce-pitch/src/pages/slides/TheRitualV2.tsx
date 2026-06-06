@@ -23,15 +23,6 @@ const BODY = [
 // floor line (vh above frame bottom) — products stand here, reflections drop below.
 const FLOOR = 16;
 
-// Back row: the three sticks — set back, soft-focus, nestled in the gaps
-// between the cans so each one peeks out for depth. New matte-black topographic
-// art style, matching the cans below.
-const STICKS = [
-  { src: "stick-watermelon-v2", h: 48, left: 0 },
-  { src: "stick-soursop-v2", h: 50, left: 30 },
-  { src: "stick-berry-v2", h: 48, left: 62 },
-];
-
 // Front row: the three cans — hero center, sharp, lit. Reflected on the floor.
 // New matte-black topographic edition.
 const CANS = [
@@ -87,27 +78,6 @@ export default function TheRitualV2() {
                 "linear-gradient(to top, rgba(255,255,255,0.55), rgba(255,255,255,0) 85%)",
             }}
           />
-
-          {/* back row — sticks, soft-focus, receding */}
-          {STICKS.map((p, i) => (
-            <motion.img
-              key={p.src}
-              src={img(p.src)}
-              alt=""
-              className="absolute w-auto object-contain"
-              style={{
-                height: `${p.h}vh`,
-                bottom: `${FLOOR + 4}vh`,
-                left: `${p.left}%`,
-                zIndex: 10,
-                filter: "blur(1.6px) brightness(0.97)",
-                opacity: 0.8,
-              }}
-              initial={reduce ? false : { opacity: 0, y: 26 }}
-              animate={{ opacity: 0.8, y: 0 }}
-              transition={reduce ? undefined : { duration: 0.7, ease: EASE, delay: 0.2 + i * 0.07 }}
-            />
-          ))}
 
           {/* front row — cans, sharp, with floor reflections */}
           {CANS.map((p, i) => (
