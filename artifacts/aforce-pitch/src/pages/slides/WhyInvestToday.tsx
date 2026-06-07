@@ -31,7 +31,7 @@ export default function WhyInvestToday() {
   const reduce = useReducedMotion();
 
   return (
-    <SlideFrame slide={17}>
+    <SlideFrame slide={16}>
       <div className="absolute inset-0 flex flex-col px-[5vw] pt-[11vh] pb-[9vh]">
         {/* HEADER */}
         <motion.div

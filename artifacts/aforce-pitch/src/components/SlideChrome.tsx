@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 
 import Wordmark from "@/components/Wordmark";
 
-export const TOTAL_SLIDES = 25;
+export const TOTAL_SLIDES = 22;
 
 const BG_NAMES = [
   "final", "shift", "realdeal", "prize", "noise",
@@ -15,8 +15,8 @@ const SECTIONS: Array<{ name: string; range: [number, number] }> = [
   { name: "The Team", range: [4, 5] },
   { name: "The Opportunity", range: [6, 8] },
   { name: "The System", range: [9, 12] },
-  { name: "The Plan", range: [13, 24] },
-  { name: "The Close", range: [25, 25] },
+  { name: "The Plan", range: [13, 21] },
+  { name: "The Close", range: [22, 22] },
 ];
 
 export function sectionFor(slide: number): { index: number; name: string } {

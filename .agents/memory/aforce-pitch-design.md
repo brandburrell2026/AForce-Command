@@ -68,7 +68,12 @@ with massive whitespace. One emphasis word per H1 in red or blue.
 "illustrative"; capital raise is $4M.
 
 **How to apply:**
-- The deck ends on "The Ask" (no dark back-cover slide). Sections live in
+- The deck ends on "The Close" — a LIGHT paper slide tagged phaseLabel
+  "The Thesis" with `hideTopWordmark` (NOT a dark back-cover; the old dark Close
+  was retired). The Friends & Family block order is WhyAForceWins → WhyInvestToday
+  → TheTerms → UseOfFunds → RoadmapToValuation → TheComparable → TheExit → TheClose.
+  (WhatProofLooksLike, TheEconomics, and TheAsk were removed from the deck at the
+  user's request.) Sections live in
   `SlideChrome.tsx` (Stakes / Opportunity / System / Team / Plan). Keep
   `SECTIONS` ranges contiguous (no gaps) so `sectionFor()` never returns
   undefined and keep `TOTAL_SLIDES === manifest length`.
@@ -124,19 +129,18 @@ with massive whitespace. One emphasis word per H1 in red or blue.
   (no halo). Don't reintroduce branded photos or a scattered red "notification"
   dot layer; keep only the single intentional pulsing red ping above the
   right-side tagline.
-- **Slide 17 / TheAsk "Use of funds" = ONE stacked $4M bar + 4-column grid, all
-  RED, never blue.** Show the whole raise as a single segmented allocation bar
-  plus a per-allocation breakdown grid — not four separate half-empty tracks
-  (rejected as repetitive/dead-space). Bars stay solid red; blue is reserved
-  ONLY for the closing "The next round funds the scale." line. **Why:** a blue
-  bar (was Tech & OS) misreads as "next round" money when every bar is *this*
-  raise; a graduated red-opacity ramp was also rejected (smallest bar went
-  near-invisible).
+- **"Use of funds" = ONE stacked allocation bar + a per-allocation breakdown
+  grid, never separate half-empty tracks** (rejected as repetitive/dead-space).
+  The standalone `UseOfFunds.tsx` slide is the live home for this (a 6-segment
+  proportional bar 40/20/15/10/10/5 + a 3×2 legend); it uses the real brand vars
+  `var(--color-red)`/`var(--color-blue)`/`#0b0d12` + rgba shades, NOT `--af-*`
+  (those don't exist). The earlier `TheAsk` slide that first carried a use-of-funds
+  bar has been deleted from the deck.
 - **Verify pitch slides via `/allslides`** (forces reduced motion → final state).
   `/slideN` screenshots land mid-animation because entrances fade in on a stagger
   (late-delayed elements — black hero panels/highlight bars, last legend cells —
   look faded or absent mid-capture even though their layout position is final).
-  **Per-slide gotcha:** `/allslides` stacks all 25 slides vertically, so the
+  **Per-slide gotcha:** `/allslides` stacks every slide vertically, so the
   screenshot tool (captures from top, ≤3000px) can't reach slides past ~#4. To
   capture ONE deep slide in final state, temporarily extend
   `src/lib/useReducedMotion.ts` to also return `true` when a `?static` query
