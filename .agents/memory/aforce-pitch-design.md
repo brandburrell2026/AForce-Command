@@ -71,10 +71,20 @@ with massive whitespace. One emphasis word per H1 in red or blue.
 - The deck ends on "The Ask" (no dark back-cover slide). Sections live in
   `SlideChrome.tsx` (Stakes / Opportunity / System / Team / Plan). Keep
   `SECTIONS` ranges contiguous (no gaps) so `sectionFor()` never returns
-  undefined, keep `TOTAL_SLIDES === manifest length`, and keep `BG_NAMES`
-  length === slide count. **Changing slide count means touching 4 places in
-  lockstep: manifest, `TOTAL_SLIDES`, `SECTIONS` ranges, `BG_NAMES`** — stale
-  ranges break silently.
+  undefined and keep `TOTAL_SLIDES === manifest length`.
+- **CRITICAL reorder gotcha: each slide hardcodes its own page number via
+  `<SlideFrame slide={N}>` — it is NOT derived from the manifest position.**
+  Inserting/removing/reordering slides means updating the `slide={N}` prop in
+  EVERY shifted slide file to match its new manifest position, in lockstep with
+  the manifest, `TOTAL_SLIDES`, and `SECTIONS` ranges. **Why:** the slide-10
+  removal only fixed the manifest + chrome and left every slide from position 10
+  onward showing a page number one too high (footer "17/18" on the 16th slide);
+  validate-slides does NOT catch this (it only checks the manifest). After any
+  count/order change, screenshot a shifted slide and confirm its footer "NN/total".
+- `BG_NAMES` in `SlideChrome.tsx` is effectively DEAD: no slide file uses
+  `SlideChrome` (they all use `SlideFrame`), so `BG_NAMES`/the faded bg plate
+  never renders for real slides. Leave it stale; don't bother renumbering it on
+  count changes (its names already don't match `public/images/bg/` filenames).
 - Slides live in `src/pages/slides/*.tsx`, registered in
   `src/data/slides-manifest.json` (strict Zod), eager-globbed by
   `slideLoader.ts`. Run `pnpm --filter @workspace/aforce-pitch run

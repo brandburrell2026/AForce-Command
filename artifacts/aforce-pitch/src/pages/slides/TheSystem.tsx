@@ -21,7 +21,7 @@ export default function TheSystem() {
   const phoneBack = `${base}recovery-coach-phone.png`;
 
   return (
-    <SlideFrame slide={11}>
+    <SlideFrame slide={10}>
       <div className="absolute inset-0 overflow-hidden">
         {/* right — the AForce OS, two screens floating */}
         <div className="absolute right-0 top-0 bottom-0 w-[50%] z-10 flex items-center justify-center">

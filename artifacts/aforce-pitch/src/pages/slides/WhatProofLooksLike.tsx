@@ -18,7 +18,7 @@ export default function WhatProofLooksLike() {
   const photo = `${base}images/bg/15-proof.png`;
 
   return (
-    <SlideFrame slide={16}>
+    <SlideFrame slide={15}>
       {/* cinematic backdrop — a lone musician performer alone on a vast,
           light-filled stage at dawn: proof is earned, not bought. The figure
           sits behind the framing column on the left; the bright open haze backs
