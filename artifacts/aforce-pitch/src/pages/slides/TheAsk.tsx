@@ -45,7 +45,7 @@ export default function TheAsk() {
   const photo = `${base}images/bg/17-ask.png`;
 
   return (
-    <SlideFrame slide={20}>
+    <SlideFrame slide={24}>
       {/* closing backdrop — a lone figure facing a vast dawn horizon: the
           forward look, the scale ahead. Held far behind the numbers by a
           center-dense veil so the $4M and the use-of-funds bars stay crisp;

@@ -133,7 +133,15 @@ with massive whitespace. One emphasis word per H1 in red or blue.
   raise; a graduated red-opacity ramp was also rejected (smallest bar went
   near-invisible).
 - **Verify pitch slides via `/allslides`** (forces reduced motion → final state).
-  `/slideN` screenshots land mid-animation because entrances fade in on a stagger.
+  `/slideN` screenshots land mid-animation because entrances fade in on a stagger
+  (late-delayed elements — black hero panels/highlight bars, last legend cells —
+  look faded or absent mid-capture even though their layout position is final).
+  **Per-slide gotcha:** `/allslides` stacks all 25 slides vertically, so the
+  screenshot tool (captures from top, ≤3000px) can't reach slides past ~#4. To
+  capture ONE deep slide in final state, temporarily extend
+  `src/lib/useReducedMotion.ts` to also return `true` when a `?static` query
+  param is present, screenshot `/slideN?static=1`, then REVERT the wrapper. Don't
+  ship the `?static` param — it's a throwaway verification aid.
 - **Slide 8 / WhiteSpace persona lineup = Athlete · CEO · DJ · Surgeon**, same
   desaturated cinematic portrait treatment. CEO (`08-ceo-woman.png`) is a Black
   businesswoman; Surgeon (`08-surgeon-woman.png`) is an Indian woman — keep the
