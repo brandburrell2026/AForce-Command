@@ -96,7 +96,7 @@ export default function RoadmapToValuation() {
         </div>
 
         {/* VALUE CREATION LADDER — ascending bars */}
-        <div className="flex-1 flex flex-col mt-[3vh] min-h-0">
+        <div className="mt-[3vh]">
           <div className="flex items-center justify-between">
             <span className="font-display uppercase tracking-[0.22em] text-[0.62vw] text-text/45 font-medium">
               Value creation ladder
@@ -105,43 +105,48 @@ export default function RoadmapToValuation() {
               Enterprise value →
             </span>
           </div>
-          <div className="flex-1 flex items-stretch gap-[1.1vw] mt-[1.8vh] min-h-0">
+          <div className="flex items-end gap-[1.1vw] mt-[1.8vh] h-[30vh]">
             {LADDER.map((s, i) => {
               const last = i === LADDER.length - 1;
               return (
                 <motion.div
                   key={s.label}
-                  className="flex-1 flex flex-col"
+                  className="flex-1 h-full flex items-end"
                   initial={reduce ? false : { opacity: 0, y: 16 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={reduce ? undefined : { duration: 0.5, ease: EASE, delay: 0.7 + i * 0.08 }}
+                  transition={reduce ? undefined : { duration: 0.45, ease: EASE, delay: 0.28 + i * 0.06 }}
                 >
-                  <div className="flex-1 flex items-end min-h-0">
-                    <div
-                      className="w-full rounded-t-[0.4vw] flex items-start justify-center pt-[1.1vh]"
-                      style={{
-                        height: `${s.h}%`,
-                        background: last ? "var(--color-red)" : "var(--color-black)",
-                      }}
-                    >
-                      <span className="font-display text-[0.92vw] font-light tabular-nums text-cream/90">
-                        {`0${i + 1}`}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="mt-[1.2vh] text-center">
-                    <span
-                      className={`block font-display uppercase tracking-[0.1em] text-[0.66vw] font-semibold leading-[1.15] ${
-                        last ? "text-red" : "text-text/80"
-                      }`}
-                    >
-                      {s.label}
-                    </span>
-                    <span className="block font-body text-[0.62vw] text-text/45 mt-[0.3vh]">
-                      {s.sub}
+                  <div
+                    className="w-full rounded-t-[0.4vw] flex items-start justify-center pt-[1.1vh]"
+                    style={{
+                      height: `${s.h}%`,
+                      background: last ? "var(--color-red)" : "var(--color-black)",
+                    }}
+                  >
+                    <span className="font-display text-[0.92vw] font-light tabular-nums text-cream/90">
+                      {`0${i + 1}`}
                     </span>
                   </div>
                 </motion.div>
+              );
+            })}
+          </div>
+          <div className="flex gap-[1.1vw] mt-[1.2vh]">
+            {LADDER.map((s, i) => {
+              const last = i === LADDER.length - 1;
+              return (
+                <div key={s.label} className="flex-1 text-center">
+                  <span
+                    className={`block font-display uppercase tracking-[0.1em] text-[0.66vw] font-semibold leading-[1.15] ${
+                      last ? "text-red" : "text-text/80"
+                    }`}
+                  >
+                    {s.label}
+                  </span>
+                  <span className="block font-body text-[0.62vw] text-text/45 mt-[0.3vh]">
+                    {s.sub}
+                  </span>
+                </div>
               );
             })}
           </div>
