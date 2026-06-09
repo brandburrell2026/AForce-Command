@@ -18,8 +18,8 @@ const USE = [
     label: "Marketing & Activation",
     sub: "Brickell + NYC density, event, paid acquisition",
     amount: "$1,000,000",
-    grad: "linear-gradient(90deg, #e41e2b 0%, #ff5246 100%)",
-    glow: "rgba(228,30,43,0.45)",
+    grad: "linear-gradient(90deg, #ff5a4f 0%, #ff8579 100%)",
+    glow: "rgba(255,90,79,0.42)",
   },
   {
     pct: 25,
@@ -67,7 +67,7 @@ export default function TheAsk() {
           className="absolute inset-0"
           style={{
             background:
-              "radial-gradient(130% 88% at 50% 46%, rgba(236,234,228,0.9) 0%, rgba(236,234,228,0.84) 48%, rgba(236,234,228,0.58) 78%, rgba(236,234,228,0.3) 100%)",
+              "radial-gradient(135% 96% at 50% 50%, rgba(236,234,228,0.96) 0%, rgba(236,234,228,0.93) 52%, rgba(236,234,228,0.82) 82%, rgba(236,234,228,0.55) 100%)",
           }}
         />
       </div>
@@ -96,21 +96,21 @@ export default function TheAsk() {
         }}
       />
 
-      <div className="absolute inset-0 flex flex-col items-center justify-center px-[5vw] pt-[9vh] pb-[9vh] text-center">
+      <div className="absolute inset-0 flex flex-col items-center justify-center px-[5vw] pt-[7vh] pb-[7vh] text-center">
         <motion.div
-          className="mb-[1.6vh]"
+          className="mb-[1.4vh]"
           initial={reduce ? false : { opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={reduce ? undefined : { duration: 0.5, ease: EASE }}
         >
-          <span className="font-display uppercase tracking-[0.32em] text-[0.78vw] text-red font-semibold">
+          <span className="font-display uppercase tracking-[0.34em] text-[0.82vw] text-red font-semibold">
             The Ask
           </span>
         </motion.div>
 
         {/* $4M — the single dominant element */}
         <motion.div
-          className="font-display font-normal tracking-[0.005em] text-[8vw] leading-[0.84] text-text"
+          className="font-display font-normal tracking-[0.005em] text-[8.6vw] leading-[0.82] text-text"
           initial={reduce ? false : { opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={reduce ? undefined : { duration: 0.7, ease: EASE, delay: 0.08 }}
@@ -118,61 +118,73 @@ export default function TheAsk() {
           $4<span className="text-red">M</span>
         </motion.div>
         <motion.p
-          className="mt-[1.6vh] max-w-[36vw] font-body text-[1.05vw] leading-[1.5] text-text/65"
+          className="mt-[1.6vh] max-w-[42vw] font-body text-[1.15vw] leading-[1.5] text-text/65"
           initial={reduce ? false : { opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
           transition={reduce ? undefined : { duration: 0.6, ease: EASE, delay: 0.28 }}
         >
-          A proof-of-concept raise. This capital funds proof of habit. The next
-          round funds scale.
+          A proof-of-concept raise — capital to fund proof of habit before we scale.
         </motion.p>
 
-        {/* use of funds — four full-width allocation bars */}
-        <div className="mt-[2.6vh] w-full max-w-[62vw] text-left">
-          <div className="inline-block font-display uppercase tracking-[0.22em] text-[0.68vw] text-text/45 font-semibold mb-[1.6vh] border-b-2 border-red pb-[0.7vh]">
-            Use of funds
+        {/* use of funds — ONE stacked allocation bar + breakdown grid */}
+        <div className="mt-[4.4vh] w-full max-w-[66vw]">
+          <div className="mb-[1.8vh] flex items-end justify-between">
+            <span className="font-display uppercase tracking-[0.24em] text-[0.74vw] text-text/55 font-semibold border-b-2 border-red pb-[0.6vh]">
+              Use of funds
+            </span>
+            <span className="font-display uppercase tracking-[0.2em] text-[0.74vw] text-text/40 font-semibold">
+              $4M total
+            </span>
           </div>
 
-          <div className="flex flex-col gap-[1.4vh]">
+          {/* single proportional stacked bar */}
+          <motion.div
+            className="flex w-full h-[3.8vh] gap-[3px] rounded-full overflow-hidden"
+            style={{ transformOrigin: "left" }}
+            initial={reduce ? false : { scaleX: 0, opacity: 0 }}
+            animate={{ scaleX: 1, opacity: 1 }}
+            transition={reduce ? undefined : { duration: 0.85, ease: EASE, delay: 0.34 }}
+          >
+            {USE.map((u) => (
+              <div
+                key={u.label}
+                className="h-full"
+                style={{
+                  flexBasis: `${u.pct}%`,
+                  background: u.grad,
+                  boxShadow: `0 0 18px -4px ${u.glow}`,
+                }}
+              />
+            ))}
+          </motion.div>
+
+          {/* breakdown grid — one column per allocation */}
+          <div className="mt-[3.4vh] grid grid-cols-4 gap-[1.8vw] text-left">
             {USE.map((u, i) => (
               <motion.div
                 key={u.label}
-                initial={reduce ? false : { opacity: 0, y: 12 }}
+                initial={reduce ? false : { opacity: 0, y: 14 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={
-                  reduce ? undefined : { duration: 0.5, ease: EASE, delay: 0.3 + i * 0.08 }
+                  reduce ? undefined : { duration: 0.5, ease: EASE, delay: 0.5 + i * 0.08 }
                 }
               >
-                <div className="flex items-baseline justify-between mb-[0.9vh]">
-                  <div className="flex items-baseline gap-[1vw]">
-                    <span className="font-display text-[1.95vw] font-normal text-text tabular-nums leading-none">
-                      {u.pct}%
-                    </span>
-                    <span className="font-display uppercase tracking-[0.18em] text-[0.82vw] text-text/75 font-semibold">
-                      {u.label}
-                    </span>
-                  </div>
-                  <span className="font-display text-[1.1vw] text-text/75 font-normal tabular-nums">
+                <span
+                  className="block h-[3px] w-full rounded-full mb-[1.4vh]"
+                  style={{ background: u.grad }}
+                />
+                <div className="flex items-baseline gap-[0.6vw]">
+                  <span className="font-display text-[2.9vw] font-normal text-text tabular-nums leading-none">
+                    {u.pct}%
+                  </span>
+                  <span className="font-display text-[1vw] text-text/55 font-normal tabular-nums">
                     {u.amount}
                   </span>
                 </div>
-                <div className="h-[1.9vh] w-full rounded-full bg-text/[0.07] overflow-hidden">
-                  <motion.div
-                    className="h-full rounded-full"
-                    style={{
-                      width: `${u.pct}%`,
-                      transformOrigin: "left",
-                      background: u.grad,
-                      boxShadow: `0 0 16px -2px ${u.glow}`,
-                    }}
-                    initial={reduce ? false : { scaleX: 0 }}
-                    animate={{ scaleX: 1 }}
-                    transition={
-                      reduce ? undefined : { duration: 0.7, ease: EASE, delay: 0.36 + i * 0.08 }
-                    }
-                  />
+                <div className="mt-[1.2vh] font-display uppercase tracking-[0.14em] text-[0.92vw] text-text font-semibold leading-[1.2]">
+                  {u.label}
                 </div>
-                <div className="mt-[0.8vh] font-body text-[0.78vw] leading-[1.4] text-text/45">
+                <div className="mt-[0.7vh] font-body text-[0.78vw] leading-[1.4] text-text/50">
                   {u.sub}
                 </div>
               </motion.div>
@@ -180,15 +192,16 @@ export default function TheAsk() {
           </div>
         </div>
 
+        {/* standout closing line */}
         <motion.div
-          className="mt-[2.4vh] text-center"
+          className="mt-[5vh]"
           initial={reduce ? false : { opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={reduce ? undefined : { duration: 0.6, ease: EASE, delay: 0.6 }}
+          transition={reduce ? undefined : { duration: 0.6, ease: EASE, delay: 0.85 }}
         >
-          <div className="font-display text-[2vw] font-bold tracking-[-0.02em] leading-[1.12] text-text">
-            <span className="text-red">This raise funds the proof.</span>{" "}
-            <span className="text-text/70 font-bold">The next round funds the scale.</span>
+          <div className="font-display text-[2.9vw] font-bold tracking-[-0.025em] leading-[1.05] text-text">
+            The final goal{" "}
+            <span className="text-red">before we scale.</span>
           </div>
         </motion.div>
       </div>
