@@ -6,8 +6,17 @@ const EASE = [0.16, 1, 0.3, 1] as const;
 
 type Tone = "ink" | "red" | "blue";
 
-type Step = { i: string; w: string; d: string };
-type Phase = { n: string; title: string; tone: Tone; steps: Step[] };
+type Step = { i: string; w: string; d: string; hero?: boolean };
+type Phase = {
+  n: string;
+  title: string;
+  tone: Tone;
+  steps: Step[];
+  note?: string;
+};
+
+// The ritual — the core behavior that drives the entire model.
+const RITUAL_WORDS = ["Pause.", "Hydrate.", "Lock In.", "Perform."];
 
 // Nine steps, grouped into the five-phase value funnel.
 // Color flows red (acquisition) → ink (the OS) → blue (retention · membership).
@@ -27,7 +36,7 @@ const PHASES: Phase[] = [
     tone: "ink",
     steps: [
       { i: "03", w: "Activate", d: "Scan QR → join AForce OS" },
-      { i: "04", w: "Ritual", d: "Pause · Hydrate · Lock In · Perform" },
+      { i: "04", w: "Ritual", d: "", hero: true },
     ],
   },
   {
@@ -43,8 +52,9 @@ const PHASES: Phase[] = [
     n: "04",
     title: "Convert",
     tone: "blue",
+    note: "Readiness creates commitment",
     steps: [
-      { i: "07", w: "Athlete Mode", d: "21-day milestone achieved" },
+      { i: "07", w: "Readiness Mode", d: "21-day readiness milestone · protocols · tracking · community" },
       { i: "08", w: "Membership", d: "Product + OS + community" },
     ],
   },
@@ -67,10 +77,19 @@ const LOOP = [
   { w: "Scale", tone: "red" as Tone },
 ];
 
+// Plain-language reading of the loop — how value compounds, stage by stage.
+const COMPOUNDS = [
+  { a: "Product", b: "entry" },
+  { a: "Ritual", b: "behavior" },
+  { a: "Behavior", b: "retention" },
+  { a: "Retention", b: "membership" },
+  { a: "Membership", b: "advocacy" },
+];
+
 const METRICS = [
-  { v: "NPS 60+", l: "Belief", tone: "red" as Tone },
+  { v: "NPS 60+", l: "People believe", tone: "red" as Tone },
   { v: "60-Day Retention 60%+", l: "People stay", tone: "ink" as Tone },
-  { v: "Membership Conversion 20%+", l: "Commitment", tone: "blue" as Tone },
+  { v: "Membership Conversion 20%+", l: "People commit", tone: "blue" as Tone },
 ];
 
 const toneText = (t: Tone) =>
@@ -138,9 +157,11 @@ export default function CustomerJourney() {
               One journey
             </span>
             <span className="mt-[0.8vh] font-display font-light tracking-[-0.01em] text-[1.15vw] leading-none">
-              <span className="text-red">9 steps</span>
+              <span className="text-text">9 steps</span>
               <span className="text-text/30"> · </span>
               <span className="text-text">5 phases</span>
+              <span className="text-text/30"> · </span>
+              <span className="text-red font-normal">1 ritual</span>
               <span className="text-text/30"> · </span>
               <span className="text-blue">1 loop</span>
             </span>
@@ -219,22 +240,56 @@ export default function CustomerJourney() {
 
                   {/* steps */}
                   <div className="relative z-10 mt-[3.2vh] flex flex-col gap-[3vh]">
-                    {phase.steps.map((s) => (
-                      <div key={s.w}>
-                        <div className="flex items-baseline gap-[0.7vw]">
-                          <span className="font-display tracking-[0.2em] text-[0.66vw] text-text/30 font-semibold">
-                            {s.i}
-                          </span>
-                          <span className="font-display font-normal tracking-[-0.01em] leading-none text-[1.74vw] text-text">
-                            {s.w}
+                    {phase.steps.map((s) =>
+                      s.hero ? (
+                        <div key={s.w}>
+                          <div className="flex items-baseline gap-[0.7vw]">
+                            <span className="font-display tracking-[0.2em] text-[0.66vw] text-red/50 font-semibold">
+                              {s.i}
+                            </span>
+                            <span className="font-display uppercase tracking-[0.2em] text-[0.82vw] text-red font-bold">
+                              The Ritual
+                            </span>
+                          </div>
+                          <div className="mt-[1.6vh] flex flex-col gap-[0.5vh]">
+                            {RITUAL_WORDS.map((rw) => (
+                              <span
+                                key={rw}
+                                className="font-display font-bold uppercase tracking-[0.01em] leading-[1.04] text-[1.55vw] text-red"
+                              >
+                                {rw}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      ) : (
+                        <div key={s.w}>
+                          <div className="flex items-baseline gap-[0.7vw]">
+                            <span className="font-display tracking-[0.2em] text-[0.66vw] text-text/30 font-semibold">
+                              {s.i}
+                            </span>
+                            <span className="font-display font-normal tracking-[-0.01em] leading-none text-[1.74vw] text-text">
+                              {s.w}
+                            </span>
+                          </div>
+                          <span className="mt-[1vh] block font-body leading-[1.45] text-[0.9vw] text-text/55 max-w-[13.5vw]">
+                            {s.d}
                           </span>
                         </div>
-                        <span className="mt-[1vh] block font-body leading-[1.45] text-[0.9vw] text-text/55 max-w-[13.5vw]">
-                          {s.d}
-                        </span>
-                      </div>
-                    ))}
+                      ),
+                    )}
                   </div>
+
+                  {/* phase connector note */}
+                  {phase.note && (
+                    <span
+                      className={`relative z-10 mt-[2.4vh] block font-display uppercase tracking-[0.22em] text-[0.62vw] font-semibold ${toneText(
+                        phase.tone,
+                      )}`}
+                    >
+                      {phase.note}
+                    </span>
+                  )}
                 </motion.div>
               );
             })}
@@ -250,11 +305,19 @@ export default function CustomerJourney() {
         >
           <div className="flex items-center justify-between gap-[3vw]">
             {/* loop chain */}
-            <div className="flex flex-col gap-[1.6vh]">
+            <div className="flex flex-col gap-[1.4vh]">
               <span className="font-display uppercase tracking-[0.3em] text-[0.78vw] text-red font-semibold">
-                The Compounding Loop
+                How Value Compounds
               </span>
-              <div className="flex flex-wrap items-baseline gap-x-[0.75vw] gap-y-[0.6vh] font-display text-[1.5vw] leading-none">
+              <div className="flex flex-wrap items-baseline gap-x-[1.4vw] gap-y-[0.5vh] font-display text-[0.92vw] leading-none">
+                {COMPOUNDS.map((c) => (
+                  <span key={c.a} className="text-text/45 font-light">
+                    {c.a} creates{" "}
+                    <span className="text-text/75 font-normal">{c.b}</span>.
+                  </span>
+                ))}
+              </div>
+              <div className="mt-[0.4vh] flex flex-wrap items-baseline gap-x-[0.75vw] gap-y-[0.6vh] font-display text-[1.5vw] leading-none">
                 {LOOP.map((n, i) => (
                   <span key={n.w} className="flex items-baseline gap-x-[0.75vw]">
                     <span className={`${toneText(n.tone)} ${n.tone === "ink" ? "text-text/75 font-light" : "font-normal"}`}>

@@ -1,0 +1,145 @@
+Copy and paste this into Replit:
+
+⸻
+
+Update the “Customer Journey” slide to improve clarity, reinforce the AForce ritual, and align with the “Performance is Universal” positioning. Keep the existing visual design language, typography, colors, and premium aesthetic.
+
+Changes Required
+
+1. Make the Ritual the Hero
+
+Currently:
+
+04 Ritual
+Pause • Hydrate • Lock In • Perform
+
+Replace with:
+
+THE RITUAL
+
+PAUSE.
+HYDRATE.
+LOCK IN.
+PERFORM.
+
+Make this section significantly more prominent:
+
+* Increase font size by 30–40%
+* Use bold weight
+* Use AForce red for emphasis
+* Make it the most visually important element in the Activate phase
+* This is the core behavior that drives the entire business model
+
+⸻
+
+2. Rename “Athlete Mode”
+
+Current:
+
+07 Athlete Mode
+21-day milestone achieved
+
+Replace with:
+
+07 READINESS MODE
+
+21-Day Readiness Milestone Achieved
+
+Supporting text:
+
+* Advanced Protocols
+* Accountability
+* Performance Tracking
+* Community Access
+
+Reason:
+AForce is for anyone who cannot afford an off day, not just athletes. “Readiness Mode” is more inclusive and aligns with the GTM strategy.
+
+⸻
+
+3. Strengthen the Convert Phase
+
+Current:
+
+Readiness Mode
+Membership
+
+Add a subtle connection between the two:
+
+Readiness Creates Commitment
+
+This reinforces why users convert into members.
+
+⸻
+
+4. Strengthen the Bottom Compounding Loop
+
+Current:
+
+Product → Ritual → Behavior → OS → Retention → Membership → Advocacy → Scale
+
+Keep the loop but add a small subheadline above it:
+
+HOW VALUE COMPOUNDS
+
+Product creates entry.
+Ritual creates behavior.
+Behavior creates retention.
+Retention creates membership.
+Membership creates advocacy.
+
+Keep this subtle and elegant.
+
+⸻
+
+5. Improve the Proof Metrics Section
+
+Keep:
+
+* NPS 60+
+* 60-Day Retention 60%+
+* Membership Conversion 20%+
+
+Add labels underneath:
+
+NPS 60+
+People Believe
+
+60-Day Retention 60%+
+People Stay
+
+Membership Conversion 20%+
+People Commit
+
+Use small caps typography consistent with the deck.
+
+⸻
+
+6. Update Top Right Corner
+
+Current:
+
+One Journey
+9 Steps • 5 Phases • 1 Loop
+
+Change to:
+
+ONE JOURNEY
+
+9 Steps • 5 Phases • 1 Ritual • 1 Loop
+
+This reinforces the central importance of the ritual.
+
+⸻
+
+Final Goal
+
+The slide should communicate one idea:
+
+AForce transforms a first purchase into a readiness ritual, a recurring membership, and ultimately an advocate.
+
+The viewer should immediately understand:
+
+Pause. Hydrate. Lock In. Perform.
+
+is the engine that drives the entire customer journey.
