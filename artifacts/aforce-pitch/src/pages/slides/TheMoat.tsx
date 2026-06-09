@@ -50,7 +50,7 @@ export default function TheMoat() {
   const reduce = useReducedMotion();
 
   return (
-    <SlideFrame slide={14}>
+    <SlideFrame slide={15}>
       {/* faint depth glow, lower-right — the moat */}
       <div
         aria-hidden

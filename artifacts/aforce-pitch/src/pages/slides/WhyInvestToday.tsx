@@ -45,7 +45,7 @@ export default function WhyInvestToday() {
   const reduce = useReducedMotion();
 
   return (
-    <SlideFrame slide={19}>
+    <SlideFrame slide={20}>
       {/* warm glow, lower-right */}
       <div
         aria-hidden
