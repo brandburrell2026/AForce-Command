@@ -7,7 +7,7 @@ const EASE = [0.16, 1, 0.3, 1] as const;
 type Tone = "ink" | "red" | "blue";
 
 const STEPS: Array<{ w: string; d: string; tone: Tone }> = [
-  { w: "Product", d: "Entry point", tone: "red" },
+  { w: "Identity", d: "Who you become", tone: "red" },
   { w: "Ritual", d: "Behavior formed", tone: "ink" },
   { w: "Behavior", d: "Habit locked", tone: "ink" },
   { w: "OS", d: "Data compounds", tone: "blue" },
@@ -38,7 +38,7 @@ export default function TheFramework() {
   const photo = `${base}images/bg/11-framework.png`;
 
   return (
-    <SlideFrame slide={12}>
+    <SlideFrame slide={11}>
       <div className="absolute inset-0">
         {/* cinematic ascent — a real staircase echoing the compounding chain,
             bleeding off the lower-right and melting into the paper */}
@@ -201,7 +201,7 @@ export default function TheFramework() {
           animate={{ opacity: 1, y: 0 }}
           transition={reduce ? undefined : { duration: 0.6, ease: EASE, delay: 2.6 }}
         >
-          Each step earns the next. None can be skipped.
+          Every stage is measurable. Every stage has a KPI. Every stage earns the next.
         </motion.div>
       </div>
     </SlideFrame>

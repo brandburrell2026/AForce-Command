@@ -7,15 +7,6 @@ const EASE = [0.16, 1, 0.3, 1] as const;
 
 type Tone = "ink" | "red" | "blue";
 
-// The five compounding forces — each layer monetizes the one before it.
-const FORCES: Array<{ subject: string; outcome: string; tone: Tone }> = [
-  { subject: "product", outcome: "entry", tone: "red" },
-  { subject: "ritual", outcome: "behavior", tone: "ink" },
-  { subject: "OS", outcome: "retention", tone: "blue" },
-  { subject: "membership", outcome: "recurring revenue", tone: "blue" },
-  { subject: "ecosystem", outcome: "scale", tone: "red" },
-];
-
 // The full arc — identity in, scale out.
 const ARC: Array<{ w: string; tone: Tone }> = [
   { w: "Identity", tone: "red" },
@@ -27,6 +18,13 @@ const ARC: Array<{ w: string; tone: Tone }> = [
   { w: "Scale", tone: "red" },
 ];
 
+// The three truths the laboratory proves.
+const PROOFS: Array<{ lead: string; key: string; tone: Tone }> = [
+  { lead: "Brickell is the", key: "laboratory", tone: "ink" },
+  { lead: "The GTM is the", key: "proof sequence", tone: "red" },
+  { lead: "The OS is the", key: "valuation multiplier", tone: "blue" },
+];
+
 const toneText = (t: Tone) =>
   t === "red" ? "text-red" : t === "blue" ? "text-blue" : "text-text";
 
@@ -34,7 +32,7 @@ export default function TheClose() {
   const reduce = useReducedMotion();
 
   return (
-    <SlideFrame slide={19} phaseLabel="The Thesis" hideTopWordmark>
+    <SlideFrame slide={21} phaseLabel="The Thesis" hideTopWordmark>
       {/* faint depth glow, lower-right — the system warming as it compounds */}
       <div
         aria-hidden
@@ -45,21 +43,21 @@ export default function TheClose() {
         }}
       />
 
-      {/* the brand, alone in the open right column — the last thing they see */}
-      <div className="absolute right-[6vw] top-1/2 -translate-y-1/2 z-[5]">
+      {/* brand mark, top-right */}
+      <div className="absolute right-[6vw] top-[12vh] z-[5]">
         <motion.div
           initial={reduce ? false : { opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={reduce ? undefined : { duration: 0.7, ease: EASE, delay: 1.1 }}
+          transition={reduce ? undefined : { duration: 0.7, ease: EASE, delay: 1.2 }}
         >
-          <Wordmark className="h-[6vw]" />
+          <Wordmark className="h-[3.2vw]" />
         </motion.div>
       </div>
 
       <div className="absolute inset-0 flex flex-col justify-center px-[5vw]">
         {/* eyebrow */}
         <motion.div
-          className="mb-[3vh]"
+          className="mb-[2.6vh]"
           initial={reduce ? false : { opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={reduce ? undefined : { duration: 0.5, ease: EASE }}
@@ -71,65 +69,74 @@ export default function TheClose() {
 
         {/* headline */}
         <motion.h1
-          className="font-display font-light tracking-[-0.025em] text-[3.2vw] leading-[1.04] text-text mb-[5vh]"
+          className="font-display font-light tracking-[-0.025em] text-[2.6vw] leading-[1.12] text-text max-w-[66vw]"
           initial={reduce ? false : { opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={reduce ? undefined : { duration: 0.6, ease: EASE, delay: 0.08 }}
         >
-          Every layer{" "}
-          <span className="text-red font-normal">compounds the last.</span>
+          We are not proving that people like a{" "}
+          <span className="text-text/40">hydration product.</span>
+          <br />
+          We are proving <span className="text-red font-normal">that:</span>
         </motion.h1>
-
-        {/* the five compounding forces — a ladder */}
-        <div className="flex flex-col gap-[2.4vh]">
-          {FORCES.map((f, i) => (
-            <motion.div
-              key={f.subject}
-              className="flex items-baseline gap-[1.6vw]"
-              initial={reduce ? false : { opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={
-                reduce ? undefined : { duration: 0.5, ease: EASE, delay: 0.3 + i * 0.1 }
-              }
-            >
-              <span className="font-display tabular-nums text-[0.72vw] tracking-[0.24em] text-red font-semibold w-[2vw] shrink-0">
-                {String(i + 1).padStart(2, "0")}
-              </span>
-              <p className="font-display tracking-[-0.02em] leading-[1.1] text-[2.4vw]">
-                <span className="text-text/40 font-light">The </span>
-                <span className="text-text font-normal">{f.subject} </span>
-                <span className="text-text/40 font-light italic">creates </span>
-                <span className={`${toneText(f.tone)} font-semibold`}>
-                  {f.outcome}
-                </span>
-                <span className="text-text/40 font-light">.</span>
-              </p>
-            </motion.div>
-          ))}
-        </div>
 
         {/* the full arc — identity in, scale out */}
         <motion.div
-          className="mt-[6vh] flex items-center flex-wrap gap-x-[1.2vw] gap-y-[1.2vh]"
+          className="mt-[3.6vh] flex items-center flex-wrap gap-x-[1.1vw] gap-y-[1.2vh]"
           initial={reduce ? false : { opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={reduce ? undefined : { duration: 0.6, ease: EASE, delay: 0.9 }}
+          transition={reduce ? undefined : { duration: 0.6, ease: EASE, delay: 0.4 }}
         >
-          <span className="block w-[3.2vw] h-[3px] bg-red mr-[0.6vw]" />
+          <span className="block w-[3vw] h-[3px] bg-red mr-[0.4vw]" />
           {ARC.map((node, i) => (
-            <span key={node.w} className="flex items-center gap-x-[1.2vw]">
+            <span key={node.w} className="flex items-center gap-x-[1.1vw]">
               <span
-                className={`font-display uppercase tracking-[0.16em] text-[1.4vw] font-bold ${toneText(
+                className={`font-display uppercase tracking-[0.14em] text-[1.3vw] font-bold ${toneText(
                   node.tone,
                 )}`}
               >
                 {node.w}
               </span>
               {i < ARC.length - 1 && (
-                <span className="font-display text-[1.4vw] text-text/30">→</span>
+                <span className="font-display text-[1.3vw] text-text/30">→</span>
               )}
             </span>
           ))}
+        </motion.div>
+
+        {/* three proof lines */}
+        <div className="mt-[4.5vh] flex flex-col gap-[1.6vh]">
+          {PROOFS.map((p, i) => (
+            <motion.p
+              key={p.key}
+              className="font-display tracking-[-0.015em] text-[1.85vw] leading-[1.1]"
+              initial={reduce ? false : { opacity: 0, x: 16 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={
+                reduce ? undefined : { duration: 0.5, ease: EASE, delay: 0.7 + i * 0.12 }
+              }
+            >
+              <span className="text-text/40 font-light">{p.lead} </span>
+              <span className={`${toneText(p.tone)} font-semibold`}>{p.key}</span>
+              <span className="text-text/40 font-light">.</span>
+            </motion.p>
+          ))}
+        </div>
+
+        {/* final line */}
+        <motion.div
+          className="mt-[4.5vh]"
+          initial={reduce ? false : { opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={reduce ? undefined : { duration: 0.6, ease: EASE, delay: 1.15 }}
+        >
+          <span className="block w-[2.4vw] h-[2px] bg-red mb-[1.6vh]" />
+          <p className="font-display font-medium tracking-[-0.02em] text-[2.1vw] leading-[1.08] text-text">
+            Do not skip the proof sequence.{" "}
+            <span className="block text-red font-semibold">
+              The proof sequence is the business.
+            </span>
+          </p>
         </motion.div>
       </div>
     </SlideFrame>

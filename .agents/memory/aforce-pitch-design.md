@@ -28,7 +28,7 @@ mockups) render brand black. The red
 `Patent-Protected` pill top-right, and a hairline bottom rule carrying the
 `CONFIDENTIAL …` note + section/page count. Hero slides may carry warm
 documentary photography or the AForce can hero. The deck no longer has a
-separate dark "Close" back-cover. **Slide 10 / The Proof Engine** is a
+separate dark "Close" back-cover. **The Proof Engine** slide is a
 data-forward cream slide (NOT dark cinematic — a full-bleed hooded-athlete
 `SlideFrame invert` version was tried and the user rejected it): left column =
 eyebrow/headline ("A concentrated / proving ground.") + support + **one
@@ -70,10 +70,13 @@ with massive whitespace. One emphasis word per H1 in red or blue.
 **How to apply:**
 - The deck ends on "The Close" — a LIGHT paper slide tagged phaseLabel
   "The Thesis" with `hideTopWordmark` (NOT a dark back-cover; the old dark Close
-  was retired). The Friends & Family block order is WhyAForceWins → WhyInvestToday
-  → TheTerms → UseOfFunds → RoadmapToValuation → TheComparable → TheExit → TheClose.
-  (WhatProofLooksLike, TheEconomics, and TheAsk were removed from the deck at the
-  user's request.) Sections live in
+  was retired). **Deck structure lives in the manifest — read
+  `slides-manifest.json` for the current order; do not trust a memorized slide
+  list.** A divergent "Friends & Family" expansion (WhyAForceWins, TheTerms,
+  UseOfFunds, RoadmapToValuation, TheComparable, TheExit) was tried then
+  **reverted — those files do not exist**; WhatProofLooksLike, TheEconomics, and
+  TheAsk ARE live. The GTM/KPI revision added ThreeSignals, SuccessByJan2027, and
+  WhyInvestToday (now 21 slides). Sections live in
   `SlideChrome.tsx` (Stakes / Opportunity / System / Team / Plan). Keep
   `SECTIONS` ranges contiguous (no gaps) so `sectionFor()` never returns
   undefined and keep `TOTAL_SLIDES === manifest length`.
@@ -103,7 +106,7 @@ with massive whitespace. One emphasis word per H1 in red or blue.
   entrance/transition animations stay removed — do not reintroduce a gate or
   blanket slide transitions without an explicit ask. **Per-slide** framer-motion
   is allowed when the user explicitly asks to make a slide "more dynamic" (e.g.
-  ThePrize / slide 4 has count-up + staggered bar-growth). Any such motion must
+  ThePrize has count-up + staggered bar-growth). Any such motion must
   gate every entrance/loop behind `useReducedMotion()` so reduced-motion users see
   the final resting state (count-up/glow/bars and all fade/slide reveals disabled).
 - **Export = static, live = animated.** Slides import `useReducedMotion` from the
@@ -131,11 +134,10 @@ with massive whitespace. One emphasis word per H1 in red or blue.
   right-side tagline.
 - **"Use of funds" = ONE stacked allocation bar + a per-allocation breakdown
   grid, never separate half-empty tracks** (rejected as repetitive/dead-space).
-  The standalone `UseOfFunds.tsx` slide is the live home for this (a 6-segment
-  proportional bar 40/20/15/10/10/5 + a 3×2 legend); it uses the real brand vars
-  `var(--color-red)`/`var(--color-blue)`/`#0b0d12` + rgba shades, NOT `--af-*`
-  (those don't exist). The earlier `TheAsk` slide that first carried a use-of-funds
-  bar has been deleted from the deck.
+  This lives on the **`TheAsk` slide** (the $4M raise + use-of-funds bars); it
+  uses the real brand vars `var(--color-red)`/`var(--color-blue)`/`#0b0d12` +
+  rgba shades, NOT `--af-*` (those don't exist). (There is no standalone
+  `UseOfFunds.tsx` slide — that was part of the reverted expansion.)
 - **Verify pitch slides via `/allslides`** (forces reduced motion → final state).
   `/slideN` screenshots land mid-animation because entrances fade in on a stagger
   (late-delayed elements — black hero panels/highlight bars, last legend cells —
