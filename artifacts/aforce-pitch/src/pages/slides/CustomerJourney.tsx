@@ -243,20 +243,20 @@ export default function CustomerJourney() {
 
         {/* BOTTOM BAND — compounding loop + proof metrics */}
         <motion.div
-          className="mt-[3vh] border-t border-text/15 pt-[2.4vh]"
+          className="mt-[2.6vh] border-t border-text/15 pt-[3vh]"
           initial={reduce ? false : { opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
           transition={reduce ? undefined : { duration: 0.6, ease: EASE, delay: 1.35 }}
         >
           <div className="flex items-center justify-between gap-[3vw]">
             {/* loop chain */}
-            <div className="flex flex-col gap-[1.1vh]">
-              <span className="font-display uppercase tracking-[0.3em] text-[0.6vw] text-red font-semibold">
+            <div className="flex flex-col gap-[1.6vh]">
+              <span className="font-display uppercase tracking-[0.3em] text-[0.78vw] text-red font-semibold">
                 The Compounding Loop
               </span>
-              <div className="flex flex-wrap items-baseline gap-x-[0.55vw] gap-y-[0.4vh] font-display text-[1.05vw] leading-none">
+              <div className="flex flex-wrap items-baseline gap-x-[0.75vw] gap-y-[0.6vh] font-display text-[1.5vw] leading-none">
                 {LOOP.map((n, i) => (
-                  <span key={n.w} className="flex items-baseline gap-x-[0.55vw]">
+                  <span key={n.w} className="flex items-baseline gap-x-[0.75vw]">
                     <span className={`${toneText(n.tone)} ${n.tone === "ink" ? "text-text/75 font-light" : "font-normal"}`}>
                       {n.w}
                     </span>
@@ -271,20 +271,20 @@ export default function CustomerJourney() {
             </div>
 
             {/* proof metrics */}
-            <div className="flex flex-col gap-[1.1vh] items-end">
-              <span className="font-display uppercase tracking-[0.3em] text-[0.6vw] text-blue font-semibold">
+            <div className="flex flex-col gap-[1.6vh] items-end">
+              <span className="font-display uppercase tracking-[0.3em] text-[0.78vw] text-blue font-semibold">
                 Proof Metrics
               </span>
-              <div className="flex items-stretch gap-[1.6vw]">
+              <div className="flex items-stretch gap-[2vw]">
                 {METRICS.map((m, i) => (
                   <div
                     key={m.v}
-                    className={`flex flex-col ${i > 0 ? "pl-[1.6vw] border-l border-text/15" : ""}`}
+                    className={`flex flex-col ${i > 0 ? "pl-[2vw] border-l border-text/15" : ""}`}
                   >
-                    <span className={`font-display font-normal tracking-[-0.01em] text-[0.98vw] leading-none ${toneText(m.tone)}`}>
+                    <span className={`font-display font-normal tracking-[-0.01em] text-[1.35vw] leading-none ${toneText(m.tone)}`}>
                       {m.v}
                     </span>
-                    <span className="mt-[0.7vh] font-display uppercase tracking-[0.24em] text-[0.54vw] text-text/40 font-semibold">
+                    <span className="mt-[0.9vh] font-display uppercase tracking-[0.24em] text-[0.64vw] text-text/40 font-semibold">
                       {m.l}
                     </span>
                   </div>
