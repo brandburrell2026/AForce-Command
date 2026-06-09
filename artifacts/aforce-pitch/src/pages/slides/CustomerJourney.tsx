@@ -210,7 +210,7 @@ export default function CustomerJourney() {
 
                   {/* phase label */}
                   <span
-                    className={`relative z-10 mt-[2.4vh] block font-display uppercase tracking-[0.26em] text-[0.88vw] font-bold ${toneText(
+                    className={`relative z-10 mt-[2.6vh] block font-display uppercase tracking-[0.26em] text-[1.04vw] font-bold ${toneText(
                       phase.tone,
                     )}`}
                   >
@@ -218,18 +218,18 @@ export default function CustomerJourney() {
                   </span>
 
                   {/* steps */}
-                  <div className="relative z-10 mt-[3vh] flex flex-col gap-[2.6vh]">
+                  <div className="relative z-10 mt-[3.2vh] flex flex-col gap-[3vh]">
                     {phase.steps.map((s) => (
                       <div key={s.w}>
-                        <div className="flex items-baseline gap-[0.6vw]">
-                          <span className="font-display tracking-[0.2em] text-[0.56vw] text-text/30 font-semibold">
+                        <div className="flex items-baseline gap-[0.7vw]">
+                          <span className="font-display tracking-[0.2em] text-[0.66vw] text-text/30 font-semibold">
                             {s.i}
                           </span>
-                          <span className="font-display font-normal tracking-[-0.01em] leading-none text-[1.36vw] text-text">
+                          <span className="font-display font-normal tracking-[-0.01em] leading-none text-[1.74vw] text-text">
                             {s.w}
                           </span>
                         </div>
-                        <span className="mt-[0.9vh] block font-body leading-[1.45] text-[0.72vw] text-text/55 max-w-[12vw]">
+                        <span className="mt-[1vh] block font-body leading-[1.45] text-[0.9vw] text-text/55 max-w-[13.5vw]">
                           {s.d}
                         </span>
                       </div>
