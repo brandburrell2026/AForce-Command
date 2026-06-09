@@ -17,7 +17,7 @@ const PHASES: Phase[] = [
     title: "Acquire",
     tone: "red",
     steps: [
-      { i: "01", w: "Discover", d: "Retail · Amazon · Social · Events" },
+      { i: "01", w: "Discover", d: "DTC · Amazon · Social · Events" },
       { i: "02", w: "Purchase", d: "First can or hydration stick" },
     ],
   },
