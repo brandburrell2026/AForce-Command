@@ -33,6 +33,7 @@ const FOUNDERS: Array<{
     name: "Julius Burrell",
     role: "Co-Founder",
     email: "jburrell@alkalineforce.com",
+    phone: "(205) 563-6818",
   },
 ];
 
