@@ -26,8 +26,8 @@ const RITUAL: Array<{ w: string; tone: Tone }> = [
 // The compounding payoff — ritual into membership.
 const BECOMES: Array<{ lead: string; key: string; tone: Tone }> = [
   { lead: "The ritual becomes", key: "behavior", tone: "ink" },
-  { lead: "The behavior becomes", key: "retention", tone: "blue" },
-  { lead: "The retention becomes", key: "membership", tone: "red" },
+  { lead: "The behavior becomes", key: "belief", tone: "blue" },
+  { lead: "The belief becomes", key: "membership", tone: "red" },
 ];
 
 const FOUNDERS: Array<{
