@@ -23,7 +23,7 @@ export default function SuccessByJan2027() {
   const reduce = useReducedMotion();
 
   return (
-    <SlideFrame slide={18}>
+    <SlideFrame slide={19}>
       {/* cool accent halo, upper-right */}
       <div
         aria-hidden
