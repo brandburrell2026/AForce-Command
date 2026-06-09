@@ -156,7 +156,7 @@ export default function CustomerJourney() {
         }}
       />
 
-      <div className="absolute inset-0 flex flex-col px-[4vw] pt-[7.5vh] pb-[7vh]">
+      <div className="absolute inset-0 flex flex-col px-[4vw] pt-[7.5vh] pb-[10vh]">
         {/* HEADER */}
         <div className="flex items-end justify-between gap-[4vw]">
           <div>
@@ -366,9 +366,9 @@ export default function CustomerJourney() {
                   </span>
                 ))}
               </div>
-              <div className="mt-[0.3vh] flex flex-wrap items-baseline gap-x-[0.7vw] gap-y-[0.5vh] font-display text-[1.35vw] leading-none">
+              <div className="mt-[0.3vh] flex items-baseline gap-x-[0.55vw] font-display text-[1.05vw] leading-none whitespace-nowrap">
                 {LOOP.map((n, i) => (
-                  <span key={n.w} className="flex items-baseline gap-x-[0.7vw]">
+                  <span key={n.w} className="flex items-baseline gap-x-[0.55vw]">
                     <span
                       className={`${toneText(n.tone)} ${n.tone === "ink" ? "text-text/75 font-light" : "font-normal"}`}
                     >
@@ -395,7 +395,7 @@ export default function CustomerJourney() {
                     className={`flex flex-col ${i > 0 ? "pl-[1.8vw] border-l border-text/15" : ""}`}
                   >
                     <span
-                      className={`font-display font-normal tracking-[-0.01em] text-[1.2vw] leading-none ${toneText(m.tone)}`}
+                      className={`font-display font-normal tracking-[-0.01em] text-[1vw] leading-none whitespace-nowrap ${toneText(m.tone)}`}
                     >
                       {m.v}
                     </span>
