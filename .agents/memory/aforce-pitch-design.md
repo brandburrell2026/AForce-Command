@@ -76,7 +76,8 @@ with massive whitespace. One emphasis word per H1 in red or blue.
   UseOfFunds, RoadmapToValuation, TheComparable, TheExit) was tried then
   **reverted — those files do not exist**; WhatProofLooksLike, TheEconomics, and
   TheAsk ARE live. The GTM/KPI revision added ThreeSignals, SuccessByJan2027, and
-  WhyInvestToday (now 21 slides). Sections live in
+  WhyInvestToday; the deck closes with TheCompounding ("Every layer compounds the
+  last" creates-ladder + ARC + big AFORCE wordmark) → TheClose (thesis). Sections live in
   `SlideChrome.tsx` (Stakes / Opportunity / System / Team / Plan). Keep
   `SECTIONS` ranges contiguous (no gaps) so `sectionFor()` never returns
   undefined and keep `TOTAL_SLIDES === manifest length`.
