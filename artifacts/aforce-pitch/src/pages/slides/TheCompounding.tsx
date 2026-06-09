@@ -34,7 +34,7 @@ export default function TheCompounding() {
   const reduce = useReducedMotion();
 
   return (
-    <SlideFrame slide={14} phaseLabel="The Compounding" hideTopWordmark>
+    <SlideFrame slide={15} phaseLabel="The Compounding" hideTopWordmark>
       {/* faint depth glow, lower-right — the system warming as it compounds */}
       <div
         aria-hidden

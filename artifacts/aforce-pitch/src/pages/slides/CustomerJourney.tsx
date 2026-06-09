@@ -82,7 +82,7 @@ export default function CustomerJourney() {
   const reduce = useReducedMotion();
 
   return (
-    <SlideFrame slide={17} phaseLabel="The Journey">
+    <SlideFrame slide={12} phaseLabel="The Journey">
       {/* flow glows — warm acquisition (left) cooling into retention (right) */}
       <div
         aria-hidden

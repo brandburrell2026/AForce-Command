@@ -45,7 +45,7 @@ export default function ThreeSignals() {
   const reduce = useReducedMotion();
 
   return (
-    <SlideFrame slide={12}>
+    <SlideFrame slide={13}>
       {/* cool accent halo, upper-right — ties to the OS blue */}
       <div
         aria-hidden
