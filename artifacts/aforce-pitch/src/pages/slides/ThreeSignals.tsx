@@ -84,8 +84,8 @@ export default function ThreeSignals() {
           animate={{ opacity: 1, y: 0 }}
           transition={reduce ? undefined : { duration: 0.6, ease: EASE, delay: 0.08 }}
         >
-          The three signals{" "}
-          <span className="text-red font-normal">that matter.</span>
+          Proof of{" "}
+          <span className="text-red font-normal">Belief.</span>
         </motion.h1>
       </div>
 
