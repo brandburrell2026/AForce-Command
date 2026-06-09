@@ -136,8 +136,8 @@ export default function ThreeSignals() {
         animate={{ opacity: 1, y: 0 }}
         transition={reduce ? undefined : { duration: 0.6, ease: EASE, delay: 0.8 }}
       >
-        <span className="block w-[3vw] h-[2px] bg-red shrink-0" />
-        <p className="font-display font-light tracking-[-0.01em] text-[1.55vw] leading-[1.25] text-text/85">
+        <span className="block w-[3.6vw] h-[3px] bg-red shrink-0" />
+        <p className="font-display font-light tracking-[-0.015em] text-[2.5vw] leading-[1.2] text-text/85">
           Together, these validate that AForce is becoming{" "}
           <span className="text-text font-normal">a system</span>
           <span className="text-text/45">, not just a beverage.</span>
