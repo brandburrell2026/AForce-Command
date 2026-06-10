@@ -17,6 +17,7 @@
     "now": "jetzt"
   },
   "tabs": {
+    "hydration": "Hydration",
     "home": "Start",
     "protocol": "Protokoll",
     "store": "Shop",

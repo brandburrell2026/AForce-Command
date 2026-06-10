@@ -24,6 +24,15 @@ export const Colors = {
     dim: 'rgba(182,255,0,0.12)',
     subtle: 'rgba(182,255,0,0.06)',
     secondary: '#0093E7',
+    // AForce brand red — hero accent for the redesigned Home dashboard
+    // (readiness eyebrow, ritual rail, streak, athlete + membership cards
+    // and the active tab tint). Deliberately distinct from the DEPLETED
+    // state red (#FF2800); use sparingly as thin lines / labels so the
+    // hydration state-color engine still reads clearly.
+    brand: '#FF3B30',
+    brandGlow: 'rgba(255,59,48,0.45)',
+    brandDim: 'rgba(255,59,48,0.12)',
+    brandSubtle: 'rgba(255,59,48,0.06)',
   },
 
   states: {
@@ -92,7 +101,7 @@ export const Colors = {
 
   tabBar: {
     background: 'rgba(0,0,0,0.95)',
-    active: '#B6FF00',
+    active: '#FF3B30',
     inactive: 'rgba(255,255,255,0.30)',
   },
 } as const;

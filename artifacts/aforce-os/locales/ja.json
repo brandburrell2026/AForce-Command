@@ -17,6 +17,7 @@
     "now": "now"
   },
   "tabs": {
+    "hydration": "水分補給",
     "home": "Home",
     "protocol": "Protocol",
     "journal": "Timeline",

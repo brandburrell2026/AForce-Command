@@ -17,6 +17,7 @@
     "now": "ora"
   },
   "tabs": {
+    "hydration": "Idratazione",
     "home": "Home",
     "protocol": "Protocollo",
     "store": "Negozio",

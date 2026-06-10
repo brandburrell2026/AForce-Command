@@ -1,5 +1,6 @@
 - [AForce build-lock reversal](aforce-build-lock.md) — "Build once, Evaluate everything, Release later — no hiding"; gating decisions must surface gates to evaluators, never hide modules.
 - [AForce Water-First wording lock](aforce-water-first.md) — coach copy must start with `HYDRATE NOW` / `Start with water`; products never lead, scans/recommendations never change score; launch i18n = en/es/fr/de/pt/it only.
+- [AForce Score-Protection illumination](aforce-score-protection-illumination.md) — today-scoped "lights up" UI must derive from today's behavior, never a persistent last-known field with a non-zero server default (e.g. urineSignal default 2 → step permanently lit).
 - [aforce-os icon map discipline](aforce-icons.md) — Icon name strings must exist in `theme/icons.ts` ICON_MAP; lucide name ≠ map key (e.g. `refresh-cw` not `refresh-ccw`, no `link`).
 - [AForce wordmark](aforce-wordmark.md) — pitch deck brand mark is the official AFORCE logo *artwork* via the shared `Wordmark` image component; never typeset the logo as text.
 - [Expo Router app/ routing + false crash reports](aforce-expo-router-routes.md) — every app/ file (except _layout/+files) is a route; underscore doesn't exclude → "missing default export"; keep helpers in components/; white web screenshots are capture artifacts.

@@ -1,26 +1,22 @@
 /**
- * AForce OS Tab Layout — 7 tabs:
- *   Home        = Hydration Control Center
- *   Scan        = Performance Signals
- *   Protocol    = AForce Protocol
- *   Timeline    = Chronological hydration/recovery feed (route file: journal.tsx)
+ * AForce OS Tab Layout — 5 tabs (redesign):
+ *   Home        = Readiness + hydration command dashboard (index.tsx)
+ *   Hydration   = Chronological hydration / recovery feed
+ *                 (route file stays `journal.tsx` so deep links + the
+ *                 protected Timeline contract are untouched; only the
+ *                 user-facing label + icon changed to "Hydration").
+ *   Protocols   = AForce Protocol
  *   Community   = Rankings + Challenges + Battles + Teams + Map hub
- *                 (route file stays `competition.tsx` to keep deep
- *                 links stable; only the user-facing label changed)
- *   Social      = Social drinking mode
+ *                 (route file stays `competition.tsx`)
  *   Profile     = Profile & Settings
  *
- * Compete / Circles / Territory were lifted off the Home screen and
- * promoted to a dedicated Competition tab so Home can stay focused on
- * recovery / biometrics / guidance. Circles and Territory live as root
- * Stack routes (`app/circles.tsx`, `app/territory.tsx`) navigated into
- * from the Competition hub.
+ * Hidden-but-routable surfaces (kept for deep links + contextual entry,
+ * removed from the bottom bar via `href: null` / omitted Triggers):
+ *   scan (Performance Signals — opened from Home EntryActions),
+ *   social (Social drinking mode), sleep, social-legacy (dev only).
  *
  * Store is NOT a bottom-tab destination. It lives at `/store` (root
- * Stack route) and is reached only from contextual surfaces:
- * HydroScan results, Recovery recommendations, product prompts, Home
- * recommendations, and Protocol suggestions. The app is a performance
- * OS, not an e-commerce shell.
+ * Stack route) reached only from contextual surfaces.
  */
 
 import React from 'react';
@@ -48,25 +44,17 @@ function NativeTabLayout() {
         <NativeTabIcon sf={{ default: 'bolt.circle', selected: 'bolt.circle.fill' }} />
         <Label>{t('tabs.home')}</Label>
       </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="scan">
-        <NativeTabIcon sf={{ default: 'viewfinder.circle', selected: 'viewfinder.circle.fill' }} />
-        <Label>{t('tabs.scan')}</Label>
+      <NativeTabs.Trigger name="journal">
+        <NativeTabIcon sf={{ default: 'drop.circle', selected: 'drop.circle.fill' }} />
+        <Label>{t('tabs.hydration')}</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="protocol">
         <NativeTabIcon sf={{ default: 'list.bullet.circle', selected: 'list.bullet.circle.fill' }} />
         <Label>{t('tabs.protocol')}</Label>
       </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="journal">
-        <NativeTabIcon sf={{ default: 'clock.arrow.circlepath', selected: 'clock.arrow.circlepath' }} />
-        <Label>{t('tabs.journal')}</Label>
-      </NativeTabs.Trigger>
       <NativeTabs.Trigger name="competition">
         <NativeTabIcon sf={{ default: 'trophy', selected: 'trophy.fill' }} />
         <Label>{t('tabs.competition')}</Label>
-      </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="social">
-        <NativeTabIcon sf={{ default: 'wineglass', selected: 'wineglass.fill' }} />
-        <Label>{t('tabs.social')}</Label>
       </NativeTabs.Trigger>
       {devMode ? (
         <NativeTabs.Trigger name="social-legacy">
@@ -74,10 +62,6 @@ function NativeTabLayout() {
           <Label>Legacy</Label>
         </NativeTabs.Trigger>
       ) : null}
-      <NativeTabs.Trigger name="sleep">
-        <NativeTabIcon sf={{ default: 'moon.circle', selected: 'moon.circle.fill' }} />
-        <Label>{t('tabs.sleep')}</Label>
-      </NativeTabs.Trigger>
       <NativeTabs.Trigger name="profile">
         <NativeTabIcon sf={{ default: 'person.circle', selected: 'person.circle.fill' }} />
         <Label>{t('tabs.profile')}</Label>
@@ -88,10 +72,10 @@ function NativeTabLayout() {
 
 /**
  * Custom tab button — a Pressable with all selection / focus / hover
- * chrome stripped. Renders identically across all 6 tabs in every
- * state (active / inactive / pressed / focused). The only visual
- * change between active and inactive is the icon + label tint, which
- * is handled by `tabBarActiveTintColor`.
+ * chrome stripped. Renders identically across all tabs in every state
+ * (active / inactive / pressed / focused). The only visual change
+ * between active and inactive is the icon + label tint, handled by
+ * `tabBarActiveTintColor` (AForce brand red).
  *
  * We bypass the default tab button entirely because navigation-internal
  * defaults sometimes render a focus background (e.g. iOS systemBlue,
@@ -107,8 +91,7 @@ function PlainTabButton(props: Record<string, unknown>) {
       accessibilityLabel?: string;
       testID?: string;
     };
-  // Chunk #7c: light haptic tick on tab switch (native only; no-op on
-  // web). Mirrors WHOOP's tactile feedback on bottom-bar selection.
+  // Light haptic tick on tab switch (native only; no-op on web).
   const handlePress = React.useCallback(() => {
     if (Platform.OS !== 'web') {
       Haptics.selectionAsync().catch(() => {});
@@ -179,9 +162,8 @@ function ClassicTabLayout() {
         // default (e.g. iOS systemBlue selection, RN-Web :focus-visible
         // outline) shows through, and make every tab item transparent /
         // borderless. Combined with the custom `tabBarButton` below,
-        // this guarantees every tab — Home, Check, Protocol, Journal,
-        // Store, Profile — looks identical in every state. The only
-        // active-state cue is the lime tint on the icon and label.
+        // this guarantees every tab looks identical in every state. The
+        // only active-state cue is the brand-red tint on icon + label.
         tabBarActiveBackgroundColor: 'transparent',
         tabBarButton: (btnProps) =>
           <PlainTabButton {...(btnProps as unknown as Record<string, unknown>)} />,
@@ -236,6 +218,7 @@ function ClassicTabLayout() {
         },
       }}
     >
+      {/* ── Visible tabs (5) ───────────────────────────────────────── */}
       <Tabs.Screen
         name="index"
         options={{
@@ -246,12 +229,12 @@ function ClassicTabLayout() {
         }}
       />
       <Tabs.Screen
-        name="scan"
+        name="journal"
         options={{
-          title: t('tabs.scan'),
+          title: t('tabs.hydration'),
           tabBarIcon: ({ color, size }) =>
-            isIOS ? <SymbolView name="viewfinder.circle" tintColor={color} size={size} />
-                  : <Icon name="maximize" size={22} color={color} />,
+            isIOS ? <SymbolView name="drop.circle" tintColor={color} size={size} />
+                  : <Icon name="droplet" size={22} color={color} />,
         }}
       />
       <Tabs.Screen
@@ -264,15 +247,6 @@ function ClassicTabLayout() {
         }}
       />
       <Tabs.Screen
-        name="journal"
-        options={{
-          title: t('tabs.journal'),
-          tabBarIcon: ({ color, size }) =>
-            isIOS ? <SymbolView name="clock.arrow.circlepath" tintColor={color} size={size} />
-                  : <Icon name="clock" size={22} color={color} />,
-        }}
-      />
-      <Tabs.Screen
         name="competition"
         options={{
           title: t('tabs.competition'),
@@ -282,8 +256,30 @@ function ClassicTabLayout() {
         }}
       />
       <Tabs.Screen
+        name="profile"
+        options={{
+          title: t('tabs.profile'),
+          tabBarIcon: ({ color, size }) =>
+            isIOS ? <SymbolView name="person.circle" tintColor={color} size={size} />
+                  : <Icon name="user" size={22} color={color} />,
+        }}
+      />
+
+      {/* ── Hidden-but-routable surfaces (off the bar via href:null) ── */}
+      <Tabs.Screen
+        name="scan"
+        options={{
+          href: null,
+          title: t('tabs.scan'),
+          tabBarIcon: ({ color, size }) =>
+            isIOS ? <SymbolView name="viewfinder.circle" tintColor={color} size={size} />
+                  : <Icon name="maximize" size={22} color={color} />,
+        }}
+      />
+      <Tabs.Screen
         name="social"
         options={{
+          href: null,
           title: t('tabs.social'),
           tabBarIcon: ({ color, size }) =>
             isIOS ? <SymbolView name="wineglass" tintColor={color} size={size} />
@@ -306,19 +302,11 @@ function ClassicTabLayout() {
       <Tabs.Screen
         name="sleep"
         options={{
+          href: null,
           title: t('tabs.sleep'),
           tabBarIcon: ({ color, size }) =>
             isIOS ? <SymbolView name="moon.circle" tintColor={color} size={size} />
                   : <Icon name="moon" size={22} color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          title: t('tabs.profile'),
-          tabBarIcon: ({ color, size }) =>
-            isIOS ? <SymbolView name="person.circle" tintColor={color} size={size} />
-                  : <Icon name="user" size={22} color={color} />,
         }}
       />
     </Tabs>

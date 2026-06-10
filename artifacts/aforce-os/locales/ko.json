@@ -17,6 +17,7 @@
     "now": "now"
   },
   "tabs": {
+    "hydration": "수분",
     "home": "Home",
     "protocol": "Protocol",
     "journal": "Timeline",

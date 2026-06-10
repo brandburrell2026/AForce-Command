@@ -6,6 +6,15 @@ AForce OS is a real-time human performance operating system, delivered as a Reac
 
 Approved for implementation. No redesign, no rebuilding, no moving navigation, no adding tabs, no dashboard expansion. Build once. Expose over time.
 
+## AUTHORIZED OVERRIDE — Home + Navigation redesign (owner-approved)
+
+The owner explicitly authorized a full redesign of the **Home screen and tab navigation**, overriding the "do not redesign / do not move navigation / no dashboard expansion" clauses above *for these two surfaces only*. The rest of the lock (Water-First, Score Protection, Language lock, Product Positioning) remains in force and the redesign was built to comply with it.
+
+- **Accent:** added `accent.brand` `#FF3B30` (+ `brandGlow` / `brandDim` / `brandSubtle`) used sparsely (thin lines, eyebrows, progress fills). `tabBar.active` flipped to brand red. `accent.primary` and all WHOOP recovery/state colors are untouched, so DEPLETED red still reads.
+- **Navigation 7 → 5 visible tabs:** Home · Hydration (was Journal, relabeled + droplet icon) · Protocols · Community · Profile. `scan` / `social` / `social-legacy` / `sleep` are hidden (`href:null` in ClassicTabLayout, omitted from NativeTabLayout triggers) — engines stay, surfaces hidden, consistent with "Build 100% · Show 10%".
+- **Home expansion:** the score orb is retained as the **Readiness Score** hero (thin `READINESS SCORE` eyebrow; engine machinery unchanged). Appended below: Daily Ritual rail (PAUSE → HYDRATE → LOCK IN → PERFORM), Hydration Status ring, Today's Protocol (Morning/Midday/Evening), Streak, Athlete Mode progress, Membership.
+- **Score-Protection preserved:** every new surface is a read-only projection of already-completed behaviour via the pure `utils/homeDashboard.ts` helpers (unit-tested). Ritual/protocol steps illuminate only from logged intake; nothing awards or inflates score. Points / Challenges / Referrals render as labelled "SOON" previews (no real data source) rather than fabricated numbers.
+
 ## Water-First Command System
 Recommendation order is **Water → Command → Optional support → Score Update**. Products never come before water. Default recommendation copy must begin with `HYDRATE NOW` / `Start with water`; optional hydration support may be suggested only after hydration needs are evaluated. Behavior first, product second.
 

@@ -17,6 +17,7 @@
     "now": "agora"
   },
   "tabs": {
+    "hydration": "Hidratação",
     "home": "Início",
     "protocol": "Protocolo",
     "store": "Loja",

@@ -36,6 +36,7 @@ import { EntryActions } from '@/components/home/EntryActions';
 import { LiveStatusLine } from '@/components/home/LiveStatusLine';
 import { NotificationBanner } from '@/components/home/NotificationBanner';
 import { SmartModesBanner } from '@/components/home/SmartModesBanner';
+import { HomeDashboard } from '@/components/home/HomeDashboard';
 import { useAnalyticsRecorder } from '@/hooks/useAnalyticsRecorder';
 import { useScoreTrend } from '@/hooks/useScoreTrend';
 import { getStatusVerb } from '@/services/statusVerb';
@@ -238,6 +239,12 @@ function ScoreDrivenBody({
 
   return (
     <>
+      {/* 0 — Readiness eyebrow — reframes the orb as the readiness
+          score without touching the score engine or its copy. */}
+      <Text style={styles.readinessEyebrow} testID="home-readiness-eyebrow">
+        READINESS SCORE
+      </Text>
+
       {/* 1 — Status headline above the orb */}
       <Text
         style={[styles.statusHeadline, { color: orbColor }]}
@@ -374,6 +381,12 @@ function ScoreDrivenBody({
           />
         </View>
       )}
+
+      {/* ── Redesigned Home dashboard ───────────────────────────────
+          Daily Ritual · Hydration Status · Today's Protocol · Streak ·
+          Athlete Mode · Membership. Every value is a projection of real
+          logged behaviour (utils/homeDashboard) — Score-Protection safe. */}
+      <HomeDashboard />
     </>
   );
 }
@@ -692,6 +705,15 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: Colors.text.primary,
     letterSpacing: 0.2,
+  },
+
+  readinessEyebrow: {
+    fontFamily: 'Inter_700Bold',
+    fontSize: 11,
+    letterSpacing: 3,
+    color: Colors.accent.brand,
+    textAlign: 'center',
+    marginBottom: 8,
   },
 
   statusHeadline: {
