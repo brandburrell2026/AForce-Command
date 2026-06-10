@@ -15,6 +15,16 @@ The owner explicitly authorized a full redesign of the **Home screen and tab nav
 - **Home expansion:** the score orb is retained as the **Readiness Score** hero (thin `READINESS SCORE` eyebrow; engine machinery unchanged). Appended below: Daily Ritual rail (PAUSE → HYDRATE → LOCK IN → PERFORM), Hydration Status ring, Today's Protocol (Morning/Midday/Evening), Streak, Athlete Mode progress, Membership.
 - **Score-Protection preserved:** every new surface is a read-only projection of already-completed behaviour via the pure `utils/homeDashboard.ts` helpers (unit-tested). Ritual/protocol steps illuminate only from logged intake; nothing awards or inflates score. Points / Challenges / Referrals render as labelled "SOON" previews (no real data source) rather than fabricated numbers.
 
+## Cold-Launch Opening Sequence (owner-approved)
+
+A full-screen 4-stage cinematic (`components/opening/OpeningSequence.tsx`) plays once **per cold launch** as an overlay — mounted in `app/_layout.tsx` (AppShell), mirroring the InvestorDemo overlay pattern, so it touches **no routing** (no redirect-loop risk) and then fades out to reveal whatever the app routed to underneath.
+
+- **Stages:** (1) white water-drop symbol w/ breathing fade → (2) AFORCE wordmark + brand-red hairline + "Performance Is Non-Negotiable" → (3) PAUSE/HYDRATE/LOCK IN/PERFORM ritual stagger → (4) "TODAY'S READINESS" + count-up to the live score + a **band-aware** caption via `readinessLabel(performanceState.level)` (a DEPLETED user reads "REHYDRATE NOW", never "READY TO PERFORM").
+- **Motion:** slow Apple-Vision-Pro pacing, crossfading absolute-fill layers, no bounce. Tap-anywhere-to-skip; fully reduced-motion aware (`AccessibilityInfo`).
+- **Score-Protection:** display-only projection of `engine.score` (DEFAULT_SCORE=92 fallback before state loads); never awards, mutates, or fabricates score.
+- **First-run untouched:** the existing welcome lobby + onboarding stay intact — new users get opening → welcome → onboarding.
+- **Plays per JS launch:** `OpeningMount` holds `useState(true)` initialised once when AppShell mounts; `onFinish` is a stable `useCallback` and `OpeningSequence` keeps it in a ref so the engine-score refresh (on mount + ~30s) never tears down the timeline mid-play.
+
 ## Water-First Command System
 Recommendation order is **Water → Command → Optional support → Score Update**. Products never come before water. Default recommendation copy must begin with `HYDRATE NOW` / `Start with water`; optional hydration support may be suggested only after hydration needs are evaluated. Behavior first, product second.
 

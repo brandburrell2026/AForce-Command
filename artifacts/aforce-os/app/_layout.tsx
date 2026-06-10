@@ -26,7 +26,10 @@ import { router, usePathname } from 'expo-router';
 import { ClerkAuthBridge } from '@/components/ClerkAuthBridge';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { InvestorDemoOverlay } from '@/components/investorDemo/InvestorDemoOverlay';
+import { OpeningSequence } from '@/components/opening/OpeningSequence';
+import { readinessLabel, type PerformanceLevel } from '@/utils/homeDashboard';
 import { AppProvider, useAppStore } from '@/store/useAppStore';
+import { useEngineSlice } from '@/store/slices';
 import { CartProvider } from '@/store/useCartStore';
 import { initI18n } from '@/services/i18nService';
 import { firstRunRoute } from '@/utils/firstRunRoute';
@@ -140,6 +143,33 @@ function InvestorDemoMount() {
   );
 }
 
+/**
+ * OpeningMount — plays the cinematic opening sequence once per cold
+ * launch on top of every screen, then unmounts to reveal whatever the
+ * app routed to underneath. `useState(true)` is initialised once when
+ * AppShell first mounts (a single time per JS launch), so the sequence
+ * naturally replays on every cold start but never on in-app navigation.
+ * The readiness number is a read-only projection of the live engine
+ * score (Score-Protection): the opening never awards or mutates score.
+ */
+function OpeningMount() {
+  const engine = useEngineSlice();
+  const [visible, setVisible] = React.useState(true);
+  // Stable identity: the engine score refreshes under this overlay, and
+  // an inline callback would rebuild OpeningSequence's timeline mid-play.
+  const handleFinish = React.useCallback(() => setVisible(false), []);
+  if (!visible) return null;
+  return (
+    <OpeningSequence
+      readinessScore={engine.score}
+      statusLabel={readinessLabel(
+        engine.performanceState.level as PerformanceLevel,
+      )}
+      onFinish={handleFinish}
+    />
+  );
+}
+
 function AppShell() {
   return (
     <SafeAreaProvider>
@@ -162,6 +192,8 @@ function AppShell() {
                   <RootLayoutNav />
                   <SplashGate />
                   <InvestorDemoMount />
+                  {/* Top-most overlay: cinematic cold-launch opening. */}
+                  <OpeningMount />
                 </CartProvider>
               </AppProvider>
             </KeyboardProvider>
