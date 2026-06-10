@@ -1,0 +1,252 @@
+Use this prompt in Replit. It will give your developers very specific direction while avoiding copying WHOOP exactly.
+
+⸻
+
+AForce OS Home Screen Prompt
+
+Build the AForce OS mobile app home screen inspired by the simplicity, premium feel, and focus of elite performance platforms like WHOOP, while creating a unique AForce identity.
+
+Design Principles
+
+* Minimalist luxury aesthetic
+* Matte black background (#000000)
+* White typography (#FFFFFF)
+* AForce Red accent (#FF3B30)
+* No clutter
+* Large negative space
+* Focus on performance, readiness, hydration, and behavior
+* Premium athlete-grade experience
+* Feels like Apple + WHOOP + On Running combined
+
+Opening Experience
+
+When the user opens the app:
+
+Splash Screen
+
+Display centered AForce symbol/logo.
+
+Animation:
+
+* Fade in logo
+* Subtle pulse effect
+* Transition to home screen
+
+Background:
+
+* Pure black
+
+No buttons.
+
+Duration:
+
+* 1.5–2 seconds
+
+⸻
+
+Home Screen
+
+The home screen should immediately answer:
+
+“Am I ready to perform today?”
+
+Top Section
+
+Display:
+
+Good Morning, Brandon
+
+Below:
+
+READINESS SCORE
+
+Large number:
+
+92
+
+Color:
+
+* White
+* Very large typography
+
+Supporting text:
+
+READY TO PERFORM
+
+⸻
+
+Daily Ritual Section
+
+Show the AForce ritual prominently.
+
+PAUSE
+↓
+HYDRATE
+↓
+LOCK IN
+↓
+PERFORM
+
+Each step should illuminate as completed.
+
+Use subtle animations.
+
+This is the core behavior loop of AForce.
+
+⸻
+
+Hydration Status Card
+
+Large premium card showing:
+
+Hydration
+87%
+
+Progress ring around number
+
+Below:
+
+Optimal Performance Range
+
+Additional metrics:
+
+Water Intake
+Electrolytes
+Recovery Hydration
+
+⸻
+
+Today’s Protocol
+
+Card showing:
+
+TODAY’S PROTOCOL
+
+Morning
+✓ Hydration Stick
+
+Midday
+✓ AForce Can
+
+Evening
+○ Recovery Protocol
+
+Tap card to see full protocol.
+
+⸻
+
+Streak Section
+
+Current Streak
+
+21 Days
+
+Subtext:
+
+Consistency Creates Performance
+
+⸻
+
+Athlete Mode Progress
+
+Progress bar toward Athlete Mode.
+
+Example:
+
+Athlete Mode Progress
+78%
+
+Next milestone:
+3 Days Remaining
+
+⸻
+
+Membership Progress
+
+Display:
+
+Founder Member Status
+
+Points Earned
+Challenges Completed
+Referrals
+Community Rank
+
+⸻
+
+Bottom Navigation
+
+5 Icons
+
+Home
+Hydration
+Protocols
+Community
+Profile
+
+No labels unless selected.
+
+⸻
+
+User Experience
+
+The app should feel:
+
+* Calm
+* Elite
+* Intentional
+* Scientific
+* Habit-forming
+
+Never feel:
+
+* Gamified
+* Juvenile
+* Social-media-like
+* Busy
+
+⸻
+
+Core AForce Philosophy
+
+Every screen should reinforce:
+
+Performance is Non-Negotiable.
+
+The goal of AForce OS is to transform hydration into a daily readiness ritual and ultimately into long-term membership behavior.
+
+Customer Journey:
+
+Discover
+→ Purchase
+→ Activate
+→ Ritual
+→ Behavior
+→ Results
+→ Athlete Mode
+→ Membership
+→ Advocacy
+
+The app should visually guide users through this progression.
+
+⸻
+
+Future Features (Design placeholders)
+
+Create expandable sections for:
+
+* Readiness Score
+* Hydration Tracking
+* AForce Product Scanning
+* Competitor Product Comparison
+* Challenges
+* Ambassador Program
+* Athlete Mode
+* Membership Dashboard
+* AI Performance Coach
+
+Design all screens with a luxury performance aesthetic similar to premium consumer brands such as Apple, On Running, and WHOOP while maintaining a unique AForce identity.
+
+⸻
+
+This direction aligns perfectly with the new AForce strategy Peter and Kristel helped develop: Identity → Ritual → Behavior → Retention → Membership → Scale. The home screen becomes the daily execution engine of that framework.
