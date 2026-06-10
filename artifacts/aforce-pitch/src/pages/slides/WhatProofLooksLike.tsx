@@ -89,7 +89,7 @@ export default function WhatProofLooksLike() {
             transition={reduce ? undefined : { duration: 0.5, ease: EASE }}
           >
             <span className="font-display uppercase tracking-[0.32em] text-[0.78vw] text-red font-semibold border-b-2 border-red pb-[0.6vh]">
-              The Proof
+              Launch Milestones
             </span>
           </motion.div>
 
@@ -99,7 +99,7 @@ export default function WhatProofLooksLike() {
             animate={{ opacity: 1, y: 0 }}
             transition={reduce ? undefined : { duration: 0.6, ease: EASE, delay: 0.08 }}
           >
-            What proof
+            What momentum
             <br />
             looks like.
           </motion.h1>
@@ -110,9 +110,9 @@ export default function WhatProofLooksLike() {
             animate={{ opacity: 1, y: 0 }}
             transition={reduce ? undefined : { duration: 0.6, ease: EASE, delay: 0.2 }}
           >
-            By{" "}
-            <span className="text-red font-normal">January 2027</span>, the model
-            is proven.
+            The milestones that lead to the proof. By{" "}
+            <span className="text-red font-normal">January 2027</span>, these are
+            hit.
           </motion.p>
 
           <motion.div

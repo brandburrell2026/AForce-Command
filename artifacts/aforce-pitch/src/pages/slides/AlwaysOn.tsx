@@ -27,7 +27,7 @@ export default function AlwaysOn() {
         animate={{ opacity: 1, y: 0 }}
         transition={reduce ? undefined : { duration: 0.9, ease: EASE, delay: 0.4 }}
       >
-        Founders · Entrepreneurs · Creators · Business Leaders · Medical Professionals · Students · Athletes
+        Founders · Entrepreneurs · Creators · Business Leaders · Surgeons · Medical Professionals · Students · Athletes · High Performers
       </motion.div>
 
       <motion.div

@@ -48,7 +48,7 @@ export default function TheAdvisors() {
   ];
 
   return (
-    <SlideFrame slide={5}>
+    <SlideFrame slide={4}>
       <div className="absolute inset-0 flex flex-col justify-center px-[5vw] pt-[12vh] pb-[10vh]">
         {/* header */}
         <motion.div

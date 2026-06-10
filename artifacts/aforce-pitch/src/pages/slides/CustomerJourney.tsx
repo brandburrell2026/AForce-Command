@@ -102,7 +102,6 @@ const LOOP = [
   { w: "Product", tone: "ink" as Tone },
   { w: "Ritual", tone: "ink" as Tone },
   { w: "Behavior", tone: "ink" as Tone },
-  { w: "OS", tone: "ink" as Tone },
   { w: "Retention", tone: "ink" as Tone },
   { w: "Membership", tone: "blue" as Tone },
   { w: "Advocacy", tone: "ink" as Tone },
@@ -137,7 +136,7 @@ export default function CustomerJourney() {
   });
 
   return (
-    <SlideFrame slide={12} phaseLabel="The Journey">
+    <SlideFrame slide={13} phaseLabel="The Journey">
       {/* flow glows — warm acquisition (left) cooling into retention (right) */}
       <div
         aria-hidden

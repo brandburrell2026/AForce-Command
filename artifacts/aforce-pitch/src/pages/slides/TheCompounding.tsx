@@ -18,10 +18,9 @@ const FORCES: Array<{ subject: string; outcome: string; tone: Tone }> = [
 
 // The full arc — identity in, scale out.
 const ARC: Array<{ w: string; tone: Tone }> = [
-  { w: "Identity", tone: "red" },
+  { w: "Product", tone: "red" },
   { w: "Ritual", tone: "ink" },
   { w: "Behavior", tone: "ink" },
-  { w: "OS", tone: "blue" },
   { w: "Retention", tone: "blue" },
   { w: "Membership", tone: "ink" },
   { w: "Scale", tone: "red" },

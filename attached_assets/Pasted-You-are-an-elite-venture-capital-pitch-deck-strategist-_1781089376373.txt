@@ -1,0 +1,273 @@
+You are an elite venture capital pitch deck strategist specializing in consumer brands, subscription businesses, behavioral platforms, and venture-backed startups.
+
+Review the entire AForce investor deck and implement the following strategic revisions while maintaining the current visual design language, typography, colors, and brand identity.
+
+PRIMARY OBJECTIVE:
+
+Simplify the narrative and make the deck easier for investors to understand within the first 3 minutes.
+
+The deck should position AForce as:
+
+"A behavioral performance platform using hydration as the entry point."
+
+NOT:
+
+"A beverage company."
+
+NOT:
+
+"An app company."
+
+--------------------------------------------------
+NEW INVESTOR HIERARCHY
+--------------------------------------------------
+
+The entire deck should follow this exact hierarchy:
+
+BELIEF
+Performance is Non-Negotiable.
+
+↓
+
+AUDIENCE
+Built for people who don't get to be off.
+
+↓
+
+RITUAL
+Pause. Hydrate. Lock In. Perform.
+
+↓
+
+BUSINESS MODEL
+Product → Ritual → Behavior → Retention → Membership → Scale
+
+↓
+
+PROOF
+NPS
+Retention
+Membership Conversion
+
+--------------------------------------------------
+SECTION 1
+MOVE FOUNDERS EARLIER
+--------------------------------------------------
+
+Current problem:
+
+Investors learn about the opportunity before fully understanding who Brandon and Julius are.
+
+Move the Founder slide immediately after:
+
+1. Performance is Non-Negotiable
+2. Built for People Who Don't Get To Be Off
+
+New flow:
+
+Slide 1:
+Performance is Non-Negotiable
+
+Slide 2:
+Built for People Who Don't Get To Be Off
+
+Slide 3:
+Founders
+
+Slide 4:
+Advisors
+
+Slide 5:
+America's Real Deal
+
+Reason:
+
+Establish credibility before discussing market opportunity.
+
+--------------------------------------------------
+SECTION 2
+REDUCE OS EMPHASIS
+--------------------------------------------------
+
+Current issue:
+
+The OS appears too frequently and risks making investors think AForce is an app company.
+
+Investors should leave believing:
+
+AForce is a retention company.
+
+Modify language throughout deck:
+
+Current:
+Product → Ritual → Behavior → OS → Retention → Membership → Scale
+
+New:
+Product → Ritual → Behavior → Retention → Membership → Scale
+
+Then explain:
+
+"The OS powers and measures retention."
+
+The OS should be positioned as:
+
+Infrastructure
+
+NOT
+
+The product.
+
+--------------------------------------------------
+SECTION 3
+ELEVATE NPS
+--------------------------------------------------
+
+Current deck emphasizes retention and membership.
+
+Increase emphasis on:
+
+NPS = BELIEF
+
+Create a stronger narrative:
+
+People Believe → NPS
+
+People Stay → Retention
+
+People Commit → Membership
+
+Move this framework earlier in the presentation.
+
+Potential placement:
+
+Immediately after the Ritual section.
+
+Investors should understand:
+
+Belief drives retention.
+Retention drives membership.
+Membership drives recurring revenue.
+
+--------------------------------------------------
+SECTION 4
+SIMPLIFY PROOF
+--------------------------------------------------
+
+Current deck references proof multiple times.
+
+Consolidate all proof messaging into one master framework.
+
+Replace scattered proof language with:
+
+PROOF OF BELIEF
+
+NPS 60+
+
+PROOF OF UTILITY
+
+60-Day Retention 60%+
+
+PROOF OF COMMITMENT
+
+Membership Conversion 20%+
+
+Avoid repeating "proof" slides multiple times.
+
+--------------------------------------------------
+SECTION 5
+EXPAND PERFORMANCE IS UNIVERSAL
+--------------------------------------------------
+
+Strengthen positioning that AForce is not built only for athletes.
+
+Every relevant slide should reinforce:
+
+Performance is Universal.
+
+Audience examples:
+
+Founders
+Entrepreneurs
+Business Leaders
+Creators
+Surgeons
+Medical Professionals
+Students
+Athletes
+High Performers
+
+Maintain:
+
+"Built for people who don't get to be off."
+
+This should become a defining category statement.
+
+--------------------------------------------------
+SECTION 6
+SIMPLIFY THE MOAT
+--------------------------------------------------
+
+Use this exact recurring framework throughout the deck:
+
+The product creates entry.
+
+The ritual creates behavior.
+
+The OS creates retention.
+
+Membership creates recurring revenue.
+
+The ecosystem creates scale.
+
+Repeat this framework wherever possible.
+
+This becomes the investor memory anchor.
+
+--------------------------------------------------
+SECTION 7
+CREATE CLEARER INVESTOR STORY
+--------------------------------------------------
+
+Investors should understand:
+
+AForce is not selling hydration.
+
+AForce is building a behavioral performance ecosystem.
+
+Hydration is the entry point.
+
+The ritual creates daily behavior.
+
+The behavior creates retention.
+
+Retention creates membership.
+
+Membership creates recurring revenue.
+
+Recurring revenue creates enterprise value.
+
+--------------------------------------------------
+FINAL TEST
+--------------------------------------------------
+
+When an investor finishes the deck they should describe AForce as:
+
+"A behavioral performance platform that uses hydration as the entry point to create retention, membership, and recurring revenue."
+
+NOT:
+
+"An energy drink company."
+
+NOT:
+
+"A hydration company."
+
+NOT:
+
+"A fitness app."
+
+Simplify.
+Compress.
+Clarify.
+
+Keep all existing design quality while making the story feel inevitable.

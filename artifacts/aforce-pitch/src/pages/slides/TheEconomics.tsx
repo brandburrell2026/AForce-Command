@@ -37,7 +37,7 @@ const SNAPSHOT = [
   { k: "Monthly sub rev", v: "$17,136", blue: true },
   { k: "ARR run rate", v: "$205K", blue: true, strong: true },
   { k: "Repeat rate", v: "30%" },
-  { k: "NPS target", v: "55+", red: true },
+  { k: "NPS target", v: "60+", red: true },
 ];
 
 export default function TheEconomics() {

@@ -35,7 +35,7 @@ export default function TheFounders() {
   const reduce = useReducedMotion();
 
   return (
-    <SlideFrame slide={4}>
+    <SlideFrame slide={3}>
       <div className="absolute inset-0 flex items-stretch pt-[13vh] pb-[11vh] pl-[5vw] pr-[4vw] gap-[3vw]">
         {/* LEFT — lived conviction */}
         <div className="flex w-[52%] flex-col justify-center">

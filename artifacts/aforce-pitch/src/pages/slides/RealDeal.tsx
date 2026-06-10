@@ -16,7 +16,7 @@ export default function RealDeal() {
   const reduce = useReducedMotion();
 
   return (
-    <SlideFrame slide={3}>
+    <SlideFrame slide={5}>
       {/* spotlight glow behind the validation mark */}
       <div
         aria-hidden

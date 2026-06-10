@@ -11,8 +11,8 @@ const BG_NAMES = [
 ];
 
 const SECTIONS: Array<{ name: string; range: [number, number] }> = [
-  { name: "The Stakes", range: [1, 3] },
-  { name: "The Team", range: [4, 5] },
+  { name: "The Stakes", range: [1, 2] },
+  { name: "The Team", range: [3, 5] },
   { name: "The Opportunity", range: [6, 8] },
   { name: "The System", range: [9, 13] },
   { name: "The Plan", range: [14, 21] },

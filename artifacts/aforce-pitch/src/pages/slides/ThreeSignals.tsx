@@ -7,31 +7,31 @@ const EASE = [0.16, 1, 0.3, 1] as const;
 type Tone = "ink" | "red" | "blue";
 
 const SIGNALS: Array<{
+  frame: string;
   metric: string;
   label: string;
   tag: string;
-  proof: string;
   tone: Tone;
 }> = [
   {
+    frame: "Proof of Belief",
     metric: "60+",
     label: "NPS",
-    tag: "People Believe",
-    proof: "High NPS proves belief.",
+    tag: "People believe.",
     tone: "red",
   },
   {
+    frame: "Proof of Utility",
     metric: "60%+",
     label: "60-Day Retention",
-    tag: "People Stay",
-    proof: "High retention proves utility.",
+    tag: "People stay.",
     tone: "blue",
   },
   {
+    frame: "Proof of Commitment",
     metric: "20%+",
     label: "Membership Conversion",
-    tag: "People Commit",
-    proof: "High membership conversion proves commitment.",
+    tag: "People commit.",
     tone: "ink",
   },
 ];
@@ -45,7 +45,7 @@ export default function ThreeSignals() {
   const reduce = useReducedMotion();
 
   return (
-    <SlideFrame slide={13}>
+    <SlideFrame slide={10}>
       {/* cool accent halo, upper-right — ties to the OS blue */}
       <div
         aria-hidden
@@ -74,7 +74,7 @@ export default function ThreeSignals() {
           transition={reduce ? undefined : { duration: 0.5, ease: EASE }}
         >
           <span className="font-display uppercase tracking-[0.32em] text-[0.78vw] text-red font-semibold border-b-2 border-red pb-[0.6vh]">
-            The Signals
+            The Proof
           </span>
         </motion.div>
 
@@ -84,8 +84,8 @@ export default function ThreeSignals() {
           animate={{ opacity: 1, y: 0 }}
           transition={reduce ? undefined : { duration: 0.6, ease: EASE, delay: 0.08 }}
         >
-          Proof of{" "}
-          <span className="text-red font-normal">Belief.</span>
+          Belief. Utility.{" "}
+          <span className="text-red font-normal">Commitment.</span>
         </motion.h1>
       </div>
 
@@ -106,7 +106,14 @@ export default function ThreeSignals() {
               className={`absolute inset-x-0 top-0 h-[4px] ${toneBg(s.tone)}`}
             />
             <div
-              className={`font-display font-light tabular-nums leading-none text-[5.2vw] ${toneText(
+              className={`font-display uppercase tracking-[0.22em] text-[0.82vw] font-semibold ${toneText(
+                s.tone,
+              )}`}
+            >
+              {s.frame}
+            </div>
+            <div
+              className={`mt-[1.6vh] font-display font-light tabular-nums leading-none text-[5vw] ${toneText(
                 s.tone,
               )}`}
             >
@@ -122,9 +129,6 @@ export default function ThreeSignals() {
             >
               {s.tag}
             </div>
-            <div className="mt-[1.6vh] font-body text-[0.92vw] leading-[1.4] text-text/60">
-              {s.proof}
-            </div>
           </motion.div>
         ))}
       </div>
@@ -138,9 +142,8 @@ export default function ThreeSignals() {
       >
         <span className="block w-[3.6vw] h-[3px] bg-red shrink-0" />
         <p className="font-display font-light tracking-[-0.015em] text-[2.5vw] leading-[1.2] text-text/85">
-          Together, these validate that AForce is becoming{" "}
-          <span className="text-text font-normal">a system</span>
-          <span className="text-text/45">, not just a beverage.</span>
+          Belief drives retention. Retention drives membership.{" "}
+          <span className="text-text font-normal">Membership drives recurring revenue.</span>
         </p>
       </motion.div>
     </SlideFrame>

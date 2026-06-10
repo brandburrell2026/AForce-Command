@@ -26,3 +26,12 @@ position), bump `TOTAL_SLIDES`, and cover the new position in `SECTIONS`. Then
 Note: `BG_NAMES` in SlideChrome is only used by the legacy `SlideChrome`
 background plate, NOT by `SlideFrame` (which most current slides use), so a
 SlideFrame-based slide does not need a BG_NAMES entry.
+
+**Manifest `description` (and `title`) are unvalidated free-text metadata.**
+`validate-slides` only checks structure (unique/contiguous positions, filepaths
+resolve) — it does NOT compare descriptions against rendered slide copy. So when
+you change a slide's body (chains, headlines, metrics, eyebrows), the manifest
+description silently drifts and will contradict the slide. **Why:** a stale
+description survives validate-slides + typecheck and only surfaces in a careful
+read/diff. **How to apply:** whenever you edit slide copy, hand-sync that slide's
+manifest `description`/`title` in the same change.

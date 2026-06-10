@@ -4,11 +4,10 @@ import SlideFrame from "@/components/SlideFrame";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
-// the system surfaces — product/acquisition first, OS/retention after.
+// the system surfaces — product/acquisition first, retention after.
 const FLOW: Array<{ t: string; k: string; blue?: boolean }> = [
   { t: "Hydration", k: "Product" },
   { t: "Daily Use", k: "Habit" },
-  { t: "Tracking", k: "OS", blue: true },
   { t: "Ritual", k: "Behavior" },
   { t: "Subscription", k: "Revenue", blue: true },
   { t: "Community", k: "Moat", blue: true },
@@ -21,7 +20,7 @@ export default function TheSystem() {
   const phoneBack = `${base}recovery-coach-phone.png`;
 
   return (
-    <SlideFrame slide={10}>
+    <SlideFrame slide={11}>
       <div className="absolute inset-0 overflow-hidden">
         {/* right — the AForce OS, two screens floating */}
         <div className="absolute right-0 top-0 bottom-0 w-[50%] z-10 flex items-center justify-center">
@@ -135,7 +134,7 @@ export default function TheSystem() {
             transition={reduce ? undefined : { duration: 0.55, ease: EASE, delay: 0.22 }}
           >
             Products create <span className="text-red font-medium">acquisition.</span> The OS
-            creates <span className="text-blue font-medium">retention</span> — culture,
+            powers and measures <span className="text-blue font-medium">retention</span> — culture,
             community, and membership.
           </motion.p>
 
@@ -164,7 +163,7 @@ export default function TheSystem() {
             </div>
           </motion.div>
 
-          {/* the system as six surfaces — clean grid, no bullets */}
+          {/* the system as five surfaces — clean grid, no bullets */}
           <div className="mt-[3vh] grid grid-cols-3 gap-[0.7vw] max-w-[40vw]">
             {FLOW.map((n, i) => (
               <motion.div

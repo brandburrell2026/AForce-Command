@@ -9,10 +9,9 @@ type Tone = "ink" | "red" | "blue";
 
 // The full arc — identity in, scale out.
 const ARC: Array<{ w: string; tone: Tone }> = [
-  { w: "Identity", tone: "red" },
+  { w: "Product", tone: "red" },
   { w: "Ritual", tone: "ink" },
   { w: "Behavior", tone: "ink" },
-  { w: "OS", tone: "blue" },
   { w: "Retention", tone: "blue" },
   { w: "Membership", tone: "ink" },
   { w: "Scale", tone: "red" },
@@ -22,7 +21,7 @@ const ARC: Array<{ w: string; tone: Tone }> = [
 const PROOFS: Array<{ lead: string; key: string; tone: Tone }> = [
   { lead: "Brickell is the", key: "laboratory", tone: "ink" },
   { lead: "The GTM is the", key: "proof sequence", tone: "red" },
-  { lead: "The OS is the", key: "valuation multiplier", tone: "blue" },
+  { lead: "Retention is the", key: "valuation multiplier", tone: "blue" },
 ];
 
 // The compounding loop — the engine restated one last time.
@@ -30,7 +29,6 @@ const LOOP: Array<{ w: string; tone: Tone }> = [
   { w: "Product", tone: "ink" },
   { w: "Ritual", tone: "ink" },
   { w: "Behavior", tone: "ink" },
-  { w: "OS", tone: "ink" },
   { w: "Retention", tone: "ink" },
   { w: "Membership", tone: "blue" },
   { w: "Advocacy", tone: "ink" },

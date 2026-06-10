@@ -22,7 +22,7 @@ const TARGETS = [
   { value: ">50%", label: "OS activation", tier: "Ecosystem", value_c: "text-blue", bar: "bg-blue" },
   {
     value: ">20%",
-    label: "Subscription conversion",
+    label: "Membership conversion",
     tier: "Commerce",
     value_c: "text-text",
     bar: "bg-text/55",
@@ -147,11 +147,12 @@ export default function RoadToRealDeal() {
         >
           <div className="flex items-baseline gap-[1.4vw] mb-[2.6vh]">
             <span className="font-display uppercase tracking-[0.3em] text-[0.72vw] text-red font-semibold whitespace-nowrap">
-              What “Proven” Looks Like
+              Phase 1 Milestones
             </span>
             <span className="font-body italic text-[0.72vw] leading-[1.4] text-text/45">
-              Phase 1 is not about awareness — it is about proving behavior,
-              retention, and ecosystem engagement.
+              Interim checkpoints — the leading indicators on the way to the
+              canonical proof: NPS 60+, 60-day retention 60%+, membership
+              conversion 20%+.
             </span>
           </div>
 
