@@ -47,20 +47,19 @@ const queryClient = new QueryClient();
 const publishableKey = process.env['EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY'];
 const proxyUrl = process.env['EXPO_PUBLIC_CLERK_PROXY_URL'] || undefined;
 
-const WELCOME_SEEN_KEY = 'aforce.hasSeenWelcome';
 const ONBOARDING_DONE_KEY = 'aforce.hasCompletedOnboarding';
 
 /**
- * SplashGate — first-run router. Two independent flags drive it:
- *   - `hasSeenWelcome`        set when the user taps CONTINUE on the
- *                             welcome lobby (welcome.tsx).
+ * SplashGate — first-run router. A single flag drives it:
  *   - `hasCompletedOnboarding` set only when the onboarding wizard
  *                             finishes / is skipped (onboarding.tsx).
  *
  * Decision logic lives in the pure `firstRunRoute` helper so it can be
- * unit-tested. A cold start mid-onboarding (seen welcome, not yet
- * completed) correctly resumes at `/onboarding` instead of silently
- * skipping setup. DEMO_MODE wipes both flags and replays from welcome.
+ * unit-tested. A cold start before onboarding completes correctly
+ * resumes at `/onboarding` instead of silently skipping setup. The
+ * cinematic intro is the OpeningSequence overlay, so there is no
+ * separate welcome lobby. DEMO_MODE wipes the flag and replays
+ * onboarding every cold start.
  */
 function SplashGate() {
   const pathname = usePathname();
@@ -69,16 +68,14 @@ function SplashGate() {
     if (checkedRef.current) return;
     checkedRef.current = true;
     if (DEMO_MODE) {
-      AsyncStorage.multiRemove([WELCOME_SEEN_KEY, ONBOARDING_DONE_KEY]).catch(() => {});
-      if (pathname !== '/welcome') router.replace('/welcome');
+      AsyncStorage.removeItem(ONBOARDING_DONE_KEY).catch(() => {});
+      if (pathname !== '/onboarding') router.replace('/onboarding');
       return;
     }
-    AsyncStorage.multiGet([WELCOME_SEEN_KEY, ONBOARDING_DONE_KEY])
-      .then((entries) => {
-        const map = Object.fromEntries(entries);
+    AsyncStorage.getItem(ONBOARDING_DONE_KEY)
+      .then((value) => {
         const target = firstRunRoute({
-          seenWelcome: map[WELCOME_SEEN_KEY] === 'true',
-          completedOnboarding: map[ONBOARDING_DONE_KEY] === 'true',
+          completedOnboarding: value === 'true',
         });
         if (target && pathname !== target) router.replace(target);
       })
@@ -104,7 +101,6 @@ function RootLayoutNav() {
         contentStyle: { backgroundColor: '#000000' },
       }}
     >
-      <Stack.Screen name="welcome" options={{ headerShown: false, animation: 'fade' }} />
       <Stack.Screen name="onboarding" options={{ headerShown: false, animation: 'fade' }} />
       <Stack.Screen name="(auth)" options={{ headerShown: false }} />
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
@@ -176,7 +172,7 @@ function AppShell() {
       {/* Phase 1 (Opening Screen Safe-Area Fix): force light system
           status-bar glyphs (clock, battery, signal) on every screen so
           they remain visible against the pure-black opening canvas
-          (splash + welcome) and every other dark surface. Without this
+          (splash + opening) and every other dark surface. Without this
           the default dark glyphs render invisibly against #000000 in
           the top safe-area chrome zone. */}
       <StatusBar style="light" />

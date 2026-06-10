@@ -6,6 +6,8 @@ import { useAuth } from '@clerk/expo';
 
 import { DEMO_MODE } from '@/services/demoMode';
 
+const ONBOARDING_DONE_KEY = 'aforce.hasCompletedOnboarding';
+
 /**
  * Root entry — gates first-open routing AND Clerk sign-in.
  *
@@ -18,29 +20,30 @@ import { DEMO_MODE } from '@/services/demoMode';
  * Resolution order, top to bottom:
  *
  *   1. Wait for Clerk's `useAuth().isLoaded` AND the AsyncStorage
- *      welcome flag to resolve. Render a black canvas while we wait
+ *      onboarding flag to resolve. Render a black canvas while we wait
  *      so the splash stays visually continuous.
  *   2. If the user is NOT signed in AND DEMO_MODE is OFF → redirect
  *      to `/(auth)/sign-in`. DEMO_MODE remains a deliberate escape
  *      hatch for pitch / marketing screenshots (see services/demoMode).
- *   3. Otherwise route as before: `/welcome` on first launch, else
- *      `/(tabs)`.
+ *   3. Otherwise route on onboarding completion: `/onboarding` on first
+ *      launch, else `/(tabs)`. The cinematic intro is the cold-launch
+ *      OpeningSequence overlay, so there is no separate welcome lobby.
  */
 export default function Index() {
   const { isLoaded, isSignedIn } = useAuth();
-  const [welcomeSeen, setWelcomeSeen] = React.useState<boolean | null>(null);
+  const [onboarded, setOnboarded] = React.useState<boolean | null>(null);
 
   React.useEffect(() => {
     let cancelled = false;
-    AsyncStorage.getItem('aforce.welcomeSeen')
-      .then((v) => { if (!cancelled) setWelcomeSeen(v === 'true' || v === '1' ? true : v != null); })
-      .catch(() => { if (!cancelled) setWelcomeSeen(true); });
+    AsyncStorage.getItem(ONBOARDING_DONE_KEY)
+      .then((v) => { if (!cancelled) setOnboarded(v === 'true'); })
+      .catch(() => { if (!cancelled) setOnboarded(true); });
     return () => { cancelled = true; };
   }, []);
 
   // Black canvas while Clerk + AsyncStorage resolve — keeps the
   // splash visually continuous instead of flashing the tab bar.
-  if (!isLoaded || welcomeSeen === null) {
+  if (!isLoaded || onboarded === null) {
     return <View style={{ flex: 1, backgroundColor: '#000' }} />;
   }
 
@@ -48,5 +51,5 @@ export default function Index() {
     return <Redirect href={'/(auth)/sign-in' as never} />;
   }
 
-  return <Redirect href={(welcomeSeen ? '/(tabs)' : '/welcome') as never} />;
+  return <Redirect href={(onboarded ? '/(tabs)' : '/onboarding') as never} />;
 }

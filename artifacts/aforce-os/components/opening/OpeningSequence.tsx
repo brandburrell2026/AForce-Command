@@ -3,10 +3,10 @@
  *
  * A four-stage, full-screen opening experience that plays once per cold
  * launch on top of every other surface, then fades out to reveal
- * whatever the app routed to underneath (home / welcome / sign-in). It
- * is mounted as an overlay in `app/_layout.tsx` (AppShell) — it does NOT
- * touch routing, so there is no redirect-loop risk and the first-run
- * welcome lobby + onboarding wizard are left completely intact.
+ * whatever the app routed to underneath (home / onboarding / sign-in).
+ * It is mounted as an overlay in `app/_layout.tsx` (AppShell) — it does
+ * NOT touch routing, so there is no redirect-loop risk and the first-run
+ * onboarding wizard is left completely intact.
  *
  *   1. Symbol      — white AForce water-drop mark, breathing fade-in.
  *   2. Brand       — AFORCE wordmark + "Performance Is Non-Negotiable".

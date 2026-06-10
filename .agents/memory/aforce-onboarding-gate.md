@@ -1,25 +1,28 @@
 ---
 name: AForce first-run gating
-description: How the welcome → onboarding → app first-run flow is gated, and why it uses two flags.
+description: How the onboarding → app first-run flow is gated, and why it uses a single completed flag.
 ---
 
-First-run routing uses TWO independent AsyncStorage flags, not one:
-`aforce.hasSeenWelcome` (set when the user taps CONTINUE on the welcome
-lobby) and `aforce.hasCompletedOnboarding` (set only when the onboarding
-wizard finishes or is skipped). The pure decision lives in
-`utils/firstRunRoute.ts` and is consumed by `SplashGate` in
-`app/_layout.tsx`.
+First-run routing uses ONE AsyncStorage flag: `aforce.hasCompletedOnboarding`
+(set only when the onboarding wizard finishes or is skipped). The pure
+decision lives in `utils/firstRunRoute.ts` (`FirstRunRoute = '/onboarding'
+| null`) and is consumed by `SplashGate` in `app/_layout.tsx` and by
+`app/index.tsx`. A cold start before the flag is set lands on `/onboarding`;
+once set, it falls through to the tabs.
 
-**Why:** A single "completed" flag was originally written by welcome
-*before* the onboarding wizard ran, so a cold start mid-onboarding
-silently skipped setup entirely. Splitting the flags lets an interrupted
-first run resume at `/onboarding` instead of falling through to the tabs.
+**Why:** There used to be a separate welcome lobby (`app/welcome.tsx`) with
+its own `aforce.hasSeenWelcome` flag, plus a long-dead `aforce.welcomeSeen`
+key that `index.tsx` read but nothing ever wrote. The welcome lobby was
+removed (owner asked to delete those screens), so the two-flag gate
+collapsed to one. The cold-launch cinematic is now solely the
+`OpeningSequence` overlay (mounted in `_layout.tsx`, touches no routing).
 
-**How to apply:** Never mark onboarding complete from the welcome screen
-or before the wizard's finish path. Any new first-run step must extend
-`firstRunRoute` (and its test) rather than overloading an existing flag.
-DEMO_MODE wipes both flags every cold start to replay the full intro for
-pitches.
+**How to apply:** Never mark onboarding complete before the wizard's finish
+path. `SplashGate` and `index.tsx` must read the SAME key
+(`aforce.hasCompletedOnboarding`) so they converge on one destination — the
+old bug was them reading different keys. Any new first-run step must extend
+`firstRunRoute` (and its test) rather than overloading the flag. DEMO_MODE
+wipes the flag every cold start to replay onboarding for pitches.
 
 Onboarding goals are consumer-facing labels mapped 1:1 onto the five
 engine `RecoveryGoal`s (PERFORMANCE/RECOVERY/ENDURANCE/BALANCE/LONGEVITY)

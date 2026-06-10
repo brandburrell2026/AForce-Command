@@ -7,10 +7,11 @@
  * already lives — so this wizard captures intent and body model only,
  * it does NOT rebuild those moments.
  *
- * Reached from welcome.tsx once `aforce.hasSeenWelcome` is set; this
- * screen sets the separate `aforce.hasCompletedOnboarding` flag on
- * finish/skip, so an interrupted first run resumes here rather than
- * skipping setup.
+ * The first screen of the first-run flow — the cinematic intro is the
+ * cold-launch OpeningSequence overlay, so there is no welcome lobby
+ * ahead of this. This screen sets the `aforce.hasCompletedOnboarding`
+ * flag on finish/skip, so an interrupted first run resumes here rather
+ * than skipping setup.
  *
  * Persistence is Profile-side only (zero engine / server change):
  *   - goal          → ProfileIdentity.recoveryGoal (already engine-wired)

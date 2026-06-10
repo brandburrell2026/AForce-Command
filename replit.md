@@ -22,7 +22,7 @@ A full-screen 4-stage cinematic (`components/opening/OpeningSequence.tsx`) plays
 - **Stages:** (1) white water-drop symbol w/ breathing fade → (2) AFORCE wordmark + brand-red hairline + "Performance Is Non-Negotiable" → (3) PAUSE/HYDRATE/LOCK IN/PERFORM ritual stagger → (4) "TODAY'S READINESS" + count-up to the live score + a **band-aware** caption via `readinessLabel(performanceState.level)` (a DEPLETED user reads "REHYDRATE NOW", never "READY TO PERFORM").
 - **Motion:** slow Apple-Vision-Pro pacing, crossfading absolute-fill layers, no bounce. Tap-anywhere-to-skip; fully reduced-motion aware (`AccessibilityInfo`).
 - **Score-Protection:** display-only projection of `engine.score` (DEFAULT_SCORE=92 fallback before state loads); never awards, mutates, or fabricates score.
-- **First-run untouched:** the existing welcome lobby + onboarding stay intact — new users get opening → welcome → onboarding.
+- **First-run untouched:** onboarding stays intact — new users get opening → onboarding. (The separate welcome lobby was removed; the cold-launch cinematic is now solely the OpeningSequence overlay.)
 - **Plays per JS launch:** `OpeningMount` holds `useState(true)` initialised once when AppShell mounts; `onFinish` is a stable `useCallback` and `OpeningSequence` keeps it in a ref so the engine-score refresh (on mount + ~30s) never tears down the timeline mid-play.
 
 ## Water-First Command System
