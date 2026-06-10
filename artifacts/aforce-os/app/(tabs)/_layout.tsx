@@ -12,7 +12,8 @@
  *
  * Hidden-but-routable surfaces (kept for deep links + contextual entry,
  * removed from the bottom bar via `href: null` / omitted Triggers):
- *   scan (Performance Signals — opened from Home EntryActions),
+ *   scan (HydroScan — opened from the Home Hydration Status card's
+ *     "Scan a drink" button, plus the Internal Preview / Modules screen),
  *   social (Social drinking mode), sleep, social-legacy (dev only).
  *
  * Store is NOT a bottom-tab destination. It lives at `/store` (root

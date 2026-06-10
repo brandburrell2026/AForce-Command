@@ -13,6 +13,7 @@
 
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
+import { useRouter } from 'expo-router';
 
 import { useEngineSlice, useUserSlice, useIntakeSlice } from '@/store/slices';
 import { useAppStore } from '@/store/useAppStore';
@@ -52,6 +53,7 @@ const STATUS_LABEL: Record<string, string> = {
 const PLAN_ORDER = SUBSCRIPTION_PLANS.map((p) => p.id);
 
 export function HomeDashboard() {
+  const router = useRouter();
   const engine = useEngineSlice();
   const userState = useUserSlice();
   const intake = useIntakeSlice();
@@ -116,6 +118,7 @@ export function HomeDashboard() {
         water={`${units} / ${target}`}
         electrolytes={String(electrolyteUnits)}
         recovery={RECOVERY_LABEL[level] ?? 'Steady'}
+        onScan={() => router.push('/scan')}
       />
       <TodaysProtocol blocks={protocol} />
       <StreakCard streakDays={streak} />

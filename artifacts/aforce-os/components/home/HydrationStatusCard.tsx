@@ -7,8 +7,9 @@
  */
 
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Svg, { Circle, G } from 'react-native-svg';
+import { Icon } from '@/components/Icon';
 import { Colors } from '@/theme/colors';
 
 const BRAND = Colors.accent.brand;
@@ -18,6 +19,8 @@ interface Props {
   water: string;
   electrolytes: string;
   recovery: string;
+  /** Opens the HydroScan flow. When omitted the button is hidden. */
+  onScan?: () => void;
 }
 
 const SIZE = 88;
@@ -34,7 +37,7 @@ function StatRow({ label, value }: { label: string; value: string }) {
   );
 }
 
-export function HydrationStatusCard({ percent, water, electrolytes, recovery }: Props) {
+export function HydrationStatusCard({ percent, water, electrolytes, recovery, onScan }: Props) {
   const pct = Math.min(100, Math.max(0, percent));
   const offset = CIRC * (1 - pct / 100);
   return (
@@ -78,6 +81,19 @@ export function HydrationStatusCard({ percent, water, electrolytes, recovery }: 
           <StatRow label="RECOVERY" value={recovery} />
         </View>
       </View>
+      {onScan ? (
+        <TouchableOpacity
+          onPress={onScan}
+          activeOpacity={0.85}
+          accessibilityRole="button"
+          accessibilityLabel="Open HydroScan to scan a drink"
+          testID="home-hydroscan-button"
+          style={styles.scanBtn}
+        >
+          <Icon name="camera" size={16} color={BRAND} />
+          <Text style={styles.scanBtnText}>SCAN A DRINK</Text>
+        </TouchableOpacity>
+      ) : null}
     </View>
   );
 }
@@ -143,5 +159,23 @@ const styles = StyleSheet.create({
     height: StyleSheet.hairlineWidth,
     backgroundColor: 'rgba(255,255,255,0.07)',
     marginVertical: 11,
+  },
+  scanBtn: {
+    marginTop: 18,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 13,
+    borderRadius: 13,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: Colors.accent.brandGlow,
+    backgroundColor: Colors.accent.brandSubtle,
+  },
+  scanBtnText: {
+    fontFamily: 'Inter_700Bold',
+    fontSize: 12,
+    letterSpacing: 1.5,
+    color: BRAND,
   },
 });

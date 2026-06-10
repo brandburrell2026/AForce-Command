@@ -319,8 +319,9 @@ function ScoreDrivenBody({
         </Text>
       </TouchableOpacity>
 
-      {/* Quick-action tile grid — Scan, Compete, Circles, Territory.
-          Sits directly under the primary CTA per spec. */}
+      {/* Quick-action tile grid — Urine · Sweat · Forecast · Recovery.
+          Sits directly under the primary CTA. (HydroScan is reached from
+          the Hydration Status card's "Scan a drink" button below.) */}
       <View style={styles.entryActionsRow}>
         <EntryActions />
       </View>
