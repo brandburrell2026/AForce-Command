@@ -91,7 +91,7 @@ const PRODUCTS: Product[] = [
     name: "AForce Hydration Sticks",
     tagline: "Hydration. Focus. Daily lock-in.",
     items: ["Readiness check", "Daily protocol", "Performance goal"],
-    img: "images/products/stick-berry-v2.png",
+    img: "images/products/stick-berry.png",
     tone: "red",
   },
   {
@@ -99,7 +99,7 @@ const PRODUCTS: Product[] = [
     name: "AForce Drinks",
     tagline: "Energy. Endurance. Midday boost.",
     items: ["Energy support", "Hydration reminder", "Streak tracking"],
-    img: "images/products/can-berry-v2.png",
+    img: "images/products/can-berry.png",
     tone: "ink",
   },
   {
