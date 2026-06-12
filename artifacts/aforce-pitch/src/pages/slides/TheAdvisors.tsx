@@ -20,7 +20,7 @@ export default function TheAdvisors() {
     {
       name: "Peter Ingwersen",
       title: "Former CEO, Denham · Advisor, Levi's",
-      area: "Brand strategy and premium positioning",
+      area: "Cultural architect and brand builder",
       src: `${base}peter.jpg`,
       position: "center 22%",
     },
