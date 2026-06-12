@@ -27,7 +27,7 @@ export default function TheAdvisors() {
     {
       name: "Kristel van Kleef",
       title: "Brand Advisor · On Running",
-      area: "Retail and go-to-market strategy",
+      area: "Brand strategy and ecosystem design",
       src: `${base}kristel.jpg`,
       position: "center 22%",
     },
