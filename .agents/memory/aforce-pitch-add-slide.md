@@ -27,6 +27,17 @@ Note: `BG_NAMES` in SlideChrome is only used by the legacy `SlideChrome`
 background plate, NOT by `SlideFrame` (which most current slides use), so a
 SlideFrame-based slide does not need a BG_NAMES entry.
 
+**Reordering a slide takes TWO edits, not one.** The manifest `position` only
+controls deck *order* (slideLoader sorts by it). But every slide component
+hardcodes its own number via `<SlideFrame slide={N}>` (e.g. RealDeal.tsx,
+TheFounders.tsx), and that prop — not the manifest — drives the footer "NN / 24"
+counter, the section eyebrow (`sectionFor`), and the legacy bg slug. **Why:**
+changing only the manifest position reorders the slides but leaves each slide
+showing its OLD footer number/section → off-by-one drift that typecheck and
+validate-slides both pass silently. **How to apply:** when you move a slide,
+update its manifest `position` AND the `slide={N}` literal inside the slide's
+component, keeping them equal; verify by screenshotting the moved slides.
+
 **Manifest `description` (and `title`) are unvalidated free-text metadata.**
 `validate-slides` only checks structure (unique/contiguous positions, filepaths
 resolve) — it does NOT compare descriptions against rendered slide copy. So when
