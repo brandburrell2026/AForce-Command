@@ -1,4 +1,3 @@
-import { Fragment } from "react";
 import { motion } from "framer-motion";
 import { useReducedMotion } from "@/lib/useReducedMotion";
 import SlideFrame from "@/components/SlideFrame";
@@ -16,7 +15,6 @@ type Stage = {
   goal: string;
   hero?: boolean;
   sub?: string;
-  callout?: string;
 };
 
 const RITUAL_WORDS = ["Pause.", "Hydrate.", "Lock In.", "Perform."];
@@ -44,7 +42,7 @@ const STAGES: Stage[] = [
     k: "The Ritual",
     tone: "ink",
     hero: true,
-    sub: "Morning Stick → Midday Can → Daily Readiness Protocol",
+    sub: "Morning Stick → Midday Drink → AForce OS",
     goal: "Habit Formation",
   },
   {
@@ -60,7 +58,6 @@ const STAGES: Stage[] = [
       "Founder content",
     ],
     goal: "Retention",
-    callout: "Behavior becomes habit.",
   },
   {
     n: "05",
@@ -75,26 +72,43 @@ const STAGES: Stage[] = [
       "Advanced protocols",
     ],
     goal: "Recurring Revenue",
-    callout: "Habit becomes membership.",
   },
 ];
 
-// One day, on repeat.
-const DAILY = [
+// The AForce system — three products, three moments.
+type Product = {
+  time: string;
+  name: string;
+  tagline: string;
+  items: string[];
+  img: string;
+  tone: Tone;
+};
+
+const PRODUCTS: Product[] = [
   {
-    t: "Morning",
-    p: "Hydration Stick",
+    time: "Morning",
+    name: "AForce Hydration Sticks",
+    tagline: "Hydration. Focus. Daily lock-in.",
     items: ["Readiness check", "Daily protocol", "Performance goal"],
+    img: "images/products/stick-berry-v2.png",
+    tone: "red",
   },
   {
-    t: "Midday",
-    p: "AForce Can",
+    time: "Midday",
+    name: "AForce Drinks",
+    tagline: "Energy. Endurance. Midday boost.",
     items: ["Energy support", "Hydration reminder", "Streak tracking"],
+    img: "images/products/can-berry-v2.png",
+    tone: "ink",
   },
   {
-    t: "Evening",
-    p: "AForce OS",
+    time: "Evening",
+    name: "AForce OS",
+    tagline: "Recover. Reflect. Reset.",
     items: ["Recovery protocol", "Progress review", "Next-day prep"],
+    img: "aforce-os-phone.png",
+    tone: "blue",
   },
 ];
 
@@ -108,14 +122,6 @@ const LOOP = [
   { w: "Scale", tone: "red" as Tone },
 ];
 
-const COMPOUNDS = [
-  { a: "Product", b: "entry" },
-  { a: "Ritual", b: "behavior" },
-  { a: "Behavior", b: "retention" },
-  { a: "Retention", b: "membership" },
-  { a: "Membership", b: "advocacy" },
-];
-
 const METRICS = [
   { v: "NPS 60+", l: "People believe", tone: "red" as Tone },
   { v: "60-Day Retention 60%+", l: "People stay", tone: "ink" as Tone },
@@ -126,9 +132,18 @@ const toneText = (t: Tone) =>
   t === "red" ? "text-red" : t === "blue" ? "text-blue" : "text-text";
 const toneDot = (t: Tone) =>
   t === "red" ? "bg-red" : t === "blue" ? "bg-blue" : "bg-text/70";
+const toneBorder = (t: Tone) =>
+  t === "red" ? "border-red/30" : t === "blue" ? "border-blue/30" : "border-text/12";
+const toneGlow = (t: Tone) =>
+  t === "red"
+    ? "radial-gradient(circle, rgba(228,30,43,0.10) 0%, rgba(228,30,43,0) 70%)"
+    : t === "blue"
+      ? "radial-gradient(circle, rgba(47,91,255,0.11) 0%, rgba(47,91,255,0) 70%)"
+      : "radial-gradient(circle, rgba(20,20,20,0.07) 0%, rgba(20,20,20,0) 70%)";
 
 export default function CustomerJourney() {
   const reduce = useReducedMotion();
+  const base = import.meta.env.BASE_URL;
   const reveal = (delay: number) => ({
     initial: reduce ? false : { opacity: 0, y: 14 },
     animate: { opacity: 1, y: 0 } as const,
@@ -140,10 +155,10 @@ export default function CustomerJourney() {
       {/* flow glows — warm acquisition (left) cooling into retention (right) */}
       <div
         aria-hidden
-        className="absolute left-[-8vw] top-[4vh] h-[40vh] w-[40vh] rounded-full"
+        className="absolute left-[-8vw] top-[2vh] h-[40vh] w-[40vh] rounded-full"
         style={{
           background:
-            "radial-gradient(circle, rgba(228,30,43,0.09) 0%, rgba(228,30,43,0) 68%)",
+            "radial-gradient(circle, rgba(228,30,43,0.08) 0%, rgba(228,30,43,0) 68%)",
         }}
       />
       <div
@@ -151,22 +166,22 @@ export default function CustomerJourney() {
         className="absolute right-[-8vw] bottom-[-10vh] h-[46vh] w-[46vh] rounded-full"
         style={{
           background:
-            "radial-gradient(circle, rgba(47,91,255,0.11) 0%, rgba(47,91,255,0) 68%)",
+            "radial-gradient(circle, rgba(47,91,255,0.10) 0%, rgba(47,91,255,0) 68%)",
         }}
       />
 
-      <div className="absolute inset-0 flex flex-col px-[4vw] pt-[7.5vh] pb-[10vh]">
+      <div className="absolute inset-0 flex flex-col px-[4.5vw] pt-[8vh] pb-[9vh]">
         {/* HEADER */}
         <div className="flex items-end justify-between gap-[4vw]">
           <div>
             <motion.span
-              className="block mb-[1.8vh] font-display uppercase tracking-[0.32em] text-[0.74vw] text-red font-semibold border-b-2 border-red pb-[0.5vh] w-fit"
+              className="block mb-[1.6vh] font-display uppercase tracking-[0.34em] text-[0.72vw] text-red font-semibold border-b-2 border-red pb-[0.5vh] w-fit"
               {...reveal(0)}
             >
               Customer Journey
             </motion.span>
             <motion.h1
-              className="font-display font-light tracking-[-0.025em] text-[2.7vw] leading-[1.02] text-text"
+              className="font-display font-light tracking-[-0.025em] text-[2.9vw] leading-[1.02] text-text"
               {...reveal(0.08)}
             >
               From first sip to{" "}
@@ -175,13 +190,13 @@ export default function CustomerJourney() {
           </div>
 
           <motion.div
-            className="hidden md:flex flex-col items-end text-right pb-[0.4vh]"
+            className="hidden md:flex flex-col items-end text-right pb-[0.6vh]"
             {...reveal(0.18)}
           >
-            <span className="font-display uppercase tracking-[0.26em] text-[0.6vw] text-text/40 font-semibold">
+            <span className="font-display uppercase tracking-[0.26em] text-[0.58vw] text-text/40 font-semibold">
               One journey
             </span>
-            <span className="mt-[0.7vh] font-display font-light tracking-[-0.01em] text-[1vw] leading-none">
+            <span className="mt-[0.7vh] font-display font-light tracking-[-0.01em] text-[1.05vw] leading-none">
               <span className="text-red">Morning</span>
               <span className="text-text/30"> · </span>
               <span className="text-text">Midday</span>
@@ -194,7 +209,7 @@ export default function CustomerJourney() {
         </div>
 
         {/* TIMELINE — five stages */}
-        <div className="mt-[3vh] relative">
+        <div className="mt-[3.4vh] relative">
           {/* value rail, red → ink → blue */}
           <motion.div
             aria-hidden
@@ -213,7 +228,7 @@ export default function CustomerJourney() {
               <motion.div
                 key={s.n}
                 className="relative pr-[1.8vw]"
-                {...reveal(0.4 + si * 0.1)}
+                {...reveal(0.4 + si * 0.08)}
               >
                 {/* hero wash behind the ritual */}
                 {s.hero && (
@@ -222,7 +237,7 @@ export default function CustomerJourney() {
                     className="absolute -left-[0.4vw] right-[1.2vw] top-[1.6vw] bottom-[-1vh] rounded-[0.4vw]"
                     style={{
                       background:
-                        "linear-gradient(180deg, rgba(228,30,43,0) 0%, rgba(228,30,43,0.06) 100%)",
+                        "linear-gradient(180deg, rgba(228,30,43,0) 0%, rgba(228,30,43,0.05) 100%)",
                     }}
                   />
                 )}
@@ -238,7 +253,7 @@ export default function CustomerJourney() {
 
                 {/* kicker */}
                 <span
-                  className={`relative z-10 mt-[2.2vh] block font-display uppercase tracking-[0.22em] text-[0.74vw] font-bold ${toneText(
+                  className={`relative z-10 mt-[2.4vh] block font-display uppercase tracking-[0.2em] text-[0.78vw] font-bold ${toneText(
                     s.tone,
                   )}`}
                 >
@@ -246,31 +261,31 @@ export default function CustomerJourney() {
                 </span>
 
                 {s.hero ? (
-                  <div className="relative z-10 mt-[2vh]">
-                    <div className="flex flex-col gap-[0.4vh]">
+                  <div className="relative z-10 mt-[2.2vh]">
+                    <div className="flex flex-col gap-[0.5vh]">
                       {RITUAL_WORDS.map((rw) => (
                         <span
                           key={rw}
-                          className="font-display font-bold uppercase tracking-[0.01em] leading-[1.02] text-[1.6vw] text-red"
+                          className="font-display font-bold uppercase tracking-[0.01em] leading-[1.02] text-[1.7vw] text-red"
                         >
                           {rw}
                         </span>
                       ))}
                     </div>
-                    <p className="mt-[1.8vh] font-body leading-[1.5] text-[0.78vw] text-text/55 max-w-[15vw]">
+                    <p className="mt-[1.8vh] font-body leading-[1.5] text-[0.82vw] text-text/55 max-w-[15vw]">
                       {s.sub}
                     </p>
                   </div>
                 ) : (
                   <>
-                    <span className="relative z-10 mt-[1.6vh] block font-display font-normal tracking-[-0.01em] leading-none text-[1.4vw] text-text">
+                    <span className="relative z-10 mt-[1.8vh] block font-display font-normal tracking-[-0.01em] leading-none text-[1.5vw] text-text">
                       {s.name}
                     </span>
-                    <ul className="relative z-10 mt-[1.6vh] flex flex-col gap-[0.7vh]">
+                    <ul className="relative z-10 mt-[1.8vh] flex flex-col gap-[0.85vh]">
                       {s.items?.map((it) => (
                         <li
                           key={it}
-                          className="flex items-baseline gap-[0.55vw] font-body text-[0.78vw] leading-[1.35] text-text/60"
+                          className="flex items-baseline gap-[0.55vw] font-body text-[0.82vw] leading-[1.3] text-text/65"
                         >
                           <span
                             className={`mt-[0.5vh] h-[0.28vw] w-[0.28vw] shrink-0 rounded-full ${toneDot(
@@ -284,90 +299,113 @@ export default function CustomerJourney() {
                   </>
                 )}
 
-                {/* goal */}
-                <div className="relative z-10 mt-[2vh]">
-                  <span className="font-display uppercase tracking-[0.24em] text-[0.56vw] text-text/35 font-semibold">
-                    Goal
-                  </span>
+                {/* goal chip */}
+                <div className="relative z-10 mt-[2.2vh]">
                   <span
-                    className={`mt-[0.4vh] block font-display font-medium tracking-[-0.01em] text-[0.96vw] leading-none ${toneText(
+                    className={`inline-flex items-center gap-[0.4vw] rounded-full border ${toneBorder(
+                      s.tone,
+                    )} px-[0.8vw] py-[0.5vh] font-display font-medium tracking-[-0.005em] text-[0.86vw] leading-none ${toneText(
                       s.tone,
                     )}`}
                   >
+                    <span className="text-text/35" aria-hidden>
+                      →
+                    </span>
                     {s.goal}
                   </span>
-                  {s.callout && (
-                    <span className="mt-[0.9vh] block font-display italic text-[0.74vw] text-text/45">
-                      {s.callout}
-                    </span>
-                  )}
                 </div>
               </motion.div>
             ))}
           </div>
         </div>
 
-        {/* DAILY JOURNEY — one day, on repeat */}
-        <motion.div className="mt-[3vh]" {...reveal(0.95)}>
-          <span className="block mb-[1.4vh] font-display uppercase tracking-[0.3em] text-[0.72vw] text-text/45 font-semibold">
-            One Day · On Repeat
-          </span>
-          <div className="flex items-stretch">
-            {DAILY.map((d, di) => (
-              <Fragment key={d.t}>
-                <div className="flex-1 rounded-[0.5vw] border border-text/10 bg-text/[0.015] px-[1.5vw] py-[1.6vh]">
-                  <div className="flex items-baseline justify-between gap-[1vw]">
-                    <span className="font-display uppercase tracking-[0.26em] text-[0.62vw] text-red font-semibold">
-                      {d.t}
-                    </span>
-                    <span className="font-display font-normal tracking-[-0.01em] text-[1.05vw] text-text leading-none">
-                      {d.p}
-                    </span>
+        {/* THE AFORCE SYSTEM — PRODUCTS */}
+        <motion.div className="mt-[3.6vh]" {...reveal(0.9)}>
+          <div className="mb-[1.8vh] flex items-center gap-[1vw]">
+            <span className="h-[2px] w-[2.4vw] bg-red" />
+            <span className="font-display uppercase tracking-[0.32em] text-[0.74vw] text-text font-bold">
+              The AForce System — Products
+            </span>
+          </div>
+          <div className="grid grid-cols-3 gap-[1.5vw]">
+            {PRODUCTS.map((p, pi) => (
+              <motion.div
+                key={p.time}
+                className={`relative overflow-hidden rounded-[0.7vw] border ${toneBorder(
+                  p.tone,
+                )} bg-text/[0.015]`}
+                {...reveal(1.0 + pi * 0.1)}
+              >
+                {/* soft radial glow — never a hard shadow */}
+                <div
+                  aria-hidden
+                  className="absolute -right-[6vw] -top-[8vh] h-[26vh] w-[26vh] rounded-full"
+                  style={{ background: toneGlow(p.tone) }}
+                />
+                <div className="relative z-10 flex items-center gap-[1.2vw] px-[1.4vw] py-[2vh]">
+                  {/* product image */}
+                  <div className="flex shrink-0 items-center justify-center" style={{ width: "5vw" }}>
+                    <img
+                      src={`${base}${p.img}`}
+                      alt={p.name}
+                      className="w-auto object-contain"
+                      style={{
+                        height: "16vh",
+                        filter: "drop-shadow(0 14px 26px rgba(0,0,0,0.28))",
+                      }}
+                    />
                   </div>
-                  <div className="mt-[1.2vh] flex flex-wrap gap-x-[1.2vw] gap-y-[0.5vh]">
-                    {d.items.map((it) => (
-                      <span
-                        key={it}
-                        className="font-body text-[0.74vw] leading-none text-text/55"
-                      >
-                        {it}
-                      </span>
-                    ))}
+
+                  {/* copy */}
+                  <div className="min-w-0 flex-1">
+                    <span
+                      className={`block font-display uppercase tracking-[0.26em] text-[0.62vw] font-bold ${toneText(
+                        p.tone,
+                      )}`}
+                    >
+                      {p.time}
+                    </span>
+                    <h3 className="mt-[0.7vh] font-display font-normal tracking-[-0.01em] leading-[1.05] text-[1.15vw] text-text">
+                      {p.name}
+                    </h3>
+                    <p className="mt-[0.8vh] font-body italic text-[0.78vw] leading-[1.35] text-text/55">
+                      {p.tagline}
+                    </p>
+                    <ul className="mt-[1.2vh] flex flex-col gap-[0.55vh]">
+                      {p.items.map((it) => (
+                        <li
+                          key={it}
+                          className="flex items-baseline gap-[0.5vw] font-body text-[0.76vw] leading-[1.25] text-text/65"
+                        >
+                          <span
+                            className={`mt-[0.45vh] h-[0.26vw] w-[0.26vw] shrink-0 rounded-full ${toneDot(
+                              p.tone,
+                            )}`}
+                          />
+                          {it}
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                 </div>
-                {di < DAILY.length - 1 && (
-                  <div className="flex items-center px-[0.9vw]">
-                    <span className="font-display text-[1.3vw] text-text/25" aria-hidden>
-                      →
-                    </span>
-                  </div>
-                )}
-              </Fragment>
+              </motion.div>
             ))}
           </div>
         </motion.div>
 
         {/* BOTTOM BAND — compounding loop + proof metrics */}
         <motion.div
-          className="mt-auto pt-[2.4vh] border-t border-text/15"
-          {...reveal(1.15)}
+          className="mt-auto pt-[2.6vh] border-t border-text/15"
+          {...reveal(1.35)}
         >
           <div className="flex items-end justify-between gap-[3vw]">
             <div className="flex flex-col gap-[1.2vh]">
-              <span className="font-display uppercase tracking-[0.3em] text-[0.74vw] text-red font-semibold">
+              <span className="font-display uppercase tracking-[0.3em] text-[0.72vw] text-red font-semibold">
                 The Compounding Loop
               </span>
-              <div className="flex flex-wrap items-baseline gap-x-[1.3vw] gap-y-[0.4vh] font-display text-[0.86vw] leading-none">
-                {COMPOUNDS.map((c) => (
-                  <span key={c.a} className="text-text/45 font-light">
-                    {c.a} creates{" "}
-                    <span className="text-text/75 font-normal">{c.b}</span>.
-                  </span>
-                ))}
-              </div>
-              <div className="mt-[0.3vh] flex items-baseline gap-x-[0.55vw] font-display text-[1.05vw] leading-none whitespace-nowrap">
+              <div className="flex items-baseline gap-x-[0.6vw] font-display text-[1.1vw] leading-none whitespace-nowrap">
                 {LOOP.map((n, i) => (
-                  <span key={n.w} className="flex items-baseline gap-x-[0.55vw]">
+                  <span key={n.w} className="flex items-baseline gap-x-[0.6vw]">
                     <span
                       className={`${toneText(n.tone)} ${n.tone === "ink" ? "text-text/75 font-light" : "font-normal"}`}
                     >
@@ -384,7 +422,7 @@ export default function CustomerJourney() {
             </div>
 
             <div className="flex flex-col gap-[1.2vh] items-end">
-              <span className="font-display uppercase tracking-[0.3em] text-[0.74vw] text-blue font-semibold">
+              <span className="font-display uppercase tracking-[0.3em] text-[0.72vw] text-blue font-semibold">
                 Proof Metrics
               </span>
               <div className="flex items-stretch gap-[1.8vw]">
@@ -394,11 +432,11 @@ export default function CustomerJourney() {
                     className={`flex flex-col ${i > 0 ? "pl-[1.8vw] border-l border-text/15" : ""}`}
                   >
                     <span
-                      className={`font-display font-normal tracking-[-0.01em] text-[1vw] leading-none whitespace-nowrap ${toneText(m.tone)}`}
+                      className={`font-display font-normal tracking-[-0.01em] text-[1.05vw] leading-none whitespace-nowrap ${toneText(m.tone)}`}
                     >
                       {m.v}
                     </span>
-                    <span className="mt-[0.8vh] font-display uppercase tracking-[0.22em] text-[0.6vw] text-text/40 font-semibold">
+                    <span className="mt-[0.8vh] font-display uppercase tracking-[0.22em] text-[0.58vw] text-text/40 font-semibold">
                       {m.l}
                     </span>
                   </div>
