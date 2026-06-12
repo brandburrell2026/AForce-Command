@@ -1,0 +1,90 @@
+Create a clean, premium AForce customer journey slide as a responsive HTML/CSS page.
+
+Design style:
+- White/light gray luxury tech background
+- AForce red, black, gray, and electric blue accents
+- Large headline: “From first sip to membership.”
+- Make it visually easier to read with bigger spacing, fewer tiny words, clean cards, icons, and strong hierarchy
+- 16:9 presentation layout
+
+Top left:
+A FORCE logo text in red
+Subtitle: CUSTOMER JOURNEY
+
+Top right:
+Small pill: PATENT-PROTECTED
+Small journey label: Morning · Midday · Evening · Membership
+
+Main section:
+Create a 5-step horizontal customer journey timeline:
+
+1. DISCOVER — First Sip
+Bullets: Retail, Amazon, Events, Referrals
+Goal: Trial
+
+2. ACTIVATE — Scan & Join
+Bullets: Scan QR code, Create AForce OS account, Readiness assessment
+Goal: Activation
+
+3. THE RITUAL
+Big red text:
+PAUSE.
+HYDRATE.
+LOCK IN.
+PERFORM.
+Text: Morning Stick → Midday Drink → AForce OS
+Goal: Habit Formation
+
+4. BUILD BEHAVIOR
+Bullets: Daily streaks, Protocol completion, Readiness tracking, Challenges, Founder content
+Goal: Retention
+
+5. MEMBERSHIP
+Bullets: Premium AForce OS, Monthly product allocation, Community access, Events & experiences, Advanced protocols
+Goal: Recurring Revenue
+
+Product section:
+Title: THE AFORCE SYSTEM — PRODUCTS
+
+Create three large product cards:
+
+Morning — AForce Hydration Sticks
+Tagline: Hydration. Focus. Daily lock-in.
+Bullets:
+- Readiness check
+- Daily protocol
+- Performance goal
+Include a red stick packet / box product placeholder image.
+
+Midday — AForce Drinks
+Tagline: Energy. Endurance. Midday boost.
+Bullets:
+- Energy support
+- Hydration reminder
+- Streak tracking
+Include a sleek black can placeholder image.
+
+Evening — AForce OS
+Tagline: Recover. Reflect. Reset.
+Bullets:
+- Recovery protocol
+- Progress review
+- Next-day prep
+Include a smartphone app dashboard placeholder.
+
+Bottom section:
+Left card: THE COMPOUNDING LOOP
+Show: Product → Ritual → Behavior → Retention → Membership → Advocacy → Scale
+
+Right card: PROOF METRICS
+- NPS 60+
+- 60-Day Retention 60%+
+- Membership Conversion 20%+
+
+Footer:
+CONFIDENTIAL — FOR DISCUSSION PURPOSES ONLY
+SECTION 4 — THE SYSTEM · THE JOURNEY
+13 / 24
+
+Make it polished, investor-deck quality, easy to read, and fully responsive.
+Use only HTML, CSS, and minimal JavaScript if needed.
