@@ -19,7 +19,7 @@ export default function TheAdvisors() {
   const ADVISORS: Advisor[] = [
     {
       name: "Peter Ingwersen",
-      title: "Former CEO, Denham · Advisor, Levi's",
+      title: "Former Global Brand Director, Levi's · Advisor, Red Bull",
       area: "Cultural architect and brand builder",
       src: `${base}peter.jpg`,
       position: "center 22%",
