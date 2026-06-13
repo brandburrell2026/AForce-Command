@@ -19,3 +19,19 @@ subject; transparent padding inflates that box.
 box hugs the product before referencing it in a tight-crop layout:
 `magick in.png -trim +repage out.png` (note: IMv7 — use `magick`, `convert` is deprecated;
 only `magick/identify` are reliably on PATH). Then the existing left/height values just work.
+
+## A single horizontal stick hero photo can't fill the slide-9 vertical back-row
+The real AForce stick product photo is ONE wide horizontal pouch shot with the soursop fruit
++ water splash attached on the left/top. The TheRitual product stage expects 3 vertical
+back-row sticks standing behind the cans. You cannot synthesize 3 vertical sticks from this
+one horizontal asset, and a clean rectangular crop can't fully separate pouch from fruit
+(they overlap at the left crimp).
+
+**Why:** asset orientation/count mismatch; cropping the fruit off squares the pouch ends and
+clips the pH badge if you go too tight.
+
+**How to apply:** crop to just the silver pouch body (`magick stick.png -crop WxH+X+Y +repage
+-trim +repage`, iterate X/Y by eye via the read tool) and FLOAT it softly above the can
+lineup (small width, low blur) instead of wedging it in the back row where the cans occlude
+it into an unreadable blob. For true slide-9 parity, ask the user for vertical per-flavor
+stick photos — don't fabricate them.
