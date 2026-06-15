@@ -19,15 +19,15 @@ export default function TheAdvisors() {
   const ADVISORS: Advisor[] = [
     {
       name: "Peter Ingwersen",
-      title: "Former Global Brand Director, Levi's · Advisor, Red Bull",
-      area: "Cultural architect and brand builder",
+      title: "Cultural Architect & Brand Builder",
+      area: "Former Global Brand Director, Levi's · Advisor, Red Bull",
       src: `${base}peter.jpg`,
       position: "center 22%",
     },
     {
       name: "Kristel van Kleef",
-      title: "Brand Advisor · On Running",
-      area: "Brand strategy and ecosystem design",
+      title: "Brand Strategy and Ecosystem Design",
+      area: "Brand Advisor · On Running",
       src: `${base}kristel.jpg`,
       position: "center 22%",
     },

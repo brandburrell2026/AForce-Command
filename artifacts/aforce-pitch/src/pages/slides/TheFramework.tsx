@@ -37,7 +37,7 @@ export default function TheFramework() {
   const photo = `${base}images/bg/11-framework.png`;
 
   return (
-    <SlideFrame slide={13}>
+    <SlideFrame slide={12}>
       <div className="absolute inset-0">
         {/* cinematic ascent — a real staircase echoing the compounding chain,
             bleeding off the lower-right and melting into the paper */}
