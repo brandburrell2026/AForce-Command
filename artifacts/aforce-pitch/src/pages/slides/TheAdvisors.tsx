@@ -26,8 +26,8 @@ export default function TheAdvisors() {
     },
     {
       name: "Kristel van Kleef",
-      title: "Brand Strategy and Ecosystem Design",
-      area: "Brand Advisor · On Running",
+      title: "Founder, KvK & Co",
+      area: "Former Global Head of Brand Events, On · Former VP Marketing, Red Bull",
       src: `${base}kristel.jpg`,
       position: "center 22%",
     },
