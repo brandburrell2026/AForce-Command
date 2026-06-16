@@ -85,11 +85,12 @@ with massive whitespace. One emphasis word per H1 in red or blue.
   `<SlideFrame slide={N}>` — it is NOT derived from the manifest position.**
   Inserting/removing/reordering slides means updating the `slide={N}` prop in
   EVERY shifted slide file to match its new manifest position, in lockstep with
-  the manifest, `TOTAL_SLIDES`, and `SECTIONS` ranges. **Why:** the slide-10
-  removal only fixed the manifest + chrome and left every slide from position 10
-  onward showing a page number one too high (footer "17/18" on the 16th slide);
-  validate-slides does NOT catch this (it only checks the manifest). After any
-  count/order change, screenshot a shifted slide and confirm its footer "NN/total".
+  the manifest, `TOTAL_SLIDES`, and `SECTIONS` ranges. **Why:** fixing only the
+  manifest + chrome leaves every slide at/after the change point showing a page
+  number one off (e.g. footer "17/18" on the 16th slide); validate-slides does
+  NOT catch this (it only checks the manifest, not the hardcoded `slide={N}`
+  literals). **How to apply:** after any count/order change, screenshot a shifted
+  slide and confirm its footer reads the correct "NN / total".
 - `BG_NAMES` in `SlideChrome.tsx` is effectively DEAD: no slide file uses
   `SlideChrome` (they all use `SlideFrame`), so `BG_NAMES`/the faded bg plate
   never renders for real slides. Leave it stale; don't bother renumbering it on
