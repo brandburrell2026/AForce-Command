@@ -31,7 +31,6 @@ import { GradientBackground } from '@/components/GradientBackground';
 import { CycleSuccessOverlay } from '@/components/CycleSuccessOverlay';
 import { ScoreBreakdownSheet } from '@/components/ScoreBreakdownSheet';
 import { CommandConsole } from '@/components/home/CommandConsole';
-import { WaterCycleBar } from '@/components/WaterCycleBar';
 import { EntryActions } from '@/components/home/EntryActions';
 import { LiveStatusLine } from '@/components/home/LiveStatusLine';
 import { NotificationBanner } from '@/components/home/NotificationBanner';
@@ -192,7 +191,6 @@ interface BodyProps {
   onPrimaryCta: () => void;
   onTapHeat: () => void;
   isCompletingCycle: boolean;
-  cycleProgress: { current: number; target: number };
   lastIntakeMinutes: number | null;
   voiceCoachEnabled: boolean;
   orbSize: number;
@@ -205,7 +203,6 @@ function ScoreDrivenBody({
   onPrimaryCta,
   onTapHeat,
   isCompletingCycle,
-  cycleProgress,
   lastIntakeMinutes,
   voiceCoachEnabled,
   orbSize,
@@ -326,17 +323,15 @@ function ScoreDrivenBody({
         <EntryActions />
       </View>
 
-      {/* ── Telemetry — WATER CYCLE 8-cell bar ─────────────────────
-          Visual progress bar (8 cells) that fills + recolors based on
-          current performanceState (red Depleted, yellow Recovering,
-          green Peak, etc). Replaces the older text-only counter. */}
-      <View testID="home-cycle-progress" accessibilityLabel={`Water cycle ${cycleProgress.current} of ${cycleProgress.target}`}>
-        <WaterCycleBar
-          unitsConsumed={cycleProgress.current}
-          dailyTarget={cycleProgress.target}
-          performanceState={engine.performanceState}
-        />
-      </View>
+      {/* ── Water Cycle — Hydration Status ───────────────────────────
+          The Hydration Status card now occupies the Water Cycle slot
+          (owner request, June 2026). The old WATER CYCLE 8-cell telemetry
+          bar was removed from Home; the WaterCycleBar component remains in
+          the codebase (still used by SignalsZone) so the change is
+          reversible. Every value is a projection of real logged behaviour
+          (utils/homeDashboard) — Score-Protection safe. */}
+      <HomeDashboard />
+
       {lastIntakeMinutes != null && (
         <View style={styles.lastIntakeRow}>
           <Text style={styles.metaLabel}>Last intake</Text>
@@ -383,10 +378,6 @@ function ScoreDrivenBody({
         </View>
       )}
 
-      {/* ── Home dashboard ──────────────────────────────────────────
-          Hydration Status. Every value is a projection of real logged
-          behaviour (utils/homeDashboard) — Score-Protection safe. */}
-      <HomeDashboard />
     </>
   );
 }
@@ -526,17 +517,6 @@ export default function HomeScreen() {
   const city = userState.weatherCity ?? null;
   const tempLabel = formatTemperatureF(userState.weatherTempC);
 
-  // Cycle progress (units consumed / daily target). Spec asks for
-  // "Water Cycle 6/8" framing — we render units-against-target which
-  // is the closest existing metric.
-  const cycleProgress = React.useMemo(
-    () => ({
-      current: Math.max(0, Math.round(userState.unitsConsumedToday ?? 0)),
-      target: Math.max(1, Math.round(userState.dailyTarget ?? 8)),
-    }),
-    [userState.unitsConsumedToday, userState.dailyTarget],
-  );
-
   // Last intake — newest event in the last 24h window.
   const lastIntakeMinutes = React.useMemo(() => {
     const events = intake.recentEvents ?? [];
@@ -588,7 +568,6 @@ export default function HomeScreen() {
               onPrimaryCta={onPrimaryCta}
               onTapHeat={onTapHeat}
               isCompletingCycle={state.isCompletingCycle}
-              cycleProgress={cycleProgress}
               lastIntakeMinutes={lastIntakeMinutes}
               voiceCoachEnabled={voiceCoachEnabled}
               orbSize={layout.orbSize}
