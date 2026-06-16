@@ -101,6 +101,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
       { id: 'city_compete',   label: 'City + State leaderboards',        flag: 'city_competition_enabled' },
       { id: 'team_compete',   label: 'Team leaderboard participation',   flag: 'team_competition_enabled' },
       { id: 'premium_notif',  label: 'Premium notifications' },
+      { id: 'metabolic_readiness', label: 'Metabolic Readiness', detail: 'Muscle + cognitive readiness estimates from hydration, recovery, sleep & HRV.', flag: 'metabolic_readiness_enabled', badge: 'PRO' },
     ],
   },
   {

@@ -104,6 +104,8 @@ export const baseFlags: FeatureFlags = {
   state_competition_enabled: false,
   team_competition_enabled: false,
   global_leaderboard_enabled: false,
+  metabolic_readiness_enabled: false,
+  metabolic_glucose_enabled: false,
   cruise_mode_enabled: false,
   cruise_journey_pulse_enabled: false,
   cruise_commerce_enabled: false,

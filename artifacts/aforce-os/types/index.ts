@@ -476,6 +476,12 @@ export interface FeatureFlags {
   team_competition_enabled: boolean;
   global_leaderboard_enabled: boolean;
 
+  // Athlete tier — Metabolic Readiness (muscle + cognitive estimates).
+  // Master switch for the Home surface; gated to the Athlete plan in the
+  // entitlements layer. The glucose lane is engine-only (no UI yet).
+  metabolic_readiness_enabled: boolean;
+  metabolic_glucose_enabled: boolean;
+
   // Enterprise — Cruise Mode (premium add-on for cruise lines & guests).
   // Master switch. Phase 1 public release lights up Journey Pulse,
   // Guest Readiness Signal, Today's Flow, and Port Signal. Phases 2/3

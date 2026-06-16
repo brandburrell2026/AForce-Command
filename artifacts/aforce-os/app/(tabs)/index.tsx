@@ -36,6 +36,7 @@ import { LiveStatusLine } from '@/components/home/LiveStatusLine';
 import { NotificationBanner } from '@/components/home/NotificationBanner';
 import { SmartModesBanner } from '@/components/home/SmartModesBanner';
 import { HomeDashboard } from '@/components/home/HomeDashboard';
+import { MetabolicReadinessZone } from '@/components/home/MetabolicReadinessZone';
 import { useAnalyticsRecorder } from '@/hooks/useAnalyticsRecorder';
 import { useScoreTrend } from '@/hooks/useScoreTrend';
 import { getStatusVerb } from '@/services/statusVerb';
@@ -331,6 +332,15 @@ function ScoreDrivenBody({
           reversible. Every value is a projection of real logged behaviour
           (utils/homeDashboard) — Score-Protection safe. */}
       <HomeDashboard />
+
+      {/* ── Metabolic Readiness (AForce Athlete tier) ───────────────────
+          Additive, feature-flagged (metabolic_readiness_enabled) card.
+          Renders nothing when the flag is off. Display-only wellness
+          ESTIMATES (muscle + cognitive) — a one-directional projection of
+          the hydration + recovery engines that never awards or mutates
+          score (Score-Protection). Non-entitled users see a locked teaser
+          that routes to the Athlete plan. */}
+      <MetabolicReadinessZone />
 
       {lastIntakeMinutes != null && (
         <View style={styles.lastIntakeRow}>

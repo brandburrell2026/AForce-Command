@@ -34,6 +34,11 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   team_competition_enabled: true,
   global_leaderboard_enabled: true,
 
+  // Athlete tier — Metabolic Readiness. Ships OFF in production; the
+  // glucose lane stays OFF everywhere (engine-only, no UI yet).
+  metabolic_readiness_enabled: false,
+  metabolic_glucose_enabled: false,
+
   // Enterprise — Cruise Mode (premium add-on). Per spec: master switch
   // is ON for internal builds, OFF for the public production binary.
   // Each Phase 2/3 sub-feature ships OFF by default and lights up on
@@ -112,6 +117,8 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
   state_competition_enabled: true,
   team_competition_enabled: true,
   global_leaderboard_enabled: true,
+  metabolic_readiness_enabled: true,
+  metabolic_glucose_enabled: false,
   cruise_mode_enabled: true,
   cruise_journey_pulse_enabled: true,
   cruise_commerce_enabled: true,

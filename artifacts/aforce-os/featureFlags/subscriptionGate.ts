@@ -36,6 +36,7 @@ export const FEATURE_REQUIREMENTS: Record<string, { plan: SubscriptionPlanId; la
   city_compete:       { plan: 'athlete',  label: 'City + State Leaderboards' },
   team_compete:       { plan: 'athlete',  label: 'Team Leaderboards' },
   premium_notif:      { plan: 'athlete',  label: 'Premium Notifications' },
+  metabolic_readiness: { plan: 'athlete', label: 'Metabolic Readiness' },
 
   // ─── AForce System (flagship consumer) ────────────────────────────────
   product_sub:        { plan: 'system',   label: 'AForce Product Subscription' },
