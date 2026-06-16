@@ -45,7 +45,7 @@ export default function ProofEngine() {
   const LIFT = `${uid}-fl-lift`;
 
   return (
-    <SlideFrame slide={17}>
+    <SlideFrame slide={18}>
       <div className="absolute inset-0 flex pt-[12vh] pb-[9vh]">
         {/* LEFT — argument */}
         <div className="w-[52%] flex flex-col justify-center px-[5vw]">
