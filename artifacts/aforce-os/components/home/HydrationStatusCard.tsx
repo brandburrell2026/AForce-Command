@@ -14,11 +14,31 @@ import { Colors } from '@/theme/colors';
 
 const BRAND = Colors.accent.brand;
 
+/** Build an `rgba()` string from a 3- or 6-digit hex + alpha (0-1).
+ * Falls back to the brand red when handed a non-hex value so a bad
+ * accent can never emit `rgba(NaN, NaN, NaN, …)`. */
+function hexToRgba(hex: string, alpha: number): string {
+  const h = hex.replace('#', '');
+  const full = h.length === 3 ? h.split('').map((c) => c + c).join('') : h;
+  const r = parseInt(full.slice(0, 2), 16);
+  const g = parseInt(full.slice(2, 4), 16);
+  const b = parseInt(full.slice(4, 6), 16);
+  if ([r, g, b].some((n) => Number.isNaN(n))) return `rgba(255, 59, 48, ${alpha})`;
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
 interface Props {
   percent: number;
   water: string;
   electrolytes: string;
   recovery: string;
+  /**
+   * Accent hue for the ring / eyebrow / scan button. Pass the live
+   * score-band color (getStatusColor(score).primary) so the card
+   * reflects the same color as the Readiness score. Defaults to the
+   * brand red when omitted.
+   */
+  accent?: string;
   /** Opens the HydroScan flow. When omitted the button is hidden. */
   onScan?: () => void;
 }
@@ -37,12 +57,15 @@ function StatRow({ label, value }: { label: string; value: string }) {
   );
 }
 
-export function HydrationStatusCard({ percent, water, electrolytes, recovery, onScan }: Props) {
+export function HydrationStatusCard({ percent, water, electrolytes, recovery, accent, onScan }: Props) {
   const pct = Math.min(100, Math.max(0, percent));
   const offset = CIRC * (1 - pct / 100);
+  const tint = accent ?? BRAND;
+  const tintBorder = hexToRgba(tint, 0.45);
+  const tintFill = hexToRgba(tint, 0.06);
   return (
     <View style={styles.card}>
-      <Text style={styles.eyebrow}>HYDRATION STATUS</Text>
+      <Text style={[styles.eyebrow, { color: tint }]}>HYDRATION STATUS</Text>
       <View style={styles.body}>
         <View style={styles.ringWrap}>
           <Svg width={SIZE} height={SIZE}>
@@ -59,7 +82,7 @@ export function HydrationStatusCard({ percent, water, electrolytes, recovery, on
                 cx={SIZE / 2}
                 cy={SIZE / 2}
                 r={R}
-                stroke={BRAND}
+                stroke={tint}
                 strokeWidth={STROKE}
                 strokeLinecap="round"
                 strokeDasharray={`${CIRC}, ${CIRC}`}
@@ -88,10 +111,10 @@ export function HydrationStatusCard({ percent, water, electrolytes, recovery, on
           accessibilityRole="button"
           accessibilityLabel="Open HydroScan to scan a drink"
           testID="home-hydroscan-button"
-          style={styles.scanBtn}
+          style={[styles.scanBtn, { borderColor: tintBorder, backgroundColor: tintFill }]}
         >
-          <Icon name="camera" size={16} color={BRAND} />
-          <Text style={styles.scanBtnText}>SCAN A DRINK</Text>
+          <Icon name="camera" size={16} color={tint} />
+          <Text style={[styles.scanBtnText, { color: tint }]}>SCAN A DRINK</Text>
         </TouchableOpacity>
       ) : null}
     </View>

@@ -18,6 +18,8 @@ import { useRouter } from 'expo-router';
 
 import { useEngineSlice, useUserSlice, useIntakeSlice } from '@/store/slices';
 import { hydrationPercent, type PerformanceLevel } from '@/utils/homeDashboard';
+import { useDisplayedAccent } from '@/hooks/useDisplayedAccent';
+import { accentForScore } from '@/utils/scoreBand';
 
 import { HydrationStatusCard } from './HydrationStatusCard';
 
@@ -33,12 +35,21 @@ export function HomeDashboard() {
   const engine = useEngineSlice();
   const userState = useUserSlice();
   const intake = useIntakeSlice();
+  const displayedAccent = useDisplayedAccent();
 
   const units = Math.max(0, Math.round(userState.unitsConsumedToday ?? 0));
   const target = Math.max(1, Math.round(userState.dailyTarget ?? 8));
   const level = engine.performanceState.level as PerformanceLevel;
 
   const pct = hydrationPercent(units, target);
+
+  // Reflect the SAME color the Readiness orb renders on the card's ring /
+  // eyebrow / scan button. The orb tints from the displayed (tweened)
+  // accent under DisplayedAccentProvider, so reading that here keeps the
+  // card in lock-step with the orb's color as the score animates. Falls
+  // back to the engine's instantaneous band accent if the provider is
+  // ever absent.
+  const scoreAccent = displayedAccent?.primary ?? accentForScore(engine.score).primary;
 
   // Electrolyte servings logged in the live 24h window (AForce sticks /
   // cans / RTDs). Pure count of real intake events — never inflated.
@@ -56,6 +67,7 @@ export function HomeDashboard() {
         water={`${units} / ${target}`}
         electrolytes={String(electrolyteUnits)}
         recovery={RECOVERY_LABEL[level] ?? 'Steady'}
+        accent={scoreAccent}
         onScan={() => router.push('/scan')}
       />
     </View>
