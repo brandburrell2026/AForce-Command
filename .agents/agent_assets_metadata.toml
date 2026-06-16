@@ -2609,3 +2609,9 @@ id = "VXNatauRPo-lv2PRyQ4N0"
 uri = "file://artifacts/aforce-pitch/SLIDE-GUIDE.md"
 type = "text"
 title = "AForce Investor Deck — Slide Guide"
+
+[[outputs]]
+id = "HH8OvJpCuAWaHFahLRIn2"
+uri = "file://artifacts/aforce-pitch/SLIDE-GUIDE.pdf"
+type = "pdf"
+title = "AForce Investor Deck — Slide Guide (PDF)"
