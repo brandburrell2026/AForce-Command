@@ -2603,3 +2603,9 @@ id = "89ncb1GcgzhM-YalToe1B"
 uri = "file://artifacts/aforce-pitch/public/audio/category-noise.mp3"
 type = "audio"
 title = "ambient pad bed"
+
+[[outputs]]
+id = "VXNatauRPo-lv2PRyQ4N0"
+uri = "file://artifacts/aforce-pitch/SLIDE-GUIDE.md"
+type = "text"
+title = "AForce Investor Deck — Slide Guide"
