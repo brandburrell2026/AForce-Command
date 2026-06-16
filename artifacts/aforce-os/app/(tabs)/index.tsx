@@ -383,10 +383,9 @@ function ScoreDrivenBody({
         </View>
       )}
 
-      {/* ── Redesigned Home dashboard ───────────────────────────────
-          Daily Ritual · Hydration Status · Today's Protocol · Streak ·
-          Athlete Mode · Membership. Every value is a projection of real
-          logged behaviour (utils/homeDashboard) — Score-Protection safe. */}
+      {/* ── Home dashboard ──────────────────────────────────────────
+          Hydration Status. Every value is a projection of real logged
+          behaviour (utils/homeDashboard) — Score-Protection safe. */}
       <HomeDashboard />
     </>
   );
