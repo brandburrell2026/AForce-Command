@@ -92,8 +92,10 @@ export function HydrationStatusCard({ percent, water, electrolytes, recovery, ac
             </G>
           </Svg>
           <View style={styles.ringCenter}>
-            <Text style={styles.ringPct}>{pct}</Text>
-            <Text style={styles.ringUnit}>%</Text>
+            <View style={styles.ringValue}>
+              <Text style={styles.ringPct}>{pct}</Text>
+              <Text style={styles.ringUnit}>%</Text>
+            </View>
           </View>
         </View>
         <View style={styles.stats}>
@@ -148,13 +150,19 @@ const styles = StyleSheet.create({
   },
   ringCenter: {
     ...StyleSheet.absoluteFillObject,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  ringValue: {
     flexDirection: 'row',
     alignItems: 'baseline',
-    justifyContent: 'center',
   },
   ringPct: {
     fontFamily: 'Inter_700Bold',
     fontSize: 28,
+    lineHeight: 30,
+    includeFontPadding: false,
+    textAlignVertical: 'center',
     color: Colors.text.primary,
     letterSpacing: -0.8,
   },
