@@ -2615,3 +2615,9 @@ id = "HH8OvJpCuAWaHFahLRIn2"
 uri = "file://artifacts/aforce-pitch/SLIDE-GUIDE.pdf"
 type = "pdf"
 title = "AForce Investor Deck — Slide Guide (PDF)"
+
+[[outputs]]
+id = "t9XQbP0NtNjSc-4b1pa73"
+uri = "file://artifacts/aforce-os/SPEC-SHEET.md"
+type = "text"
+title = "AForce OS — Product & Technical Specification (source doc)"
