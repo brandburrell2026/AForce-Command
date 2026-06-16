@@ -60,6 +60,15 @@
   --font-serif: var(--app-font-serif);
   --font-mono: var(--app-font-mono);
 
+  /* AForce brand type + palette (additive, does not touch shadcn tokens) */
+  --font-display: 'Outfit', var(--app-font-sans);
+  --font-label: 'Space Mono', var(--app-font-mono);
+
+  --color-ink: #0B0D12;
+  --color-paper: #DCDDDC;
+  --color-signal: #E41E2B;
+  --color-electric: #2F5BFF;
+
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -443,4 +452,64 @@
     50%      { box-shadow: 0 0 0 8px rgba(255, 53, 72, 0); }
   }
   .pulse-dot { animation: pulseDot 2.4s ease-out infinite; }
+}
+
+/* ─── AForce v2 — Controlled Focus design language ────────────── */
+@layer utilities {
+  .font-display { font-family: var(--font-display); }
+  .font-label   { font-family: var(--font-label); }
+
+  /* Condensed, aggressive display headline treatment (Outfit isn't a
+     condensed face, so we tighten tracking + squeeze horizontally). */
+  .display-condensed {
+    font-family: var(--font-display);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    transform: scaleX(0.92);
+    transform-origin: left center;
+  }
+  .display-condensed.is-center { transform-origin: center center; }
+
+  .tnum { font-feature-settings: "tnum"; font-variant-numeric: tabular-nums; }
+
+  /* Hairline divider on the light "paper" surface */
+  .hairline-ink {
+    background-image: linear-gradient(
+      to right,
+      transparent,
+      rgba(11, 13, 18, 0.18) 15%,
+      rgba(11, 13, 18, 0.18) 85%,
+      transparent
+    );
+  }
+
+  /* Signal red glow for the rare red accent */
+  .text-signal-glow {
+    color: #E41E2B;
+    text-shadow: 0 0 28px rgba(228, 30, 43, 0.4), 0 0 70px rgba(228, 30, 43, 0.14);
+  }
+
+  @keyframes signalSweep {
+    0%   { transform: scaleX(0); opacity: 0; }
+    18%  { opacity: 1; }
+    100% { transform: scaleX(1); opacity: 1; }
+  }
+  .signal-sweep {
+    transform-origin: left center;
+    animation: signalSweep 1.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  @keyframes slowFloat {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-14px); }
+  }
+  .slow-float { animation: slowFloat 9s ease-in-out infinite; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .signal-sweep, .slow-float, .breathe, .fade-up, .pulse-dot {
+      animation: none !important;
+    }
+    .signal-sweep { transform: scaleX(1); opacity: 1; }
+    .fade-up { opacity: 1; }
+  }
 }

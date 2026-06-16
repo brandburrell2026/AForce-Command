@@ -17,6 +17,24 @@ Inline `transition={{ ease: "easeOut" }}` / variants with `ease: "easeInOut"` ty
 because the literal widens to `string`, which isn't assignable to framer-motion's `Easing`.
 **How to apply:** append `as const` to each ease literal (`ease: "easeOut" as const`).
 
+## framer-motion `useScroll({ target })` logs a benign "container has a non-static position" warning
+Scroll-linked reveals via `useScroll({ target: ref, offset: [...] })` can keep logging
+`Please ensure that the container has a non-static position…` even when the measured ref IS
+`position: relative` and the page scrolls on the document. Making the target explicitly
+positioned and switching a wrapping `overflow-x-hidden` (which forces `overflow-y:auto` →
+implicit non-scrolling scroll container) to `overflow-x-clip` does NOT silence it. It's a
+spurious initial-measurement warning; the scroll-driven `useTransform` fill still works.
+**How to apply:** don't burn time chasing it. Verify the fill animates on real scroll, gate it
+for reduced motion (`useReducedMotion()` → static `100%`), and move on.
+
+## framer reveals need explicit reduced-motion handling — the CSS `prefers-reduced-motion` query does NOT cover them
+A `@media (prefers-reduced-motion)` block only disables CSS keyframe animations. framer-motion
+`initial/animate/whileInView`, hover lifts, `AnimatePresence`, and scroll-linked spines keep
+running, and because reveals start at `opacity:0`, an IntersectionObserver/JS hiccup leaves real
+content invisible for reduced-motion users.
+**How to apply:** call `useReducedMotion()` and, when true, pass `initial={false}` + drop
+`whileInView`/`transition` (render final state instantly); for scroll fills use a static value.
+
 ## external_url screenshot tool caches by normalized URL
 The `screenshot` tool with `type=external_url` returns byte-identical frames across calls
 even for continuously-animating pages — it strips the hash and ignores query for its cache
