@@ -23,15 +23,6 @@ const USE = [
     glow: "rgba(228,30,43,0.45)",
   },
   {
-    pctLabel: "20%",
-    basis: 20,
-    amount: "$800,000",
-    label: "Sales & Marketing",
-    sub: "Customer acquisition, influencer campaigns, ambassador programs, experiential marketing, digital advertising, and brand awareness.",
-    grad: "linear-gradient(90deg, #ff5a4f 0%, #ff8579 100%)",
-    glow: "rgba(255,90,79,0.42)",
-  },
-  {
     pctLabel: "21.25%",
     basis: 21.25,
     amount: "$850,000",
@@ -39,6 +30,15 @@ const USE = [
     sub: "Personnel, insurance, legal, accounting, administration, and corporate infrastructure.",
     grad: "linear-gradient(90deg, #3a352f 0%, #6b645c 100%)",
     glow: "rgba(26,24,19,0.32)",
+  },
+  {
+    pctLabel: "20%",
+    basis: 20,
+    amount: "$800,000",
+    label: "Sales & Marketing",
+    sub: "Customer acquisition, influencer campaigns, ambassador programs, experiential marketing, digital advertising, and brand awareness.",
+    grad: "linear-gradient(90deg, #ff5a4f 0%, #ff8579 100%)",
+    glow: "rgba(255,90,79,0.42)",
   },
   {
     pctLabel: "8.75%",
