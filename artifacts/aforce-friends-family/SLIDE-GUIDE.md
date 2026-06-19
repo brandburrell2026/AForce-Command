@@ -1,6 +1,6 @@
 # AForce — Friends & Family Deck Slide Guide
 
-A slide-by-slide explanation of the AForce Friends & Family deck (24 slides). Use this as
+A slide-by-slide explanation of the AForce Friends & Family deck (27 slides). Use this as
 speaker notes or a narrative map. The deck is built as one continuous argument:
 **a product becomes a ritual, a ritual becomes behavior, behavior becomes
 retention, retention becomes a recurring membership business.**
@@ -13,8 +13,8 @@ The deck moves through six acts:
 | **The Team** | 3–5 | Establish credibility — the platform, the founders, the advisors. |
 | **The Opportunity** | 6–8 | Size the market, expose the gap, claim the white space. |
 | **The System** | 9–13 | Show the product is a *system*, not a beverage. |
-| **The Plan** | 14–21 | Prove how the system compounds into a defensible, fundable business. |
-| **The Close** | 22–24 | Make the ask, restate the thesis, invite the partnership. |
+| **The Plan** | 14–24 | Prove how the system compounds into a defensible, fundable business — and what it returns. |
+| **The Close** | 25–27 | Make the ask, restate the thesis, invite the partnership. |
 
 ---
 
@@ -143,21 +143,39 @@ The closing argument before the ask: behavioral readiness is an open category;
 national validation comes through America's Real Deal; membership economics create
 recurring revenue; and the GTM is proof-driven, not hope-driven.
 
+### Slide 22 — Projected Investor Returns
+The upside, made concrete. Illustrative returns on a 0.125%–0.50% stake at this
+round: $25K, $50K, and $100K checks projected to roughly **18× by Year 3** and
+**50× by Year 5** — the same multiple holds at every check size. Forward-looking
+projections, not a guarantee.
+
+### Slide 23 — Projected Investor Returns · BodyArmor Comparison
+What a similar exit would return, anchored to a real category outcome. BodyArmor was
+founded in 2011 and acquired by Coca-Cola for **$5.6B** in 2021. At a comparable
+exit, a 0.125%–0.50% stake returns roughly **$7M, $14M, and $28M**. An illustrative
+hypothetical — comparable outcomes don't predict AForce results.
+
+### Slide 24 — Why AForce Is a Prime Acquisition Target
+Strategic acquirers buy category-owning, behavior-driving brands. The comparable
+set: **Prime** ($250M+ first-year sales), **BodyArmor** ($5.6B to Coca-Cola),
+**Liquid I.V.** ($500M to Unilever), and **Oatly** ($10B+ IPO valuation).
+Coca-Cola, Unilever, PepsiCo — AForce is built to be next.
+
 ---
 
 ## The Close
 
-### Slide 22 — The Ask
+### Slide 25 — The Ask
 The raise: **$4M**, allocated across product and inventory, marketing, technology,
 and team and operations. Restates the audience line: built for people who don't get
 to be off.
 
-### Slide 23 — The Close
+### Slide 26 — The Close
 The thesis in one line: this isn't about proving people like a hydration product —
 it's **Product → Ritual → Behavior → Retention → Membership → Scale**. The proof
 sequence *is* the business.
 
-### Slide 24 — Contact
+### Slide 27 — Contact
 The invitation: join before the national stage. Founders Brandon and Julius
 Burrell, New York HQ, drinkaforce.com. The mission stated plainly — a readiness
 ritual becoming a recurring membership business, built for people who don't get to

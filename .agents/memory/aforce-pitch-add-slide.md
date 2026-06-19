@@ -1,7 +1,12 @@
 ---
-name: aforce-pitch adding a slide
-description: The cross-file wiring required to add/remove a slide in the aforce-pitch deck
+name: aforce-pitch / aforce-friends-family adding a slide
+description: The cross-file wiring required to add/remove/reorder a slide in the aforce-pitch AND aforce-friends-family decks (identical chrome architecture)
 ---
+
+Applies identically to BOTH `artifacts/aforce-pitch` and `artifacts/aforce-friends-family`:
+same `slideLoader.ts` + manifest `position` + hardcoded `SlideFrame slide={N}` +
+hardcoded `SlideChrome.tsx` `TOTAL_SLIDES`/`SECTIONS`. Treat the rules below as
+deck-agnostic.
 
 Slide bodies auto-load from `src/data/slides-manifest.json` via `slideLoader.ts`
 (`import.meta.glob` over `src/pages/slides/*.tsx`, sorted by `position`). So a new

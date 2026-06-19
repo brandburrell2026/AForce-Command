@@ -49,7 +49,7 @@ export default function TheClose() {
   const reduce = useReducedMotion();
 
   return (
-    <SlideFrame slide={23} phaseLabel="The Thesis" hideTopWordmark>
+    <SlideFrame slide={26} phaseLabel="The Thesis" hideTopWordmark>
       {/* faint depth glow, lower-right — the system warming as it compounds */}
       <div
         aria-hidden
