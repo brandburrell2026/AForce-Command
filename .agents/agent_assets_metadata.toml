@@ -2621,3 +2621,9 @@ id = "t9XQbP0NtNjSc-4b1pa73"
 uri = "file://artifacts/aforce-os/SPEC-SHEET.md"
 type = "text"
 title = "AForce OS — Product & Technical Specification (source doc)"
+
+[[outputs]]
+id = "9yII3Prb5zJaPxXglwQmv"
+uri = "file://artifacts/aforce-os/docs/AForce-OS-Specification.pdf"
+type = "pdf"
+title = "AForce OS — Product & Technical Specification"
