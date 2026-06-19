@@ -33,3 +33,28 @@ score refresh rebuilt the timeline effect on essentially every launch.
 (fallback before load) and `readinessLabel(performanceState.level)` for a
 band-aware caption — never hardcode "READY TO PERFORM" (a DEPLETED user must read
 "REHYDRATE NOW"). Never award/mutate score from an overlay.
+
+## Time-based "isDue" overlays (Voice Check-In morning ritual)
+
+When an overlay's visibility is a **pure function of wall-clock time** (e.g.
+"due only inside the morning window AND not snoozed") but the store only notifies
+on writes, the overlay must schedule its own re-check timer — there is no event
+to wake it when a window opens/closes.
+
+**Rule:** schedule the re-check timer ONLY for a strictly-future expiry
+(`delay > 0`). Never call `setState`/bump a revalidate tick for an
+already-expired time. Push that decision into a pure helper
+(`snoozeRevalidationDelay(untilMs, now) → positive ms | null`) and unit-test it.
+
+**Why:** caught in architect review. The earlier code did
+`if (delay <= 0) setRevalidateTick(...)`. If a snooze expired *outside* the
+morning window, `isDue` stays false and the snooze value stays non-null, so the
+effect could re-enter and re-fire the state update → max-update-depth risk. An
+expired snooze needs no nudge: the next ordinary `isDue` render already accounts
+for it.
+
+**Latch, don't permanently dismiss:** keep the overlay mounted through its
+closing/confirmation screen with an `activated` latch (completing flips `isDue`
+false mid-ritual and would otherwise unmount it). CLEAR the latch on
+close/snooze — never a permanent `dismissed` boolean, or future mornings and an
+expired snooze in the same warm session can never re-open.

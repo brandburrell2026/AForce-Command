@@ -38,6 +38,7 @@ import { SmartModesBanner } from '@/components/home/SmartModesBanner';
 import { HomeDashboard } from '@/components/home/HomeDashboard';
 import { MetabolicReadinessZone } from '@/components/home/MetabolicReadinessZone';
 import { PerformanceAgeZone } from '@/components/home/PerformanceAgeZone';
+import { VoiceCheckInZone } from '@/components/home/VoiceCheckInZone';
 import { useAnalyticsRecorder } from '@/hooks/useAnalyticsRecorder';
 import { useScoreTrend } from '@/hooks/useScoreTrend';
 import { getStatusVerb } from '@/services/statusVerb';
@@ -352,6 +353,14 @@ function ScoreDrivenBody({
           consumer headline metric. Carries the required disclaimer on
           every state. */}
       <PerformanceAgeZone />
+
+      {/* ── Voice Check-In™ read-outs ────────────────────────────────────
+          Additive, feature-flagged (voice_checkin_enabled) Brain Energy™ +
+          Performance Memory™ cards. Renders nothing when the flag is off
+          (ships off in prod, on in DEMO). A display-only projection of the
+          morning check-in self-report and the recovery engine that never
+          awards or mutates score (Score-Protection). */}
+      <VoiceCheckInZone />
 
       {lastIntakeMinutes != null && (
         <View style={styles.lastIntakeRow}>

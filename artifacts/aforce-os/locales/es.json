@@ -295,5 +295,40 @@
   },
   "journal": {
     "share_social": "Compartir"
+  },
+  "voiceCheckIn": {
+    "eyebrow": "CALIBRACIÓN MATINAL",
+    "coach_default": "Tu coach",
+    "snooze": "Ahora no",
+    "skip_a11y": "Descartar el chequeo matinal",
+    "step": "{{current}} de {{total}}",
+    "intro_spoken": "Aquí {{coach}}. Vamos a calibrar tu mañana.",
+    "q_energy_spoken": "¿Cómo está tu energía esta mañana? Del uno al cinco.",
+    "q_energy_title": "¿Cómo está tu energía?",
+    "q_energy_hint": "1 = agotado · 5 = a tope",
+    "q_stress_spoken": "¿Y tu estrés? Del uno al cinco.",
+    "q_stress_title": "¿Cómo está tu estrés?",
+    "q_stress_hint": "1 = en calma · 5 = al límite",
+    "q_goal_spoken": "¿Cuál es tu objetivo principal de hoy?",
+    "q_goal_title": "¿Cuál es tu objetivo principal de hoy?",
+    "goal_train": "Entrenar",
+    "goal_compete": "Competir",
+    "goal_recover": "Recuperar",
+    "goal_focus": "Concentración",
+    "ack_spoken": "Entendido.",
+    "closing_spoken": "Hidrátate ahora. Empieza con agua. Tu plan de {{goal}} está fijado. Vamos a rendir.",
+    "closing_title": "CALIBRACIÓN FIJADA",
+    "closing_body": "HIDRÁTATE YA — empieza con agua. {{coach}} tiene tu plan de {{goal}} listo.",
+    "cta_done": "CONFIRMAR",
+    "brainEnergy": {
+      "eyebrow": "ENERGÍA MENTAL",
+      "collecting": "Completa tu chequeo matinal para ver tu Energía Mental."
+    },
+    "memory": {
+      "eyebrow": "MEMORIA DE RENDIMIENTO",
+      "empty": "Tu primer chequeo inicia tu memoria de rendimiento.",
+      "streak": "DÍAS SEGUIDOS",
+      "logged": "CHEQUEOS"
+    }
   }
 }

@@ -58,6 +58,15 @@ export interface SpeakOpts {
   level?: PerformanceLevel;
   /** Override BCP-47 locale picker. */
   language?: SupportedLanguage;
+  /**
+   * Server TTS cache opt-in. `'static'` lets an allowlisted common phrase
+   * (Voice Check-In intro / questions / acks) be served from the server
+   * cache; `'dynamic'` (or omitted) always hits ElevenLabs live. Only the
+   * ElevenLabs path honors this — the device-synth fallback ignores it.
+   */
+  cachePolicy?: 'static' | 'dynamic';
+  /** Allowlisted phrase key paired with `cachePolicy: 'static'`. */
+  phraseKey?: string;
 }
 
 /**
@@ -75,7 +84,12 @@ export function speak(text: string, opts: SpeakOpts = {}): void {
   // goes silent over a flaky network.
   const elevenLabsId = elevenLabsIdFor(selectedVoiceId);
   if (elevenLabsId) {
-    speakWithElevenLabs({ text, voiceId: elevenLabsId }).catch((err) => {
+    speakWithElevenLabs({
+      text,
+      voiceId: elevenLabsId,
+      ...(opts.cachePolicy ? { cachePolicy: opts.cachePolicy } : {}),
+      ...(opts.phraseKey ? { phraseKey: opts.phraseKey } : {}),
+    }).catch((err) => {
       console.warn('[AForce] ElevenLabs TTS failed, falling back to device:', err);
       void ttsSpeak(text, {
         ...(opts.language ? { language: opts.language } : {}),

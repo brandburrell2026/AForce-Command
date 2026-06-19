@@ -295,5 +295,40 @@
   },
   "journal": {
     "share_social": "Partager"
+  },
+  "voiceCheckIn": {
+    "eyebrow": "CALIBRAGE DU MATIN",
+    "coach_default": "Ton coach",
+    "snooze": "Pas maintenant",
+    "skip_a11y": "Ignorer le bilan du matin",
+    "step": "{{current}} sur {{total}}",
+    "intro_spoken": "{{coach}} à l'appareil. Calibrons ta matinée.",
+    "q_energy_spoken": "Comment est ton énergie ce matin ? De un à cinq.",
+    "q_energy_title": "Comment est ton énergie ?",
+    "q_energy_hint": "1 = épuisé · 5 = électrique",
+    "q_stress_spoken": "Et ton stress ? De un à cinq.",
+    "q_stress_title": "Comment est ton stress ?",
+    "q_stress_hint": "1 = calme · 5 = au maximum",
+    "q_goal_spoken": "Quel est ton objectif principal aujourd'hui ?",
+    "q_goal_title": "Quel est ton objectif principal aujourd'hui ?",
+    "goal_train": "S'entraîner",
+    "goal_compete": "Compétition",
+    "goal_recover": "Récupérer",
+    "goal_focus": "Concentration",
+    "ack_spoken": "Compris.",
+    "closing_spoken": "Hydrate-toi maintenant. Commence par l'eau. Ton plan {{goal}} est verrouillé. À nous de performer.",
+    "closing_title": "CALIBRAGE VERROUILLÉ",
+    "closing_body": "HYDRATE-TOI MAINTENANT — commence par l'eau. {{coach}} a préparé ton plan {{goal}}.",
+    "cta_done": "VERROUILLER",
+    "brainEnergy": {
+      "eyebrow": "ÉNERGIE MENTALE",
+      "collecting": "Termine ton bilan du matin pour lire ton Énergie Mentale."
+    },
+    "memory": {
+      "eyebrow": "MÉMOIRE DE PERFORMANCE",
+      "empty": "Ton premier bilan lance ta mémoire de performance.",
+      "streak": "JOURS D'AFFILÉE",
+      "logged": "BILANS"
+    }
   }
 }

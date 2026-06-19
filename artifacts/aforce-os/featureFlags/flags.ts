@@ -39,6 +39,7 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   metabolic_readiness_enabled: false,
   metabolic_glucose_enabled: false,
   performance_age_enabled: false,
+  voice_checkin_enabled: false,
 
   // Enterprise — Cruise Mode (premium add-on). Per spec: master switch
   // is ON for internal builds, OFF for the public production binary.
@@ -121,6 +122,7 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
   metabolic_readiness_enabled: true,
   metabolic_glucose_enabled: false,
   performance_age_enabled: true,
+  voice_checkin_enabled: true,
   cruise_mode_enabled: true,
   cruise_journey_pulse_enabled: true,
   cruise_commerce_enabled: true,

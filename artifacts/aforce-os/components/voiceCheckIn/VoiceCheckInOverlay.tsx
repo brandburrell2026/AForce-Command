@@ -1,0 +1,570 @@
+/**
+ * VoiceCheckInOverlay — the Voice Check-In™ Morning Calibration ritual.
+ *
+ * A full-screen, once-per-morning overlay (mounted in AppShell, mirroring
+ * OpeningSequence — it touches NO routing). The selected coach asks three
+ * questions — Energy (1–5), Stress (1–5), and today's main goal — and the
+ * answers are persisted via the dedicated check-in service, which feeds the
+ * display-only Brain Energy / Performance Forecast / Command Confidence /
+ * Performance Memory surfaces. It never dispatches a hydration action, so it
+ * cannot move a score (Score-Protection).
+ *
+ * Voice is purely additive:
+ *   • The coach's intro, the three questions, and the acks are STATIC common
+ *     phrases — spoken with `cachePolicy: 'static'` + an allowlisted phrase
+ *     key so the server serves cached audio and spends no ElevenLabs credit
+ *     on the repeat.
+ *   • The closing calibration line is personalized, so it is spoken
+ *     `cachePolicy: 'dynamic'` (live, never cached).
+ *   • Everything is tap-driven: if voice is muted, offline, or autoplay is
+ *     blocked, the ritual still completes silently from the on-screen text.
+ *
+ * Design lock: pure-black canvas, white type, brand red used only as thin
+ * hairlines / eyebrows / progress (never fills). Water-First: the closing
+ * copy leads with "HYDRATE NOW — start with water" before anything else.
+ */
+import React from 'react';
+import {
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
+import * as Haptics from 'expo-haptics';
+import { useTranslation } from 'react-i18next';
+
+import { Colors } from '@/theme/colors';
+import { speak, stopSpeaking } from '@/services/textToSpeech';
+import { findVoice } from '@/services/voiceCatalog';
+import { useAppStore } from '@/store/useAppStore';
+import {
+  CHECKIN_GOAL_IDS,
+  type CheckInGoalId,
+  type VoiceCheckInAnswers,
+} from '@/utils/voiceCheckIn';
+
+const BG = '#000000';
+const WHITE = Colors.text.primary;
+const DIM = Colors.text.secondary;
+const MUTED = Colors.text.muted;
+const BRAND = Colors.accent.brand;
+
+const FONT_EXTRABOLD = 'Inter_800ExtraBold';
+const FONT_BOLD = 'Inter_700Bold';
+const FONT_SEMIBOLD = 'Inter_600SemiBold';
+const FONT_MEDIUM = 'Inter_500Medium';
+
+const EASE = Easing.inOut(Easing.ease);
+
+type Step = 'energy' | 'stress' | 'goal' | 'closing';
+const SCALE_VALUES = [1, 2, 3, 4, 5] as const;
+
+interface Props {
+  /** Records today's answers (persistence service). Does NOT close. */
+  onComplete: (answers: VoiceCheckInAnswers) => void;
+  /** Snooze the ritual (defer to later today) and close the overlay. */
+  onSnooze: () => void;
+  /** Close the overlay (after the ritual is complete). */
+  onClose: () => void;
+}
+
+// ─── Fade — opacity+rise wrapper, re-runs whenever `stepKey` changes ──
+function Fade({
+  stepKey,
+  children,
+}: {
+  stepKey: string;
+  children: React.ReactNode;
+}) {
+  const o = useSharedValue(0);
+  const ty = useSharedValue(10);
+  React.useEffect(() => {
+    o.value = 0;
+    ty.value = 10;
+    o.value = withTiming(1, { duration: 420, easing: EASE });
+    ty.value = withTiming(0, { duration: 420, easing: EASE });
+  }, [stepKey, o, ty]);
+  const st = useAnimatedStyle(() => ({
+    opacity: o.value,
+    transform: [{ translateY: ty.value }],
+  }));
+  return <Animated.View style={[styles.stepFill, st]}>{children}</Animated.View>;
+}
+
+function haptic() {
+  if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
+}
+
+export function VoiceCheckInOverlay({ onComplete, onSnooze, onClose }: Props) {
+  const { t } = useTranslation();
+  const { selectedVoiceId } = useAppStore();
+
+  const coachLabel = React.useMemo(() => {
+    const v = findVoice(selectedVoiceId);
+    return v ? `Coach ${v.label}` : t('voiceCheckIn.coach_default', { defaultValue: 'Your coach' });
+  }, [selectedVoiceId, t]);
+
+  const [step, setStep] = React.useState<Step>('energy');
+  const [energy, setEnergy] = React.useState<number | null>(null);
+  const [stress, setStress] = React.useState<number | null>(null);
+  const [goal, setGoal] = React.useState<CheckInGoalId | null>(null);
+
+  const finishedRef = React.useRef(false);
+  // Speak each phrase at most once per step entry (never on bare re-render).
+  const spokenRef = React.useRef<Record<string, boolean>>({});
+
+  const speakOnce = React.useCallback(
+    (id: string, text: string, phraseKey?: string) => {
+      if (spokenRef.current[id]) return;
+      spokenRef.current[id] = true;
+      if (!text.trim()) return;
+      speak(
+        text,
+        phraseKey
+          ? { cachePolicy: 'static', phraseKey }
+          : { cachePolicy: 'dynamic' },
+      );
+    },
+    [],
+  );
+
+  // Coach intro — spoken once on mount (static, cached).
+  React.useEffect(() => {
+    speakOnce(
+      'intro',
+      t('voiceCheckIn.intro_spoken', {
+        defaultValue: "{{coach}} here. Let's calibrate your morning.",
+        coach: coachLabel,
+      }),
+      'checkin.intro',
+    );
+    return () => {
+      stopSpeaking();
+    };
+  }, [coachLabel, speakOnce, t]);
+
+  // Speak the active question (static, cached) as each step opens.
+  React.useEffect(() => {
+    if (step === 'energy') {
+      speakOnce(
+        'q_energy',
+        t('voiceCheckIn.q_energy_spoken', {
+          defaultValue: "How's your energy this morning? One to five.",
+        }),
+        'checkin.q_energy',
+      );
+    } else if (step === 'stress') {
+      speakOnce(
+        'q_stress',
+        t('voiceCheckIn.q_stress_spoken', {
+          defaultValue: "And your stress? One to five.",
+        }),
+        'checkin.q_stress',
+      );
+    } else if (step === 'goal') {
+      speakOnce(
+        'q_goal',
+        t('voiceCheckIn.q_goal_spoken', {
+          defaultValue: "What's today's main goal?",
+        }),
+        'checkin.q_goal',
+      );
+    }
+  }, [step, speakOnce, t]);
+
+  const ack = React.useCallback(() => {
+    haptic();
+    // A single shared ack key — spoken once so we don't stutter on every tap.
+    speakOnce(
+      'ack',
+      t('voiceCheckIn.ack_spoken', { defaultValue: 'Got it.' }),
+      'checkin.ack',
+    );
+  }, [speakOnce, t]);
+
+  const answerEnergy = (v: number) => {
+    setEnergy(v);
+    ack();
+    setStep('stress');
+  };
+  const answerStress = (v: number) => {
+    setStress(v);
+    ack();
+    setStep('goal');
+  };
+  const answerGoal = (g: CheckInGoalId) => {
+    setGoal(g);
+    haptic();
+    setStep('closing');
+  };
+
+  const goalLabel = React.useCallback(
+    (g: CheckInGoalId) =>
+      t(`voiceCheckIn.goal_${g}`, {
+        defaultValue:
+          g === 'train'
+            ? 'Train'
+            : g === 'compete'
+              ? 'Compete'
+              : g === 'recover'
+                ? 'Recover'
+                : 'Focus',
+      }),
+    [t],
+  );
+
+  // Closing: persist the answers + speak the personalized (dynamic) line.
+  React.useEffect(() => {
+    if (step !== 'closing') return;
+    if (finishedRef.current) return;
+    if (energy == null || stress == null || goal == null) return;
+    finishedRef.current = true;
+
+    onComplete({ energy, stress, goal });
+
+    speakOnce(
+      'closing',
+      t('voiceCheckIn.closing_spoken', {
+        defaultValue:
+          'Hydrate now. Start with water. Your {{goal}} plan is locked. Let’s perform.',
+        goal: goalLabel(goal).toLowerCase(),
+      }),
+      // No phraseKey → dynamic, live, never cached.
+    );
+  }, [step, energy, stress, goal, onComplete, speakOnce, goalLabel, t]);
+
+  const dismiss = React.useCallback(() => {
+    stopSpeaking();
+    haptic();
+    onSnooze();
+  }, [onSnooze]);
+
+  // The "LOCK IN" button closes the overlay. The answers were already
+  // persisted in the closing effect when the step became 'closing'.
+  const onLockIn = React.useCallback(() => {
+    stopSpeaking();
+    haptic();
+    onClose();
+  }, [onClose]);
+
+  const stepIndex = step === 'energy' ? 1 : step === 'stress' ? 2 : 3;
+
+  return (
+    <View style={styles.root} accessibilityViewIsModal>
+      {/* Top chrome: eyebrow + dismiss */}
+      <View style={styles.topBar}>
+        <Text style={styles.eyebrow}>
+          {t('voiceCheckIn.eyebrow', { defaultValue: 'MORNING CALIBRATION' })}
+        </Text>
+        {step !== 'closing' && (
+          <Pressable
+            onPress={dismiss}
+            hitSlop={12}
+            accessibilityRole="button"
+            accessibilityLabel={t('voiceCheckIn.skip_a11y', {
+              defaultValue: 'Dismiss morning check-in',
+            })}
+            testID="voice-checkin-snooze"
+          >
+            <Text style={styles.snooze}>
+              {t('voiceCheckIn.snooze', { defaultValue: 'Not now' })}
+            </Text>
+          </Pressable>
+        )}
+      </View>
+
+      <Text style={styles.coachLine}>{coachLabel}</Text>
+
+      {step !== 'closing' && (
+        <View style={styles.progressRow}>
+          {[1, 2, 3].map((i) => (
+            <View
+              key={i}
+              style={[styles.progressPip, i <= stepIndex && styles.progressPipOn]}
+            />
+          ))}
+          <Text style={styles.progressLabel}>
+            {t('voiceCheckIn.step', {
+              defaultValue: '{{current}} of {{total}}',
+              current: stepIndex,
+              total: 3,
+            })}
+          </Text>
+        </View>
+      )}
+
+      <View style={styles.body}>
+        {step === 'energy' && (
+          <Fade stepKey="energy">
+            <Text style={styles.qTitle}>
+              {t('voiceCheckIn.q_energy_title', { defaultValue: "How's your energy?" })}
+            </Text>
+            <Text style={styles.qHint}>
+              {t('voiceCheckIn.q_energy_hint', {
+                defaultValue: '1 = drained · 5 = electric',
+              })}
+            </Text>
+            <Scale value={energy} onPick={answerEnergy} />
+          </Fade>
+        )}
+
+        {step === 'stress' && (
+          <Fade stepKey="stress">
+            <Text style={styles.qTitle}>
+              {t('voiceCheckIn.q_stress_title', { defaultValue: "How's your stress?" })}
+            </Text>
+            <Text style={styles.qHint}>
+              {t('voiceCheckIn.q_stress_hint', {
+                defaultValue: '1 = calm · 5 = maxed out',
+              })}
+            </Text>
+            <Scale value={stress} onPick={answerStress} />
+          </Fade>
+        )}
+
+        {step === 'goal' && (
+          <Fade stepKey="goal">
+            <Text style={styles.qTitle}>
+              {t('voiceCheckIn.q_goal_title', {
+                defaultValue: "What's today's main goal?",
+              })}
+            </Text>
+            <View style={styles.goalGrid}>
+              {CHECKIN_GOAL_IDS.map((g) => (
+                <Pressable
+                  key={g}
+                  onPress={() => answerGoal(g)}
+                  style={({ pressed }) => [
+                    styles.goalChip,
+                    pressed && styles.goalChipPressed,
+                  ]}
+                  accessibilityRole="button"
+                  accessibilityLabel={goalLabel(g)}
+                  testID={`voice-checkin-goal-${g}`}
+                >
+                  <Text style={styles.goalChipText}>{goalLabel(g)}</Text>
+                </Pressable>
+              ))}
+            </View>
+          </Fade>
+        )}
+
+        {step === 'closing' && (
+          <Fade stepKey="closing">
+            <Text style={styles.closingEyebrow}>
+              {t('voiceCheckIn.closing_title', { defaultValue: 'CALIBRATION LOCKED' })}
+            </Text>
+            <View style={styles.brandRule} />
+            <Text style={styles.closingBody}>
+              {t('voiceCheckIn.closing_body', {
+                defaultValue:
+                  'HYDRATE NOW — start with water. {{coach}} has your {{goal}} plan ready.',
+                coach: coachLabel,
+                goal: goal ? goalLabel(goal).toLowerCase() : '',
+              })}
+            </Text>
+            <Pressable
+              onPress={onLockIn}
+              style={({ pressed }) => [
+                styles.lockInBtn,
+                pressed && styles.lockInBtnPressed,
+              ]}
+              accessibilityRole="button"
+              accessibilityLabel={t('voiceCheckIn.cta_done', { defaultValue: 'Lock in' })}
+              testID="voice-checkin-lockin"
+            >
+              <Text style={styles.lockInText}>
+                {t('voiceCheckIn.cta_done', { defaultValue: 'LOCK IN' })}
+              </Text>
+            </Pressable>
+          </Fade>
+        )}
+      </View>
+    </View>
+  );
+}
+
+// ─── Scale — 1..5 tappable pills ─────────────────────────────────────
+function Scale({
+  value,
+  onPick,
+}: {
+  value: number | null;
+  onPick: (v: number) => void;
+}) {
+  return (
+    <View style={styles.scaleRow}>
+      {SCALE_VALUES.map((v) => {
+        const on = value === v;
+        return (
+          <Pressable
+            key={v}
+            onPress={() => onPick(v)}
+            style={({ pressed }) => [
+              styles.scalePill,
+              on && styles.scalePillOn,
+              pressed && styles.scalePillPressed,
+            ]}
+            accessibilityRole="button"
+            accessibilityLabel={String(v)}
+            testID={`voice-checkin-scale-${v}`}
+          >
+            <Text style={[styles.scaleNum, on && styles.scaleNumOn]}>{v}</Text>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  root: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: BG,
+    zIndex: 1100,
+    elevation: 1100,
+    paddingHorizontal: 28,
+    paddingTop: 72,
+    paddingBottom: 48,
+  },
+  topBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  eyebrow: {
+    fontFamily: FONT_BOLD,
+    fontSize: 12,
+    letterSpacing: 3,
+    color: BRAND,
+  },
+  snooze: {
+    fontFamily: FONT_MEDIUM,
+    fontSize: 13,
+    letterSpacing: 0.5,
+    color: MUTED,
+  },
+  coachLine: {
+    fontFamily: FONT_SEMIBOLD,
+    fontSize: 15,
+    color: DIM,
+    marginTop: 22,
+  },
+  progressRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 18,
+    gap: 6,
+  },
+  progressPip: {
+    width: 22,
+    height: 3,
+    borderRadius: 2,
+    backgroundColor: 'rgba(255,255,255,0.14)',
+  },
+  progressPipOn: { backgroundColor: BRAND },
+  progressLabel: {
+    fontFamily: FONT_MEDIUM,
+    fontSize: 11,
+    letterSpacing: 1,
+    color: MUTED,
+    marginLeft: 8,
+  },
+  body: { flex: 1, justifyContent: 'center' },
+  stepFill: { width: '100%' },
+  qTitle: {
+    fontFamily: FONT_EXTRABOLD,
+    fontSize: 30,
+    letterSpacing: -0.5,
+    color: WHITE,
+  },
+  qHint: {
+    fontFamily: FONT_MEDIUM,
+    fontSize: 14,
+    color: MUTED,
+    marginTop: 10,
+    marginBottom: 30,
+  },
+  scaleRow: { flexDirection: 'row', gap: 10 },
+  scalePill: {
+    flex: 1,
+    aspectRatio: 1,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.10)',
+    backgroundColor: 'rgba(255,255,255,0.03)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  scalePillOn: { borderColor: BRAND, backgroundColor: 'rgba(255,59,48,0.10)' },
+  scalePillPressed: { opacity: 0.7 },
+  scaleNum: {
+    fontFamily: FONT_BOLD,
+    fontSize: 22,
+    color: DIM,
+  },
+  scaleNumOn: { color: WHITE },
+  goalGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+    marginTop: 30,
+  },
+  goalChip: {
+    width: '47%',
+    paddingVertical: 22,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.10)',
+    backgroundColor: 'rgba(255,255,255,0.03)',
+    alignItems: 'center',
+  },
+  goalChipPressed: { opacity: 0.7, borderColor: BRAND },
+  goalChipText: {
+    fontFamily: FONT_BOLD,
+    fontSize: 17,
+    letterSpacing: 0.5,
+    color: WHITE,
+  },
+  closingEyebrow: {
+    fontFamily: FONT_BOLD,
+    fontSize: 13,
+    letterSpacing: 3,
+    color: BRAND,
+  },
+  brandRule: {
+    width: 40,
+    height: 2,
+    borderRadius: 1,
+    backgroundColor: BRAND,
+    marginVertical: 18,
+  },
+  closingBody: {
+    fontFamily: FONT_SEMIBOLD,
+    fontSize: 22,
+    lineHeight: 31,
+    color: WHITE,
+    marginBottom: 36,
+  },
+  lockInBtn: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 34,
+    paddingVertical: 16,
+    borderRadius: 999,
+    backgroundColor: WHITE,
+  },
+  lockInBtnPressed: { opacity: 0.85 },
+  lockInText: {
+    fontFamily: FONT_EXTRABOLD,
+    fontSize: 14,
+    letterSpacing: 2,
+    color: '#000000',
+  },
+});

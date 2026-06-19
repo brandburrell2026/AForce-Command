@@ -33,6 +33,16 @@ export interface ElevenLabsSpeakOptions {
   /** Optional auth token (Clerk). If omitted, the request is anonymous
    *  — the server route is currently public-with-rate-limit. */
   authToken?: string | null;
+  /**
+   * Server cache opt-in. `'static'` lets the server serve a cached MP3 for
+   * an allowlisted `(voiceId, phraseKey)` pair (the common Voice Check-In
+   * lines), spending no ElevenLabs credit on the repeat. Personalized lines
+   * pass `'dynamic'` (or omit) so they always hit ElevenLabs live and are
+   * never cached. Ignored unless paired with a `phraseKey`.
+   */
+  cachePolicy?: 'static' | 'dynamic';
+  /** Allowlisted phrase key (e.g. `checkin.intro`) — required for caching. */
+  phraseKey?: string;
 }
 
 /**
@@ -58,7 +68,12 @@ export async function speakWithElevenLabs(opts: ElevenLabsSpeakOptions): Promise
   const res = await fetch(url, {
     method: 'POST',
     headers,
-    body: JSON.stringify({ text, voiceId: opts.voiceId }),
+    body: JSON.stringify({
+      text,
+      voiceId: opts.voiceId,
+      ...(opts.cachePolicy ? { cachePolicy: opts.cachePolicy } : {}),
+      ...(opts.phraseKey ? { phraseKey: opts.phraseKey } : {}),
+    }),
   });
 
   if (!res.ok) {

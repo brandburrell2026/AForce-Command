@@ -28,11 +28,14 @@ import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { InvestorDemoOverlay } from '@/components/investorDemo/InvestorDemoOverlay';
 import { OpeningSequence } from '@/components/opening/OpeningSequence';
 import { readinessLabel, type PerformanceLevel } from '@/utils/homeDashboard';
-import { AppProvider, useAppStore } from '@/store/useAppStore';
+import { AppProvider, useAppStore, useFeatureFlags } from '@/store/useAppStore';
 import { useEngineSlice } from '@/store/slices';
 import { CartProvider } from '@/store/useCartStore';
 import { initI18n } from '@/services/i18nService';
 import { firstRunRoute } from '@/utils/firstRunRoute';
+import { snoozeRevalidationDelay } from '@/utils/voiceCheckIn';
+import { useVoiceCheckIn } from '@/hooks/useVoiceCheckIn';
+import { VoiceCheckInOverlay } from '@/components/voiceCheckIn/VoiceCheckInOverlay';
 
 // Bootstrap i18next as soon as the JS bundle loads so even the first
 // frame (SplashScreen, ErrorBoundary fallbacks) has access to t(). The
@@ -148,12 +151,15 @@ function InvestorDemoMount() {
  * The readiness number is a read-only projection of the live engine
  * score (Score-Protection): the opening never awards or mutates score.
  */
-function OpeningMount() {
+function OpeningMount({ onDone }: { onDone: () => void }) {
   const engine = useEngineSlice();
   const [visible, setVisible] = React.useState(true);
   // Stable identity: the engine score refreshes under this overlay, and
   // an inline callback would rebuild OpeningSequence's timeline mid-play.
-  const handleFinish = React.useCallback(() => setVisible(false), []);
+  const handleFinish = React.useCallback(() => {
+    setVisible(false);
+    onDone();
+  }, [onDone]);
   if (!visible) return null;
   return (
     <OpeningSequence
@@ -166,7 +172,94 @@ function OpeningMount() {
   );
 }
 
+/**
+ * VoiceCheckInMount — the once-per-morning Voice Check-In ritual overlay.
+ *
+ * Mirrors OpeningMount: a top-most overlay that touches NO routing. It is
+ * gated on flag + due + onboarding complete + the opening having dismissed,
+ * and only on real app routes (never onboarding / auth). The flag is OFF in
+ * DEFAULT_FLAGS and ON in DEMO ("Build 100% · Show 10%").
+ *
+ * An `activated` latch keeps the overlay mounted through the closing screen:
+ * recording the answers flips `isDue` to false, and without the latch the mount
+ * would unmount mid-ritual and hide the calibration confirmation. The latch is
+ * CLEARED (not permanently set) by close / snooze, so a later morning — or an
+ * expired snooze within the same warm session — re-opens the ritual. Because
+ * `isDue` is time-based and the store only notifies on writes, a snooze schedules
+ * a single re-check timer at its expiry to nudge the recomputation.
+ */
+function VoiceCheckInMount({ openingDone }: { openingDone: boolean }) {
+  const flags = useFeatureFlags();
+  const pathname = usePathname();
+  const { isDue, hydrated, complete, snooze, snoozedUntilMs } = useVoiceCheckIn();
+
+  const [onboardingComplete, setOnboardingComplete] = React.useState(false);
+  const [activated, setActivated] = React.useState(false);
+  // Bumped to re-evaluate the time-based `isDue` when a snooze window expires.
+  const [, setRevalidateTick] = React.useState(0);
+
+  // Re-read the onboarding flag whenever the route changes so it flips true
+  // immediately after the wizard finishes and routes into the tabs.
+  React.useEffect(() => {
+    let alive = true;
+    AsyncStorage.getItem(ONBOARDING_DONE_KEY)
+      .then((v) => {
+        if (alive) setOnboardingComplete(v === 'true');
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [pathname]);
+
+  const routeOk =
+    !pathname.startsWith('/onboarding') && !pathname.startsWith('/sign');
+
+  const gatesOpen =
+    flags.voice_checkin_enabled &&
+    hydrated &&
+    onboardingComplete &&
+    openingDone &&
+    routeOk;
+
+  React.useEffect(() => {
+    if (!activated && gatesOpen && isDue) setActivated(true);
+  }, [activated, gatesOpen, isDue]);
+
+  // While snoozed (gates open, not yet due, not active), schedule one re-check
+  // at the snooze expiry so the ritual can re-open later in the same session.
+  // An already-expired snooze yields a null delay and schedules nothing — the
+  // ordinary `isDue` computation on the next render already covers that case,
+  // so we never re-enter this effect with a redundant state update.
+  React.useEffect(() => {
+    if (activated || !gatesOpen || isDue) return;
+    const delay = snoozeRevalidationDelay(snoozedUntilMs);
+    if (delay == null) return;
+    const id = setTimeout(() => setRevalidateTick((t) => t + 1), delay);
+    return () => clearTimeout(id);
+  }, [activated, gatesOpen, isDue, snoozedUntilMs]);
+
+  if (!activated) return null;
+
+  return (
+    <VoiceCheckInOverlay
+      onComplete={(answers) => {
+        void complete(answers);
+      }}
+      onSnooze={() => {
+        void snooze();
+        setActivated(false);
+      }}
+      onClose={() => setActivated(false)}
+    />
+  );
+}
+
 function AppShell() {
+  // The Voice Check-In overlay waits for the cinematic opening to dismiss so
+  // the two top-most overlays never stack on a cold launch.
+  const [openingDone, setOpeningDone] = React.useState(false);
+  const handleOpeningDone = React.useCallback(() => setOpeningDone(true), []);
   return (
     <SafeAreaProvider>
       {/* Phase 1 (Opening Screen Safe-Area Fix): force light system
@@ -189,7 +282,9 @@ function AppShell() {
                   <SplashGate />
                   <InvestorDemoMount />
                   {/* Top-most overlay: cinematic cold-launch opening. */}
-                  <OpeningMount />
+                  <OpeningMount onDone={handleOpeningDone} />
+                  {/* Voice Check-In ritual — shows after the opening, gated. */}
+                  <VoiceCheckInMount openingDone={openingDone} />
                 </CartProvider>
               </AppProvider>
             </KeyboardProvider>

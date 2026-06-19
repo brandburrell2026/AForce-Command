@@ -295,5 +295,40 @@
   },
   "journal": {
     "share_social": "Condividi"
+  },
+  "voiceCheckIn": {
+    "eyebrow": "CALIBRAZIONE MATTUTINA",
+    "coach_default": "Il tuo coach",
+    "snooze": "Non ora",
+    "skip_a11y": "Ignora il check-in mattutino",
+    "step": "{{current}} di {{total}}",
+    "intro_spoken": "Sono {{coach}}. Calibriamo la tua mattina.",
+    "q_energy_spoken": "Com'è la tua energia stamattina? Da uno a cinque.",
+    "q_energy_title": "Com'è la tua energia?",
+    "q_energy_hint": "1 = scarico · 5 = elettrico",
+    "q_stress_spoken": "E il tuo stress? Da uno a cinque.",
+    "q_stress_title": "Com'è il tuo stress?",
+    "q_stress_hint": "1 = calmo · 5 = al massimo",
+    "q_goal_spoken": "Qual è il tuo obiettivo principale oggi?",
+    "q_goal_title": "Qual è il tuo obiettivo principale oggi?",
+    "goal_train": "Allenarsi",
+    "goal_compete": "Competere",
+    "goal_recover": "Recuperare",
+    "goal_focus": "Concentrazione",
+    "ack_spoken": "Capito.",
+    "closing_spoken": "Idratati ora. Inizia con l'acqua. Il tuo piano {{goal}} è fissato. Diamo il massimo.",
+    "closing_title": "CALIBRAZIONE FISSATA",
+    "closing_body": "IDRATATI ORA — inizia con l'acqua. {{coach}} ha pronto il tuo piano {{goal}}.",
+    "cta_done": "CONFERMA",
+    "brainEnergy": {
+      "eyebrow": "ENERGIA MENTALE",
+      "collecting": "Completa il check-in mattutino per leggere l'Energia Mentale."
+    },
+    "memory": {
+      "eyebrow": "MEMORIA DELLE PRESTAZIONI",
+      "empty": "Il tuo primo check-in avvia la memoria delle prestazioni.",
+      "streak": "GIORNI DI FILA",
+      "logged": "CHECK-IN"
+    }
   }
 }

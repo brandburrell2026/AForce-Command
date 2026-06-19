@@ -90,10 +90,24 @@ export interface PerformanceForecast {
   deficitAt: string | null;
 }
 
+/**
+ * Optional morning Voice Check-In self-report fed into the forecast. This is
+ * COPY-ONLY: it can refine the headline wording but never changes the
+ * trajectory math, projection timing, or deficit clock. When omitted the
+ * forecast is byte-for-byte identical to the pre-check-in behaviour.
+ */
+export interface ForecastCheckIn {
+  /** Reported morning energy 1–5. */
+  energy: number;
+  /** Reported morning stress 1–5. */
+  stress: number;
+}
+
 export function derivePerformanceForecast(
   engine: ScoreEngineOutput,
   user: UserState,
   now: Date = new Date(),
+  checkIn?: ForecastCheckIn,
 ): PerformanceForecast {
   const { score, prediction, performanceState } = engine;
   const decay = prediction.decayPerMinute ?? 0;
@@ -119,6 +133,23 @@ export function derivePerformanceForecast(
       : 'Decline forecast — schedule intake';
   } else {
     headline = 'System steady — readiness preserved';
+  }
+
+  // Optional morning Voice Check-In refinement — COPY-ONLY. Gated entirely
+  // behind `checkIn` so the forecast is byte-for-byte identical when it is
+  // omitted (the trajectory/projection/deficit math below is untouched).
+  if (checkIn) {
+    const energy = clampScale(checkIn.energy);
+    const stress = clampScale(checkIn.stress);
+    if (stress >= 4) {
+      headline = trajectory === 'rising'
+        ? 'Recovery rising — manage reported stress'
+        : 'Reported stress elevated — steady your inputs';
+    } else if (energy <= 2 && trajectory !== 'declining') {
+      headline = 'Low morning energy — rebuild with water';
+    } else if (energy >= 4 && stress <= 2 && trajectory === 'stable') {
+      headline = 'Strong calibration — readiness trending up';
+    }
   }
 
   // Projection sub-line — point to the next inflection.
@@ -234,6 +265,12 @@ function clamp01(n: number): number {
 
 function round1(n: number): number {
   return Math.round(n * 10) / 10;
+}
+
+/** Clamp + round a raw value onto the 1–5 self-report scale. */
+function clampScale(n: number): number {
+  if (!Number.isFinite(n)) return 1;
+  return Math.min(5, Math.max(1, Math.round(n)));
 }
 
 function formatClock(d: Date): string {

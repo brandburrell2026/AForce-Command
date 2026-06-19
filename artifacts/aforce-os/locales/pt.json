@@ -295,5 +295,40 @@
   },
   "journal": {
     "share_social": "Compartilhar"
+  },
+  "voiceCheckIn": {
+    "eyebrow": "CALIBRAGEM MATINAL",
+    "coach_default": "Seu coach",
+    "snooze": "Agora não",
+    "skip_a11y": "Dispensar o check-in matinal",
+    "step": "{{current}} de {{total}}",
+    "intro_spoken": "Aqui é {{coach}}. Vamos calibrar a sua manhã.",
+    "q_energy_spoken": "Como está a sua energia esta manhã? De um a cinco.",
+    "q_energy_title": "Como está a sua energia?",
+    "q_energy_hint": "1 = esgotado · 5 = elétrico",
+    "q_stress_spoken": "E o seu estresse? De um a cinco.",
+    "q_stress_title": "Como está o seu estresse?",
+    "q_stress_hint": "1 = calmo · 5 = no limite",
+    "q_goal_spoken": "Qual é o seu objetivo principal hoje?",
+    "q_goal_title": "Qual é o seu objetivo principal hoje?",
+    "goal_train": "Treinar",
+    "goal_compete": "Competir",
+    "goal_recover": "Recuperar",
+    "goal_focus": "Foco",
+    "ack_spoken": "Entendido.",
+    "closing_spoken": "Hidrate-se agora. Comece com água. Seu plano de {{goal}} está travado. Vamos performar.",
+    "closing_title": "CALIBRAGEM TRAVADA",
+    "closing_body": "HIDRATE-SE JÁ — comece com água. {{coach}} já tem o seu plano de {{goal}}.",
+    "cta_done": "CONFIRMAR",
+    "brainEnergy": {
+      "eyebrow": "ENERGIA MENTAL",
+      "collecting": "Conclua o seu check-in matinal para ver a Energia Mental."
+    },
+    "memory": {
+      "eyebrow": "MEMÓRIA DE DESEMPENHO",
+      "empty": "Seu primeiro check-in inicia a sua memória de desempenho.",
+      "streak": "DIAS SEGUIDOS",
+      "logged": "CHECK-INS"
+    }
   }
 }

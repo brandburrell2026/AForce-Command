@@ -29,8 +29,10 @@ import {
   type Trajectory,
   type StrainLevel,
 } from '../../services/biometricIntelligence';
-import { useEngineSlice, useUserSlice } from '../../store/slices';
+import { useEngineSlice, useFlagsSlice, useUserSlice } from '../../store/slices';
 import { getHeatBandFromCelsius } from '../../utils/heatBand';
+import { useVoiceCheckIn } from '../../hooks/useVoiceCheckIn';
+import { localDayKey } from '../../utils/voiceCheckIn';
 
 type TileKey = 'urine' | 'sweat' | 'forecast' | 'recovery';
 
@@ -55,14 +57,26 @@ function EntryActionsImpl() {
   const router = useRouter();
   const engine = useEngineSlice();
   const user = useUserSlice();
+  const flags = useFlagsSlice();
+  const { latest } = useVoiceCheckIn();
 
   const [openKey, setOpenKey] = React.useState<TileKey | null>(null);
 
   // ── Live derivations (shared between tile accent + sheet body) ────
   const sweat = React.useMemo(() => deriveSweatLoss(user), [user]);
+
+  // Today's morning Voice Check-In refines the forecast headline (copy-only,
+  // flag-gated). Only TODAY'S report is used so a stale day never colors the
+  // forecast; the trajectory/projection math is untouched either way.
+  const checkIn = React.useMemo(() => {
+    if (!flags.voice_checkin_enabled || !latest) return undefined;
+    if (latest.dayKey !== localDayKey(new Date())) return undefined;
+    return { energy: latest.answers.energy, stress: latest.answers.stress };
+  }, [flags.voice_checkin_enabled, latest]);
+
   const forecast = React.useMemo(
-    () => derivePerformanceForecast(engine, user),
-    [engine, user],
+    () => derivePerformanceForecast(engine, user, undefined, checkIn),
+    [engine, user, checkIn],
   );
   const heatBand = getHeatBandFromCelsius(user.weatherTempC);
   const load = React.useMemo(

@@ -295,5 +295,40 @@
   },
   "journal": {
     "share_social": "Teilen"
+  },
+  "voiceCheckIn": {
+    "eyebrow": "MORGEN-KALIBRIERUNG",
+    "coach_default": "Dein Coach",
+    "snooze": "Jetzt nicht",
+    "skip_a11y": "Morgen-Check-in schließen",
+    "step": "{{current}} von {{total}}",
+    "intro_spoken": "Hier ist {{coach}}. Kalibrieren wir deinen Morgen.",
+    "q_energy_spoken": "Wie ist deine Energie heute Morgen? Eins bis fünf.",
+    "q_energy_title": "Wie ist deine Energie?",
+    "q_energy_hint": "1 = erschöpft · 5 = elektrisch",
+    "q_stress_spoken": "Und dein Stress? Eins bis fünf.",
+    "q_stress_title": "Wie ist dein Stress?",
+    "q_stress_hint": "1 = ruhig · 5 = am Limit",
+    "q_goal_spoken": "Was ist dein Hauptziel für heute?",
+    "q_goal_title": "Was ist dein Hauptziel für heute?",
+    "goal_train": "Trainieren",
+    "goal_compete": "Wettkampf",
+    "goal_recover": "Erholen",
+    "goal_focus": "Fokus",
+    "ack_spoken": "Verstanden.",
+    "closing_spoken": "Trink jetzt. Beginne mit Wasser. Dein {{goal}}-Plan steht. Lass uns abliefern.",
+    "closing_title": "KALIBRIERUNG FIXIERT",
+    "closing_body": "JETZT TRINKEN — beginne mit Wasser. {{coach}} hat deinen {{goal}}-Plan bereit.",
+    "cta_done": "BESTÄTIGEN",
+    "brainEnergy": {
+      "eyebrow": "MENTALE ENERGIE",
+      "collecting": "Schließe deinen Morgen-Check-in ab, um deine Mentale Energie zu sehen."
+    },
+    "memory": {
+      "eyebrow": "LEISTUNGS-GEDÄCHTNIS",
+      "empty": "Dein erster Check-in startet dein Leistungs-Gedächtnis.",
+      "streak": "TAGE IN FOLGE",
+      "logged": "CHECK-INS"
+    }
   }
 }

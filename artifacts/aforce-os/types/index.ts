@@ -488,6 +488,14 @@ export interface FeatureFlags {
   // entitlement-gated — it is the primary consumer headline metric.
   performance_age_enabled: boolean;
 
+  // Voice Check-In™ — Morning Calibration. Master switch for the
+  // once-per-morning, coach-led 3-question ritual overlay and the two
+  // additive Home surfaces it feeds (Brain Energy + Performance Memory).
+  // Ships OFF in prod (Build 100% · Show 10%); ON in the demo profile.
+  // Score-Protection: every consumer is a read-only projection of the
+  // captured answers — nothing here awards or mutates score.
+  voice_checkin_enabled: boolean;
+
   // Enterprise — Cruise Mode (premium add-on for cruise lines & guests).
   // Master switch. Phase 1 public release lights up Journey Pulse,
   // Guest Readiness Signal, Today's Flow, and Port Signal. Phases 2/3

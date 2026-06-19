@@ -363,5 +363,40 @@
     "next": "NEXT",
     "start": "START",
     "back": "Back"
+  },
+  "voiceCheckIn": {
+    "eyebrow": "MORNING CALIBRATION",
+    "coach_default": "Your coach",
+    "snooze": "Not now",
+    "skip_a11y": "Dismiss morning check-in",
+    "step": "{{current}} of {{total}}",
+    "intro_spoken": "{{coach}} here. Let's calibrate your morning.",
+    "q_energy_spoken": "How's your energy this morning? One to five.",
+    "q_energy_title": "How's your energy?",
+    "q_energy_hint": "1 = drained · 5 = electric",
+    "q_stress_spoken": "And your stress? One to five.",
+    "q_stress_title": "How's your stress?",
+    "q_stress_hint": "1 = calm · 5 = maxed out",
+    "q_goal_spoken": "What's today's main goal?",
+    "q_goal_title": "What's today's main goal?",
+    "goal_train": "Train",
+    "goal_compete": "Compete",
+    "goal_recover": "Recover",
+    "goal_focus": "Focus",
+    "ack_spoken": "Got it.",
+    "closing_spoken": "Hydrate now. Start with water. Your {{goal}} plan is locked. Let's perform.",
+    "closing_title": "CALIBRATION LOCKED",
+    "closing_body": "HYDRATE NOW — start with water. {{coach}} has your {{goal}} plan ready.",
+    "cta_done": "LOCK IN",
+    "brainEnergy": {
+      "eyebrow": "BRAIN ENERGY",
+      "collecting": "Complete your morning check-in to read Brain Energy."
+    },
+    "memory": {
+      "eyebrow": "PERFORMANCE MEMORY",
+      "empty": "Your first check-in starts your performance memory.",
+      "streak": "DAY STREAK",
+      "logged": "CHECK-INS"
+    }
   }
 }
