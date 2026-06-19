@@ -32,6 +32,20 @@ export default function TheAdvisors() {
       position: "center 22%",
     },
     {
+      name: "Kendra Bracken-Ferguson",
+      title: "Founder & Investor · BrainTrust",
+      area: "4× founder, 2 exits · $15M fund · Bestselling author",
+      src: `${base}kendra.jpg`,
+      position: "center 25%",
+    },
+    {
+      name: "Jonathan Choa",
+      title: "Strategic Finance & M&A · Keurig Dr Pepper",
+      area: "$15B+ in transactions · West Point · Harvard MBA",
+      src: `${base}jonathan.jpg`,
+      position: "center 20%",
+    },
+    {
       name: "Mark Mendel",
       title: "Investment Banker · Finalis",
       area: "Capital strategy and investment banking",
@@ -83,7 +97,7 @@ export default function TheAdvisors() {
         </motion.p>
 
         {/* advisor cards */}
-        <div className="mt-[4vh] grid grid-cols-4 gap-[1.2vw]">
+        <div className="mt-[4vh] grid grid-cols-6 gap-[1.2vw]">
           {ADVISORS.map((a, i) => (
             <motion.div
               key={a.name}
