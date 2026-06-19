@@ -101,6 +101,17 @@ export default function RealDeal() {
           investment platform. This raise builds the proof we walk in with.
         </motion.p>
 
+        <motion.p
+          className="mt-[2.2vh] max-w-[44vw] font-body text-[0.82vw] leading-[1.5] text-text/55"
+          initial={reduce ? false : { opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={reduce ? undefined : { duration: 0.6, ease: EASE, delay: 0.38 }}
+        >
+          Selected for participation on America's Real Deal, with national
+          television appearance anticipated in January 2027 following successful
+          completion of Phase 1 commercialization milestones.
+        </motion.p>
+
         {/* dramatic funnel stat strip */}
         <div className="mt-[6vh] flex items-stretch gap-[3vw]">
           {STATS.map((s, i) => (
