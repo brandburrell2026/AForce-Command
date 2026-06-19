@@ -206,6 +206,12 @@ export default function FinancialTrajectory() {
               positive EBITDA while building a{" "}
               <span className="text-blue">durable recurring revenue platform.</span>
             </p>
+            <p className="mt-[1.6vh] mx-auto max-w-[60vw] font-body text-[0.7vw] leading-[1.5] text-[#555]">
+              <span className="font-semibold text-text/75">Lender Focus:</span>{" "}
+              Capital deployment is designed to achieve commercialization
+              milestones, validate customer acquisition economics, and establish
+              a path toward positive EBITDA and sustainable cash generation.
+            </p>
             <ProjectionDisclaimer className="mt-[1.1vh]" />
           </div>
         </motion.div>
