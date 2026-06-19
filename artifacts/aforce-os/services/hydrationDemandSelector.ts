@@ -44,10 +44,21 @@ export function selectHydrationDemandSnapshot(
 ): HydrationDemandSnapshot | null {
   if (!isFlagEnabled(flags, 'spec_demand_engine')) return null;
 
+  // Location Intelligence is the single gate for the environmental adder.
+  // When it's OFF we strip `environmentalAdderOz` so the demand target is
+  // byte-identical to its pre-Location-Intelligence value, even if a caller
+  // mistakenly forwards it.
+  const effectiveOverrides: AdapterOverrides = isFlagEnabled(
+    flags,
+    'location_intelligence_enabled',
+  )
+    ? overrides
+    : { ...overrides, environmentalAdderOz: undefined };
+
   const { inputs, trace } = buildHydrationDemandInputs(
     state.userState,
     state.profileIdentity,
-    overrides,
+    effectiveOverrides,
   );
   const outputs = computeHydrationDemand(inputs);
   return { inputs, outputs, trace };

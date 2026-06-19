@@ -76,6 +76,17 @@ export interface HydrationDemandInputs {
   occupationType?: OccupationDemand;
   /** Frequent flyer / cabin-air exposure. Defaults to false (no adder). */
   frequentTraveler?: boolean;
+  /**
+   * Pre-computed environmental (location-context) adder in oz — altitude,
+   * UV, and similar net-new drivers that the engine's own heat/humidity
+   * ramp does not already model. Additive only, capped internally by
+   * `CONTEXT_ADDER_CAP_OZ`. Defaults to 0 (no-op) so callers that don't
+   * supply Location Intelligence produce byte-identical output.
+   *
+   * Score-Protection: this is a TARGET-side adder. It raises how much
+   * water the day requires; it never touches the score.
+   */
+  environmentalAdderOz?: number;
 }
 
 // ─── Outputs ────────────────────────────────────────────────────────────────
@@ -160,6 +171,13 @@ export const TRAVEL_ADDER_OZ = 6;
  */
 export const LIFESTYLE_ADDER_CAP_OZ = 18;
 
+/**
+ * The environmental (Location Intelligence) adder is capped so live
+ * location context can raise — but never dominate — the daily target.
+ * Additive only.
+ */
+export const CONTEXT_ADDER_CAP_OZ = 14;
+
 // ─── Pure helpers ───────────────────────────────────────────────────────────
 
 function clamp(n: number, min: number, max: number): number {
@@ -228,6 +246,11 @@ export function computeHydrationDemand(
   const caffeineHabit = inputs.caffeineHabit ?? "unspecified";
   const occupationType = inputs.occupationType ?? "unspecified";
   const frequentTraveler = inputs.frequentTraveler ?? false;
+  const environmentalAdder = clamp(
+    Math.max(0, inputs.environmentalAdderOz ?? 0),
+    0,
+    CONTEXT_ADDER_CAP_OZ,
+  );
 
   // Baseline: 0.5 oz/lb — same anchor used by the depletion model.
   const baseline = weight * BASE_OZ_PER_LB;
@@ -269,7 +292,8 @@ export function computeHydrationDemand(
     humidityAdder +
     sleepAdder +
     recoveryAdder +
-    lifestyleAdder;
+    lifestyleAdder +
+    environmentalAdder;
 
   const targetOz = Math.round(clamp(raw, TARGET_FLOOR_OZ, TARGET_CEILING_OZ));
 

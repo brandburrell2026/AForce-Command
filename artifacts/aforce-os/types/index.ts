@@ -600,6 +600,17 @@ export interface FeatureFlags {
    * the sole score path.
    */
   hydro_scan_2_enabled: boolean;
+
+  // Location Intelligence™ — headless location-context engine. Turns
+  // GPS / time zone / altitude / temperature / humidity / UV / air
+  // quality / travel detection into a normalized context the
+  // performance engines consume (Hydration Demand, Brain Energy,
+  // Recovery, Fuel Timing, Forecasting, Performance Memory, Command
+  // Confidence). Master switch; Build 100% · Show 10% — OFF in the
+  // production binary, ON in DEMO_ALL_ON. Score-Protection: advisory
+  // only — feeds the demand (target) side, additive + capped, and
+  // never awards or mutates score.
+  location_intelligence_enabled: boolean;
 }
 
 /**

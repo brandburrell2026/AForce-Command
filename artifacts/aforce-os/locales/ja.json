@@ -454,5 +454,17 @@
       "title": "HYDROSCAN HISTORY",
       "advisory": "ADVISORY"
     }
+  },
+  "locationIntel": {
+    "note": {
+      "altitude": "Thin mountain air dries you out faster. Start with water and sip steadily today.",
+      "uv": "Strong sun is pulling moisture out. Lead with water before you head outside.",
+      "air": "Air quality is low today. Hydrate well and keep hard efforts easy.",
+      "heat_humid": "Heat and humidity are stacking up. Start with water and keep electrolytes close.",
+      "baseline": "Conditions look good. Keep your normal water rhythm."
+    },
+    "protocol": {
+      "travel_protocol": "Travel detected. Start with water — a glass for every hour in transit keeps you ahead."
+    }
   }
 }

@@ -5,6 +5,7 @@ import {
   computeHydrationDemand,
   calculateLifestyleDemandAdderOz,
   LIFESTYLE_ADDER_CAP_OZ,
+  CONTEXT_ADDER_CAP_OZ,
   TARGET_CEILING_OZ,
   TARGET_FLOOR_OZ,
   type HydrationDemandInputs,
@@ -227,5 +228,56 @@ describe('computeHydrationDemand — lifestyle demand', () => {
       frequentTraveler: false,
     });
     expect(explicitDefaults.targetOz).toBe(base.targetOz);
+  });
+});
+
+describe('computeHydrationDemand — environmental (Location Intelligence) adder', () => {
+  it('is byte-identical when the adder is absent or zero', () => {
+    const base = computeHydrationDemand(basePerson);
+    expect(computeHydrationDemand({ ...basePerson })).toEqual(base);
+    expect(computeHydrationDemand({ ...basePerson, environmentalAdderOz: 0 })).toEqual(
+      base,
+    );
+    expect(
+      computeHydrationDemand({ ...basePerson, environmentalAdderOz: undefined }),
+    ).toEqual(base);
+  });
+
+  it('raises targetOz by exactly the environmental adder', () => {
+    const base = computeHydrationDemand(basePerson);
+    const withEnv = computeHydrationDemand({
+      ...basePerson,
+      environmentalAdderOz: 7,
+    });
+    expect(withEnv.targetOz).toBe(base.targetOz + 7);
+  });
+
+  it('caps the environmental adder at CONTEXT_ADDER_CAP_OZ', () => {
+    const base = computeHydrationDemand(basePerson);
+    const overCap = computeHydrationDemand({
+      ...basePerson,
+      environmentalAdderOz: 999,
+    });
+    expect(CONTEXT_ADDER_CAP_OZ).toBe(14);
+    expect(overCap.targetOz).toBe(base.targetOz + CONTEXT_ADDER_CAP_OZ);
+  });
+
+  it('never lets a negative adder lower the target', () => {
+    const base = computeHydrationDemand(basePerson);
+    const negative = computeHydrationDemand({
+      ...basePerson,
+      environmentalAdderOz: -50,
+    });
+    expect(negative.targetOz).toBe(base.targetOz);
+  });
+
+  it('stacks additively with the lifestyle adder, each capped independently', () => {
+    const base = computeHydrationDemand(basePerson);
+    const stacked = computeHydrationDemand({
+      ...basePerson,
+      caffeineHabit: 'high', // +8 lifestyle
+      environmentalAdderOz: 7, // +7 environmental
+    });
+    expect(stacked.targetOz).toBe(base.targetOz + 8 + 7);
   });
 });

@@ -107,6 +107,27 @@ export interface ContextEngineRef {
 }
 
 /**
+ * Location Intelligence™ engine key — an opaque pointer only. The engine is
+ * never imported or invoked from this layer; the spec mandates "Keep engines
+ * separate. Do NOT merge."
+ */
+export const LOCATION_INTELLIGENCE_ENGINE_KEY = 'locationIntelligence';
+
+/**
+ * Registry pointers declaring that Location Intelligence feeds the existing
+ * environmental context inputs. Pointer-only — additive to the registry, it
+ * does NOT alter the 13 spec inputs and does NOT merge any engines. Exposure
+ * stays gated by `location_intelligence_enabled` at the consumer; this
+ * constant is just the manifest entry so a future composition surface can
+ * resolve the pointer without inventing names.
+ */
+export const LOCATION_INTELLIGENCE_REFS: readonly ContextEngineRef[] = [
+  { input: 'weather', engineKey: LOCATION_INTELLIGENCE_ENGINE_KEY },
+  { input: 'temperature', engineKey: LOCATION_INTELLIGENCE_ENGINE_KEY },
+  { input: 'humidity', engineKey: LOCATION_INTELLIGENCE_ENGINE_KEY },
+] as const;
+
+/**
  * "One Orb" invariant — the Shared Context Layer is allowed
  * exactly one Orb surface. Codified as a constant + assertion
  * so any future composition code can hard-fail rather than

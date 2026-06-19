@@ -386,5 +386,17 @@
       "title": "HISTORIQUE HYDROSCAN",
       "advisory": "INDICATIF"
     }
+  },
+  "locationIntel": {
+    "note": {
+      "altitude": "L’air sec de la montagne vous déshydrate plus vite. Commencez par de l’eau et buvez régulièrement aujourd’hui.",
+      "uv": "Le soleil intense puise votre hydratation. Buvez de l’eau avant de sortir.",
+      "air": "La qualité de l’air est faible aujourd’hui. Hydratez-vous bien et allez-y doucement.",
+      "heat_humid": "Chaleur et humidité s’accumulent. Commencez par de l’eau et gardez des électrolytes à portée.",
+      "baseline": "Les conditions sont bonnes. Gardez votre rythme d’hydratation habituel."
+    },
+    "protocol": {
+      "travel_protocol": "Déplacement détecté. Commencez par de l’eau : un verre par heure de trajet vous garde en avance."
+    }
   }
 }

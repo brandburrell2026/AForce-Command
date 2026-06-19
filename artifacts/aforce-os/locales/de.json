@@ -386,5 +386,17 @@
       "title": "HYDROSCAN-VERLAUF",
       "advisory": "HINWEIS"
     }
+  },
+  "locationIntel": {
+    "note": {
+      "altitude": "Die dünne Bergluft trocknet dich schneller aus. Beginne mit Wasser und trinke heute regelmäßig in kleinen Schlucken.",
+      "uv": "Starke Sonne entzieht dir Feuchtigkeit. Trink Wasser, bevor du nach draußen gehst.",
+      "air": "Die Luftqualität ist heute schlecht. Trink ausreichend und nimm es ruhiger.",
+      "heat_humid": "Hitze und Feuchtigkeit summieren sich. Beginne mit Wasser und halte Elektrolyte bereit.",
+      "baseline": "Die Bedingungen sind gut. Behalte deinen gewohnten Trinkrhythmus bei."
+    },
+    "protocol": {
+      "travel_protocol": "Reise erkannt. Beginne mit Wasser – ein Glas pro Reisestunde hält dich vorn."
+    }
   }
 }

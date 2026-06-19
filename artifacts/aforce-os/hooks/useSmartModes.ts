@@ -7,14 +7,18 @@
  * lives in exactly one place. No UI, no navigation, no Date.now in the
  * pure engine — only the slice → primitive mapping happens here.
  *
- * Travel is intentionally dormant (`isTravelDay: false`): the engine
- * supports it, but no time-zone / travel-day signal is wired yet.
+ * Travel is wired through Location Intelligence™: when
+ * `location_intelligence_enabled` is OFF the travel signal is inert
+ * (`isTravelDay: false`) so behavior is byte-identical; when ON, a real
+ * distance / time-zone change (e.g. Miami → NYC) flips it on, lighting up
+ * Travel Mode.
  */
 import React from 'react';
 
 import { useUserSlice, useEngineSlice } from '@/store/slices';
 import { computeHeatIndexC } from '@/utils/reminders/adaptivePolicy';
 import { deriveActiveModes, type SmartModeResult } from '@/utils/modes/smartModes';
+import { useLocationIntelligence } from '@/hooks/useLocationIntelligence';
 
 /** Freshest workout-minutes across all linked biometric providers. */
 function maxWorkoutMinutes(
@@ -32,6 +36,9 @@ function maxWorkoutMinutes(
 export function useSmartModes(): SmartModeResult {
   const user = useUserSlice();
   const engine = useEngineSlice();
+  // Inert (isTraveling=false) until `location_intelligence_enabled` is ON.
+  const location = useLocationIntelligence();
+  const isTravelDay = location.travel.isTraveling;
 
   return React.useMemo(
     () =>
@@ -44,7 +51,7 @@ export function useSmartModes(): SmartModeResult {
         hydrationScore: typeof engine.score === 'number' ? engine.score : null,
         goalProgress:
           user.dailyTarget > 0 ? user.unitsConsumedToday / user.dailyTarget : 0,
-        isTravelDay: false,
+        isTravelDay,
       }),
     [
       user.weatherTempC,
@@ -53,6 +60,7 @@ export function useSmartModes(): SmartModeResult {
       user.dailyTarget,
       user.unitsConsumedToday,
       engine.score,
+      isTravelDay,
     ],
   );
 }

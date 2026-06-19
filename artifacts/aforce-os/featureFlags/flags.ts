@@ -103,6 +103,12 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   // consumption prompt + unknown-product flow + local history). Build
   // 100% · Show 10%: OFF in the production binary, ON in DEMO_ALL_ON.
   hydro_scan_2_enabled: false,
+
+  // Location Intelligence™ — headless location-context engine (GPS /
+  // time zone / altitude / temperature / humidity / UV / air quality /
+  // travel detection). Build 100% · Show 10%: OFF in the production
+  // binary, ON in DEMO_ALL_ON. Advisory only (Score-Protection).
+  location_intelligence_enabled: false,
 };
 
 /**
@@ -170,6 +176,7 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
   spec_recovery: true,
   spec_demand_engine: true,
   hydro_scan_2_enabled: true,
+  location_intelligence_enabled: true,
 };
 
 export function isFlagEnabled(flags: FeatureFlags, key: keyof FeatureFlags): boolean {

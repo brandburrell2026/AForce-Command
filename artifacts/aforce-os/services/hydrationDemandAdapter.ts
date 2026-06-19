@@ -46,6 +46,14 @@ export interface AdapterOverrides {
   environmentProfile?: HydrationDemandInputs['environmentProfile'];
   /** Recovery score override (0..100). */
   recoveryScore?: number;
+  /**
+   * Pre-computed environmental (Location Intelligence) demand adder in oz.
+   * Additive, capped internally by the engine. Score-Protection: this is a
+   * target-side adder only. Callers MUST gate this on
+   * `location_intelligence_enabled` before passing it; the adapter forwards
+   * it verbatim and emits nothing when it is absent (byte-identical).
+   */
+  environmentalAdderOz?: number;
 }
 
 /** Diagnostic detail returned alongside the engine input. */
@@ -88,6 +96,9 @@ export function buildHydrationDemandInputs(
   if (overrides.sweatProfile) inputs.sweatProfile = overrides.sweatProfile;
   if (overrides.environmentProfile) inputs.environmentProfile = overrides.environmentProfile;
   if (typeof overrides.recoveryScore === 'number') inputs.recoveryScore = overrides.recoveryScore;
+  if (typeof overrides.environmentalAdderOz === 'number') {
+    inputs.environmentalAdderOz = overrides.environmentalAdderOz;
+  }
   if (typeof overrides.consumedOz === 'number') inputs.consumedOz = overrides.consumedOz;
   if (typeof overrides.completedCycles === 'number') {
     inputs.completedCycles = overrides.completedCycles;

@@ -55,4 +55,31 @@ describe('selectHydrationDemandSnapshot', () => {
     const b = selectHydrationDemandSnapshot(state, flagsOn);
     expect(a).toEqual(b);
   });
+
+  describe('environmental adder is gated by location_intelligence_enabled', () => {
+    const locOn: FeatureFlags = {
+      ...flagsOn,
+      location_intelligence_enabled: true,
+    };
+
+    it('strips environmentalAdderOz when the location flag is OFF (byte-identical)', () => {
+      const state = makeState();
+      const base = selectHydrationDemandSnapshot(state, flagsOn);
+      const withEnv = selectHydrationDemandSnapshot(state, flagsOn, {
+        environmentalAdderOz: 12,
+      });
+      expect(withEnv!.inputs.environmentalAdderOz).toBeUndefined();
+      expect(withEnv!.outputs.targetOz).toBe(base!.outputs.targetOz);
+    });
+
+    it('applies environmentalAdderOz when the location flag is ON', () => {
+      const state = makeState();
+      const base = selectHydrationDemandSnapshot(state, locOn);
+      const withEnv = selectHydrationDemandSnapshot(state, locOn, {
+        environmentalAdderOz: 7,
+      });
+      expect(withEnv!.inputs.environmentalAdderOz).toBe(7);
+      expect(withEnv!.outputs.targetOz).toBe(base!.outputs.targetOz + 7);
+    });
+  });
 });

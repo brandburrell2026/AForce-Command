@@ -386,5 +386,17 @@
       "title": "HISTÓRICO DO HYDROSCAN",
       "advisory": "INFORMATIVO"
     }
+  },
+  "locationIntel": {
+    "note": {
+      "altitude": "O ar seco da montanha desidrata mais rápido. Comece com água e beba aos poucos ao longo do dia.",
+      "uv": "O sol forte está tirando sua hidratação. Comece com água antes de sair.",
+      "air": "A qualidade do ar está baixa hoje. Hidrate-se bem e pegue leve nos esforços.",
+      "heat_humid": "Calor e umidade estão se somando. Comece com água e mantenha eletrólitos por perto.",
+      "baseline": "As condições estão boas. Mantenha seu ritmo normal de água."
+    },
+    "protocol": {
+      "travel_protocol": "Viagem detectada. Comece com água — um copo a cada hora de trajeto mantém você à frente."
+    }
   }
 }

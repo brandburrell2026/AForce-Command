@@ -23,6 +23,7 @@ export {
   OCCUPATION_ADDER_OZ,
   TRAVEL_ADDER_OZ,
   LIFESTYLE_ADDER_CAP_OZ,
+  CONTEXT_ADDER_CAP_OZ,
   computeHydrationDemand,
   calculateLifestyleDemandAdderOz,
 } from "@workspace/demand-engine";

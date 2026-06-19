@@ -386,5 +386,17 @@
       "title": "HISTORIAL DE HYDROSCAN",
       "advisory": "INFORMATIVO"
     }
+  },
+  "locationIntel": {
+    "note": {
+      "altitude": "El aire seco de la montaña te deshidrata más rápido. Empieza con agua y bebe a sorbos durante el día.",
+      "uv": "El sol fuerte te quita humedad. Empieza con agua antes de salir.",
+      "air": "Hoy la calidad del aire es baja. Hidrátate bien y baja la intensidad.",
+      "heat_humid": "El calor y la humedad se acumulan. Empieza con agua y ten electrolitos a mano.",
+      "baseline": "Las condiciones son buenas. Mantén tu ritmo habitual de agua."
+    },
+    "protocol": {
+      "travel_protocol": "Viaje detectado. Empieza con agua: un vaso por cada hora de trayecto te mantiene por delante."
+    }
   }
 }

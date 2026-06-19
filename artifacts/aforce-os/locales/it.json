@@ -386,5 +386,17 @@
       "title": "CRONOLOGIA HYDROSCAN",
       "advisory": "INFORMATIVO"
     }
+  },
+  "locationIntel": {
+    "note": {
+      "altitude": "L’aria secca di montagna ti disidrata più in fretta. Inizia con l’acqua e bevi a piccoli sorsi durante la giornata.",
+      "uv": "Il sole intenso ti toglie idratazione. Bevi acqua prima di uscire.",
+      "air": "La qualità dell’aria oggi è bassa. Idratati bene e vai più piano.",
+      "heat_humid": "Caldo e umidità si sommano. Inizia con l’acqua e tieni gli elettroliti a portata.",
+      "baseline": "Le condizioni sono buone. Mantieni il tuo ritmo abituale con l’acqua."
+    },
+    "protocol": {
+      "travel_protocol": "Viaggio rilevato. Inizia con l’acqua: un bicchiere per ogni ora di viaggio ti tiene in vantaggio."
+    }
   }
 }
