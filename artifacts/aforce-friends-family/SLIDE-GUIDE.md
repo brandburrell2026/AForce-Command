@@ -1,6 +1,6 @@
 # AForce — Friends & Family Deck Slide Guide
 
-A slide-by-slide explanation of the AForce Friends & Family deck (27 slides). Use this as
+A slide-by-slide explanation of the AForce Friends & Family deck (25 slides). Use this as
 speaker notes or a narrative map. The deck is built as one continuous argument:
 **a product becomes a ritual, a ritual becomes behavior, behavior becomes
 retention, retention becomes a recurring membership business.**
@@ -14,7 +14,7 @@ The deck moves through six acts:
 | **The Opportunity** | 6–8 | Size the market, expose the gap, claim the white space. |
 | **The System** | 9–13 | Show the product is a *system*, not a beverage. |
 | **The Plan** | 14–24 | Prove how the system compounds into a defensible, fundable business — and what it returns. |
-| **The Close** | 25–27 | Make the ask, restate the thesis, invite the partnership. |
+| **The Close** | 25 | Invite the partnership. |
 
 ---
 
@@ -165,17 +165,7 @@ Coca-Cola, Unilever, PepsiCo — AForce is built to be next.
 
 ## The Close
 
-### Slide 25 — The Ask
-The raise: **$4M**, allocated across product and inventory, marketing, technology,
-and team and operations. Restates the audience line: built for people who don't get
-to be off.
-
-### Slide 26 — The Close
-The thesis in one line: this isn't about proving people like a hydration product —
-it's **Product → Ritual → Behavior → Retention → Membership → Scale**. The proof
-sequence *is* the business.
-
-### Slide 27 — Contact
+### Slide 25 — Contact
 The invitation: join before the national stage. Founders Brandon and Julius
 Burrell, New York HQ, drinkaforce.com. The mission stated plainly — a readiness
 ritual becoming a recurring membership business, built for people who don't get to
