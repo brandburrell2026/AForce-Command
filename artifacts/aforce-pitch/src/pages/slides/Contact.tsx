@@ -215,7 +215,7 @@ export default function Contact() {
         {...reveal(0.9)}
       >
         <Wordmark className="h-[2.4vw]" />
-        <p className="font-display font-medium tracking-[-0.015em] text-[1.15vw] leading-none text-text/70">
+        <p className="font-display font-medium tracking-[-0.015em] text-[1.55vw] leading-none text-text/70">
           Built for people who don&apos;t get to be{" "}
           <span className="text-red font-semibold">off.</span>
         </p>
