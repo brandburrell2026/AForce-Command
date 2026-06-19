@@ -134,12 +134,19 @@ with massive whitespace. One emphasis word per H1 in red or blue.
   (no halo). Don't reintroduce branded photos or a scattered red "notification"
   dot layer; keep only the single intentional pulsing red ping above the
   right-side tagline.
-- **"Use of funds" = ONE stacked allocation bar + a per-allocation breakdown
-  grid, never separate half-empty tracks** (rejected as repetitive/dead-space).
-  This lives on the **`TheAsk` slide** (the $4M raise + use-of-funds bars); it
-  uses the real brand vars `var(--color-red)`/`var(--color-blue)`/`#0b0d12` +
-  rgba shades, NOT `--af-*` (those don't exist). (There is no standalone
-  `UseOfFunds.tsx` slide — that was part of the reverted expansion.)
+- **`TheAsk` slide = the $4M / "Use of Funds" lender slide.** Layout is a
+  **two-column lender-package**: left = `THE ASK` eyebrow + "$4 Million" hero
+  (red on "Million") + `GROWTH CAPITAL FACILITY` + description + a
+  disciplined-capital closing statement; right = **ONE proportional stacked
+  allocation bar + itemized per-tranche rows** (6 tranches summing to 100% /
+  $4,000,000). Never separate half-empty tracks (rejected as
+  repetitive/dead-space). Tranche colors follow the tri-color system (red =
+  manufacturing + sales/marketing, blue = R&D + distribution, charcoal/neutral =
+  operating expenses + working-capital reserve) via hardcoded brand-hex
+  gradients in the `USE` array, NOT `--af-*` vars (those don't exist).
+  **Render lender/memo copy VERBATIM** — spell "$4 Million", not "$4M" (the
+  abbreviation was flagged as not matching the Credit Memorandum exactly). No
+  standalone `UseOfFunds.tsx` exists (that was the reverted expansion).
 - **Verify pitch slides via `/allslides`** (forces reduced motion → final state).
   `/slideN` screenshots land mid-animation because entrances fade in on a stagger
   (late-delayed elements — black hero panels/highlight bars, last legend cells —
