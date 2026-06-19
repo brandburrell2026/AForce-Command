@@ -40,3 +40,20 @@ with round-then-clamp at the boundary. Math is pure in `utils/metabolicScore.ts`
 (type-only import from scoreBand); raw→normalized mapping lives in
 `services/metabolicReadinessService.ts`; the store seam is
 `components/home/MetabolicReadinessZone.tsx` (renders null when flag off).
+
+## No insulin / glucose — this IS the insulin replacement
+
+There is intentionally NO "Insulin Sensitivity" feature in the app. Metabolic
+Readiness was specced as the *wellness-estimate replacement* for any blood-sugar
+framing. Hard constraint: **never build glucose- or insulin-related features or
+copy** (medical-claims liability) — every metric carries the always-visible
+`Wellness estimate — not a medical measurement.` disclaimer. The only "insulin"
+strings in the repo are two historical prompt archives in `attached_assets/`
+stating "do NOT build anything glucose- or insulin-related"; those are negative
+constraints, not feature references — do not rewrite them.
+
+**Trademark-name mapping (owner "Mark Mendel additions"):** Metabolic Readiness™
+is fully built; its two rows MUSCLE / COGNITIVE are the in-app analogs of
+"Muscle Recovery™" / "Brain Energy™" (not standalone surfaces). Caffeine
+Intelligence™ and Fuel Timing™ do NOT exist as named features (caffeine is only
+a profile field feeding the gated demand engine).
