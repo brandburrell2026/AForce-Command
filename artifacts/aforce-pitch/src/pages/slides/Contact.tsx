@@ -204,10 +204,6 @@ export default function Contact() {
               <span className="font-display font-medium text-[0.98vw] text-text tracking-[-0.01em]">
                 www.drinkaforce.com
               </span>
-              <span className="font-body text-[0.82vw] text-text/45">·</span>
-              <span className="font-display font-medium text-[0.92vw] text-blue tracking-[-0.01em]">
-                invest.drinkaforce.com/aforce-pitch
-              </span>
             </div>
           </motion.div>
         </div>
