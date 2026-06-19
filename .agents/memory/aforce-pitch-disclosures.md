@@ -19,14 +19,18 @@ looks like sloppy redundant fine-print on a lender-ready slide.
 verbatim text (remove the now-unused import) rather than rendering two near-
 identical disclaimers. Other slides keep `ProjectionDisclaimer`.
 
-## Use-of-Funds is intentionally value-sorted (slide 23 / TheAsk)
-The USE array is ordered **descending by dollar amount** (Operating Expenses
-$850K before Sales & Marketing $800K).
-**Why:** an explicit prior owner request established this order; it is a
-deliberate visual choice. A Credit-Memo "categories should read" list may type
-them in a different order (e.g. S&M before OpEx) incidentally.
-**How to apply:** when a memo list's order differs, apply the terminology/amount
-changes but do NOT silently re-sort — confirm with the owner first.
+## Use-of-Funds order follows the Credit Memorandum, NOT dollar value (slide 23 / TheAsk)
+The USE array order is: Manufacturing & Inventory $1.6M, **Sales & Marketing
+$800K, Operating Expenses $850K** (note: S&M before OpEx even though S&M is
+smaller), R&D / AForce OS™ $350K, Distribution & Fulfillment $300K, Working
+Capital Reserve $100K. Total $4.0M.
+**Why:** it was briefly value-sorted descending (a deliberate visual choice),
+but the owner's "FINAL DECK CONSISTENCY UPDATE" explicitly listed the order to
+match the Credit Memorandum / Use of Proceeds Schedule, which supersedes the
+value-sort. So the smaller-bar-before-bigger-bar (20% above 21.25%) is INTENDED.
+**How to apply:** keep this exact memo order; do not "fix" it by re-sorting by
+amount. If a future request asks to re-sort by value, confirm it isn't undoing
+the memo alignment.
 
 ## Disclosure styling convention
 Custom dark-gray institutional disclosures: `font-body`, dark gray `text-[#555]`
