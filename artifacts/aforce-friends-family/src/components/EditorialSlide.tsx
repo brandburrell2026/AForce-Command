@@ -94,8 +94,8 @@ export default function EditorialSlide({
       {/* TOP CHROME — wordmark + patent badge on the cream side */}
       <div className="absolute top-[4.5vh] left-[5vw] z-20 flex flex-col items-start gap-[1.4vh] pointer-events-none">
         <Wordmark className="h-[1.5vw]" />
-        <div className="uppercase tracking-[0.22em] text-[0.62vw] font-semibold text-red border border-red px-[0.7vw] py-[0.35vh] rounded-full">
-          Patent-Protected
+        <div className="uppercase tracking-[0.22em] text-[0.62vw] font-semibold text-red border border-red px-[0.7vw] py-[0.35vh] rounded-full whitespace-nowrap">
+          Proprietary IP &amp; Patent Applications Filed
         </div>
       </div>
     </div>

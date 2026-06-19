@@ -23,7 +23,7 @@ const PAPER_BG =
   "radial-gradient(125% 115% at 50% -5%, #efece6 0%, #e4e0d8 52%, #d6d1c8 100%)";
 
 /**
- * Shared chrome for every slide: AForce wordmark + Patent-Protected pill on
+ * Shared chrome for every slide: AForce wordmark + IP-status pill on
  * top, and the confidential / section / page rule on the bottom. Content is
  * supplied as children and owns its own layout.
  */
@@ -56,9 +56,9 @@ export default function SlideFrame({
       <div className="absolute top-[4.5vh] left-[5vw] right-[5vw] flex justify-between items-start z-20 pointer-events-none">
         {hideTopWordmark ? <span /> : <Wordmark className="h-[1.5vw]" />}
         <div
-          className={`uppercase tracking-[0.22em] text-[0.62vw] font-semibold border px-[0.7vw] py-[0.35vh] rounded-full ${pill}`}
+          className={`uppercase tracking-[0.22em] text-[0.62vw] font-semibold border px-[0.7vw] py-[0.35vh] rounded-full whitespace-nowrap ${pill}`}
         >
-          Patent-Protected
+          Proprietary IP &amp; Patent Applications Filed
         </div>
       </div>
 

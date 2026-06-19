@@ -87,8 +87,8 @@ export default function SlideChrome({
               <div className={`font-body uppercase tracking-[0.28em] text-[0.7vw] ${muted} font-medium`}>
                 Investor Deck · Phase 1 · Proof of Concept
               </div>
-              <div className={`uppercase tracking-[0.22em] text-[0.62vw] font-semibold text-red border border-red px-[0.7vw] py-[0.35vh] rounded-full`}>
-                Patent-Protected
+              <div className={`uppercase tracking-[0.22em] text-[0.62vw] font-semibold text-red border border-red px-[0.7vw] py-[0.35vh] rounded-full whitespace-nowrap`}>
+                Proprietary IP &amp; Patent Applications Filed
               </div>
             </div>
           </div>
