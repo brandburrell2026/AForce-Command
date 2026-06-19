@@ -1,6 +1,6 @@
 # AForce — Investor Deck Slide Guide
 
-A slide-by-slide explanation of the AForce investor deck (24 slides). Use this as
+A slide-by-slide explanation of the AForce investor deck (25 slides). Use this as
 speaker notes or a narrative map. The deck is built as one continuous argument:
 **a product becomes a ritual, a ritual becomes behavior, behavior becomes
 retention, retention becomes a recurring membership business.**
@@ -13,8 +13,8 @@ The deck moves through six acts:
 | **The Team** | 3–5 | Establish credibility — the platform, the founders, the advisors. |
 | **The Opportunity** | 6–8 | Size the market, expose the gap, claim the white space. |
 | **The System** | 9–13 | Show the product is a *system*, not a beverage. |
-| **The Plan** | 14–21 | Prove how the system compounds into a defensible, fundable business. |
-| **The Close** | 22–24 | Make the ask, restate the thesis, invite the partnership. |
+| **The Plan** | 14–22 | Prove how the system compounds into a defensible, fundable business. |
+| **The Close** | 23–25 | Make the ask, restate the thesis, invite the partnership. |
 
 ---
 
@@ -139,7 +139,18 @@ The unit economics: CAC, LTV, subscription conversion, repeat purchase, gross
 margin, and revenue forecast (illustrative assumptions). Translates the behavioral
 story into a financial one.
 
-### Slide 21 — Why Invest Today
+### Slide 21 — Financial Trajectory
+Building a scalable and profitable performance platform. The phased revenue
+story — 2026 $185,000 (commercial launch / proof of concept), 2027 $2.36 Million
+(subscriptions, DTC, Amazon, and strategic channels), 2028 $9.83 Million (scaled
+acquisition and recurring revenue) — climaxing in the first year of positive
+EBITDA at $1.17 Million. Supported by a 50%+ gross-margin target, a recurring
+revenue model (subscription + membership + commerce), $832,000 SAFE capital
+raised from 18 investors, and a $4 Million growth-facility request. Frames a
+credible path from commercialization to positive EBITDA and a durable recurring
+revenue platform.
+
+### Slide 22 — Why Invest Today
 The closing argument before the ask: behavioral readiness is an open category;
 national validation comes through America's Real Deal; membership economics create
 recurring revenue; and the GTM is proof-driven, not hope-driven.
@@ -148,17 +159,17 @@ recurring revenue; and the GTM is proof-driven, not hope-driven.
 
 ## The Close
 
-### Slide 22 — The Ask
+### Slide 23 — The Ask
 The raise: **$4M**, allocated across product and inventory, marketing, technology,
 and team and operations. Restates the audience line: built for people who don't get
 to be off.
 
-### Slide 23 — The Close
+### Slide 24 — The Close
 The thesis in one line: this isn't about proving people like a hydration product —
 it's **Product → Ritual → Behavior → Retention → Membership → Scale**. The proof
 sequence *is* the business.
 
-### Slide 24 — Contact
+### Slide 25 — Contact
 The invitation: join before the national stage. Founders Brandon and Julius
 Burrell, New York HQ, drinkaforce.com. The mission stated plainly — a readiness
 ritual becoming a recurring membership business, built for people who don't get to

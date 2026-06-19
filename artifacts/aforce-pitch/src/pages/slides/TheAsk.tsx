@@ -80,7 +80,7 @@ export default function TheAsk() {
   });
 
   return (
-    <SlideFrame slide={22}>
+    <SlideFrame slide={23}>
       {/* closing backdrop — a lone figure facing a vast dawn horizon: the scale
           ahead. Held far behind the numbers by an even legibility veil so the
           allocation table reads crisp across the full width. */}

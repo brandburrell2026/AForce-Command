@@ -60,7 +60,7 @@ export default function Contact() {
   });
 
   return (
-    <SlideFrame slide={24} phaseLabel="The Invitation" hideTopWordmark>
+    <SlideFrame slide={25} phaseLabel="The Invitation" hideTopWordmark>
       {/* acquisition glow lower-left, OS glow upper-right — the arc, one last time */}
       <div
         aria-hidden

@@ -23,10 +23,17 @@ live as hardcoded constants in `src/components/SlideChrome.tsx`:
 are separate literals. Forgetting them makes a new slide render with a wrong
 "X / 17" count or the wrong section name.
 
-**How to apply:** to add a slide you touch FOUR things — create the
-`src/pages/slides/*.tsx`, add the manifest entry (unique id, contiguous
-position), bump `TOTAL_SLIDES`, and cover the new position in `SECTIONS`. Then
-`pnpm run validate-slides` + `pnpm run typecheck`.
+**How to apply:** to add a slide you touch FOUR functional things — create the
+`src/pages/slides/*.tsx` (with the correct hardcoded `slide={N}`), add the
+manifest entry (unique id, contiguous position), bump `TOTAL_SLIDES`, and cover
+the new position in `SECTIONS`. Then `pnpm run validate-slides` +
+`pnpm run typecheck`. **Inserting mid-deck** (not appending) = the reorder rule
+applied to a range: every slide AFTER the insertion point must have BOTH its
+manifest `position` AND its `<SlideFrame slide={N}>` literal bumped +1, and the
+shifted `SECTIONS` ranges adjusted. Also hand-sync `SLIDE-GUIDE.md` (the
+human-readable speaker-notes map: the "(NN slides)" count, the section/slide-range
+table, the inserted `### Slide N — …` entry, and the renumbered later headings) —
+it is doc-only (nothing validates it) so it drifts silently if skipped.
 
 Note: `BG_NAMES` in SlideChrome is only used by the legacy `SlideChrome`
 background plate, NOT by `SlideFrame` (which most current slides use), so a
