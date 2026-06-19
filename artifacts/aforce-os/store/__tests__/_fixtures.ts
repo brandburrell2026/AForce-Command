@@ -144,6 +144,7 @@ export const baseFlags: FeatureFlags = {
   spec_demand_engine: false,
   hydro_scan_2_enabled: false,
   location_intelligence_enabled: false,
+  signal_hierarchy_enabled: false,
 };
 
 export const baseSubscription: UserSubscription = {

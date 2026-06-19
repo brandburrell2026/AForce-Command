@@ -48,12 +48,16 @@ export function selectHydrationDemandSnapshot(
   // When it's OFF we strip `environmentalAdderOz` so the demand target is
   // byte-identical to its pre-Location-Intelligence value, even if a caller
   // mistakenly forwards it.
-  const effectiveOverrides: AdapterOverrides = isFlagEnabled(
-    flags,
-    'location_intelligence_enabled',
-  )
-    ? overrides
-    : { ...overrides, environmentalAdderOz: undefined };
+  //
+  // Signal Hierarchy is the single gate for source SELECTION: we set
+  // `signalHierarchyEnabled` explicitly from the flag (callers can't
+  // override it). OFF ⇒ the adapter keeps freshest-wins (byte-identical).
+  const effectiveOverrides: AdapterOverrides = {
+    ...(isFlagEnabled(flags, 'location_intelligence_enabled')
+      ? overrides
+      : { ...overrides, environmentalAdderOz: undefined }),
+    signalHierarchyEnabled: isFlagEnabled(flags, 'signal_hierarchy_enabled'),
+  };
 
   const { inputs, trace } = buildHydrationDemandInputs(
     state.userState,

@@ -27,6 +27,7 @@ import {
   selectFreshestSleepHours,
   type FreshestSleep,
 } from './profileBodyModel';
+import { selectSleepByHierarchy } from '../utils/signalHierarchy';
 import { calculateLifestyleDemandAdderOz } from './hydrationDemandEngine';
 import type { HydrationDemandInputs } from './hydrationDemandEngine';
 
@@ -54,6 +55,16 @@ export interface AdapterOverrides {
    * it verbatim and emits nothing when it is absent (byte-identical).
    */
   environmentalAdderOz?: number;
+  /**
+   * When true, the sleep value is selected by SIGNAL HIERARCHY™
+   * (deterministic per-source priority: WHOOP over Apple over Samsung
+   * over Garmin over Google) instead of freshest-wins. Callers MUST gate
+   * this on `signal_hierarchy_enabled` before passing it; when absent or
+   * false the adapter uses `selectFreshestSleepHours` exactly as before
+   * (byte-identical). Score-Protection: this only changes WHICH source
+   * feeds `sleepHours` — never the score.
+   */
+  signalHierarchyEnabled?: boolean;
 }
 
 /** Diagnostic detail returned alongside the engine input. */
@@ -80,7 +91,12 @@ export function buildHydrationDemandInputs(
   overrides: AdapterOverrides = {},
 ): AdapterResult {
   const body = getBodyModelOrDefaults(profile);
-  const sleepSource = selectFreshestSleepHours(user.biometrics);
+  // Source SELECTION: SIGNAL HIERARCHY™ (deterministic priority) when the
+  // flag is forwarded, else the legacy freshest-wins path. Both return the
+  // same `FreshestSleep` shape, so the trace and downstream stay identical.
+  const sleepSource: FreshestSleep | null = overrides.signalHierarchyEnabled
+    ? selectSleepByHierarchy(user.biometrics)
+    : selectFreshestSleepHours(user.biometrics);
 
   const inputs: HydrationDemandInputs = {
     weightLbs: body.bodyWeightLbs,

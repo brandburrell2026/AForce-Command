@@ -611,6 +611,16 @@ export interface FeatureFlags {
   // only — feeds the demand (target) side, additive + capped, and
   // never awards or mutates score.
   location_intelligence_enabled: boolean;
+
+  // Signal Hierarchy™ — headless, deterministic per-source priority
+  // resolution (Sleep / Heart Rate / Activity / Hydration Verification).
+  // Replaces freshest-wins for source SELECTION with a fixed ladder
+  // (e.g. Phantom → WHOOP → Apple Health …). Build 100% · Show 10%:
+  // OFF in the production binary, ON in DEMO_ALL_ON. Phase 1 wires only
+  // the SLEEP ladder into the (already headless) Hydration Demand read
+  // path. Score-Protection: only changes which source feeds an advisory
+  // input — never awards or mutates score. OFF ⇒ freshest-wins stays live.
+  signal_hierarchy_enabled: boolean;
 }
 
 /**

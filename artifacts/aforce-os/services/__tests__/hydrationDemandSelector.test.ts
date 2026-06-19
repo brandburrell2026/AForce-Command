@@ -82,4 +82,30 @@ describe('selectHydrationDemandSnapshot', () => {
       expect(withEnv!.outputs.targetOz).toBe(base!.outputs.targetOz + 7);
     });
   });
+
+  describe('sleep source selection is gated by signal_hierarchy_enabled', () => {
+    // Apple Health is FRESHER (fetchedAt 999) but reports LESS sleep;
+    // WHOOP is staler (fetchedAt 1) but higher priority. The two
+    // strategies must disagree so the gate is observable.
+    const biometrics: ProviderBiometrics = {
+      apple_health: { providerId: 'apple_health', fetchedAt: 999, sleepHoursLastNight: 6 },
+      whoop: { providerId: 'whoop', fetchedAt: 1, sleepHoursLastNight: 8 },
+    };
+    const stateWith = makeState({
+      userState: { ...makeState().userState, biometrics },
+    });
+
+    it('flag OFF → freshest-wins picks Apple Health (byte-identical legacy path)', () => {
+      const snap = selectHydrationDemandSnapshot(stateWith, flagsOn);
+      expect(snap!.trace.sleepSource?.source).toBe('apple_health');
+      expect(snap!.inputs.sleepHours).toBe(6);
+    });
+
+    it('flag ON → priority picks WHOOP over the fresher Apple reading', () => {
+      const hierOn: FeatureFlags = { ...flagsOn, signal_hierarchy_enabled: true };
+      const snap = selectHydrationDemandSnapshot(stateWith, hierOn);
+      expect(snap!.trace.sleepSource?.source).toBe('whoop');
+      expect(snap!.inputs.sleepHours).toBe(8);
+    });
+  });
 });
