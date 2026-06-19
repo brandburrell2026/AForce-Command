@@ -104,6 +104,18 @@ export interface ScanResult {
    */
   efficiency: number;
   efficiencyLabel: string;
+  /**
+   * HydroScan 2.0™ — profile-aware hydration impact headline (4-level).
+   * Only populated when the `hydro_scan_2_enabled` flag path is used;
+   * omitted otherwise so the legacy result shape stays byte-identical.
+   * Advisory only — never mutates score.
+   */
+  hydrationImpact?: HydrationImpactResult;
+  /**
+   * HydroScan 2.0™ — timing guidance (3-level). Same flag-gated
+   * population rule as `hydrationImpact`. Advisory only.
+   */
+  timingGuidance?: TimingGuidanceResult;
 }
 
 export interface ScanFailure {
@@ -116,3 +128,91 @@ export interface ScanFailure {
 export type ScanOutcome =
   | { ok: true; result: ScanResult }
   | { ok: false; failure: ScanFailure };
+
+// ─── HydroScan 2.0™ — profile-aware impact, timing, consumption, history ──
+//
+// Everything below is additive and advisory. None of it mutates a
+// hydration point, performance band, or recovery score (Score-Protection):
+// recording consumption writes only to the local HydroScan History store
+// and the explicit "Log Intake" tap remains the sole score path.
+
+/**
+ * Four-level public Hydration Impact headline. Spans beneficial →
+ * neutral → load: the SAME product can land on different levels for
+ * different users because weight, biological sex, activity, current
+ * performance state, and environment all feed the computation.
+ */
+export type HydrationImpactLevel =
+  | 'HIGH_SUPPORT'
+  | 'NEUTRAL'
+  | 'MODERATE_IMPACT'
+  | 'HIGH_IMPACT';
+
+/** A single factor that pushed the impact toward support or load. */
+export interface HydrationImpactDriver {
+  /** Stable key for i18n + testing (e.g. 'weight', 'heat', 'electrolytes', 'sugar'). */
+  key: string;
+  /** Whether this driver supported hydration or added load. */
+  direction: 'support' | 'load';
+}
+
+export interface HydrationImpactResult {
+  level: HydrationImpactLevel;
+  /** 0..100 — higher = more supportive for THIS user. Display/sort only. */
+  score: number;
+  /** Dominant profile/environment drivers, most significant first. */
+  drivers: HydrationImpactDriver[];
+  /**
+   * True when a key personalising field (body weight or activity) was
+   * missing, so the output leaned more on state + environment than on
+   * the user's profile.
+   */
+  lowConfidence: boolean;
+}
+
+/** Three-level timing guidance for when to take the product. */
+export type TimingGuidanceLevel =
+  | 'GOOD_TIMING'
+  | 'HYDRATE_FIRST'
+  | 'BEST_AFTER_NEXT_WATER_CYCLE';
+
+export interface TimingGuidanceResult {
+  level: TimingGuidanceLevel;
+}
+
+/** Consumption intent captured by the "Did you consume this?" prompt. */
+export type ConsumptionStatus = 'consumed' | 'not_yet' | 'just_curious';
+
+/** Manual category for the never-dead-end unknown-product flow. */
+export type UnknownProductType =
+  | 'water'
+  | 'protein'
+  | 'energy'
+  | 'supplement'
+  | 'other';
+
+/**
+ * One persisted HydroScan History row. Local + advisory: it records what
+ * was scanned, whether it was consumed, the impact, and the timing
+ * context. It never carries or affects score.
+ */
+export interface HydroScanHistoryEntry {
+  id: string;
+  /** ISO timestamp of the scan. */
+  scannedAt: string;
+  productName: string;
+  brand?: string;
+  isAForce: boolean;
+  /** Known product category when the product was recognized. */
+  category?: CompareProduct['category'];
+  /** Manual type when the product came through the unknown-product flow. */
+  unknownType?: UnknownProductType;
+  /** Did the user consume it? */
+  consumption: ConsumptionStatus;
+  /** Approximate amount (oz) from the unknown-product flow; null if unknown. */
+  approxOz?: number | null;
+  /** Headline hydration impact at scan time. */
+  impactLevel: HydrationImpactLevel;
+  /** Timing context at scan time. */
+  timingLevel: TimingGuidanceLevel;
+}

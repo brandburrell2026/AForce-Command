@@ -589,6 +589,17 @@ export interface FeatureFlags {
    * yet. Default OFF; flip in DEMO_ALL_ON for internal preview.
    */
   spec_demand_engine: boolean;
+  /**
+   * HydroScan 2.0™ — profile-aware scan output (Hydration Impact +
+   * Timing Guidance), the "Did you consume this?" prompt, the
+   * never-dead-end unknown-product flow, and the local HydroScan
+   * History. Master switch for the additive scan-screen surfaces.
+   * Ships OFF in prod (Build 100% · Show 10%); ON in the demo profile.
+   * Score-Protection: every surface is advisory — recording consumption
+   * writes only to local history and the explicit Log Intake tap remains
+   * the sole score path.
+   */
+  hydro_scan_2_enabled: boolean;
 }
 
 /**

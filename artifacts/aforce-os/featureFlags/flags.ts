@@ -98,6 +98,11 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   // visible surface yet. Build 100%, show 0%. Flip ON in DEMO_ALL_ON
   // for internal inspection.
   spec_demand_engine: false,
+
+  // HydroScan 2.0™ — profile-aware scan surfaces (Impact + Timing +
+  // consumption prompt + unknown-product flow + local history). Build
+  // 100% · Show 10%: OFF in the production binary, ON in DEMO_ALL_ON.
+  hydro_scan_2_enabled: false,
 };
 
 /**
@@ -164,6 +169,7 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
   // consumes them.
   spec_recovery: true,
   spec_demand_engine: true,
+  hydro_scan_2_enabled: true,
 };
 
 export function isFlagEnabled(flags: FeatureFlags, key: keyof FeatureFlags): boolean {

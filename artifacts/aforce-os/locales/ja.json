@@ -398,5 +398,61 @@
       "streak": "DAY STREAK",
       "logged": "CHECK-INS"
     }
+  },
+  "hydroScan2": {
+    "impact": {
+      "eyebrow": "HYDRATION IMPACT FOR YOU",
+      "lowConfidence": "Estimate — complete your profile to sharpen this.",
+      "highSupport": "HIGH SUPPORT",
+      "neutral": "NEUTRAL",
+      "moderateImpact": "MODERATE IMPACT",
+      "highImpact": "HIGH IMPACT"
+    },
+    "timing": {
+      "eyebrow": "TIMING GUIDANCE",
+      "good": "Great timing",
+      "hydrateFirst": "Hydrate first",
+      "afterNextCycle": "Best after your next water cycle"
+    },
+    "driver": {
+      "water": "Water",
+      "electrolytes": "Electrolytes",
+      "aforce": "AForce formula",
+      "sugar": "Sugar",
+      "stimulant": "Stimulant",
+      "heat": "Heat",
+      "humidity": "Humidity",
+      "activity": "Activity",
+      "weight": "Body size",
+      "state": "Recovery state"
+    },
+    "consumption": {
+      "eyebrow": "FOR YOUR RECORD",
+      "question": "Did you have this?",
+      "advisoryNote": "Saved to your scan history only — your score moves when you log water.",
+      "consumed": "Yes",
+      "not_yet": "Not yet",
+      "just_curious": "Just curious"
+    },
+    "unknown": {
+      "title": "Not in our database yet",
+      "hint": "Tell us roughly what it was — you'll still get guidance.",
+      "typeLabel": "What kind of drink?",
+      "amountLabel": "About how much?",
+      "oz": "{{oz}} oz",
+      "save": "Save to history",
+      "saved": "Saved to history",
+      "type": {
+        "water": "Water",
+        "protein": "Protein",
+        "energy": "Energy drink",
+        "supplement": "Supplement",
+        "other": "Other"
+      }
+    },
+    "history": {
+      "title": "HYDROSCAN HISTORY",
+      "advisory": "ADVISORY"
+    }
   }
 }

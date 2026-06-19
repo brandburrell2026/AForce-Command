@@ -142,6 +142,7 @@ export const baseFlags: FeatureFlags = {
   spec_uiFreeze: true,
   spec_recovery: false,
   spec_demand_engine: false,
+  hydro_scan_2_enabled: false,
 };
 
 export const baseSubscription: UserSubscription = {

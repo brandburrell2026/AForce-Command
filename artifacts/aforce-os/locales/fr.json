@@ -330,5 +330,61 @@
       "streak": "JOURS D'AFFILÉE",
       "logged": "BILANS"
     }
+  },
+  "hydroScan2": {
+    "impact": {
+      "eyebrow": "IMPACT HYDRATATION POUR VOUS",
+      "lowConfidence": "Estimation — complétez votre profil pour l'affiner.",
+      "highSupport": "FORT SOUTIEN",
+      "neutral": "NEUTRE",
+      "moderateImpact": "IMPACT MODÉRÉ",
+      "highImpact": "IMPACT ÉLEVÉ"
+    },
+    "timing": {
+      "eyebrow": "CONSEIL DE TIMING",
+      "good": "Bon moment",
+      "hydrateFirst": "Hydratez-vous d'abord",
+      "afterNextCycle": "Mieux après votre prochain cycle d'eau"
+    },
+    "driver": {
+      "water": "Eau",
+      "electrolytes": "Électrolytes",
+      "aforce": "Formule AForce",
+      "sugar": "Sucre",
+      "stimulant": "Stimulant",
+      "heat": "Chaleur",
+      "humidity": "Humidité",
+      "activity": "Activité",
+      "weight": "Corpulence",
+      "state": "État de récupération"
+    },
+    "consumption": {
+      "eyebrow": "POUR VOTRE SUIVI",
+      "question": "Vous l'avez bu ?",
+      "advisoryNote": "Enregistré seulement dans votre historique de scans — votre score évolue quand vous enregistrez de l'eau.",
+      "consumed": "Oui",
+      "not_yet": "Pas encore",
+      "just_curious": "Simple curiosité"
+    },
+    "unknown": {
+      "title": "Pas encore dans notre base",
+      "hint": "Dites-nous à peu près ce que c'était — vous aurez quand même un conseil.",
+      "typeLabel": "Quel type de boisson ?",
+      "amountLabel": "Environ combien ?",
+      "oz": "{{oz}} oz",
+      "save": "Ajouter à l'historique",
+      "saved": "Ajouté à l'historique",
+      "type": {
+        "water": "Eau",
+        "protein": "Protéine",
+        "energy": "Boisson énergisante",
+        "supplement": "Complément",
+        "other": "Autre"
+      }
+    },
+    "history": {
+      "title": "HISTORIQUE HYDROSCAN",
+      "advisory": "INDICATIF"
+    }
   }
 }

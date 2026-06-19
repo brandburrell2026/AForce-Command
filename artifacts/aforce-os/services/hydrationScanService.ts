@@ -20,6 +20,8 @@ import { getDynamicCompareProduct } from './openFoodFactsService';
 import { derivePersonalizationSignals } from '../utils/personalizationSignals';
 import { preWorkoutSupportFor } from '../utils/preWorkoutSupport';
 import { buildSuperfoodSignalsBlock } from '../utils/superfoodSignals';
+import { computeHydrationImpact } from '../utils/impact/hydrationImpact';
+import { computeTimingGuidance } from '../utils/impact/hydrationTiming';
 import type { CompareInputs, CompareProduct, CompareResult } from '../types/comparison';
 import type { ScoreEngineOutput, UserState } from '../types';
 import type { ProfileIdentity } from '../utils/profileIdentity';
@@ -148,6 +150,7 @@ export async function scan(
   engineOutput: ScoreEngineOutput,
   userState: UserState,
   profileIdentity?: ProfileIdentity | null,
+  opts?: { hydroScan2?: boolean },
 ): Promise<ScanOutcome> {
   await delay(LATENCY());
   const scanned = await recognize(source);
@@ -239,5 +242,51 @@ export async function scan(
     efficiency,
     efficiencyLabel: efficiencyLabel(efficiency),
   };
+  // HydroScan 2.0™ — profile-aware Hydration Impact + Timing Guidance.
+  // Attached ONLY when the caller passes the flag; when off, `result`
+  // is byte-identical to the legacy shape. Advisory only (Score-Protection):
+  // these never award, mutate, or fabricate score.
+  if (opts?.hydroScan2) {
+    const isWater = scanned.fluidType === 'water' || scanned.category === 'plain_water';
+    const hydrationImpact = computeHydrationImpact({
+      product: {
+        hydrationSpeed: scanned.hydrationSpeed,
+        electrolyteDensity: scanned.electrolyteDensity,
+        sugarLevel: scanned.sugarLevel,
+        stimulantLevel: scanned.stimulantLevel,
+        isAForce: scanned.isAForce,
+        isWater,
+      },
+      profile: {
+        bodyWeightLbs: profileIdentity?.bodyWeightLbs ?? null,
+        biologicalSex: profileIdentity?.biologicalSex ?? 'unspecified',
+        activityLevel: profileIdentity?.activityLevel ?? null,
+      },
+      state: inputs.state,
+      environment: {
+        heat01: userState.heatLoad,
+        humidity01:
+          userState.weatherHumidity != null ? userState.weatherHumidity / 100 : null,
+        tempC: userState.weatherTempC ?? null,
+      },
+    });
+    const timingGuidance = computeTimingGuidance({
+      isWater,
+      impactLevel: hydrationImpact.level,
+      state: inputs.state,
+      hoursSinceLastIntake: hoursSinceIntake(userState.lastIntakeTime),
+    });
+    result.hydrationImpact = hydrationImpact;
+    result.timingGuidance = timingGuidance;
+  }
   return { ok: true, result };
+}
+
+/** Hours since the user's last intake, or null when unknown/invalid. */
+function hoursSinceIntake(last: Date | string | null | undefined): number | null {
+  if (last == null) return null;
+  const t = last instanceof Date ? last.getTime() : new Date(last).getTime();
+  if (!Number.isFinite(t)) return null;
+  const h = (Date.now() - t) / 3_600_000;
+  return h >= 0 ? h : null;
 }

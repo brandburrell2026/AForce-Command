@@ -50,16 +50,38 @@ import { useCoachMode, shouldSpeak, shouldHaptic } from '@/services/coachMode';
 import { useRecoverySnapshotFromStore } from '@/services/useRecoverySnapshot';
 import { COMPARE_PRODUCTS } from '@/data/productDatabase';
 import { usePostScan, useScanHistory } from '@/hooks/useServerHistory';
-import type { ScanOutcome, ScanResult, ScanSource } from '@/types/scan';
+import { useTranslation } from 'react-i18next';
+import { HydrationImpactCard } from '@/components/hydroScan/HydrationImpactCard';
+import { TimingGuidanceCard } from '@/components/hydroScan/TimingGuidanceCard';
+import { ConsumptionPrompt } from '@/components/hydroScan/ConsumptionPrompt';
+import { UnknownProductFlow, type UnknownProductRecord } from '@/components/hydroScan/UnknownProductFlow';
+import { useHydroScanHistory } from '@/hooks/useHydroScanHistory';
+import type { HydroScanHistoryInput } from '@/services/hydroScanHistory';
+import { unknownProductImpact } from '@/utils/impact/unknownImpact';
+import { IMPACT_I18N_KEY } from '@/utils/impact/hydroScanCopy';
+import type {
+  ConsumptionStatus,
+  ScanOutcome,
+  ScanResult,
+  ScanSource,
+} from '@/types/scan';
 import type { PerformanceLevel } from '@/types';
 
 export default function HydrationScanScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { state, logIntake } = useAppStore();
+  const { t } = useTranslation();
+  // HydroScan 2.0™ — flag-gated profile-aware layer (OFF in prod, ON in demo).
+  const hydroScan2 = state.featureFlags.hydro_scan_2_enabled;
+  const hydroScanHistory = useHydroScanHistory();
   const [outcome, setOutcome] = useState<ScanOutcome | null>(null);
   const [scanning, setScanning] = useState(false);
   const [logging, setLogging] = useState(false);
+  // Advisory-only consumption capture (Score-Protection: never logs intake).
+  const [consumption, setConsumption] = useState<ConsumptionStatus | null>(null);
+  // True once the current unknown-product flow has been saved to history.
+  const [unknownSaved, setUnknownSaved] = useState(false);
   const [manualQuery, setManualQuery] = useState('');
   const [cameraOpen, setCameraOpen] = useState(false);
   const [addDrinkOpen, setAddDrinkOpen] = useState(false);
@@ -174,9 +196,18 @@ export default function HydrationScanScreen() {
   const runScan = async (source: ScanSource) => {
     if (scanning) return;
     setScanning(true);
+    // Reset advisory capture for the new scan.
+    setConsumption(null);
+    setUnknownSaved(false);
     if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
     try {
-      const out = await scan(source, state.engineOutput, state.userState, state.profileIdentity);
+      const out = await scan(
+        source,
+        state.engineOutput,
+        state.userState,
+        state.profileIdentity,
+        { hydroScan2 },
+      );
       setOutcome(out);
       if (out.ok) {
         // Internal analytics pipeline (Task #39) — a real receipt/product
@@ -321,6 +352,52 @@ export default function HydrationScanScreen() {
     if (!q) return;
     runScan({ kind: 'manual', rawValue: q });
   };
+
+  // ── HydroScan 2.0™ advisory recorders (Score-Protection) ──────────────
+  // These write ONLY to the local HydroScan History store. They never call
+  // logIntake and never dispatch a reducer action, so consumption capture
+  // can never touch a hydration point, performance band, or recovery score.
+  const onSelectConsumption = useCallback(
+    (status: ConsumptionStatus) => {
+      setConsumption(status);
+      if (!result) return;
+      if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
+      const entry: HydroScanHistoryInput = {
+        scannedAt: result.scannedAt,
+        productName: result.product.productName,
+        brand: result.product.brand,
+        isAForce: result.product.isAForce,
+        category: result.product.category,
+        consumption: status,
+        impactLevel: result.hydrationImpact?.level ?? 'NEUTRAL',
+        timingLevel: result.timingGuidance?.level ?? 'GOOD_TIMING',
+      };
+      void hydroScanHistory.record(entry);
+    },
+    [result, hydroScanHistory],
+  );
+
+  const onRecordUnknown = useCallback(
+    (record: UnknownProductRecord) => {
+      const { impactLevel, timingLevel } = unknownProductImpact(record.type);
+      const entry: HydroScanHistoryInput = {
+        scannedAt: new Date().toISOString(),
+        productName: t(`hydroScan2.unknown.type.${record.type}`),
+        isAForce: false,
+        unknownType: record.type,
+        approxOz: record.approxOz,
+        consumption: record.consumption,
+        impactLevel,
+        timingLevel,
+      };
+      void hydroScanHistory.record(entry);
+      setUnknownSaved(true);
+      if (Platform.OS !== 'web') {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+      }
+    },
+    [hydroScanHistory, t],
+  );
 
   // Shared handler for any modal that confirms a drink (AddDrinkModal +
   // SmartCaptureModal's "Log Correction" button). Logs through the
@@ -680,9 +757,28 @@ export default function HydrationScanScreen() {
             </View>
           )}
 
+          {/* Never-dead-end: a failed scan still gives the user a path to
+              record what they had. Advisory only — never logs intake. */}
+          {hydroScan2 && outcome?.ok === false && (
+            <UnknownProductFlow onRecord={onRecordUnknown} saved={unknownSaved} />
+          )}
+
           {result && (
             <>
               <ScanResultCard result={result} />
+
+              {/* HydroScan 2.0™ — profile-aware impact + timing + advisory
+                  consumption. Only present when the flag path populated the
+                  result; all three are advisory (never mutate score). */}
+              {hydroScan2 && result.hydrationImpact && (
+                <HydrationImpactCard impact={result.hydrationImpact} />
+              )}
+              {hydroScan2 && result.timingGuidance && (
+                <TimingGuidanceCard timing={result.timingGuidance} />
+              )}
+              {hydroScan2 && result.hydrationImpact && (
+                <ConsumptionPrompt selected={consumption} onSelect={onSelectConsumption} />
+              )}
 
               {recoveryLayer ? (
                 <View
@@ -800,6 +896,36 @@ export default function HydrationScanScreen() {
             </View>
           )}
 
+          {/* HydroScan 2.0™ — local, advisory scan history. Records what was
+              scanned + whether it was consumed; carries no score. */}
+          {hydroScan2 && hydroScanHistory.entries.length > 0 && (
+            <View style={styles.historyCard} testID="hydroscan2-history">
+              <View style={styles.historyHeader}>
+                <Icon name="droplet" size={12} color={Colors.text.muted} />
+                <Text style={styles.historyHeaderText}>{t('hydroScan2.history.title')}</Text>
+                <Text style={styles.historyAdvisory}>{t('hydroScan2.history.advisory')}</Text>
+              </View>
+              {hydroScanHistory.entries.slice(0, 6).map((e) => (
+                <View key={e.id} style={styles.historyRow}>
+                  <View
+                    style={[styles.historyDot, { backgroundColor: impactColor(e.impactLevel) }]}
+                  />
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.historyTitle} numberOfLines={1}>
+                      {e.productName}
+                    </Text>
+                    <Text style={styles.historyMeta} numberOfLines={1}>
+                      {formatRelativeTime(e.scannedAt)} · {t(`hydroScan2.consumption.${e.consumption}`)}
+                    </Text>
+                  </View>
+                  <Text style={[styles.historyVerdict, { color: impactColor(e.impactLevel) }]}>
+                    {t(IMPACT_I18N_KEY[e.impactLevel])}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          )}
+
           <Text style={styles.scanDisclaimer}>
             HydroScan provides performance and hydration guidance only. It is not intended to diagnose, treat, cure, or prevent medical conditions.
           </Text>
@@ -840,6 +966,16 @@ function verdictColor(v: string): string {
     case 'acceptable': return Colors.states.RECOVERING.primary;
     case 'suboptimal': return Colors.states.DEPLETED.primary;
     case 'avoid': return Colors.states.DEPLETED.primary;
+    default: return Colors.text.muted;
+  }
+}
+
+function impactColor(level: string): string {
+  switch (level) {
+    case 'HIGH_SUPPORT': return Colors.states.PEAK.primary;
+    case 'NEUTRAL': return Colors.states.BALANCED.primary;
+    case 'MODERATE_IMPACT': return Colors.states.RECOVERING.primary;
+    case 'HIGH_IMPACT': return Colors.states.DEPLETED.primary;
     default: return Colors.text.muted;
   }
 }
@@ -886,6 +1022,12 @@ const styles = StyleSheet.create({
     fontSize: 9,
     letterSpacing: 1.2,
     color: Colors.states.PEAK.primary,
+    fontWeight: '700',
+  },
+  historyAdvisory: {
+    fontSize: 9,
+    letterSpacing: 1.2,
+    color: Colors.text.muted,
     fontWeight: '700',
   },
   historyRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
