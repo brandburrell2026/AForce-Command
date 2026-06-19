@@ -49,8 +49,9 @@ founder–market fit.
 "The people behind the people." Signals that AForce is backed by operators who have
 built, scaled, and exited at the highest level — Peter Ingwersen (cultural
 architect / brand builder), Kristel van Kleef (brand strategy & ecosystem design),
-Mark Mendel (investment banking, Finalis), and Thomas Masterbouni (CIO, Big Idea
-Ventures). De-risks execution.
+Kendra Bracken-Ferguson (founder & investor, BrainTrust), Jonathan Choa (strategic
+finance & M&A, Keurig Dr Pepper), Mark Mendel (investment banking, Finalis), and
+Thomas Masterbouni (CIO, Big Idea Ventures). De-risks execution.
 
 ---
 
@@ -76,9 +77,9 @@ lineup is shown floating in that space.
 ## The System
 
 ### Slide 9 — The Ritual
-The core behavioral idea in four beats: **Pause. Hydrate. Lock In. Perform.** No
-explanation needed — it's a ritual, not a feature list. This is the heartbeat of
-the brand.
+The core behavioral idea in four beats: **Pause. Hydrate. Lock In. Perform.** The
+full product lineup — cans and sticks — sits on the ritual stage, tying the products
+directly to the behavior. This is the heartbeat of the brand.
 
 ### Slide 10 — The Three Signals That Matter
 The proof metrics that show this is a system, not a drink: **NPS 60+** (people

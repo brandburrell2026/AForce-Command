@@ -38,7 +38,7 @@ export default function RoadToRealDeal() {
   const last = STOPS.length - 1;
 
   return (
-    <SlideFrame slide={19}>
+    <SlideFrame slide={18}>
       <div className="absolute inset-0 flex flex-col justify-center px-[5vw] pt-[12vh] pb-[10vh]">
         {/* header */}
         <div>
