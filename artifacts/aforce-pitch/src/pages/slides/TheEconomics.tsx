@@ -68,6 +68,17 @@ export default function TheEconomics() {
         <div className="font-display uppercase tracking-[0.2em] text-[0.66vw] text-text/40 font-medium mt-[1vh]">
           Unit economics · Real numbers · Based on actual vendor quotes
         </div>
+        <motion.p
+          className="font-body text-[#555] text-[0.66vw] leading-[1.45] max-w-[58vw] mt-[1.4vh]"
+          initial={reduce ? false : { opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={reduce ? undefined : { duration: 0.5, ease: EASE, delay: 0.14 }}
+        >
+          Illustrative economics based on comparable subscription wellness
+          brands, industry benchmarks, actual vendor quotations, and management
+          assumptions. Validation of these metrics is a primary objective of
+          Phase 1 commercialization.
+        </motion.p>
 
         {/* BODY — two columns */}
         <div className="flex-1 flex gap-[3vw] mt-[3.2vh] min-h-0">
