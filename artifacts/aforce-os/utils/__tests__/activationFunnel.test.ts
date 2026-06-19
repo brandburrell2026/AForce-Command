@@ -121,6 +121,22 @@ describe('conversions', () => {
     expect(r.entered).toBe(0);
     expect(r.rate).toBeNull();
   });
+
+  it('does not count out-of-order timestamps as a conversion', () => {
+    // app_opened recorded BEFORE qr_scanned — a malformed/clock-skewed
+    // funnel that must not inflate the scan→install rate.
+    const reversed = funnel({ qr_scanned: T(5), app_opened: T(1) });
+    const r = aggregateConversion([reversed], ACTIVATION_CONVERSIONS[0]);
+    expect(r.entered).toBe(1); // still entered (reached qr_scanned)
+    expect(r.converted).toBe(0); // but not a real, ordered conversion
+    expect(r.rate).toBe(0);
+  });
+
+  it('counts simultaneous timestamps (delta 0) as converted', () => {
+    const same = funnel({ qr_scanned: T(3), app_opened: T(3) });
+    const r = aggregateConversion([same], ACTIVATION_CONVERSIONS[0]);
+    expect(r.converted).toBe(1);
+  });
 });
 
 describe('aggregateStageCounts', () => {

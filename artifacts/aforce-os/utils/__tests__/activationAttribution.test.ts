@@ -21,6 +21,31 @@ describe('isActivationLink', () => {
     // @ts-expect-error — runtime guards non-string input
     expect(isActivationLink(null)).toBe(false);
   });
+
+  it('rejects untrusted web hosts (attribution poisoning)', () => {
+    expect(isActivationLink('https://evil.com/activate?sku=AF1')).toBe(false);
+    // look-alike host that merely contains a trusted host is not trusted
+    expect(isActivationLink('https://aforce.app.evil.com/activate')).toBe(false);
+    expect(isActivationLink('https://evilaforce.app/activate')).toBe(false);
+  });
+
+  it('rejects substring look-alikes and bare paths', () => {
+    expect(isActivationLink('https://aforce.app/deactivate')).toBe(false);
+    expect(isActivationLink('aforce-os://deactivate')).toBe(false);
+    expect(isActivationLink('/activate?sku=AF1')).toBe(false); // no scheme
+    expect(isActivationLink('activate')).toBe(false);
+  });
+
+  it('accepts trusted hosts, subpaths, and the custom scheme', () => {
+    expect(isActivationLink('https://drinkaforce.com/activate?sku=AF1')).toBe(
+      true,
+    );
+    expect(isActivationLink('https://www.aforce.app/activation')).toBe(true);
+    expect(isActivationLink('https://aforce.app/activate/v2?sku=AF1')).toBe(
+      true,
+    );
+    expect(isActivationLink('aforce-os://activation?qr=Q1')).toBe(true);
+  });
 });
 
 describe('parseActivationLink', () => {

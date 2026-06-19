@@ -180,7 +180,14 @@ export function aggregateConversion(
   for (const f of funnels) {
     if (!f.reached[def.from]) continue;
     entered += 1;
-    if (f.reached[def.to]) converted += 1;
+    // A conversion counts only when `to` was reached at or after `from`
+    // (chronological progression). `elapsedMsBetween` is non-null exactly
+    // when both endpoints have valid timestamps and `to >= from`, so an
+    // out-of-order `to` (which is not a real conversion) never inflates the
+    // headline rate.
+    if (f.reached[def.to] && elapsedMsBetween(f, def.from, def.to) !== null) {
+      converted += 1;
+    }
   }
   return {
     id: def.id,

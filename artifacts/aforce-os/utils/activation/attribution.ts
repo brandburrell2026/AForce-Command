@@ -56,6 +56,25 @@ const GEO_RE = /^[A-Za-z]{2,3}(-[A-Za-z0-9]{1,3})?$/;
 /** A decimal-degree pattern → looks like a GPS coordinate; reject it. */
 const COORDINATE_RE = /-?\d{1,3}\.\d+/;
 
+/** The app's registered custom URL scheme (see app.json `scheme`). */
+const APP_SCHEME = 'aforce-os';
+
+/**
+ * Web hosts whose `/activate` links are trusted as genuine activation
+ * links. An untrusted host (e.g. `https://evil.com/activate`) is rejected
+ * so it cannot poison acquisition attribution. Phase 2 MUST keep this in
+ * lockstep with the app's iOS `associatedDomains` and Android App-Links
+ * host list.
+ */
+export const TRUSTED_ACTIVATION_HOSTS: readonly string[] = [
+  'aforce.app',
+  'www.aforce.app',
+  'aforce.com',
+  'www.aforce.com',
+  'drinkaforce.com',
+  'www.drinkaforce.com',
+];
+
 function sanitizeToken(raw: string): string | null {
   const v = raw.trim();
   if (v.length === 0 || v.length > MAX_VALUE_LENGTH) return null;
@@ -96,14 +115,65 @@ function parseQuery(url: string): Map<string, string> {
   return out;
 }
 
+/** First path segment must be exactly `activate` or `activation`. */
+function isActivationSegment(segment: string): boolean {
+  return segment === 'activate' || segment === 'activation';
+}
+
+/** Split a URL into { scheme, authority, path }, or null when it has no scheme. */
+function dissectUrl(
+  url: string,
+): { scheme: string; authority: string; path: string } | null {
+  const m = /^([a-zA-Z][a-zA-Z0-9+.-]*):\/\//.exec(url);
+  if (m == null) return null;
+  const scheme = (m[1] ?? '').toLowerCase();
+  const afterScheme = url.slice(m[0].length).split(/[?#]/)[0] ?? '';
+  const slash = afterScheme.indexOf('/');
+  const authority = (
+    slash < 0 ? afterScheme : afterScheme.slice(0, slash)
+  ).toLowerCase();
+  const path = slash < 0 ? '' : afterScheme.slice(slash);
+  return { scheme, authority, path };
+}
+
+/** First non-empty path segment, lower-cased (`/activate/x` → `activate`). */
+function firstPathSegment(path: string): string {
+  return path.replace(/^\/+/, '').split('/')[0]?.toLowerCase() ?? '';
+}
+
+/** Authority with any `:port` stripped. */
+function hostOf(authority: string): string {
+  return authority.split(':')[0] ?? '';
+}
+
 /**
- * True when the link's PATH (ignoring query/hash) references activation.
- * Guards against a stray `?activate=` query masquerading as the path.
+ * True only for a *trusted* activation link:
+ *   • the custom scheme `aforce-os://activate` (or `…/activation`), or
+ *   • an `http(s)` universal link on a TRUSTED host whose first path
+ *     segment is `activate` (or `activation`).
+ *
+ * Substring look-alikes (`/deactivate`, `?activate=1`), bare paths with no
+ * scheme, and untrusted hosts (`https://evil.com/activate`,
+ * `https://aforce.app.evil.com/activate`) are all rejected so they cannot
+ * poison acquisition attribution.
  */
 export function isActivationLink(url: string): boolean {
   if (typeof url !== 'string' || url.length === 0) return false;
-  const beforeQuery = url.split(/[?#]/)[0]?.toLowerCase() ?? '';
-  return beforeQuery.includes('activate') || beforeQuery.includes('activation');
+  const d = dissectUrl(url);
+  if (d == null) return false;
+  if (d.scheme === APP_SCHEME) {
+    // aforce-os://activate  → "activate" is the authority
+    // aforce-os:///activate → empty authority, "/activate" is the path
+    return (
+      isActivationSegment(d.authority) ||
+      isActivationSegment(firstPathSegment(d.path))
+    );
+  }
+  if (d.scheme === 'https' || d.scheme === 'http') {
+    if (!TRUSTED_ACTIVATION_HOSTS.includes(hostOf(d.authority))) return false;
+    return isActivationSegment(firstPathSegment(d.path));
+  }
+  return false;
 }
 
 /**
