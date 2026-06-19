@@ -1,0 +1,103 @@
+import type { ReactNode } from "react";
+
+import { sectionFor, TOTAL_SLIDES } from "@/components/SlideChrome";
+import Wordmark from "@/components/Wordmark";
+
+interface EditorialSlideProps {
+  slide: number;
+  eyebrow: string;
+  headline: ReactNode;
+  /** One supporting sentence. Per the deck rules: one message, one thought. */
+  support: ReactNode;
+  /** Optional hero photograph. When omitted the slide is a full-width text layout. */
+  heroSrc?: string;
+  heroObjectPosition?: string;
+  phaseLabel?: string;
+}
+
+/**
+ * Split editorial slide: typography on a cream left column, a full-bleed
+ * photograph on the right. Chrome stays on the cream so it is legible over
+ * any image.
+ */
+export default function EditorialSlide({
+  slide,
+  eyebrow,
+  headline,
+  support,
+  heroSrc,
+  heroObjectPosition = "center",
+  phaseLabel = "Phase 1 — Proof of Concept",
+}: EditorialSlideProps) {
+  const { index, name } = sectionFor(slide);
+  const topLabel = `Section ${index} — ${name}`;
+  const pageLabel = `${String(slide).padStart(2, "0")} / ${String(TOTAL_SLIDES).padStart(2, "0")}`;
+
+  return (
+    <div className="w-screen h-screen overflow-hidden relative bg-bg text-text font-body">
+      {/* RIGHT — full-bleed hero photograph (optional) */}
+      {heroSrc && (
+        <div className="absolute inset-y-0 right-0 w-[55%]">
+          <img
+            src={heroSrc}
+            alt=""
+            className="w-full h-full object-cover"
+            style={{ objectPosition: heroObjectPosition }}
+          />
+          {/* soft gradient bleed into cream so the seam disappears */}
+          <div
+            aria-hidden
+            className="absolute inset-y-0 left-0 w-[14vw] pointer-events-none"
+            style={{
+              background:
+                "linear-gradient(to right, rgba(244,241,234,1) 0%, rgba(244,241,234,0) 100%)",
+            }}
+          />
+        </div>
+      )}
+
+      {/* LEFT — cream wash holds the typography */}
+      <div
+        className={`absolute inset-y-0 left-0 flex flex-col px-[5vw] pt-[12vh] pb-[5vh] z-10 ${
+          heroSrc ? "w-[55%]" : "w-full"
+        }`}
+      >
+        <div className="mb-[5vh]">
+          <span className="font-display uppercase tracking-[0.32em] text-[0.78vw] text-red font-semibold border-b-2 border-red pb-[0.6vh]">
+            {eyebrow}
+          </span>
+        </div>
+
+        <h1 className="font-display font-light tracking-[-0.025em] text-[5.6vw] leading-[1.02] text-text">
+          {headline}
+        </h1>
+
+        <div className="mt-[4vh] max-w-[34vw] font-body text-[1.1vw] leading-[1.55] text-text/70 font-normal">
+          {support}
+        </div>
+
+        <div className="mt-auto pt-[2.4vh] border-t border-text/25 flex justify-between items-end gap-[2vw]">
+          <div className="flex flex-col gap-[1vh] min-w-0">
+            <div className="font-body uppercase tracking-[0.28em] text-[0.6vw] text-text/55 font-medium whitespace-nowrap">
+              Confidential · For discussion purposes only
+            </div>
+            <div className="font-body uppercase tracking-[0.28em] text-[0.6vw] text-text font-semibold whitespace-nowrap">
+              {topLabel} · {phaseLabel}
+            </div>
+          </div>
+          <div className="font-body uppercase tracking-[0.28em] text-[0.7vw] text-text/60 font-medium tabular-nums shrink-0">
+            {pageLabel}
+          </div>
+        </div>
+      </div>
+
+      {/* TOP CHROME — wordmark + patent badge on the cream side */}
+      <div className="absolute top-[4.5vh] left-[5vw] z-20 flex flex-col items-start gap-[1.4vh] pointer-events-none">
+        <Wordmark className="h-[1.5vw]" />
+        <div className="uppercase tracking-[0.22em] text-[0.62vw] font-semibold text-red border border-red px-[0.7vw] py-[0.35vh] rounded-full">
+          Patent-Protected
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -1,0 +1,31 @@
+kind = "slides"
+previewPath = "/aforce-friends-family/"
+title = "AForce — Friends & Family Deck"
+version = "1.0.0"
+id = "artifacts/aforce-friends-family"
+router = "path"
+
+[[integratedSkills]]
+name = "slides"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/aforce-friends-family/" ]
+localPort = 22050
+
+[services.development]
+run = "pnpm --filter @workspace/aforce-friends-family run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/aforce-friends-family", "run", "build" ]
+publicDir = "artifacts/aforce-friends-family/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "22050"
+BASE_PATH = "/aforce-friends-family/"
