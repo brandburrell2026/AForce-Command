@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { useReducedMotion } from "@/lib/useReducedMotion";
 import SlideFrame from "@/components/SlideFrame";
+import ProjectionDisclaimer from "@/components/ProjectionDisclaimer";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -59,7 +60,7 @@ export default function SuccessByJan2027() {
       </div>
 
       {/* KPI grid: 7 targets + 1 thesis tile */}
-      <div className="absolute left-[5vw] right-[5vw] top-[30vh] bottom-[8vh] grid grid-cols-4 grid-rows-2 gap-[1.4vw]">
+      <div className="absolute left-[5vw] right-[5vw] top-[30vh] bottom-[10.5vh] grid grid-cols-4 grid-rows-2 gap-[1.4vw]">
         {KPIS.map((k, i) => (
           <motion.div
             key={k.label}
@@ -100,6 +101,7 @@ export default function SuccessByJan2027() {
           </p>
         </motion.div>
       </div>
+      <ProjectionDisclaimer className="absolute bottom-[7.5vh] left-0 right-0 mx-auto max-w-[72vw] text-center z-10" />
     </SlideFrame>
   );
 }

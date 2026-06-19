@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { useReducedMotion } from "@/lib/useReducedMotion";
 import SlideFrame from "@/components/SlideFrame";
+import ProjectionDisclaimer from "@/components/ProjectionDisclaimer";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -205,10 +206,7 @@ export default function FinancialTrajectory() {
               positive EBITDA while building a{" "}
               <span className="text-blue">durable recurring revenue platform.</span>
             </p>
-            <p className="mt-[1.1vh] font-body italic text-[0.58vw] tracking-[0.05em] leading-[1.4] text-[#aaa]">
-              Projections are illustrative and forward-looking; actual results may
-              vary materially.
-            </p>
+            <ProjectionDisclaimer className="mt-[1.1vh]" />
           </div>
         </motion.div>
       </div>

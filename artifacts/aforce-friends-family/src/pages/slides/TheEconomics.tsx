@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { useReducedMotion } from "@/lib/useReducedMotion";
 import SlideFrame from "@/components/SlideFrame";
+import ProjectionDisclaimer from "@/components/ProjectionDisclaimer";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -277,12 +278,7 @@ export default function TheEconomics() {
             </motion.div>
           </div>
         </div>
-        <div className="mx-auto max-w-[70vw] text-center font-body italic text-[#aaa] text-[0.58vw] tracking-[0.05em] leading-[1.4] mt-[1.5vh]">
-          All financial projections are illustrative and forward-looking. Unit economics
-          based on actual vendor quotes from iLabs (March 2026) and Bev-Hub (2026).
-          Subscription retention benchmarks based on comparable wellness brands. Actual
-          results may vary materially.
-        </div>
+        <ProjectionDisclaimer className="mx-auto max-w-[70vw] text-center mt-[1.5vh]" />
       </div>
     </SlideFrame>
   );

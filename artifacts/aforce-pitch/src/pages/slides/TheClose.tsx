@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { useReducedMotion } from "@/lib/useReducedMotion";
 import SlideFrame from "@/components/SlideFrame";
+import ProjectionDisclaimer from "@/components/ProjectionDisclaimer";
 import Wordmark from "@/components/Wordmark";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
@@ -159,7 +160,7 @@ export default function TheClose() {
 
       {/* BOTTOM BAND — compounding loop + proof metrics */}
       <motion.div
-        className="absolute bottom-[8.5vh] left-[5vw] right-[5vw] z-[5] border-t border-text/15 pt-[2vh]"
+        className="absolute bottom-[10.5vh] left-[5vw] right-[5vw] z-[5] border-t border-text/15 pt-[2vh]"
         initial={reduce ? false : { opacity: 0, y: 14 }}
         animate={{ opacity: 1, y: 0 }}
         transition={reduce ? undefined : { duration: 0.6, ease: EASE, delay: 1.4 }}
@@ -213,6 +214,7 @@ export default function TheClose() {
           </div>
         </div>
       </motion.div>
+      <ProjectionDisclaimer className="absolute bottom-[7.5vh] left-0 right-0 mx-auto max-w-[72vw] text-center z-10" />
     </SlideFrame>
   );
 }

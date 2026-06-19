@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { motion, animate, type MotionProps } from "framer-motion";
 import { useReducedMotion } from "@/lib/useReducedMotion";
 import SlideFrame from "@/components/SlideFrame";
+import ProjectionDisclaimer from "@/components/ProjectionDisclaimer";
 
 const BARS = [
   { year: "2024", h: 34, label: "$1.4B" },
@@ -180,6 +181,7 @@ export default function ThePrize() {
           </div>
         </div>
       </div>
+      <ProjectionDisclaimer className="absolute bottom-[7.5vh] left-0 right-0 mx-auto max-w-[72vw] text-center z-10" />
     </SlideFrame>
   );
 }

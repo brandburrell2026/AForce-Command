@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { useReducedMotion } from "@/lib/useReducedMotion";
 import SlideFrame from "@/components/SlideFrame";
+import ProjectionDisclaimer from "@/components/ProjectionDisclaimer";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -446,6 +447,7 @@ export default function CustomerJourney() {
           </div>
         </motion.div>
       </div>
+      <ProjectionDisclaimer className="absolute bottom-[7.5vh] left-0 right-0 mx-auto max-w-[72vw] text-center z-10" />
     </SlideFrame>
   );
 }

@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { useReducedMotion } from "@/lib/useReducedMotion";
 import SlideFrame from "@/components/SlideFrame";
+import ProjectionDisclaimer from "@/components/ProjectionDisclaimer";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -135,7 +136,7 @@ export default function ThreeSignals() {
 
       {/* closing band */}
       <motion.div
-        className="absolute bottom-[8.5vh] left-[5vw] right-[5vw] flex items-center gap-[1.4vw]"
+        className="absolute bottom-[10.5vh] left-[5vw] right-[5vw] flex items-center gap-[1.4vw]"
         initial={reduce ? false : { opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={reduce ? undefined : { duration: 0.6, ease: EASE, delay: 0.8 }}
@@ -146,6 +147,7 @@ export default function ThreeSignals() {
           <span className="text-text font-normal">Membership drives recurring revenue.</span>
         </p>
       </motion.div>
+      <ProjectionDisclaimer className="absolute bottom-[7.5vh] left-0 right-0 mx-auto max-w-[72vw] text-center z-10" />
     </SlideFrame>
   );
 }

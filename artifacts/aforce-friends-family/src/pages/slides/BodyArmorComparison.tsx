@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { useReducedMotion } from "@/lib/useReducedMotion";
 import SlideFrame from "@/components/SlideFrame";
+import ProjectionDisclaimer from "@/components/ProjectionDisclaimer";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -132,11 +133,7 @@ export default function BodyArmorComparison() {
         </div>
 
         {/* disclaimer */}
-        <div className="mx-auto max-w-[72vw] text-center font-body italic text-[#aaa] text-[0.58vw] tracking-[0.05em] leading-[1.4] mt-[1.4vh]">
-          BodyArmor figures are publicly reported. The AForce return scenario is a purely
-          illustrative, forward-looking hypothetical and is not a forecast, promise, or
-          guarantee of any outcome. Comparable-company outcomes do not predict AForce results.
-        </div>
+        <ProjectionDisclaimer className="mx-auto max-w-[72vw] text-center mt-[1.4vh]" />
       </div>
     </SlideFrame>
   );
