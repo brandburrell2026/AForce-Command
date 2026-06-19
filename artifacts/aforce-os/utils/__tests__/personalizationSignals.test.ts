@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { derivePersonalizationSignals } from '../personalizationSignals';
+import { DEFAULT_PROFILE_IDENTITY } from '../profileIdentity';
 import type { ScoreEngineOutput, UserState } from '../../types';
 
 function mkUser(overrides: Partial<UserState> = {}): UserState {
@@ -221,6 +222,9 @@ describe('derivePersonalizationSignals', () => {
         birthYear: 1990,
         biologicalSex: 'male',
         activityLevel: null,
+        caffeineHabit: 'unspecified',
+        occupationType: 'unspecified',
+        frequentTraveler: false,
       },
     });
     const bodyModel = out.reasons.find((r) => r.key === 'bodyModel');
@@ -248,6 +252,9 @@ describe('derivePersonalizationSignals', () => {
         birthYear: null,
         biologicalSex: 'unspecified',
         activityLevel: null,
+        caffeineHabit: 'unspecified',
+        occupationType: 'unspecified',
+        frequentTraveler: false,
       },
     });
     expect(out.reasons.find((r) => r.key === 'bodyModel')).toBeUndefined();
@@ -370,5 +377,61 @@ describe('derivePersonalizationSignals', () => {
     const keys = out.reasons.map((r) => r.key);
     expect(keys).not.toContain('stimulantLoad');
     expect(keys).not.toContain('acidicLoad');
+  });
+});
+
+describe('derivePersonalizationSignals — lifestyle chips', () => {
+  it('surfaces caffeine/occupation/travel chips for explicit profile fields', () => {
+    const out = derivePersonalizationSignals({
+      userState: mkUser(),
+      engineOutput: mkEngine('BALANCED'),
+      profileIdentity: {
+        ...DEFAULT_PROFILE_IDENTITY,
+        caffeineHabit: 'high',
+        occupationType: 'outdoor',
+        frequentTraveler: true,
+      },
+    });
+    const keys = out.reasons.map((r) => r.key);
+    expect(keys).toContain('caffeine');
+    expect(keys).toContain('occupation');
+    expect(keys).toContain('travel');
+  });
+
+  it('uses softer copy for moderate caffeine and active occupation', () => {
+    const out = derivePersonalizationSignals({
+      userState: mkUser(),
+      engineOutput: mkEngine('BALANCED'),
+      profileIdentity: {
+        ...DEFAULT_PROFILE_IDENTITY,
+        caffeineHabit: 'moderate',
+        occupationType: 'active',
+      },
+    });
+    expect(out.reasons.find((r) => r.key === 'caffeine')?.label).toBe('Caffeine load');
+    expect(out.reasons.find((r) => r.key === 'occupation')?.label).toBe('Active-job demand');
+  });
+
+  it('omits lifestyle chips when fields are unspecified / false', () => {
+    const out = derivePersonalizationSignals({
+      userState: mkUser(),
+      engineOutput: mkEngine('BALANCED'),
+      profileIdentity: { ...DEFAULT_PROFILE_IDENTITY },
+    });
+    const keys = out.reasons.map((r) => r.key);
+    expect(keys).not.toContain('caffeine');
+    expect(keys).not.toContain('occupation');
+    expect(keys).not.toContain('travel');
+  });
+
+  it('omits lifestyle chips when no profileIdentity is supplied', () => {
+    const out = derivePersonalizationSignals({
+      userState: mkUser(),
+      engineOutput: mkEngine('BALANCED'),
+    });
+    const keys = out.reasons.map((r) => r.key);
+    expect(keys).not.toContain('caffeine');
+    expect(keys).not.toContain('occupation');
+    expect(keys).not.toContain('travel');
   });
 });

@@ -3,6 +3,8 @@ import { describe, expect, it } from 'vitest';
 import {
   CYCLE_OZ,
   computeHydrationDemand,
+  calculateLifestyleDemandAdderOz,
+  LIFESTYLE_ADDER_CAP_OZ,
   TARGET_CEILING_OZ,
   TARGET_FLOOR_OZ,
   type HydrationDemandInputs,
@@ -166,5 +168,64 @@ describe('computeHydrationDemand', () => {
     });
     const cool = computeHydrationDemand({ ...basePerson, heatC: 22, humidityPct: 30 });
     expect(coolHumid.targetOz).toBe(cool.targetOz);
+  });
+});
+
+describe('calculateLifestyleDemandAdderOz', () => {
+  it('is a no-op for unspecified / none / desk / non-traveler', () => {
+    expect(calculateLifestyleDemandAdderOz()).toBe(0);
+    expect(calculateLifestyleDemandAdderOz('none', 'desk', false)).toBe(0);
+    expect(calculateLifestyleDemandAdderOz('low', 'other', false)).toBe(0);
+  });
+
+  it('applies exact per-field adders', () => {
+    expect(calculateLifestyleDemandAdderOz('moderate', 'unspecified', false)).toBe(4);
+    expect(calculateLifestyleDemandAdderOz('high', 'unspecified', false)).toBe(8);
+    expect(calculateLifestyleDemandAdderOz('unspecified', 'shift', false)).toBe(4);
+    expect(calculateLifestyleDemandAdderOz('unspecified', 'active', false)).toBe(6);
+    expect(calculateLifestyleDemandAdderOz('unspecified', 'outdoor', false)).toBe(12);
+    expect(calculateLifestyleDemandAdderOz('unspecified', 'unspecified', true)).toBe(6);
+  });
+
+  it('sums fields then caps the combined adder', () => {
+    // 8 (high) + 12 (outdoor) + 6 (travel) = 26 → capped.
+    expect(calculateLifestyleDemandAdderOz('high', 'outdoor', true)).toBe(LIFESTYLE_ADDER_CAP_OZ);
+    expect(LIFESTYLE_ADDER_CAP_OZ).toBe(18);
+    // 4 (moderate) + 4 (shift) = 8, under cap.
+    expect(calculateLifestyleDemandAdderOz('moderate', 'shift', false)).toBe(8);
+  });
+
+  it('never returns a negative adder', () => {
+    expect(calculateLifestyleDemandAdderOz('none', 'desk', false)).toBeGreaterThanOrEqual(0);
+    expect(calculateLifestyleDemandAdderOz('high', 'outdoor', true)).toBeGreaterThanOrEqual(0);
+  });
+});
+
+describe('computeHydrationDemand — lifestyle demand', () => {
+  it('raises targetOz by exactly the lifestyle adder', () => {
+    const base = computeHydrationDemand(basePerson);
+    const withCaffeine = computeHydrationDemand({ ...basePerson, caffeineHabit: 'high' });
+    expect(withCaffeine.targetOz).toBe(base.targetOz + 8);
+
+    const withAll = computeHydrationDemand({
+      ...basePerson,
+      caffeineHabit: 'high',
+      occupationType: 'outdoor',
+      frequentTraveler: true,
+    });
+    // Combined lifestyle adder capped at 18.
+    expect(withAll.targetOz).toBe(base.targetOz + 18);
+    expect(withAll.targetOz).toBeGreaterThanOrEqual(base.targetOz);
+  });
+
+  it('treats explicit default lifestyle fields as a no-op', () => {
+    const base = computeHydrationDemand(basePerson);
+    const explicitDefaults = computeHydrationDemand({
+      ...basePerson,
+      caffeineHabit: 'unspecified',
+      occupationType: 'unspecified',
+      frequentTraveler: false,
+    });
+    expect(explicitDefaults.targetOz).toBe(base.targetOz);
   });
 });

@@ -82,7 +82,7 @@ export interface PersonalizationReason {
   /** Short chip label (≤24 chars). */
   label: string;
   /** Stable machine key — useful for tests + telemetry. */
-  key: 'heat' | 'humidity' | 'activity' | 'recovery' | 'alcohol' | 'consistency' | 'mass' | 'bodyModel' | 'acidicLoad' | 'stimulantLoad';
+  key: 'heat' | 'humidity' | 'activity' | 'recovery' | 'alcohol' | 'consistency' | 'mass' | 'bodyModel' | 'acidicLoad' | 'stimulantLoad' | 'caffeine' | 'occupation' | 'travel';
 }
 
 export interface PersonalizationOutput {
@@ -310,6 +310,31 @@ export function derivePersonalizationSignals(args: DeriveArgs): PersonalizationO
     if (age != null) parts.push(`${age}y`);
     if (parts.length >= 2) {
       reasons.push({ key: 'bodyModel', label: parts.join(' · ') });
+    }
+
+    // Lifestyle demand chips — surfaced only for explicit (non-'unspecified')
+    // self-reported fields, so the chip honestly reflects a value the user
+    // set. Non-scoring: these explain why the engine raised hydration
+    // *demand*; they never move the score (Score-Protection). Placed last
+    // (lowest dominance) so physiological signals keep the top slots.
+    if (pid.caffeineHabit === 'high') {
+      reasons.push({ key: 'caffeine', label: 'High caffeine load' });
+    } else if (pid.caffeineHabit === 'moderate') {
+      reasons.push({ key: 'caffeine', label: 'Caffeine load' });
+    }
+    const occupationLabel =
+      pid.occupationType === 'outdoor'
+        ? 'Outdoor demand'
+        : pid.occupationType === 'active'
+        ? 'Active-job demand'
+        : pid.occupationType === 'shift'
+        ? 'Shift-work demand'
+        : null;
+    if (occupationLabel) {
+      reasons.push({ key: 'occupation', label: occupationLabel });
+    }
+    if (pid.frequentTraveler) {
+      reasons.push({ key: 'travel', label: 'Travel dryness' });
     }
   }
 

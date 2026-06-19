@@ -38,12 +38,16 @@ import { Colors } from '../theme/colors';
 import {
   AURA_STATES,
   BIOLOGICAL_SEX_OPTIONS,
+  CAFFEINE_HABIT_OPTIONS,
   HEIGHT_CM_MAX,
   HEIGHT_CM_MIN,
+  OCCUPATION_TYPE_OPTIONS,
   RECOVERY_GOALS,
   WEIGHT_LBS_MAX,
   WEIGHT_LBS_MIN,
   type BiologicalSex,
+  type CaffeineHabit,
+  type OccupationType,
   type ProfileIdentity,
   type RecoveryGoal,
 } from '../utils/profileIdentity';
@@ -73,6 +77,23 @@ const SEX_LABEL: Record<BiologicalSex, string> = {
   female: 'FEMALE',
   'non-binary': 'NON-BINARY',
   unspecified: 'PREFER NOT TO SAY',
+};
+
+const CAFFEINE_LABEL: Record<CaffeineHabit, string> = {
+  none: 'NONE',
+  low: 'LOW',
+  moderate: 'MODERATE',
+  high: 'HIGH',
+  unspecified: 'SKIP',
+};
+
+const OCCUPATION_LABEL: Record<OccupationType, string> = {
+  desk: 'DESK',
+  active: 'ACTIVE',
+  outdoor: 'OUTDOOR',
+  shift: 'SHIFT',
+  other: 'OTHER',
+  unspecified: 'SKIP',
 };
 
 interface TextFieldSpec {
@@ -206,6 +227,11 @@ export function EditProfileModal({ visible, initialValue, onClose, onSave }: Pro
       // The identity editor doesn't expose activity level (onboarding
       // owns it) — preserve the captured value rather than dropping it.
       activityLevel: draft.activityLevel,
+      // Lifestyle fields are captured in onboarding; preserve them
+      // through an identity edit rather than resetting to defaults.
+      caffeineHabit: draft.caffeineHabit,
+      occupationType: draft.occupationType,
+      frequentTraveler: draft.frequentTraveler,
     };
     Haptics.selectionAsync().catch(() => {});
     onSave(sanitized);
@@ -424,6 +450,128 @@ export function EditProfileModal({ visible, initialValue, onClose, onSave }: Pro
                         ]}
                       >
                         {aura}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </View>
+
+            <View style={styles.sectionDivider} />
+            <Text style={styles.sectionLabel}>LIFESTYLE</Text>
+            <Text style={styles.sectionHint}>
+              Optional. Sets a hydration-demand floor so the engine plans ahead
+              for caffeine, your work environment, and travel. Tunes your target
+              only — never your score.
+            </Text>
+
+            <View style={styles.field}>
+              <Text style={styles.fieldLabel}>CAFFEINE</Text>
+              <View style={styles.auraRow}>
+                {CAFFEINE_HABIT_OPTIONS.map((opt) => {
+                  const selected = draft.caffeineHabit === opt;
+                  return (
+                    <Pressable
+                      key={opt}
+                      onPress={() => {
+                        Haptics.selectionAsync().catch(() => {});
+                        setField('caffeineHabit', opt);
+                      }}
+                      style={[
+                        styles.auraOption,
+                        selected && {
+                          backgroundColor: `${Colors.accent.primary}22`,
+                          borderColor: Colors.accent.primary,
+                        },
+                      ]}
+                      accessibilityRole="button"
+                      accessibilityState={{ selected }}
+                      accessibilityLabel={`Caffeine ${opt}`}
+                      testID={`edit-profile-caffeine-${opt}`}
+                    >
+                      <Text
+                        style={[
+                          styles.auraLabel,
+                          { color: selected ? Colors.accent.primary : Colors.text.secondary },
+                        ]}
+                      >
+                        {CAFFEINE_LABEL[opt]}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </View>
+
+            <View style={styles.field}>
+              <Text style={styles.fieldLabel}>OCCUPATION TYPE</Text>
+              <View style={styles.auraRow}>
+                {OCCUPATION_TYPE_OPTIONS.map((opt) => {
+                  const selected = draft.occupationType === opt;
+                  return (
+                    <Pressable
+                      key={opt}
+                      onPress={() => {
+                        Haptics.selectionAsync().catch(() => {});
+                        setField('occupationType', opt);
+                      }}
+                      style={[
+                        styles.auraOption,
+                        selected && {
+                          backgroundColor: `${Colors.accent.primary}22`,
+                          borderColor: Colors.accent.primary,
+                        },
+                      ]}
+                      accessibilityRole="button"
+                      accessibilityState={{ selected }}
+                      accessibilityLabel={`Occupation ${opt}`}
+                      testID={`edit-profile-occupation-${opt}`}
+                    >
+                      <Text
+                        style={[
+                          styles.auraLabel,
+                          { color: selected ? Colors.accent.primary : Colors.text.secondary },
+                        ]}
+                      >
+                        {OCCUPATION_LABEL[opt]}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </View>
+
+            <View style={styles.field}>
+              <Text style={styles.fieldLabel}>FREQUENT TRAVELER</Text>
+              <View style={styles.auraRow}>
+                {[false, true].map((val) => {
+                  const selected = draft.frequentTraveler === val;
+                  return (
+                    <Pressable
+                      key={String(val)}
+                      onPress={() => {
+                        Haptics.selectionAsync().catch(() => {});
+                        setField('frequentTraveler', val);
+                      }}
+                      style={[
+                        styles.auraOption,
+                        selected && {
+                          backgroundColor: `${Colors.accent.primary}22`,
+                          borderColor: Colors.accent.primary,
+                        },
+                      ]}
+                      accessibilityRole="button"
+                      accessibilityState={{ selected }}
+                      accessibilityLabel={`Frequent traveler ${val ? 'yes' : 'no'}`}
+                      testID={`edit-profile-traveler-${val ? 'yes' : 'no'}`}
+                    >
+                      <Text
+                        style={[
+                          styles.auraLabel,
+                          { color: selected ? Colors.accent.primary : Colors.text.secondary },
+                        ]}
+                      >
+                        {val ? 'YES' : 'NO'}
                       </Text>
                     </Pressable>
                   );

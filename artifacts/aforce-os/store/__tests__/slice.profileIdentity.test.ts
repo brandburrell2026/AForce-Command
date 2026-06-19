@@ -78,6 +78,9 @@ describe('store · profileIdentity slice', () => {
       birthYear: 1990,
       biologicalSex: 'male' as const,
       activityLevel: null,
+      caffeineHabit: 'unspecified' as const,
+      occupationType: 'unspecified' as const,
+      frequentTraveler: false,
     };
     const next = reducer(start, { type: 'SET_PROFILE_IDENTITY', payload: fresh });
     expect(next.profileIdentity).toEqual(fresh);
@@ -169,6 +172,9 @@ describe('utils · sanitizeProfileIdentity', () => {
       birthYear: 1990,
       biologicalSex: 'male' as const,
       activityLevel: 7,
+      caffeineHabit: 'moderate' as const,
+      occupationType: 'desk' as const,
+      frequentTraveler: true,
     };
     expect(sanitizeProfileIdentity(payload)).toEqual(payload);
   });
@@ -197,6 +203,9 @@ describe('utils · sanitizeProfileIdentity', () => {
       birthYear: null,
       biologicalSex: 'unspecified',
       activityLevel: null,
+      caffeineHabit: 'unspecified',
+      occupationType: 'unspecified',
+      frequentTraveler: false,
     });
   });
 
@@ -301,5 +310,35 @@ describe('utils · sanitizeProfileIdentity', () => {
       const result = sanitizeProfileIdentity({ auraState: aura });
       expect(result.auraState).toBe(aura);
     }
+  });
+
+  it('accepts every canonical caffeine habit', () => {
+    for (const habit of ['none', 'low', 'moderate', 'high', 'unspecified'] as const) {
+      expect(sanitizeProfileIdentity({ caffeineHabit: habit }).caffeineHabit).toBe(habit);
+    }
+  });
+
+  it('falls back to unspecified caffeine habit for invalid values', () => {
+    expect(sanitizeProfileIdentity({ caffeineHabit: 'espresso' }).caffeineHabit).toBe('unspecified');
+    expect(sanitizeProfileIdentity({ caffeineHabit: 3 }).caffeineHabit).toBe('unspecified');
+    expect(sanitizeProfileIdentity({ caffeineHabit: null }).caffeineHabit).toBe('unspecified');
+  });
+
+  it('accepts every canonical occupation type', () => {
+    for (const occ of ['desk', 'active', 'outdoor', 'shift', 'other', 'unspecified'] as const) {
+      expect(sanitizeProfileIdentity({ occupationType: occ }).occupationType).toBe(occ);
+    }
+  });
+
+  it('falls back to unspecified occupation type for invalid values', () => {
+    expect(sanitizeProfileIdentity({ occupationType: 'astronaut' }).occupationType).toBe('unspecified');
+    expect(sanitizeProfileIdentity({ occupationType: 7 }).occupationType).toBe('unspecified');
+  });
+
+  it('accepts a boolean frequentTraveler and rejects non-booleans', () => {
+    expect(sanitizeProfileIdentity({ frequentTraveler: true }).frequentTraveler).toBe(true);
+    expect(sanitizeProfileIdentity({ frequentTraveler: false }).frequentTraveler).toBe(false);
+    expect(sanitizeProfileIdentity({ frequentTraveler: 'yes' }).frequentTraveler).toBe(false);
+    expect(sanitizeProfileIdentity({ frequentTraveler: 1 }).frequentTraveler).toBe(false);
   });
 });

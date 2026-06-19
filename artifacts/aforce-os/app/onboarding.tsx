@@ -1,11 +1,12 @@
 /**
  * Onboarding Engine — first-run setup wizard.
  *
- * Flow: Goal Selection → Activity Level → Profile Setup → Ready.
+ * Flow: Goal → Activity → Profile (body model + unit system) →
+ *       Lifestyle (caffeine / occupation / travel) → Ready.
  * Designed for a sub-60s setup that lands the user in (tabs), where
  * the existing first command / first water cycle / first win loop
- * already lives — so this wizard captures intent and body model only,
- * it does NOT rebuild those moments.
+ * already lives — so this wizard captures intent, body model, and
+ * lifestyle inputs only; it does NOT rebuild those moments.
  *
  * The first screen of the first-run flow — the cinematic intro is the
  * cold-launch OpeningSequence overlay, so there is no welcome lobby
@@ -17,10 +18,19 @@
  *   - goal          → ProfileIdentity.recoveryGoal (already engine-wired)
  *   - activityLevel → ProfileIdentity.activityLevel (feeds demand adapter)
  *   - weight/height → ProfileIdentity.bodyWeightLbs / heightCm
+ *   - age           → ProfileIdentity.birthYear (year only, no DOB)
  *   - sex           → ProfileIdentity.biologicalSex
+ *   - caffeine      → ProfileIdentity.caffeineHabit
+ *   - occupation    → ProfileIdentity.occupationType
+ *   - travel        → ProfileIdentity.frequentTraveler
  *
- * Goal labels are consumer-facing; they map 1:1 onto the five
- * engine RecoveryGoals so personalization is real with no remap.
+ * Units: one Imperial/Metric switch adapts the WHOLE OS by writing all
+ * four unit preferences at once (weight/temperature/volume/height).
+ * Imperial height is selected in half-inch steps; canonical storage is
+ * always integer centimetres and pounds.
+ *
+ * Goal labels are consumer-facing; they map 1:1 onto the five engine
+ * RecoveryGoals so personalization is real with no remap.
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -36,6 +46,7 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
+  Switch,
   Text,
   TextInput,
   View,
@@ -52,12 +63,39 @@ import {
   WEIGHT_LBS_MAX,
   WEIGHT_LBS_MIN,
   type BiologicalSex,
+  type CaffeineHabit,
+  type OccupationType,
   type ProfileIdentity,
   type RecoveryGoal,
 } from '@/utils/profileIdentity';
+import {
+  cmToNearestHalfInches,
+  formatHalfInches,
+  halfInchesToCm,
+  inferMeasurementSystem,
+  kgToLbs,
+  lbsToKg,
+  unitPreferencesForMeasurementSystem,
+  type MeasurementSystem,
+} from '@/utils/units';
 
-type Step = 'goal' | 'activity' | 'profile' | 'ready';
-const INPUT_STEPS: Step[] = ['goal', 'activity', 'profile'];
+type Step = 'goal' | 'activity' | 'profile' | 'lifestyle' | 'ready';
+const INPUT_STEPS: Step[] = ['goal', 'activity', 'profile', 'lifestyle'];
+
+// Age guardrails for the year-of-birth conversion.
+const AGE_MIN = 13;
+const AGE_MAX = 100;
+
+// Imperial height stepper bounds, derived from the canonical cm range so
+// the stepper can never produce an out-of-range value. Defaults seed the
+// first tap (≈5'10" / 178 cm) so the user lands on a sensible value.
+const MIN_HALF_INCHES = cmToNearestHalfInches(HEIGHT_CM_MIN);
+const MAX_HALF_INCHES = cmToNearestHalfInches(HEIGHT_CM_MAX);
+const DEFAULT_HALF_INCHES = 140; // 5'10"
+const DEFAULT_CM = 178;
+
+const clamp = (v: number, lo: number, hi: number): number =>
+  Math.min(hi, Math.max(lo, v));
 
 interface GoalOption {
   goal: RecoveryGoal;
@@ -94,60 +132,161 @@ const SEX_OPTIONS: readonly { value: BiologicalSex; label: string }[] = [
   { value: 'unspecified', label: 'Prefer not to say' },
 ] as const;
 
+// Caffeine is REQUIRED to advance the lifestyle step — `unspecified` is
+// intentionally omitted from the UI (it stays the silent default only if
+// the user skips the whole wizard).
+interface CaffeineOption {
+  value: Exclude<CaffeineHabit, 'unspecified'>;
+  title: string;
+  subtitle: string;
+}
+
+const CAFFEINE_OPTIONS: readonly CaffeineOption[] = [
+  { value: 'none', title: 'None', subtitle: 'No coffee, tea, or energy drinks' },
+  { value: 'low', title: 'Light', subtitle: 'About a cup a day' },
+  { value: 'moderate', title: 'Moderate', subtitle: '2–3 cups a day' },
+  { value: 'high', title: 'Heavy', subtitle: '4+ cups a day' },
+] as const;
+
+const OCCUPATION_OPTIONS: readonly {
+  value: Exclude<OccupationType, 'unspecified'>;
+  label: string;
+}[] = [
+  { value: 'desk', label: 'Desk / Office' },
+  { value: 'active', label: 'On My Feet' },
+  { value: 'outdoor', label: 'Outdoor / Heat' },
+  { value: 'shift', label: 'Shift / Irregular' },
+  { value: 'other', label: 'Other' },
+] as const;
+
+const SYSTEM_OPTIONS: readonly { value: MeasurementSystem; label: string }[] = [
+  { value: 'imperial', label: 'Imperial' },
+  { value: 'metric', label: 'Metric' },
+] as const;
+
 function parseInRange(text: string, min: number, max: number): number | null {
   const n = Number.parseInt(text.trim(), 10);
   if (!Number.isFinite(n) || n < min || n > max) return null;
   return n;
 }
 
-type HeightUnit = 'ft' | 'cm';
-
-/**
- * Convert feet + inches to centimeters, returning null when the input is
- * invalid or falls outside HEIGHT_CM_MIN/MAX. Mirrors the cm path
- * (parseInRange), which also rejects out-of-range values rather than clamping.
- */
-function feetInchesToCm(feetText: string, inchesText: string): number | null {
-  const ft = Number.parseInt(feetText.trim(), 10);
-  if (!Number.isFinite(ft)) return null;
-  const rawIn = inchesText.trim();
-  const inches = rawIn === '' ? 0 : Number.parseInt(rawIn, 10);
-  if (!Number.isFinite(inches) || inches < 0 || inches > 11) return null;
-  const cm = Math.round((ft * 12 + inches) * 2.54);
-  if (cm < HEIGHT_CM_MIN || cm > HEIGHT_CM_MAX) return null;
-  return cm;
-}
-
 export default function Onboarding() {
-  const { setProfileIdentity } = useAppStore();
+  const { setProfileIdentity, setUnitPreference, unitPreferences } = useAppStore();
 
   const [step, setStep] = React.useState<Step>('goal');
   const [goal, setGoal] = React.useState<RecoveryGoal | null>(null);
   const [activityLevel, setActivityLevel] = React.useState<number | null>(null);
+  // Single unit system, seeded from whatever the user already has.
+  const [system, setSystem] = React.useState<MeasurementSystem>(() =>
+    inferMeasurementSystem(unitPreferences),
+  );
   const [weightText, setWeightText] = React.useState('');
-  const [heightUnit, setHeightUnit] = React.useState<HeightUnit>('ft');
-  const [feetText, setFeetText] = React.useState('');
-  const [inchesText, setInchesText] = React.useState('');
-  const [heightText, setHeightText] = React.useState('');
+  const [ageText, setAgeText] = React.useState('');
+  // Height is held per-system so the stepper math stays exact; one of
+  // these is the active value depending on `system`.
+  const [heightHalfInches, setHeightHalfInches] = React.useState<number | null>(null);
+  const [heightCmInput, setHeightCmInput] = React.useState<number | null>(null);
   const [sex, setSex] = React.useState<BiologicalSex>('unspecified');
+  const [caffeine, setCaffeine] = React.useState<CaffeineHabit | null>(null);
+  const [occupation, setOccupation] = React.useState<OccupationType | null>(null);
+  const [frequentTraveler, setFrequentTraveler] = React.useState(false);
 
   const tap = React.useCallback(() => {
     Haptics.selectionAsync().catch(() => {});
   }, []);
+
+  const heightIsSet =
+    system === 'metric' ? heightCmInput != null : heightHalfInches != null;
+  const heightDisplay = !heightIsSet
+    ? 'Tap to set'
+    : system === 'metric'
+      ? `${heightCmInput} cm`
+      : formatHalfInches(heightHalfInches as number);
+
+  const stepHeight = React.useCallback(
+    (direction: 1 | -1) => {
+      tap();
+      if (system === 'metric') {
+        setHeightCmInput((prev) =>
+          prev == null
+            ? DEFAULT_CM
+            : clamp(prev + direction, HEIGHT_CM_MIN, HEIGHT_CM_MAX),
+        );
+      } else {
+        setHeightHalfInches((prev) =>
+          prev == null
+            ? DEFAULT_HALF_INCHES
+            : clamp(prev + direction, MIN_HALF_INCHES, MAX_HALF_INCHES),
+        );
+      }
+    },
+    [system, tap],
+  );
+
+  const switchSystem = React.useCallback(
+    (next: MeasurementSystem) => {
+      tap();
+      if (next === system) return;
+      // Carry any entered values across so the newly-active unit reflects
+      // the same physical measurement.
+      if (next === 'metric') {
+        if (heightHalfInches != null) {
+          setHeightCmInput(
+            clamp(halfInchesToCm(heightHalfInches), HEIGHT_CM_MIN, HEIGHT_CM_MAX),
+          );
+        }
+      } else if (heightCmInput != null) {
+        setHeightHalfInches(
+          clamp(cmToNearestHalfInches(heightCmInput), MIN_HALF_INCHES, MAX_HALF_INCHES),
+        );
+      }
+      const wNum = Number.parseInt(weightText.trim(), 10);
+      if (Number.isFinite(wNum)) {
+        const converted = next === 'metric' ? lbsToKg(wNum) : kgToLbs(wNum);
+        setWeightText(String(Math.round(converted)));
+      }
+      setSystem(next);
+      // Adapt the whole OS — write all four unit preferences at once.
+      const prefs = unitPreferencesForMeasurementSystem(next);
+      setUnitPreference('weight', prefs.weight);
+      setUnitPreference('temperature', prefs.temperature);
+      setUnitPreference('volume', prefs.volume);
+      setUnitPreference('height', prefs.height);
+    },
+    [system, heightHalfInches, heightCmInput, weightText, setUnitPreference, tap],
+  );
 
   const finish = React.useCallback(async () => {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
     const patch: Partial<ProfileIdentity> = {};
     if (goal) patch.recoveryGoal = goal;
     if (activityLevel != null) patch.activityLevel = activityLevel;
-    const w = parseInRange(weightText, WEIGHT_LBS_MIN, WEIGHT_LBS_MAX);
-    if (w != null) patch.bodyWeightLbs = w;
-    const h =
-      heightUnit === 'cm'
-        ? parseInRange(heightText, HEIGHT_CM_MIN, HEIGHT_CM_MAX)
-        : feetInchesToCm(feetText, inchesText);
-    if (h != null) patch.heightCm = h;
+
+    // Weight — entered in the active system's unit, stored as canonical lbs.
+    const wNum = Number.parseInt(weightText.trim(), 10);
+    if (Number.isFinite(wNum)) {
+      const lbs = Math.round(system === 'metric' ? kgToLbs(wNum) : wNum);
+      if (lbs >= WEIGHT_LBS_MIN && lbs <= WEIGHT_LBS_MAX) patch.bodyWeightLbs = lbs;
+    }
+
+    // Height — canonical integer cm from whichever system is active.
+    const cm =
+      system === 'metric'
+        ? heightCmInput
+        : heightHalfInches != null
+          ? halfInchesToCm(heightHalfInches)
+          : null;
+    if (cm != null && cm >= HEIGHT_CM_MIN && cm <= HEIGHT_CM_MAX) patch.heightCm = cm;
+
+    // Age (whole years) → birthYear. Year only — no DOB precision.
+    const age = parseInRange(ageText, AGE_MIN, AGE_MAX);
+    if (age != null) patch.birthYear = new Date().getFullYear() - age;
+
     if (sex !== 'unspecified') patch.biologicalSex = sex;
+    if (caffeine) patch.caffeineHabit = caffeine;
+    if (occupation) patch.occupationType = occupation;
+    patch.frequentTraveler = frequentTraveler;
+
     setProfileIdentity(patch);
     try {
       await AsyncStorage.setItem('aforce.hasCompletedOnboarding', 'true');
@@ -165,12 +304,15 @@ export default function Onboarding() {
   }, [
     goal,
     activityLevel,
+    system,
     weightText,
-    heightUnit,
-    feetText,
-    inchesText,
-    heightText,
+    ageText,
+    heightHalfInches,
+    heightCmInput,
     sex,
+    caffeine,
+    occupation,
+    frequentTraveler,
     setProfileIdentity,
   ]);
 
@@ -179,7 +321,8 @@ export default function Onboarding() {
     setStep((s) => {
       if (s === 'goal') return 'activity';
       if (s === 'activity') return 'profile';
-      if (s === 'profile') return 'ready';
+      if (s === 'profile') return 'lifestyle';
+      if (s === 'lifestyle') return 'ready';
       return s;
     });
   }, [tap]);
@@ -189,7 +332,8 @@ export default function Onboarding() {
     setStep((s) => {
       if (s === 'activity') return 'goal';
       if (s === 'profile') return 'activity';
-      if (s === 'ready') return 'profile';
+      if (s === 'lifestyle') return 'profile';
+      if (s === 'ready') return 'lifestyle';
       return s;
     });
   }, [tap]);
@@ -198,7 +342,11 @@ export default function Onboarding() {
   const canContinue =
     (step === 'goal' && goal != null) ||
     (step === 'activity' && activityLevel != null) ||
-    step === 'profile';
+    step === 'profile' ||
+    // Lifestyle fields are all optional — Continue is never gated here.
+    // Anything left unset persists as its 'unspecified' / false default
+    // and is a strict no-op in the demand engine.
+    step === 'lifestyle';
 
   return (
     <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
@@ -343,102 +491,96 @@ export default function Onboarding() {
               </Text>
 
               <View style={styles.field}>
-                <Text style={styles.fieldLabel}>BODY WEIGHT (LBS)</Text>
+                <Text style={styles.fieldLabel}>UNITS</Text>
+                <View style={styles.segment}>
+                  {SYSTEM_OPTIONS.map((opt) => {
+                    const selected = system === opt.value;
+                    return (
+                      <Pressable
+                        key={opt.value}
+                        onPress={() => switchSystem(opt.value)}
+                        style={[styles.segmentItem, selected && styles.segmentItemSelected]}
+                        accessibilityRole="button"
+                        accessibilityState={{ selected }}
+                        accessibilityLabel={`${opt.label} units`}
+                      >
+                        <Text
+                          style={[
+                            styles.segmentLabel,
+                            selected && styles.segmentLabelSelected,
+                          ]}
+                        >
+                          {opt.label}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              </View>
+
+              <View style={styles.field}>
+                <Text style={styles.fieldLabel}>
+                  BODY WEIGHT ({system === 'metric' ? 'KG' : 'LBS'})
+                </Text>
                 <TextInput
                   value={weightText}
                   onChangeText={setWeightText}
                   keyboardType="number-pad"
-                  placeholder="e.g. 175"
+                  placeholder={system === 'metric' ? 'e.g. 80' : 'e.g. 175'}
                   placeholderTextColor={Colors.text.ghost}
                   style={styles.input}
                   maxLength={3}
-                  accessibilityLabel="Body weight in pounds"
+                  accessibilityLabel={`Body weight in ${system === 'metric' ? 'kilograms' : 'pounds'}`}
                 />
               </View>
 
               <View style={styles.field}>
-                <View style={styles.heightHeader}>
-                  <Text style={styles.fieldLabel}>HEIGHT</Text>
-                  <View style={styles.unitToggle}>
-                    {(['ft', 'cm'] as const).map((unit) => {
-                      const active = heightUnit === unit;
-                      return (
-                        <Pressable
-                          key={unit}
-                          onPress={() => {
-                            tap();
-                            setHeightUnit(unit);
-                          }}
-                          style={[
-                            styles.unitPill,
-                            active && styles.unitPillActive,
-                          ]}
-                          accessibilityRole="button"
-                          accessibilityState={{ selected: active }}
-                          accessibilityLabel={
-                            unit === 'ft'
-                              ? 'Height in feet and inches'
-                              : 'Height in centimeters'
-                          }
-                        >
-                          <Text
-                            style={[
-                              styles.unitPillLabel,
-                              active && styles.unitPillLabelActive,
-                            ]}
-                          >
-                            {unit === 'ft' ? 'FT / IN' : 'CM'}
-                          </Text>
-                        </Pressable>
-                      );
-                    })}
-                  </View>
-                </View>
+                <Text style={styles.fieldLabel}>AGE</Text>
+                <TextInput
+                  value={ageText}
+                  onChangeText={setAgeText}
+                  keyboardType="number-pad"
+                  placeholder="e.g. 32"
+                  placeholderTextColor={Colors.text.ghost}
+                  style={styles.input}
+                  maxLength={3}
+                  accessibilityLabel="Age in years"
+                />
+              </View>
 
-                {heightUnit === 'cm' ? (
-                  <View style={styles.inputWrap}>
-                    <TextInput
-                      value={heightText}
-                      onChangeText={setHeightText}
-                      keyboardType="number-pad"
-                      placeholder="e.g. 180"
-                      placeholderTextColor={Colors.text.ghost}
-                      style={styles.inputFlex}
-                      maxLength={3}
-                      accessibilityLabel="Height in centimeters"
-                    />
-                    <Text style={styles.inputSuffix}>cm</Text>
+              <View style={styles.field}>
+                <Text style={styles.fieldLabel}>HEIGHT</Text>
+                <View style={styles.stepper}>
+                  <Pressable
+                    onPress={() => stepHeight(-1)}
+                    style={styles.stepperBtn}
+                    hitSlop={8}
+                    accessibilityRole="button"
+                    accessibilityLabel="Decrease height"
+                  >
+                    <Text style={styles.stepperBtnLabel}>−</Text>
+                  </Pressable>
+                  <View style={styles.stepperValueWrap}>
+                    <Text
+                      style={[
+                        styles.stepperValue,
+                        !heightIsSet && styles.stepperValueMuted,
+                      ]}
+                      accessibilityLabel={`Height ${heightIsSet ? heightDisplay : 'not set'}`}
+                    >
+                      {heightDisplay}
+                    </Text>
                   </View>
-                ) : (
-                  <View style={styles.heightRow}>
-                    <View style={styles.inputWrap}>
-                      <TextInput
-                        value={feetText}
-                        onChangeText={setFeetText}
-                        keyboardType="number-pad"
-                        placeholder="e.g. 5"
-                        placeholderTextColor={Colors.text.ghost}
-                        style={styles.inputFlex}
-                        maxLength={1}
-                        accessibilityLabel="Height feet"
-                      />
-                      <Text style={styles.inputSuffix}>ft</Text>
-                    </View>
-                    <View style={styles.inputWrap}>
-                      <TextInput
-                        value={inchesText}
-                        onChangeText={setInchesText}
-                        keyboardType="number-pad"
-                        placeholder="e.g. 11"
-                        placeholderTextColor={Colors.text.ghost}
-                        style={styles.inputFlex}
-                        maxLength={2}
-                        accessibilityLabel="Height inches"
-                      />
-                      <Text style={styles.inputSuffix}>in</Text>
-                    </View>
-                  </View>
-                )}
+                  <Pressable
+                    onPress={() => stepHeight(1)}
+                    style={styles.stepperBtn}
+                    hitSlop={8}
+                    accessibilityRole="button"
+                    accessibilityLabel="Increase height"
+                  >
+                    <Text style={styles.stepperBtnLabel}>+</Text>
+                  </Pressable>
+                </View>
               </View>
 
               <View style={styles.field}>
@@ -469,6 +611,101 @@ export default function Onboarding() {
                       </Pressable>
                     );
                   })}
+                </View>
+              </View>
+            </>
+          )}
+
+          {step === 'lifestyle' && (
+            <>
+              <Text style={styles.kicker}>STEP 4 · LIFESTYLE</Text>
+              <Text style={styles.title}>Your daily{'\n'}rhythm</Text>
+              <Text style={styles.lede}>
+                Caffeine and your day shape how fast you lose water.
+              </Text>
+
+              <View style={styles.field}>
+                <Text style={styles.fieldLabel}>DAILY CAFFEINE</Text>
+                <View style={styles.list}>
+                  {CAFFEINE_OPTIONS.map((opt) => {
+                    const selected = caffeine === opt.value;
+                    return (
+                      <Pressable
+                        key={opt.value}
+                        onPress={() => {
+                          tap();
+                          setCaffeine(opt.value);
+                        }}
+                        style={[styles.card, selected && styles.cardSelected]}
+                        accessibilityRole="button"
+                        accessibilityState={{ selected }}
+                        accessibilityLabel={opt.title}
+                      >
+                        <View style={styles.cardText}>
+                          <Text style={[styles.cardTitle, selected && styles.cardTitleSelected]}>
+                            {opt.title}
+                          </Text>
+                          <Text style={styles.cardSubtitle}>{opt.subtitle}</Text>
+                        </View>
+                        {selected ? (
+                          <Icon name="check-circle" size={22} color={Colors.accent.primary} />
+                        ) : (
+                          <View style={styles.radio} />
+                        )}
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              </View>
+
+              <View style={styles.field}>
+                <Text style={styles.fieldLabel}>
+                  WORK ENVIRONMENT <Text style={styles.optionalTag}>· OPTIONAL</Text>
+                </Text>
+                <View style={styles.pillWrap}>
+                  {OCCUPATION_OPTIONS.map((opt) => {
+                    const selected = occupation === opt.value;
+                    return (
+                      <Pressable
+                        key={opt.value}
+                        onPress={() => {
+                          tap();
+                          setOccupation(selected ? null : opt.value);
+                        }}
+                        style={[styles.pill, selected && styles.pillSelected]}
+                        accessibilityRole="button"
+                        accessibilityState={{ selected }}
+                        accessibilityLabel={opt.label}
+                      >
+                        <Text
+                          style={[styles.pillLabel, selected && styles.pillLabelSelected]}
+                        >
+                          {opt.label}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              </View>
+
+              <View style={styles.field}>
+                <View style={styles.travelerRow}>
+                  <View style={styles.travelerText}>
+                    <Text style={styles.travelerTitle}>Frequent Traveler</Text>
+                    <Text style={styles.travelerSubtitle}>
+                      Flights and time-zone shifts dry you out faster.
+                    </Text>
+                  </View>
+                  <Switch
+                    value={frequentTraveler}
+                    onValueChange={(v) => {
+                      tap();
+                      setFrequentTraveler(v);
+                    }}
+                    trackColor={{ true: Colors.accent.primary, false: Colors.fill.strong }}
+                    thumbColor={Colors.text.primary}
+                    accessibilityLabel="Frequent traveler"
+                  />
                 </View>
               </View>
             </>
@@ -603,6 +840,11 @@ const styles = StyleSheet.create({
     color: Colors.text.muted,
     marginBottom: 10,
   },
+  optionalTag: {
+    fontFamily: 'Inter_500Medium',
+    color: Colors.text.ghost,
+    letterSpacing: 1,
+  },
   input: {
     backgroundColor: Colors.background.card,
     borderWidth: 1,
@@ -614,61 +856,46 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: Colors.text.primary,
   },
-  heightHeader: {
+  stepper: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 10,
+    gap: 12,
   },
-  unitToggle: {
-    flexDirection: 'row',
-    gap: 6,
-  },
-  unitPill: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 9,
-    borderWidth: 1,
-    borderColor: Colors.border.subtle,
-    backgroundColor: Colors.background.card,
-  },
-  unitPillActive: {
-    borderColor: Colors.accent.primary,
-    backgroundColor: Colors.accent.subtle,
-  },
-  unitPillLabel: {
-    fontFamily: 'Inter_600SemiBold',
-    fontSize: 11,
-    letterSpacing: 1,
-    color: Colors.text.secondary,
-  },
-  unitPillLabelActive: { color: Colors.accent.primary },
-  heightRow: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  inputWrap: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.background.card,
-    borderWidth: 1,
-    borderColor: Colors.border.subtle,
+  stepperBtn: {
+    width: 54,
+    height: 54,
     borderRadius: 14,
-    paddingHorizontal: 18,
+    borderWidth: 1,
+    borderColor: Colors.border.subtle,
+    backgroundColor: Colors.background.card,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  inputFlex: {
-    flex: 1,
-    paddingVertical: 16,
-    fontFamily: 'Inter_600SemiBold',
-    fontSize: 18,
+  stepperBtnLabel: {
+    fontFamily: 'Inter_700Bold',
+    fontSize: 26,
+    lineHeight: 30,
     color: Colors.text.primary,
   },
-  inputSuffix: {
+  stepperValueWrap: {
+    flex: 1,
+    height: 54,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: Colors.border.subtle,
+    backgroundColor: Colors.background.card,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stepperValue: {
+    fontFamily: 'Inter_700Bold',
+    fontSize: 20,
+    color: Colors.text.primary,
+  },
+  stepperValueMuted: {
     fontFamily: 'Inter_500Medium',
-    fontSize: 13,
-    color: Colors.text.muted,
-    marginLeft: 8,
+    fontSize: 15,
+    color: Colors.text.ghost,
   },
   segment: {
     flexDirection: 'row',
@@ -694,6 +921,53 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   segmentLabelSelected: { color: Colors.accent.primary },
+  pillWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  pill: {
+    backgroundColor: Colors.background.card,
+    borderWidth: 1,
+    borderColor: Colors.border.subtle,
+    borderRadius: 999,
+    paddingVertical: 11,
+    paddingHorizontal: 16,
+  },
+  pillSelected: {
+    borderColor: Colors.accent.primary,
+    backgroundColor: Colors.accent.subtle,
+  },
+  pillLabel: {
+    fontFamily: 'Inter_500Medium',
+    fontSize: 13,
+    color: Colors.text.secondary,
+  },
+  pillLabelSelected: { color: Colors.accent.primary },
+  travelerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: Colors.background.card,
+    borderWidth: 1,
+    borderColor: Colors.border.subtle,
+    borderRadius: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 18,
+    gap: 14,
+  },
+  travelerText: { flex: 1 },
+  travelerTitle: {
+    fontFamily: 'Inter_700Bold',
+    fontSize: 16,
+    color: Colors.text.primary,
+    marginBottom: 3,
+  },
+  travelerSubtitle: {
+    fontFamily: 'Inter_400Regular',
+    fontSize: 13,
+    color: Colors.text.secondary,
+  },
   ready: {
     flex: 1,
     alignItems: 'center',

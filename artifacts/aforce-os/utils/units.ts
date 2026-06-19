@@ -121,3 +121,79 @@ export function sanitizeUnitPreferences(raw: unknown): UnitPreferences {
     height: isHeightUnit(r.height) ? r.height : DEFAULT_UNIT_PREFERENCES.height,
   };
 }
+
+// ─── Measurement system (single Imperial / Metric switch) ────────────
+//
+// The Preferences card still exposes four INDEPENDENT unit toggles
+// (weight / temperature / volume / height), but onboarding asks one
+// question — "Imperial or Metric?" — and adapts the whole OS by writing
+// all four prefs at once. These pure helpers map between the single
+// system choice and the four-field preference object so the onboarding
+// wizard never hard-codes the per-unit values.
+
+export type MeasurementSystem = 'imperial' | 'metric';
+
+export const CM_PER_INCH = 2.54;
+
+/** The four-field unit preferences implied by a single system choice. */
+export function unitPreferencesForMeasurementSystem(
+  system: MeasurementSystem,
+): UnitPreferences {
+  return system === 'imperial'
+    ? { weight: 'lbs', temperature: 'F', volume: 'oz', height: 'ft' }
+    : { weight: 'kg', temperature: 'C', volume: 'mL', height: 'cm' };
+}
+
+/**
+ * Best-effort reverse mapping used only to SEED the onboarding toggle
+ * from whatever the user already has. Height is the anchor field (it's
+ * the one the system switch is built around); `'cm'` reads as metric,
+ * everything else as imperial. A user can still mix units on the
+ * Preferences card afterward — this never overrides that.
+ */
+export function inferMeasurementSystem(prefs: UnitPreferences): MeasurementSystem {
+  return prefs.height === 'cm' ? 'metric' : 'imperial';
+}
+
+// ─── Height (canonical integer cm ↔ imperial half-inch steps) ────────
+//
+// Imperial height is selected in HALF-INCH increments (6'0", 6'0.5",
+// 6'1"…). We model the imperial value as an integer count of
+// half-inches so the stepper math stays exact and free of float drift;
+// canonical storage stays integer centimetres. Round-tripping cm →
+// half-inch → cm is intentionally lossy at the ±1 cm level; the edit UI
+// always re-derives the nearest half-inch for display.
+
+/** Nearest whole number of half-inches for a canonical cm value. */
+export function cmToNearestHalfInches(cm: number): number {
+  return Math.round((cm / CM_PER_INCH) * 2);
+}
+
+/** Canonical (rounded) integer cm for a half-inch count. */
+export function halfInchesToCm(halfInches: number): number {
+  return Math.round((halfInches / 2) * CM_PER_INCH);
+}
+
+/** Format a half-inch count as feet + inches, e.g. 145 → `6'0.5"`. */
+export function formatHalfInches(halfInches: number): string {
+  const totalInches = halfInches / 2;
+  const feet = Math.floor(totalInches / 12);
+  const inches = totalInches - feet * 12;
+  const inchLabel = Number.isInteger(inches) ? `${inches}` : inches.toFixed(1);
+  return `${feet}'${inchLabel}"`;
+}
+
+/** Format a canonical cm value as imperial feet/inches to the nearest half-inch. */
+export function formatHeightImperial(cm: number): string {
+  return formatHalfInches(cmToNearestHalfInches(cm));
+}
+
+/** Format a canonical cm value as whole centimetres, e.g. `180 cm`. */
+export function formatHeightMetric(cm: number): string {
+  return `${Math.round(cm)} cm`;
+}
+
+/** Format a canonical cm value in the user's chosen height unit. */
+export function formatHeight(cm: number, unit: HeightUnit): string {
+  return unit === 'cm' ? formatHeightMetric(cm) : formatHeightImperial(cm);
+}

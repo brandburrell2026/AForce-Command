@@ -140,3 +140,41 @@ describe('hydrationDemandAdapter', () => {
     expect(tiredOut.targetOz).toBeGreaterThan(restedOut.targetOz);
   });
 });
+
+describe('hydrationDemandAdapter — lifestyle pass-through', () => {
+  it('passes caffeine/occupation/traveler from ProfileIdentity into inputs', () => {
+    const profile = {
+      ...DEFAULT_PROFILE_IDENTITY,
+      caffeineHabit: 'high' as const,
+      occupationType: 'outdoor' as const,
+      frequentTraveler: true,
+    };
+    const { inputs, trace } = buildHydrationDemandInputs(makeUser(), profile);
+    expect(inputs.caffeineHabit).toBe('high');
+    expect(inputs.occupationType).toBe('outdoor');
+    expect(inputs.frequentTraveler).toBe(true);
+    // 8 + 12 + 6 = 26 → capped to 18.
+    expect(trace.lifestyleAdderOz).toBe(18);
+  });
+
+  it('carries the default profile through as a no-op (lifestyleAdderOz = 0)', () => {
+    const { inputs, trace } = buildHydrationDemandInputs(makeUser(), DEFAULT_PROFILE_IDENTITY);
+    expect(inputs.caffeineHabit).toBe('unspecified');
+    expect(inputs.occupationType).toBe('unspecified');
+    expect(inputs.frequentTraveler).toBe(false);
+    expect(trace.lifestyleAdderOz).toBe(0);
+  });
+
+  it('raises the engine target when lifestyle fields are set', () => {
+    const base = computeHydrationDemand(
+      buildHydrationDemandInputs(makeUser(), DEFAULT_PROFILE_IDENTITY).inputs,
+    );
+    const loaded = computeHydrationDemand(
+      buildHydrationDemandInputs(makeUser(), {
+        ...DEFAULT_PROFILE_IDENTITY,
+        caffeineHabit: 'high' as const,
+      }).inputs,
+    );
+    expect(loaded.targetOz).toBe(base.targetOz + 8);
+  });
+});

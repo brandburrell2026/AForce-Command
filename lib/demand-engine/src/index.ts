@@ -33,6 +33,22 @@ export type EnvironmentProfile =
   | "hot_climate"
   | "travel_often";
 
+/** Self-reported daily caffeine band. Matches ProfileIdentity. */
+export type CaffeineHabit = "none" | "low" | "moderate" | "high" | "unspecified";
+
+/**
+ * Occupation category used as a hydration-demand floor. Matches
+ * ProfileIdentity's `OccupationType` so the mobile adapter can pass the
+ * profile value straight through without a remap.
+ */
+export type OccupationDemand =
+  | "desk"
+  | "active"
+  | "outdoor"
+  | "shift"
+  | "other"
+  | "unspecified";
+
 export interface HydrationDemandInputs {
   /** Body weight in pounds. Required field on Profile. */
   weightLbs: number;
@@ -54,6 +70,12 @@ export interface HydrationDemandInputs {
   consumedOz?: number;
   /** Completed Water Cycles today. Defaults to 0. */
   completedCycles?: number;
+  /** Self-reported caffeine band from Profile. Defaults to 'unspecified' (no adder). */
+  caffeineHabit?: CaffeineHabit;
+  /** Occupation category from Profile. Defaults to 'unspecified' (no adder). */
+  occupationType?: OccupationDemand;
+  /** Frequent flyer / cabin-air exposure. Defaults to false (no adder). */
+  frequentTraveler?: boolean;
 }
 
 // ─── Outputs ────────────────────────────────────────────────────────────────
@@ -108,11 +130,63 @@ export const OZ_PER_C_OVER_THRESHOLD = 3;
 /** Typical Water Cycle volume (oz). Used by the command picker. */
 export const CYCLE_OZ = 16;
 
+/**
+ * Lifestyle (static-profile) additives, oz/day. Additive only — never
+ * subtractors. Caffeine is a mild diuretic offset; occupation sets a
+ * fluid floor for non-desk work; travel covers cabin-air dryness.
+ */
+export const CAFFEINE_ADDER_OZ: Record<CaffeineHabit, number> = {
+  none: 0,
+  low: 0,
+  moderate: 4,
+  high: 8,
+  unspecified: 0,
+};
+
+export const OCCUPATION_ADDER_OZ: Record<OccupationDemand, number> = {
+  desk: 0,
+  active: 6,
+  outdoor: 12,
+  shift: 4,
+  other: 0,
+  unspecified: 0,
+};
+
+export const TRAVEL_ADDER_OZ = 6;
+
+/**
+ * The combined lifestyle adder is capped so a static profile can raise —
+ * but never dominate — the daily target.
+ */
+export const LIFESTYLE_ADDER_CAP_OZ = 18;
+
 // ─── Pure helpers ───────────────────────────────────────────────────────────
 
 function clamp(n: number, min: number, max: number): number {
   if (Number.isNaN(n)) return min;
   return Math.min(Math.max(n, min), max);
+}
+
+/**
+ * Static-profile hydration demand from lifestyle fields. Additive only
+ * (never subtracts), and the combined result is capped at
+ * `LIFESTYLE_ADDER_CAP_OZ` so a static profile can raise — but never
+ * dominate — the daily target.
+ *
+ * Score-Protection: these fields are routed to the demand (target) side,
+ * not the score. Only completed behaviour moves the score; the profile
+ * only calibrates how much water the day requires.
+ */
+export function calculateLifestyleDemandAdderOz(
+  caffeineHabit: CaffeineHabit = "unspecified",
+  occupationType: OccupationDemand = "unspecified",
+  frequentTraveler = false,
+): number {
+  const raw =
+    (CAFFEINE_ADDER_OZ[caffeineHabit] ?? 0) +
+    (OCCUPATION_ADDER_OZ[occupationType] ?? 0) +
+    (frequentTraveler ? TRAVEL_ADDER_OZ : 0);
+  return clamp(raw, 0, LIFESTYLE_ADDER_CAP_OZ);
 }
 
 function classifyLoad(targetOz: number, baselineOz: number): HydrationLoad {
@@ -151,6 +225,9 @@ export function computeHydrationDemand(
   const recoveryScore = clamp(inputs.recoveryScore ?? 70, 0, 100);
   const consumedOz = Math.max(0, inputs.consumedOz ?? 0);
   const completedCycles = Math.max(0, Math.floor(inputs.completedCycles ?? 0));
+  const caffeineHabit = inputs.caffeineHabit ?? "unspecified";
+  const occupationType = inputs.occupationType ?? "unspecified";
+  const frequentTraveler = inputs.frequentTraveler ?? false;
 
   // Baseline: 0.5 oz/lb — same anchor used by the depletion model.
   const baseline = weight * BASE_OZ_PER_LB;
@@ -176,6 +253,13 @@ export function computeHydrationDemand(
   const sleepAdder = sleepHours < 6 ? 5 : 0;
   const recoveryAdder = recoveryScore < 40 ? 6 : recoveryScore > 80 ? -3 : 0;
 
+  // Lifestyle (static-profile) demand — capped, additive only.
+  const lifestyleAdder = calculateLifestyleDemandAdderOz(
+    caffeineHabit,
+    occupationType,
+    frequentTraveler,
+  );
+
   const raw =
     baseline +
     activityAdder +
@@ -184,7 +268,8 @@ export function computeHydrationDemand(
     heatAdder +
     humidityAdder +
     sleepAdder +
-    recoveryAdder;
+    recoveryAdder +
+    lifestyleAdder;
 
   const targetOz = Math.round(clamp(raw, TARGET_FLOOR_OZ, TARGET_CEILING_OZ));
 

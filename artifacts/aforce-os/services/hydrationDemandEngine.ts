@@ -19,11 +19,18 @@ export {
   HEAT_THRESHOLD_C,
   OZ_PER_C_OVER_THRESHOLD,
   CYCLE_OZ,
+  CAFFEINE_ADDER_OZ,
+  OCCUPATION_ADDER_OZ,
+  TRAVEL_ADDER_OZ,
+  LIFESTYLE_ADDER_CAP_OZ,
   computeHydrationDemand,
+  calculateLifestyleDemandAdderOz,
 } from "@workspace/demand-engine";
 export type {
   SweatProfile,
   EnvironmentProfile,
+  CaffeineHabit,
+  OccupationDemand,
   HydrationDemandInputs,
   HydrationLoad,
   HydrationDemandOutputs,

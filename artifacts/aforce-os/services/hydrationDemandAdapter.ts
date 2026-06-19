@@ -27,6 +27,7 @@ import {
   selectFreshestSleepHours,
   type FreshestSleep,
 } from './profileBodyModel';
+import { calculateLifestyleDemandAdderOz } from './hydrationDemandEngine';
 import type { HydrationDemandInputs } from './hydrationDemandEngine';
 
 /**
@@ -53,6 +54,8 @@ export interface AdapterTrace {
   sleepSource: FreshestSleep | null;
   /** True when bodyWeight came from ProfileIdentity (not the default). */
   weightFromProfile: boolean;
+  /** Combined lifestyle demand adder (oz) carried from ProfileIdentity. */
+  lifestyleAdderOz: number;
 }
 
 export interface AdapterResult {
@@ -90,11 +93,23 @@ export function buildHydrationDemandInputs(
     inputs.completedCycles = overrides.completedCycles;
   }
 
+  // Lifestyle demand fields — always present on ProfileIdentity (default
+  // 'unspecified' / false = no-op), so Profile is the source of truth and
+  // we pass them straight through. The engine union matches ProfileIdentity.
+  inputs.caffeineHabit = profile.caffeineHabit;
+  inputs.occupationType = profile.occupationType;
+  inputs.frequentTraveler = profile.frequentTraveler;
+
   return {
     inputs,
     trace: {
       sleepSource,
       weightFromProfile: profile.bodyWeightLbs != null,
+      lifestyleAdderOz: calculateLifestyleDemandAdderOz(
+        profile.caffeineHabit,
+        profile.occupationType,
+        profile.frequentTraveler,
+      ),
     },
   };
 }

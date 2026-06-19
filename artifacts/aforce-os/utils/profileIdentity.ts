@@ -45,6 +45,27 @@ export type RecoveryGoal =
   | 'BALANCE'
   | 'LONGEVITY';
 
+/**
+ * Self-reported daily caffeine intake band. Feeds the hydration engine
+ * as a diuretic / stimulant-load input. `'unspecified'` is the default
+ * and is treated by the engine as "no caffeine adjustment" rather than
+ * a hidden assumption.
+ */
+export type CaffeineHabit = 'none' | 'low' | 'moderate' | 'high' | 'unspecified';
+
+/**
+ * Occupation category — sets a hydration-demand floor (an outdoor /
+ * labor job loses fluid even on a nominal "rest" day, a desk job does
+ * not). `'unspecified'` = no occupation-based adjustment.
+ */
+export type OccupationType =
+  | 'desk'
+  | 'active'
+  | 'outdoor'
+  | 'shift'
+  | 'other'
+  | 'unspecified';
+
 export interface ProfileIdentity {
   /**
    * Display name shown as the primary headline on the identity card.
@@ -94,6 +115,13 @@ export interface ProfileIdentity {
    * by the onboarding wizard as the Profile-side override.
    */
   activityLevel: number | null;
+  // ── LIFESTYLE (Slice 3) ─────────────────────────────────────────
+  /** Self-reported daily caffeine intake band — see `CaffeineHabit`. */
+  caffeineHabit: CaffeineHabit;
+  /** Occupation category used as a hydration-demand floor — see `OccupationType`. */
+  occupationType: OccupationType;
+  /** True if the user flies / travels often (cabin-air + circadian load). */
+  frequentTraveler: boolean;
 }
 
 /**
@@ -126,6 +154,25 @@ export const RECOVERY_GOALS: readonly RecoveryGoal[] = [
   'LONGEVITY',
 ] as const;
 
+/** Canonical caffeine-habit options, in display order (lightest → heaviest). */
+export const CAFFEINE_HABIT_OPTIONS: readonly CaffeineHabit[] = [
+  'none',
+  'low',
+  'moderate',
+  'high',
+  'unspecified',
+] as const;
+
+/** Canonical occupation-type options, in display order. */
+export const OCCUPATION_TYPE_OPTIONS: readonly OccupationType[] = [
+  'desk',
+  'active',
+  'outdoor',
+  'shift',
+  'other',
+  'unspecified',
+] as const;
+
 /**
  * Empty defaults so the card degrades to "no chip rendered" rather
  * than literal whitespace. Body-model fields default to null so the
@@ -147,6 +194,9 @@ export const DEFAULT_PROFILE_IDENTITY: ProfileIdentity = {
   birthYear: null,
   biologicalSex: 'unspecified',
   activityLevel: null,
+  caffeineHabit: 'unspecified',
+  occupationType: 'unspecified',
+  frequentTraveler: false,
 };
 
 /** Hard cap so a runaway paste can't blow out the chip strip layout. */
@@ -196,6 +246,27 @@ function isRecoveryGoal(v: unknown): v is RecoveryGoal {
     v === 'ENDURANCE' ||
     v === 'BALANCE' ||
     v === 'LONGEVITY'
+  );
+}
+
+function isCaffeineHabit(v: unknown): v is CaffeineHabit {
+  return (
+    v === 'none' ||
+    v === 'low' ||
+    v === 'moderate' ||
+    v === 'high' ||
+    v === 'unspecified'
+  );
+}
+
+function isOccupationType(v: unknown): v is OccupationType {
+  return (
+    v === 'desk' ||
+    v === 'active' ||
+    v === 'outdoor' ||
+    v === 'shift' ||
+    v === 'other' ||
+    v === 'unspecified'
   );
 }
 
@@ -274,6 +345,16 @@ export function sanitizeProfileIdentity(raw: unknown): ProfileIdentity {
       ACTIVITY_LEVEL_MIN,
       ACTIVITY_LEVEL_MAX,
     ),
+    caffeineHabit: isCaffeineHabit(r.caffeineHabit)
+      ? r.caffeineHabit
+      : DEFAULT_PROFILE_IDENTITY.caffeineHabit,
+    occupationType: isOccupationType(r.occupationType)
+      ? r.occupationType
+      : DEFAULT_PROFILE_IDENTITY.occupationType,
+    frequentTraveler:
+      typeof r.frequentTraveler === 'boolean'
+        ? r.frequentTraveler
+        : DEFAULT_PROFILE_IDENTITY.frequentTraveler,
   };
 }
 
