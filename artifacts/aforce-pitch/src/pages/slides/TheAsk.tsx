@@ -17,7 +17,7 @@ const USE = [
     pctLabel: "40%",
     basis: 40,
     amount: "$1,600,000",
-    label: "Manufacturing & Production",
+    label: "Manufacturing & Inventory",
     sub: "Commercial inventory production, co-packing, packaging procurement, raw materials, and launch inventory.",
     grad: "linear-gradient(90deg, #e41e2b 0%, #ff5246 100%)",
     glow: "rgba(228,30,43,0.45)",
@@ -44,7 +44,7 @@ const USE = [
     pctLabel: "8.75%",
     basis: 8.75,
     amount: "$350,000",
-    label: "Research & Development",
+    label: "R&D / AForce OS™",
     sub: "Product innovation, AForce OS development, formulation enhancements, testing, and future product expansion.",
     grad: "linear-gradient(90deg, #2f5bff 0%, #6b8bff 100%)",
     glow: "rgba(47,91,255,0.45)",
@@ -53,7 +53,7 @@ const USE = [
     pctLabel: "7.5%",
     basis: 7.5,
     amount: "$300,000",
-    label: "Distribution & Retail Expansion",
+    label: "Distribution & Fulfillment",
     sub: "Warehousing, logistics, fulfillment, retail onboarding, broker support, and channel development.",
     grad: "linear-gradient(90deg, #5a73c9 0%, #8fa3e0 100%)",
     glow: "rgba(90,115,201,0.40)",
@@ -246,6 +246,9 @@ export default function TheAsk() {
           </div>
         </div>
       </div>
+      <p className="absolute bottom-[11.5vh] right-[5.5vw] z-10 max-w-[42vw] text-right font-body text-[0.6vw] leading-[1.4] tracking-[0.02em] text-[#777]">
+        Approximately $832,000 raised from 18 SAFE investors.
+      </p>
       <ProjectionDisclaimer className="absolute bottom-[7.5vh] left-0 right-0 mx-auto max-w-[72vw] text-center z-10" />
     </SlideFrame>
   );

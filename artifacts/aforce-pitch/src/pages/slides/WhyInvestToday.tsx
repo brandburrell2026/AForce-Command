@@ -21,7 +21,7 @@ const REASONS: Array<{
   {
     title: "National validation already secured through",
     keyword: "America's Real Deal.",
-    sub: "Nationally televised proof — January 2027.",
+    sub: "National television appearance anticipated in January 2027 following successful completion of Phase 1 commercialization milestones.",
     tone: "blue",
   },
   {

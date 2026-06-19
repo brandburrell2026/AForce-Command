@@ -1,7 +1,6 @@
 import { motion } from "framer-motion";
 import { useReducedMotion } from "@/lib/useReducedMotion";
 import SlideFrame from "@/components/SlideFrame";
-import ProjectionDisclaimer from "@/components/ProjectionDisclaimer";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -22,6 +21,7 @@ const KPIS = [
     rule: "bg-text/45",
     value: "text-text",
     barColor: "bg-text/60",
+    pill: "",
     kind: "rev" as const,
   },
   {
@@ -33,6 +33,7 @@ const KPIS = [
     rule: "bg-text/45",
     value: "text-text",
     barColor: "bg-text",
+    pill: "",
     kind: "rev" as const,
   },
   {
@@ -44,6 +45,7 @@ const KPIS = [
     rule: "bg-red",
     value: "text-red",
     barColor: "bg-red",
+    pill: "",
     kind: "rev" as const,
   },
   {
@@ -55,7 +57,20 @@ const KPIS = [
     rule: "bg-blue",
     value: "text-blue",
     barColor: "bg-blue",
+    pill: "Positive EBITDA",
     kind: "ebitda" as const,
+  },
+  {
+    label: "2028 EBITDA Margin",
+    num: "11.9%",
+    unit: "",
+    note: "Projected EBITDA Margin",
+    bar: 0,
+    rule: "bg-blue",
+    value: "text-blue",
+    barColor: "bg-blue",
+    pill: "Projected Margin",
+    kind: "margin" as const,
   },
 ];
 
@@ -117,8 +132,8 @@ export default function FinancialTrajectory() {
           operational leverage.
         </motion.p>
 
-        {/* FOUR LARGE KPI PANELS */}
-        <div className="mt-[3.4vh] grid grid-cols-4 gap-[1.4vw]">
+        {/* LARGE KPI PANELS */}
+        <div className="mt-[3.4vh] grid grid-cols-5 gap-[1.2vw]">
           {KPIS.map((k, i) => (
             <motion.div
               key={k.label}
@@ -163,7 +178,7 @@ export default function FinancialTrajectory() {
               ) : (
                 <div className="mt-[1.4vh]">
                   <span className="inline-flex w-fit items-center font-display uppercase tracking-[0.18em] text-[0.55vw] text-blue font-semibold border border-blue/45 rounded-full px-[0.7vw] py-[0.35vh]">
-                    Positive EBITDA
+                    {k.pill}
                   </span>
                 </div>
               )}
@@ -212,7 +227,11 @@ export default function FinancialTrajectory() {
               milestones, validate customer acquisition economics, and establish
               a path toward positive EBITDA and sustainable cash generation.
             </p>
-            <ProjectionDisclaimer className="mt-[1.1vh]" />
+            <p className="mt-[1.1vh] mx-auto max-w-[62vw] font-body text-[0.6vw] leading-[1.45] tracking-[0.02em] text-[#888]">
+              Financial projections reflect management assumptions, vendor
+              quotations, commercialization plans, and industry benchmarks.
+              Actual results may differ materially.
+            </p>
           </div>
         </motion.div>
       </div>
