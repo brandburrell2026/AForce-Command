@@ -38,6 +38,18 @@ validate-slides both pass silently. **How to apply:** when you move a slide,
 update its manifest `position` AND the `slide={N}` literal inside the slide's
 component, keeping them equal; verify by screenshotting the moved slides.
 
+**Removing a slide is the reorder problem at scale, plus two extras.** Deleting
+slide K means: drop its manifest entry, then decrement BOTH the `position` and the
+hardcoded `slide={N}` literal by 1 for EVERY slide after K (positions must stay
+contiguous — `validateContiguousPositions`), decrement `TOTAL_SLIDES`, and shift the
+affected `SECTIONS` ranges. Also DELETE the slide's `.tsx` file —
+`validateOrphanedSlideFiles` fails on any `*.tsx` in `pages/slides/` not referenced
+by the manifest (note: `.ts` helpers like `floridaPath.ts` are exempt). **Why:** a
+deck has ~24 slides each hardcoding its own number, so one removal touches ~16 files;
+miss the `slide={N}` edits and every later footer is off-by-one (passes typecheck +
+validate-slides silently). **How to apply:** screenshot a late slide to confirm the
+footer "NN / total" and section eyebrow line up.
+
 **Manifest `description` (and `title`) are unvalidated free-text metadata.**
 `validate-slides` only checks structure (unique/contiguous positions, filepaths
 resolve) — it does NOT compare descriptions against rendered slide copy. So when

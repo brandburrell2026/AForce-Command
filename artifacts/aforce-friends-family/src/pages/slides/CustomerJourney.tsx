@@ -151,7 +151,7 @@ export default function CustomerJourney() {
   });
 
   return (
-    <SlideFrame slide={14} phaseLabel="The Journey">
+    <SlideFrame slide={13} phaseLabel="The Journey">
       {/* flow glows — warm acquisition (left) cooling into retention (right) */}
       <div
         aria-hidden

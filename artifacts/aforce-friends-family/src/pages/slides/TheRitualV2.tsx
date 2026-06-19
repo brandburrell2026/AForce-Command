@@ -44,7 +44,7 @@ export default function TheRitualV2() {
   const img = (s: string) => `${base}images/products/${s}.png`;
 
   return (
-    <SlideFrame slide={10}>
+    <SlideFrame slide={9}>
       <div className="absolute inset-0 overflow-hidden">
         {/* RIGHT — the product stage */}
         <div className="absolute right-0 bottom-0 top-0 w-[58%] z-0">

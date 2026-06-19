@@ -1,6 +1,6 @@
 # AForce — Friends & Family Deck Slide Guide
 
-A slide-by-slide explanation of the AForce Friends & Family deck (25 slides). Use this as
+A slide-by-slide explanation of the AForce Friends & Family deck (24 slides). Use this as
 speaker notes or a narrative map. The deck is built as one continuous argument:
 **a product becomes a ritual, a ritual becomes behavior, behavior becomes
 retention, retention becomes a recurring membership business.**
