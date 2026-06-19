@@ -482,6 +482,12 @@ export interface FeatureFlags {
   metabolic_readiness_enabled: boolean;
   metabolic_glucose_enabled: boolean;
 
+  // Performance Age™ — derived, display-only headline ESTIMATE (in years)
+  // of recent performance behaviour vs. actual age. Master switch for the
+  // additive Home zone; ships OFF in prod (Build 100% · Show 10%). NOT
+  // entitlement-gated — it is the primary consumer headline metric.
+  performance_age_enabled: boolean;
+
   // Enterprise — Cruise Mode (premium add-on for cruise lines & guests).
   // Master switch. Phase 1 public release lights up Journey Pulse,
   // Guest Readiness Signal, Today's Flow, and Port Signal. Phases 2/3

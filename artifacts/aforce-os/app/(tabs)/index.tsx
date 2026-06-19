@@ -37,6 +37,7 @@ import { NotificationBanner } from '@/components/home/NotificationBanner';
 import { SmartModesBanner } from '@/components/home/SmartModesBanner';
 import { HomeDashboard } from '@/components/home/HomeDashboard';
 import { MetabolicReadinessZone } from '@/components/home/MetabolicReadinessZone';
+import { PerformanceAgeZone } from '@/components/home/PerformanceAgeZone';
 import { useAnalyticsRecorder } from '@/hooks/useAnalyticsRecorder';
 import { useScoreTrend } from '@/hooks/useScoreTrend';
 import { getStatusVerb } from '@/services/statusVerb';
@@ -341,6 +342,16 @@ function ScoreDrivenBody({
           score (Score-Protection). Non-entitled users see a locked teaser
           that routes to the Athlete plan. */}
       <MetabolicReadinessZone />
+
+      {/* ── Performance Age™ ─────────────────────────────────────────────
+          Additive, feature-flagged (performance_age_enabled) headline
+          ESTIMATE. Renders nothing when the flag is off (ships off in
+          prod). A display-only projection of the hydration + recovery
+          engines and the analytics layer that never awards or mutates
+          score (Score-Protection). NOT entitlement-gated — the primary
+          consumer headline metric. Carries the required disclaimer on
+          every state. */}
+      <PerformanceAgeZone />
 
       {lastIntakeMinutes != null && (
         <View style={styles.lastIntakeRow}>
