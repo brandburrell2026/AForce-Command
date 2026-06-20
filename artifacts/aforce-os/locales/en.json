@@ -547,5 +547,26 @@
       "performance_age_older": "Performance Age rose {{deltaYears}} years.",
       "recovery_down": "Recovery dipped {{delta}} points."
     }
+  },
+  "smartModes": {
+    "heat": {
+      "label": "HEAT MODE",
+      "short": "HEAT",
+      "guidance": "HYDRATE NOW — heat detected. Aim for extra water today."
+    },
+    "workout": {
+      "label": "WORKOUT MODE",
+      "short": "WORKOUT",
+      "guidance": "HYDRATE NOW — workout underway. Recover with water after."
+    },
+    "travel": {
+      "label": "TRAVEL MODE",
+      "short": "TRAVEL"
+    },
+    "recovery": {
+      "label": "RECOVERY MODE",
+      "short": "RECOVERY",
+      "guidance": "Start with water — recovery focus. Ease in, no pressure."
+    }
   }
 }

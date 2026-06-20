@@ -34,12 +34,23 @@ export interface SmartModeContext {
 
 export interface SmartMode {
   id: SmartModeId;
-  /** Display label, e.g. "HEAT MODE". */
+  /** English fallback label, e.g. "HEAT MODE". */
   label: string;
+  /** i18n key for the localized label (resolved at render time). */
+  labelKey: string;
+  /** i18n key for the localized short label used in chips. */
+  shortKey: string;
   /** ICON_MAP key (must exist in theme/icons.ts). */
   icon: string;
-  /** One-line behavioral guidance — always water-first. */
+  /** English fallback guidance — always water-first. */
   guidance: string;
+  /**
+   * i18n key for the localized one-line guidance. Resolving the copy at
+   * render time (instead of baking English into this pure module) keeps
+   * the launch-locale lock intact. Travel reuses the shared Location
+   * Intelligence travel-advisory key.
+   */
+  guidanceKey: string;
 }
 
 export interface SmartModeResult {
@@ -62,8 +73,11 @@ export const MODE_RECOVERY_SCORE = 50;
 // ── Per-mode tuning ───────────────────────────────────────────────────
 interface ModeSpec {
   label: string;
+  labelKey: string;
+  shortKey: string;
   icon: string;
   guidance: string;
+  guidanceKey: string;
   reminderFactor: number;
   targetFactor: number;
 }
@@ -74,29 +88,43 @@ const MODE_ORDER: SmartModeId[] = ['heat', 'workout', 'travel', 'recovery'];
 const MODE_SPECS: Record<SmartModeId, ModeSpec> = {
   heat: {
     label: 'HEAT MODE',
+    labelKey: 'smartModes.heat.label',
+    shortKey: 'smartModes.heat.short',
     icon: 'thermometer',
     guidance: 'HYDRATE NOW — heat detected. Aim for extra water today.',
+    guidanceKey: 'smartModes.heat.guidance',
     reminderFactor: 1.2,
     targetFactor: 1.2,
   },
   workout: {
     label: 'WORKOUT MODE',
+    labelKey: 'smartModes.workout.label',
+    shortKey: 'smartModes.workout.short',
     icon: 'activity',
     guidance: 'HYDRATE NOW — workout underway. Recover with water after.',
+    guidanceKey: 'smartModes.workout.guidance',
     reminderFactor: 1.2,
     targetFactor: 1.15,
   },
   travel: {
     label: 'TRAVEL MODE',
+    labelKey: 'smartModes.travel.label',
+    shortKey: 'smartModes.travel.short',
     icon: 'navigation',
     guidance: 'Start with water — travel day. Sip steadily to stay ahead.',
+    // Travel reuses the shared, already-translated Location Intelligence
+    // travel advisory so the copy stays in one place across locales.
+    guidanceKey: 'locationIntel.protocol.travel_protocol',
     reminderFactor: 1.0,
     targetFactor: 1.1,
   },
   recovery: {
     label: 'RECOVERY MODE',
+    labelKey: 'smartModes.recovery.label',
+    shortKey: 'smartModes.recovery.short',
     icon: 'heart',
     guidance: 'Start with water — recovery focus. Ease in, no pressure.',
+    guidanceKey: 'smartModes.recovery.guidance',
     reminderFactor: 0.6,
     targetFactor: 1.0,
   },
@@ -133,7 +161,15 @@ export function deriveActiveModes(ctx: SmartModeContext): SmartModeResult {
 
   const active: SmartMode[] = activeIds.map((id) => {
     const spec = MODE_SPECS[id];
-    return { id, label: spec.label, icon: spec.icon, guidance: spec.guidance };
+    return {
+      id,
+      label: spec.label,
+      labelKey: spec.labelKey,
+      shortKey: spec.shortKey,
+      icon: spec.icon,
+      guidance: spec.guidance,
+      guidanceKey: spec.guidanceKey,
+    };
   });
 
   let reminderMult = 1;

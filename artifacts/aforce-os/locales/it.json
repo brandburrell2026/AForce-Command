@@ -479,5 +479,26 @@
       "performance_age_older": "La tua Età di Performance è salita di {{deltaYears}} anni.",
       "recovery_down": "Il recupero è sceso di {{delta}} punti."
     }
+  },
+  "smartModes": {
+    "heat": {
+      "label": "MODALITÀ CALDO",
+      "short": "CALDO",
+      "guidance": "IDRÀTATI SUBITO — caldo rilevato. Punta a bere più acqua oggi."
+    },
+    "workout": {
+      "label": "MODALITÀ ALLENAMENTO",
+      "short": "ALLEN.",
+      "guidance": "IDRÀTATI SUBITO — allenamento in corso. Recupera con l’acqua dopo."
+    },
+    "travel": {
+      "label": "MODALITÀ VIAGGIO",
+      "short": "VIAGGIO"
+    },
+    "recovery": {
+      "label": "MODALITÀ RECUPERO",
+      "short": "RECUPERO",
+      "guidance": "Inizia con l’acqua — fase di recupero. Vai piano, senza pressione."
+    }
   }
 }

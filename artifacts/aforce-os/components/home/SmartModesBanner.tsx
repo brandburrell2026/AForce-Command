@@ -12,18 +12,24 @@
  */
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { Colors } from '@/theme/colors';
 import { Icon } from '@/components/Icon';
 import { useSmartModes } from '@/hooks/useSmartModes';
 
 export function SmartModesBanner() {
+  const { t } = useTranslation();
   const { active } = useSmartModes();
 
   if (active.length === 0) return null;
 
   const [primary, ...rest] = active;
 
+  // The pure modes engine only carries English fallback copy; the localized
+  // label / chip / guidance are resolved here so every launch locale (and the
+  // travel advisory, which reuses the shared Location Intelligence key) renders
+  // translated. `defaultValue` keeps the English fallback for hidden locales.
   return (
     <View style={styles.wrap}>
       <View style={styles.card} testID="smart-modes-banner">
@@ -31,18 +37,20 @@ export function SmartModesBanner() {
         <View style={styles.body}>
           <View style={styles.headerRow}>
             <Text style={styles.title} numberOfLines={1}>
-              {primary.label}
+              {t(primary.labelKey, { defaultValue: primary.label })}
             </Text>
             {rest.map((mode) => (
               <View key={mode.id} style={styles.chip} testID={`smart-mode-chip-${mode.id}`}>
                 <Text style={styles.chipText} numberOfLines={1}>
-                  {mode.label.replace(' MODE', '')}
+                  {t(mode.shortKey, {
+                    defaultValue: mode.label.replace(' MODE', ''),
+                  })}
                 </Text>
               </View>
             ))}
           </View>
           <Text style={styles.guidance} numberOfLines={2}>
-            {primary.guidance}
+            {t(primary.guidanceKey, { defaultValue: primary.guidance })}
           </Text>
         </View>
       </View>

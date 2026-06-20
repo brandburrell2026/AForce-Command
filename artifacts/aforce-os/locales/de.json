@@ -479,5 +479,26 @@
       "performance_age_older": "Dein Leistungsalter stieg um {{deltaYears}} Jahre.",
       "recovery_down": "Die Erholung sank um {{delta}} Punkte."
     }
+  },
+  "smartModes": {
+    "heat": {
+      "label": "HITZE-MODUS",
+      "short": "HITZE",
+      "guidance": "JETZT TRINKEN — Hitze erkannt. Heute extra Wasser einplanen."
+    },
+    "workout": {
+      "label": "WORKOUT-MODUS",
+      "short": "WORKOUT",
+      "guidance": "JETZT TRINKEN — Training läuft. Danach mit Wasser erholen."
+    },
+    "travel": {
+      "label": "REISE-MODUS",
+      "short": "REISE"
+    },
+    "recovery": {
+      "label": "ERHOLUNGS-MODUS",
+      "short": "ERHOLUNG",
+      "guidance": "Beginne mit Wasser — Fokus auf Erholung. Lass es ruhig angehen, kein Druck."
+    }
   }
 }
