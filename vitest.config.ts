@@ -21,6 +21,7 @@ export default defineConfig({
       'artifacts/api-server/src/**/__tests__/**/*.test.ts',
       'artifacts/api-server/src/lib/__tests__/**/*.test.ts',
       'artifacts/aforce-site/src/**/__tests__/**/*.test.{ts,tsx}',
+      'lib/**/src/**/__tests__/**/*.test.ts',
     ],
     environment: 'node',
     environmentMatchGlobs: [

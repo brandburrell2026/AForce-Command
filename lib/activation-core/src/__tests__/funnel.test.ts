@@ -13,11 +13,8 @@ import {
   UNATTRIBUTED,
   type ActivationFunnelState,
   type MilestoneTimestamps,
-} from '../activation/funnel';
-import {
-  EMPTY_ATTRIBUTION,
-  parseActivationLink,
-} from '../activation/attribution';
+} from '../funnel';
+import { EMPTY_ATTRIBUTION, parseActivationLink } from '../attribution';
 
 const T = (h: number) => new Date(Date.UTC(2026, 0, 1, h)).toISOString();
 

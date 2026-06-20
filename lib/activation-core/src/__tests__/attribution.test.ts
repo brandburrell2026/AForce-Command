@@ -5,7 +5,7 @@ import {
   hasAttribution,
   isActivationLink,
   parseActivationLink,
-} from '../activation/attribution';
+} from '../attribution';
 
 describe('isActivationLink', () => {
   it('accepts custom-scheme and web activation links', () => {
