@@ -1,6 +1,6 @@
 ---
 title: "AForce — Complete Specifications"
-author: "Generated 2026-06-01"
+author: "Generated 2026-06-20"
 ---
 
 
@@ -15,6 +15,25 @@ AForce OS is a real-time human performance operating system, delivered as a Reac
 # FINAL BUILD LOCK (locked; do not redesign)
 
 Approved for implementation. No redesign, no rebuilding, no moving navigation, no adding tabs, no dashboard expansion. Build once. Expose over time.
+
+## AUTHORIZED OVERRIDE — Home + Navigation redesign (owner-approved)
+
+The owner explicitly authorized a full redesign of the **Home screen and tab navigation**, overriding the "do not redesign / do not move navigation / no dashboard expansion" clauses above *for these two surfaces only*. The rest of the lock (Water-First, Score Protection, Language lock, Product Positioning) remains in force and the redesign was built to comply with it.
+
+- **Accent:** added `accent.brand` `#FF3B30` (+ `brandGlow` / `brandDim` / `brandSubtle`) used sparsely (thin lines, eyebrows, progress fills). `tabBar.active` flipped to brand red. `accent.primary` and all WHOOP recovery/state colors are untouched, so DEPLETED red still reads.
+- **Navigation 7 → 5 visible tabs:** Home · Hydration (was Journal, relabeled + droplet icon) · Protocols · Community · Profile. `scan` / `social` / `social-legacy` / `sleep` are hidden (`href:null` in ClassicTabLayout, omitted from NativeTabLayout triggers) — engines stay, surfaces hidden, consistent with "Build 100% · Show 10%".
+- **Home expansion:** the score orb is retained as the **Readiness Score** hero (thin `READINESS SCORE` eyebrow; engine machinery unchanged). Below it, the Hydration Status card now occupies the **Water Cycle** slot. (Owner trim, June 2026: the Daily Ritual rail, Today's Protocol, Streak, Athlete Mode progress, and Membership cards were removed from the Home surface. A later owner change, June 2026: the WATER CYCLE 8-cell telemetry bar was removed from Home and the Hydration Status card was moved into its place. All removed components — the five cards, the `WaterCycleBar` (still imported by the dormant `SignalsZone`), and the `utils/homeDashboard` derivations — remain in the codebase, simply no longer rendered on Home, so the trim is reversible.)
+- **Score-Protection preserved:** every Home surface is a read-only projection of already-completed behaviour via the pure `utils/homeDashboard.ts` helpers (unit-tested); nothing awards or inflates score. (Owner trim, June 2026: the Ritual/protocol rails and the "SOON" Points/Challenges/Referrals preview tiles were removed from the Home surface along with the cards noted above. The retained Hydration Status ring stays a read-only projection of logged intake; the trimmed derivations remain in the codebase so the trim is reversible.)
+
+## Cold-Launch Opening Sequence (owner-approved)
+
+A full-screen 4-stage cinematic (`components/opening/OpeningSequence.tsx`) plays once **per cold launch** as an overlay — mounted in `app/_layout.tsx` (AppShell), mirroring the InvestorDemo overlay pattern, so it touches **no routing** (no redirect-loop risk) and then fades out to reveal whatever the app routed to underneath.
+
+- **Stages:** (1) white water-drop symbol w/ breathing fade → (2) AFORCE wordmark + brand-red hairline + "Performance Is Non-Negotiable" → (3) PAUSE/HYDRATE/LOCK IN/PERFORM ritual stagger → (4) "TODAY'S READINESS" + count-up to the live score + a **band-aware** caption via `readinessLabel(performanceState.level)` (a DEPLETED user reads "REHYDRATE NOW", never "READY TO PERFORM").
+- **Motion:** slow Apple-Vision-Pro pacing, crossfading absolute-fill layers, no bounce. Tap-anywhere-to-skip; fully reduced-motion aware (`AccessibilityInfo`).
+- **Score-Protection:** display-only projection of `engine.score` (DEFAULT_SCORE=92 fallback before state loads); never awards, mutates, or fabricates score.
+- **First-run untouched:** onboarding stays intact — new users get opening → onboarding. (The separate welcome lobby was removed; the cold-launch cinematic is now solely the OpeningSequence overlay.)
+- **Plays per JS launch:** `OpeningMount` holds `useState(true)` initialised once when AppShell mounts; `onFinish` is a stable `useCallback` and `OpeningSequence` keeps it in a ref so the engine-score refresh (on mount + ~30s) never tears down the timeline mid-play.
 
 ## Water-First Command System
 Recommendation order is **Water → Command → Optional support → Score Update**. Products never come before water. Default recommendation copy must begin with `HYDRATE NOW` / `Start with water`; optional hydration support may be suggested only after hydration needs are evaluated. Behavior first, product second.

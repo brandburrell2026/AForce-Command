@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="author" content="Generated 2026-06-01" />
+  <meta name="author" content="Generated 2026-06-20" />
   <title>AForce — Complete Specifications</title>
   <style>
 code{white-space: pre-wrap;}
@@ -41,7 +41,7 @@ hr{border:none;border-top:1px solid #eee;margin:2em 0}
 <body>
 <header id="title-block-header">
 <h1 class="title">AForce — Complete Specifications</h1>
-<p class="author">Generated 2026-06-01</p>
+<p class="author">Generated 2026-06-20</p>
 </header>
 <nav id="TOC" role="doc-toc">
 <ul>
@@ -50,6 +50,10 @@ hr{border:none;border-top:1px solid #eee;margin:2em 0}
 <li><a href="#final-build-lock-locked-do-not-redesign" id="toc-final-build-lock-locked-do-not-redesign">FINAL BUILD LOCK
 (locked; do not redesign)</a>
 <ul>
+<li><a href="#authorized-override--home--navigation-redesign-owner-approved" id="toc-authorized-override--home--navigation-redesign-owner-approved">AUTHORIZED
+OVERRIDE — Home + Navigation redesign (owner-approved)</a></li>
+<li><a href="#cold-launch-opening-sequence-owner-approved" id="toc-cold-launch-opening-sequence-owner-approved">Cold-Launch Opening
+Sequence (owner-approved)</a></li>
 <li><a href="#water-first-command-system" id="toc-water-first-command-system">Water-First Command System</a></li>
 <li><a href="#score-protection-rule" id="toc-score-protection-rule">Score Protection Rule</a></li>
 <li><a href="#language--localization-lock" id="toc-language--localization-lock">Language / Localization
@@ -295,6 +299,84 @@ scaling.</p>
 <p>Approved for implementation. No redesign, no rebuilding, no moving
 navigation, no adding tabs, no dashboard expansion. Build once. Expose
 over time.</p>
+<h2 id="authorized-override--home--navigation-redesign-owner-approved">AUTHORIZED
+OVERRIDE — Home + Navigation redesign (owner-approved)</h2>
+<p>The owner explicitly authorized a full redesign of the <strong>Home
+screen and tab navigation</strong>, overriding the &quot;do not redesign / do
+not move navigation / no dashboard expansion&quot; clauses above <em>for
+these two surfaces only</em>. The rest of the lock (Water-First, Score
+Protection, Language lock, Product Positioning) remains in force and the
+redesign was built to comply with it.</p>
+<ul>
+<li><strong>Accent:</strong> added <code>accent.brand</code>
+<code>#FF3B30</code> (+ <code>brandGlow</code> / <code>brandDim</code> /
+<code>brandSubtle</code>) used sparsely (thin lines, eyebrows, progress
+fills). <code>tabBar.active</code> flipped to brand red.
+<code>accent.primary</code> and all WHOOP recovery/state colors are
+untouched, so DEPLETED red still reads.</li>
+<li><strong>Navigation 7 → 5 visible tabs:</strong> Home · Hydration
+(was Journal, relabeled + droplet icon) · Protocols · Community ·
+Profile. <code>scan</code> / <code>social</code> /
+<code>social-legacy</code> / <code>sleep</code> are hidden
+(<code>href:null</code> in ClassicTabLayout, omitted from
+NativeTabLayout triggers) — engines stay, surfaces hidden, consistent
+with &quot;Build 100% · Show 10%&quot;.</li>
+<li><strong>Home expansion:</strong> the score orb is retained as the
+<strong>Readiness Score</strong> hero (thin <code>READINESS SCORE</code>
+eyebrow; engine machinery unchanged). Below it, the Hydration Status
+card now occupies the <strong>Water Cycle</strong> slot. (Owner trim,
+June 2026: the Daily Ritual rail, Today&#39;s Protocol, Streak, Athlete Mode
+progress, and Membership cards were removed from the Home surface. A
+later owner change, June 2026: the WATER CYCLE 8-cell telemetry bar was
+removed from Home and the Hydration Status card was moved into its
+place. All removed components — the five cards, the
+<code>WaterCycleBar</code> (still imported by the dormant
+<code>SignalsZone</code>), and the <code>utils/homeDashboard</code>
+derivations — remain in the codebase, simply no longer rendered on Home,
+so the trim is reversible.)</li>
+<li><strong>Score-Protection preserved:</strong> every Home surface is a
+read-only projection of already-completed behaviour via the pure
+<code>utils/homeDashboard.ts</code> helpers (unit-tested); nothing
+awards or inflates score. (Owner trim, June 2026: the Ritual/protocol
+rails and the &quot;SOON&quot; Points/Challenges/Referrals preview tiles were
+removed from the Home surface along with the cards noted above. The
+retained Hydration Status ring stays a read-only projection of logged
+intake; the trimmed derivations remain in the codebase so the trim is
+reversible.)</li>
+</ul>
+<h2 id="cold-launch-opening-sequence-owner-approved">Cold-Launch Opening
+Sequence (owner-approved)</h2>
+<p>A full-screen 4-stage cinematic
+(<code>components/opening/OpeningSequence.tsx</code>) plays once
+<strong>per cold launch</strong> as an overlay — mounted in
+<code>app/_layout.tsx</code> (AppShell), mirroring the InvestorDemo
+overlay pattern, so it touches <strong>no routing</strong> (no
+redirect-loop risk) and then fades out to reveal whatever the app routed
+to underneath.</p>
+<ul>
+<li><strong>Stages:</strong> (1) white water-drop symbol w/ breathing
+fade → (2) AFORCE wordmark + brand-red hairline + &quot;Performance Is
+Non-Negotiable&quot; → (3) PAUSE/HYDRATE/LOCK IN/PERFORM ritual stagger → (4)
+&quot;TODAY&#39;S READINESS&quot; + count-up to the live score + a
+<strong>band-aware</strong> caption via
+<code>readinessLabel(performanceState.level)</code> (a DEPLETED user
+reads &quot;REHYDRATE NOW&quot;, never &quot;READY TO PERFORM&quot;).</li>
+<li><strong>Motion:</strong> slow Apple-Vision-Pro pacing, crossfading
+absolute-fill layers, no bounce. Tap-anywhere-to-skip; fully
+reduced-motion aware (<code>AccessibilityInfo</code>).</li>
+<li><strong>Score-Protection:</strong> display-only projection of
+<code>engine.score</code> (DEFAULT_SCORE=92 fallback before state
+loads); never awards, mutates, or fabricates score.</li>
+<li><strong>First-run untouched:</strong> onboarding stays intact — new
+users get opening → onboarding. (The separate welcome lobby was removed;
+the cold-launch cinematic is now solely the OpeningSequence
+overlay.)</li>
+<li><strong>Plays per JS launch:</strong> <code>OpeningMount</code>
+holds <code>useState(true)</code> initialised once when AppShell mounts;
+<code>onFinish</code> is a stable <code>useCallback</code> and
+<code>OpeningSequence</code> keeps it in a ref so the engine-score
+refresh (on mount + ~30s) never tears down the timeline mid-play.</li>
+</ul>
 <h2 id="water-first-command-system">Water-First Command System</h2>
 <p>Recommendation order is <strong>Water → Command → Optional support →
 Score Update</strong>. Products never come before water. Default
