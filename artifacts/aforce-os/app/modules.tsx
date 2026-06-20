@@ -135,6 +135,15 @@ const MODULES: ModuleEntry[] = [
     tint: '#B6FF00',
   },
   {
+    id: 'weekly-report',
+    title: 'Weekly Report',
+    blurb: 'Weekly Performance Report™ · screenshot & share',
+    href: '/weekly-report',
+    icon: 'trending-up',
+    tint: '#0093E7',
+    gate: 'Flag-gated · spec_weekly_report',
+  },
+  {
     id: 'developer-preview',
     title: 'Developer Preview',
     blurb: 'Encryption status · feature flags · internal toggles',

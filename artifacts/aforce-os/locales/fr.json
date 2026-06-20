@@ -398,5 +398,83 @@
     "protocol": {
       "travel_protocol": "Déplacement détecté. Commencez par de l’eau : un verre par heure de trajet vous garde en avance."
     }
+  },
+  "reports": {
+    "title": "Rapport hebdomadaire de performance",
+    "eyebrow": "RAPPORT HEBDOMADAIRE DE PERFORMANCE",
+    "subtitle": "Votre semaine en résumé",
+    "weekRange": "{{start}} – {{end}}",
+    "generated": "Généré le {{date}}",
+    "share": "Partager",
+    "share_a11y": "Partagez votre rapport hebdomadaire de performance",
+    "shareTitle": "Mon rapport hebdomadaire de performance AForce",
+    "collecting": "Collecte en cours : quelques jours de données de plus le débloquent.",
+    "awaiting": "En attente de données : cela s’active à mesure que vous utilisez AForce.",
+    "status": {
+      "improved": "En hausse",
+      "attention": "À surveiller",
+      "steady": "Stable",
+      "collecting": "Collecte…",
+      "awaiting": "En attente de données"
+    },
+    "sections": {
+      "improved": {
+        "title": "Ce qui s’est amélioré",
+        "collecting": "Continuez à enregistrer : vos progrès apparaîtront ici la semaine prochaine."
+      },
+      "attention": {
+        "title": "Ce qui demande de l’attention",
+        "steady": "Rien à signaler : vous avez tenu le cap cette semaine.",
+        "collecting": "Enregistrez cette semaine pour repérer ce qu’il faut ajuster."
+      },
+      "performanceAge": {
+        "title": "Évolution de l’Âge de Performance",
+        "younger": "{{deltaYearsAbs}} ans de moins que la semaine dernière.",
+        "older": "{{deltaYearsAbs}} ans de plus que la semaine dernière.",
+        "steady": "Stable d’une semaine à l’autre.",
+        "collecting": "L’évolution nécessite environ une semaine de relevés quotidiens.",
+        "reference": "Âge de Performance actuel : {{currentPerformanceAge}}."
+      },
+      "habitVelocity": {
+        "title": "Vélocité des habitudes",
+        "value": "{{activeDays}} jours actifs",
+        "improved": "+{{deltaActiveDays}} jours actifs par rapport à la semaine dernière.",
+        "attention": "-{{deltaActiveDaysAbs}} jours actifs par rapport à la semaine dernière.",
+        "steady": "{{activeDays}} jours actifs cette semaine.",
+        "streak": "Série de {{streak}} jours.",
+        "collecting": "Enregistrez quelques jours pour lancer votre tendance."
+      },
+      "recovery": {
+        "title": "Tendance de récupération",
+        "up": "Récupération +{{deltaAbs}} cette semaine.",
+        "down": "Récupération -{{deltaAbs}} cette semaine.",
+        "steady": "La récupération est restée stable cette semaine.",
+        "collecting": "La tendance de récupération nécessite environ une semaine de relevés quotidiens.",
+        "reference": "Dernière récupération : {{current}}."
+      },
+      "topCommand": {
+        "title": "Commande phare de la semaine",
+        "value": "{{label}}",
+        "detail": "Utilisée {{count}} fois cette semaine.",
+        "awaiting": "Votre commande la plus utilisée apparaîtra une fois le suivi activé."
+      },
+      "nextWeekFocus": {
+        "title": "Objectif de la semaine prochaine",
+        "consistency": "Commencez par de l’eau. Enregistrez au moins une fois par jour pour bâtir votre série.",
+        "recovery": "Commencez par de l’eau. Protégez la récupération : hydratez-vous tôt et régulièrement.",
+        "maintain": "Commencez par de l’eau. Gardez le rythme qui fonctionne."
+      }
+    },
+    "findings": {
+      "streak": "Série de {{streak}} jours bien lancée.",
+      "active_days_up": "+{{delta}} jours actifs — l’élan grandit.",
+      "active_days_strong": "{{activeDays}} jours actifs — belle semaine.",
+      "performance_age_younger": "Votre Âge de Performance a baissé de {{deltaYears}} ans.",
+      "recovery_up": "La récupération a gagné {{delta}} points.",
+      "active_days_down": "-{{delta}} jours actifs — on repart.",
+      "low_activity": "Activité légère cette semaine ({{activeDays}}).",
+      "performance_age_older": "Votre Âge de Performance a augmenté de {{deltaYears}} ans.",
+      "recovery_down": "La récupération a perdu {{delta}} points."
+    }
   }
 }

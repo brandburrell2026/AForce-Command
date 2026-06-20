@@ -621,6 +621,13 @@ export interface FeatureFlags {
   // path. Score-Protection: only changes which source feeds an advisory
   // input — never awards or mutates score. OFF ⇒ freshest-wins stays live.
   signal_hierarchy_enabled: boolean;
+
+  // Weekly Performance Report™ — once-per-week (Sunday) shareable recap
+  // screen (non-tab route + Modules + flag-gated Profile row). Build 100% ·
+  // Show 10%: OFF in the production binary, ON in DEMO_ALL_ON. Every section
+  // is a read-only projection — Score-Protection: never awards or fabricates
+  // a trend; sections without data render explicit "collecting"/"awaiting".
+  spec_weekly_report: boolean;
 }
 
 /**
@@ -653,7 +660,8 @@ export type SpecFlagName =
   | 'sharedContextLayer'
   | 'uiFreeze'
   | 'recovery'
-  | 'demand_engine';
+  | 'demand_engine'
+  | 'weekly_report';
 
 // ─── Hydration Journal ────────────────────────────────────────────────────────
 /**

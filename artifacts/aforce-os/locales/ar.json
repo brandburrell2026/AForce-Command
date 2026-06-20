@@ -466,5 +466,83 @@
     "protocol": {
       "travel_protocol": "Travel detected. Start with water — a glass for every hour in transit keeps you ahead."
     }
+  },
+  "reports": {
+    "title": "Weekly Performance Report",
+    "eyebrow": "WEEKLY PERFORMANCE REPORT",
+    "subtitle": "Your week in review",
+    "weekRange": "{{start}} – {{end}}",
+    "generated": "Generated {{date}}",
+    "share": "Share",
+    "share_a11y": "Share your weekly performance report",
+    "shareTitle": "My AForce Weekly Performance Report",
+    "collecting": "Collecting — a few more days of data unlocks this.",
+    "awaiting": "Awaiting data — this lights up as you use AForce.",
+    "status": {
+      "improved": "Improved",
+      "attention": "Needs attention",
+      "steady": "Steady",
+      "collecting": "Collecting…",
+      "awaiting": "Awaiting data"
+    },
+    "sections": {
+      "improved": {
+        "title": "What improved",
+        "collecting": "Keep logging — your wins show up here next week."
+      },
+      "attention": {
+        "title": "What needs attention",
+        "steady": "Nothing flagged — you held the line this week.",
+        "collecting": "Log this week so we can spot what to adjust."
+      },
+      "performanceAge": {
+        "title": "Performance Age movement",
+        "younger": "{{deltaYearsAbs}} years younger than last week.",
+        "older": "{{deltaYearsAbs}} years older than last week.",
+        "steady": "Holding steady week over week.",
+        "collecting": "Movement needs about a week of daily readings.",
+        "reference": "Current Performance Age: {{currentPerformanceAge}}."
+      },
+      "habitVelocity": {
+        "title": "Habit Velocity",
+        "value": "{{activeDays}} active days",
+        "improved": "Up {{deltaActiveDays}} active days vs last week.",
+        "attention": "Down {{deltaActiveDaysAbs}} active days vs last week.",
+        "steady": "{{activeDays}} active days this week.",
+        "streak": "{{streak}}-day streak.",
+        "collecting": "Log a few days to start your velocity trend."
+      },
+      "recovery": {
+        "title": "Recovery trend",
+        "up": "Recovery up {{deltaAbs}} this week.",
+        "down": "Recovery down {{deltaAbs}} this week.",
+        "steady": "Recovery held steady this week.",
+        "collecting": "Recovery trend needs about a week of daily readings.",
+        "reference": "Latest recovery: {{current}}."
+      },
+      "topCommand": {
+        "title": "Top command this week",
+        "value": "{{label}}",
+        "detail": "Used {{count}} times this week.",
+        "awaiting": "Your most-used command appears once command tracking is on."
+      },
+      "nextWeekFocus": {
+        "title": "Next week focus",
+        "consistency": "Start with water. Log at least once a day to build your streak.",
+        "recovery": "Start with water. Protect recovery — hydrate early and steady.",
+        "maintain": "Start with water. Keep the rhythm that is working."
+      }
+    },
+    "findings": {
+      "streak": "{{streak}}-day streak going strong.",
+      "active_days_up": "Up {{delta}} active days — momentum is building.",
+      "active_days_strong": "{{activeDays}} active days — strong week.",
+      "performance_age_younger": "Performance Age dropped {{deltaYears}} years.",
+      "recovery_up": "Recovery climbed {{delta}} points.",
+      "active_days_down": "Down {{delta}} active days — let us rebuild.",
+      "low_activity": "Light activity this week ({{activeDays}}).",
+      "performance_age_older": "Performance Age rose {{deltaYears}} years.",
+      "recovery_down": "Recovery dipped {{delta}} points."
+    }
   }
 }

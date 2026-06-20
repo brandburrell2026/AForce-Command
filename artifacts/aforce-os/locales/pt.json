@@ -398,5 +398,83 @@
     "protocol": {
       "travel_protocol": "Viagem detectada. Comece com água — um copo a cada hora de trajeto mantém você à frente."
     }
+  },
+  "reports": {
+    "title": "Relatório semanal de desempenho",
+    "eyebrow": "RELATÓRIO SEMANAL DE DESEMPENHO",
+    "subtitle": "Sua semana em resumo",
+    "weekRange": "{{start}} – {{end}}",
+    "generated": "Gerado em {{date}}",
+    "share": "Compartilhar",
+    "share_a11y": "Compartilhe seu relatório semanal de desempenho",
+    "shareTitle": "Meu relatório semanal de desempenho da AForce",
+    "collecting": "Coletando — mais alguns dias de dados liberam isto.",
+    "awaiting": "Aguardando dados — isto se ativa conforme você usa a AForce.",
+    "status": {
+      "improved": "Melhorou",
+      "attention": "Requer atenção",
+      "steady": "Estável",
+      "collecting": "Coletando…",
+      "awaiting": "Aguardando dados"
+    },
+    "sections": {
+      "improved": {
+        "title": "O que melhorou",
+        "collecting": "Continue registrando — suas conquistas aparecem aqui na próxima semana."
+      },
+      "attention": {
+        "title": "O que requer atenção",
+        "steady": "Nada sinalizado — você manteve o ritmo esta semana.",
+        "collecting": "Registre esta semana para identificarmos o que ajustar."
+      },
+      "performanceAge": {
+        "title": "Movimento da Idade de Desempenho",
+        "younger": "{{deltaYearsAbs}} anos mais jovem que na semana passada.",
+        "older": "{{deltaYearsAbs}} anos mais velho que na semana passada.",
+        "steady": "Mantém-se estável semana a semana.",
+        "collecting": "O movimento precisa de cerca de uma semana de leituras diárias.",
+        "reference": "Idade de Desempenho atual: {{currentPerformanceAge}}."
+      },
+      "habitVelocity": {
+        "title": "Velocidade de hábitos",
+        "value": "{{activeDays}} dias ativos",
+        "improved": "+{{deltaActiveDays}} dias ativos em relação à semana passada.",
+        "attention": "-{{deltaActiveDaysAbs}} dias ativos em relação à semana passada.",
+        "steady": "{{activeDays}} dias ativos esta semana.",
+        "streak": "Sequência de {{streak}} dias.",
+        "collecting": "Registre alguns dias para iniciar sua tendência."
+      },
+      "recovery": {
+        "title": "Tendência de recuperação",
+        "up": "Recuperação +{{deltaAbs}} esta semana.",
+        "down": "Recuperação -{{deltaAbs}} esta semana.",
+        "steady": "A recuperação se manteve estável esta semana.",
+        "collecting": "A tendência de recuperação precisa de cerca de uma semana de leituras diárias.",
+        "reference": "Última recuperação: {{current}}."
+      },
+      "topCommand": {
+        "title": "Comando principal da semana",
+        "value": "{{label}}",
+        "detail": "Usado {{count}} vezes esta semana.",
+        "awaiting": "Seu comando mais usado aparece quando o rastreamento estiver ativo."
+      },
+      "nextWeekFocus": {
+        "title": "Foco da próxima semana",
+        "consistency": "Comece com água. Registre pelo menos uma vez por dia para construir sua sequência.",
+        "recovery": "Comece com água. Proteja a recuperação — hidrate-se cedo e de forma constante.",
+        "maintain": "Comece com água. Mantenha o ritmo que está funcionando."
+      }
+    },
+    "findings": {
+      "streak": "Sequência de {{streak}} dias firme.",
+      "active_days_up": "+{{delta}} dias ativos — o impulso cresce.",
+      "active_days_strong": "{{activeDays}} dias ativos — ótima semana.",
+      "performance_age_younger": "Sua Idade de Desempenho caiu {{deltaYears}} anos.",
+      "recovery_up": "A recuperação subiu {{delta}} pontos.",
+      "active_days_down": "-{{delta}} dias ativos — vamos reconstruir.",
+      "low_activity": "Pouca atividade esta semana ({{activeDays}}).",
+      "performance_age_older": "Sua Idade de Desempenho subiu {{deltaYears}} anos.",
+      "recovery_down": "A recuperação caiu {{delta}} pontos."
+    }
   }
 }

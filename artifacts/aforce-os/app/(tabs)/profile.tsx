@@ -690,6 +690,33 @@ export default function ProfileScreen() {
               </>
             );
 
+            // Flag-gated public entry to the Weekly Performance Report™.
+            // Hidden until `spec_weekly_report` is on (Build 100% · Show 10%);
+            // the Modules launcher always lists it for internal evaluation.
+            const weeklyReportCard = state.featureFlags.spec_weekly_report ? (
+              <>
+                <SectionHeader label="WEEKLY REPORT" hint="Your week in review · screenshot & share" />
+                <View style={styles.card}>
+                  <Pressable
+                    onPress={() => router.push('/weekly-report')}
+                    testID="profile-weekly-report-link"
+                    style={styles.settingRow}
+                  >
+                    <View style={styles.settingLeft}>
+                      <Icon name="trending-up" size={16} color="#0093E7" />
+                      <View>
+                        <Text style={styles.settingLabel}>Weekly Performance Report</Text>
+                        <Text style={styles.settingSubLabel}>
+                          What improved · needs attention · habit velocity · next week focus
+                        </Text>
+                      </View>
+                    </View>
+                    <Icon name="chevron-right" size={16} color={Colors.text.muted} />
+                  </Pressable>
+                </View>
+              </>
+            ) : null;
+
             const protocolToolsCard = (
               <>
                 <SectionHeader label="PROTOCOL TOOLS" />
@@ -1607,7 +1634,7 @@ export default function ProfileScreen() {
             // group of settings. PhaseEntryRow ships under ACCOUNT so the
             // CLUTCH / GUARDIAN entries live next to subscription tier.
             const tabSections: Record<ProfileTabId, React.ReactNode[]> = {
-              performance: [modulesCard, goalsCard, protocolToolsCard, voiceCard, demoModesCard],
+              performance: [modulesCard, weeklyReportCard, goalsCard, protocolToolsCard, voiceCard, demoModesCard],
               devices: [hardwareCard, connectedDevicesCard],
               account: [inviteCard, subscriptionBlock, phaseEntryRow, settingsBlock, preferencesBlock],
               developer: [demoAccessCard, developerBlock, legalBlock],

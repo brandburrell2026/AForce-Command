@@ -123,6 +123,7 @@ function RootLayoutNav() {
       <Stack.Screen name="leaderboard" options={{ headerShown: false, presentation: 'card' }} />
       <Stack.Screen name="legal" options={{ headerShown: false, presentation: 'card' }} />
       <Stack.Screen name="modules" options={{ headerShown: false, presentation: 'card' }} />
+      <Stack.Screen name="weekly-report" options={{ headerShown: false, presentation: 'card' }} />
     </Stack>
   );
 }

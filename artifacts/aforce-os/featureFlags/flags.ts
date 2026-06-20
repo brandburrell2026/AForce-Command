@@ -115,6 +115,14 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   // freshest-wins for source selection. Build 100% · Show 10%: OFF in the
   // production binary, ON in DEMO_ALL_ON. OFF ⇒ freshest-wins stays live.
   signal_hierarchy_enabled: false,
+
+  // Weekly Performance Report™ — once-per-week (Sunday) shareable recap
+  // (What improved / What needs attention / Performance Age movement /
+  // Habit Velocity / Recovery trend / Top command / Next week focus).
+  // Build 100% · Show 10%: OFF in the production binary, ON in DEMO_ALL_ON.
+  // Score-Protection: read-only projection; sections without data render
+  // explicit "collecting"/"awaiting", never fabricated trends.
+  spec_weekly_report: false,
 };
 
 /**
@@ -184,6 +192,7 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
   hydro_scan_2_enabled: true,
   location_intelligence_enabled: true,
   signal_hierarchy_enabled: true,
+  spec_weekly_report: true,
 };
 
 export function isFlagEnabled(flags: FeatureFlags, key: keyof FeatureFlags): boolean {

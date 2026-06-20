@@ -398,5 +398,83 @@
     "protocol": {
       "travel_protocol": "Reise erkannt. Beginne mit Wasser – ein Glas pro Reisestunde hält dich vorn."
     }
+  },
+  "reports": {
+    "title": "Wöchentlicher Leistungsbericht",
+    "eyebrow": "WÖCHENTLICHER LEISTUNGSBERICHT",
+    "subtitle": "Deine Woche im Rückblick",
+    "weekRange": "{{start}} – {{end}}",
+    "generated": "Erstellt am {{date}}",
+    "share": "Teilen",
+    "share_a11y": "Teile deinen wöchentlichen Leistungsbericht",
+    "shareTitle": "Mein wöchentlicher AForce-Leistungsbericht",
+    "collecting": "Wird erfasst — ein paar Tage mehr Daten schalten dies frei.",
+    "awaiting": "Warten auf Daten — das wird aktiv, sobald du AForce nutzt.",
+    "status": {
+      "improved": "Verbessert",
+      "attention": "Beachten",
+      "steady": "Stabil",
+      "collecting": "Wird erfasst…",
+      "awaiting": "Warten auf Daten"
+    },
+    "sections": {
+      "improved": {
+        "title": "Was sich verbessert hat",
+        "collecting": "Weiter erfassen — deine Erfolge erscheinen nächste Woche hier."
+      },
+      "attention": {
+        "title": "Was Beachtung braucht",
+        "steady": "Nichts auffällig — du hast diese Woche gehalten.",
+        "collecting": "Erfasse diese Woche, damit wir sehen, was anzupassen ist."
+      },
+      "performanceAge": {
+        "title": "Veränderung des Leistungsalters",
+        "younger": "{{deltaYearsAbs}} Jahre jünger als letzte Woche.",
+        "older": "{{deltaYearsAbs}} Jahre älter als letzte Woche.",
+        "steady": "Bleibt Woche für Woche stabil.",
+        "collecting": "Die Veränderung braucht etwa eine Woche täglicher Messwerte.",
+        "reference": "Aktuelles Leistungsalter: {{currentPerformanceAge}}."
+      },
+      "habitVelocity": {
+        "title": "Gewohnheits-Tempo",
+        "value": "{{activeDays}} aktive Tage",
+        "improved": "{{deltaActiveDays}} aktive Tage mehr als letzte Woche.",
+        "attention": "{{deltaActiveDaysAbs}} aktive Tage weniger als letzte Woche.",
+        "steady": "{{activeDays}} aktive Tage diese Woche.",
+        "streak": "{{streak}}-Tage-Serie.",
+        "collecting": "Erfasse ein paar Tage, um deinen Trend zu starten."
+      },
+      "recovery": {
+        "title": "Erholungstrend",
+        "up": "Erholung +{{deltaAbs}} diese Woche.",
+        "down": "Erholung -{{deltaAbs}} diese Woche.",
+        "steady": "Die Erholung blieb diese Woche stabil.",
+        "collecting": "Der Erholungstrend braucht etwa eine Woche täglicher Messwerte.",
+        "reference": "Letzte Erholung: {{current}}."
+      },
+      "topCommand": {
+        "title": "Top-Befehl dieser Woche",
+        "value": "{{label}}",
+        "detail": "{{count}} Mal diese Woche verwendet.",
+        "awaiting": "Dein meistgenutzter Befehl erscheint, sobald die Erfassung aktiv ist."
+      },
+      "nextWeekFocus": {
+        "title": "Fokus nächste Woche",
+        "consistency": "Beginne mit Wasser. Erfasse mindestens einmal täglich, um deine Serie aufzubauen.",
+        "recovery": "Beginne mit Wasser. Schütze die Erholung — hydriere früh und gleichmäßig.",
+        "maintain": "Beginne mit Wasser. Halte den Rhythmus, der funktioniert."
+      }
+    },
+    "findings": {
+      "streak": "{{streak}}-Tage-Serie läuft stark.",
+      "active_days_up": "+{{delta}} aktive Tage — der Schwung wächst.",
+      "active_days_strong": "{{activeDays}} aktive Tage — starke Woche.",
+      "performance_age_younger": "Dein Leistungsalter sank um {{deltaYears}} Jahre.",
+      "recovery_up": "Die Erholung stieg um {{delta}} Punkte.",
+      "active_days_down": "-{{delta}} aktive Tage — neu aufbauen.",
+      "low_activity": "Wenig Aktivität diese Woche ({{activeDays}}).",
+      "performance_age_older": "Dein Leistungsalter stieg um {{deltaYears}} Jahre.",
+      "recovery_down": "Die Erholung sank um {{delta}} Punkte."
+    }
   }
 }
