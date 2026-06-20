@@ -24,6 +24,11 @@ import {
   CommandCenterDailyFiveSchema,
   type DailyFiveRaw,
 } from "../lib/commandCenter";
+import {
+  buildRetentionGates,
+  RetentionGatesSchema,
+  type RetentionGatesRaw,
+} from "../lib/retentionGates";
 import { logger } from "../lib/logger";
 
 const router: IRouter = Router();
@@ -161,6 +166,146 @@ router.get(
     } catch (err) {
       logger.error({ err }, "GET /admin/command-center/summary failed");
       return res.status(500).json({ error: "command_center_summary_failed" });
+    }
+  },
+);
+
+/**
+ * RETENTION GATES — the owner's five-gate activation/retention scorecard.
+ *
+ * Every gate is sourced from the canonical activation lifecycle in
+ * `aforce_analytics_events` (the same pseudonymous, never-joined event
+ * stream the Daily Five uses). Aggregate-only: each query returns scalar
+ * counts / a median, never rows. The pure `buildRetentionGates` turns them
+ * into the gate DTO with awaiting states (Score-Protection: a gate with an
+ * empty cohort reads `awaiting`, never a fabricated 0%). The funnel events
+ * are not instrumented in Phase 1, so the gates read `awaiting` today and
+ * light up automatically once the event pipeline lands.
+ */
+router.get(
+  "/admin/command-center/retention-gates",
+  requireFounder,
+  async (req, res) => {
+    try {
+      const [gate1Res, gate2Res, gate5Res, retentionRes] = await Promise.all([
+        // Gate 1 — App Open → Profile Complete (first profile at/after first open).
+        db.execute(sql`
+          WITH firsts AS (
+            SELECT
+              analytics_id,
+              min(occurred_at) FILTER (WHERE event_type = 'app_opened') AS app_open,
+              min(occurred_at) FILTER (WHERE event_type = 'profile_completed') AS profile
+            FROM aforce_analytics_events
+            WHERE event_type IN ('app_opened', 'profile_completed')
+            GROUP BY analytics_id
+          )
+          SELECT
+            (count(*) FILTER (WHERE app_open IS NOT NULL))::int AS entered,
+            (count(*) FILTER (
+              WHERE app_open IS NOT NULL
+                AND profile IS NOT NULL
+                AND profile >= app_open
+            ))::int AS converted
+          FROM firsts
+        `),
+        // Gate 2 — Profile Complete → First Command, median seconds.
+        db.execute(sql`
+          WITH m AS (
+            SELECT
+              analytics_id,
+              min(occurred_at) FILTER (WHERE event_type = 'profile_completed') AS profile,
+              min(occurred_at) FILTER (WHERE event_type = 'first_command_completed') AS cmd
+            FROM aforce_analytics_events
+            WHERE event_type IN ('profile_completed', 'first_command_completed')
+            GROUP BY analytics_id
+          ), d AS (
+            SELECT extract(epoch FROM (cmd - profile)) AS secs
+            FROM m
+            WHERE profile IS NOT NULL AND cmd IS NOT NULL AND cmd >= profile
+          )
+          SELECT
+            count(*)::int AS entered,
+            (percentile_cont(0.5) WITHIN GROUP (ORDER BY secs))::float8 AS median_seconds
+          FROM d
+        `),
+        // Gate 5 — QR Scan → Activated (activation = first_command_completed).
+        db.execute(sql`
+          WITH firsts AS (
+            SELECT
+              analytics_id,
+              min(occurred_at) FILTER (WHERE event_type = 'qr_scanned') AS qr,
+              min(occurred_at) FILTER (WHERE event_type = 'first_command_completed') AS activated
+            FROM aforce_analytics_events
+            WHERE event_type IN ('qr_scanned', 'first_command_completed')
+            GROUP BY analytics_id
+          )
+          SELECT
+            (count(*) FILTER (WHERE qr IS NOT NULL))::int AS entered,
+            (count(*) FILTER (
+              WHERE qr IS NOT NULL
+                AND activated IS NOT NULL
+                AND activated >= qr
+            ))::int AS converted
+          FROM firsts
+        `),
+        // Gates 3 & 4 — Day 1 → Day 7 and Day 7 → Day 30 cohort retention.
+        db.execute(sql`
+          WITH life AS (
+            SELECT
+              analytics_id,
+              min(occurred_at) AS first_seen,
+              max(occurred_at) AS last_seen
+            FROM aforce_analytics_events
+            GROUP BY analytics_id
+          )
+          SELECT
+            (count(*) FILTER (
+              WHERE first_seen <= now() - interval '7 days'
+            ))::int AS d7_cohort,
+            (count(*) FILTER (
+              WHERE first_seen <= now() - interval '7 days'
+                AND last_seen >= first_seen + interval '6 days'
+            ))::int AS d7_retained,
+            (count(*) FILTER (
+              WHERE first_seen <= now() - interval '30 days'
+                AND last_seen >= first_seen + interval '6 days'
+            ))::int AS d30_cohort,
+            (count(*) FILTER (
+              WHERE first_seen <= now() - interval '30 days'
+                AND last_seen >= first_seen + interval '6 days'
+                AND last_seen >= first_seen + interval '29 days'
+            ))::int AS d30_retained
+          FROM life
+        `),
+      ]);
+
+      const gate1 = firstRow(gate1Res);
+      const gate2 = firstRow(gate2Res);
+      const gate5 = firstRow(gate5Res);
+      const retention = firstRow(retentionRes);
+
+      const raw: RetentionGatesRaw = {
+        appOpenEntered: num(gate1["entered"]),
+        appOpenConverted: num(gate1["converted"]),
+        profileToCmdEntered: num(gate2["entered"]),
+        profileToCmdMedianSeconds: numOrNull(gate2["median_seconds"]),
+        d7Cohort: num(retention["d7_cohort"]),
+        d7Retained: num(retention["d7_retained"]),
+        d30Cohort: num(retention["d30_cohort"]),
+        d30Retained: num(retention["d30_retained"]),
+        qrEntered: num(gate5["entered"]),
+        qrConverted: num(gate5["converted"]),
+      };
+
+      const dto = RetentionGatesSchema.parse(
+        buildRetentionGates(raw, new Date().toISOString()),
+      );
+      return res.json(dto);
+    } catch (err) {
+      logger.error({ err }, "GET /admin/command-center/retention-gates failed");
+      return res
+        .status(500)
+        .json({ error: "command_center_retention_gates_failed" });
     }
   },
 );
