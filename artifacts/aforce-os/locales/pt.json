@@ -139,6 +139,9 @@
     "language_failed": "Não foi possível salvar o idioma"
   },
   "coach": {
+    "confidence_high": "ALTA CONFIANÇA",
+    "confidence_medium": "BOA CONFIANÇA",
+    "confidence_low": "CALIBRANDO",
     "morning_action": "Beba {{oz}} ounces agora. Verifique novamente em 25 minutos. Você começa em déficit.",
     "morning_explanation": "Perda noturna: {{oz}} ounces. Restabeleça sua base antes de treinar.",
     "peak_action": "Pontuação {{score}}. Pico. Beba 8 ounces antes da próxima sessão. Mantenha o ritmo.",

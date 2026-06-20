@@ -203,6 +203,9 @@
     "language_failed": "Couldn't save language"
   },
   "coach": {
+    "confidence_high": "उच्च विश्वास",
+    "confidence_medium": "अच्छा विश्वास",
+    "confidence_low": "कैलिब्रेट हो रहा",
     "morning_action": "Open a water cycle: 16 oz water + 1 stick. Recheck in 25 min.",
     "morning_explanation": "Overnight recovery window: {{oz}} oz. Reset your baseline before training.",
     "peak_action": "Maintain. Sip 8 oz of water before your next session.",

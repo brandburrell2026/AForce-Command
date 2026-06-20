@@ -10,8 +10,9 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Icon, type IconName } from './Icon';
-import type { Command, PerformanceState } from '../types';
+import type { Command, PerformanceState, CommandConfidenceLevel } from '../types';
 import { Colors } from '../theme/colors';
+import i18n from '../services/i18nService';
 
 interface Props {
   command: Command;
@@ -47,6 +48,21 @@ const URGENCY_LABELS: Record<string, string> = {
   critical: 'CRITICAL',
 };
 
+// Command Confidence™ — localized label + a monochrome opacity ramp so the
+// chip reads as "how sure the system is" without colliding with the urgency
+// band colour or the WHOOP recovery palette.
+const CONFIDENCE_LABEL_KEYS: Record<CommandConfidenceLevel, string> = {
+  high: 'coach.confidence_high',
+  medium: 'coach.confidence_medium',
+  low: 'coach.confidence_low',
+};
+
+const CONFIDENCE_OPACITY: Record<CommandConfidenceLevel, number> = {
+  high: 1,
+  medium: 0.7,
+  low: 0.45,
+};
+
 export function AICommandCard({ command, performanceState, accentOverride, embedded = false }: Props) {
   const color = accentOverride ?? performanceState.color;
   const icon = URGENCY_ICONS[command.urgencyLevel] ?? 'zap';
@@ -60,7 +76,20 @@ export function AICommandCard({ command, performanceState, accentOverride, embed
       ]}
     >
       <View style={styles.header}>
-        <Text style={styles.sectionLabel}>AFORCE COMMAND</Text>
+        <View style={styles.headerLeft}>
+          <Text style={styles.sectionLabel}>AFORCE COMMAND</Text>
+          {command.confidence ? (
+            <View
+              style={styles.confidenceRow}
+              accessibilityLabel={i18n.t(CONFIDENCE_LABEL_KEYS[command.confidence])}
+            >
+              <View style={[styles.confidenceDot, { opacity: CONFIDENCE_OPACITY[command.confidence] }]} />
+              <Text style={[styles.confidenceLabel, { opacity: CONFIDENCE_OPACITY[command.confidence] }]}>
+                {i18n.t(CONFIDENCE_LABEL_KEYS[command.confidence])}
+              </Text>
+            </View>
+          ) : null}
+        </View>
         <View style={styles.headerRight}>
           <View style={[styles.urgencyBadge, { backgroundColor: `${color}1A`, borderColor: `${color}55` }]}>
             <Icon name={icon} size={10} color={color} />
@@ -98,9 +127,30 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'space-between',
     marginBottom: 14,
+  },
+  headerLeft: {
+    flexShrink: 1,
+    gap: 6,
+  },
+  confidenceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+  confidenceDot: {
+    width: 5,
+    height: 5,
+    borderRadius: 5,
+    backgroundColor: Colors.text.secondary,
+  },
+  confidenceLabel: {
+    fontSize: 9,
+    fontFamily: 'Inter_600SemiBold',
+    color: Colors.text.secondary,
+    letterSpacing: 1.2,
   },
   sectionLabel: {
     fontSize: 10,

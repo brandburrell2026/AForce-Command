@@ -250,6 +250,12 @@ export interface ScoreReason {
   weight: 'positive' | 'negative' | 'neutral';
 }
 
+/**
+ * Command Confidence™ — how grounded a command is, based purely on how much
+ * real data backs it. Display-only; never affects the score.
+ */
+export type CommandConfidenceLevel = 'high' | 'medium' | 'low';
+
 export interface Command {
   id: string;
   // WHAT+WHEN+OUTCOME format. Single decisive sentence.
@@ -257,6 +263,12 @@ export interface Command {
   explanation: string;
   urgencyLevel: 'low' | 'medium' | 'high' | 'critical';
   estimatedImpact: string;
+  /**
+   * Command Confidence™ — set by the command engine from real-signal
+   * completeness (logged behavior, fresh biometrics, fresh weather).
+   * Optional so legacy / raw commands still type-check.
+   */
+  confidence?: CommandConfidenceLevel;
 }
 
 export interface RiskTimer {

@@ -139,6 +139,9 @@
     "language_failed": "Sprache konnte nicht gespeichert werden"
   },
   "coach": {
+    "confidence_high": "HOHE SICHERHEIT",
+    "confidence_medium": "GUTE SICHERHEIT",
+    "confidence_low": "LERNT NOCH",
     "morning_action": "Trinke jetzt {{oz}} ounces. Erneut prüfen in 25 Minuten. Du startest im Defizit.",
     "morning_explanation": "Nächtlicher Verlust: {{oz}} ounces. Setze deine Basis vor dem Training zurück.",
     "peak_action": "Score {{score}}. Peak. Trinke 8 ounces vor der nächsten Einheit. Halte die Linie.",

@@ -11,6 +11,10 @@ import type {
 import { Colors } from '../../theme/colors';
 import i18n from '../../services/i18nService';
 import { minutesSince } from './breakdown';
+import {
+  deriveCommandConfidence,
+  commandConfidenceInputsFromState,
+} from './commandConfidence';
 
 // ─── Context-aware explanation overlay ────────────────────────────────────────
 /**
@@ -263,6 +267,15 @@ export function generateSocialCommand(state: UserState, social: NonNullable<Scor
 }
 
 export function generateCommand(level: PerformanceLevel, state: UserState, score: number, social: ScoreEngineOutput['social']): Command {
+  // Command Confidence™ — attach a data-completeness signal to every command
+  // so the card can show how grounded the recommendation is. Derived ONLY
+  // from real signals already in state; never fabricated and never touches
+  // the score (Score-Protection).
+  const confidence = deriveCommandConfidence(commandConfidenceInputsFromState(state));
+  return { ...buildBaseCommand(level, state, score, social), confidence };
+}
+
+function buildBaseCommand(level: PerformanceLevel, state: UserState, score: number, social: ScoreEngineOutput['social']): Command {
   // Social Mode takes precedence over the standard PEAK/BALANCED/etc
   // protocol — the user is actively drinking (or just stopped) and the
   // coach must speak to that, not generic hydration math.

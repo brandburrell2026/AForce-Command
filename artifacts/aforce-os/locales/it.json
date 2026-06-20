@@ -139,6 +139,9 @@
     "language_failed": "Impossibile salvare la lingua"
   },
   "coach": {
+    "confidence_high": "ALTA AFFIDABILITÀ",
+    "confidence_medium": "BUONA AFFIDABILITÀ",
+    "confidence_low": "IN CALIBRAZIONE",
     "morning_action": "Bevi {{oz}} ounces adesso. Ricontrolla tra 25 minuti. Inizi in deficit.",
     "morning_explanation": "Perdita notturna: {{oz}} ounces. Ripristina la base prima dell'allenamento.",
     "peak_action": "Punteggio {{score}}. Picco. Bevi 8 ounces prima della prossima sessione. Tieni la linea.",

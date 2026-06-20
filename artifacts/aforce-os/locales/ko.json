@@ -203,6 +203,9 @@
     "language_failed": "Couldn't save language"
   },
   "coach": {
+    "confidence_high": "높은 신뢰도",
+    "confidence_medium": "양호한 신뢰도",
+    "confidence_low": "보정 중",
     "morning_action": "Open a water cycle: 16 oz water + 1 stick. Recheck in 25 min.",
     "morning_explanation": "Overnight recovery window: {{oz}} oz. Reset your baseline before training.",
     "peak_action": "Maintain. Sip 8 oz of water before your next session.",

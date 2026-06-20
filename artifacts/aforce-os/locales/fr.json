@@ -139,6 +139,9 @@
     "language_failed": "Impossible d'enregistrer la langue"
   },
   "coach": {
+    "confidence_high": "CONFIANCE ÉLEVÉE",
+    "confidence_medium": "BONNE CONFIANCE",
+    "confidence_low": "EN COURS",
     "morning_action": "Bois {{oz}} ounces maintenant. Reprends dans 25 minutes. Tu commences en déficit.",
     "morning_explanation": "Perte nocturne : {{oz}} ounces. Réinitialise ta base avant l'entraînement.",
     "peak_action": "Score {{score}}. Sommet. Bois 8 ounces avant la prochaine séance. Tiens la ligne.",
