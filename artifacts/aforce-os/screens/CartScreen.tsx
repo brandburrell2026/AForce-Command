@@ -158,14 +158,14 @@ export default function CartScreen() {
               <Icon name="shopping-bag" size={28} color={Colors.text.muted} />
               <Text style={styles.emptyTitle}>Your cart is empty</Text>
               <Text style={styles.emptyHint}>
-                Browse the Store and add the formats your protocol needs.
+                Browse Fuel and add the formats your protocol needs.
               </Text>
               <Pressable
                 onPress={() => router.replace("/store")}
                 style={styles.emptyCta}
               >
                 <Icon name="grid" size={14} color={Colors.text.primary} />
-                <Text style={styles.emptyCtaText}>BROWSE STORE</Text>
+                <Text style={styles.emptyCtaText}>BROWSE FUEL</Text>
               </Pressable>
             </View>
           ) : (

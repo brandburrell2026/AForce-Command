@@ -898,7 +898,7 @@ function RecoveryProtocolCard({
         <Pressable
           style={styles.restockBtn}
           accessibilityRole="button"
-          accessibilityLabel="Restock AForce — open the AForce shop"
+          accessibilityLabel="Restock AForce — open AForce Fuel"
           testID="recovery-restock-cta"
           onPress={() => globalRouter.push('/store')}
         >

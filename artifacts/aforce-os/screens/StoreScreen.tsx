@@ -1,5 +1,5 @@
 /**
- * Store Screen — AForce Shopping.
+ * Fuel Screen — AForce Fuel (guided, not sold).
  *
  * Lists every SKU (format × flavor) with image, blurb, price, and add-to-cart
  * controls. Each card carries:
@@ -136,8 +136,8 @@ export default function StoreScreen() {
         >
           <View style={styles.headerRow}>
             <View style={{ flex: 1 }}>
-              <Text style={styles.eyebrow}>AFORCE STORE</Text>
-              <Text style={styles.title}>Shop the System</Text>
+              <Text style={styles.eyebrow}>AFORCE FUEL</Text>
+              <Text style={styles.title}>Fuel Your Protocol</Text>
             </View>
             <Pressable
               onPress={() => router.push("/cart")}
@@ -156,8 +156,8 @@ export default function StoreScreen() {
           </View>
 
           <Text style={styles.subtitle}>
-            Every flavor pairs a functional ingredient with the state your body is in. Mix
-            formats. Subscribe and save.
+            Every flavor pairs a functional ingredient with the state your body is in.
+            We'll point you to what your protocol needs.
           </Text>
 
           {/* Recommended-for-you banner */}
