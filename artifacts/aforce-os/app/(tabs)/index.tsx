@@ -35,6 +35,7 @@ import { EntryActions } from '@/components/home/EntryActions';
 import { LiveStatusLine } from '@/components/home/LiveStatusLine';
 import { NotificationBanner } from '@/components/home/NotificationBanner';
 import { SmartModesBanner } from '@/components/home/SmartModesBanner';
+import { LocationInsightBanner } from '@/components/home/LocationInsightBanner';
 import { HomeDashboard } from '@/components/home/HomeDashboard';
 import { MetabolicReadinessZone } from '@/components/home/MetabolicReadinessZone';
 import { PerformanceAgeZone } from '@/components/home/PerformanceAgeZone';
@@ -592,6 +593,12 @@ export default function HomeScreen() {
                 (Heat · Workout · Travel · Recovery) and water-first
                 guidance. Additive, self-hides when no mode is active. */}
             <SmartModesBanner />
+
+            {/* Location Intelligence™ "Show 10%" — a quiet Water-First
+                insight about what the current environment (altitude · UV ·
+                air · heat+humidity) means for hydration. Flag-gated; self-
+                hides when off or when the environment isn't notable. */}
+            <LocationInsightBanner />
 
             <ScoreDrivenBody
               onOpenBreakdown={openBreakdown}
