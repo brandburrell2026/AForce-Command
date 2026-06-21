@@ -146,6 +146,7 @@ export const baseFlags: FeatureFlags = {
   location_intelligence_enabled: false,
   signal_hierarchy_enabled: false,
   spec_weekly_report: false,
+  scoreFromLedgerHybrid: false,
 };
 
 export const baseSubscription: UserSubscription = {

@@ -17,8 +17,14 @@ export function resolveState(score: number): PerformanceLevel {
 }
 
 // ─── Score Breakdown ──────────────────────────────────────────────────────────
-export function buildBreakdown(state: UserState): { score: number; contributions: ScoreContribution[]; decayPerMinute: number; minutesSinceLast: number } {
-  const minutesSinceLast = minutesSince(state.lastIntakeTime);
+//
+// `now` (epoch ms) is injectable so the score is a pure function of (state, now)
+// — deterministic in tests and shareable by the ledger-hybrid input projection.
+// It defaults to `Date.now()`, so every existing caller is behaviourally
+// unchanged. Score-Protection is untouched: the clock only decides how much
+// time has elapsed for decay/recency, never what behaviour counts.
+export function buildBreakdown(state: UserState, now: number = Date.now()): { score: number; contributions: ScoreContribution[]; decayPerMinute: number; minutesSinceLast: number } {
+  const minutesSinceLast = minutesSince(state.lastIntakeTime, now);
 
   // Per-event hydration scoring (replaces the old running-aggregate
   // baseIntake + aforceBonus model). Each event carries its own
@@ -35,7 +41,7 @@ export function buildBreakdown(state: UserState): { score: number; contributions
   let baseIntake: number;
   let aforceBonus: number;
   if (events.length > 0) {
-    const m = materializedIntakePoints(events, new Date());
+    const m = materializedIntakePoints(events, new Date(now));
     baseIntake = Math.round(m.waterPoints);
     aforceBonus = Math.round(m.aforcePoints);
   } else {
@@ -49,11 +55,11 @@ export function buildBreakdown(state: UserState): { score: number; contributions
   // a single contribution called "decay since last intake" so the
   // breakdown UI keeps its bar-and-label shape while the score itself
   // honors the spec formula.
-  const decayPerMinute = computeDecayPerMinute(state);
+  const decayPerMinute = computeDecayPerMinute(state, now);
   // Continuous decay — no artificial cap. The final score is clamped
   // to 0..100 below, so a long deficit naturally pins the user at 0
   // (DEPLETED) instead of plateauing inside the band.
-  const decayMagnitude = computeDecayPoints(state, minutesSinceLast);
+  const decayMagnitude = computeDecayPoints(state, minutesSinceLast, now);
   const decayContribution = -Math.round(decayMagnitude);
   // Stored under id="recency" so any saved rows / tests that key off
   // that id continue to work — the label and meaning have been
@@ -85,14 +91,14 @@ export function buildBreakdown(state: UserState): { score: number; contributions
     : 0;
 
   const recovery = computeRecoverySignal(state);
-  const confirmation = computeConfirmationDelta(state);
+  const confirmation = computeConfirmationDelta(state, now);
 
   // Per-event social-mode penalty: each logged alcohol drink moves the
   // score immediately (alcohol diuresis ≈ 5 oz of net water loss per
   // standard drink), with `/social/hydrate` confirmations cutting the
   // penalty by 60 %. See `socialIntakePoints` for the time profile.
   const socialDrinks = state.socialMode?.drinks ?? [];
-  const socialIntake = socialIntakePoints(socialDrinks);
+  const socialIntake = socialIntakePoints(socialDrinks, now);
 
   const raw = baseIntake + aforceBonus + recency + consistency + context + recoveryMomentum
             + symptomPenalty + urinePenalty + outputStress + sleepCarry
@@ -162,9 +168,9 @@ export function buildBreakdown(state: UserState): { score: number; contributions
  * the social-mode multiplier (which depends on the drinks list, kept
  * outside the pure helper so the helper stays zero-dep).
  */
-function computeDecayPerMinute(state: UserState): number {
+function computeDecayPerMinute(state: UserState, now: number = Date.now()): number {
   const socialDecayMultiplier = state.socialMode?.active
-    ? activeDecayMultiplier(state.socialMode.drinks)
+    ? activeDecayMultiplier(state.socialMode.drinks, now)
     : 1;
 
   // Multi-provider activity floor: when any connected health platform
@@ -211,15 +217,15 @@ function computeDecayPerMinute(state: UserState): number {
  * actually fell after the last intake — anything before the intake has
  * no remaining decay to apply (intake reset the score).
  */
-function computeDecayPoints(state: UserState, minutesSinceLast: number): number {
-  const baseline = computeDecayPerMinute(state) * Math.max(0, minutesSinceLast);
+function computeDecayPoints(state: UserState, minutesSinceLast: number, now: number = Date.now()): number {
+  const baseline = computeDecayPerMinute(state, now) * Math.max(0, minutesSinceLast);
 
   let boost = 0;
   if (state.clutchDecayBoostUntil) {
     const boostEndMs = state.clutchDecayBoostUntil.getTime();
     const boostStartMs = boostEndMs - 10 * 60 * 1000;
     const intakeMs = state.lastIntakeTime.getTime();
-    const nowMs = Date.now();
+    const nowMs = now;
     const overlapStart = Math.max(boostStartMs, intakeMs);
     const overlapEnd = Math.min(boostEndMs, nowMs);
     if (overlapEnd > overlapStart) {
@@ -234,10 +240,10 @@ function computeDecayPoints(state: UserState, minutesSinceLast: number): number 
  * (older than 30 minutes) are ignored so the bonus / penalty does not
  * stick to the score forever.
  */
-function computeConfirmationDelta(state: UserState): number {
+function computeConfirmationDelta(state: UserState, now: number = Date.now()): number {
   if (state.confirmationDelta == null) return 0;
   if (!state.confirmationDeltaSetAt) return 0;
-  const ageMin = (Date.now() - state.confirmationDeltaSetAt.getTime()) / 60000;
+  const ageMin = (now - state.confirmationDeltaSetAt.getTime()) / 60000;
   if (ageMin > 30) return 0;
   return Math.max(-3, Math.min(3, Math.round(state.confirmationDelta)));
 }
@@ -321,7 +327,7 @@ export function computeRecoverySignal(state: UserState): { delta: number; hint: 
 }
 
 // ─── Score Calculation ────────────────────────────────────────────────────────
-export function calculateBaseScore(state: UserState): number {
+export function calculateBaseScore(state: UserState, now: number = Date.now()): number {
   // Per-event hydration scoring — mirrors buildBreakdown so the score
   // and the prediction strip agree. Falls back to the legacy running-
   // aggregate when no events are present.
@@ -332,7 +338,7 @@ export function calculateBaseScore(state: UserState): number {
   let baseIntake: number;
   let aforceBonus: number;
   if (events.length > 0) {
-    const m = materializedIntakePoints(events, new Date());
+    const m = materializedIntakePoints(events, new Date(now));
     baseIntake = Math.round(m.waterPoints);
     aforceBonus = Math.round(m.aforcePoints);
   } else {
@@ -342,8 +348,8 @@ export function calculateBaseScore(state: UserState): number {
   }
 
   // Continuous decay (per spec) replaces the tiered recency tier.
-  const minutesSinceLast = minutesSince(state.lastIntakeTime);
-  const recency = -Math.round(computeDecayPoints(state, minutesSinceLast));
+  const minutesSinceLast = minutesSince(state.lastIntakeTime, now);
+  const recency = -Math.round(computeDecayPoints(state, minutesSinceLast, now));
 
   // consistency_score: 0–15 based on streak
   const consistency = Math.min(15, state.complianceStreak * 2);
@@ -380,11 +386,11 @@ export function calculateBaseScore(state: UserState): number {
 
   const recovery = computeRecoverySignal(state);
 
-  const confirmation = computeConfirmationDelta(state);
+  const confirmation = computeConfirmationDelta(state, now);
 
   // Per-event social-mode penalty — must mirror buildBreakdown so that
   // ScoreEngineOutput.score and the contribution sum agree.
-  const socialIntake = socialIntakePoints(state.socialMode?.drinks ?? []);
+  const socialIntake = socialIntakePoints(state.socialMode?.drinks ?? [], now);
 
   const raw = baseIntake + aforceBonus + recency + consistency + context + recoveryMomentum
             + symptomPenalty + urinePenalty + outputStress + sleepCarry
@@ -394,6 +400,6 @@ export function calculateBaseScore(state: UserState): number {
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-export function minutesSince(date: Date): number {
-  return Math.floor((Date.now() - date.getTime()) / 60000);
+export function minutesSince(date: Date, now: number = Date.now()): number {
+  return Math.floor((now - date.getTime()) / 60000);
 }

@@ -640,6 +640,16 @@ export interface FeatureFlags {
   // is a read-only projection — Score-Protection: never awards or fabricates
   // a trend; sections without data render explicit "collecting"/"awaiting".
   spec_weekly_report: boolean;
+
+  // Score-from-Ledger Hybrid — Tier-1 score-integration seam (P2b). When ON,
+  // the hydration score reads its INPUTS from a ledger-projected UserState
+  // (`projectScoreStateFromLedgerHybrid`) instead of live state, WITHOUT
+  // changing the score formula. Build 100% · Show 0%: OFF in DEFAULT_FLAGS
+  // AND in DEMO_ALL_ON — shadow-compare-only until contribution-level parity
+  // is proven, and currently a verified no-op (fails closed to live on every
+  // family; no score family is losslessly ledger-derivable yet). Score-
+  // Protection: a projection of already-completed behaviour, never scores.
+  scoreFromLedgerHybrid: boolean;
 }
 
 /**

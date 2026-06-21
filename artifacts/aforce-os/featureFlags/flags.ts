@@ -123,6 +123,12 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   // Score-Protection: read-only projection; sections without data render
   // explicit "collecting"/"awaiting", never fabricated trends.
   spec_weekly_report: false,
+
+  // Score-from-Ledger Hybrid — Tier-1 score-integration seam (P2b). OFF in
+  // prod AND demo: shadow-compare only until contribution-level parity is
+  // proven. Currently a verified no-op (fails closed to live on every score
+  // family). Score-Protection: projection of completed behaviour, never scores.
+  scoreFromLedgerHybrid: false,
 };
 
 /**
@@ -193,6 +199,9 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
   location_intelligence_enabled: true,
   signal_hierarchy_enabled: true,
   spec_weekly_report: true,
+  // Stays OFF even in the demo profile: enabling a "score from ledger" path
+  // before contribution-level parity is proven could misrepresent the score.
+  scoreFromLedgerHybrid: false,
 };
 
 export function isFlagEnabled(flags: FeatureFlags, key: keyof FeatureFlags): boolean {

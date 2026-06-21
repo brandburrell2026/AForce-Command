@@ -39,8 +39,13 @@ import {
 } from './scoring/copy';
 
 // ─── Main Engine ──────────────────────────────────────────────────────────────
-export function calculateScore(userState: UserState): ScoreEngineOutput {
-  const { score, contributions, decayPerMinute } = buildBreakdown(userState);
+//
+// `now` (epoch ms) is injectable end-to-end so the score number is a pure
+// function of (state, now). It defaults to `Date.now()`, so every existing
+// caller is behaviourally identical; tests and the ledger-hybrid input
+// projection can pin a deterministic clock without forking the engine.
+export function calculateScore(userState: UserState, now: number = Date.now()): ScoreEngineOutput {
+  const { score, contributions, decayPerMinute } = buildBreakdown(userState, now);
   const level = resolveState(score);
   const performanceState = buildPerformanceState(level, score);
   const pulseConfig = buildPulseConfig(level);
@@ -54,7 +59,7 @@ export function calculateScore(userState: UserState): ScoreEngineOutput {
   // pattern recognition (streak), and no-action consequence into the
   // existing explanation field so the AICommandCard renders the upgraded
   // intelligence without any UI changes.
-  const minutesSinceLast = minutesSince(userState.lastIntakeTime);
+  const minutesSinceLast = minutesSince(userState.lastIntakeTime, now);
   command.explanation = composeExplanation(
     command.explanation,
     userState,
