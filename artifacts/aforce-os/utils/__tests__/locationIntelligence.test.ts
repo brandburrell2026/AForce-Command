@@ -104,11 +104,33 @@ describe('calculateLocationDemandAdderOz', () => {
     expect(maxed).toBeGreaterThanOrEqual(0);
   });
 
-  it('air quality is never a water adder (Score-Protection: advisory only)', () => {
-    // Hazardous air, nothing else → no oz added.
+  it('poor air adds a small, capped advisory bump (target-side only, never score)', () => {
     expect(
       calculateLocationDemandAdderOz({ ...NO_BANDS, airQuality: 'hazardous' }),
+    ).toBe(3);
+    expect(
+      calculateLocationDemandAdderOz({ ...NO_BANDS, airQuality: 'unhealthy' }),
+    ).toBe(2);
+    expect(
+      calculateLocationDemandAdderOz({ ...NO_BANDS, airQuality: 'sensitive' }),
+    ).toBe(1);
+    // Clean air never adds.
+    expect(
+      calculateLocationDemandAdderOz({ ...NO_BANDS, airQuality: 'good' }),
     ).toBe(0);
+    expect(
+      calculateLocationDemandAdderOz({ ...NO_BANDS, airQuality: 'moderate' }),
+    ).toBe(0);
+  });
+
+  it('the air-quality bump still respects the combined cap', () => {
+    const maxed = calculateLocationDemandAdderOz({
+      ...NO_BANDS,
+      altitude: 'very_high',
+      uv: 'extreme',
+      airQuality: 'hazardous',
+    });
+    expect(maxed).toBe(LOCATION_DEMAND_CAP_OZ);
   });
 });
 
@@ -149,13 +171,13 @@ describe('deriveLocationContext', () => {
     expect(ctx.noteKey).toBe('altitude');
   });
 
-  it('poor air routes recovery + brain energy but adds no water', () => {
+  it('poor air raises hydration demand and routes recovery + brain energy', () => {
     const ctx = deriveLocationContext({ ...EMPTY_INPUTS, airQualityIndex: 180 });
     expect(ctx.bands.airQuality).toBe('unhealthy');
-    expect(ctx.environmentalAdderOz).toBe(0);
+    expect(ctx.environmentalAdderOz).toBe(2);
     expect(ctx.routes.recovery).toBe(true);
     expect(ctx.routes.brainEnergy).toBe(true);
-    expect(ctx.routes.hydrationDemand).toBe(false);
+    expect(ctx.routes.hydrationDemand).toBe(true);
     expect(ctx.noteKey).toBe('air');
   });
 

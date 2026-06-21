@@ -152,10 +152,26 @@ export const UV_ADDER_OZ: Record<UvBand, number> = {
 };
 
 /**
+ * Air-quality additive (oz/day) — modest, advisory. Degraded air is not a
+ * sweat-loss driver the way heat / altitude are, so the bump is deliberately
+ * small; but public-health guidance during poor-air events is to stay
+ * well-hydrated (eases irritated airways / supports mucociliary clearance),
+ * so a clean reading adds nothing while worse air nudges the target up.
+ * Target-side advisory only — it raises the recommended daily target, never
+ * the score (Score-Protection).
+ */
+export const AIR_QUALITY_ADDER_OZ: Record<AirQualityBand, number> = {
+  good: 0,
+  moderate: 0,
+  sensitive: 1,
+  unhealthy: 2,
+  hazardous: 3,
+};
+
+/**
  * Combined location adder cap. A location can raise — but never
- * dominate — the daily target. Air quality is intentionally NOT a water
- * adder (poor air is not a fluid-loss driver); it routes to Recovery /
- * Brain Energy and the advisory note only.
+ * dominate — the daily target. Altitude, UV, and (modestly) air quality
+ * all contribute; heat/humidity is handled by the demand engine's own ramp.
  */
 export const LOCATION_DEMAND_CAP_OZ = 14;
 
@@ -242,14 +258,15 @@ export function haversineKm(
 }
 
 /**
- * Pure, capped, additive location demand adder (oz). Altitude + UV only;
- * air quality and heat/humidity are handled elsewhere (heat/humidity by
- * the demand engine's own ramp). Always >= 0, never subtracts.
+ * Pure, capped, additive location demand adder (oz). Altitude + UV + a
+ * modest air-quality bump; heat/humidity is handled elsewhere (by the demand
+ * engine's own ramp). Always >= 0, never subtracts, never exceeds the cap.
  */
 export function calculateLocationDemandAdderOz(bands: LocationBands): number {
   const altitude = bands.altitude ? ALTITUDE_ADDER_OZ[bands.altitude] : 0;
   const uv = bands.uv ? UV_ADDER_OZ[bands.uv] : 0;
-  return clamp(altitude + uv, 0, LOCATION_DEMAND_CAP_OZ);
+  const air = bands.airQuality ? AIR_QUALITY_ADDER_OZ[bands.airQuality] : 0;
+  return clamp(altitude + uv + air, 0, LOCATION_DEMAND_CAP_OZ);
 }
 
 function pickNoteKey(
