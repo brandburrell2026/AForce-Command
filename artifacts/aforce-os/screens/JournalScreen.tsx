@@ -19,7 +19,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
-  Dimensions,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -27,6 +26,8 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { AdaptiveScreenWrapper } from '@/components/AdaptiveScreenWrapper';
+import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 import { Icon } from '../components/Icon';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
@@ -55,6 +56,7 @@ import { Colors } from '@/theme/colors';
 export default function JournalScreen() {
   const { t } = useTranslation();
   const router = useRouter();
+  const { width: layoutWidth } = useResponsiveLayout();
   const userState = useUserSlice();
   const [range, setRange] = useState<JournalRange>(7);
   const [timeline, setTimeline] = useState<JournalTimelineEntry[]>([]);
@@ -103,7 +105,7 @@ export default function JournalScreen() {
   // Reverse for the daily list (most recent at the top).
   const reversedRollups = useMemo(() => [...rollups].reverse(), [rollups]);
 
-  const chartWidth = Math.min(Dimensions.get('window').width - 32, 720);
+  const chartWidth = Math.min(layoutWidth - 32, 720);
 
   // Compliance % over the visible range — a "compliant day" is one
   // where the average score landed in BALANCED+ territory (>=65). We
@@ -182,11 +184,12 @@ export default function JournalScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <ScrollView
-        style={styles.scroll}
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}
-      >
+      <AdaptiveScreenWrapper>
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={styles.content}
+          showsVerticalScrollIndicator={false}
+        >
         <View style={styles.header}>
           <View style={{ flex: 1 }}>
             <Text style={styles.eyebrow}>{t('journal.eyebrow')}</Text>
@@ -318,7 +321,8 @@ export default function JournalScreen() {
             </View>
           </>
         )}
-      </ScrollView>
+        </ScrollView>
+      </AdaptiveScreenWrapper>
     </SafeAreaView>
   );
 }

@@ -27,24 +27,21 @@ import {
   Text,
   StyleSheet,
   Pressable,
-  ScrollView,
   TextInput,
-  KeyboardAvoidingView,
   Platform,
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
+import { KeyboardAwareScrollViewCompat } from './KeyboardAwareScrollViewCompat';
 import { Icon } from './Icon';
+import { HeightField, WeightField } from './bodyModel';
 import { Colors } from '../theme/colors';
+import { useAppStore } from '../store/useAppStore';
 import {
   AURA_STATES,
   BIOLOGICAL_SEX_OPTIONS,
   CAFFEINE_HABIT_OPTIONS,
-  HEIGHT_CM_MAX,
-  HEIGHT_CM_MIN,
   OCCUPATION_TYPE_OPTIONS,
   RECOVERY_GOALS,
-  WEIGHT_LBS_MAX,
-  WEIGHT_LBS_MIN,
   type BiologicalSex,
   type CaffeineHabit,
   type OccupationType,
@@ -131,8 +128,9 @@ interface NumericFieldSpec {
 }
 
 const NUMERIC_FIELDS: readonly NumericFieldSpec[] = [
-  { key: 'bodyWeightLbs', label: 'Body Weight (lb)', placeholder: 'e.g. 175', min: WEIGHT_LBS_MIN, max: WEIGHT_LBS_MAX, digits: 3 },
-  { key: 'heightCm', label: 'Height (cm)', placeholder: 'e.g. 180', min: HEIGHT_CM_MIN, max: HEIGHT_CM_MAX, digits: 3 },
+  // Body weight + height are handled by the shared, unit-aware
+  // BodyMeasure fields (canonical lbs / cm). Birth year stays a plain
+  // numeric input here.
   { key: 'birthYear', label: 'Birth Year', placeholder: 'e.g. 1990', min: 1900, max: new Date().getFullYear(), digits: 4 },
 ];
 
@@ -165,17 +163,16 @@ export function EditProfileModal({ visible, initialValue, onClose, onSave }: Pro
   // freely edit (incl. clearing) without us coercing every keystroke.
   // Committed back to `draft` on save via `inputToNum`.
   const [numericText, setNumericText] = useState<Record<string, string>>(() => ({
-    bodyWeightLbs: numToInput(initialValue.bodyWeightLbs),
-    heightCm: numToInput(initialValue.heightCm),
     birthYear: numToInput(initialValue.birthYear),
   }));
+  // Body weight + height units follow the user's global unit preference
+  // so the editor matches onboarding and the rest of the OS.
+  const { unitPreferences } = useAppStore();
 
   useEffect(() => {
     if (visible) {
       setDraft(initialValue);
       setNumericText({
-        bodyWeightLbs: numToInput(initialValue.bodyWeightLbs),
-        heightCm: numToInput(initialValue.heightCm),
         birthYear: numToInput(initialValue.birthYear),
       });
     }
@@ -220,8 +217,10 @@ export function EditProfileModal({ visible, initialValue, onClose, onSave }: Pro
       territoryBadge: draft.territoryBadge.trim(),
       auraState: draft.auraState,
       recoveryGoal: draft.recoveryGoal,
-      bodyWeightLbs: coerceNumeric(numericText.bodyWeightLbs, WEIGHT_LBS_MIN, WEIGHT_LBS_MAX),
-      heightCm: coerceNumeric(numericText.heightCm, HEIGHT_CM_MIN, HEIGHT_CM_MAX),
+      // Body weight + height are already canonical (lbs / cm) and
+      // range-validated by the shared BodyMeasure fields.
+      bodyWeightLbs: draft.bodyWeightLbs,
+      heightCm: draft.heightCm,
       birthYear: coerceNumeric(numericText.birthYear, 1900, new Date().getFullYear()),
       biologicalSex: draft.biologicalSex,
       // The identity editor doesn't expose activity level (onboarding
@@ -244,10 +243,7 @@ export function EditProfileModal({ visible, initialValue, onClose, onSave }: Pro
       transparent
       onRequestClose={onClose}
     >
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={styles.backdrop}
-      >
+      <View style={styles.backdrop}>
         <Pressable style={styles.backdropTap} onPress={onClose} />
         <View style={styles.sheet}>
           <View style={styles.handle} />
@@ -263,10 +259,11 @@ export function EditProfileModal({ visible, initialValue, onClose, onSave }: Pro
             </Pressable>
           </View>
 
-          <ScrollView
+          <KeyboardAwareScrollViewCompat
             style={styles.body}
             contentContainerStyle={styles.bodyContent}
             keyboardShouldPersistTaps="handled"
+            bottomOffset={24}
           >
             <View style={styles.field}>
               <Text style={styles.fieldLabel}>AVATAR IMAGE URL</Text>
@@ -312,6 +309,20 @@ export function EditProfileModal({ visible, initialValue, onClose, onSave }: Pro
             <Text style={styles.sectionHint}>
               Optional. Helps the system tune recommendations to your body — skip any field and the engine falls back to safe defaults.
             </Text>
+
+            <WeightField
+              bodyWeightLbs={draft.bodyWeightLbs}
+              unit={unitPreferences.weight}
+              onChange={(lbs) => setField('bodyWeightLbs', lbs)}
+              testID="edit-profile-bodyWeightLbs"
+            />
+            <HeightField
+              heightCm={draft.heightCm}
+              unit={unitPreferences.height}
+              onChange={(cm) => setField('heightCm', cm)}
+              allowClear
+              testID="edit-profile-heightCm"
+            />
 
             {NUMERIC_FIELDS.map((field) => (
               <View key={field.key} style={styles.field}>
@@ -578,7 +589,7 @@ export function EditProfileModal({ visible, initialValue, onClose, onSave }: Pro
                 })}
               </View>
             </View>
-          </ScrollView>
+          </KeyboardAwareScrollViewCompat>
 
           <View style={styles.footer}>
             <Pressable
@@ -600,7 +611,7 @@ export function EditProfileModal({ visible, initialValue, onClose, onSave }: Pro
             </Pressable>
           </View>
         </View>
-      </KeyboardAvoidingView>
+      </View>
     </Modal>
   );
 }

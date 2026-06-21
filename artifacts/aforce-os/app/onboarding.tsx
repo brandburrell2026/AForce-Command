@@ -41,10 +41,7 @@ import { recordOnboardingCompleted } from '@/services/analytics';
 import { emit } from '@/analytics/event_dispatcher';
 import React from 'react';
 import {
-  KeyboardAvoidingView,
-  Platform,
   Pressable,
-  ScrollView,
   StyleSheet,
   Switch,
   Text,
@@ -53,15 +50,13 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { KeyboardAwareScrollViewCompat } from '@/components/KeyboardAwareScrollViewCompat';
 import { Icon } from '@/components/Icon';
+import { HeightField, WeightField } from '@/components/bodyModel';
 import { useAppStore } from '@/store/useAppStore';
 import { Colors } from '@/theme/colors';
 import {
   ACTIVITY_LEVEL_MAX,
-  HEIGHT_CM_MAX,
-  HEIGHT_CM_MIN,
-  WEIGHT_LBS_MAX,
-  WEIGHT_LBS_MIN,
   type BiologicalSex,
   type CaffeineHabit,
   type OccupationType,
@@ -69,12 +64,7 @@ import {
   type RecoveryGoal,
 } from '@/utils/profileIdentity';
 import {
-  cmToNearestHalfInches,
-  formatHalfInches,
-  halfInchesToCm,
   inferMeasurementSystem,
-  kgToLbs,
-  lbsToKg,
   unitPreferencesForMeasurementSystem,
   type MeasurementSystem,
 } from '@/utils/units';
@@ -85,17 +75,6 @@ const INPUT_STEPS: Step[] = ['goal', 'activity', 'profile', 'lifestyle'];
 // Age guardrails for the year-of-birth conversion.
 const AGE_MIN = 13;
 const AGE_MAX = 100;
-
-// Imperial height stepper bounds, derived from the canonical cm range so
-// the stepper can never produce an out-of-range value. Defaults seed the
-// first tap (≈5'10" / 178 cm) so the user lands on a sensible value.
-const MIN_HALF_INCHES = cmToNearestHalfInches(HEIGHT_CM_MIN);
-const MAX_HALF_INCHES = cmToNearestHalfInches(HEIGHT_CM_MAX);
-const DEFAULT_HALF_INCHES = 140; // 5'10"
-const DEFAULT_CM = 178;
-
-const clamp = (v: number, lo: number, hi: number): number =>
-  Math.min(hi, Math.max(lo, v));
 
 interface GoalOption {
   goal: RecoveryGoal;
@@ -180,12 +159,11 @@ export default function Onboarding() {
   const [system, setSystem] = React.useState<MeasurementSystem>(() =>
     inferMeasurementSystem(unitPreferences),
   );
-  const [weightText, setWeightText] = React.useState('');
+  const [bodyWeightLbs, setBodyWeightLbs] = React.useState<number | null>(null);
   const [ageText, setAgeText] = React.useState('');
-  // Height is held per-system so the stepper math stays exact; one of
-  // these is the active value depending on `system`.
-  const [heightHalfInches, setHeightHalfInches] = React.useState<number | null>(null);
-  const [heightCmInput, setHeightCmInput] = React.useState<number | null>(null);
+  // Height + weight are held canonically (cm / lbs); the shared
+  // BodyMeasure fields re-derive the display for the active unit system.
+  const [heightCm, setHeightCm] = React.useState<number | null>(null);
   const [sex, setSex] = React.useState<BiologicalSex>('unspecified');
   const [caffeine, setCaffeine] = React.useState<CaffeineHabit | null>(null);
   const [occupation, setOccupation] = React.useState<OccupationType | null>(null);
@@ -195,56 +173,13 @@ export default function Onboarding() {
     Haptics.selectionAsync().catch(() => {});
   }, []);
 
-  const heightIsSet =
-    system === 'metric' ? heightCmInput != null : heightHalfInches != null;
-  const heightDisplay = !heightIsSet
-    ? 'Tap to set'
-    : system === 'metric'
-      ? `${heightCmInput} cm`
-      : formatHalfInches(heightHalfInches as number);
-
-  const stepHeight = React.useCallback(
-    (direction: 1 | -1) => {
-      tap();
-      if (system === 'metric') {
-        setHeightCmInput((prev) =>
-          prev == null
-            ? DEFAULT_CM
-            : clamp(prev + direction, HEIGHT_CM_MIN, HEIGHT_CM_MAX),
-        );
-      } else {
-        setHeightHalfInches((prev) =>
-          prev == null
-            ? DEFAULT_HALF_INCHES
-            : clamp(prev + direction, MIN_HALF_INCHES, MAX_HALF_INCHES),
-        );
-      }
-    },
-    [system, tap],
-  );
-
   const switchSystem = React.useCallback(
     (next: MeasurementSystem) => {
       tap();
       if (next === system) return;
-      // Carry any entered values across so the newly-active unit reflects
-      // the same physical measurement.
-      if (next === 'metric') {
-        if (heightHalfInches != null) {
-          setHeightCmInput(
-            clamp(halfInchesToCm(heightHalfInches), HEIGHT_CM_MIN, HEIGHT_CM_MAX),
-          );
-        }
-      } else if (heightCmInput != null) {
-        setHeightHalfInches(
-          clamp(cmToNearestHalfInches(heightCmInput), MIN_HALF_INCHES, MAX_HALF_INCHES),
-        );
-      }
-      const wNum = Number.parseInt(weightText.trim(), 10);
-      if (Number.isFinite(wNum)) {
-        const converted = next === 'metric' ? lbsToKg(wNum) : kgToLbs(wNum);
-        setWeightText(String(Math.round(converted)));
-      }
+      // Height/weight are stored canonically (cm / lbs), so switching the
+      // system only re-labels the inputs — the shared fields re-derive the
+      // display for the new unit; no value conversion is needed here.
       setSystem(next);
       // Adapt the whole OS — write all four unit preferences at once.
       const prefs = unitPreferencesForMeasurementSystem(next);
@@ -253,7 +188,7 @@ export default function Onboarding() {
       setUnitPreference('volume', prefs.volume);
       setUnitPreference('height', prefs.height);
     },
-    [system, heightHalfInches, heightCmInput, weightText, setUnitPreference, tap],
+    [system, setUnitPreference, tap],
   );
 
   const finish = React.useCallback(async () => {
@@ -262,21 +197,10 @@ export default function Onboarding() {
     if (goal) patch.recoveryGoal = goal;
     if (activityLevel != null) patch.activityLevel = activityLevel;
 
-    // Weight — entered in the active system's unit, stored as canonical lbs.
-    const wNum = Number.parseInt(weightText.trim(), 10);
-    if (Number.isFinite(wNum)) {
-      const lbs = Math.round(system === 'metric' ? kgToLbs(wNum) : wNum);
-      if (lbs >= WEIGHT_LBS_MIN && lbs <= WEIGHT_LBS_MAX) patch.bodyWeightLbs = lbs;
-    }
-
-    // Height — canonical integer cm from whichever system is active.
-    const cm =
-      system === 'metric'
-        ? heightCmInput
-        : heightHalfInches != null
-          ? halfInchesToCm(heightHalfInches)
-          : null;
-    if (cm != null && cm >= HEIGHT_CM_MIN && cm <= HEIGHT_CM_MAX) patch.heightCm = cm;
+    // Weight + height are already canonical (lbs / cm) and range-validated
+    // by the shared BodyMeasure fields — persist them as-is.
+    if (bodyWeightLbs != null) patch.bodyWeightLbs = bodyWeightLbs;
+    if (heightCm != null) patch.heightCm = heightCm;
 
     // Age (whole years) → birthYear. Year only — no DOB precision.
     const age = parseInRange(ageText, AGE_MIN, AGE_MAX);
@@ -304,11 +228,9 @@ export default function Onboarding() {
   }, [
     goal,
     activityLevel,
-    system,
-    weightText,
+    bodyWeightLbs,
     ageText,
-    heightHalfInches,
-    heightCmInput,
+    heightCm,
     sex,
     caffeine,
     occupation,
@@ -350,10 +272,7 @@ export default function Onboarding() {
 
   return (
     <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
-      <KeyboardAvoidingView
-        style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      >
+      <View style={styles.flex}>
         {/* Header: back + progress + skip */}
         <View style={styles.header}>
           <Pressable
@@ -396,11 +315,12 @@ export default function Onboarding() {
           </Pressable>
         </View>
 
-        <ScrollView
+        <KeyboardAwareScrollViewCompat
           style={styles.flex}
           contentContainerStyle={styles.scroll}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
+          bottomOffset={24}
         >
           {step === 'goal' && (
             <>
@@ -518,21 +438,11 @@ export default function Onboarding() {
                 </View>
               </View>
 
-              <View style={styles.field}>
-                <Text style={styles.fieldLabel}>
-                  BODY WEIGHT ({system === 'metric' ? 'KG' : 'LBS'})
-                </Text>
-                <TextInput
-                  value={weightText}
-                  onChangeText={setWeightText}
-                  keyboardType="number-pad"
-                  placeholder={system === 'metric' ? 'e.g. 80' : 'e.g. 175'}
-                  placeholderTextColor={Colors.text.ghost}
-                  style={styles.input}
-                  maxLength={3}
-                  accessibilityLabel={`Body weight in ${system === 'metric' ? 'kilograms' : 'pounds'}`}
-                />
-              </View>
+              <WeightField
+                bodyWeightLbs={bodyWeightLbs}
+                unit={system === 'metric' ? 'kg' : 'lbs'}
+                onChange={setBodyWeightLbs}
+              />
 
               <View style={styles.field}>
                 <Text style={styles.fieldLabel}>AGE</Text>
@@ -548,40 +458,11 @@ export default function Onboarding() {
                 />
               </View>
 
-              <View style={styles.field}>
-                <Text style={styles.fieldLabel}>HEIGHT</Text>
-                <View style={styles.stepper}>
-                  <Pressable
-                    onPress={() => stepHeight(-1)}
-                    style={styles.stepperBtn}
-                    hitSlop={8}
-                    accessibilityRole="button"
-                    accessibilityLabel="Decrease height"
-                  >
-                    <Text style={styles.stepperBtnLabel}>−</Text>
-                  </Pressable>
-                  <View style={styles.stepperValueWrap}>
-                    <Text
-                      style={[
-                        styles.stepperValue,
-                        !heightIsSet && styles.stepperValueMuted,
-                      ]}
-                      accessibilityLabel={`Height ${heightIsSet ? heightDisplay : 'not set'}`}
-                    >
-                      {heightDisplay}
-                    </Text>
-                  </View>
-                  <Pressable
-                    onPress={() => stepHeight(1)}
-                    style={styles.stepperBtn}
-                    hitSlop={8}
-                    accessibilityRole="button"
-                    accessibilityLabel="Increase height"
-                  >
-                    <Text style={styles.stepperBtnLabel}>+</Text>
-                  </Pressable>
-                </View>
-              </View>
+              <HeightField
+                heightCm={heightCm}
+                unit={system === 'metric' ? 'cm' : 'ft'}
+                onChange={setHeightCm}
+              />
 
               <View style={styles.field}>
                 <Text style={styles.fieldLabel}>BIOLOGICAL SEX</Text>
@@ -722,7 +603,7 @@ export default function Onboarding() {
               <Text style={styles.mantra}>PAUSE · HYDRATE · LOCK IN · PERFORM</Text>
             </View>
           )}
-        </ScrollView>
+        </KeyboardAwareScrollViewCompat>
 
         {/* Footer CTA */}
         <View style={styles.footer}>
@@ -742,7 +623,7 @@ export default function Onboarding() {
             <Icon name="arrow-right" size={18} color={Colors.text.inverse} />
           </Pressable>
         </View>
-      </KeyboardAvoidingView>
+      </View>
     </SafeAreaView>
   );
 }
@@ -855,47 +736,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter_600SemiBold',
     fontSize: 18,
     color: Colors.text.primary,
-  },
-  stepper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  stepperBtn: {
-    width: 54,
-    height: 54,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: Colors.border.subtle,
-    backgroundColor: Colors.background.card,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  stepperBtnLabel: {
-    fontFamily: 'Inter_700Bold',
-    fontSize: 26,
-    lineHeight: 30,
-    color: Colors.text.primary,
-  },
-  stepperValueWrap: {
-    flex: 1,
-    height: 54,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: Colors.border.subtle,
-    backgroundColor: Colors.background.card,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  stepperValue: {
-    fontFamily: 'Inter_700Bold',
-    fontSize: 20,
-    color: Colors.text.primary,
-  },
-  stepperValueMuted: {
-    fontFamily: 'Inter_500Medium',
-    fontSize: 15,
-    color: Colors.text.ghost,
   },
   segment: {
     flexDirection: 'row',

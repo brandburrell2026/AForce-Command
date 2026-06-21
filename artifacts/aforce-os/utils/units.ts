@@ -17,6 +17,14 @@
  * (1 fl oz = 29.5735295625 mL). We intentionally pick US fl oz over
  * the UK imperial ounce because the AForce launch market is the US;
  * if/when we localise the UK, we can branch on locale here.
+ *
+ * NOTE — body weight is the one exception to "canonical = kg". The
+ * generic `formatWeight()` below formats arbitrary weight quantities and
+ * is kg-canonical, but the BODY MODEL (`ProfileIdentity.bodyWeightLbs`,
+ * mirrored into the server `userState`) is stored in integer POUNDS.
+ * The shared body-measure helpers in `utils/bodyMeasurements.ts` convert
+ * at that lbs boundary; do not assume `formatWeight`'s kg input applies
+ * to the stored body weight.
  */
 
 export type WeightUnit = 'lbs' | 'kg';

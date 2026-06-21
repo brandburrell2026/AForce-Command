@@ -24,7 +24,6 @@ import {
   Platform,
   TextInput,
   Switch,
-  KeyboardAvoidingView,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter, router as globalRouter } from 'expo-router';
@@ -32,6 +31,9 @@ import { Icon, type IconName } from '../components/Icon';
 import Svg, { Defs, LinearGradient as SvgLinearGradient, Polygon, Stop } from 'react-native-svg';
 
 import { GradientBackground } from '@/components/GradientBackground';
+import { HeightField, WeightField } from '@/components/bodyModel';
+import { KeyboardAwareScrollViewCompat } from '@/components/KeyboardAwareScrollViewCompat';
+import { AdaptiveScreenWrapper } from '@/components/AdaptiveScreenWrapper';
 import { Colors } from '@/theme/colors';
 import {
   AFORCE_SODIUM_PER_UNIT_MG,
@@ -44,7 +46,13 @@ import {
   pickRecoveryProtocol,
   type RecoveryProtocolPlan,
 } from '@/services/recoveryProtocolService';
-import { useActionsSlice, useInventorySlice, useUserSlice } from '@/store/slices';
+import {
+  useActionsSlice,
+  useInventorySlice,
+  useProfileIdentitySlice,
+  useUnitPreferencesSlice,
+  useUserSlice,
+} from '@/store/slices';
 import { deriveSweatLoss } from '@/services/biometricIntelligence';
 import {
   getCurrentCityClimate,
@@ -59,6 +67,7 @@ import type {
   SweatInputMode,
   SweatSession,
 } from '@/types/sweat';
+import type { ProfileIdentity } from '@/utils/profileIdentity';
 
 const DEFICIT_COLOR: Record<string, string> = {
   optimal: Colors.states.PEAK.primary,
@@ -180,9 +189,16 @@ export default function SweatCalculatorScreen() {
   const [pAcclimatized, setPAcclimatized] = useState(false);
   const [pSodium, setPSodium] = useState<SodiumProfile>('moderate');
 
-  // Estimate mode state.
-  const [eWeight, setEWeight] = useState('170');
-  const [eHeight, setEHeight] = useState('5.8');
+  // Estimate mode state. Body weight + height are the user's canonical
+  // body model, so they read straight from — and write back to — the
+  // profile through the shared, unit-aware fields, keeping one source of
+  // truth across onboarding, Edit Profile, and here. (Quick/Precision
+  // pre/post weights stay local: they're per-session scale readings, not
+  // body model.) Score-Protection: body-model only; never touches score.
+  const profileIdentity = useProfileIdentitySlice();
+  const unitPrefs = useUnitPreferencesSlice();
+  const eWeightLbs = profileIdentity.bodyWeightLbs;
+  const eHeightCm = profileIdentity.heightCm;
   const [eSportId, setESportId] = useState('basketball');
   const [eDuration, setEDuration] = useState('60');
   const [eIntensity, setEIntensity] = useState<1 | 2 | 3 | 4 | 5>(3);
@@ -225,11 +241,10 @@ export default function SweatCalculatorScreen() {
       if (urine < 0 || urine > 100) return 'Urine output should be 0–100 ounces.';
       return null;
     }
-    const w = num(eWeight);
-    const h = num(eHeight);
     const dur = num(eDuration);
-    if (w <= 0 || w > 700) return 'Enter a body weight between 1 and 700 lbs.';
-    if (h <= 0 || h > 8) return 'Enter a height between 0.5 and 8 ft.';
+    if (eWeightLbs == null || eWeightLbs <= 0)
+      return 'Enter your body weight to estimate without a scale.';
+    if (eHeightCm == null) return 'Set your height to estimate without a scale.';
     if (dur <= 0 || dur > 600) return 'Enter a duration between 1 and 600 minutes.';
     return null;
   })();
@@ -238,7 +253,10 @@ export default function SweatCalculatorScreen() {
   // Push the freshly-derived autopilot into the store so useHeatGuard
   // (and any other consumer driving recheck cadence) can reflect the
   // recovery window for the next 4 hours.
-  const { setSweatAutopilot } = useActionsSlice<{ setSweatAutopilot: (a: SweatSession['autopilot'] | null) => void }>();
+  const { setSweatAutopilot, setProfileIdentity } = useActionsSlice<{
+    setSweatAutopilot: (a: SweatSession['autopilot'] | null) => void;
+    setProfileIdentity: (patch: Partial<ProfileIdentity>) => void;
+  }>();
 
   function commitSession(session: SweatSession) {
     setResult(session);
@@ -290,10 +308,10 @@ export default function SweatCalculatorScreen() {
     } else {
       const inputs: EstimateInputs = {
         mode: 'estimate',
-        bodyWeight: num(eWeight),
+        bodyWeight: eWeightLbs ?? 0,
         weightUnit: 'lbs',
-        height: num(eHeight),
-        heightUnit: 'ft',
+        height: eHeightCm ?? 0,
+        heightUnit: 'cm',
         sportId: eSportId,
         durationMinutes: num(eDuration),
         intensity: eIntensity,
@@ -311,11 +329,8 @@ export default function SweatCalculatorScreen() {
   return (
     <View style={styles.root}>
       <GradientBackground>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          style={{ flex: 1 }}
-        >
-          <ScrollView
+        <AdaptiveScreenWrapper>
+          <KeyboardAwareScrollViewCompat
             style={styles.scroll}
             contentContainerStyle={[
               styles.content,
@@ -323,6 +338,7 @@ export default function SweatCalculatorScreen() {
             ]}
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
+            bottomOffset={24}
           >
             <View style={styles.headerRow}>
               <Pressable
@@ -393,8 +409,16 @@ export default function SweatCalculatorScreen() {
             {mode === 'estimate' && (
               <Card>
                 <SectionTitle>Inputs</SectionTitle>
-                <NumberRow label="Body weight" suffix="lbs" value={eWeight} onChange={setEWeight} />
-                <NumberRow label="Height" suffix="ft" value={eHeight} onChange={setEHeight} />
+                <WeightField
+                  bodyWeightLbs={eWeightLbs}
+                  unit={unitPrefs.weight}
+                  onChange={(lbs) => setProfileIdentity({ bodyWeightLbs: lbs })}
+                />
+                <HeightField
+                  heightCm={eHeightCm}
+                  unit={unitPrefs.height}
+                  onChange={(cm) => setProfileIdentity({ heightCm: cm })}
+                />
                 <NumberRow label="Session duration" suffix="min" value={eDuration} onChange={setEDuration} />
                 <Divider />
                 <SubLabel>Sport</SubLabel>
@@ -462,8 +486,8 @@ export default function SweatCalculatorScreen() {
               </Text>
             </Pressable>
             {showCitations && <CitationCard />}
-          </ScrollView>
-        </KeyboardAvoidingView>
+          </KeyboardAwareScrollViewCompat>
+        </AdaptiveScreenWrapper>
       </GradientBackground>
     </View>
   );
