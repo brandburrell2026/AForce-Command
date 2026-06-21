@@ -9,4 +9,6 @@
  */
 
 export * from './attribution';
+export * from './revenue';
 export * from './funnel';
+export * from './day7Offer';

@@ -47,6 +47,16 @@ Flag OFF byte-identical; nothing mutates score (Score-Protection). QR capture UI
   milestones otherwise inflate headline rates (Scan→Install, Install→Activation,
   Activation→Subscription).
 
+- **Any conversion-rate numerator must be a SUBSET of its denominator.** Marketing
+  attribution's `subscribeRate` = `converted / scanned`, where `converted` = scanners who
+  THEN subscribed chronologically (reuse `elapsedMsBetween`), NOT the raw `subscribers`
+  count. Keep the raw paid count in a separate `subscribers` field. **Why:** paid
+  subscribers can exist outside the scanned cohort (organic / unattributed), so a raw
+  `subscribers / scanned` can exceed 1 — which both lies (>100% conversion) AND fails the
+  Zod `max(1)` on the DTO, throwing and 500-ing the founder route. **How to apply:** every
+  rate built over a mixed cohort needs its own subset numerator + a mixed-cohort test
+  (scanned + unscanned subscribers must stay ≤100% and parse the schema).
+
 - **Founder analytics queries are aggregate-only + pseudonymous.** The funnel SQL may
   `GROUP BY analytics_id` but must NEVER `SELECT` it or join user/subscription PII —
   return only counts/rates/coarse attribution (sku/retailLocationId/geo/campaign).

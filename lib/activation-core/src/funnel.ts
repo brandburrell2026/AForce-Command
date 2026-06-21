@@ -24,6 +24,8 @@
 
 import type { ActivationAttribution } from './attribution';
 import { EMPTY_ATTRIBUTION } from './attribution';
+import type { ActivationRevenue, RevenueTotals } from './revenue';
+import { EMPTY_REVENUE, combineRevenue, hasRevenue } from './revenue';
 
 export type ActivationStage =
   | 'can_purchased'
@@ -78,11 +80,17 @@ export interface ActivationFunnelState {
   reachedCount: number;
   /** Attribution carried with this funnel (SKU / retail / geo / …). */
   attribution: ActivationAttribution;
+  /**
+   * Subscription revenue outcome carried by `subscription_started`, if any.
+   * Descriptive, non-PII metadata only; defaults to EMPTY_REVENUE.
+   */
+  revenue: ActivationRevenue;
 }
 
 export interface DeriveFunnelInput {
   milestones: MilestoneTimestamps;
   attribution?: ActivationAttribution | null;
+  revenue?: ActivationRevenue | null;
 }
 
 function emptyReached(): Record<ActivationMilestone, boolean> {
@@ -126,6 +134,7 @@ export function deriveActivationFunnel(
     furthestIndex,
     reachedCount,
     attribution: input.attribution ?? { ...EMPTY_ATTRIBUTION },
+    revenue: input.revenue ?? { ...EMPTY_REVENUE },
   };
 }
 
@@ -284,4 +293,55 @@ export function elapsedMsBetween(
   if (!Number.isFinite(ams) || !Number.isFinite(bms)) return null;
   const delta = bms - ams;
   return delta >= 0 ? delta : null;
+}
+
+/**
+ * The revenue a funnel contributes to an aggregate, or null. Revenue counts
+ * ONLY when the funnel actually reached `subscription_started` AND carries a
+ * valid (amount + currency) revenue payload. A subscriber whose event lacked
+ * those fields contributes nothing — honest, never a fabricated $0
+ * (Score-Protection / no-fabrication).
+ */
+export function activationRevenueOf(
+  f: ActivationFunnelState,
+): ActivationRevenue | null {
+  if (!f.reached.subscription_started) return null;
+  return hasRevenue(f.revenue) ? f.revenue : null;
+}
+
+/** Aggregate attributed revenue across a cohort of funnels. */
+export function aggregateRevenue(
+  funnels: readonly ActivationFunnelState[],
+): RevenueTotals {
+  const revenues: ActivationRevenue[] = [];
+  for (const f of funnels) {
+    const r = activationRevenueOf(f);
+    if (r) revenues.push(r);
+  }
+  return combineRevenue(revenues);
+}
+
+export interface RevenueSegment {
+  /** Attribution value (or UNATTRIBUTED) on the segmenting dimension. */
+  segment: string;
+  /** Total funnels in the segment (denominator context for the totals). */
+  cohort: number;
+  /** Attributed revenue totals for the segment. */
+  totals: RevenueTotals;
+}
+
+/**
+ * Attributed revenue per attribution segment — the "which SKU / retail /
+ * geo / campaign actually drives revenue?" view. Pure: an empty segment
+ * yields zero subscribers / empty rollups, never a fabricated amount.
+ */
+export function revenueBySegment(
+  funnels: readonly ActivationFunnelState[],
+  dimension: AttributionDimension,
+): RevenueSegment[] {
+  const out: RevenueSegment[] = [];
+  for (const [segment, group] of segmentByAttribution(funnels, dimension)) {
+    out.push({ segment, cohort: group.length, totals: aggregateRevenue(group) });
+  }
+  return out;
 }

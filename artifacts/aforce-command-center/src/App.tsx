@@ -11,6 +11,7 @@ import Home from "@/pages/Home";
 import ExecutiveDashboard from "@/pages/ExecutiveDashboard";
 import ProductDashboard from "@/pages/ProductDashboard";
 import ActivationDashboard from "@/pages/ActivationDashboard";
+import MarketingDashboard from "@/pages/MarketingDashboard";
 import PlaceholderDashboard from "@/pages/PlaceholderDashboard";
 import { Layout } from "@/components/Layout";
 
@@ -199,7 +200,7 @@ function ClerkProviderWithRoutes() {
               {() => <ProtectedRoute component={PlaceholderDashboard} title="AI" />}
             </Route>
             <Route path="/marketing">
-              {() => <ProtectedRoute component={PlaceholderDashboard} title="Marketing" />}
+              {() => <ProtectedRoute component={MarketingDashboard} />}
             </Route>
             <Route path="/board">
               {() => <ProtectedRoute component={PlaceholderDashboard} title="Board" />}

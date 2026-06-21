@@ -34,6 +34,11 @@ import {
   ActivationFunnelSchema,
   type ActivationFunnelRow,
 } from "../lib/activationFunnel";
+import {
+  buildMarketingAttribution,
+  MarketingAttributionSchema,
+  type MarketingRow,
+} from "../lib/marketingAttribution";
 import { logger } from "../lib/logger";
 
 const router: IRouter = Router();
@@ -412,6 +417,61 @@ router.get(
       return res
         .status(500)
         .json({ error: "command_center_activation_funnel_failed" });
+    }
+  },
+);
+
+/**
+ * GET /admin/command-center/marketing — the founder MARKETING view: the
+ * acquisition→revenue lens over the SAME pseudonymous analytics events.
+ *
+ * Per pseudonymous identity we read only the first `qr_scanned` (acquisition
+ * + attribution payload) and the first `subscription_started` (paid outcome
+ * + its NON-PII revenue payload), GROUP BY analytics_id in-DB, then run the
+ * pure activation-core engine in-process. The per-identity rows never leave
+ * the server (NEVER joined to users / subscriptions / Stripe); only
+ * aggregate scans / subscribers / revenue + null-safe rates are returned.
+ * No-fabrication: a source nobody scanned reports `subscribeRate: null`
+ * (awaiting), and a subscriber whose event carried no valid revenue payload
+ * counts toward `subscribers` but contributes no gross (awaiting revenue) —
+ * never a fabricated 0% or $0.
+ */
+router.get(
+  "/admin/command-center/marketing",
+  requireFounder,
+  async (req, res) => {
+    try {
+      const result = await db.execute(sql`
+        SELECT
+          min(occurred_at) FILTER (WHERE event_type = 'qr_scanned') AS qr_scanned,
+          min(occurred_at) FILTER (WHERE event_type = 'subscription_started') AS subscription_started,
+          (array_agg(payload ORDER BY occurred_at)
+            FILTER (WHERE event_type = 'qr_scanned'))[1] AS qr_payload,
+          (array_agg(payload ORDER BY occurred_at)
+            FILTER (WHERE event_type = 'subscription_started'))[1] AS subscription_payload
+        FROM aforce_analytics_events
+        WHERE event_type IN ('qr_scanned', 'subscription_started')
+        GROUP BY analytics_id
+      `);
+
+      const rows = ((result as { rows?: Row[] }).rows ?? []).map(
+        (r): MarketingRow => ({
+          qrScanned: isoOrNull(r["qr_scanned"]),
+          subscriptionStarted: isoOrNull(r["subscription_started"]),
+          qrPayload: payloadOrNull(r["qr_payload"]),
+          subscriptionPayload: payloadOrNull(r["subscription_payload"]),
+        }),
+      );
+
+      const dto = MarketingAttributionSchema.parse(
+        buildMarketingAttribution(rows, new Date().toISOString()),
+      );
+      return res.json(dto);
+    } catch (err) {
+      logger.error({ err }, "GET /admin/command-center/marketing failed");
+      return res
+        .status(500)
+        .json({ error: "command_center_marketing_failed" });
     }
   },
 );
