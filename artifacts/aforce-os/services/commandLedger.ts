@@ -40,6 +40,10 @@ import {
   collectIntakeCommandEvents,
   collectVoiceCheckInCommandEvents,
   collectPerformanceAgeSnapshotEvents,
+  collectConfirmationCommandEvents,
+  collectContextSnapshotCommandEvents,
+  type ConfirmationSource,
+  type ContextSnapshotSource,
 } from '@/utils/intelligence/commandEventAdapters';
 
 const STORAGE_KEY = '@aforce/command-ledger';
@@ -56,6 +60,8 @@ export interface CommandLedgerSources {
   intakeEvents?: readonly IntakeEvent[] | null;
   voiceCheckIns?: readonly VoiceCheckInRecord[] | null;
   performanceAgeSnapshots?: readonly PerformanceAgeDailySnapshot[] | null;
+  commandConfirmations?: readonly ConfirmationSource[] | null;
+  contextSnapshots?: readonly ContextSnapshotSource[] | null;
 }
 
 // ─── In-memory store (synchronous read surface) ───────────────────────
@@ -182,6 +188,8 @@ export function ingestCommandLedgerSources(sources: CommandLedgerSources): Promi
     ...collectIntakeCommandEvents(sources.intakeEvents),
     ...collectVoiceCheckInCommandEvents(sources.voiceCheckIns),
     ...collectPerformanceAgeSnapshotEvents(sources.performanceAgeSnapshots),
+    ...collectConfirmationCommandEvents(sources.commandConfirmations),
+    ...collectContextSnapshotCommandEvents(sources.contextSnapshots),
   ];
   return appendCommandEvents(incoming);
 }

@@ -24,6 +24,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router, usePathname } from 'expo-router';
 
 import { ActivationDeepLinkObserver } from '@/components/ActivationDeepLinkObserver';
+import { useCommandLedgerSync } from '@/hooks/useCommandLedgerSync';
 import { ClerkAuthBridge } from '@/components/ClerkAuthBridge';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { InvestorDemoOverlay } from '@/components/investorDemo/InvestorDemoOverlay';
@@ -142,6 +143,18 @@ function InvestorDemoMount() {
       onClose={() => setInvestorDemoActive(false)}
     />
   );
+}
+
+/**
+ * CommandLedgerSyncMount — read-only bridge that mirrors live runtime
+ * sources (intake history, voice check-ins, context provenance) into the
+ * Command-Event Ledger. Renders nothing. Mounted inside AppProvider so the
+ * hook can read the store. Never dispatches / never touches score
+ * (Score-Protection); see hooks/useCommandLedgerSync.ts.
+ */
+function CommandLedgerSyncMount() {
+  useCommandLedgerSync();
+  return null;
 }
 
 /**
@@ -282,6 +295,9 @@ function AppShell() {
                   <ClerkAuthBridge />
                   {/* Records acquisition QR / activation deep-links; no routing. */}
                   <ActivationDeepLinkObserver />
+                  {/* Read-only bridge: mirrors live runtime sources into the
+                      Command-Event Ledger (sandbox). No routing, no score. */}
+                  <CommandLedgerSyncMount />
                   <RootLayoutNav />
                   <SplashGate />
                   <InvestorDemoMount />

@@ -22,6 +22,8 @@ import {
   collectIntakeCommandEvents,
   collectVoiceCheckInCommandEvents,
   collectPerformanceAgeSnapshotEvents,
+  collectConfirmationCommandEvents,
+  collectContextSnapshotCommandEvents,
   ledgerToCommandConfidenceInputs,
   ledgerToPerformanceMemoryEntries,
   ledgerToPerformanceAgeSnapshots,
@@ -207,6 +209,34 @@ describe('contextSnapshotToCommandEvent', () => {
     // still a valid ledger event (not discarded by the merge)
     expect(normalizeCommandEvent(ev)).toEqual(ev);
   });
+
+  it('carries valid per-signal source fetch timestamps', () => {
+    const ev = contextSnapshotToCommandEvent({
+      atMs: NOW,
+      weatherTempC: 19,
+      hasFreshBiometrics: true,
+      weatherFetchedAtMs: NOW - 2 * HOUR,
+      biometricsFetchedAtMs: NOW - 3 * HOUR,
+    })!;
+    expect(ev).toMatchObject({
+      weatherFetchedAtMs: NOW - 2 * HOUR,
+      biometricsFetchedAtMs: NOW - 3 * HOUR,
+    });
+    expect(normalizeCommandEvent(ev)).toEqual(ev);
+  });
+
+  it('drops invalid source fetch timestamps without discarding the snapshot', () => {
+    const ev = contextSnapshotToCommandEvent({
+      atMs: NOW,
+      weatherTempC: 19,
+      hasFreshBiometrics: true,
+      weatherFetchedAtMs: -1,
+      biometricsFetchedAtMs: Number.NaN,
+    })!;
+    expect(ev).not.toHaveProperty('weatherFetchedAtMs');
+    expect(ev).not.toHaveProperty('biometricsFetchedAtMs');
+    expect(ev).toMatchObject({ weatherTempC: 19, hasFreshBiometrics: true });
+  });
 });
 
 // ─── Collectors ───────────────────────────────────────────────────────────────────
@@ -221,6 +251,30 @@ describe('collectors', () => {
     expect(collectIntakeCommandEvents(undefined)).toEqual([]);
     expect(collectVoiceCheckInCommandEvents(null)).toEqual([]);
     expect(collectPerformanceAgeSnapshotEvents(undefined)).toEqual([]);
+  });
+
+  it('collectConfirmationCommandEvents drops invalid and tolerates null/undefined', () => {
+    const out = collectConfirmationCommandEvents([
+      { followed: true, setAtMs: NOW },
+      { followed: false, setAtMs: NOW + 1, commandId: 'c2' },
+      { followed: true, setAtMs: 0 }, // invalid timestamp → dropped
+    ]);
+    expect(out).toHaveLength(2);
+    expect(out.every((e) => e.kind === 'command_confirmation')).toBe(true);
+    expect(collectConfirmationCommandEvents(undefined)).toEqual([]);
+    expect(collectConfirmationCommandEvents(null)).toEqual([]);
+  });
+
+  it('collectContextSnapshotCommandEvents drops invalid and tolerates null/undefined', () => {
+    const out = collectContextSnapshotCommandEvents([
+      { atMs: NOW, weatherTempC: 20, hasFreshBiometrics: true },
+      { atMs: NOW + 1, weatherTempC: null },
+      { atMs: -1 }, // invalid timestamp → dropped
+    ]);
+    expect(out).toHaveLength(2);
+    expect(out.every((e) => e.kind === 'context_snapshot')).toBe(true);
+    expect(collectContextSnapshotCommandEvents(undefined)).toEqual([]);
+    expect(collectContextSnapshotCommandEvents(null)).toEqual([]);
   });
 });
 
@@ -277,6 +331,39 @@ describe('ledgerToCommandConfidenceInputs', () => {
     expect(inputs.hasFreshBiometrics).toBe(true); // from the 10h-old snapshot
     // sanity: this is a "high" command (behaviour + a fresh context signal)
     expect(deriveCommandConfidence({ ...inputs, hasTodayBehavior: true })).toBe('high');
+  });
+
+  it('anchors freshness to the SOURCE fetch time, not the observation time', () => {
+    // Observed "now" (occurredAtMs fresh) but the underlying readings were
+    // fetched long ago → must read STALE, exactly as the live engine would.
+    // Without per-signal source timestamps this would falsely read fresh.
+    const lateObserved: CommandEvent[] = [
+      contextSnapshotToCommandEvent({
+        atMs: NOW, // observed now
+        weatherTempC: 22,
+        hasFreshBiometrics: true,
+        weatherFetchedAtMs: NOW - 7 * HOUR, // > 6h → stale weather
+        biometricsFetchedAtMs: NOW - 25 * HOUR, // > 24h → stale biometrics
+      })!,
+    ];
+    const inputs = ledgerToCommandConfidenceInputs(lateObserved, NOW);
+    expect(inputs.hasWeather).toBe(false);
+    expect(inputs.hasFreshBiometrics).toBe(false);
+  });
+
+  it('source fetch time keeps a late-observed but still-fresh signal fresh', () => {
+    const ev: CommandEvent[] = [
+      contextSnapshotToCommandEvent({
+        atMs: NOW,
+        weatherTempC: 22,
+        hasFreshBiometrics: true,
+        weatherFetchedAtMs: NOW - 3 * HOUR, // < 6h → fresh
+        biometricsFetchedAtMs: NOW - 10 * HOUR, // < 24h → fresh
+      })!,
+    ];
+    const inputs = ledgerToCommandConfidenceInputs(ev, NOW);
+    expect(inputs.hasWeather).toBe(true);
+    expect(inputs.hasFreshBiometrics).toBe(true);
   });
 });
 

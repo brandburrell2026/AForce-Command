@@ -235,6 +235,10 @@ export function contextSnapshotToCommandEvent(args: {
   atMs: number;
   weatherTempC?: number | null;
   hasFreshBiometrics?: boolean;
+  /** Source fetch times (epoch ms). When present, each signal's freshness is
+   *  anchored to its own fetch, not to `atMs` (when it was observed). */
+  weatherFetchedAtMs?: number;
+  biometricsFetchedAtMs?: number;
 }): ContextSnapshotCommandEvent | null {
   if (!isFiniteNumber(args.atMs) || args.atMs <= 0) return null;
   // A present weather reading must be null (no reading) or finite; an unusable
@@ -243,6 +247,10 @@ export function contextSnapshotToCommandEvent(args: {
   const keepWeather =
     args.weatherTempC !== undefined &&
     (args.weatherTempC === null || isFiniteNumber(args.weatherTempC));
+  const keepWeatherFetched =
+    isFiniteNumber(args.weatherFetchedAtMs) && args.weatherFetchedAtMs > 0;
+  const keepBioFetched =
+    isFiniteNumber(args.biometricsFetchedAtMs) && args.biometricsFetchedAtMs > 0;
   return {
     id: `context_snapshot:${args.atMs}`,
     kind: 'context_snapshot',
@@ -253,6 +261,8 @@ export function contextSnapshotToCommandEvent(args: {
     ...(typeof args.hasFreshBiometrics === 'boolean'
       ? { hasFreshBiometrics: args.hasFreshBiometrics }
       : {}),
+    ...(keepWeatherFetched ? { weatherFetchedAtMs: args.weatherFetchedAtMs } : {}),
+    ...(keepBioFetched ? { biometricsFetchedAtMs: args.biometricsFetchedAtMs } : {}),
   };
 }
 
@@ -291,6 +301,34 @@ export function collectPerformanceAgeSnapshotEvents(
   return out;
 }
 
+/** Args accepted by {@link collectConfirmationCommandEvents}. */
+export type ConfirmationSource = Parameters<typeof confirmationToCommandEvent>[0];
+
+export function collectConfirmationCommandEvents(
+  confirmations: readonly ConfirmationSource[] | undefined | null,
+): CommandConfirmationCommandEvent[] {
+  const out: CommandConfirmationCommandEvent[] = [];
+  for (const c of confirmations ?? []) {
+    const ev = confirmationToCommandEvent(c);
+    if (ev) out.push(ev);
+  }
+  return out;
+}
+
+/** Args accepted by {@link collectContextSnapshotCommandEvents}. */
+export type ContextSnapshotSource = Parameters<typeof contextSnapshotToCommandEvent>[0];
+
+export function collectContextSnapshotCommandEvents(
+  snapshots: readonly ContextSnapshotSource[] | undefined | null,
+): ContextSnapshotCommandEvent[] {
+  const out: ContextSnapshotCommandEvent[] = [];
+  for (const s of snapshots ?? []) {
+    const ev = contextSnapshotToCommandEvent(s);
+    if (ev) out.push(ev);
+  }
+  return out;
+}
+
 // ─── Read adapters: ledger → engine inputs ───────────────────────────────────────
 
 /**
@@ -314,11 +352,19 @@ export function ledgerToCommandConfidenceInputs(
   );
 
   const contexts = eventsByKind(events, 'context_snapshot');
+  // Anchor each signal's freshness to its ORIGINAL source fetch time when the
+  // snapshot recorded it, falling back to occurredAtMs otherwise. Without this,
+  // a stale reading observed late would look fresh for a full window from the
+  // observation instant and silently overstate confidence vs the live engine.
   const hasFreshBiometrics = contexts.some(
-    (c) => c.hasFreshBiometrics === true && isFresh(c.occurredAtMs, now, BIOMETRIC_FRESHNESS_MS),
+    (c) =>
+      c.hasFreshBiometrics === true &&
+      isFresh(c.biometricsFetchedAtMs ?? c.occurredAtMs, now, BIOMETRIC_FRESHNESS_MS),
   );
   const hasWeather = contexts.some(
-    (c) => isFiniteNumber(c.weatherTempC) && isFresh(c.occurredAtMs, now, WEATHER_FRESHNESS_MS),
+    (c) =>
+      isFiniteNumber(c.weatherTempC) &&
+      isFresh(c.weatherFetchedAtMs ?? c.occurredAtMs, now, WEATHER_FRESHNESS_MS),
   );
 
   return { hasTodayBehavior, hasFreshBiometrics, hasWeather };

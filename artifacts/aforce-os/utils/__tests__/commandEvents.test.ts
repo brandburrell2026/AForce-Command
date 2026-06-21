@@ -75,6 +75,17 @@ describe('normalizeCommandEvent — accepts valid events per kind', () => {
     expect((e as any).weatherTempC).toBeNull();
   });
 
+  it('context_snapshot round-trips per-signal source fetch timestamps', () => {
+    const e = normalizeCommandEvent({
+      id: 'ctx:1', kind: 'context_snapshot', occurredAtMs: T,
+      localDayIndex: 0, source: 'context',
+      weatherTempC: 21, hasFreshBiometrics: true,
+      weatherFetchedAtMs: T - 1000, biometricsFetchedAtMs: T - 2000,
+    });
+    expect((e as any).weatherFetchedAtMs).toBe(T - 1000);
+    expect((e as any).biometricsFetchedAtMs).toBe(T - 2000);
+  });
+
   it('strips unknown properties', () => {
     const e = normalizeCommandEvent(intake({ hacker: 'pwn', score: 999 }));
     expect(e).not.toBeNull();
@@ -127,6 +138,18 @@ describe('normalizeCommandEvent — rejects invalid / fabrication-prone input', 
       normalizeCommandEvent({
         id: 'ctx', kind: 'context_snapshot', occurredAtMs: T, localDayIndex: 0,
         source: 's', weatherTempC: Infinity,
+      }),
+    ).toBeNull();
+    expect(
+      normalizeCommandEvent({
+        id: 'ctx-wf', kind: 'context_snapshot', occurredAtMs: T, localDayIndex: 0,
+        source: 's', weatherFetchedAtMs: -5,
+      }),
+    ).toBeNull();
+    expect(
+      normalizeCommandEvent({
+        id: 'ctx-bf', kind: 'context_snapshot', occurredAtMs: T, localDayIndex: 0,
+        source: 's', biometricsFetchedAtMs: NaN,
       }),
     ).toBeNull();
   });
@@ -203,6 +226,139 @@ describe('mergeCommandEvents', () => {
     expect(mergeCommandEvents([], events, { cap: -5 }).map((e) => e.id)).toEqual(['a', 'b']);
     expect(mergeCommandEvents([], events, { cap: NaN }).map((e) => e.id)).toEqual(['a', 'b']);
     expect(mergeCommandEvents([], events, { cap: 1.5 }).map((e) => e.id)).toEqual(['a', 'b']);
+  });
+});
+
+// ─── Reserved future families (Step 4 architecture boundary) ─────────────────────
+
+const reserved = (
+  kind: string,
+  over: Record<string, unknown> = {},
+): Record<string, unknown> => ({
+  id: `${kind}:1`,
+  kind,
+  occurredAtMs: T,
+  localDayIndex: 0,
+  source: 'reserved',
+  ...over,
+});
+
+describe('normalizeCommandEvent — reserved future families (accept valid)', () => {
+  it('lock_in_started requires sessionId', () => {
+    const e = normalizeCommandEvent(reserved('lock_in_started', { sessionId: 's1' }));
+    expect(e?.kind).toBe('lock_in_started');
+    expect((e as any).sessionId).toBe('s1');
+  });
+
+  it('lock_in_completed carries optional durationMs', () => {
+    const e = normalizeCommandEvent(reserved('lock_in_completed', { sessionId: 's1', durationMs: 1500 }));
+    expect(e?.kind).toBe('lock_in_completed');
+    expect((e as any).durationMs).toBe(1500);
+  });
+
+  it('protocol_started requires protocolId + sessionId', () => {
+    const e = normalizeCommandEvent(reserved('protocol_started', { protocolId: 'p1', sessionId: 's1' }));
+    expect(e?.kind).toBe('protocol_started');
+    expect((e as any).protocolId).toBe('p1');
+  });
+
+  it('protocol_completed carries optional durationMs + stepsCompleted', () => {
+    const e = normalizeCommandEvent(
+      reserved('protocol_completed', { protocolId: 'p1', sessionId: 's1', durationMs: 60000, stepsCompleted: 4 }),
+    );
+    expect(e?.kind).toBe('protocol_completed');
+    expect((e as any).stepsCompleted).toBe(4);
+  });
+
+  it('recovery_session carries optional recoveryType', () => {
+    const e = normalizeCommandEvent(reserved('recovery_session', { sessionId: 's1', recoveryType: 'breath' }));
+    expect(e?.kind).toBe('recovery_session');
+    expect((e as any).recoveryType).toBe('breath');
+  });
+
+  it('performance_session carries optional performanceType', () => {
+    const e = normalizeCommandEvent(reserved('performance_session', { sessionId: 's1', performanceType: 'run' }));
+    expect(e?.kind).toBe('performance_session');
+    expect((e as any).performanceType).toBe('run');
+  });
+
+  it('ai_command_accepted carries optional commandType + base commandId', () => {
+    const e = normalizeCommandEvent(reserved('ai_command_accepted', { commandType: 'hydrate', commandId: 'cmd-9' }));
+    expect(e?.kind).toBe('ai_command_accepted');
+    expect((e as any).commandType).toBe('hydrate');
+    expect((e as any).commandId).toBe('cmd-9');
+  });
+
+  it('ai_command_rejected carries optional reason', () => {
+    const e = normalizeCommandEvent(reserved('ai_command_rejected', { reason: 'not now' }));
+    expect(e?.kind).toBe('ai_command_rejected');
+    expect((e as any).reason).toBe('not now');
+  });
+
+  it('execution_event requires subtype, carries optional value + label', () => {
+    const e = normalizeCommandEvent(reserved('execution_event', { subtype: 'tap_latency', value: 320, label: 'ms' }));
+    expect(e?.kind).toBe('execution_event');
+    expect((e as any).subtype).toBe('tap_latency');
+    expect((e as any).value).toBe(320);
+  });
+
+  it('execution_event allows value 0 (boundary) but stays absent when omitted', () => {
+    const zero = normalizeCommandEvent(reserved('execution_event', { subtype: 's', value: 0 }));
+    expect((zero as any).value).toBe(0);
+    const none = normalizeCommandEvent(reserved('execution_event', { subtype: 's' }));
+    expect((none as any).value).toBeUndefined();
+  });
+});
+
+describe('normalizeCommandEvent — reserved future families (reject, no fabrication)', () => {
+  it('rejects lifecycle events missing required ids', () => {
+    expect(normalizeCommandEvent(reserved('lock_in_started', {}))).toBeNull();
+    expect(normalizeCommandEvent(reserved('protocol_started', { sessionId: 's1' }))).toBeNull();
+    expect(normalizeCommandEvent(reserved('protocol_completed', { protocolId: 'p1' }))).toBeNull();
+    expect(normalizeCommandEvent(reserved('recovery_session', {}))).toBeNull();
+    expect(normalizeCommandEvent(reserved('performance_session', {}))).toBeNull();
+  });
+
+  it('rejects negative or non-finite durations / counts instead of carrying garbage', () => {
+    expect(normalizeCommandEvent(reserved('lock_in_completed', { sessionId: 's1', durationMs: -1 }))).toBeNull();
+    expect(normalizeCommandEvent(reserved('lock_in_completed', { sessionId: 's1', durationMs: NaN }))).toBeNull();
+    expect(
+      normalizeCommandEvent(reserved('protocol_completed', { protocolId: 'p1', sessionId: 's1', stepsCompleted: -2 })),
+    ).toBeNull();
+  });
+
+  it('rejects execution_event without subtype or with non-finite value', () => {
+    expect(normalizeCommandEvent(reserved('execution_event', { value: 1 }))).toBeNull();
+    expect(normalizeCommandEvent(reserved('execution_event', { subtype: '' }))).toBeNull();
+    expect(normalizeCommandEvent(reserved('execution_event', { subtype: 's', value: Infinity }))).toBeNull();
+  });
+
+  it('rejects non-string optional descriptors (no coercion)', () => {
+    expect(normalizeCommandEvent(reserved('recovery_session', { sessionId: 's1', recoveryType: 5 }))).toBeNull();
+    expect(normalizeCommandEvent(reserved('ai_command_rejected', { reason: 5 }))).toBeNull();
+    expect(normalizeCommandEvent(reserved('execution_event', { subtype: 's', label: 5 }))).toBeNull();
+  });
+
+  it('strips unknown properties from reserved events too', () => {
+    const e = normalizeCommandEvent(reserved('execution_event', { subtype: 's', hacker: 'pwn', score: 999 }));
+    expect(e).not.toBeNull();
+    expect((e as any).hacker).toBeUndefined();
+    expect((e as any).score).toBeUndefined();
+  });
+});
+
+describe('reserved families round-trip through merge + queries', () => {
+  it('merge dedupes by id and eventsByKind narrows reserved kinds', () => {
+    const merged = mergeCommandEvents([], [
+      reserved('lock_in_started', { id: 'li', sessionId: 's1', occurredAtMs: T }),
+      reserved('execution_event', { id: 'ex', subtype: 'x', occurredAtMs: T + 1 }),
+      reserved('execution_event', { id: 'ex', subtype: 'dupe', occurredAtMs: T + 999 }), // dup id → ignored
+      'garbage',
+    ]);
+    expect(merged.map((e) => e.id)).toEqual(['li', 'ex']);
+    expect(eventsByKind(merged, 'execution_event').map((e) => e.id)).toEqual(['ex']);
+    expect((eventsByKind(merged, 'execution_event')[0] as any).subtype).toBe('x'); // first wins
+    expect(latestByKind(merged, 'lock_in_started')?.id).toBe('li');
   });
 });
 

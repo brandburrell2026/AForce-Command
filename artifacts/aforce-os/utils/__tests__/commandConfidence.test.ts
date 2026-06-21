@@ -2,6 +2,8 @@ import { describe, it, expect } from 'vitest';
 import {
   deriveCommandConfidence,
   commandConfidenceInputsFromState,
+  deriveContextSnapshotFields,
+  freshBiometricAnchorMs,
   BIOMETRIC_FRESHNESS_MS,
   WEATHER_FRESHNESS_MS,
   CLOCK_SKEW_MS,
@@ -123,5 +125,105 @@ describe('commandConfidenceInputsFromState — no fabrication', () => {
   it('reaches high end-to-end with real logs + fresh weather', () => {
     const inputs = commandConfidenceInputsFromState(mk({ intakeEvents: [{}], weatherTempC: 30, weatherFetchedAt: NOW }), NOW);
     expect(deriveCommandConfidence(inputs)).toBe('high');
+  });
+});
+
+describe('freshBiometricAnchorMs', () => {
+  it('returns null when no source has both signal and freshness', () => {
+    expect(freshBiometricAnchorMs(mk(), NOW)).toBeNull();
+    expect(freshBiometricAnchorMs(mk({ biometrics: {} }), NOW)).toBeNull();
+    // signal but stale
+    const stale = NOW - BIOMETRIC_FRESHNESS_MS - 1;
+    expect(freshBiometricAnchorMs(mk({ appleHealth: { hrvSdnn: 65, fetchedAt: stale } }), NOW)).toBeNull();
+  });
+
+  it('returns the MAX fetchedAt among sources that are both fresh and have signal', () => {
+    const older = NOW - 3 * 60 * 60 * 1000;
+    const newer = NOW - 1 * 60 * 60 * 1000;
+    const state = mk({
+      appleHealth: { hrvSdnn: 65, fetchedAt: older },
+      biometrics: { whoop: { providerId: 'whoop', recoveryPct: 72, fetchedAt: newer } },
+    });
+    expect(freshBiometricAnchorMs(state, NOW)).toBe(newer);
+  });
+
+  it('ignores a fresh-but-empty source when picking the anchor', () => {
+    const fresh = NOW - 60 * 1000;
+    // whoop is fresh but carries no signal → must NOT become the anchor.
+    const state = mk({
+      appleHealth: { hrvSdnn: 65, fetchedAt: NOW - 2 * 60 * 60 * 1000 },
+      biometrics: { whoop: { providerId: 'whoop', fetchedAt: fresh } },
+    });
+    expect(freshBiometricAnchorMs(state, NOW)).toBe(NOW - 2 * 60 * 60 * 1000);
+  });
+});
+
+describe('deriveContextSnapshotFields — fail-closed flag↔anchor binding', () => {
+  it('emits no context when neither weather nor biometrics are fresh', () => {
+    expect(deriveContextSnapshotFields(mk(), NOW)).toEqual({
+      hasContext: false,
+      weatherTempC: null,
+      weatherFetchedAtMs: null,
+      hasFreshBiometrics: false,
+      biometricsFetchedAtMs: null,
+    });
+  });
+
+  it('binds hasFreshBiometrics to a non-null anchor and weather to its fetch time', () => {
+    const bioAt = NOW - 60 * 1000;
+    const wxAt = NOW - 60 * 1000;
+    const fields = deriveContextSnapshotFields(
+      mk({
+        weatherTempC: 30,
+        weatherFetchedAt: wxAt,
+        appleHealth: { hrvSdnn: 65, fetchedAt: bioAt },
+      }),
+      NOW,
+    );
+    expect(fields).toEqual({
+      hasContext: true,
+      weatherTempC: 30,
+      weatherFetchedAtMs: wxAt,
+      hasFreshBiometrics: true,
+      biometricsFetchedAtMs: bioAt,
+    });
+  });
+
+  it('drops weather (temp + anchor together) when only biometrics are fresh', () => {
+    const bioAt = NOW - 60 * 1000;
+    const fields = deriveContextSnapshotFields(
+      mk({ weatherTempC: 30, weatherFetchedAt: NOW - WEATHER_FRESHNESS_MS - 1, appleHealth: { hrvSdnn: 65, fetchedAt: bioAt } }),
+      NOW,
+    );
+    expect(fields.hasContext).toBe(true);
+    expect(fields.weatherTempC).toBeNull();
+    expect(fields.weatherFetchedAtMs).toBeNull();
+    expect(fields.hasFreshBiometrics).toBe(true);
+    expect(fields.biometricsFetchedAtMs).toBe(bioAt);
+  });
+
+  it('INVARIANT: hasFreshBiometrics is true iff biometricsFetchedAtMs is non-null', () => {
+    // Walk a biometric source across its freshness boundary; the flag and the
+    // anchor must flip together at the SAME instant (no flag-without-anchor and
+    // no anchor-without-flag), which is what makes the wired snapshot fail-closed.
+    const fetchedAt = NOW - BIOMETRIC_FRESHNESS_MS; // exactly on the edge
+    for (const delta of [-2_000, -1, 0, 1, 60_000]) {
+      const evalNow = fetchedAt + BIOMETRIC_FRESHNESS_MS + delta;
+      const f = deriveContextSnapshotFields(mk({ appleHealth: { hrvSdnn: 65, fetchedAt } }), evalNow);
+      expect(f.hasFreshBiometrics).toBe(f.biometricsFetchedAtMs != null);
+    }
+  });
+
+  it('matches the live confidence derivation it mirrors (single clock)', () => {
+    const state = mk({
+      intakeEvents: [{}],
+      weatherTempC: 30,
+      weatherFetchedAt: NOW - 60 * 1000,
+      appleHealth: { hrvSdnn: 65, fetchedAt: NOW - 60 * 1000 },
+    });
+    const live = commandConfidenceInputsFromState(state, NOW);
+    const ctx = deriveContextSnapshotFields(state, NOW);
+    expect(ctx.hasFreshBiometrics).toBe(live.hasFreshBiometrics);
+    expect(ctx.weatherFetchedAtMs != null).toBe(live.hasWeather);
   });
 });
