@@ -501,5 +501,31 @@
       "short": "ERHOLUNG",
       "guidance": "Beginne mit Wasser — Fokus auf Erholung. Lass es ruhig angehen, kein Druck."
     }
+  },
+  "evidence": {
+    "header": "WARUM DIESER BEFEHL",
+    "summary": {
+      "matched": "Basierend auf den Live-Signalen unten.",
+      "unavailable": "Signaldetails sind derzeit nicht verfügbar."
+    },
+    "freshness": {
+      "fresh": "LIVE",
+      "stale": "VERALTET"
+    },
+    "item": {
+      "readiness": "Der Bereitschaftswert ist {{score}} — {{level}}.",
+      "intake_gap": "{{minutes}} Min seit deinem letzten erfassten Schluck.",
+      "intake_recent": "Du hast vor {{minutes}} Min Wasser erfasst.",
+      "pace_behind": "{{consumed}} von {{target}} oz heute erfasst.",
+      "pace_ahead": "{{consumed}} von {{target}} oz erfasst — dem Plan voraus.",
+      "weather_heat": "{{temp}}°C draußen erhöhen deinen Flüssigkeitsbedarf.",
+      "biometrics": "Gestützt auf aktuelle Erholungsdaten des Wearables.",
+      "overnight_deficit": "Nächtliches Erholungsfenster: {{oz}} oz verloren.",
+      "social_recovery": "Erholungsfenster offen nach {{count}} Getränk(en).",
+      "social_impairment": "Der Beeinträchtigungswert ist {{level}} — Sicherheit zuerst.",
+      "social_recent_drink": "Letztes Getränk vor {{minutes}} Min — jetzt Wasser.",
+      "social_hangover_risk": "Der Risikowert für morgen ist {{level}} ({{score}}).",
+      "social_active": "Soziale Session aktiv — {{count}} Getränk(e) erfasst."
+    }
   }
 }

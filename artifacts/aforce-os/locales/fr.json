@@ -501,5 +501,31 @@
       "short": "RÉCUP",
       "guidance": "Commencez par de l’eau — phase de récupération. Allez-y doucement, sans pression."
     }
+  },
+  "evidence": {
+    "header": "POURQUOI CETTE COMMANDE",
+    "summary": {
+      "matched": "Basé sur les signaux en direct ci-dessous.",
+      "unavailable": "Le détail du signal est indisponible pour le moment."
+    },
+    "freshness": {
+      "fresh": "EN DIRECT",
+      "stale": "ANCIEN"
+    },
+    "item": {
+      "readiness": "Le score de préparation est {{score}} — {{level}}.",
+      "intake_gap": "{{minutes}} min depuis votre dernière gorgée enregistrée.",
+      "intake_recent": "Vous avez enregistré de l'eau il y a {{minutes}} min.",
+      "pace_behind": "{{consumed}} sur {{target}} oz enregistrées aujourd’hui.",
+      "pace_ahead": "{{consumed}} sur {{target}} oz enregistrées — en avance sur le rythme.",
+      "weather_heat": "{{temp}}°C dehors augmente vos besoins en liquides.",
+      "biometrics": "Appuyé par des données de récupération récentes du wearable.",
+      "overnight_deficit": "Fenêtre de récupération nocturne : {{oz}} oz perdues.",
+      "social_recovery": "Fenêtre de récupération ouverte après {{count}} verre(s).",
+      "social_impairment": "La lecture d’altération est {{level}} — la sécurité d’abord.",
+      "social_recent_drink": "Dernier verre il y a {{minutes}} min — de l’eau maintenant.",
+      "social_hangover_risk": "La lecture du risque pour demain est {{level}} ({{score}}).",
+      "social_active": "Session sociale active — {{count}} verre(s) enregistrés."
+    }
   }
 }

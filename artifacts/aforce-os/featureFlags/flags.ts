@@ -129,6 +129,13 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   // proven. Currently a verified no-op (fails closed to live on every score
   // family). Score-Protection: projection of completed behaviour, never scores.
   scoreFromLedgerHybrid: false,
+
+  // Evidence Engine™ — headless "Why this command" explainability layer.
+  // Build 100% · Show 10%: OFF in the production binary so the AICommandCard
+  // surface stays byte-identical, ON in DEMO_ALL_ON for internal inspection.
+  // Score-Protection: read-only projection of the engine's own inputs; never
+  // reads into / awards / mutates / fabricates score.
+  evidence_engine_enabled: false,
 };
 
 /**
@@ -202,6 +209,10 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
   // Stays OFF even in the demo profile: enabling a "score from ledger" path
   // before contribution-level parity is proven could misrepresent the score.
   scoreFromLedgerHybrid: false,
+
+  // Evidence Engine™ — ON in the demo profile so internal viewers can inspect
+  // the "Why this command" explainability surface. Read-only / Score-Protected.
+  evidence_engine_enabled: true,
 };
 
 export function isFlagEnabled(flags: FeatureFlags, key: keyof FeatureFlags): boolean {

@@ -569,5 +569,31 @@
       "short": "RECOVERY",
       "guidance": "Start with water — recovery focus. Ease in, no pressure."
     }
+  },
+  "evidence": {
+    "header": "WHY THIS COMMAND",
+    "summary": {
+      "matched": "Based on the live signals below.",
+      "unavailable": "Signal detail is unavailable right now."
+    },
+    "freshness": {
+      "fresh": "LIVE",
+      "stale": "STALE"
+    },
+    "item": {
+      "readiness": "Readiness score is {{score}} — {{level}}.",
+      "intake_gap": "{{minutes}} min since your last logged sip.",
+      "intake_recent": "You logged water {{minutes}} min ago.",
+      "pace_behind": "{{consumed}} of {{target}} oz logged so far today.",
+      "pace_ahead": "{{consumed}} of {{target}} oz logged — ahead of pace.",
+      "weather_heat": "{{temp}}°C outside is raising your fluid demand.",
+      "biometrics": "Backed by fresh wearable recovery data.",
+      "overnight_deficit": "Overnight recovery window: {{oz}} oz lost.",
+      "social_recovery": "Recovery window open after {{count}} drink(s).",
+      "social_impairment": "Impairment reading is {{level}} — safety first.",
+      "social_recent_drink": "Last drink {{minutes}} min ago — water now.",
+      "social_hangover_risk": "Tomorrow-risk reading is {{level}} ({{score}}).",
+      "social_active": "Social session active — {{count}} drink(s) logged."
+    }
   }
 }

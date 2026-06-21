@@ -147,6 +147,7 @@ export const baseFlags: FeatureFlags = {
   signal_hierarchy_enabled: false,
   spec_weekly_report: false,
   scoreFromLedgerHybrid: false,
+  evidence_engine_enabled: false,
 };
 
 export const baseSubscription: UserSubscription = {

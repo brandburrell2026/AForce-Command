@@ -650,6 +650,17 @@ export interface FeatureFlags {
   // family; no score family is losslessly ledger-derivable yet). Score-
   // Protection: a projection of already-completed behaviour, never scores.
   scoreFromLedgerHybrid: boolean;
+
+  // Evidence Engine™ — headless explainability layer. For the AForce Command
+  // that fired (from generateCommand), derives WHY it was issued by linking
+  // each evidence item to the underlying REAL signal (value + freshness +
+  // provenance), in lockstep with the actual command branch (integrity check
+  // fails closed on any mismatch). Master switch for the additive "Why this
+  // command" surface. Build 100% · Show 10%: OFF in the production binary, ON
+  // in DEMO_ALL_ON. Score-Protection: read-only projection of inputs already
+  // used by the engine — never reads into, awards, mutates, or fabricates
+  // score; stale/missing signals are shown honestly, never invented.
+  evidence_engine_enabled: boolean;
 }
 
 /**

@@ -18,6 +18,7 @@ import type { Command, PerformanceState } from '../../types';
 import { Colors } from '../../theme/colors';
 import { useFeatureFlags } from '../../store/useAppStore';
 import { AICommandCard } from '../AICommandCard';
+import { CommandEvidence } from './CommandEvidence';
 import { VoiceStatusModule } from '../VoiceStatusModule';
 import { useRecoverySnapshotFromStore } from '../../services/useRecoverySnapshot';
 
@@ -46,6 +47,7 @@ function CommandConsoleImpl({ command, performanceState, accentOverride }: Props
         accentOverride={accentOverride}
         embedded
       />
+      {flags.evidence_engine_enabled && <CommandEvidence />}
       {flags.voice_status_module_visible && <VoiceStatusModule embedded />}
     </View>
   );

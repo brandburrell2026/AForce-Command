@@ -501,5 +501,31 @@
       "short": "RECUPERO",
       "guidance": "Inizia con l’acqua — fase di recupero. Vai piano, senza pressione."
     }
+  },
+  "evidence": {
+    "header": "PERCHÉ QUESTO COMANDO",
+    "summary": {
+      "matched": "In base ai segnali in tempo reale qui sotto.",
+      "unavailable": "Il dettaglio del segnale non è disponibile ora."
+    },
+    "freshness": {
+      "fresh": "LIVE",
+      "stale": "OBSOLETO"
+    },
+    "item": {
+      "readiness": "Il punteggio di prontezza è {{score}} — {{level}}.",
+      "intake_gap": "{{minutes}} min dall’ultimo sorso registrato.",
+      "intake_recent": "Hai registrato acqua {{minutes}} min fa.",
+      "pace_behind": "{{consumed}} di {{target}} oz registrate oggi.",
+      "pace_ahead": "{{consumed}} di {{target}} oz registrate — in anticipo sul ritmo.",
+      "weather_heat": "{{temp}}°C all’esterno aumentano il tuo fabbisogno di liquidi.",
+      "biometrics": "Supportato da dati di recupero recenti del wearable.",
+      "overnight_deficit": "Finestra di recupero notturna: {{oz}} oz perse.",
+      "social_recovery": "Finestra di recupero aperta dopo {{count}} drink.",
+      "social_impairment": "La lettura di compromissione è {{level}} — prima la sicurezza.",
+      "social_recent_drink": "Ultimo drink {{minutes}} min fa — acqua ora.",
+      "social_hangover_risk": "La lettura del rischio per domani è {{level}} ({{score}}).",
+      "social_active": "Sessione social attiva — {{count}} drink registrati."
+    }
   }
 }

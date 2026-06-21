@@ -15,3 +15,7 @@ Running the full `npx vitest run artifacts/aforce-os` suite reports a batch of *
 - Verify pure logic by running the specific pure test files by full path, e.g. `npx vitest run artifacts/aforce-os/utils/__tests__/<x>.test.ts artifacts/aforce-os/services/__tests__/<y>.test.ts`. Pure engine/selector/service-mapping tests deliberately avoid importing react-native and run clean.
 - Keep new unit tests pure (no RN import) so they load under vitest.
 - Do NOT chase the `import typeof` error as a bug in your change; confirm scope by reproducing on a file you did not touch before concluding anything.
+
+**When you DO need the real scoring engine in a pure test (true parity, not a re-implementation):** the `calculateScore` / `generateCommand` graph's *only* react-native import is `services/i18nService`. Mock just that one module at the top of the test and the whole real engine loads under vitest:
+`vi.mock('../../services/i18nService', () => ({ default: { t: (k) => k, language: 'en', changeLanguage() {} } }))`.
+**Why:** lets a selector that *replicates* engine precedence (e.g. command-evidence rules) be guarded by an assertion against the genuine engine output, so the replica can never silently drift from the source of truth — instead of trusting a hand-copied branch table.

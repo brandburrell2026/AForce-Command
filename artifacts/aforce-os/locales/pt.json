@@ -501,5 +501,31 @@
       "short": "RECUPERAÇÃO",
       "guidance": "Comece com água — foco na recuperação. Vá com calma, sem pressão."
     }
+  },
+  "evidence": {
+    "header": "POR QUE ESTE COMANDO",
+    "summary": {
+      "matched": "Com base nos sinais ao vivo abaixo.",
+      "unavailable": "O detalhe do sinal está indisponível agora."
+    },
+    "freshness": {
+      "fresh": "AO VIVO",
+      "stale": "ANTIGO"
+    },
+    "item": {
+      "readiness": "A pontuação de prontidão é {{score}} — {{level}}.",
+      "intake_gap": "{{minutes}} min desde o seu último gole registrado.",
+      "intake_recent": "Você registrou água há {{minutes}} min.",
+      "pace_behind": "{{consumed}} de {{target}} oz registradas hoje.",
+      "pace_ahead": "{{consumed}} de {{target}} oz registradas — à frente do ritmo.",
+      "weather_heat": "{{temp}}°C lá fora está aumentando sua demanda de líquidos.",
+      "biometrics": "Apoiado por dados recentes de recuperação do wearable.",
+      "overnight_deficit": "Janela de recuperação noturna: {{oz}} oz perdidas.",
+      "social_recovery": "Janela de recuperação aberta após {{count}} bebida(s).",
+      "social_impairment": "A leitura de comprometimento é {{level}} — segurança primeiro.",
+      "social_recent_drink": "Última bebida há {{minutes}} min — água agora.",
+      "social_hangover_risk": "A leitura de risco para amanhã é {{level}} ({{score}}).",
+      "social_active": "Sessão social ativa — {{count}} bebida(s) registradas."
+    }
   }
 }
