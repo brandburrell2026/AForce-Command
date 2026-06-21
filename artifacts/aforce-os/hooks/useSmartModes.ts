@@ -38,7 +38,12 @@ export function useSmartModes(): SmartModeResult {
   const engine = useEngineSlice();
   // Inert (isTraveling=false) until `location_intelligence_enabled` is ON.
   const location = useLocationIntelligence();
-  const isTravelDay = location.travel.isTraveling;
+  // No-fabrication guard: only a LIVE snapshot may flip Travel Mode. The
+  // service already returns an inert travel signal for mock snapshots, but
+  // we re-assert `source === 'live'` here so a future service regression can
+  // never silently let the synthetic, day-rotated mock light up the Travel
+  // Protocol from movement the user never made (Score-Protection posture).
+  const isTravelDay = location.source === 'live' && location.travel.isTraveling;
 
   return React.useMemo(
     () =>

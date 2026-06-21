@@ -153,4 +153,27 @@ describe('buildSnapshot', () => {
     expect(snap.context.available).toBe(true);
     expect(snap.observedAt).toBe(iso);
   });
+
+  it('NO-FABRICATION: a mock snapshot never reports travel, even when the prior anchor is far away', () => {
+    // A real Miami anchor diffed against the day-0 Denver MOCK is >250km —
+    // it WOULD fire the Travel Protocol if mock readings were trusted. They
+    // must not be: synthetic, day-rotated movement is not a real trip.
+    const miamiAnchor = anchorFromInputs(
+      mapLiveInputs({
+        latitude: 25.7617,
+        longitude: -80.1918,
+        timezone: 'America/Chicago', // also a tz change — still must not fire
+        forecast: null,
+        airQuality: null,
+        elevation: null,
+      }),
+      '2026-06-18T12:00:00.000Z',
+    );
+    const snap = buildSnapshot(buildMockInputs(0), miamiAnchor, 'mock', iso);
+    expect(snap.source).toBe('mock');
+    expect(snap.travel.isTraveling).toBe(false);
+    expect(snap.travel.protocolKey).toBeNull();
+    expect(snap.travel.distanceKm).toBeNull();
+    expect(snap.travel.timezoneShifted).toBe(false);
+  });
 });

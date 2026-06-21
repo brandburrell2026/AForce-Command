@@ -51,7 +51,12 @@ export interface LocationSnapshot {
   observedAt: string;
 }
 
-const STORAGE_KEY = 'aforce.location.anchor.v1';
+// v2: the v1 key may hold a synthetic MOCK anchor persisted by the pre-fix
+// behavior (which wrote anchors for every source). Reading such a stale mock
+// baseline lets a later LIVE reading fabricate a trip the user never took, so
+// we deliberately bump the namespace — legacy anchors are ignored and the
+// first post-upgrade live reading simply has no baseline (safe: no travel).
+const STORAGE_KEY = 'aforce.location.anchor.v2';
 const CACHE_TTL_MS = 10 * 60 * 1000;
 
 let cachedSnapshot: LocationSnapshot | null = null;
@@ -217,9 +222,25 @@ export function anchorFromInputs(
   };
 }
 
+/** Inert travel signal — what a non-live snapshot always reports. */
+const INERT_TRAVEL: TravelSignal = {
+  isTraveling: false,
+  timezoneShifted: false,
+  distanceKm: null,
+  protocolKey: null,
+};
+
 /**
  * Pure assembler: given the freshly measured inputs and the previously
  * persisted anchor, produce a full snapshot via the pure engine. No I/O.
+ *
+ * Score-Protection / no-fabrication: travel is only ever real when the
+ * CURRENT reading is live GPS. The offline mock rotates cities by
+ * day-of-year, so trusting a mock reading (or a mock anchor — see
+ * `getLocationSnapshot`, which never persists one) would manufacture a
+ * phantom Miami→NYC "trip" from synthetic movement and light up the Travel
+ * Protocol. A non-live snapshot therefore always carries an inert travel
+ * signal, mirroring the way the target-side adder only applies for live.
  */
 export function buildSnapshot(
   inputs: LocationInputs,
@@ -228,7 +249,10 @@ export function buildSnapshot(
   observedAt: string,
 ): LocationSnapshot {
   const context = deriveLocationContext(inputs);
-  const travel = detectTravel(previousAnchor, anchorFromInputs(inputs, observedAt));
+  const travel =
+    source === 'live'
+      ? detectTravel(previousAnchor, anchorFromInputs(inputs, observedAt))
+      : INERT_TRAVEL;
   return { inputs, context, travel, source, observedAt };
 }
 
@@ -325,8 +349,14 @@ export async function getLocationSnapshot(force = false): Promise<LocationSnapsh
 
   const snapshot = buildSnapshot(inputs, previousAnchor, source, observedAt);
 
-  // Persist the new anchor for next-launch comparison.
-  await writeLastAnchor(anchorFromInputs(inputs, observedAt));
+  // Persist the new anchor ONLY for live readings. A mock anchor must never
+  // become a future comparison baseline: a later live reading diffed against
+  // a synthetic location (or a mock diffed against yesterday's rotated mock)
+  // would fabricate a travel event. Not persisting mock keeps the last real
+  // anchor intact so travel detection stays live↔live (no-fabrication).
+  if (source === 'live') {
+    await writeLastAnchor(anchorFromInputs(inputs, observedAt));
+  }
 
   cachedSnapshot = snapshot;
   cachedAt = now;
