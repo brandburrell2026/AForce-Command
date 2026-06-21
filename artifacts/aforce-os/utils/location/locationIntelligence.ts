@@ -169,9 +169,35 @@ export const AIR_QUALITY_ADDER_OZ: Record<AirQualityBand, number> = {
 };
 
 /**
+ * Heat additive (oz/day) — the dominant evaporative driver. Mild / cold
+ * conditions add nothing; warmer air raises sweat loss progressively.
+ */
+export const HEAT_ADDER_OZ: Record<HeatBand, number> = {
+  cold: 0,
+  mild: 0,
+  warm: 2,
+  hot: 5,
+  extreme: 8,
+};
+
+/**
+ * Humidity additive (oz/day) — modest. High humidity impairs sweat
+ * evaporation (raising effective heat strain) and very dry air raises
+ * insensible loss; comfortable / merely-dry air adds nothing.
+ */
+export const HUMIDITY_ADDER_OZ: Record<HumidityBand, number> = {
+  very_dry: 1,
+  dry: 0,
+  comfortable: 0,
+  humid: 1,
+  oppressive: 2,
+};
+
+/**
  * Combined location adder cap. A location can raise — but never
- * dominate — the daily target. Altitude, UV, and (modestly) air quality
- * all contribute; heat/humidity is handled by the demand engine's own ramp.
+ * dominate — the daily target. Altitude, UV, air quality, heat, and
+ * humidity all contribute additively, then the sum is clamped here so no
+ * single environment can run away with the recommended target.
  */
 export const LOCATION_DEMAND_CAP_OZ = 14;
 
@@ -258,15 +284,19 @@ export function haversineKm(
 }
 
 /**
- * Pure, capped, additive location demand adder (oz). Altitude + UV + a
- * modest air-quality bump; heat/humidity is handled elsewhere (by the demand
- * engine's own ramp). Always >= 0, never subtracts, never exceeds the cap.
+ * Pure, capped, additive location demand adder (oz). Sums every
+ * environmental driver — altitude + UV + air quality + heat + humidity —
+ * so the one value the Home display reads reflects all of them. Mild
+ * conditions contribute nothing. Always >= 0, never subtracts, never
+ * exceeds the cap.
  */
 export function calculateLocationDemandAdderOz(bands: LocationBands): number {
   const altitude = bands.altitude ? ALTITUDE_ADDER_OZ[bands.altitude] : 0;
   const uv = bands.uv ? UV_ADDER_OZ[bands.uv] : 0;
   const air = bands.airQuality ? AIR_QUALITY_ADDER_OZ[bands.airQuality] : 0;
-  return clamp(altitude + uv + air, 0, LOCATION_DEMAND_CAP_OZ);
+  const heat = bands.heat ? HEAT_ADDER_OZ[bands.heat] : 0;
+  const humidity = bands.humidity ? HUMIDITY_ADDER_OZ[bands.humidity] : 0;
+  return clamp(altitude + uv + air + heat + humidity, 0, LOCATION_DEMAND_CAP_OZ);
 }
 
 function pickNoteKey(

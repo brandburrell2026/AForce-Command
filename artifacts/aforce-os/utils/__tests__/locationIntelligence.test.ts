@@ -123,12 +123,39 @@ describe('calculateLocationDemandAdderOz', () => {
     ).toBe(0);
   });
 
-  it('the air-quality bump still respects the combined cap', () => {
+  it('hotter / more humid conditions raise the target; mild conditions do not', () => {
+    const hotHumid = calculateLocationDemandAdderOz({
+      ...NO_BANDS,
+      heat: 'hot',
+      humidity: 'humid',
+    });
+    expect(hotHumid).toBeGreaterThan(0);
+    // Extreme heat + oppressive humidity raises it further still.
+    expect(
+      calculateLocationDemandAdderOz({
+        ...NO_BANDS,
+        heat: 'extreme',
+        humidity: 'oppressive',
+      }),
+    ).toBeGreaterThan(hotHumid);
+    // Mild + comfortable conditions add nothing.
+    expect(
+      calculateLocationDemandAdderOz({
+        ...NO_BANDS,
+        heat: 'mild',
+        humidity: 'comfortable',
+      }),
+    ).toBe(0);
+  });
+
+  it('the combined adder still respects the cap across every driver', () => {
     const maxed = calculateLocationDemandAdderOz({
       ...NO_BANDS,
       altitude: 'very_high',
       uv: 'extreme',
       airQuality: 'hazardous',
+      heat: 'extreme',
+      humidity: 'oppressive',
     });
     expect(maxed).toBe(LOCATION_DEMAND_CAP_OZ);
   });
@@ -179,6 +206,19 @@ describe('deriveLocationContext', () => {
     expect(ctx.routes.brainEnergy).toBe(true);
     expect(ctx.routes.hydrationDemand).toBe(true);
     expect(ctx.noteKey).toBe('air');
+  });
+
+  it('hot + humid conditions raise demand and surface the heat note', () => {
+    const ctx = deriveLocationContext({
+      ...EMPTY_INPUTS,
+      temperatureC: 32,
+      humidityPct: 70,
+    });
+    expect(ctx.bands.heat).toBe('hot');
+    expect(ctx.bands.humidity).toBe('humid');
+    expect(ctx.environmentalAdderOz).toBe(6);
+    expect(ctx.routes.hydrationDemand).toBe(true);
+    expect(ctx.noteKey).toBe('heat_humid');
   });
 
   it('extreme UV adds water and surfaces the uv note', () => {
