@@ -29,6 +29,11 @@ import {
   RetentionGatesSchema,
   type RetentionGatesRaw,
 } from "../lib/retentionGates";
+import {
+  buildActivationFunnel,
+  ActivationFunnelSchema,
+  type ActivationFunnelRow,
+} from "../lib/activationFunnel";
 import { logger } from "../lib/logger";
 
 const router: IRouter = Router();
@@ -51,6 +56,30 @@ function numOrNull(v: unknown): number | null {
   if (v == null) return null;
   const x = typeof v === "number" ? v : Number(v);
   return Number.isFinite(x) ? x : null;
+}
+
+/** Coerce a PG timestamp (Date or ISO string) into an ISO string, or null. */
+function isoOrNull(v: unknown): string | null {
+  if (v == null) return null;
+  if (v instanceof Date) return v.toISOString();
+  if (typeof v === "string") return v;
+  return null;
+}
+
+/** Coerce a PG jsonb cell (object, or JSON string) into a plain object, or null. */
+function payloadOrNull(v: unknown): Record<string, unknown> | null {
+  if (v == null) return null;
+  if (typeof v === "string") {
+    try {
+      const parsed = JSON.parse(v);
+      return parsed && typeof parsed === "object"
+        ? (parsed as Record<string, unknown>)
+        : null;
+    } catch {
+      return null;
+    }
+  }
+  return typeof v === "object" ? (v as Record<string, unknown>) : null;
 }
 
 router.get(
@@ -189,14 +218,17 @@ router.get(
     try {
       const [gate1Res, gate2Res, gate5Res, retentionRes] = await Promise.all([
         // Gate 1 — App Open → Profile Complete (first profile at/after first open).
+        // Event-vocabulary mapping: the owner/activation-core funnel "Profile
+        // Complete" stage is recorded by the analytics-contract event
+        // `onboarding_completed` (the onboarding wizard captures the profile).
         db.execute(sql`
           WITH firsts AS (
             SELECT
               analytics_id,
               min(occurred_at) FILTER (WHERE event_type = 'app_opened') AS app_open,
-              min(occurred_at) FILTER (WHERE event_type = 'profile_completed') AS profile
+              min(occurred_at) FILTER (WHERE event_type = 'onboarding_completed') AS profile
             FROM aforce_analytics_events
-            WHERE event_type IN ('app_opened', 'profile_completed')
+            WHERE event_type IN ('app_opened', 'onboarding_completed')
             GROUP BY analytics_id
           )
           SELECT
@@ -209,14 +241,16 @@ router.get(
           FROM firsts
         `),
         // Gate 2 — Profile Complete → First Command, median seconds.
+        // Vocabulary mapping: "Profile Complete" = `onboarding_completed`;
+        // "First Command" = the FIRST `command_followed` (min occurred_at).
         db.execute(sql`
           WITH m AS (
             SELECT
               analytics_id,
-              min(occurred_at) FILTER (WHERE event_type = 'profile_completed') AS profile,
-              min(occurred_at) FILTER (WHERE event_type = 'first_command_completed') AS cmd
+              min(occurred_at) FILTER (WHERE event_type = 'onboarding_completed') AS profile,
+              min(occurred_at) FILTER (WHERE event_type = 'command_followed') AS cmd
             FROM aforce_analytics_events
-            WHERE event_type IN ('profile_completed', 'first_command_completed')
+            WHERE event_type IN ('onboarding_completed', 'command_followed')
             GROUP BY analytics_id
           ), d AS (
             SELECT extract(epoch FROM (cmd - profile)) AS secs
@@ -228,15 +262,19 @@ router.get(
             (percentile_cont(0.5) WITHIN GROUP (ORDER BY secs))::float8 AS median_seconds
           FROM d
         `),
-        // Gate 5 — QR Scan → Activated (activation = first_command_completed).
+        // Gate 5 — QR Scan → Activated. Activation = first `command_followed`.
+        // `qr_scanned` is the ACQUISITION QR event (a QR on a purchased can /
+        // marketing deep-link), distinct from the in-app HydroScan product scan
+        // (`receipt_scanned`). It is instrumented in the deep-link observer; until
+        // an acquisition QR is scanned, this gate has an empty cohort → awaiting.
         db.execute(sql`
           WITH firsts AS (
             SELECT
               analytics_id,
               min(occurred_at) FILTER (WHERE event_type = 'qr_scanned') AS qr,
-              min(occurred_at) FILTER (WHERE event_type = 'first_command_completed') AS activated
+              min(occurred_at) FILTER (WHERE event_type = 'command_followed') AS activated
             FROM aforce_analytics_events
-            WHERE event_type IN ('qr_scanned', 'first_command_completed')
+            WHERE event_type IN ('qr_scanned', 'command_followed')
             GROUP BY analytics_id
           )
           SELECT
@@ -306,6 +344,74 @@ router.get(
       return res
         .status(500)
         .json({ error: "command_center_retention_gates_failed" });
+    }
+  },
+);
+
+/**
+ * ACTIVATION FUNNEL — the owner's QR-acquisition funnel, segmented by
+ * attribution (SKU / retail location / geography / campaign).
+ *
+ * Distinct from the single-number Gate 5 above: this is the full
+ * "track every step by SKU / retail / geo" view. We pull one
+ * PSEUDONYMOUS row per identity (earliest funnel-milestone timestamps +
+ * the attribution payload from its first `qr_scanned`), then run the
+ * pure, unit-tested `@workspace/activation-core` funnel engine
+ * in-process. The per-identity rows never leave the server (never joined
+ * to users / subscriptions); only aggregate stage counts + conversion
+ * rates are returned. No-fabrication: an empty cohort reports `awaiting`
+ * + null rate, and un-instrumented funnel stages are flagged
+ * `instrumented: false` rather than a fake "0 reached".
+ *
+ * Event → milestone mapping: qr_scanned→qr_scanned, app_opened→app_opened,
+ * onboarding_completed→profile_completed, command_followed→
+ * first_command_completed, subscription_started→subscription_started.
+ */
+router.get(
+  "/admin/command-center/activation-funnel",
+  requireFounder,
+  async (req, res) => {
+    try {
+      const result = await db.execute(sql`
+        SELECT
+          min(occurred_at) FILTER (WHERE event_type = 'qr_scanned') AS qr_scanned,
+          min(occurred_at) FILTER (WHERE event_type = 'app_opened') AS app_opened,
+          min(occurred_at) FILTER (WHERE event_type = 'onboarding_completed') AS profile_completed,
+          min(occurred_at) FILTER (WHERE event_type = 'command_followed') AS first_command_completed,
+          min(occurred_at) FILTER (WHERE event_type = 'subscription_started') AS subscription_started,
+          (array_agg(payload ORDER BY occurred_at)
+            FILTER (WHERE event_type = 'qr_scanned'))[1] AS qr_payload
+        FROM aforce_analytics_events
+        WHERE event_type IN (
+          'qr_scanned', 'app_opened', 'onboarding_completed',
+          'command_followed', 'subscription_started'
+        )
+        GROUP BY analytics_id
+      `);
+
+      const rows = ((result as { rows?: Row[] }).rows ?? []).map(
+        (r): ActivationFunnelRow => ({
+          qrScanned: isoOrNull(r["qr_scanned"]),
+          appOpened: isoOrNull(r["app_opened"]),
+          profileCompleted: isoOrNull(r["profile_completed"]),
+          firstCommandCompleted: isoOrNull(r["first_command_completed"]),
+          subscriptionStarted: isoOrNull(r["subscription_started"]),
+          qrPayload: payloadOrNull(r["qr_payload"]),
+        }),
+      );
+
+      const dto = ActivationFunnelSchema.parse(
+        buildActivationFunnel(rows, new Date().toISOString()),
+      );
+      return res.json(dto);
+    } catch (err) {
+      logger.error(
+        { err },
+        "GET /admin/command-center/activation-funnel failed",
+      );
+      return res
+        .status(500)
+        .json({ error: "command_center_activation_funnel_failed" });
     }
   },
 );

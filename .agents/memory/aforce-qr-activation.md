@@ -1,21 +1,27 @@
 ---
-name: AForce QR activation funnel (pure foundation)
-description: Day-1 pure activation engine — deep-link trust rules + conversion-chronology rule, and the Phase-2 boundary that needs owner sign-off.
+name: AForce QR activation funnel (end-to-end)
+description: Activation tracking now spans mobile emission → server aggregation → founder Command Center panel; deep-link trust rules, conversion chronology, and the pseudonymity-aggregation rule.
 ---
 
-# QR Activation funnel — pure foundation
+# QR Activation funnel — end-to-end
 
-Day-1 shipped a PURE, headless, deterministic engine only, now extracted to the
-shared lib **`lib/activation-core/`** (`src/attribution.ts` + `src/funnel.ts`,
-tested in `src/__tests__/`) — NOT the old `utils/activation/` path. The server-side
-funnel surfaces only as Command Center retention gate **G5 (QR Scan → Activated)**
-in `api-server/.../retentionGates.ts`, which "awaits qr_scanned + activation events"
-(analytics-events stream empty). So end-to-end TRACKING is PARTIAL: pure math +
-server gate exist, but no event-emission pipeline yet. App-boot wiring + new
-analytics event types + server/DB aggregation are an explicitly-deferred **Phase 2**
-that requires owner sign-off ("Ask before major changes"). Flag OFF byte-identical;
-nothing mutates score (Score-Protection). QR capture UI = `CameraScanModal.tsx`
-(barcode/QR, framed for hydration-product scanning).
+The deterministic core lives in the shared lib **`lib/activation-core/`**
+(`src/attribution.ts` + `src/funnel.ts`, tested in `src/__tests__/`) — NOT the old
+`utils/activation/` path. Tracking is now WIRED END-TO-END (the old "pure-only,
+Phase-2 deferred" note is obsolete):
+- **Mobile (aforce-os):** emits `qr_scanned` + the rest of the contract events via a
+  consent-gated, dedupe-safe activation pipeline driven by a deep-link observer.
+- **Server (api-server):** `lib/activationFunnel.ts` (`buildActivationFunnel` + Zod
+  `ActivationFunnelSchema`) reuses the activation-core engine; surfaced behind the
+  founder-gated route `GET /api/admin/command-center/activation-funnel` plus the
+  legacy retention gate **G5 (QR Scan → Activated)**.
+- **Command Center (web):** the **Activation** panel (`/activation`) hand-mirrors the
+  server DTO (local fetch client, never the consumer api-client).
+
+`INSTRUMENTED_STAGES` flags which owner stages have a real event behind them;
+un-instrumented stages stay visible but read "not instrumented", never a fabricated 0.
+Flag OFF byte-identical; nothing mutates score (Score-Protection). QR capture UI =
+`CameraScanModal.tsx` (barcode/QR, framed for hydration-product scanning).
 
 ## Durable rules (keep future work consistent)
 
@@ -40,6 +46,14 @@ nothing mutates score (Score-Protection). QR capture UI = `CameraScanModal.tsx`
   (i.e. `to >= from`; simultaneous delta-0 counts). **Why:** out-of-order / clock-skewed
   milestones otherwise inflate headline rates (Scan→Install, Install→Activation,
   Activation→Subscription).
+
+- **Founder analytics queries are aggregate-only + pseudonymous.** The funnel SQL may
+  `GROUP BY analytics_id` but must NEVER `SELECT` it or join user/subscription PII —
+  return only counts/rates/coarse attribution (sku/retailLocationId/geo/campaign).
+  **Why:** analytics is keyed by pseudonymous `anon_...` ids; surfacing the id (or PII)
+  in a reporting payload breaks the pseudonymity lock even inside the founder cockpit.
+  **How to apply:** any new Command Center analytics route mirrors this — aggregate in
+  SQL, hand rows to a pure builder, never ship per-identity rows to the client.
 
 ## Semantics worth remembering
 - "Activation" = **First Command Completed** (start of the habit loop), not install.

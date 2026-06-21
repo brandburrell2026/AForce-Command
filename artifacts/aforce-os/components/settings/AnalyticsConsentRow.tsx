@@ -33,6 +33,7 @@ import {
   deleteMyData,
 } from '@/analytics/privacy_manager';
 import { emit, clearOutbox } from '@/analytics/event_dispatcher';
+import { flushPendingActivation } from '@/analytics/activation_tracker';
 
 export function AnalyticsConsentRow() {
   const [granted, setGranted] = React.useState(false);
@@ -56,6 +57,8 @@ export function AnalyticsConsentRow() {
         setGranted(true);
         // First event after opt-in. Best-effort; consent is already saved.
         void emit('consent_granted', { consentVersion: CONSENT_VERSION });
+        // Flush any acquisition QR scan that was buffered awaiting consent.
+        void flushPendingActivation();
       } else {
         await revokeConsent();
         setGranted(false);

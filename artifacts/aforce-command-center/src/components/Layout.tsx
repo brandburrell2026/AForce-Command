@@ -5,6 +5,7 @@ import {
   BarChart2, 
   Box, 
   Cpu, 
+  Filter,
   ShieldCheck, 
   Users,
   LogOut,
@@ -24,6 +25,7 @@ export function Layout({ children, basePath }: LayoutProps) {
   const navItems = [
     { label: "Executive", href: "/executive", icon: Activity },
     { label: "Product", href: "/product", icon: Box },
+    { label: "Activation", href: "/activation", icon: Filter },
     { label: "AI", href: "/ai", icon: Cpu },
     { label: "Marketing", href: "/marketing", icon: BarChart2 },
     { label: "Board", href: "/board", icon: Users },

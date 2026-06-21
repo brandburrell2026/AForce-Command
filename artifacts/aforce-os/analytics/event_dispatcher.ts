@@ -102,16 +102,22 @@ export async function flush(): Promise<void> {
 /**
  * Emit one analytics event. No-op (and sends nothing) until consent is
  * granted. Fire-and-forget: callers should not await the network.
+ *
+ * `occurredAt` lets a caller stamp the event with the real time the
+ * behavior happened rather than now — used when a scan is buffered
+ * on-device and only flushed once consent exists, so funnel chronology
+ * (e.g. qr_scanned before app_opened) stays honest. Defaults to now.
  */
 export async function emit(
   eventType: AnalyticsEventType,
   payload?: Record<string, unknown>,
+  occurredAt?: string,
 ): Promise<void> {
   if (!(await isConsentGranted())) return;
   const analyticsId = await getAnalyticsId();
   if (!analyticsId) return;
 
-  const envelope = createEnvelope(eventType, analyticsId, payload);
+  const envelope = createEnvelope(eventType, analyticsId, payload, occurredAt);
   await enqueue(async () => {
     const outbox = await readOutbox();
     await writeOutbox([...outbox, envelope]);

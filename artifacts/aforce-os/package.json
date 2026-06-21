@@ -75,6 +75,7 @@
     "@expo-google-fonts/bebas-neue": "^0.4.1",
     "@expo-google-fonts/dm-sans": "^0.4.2",
     "@kingstinct/react-native-healthkit": "^14.0.0",
+    "@workspace/activation-core": "workspace:*",
     "expo-audio": "~1.1.1",
     "expo-camera": "~17.0.10",
     "expo-document-picker": "^55.0.13",

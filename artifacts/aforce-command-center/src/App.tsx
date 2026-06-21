@@ -10,6 +10,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import Home from "@/pages/Home";
 import ExecutiveDashboard from "@/pages/ExecutiveDashboard";
 import ProductDashboard from "@/pages/ProductDashboard";
+import ActivationDashboard from "@/pages/ActivationDashboard";
 import PlaceholderDashboard from "@/pages/PlaceholderDashboard";
 import { Layout } from "@/components/Layout";
 
@@ -190,6 +191,9 @@ function ClerkProviderWithRoutes() {
             </Route>
             <Route path="/product">
               {() => <ProtectedRoute component={ProductDashboard} />}
+            </Route>
+            <Route path="/activation">
+              {() => <ProtectedRoute component={ActivationDashboard} />}
             </Route>
             <Route path="/ai">
               {() => <ProtectedRoute component={PlaceholderDashboard} title="AI" />}

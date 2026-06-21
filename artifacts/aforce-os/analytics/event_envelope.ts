@@ -31,11 +31,13 @@ export function createEnvelope(
   eventType: AnalyticsEventType,
   analyticsId: string,
   payload?: Record<string, unknown>,
+  occurredAt?: string,
 ): AnalyticsEventEnvelope {
   return assembleEnvelope({
     eventId: newId("evt"),
     eventType,
     analyticsId,
     payload,
+    occurredAt,
   });
 }

@@ -23,6 +23,7 @@ import { Text, View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router, usePathname } from 'expo-router';
 
+import { ActivationDeepLinkObserver } from '@/components/ActivationDeepLinkObserver';
 import { ClerkAuthBridge } from '@/components/ClerkAuthBridge';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { InvestorDemoOverlay } from '@/components/investorDemo/InvestorDemoOverlay';
@@ -279,6 +280,8 @@ function AppShell() {
                   {/* Mounted *inside* AppProvider so the entitlement
                       hook can call useAppStore() safely. */}
                   <ClerkAuthBridge />
+                  {/* Records acquisition QR / activation deep-links; no routing. */}
+                  <ActivationDeepLinkObserver />
                   <RootLayoutNav />
                   <SplashGate />
                   <InvestorDemoMount />

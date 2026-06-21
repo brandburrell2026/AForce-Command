@@ -215,3 +215,79 @@ export function hasAttribution(a: ActivationAttribution): boolean {
     a.qrId != null
   );
 }
+
+/**
+ * The canonical `qr_scanned` event payload: the attribution dimensions
+ * that are PRESENT, with nulls dropped so the payload stays compact.
+ * SHARED by the mobile emitter (what it sends) and the server funnel
+ * reader (what it parses back), so the qr_scanned payload shape has a
+ * single source of truth. Descriptive metadata only — never PII, never
+ * score (Score-Protection).
+ */
+export function activationEventPayload(
+  a: ActivationAttribution,
+): Record<string, string> {
+  const payload: Record<string, string> = {};
+  if (a.sku != null) payload['sku'] = a.sku;
+  if (a.retailLocationId != null) payload['retailLocationId'] = a.retailLocationId;
+  if (a.geo != null) payload['geo'] = a.geo;
+  if (a.campaign != null) payload['campaign'] = a.campaign;
+  if (a.qrId != null) payload['qrId'] = a.qrId;
+  return payload;
+}
+
+/**
+ * Rebuild attribution from a stored `qr_scanned` payload (server side).
+ * The inverse of `activationEventPayload`. Every field is RE-VALIDATED
+ * through the same sanitizers, so a tampered or malformed stored payload
+ * can never inject an unsafe value (precise GPS, illegal token, etc.).
+ */
+export function attributionFromPayload(
+  payload: Record<string, unknown>,
+): ActivationAttribution {
+  const str = (v: unknown): string | null => (typeof v === 'string' ? v : null);
+  const sku = str(payload['sku']);
+  const loc = str(payload['retailLocationId']);
+  const geo = str(payload['geo']);
+  const campaign = str(payload['campaign']);
+  const qrId = str(payload['qrId']);
+  return {
+    sku: sku != null ? sanitizeToken(sku) : null,
+    retailLocationId: loc != null ? sanitizeToken(loc) : null,
+    geo: geo != null ? sanitizeGeo(geo) : null,
+    campaign: campaign != null ? sanitizeToken(campaign) : null,
+    qrId: qrId != null ? sanitizeToken(qrId) : null,
+  };
+}
+
+/** Deterministic, dependency-free string hash (djb2) in base-36. */
+function djb2Base36(s: string): string {
+  let h = 5381;
+  for (let i = 0; i < s.length; i += 1) {
+    // h * 33 + charCode, folded back into an unsigned 32-bit int.
+    h = ((h << 5) + h + s.charCodeAt(i)) >>> 0;
+  }
+  return h.toString(36);
+}
+
+/** Lower-case + drop any `#fragment` so case / fragment variants of the
+ *  same link collapse to one dedupe key. */
+function normalizeActivationUrl(url: string): string {
+  const hashIndex = url.indexOf('#');
+  const base = hashIndex >= 0 ? url.slice(0, hashIndex) : url;
+  return base.trim().toLowerCase();
+}
+
+/**
+ * A STABLE dedupe key for a scanned activation link so a single physical
+ * QR is counted once, even across reinstalls / relaunches. Prefers the
+ * per-QR id (`qr_<id>`); when the link carries none, falls back to a
+ * deterministic hash of the normalized URL (`url_<hash>`). Pure.
+ */
+export function activationDedupeKey(
+  a: ActivationAttribution,
+  url: string,
+): string {
+  if (a.qrId != null && a.qrId.length > 0) return `qr_${a.qrId}`;
+  return `url_${djb2Base36(normalizeActivationUrl(url))}`;
+}

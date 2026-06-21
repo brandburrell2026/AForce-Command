@@ -13,11 +13,13 @@
  * Score-Protection / honesty: this helper only TURNS already-aggregated
  * scalar counts into a gate scorecard. A gate whose denominator (cohort /
  * entered set) is empty is `awaiting` — it shows its target and an
- * explicit awaiting note, never a fabricated 0%. Activation events are not
- * instrumented in Phase 1, so every gate reads `awaiting` until the event
- * pipeline lands; the SQL behind it is correct and lights up automatically
- * once events flow. The route does the aggregation (aggregate-only, no
- * PII); this module is pure + unit-tested.
+ * explicit awaiting note, never a fabricated 0%. Gates 1–4 read live
+ * analytics-contract events (`app_opened`, `onboarding_completed`,
+ * `command_followed`, and lifetime activity) and light up as soon as a
+ * cohort exists. Gate 5 additionally needs the ACQUISITION `qr_scanned`
+ * event (a QR on a purchased can / marketing deep-link), so it stays
+ * `awaiting` until an acquisition QR is scanned. The route does the
+ * aggregation (aggregate-only, no PII); this module is pure + unit-tested.
  */
 
 import { z } from "zod";
@@ -64,7 +66,7 @@ export const RETENTION_GATE_DEFS: readonly GateDef[] = [
     kind: "rate",
     target: { comparator: "gte", value: 0.8, display: "80%+" },
     awaitingNote:
-      "Lights up once app_opened and profile_completed events are instrumented.",
+      "Share of identities that completed onboarding after first app open; awaits a cohort.",
   },
   {
     id: "profileToFirstCommand",
@@ -75,7 +77,7 @@ export const RETENTION_GATE_DEFS: readonly GateDef[] = [
     kind: "duration",
     target: { comparator: "lte", value: 60, display: "Under 60s" },
     awaitingNote:
-      "Median time from profile_completed to first_command_completed; awaits both events.",
+      "Median time from onboarding_completed to first command_followed; awaits both events.",
   },
   {
     id: "d1ToD7",
@@ -108,7 +110,7 @@ export const RETENTION_GATE_DEFS: readonly GateDef[] = [
     kind: "rate",
     target: { comparator: "gte", value: 0.5, display: "50%+" },
     awaitingNote:
-      "Activation = first_command_completed; awaits qr_scanned + activation events.",
+      "Activation = first command_followed; awaits the acquisition qr_scanned event.",
   },
 ];
 

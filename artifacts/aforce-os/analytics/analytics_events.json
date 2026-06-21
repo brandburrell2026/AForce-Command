@@ -14,6 +14,7 @@
     { "eventType": "command_followed", "owner": "mobile", "trigger": "User follows the coach command / recommendation", "payloadFields": ["commandId"] },
     { "eventType": "impact_shown", "owner": "mobile", "trigger": "An impact / explainability surface is shown", "payloadFields": ["impactKey"] },
     { "eventType": "orb_state_changed", "owner": "mobile", "trigger": "The orb transitions performance state", "payloadFields": ["from", "to"] },
+    { "eventType": "qr_scanned", "owner": "mobile", "trigger": "Acquisition QR / activation deep-link opened (printed on a can or in a marketing link); distinct from the in-app HydroScan receipt_scanned", "payloadFields": ["sku", "retailLocationId", "geo", "campaign", "qrId"] },
     { "eventType": "receipt_scanned", "owner": "mobile", "trigger": "A product barcode / receipt is scanned (HydroScan)", "payloadFields": ["sourceKind"] },
     { "eventType": "receipt_verified", "owner": "backend", "trigger": "Server verifies a scanned receipt / product", "payloadFields": ["verdict"] },
     { "eventType": "receipt_activated", "owner": "backend", "trigger": "A verified receipt is activated / credited", "payloadFields": [] },
