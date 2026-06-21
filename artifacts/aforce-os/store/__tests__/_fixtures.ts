@@ -108,6 +108,7 @@ export const baseFlags: FeatureFlags = {
   performance_age_enabled: false,
   metabolic_glucose_enabled: false,
   voice_checkin_enabled: false,
+  intent_capture_enabled: false,
   cruise_mode_enabled: false,
   cruise_journey_pulse_enabled: false,
   cruise_commerce_enabled: false,

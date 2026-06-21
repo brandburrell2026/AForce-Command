@@ -49,6 +49,14 @@ import {
   type CheckInGoalId,
   type VoiceCheckInAnswers,
 } from '@/utils/voiceCheckIn';
+import {
+  INTENT_IDS,
+  coachingPostureForIntent,
+  type CoachingToneKey,
+  type IntentId,
+} from '@/utils/intentCapture';
+import { useIntentCapture } from '@/hooks/useIntentCapture';
+import { useFlagsSlice } from '@/store/slices';
 
 const BG = '#000000';
 const WHITE = Colors.text.primary;
@@ -63,8 +71,77 @@ const FONT_MEDIUM = 'Inter_500Medium';
 
 const EASE = Easing.inOut(Easing.ease);
 
-type Step = 'energy' | 'stress' | 'goal' | 'closing';
+type Step = 'energy' | 'stress' | 'goal' | 'intent' | 'closing';
 const SCALE_VALUES = [1, 2, 3, 4, 5] as const;
+
+/**
+ * Tone-aware closing copy. Every variant LEADS with the Water-First line
+ * ("HYDRATE NOW — start with water") before anything tone-specific. The
+ * `neutral` keys are the original copy, used whenever Intent Capture is off or
+ * no intent was selected — so the flow is byte-identical when the flag is off.
+ */
+const CLOSING_COPY: Record<
+  CoachingToneKey,
+  { spokenKey: string; spokenDefault: string; bodyKey: string; bodyDefault: string }
+> = {
+  neutral: {
+    spokenKey: 'voiceCheckIn.closing_spoken',
+    spokenDefault:
+      'Hydrate now. Start with water. Your {{goal}} plan is locked. Let’s perform.',
+    bodyKey: 'voiceCheckIn.closing_body',
+    bodyDefault:
+      'HYDRATE NOW — start with water. {{coach}} has your {{goal}} plan ready.',
+  },
+  ready: {
+    spokenKey: 'voiceCheckIn.closing_spoken_ready',
+    spokenDefault:
+      'Hydrate now. Start with water. You’re ready — we push today. Lock in.',
+    bodyKey: 'voiceCheckIn.closing_body_ready',
+    bodyDefault:
+      'HYDRATE NOW — start with water. You’re ready — {{coach}} is pushing the pace today.',
+  },
+  recovering: {
+    spokenKey: 'voiceCheckIn.closing_spoken_recovering',
+    spokenDefault:
+      'Hydrate now. Start with water. We keep it steady and controlled today.',
+    bodyKey: 'voiceCheckIn.closing_body_recovering',
+    bodyDefault:
+      'HYDRATE NOW — start with water. {{coach}} keeps today steady — controlled and consistent.',
+  },
+  notToday: {
+    spokenKey: 'voiceCheckIn.closing_spoken_notToday',
+    spokenDefault:
+      'Hydrate now. Start with water. Today we protect and recover. No pressure.',
+    bodyKey: 'voiceCheckIn.closing_body_notToday',
+    bodyDefault:
+      'HYDRATE NOW — start with water. {{coach}} keeps it light today — protect and recover.',
+  },
+};
+
+/** Intent option labels + sublabels (i18n keys with English defaults). */
+const INTENT_OPTIONS: Record<
+  IntentId,
+  { labelKey: string; labelDefault: string; subKey: string; subDefault: string }
+> = {
+  ready: {
+    labelKey: 'voiceCheckIn.intent.ready_label',
+    labelDefault: 'Ready',
+    subKey: 'voiceCheckIn.intent.ready_sub',
+    subDefault: 'Full intensity — let’s push.',
+  },
+  recovering: {
+    labelKey: 'voiceCheckIn.intent.recovering_label',
+    labelDefault: 'Recovering',
+    subKey: 'voiceCheckIn.intent.recovering_sub',
+    subDefault: 'Steady and controlled.',
+  },
+  notToday: {
+    labelKey: 'voiceCheckIn.intent.notToday_label',
+    labelDefault: 'Not Today',
+    subKey: 'voiceCheckIn.intent.notToday_sub',
+    subDefault: 'Protect and recover.',
+  },
+};
 
 interface Props {
   /** Records today's answers (persistence service). Does NOT close. */
@@ -115,6 +192,18 @@ export function VoiceCheckInOverlay({ onComplete, onSnooze, onClose }: Props) {
   const [energy, setEnergy] = React.useState<number | null>(null);
   const [stress, setStress] = React.useState<number | null>(null);
   const [goal, setGoal] = React.useState<CheckInGoalId | null>(null);
+  const [intent, setIntent] = React.useState<IntentId | null>(null);
+
+  const flags = useFlagsSlice();
+  const intentEnabled = flags.intent_capture_enabled;
+  const { record: recordIntent } = useIntentCapture();
+
+  // Tone-aware closing copy from the declared intent (neutral when none / flag
+  // off) — display + spoken only; coachingPostureForIntent never touches score.
+  const closingCopy = React.useMemo(
+    () => CLOSING_COPY[coachingPostureForIntent(intent).toneKey],
+    [intent],
+  );
 
   const finishedRef = React.useRef(false);
   // Speak each phrase at most once per step entry (never on bare re-render).
@@ -176,6 +265,15 @@ export function VoiceCheckInOverlay({ onComplete, onSnooze, onClose }: Props) {
         }),
         'checkin.q_goal',
       );
+    } else if (step === 'intent') {
+      speakOnce(
+        'q_intent',
+        t('voiceCheckIn.intent.q_spoken', {
+          defaultValue:
+            'How are you showing up today? Ready, recovering, or not today?',
+        }),
+        'checkin.q_intent',
+      );
     }
   }, [step, speakOnce, t]);
 
@@ -202,6 +300,13 @@ export function VoiceCheckInOverlay({ onComplete, onSnooze, onClose }: Props) {
   const answerGoal = (g: CheckInGoalId) => {
     setGoal(g);
     haptic();
+    setStep(intentEnabled ? 'intent' : 'closing');
+  };
+  const answerIntent = (i: IntentId) => {
+    setIntent(i);
+    haptic();
+    // Persist to the dedicated intent store — no reducer dispatch, no score.
+    void recordIntent(i, 'voiceCheckIn');
     setStep('closing');
   };
 
@@ -231,14 +336,25 @@ export function VoiceCheckInOverlay({ onComplete, onSnooze, onClose }: Props) {
 
     speakOnce(
       'closing',
-      t('voiceCheckIn.closing_spoken', {
-        defaultValue:
-          'Hydrate now. Start with water. Your {{goal}} plan is locked. Let’s perform.',
+      t(closingCopy.spokenKey, {
+        defaultValue: closingCopy.spokenDefault,
         goal: goalLabel(goal).toLowerCase(),
+        coach: coachLabel,
       }),
       // No phraseKey → dynamic, live, never cached.
     );
-  }, [step, energy, stress, goal, onComplete, speakOnce, goalLabel, t]);
+  }, [
+    step,
+    energy,
+    stress,
+    goal,
+    onComplete,
+    speakOnce,
+    goalLabel,
+    t,
+    closingCopy,
+    coachLabel,
+  ]);
 
   const dismiss = React.useCallback(() => {
     stopSpeaking();
@@ -254,7 +370,17 @@ export function VoiceCheckInOverlay({ onComplete, onSnooze, onClose }: Props) {
     onClose();
   }, [onClose]);
 
-  const stepIndex = step === 'energy' ? 1 : step === 'stress' ? 2 : 3;
+  const totalSteps = intentEnabled ? 4 : 3;
+  const stepIndex =
+    step === 'energy'
+      ? 1
+      : step === 'stress'
+        ? 2
+        : step === 'goal'
+          ? 3
+          : step === 'intent'
+            ? 4
+            : totalSteps;
 
   return (
     <View style={styles.root} accessibilityViewIsModal>
@@ -284,7 +410,7 @@ export function VoiceCheckInOverlay({ onComplete, onSnooze, onClose }: Props) {
 
       {step !== 'closing' && (
         <View style={styles.progressRow}>
-          {[1, 2, 3].map((i) => (
+          {Array.from({ length: totalSteps }, (_, i) => i + 1).map((i) => (
             <View
               key={i}
               style={[styles.progressPip, i <= stepIndex && styles.progressPipOn]}
@@ -294,7 +420,7 @@ export function VoiceCheckInOverlay({ onComplete, onSnooze, onClose }: Props) {
             {t('voiceCheckIn.step', {
               defaultValue: '{{current}} of {{total}}',
               current: stepIndex,
-              total: 3,
+              total: totalSteps,
             })}
           </Text>
         </View>
@@ -356,6 +482,48 @@ export function VoiceCheckInOverlay({ onComplete, onSnooze, onClose }: Props) {
           </Fade>
         )}
 
+        {step === 'intent' && (
+          <Fade stepKey="intent">
+            <Text style={styles.qTitle}>
+              {t('voiceCheckIn.intent.title', {
+                defaultValue: 'How are you showing up today?',
+              })}
+            </Text>
+            <Text style={styles.qHint}>
+              {t('voiceCheckIn.intent.hint', {
+                defaultValue: 'This sets your coach’s tone — not your score.',
+              })}
+            </Text>
+            <View style={styles.intentGrid}>
+              {INTENT_IDS.map((i) => {
+                const opt = INTENT_OPTIONS[i];
+                return (
+                  <Pressable
+                    key={i}
+                    onPress={() => answerIntent(i)}
+                    style={({ pressed }) => [
+                      styles.intentChip,
+                      pressed && styles.intentChipPressed,
+                    ]}
+                    accessibilityRole="button"
+                    accessibilityLabel={t(opt.labelKey, {
+                      defaultValue: opt.labelDefault,
+                    })}
+                    testID={`voice-checkin-intent-${i}`}
+                  >
+                    <Text style={styles.intentChipLabel}>
+                      {t(opt.labelKey, { defaultValue: opt.labelDefault })}
+                    </Text>
+                    <Text style={styles.intentChipSub}>
+                      {t(opt.subKey, { defaultValue: opt.subDefault })}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </Fade>
+        )}
+
         {step === 'closing' && (
           <Fade stepKey="closing">
             <Text style={styles.closingEyebrow}>
@@ -363,9 +531,8 @@ export function VoiceCheckInOverlay({ onComplete, onSnooze, onClose }: Props) {
             </Text>
             <View style={styles.brandRule} />
             <Text style={styles.closingBody}>
-              {t('voiceCheckIn.closing_body', {
-                defaultValue:
-                  'HYDRATE NOW — start with water. {{coach}} has your {{goal}} plan ready.',
+              {t(closingCopy.bodyKey, {
+                defaultValue: closingCopy.bodyDefault,
                 coach: coachLabel,
                 goal: goal ? goalLabel(goal).toLowerCase() : '',
               })}
@@ -532,6 +699,32 @@ const styles = StyleSheet.create({
     fontSize: 17,
     letterSpacing: 0.5,
     color: WHITE,
+  },
+  intentGrid: {
+    marginTop: 30,
+    gap: 12,
+  },
+  intentChip: {
+    width: '100%',
+    paddingVertical: 18,
+    paddingHorizontal: 20,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.10)',
+    backgroundColor: 'rgba(255,255,255,0.03)',
+  },
+  intentChipPressed: { opacity: 0.7, borderColor: BRAND },
+  intentChipLabel: {
+    fontFamily: FONT_BOLD,
+    fontSize: 19,
+    letterSpacing: 0.3,
+    color: WHITE,
+  },
+  intentChipSub: {
+    fontFamily: FONT_MEDIUM,
+    fontSize: 13,
+    color: MUTED,
+    marginTop: 4,
   },
   closingEyebrow: {
     fontFamily: FONT_BOLD,

@@ -322,7 +322,24 @@
     "closing_spoken": "Trink jetzt. Beginne mit Wasser. Dein {{goal}}-Plan steht. Lass uns abliefern.",
     "closing_title": "KALIBRIERUNG FIXIERT",
     "closing_body": "JETZT TRINKEN — beginne mit Wasser. {{coach}} hat deinen {{goal}}-Plan bereit.",
+    "closing_spoken_ready": "Trink jetzt. Beginne mit Wasser. Du bist bereit — heute geben wir Gas. Bestätigen.",
+    "closing_spoken_recovering": "Trink jetzt. Beginne mit Wasser. Heute bleiben wir ruhig und kontrolliert.",
+    "closing_spoken_notToday": "Trink jetzt. Beginne mit Wasser. Heute schützen und erholen wir uns. Kein Druck.",
+    "closing_body_ready": "JETZT TRINKEN — beginne mit Wasser. Du bist bereit — {{coach}} erhöht heute das Tempo.",
+    "closing_body_recovering": "JETZT TRINKEN — beginne mit Wasser. {{coach}} hält den Tag ruhig und konstant.",
+    "closing_body_notToday": "JETZT TRINKEN — beginne mit Wasser. {{coach}} macht es heute locker: schützen und erholen.",
     "cta_done": "BESTÄTIGEN",
+    "intent": {
+      "title": "Wie startest du heute?",
+      "hint": "Das bestimmt den Ton deines Coaches — nicht deinen Score.",
+      "q_spoken": "Wie startest du heute? Bereit, in Erholung oder heute nicht?",
+      "ready_label": "Bereit",
+      "ready_sub": "Volle Intensität — wir geben Gas.",
+      "recovering_label": "In Erholung",
+      "recovering_sub": "Ruhig und kontrolliert.",
+      "notToday_label": "Heute nicht",
+      "notToday_sub": "Schützen und erholen."
+    },
     "brainEnergy": {
       "eyebrow": "MENTALE ENERGIE",
       "collecting": "Schließe deinen Morgen-Check-in ab, um deine Mentale Energie zu sehen."

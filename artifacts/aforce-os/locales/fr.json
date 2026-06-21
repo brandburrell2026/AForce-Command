@@ -322,7 +322,24 @@
     "closing_spoken": "Hydrate-toi maintenant. Commence par l'eau. Ton plan {{goal}} est verrouillé. À nous de performer.",
     "closing_title": "CALIBRAGE VERROUILLÉ",
     "closing_body": "HYDRATE-TOI MAINTENANT — commence par l'eau. {{coach}} a préparé ton plan {{goal}}.",
+    "closing_spoken_ready": "Hydrate-toi maintenant. Commence par l'eau. Tu es prêt — aujourd'hui on pousse. On verrouille.",
+    "closing_spoken_recovering": "Hydrate-toi maintenant. Commence par l'eau. Aujourd'hui on reste régulier et maîtrisé.",
+    "closing_spoken_notToday": "Hydrate-toi maintenant. Commence par l'eau. Aujourd'hui on protège et on récupère. Sans pression.",
+    "closing_body_ready": "HYDRATE-TOI MAINTENANT — commence par l'eau. Tu es prêt — {{coach}} accélère le rythme aujourd'hui.",
+    "closing_body_recovering": "HYDRATE-TOI MAINTENANT — commence par l'eau. {{coach}} garde la journée régulière et maîtrisée.",
+    "closing_body_notToday": "HYDRATE-TOI MAINTENANT — commence par l'eau. {{coach}} y va doucement aujourd'hui : protège et récupère.",
     "cta_done": "VERROUILLER",
+    "intent": {
+      "title": "Comment arrives-tu aujourd'hui ?",
+      "hint": "Cela règle le ton de ton coach, pas ton score.",
+      "q_spoken": "Comment arrives-tu aujourd'hui ? Prêt, en récupération ou pas aujourd'hui ?",
+      "ready_label": "Prêt",
+      "ready_sub": "Pleine intensité — on pousse.",
+      "recovering_label": "En récupération",
+      "recovering_sub": "Régulier et maîtrisé.",
+      "notToday_label": "Pas aujourd'hui",
+      "notToday_sub": "Protéger et récupérer."
+    },
     "brainEnergy": {
       "eyebrow": "ÉNERGIE MENTALE",
       "collecting": "Termine ton bilan du matin pour lire ton Énergie Mentale."

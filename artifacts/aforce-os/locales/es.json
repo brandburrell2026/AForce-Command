@@ -322,7 +322,24 @@
     "closing_spoken": "Hidrátate ahora. Empieza con agua. Tu plan de {{goal}} está fijado. Vamos a rendir.",
     "closing_title": "CALIBRACIÓN FIJADA",
     "closing_body": "HIDRÁTATE YA — empieza con agua. {{coach}} tiene tu plan de {{goal}} listo.",
+    "closing_spoken_ready": "Hidrátate ahora. Empieza con agua. Estás listo: hoy apretamos. A confirmar.",
+    "closing_spoken_recovering": "Hidrátate ahora. Empieza con agua. Hoy lo llevamos firme y controlado.",
+    "closing_spoken_notToday": "Hidrátate ahora. Empieza con agua. Hoy protegemos y recuperamos. Sin presión.",
+    "closing_body_ready": "HIDRÁTATE YA — empieza con agua. Estás listo: {{coach}} aprieta el ritmo hoy.",
+    "closing_body_recovering": "HIDRÁTATE YA — empieza con agua. {{coach}} mantiene hoy firme y constante.",
+    "closing_body_notToday": "HIDRÁTATE YA — empieza con agua. {{coach}} lo lleva suave hoy: protege y recupera.",
     "cta_done": "CONFIRMAR",
+    "intent": {
+      "title": "¿Cómo llegas hoy?",
+      "hint": "Esto ajusta el tono de tu coach, no tu puntuación.",
+      "q_spoken": "¿Cómo llegas hoy? ¿Listo, recuperando o no hoy?",
+      "ready_label": "Listo",
+      "ready_sub": "Máxima intensidad: a apretar.",
+      "recovering_label": "Recuperando",
+      "recovering_sub": "Firme y controlado.",
+      "notToday_label": "Hoy no",
+      "notToday_sub": "Proteger y recuperar."
+    },
     "brainEnergy": {
       "eyebrow": "ENERGÍA MENTAL",
       "collecting": "Completa tu chequeo matinal para ver tu Energía Mental."

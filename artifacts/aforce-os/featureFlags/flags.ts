@@ -40,6 +40,10 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   metabolic_glucose_enabled: false,
   performance_age_enabled: false,
   voice_checkin_enabled: false,
+  // Intent Capture™ — Ready / Recovering / Not Today after the Voice Check-In,
+  // adjusting coach tone/intensity (copy only). Ships OFF in prod, ON in DEMO.
+  // Score-Protection: never awards or mutates score.
+  intent_capture_enabled: false,
 
   // Enterprise — Cruise Mode (premium add-on). Per spec: master switch
   // is ON for internal builds, OFF for the public production binary.
@@ -161,6 +165,7 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
   metabolic_glucose_enabled: false,
   performance_age_enabled: true,
   voice_checkin_enabled: true,
+  intent_capture_enabled: true,
   cruise_mode_enabled: true,
   cruise_journey_pulse_enabled: true,
   cruise_commerce_enabled: true,

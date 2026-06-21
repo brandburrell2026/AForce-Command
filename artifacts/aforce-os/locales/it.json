@@ -322,7 +322,24 @@
     "closing_spoken": "Idratati ora. Inizia con l'acqua. Il tuo piano {{goal}} è fissato. Diamo il massimo.",
     "closing_title": "CALIBRAZIONE FISSATA",
     "closing_body": "IDRATATI ORA — inizia con l'acqua. {{coach}} ha pronto il tuo piano {{goal}}.",
+    "closing_spoken_ready": "Idratati ora. Inizia con l'acqua. Sei pronto — oggi spingiamo. Confermiamo.",
+    "closing_spoken_recovering": "Idratati ora. Inizia con l'acqua. Oggi restiamo costanti e controllati.",
+    "closing_spoken_notToday": "Idratati ora. Inizia con l'acqua. Oggi proteggiamo e recuperiamo. Senza pressione.",
+    "closing_body_ready": "IDRATATI ORA — inizia con l'acqua. Sei pronto — {{coach}} alza il ritmo oggi.",
+    "closing_body_recovering": "IDRATATI ORA — inizia con l'acqua. {{coach}} tiene la giornata costante e controllata.",
+    "closing_body_notToday": "IDRATATI ORA — inizia con l'acqua. {{coach}} va leggero oggi: proteggi e recupera.",
     "cta_done": "CONFERMA",
+    "intent": {
+      "title": "Come ti presenti oggi?",
+      "hint": "Questo regola il tono del tuo coach, non il tuo punteggio.",
+      "q_spoken": "Come ti presenti oggi? Pronto, in recupero o non oggi?",
+      "ready_label": "Pronto",
+      "ready_sub": "Massima intensità — spingiamo.",
+      "recovering_label": "In recupero",
+      "recovering_sub": "Costante e controllato.",
+      "notToday_label": "Non oggi",
+      "notToday_sub": "Proteggi e recupera."
+    },
     "brainEnergy": {
       "eyebrow": "ENERGIA MENTALE",
       "collecting": "Completa il check-in mattutino per leggere l'Energia Mentale."

@@ -508,6 +508,13 @@ export interface FeatureFlags {
   // captured answers — nothing here awards or mutates score.
   voice_checkin_enabled: boolean;
 
+  // Intent Capture™ — after the Voice Check-In the user declares Ready /
+  // Recovering / Not Today; the selection adjusts the coach's tone & intensity
+  // (display + spoken copy only). Ships OFF in prod (Build 100% · Show 10%);
+  // ON in the demo profile. Score-Protection: the captured intent only varies
+  // coaching copy — it never awards or mutates score.
+  intent_capture_enabled: boolean;
+
   // Enterprise — Cruise Mode (premium add-on for cruise lines & guests).
   // Master switch. Phase 1 public release lights up Journey Pulse,
   // Guest Readiness Signal, Today's Flow, and Port Signal. Phases 2/3

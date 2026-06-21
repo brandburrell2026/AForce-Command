@@ -390,7 +390,24 @@
     "closing_spoken": "Hydrate now. Start with water. Your {{goal}} plan is locked. Let's perform.",
     "closing_title": "CALIBRATION LOCKED",
     "closing_body": "HYDRATE NOW — start with water. {{coach}} has your {{goal}} plan ready.",
+    "closing_spoken_ready": "Hydrate now. Start with water. You're ready — we push today. Lock in.",
+    "closing_spoken_recovering": "Hydrate now. Start with water. We keep it steady and controlled today.",
+    "closing_spoken_notToday": "Hydrate now. Start with water. Today we protect and recover. No pressure.",
+    "closing_body_ready": "HYDRATE NOW — start with water. You're ready — {{coach}} is pushing the pace today.",
+    "closing_body_recovering": "HYDRATE NOW — start with water. {{coach}} keeps today steady — controlled and consistent.",
+    "closing_body_notToday": "HYDRATE NOW — start with water. {{coach}} keeps it light today — protect and recover.",
     "cta_done": "LOCK IN",
+    "intent": {
+      "title": "How are you showing up today?",
+      "hint": "This sets your coach's tone — not your score.",
+      "q_spoken": "How are you showing up today? Ready, recovering, or not today?",
+      "ready_label": "Ready",
+      "ready_sub": "Full intensity — let's push.",
+      "recovering_label": "Recovering",
+      "recovering_sub": "Steady and controlled.",
+      "notToday_label": "Not Today",
+      "notToday_sub": "Protect and recover."
+    },
     "brainEnergy": {
       "eyebrow": "BRAIN ENERGY",
       "collecting": "Complete your morning check-in to read Brain Energy."
