@@ -351,6 +351,28 @@
       "logged": "BILANS"
     }
   },
+  "performanceStatements": {
+    "push": {
+      "1": "La performance n'est pas négociable.",
+      "2": "Sois présent. C'est le standard.",
+      "3": "La discipline l'emporte sur la motivation."
+    },
+    "precision": {
+      "1": "La régularité l'emporte sur l'intensité.",
+      "2": "De petites répétitions. Chaque jour.",
+      "3": "La précision fait la différence."
+    },
+    "ignite": {
+      "1": "Gagne la prochaine heure.",
+      "2": "Attaque cette journée.",
+      "3": "Fais que ça compte."
+    },
+    "recovery": {
+      "1": "La récupération nourrit la performance.",
+      "2": "Le repos fait partie du travail.",
+      "3": "Respire. Réinitialise. Reconstruis."
+    }
+  },
   "hydroScan2": {
     "impact": {
       "eyebrow": "IMPACT HYDRATATION POUR VOUS",

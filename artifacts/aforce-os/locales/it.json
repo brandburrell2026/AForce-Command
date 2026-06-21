@@ -351,6 +351,28 @@
       "logged": "CHECK-IN"
     }
   },
+  "performanceStatements": {
+    "push": {
+      "1": "La prestazione non è negoziabile.",
+      "2": "Presentati. Questo è lo standard.",
+      "3": "La disciplina batte la motivazione."
+    },
+    "precision": {
+      "1": "La costanza batte l'intensità.",
+      "2": "Piccole ripetizioni. Ogni giorno.",
+      "3": "La precisione fa la differenza."
+    },
+    "ignite": {
+      "1": "Conquista la prossima ora.",
+      "2": "Attacca questa giornata.",
+      "3": "Fai contare questa."
+    },
+    "recovery": {
+      "1": "Il recupero alimenta la prestazione.",
+      "2": "Il riposo fa parte del lavoro.",
+      "3": "Respira. Resetta. Ricostruisci."
+    }
+  },
   "hydroScan2": {
     "impact": {
       "eyebrow": "IMPATTO IDRATAZIONE PER TE",

@@ -351,6 +351,28 @@
       "logged": "CHEQUEOS"
     }
   },
+  "performanceStatements": {
+    "push": {
+      "1": "El rendimiento no se negocia.",
+      "2": "Preséntate. Ese es el estándar.",
+      "3": "La disciplina vence a la motivación."
+    },
+    "precision": {
+      "1": "La constancia vence a la intensidad.",
+      "2": "Pequeñas repeticiones. Cada día.",
+      "3": "La precisión marca la diferencia."
+    },
+    "ignite": {
+      "1": "Gana la próxima hora.",
+      "2": "Ataca el día de hoy.",
+      "3": "Haz que este día cuente."
+    },
+    "recovery": {
+      "1": "La recuperación impulsa el rendimiento.",
+      "2": "El descanso es parte del trabajo.",
+      "3": "Respira. Reinicia. Reconstruye."
+    }
+  },
   "hydroScan2": {
     "impact": {
       "eyebrow": "IMPACTO DE HIDRATACIÓN PARA TI",

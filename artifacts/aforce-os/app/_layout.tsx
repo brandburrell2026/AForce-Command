@@ -38,6 +38,7 @@ import { firstRunRoute } from '@/utils/firstRunRoute';
 import { snoozeRevalidationDelay } from '@/utils/voiceCheckIn';
 import { useVoiceCheckIn } from '@/hooks/useVoiceCheckIn';
 import { VoiceCheckInOverlay } from '@/components/voiceCheckIn/VoiceCheckInOverlay';
+import { PerformanceStatementMount } from '@/components/performanceStatement/PerformanceStatementMount';
 
 // Bootstrap i18next as soon as the JS bundle loads so even the first
 // frame (SplashScreen, ErrorBoundary fallbacks) has access to t(). The
@@ -305,6 +306,9 @@ function AppShell() {
                   <OpeningMount onDone={handleOpeningDone} />
                   {/* Voice Check-In ritual — shows after the opening, gated. */}
                   <VoiceCheckInMount openingDone={openingDone} />
+                  {/* Performance Statement — once-per-day voice-only coach
+                      identity line; speaks after the opening / check-in. */}
+                  <PerformanceStatementMount openingDone={openingDone} />
                 </CartProvider>
               </AppProvider>
             </KeyboardProvider>

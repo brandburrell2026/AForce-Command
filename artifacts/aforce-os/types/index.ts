@@ -515,6 +515,13 @@ export interface FeatureFlags {
   // coaching copy — it never awards or mutates score.
   intent_capture_enabled: boolean;
 
+  // Performance Statements™ — a single short, spoken coach IDENTITY line
+  // delivered once per local day (voice-only: no quote card, no text, no
+  // archive, no replay). Master switch; ships OFF in prod (Build 100% · Show
+  // 10%), ON in the demo profile. Score-Protection: audio-only projection —
+  // never awards, mutates, or fabricates score.
+  performance_statements_enabled: boolean;
+
   // Enterprise — Cruise Mode (premium add-on for cruise lines & guests).
   // Master switch. Phase 1 public release lights up Journey Pulse,
   // Guest Readiness Signal, Today's Flow, and Port Signal. Phases 2/3

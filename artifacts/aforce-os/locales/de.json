@@ -351,6 +351,28 @@
       "logged": "CHECK-INS"
     }
   },
+  "performanceStatements": {
+    "push": {
+      "1": "Leistung ist nicht verhandelbar.",
+      "2": "Sei da. Das ist der Standard.",
+      "3": "Disziplin schlägt Motivation."
+    },
+    "precision": {
+      "1": "Beständigkeit schlägt Intensität.",
+      "2": "Kleine Wiederholungen. Jeden Tag.",
+      "3": "Präzision macht den Unterschied."
+    },
+    "ignite": {
+      "1": "Gewinne die nächste Stunde.",
+      "2": "Greif diesen Tag an.",
+      "3": "Lass diesen Tag zählen."
+    },
+    "recovery": {
+      "1": "Erholung treibt die Leistung an.",
+      "2": "Ruhe gehört zur Arbeit.",
+      "3": "Atme. Setz zurück. Bau neu auf."
+    }
+  },
   "hydroScan2": {
     "impact": {
       "eyebrow": "HYDRATATIONSWIRKUNG FÜR DICH",

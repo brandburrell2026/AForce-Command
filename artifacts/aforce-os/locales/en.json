@@ -419,6 +419,28 @@
       "logged": "CHECK-INS"
     }
   },
+  "performanceStatements": {
+    "push": {
+      "1": "Performance is non-negotiable.",
+      "2": "Show up. That's the standard.",
+      "3": "Discipline beats motivation."
+    },
+    "precision": {
+      "1": "Consistency beats intensity.",
+      "2": "Small reps. Every day.",
+      "3": "Precision is the difference."
+    },
+    "ignite": {
+      "1": "Win the next hour.",
+      "2": "Attack today.",
+      "3": "Make this one count."
+    },
+    "recovery": {
+      "1": "Recovery drives performance.",
+      "2": "Rest is part of the work.",
+      "3": "Breathe. Reset. Rebuild."
+    }
+  },
   "hydroScan2": {
     "impact": {
       "eyebrow": "HYDRATION IMPACT FOR YOU",
