@@ -527,5 +527,30 @@
       "social_hangover_risk": "Der Risikowert für morgen ist {{level}} ({{score}}).",
       "social_active": "Soziale Session aktiv — {{count}} Getränk(e) erfasst."
     }
+  },
+  "activationJourney": {
+    "eyebrow": "AKTIVIERUNGSREISE",
+    "steps": {
+      "setup": "Einrichtung",
+      "firstCommand": "Erster Befehl",
+      "offer": "Tag-7-Angebot"
+    },
+    "unanchored": {
+      "title": "Folge deinem ersten Befehl",
+      "body": "Dein 7-Tage-Mitglieder-Angebot beginnt, sobald du deine erste Aktion ausführst."
+    },
+    "pending": {
+      "title": "Mitglieder-Angebot wird freigeschaltet",
+      "countdown": "Öffnet in {{days}}T {{hours}}h"
+    },
+    "open": {
+      "title": "Dein Mitglieder-Angebot ist offen",
+      "countdown": "Noch {{hours}}h {{minutes}}m zum Einlösen",
+      "cta": "Tarife ansehen"
+    },
+    "expired": {
+      "title": "Du bist vollständig aktiviert",
+      "body": "Du hast die Gewohnheit aufgebaut. Sieh dir die Tarife an, wann immer du willst."
+    }
   }
 }

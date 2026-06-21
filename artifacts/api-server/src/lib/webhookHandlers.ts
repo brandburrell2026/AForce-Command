@@ -12,7 +12,6 @@ import { getStripeSync } from './stripeClient';
 import { db, aforceUsers } from '@workspace/db';
 import { eq } from 'drizzle-orm';
 import { logger } from './logger';
-import { recordServerAnalyticsEvents, deterministicEventId } from './serverAnalytics';
 
 const LINKAGE_EVENT_TYPES = new Set<string>([
   'checkout.session.completed',
@@ -77,47 +76,6 @@ async function repairUserLinkage(payload: Buffer): Promise<void> {
   }
 }
 
-/**
- * INTERNAL analytics (Task #39): emit `subscription_started` exactly once
- * when a paid subscription first becomes active/trialing. Keyed to the
- * consented pseudonymous `analytics_id` we stashed on subscription
- * metadata at Checkout; if it's absent (no consent) we emit nothing.
- *
- * We listen to BOTH `created` and `updated`: a subscription can be born
- * `incomplete` (e.g. 3DS/SCA) and only flip to `active` on a later
- * `updated`, so created-only would miss it. The eventId is derived from
- * the subscription id, so created/updated/redelivery all collapse to a
- * single row via ON CONFLICT. Best-effort — never throws, never alters billing.
- */
-async function emitSubscriptionAnalytics(payload: Buffer): Promise<void> {
-  let event: Stripe.Event;
-  try {
-    event = JSON.parse(payload.toString('utf8')) as Stripe.Event;
-  } catch {
-    return;
-  }
-  if (
-    event.type !== 'customer.subscription.created' &&
-    event.type !== 'customer.subscription.updated'
-  ) {
-    return;
-  }
-  const sub = event.data?.object as Stripe.Subscription | undefined;
-  if (!sub) return;
-  if (sub.status !== 'active' && sub.status !== 'trialing') return;
-  const analyticsId = (sub.metadata?.['analytics_id'] as string | undefined) ?? undefined;
-  if (!analyticsId) return;
-  const planId = (sub.metadata?.['planId'] as string | undefined) ?? '';
-  await recordServerAnalyticsEvents([
-    {
-      eventId: deterministicEventId(`subscription_started:${sub.id}`),
-      eventType: 'subscription_started',
-      analyticsId,
-      payload: { planId },
-    },
-  ]);
-}
-
 export class WebhookHandlers {
   static async processWebhook(payload: Buffer, signature: string): Promise<void> {
     if (!Buffer.isBuffer(payload)) {
@@ -134,6 +92,5 @@ export class WebhookHandlers {
     // in our `stripe.*` mirror — keeps aforce_users in lockstep even when
     // the original checkout failed to persist the customer id.
     await repairUserLinkage(payload);
-    await emitSubscriptionAnalytics(payload);
   }
 }

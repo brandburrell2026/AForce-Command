@@ -39,6 +39,17 @@ queued append path, never write storage directly. This holds only under
 the single-JS-runtime assumption; a background/multi-process runtime
 would need a storage-level transaction instead.
 
+**Emit-exactly-once-when-shown (the effect-fired variant):** an event
+that must fire at most once the first time a surface is SHOWN — emitted
+from a React effect — needs an in-memory in-flight/once latch IN ADDITION
+to the persisted (AsyncStorage) dedupe key. React 18 strict-mode
+double-invokes effects and the get-then-set dedupe is not atomic, so two
+near-simultaneous calls both read "not yet emitted" and double-fire. The
+persisted key handles cross-session dedupe; the in-memory latch handles
+same-tick concurrency. Consent is checked INSIDE the guarded attempt and
+the key is burned only after emit, so a pre-consent call doesn't lock out
+a later consented emit.
+
 **Scope boundary:** the layer only records + derives and exposes a
 metrics getter for the engine to read. Active consumption (e.g. adaptive
 reminders reacting to response rate / time-to-first-win) is a later phase.

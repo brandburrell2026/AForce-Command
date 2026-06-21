@@ -40,6 +40,7 @@ import { HomeDashboard } from '@/components/home/HomeDashboard';
 import { MetabolicReadinessZone } from '@/components/home/MetabolicReadinessZone';
 import { PerformanceAgeZone } from '@/components/home/PerformanceAgeZone';
 import { VoiceCheckInZone } from '@/components/home/VoiceCheckInZone';
+import { ActivationJourneyZone } from '@/components/home/ActivationJourneyZone';
 import { useAnalyticsRecorder } from '@/hooks/useAnalyticsRecorder';
 import { useScoreTrend } from '@/hooks/useScoreTrend';
 import { getStatusVerb } from '@/services/statusVerb';
@@ -362,6 +363,15 @@ function ScoreDrivenBody({
           morning check-in self-report and the recovery engine that never
           awards or mutates score (Score-Protection). */}
       <VoiceCheckInZone />
+
+      {/* ── Activation Journey (QR-activation Day-7 offer) ────────────────
+          Additive, feature-flagged (spec_activation) consumer card. Renders
+          nothing when the flag is off. A display-only projection of two
+          on-device milestones (onboarding done + first command followed) and
+          the pure Day-7 offer timer — it never awards or mutates score
+          (Score-Protection). Emits `day7_subscription_offer` only when the
+          offer is actually shown (open phase). No new tab/route. */}
+      <ActivationJourneyZone />
 
       {lastIntakeMinutes != null && (
         <View style={styles.lastIntakeRow}>

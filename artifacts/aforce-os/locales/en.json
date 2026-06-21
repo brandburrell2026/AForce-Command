@@ -595,5 +595,30 @@
       "social_hangover_risk": "Tomorrow-risk reading is {{level}} ({{score}}).",
       "social_active": "Social session active — {{count}} drink(s) logged."
     }
+  },
+  "activationJourney": {
+    "eyebrow": "ACTIVATION JOURNEY",
+    "steps": {
+      "setup": "Setup",
+      "firstCommand": "First command",
+      "offer": "Day-7 offer"
+    },
+    "unanchored": {
+      "title": "Follow your first command",
+      "body": "Your 7-day member offer begins the moment you take your first action."
+    },
+    "pending": {
+      "title": "Member offer unlocking",
+      "countdown": "Opens in {{days}}d {{hours}}h"
+    },
+    "open": {
+      "title": "Your member offer is open",
+      "countdown": "{{hours}}h {{minutes}}m left to claim",
+      "cta": "See plans"
+    },
+    "expired": {
+      "title": "You're fully activated",
+      "body": "You've built the habit. Explore plans whenever you're ready."
+    }
   }
 }

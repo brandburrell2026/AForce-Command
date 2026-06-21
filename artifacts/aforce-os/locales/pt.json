@@ -527,5 +527,30 @@
       "social_hangover_risk": "A leitura de risco para amanhã é {{level}} ({{score}}).",
       "social_active": "Sessão social ativa — {{count}} bebida(s) registradas."
     }
+  },
+  "activationJourney": {
+    "eyebrow": "JORNADA DE ATIVAÇÃO",
+    "steps": {
+      "setup": "Configuração",
+      "firstCommand": "Primeiro comando",
+      "offer": "Oferta dia 7"
+    },
+    "unanchored": {
+      "title": "Siga seu primeiro comando",
+      "body": "Sua oferta de membro de 7 dias começa no momento em que você faz sua primeira ação."
+    },
+    "pending": {
+      "title": "Oferta de membro sendo desbloqueada",
+      "countdown": "Abre em {{days}}d {{hours}}h"
+    },
+    "open": {
+      "title": "Sua oferta de membro está aberta",
+      "countdown": "Faltam {{hours}}h {{minutes}}m para resgatar",
+      "cta": "Ver planos"
+    },
+    "expired": {
+      "title": "Você está totalmente ativado",
+      "body": "Você criou o hábito. Explore os planos quando quiser."
+    }
   }
 }

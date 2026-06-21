@@ -71,7 +71,8 @@ export const PHASE1_EVENTS = [
   { eventType: "receipt_activated", owner: "backend", trigger: "A verified receipt is activated / credited", payloadFields: [] },
   { eventType: "survey_answered", owner: "mobile", trigger: "User answers an in-app survey / NPS question", payloadFields: ["surveyId", "value"] },
   { eventType: "notification_opened", owner: "mobile", trigger: "User opens / acts on a reminder notification", payloadFields: ["slot"] },
-  { eventType: "subscription_started", owner: "backend", trigger: "A paid subscription becomes active", payloadFields: ["planId"] },
+  { eventType: "subscription_started", owner: "mobile", trigger: "A paid subscription becomes active — emitted CLIENT-side on confirmed checkout (sole emitter), carrying descriptive non-PII revenue metadata", payloadFields: ["planTier", "amountCents", "currency", "billingInterval"] },
+  { eventType: "day7_subscription_offer", owner: "mobile", trigger: "The Day-7 subscription offer is shown to the user", payloadFields: [] },
 ] as const satisfies ReadonlyArray<{
   eventType: string;
   owner: AnalyticsEventOwner;

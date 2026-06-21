@@ -4,7 +4,11 @@
  * The mobile dispatcher owns client events; a few Phase-1 events are
  * BACKEND-owned because only the server observes them with certainty:
  *   - receipt_verified / receipt_activated (scan persistence)
- *   - subscription_started (Stripe webhook)
+ *
+ * (subscription_started was previously emitted here from the Stripe
+ *  webhook, but is now CLIENT-emitted as the sole source so it can carry
+ *  descriptive non-PII revenue metadata without a payload race — see the
+ *  mobile analytics/subscription_tracker.)
  *
  * This module is the single server-side path into the same INTERNAL
  * `aforce_analytics_events` table the mobile ingest route writes to. It

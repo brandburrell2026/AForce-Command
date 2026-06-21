@@ -50,6 +50,7 @@ import {
 } from '../../services/voice/commandVoice';
 import { commandSpeak, markCycleExecuted } from '../../services/voice/commandVoiceBus';
 import { emit } from '../../analytics/event_dispatcher';
+import { markFirstCommandCompleted } from '../../analytics/activation_anchor';
 
 interface StoreActionsDeps {
   state: AppState;
@@ -289,6 +290,9 @@ export function useStoreActions({
       // Internal analytics pipeline (Task #39) — user followed the coach
       // command. Tied to the real tap, independent of server success.
       void emit('command_followed', { commandId: state.engineOutput.command.id });
+      // Stamp the activation anchor (first followed command) for the Day-7
+      // offer timer. Idempotent — only the very first command sets it.
+      void markFirstCommandCompleted();
     }
     try {
       // Server applies confirmationDelta + (in Clutch, on No)

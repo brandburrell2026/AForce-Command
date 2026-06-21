@@ -29,6 +29,7 @@ import { SUBSCRIPTION_PLANS } from '@/data/subscriptionPlans';
 import type { SubscriptionPlan, SubscriptionPlanId } from '@/types/subscription';
 import { createCheckoutSession, fetchCheckoutSession } from '@/lib/api';
 import { refreshEntitlement } from '@/hooks/useEntitlement';
+import { recordSubscriptionStarted, revenueForPlan } from '@/analytics/subscription_tracker';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 
 // Plans that route through real Stripe Checkout. Anything not in this set
@@ -145,6 +146,13 @@ export default function SubscriptionScreen() {
       // 60s polling interval would eventually reconcile, but kicking an
       // immediate refetch keeps the UI in sync with the charge.
       await refreshEntitlement();
+
+      // INTERNAL analytics: the client is the SOLE emitter of
+      // `subscription_started` (the server webhook emit was removed to
+      // avoid a payload race). Record the paid conversion with descriptive
+      // non-PII revenue metadata, deduped per checkout session. Best-effort
+      // and fire-and-forget — never blocks the UI or touches score.
+      void recordSubscriptionStarted(session.sessionId, revenueForPlan(planId));
     } finally {
       setPendingPlanId(null);
     }
