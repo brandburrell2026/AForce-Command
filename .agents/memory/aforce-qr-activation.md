@@ -5,11 +5,17 @@ description: Day-1 pure activation engine — deep-link trust rules + conversion
 
 # QR Activation funnel — pure foundation
 
-Day-1 shipped a PURE, headless, deterministic engine only, under `utils/activation/`
-(`attribution.ts` + `funnel.ts`), unit-tested in `utils/__tests__/`. No app-boot
-wiring, no new analytics event types, no server/DB aggregation — those are an
-explicitly-deferred **Phase 2** that requires owner sign-off ("Ask before major
-changes"). Flag OFF byte-identical; nothing mutates score (Score-Protection).
+Day-1 shipped a PURE, headless, deterministic engine only, now extracted to the
+shared lib **`lib/activation-core/`** (`src/attribution.ts` + `src/funnel.ts`,
+tested in `src/__tests__/`) — NOT the old `utils/activation/` path. The server-side
+funnel surfaces only as Command Center retention gate **G5 (QR Scan → Activated)**
+in `api-server/.../retentionGates.ts`, which "awaits qr_scanned + activation events"
+(analytics-events stream empty). So end-to-end TRACKING is PARTIAL: pure math +
+server gate exist, but no event-emission pipeline yet. App-boot wiring + new
+analytics event types + server/DB aggregation are an explicitly-deferred **Phase 2**
+that requires owner sign-off ("Ask before major changes"). Flag OFF byte-identical;
+nothing mutates score (Score-Protection). QR capture UI = `CameraScanModal.tsx`
+(barcode/QR, framed for hydration-product scanning).
 
 ## Durable rules (keep future work consistent)
 
