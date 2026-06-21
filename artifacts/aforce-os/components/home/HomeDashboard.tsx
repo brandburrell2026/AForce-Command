@@ -15,11 +15,17 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
 import { useEngineSlice, useUserSlice, useIntakeSlice } from '@/store/slices';
 import { hydrationPercent, type PerformanceLevel } from '@/utils/homeDashboard';
 import { useDisplayedAccent } from '@/hooks/useDisplayedAccent';
 import { accentForScore } from '@/utils/scoreBand';
+import { useLocationIntelligence } from '@/hooks/useLocationIntelligence';
+import {
+  deriveLocationAdjustedHydrationTarget,
+  locationCanAdjustTarget,
+} from '@/utils/location/locationHydrationTarget';
 
 import { HydrationStatusCard } from './HydrationStatusCard';
 
@@ -32,16 +38,45 @@ const RECOVERY_LABEL: Record<PerformanceLevel, string> = {
 
 export function HomeDashboard() {
   const router = useRouter();
+  const { t } = useTranslation();
   const engine = useEngineSlice();
   const userState = useUserSlice();
   const intake = useIntakeSlice();
   const displayedAccent = useDisplayedAccent();
+  const location = useLocationIntelligence();
 
   const units = Math.max(0, Math.round(userState.unitsConsumedToday ?? 0));
-  const target = Math.max(1, Math.round(userState.dailyTarget ?? 8));
+  const baseTarget = Math.max(1, Math.round(userState.dailyTarget ?? 8));
   const level = engine.performanceState.level as PerformanceLevel;
 
+  // Location Intelligence™ may add capped, target-side environmental demand
+  // (altitude / UV / heat+humidity) on top of the SERVER-AUTHORITATIVE daily
+  // target. This is a READ-ONLY display projection: it never mutates
+  // userState.dailyTarget, the reducer, realApi, or score. When the flag is
+  // OFF the hook is inert (adder 0), so the displayed target is byte-identical.
+  const rawTarget = userState.dailyTarget ?? 8;
+  const rawOzTarget = userState.ozTarget ?? 96;
+  const ozPerUnit =
+    rawTarget > 0 && rawOzTarget > 0 ? rawOzTarget / rawTarget : 12;
+  // No-fabrication gate: only a REAL (live) reading may move the target.
+  // getLocationSnapshot() falls back to deterministic MOCK inputs (source
+  // 'mock') on permission/network/native failure; honoring those would
+  // fabricate the user's environment, so mock/unloaded snapshots never adjust.
+  const adjustedTarget = deriveLocationAdjustedHydrationTarget({
+    baseTargetUnits: baseTarget,
+    ozPerUnit,
+    environmentalAdderOz: location.context.environmentalAdderOz,
+    locationEnabled: locationCanAdjustTarget(location.enabled, location.source),
+  });
+  const target = adjustedTarget.adjustedTargetUnits;
+
   const pct = hydrationPercent(units, target);
+  const targetAdjustmentLabel = adjustedTarget.hasAdjustment
+    ? t('locationIntel.targetAdjustment', {
+        defaultValue: 'ENVIRONMENT +{{units}}',
+        units: adjustedTarget.addedUnits,
+      })
+    : undefined;
 
   // Reflect the SAME color the Readiness orb renders on the card's ring /
   // eyebrow / scan button. The orb tints from the displayed (tweened)
@@ -65,6 +100,7 @@ export function HomeDashboard() {
       <HydrationStatusCard
         percent={pct}
         water={`${units} / ${target}`}
+        targetAdjustmentLabel={targetAdjustmentLabel}
         electrolytes={String(electrolyteUnits)}
         recovery={RECOVERY_LABEL[level] ?? 'Steady'}
         accent={scoreAccent}

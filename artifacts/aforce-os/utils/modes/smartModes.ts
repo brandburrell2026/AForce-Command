@@ -190,3 +190,25 @@ export function deriveActiveModes(ctx: SmartModeContext): SmartModeResult {
     hydrationTargetMultiplier: clamp(targetMult, 1, TARGET_MULT_MAX),
   };
 }
+
+/**
+ * Which active modes should render a FULL guidance line (vs. a label-only
+ * chip) in the Smart Modes banner.
+ *
+ * The banner gives the top-priority mode its guidance line. Travel, however,
+ * must ALWAYS surface its Travel Protocol advisory whenever it is active —
+ * even when a higher-priority mode (heat / workout) is primary — because
+ * Smart Modes owns the single travel surface (the ambient Location
+ * Intelligence banner stays travel-free, so demoting travel to a chip would
+ * drop the advisory entirely). Returns the primary mode, plus travel when
+ * travel is active but not already the primary (never duplicated). Pure, so
+ * it is unit-testable without the RN render layer.
+ */
+export function selectModeGuidanceLines(active: SmartMode[]): SmartMode[] {
+  if (active.length === 0) return [];
+  const [primary, ...rest] = active;
+  const lines: SmartMode[] = [primary];
+  const travel = rest.find((mode) => mode.id === 'travel');
+  if (travel) lines.push(travel);
+  return lines;
+}

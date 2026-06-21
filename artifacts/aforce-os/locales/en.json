@@ -459,6 +459,7 @@
     }
   },
   "locationIntel": {
+    "targetAdjustment": "ENVIRONMENT +{{units}}",
     "note": {
       "altitude": "Thin mountain air dries you out faster. Start with water and sip steadily today.",
       "uv": "Strong sun is pulling moisture out. Lead with water before you head outside.",

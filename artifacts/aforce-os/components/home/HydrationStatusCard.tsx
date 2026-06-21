@@ -41,6 +41,13 @@ interface Props {
   accent?: string;
   /** Opens the HydroScan flow. When omitted the button is hidden. */
   onScan?: () => void;
+  /**
+   * Optional Location Intelligence™ environmental adjustment caption (e.g.
+   * "ENVIRONMENT +1"), shown as a small line under the WATER read-out only
+   * when an adjustment is active. Omitted entirely otherwise, so the card is
+   * byte-identical when Location Intelligence is off.
+   */
+  targetAdjustmentLabel?: string;
 }
 
 const SIZE = 88;
@@ -57,7 +64,7 @@ function StatRow({ label, value }: { label: string; value: string }) {
   );
 }
 
-export function HydrationStatusCard({ percent, water, electrolytes, recovery, accent, onScan }: Props) {
+export function HydrationStatusCard({ percent, water, electrolytes, recovery, accent, onScan, targetAdjustmentLabel }: Props) {
   const pct = Math.min(100, Math.max(0, percent));
   const offset = CIRC * (1 - pct / 100);
   const tint = accent ?? BRAND;
@@ -100,6 +107,11 @@ export function HydrationStatusCard({ percent, water, electrolytes, recovery, ac
         </View>
         <View style={styles.stats}>
           <StatRow label="WATER" value={water} />
+          {targetAdjustmentLabel ? (
+            <Text style={styles.adjustNote} testID="hydration-target-adjustment">
+              {targetAdjustmentLabel}
+            </Text>
+          ) : null}
           <View style={styles.statDivider} />
           <StatRow label="ELECTROLYTES" value={electrolytes} />
           <View style={styles.statDivider} />
@@ -185,6 +197,13 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.text.primary,
     letterSpacing: -0.2,
+  },
+  adjustNote: {
+    fontFamily: 'Inter_600SemiBold',
+    fontSize: 9,
+    letterSpacing: 1,
+    color: BRAND,
+    marginTop: 3,
   },
   statDivider: {
     height: StyleSheet.hairlineWidth,

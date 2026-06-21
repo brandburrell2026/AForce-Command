@@ -391,6 +391,7 @@
     }
   },
   "locationIntel": {
+    "targetAdjustment": "ENVIRONNEMENT +{{units}}",
     "note": {
       "altitude": "L’air sec de la montagne vous déshydrate plus vite. Commencez par de l’eau et buvez régulièrement aujourd’hui.",
       "uv": "Le soleil intense puise votre hydratation. Buvez de l’eau avant de sortir.",

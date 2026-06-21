@@ -17,6 +17,7 @@ import { useTranslation } from 'react-i18next';
 import { Colors } from '@/theme/colors';
 import { Icon } from '@/components/Icon';
 import { useSmartModes } from '@/hooks/useSmartModes';
+import { selectModeGuidanceLines } from '@/utils/modes/smartModes';
 
 export function SmartModesBanner() {
   const { t } = useTranslation();
@@ -25,6 +26,11 @@ export function SmartModesBanner() {
   if (active.length === 0) return null;
 
   const [primary, ...rest] = active;
+  // Travel must always surface its advisory line even when a higher-priority
+  // mode is primary — Smart Modes owns the only travel surface (the ambient
+  // LocationInsightBanner stays travel-free), so it never silently degrades to
+  // a label-only chip.
+  const guidanceLines = selectModeGuidanceLines(active);
 
   // The pure modes engine only carries English fallback copy; the localized
   // label / chip / guidance are resolved here so every launch locale (and the
@@ -49,9 +55,16 @@ export function SmartModesBanner() {
               </View>
             ))}
           </View>
-          <Text style={styles.guidance} numberOfLines={2}>
-            {t(primary.guidanceKey, { defaultValue: primary.guidance })}
-          </Text>
+          {guidanceLines.map((mode) => (
+            <Text
+              key={mode.id}
+              style={styles.guidance}
+              numberOfLines={2}
+              testID={`smart-mode-guidance-${mode.id}`}
+            >
+              {t(mode.guidanceKey, { defaultValue: mode.guidance })}
+            </Text>
+          ))}
         </View>
       </View>
     </View>

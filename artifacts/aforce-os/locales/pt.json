@@ -391,6 +391,7 @@
     }
   },
   "locationIntel": {
+    "targetAdjustment": "AMBIENTE +{{units}}",
     "note": {
       "altitude": "O ar seco da montanha desidrata mais rápido. Comece com água e beba aos poucos ao longo do dia.",
       "uv": "O sol forte está tirando sua hidratação. Comece com água antes de sair.",

@@ -391,6 +391,7 @@
     }
   },
   "locationIntel": {
+    "targetAdjustment": "AMBIENTE +{{units}}",
     "note": {
       "altitude": "L’aria secca di montagna ti disidrata più in fretta. Inizia con l’acqua e bevi a piccoli sorsi durante la giornata.",
       "uv": "Il sole intenso ti toglie idratazione. Bevi acqua prima di uscire.",

@@ -391,6 +391,7 @@
     }
   },
   "locationIntel": {
+    "targetAdjustment": "UMGEBUNG +{{units}}",
     "note": {
       "altitude": "Die dünne Bergluft trocknet dich schneller aus. Beginne mit Wasser und trinke heute regelmäßig in kleinen Schlucken.",
       "uv": "Starke Sonne entzieht dir Feuchtigkeit. Trink Wasser, bevor du nach draußen gehst.",

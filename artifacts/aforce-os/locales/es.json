@@ -391,6 +391,7 @@
     }
   },
   "locationIntel": {
+    "targetAdjustment": "ENTORNO +{{units}}",
     "note": {
       "altitude": "El aire seco de la montaña te deshidrata más rápido. Empieza con agua y bebe a sorbos durante el día.",
       "uv": "El sol fuerte te quita humedad. Empieza con agua antes de salir.",
