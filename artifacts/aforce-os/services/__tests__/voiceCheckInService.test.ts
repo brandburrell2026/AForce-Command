@@ -3,7 +3,10 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 // In-memory AsyncStorage backing the service. Hoisted so the vi.mock factory
 // (which is itself hoisted to the top of the file) can close over it, and so
 // it survives a vi.resetModules() "cold restart".
-const { mem } = vi.hoisted(() => ({ mem: new Map<string, string>() }));
+const { mem, emitSpy } = vi.hoisted(() => ({
+  mem: new Map<string, string>(),
+  emitSpy: vi.fn(async (): Promise<boolean> => true),
+}));
 
 vi.mock('@react-native-async-storage/async-storage', () => ({
   default: {
@@ -15,6 +18,13 @@ vi.mock('@react-native-async-storage/async-storage', () => ({
       mem.delete(k);
     },
   },
+}));
+
+// Usage analytics is fire-and-forget + consent-gated; stub it so the service
+// test stays pure (no react-native / api transitive load) and deterministic,
+// and spy on it to assert the once-per-local-day emit contract.
+vi.mock('@/analytics/event_dispatcher', () => ({
+  emit: emitSpy,
 }));
 
 import type { VoiceCheckInAnswers } from '../../utils/voiceCheckIn';
@@ -35,6 +45,7 @@ async function freshService() {
 describe('voiceCheckIn service · recording', () => {
   beforeEach(() => {
     mem.clear();
+    emitSpy.mockClear();
   });
 
   it('records today and clears any snooze', async () => {
@@ -65,6 +76,22 @@ describe('voiceCheckIn service · recording', () => {
     expect(latest?.answers.energy).toBe(5);
     expect(latest?.answers.stress).toBe(1);
     expect(latest?.answers.goal).toBe('train');
+  });
+
+  it('emits voice_checkin_completed once for a new day but not on a same-day re-record', async () => {
+    const svc = await freshService();
+
+    await svc.recordCheckIn(answers(4, 2), MORNING);
+    expect(emitSpy).toHaveBeenCalledTimes(1);
+    expect(emitSpy).toHaveBeenCalledWith('voice_checkin_completed');
+
+    // Same local day → overwrite, must NOT re-emit (no double-count).
+    await svc.recordCheckIn(answers(5, 1), new Date(2026, 5, 19, 8, 0));
+    expect(emitSpy).toHaveBeenCalledTimes(1);
+
+    // A new local day → a fresh usage signal.
+    await svc.recordCheckIn(answers(3, 3), new Date(2026, 5, 20, 7, 0));
+    expect(emitSpy).toHaveBeenCalledTimes(2);
   });
 });
 

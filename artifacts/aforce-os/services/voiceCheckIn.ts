@@ -30,6 +30,7 @@ import {
   type VoiceCheckInAnswers,
   type VoiceCheckInRecord,
 } from '@/utils/voiceCheckIn';
+import { emit } from '@/analytics/event_dispatcher';
 
 const STORAGE_KEY = '@aforce/voice-checkin';
 /** Keep the history bounded — retain the most recent N days. */
@@ -182,12 +183,19 @@ export function recordCheckIn(
       goal,
     },
   };
+  // Only the FIRST completion of a given local day is a usage signal; a
+  // same-day re-record must not double-count.
+  const isNewDay = !current.records.some((r) => r.dayKey === record.dayKey);
   const withoutToday = current.records.filter((r) => r.dayKey !== record.dayKey);
   setState({
     records: sortAndCap([...withoutToday, record]),
     snoozedUntilMs: null,
     hydrated: true,
   });
+  // INTERNAL usage analytics (consent-gated inside emit, fire-and-forget).
+  // Never touches score — voice check-ins are display-only self-reports, so
+  // this is pure engagement telemetry for the founder Command Center.
+  if (isNewDay) void emit('voice_checkin_completed');
   return persist();
 }
 

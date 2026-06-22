@@ -20,6 +20,7 @@ import {
   type AnalyticsEvent,
   type AnalyticsMetrics,
 } from '@/utils/analytics/metrics';
+import { emitFirstWinConfirmed } from '@/analytics/event_dispatcher';
 
 const STORAGE_KEY = '@aforce/analytics';
 /** Keep the log bounded — retain the most recent N events. */
@@ -133,6 +134,11 @@ export function recordWin(
   nowIso: string,
 ): Promise<AnalyticsSnapshot> {
   const key = dayKey(nowIso);
+  // Bridge to the Phase-1 activation funnel: the user's first win ever is
+  // the funnel's "First Win" milestone. Fire-and-forget + consent-gated;
+  // the dispatcher's persistent flag makes it emit at most once, EVER, so
+  // firing here on every win is safe and idempotent.
+  void emitFirstWinConfirmed(winId);
   return appendIf(
     { type: 'win', at: nowIso, meta: { winId } },
     (events) =>

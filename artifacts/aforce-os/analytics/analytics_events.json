@@ -12,6 +12,7 @@
     { "eventType": "water_goal_completed", "owner": "mobile", "trigger": "Daily hydration goal is reached", "payloadFields": [] },
     { "eventType": "hydration_score_updated", "owner": "mobile", "trigger": "Engine recomputes the hydration score band", "payloadFields": ["score", "level"] },
     { "eventType": "command_followed", "owner": "mobile", "trigger": "User follows the coach command / recommendation", "payloadFields": ["commandId"] },
+    { "eventType": "first_win_confirmed", "owner": "mobile", "trigger": "The user earns their first Daily Win — the activation funnel's First Win milestone; emitted at most once, ever (persistent client flag)", "payloadFields": ["winId"] },
     { "eventType": "impact_shown", "owner": "mobile", "trigger": "An impact / explainability surface is shown", "payloadFields": ["impactKey"] },
     { "eventType": "orb_state_changed", "owner": "mobile", "trigger": "The orb transitions performance state", "payloadFields": ["from", "to"] },
     { "eventType": "qr_scanned", "owner": "mobile", "trigger": "Acquisition QR / activation deep-link opened (printed on a can or in a marketing link); distinct from the in-app HydroScan receipt_scanned", "payloadFields": ["sku", "retailLocationId", "geo", "campaign", "qrId"] },
@@ -20,6 +21,7 @@
     { "eventType": "receipt_activated", "owner": "backend", "trigger": "A verified receipt is activated / credited", "payloadFields": [] },
     { "eventType": "survey_answered", "owner": "mobile", "trigger": "User answers an in-app survey / NPS question", "payloadFields": ["surveyId", "value"] },
     { "eventType": "notification_opened", "owner": "mobile", "trigger": "User opens / acts on a reminder notification", "payloadFields": ["slot"] },
+    { "eventType": "voice_checkin_completed", "owner": "mobile", "trigger": "User completes the daily morning Voice Check-In — counted at most once per local day (a same-day re-record does not re-emit)", "payloadFields": [] },
     { "eventType": "subscription_started", "owner": "mobile", "trigger": "A paid subscription becomes active — emitted CLIENT-side on confirmed checkout (sole emitter), carrying descriptive non-PII revenue metadata", "payloadFields": ["planTier", "amountCents", "currency", "billingInterval"] },
     { "eventType": "day7_subscription_offer", "owner": "mobile", "trigger": "The Day-7 subscription offer is shown to the user", "payloadFields": [] }
   ],

@@ -33,15 +33,16 @@ import {
 /**
  * Funnel stages with a real Phase-1 analytics event behind them. The rest
  * of the owner funnel (can_purchased, performance_age_baseline,
- * first_command_issued, first_win_confirmed, day7_subscription_offer) is
- * architected but not yet instrumented, so it is reported as not-tracked
- * rather than a fabricated zero.
+ * first_command_issued, day7_subscription_offer) is architected but not yet
+ * instrumented, so it is reported as not-tracked rather than a fabricated
+ * zero.
  */
 const INSTRUMENTED_STAGES: ReadonlySet<ActivationStage> = new Set([
   "qr_scanned",
   "app_opened",
   "profile_completed",
   "first_command_completed",
+  "first_win_confirmed",
 ]);
 
 /** Attribution dimensions surfaced in the segmented view, in display order. */
@@ -66,6 +67,7 @@ export interface ActivationFunnelRow {
   appOpened: string | null;
   profileCompleted: string | null;
   firstCommandCompleted: string | null;
+  firstWinConfirmed: string | null;
   subscriptionStarted: string | null;
   qrPayload: Record<string, unknown> | null;
 }
@@ -127,6 +129,7 @@ function toFunnel(row: ActivationFunnelRow): ActivationFunnelState {
       app_opened: row.appOpened,
       profile_completed: row.profileCompleted,
       first_command_completed: row.firstCommandCompleted,
+      first_win_confirmed: row.firstWinConfirmed,
       subscription_started: row.subscriptionStarted,
     },
     attribution: row.qrPayload ? attributionFromPayload(row.qrPayload) : null,

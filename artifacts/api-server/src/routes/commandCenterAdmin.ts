@@ -39,6 +39,11 @@ import {
   MarketingAttributionSchema,
   type MarketingRow,
 } from "../lib/marketingAttribution";
+import {
+  buildVoiceCheckInUsage,
+  VoiceCheckInUsageSchema,
+  type VoiceCheckInUsageRow,
+} from "../lib/voiceCheckInUsage";
 import { logger } from "../lib/logger";
 
 const router: IRouter = Router();
@@ -370,7 +375,8 @@ router.get(
  *
  * Event → milestone mapping: qr_scanned→qr_scanned, app_opened→app_opened,
  * onboarding_completed→profile_completed, command_followed→
- * first_command_completed, subscription_started→subscription_started.
+ * first_command_completed, first_win_confirmed→first_win_confirmed,
+ * subscription_started→subscription_started.
  */
 router.get(
   "/admin/command-center/activation-funnel",
@@ -383,13 +389,14 @@ router.get(
           min(occurred_at) FILTER (WHERE event_type = 'app_opened') AS app_opened,
           min(occurred_at) FILTER (WHERE event_type = 'onboarding_completed') AS profile_completed,
           min(occurred_at) FILTER (WHERE event_type = 'command_followed') AS first_command_completed,
+          min(occurred_at) FILTER (WHERE event_type = 'first_win_confirmed') AS first_win_confirmed,
           min(occurred_at) FILTER (WHERE event_type = 'subscription_started') AS subscription_started,
           (array_agg(payload ORDER BY occurred_at)
             FILTER (WHERE event_type = 'qr_scanned'))[1] AS qr_payload
         FROM aforce_analytics_events
         WHERE event_type IN (
           'qr_scanned', 'app_opened', 'onboarding_completed',
-          'command_followed', 'subscription_started'
+          'command_followed', 'first_win_confirmed', 'subscription_started'
         )
         GROUP BY analytics_id
       `);
@@ -400,6 +407,7 @@ router.get(
           appOpened: isoOrNull(r["app_opened"]),
           profileCompleted: isoOrNull(r["profile_completed"]),
           firstCommandCompleted: isoOrNull(r["first_command_completed"]),
+          firstWinConfirmed: isoOrNull(r["first_win_confirmed"]),
           subscriptionStarted: isoOrNull(r["subscription_started"]),
           qrPayload: payloadOrNull(r["qr_payload"]),
         }),
@@ -472,6 +480,56 @@ router.get(
       return res
         .status(500)
         .json({ error: "command_center_marketing_failed" });
+    }
+  },
+);
+
+/**
+ * GET /admin/command-center/voice-checkin-usage — the founder VOICE
+ * CHECK-IN™ engagement view over the SAME pseudonymous analytics events.
+ *
+ * Per pseudonymous identity we read whether it ever opened the app and how
+ * many distinct-day voice check-ins it completed (the mobile client emits
+ * `voice_checkin_completed` at most once per local day, with NO payload),
+ * GROUP BY analytics_id in-DB, then run the pure usage builder in-process.
+ * The per-identity rows never leave the server (NEVER joined to users /
+ * subscriptions); only aggregate adoption / repeat / cadence + null-safe
+ * rates are returned. No-fabrication: an empty denominator reports a null
+ * rate (awaiting), never a fabricated 0%.
+ */
+router.get(
+  "/admin/command-center/voice-checkin-usage",
+  requireFounder,
+  async (req, res) => {
+    try {
+      const result = await db.execute(sql`
+        SELECT
+          bool_or(event_type = 'app_opened') AS app_opened,
+          count(*) FILTER (WHERE event_type = 'voice_checkin_completed') AS check_in_count
+        FROM aforce_analytics_events
+        WHERE event_type IN ('app_opened', 'voice_checkin_completed')
+        GROUP BY analytics_id
+      `);
+
+      const rows = ((result as { rows?: Row[] }).rows ?? []).map(
+        (r): VoiceCheckInUsageRow => ({
+          appOpened: r["app_opened"] === true,
+          checkInCount: num(r["check_in_count"]),
+        }),
+      );
+
+      const dto = VoiceCheckInUsageSchema.parse(
+        buildVoiceCheckInUsage(rows, new Date().toISOString()),
+      );
+      return res.json(dto);
+    } catch (err) {
+      logger.error(
+        { err },
+        "GET /admin/command-center/voice-checkin-usage failed",
+      );
+      return res
+        .status(500)
+        .json({ error: "command_center_voice_checkin_usage_failed" });
     }
   },
 );

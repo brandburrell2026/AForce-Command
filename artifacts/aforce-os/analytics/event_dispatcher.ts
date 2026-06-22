@@ -55,11 +55,17 @@ async function readOutbox(): Promise<AnalyticsEventEnvelope[]> {
   }
 }
 
-async function writeOutbox(events: AnalyticsEventEnvelope[]): Promise<void> {
+/**
+ * Persist the outbox. Returns true only when the write durably committed,
+ * so a caller gating a once-ever flag (emitFirstWinConfirmed) can tell a
+ * real enqueue from a swallowed storage failure.
+ */
+async function writeOutbox(events: AnalyticsEventEnvelope[]): Promise<boolean> {
   try {
     await AsyncStorage.setItem(OUTBOX_KEY, JSON.stringify(events.slice(-MAX_OUTBOX)));
+    return true;
   } catch {
-    /* non-fatal */
+    return false; /* non-fatal */
   }
 }
 
@@ -112,29 +118,31 @@ export async function emit(
   eventType: AnalyticsEventType,
   payload?: Record<string, unknown>,
   occurredAt?: string,
-): Promise<void> {
-  if (!(await isConsentGranted())) return;
+): Promise<boolean> {
+  if (!(await isConsentGranted())) return false;
   const analyticsId = await getAnalyticsId();
-  if (!analyticsId) return;
+  if (!analyticsId) return false;
 
   const envelope = createEnvelope(eventType, analyticsId, payload, occurredAt);
-  await enqueue(async () => {
+  const queued = await enqueue(async () => {
     const outbox = await readOutbox();
-    await writeOutbox([...outbox, envelope]);
+    return writeOutbox([...outbox, envelope]);
   });
   // Best-effort flush; errors are swallowed and retried next emit/init.
   void flush();
+  return queued;
 }
 
 /**
  * Convenience emit that stamps the platform onto `app_opened`. Kept
  * here so the recorder doesn't need to import react-native Platform.
  */
-export function emitAppOpened(): Promise<void> {
+export function emitAppOpened(): Promise<boolean> {
   return emit("app_opened", { platform: Platform.OS });
 }
 
 const SESSION_DAY_KEY = "@aforce/analytics-session-day";
+const FIRST_WIN_KEY = "@aforce/analytics-first-win";
 
 /**
  * Emit `session_started` at most once per calendar day. The outbox
@@ -155,6 +163,51 @@ export async function emitSessionStarted(): Promise<void> {
     /* non-fatal */
   }
   await emit("session_started");
+}
+
+/** Collapses same-tick concurrent first-win emits (the recorder fires on
+ *  every win) into a single in-flight attempt. Set synchronously before any
+ *  await so a second caller in the same tick sees it. */
+let firstWinInFlight = false;
+
+/**
+ * Emit `first_win_confirmed` at most once, EVER — the activation funnel's
+ * "First Win" milestone fires the first time the user earns any Daily Win.
+ *
+ * Idempotency is two-layered so the milestone is never lost OR duplicated:
+ *   - the synchronous `firstWinInFlight` latch collapses same-tick
+ *     concurrent calls into one emit;
+ *   - the persistent flag is burned ONLY after the event is durably
+ *     enqueued, so a missing analyticsId / not-yet-granted consent / failed
+ *     storage write retries on a later win instead of silently dropping the
+ *     user's only First Win forever.
+ * Consent-gated like every emit.
+ */
+export async function emitFirstWinConfirmed(winId?: string): Promise<void> {
+  if (firstWinInFlight) return;
+  firstWinInFlight = true;
+  try {
+    if (!(await isConsentGranted())) return;
+    try {
+      if ((await AsyncStorage.getItem(FIRST_WIN_KEY)) === "1") return;
+    } catch {
+      /* fall through — better to emit than silently drop the milestone */
+    }
+    const queued = await emit(
+      "first_win_confirmed",
+      winId ? { winId } : undefined,
+    );
+    // No consent / no analyticsId / failed write — leave the flag unset so a
+    // later win retries the milestone.
+    if (!queued) return;
+    try {
+      await AsyncStorage.setItem(FIRST_WIN_KEY, "1");
+    } catch {
+      /* non-fatal — a future win will retry the milestone */
+    }
+  } finally {
+    firstWinInFlight = false;
+  }
 }
 
 /** Clear all queued events (used by delete-my-data). */

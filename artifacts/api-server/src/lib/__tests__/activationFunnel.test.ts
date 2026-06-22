@@ -13,6 +13,7 @@ function row(p: Partial<ActivationFunnelRow>): ActivationFunnelRow {
     appOpened: null,
     profileCompleted: null,
     firstCommandCompleted: null,
+    firstWinConfirmed: null,
     subscriptionStarted: null,
     qrPayload: null,
     ...p,
@@ -54,10 +55,34 @@ describe("buildActivationFunnel", () => {
     expect(byStage["app_opened"]?.instrumented).toBe(true);
     expect(byStage["profile_completed"]?.instrumented).toBe(true);
     expect(byStage["first_command_completed"]?.instrumented).toBe(true);
+    // First Win is now instrumented (mobile emits first_win_confirmed).
+    expect(byStage["first_win_confirmed"]?.instrumented).toBe(true);
     // architected-but-not-tracked stages: flagged, not a fabricated reach.
     expect(byStage["can_purchased"]?.instrumented).toBe(false);
     expect(byStage["can_purchased"]?.count).toBe(0);
     expect(byStage["day7_subscription_offer"]?.instrumented).toBe(false);
+  });
+
+  it("counts First Win reach from the first_win_confirmed milestone", () => {
+    const rows: ActivationFunnelRow[] = [
+      row({
+        qrScanned: "2026-06-01T00:00:00.000Z",
+        appOpened: "2026-06-01T00:05:00.000Z",
+        profileCompleted: "2026-06-01T00:10:00.000Z",
+        firstCommandCompleted: "2026-06-01T00:20:00.000Z",
+        firstWinConfirmed: "2026-06-01T00:25:00.000Z",
+      }),
+      // activated but no win yet
+      row({
+        qrScanned: "2026-06-02T00:00:00.000Z",
+        appOpened: "2026-06-02T00:05:00.000Z",
+        firstCommandCompleted: "2026-06-02T00:20:00.000Z",
+      }),
+    ];
+    const dto = buildActivationFunnel(rows, AT);
+    const byStage = Object.fromEntries(dto.stages.map((s) => [s.stage, s]));
+    expect(byStage["first_command_completed"]?.count).toBe(2);
+    expect(byStage["first_win_confirmed"]?.count).toBe(1);
   });
 
   it("counts stage reach and chronological conversions across a cohort", () => {
