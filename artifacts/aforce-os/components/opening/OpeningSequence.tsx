@@ -10,14 +10,15 @@
  *
  *   1. Symbol      — white AForce water-drop mark, breathing fade-in.
  *   2. Brand       — eyebrow "PERFORMANCE IS" → AFORCE wordmark → hairline →
- *                    N|N monogram (mirrored N, Soursop green) → "NON —
- *                    NEGOTIABLE". The monogram is the emotional peak.
+ *                    N–И monogram (second N mirrored, bone/silver) → "NON —
+ *                    ИEGOTIABLE" (leading N of NEGOTIABLE mirrored). The
+ *                    monogram is the emotional peak.
  *   3. Ritual      — PAUSE ↓ HYDRATE ↓ LOCK IN ↓ PERFORM, one at a time.
  *   4. Readiness   — TODAY'S READINESS + count-up score + READY TO PERFORM.
  *
  * Design lock compliance:
- *   - Pure black canvas; white type; brand red (#C1281B) used only as
- *     thin hairlines / eyebrows (sparse), never as fills.
+ *   - Pure black canvas; white/bone (#F5F0E8) type; brand red (#C1281B)
+ *     used only as thin hairlines / eyebrows (sparse), never as fills.
  *   - Score-Protection: the readiness number is a *display* of the live
  *     engine score (falls back to a cinematic default before state
  *     loads). Nothing here awards, mutates, or fabricates score.
@@ -45,7 +46,7 @@ import Animated, {
   withSequence,
   withTiming,
 } from 'react-native-reanimated';
-import Svg, { Path } from 'react-native-svg';
+import Svg, { Path, Defs, RadialGradient, Stop, Rect } from 'react-native-svg';
 import * as Haptics from 'expo-haptics';
 
 import { Colors } from '@/theme/colors';
@@ -56,12 +57,12 @@ const WHITE = Colors.text.primary;
 const DIM = Colors.text.secondary;
 const MUTED = Colors.text.muted;
 const BRAND = Colors.accent.brand;
-// Brand tokens for the migrated system — Soursop Edge green (#1FA35A) for the
-// N|N monogram hero, with a soft low-opacity green halo; bone (#F5F0E8) for the
-// tracked eyebrow.
-const SOURSOP = Colors.states.PEAK.primary;
-const SOURSOP_GLOW = Colors.states.PEAK.dim;
+// Brand tokens for the opening cinematic. Stage 2 is a bone (#F5F0E8) silver-white
+// hero on the cinematic black canvas — the N|N monogram, the AFORCE wordmark and
+// the caption all render in bone; signal red (Colors.accent.brand) is reserved for
+// the thin caption hairlines only. No Soursop green appears on this screen.
 const BONE = Colors.bone;
+const GLOW_SIZE = 320; // px box for the soft bone radial glow behind the monogram
 
 const FONT_EXTRABOLD = 'Inter_800ExtraBold';
 const FONT_BOLD = 'Inter_700Bold';
@@ -198,9 +199,10 @@ function StageSymbol({ active, reduce }: { active: boolean; reduce: boolean }) {
 // the SAME "N" mirrored. The mirror is a pure horizontal flip —
 // `transform: [{ scaleX: -1 }]` on that one glyph (styles.monogramMirror) — so
 // it renders as a true reflection (reads "N–И"), never a different letter. The
-// Soursop-green glyphs scale up from 0.92 → 1.0 over a soft, low-opacity green
-// halo (two stacked translucent circles, no hard shadow) so it lands as the
-// hero of the stage. Reduced motion skips the scale + glow ramp and just fades.
+// bone glyphs scale up from 0.92 → 1.0 over a soft bone/silver radial glow (an
+// SVG RadialGradient fading to fully transparent — no hard edge, no visible
+// disc, reads as ambient light off metal) so it lands as the hero of the stage.
+// Reduced motion skips the scale + glow ramp and just fades.
 function MonogramHero({
   active,
   reduce,
@@ -249,8 +251,26 @@ function MonogramHero({
 
   return (
     <View style={styles.monogramWrap}>
-      <Animated.View pointerEvents="none" style={[styles.monoGlowLg, glowStyle]} />
-      <Animated.View pointerEvents="none" style={[styles.monoGlowSm, glowStyle]} />
+      <Animated.View pointerEvents="none" style={[styles.monoGlow, glowStyle]}>
+        <Svg width={GLOW_SIZE} height={GLOW_SIZE}>
+          <Defs>
+            <RadialGradient
+              id="monoGlow"
+              cx={GLOW_SIZE / 2}
+              cy={GLOW_SIZE / 2}
+              r={GLOW_SIZE / 2}
+              fx={GLOW_SIZE / 2}
+              fy={GLOW_SIZE / 2}
+              gradientUnits="userSpaceOnUse"
+            >
+              <Stop offset="0" stopColor={BONE} stopOpacity={0.09} />
+              <Stop offset="0.55" stopColor={BONE} stopOpacity={0.035} />
+              <Stop offset="1" stopColor={BONE} stopOpacity={0} />
+            </RadialGradient>
+          </Defs>
+          <Rect x={0} y={0} width={GLOW_SIZE} height={GLOW_SIZE} fill="url(#monoGlow)" />
+        </Svg>
+      </Animated.View>
       <Animated.View style={[styles.monogramRow, rowStyle]}>
         <Text style={styles.monogramGlyph}>N</Text>
         <Text style={styles.monogramDash}>–</Text>
@@ -283,7 +303,11 @@ function StageBrand({ active, reduce }: { active: boolean; reduce: boolean }) {
         <Reveal active={active} reduce={reduce} delay={reduce ? 180 : 1300} dy={8}>
           <View style={styles.captionBlock}>
             <View style={styles.captionRule} />
-            <Text style={styles.brandCaption}>NON — NEGOTIABLE</Text>
+            <View style={styles.captionRow}>
+              <Text style={styles.brandCaption}>NON — </Text>
+              <Text style={[styles.brandCaption, styles.captionMirror]}>N</Text>
+              <Text style={styles.brandCaption}>EGOTIABLE</Text>
+            </View>
             <View style={styles.captionRule} />
           </View>
         </Reveal>
@@ -570,10 +594,10 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   wordmark: {
-    fontFamily: FONT_EXTRABOLD,
-    fontSize: 42,
-    letterSpacing: 8,
-    color: WHITE,
+    fontFamily: FONT_DISPLAY,
+    fontSize: 40,
+    letterSpacing: 6,
+    color: BONE,
     textAlign: 'center',
   },
   brandRule: {
@@ -589,19 +613,12 @@ const styles = StyleSheet.create({
     marginTop: 2,
     marginBottom: 4,
   },
-  monoGlowLg: {
+  monoGlow: {
     position: 'absolute',
-    width: 300,
-    height: 300,
-    borderRadius: 150,
-    backgroundColor: SOURSOP_GLOW,
-  },
-  monoGlowSm: {
-    position: 'absolute',
-    width: 180,
-    height: 180,
-    borderRadius: 90,
-    backgroundColor: SOURSOP_GLOW,
+    width: GLOW_SIZE,
+    height: GLOW_SIZE,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   monogramRow: {
     flexDirection: 'row',
@@ -612,7 +629,7 @@ const styles = StyleSheet.create({
     fontFamily: FONT_DISPLAY,
     fontSize: 76,
     lineHeight: 84,
-    color: SOURSOP,
+    color: BONE,
     includeFontPadding: false,
     textAlignVertical: 'center',
   },
@@ -623,7 +640,7 @@ const styles = StyleSheet.create({
     fontFamily: FONT_DISPLAY,
     fontSize: 52,
     lineHeight: 84,
-    color: SOURSOP,
+    color: BONE,
     marginHorizontal: 8,
     opacity: 0.8,
   },
@@ -642,9 +659,17 @@ const styles = StyleSheet.create({
     fontFamily: FONT_MONO,
     fontSize: 14,
     letterSpacing: 4,
-    color: WHITE,
+    color: BONE,
     textAlign: 'center',
     textTransform: 'uppercase',
+  },
+  captionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  captionMirror: {
+    transform: [{ scaleX: -1 }],
   },
 
   // Stage 3

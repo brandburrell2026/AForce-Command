@@ -56,3 +56,12 @@ if you change the stagger. NOT a 404, CSS, layout, or decode bug.
 maps all N items, (c) no console image errors. Then to actually SEE the settled frame,
 tighten the reveal so it finishes before capture (e.g. `dur 0.6, delay 0.08 + i*0.05` →
 ~1s) — also a legit polish for wide lineups. The live deck was always fine.
+
+## A timed full-screen cinematic overlay can't be reliably screenshotted mid-stage
+A multi-stage crossfading opening overlay (e.g. aforce-os OpeningSequence) advances on its
+own timers and fades between absolute-fill layers, so `app_preview` almost always lands on a
+fade/blank moment → returns an all-white/dark frame even though the app is healthy (browser
+log shows it running). Don't read white as a bug, and don't keep re-shooting.
+**How to apply:** to give the user a verifiable still of ONE stage's final look, build a
+static resting-frame replica in mockup-sandbox (faithful 1:1 using the SAME tokens/fonts),
+embed it as a canvas iframe, and screenshot that — deterministic, no animation timing.
