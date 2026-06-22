@@ -274,7 +274,12 @@ function MonogramHero({
       <Animated.View style={[styles.monogramRow, rowStyle]}>
         <Text style={styles.monogramGlyph}>N</Text>
         <Text style={styles.monogramDash}>–</Text>
-        <Text style={[styles.monogramGlyph, styles.monogramMirror]}>N</Text>
+        {/* Mirror lives on the wrapping View, not the Text: React Native native
+            (Expo Go) ignores `transform` on a <Text>, so the flip must be on a
+            <View> for the reflected "И" to render on device as well as on web. */}
+        <View style={styles.monogramMirror}>
+          <Text style={styles.monogramGlyph}>N</Text>
+        </View>
       </Animated.View>
     </View>
   );
@@ -305,7 +310,11 @@ function StageBrand({ active, reduce }: { active: boolean; reduce: boolean }) {
             <View style={styles.captionRule} />
             <View style={styles.captionRow}>
               <Text style={styles.brandCaption}>NON — </Text>
-              <Text style={[styles.brandCaption, styles.captionMirror]}>N</Text>
+              {/* Flip on the View (not the Text) so the mirrored "И" renders on
+                  native too — see MonogramHero note above. */}
+              <View style={styles.captionMirror}>
+                <Text style={styles.brandCaption}>N</Text>
+              </View>
               <Text style={styles.brandCaption}>EGOTIABLE</Text>
             </View>
             <View style={styles.captionRule} />
