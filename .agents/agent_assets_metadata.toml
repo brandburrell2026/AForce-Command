@@ -1092,6 +1092,12 @@ uri = "file://attached_assets/generated_images/welcome-hero.png"
 type = "image"
 title = "welcome hero athlete"
 
+[[generated]]
+id = "e8rGz1b3hbs8VxV2CyT1J"
+uri = "file://artifacts/aforce-os/assets/images/welcome-hero-src.png"
+type = "image"
+title = "welcome hero portrait"
+
 [[outputs]]
 id = "fILTiXCCTKYfWe9d8R46M"
 uri = "file://attached_assets/tester-share/aforce-tester-qr.png"
