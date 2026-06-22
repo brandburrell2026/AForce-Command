@@ -26,6 +26,7 @@ import { Icon, type IconName } from '../../components/Icon';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { useUser } from '@clerk/expo';
+import { LinearGradient } from 'expo-linear-gradient';
 
 import { GradientBackground } from '@/components/GradientBackground';
 import { CycleSuccessOverlay } from '@/components/CycleSuccessOverlay';
@@ -584,7 +585,7 @@ export default function HomeScreen() {
               styles.content,
               {
                 paddingTop: topPadding + 12,
-                paddingBottom: bottomPadding + 32,
+                paddingBottom: bottomPadding + 88,
                 ...(layout.isWide
                   ? { maxWidth: layout.contentMaxWidth, alignSelf: 'center', width: '100%' }
                   : null),
@@ -621,16 +622,23 @@ export default function HomeScreen() {
               heatBand={getHeatBandFromCelsius(userState.weatherTempC)}
               heatTempLabel={tempLabel}
             />
-
-            {/* Brand signature — quiet AForce wordmark anchoring the
-                bottom of the Home surface. Thin brand-red hairline +
-                tracked ArchivoBlack wordmark in dim bone; purely
-                decorative (no score interaction). */}
-            <View style={styles.brandFooter}>
-              <View style={styles.brandFooterHairline} />
-              <Text style={styles.brandFooterWordmark}>AFORCE</Text>
-            </View>
           </ScrollView>
+
+          {/* Persistent AForce brand signature pinned just above the tab
+              bar — always visible. A short fade lets Home content scroll
+              cleanly underneath; purely decorative (pointerEvents none,
+              no score interaction). */}
+          <View
+            pointerEvents="none"
+            style={[styles.brandFooterFixed, { bottom: bottomPadding }]}
+          >
+            <LinearGradient
+              colors={['transparent', Colors.background.primary]}
+              style={StyleSheet.absoluteFill}
+            />
+            <View style={styles.brandFooterHairline} />
+            <Text style={styles.brandFooterWordmark}>AFORCE</Text>
+          </View>
 
           {showCycleSuccess && lastCycleResult && (
             <CycleSuccessOverlay result={lastCycleResult} onDismiss={dismissSuccess} />
@@ -675,25 +683,29 @@ const styles = StyleSheet.create({
   scroll: { flex: 1 },
   content: { paddingHorizontal: 20, alignItems: 'stretch' },
 
-  // Quiet AForce brand signature at the very bottom of the Home scroll.
-  brandFooter: {
+  // Persistent AForce brand signature pinned just above the tab bar.
+  brandFooterFixed: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    paddingTop: 32,
+    paddingBottom: 10,
     alignItems: 'center',
-    marginTop: 36,
-    marginBottom: 8,
+    justifyContent: 'flex-end',
   },
   brandFooterHairline: {
-    width: 28,
+    width: 26,
     height: 1,
     backgroundColor: Colors.accent.brand,
-    opacity: 0.7,
-    marginBottom: 14,
+    opacity: 0.8,
+    marginBottom: 10,
   },
   brandFooterWordmark: {
     fontFamily: 'ArchivoBlack_400Regular',
-    fontSize: 15,
+    fontSize: 14,
     letterSpacing: 4,
     color: Colors.bone,
-    opacity: 0.32,
+    opacity: 0.5,
   },
 
   header: { marginBottom: 20 },
