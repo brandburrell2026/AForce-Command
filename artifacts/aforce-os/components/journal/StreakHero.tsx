@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderWidth: 1,
     borderColor: `${LIME}26`,
-    backgroundColor: 'rgba(182,255,0,0.04)',
+    backgroundColor: 'rgba(193,40,27,0.04)',
     overflow: 'hidden',
     marginBottom: 16,
   },

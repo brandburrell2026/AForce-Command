@@ -210,7 +210,7 @@ const styles = StyleSheet.create({
   },
   rowYou: {
     borderColor: Colors.accent.primary,
-    backgroundColor: 'rgba(182,255,0,0.06)',
+    backgroundColor: 'rgba(193,40,27,0.06)',
   },
   rowRank: {
     width: 44, fontFamily: 'Inter_700Bold', fontSize: 16,

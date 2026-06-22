@@ -39,7 +39,7 @@ const styles = StyleSheet.create({
     width: 400,
     height: 400,
     borderRadius: 200,
-    backgroundColor: 'rgba(182,255,0,0.03)',
+    backgroundColor: 'rgba(193,40,27,0.03)',
   },
   midGlow: {
     position: 'absolute',
@@ -48,6 +48,6 @@ const styles = StyleSheet.create({
     width: 320,
     height: 320,
     borderRadius: 160,
-    backgroundColor: 'rgba(0,147,231,0.02)',
+    backgroundColor: 'rgba(30,91,255,0.02)',
   },
 });

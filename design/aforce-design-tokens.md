@@ -1,39 +1,42 @@
-# AForce OS Design Tokens — WHOOP-Cinematic Edition
+# AForce OS Design Tokens — AForce Brand System
 
 > **Source of truth**: `artifacts/aforce-os/theme/*`
 > **Figma import**: `design/aforce-tokens.json` (Tokens Studio for Figma, W3C format)
-> **Version**: 2.0.0 — WHOOP-Cinematic
+> **Version**: 2.1.0 — AForce Brand System
 
 ---
 
 ## Design Philosophy
 
-AForce OS follows WHOOP's cinematic design language:
-- **Pure black canvas** — backgrounds start at `#000000`, not dark gray
+AForce OS uses the **AForce Brand System** — a cinematic dark performance aesthetic:
+- **Near-black canvas** — solid backgrounds start at `#0D0D0D`, not pure black or dark gray
 - **Content floats on darkness** — no visible card borders, structure comes from spacing
-- **One hero color** — WHOOP Lime `#B6FF00` is the signature accent
-- **Data-forward** — big numbers, small labels, no decoration
+- **Signal Red hero** — AForce signal red `#C1281B` is the signature accent, used sparingly (thin lines, eyebrows, active states, CTAs)
+- **Soursop green for positive status** — `#1FA35A` marks Peak / Optimal / success
+- **Berry blue for secondary data** — `#1E5BFF`
+- **Data-forward** — big numbers, small tracked labels, no decoration
 - **Generous spacing** — when in doubt, add more whitespace
 - **Soft glows, never hard shadows** — status colors radiate outward
+- **Three type faces by role** — Archivo Black (display), IBM Plex Mono (eyebrows / metrics), Inter (body)
 
-### Color System Lock (v2.0.0)
+### Color System Lock (v2.1.0)
 
-The canonical AForce OS color system is WHOOP-Cinematic. Pure black `#000000` canvas. WHOOP lime `#B6FF00` as the sole hero accent. Coral `#E8613A` as the pulse ring accent only — no other use cases. All teal palette values (`#1DB594`, `#0F6E56`, `#060F0D`) are deprecated as of 2026-06-01 and must not appear in any new screen, component, or token. The opening screen (`welcome.tsx` / `AForceOSPreview.tsx`) must be migrated to WHOOP-Cinematic tokens before any Cursor build session begins. Any developer encountering teal in the codebase should replace it with the WHOOP-Cinematic equivalent and flag it in the PR.
+The canonical AForce OS color system is the AForce Brand System. Near-black `#0D0D0D` canvas. Signal red `#C1281B` as the hero accent, used sparingly. Soursop green `#1FA35A` for positive status (Peak / Optimal / success). Berry blue `#1E5BFF` for secondary data and info. The score ladder runs Optimal green → Stable light-green → Declining amber → Risk orange → Critical red. Only completed behaviour changes score; accent color never implies score. Scrims (`rgba(0,0,0,a)`), drop-shadow color (`#000000`), and `text.inverse` (`#000000`, text on light/accent fills) stay pure black by design.
 
 ---
 
 ## 1. Colors
 
-### Backgrounds (pure black to near-invisible elevation)
+### Backgrounds (near-black to near-invisible elevation)
 
 | Token | Hex | Usage |
 |---|---|---|
-| `bg.primary` | `#000000` | Screen background, canvas |
+| `bg.primary` | `#0D0D0D` | Screen background, canvas |
 | `bg.secondary` | `#050508` | Slight elevation (barely visible) |
 | `bg.card` | `#0A0A0F` | Card surfaces |
 | `bg.elevated` | `#101018` | Elevated panels, sheets |
 | `bg.surface` | `#141420` | Highest elevation (modals) |
-| `bg.overlay` | `rgba(0,0,0,0.92)` | Fullscreen overlays |
+| `bg.overlay` | `rgba(0,0,0,0.92)` | Fullscreen overlay scrim |
 
 ### Text
 
@@ -45,14 +48,14 @@ The canonical AForce OS color system is WHOOP-Cinematic. Pure black `#000000` ca
 | `text.ghost` | `rgba(255,255,255,0.18)` | Placeholder, disabled |
 | `text.inverse` | `#000000` | Text on light/accent backgrounds |
 
-### Borders (WHOOP-level invisible)
+### Borders (near-invisible)
 
 | Token | Value | Usage |
 |---|---|---|
 | `border.subtle` | `rgba(255,255,255,0.04)` | Barely-there separators |
 | `border.medium` | `rgba(255,255,255,0.08)` | Section dividers |
 | `border.strong` | `rgba(255,255,255,0.14)` | Active/selected borders |
-| `border.accent` | `rgba(182,255,0,0.20)` | Accent-tinted border |
+| `border.accent` | `rgba(193,40,27,0.20)` | Accent-tinted border |
 
 ### Fills (glass-on-black)
 
@@ -62,21 +65,21 @@ The canonical AForce OS color system is WHOOP-Cinematic. Pure black `#000000` ca
 | `fill.medium` | `rgba(255,255,255,0.05)` | Default card fill |
 | `fill.strong` | `rgba(255,255,255,0.10)` | Active/pressed fill |
 
-### Hero Accent (WHOOP Lime)
+### Hero Accent (Signal Red)
 
 | Token | Value | Usage |
 |---|---|---|
-| `accent.primary` | `#B6FF00` | Primary accent, CTA, active states |
-| `accent.glow` | `rgba(182,255,0,0.50)` | Orb glow, button glow |
-| `accent.dim` | `rgba(182,255,0,0.12)` | Accent-tinted backgrounds |
-| `accent.subtle` | `rgba(182,255,0,0.06)` | Very faint accent wash |
-| `accent.secondary` | `#0093E7` | WHOOP teal, secondary data |
+| `accent.primary` | `#C1281B` | Primary accent, CTA, active states |
+| `accent.glow` | `rgba(193,40,27,0.50)` | Button glow, accent halo |
+| `accent.dim` | `rgba(193,40,27,0.12)` | Accent-tinted backgrounds |
+| `accent.subtle` | `rgba(193,40,27,0.06)` | Very faint accent wash |
+| `accent.secondary` | `#1E5BFF` | Berry blue, secondary data |
 
 ### Performance States (4 bands)
 
 | State | Primary | Glow | Dim |
 |---|---|---|---|
-| **Peak** | `#B6FF00` | `rgba(182,255,0,0.50)` | `rgba(182,255,0,0.12)` |
+| **Peak** | `#1FA35A` | `rgba(31,163,90,0.50)` | `rgba(31,163,90,0.12)` |
 | **Balanced** | `#00E5C8` | `rgba(0,229,200,0.40)` | `rgba(0,229,200,0.12)` |
 | **Recovering** | `#FFA01E` | `rgba(255,160,30,0.40)` | `rgba(255,160,30,0.12)` |
 | **Depleted** | `#FF2D55` | `rgba(255,45,85,0.40)` | `rgba(255,45,85,0.12)` |
@@ -85,33 +88,49 @@ The canonical AForce OS color system is WHOOP-Cinematic. Pure black `#000000` ca
 
 | Band | Primary | Pressure Mode |
 |---|---|---|
-| **Optimal** (85-100) | `#16EC06` | `#00FF00` |
-| **Stable** (70-84) | `#B6FF00` | `#A0FF20` |
+| **Optimal** (85-100) | `#1FA35A` | `#17C964` |
+| **Stable** (70-84) | `#3DBE7A` | `#2BAA66` |
 | **Declining** (50-69) | `#FFDE00` | `#FFC000` |
 | **Risk** (30-49) | `#FF8C1A` | `#FF7A00` |
 | **Critical** (0-29) | `#FF0026` | `#FF0040` |
 
-### WHOOP Integration Palette
+### Wearable Integration Palette
+
+The `whoop.*` token keys are retained for continuity with the wearable-snapshot
+surface; their values now follow the AForce Brand System (green status, blue
+strain). The provider brand swatch (`providers.whoop` = `#B6FF00`) keeps WHOOP's
+own lime so connect buttons render in the provider's real brand color.
 
 | Token | Value | Usage |
 |---|---|---|
-| `whoop.lime` | `#B6FF00` | WHOOP wordmark, connected status |
-| `whoop.teal` | `#0093E7` | Strain bar fill |
-| `whoop.recovery-green` | `#16EC06` | Recovery >= 67% |
+| `whoop.lime` | `#1FA35A` | Connected-status accent |
+| `whoop.teal` | `#1E5BFF` | Strain bar fill |
+| `whoop.recovery-green` | `#1FA35A` | Recovery >= 67% |
 | `whoop.recovery-yellow` | `#FFDE00` | Recovery 34-66% |
 | `whoop.recovery-red` | `#FF0026` | Recovery <= 33% |
+| `whoop.panel-bottom` | `#0D0D0D` | Snapshot panel base |
 | `whoop.ring-track` | `rgba(255,255,255,0.08)` | Ring background track |
-| `whoop.strain-track` | `rgba(0,147,231,0.15)` | Strain bar background |
+| `whoop.strain-track` | `rgba(30,91,255,0.15)` | Strain bar background |
 
 ### Opacity Scale
 
-Use for layering content on pure black:
+Use for layering content on the near-black canvas:
 
 `0.02` - `0.04` - `0.06` - `0.08` - `0.10` - `0.14` - `0.20` - `0.30` - `0.55` - `1.00`
 
 ---
 
-## 2. Typography (Inter)
+## 2. Typography (Archivo Black · IBM Plex Mono · Inter)
+
+### Faces by role
+
+| Role | Family | Token | Usage |
+|---|---|---|---|
+| `display` | Archivo Black | `fonts.display` / `roles.display` | Hero numerals, wordmarks |
+| `eyebrow` | IBM Plex Mono | `roles.eyebrow` | Tracked uppercase section labels |
+| `metric` | IBM Plex Mono | `roles.metric` | Metric captions / values |
+| `mono` | IBM Plex Mono | `fonts.mono` / `roles.mono` | Technical / tabular text |
+| `body` | Inter (400 → 800) | `fonts.regular` … `fonts.bold` | Everything else |
 
 ### Scale
 
@@ -140,7 +159,7 @@ Use for layering content on pure black:
 
 `0` - `4` - `8` - `12` - `16` - `20` - `24` - `28` - `32` - `40` - `48` - `56` - `64` - `80` - `96`
 
-**WHOOP rule**: sections should have 40-64px between them. Cards should have 20px internal padding. Never let elements feel crowded.
+**Spacing rule**: sections should have 40-64px between them. Cards should have 20px internal padding. Never let elements feel crowded.
 
 ---
 
@@ -193,16 +212,16 @@ Use for layering content on pure black:
 
 ## 7. Shadows / Glows
 
-WHOOP never uses hard box shadows. Everything is a soft radial glow that matches the status color:
+AForce never uses hard box shadows. Everything is a soft radial glow that matches the status color:
 
 | Token | Color | Blur | Usage |
 |---|---|---|---|
-| `orb-glow` | `rgba(182,255,0,0.50)` | 40px | Orb ambient glow |
-| `glow-peak` | `rgba(182,255,0,0.35)` | 24px | Peak state elements |
+| `orb-glow` | `rgba(31,163,90,0.50)` | 40px | Orb ambient glow (peak) |
+| `glow-peak` | `rgba(31,163,90,0.35)` | 24px | Peak state elements |
 | `glow-balanced` | `rgba(0,229,200,0.25)` | 18px | Balanced state |
 | `glow-recovering` | `rgba(255,160,30,0.30)` | 14px | Recovering state |
 | `glow-depleted` | `rgba(255,45,85,0.40)` | 12px | Depleted state |
-| `cta-glow` | `rgba(182,255,0,0.20)` | 16px | CTA button ambient |
+| `cta-glow` | `rgba(193,40,27,0.20)` | 16px | CTA button ambient |
 
 ---
 

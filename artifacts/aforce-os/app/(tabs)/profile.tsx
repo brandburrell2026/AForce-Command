@@ -676,7 +676,7 @@ export default function ProfileScreen() {
                     style={styles.settingRow}
                   >
                     <View style={styles.settingLeft}>
-                      <Icon name="grid" size={16} color="#B6FF00" />
+                      <Icon name="grid" size={16} color="#C1281B" />
                       <View>
                         <Text style={styles.settingLabel}>All Modules</Text>
                         <Text style={styles.settingSubLabel}>
@@ -703,7 +703,7 @@ export default function ProfileScreen() {
                     style={styles.settingRow}
                   >
                     <View style={styles.settingLeft}>
-                      <Icon name="trending-up" size={16} color="#0093E7" />
+                      <Icon name="trending-up" size={16} color="#1E5BFF" />
                       <View>
                         <Text style={styles.settingLabel}>Weekly Performance Report</Text>
                         <Text style={styles.settingSubLabel}>
@@ -757,7 +757,7 @@ export default function ProfileScreen() {
                     style={styles.settingRow}
                   >
                     <View style={styles.settingLeft}>
-                      <Icon name="users" size={16} color="#B6FF00" />
+                      <Icon name="users" size={16} color="#C1281B" />
                       <View>
                         <Text style={styles.settingLabel}>Social Mode v2 · Preview</Text>
                         <Text style={styles.settingSubLabel}>5-block spec · tap PLAY DEMO inside</Text>
@@ -1448,7 +1448,7 @@ export default function ProfileScreen() {
                     <Switch
                       value={devMode}
                       onValueChange={(v) => { void setDevMode(v); }}
-                      trackColor={{ false: 'rgba(255,255,255,0.12)', true: '#B6FF00' }}
+                      trackColor={{ false: 'rgba(255,255,255,0.12)', true: '#C1281B' }}
                       thumbColor={Platform.OS === 'android' ? '#0a0014' : undefined}
                       accessibilityLabel="Toggle Developer Mode"
                     />
@@ -1459,7 +1459,7 @@ export default function ProfileScreen() {
                   <View style={styles.card} testID="profile-whoop-encryption-status">
                     <View style={styles.encHeaderRow}>
                       <View style={styles.settingLeft}>
-                        <Icon name="shield" size={16} color="#B6FF00" />
+                        <Icon name="shield" size={16} color="#C1281B" />
                         <View>
                           <Text style={styles.settingLabel}>WHOOP token encryption</Text>
                           <Text style={styles.settingSubLabel}>
@@ -2211,12 +2211,12 @@ const styles = StyleSheet.create({
   },
   encRefreshBtn: {
     paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999,
-    borderWidth: 1, borderColor: 'rgba(182,255,0,0.32)',
-    backgroundColor: 'rgba(182,255,0,0.08)',
+    borderWidth: 1, borderColor: 'rgba(193,40,27,0.32)',
+    backgroundColor: 'rgba(193,40,27,0.08)',
   },
   encRefreshLabel: {
     fontFamily: 'Inter_600SemiBold', fontSize: 10, letterSpacing: 1.5,
-    color: '#B6FF00', textTransform: 'uppercase',
+    color: '#C1281B', textTransform: 'uppercase',
   },
   encError: {
     paddingHorizontal: 18, paddingBottom: 16, color: '#FF6B6B',
@@ -2227,7 +2227,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18, paddingTop: 4,
   },
   encHeroPct: {
-    fontFamily: 'Inter_700Bold', fontSize: 36, color: '#B6FF00',
+    fontFamily: 'Inter_700Bold', fontSize: 36, color: '#C1281B',
     letterSpacing: -1,
   },
   encHeroLabel: {
@@ -2239,7 +2239,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.06)', overflow: 'hidden',
   },
   encBarFill: {
-    height: '100%', backgroundColor: '#B6FF00', borderRadius: 3,
+    height: '100%', backgroundColor: '#C1281B', borderRadius: 3,
   },
   encStatGrid: {
     flexDirection: 'row', marginTop: 14, paddingHorizontal: 18, gap: 12,
@@ -2266,8 +2266,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   encFlagOn: {
-    color: '#B6FF00', borderColor: 'rgba(182,255,0,0.4)',
-    backgroundColor: 'rgba(182,255,0,0.08)',
+    color: '#C1281B', borderColor: 'rgba(193,40,27,0.4)',
+    backgroundColor: 'rgba(193,40,27,0.08)',
   },
   encFlagOff: {
     color: Colors.text.muted, borderColor: 'rgba(255,255,255,0.12)',
@@ -2300,7 +2300,7 @@ const styles = StyleSheet.create({
   inviteTierBadge: {
     paddingVertical: 4, paddingHorizontal: 10, borderRadius: 999,
     borderWidth: 1, borderColor: Colors.accent.primary,
-    backgroundColor: 'rgba(182,255,0,0.08)', marginBottom: 4,
+    backgroundColor: 'rgba(193,40,27,0.08)', marginBottom: 4,
   },
   inviteTierLabel: {
     fontFamily: 'Inter_700Bold', fontSize: 10, letterSpacing: 2,

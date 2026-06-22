@@ -97,7 +97,7 @@ export const FLAVOR_VARIANTS: FlavorVariant[] = [
     ],
     stateAlignment: ['DEPLETED'],
     aiCommand: 'Take 1 Soursop Edge now. You are trending depleted.',
-    accent: '#B6FF00',
+    accent: '#1FA35A',
   },
 ];
 

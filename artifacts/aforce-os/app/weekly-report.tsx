@@ -54,10 +54,10 @@ const SECTION_ICON: Record<WeeklyReportSectionKey, IconName> = {
 };
 
 const STATUS_COLOR: Record<WeeklyReportStatus, string> = {
-  improved: '#16EC06',
+  improved: '#1FA35A',
   attention: '#FFA01E',
   steady: 'rgba(255,255,255,0.55)',
-  collecting: '#0093E7',
+  collecting: '#1E5BFF',
   awaiting: 'rgba(255,255,255,0.35)',
 };
 
@@ -315,7 +315,7 @@ function SectionCard({ section }: { section: WeeklyReportSection }) {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#000000' },
+  root: { flex: 1, backgroundColor: '#0D0D0D' },
   container: { flex: 1, paddingHorizontal: 20 },
   header: {
     flexDirection: 'row',
@@ -347,7 +347,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 9,
     borderRadius: 22,
-    backgroundColor: '#B6FF00',
+    backgroundColor: '#C1281B',
   },
   shareBtnText: {
     fontFamily: 'Inter_700Bold',
@@ -382,8 +382,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.02)',
   },
   focusCard: {
-    borderColor: 'rgba(0,147,231,0.35)',
-    backgroundColor: 'rgba(0,147,231,0.06)',
+    borderColor: 'rgba(30,91,255,0.35)',
+    backgroundColor: 'rgba(30,91,255,0.06)',
   },
   cardHead: {
     flexDirection: 'row',

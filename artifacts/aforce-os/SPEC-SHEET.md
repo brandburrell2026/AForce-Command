@@ -228,12 +228,14 @@ features via an inheritance chain; feature flags map to `featureFlags/flags.ts`.
 
 *Files: `theme/colors.ts`, `theme/typography.ts`, `theme/spacing.ts`.*
 
-- **Palette (WHOOP-Cinematic):** pure black `#000000` canvas, AForce brand red
-  `#FF3B30` (sparse accents), WHOOP lime / Peak Green `#B6FF00`, plus WHOOP
-  recovery colors (green / yellow / red).
-- **Typography:** Inter (400 → 800), tracked labels (letter-spacing up to "ultra").
+- **Palette (AForce Brand System):** near-black `#0D0D0D` canvas, AForce signal
+  red `#C1281B` (hero accent, used sparingly), Soursop Edge green `#1FA35A`
+  (Peak / positive status), Berry blue `#1E5BFF` (secondary / info), plus the
+  score-band ladder (green → amber → orange → red).
+- **Typography:** Archivo Black (display), IBM Plex Mono (eyebrows / metric
+  labels), Inter (400 → 800) body, tracked labels (letter-spacing up to "ultra").
 - **Spacing:** 4px grid (scale 1–24; e.g. step 8 = 32px).
-- **Aesthetic:** content floats on pure black, big numbers / small tracked labels,
+- **Aesthetic:** content floats on the near-black canvas, big numbers / small tracked labels,
   soft radial glows (no hard box shadows), generous spacing.
 - Tokens exported in Tokens Studio format (`design/aforce-tokens.json`) and a
   human-readable spec (`design/aforce-design-tokens.md`).
@@ -280,7 +282,7 @@ feature gating so entitlements stay consistent.
   (`eas.json`).
 - **Bundle IDs:** iOS & Android `com.aforce.os`; iOS `supportsTablet: false`.
 - **Versioning:** app version 1.0.0; iOS buildNumber 1; Android versionCode 1.
-- **App config:** dark UI, portrait, black splash, notification accent `#B6FF00`.
+- **App config:** dark UI, portrait, dark splash, notification accent `#C1281B`.
 - **Permissions:**
   - iOS — Camera (barcode scan), Location When In Use (weather), HealthKit
     (read HR/HRV/sleep/workouts; write hydration logs).

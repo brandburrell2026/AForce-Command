@@ -1,5 +1,10 @@
-// AForce OS Typography System — WHOOP-Cinematic Edition
+// AForce OS Typography System — AForce Brand System
 // Bold, tight, data-forward. Hero numbers massive. Labels small + tracked.
+//
+// Three faces by role:
+//   display  → Archivo Black  (big hero wordmarks / numerals)
+//   eyebrow  → IBM Plex Mono  (tracked technical labels / metric captions)
+//   body     → Inter          (everything else)
 
 export const Typography = {
   fonts: {
@@ -7,6 +12,18 @@ export const Typography = {
     medium: 'Inter_500Medium',
     semibold: 'Inter_600SemiBold',
     bold: 'Inter_700Bold',
+    display: 'ArchivoBlack_400Regular',
+    mono: 'IBMPlexMono_500Medium',
+  },
+
+  // Role tokens — reference these by intent. Existing hardcoded Inter_* call
+  // sites are intentionally left untouched; new surfaces should map to a role.
+  roles: {
+    display: 'ArchivoBlack_400Regular',
+    eyebrow: 'IBMPlexMono_500Medium',
+    metric: 'IBMPlexMono_600SemiBold',
+    mono: 'IBMPlexMono_400Regular',
+    body: 'Inter_400Regular',
   },
 
   sizes: {

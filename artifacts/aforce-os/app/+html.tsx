@@ -33,7 +33,7 @@ export default function Root({ children }: PropsWithChildren) {
 
 const backgroundCss = `
 html, body, #root {
-  background-color: #000000;
+  background-color: #0D0D0D;
 }
 body {
   color: #FFFFFF;

@@ -25,7 +25,7 @@ export const HEAT_BANDS: HeatBandDisplay[] = [
     band: "STABLE",
     label: "STABLE",
     range: [0, 24],
-    color: "#B6FF00", // WHOOP lime
+    color: "#1FA35A", // Soursop green
     flashing: false,
     visualMode: "subtle",
     urgency: "calm",

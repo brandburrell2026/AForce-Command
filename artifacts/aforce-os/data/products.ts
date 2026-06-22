@@ -77,7 +77,7 @@ export const PRODUCT_FLAVORS = {
   },
   soursop: {
     label: 'Soursop Edge + Seamoss',
-    accent: '#B6FF00',
+    accent: '#1FA35A',
     stick: require('../assets/images/products/stick_soursop.png'),
     can: require('../assets/images/products/can_soursop_v2.png'),
     jar: require('../assets/images/products/jar_soursop.png'),

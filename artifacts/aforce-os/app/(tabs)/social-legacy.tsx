@@ -150,15 +150,15 @@ const styles = StyleSheet.create({
     paddingTop: Platform.OS === 'web' ? 8 : 44,
     paddingBottom: 6,
     alignItems: 'center',
-    backgroundColor: 'rgba(182,255,0,0.10)',
+    backgroundColor: 'rgba(193,40,27,0.10)',
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: 'rgba(182,255,0,0.35)',
+    borderBottomColor: 'rgba(193,40,27,0.35)',
     zIndex: 10,
   },
   legacyBannerText: {
     fontFamily: 'Inter_700Bold',
     fontSize: 10, letterSpacing: 2,
-    color: '#B6FF00',
+    color: '#C1281B',
   },
   lockedContent: {
     paddingHorizontal: 24,

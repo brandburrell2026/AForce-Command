@@ -58,7 +58,7 @@ import {
 import { useIntentCapture } from '@/hooks/useIntentCapture';
 import { useFlagsSlice } from '@/store/slices';
 
-const BG = '#000000';
+const BG = '#0D0D0D';
 const WHITE = Colors.text.primary;
 const DIM = Colors.text.secondary;
 const MUTED = Colors.text.muted;
@@ -670,7 +670,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  scalePillOn: { borderColor: BRAND, backgroundColor: 'rgba(255,59,48,0.10)' },
+  scalePillOn: { borderColor: BRAND, backgroundColor: 'rgba(193,40,27,0.10)' },
   scalePillPressed: { opacity: 0.7 },
   scaleNum: {
     fontFamily: FONT_BOLD,

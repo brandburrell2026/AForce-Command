@@ -294,7 +294,7 @@ export default function JournalScreen() {
               <Text style={styles.chartTitle}>{t('journal.chart_title')}</Text>
               {loading ? (
                 <View style={[styles.chartPlaceholder, { width: chartWidth }]}>
-                  <ActivityIndicator color="#B6FF00" />
+                  <ActivityIndicator color="#C1281B" />
                 </View>
               ) : (
                 <JournalChart
@@ -461,7 +461,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   eyebrow: {
-    color: '#B6FF00',
+    color: '#C1281B',
     fontFamily: 'Inter_600SemiBold',
     fontSize: 10,
     letterSpacing: 1.4,
@@ -504,7 +504,7 @@ const styles = StyleSheet.create({
   exportBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#B6FF00',
+    backgroundColor: '#C1281B',
     paddingHorizontal: 14,
     paddingVertical: 9,
     borderRadius: 999,

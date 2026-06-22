@@ -4,7 +4,7 @@
       "bg": {
         "primary": {
           "type": "color",
-          "value": "#000000"
+          "value": "#0D0D0D"
         },
         "secondary": {
           "type": "color",
@@ -64,7 +64,7 @@
         },
         "accent": {
           "type": "color",
-          "value": "rgba(182,255,0,0.20)"
+          "value": "rgba(193,40,27,0.20)"
         }
       },
       "fill": {
@@ -84,38 +84,38 @@
       "accent": {
         "primary": {
           "type": "color",
-          "value": "#B6FF00"
+          "value": "#C1281B"
         },
         "glow": {
           "type": "color",
-          "value": "rgba(182,255,0,0.50)"
+          "value": "rgba(193,40,27,0.50)"
         },
         "dim": {
           "type": "color",
-          "value": "rgba(182,255,0,0.12)"
+          "value": "rgba(193,40,27,0.12)"
         },
         "subtle": {
           "type": "color",
-          "value": "rgba(182,255,0,0.06)"
+          "value": "rgba(193,40,27,0.06)"
         },
         "secondary": {
           "type": "color",
-          "value": "#0093E7"
+          "value": "#1E5BFF"
         }
       },
       "state": {
         "peak": {
           "primary": {
             "type": "color",
-            "value": "#B6FF00"
+            "value": "#1FA35A"
           },
           "glow": {
             "type": "color",
-            "value": "rgba(182,255,0,0.50)"
+            "value": "rgba(31,163,90,0.50)"
           },
           "dim": {
             "type": "color",
-            "value": "rgba(182,255,0,0.12)"
+            "value": "rgba(31,163,90,0.12)"
           }
         },
         "balanced": {
@@ -165,21 +165,21 @@
         "optimal": {
           "primary": {
             "type": "color",
-            "value": "#16EC06"
+            "value": "#1FA35A"
           },
           "primary-pressure": {
             "type": "color",
-            "value": "#00FF00"
+            "value": "#17C964"
           }
         },
         "stable": {
           "primary": {
             "type": "color",
-            "value": "#B6FF00"
+            "value": "#3DBE7A"
           },
           "primary-pressure": {
             "type": "color",
-            "value": "#A0FF20"
+            "value": "#2BAA66"
           }
         },
         "declining": {
@@ -246,7 +246,7 @@
       "semantic": {
         "success": {
           "type": "color",
-          "value": "#B6FF00"
+          "value": "#1FA35A"
         },
         "warning": {
           "type": "color",
@@ -258,7 +258,7 @@
         },
         "info": {
           "type": "color",
-          "value": "#0093E7"
+          "value": "#1E5BFF"
         }
       },
       "tabbar": {
@@ -268,7 +268,7 @@
         },
         "active": {
           "type": "color",
-          "value": "#B6FF00"
+          "value": "#C1281B"
         },
         "inactive": {
           "type": "color",
@@ -278,7 +278,7 @@
       "gradient": {
         "background-top": {
           "type": "color",
-          "value": "#000000"
+          "value": "#0D0D0D"
         },
         "background-mid": {
           "type": "color",
@@ -286,7 +286,7 @@
         },
         "background-bottom": {
           "type": "color",
-          "value": "#000000"
+          "value": "#0D0D0D"
         },
         "card-top": {
           "type": "color",
@@ -338,15 +338,15 @@
       "whoop": {
         "lime": {
           "type": "color",
-          "value": "#B6FF00"
+          "value": "#1FA35A"
         },
         "teal": {
           "type": "color",
-          "value": "#0093E7"
+          "value": "#1E5BFF"
         },
         "recovery-green": {
           "type": "color",
-          "value": "#16EC06"
+          "value": "#1FA35A"
         },
         "recovery-yellow": {
           "type": "color",
@@ -362,7 +362,7 @@
         },
         "panel-bottom": {
           "type": "color",
-          "value": "#000000"
+          "value": "#0D0D0D"
         },
         "ring-track": {
           "type": "color",
@@ -370,7 +370,7 @@
         },
         "strain-track": {
           "type": "color",
-          "value": "rgba(0,147,231,0.15)"
+          "value": "rgba(30,91,255,0.15)"
         }
       },
       "opacity": {
@@ -420,6 +420,14 @@
       "inter": {
         "type": "fontFamilies",
         "value": "Inter"
+      },
+      "archivo-black": {
+        "type": "fontFamilies",
+        "value": "Archivo Black"
+      },
+      "ibm-plex-mono": {
+        "type": "fontFamilies",
+        "value": "IBM Plex Mono"
       }
     },
     "fontWeights": {
@@ -904,7 +912,7 @@
       "orb-glow": {
         "type": "boxShadow",
         "value": {
-          "color": "rgba(182,255,0,0.50)",
+          "color": "rgba(31,163,90,0.50)",
           "offsetX": "0px",
           "offsetY": "0px",
           "blur": "40px",
@@ -924,7 +932,7 @@
       "glow-peak": {
         "type": "boxShadow",
         "value": {
-          "color": "rgba(182,255,0,0.35)",
+          "color": "rgba(31,163,90,0.35)",
           "offsetX": "0px",
           "offsetY": "0px",
           "blur": "24px",
@@ -964,7 +972,7 @@
       "glow-recovery-green": {
         "type": "boxShadow",
         "value": {
-          "color": "rgba(22,236,6,0.30)",
+          "color": "rgba(31,163,90,0.30)",
           "offsetX": "0px",
           "offsetY": "0px",
           "blur": "20px",
@@ -994,7 +1002,7 @@
       "cta-glow": {
         "type": "boxShadow",
         "value": {
-          "color": "rgba(182,255,0,0.20)",
+          "color": "rgba(193,40,27,0.20)",
           "offsetX": "0px",
           "offsetY": "0px",
           "blur": "16px",

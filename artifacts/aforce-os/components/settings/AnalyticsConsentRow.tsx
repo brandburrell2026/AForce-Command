@@ -120,7 +120,7 @@ export function AnalyticsConsentRow() {
           onValueChange={(v) => {
             void onToggle(v);
           }}
-          trackColor={{ false: 'rgba(255,255,255,0.12)', true: '#B6FF00' }}
+          trackColor={{ false: 'rgba(255,255,255,0.12)', true: '#C1281B' }}
           thumbColor={Platform.OS === 'android' ? '#0a0014' : undefined}
           accessibilityLabel="Toggle anonymous analytics"
           testID="analytics-consent-switch"

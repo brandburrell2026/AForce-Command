@@ -11,7 +11,7 @@
     "splash": {
       "image": "./assets/images/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#000000"
+      "backgroundColor": "#0D0D0D"
     },
     "ios": {
       "supportsTablet": false,
@@ -29,13 +29,13 @@
       }
     },
     "android": {
-      "backgroundColor": "#000000",
+      "backgroundColor": "#0D0D0D",
       "package": "com.aforce.os",
       "versionCode": 1,
       "icon": "./assets/images/icon.png",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#000000"
+        "backgroundColor": "#0D0D0D"
       },
       "permissions": [
         "android.permission.CAMERA",
@@ -45,7 +45,7 @@
     },
     "web": {
       "favicon": "./assets/images/favicon.png",
-      "backgroundColor": "#000000"
+      "backgroundColor": "#0D0D0D"
     },
     "plugins": [
       [
@@ -80,7 +80,7 @@
       [
         "expo-notifications",
         {
-          "color": "#B6FF00"
+          "color": "#C1281B"
         }
       ]
     ],

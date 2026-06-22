@@ -6,6 +6,13 @@ import {
   Inter_800ExtraBold,
   useFonts,
 } from '@expo-google-fonts/inter';
+import { ArchivoBlack_400Regular } from '@expo-google-fonts/archivo-black';
+import {
+  IBMPlexMono_400Regular,
+  IBMPlexMono_500Medium,
+  IBMPlexMono_600SemiBold,
+  IBMPlexMono_700Bold,
+} from '@expo-google-fonts/ibm-plex-mono';
 import { Icon } from '../components/Icon';
 import { Feather } from '@expo/vector-icons';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -98,13 +105,13 @@ function RootLayoutNav() {
     <Stack
       screenOptions={{
         headerShown: false,
-        // Force every screen container to pure black (#000000) so the
+        // Force every screen container to pure black (#0D0D0D) so the
         // brief frame between mount and the screen's own background
         // paint matches the WHOOP-cinematic canvas. Without this,
         // React Navigation's default light-gray (rgb(242,242,242)) on
         // iOS / web shows through and reads as a "blank white flash"
         // in the Replit preview iframe before the splash fades in.
-        contentStyle: { backgroundColor: '#000000' },
+        contentStyle: { backgroundColor: '#0D0D0D' },
       }}
     >
       <Stack.Screen name="onboarding" options={{ headerShown: false, animation: 'fade' }} />
@@ -282,7 +289,7 @@ function AppShell() {
           status-bar glyphs (clock, battery, signal) on every screen so
           they remain visible against the pure-black opening canvas
           (splash + opening) and every other dark surface. Without this
-          the default dark glyphs render invisibly against #000000 in
+          the default dark glyphs render invisibly against #0D0D0D in
           the top safe-area chrome zone. */}
       <StatusBar style="light" />
       <ErrorBoundary>
@@ -326,6 +333,13 @@ export default function RootLayout() {
     Inter_600SemiBold,
     Inter_700Bold,
     Inter_800ExtraBold,
+    // AForce Brand System type roles: Archivo Black (display) + IBM Plex Mono
+    // (eyebrows / metric labels). Inter stays the body face.
+    ArchivoBlack_400Regular,
+    IBMPlexMono_400Regular,
+    IBMPlexMono_500Medium,
+    IBMPlexMono_600SemiBold,
+    IBMPlexMono_700Bold,
     // Pre-load the Feather icon font *before* the splash screen hides.
     // Without this, Android (and the first paint of iOS dev builds)
     // briefly renders empty boxes instead of glyphs because @expo/vector-

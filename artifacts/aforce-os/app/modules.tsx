@@ -42,7 +42,7 @@ const MODULES: ModuleEntry[] = [
     blurb: 'Signal · Command · Forecast · Crew · Shared Context',
     href: '/social-v2',
     icon: 'users',
-    tint: '#B6FF00',
+    tint: '#C1281B',
   },
   {
     id: 'sleep',
@@ -91,7 +91,7 @@ const MODULES: ModuleEntry[] = [
     blurb: 'Recovery score · replenishment plan · cut-off time',
     href: '/cruise/recovery',
     icon: 'refresh-cw',
-    tint: '#16EC06',
+    tint: '#1FA35A',
     gate: 'Flag-gated · spec_cruise',
   },
   {
@@ -108,7 +108,7 @@ const MODULES: ModuleEntry[] = [
     blurb: 'Apple Health · Oura · WHOOP · freshest-wins merge',
     href: '/sensors',
     icon: 'upload-cloud',
-    tint: '#0093E7',
+    tint: '#1E5BFF',
   },
   {
     id: 'protocol',
@@ -116,7 +116,7 @@ const MODULES: ModuleEntry[] = [
     blurb: 'AForce Protocol stage · synchronous derivation',
     href: '/protocol',
     icon: 'compass',
-    tint: '#B6FF00',
+    tint: '#C1281B',
   },
   {
     id: 'timeline',
@@ -132,7 +132,7 @@ const MODULES: ModuleEntry[] = [
     blurb: 'Smart Capture · acidic load · stimulant load · superfood signals',
     href: '/scan',
     icon: 'camera',
-    tint: '#B6FF00',
+    tint: '#C1281B',
   },
   {
     id: 'weekly-report',
@@ -140,7 +140,7 @@ const MODULES: ModuleEntry[] = [
     blurb: 'Weekly Performance Report™ · screenshot & share',
     href: '/weekly-report',
     icon: 'trending-up',
-    tint: '#0093E7',
+    tint: '#1E5BFF',
     gate: 'Flag-gated · spec_weekly_report',
   },
   {
@@ -231,7 +231,7 @@ export default function ModulesScreen() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: '#0D0D0D',
     paddingHorizontal: 20,
   },
   header: {
@@ -303,14 +303,14 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: 'rgba(182,255,0,0.25)',
-    backgroundColor: 'rgba(182,255,0,0.06)',
+    borderColor: 'rgba(193,40,27,0.25)',
+    backgroundColor: 'rgba(193,40,27,0.06)',
   },
   gateTagText: {
     fontFamily: 'Inter_600SemiBold',
     fontSize: 9,
     letterSpacing: 1,
-    color: '#B6FF00',
+    color: '#C1281B',
     textTransform: 'uppercase',
   },
   footer: {

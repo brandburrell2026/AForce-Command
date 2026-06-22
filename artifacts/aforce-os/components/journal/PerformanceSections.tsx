@@ -46,12 +46,12 @@ export default function PerformanceSections({ sections, winMoments }: Props) {
       {winMoments.length > 0 && (
         <View style={styles.winsCard}>
           <View style={styles.winsHeader}>
-            <Icon name="award" size={14} color="#B6FF00" />
+            <Icon name="award" size={14} color="#C1281B" />
             <Text style={styles.winsTitle}>WIN MOMENTS</Text>
           </View>
           {winMoments.map((m) => (
             <View key={m.id} style={styles.winRow}>
-              <Icon name={m.icon} size={13} color="#B6FF00" />
+              <Icon name={m.icon} size={13} color="#C1281B" />
               <Text style={styles.winText}>{m.text}</Text>
             </View>
           ))}
@@ -99,12 +99,12 @@ const styles = StyleSheet.create({
   },
   winsCard: {
     marginTop: 14,
-    backgroundColor: 'rgba(180,255,0,0.05)',
+    backgroundColor: 'rgba(193,40,27,0.05)',
     borderRadius: 14,
     paddingHorizontal: 14,
     paddingVertical: 12,
     borderWidth: 1,
-    borderColor: 'rgba(180,255,0,0.18)',
+    borderColor: 'rgba(193,40,27,0.18)',
   },
   winsHeader: {
     flexDirection: 'row',
@@ -113,7 +113,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   winsTitle: {
-    color: '#B6FF00',
+    color: '#C1281B',
     fontFamily: 'Inter_700Bold',
     fontSize: 11,
     letterSpacing: 1.2,

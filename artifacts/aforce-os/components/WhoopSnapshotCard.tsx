@@ -2,7 +2,7 @@
  * WhoopSnapshotCard — cinematic "live from WHOOP" panel.
  *
  * Visually mirrors the real WHOOP app: pure black canvas, lime-green
- * (#B6FF00) wordmark, hero Recovery ring color-coded by WHOOP's
+ * (#1FA35A) wordmark, hero Recovery ring color-coded by WHOOP's
  * published thresholds (green ≥67%, yellow 34–66%, red ≤33%), Strain
  * shown on the official 0–21 scale in WHOOP teal, and a Sleep
  * Performance percentage. The recovery ring animates its stroke
@@ -30,13 +30,13 @@ import Animated, {
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 // ─── WHOOP brand palette ───────────────────────────────────────────
-const WHOOP_LIME = '#B6FF00';
-const WHOOP_TEAL = '#0093E7';
-const WHOOP_GREEN = '#16EC06';
+const WHOOP_LIME = '#1FA35A';
+const WHOOP_TEAL = '#1E5BFF';
+const WHOOP_GREEN = '#1FA35A';
 const WHOOP_YELLOW = '#FFDE00';
 const WHOOP_RED = '#FF2800';
 const PANEL_BG_TOP = '#0A0A0A';
-const PANEL_BG_BOTTOM = '#000000';
+const PANEL_BG_BOTTOM = '#0D0D0D';
 const TEXT_PRIMARY = '#FFFFFF';
 const TEXT_MUTED = '#5C6066';
 

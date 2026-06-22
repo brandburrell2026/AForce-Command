@@ -9,8 +9,8 @@
  *
  * Five score bands — exactly matching the brand spec:
  *
- *   OPTIMAL    85-100   Neon green     — soft, wide glow
- *   STABLE     70-84    Brand lime     — subtle glow
+ *   OPTIMAL    85-100   Soursop green  — soft, wide glow
+ *   STABLE     70-84    Soursop green  — subtle glow
  *   DECLINING  50-69    Amber/yellow   — minimal glow
  *   RISK       30-49    Orange         — medium intensity
  *   CRITICAL   0-29     Red            — tight, intense glow
@@ -59,11 +59,11 @@ export const STATUS_BANDS: readonly StatusBandThreshold[] = [
 
 /** Hex primaries — calm baseline (WHOOP-cinematic tuned). */
 const PRIMARY: Record<StatusBand, string> = {
-  CRITICAL:  '#FF2800', // WHOOP recovery red
+  CRITICAL:  '#FF2800', // signal red
   RISK:      '#FF8C1A', // orange
-  DECLINING: '#FFDE00', // WHOOP recovery yellow
-  STABLE:    '#B6FF00', // WHOOP lime (hero accent)
-  OPTIMAL:   '#16EC06', // WHOOP recovery green
+  DECLINING: '#FFDE00', // amber
+  STABLE:    '#3DBE7A', // Soursop green (lighter tint)
+  OPTIMAL:   '#1FA35A', // Soursop green
 };
 
 /** Hex primaries — Pressure Mode (slightly deeper saturation). */
@@ -71,8 +71,8 @@ const PRIMARY_PRESSURE: Record<StatusBand, string> = {
   CRITICAL:  '#FF0040',
   RISK:      '#FF7A00',
   DECLINING: '#FFC000',
-  STABLE:    '#A0FF20',
-  OPTIMAL:   '#00FF00',
+  STABLE:    '#2BAA66',
+  OPTIMAL:   '#17C964',
 };
 
 /** Glow alpha per band — extreme bands are tighter & more intense. */

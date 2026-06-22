@@ -1,9 +1,9 @@
-// AForce OS Color System — WHOOP-Cinematic Edition
-// Pure black canvas, WHOOP lime hero accent, near-invisible borders.
+// AForce OS Color System — AForce Brand System
+// Cinematic near-black canvas (#0D0D0D), signal-red hero accent, near-invisible borders.
 
 export const Colors = {
   background: {
-    primary: '#000000',
+    primary: '#0D0D0D',
     secondary: '#050508',
     card: '#0A0A0F',
     elevated: '#101018',
@@ -12,35 +12,35 @@ export const Colors = {
   },
 
   gradient: {
-    background: ['#000000', '#050510', '#000000'],
+    background: ['#0D0D0D', '#050510', '#0D0D0D'],
     backgroundAngle: 160,
     header: ['rgba(0,0,0,0.95)', 'rgba(0,0,0,0.0)'],
     card: ['#0A0A0F', '#101018'],
   },
 
   accent: {
-    primary: '#B6FF00',
-    glow: 'rgba(182,255,0,0.50)',
-    dim: 'rgba(182,255,0,0.12)',
-    subtle: 'rgba(182,255,0,0.06)',
-    secondary: '#0093E7',
-    // AForce brand red — hero accent for the redesigned Home dashboard
-    // (readiness eyebrow, ritual rail, streak, athlete + membership cards
-    // and the active tab tint). Deliberately distinct from the DEPLETED
-    // state red (#FF2800); use sparingly as thin lines / labels so the
-    // hydration state-color engine still reads clearly.
-    brand: '#FF3B30',
-    brandGlow: 'rgba(255,59,48,0.45)',
-    brandDim: 'rgba(255,59,48,0.12)',
-    brandSubtle: 'rgba(255,59,48,0.06)',
+    primary: '#C1281B',
+    glow: 'rgba(193,40,27,0.50)',
+    dim: 'rgba(193,40,27,0.12)',
+    subtle: 'rgba(193,40,27,0.06)',
+    secondary: '#1E5BFF',
+    // AForce signal red — hero accent for the Home dashboard (readiness
+    // eyebrow, ritual rail, streak, athlete + membership cards and the active
+    // tab tint). Deliberately distinct from the DEPLETED state red (#FF2800);
+    // use sparingly as thin lines / labels so the hydration state-color engine
+    // still reads clearly.
+    brand: '#C1281B',
+    brandGlow: 'rgba(193,40,27,0.45)',
+    brandDim: 'rgba(193,40,27,0.12)',
+    brandSubtle: 'rgba(193,40,27,0.06)',
   },
 
   states: {
     PEAK: {
-      primary: '#B6FF00',
-      glow: 'rgba(182,255,0,0.50)',
-      dim: 'rgba(182,255,0,0.12)',
-      text: '#B6FF00',
+      primary: '#1FA35A',
+      glow: 'rgba(31,163,90,0.50)',
+      dim: 'rgba(31,163,90,0.12)',
+      text: '#1FA35A',
     },
     BALANCED: {
       primary: '#00E5C8',
@@ -85,7 +85,7 @@ export const Colors = {
     subtle: 'rgba(255,255,255,0.04)',
     medium: 'rgba(255,255,255,0.08)',
     strong: 'rgba(255,255,255,0.14)',
-    accent: 'rgba(182,255,0,0.20)',
+    accent: 'rgba(193,40,27,0.20)',
   },
 
   fill: {
@@ -94,14 +94,14 @@ export const Colors = {
     strong: 'rgba(255,255,255,0.10)',
   },
 
-  success: '#B6FF00',
+  success: '#1FA35A',
   warning: '#FFA01E',
   danger: '#FF2800',
-  info: '#0093E7',
+  info: '#1E5BFF',
 
   tabBar: {
     background: 'rgba(0,0,0,0.95)',
-    active: '#FF3B30',
+    active: '#C1281B',
     inactive: 'rgba(255,255,255,0.30)',
   },
 } as const;

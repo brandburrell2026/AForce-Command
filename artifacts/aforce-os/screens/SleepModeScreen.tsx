@@ -47,7 +47,7 @@ const SLEEP_TIME_KEY = '@aforce/sleepMode/targetTimeHHMM';
 const SEVEN_NIGHT_KEY = '@aforce/sleepMode/sevenNightAvg';
 const PRE_SLEEP_LEAD_MIN = 90;
 const RECOVERY_WINDOW_LEAD_MIN = 60;
-const LIME = '#B6FF00';
+const LIME = '#C1281B';
 
 type Phase = 'idle' | 'pre_sleep' | 'recovery_window' | 'morning';
 
@@ -383,7 +383,7 @@ export default function SleepModeScreen() {
                 onPress={() => setDemoPhase((cur) => (cur === p ? null : p))}
                 style={({ pressed }) => [
                   styles.demoChip,
-                  demoPhase === p && { borderColor: LIME, backgroundColor: 'rgba(182,255,0,0.12)' },
+                  demoPhase === p && { borderColor: LIME, backgroundColor: 'rgba(193,40,27,0.12)' },
                   pressed && { opacity: 0.85 },
                 ]}
                 accessibilityRole="button"

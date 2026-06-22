@@ -445,12 +445,18 @@ importers:
       '@clerk/expo':
         specifier: 3.2.2
         version: 3.2.2(@types/react@19.1.17)(bs58@6.0.0)(expo-auth-session@7.0.10(expo@54.0.33)(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0))(expo-constants@18.0.13)(expo-crypto@15.0.8(expo@54.0.33))(expo-secure-store@15.0.8(expo@54.0.33))(expo-web-browser@15.0.10(expo@54.0.33)(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0)))(expo@54.0.33)(react-dom@19.1.0(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)(typescript@5.9.3)(use-sync-external-store@1.6.0(react@19.1.0))(zod@3.25.76)
+      '@expo-google-fonts/archivo-black':
+        specifier: ^0.4.1
+        version: 0.4.1
       '@expo-google-fonts/bebas-neue':
         specifier: ^0.4.1
         version: 0.4.1
       '@expo-google-fonts/dm-sans':
         specifier: ^0.4.2
         version: 0.4.2
+      '@expo-google-fonts/ibm-plex-mono':
+        specifier: ^0.4.1
+        version: 0.4.1
       '@kingstinct/react-native-healthkit':
         specifier: ^14.0.0
         version: 14.0.0(react-native-nitro-modules@0.35.4(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)
@@ -1896,11 +1902,17 @@ packages:
     cpu: [x64]
     os: [linux]
 
+  '@expo-google-fonts/archivo-black@0.4.1':
+    resolution: {integrity: sha512-Zi4M9NPyKBllCd8TobvYRRAAm/dbhnrYTywbkfGVOJ7cThEetli+jYBh/deAjzOEqYMTrlSM89uEiherIPjkpQ==}
+
   '@expo-google-fonts/bebas-neue@0.4.1':
     resolution: {integrity: sha512-Ibnf0EQgMUj01tT/ws64RlsMQmOvDP+UDFW93bld0C/WwaOaCGWKgNnqxNkKxmL73y2kpT8EB4dkSNUOyAOEJA==}
 
   '@expo-google-fonts/dm-sans@0.4.2':
     resolution: {integrity: sha512-e/fLH5aCJzkEenz7axvEn8N7IJAKhUwNjIxS75h9j+Ip1M9S7d22M19gJN3A7QW4egVkBJRyQh1hQFhngQn9yA==}
+
+  '@expo-google-fonts/ibm-plex-mono@0.4.1':
+    resolution: {integrity: sha512-/yYz1mPZq8Nd4tSiH0SBDPEdJUqiOGBwVgSrQvLuw7SPh6C7ezBzmi6eFyHY4QaQwjHDmOLSBKsxzq8ZDFXVAg==}
 
   '@expo-google-fonts/inter@0.4.2':
     resolution: {integrity: sha512-syfiImMaDmq7cFi0of+waE2M4uSCyd16zgyWxdPOY7fN2VBmSLKEzkfbZgeOjJq61kSqPBNNtXjggiQiSD6gMQ==}
@@ -8313,9 +8325,13 @@ snapshots:
   '@esbuild/linux-x64@0.27.3':
     optional: true
 
+  '@expo-google-fonts/archivo-black@0.4.1': {}
+
   '@expo-google-fonts/bebas-neue@0.4.1': {}
 
   '@expo-google-fonts/dm-sans@0.4.2': {}
+
+  '@expo-google-fonts/ibm-plex-mono@0.4.1': {}
 
   '@expo-google-fonts/inter@0.4.2': {}
 

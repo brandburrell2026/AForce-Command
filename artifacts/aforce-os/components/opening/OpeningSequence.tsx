@@ -14,7 +14,7 @@
  *   4. Readiness   — TODAY'S READINESS + count-up score + READY TO PERFORM.
  *
  * Design lock compliance:
- *   - Pure black canvas; white type; brand red (#FF3B30) used only as
+ *   - Pure black canvas; white type; brand red (#C1281B) used only as
  *     thin hairlines / eyebrows (sparse), never as fills.
  *   - Score-Protection: the readiness number is a *display* of the live
  *     engine score (falls back to a cinematic default before state
@@ -48,7 +48,7 @@ import * as Haptics from 'expo-haptics';
 
 import { Colors } from '@/theme/colors';
 
-const BG = '#000000';
+const BG = '#0D0D0D';
 const WHITE = Colors.text.primary;
 const DIM = Colors.text.secondary;
 const MUTED = Colors.text.muted;
