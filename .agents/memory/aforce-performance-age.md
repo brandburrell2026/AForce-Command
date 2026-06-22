@@ -55,7 +55,20 @@ hydration point, band, or recovery score.
   activity level, else recent workout LOAD (`deriveWorkoutFatigue`, a weak
   fallback — load ≠ consistency; keep the TODO to swap for a multi-day
   frequency series).
-- Trends compute correctly but the hook passes `dailySnapshots: []`, so
-  weekly/monthly render **"Collecting…"** rather than fabricate a slope.
-  **Persisting a daily snapshot series is the natural follow-up** that turns
-  the trend rows live.
+  (sub-scores are still proxies — that swap remains open debt.)
+
+## Daily trends — now LIVE via the ledger (was V1 debt)
+- `usePerformanceAge` now READS the persisted snapshot series back from the
+  Command-Event Ledger (`ledgerToPerformanceAgeSnapshots`) and feeds the trend
+  helper, and RECORDS one snapshot per UTC day (gated by the pure
+  `dailySnapshotForRecording`, which returns null for a non-finite age so it
+  never fabricates). The 7-/30-day rows are no longer hardcoded "Collecting…".
+- **Honest accrual:** a row only goes live once ≥2 distinct days AND a baseline
+  spanning the window (≥7 / ≥30 days back) exist — so it stays "Collecting…"
+  for the first week/month of real use, by design. The first finite value of a
+  UTC day is **locked** (ledger id = day index, first-wins merge); intraday
+  wobble never rewrites the day.
+- Recording is Score-Protection-safe (advisory ledger append only; no dispatch,
+  no score/band/point mutation) and runs even when the flag is off via the
+  weekly report — consistent with "Build 100% · Show 10%". Loop/churn safety
+  for the recorder effect: see the Intelligence-Core ledger note.

@@ -15,12 +15,18 @@ import {
   deltaFromComposite,
   computePerformanceAge,
   computePerformanceAgeTrend,
+  dailySnapshotForRecording,
   MAX_YEARS_BELOW,
   MAX_YEARS_ABOVE,
   WEEKLY_TREND_DAYS,
   MONTHLY_TREND_DAYS,
   type PerformanceAgeDailySnapshot,
 } from '../performanceAge';
+import { mergeCommandEvents } from '../intelligence/commandEvents';
+import {
+  collectPerformanceAgeSnapshotEvents,
+  ledgerToPerformanceAgeSnapshots,
+} from '../intelligence/commandEventAdapters';
 
 // Composite = round( 0.35·hydration + 0.30·recovery + 0.20·sleep + 0.15·activity )
 describe('computePerformanceAge — locked composite + mapping', () => {
@@ -313,5 +319,66 @@ describe('Score Protection — performance-age math never mutates its inputs', (
 
     const after = JSON.stringify({ inputs, snaps });
     expect(after).toBe(before);
+  });
+});
+
+describe('dailySnapshotForRecording — pure daily-snapshot decision (no fabrication)', () => {
+  const MS_PER_DAY = 86_400_000;
+
+  it('finite age → snapshot at the correct UTC day index', () => {
+    const nowMs = 107 * MS_PER_DAY + 12_345; // mid-day on UTC day 107
+    expect(dailySnapshotForRecording(28, nowMs)).toEqual({
+      dayIndex: 107,
+      performanceAge: 28,
+    });
+  });
+
+  it('start-of-day records the same day (floor of the bucket)', () => {
+    expect(dailySnapshotForRecording(30, 100 * MS_PER_DAY)).toEqual({
+      dayIndex: 100,
+      performanceAge: 30,
+    });
+  });
+
+  it('null / undefined age → records nothing (collecting stays honest)', () => {
+    expect(dailySnapshotForRecording(null, Date.now())).toBeNull();
+    expect(dailySnapshotForRecording(undefined, Date.now())).toBeNull();
+  });
+
+  it('NaN / ±Infinity age → records nothing (never fabricated)', () => {
+    expect(dailySnapshotForRecording(NaN, Date.now())).toBeNull();
+    expect(dailySnapshotForRecording(Infinity, Date.now())).toBeNull();
+    expect(dailySnapshotForRecording(-Infinity, Date.now())).toBeNull();
+  });
+
+  it('non-finite nowMs → records nothing', () => {
+    expect(dailySnapshotForRecording(30, NaN)).toBeNull();
+    expect(dailySnapshotForRecording(30, Infinity)).toBeNull();
+  });
+});
+
+describe('round-trip — recorded snapshots persist through the ledger and feed a live trend', () => {
+  it('two days a week apart go LIVE (not "collecting") after the ledger round-trip', () => {
+    // Record day 100 (age 30), then day 107 (age 28), exactly as the hook would.
+    const events = mergeCommandEvents(
+      collectPerformanceAgeSnapshotEvents([{ dayIndex: 100, performanceAge: 30 }]),
+      collectPerformanceAgeSnapshotEvents([{ dayIndex: 107, performanceAge: 28 }]),
+    );
+    const snaps = ledgerToPerformanceAgeSnapshots(events);
+    const weekly = computePerformanceAgeTrend(snaps, WEEKLY_TREND_DAYS);
+    expect(weekly.available).toBe(true);
+    expect(weekly.deltaYears).toBe(-2);
+    expect(weekly.direction).toBe('younger');
+  });
+
+  it('the first finite value of a UTC day is locked — a same-day re-record is a no-op', () => {
+    // Both events share id `performance_age_snapshot:100`; the ledger merge is
+    // first-occurrence-wins, so the later 99 must NOT overwrite the original 30.
+    const events = mergeCommandEvents(
+      collectPerformanceAgeSnapshotEvents([{ dayIndex: 100, performanceAge: 30 }]),
+      collectPerformanceAgeSnapshotEvents([{ dayIndex: 100, performanceAge: 99 }]),
+    );
+    const snaps = ledgerToPerformanceAgeSnapshots(events);
+    expect(snaps).toEqual([{ dayIndex: 100, performanceAge: 30 }]);
   });
 });

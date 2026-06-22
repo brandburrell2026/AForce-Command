@@ -333,6 +333,30 @@ export function computePerformanceAgeTrend(
   return { available: true, deltaYears, direction, daysOfHistory };
 }
 
+// ─── Daily snapshot recording (pure decision; the persist lives in the hook) ──
+
+/** Milliseconds in one UTC day — the timezone-free day-bucket size. */
+const MS_PER_DAY = 86_400_000;
+
+/**
+ * The Performance Age daily snapshot to record at `nowMs`, or null when there
+ * is no finite age to record yet (missing-age or provisional-without-number).
+ *
+ * Score-Protection / no-fabrication: a null / NaN / ±Infinity age records
+ * NOTHING, so the trend honestly stays "collecting…" until real established
+ * behaviour exists — a snapshot is only ever a read-out of an age the engines
+ * already produced, never an invented one. The day index is the SAME UTC
+ * bucket the trend helper and the ledger adapters use, so one snapshot per day
+ * round-trips idempotently (the ledger keys a perf-age event by this index).
+ */
+export function dailySnapshotForRecording(
+  performanceAge: number | null | undefined,
+  nowMs: number,
+): PerformanceAgeDailySnapshot | null {
+  if (!isFiniteNumber(performanceAge) || !isFiniteNumber(nowMs)) return null;
+  return { dayIndex: Math.floor(nowMs / MS_PER_DAY), performanceAge };
+}
+
 // ─── Internals ────────────────────────────────────────────────────────
 
 function isFiniteNumber(n: unknown): n is number {
