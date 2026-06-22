@@ -18,6 +18,8 @@ export default defineConfig({
       'artifacts/aforce-os/utils/__tests__/**/*.test.ts',
       'artifacts/aforce-os/store/__tests__/**/*.test.ts',
       'artifacts/aforce-os/hooks/__tests__/**/*.test.ts',
+      'artifacts/aforce-os/featureFlags/**/__tests__/**/*.test.ts',
+      'artifacts/aforce-os/data/**/__tests__/**/*.test.ts',
       'artifacts/api-server/src/**/__tests__/**/*.test.ts',
       'artifacts/api-server/src/lib/__tests__/**/*.test.ts',
       'artifacts/aforce-site/src/**/__tests__/**/*.test.{ts,tsx}',

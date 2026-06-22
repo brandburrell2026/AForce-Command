@@ -482,6 +482,14 @@ export interface FeatureFlags {
   clutch_clip_enabled: boolean;
   kids_world_enabled: boolean;
 
+  // Phase 10 — Investor Demo. SOLE control for the 60-second cinematic
+  // overlay (`InvestorDemoOverlay`). Ships OFF in DEFAULT_FLAGS so the
+  // overlay can never mount in a public/production build, ON in
+  // DEMO_ALL_ON_FLAGS. The overlay is seeded entirely from
+  // `data/demoProfile.ts` and never mutates score or live store
+  // (Score-Protection).
+  demo_mode_enabled: boolean;
+
   // Phase 3+ — Competition (Sport mode)
   city_competition_enabled: boolean;
   state_competition_enabled: boolean;

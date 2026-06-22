@@ -28,6 +28,12 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   // Future
   kids_world_enabled: false,
 
+  // Phase 10 — Investor Demo. OFF in the production binary: the 60-second
+  // cinematic overlay can NEVER mount in a public build. Flip ON only in
+  // DEMO_ALL_ON / internal pitch builds. Seeded from data/demoProfile.ts;
+  // Score-Protection (never mutates score or live store).
+  demo_mode_enabled: false,
+
   // Competition (Sport mode) — on by default for the demo
   city_competition_enabled: true,
   state_competition_enabled: true,
@@ -222,10 +228,26 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
   // Evidence Engine™ — ON in the demo profile so internal viewers can inspect
   // the "Why this command" explainability surface. Read-only / Score-Protected.
   evidence_engine_enabled: true,
+
+  // Phase 10 — Investor Demo overlay is ON in the internal/pitch profile.
+  demo_mode_enabled: true,
 };
 
 export function isFlagEnabled(flags: FeatureFlags, key: keyof FeatureFlags): boolean {
   return Boolean(flags[key]);
+}
+
+/**
+ * Phase 10 Investor Demo gate. The 60-second cinematic overlay is the ONLY
+ * surface whose visibility is controlled solely by `demo_mode_enabled`.
+ *
+ * Pure predicate so the gate is unit-testable without React Native. It fails
+ * closed: if `demo_mode_enabled` is falsy (the production default) the overlay
+ * can never render, no matter what `active` is. `active` is the local
+ * play/dismiss trigger (store `isInvestorDemoActive`).
+ */
+export function shouldShowInvestorDemo(flags: FeatureFlags, active: boolean): boolean {
+  return Boolean(flags.demo_mode_enabled) && active;
 }
 
 /**

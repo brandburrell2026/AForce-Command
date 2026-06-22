@@ -100,6 +100,7 @@ export const baseFlags: FeatureFlags = {
   ring_enabled: false,
   clutch_clip_enabled: false,
   kids_world_enabled: false,
+  demo_mode_enabled: false,
   city_competition_enabled: false,
   state_competition_enabled: false,
   team_competition_enabled: false,

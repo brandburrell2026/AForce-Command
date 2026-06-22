@@ -1,226 +1,101 @@
 /**
  * AForce — Investor Demo (60-second cinematic flow).
  *
- * Pure script library: an ordered timeline of "beats" that the
- * `InvestorDemoOverlay` plays back end-to-end. Each beat encodes
+ * Pure schedule library. The playable timeline is DERIVED from the seed
+ * in `data/demoProfile.ts` — this module never invents narrative values,
+ * it only turns the six authored acts into an ordered list of "beats"
+ * with cumulative start times plus a couple of pure lookup helpers the
+ * overlay uses to drive its animation.
  *
- *   - the on-screen status (score, band, risk-timer minutes),
- *   - the eyebrow + caption copy,
- *   - the voice utterance (if any) with its category + persona level,
- *   - and an optional `executed: true` flag that fires the
- *     bus-level "COMMAND EXECUTED" pulse on the orb.
+ * Six acts, ten seconds each (6 × 10s = 60s):
  *
- * The overlay reads this list, schedules transitions with
- * `setTimeout`, and routes every voice line through the existing
- * `commandSpeak()` pipeline so the ElevenLabs proxy + voice bus +
- * playback lifecycle all light up exactly the way they would in
- * production. Nothing in the demo touches user state — it lives
- * entirely above the regular store.
+ *   1  Opening          — AForce wordmark + "The Performance Operating System."
+ *   2  Readiness Score  — orb climbs Depleted → Peak, score 14 → 97.
+ *   3  HydroScan        — product recognition + AI voice moment.
+ *   4  Social Mode      — BAC safety overlay (crimson ring) on the orb.
+ *   5  Territory + Heat — stylized map + Heat Guard escalates to WARNING.
+ *   6  The Standard     — clean Peak orb + brand sign-off.
  *
- * Brand language is verbatim from the AForce Command Voice Engine
- * spec; pressure beats use the same `pressureCommandLine()`-shaped
- * cadence as the runtime engine. Total runtime is exactly 60s.
+ * Score-Protection: the overlay only ever PROJECTS these seeded numbers;
+ * nothing here (or in the overlay) awards, mutates, or persists score.
  */
 
 import type { PerformanceLevel } from '../../types';
+import {
+  DEMO_PROFILE,
+  type DemoActSeed,
+  type DemoBand,
+  type DemoScene,
+  type DemoSceneData,
+  type DemoVoiceCategory,
+  type DemoVoiceSeed,
+} from '../../data/demoProfile';
 
-export type DemoBand = 'PEAK' | 'STABLE' | 'CORRECT' | 'RISK' | 'CRITICAL';
-export type DemoIntensity = 'calm' | 'standard' | 'pressure';
-export type DemoVoiceCategory = 'score_band' | 'risk_timer' | 'system_command' | 'completion';
+// Re-export the seed types so existing consumers (the overlay) can keep
+// importing demo types from this module.
+export type {
+  DemoBand,
+  DemoScene,
+  DemoSceneData,
+  DemoVoiceCategory,
+} from '../../data/demoProfile';
 
-export interface DemoVoice {
-  /** The exact line that will be spoken — runs through commandSpeak(). */
-  line: string;
-  /** Persona level used to drive ElevenLabs rate / pitch. */
-  level: PerformanceLevel;
-  /** UI category badge so the bus tags this utterance correctly. */
-  category: DemoVoiceCategory;
-}
+/** Voice utterance attached to a beat (Act 3 only). */
+export type DemoVoice = DemoVoiceSeed;
 
 export interface DemoBeat {
-  /** 1-indexed beat number, used by the progress strip. */
+  /** 1-indexed act number, used by the progress strip. */
   id: number;
   /** When this beat takes the stage, measured from demo start. */
   startMs: number;
   /** How long this beat owns the screen. Sum across all beats == 60_000. */
   durationMs: number;
-  /** Eyebrow text (always uppercase, letterSpaced). */
+  /** Which scene the overlay renders. */
+  scene: DemoScene;
+  /** Eyebrow / title (uppercase). */
   title: string;
-  /** One-line caption rendered under the title. */
-  subtitle: string;
+  /** One-line caption rendered under the act (verbatim spec copy). */
+  label: string;
   /** Hydration score displayed during the beat (animated from prev). */
   score: number;
+  /** Optional starting score for an animated climb (Act 2: 14 → 97). */
+  scoreFrom?: number;
   /** Band the orb tints to. */
   band: DemoBand;
-  /** Minutes remaining on the risk timer (for the countdown chip). */
-  riskMin: number;
-  /** Intensity badge — flips to 'pressure' from beat 6 onward. */
-  intensity: DemoIntensity;
   /** Optional voice utterance fired exactly once when the beat starts. */
   voice?: DemoVoice;
-  /**
-   * If true, fires `markCycleExecuted()` on the voice bus when the
-   * beat starts so the orb pulses through its EXECUTED state. Used by
-   * the "user completes hydration cycle" beat.
-   */
-  executed?: boolean;
+  /** Scene-specific seeded mock data. */
+  sceneData?: DemoSceneData;
 }
 
 /** Total cinematic duration. Asserted in tests. */
 export const INVESTOR_DEMO_TOTAL_MS = 60_000;
 
 /**
- * The 10-beat cinematic story that the overlay plays end-to-end.
- *
- *   01  Optimal Hydration       — 0–5s    — calm voice, PEAK band
- *   02  Depletion Detected      — 5–10s   — silent, score begins falling
- *   03  Risk State Engaged      — 10–15s  — silent, RISK band
- *   04  Command Issued          — 15–22s  — calm voice, full sentence
- *   05  User Ignores            — 22–28s  — silent, score keeps falling
- *   06  Pressure Mode Activated — 28–33s  — silent, CRITICAL band
- *   07  Pressure Command        — 33–41s  — sharp voice, military-style cadence
- *   08  Cycle Complete          — 41–49s  — executed pulse, score rebounds
- *   09  System Reset            — 49–55s  — voice, PEAK band restored
- *   10  Performance Restored    — 55–60s  — final brand sign-off
+ * The six-act timeline the overlay plays end-to-end, derived from
+ * `DEMO_PROFILE.acts`. Start times are computed cumulatively so the seed
+ * only has to declare each act's duration.
  */
-export const INVESTOR_DEMO_BEATS: ReadonlyArray<DemoBeat> = Object.freeze([
-  {
-    id: 1,
-    startMs: 0,
-    durationMs: 5000,
-    title: 'OPTIMAL HYDRATION',
-    subtitle: 'AForce Command Voice Engine online. All systems peak.',
-    score: 92,
-    band: 'PEAK',
-    riskMin: 32,
-    intensity: 'calm',
-    voice: {
-      line: 'System optimized. Hydration status is elite.',
-      level: 'PEAK',
-      category: 'score_band',
-    },
-  },
-  {
-    id: 2,
-    startMs: 5000,
-    durationMs: 5000,
-    title: 'DEPLETION DETECTED',
-    subtitle: 'Sweat rate climbing. Hydration reserves drawing down.',
-    score: 78,
-    band: 'STABLE',
-    riskMin: 24,
-    intensity: 'standard',
-  },
-  {
-    id: 3,
-    startMs: 10000,
-    durationMs: 5000,
-    title: 'RISK STATE ENGAGED',
-    subtitle: 'AForce engine flags an approaching hydration deficit.',
-    score: 58,
-    band: 'RISK',
-    riskMin: 16,
-    intensity: 'standard',
-  },
-  {
-    id: 4,
-    startMs: 15000,
-    durationMs: 7000,
-    title: 'COMMAND ISSUED',
-    subtitle: 'Calm performance command. Plenty of runway to act.',
-    score: 52,
-    band: 'RISK',
-    riskMin: 14,
-    intensity: 'standard',
-    voice: {
-      line: 'Hydration window approaching. Drink twelve ounces of water.',
-      level: 'RECOVERING',
-      category: 'system_command',
-    },
-  },
-  {
-    id: 5,
-    startMs: 22000,
-    durationMs: 6000,
-    title: 'USER IGNORES',
-    subtitle: 'No intake logged. Window collapsing. Engine escalates.',
-    score: 38,
-    band: 'RISK',
-    riskMin: 8,
-    intensity: 'standard',
-  },
-  {
-    id: 6,
-    startMs: 28000,
-    durationMs: 5000,
-    title: 'PRESSURE MODE ACTIVATED',
-    subtitle: 'Voice engine shifts into Pressure cadence. Filler stripped.',
-    score: 26,
-    band: 'CRITICAL',
-    riskMin: 4,
-    intensity: 'pressure',
-  },
-  {
-    id: 7,
-    startMs: 33000,
-    durationMs: 8000,
-    title: 'PRESSURE COMMAND',
-    subtitle: 'Sharper. Shorter. Unmistakable.',
-    score: 22,
-    band: 'CRITICAL',
-    riskMin: 2,
-    intensity: 'pressure',
-    voice: {
-      line: 'Drink 12 ounces. AForce. Now.',
-      level: 'DEPLETED',
-      category: 'system_command',
-    },
-  },
-  {
-    id: 8,
-    startMs: 41000,
-    durationMs: 8000,
-    title: 'CYCLE COMPLETE',
-    subtitle: 'Hydration cycle executed. Score rebuilding.',
-    score: 78,
-    band: 'STABLE',
-    riskMin: 28,
-    intensity: 'standard',
-    executed: true,
-  },
-  {
-    id: 9,
-    startMs: 49000,
-    durationMs: 6000,
-    title: 'SYSTEM RESET',
-    subtitle: 'Engine returns to baseline. Risk window closed.',
-    score: 92,
-    band: 'PEAK',
-    riskMin: 32,
-    intensity: 'standard',
-    voice: {
-      line: 'Cycle complete. System reset.',
-      level: 'BALANCED',
-      category: 'completion',
-    },
-  },
-  {
-    id: 10,
-    startMs: 55000,
-    durationMs: 5000,
-    title: 'PERFORMANCE RESTORED',
-    subtitle: 'AForce closes the loop. The athlete is back to peak.',
-    score: 96,
-    band: 'PEAK',
-    riskMin: 32,
-    intensity: 'standard',
-    voice: {
-      line: 'Command executed. Performance restored.',
-      level: 'PEAK',
-      category: 'completion',
-    },
-  },
-] as const);
+export const INVESTOR_DEMO_BEATS: ReadonlyArray<DemoBeat> = Object.freeze(
+  DEMO_PROFILE.acts.reduce<DemoBeat[]>((acc, act: DemoActSeed) => {
+    const prev = acc[acc.length - 1];
+    const startMs = prev ? prev.startMs + prev.durationMs : 0;
+    acc.push({
+      id: act.id,
+      startMs,
+      durationMs: act.durationMs,
+      scene: act.scene,
+      title: act.title,
+      label: act.label,
+      score: act.score,
+      scoreFrom: act.scoreFrom,
+      band: act.band,
+      voice: act.voice,
+      sceneData: act.sceneData,
+    });
+    return acc;
+  }, []),
+);
 
 /** Find the beat that owns the given elapsed time (ms from demo start). */
 export function beatAtMs(elapsedMs: number): DemoBeat {
@@ -240,4 +115,16 @@ export function bandToLevel(band: DemoBand): PerformanceLevel {
     case 'RISK':     return 'RECOVERING';
     case 'CRITICAL': return 'DEPLETED';
   }
+}
+
+/**
+ * Map a live score to a band so the orb can re-tint continuously while the
+ * Readiness Score animates 14 → 97 (Depleted → Recovering → Balanced → Peak).
+ * Pure; display-only (Score-Protection).
+ */
+export function scoreToBand(score: number): DemoBand {
+  if (score >= 88) return 'PEAK';
+  if (score >= 70) return 'STABLE';
+  if (score >= 45) return 'RISK';
+  return 'CRITICAL';
 }

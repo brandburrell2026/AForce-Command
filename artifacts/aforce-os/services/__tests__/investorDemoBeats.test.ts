@@ -1,10 +1,11 @@
 /**
- * AForce — Investor Demo beat schedule tests.
+ * AForce — Investor Demo beat schedule tests (Phase 10, six-act flow).
  *
- * Locks the cinematic 60-second timeline so any future tweak to the
- * beat list trips a test instead of silently de-syncing voice/visual.
- * Voice lines are asserted to fit inside their beat windows under the
- * commandVoiceBus's 70ms-per-character speech estimate.
+ * Locks the cinematic 60-second timeline (6 acts × 10s) so any future tweak
+ * to the seed (`data/demoProfile.ts`) or the derivation trips a test instead
+ * of silently de-syncing voice / visuals / total runtime. Voice timing is
+ * asserted to fit inside the speaking act's window under the commandVoiceBus's
+ * speech-length estimate.
  */
 
 import { describe, expect, it } from 'vitest';
@@ -14,8 +15,12 @@ import {
   INVESTOR_DEMO_TOTAL_MS,
   beatAtMs,
   bandToLevel,
+  scoreToBand,
   type DemoBeat,
+  type DemoBand,
+  type DemoScene,
 } from '../demo/investorDemoBeats';
+import { DEMO_PROFILE } from '../../data/demoProfile';
 
 const SPEECH_MS_PER_CHAR = 70;
 const SPEECH_FLOOR_MS = 1400;
@@ -24,6 +29,15 @@ function estimatedSpeechMs(line: string): number {
   return Math.max(SPEECH_FLOOR_MS, line.length * SPEECH_MS_PER_CHAR);
 }
 
+const EXPECTED_SCENES: DemoScene[] = [
+  'opening',
+  'readiness',
+  'hydroScan',
+  'social',
+  'territoryHeat',
+  'standard',
+];
+
 describe('investorDemoBeats — schedule integrity', () => {
   it('runs for exactly 60 seconds total', () => {
     expect(INVESTOR_DEMO_TOTAL_MS).toBe(60_000);
@@ -31,34 +45,50 @@ describe('investorDemoBeats — schedule integrity', () => {
     expect(lastBeat.startMs + lastBeat.durationMs).toBe(60_000);
   });
 
-  it('contains exactly the 10 narrative beats', () => {
-    expect(INVESTOR_DEMO_BEATS).toHaveLength(10);
-    expect(INVESTOR_DEMO_BEATS.map((b: DemoBeat) => b.id)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+  it('contains exactly the six narrative acts', () => {
+    expect(INVESTOR_DEMO_BEATS).toHaveLength(6);
+    expect(INVESTOR_DEMO_BEATS.map((b: DemoBeat) => b.id)).toEqual([1, 2, 3, 4, 5, 6]);
   });
 
-  it('beats are gap-free and monotonically ordered', () => {
+  it('renders the six scenes in the authored order', () => {
+    expect(INVESTOR_DEMO_BEATS.map((b: DemoBeat) => b.scene)).toEqual(EXPECTED_SCENES);
+  });
+
+  it('acts are gap-free, monotonically ordered, and each owns 10s', () => {
     let cursor = 0;
     for (const b of INVESTOR_DEMO_BEATS) {
       expect(b.startMs).toBe(cursor);
-      expect(b.durationMs).toBeGreaterThan(0);
+      expect(b.durationMs).toBe(10_000);
       cursor += b.durationMs;
     }
     expect(cursor).toBe(INVESTOR_DEMO_TOTAL_MS);
   });
+
+  it('is derived from the seed (start times are cumulative)', () => {
+    expect(INVESTOR_DEMO_BEATS.map((b) => b.startMs)).toEqual([
+      0, 10_000, 20_000, 30_000, 40_000, 50_000,
+    ]);
+  });
 });
 
 describe('investorDemoBeats — voice timing safety', () => {
-  it('every voice line fits inside its beat window under the bus speech estimate', () => {
+  it('only Act 3 (HydroScan) speaks', () => {
+    const speaking = INVESTOR_DEMO_BEATS.filter((b) => b.voice);
+    expect(speaking).toHaveLength(1);
+    expect(speaking[0].id).toBe(3);
+    expect(speaking[0].scene).toBe('hydroScan');
+  });
+
+  it('the spoken line fits inside its act window under the bus speech estimate', () => {
     for (const b of INVESTOR_DEMO_BEATS) {
       if (!b.voice) continue;
       const estimate = estimatedSpeechMs(b.voice.line);
-      // Allow a small post-roll cushion so the playback "idle" lands
-      // before the next beat starts (matches the bus's 220ms pre-roll).
+      // Small post-roll cushion so playback lands before the next act starts.
       expect(estimate).toBeLessThanOrEqual(b.durationMs - 220);
     }
   });
 
-  it('every voice line is non-empty and ends with a sentence terminator', () => {
+  it('the spoken line is non-empty and ends with a sentence terminator', () => {
     for (const b of INVESTOR_DEMO_BEATS) {
       if (!b.voice) continue;
       expect(b.voice.line.trim().length).toBeGreaterThan(0);
@@ -68,81 +98,68 @@ describe('investorDemoBeats — voice timing safety', () => {
 });
 
 describe('investorDemoBeats — narrative correctness', () => {
-  it('beat 1 establishes optimal hydration in PEAK', () => {
+  it('Act 1 opens depleted with the brand wordmark', () => {
     const b = INVESTOR_DEMO_BEATS[0];
+    expect(b.scene).toBe('opening');
+    expect(b.band).toBe('CRITICAL');
+    expect(b.score).toBe(14);
+    expect(b.title).toBe(DEMO_PROFILE.brand.wordmark);
+  });
+
+  it('Act 2 climbs from depleted (14) to peak (97)', () => {
+    const b = INVESTOR_DEMO_BEATS[1];
+    expect(b.scene).toBe('readiness');
+    expect(b.scoreFrom).toBe(14);
+    expect(b.score).toBe(97);
     expect(b.band).toBe('PEAK');
-    expect(b.score).toBeGreaterThanOrEqual(85);
-    expect(b.intensity).toBe('calm');
   });
 
-  it('beats 1–6 trace a strict downward score arc', () => {
-    const downward = INVESTOR_DEMO_BEATS.slice(0, 6);
-    for (let i = 1; i < downward.length; i += 1) {
-      expect(downward[i].score).toBeLessThan(downward[i - 1].score);
-    }
+  it('Act 3 recognizes a product and speaks a system command', () => {
+    const b = INVESTOR_DEMO_BEATS[2];
+    expect(b.scene).toBe('hydroScan');
+    expect(b.sceneData?.productName).toBeTruthy();
+    expect(b.sceneData?.productVerdict).toBeTruthy();
+    expect(b.voice?.category).toBe('system_command');
   });
 
-  it('beat 4 issues a calm/standard command — not Pressure Mode', () => {
+  it('Act 4 surfaces a Social-Mode safety overlay (BAC)', () => {
     const b = INVESTOR_DEMO_BEATS[3];
-    expect(b.intensity).toBe('standard');
-    expect(b.voice).toBeDefined();
-    // Calm command keeps full sentence + the soft "approaching" cadence.
-    expect(b.voice?.line.toLowerCase()).toContain('approaching');
+    expect(b.scene).toBe('social');
+    expect(b.band).toBe('STABLE');
+    expect(b.sceneData?.bacText).toBeTruthy();
   });
 
-  it('beat 6 flips intensity to pressure', () => {
-    expect(INVESTOR_DEMO_BEATS[5].intensity).toBe('pressure');
-    expect(INVESTOR_DEMO_BEATS[5].band).toBe('CRITICAL');
+  it('Act 5 escalates Heat Guard to a warning over a territory sector', () => {
+    const b = INVESTOR_DEMO_BEATS[4];
+    expect(b.scene).toBe('territoryHeat');
+    expect(b.band).toBe('RISK');
+    expect(b.sceneData?.heatStatus?.toUpperCase()).toContain('WARNING');
+    expect(b.sceneData?.heatDetail).toBeTruthy();
+    expect(b.sceneData?.territoryLabel).toBeTruthy();
   });
 
-  it('beat 7 voice line uses Pressure Mode cadence (sharp + short)', () => {
-    const b = INVESTOR_DEMO_BEATS[6];
-    expect(b.voice).toBeDefined();
-    const line = b.voice!.line;
-    // Pressure cadence assertions: short, contains "now", uses digit + ounces.
-    expect(line.split(/\s+/).length).toBeLessThanOrEqual(8);
-    expect(line.toLowerCase()).toContain('now');
-    expect(line.toLowerCase()).toMatch(/\b\d+\s*ounces\b/);
-    expect(line.toLowerCase()).not.toContain('please');
-  });
-
-  it('beat 8 marks the cycle as executed and rebounds the score', () => {
-    const b = INVESTOR_DEMO_BEATS[7];
-    expect(b.executed).toBe(true);
-    expect(b.score).toBeGreaterThan(INVESTOR_DEMO_BEATS[6].score);
-  });
-
-  it('beats 8–10 trace a strict upward recovery arc', () => {
-    const recovery = INVESTOR_DEMO_BEATS.slice(7);
-    for (let i = 1; i < recovery.length; i += 1) {
-      expect(recovery[i].score).toBeGreaterThanOrEqual(recovery[i - 1].score);
-    }
-    expect(recovery[recovery.length - 1].band).toBe('PEAK');
-  });
-
-  it('final beat closes with the brand sign-off line', () => {
-    const finalBeat = INVESTOR_DEMO_BEATS[INVESTOR_DEMO_BEATS.length - 1];
-    expect(finalBeat.voice?.line).toBe('Command executed. Performance restored.');
-    expect(finalBeat.band).toBe('PEAK');
-  });
-
-  it('beat 9 speaks the System Reset line', () => {
-    expect(INVESTOR_DEMO_BEATS[8].voice?.line).toBe('Cycle complete. System reset.');
+  it('Act 6 closes on a clean Peak orb with the brand sign-off', () => {
+    const b = INVESTOR_DEMO_BEATS[5];
+    expect(b.scene).toBe('standard');
+    expect(b.band).toBe('PEAK');
+    expect(b.label).toBe(DEMO_PROFILE.brand.signOff);
   });
 });
 
 describe('investorDemoBeats — helpers', () => {
-  it('beatAtMs returns the correct beat for any elapsed time', () => {
+  it('beatAtMs returns the correct act for any elapsed time', () => {
     expect(beatAtMs(-10).id).toBe(1);
     expect(beatAtMs(0).id).toBe(1);
-    expect(beatAtMs(4999).id).toBe(1);
-    expect(beatAtMs(5000).id).toBe(2);
-    expect(beatAtMs(15000).id).toBe(4);
-    expect(beatAtMs(33000).id).toBe(7);
-    expect(beatAtMs(41000).id).toBe(8);
-    expect(beatAtMs(59999).id).toBe(10);
-    // Past the end clamps to the final beat.
-    expect(beatAtMs(99999).id).toBe(10);
+    expect(beatAtMs(9_999).id).toBe(1);
+    expect(beatAtMs(10_000).id).toBe(2);
+    expect(beatAtMs(20_000).id).toBe(3);
+    expect(beatAtMs(29_999).id).toBe(3);
+    expect(beatAtMs(30_000).id).toBe(4);
+    expect(beatAtMs(40_000).id).toBe(5);
+    expect(beatAtMs(50_000).id).toBe(6);
+    expect(beatAtMs(59_999).id).toBe(6);
+    // Past the end clamps to the final act.
+    expect(beatAtMs(99_999).id).toBe(6);
   });
 
   it('bandToLevel maps every demo band to a real PerformanceLevel', () => {
@@ -151,5 +168,32 @@ describe('investorDemoBeats — helpers', () => {
     expect(bandToLevel('CORRECT')).toBe('BALANCED');
     expect(bandToLevel('RISK')).toBe('RECOVERING');
     expect(bandToLevel('CRITICAL')).toBe('DEPLETED');
+  });
+
+  it('scoreToBand tints the climbing orb across every threshold', () => {
+    const cases: Array<[number, DemoBand]> = [
+      [97, 'PEAK'],
+      [88, 'PEAK'],
+      [87, 'STABLE'],
+      [70, 'STABLE'],
+      [69, 'RISK'],
+      [45, 'RISK'],
+      [44, 'CRITICAL'],
+      [14, 'CRITICAL'],
+      [0, 'CRITICAL'],
+    ];
+    for (const [score, band] of cases) {
+      expect(scoreToBand(score)).toBe(band);
+    }
+  });
+
+  it('scoreToBand bands are monotonic as the score rises', () => {
+    const order: DemoBand[] = ['CRITICAL', 'RISK', 'STABLE', 'PEAK'];
+    let lastRank = -1;
+    for (let s = 0; s <= 100; s += 1) {
+      const rank = order.indexOf(scoreToBand(s));
+      expect(rank).toBeGreaterThanOrEqual(lastRank);
+      lastRank = rank;
+    }
   });
 });

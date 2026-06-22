@@ -38,6 +38,7 @@ import { InvestorDemoOverlay } from '@/components/investorDemo/InvestorDemoOverl
 import { OpeningSequence } from '@/components/opening/OpeningSequence';
 import { readinessLabel, type PerformanceLevel } from '@/utils/homeDashboard';
 import { AppProvider, useAppStore, useFeatureFlags } from '@/store/useAppStore';
+import { shouldShowInvestorDemo } from '@/featureFlags/flags';
 import { useEngineSlice } from '@/store/slices';
 import { CartProvider } from '@/store/useCartStore';
 import { initI18n } from '@/services/i18nService';
@@ -145,9 +146,13 @@ function RootLayoutNav() {
  */
 function InvestorDemoMount() {
   const { isInvestorDemoActive, setInvestorDemoActive } = useAppStore();
+  const featureFlags = useFeatureFlags();
+  // Phase 10 gate: the overlay can only ever mount when `demo_mode_enabled`
+  // is ON (OFF in the production binary). Belt-and-suspenders with the
+  // flag-gated Profile launcher, so production has no path to this overlay.
   return (
     <InvestorDemoOverlay
-      visible={isInvestorDemoActive}
+      visible={shouldShowInvestorDemo(featureFlags, isInvestorDemoActive)}
       onClose={() => setInvestorDemoActive(false)}
     />
   );

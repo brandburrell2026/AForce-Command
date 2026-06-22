@@ -22,6 +22,7 @@
         "com.apple.developer.healthkit.access": []
       },
       "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false,
         "NSCameraUsageDescription": "AForce OS uses your camera to scan hydration product barcodes.",
         "NSLocationWhenInUseUsageDescription": "AForce OS uses your location to show local temperature and humidity, which drive your personalized hydration recommendations.",
         "NSHealthShareUsageDescription": "AForce OS reads heart rate, HRV, sleep, and workout data from Apple Health to personalize your hydration and recovery score.",

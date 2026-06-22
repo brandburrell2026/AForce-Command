@@ -1,0 +1,94 @@
+AForce OS execution sprint.
+
+Context:
+I uploaded the latest AForce OS complete specifications. Treat them as the source of truth. The product is already locked around the current architecture, design language, and phase system. Do not redesign, rebuild, add tabs, move navigation, or expand the dashboard unless explicitly required by the spec. Patch only. Analyze the current code first before editing.
+
+Primary goal:
+Move AForce OS from “strong spec package” to investor/TestFlight readiness by completing the highest-impact remaining items without creating scope creep.
+
+Execution priorities, in order:
+
+1. Complete Phase 10 — Investor Demo Overlay.
+    Build the scripted 60-second full-screen cinematic overlay exactly as defined in AFORCE_FINAL_SPEC.md. It must:
+
+* Be controlled only by the demo_mode_enabled feature flag.
+* Never appear in production unless the flag is enabled.
+* Use seeded demo data only, not real user data.
+* Auto-dismiss at 60 seconds.
+* Dismiss on tap.
+* Return to the existing route/welcome surface after dismissal.
+* Use the six acts from the spec:
+    Act 1: AForce wordmark / “The Performance Operating System.”
+    Act 2: Readiness Score from Depleted to Peak.
+    Act 3: HydroScan recognition and AI voice moment.
+    Act 4: Social Mode BAC safety overlay.
+    Act 5: Territory + Heat Guard.
+    Act 6: clean orb / “Built for people who don’t get to be off.”
+* Preserve Score Protection: demo animation must not mutate real score or live store.
+* Add or update tests proving the overlay is flag-gated, seeded-only, dismissible, and production-safe.
+
+2. Run a TestFlight readiness audit.
+    Do not submit to Apple yet. Audit the repo against artifacts/aforce-os/docs/TESTFLIGHT_CHECKLIST.md and produce a clear pass/fail checklist.
+    Check:
+
+* typecheck command
+* tests
+* app.json version, bundle identifiers, permissions, icon/splash
+* EAS config
+* production env requirements
+* privacy/legal screen availability
+* HealthKit/device-only caveats
+* screenshots requirements
+* any placeholder values that would block TestFlight
+    If safe, make small fixes only. Do not invent legal copy or fake App Store IDs.
+
+3. Create an Investor Demo / Miami POC readiness report.
+    Create or update a markdown file at:
+    artifacts/aforce-os/docs/investor-demo-readiness.md
+
+The report should include:
+
+* What is ready now
+* What was completed in this sprint
+* What is still required before TestFlight
+* What is still required before the Miami October proof-of-concept event
+* What is still required before the January national launch moment
+* Risk level: low / medium / high
+* Next recommended sprint
+
+4. Run validation.
+    After changes:
+
+* run typecheck
+* run relevant tests
+* run any existing lint/build command if available and reasonable
+* report exact commands and results
+
+Hard rules:
+
+* One focused sprint. No feature expansion.
+* Do not implement Social/Cruise addon features.
+* Do not build Phantom, Recovery Journey, Journey Summary, or hardware surfaces.
+* Do not alter core scoring math unless required to fix a bug.
+* Do not change navigation.
+* Do not change design tokens except to fix noncompliance with the WHOOP-cinematic lock.
+* Do not use real user data in demo mode.
+* If you find a risk, document it instead of overbuilding around it.
+
+Deliverables:
+
+1. Phase 10 Investor Demo Overlay completed or a clear blocker.
+2. Tests added/updated for demo safety.
+3. TestFlight readiness audit completed.
+4. investor-demo-readiness.md created/updated.
+5. Final summary with files changed, commands run, test results, remaining blockers, and next recommended action.
+
+Start by reading:
+
+* replit.md
+* AFORCE_FINAL_SPEC.md
+* AFORCE_PHASE_STATUS.md
+* artifacts/aforce-os/docs/TESTFLIGHT_CHECKLIST.md
+* design/aforce-design-tokens.md
+
+Then inspect the existing implementation before editing.
