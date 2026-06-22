@@ -165,6 +165,66 @@ export async function emitSessionStarted(): Promise<void> {
   await emit("session_started");
 }
 
+const TERRITORY_DAY_KEY = "@aforce/analytics-territory-day";
+
+/** Engagement actions inside Territory we actually instrument. The stub
+ *  Join / Challenge buttons are intentionally excluded — they have no real
+ *  effect yet, so emitting them would fabricate engagement. */
+export type TerritoryEngagementAction = "region_selected" | "battle_supported";
+
+/** Collapses same-tick concurrent territory-open emits (the screen mounts
+ *  can double-invoke under React StrictMode) into one in-flight attempt. Set
+ *  synchronously before any await so a second caller in the same tick sees it. */
+let territoryOpenInFlight = false;
+
+/**
+ * Emit `territory_opened` at most once per calendar day — the Territory
+ * engagement "reach" signal. The outbox dedupes by eventId, not by meaning,
+ * so first-open-of-day is gated here. Display-only telemetry: Territory is
+ * gamified social, never a scoring surface, so this never touches a hydration
+ * point. Consent-gated like every emit.
+ *
+ * Durability: the day key is burned ONLY after the emit durably queues, so a
+ * failed write (no analyticsId yet / outbox error) re-emits on the next mount
+ * instead of silently dropping the day's reach. The founder dashboard dedupes
+ * duplicate opens per identity per day (`bool_or`), so an occasional re-emit
+ * can never inflate reached users.
+ */
+export async function emitTerritoryOpened(): Promise<void> {
+  if (territoryOpenInFlight) return;
+  territoryOpenInFlight = true;
+  try {
+    if (!(await isConsentGranted())) return;
+    const today = new Date().toISOString().slice(0, 10);
+    try {
+      if ((await AsyncStorage.getItem(TERRITORY_DAY_KEY)) === today) return;
+    } catch {
+      /* fall through — better to emit than silently drop the open */
+    }
+    if (await emit("territory_opened")) {
+      try {
+        await AsyncStorage.setItem(TERRITORY_DAY_KEY, today);
+      } catch {
+        /* non-fatal — a retry next mount re-emits, deduped server-side by day */
+      }
+    }
+  } finally {
+    territoryOpenInFlight = false;
+  }
+}
+
+/**
+ * Emit `territory_engaged` for one real, effectful Territory action
+ * (inspecting a region, supporting a battle side). Emitted per action —
+ * depth telemetry for the founder Command Center. Display-only: never
+ * touches score. Consent-gated like every emit.
+ */
+export function emitTerritoryEngaged(
+  action: TerritoryEngagementAction,
+): Promise<boolean> {
+  return emit("territory_engaged", { action });
+}
+
 /** Collapses same-tick concurrent first-win emits (the recorder fires on
  *  every win) into a single in-flight attempt. Set synchronously before any
  *  await so a second caller in the same tick sees it. */

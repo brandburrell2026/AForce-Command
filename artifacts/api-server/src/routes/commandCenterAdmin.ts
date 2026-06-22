@@ -44,6 +44,11 @@ import {
   VoiceCheckInUsageSchema,
   type VoiceCheckInUsageRow,
 } from "../lib/voiceCheckInUsage";
+import {
+  buildTerritoryEngagement,
+  TerritoryEngagementSchema,
+  type TerritoryEngagementRow,
+} from "../lib/territoryEngagement";
 import { logger } from "../lib/logger";
 
 const router: IRouter = Router();
@@ -530,6 +535,69 @@ router.get(
       return res
         .status(500)
         .json({ error: "command_center_voice_checkin_usage_failed" });
+    }
+  },
+);
+
+/**
+ * GET /admin/command-center/territory-engagement — the founder TERRITORY
+ * engagement view over the SAME pseudonymous analytics events.
+ *
+ * Per pseudonymous identity we read whether it ever opened the Territory map
+ * (`territory_opened`, emitted at most once per local day) and how many real
+ * engagement actions it took (`territory_engaged`, with an `action` payload —
+ * the mobile client only instruments effectful actions: inspecting a region
+ * and supporting a battle side; the stub Join / Challenge buttons are NOT
+ * instrumented). We GROUP BY analytics_id in-DB, then run the pure builder
+ * in-process. The per-identity rows never leave the server (NEVER joined to
+ * users / subscriptions); only aggregate reach / engagement + null-safe
+ * rates + an action breakdown are returned. No-fabrication: an empty
+ * denominator reports a null rate (awaiting), never a fabricated 0%, and an
+ * action nobody performed is simply absent from the breakdown.
+ */
+router.get(
+  "/admin/command-center/territory-engagement",
+  requireFounder,
+  async (req, res) => {
+    try {
+      const result = await db.execute(sql`
+        SELECT
+          bool_or(event_type = 'territory_opened') AS opened,
+          count(*) FILTER (
+            WHERE event_type = 'territory_engaged'
+              AND payload->>'action' = 'region_selected'
+          ) AS region_selected,
+          count(*) FILTER (
+            WHERE event_type = 'territory_engaged'
+              AND payload->>'action' = 'battle_supported'
+          ) AS battle_supported
+        FROM aforce_analytics_events
+        WHERE event_type IN ('territory_opened', 'territory_engaged')
+        GROUP BY analytics_id
+      `);
+
+      const rows = ((result as { rows?: Row[] }).rows ?? []).map(
+        (r): TerritoryEngagementRow => ({
+          opened: r["opened"] === true,
+          actionCounts: {
+            region_selected: num(r["region_selected"]),
+            battle_supported: num(r["battle_supported"]),
+          },
+        }),
+      );
+
+      const dto = TerritoryEngagementSchema.parse(
+        buildTerritoryEngagement(rows, new Date().toISOString()),
+      );
+      return res.json(dto);
+    } catch (err) {
+      logger.error(
+        { err },
+        "GET /admin/command-center/territory-engagement failed",
+      );
+      return res
+        .status(500)
+        .json({ error: "command_center_territory_engagement_failed" });
     }
   },
 );

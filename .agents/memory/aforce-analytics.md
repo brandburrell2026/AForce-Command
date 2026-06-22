@@ -48,7 +48,12 @@ near-simultaneous calls both read "not yet emitted" and double-fire. The
 persisted key handles cross-session dedupe; the in-memory latch handles
 same-tick concurrency. Consent is checked INSIDE the guarded attempt and
 the key is burned only after emit, so a pre-consent call doesn't lock out
-a later consented emit.
+a later consented emit. The once-per-DAY "reach" variant (e.g. the Territory
+open signal) is the same rule with the dedupe key set to today's date string
+instead of a permanent flag. **Caution:** older per-day emitters can use a
+WEAKER pre-burn form that sets the key before confirming emit() queued and
+has no in-flight latch — do NOT copy that template; it undercounts reach on a
+failed write and double-fires under strict mode.
 
 **Scope boundary:** the layer only records + derives and exposes a
 metrics getter for the engine to read. Active consumption (e.g. adaptive

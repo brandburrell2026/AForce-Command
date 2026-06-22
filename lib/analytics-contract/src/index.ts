@@ -73,6 +73,8 @@ export const PHASE1_EVENTS = [
   { eventType: "survey_answered", owner: "mobile", trigger: "User answers an in-app survey / NPS question", payloadFields: ["surveyId", "value"] },
   { eventType: "notification_opened", owner: "mobile", trigger: "User opens / acts on a reminder notification", payloadFields: ["slot"] },
   { eventType: "voice_checkin_completed", owner: "mobile", trigger: "User completes the daily morning Voice Check-In — counted at most once per local day (a same-day re-record does not re-emit)", payloadFields: [] },
+  { eventType: "territory_opened", owner: "mobile", trigger: "User opens the Territory competition map — counted at most once per local day (re-entering the same day does not re-emit)", payloadFields: [] },
+  { eventType: "territory_engaged", owner: "mobile", trigger: "User takes a real, effectful engagement action inside Territory — inspecting a region or supporting a battle side; emitted per action. The stub Join / Challenge buttons are intentionally NOT instrumented (no real effect yet → would fabricate engagement)", payloadFields: ["action"] },
   { eventType: "subscription_started", owner: "mobile", trigger: "A paid subscription becomes active — emitted CLIENT-side on confirmed checkout (sole emitter), carrying descriptive non-PII revenue metadata", payloadFields: ["planTier", "amountCents", "currency", "billingInterval"] },
   { eventType: "day7_subscription_offer", owner: "mobile", trigger: "The Day-7 subscription offer is shown to the user", payloadFields: [] },
 ] as const satisfies ReadonlyArray<{

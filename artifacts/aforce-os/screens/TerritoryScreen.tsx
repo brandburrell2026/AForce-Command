@@ -20,6 +20,7 @@ import TerritoryMap from '@/components/TerritoryMap';
 import MapLayerToggle from '@/components/MapLayerToggle';
 import CityCard from '@/components/CityCard';
 import BattleCard from '@/components/BattleCard';
+import { emitTerritoryOpened, emitTerritoryEngaged } from '@/analytics/event_dispatcher';
 
 const SCOPES: { id: RegionKind; label: string }[] = [
   { id: 'city',  label: 'CITY' },
@@ -70,14 +71,29 @@ export const TerritoryScreen: React.FC = () => {
     [regions],
   );
 
+  // INTERNAL engagement telemetry (consent-gated inside emit). Territory is
+  // gamified social, never a scoring surface, so these emits are display-only
+  // and never touch a hydration point — they feed the founder Command Center.
+  React.useEffect(() => {
+    void emitTerritoryOpened();
+  }, []);
+
   const onScope = (next: RegionKind) => {
     if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
     setScope(next);
     setSelectedId(undefined);
   };
 
+  // Inspecting a region (tapping a map marker or a trending row) is a real,
+  // effectful engagement action; the stub Join / Challenge buttons are not.
+  const handleSelectRegion = React.useCallback((regionId: string) => {
+    setSelectedId(regionId);
+    void emitTerritoryEngaged('region_selected');
+  }, []);
+
   const handleSupport = (id: string, side: 'side1' | 'side2') => {
     supportSide(id, side);
+    void emitTerritoryEngaged('battle_supported');
   };
 
   return (
@@ -119,7 +135,7 @@ export const TerritoryScreen: React.FC = () => {
           regions={regions}
           markers={markers}
           selectedRegionId={selected?.regionId}
-          onSelect={setSelectedId}
+          onSelect={handleSelectRegion}
           height={300}
         />
 
@@ -154,7 +170,7 @@ export const TerritoryScreen: React.FC = () => {
               return (
                 <Pressable
                   key={r.regionId}
-                  onPress={() => setSelectedId(r.regionId)}
+                  onPress={() => handleSelectRegion(r.regionId)}
                   style={({ pressed }) => [styles.trendRow, pressed && { opacity: 0.85 }]}
                   accessibilityLabel={`${r.name}, momentum ${band.label.toLowerCase()}, delta ${signed}`}
                 >
