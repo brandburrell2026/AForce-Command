@@ -1,0 +1,135 @@
+Here's the complete, single paste-ready prompt for Replit — the WHOOP-style full-bleed welcome screen, universal entry (everyone, not gated), in your AForce brand system.
+
+---
+
+```
+AForce OS — First-Launch Welcome Screen (full-bleed cinematic hero, WHOOP-style)
+
+GOAL
+Build the first-open welcome surface in the structure of WHOOP's welcome screen: 
+a full-bleed athlete/operator photo filling the whole screen, a dark gradient 
+scrim, the AFORCE wordmark + tagline floating over the image, and two stacked 
+pill buttons at the bottom. Translate it into the AForce master brand system. 
+This is for EVERYONE who opens the app — it is NOT gated and NOT a hardware fork.
+
+This is a NEW welcome surface mounted as a cold-launch overlay using the same 
+pattern as components/opening/OpeningSequence.tsx / the InvestorDemo overlay — 
+mounted in app/_layout.tsx (AppShell) so it touches no routing (no redirect-loop 
+risk) and fades out to reveal whatever routed underneath. Plays once per cold 
+launch. Reuse the existing overlay mount + tap-to-skip + reduced-motion machinery 
+— do not rebuild it. Display-only; score-protection unchanged; no nav/tab/engine 
+changes anywhere else.
+
+────────────────────────────────────────────────────────
+LAYOUT (full-screen, edge-to-edge, top → bottom)
+────────────────────────────────────────────────────────
+1. FULL-BLEED HERO IMAGE filling the entire screen (absolute fill, cover). 
+   An operator-class subject in their moment-before-execution — an athlete 
+   mid-stride in low cinematic light (or surgeon/trader/founder). Use a 
+   PLACEHOLDER asset now at assets/images/welcome-hero.jpg that we swap for real 
+   shot footage later. Treat it like a film still. StatusBar style="light" so 
+   the clock/battery read white over the dark image.
+
+2. DARK GRADIENT SCRIM over the image (absolute fill, above image, below text):
+   linear-gradient top → bottom:
+     rgba(13,13,13,0.25)  at 0%
+     rgba(13,13,13,0.45)  at 45%
+     rgba(13,13,13,0.85)  at 78%
+     #0D0D0D              at 100%
+   So the top reads the image, the wordmark sits on mid-tone, and the buttons 
+   sit on near-solid cinematic black.
+
+3. TOP EYEBROW — centered, ~top safe-area + 12px. IBM Plex Mono, ~11px, 
+   letter-spacing ~0.4em, UPPERCASE, color bone #F5F0E8 at 55% opacity:
+     "PERFORMANCE IS NON-NEGOTIABLE"
+   (This is our equivalent of WHOOP's "A WHOOP DEVICE IS REQUIRED" line — but 
+   ours is a thesis, not a hardware requirement.)
+
+4. CENTER BLOCK — vertically centered around 55–60% down the screen, centered 
+   horizontally:
+   • "AFORCE" wordmark — Archivo Black, bone #F5F0E8, large (~44–52px), 
+     letter-spacing ~0.04em.
+   • Tagline directly beneath: IBM Plex Mono, ~13px, letter-spacing ~0.26em, 
+     UPPERCASE, bone at ~55%:
+       "BUILT FOR PEOPLE WHO DON'T GET TO BE OFF"
+     (WHOOP's equivalent is "UNLOCK YOURSELF".)
+
+5. TWO STACKED PILL BUTTONS near the bottom (above home indicator, ~32px gap 
+   between them, generous side margins ~28px). UNIVERSAL — for everyone:
+   • PRIMARY (top): filled signal red #C1281B, bone #F5F0E8 text, OR red outline 
+     with red text — pick the filled red for stronger hierarchy. 
+     Label: "GET STARTED" → routes NEW users into the existing onboarding flow.
+   • SECONDARY (below): transparent fill, bone #F5F0E8 1px outline, bone text. 
+     Label: "SIGN IN" → routes to the existing sign-in route for returning users.
+   Pill shape (border-radius full / 9999), ~56px tall, Archivo Black or IBM Plex 
+   Mono uppercase ~14px, letter-spacing ~0.12em.
+
+   HARD RULE — do NOT gate the entrance. AForce OS is for EVERYONE and works 
+   manual-first with no hardware. Do NOT use a "device required / no device" 
+   fork. Do NOT make the Founding 200 the entry button — that is surfaced later, 
+   inside onboarding, never at the door.
+
+────────────────────────────────────────────────────────
+OPTIONAL BRAND MARK
+────────────────────────────────────────────────────────
+Optionally place the N–И monogram small as a subtle watermark near the wordmark 
+or top corner. If included, the SECOND N MUST be MIRRORED. In React Native, wrap 
+ONLY that glyph in <View style={{ transform: [{ scaleX: -1 }] }}> so it flips in 
+place (origin-centered) — never substitute the Cyrillic "И" character. If it 
+can't render cleanly at small size, OMIT it here (it lives on the can and the 
+opening sequence) — do not ship a non-mirrored N.
+
+────────────────────────────────────────────────────────
+MOTION (slow, Apple-Vision-Pro pacing, no bounce)
+────────────────────────────────────────────────────────
+- Subtle Ken Burns push-in on the hero image: scale 1.0 → 1.06 over ~12s, 
+  ease-in-out, looping. Put this on the IMAGE element only.
+- Staggered entrance: eyebrow fades in (0.3s) → wordmark fades + rises 8px → 
+  tagline fades → both buttons fade up last.
+- Tap-anywhere-to-skip at any frame (outside the buttons). 
+- FULLY reduced-motion aware via AccessibilityInfo: if reduce-motion is on, no 
+  Ken Burns, no stagger — just fade the final composition in.
+- CRITICAL: animate intro OPACITY and the looping Ken Burns/idle motion on 
+  SEPARATE nested elements. A forwards-fill opacity animation and a looping 
+  transform animation must NOT live on the same node, or the loop overrides the 
+  intro's final opacity and the element renders invisible. (Wrap: outer = opacity 
+  intro, inner = looping transform.)
+
+────────────────────────────────────────────────────────
+TOKENS / TYPE
+────────────────────────────────────────────────────────
+- Use migrated brand tokens, not hardcoded hex: signal red #C1281B, bone 
+  #F5F0E8, cinematic black #0D0D0D.
+- Archivo Black (wordmark / buttons), IBM Plex Mono (eyebrow / tagline / labels), 
+  Inter (body fallback). Install @expo-google-fonts/archivo + 
+  @expo-google-fonts/ibm-plex-mono and load in app/_layout.tsx useFonts if not 
+  already present.
+- Use Reanimated 3 for all animation, consistent with existing overlay motion. 
+  No new animation libraries.
+
+────────────────────────────────────────────────────────
+FLOW / GUARDRAILS
+────────────────────────────────────────────────────────
+- First-run flow stays intact: welcome → onboarding for new users (GET STARTED). 
+  Returning users → SIGN IN. Respect DEMO_MODE so pitch screenshots keep working.
+- New surface only. No changes to navigation, tabs, layouts, scoring, or feature 
+  flags elsewhere. Patch, do not redesign existing surfaces.
+- Keep all tests green; if a snapshot exists for the overlay, update expected 
+  output rather than weakening it.
+- Analyze the existing OpeningSequence overlay + onboarding/sign-in routes FIRST 
+  and reuse them; report what you'll reuse before writing new files.
+
+DELIVERABLE
+1. The new welcome overlay component + its mount in AppShell.
+2. The placeholder hero-image slot (assets/images/welcome-hero.jpg).
+3. GET STARTED wired to onboarding, SIGN IN wired to the existing sign-in route.
+4. Confirmation that tap-to-skip + reduced-motion both work.
+5. An iPhone simulator screenshot so I can verify scrim depth, wordmark 
+   legibility, button hierarchy, and (if included) the mirrored N.
+```
+
+---
+
+The one thing that makes or breaks this is the **hero image**, and it's the part Replit can't supply — it'll drop in a placeholder. WHOOP's screen lands because that photo is a real, moody, expensive-feeling shot of an athlete in motion. Your version needs the same: an operator-class subject (athlete, surgeon, trader, founder) in low cinematic light, in their moment-before. That's exactly what your founder content shoots and the Brickell footage should produce — so the placeholder holds the layout now, and you swap in the real frame the moment you have it. The prompt is built so that swap is a one-file change without touching the layout.
+
+When the screenshot comes back, check two things by eye: the **scrim is dark enough** that "GET STARTED / SIGN IN" read cleanly on near-black at the bottom (WHOOP's buttons sit on solid black — yours should too), and the **wordmark is legible** over whatever the placeholder image is. If either fails, it's a scrim-opacity tweak, not a rebuild.
