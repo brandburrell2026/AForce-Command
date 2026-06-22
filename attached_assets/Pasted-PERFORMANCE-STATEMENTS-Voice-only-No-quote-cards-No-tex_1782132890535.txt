@@ -1,0 +1,57 @@
+PERFORMANCE STATEMENTS™
+
+Voice only. No quote cards. No text version. No archive. No replay button. If a user misses it, they miss it.
+
+Performance Statements should feel like a daily moment, not content. Most days they should be short, direct, and minimal.
+
+Examples:
+Coach Rock: "Performance is non-negotiable."
+Coach BB: "Consistency beats intensity."
+Coach Surge: "Win the next hour."
+Coach Sage: "Recovery drives performance."
+
+Over time, generic lines should become fallback content only. The long-term goal is data-driven statements that feel specific to the user.
+
+Example: "Yesterday was your strongest recovery score this month." That is stronger than any generic motivational line because it is true.
+
+ACCOUNTABILITY CALLBACKS™
+
+This is the highest-priority future voice concept once Performance Memory is working correctly.
+
+The coach remembers commitments and references them later.
+
+Examples:
+"You said hydration was the priority this week." / "It still is."
+Or: "Three days ago you committed to consistency." / "You're still on track."
+
+The coach should remember what the user said, not just what the user did.
+
+This feature depends entirely on: Performance Memory, Command Confidence, Evidence Engine.
+Do not build until those systems are confirmed stable — both built and tested on real data, not just code-complete.
+
+INTENT CAPTURE™
+
+After Voice Check-In or a Performance Statement, three options: Ready / Recovering / Not Today.
+
+The selection adjusts tone and coaching intensity. No open-ended conversation. No chatbot. No AI companion. Simple, fast, actionable.
+
+RARE MOMENTS™
+
+Create a very small set of one-time milestone moments. Examples: 30-day streak, best recovery score, major Performance Age improvement.
+
+These should be rare and tracked carefully so they never fire twice for the same user. This requires reliable state tracking that survives app updates and data migrations — flag this as a real engineering requirement when this phase is eventually scoped, not just a content rule.
+
+Silence and scarcity create value.
+
+COACH DESIGN RULES™
+
+No quote cards.
+No motivational feed.
+No endless content library.
+Coaches speak when they have something meaningful to say.
+Personal beats inspirational.
+Accountability beats motivation.
+Memory beats content.
+The long-term vision is not a voice assistant. The long-term vision is a coach that remembers.
+
+Performance Is Non-Negotiable.
