@@ -621,6 +621,15 @@ export default function HomeScreen() {
               heatBand={getHeatBandFromCelsius(userState.weatherTempC)}
               heatTempLabel={tempLabel}
             />
+
+            {/* Brand signature — quiet AForce wordmark anchoring the
+                bottom of the Home surface. Thin brand-red hairline +
+                tracked ArchivoBlack wordmark in dim bone; purely
+                decorative (no score interaction). */}
+            <View style={styles.brandFooter}>
+              <View style={styles.brandFooterHairline} />
+              <Text style={styles.brandFooterWordmark}>AFORCE</Text>
+            </View>
           </ScrollView>
 
           {showCycleSuccess && lastCycleResult && (
@@ -665,6 +674,27 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: Colors.background.primary },
   scroll: { flex: 1 },
   content: { paddingHorizontal: 20, alignItems: 'stretch' },
+
+  // Quiet AForce brand signature at the very bottom of the Home scroll.
+  brandFooter: {
+    alignItems: 'center',
+    marginTop: 36,
+    marginBottom: 8,
+  },
+  brandFooterHairline: {
+    width: 28,
+    height: 1,
+    backgroundColor: Colors.accent.brand,
+    opacity: 0.7,
+    marginBottom: 14,
+  },
+  brandFooterWordmark: {
+    fontFamily: 'ArchivoBlack_400Regular',
+    fontSize: 15,
+    letterSpacing: 4,
+    color: Colors.bone,
+    opacity: 0.32,
+  },
 
   header: { marginBottom: 20 },
   headerTopRow: {
