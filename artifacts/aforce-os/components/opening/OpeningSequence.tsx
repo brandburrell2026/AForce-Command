@@ -308,15 +308,10 @@ function StageBrand({ active, reduce }: { active: boolean; reduce: boolean }) {
         <Reveal active={active} reduce={reduce} delay={reduce ? 180 : 1300} dy={8}>
           <View style={styles.captionBlock}>
             <View style={styles.captionRule} />
-            <View style={styles.captionRow}>
-              <Text style={styles.brandCaption}>NON — </Text>
-              {/* Flip on the View (not the Text) so the mirrored "И" renders on
-                  native too — see MonogramHero note above. */}
-              <View style={styles.captionMirror}>
-                <Text style={styles.brandCaption}>N</Text>
-              </View>
-              <Text style={styles.brandCaption}>EGOTIABLE</Text>
-            </View>
+            {/* Plain forward-facing text. The scaleX(-1) mirror is isolated to
+                the monogram's right N only (see MonogramHero) — it must NOT leak
+                onto any caption N. */}
+            <Text style={styles.brandCaption}>NON — NEGOTIABLE</Text>
             <View style={styles.captionRule} />
           </View>
         </Reveal>
@@ -649,9 +644,8 @@ const styles = StyleSheet.create({
     fontFamily: FONT_DISPLAY,
     fontSize: 52,
     lineHeight: 84,
-    color: BONE,
+    color: BRAND,
     marginHorizontal: 8,
-    opacity: 0.8,
   },
   captionBlock: {
     alignItems: 'center',
@@ -671,14 +665,6 @@ const styles = StyleSheet.create({
     color: BONE,
     textAlign: 'center',
     textTransform: 'uppercase',
-  },
-  captionRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  captionMirror: {
-    transform: [{ scaleX: -1 }],
   },
 
   // Stage 3
