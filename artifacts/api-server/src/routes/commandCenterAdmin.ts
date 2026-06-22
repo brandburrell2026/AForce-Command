@@ -17,7 +17,7 @@
 
 import { Router, type IRouter } from "express";
 import { db } from "@workspace/db";
-import { sql } from "drizzle-orm";
+import { sql, type SQL } from "drizzle-orm";
 import { requireFounder } from "../middlewares/requireFounder";
 import {
   buildDailyFive,
@@ -53,6 +53,14 @@ import {
   TerritoryEngagementSchema,
   type TerritoryEngagementRow,
 } from "../lib/territoryEngagement";
+import {
+  buildReferralAttribution,
+  normalizeReferralFilters,
+  tierClaimBounds,
+  ReferralAttributionSchema,
+  type ReferrerCountRow,
+  type ReferralClaimRow,
+} from "../lib/referralAttribution";
 import { logger } from "../lib/logger";
 
 const router: IRouter = Router();
@@ -701,6 +709,173 @@ router.get(
       return res
         .status(500)
         .json({ error: "command_center_performance_age_trends_failed" });
+    }
+  },
+);
+
+/**
+ * GET /admin/command-center/referral-attribution — the founder REFERRAL &
+ * AMBASSADOR attribution view.
+ *
+ * UNLIKE the analytics-pipeline panels above, this reads the REAL server-side
+ * referral ledger that backs the consumer referral loop: `aforce_users`
+ * (referral_code) + `aforce_referral_claims`. The founder legitimately needs to
+ * see WHO referred WHOM, so referrer/referee identity (Clerk user id + the
+ * generated, non-PII referral code) IS surfaced — this is a private founder
+ * cockpit, never a consumer view.
+ *
+ * Score-Protection / data minimisation: a claim row carries nothing about a
+ * user's hydration points, readiness, recovery, health, or performance age,
+ * and this handler joins ONLY `aforce_users` (for the referral code) — never
+ * the per-user state / score tables. Emails are deliberately excluded.
+ *
+ * Optional filters (query params): `from` / `to` (claim-date range, any
+ * Date-parseable string → ISO), `code` (the code used, uppercased),
+ * `referrerUserId`, `tier` (referrer lifetime tier — a correlated count
+ * sub-query maps each claim's referrer to a tier band so the filter is applied
+ * in SQL BEFORE the LIMIT, never after), and `status` (`all` | `claimed`; the
+ * ledger has no pending state, so this is a validated no-op). They scope the
+ * recent-claims detail table + the `claimsInRange` count; the leaderboard, tier
+ * distribution, and lifetime totals are always computed over the full ledger.
+ * Tiers are derived in the pure builder so `referralTiers.ts` stays the single
+ * source of truth. An unparseable date / unknown tier / unknown status → 400.
+ */
+router.get(
+  "/admin/command-center/referral-attribution",
+  requireFounder,
+  async (req, res) => {
+    const norm = normalizeReferralFilters(req.query);
+    if (!norm.ok) {
+      return res.status(400).json({ error: norm.error });
+    }
+    const { filters, recentLimit } = norm.value;
+
+    // Build the claim-filter WHERE clause once (shared by the in-range count
+    // and the recent-claims detail query). All values are parameterised.
+    const conds: SQL[] = [];
+    if (filters.from) conds.push(sql`c.created_at >= ${filters.from}::timestamptz`);
+    if (filters.to) conds.push(sql`c.created_at <= ${filters.to}::timestamptz`);
+    if (filters.code) conds.push(sql`upper(c.code_used) = ${filters.code}`);
+    if (filters.referrerUserId)
+      conds.push(sql`c.referrer_user_id = ${filters.referrerUserId}`);
+    // Tier is a property of the REFERRER's lifetime claim count, not of a single
+    // claim, so map each claim's referrer to a count band via a correlated
+    // sub-query. Applied here (inside the shared WHERE) it filters BEFORE the
+    // recent-claims LIMIT, so a tier page is never silently truncated.
+    if (filters.tier) {
+      const b = tierClaimBounds(filters.tier);
+      const lifetime = sql`(SELECT count(*) FROM aforce_referral_claims rc WHERE rc.referrer_user_id = c.referrer_user_id)`;
+      conds.push(sql`${lifetime} >= ${b.lo}`);
+      if (b.hi != null) conds.push(sql`${lifetime} < ${b.hi}`);
+    }
+    // `status` is intentionally not a SQL predicate: the ledger models only
+    // completed claims, so `all` / `claimed` select the same rows. It is
+    // validated + echoed for explicit founder intent (never used to hide rows).
+    const whereSql =
+      conds.length > 0 ? sql`WHERE ${sql.join(conds, sql` AND `)}` : sql``;
+
+    try {
+      // Lifetime totals over the whole ledger.
+      const totalsRes = await db.execute(sql`
+        SELECT
+          count(*)::int AS total_claims,
+          count(DISTINCT referee_user_id)::int AS total_referred
+        FROM aforce_referral_claims
+      `);
+
+      // One row per distinct referrer (NEVER capped — drives totals + tier
+      // distribution). LEFT JOIN so a deleted referrer still appears (null
+      // code → anonymized "Operator ????" handle in the builder).
+      const referrersRes = await db.execute(sql`
+        SELECT c.referrer_user_id, u.referral_code, c.claims
+        FROM (
+          SELECT referrer_user_id, count(*)::int AS claims
+          FROM aforce_referral_claims
+          GROUP BY referrer_user_id
+        ) c
+        LEFT JOIN aforce_users u ON u.id = c.referrer_user_id
+        ORDER BY c.claims DESC, c.referrer_user_id ASC
+      `);
+
+      // Count of claims matching the applied filters.
+      const inRangeRes = await db.execute(sql`
+        SELECT count(*)::int AS n
+        FROM aforce_referral_claims c
+        ${whereSql}
+      `);
+
+      // Recent-claims detail (filtered, newest-first, limited). The referrer's
+      // lifetime claim count rides along so the builder can derive their tier.
+      const claimsRes = await db.execute(sql`
+        SELECT
+          c.id,
+          c.code_used,
+          c.referrer_user_id,
+          c.referee_user_id,
+          c.created_at,
+          u.referral_code AS referrer_code,
+          COALESCE(agg.claims, 0)::int AS referrer_lifetime_claims
+        FROM aforce_referral_claims c
+        LEFT JOIN aforce_users u ON u.id = c.referrer_user_id
+        LEFT JOIN (
+          SELECT referrer_user_id, count(*)::int AS claims
+          FROM aforce_referral_claims
+          GROUP BY referrer_user_id
+        ) agg ON agg.referrer_user_id = c.referrer_user_id
+        ${whereSql}
+        ORDER BY c.created_at DESC, c.id DESC
+        LIMIT ${recentLimit}
+      `);
+
+      const totalsRow = firstRow(totalsRes);
+
+      const referrers = ((referrersRes as { rows?: Row[] }).rows ?? []).map(
+        (r): ReferrerCountRow => ({
+          referrerUserId: String(r["referrer_user_id"] ?? ""),
+          referralCode:
+            r["referral_code"] == null ? null : String(r["referral_code"]),
+          claims: num(r["claims"]),
+        }),
+      );
+
+      const recentClaims = ((claimsRes as { rows?: Row[] }).rows ?? []).map(
+        (r): ReferralClaimRow => ({
+          id: num(r["id"]),
+          codeUsed: String(r["code_used"] ?? ""),
+          referrerUserId: String(r["referrer_user_id"] ?? ""),
+          referrerCode:
+            r["referrer_code"] == null ? null : String(r["referrer_code"]),
+          referrerLifetimeClaims: num(r["referrer_lifetime_claims"]),
+          refereeUserId: String(r["referee_user_id"] ?? ""),
+          claimedAt: isoOrNull(r["created_at"]),
+        }),
+      );
+
+      const dto = ReferralAttributionSchema.parse(
+        buildReferralAttribution(
+          {
+            referrers,
+            totals: {
+              totalClaims: num(totalsRow["total_claims"]),
+              totalReferredUsers: num(totalsRow["total_referred"]),
+            },
+            recentClaims,
+            claimsInRange: num(firstRow(inRangeRes)["n"]),
+            filters,
+          },
+          new Date().toISOString(),
+          { recentLimit },
+        ),
+      );
+      return res.json(dto);
+    } catch (err) {
+      logger.error(
+        { err },
+        "GET /admin/command-center/referral-attribution failed",
+      );
+      return res
+        .status(500)
+        .json({ error: "command_center_referral_attribution_failed" });
     }
   },
 );

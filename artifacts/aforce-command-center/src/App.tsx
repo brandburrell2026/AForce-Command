@@ -14,6 +14,7 @@ import ActivationDashboard from "@/pages/ActivationDashboard";
 import VoiceCheckInDashboard from "@/pages/VoiceCheckInDashboard";
 import TerritoryEngagementDashboard from "@/pages/TerritoryEngagementDashboard";
 import PerformanceAgeTrendsDashboard from "@/pages/PerformanceAgeTrendsDashboard";
+import ReferralAttributionDashboard from "@/pages/ReferralAttributionDashboard";
 import MarketingDashboard from "@/pages/MarketingDashboard";
 import PlaceholderDashboard from "@/pages/PlaceholderDashboard";
 import { Layout } from "@/components/Layout";
@@ -207,6 +208,9 @@ function ClerkProviderWithRoutes() {
             </Route>
             <Route path="/performance-age">
               {() => <ProtectedRoute component={PerformanceAgeTrendsDashboard} />}
+            </Route>
+            <Route path="/referrals">
+              {() => <ProtectedRoute component={ReferralAttributionDashboard} />}
             </Route>
             <Route path="/ai">
               {() => <ProtectedRoute component={PlaceholderDashboard} title="AI" />}
