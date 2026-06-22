@@ -683,6 +683,14 @@ export interface FeatureFlags {
   // used by the engine — never reads into, awards, mutates, or fabricates
   // score; stale/missing signals are shown honestly, never invented.
   evidence_engine_enabled: boolean;
+  /**
+   * Command Confidence™ — STEP 2 per-category adaptive learning. Gates ONLY
+   * whether the learned per-category completion rate may influence command
+   * SELECTION / timing / priority. The ledger records confirmations regardless.
+   * Score-Protection: selection-only — never reads into, awards, mutates, or
+   * fabricates score, and never demotes the Water-First command.
+   */
+  command_confidence_adaptive_enabled: boolean;
 }
 
 /**

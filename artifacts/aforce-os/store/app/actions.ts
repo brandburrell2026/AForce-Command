@@ -51,6 +51,9 @@ import {
 import { commandSpeak, markCycleExecuted } from '../../services/voice/commandVoiceBus';
 import { emit } from '../../analytics/event_dispatcher';
 import { markFirstCommandCompleted } from '../../analytics/activation_anchor';
+import { categorizeCommand } from '../../utils/intelligence/commandCategory';
+import { confirmationToCommandEvent } from '../../utils/intelligence/commandEventAdapters';
+import { appendCommandEvents } from '../../services/commandLedger';
 
 interface StoreActionsDeps {
   state: AppState;
@@ -286,6 +289,28 @@ export function useStoreActions({
   }, [state.userState]);
 
   const confirmCommand = useCallback(async (followed: boolean) => {
+    // STEP 2 — Command Confidence™ adaptive learning. Record the REAL
+    // confirmation (followed OR not) into the advisory Command-Event Ledger at
+    // the moment of the tap, tagged with the command's category. Advisory only:
+    // never dispatches a reducer action and never touches a hydration /
+    // performance / recovery score (Score-Protection). The learning that reads
+    // this can only ever influence command SELECTION, never the score.
+    {
+      const setAtMs = Date.now();
+      const commandType = categorizeCommand({
+        level: state.engineOutput.performanceState.level,
+        score: state.engineOutput.score,
+        urgencyLevel: state.engineOutput.command.urgencyLevel,
+      });
+      const ledgerEvent = confirmationToCommandEvent({
+        followed,
+        setAtMs,
+        delta: followed ? 3 : -3,
+        commandType,
+        commandId: state.engineOutput.command.id,
+      });
+      if (ledgerEvent) void appendCommandEvents([ledgerEvent]);
+    }
     if (followed) {
       // Internal analytics pipeline (Task #39) — user followed the coach
       // command. Tied to the real tap, independent of server success.

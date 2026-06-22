@@ -151,6 +151,7 @@ export const baseFlags: FeatureFlags = {
   spec_weekly_report: false,
   scoreFromLedgerHybrid: false,
   evidence_engine_enabled: false,
+  command_confidence_adaptive_enabled: false,
 };
 
 export const baseSubscription: UserSubscription = {

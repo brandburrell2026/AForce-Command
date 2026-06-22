@@ -149,6 +149,13 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   // Score-Protection: read-only projection of the engine's own inputs; never
   // reads into / awards / mutates / fabricates score.
   evidence_engine_enabled: false,
+
+  // Command Confidence™ — STEP 2 per-category adaptive learning. The ledger
+  // always RECORDS real confirmations; this flag only gates whether the learned
+  // per-category completion rate may influence command SELECTION / timing /
+  // priority (never score, never ahead of Water-First). OFF in production, ON in
+  // DEMO_ALL_ON. Score-Protection: selection-only, never awards/mutates score.
+  command_confidence_adaptive_enabled: false,
 };
 
 /**
@@ -228,6 +235,9 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
   // Evidence Engine™ — ON in the demo profile so internal viewers can inspect
   // the "Why this command" explainability surface. Read-only / Score-Protected.
   evidence_engine_enabled: true,
+
+  // Command Confidence™ — STEP 2 adaptive learning ON for internal inspection.
+  command_confidence_adaptive_enabled: true,
 
   // Phase 10 — Investor Demo overlay is ON in the internal/pitch profile.
   demo_mode_enabled: true,

@@ -25,6 +25,7 @@ import type {
   VideoProtocol,
 } from '../types/video';
 import { VIDEO_LIBRARY, FALLBACK_VIDEO_ID } from '../mocks/videoLibrary';
+import { categorizeCommand } from '../utils/intelligence/commandCategory';
 
 // ─── Public types ─────────────────────────────────────────────────────────────
 export interface MatchVideoArgs {
@@ -43,11 +44,9 @@ function inferProtocol(level: PerformanceLevel, score: number, userState: UserSt
 }
 
 function inferCommandType(level: PerformanceLevel, score: number, command: Command): VideoCommandType {
-  if (command.urgencyLevel === 'critical') return 'hydration_urgent';
-  if (level === 'DEPLETED' || score < 40) return 'hydration_urgent';
-  if (level === 'RECOVERING' || score < 65) return 'recovery_reset';
-  if (level === 'PEAK' && score >= 90) return 'performance_activation';
-  return 'hydration_maintain';
+  // Delegates to the shared pure seam so the video engine and the Command
+  // Confidence™ learning layer classify a command identically.
+  return categorizeCommand({ level, score, urgencyLevel: command.urgencyLevel });
 }
 
 function isMorningResetMoment(userState: UserState): boolean {
