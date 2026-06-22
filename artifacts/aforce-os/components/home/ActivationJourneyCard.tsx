@@ -7,6 +7,13 @@
  * here awards or mutates score — it only projects two on-device milestones
  * and the pure Day-7 countdown.
  *
+ * Accent: the card's tint is handed in (`accentPrimary` / `accentGlow`) so it
+ * tracks the live hydration/readiness band exactly like the orb — the Zone
+ * derives it from `useDisplayedAccent()` (with an `accentForScore` fallback),
+ * so the eyebrow, step dots, countdown, and CTA recolour on the same frame the
+ * score the user sees changes. This is display-only: the colour follows score,
+ * it never moves score.
+ *
  * Phases:
  *   • unanchored → encourage the first command (the habit loop start).
  *   • pending    → counts down to the offer opening.
@@ -20,23 +27,44 @@ import { useTranslation } from 'react-i18next';
 import { Colors } from '@/theme/colors';
 import type { ActivationJourneyVM } from '@/hooks/useActivationJourney';
 
-const BRAND = Colors.accent.brand;
+/** Convert a 6-digit hex (the band `primary`) into a translucent rgba fill. */
+function withAlpha(hex: string, alpha: number): string {
+  const h = hex.replace('#', '');
+  const r = parseInt(h.slice(0, 2), 16);
+  const g = parseInt(h.slice(2, 4), 16);
+  const b = parseInt(h.slice(4, 6), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
 
 interface Props extends ActivationJourneyVM {
   /** Routes the user to the subscription plans. */
   onSeePlans: () => void;
+  /** Score-band accent (matches the orb): solid tint for text/dots/fills. */
+  accentPrimary: string;
+  /** Score-band glow (translucent) for hairline borders. */
+  accentGlow: string;
 }
 
-function StepDot({ label, done, active }: { label: string; done: boolean; active?: boolean }) {
-  const tint = done || active ? BRAND : Colors.text.muted;
+function StepDot({
+  label,
+  done,
+  active,
+  accent,
+}: {
+  label: string;
+  done: boolean;
+  active?: boolean;
+  accent: string;
+}) {
+  const tint = done || active ? accent : Colors.text.muted;
   return (
     <View style={styles.step}>
       <View
         style={[
           styles.dot,
           { borderColor: tint },
-          done ? { backgroundColor: BRAND } : null,
-          active && !done ? { backgroundColor: Colors.accent.brandSubtle } : null,
+          done ? { backgroundColor: accent } : null,
+          active && !done ? { backgroundColor: withAlpha(accent, 0.1) } : null,
         ]}
       />
       <Text style={[styles.stepLabel, { color: tint }]}>{label}</Text>
@@ -44,7 +72,15 @@ function StepDot({ label, done, active }: { label: string; done: boolean; active
   );
 }
 
-export function ActivationJourneyCard({ anchored, onboarded, offer, countdown, onSeePlans }: Props) {
+export function ActivationJourneyCard({
+  anchored,
+  onboarded,
+  offer,
+  countdown,
+  onSeePlans,
+  accentPrimary,
+  accentGlow,
+}: Props) {
   const { t } = useTranslation();
 
   const offerReached = offer.phase === 'open' || offer.phase === 'expired';
@@ -54,17 +90,28 @@ export function ActivationJourneyCard({ anchored, onboarded, offer, countdown, o
 
   return (
     <View style={styles.card} testID="home-activation-card">
-      <Text style={styles.eyebrow}>{t('activationJourney.eyebrow')}</Text>
+      <Text style={[styles.eyebrow, { color: accentPrimary }]}>
+        {t('activationJourney.eyebrow')}
+      </Text>
 
       <View style={styles.steps}>
-        <StepDot label={t('activationJourney.steps.setup')} done={onboarded} />
+        <StepDot
+          label={t('activationJourney.steps.setup')}
+          done={onboarded}
+          accent={accentPrimary}
+        />
         <View style={styles.connector} />
-        <StepDot label={t('activationJourney.steps.firstCommand')} done={anchored} />
+        <StepDot
+          label={t('activationJourney.steps.firstCommand')}
+          done={anchored}
+          accent={accentPrimary}
+        />
         <View style={styles.connector} />
         <StepDot
           label={t('activationJourney.steps.offer')}
           done={offerReached}
           active={offer.phase === 'open'}
+          accent={accentPrimary}
         />
       </View>
 
@@ -90,7 +137,7 @@ export function ActivationJourneyCard({ anchored, onboarded, offer, countdown, o
       {offer.phase === 'open' ? (
         <View testID="home-activation-open">
           <Text style={styles.title}>{t('activationJourney.open.title')}</Text>
-          <Text style={[styles.countdown, { color: BRAND }]}>
+          <Text style={[styles.countdown, { color: accentPrimary }]}>
             {t('activationJourney.open.countdown', {
               hours: openHours,
               minutes: countdown.minutes,
@@ -102,9 +149,14 @@ export function ActivationJourneyCard({ anchored, onboarded, offer, countdown, o
             accessibilityRole="button"
             accessibilityLabel={t('activationJourney.open.cta')}
             testID="home-activation-cta"
-            style={styles.cta}
+            style={[
+              styles.cta,
+              { borderColor: accentGlow, backgroundColor: withAlpha(accentPrimary, 0.06) },
+            ]}
           >
-            <Text style={styles.ctaText}>{t('activationJourney.open.cta')}</Text>
+            <Text style={[styles.ctaText, { color: accentPrimary }]}>
+              {t('activationJourney.open.cta')}
+            </Text>
           </TouchableOpacity>
         </View>
       ) : null}
@@ -133,7 +185,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter_700Bold',
     fontSize: 11,
     letterSpacing: 2.5,
-    color: BRAND,
     marginBottom: 16,
   },
   steps: {
@@ -187,13 +238,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     borderRadius: 13,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: Colors.accent.brandGlow,
-    backgroundColor: Colors.accent.brandSubtle,
   },
   ctaText: {
     fontFamily: 'Inter_700Bold',
     fontSize: 12,
     letterSpacing: 1.5,
-    color: BRAND,
   },
 });

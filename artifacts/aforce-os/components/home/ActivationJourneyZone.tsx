@@ -14,16 +14,30 @@
 import React from 'react';
 import { useRouter } from 'expo-router';
 
-import { useFlagsSlice } from '@/store/slices';
+import { useFlagsSlice, useEngineSlice } from '@/store/slices';
 import { useActivationJourney } from '@/hooks/useActivationJourney';
+import { useDisplayedAccent } from '@/hooks/useDisplayedAccent';
+import { accentForScore } from '@/utils/scoreBand';
 
 import { ActivationJourneyCard } from './ActivationJourneyCard';
 
 function ActivationJourneyZoneInner() {
   const router = useRouter();
   const vm = useActivationJourney();
+  // Track the live hydration/readiness band exactly like the orb: prefer the
+  // tweened displayed accent (so the card recolours in lock-step with the orb
+  // digit), and fall back to the engine's instantaneous accent when this card
+  // renders outside a DisplayedAccentProvider. Display-only — never moves score.
+  const engine = useEngineSlice();
+  const displayed = useDisplayedAccent();
+  const accent = displayed ?? accentForScore(engine.score);
   return (
-    <ActivationJourneyCard {...vm} onSeePlans={() => router.push({ pathname: '/subscription' })} />
+    <ActivationJourneyCard
+      {...vm}
+      accentPrimary={accent.primary}
+      accentGlow={accent.glow}
+      onSeePlans={() => router.push({ pathname: '/subscription' })}
+    />
   );
 }
 
