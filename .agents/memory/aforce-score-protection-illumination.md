@@ -29,3 +29,27 @@ made, which is exactly what the lock forbids.
   signal-recorded-today timestamp.
 - When writing tests for these, use realistic store values (e.g. urine signal
   1–8, never 0) so the test reflects what production can actually emit.
+
+# Provider "demo / preview" data must be DISPLAY-ONLY
+
+Any wearable provider's demo/preview mode must render in a clearly-labeled card
+and must NEVER be written into the score-consumed biometrics map. In this store,
+`setProviderBiometrics(id, snap)` feeds `UserState.biometrics[id]`, which the
+multi-provider score aggregator reads immediately — so passing a demo snapshot
+there *fabricates score*. (Garmin originally did exactly this via `seedGarminDemo`
+→ `setProviderBiometrics('garmin', demo)`; architect flagged it CRITICAL.)
+
+**The pattern that passed review:** keep demo data in a *local component* state
+(e.g. `garminDemoSnapshot`) used only for rendering, and gate the score channel
+through a pure function — `garminScoreSnapshot(uiState, measured)` returns the
+measured snapshot ONLY when `uiState === 'connected'`, else `null`. Entering demo
+then calls `setProviderBiometrics(id, garminScoreSnapshot('demo', demo))` =
+`null`, which both keeps demo out of score AND clears any stale contribution.
+
+**Why:** display-only demo lets investors/owners preview the surface without ever
+violating the Score-Protection lock. **How to apply:** for any future provider
+demo, never reuse the generic mocked `toggleProvider → buildDemoSnapshot →
+setProviderBiometrics` path (that path *does* seed score and is the legacy
+WHOOP/other behavior); special-case the provider row and route every score write
+through a pure connected-only gate, with a regression test asserting
+`gate('demo', SNAP) === null` and `gate('connected', SNAP) === SNAP`.

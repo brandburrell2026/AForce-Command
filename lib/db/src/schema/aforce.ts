@@ -749,3 +749,81 @@ export type AforceWhoopAuthStatesRow =
   typeof aforceWhoopAuthStates.$inferSelect;
 export type InsertAforceWhoopAuthStates =
   typeof aforceWhoopAuthStates.$inferInsert;
+
+/**
+ * Garmin Connect OAuth2 token store — faithful mirror of
+ * `aforceWhoopTokens` above. One row per `(userId)`; `expiresAt` is
+ * `timestamptz`; refresh token rotates per Garmin's OAuth2 contract.
+ *
+ * DORMANT / hidden-infra: no UI or route writes here until
+ * GARMIN_CLIENT_ID + GARMIN_CLIENT_SECRET + GARMIN_OAUTH_REDIRECT_URI
+ * are configured (the OAuth router is only mounted then). Encryption
+ * mirrors WHOOP Phase A: dual-write plaintext + `pgp_sym_encrypt` enc
+ * columns when `GARMIN_TOKEN_ENCRYPTION_KEY` is set; reads prefer enc
+ * and fall back to plaintext.
+ */
+export const aforceGarminTokens = pgTable(
+  "aforce_garmin_tokens",
+  {
+    userId: text("user_id").primaryKey(),
+    accessToken: text("access_token").notNull(),
+    refreshToken: text("refresh_token").notNull(),
+    /** pgcrypto-encrypted access token. Nullable so the rollout is
+     *  purely additive (see aforceWhoopTokens.accessTokenEnc). */
+    accessTokenEnc: customBytea("access_token_enc"),
+    /** See accessTokenEnc — same lifecycle, same rollout phase. */
+    refreshTokenEnc: customBytea("refresh_token_enc"),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    /** Space-separated scopes the user granted. Null when Garmin's
+     *  token endpoint didn't echo `scope` back. */
+    scope: text("scope"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => ({
+    // Composite index supporting keyset pagination over the fetch
+    // sweep, mirroring the WHOOP token table.
+    updatedUserIdx: index("aforce_garmin_tokens_updated_user_idx").on(
+      t.updatedAt,
+      t.userId,
+    ),
+  }),
+);
+
+export type AforceGarminTokensRow = typeof aforceGarminTokens.$inferSelect;
+export type InsertAforceGarminTokens = typeof aforceGarminTokens.$inferInsert;
+
+/**
+ * Garmin OAuth in-flight state store — backs the PKCE / state handoff
+ * between `/garmin/oauth/start` and `/garmin/oauth/callback`. Faithful
+ * mirror of `aforceWhoopAuthStates`: rows written at `start`, DELETEd
+ * (single-use, atomic) at `callback`; unconsumed rows expire by TTL.
+ */
+export const aforceGarminAuthStates = pgTable(
+  "aforce_garmin_auth_states",
+  {
+    /** The random `state` param returned to the OAuth client and
+     *  echoed back by Garmin. Primary key. */
+    state: text("state").primaryKey(),
+    /** PKCE verifier minted alongside this state. */
+    codeVerifier: text("code_verifier").notNull(),
+    /** Authenticated user who started the flow. */
+    userId: text("user_id").notNull(),
+    /** Insertion time; used for TTL on consume. */
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => ({
+    createdIdx: index("aforce_garmin_auth_states_created_idx").on(t.createdAt),
+  }),
+);
+
+export type AforceGarminAuthStatesRow =
+  typeof aforceGarminAuthStates.$inferSelect;
+export type InsertAforceGarminAuthStates =
+  typeof aforceGarminAuthStates.$inferInsert;

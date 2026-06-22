@@ -24,11 +24,31 @@ function resolveApiBase(): string {
 
 const API_BASE = resolveApiBase();
 
+/**
+ * Error thrown for non-2xx api-server responses. Subclass of `Error`
+ * with the SAME message shape as before (so existing `catch (e)` /
+ * `e.message` consumers are unaffected) plus a structured `status` so
+ * callers can branch on the HTTP code — e.g. the Garmin service maps a
+ * 404 (route not mounted = credentials not configured) to a benign
+ * "credentials missing" state instead of a hard failure.
+ */
+export class AforceApiError extends Error {
+  readonly status: number;
+  constructor(status: number, message: string) {
+    super(message);
+    this.name = 'AforceApiError';
+    this.status = status;
+  }
+}
+
 async function readJsonOrThrow<T>(res: Response, method: string, path: string): Promise<T> {
   if (!res.ok) {
     let detail = '';
     try { detail = await res.text(); } catch { /* ignore */ }
-    throw new Error(`${method} ${path} → ${res.status}${detail ? ` ${detail}` : ''}`);
+    throw new AforceApiError(
+      res.status,
+      `${method} ${path} → ${res.status}${detail ? ` ${detail}` : ''}`,
+    );
   }
   return (await res.json()) as T;
 }

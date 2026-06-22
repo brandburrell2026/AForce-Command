@@ -25,7 +25,22 @@ import {
   createDrizzleWhoopAuthStateStore,
   type WhoopAuthStateStore,
 } from "../lib/whoopAuthStateStore";
-import { createDrizzleWhoopTokenStoreForUser, db } from "@workspace/db";
+import { buildGarminOAuthRouter } from "./garminOAuth";
+import {
+  createInMemoryGarminAuthStateStore,
+  createDrizzleGarminAuthStateStore,
+  type GarminAuthStateStore,
+} from "../lib/garminAuthStateStore";
+import {
+  buildDefaultGarminFetchDeps,
+  runGarminFetchOnce,
+} from "../lib/garminFetchWorker";
+import { getGarminRefreshRegistry } from "../lib/garminRegistry";
+import {
+  createDrizzleWhoopTokenStoreForUser,
+  createDrizzleGarminTokenStoreForUser,
+  db,
+} from "@workspace/db";
 import { getWhoopRefreshRegistry } from "../lib/whoopRegistry";
 import { logger } from "../lib/logger";
 // Note: smartCaptureRouter is mounted directly in app.ts BEFORE the global
@@ -100,6 +115,49 @@ if (whoopClientId && whoopClientSecret && whoopRedirectUri) {
       db,
       refreshRegistry: getWhoopRefreshRegistry(),
       log: logger,
+    }),
+  );
+}
+
+// Hidden-infra mount: the Garmin OAuth routes only exist when all three
+// env vars are set. With nothing configured (the default), the router is
+// not mounted and `/api/garmin/*` 404s — there is no half-configured or
+// fake-"live" surface that can leak. Mirrors the WHOOP gate above.
+const garminClientId = process.env["GARMIN_CLIENT_ID"];
+const garminClientSecret = process.env["GARMIN_CLIENT_SECRET"];
+const garminRedirectUri = process.env["GARMIN_OAUTH_REDIRECT_URI"];
+if (garminClientId && garminClientSecret && garminRedirectUri) {
+  const garminDriverRaw = process.env["GARMIN_AUTH_STATE_STORE_DRIVER"];
+  const useDrizzleGarminAuthState = garminDriverRaw === "drizzle";
+  const garminAuthStateStore: GarminAuthStateStore = useDrizzleGarminAuthState
+    ? createDrizzleGarminAuthStateStore(db)
+    : createInMemoryGarminAuthStateStore();
+  logger.info(
+    { driver: useDrizzleGarminAuthState ? "drizzle" : "memory" },
+    "garminOAuth: auth-state store initialized",
+  );
+  router.use(
+    buildGarminOAuthRouter({
+      authStateStore: garminAuthStateStore,
+      oauthConfig: {
+        clientId: garminClientId,
+        clientSecret: garminClientSecret,
+      },
+      redirectUri: garminRedirectUri,
+      tokenStoreFor: (userId) =>
+        createDrizzleGarminTokenStoreForUser(db, userId, {
+          encryptionKey: process.env["GARMIN_TOKEN_ENCRYPTION_KEY"] ?? null,
+          log: logger,
+        }),
+      successRedirectUrl: process.env["GARMIN_OAUTH_SUCCESS_URL"],
+      runSyncForUser: async (userId) => {
+        const deps = buildDefaultGarminFetchDeps(db, userId, {
+          log: logger,
+          refreshRegistry: getGarminRefreshRegistry(),
+        });
+        const outcome = await runGarminFetchOnce(userId, deps);
+        return { status: outcome.status, fetchedAt: outcome.fetchedAt };
+      },
     }),
   );
 }

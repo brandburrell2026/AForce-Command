@@ -23,10 +23,17 @@ connect flow; real data wiring is per-service and very uneven.
 - **Google Health Connect — NOT integrated.** No `react-native-health-connect`
   package, no Android Health Connect permission; demo-seeded only. So Fitbit,
   Garmin-via-Android, and a future Samsung Ring are all unreachable today.
-- **Garmin Connect — NO direct integration.** Catalog card + demo seed only; no
-  OAuth, no Connect IQ, no SDK, no server routes. (Owner flags Garmin direct as
-  critical for Guardian/military/endurance — net-new work, mirror the WHOOP
-  server pattern; needs Garmin Health API creds + native testing.)
+- **Garmin Connect — fully coded, DORMANT (mirrors WHOOP).** Real backend OAuth
+  brokered by api-server (client never holds Garmin creds): server token store
+  (pgcrypto dual-write), PKCE/auth-state stores, `/api/garmin/*` routes
+  (oauth/start|callback, status, disconnect, sync), `garminFetchWorker` +
+  `garminSnapshot` normalization into `aforce_user_state.biometrics.garmin`.
+  Router mounts ONLY when `GARMIN_CLIENT_ID` + `GARMIN_CLIENT_SECRET` +
+  `GARMIN_OAUTH_REDIRECT_URI` are ALL set; otherwise every `/api/garmin/*` 404s
+  (same fail-closed gate as WHOOP). Mobile `services/garmin.ts` maps that 404 to
+  a benign `credentials_missing` STATE (not an error). UI demo is **display-only**
+  (see Score-Protection note below) — never seeds the score. Needs Garmin Health
+  API creds + native testing to go live.
 - **Oura / Strava / Fitbit — no direct API.** Oura comes via Apple Health;
   Strava is demo seed; Fitbit isn't even a `HealthProviderId` (Health-Connect
   path only). Non-HealthKit standalone providers are `data/providerDemoSnapshots.ts`.

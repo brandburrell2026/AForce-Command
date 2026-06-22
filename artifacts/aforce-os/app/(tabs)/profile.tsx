@@ -56,6 +56,20 @@ import { replayLastCommand, getLastCommand } from '@/services/voice/commandVoice
 import { useDevMode, setDevMode } from '@/services/devMode';
 import { AnalyticsConsentRow } from '@/components/settings/AnalyticsConsentRow';
 import { getJsonAforceApi } from '@/services/aforceApiClient';
+import {
+  getGarminStatus,
+  startGarminConnect,
+  disconnectGarmin,
+  syncGarminSnapshot,
+} from '@/services/garmin';
+import {
+  deriveGarminUiState,
+  isLiveGarminState,
+  shouldShowGarminDemoSnapshot,
+  garminScoreSnapshot,
+  type GarminUiState,
+} from '@/utils/garminProviderState';
+import type { ProviderSnapshot } from '@/types/biometrics';
 
 // Lazy-loaded haptics — `expo-haptics` rejects on web (no native
 // module). The `import('expo-haptics')` form bundles the module on
@@ -217,6 +231,17 @@ export default function ProfileScreen() {
   const [linkedProviders, setLinkedProviders] = useState<Set<HealthProviderId>>(
     () => new Set(),
   );
+  // Garmin is the one provider with a REAL backend OAuth flow, so its
+  // state is tracked separately from the mocked `linkedProviders` set.
+  // Starts 'not_connected'; a mount-time status check corrects it to the
+  // server truth ('credentials_missing' when the integration is dormant,
+  // 'connected' when this user already authorized). 'demo' is only ever
+  // reachable via an explicit opt-in — never from a real connect.
+  const [garminState, setGarminState] = useState<GarminUiState>('not_connected');
+  // DISPLAY-ONLY demo snapshot for Garmin. Rendered in a clearly-labeled
+  // "demo" card and NEVER written into the score-consumed biometrics —
+  // Score-Protection is enforced via `garminScoreSnapshot`.
+  const [garminDemoSnapshot, setGarminDemoSnapshot] = useState<ProviderSnapshot | null>(null);
   // Latest Apple Health snapshot — null until the user grants
   // permission AND the bridge actually returns data. Rendered in a
   // small "Live from Apple Health" panel so the user can see the
@@ -335,6 +360,145 @@ export default function ProfileScreen() {
       { text: 'Authorize', onPress: performAuthorize },
     ]);
   };
+
+  // ─── Garmin: real backend OAuth flow ──────────────────────────────────
+  // Sync the Garmin connection state from the server. In the current
+  // dormant build (no creds configured) this resolves to
+  // 'credentials_missing'; once creds land it reflects the real per-user
+  // connection. An explicit demo session is never clobbered by a re-check.
+  const refreshGarminState = useCallback(async () => {
+    try {
+      const status = await getGarminStatus();
+      // A real `connected` server state ALWAYS wins (deriveGarminUiState),
+      // so a stale demo preview is superseded the moment a real connection
+      // appears. An explicit demo opt-in is otherwise preserved.
+      setGarminState((prev) =>
+        deriveGarminUiState({ serverState: status.state, demoOptIn: prev === 'demo' }),
+      );
+      if (status.state === 'connected') {
+        // Real connection supersedes any demo preview; drop the display-only
+        // demo snapshot, then pull measured data (the server persists it —
+        // no client-side seeding).
+        setGarminDemoSnapshot(null);
+        await syncGarminSnapshot();
+      }
+    } catch {
+      // Network/unknown error — leave the current state untouched.
+    }
+  }, []);
+
+  useEffect(() => {
+    void refreshGarminState();
+  }, [refreshGarminState]);
+
+  // Explicit, clearly-labeled demo opt-in. `deriveGarminUiState` guarantees
+  // this can only ever produce the 'demo' state — never a live connection —
+  // and only the 'demo' state seeds a snapshot (Score-Protection).
+  const seedGarminDemo = () => {
+    const next = deriveGarminUiState({
+      serverState: 'credentials_missing',
+      demoOptIn: true,
+    });
+    setGarminState(next);
+    // DISPLAY-ONLY: the demo snapshot is rendered in a clearly-labeled card.
+    const demo = shouldShowGarminDemoSnapshot(next) ? buildDemoSnapshot('garmin') : null;
+    setGarminDemoSnapshot(demo);
+    // Score-Protection: route the score channel through the gate, which
+    // yields null for the demo state — so demo data can never move the orb.
+    // (This also clears any stale Garmin contribution from the score.)
+    setProviderBiometrics('garmin', garminScoreSnapshot(next, demo));
+  };
+
+  const offerGarminDemo = () => {
+    const title = 'Garmin Connect isn’t available yet';
+    const body =
+      'Live Garmin sync ships in a later build. Preview the experience with clearly-labeled demo data? It will not be presented as your real Garmin account.';
+    if (Platform.OS === 'web') {
+      if (typeof window !== 'undefined' && window.confirm(`${title}\n\n${body}`)) {
+        seedGarminDemo();
+      }
+      return;
+    }
+    Alert.alert(title, body, [
+      { text: 'Not now', style: 'cancel' },
+      { text: 'Preview demo data', onPress: seedGarminDemo },
+    ]);
+  };
+
+  const handleGarminToggle = async () => {
+    if (Platform.OS !== 'web') hapticSelection();
+
+    // ─── Disconnect / leave-demo path ────────────────────────────────
+    if (garminState === 'connected' || garminState === 'demo') {
+      const wasDemo = garminState === 'demo';
+      const performGarminDisconnect = async () => {
+        if (wasDemo) {
+          // Demo is display-only and never touched the score; just drop
+          // the preview card.
+          setGarminDemoSnapshot(null);
+        } else {
+          // A real connection has server-side tokens to clear, plus any
+          // locally-cached measured biometrics in the score.
+          try { await disconnectGarmin(); } catch { /* best-effort */ }
+          setProviderBiometrics('garmin', null);
+        }
+        setGarminState(wasDemo ? 'credentials_missing' : 'not_connected');
+      };
+      const msg = wasDemo
+        ? 'This clears the Garmin demo preview.'
+        : 'AForce will stop pulling biometrics from your Garmin account.';
+      if (Platform.OS === 'web') {
+        if (typeof window !== 'undefined' && window.confirm(`Disconnect Garmin? ${msg}`)) {
+          void performGarminDisconnect();
+        }
+        return;
+      }
+      Alert.alert('Disconnect Garmin?', msg, [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Disconnect',
+          style: 'destructive',
+          onPress: () => void performGarminDisconnect(),
+        },
+      ]);
+      return;
+    }
+
+    // ─── Connect path — consult the REAL server status ───────────────
+    const status = await getGarminStatus().catch(() => null);
+    if (!status) {
+      Alert.alert(
+        'Garmin unavailable',
+        'Could not reach the Garmin service. Please try again later.',
+      );
+      return;
+    }
+
+    if (status.state === 'connected') {
+      setGarminState('connected');
+      setGarminDemoSnapshot(null);
+      try { await syncGarminSnapshot(); } catch { /* best-effort */ }
+      return;
+    }
+
+    if (status.state === 'not_connected') {
+      // Real OAuth — open Garmin's authorize page; the server handles the
+      // callback. Re-check status when the user returns.
+      const start = await startGarminConnect();
+      if (start.status === 'ok') {
+        try {
+          await WebBrowser.openBrowserAsync(start.authorizeUrl);
+        } catch { /* user closed / unsupported */ }
+        await refreshGarminState();
+        return;
+      }
+      // Creds vanished between status and start — fall through to demo offer.
+    }
+
+    // 'credentials_missing' (dormant build) — offer the labeled demo.
+    offerGarminDemo();
+  };
+
   const layout = useResponsiveLayout();
 
   const topPadding = Platform.OS === 'web' ? 67 : insets.top;
@@ -842,11 +1006,22 @@ export default function ProfileScreen() {
                 <SectionHeader label="HEALTH PLATFORMS" hint="Pull biometrics from these services" />
                 <View style={styles.card}>
                   {[...HEALTH_PROVIDERS].sort((a, b) => a.name.localeCompare(b.name)).map((p, i) => {
-                    const linked = linkedProviders.has(p.id);
+                    // Garmin is backed by a REAL OAuth flow: its connection
+                    // is driven by `garminState`, not the mocked
+                    // `linkedProviders` set. It shows a row whenever it's a
+                    // live connection OR an explicit demo session.
+                    const isGarmin = p.id === 'garmin';
+                    const garminLive = isGarmin && isLiveGarminState(garminState);
+                    const garminDemo = isGarmin && garminState === 'demo';
+                    const linked = isGarmin
+                      ? garminLive || garminDemo
+                      : linkedProviders.has(p.id);
                     return (
                       <React.Fragment key={p.id}>
                         <Pressable
-                          onPress={() => toggleProvider(p.id, p.name)}
+                          onPress={() =>
+                            isGarmin ? handleGarminToggle() : toggleProvider(p.id, p.name)
+                          }
                           style={({ pressed }) => [
                             styles.providerRow,
                             pressed && { backgroundColor: `${p.brand}10` },
@@ -872,7 +1047,22 @@ export default function ProfileScreen() {
                             <Text style={styles.deviceName}>{p.name}</Text>
                             <Text style={styles.providerSub}>{p.pulls}</Text>
                           </View>
-                          {linked ? (
+                          {garminDemo ? (
+                            // Demo is its own labeled pill — neutral info blue,
+                            // never the green LIVE treatment.
+                            <View
+                              style={[
+                                styles.connectPill,
+                                { borderColor: `${Colors.info}88` },
+                              ]}
+                            >
+                              <Text
+                                style={[styles.connectPillText, { color: Colors.info }]}
+                              >
+                                DEMO
+                              </Text>
+                            </View>
+                          ) : linked ? (
                             <Text
                               style={[styles.deviceStatus, { color: Colors.states.PEAK.primary }]}
                             >
@@ -891,6 +1081,42 @@ export default function ProfileScreen() {
                             </View>
                           )}
                         </Pressable>
+                        {garminDemo && garminDemoSnapshot && (
+                          <View style={styles.garminDemoBlock}>
+                            <Text style={styles.garminDemoLabel}>
+                              DEMO DATA — NOT FROM YOUR GARMIN ACCOUNT
+                            </Text>
+                            <View style={styles.snapshotGrid}>
+                              <SnapshotCell
+                                label="HRV"
+                                value={
+                                  garminDemoSnapshot.hrvSdnn != null
+                                    ? `${Math.round(garminDemoSnapshot.hrvSdnn)} ms`
+                                    : '—'
+                                }
+                              />
+                              <SnapshotCell
+                                label="Stress"
+                                value={
+                                  garminDemoSnapshot.stressScore != null
+                                    ? `${Math.round(garminDemoSnapshot.stressScore)}`
+                                    : '—'
+                                }
+                              />
+                              <SnapshotCell
+                                label="Workout"
+                                value={
+                                  garminDemoSnapshot.workoutMinutesToday != null
+                                    ? `${Math.round(garminDemoSnapshot.workoutMinutesToday)} min`
+                                    : '—'
+                                }
+                              />
+                            </View>
+                            <Text style={styles.garminDemoFootnote}>
+                              Preview only · does not affect your score
+                            </Text>
+                          </View>
+                        )}
                         {p.id === 'whoop' && linked && (() => {
                           // Cinematic WHOOP-styled live panel. Numbers come
                           // straight from DEMO_PROVIDER_SNAPSHOTS.whoop —
@@ -2392,6 +2618,20 @@ const styles = StyleSheet.create({
   providerBody: { flex: 1, gap: 2 },
   providerSub: {
     fontSize: 12, color: Colors.text.secondary, fontFamily: 'Inter_400Regular',
+  },
+  garminDemoBlock: {
+    marginHorizontal: 16, marginBottom: 12,
+    padding: 12, borderRadius: 12,
+    backgroundColor: `${Colors.info}0F`,
+    borderWidth: 1, borderColor: `${Colors.info}33`,
+    gap: 10,
+  },
+  garminDemoLabel: {
+    fontSize: 10, color: Colors.info, fontFamily: 'Inter_700Bold',
+    letterSpacing: 1.2,
+  },
+  garminDemoFootnote: {
+    fontSize: 11, color: Colors.text.muted, fontFamily: 'Inter_400Regular',
   },
   connectPill: {
     paddingHorizontal: 10, paddingVertical: 5,
