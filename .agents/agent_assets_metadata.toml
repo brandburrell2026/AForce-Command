@@ -2627,3 +2627,9 @@ id = "9yII3Prb5zJaPxXglwQmv"
 uri = "file://artifacts/aforce-os/docs/AForce-OS-Specification.pdf"
 type = "pdf"
 title = "AForce OS — Product & Technical Specification"
+
+[[outputs]]
+id = "JcD5uEOUT-Ru48TyatUXw"
+uri = "file://exports/AForce-OS-Full-Specs.pdf"
+type = "pdf"
+title = "AForce OS — Full Specification Compendium (PDF)"
