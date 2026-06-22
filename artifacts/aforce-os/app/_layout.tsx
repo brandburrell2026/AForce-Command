@@ -36,6 +36,7 @@ import { ClerkAuthBridge } from '@/components/ClerkAuthBridge';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { InvestorDemoOverlay } from '@/components/investorDemo/InvestorDemoOverlay';
 import { OpeningSequence } from '@/components/opening/OpeningSequence';
+import { WelcomeHero } from '@/components/welcome/WelcomeHero';
 import { readinessLabel, type PerformanceLevel } from '@/utils/homeDashboard';
 import { AppProvider, useAppStore, useFeatureFlags } from '@/store/useAppStore';
 import { shouldShowInvestorDemo } from '@/featureFlags/flags';
@@ -283,11 +284,66 @@ function VoiceCheckInMount({ openingDone }: { openingDone: boolean }) {
   );
 }
 
+/**
+ * WelcomeMount — the WHOOP-style photo Welcome Hero "front door".
+ *
+ * Plays AFTER the cinematic opening (OpeningSequence, untouched). It is
+ * mounted UNDER the cinematic (zIndex 999 vs the cinematic's 1000) for the
+ * whole `opening` + `welcome` window so that when the cinematic fades its
+ * master layer to 0 it crossfades straight into this opaque photo surface —
+ * no black flash, and the routed app never bleeds through. The staggered
+ * entrance (eyebrow → wordmark → tagline → buttons) only fires once `active`
+ * (i.e. the cinematic has handed off).
+ *
+ * It touches NO routing itself: the buttons call back into AppShell, which
+ * navigates (GET STARTED → onboarding, SIGN IN → sign-in) and advances the
+ * launch phase to `done`. Universal — shown on every cold launch with no
+ * hardware / entitlement gate; Score-Protection is unaffected (pure UI).
+ */
+function WelcomeMount({
+  phase,
+  onEntered,
+}: {
+  phase: LaunchPhase;
+  onEntered: () => void;
+}) {
+  const onGetStarted = React.useCallback(() => {
+    router.replace('/onboarding' as never);
+    onEntered();
+  }, [onEntered]);
+  const onSignIn = React.useCallback(() => {
+    router.replace('/(auth)/sign-in' as never);
+    onEntered();
+  }, [onEntered]);
+
+  if (phase === 'done') return null;
+  return (
+    <WelcomeHero
+      active={phase === 'welcome'}
+      onGetStarted={onGetStarted}
+      onSignIn={onSignIn}
+    />
+  );
+}
+
+/**
+ * Cold-launch overlay sequence. The cinematic plays first (`opening`); when
+ * it finishes we hand off to the photo Welcome Hero (`welcome`); once the
+ * user picks an entry the front door dismisses (`done`) and the downstream
+ * voice overlays are allowed to mount.
+ */
+type LaunchPhase = 'opening' | 'welcome' | 'done';
+
 function AppShell() {
-  // The Voice Check-In overlay waits for the cinematic opening to dismiss so
-  // the two top-most overlays never stack on a cold launch.
-  const [openingDone, setOpeningDone] = React.useState(false);
-  const handleOpeningDone = React.useCallback(() => setOpeningDone(true), []);
+  // Cold-launch front-door state machine: opening → welcome → done. The
+  // Voice Check-In / Performance Statement overlays wait for `done` so the
+  // top-most overlays never stack on a cold launch.
+  const [phase, setPhase] = React.useState<LaunchPhase>('opening');
+  // Cinematic finished → crossfade into the Welcome Hero.
+  const handleOpeningDone = React.useCallback(() => setPhase('welcome'), []);
+  // User picked an entry → dismiss the hero, ungate downstream overlays.
+  const handleEntered = React.useCallback(() => setPhase('done'), []);
+  const openingDone = phase === 'done';
   return (
     <SafeAreaProvider>
       {/* Phase 1 (Opening Screen Safe-Area Fix): force light system
@@ -314,7 +370,12 @@ function AppShell() {
                   <RootLayoutNav />
                   <SplashGate />
                   <InvestorDemoMount />
-                  {/* Top-most overlay: cinematic cold-launch opening. */}
+                  {/* Photo Welcome Hero — mounted UNDER the cinematic
+                      (zIndex 999) so the cinematic's fade-out crossfades into
+                      it with no black flash; waits for GET STARTED / SIGN IN. */}
+                  <WelcomeMount phase={phase} onEntered={handleEntered} />
+                  {/* Top-most overlay: cinematic cold-launch opening (zIndex
+                      1000, renders above the Welcome Hero). */}
                   <OpeningMount onDone={handleOpeningDone} />
                   {/* Voice Check-In ritual — shows after the opening, gated. */}
                   <VoiceCheckInMount openingDone={openingDone} />

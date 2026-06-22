@@ -1086,6 +1086,12 @@ uri = "file://artifacts/aforce-pitch/public/images/products/stick-berry-v2.png"
 type = "image"
 title = "generated_image"
 
+[[generated]]
+id = "4aBWw8csDtq4knALIfV_7"
+uri = "file://attached_assets/generated_images/welcome-hero.png"
+type = "image"
+title = "welcome hero athlete"
+
 [[outputs]]
 id = "fILTiXCCTKYfWe9d8R46M"
 uri = "file://attached_assets/tester-share/aforce-tester-qr.png"

@@ -1,0 +1,94 @@
+Clear — the photo hero plays **after** the cinematic, not before. So the flow is: cold launch → existing 4-stage cinematic (AFORCE/N–И → Pause·Hydrate·Lock In·Perform → Today's Readiness) → **then** the WHOOP-style photo hero with the buttons → onboarding/sign-in. The cinematic is the emotional intro; the photo hero is the front door where the user actually chooses to enter.
+
+That's a cleaner sequence than what I defaulted to, and it makes sense: the cinematic builds the mood, then the photo screen hands them the decision. Here's the corrected prompt with the ordering fixed.
+
+---
+
+```
+AForce OS — NEW Welcome Hero Screen (full-bleed PHOTO), plays AFTER the cinematic
+
+IMPORTANT — DO NOT MODIFY THE EXISTING OPENING CINEMATIC.
+You already built the 4-stage cold-launch cinematic (AFORCE/N–И → Pause·Hydrate·
+Lock In·Perform → Today's Readiness count-up). That stays EXACTLY as is. This 
+task adds ONE new surface that plays immediately AFTER the cinematic finishes.
+
+THE FLOW (build to this exact order):
+  Cold launch
+    → existing 4-stage opening cinematic (unchanged)
+    → [NEW] full-bleed PHOTO Welcome Hero screen with the two buttons
+    → GET STARTED → existing onboarding   |   SIGN IN → existing sign-in
+
+So when the cinematic's final stage (Today's Readiness) completes its 
+onFinish/fade-out, instead of revealing the routed app directly, it now reveals 
+the NEW Welcome Hero screen. The Welcome Hero is what holds the entry buttons. 
+Analyze the existing cinematic's onFinish + mount in app/_layout.tsx FIRST and 
+report how you'll chain the Welcome Hero after it, before writing.
+
+WHAT THIS NEW SCREEN IS (different from the cinematic):
+The cinematic is text-on-black motion. THIS is a full-bleed PHOTOGRAPH of an 
+operator-class subject (athlete mid-stride, low cinematic light) with the AFORCE 
+wordmark over it and two pill buttons — the WHOOP-style "front door."
+
+────────── LAYOUT (full-screen, edge-to-edge) ──────────
+1. FULL-BLEED HERO IMAGE, absolute fill, cover. Placeholder at 
+   assets/images/welcome-hero.jpg (swap real shot footage later). 
+   StatusBar style="light".
+2. GRADIENT SCRIM (above image, below text), top→bottom:
+   rgba(13,13,13,0.20) 0% → rgba(13,13,13,0.45) 45% → rgba(13,13,13,0.85) 78% 
+   → #0D0D0D 100%. Buttons sit on near-solid black.
+3. TOP EYEBROW centered: IBM Plex Mono ~11px, letter-spacing 0.4em, UPPERCASE, 
+   bone #F5F0E8 @55%: "PERFORMANCE IS NON-NEGOTIABLE".
+4. CENTER BLOCK (~55–60% down, centered):
+   • "AFORCE" — Archivo Black, bone #F5F0E8, ~46px, letter-spacing 0.04em.
+   • Tagline: IBM Plex Mono ~13px, letter-spacing 0.26em, UPPERCASE, bone @55%: 
+     "BUILT FOR PEOPLE WHO DON'T GET TO BE OFF".
+5. TWO STACKED PILL BUTTONS near bottom (~28px side margins, ~16px gap, 56px tall, 
+   full radius). UNIVERSAL — not gated:
+   • PRIMARY (top): filled signal red #C1281B, bone text, "GET STARTED" → 
+     existing onboarding.
+   • SECONDARY: transparent, 1px bone outline, bone text, "SIGN IN" → existing 
+     sign-in.
+   HARD RULE: no "device required" fork, no Founding 200 gate. Manual-first, for 
+   everyone.
+
+────────── MOTION (Apple-Vision-Pro pacing) ──────────
+- The Welcome Hero fades IN as the cinematic fades out (smooth handoff, no black 
+  flash between them).
+- Subtle Ken Burns push-in on the IMAGE only: scale 1.0→1.06 over ~12s, 
+  ease-in-out, looping.
+- Stagger: eyebrow → wordmark (fade+rise 8px) → tagline → buttons fade up last.
+- Fully reduced-motion aware (no Ken Burns / no stagger when reduced; fade final 
+  state in).
+- CRITICAL: put intro OPACITY and the looping Ken Burns transform on SEPARATE 
+  nested elements (outer = opacity intro forwards-fill, inner = looping 
+  transform). If both live on one node, the loop kills the final opacity and the 
+  element renders invisible.
+- Unlike the cinematic, this screen does NOT auto-dismiss or have "tap to skip" — 
+  it waits for the user to choose GET STARTED or SIGN IN.
+
+────────── TOKENS / TYPE ──────────
+Brand tokens, not hardcoded hex: signal red #C1281B, bone #F5F0E8, cinematic 
+black #0D0D0D. Archivo Black (wordmark/buttons), IBM Plex Mono (eyebrow/tagline), 
+Inter (body). Reuse fonts already loaded for the cinematic.
+
+────────── GUARDRAILS ──────────
+- NEW surface only. Do NOT modify the cinematic, navigation, tabs, scoring, or 
+  onboarding internals. Respect DEMO_MODE. Returning users still reach sign-in.
+- Keep all tests green.
+- Deliver an iPhone simulator screenshot of the new Welcome Hero (and confirm the 
+  cinematic → hero handoff has no black flash).
+
+DELIVERABLE: the new Welcome Hero component, the chaining-after-cinematic wiring, 
+the placeholder image slot, GET STARTED/SIGN IN routing, reduced-motion 
+confirmation, and the screenshot.
+```
+
+---
+
+Two things I made sure the prompt nails for this specific ordering:
+
+The **handoff** — "fades in as the cinematic fades out, no black flash." When you chain two full-screen overlays, the most common ugly bug is a split-second of black between them. Calling it out forces Replit to crossfade the two surfaces instead of unmount-then-mount.
+
+And the key behavioral difference: the cinematic **auto-dismisses** (it's a timed sequence with "tap to skip"), but the photo hero **waits** — it has no skip and no timer, because it's the decision screen. It should sit there until the user picks Get Started or Sign In. The prompt makes that explicit so Replit doesn't accidentally auto-advance past your front door.
+
+Same caveat as before: the placeholder image holds the layout, but this screen only becomes the WHOOP-killer when you drop in a real operator shot from your own footage. Judge the screenshot on scrim depth and wordmark legibility for now.
