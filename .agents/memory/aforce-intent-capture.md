@@ -35,3 +35,24 @@ personalization is allowed as long as it is display/voice only and reversible by
 - All consumer copy (labels, sublabels, spoken prompt, every closing variant) must
   exist in all 6 launch locales (en/es/fr/de/pt/it) and every closing variant must
   still lead Water-First ("HYDRATE NOW — start with water" / locale equivalent).
+
+## Second surface — after a Performance Statement
+The spec is "after Voice Check-In OR a Performance Statement", so Intent Capture has
+TWO surfaces: the inline check-in step (above) AND a post-statement prompt
+(`PostStatementIntentPrompt`, mounted by `PerformanceStatementMount` once the
+statement has spoken). The statement stays voice-only, so the prompt is a SEPARATE
+surface — never a text/quote render of the statement. The post-statement prompt can
+reuse the already-localized `voiceCheckIn.intent.*` / `voiceCheckIn.snooze` /
+`common.close` keys (no new copy).
+
+- **Dedupe on `hydrated && todayIntent`.** Both surfaces must wait for the per-day
+  store to hydrate, then render nothing once today's intent is on record — or the
+  second surface re-asks after the morning check-in already captured it.
+- **Flag-off inertness gates the MOUNT, not the store.** `intent_capture_enabled`
+  decides whether the prompt component mounts; the intent service already
+  module-boot-hydrates app-wide (the always-mounted check-in overlay imports the
+  same chain), so do NOT rip out that boot hydrate to chase byte-identical-off.
+  Inertness here = never mount the prompt / run its UI.
+- **Entrance-delay touch trap.** A full-fill dim overlay with a delayed/faded
+  entrance must arm `pointerEvents` only after the delay, or the invisible backdrop
+  steals/dismisses the tap before the user can see it.

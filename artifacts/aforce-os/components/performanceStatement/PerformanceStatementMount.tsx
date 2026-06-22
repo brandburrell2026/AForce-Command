@@ -32,6 +32,7 @@ import {
   selectLatestRecord,
   useVoiceCheckInStore,
 } from '@/services/voiceCheckIn';
+import { PostStatementIntentPrompt } from '@/components/performanceStatement/PostStatementIntentPrompt';
 
 const ONBOARDING_DONE_KEY = 'aforce.hasCompletedOnboarding';
 
@@ -74,6 +75,10 @@ function PerformanceStatementMountInner({
   // window expires (the check-in store only notifies on writes).
   const [, setRevalidateTick] = React.useState(0);
   const spokenRef = React.useRef(false);
+  // Flips true once we deliver a statement this session, which mounts the
+  // post-statement Intent Capture prompt (Ready / Recovering / Not Today).
+  const [spokenThisSession, setSpokenThisSession] = React.useState(false);
+  const handleIntentDone = React.useCallback(() => setSpokenThisSession(false), []);
 
   // Re-read the onboarding flag whenever the route changes so it flips true
   // immediately after the wizard finishes and routes into the tabs.
@@ -141,6 +146,8 @@ function PerformanceStatementMountInner({
       spokenRef.current = true;
       speak(text, { level });
       void markDelivered(descriptor.id);
+      // Offer the post-statement intent prompt (gated on the flag at render).
+      setSpokenThisSession(true);
     }, SPEAK_DELAY_MS);
     return () => clearTimeout(timer);
   }, [gatesOpen, alreadySpokenToday, descriptor, text, level, markDelivered]);
@@ -154,5 +161,11 @@ function PerformanceStatementMountInner({
     return () => sub.remove();
   }, []);
 
+  // After the statement is spoken, surface the Intent Capture choice — but only
+  // when intent capture is enabled. With that flag off, the prompt component
+  // (and its intent-store hydration) never mounts, so it stays fully inert.
+  if (flags.intent_capture_enabled && spokenThisSession) {
+    return <PostStatementIntentPrompt onDone={handleIntentDone} />;
+  }
   return null;
 }
