@@ -40,6 +40,7 @@ import {
 } from '@/services/metabolicReadinessService';
 import { ageFromBirthYear } from '@/utils/profileIdentity';
 import { getAnalyticsMetrics } from '@/services/analytics';
+import { emitPerformanceAgeSnapshot } from '@/analytics/event_dispatcher';
 import { dailySnapshotForRecording } from '@/utils/performanceAge';
 import {
   derivePerformanceAge,
@@ -132,6 +133,21 @@ export function usePerformanceAge(): PerformanceAgeSnapshot {
       () => snapshotInFlightDays.delete(dayIndex),
     );
   }, [performanceAge, ledger.events]);
+
+  // Founder Performance Age™ trend (Command Center): emit ONE pseudonymous
+  // snapshot per UTC day carrying ONLY the privacy-safe years delta + lifecycle
+  // status — never the absolute age or the actual age. This is INDEPENDENT of
+  // the local ledger append above: it is gated entirely inside the dispatcher
+  // (consent + a per-UTC-day key burned only after the emit durably queues), so
+  // a failed emit retries on the next mount even when the day's ledger row
+  // already exists. Display-only telemetry; it never moves a score.
+  const yearsDelta = snapshot.result.yearsDelta;
+  const ageStatus = snapshot.result.status;
+  React.useEffect(() => {
+    if (yearsDelta === null) return; // no finite estimate yet → nothing to send
+    if (ageStatus === 'missing-age') return; // narrow to provisional | established
+    void emitPerformanceAgeSnapshot(yearsDelta, ageStatus);
+  }, [yearsDelta, ageStatus]);
 
   return snapshot;
 }

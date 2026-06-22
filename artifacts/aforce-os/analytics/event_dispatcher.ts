@@ -225,6 +225,67 @@ export function emitTerritoryEngaged(
   return emit("territory_engaged", { action });
 }
 
+const PERF_AGE_DAY_KEY = "@aforce/analytics-perf-age-day";
+
+/** Lifecycle status of a Performance Age™ estimate at the moment it is
+ *  recorded. Only finite estimates are ever emitted, so the `missing-age`
+ *  (no-number) state is excluded by construction. */
+export type PerformanceAgeSnapshotStatus = "provisional" | "established";
+
+/** Collapses same-tick concurrent perf-age snapshot emits (two surfaces read
+ *  usePerformanceAge at once) into one in-flight attempt. Set synchronously
+ *  before any await so a second caller in the same tick sees it. */
+let perfAgeSnapshotInFlight = false;
+
+/**
+ * Emit `performance_age_snapshot` at most once per UTC day — the founder
+ * Performance Age™ trend signal.
+ *
+ * PRIVACY (this is a derived HEALTH metric, treated more conservatively than a
+ * click-count): the payload is deliberately minimal — only the years DELTA
+ * (performanceAge − actualAge; negative = younger) and the estimate's lifecycle
+ * status. The absolute Performance Age and the actual age are NEVER sent —
+ * sending both the absolute age and the delta would let actual age be
+ * reconstructed. The identity is the pseudonymous analytics id, never the Clerk
+ * user id, and the founder route only ever returns k-anonymous aggregates.
+ *
+ * Score-Protection: display-only telemetry. It never touches a hydration point,
+ * performance band, or recovery score — Performance Age is a one-way projection
+ * of signals the engines already produced.
+ *
+ * Durability mirrors emitTerritoryOpened: the day key is burned ONLY after the
+ * emit durably queues, so a failed write (no analyticsId yet / outbox error)
+ * re-emits on the next mount instead of silently dropping the day. The founder
+ * route dedupes per identity per UTC day, so an occasional re-emit can never
+ * inflate the sample.
+ */
+export async function emitPerformanceAgeSnapshot(
+  deltaYears: number,
+  status: PerformanceAgeSnapshotStatus,
+): Promise<void> {
+  if (!Number.isFinite(deltaYears)) return;
+  if (perfAgeSnapshotInFlight) return;
+  perfAgeSnapshotInFlight = true;
+  try {
+    if (!(await isConsentGranted())) return;
+    const today = new Date().toISOString().slice(0, 10);
+    try {
+      if ((await AsyncStorage.getItem(PERF_AGE_DAY_KEY)) === today) return;
+    } catch {
+      /* fall through — better to emit than silently drop the snapshot */
+    }
+    if (await emit("performance_age_snapshot", { deltaYears, status })) {
+      try {
+        await AsyncStorage.setItem(PERF_AGE_DAY_KEY, today);
+      } catch {
+        /* non-fatal — a retry next mount re-emits, deduped server-side by day */
+      }
+    }
+  } finally {
+    perfAgeSnapshotInFlight = false;
+  }
+}
+
 /** Collapses same-tick concurrent first-win emits (the recorder fires on
  *  every win) into a single in-flight attempt. Set synchronously before any
  *  await so a second caller in the same tick sees it. */

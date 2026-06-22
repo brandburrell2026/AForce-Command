@@ -40,6 +40,10 @@ import {
   type MarketingRow,
 } from "../lib/marketingAttribution";
 import {
+  buildPerformanceAgeTrends,
+  PerformanceAgeTrendsSchema,
+} from "../lib/performanceAgeTrends";
+import {
   buildVoiceCheckInUsage,
   VoiceCheckInUsageSchema,
   type VoiceCheckInUsageRow,
@@ -598,6 +602,105 @@ router.get(
       return res
         .status(500)
         .json({ error: "command_center_territory_engagement_failed" });
+    }
+  },
+);
+
+/**
+ * GET /admin/command-center/performance-age-trends — the founder Performance
+ * Age™ population trend over the pseudonymous `performance_age_snapshot`
+ * events.
+ *
+ * Each event carries ONLY the privacy-safe years delta (performanceAge −
+ * actualAge; negative = younger) + a lifecycle status — never an absolute age.
+ * We collapse to ONE snapshot per identity per UTC day in-DB (DISTINCT ON,
+ * first-of-day wins, matching the mobile client's once-per-day gate, so an
+ * occasional client re-emit can never inflate the sample), then aggregate the
+ * most recent 7-day window vs the prior 7-day window: mean delta, total daily
+ * snapshots, and DISTINCT identities per window.
+ *
+ * Privacy / Score-Protection: AGGREGATE-ONLY — pseudonymous ids surface solely
+ * as distinct counts, NEVER joined to users / subscriptions and NEVER returned
+ * raw. The pure builder enforces k-anonymity (a window below
+ * PERF_AGE_MIN_COHORT_MEMBERS distinct members reports a null average, never a
+ * fabricated number) and only computes a direction when BOTH windows are
+ * measured. Performance Age is a display-only projection — this never reads or
+ * writes any hydration point.
+ */
+router.get(
+  "/admin/command-center/performance-age-trends",
+  requireFounder,
+  async (req, res) => {
+    try {
+      const result = await db.execute(sql`
+        WITH daily AS (
+          SELECT DISTINCT ON (
+            analytics_id, (occurred_at AT TIME ZONE 'UTC')::date
+          )
+            analytics_id,
+            occurred_at,
+            (payload->>'deltaYears')::float8 AS delta
+          FROM aforce_analytics_events
+          WHERE event_type = 'performance_age_snapshot'
+            AND occurred_at >= now() - interval '14 days'
+            AND jsonb_typeof(payload->'deltaYears') = 'number'
+          ORDER BY
+            analytics_id,
+            (occurred_at AT TIME ZONE 'UTC')::date,
+            occurred_at ASC
+        )
+        SELECT
+          avg(delta) FILTER (
+            WHERE occurred_at >= now() - interval '7 days'
+          ) AS current_avg,
+          count(*) FILTER (
+            WHERE occurred_at >= now() - interval '7 days'
+          ) AS current_count,
+          count(DISTINCT analytics_id) FILTER (
+            WHERE occurred_at >= now() - interval '7 days'
+          ) AS current_members,
+          avg(delta) FILTER (
+            WHERE occurred_at < now() - interval '7 days'
+              AND occurred_at >= now() - interval '14 days'
+          ) AS previous_avg,
+          count(*) FILTER (
+            WHERE occurred_at < now() - interval '7 days'
+              AND occurred_at >= now() - interval '14 days'
+          ) AS previous_count,
+          count(DISTINCT analytics_id) FILTER (
+            WHERE occurred_at < now() - interval '7 days'
+              AND occurred_at >= now() - interval '14 days'
+          ) AS previous_members
+        FROM daily
+      `);
+
+      const row = firstRow(result);
+      const dto = PerformanceAgeTrendsSchema.parse(
+        buildPerformanceAgeTrends(
+          {
+            current: {
+              avgDeltaYears: numOrNull(row["current_avg"]),
+              snapshotCount: num(row["current_count"]),
+              distinctMembers: num(row["current_members"]),
+            },
+            previous: {
+              avgDeltaYears: numOrNull(row["previous_avg"]),
+              snapshotCount: num(row["previous_count"]),
+              distinctMembers: num(row["previous_members"]),
+            },
+          },
+          new Date().toISOString(),
+        ),
+      );
+      return res.json(dto);
+    } catch (err) {
+      logger.error(
+        { err },
+        "GET /admin/command-center/performance-age-trends failed",
+      );
+      return res
+        .status(500)
+        .json({ error: "command_center_performance_age_trends_failed" });
     }
   },
 );
