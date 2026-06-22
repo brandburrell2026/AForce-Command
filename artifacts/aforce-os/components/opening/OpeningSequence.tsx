@@ -9,7 +9,9 @@
  * onboarding wizard is left completely intact.
  *
  *   1. Symbol      — white AForce water-drop mark, breathing fade-in.
- *   2. Brand       — AFORCE wordmark + "Performance Is Non-Negotiable".
+ *   2. Brand       — eyebrow "PERFORMANCE IS" → AFORCE wordmark → hairline →
+ *                    N|N monogram (mirrored N, Soursop green) → "NON —
+ *                    NEGOTIABLE". The monogram is the emotional peak.
  *   3. Ritual      — PAUSE ↓ HYDRATE ↓ LOCK IN ↓ PERFORM, one at a time.
  *   4. Readiness   — TODAY'S READINESS + count-up score + READY TO PERFORM.
  *
@@ -47,16 +49,25 @@ import Svg, { Path } from 'react-native-svg';
 import * as Haptics from 'expo-haptics';
 
 import { Colors } from '@/theme/colors';
+import { Typography } from '@/theme/typography';
 
 const BG = '#0D0D0D';
 const WHITE = Colors.text.primary;
 const DIM = Colors.text.secondary;
 const MUTED = Colors.text.muted;
 const BRAND = Colors.accent.brand;
+// Brand tokens for the migrated system — Soursop Edge green (#1FA35A) for the
+// N|N monogram hero, with a soft low-opacity green halo; bone (#F5F0E8) for the
+// tracked eyebrow.
+const SOURSOP = Colors.states.PEAK.primary;
+const SOURSOP_GLOW = Colors.states.PEAK.dim;
+const BONE = Colors.bone;
 
 const FONT_EXTRABOLD = 'Inter_800ExtraBold';
 const FONT_BOLD = 'Inter_700Bold';
 const FONT_MEDIUM = 'Inter_500Medium';
+const FONT_DISPLAY = Typography.roles.display; // Archivo Black — monogram hero
+const FONT_MONO = Typography.roles.eyebrow; // IBM Plex Mono — eyebrow / caption
 
 const EASE = Easing.inOut(Easing.ease);
 
@@ -183,18 +194,98 @@ function StageSymbol({ active, reduce }: { active: boolean; reduce: boolean }) {
 }
 
 // ─── Stage 2 — Brand reveal ──────────────────────────────────────────
+// The N|N monogram matches the physical can: a normal "N", an en-dash, then
+// the SAME "N" mirrored. The mirror is a pure horizontal flip —
+// `transform: [{ scaleX: -1 }]` on that one glyph (styles.monogramMirror) — so
+// it renders as a true reflection (reads "N–И"), never a different letter. The
+// Soursop-green glyphs scale up from 0.92 → 1.0 over a soft, low-opacity green
+// halo (two stacked translucent circles, no hard shadow) so it lands as the
+// hero of the stage. Reduced motion skips the scale + glow ramp and just fades.
+function MonogramHero({
+  active,
+  reduce,
+  delay,
+}: {
+  active: boolean;
+  reduce: boolean;
+  delay: number;
+}) {
+  const o = useSharedValue(0);
+  const scale = useSharedValue(reduce ? 1 : 0.92);
+  const glow = useSharedValue(0);
+  React.useEffect(() => {
+    if (active) {
+      if (reduce) {
+        // Reduced motion: skip the scale-up and the glow ramp entirely. The
+        // whole monogram (glyphs + halo) just fades in together, in lockstep
+        // with no delay, so there is no ordering skew and the only motion is a
+        // single synchronized opacity fade.
+        scale.value = 1;
+        o.value = withTiming(1, { duration: 220, easing: EASE });
+        glow.value = withTiming(0.9, { duration: 220, easing: EASE });
+      } else {
+        o.value = withDelay(delay, withTiming(1, { duration: 900, easing: EASE }));
+        scale.value = withDelay(
+          delay,
+          withTiming(1, { duration: 1100, easing: EASE }),
+        );
+        glow.value = withDelay(
+          delay + 150,
+          withTiming(1, { duration: 1300, easing: EASE }),
+        );
+      }
+    } else {
+      o.value = 0;
+      scale.value = reduce ? 1 : 0.92;
+      glow.value = 0;
+    }
+  }, [active, reduce, delay, o, scale, glow]);
+
+  const rowStyle = useAnimatedStyle(() => ({
+    opacity: o.value,
+    transform: [{ scale: scale.value }],
+  }));
+  const glowStyle = useAnimatedStyle(() => ({ opacity: glow.value }));
+
+  return (
+    <View style={styles.monogramWrap}>
+      <Animated.View pointerEvents="none" style={[styles.monoGlowLg, glowStyle]} />
+      <Animated.View pointerEvents="none" style={[styles.monoGlowSm, glowStyle]} />
+      <Animated.View style={[styles.monogramRow, rowStyle]}>
+        <Text style={styles.monogramGlyph}>N</Text>
+        <Text style={styles.monogramDash}>–</Text>
+        <Text style={[styles.monogramGlyph, styles.monogramMirror]}>N</Text>
+      </Animated.View>
+    </View>
+  );
+}
+
 function StageBrand({ active, reduce }: { active: boolean; reduce: boolean }) {
   return (
     <StageLayer active={active} reduce={reduce}>
       <View style={styles.center}>
-        <Reveal active={active} reduce={reduce} dy={10} duration={900}>
+        <Reveal active={active} reduce={reduce} dy={6} duration={700}>
+          <Text style={styles.brandEyebrow}>PERFORMANCE IS</Text>
+        </Reveal>
+        <Reveal
+          active={active}
+          reduce={reduce}
+          delay={reduce ? 80 : 250}
+          dy={10}
+          duration={900}
+        >
           <Text style={styles.wordmark}>AFORCE</Text>
         </Reveal>
-        <Reveal active={active} reduce={reduce} delay={500} dy={8}>
+        <Reveal active={active} reduce={reduce} delay={reduce ? 120 : 500} dy={8}>
           <View style={styles.brandRule} />
         </Reveal>
-        <Reveal active={active} reduce={reduce} delay={620} dy={8}>
-          <Text style={styles.tagline}>Performance Is Non-Negotiable</Text>
+        <MonogramHero active={active} reduce={reduce} delay={reduce ? 140 : 750} />
+        <Reveal active={active} reduce={reduce} delay={reduce ? 180 : 1300} dy={8}>
+          <View style={styles.captionBlock}>
+            <View style={styles.captionRule} />
+            <Text style={styles.brandCaption}>NON — NEGOTIABLE</Text>
+            <View style={styles.captionRule} />
+          </View>
         </Reveal>
       </View>
     </StageLayer>
@@ -377,8 +468,10 @@ export function OpeningSequence({
   React.useEffect(() => {
     clearTimers();
     if (finishedRef.current) return undefined;
-    // [symbol, brand, ritual, readiness] hold durations (ms).
-    const hold = reduce ? [700, 900, 1300, 1200] : [1900, 2200, 3400, 2800];
+    // [symbol, brand, ritual, readiness] hold durations (ms). Stage 2 (brand)
+    // holds a beat longer than the symbol/readiness stages so the N|N monogram
+    // + "NON — NEGOTIABLE" composition lands as the emotional peak.
+    const hold = reduce ? [700, 1300, 1300, 1200] : [1900, 3400, 3400, 2800];
     let t = 0;
     timersRef.current.push(setTimeout(() => setStage(2), (t += hold[0])));
     timersRef.current.push(setTimeout(() => setStage(3), (t += hold[1])));
@@ -467,6 +560,15 @@ const styles = StyleSheet.create({
   },
 
   // Stage 2
+  brandEyebrow: {
+    fontFamily: FONT_MONO,
+    fontSize: 12,
+    letterSpacing: 3,
+    color: BONE,
+    textAlign: 'center',
+    textTransform: 'uppercase',
+    marginBottom: 16,
+  },
   wordmark: {
     fontFamily: FONT_EXTRABOLD,
     fontSize: 42,
@@ -481,12 +583,68 @@ const styles = StyleSheet.create({
     backgroundColor: BRAND,
     marginVertical: 18,
   },
-  tagline: {
-    fontFamily: FONT_MEDIUM,
-    fontSize: 13,
-    letterSpacing: 2,
-    color: DIM,
+  monogramWrap: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 2,
+    marginBottom: 4,
+  },
+  monoGlowLg: {
+    position: 'absolute',
+    width: 300,
+    height: 300,
+    borderRadius: 150,
+    backgroundColor: SOURSOP_GLOW,
+  },
+  monoGlowSm: {
+    position: 'absolute',
+    width: 180,
+    height: 180,
+    borderRadius: 90,
+    backgroundColor: SOURSOP_GLOW,
+  },
+  monogramRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  monogramGlyph: {
+    fontFamily: FONT_DISPLAY,
+    fontSize: 76,
+    lineHeight: 84,
+    color: SOURSOP,
+    includeFontPadding: false,
+    textAlignVertical: 'center',
+  },
+  monogramMirror: {
+    transform: [{ scaleX: -1 }],
+  },
+  monogramDash: {
+    fontFamily: FONT_DISPLAY,
+    fontSize: 52,
+    lineHeight: 84,
+    color: SOURSOP,
+    marginHorizontal: 8,
+    opacity: 0.8,
+  },
+  captionBlock: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 18,
+  },
+  captionRule: {
+    width: 26,
+    height: 1,
+    backgroundColor: BRAND,
+    marginVertical: 9,
+  },
+  brandCaption: {
+    fontFamily: FONT_MONO,
+    fontSize: 14,
+    letterSpacing: 4,
+    color: WHITE,
     textAlign: 'center',
+    textTransform: 'uppercase',
   },
 
   // Stage 3

@@ -58,3 +58,20 @@ closing/confirmation screen with an `activated` latch (completing flips `isDue`
 false mid-ritual and would otherwise unmount it). CLEAR the latch on
 close/snooze — never a permanent `dismissed` boolean, or future mornings and an
 expired snooze in the same warm session can never re-open.
+
+## Reduce-motion: fade content + decoration in lockstep
+
+When an animated element has a **separate shared value for a decorative layer**
+(e.g. a glow/halo behind glyphs) AND the content fade is delayed, the
+reduced-motion branch must fade them **in lockstep — identical timing, NO
+delay** for both. A delayed content fade alongside an un-delayed decoration fade
+makes the decoration pop in *ahead* of the content, which reads as an ordering
+bug and breaks the "skip motion, just fade" accessibility contract.
+
+**Rule:** in reduce mode, set scale/translate to their resting value instantly
+(no `withTiming` ramp), and drive every opacity (content + glow) with the same
+`withTiming(target, {duration})` and zero delay so it is a single synchronized
+fade.
+
+**Why:** caught in architect review of the OpeningSequence Stage 2 N|N monogram —
+the glow rose immediately while the glyph fade was delayed, skewing the reveal.

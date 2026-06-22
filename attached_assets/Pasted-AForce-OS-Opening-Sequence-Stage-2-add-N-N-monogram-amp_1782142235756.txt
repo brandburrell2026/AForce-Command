@@ -1,0 +1,56 @@
+AForce OS — Opening Sequence Stage 2: add N|N monogram + amplify 
+"PERFORMANCE IS NON-NEGOTIABLE"
+
+CONTEXT
+File: components/opening/OpeningSequence.tsx (the 4-stage cold-launch cinematic).
+Stage 2 currently shows the AFORCE wordmark + brand hairline + 
+"Performance Is Non-Negotiable". We're making that line the emotional peak of 
+the stage and adding the N|N monogram exactly as it appears on the physical can.
+
+This is an additive refinement to Stage 2 only. Do NOT change stage count, 
+timing architecture, the skip-to-tap behavior, reduced-motion handling, or any 
+other stage. Score-protection unchanged — this is display-only.
+
+THE MONOGRAM (match the can precisely):
+- Render as two large glyphs: "N" then a MIRRORED "N" (horizontally flipped), 
+  separated by an en-dash → reads "N–И".
+- The mirrored second N is the signature mark — flip it via transform 
+  scaleX(-1) on that glyph only, so it's a true mirror, not a different letter.
+- Typeface: Archivo Black (display). Color: Soursop Edge green #1FA35A on the 
+  cinematic black #0D0D0D canvas — matching the can's green-on-silver feel 
+  translated to our dark brand surface.
+- Above it, a small tracked eyebrow "PERFORMANCE IS" in IBM Plex Mono, 
+  bone #F5F0E8, letter-spacing ~3px, uppercase.
+
+THE CAPTION (legibility-first):
+- Below the monogram, "NON — NEGOTIABLE" in IBM Plex Mono, uppercase, tracked.
+- IMPORTANT: set the caption N's in NORMAL orientation (not mirrored). The 
+  mirror lives only in the big N|N monogram hero — the caption must stay 
+  instantly legible on a phone at small size. (If I later say "full mirror," 
+  we flip the caption's first N too — but default is legible.)
+- Flank the caption with two short thin hairlines (top and bottom), signal 
+  red #C1281B, ~1px, matching the can's divider rules.
+
+AMPLIFY THE MOMENT (make it stand out):
+- Sequence the Stage 2 reveal: eyebrow fades in → wordmark → hairline → 
+  N|N monogram scales up from ~0.92 to 1.0 with a slow ease (Apple-Vision-Pro 
+  pacing, no bounce) → caption fades in last.
+- Give the monogram a soft radial glow (Soursop green, low opacity, large blur) 
+  so it reads as the hero of the stage — never a hard box shadow.
+- Hold the full composition a beat longer than the other stages before 
+  crossfading to Stage 3, so it lands.
+- All motion must respect AccessibilityInfo reduce-motion: if reduced, skip the 
+  scale/glow animation and just fade the final state in.
+
+GUARDRAILS:
+- Reanimated 3, crossfading absolute-fill layers, consistent with existing 
+  stage motion. No new dependencies.
+- Use brand tokens, not hardcoded hex, now that the brand system is migrated 
+  (Soursop green, signal red, bone, cinematic black, Archivo Black, IBM Plex Mono).
+- Tap-anywhere-to-skip still works at every frame.
+- Keep tests green; if there's a snapshot for OpeningSequence, update the 
+  expected output rather than weakening it.
+
+DELIVERABLE: the updated Stage 2 in OpeningSequence.tsx, a note on how the 
+mirrored-N transform is implemented, and confirmation reduce-motion + skip 
+still work.

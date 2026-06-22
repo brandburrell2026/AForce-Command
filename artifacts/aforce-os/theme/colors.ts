@@ -99,6 +99,10 @@ export const Colors = {
   danger: '#FF2800',
   info: '#1E5BFF',
 
+  // Brand neutral — warm off-white ("bone") for tracked technical eyebrows
+  // on the cinematic black canvas. Softer than pure #FFFFFF.
+  bone: '#F5F0E8',
+
   tabBar: {
     background: 'rgba(0,0,0,0.95)',
     active: '#C1281B',
