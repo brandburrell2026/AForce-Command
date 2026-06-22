@@ -77,7 +77,7 @@ I prefer iterative development, with frequent, small updates. Ask before making 
 ## Publishing & Distribution
 - **Build service:** Expo Application Services (EAS Build) — configured in `artifacts/aforce-os/eas.json` with `development`, `preview`, and `production` profiles.
 - **Bundle IDs:** iOS `com.aforce.os`, Android `com.aforce.os` (set in `app.json`).
-- **App icon / splash / adaptive icon:** branded set in `assets/images/` (`icon.png`, `splash.png`, `adaptive-icon.png`, `favicon.png`). `icon.png` / `adaptive-icon.png` / `favicon.png` use a metallic silver water-drop mark on a pure black background; `splash.png` remains the WHOOP-cinematic splash.
+- **App icon / splash / adaptive icon:** branded set in `assets/images/` (`icon.png`, `splash.png`, `adaptive-icon.png`, `favicon.png`). All four render the **N–N "Non-Negotiable" monogram** — two heavy geometric N's facing each other (left forward, right mirrored) in Bone `#F5F0E8` with a Signal Red `#C1281B` center bar, on Cinematic Black `#0D0D0D`. `icon.png` (1024²) has a subtle charcoal `#1A1A1A`→black radial vignette; `adaptive-icon.png` (1024²) keeps the mark inside the Android safe zone on solid black; `splash.png` (1242×2436) centers the mark on solid black; `favicon.png` (196²) matches. No green, no gradients on the letterforms, no "AForce OS" text in the mark. The marks are generated as a font-free vector SVG rendered via `rsvg-convert` (regenerate from vector — do not AI-generate or the geometry/colors drift). `app.json` paths + `#0D0D0D` backgrounds are already wired.
 - **Build commands** (run from `artifacts/aforce-os/` after `pnpm eas:login` + `pnpm eas:configure`):
   - iOS production: `pnpm eas:build:ios`
   - Android production: `pnpm eas:build:android`

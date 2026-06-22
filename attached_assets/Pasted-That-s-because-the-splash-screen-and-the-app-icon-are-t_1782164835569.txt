@@ -1,0 +1,60 @@
+That's because the splash *screen* and the app *icon* are two separate assets. You fixed the splash screen, but this green tile is the **app icon** (the launch/loading icon Expo Go shows, plus the home-screen icon) — it's a different file that hasn't been touched yet.
+
+You need to replace the actual icon image files and point `app.json` at them. The icon won't change just from editing the splash component.
+
+Complete paste-ready Replit prompt:
+
+```
+The app icon is still the OLD green "A + lightning bolt" tile. This is a 
+SEPARATE asset from the splash screen — it lives in the icon image files 
+referenced by app.json, not in the splash component. Replace it completely. 
+The green palette is retired.
+
+BRAND COLORS (use exactly, NO green anywhere):
+- Cinematic Black: #0D0D0D
+- Bone: #F5F0E8
+- Signal Red: #C1281B
+
+NEW ICON DESIGN (1024×1024):
+- Background: solid cinematic black #0D0D0D, with a subtle radial vignette 
+  (charcoal #1A1A1A center fading to pure black at the edges) for depth. 
+  No glows, no bright effects.
+- Center mark: the N–N monogram (our Non-Negotiable mark):
+  - Left "N": forward-facing capital N, heavy geometric weight (Archivo 
+    Black style), Bone #F5F0E8.
+  - Center divider: short bold horizontal bar, Signal Red #C1281B.
+  - Right "N": the SAME N glyph MIRRORED (scaleX -1) so the two N's face 
+    each other, Bone #F5F0E8.
+  - Centered, with generous padding so the mark sits inside the icon safe 
+    zone and does not touch the edges.
+- Flat and premium. No gradients on the letterforms.
+- Do NOT include "AForce OS" text inside the icon — let the OS render the 
+  app name beneath it.
+
+REPLACE THESE FILES / SETTINGS:
+1. assets/icon.png — new 1024×1024 N–N icon above.
+2. assets/adaptive-icon.png (Android) — N–N monogram as the foreground, 
+   centered in the safe zone, on #0D0D0D.
+3. assets/splash-icon.png (or whatever the splash/loading icon asset is) — 
+   the N–N mark on #0D0D0D, so the Expo Go loading screen matches.
+4. In app.json set:
+   - expo.icon → "./assets/icon.png"
+   - expo.android.adaptiveIcon.foregroundImage → "./assets/adaptive-icon.png"
+   - expo.android.adaptiveIcon.backgroundColor → "#0D0D0D"
+   - expo.splash.backgroundColor → "#0D0D0D"
+   - expo.splash.image → the new splash-icon.png
+5. Remove/overwrite the old green icon files so nothing references them.
+
+IMPORTANT: isolate the scaleX(-1) mirror so it ONLY flips the right N in 
+the icon mark — do not let it affect anything else.
+
+After updating, I will need to fully reload Expo Go (close and reopen the 
+project, or clear the Expo Go cache) for the new icon to appear — the old 
+green icon is cached.
+```
+
+Two things to know so you don't get stuck:
+
+**The icon is cached.** Even after Replit swaps the files, Expo Go often keeps showing the old icon until you fully close the project in Expo Go and reopen it (or clear Expo Go's cache). So if it still looks green right after, that's the cache, not a failed change.
+
+**Replit may not produce a crisp 1024 icon on its own.** It can wire `app.json` and generate a basic mark, but app-icon edges matter. You already have the N–N built in your Figma brand system — exporting that as a 1024×1024 PNG and dropping it into `/assets/icon.png` will look sharper than anything generated inline. I can hand you a properly padded N–N icon SVG right now to drop in and test at size. Want it?
