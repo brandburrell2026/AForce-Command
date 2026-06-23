@@ -42,6 +42,8 @@ import { defaultSubscription } from '../services/subscriptionService';
 import { generateCycleIdentityMessage, generateNextCycleHint } from '../utils/scoringEngine';
 import { defaultUserState, mockHistory } from '../data/mockData';
 import { DEFAULT_FLAGS } from '../featureFlags/flags';
+import { getCommandLedgerState } from '../services/commandLedger';
+import { adaptEngineOutputForRecheck } from '../utils/intelligence/adaptEngineOutput';
 import {
   fetchHome,
   postIntakeLog,
@@ -190,6 +192,55 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const userStateRef = useRef(state.userState);
   useEffect(() => { userStateRef.current = state.userState; }, [state.userState]);
 
+  // ─── Command Confidence™ — adaptive recheck timing (STEP 2) ────────────
+  // Ref-backed context so `adaptEngineOutput` can stay a stable (`[]`) callback
+  // while still reading the freshest flag / autopilot state. The adapter is the
+  // single seam applied before every timer-resetting dispatch (SET_USER_STATE,
+  // CYCLE_SUCCESS, CONFIRM_COMMAND). It is a hard no-op (returns the SAME ref)
+  // unless the flag is on, no sweat-autopilot recovery window is active, and the
+  // ledger shows a reliably-followed, non-hydration, non-urgent command — in
+  // which case it ONLY lengthens `riskTimer.minutes`. Timing only: it never
+  // reads/awards/mutates score and never touches the command itself.
+  const adaptCtxRef = useRef<{
+    flags: typeof state.featureFlags;
+    autopilot: typeof state.sweatAutopilot;
+    autopilotSetAt: number | null;
+  }>({
+    flags: state.featureFlags,
+    autopilot: state.sweatAutopilot,
+    autopilotSetAt: state.sweatAutopilotSetAt ?? null,
+  });
+  useEffect(() => {
+    adaptCtxRef.current = {
+      flags: state.featureFlags,
+      autopilot: state.sweatAutopilot,
+      autopilotSetAt: state.sweatAutopilotSetAt ?? null,
+    };
+  }, [state.featureFlags, state.sweatAutopilot, state.sweatAutopilotSetAt]);
+
+  const adaptEngineOutput = useCallback((engineOutput: ScoreEngineOutput): ScoreEngineOutput => {
+    const { flags, autopilot, autopilotSetAt } = adaptCtxRef.current;
+    // Strict flag-off inertness: short-circuit BEFORE touching the ledger or doing
+    // any autopilot math, so the production (flag-off) path does literally nothing
+    // extra and returns the same ref. (The pure adapter re-checks the flag too.)
+    if (!flags?.command_confidence_adaptive_enabled) return engineOutput;
+    // Yield entirely while a sweat-autopilot recovery window is still open — its
+    // own (safer, shorter) cadence owns the timer during recovery. The window is
+    // bounded by `recoveryWindowHours`; the autopilot object itself is not
+    // auto-cleared, so a time check (not a null check) is what expires the yield.
+    const autopilotActive =
+      !!autopilot &&
+      autopilotSetAt != null &&
+      Date.now() - autopilotSetAt < autopilot.recoveryWindowHours * 3600_000;
+    return adaptEngineOutputForRecheck({
+      engineOutput,
+      flags,
+      ledgerEvents: getCommandLedgerState().events,
+      now: Date.now(),
+      autopilotActive,
+    });
+  }, []);
+
   // Race-safe wrapper for every SET_USER_STATE dispatched from a
   // server response.
   //
@@ -223,9 +274,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     };
     dispatch({
       type: 'SET_USER_STATE',
-      payload: { newUserState: merged, engineOutput: _initialOnly(merged) },
+      payload: { newUserState: merged, engineOutput: adaptEngineOutput(_initialOnly(merged)) },
     });
-  }, []);
+  }, [adaptEngineOutput]);
 
   // Periodic /state refresh — keeps the engine output current (decay
   // ticks, weather staleness, etc.) and rehydrates from server in case
@@ -386,6 +437,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     state,
     dispatch,
     applyServerUserState,
+    adaptEngineOutput,
     userStateRef,
     voiceCoachEnabledRef,
     voiceScopeRef,

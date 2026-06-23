@@ -59,6 +59,13 @@ interface StoreActionsDeps {
   state: AppState;
   dispatch: Dispatch<Action>;
   applyServerUserState: (newUserState: UserState, engineOutput: ScoreEngineOutput) => void;
+  /**
+   * STEP 2 — Command Confidence™ adaptive recheck timing. Applied to a freshly
+   * recomputed engine output before any timer-resetting dispatch. Hard no-op
+   * (returns the same ref) unless the flag is on and the ledger earns a stretch;
+   * only ever lengthens `riskTimer.minutes`, never score/command.
+   */
+  adaptEngineOutput: (engineOutput: ScoreEngineOutput) => ScoreEngineOutput;
   userStateRef: MutableRefObject<UserState>;
   voiceCoachEnabledRef: MutableRefObject<boolean>;
   voiceScopeRef: MutableRefObject<VoiceScope>;
@@ -75,6 +82,7 @@ export function useStoreActions({
   state,
   dispatch,
   applyServerUserState,
+  adaptEngineOutput,
   userStateRef,
   voiceCoachEnabledRef,
   voiceScopeRef,
@@ -183,7 +191,7 @@ export function useStoreActions({
         unitsTaken: 1,
         fluidType,
       };
-      dispatch({ type: 'CYCLE_SUCCESS', payload: { result, newUserState: mergedUserState, engineOutput: mergedEngine, historyEntry, silent: opts?.silent } });
+      dispatch({ type: 'CYCLE_SUCCESS', payload: { result, newUserState: mergedUserState, engineOutput: adaptEngineOutput(mergedEngine), historyEntry, silent: opts?.silent } });
       // AForce Command Voice Engine — completion reward voice. Fires
       // on user-initiated cycles (silent sips from the Phantom Band
       // get `silent: true` and stay quiet so background auto-logging
@@ -286,7 +294,7 @@ export function useStoreActions({
         })
         .catch(() => {});
     }
-  }, [state.userState]);
+  }, [state.userState, adaptEngineOutput]);
 
   const confirmCommand = useCallback(async (followed: boolean) => {
     // STEP 2 — Command Confidence™ adaptive learning. Record the REAL
@@ -333,7 +341,7 @@ export function useStoreActions({
         appleHealth: latest.appleHealth,
       };
       const mergedEngine = _initialOnly(mergedUserState);
-      dispatch({ type: 'CONFIRM_COMMAND', payload: { newUserState: mergedUserState, engineOutput: mergedEngine } });
+      dispatch({ type: 'CONFIRM_COMMAND', payload: { newUserState: mergedUserState, engineOutput: adaptEngineOutput(mergedEngine) } });
     } catch (err) {
       console.warn('[AForce] confirmCommand failed', err);
       // Local fallback so the UI doesn't soft-lock if the server is
@@ -347,9 +355,16 @@ export function useStoreActions({
           ? new Date(Date.now() + 10 * 60 * 1000)
           : state.userState.clutchDecayBoostUntil,
       };
+      // NOTE: the offline fallback intentionally does NOT run adaptEngineOutput.
+      // Unlike the success path (which recomputes a FRESH `_initialOnly` engine to
+      // stretch from), this path carries the *current* engine output forward
+      // unchanged — and `state.engineOutput` may itself already be adapted, so
+      // re-adapting here would compound the stretch past the 1.5× cap. Leaving it
+      // untouched keeps the timer at its existing (already-bounded) value and
+      // preserves the pre-Slice-3 behavior exactly.
       dispatch({ type: 'CONFIRM_COMMAND', payload: { newUserState: merged, engineOutput: state.engineOutput } });
     }
-  }, [state.userState, state.engineOutput]);
+  }, [state.userState, state.engineOutput, adaptEngineOutput]);
 
   const setLanguage = useCallback(async (lang: SupportedLanguage) => {
     // Update i18n + local state instantly so the UI re-renders without

@@ -26,6 +26,14 @@ export const COMMAND_CATEGORIES: readonly CommandCategory[] = [
 
 const CATEGORY_SET: ReadonlySet<string> = new Set(COMMAND_CATEGORIES);
 
+/**
+ * Hydration-flavored categories. Water-First: these command kinds must never
+ * have their follow-up cadence lengthened / slowed by any adaptive layer, and
+ * are the single source of truth for that protection (see `adaptiveRecheck`).
+ */
+export const HYDRATION_PROTECTED_CATEGORIES: ReadonlySet<CommandCategory> =
+  new Set<CommandCategory>(['hydration_urgent', 'hydration_maintain', 'morning_reset']);
+
 /** Narrowing guard: is an arbitrary value a known command category? */
 export function isCommandCategory(v: unknown): v is CommandCategory {
   return typeof v === 'string' && CATEGORY_SET.has(v);
