@@ -123,7 +123,7 @@ export function HydrationStatusCard({ percent, water, electrolytes, recovery, ac
           onPress={onScan}
           activeOpacity={0.85}
           accessibilityRole="button"
-          accessibilityLabel="Open HydroScan to scan a drink"
+          accessibilityLabel="Open Scan to scan a drink"
           testID="home-hydroscan-button"
           style={[styles.scanBtn, { borderColor: tintBorder, backgroundColor: tintFill }]}
         >

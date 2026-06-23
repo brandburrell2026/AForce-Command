@@ -104,7 +104,7 @@ export const TerritoryScreen: React.FC = () => {
         </Pressable>
         <View style={{ flex: 1, alignItems: 'center' }}>
           <Text style={styles.eyebrow}>AFORCE</Text>
-          <Text style={styles.title}>TERRITORY</Text>
+          <Text style={styles.title}>PERFORMANCE MAP</Text>
         </View>
         <View style={styles.iconBtn} />
       </View>

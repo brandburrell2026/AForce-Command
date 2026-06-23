@@ -36,7 +36,14 @@ const RECOVERY_LABEL: Record<PerformanceLevel, string> = {
   DEPLETED: 'Needed',
 };
 
-export function HomeDashboard() {
+/**
+ * `showScanButton` gates the in-card "SCAN A DRINK" action. On the simplified
+ * Home (the default) it is OFF so Home renders exactly ONE primary CTA — the
+ * homeCommand block below the card owns the scan action via its `scan_drink`
+ * command. It is wired to SHOW_EXPANDED_HOME so the legacy two-action layout
+ * comes back unchanged when the expanded Home is re-enabled (reversible).
+ */
+export function HomeDashboard({ showScanButton = false }: { showScanButton?: boolean } = {}) {
   const router = useRouter();
   const { t } = useTranslation();
   const engine = useEngineSlice();
@@ -104,7 +111,7 @@ export function HomeDashboard() {
         electrolytes={String(electrolyteUnits)}
         recovery={RECOVERY_LABEL[level] ?? 'Steady'}
         accent={scoreAccent}
-        onScan={() => router.push('/scan')}
+        onScan={showScanButton ? () => router.push('/scan') : undefined}
       />
     </View>
   );

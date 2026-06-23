@@ -84,7 +84,7 @@ export default function ProtocolScreen() {
           showsVerticalScrollIndicator={false}
           ListHeaderComponent={
             <View style={styles.header}>
-              <Text style={styles.eyebrow}>Protocol</Text>
+              <Text style={styles.eyebrow}>Today&apos;s Protocol</Text>
               <Text style={styles.title}>AForce Protocol</Text>
 
               {/* Recovery Circle cadence — spec Rule #11 minimum

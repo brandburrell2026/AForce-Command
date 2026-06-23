@@ -89,7 +89,7 @@ const SECTIONS: Section[] = [
   {
     id: 'event',
     number: '05',
-    title: 'Per-event hydration impact',
+    title: 'Hydration impact',
     what: 'Score delta credited to a single intake event, broken into immediate + delayed components for the orb fill animation.',
     formula: 'base = (oz/12) × fluidWeight × flavorMult × heatGuardMult; immediate = cap × 0.4; delayed = cap × 0.6',
     reference: 'Internal model, calibrated from pilot field data (n=42, summer 2025). Not yet peer-reviewed.',
@@ -198,7 +198,7 @@ export function ScienceScreen() {
                 { metric: 'Sodium target',      aforce: '4 bands + heat adj.',    standard: 'Single 500 mg avg.' },
                 { metric: 'Heat risk',          aforce: 'Rothfusz + recheck',      standard: 'Static "warm/hot"' },
                 { metric: 'Recovery overlay',   aforce: 'HRV + RHR + sleep',      standard: 'Sleep hours only' },
-                { metric: 'Per-event impact',   aforce: 'Split immediate/delayed', standard: 'Flat add-to-bucket' },
+                { metric: 'Impact',   aforce: 'Split immediate/delayed', standard: 'Flat add-to-bucket' },
                 { metric: 'Streak math',        aforce: '06:00–22:00 + 0.6 SDT',   standard: 'Calendar-day binary' },
               ].map((row) => (
                 <View key={row.metric} style={styles.compareBodyRow}>

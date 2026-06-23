@@ -1,7 +1,8 @@
 /**
  * Onboarding Engine — first-run setup wizard.
  *
- * Flow: Goal → Activity → Profile (body model + unit system) →
+ * Flow: Promise intro (3 screens) → Goal → Activity →
+ *       Profile (body model + unit system) →
  *       Lifestyle (caffeine / occupation / travel) → Ready.
  * Designed for a sub-60s setup that lands the user in (tabs), where
  * the existing first command / first water cycle / first win loop
@@ -69,8 +70,45 @@ import {
   type MeasurementSystem,
 } from '@/utils/units';
 
-type Step = 'goal' | 'activity' | 'profile' | 'lifestyle' | 'ready';
+type Step =
+  | 'promise1'
+  | 'promise2'
+  | 'promise3'
+  | 'goal'
+  | 'activity'
+  | 'profile'
+  | 'lifestyle'
+  | 'ready';
+// Phase 5 — three "promise" intro screens play before any required input,
+// framing the core loop (readiness → command → log) in a premium, direct
+// tone. They collect nothing, so the wizard still finishes with phone +
+// manual inputs only (no wearable is ever required).
+const PROMISE_STEPS: Step[] = ['promise1', 'promise2', 'promise3'];
 const INPUT_STEPS: Step[] = ['goal', 'activity', 'profile', 'lifestyle'];
+
+interface PromiseScreen {
+  eyebrow: string;
+  title: string;
+  body: string;
+}
+
+const PROMISE_SCREENS: readonly PromiseScreen[] = [
+  {
+    eyebrow: '01 — 03',
+    title: 'Know when your body is ready.',
+    body: 'AForce turns hydration, recovery, and environment into one clear readiness signal.',
+  },
+  {
+    eyebrow: '02 — 03',
+    title: 'Hydrate before performance drops.',
+    body: 'Get one command at the right time — water first, support second.',
+  },
+  {
+    eyebrow: '03 — 03',
+    title: 'Lock in your daily command.',
+    body: 'Follow the command, log the action, and watch your readiness respond.',
+  },
+] as const;
 
 // Age guardrails for the year-of-birth conversion.
 const AGE_MIN = 13;
@@ -152,7 +190,7 @@ function parseInRange(text: string, min: number, max: number): number | null {
 export default function Onboarding() {
   const { setProfileIdentity, setUnitPreference, unitPreferences } = useAppStore();
 
-  const [step, setStep] = React.useState<Step>('goal');
+  const [step, setStep] = React.useState<Step>('promise1');
   const [goal, setGoal] = React.useState<RecoveryGoal | null>(null);
   const [activityLevel, setActivityLevel] = React.useState<number | null>(null);
   // Single unit system, seeded from whatever the user already has.
@@ -241,6 +279,9 @@ export default function Onboarding() {
   const goNext = React.useCallback(() => {
     tap();
     setStep((s) => {
+      if (s === 'promise1') return 'promise2';
+      if (s === 'promise2') return 'promise3';
+      if (s === 'promise3') return 'goal';
       if (s === 'goal') return 'activity';
       if (s === 'activity') return 'profile';
       if (s === 'profile') return 'lifestyle';
@@ -252,6 +293,9 @@ export default function Onboarding() {
   const goBack = React.useCallback(() => {
     tap();
     setStep((s) => {
+      if (s === 'promise2') return 'promise1';
+      if (s === 'promise3') return 'promise2';
+      if (s === 'goal') return 'promise3';
       if (s === 'activity') return 'goal';
       if (s === 'profile') return 'activity';
       if (s === 'lifestyle') return 'profile';
@@ -261,7 +305,10 @@ export default function Onboarding() {
   }, [tap]);
 
   const stepIndex = INPUT_STEPS.indexOf(step);
+  const promiseIndex = PROMISE_STEPS.indexOf(step);
   const canContinue =
+    // Promise intro screens are always advanceable — they collect nothing.
+    promiseIndex >= 0 ||
     (step === 'goal' && goal != null) ||
     (step === 'activity' && activityLevel != null) ||
     step === 'profile' ||
@@ -278,17 +325,28 @@ export default function Onboarding() {
           <Pressable
             onPress={goBack}
             hitSlop={12}
-            disabled={step === 'goal'}
+            disabled={step === 'promise1'}
             accessibilityRole="button"
             accessibilityLabel="Back"
             style={styles.headerBtn}
           >
-            {step !== 'goal' && step !== 'ready' ? (
+            {step !== 'promise1' && step !== 'ready' ? (
               <Icon name="chevron-left" size={22} color={Colors.text.secondary} />
             ) : null}
           </Pressable>
 
-          {step !== 'ready' ? (
+          {step === 'ready' ? (
+            <View style={styles.dots} />
+          ) : promiseIndex >= 0 ? (
+            <View style={styles.dots}>
+              {PROMISE_STEPS.map((s, i) => (
+                <View
+                  key={s}
+                  style={[styles.dot, i <= promiseIndex && styles.dotActive]}
+                />
+              ))}
+            </View>
+          ) : (
             <View style={styles.dots}>
               {INPUT_STEPS.map((s, i) => (
                 <View
@@ -297,8 +355,6 @@ export default function Onboarding() {
                 />
               ))}
             </View>
-          ) : (
-            <View style={styles.dots} />
           )}
 
           <Pressable
@@ -322,6 +378,20 @@ export default function Onboarding() {
           showsVerticalScrollIndicator={false}
           bottomOffset={24}
         >
+          {promiseIndex >= 0 && (
+            <View style={styles.promiseWrap}>
+              <Text style={styles.promiseEyebrow}>
+                {PROMISE_SCREENS[promiseIndex].eyebrow}
+              </Text>
+              <Text style={styles.promiseTitle}>
+                {PROMISE_SCREENS[promiseIndex].title}
+              </Text>
+              <Text style={styles.promiseBody}>
+                {PROMISE_SCREENS[promiseIndex].body}
+              </Text>
+            </View>
+          )}
+
           {step === 'goal' && (
             <>
               <Text style={styles.kicker}>STEP 1 · YOUR GOAL</Text>
@@ -656,6 +726,25 @@ const styles = StyleSheet.create({
     textAlign: 'right',
   },
   scroll: { paddingHorizontal: 24, paddingTop: 12, paddingBottom: 24 },
+  promiseWrap: { paddingTop: 56, paddingRight: 12, gap: 16 },
+  promiseEyebrow: {
+    fontFamily: 'Inter_700Bold',
+    fontSize: 12,
+    letterSpacing: 2,
+    color: Colors.accent.primary,
+  },
+  promiseTitle: {
+    fontFamily: 'Inter_800ExtraBold',
+    fontSize: 34,
+    lineHeight: 39,
+    color: Colors.text.primary,
+  },
+  promiseBody: {
+    fontFamily: 'Inter_400Regular',
+    fontSize: 17,
+    lineHeight: 25,
+    color: Colors.text.secondary,
+  },
   kicker: {
     fontFamily: 'Inter_700Bold',
     fontSize: 12,

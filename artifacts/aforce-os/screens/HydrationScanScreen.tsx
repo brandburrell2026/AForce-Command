@@ -496,7 +496,7 @@ export default function HydrationScanScreen() {
             </Pressable>
             <View style={{ flex: 1 }}>
               <Text style={styles.eyebrow}>SCAN TO DECIDE</Text>
-              <Text style={styles.title}>AForce HydroScan</Text>
+              <Text style={styles.title}>AForce Scan</Text>
             </View>
             <View style={styles.statePill}>
               <View style={[styles.dot, { backgroundColor: state.engineOutput.performanceState.color }]} />
@@ -927,7 +927,7 @@ export default function HydrationScanScreen() {
           )}
 
           <Text style={styles.scanDisclaimer}>
-            HydroScan provides performance and hydration guidance only. It is not intended to diagnose, treat, cure, or prevent medical conditions.
+            Scan provides performance and hydration guidance only. It is not intended to diagnose, treat, cure, or prevent medical conditions.
           </Text>
         </ScrollView>
       </GradientBackground>

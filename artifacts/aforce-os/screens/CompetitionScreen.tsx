@@ -436,10 +436,10 @@ function MapSection({ cityName, cityScore, onOpen }: MapProps) {
     <View style={styles.stack}>
       <SectionHeader
         eyebrow="COMMUNITY MAPS"
-        title="Territory"
+        title="Performance Map"
         sub="Stylized hydration map of every city, state and team."
       />
-      <Pressable onPress={onOpen} style={styles.mapCard} accessibilityRole="button" accessibilityLabel="Open Territory map">
+      <Pressable onPress={onOpen} style={styles.mapCard} accessibilityRole="button" accessibilityLabel="Open Performance Map">
         <View style={styles.mapHero}>
           <HeatBlob top={-20}  left={-10}   color={Colors.states.PEAK.primary} />
           <HeatBlob top={30}   left={80}    color={Colors.states.PEAK.primary} />

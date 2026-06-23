@@ -128,7 +128,7 @@ const MODULES: ModuleEntry[] = [
   },
   {
     id: 'hydroscan',
-    title: 'HydroScan',
+    title: 'Scan',
     blurb: 'Smart Capture · acidic load · stimulant load · superfood signals',
     href: '/scan',
     icon: 'camera',
