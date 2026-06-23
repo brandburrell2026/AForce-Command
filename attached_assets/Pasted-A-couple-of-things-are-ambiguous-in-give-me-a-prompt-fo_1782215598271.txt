@@ -1,0 +1,27 @@
+A couple of things are ambiguous in "give me a prompt for it" — you could mean the next step in the Replit thread (Task 2), or the post-audit `theme/*` fix, or something to take to Kristel and Peter. Let me give you the one that keeps the current thread moving, since that's what's live.
+
+This assumes Replit has already shown you the combined Task 1 diff and you've approved it.
+
+---
+
+**Prompt for Replit:**
+
+Task 1 approved. Same rules hold: docs/token reconciliation and audit only, FINAL BUILD LOCK in force — no redesign, no nav/surface changes, no scoring math, no `theme/*` code changes until I approve the audit. One file at a time, show me the diff before moving on.
+
+**Proceed to Task 2 — `AFORCE_FINAL_SPEC.md`:**
+
+1. **Design Language section:** Replace the pure-black / WHOOP-lime `#B6FF00` description with the v2.1.0 AForce Brand System — near-black `#0D0D0D` canvas, Signal Red `#C1281B` hero (used sparingly), Soursop green `#1FA35A` positive, amber/orange/red declining ladder, Berry blue `#1E5BFF` secondary, soft radial glows never hard shadows. Typography: Archivo Black / IBM Plex Mono / Inter. Name `design/aforce-design-tokens.md` as the canonical source of truth. Note pure black `#000000` is reserved for scrims, drop-shadow color, and `text.inverse` only.
+
+2. **Phase 10 script, Act 1:** Change "AForce wordmark fades in gold" to the wordmark in Bone `#F5F0E8` with a Signal Red `#C1281B` hairline on near-black `#0D0D0D`.
+
+3. **Phase 10 script, Act 2:** Change "Lime glow intensifies" to "Soursop-green peak glow (`#1FA35A`) intensifies."
+
+4. **Phase 10 Hard Rules:** Change "Auto-dismisses at 60 seconds and returns to welcome.tsx" to reflect the shipped no-welcome-screen architecture — the modal closes to reveal the app underneath.
+
+5. **Add header line** under the doc title: `Brand system: v2.1.0 (AForce Brand System) — see design/aforce-design-tokens.md`.
+
+Same as the `replit.md` pass: if you spot any other stale brand language in this file outside these five edits (gold, lime, `#B6FF00`, pure-black-as-canvas), flag it in the diff and tell me — don't auto-edit it. Show me the full Task 2 diff and pause before Task 3.
+
+---
+
+When that diff comes back, approve it and the next prompt is just "proceed to Task 3" (the one-line version bump) — trivial. The audit is Task 4 and I'd hold the `theme/*` fix prompt until you see what it returns. Want me to draft the Task 3 + Task 4 prompt now so you have the whole thread queued, or take them one at a time?

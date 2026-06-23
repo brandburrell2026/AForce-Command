@@ -1,5 +1,7 @@
 # AFORCE OS — Final Spec (Core Product)
 
+> **Brand system:** v2.1.0 (AForce Brand System) — see `design/aforce-design-tokens.md`.
+
 > **Authoritative core-product reference.** This document captures the
 > baseline AForce OS product. Social Mode and Cruise Mode enhancement
 > layers live in a separate document — `AFORCE_SOCIAL_CRUISE_ADDON.md`
@@ -77,12 +79,13 @@ accessible via standard navigation.
 ### Script — 6 acts, 10 seconds each
 
 **Act 1 — Opening (0:00–0:10)**
-Black screen. AForce wordmark fades in gold. Subtitle: "The Performance
+Black screen. AForce wordmark fades in — Bone `#F5F0E8` with a Signal Red
+`#C1281B` hairline on near-black `#0D0D0D`. Subtitle: "The Performance
 Operating System." Orb pulses once.
 
 **Act 2 — Readiness Score (0:10–0:20)**
 Orb animates from Depleted → Recovering → Balanced → Peak. Score climbs from 14
-to 97. Lime glow intensifies. Label: "From depleted to peak. In real time."
+to 97. Soursop-green peak glow (`#1FA35A`) intensifies. Label: "From depleted to peak. In real time."
 
 **Act 3 — HydroScan (0:20–0:30)**
 Scan animation. Product recognized. Score updates. Voice Engine fires: "You're
@@ -105,7 +108,7 @@ for people who don't get to be off." AForce wordmark. Fade to black.
 - `demo_mode_enabled` must be `false` in all production builds.
 - No real user data is used — all demo state is seeded from `data/demoProfile.ts`.
 - Overlay dismisses on tap at any point.
-- Auto-dismisses at 60 seconds and returns to `welcome.tsx`.
+- Auto-dismisses at 60 seconds — the modal closes to reveal the app underneath (no return to a `welcome.tsx` screen; the cinematic mounts as an overlay over whatever the app routed to).
 
 ## Product Surface (high-level)
 
@@ -146,12 +149,16 @@ for people who don't get to be off." AForce wordmark. Fade to black.
 
 ## Design Language
 
-WHOOP-cinematic dark aesthetic. Pure black canvas (`#000000`), WHOOP
-lime hero accent (`#B6FF00`), near-invisible borders, WHOOP recovery
-status colors (green / yellow / red). Soft radial glows, never hard
-box shadows. Big numbers, small tracked labels. Generous spacing.
-Tokens exported via `design/aforce-tokens.json` (Tokens Studio) and
-the human-readable `design/aforce-design-tokens.md`.
+AForce cinematic dark aesthetic (AForce Brand System v2.1.0). Near-black
+canvas (`#0D0D0D`), Signal Red hero accent (`#C1281B`) used sparingly,
+Soursop green (`#1FA35A`) for positive status, an amber → orange → red
+declining ladder, Berry blue (`#1E5BFF`) for secondary data, near-invisible
+borders. Soft radial glows, never hard box shadows. Big numbers, small
+tracked labels. Generous spacing. Typography: Archivo Black (display),
+IBM Plex Mono (eyebrows / metrics), Inter (body). Pure black (`#000000`)
+is reserved for scrims, drop-shadow color, and `text.inverse` only.
+`design/aforce-design-tokens.md` is the canonical source of truth; tokens
+are also exported via `design/aforce-tokens.json` (Tokens Studio).
 
 ## Out of Scope (this document)
 
