@@ -1,5 +1,7 @@
 # AForce — Competitive Moat & Defensibility
 
+**⚠️ Internal strategy & positioning document — not user-facing or marketing copy.** All "prescribe" / "prescription" language in this document is **internal framing only**. Any user-facing, in-app, or marketing use must follow the v1 language lock in `validation-methodology.md` §6 (Founder Decision, 2026-06-01): only **"recommendation"** is permitted — never "prescription." HydroScan and every surface stay advisory.
+
 > CPG is copied. Wearables are commoditized. Apps are forgotten.
 > AForce is a **closed-loop performance OS** that ships a consumable.
 > The category has drinks. AForce has a loop.

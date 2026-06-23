@@ -75,24 +75,42 @@ The canonical AForce OS color system is the AForce Brand System. Near-black `#0D
 | `accent.subtle` | `rgba(193,40,27,0.06)` | Very faint accent wash |
 | `accent.secondary` | `#1E5BFF` | Berry blue, secondary data |
 
+### Two band systems (intentional — do not merge)
+
+The code runs **two parallel band systems** with different thresholds and roles:
+
+- **Performance State (4 bands)** — `theme/colors.ts` `states`, classified by
+  `utils/scoring/breakdown.ts` `resolveState`. Drives the **orb** (pulse /
+  flare-on-peak / collapse-on-depletion), `riskTimer`, and command selection.
+  Thresholds: PEAK ≥90, BALANCED ≥75, RECOVERING ≥60, else DEPLETED.
+- **Score Status (5 bands)** — `theme/statusColor.ts`, mirrored by
+  `utils/hydrationScore.ts`. Drives the **AI Coach status-color layer** (dots,
+  borders, glows, CTA tint) and the score read-out. Thresholds: OPTIMAL ≥85,
+  STABLE ≥70, DECLINING ≥50, RISK ≥30, else CRITICAL.
+
+Both ladders share the same top green (`#1FA35A`) and bottom red (`#FF2800`); the
+middle bands differ by design.
+
 ### Performance States (4 bands)
 
 | State | Primary | Glow | Dim |
 |---|---|---|---|
-| **Peak** | `#1FA35A` | `rgba(31,163,90,0.50)` | `rgba(31,163,90,0.12)` |
-| **Balanced** | `#00E5C8` | `rgba(0,229,200,0.40)` | `rgba(0,229,200,0.12)` |
-| **Recovering** | `#FFA01E` | `rgba(255,160,30,0.40)` | `rgba(255,160,30,0.12)` |
-| **Depleted** | `#FF2D55` | `rgba(255,45,85,0.40)` | `rgba(255,45,85,0.12)` |
+| **Peak** (90–100) | `#1FA35A` | `rgba(31,163,90,0.50)` | `rgba(31,163,90,0.12)` |
+| **Balanced** (75–89) | `#00E5C8` | `rgba(0,229,200,0.40)` | `rgba(0,229,200,0.12)` |
+| **Recovering** (60–74) | `#FFA01E` | `rgba(255,160,30,0.40)` | `rgba(255,160,30,0.12)` |
+| **Depleted** (0–59) | `#FF2800` | `rgba(255,40,0,0.40)` | `rgba(255,40,0,0.12)` |
 
 ### Score Status (5 bands)
 
-| Band | Primary | Pressure Mode |
+Single source of truth: `theme/statusColor.ts` (mirrored by `utils/hydrationScore.ts`).
+
+| Band | Primary (calm) | Pressure Mode |
 |---|---|---|
 | **Optimal** (85-100) | `#1FA35A` | `#17C964` |
 | **Stable** (70-84) | `#3DBE7A` | `#2BAA66` |
 | **Declining** (50-69) | `#FFDE00` | `#FFC000` |
 | **Risk** (30-49) | `#FF8C1A` | `#FF7A00` |
-| **Critical** (0-29) | `#FF0026` | `#FF0040` |
+| **Critical** (0-29) | `#FF2800` | `#FF0040` |
 
 ### Wearable Integration Palette
 

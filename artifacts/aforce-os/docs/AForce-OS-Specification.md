@@ -72,7 +72,7 @@ plans, templates), `types/`.
 Navigation is **locked to 5 visible tabs**; additional surfaces exist as stacked or
 hidden routes (engines built, surfaces revealed over time).
 
-**Visible tabs:** Home · Hydration (Journal) · Protocol · Community · Profile.
+**Visible tabs:** Home · Hydration (Journal) · Protocols · Community · Profile.
 
 **All routes (`app/`):**
 - Tabs: `index` (Home), `protocol`, `scan` (HydroScan), `journal`, `competition`,
@@ -152,6 +152,15 @@ Color is a **signal only** — borders, dots, glows, accents, CTA tint — never
 
 A **Pressure Mode** variant deepens saturation, raises glow alpha, and speeds the
 pulse for the same band.
+
+This five-band ladder (`theme/statusColor.ts`) drives the **AI Coach status-color
+layer** — dots, borders, glows, CTA tint — and the score read-out. A **separate,
+intentional** four-band *Performance State* ladder (`utils/scoringEngine.ts` →
+`resolveState`: PEAK ≥90 / BALANCED ≥75 / RECOVERING ≥60 / DEPLETED, with its own
+colors in `theme/colors.ts` `states`) drives the **orb** (pulse / flare-on-peak /
+collapse-on-depletion), `riskTimer`, and command selection. The two ladders use
+different mid-band thresholds by design but share the same top green (`#1FA35A`)
+and bottom red (`#FF2800`); see `design/aforce-design-tokens.md` for both tables.
 
 ---
 

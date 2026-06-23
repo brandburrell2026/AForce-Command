@@ -117,8 +117,13 @@ expands; navigation stays fixed. Feature flags gate exposure.
 - **Release curves:**
   - Water: 60% immediate, 40% released over ~12.5 min.
   - AForce: 70% immediate, 30% released over ~25 min.
-- **Performance states:** PEAK (90–100), BALANCED (75–89), RECOVERING (60–74),
-  DEPLETED (0–59).
+- **Performance states (4-band, from `utils/scoringEngine.ts` → `resolveState`):**
+  PEAK (90–100), BALANCED (75–89), RECOVERING (60–74), DEPLETED (0–59). This ladder
+  drives the orb (pulse / flare / collapse), `riskTimer`, and command selection. It
+  is **distinct from** the 5-band *Score Status* color ladder (OPTIMAL / STABLE /
+  DECLINING / RISK / CRITICAL, `theme/statusColor.ts`) that tints the AI Coach
+  status surfaces and the score read-out. Hex values for both live in
+  `docs/AForce-OS-Specification.md` §7 and `design/aforce-design-tokens.md`.
 - **Score Protection rule:** only *completed* behavior changes the score.
   Recommendations, scans (HydroScan is advisory), and product selection never
   increase the score.

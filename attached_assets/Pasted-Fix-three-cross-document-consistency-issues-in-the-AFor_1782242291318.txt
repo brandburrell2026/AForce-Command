@@ -1,0 +1,18 @@
+Fix three cross-document consistency issues in the AForce OS spec set. These are documentation reconciliation edits only — no code, no architecture, no navigation changes. Analyze the current files first, touch only what's listed.
+Issue 1 — Conflicting score-band systems (canonicalize to ONE model).
+Right now two incompatible band systems coexist:
+
+AForce-OS-Specification.md §7 uses a 5-band system: OPTIMAL / STABLE / DECLINING / RISK / CRITICAL
+SPEC-SHEET.md §5 and design/aforce-design-tokens.md use a 4-band system: PEAK / BALANCED / RECOVERING / DEPLETED, with different hexes (e.g. Depleted #FF2D55 vs Critical #FF0026/#FF2800; Balanced teal #00E5C8).
+
+Determine which system the live code actually uses as the single source of truth. Check theme/statusColor.ts, utils/scoringEngine.ts, and utils/hydrationScore.ts and report what the code does before editing. Then:
+
+Pick the code's actual model as canonical.
+Update all three docs (AForce-OS-Specification.md, SPEC-SHEET.md, aforce-design-tokens.md) so every band table shows identical band names, ranges, and hex values, matching the code.
+If the code genuinely needs both (e.g. a 5-band "score status" ladder AND a 4-band "performance state" for the orb), keep both but add one sentence in each doc explaining how they relate (which one drives the orb, which drives the score read-out) and make the overlapping hexes reconcile. Do not leave two unexplained color systems.
+
+Issue 2 — Stale tab count in phase status.
+The locked navigation is 5 visible tabs: Home · Hydration · Protocols · Community · Profile (per replit.md and AForce-OS-Specification.md §4). But AFORCE_PHASE_STATUS.md Phase 3 still describes "6 tabs (Home, Check, Protocol, Timeline, Social, Profile)" as shipped. Update the Phase 3 note to reflect the current locked 5-tab model — note that Check/scan, Social, and Sleep are hidden via href:null (engines built, surfaces hidden), and that the user-facing labels are Hydration (route journal.tsx) and Protocols. Keep the deep-link route-file stability note. Do not change any actual navigation code.
+Issue 3 — "Prescription" language contradicts the v1 legal stance.
+validation-methodology.md §6 (Founder Decision, 2026-06-01) bans the word "prescription" for v1 — only "recommendation" is permitted. But competitive-moat.md uses "prescribe"/"prescription" throughout as core positioning. Add a clearly marked note at the top of competitive-moat.md stating it is an internal strategy / positioning document, not user-facing or marketing copy, and that all "prescription" language is internal framing only — any user-facing or marketing use must follow the v1 language lock in validation-methodology.md §6 ("recommendation," never "prescription"). Do not rewrite the moat doc's body.
+After all three: report exactly what changed in each file, and confirm no code, navigation, or scoring math was touched.
