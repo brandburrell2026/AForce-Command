@@ -7,8 +7,11 @@
  *                   + urine_signal_penalty + output_stress_penalty
  *   score = max(0, min(100, round(score)))
  *
- * State classification:
+ * Performance State classification — 4-band ladder via resolveState():
  *   PEAK 90–100 / BALANCED 75–89 / RECOVERING 60–74 / DEPLETED 0–59
+ *   Drives the orb, riskTimer, and command selection. DISTINCT from the separate
+ *   5-band Score Status ladder in theme/statusColor.ts (OPTIMAL / STABLE /
+ *   DECLINING / RISK / CRITICAL) that drives status colors + the score read-out.
  *
  * AI command rules:
  *   WHAT to do + WHEN/HOW MUCH + OUTCOME, 1–2 sentences, command authority.
