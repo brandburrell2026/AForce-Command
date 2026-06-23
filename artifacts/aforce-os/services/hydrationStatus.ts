@@ -65,22 +65,22 @@ const CONTENT: Record<
     command: 'Drink 12 oz within the next 45 minutes.',
   },
   DECLINING: {
-    headline: 'Correction needed.',
-    consequence: 'Hydration deficit beginning to impact output.',
-    ctaText: 'CORRECT NOW',
-    command: 'Increase electrolyte intake. Drink 16 oz now.',
+    headline: 'Readiness is dipping.',
+    consequence: 'A little water now keeps you on pace.',
+    ctaText: 'HYDRATE NOW',
+    command: 'Start with water — 16 oz now. Add electrolytes if you have them.',
   },
   RISK: {
-    headline: 'Performance compromised.',
-    consequence: 'Performance is compromised.',
-    ctaText: 'EXECUTE COMMAND',
-    command: 'Drink 20 oz water with electrolytes now.',
+    headline: 'Running on a deficit.',
+    consequence: 'Water first — you climb back from here.',
+    ctaText: 'START WITH WATER',
+    command: 'Start with water — 20 oz now, with electrolytes.',
   },
   DEPLETED: {
-    headline: 'System under stress.',
-    consequence: 'Recovery window closing.',
+    headline: 'Readiness is low.',
+    consequence: 'Start with water. Recovery begins here.',
     ctaText: 'STABILIZE SYSTEM',
-    command: 'Immediate recovery required. Drink 20 oz now.',
+    command: 'Start with water — 20 oz now. Recheck in 15 minutes.',
   },
 };
 

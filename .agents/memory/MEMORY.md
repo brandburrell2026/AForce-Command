@@ -63,3 +63,4 @@
 - [AForce Referral Attribution founder panel](aforce-referral-attribution.md) — filters scope detail+claimsInRange only (top section full-ledger); tier = correlated-subquery in shared WHERE pre-LIMIT via tierClaimBounds; status = validated no-op (ledger is claims-only).
 - [AForce once-ever analytics emits](aforce-once-ever-emit.md) — burn a once-EVER dedupe flag only AFTER a durable enqueue, never before, or the milestone is lost forever.
 - [AForce simplified Home single-command](aforce-home-single-command.md) — simplified Home = exactly ONE homeCommand CTA; any in-card action button (e.g. HydrationStatusCard scan) must be SHOW_EXPANDED_HOME-gated or it competes with/precedes water; no-fluid-logged ⇒ water leads.
+- [Identifier-derived label tone leak](aforce-identifier-leak-tone.md) — tone audits must check labels DERIVED from identifiers, not just copy strings; a raw videoCategory leaked "DEPLETION EMERGENCY" onto Home — map id→calm label, keep the id stable.

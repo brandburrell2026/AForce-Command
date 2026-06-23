@@ -568,7 +568,7 @@
     }
   },
   "activationJourney": {
-    "eyebrow": "AKTIVIERUNGSREISE",
+    "eyebrow": "AFORCE AKTIVIERUNG",
     "steps": {
       "setup": "Einrichtung",
       "firstCommand": "Erster Befehl",
@@ -576,7 +576,7 @@
     },
     "unanchored": {
       "title": "Folge deinem ersten Befehl",
-      "body": "Dein 7-Tage-Mitglieder-Angebot beginnt, sobald du deine erste Aktion ausführst."
+      "body": "Deine erste Aktion startet deine AForce-Reise."
     },
     "pending": {
       "title": "Mitglieder-Angebot wird freigeschaltet",

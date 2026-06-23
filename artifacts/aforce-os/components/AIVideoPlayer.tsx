@@ -298,6 +298,19 @@ function Scene({
   }
 }
 
+// Display label for the meta line. `videoCategory` keys are stable engine
+// identifiers (e.g. 'depletion_emergency'); a few read as alarmist when
+// surfaced raw, which fights the calm-operator tone. Map those to
+// recovery-forward copy; everything else falls through to the prettified
+// key. Display-only — never mutates the identifier.
+const CATEGORY_LABELS: Partial<Record<VideoConfig['videoCategory'], string>> = {
+  depletion_emergency: 'RECOVERY FOCUS',
+};
+
+function categoryLabel(category: VideoConfig['videoCategory']): string {
+  return CATEGORY_LABELS[category] ?? category.replace(/_/g, ' ').toUpperCase();
+}
+
 // ─── Main player ─────────────────────────────────────────────────────────────
 export function AIVideoPlayer({ video, command, compact = true, timerSeconds, score }: Props) {
   const [expanded, setExpanded] = React.useState(false);
@@ -362,7 +375,7 @@ export function AIVideoPlayer({ video, command, compact = true, timerSeconds, sc
         {/* Header */}
         <View style={styles.headerRow}>
           <View style={[styles.liveDot, { backgroundColor: accent }]} />
-          <Text style={[styles.eyebrow, { color: accent }]}>Recovery Coach · Live</Text>
+          <Text style={[styles.eyebrow, { color: accent }]}>RECOVERY COACH · LIVE</Text>
           <View style={{ flex: 1 }} />
           <Icon name="maximize-2" size={12} color={Colors.text.muted} />
         </View>
@@ -381,9 +394,9 @@ export function AIVideoPlayer({ video, command, compact = true, timerSeconds, sc
           <Animated.View style={[styles.progressFill, { backgroundColor: accent }, progressStyle]} />
         </View>
         <View style={styles.metaRow}>
-          <Text style={styles.metaText}>{video.videoCategory.replace(/_/g, ' ').toUpperCase()}</Text>
+          <Text style={styles.metaText}>{categoryLabel(video.videoCategory)}</Text>
           <Text style={styles.metaText}>
-            {timerSeconds != null ? `RECHECK ${formatTimer(timerSeconds)}` : `${video.durationSec}s`}
+            {timerSeconds != null ? `NEXT CHECK ${formatTimer(timerSeconds)}` : `${video.durationSec}s`}
           </Text>
         </View>
       </Pressable>
@@ -395,7 +408,7 @@ export function AIVideoPlayer({ video, command, compact = true, timerSeconds, sc
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <View style={[styles.liveDot, { backgroundColor: accent }]} />
-              <Text style={[styles.eyebrow, { color: accent }]}>Recovery Coach</Text>
+              <Text style={[styles.eyebrow, { color: accent }]}>RECOVERY COACH</Text>
               <View style={{ flex: 1 }} />
               <TouchableOpacity onPress={handleCollapse} hitSlop={12}>
                 <Icon name="x" size={22} color={Colors.text.primary} />
@@ -420,9 +433,9 @@ export function AIVideoPlayer({ video, command, compact = true, timerSeconds, sc
               <Animated.View style={[styles.progressFill, { backgroundColor: accent }, progressStyle]} />
             </View>
             <View style={styles.metaRow}>
-              <Text style={styles.metaText}>{video.videoCategory.replace(/_/g, ' ').toUpperCase()}</Text>
+              <Text style={styles.metaText}>{categoryLabel(video.videoCategory)}</Text>
               <Text style={styles.metaText}>
-                {timerSeconds != null ? `RECHECK ${formatTimer(timerSeconds)}` : `${video.durationSec}s`}
+                {timerSeconds != null ? `NEXT CHECK ${formatTimer(timerSeconds)}` : `${video.durationSec}s`}
               </Text>
             </View>
           </View>

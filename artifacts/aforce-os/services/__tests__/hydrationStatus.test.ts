@@ -2,7 +2,7 @@
  * hydrationStatus — verifies the score-driven home content map.
  *
  * Critical acceptance criteria from the spec:
- *   - Score 28 → label DEPLETED, color red, headline "System under stress."
+ *   - Score 28 → label DEPLETED, color red, calm water-first headline "Readiness is low."
  *   - Score 100 → label OPTIMIZED, color neon green, headline "System optimized."
  *
  * Plus every band boundary and the formatter helpers.
@@ -16,15 +16,17 @@ import {
 } from '../hydrationStatus';
 
 describe('getHydrationStatus — spec acceptance criteria', () => {
-  it('score 28 is DEPLETED/red with the stress headline + STABILIZE CTA', () => {
+  it('score 28 is DEPLETED/red with the calm water-first copy + STABILIZE CTA', () => {
     const s = getHydrationStatus(28);
     expect(s.label).toBe('DEPLETED');
     expect(s.band).toBe('CRITICAL');
     expect(s.color.primary).toBe('#FF2800'); // signal red (CRITICAL)
-    expect(s.headline).toBe('System under stress.');
-    expect(s.consequence).toBe('Recovery window closing.');
+    expect(s.headline).toBe('Readiness is low.');
+    expect(s.consequence).toBe('Start with water. Recovery begins here.');
     expect(s.ctaText).toBe('STABILIZE SYSTEM');
-    expect(s.command).toBe('Immediate recovery required. Drink 20 oz now.');
+    expect(s.command).toBe('Start with water — 20 oz now. Recheck in 15 minutes.');
+    // Water-First lock: the depleted recommendation copy leads with water.
+    expect(s.command.toLowerCase().startsWith('start with water')).toBe(true);
   });
 
   it('score 100 is OPTIMIZED/neon green with HOLD THE LINE', () => {
@@ -66,8 +68,8 @@ describe('getHydrationStatus — every band boundary', () => {
   it('uses CTAs that exactly match the brand spec', () => {
     expect(getHydrationStatus(95).ctaText).toBe('HOLD THE LINE');
     expect(getHydrationStatus(78).ctaText).toBe('MAINTAIN PERFORMANCE');
-    expect(getHydrationStatus(60).ctaText).toBe('CORRECT NOW');
-    expect(getHydrationStatus(40).ctaText).toBe('EXECUTE COMMAND');
+    expect(getHydrationStatus(60).ctaText).toBe('HYDRATE NOW');
+    expect(getHydrationStatus(40).ctaText).toBe('START WITH WATER');
     expect(getHydrationStatus(15).ctaText).toBe('STABILIZE SYSTEM');
   });
 });

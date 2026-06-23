@@ -568,7 +568,7 @@
     }
   },
   "activationJourney": {
-    "eyebrow": "PARCOURS D’ACTIVATION",
+    "eyebrow": "ACTIVATION AFORCE",
     "steps": {
       "setup": "Configuration",
       "firstCommand": "Première commande",
@@ -576,7 +576,7 @@
     },
     "unanchored": {
       "title": "Suivez votre première commande",
-      "body": "Votre offre membre de 7 jours commence dès votre première action."
+      "body": "Votre première action lance votre parcours AForce."
     },
     "pending": {
       "title": "Offre membre en cours de déblocage",

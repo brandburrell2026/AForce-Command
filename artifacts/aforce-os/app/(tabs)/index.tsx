@@ -299,6 +299,16 @@ function ScoreDrivenBody({
         {status.consequence}
       </Text>
 
+      {/* 4b — Today's Command — names the single water-first action that the
+          primary CTA below executes. A compact, subordinate strip (NOT a
+          second CTA): it expresses the COMMAND step of
+          State → Command → Action → Tools → Progress. Read-only projection of
+          status.command (never awards or mutates score — Score-Protection). */}
+      <View style={styles.commandStrip} testID="home-today-command">
+        <Text style={styles.commandEyebrow}>TODAY’S COMMAND</Text>
+        <Text style={styles.commandBody}>{status.command}</Text>
+      </View>
+
       {/* 5 — Primary action button */}
       <TouchableOpacity
         activeOpacity={0.85}
@@ -322,9 +332,9 @@ function ScoreDrivenBody({
         </Text>
       </TouchableOpacity>
 
-      {/* Quick-action tile grid — Urine · Sweat · Forecast · Recovery.
+      {/* Quick-action tile grid — Check · Sweat · Heat · Recover.
           Sits directly under the primary CTA. (HydroScan is reached from
-          the Hydration Status card's "Scan a drink" button below.) */}
+          the Hydration Status card's "Scan a drink" chip below.) */}
       <View style={styles.entryActionsRow}>
         <EntryActions />
       </View>
@@ -335,8 +345,11 @@ function ScoreDrivenBody({
           bar was removed from Home; the WaterCycleBar component remains in
           the codebase (still used by SignalsZone) so the change is
           reversible. Every value is a projection of real logged behaviour
-          (utils/homeDashboard) — Score-Protection safe. */}
-      <HomeDashboard />
+          (utils/homeDashboard) — Score-Protection safe. `showScanButton`
+          surfaces the subordinate, advisory "SCAN A DRINK" chip (routes to
+          /scan only; HydroScan stays non-scoring) as the ACTION step below the
+          primary water CTA — water still leads. */}
+      <HomeDashboard showScanButton />
 
       {/* ── Metabolic Readiness (AForce Athlete tier) ───────────────────
           Additive, feature-flagged (metabolic_readiness_enabled) card.
@@ -828,6 +841,33 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter_600SemiBold',
     fontSize: 15,
     letterSpacing: 1.2,
+  },
+
+  // Today's Command — compact, subordinate strip between the consequence line
+  // and the primary CTA. Reads as "the one action", never a second hero CTA.
+  commandStrip: {
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 14,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: 'rgba(255,255,255,0.03)',
+    marginBottom: 20,
+  },
+  commandEyebrow: {
+    fontFamily: 'Inter_700Bold',
+    fontSize: 9,
+    letterSpacing: 2,
+    color: Colors.text.muted,
+    textAlign: 'center',
+    marginBottom: 6,
+  },
+  commandBody: {
+    fontFamily: 'Inter_500Medium',
+    fontSize: 14,
+    lineHeight: 20,
+    color: Colors.text.primary,
+    textAlign: 'center',
   },
 
   // Section header that visually separates the deeper-intelligence

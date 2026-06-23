@@ -153,10 +153,13 @@ function EntryActionsImpl() {
     label: string;
     accent: string | null;
   }> = [
-    { key: 'urine',    icon: 'droplet',       label: 'Urine',    accent: urineAccent },
-    { key: 'sweat',    icon: 'cloud-drizzle', label: 'Sweat',    accent: sweatAccent },
-    { key: 'forecast', icon: 'trending-up',   label: 'Forecast', accent: trajectoryAccent },
-    { key: 'recovery', icon: 'activity',      label: 'Recovery', accent: loadAccent },
+    { key: 'urine',    icon: 'droplet',       label: 'Check',   accent: urineAccent },
+    { key: 'sweat',    icon: 'cloud-drizzle', label: 'Sweat',   accent: sweatAccent },
+    // NOTE: "Heat" is a calmer, owner-requested label. This tile still opens the
+    // PERFORMANCE FORECAST sheet (trajectory) — the label/sheet divergence is a
+    // known, intentional UX-debt; repoint to a heat surface in a follow-up if desired.
+    { key: 'forecast', icon: 'trending-up',   label: 'Heat',    accent: trajectoryAccent },
+    { key: 'recovery', icon: 'activity',      label: 'Recover', accent: loadAccent },
   ];
 
   const onTilePress = (key: TileKey) => {

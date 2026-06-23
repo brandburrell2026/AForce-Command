@@ -64,8 +64,8 @@ export const VIDEO_LIBRARY: Record<string, VideoConfig> = {
     scene: 'red_alert',
     videoUrl: '/videos/depletion_emergency_01.mp4',
     durationSec: 6,
-    overlayTitle: 'CORRECT NOW',
-    overlaySubtitle: '20 ounces of water. Immediate.',
+    overlayTitle: 'START WITH WATER',
+    overlaySubtitle: '20 oz of water. Recheck in 15 minutes.',
     themeLevel: 'DEPLETED',
   },
   morning_reset_01: {
