@@ -52,9 +52,6 @@ import { VoiceButton } from '@/components/VoiceButton';
 import { VoiceOverlay } from '@/components/VoiceOverlay';
 import { StatusPulseOrb } from '@/components/StatusPulseOrb';
 import { FlavorPickerModal, type FlavorChoice } from '@/components/FlavorPickerModal';
-import { BiometricDetailSheet, type BiometricSheetPayload } from '@/components/home/BiometricDetailSheet';
-import { deriveRecoveryLoad, type StrainLevel } from '@/services/biometricIntelligence';
-import { homeCommand, type HomeCommandActionType } from '@/utils/homeCommand';
 import type { VoiceState } from '@/types/voice';
 
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
@@ -87,23 +84,6 @@ import {
   minutesSince,
 } from '@/services/hydrationStatus';
 import type { FluidType } from '@/types';
-
-// Phase 2 (June 2026) — "simplify after the opening": the Home surface is
-// trimmed to the four essentials (Readiness hero · Hydration Status · one
-// command · one CTA). The modules below the CTA are kept mounted in code but
-// NOT rendered on Home, gated by this single flag so the trim is fully
-// reversible and the engines they read stay alive ("Build 100% · Show 10%").
-// Flip to `true` to restore the expanded Home.
-const SHOW_EXPANDED_HOME = false;
-
-// Recovery Load sheet copy (mirrors EntryActions) — used by the `recover`
-// command CTA to host the BiometricDetailSheet directly on Home.
-const STRAIN_LABEL: Record<StrainLevel, string> = {
-  low: 'Minimal load',
-  moderate: 'Moderate load',
-  elevated: 'Elevated strain',
-  high: 'High strain',
-};
 
 // ─── Header ──────────────────────────────────────────────────────────
 
@@ -214,7 +194,7 @@ function SignalPill({ icon, label, value, tint, active, onPress, testID }: Signa
 
 interface BodyProps {
   onOpenBreakdown: () => void;
-  onCommandCta: (actionType: HomeCommandActionType) => void;
+  onPrimaryCta: () => void;
   onTapHeat: () => void;
   isCompletingCycle: boolean;
   lastIntakeMinutes: number | null;
@@ -222,13 +202,11 @@ interface BodyProps {
   orbSize: number;
   heatBand: TempHeatBand;
   heatTempLabel: string | null;
-  /** True when an actionable protocol step is queued (drives the command). */
-  protocolAvailable: boolean;
 }
 
 function ScoreDrivenBody({
   onOpenBreakdown,
-  onCommandCta,
+  onPrimaryCta,
   onTapHeat,
   isCompletingCycle,
   lastIntakeMinutes,
@@ -236,7 +214,6 @@ function ScoreDrivenBody({
   orbSize,
   heatBand,
   heatTempLabel,
-  protocolAvailable,
 }: BodyProps) {
   const engine = useEngineSlice();
   const userState = useUserSlice();
@@ -262,30 +239,6 @@ function ScoreDrivenBody({
   // the same hue the ring is currently rendering. Falls back to the
   // band color from getHydrationStatus when no in-flight tween exists.
   const orbColor = displayed?.primary ?? status.color.primary;
-
-  // Phase 3 — derive the SINGLE behavior-first Home command from already-
-  // computed state. Pure + read-only (Score-Protection): it never logs,
-  // awards points, or mutates score — it only picks which command to show.
-  // Water-First is enforced inside `homeCommand` (the water branch leads).
-  const command = React.useMemo(
-    () =>
-      homeCommand({
-        score: engine.score,
-        unitsConsumedToday: userState.unitsConsumedToday,
-        minutesSinceLastIntake: lastIntakeMinutes,
-        inRecoveryWindow: engine.social?.inRecoveryWindow ?? false,
-        performanceLevel: engine.performanceState.level,
-        protocolAvailable,
-      }),
-    [
-      engine.score,
-      userState.unitsConsumedToday,
-      lastIntakeMinutes,
-      engine.social?.inRecoveryWindow,
-      engine.performanceState.level,
-      protocolAvailable,
-    ],
-  );
 
   return (
     <>
@@ -346,70 +299,13 @@ function ScoreDrivenBody({
         {status.consequence}
       </Text>
 
-      {/* ── Hydration Status (Water Cycle slot) ──────────────────────────
-          Moved directly under the readiness hero so Home reads top-to-
-          bottom: readiness score → hydration status → one command → one
-          CTA. Every value is a projection of real logged behaviour
-          (utils/homeDashboard) — Score-Protection safe. */}
-      <HomeDashboard showScanButton={SHOW_EXPANDED_HOME} />
-
-      {/* ── Secondary Scan utility (owner ask: keep HydroScan on the
-          front experience) ───────────────────────────────────────────────
-          A compact, ghost-styled drink check-in placed directly under the
-          Hydration Status card. It is deliberately SECONDARY — smaller and
-          quieter than the accent-colored primary command CTA — so Home still
-          reads as one behavior-first command + one primary CTA. It is hidden
-          when the daily command is already `scan_drink` (the primary CTA
-          becomes SCAN DRINK in that case, so a second scan would duplicate
-          it) and on the expanded Home (where HydrationStatusCard renders its
-          own in-card scan button). It reuses the existing
-          onCommandCta('scan_drink') handler → the existing /scan route, so no
-          duplicate flow is created and scanning never logs or mutates score
-          (Score-Protection). Water-First holds: it renders AFTER the
-          Hydration Status card, so the hydration need is evaluated before any
-          drink check-in appears. */}
-      {!SHOW_EXPANDED_HOME && command.actionType !== 'scan_drink' && (
-        <TouchableOpacity
-          activeOpacity={0.7}
-          onPress={() => onCommandCta('scan_drink')}
-          disabled={isCompletingCycle}
-          accessibilityRole="button"
-          accessibilityLabel="Scan a drink"
-          testID="home-secondary-scan"
-          style={[styles.secondaryScan, { opacity: isCompletingCycle ? 0.5 : 1 }]}
-        >
-          <Icon name="camera" size={14} color={Colors.text.secondary} />
-          <Text style={styles.secondaryScanText}>Scan Drink</Text>
-        </TouchableOpacity>
-      )}
-
-      {/* ── Today's command (Phase 3) ────────────────────────────────────
-          The SINGLE behavior-first instruction, derived by the pure
-          `homeCommand` helper. Water-First: the water branch leads whenever
-          hydration needs correction or upkeep, so a product can never be
-          recommended before water. Read-only — never mutates score. */}
-      <View style={styles.commandBlock} testID="home-command-block">
-        <Text style={styles.commandEyebrow} testID="home-command-eyebrow">
-          {command.eyebrow}
-        </Text>
-        <Text style={styles.commandTitle} testID="home-command-title">
-          {command.title}
-        </Text>
-        <Text style={styles.commandBody} testID="home-command-body">
-          {command.body}
-        </Text>
-      </View>
-
-      {/* ── The one primary CTA ───────────────────────────────────────────
-          Wired by `command.actionType` to the existing flows (log water /
-          start protocol / scan / recover). The tap NEVER logs or mutates
-          score — it only opens the relevant surface (Score-Protection). */}
+      {/* 5 — Primary action button */}
       <TouchableOpacity
         activeOpacity={0.85}
-        onPress={() => onCommandCta(command.actionType)}
+        onPress={onPrimaryCta}
         disabled={isCompletingCycle}
         accessibilityRole="button"
-        accessibilityLabel={command.ctaLabel}
+        accessibilityLabel={`${status.ctaText} — log hydration`}
         testID="home-primary-cta"
         style={[
           styles.cta,
@@ -422,67 +318,108 @@ function ScoreDrivenBody({
         ]}
       >
         <Text style={[styles.ctaText, { color: orbColor }]}>
-          {command.ctaLabel}
+          {status.ctaText}
         </Text>
       </TouchableOpacity>
 
-      {/* ── Trimmed Home modules (Phase 2) ───────────────────────────────
-          Everything below is intentionally NOT rendered on the simplified
-          Home (gated by SHOW_EXPANDED_HOME). The components + their imports
-          stay so the engines they read remain alive and the trim is one
-          flag-flip away from reverting:
-            • EntryActions quick-action grid
-            • Metabolic Readiness / Performance Age / Voice Check-In zones
-            • Activation Journey card
-            • Last-intake meta row
-            • AI Coach video card
-            • Heat Guard signal pill                                       */}
-      {SHOW_EXPANDED_HOME && (
-        <>
-          <View style={styles.entryActionsRow}>
-            <EntryActions />
-          </View>
+      {/* Quick-action tile grid — Urine · Sweat · Forecast · Recovery.
+          Sits directly under the primary CTA. (HydroScan is reached from
+          the Hydration Status card's "Scan a drink" button below.) */}
+      <View style={styles.entryActionsRow}>
+        <EntryActions />
+      </View>
 
-          <MetabolicReadinessZone />
-          <PerformanceAgeZone />
-          <VoiceCheckInZone />
-          <ActivationJourneyZone />
+      {/* ── Water Cycle — Hydration Status ───────────────────────────
+          The Hydration Status card now occupies the Water Cycle slot
+          (owner request, June 2026). The old WATER CYCLE 8-cell telemetry
+          bar was removed from Home; the WaterCycleBar component remains in
+          the codebase (still used by SignalsZone) so the change is
+          reversible. Every value is a projection of real logged behaviour
+          (utils/homeDashboard) — Score-Protection safe. */}
+      <HomeDashboard />
 
-          {lastIntakeMinutes != null && (
-            <View style={styles.lastIntakeRow}>
-              <Text style={styles.metaLabel}>Last intake</Text>
-              <Text style={styles.metaValue} testID="home-last-intake">
-                {lastIntakeMinutes} min ago
-              </Text>
-            </View>
-          )}
+      {/* ── Metabolic Readiness (AForce Athlete tier) ───────────────────
+          Additive, feature-flagged (metabolic_readiness_enabled) card.
+          Renders nothing when the flag is off. Display-only wellness
+          ESTIMATES (muscle + cognitive) — a one-directional projection of
+          the hydration + recovery engines that never awards or mutates
+          score (Score-Protection). Non-entitled users see a locked teaser
+          that routes to the Athlete plan. */}
+      <MetabolicReadinessZone />
 
-          <View style={styles.coachLayer}>
-            <View style={styles.coachVideoWrapper} testID="home-ai-coach-video">
-              <AIVideoPlayer
-                video={matchVideo({ engineOutput: engine, userState })}
-                command={engine.command}
-                timerSeconds={timerSeconds}
-                score={displayedScore}
-              />
-            </View>
-          </View>
+      {/* ── Performance Age™ ─────────────────────────────────────────────
+          Additive, feature-flagged (performance_age_enabled) headline
+          ESTIMATE. Renders nothing when the flag is off (ships off in
+          prod). A display-only projection of the hydration + recovery
+          engines and the analytics layer that never awards or mutates
+          score (Score-Protection). NOT entitlement-gated — the primary
+          consumer headline metric. Carries the required disclaimer on
+          every state. */}
+      <PerformanceAgeZone />
 
-          {heatBand !== 'NORMAL' && (
-            <View style={styles.signalsRow} testID="home-live-signals">
-              <SignalPill
-                icon="thermometer"
-                label="Heat"
-                value={heatTempLabel ? `${heatTempLabel} · ${HEAT_BAND_LABEL[heatBand]}` : HEAT_BAND_LABEL[heatBand]}
-                tint={HEAT_BAND_COLOR[heatBand]}
-                active
-                onPress={onTapHeat}
-                testID="home-heat-pill"
-              />
-            </View>
-          )}
-        </>
+      {/* ── Voice Check-In™ read-outs ────────────────────────────────────
+          Additive, feature-flagged (voice_checkin_enabled) Brain Energy™ +
+          Performance Memory™ cards. Renders nothing when the flag is off
+          (ships off in prod, on in DEMO). A display-only projection of the
+          morning check-in self-report and the recovery engine that never
+          awards or mutates score (Score-Protection). */}
+      <VoiceCheckInZone />
+
+      {/* ── Activation Journey (QR-activation Day-7 offer) ────────────────
+          Additive, feature-flagged (spec_activation) consumer card. Renders
+          nothing when the flag is off. A display-only projection of two
+          on-device milestones (onboarding done + first command followed) and
+          the pure Day-7 offer timer — it never awards or mutates score
+          (Score-Protection). Emits `day7_subscription_offer` only when the
+          offer is actually shown (open phase). No new tab/route. */}
+      <ActivationJourneyZone />
+
+      {lastIntakeMinutes != null && (
+        <View style={styles.lastIntakeRow}>
+          <Text style={styles.metaLabel}>Last intake</Text>
+          <Text style={styles.metaValue} testID="home-last-intake">
+            {lastIntakeMinutes} min ago
+          </Text>
+        </View>
       )}
+
+      {/* Biometric Intelligence now lives as three tiles inside
+          EntryActions (Sweat / Forecast / Recovery), each opening a
+          BiometricDetailSheet on tap. Keeps the home surface light
+          while the data stays one tap away. */}
+
+      {/* Command Voice Engine — cinematic AI Coach video card
+          (tap → fullscreen overlay). The "AFORCE COMMAND" text card
+          above it has been removed; this voice/video surface stays. */}
+      <View style={styles.coachLayer}>
+        <View style={styles.coachVideoWrapper} testID="home-ai-coach-video">
+          <AIVideoPlayer
+            video={matchVideo({ engineOutput: engine, userState })}
+            command={engine.command}
+            timerSeconds={timerSeconds}
+            score={displayedScore}
+          />
+        </View>
+      </View>
+
+      {/* Live Signals strip (Heat Guard).
+          The HEAT pill is hidden entirely when ambient temperature is
+          below 75 °F (band === 'NORMAL').
+          Social Mode lives on its own tab now (subscriber-only). */}
+      {heatBand !== 'NORMAL' && (
+        <View style={styles.signalsRow} testID="home-live-signals">
+          <SignalPill
+            icon="thermometer"
+            label="Heat"
+            value={heatTempLabel ? `${heatTempLabel} · ${HEAT_BAND_LABEL[heatBand]}` : HEAT_BAND_LABEL[heatBand]}
+            tint={HEAT_BAND_COLOR[heatBand]}
+            active
+            onPress={onTapHeat}
+            testID="home-heat-pill"
+          />
+        </View>
+      )}
+
     </>
   );
 }
@@ -527,7 +464,6 @@ export default function HomeScreen() {
   const [voiceOpen, setVoiceOpen] = React.useState(false);
   const [voiceAutoStart, setVoiceAutoStart] = React.useState(false);
   const [flavorOpen, setFlavorOpen] = React.useState(false);
-  const [recoveryOpen, setRecoveryOpen] = React.useState(false);
   const [voiceBtnState, setVoiceBtnState] = React.useState<VoiceState>('idle');
 
   // Heat Guard — auto-fires voice escalations on STABLE → ELEVATED+
@@ -567,36 +503,14 @@ export default function HomeScreen() {
     setVoiceAutoStart(false);
   }, []);
 
-  // The single Home CTA. Routed by the command's actionType to the existing
-  // flows. The tap itself NEVER logs or mutates score (Score-Protection):
-  //   • log_water     → open the flavor picker (water leads; logging only
-  //                     happens on confirm via logIntake = completed behavior)
-  //   • start_protocol→ navigate to the protocol screen
-  //   • scan_drink    → navigate to the scan screen
-  //   • recover       → open the advisory Recovery Load sheet
-  const onCommandCta = React.useCallback(
-    (actionType: HomeCommandActionType) => {
-      if (state.isCompletingCycle) return;
-      if (Platform.OS !== 'web') {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
-      }
-      switch (actionType) {
-        case 'log_water':
-          setFlavorOpen(true);
-          break;
-        case 'start_protocol':
-          router.push('/protocol');
-          break;
-        case 'scan_drink':
-          router.push('/scan');
-          break;
-        case 'recover':
-          setRecoveryOpen(true);
-          break;
-      }
-    },
-    [state.isCompletingCycle, router],
-  );
+  // Primary CTA → haptic + open flavor picker → log intake.
+  const onPrimaryCta = React.useCallback(() => {
+    if (state.isCompletingCycle) return;
+    if (Platform.OS !== 'web') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+    }
+    setFlavorOpen(true);
+  }, [state.isCompletingCycle]);
 
   const onShare = React.useCallback(() => {
     if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
@@ -621,11 +535,7 @@ export default function HomeScreen() {
       if (Platform.OS !== 'web') {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy).catch(() => {});
       }
-      // Water-First: the LOG WATER command CTA is the only opener of this
-      // picker and the water option leads inside the modal, so skipping
-      // flavor selection logs plain water (never a product) — the default
-      // action stays hydration-first.
-      const fluid: FluidType = flavor?.fluid ?? 'water';
+      const fluid: FluidType = flavor?.fluid ?? 'aforce_stick';
       const opts = flavor
         ? {
             flavorLabel: flavor.label,
@@ -662,44 +572,6 @@ export default function HomeScreen() {
     return minutesSince(latest);
   }, [intake.recentEvents]);
 
-  // Whether an actionable protocol step is queued — true once a sweat session
-  // has set an autopilot recovery protocol. Read-only signal used only to pick
-  // the Home command; it never awards or mutates score (Score-Protection).
-  const protocolAvailable = !!state.sweatAutopilot;
-
-  // Recovery Load sheet — hosted directly on Home so the `recover` command CTA
-  // can open it without leaving the screen (mirrors EntryActions' recovery
-  // tile). Display-only/advisory: opening or reading it never mutates score.
-  const recoveryHeatBand = getHeatBandFromCelsius(userState.weatherTempC);
-  const recoveryLoad = React.useMemo(
-    () => deriveRecoveryLoad(userState, engine, recoveryHeatBand),
-    [userState, engine, recoveryHeatBand],
-  );
-  const recoveryPayload: BiometricSheetPayload = React.useMemo(() => {
-    const loadAccent =
-      recoveryLoad.strain === 'low' ? Colors.states.PEAK.primary
-      : recoveryLoad.strain === 'moderate' ? Colors.states.BALANCED.primary
-      : recoveryLoad.strain === 'elevated' ? Colors.states.RECOVERING.primary
-      : Colors.states.DEPLETED.primary;
-    return {
-      eyebrow: 'RECOVERY LOAD',
-      accent: loadAccent,
-      icon: 'activity',
-      heroValue: `${recoveryLoad.loadScore}`,
-      heroLabel: STRAIN_LABEL[recoveryLoad.strain],
-      subline: recoveryLoad.headline,
-      metrics: [
-        {
-          label: 'HEAT',
-          value: `${recoveryLoad.heatImpact}%`,
-          valueColor: recoveryLoad.heatImpact >= 60 ? Colors.states.DEPLETED.primary : undefined,
-        },
-        { label: 'ENVIRONMENT', value: `${recoveryLoad.environmentalLoad}%` },
-        { label: 'HYDRATION', value: `${recoveryLoad.hydrationStress}%` },
-      ],
-    };
-  }, [recoveryLoad]);
-
   const topPadding = Platform.OS === 'web' ? WEB_TOP_PADDING : insets.top;
   const bottomPadding = Platform.OS === 'web' ? WEB_BOTTOM_PADDING : insets.bottom + TAB_BAR_HEIGHT;
 
@@ -723,21 +595,25 @@ export default function HomeScreen() {
           >
             <MinimalHeader greetingName={greetingName} city={city} tempLabel={tempLabel} onShare={onShare} />
 
-            {/* Phase 2 — these contextual banners belong to the expanded
-                Home and are gated off on the simplified surface. They self-
-                hide anyway when nothing is active; the flag keeps the trim
-                consistent and one flip away from reverting. */}
-            {SHOW_EXPANDED_HOME && (
-              <>
-                <NotificationBanner />
-                <SmartModesBanner />
-                <LocationInsightBanner />
-              </>
-            )}
+            {/* Spec Rule #10 cadence (Day 0/1/3/7) — single in-app
+                banner gated by spec_notifications. Self-hides when
+                nothing is due or when all 4 have been delivered. */}
+            <NotificationBanner />
+
+            {/* Priority #7 — Smart Modes: surfaces the active context mode
+                (Heat · Workout · Travel · Recovery) and water-first
+                guidance. Additive, self-hides when no mode is active. */}
+            <SmartModesBanner />
+
+            {/* Location Intelligence™ "Show 10%" — a quiet Water-First
+                insight about what the current environment (altitude · UV ·
+                air · heat+humidity) means for hydration. Flag-gated; self-
+                hides when off or when the environment isn't notable. */}
+            <LocationInsightBanner />
 
             <ScoreDrivenBody
               onOpenBreakdown={openBreakdown}
-              onCommandCta={onCommandCta}
+              onPrimaryCta={onPrimaryCta}
               onTapHeat={onTapHeat}
               isCompletingCycle={state.isCompletingCycle}
               lastIntakeMinutes={lastIntakeMinutes}
@@ -745,7 +621,6 @@ export default function HomeScreen() {
               orbSize={layout.orbSize}
               heatBand={getHeatBandFromCelsius(userState.weatherTempC)}
               heatTempLabel={tempLabel}
-              protocolAvailable={protocolAvailable}
             />
           </ScrollView>
 
@@ -784,24 +659,11 @@ export default function HomeScreen() {
             onConfirm={onChooseFlavor}
           />
 
-          {/* Recovery Load sheet — opened by the `recover` command CTA.
-              Advisory only; opening or reading it never mutates score. */}
-          <BiometricDetailSheet
-            visible={recoveryOpen}
-            payload={recoveryOpen ? recoveryPayload : null}
-            onDismiss={() => setRecoveryOpen(false)}
-          />
-
           <OnboardingOverlay visible={!hasSeenOnboarding} onDismiss={completeOnboarding} />
 
-          {/* Phase 2 — the Voice FAB is hidden on the simplified Home (voice
-              still triggers via Heat-Guard escalation + Phantom Band). The
-              VoiceOverlay below stays mounted so the engine stays alive. */}
-          {SHOW_EXPANDED_HOME && (
-            <View pointerEvents="box-none" style={[styles.voiceFab, { bottom: bottomPadding - 56 }]}>
-              <VoiceButton state={voiceBtnState} onPress={openVoice} />
-            </View>
-          )}
+          <View pointerEvents="box-none" style={[styles.voiceFab, { bottom: bottomPadding - 56 }]}>
+            <VoiceButton state={voiceBtnState} onPress={openVoice} />
+          </View>
 
           <VoiceOverlay
             visible={voiceOpen}
@@ -950,38 +812,6 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
 
-  // Phase 3 — Today's command block (eyebrow + title + body) above the CTA.
-  commandBlock: {
-    alignItems: 'center',
-    marginTop: 26,
-    marginBottom: 16,
-    paddingHorizontal: 16,
-  },
-  commandEyebrow: {
-    fontFamily: 'Inter_700Bold',
-    fontSize: 11,
-    letterSpacing: 3,
-    color: Colors.accent.brand,
-    textAlign: 'center',
-    marginBottom: 8,
-  },
-  commandTitle: {
-    fontFamily: 'Inter_700Bold',
-    fontSize: 24,
-    color: Colors.text.primary,
-    textAlign: 'center',
-    letterSpacing: -0.4,
-    marginBottom: 8,
-  },
-  commandBody: {
-    fontFamily: 'Inter_400Regular',
-    fontSize: 14,
-    color: Colors.text.secondary,
-    textAlign: 'center',
-    lineHeight: 20,
-    paddingHorizontal: 12,
-  },
-
   cta: {
     borderWidth: 1.5,
     borderRadius: 14,
@@ -998,31 +828,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter_600SemiBold',
     fontSize: 15,
     letterSpacing: 1.2,
-  },
-
-  // Secondary Scan utility chip — a quiet, neutral check-in affordance that
-  // sits below the Hydration Status card. Intentionally muted (no brand
-  // accent, no glow, small type, hairline border) so it can never read as a
-  // second primary CTA; the command CTA above stays the dominant action.
-  secondaryScan: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    alignSelf: 'center',
-    gap: 7,
-    paddingVertical: 9,
-    paddingHorizontal: 16,
-    marginBottom: 2,
-    borderRadius: 11,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(255,255,255,0.12)',
-    backgroundColor: 'rgba(255,255,255,0.03)',
-  },
-  secondaryScanText: {
-    fontFamily: 'Inter_600SemiBold',
-    fontSize: 12,
-    letterSpacing: 1,
-    color: Colors.text.secondary,
   },
 
   // Section header that visually separates the deeper-intelligence
