@@ -59,18 +59,18 @@ const FONT_MONO = Typography.roles.eyebrow; // IBM Plex Mono — eyebrow / label
 
 const EASE = Easing.inOut(Easing.ease);
 
-// Athlete welcome still (real licensed photo, dark gym): a Black athlete mid
-// lat-pulldown, back to camera, braced over a cable rig framed in signal-red —
-// sweat-lit muscle against a near-black gym. Cover-cropped centred (see
-// contentPosition) so the back stays framed on a phone; the dark blurred
-// foreground falls under the bottom scrim.
+// Athlete welcome still (real licensed photo, low-key studio): a Black athlete
+// in a front 3/4 stance with an intense, locked-in gaze — dramatic side light
+// raking across sweat-lit muscle against near-black drapery. Cover-cropped
+// centred (see contentPosition) so the figure stays framed on a phone; the dark
+// edges and waistband fall under the bottom scrim.
 const HERO = require('../../assets/images/welcome-hero.png');
 
-// Bottom-weighted scrim: the top half stays airy (the gym + the athlete's face
-// read through, ~no scrim), then it ramps from transparent around the vertical
-// midpoint down to near-solid cinematic black at the very bottom — so the
-// lower-third type and the CTAs sit on deep black (bone stays legible) while
-// the athlete's face up top stays clear.
+// Bottom-weighted scrim: the top half stays airy (the dark backdrop + the
+// athlete's face read through, ~no scrim), then it ramps from transparent around
+// the vertical midpoint down to near-solid cinematic black at the very bottom —
+// so the lower-third type and the CTAs sit on deep black (bone stays legible)
+// while the athlete's face up top stays clear.
 const SCRIM_COLORS = [
   'rgba(13,13,13,0)',
   'rgba(13,13,13,0)',
@@ -325,8 +325,8 @@ const styles = StyleSheet.create({
     fontFamily: FONT_MONO,
     fontSize: 11,
     letterSpacing: 2.6, // tightened so the full line fits the inset top zone
-    // Bone ticker: the top of this hero is the dark gym, where black type would
-    // vanish — bone reads cleanly on it (matches the wordmark + tagline).
+    // Bone ticker: the top of this hero is the near-black studio backdrop, where
+    // black type would vanish — bone reads cleanly on it (matches wordmark + tagline).
     color: BONE,
     opacity: 0.7,
     textAlign: 'center',
