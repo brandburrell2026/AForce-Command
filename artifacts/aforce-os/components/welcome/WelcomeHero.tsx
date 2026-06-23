@@ -59,8 +59,10 @@ const FONT_MONO = Typography.roles.eyebrow; // IBM Plex Mono — eyebrow / label
 
 const EASE = Easing.inOut(Easing.ease);
 
-// Hooded-athlete welcome still (light grey-wall background). Subject right of
-// frame, forward gaze — cover-cropped centered so the face stays in frame.
+// Hooded-athlete welcome still (light concrete-wall background): a seated
+// side-profile figure, head bowed, hands clasped — a dark silhouette against
+// the light wall. Cover-cropped with a slight LEFT bias (see contentPosition)
+// so the full seated figure (head + clasped hands) stays framed on a phone.
 const HERO = require('../../assets/images/welcome-hero.png');
 
 // Bottom-weighted scrim for a LIGHT-background photo: the top half stays airy
@@ -153,6 +155,10 @@ function HeroImage({ reduce }: { reduce: boolean }) {
         source={HERO}
         style={StyleSheet.absoluteFill}
         contentFit="cover"
+        // Slight left bias: the seated figure sits left-of-centre in the
+        // source, so a centered crop would clip it — anchor ~25% from the
+        // left to keep the whole silhouette (head + clasped hands) framed.
+        contentPosition={{ left: '25%', top: '50%' }}
         transition={0}
         accessibilityIgnoresInvertColors
       />
