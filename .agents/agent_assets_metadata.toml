@@ -2657,3 +2657,21 @@ id = "r3u8aANuhiKNGR2qHIua8"
 uri = "file://exports/AForce-OS-Specification.pdf"
 type = "pdf"
 title = "AForce OS — Product & Technical Specification (PDF)"
+
+[[outputs]]
+id = "jJ9Gd9B9b33NZkEevvfz3"
+uri = "file://attached_assets/image_search/pexels_20379138_b_male_headphones.jpg"
+type = "image"
+title = "Option 1 — Front-facing athlete, dark red-lit gym (intense, brand-matching)"
+
+[[outputs]]
+id = "97kKgPC7WKAW5MdHmyC-D"
+uri = "file://attached_assets/image_search/pexels_18112395_c_weightlifting.jpg"
+type = "image"
+title = "Option 2 — Powerful back at the cable rig (dark, red frame, room for text)"
+
+[[outputs]]
+id = "tKcmdzqsJxn6ex32wtXde"
+uri = "file://attached_assets/image_search/pexels_4720278_g_stretch_focus.jpg"
+type = "image"
+title = "Option 3 — Raw side-profile portrait, hard light (gritty, focused)"
