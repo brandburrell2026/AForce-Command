@@ -59,10 +59,11 @@ const FONT_MONO = Typography.roles.eyebrow; // IBM Plex Mono — eyebrow / label
 
 const EASE = Easing.inOut(Easing.ease);
 
-// Athlete welcome still (dark gym background): a sweat-lit figure leaning
-// forward into frame, head up, locked-in stare — bright skin against a near-
-// black gym. Cover-cropped centred (see contentPosition) so the face stays
-// framed on a phone; the dark lower torso falls under the bottom scrim.
+// Athlete welcome still (real licensed photo, dark gym): a Black athlete mid
+// lat-pulldown, back to camera, braced over a cable rig framed in signal-red —
+// sweat-lit muscle against a near-black gym. Cover-cropped centred (see
+// contentPosition) so the back stays framed on a phone; the dark blurred
+// foreground falls under the bottom scrim.
 const HERO = require('../../assets/images/welcome-hero.png');
 
 // Bottom-weighted scrim: the top half stays airy (the gym + the athlete's face
@@ -155,8 +156,8 @@ function HeroImage({ reduce }: { reduce: boolean }) {
         source={HERO}
         style={StyleSheet.absoluteFill}
         contentFit="cover"
-        // Centre the crop: the athlete's face sits dead-centre in the source,
-        // so anchor at 50% to keep the locked-in stare framed on a phone.
+        // Centre the crop: the athlete sits dead-centre in the source, so
+        // anchor at 50% to keep the back + cable rig framed on a phone.
         contentPosition={{ left: '50%', top: '50%' }}
         transition={0}
         accessibilityIgnoresInvertColors

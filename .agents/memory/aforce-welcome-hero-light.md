@@ -44,3 +44,25 @@ brightness and set status bar + eyebrow color to match.
 web app-preview screenshot (documented blank-white artifact during the crossfading
 absolute-fill overlays). Verify the cropped asset directly, or on a real
 device/simulator — not web.
+
+## Rule — sourcing a REAL licensed hero photo via imageSearch
+
+When the ask is a "real / licensed, not AI-looking" hero photo, only
+free-commercial sources are safe to drop in: **Pexels / Unsplash / Pixabay**.
+`imageSearch` mixes in Getty/iStock (paid) heavily — for action/athlete queries
+the *majority* of results are Getty, so filter to free domains and expect a thin
+yield. Download by Pexels id at higher res
+(`images.pexels.com/photos/<id>/pexels-photo-<id>.jpeg?auto=compress&cs=tinysrgb&w=1200`),
+then VIEW every candidate — titles lie about race/gender and "athlete" results
+often come back as studio physique/boudoir, not gym action.
+
+**Why:** the user iterated for many rounds rejecting AI images; the constraint is
+licensing (must be free-commercial) AND content (a Black athlete actually working
+out, dark/cinematic). That intersection is genuinely sparse in free stock — the
+cable-rig lat-pulldown shot was the one image satisfying all of it.
+
+**How to apply:** keep the swap a pure asset replace (no AI upscale/bg-removal/
+re-render — that reintroduces the "AI look"). The component is `contentFit="cover"`
++ centred, so a centred subject needs no manual crop; just convert the jpg to
+`welcome-hero.png`, clear Metro/Expo caches, and restart the expo workflow (the
+asset is cached).
