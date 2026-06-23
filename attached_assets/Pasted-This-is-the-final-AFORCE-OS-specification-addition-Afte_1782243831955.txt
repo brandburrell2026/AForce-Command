@@ -1,0 +1,300 @@
+This is the final AFORCE OS specification addition.
+
+After this email, we move into audit, implementation, testing, and beta validation.
+
+We are not adding new architecture after this unless beta users reveal a verified need.
+
+The goal now is execution.
+
+STEP 0 — AUDIT FIRST
+
+Before building anything new:
+
+Mark each item:
+
+BUILT
+PARTIAL
+NOT STARTED
+Do not assume.
+
+Verify against the actual codebase.
+
+Do not rebuild working systems.
+
+1. PERFORMANCE AGE™
+
+Build first.
+
+Purpose:
+
+Create AFORCE's primary consumer-facing performance metric.
+
+Formula V1:
+
+Hydration Consistency = 35%
+Recovery Trend = 30%
+Sleep Quality = 20%
+Activity Consistency = 15%
+Requirements:
+
+Daily calculation
+Weekly trend
+Monthly trend
+Provisional baseline for new users
+Backend calculation only
+Required disclaimer:
+
+"Performance Age reflects recent performance behaviors and trends. It is not a medical measurement or biological age assessment."
+
+2. COMMAND CONFIDENCE™
+
+Build second.
+
+Implement as an Adaptive Rule Engine.
+
+Do NOT implement machine learning.
+
+Track:
+
+Commands issued
+Commands completed
+Completion percentage
+User preference patterns
+Important:
+
+No weighting until at least 10 commands exist within a category.
+
+Goal:
+
+The system learns which recommendations a user actually follows.
+
+3. PERFORMANCE MEMORY™
+
+Build third.
+
+Store:
+
+Hydration patterns
+Recovery patterns
+Sleep patterns
+Travel behavior
+Caffeine behavior
+Streak history
+User priorities
+Requirements:
+
+Historical memory persists
+Memory survives updates
+Memory only removed when explicitly requested
+Feeds:
+
+Command Confidence
+Evidence Engine
+Voice Check-In
+Future Identity Layer
+4. EVIDENCE ENGINE™
+
+Build fourth.
+
+Every recommendation must explain WHY it exists.
+
+Example:
+
+"Hydration recommendation issued because temperature increased, recovery declined, and hydration consistency fell below baseline."
+
+Requirements:
+
+Signal traceability
+Human-readable explanation
+Backend-generated reasoning
+No black-box recommendations.
+
+5. QR ACTIVATION TRACKING™
+
+Build fifth.
+
+Track:
+
+QR Scan → Install → Activation → Profile Completion → First Command → First Win → Subscription
+
+Track by:
+
+SKU
+Geography
+Retail Location
+Campaign Source
+Purpose:
+
+Measure acquisition and conversion performance.
+
+6. FOUNDER COMMAND CENTER™
+
+Build sixth.
+
+Browser-based dashboard.
+
+Founder Access:
+
+Julius
+Brandon
+Required Views:
+
+Activations
+Day 7 Retention
+Subscription Conversion
+Performance Age Trends
+Territory Engagement
+Voice Check-In Usage
+7. MARKETING DASHBOARD™
+
+Build seventh.
+
+Track:
+
+QR Scans
+Install Rate
+Activation Rate
+Subscription Rate
+Referral Attribution
+Ambassador Attribution
+Geography Performance
+Retail Performance
+Purpose:
+
+Understand what drives growth.
+
+8. VOICE CHECK-IN™
+
+Build eighth.
+
+Daily calibration.
+
+Questions:
+
+Energy level?
+Stress level?
+Main goal today?
+Feeds:
+
+Performance Memory
+Command Confidence
+Future Coach Layer
+Requirements:
+
+ElevenLabs integration
+Cache common responses
+Dynamic responses only use live API
+Purpose:
+
+Create the daily ritual loop.
+
+9. PHANTOM BAND ARCHITECTURE RESERVATION™
+
+Do NOT build hardware features now.
+
+Reserve architecture support only.
+
+Future Phantom Signals:
+
+Heart Rate
+HRV
+Skin Temperature
+Recovery Signals
+Activity Signals
+Sweat Intelligence
+Hydration Intelligence
+Signal Priority:
+
+Phantom Band
+Connected Wearables
+Phone Sensors
+Manual Inputs
+Purpose:
+
+Future-proof AFORCE OS for Phantom integration.
+
+The Phantom Band is not intended to become a smartwatch.
+
+Its purpose is real-time performance awareness with minimal screen dependency.
+
+10. PERFORMANCE IDENTITY FOUNDATION™
+
+Architecture only.
+
+No user-facing implementation.
+
+Reserve support for:
+
+Performance Identity:
+
+Archetype
+Confidence
+Last Updated
+Potential future archetypes:
+
+Operator
+Warrior
+Optimizer
+Builder
+Recoverer
+Identity is earned.
+
+Users do not select it.
+
+The system derives it from behavior.
+
+Future inputs:
+
+Performance Memory
+Command Confidence
+Performance Age
+Recovery Behavior
+Hydration Consistency
+Activity Consistency
+Travel Patterns
+Voice Check-In Behavior
+Purpose:
+
+Create one future source of truth for:
+
+Coach Layer
+Community Layer
+Phantom Band
+Founder Analytics
+No launch dependency.
+
+No UI required.
+
+FINAL PRODUCT RULE
+
+The next objective is not adding features.
+
+The next objective is validating the daily ritual loop:
+
+Open → Check-In → Receive Command → Complete Command → Win
+
+The user should never have to decide what to do next.
+
+The system should know.
+
+POST-LAUNCH ONLY (DO NOT BUILD NOW)
+
+After launch and after meaningful user data exists:
+
+Performance Identity Experiences
+Accountability Callbacks
+Phantom Identity States
+Advanced Coach Layer
+These depend on real user behavior data and should not delay launch.
+
+FINAL INSTRUCTION
+
+Audit first.
+
+Validate foundation.
+
+Build verified gaps only.
+
+No additional architecture additions without founder approval and supporting beta-user data.
+
+Performance Is Non-Negotiable.
