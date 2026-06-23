@@ -59,17 +59,17 @@ const FONT_MONO = Typography.roles.eyebrow; // IBM Plex Mono — eyebrow / label
 
 const EASE = Easing.inOut(Easing.ease);
 
-// Hooded-athlete welcome still (light concrete-wall background): a seated
-// side-profile figure, head bowed, hands clasped — a dark silhouette against
-// the light wall. Cover-cropped with a slight LEFT bias (see contentPosition)
-// so the full seated figure (head + clasped hands) stays framed on a phone.
+// Athlete welcome still (dark gym background): a sweat-lit figure leaning
+// forward into frame, head up, locked-in stare — bright skin against a near-
+// black gym. Cover-cropped centred (see contentPosition) so the face stays
+// framed on a phone; the dark lower torso falls under the bottom scrim.
 const HERO = require('../../assets/images/welcome-hero.png');
 
-// Bottom-weighted scrim for a LIGHT-background photo: the top half stays airy
-// (the grey wall + figure read through, ~no scrim), then it ramps from
-// transparent around the vertical midpoint down to near-solid cinematic black
-// at the very bottom — so the lower-third type and the CTAs sit on deep black
-// (bone stays legible) while the athlete's face up top stays in the light zone.
+// Bottom-weighted scrim: the top half stays airy (the gym + the athlete's face
+// read through, ~no scrim), then it ramps from transparent around the vertical
+// midpoint down to near-solid cinematic black at the very bottom — so the
+// lower-third type and the CTAs sit on deep black (bone stays legible) while
+// the athlete's face up top stays clear.
 const SCRIM_COLORS = [
   'rgba(13,13,13,0)',
   'rgba(13,13,13,0)',
@@ -155,10 +155,9 @@ function HeroImage({ reduce }: { reduce: boolean }) {
         source={HERO}
         style={StyleSheet.absoluteFill}
         contentFit="cover"
-        // Slight left bias: the seated figure sits left-of-centre in the
-        // source, so a centered crop would clip it — anchor ~25% from the
-        // left to keep the whole silhouette (head + clasped hands) framed.
-        contentPosition={{ left: '25%', top: '50%' }}
+        // Centre the crop: the athlete's face sits dead-centre in the source,
+        // so anchor at 50% to keep the locked-in stare framed on a phone.
+        contentPosition={{ left: '50%', top: '50%' }}
         transition={0}
         accessibilityIgnoresInvertColors
       />
@@ -325,9 +324,9 @@ const styles = StyleSheet.create({
     fontFamily: FONT_MONO,
     fontSize: 11,
     letterSpacing: 2.6, // tightened so the full line fits the inset top zone
-    // Cinematic-black ticker: the top of this hero is now the LIGHT grey wall,
-    // where bone type would vanish — black reads cleanly on it.
-    color: BG, // #0D0D0D
+    // Bone ticker: the top of this hero is the dark gym, where black type would
+    // vanish — bone reads cleanly on it (matches the wordmark + tagline).
+    color: BONE,
     opacity: 0.7,
     textAlign: 'center',
     textTransform: 'uppercase',
