@@ -1,6 +1,6 @@
 # AForce OS — Validation Methodology
 
-Version: v1.0 — April 2026
+Version: v1.1 — June 2026
 
 This document captures every numerical model the AForce OS hydration
 engine uses, with the published reference it draws from and the
