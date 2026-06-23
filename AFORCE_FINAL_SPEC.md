@@ -33,7 +33,7 @@ Live status is tracked in `AFORCE_PHASE_STATUS.md`.
 - Never rebuild existing surfaces. Patch, do not redesign.
 - Analyze current code first. Touch only files relevant to the phase.
 - Protect the existing architecture (pnpm monorepo, Expo Router stack,
-  WHOOP-cinematic dark aesthetic, slice-based store, Drizzle/Zod
+  AForce cinematic dark aesthetic, slice-based store, Drizzle/Zod
   server contracts).
 - Social Mode and Cruise Mode additions stay in the addon document
   and are not implemented until **all** core phases are stable.
@@ -114,9 +114,16 @@ for people who don't get to be off." AForce wordmark. Fade to black.
 
 ### Mobile — `artifacts/aforce-os` (Expo SDK 54 / Expo Router 6)
 
-- **Opening sequence**: `app/splash.tsx` (cinematic four-stage lobby
-  shown on first launch only) → `app/welcome.tsx` (home dashboard,
-  also reachable from the home tab).
+- **Opening sequence**: no `app/splash.tsx` / `app/welcome.tsx` routes exist.
+  `app/_layout.tsx` (AppShell) runs a cold-launch front-door state machine
+  (`opening → welcome → done`) of stacked overlays that touch no routing: the
+  `OpeningSequence` cinematic (`components/opening/OpeningSequence.tsx`,
+  top-most) plays once per cold launch, then crossfades into the `WelcomeHero`
+  photo front door (`components/welcome/WelcomeHero.tsx` — GET STARTED →
+  `/onboarding`, SIGN IN → `/(auth)/sign-in`); once an entry is picked the
+  overlays dismiss to reveal the routed app underneath. The home dashboard is
+  `app/(tabs)/index.tsx`; first-run routing is decided by `SplashGate` via the
+  pure `firstRunRoute` helper keyed on `hasCompletedOnboarding`.
 - **Tab bar**: `app/(tabs)/` — `index`, `profile`, plus the rest of
   the primary tabs. Bottom navigation includes the Timeline surface.
 - **HydroScan**: `app/scan.tsx` → `screens/HydrationScanScreen.tsx`.
