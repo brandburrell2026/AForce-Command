@@ -2662,7 +2662,7 @@ title = "AForce OS — Product & Technical Specification (PDF)"
 id = "jJ9Gd9B9b33NZkEevvfz3"
 uri = "file://attached_assets/image_search/pexels_20379138_b_male_headphones.jpg"
 type = "image"
-title = "Option 1 — Front-facing athlete, dark red-lit gym (intense, brand-matching)"
+title = "3 — Real dark red-lit gym (Pexels): front 3/4, focused, brand-red environment."
 
 [[outputs]]
 id = "97kKgPC7WKAW5MdHmyC-D"
@@ -2680,13 +2680,13 @@ title = "Option 3 — Raw side-profile portrait, hard light (gritty, focused)"
 id = "ueAUZqEYzEG1Sl34w3DGS"
 uri = "file://attached_assets/image_search/black/p_18112395.jpg"
 type = "image"
-title = "A — Back at the cable rig: real gym, dark with brand-red frame, very athletic"
+title = "2 — CURRENT pick (Pexels): Black athlete mid lat-pulldown, real dark gym, signal-red rig. Best 'working out'."
 
 [[outputs]]
 id = "sqoOIgQDYDl1mqJQ77ZTJ"
 uri = "file://attached_assets/image_search/black/p_8874416.jpg"
 type = "image"
-title = "B — Dramatic dark physique portrait: intense gaze, cinematic hero"
+title = "5 — Black athlete, intense 3/4 gaze (Pexels): dramatic dark light, locked-in — but studio, not a gym."
 
 [[outputs]]
 id = "AL4jSSOQjg2g9038LjXEH"
@@ -2699,3 +2699,15 @@ id = "rg5xIeI9kJ2nWFaLgHWe7"
 uri = "file://attached_assets/image_search/black/p_4720278.jpg"
 type = "image"
 title = "D — Gym side-profile: hard light, gritty and raw"
+
+[[outputs]]
+id = "KRp0wsbRq2iDIi1QSkg4I"
+uri = "file://attached_assets/image_search/brief/oth_unsplash_1.jpg"
+type = "image"
+title = "1 — Front-facing, locked-in stare (Unsplash, free commercial): real skin & tattoos, true black bg, room up top. Best 'locked in'."
+
+[[outputs]]
+id = "_ZwIeUUq5cjmlBI-EdODF"
+uri = "file://attached_assets/image_search/brief/pex_4761790.jpg"
+type = "image"
+title = "4 — Boxer in a real ring (Pexels): cinematic shaft of light, Nike/WHOOP mood. Face in shadow."
