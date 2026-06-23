@@ -27,6 +27,31 @@ the visibility through `SHOW_EXPANDED_HOME` (default off) instead of rendering i
 unconditionally. Keep the action reachable through the homeCommand block, not a
 parallel button.
 
+## Owner-approved exception: ONE secondary "Scan Drink" utility chip
+
+The owner explicitly asked to keep HydroScan reachable from simplified Home. The
+sanctioned way is a single, deliberately *secondary* "Scan Drink" chip
+(`testID home-secondary-scan`) rendered directly under the Hydration Status card
+in `ScoreDrivenBody`. This does NOT break the one-CTA rule because it is gated and
+visually subordinate — do not delete it as a "second CTA".
+
+**Rules that keep it compliant (preserve all of them):**
+- Gate: `!SHOW_EXPANDED_HOME && command.actionType !== 'scan_drink'`. It is hidden
+  when Scan is already the primary command (the CTA becomes SCAN DRINK — no
+  duplicate) and on expanded Home (where `HydrationStatusCard` renders its own
+  in-card scan via `onScan`, so my chip would be a second scan).
+- It must stay muted (neutral hairline chip, `text.secondary`, small type — NOT a
+  brand-accent/glowing CTA) so it can never read as the daily command.
+- On press it reuses the existing `onCommandCta('scan_drink')` handler → existing
+  `/scan` route. It must never log intake or mutate score (Score-Protection); it
+  only navigates. Do not create a duplicate scan flow.
+- It renders AFTER the Hydration Status card, so the hydration need is evaluated
+  before any drink check-in (Water-First holds).
+
+**Why:** "exactly one CTA" still holds (one primary command CTA + one quiet utility
+chip is the owner's intent), and the muted treatment + gating prevent it from
+competing with or preceding the water command.
+
 ## homeCommand Water-First: no-fluid-logged ⇒ water leads
 
 `homeCommand` treats `unitsConsumedToday <= 0` (or a null last-intake timestamp)

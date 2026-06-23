@@ -353,6 +353,36 @@ function ScoreDrivenBody({
           (utils/homeDashboard) — Score-Protection safe. */}
       <HomeDashboard showScanButton={SHOW_EXPANDED_HOME} />
 
+      {/* ── Secondary Scan utility (owner ask: keep HydroScan on the
+          front experience) ───────────────────────────────────────────────
+          A compact, ghost-styled drink check-in placed directly under the
+          Hydration Status card. It is deliberately SECONDARY — smaller and
+          quieter than the accent-colored primary command CTA — so Home still
+          reads as one behavior-first command + one primary CTA. It is hidden
+          when the daily command is already `scan_drink` (the primary CTA
+          becomes SCAN DRINK in that case, so a second scan would duplicate
+          it) and on the expanded Home (where HydrationStatusCard renders its
+          own in-card scan button). It reuses the existing
+          onCommandCta('scan_drink') handler → the existing /scan route, so no
+          duplicate flow is created and scanning never logs or mutates score
+          (Score-Protection). Water-First holds: it renders AFTER the
+          Hydration Status card, so the hydration need is evaluated before any
+          drink check-in appears. */}
+      {!SHOW_EXPANDED_HOME && command.actionType !== 'scan_drink' && (
+        <TouchableOpacity
+          activeOpacity={0.7}
+          onPress={() => onCommandCta('scan_drink')}
+          disabled={isCompletingCycle}
+          accessibilityRole="button"
+          accessibilityLabel="Scan a drink"
+          testID="home-secondary-scan"
+          style={[styles.secondaryScan, { opacity: isCompletingCycle ? 0.5 : 1 }]}
+        >
+          <Icon name="camera" size={14} color={Colors.text.secondary} />
+          <Text style={styles.secondaryScanText}>Scan Drink</Text>
+        </TouchableOpacity>
+      )}
+
       {/* ── Today's command (Phase 3) ────────────────────────────────────
           The SINGLE behavior-first instruction, derived by the pure
           `homeCommand` helper. Water-First: the water branch leads whenever
@@ -968,6 +998,31 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter_600SemiBold',
     fontSize: 15,
     letterSpacing: 1.2,
+  },
+
+  // Secondary Scan utility chip — a quiet, neutral check-in affordance that
+  // sits below the Hydration Status card. Intentionally muted (no brand
+  // accent, no glow, small type, hairline border) so it can never read as a
+  // second primary CTA; the command CTA above stays the dominant action.
+  secondaryScan: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    alignSelf: 'center',
+    gap: 7,
+    paddingVertical: 9,
+    paddingHorizontal: 16,
+    marginBottom: 2,
+    borderRadius: 11,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(255,255,255,0.12)',
+    backgroundColor: 'rgba(255,255,255,0.03)',
+  },
+  secondaryScanText: {
+    fontFamily: 'Inter_600SemiBold',
+    fontSize: 12,
+    letterSpacing: 1,
+    color: Colors.text.secondary,
   },
 
   // Section header that visually separates the deeper-intelligence
