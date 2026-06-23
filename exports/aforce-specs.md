@@ -249,7 +249,7 @@ plans, templates), `types/`.
 Navigation is **locked to 5 visible tabs**; additional surfaces exist as stacked or
 hidden routes (engines built, surfaces revealed over time).
 
-**Visible tabs:** Home · Hydration (Journal) · Protocol · Community · Profile.
+**Visible tabs:** Home · Hydration (Journal) · Protocols · Community · Profile.
 
 **All routes (`app/`):**
 - Tabs: `index` (Home), `protocol`, `scan` (HydroScan), `journal`, `competition`,
@@ -329,6 +329,15 @@ Color is a **signal only** — borders, dots, glows, accents, CTA tint — never
 
 A **Pressure Mode** variant deepens saturation, raises glow alpha, and speeds the
 pulse for the same band.
+
+This five-band ladder (`theme/statusColor.ts`) drives the **AI Coach status-color
+layer** — dots, borders, glows, CTA tint — and the score read-out. A **separate,
+intentional** four-band *Performance State* ladder (`utils/scoringEngine.ts` →
+`resolveState`: PEAK ≥90 / BALANCED ≥75 / RECOVERING ≥60 / DEPLETED, with its own
+colors in `theme/colors.ts` `states`) drives the **orb** (pulse / flare-on-peak /
+collapse-on-depletion), `riskTimer`, and command selection. The two ladders use
+different mid-band thresholds by design but share the same top green (`#1FA35A`)
+and bottom red (`#FF2800`); see `design/aforce-design-tokens.md` for both tables.
 
 ---
 
@@ -596,8 +605,13 @@ expands; navigation stays fixed. Feature flags gate exposure.
 - **Release curves:**
   - Water: 60% immediate, 40% released over ~12.5 min.
   - AForce: 70% immediate, 30% released over ~25 min.
-- **Performance states:** PEAK (90–100), BALANCED (75–89), RECOVERING (60–74),
-  DEPLETED (0–59).
+- **Performance states (4-band, from `utils/scoringEngine.ts` → `resolveState`):**
+  PEAK (90–100), BALANCED (75–89), RECOVERING (60–74), DEPLETED (0–59). This ladder
+  drives the orb (pulse / flare / collapse), `riskTimer`, and command selection. It
+  is **distinct from** the 5-band *Score Status* color ladder (OPTIMAL / STABLE /
+  DECLINING / RISK / CRITICAL, `theme/statusColor.ts`) that tints the AI Coach
+  status surfaces and the score read-out. Hex values for both live in
+  `docs/AForce-OS-Specification.md` §7 and `design/aforce-design-tokens.md`.
 - **Score Protection rule:** only *completed* behavior changes the score.
   Recommendations, scans (HydroScan is advisory), and product selection never
   increase the score.
@@ -1000,7 +1014,7 @@ Status legend: ⏳ pending · 🔧 in progress · ✅ shipped · 🚫 blocked
 | -- | -------------------------------------------------- | ------ | ----- |
 | 1  | Opening Screen Safe-Area Fix                       | ✅     | Added `<StatusBar style="light" />` once at root layout so system glyphs (clock/battery/signal) stay visible against the pure-black opening canvas. Existing safe-area inset math on `app/splash.tsx` + `app/welcome.tsx` was already robust (`Math.max(insets.top + 28, winH * 0.08)`) and was left untouched. |
 | 2  | Profile + Units + Login                            | ✅     | Audit: Profile (Clerk user binding, sign-out button), Units (weight lbs/kg, temp F/C, volume oz/mL with persistent slice + 137 lines of tests), and Login (sign-in 254 lines, sign-up 375 lines with email/password + Google SSO) were already built. Real gap: `app/index.tsx` had no `isSignedIn` check — sign-in screens were unreachable. Surgical fix: added auth gate in `app/index.tsx` (respecting `DEMO_MODE` so pitch screenshots keep working) + defensive `(auth)/_layout.tsx` redirect when already signed-in. |
-| 3  | Bottom Navigation + Timeline                       | ✅     | Audit: already fully shipped. 6 tabs (Home, Check, Protocol, Timeline, Social, Profile) with dual implementations — `NativeTabs` on iOS (liquid glass) + classic `Tabs` on Android/web with custom `PlainTabButton` (haptic tick, AForce Brand System (v2.1.0) styling, Signal Red active tint, transparent BlurView on iOS, 84px web height). Timeline = `JournalScreen` ("PERFORMANCE TIMELINE" eyebrow, 7/30/90 range picker, section summaries Recovery/Heat/Hydration/Corrections/Territory/Streaks, Win Moments strip, score-over-time chart with band zones, collapsible day cards from `/journal/rollups`, Export PDF). Route file stays `journal.tsx` for deep-link stability; user-facing label "Timeline" via i18n (`tabs.journal`). Store correctly excluded from bottom nav. No code changes required. |
+| 3  | Bottom Navigation + Timeline                       | ✅     | Audit: already fully shipped, later reconciled to the locked **5 visible tabs** (Home · Hydration · Protocols · Community · Profile) with dual implementations — `NativeTabs` on iOS (liquid glass) + classic `Tabs` on Android/web with custom `PlainTabButton` (haptic tick, AForce Brand System (v2.1.0) styling, Signal Red active tint, transparent BlurView on iOS, 84px web height). The **Hydration** tab = `JournalScreen` ("PERFORMANCE TIMELINE" eyebrow, 7/30/90 range picker, section summaries Recovery/Heat/Hydration/Corrections/Territory/Streaks, Win Moments strip, score-over-time chart with band zones, collapsible day cards from `/journal/rollups`, Export PDF). The **Check/scan, Social, and Sleep** surfaces are **hidden via `href:null`** (engines built, surfaces hidden — "Build 100% · Show 10%"), not deleted. Route file stays `journal.tsx` for deep-link stability; the user-facing label is now **Hydration** (droplet icon) via i18n, and **Protocols** is likewise a user-facing relabel. Store correctly excluded from bottom nav. Navigation reconciled to labels/visibility only — no navigation code changed. |
 | 4  | HydroScan Core                                     | ✅     | Audit: already fully shipped. Route `app/scan.tsx` → `HydrationScanScreen` (907 lines): scan → recognize → score → recommend → log into live store, with success flash overlay (20% PEAK tint + Haptics.Success + router.back at 800ms per spec §11). Companion: `app/urine-check.tsx` → `UrineHydrationCheckScreen` (261 lines). Services: `hydrationScanService`, `hydrationScoreService`, `hydrationStatus`, `productRecognitionService`, `scanCoachVoice` (174 lines, voice-coach script builder), `urineHydrationCheck`, `beverageComparisonEngine` (204 lines), `openFoodFactsService`. Components: ScanResultCard, ScanAICoachCard, ProductFitCard, AForceReplacementCard, CameraScanModal (Expo Camera barcode scanner on native), AddDrinkModal, SmartCaptureModal, WhyThisForYouCard, SuperfoodSignalsCard. Mock barcode tray + manual search field for web preview where Expo Camera is unavailable. Tests: `hydrationScanRecommendation.test.ts`, `scanCoachVoice.test.ts`, `drinkCatalog.test.ts`. No code changes required. |
 | 5  | Orb Intelligence                                   | ✅     | Audit: already fully shipped. `StatusPulseOrb` (550 lines, Reanimated 3): pulse fully driven by `pulseConfig` from service layer — 4 `waveBehavior` modes plus `flareOnPeak` (rhythmic accent ring at PEAK), `collapseOnDepletion` (tense inward squeeze at DEPLETED), `burstOnIntake` (outward shockwave on every successful intake), continuous secondary ripple ring in BALANCED/PEAK. Tappable to open Score Breakdown sheet. Optional `socialOverlay` (alcohol load ring, crimson on HIGH/CRITICAL impairment) and `displayedAccent` (locks orb digit color to tweened display score, while pulse motion still reflects true physiological state). Backed by `hydrationScoreService` (217 lines) + `hydrationStatus` (125 lines, `getHydrationStatus()` returns headline/label/consequence/CTA). Mounted on Home tab (`app/(tabs)/index.tsx` line 238) inside the 5-step layout (headline → orb → label → consequence → CTA). Tests: `hydrationStatus.test.ts`, `statusColor.test.ts`. No code changes required. |
 | 6  | Heat + Territory                                   | ✅     | Audit: already fully shipped. Routes `app/heat.tsx` → `HeatRiskScreen` (436 lines) and `app/territory.tsx` → `TerritoryScreen` (213 lines). Services: `heatRiskEngine` (389 lines), `heatProtocolService` (183 lines), `territoryEngine` (69 lines). Components: `HeatAlertBanner`, `HeatPulse`, `HeatRiskCard`, `MapLayerToggle`, `TerritoryMap` (stylized map per spec). OpenWeather proxied through API server with in-memory TTL cache + rate limiting. Tests: `territoryEngine.test.ts`. Guardian (`app/heat/guardian.tsx` → `GuardianHeatScreen`, 297 lines) is correctly **feature-locked** per spec: `guardian_intelligence_enabled`, `guardian_body_map_enabled`, `guardian_alerts_enabled` all `false` in production (`featureFlags/flags.ts`), `true` only in demo profile. Subscription gate ties Guardian Mode to Elite plan. No code changes required. |
@@ -1178,24 +1192,42 @@ The canonical AForce OS color system is the AForce Brand System. Near-black `#0D
 | `accent.subtle` | `rgba(193,40,27,0.06)` | Very faint accent wash |
 | `accent.secondary` | `#1E5BFF` | Berry blue, secondary data |
 
+### Two band systems (intentional — do not merge)
+
+The code runs **two parallel band systems** with different thresholds and roles:
+
+- **Performance State (4 bands)** — `theme/colors.ts` `states`, classified by
+  `utils/scoring/breakdown.ts` `resolveState`. Drives the **orb** (pulse /
+  flare-on-peak / collapse-on-depletion), `riskTimer`, and command selection.
+  Thresholds: PEAK ≥90, BALANCED ≥75, RECOVERING ≥60, else DEPLETED.
+- **Score Status (5 bands)** — `theme/statusColor.ts`, mirrored by
+  `utils/hydrationScore.ts`. Drives the **AI Coach status-color layer** (dots,
+  borders, glows, CTA tint) and the score read-out. Thresholds: OPTIMAL ≥85,
+  STABLE ≥70, DECLINING ≥50, RISK ≥30, else CRITICAL.
+
+Both ladders share the same top green (`#1FA35A`) and bottom red (`#FF2800`); the
+middle bands differ by design.
+
 ### Performance States (4 bands)
 
 | State | Primary | Glow | Dim |
 |---|---|---|---|
-| **Peak** | `#1FA35A` | `rgba(31,163,90,0.50)` | `rgba(31,163,90,0.12)` |
-| **Balanced** | `#00E5C8` | `rgba(0,229,200,0.40)` | `rgba(0,229,200,0.12)` |
-| **Recovering** | `#FFA01E` | `rgba(255,160,30,0.40)` | `rgba(255,160,30,0.12)` |
-| **Depleted** | `#FF2D55` | `rgba(255,45,85,0.40)` | `rgba(255,45,85,0.12)` |
+| **Peak** (90–100) | `#1FA35A` | `rgba(31,163,90,0.50)` | `rgba(31,163,90,0.12)` |
+| **Balanced** (75–89) | `#00E5C8` | `rgba(0,229,200,0.40)` | `rgba(0,229,200,0.12)` |
+| **Recovering** (60–74) | `#FFA01E` | `rgba(255,160,30,0.40)` | `rgba(255,160,30,0.12)` |
+| **Depleted** (0–59) | `#FF2800` | `rgba(255,40,0,0.40)` | `rgba(255,40,0,0.12)` |
 
 ### Score Status (5 bands)
 
-| Band | Primary | Pressure Mode |
+Single source of truth: `theme/statusColor.ts` (mirrored by `utils/hydrationScore.ts`).
+
+| Band | Primary (calm) | Pressure Mode |
 |---|---|---|
 | **Optimal** (85-100) | `#1FA35A` | `#17C964` |
 | **Stable** (70-84) | `#3DBE7A` | `#2BAA66` |
 | **Declining** (50-69) | `#FFDE00` | `#FFC000` |
 | **Risk** (30-49) | `#FF8C1A` | `#FF7A00` |
-| **Critical** (0-29) | `#FF0026` | `#FF0040` |
+| **Critical** (0-29) | `#FF2800` | `#FF0040` |
 
 ### Wearable Integration Palette
 
@@ -1816,6 +1848,8 @@ For each new beta build:
 # 📄 docs/competitive-moat.md
 
 # AForce — Competitive Moat & Defensibility
+
+**⚠️ Internal strategy & positioning document — not user-facing or marketing copy.** All "prescribe" / "prescription" language in this document is **internal framing only**. Any user-facing, in-app, or marketing use must follow the v1 language lock in `validation-methodology.md` §6 (Founder Decision, 2026-06-01): only **"recommendation"** is permitted — never "prescription." HydroScan and every surface stay advisory.
 
 > CPG is copied. Wearables are commoditized. Apps are forgotten.
 > AForce is a **closed-loop performance OS** that ships a consumable.

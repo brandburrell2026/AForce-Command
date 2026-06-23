@@ -1,0 +1,20 @@
+Regenerate the AForce Complete Specifications PDF from the current source markdown. This is a regeneration/export task — the source docs are now correct; the PDF lags them and must be rebuilt to match. Do not edit any markdown content during this task; if you find a discrepancy, report it rather than "fixing" it inline, because the markdown is the source of truth and was just verified.
+Goal: the generated PDF must reflect the post-reconciliation state of all five edited files, so the artifact most likely to reach an investor or the SBA packager (Joseph Amato) is no longer carrying the old conflicting-band / stale-tab errors.
+Before regenerating — verify the source is what we expect. Confirm these specific edits are present in the source markdown (report pass/fail for each, don't change them):
+
+AForce-OS-Specification.md §7 contains the two-band-systems explainer (5-band Score Status driving status colors + read-out; 4-band Performance State driving the orb/riskTimer/command selection; shared anchors green #1FA35A top, red #FF2800 bottom).
+AForce-OS-Specification.md §4 reads Protocols (plural) in the visible-tab list.
+SPEC-SHEET.md §5 documents the 4-band ladder (PEAK 90–100 / BALANCED 75–89 / RECOVERING 60–74 / DEPLETED 0–59) with the cross-reference note.
+aforce-design-tokens.md shows DEPLETED #FF2800 and CRITICAL #FF2800 (both stale hexes fixed), and the "Two band systems (intentional — do not merge)" explainer.
+AFORCE_PHASE_STATUS.md Phase 3 shows the locked 5 visible tabs, not the old 6.
+competitive-moat.md has the internal-strategy / language-lock note at the top.
+
+Then regenerate the PDF using the same generation path/tooling that produced the existing download__5_.pdf (same document order, same TOC structure, same per-file section layout). Match the existing format — don't redesign the PDF.
+After regenerating:
+
+Spot-check the rendered PDF against the six items above and confirm each now appears correctly in the output.
+Update the "Generated YYYY-MM-DD" date stamp to today.
+Report the output path and confirm it's the new build, not a cached copy.
+Flag the two known-stale legacy references (README.md:114, scoringEngine.ts:11 comment) in your report if they're in the PDF's source set, but do NOT fix them in this task — they're tracked separately.
+
+Confirm at the end: PDF regenerated, date-stamped, format unchanged, all six reconciliation items verified present in the output.

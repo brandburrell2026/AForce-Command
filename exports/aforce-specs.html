@@ -902,7 +902,7 @@ cached)</td>
 <p>Navigation is <strong>locked to 5 visible tabs</strong>; additional
 surfaces exist as stacked or hidden routes (engines built, surfaces
 revealed over time).</p>
-<p><strong>Visible tabs:</strong> Home · Hydration (Journal) · Protocol
+<p><strong>Visible tabs:</strong> Home · Hydration (Journal) · Protocols
 · Community · Profile.</p>
 <p><strong>All routes (<code>app/</code>):</strong></p>
 <ul>
@@ -1035,6 +1035,18 @@ never a fill.</p>
 </table>
 <p>A <strong>Pressure Mode</strong> variant deepens saturation, raises
 glow alpha, and speeds the pulse for the same band.</p>
+<p>This five-band ladder (<code>theme/statusColor.ts</code>) drives the
+<strong>AI Coach status-color layer</strong> — dots, borders, glows, CTA
+tint — and the score read-out. A <strong>separate, intentional</strong>
+four-band <em>Performance State</em> ladder
+(<code>utils/scoringEngine.ts</code> → <code>resolveState</code>: PEAK
+≥90 / BALANCED ≥75 / RECOVERING ≥60 / DEPLETED, with its own colors in
+<code>theme/colors.ts</code> <code>states</code>) drives the
+<strong>orb</strong> (pulse / flare-on-peak / collapse-on-depletion),
+<code>riskTimer</code>, and command selection. The two ladders use
+different mid-band thresholds by design but share the same top green
+(<code>#1FA35A</code>) and bottom red (<code>#FF2800</code>); see
+<code>design/aforce-design-tokens.md</code> for both tables.</p>
 <hr />
 <h2 id="8-subscription-tiers">8. Subscription Tiers</h2>
 <p>Verified monthly prices from
@@ -1490,8 +1502,17 @@ window; excess absorbed at 75% efficiency.</li>
 <li>Water: 60% immediate, 40% released over ~12.5 min.</li>
 <li>AForce: 70% immediate, 30% released over ~25 min.</li>
 </ul></li>
-<li><strong>Performance states:</strong> PEAK (90–100), BALANCED
-(75–89), RECOVERING (60–74), DEPLETED (0–59).</li>
+<li><strong>Performance states (4-band, from
+<code>utils/scoringEngine.ts</code> →
+<code>resolveState</code>):</strong> PEAK (90–100), BALANCED (75–89),
+RECOVERING (60–74), DEPLETED (0–59). This ladder drives the orb (pulse /
+flare / collapse), <code>riskTimer</code>, and command selection. It is
+<strong>distinct from</strong> the 5-band <em>Score Status</em> color
+ladder (OPTIMAL / STABLE / DECLINING / RISK / CRITICAL,
+<code>theme/statusColor.ts</code>) that tints the AI Coach status
+surfaces and the score read-out. Hex values for both live in
+<code>docs/AForce-OS-Specification.md</code> §7 and
+<code>design/aforce-design-tokens.md</code>.</li>
 <li><strong>Score Protection rule:</strong> only <em>completed</em>
 behavior changes the score. Recommendations, scans (HydroScan is
 advisory), and product selection never increase the score.</li>
@@ -2143,20 +2164,26 @@ redirect when already signed-in.</td>
 <td>3</td>
 <td>Bottom Navigation + Timeline</td>
 <td>✅</td>
-<td>Audit: already fully shipped. 6 tabs (Home, Check, Protocol,
-Timeline, Social, Profile) with dual implementations —
-<code>NativeTabs</code> on iOS (liquid glass) + classic
-<code>Tabs</code> on Android/web with custom <code>PlainTabButton</code>
-(haptic tick, AForce Brand System (v2.1.0) styling, Signal Red active
-tint, transparent BlurView on iOS, 84px web height). Timeline =
+<td>Audit: already fully shipped, later reconciled to the locked
+<strong>5 visible tabs</strong> (Home · Hydration · Protocols ·
+Community · Profile) with dual implementations — <code>NativeTabs</code>
+on iOS (liquid glass) + classic <code>Tabs</code> on Android/web with
+custom <code>PlainTabButton</code> (haptic tick, AForce Brand System
+(v2.1.0) styling, Signal Red active tint, transparent BlurView on iOS,
+84px web height). The <strong>Hydration</strong> tab =
 <code>JournalScreen</code> (&quot;PERFORMANCE TIMELINE&quot; eyebrow, 7/30/90
 range picker, section summaries
 Recovery/Heat/Hydration/Corrections/Territory/Streaks, Win Moments
 strip, score-over-time chart with band zones, collapsible day cards from
-<code>/journal/rollups</code>, Export PDF). Route file stays
-<code>journal.tsx</code> for deep-link stability; user-facing label
-&quot;Timeline&quot; via i18n (<code>tabs.journal</code>). Store correctly
-excluded from bottom nav. No code changes required.</td>
+<code>/journal/rollups</code>, Export PDF). The <strong>Check/scan,
+Social, and Sleep</strong> surfaces are <strong>hidden via
+<code>href:null</code></strong> (engines built, surfaces hidden — &quot;Build
+100% · Show 10%&quot;), not deleted. Route file stays
+<code>journal.tsx</code> for deep-link stability; the user-facing label
+is now <strong>Hydration</strong> (droplet icon) via i18n, and
+<strong>Protocols</strong> is likewise a user-facing relabel. Store
+correctly excluded from bottom nav. Navigation reconciled to
+labels/visibility only — no navigation code changed.</td>
 </tr>
 <tr>
 <td>4</td>
@@ -2701,6 +2728,27 @@ design.</p>
 </tr>
 </tbody>
 </table>
+<h3 id="two-band-systems-intentional--do-not-merge">Two band systems
+(intentional — do not merge)</h3>
+<p>The code runs <strong>two parallel band systems</strong> with
+different thresholds and roles:</p>
+<ul>
+<li><strong>Performance State (4 bands)</strong> —
+<code>theme/colors.ts</code> <code>states</code>, classified by
+<code>utils/scoring/breakdown.ts</code> <code>resolveState</code>.
+Drives the <strong>orb</strong> (pulse / flare-on-peak /
+collapse-on-depletion), <code>riskTimer</code>, and command selection.
+Thresholds: PEAK ≥90, BALANCED ≥75, RECOVERING ≥60, else DEPLETED.</li>
+<li><strong>Score Status (5 bands)</strong> —
+<code>theme/statusColor.ts</code>, mirrored by
+<code>utils/hydrationScore.ts</code>. Drives the <strong>AI Coach
+status-color layer</strong> (dots, borders, glows, CTA tint) and the
+score read-out. Thresholds: OPTIMAL ≥85, STABLE ≥70, DECLINING ≥50, RISK
+≥30, else CRITICAL.</li>
+</ul>
+<p>Both ladders share the same top green (<code>#1FA35A</code>) and
+bottom red (<code>#FF2800</code>); the middle bands differ by
+design.</p>
 <h3 id="performance-states-4-bands">Performance States (4 bands)</h3>
 <table>
 <thead>
@@ -2713,37 +2761,39 @@ design.</p>
 </thead>
 <tbody>
 <tr>
-<td><strong>Peak</strong></td>
+<td><strong>Peak</strong> (90–100)</td>
 <td><code>#1FA35A</code></td>
 <td><code>rgba(31,163,90,0.50)</code></td>
 <td><code>rgba(31,163,90,0.12)</code></td>
 </tr>
 <tr>
-<td><strong>Balanced</strong></td>
+<td><strong>Balanced</strong> (75–89)</td>
 <td><code>#00E5C8</code></td>
 <td><code>rgba(0,229,200,0.40)</code></td>
 <td><code>rgba(0,229,200,0.12)</code></td>
 </tr>
 <tr>
-<td><strong>Recovering</strong></td>
+<td><strong>Recovering</strong> (60–74)</td>
 <td><code>#FFA01E</code></td>
 <td><code>rgba(255,160,30,0.40)</code></td>
 <td><code>rgba(255,160,30,0.12)</code></td>
 </tr>
 <tr>
-<td><strong>Depleted</strong></td>
-<td><code>#FF2D55</code></td>
-<td><code>rgba(255,45,85,0.40)</code></td>
-<td><code>rgba(255,45,85,0.12)</code></td>
+<td><strong>Depleted</strong> (0–59)</td>
+<td><code>#FF2800</code></td>
+<td><code>rgba(255,40,0,0.40)</code></td>
+<td><code>rgba(255,40,0,0.12)</code></td>
 </tr>
 </tbody>
 </table>
 <h3 id="score-status-5-bands">Score Status (5 bands)</h3>
+<p>Single source of truth: <code>theme/statusColor.ts</code> (mirrored
+by <code>utils/hydrationScore.ts</code>).</p>
 <table>
 <thead>
 <tr>
 <th>Band</th>
-<th>Primary</th>
+<th>Primary (calm)</th>
 <th>Pressure Mode</th>
 </tr>
 </thead>
@@ -2770,7 +2820,7 @@ design.</p>
 </tr>
 <tr>
 <td><strong>Critical</strong> (0-29)</td>
-<td><code>#FF0026</code></td>
+<td><code>#FF2800</code></td>
 <td><code>#FF0040</code></td>
 </tr>
 </tbody>
@@ -4001,6 +4051,13 @@ HealthKit review guidelines</a></li>
 docs/competitive-moat.md</h1>
 <h1 id="aforce--competitive-moat--defensibility">AForce — Competitive
 Moat &amp; Defensibility</h1>
+<p><strong>⚠️ Internal strategy &amp; positioning document — not
+user-facing or marketing copy.</strong> All &quot;prescribe&quot; / &quot;prescription&quot;
+language in this document is <strong>internal framing only</strong>. Any
+user-facing, in-app, or marketing use must follow the v1 language lock
+in <code>validation-methodology.md</code> §6 (Founder Decision,
+2026-06-01): only <strong>&quot;recommendation&quot;</strong> is permitted — never
+&quot;prescription.&quot; HydroScan and every surface stay advisory.</p>
 <blockquote>
 <p>CPG is copied. Wearables are commoditized. Apps are forgotten. AForce
 is a <strong>closed-loop performance OS</strong> that ships a
