@@ -19,12 +19,12 @@ The owner explicitly authorized a full redesign of the **Home screen and tab nav
 
 ## Cold-Launch Opening Sequence (owner-approved)
 
-A full-screen 4-stage cinematic (`components/opening/OpeningSequence.tsx`) plays once **per cold launch** as an overlay — mounted in `app/_layout.tsx` (AppShell), mirroring the InvestorDemo overlay pattern, so it touches **no routing** (no redirect-loop risk) and then fades out to reveal whatever the app routed to underneath.
+A full-screen 4-stage cinematic (`components/opening/OpeningSequence.tsx`) plays once **per cold launch** as an overlay — mounted in `app/_layout.tsx` (AppShell), mirroring the InvestorDemo overlay pattern, so it touches **no routing** (no redirect-loop risk). It is the first of **two stacked cold-launch overlays** driven by the AppShell phase machine (`opening → welcome → done`): when the cinematic finishes it crossfades into the `WelcomeHero` photo front door, and only after the user picks an entry do both overlays dismiss to reveal whatever the app routed to underneath.
 
 - **Stages:** (1) white water-drop symbol w/ breathing fade → (2) AFORCE wordmark + brand-red hairline + "Performance Is Non-Negotiable" → (3) PAUSE/HYDRATE/LOCK IN/PERFORM ritual stagger → (4) "TODAY'S READINESS" + count-up to the live score + a **band-aware** caption via `readinessLabel(performanceState.level)` (a DEPLETED user reads "REHYDRATE NOW", never "READY TO PERFORM").
 - **Motion:** slow Apple-Vision-Pro pacing, crossfading absolute-fill layers, no bounce. Tap-anywhere-to-skip; fully reduced-motion aware (`AccessibilityInfo`).
 - **Score-Protection:** display-only projection of `engine.score` (DEFAULT_SCORE=92 fallback before state loads); never awards, mutates, or fabricates score.
-- **First-run untouched:** onboarding stays intact — new users get opening → onboarding. (The separate welcome lobby was removed; the cold-launch cinematic is now solely the OpeningSequence overlay.)
+- **Front door (two overlays, retained):** the `WelcomeHero` photo front door (`components/welcome/WelcomeHero.tsx`) is an intended, retained surface — it is **not** removed and the cinematic is **not** the sole opening surface. It is mounted in `_layout.tsx` *under* the cinematic (zIndex 999 vs 1000) so the cinematic's fade-out crossfades into it with no black flash. When AppShell advances `opening → welcome` the front door's staggered entrance fires; its **GET STARTED** routes to `/onboarding` and **SIGN IN** to `/(auth)/sign-in`, which advances the phase to `done` and dismisses both overlays to reveal the routed app. Onboarding stays intact — new users get opening → welcome → onboarding.
 - **Plays per JS launch:** `OpeningMount` holds `useState(true)` initialised once when AppShell mounts; `onFinish` is a stable `useCallback` and `OpeningSequence` keeps it in a ref so the engine-score refresh (on mount + ~30s) never tears down the timeline mid-play.
 
 ## Water-First Command System

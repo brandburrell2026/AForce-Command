@@ -1,0 +1,29 @@
+Good — that settles it cleanly. The code is right, the docs are stale, and the fix is purely documentation. No build-lock code change needed.
+
+That means both docs need to stop claiming the welcome lobby was removed and instead describe the two-overlay reality: cinematic `OpeningSequence` → `WelcomeHero` photo front door (GET STARTED / SIGN IN) → routed app, all driven by the AppShell phase machine (`opening → welcome → done`) in `_layout.tsx`. Replit already corrected the `AFORCE_FINAL_SPEC.md` routing line; `replit.md`'s Cold-Launch section still carries the stale claim.
+
+Here's the Task 2b prompt:
+
+---
+
+**Prompt for Replit:**
+
+Decision made: the WelcomeHero front door stays. So the code is correct and the docs are stale — this is a documentation fix only, no code change. Same rules: FINAL BUILD LOCK, show me the diff before Task 3.
+
+**Task 2b — `replit.md` Cold-Launch Opening Sequence section:**
+
+This section currently claims the welcome lobby was removed and that the cold-launch cinematic is "solely the OpeningSequence overlay." That contradicts the shipped AppShell phase machine (`opening → welcome → done`) you just read in `app/_layout.tsx`, which mounts `WelcomeHero` between the cinematic and the routed app.
+
+Read the current Cold-Launch text and the AppShell implementation, then rewrite the stale lines to describe what actually ships:
+- The `OpeningSequence` 4-stage cinematic plays once per cold launch as an overlay in `_layout.tsx`.
+- It crossfades into the `WelcomeHero` photo front door (GET STARTED / SIGN IN) — this is a retained, intended surface, not removed.
+- Both are overlays in `_layout.tsx` driven by the AppShell phase machine; the front door precedes the routed app.
+- Remove/correct any sentence asserting "the separate welcome lobby was removed" or that the cinematic is the sole opening surface.
+
+Do NOT guess the phrasing — match it to the actual AppShell phase states and overlay mounts in the code. Keep all the still-accurate detail (per-JS-launch behavior, reduced-motion, tap-to-skip, Score-Protection display-only). Show me the diff and confirm `replit.md` and `AFORCE_FINAL_SPEC.md` now tell the same cold-launch story. Pause before Task 3.
+
+---
+
+After this lands, your two specs finally agree with each other and with the code on cold launch — which was the whole point. Then Task 3 (the version bump) is trivial, and Task 4 (the code audit) is the last real step.
+
+One thing worth doing while this is fresh: the "WelcomeHero stays" decision is now a settled fact, but it lived as an open question for a minute there. Want me to hold the running list of what's been decided and what's still genuinely open across this thread, so nothing gets re-litigated later? Right now the only true open item left is whatever the Task 4 audit turns up in `theme/*`.
