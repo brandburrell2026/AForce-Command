@@ -720,6 +720,16 @@ export interface FeatureFlags {
    * fabricates score, and the follow-rate never feeds Command Confidence.
    */
   performance_memory_execution_enabled: boolean;
+  /**
+   * Performance Memory™ — governance surface. When ON, the Profile screen
+   * shows a read-only Performance Memory card (summarized observational
+   * streams + per-source coverage) with a real "Delete" that clears the
+   * capture store. Capture itself is ALWAYS-ON and unaffected by this flag;
+   * this only gates the VIEW + delete control. OFF in the production binary.
+   * Score-Protection: display + delete only — never reads into / awards /
+   * mutates / fabricates score.
+   */
+  performance_memory_governance_enabled: boolean;
 }
 
 /**

@@ -23,6 +23,8 @@ import {
 } from '../../utils/scoringEngine';
 import { inferFlavorFromLabel } from '../../utils/inferFlavorFromLabel';
 import { PRODUCTS } from '../../data/products';
+import { isStimulantCategory } from '../../data/drinkCatalog';
+import { recordCaffeineSignal } from '../../services/performanceMemoryCapture';
 import {
   fetchHome,
   postIntakeLog,
@@ -245,6 +247,16 @@ export function useStoreActions({
         ...(offlinePending ? { pending: true } : {}),
       };
       dispatch({ type: 'CYCLE_SUCCESS', payload: { result, newUserState: mergedUserState, engineOutput: adaptEngineOutput(mergedEngine), historyEntry, silent: opts?.silent } });
+      // Performance Memory capture (OBSERVATIONAL only — never touches score).
+      // A caffeinated intake is one of the three behaviour streams Performance
+      // Memory needs; record it idempotently by the intake event id.
+      if (opts?.categoryId && isStimulantCategory(opts.categoryId)) {
+        void recordCaffeineSignal({
+          intakeEventId: log.id,
+          atMs: log.loggedAt instanceof Date ? log.loggedAt.getTime() : Date.now(),
+          categoryId: opts.categoryId,
+        });
+      }
       // AForce Command Voice Engine — completion reward voice. Fires
       // on user-initiated cycles (silent sips from the Phantom Band
       // get `silent: true` and stay quiet so background auto-logging

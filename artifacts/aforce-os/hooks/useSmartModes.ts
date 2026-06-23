@@ -19,6 +19,7 @@ import { useUserSlice, useEngineSlice } from '@/store/slices';
 import { computeHeatIndexC } from '@/utils/reminders/adaptivePolicy';
 import { deriveActiveModes, type SmartModeResult } from '@/utils/modes/smartModes';
 import { useLocationIntelligence } from '@/hooks/useLocationIntelligence';
+import { recordTravelSignal } from '@/services/performanceMemoryCapture';
 
 /** Freshest workout-minutes across all linked biometric providers. */
 function maxWorkoutMinutes(
@@ -44,6 +45,14 @@ export function useSmartModes(): SmartModeResult {
   // never silently let the synthetic, day-rotated mock light up the Travel
   // Protocol from movement the user never made (Score-Protection posture).
   const isTravelDay = location.source === 'live' && location.travel.isTraveling;
+
+  // Performance Memory capture (OBSERVATIONAL only — never touches score).
+  // A live travel day is one of the three behaviour streams Performance Memory
+  // needs. recordTravelSignal is idempotent per UTC day, so multiple consumers
+  // of this hook (banner + reminder gate) firing the same day is a safe no-op.
+  React.useEffect(() => {
+    if (isTravelDay) void recordTravelSignal();
+  }, [isTravelDay]);
 
   return React.useMemo(
     () =>

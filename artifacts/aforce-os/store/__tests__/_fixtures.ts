@@ -154,6 +154,7 @@ export const baseFlags: FeatureFlags = {
   evidence_engine_enabled: false,
   command_confidence_adaptive_enabled: false,
   performance_memory_execution_enabled: false,
+  performance_memory_governance_enabled: false,
 };
 
 export const baseSubscription: UserSubscription = {

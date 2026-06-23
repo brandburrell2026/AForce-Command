@@ -452,3 +452,15 @@ export function sanitizeCustomDrinkName(input: string): string | null {
   if (!collapsed) return null;
   return collapsed.slice(0, 60);
 }
+
+/**
+ * True when a drink category carries caffeine / stimulant load (coffee, tea,
+ * pre-workout, energy drink, soda). Used by Performance Memory's OBSERVATIONAL
+ * caffeine capture only — it reads `stimulantWeight` and never affects score.
+ */
+export function isStimulantCategory(categoryId: string): boolean {
+  const cat = (DRINK_CATEGORIES as Record<string, DrinkCategory | undefined>)[
+    categoryId
+  ];
+  return !!cat && cat.stimulantWeight > 0;
+}

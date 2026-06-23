@@ -168,6 +168,12 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   // Score-Protection: surface-only — follow-rate is shown, never fed into
   // deriveCommandConfidence and never used to award/mutate score.
   performance_memory_execution_enabled: false,
+
+  // Performance Memory™ — governance VIEW (Profile card + real delete).
+  // OFF in production so the surface stays byte-identical; capture itself is
+  // always-on and unaffected by this flag. Score-Protection: display + delete
+  // only, never awards/reads-into/mutates score.
+  performance_memory_governance_enabled: false,
 };
 
 /**
@@ -254,6 +260,9 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
 
   // Performance Memory™ — STEP 3 execution-memory recap ON for internal inspection.
   performance_memory_execution_enabled: true,
+
+  // Performance Memory™ — governance VIEW ON for internal inspection.
+  performance_memory_governance_enabled: true,
 
   // Phase 10 — Investor Demo overlay is ON in the internal/pitch profile.
   demo_mode_enabled: true,

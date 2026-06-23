@@ -31,6 +31,7 @@ import {
   type VoiceCheckInRecord,
 } from '@/utils/voiceCheckIn';
 import { emit } from '@/analytics/event_dispatcher';
+import { recordUserPrioritySignal } from './performanceMemoryCapture';
 
 const STORAGE_KEY = '@aforce/voice-checkin';
 /** Keep the history bounded — retain the most recent N days. */
@@ -192,6 +193,22 @@ export function recordCheckIn(
     snoozedUntilMs: null,
     hydrated: true,
   });
+  // Performance Memory capture (OBSERVATIONAL only — never touches score).
+  // The self-reported daily priority (goal) is one of the three behaviour
+  // streams Performance Memory needs; a same-day re-record is a distinct
+  // signal and the aggregator keeps the latest per day.
+  //
+  // No-fabrication: capture ONLY a goal the member actually supplied. The
+  // check-in record above keeps its `'train'` fallback (existing behaviour),
+  // but Performance Memory must never persist a priority the user didn't pick,
+  // so we gate on the ORIGINAL answer, not the normalized record value.
+  if (isCheckInGoal(answers.goal)) {
+    void recordUserPrioritySignal({
+      goal: answers.goal,
+      atMs: record.completedAtMs,
+      dayIndex: record.dayIndex,
+    });
+  }
   // INTERNAL usage analytics (consent-gated inside emit, fire-and-forget).
   // Never touches score — voice check-ins are display-only self-reports, so
   // this is pure engagement telemetry for the founder Command Center.

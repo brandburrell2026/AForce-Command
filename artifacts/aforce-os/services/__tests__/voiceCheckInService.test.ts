@@ -27,6 +27,13 @@ vi.mock('@/analytics/event_dispatcher', () => ({
   emit: emitSpy,
 }));
 
+// Performance Memory priority capture is an OBSERVATIONAL side-effect of a
+// check-in (its own store + storage key, tested separately). Stub it here so
+// this suite stays isolated to the voice-checkin storage key (mem.size === 1).
+vi.mock('../performanceMemoryCapture', () => ({
+  recordUserPrioritySignal: vi.fn(async () => undefined),
+}));
+
 import type { VoiceCheckInAnswers } from '../../utils/voiceCheckIn';
 
 const MORNING = new Date(2026, 5, 19, 7, 0);
