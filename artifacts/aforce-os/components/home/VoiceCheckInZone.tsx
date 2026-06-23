@@ -37,6 +37,8 @@ import {
   type PerformanceMemoryEntry,
   type PerformanceMemoryResult,
 } from '@/utils/performanceMemory';
+import { useCommandLedgerStore } from '@/services/commandLedger';
+import { computeExecutionMemory } from '@/utils/intelligence/executionMemory';
 
 const BRAND = Colors.accent.brand;
 
@@ -90,8 +92,10 @@ function BrainEnergyCard({ result }: { result: BrainEnergyResult }) {
 // ─── Performance Memory card (presentational) ─────────────────────────
 function PerformanceMemoryCard({
   result,
+  executionSlot,
 }: {
   result: PerformanceMemoryResult;
+  executionSlot?: React.ReactNode;
 }) {
   const { t } = useTranslation();
 
@@ -129,12 +133,67 @@ function PerformanceMemoryCard({
           <Text style={styles.caption}>{result.recap}</Text>
         </View>
       )}
+      {executionSlot}
+    </View>
+  );
+}
+
+// ─── Execution Memory (command-completion) sub-readout ────────────────
+// Mounted only when `performance_memory_execution_enabled` is on, so the
+// ledger subscription + compute path never run in the production binary. The
+// recap is a pure, READ-ONLY projection of recorded command confirmations —
+// it never awards/mutates score and follow-rate never feeds Command Confidence.
+function ExecutionMemoryContent() {
+  const { t } = useTranslation();
+  const ledger = useCommandLedgerStore();
+  const execution = React.useMemo(
+    () => computeExecutionMemory(ledger.events),
+    [ledger.events],
+  );
+
+  // Nothing followed yet → keep the card byte-identical to the voice-only read.
+  if (execution.status === 'empty') return null;
+
+  return (
+    <View style={styles.executionSection} testID="home-execution-memory">
+      <View style={styles.executionDivider} />
+      <Text style={styles.subEyebrow}>
+        {t('voiceCheckIn.memory.executionEyebrow', {
+          defaultValue: 'COMMANDS FOLLOWED',
+        })}
+      </Text>
+      <View style={styles.statsRow}>
+        <View style={styles.statCol}>
+          <Text style={styles.statValue}>{execution.executionStreak}</Text>
+          <Text style={styles.statLabel}>
+            {t('voiceCheckIn.memory.executionStreak', {
+              defaultValue: 'CMD STREAK',
+            })}
+          </Text>
+        </View>
+        <View style={styles.statDivider} />
+        <View style={styles.statCol}>
+          <Text style={styles.statValue}>
+            {execution.followed}/{execution.sampleSize}
+          </Text>
+          <Text style={styles.statLabel}>
+            {t('voiceCheckIn.memory.executionFollowed', {
+              defaultValue: 'FOLLOWED',
+            })}
+          </Text>
+        </View>
+      </View>
+      <Text style={styles.caption}>{execution.recap}</Text>
     </View>
   );
 }
 
 // ─── Data seam ────────────────────────────────────────────────────────
-function VoiceCheckInZoneInner() {
+function VoiceCheckInZoneInner({
+  showExecutionMemory,
+}: {
+  showExecutionMemory: boolean;
+}) {
   const user = useUserSlice();
   const engine = useEngineSlice();
   const { latestAnswers, records } = useVoiceCheckIn();
@@ -168,7 +227,10 @@ function VoiceCheckInZoneInner() {
   return (
     <View style={styles.wrap}>
       <BrainEnergyCard result={brainEnergy} />
-      <PerformanceMemoryCard result={memory} />
+      <PerformanceMemoryCard
+        result={memory}
+        executionSlot={showExecutionMemory ? <ExecutionMemoryContent /> : null}
+      />
     </View>
   );
 }
@@ -176,7 +238,11 @@ function VoiceCheckInZoneInner() {
 export function VoiceCheckInZone() {
   const flags = useFlagsSlice();
   if (!flags.voice_checkin_enabled) return null;
-  return <VoiceCheckInZoneInner />;
+  return (
+    <VoiceCheckInZoneInner
+      showExecutionMemory={flags.performance_memory_execution_enabled}
+    />
+  );
 }
 
 const styles = StyleSheet.create({
@@ -242,5 +308,18 @@ const styles = StyleSheet.create({
     alignSelf: 'stretch',
     backgroundColor: 'rgba(255,255,255,0.07)',
     marginHorizontal: 14,
+  },
+  executionSection: { marginTop: 2 },
+  executionDivider: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: 'rgba(255,255,255,0.07)',
+    marginVertical: 14,
+  },
+  subEyebrow: {
+    fontFamily: 'Inter_700Bold',
+    fontSize: 10,
+    letterSpacing: 2,
+    color: Colors.text.muted,
+    marginBottom: 12,
   },
 });

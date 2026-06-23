@@ -152,6 +152,7 @@ export const baseFlags: FeatureFlags = {
   scoreFromLedgerHybrid: false,
   evidence_engine_enabled: false,
   command_confidence_adaptive_enabled: false,
+  performance_memory_execution_enabled: false,
 };
 
 export const baseSubscription: UserSubscription = {

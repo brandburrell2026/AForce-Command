@@ -691,6 +691,16 @@ export interface FeatureFlags {
    * fabricates score, and never demotes the Water-First command.
    */
   command_confidence_adaptive_enabled: boolean;
+  /**
+   * Performance Memory™ — STEP 3 execution-memory expansion. Gates the
+   * additive, READ-ONLY command-completion recap (execution streak, recent
+   * follow-rate + trend) derived from the same ledger Command Confidence
+   * writes. Build 100% · Show 10%: OFF in the production binary, ON in
+   * DEMO_ALL_ON. Score-Protection: a SURFACE primitive only — it describes
+   * already-recorded behaviour, never reads into / awards / mutates /
+   * fabricates score, and the follow-rate never feeds Command Confidence.
+   */
+  performance_memory_execution_enabled: boolean;
 }
 
 /**

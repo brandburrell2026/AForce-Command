@@ -45,3 +45,13 @@ describe('shouldShowInvestorDemo — gating logic', () => {
     expect(shouldShowInvestorDemo(noFlag as FeatureFlags, true)).toBe(false);
   });
 });
+
+describe('performance memory execution — flag defaults', () => {
+  it('is OFF in the production default flag set (flag-off = no-op surface)', () => {
+    expect(DEFAULT_FLAGS.performance_memory_execution_enabled).toBe(false);
+  });
+
+  it('is ON in the demo / preview "all on" flag set', () => {
+    expect(DEMO_ALL_ON_FLAGS.performance_memory_execution_enabled).toBe(true);
+  });
+});

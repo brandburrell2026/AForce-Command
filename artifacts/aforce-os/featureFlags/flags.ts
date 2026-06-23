@@ -156,6 +156,14 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   // priority (never score, never ahead of Water-First). OFF in production, ON in
   // DEMO_ALL_ON. Score-Protection: selection-only, never awards/mutates score.
   command_confidence_adaptive_enabled: false,
+
+  // Performance Memory™ — STEP 3 execution-memory expansion. Additive,
+  // read-only command-completion recap (execution streak / recent follow-rate
+  // + trend) read from the same ledger. OFF in the production binary so the
+  // surface stays byte-identical, ON in DEMO_ALL_ON for internal inspection.
+  // Score-Protection: surface-only — follow-rate is shown, never fed into
+  // deriveCommandConfidence and never used to award/mutate score.
+  performance_memory_execution_enabled: false,
 };
 
 /**
@@ -238,6 +246,9 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
 
   // Command Confidence™ — STEP 2 adaptive learning ON for internal inspection.
   command_confidence_adaptive_enabled: true,
+
+  // Performance Memory™ — STEP 3 execution-memory recap ON for internal inspection.
+  performance_memory_execution_enabled: true,
 
   // Phase 10 — Investor Demo overlay is ON in the internal/pitch profile.
   demo_mode_enabled: true,
