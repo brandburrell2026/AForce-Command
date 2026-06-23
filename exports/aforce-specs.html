@@ -23,13 +23,13 @@ vertical-align: middle;
 .display.math{display: block; text-align: center; margin: 0.5rem auto;}
 </style>
   <style type="text/css">body{font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif;max-width:780px;margin:2em auto;color:#111;line-height:1.55;padding:0 1em}
-h1{border-bottom:2px solid #B6FF00;padding-bottom:.3em;margin-top:2em;color:#000}
+h1{border-bottom:2px solid #C1281B;padding-bottom:.3em;margin-top:2em;color:#000}
 h2{border-bottom:1px solid #ddd;padding-bottom:.2em;color:#222}
 h3{color:#333}
 code{background:#f4f4f4;padding:1px 5px;border-radius:3px;font-size:.9em}
 pre{background:#0b0b0b;color:#e6ffb8;padding:1em;border-radius:6px;overflow:auto;font-size:.82em;line-height:1.4}
 pre code{background:none;color:inherit;padding:0}
-blockquote{border-left:4px solid #B6FF00;margin:1em 0;padding:.4em 1em;background:#fafafa;color:#444}
+blockquote{border-left:4px solid #C1281B;margin:1em 0;padding:.4em 1em;background:#fafafa;color:#444}
 table{border-collapse:collapse;margin:1em 0;font-size:.9em}
 table th,table td{border:1px solid #ddd;padding:.4em .7em}
 table th{background:#f4f4f4}
@@ -85,6 +85,76 @@ Implementations &amp; Feature Specifications</a></li>
 <li><a href="#architecture-diagram" id="toc-architecture-diagram">Architecture Diagram</a></li>
 </ul></li>
 <li><a href="#external-dependencies" id="toc-external-dependencies">External Dependencies</a></li>
+<li><a href="#page_facing_up-artifactsaforce-osdocsaforce-os-specificationmd" id="toc-page_facing_up-artifactsaforce-osdocsaforce-os-specificationmd">📄
+artifacts/aforce-os/docs/AForce-OS-Specification.md</a></li>
+<li><a href="#aforce-os--product--technical-specification" id="toc-aforce-os--product--technical-specification">AForce OS — Product
+&amp; Technical Specification</a>
+<ul>
+<li><a href="#1-product-overview" id="toc-1-product-overview">1. Product
+Overview</a></li>
+<li><a href="#2-product-locks-non-negotiable-design-rules" id="toc-2-product-locks-non-negotiable-design-rules">2. Product Locks
+(non-negotiable design rules)</a></li>
+<li><a href="#3-technical-architecture" id="toc-3-technical-architecture">3. Technical Architecture</a></li>
+<li><a href="#4-app-surfaces--screens--navigation" id="toc-4-app-surfaces--screens--navigation">4. App Surfaces — Screens
+&amp; Navigation</a></li>
+<li><a href="#5-feature-flags--phased-exposure" id="toc-5-feature-flags--phased-exposure">5. Feature Flags &amp; Phased
+Exposure</a></li>
+<li><a href="#6-hydration-scoring-engine" id="toc-6-hydration-scoring-engine">6. Hydration Scoring Engine</a></li>
+<li><a href="#7-performance-state-color-system" id="toc-7-performance-state-color-system">7. Performance-State Color
+System</a></li>
+<li><a href="#8-subscription-tiers" id="toc-8-subscription-tiers">8.
+Subscription Tiers</a></li>
+<li><a href="#9-product-store-physical-skus" id="toc-9-product-store-physical-skus">9. Product Store (Physical
+SKUs)</a></li>
+<li><a href="#10-data-model-postgresql--drizzle" id="toc-10-data-model-postgresql--drizzle">10. Data Model (PostgreSQL /
+Drizzle)</a></li>
+<li><a href="#11-api-surface-api-server" id="toc-11-api-surface-api-server">11. API Surface
+(<code>api-server</code>)</a></li>
+<li><a href="#12-integrations" id="toc-12-integrations">12.
+Integrations</a></li>
+<li><a href="#13-localization" id="toc-13-localization">13.
+Localization</a></li>
+<li><a href="#14-publishing--distribution" id="toc-14-publishing--distribution">14. Publishing &amp;
+Distribution</a></li>
+<li><a href="#15-design-system-brand-v210" id="toc-15-design-system-brand-v210">15. Design System (Brand
+v2.1.0)</a></li>
+</ul></li>
+<li><a href="#page_facing_up-artifactsaforce-osspec-sheetmd" id="toc-page_facing_up-artifactsaforce-osspec-sheetmd">📄
+artifacts/aforce-os/SPEC-SHEET.md</a></li>
+<li><a href="#aforce-os--product--technical-specification-1" id="toc-aforce-os--product--technical-specification-1">AForce OS —
+Product &amp; Technical Specification</a>
+<ul>
+<li><a href="#at-a-glance" id="toc-at-a-glance">At a Glance</a></li>
+<li><a href="#1-platform--technology-stack" id="toc-1-platform--technology-stack">1. Platform &amp; Technology
+Stack</a></li>
+<li><a href="#2-application-architecture" id="toc-2-application-architecture">2. Application Architecture</a></li>
+<li><a href="#3-navigation--screen-inventory" id="toc-3-navigation--screen-inventory">3. Navigation &amp; Screen
+Inventory</a></li>
+<li><a href="#4-onboarding--cold-launch-opening-sequence" id="toc-4-onboarding--cold-launch-opening-sequence">4. Onboarding &amp;
+Cold-Launch Opening Sequence</a></li>
+<li><a href="#5-hydration-scoring-engine" id="toc-5-hydration-scoring-engine">5. Hydration Scoring Engine</a></li>
+<li><a href="#6-recovery--health-signals" id="toc-6-recovery--health-signals">6. Recovery &amp; Health
+Signals</a></li>
+<li><a href="#7-ai-coach--voice-engine" id="toc-7-ai-coach--voice-engine">7. AI Coach / Voice Engine</a></li>
+<li><a href="#8-social-layer" id="toc-8-social-layer">8. Social
+Layer</a></li>
+<li><a href="#9-store--subscription-system" id="toc-9-store--subscription-system">9. Store &amp; Subscription
+System</a></li>
+<li><a href="#10-authentication--identity" id="toc-10-authentication--identity">10. Authentication &amp;
+Identity</a></li>
+<li><a href="#11-design-system" id="toc-11-design-system">11. Design
+System</a></li>
+<li><a href="#12-localization" id="toc-12-localization">12.
+Localization</a></li>
+<li><a href="#13-feature-flags" id="toc-13-feature-flags">13. Feature
+Flags</a></li>
+<li><a href="#14-backend--api" id="toc-14-backend--api">14. Backend
+&amp; API</a></li>
+<li><a href="#15-build-distribution--permissions" id="toc-15-build-distribution--permissions">15. Build, Distribution
+&amp; Permissions</a></li>
+<li><a href="#appendix--key-dependency-versions" id="toc-appendix--key-dependency-versions">Appendix — Key Dependency
+Versions</a></li>
+</ul></li>
 <li><a href="#page_facing_up-aforce_final_specmd" id="toc-page_facing_up-aforce_final_specmd">📄
 AFORCE_FINAL_SPEC.md</a></li>
 <li><a href="#aforce-os--final-spec-core-product" id="toc-aforce-os--final-spec-core-product">AFORCE OS — Final Spec (Core
@@ -167,25 +237,23 @@ overlay</a></li>
 <li><a href="#7-test-invariants" id="toc-7-test-invariants">7. Test
 invariants</a></li>
 </ul></li>
-<li><a href="#page_facing_up-docsvalidation-methodologymd" id="toc-page_facing_up-docsvalidation-methodologymd">📄
-docs/validation-methodology.md</a></li>
-<li><a href="#aforce-os--validation-methodology" id="toc-aforce-os--validation-methodology">AForce OS — Validation
-Methodology</a>
+<li><a href="#page_facing_up-artifactsaforce-osdocsinvestor-demo-readinessmd" id="toc-page_facing_up-artifactsaforce-osdocsinvestor-demo-readinessmd">📄
+artifacts/aforce-os/docs/investor-demo-readiness.md</a></li>
+<li><a href="#aforce-os--investor-demo-readiness" id="toc-aforce-os--investor-demo-readiness">AForce OS — Investor Demo
+Readiness</a>
 <ul>
-<li><a href="#1-sweat-rate-per-session" id="toc-1-sweat-rate-per-session">1. Sweat rate (per session)</a></li>
-<li><a href="#2-sodium-replacement-bands" id="toc-2-sodium-replacement-bands">2. Sodium replacement bands</a></li>
-<li><a href="#3-heat-index-heat-guard-activation" id="toc-3-heat-index-heat-guard-activation">3. Heat Index (Heat Guard
-activation)</a></li>
-<li><a href="#4-estimated-blood-alcohol-concentration-social-mode" id="toc-4-estimated-blood-alcohol-concentration-social-mode">4.
-Estimated blood alcohol concentration (Social Mode)</a></li>
-<li><a href="#5-recovery--readiness-adjustments-apple-health-overlay" id="toc-5-recovery--readiness-adjustments-apple-health-overlay">5.
-Recovery &amp; readiness adjustments (Apple Health overlay)</a></li>
-<li><a href="#6-per-event-hydration-impact-the-score-itself" id="toc-6-per-event-hydration-impact-the-score-itself">6. Per-event
-hydration impact (the score itself)</a></li>
-<li><a href="#7-compliance-streak--retention" id="toc-7-compliance-streak--retention">7. Compliance streak &amp;
-retention</a></li>
-<li><a href="#how-to-validate-this-in-the-field" id="toc-how-to-validate-this-in-the-field">How to validate this in the
-field</a></li>
+<li><a href="#ready-now-works-today-in-this-build" id="toc-ready-now-works-today-in-this-build">Ready now (works today, in
+this build)</a></li>
+<li><a href="#done-this-sprint-phase-10" id="toc-done-this-sprint-phase-10">Done this sprint (Phase 10)</a></li>
+<li><a href="#before-testflight-internal-beta--owner--apple-actions" id="toc-before-testflight-internal-beta--owner--apple-actions">Before
+TestFlight (internal beta) — owner / Apple actions</a></li>
+<li><a href="#before-miami-october-field-demo" id="toc-before-miami-october-field-demo">Before Miami (October field
+demo)</a></li>
+<li><a href="#before-public-launch-january" id="toc-before-public-launch-january">Before public launch
+(January)</a></li>
+<li><a href="#risk-level" id="toc-risk-level">Risk level</a></li>
+<li><a href="#next-sprint-suggested-not-committed" id="toc-next-sprint-suggested-not-committed">Next sprint (suggested, not
+committed)</a></li>
 </ul></li>
 <li><a href="#page_facing_up-artifactsaforce-osdocstestflight_checklistmd" id="toc-page_facing_up-artifactsaforce-osdocstestflight_checklistmd">📄
 artifacts/aforce-os/docs/TESTFLIGHT_CHECKLIST.md</a></li>
@@ -206,6 +274,43 @@ Iterate</a></li>
 <li><a href="#common-gotchas" id="toc-common-gotchas">Common
 gotchas</a></li>
 <li><a href="#useful-links" id="toc-useful-links">Useful links</a></li>
+</ul></li>
+<li><a href="#page_facing_up-docscompetitive-moatmd" id="toc-page_facing_up-docscompetitive-moatmd">📄
+docs/competitive-moat.md</a></li>
+<li><a href="#aforce--competitive-moat--defensibility" id="toc-aforce--competitive-moat--defensibility">AForce — Competitive
+Moat &amp; Defensibility</a>
+<ul>
+<li><a href="#1--the-structural-thesis" id="toc-1--the-structural-thesis">1 · The Structural Thesis</a></li>
+<li><a href="#2--competitor-by-competitor-defense" id="toc-2--competitor-by-competitor-defense">2 ·
+Competitor-by-Competitor Defense</a></li>
+<li><a href="#3--surface-by-surface-defense-map" id="toc-3--surface-by-surface-defense-map">3 · Surface-by-Surface
+Defense Map</a></li>
+<li><a href="#4--the-asymmetry-in-one-sentence-per-layer" id="toc-4--the-asymmetry-in-one-sentence-per-layer">4 · The Asymmetry,
+In One Sentence Per Layer</a></li>
+<li><a href="#5--what-would-it-take-for-each-player-to-catch-up" id="toc-5--what-would-it-take-for-each-player-to-catch-up">5 · What
+Would It Take For Each Player to Catch Up?</a></li>
+<li><a href="#6--the-one-line-closer" id="toc-6--the-one-line-closer">6
+· The One-Line Closer</a></li>
+</ul></li>
+<li><a href="#page_facing_up-docsvalidation-methodologymd" id="toc-page_facing_up-docsvalidation-methodologymd">📄
+docs/validation-methodology.md</a></li>
+<li><a href="#aforce-os--validation-methodology" id="toc-aforce-os--validation-methodology">AForce OS — Validation
+Methodology</a>
+<ul>
+<li><a href="#1-sweat-rate-per-session" id="toc-1-sweat-rate-per-session">1. Sweat rate (per session)</a></li>
+<li><a href="#2-sodium-replacement-bands" id="toc-2-sodium-replacement-bands">2. Sodium replacement bands</a></li>
+<li><a href="#3-heat-index-heat-guard-activation" id="toc-3-heat-index-heat-guard-activation">3. Heat Index (Heat Guard
+activation)</a></li>
+<li><a href="#4-estimated-blood-alcohol-concentration-social-mode" id="toc-4-estimated-blood-alcohol-concentration-social-mode">4.
+Estimated blood alcohol concentration (Social Mode)</a></li>
+<li><a href="#5-recovery--readiness-adjustments-apple-health-overlay" id="toc-5-recovery--readiness-adjustments-apple-health-overlay">5.
+Recovery &amp; readiness adjustments (Apple Health overlay)</a></li>
+<li><a href="#6-per-event-hydration-impact-the-score-itself" id="toc-6-per-event-hydration-impact-the-score-itself">6. Per-event
+hydration impact (the score itself)</a></li>
+<li><a href="#7-compliance-streak--retention" id="toc-7-compliance-streak--retention">7. Compliance streak &amp;
+retention</a></li>
+<li><a href="#how-to-validate-this-in-the-field" id="toc-how-to-validate-this-in-the-field">How to validate this in the
+field</a></li>
 </ul></li>
 <li><a href="#page_facing_up-artifactsapi-serverdocsscaling-architecturemd" id="toc-page_facing_up-artifactsapi-serverdocsscaling-architecturemd">📄
 artifacts/api-server/docs/scaling-architecture.md</a></li>
@@ -285,6 +390,10 @@ Spec</a></li>
 <hr />
 <h1 id="page_facing_up-replitmd">📄 replit.md</h1>
 <h1 id="overview">Overview</h1>
+<blockquote>
+<p><strong>Brand system:</strong> v2.1.0 (AForce Brand System) — see
+<code>design/aforce-design-tokens.md</code>.</p>
+</blockquote>
 <p>AForce OS is a real-time human performance operating system,
 delivered as a React Native / Expo mobile application with an Express 5
 and PostgreSQL API server. Its core purpose is to provide hydration
@@ -351,8 +460,12 @@ Sequence (owner-approved)</h2>
 <strong>per cold launch</strong> as an overlay — mounted in
 <code>app/_layout.tsx</code> (AppShell), mirroring the InvestorDemo
 overlay pattern, so it touches <strong>no routing</strong> (no
-redirect-loop risk) and then fades out to reveal whatever the app routed
-to underneath.</p>
+redirect-loop risk). It is the first of <strong>two stacked cold-launch
+overlays</strong> driven by the AppShell phase machine
+(<code>opening → welcome → done</code>): when the cinematic finishes it
+crossfades into the <code>WelcomeHero</code> photo front door, and only
+after the user picks an entry do both overlays dismiss to reveal
+whatever the app routed to underneath.</p>
 <ul>
 <li><strong>Stages:</strong> (1) white water-drop symbol w/ breathing
 fade → (2) AFORCE wordmark + brand-red hairline + &quot;Performance Is
@@ -367,10 +480,20 @@ reduced-motion aware (<code>AccessibilityInfo</code>).</li>
 <li><strong>Score-Protection:</strong> display-only projection of
 <code>engine.score</code> (DEFAULT_SCORE=92 fallback before state
 loads); never awards, mutates, or fabricates score.</li>
-<li><strong>First-run untouched:</strong> onboarding stays intact — new
-users get opening → onboarding. (The separate welcome lobby was removed;
-the cold-launch cinematic is now solely the OpeningSequence
-overlay.)</li>
+<li><strong>Front door (two overlays, retained):</strong> the
+<code>WelcomeHero</code> photo front door
+(<code>components/welcome/WelcomeHero.tsx</code>) is an intended,
+retained surface — it is <strong>not</strong> removed and the cinematic
+is <strong>not</strong> the sole opening surface. It is mounted in
+<code>_layout.tsx</code> <em>under</em> the cinematic (zIndex 999 vs
+1000) so the cinematic&#39;s fade-out crossfades into it with no black
+flash. When AppShell advances <code>opening → welcome</code> the front
+door&#39;s staggered entrance fires; its <strong>GET STARTED</strong> routes
+to <code>/onboarding</code> and <strong>SIGN IN</strong> to
+<code>/(auth)/sign-in</code>, which advances the phase to
+<code>done</code> and dismisses both overlays to reveal the routed app.
+Onboarding stays intact — new users get opening → welcome →
+onboarding.</li>
 <li><strong>Plays per JS launch:</strong> <code>OpeningMount</code>
 holds <code>useState(true)</code> initialised once when AppShell mounts;
 <code>onFinish</code> is a stable <code>useCallback</code> and
@@ -426,16 +549,22 @@ React Query hooks.</li>
 </ul>
 <h2 id="uiux-decisions">UI/UX Decisions</h2>
 <ul>
-<li><strong>Color Scheme:</strong> WHOOP-Cinematic edition — pure black
-<code>#000000</code> canvas, WHOOP lime <code>#B6FF00</code> hero
-accent, near-invisible borders, WHOOP recovery colors
-(green/yellow/red). Design tokens exported via
+<li><strong>Color Scheme:</strong> AForce Brand System (v2.1.0) —
+near-black <code>#0D0D0D</code> canvas, Signal Red <code>#C1281B</code>
+hero accent used sparingly (thin lines, eyebrows, active states, CTAs),
+Soursop green <code>#1FA35A</code> for positive status (Peak / Optimal /
+success), Berry blue <code>#1E5BFF</code> for secondary data,
+near-invisible borders, and the four performance-state colors (green /
+teal / amber / red). Pure black <code>#000000</code> is reserved for
+scrims, drop-shadow color, and <code>text.inverse</code> (text on
+light/accent fills) only. Design tokens exported via
 <code>design/aforce-tokens.json</code> (Tokens Studio format) and
 human-readable <code>design/aforce-design-tokens.md</code>.</li>
-<li><strong>Design Language:</strong> WHOOP-cinematic dark aesthetic.
-Content floats on pure black. Data-forward: big numbers, small tracked
-labels. Soft radial glows, never hard box shadows. Generous spacing
-throughout.</li>
+<li><strong>Design Language:</strong> AForce cinematic dark aesthetic.
+Content floats on near-black <code>#0D0D0D</code>. Data-forward: big
+numbers, small tracked labels. Soft radial glows, never hard box
+shadows. Generous spacing throughout. Three type faces by role: Archivo
+Black (display), IBM Plex Mono (eyebrows / metrics), Inter (body).</li>
 <li><strong>Visuals:</strong> Stylized maps for &quot;Territory&quot; and smooth
 animations with Reanimated.</li>
 </ul>
@@ -603,8 +732,9 @@ elements.</li>
 state.</li>
 <li><strong><code>utils/</code></strong>: Pure helpers.</li>
 <li><strong><code>featureFlags/</code></strong>: Feature toggles.</li>
-<li><strong><code>theme/</code></strong>: WHOOP-Cinematic color system,
-typography, spacing, radii, shadows, status color engine.</li>
+<li><strong><code>theme/</code></strong>: AForce Brand System (v2.1.0)
+color system, typography, spacing, radii, shadows, status color
+engine.</li>
 <li><strong><code>design/</code></strong>: Figma design tokens
 (<code>aforce-tokens.json</code>) and human-readable spec
 (<code>aforce-design-tokens.md</code>). Download endpoint:
@@ -641,9 +771,1091 @@ recognition.</li>
 <li><strong>i18next:</strong> Localization.</li>
 </ul>
 <hr />
+<h1 id="page_facing_up-artifactsaforce-osdocsaforce-os-specificationmd">📄
+artifacts/aforce-os/docs/AForce-OS-Specification.md</h1>
+<h1 id="aforce-os--product--technical-specification">AForce OS — Product
+&amp; Technical Specification</h1>
+<blockquote>
+<p>Current as of June 23, 2026. Brand system v2.1.0. This document is
+compiled from the live codebase (<code>artifacts/aforce-os</code>,
+<code>artifacts/api-server</code>, <code>lib/</code>) and the locked
+product decisions in <code>replit.md</code>. Where the code and older
+spec PDFs disagree, the code is treated as the source of truth.</p>
+</blockquote>
+<hr />
+<h2 id="1-product-overview">1. Product Overview</h2>
+<p><strong>AForce OS</strong> is a real-time human-performance operating
+system delivered as a React Native / Expo mobile app backed by an
+Express 5 + PostgreSQL API server. Its core job is <strong>hydration
+intelligence</strong>: it turns logged fluid intake, biometrics, and
+environment into a single live performance score, then coaches the user
+with an AI voice engine. Around that core it layers recovery, social
+accountability, competition, and an integrated store/subscription
+business.</p>
+<p><strong>Positioning mantra:</strong> <em>Pause → Hydrate → Lock In →
+Perform.</em> <strong>Tagline:</strong> <em>Performance Is
+Non-Negotiable.</em></p>
+<hr />
+<h2 id="2-product-locks-non-negotiable-design-rules">2. Product Locks
+(non-negotiable design rules)</h2>
+<p>These constrain every feature and cannot be silently overridden.</p>
+<ul>
+<li><strong>Water-First Command System.</strong> Recommendation order is
+<strong>Water → Command → Optional support → Score update</strong>.
+Default coach copy must begin with <code>HYDRATE NOW</code> /
+<code>Start with water</code>. Products never lead; behavior first,
+product second.</li>
+<li><strong>Score Protection.</strong> Only <em>completed</em> actions
+change the score. Recommendations, scans (HydroScan is advisory), and
+product selection never increase score. Every Home read-out is a
+read-only projection of already-completed behavior.</li>
+<li><strong>Language / Localization Lock.</strong> Launch languages:
+English, Spanish, French, German, Portuguese, Italian. No
+country-specific prioritization; architecture stays modular so hidden
+locales can ship later behind flags.</li>
+<li><strong>Engine / UI Governance.</strong> The engine may grow
+smarter; navigation may not grow. Feature flags control exposure.
+Principle: <strong>Build 100% · Show 10% · Unlock over time.</strong>
+One engine, multiple experiences.</li>
+<li><strong>Product Positioning.</strong> Decision order: Context →
+Recovery → Behavior → Learning → Optional support. Products support
+behavior; they never drive it.</li>
+</ul>
+<hr />
+<h2 id="3-technical-architecture">3. Technical Architecture</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Layer</th>
+<th style="text-align: left;">Technology</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">Monorepo</td>
+<td style="text-align: left;">pnpm workspaces</td>
+</tr>
+<tr>
+<td style="text-align: left;">Mobile</td>
+<td style="text-align: left;">React Native / Expo SDK 54, Expo Router 6,
+Reanimated 3, Gesture Handler</td>
+</tr>
+<tr>
+<td style="text-align: left;">Mobile state</td>
+<td style="text-align: left;">React Context + <code>useReducer</code>
+(slice-based store)</td>
+</tr>
+<tr>
+<td style="text-align: left;">Data fetching</td>
+<td style="text-align: left;"><code>@tanstack/react-query</code> with
+Orval-generated hooks</td>
+</tr>
+<tr>
+<td style="text-align: left;">Backend</td>
+<td style="text-align: left;">Node.js 24, Express 5, PostgreSQL, Drizzle
+ORM, Zod</td>
+</tr>
+<tr>
+<td style="text-align: left;">API contract</td>
+<td style="text-align: left;">OpenAPI-first; Orval codegen → React Query
+hooks + Zod schemas</td>
+</tr>
+<tr>
+<td style="text-align: left;">Real-time</td>
+<td style="text-align: left;">Shared HTTP + WebSocket server; REST
+mutations broadcast to clients</td>
+</tr>
+<tr>
+<td style="text-align: left;">i18n</td>
+<td style="text-align: left;">i18next</td>
+</tr>
+<tr>
+<td style="text-align: left;">Auth</td>
+<td style="text-align: left;">Clerk (<code>@clerk/expo</code> mobile,
+<code>@clerk/express</code> server)</td>
+</tr>
+<tr>
+<td style="text-align: left;">Payments</td>
+<td style="text-align: left;">Stripe + <code>stripe-replit-sync</code>
+(webhooks mirrored to Postgres)</td>
+</tr>
+<tr>
+<td style="text-align: left;">Voice</td>
+<td style="text-align: left;">ElevenLabs TTS (Expo Speech fallback)</td>
+</tr>
+<tr>
+<td style="text-align: left;">Environment</td>
+<td style="text-align: left;">OpenWeather API (server-proxied,
+cached)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Folder model (mobile):</strong> <code>app/</code>
+(routes/layouts), <code>components/</code>, <code>services/</code>
+(business logic), <code>store/</code> (reducer slices),
+<code>utils/</code> (pure helpers), <code>featureFlags/</code>,
+<code>theme/</code> (brand system), <code>design/</code> (Figma tokens),
+<code>data/</code> (SKUs, plans, templates), <code>types/</code>.</p>
+<hr />
+<h2 id="4-app-surfaces--screens--navigation">4. App Surfaces — Screens
+&amp; Navigation</h2>
+<p>Navigation is <strong>locked to 5 visible tabs</strong>; additional
+surfaces exist as stacked or hidden routes (engines built, surfaces
+revealed over time).</p>
+<p><strong>Visible tabs:</strong> Home · Hydration (Journal) · Protocol
+· Community · Profile.</p>
+<p><strong>All routes (<code>app/</code>):</strong></p>
+<ul>
+<li>Tabs: <code>index</code> (Home), <code>protocol</code>,
+<code>scan</code> (HydroScan), <code>journal</code>,
+<code>competition</code>, <code>social</code>, <code>sleep</code>,
+<code>profile</code>, <code>social-legacy</code> <em>(several hidden via
+<code>href:null</code>)</em>.</li>
+<li>Auth: <code>(auth)/sign-in</code>, <code>(auth)/sign-up</code>
+(Clerk).</li>
+<li>Hidden / staged: <code>(hidden)/cruise/*</code> (journey · port ·
+excursion · recovery), <code>circles/[id] · manage · shared</code>,
+<code>heat/guardian</code>, <code>ring/session</code>,
+<code>subscription/manage</code>,
+<code>legal/privacy · terms · health-disclaimer</code>,
+<code>clutch</code> (team command grid), <code>phantom</code> (wearable
+status), <code>territory</code> (performance map),
+<code>urine-check</code>, <code>onboarding</code>,
+<code>weekly-report</code>.</li>
+</ul>
+<p><strong>Home composition (current, post-revert orb-focused
+layout):</strong> readiness eyebrow → status headline → Status Pulse Orb
+→ status label → live status line → consequence line → status-based
+primary CTA → quick-action grid → Hydration Status card → flag-gated
+zones (render nothing when off) → pinned &quot;AFORCE&quot; brand footer.</p>
+<hr />
+<h2 id="5-feature-flags--phased-exposure">5. Feature Flags &amp; Phased
+Exposure</h2>
+<p>Phase 1 (Core) is on by default; Phase 2/3 sub-features ship
+<strong>off</strong> and light up over time. Verified defaults from
+<code>featureFlags/flags.ts</code>:</p>
+<p><strong>On by default (<code>true</code>):</strong>
+<code>city_competition_enabled</code>,
+<code>state_competition_enabled</code>,
+<code>team_competition_enabled</code>,
+<code>global_leaderboard_enabled</code>,
+<code>cruise_mode_enabled</code>, <code>sleep_mode_enabled</code>, plus
+spec flags <code>spec_activation</code>, <code>spec_social</code>,
+<code>spec_coachV2</code>, <code>spec_recoveryCircle</code>,
+<code>spec_notifications</code>, <code>spec_orb</code>,
+<code>spec_timelineLock</code>, <code>spec_hydroJournal</code>,
+<code>spec_hydroScan</code>, <code>spec_profileSource</code>,
+<code>spec_sharedContextLayer</code>, <code>spec_uiFreeze</code>.</p>
+<p><strong>Off by default (<code>false</code>):</strong>
+<code>clutch_access_enabled</code> (+ heat/inventory/clip),
+<code>guardian_intelligence_enabled</code> (+ body_map/alerts),
+<code>phantom_wearable_enabled</code>, <code>ring_enabled</code>,
+<code>kids_world_enabled</code>, <code>demo_mode_enabled</code>,
+<code>metabolic_readiness_enabled</code> (+ glucose),
+<code>performance_age_enabled</code>,
+<code>voice_checkin_enabled</code>, <code>intent_capture_enabled</code>,
+<code>performance_statements_enabled</code>,
+<code>offline_intake_outbox_enabled</code>, all <code>cruise_*</code>
+sub-features, <code>voice_status_module_visible</code>, and gated
+locales <code>spec_language_ar/zh/ja/ko/hi</code>.</p>
+<hr />
+<h2 id="6-hydration-scoring-engine">6. Hydration Scoring Engine</h2>
+<p>A single 0–100 score drives every coach surface in lock-step.</p>
+<ul>
+<li><strong>Event-driven scoring.</strong> Each logged intake event has
+defined point values, <strong>absorption caps</strong> (per rolling time
+window), and <strong>time-release curves</strong> so a large gulp is
+absorbed gradually rather than all at once.</li>
+<li><strong>Continuous depletion.</strong> A pure, dependency-free
+helper computes score-points-per-minute decay from physiological
+standards, so the score falls between logs.</li>
+<li><strong>Daily water target</strong> is derived per user from body
+weight, activity, and climate (heat/humidity from the weather proxy),
+not a fixed number.</li>
+<li><strong>Score Protection</strong> is enforced at the engine
+boundary: scans and recommendations are advisory and never mutate score;
+only completed intake/recovery behavior does. Scoring runs
+<strong>on-device</strong>; the server persists client-submitted
+snapshots rather than acting as the authority.</li>
+<li>Modifiers: Social/Night Mode (alcohol) raises decay; Heat Guard and
+low-score states apply small product-specific recovery bonuses.</li>
+</ul>
+<p><em>(Exact point/cap constants live in
+<code>utils/scoringEngine.ts</code>,
+<code>services/sweatRateEngine.ts</code>, and the depletion helpers —
+parameterized in code, intentionally not frozen here.)</em></p>
+<hr />
+<h2 id="7-performance-state-color-system">7. Performance-State Color
+System</h2>
+<p>Five score bands (single source of truth:
+<code>theme/statusColor.ts</code>, brand v2.1.0). Color is a
+<strong>signal only</strong> — borders, dots, glows, accents, CTA tint —
+never a fill.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Band</th>
+<th style="text-align: left;">Range</th>
+<th style="text-align: left;">Calm hex</th>
+<th style="text-align: left;">Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">OPTIMAL</td>
+<td style="text-align: left;">85–100</td>
+<td style="text-align: left;"><code>#1FA35A</code> (Soursop green)</td>
+<td style="text-align: left;">Peak — soft wide glow</td>
+</tr>
+<tr>
+<td style="text-align: left;">STABLE</td>
+<td style="text-align: left;">70–84</td>
+<td style="text-align: left;"><code>#3DBE7A</code> (green, lighter)</td>
+<td style="text-align: left;">Holding — subtle glow</td>
+</tr>
+<tr>
+<td style="text-align: left;">DECLINING</td>
+<td style="text-align: left;">50–69</td>
+<td style="text-align: left;"><code>#FFDE00</code> (amber)</td>
+<td style="text-align: left;">Slipping — minimal glow</td>
+</tr>
+<tr>
+<td style="text-align: left;">RISK</td>
+<td style="text-align: left;">30–49</td>
+<td style="text-align: left;"><code>#FF8C1A</code> (orange)</td>
+<td style="text-align: left;">Act now — medium glow</td>
+</tr>
+<tr>
+<td style="text-align: left;">CRITICAL</td>
+<td style="text-align: left;">0–29</td>
+<td style="text-align: left;"><code>#FF2800</code> (signal red)</td>
+<td style="text-align: left;">Depleted — tight intense glow</td>
+</tr>
+</tbody>
+</table>
+<p>A <strong>Pressure Mode</strong> variant deepens saturation, raises
+glow alpha, and speeds the pulse for the same band.</p>
+<hr />
+<h2 id="8-subscription-tiers">8. Subscription Tiers</h2>
+<p>Verified monthly prices from
+<code>data/subscriptionPlans.ts</code>.</p>
+<p><strong>Consumer (5 tiers):</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Plan</th>
+<th style="text-align: left;">Price</th>
+<th style="text-align: left;">Unlocks</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">Core</td>
+<td style="text-align: left;">$9.99/mo</td>
+<td style="text-align: left;">Hydration Control Center, Status Pulse +
+score, basic protocol, basic AI, logging, smart reminders</td>
+</tr>
+<tr>
+<td style="text-align: left;">Recovery+</td>
+<td style="text-align: left;">$9.99/mo</td>
+<td style="text-align: left;">Adds post-session Recovery Mode</td>
+</tr>
+<tr>
+<td style="text-align: left;">AForce Athlete</td>
+<td style="text-align: left;">$19.99/mo</td>
+<td style="text-align: left;">Enhanced AI, personalized protocol,
+advanced recovery, 90-day trends, competition + city/state/team
+leaderboards, premium notifications, Metabolic Readiness</td>
+</tr>
+<tr>
+<td style="text-align: left;">Performance Bundle</td>
+<td style="text-align: left;">$59.99/mo</td>
+<td style="text-align: left;">Flagship: Athlete tier + monthly product
+drop (1 canister or 2 stick packs) at member pricing, priority
+AI/insights</td>
+</tr>
+<tr>
+<td style="text-align: left;">AForce Elite</td>
+<td style="text-align: left;">$99/mo</td>
+<td style="text-align: left;">Guardian Mode (individual), premium
+analytics, full monthly product bundle, early access, concierge
+support</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Team (Core):</strong> Team Core Starter $49/mo (≤25 seats) ·
+Team Core Growth $99/mo (≤50) · Team Core Pro $149/mo (≤100) —
+roster-aware, group reporting, admin console.</p>
+<p><strong>Enterprise — Clutch (live team command):</strong> Clutch
+Starter $1,000/mo · Clutch Pro $2,500/mo · Clutch Elite $5,000/mo.</p>
+<p><strong>Enterprise — Guardian (injury-risk protection):</strong>
+Guardian Core $5,000/mo + $7,500 setup (6-mo min) · Guardian Elite
+$8,000/mo + $12,500 setup (12-mo min).</p>
+<p>Entitlement is gated client-side via <code>useEntitlement.ts</code>;
+Stripe is the source of truth, mirrored to Postgres.</p>
+<hr />
+<h2 id="9-product-store-physical-skus">9. Product Store (Physical
+SKUs)</h2>
+<p>Catalog model: one SKU per (format × flavor), plus per-format bundles
+(<code>data/pricing.ts</code>, <code>data/products.ts</code>).
+Subscriber/member pricing is lower than list. Pricing/shipping/tax are
+computed server-side.</p>
+<ul>
+<li><strong>Formats:</strong> Stick packs (12 ct) · RTD cans (12 pk) ·
+Canisters (30 servings).</li>
+<li><strong>Flavors:</strong> Berry · Watermelon · Soursop.</li>
+<li><strong>Bundles:</strong> flavor-agnostic multi-packs (flavor split
+chosen at checkout).</li>
+<li>Per-serving sodium and serving sizes are encoded per SKU for the
+sweat-rate math.</li>
+</ul>
+<hr />
+<h2 id="10-data-model-postgresql--drizzle">10. Data Model (PostgreSQL /
+Drizzle)</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Table</th>
+<th style="text-align: left;">Key columns</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>aforce_user_state</code></td>
+<td style="text-align: left;"><code>user_id</code> (PK),
+<code>units_consumed_today</code>, <code>oz_target</code>,
+<code>symptom_state</code>, <code>biometrics</code> (JSONB),
+<code>social_mode</code> (JSONB), <code>intake_events</code>
+(JSONB)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>aforce_intake_logs</code></td>
+<td style="text-align: left;"><code>id</code>, <code>user_id</code>,
+<code>fluid_type</code>, <code>oz_amount</code>,
+<code>score_before</code>, <code>score_after</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>aforce_score_snapshots</code></td>
+<td style="text-align: left;"><code>id</code>, <code>user_id</code>,
+<code>score</code>, <code>level</code>, <code>recovery_score</code>,
+<code>captured_at</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>aforce_users</code></td>
+<td style="text-align: left;"><code>id</code>,
+<code>stripe_customer_id</code>, <code>plan_id</code>,
+<code>subscription_status</code>, <code>referral_code</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>aforce_circle_users</code></td>
+<td style="text-align: left;"><code>owner_user_id</code>,
+<code>member_user_id</code>, <code>status</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>aforce_analytics_events</code></td>
+<td style="text-align: left;"><code>event_id</code>,
+<code>analytics_id</code>, <code>event_type</code>,
+<code>payload</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="11-api-surface-api-server">11. API Surface
+(<code>api-server</code>)</h2>
+<p>Express 5 with Zod input/output validation generated from the OpenAPI
+spec.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Method · Path</th>
+<th style="text-align: left;">Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>GET /api/aforce/state</code></td>
+<td style="text-align: left;">Full UserState snapshot</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>POST /api/aforce/intake</code></td>
+<td style="text-align: left;">Log fluid consumption</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>POST /api/aforce/signals</code></td>
+<td style="text-align: left;">Update active symptoms
+(mild/moderate/severe)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>GET /api/aforce/journal/timeline</code></td>
+<td style="text-align: left;">Interleaved snapshots + intake
+history</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>POST /api/aforce/social/activate</code></td>
+<td style="text-align: left;">Start a Social-Mode drinking session</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>POST /api/aforce/social/cruise</code></td>
+<td style="text-align: left;">Start 24h Enterprise Cruise Mode</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>GET /api/aforce/weather</code></td>
+<td style="text-align: left;">OpenWeather proxy (tempC, humidity) by
+lat/lon</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>POST /api/voice/tts</code></td>
+<td style="text-align: left;">ElevenLabs text-to-speech proxy</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>POST /api/checkout/session</code></td>
+<td style="text-align: left;">Stripe Checkout for subscriptions</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>POST /api/stripe/webhook</code></td>
+<td style="text-align: left;">Stripe events → updates
+<code>plan_id</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Hardening:</strong> <code>SELECT … FOR UPDATE</code> to
+serialize concurrent user actions; rate limiting on public +
+authenticated endpoints; in-memory TTL cache on the weather proxy;
+structured request/non-request logging.</p>
+<hr />
+<h2 id="12-integrations">12. Integrations</h2>
+<ul>
+<li><strong>Auth — Clerk.</strong> Custom email/password + Google SSO.
+JWT via <code>Authorization: Bearer</code> (REST) and
+<code>?token=</code> (WebSocket). Token bridging into the OpenAPI
+client; auth-gated routes on both mobile and server.</li>
+<li><strong>Real-time — WebSocket</strong> mounted on the shared server
+(<code>/api/aforce/ws</code>) with periodic heartbeats; REST mutations
+are broadcast to connected clients.</li>
+<li><strong>Payments — Stripe</strong> via
+<code>stripe-replit-sync</code>; the webhook secret is pulled from the
+managed Replit Stripe connector (not an env var). Webhook events mirror
+subscription state to Postgres.</li>
+<li><strong>Environment — OpenWeather</strong>, server-proxied with a
+~10-minute TTL cache (<code>OPENWEATHER_API_KEY</code>).</li>
+<li><strong>Voice — ElevenLabs</strong>
+(<code>eleven_turbo_v2_5</code>); static phrases cached. Expo Speech is
+the fallback.</li>
+</ul>
+<hr />
+<h2 id="13-localization">13. Localization</h2>
+<p>Launch set (6, in the selector): English · Spanish · French · German
+· Portuguese · Italian. Additional locales (Arabic, Chinese, Japanese,
+Korean, Hindi) are wired as resources but <strong>gated behind
+flags</strong> and excluded from the language selector. Architecture is
+modular so new languages add without a rebuild. (Number/date
+localization is a known gap — formatting is currently device-locale
+bound.)</p>
+<hr />
+<h2 id="14-publishing--distribution">14. Publishing &amp;
+Distribution</h2>
+<ul>
+<li><strong>Build service:</strong> EAS Build —
+<code>development</code>, <code>preview</code>, <code>production</code>
+profiles in <code>eas.json</code>.</li>
+<li><strong>Bundle IDs:</strong> iOS <code>com.aforce.os</code>, Android
+<code>com.aforce.os</code>.</li>
+<li><strong>Branding assets:</strong> icon / splash / adaptive / favicon
+all render the <strong>N–N &quot;Non-Negotiable&quot; monogram</strong> (Bone
+<code>#F5F0E8</code> N&#39;s, Signal Red <code>#C1281B</code> center bar,
+Cinematic Black <code>#0D0D0D</code>), generated from a font-free vector
+SVG.</li>
+<li><strong>Build:</strong> <code>pnpm eas:build:ios</code> ·
+<code>:android</code> · <code>:all</code> · <code>:preview</code> (from
+<code>artifacts/aforce-os/</code>).</li>
+<li><strong>Submit:</strong> <code>pnpm eas:submit:ios</code> (needs ASC
+App ID + Apple Team ID via the <code>eas-configure-submit</code> helper)
+· <code>pnpm eas:submit:android</code> (needs a Google Play
+service-account JSON, never committed).</li>
+<li><strong>Store screenshots</strong> must be captured from a real
+device/simulator build — the web preview can&#39;t produce submission-grade
+assets.</li>
+</ul>
+<hr />
+<h2 id="15-design-system-brand-v210">15. Design System (Brand
+v2.1.0)</h2>
+<ul>
+<li><strong>Canvas:</strong> near-black <code>#0D0D0D</code>. Content
+floats; soft radial glows, never hard box shadows. Generous
+spacing.</li>
+<li><strong>Accents:</strong> Signal Red <code>#C1281B</code> used
+sparingly (thin lines, eyebrows, active states, CTAs); Soursop green
+<code>#1FA35A</code> for positive status; Berry blue
+<code>#1E5BFF</code> for secondary data. Pure black <code>#000000</code>
+reserved for scrims/shadows/inverse text.</li>
+<li><strong>Type (three roles):</strong> Archivo Black (display) · IBM
+Plex Mono (eyebrows / metrics) · Inter (body).</li>
+<li><strong>Tokens:</strong> exported as
+<code>design/aforce-tokens.json</code> (Tokens Studio) + human-readable
+<code>design/aforce-design-tokens.md</code>. Served at
+<code>GET /api/design-tokens</code> and
+<code>GET /api/design-guide</code>.</li>
+</ul>
+<hr />
+<p><em>Source of truth: the AForce OS codebase. Locked product decisions
+are maintained in <code>replit.md</code>; this spec mirrors them and
+adds the concrete, code-verified inventory.</em></p>
+<hr />
+<h1 id="page_facing_up-artifactsaforce-osspec-sheetmd">📄
+artifacts/aforce-os/SPEC-SHEET.md</h1>
+<h1 id="aforce-os--product--technical-specification-1">AForce OS —
+Product &amp; Technical Specification</h1>
+<p>A complete specification of the <strong>AForce OS</strong> mobile
+application — a real-time human-performance operating system delivered
+as a React Native / Expo app with an Express 5 + PostgreSQL backend. Its
+purpose: turn hydration into measurable readiness, recovery, and a daily
+ritual — <em>Pause → Hydrate → Lock In → Perform.</em></p>
+<h2 id="at-a-glance">At a Glance</h2>
+<table>
+<tbody>
+<tr>
+<td><strong>App name</strong></td>
+<td>AForce OS</td>
+</tr>
+<tr>
+<td><strong>Version</strong></td>
+<td>1.0.0 (iOS build 1 / Android versionCode 1)</td>
+</tr>
+<tr>
+<td><strong>Platform</strong></td>
+<td>iOS + Android (React Native / Expo), portrait, dark UI</td>
+</tr>
+<tr>
+<td><strong>Bundle ID</strong></td>
+<td><code>com.aforce.os</code> (iOS &amp; Android)</td>
+</tr>
+<tr>
+<td><strong>Frontend</strong></td>
+<td>Expo SDK ~54, React Native 0.81.5, Expo Router 6</td>
+</tr>
+<tr>
+<td><strong>Backend</strong></td>
+<td>Node.js, Express 5, PostgreSQL, Drizzle ORM, Zod</td>
+</tr>
+<tr>
+<td><strong>Auth</strong></td>
+<td>Clerk (<code>@clerk/expo</code>)</td>
+</tr>
+<tr>
+<td><strong>Payments</strong></td>
+<td>Stripe + stripe-replit-sync</td>
+</tr>
+<tr>
+<td><strong>Languages</strong></td>
+<td>6 live (EN/ES/FR/DE/PT/IT) + 5 wired-but-hidden</td>
+</tr>
+<tr>
+<td><strong>Visible tabs</strong></td>
+<td>Home · Hydration · Protocols · Community · Profile</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="1-platform--technology-stack">1. Platform &amp; Technology
+Stack</h2>
+<ul>
+<li><strong>Framework:</strong> Expo SDK <code>~54.0.27</code>, React
+Native <code>0.81.5</code> (New Architecture enabled, React Compiler
+enabled, typed routes).</li>
+<li><strong>Navigation:</strong> Expo Router <code>~6.0.17</code>
+(file-based; both classic <code>Tabs</code> and native
+<code>NativeTabs</code>).</li>
+<li><strong>State management:</strong> Zustand store organized into
+reducer-style slices (<code>store/useAppStore.tsx</code>,
+<code>store/appStoreReducer.ts</code>, <code>store/slices.tsx</code>),
+plus a dedicated cart store (<code>store/useCartStore.tsx</code>).</li>
+<li><strong>Data fetching:</strong> <code>@tanstack/react-query</code>,
+consuming a generated OpenAPI client
+(<code>@workspace/api-client-react</code>).</li>
+<li><strong>Animation:</strong> React Native Reanimated
+<code>~4.1.1</code> + Worklets.</li>
+<li><strong>Internationalization:</strong> <code>i18next</code> +
+<code>react-i18next</code> + <code>expo-localization</code>.</li>
+<li><strong>Hardware / device:</strong> <code>expo-camera</code>
+(HydroScan), <code>expo-location</code> (weather),
+<code>@kingstinct/react-native-healthkit</code> (Apple Health),
+<code>expo-haptics</code>, <code>expo-audio</code>,
+<code>expo-notifications</code>, <code>expo-secure-store</code>.</li>
+<li><strong>Typography assets:</strong> Inter, Bebas Neue, DM Sans
+(<code>@expo-google-fonts/*</code>).</li>
+</ul>
+<hr />
+<h2 id="2-application-architecture">2. Application Architecture</h2>
+<ul>
+<li><strong><code>app/</code></strong> — root layouts, the authenticated
+tab group, gated routes, modals.</li>
+<li><strong><code>components/</code></strong> — reusable UI (orb, rails,
+opening sequence, etc.).</li>
+<li><strong><code>services/</code></strong> — business logic (scoring,
+voice, health, social, i18n).</li>
+<li><strong><code>store/</code></strong> — slice-based Zustand state +
+reducer.</li>
+<li><strong><code>utils/</code></strong> — pure, dependency-free helpers
+(scoring math, units, dashboards).</li>
+<li><strong><code>featureFlags/</code></strong> — feature toggles
+controlling surface exposure.</li>
+<li><strong><code>theme/</code></strong> — AForce Brand System (v2.1.0)
+color system, typography, spacing, radii.</li>
+<li><strong><code>data/</code></strong> — products, subscription plans,
+templates, mock data.</li>
+<li><strong><code>types/</code></strong> — shared TypeScript
+definitions.</li>
+<li><strong><code>locales/</code></strong> — translation resources.</li>
+</ul>
+<p><strong>Governance principle:</strong> <em>Build 100% · Show 10% ·
+Unlock over time.</em> The engine expands; navigation stays fixed.
+Feature flags gate exposure.</p>
+<hr />
+<h2 id="3-navigation--screen-inventory">3. Navigation &amp; Screen
+Inventory</h2>
+<h3 id="visible-tab-bar-5-tabs">Visible tab bar (5 tabs)</h3>
+<ol type="1">
+<li><strong>Home</strong> — readiness + hydration command dashboard
+(<code>app/(tabs)/index.tsx</code>).</li>
+<li><strong>Hydration</strong> — chronological hydration/recovery feed
+(<code>app/(tabs)/journal.tsx</code>).</li>
+<li><strong>Protocols</strong> — AForce Protocol guidance
+(<code>app/(tabs)/protocol.tsx</code>).</li>
+<li><strong>Community</strong> — rankings, challenges, battles, teams,
+map (<code>app/(tabs)/competition.tsx</code>).</li>
+<li><strong>Profile</strong> — profile + settings
+(<code>app/(tabs)/profile.tsx</code>).</li>
+</ol>
+<h3 id="hidden-routes-href-null--built-not-surfaced">Hidden routes
+(<code>href: null</code> — built, not surfaced)</h3>
+<p><code>scan</code> (HydroScan), <code>social</code> (Social Mode),
+<code>sleep</code> (Sleep Mode), <code>social-legacy</code>
+(developer-only).</p>
+<h3 id="stack--modal-routes">Stack / modal routes</h3>
+<p><code>/store</code>, <code>/cart</code>, <code>/subscription</code>,
+<code>/achievements</code>, <code>/onboarding</code>,
+<code>/circles</code>, <code>/territory</code>, <code>/ring</code>,
+<code>/heat</code>.</p>
+<hr />
+<h2 id="4-onboarding--cold-launch-opening-sequence">4. Onboarding &amp;
+Cold-Launch Opening Sequence</h2>
+<ul>
+<li><strong>Opening sequence</strong>
+(<code>components/opening/OpeningSequence.tsx</code>) — a 4-stage
+cinematic that plays <strong>once per cold launch</strong> as an overlay
+(touches no routing):
+<ol type="1">
+<li>White water-drop symbol, breathing fade.</li>
+<li>AFORCE wordmark + brand-red hairline + &quot;Performance Is
+Non-Negotiable&quot;.</li>
+<li>PAUSE / HYDRATE / LOCK IN / PERFORM ritual stagger.</li>
+<li>&quot;TODAY&#39;S READINESS&quot; + count-up to the live score, with a band-aware
+caption (a depleted user reads &quot;REHYDRATE NOW&quot;, never &quot;READY TO
+PERFORM&quot;). Slow Apple-Vision-Pro pacing, tap-to-skip, fully
+reduced-motion aware. Display-only (never mutates score).</li>
+</ol></li>
+<li><strong>First-run onboarding</strong>
+(<code>app/onboarding.tsx</code>) — Goal selection (Performance /
+Recovery / Endurance / Balance / Longevity) → Activity level (Sedentary
+→ Athlete) → Profile setup (weight / height / sex). Gated by two flags
+(<code>hasSeenWelcome</code> +
+<code>hasCompletedOnboarding</code>).</li>
+</ul>
+<hr />
+<h2 id="5-hydration-scoring-engine">5. Hydration Scoring Engine</h2>
+<p><em>Files: <code>services/hydrationScoreService.ts</code>,
+<code>utils/hydrationScore.ts</code>,
+<code>utils/scoringEngine.ts</code>.</em></p>
+<ul>
+<li><strong>Base unit:</strong> 1 unit = 12 oz.</li>
+<li><strong>Point values:</strong>
+<ul>
+<li>Water: +0.5 pts/oz (+6 per unit).</li>
+<li>AForce Berry Blast / Watermelon Surge: +10 pts.</li>
+<li>AForce Soursop Edge: +11 pts.</li>
+</ul></li>
+<li><strong>Contextual bonuses:</strong>
+<ul>
+<li><em>Heat Guard:</em> +2 for Watermelon Surge when heat score ≥
+45.</li>
+<li><em>Depleted boost:</em> +2 for Soursop Edge when score &lt;
+40.</li>
+<li><em>Hydration Cycle:</em> +8 to +20 for logging water + AForce
+within 30 min (larger bonus at lower scores).</li>
+</ul></li>
+<li><strong>Absorption caps:</strong> max 1.5 units per rolling 20-min
+window; excess absorbed at 75% efficiency.</li>
+<li><strong>Release curves:</strong>
+<ul>
+<li>Water: 60% immediate, 40% released over ~12.5 min.</li>
+<li>AForce: 70% immediate, 30% released over ~25 min.</li>
+</ul></li>
+<li><strong>Performance states:</strong> PEAK (90–100), BALANCED
+(75–89), RECOVERING (60–74), DEPLETED (0–59).</li>
+<li><strong>Score Protection rule:</strong> only <em>completed</em>
+behavior changes the score. Recommendations, scans (HydroScan is
+advisory), and product selection never increase the score.</li>
+</ul>
+<hr />
+<h2 id="6-recovery--health-signals">6. Recovery &amp; Health
+Signals</h2>
+<p><em>Files: <code>services/healthConnection.ts</code>,
+<code>services/recoveryEngine.ts</code>,
+<code>utils/biometricsAggregator.ts</code>.</em></p>
+<ul>
+<li><strong>Providers:</strong> Apple Health (HealthKit), Samsung Health
+(SDK), WHOOP (OAuth), merged &quot;freshest-wins&quot;.</li>
+<li><strong>Recovery Capacity engine:</strong> derives a 0–100 score
+from hydration score minus penalties (sleep loss, dark urine, drink
+load) plus a streak boost.</li>
+<li><strong>Tracked signals:</strong> thirst (1–5), energy (1–5), urine
+color (1–8), steps, temperature, humidity, workout load.</li>
+<li><strong>Apple Health entitlements:</strong> reads heart rate, HRV,
+sleep, and workouts; writes hydration logs back to Health.</li>
+</ul>
+<hr />
+<h2 id="7-ai-coach--voice-engine">7. AI Coach / Voice Engine</h2>
+<p><em>Files: <code>services/elevenLabsTts.ts</code>,
+<code>services/voiceService.ts</code>,
+<code>services/intentClassifier.ts</code>.</em></p>
+<ul>
+<li><strong>Stack:</strong> ElevenLabs TTS proxied through the API
+server (<code>/api/voice/tts</code>), with <code>expo-speech</code> as
+fallback.</li>
+<li><strong>Lifecycle:</strong> classify transcript intent (e.g.,
+<code>LOG_INTAKE</code>, <code>COMPLETE_CYCLE</code>) → resolve persona
+by performance band → render template → TTS output.</li>
+<li><strong>Persona modes:</strong> tone and phrasing shift with
+hydration band (more decisive in lower bands); verdict-aware comparisons
+after HydroScans.</li>
+<li><strong>Water-First copy lock:</strong> coach recommendations always
+begin with <code>HYDRATE NOW</code> / <code>Start with water</code>;
+optional product support is only suggested after hydration needs are
+evaluated.</li>
+</ul>
+<hr />
+<h2 id="8-social-layer">8. Social Layer</h2>
+<p><em>Files: <code>services/circleService.ts</code>,
+<code>services/recoveryCircle.ts</code>,
+<code>services/territoryEngine.ts</code>.</em></p>
+<ul>
+<li><strong>Circles:</strong> accountability groups for friends and
+teams.</li>
+<li><strong>Recovery Circle:</strong> private cohort (max 3 people) with
+fixed checkpoints (Day 0, 1, 3, 7, 30).</li>
+<li><strong>Territory:</strong> competitive regional scoring —
+<code>Avg Performance ×0.35 + Protocol Rate ×0.25 + Streak Density ×0.15 + Recovery Efficiency ×0.15 + Momentum ×0.10</code>.</li>
+<li><strong>Social Mode:</strong> alcohol intake affects hydration score
+and decay rate.</li>
+</ul>
+<hr />
+<h2 id="9-store--subscription-system">9. Store &amp; Subscription
+System</h2>
+<p><em>Files: <code>data/subscriptionPlans.ts</code>,
+<code>types/subscription.ts</code>. Plans inherit features via an
+inheritance chain; feature flags map to
+<code>featureFlags/flags.ts</code>.</em></p>
+<h3 id="consumer">Consumer</h3>
+<table>
+<thead>
+<tr>
+<th>Plan</th>
+<th>Price</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Core</strong></td>
+<td>$9.99/mo</td>
+<td>Entry: OS access, AI commands, daily tracking.</td>
+</tr>
+<tr>
+<td><strong>Recovery+</strong></td>
+<td>$9.99/mo</td>
+<td>Standalone add-on — unlocks Recovery Mode after Social Mode.</td>
+</tr>
+<tr>
+<td><strong>AForce Athlete</strong></td>
+<td>$19.99/mo</td>
+<td>Personalized protocols, advanced recovery, competition access.</td>
+</tr>
+<tr>
+<td><strong>Performance Bundle</strong></td>
+<td>$59.99/mo</td>
+<td><strong>Best value</strong> — Athlete + monthly product drop (1
+canister or 2 stick packs).</td>
+</tr>
+<tr>
+<td><strong>AForce Elite</strong></td>
+<td>$99/mo</td>
+<td>Guardian Mode for individuals + full monthly bundle (canister +
+sticks + RTDs) + concierge.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="team--program">Team / Program</h3>
+<table>
+<thead>
+<tr>
+<th>Plan</th>
+<th>Price</th>
+<th>Seats</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Team Core Starter</strong></td>
+<td>$49/mo</td>
+<td>up to 25</td>
+</tr>
+<tr>
+<td><strong>Team Core Growth</strong></td>
+<td>$99/mo</td>
+<td>up to 50</td>
+</tr>
+<tr>
+<td><strong>Team Core Pro</strong></td>
+<td>$149/mo</td>
+<td>up to 100</td>
+</tr>
+</tbody>
+</table>
+<h3 id="performance-systems--clutch-access">Performance Systems — Clutch
+Access</h3>
+<table>
+<thead>
+<tr>
+<th>Plan</th>
+<th>Price</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Clutch Starter</strong></td>
+<td>$1,000/mo</td>
+</tr>
+<tr>
+<td><strong>Clutch Pro</strong></td>
+<td>$2,500/mo</td>
+</tr>
+<tr>
+<td><strong>Clutch Elite</strong></td>
+<td>$5,000/mo</td>
+</tr>
+</tbody>
+</table>
+<h3 id="performance-systems--guardian">Performance Systems —
+Guardian</h3>
+<table>
+<thead>
+<tr>
+<th>Plan</th>
+<th>Price</th>
+<th>Terms</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Guardian Core</strong></td>
+<td>$5,000/mo</td>
+<td>+ $7,500 setup, 6-month minimum</td>
+</tr>
+<tr>
+<td><strong>Guardian Elite</strong></td>
+<td>$8,000/mo</td>
+<td>+ $12,500 setup, 12-month minimum</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>Pricing security:</strong> pricing, shipping, and tax are
+computed server-side; Stripe is the source of truth, mirrored to
+PostgreSQL via webhooks. Webhook signatures are verified.</li>
+<li><strong>Entitlements:</strong> <code>useEntitlement.ts</code> gates
+paywalled surfaces by plan tier.</li>
+</ul>
+<hr />
+<h2 id="10-authentication--identity">10. Authentication &amp;
+Identity</h2>
+<ul>
+<li><strong>Provider:</strong> Clerk — <code>@clerk/expo</code>
+(mobile), <code>@clerk/express</code> (server).</li>
+<li><strong>Sign-in:</strong> custom email/password + Google SSO.</li>
+<li><strong>Gating:</strong> the <code>(tabs)</code> group is gated
+behind <code>isSignedIn</code>; <code>ClerkProvider</code> mounts at the
+root layout. Auth-gated routes exist on both client and server.</li>
+<li><strong>Token bridging:</strong> Clerk session tokens bridge into
+the OpenAPI client.</li>
+</ul>
+<hr />
+<h2 id="11-design-system">11. Design System</h2>
+<p><em>Files: <code>theme/colors.ts</code>,
+<code>theme/typography.ts</code>,
+<code>theme/spacing.ts</code>.</em></p>
+<ul>
+<li><strong>Palette (AForce Brand System):</strong> near-black
+<code>#0D0D0D</code> canvas, AForce signal red <code>#C1281B</code>
+(hero accent, used sparingly), Soursop Edge green <code>#1FA35A</code>
+(Peak / positive status), Berry blue <code>#1E5BFF</code> (secondary /
+info), plus the score-band ladder (green → amber → orange → red).</li>
+<li><strong>Typography:</strong> Archivo Black (display), IBM Plex Mono
+(eyebrows / metric labels), Inter (400 → 800) body, tracked labels
+(letter-spacing up to &quot;ultra&quot;).</li>
+<li><strong>Spacing:</strong> 4px grid (scale 1–24; e.g. step 8 =
+32px).</li>
+<li><strong>Aesthetic:</strong> content floats on the near-black canvas,
+big numbers / small tracked labels, soft radial glows (no hard box
+shadows), generous spacing.</li>
+<li>Tokens exported in Tokens Studio format
+(<code>design/aforce-tokens.json</code>) and a human-readable spec
+(<code>design/aforce-design-tokens.md</code>).</li>
+</ul>
+<hr />
+<h2 id="12-localization">12. Localization</h2>
+<ul>
+<li><strong>Live (visible in selector):</strong> English, Spanish,
+French, German, Portuguese, Italian.</li>
+<li><strong>Wired but hidden behind flags:</strong> Arabic, Chinese,
+Japanese, Korean, Hindi.</li>
+<li><strong>Lock:</strong> no country-specific prioritization;
+architecture stays modular so new languages add without a rebuild.
+<em>Files: <code>services/i18nService.ts</code>,
+<code>locales/</code>.</em></li>
+</ul>
+<hr />
+<h2 id="13-feature-flags">13. Feature Flags</h2>
+<p><em>File: <code>featureFlags/flags.ts</code>. Two profiles:
+<code>DEFAULT_FLAGS</code> and <code>DEMO_ALL_ON_FLAGS</code>.</em>
+Representative flags: <code>clutch_access_enabled</code>,
+<code>guardian_intelligence_enabled</code>,
+<code>phantom_wearable_enabled</code>, <code>cruise_mode_enabled</code>,
+<code>global_leaderboard_enabled</code>,
+<code>team_roster_enabled</code>. Flags map to subscription feature
+gating so entitlements stay consistent.</p>
+<hr />
+<h2 id="14-backend--api">14. Backend &amp; API</h2>
+<ul>
+<li><strong>Server:</strong> Express 5 with Zod input/output validation
+derived from an OpenAPI spec (Orval generates the React Query client +
+Zod schemas).</li>
+<li><strong>Database:</strong> PostgreSQL via Drizzle ORM.</li>
+<li><strong>Concurrency:</strong> <code>SELECT ... FOR UPDATE</code> to
+serialize concurrent user actions.</li>
+<li><strong>Real-time:</strong> REST mutations broadcast over a shared
+HTTP/WebSocket server.</li>
+<li><strong>Integrations:</strong> Stripe (+ stripe-replit-sync),
+OpenWeather (proxied with an in-memory TTL cache + rate limiting),
+ElevenLabs voice (<code>/api/voice/tts</code>).</li>
+<li><strong>Logging:</strong> structured logging for request and
+non-request code.</li>
+<li><strong>Scaling:</strong> designed for horizontal scaling.</li>
+</ul>
+<hr />
+<h2 id="15-build-distribution--permissions">15. Build, Distribution
+&amp; Permissions</h2>
+<ul>
+<li><strong>Build service:</strong> EAS Build —
+<code>development</code>, <code>preview</code>, <code>production</code>
+profiles (<code>eas.json</code>).</li>
+<li><strong>Bundle IDs:</strong> iOS &amp; Android
+<code>com.aforce.os</code>; iOS <code>supportsTablet: false</code>.</li>
+<li><strong>Versioning:</strong> app version 1.0.0; iOS buildNumber 1;
+Android versionCode 1.</li>
+<li><strong>App config:</strong> dark UI, portrait, dark splash,
+notification accent <code>#C1281B</code>.</li>
+<li><strong>Permissions:</strong>
+<ul>
+<li>iOS — Camera (barcode scan), Location When In Use (weather),
+HealthKit (read HR/HRV/sleep/workouts; write hydration logs).</li>
+<li>Android — <code>CAMERA</code>, <code>ACCESS_COARSE_LOCATION</code>,
+<code>ACCESS_FINE_LOCATION</code>.</li>
+</ul></li>
+<li><strong>Build commands</strong> (from
+<code>artifacts/aforce-os/</code>): <code>eas:build:ios</code>,
+<code>eas:build:android</code>, <code>eas:build:all</code>,
+<code>eas:build:preview</code>, <code>eas:build:dev</code>; submit via
+<code>eas:submit:ios</code> / <code>eas:submit:android</code>.</li>
+</ul>
+<hr />
+<h2 id="appendix--key-dependency-versions">Appendix — Key Dependency
+Versions</h2>
+<table>
+<thead>
+<tr>
+<th>Package</th>
+<th>Version</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>expo</td>
+<td>~54.0.27</td>
+</tr>
+<tr>
+<td>react-native</td>
+<td>0.81.5</td>
+</tr>
+<tr>
+<td>expo-router</td>
+<td>~6.0.17</td>
+</tr>
+<tr>
+<td>react-native-reanimated</td>
+<td>~4.1.1</td>
+</tr>
+<tr>
+<td>@clerk/expo</td>
+<td>3.2.2</td>
+</tr>
+<tr>
+<td>@kingstinct/react-native-healthkit</td>
+<td>^14.0.0</td>
+</tr>
+<tr>
+<td>@tanstack/react-query</td>
+<td>catalog</td>
+</tr>
+<tr>
+<td>i18next</td>
+<td>^26.0.6</td>
+</tr>
+<tr>
+<td>react-i18next</td>
+<td>^17.0.4</td>
+</tr>
+<tr>
+<td>expo-camera</td>
+<td>~17.0.10</td>
+</tr>
+<tr>
+<td>expo-audio</td>
+<td>~1.1.1</td>
+</tr>
+<tr>
+<td>expo-speech</td>
+<td>~14.0.8</td>
+</tr>
+<tr>
+<td>lucide-react-native</td>
+<td>^1.16.0</td>
+</tr>
+<tr>
+<td>typescript</td>
+<td>~5.9.2</td>
+</tr>
+</tbody>
+</table>
+<p><em>Specification compiled from the AForce OS codebase. Internal —
+for discussion and planning purposes.</em></p>
+<hr />
 <h1 id="page_facing_up-aforce_final_specmd">📄 AFORCE_FINAL_SPEC.md</h1>
 <h1 id="aforce-os--final-spec-core-product">AFORCE OS — Final Spec (Core
 Product)</h1>
+<blockquote>
+<p><strong>Brand system:</strong> v2.1.0 (AForce Brand System) — see
+<code>design/aforce-design-tokens.md</code>.</p>
+</blockquote>
 <blockquote>
 <p><strong>Authoritative core-product reference.</strong> This document
 captures the baseline AForce OS product. Social Mode and Cruise Mode
@@ -724,7 +1936,7 @@ approval.</li>
 <li>Analyze current code first. Touch only files relevant to the
 phase.</li>
 <li>Protect the existing architecture (pnpm monorepo, Expo Router stack,
-WHOOP-cinematic dark aesthetic, slice-based store, Drizzle/Zod server
+AForce cinematic dark aesthetic, slice-based store, Drizzle/Zod server
 contracts).</li>
 <li>Social Mode and Cruise Mode additions stay in the addon document and
 are not implemented until <strong>all</strong> core phases are
@@ -766,12 +1978,13 @@ visible in production. Never accessible via standard navigation.</p>
 <h3 id="script--6-acts-10-seconds-each">Script — 6 acts, 10 seconds
 each</h3>
 <p><strong>Act 1 — Opening (0:00–0:10)</strong> Black screen. AForce
-wordmark fades in gold. Subtitle: &quot;The Performance Operating System.&quot;
-Orb pulses once.</p>
+wordmark fades in — Bone <code>#F5F0E8</code> with a Signal Red
+<code>#C1281B</code> hairline on near-black <code>#0D0D0D</code>.
+Subtitle: &quot;The Performance Operating System.&quot; Orb pulses once.</p>
 <p><strong>Act 2 — Readiness Score (0:10–0:20)</strong> Orb animates
 from Depleted → Recovering → Balanced → Peak. Score climbs from 14 to
-97. Lime glow intensifies. Label: &quot;From depleted to peak. In real
-time.&quot;</p>
+97. Soursop-green peak glow (<code>#1FA35A</code>) intensifies. Label:
+&quot;From depleted to peak. In real time.&quot;</p>
 <p><strong>Act 3 — HydroScan (0:20–0:30)</strong> Scan animation.
 Product recognized. Score updates. Voice Engine fires: &quot;You&#39;re back in
 range. Lock in.&quot; Label: &quot;AI-powered hydration intelligence.&quot;</p>
@@ -791,17 +2004,28 @@ production builds.</li>
 <li>No real user data is used — all demo state is seeded from
 <code>data/demoProfile.ts</code>.</li>
 <li>Overlay dismisses on tap at any point.</li>
-<li>Auto-dismisses at 60 seconds and returns to
-<code>welcome.tsx</code>.</li>
+<li>Auto-dismisses at 60 seconds — the modal closes to reveal the app
+underneath (no return to a <code>welcome.tsx</code> screen; the
+cinematic mounts as an overlay over whatever the app routed to).</li>
 </ul>
 <h2 id="product-surface-high-level">Product Surface (high-level)</h2>
 <h3 id="mobile--artifactsaforce-os-expo-sdk-54--expo-router-6">Mobile —
 <code>artifacts/aforce-os</code> (Expo SDK 54 / Expo Router 6)</h3>
 <ul>
-<li><strong>Opening sequence</strong>: <code>app/splash.tsx</code>
-(cinematic four-stage lobby shown on first launch only) →
-<code>app/welcome.tsx</code> (home dashboard, also reachable from the
-home tab).</li>
+<li><strong>Opening sequence</strong>: no <code>app/splash.tsx</code> /
+<code>app/welcome.tsx</code> routes exist. <code>app/_layout.tsx</code>
+(AppShell) runs a cold-launch front-door state machine
+(<code>opening → welcome → done</code>) of stacked overlays that touch
+no routing: the <code>OpeningSequence</code> cinematic
+(<code>components/opening/OpeningSequence.tsx</code>, top-most) plays
+once per cold launch, then crossfades into the <code>WelcomeHero</code>
+photo front door (<code>components/welcome/WelcomeHero.tsx</code> — GET
+STARTED → <code>/onboarding</code>, SIGN IN →
+<code>/(auth)/sign-in</code>); once an entry is picked the overlays
+dismiss to reveal the routed app underneath. The home dashboard is
+<code>app/(tabs)/index.tsx</code>; first-run routing is decided by
+<code>SplashGate</code> via the pure <code>firstRunRoute</code> helper
+keyed on <code>hasCompletedOnboarding</code>.</li>
 <li><strong>Tab bar</strong>: <code>app/(tabs)/</code> —
 <code>index</code>, <code>profile</code>, plus the rest of the primary
 tabs. Bottom navigation includes the Timeline surface.</li>
@@ -844,13 +2068,19 @@ connector at boot).</li>
 <li><code>db</code> (Drizzle schemas + migrations).</li>
 </ul>
 <h2 id="design-language">Design Language</h2>
-<p>WHOOP-cinematic dark aesthetic. Pure black canvas
-(<code>#000000</code>), WHOOP lime hero accent (<code>#B6FF00</code>),
-near-invisible borders, WHOOP recovery status colors (green / yellow /
-red). Soft radial glows, never hard box shadows. Big numbers, small
-tracked labels. Generous spacing. Tokens exported via
-<code>design/aforce-tokens.json</code> (Tokens Studio) and the
-human-readable <code>design/aforce-design-tokens.md</code>.</p>
+<p>AForce cinematic dark aesthetic (AForce Brand System v2.1.0).
+Near-black canvas (<code>#0D0D0D</code>), Signal Red hero accent
+(<code>#C1281B</code>) used sparingly, Soursop green
+(<code>#1FA35A</code>) for positive status, an amber → orange → red
+declining ladder, Berry blue (<code>#1E5BFF</code>) for secondary data,
+near-invisible borders. Soft radial glows, never hard box shadows. Big
+numbers, small tracked labels. Generous spacing. Typography: Archivo
+Black (display), IBM Plex Mono (eyebrows / metrics), Inter (body). Pure
+black (<code>#000000</code>) is reserved for scrims, drop-shadow color,
+and <code>text.inverse</code> only.
+<code>design/aforce-design-tokens.md</code> is the canonical source of
+truth; tokens are also exported via
+<code>design/aforce-tokens.json</code> (Tokens Studio).</p>
 <h2 id="out-of-scope-this-document">Out of Scope (this document)</h2>
 <ul>
 <li>Social Mode contexts, Morning Reset, Moments Engine</li>
@@ -917,9 +2147,10 @@ redirect when already signed-in.</td>
 Timeline, Social, Profile) with dual implementations —
 <code>NativeTabs</code> on iOS (liquid glass) + classic
 <code>Tabs</code> on Android/web with custom <code>PlainTabButton</code>
-(haptic tick, WHOOP-cinematic styling, lime active tint, transparent
-BlurView on iOS, 84px web height). Timeline = <code>JournalScreen</code>
-(&quot;PERFORMANCE TIMELINE&quot; eyebrow, 7/30/90 range picker, section summaries
+(haptic tick, AForce Brand System (v2.1.0) styling, Signal Red active
+tint, transparent BlurView on iOS, 84px web height). Timeline =
+<code>JournalScreen</code> (&quot;PERFORMANCE TIMELINE&quot; eyebrow, 7/30/90
+range picker, section summaries
 Recovery/Heat/Hydration/Corrections/Territory/Streaks, Win Moments
 strip, score-over-time chart with band zones, collapsible day cards from
 <code>/journal/rollups</code>, Export PDF). Route file stays
@@ -2277,271 +3508,193 @@ elimination.</li>
 <p>These invariants must continue to hold after any change to the engine
 or the impairment thresholds.</p>
 <hr />
-<h1 id="page_facing_up-docsvalidation-methodologymd">📄
-docs/validation-methodology.md</h1>
-<h1 id="aforce-os--validation-methodology">AForce OS — Validation
-Methodology</h1>
-<p>Version: v1.0 — April 2026</p>
-<p>This document captures every numerical model the AForce OS hydration
-engine uses, with the published reference it draws from and the
-limitations a sports-science partner needs to know before designing a
-real-world validation study.</p>
-<p>Each section is structured the same way:</p>
+<h1 id="page_facing_up-artifactsaforce-osdocsinvestor-demo-readinessmd">📄
+artifacts/aforce-os/docs/investor-demo-readiness.md</h1>
+<h1 id="aforce-os--investor-demo-readiness">AForce OS — Investor Demo
+Readiness</h1>
+<p><em>Last updated: June 22, 2026 · Phase 10 (Investor Demo Overlay)
+complete.</em></p>
+<p>This is the single-page status for the <strong>60-second investor
+demo</strong> and the path from &quot;runs in the room today&quot; to &quot;in testers&#39;
+hands&quot; to launch. It is a companion to
+<code>docs/TESTFLIGHT_CHECKLIST.md</code> (the build/submit runbook) —
+read that for the step-by-step Apple mechanics.</p>
+<hr />
+<h2 id="ready-now-works-today-in-this-build">Ready now (works today, in
+this build)</h2>
+<ul>
+<li><strong>The 60-second demo plays end-to-end.</strong> Six acts × 10
+seconds:
 <ol type="1">
-<li><strong>What we compute</strong></li>
-<li><strong>Formula / decision rule</strong></li>
-<li><strong>Reference</strong></li>
-<li><strong>Limitations &amp; known gaps</strong></li>
-</ol>
-<hr />
-<h2 id="1-sweat-rate-per-session">1. Sweat rate (per session)</h2>
-<p><strong>What we compute.</strong> Volume of fluid lost during a
-discrete activity session, in millilitres per hour (mL · h⁻¹), used to
-size both the Hydration Score replenishment target and the post-session
-AForce sodium prescription.</p>
-<p><strong>Formula.</strong></p>
-<pre><code>sweat_rate_ml_per_h = (pre_weight_kg − post_weight_kg) × 1000
-                     + fluid_in_ml − urine_out_ml
-                     all divided by duration_h</code></pre>
-<p>A 1 kg net loss over 1 hour = 1000 mL · h⁻¹.</p>
-<p><strong>Reference.</strong> ACSM Position Stand: <em>Exercise and
-Fluid Replacement</em>, Sawka et al., Med Sci Sports Exerc 39(2):
-377–390, 2007.</p>
-<p><strong>Limitations.</strong></p>
+<li><strong>Opening</strong> — AForce wordmark + &quot;The Performance
+Operating System.&quot;</li>
+<li><strong>Readiness Score</strong> — orb climbs Depleted → Peak, score
+animates 14 → 97.</li>
+<li><strong>HydroScan</strong> — product recognition (AForce Hydration
+Stick · OPTIMAL MATCH)
 <ul>
-<li>Treats every gram lost as water. Glycogen + substrate oxidation can
-account for ~50–100 g · h⁻¹ that isn&#39;t actually fluid loss.</li>
-<li>Doesn&#39;t model respiratory water loss separately from sweat.</li>
-<li>Assumes accurate scale (±0.1 kg).</li>
+<li>the AI Voice Engine speaks &quot;You&#39;re back in range. Lock in.&quot;</li>
+</ul></li>
+<li><strong>Social Mode</strong> — BAC safety overlay, crimson ring on
+the orb.</li>
+<li><strong>Territory + Heat Guard</strong> — stylized map sector + Heat
+Guard → WARNING.</li>
+<li><strong>The Standard</strong> — clean Peak orb + &quot;Built for people
+who don&#39;t get to be off.&quot;</li>
+</ol></li>
+<li><strong>Tap anywhere to skip</strong>, or it <strong>auto-dismisses
+at exactly 60s</strong> and returns to the app underneath.</li>
+<li><strong>Launch path:</strong> Profile → Voice Coach section →
+<strong>▶ LAUNCH INVESTOR DEMO · 60s</strong> (only visible when the
+demo flag is on — see below).</li>
+<li><strong>Score-Protection holds:</strong> the overlay is a
+display-only projection of the seeded numbers in
+<code>data/demoProfile.ts</code>. It never awards, mutates, or persists
+score, never reads live user state, and writes nothing to the
+store.</li>
+<li><strong>Brand-correct:</strong> AForce brand red
+(<code>#C1281B</code>) + WHOOP recovery state colors. No lime / gold
+(the spec&#39;s original gold/lime wording predates the brand re-skin and is
+intentionally superseded).</li>
 </ul>
 <hr />
-<h2 id="2-sodium-replacement-bands">2. Sodium replacement bands</h2>
-<p><strong>What we compute.</strong> Per-session sodium target (mg)
-split into low / moderate / high bands, used by the AForce prescription
-engine and the Sweat Autopilot recovery window to pick stick vs RTD
-ratios.</p>
-<p><strong>Formula.</strong></p>
-<table>
-<thead>
-<tr>
-<th>Sweat sodium</th>
-<th>Band</th>
-<th>mg · L⁻¹ losses</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Low</td>
-<td>Salty 1</td>
-<td>&lt; 500</td>
-</tr>
-<tr>
-<td>Moderate</td>
-<td>Salty 2</td>
-<td>500 – 800</td>
-</tr>
-<tr>
-<td>High</td>
-<td>Salty 3</td>
-<td>800 – 1200</td>
-</tr>
-<tr>
-<td>Very high</td>
-<td>Salty 4</td>
-<td>&gt; 1200</td>
-</tr>
-</tbody>
-</table>
-<p>Per-session prescription =
-<code>sweat_loss_L × band_concentration</code>, capped at 2300 mg per 4
-h to stay below the upper-limit chronic sodium recommendation.</p>
-<p><strong>Reference.</strong> Baker LB, <em>Sweating Rate and Sweat
-Sodium Concentration in Athletes: A Review of Methodology and
-Intra/Interindividual Variability</em>. Sports Med 47 (Suppl 1):
-111–128, 2017.</p>
-<p><strong>Limitations.</strong></p>
+<h2 id="done-this-sprint-phase-10">Done this sprint (Phase 10)</h2>
 <ul>
-<li>Bands assume a healthy adult. Hypertensive users should
-override.</li>
-<li>Heat-acclimatized athletes drift toward the low band over
-weeks.</li>
-<li>Genetic variants in CFTR can produce sweat sodium &gt; 1500 mg · L⁻¹
-outside the modelled range.</li>
+<li>Replaced the legacy 10-beat voice script with the spec&#39;s
+<strong>6-act, 10s-each</strong> cinematic, driven entirely by a single
+seed (<code>data/demoProfile.ts</code>).</li>
+<li><code>services/demo/investorDemoBeats.ts</code> derives the playable
+schedule (cumulative start times, <code>beatAtMs</code>,
+<code>bandToLevel</code>, new <code>scoreToBand</code> for the
+continuous orb re-tint during the climb).</li>
+<li>Rewrote <code>components/investorDemo/InvestorDemoOverlay.tsx</code>
+into a per-act scene switch: opening / readiness / hydroScan / social /
+territoryHeat / standard, with tap-anywhere + 60s auto-dismiss,
+reanimated orb/voice-halo/scan-line/ social-ring/progress drivers, and
+voice on Act 3 only via <code>commandSpeak</code>.</li>
+<li>Added the <code>demo_mode_enabled</code> feature flag (OFF in
+<code>DEFAULT_FLAGS</code>, ON in <code>DEMO_ALL_ON_FLAGS</code>) and
+the pure, fail-closed <code>shouldShowInvestorDemo(flags, active)</code>
+helper.</li>
+<li><strong>Gated both entry points</strong> on the flag: the
+<code>_layout.tsx</code> overlay mount and the Profile launcher.
+Production builds (flag OFF) have no path to the overlay.</li>
+<li>Tests: rewrote <code>investorDemoBeats.test.ts</code> for 6 acts and
+added <code>demoProfile.test.ts</code> (seed integrity) +
+<code>investorDemoGate.test.ts</code> (production-safe / fail-closed
+gating) — <strong>33 tests, all green</strong>; typecheck clean.</li>
+<li>Small TestFlight fix: declared
+<code>ITSAppUsesNonExemptEncryption: false</code> in
+<code>app.json</code> (standard HTTPS only) to avoid the &quot;Build is
+missing compliance&quot; stall on upload.</li>
 </ul>
 <hr />
-<h2 id="3-heat-index-heat-guard-activation">3. Heat Index (Heat Guard
-activation)</h2>
-<p><strong>What we compute.</strong> Apparent temperature in °F used to
-flip the Heat Guard band from
-<code>safe → caution → warning → critical</code> and adjust recheck
-cadence in the scoring engine.</p>
-<p><strong>Formula.</strong> Rothfusz regression (NWS 1990), used at
-ambient ≥ 80 °F:</p>
-<pre><code>HI = -42.379 + 2.04901523·T + 10.14333127·R
-     - 0.22475541·T·R - 6.83783e-3·T²
-     - 5.481717e-2·R² + 1.22874e-3·T²·R
-     + 8.5282e-4·T·R² - 1.99e-6·T²·R²</code></pre>
-<p>with a low-humidity adjustment when
-<code>R &lt; 13 % AND 80 ≤ T ≤ 112</code> and a high-humidity adjustment
-when <code>R &gt; 85 % AND 80 ≤ T ≤ 87</code>.</p>
-<p><strong>Reference.</strong> Rothfusz LP, <em>The Heat Index
-Equation</em>, NWS Tech. Attachment SR 90-23, 1990. NWS Heat Index page
-(current).</p>
-<p><strong>Limitations.</strong></p>
+<h2 id="before-testflight-internal-beta--owner--apple-actions">Before
+TestFlight (internal beta) — owner / Apple actions</h2>
+<p>These are <strong>account / credential</strong> tasks, not code. Code
+side is ready.</p>
+<ul class="task-list">
+<li><label><input type="checkbox"></input><strong>Apple Developer
+Program</strong> enrollment active.</label></li>
+<li><label><input type="checkbox"></input><strong>Fill the two iOS submit
+IDs.</strong> <code>eas.json</code> still has placeholders
+(<code>REPLACE_WITH_APP_STORE_CONNECT_APP_ID</code>,
+<code>REPLACE_WITH_APPLE_TEAM_ID</code>). Use the helper (never
+hand-edit): from repo root,
+<code>EAS_ASC_APP_ID=… EAS_APPLE_TEAM_ID=… pnpm --filter @workspace/scripts run eas-configure-submit</code>.</label></li>
+<li><label><input type="checkbox"></input><strong>Privacy policy live at a
+real URL.</strong> <code>legal/privacy-policy.md</code> exists but needs
+the mailing address filled in, counsel review (HealthKit + CCPA + GDPR),
+and publishing at a stable URL for App Store Connect.</label></li>
+<li><label><input type="checkbox"></input><strong>Backend reachable from a
+non-Replit network</strong> (api-server deployed) so a real device build
+can sign in and load state.</label></li>
+<li><label><input type="checkbox"></input><strong><code>EXPO_PUBLIC_*</code>
+production env vars</strong> baked into the EAS build (Clerk publishable
+key, API base URL). Missing ones are the #1 cause of TestFlight-only
+crash-on-launch.</label></li>
+<li><label><input type="checkbox"></input>Build + submit:
+<code>pnpm --filter @workspace/aforce-os run eas:build:ios</code> then
+<code>… eas:submit:ios</code> (see
+<code>docs/TESTFLIGHT_CHECKLIST.md</code>).</label></li>
+</ul>
+<p><strong>Already green for TestFlight (verified in-repo):</strong></p>
 <ul>
-<li>Defined for shade; we do not adjust for direct solar radiation.</li>
-<li>Not validated below 80 °F — we suppress Heat Guard entirely when
-ambient &lt; 75 °F.</li>
-<li>Wet-bulb globe temperature (WBGT) is the gold standard for elite
-athletes — Rothfusz is a consumer-friendly approximation.</li>
+<li><code>app.json</code> version <code>1.0.0</code>,
+<code>ios.bundleIdentifier</code> <code>com.aforce.os</code>,
+buildNumber set.</li>
+<li>App icon is <strong>1024×1024 PNG, RGB (no alpha)</strong> — Apple&#39;s
+hard requirement.</li>
+<li>All <code>infoPlist</code> permission strings are human-written
+(camera, location, HealthKit r/w).</li>
+<li><code>eas.json</code> has complete development / preview /
+production profiles.</li>
+<li>Typecheck passes.</li>
 </ul>
 <hr />
-<h2 id="4-estimated-blood-alcohol-concentration-social-mode">4.
-Estimated blood alcohol concentration (Social Mode)</h2>
-<p><strong>What we compute.</strong> Real-time BAC estimate during
-Social Mode used for the conservative 0.06 % &quot;drink water&quot; prompt and
-the 8 h Recovery Mode window after deactivation.</p>
-<p><strong>Formula.</strong> Widmark equation (refined NHTSA form):</p>
-<pre><code>BAC% = (alcohol_g / (body_weight_g × r)) × 100
-       − β · hours_since_first_drink
-
-r       = 0.68 (male) | 0.55 (female)   Widmark factor
-β       = 0.015 % · h⁻¹                 elimination rate (Forrest 1986 mean)
-food_r  = ×0.85 multiplier when ate_recently</code></pre>
-<p>Alcohol grams per drink default =
-<code>oz × abv × 0.789 × 29.5735</code>.</p>
-<p><strong>Reference.</strong> Widmark EMP, 1932 (translation:
-<em>Principles and Applications of Medicolegal Alcohol
-Determination</em>, 1981). Forrest ARW, <em>The Estimation of Widmark&#39;s
-Factor</em>, J Forensic Sci Soc 1986.</p>
-<p><strong>Limitations.</strong></p>
-<ul>
-<li>Population-average factors — actual r ranges 0.49–0.78.</li>
-<li>Elimination rate accelerates with chronic drinking (β can reach
-0.025).</li>
-<li>Gastric absorption rate ignored — we don&#39;t model time-to-peak
-(~30–90 min).</li>
-<li>Not a legal BAC. Visual disclaimer is shown in-app.</li>
+<h2 id="before-miami-october-field-demo">Before Miami (October field
+demo)</h2>
+<ul class="task-list">
+<li><label><input type="checkbox"></input>Run the demo on a <strong>physical
+iPhone</strong> (not the simulator / web preview) — HealthKit, haptics,
+and the Voice Engine&#39;s audio path only fully exercise on
+device.</label></li>
+<li><label><input type="checkbox"></input>Confirm the <strong>ElevenLabs
+voice</strong> plays on Act 3 on the venue network (Act 3 is the only
+act that speaks; everything else is silent by design).</label></li>
+<li><label><input type="checkbox"></input>Pre-flight the venue: airplane-mode
+fallback. The demo itself is self-contained (seeded, no network needed
+to render), but the Act-3 voice uses the ElevenLabs proxy — confirm
+behavior if Wi-Fi is flaky.</label></li>
+<li><label><input type="checkbox"></input>Decide the <strong>launch
+surface</strong> for the room: keep it behind the Profile launcher, or
+wire a faster trigger for the presenter (flag stays the
+gate).</label></li>
+<li><label><input type="checkbox"></input>Capture a screen-recording of a
+clean run as a backup if live demo fails.</label></li>
 </ul>
 <hr />
-<h2 id="5-recovery--readiness-adjustments-apple-health-overlay">5.
-Recovery &amp; readiness adjustments (Apple Health overlay)</h2>
-<p><strong>What we compute.</strong> Up-to-±10 point adjustment to the
-displayed Hydration Score based on resting heart rate, HRV (SDNN), and
-last-night sleep hours.</p>
-<p><strong>Decision rule (sums clamped to ±10).</strong></p>
-<pre><code>delta_rhr   = clamp(  (rhr_today − rhr_baseline) ×  -0.4 , -3, +3 )
-delta_hrv   = clamp(  (hrv_today − hrv_baseline) ×  +0.05, -3, +3 )
-delta_sleep = clamp(  (sleep_h − 7.5) ×             +1.5 , -4, +4 )
-
-readiness_delta = clamp(delta_rhr + delta_hrv + delta_sleep, -10, +10)</code></pre>
-<p><code>*_baseline</code> is a 14-day rolling median pulled from
-HealthKit.</p>
-<p><strong>Reference.</strong> Recovery proxy validated against Whoop /
-Oura internal whitepapers; baseline-relative HRV scoring follows Plews
-et al., <em>Heart Rate Variability and Training Intensity Distribution
-in Elite Rowers</em>, Int J Sports Physiol Perform 2014.</p>
-<p><strong>Limitations.</strong></p>
-<ul>
-<li>Baseline noise is high in the first 14 days of HealthKit
-history.</li>
-<li>Single SDNN sample is less reliable than RMSSD over 5 min — Apple
-exposes both but only SDNN at-rest is consistent across watches.</li>
-<li>Sleep score only counts duration, not sleep stages.</li>
+<h2 id="before-public-launch-january">Before public launch
+(January)</h2>
+<ul class="task-list">
+<li><label><input type="checkbox"></input><strong><code>demo_mode_enabled</code> MUST stay
+<code>false</code></strong> in the production flag set
+(<code>DEFAULT_FLAGS</code>). This is the hard rule — verified by
+<code>investorDemoGate.test.ts</code>. The overlay must never ship
+visible.</label></li>
+<li><label><input type="checkbox"></input>Full App Privacy questionnaire + age
+rating in App Store Connect.</label></li>
+<li><label><input type="checkbox"></input>App Store screenshots from a real
+device/simulator binary (Replit web preview cannot produce
+submission-grade assets — see <code>replit.md</code>).</label></li>
+<li><label><input type="checkbox"></input>Counsel sign-off on privacy policy +
+health disclaimer for production.</label></li>
+<li><label><input type="checkbox"></input>External TestFlight (Beta App
+Review) pass before broad distribution.</label></li>
 </ul>
 <hr />
-<h2 id="6-per-event-hydration-impact-the-score-itself">6. Per-event
-hydration impact (the score itself)</h2>
-<p><strong>What we compute.</strong> Score delta credited to a single
-intake event, broken into immediate + delayed components so the orb
-visibly fills over the 20-minute absorption window.</p>
-<p><strong>Decision rule.</strong></p>
-<pre><code>base_impact = (oz / 12) × per-fluid_weight × flavor_multiplier
-            × (heat_guard_active ? 1.15 : 1.0)
-
-cap_adjusted = min(base_impact, 12)        # 20-min absorption cap
-
-immediate    = cap_adjusted × 0.40         # released at log time
-delayed      = cap_adjusted × 0.60         # eased over 20 min</code></pre>
-<p><code>per-fluid_weight</code>: water 0.9, AForce stick 1.4, AForce
-RTD 1.3, canister 1.2. Flavor: watermelon 1.05, berry 1.05, soursop 1.10
-(and a +1 bonus when scoreBefore &lt; 60), unflavored 1.0.</p>
-<p><strong>Reference.</strong> Internal model — calibrated from pilot
-field data (n=42, summer 2025). NOT yet peer-reviewed.</p>
-<p><strong>Limitations.</strong></p>
-<ul>
-<li>The 20-min cap is a UX choice (so users see progress quickly), not a
-physiological constant.</li>
-<li>Caffeine, electrolyte content of competitor drinks, and oral
-rehydration solution coefficients are not modelled in v1.</li>
-</ul>
-<p><strong>Founder Decision — v1 Launch Stance (resolved
-2026-06-01).</strong> The per-event hydration scoring model (n=42,
-summer 2025) is approved for v1 App Store launch under the following
-conditions:</p>
-<ol type="1">
-<li>The score is presented as a relative performance indicator, not a
-clinical hydration measurement. Language across all surfaces must
-reflect this — &quot;your readiness score&quot; not &quot;your hydration level.&quot;</li>
-<li>The health disclaimer screen
-(<code>app/legal/health-disclaimer.tsx</code>) must be shown on first
-launch, before the orb is visible. No exceptions.</li>
-<li>HydroScan results are advisory only. The word &quot;recommendation&quot; is
-permitted. The word &quot;prescription&quot; is not.</li>
-<li>A peer-review validation study (n≥30, standardized protocol per
-Section 7) is targeted for completion before Series A close. Results
-will be used to recalibrate scoring coefficients in v1.1.</li>
-<li>Any marketing claim referencing the scoring engine must be reviewed
-against this methodology before publication. The CMO and founder must
-both sign off.</li>
-</ol>
-<p>This decision is final for v1. It is logged here as the authoritative
-record.</p>
+<h2 id="risk-level">Risk level</h2>
+<p><strong>Low (for the demo itself).</strong> The overlay is
+self-contained, seeded, gated, and Score-Protection-safe; it cannot leak
+into production or corrupt user state. The only runtime dependency is
+the Act-3 ElevenLabs voice (graceful if it fails to play — the visuals
+carry the act).</p>
+<p><strong>The remaining risk is operational, not code:</strong> Apple
+account setup, the two submit IDs, a published privacy policy,
+production env vars in the EAS build, and a physical-device dry run
+before any live audience. None block the demo running in the room today;
+all block getting it onto a stranger&#39;s phone.</p>
 <hr />
-<h2 id="7-compliance-streak--retention">7. Compliance streak &amp;
-retention</h2>
-<p><strong>What we compute.</strong> Day count of consecutive &quot;command
-followed&quot; days, used by the consistency term in the scoring engine and
-as the unlock criterion for the streak achievement family.</p>
-<p><strong>Decision rule.</strong> A day &quot;counts&quot; when both:</p>
-<ol type="1">
-<li>The user opened the app at least once between 06:00–22:00
-local.</li>
-<li><code>confirmed_count_for_day / commands_for_day ≥ 0.6</code>.</li>
-</ol>
-<p>A miss-day that is followed by 3 consecutive hit-days restores 50 %
-of the lost streak (the &quot;comeback&quot; rule).</p>
-<p><strong>Reference.</strong> Self-determination theory streak
-heuristics, Ryan &amp; Deci 2000. Behavioural-design &quot;loss-aversion
-light&quot; pattern, Eyal <em>Hooked</em> 2014.</p>
-<p><strong>Limitations.</strong></p>
+<h2 id="next-sprint-suggested-not-committed">Next sprint (suggested, not
+committed)</h2>
 <ul>
-<li>Time-zone changes during travel can lose a day.</li>
-<li>Sleep-shifted users (graveyard-shift workers) need a custom
-06:00–22:00 window.</li>
+<li>Wire a presenter-friendly trigger (e.g. a long-press affordance)
+behind the same flag for faster on-stage launches.</li>
+<li>Add a reduced-motion variant of the overlay (the rest of the app is
+reduced-motion aware; the demo currently always animates).</li>
+<li>Optional: a short &quot;loop&quot; mode for an unattended booth (auto-replay),
+still flag-gated and still Score-Protection-safe.</li>
 </ul>
-<hr />
-<h2 id="how-to-validate-this-in-the-field">How to validate this in the
-field</h2>
-<p>To convert this from an internal model into a study-ready
-protocol:</p>
-<ol type="1">
-<li><strong>Sweat rate / sodium.</strong> Recruit n ≥ 30 athletes,
-collect absorbent-patch sweat (forearm + back) during a standardized
-45-min cycling bout at 65 % VO₂max in 32 °C / 50 % RH. Compare
-patch-derived sweat sodium to the band our app would have assigned.</li>
-<li><strong>Heat Index.</strong> Co-locate a WBGT meter for 14 outdoor
-sessions spanning 70–105 °F. Plot Rothfusz-HI vs WBGT — quantify the gap
-for the user&#39;s region.</li>
-<li><strong>BAC.</strong> Single-blind n ≥ 12 alcohol-challenge with
-breathalyser ground truth at +30 / +60 / +120 min. Report MAE for our
-Widmark estimate.</li>
-<li><strong>Score validity.</strong> A 4-week diary study comparing
-self-reported thirst / mood / urine colour to the displayed score. Look
-for monotonicity, not absolute calibration.</li>
-</ol>
-<p>Open questions are tracked in <code>replit.md</code> under
-&quot;Validation gaps&quot;.</p>
 <hr />
 <h1 id="page_facing_up-artifactsaforce-osdocstestflight_checklistmd">📄
 artifacts/aforce-os/docs/TESTFLIGHT_CHECKLIST.md</h1>
@@ -2843,6 +3996,845 @@ Connect</a></li>
 <li><a href="https://developer.apple.com/app-store/review/guidelines/#health-and-health-research">Apple&#39;s
 HealthKit review guidelines</a></li>
 </ul>
+<hr />
+<h1 id="page_facing_up-docscompetitive-moatmd">📄
+docs/competitive-moat.md</h1>
+<h1 id="aforce--competitive-moat--defensibility">AForce — Competitive
+Moat &amp; Defensibility</h1>
+<blockquote>
+<p>CPG is copied. Wearables are commoditized. Apps are forgotten. AForce
+is a <strong>closed-loop performance OS</strong> that ships a
+consumable. The category has drinks. AForce has a loop.</p>
+</blockquote>
+<p>This document maps every AForce surface against every relevant
+incumbent and shows the structural reason each competitor cannot take
+that surface from us. It is the long-form companion to deck slides 17
+(Competitive Advantage) and 18 (Competitors) — extended beyond the
+beverage category into wearables, smart bottles, pro-team SaaS,
+aggregators, and hospitality.</p>
+<hr />
+<h2 id="1--the-structural-thesis">1 · The Structural Thesis</h2>
+<p>Every entrenched player owns <strong>one layer</strong>. AForce is
+the only company stacking all four:</p>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Who owns it today</th>
+<th>What they can&#39;t do</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Sensor</strong> (HR, HRV, sleep, strain)</td>
+<td>WHOOP · Oura · Apple Watch · Garmin</td>
+<td>Ship a consumable. Close the loop with intake.</td>
+</tr>
+<tr>
+<td><strong>Consumable</strong> (electrolytes, hydration)</td>
+<td>Gatorade · Liquid IV · LMNT · Nuun</td>
+<td>See the body. Personalize. Coach. Retain via software.</td>
+</tr>
+<tr>
+<td><strong>Vessel</strong> (smart bottle)</td>
+<td>Hidrate Spark · HidrateSpark Pro</td>
+<td>Influence physiology — they only count ounces in a cup.</td>
+</tr>
+<tr>
+<td><strong>Aggregator</strong> (Apple Health · Google Health Connect ·
+Samsung Health · MyFitnessPal)</td>
+<td>Apple · Google · Samsung · Under Armour</td>
+<td>Prescribe. They are read-only mirrors with no opinion and no
+SKU.</td>
+</tr>
+</tbody>
+</table>
+<p>AForce occupies the <strong>only</strong> position where the sensor
+signal, the prescription, the consumable that fulfills the prescription,
+and the verification of compliance are all in one product. That is the
+loop. Every additional day of usage compounds the loop&#39;s accuracy and
+the user&#39;s switching cost.</p>
+<blockquote>
+<p><strong>Single-line moat:</strong> <em>No CPG brand has built the OS.
+No SaaS brand has the can. No wearable has the SKU. No bottle has an
+opinion.</em></p>
+</blockquote>
+<hr />
+<h2 id="2--competitor-by-competitor-defense">2 ·
+Competitor-by-Competitor Defense</h2>
+<h3 id="21-whoop">2.1 WHOOP</h3>
+<p><strong>Their strength:</strong> Best-in-class strain &amp; recovery
+coaching. Subscription-native. Coach-trusted in pro sports.
+<strong>Where they hit AForce:</strong> Recovery overlay on Home;
+Connected Devices integration; pro-team Guardian/Clutch positioning.
+<strong>Why they can&#39;t take it:</strong></p>
+<ul>
+<li>WHOOP tells you <em>you&#39;re depleted.</em> AForce tells you <em>drink
+this stick now, recheck in 12 minutes, then this RTD at the half.</em>
+Prescription beats observation.</li>
+<li>WHOOP has no fulfillment. Every recommendation is a dead-end — &quot;rest
+more, hydrate more&quot; with no SKU, no cart, no compliance loop.</li>
+<li>The <strong>AForce OS Recovery overlay</strong> ingests WHOOP as one
+of seven sources (<code>biometricsAggregator.ts</code>). We turn their
+data into <em>our</em> prescription. They cannot reverse the integration
+without becoming a CPG company, which their hardware-subscription
+P&amp;L cannot absorb.</li>
+<li>Pro-team penetration: WHOOP sells <strong>straps</strong>. AForce
+sells <strong>Clutch (live command grid) + Guardian (composite risk
+score) + the consumable the staff already buys.</strong> A coach can&#39;t
+pour a strap into a player.</li>
+</ul>
+<p><strong>AForce defense:</strong> Position WHOOP as a <em>premium
+upstream sensor</em> in our integration tier — they make our
+prescription sharper. We make their data actionable.</p>
+<hr />
+<h3 id="22-oura">2.2 Oura</h3>
+<p><strong>Their strength:</strong> Sleep &amp; HRV gold standard.
+Strong female-health and longevity narrative. Premium hardware
+aesthetic. <strong>Where they hit AForce:</strong> Recovery overlay;
+sleep-quality inputs to compliance scoring; premium dark UX. <strong>Why
+they can&#39;t take it:</strong></p>
+<ul>
+<li>Oura&#39;s daily Readiness score is a <strong>diagnosis without a
+treatment.</strong> Users wake up, see &quot;62 — pay attention,&quot; and have
+nowhere to act. AForce reads the same HRV and routes it directly into a
+16-oz + 1 stick prescription with a 15-minute recheck.</li>
+<li>Oura has no daytime loop. The ring reports nightly — AForce reports
+<strong>every sip, every heat-index spike, every quarter
+break.</strong></li>
+<li>We share Oura&#39;s design language (premium, dark, restrained) but
+layer <strong>operational density</strong> on top: AForce cinematic
+visualization, band-colored scores, live cadence. Oura looks like a
+journal. AForce looks like mission control.</li>
+</ul>
+<p><strong>AForce defense:</strong> Oura users self-select for
+<em>willingness to optimize.</em> They are our highest-LTV cohort.
+Connect via Oura&#39;s HRV/Readiness API → we own the next 16 hours of their
+day.</p>
+<hr />
+<h3 id="23-apple-apple-health--apple-watch--apple-fitness">2.3 Apple
+(Apple Health + Apple Watch + Apple Fitness+)</h3>
+<p><strong>Their strength:</strong> Default ecosystem. Distribution.
+Trust. Free baseline metrics. iCloud-grade privacy story. <strong>Where
+they hit AForce:</strong> They sit underneath everything. They could
+surface a &quot;hydration&quot; vertical at any WWDC. <strong>Why they can&#39;t take
+it:</strong></p>
+<ul>
+<li>Apple is a <strong>horizontal platform.</strong> They will never
+sell a stick, prescribe a sodium-band, or build a Heat Guard rule that
+pulls a player from rotation. Vertical specialists win the deep
+customer.</li>
+<li>Apple Health is <strong>an aggregator with no opinion.</strong>
+AForce is the opinion <em>on top</em> of Apple Health. We are a
+complement, not a substitute — we read from HealthKit and write
+back.</li>
+<li>Apple cannot do <strong>Cruise Mode, Clutch, or Guardian</strong> —
+those are vertical B2B/B2B2C surfaces with bespoke domain logic
+(heat-index, alcohol+sun risk, NBA/college roster monitoring). Apple&#39;s
+playbook is to expose primitives, not to operate vertical SaaS.</li>
+<li>Watchface real estate is the only meaningful Apple risk. Mitigation:
+ship a <strong>first-class watchOS complication</strong> that surfaces
+the live AForce score → we colonize their glass instead of being
+colonized.</li>
+</ul>
+<p><strong>AForce defense:</strong> Be the <em>best HealthKit citizen in
+the hydration vertical.</em> Apple cannot punish a vertical that
+respects the platform.</p>
+<hr />
+<h3 id="24-garmin-garmin-connect">2.4 Garmin (Garmin Connect)</h3>
+<p><strong>Their strength:</strong> Endurance-athlete loyalty. GPS
+workouts. Best-in-class battery. Hydration logging already in the watch.
+<strong>Where they hit AForce:</strong> Sweat-rate calculator territory;
+endurance-athlete persona overlap. <strong>Why they can&#39;t take
+it:</strong></p>
+<ul>
+<li>Garmin&#39;s hydration log is <strong>a counter, not a coach.</strong>
+It asks the user to enter ounces. AForce computes the prescription from
+preKg/postKg/duration/fluidIn/urineOut using <strong>ACSM Sawka
+2007</strong> and routes it into a four-band sodium target from
+<strong>Baker 2017</strong> (see <code>ScienceScreen.tsx</code>). That&#39;s
+the difference between a tally sheet and a sports-medicine engine.</li>
+<li>Garmin Connect&#39;s UI is a 2014-era dashboard. AForce ships a 2026
+dark cinematic OS calibrated to elite-aesthetic expectations.</li>
+<li>Garmin has no consumable. Our <strong>Sweat Calculator →
+Store</strong> funnel converts a free measurement into a recurring SKU.
+Garmin would have to become a CPG company.</li>
+</ul>
+<p><strong>AForce defense:</strong> Position Sweat Calculator as the
+<em>open methodology</em> (Quick / Precision / Estimate modes) Garmin
+athletes use to validate Garmin&#39;s auto-tracking — and discover AForce&#39;s
+prescription.</p>
+<hr />
+<h3 id="25-gatorade--gatorade-gx-incl-gx-sweat-patch">2.5 Gatorade /
+Gatorade Gx (incl. Gx Sweat Patch)</h3>
+<p><strong>Their strength:</strong> $6B brand. Universal availability.
+PepsiCo distribution. The Gx Patch is the only mainstream sweat-sodium
+sensor. <strong>Where they hit AForce:</strong>
+Hydration-with-electrolytes category; sweat-sodium personalization
+claim; pro-team locker rooms. <strong>Why they can&#39;t take
+it:</strong></p>
+<ul>
+<li>The Gx Patch is <strong>a one-shot diagnostic</strong> — single-use,
+$25, sodium concentration only, no daily loop, no software memory.
+AForce ingests that result (or its own preKg/postKg input) and reuses it
+across every workout, every heat day, every cruise day, forever.</li>
+<li>Gatorade is <strong>a beverage company that ships an app.</strong>
+AForce is <strong>a software company that ships a beverage.</strong>
+Org-chart determines roadmap: Gatorade ships flavors; AForce ships
+engine improvements.</li>
+<li>Gx software has no Recovery overlay, no Heat Guard, no Guardian risk
+score, no Clutch command grid, no Cruise Mode. Eight surfaces vs
+one.</li>
+<li><strong>Premium positioning:</strong> Gatorade is mass-market.
+AForce is <strong>alkaline pH 8.8+, functional superfoods, four formats,
+$34.99 / 12-ct sticks</strong> — a price point Gatorade structurally
+cannot reach without cannibalizing the parent brand.</li>
+</ul>
+<p><strong>AForce defense:</strong> Let Gatorade own the sideline
+cooler. We own the <strong>prescription that decides what goes in the
+cooler.</strong></p>
+<hr />
+<h3 id="26-liquid-iv--lmnt--nuun-electrolyte-brands">2.6 Liquid IV /
+LMNT / Nuun (Electrolyte Brands)</h3>
+<p><strong>Their strength:</strong> Direct-to-consumer mastery. Strong
+founder/community brands (LMNT especially). Clean-ish ingredient
+stories. <strong>Where they hit AForce:</strong> The Store screen;
+subscription pricing; &quot;hydration multiplier&quot; claim. <strong>Why they
+can&#39;t take it:</strong></p>
+<ul>
+<li>All three are <strong>single-format SKUs in a paper sleeve.</strong>
+AForce ships <strong>sticks + cans + bundles + subscriptions</strong>
+under one brand, with the <strong>OS routing the user to the right
+format for the right context</strong> (&quot;Berry Blast now, maintain PEAK&quot;
+vs &quot;Watermelon Surge for HEAT recovery&quot;). They sell powder. We sell
+<strong>a prescribed system.</strong></li>
+<li>None of them have a wearable integration, a sweat calculator, an
+achievement system, or a Heat Guard rule. The Store is the
+<em>output</em> of the OS — they only have the output, with no engine
+behind it.</li>
+<li>LMNT is closest in tone (premium, founder-led) but is a
+<strong>single-flavor sodium-forward SKU.</strong> AForce&#39;s
+<strong>alkaline + functional + AI-coached</strong> stack is
+structurally broader.</li>
+<li><strong>Subscription stickiness:</strong> Liquid IV&#39;s churn is high
+because the value prop ends at the cup. AForce subscription compounds
+with <strong>streaks, achievements, Recovery windows, Cruise Mode,
+Clutch access</strong> — every additional surface raises switching
+cost.</li>
+</ul>
+<p><strong>AForce defense:</strong> Win the customer once on a stick →
+onboard them into the OS → 6 months later they cannot leave without
+losing their Streak, their Achievements, and their personalized Recovery
+curve.</p>
+<hr />
+<h3 id="27-hidrate-spark-smart-bottle">2.7 Hidrate Spark (Smart
+Bottle)</h3>
+<p><strong>Their strength:</strong> First-to-market smart-bottle
+category leader. Glow ring. Bluetooth sync. <strong>Where they hit
+AForce:</strong> Compliance verification (&quot;did you actually drink it&quot;);
+intake logging. <strong>Why they can&#39;t take it:</strong></p>
+<ul>
+<li>Hidrate Spark <strong>counts ounces.</strong> It cannot tell you
+<em>what</em> to drink, <em>why,</em> or <em>when in your strain
+cycle.</em> It is a peripheral with no engine.</li>
+<li>Hidrate has no consumable. Their bottle is empty when you buy it —
+the customer goes to <strong>us</strong> to fill it.</li>
+<li>AForce can integrate Hidrate as a <strong>PHANTOM-class
+verifier</strong> (Profile screen has a PHANTOM Band toggle and a CLUTCH
+Clip — same architecture extends to a smart-bottle peripheral). They
+become a sensor in our loop, not a competitor to it.</li>
+<li>Their app retention is single-digit because counting water is a
+six-month novelty. Our retention compounds because <strong>we&#39;re a
+coach, not a counter.</strong></li>
+</ul>
+<p><strong>AForce defense:</strong> Ship a
+<strong>Bring-Your-Own-Bottle</strong> integration tier. Hidrate becomes
+a Profile-screen device card alongside Apple Watch Ultra and Oura
+Ring.</p>
+<hr />
+<h3 id="28-catapult--kitman-labs--vald-pro-team-sports-science-saas">2.8
+Catapult / Kitman Labs / VALD (Pro-Team Sports Science SaaS)</h3>
+<p><strong>Their strength:</strong> Deep enterprise penetration in NBA,
+NFL, EPL, NCAA. GPS load monitoring. Force-plate biomechanics. Trusted
+by performance staff. <strong>Where they hit AForce:</strong> Clutch
+(&quot;Command the Team&quot;) and Guardian (&quot;Protect the Roster&quot;) screens.
+<strong>Why they can&#39;t take it:</strong></p>
+<ul>
+<li>Catapult tracks <strong>external load</strong> (sprints,
+accelerations). VALD tracks <strong>neuromuscular readiness.</strong>
+Kitman aggregates training data. <strong>None of them touch hydration,
+sodium, heat-index, or the consumable that resolves the
+deficit.</strong> AForce is the missing layer — and the only layer with
+a SKU attached to every recommendation.</li>
+<li>Their UIs are <strong>pre-2020 enterprise dashboards</strong> built
+for a sports scientist with a laptop in a meeting room. AForce ships a
+<strong>mobile-first, glance-readable, color-coded command grid</strong>
+built for an assistant coach with 11 seconds during a timeout.
+(Screenshot: live grid with PF/SG/PG color dots, hydration scores, &quot;12
+ounces + 1 stick at next dead ball.&quot;)</li>
+<li>Guardian&#39;s <strong>composite risk score</strong> (heat index +
+hydration + exertion + core temp + pH + quarter) is a single number a
+head coach can act on — none of the incumbents collapse the signal that
+aggressively because they don&#39;t own the prescription that follows.</li>
+<li>Catapult sells <strong>straps and pods.</strong> AForce sells
+<strong>the OS the staff opens during the game</strong> plus the
+<strong>case of sticks the trainer is already restocking.</strong>
+Bundling consumable + software at the team level is a P&amp;L Catapult
+cannot run.</li>
+</ul>
+<p><strong>AForce defense:</strong> Lead with Clutch as a <strong>paid
+pro-team add-on</strong> ($X / roster / season) bundled with team-rate
+AForce shipments. Catapult is a complement on the GPS layer; we own the
+hydration layer end-to-end.</p>
+<hr />
+<h3 id="29-aggregators-apple-health-google-health-connect-samsung-health-myfitnesspal">2.9
+Aggregators (Apple Health, Google Health Connect, Samsung Health,
+MyFitnessPal)</h3>
+<p><strong>Their strength:</strong> Default surfaces on the OS. Free.
+Already installed. Trusted with the data. <strong>Where they hit
+AForce:</strong> Connected Devices screen; risk of being demoted to
+&quot;just another HealthKit writer.&quot; <strong>Why they can&#39;t take
+it:</strong></p>
+<ul>
+<li>These are <strong>mirrors, not engines.</strong> They show the user
+what they already did. AForce tells the user <strong>what to do next,
+with a SKU.</strong></li>
+<li>MyFitnessPal is the closest analogue — opinionated,
+prescription-style — but it is <strong>calorie-centric, ad-supported,
+and has zero hydration depth.</strong> Their &quot;Water&quot; tab is a tally
+counter from 2010.</li>
+<li>AForce is positioned as <strong>the hydration vertical that
+aggregators link out to</strong>, the same way Strava is the running
+vertical Apple Health links out to. Aggregators <em>route to
+specialists</em> — they do not replace them.</li>
+<li>Health Connect (Google) and Samsung Health are even thinner than
+Apple Health and have weaker retention. Risk is low.</li>
+</ul>
+<p><strong>AForce defense:</strong> Be the <strong>best two-way
+citizen</strong> of every aggregator. Read everything. Write back the
+AForce score. Become the surface the user opens <em>from</em> the
+aggregator notification.</p>
+<hr />
+<h3 id="210-cruise-line-in-house-wellness-royal-caribbean--carnival--norwegian--disney--virgin-voyages">2.10
+Cruise-Line In-House Wellness (Royal Caribbean · Carnival · Norwegian ·
+Disney · Virgin Voyages)</h3>
+<p><strong>Their strength:</strong> Captive audience. Onboard
+distribution. Brand permission to dictate guest experience. Existing
+wellness teams. <strong>Where they hit AForce:</strong> Cruise Mode (the
+&quot;Hydration intelligence for life at sea&quot; surface). <strong>Why they
+can&#39;t take it:</strong></p>
+<ul>
+<li>Cruise lines are <strong>operators, not software companies.</strong>
+Their wellness apps are notoriously poor (RCG/CCL/NCL all rank in the
+bottom decile of cruise app reviews). They cannot ship a 2026-grade
+hydration OS in-house — they outsource it.</li>
+<li>AForce Cruise Mode ships <strong>OpenWeather-driven port-day
+intelligence, alcohol+sun composite risk, excursion checklists, Wellness
+Streak achievements, and a QR-scan-to-log flow</strong> — features no
+cruise IT roadmap will deliver in under three years.</li>
+<li>Cruise lines compete with each other; they will pay a
+<strong>white-label SaaS layer</strong> to differentiate the wellness
+story rather than build it. AForce is positioned as <strong>the
+hydration intelligence layer cruise lines license</strong>, with
+co-branded consumable revenue share onboard.</li>
+<li>Royal Caribbean / Virgin Voyages already segment on premium guest
+experience — Cruise Mode&#39;s &quot;Pool-day Guest&quot; / &quot;Excursion Guest&quot; /
+&quot;Nightlife/Party&quot; personas align directly with their CRM
+segmentation.</li>
+</ul>
+<p><strong>AForce defense:</strong> Cruise Mode is <strong>a wedge into
+the hospitality vertical.</strong> Same engine extends to resorts, music
+festivals, and theme parks — all categories where the operator does not
+want to build software but does want to sell hydration.</p>
+<hr />
+<h2 id="3--surface-by-surface-defense-map">3 · Surface-by-Surface
+Defense Map</h2>
+<p>For each AForce screen the user can touch, this is the incumbent that
+comes closest, the moat layer that defends it, and the one-line reason
+it survives.</p>
+<table>
+<thead>
+<tr>
+<th>Surface</th>
+<th>Closest incumbent</th>
+<th>Moat layer</th>
+<th>Why it survives</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Home (live hydration score)</strong></td>
+<td>Apple Watch · WHOOP</td>
+<td>Software + Data</td>
+<td>Score is colored by <em>band</em>
+(PEAK/BALANCED/RECOVERING/DEPLETED), gated by heat-index, and routes to
+a <strong>prescription</strong>, not a number.</td>
+</tr>
+<tr>
+<td><strong>Check (Sweat Autopilot recheck)</strong></td>
+<td>Garmin hydration log</td>
+<td>Software</td>
+<td>Cadence-based recheck loop (5/15/30 min) is unique. Counters can&#39;t
+recheck.</td>
+</tr>
+<tr>
+<td><strong>Protocol (Recovery / Heat / Social Mode)</strong></td>
+<td>None</td>
+<td>Software + Data</td>
+<td>Multi-state OS modes (Social, Recovery, Heat) is a primitive no
+competitor has.</td>
+</tr>
+<tr>
+<td><strong>Journal (chart + AVG/TREND/COMPLIANCE/STREAK + PDF
+export)</strong></td>
+<td>Oura journal · WHOOP weekly</td>
+<td>Data</td>
+<td>Compliance % from rollups + trend math + auto-PDF for sports-science
+partner. Methodology export is a B2B wedge.</td>
+</tr>
+<tr>
+<td><strong>Store (&quot;Shop the System&quot;)</strong></td>
+<td>Liquid IV · LMNT · Gatorade Gx</td>
+<td>Product + Distribution</td>
+<td>&quot;Recommended for you&quot; is <strong>state-driven</strong> (PEAK /
+RECOVERING / HEAT). Multi-format (sticks/cans/bundles) under one
+OS.</td>
+</tr>
+<tr>
+<td><strong>Profile + Connected Devices</strong></td>
+<td>Apple Health</td>
+<td>Data</td>
+<td>Seven-source aggregator
+(Apple/Oura/Samsung/Google/Garmin/WHOOP/Strava) into one prescription.
+Aggregator-of-aggregators.</td>
+</tr>
+<tr>
+<td><strong>The Science (Methodology + Export PDF)</strong></td>
+<td>None</td>
+<td>Software</td>
+<td>ACSM Sawka 2007 + Baker 2017 + Rothfusz 1990 + Widmark 1932 cited
+inline. <em>No competitor publishes their formulas.</em> This is the
+trust moat.</td>
+</tr>
+<tr>
+<td><strong>Sweat Calculator (Quick/Precision/Estimate)</strong></td>
+<td>Gatorade Gx Patch</td>
+<td>Product + Software</td>
+<td>Free, three-mode, calibrated to ACSM. The Gx Patch is $25
+single-use; ours is unlimited and feeds the Store.</td>
+</tr>
+<tr>
+<td><strong>Achievements</strong></td>
+<td>WHOOP weekly badges · Strava trophies</td>
+<td>Data</td>
+<td>Hydration-specific (Sodium Master, Heat Survivor, Social Sentinel,
+Recovery Rookie). Gamifies the loop the consumable resolves.</td>
+</tr>
+<tr>
+<td><strong>Clutch (&quot;Command the Team&quot;)</strong></td>
+<td>Catapult · Kitman</td>
+<td>Software (B2B)</td>
+<td>Glance-readable live grid for in-game decisions. No incumbent ships
+a coach-mobile UI this fast.</td>
+</tr>
+<tr>
+<td><strong>Guardian (&quot;Protect the Roster&quot;)</strong></td>
+<td>VALD · Catapult</td>
+<td>Software (B2B) + Data</td>
+<td>Composite risk score collapses heat + hydration + exertion + core
+temp + pH + quarter into a single actionable number.</td>
+</tr>
+<tr>
+<td><strong>Cruise Mode</strong></td>
+<td>Royal Caribbean / Carnival in-house apps</td>
+<td>Software (B2B2C)</td>
+<td>OpenWeather port-day intelligence + alcohol+sun composite +
+excursion checklists. Cruise lines will license, not build.</td>
+</tr>
+<tr>
+<td><strong>Demo Modes (Phase 2 + 3 unlock)</strong></td>
+<td>None</td>
+<td>Software</td>
+<td>Reveals the upgrade path <em>inside</em> the free tier. Conversion
+engine no competitor has built.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="4--the-asymmetry-in-one-sentence-per-layer">4 · The Asymmetry,
+In One Sentence Per Layer</h2>
+<ul>
+<li><strong>vs WHOOP / Oura / Apple / Garmin:</strong> <em>They
+diagnose. We prescribe — and ship the prescription.</em></li>
+<li><strong>vs Gatorade / Liquid IV / LMNT / Nuun:</strong> <em>They
+sell drinks. We sell the system that decides which drink.</em></li>
+<li><strong>vs Hidrate Spark:</strong> <em>They count ounces. We coach
+physiology.</em></li>
+<li><strong>vs Catapult / Kitman / VALD:</strong> <em>They track load.
+We close the loop with the consumable in the trainer&#39;s hand.</em></li>
+<li><strong>vs Apple Health / Google / Samsung / MyFitnessPal:</strong>
+<em>They mirror. We have an opinion — and a SKU behind it.</em></li>
+<li><strong>vs cruise-line in-house wellness:</strong> <em>They operate
+ships. We operate the hydration intelligence layer the ships
+license.</em></li>
+</ul>
+<hr />
+<h2 id="5--what-would-it-take-for-each-player-to-catch-up">5 · What
+Would It Take For Each Player to Catch Up?</h2>
+<table>
+<thead>
+<tr>
+<th>Player</th>
+<th>What they&#39;d need to build</th>
+<th>Time</th>
+<th>Probability</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>WHOOP</td>
+<td>A CPG company. Manufacturing, supply chain, retail, FDA-adjacent
+claims.</td>
+<td>5+ yrs</td>
+<td>Low — wrong P&amp;L.</td>
+</tr>
+<tr>
+<td>Oura</td>
+<td>A coaching engine + a SKU. Currently a hardware + diagnostic
+story.</td>
+<td>4+ yrs</td>
+<td>Low — would dilute brand.</td>
+</tr>
+<tr>
+<td>Apple</td>
+<td>Vertical commitment (they will not).</td>
+<td>Never</td>
+<td>~0</td>
+</tr>
+<tr>
+<td>Garmin</td>
+<td>A modern UI team + a CPG arm.</td>
+<td>5+ yrs</td>
+<td>Low — endurance niche only.</td>
+</tr>
+<tr>
+<td>Gatorade</td>
+<td>A software org with our cinematic UX standard. PepsiCo can&#39;t ship
+this.</td>
+<td>3+ yrs</td>
+<td>Medium — but mass-market constraint blocks premium.</td>
+</tr>
+<tr>
+<td>Liquid IV / LMNT / Nuun</td>
+<td>An OS. None of them have a software muscle.</td>
+<td>4+ yrs</td>
+<td>Low — would require pivot.</td>
+</tr>
+<tr>
+<td>Hidrate</td>
+<td>A consumable + an engine. Hardware-only DNA.</td>
+<td>5+ yrs</td>
+<td>Low.</td>
+</tr>
+<tr>
+<td>Catapult / Kitman / VALD</td>
+<td>A consumer brand + retail + B2C app.</td>
+<td>5+ yrs</td>
+<td>Very low — pure enterprise DNA.</td>
+</tr>
+<tr>
+<td>Aggregators</td>
+<td>A vertical opinion. Strategic non-starter.</td>
+<td>Never</td>
+<td>~0</td>
+</tr>
+<tr>
+<td>Cruise lines</td>
+<td>An in-house software + science team. They have tried; they
+outsource.</td>
+<td>3+ yrs</td>
+<td>Low — they will license instead.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Net:</strong> No player has a credible 24-month path to
+replicate the loop. Every one of them has a structural or cultural
+reason they can&#39;t.</p>
+<hr />
+<h2 id="6--the-one-line-closer">6 · The One-Line Closer</h2>
+<blockquote>
+<p>Others sell <strong>products.</strong> AForce builds
+<strong>performance infrastructure</strong> — and ships the consumable
+that fulfills its own recommendation.</p>
+<p>The category has <strong>drinks.</strong> AForce has <strong>a
+loop.</strong> That is the moat.</p>
+</blockquote>
+<hr />
+<h1 id="page_facing_up-docsvalidation-methodologymd">📄
+docs/validation-methodology.md</h1>
+<h1 id="aforce-os--validation-methodology">AForce OS — Validation
+Methodology</h1>
+<p>Version: v1.1 — June 2026</p>
+<p>This document captures every numerical model the AForce OS hydration
+engine uses, with the published reference it draws from and the
+limitations a sports-science partner needs to know before designing a
+real-world validation study.</p>
+<p>Each section is structured the same way:</p>
+<ol type="1">
+<li><strong>What we compute</strong></li>
+<li><strong>Formula / decision rule</strong></li>
+<li><strong>Reference</strong></li>
+<li><strong>Limitations &amp; known gaps</strong></li>
+</ol>
+<hr />
+<h2 id="1-sweat-rate-per-session">1. Sweat rate (per session)</h2>
+<p><strong>What we compute.</strong> Volume of fluid lost during a
+discrete activity session, in millilitres per hour (mL · h⁻¹), used to
+size both the Hydration Score replenishment target and the post-session
+AForce sodium prescription.</p>
+<p><strong>Formula.</strong></p>
+<pre><code>sweat_rate_ml_per_h = (pre_weight_kg − post_weight_kg) × 1000
+                     + fluid_in_ml − urine_out_ml
+                     all divided by duration_h</code></pre>
+<p>A 1 kg net loss over 1 hour = 1000 mL · h⁻¹.</p>
+<p><strong>Reference.</strong> ACSM Position Stand: <em>Exercise and
+Fluid Replacement</em>, Sawka et al., Med Sci Sports Exerc 39(2):
+377–390, 2007.</p>
+<p><strong>Limitations.</strong></p>
+<ul>
+<li>Treats every gram lost as water. Glycogen + substrate oxidation can
+account for ~50–100 g · h⁻¹ that isn&#39;t actually fluid loss.</li>
+<li>Doesn&#39;t model respiratory water loss separately from sweat.</li>
+<li>Assumes accurate scale (±0.1 kg).</li>
+</ul>
+<hr />
+<h2 id="2-sodium-replacement-bands">2. Sodium replacement bands</h2>
+<p><strong>What we compute.</strong> Per-session sodium target (mg)
+split into low / moderate / high bands, used by the AForce prescription
+engine and the Sweat Autopilot recovery window to pick stick vs RTD
+ratios.</p>
+<p><strong>Formula.</strong></p>
+<table>
+<thead>
+<tr>
+<th>Sweat sodium</th>
+<th>Band</th>
+<th>mg · L⁻¹ losses</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Low</td>
+<td>Salty 1</td>
+<td>&lt; 500</td>
+</tr>
+<tr>
+<td>Moderate</td>
+<td>Salty 2</td>
+<td>500 – 800</td>
+</tr>
+<tr>
+<td>High</td>
+<td>Salty 3</td>
+<td>800 – 1200</td>
+</tr>
+<tr>
+<td>Very high</td>
+<td>Salty 4</td>
+<td>&gt; 1200</td>
+</tr>
+</tbody>
+</table>
+<p>Per-session prescription =
+<code>sweat_loss_L × band_concentration</code>, capped at 2300 mg per 4
+h to stay below the upper-limit chronic sodium recommendation.</p>
+<p><strong>Reference.</strong> Baker LB, <em>Sweating Rate and Sweat
+Sodium Concentration in Athletes: A Review of Methodology and
+Intra/Interindividual Variability</em>. Sports Med 47 (Suppl 1):
+111–128, 2017.</p>
+<p><strong>Limitations.</strong></p>
+<ul>
+<li>Bands assume a healthy adult. Hypertensive users should
+override.</li>
+<li>Heat-acclimatized athletes drift toward the low band over
+weeks.</li>
+<li>Genetic variants in CFTR can produce sweat sodium &gt; 1500 mg · L⁻¹
+outside the modelled range.</li>
+</ul>
+<hr />
+<h2 id="3-heat-index-heat-guard-activation">3. Heat Index (Heat Guard
+activation)</h2>
+<p><strong>What we compute.</strong> Apparent temperature in °F used to
+flip the Heat Guard band from
+<code>safe → caution → warning → critical</code> and adjust recheck
+cadence in the scoring engine.</p>
+<p><strong>Formula.</strong> Rothfusz regression (NWS 1990), used at
+ambient ≥ 80 °F:</p>
+<pre><code>HI = -42.379 + 2.04901523·T + 10.14333127·R
+     - 0.22475541·T·R - 6.83783e-3·T²
+     - 5.481717e-2·R² + 1.22874e-3·T²·R
+     + 8.5282e-4·T·R² - 1.99e-6·T²·R²</code></pre>
+<p>with a low-humidity adjustment when
+<code>R &lt; 13 % AND 80 ≤ T ≤ 112</code> and a high-humidity adjustment
+when <code>R &gt; 85 % AND 80 ≤ T ≤ 87</code>.</p>
+<p><strong>Reference.</strong> Rothfusz LP, <em>The Heat Index
+Equation</em>, NWS Tech. Attachment SR 90-23, 1990. NWS Heat Index page
+(current).</p>
+<p><strong>Limitations.</strong></p>
+<ul>
+<li>Defined for shade; we do not adjust for direct solar radiation.</li>
+<li>Not validated below 80 °F — we suppress Heat Guard entirely when
+ambient &lt; 75 °F.</li>
+<li>Wet-bulb globe temperature (WBGT) is the gold standard for elite
+athletes — Rothfusz is a consumer-friendly approximation.</li>
+</ul>
+<hr />
+<h2 id="4-estimated-blood-alcohol-concentration-social-mode">4.
+Estimated blood alcohol concentration (Social Mode)</h2>
+<p><strong>What we compute.</strong> Real-time BAC estimate during
+Social Mode used for the conservative 0.06 % &quot;drink water&quot; prompt and
+the 8 h Recovery Mode window after deactivation.</p>
+<p><strong>Formula.</strong> Widmark equation (refined NHTSA form):</p>
+<pre><code>BAC% = (alcohol_g / (body_weight_g × r)) × 100
+       − β · hours_since_first_drink
+
+r       = 0.68 (male) | 0.55 (female)   Widmark factor
+β       = 0.015 % · h⁻¹                 elimination rate (Forrest 1986 mean)
+food_r  = ×0.85 multiplier when ate_recently</code></pre>
+<p>Alcohol grams per drink default =
+<code>oz × abv × 0.789 × 29.5735</code>.</p>
+<p><strong>Reference.</strong> Widmark EMP, 1932 (translation:
+<em>Principles and Applications of Medicolegal Alcohol
+Determination</em>, 1981). Forrest ARW, <em>The Estimation of Widmark&#39;s
+Factor</em>, J Forensic Sci Soc 1986.</p>
+<p><strong>Limitations.</strong></p>
+<ul>
+<li>Population-average factors — actual r ranges 0.49–0.78.</li>
+<li>Elimination rate accelerates with chronic drinking (β can reach
+0.025).</li>
+<li>Gastric absorption rate ignored — we don&#39;t model time-to-peak
+(~30–90 min).</li>
+<li>Not a legal BAC. Visual disclaimer is shown in-app.</li>
+</ul>
+<hr />
+<h2 id="5-recovery--readiness-adjustments-apple-health-overlay">5.
+Recovery &amp; readiness adjustments (Apple Health overlay)</h2>
+<p><strong>What we compute.</strong> Up-to-±10 point adjustment to the
+displayed Hydration Score based on resting heart rate, HRV (SDNN), and
+last-night sleep hours.</p>
+<p><strong>Decision rule (sums clamped to ±10).</strong></p>
+<pre><code>delta_rhr   = clamp(  (rhr_today − rhr_baseline) ×  -0.4 , -3, +3 )
+delta_hrv   = clamp(  (hrv_today − hrv_baseline) ×  +0.05, -3, +3 )
+delta_sleep = clamp(  (sleep_h − 7.5) ×             +1.5 , -4, +4 )
+
+readiness_delta = clamp(delta_rhr + delta_hrv + delta_sleep, -10, +10)</code></pre>
+<p><code>*_baseline</code> is a 14-day rolling median pulled from
+HealthKit.</p>
+<p><strong>Reference.</strong> Recovery proxy validated against Whoop /
+Oura internal whitepapers; baseline-relative HRV scoring follows Plews
+et al., <em>Heart Rate Variability and Training Intensity Distribution
+in Elite Rowers</em>, Int J Sports Physiol Perform 2014.</p>
+<p><strong>Limitations.</strong></p>
+<ul>
+<li>Baseline noise is high in the first 14 days of HealthKit
+history.</li>
+<li>Single SDNN sample is less reliable than RMSSD over 5 min — Apple
+exposes both but only SDNN at-rest is consistent across watches.</li>
+<li>Sleep score only counts duration, not sleep stages.</li>
+</ul>
+<hr />
+<h2 id="6-per-event-hydration-impact-the-score-itself">6. Per-event
+hydration impact (the score itself)</h2>
+<p><strong>What we compute.</strong> Score delta credited to a single
+intake event, broken into immediate + delayed components so the orb
+visibly fills over the 20-minute absorption window.</p>
+<p><strong>Decision rule.</strong></p>
+<pre><code>base_impact = (oz / 12) × per-fluid_weight × flavor_multiplier
+            × (heat_guard_active ? 1.15 : 1.0)
+
+cap_adjusted = min(base_impact, 12)        # 20-min absorption cap
+
+immediate    = cap_adjusted × 0.40         # released at log time
+delayed      = cap_adjusted × 0.60         # eased over 20 min</code></pre>
+<p><code>per-fluid_weight</code>: water 0.9, AForce stick 1.4, AForce
+RTD 1.3, canister 1.2. Flavor: watermelon 1.05, berry 1.05, soursop 1.10
+(and a +1 bonus when scoreBefore &lt; 60), unflavored 1.0.</p>
+<p><strong>Reference.</strong> Internal model — calibrated from pilot
+field data (n=42, summer 2025). NOT yet peer-reviewed.</p>
+<p><strong>Limitations.</strong></p>
+<ul>
+<li>The 20-min cap is a UX choice (so users see progress quickly), not a
+physiological constant.</li>
+<li>Caffeine, electrolyte content of competitor drinks, and oral
+rehydration solution coefficients are not modelled in v1.</li>
+</ul>
+<p><strong>Founder Decision — v1 Launch Stance (resolved
+2026-06-01).</strong> The per-event hydration scoring model (n=42,
+summer 2025) is approved for v1 App Store launch under the following
+conditions:</p>
+<ol type="1">
+<li>The score is presented as a relative performance indicator, not a
+clinical hydration measurement. Language across all surfaces must
+reflect this — &quot;your readiness score&quot; not &quot;your hydration level.&quot;</li>
+<li>The health disclaimer screen
+(<code>app/legal/health-disclaimer.tsx</code>) must be shown on first
+launch, before the orb is visible. No exceptions.</li>
+<li>HydroScan results are advisory only. The word &quot;recommendation&quot; is
+permitted. The word &quot;prescription&quot; is not.</li>
+<li>A peer-review validation study (n≥30, standardized protocol per
+Section 7) is targeted for completion before Series A close. Results
+will be used to recalibrate scoring coefficients in v1.1.</li>
+<li>Any marketing claim referencing the scoring engine must be reviewed
+against this methodology before publication. The CMO and founder must
+both sign off.</li>
+</ol>
+<p>This decision is final for v1. It is logged here as the authoritative
+record.</p>
+<hr />
+<h2 id="7-compliance-streak--retention">7. Compliance streak &amp;
+retention</h2>
+<p><strong>What we compute.</strong> Day count of consecutive &quot;command
+followed&quot; days, used by the consistency term in the scoring engine and
+as the unlock criterion for the streak achievement family.</p>
+<p><strong>Decision rule.</strong> A day &quot;counts&quot; when both:</p>
+<ol type="1">
+<li>The user opened the app at least once between 06:00–22:00
+local.</li>
+<li><code>confirmed_count_for_day / commands_for_day ≥ 0.6</code>.</li>
+</ol>
+<p>A miss-day that is followed by 3 consecutive hit-days restores 50 %
+of the lost streak (the &quot;comeback&quot; rule).</p>
+<p><strong>Reference.</strong> Self-determination theory streak
+heuristics, Ryan &amp; Deci 2000. Behavioural-design &quot;loss-aversion
+light&quot; pattern, Eyal <em>Hooked</em> 2014.</p>
+<p><strong>Limitations.</strong></p>
+<ul>
+<li>Time-zone changes during travel can lose a day.</li>
+<li>Sleep-shifted users (graveyard-shift workers) need a custom
+06:00–22:00 window.</li>
+</ul>
+<hr />
+<h2 id="how-to-validate-this-in-the-field">How to validate this in the
+field</h2>
+<p>To convert this from an internal model into a study-ready
+protocol:</p>
+<ol type="1">
+<li><strong>Sweat rate / sodium.</strong> Recruit n ≥ 30 athletes,
+collect absorbent-patch sweat (forearm + back) during a standardized
+45-min cycling bout at 65 % VO₂max in 32 °C / 50 % RH. Compare
+patch-derived sweat sodium to the band our app would have assigned.</li>
+<li><strong>Heat Index.</strong> Co-locate a WBGT meter for 14 outdoor
+sessions spanning 70–105 °F. Plot Rothfusz-HI vs WBGT — quantify the gap
+for the user&#39;s region.</li>
+<li><strong>BAC.</strong> Single-blind n ≥ 12 alcohol-challenge with
+breathalyser ground truth at +30 / +60 / +120 min. Report MAE for our
+Widmark estimate.</li>
+<li><strong>Score validity.</strong> A 4-week diary study comparing
+self-reported thirst / mood / urine colour to the displayed score. Look
+for monotonicity, not absolute calibration.</li>
+</ol>
+<p>Open questions are tracked in <code>replit.md</code> under
+&quot;Validation gaps&quot;.</p>
 <hr />
 <h1 id="page_facing_up-artifactsapi-serverdocsscaling-architecturemd">📄
 artifacts/api-server/docs/scaling-architecture.md</h1>

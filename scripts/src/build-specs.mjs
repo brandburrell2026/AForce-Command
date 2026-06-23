@@ -16,15 +16,30 @@ const outHtml = resolve(outDir, 'aforce-specs.html');
 const outPdf = resolve(outDir, 'aforce-specs.pdf');
 
 // Ordered list of specification source documents (paths relative to repo root).
+// Grouped: project overview -> comprehensive specs -> core/phase specs ->
+// design system -> feature & safety specs -> demo/release -> competitive ->
+// backend & scaling. Missing files are skipped gracefully at build time.
 const SOURCES = [
+  // Project overview + locked product decisions
   'replit.md',
+  // Comprehensive, code-verified product & technical specifications
+  'artifacts/aforce-os/docs/AForce-OS-Specification.md',
+  'artifacts/aforce-os/SPEC-SHEET.md',
+  // Core product spec + phase tracking + enhancement layer
   'AFORCE_FINAL_SPEC.md',
   'AFORCE_PHASE_STATUS.md',
   'AFORCE_SOCIAL_CRUISE_ADDON.md',
+  // Design system
   'design/aforce-design-tokens.md',
+  // Feature & safety specs
   'artifacts/aforce-os/docs/social-mode-safety-spec.md',
-  'docs/validation-methodology.md',
+  // Demo & release readiness
+  'artifacts/aforce-os/docs/investor-demo-readiness.md',
   'artifacts/aforce-os/docs/TESTFLIGHT_CHECKLIST.md',
+  // Competitive positioning
+  'docs/competitive-moat.md',
+  // Validation methodology + backend scaling/resilience
+  'docs/validation-methodology.md',
   'artifacts/api-server/docs/scaling-architecture.md',
   'artifacts/api-server/docs/load-testing-plan.md',
   'artifacts/api-server/docs/failover-strategy.md',

@@ -10,6 +10,8 @@ author: "Generated 2026-06-23"
 
 # Overview
 
+> **Brand system:** v2.1.0 (AForce Brand System) — see `design/aforce-design-tokens.md`.
+
 AForce OS is a real-time human performance operating system, delivered as a React Native / Expo mobile application with an Express 5 and PostgreSQL API server. Its core purpose is to provide hydration intelligence and AI-driven insights to enhance athletic performance and overall wellness. Key features include personalized hydration tracking, AI coaching, social engagement through "Circles" and "Territory" features, and integrated e-commerce capabilities via Stripe for purchases and subscriptions. The system is designed for horizontal scaling.
 
 # FINAL BUILD LOCK (locked; do not redesign)
@@ -27,12 +29,12 @@ The owner explicitly authorized a full redesign of the **Home screen and tab nav
 
 ## Cold-Launch Opening Sequence (owner-approved)
 
-A full-screen 4-stage cinematic (`components/opening/OpeningSequence.tsx`) plays once **per cold launch** as an overlay — mounted in `app/_layout.tsx` (AppShell), mirroring the InvestorDemo overlay pattern, so it touches **no routing** (no redirect-loop risk) and then fades out to reveal whatever the app routed to underneath.
+A full-screen 4-stage cinematic (`components/opening/OpeningSequence.tsx`) plays once **per cold launch** as an overlay — mounted in `app/_layout.tsx` (AppShell), mirroring the InvestorDemo overlay pattern, so it touches **no routing** (no redirect-loop risk). It is the first of **two stacked cold-launch overlays** driven by the AppShell phase machine (`opening → welcome → done`): when the cinematic finishes it crossfades into the `WelcomeHero` photo front door, and only after the user picks an entry do both overlays dismiss to reveal whatever the app routed to underneath.
 
 - **Stages:** (1) white water-drop symbol w/ breathing fade → (2) AFORCE wordmark + brand-red hairline + "Performance Is Non-Negotiable" → (3) PAUSE/HYDRATE/LOCK IN/PERFORM ritual stagger → (4) "TODAY'S READINESS" + count-up to the live score + a **band-aware** caption via `readinessLabel(performanceState.level)` (a DEPLETED user reads "REHYDRATE NOW", never "READY TO PERFORM").
 - **Motion:** slow Apple-Vision-Pro pacing, crossfading absolute-fill layers, no bounce. Tap-anywhere-to-skip; fully reduced-motion aware (`AccessibilityInfo`).
 - **Score-Protection:** display-only projection of `engine.score` (DEFAULT_SCORE=92 fallback before state loads); never awards, mutates, or fabricates score.
-- **First-run untouched:** onboarding stays intact — new users get opening → onboarding. (The separate welcome lobby was removed; the cold-launch cinematic is now solely the OpeningSequence overlay.)
+- **Front door (two overlays, retained):** the `WelcomeHero` photo front door (`components/welcome/WelcomeHero.tsx`) is an intended, retained surface — it is **not** removed and the cinematic is **not** the sole opening surface. It is mounted in `_layout.tsx` *under* the cinematic (zIndex 999 vs 1000) so the cinematic's fade-out crossfades into it with no black flash. When AppShell advances `opening → welcome` the front door's staggered entrance fires; its **GET STARTED** routes to `/onboarding` and **SIGN IN** to `/(auth)/sign-in`, which advances the phase to `done` and dismisses both overlays to reveal the routed app. Onboarding stays intact — new users get opening → welcome → onboarding.
 - **Plays per JS launch:** `OpeningMount` holds `useState(true)` initialised once when AppShell mounts; `onFinish` is a stable `useCallback` and `OpeningSequence` keeps it in a ref so the engine-score refresh (on mount + ~30s) never tears down the timeline mid-play.
 
 ## Water-First Command System
@@ -69,8 +71,8 @@ I prefer iterative development, with frequent, small updates. Ask before making 
 - **API Tools:** Orval for OpenAPI codegen, generating React Query hooks.
 
 ## UI/UX Decisions
-- **Color Scheme:** WHOOP-Cinematic edition — pure black `#000000` canvas, WHOOP lime `#B6FF00` hero accent, near-invisible borders, WHOOP recovery colors (green/yellow/red). Design tokens exported via `design/aforce-tokens.json` (Tokens Studio format) and human-readable `design/aforce-design-tokens.md`.
-- **Design Language:** WHOOP-cinematic dark aesthetic. Content floats on pure black. Data-forward: big numbers, small tracked labels. Soft radial glows, never hard box shadows. Generous spacing throughout.
+- **Color Scheme:** AForce Brand System (v2.1.0) — near-black `#0D0D0D` canvas, Signal Red `#C1281B` hero accent used sparingly (thin lines, eyebrows, active states, CTAs), Soursop green `#1FA35A` for positive status (Peak / Optimal / success), Berry blue `#1E5BFF` for secondary data, near-invisible borders, and the four performance-state colors (green / teal / amber / red). Pure black `#000000` is reserved for scrims, drop-shadow color, and `text.inverse` (text on light/accent fills) only. Design tokens exported via `design/aforce-tokens.json` (Tokens Studio format) and human-readable `design/aforce-design-tokens.md`.
+- **Design Language:** AForce cinematic dark aesthetic. Content floats on near-black `#0D0D0D`. Data-forward: big numbers, small tracked labels. Soft radial glows, never hard box shadows. Generous spacing throughout. Three type faces by role: Archivo Black (display), IBM Plex Mono (eyebrows / metrics), Inter (body).
 - **Visuals:** Stylized maps for "Territory" and smooth animations with Reanimated.
 
 ## Authentication & Identity
@@ -142,7 +144,7 @@ I prefer iterative development, with frequent, small updates. Ask before making 
 - **`store/`**: Slice-based reducer state.
 - **`utils/`**: Pure helpers.
 - **`featureFlags/`**: Feature toggles.
-- **`theme/`**: WHOOP-Cinematic color system, typography, spacing, radii, shadows, status color engine.
+- **`theme/`**: AForce Brand System (v2.1.0) color system, typography, spacing, radii, shadows, status color engine.
 - **`design/`**: Figma design tokens (`aforce-tokens.json`) and human-readable spec (`aforce-design-tokens.md`). Download endpoint: `GET /api/design-tokens`. Design guide: `GET /api/design-guide`.
 - **`types/`**: Global type definitions.
 - **`data/`**: Mock data, product definitions, templates.
@@ -171,9 +173,635 @@ I prefer iterative development, with frequent, small updates. Ask before making 
 
 ---
 
+# 📄 artifacts/aforce-os/docs/AForce-OS-Specification.md
+
+# AForce OS — Product & Technical Specification
+
+> Current as of June 23, 2026. Brand system v2.1.0. This document is compiled from
+> the live codebase (`artifacts/aforce-os`, `artifacts/api-server`, `lib/`) and the
+> locked product decisions in `replit.md`. Where the code and older spec PDFs
+> disagree, the code is treated as the source of truth.
+
+---
+
+## 1. Product Overview
+
+**AForce OS** is a real-time human-performance operating system delivered as a
+React Native / Expo mobile app backed by an Express 5 + PostgreSQL API server. Its
+core job is **hydration intelligence**: it turns logged fluid intake, biometrics,
+and environment into a single live performance score, then coaches the user with an
+AI voice engine. Around that core it layers recovery, social accountability,
+competition, and an integrated store/subscription business.
+
+**Positioning mantra:** *Pause → Hydrate → Lock In → Perform.*
+**Tagline:** *Performance Is Non-Negotiable.*
+
+---
+
+## 2. Product Locks (non-negotiable design rules)
+
+These constrain every feature and cannot be silently overridden.
+
+- **Water-First Command System.** Recommendation order is **Water → Command →
+  Optional support → Score update**. Default coach copy must begin with
+  `HYDRATE NOW` / `Start with water`. Products never lead; behavior first, product
+  second.
+- **Score Protection.** Only *completed* actions change the score. Recommendations,
+  scans (HydroScan is advisory), and product selection never increase score. Every
+  Home read-out is a read-only projection of already-completed behavior.
+- **Language / Localization Lock.** Launch languages: English, Spanish, French,
+  German, Portuguese, Italian. No country-specific prioritization; architecture
+  stays modular so hidden locales can ship later behind flags.
+- **Engine / UI Governance.** The engine may grow smarter; navigation may not grow.
+  Feature flags control exposure. Principle: **Build 100% · Show 10% · Unlock over
+  time.** One engine, multiple experiences.
+- **Product Positioning.** Decision order: Context → Recovery → Behavior →
+  Learning → Optional support. Products support behavior; they never drive it.
+
+---
+
+## 3. Technical Architecture
+
+| Layer | Technology |
+| :-- | :-- |
+| Monorepo | pnpm workspaces |
+| Mobile | React Native / Expo SDK 54, Expo Router 6, Reanimated 3, Gesture Handler |
+| Mobile state | React Context + `useReducer` (slice-based store) |
+| Data fetching | `@tanstack/react-query` with Orval-generated hooks |
+| Backend | Node.js 24, Express 5, PostgreSQL, Drizzle ORM, Zod |
+| API contract | OpenAPI-first; Orval codegen → React Query hooks + Zod schemas |
+| Real-time | Shared HTTP + WebSocket server; REST mutations broadcast to clients |
+| i18n | i18next |
+| Auth | Clerk (`@clerk/expo` mobile, `@clerk/express` server) |
+| Payments | Stripe + `stripe-replit-sync` (webhooks mirrored to Postgres) |
+| Voice | ElevenLabs TTS (Expo Speech fallback) |
+| Environment | OpenWeather API (server-proxied, cached) |
+
+**Folder model (mobile):** `app/` (routes/layouts), `components/`, `services/`
+(business logic), `store/` (reducer slices), `utils/` (pure helpers),
+`featureFlags/`, `theme/` (brand system), `design/` (Figma tokens), `data/` (SKUs,
+plans, templates), `types/`.
+
+---
+
+## 4. App Surfaces — Screens & Navigation
+
+Navigation is **locked to 5 visible tabs**; additional surfaces exist as stacked or
+hidden routes (engines built, surfaces revealed over time).
+
+**Visible tabs:** Home · Hydration (Journal) · Protocol · Community · Profile.
+
+**All routes (`app/`):**
+- Tabs: `index` (Home), `protocol`, `scan` (HydroScan), `journal`, `competition`,
+  `social`, `sleep`, `profile`, `social-legacy` *(several hidden via `href:null`)*.
+- Auth: `(auth)/sign-in`, `(auth)/sign-up` (Clerk).
+- Hidden / staged: `(hidden)/cruise/*` (journey · port · excursion · recovery),
+  `circles/[id] · manage · shared`, `heat/guardian`, `ring/session`,
+  `subscription/manage`, `legal/privacy · terms · health-disclaimer`, `clutch`
+  (team command grid), `phantom` (wearable status), `territory` (performance map),
+  `urine-check`, `onboarding`, `weekly-report`.
+
+**Home composition (current, post-revert orb-focused layout):** readiness eyebrow →
+status headline → Status Pulse Orb → status label → live status line → consequence
+line → status-based primary CTA → quick-action grid → Hydration Status card →
+flag-gated zones (render nothing when off) → pinned "AFORCE" brand footer.
+
+---
+
+## 5. Feature Flags & Phased Exposure
+
+Phase 1 (Core) is on by default; Phase 2/3 sub-features ship **off** and light up
+over time. Verified defaults from `featureFlags/flags.ts`:
+
+**On by default (`true`):** `city_competition_enabled`, `state_competition_enabled`,
+`team_competition_enabled`, `global_leaderboard_enabled`, `cruise_mode_enabled`,
+`sleep_mode_enabled`, plus spec flags `spec_activation`, `spec_social`,
+`spec_coachV2`, `spec_recoveryCircle`, `spec_notifications`, `spec_orb`,
+`spec_timelineLock`, `spec_hydroJournal`, `spec_hydroScan`, `spec_profileSource`,
+`spec_sharedContextLayer`, `spec_uiFreeze`.
+
+**Off by default (`false`):** `clutch_access_enabled` (+ heat/inventory/clip),
+`guardian_intelligence_enabled` (+ body_map/alerts), `phantom_wearable_enabled`,
+`ring_enabled`, `kids_world_enabled`, `demo_mode_enabled`,
+`metabolic_readiness_enabled` (+ glucose), `performance_age_enabled`,
+`voice_checkin_enabled`, `intent_capture_enabled`, `performance_statements_enabled`,
+`offline_intake_outbox_enabled`, all `cruise_*` sub-features,
+`voice_status_module_visible`, and gated locales `spec_language_ar/zh/ja/ko/hi`.
+
+---
+
+## 6. Hydration Scoring Engine
+
+A single 0–100 score drives every coach surface in lock-step.
+
+- **Event-driven scoring.** Each logged intake event has defined point values,
+  **absorption caps** (per rolling time window), and **time-release curves** so a
+  large gulp is absorbed gradually rather than all at once.
+- **Continuous depletion.** A pure, dependency-free helper computes
+  score-points-per-minute decay from physiological standards, so the score falls
+  between logs.
+- **Daily water target** is derived per user from body weight, activity, and
+  climate (heat/humidity from the weather proxy), not a fixed number.
+- **Score Protection** is enforced at the engine boundary: scans and
+  recommendations are advisory and never mutate score; only completed intake/recovery
+  behavior does. Scoring runs **on-device**; the server persists client-submitted
+  snapshots rather than acting as the authority.
+- Modifiers: Social/Night Mode (alcohol) raises decay; Heat Guard and low-score
+  states apply small product-specific recovery bonuses.
+
+*(Exact point/cap constants live in `utils/scoringEngine.ts`, `services/sweatRateEngine.ts`,
+and the depletion helpers — parameterized in code, intentionally not frozen here.)*
+
+---
+
+## 7. Performance-State Color System
+
+Five score bands (single source of truth: `theme/statusColor.ts`, brand v2.1.0).
+Color is a **signal only** — borders, dots, glows, accents, CTA tint — never a fill.
+
+| Band | Range | Calm hex | Meaning |
+| :-- | :-- | :-- | :-- |
+| OPTIMAL | 85–100 | `#1FA35A` (Soursop green) | Peak — soft wide glow |
+| STABLE | 70–84 | `#3DBE7A` (green, lighter) | Holding — subtle glow |
+| DECLINING | 50–69 | `#FFDE00` (amber) | Slipping — minimal glow |
+| RISK | 30–49 | `#FF8C1A` (orange) | Act now — medium glow |
+| CRITICAL | 0–29 | `#FF2800` (signal red) | Depleted — tight intense glow |
+
+A **Pressure Mode** variant deepens saturation, raises glow alpha, and speeds the
+pulse for the same band.
+
+---
+
+## 8. Subscription Tiers
+
+Verified monthly prices from `data/subscriptionPlans.ts`.
+
+**Consumer (5 tiers):**
+
+| Plan | Price | Unlocks |
+| :-- | :-- | :-- |
+| Core | $9.99/mo | Hydration Control Center, Status Pulse + score, basic protocol, basic AI, logging, smart reminders |
+| Recovery+ | $9.99/mo | Adds post-session Recovery Mode |
+| AForce Athlete | $19.99/mo | Enhanced AI, personalized protocol, advanced recovery, 90-day trends, competition + city/state/team leaderboards, premium notifications, Metabolic Readiness |
+| Performance Bundle | $59.99/mo | Flagship: Athlete tier + monthly product drop (1 canister or 2 stick packs) at member pricing, priority AI/insights |
+| AForce Elite | $99/mo | Guardian Mode (individual), premium analytics, full monthly product bundle, early access, concierge support |
+
+**Team (Core):** Team Core Starter $49/mo (≤25 seats) · Team Core Growth $99/mo
+(≤50) · Team Core Pro $149/mo (≤100) — roster-aware, group reporting, admin console.
+
+**Enterprise — Clutch (live team command):** Clutch Starter $1,000/mo · Clutch Pro
+$2,500/mo · Clutch Elite $5,000/mo.
+
+**Enterprise — Guardian (injury-risk protection):** Guardian Core $5,000/mo +
+$7,500 setup (6-mo min) · Guardian Elite $8,000/mo + $12,500 setup (12-mo min).
+
+Entitlement is gated client-side via `useEntitlement.ts`; Stripe is the source of
+truth, mirrored to Postgres.
+
+---
+
+## 9. Product Store (Physical SKUs)
+
+Catalog model: one SKU per (format × flavor), plus per-format bundles
+(`data/pricing.ts`, `data/products.ts`). Subscriber/member pricing is lower than
+list. Pricing/shipping/tax are computed server-side.
+
+- **Formats:** Stick packs (12 ct) · RTD cans (12 pk) · Canisters (30 servings).
+- **Flavors:** Berry · Watermelon · Soursop.
+- **Bundles:** flavor-agnostic multi-packs (flavor split chosen at checkout).
+- Per-serving sodium and serving sizes are encoded per SKU for the sweat-rate math.
+
+---
+
+## 10. Data Model (PostgreSQL / Drizzle)
+
+| Table | Key columns |
+| :-- | :-- |
+| `aforce_user_state` | `user_id` (PK), `units_consumed_today`, `oz_target`, `symptom_state`, `biometrics` (JSONB), `social_mode` (JSONB), `intake_events` (JSONB) |
+| `aforce_intake_logs` | `id`, `user_id`, `fluid_type`, `oz_amount`, `score_before`, `score_after` |
+| `aforce_score_snapshots` | `id`, `user_id`, `score`, `level`, `recovery_score`, `captured_at` |
+| `aforce_users` | `id`, `stripe_customer_id`, `plan_id`, `subscription_status`, `referral_code` |
+| `aforce_circle_users` | `owner_user_id`, `member_user_id`, `status` |
+| `aforce_analytics_events` | `event_id`, `analytics_id`, `event_type`, `payload` |
+
+---
+
+## 11. API Surface (`api-server`)
+
+Express 5 with Zod input/output validation generated from the OpenAPI spec.
+
+| Method · Path | Purpose |
+| :-- | :-- |
+| `GET /api/aforce/state` | Full UserState snapshot |
+| `POST /api/aforce/intake` | Log fluid consumption |
+| `POST /api/aforce/signals` | Update active symptoms (mild/moderate/severe) |
+| `GET /api/aforce/journal/timeline` | Interleaved snapshots + intake history |
+| `POST /api/aforce/social/activate` | Start a Social-Mode drinking session |
+| `POST /api/aforce/social/cruise` | Start 24h Enterprise Cruise Mode |
+| `GET /api/aforce/weather` | OpenWeather proxy (tempC, humidity) by lat/lon |
+| `POST /api/voice/tts` | ElevenLabs text-to-speech proxy |
+| `POST /api/checkout/session` | Stripe Checkout for subscriptions |
+| `POST /api/stripe/webhook` | Stripe events → updates `plan_id` |
+
+**Hardening:** `SELECT … FOR UPDATE` to serialize concurrent user actions; rate
+limiting on public + authenticated endpoints; in-memory TTL cache on the weather
+proxy; structured request/non-request logging.
+
+---
+
+## 12. Integrations
+
+- **Auth — Clerk.** Custom email/password + Google SSO. JWT via
+  `Authorization: Bearer` (REST) and `?token=` (WebSocket). Token bridging into the
+  OpenAPI client; auth-gated routes on both mobile and server.
+- **Real-time — WebSocket** mounted on the shared server (`/api/aforce/ws`) with
+  periodic heartbeats; REST mutations are broadcast to connected clients.
+- **Payments — Stripe** via `stripe-replit-sync`; the webhook secret is pulled from
+  the managed Replit Stripe connector (not an env var). Webhook events mirror
+  subscription state to Postgres.
+- **Environment — OpenWeather**, server-proxied with a ~10-minute TTL cache
+  (`OPENWEATHER_API_KEY`).
+- **Voice — ElevenLabs** (`eleven_turbo_v2_5`); static phrases cached. Expo Speech
+  is the fallback.
+
+---
+
+## 13. Localization
+
+Launch set (6, in the selector): English · Spanish · French · German · Portuguese ·
+Italian. Additional locales (Arabic, Chinese, Japanese, Korean, Hindi) are wired as
+resources but **gated behind flags** and excluded from the language selector.
+Architecture is modular so new languages add without a rebuild. (Number/date
+localization is a known gap — formatting is currently device-locale bound.)
+
+---
+
+## 14. Publishing & Distribution
+
+- **Build service:** EAS Build — `development`, `preview`, `production` profiles in
+  `eas.json`.
+- **Bundle IDs:** iOS `com.aforce.os`, Android `com.aforce.os`.
+- **Branding assets:** icon / splash / adaptive / favicon all render the **N–N
+  "Non-Negotiable" monogram** (Bone `#F5F0E8` N's, Signal Red `#C1281B` center bar,
+  Cinematic Black `#0D0D0D`), generated from a font-free vector SVG.
+- **Build:** `pnpm eas:build:ios` · `:android` · `:all` · `:preview` (from
+  `artifacts/aforce-os/`).
+- **Submit:** `pnpm eas:submit:ios` (needs ASC App ID + Apple Team ID via the
+  `eas-configure-submit` helper) · `pnpm eas:submit:android` (needs a Google Play
+  service-account JSON, never committed).
+- **Store screenshots** must be captured from a real device/simulator build — the
+  web preview can't produce submission-grade assets.
+
+---
+
+## 15. Design System (Brand v2.1.0)
+
+- **Canvas:** near-black `#0D0D0D`. Content floats; soft radial glows, never hard
+  box shadows. Generous spacing.
+- **Accents:** Signal Red `#C1281B` used sparingly (thin lines, eyebrows, active
+  states, CTAs); Soursop green `#1FA35A` for positive status; Berry blue `#1E5BFF`
+  for secondary data. Pure black `#000000` reserved for scrims/shadows/inverse text.
+- **Type (three roles):** Archivo Black (display) · IBM Plex Mono (eyebrows /
+  metrics) · Inter (body).
+- **Tokens:** exported as `design/aforce-tokens.json` (Tokens Studio) +
+  human-readable `design/aforce-design-tokens.md`. Served at `GET /api/design-tokens`
+  and `GET /api/design-guide`.
+
+---
+
+*Source of truth: the AForce OS codebase. Locked product decisions are maintained in
+`replit.md`; this spec mirrors them and adds the concrete, code-verified inventory.*
+
+
+---
+
+# 📄 artifacts/aforce-os/SPEC-SHEET.md
+
+# AForce OS — Product & Technical Specification
+
+A complete specification of the **AForce OS** mobile application — a real-time
+human-performance operating system delivered as a React Native / Expo app with an
+Express 5 + PostgreSQL backend. Its purpose: turn hydration into measurable
+readiness, recovery, and a daily ritual — *Pause → Hydrate → Lock In → Perform.*
+
+## At a Glance
+
+| | |
+|---|---|
+| **App name** | AForce OS |
+| **Version** | 1.0.0 (iOS build 1 / Android versionCode 1) |
+| **Platform** | iOS + Android (React Native / Expo), portrait, dark UI |
+| **Bundle ID** | `com.aforce.os` (iOS & Android) |
+| **Frontend** | Expo SDK ~54, React Native 0.81.5, Expo Router 6 |
+| **Backend** | Node.js, Express 5, PostgreSQL, Drizzle ORM, Zod |
+| **Auth** | Clerk (`@clerk/expo`) |
+| **Payments** | Stripe + stripe-replit-sync |
+| **Languages** | 6 live (EN/ES/FR/DE/PT/IT) + 5 wired-but-hidden |
+| **Visible tabs** | Home · Hydration · Protocols · Community · Profile |
+
+---
+
+## 1. Platform & Technology Stack
+
+- **Framework:** Expo SDK `~54.0.27`, React Native `0.81.5` (New Architecture
+  enabled, React Compiler enabled, typed routes).
+- **Navigation:** Expo Router `~6.0.17` (file-based; both classic `Tabs` and
+  native `NativeTabs`).
+- **State management:** Zustand store organized into reducer-style slices
+  (`store/useAppStore.tsx`, `store/appStoreReducer.ts`, `store/slices.tsx`), plus
+  a dedicated cart store (`store/useCartStore.tsx`).
+- **Data fetching:** `@tanstack/react-query`, consuming a generated OpenAPI client
+  (`@workspace/api-client-react`).
+- **Animation:** React Native Reanimated `~4.1.1` + Worklets.
+- **Internationalization:** `i18next` + `react-i18next` + `expo-localization`.
+- **Hardware / device:** `expo-camera` (HydroScan), `expo-location` (weather),
+  `@kingstinct/react-native-healthkit` (Apple Health), `expo-haptics`,
+  `expo-audio`, `expo-notifications`, `expo-secure-store`.
+- **Typography assets:** Inter, Bebas Neue, DM Sans (`@expo-google-fonts/*`).
+
+---
+
+## 2. Application Architecture
+
+- **`app/`** — root layouts, the authenticated tab group, gated routes, modals.
+- **`components/`** — reusable UI (orb, rails, opening sequence, etc.).
+- **`services/`** — business logic (scoring, voice, health, social, i18n).
+- **`store/`** — slice-based Zustand state + reducer.
+- **`utils/`** — pure, dependency-free helpers (scoring math, units, dashboards).
+- **`featureFlags/`** — feature toggles controlling surface exposure.
+- **`theme/`** — AForce Brand System (v2.1.0) color system, typography, spacing, radii.
+- **`data/`** — products, subscription plans, templates, mock data.
+- **`types/`** — shared TypeScript definitions.
+- **`locales/`** — translation resources.
+
+**Governance principle:** *Build 100% · Show 10% · Unlock over time.* The engine
+expands; navigation stays fixed. Feature flags gate exposure.
+
+---
+
+## 3. Navigation & Screen Inventory
+
+### Visible tab bar (5 tabs)
+1. **Home** — readiness + hydration command dashboard (`app/(tabs)/index.tsx`).
+2. **Hydration** — chronological hydration/recovery feed (`app/(tabs)/journal.tsx`).
+3. **Protocols** — AForce Protocol guidance (`app/(tabs)/protocol.tsx`).
+4. **Community** — rankings, challenges, battles, teams, map (`app/(tabs)/competition.tsx`).
+5. **Profile** — profile + settings (`app/(tabs)/profile.tsx`).
+
+### Hidden routes (`href: null` — built, not surfaced)
+`scan` (HydroScan), `social` (Social Mode), `sleep` (Sleep Mode), `social-legacy`
+(developer-only).
+
+### Stack / modal routes
+`/store`, `/cart`, `/subscription`, `/achievements`, `/onboarding`, `/circles`,
+`/territory`, `/ring`, `/heat`.
+
+---
+
+## 4. Onboarding & Cold-Launch Opening Sequence
+
+- **Opening sequence** (`components/opening/OpeningSequence.tsx`) — a 4-stage
+  cinematic that plays **once per cold launch** as an overlay (touches no routing):
+  1. White water-drop symbol, breathing fade.
+  2. AFORCE wordmark + brand-red hairline + "Performance Is Non-Negotiable".
+  3. PAUSE / HYDRATE / LOCK IN / PERFORM ritual stagger.
+  4. "TODAY'S READINESS" + count-up to the live score, with a band-aware caption
+     (a depleted user reads "REHYDRATE NOW", never "READY TO PERFORM").
+  Slow Apple-Vision-Pro pacing, tap-to-skip, fully reduced-motion aware. Display-only
+  (never mutates score).
+- **First-run onboarding** (`app/onboarding.tsx`) — Goal selection (Performance /
+  Recovery / Endurance / Balance / Longevity) → Activity level (Sedentary →
+  Athlete) → Profile setup (weight / height / sex). Gated by two flags
+  (`hasSeenWelcome` + `hasCompletedOnboarding`).
+
+---
+
+## 5. Hydration Scoring Engine
+
+*Files: `services/hydrationScoreService.ts`, `utils/hydrationScore.ts`,
+`utils/scoringEngine.ts`.*
+
+- **Base unit:** 1 unit = 12 oz.
+- **Point values:**
+  - Water: +0.5 pts/oz (+6 per unit).
+  - AForce Berry Blast / Watermelon Surge: +10 pts.
+  - AForce Soursop Edge: +11 pts.
+- **Contextual bonuses:**
+  - *Heat Guard:* +2 for Watermelon Surge when heat score ≥ 45.
+  - *Depleted boost:* +2 for Soursop Edge when score < 40.
+  - *Hydration Cycle:* +8 to +20 for logging water + AForce within 30 min (larger
+    bonus at lower scores).
+- **Absorption caps:** max 1.5 units per rolling 20-min window; excess absorbed at
+  75% efficiency.
+- **Release curves:**
+  - Water: 60% immediate, 40% released over ~12.5 min.
+  - AForce: 70% immediate, 30% released over ~25 min.
+- **Performance states:** PEAK (90–100), BALANCED (75–89), RECOVERING (60–74),
+  DEPLETED (0–59).
+- **Score Protection rule:** only *completed* behavior changes the score.
+  Recommendations, scans (HydroScan is advisory), and product selection never
+  increase the score.
+
+---
+
+## 6. Recovery & Health Signals
+
+*Files: `services/healthConnection.ts`, `services/recoveryEngine.ts`,
+`utils/biometricsAggregator.ts`.*
+
+- **Providers:** Apple Health (HealthKit), Samsung Health (SDK), WHOOP (OAuth),
+  merged "freshest-wins".
+- **Recovery Capacity engine:** derives a 0–100 score from hydration score minus
+  penalties (sleep loss, dark urine, drink load) plus a streak boost.
+- **Tracked signals:** thirst (1–5), energy (1–5), urine color (1–8), steps,
+  temperature, humidity, workout load.
+- **Apple Health entitlements:** reads heart rate, HRV, sleep, and workouts;
+  writes hydration logs back to Health.
+
+---
+
+## 7. AI Coach / Voice Engine
+
+*Files: `services/elevenLabsTts.ts`, `services/voiceService.ts`,
+`services/intentClassifier.ts`.*
+
+- **Stack:** ElevenLabs TTS proxied through the API server (`/api/voice/tts`), with
+  `expo-speech` as fallback.
+- **Lifecycle:** classify transcript intent (e.g., `LOG_INTAKE`, `COMPLETE_CYCLE`)
+  → resolve persona by performance band → render template → TTS output.
+- **Persona modes:** tone and phrasing shift with hydration band (more decisive in
+  lower bands); verdict-aware comparisons after HydroScans.
+- **Water-First copy lock:** coach recommendations always begin with `HYDRATE NOW` /
+  `Start with water`; optional product support is only suggested after hydration
+  needs are evaluated.
+
+---
+
+## 8. Social Layer
+
+*Files: `services/circleService.ts`, `services/recoveryCircle.ts`,
+`services/territoryEngine.ts`.*
+
+- **Circles:** accountability groups for friends and teams.
+- **Recovery Circle:** private cohort (max 3 people) with fixed checkpoints
+  (Day 0, 1, 3, 7, 30).
+- **Territory:** competitive regional scoring —
+  `Avg Performance ×0.35 + Protocol Rate ×0.25 + Streak Density ×0.15 +
+  Recovery Efficiency ×0.15 + Momentum ×0.10`.
+- **Social Mode:** alcohol intake affects hydration score and decay rate.
+
+---
+
+## 9. Store & Subscription System
+
+*Files: `data/subscriptionPlans.ts`, `types/subscription.ts`. Plans inherit
+features via an inheritance chain; feature flags map to `featureFlags/flags.ts`.*
+
+### Consumer
+| Plan | Price | Notes |
+|---|---|---|
+| **Core** | $9.99/mo | Entry: OS access, AI commands, daily tracking. |
+| **Recovery+** | $9.99/mo | Standalone add-on — unlocks Recovery Mode after Social Mode. |
+| **AForce Athlete** | $19.99/mo | Personalized protocols, advanced recovery, competition access. |
+| **Performance Bundle** | $59.99/mo | **Best value** — Athlete + monthly product drop (1 canister or 2 stick packs). |
+| **AForce Elite** | $99/mo | Guardian Mode for individuals + full monthly bundle (canister + sticks + RTDs) + concierge. |
+
+### Team / Program
+| Plan | Price | Seats |
+|---|---|---|
+| **Team Core Starter** | $49/mo | up to 25 |
+| **Team Core Growth** | $99/mo | up to 50 |
+| **Team Core Pro** | $149/mo | up to 100 |
+
+### Performance Systems — Clutch Access
+| Plan | Price |
+|---|---|
+| **Clutch Starter** | $1,000/mo |
+| **Clutch Pro** | $2,500/mo |
+| **Clutch Elite** | $5,000/mo |
+
+### Performance Systems — Guardian
+| Plan | Price | Terms |
+|---|---|---|
+| **Guardian Core** | $5,000/mo | + $7,500 setup, 6-month minimum |
+| **Guardian Elite** | $8,000/mo | + $12,500 setup, 12-month minimum |
+
+- **Pricing security:** pricing, shipping, and tax are computed server-side; Stripe
+  is the source of truth, mirrored to PostgreSQL via webhooks. Webhook signatures
+  are verified.
+- **Entitlements:** `useEntitlement.ts` gates paywalled surfaces by plan tier.
+
+---
+
+## 10. Authentication & Identity
+
+- **Provider:** Clerk — `@clerk/expo` (mobile), `@clerk/express` (server).
+- **Sign-in:** custom email/password + Google SSO.
+- **Gating:** the `(tabs)` group is gated behind `isSignedIn`; `ClerkProvider`
+  mounts at the root layout. Auth-gated routes exist on both client and server.
+- **Token bridging:** Clerk session tokens bridge into the OpenAPI client.
+
+---
+
+## 11. Design System
+
+*Files: `theme/colors.ts`, `theme/typography.ts`, `theme/spacing.ts`.*
+
+- **Palette (AForce Brand System):** near-black `#0D0D0D` canvas, AForce signal
+  red `#C1281B` (hero accent, used sparingly), Soursop Edge green `#1FA35A`
+  (Peak / positive status), Berry blue `#1E5BFF` (secondary / info), plus the
+  score-band ladder (green → amber → orange → red).
+- **Typography:** Archivo Black (display), IBM Plex Mono (eyebrows / metric
+  labels), Inter (400 → 800) body, tracked labels (letter-spacing up to "ultra").
+- **Spacing:** 4px grid (scale 1–24; e.g. step 8 = 32px).
+- **Aesthetic:** content floats on the near-black canvas, big numbers / small tracked labels,
+  soft radial glows (no hard box shadows), generous spacing.
+- Tokens exported in Tokens Studio format (`design/aforce-tokens.json`) and a
+  human-readable spec (`design/aforce-design-tokens.md`).
+
+---
+
+## 12. Localization
+
+- **Live (visible in selector):** English, Spanish, French, German, Portuguese,
+  Italian.
+- **Wired but hidden behind flags:** Arabic, Chinese, Japanese, Korean, Hindi.
+- **Lock:** no country-specific prioritization; architecture stays modular so new
+  languages add without a rebuild. *Files: `services/i18nService.ts`, `locales/`.*
+
+---
+
+## 13. Feature Flags
+
+*File: `featureFlags/flags.ts`. Two profiles: `DEFAULT_FLAGS` and
+`DEMO_ALL_ON_FLAGS`.* Representative flags: `clutch_access_enabled`,
+`guardian_intelligence_enabled`, `phantom_wearable_enabled`, `cruise_mode_enabled`,
+`global_leaderboard_enabled`, `team_roster_enabled`. Flags map to subscription
+feature gating so entitlements stay consistent.
+
+---
+
+## 14. Backend & API
+
+- **Server:** Express 5 with Zod input/output validation derived from an OpenAPI
+  spec (Orval generates the React Query client + Zod schemas).
+- **Database:** PostgreSQL via Drizzle ORM.
+- **Concurrency:** `SELECT ... FOR UPDATE` to serialize concurrent user actions.
+- **Real-time:** REST mutations broadcast over a shared HTTP/WebSocket server.
+- **Integrations:** Stripe (+ stripe-replit-sync), OpenWeather (proxied with an
+  in-memory TTL cache + rate limiting), ElevenLabs voice (`/api/voice/tts`).
+- **Logging:** structured logging for request and non-request code.
+- **Scaling:** designed for horizontal scaling.
+
+---
+
+## 15. Build, Distribution & Permissions
+
+- **Build service:** EAS Build — `development`, `preview`, `production` profiles
+  (`eas.json`).
+- **Bundle IDs:** iOS & Android `com.aforce.os`; iOS `supportsTablet: false`.
+- **Versioning:** app version 1.0.0; iOS buildNumber 1; Android versionCode 1.
+- **App config:** dark UI, portrait, dark splash, notification accent `#C1281B`.
+- **Permissions:**
+  - iOS — Camera (barcode scan), Location When In Use (weather), HealthKit
+    (read HR/HRV/sleep/workouts; write hydration logs).
+  - Android — `CAMERA`, `ACCESS_COARSE_LOCATION`, `ACCESS_FINE_LOCATION`.
+- **Build commands** (from `artifacts/aforce-os/`): `eas:build:ios`,
+  `eas:build:android`, `eas:build:all`, `eas:build:preview`, `eas:build:dev`;
+  submit via `eas:submit:ios` / `eas:submit:android`.
+
+---
+
+## Appendix — Key Dependency Versions
+
+| Package | Version |
+|---|---|
+| expo | ~54.0.27 |
+| react-native | 0.81.5 |
+| expo-router | ~6.0.17 |
+| react-native-reanimated | ~4.1.1 |
+| @clerk/expo | 3.2.2 |
+| @kingstinct/react-native-healthkit | ^14.0.0 |
+| @tanstack/react-query | catalog |
+| i18next | ^26.0.6 |
+| react-i18next | ^17.0.4 |
+| expo-camera | ~17.0.10 |
+| expo-audio | ~1.1.1 |
+| expo-speech | ~14.0.8 |
+| lucide-react-native | ^1.16.0 |
+| typescript | ~5.9.2 |
+
+*Specification compiled from the AForce OS codebase. Internal — for discussion and
+planning purposes.*
+
+
+---
+
 # 📄 AFORCE_FINAL_SPEC.md
 
 # AFORCE OS — Final Spec (Core Product)
+
+> **Brand system:** v2.1.0 (AForce Brand System) — see `design/aforce-design-tokens.md`.
 
 > **Authoritative core-product reference.** This document captures the
 > baseline AForce OS product. Social Mode and Cruise Mode enhancement
@@ -206,7 +834,7 @@ Live status is tracked in `AFORCE_PHASE_STATUS.md`.
 - Never rebuild existing surfaces. Patch, do not redesign.
 - Analyze current code first. Touch only files relevant to the phase.
 - Protect the existing architecture (pnpm monorepo, Expo Router stack,
-  WHOOP-cinematic dark aesthetic, slice-based store, Drizzle/Zod
+  AForce cinematic dark aesthetic, slice-based store, Drizzle/Zod
   server contracts).
 - Social Mode and Cruise Mode additions stay in the addon document
   and are not implemented until **all** core phases are stable.
@@ -252,12 +880,13 @@ accessible via standard navigation.
 ### Script — 6 acts, 10 seconds each
 
 **Act 1 — Opening (0:00–0:10)**
-Black screen. AForce wordmark fades in gold. Subtitle: "The Performance
+Black screen. AForce wordmark fades in — Bone `#F5F0E8` with a Signal Red
+`#C1281B` hairline on near-black `#0D0D0D`. Subtitle: "The Performance
 Operating System." Orb pulses once.
 
 **Act 2 — Readiness Score (0:10–0:20)**
 Orb animates from Depleted → Recovering → Balanced → Peak. Score climbs from 14
-to 97. Lime glow intensifies. Label: "From depleted to peak. In real time."
+to 97. Soursop-green peak glow (`#1FA35A`) intensifies. Label: "From depleted to peak. In real time."
 
 **Act 3 — HydroScan (0:20–0:30)**
 Scan animation. Product recognized. Score updates. Voice Engine fires: "You're
@@ -280,15 +909,22 @@ for people who don't get to be off." AForce wordmark. Fade to black.
 - `demo_mode_enabled` must be `false` in all production builds.
 - No real user data is used — all demo state is seeded from `data/demoProfile.ts`.
 - Overlay dismisses on tap at any point.
-- Auto-dismisses at 60 seconds and returns to `welcome.tsx`.
+- Auto-dismisses at 60 seconds — the modal closes to reveal the app underneath (no return to a `welcome.tsx` screen; the cinematic mounts as an overlay over whatever the app routed to).
 
 ## Product Surface (high-level)
 
 ### Mobile — `artifacts/aforce-os` (Expo SDK 54 / Expo Router 6)
 
-- **Opening sequence**: `app/splash.tsx` (cinematic four-stage lobby
-  shown on first launch only) → `app/welcome.tsx` (home dashboard,
-  also reachable from the home tab).
+- **Opening sequence**: no `app/splash.tsx` / `app/welcome.tsx` routes exist.
+  `app/_layout.tsx` (AppShell) runs a cold-launch front-door state machine
+  (`opening → welcome → done`) of stacked overlays that touch no routing: the
+  `OpeningSequence` cinematic (`components/opening/OpeningSequence.tsx`,
+  top-most) plays once per cold launch, then crossfades into the `WelcomeHero`
+  photo front door (`components/welcome/WelcomeHero.tsx` — GET STARTED →
+  `/onboarding`, SIGN IN → `/(auth)/sign-in`); once an entry is picked the
+  overlays dismiss to reveal the routed app underneath. The home dashboard is
+  `app/(tabs)/index.tsx`; first-run routing is decided by `SplashGate` via the
+  pure `firstRunRoute` helper keyed on `hasCompletedOnboarding`.
 - **Tab bar**: `app/(tabs)/` — `index`, `profile`, plus the rest of
   the primary tabs. Bottom navigation includes the Timeline surface.
 - **HydroScan**: `app/scan.tsx` → `screens/HydrationScanScreen.tsx`.
@@ -321,12 +957,16 @@ for people who don't get to be off." AForce wordmark. Fade to black.
 
 ## Design Language
 
-WHOOP-cinematic dark aesthetic. Pure black canvas (`#000000`), WHOOP
-lime hero accent (`#B6FF00`), near-invisible borders, WHOOP recovery
-status colors (green / yellow / red). Soft radial glows, never hard
-box shadows. Big numbers, small tracked labels. Generous spacing.
-Tokens exported via `design/aforce-tokens.json` (Tokens Studio) and
-the human-readable `design/aforce-design-tokens.md`.
+AForce cinematic dark aesthetic (AForce Brand System v2.1.0). Near-black
+canvas (`#0D0D0D`), Signal Red hero accent (`#C1281B`) used sparingly,
+Soursop green (`#1FA35A`) for positive status, an amber → orange → red
+declining ladder, Berry blue (`#1E5BFF`) for secondary data, near-invisible
+borders. Soft radial glows, never hard box shadows. Big numbers, small
+tracked labels. Generous spacing. Typography: Archivo Black (display),
+IBM Plex Mono (eyebrows / metrics), Inter (body). Pure black (`#000000`)
+is reserved for scrims, drop-shadow color, and `text.inverse` only.
+`design/aforce-design-tokens.md` is the canonical source of truth; tokens
+are also exported via `design/aforce-tokens.json` (Tokens Studio).
 
 ## Out of Scope (this document)
 
@@ -360,7 +1000,7 @@ Status legend: ⏳ pending · 🔧 in progress · ✅ shipped · 🚫 blocked
 | -- | -------------------------------------------------- | ------ | ----- |
 | 1  | Opening Screen Safe-Area Fix                       | ✅     | Added `<StatusBar style="light" />` once at root layout so system glyphs (clock/battery/signal) stay visible against the pure-black opening canvas. Existing safe-area inset math on `app/splash.tsx` + `app/welcome.tsx` was already robust (`Math.max(insets.top + 28, winH * 0.08)`) and was left untouched. |
 | 2  | Profile + Units + Login                            | ✅     | Audit: Profile (Clerk user binding, sign-out button), Units (weight lbs/kg, temp F/C, volume oz/mL with persistent slice + 137 lines of tests), and Login (sign-in 254 lines, sign-up 375 lines with email/password + Google SSO) were already built. Real gap: `app/index.tsx` had no `isSignedIn` check — sign-in screens were unreachable. Surgical fix: added auth gate in `app/index.tsx` (respecting `DEMO_MODE` so pitch screenshots keep working) + defensive `(auth)/_layout.tsx` redirect when already signed-in. |
-| 3  | Bottom Navigation + Timeline                       | ✅     | Audit: already fully shipped. 6 tabs (Home, Check, Protocol, Timeline, Social, Profile) with dual implementations — `NativeTabs` on iOS (liquid glass) + classic `Tabs` on Android/web with custom `PlainTabButton` (haptic tick, WHOOP-cinematic styling, lime active tint, transparent BlurView on iOS, 84px web height). Timeline = `JournalScreen` ("PERFORMANCE TIMELINE" eyebrow, 7/30/90 range picker, section summaries Recovery/Heat/Hydration/Corrections/Territory/Streaks, Win Moments strip, score-over-time chart with band zones, collapsible day cards from `/journal/rollups`, Export PDF). Route file stays `journal.tsx` for deep-link stability; user-facing label "Timeline" via i18n (`tabs.journal`). Store correctly excluded from bottom nav. No code changes required. |
+| 3  | Bottom Navigation + Timeline                       | ✅     | Audit: already fully shipped. 6 tabs (Home, Check, Protocol, Timeline, Social, Profile) with dual implementations — `NativeTabs` on iOS (liquid glass) + classic `Tabs` on Android/web with custom `PlainTabButton` (haptic tick, AForce Brand System (v2.1.0) styling, Signal Red active tint, transparent BlurView on iOS, 84px web height). Timeline = `JournalScreen` ("PERFORMANCE TIMELINE" eyebrow, 7/30/90 range picker, section summaries Recovery/Heat/Hydration/Corrections/Territory/Streaks, Win Moments strip, score-over-time chart with band zones, collapsible day cards from `/journal/rollups`, Export PDF). Route file stays `journal.tsx` for deep-link stability; user-facing label "Timeline" via i18n (`tabs.journal`). Store correctly excluded from bottom nav. No code changes required. |
 | 4  | HydroScan Core                                     | ✅     | Audit: already fully shipped. Route `app/scan.tsx` → `HydrationScanScreen` (907 lines): scan → recognize → score → recommend → log into live store, with success flash overlay (20% PEAK tint + Haptics.Success + router.back at 800ms per spec §11). Companion: `app/urine-check.tsx` → `UrineHydrationCheckScreen` (261 lines). Services: `hydrationScanService`, `hydrationScoreService`, `hydrationStatus`, `productRecognitionService`, `scanCoachVoice` (174 lines, voice-coach script builder), `urineHydrationCheck`, `beverageComparisonEngine` (204 lines), `openFoodFactsService`. Components: ScanResultCard, ScanAICoachCard, ProductFitCard, AForceReplacementCard, CameraScanModal (Expo Camera barcode scanner on native), AddDrinkModal, SmartCaptureModal, WhyThisForYouCard, SuperfoodSignalsCard. Mock barcode tray + manual search field for web preview where Expo Camera is unavailable. Tests: `hydrationScanRecommendation.test.ts`, `scanCoachVoice.test.ts`, `drinkCatalog.test.ts`. No code changes required. |
 | 5  | Orb Intelligence                                   | ✅     | Audit: already fully shipped. `StatusPulseOrb` (550 lines, Reanimated 3): pulse fully driven by `pulseConfig` from service layer — 4 `waveBehavior` modes plus `flareOnPeak` (rhythmic accent ring at PEAK), `collapseOnDepletion` (tense inward squeeze at DEPLETED), `burstOnIntake` (outward shockwave on every successful intake), continuous secondary ripple ring in BALANCED/PEAK. Tappable to open Score Breakdown sheet. Optional `socialOverlay` (alcohol load ring, crimson on HIGH/CRITICAL impairment) and `displayedAccent` (locks orb digit color to tweened display score, while pulse motion still reflects true physiological state). Backed by `hydrationScoreService` (217 lines) + `hydrationStatus` (125 lines, `getHydrationStatus()` returns headline/label/consequence/CTA). Mounted on Home tab (`app/(tabs)/index.tsx` line 238) inside the 5-step layout (headline → orb → label → consequence → CTA). Tests: `hydrationStatus.test.ts`, `statusColor.test.ts`. No code changes required. |
 | 6  | Heat + Territory                                   | ✅     | Audit: already fully shipped. Routes `app/heat.tsx` → `HeatRiskScreen` (436 lines) and `app/territory.tsx` → `TerritoryScreen` (213 lines). Services: `heatRiskEngine` (389 lines), `heatProtocolService` (183 lines), `territoryEngine` (69 lines). Components: `HeatAlertBanner`, `HeatPulse`, `HeatRiskCard`, `MapLayerToggle`, `TerritoryMap` (stylized map per spec). OpenWeather proxied through API server with in-memory TTL cache + rate limiting. Tests: `territoryEngine.test.ts`. Guardian (`app/heat/guardian.tsx` → `GuardianHeatScreen`, 297 lines) is correctly **feature-locked** per spec: `guardian_intelligence_enabled`, `guardian_body_map_enabled`, `guardian_alerts_enabled` all `false` in production (`featureFlags/flags.ts`), `true` only in demo profile. Subscription gate ties Guardian Mode to Elite plan. No code changes required. |
@@ -866,11 +1506,538 @@ or the impairment thresholds.
 
 ---
 
+# 📄 artifacts/aforce-os/docs/investor-demo-readiness.md
+
+# AForce OS — Investor Demo Readiness
+
+_Last updated: June 22, 2026 · Phase 10 (Investor Demo Overlay) complete._
+
+This is the single-page status for the **60-second investor demo** and the path
+from "runs in the room today" to "in testers' hands" to launch. It is a
+companion to `docs/TESTFLIGHT_CHECKLIST.md` (the build/submit runbook) — read
+that for the step-by-step Apple mechanics.
+
+---
+
+## Ready now (works today, in this build)
+
+- **The 60-second demo plays end-to-end.** Six acts × 10 seconds:
+  1. **Opening** — AForce wordmark + "The Performance Operating System."
+  2. **Readiness Score** — orb climbs Depleted → Peak, score animates 14 → 97.
+  3. **HydroScan** — product recognition (AForce Hydration Stick · OPTIMAL MATCH)
+     + the AI Voice Engine speaks "You're back in range. Lock in."
+  4. **Social Mode** — BAC safety overlay, crimson ring on the orb.
+  5. **Territory + Heat Guard** — stylized map sector + Heat Guard → WARNING.
+  6. **The Standard** — clean Peak orb + "Built for people who don't get to be off."
+- **Tap anywhere to skip**, or it **auto-dismisses at exactly 60s** and returns
+  to the app underneath.
+- **Launch path:** Profile → Voice Coach section → **▶ LAUNCH INVESTOR DEMO · 60s**
+  (only visible when the demo flag is on — see below).
+- **Score-Protection holds:** the overlay is a display-only projection of the
+  seeded numbers in `data/demoProfile.ts`. It never awards, mutates, or persists
+  score, never reads live user state, and writes nothing to the store.
+- **Brand-correct:** AForce brand red (`#C1281B`) + WHOOP recovery state colors.
+  No lime / gold (the spec's original gold/lime wording predates the brand
+  re-skin and is intentionally superseded).
+
+---
+
+## Done this sprint (Phase 10)
+
+- Replaced the legacy 10-beat voice script with the spec's **6-act, 10s-each**
+  cinematic, driven entirely by a single seed (`data/demoProfile.ts`).
+- `services/demo/investorDemoBeats.ts` derives the playable schedule
+  (cumulative start times, `beatAtMs`, `bandToLevel`, new `scoreToBand` for the
+  continuous orb re-tint during the climb).
+- Rewrote `components/investorDemo/InvestorDemoOverlay.tsx` into a per-act scene
+  switch: opening / readiness / hydroScan / social / territoryHeat / standard,
+  with tap-anywhere + 60s auto-dismiss, reanimated orb/voice-halo/scan-line/
+  social-ring/progress drivers, and voice on Act 3 only via `commandSpeak`.
+- Added the `demo_mode_enabled` feature flag (OFF in `DEFAULT_FLAGS`, ON in
+  `DEMO_ALL_ON_FLAGS`) and the pure, fail-closed `shouldShowInvestorDemo(flags,
+  active)` helper.
+- **Gated both entry points** on the flag: the `_layout.tsx` overlay mount and
+  the Profile launcher. Production builds (flag OFF) have no path to the overlay.
+- Tests: rewrote `investorDemoBeats.test.ts` for 6 acts and added
+  `demoProfile.test.ts` (seed integrity) + `investorDemoGate.test.ts`
+  (production-safe / fail-closed gating) — **33 tests, all green**; typecheck clean.
+- Small TestFlight fix: declared `ITSAppUsesNonExemptEncryption: false` in
+  `app.json` (standard HTTPS only) to avoid the "Build is missing compliance"
+  stall on upload.
+
+---
+
+## Before TestFlight (internal beta) — owner / Apple actions
+
+These are **account / credential** tasks, not code. Code side is ready.
+
+- [ ] **Apple Developer Program** enrollment active.
+- [ ] **Fill the two iOS submit IDs.** `eas.json` still has placeholders
+      (`REPLACE_WITH_APP_STORE_CONNECT_APP_ID`, `REPLACE_WITH_APPLE_TEAM_ID`).
+      Use the helper (never hand-edit): from repo root,
+      `EAS_ASC_APP_ID=… EAS_APPLE_TEAM_ID=… pnpm --filter @workspace/scripts run eas-configure-submit`.
+- [ ] **Privacy policy live at a real URL.** `legal/privacy-policy.md` exists but
+      needs the mailing address filled in, counsel review (HealthKit + CCPA +
+      GDPR), and publishing at a stable URL for App Store Connect.
+- [ ] **Backend reachable from a non-Replit network** (api-server deployed) so a
+      real device build can sign in and load state.
+- [ ] **`EXPO_PUBLIC_*` production env vars** baked into the EAS build (Clerk
+      publishable key, API base URL). Missing ones are the #1 cause of
+      TestFlight-only crash-on-launch.
+- [ ] Build + submit: `pnpm --filter @workspace/aforce-os run eas:build:ios`
+      then `… eas:submit:ios` (see `docs/TESTFLIGHT_CHECKLIST.md`).
+
+**Already green for TestFlight (verified in-repo):**
+- `app.json` version `1.0.0`, `ios.bundleIdentifier` `com.aforce.os`, buildNumber set.
+- App icon is **1024×1024 PNG, RGB (no alpha)** — Apple's hard requirement.
+- All `infoPlist` permission strings are human-written (camera, location, HealthKit r/w).
+- `eas.json` has complete development / preview / production profiles.
+- Typecheck passes.
+
+---
+
+## Before Miami (October field demo)
+
+- [ ] Run the demo on a **physical iPhone** (not the simulator / web preview) —
+      HealthKit, haptics, and the Voice Engine's audio path only fully exercise
+      on device.
+- [ ] Confirm the **ElevenLabs voice** plays on Act 3 on the venue network
+      (Act 3 is the only act that speaks; everything else is silent by design).
+- [ ] Pre-flight the venue: airplane-mode fallback. The demo itself is
+      self-contained (seeded, no network needed to render), but the Act-3 voice
+      uses the ElevenLabs proxy — confirm behavior if Wi-Fi is flaky.
+- [ ] Decide the **launch surface** for the room: keep it behind the Profile
+      launcher, or wire a faster trigger for the presenter (flag stays the gate).
+- [ ] Capture a screen-recording of a clean run as a backup if live demo fails.
+
+---
+
+## Before public launch (January)
+
+- [ ] **`demo_mode_enabled` MUST stay `false`** in the production flag set
+      (`DEFAULT_FLAGS`). This is the hard rule — verified by
+      `investorDemoGate.test.ts`. The overlay must never ship visible.
+- [ ] Full App Privacy questionnaire + age rating in App Store Connect.
+- [ ] App Store screenshots from a real device/simulator binary (Replit web
+      preview cannot produce submission-grade assets — see `replit.md`).
+- [ ] Counsel sign-off on privacy policy + health disclaimer for production.
+- [ ] External TestFlight (Beta App Review) pass before broad distribution.
+
+---
+
+## Risk level
+
+**Low (for the demo itself).** The overlay is self-contained, seeded, gated, and
+Score-Protection-safe; it cannot leak into production or corrupt user state. The
+only runtime dependency is the Act-3 ElevenLabs voice (graceful if it fails to
+play — the visuals carry the act).
+
+**The remaining risk is operational, not code:** Apple account setup, the two
+submit IDs, a published privacy policy, production env vars in the EAS build, and
+a physical-device dry run before any live audience. None block the demo running
+in the room today; all block getting it onto a stranger's phone.
+
+---
+
+## Next sprint (suggested, not committed)
+
+- Wire a presenter-friendly trigger (e.g. a long-press affordance) behind the
+  same flag for faster on-stage launches.
+- Add a reduced-motion variant of the overlay (the rest of the app is
+  reduced-motion aware; the demo currently always animates).
+- Optional: a short "loop" mode for an unattended booth (auto-replay), still
+  flag-gated and still Score-Protection-safe.
+
+
+---
+
+# 📄 artifacts/aforce-os/docs/TESTFLIGHT_CHECKLIST.md
+
+# AForce OS — TestFlight Submit Checklist
+
+A step-by-step runbook for getting an internal beta build of AForce OS into TestFlight for the team. Estimated total time on a fresh setup: **3–6 hours** (most of it waiting on Apple).
+
+---
+
+## Phase 0 — Prerequisites (do once)
+
+### 0.1 Apple Developer Program
+- [ ] Enroll at https://developer.apple.com/programs/ ($99/yr individual, ~$299/yr organization).
+- [ ] Wait for approval (usually same-day for individuals, up to a few business days for organizations).
+- [ ] Confirm enrollment is active in [App Store Connect](https://appstoreconnect.apple.com/).
+
+### 0.2 Expo / EAS account
+- [ ] Sign up at https://expo.dev/signup if you don't have one.
+- [ ] On your local machine: `npm install -g eas-cli`
+- [ ] `eas login` and confirm with `eas whoami`.
+
+### 0.3 Privacy policy live at a real URL
+- [ ] Take `legal/privacy-policy.md`, fill in the mailing address and any TBD fields.
+- [ ] Have it reviewed by counsel (HealthKit + CCPA + GDPR).
+- [ ] Publish at a stable URL, e.g. `https://drinkaforce.com/privacy`. (A Notion public page or a static HTML file works for beta; you'll need a real domain page for App Store production.)
+- [ ] Save the URL — you'll paste it into App Store Connect.
+
+---
+
+## Phase 1 — App Store Connect setup (do once)
+
+### 1.1 Create the app record
+- [ ] Go to App Store Connect → **My Apps** → **+** → **New App**.
+- [ ] Platform: **iOS**
+- [ ] Name: **AForce OS** (must be unique on the App Store)
+- [ ] Primary Language: English (U.S.)
+- [ ] Bundle ID: `com.aforce.os` — if it doesn't appear in the dropdown, register it first at developer.apple.com → **Certificates, Identifiers & Profiles** → **Identifiers** → **+**.
+- [ ] SKU: `AFORCE-OS-001` (any unique string)
+- [ ] User Access: **Full Access**
+- [ ] Click **Create**.
+
+### 1.2 Fill in App Information
+- [ ] **Privacy Policy URL** → paste the URL from 0.3
+- [ ] **Category** → Primary: Health & Fitness; Secondary: Lifestyle (or your choice)
+- [ ] **Content Rights** → declare whether the app contains third-party content
+- [ ] **Age Rating** → walk through the questionnaire (likely 4+)
+
+### 1.3 App Privacy questionnaire (App Store Connect → App Privacy)
+This is required before TestFlight external testing and before App Store submission. For internal-only TestFlight you can defer it, but it's faster to do it now.
+
+Declare data collection for:
+- [ ] **Health & Fitness** — used for App Functionality, **not** linked to user identity if you keep it client-side; linked if you sync to your backend
+- [ ] **Contact Info → Email** — used for App Functionality (auth)
+- [ ] **Identifiers → User ID** — used for App Functionality
+- [ ] **Usage Data → Product Interaction** — used for Analytics
+- [ ] **Diagnostics → Crash Data, Performance Data** — used for App Functionality
+
+For each category, confirm: data is **not used for tracking** and **not shared with third parties for advertising**.
+
+---
+
+## Phase 2 — Pre-build sanity checks
+
+Run these before every build.
+
+- [ ] `pnpm --filter @workspace/aforce-os run typecheck` passes
+- [ ] `app.json` `version` is correct (currently `1.0.0`)
+- [ ] `app.json` `ios.bundleIdentifier` is `com.aforce.os` and matches App Store Connect
+- [ ] All `infoPlist` permission strings read like a human wrote them (Apple rejects placeholder text)
+- [ ] App icon at `assets/images/icon.png` is **1024 × 1024 PNG, no transparency, no alpha channel** (Apple's hard requirement)
+- [ ] Smoke-test on a real iPhone: sign in, log a drink, scan a barcode, grant HealthKit, view recovery score, sign out. Simulator does **not** support HealthKit, so a physical device is required.
+- [ ] No `console.log` of secrets, no hard-coded test API keys, `EXPO_PUBLIC_*` env vars set for production
+- [ ] Backend (api-server) is deployed and reachable from a non-Replit network
+
+---
+
+## Phase 3 — Build with EAS
+
+From the repo root.
+
+### 3.1 First-time only: configure credentials
+- [ ] `cd artifacts/aforce-os`
+- [ ] `eas build:configure` — confirms `eas.json` (already present) and links to your Expo project
+- [ ] `eas credentials` → iOS → **Set up a new distribution certificate**. EAS can manage certificates and provisioning profiles for you; say yes.
+
+### 3.2 Build for TestFlight
+- [ ] `eas build --profile production --platform ios`
+- [ ] Wait ~15–30 minutes for the build to finish on EAS's macOS workers
+- [ ] Build artifact (`.ipa`) appears in your Expo dashboard
+
+The `production` profile in `eas.json` is the right one for TestFlight — `distribution` defaults to "store" (App Store Connect), which is what TestFlight reads from. The `preview` profile (`distribution: internal`) is only for ad-hoc IPAs you sideload outside TestFlight.
+
+---
+
+## Phase 4 — Submit to TestFlight
+
+### 4.1 Upload
+- [ ] `eas submit --profile production --platform ios`
+- [ ] Pick the build from the previous step
+- [ ] Provide your Apple ID and an [app-specific password](https://account.apple.com/account/manage) (or use API key — recommended for CI)
+- [ ] Wait for upload + Apple's processing (~15–60 minutes; you'll get an email)
+
+### 4.2 Configure the TestFlight build (App Store Connect → TestFlight tab)
+
+- [ ] Once Apple finishes processing, the build appears under **iOS Builds**
+- [ ] Click the build → fill in **Test Information**:
+  - **What to Test:** "First internal build of AForce OS. Please test: sign-in, hydration logging, barcode scan, HealthKit grant flow, recovery score, sign-out. Report bugs to bburrell@alkalineforce.com."
+  - **Beta App Description:** short paragraph from the pitch deck
+  - **Email:** bburrell@alkalineforce.com
+  - **Privacy Policy URL:** same as in Phase 1.2
+- [ ] **Export Compliance:** answer the encryption question. AForce OS uses standard HTTPS only → choose **"Uses standard encryption exempt from export compliance"** (ITSAppUsesNonExemptEncryption = false).
+
+### 4.3 Add internal testers (no Apple review needed)
+- [ ] App Store Connect → TestFlight → **Internal Testing** → **+** → create a group called "AForce Team"
+- [ ] Add team members by email (must have an App Store Connect role on your team — invite them via **Users and Access** first)
+- [ ] Enable the build for the group
+- [ ] Up to **100 internal testers**, each on up to 30 devices, no Apple review
+
+### 4.4 (Optional) Add external testers (light Apple review)
+- [ ] TestFlight → **External Testing** → **+** → create a group like "Friends & Family Beta"
+- [ ] Add testers by email — they don't need an App Store Connect account
+- [ ] Submit the build for **Beta App Review** (usually 1–2 business days)
+- [ ] Apple will check: app launches, HealthKit usage matches the declared purpose, no broken core flows
+- [ ] Up to **10,000 external testers**, each build is valid for 90 days
+
+---
+
+## Phase 5 — Iterate
+
+For each new beta build:
+
+- [ ] Bump `ios.buildNumber` in `app.json` (or rely on `appVersionSource: "remote"` in `eas.json`, which auto-increments — already set)
+- [ ] `eas build --profile production --platform ios`
+- [ ] `eas submit --profile production --platform ios`
+- [ ] Update **What to Test** with the changes since the last build
+- [ ] Internal testers get the build immediately; external testers get it after Apple's quick re-check (subsequent reviews are usually <24h)
+
+---
+
+## Common gotchas
+
+| Symptom | Fix |
+| --- | --- |
+| Build fails: "Missing privacy manifest" | Add `app.json` → `ios.privacyManifests` or rely on Expo SDK 54+ defaults; check Expo release notes for your SDK |
+| App Store Connect: "Invalid Bundle. The bundle identifier cannot be registered" | Someone else already registered `com.aforce.os`. Pick a new one and update `app.json` |
+| TestFlight: "Build is missing compliance" | Export Compliance not answered (Phase 4.2) |
+| HealthKit prompt never appears | You're testing in the simulator. Use a real device |
+| Crash on launch in TestFlight only | Almost always a missing `EXPO_PUBLIC_*` env var that's set locally but not baked into the production build. Set it in EAS: `eas secret:create` |
+| Apple rejects: "Health data used for advertising" | Your privacy policy or App Privacy answers are inconsistent. HealthKit data must never be marketed-as-used for ads |
+
+---
+
+## Useful links
+
+- [EAS Build docs](https://docs.expo.dev/build/introduction/)
+- [EAS Submit docs](https://docs.expo.dev/submit/introduction/)
+- [TestFlight overview](https://developer.apple.com/testflight/)
+- [App Store Connect](https://appstoreconnect.apple.com/)
+- [Apple's HealthKit review guidelines](https://developer.apple.com/app-store/review/guidelines/#health-and-health-research)
+
+
+---
+
+# 📄 docs/competitive-moat.md
+
+# AForce — Competitive Moat & Defensibility
+
+> CPG is copied. Wearables are commoditized. Apps are forgotten.
+> AForce is a **closed-loop performance OS** that ships a consumable.
+> The category has drinks. AForce has a loop.
+
+This document maps every AForce surface against every relevant incumbent and shows the structural reason each competitor cannot take that surface from us. It is the long-form companion to deck slides 17 (Competitive Advantage) and 18 (Competitors) — extended beyond the beverage category into wearables, smart bottles, pro-team SaaS, aggregators, and hospitality.
+
+---
+
+## 1 · The Structural Thesis
+
+Every entrenched player owns **one layer**. AForce is the only company stacking all four:
+
+| Layer | Who owns it today | What they can't do |
+|---|---|---|
+| **Sensor** (HR, HRV, sleep, strain) | WHOOP · Oura · Apple Watch · Garmin | Ship a consumable. Close the loop with intake. |
+| **Consumable** (electrolytes, hydration) | Gatorade · Liquid IV · LMNT · Nuun | See the body. Personalize. Coach. Retain via software. |
+| **Vessel** (smart bottle) | Hidrate Spark · HidrateSpark Pro | Influence physiology — they only count ounces in a cup. |
+| **Aggregator** (Apple Health · Google Health Connect · Samsung Health · MyFitnessPal) | Apple · Google · Samsung · Under Armour | Prescribe. They are read-only mirrors with no opinion and no SKU. |
+
+AForce occupies the **only** position where the sensor signal, the prescription, the consumable that fulfills the prescription, and the verification of compliance are all in one product. That is the loop. Every additional day of usage compounds the loop's accuracy and the user's switching cost.
+
+> **Single-line moat:** *No CPG brand has built the OS. No SaaS brand has the can. No wearable has the SKU. No bottle has an opinion.*
+
+---
+
+## 2 · Competitor-by-Competitor Defense
+
+### 2.1 WHOOP
+**Their strength:** Best-in-class strain & recovery coaching. Subscription-native. Coach-trusted in pro sports.
+**Where they hit AForce:** Recovery overlay on Home; Connected Devices integration; pro-team Guardian/Clutch positioning.
+**Why they can't take it:**
+- WHOOP tells you *you're depleted.* AForce tells you *drink this stick now, recheck in 12 minutes, then this RTD at the half.* Prescription beats observation.
+- WHOOP has no fulfillment. Every recommendation is a dead-end — "rest more, hydrate more" with no SKU, no cart, no compliance loop.
+- The **AForce OS Recovery overlay** ingests WHOOP as one of seven sources (`biometricsAggregator.ts`). We turn their data into *our* prescription. They cannot reverse the integration without becoming a CPG company, which their hardware-subscription P&L cannot absorb.
+- Pro-team penetration: WHOOP sells **straps**. AForce sells **Clutch (live command grid) + Guardian (composite risk score) + the consumable the staff already buys.** A coach can't pour a strap into a player.
+
+**AForce defense:** Position WHOOP as a *premium upstream sensor* in our integration tier — they make our prescription sharper. We make their data actionable.
+
+---
+
+### 2.2 Oura
+**Their strength:** Sleep & HRV gold standard. Strong female-health and longevity narrative. Premium hardware aesthetic.
+**Where they hit AForce:** Recovery overlay; sleep-quality inputs to compliance scoring; premium dark UX.
+**Why they can't take it:**
+- Oura's daily Readiness score is a **diagnosis without a treatment.** Users wake up, see "62 — pay attention," and have nowhere to act. AForce reads the same HRV and routes it directly into a 16-oz + 1 stick prescription with a 15-minute recheck.
+- Oura has no daytime loop. The ring reports nightly — AForce reports **every sip, every heat-index spike, every quarter break.**
+- We share Oura's design language (premium, dark, restrained) but layer **operational density** on top: AForce cinematic visualization, band-colored scores, live cadence. Oura looks like a journal. AForce looks like mission control.
+
+**AForce defense:** Oura users self-select for *willingness to optimize.* They are our highest-LTV cohort. Connect via Oura's HRV/Readiness API → we own the next 16 hours of their day.
+
+---
+
+### 2.3 Apple (Apple Health + Apple Watch + Apple Fitness+)
+**Their strength:** Default ecosystem. Distribution. Trust. Free baseline metrics. iCloud-grade privacy story.
+**Where they hit AForce:** They sit underneath everything. They could surface a "hydration" vertical at any WWDC.
+**Why they can't take it:**
+- Apple is a **horizontal platform.** They will never sell a stick, prescribe a sodium-band, or build a Heat Guard rule that pulls a player from rotation. Vertical specialists win the deep customer.
+- Apple Health is **an aggregator with no opinion.** AForce is the opinion *on top* of Apple Health. We are a complement, not a substitute — we read from HealthKit and write back.
+- Apple cannot do **Cruise Mode, Clutch, or Guardian** — those are vertical B2B/B2B2C surfaces with bespoke domain logic (heat-index, alcohol+sun risk, NBA/college roster monitoring). Apple's playbook is to expose primitives, not to operate vertical SaaS.
+- Watchface real estate is the only meaningful Apple risk. Mitigation: ship a **first-class watchOS complication** that surfaces the live AForce score → we colonize their glass instead of being colonized.
+
+**AForce defense:** Be the *best HealthKit citizen in the hydration vertical.* Apple cannot punish a vertical that respects the platform.
+
+---
+
+### 2.4 Garmin (Garmin Connect)
+**Their strength:** Endurance-athlete loyalty. GPS workouts. Best-in-class battery. Hydration logging already in the watch.
+**Where they hit AForce:** Sweat-rate calculator territory; endurance-athlete persona overlap.
+**Why they can't take it:**
+- Garmin's hydration log is **a counter, not a coach.** It asks the user to enter ounces. AForce computes the prescription from preKg/postKg/duration/fluidIn/urineOut using **ACSM Sawka 2007** and routes it into a four-band sodium target from **Baker 2017** (see `ScienceScreen.tsx`). That's the difference between a tally sheet and a sports-medicine engine.
+- Garmin Connect's UI is a 2014-era dashboard. AForce ships a 2026 dark cinematic OS calibrated to elite-aesthetic expectations.
+- Garmin has no consumable. Our **Sweat Calculator → Store** funnel converts a free measurement into a recurring SKU. Garmin would have to become a CPG company.
+
+**AForce defense:** Position Sweat Calculator as the *open methodology* (Quick / Precision / Estimate modes) Garmin athletes use to validate Garmin's auto-tracking — and discover AForce's prescription.
+
+---
+
+### 2.5 Gatorade / Gatorade Gx (incl. Gx Sweat Patch)
+**Their strength:** $6B brand. Universal availability. PepsiCo distribution. The Gx Patch is the only mainstream sweat-sodium sensor.
+**Where they hit AForce:** Hydration-with-electrolytes category; sweat-sodium personalization claim; pro-team locker rooms.
+**Why they can't take it:**
+- The Gx Patch is **a one-shot diagnostic** — single-use, $25, sodium concentration only, no daily loop, no software memory. AForce ingests that result (or its own preKg/postKg input) and reuses it across every workout, every heat day, every cruise day, forever.
+- Gatorade is **a beverage company that ships an app.** AForce is **a software company that ships a beverage.** Org-chart determines roadmap: Gatorade ships flavors; AForce ships engine improvements.
+- Gx software has no Recovery overlay, no Heat Guard, no Guardian risk score, no Clutch command grid, no Cruise Mode. Eight surfaces vs one.
+- **Premium positioning:** Gatorade is mass-market. AForce is **alkaline pH 8.8+, functional superfoods, four formats, $34.99 / 12-ct sticks** — a price point Gatorade structurally cannot reach without cannibalizing the parent brand.
+
+**AForce defense:** Let Gatorade own the sideline cooler. We own the **prescription that decides what goes in the cooler.**
+
+---
+
+### 2.6 Liquid IV / LMNT / Nuun (Electrolyte Brands)
+**Their strength:** Direct-to-consumer mastery. Strong founder/community brands (LMNT especially). Clean-ish ingredient stories.
+**Where they hit AForce:** The Store screen; subscription pricing; "hydration multiplier" claim.
+**Why they can't take it:**
+- All three are **single-format SKUs in a paper sleeve.** AForce ships **sticks + cans + bundles + subscriptions** under one brand, with the **OS routing the user to the right format for the right context** ("Berry Blast now, maintain PEAK" vs "Watermelon Surge for HEAT recovery"). They sell powder. We sell **a prescribed system.**
+- None of them have a wearable integration, a sweat calculator, an achievement system, or a Heat Guard rule. The Store is the *output* of the OS — they only have the output, with no engine behind it.
+- LMNT is closest in tone (premium, founder-led) but is a **single-flavor sodium-forward SKU.** AForce's **alkaline + functional + AI-coached** stack is structurally broader.
+- **Subscription stickiness:** Liquid IV's churn is high because the value prop ends at the cup. AForce subscription compounds with **streaks, achievements, Recovery windows, Cruise Mode, Clutch access** — every additional surface raises switching cost.
+
+**AForce defense:** Win the customer once on a stick → onboard them into the OS → 6 months later they cannot leave without losing their Streak, their Achievements, and their personalized Recovery curve.
+
+---
+
+### 2.7 Hidrate Spark (Smart Bottle)
+**Their strength:** First-to-market smart-bottle category leader. Glow ring. Bluetooth sync.
+**Where they hit AForce:** Compliance verification ("did you actually drink it"); intake logging.
+**Why they can't take it:**
+- Hidrate Spark **counts ounces.** It cannot tell you *what* to drink, *why,* or *when in your strain cycle.* It is a peripheral with no engine.
+- Hidrate has no consumable. Their bottle is empty when you buy it — the customer goes to **us** to fill it.
+- AForce can integrate Hidrate as a **PHANTOM-class verifier** (Profile screen has a PHANTOM Band toggle and a CLUTCH Clip — same architecture extends to a smart-bottle peripheral). They become a sensor in our loop, not a competitor to it.
+- Their app retention is single-digit because counting water is a six-month novelty. Our retention compounds because **we're a coach, not a counter.**
+
+**AForce defense:** Ship a **Bring-Your-Own-Bottle** integration tier. Hidrate becomes a Profile-screen device card alongside Apple Watch Ultra and Oura Ring.
+
+---
+
+### 2.8 Catapult / Kitman Labs / VALD (Pro-Team Sports Science SaaS)
+**Their strength:** Deep enterprise penetration in NBA, NFL, EPL, NCAA. GPS load monitoring. Force-plate biomechanics. Trusted by performance staff.
+**Where they hit AForce:** Clutch ("Command the Team") and Guardian ("Protect the Roster") screens.
+**Why they can't take it:**
+- Catapult tracks **external load** (sprints, accelerations). VALD tracks **neuromuscular readiness.** Kitman aggregates training data. **None of them touch hydration, sodium, heat-index, or the consumable that resolves the deficit.** AForce is the missing layer — and the only layer with a SKU attached to every recommendation.
+- Their UIs are **pre-2020 enterprise dashboards** built for a sports scientist with a laptop in a meeting room. AForce ships a **mobile-first, glance-readable, color-coded command grid** built for an assistant coach with 11 seconds during a timeout. (Screenshot: live grid with PF/SG/PG color dots, hydration scores, "12 ounces + 1 stick at next dead ball.")
+- Guardian's **composite risk score** (heat index + hydration + exertion + core temp + pH + quarter) is a single number a head coach can act on — none of the incumbents collapse the signal that aggressively because they don't own the prescription that follows.
+- Catapult sells **straps and pods.** AForce sells **the OS the staff opens during the game** plus the **case of sticks the trainer is already restocking.** Bundling consumable + software at the team level is a P&L Catapult cannot run.
+
+**AForce defense:** Lead with Clutch as a **paid pro-team add-on** ($X / roster / season) bundled with team-rate AForce shipments. Catapult is a complement on the GPS layer; we own the hydration layer end-to-end.
+
+---
+
+### 2.9 Aggregators (Apple Health, Google Health Connect, Samsung Health, MyFitnessPal)
+**Their strength:** Default surfaces on the OS. Free. Already installed. Trusted with the data.
+**Where they hit AForce:** Connected Devices screen; risk of being demoted to "just another HealthKit writer."
+**Why they can't take it:**
+- These are **mirrors, not engines.** They show the user what they already did. AForce tells the user **what to do next, with a SKU.**
+- MyFitnessPal is the closest analogue — opinionated, prescription-style — but it is **calorie-centric, ad-supported, and has zero hydration depth.** Their "Water" tab is a tally counter from 2010.
+- AForce is positioned as **the hydration vertical that aggregators link out to**, the same way Strava is the running vertical Apple Health links out to. Aggregators *route to specialists* — they do not replace them.
+- Health Connect (Google) and Samsung Health are even thinner than Apple Health and have weaker retention. Risk is low.
+
+**AForce defense:** Be the **best two-way citizen** of every aggregator. Read everything. Write back the AForce score. Become the surface the user opens *from* the aggregator notification.
+
+---
+
+### 2.10 Cruise-Line In-House Wellness (Royal Caribbean · Carnival · Norwegian · Disney · Virgin Voyages)
+**Their strength:** Captive audience. Onboard distribution. Brand permission to dictate guest experience. Existing wellness teams.
+**Where they hit AForce:** Cruise Mode (the "Hydration intelligence for life at sea" surface).
+**Why they can't take it:**
+- Cruise lines are **operators, not software companies.** Their wellness apps are notoriously poor (RCG/CCL/NCL all rank in the bottom decile of cruise app reviews). They cannot ship a 2026-grade hydration OS in-house — they outsource it.
+- AForce Cruise Mode ships **OpenWeather-driven port-day intelligence, alcohol+sun composite risk, excursion checklists, Wellness Streak achievements, and a QR-scan-to-log flow** — features no cruise IT roadmap will deliver in under three years.
+- Cruise lines compete with each other; they will pay a **white-label SaaS layer** to differentiate the wellness story rather than build it. AForce is positioned as **the hydration intelligence layer cruise lines license**, with co-branded consumable revenue share onboard.
+- Royal Caribbean / Virgin Voyages already segment on premium guest experience — Cruise Mode's "Pool-day Guest" / "Excursion Guest" / "Nightlife/Party" personas align directly with their CRM segmentation.
+
+**AForce defense:** Cruise Mode is **a wedge into the hospitality vertical.** Same engine extends to resorts, music festivals, and theme parks — all categories where the operator does not want to build software but does want to sell hydration.
+
+---
+
+## 3 · Surface-by-Surface Defense Map
+
+For each AForce screen the user can touch, this is the incumbent that comes closest, the moat layer that defends it, and the one-line reason it survives.
+
+| Surface | Closest incumbent | Moat layer | Why it survives |
+|---|---|---|---|
+| **Home (live hydration score)** | Apple Watch · WHOOP | Software + Data | Score is colored by *band* (PEAK/BALANCED/RECOVERING/DEPLETED), gated by heat-index, and routes to a **prescription**, not a number. |
+| **Check (Sweat Autopilot recheck)** | Garmin hydration log | Software | Cadence-based recheck loop (5/15/30 min) is unique. Counters can't recheck. |
+| **Protocol (Recovery / Heat / Social Mode)** | None | Software + Data | Multi-state OS modes (Social, Recovery, Heat) is a primitive no competitor has. |
+| **Journal (chart + AVG/TREND/COMPLIANCE/STREAK + PDF export)** | Oura journal · WHOOP weekly | Data | Compliance % from rollups + trend math + auto-PDF for sports-science partner. Methodology export is a B2B wedge. |
+| **Store ("Shop the System")** | Liquid IV · LMNT · Gatorade Gx | Product + Distribution | "Recommended for you" is **state-driven** (PEAK / RECOVERING / HEAT). Multi-format (sticks/cans/bundles) under one OS. |
+| **Profile + Connected Devices** | Apple Health | Data | Seven-source aggregator (Apple/Oura/Samsung/Google/Garmin/WHOOP/Strava) into one prescription. Aggregator-of-aggregators. |
+| **The Science (Methodology + Export PDF)** | None | Software | ACSM Sawka 2007 + Baker 2017 + Rothfusz 1990 + Widmark 1932 cited inline. *No competitor publishes their formulas.* This is the trust moat. |
+| **Sweat Calculator (Quick/Precision/Estimate)** | Gatorade Gx Patch | Product + Software | Free, three-mode, calibrated to ACSM. The Gx Patch is $25 single-use; ours is unlimited and feeds the Store. |
+| **Achievements** | WHOOP weekly badges · Strava trophies | Data | Hydration-specific (Sodium Master, Heat Survivor, Social Sentinel, Recovery Rookie). Gamifies the loop the consumable resolves. |
+| **Clutch ("Command the Team")** | Catapult · Kitman | Software (B2B) | Glance-readable live grid for in-game decisions. No incumbent ships a coach-mobile UI this fast. |
+| **Guardian ("Protect the Roster")** | VALD · Catapult | Software (B2B) + Data | Composite risk score collapses heat + hydration + exertion + core temp + pH + quarter into a single actionable number. |
+| **Cruise Mode** | Royal Caribbean / Carnival in-house apps | Software (B2B2C) | OpenWeather port-day intelligence + alcohol+sun composite + excursion checklists. Cruise lines will license, not build. |
+| **Demo Modes (Phase 2 + 3 unlock)** | None | Software | Reveals the upgrade path *inside* the free tier. Conversion engine no competitor has built. |
+
+---
+
+## 4 · The Asymmetry, In One Sentence Per Layer
+
+- **vs WHOOP / Oura / Apple / Garmin:** *They diagnose. We prescribe — and ship the prescription.*
+- **vs Gatorade / Liquid IV / LMNT / Nuun:** *They sell drinks. We sell the system that decides which drink.*
+- **vs Hidrate Spark:** *They count ounces. We coach physiology.*
+- **vs Catapult / Kitman / VALD:** *They track load. We close the loop with the consumable in the trainer's hand.*
+- **vs Apple Health / Google / Samsung / MyFitnessPal:** *They mirror. We have an opinion — and a SKU behind it.*
+- **vs cruise-line in-house wellness:** *They operate ships. We operate the hydration intelligence layer the ships license.*
+
+---
+
+## 5 · What Would It Take For Each Player to Catch Up?
+
+| Player | What they'd need to build | Time | Probability |
+|---|---|---|---|
+| WHOOP | A CPG company. Manufacturing, supply chain, retail, FDA-adjacent claims. | 5+ yrs | Low — wrong P&L. |
+| Oura | A coaching engine + a SKU. Currently a hardware + diagnostic story. | 4+ yrs | Low — would dilute brand. |
+| Apple | Vertical commitment (they will not). | Never | ~0 |
+| Garmin | A modern UI team + a CPG arm. | 5+ yrs | Low — endurance niche only. |
+| Gatorade | A software org with our cinematic UX standard. PepsiCo can't ship this. | 3+ yrs | Medium — but mass-market constraint blocks premium. |
+| Liquid IV / LMNT / Nuun | An OS. None of them have a software muscle. | 4+ yrs | Low — would require pivot. |
+| Hidrate | A consumable + an engine. Hardware-only DNA. | 5+ yrs | Low. |
+| Catapult / Kitman / VALD | A consumer brand + retail + B2C app. | 5+ yrs | Very low — pure enterprise DNA. |
+| Aggregators | A vertical opinion. Strategic non-starter. | Never | ~0 |
+| Cruise lines | An in-house software + science team. They have tried; they outsource. | 3+ yrs | Low — they will license instead. |
+
+**Net:** No player has a credible 24-month path to replicate the loop. Every one of them has a structural or cultural reason they can't.
+
+---
+
+## 6 · The One-Line Closer
+
+> Others sell **products.** AForce builds **performance infrastructure** — and ships the consumable that fulfills its own recommendation.
+>
+> The category has **drinks.** AForce has **a loop.** That is the moat.
+
+
+---
+
 # 📄 docs/validation-methodology.md
 
 # AForce OS — Validation Methodology
 
-Version: v1.0 — April 2026
+Version: v1.1 — June 2026
 
 This document captures every numerical model the AForce OS hydration
 engine uses, with the published reference it draws from and the
@@ -1135,168 +2302,6 @@ To convert this from an internal model into a study-ready protocol:
    monotonicity, not absolute calibration.
 
 Open questions are tracked in `replit.md` under "Validation gaps".
-
-
----
-
-# 📄 artifacts/aforce-os/docs/TESTFLIGHT_CHECKLIST.md
-
-# AForce OS — TestFlight Submit Checklist
-
-A step-by-step runbook for getting an internal beta build of AForce OS into TestFlight for the team. Estimated total time on a fresh setup: **3–6 hours** (most of it waiting on Apple).
-
----
-
-## Phase 0 — Prerequisites (do once)
-
-### 0.1 Apple Developer Program
-- [ ] Enroll at https://developer.apple.com/programs/ ($99/yr individual, ~$299/yr organization).
-- [ ] Wait for approval (usually same-day for individuals, up to a few business days for organizations).
-- [ ] Confirm enrollment is active in [App Store Connect](https://appstoreconnect.apple.com/).
-
-### 0.2 Expo / EAS account
-- [ ] Sign up at https://expo.dev/signup if you don't have one.
-- [ ] On your local machine: `npm install -g eas-cli`
-- [ ] `eas login` and confirm with `eas whoami`.
-
-### 0.3 Privacy policy live at a real URL
-- [ ] Take `legal/privacy-policy.md`, fill in the mailing address and any TBD fields.
-- [ ] Have it reviewed by counsel (HealthKit + CCPA + GDPR).
-- [ ] Publish at a stable URL, e.g. `https://drinkaforce.com/privacy`. (A Notion public page or a static HTML file works for beta; you'll need a real domain page for App Store production.)
-- [ ] Save the URL — you'll paste it into App Store Connect.
-
----
-
-## Phase 1 — App Store Connect setup (do once)
-
-### 1.1 Create the app record
-- [ ] Go to App Store Connect → **My Apps** → **+** → **New App**.
-- [ ] Platform: **iOS**
-- [ ] Name: **AForce OS** (must be unique on the App Store)
-- [ ] Primary Language: English (U.S.)
-- [ ] Bundle ID: `com.aforce.os` — if it doesn't appear in the dropdown, register it first at developer.apple.com → **Certificates, Identifiers & Profiles** → **Identifiers** → **+**.
-- [ ] SKU: `AFORCE-OS-001` (any unique string)
-- [ ] User Access: **Full Access**
-- [ ] Click **Create**.
-
-### 1.2 Fill in App Information
-- [ ] **Privacy Policy URL** → paste the URL from 0.3
-- [ ] **Category** → Primary: Health & Fitness; Secondary: Lifestyle (or your choice)
-- [ ] **Content Rights** → declare whether the app contains third-party content
-- [ ] **Age Rating** → walk through the questionnaire (likely 4+)
-
-### 1.3 App Privacy questionnaire (App Store Connect → App Privacy)
-This is required before TestFlight external testing and before App Store submission. For internal-only TestFlight you can defer it, but it's faster to do it now.
-
-Declare data collection for:
-- [ ] **Health & Fitness** — used for App Functionality, **not** linked to user identity if you keep it client-side; linked if you sync to your backend
-- [ ] **Contact Info → Email** — used for App Functionality (auth)
-- [ ] **Identifiers → User ID** — used for App Functionality
-- [ ] **Usage Data → Product Interaction** — used for Analytics
-- [ ] **Diagnostics → Crash Data, Performance Data** — used for App Functionality
-
-For each category, confirm: data is **not used for tracking** and **not shared with third parties for advertising**.
-
----
-
-## Phase 2 — Pre-build sanity checks
-
-Run these before every build.
-
-- [ ] `pnpm --filter @workspace/aforce-os run typecheck` passes
-- [ ] `app.json` `version` is correct (currently `1.0.0`)
-- [ ] `app.json` `ios.bundleIdentifier` is `com.aforce.os` and matches App Store Connect
-- [ ] All `infoPlist` permission strings read like a human wrote them (Apple rejects placeholder text)
-- [ ] App icon at `assets/images/icon.png` is **1024 × 1024 PNG, no transparency, no alpha channel** (Apple's hard requirement)
-- [ ] Smoke-test on a real iPhone: sign in, log a drink, scan a barcode, grant HealthKit, view recovery score, sign out. Simulator does **not** support HealthKit, so a physical device is required.
-- [ ] No `console.log` of secrets, no hard-coded test API keys, `EXPO_PUBLIC_*` env vars set for production
-- [ ] Backend (api-server) is deployed and reachable from a non-Replit network
-
----
-
-## Phase 3 — Build with EAS
-
-From the repo root.
-
-### 3.1 First-time only: configure credentials
-- [ ] `cd artifacts/aforce-os`
-- [ ] `eas build:configure` — confirms `eas.json` (already present) and links to your Expo project
-- [ ] `eas credentials` → iOS → **Set up a new distribution certificate**. EAS can manage certificates and provisioning profiles for you; say yes.
-
-### 3.2 Build for TestFlight
-- [ ] `eas build --profile production --platform ios`
-- [ ] Wait ~15–30 minutes for the build to finish on EAS's macOS workers
-- [ ] Build artifact (`.ipa`) appears in your Expo dashboard
-
-The `production` profile in `eas.json` is the right one for TestFlight — `distribution` defaults to "store" (App Store Connect), which is what TestFlight reads from. The `preview` profile (`distribution: internal`) is only for ad-hoc IPAs you sideload outside TestFlight.
-
----
-
-## Phase 4 — Submit to TestFlight
-
-### 4.1 Upload
-- [ ] `eas submit --profile production --platform ios`
-- [ ] Pick the build from the previous step
-- [ ] Provide your Apple ID and an [app-specific password](https://account.apple.com/account/manage) (or use API key — recommended for CI)
-- [ ] Wait for upload + Apple's processing (~15–60 minutes; you'll get an email)
-
-### 4.2 Configure the TestFlight build (App Store Connect → TestFlight tab)
-
-- [ ] Once Apple finishes processing, the build appears under **iOS Builds**
-- [ ] Click the build → fill in **Test Information**:
-  - **What to Test:** "First internal build of AForce OS. Please test: sign-in, hydration logging, barcode scan, HealthKit grant flow, recovery score, sign-out. Report bugs to bburrell@alkalineforce.com."
-  - **Beta App Description:** short paragraph from the pitch deck
-  - **Email:** bburrell@alkalineforce.com
-  - **Privacy Policy URL:** same as in Phase 1.2
-- [ ] **Export Compliance:** answer the encryption question. AForce OS uses standard HTTPS only → choose **"Uses standard encryption exempt from export compliance"** (ITSAppUsesNonExemptEncryption = false).
-
-### 4.3 Add internal testers (no Apple review needed)
-- [ ] App Store Connect → TestFlight → **Internal Testing** → **+** → create a group called "AForce Team"
-- [ ] Add team members by email (must have an App Store Connect role on your team — invite them via **Users and Access** first)
-- [ ] Enable the build for the group
-- [ ] Up to **100 internal testers**, each on up to 30 devices, no Apple review
-
-### 4.4 (Optional) Add external testers (light Apple review)
-- [ ] TestFlight → **External Testing** → **+** → create a group like "Friends & Family Beta"
-- [ ] Add testers by email — they don't need an App Store Connect account
-- [ ] Submit the build for **Beta App Review** (usually 1–2 business days)
-- [ ] Apple will check: app launches, HealthKit usage matches the declared purpose, no broken core flows
-- [ ] Up to **10,000 external testers**, each build is valid for 90 days
-
----
-
-## Phase 5 — Iterate
-
-For each new beta build:
-
-- [ ] Bump `ios.buildNumber` in `app.json` (or rely on `appVersionSource: "remote"` in `eas.json`, which auto-increments — already set)
-- [ ] `eas build --profile production --platform ios`
-- [ ] `eas submit --profile production --platform ios`
-- [ ] Update **What to Test** with the changes since the last build
-- [ ] Internal testers get the build immediately; external testers get it after Apple's quick re-check (subsequent reviews are usually <24h)
-
----
-
-## Common gotchas
-
-| Symptom | Fix |
-| --- | --- |
-| Build fails: "Missing privacy manifest" | Add `app.json` → `ios.privacyManifests` or rely on Expo SDK 54+ defaults; check Expo release notes for your SDK |
-| App Store Connect: "Invalid Bundle. The bundle identifier cannot be registered" | Someone else already registered `com.aforce.os`. Pick a new one and update `app.json` |
-| TestFlight: "Build is missing compliance" | Export Compliance not answered (Phase 4.2) |
-| HealthKit prompt never appears | You're testing in the simulator. Use a real device |
-| Crash on launch in TestFlight only | Almost always a missing `EXPO_PUBLIC_*` env var that's set locally but not baked into the production build. Set it in EAS: `eas secret:create` |
-| Apple rejects: "Health data used for advertising" | Your privacy policy or App Privacy answers are inconsistent. HealthKit data must never be marketed-as-used for ads |
-
----
-
-## Useful links
-
-- [EAS Build docs](https://docs.expo.dev/build/introduction/)
-- [EAS Submit docs](https://docs.expo.dev/submit/introduction/)
-- [TestFlight overview](https://developer.apple.com/testflight/)
-- [App Store Connect](https://appstoreconnect.apple.com/)
-- [Apple's HealthKit review guidelines](https://developer.apple.com/app-store/review/guidelines/#health-and-health-research)
 
 
 ---
