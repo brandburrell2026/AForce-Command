@@ -1,0 +1,53 @@
+Good — that confirms the discipline already exists in your own docs. Your Social Mode spec was praised for being "protective and non-preachy," and you've already had one CRITICAL/STABLE contradiction flagged on a home screen before. The tone correction I'm folding in isn't new direction — it's making Home obey the calm-operator voice you already locked everywhere else. Here's the revised prompt.
+
+---
+
+**Prompt for Replit:**
+
+Refine the AForce OS Home screen visual hierarchy without changing navigation, engines, scoring, or feature architecture.
+
+**Goal:** Make Home feel like a premium command center with one clear flow: State → Command → Action → Tools → Progress.
+
+**Hard guardrails (unchanged):** No new tabs. No removed engines. No deleted components. No scoring-logic changes. Recommendations and scans never increase score — only completed behavior does. Scan stays advisory. Typecheck and tests must pass.
+
+**TONE CORRECTION — read first, applies to all copy below.** The current Home (depleted demo state) reads as an emergency alarm: "System under stress," "Recovery window closing," "CORRECT NOW / No delay," "DEPLETION EMERGENCY." This is off-brand. AForce is "readiness, not stimulation" — calm, disciplined, operator-class, the anti-energy-drink. Apply the same calm-protective, never-alarmist voice locked in the Social Mode safety spec: a serious coach giving a clear next move, not a hospital monitor flatlining. Short headlines, protective and directive verbs, no panic. A depleted score should feel *handled*, not frightening. Reduce red-on-red intensity; let Signal Red mark the command and CTA, not saturate every surface.
+
+**1. TOP SECTION**
+Keep: Welcome Brandon · AForce OS · location/weather pill · Status Pulse Orb · readiness score · current state.
+Refine to a single clear entry point — confirm there are NOT two competing eyebrows stacked in one viewport. One eyebrow leads.
+- Eyebrow: `TODAY'S COMMAND`
+- Command: `Start with water.`
+- Body: `20 oz now. Recovery begins with your first action.`
+- Readiness block: `READINESS SCORE` / score / `Depleted · Critical` / calm state line — replace "System under stress" / "Recovery window closing" with calm-operator copy (e.g. `Below readiness threshold. Here's your move.`).
+- Primary CTA: `STABILIZE SYSTEM` (keep — it's a command, not panic).
+
+**2. QUICK TOOLS + HYDRATION STATUS**
+Relabel tools: Check · Sweat · Heat · Recover.
+Hydration Status card under the CTA/tools: `HYDRATION STATUS` / `38%` / Water 3/8 / Electrolytes 0 / Recovery: Needed.
+Restore Scan as a SECONDARY utility: a small "Scan Drink" chip/icon near Hydration Status. Not primary unless active command actionType is `scan_drink`. Scan stays visible (core feature) and advisory (never changes score).
+
+**3. LOWER SECTION**
+Rename Activation Journey → `AFORCE ACTIVATION`. Steps: Setup · First Command · Day 7 Unlock.
+Replace "Your 7-day member offer begins the moment you take your first action." → `Your first action starts your AForce journey.`
+Recovery Coach card: eyebrow `RECOVERY COACH · LIVE`, title `Your next move.` (NOT "Correct now"), body `20 oz water. Start there.` (NOT "No delay"). Remove "DEPLETION EMERGENCY" / "RECHECK 3:25" alarm framing — replace with calm directive + a neutral recheck label. Keep the card strong but not larger than the main readiness command.
+
+**4. ALSO SHOW THE OPTIMAL STATE — do not skip this.** Every screenshot so far is the depleted/critical demo seed. Before finalizing the hierarchy, render Home in an Optimal/Peak seed (Readiness ~92) and show me both. The screen must feel premium and intentional at the TOP of the score, not just dramatic at the bottom — most retained users live in green/stable. If the Optimal state feels empty or anticlimactic once the alarm copy is gone, flag it. I want to see both states side by side.
+
+**5. VISUAL RULES**
+AForce Brand System: near-black `#0D0D0D` canvas, Signal Red `#C1281B` accent used sparingly, white primary text, muted secondary, soft red glow only where needed, no hard shadows, generous spacing, no crowded cards. Vertical scroll intentional: top = state + command, middle = hydration + tools, bottom = activation + coach.
+
+**6. ACCEPTANCE CRITERIA**
+- One dominant primary CTA; one leading eyebrow (no stacked-eyebrow collision).
+- Scan visible as secondary utility, advisory, non-scoring.
+- Hydration Status easy to read.
+- Copy reads calm-operator, not emergency-alarm, in the depleted state.
+- Home rendered and shown in BOTH depleted and Optimal seeds.
+- Activation language premium; Recovery Coach copy sharp but calm.
+- No new tabs, no dashboard expansion, no scoring changes.
+- Typecheck passes. Tests pass.
+
+After completion: summarize files changed, what changed, what stayed untouched, both state screenshots, and test results.
+
+---
+
+Two things I changed from the original that are worth your eye when it comes back: I softened the Recovery Coach copy ("Your next move" / "Start there" instead of "Correct now" / "No delay") — if you genuinely want the coach to feel more urgent than the rest of the app, push back and we'll find a middle, but I'd argue the calm version is more on-brand and more *premium*. And the Optimal-state render is the single most valuable addition — it's the one that protects you from building a Home that only works when the user is failing. Watch for whether that screen holds up once the red alarm is gone; if it feels hollow, that tells you the Home hierarchy is leaning too hard on urgency for its energy, which is a fixable-now insight rather than a post-launch regret.

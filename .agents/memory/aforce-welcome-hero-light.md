@@ -17,9 +17,11 @@ leave the text components alone ("change the image only").
 
 ## Rule — swapping the hero photo's tonal value cascades to status bar + eyebrow color
 
-The hero photo is currently a DARK gym portrait (intense face, near-black top).
-Three things are coupled to that tonal value and must move together if the photo's
-TOP region brightness ever changes:
+The hero photo is currently a DARK AI athlete portrait (Black male, 3/4 face lifted
+into a hard rim light, near-black top) whose baked-in marketing text was cleaned off
+the pixels (see "removing baked text in place" below). Three things are coupled to
+that tonal value and must move together if the photo's TOP region brightness ever
+changes:
 - **Status bar** — AppShell forces `<StatusBar style="light" />` for ALL phases
   (every surface, including welcome, is dark-topped). If a future hero has a LIGHT
   top, the welcome phase must locally override to `dark` glyphs (scoped to
@@ -66,3 +68,29 @@ re-render — that reintroduces the "AI look"). The component is `contentFit="co
 + centred, so a centred subject needs no manual crop; just convert the jpg to
 `welcome-hero.png`, clear Metro/Expo caches, and restart the expo workflow (the
 asset is cached).
+
+## Rule — removing baked marketing text from a hero composite IN PLACE
+
+Sometimes the chosen hero is an AI composite with the eyebrow / wordmark / tagline /
+CTAs already burned into the pixels, and the ask is to keep the IMAGE but let the
+coded overlay own the (translatable) copy. The "crop to a text-free region" path
+fails when text sits over the subject — erase it in place with ImageMagick. Two
+non-obvious gotchas cost many attempts:
+
+- **Neutral fills collapse to grayscale.** A pure `xc:black`/`gray`/`R=G=B` fill (or
+  any neutral image) makes IM treat the whole composite as grayscale, poisoning
+  color. Use a NON-neutral near-black fill, e.g. `xc:'srgb(7,8,9)'`.
+- **`magick base overlay mask -composite` does NOT apply the mask** (it composites
+  the overlay opaque over everything). Bake the mask into the fill's ALPHA first
+  (`magick fill maskGray -alpha off -compose CopyOpacity -composite fill_rgba.png`),
+  then `magick base fill_rgba -compose over -composite`. Feather masks `-blur 0x16`.
+- **Thin bright text over skin** (a tagline over a neck): `-statistic median 17x17`
+  then `-morphology Open Disk:5` erases the strokes while keeping skin texture; a
+  flat fill leaves a visible patch.
+
+Verify on NORMAL-brightness crops — a ×5 brightened preview always shows
+sub-perceptual ghosts that the bottom scrim + live overlay bury anyway.
+
+**Policy:** AI-as-final is normally rejected for AForce hero art (see the licensed-
+photo rule above), but the owner explicitly accepted AI-as-final for THIS one
+cleaned image. Do not generalize that to other assets without an explicit ask.
