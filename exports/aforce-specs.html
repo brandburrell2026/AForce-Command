@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="author" content="Generated 2026-06-22" />
+  <meta name="author" content="Generated 2026-06-23" />
   <title>AForce — Complete Specifications</title>
   <style>
 code{white-space: pre-wrap;}
@@ -41,7 +41,7 @@ hr{border:none;border-top:1px solid #eee;margin:2em 0}
 <body>
 <header id="title-block-header">
 <h1 class="title">AForce — Complete Specifications</h1>
-<p class="author">Generated 2026-06-22</p>
+<p class="author">Generated 2026-06-23</p>
 </header>
 <nav id="TOC" role="doc-toc">
 <ul>
@@ -128,14 +128,14 @@ Out of Scope (never build under this addon)</a></li>
 </ul></li>
 <li><a href="#page_facing_up-designaforce-design-tokensmd" id="toc-page_facing_up-designaforce-design-tokensmd">📄
 design/aforce-design-tokens.md</a></li>
-<li><a href="#aforce-os-design-tokens--whoop-cinematic-edition" id="toc-aforce-os-design-tokens--whoop-cinematic-edition">AForce OS
-Design Tokens — WHOOP-Cinematic Edition</a>
+<li><a href="#aforce-os-design-tokens--aforce-brand-system" id="toc-aforce-os-design-tokens--aforce-brand-system">AForce OS Design
+Tokens — AForce Brand System</a>
 <ul>
 <li><a href="#design-philosophy" id="toc-design-philosophy">Design
 Philosophy</a></li>
 <li><a href="#1-colors" id="toc-1-colors">1. Colors</a></li>
-<li><a href="#2-typography-inter" id="toc-2-typography-inter">2.
-Typography (Inter)</a></li>
+<li><a href="#2-typography-archivo-black--ibm-plex-mono--inter" id="toc-2-typography-archivo-black--ibm-plex-mono--inter">2. Typography
+(Archivo Black · IBM Plex Mono · Inter)</a></li>
 <li><a href="#3-spacing" id="toc-3-spacing">3. Spacing</a></li>
 <li><a href="#4-radii" id="toc-4-radii">4. Radii</a></li>
 <li><a href="#5-component-dimensions" id="toc-5-component-dimensions">5.
@@ -469,10 +469,20 @@ Build) — configured in <code>artifacts/aforce-os/eas.json</code> with
 <li><strong>App icon / splash / adaptive icon:</strong> branded set in
 <code>assets/images/</code> (<code>icon.png</code>,
 <code>splash.png</code>, <code>adaptive-icon.png</code>,
-<code>favicon.png</code>). <code>icon.png</code> /
-<code>adaptive-icon.png</code> / <code>favicon.png</code> use a metallic
-silver water-drop mark on a pure black background;
-<code>splash.png</code> remains the WHOOP-cinematic splash.</li>
+<code>favicon.png</code>). All four render the <strong>N–N
+&quot;Non-Negotiable&quot; monogram</strong> — two heavy geometric N&#39;s facing each
+other (left forward, right mirrored) in Bone <code>#F5F0E8</code> with a
+Signal Red <code>#C1281B</code> center bar, on Cinematic Black
+<code>#0D0D0D</code>. <code>icon.png</code> (1024²) has a subtle
+charcoal <code>#1A1A1A</code>→black radial vignette;
+<code>adaptive-icon.png</code> (1024²) keeps the mark inside the Android
+safe zone on solid black; <code>splash.png</code> (1242×2436) centers
+the mark on solid black; <code>favicon.png</code> (196²) matches. No
+green, no gradients on the letterforms, no &quot;AForce OS&quot; text in the mark.
+The marks are generated as a font-free vector SVG rendered via
+<code>rsvg-convert</code> (regenerate from vector — do not AI-generate
+or the geometry/colors drift). <code>app.json</code> paths +
+<code>#0D0D0D</code> backgrounds are already wired.</li>
 <li><strong>Build commands</strong> (run from
 <code>artifacts/aforce-os/</code> after <code>pnpm eas:login</code> +
 <code>pnpm eas:configure</code>):
@@ -1076,6 +1086,38 @@ after all <code>useMemo</code> calls to respect Rules of Hooks). Triple
 defense in depth: entry hidden → surface gated → route bounced. Demo
 profile preserves full preview. Typecheck + 883/883 tests green.</td>
 </tr>
+<tr>
+<td>10</td>
+<td>Investor Demo Overlay</td>
+<td>✅</td>
+<td>Built the scripted 60-second cinematic as SIX acts × 10s (Opening ·
+Readiness 14→97 · HydroScan + voice · Social BAC shield · Territory/Heat
+Guard WARNING · The Standard sign-off), replacing the legacy 10-beat
+voice timeline. Everything is seeded from
+<code>data/demoProfile.ts</code>;
+<code>services/demo/investorDemoBeats.ts</code> derives the cumulative
+beat schedule (<code>INVESTOR_DEMO_BEATS</code>, <code>beatAtMs</code>,
+<code>bandToLevel</code>, new <code>scoreToBand</code>).
+<code>components/investorDemo/InvestorDemoOverlay.tsx</code> renders a
+scene switch with tap-anywhere dismiss + auto-dismiss at exactly
+60_000ms; only Act 3 speaks (via <code>commandSpeak</code>); NO store
+writes (Score-Protection — display-only projection of seeded numbers).
+New flag <code>demo_mode_enabled</code> (<code>false</code> in
+<code>DEFAULT_FLAGS</code>, <code>true</code> in
+<code>DEMO_ALL_ON_FLAGS</code>) + pure fail-closed
+<code>shouldShowInvestorDemo(flags, active)</code> gate both the
+<code>_layout.tsx</code> mount and the Profile launcher, so the overlay
+can never appear in production. Spec&#39;s &quot;gold/lime&quot; + &quot;returns to
+welcome.tsx&quot; superseded by the AForce Brand re-skin (brand red
+<code>#C1281B</code> + WHOOP state colors, no lime/gold) and the
+no-welcome-screen architecture (Modal close reveals the app underneath).
+Brand-color compliant; no nav/tab/dashboard or scoring-math changes.
+Tests: rewrote <code>investorDemoBeats.test.ts</code> for 6 acts + added
+<code>demoProfile.test.ts</code> (seed integrity) and
+<code>investorDemoGate.test.ts</code> (flag fail-closed) = 33
+new/updated tests green; typecheck clean. TestFlight readiness captured
+in <code>docs/investor-demo-readiness.md</code>.</td>
+</tr>
 </tbody>
 </table>
 <h2 id="addon-phases-aforce_social_cruise_addonmd">Addon Phases
@@ -1205,47 +1247,55 @@ new contexts/screens/services alongside the existing ones.</li>
 <hr />
 <h1 id="page_facing_up-designaforce-design-tokensmd">📄
 design/aforce-design-tokens.md</h1>
-<h1 id="aforce-os-design-tokens--whoop-cinematic-edition">AForce OS
-Design Tokens — WHOOP-Cinematic Edition</h1>
+<h1 id="aforce-os-design-tokens--aforce-brand-system">AForce OS Design
+Tokens — AForce Brand System</h1>
 <blockquote>
 <p><strong>Source of truth</strong>:
 <code>artifacts/aforce-os/theme/*</code> <strong>Figma import</strong>:
 <code>design/aforce-tokens.json</code> (Tokens Studio for Figma, W3C
-format) <strong>Version</strong>: 2.0.0 — WHOOP-Cinematic</p>
+format) <strong>Version</strong>: 2.1.0 — AForce Brand System</p>
 </blockquote>
 <hr />
 <h2 id="design-philosophy">Design Philosophy</h2>
-<p>AForce OS follows WHOOP&#39;s cinematic design language:</p>
+<p>AForce OS uses the <strong>AForce Brand System</strong> — a cinematic
+dark performance aesthetic:</p>
 <ul>
-<li><strong>Pure black canvas</strong> — backgrounds start at
-<code>#000000</code>, not dark gray</li>
+<li><strong>Near-black canvas</strong> — solid backgrounds start at
+<code>#0D0D0D</code>, not pure black or dark gray</li>
 <li><strong>Content floats on darkness</strong> — no visible card
 borders, structure comes from spacing</li>
-<li><strong>One hero color</strong> — WHOOP Lime <code>#B6FF00</code> is
-the signature accent</li>
-<li><strong>Data-forward</strong> — big numbers, small labels, no
-decoration</li>
+<li><strong>Signal Red hero</strong> — AForce signal red
+<code>#C1281B</code> is the signature accent, used sparingly (thin
+lines, eyebrows, active states, CTAs)</li>
+<li><strong>Soursop green for positive status</strong> —
+<code>#1FA35A</code> marks Peak / Optimal / success</li>
+<li><strong>Berry blue for secondary data</strong> —
+<code>#1E5BFF</code></li>
+<li><strong>Data-forward</strong> — big numbers, small tracked labels,
+no decoration</li>
 <li><strong>Generous spacing</strong> — when in doubt, add more
 whitespace</li>
 <li><strong>Soft glows, never hard shadows</strong> — status colors
 radiate outward</li>
+<li><strong>Three type faces by role</strong> — Archivo Black (display),
+IBM Plex Mono (eyebrows / metrics), Inter (body)</li>
 </ul>
-<h3 id="color-system-lock-v200">Color System Lock (v2.0.0)</h3>
-<p>The canonical AForce OS color system is WHOOP-Cinematic. Pure black
-<code>#000000</code> canvas. WHOOP lime <code>#B6FF00</code> as the sole
-hero accent. Coral <code>#E8613A</code> as the pulse ring accent only —
-no other use cases. All teal palette values (<code>#1DB594</code>,
-<code>#0F6E56</code>, <code>#060F0D</code>) are deprecated as of
-2026-06-01 and must not appear in any new screen, component, or token.
-The opening screen (<code>welcome.tsx</code> /
-<code>AForceOSPreview.tsx</code>) must be migrated to WHOOP-Cinematic
-tokens before any Cursor build session begins. Any developer
-encountering teal in the codebase should replace it with the
-WHOOP-Cinematic equivalent and flag it in the PR.</p>
+<h3 id="color-system-lock-v210">Color System Lock (v2.1.0)</h3>
+<p>The canonical AForce OS color system is the AForce Brand System.
+Near-black <code>#0D0D0D</code> canvas. Signal red <code>#C1281B</code>
+as the hero accent, used sparingly. Soursop green <code>#1FA35A</code>
+for positive status (Peak / Optimal / success). Berry blue
+<code>#1E5BFF</code> for secondary data and info. The score ladder runs
+Optimal green → Stable light-green → Declining amber → Risk orange →
+Critical red. Only completed behaviour changes score; accent color never
+implies score. Scrims (<code>rgba(0,0,0,a)</code>), drop-shadow color
+(<code>#000000</code>), and <code>text.inverse</code>
+(<code>#000000</code>, text on light/accent fills) stay pure black by
+design.</p>
 <hr />
 <h2 id="1-colors">1. Colors</h2>
-<h3 id="backgrounds-pure-black-to-near-invisible-elevation">Backgrounds
-(pure black to near-invisible elevation)</h3>
+<h3 id="backgrounds-near-black-to-near-invisible-elevation">Backgrounds
+(near-black to near-invisible elevation)</h3>
 <table>
 <thead>
 <tr>
@@ -1257,7 +1307,7 @@ WHOOP-Cinematic equivalent and flag it in the PR.</p>
 <tbody>
 <tr>
 <td><code>bg.primary</code></td>
-<td><code>#000000</code></td>
+<td><code>#0D0D0D</code></td>
 <td>Screen background, canvas</td>
 </tr>
 <tr>
@@ -1283,7 +1333,7 @@ WHOOP-Cinematic equivalent and flag it in the PR.</p>
 <tr>
 <td><code>bg.overlay</code></td>
 <td><code>rgba(0,0,0,0.92)</code></td>
-<td>Fullscreen overlays</td>
+<td>Fullscreen overlay scrim</td>
 </tr>
 </tbody>
 </table>
@@ -1324,8 +1374,7 @@ WHOOP-Cinematic equivalent and flag it in the PR.</p>
 </tr>
 </tbody>
 </table>
-<h3 id="borders-whoop-level-invisible">Borders (WHOOP-level
-invisible)</h3>
+<h3 id="borders-near-invisible">Borders (near-invisible)</h3>
 <table>
 <thead>
 <tr>
@@ -1352,7 +1401,7 @@ invisible)</h3>
 </tr>
 <tr>
 <td><code>border.accent</code></td>
-<td><code>rgba(182,255,0,0.20)</code></td>
+<td><code>rgba(193,40,27,0.20)</code></td>
 <td>Accent-tinted border</td>
 </tr>
 </tbody>
@@ -1384,7 +1433,7 @@ invisible)</h3>
 </tr>
 </tbody>
 </table>
-<h3 id="hero-accent-whoop-lime">Hero Accent (WHOOP Lime)</h3>
+<h3 id="hero-accent-signal-red">Hero Accent (Signal Red)</h3>
 <table>
 <thead>
 <tr>
@@ -1396,28 +1445,28 @@ invisible)</h3>
 <tbody>
 <tr>
 <td><code>accent.primary</code></td>
-<td><code>#B6FF00</code></td>
+<td><code>#C1281B</code></td>
 <td>Primary accent, CTA, active states</td>
 </tr>
 <tr>
 <td><code>accent.glow</code></td>
-<td><code>rgba(182,255,0,0.50)</code></td>
-<td>Orb glow, button glow</td>
+<td><code>rgba(193,40,27,0.50)</code></td>
+<td>Button glow, accent halo</td>
 </tr>
 <tr>
 <td><code>accent.dim</code></td>
-<td><code>rgba(182,255,0,0.12)</code></td>
+<td><code>rgba(193,40,27,0.12)</code></td>
 <td>Accent-tinted backgrounds</td>
 </tr>
 <tr>
 <td><code>accent.subtle</code></td>
-<td><code>rgba(182,255,0,0.06)</code></td>
+<td><code>rgba(193,40,27,0.06)</code></td>
 <td>Very faint accent wash</td>
 </tr>
 <tr>
 <td><code>accent.secondary</code></td>
-<td><code>#0093E7</code></td>
-<td>WHOOP teal, secondary data</td>
+<td><code>#1E5BFF</code></td>
+<td>Berry blue, secondary data</td>
 </tr>
 </tbody>
 </table>
@@ -1434,9 +1483,9 @@ invisible)</h3>
 <tbody>
 <tr>
 <td><strong>Peak</strong></td>
-<td><code>#B6FF00</code></td>
-<td><code>rgba(182,255,0,0.50)</code></td>
-<td><code>rgba(182,255,0,0.12)</code></td>
+<td><code>#1FA35A</code></td>
+<td><code>rgba(31,163,90,0.50)</code></td>
+<td><code>rgba(31,163,90,0.12)</code></td>
 </tr>
 <tr>
 <td><strong>Balanced</strong></td>
@@ -1470,13 +1519,13 @@ invisible)</h3>
 <tbody>
 <tr>
 <td><strong>Optimal</strong> (85-100)</td>
-<td><code>#16EC06</code></td>
-<td><code>#00FF00</code></td>
+<td><code>#1FA35A</code></td>
+<td><code>#17C964</code></td>
 </tr>
 <tr>
 <td><strong>Stable</strong> (70-84)</td>
-<td><code>#B6FF00</code></td>
-<td><code>#A0FF20</code></td>
+<td><code>#3DBE7A</code></td>
+<td><code>#2BAA66</code></td>
 </tr>
 <tr>
 <td><strong>Declining</strong> (50-69)</td>
@@ -1495,7 +1544,12 @@ invisible)</h3>
 </tr>
 </tbody>
 </table>
-<h3 id="whoop-integration-palette">WHOOP Integration Palette</h3>
+<h3 id="wearable-integration-palette">Wearable Integration Palette</h3>
+<p>The <code>whoop.*</code> token keys are retained for continuity with
+the wearable-snapshot surface; their values now follow the AForce Brand
+System (green status, blue strain). The provider brand swatch
+(<code>providers.whoop</code> = <code>#B6FF00</code>) keeps WHOOP&#39;s own
+lime so connect buttons render in the provider&#39;s real brand color.</p>
 <table>
 <thead>
 <tr>
@@ -1507,17 +1561,17 @@ invisible)</h3>
 <tbody>
 <tr>
 <td><code>whoop.lime</code></td>
-<td><code>#B6FF00</code></td>
-<td>WHOOP wordmark, connected status</td>
+<td><code>#1FA35A</code></td>
+<td>Connected-status accent</td>
 </tr>
 <tr>
 <td><code>whoop.teal</code></td>
-<td><code>#0093E7</code></td>
+<td><code>#1E5BFF</code></td>
 <td>Strain bar fill</td>
 </tr>
 <tr>
 <td><code>whoop.recovery-green</code></td>
-<td><code>#16EC06</code></td>
+<td><code>#1FA35A</code></td>
 <td>Recovery &gt;= 67%</td>
 </tr>
 <tr>
@@ -1531,25 +1585,74 @@ invisible)</h3>
 <td>Recovery &lt;= 33%</td>
 </tr>
 <tr>
+<td><code>whoop.panel-bottom</code></td>
+<td><code>#0D0D0D</code></td>
+<td>Snapshot panel base</td>
+</tr>
+<tr>
 <td><code>whoop.ring-track</code></td>
 <td><code>rgba(255,255,255,0.08)</code></td>
 <td>Ring background track</td>
 </tr>
 <tr>
 <td><code>whoop.strain-track</code></td>
-<td><code>rgba(0,147,231,0.15)</code></td>
+<td><code>rgba(30,91,255,0.15)</code></td>
 <td>Strain bar background</td>
 </tr>
 </tbody>
 </table>
 <h3 id="opacity-scale">Opacity Scale</h3>
-<p>Use for layering content on pure black:</p>
+<p>Use for layering content on the near-black canvas:</p>
 <p><code>0.02</code> - <code>0.04</code> - <code>0.06</code> -
 <code>0.08</code> - <code>0.10</code> - <code>0.14</code> -
 <code>0.20</code> - <code>0.30</code> - <code>0.55</code> -
 <code>1.00</code></p>
 <hr />
-<h2 id="2-typography-inter">2. Typography (Inter)</h2>
+<h2 id="2-typography-archivo-black--ibm-plex-mono--inter">2. Typography
+(Archivo Black · IBM Plex Mono · Inter)</h2>
+<h3 id="faces-by-role">Faces by role</h3>
+<table>
+<thead>
+<tr>
+<th>Role</th>
+<th>Family</th>
+<th>Token</th>
+<th>Usage</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>display</code></td>
+<td>Archivo Black</td>
+<td><code>fonts.display</code> / <code>roles.display</code></td>
+<td>Hero numerals, wordmarks</td>
+</tr>
+<tr>
+<td><code>eyebrow</code></td>
+<td>IBM Plex Mono</td>
+<td><code>roles.eyebrow</code></td>
+<td>Tracked uppercase section labels</td>
+</tr>
+<tr>
+<td><code>metric</code></td>
+<td>IBM Plex Mono</td>
+<td><code>roles.metric</code></td>
+<td>Metric captions / values</td>
+</tr>
+<tr>
+<td><code>mono</code></td>
+<td>IBM Plex Mono</td>
+<td><code>fonts.mono</code> / <code>roles.mono</code></td>
+<td>Technical / tabular text</td>
+</tr>
+<tr>
+<td><code>body</code></td>
+<td>Inter (400 → 800)</td>
+<td><code>fonts.regular</code> … <code>fonts.bold</code></td>
+<td>Everything else</td>
+</tr>
+</tbody>
+</table>
 <h3 id="scale">Scale</h3>
 <table>
 <thead>
@@ -1682,7 +1785,7 @@ invisible)</h3>
 <code>16</code> - <code>20</code> - <code>24</code> - <code>28</code> -
 <code>32</code> - <code>40</code> - <code>48</code> - <code>56</code> -
 <code>64</code> - <code>80</code> - <code>96</code></p>
-<p><strong>WHOOP rule</strong>: sections should have 40-64px between
+<p><strong>Spacing rule</strong>: sections should have 40-64px between
 them. Cards should have 20px internal padding. Never let elements feel
 crowded.</p>
 <hr />
@@ -1848,7 +1951,7 @@ crowded.</p>
 </table>
 <hr />
 <h2 id="7-shadows--glows">7. Shadows / Glows</h2>
-<p>WHOOP never uses hard box shadows. Everything is a soft radial glow
+<p>AForce never uses hard box shadows. Everything is a soft radial glow
 that matches the status color:</p>
 <table>
 <thead>
@@ -1862,13 +1965,13 @@ that matches the status color:</p>
 <tbody>
 <tr>
 <td><code>orb-glow</code></td>
-<td><code>rgba(182,255,0,0.50)</code></td>
+<td><code>rgba(31,163,90,0.50)</code></td>
 <td>40px</td>
-<td>Orb ambient glow</td>
+<td>Orb ambient glow (peak)</td>
 </tr>
 <tr>
 <td><code>glow-peak</code></td>
-<td><code>rgba(182,255,0,0.35)</code></td>
+<td><code>rgba(31,163,90,0.35)</code></td>
 <td>24px</td>
 <td>Peak state elements</td>
 </tr>
@@ -1892,7 +1995,7 @@ that matches the status color:</p>
 </tr>
 <tr>
 <td><code>cta-glow</code></td>
-<td><code>rgba(182,255,0,0.20)</code></td>
+<td><code>rgba(193,40,27,0.20)</code></td>
 <td>16px</td>
 <td>CTA button ambient</td>
 </tr>
