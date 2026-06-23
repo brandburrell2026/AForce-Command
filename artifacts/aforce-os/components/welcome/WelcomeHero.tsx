@@ -59,18 +59,17 @@ const FONT_MONO = Typography.roles.eyebrow; // IBM Plex Mono — eyebrow / label
 
 const EASE = Easing.inOut(Easing.ease);
 
-// Athlete welcome still (real licensed photo, low-key studio): a Black athlete
-// in a front 3/4 stance with an intense, locked-in gaze — dramatic side light
-// raking across sweat-lit muscle against near-black drapery. Cover-cropped
+// Athlete welcome still (real licensed photo, dark boxing gym): a boxer alone in
+// the ring, head bowed in a quiet moment, a single shaft of window light raking
+// across sweat-lit shoulders — deep cinematic shadow all around. Cover-cropped
 // centred (see contentPosition) so the figure stays framed on a phone; the dark
-// edges and waistband fall under the bottom scrim.
+// ceiling and floor fall under the eyebrow and the bottom scrim respectively.
 const HERO = require('../../assets/images/welcome-hero.png');
 
-// Bottom-weighted scrim: the top half stays airy (the dark backdrop + the
-// athlete's face read through, ~no scrim), then it ramps from transparent around
-// the vertical midpoint down to near-solid cinematic black at the very bottom —
-// so the lower-third type and the CTAs sit on deep black (bone stays legible)
-// while the athlete's face up top stays clear.
+// Bottom-weighted scrim: the top half stays airy (the dark gym reads through,
+// ~no scrim), then it ramps from transparent around the vertical midpoint down to
+// near-solid cinematic black at the very bottom — so the lower-third type and the
+// CTAs sit on deep black (bone stays legible) while the lit figure up top stays clear.
 const SCRIM_COLORS = [
   'rgba(13,13,13,0)',
   'rgba(13,13,13,0)',
@@ -325,8 +324,8 @@ const styles = StyleSheet.create({
     fontFamily: FONT_MONO,
     fontSize: 11,
     letterSpacing: 2.6, // tightened so the full line fits the inset top zone
-    // Bone ticker: the top of this hero is the near-black studio backdrop, where
-    // black type would vanish — bone reads cleanly on it (matches wordmark + tagline).
+    // Bone ticker: the top of this hero is the dark gym ceiling, where black type
+    // would vanish — bone reads cleanly on it (matches wordmark + tagline).
     color: BONE,
     opacity: 0.7,
     textAlign: 'center',
