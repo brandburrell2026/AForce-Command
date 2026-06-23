@@ -2675,3 +2675,27 @@ id = "tKcmdzqsJxn6ex32wtXde"
 uri = "file://attached_assets/image_search/pexels_4720278_g_stretch_focus.jpg"
 type = "image"
 title = "Option 3 — Raw side-profile portrait, hard light (gritty, focused)"
+
+[[outputs]]
+id = "ueAUZqEYzEG1Sl34w3DGS"
+uri = "file://attached_assets/image_search/black/p_18112395.jpg"
+type = "image"
+title = "A — Back at the cable rig: real gym, dark with brand-red frame, very athletic"
+
+[[outputs]]
+id = "sqoOIgQDYDl1mqJQ77ZTJ"
+uri = "file://attached_assets/image_search/black/p_8874416.jpg"
+type = "image"
+title = "B — Dramatic dark physique portrait: intense gaze, cinematic hero"
+
+[[outputs]]
+id = "AL4jSSOQjg2g9038LjXEH"
+uri = "file://attached_assets/image_search/black/p_31024945.jpg"
+type = "image"
+title = "C — Moody sweat portrait: deep blacks, head-down focus"
+
+[[outputs]]
+id = "rg5xIeI9kJ2nWFaLgHWe7"
+uri = "file://attached_assets/image_search/black/p_4720278.jpg"
+type = "image"
+title = "D — Gym side-profile: hard light, gritty and raw"
