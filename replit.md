@@ -1,5 +1,7 @@
 # Overview
 
+> **Brand system:** v2.1.0 (AForce Brand System) — see `design/aforce-design-tokens.md`.
+
 AForce OS is a real-time human performance operating system, delivered as a React Native / Expo mobile application with an Express 5 and PostgreSQL API server. Its core purpose is to provide hydration intelligence and AI-driven insights to enhance athletic performance and overall wellness. Key features include personalized hydration tracking, AI coaching, social engagement through "Circles" and "Territory" features, and integrated e-commerce capabilities via Stripe for purchases and subscriptions. The system is designed for horizontal scaling.
 
 # FINAL BUILD LOCK (locked; do not redesign)
@@ -59,8 +61,8 @@ I prefer iterative development, with frequent, small updates. Ask before making 
 - **API Tools:** Orval for OpenAPI codegen, generating React Query hooks.
 
 ## UI/UX Decisions
-- **Color Scheme:** WHOOP-Cinematic edition — pure black `#000000` canvas, WHOOP lime `#B6FF00` hero accent, near-invisible borders, WHOOP recovery colors (green/yellow/red). Design tokens exported via `design/aforce-tokens.json` (Tokens Studio format) and human-readable `design/aforce-design-tokens.md`.
-- **Design Language:** WHOOP-cinematic dark aesthetic. Content floats on pure black. Data-forward: big numbers, small tracked labels. Soft radial glows, never hard box shadows. Generous spacing throughout.
+- **Color Scheme:** AForce Brand System (v2.1.0) — near-black `#0D0D0D` canvas, Signal Red `#C1281B` hero accent used sparingly (thin lines, eyebrows, active states, CTAs), Soursop green `#1FA35A` for positive status (Peak / Optimal / success), Berry blue `#1E5BFF` for secondary data, near-invisible borders, and the four performance-state colors (green / teal / amber / red). Pure black `#000000` is reserved for scrims, drop-shadow color, and `text.inverse` (text on light/accent fills) only. Design tokens exported via `design/aforce-tokens.json` (Tokens Studio format) and human-readable `design/aforce-design-tokens.md`.
+- **Design Language:** AForce cinematic dark aesthetic. Content floats on near-black `#0D0D0D`. Data-forward: big numbers, small tracked labels. Soft radial glows, never hard box shadows. Generous spacing throughout. Three type faces by role: Archivo Black (display), IBM Plex Mono (eyebrows / metrics), Inter (body).
 - **Visuals:** Stylized maps for "Territory" and smooth animations with Reanimated.
 
 ## Authentication & Identity

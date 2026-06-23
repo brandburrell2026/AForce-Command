@@ -1,0 +1,24 @@
+
+You are doing a documentation-and-token reconciliation only. Do NOT redesign anything, do NOT move navigation, do NOT add surfaces, do NOT touch scoring math. This is the FINAL BUILD LOCK — patch and audit only. Work one file at a time and show me a diff before moving to the next.
+Source of truth (do not edit): design/aforce-design-tokens.md — v2.1.0 AForce Brand System. Canvas #0D0D0D, hero Signal Red #C1281B, Soursop green #1FA35A positive, Berry blue #1E5BFF secondary, typography Archivo Black / IBM Plex Mono / Inter. Pure black #000000 is legal ONLY for scrims, drop-shadow color, and text.inverse.
+Task 1 — Patch replit.md:
+
+In UI/UX Decisions → Color Scheme: replace the "WHOOP-Cinematic edition — pure black #000000 canvas, WHOOP lime #B6FF00 hero accent" language with the v2.1.0 AForce Brand System (near-black #0D0D0D canvas, Signal Red #C1281B hero used sparingly, Soursop green positive, Berry blue secondary; note pure black is reserved for scrims/shadows/text-on-accent only).
+In Design Language: replace "WHOOP-cinematic dark aesthetic / content floats on pure black" with "AForce cinematic dark aesthetic / content floats on near-black #0D0D0D," and add the three-faces-by-role typography line.
+Add a header line: Brand system: v2.1.0 (AForce Brand System) — see design/aforce-design-tokens.md.
+
+Task 2 — Patch AFORCE_FINAL_SPEC.md:
+
+Design Language section: replace the pure-black/#B6FF00 lime description with the v2.1.0 system (same values as above), Archivo Black / IBM Plex Mono / Inter, and name design/aforce-design-tokens.md as canonical.
+Phase 10 script Act 1: change "AForce wordmark fades in gold" to wordmark in Bone #F5F0E8 with a Signal Red #C1281B hairline on near-black #0D0D0D.
+Phase 10 script Act 2: change "Lime glow intensifies" to "Soursop-green peak glow (#1FA35A) intensifies."
+Phase 10 Hard Rules: change "Auto-dismisses at 60 seconds and returns to welcome.tsx" to reflect the no-welcome-screen architecture (modal closes to reveal the app underneath).
+Add the same Brand system: v2.1.0 header line.
+
+Task 3 — Bump version stamp: In validation-methodology.md, change the stamp from "v1.0 — April 2026" to "v1.1 — June 2026" so it post-dates the June 1 2026 Founder Decision it contains.
+Task 4 — Code audit (report only, do not auto-fix yet): Grep the repo for stale brand values and give me a categorized list:
+grep -rn "#B6FF00" --include="*.ts" --include="*.tsx" --include="*.json" --include="*.md" .
+grep -rn "#000000" theme/ --include="*.ts" --include="*.tsx"
+grep -rni "WHOOP-Cinematic\|WHOOP lime\|pure black canvas" .
+For each hit, tell me whether it is (a) a legitimate survivor — providers.whoop = #B6FF00 is WHOOP's real brand swatch and stays; #000000 in scrims/dropShadow/text.inverse stays — or (b) stale and needs replacing. Do NOT change theme/* code until I approve the list, since that affects runtime rendering.
+Verify before done: pnpm --filter @workspace/aforce-os run typecheck clean; full test suite green; GET /api/design-tokens and GET /api/design-guide reflect v2.1.0. Confirm providers.whoop lime was preserved.
