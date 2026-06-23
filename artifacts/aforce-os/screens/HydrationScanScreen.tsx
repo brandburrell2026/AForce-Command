@@ -691,7 +691,7 @@ export default function HydrationScanScreen() {
 
           {/* Smart Capture — AI-powered photo analysis for hydration demand,
               recovery load, stimulants, acidic burden + correction. Same CTA
-              shape as LOG ANY DRINK but tinted with the WHOOP lime accent
+              shape as LOG ANY DRINK but tinted with the Signal Red accent
               to signal it's the premium AI surface. */}
           <Pressable
             onPress={() => setSmartCaptureOpen(true)}

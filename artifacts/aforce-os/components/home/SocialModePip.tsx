@@ -35,7 +35,7 @@ export function SocialModePip() {
     }
   }, [active, activateSocialMode, deactivateSocialMode]);
 
-  // Inactive = muted border, active = WHOOP lime + decay badge so the
+  // Inactive = muted border, active = Signal Red accent + decay badge so the
   // cost of the choice is visible at a glance.
   const accent = active ? Colors.accent.primary : Colors.text.muted;
 

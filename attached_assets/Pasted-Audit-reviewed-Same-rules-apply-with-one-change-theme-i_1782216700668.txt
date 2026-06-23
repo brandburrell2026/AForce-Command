@@ -1,0 +1,20 @@
+Audit reviewed. Same rules apply with one change: theme/* is confirmed clean and stays untouched — these are non-theme fixes. FINAL BUILD LOCK still in force: no redesign, no nav/surface changes, no scoring math, no value changes to anything that's already on-brand. This is a fix batch — show me one combined diff at the end and pause. Do NOT touch Command Center, the exports, the mockup-sandbox, providers.whoop, or attached_assets/*; those are handled separately.
+Group A — real rendered lime (these actually paint lime to a user/investor):
+
+artifacts/api-server/src/routes/designTokens.ts (lines ~35, 39, 42) — replace the #B6FF00 accents in the /api/design-guide HTML chrome (h1 color, blockquote border-left, code color) with Signal Red #C1281B on the #0D0D0D canvas, per v2.1.0. The page describing the brand system should be styled in the brand system.
+artifacts/api-server/src/routes/earlyAccess.ts (line ~220) — the CTA button background: #B6FF00; color: #000; → background: #C1281B; color: #F5F0E8; (Signal Red with Bone text), matching v2.1.0 CTA styling.
+scripts/assets/specs-style.css (lines ~2, 8) — replace the #B6FF00 h1 border-bottom and blockquote border-left with #C1281B. This is the stylesheet that themes generated spec exports, so fixing it here is what makes regenerated exports come out on-brand.
+
+Group B — comment/constant cleanup (no rendered value changes; the value is already on-brand, only the wording/name is stale and will mislead the next reader):
+
+4. components/WhoopSnapshotCard.tsx:33 — this is a misnamed constant, not just a comment: const WHOOP_LIME = '#1FA35A'. Rename the identifier to something truthful (e.g. CONNECTED_GREEN) and update all references in that file. Fix the :4 "lime-green (#B6FF00)" comment to reflect the real value #1FA35A. Do NOT change the value.
+
+5. app/_layout.tsx:112 — the comment "pure black (#0D0D0D)… WHOOP-cinematic canvas" is self-contradictory. Clean it to "near-black #0D0D0D AForce canvas." Value stays.
+
+6. theme/statusColor.ts:60 and theme/spacing.ts:1 — these are comment/header wording only ("WHOOP-cinematic tuned" / "WHOOP-Cinematic Edition"). Update wording to "AForce Brand System (v2.1.0)." Confirm you are changing ONLY the comment text, not a single color value in these files.
+
+7. Comment-only stale wording in: app/(tabs)/profile.tsx:1994, screens/HydrationScanScreen.tsx:694, components/home/SocialModePip.tsx:38, components/home/CoachModePip.tsx:34, components/GradientBackground.tsx:2, components/opening/OpeningSequence.tsx:20, components/cruise/CruiseShared.tsx:2, components/RecoveryCapacityCard.tsx:4, services/recoveryCapacity.ts:16,149, services/__tests__/recoveryCapacity.test.ts:80 — replace "WHOOP lime" / "WHOOP-cinematic" / "pure black canvas" wording with the v2.1.0 equivalent ("Signal Red accent" / "AForce cinematic" / "near-black #0D0D0D canvas" as appropriate to context). Comments only — verify no color literals or logic change in any of these.
+Group C — stale live docs (not exports):
+
+8. replit.md:137, artifacts/aforce-os/SPEC-SHEET.md:53, AFORCE_PHASE_STATUS.md:18, docs/competitive-moat.md:49 — replace "WHOOP-Cinematic color system" / "WHOOP-cinematic styling, lime active tint" / "WHOOP-cinematic visualization" wording with the v2.1.0 AForce Brand System equivalent.
+After applying: run pnpm --filter @workspace/aforce-os run typecheck (catches the WhoopSnapshotCard rename) and the test suite — both must be green. Then grep the live tree (excluding exports/, aforce-command-center/, mockup-sandbox/, attached_assets/, and the providers.whoop token) to confirm no #B6FF00-as-accent or "WHOOP lime/WHOOP-cinematic/pure black canvas" wording remains. Show me the combined diff and the grep result, and pause.

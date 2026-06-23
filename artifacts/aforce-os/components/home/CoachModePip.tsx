@@ -31,7 +31,7 @@ const LABEL: Record<CoachMode, string> = {
 
 // Spoken = today's loud baseline → muted accent. Ambient/Silent
 // are the deliberate "quieter" postures Rule #12 introduces →
-// WHOOP lime to signal the user has taken control of the coach.
+// the Signal Red accent to signal the user has taken control of the coach.
 function accentFor(mode: CoachMode): string {
   return mode === 'spoken' ? Colors.text.muted : Colors.accent.primary;
 }

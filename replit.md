@@ -134,7 +134,7 @@ I prefer iterative development, with frequent, small updates. Ask before making 
 - **`store/`**: Slice-based reducer state.
 - **`utils/`**: Pure helpers.
 - **`featureFlags/`**: Feature toggles.
-- **`theme/`**: WHOOP-Cinematic color system, typography, spacing, radii, shadows, status color engine.
+- **`theme/`**: AForce Brand System (v2.1.0) color system, typography, spacing, radii, shadows, status color engine.
 - **`design/`**: Figma design tokens (`aforce-tokens.json`) and human-readable spec (`aforce-design-tokens.md`). Download endpoint: `GET /api/design-tokens`. Design guide: `GET /api/design-guide`.
 - **`types/`**: Global type definitions.
 - **`data/`**: Mock data, product definitions, templates.

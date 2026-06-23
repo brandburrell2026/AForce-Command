@@ -32,14 +32,14 @@ router.get("/design-guide", (_req, res) => {
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:#000;color:#fff;font-family:Inter,-apple-system,sans-serif;padding:40px 20px;max-width:900px;margin:0 auto;line-height:1.6}
-h1{font-size:28px;font-weight:700;color:#B6FF00;margin-bottom:8px}
+h1{font-size:28px;font-weight:700;color:#C1281B;margin-bottom:8px}
 h2{font-size:22px;font-weight:700;color:#fff;margin-top:48px;margin-bottom:16px;border-bottom:1px solid rgba(255,255,255,0.08);padding-bottom:8px}
 h3{font-size:17px;font-weight:600;color:rgba(255,255,255,0.85);margin-top:32px;margin-bottom:12px}
 p{color:rgba(255,255,255,0.65);margin-bottom:12px}
-blockquote{border-left:3px solid #B6FF00;padding-left:16px;margin:16px 0;color:rgba(255,255,255,0.55)}
+blockquote{border-left:3px solid #C1281B;padding-left:16px;margin:16px 0;color:rgba(255,255,255,0.55)}
 strong{color:#fff}
 em{color:rgba(255,255,255,0.55)}
-code{background:rgba(255,255,255,0.06);padding:2px 6px;border-radius:4px;font-size:13px;color:#B6FF00}
+code{background:rgba(255,255,255,0.06);padding:2px 6px;border-radius:4px;font-size:13px;color:#C1281B}
 pre{background:rgba(255,255,255,0.04);padding:16px;border-radius:8px;overflow-x:auto;margin:12px 0}
 pre code{background:none;padding:0}
 table{width:100%;border-collapse:collapse;margin:16px 0}

@@ -217,7 +217,7 @@ router.get("/admin", async (req, res): Promise<void> => {
     .actions { margin-bottom: 16px; }
     a.btn {
       display: inline-block; padding: 8px 14px;
-      background: #B6FF00; color: #000; text-decoration: none;
+      background: #C1281B; color: #F5F0E8; text-decoration: none;
       font-weight: 600; border-radius: 4px;
     }
     table { width: 100%; border-collapse: collapse; }

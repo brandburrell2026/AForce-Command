@@ -50,7 +50,7 @@ readiness, recovery, and a daily ritual — *Pause → Hydrate → Lock In → P
 - **`store/`** — slice-based Zustand state + reducer.
 - **`utils/`** — pure, dependency-free helpers (scoring math, units, dashboards).
 - **`featureFlags/`** — feature toggles controlling surface exposure.
-- **`theme/`** — WHOOP-Cinematic color system, typography, spacing, radii.
+- **`theme/`** — AForce Brand System (v2.1.0) color system, typography, spacing, radii.
 - **`data/`** — products, subscription plans, templates, mock data.
 - **`types/`** — shared TypeScript definitions.
 - **`locales/`** — translation resources.

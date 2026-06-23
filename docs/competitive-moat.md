@@ -46,7 +46,7 @@ AForce occupies the **only** position where the sensor signal, the prescription,
 **Why they can't take it:**
 - Oura's daily Readiness score is a **diagnosis without a treatment.** Users wake up, see "62 — pay attention," and have nowhere to act. AForce reads the same HRV and routes it directly into a 16-oz + 1 stick prescription with a 15-minute recheck.
 - Oura has no daytime loop. The ring reports nightly — AForce reports **every sip, every heat-index spike, every quarter break.**
-- We share Oura's design language (premium, dark, restrained) but layer **operational density** on top: WHOOP-cinematic visualization, band-colored scores, live cadence. Oura looks like a journal. AForce looks like mission control.
+- We share Oura's design language (premium, dark, restrained) but layer **operational density** on top: AForce cinematic visualization, band-colored scores, live cadence. Oura looks like a journal. AForce looks like mission control.
 
 **AForce defense:** Oura users self-select for *willingness to optimize.* They are our highest-LTV cohort. Connect via Oura's HRV/Readiness API → we own the next 16 hours of their day.
 

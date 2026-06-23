@@ -1,11 +1,11 @@
 body{font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif;max-width:780px;margin:2em auto;color:#111;line-height:1.55;padding:0 1em}
-h1{border-bottom:2px solid #B6FF00;padding-bottom:.3em;margin-top:2em;color:#000}
+h1{border-bottom:2px solid #C1281B;padding-bottom:.3em;margin-top:2em;color:#000}
 h2{border-bottom:1px solid #ddd;padding-bottom:.2em;color:#222}
 h3{color:#333}
 code{background:#f4f4f4;padding:1px 5px;border-radius:3px;font-size:.9em}
 pre{background:#0b0b0b;color:#e6ffb8;padding:1em;border-radius:6px;overflow:auto;font-size:.82em;line-height:1.4}
 pre code{background:none;color:inherit;padding:0}
-blockquote{border-left:4px solid #B6FF00;margin:1em 0;padding:.4em 1em;background:#fafafa;color:#444}
+blockquote{border-left:4px solid #C1281B;margin:1em 0;padding:.4em 1em;background:#fafafa;color:#444}
 table{border-collapse:collapse;margin:1em 0;font-size:.9em}
 table th,table td{border:1px solid #ddd;padding:.4em .7em}
 table th{background:#f4f4f4}

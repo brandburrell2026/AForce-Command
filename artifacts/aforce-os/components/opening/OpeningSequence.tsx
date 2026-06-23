@@ -17,7 +17,7 @@
  *   4. Readiness   — TODAY'S READINESS + count-up score + READY TO PERFORM.
  *
  * Design lock compliance:
- *   - Pure black canvas; white/bone (#F5F0E8) type; brand red (#C1281B)
+ *   - Near-black #0D0D0D canvas; white/bone (#F5F0E8) type; brand red (#C1281B)
  *     used only as thin hairlines / eyebrows (sparse), never as fills.
  *   - Score-Protection: the readiness number is a *display* of the live
  *     engine score (falls back to a cinematic default before state

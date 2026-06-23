@@ -1,5 +1,5 @@
 /**
- * Shared WHOOP-cinematic primitives for the hidden Cruise screens.
+ * Shared AForce cinematic primitives for the hidden Cruise screens.
  *
  * Pure layout — no engine, no data. Sections are visual placeholders
  * that later rules will fill with real content. Keeping these

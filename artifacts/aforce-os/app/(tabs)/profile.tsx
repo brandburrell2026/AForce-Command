@@ -1991,8 +1991,8 @@ function SectionHeader({ label, hint }: { label: string; hint?: string }) {
 
 // Premium pill tab bar for the Profile screen. Horizontal-scrollable so
 // every group label fits on small phones without truncation. Active pill
-// uses WHOOP lime fill on black text with a soft glow; inactive pills are
-// hairline outlines on the cinematic black canvas.
+// uses Signal Red fill on black text with a soft glow; inactive pills are
+// hairline outlines on the cinematic near-black canvas.
 type ProfileTabId = 'performance' | 'devices' | 'account' | 'developer';
 const PROFILE_TABS: ReadonlyArray<{ id: ProfileTabId; label: string }> = [
   { id: 'performance', label: 'PERFORMANCE' },

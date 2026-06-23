@@ -13,7 +13,7 @@
  *   + 0.15 · (1 − environmental stress)  (0–1, scaled ×100)
  *
  * The output is a single 0–100 number mapped to four named bands
- * with the WHOOP-Cinematic colour tokens:
+ * with the AForce Brand System (v2.1.0) colour tokens:
  *
  *   Peak       85–100  →  teal      (#19E5C6)
  *   Stable     60–84   →  deep blue (#3D7BFF)
@@ -146,7 +146,7 @@ export interface RecoveryBandMeta {
   readonly id: RecoveryBand;
   /** Human-facing label as it appears in the UI. */
   readonly label: 'Peak' | 'Stable' | 'Declining' | 'Critical';
-  /** WHOOP-Cinematic hex token. */
+  /** AForce Brand System (v2.1.0) hex token. */
   readonly color: string;
   /** Inclusive lower / upper bounds on the 0–100 scale. */
   readonly min: number;

@@ -1,5 +1,5 @@
 /**
- * GradientBackground — WHOOP-cinematic pure black canvas.
+ * GradientBackground — AForce cinematic near-black canvas.
  * Subtle ambient glow bleeds keep the void from feeling dead.
  */
 

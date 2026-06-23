@@ -57,7 +57,7 @@ export const STATUS_BANDS: readonly StatusBandThreshold[] = [
   { band: 'OPTIMAL',   min: 85, max: 100, index: 4 },
 ] as const;
 
-/** Hex primaries — calm baseline (WHOOP-cinematic tuned). */
+/** Hex primaries — calm baseline (AForce Brand System v2.1.0). */
 const PRIMARY: Record<StatusBand, string> = {
   CRITICAL:  '#FF2800', // signal red
   RISK:      '#FF8C1A', // orange

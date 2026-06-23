@@ -107,9 +107,9 @@ function RootLayoutNav() {
     <Stack
       screenOptions={{
         headerShown: false,
-        // Force every screen container to pure black (#0D0D0D) so the
-        // brief frame between mount and the screen's own background
-        // paint matches the WHOOP-cinematic canvas. Without this,
+        // Force every screen container to near-black #0D0D0D (the AForce
+        // canvas) so the brief frame between mount and the screen's own
+        // background paint matches the AForce canvas. Without this,
         // React Navigation's default light-gray (rgb(242,242,242)) on
         // iOS / web shows through and reads as a "blank white flash"
         // in the Replit preview iframe before the splash fades in.

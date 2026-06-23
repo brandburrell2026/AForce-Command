@@ -1,4 +1,4 @@
-// AForce OS Spacing System — WHOOP-Cinematic Edition
+// AForce OS Spacing System — AForce Brand System (v2.1.0)
 // Generous spacing. When in doubt, use more space, not less.
 
 export const Spacing = {

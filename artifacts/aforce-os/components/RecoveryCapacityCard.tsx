@@ -1,7 +1,7 @@
 /**
  * RecoveryCapacityCard — the canonical replacement for `BACEstimateCard`.
  *
- * Renders the 0–100 Recovery Capacity Score with its WHOOP-Cinematic
+ * Renders the 0–100 Recovery Capacity Score with its AForce Brand System (v2.1.0)
  * band colour (Peak teal / Stable deep blue / Declining amber /
  * Critical Ferrari crimson `#FF2800`) and the three component
  * contributions that produced it (AutoPilot / Hydration / Environment).

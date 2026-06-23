@@ -1,7 +1,7 @@
 /**
  * WhoopSnapshotCard — cinematic "live from WHOOP" panel.
  *
- * Visually mirrors the real WHOOP app: pure black canvas, lime-green
+ * Visually mirrors the real WHOOP app: black canvas, green
  * (#1FA35A) wordmark, hero Recovery ring color-coded by WHOOP's
  * published thresholds (green ≥67%, yellow 34–66%, red ≤33%), Strain
  * shown on the official 0–21 scale in WHOOP teal, and a Sleep
@@ -30,7 +30,7 @@ import Animated, {
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 // ─── WHOOP brand palette ───────────────────────────────────────────
-const WHOOP_LIME = '#1FA35A';
+const CONNECTED_GREEN = '#1FA35A';
 const WHOOP_TEAL = '#1E5BFF';
 const WHOOP_GREEN = '#1FA35A';
 const WHOOP_YELLOW = '#FFDE00';
@@ -217,7 +217,7 @@ export function WhoopSnapshotCard({
 
       {/* Footer — feeding score line */}
       <View style={styles.footer}>
-        <View style={[styles.footerDot, { backgroundColor: WHOOP_LIME }]} />
+        <View style={[styles.footerDot, { backgroundColor: CONNECTED_GREEN }]} />
         <Text style={styles.footerText}>FEEDING AFORCE HYDRATION SCORE · LIVE</Text>
       </View>
     </LinearGradient>
@@ -231,7 +231,7 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: `${WHOOP_LIME}33`,
+    borderColor: `${CONNECTED_GREEN}33`,
     gap: 16,
     overflow: 'hidden',
   },
@@ -244,7 +244,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter_700Bold',
     fontSize: 14,
     letterSpacing: 4,
-    color: WHOOP_LIME,
+    color: CONNECTED_GREEN,
   },
   connectedRow: {
     flexDirection: 'row',

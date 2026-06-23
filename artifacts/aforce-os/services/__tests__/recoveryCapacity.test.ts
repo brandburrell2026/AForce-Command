@@ -77,7 +77,7 @@ describe('bandFor', () => {
     }
   });
 
-  it('uses the WHOOP-Cinematic Ferrari crimson for Critical', () => {
+  it('uses the AForce Brand System Ferrari crimson for Critical', () => {
     expect(bandFor(10).color.toUpperCase()).toBe('#FF2800');
   });
 });
