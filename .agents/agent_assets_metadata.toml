@@ -2651,3 +2651,9 @@ id = "OORF_sGOrT6zcHW4LzZfx"
 uri = "file://artifacts/aforce-os/docs/AForce-OS-Specification.md"
 type = "text"
 title = "AForce OS — Product & Technical Specification"
+
+[[outputs]]
+id = "r3u8aANuhiKNGR2qHIua8"
+uri = "file://exports/AForce-OS-Specification.pdf"
+type = "pdf"
+title = "AForce OS — Product & Technical Specification (PDF)"
