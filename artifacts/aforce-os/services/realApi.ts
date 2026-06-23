@@ -30,6 +30,7 @@ import type {
   JournalRollup,
   PerformanceLevel,
 } from '../types';
+import type { PreparedIntake, IntakeEventWire } from '../utils/intakeOutbox';
 import { calculateScore } from '../utils/scoringEngine';
 import { computeEventImpact } from './hydrationScoreService';
 import { PRODUCTS } from '../data/products';
@@ -251,10 +252,37 @@ export interface IntakeLogResponse {
   engineOutput: ScoreEngineOutput;
 }
 
-export async function postIntakeLog(
+/**
+ * The frozen result of `prepareIntake` — everything needed to EITHER send the
+ * intake now OR durably queue it for offline replay. Captured once so the same
+ * bytes (and the same frozen `scoreBefore`/`scoreAfter`) are used on both paths.
+ * `outbox` is the wire-replayable payload; `optimisticUserState` is the local
+ * projection used to keep the UI coherent before the server confirms.
+ */
+export interface PreparedIntakeBundle {
+  outbox: PreparedIntake;
+  /** Client-shape event (Date `loggedAt`) for building the optimistic log/history. */
+  event: IntakeEvent;
+  fluidType: FluidType;
+  ozAmount: number;
+  scoreBefore: number;
+  scoreAfter: number;
+  optimisticUserState: UserState;
+}
+
+/**
+ * Pure-ish, network-free preparation of one intake: computes the per-event
+ * hydration impact, builds the event, the optimistic post-intake state, and the
+ * frozen scoreBefore/scoreAfter — and mints an explicit `clientEventId`
+ * idempotency key (distinct from `event.id`). No I/O, so it is safe to call and
+ * then queue if the device is offline. Score-Protection: the frozen scores are
+ * derived from the user's completed action right here; later replay carries them
+ * verbatim and never recomputes.
+ */
+export function prepareIntake(
   userState: UserState,
   body: IntakeLogPayload,
-): Promise<IntakeLogResponse> {
+): PreparedIntakeBundle {
   const product = PRODUCTS[body.fluidType];
   const ozAmount = body.ozAmount ?? product.ozPerServing;
   const flavor = body.flavor ?? product.flavor;
@@ -302,29 +330,120 @@ export async function postIntakeLog(
     intakeEvents: [...(userState.intakeEvents ?? []), event],
   };
   const scoreAfter = calculateScore(optimistic).score;
-
   // Serialize the event for the wire (Date -> ISO).
-  const eventWire = { ...event, loggedAt: event.loggedAt.toISOString() };
+  const eventWire: IntakeEventWire = { ...event, loggedAt: event.loggedAt.toISOString() };
+  // Explicit idempotency key for the server's NULLS-DISTINCT unique index,
+  // distinct from event.id so the dedupe contract is independent of payload id.
+  const clientEventId = `cid-${now.getTime()}-${Math.random().toString(36).slice(2, 10)}`;
+  return {
+    outbox: {
+      clientEventId,
+      fluidType: body.fluidType,
+      ozAmount,
+      scoreBefore,
+      scoreAfter,
+      event: eventWire,
+    },
+    event,
+    fluidType: body.fluidType,
+    ozAmount,
+    scoreBefore,
+    scoreAfter,
+    optimisticUserState: optimistic,
+  };
+}
+
+/**
+ * Send a prepared intake to the server and normalize the response into the same
+ * `IntakeLogResponse` shape `postIntakeLog` always returned.
+ *
+ * `withClientEventId` controls whether the idempotency key rides on the wire:
+ * the legacy/online `postIntakeLog` path leaves it OFF so the request body is
+ * byte-identical to before (the server's NULLS-DISTINCT index never dedupes a
+ * keyless write); the offline-outbox replay path turns it ON so a retried send
+ * is deduped server-side and can never double-apply.
+ */
+export async function sendPreparedIntake(
+  prepared: PreparedIntakeBundle,
+  preserve: Pick<UserState, 'appleHealth' | 'biometrics'>,
+  opts: { withClientEventId?: boolean } = {},
+): Promise<IntakeLogResponse> {
+  const { outbox } = prepared;
   const resp = await postJson<{ userState: Record<string, unknown>; log: { id: number; loggedAt: string } }>(
     '/intake',
-    { fluidType: body.fluidType, ozAmount, scoreBefore, scoreAfter, event: eventWire },
+    {
+      fluidType: prepared.fluidType,
+      ozAmount: prepared.ozAmount,
+      scoreBefore: prepared.scoreBefore,
+      scoreAfter: prepared.scoreAfter,
+      event: outbox.event,
+      ...(opts.withClientEventId ? { clientEventId: outbox.clientEventId } : {}),
+    },
   );
   const normalized = normalizeUserState(resp.userState);
   const newUserState: UserState = {
     ...normalized,
-    appleHealth: userState.appleHealth ?? normalized.appleHealth,
-    ...(userState.biometrics ? { biometrics: userState.biometrics } : {}),
+    appleHealth: preserve.appleHealth ?? normalized.appleHealth,
+    ...(preserve.biometrics ? { biometrics: preserve.biometrics } : {}),
   };
   lastKnownState = newUserState;
   const log: IntakeLog = {
     id: `intake-${resp.log.id}`,
-    fluidType: body.fluidType,
-    ozAmount,
+    fluidType: prepared.fluidType,
+    ozAmount: prepared.ozAmount,
     loggedAt: new Date(resp.log.loggedAt),
-    scoreBefore,
-    scoreAfter,
+    scoreBefore: prepared.scoreBefore,
+    scoreAfter: prepared.scoreAfter,
   };
   return { log, newUserState, engineOutput: calculateScore(newUserState) };
+}
+
+/**
+ * Replay a previously-queued (offline) intake. Fires the SAME frozen wire
+ * payload — including its `clientEventId` — so the server applies it exactly
+ * once: a duplicate replay (already-landed key) returns the current state
+ * untouched, and a stale event (>24h) is persisted as a historical log without
+ * inflating today's counters. We deliberately ignore the response body here —
+ * the caller reconciles to authoritative server truth via `fetchHome` only once
+ * the queue is fully drained, so there is no optimistic/server double-apply.
+ */
+export async function replayPreparedIntake(prepared: PreparedIntake): Promise<void> {
+  await postJson<{ userState: Record<string, unknown>; log: { id: number; loggedAt: string } }>(
+    '/intake',
+    {
+      fluidType: prepared.fluidType,
+      ozAmount: prepared.ozAmount,
+      scoreBefore: prepared.scoreBefore,
+      scoreAfter: prepared.scoreAfter,
+      event: prepared.event,
+      clientEventId: prepared.clientEventId,
+    },
+  );
+}
+
+/**
+ * True when a failed send means we never reached the server (offline / DNS /
+ * timeout / auth-token fetch failure) and the intake is therefore safe to queue
+ * for replay. A real server RESPONSE — even an error status — is NOT offline:
+ * `postJson` encodes those as `POST <path> → <status>`, so anything carrying a
+ * 3-digit status is treated as a genuine rejection and must surface as a
+ * failure (never optimistically "succeeded").
+ */
+export function isOfflineError(err: unknown): boolean {
+  const msg = err instanceof Error ? err.message : String(err);
+  return !/→\s*\d{3}\b/.test(msg);
+}
+
+export async function postIntakeLog(
+  userState: UserState,
+  body: IntakeLogPayload,
+): Promise<IntakeLogResponse> {
+  const prepared = prepareIntake(userState, body);
+  // Legacy/online path: no clientEventId on the wire → byte-identical request.
+  return sendPreparedIntake(prepared, {
+    ...(userState.appleHealth ? { appleHealth: userState.appleHealth } : {}),
+    ...(userState.biometrics ? { biometrics: userState.biometrics } : {}),
+  });
 }
 
 // ─── POST /signals ───────────────────────────────────────────────────────────

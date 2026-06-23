@@ -53,6 +53,10 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   // Performance Statements™ — once-per-local-day voice-only coach identity
   // line. Ships OFF in prod, ON in DEMO. Score-Protection: audio-only.
   performance_statements_enabled: false,
+  // Offline Intake Outbox — durable offline log queue + replay. Ships OFF in
+  // prod so logIntake keeps its exact online-only path (byte-identical no-op),
+  // ON in DEMO. Score-Protection: replays frozen scores, server dedupes.
+  offline_intake_outbox_enabled: false,
 
   // Enterprise — Cruise Mode (premium add-on). Per spec: master switch
   // is ON for internal builds, OFF for the public production binary.
@@ -191,6 +195,7 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
   voice_checkin_enabled: true,
   intent_capture_enabled: true,
   performance_statements_enabled: true,
+  offline_intake_outbox_enabled: true,
   cruise_mode_enabled: true,
   cruise_journey_pulse_enabled: true,
   cruise_commerce_enabled: true,

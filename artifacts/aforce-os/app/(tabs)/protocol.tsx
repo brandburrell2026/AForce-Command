@@ -253,6 +253,15 @@ function HistoryRow({ entry, delta }: { entry: HistoryEntry; delta: number | nul
           </View>
         </View>
         <Text style={styles.historyAction} numberOfLines={2}>{entry.action}</Text>
+        {/* Offline Intake Outbox — this intake was logged while offline and is
+            queued for replay. The flag-off path never sets `pending`, so this
+            chip never renders in production. */}
+        {entry.pending && (
+          <View style={styles.pendingChip}>
+            <Icon name="wifi-off" size={10} color={Colors.text.muted} />
+            <Text style={styles.pendingChipText}>PENDING SYNC</Text>
+          </View>
+        )}
       </View>
     </View>
   );
@@ -407,6 +416,14 @@ const styles = StyleSheet.create({
   trendText: { fontSize: 11, fontFamily: 'Inter_500Medium', letterSpacing: -0.1 },
   historyAction: {
     fontSize: 13, fontFamily: 'Inter_500Medium', color: Colors.text.secondary, lineHeight: 18,
+  },
+  pendingChip: {
+    flexDirection: 'row', alignSelf: 'flex-start', alignItems: 'center', gap: 4,
+    marginTop: 6, paddingHorizontal: 8, paddingVertical: 2,
+    borderRadius: 100, borderWidth: StyleSheet.hairlineWidth, borderColor: Colors.border.subtle,
+  },
+  pendingChipText: {
+    fontSize: 9, fontFamily: 'Inter_700Bold', color: Colors.text.muted, letterSpacing: 0.8,
   },
   // Two-column history grid — used only on Fold-open / tablet via
   // FlatList numColumns=2. Each cell takes half the available width

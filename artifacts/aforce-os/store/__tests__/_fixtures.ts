@@ -111,6 +111,7 @@ export const baseFlags: FeatureFlags = {
   voice_checkin_enabled: false,
   intent_capture_enabled: false,
   performance_statements_enabled: false,
+  offline_intake_outbox_enabled: false,
   cruise_mode_enabled: false,
   cruise_journey_pulse_enabled: false,
   cruise_commerce_enabled: false,

@@ -20,7 +20,8 @@ import { useUser } from '@clerk/expo';
 import { Colors } from '../../theme/colors';
 import { LocalTimeBar } from '../LocalTimeBar';
 import { LiveStatusStrip } from '../LiveStatusStrip';
-import { useEngineSlice, useUserSlice } from '../../store/slices';
+import { useEngineSlice, useUserSlice, useFlagsSlice } from '../../store/slices';
+import { useIntakeOutboxStore, selectPendingCount } from '../../services/intakeOutbox';
 import { CoachModePip } from './CoachModePip';
 import { SocialModePip } from './SocialModePip';
 
@@ -29,6 +30,12 @@ function HomeHeaderImpl() {
   const router = useRouter();
   const engine = useEngineSlice();
   const userState = useUserSlice();
+  const flags = useFlagsSlice();
+  // Offline Intake Outbox — flag-gated ambient indicator. When the flag is off
+  // the outbox is never hydrated/written, so `pendingCount` is always 0 and the
+  // chip never renders (byte-identical to before the layer landed).
+  const pendingCount = selectPendingCount(useIntakeOutboxStore());
+  const showPending = flags.offline_intake_outbox_enabled && pendingCount > 0;
   const clerkUser = useUser().user;
   const greetingName =
     clerkUser?.firstName ||
@@ -79,6 +86,20 @@ function HomeHeaderImpl() {
             visible. Full Social Mode surfaces live in their own
             tab; this is the home-zone shortcut. */}
         <SocialModePip />
+        {/* Offline-queued intakes waiting to reach the server. Nothing is
+            lost — these replay automatically when connectivity returns. */}
+        {showPending && (
+          <View
+            style={styles.pendingPip}
+            accessibilityLabel={`${pendingCount} intake${pendingCount === 1 ? '' : 's'} waiting to sync`}
+            testID="home-pending-sync"
+          >
+            <Icon name="wifi-off" size={11} color={Colors.text.secondary} />
+            <Text style={styles.pendingText}>
+              {pendingCount} PENDING SYNC
+            </Text>
+          </View>
+        )}
       </View>
 
       <LocalTimeBar />
@@ -131,5 +152,22 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingBottom: 6,
     gap: 8,
+  },
+  pendingPip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 100,
+    borderWidth: 1,
+    borderColor: Colors.border.subtle,
+    backgroundColor: Colors.fill.light,
+  },
+  pendingText: {
+    fontSize: 10,
+    fontFamily: 'Inter_700Bold',
+    color: Colors.text.secondary,
+    letterSpacing: 1,
   },
 });

@@ -7,6 +7,7 @@
  */
 
 import React, { createContext, useContext, useReducer, useCallback, useEffect, useMemo, useRef } from 'react';
+import { AppState as RNAppState, type AppStateStatus } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type {
   UserState,
@@ -64,7 +65,19 @@ import {
   postSocialHydrate,
   postSocialDeactivate,
   postJournalSnapshot,
+  replayPreparedIntake,
+  isOfflineError,
 } from '../services/realApi';
+import {
+  hydrateIntakeOutbox,
+  getIntakeOutboxState,
+  selectDueIntakes,
+  selectPendingCount,
+  markIntakeSyncing,
+  markIntakeSynced,
+  markIntakeFailed,
+  pruneSyncedIntakes,
+} from '../services/intakeOutbox';
 import {
   deriveRecoverySnapshot,
   recoveryInputsFromState,
@@ -262,10 +275,29 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // score/command/timer reflect the actual overlays — the service-
   // computed `engineOutput` reflects the request-time snapshot which
   // may have been clobbered by the overlay swap.
+  // T0b Offline Intake Outbox — flag mirror, declared here (above its first
+  // consumer, the applyServerUserState guard) so the guard, the periodic
+  // refresh, and flushOutbox all read one source of truth.
+  const offlineOutboxEnabledRef = useRef(state.featureFlags.offline_intake_outbox_enabled);
+  useEffect(() => {
+    offlineOutboxEnabledRef.current = state.featureFlags.offline_intake_outbox_enabled;
+  }, [state.featureFlags.offline_intake_outbox_enabled]);
+
   const applyServerUserState = useCallback((
     newUserState: UserState,
     _engineOutput: ScoreEngineOutput,
   ) => {
+    // Offline Intake Outbox guard: a fresh server snapshot does NOT yet include
+    // intakes the user completed offline that are still queued locally. Both the
+    // periodic /state refresh AND the WebSocket broadcast flow through this single
+    // chokepoint, so replacing reducer state here would drop those completed-but-
+    // unsynced intakes. While the flag is ON and the queue is non-empty we hold
+    // the optimistic state; flushOutbox reconciles to authoritative server truth
+    // the moment the queue fully drains (pendingCount → 0). Byte-identical when
+    // the flag is OFF (queue always empty) or the queue is already empty.
+    if (offlineOutboxEnabledRef.current && selectPendingCount(getIntakeOutboxState()) > 0) {
+      return;
+    }
     const latest = userStateRef.current;
     const merged: UserState = {
       ...newUserState,
@@ -277,6 +309,56 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       payload: { newUserState: merged, engineOutput: adaptEngineOutput(_initialOnly(merged)) },
     });
   }, [adaptEngineOutput]);
+
+  // ─── T0b: Offline Intake Outbox — flush / replay ───────────────────────
+  // Drains the durable outbox when connectivity returns. Each queued intake is
+  // replayed with its frozen `clientEventId`, so the server applies it exactly
+  // once (duplicate replays are no-ops; stale events become historical logs).
+  // Replay NEVER dispatches CYCLE_SUCCESS — the optimistic dispatch already
+  // recorded the history/analytics/voice at log time, so there is no double
+  // fire. We reconcile reducer state to authoritative server truth ONLY once the
+  // queue is fully drained; while any item is still unsynced we keep the
+  // optimistic state so a pending intake is never dropped (nor double-applied,
+  // since `applyServerUserState` REPLACES rather than increments).
+  const flushInFlightRef = useRef(false);
+  const flushOutbox = useCallback(async () => {
+    if (!offlineOutboxEnabledRef.current) return; // flag OFF → fully inert
+    if (flushInFlightRef.current) return;          // single-flight guard
+    flushInFlightRef.current = true;
+    try {
+      await hydrateIntakeOutbox();
+      const due = selectDueIntakes(getIntakeOutboxState(), Date.now());
+      if (due.length === 0) return;
+      for (const item of due) {
+        const cid = item.prepared.clientEventId;
+        await markIntakeSyncing(cid);
+        try {
+          await replayPreparedIntake(item.prepared);
+          await markIntakeSynced(cid);
+        } catch (err) {
+          await markIntakeFailed(cid);
+          // Still offline — stop hammering the rest; the next trigger retries
+          // the remaining due items (respecting their backoff schedule).
+          if (isOfflineError(err)) break;
+        }
+      }
+      await pruneSyncedIntakes();
+      // Reconcile only when nothing is left unsynced; otherwise the optimistic
+      // reducer state (which still includes pending intakes) stays in place.
+      if (selectPendingCount(getIntakeOutboxState()) === 0) {
+        try {
+          const { engineOutput, userState } = await fetchHome(userStateRef.current);
+          applyServerUserState(userState, engineOutput);
+        } catch {
+          // offline again — keep last known state; the next trigger reconciles.
+        }
+      }
+    } finally {
+      flushInFlightRef.current = false;
+    }
+  }, [applyServerUserState]);
+  const flushOutboxRef = useRef(flushOutbox);
+  useEffect(() => { flushOutboxRef.current = flushOutbox; }, [flushOutbox]);
 
   // Periodic /state refresh — keeps the engine output current (decay
   // ticks, weather staleness, etc.) and rehydrates from server in case
@@ -306,6 +388,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         } else {
           dispatch({ type: 'REFRESH_ENGINE', payload: { engineOutput } });
         }
+        // We just reached the server successfully — a good moment to drain any
+        // intakes queued while offline. No-op (returns immediately) when the
+        // flag is off or the queue is empty.
+        void flushOutboxRef.current();
       } catch {
         // swallow — UI keeps last known engineOutput
       }
@@ -315,6 +401,18 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     return () => { cancelled = true; clearInterval(interval); };
     // Mount-once timer; reads latest state via userStateRef.
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Flush the offline intake outbox the moment the app returns to the
+  // foreground — the most likely point connectivity has been restored. The
+  // listener is always registered (cheap); `flushOutbox` itself is inert when
+  // the flag is off, so this is byte-identical in production.
+  useEffect(() => {
+    const onChange = (next: AppStateStatus) => {
+      if (next === 'active') void flushOutboxRef.current();
+    };
+    const sub = RNAppState.addEventListener('change', onChange);
+    return () => sub.remove();
   }, []);
 
   // When the user switches languages, the AI command strings (action /

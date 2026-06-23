@@ -1,0 +1,64 @@
+```
+Replace the welcome/hero screen background image with the new hooded-athlete 
+photo (black hoodie, towel over shoulder, light grey wall background). 
+
+CRITICAL: this new image has a LIGHT background, which is the opposite of the 
+old dark hero. Our bone/white hero type will disappear on it. Do NOT just swap 
+the image — you must add a scrim and reposition the type so everything stays 
+legible. Keep the brand system intact (bone type, signal red CTA).
+
+BRAND COLORS (use exactly):
+- Cinematic Black: #0D0D0D
+- Bone: #F5F0E8
+- Signal Red: #C1281B
+
+1. IMAGE
+- Set the new hooded-athlete image as the full-bleed background, object-fit: 
+  cover, centered so the subject (right of frame) and his forward gaze stay 
+  visible. Anchor the crop to keep the face in frame on common phone sizes.
+
+2. SCRIM (this is the key fix)
+- Add a vertical linear-gradient overlay on top of the image, BELOW the text 
+  layer:
+  - Bottom 45% of the screen: from #0D0D0D at ~92% opacity at the very bottom, 
+    fading up to transparent around the vertical midpoint.
+  - Top: keep it light/airy — let the grey wall and the figure show through 
+    (little to no scrim up top).
+- Purpose: the lower portion goes dark enough for bone type + the red CTA to 
+  read, while the top stays bright and editorial. Tune the bottom opacity so 
+  AFORCE and the subhead have a clear contrast ratio against the darkened area.
+
+3. TYPE BLOCK (move it into the dark zone)
+- Position the hero text block in the LOWER third, over the scrim (not over 
+  the bright wall up top).
+- "AFORCE" — Archivo Black, large, Bone #F5F0E8.
+- Subhead "BUILT FOR PEOPLE WHO DON'T GET TO BE OFF" — IBM Plex Mono, 
+  letter-spaced, Bone at ~80% opacity, BELOW AFORCE. Break it cleanly onto 
+  two lines: "BUILT FOR PEOPLE / WHO DON'T GET TO BE OFF".
+- Confirm both lines sit fully within the darkened scrim area so they never 
+  land on the bright grey wall.
+
+4. CTA BUTTONS (unchanged styling, confirm legibility)
+- "GET STARTED" — solid Signal Red #C1281B pill, Bone text, near bottom.
+- "SIGN IN" — outlined pill (bone hairline border), Bone text, below it.
+- Both already sit low, so they'll be over the darkest part of the scrim — 
+  verify contrast is clean.
+
+5. TOP TICKER
+- The top "PERFORMANCE IS NON-NEGOTIABLE" ticker currently sits on the now-
+  LIGHT upper area. Bone text will not read on the grey wall. Either:
+  (a) change the ticker text color to Cinematic Black #0D0D0D for this screen 
+      so it reads on the light background, OR
+  (b) add a short subtle top scrim behind it.
+  Pick whichever looks cleaner; default to (a) black text on the light top.
+- Also fix the existing clipping bug: it currently renders "ERFORMANCE ... 
+  NEGOTIABLE" cut off at both edges. Add horizontal padding so it reads in 
+  full: "PERFORMANCE IS NON-NEGOTIABLE" (or split "PERFORMANCE IS" left / 
+  "NON-NEGOTIABLE" right with proper inset).
+
+Do not change navigation, routing, or any other screen. This is the welcome/
+hero surface only. After building, confirm on a light AND dark device preview 
+that AFORCE, the subhead, both CTAs, and the top ticker are all legible.
+```
+
+One thing to verify after Replit builds it: because the subject and his hoodie are already near-black, the bottom scrim will blend into the hoodie nicely — but check that his face (the brightest part of the figure) doesn't end up half-buried if the scrim rides too high. If it does, lower the scrim's start point so it only darkens from roughly his torso down, keeping the face in the lighter upper zone. That keeps both the face *and* the type readable.

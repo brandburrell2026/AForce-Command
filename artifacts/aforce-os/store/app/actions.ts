@@ -26,6 +26,10 @@ import { PRODUCTS } from '../../data/products';
 import {
   fetchHome,
   postIntakeLog,
+  prepareIntake,
+  sendPreparedIntake,
+  isOfflineError,
+  type IntakeLogResponse,
   postSignalsUpdate,
   postUrineSignalUpdate,
   postEnergyStateUpdate,
@@ -54,6 +58,7 @@ import { markFirstCommandCompleted } from '../../analytics/activation_anchor';
 import { categorizeCommand } from '../../utils/intelligence/commandCategory';
 import { confirmationToCommandEvent } from '../../utils/intelligence/commandEventAdapters';
 import { appendCommandEvents } from '../../services/commandLedger';
+import { enqueueIntake } from '../../services/intakeOutbox';
 
 interface StoreActionsDeps {
   state: AppState;
@@ -114,11 +119,58 @@ export function useStoreActions({
       // hydration scoring engine. Watermelon/Berry/Soursop bonuses
       // depend on this. Fallback to the product's default flavor.
       const flavor = inferFlavorFromLabel(opts?.flavorLabel) ?? PRODUCTS[fluidType].flavor;
-      const { log, newUserState, engineOutput } = await postIntakeLog(state.userState, {
+      const intakeBody = {
         fluidType,
         ...(opts?.ozOverride != null ? { ozAmount: opts.ozOverride } : {}),
         ...(flavor ? { flavor } : {}),
-      });
+      };
+      // Offline Intake Outbox marker — true only when this intake could not
+      // reach the server and was durably queued. Drives the optional pending UI
+      // marker; always false on the unchanged online path.
+      let offlinePending = false;
+      let response: IntakeLogResponse;
+      if (state.featureFlags.offline_intake_outbox_enabled) {
+        // Flag ON: freeze the payload ONCE so the exact same bytes are either
+        // sent now (with the idempotency key) or durably queued for replay if
+        // the device is offline — never lost, never double-applied.
+        const prepared = prepareIntake(state.userState, intakeBody);
+        try {
+          response = await sendPreparedIntake(
+            prepared,
+            {
+              ...(state.userState.appleHealth ? { appleHealth: state.userState.appleHealth } : {}),
+              ...(state.userState.biometrics ? { biometrics: state.userState.biometrics } : {}),
+            },
+            { withClientEventId: true },
+          );
+        } catch (sendErr) {
+          // A real server response (4xx/5xx) is NOT offline — surface it as a
+          // failure (today's behaviour). Only a transport gap is queue-able.
+          if (!isOfflineError(sendErr)) throw sendErr;
+          // Durably queue the frozen payload, then proceed optimistically so the
+          // completed behaviour shows immediately. Score-Protection: the
+          // optimistic state derives from the user's completed action; the queued
+          // item carries frozen scores and the server dedupes on replay.
+          await enqueueIntake(prepared.outbox);
+          response = {
+            log: {
+              id: prepared.event.id,
+              fluidType: prepared.fluidType,
+              ozAmount: prepared.ozAmount,
+              loggedAt: prepared.event.loggedAt,
+              scoreBefore: prepared.scoreBefore,
+              scoreAfter: prepared.scoreAfter,
+            },
+            newUserState: prepared.optimisticUserState,
+            engineOutput: _initialOnly(prepared.optimisticUserState),
+          };
+          offlinePending = true;
+        }
+      } else {
+        // Flag OFF: unchanged online-only path (byte-identical no-op).
+        response = await postIntakeLog(state.userState, intakeBody);
+      }
+      const { log, newUserState, engineOutput } = response;
       const product = PRODUCTS[fluidType];
       const result: CycleResult = {
         id: log.id,
@@ -190,6 +242,7 @@ export function useStoreActions({
           : `Logged ${baseName} (${log.ozAmount} ounces)`,
         unitsTaken: 1,
         fluidType,
+        ...(offlinePending ? { pending: true } : {}),
       };
       dispatch({ type: 'CYCLE_SUCCESS', payload: { result, newUserState: mergedUserState, engineOutput: adaptEngineOutput(mergedEngine), historyEntry, silent: opts?.silent } });
       // AForce Command Voice Engine — completion reward voice. Fires
@@ -251,7 +304,7 @@ export function useStoreActions({
       console.warn('[AForce] logIntake failed', err);
       dispatch({ type: 'CYCLE_FAILURE' });
     }
-  }, [state.userState, state.isCompletingCycle]);
+  }, [state.userState, state.isCompletingCycle, state.featureFlags.offline_intake_outbox_enabled]);
 
   // Generic "complete cycle" — defaults to AForce stick (primary intake)
   const completeCycle = useCallback(() => logIntake('aforce_stick'), [logIntake]);

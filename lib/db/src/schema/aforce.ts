@@ -150,15 +150,29 @@ export const aforceUserState = pgTable("aforce_user_state", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
-export const aforceIntakeLogs = pgTable("aforce_intake_logs", {
-  id: serial("id").primaryKey(),
-  userId: text("user_id").notNull(),
-  fluidType: text("fluid_type").notNull(),
-  ozAmount: real("oz_amount").notNull(),
-  scoreBefore: integer("score_before").notNull(),
-  scoreAfter: integer("score_after").notNull(),
-  loggedAt: timestamp("logged_at", { withTimezone: true }).notNull().defaultNow(),
-});
+export const aforceIntakeLogs = pgTable(
+  "aforce_intake_logs",
+  {
+    id: serial("id").primaryKey(),
+    userId: text("user_id").notNull(),
+    fluidType: text("fluid_type").notNull(),
+    ozAmount: real("oz_amount").notNull(),
+    scoreBefore: integer("score_before").notNull(),
+    scoreAfter: integer("score_after").notNull(),
+    /** Stable client-supplied idempotency key (the offline-outbox event id).
+     *  NULL for legacy/online writes (offline outbox flag off) — Postgres
+     *  NULLS DISTINCT means those rows never collide, so the dedupe applies
+     *  ONLY to keyed offline-outbox replays. Score-Protection on replay. */
+    clientEventId: text("client_event_id"),
+    loggedAt: timestamp("logged_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => ({
+    userClientUq: uniqueIndex("aforce_intake_logs_user_client_uq").on(
+      t.userId,
+      t.clientEventId,
+    ),
+  }),
+);
 
 /**
  * Append-only longitudinal score snapshot. Drives the Hydration

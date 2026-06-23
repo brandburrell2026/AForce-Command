@@ -400,6 +400,15 @@ export interface HistoryEntry {
    * Excluded from PDF exports and the Protocol screen command history.
    */
   isSynthetic?: boolean;
+  /**
+   * Offline Intake Outbox marker (flag-gated). True for an intake that was
+   * completed while the device was offline and is durably queued for replay —
+   * the behaviour is real and counted, it just hasn't reached the server yet.
+   * Always undefined on the online path, so online history entries stay
+   * byte-identical. The outbox replay reconciles state without re-adding a
+   * second entry, so this flag's only job is to drive the optional UI marker.
+   */
+  pending?: boolean;
 }
 
 // ─── Notifications (Settings) ─────────────────────────────────────────────────
@@ -529,6 +538,16 @@ export interface FeatureFlags {
   // 10%), ON in the demo profile. Score-Protection: audio-only projection —
   // never awards, mutates, or fabricates score.
   performance_statements_enabled: boolean;
+
+  // Offline Intake Outbox — durable local queue so an intake logged while the
+  // device is offline survives a force-close/restart and replays once the
+  // server is reachable. Master switch; ships OFF in prod (Build 100% · Show
+  // 10% — flag-off is a byte-identical no-op: logIntake takes the unchanged
+  // online path), ON in the demo profile. Score-Protection: queued items carry
+  // the FROZEN scoreBefore/scoreAfter computed from the completed action and
+  // are replayed verbatim; the outbox never recomputes or fabricates score, and
+  // the server's idempotency key prevents any double-apply.
+  offline_intake_outbox_enabled: boolean;
 
   // Enterprise — Cruise Mode (premium add-on for cruise lines & guests).
   // Master switch. Phase 1 public release lights up Journey Pulse,
