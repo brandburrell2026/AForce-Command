@@ -59,19 +59,23 @@ const FONT_MONO = Typography.roles.eyebrow; // IBM Plex Mono — eyebrow / label
 
 const EASE = Easing.inOut(Easing.ease);
 
-// Placeholder operator/athlete still. Swappable later with real shot footage.
-const HERO = require('../../assets/images/welcome-hero.jpg');
+// Hooded-athlete welcome still (light grey-wall background). Subject right of
+// frame, forward gaze — cover-cropped centered so the face stays in frame.
+const HERO = require('../../assets/images/welcome-hero.png');
 
-// Top→bottom scrim: reads the image up top, deepens to near-solid cinematic
-// black at the bottom so the wordmark sits on mid-tone and the buttons sit on
-// near-solid black (WHOOP-style legibility).
+// Bottom-weighted scrim for a LIGHT-background photo: the top half stays airy
+// (the grey wall + figure read through, ~no scrim), then it ramps from
+// transparent around the vertical midpoint down to near-solid cinematic black
+// at the very bottom — so the lower-third type and the CTAs sit on deep black
+// (bone stays legible) while the athlete's face up top stays in the light zone.
 const SCRIM_COLORS = [
-  'rgba(13,13,13,0.20)',
-  'rgba(13,13,13,0.45)',
-  'rgba(13,13,13,0.85)',
-  BG,
+  'rgba(13,13,13,0)',
+  'rgba(13,13,13,0)',
+  'rgba(13,13,13,0.62)',
+  'rgba(13,13,13,0.90)',
+  'rgba(13,13,13,0.95)',
 ] as const;
-const SCRIM_LOCATIONS = [0, 0.45, 0.78, 1] as const;
+const SCRIM_LOCATIONS = [0, 0.46, 0.72, 0.88, 1] as const;
 
 interface Props {
   /** Flips true once the cinematic has finished — triggers the staggered
@@ -238,7 +242,13 @@ export function WelcomeHero({ active, onGetStarted, onSignIn }: Props) {
           dy={6}
           style={[styles.topZone, { paddingTop: insets.top + 12 }]}
         >
-          <Text style={styles.eyebrow}>PERFORMANCE IS NON-NEGOTIABLE</Text>
+          <Text
+            style={styles.eyebrow}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+          >
+            PERFORMANCE IS NON-NEGOTIABLE
+          </Text>
         </Reveal>
 
         {/* CENTER — wordmark + tagline, biased just below true center */}
@@ -248,7 +258,7 @@ export function WelcomeHero({ active, onGetStarted, onSignIn }: Props) {
           </Reveal>
           <Reveal active={active} reduce={reduce} delay={450} dy={8}>
             <Text style={styles.tagline}>
-              BUILT FOR PEOPLE WHO DON&apos;T GET TO BE OFF
+              BUILT FOR PEOPLE{'\n'}WHO DON&apos;T GET TO BE OFF
             </Text>
           </Reveal>
         </View>
@@ -289,13 +299,16 @@ const styles = StyleSheet.create({
   },
   topZone: {
     alignItems: 'center',
+    // Inset so the letter-spaced ticker never clips at the screen edges.
+    paddingHorizontal: 24,
   },
   centerZone: {
     flex: 1,
     alignItems: 'center',
-    justifyContent: 'center',
-    // Bias the wordmark to ~55–60% down rather than dead center.
-    paddingTop: '22%',
+    // Cluster the wordmark + tagline into the LOWER third, just above the
+    // CTAs, so the whole type block lands on the darkened bottom scrim.
+    justifyContent: 'flex-end',
+    paddingBottom: 28,
     paddingHorizontal: 28,
   },
   bottomZone: {
@@ -305,9 +318,11 @@ const styles = StyleSheet.create({
   eyebrow: {
     fontFamily: FONT_MONO,
     fontSize: 11,
-    letterSpacing: 4.4, // ~0.4em
-    color: BONE,
-    opacity: 0.55,
+    letterSpacing: 2.6, // tightened so the full line fits the inset top zone
+    // Cinematic-black ticker: the top of this hero is now the LIGHT grey wall,
+    // where bone type would vanish — black reads cleanly on it.
+    color: BG, // #0D0D0D
+    opacity: 0.7,
     textAlign: 'center',
     textTransform: 'uppercase',
   },

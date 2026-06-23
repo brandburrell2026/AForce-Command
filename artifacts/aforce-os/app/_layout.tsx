@@ -351,8 +351,12 @@ function AppShell() {
           they remain visible against the pure-black opening canvas
           (splash + opening) and every other dark surface. Without this
           the default dark glyphs render invisibly against #0D0D0D in
-          the top safe-area chrome zone. */}
-      <StatusBar style="light" />
+          the top safe-area chrome zone.
+          EXCEPTION — the Welcome Hero (phase 'welcome') is now a photo with
+          a LIGHT grey-wall top, where light glyphs would wash out; flip to
+          dark glyphs only while it is the front-facing surface. 'opening'
+          (black cinematic) and 'done' (dark app) stay light = unchanged. */}
+      <StatusBar style={phase === 'welcome' ? 'dark' : 'light'} />
       <ErrorBoundary>
         <QueryClientProvider client={queryClient}>
           <GestureHandlerRootView style={{ flex: 1 }}>
