@@ -88,9 +88,16 @@ export class WebhookHandlers {
     }
     const sync = await getStripeSync();
     await sync.processWebhook(payload, signature);
-    // Linkage repair runs AFTER sync so the customer row already exists
-    // in our `stripe.*` mirror — keeps aforce_users in lockstep even when
-    // the original checkout failed to persist the customer id.
+  }
+
+  /**
+   * Post-ack linkage repair. Run this AFTER the 200 has been sent to
+   * Stripe (and after `processWebhook` has synced the `stripe.*` mirror)
+   * so DB latency on this write can't delay the ack and cause Stripe to
+   * mark the delivery failed. Never throws — failures are logged inside
+   * `repairUserLinkage`.
+   */
+  static async repairLinkage(payload: Buffer): Promise<void> {
     await repairUserLinkage(payload);
   }
 }
