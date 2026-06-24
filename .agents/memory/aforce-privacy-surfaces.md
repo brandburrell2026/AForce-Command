@@ -16,21 +16,27 @@ client-side via a `useEffect` in the page (create-or-reuse `link[rel="canonical"
 on cleanup). Fonts for legal pages (Archivo Black, IBM Plex Mono) had to be added to
 `index.html` — the site otherwise ships Inter/Outfit/Space Mono only.
 
-## Three diverging privacy docs — pick the right source
-There are **three** privacy surfaces and they do NOT match; do not assume "mirror the
-in-app screen" means copy the thin one:
-- `artifacts/aforce-os/app/legal/privacy.tsx` — thin in-app starter draft. Children **16**,
-  but NO CCPA/GDPR, NO health-not-for-advertising disclaimer, contact = `privacy@aforce.com`.
-- `artifacts/aforce-os/legal/privacy-policy.md` — fuller compliance-grade text (HealthKit
-  **never for advertising**, CCPA/CPRA, GDPR/UK GDPR, retention). But children **13** and a
-  placeholder mailing address; contact = `privacy@drinkaforce.com`.
-- `artifacts/aforce-site/src/pages/Privacy.tsx` — the public drinkaforce.com page. Sources
-  compliance language from the `.md`, keeps children **16**, and uses the real owner contact
-  block (AForce Hydration, 535 Fifth Avenue 4th Floor #1004, NY 10017, `bburrell@alkalineforce.com`).
+## Three privacy docs — two now synced, the .md still diverges
+There are **three** privacy surfaces. The public web page and the in-app screen are now
+mirrored on purpose (same story for App Store privacy review); the `.md` source still differs:
+- `artifacts/aforce-site/src/pages/Privacy.tsx` — the public drinkaforce.com page; canonical
+  for the live site. Children **16**, full CCPA/CPRA + GDPR/UK GDPR, explicit
+  health-not-for-advertising, real owner contact (AForce Hydration, 535 Fifth Avenue 4th Floor
+  #1004, NY 10017, `bburrell@alkalineforce.com`).
+- `artifacts/aforce-os/app/legal/privacy.tsx` — in-app screen, now **mirrors** the public page
+  word-for-word (rendered through the shared `LegalDocumentScreen`; list items are plain-string
+  bullets with `\n` since the component renders text-only bodies; contact block goes in the
+  `footer` prop — its documented "contact line" slot). Keep it in lockstep with the public page.
+- `artifacts/aforce-os/legal/privacy-policy.md` — the fuller legal source the public copy was
+  drawn from, BUT it still says children **13** and uses a placeholder mailing address +
+  `privacy@drinkaforce.com`. Do NOT blindly copy those two fields from the `.md`.
 
 **Why:** App Store / HealthKit review requires the explicit "health data is never used for
 advertising/tracking and never shared with third parties for advertising" statement plus
-CCPA/GDPR rights — the thin in-app `privacy.tsx` cannot satisfy that on its own.
-**How to apply:** when editing public legal copy, treat the `.md` as the legal source of
-truth and the public `Privacy.tsx` as canonical for the live site; the three are NOT kept in
-sync automatically — changing one does not change the others.
+CCPA/GDPR rights, and Apple expects the hosted page + in-app screen + App Privacy
+questionnaire to tell the identical story.
+**How to apply:** edit the public `Privacy.tsx` and the in-app `privacy.tsx` together — they
+must stay byte-equivalent in meaning. The `.md` is the legal-language source but is stale on
+children-age (13 vs 16) and contact; reconcile to children **16** + the alkalineforce.com
+contact when in doubt. The shared `LegalDocumentScreen` only accepts `{heading, body:string}`
+sections — no rich lists.
