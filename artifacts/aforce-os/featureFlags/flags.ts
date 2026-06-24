@@ -174,6 +174,13 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   // always-on and unaffected by this flag. Score-Protection: display + delete
   // only, never awards/reads-into/mutates score.
   performance_memory_governance_enabled: false,
+
+  // Performance Identity™ — Phase 2 foundation. Internal raw-signal readout
+  // (the behavioural signals a future archetype classifier would read). The
+  // classifier is INERT: archetype + confidence are always null, ZERO
+  // archetype-assignment logic. OFF in the production binary; ON in
+  // DEMO_ALL_ON for internal inspection. Score-Protection: read-only.
+  performance_identity_enabled: false,
 };
 
 /**
@@ -263,6 +270,10 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
 
   // Performance Memory™ — governance VIEW ON for internal inspection.
   performance_memory_governance_enabled: true,
+
+  // Performance Identity™ — Phase 2 raw-signal readout ON for internal
+  // inspection. Classifier stays INERT (archetype + confidence always null).
+  performance_identity_enabled: true,
 
   // Phase 10 — Investor Demo overlay is ON in the internal/pitch profile.
   demo_mode_enabled: true,

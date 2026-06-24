@@ -56,6 +56,7 @@ import { replayLastCommand, getLastCommand } from '@/services/voice/commandVoice
 import { useDevMode, setDevMode } from '@/services/devMode';
 import { AnalyticsConsentRow } from '@/components/settings/AnalyticsConsentRow';
 import { PerformanceMemoryGovernanceCard } from '@/components/settings/PerformanceMemoryGovernanceCard';
+import { PerformanceIdentityCard } from '@/components/settings/PerformanceIdentityCard';
 import { getJsonAforceApi } from '@/services/aforceApiClient';
 import {
   getGarminStatus,
@@ -1607,6 +1608,12 @@ export default function ProfileScreen() {
                     <>
                       <Divider />
                       <PerformanceMemoryGovernanceCard />
+                    </>
+                  ) : null}
+                  {state.featureFlags.performance_identity_enabled ? (
+                    <>
+                      <Divider />
+                      <PerformanceIdentityCard />
                     </>
                   ) : null}
                 </View>

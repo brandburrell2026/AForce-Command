@@ -155,6 +155,7 @@ export const baseFlags: FeatureFlags = {
   command_confidence_adaptive_enabled: false,
   performance_memory_execution_enabled: false,
   performance_memory_governance_enabled: false,
+  performance_identity_enabled: false,
 };
 
 export const baseSubscription: UserSubscription = {

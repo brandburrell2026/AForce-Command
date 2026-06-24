@@ -730,6 +730,17 @@ export interface FeatureFlags {
    * mutates / fabricates score.
    */
   performance_memory_governance_enabled: boolean;
+  /**
+   * Performance Identity™ — FOUNDATION + raw signal capture only (Phase 2).
+   * When ON, the Profile screen shows an INTERNAL raw-signal readout (the
+   * behavioural signals a future archetype classifier would read) plus an
+   * explicit "not assigned (inert)" classification banner. The classifier is
+   * deliberately INERT: archetype + confidence are ALWAYS null and there is
+   * ZERO archetype-assignment logic. OFF in the production binary.
+   * Score-Protection: read-only projection — never reads into / awards /
+   * mutates / fabricates score.
+   */
+  performance_identity_enabled: boolean;
 }
 
 /**
