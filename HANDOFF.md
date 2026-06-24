@@ -101,7 +101,7 @@ pnpm --filter @workspace/scripts run eas-configure-submit
 Production lives on Replit Deployments (Autoscale, 2 vCPU / 4 GiB / 1 Max). Triggered from the **Publishing** tab in the workspace. URLs:
 
 - Marketing site: `a-force-command--brandburrell.replit.app/aforce-site/`
-- API: `a-force-command--brandburrell.replit.app/api/...`
+- API: `api.drinkaforce.com/api/...`
 - Investor deck: `a-force-command--brandburrell.replit.app/aforce-pitch/`
 
 The published apps are routed through Replit's path-based proxy. In application code, prefer relative URLs.
