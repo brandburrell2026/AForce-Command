@@ -80,7 +80,12 @@
           "background": false
         }
       ],
-      "expo-audio",
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "AForce OS uses your microphone for voice coaching and audio interactions."
+        }
+      ],
       [
         "expo-notifications",
         {
