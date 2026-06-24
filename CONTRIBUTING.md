@@ -73,7 +73,7 @@ live only in Replit and are not shared.
 
 | Variable                          | Required | Purpose                                       |
 | --------------------------------- | -------- | --------------------------------------------- |
-| `EXPO_PUBLIC_API_URL`             | yes      | Base URL of the API server (e.g. `http://localhost:8080`). |
+| `EXPO_PUBLIC_API_BASE`            | yes      | Base URL of the API server (e.g. `http://localhost:8080`). |
 | `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` | yes    | Clerk publishable key. Must be the dev key.   |
 
 `EXPO_PUBLIC_*` is the only prefix Expo exposes to the client bundle. Anything
