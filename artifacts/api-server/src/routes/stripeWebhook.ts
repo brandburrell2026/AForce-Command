@@ -27,7 +27,16 @@ router.post(
     }
     try {
       await WebhookHandlers.processWebhook(req.body as Buffer, signature);
+      // Ack Stripe immediately once the signature-verified sync is done.
       res.status(200).json({ received: true });
+      // Linkage repair is a non-critical DB write — run it out of band
+      // AFTER the ack so its latency can't delay the response and cause a
+      // failed webhook delivery. repairLinkage never throws; the extra
+      // .catch is purely defensive.
+      void WebhookHandlers.repairLinkage(req.body as Buffer).catch((err) => {
+        const msg = err instanceof Error ? err.message : 'linkage_repair_failed';
+        logger.warn({ err: msg }, 'Stripe webhook linkage repair failed');
+      });
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'webhook_failed';
       logger.warn({ err: msg }, 'Stripe webhook processing failed');
