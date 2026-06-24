@@ -1,6 +1,6 @@
 ---
 title: "AForce — Complete Specifications"
-author: "Generated 2026-06-23"
+author: "Generated 2026-06-24"
 ---
 
 
