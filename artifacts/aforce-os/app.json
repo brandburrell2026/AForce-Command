@@ -73,14 +73,6 @@
         }
       ],
       [
-        "@kingstinct/react-native-healthkit",
-        {
-          "NSHealthShareUsageDescription": "AForce OS reads heart rate, HRV, sleep, and workout data from Apple Health to personalize your hydration and recovery score.",
-          "NSHealthUpdateUsageDescription": "AForce OS writes hydration logs to Apple Health so they appear alongside your other health data.",
-          "background": false
-        }
-      ],
-      [
         "expo-audio",
         {
           "microphonePermission": "AForce OS uses your microphone for voice coaching and audio interactions."
