@@ -750,6 +750,14 @@ export interface FeatureFlags {
   // of metabolic_readiness_enabled (which gates the readiness feature/UI).
   // Score-Protection: biometrics feed Readiness only, never the Score.
   healthkit_native_enabled: boolean;
+
+  // Native Liquid Glass tabs gate. Controls whether iOS 26 uses the native
+  // tab bar (expo-router/unstable-native-tabs -> RNScreens RNSTabBarController)
+  // instead of the JS ClassicTabLayout. OFF everywhere: the native tab
+  // controller throws a void NSException at startup on iOS 26, crashing
+  // Release/TestFlight builds (react-native-screens #3940). Flip true to
+  // re-enable once the upstream fix is confirmed.
+  native_tabs_enabled: boolean;
 }
 
 /**

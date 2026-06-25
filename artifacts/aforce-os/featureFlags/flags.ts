@@ -190,6 +190,13 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   // deps, flip this true, and uncomment the dynamic import in
   // services/appleHealth.ts. Independent of metabolic_readiness_enabled.
   healthkit_native_enabled: false,
+
+  // Native Liquid Glass tabs gate — OFF. On iOS 26 the native tab bar
+  // (expo-router/unstable-native-tabs -> RNScreens RNSTabBarController) throws
+  // a void NSException at startup, crashing Release/TestFlight builds
+  // (react-native-screens #3940). False routes iOS 26 to the JS ClassicTabLayout.
+  // Flip true to restore native tabs once the upstream fix is confirmed.
+  native_tabs_enabled: false,
 };
 
 /**
@@ -291,6 +298,10 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
   // HealthKit/Nitro deps are removed from package.json, so the module is not
   // in the bundle and cannot be loaded regardless of profile.
   healthkit_native_enabled: false,
+
+  // Stays OFF even in the demo profile: native tabs are crash-disabled on
+  // iOS 26 (react-native-screens #3940), not a demo toggle.
+  native_tabs_enabled: false,
 };
 
 export function isFlagEnabled(flags: FeatureFlags, key: keyof FeatureFlags): boolean {
