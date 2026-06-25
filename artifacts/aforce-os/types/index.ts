@@ -758,6 +758,15 @@ export interface FeatureFlags {
   // Release/TestFlight builds (react-native-screens #3940). Flip true to
   // re-enable once the upstream fix is confirmed.
   native_tabs_enabled: boolean;
+
+  // Native screens master gate (react-native-screens enableScreens). When
+  // false the app calls enableScreens(false) at init, falling back to plain
+  // RN views for the WHOLE navigation surface (not just tabs) — the
+  // maintainer-documented #3940 workaround for the iOS 26 startup void
+  // NSException. OFF everywhere as a crash kill-switch (at the cost of
+  // native-screen perf). Flip true to restore native screens once the
+  // upstream fix lands.
+  native_screens_enabled: boolean;
 }
 
 /**

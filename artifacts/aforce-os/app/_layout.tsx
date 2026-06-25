@@ -48,6 +48,17 @@ import { snoozeRevalidationDelay } from '@/utils/voiceCheckIn';
 import { useVoiceCheckIn } from '@/hooks/useVoiceCheckIn';
 import { VoiceCheckInOverlay } from '@/components/voiceCheckIn/VoiceCheckInOverlay';
 import { PerformanceStatementMount } from '@/components/performanceStatement/PerformanceStatementMount';
+import { enableScreens } from 'react-native-screens';
+import { DEFAULT_FLAGS } from '@/featureFlags/flags';
+
+// iOS 26 + react-native-screens (#3940): native screens throw a void
+// NSException at startup via RCTTurboModule performVoidMethodInvocation,
+// crashing Release/TestFlight builds. Disabling native screens is the
+// maintainer-documented workaround. Gated by native_screens_enabled;
+// flip to true to restore native screens once the upstream fix lands.
+// Runs at module load — before any <Stack>/<Screen> mounts — and nothing
+// in expo-router / react-navigation calls enableScreens(true) to override it.
+enableScreens(DEFAULT_FLAGS.native_screens_enabled);
 
 // Bootstrap i18next as soon as the JS bundle loads so even the first
 // frame (SplashScreen, ErrorBoundary fallbacks) has access to t(). The

@@ -197,6 +197,13 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   // (react-native-screens #3940). False routes iOS 26 to the JS ClassicTabLayout.
   // Flip true to restore native tabs once the upstream fix is confirmed.
   native_tabs_enabled: false,
+
+  // Native screens master gate — OFF. When false the app calls
+  // enableScreens(false) at init, bypassing the entire react-native-screens
+  // native surface (the maintainer-documented #3940 workaround for the iOS 26
+  // startup void NSException), keeping Release/TestFlight builds launchable at
+  // the cost of native-screen perf. Flip true once the upstream fix lands.
+  native_screens_enabled: false,
 };
 
 /**
@@ -302,6 +309,10 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
   // Stays OFF even in the demo profile: native tabs are crash-disabled on
   // iOS 26 (react-native-screens #3940), not a demo toggle.
   native_tabs_enabled: false,
+
+  // Stays OFF even in the demo profile: native screens are crash-disabled on
+  // iOS 26 (react-native-screens #3940), not a demo toggle.
+  native_screens_enabled: false,
 };
 
 export function isFlagEnabled(flags: FeatureFlags, key: keyof FeatureFlags): boolean {
