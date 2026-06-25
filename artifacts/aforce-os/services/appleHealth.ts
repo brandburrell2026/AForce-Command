@@ -17,6 +17,8 @@
 
 import { Platform } from 'react-native';
 
+import { DEFAULT_FLAGS } from '../featureFlags/flags';
+
 export interface AppleHealthSnapshot {
   /** Most recent resting heart rate sample (bpm). */
   restingHeartRate: number | null;
@@ -36,19 +38,36 @@ const EMPTY_SNAPSHOT: AppleHealthSnapshot = {
 };
 
 export function isAppleHealthSupported(): boolean {
-  return Platform.OS === 'ios';
+  // ISOLATION BUILD: gated behind healthkit_native_enabled. When the flag is
+  // false the native module is absent from the bundle, so we report
+  // "unavailable" — the same shape an Android user already gets — even on iOS.
+  return DEFAULT_FLAGS.healthkit_native_enabled && Platform.OS === 'ios';
 }
 
 /**
  * Lazily import the native module. Imported this way so Metro doesn't
  * try to resolve the native side on web/Android, where the package's
  * Nitro module isn't linked.
+ *
+ * ISOLATION BUILD (healthkit_native_enabled = false): the native
+ * @kingstinct/react-native-healthkit dependency is removed from package.json
+ * for the iOS launch-crash isolation test, so the dynamic import below is
+ * intentionally commented out — it must NOT remain a live, Metro-resolvable
+ * reference or the bundler will fail to resolve the now-missing module.
+ * isAppleHealthSupported() already returns false when the flag is off, and the
+ * explicit flag guard below short-circuits to null before any import would run.
+ *
+ * To re-enable: (1) re-add @kingstinct/react-native-healthkit +
+ * react-native-nitro-modules to package.json, (2) flip healthkit_native_enabled
+ * -> true in DEFAULT_FLAGS, (3) uncomment the two import lines below.
  */
 async function loadHealthKit(): Promise<any | null> {
   if (!isAppleHealthSupported()) return null;
+  if (!DEFAULT_FLAGS.healthkit_native_enabled) return null;
   try {
-    const mod = await import('@kingstinct/react-native-healthkit');
-    return mod;
+    // const mod = await import('@kingstinct/react-native-healthkit');
+    // return mod;
+    return null;
   } catch (err) {
     console.warn('[AppleHealth] failed to load native module', err);
     return null;

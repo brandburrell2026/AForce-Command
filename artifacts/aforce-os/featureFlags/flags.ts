@@ -181,6 +181,15 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   // archetype-assignment logic. OFF in the production binary; ON in
   // DEMO_ALL_ON for internal inspection. Score-Protection: read-only.
   performance_identity_enabled: false,
+
+  // HealthKit native module gate — OFF in the production binary for the iOS
+  // launch-crash isolation build. The @kingstinct/react-native-healthkit +
+  // react-native-nitro-modules deps are removed from package.json, so the
+  // native module is not in this build; the Apple Health wrapper returns the
+  // same "unavailable" shape an Android user gets. Re-enable = re-add both
+  // deps, flip this true, and uncomment the dynamic import in
+  // services/appleHealth.ts. Independent of metabolic_readiness_enabled.
+  healthkit_native_enabled: false,
 };
 
 /**
@@ -277,6 +286,11 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
 
   // Phase 10 — Investor Demo overlay is ON in the internal/pitch profile.
   demo_mode_enabled: true,
+
+  // Stays OFF even in the demo profile for this isolation build: the native
+  // HealthKit/Nitro deps are removed from package.json, so the module is not
+  // in the bundle and cannot be loaded regardless of profile.
+  healthkit_native_enabled: false,
 };
 
 export function isFlagEnabled(flags: FeatureFlags, key: keyof FeatureFlags): boolean {
