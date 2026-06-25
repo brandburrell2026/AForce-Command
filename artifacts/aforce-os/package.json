@@ -76,7 +76,6 @@
     "@expo-google-fonts/bebas-neue": "^0.4.1",
     "@expo-google-fonts/dm-sans": "^0.4.2",
     "@expo-google-fonts/ibm-plex-mono": "^0.4.1",
-    "@kingstinct/react-native-healthkit": "^14.0.0",
     "@workspace/activation-core": "workspace:*",
     "expo-audio": "~1.1.1",
     "expo-build-properties": "~1.0.10",
@@ -89,7 +88,6 @@
     "i18next": "^26.0.6",
     "lucide-react-native": "^1.16.0",
     "react-i18next": "^17.0.4",
-    "react-native-nitro-modules": "^0.35.4",
     "react-native-view-shot": "^4.0.3"
   }
 }

@@ -741,6 +741,15 @@ export interface FeatureFlags {
    * mutates / fabricates score.
    */
   performance_identity_enabled: boolean;
+
+  // HealthKit native module load gate. Controls whether the native
+  // Nitro/HealthKit module (@kingstinct/react-native-healthkit) is loaded
+  // at all. OFF in the production binary for the iOS launch-crash isolation
+  // build (the native dep is removed); when false the Apple Health wrapper
+  // resolves to the same "unavailable" shape an Android user gets. Independent
+  // of metabolic_readiness_enabled (which gates the readiness feature/UI).
+  // Score-Protection: biometrics feed Readiness only, never the Score.
+  healthkit_native_enabled: boolean;
 }
 
 /**
