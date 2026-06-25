@@ -131,6 +131,21 @@ buildNumber set, icon RGB no-alpha, human-written permission strings, complete
 
 ---
 
+## Lock 7 — Score vs. Readiness boundary
+
+- The AForce Score reflects INTENTIONAL BEHAVIOR and RITUAL COMPLETION only.
+- HealthKit / biometric signals (HRV, sleep, resting HR, steps) feed the
+  READINESS layer alongside the Score — they provide physiological CONTEXT
+  and do NOT mutate the Score.
+- HealthKit remains a first-class part of AForce OS through Readiness.
+- Any future biometric-to-Score integration is a DELIBERATE post-launch
+  decision spanning product, architecture, and patent (App. No. 64/057,695) —
+  not an incidental wiring change. It must go through this canonical-locks
+  process, not a quiet code edit.
+- Enforced in code by utils/__tests__/scoreProtectionBoundary.test.ts.
+
+---
+
 ## How to apply this file
 
 1. In `AFORCE_FINAL_SPEC.md` and `replit.md`, add near the top:
