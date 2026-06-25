@@ -32,6 +32,7 @@ import { Icon } from '../../components/Icon';
 import { Platform, Pressable, StyleSheet, View } from 'react-native';
 import { Colors } from '@/theme/colors';
 import { DEMO_MODE } from '@/services/demoMode';
+import { DEFAULT_FLAGS } from '@/featureFlags/flags';
 import { useDevMode } from '@/services/devMode';
 import { TAB_BAR_HEIGHT } from '@/constants/layout';
 import { useTranslation } from 'react-i18next';
@@ -322,6 +323,13 @@ export default function TabLayout() {
   if (isLoaded && !isSignedIn && !DEMO_MODE) {
     return <Redirect href="/(auth)/sign-in" />;
   }
-  if (isLiquidGlassAvailable()) return <NativeTabLayout />;
+  // Native Liquid Glass tabs (expo-router/unstable-native-tabs →
+  // RNScreens RNSTabBarController) throw a void NSException at startup on
+  // iOS 26, crashing Release/TestFlight builds (react-native-screens #3940,
+  // RN performVoidMethodInvocation). Disabled via native_tabs_enabled until
+  // the upstream fix is confirmed; flip the flag to true to re-enable.
+  if (DEFAULT_FLAGS.native_tabs_enabled && isLiquidGlassAvailable()) {
+    return <NativeTabLayout />;
+  }
   return <ClassicTabLayout />;
 }
