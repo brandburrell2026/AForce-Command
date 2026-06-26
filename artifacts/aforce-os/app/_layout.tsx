@@ -26,6 +26,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { ClerkProvider, ClerkLoaded } from '@clerk/expo';
 import { tokenCache } from '@clerk/expo/token-cache';
+import { safeTokenCache } from '@/featureFlags/safeTokenCache';
 import { Text, View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router, usePathname } from 'expo-router';
@@ -479,7 +480,7 @@ export default function RootLayout() {
   return (
     <ClerkProvider
       publishableKey={publishableKey}
-      tokenCache={tokenCache}
+      tokenCache={DEFAULT_FLAGS.secure_store_startup_guard ? safeTokenCache : tokenCache}
       proxyUrl={proxyUrl}
     >
       <ClerkLoaded>
