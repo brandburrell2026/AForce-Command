@@ -1,0 +1,25 @@
+diff --git a/ReactCommon/react/nativemodule/core/platform/ios/ReactCommon/RCTTurboModule.mm b/ReactCommon/react/nativemodule/core/platform/ios/ReactCommon/RCTTurboModule.mm
+index 2a677974ca8a929849109f294bddcb239bb202d0..222b1e7e7a88bd713512b9e089da14aa2360ab71 100644
+--- a/ReactCommon/react/nativemodule/core/platform/ios/ReactCommon/RCTTurboModule.mm
++++ b/ReactCommon/react/nativemodule/core/platform/ios/ReactCommon/RCTTurboModule.mm
+@@ -435,7 +435,19 @@ TraceSection s(
+     @try {
+       [inv invokeWithTarget:strongModule];
+     } @catch (NSException *exception) {
+-      throw convertNSExceptionToJSError(runtime, exception, std::string{moduleName}, methodNameStr);
++      if (shouldVoidMethodsExecuteSync_) {
++        // We can only convert NSException to JSError when the method runs sync,
++        // i.e. on the JS thread. Mirrors the isSync guard in
++        // performMethodInvocation above.
++        // See https://github.com/reactwg/react-native-new-architecture/discussions/276#discussioncomment-12567155
++        throw convertNSExceptionToJSError(runtime, exception, std::string{moduleName}, methodNameStr);
++      } else {
++        // Void methods run async (off the JS thread) by default. Converting the
++        // NSException here would touch the JS runtime off-thread and corrupt the
++        // Hermes heap at startup (EXC_BAD_ACCESS). Re-throw the plain NSException
++        // instead, exactly as the sync path's async branch does.
++        @throw exception;
++      }
+     } @finally {
+       [retainedObjectsForInvocation removeAllObjects];
+     }
