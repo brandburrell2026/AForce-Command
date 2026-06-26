@@ -38,7 +38,8 @@
       },
       "android": {
         "buildType": "app-bundle"
-      }
+      },
+      "node": "22.13.0"
     }
   },
   "submit": {
