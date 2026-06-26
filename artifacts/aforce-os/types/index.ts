@@ -767,6 +767,15 @@ export interface FeatureFlags {
   // native-screen perf). Flip true to restore native screens once the
   // upstream fix lands.
   native_screens_enabled: boolean;
+
+  // Crash-safe Clerk token cache gate. When true (default, guard ON) the app
+  // passes a custom expo-secure-store-backed tokenCache to ClerkProvider that
+  // fully guards every keychain call and drops the throw-prone
+  // keychainAccessible: AFTER_FIRST_UNLOCK option — preventing the production
+  // launch crash (native NSException on the startup keychain read ->
+  // RCTTurboModule convertNSExceptionToJSError -> Hermes corruption). False
+  // reverts to @clerk/expo's default tokenCache.
+  secure_store_startup_guard: boolean;
 }
 
 /**

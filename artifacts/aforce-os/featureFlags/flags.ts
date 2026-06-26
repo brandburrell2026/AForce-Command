@@ -204,6 +204,14 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   // startup void NSException), keeping Release/TestFlight builds launchable at
   // the cost of native-screen perf. Flip true once the upstream fix lands.
   native_screens_enabled: false,
+
+  // Crash-safe Clerk token cache — ON by default (the guard is engaged). When
+  // true the app passes a fully-guarded custom tokenCache to ClerkProvider
+  // (every expo-secure-store call wrapped, no keychainAccessible:
+  // AFTER_FIRST_UNLOCK) so the iOS keychain read at launch can't throw a native
+  // NSException and crash the production build. Flip false to revert to
+  // @clerk/expo's default tokenCache.
+  secure_store_startup_guard: true,
 };
 
 /**
@@ -313,6 +321,10 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
   // Stays OFF even in the demo profile: native screens are crash-disabled on
   // iOS 26 (react-native-screens #3940), not a demo toggle.
   native_screens_enabled: false,
+
+  // Crash-safe Clerk token cache stays ON in the demo profile too — it's a
+  // launch-safety guard, not a demo toggle.
+  secure_store_startup_guard: true,
 };
 
 export function isFlagEnabled(flags: FeatureFlags, key: keyof FeatureFlags): boolean {
