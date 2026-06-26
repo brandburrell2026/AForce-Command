@@ -18,5 +18,6 @@
   "dependencies": {
     "stripe": "^22.0.2",
     "stripe-replit-sync": "^1.0.0"
-  }
+  },
+  "packageManager": "pnpm@11.1.2"
 }
