@@ -9,7 +9,7 @@
  * to its built-in default state (see realApi.fetchHome catch path),
  * which is sufficient for visual capture.
  */
-export const DEMO_MODE = true;
+export const DEMO_MODE = false;
 
 // Hard guard: a production build with DEMO_MODE accidentally left on
 // would bypass Clerk auth gates for every user. Refuse to start.
