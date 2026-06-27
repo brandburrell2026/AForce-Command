@@ -35,11 +35,6 @@ minimumReleaseAgeExclude:
   - '@replit/*'
   - stripe-replit-sync
 
-onlyBuiltDependencies:
-  - '@swc/core'
-  - esbuild
-  - msw
-  - unrs-resolver
 
 overrides:
   '@clerk/clerk-js': 6.7.5
@@ -142,3 +137,13 @@ overrides:
 
 patchedDependencies:
   react-native@0.81.5: patches/react-native@0.81.5.patch
+
+onlyBuiltDependencies:
+  - "@clerk/shared"
+  - "@swc/core"
+  - browser-tabs-lock
+  - core-js
+  - esbuild
+  - msw
+  - sharp
+  - unrs-resolver
