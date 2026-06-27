@@ -89,5 +89,14 @@
     "lucide-react-native": "^1.16.0",
     "react-i18next": "^17.0.4",
     "react-native-view-shot": "^4.0.3"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@clerk/shared",
+      "browser-tabs-lock",
+      "core-js",
+      "esbuild",
+      "sharp"
+    ]
   }
 }
