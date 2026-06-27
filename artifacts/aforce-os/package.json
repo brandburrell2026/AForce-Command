@@ -16,7 +16,8 @@
     "eas:build:android": "pnpm dlx eas-cli@latest build --profile production --platform android",
     "eas:build:all": "pnpm dlx eas-cli@latest build --profile production --platform all",
     "eas:submit:ios": "pnpm dlx eas-cli@latest submit --profile production --platform ios --latest",
-    "eas:submit:android": "pnpm dlx eas-cli@latest submit --profile production --platform android --latest"
+    "eas:submit:android": "pnpm dlx eas-cli@latest submit --profile production --platform android --latest",
+    "eas-build-pre-install": "pnpm config set dangerously-allow-all-builds true --location project || true"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
