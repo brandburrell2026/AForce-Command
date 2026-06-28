@@ -1,4 +1,4 @@
-FROM node:20-slim AS app
+FROM node:22-slim AS app
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3 make g++ \
