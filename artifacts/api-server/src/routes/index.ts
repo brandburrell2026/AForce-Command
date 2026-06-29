@@ -1,6 +1,7 @@
 import { Router, type IRouter } from "express";
 import healthRouter from "./health";
 import scansRouter from "./scans";
+import profileRouter from "./profile";
 import cyclesRouter from "./cycles";
 import checkoutRouter from "./checkout";
 import aforceRouter from "./aforce";
@@ -56,6 +57,7 @@ router.use(entitlementRouter);
 router.use(stripePortalRouter);
 router.use(cruiseRouter);
 router.use("/aforce", aforceRouter);
+router.use("/aforce/profile", profileRouter);
 router.use("/battles", battlesRouter);
 router.use("/circle", circleRouter);
 router.use("/privacy", privacyRouter);
