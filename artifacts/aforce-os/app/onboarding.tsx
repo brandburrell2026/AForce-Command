@@ -55,14 +55,23 @@ import { KeyboardAwareScrollViewCompat } from '@/components/KeyboardAwareScrollV
 import { Icon } from '@/components/Icon';
 import { HeightField, WeightField } from '@/components/bodyModel';
 import { useAppStore } from '@/store/useAppStore';
+import { useProfileIdentitySlice } from '@/store/slices';
+import { saveProfileVersion } from '@/services/profileSyncService';
 import { Colors } from '@/theme/colors';
 import {
   ACTIVITY_LEVEL_MAX,
+  TRAINING_LEVELS,
+  PRIMARY_GOALS,
+  SWEAT_CLASSIFICATIONS,
+  WORKOUT_DURATION_MIN,
+  WORKOUT_DURATION_MAX,
   type BiologicalSex,
   type CaffeineHabit,
   type OccupationType,
   type ProfileIdentity,
-  type RecoveryGoal,
+  type TrainingLevel,
+  type PrimaryGoal,
+  type SweatClassification,
 } from '@/utils/profileIdentity';
 import {
   inferMeasurementSystem,
@@ -115,17 +124,23 @@ const AGE_MIN = 13;
 const AGE_MAX = 100;
 
 interface GoalOption {
-  goal: RecoveryGoal;
+  goal: PrimaryGoal;
   title: string;
   subtitle: string;
 }
 
+// Section 19 Primary Goal (the §19 canonical 7-value objective). Replaces the
+// older 5-value recoveryGoal question (B′): one goal question, no junk 7→5
+// mapping. recoveryGoal is retained only as a display fallback (no engine
+// consumes it) — see docs / profileIdentity.ts.
 const GOAL_OPTIONS: readonly GoalOption[] = [
-  { goal: 'PERFORMANCE', title: 'Peak Performance', subtitle: 'Train hard, perform at your limit' },
-  { goal: 'RECOVERY', title: 'Faster Recovery', subtitle: 'Bounce back between sessions' },
-  { goal: 'ENDURANCE', title: 'Go the Distance', subtitle: 'Sustained energy for long efforts' },
-  { goal: 'BALANCE', title: 'Daily Balance', subtitle: 'Stay sharp through everyday demands' },
-  { goal: 'LONGEVITY', title: 'Long-Term Health', subtitle: 'Habits that last for life' },
+  { goal: 'Fat Loss', title: 'Fat Loss', subtitle: 'Lean out while staying fueled' },
+  { goal: 'Lean Performance', title: 'Lean Performance', subtitle: 'Stay lean and perform at your limit' },
+  { goal: 'Strength & Muscle', title: 'Strength & Muscle', subtitle: 'Build size and power' },
+  { goal: 'Performance Maintenance', title: 'Performance Maintenance', subtitle: 'Hold your current level' },
+  { goal: 'Endurance', title: 'Endurance', subtitle: 'Sustained energy for long efforts' },
+  { goal: 'Recovery Optimization', title: 'Recovery Optimization', subtitle: 'Bounce back between sessions' },
+  { goal: 'Everyday Energy', title: 'Everyday Energy', subtitle: 'Stay sharp through everyday demands' },
 ] as const;
 
 interface ActivityOption {
@@ -189,10 +204,17 @@ function parseInRange(text: string, min: number, max: number): number | null {
 
 export default function Onboarding() {
   const { setProfileIdentity, setUnitPreference, unitPreferences } = useAppStore();
+  const currentIdentity = useProfileIdentitySlice();
 
   const [step, setStep] = React.useState<Step>('promise1');
-  const [goal, setGoal] = React.useState<RecoveryGoal | null>(null);
+  const [primaryGoal, setPrimaryGoal] = React.useState<PrimaryGoal | null>(null);
   const [activityLevel, setActivityLevel] = React.useState<number | null>(null);
+  // Performance Profile (Section 19).
+  const [trainingLevel, setTrainingLevel] = React.useState<TrainingLevel | null>(null);
+  const [sweatClass, setSweatClass] = React.useState<SweatClassification | null>(null);
+  // Goal weight is held canonically (lbs); the unit-aware WeightField converts.
+  const [goalWeightLbs, setGoalWeightLbs] = React.useState<number | null>(null);
+  const [workoutText, setWorkoutText] = React.useState('');
   // Single unit system, seeded from whatever the user already has.
   const [system, setSystem] = React.useState<MeasurementSystem>(() =>
     inferMeasurementSystem(unitPreferences),
@@ -232,7 +254,8 @@ export default function Onboarding() {
   const finish = React.useCallback(async () => {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
     const patch: Partial<ProfileIdentity> = {};
-    if (goal) patch.recoveryGoal = goal;
+    // §19 (B′): one goal question → primaryGoal (the major snapshot slot).
+    if (primaryGoal) patch.primaryGoal = primaryGoal;
     if (activityLevel != null) patch.activityLevel = activityLevel;
 
     // Weight + height are already canonical (lbs / cm) and range-validated
@@ -249,7 +272,23 @@ export default function Onboarding() {
     if (occupation) patch.occupationType = occupation;
     patch.frequentTraveler = frequentTraveler;
 
+    // Performance Profile (Section 19). Training level + sweat level are MAJOR
+    // variables; goal weight + workout duration are baseline inputs only.
+    if (trainingLevel) patch.trainingLevel = trainingLevel;
+    if (sweatClass) patch.sweatClassification = sweatClass;
+    if (goalWeightLbs != null) patch.goalWeightLbs = goalWeightLbs;
+    const workout = parseInRange(workoutText, WORKOUT_DURATION_MIN, WORKOUT_DURATION_MAX);
+    if (workout != null) patch.typicalWorkoutDurationMin = workout;
+
     setProfileIdentity(patch);
+
+    // Q3: a completed onboarding mints the initial Profile Version™ through
+    // the Section-18 path. Build the merged identity locally (the store
+    // update is async) and let the sync service diff + POST. Best-effort —
+    // a failed POST keeps the local profile and retries on the next save.
+    const nextIdentity: ProfileIdentity = { ...currentIdentity, ...patch };
+    void saveProfileVersion(nextIdentity).catch(() => {});
+
     try {
       await AsyncStorage.setItem('aforce.hasCompletedOnboarding', 'true');
     } catch {
@@ -264,7 +303,7 @@ export default function Onboarding() {
     void emit('onboarding_completed');
     router.replace('/(tabs)');
   }, [
-    goal,
+    primaryGoal,
     activityLevel,
     bodyWeightLbs,
     ageText,
@@ -273,6 +312,11 @@ export default function Onboarding() {
     caffeine,
     occupation,
     frequentTraveler,
+    trainingLevel,
+    sweatClass,
+    goalWeightLbs,
+    workoutText,
+    currentIdentity,
     setProfileIdentity,
   ]);
 
@@ -309,7 +353,7 @@ export default function Onboarding() {
   const canContinue =
     // Promise intro screens are always advanceable — they collect nothing.
     promiseIndex >= 0 ||
-    (step === 'goal' && goal != null) ||
+    (step === 'goal' && primaryGoal != null) ||
     (step === 'activity' && activityLevel != null) ||
     step === 'profile' ||
     // Lifestyle fields are all optional — Continue is never gated here.
@@ -401,13 +445,13 @@ export default function Onboarding() {
               </Text>
               <View style={styles.list}>
                 {GOAL_OPTIONS.map((opt) => {
-                  const selected = goal === opt.goal;
+                  const selected = primaryGoal === opt.goal;
                   return (
                     <Pressable
                       key={opt.goal}
                       onPress={() => {
                         tap();
-                        setGoal(opt.goal);
+                        setPrimaryGoal(opt.goal);
                       }}
                       style={[styles.card, selected && styles.cardSelected]}
                       accessibilityRole="button"
@@ -563,6 +607,87 @@ export default function Onboarding() {
                     );
                   })}
                 </View>
+              </View>
+
+              <View style={styles.field}>
+                <Text style={styles.fieldLabel}>TRAINING LEVEL</Text>
+                <View style={styles.segment}>
+                  {TRAINING_LEVELS.map((level) => {
+                    const selected = trainingLevel === level;
+                    return (
+                      <Pressable
+                        key={level}
+                        onPress={() => {
+                          tap();
+                          setTrainingLevel(level);
+                        }}
+                        style={[styles.segmentItem, selected && styles.segmentItemSelected]}
+                        accessibilityRole="button"
+                        accessibilityState={{ selected }}
+                        accessibilityLabel={`Training level ${level}`}
+                      >
+                        <Text
+                          style={[styles.segmentLabel, selected && styles.segmentLabelSelected]}
+                        >
+                          {level}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              </View>
+
+              <View style={styles.field}>
+                <Text style={styles.fieldLabel}>TYPICAL SWEAT LEVEL</Text>
+                <View style={styles.segment}>
+                  {SWEAT_CLASSIFICATIONS.map((level) => {
+                    const selected = sweatClass === level;
+                    const label =
+                      level === 'very_heavy'
+                        ? 'Very Heavy'
+                        : level.charAt(0).toUpperCase() + level.slice(1);
+                    return (
+                      <Pressable
+                        key={level}
+                        onPress={() => {
+                          tap();
+                          setSweatClass(level);
+                        }}
+                        style={[styles.segmentItem, selected && styles.segmentItemSelected]}
+                        accessibilityRole="button"
+                        accessibilityState={{ selected }}
+                        accessibilityLabel={`Typical sweat level ${label}`}
+                      >
+                        <Text
+                          style={[styles.segmentLabel, selected && styles.segmentLabelSelected]}
+                        >
+                          {label}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              </View>
+
+              <WeightField
+                bodyWeightLbs={goalWeightLbs}
+                unit={system === 'metric' ? 'kg' : 'lbs'}
+                label={`GOAL WEIGHT (${system === 'metric' ? 'KG' : 'LBS'}, OPTIONAL)`}
+                onChange={setGoalWeightLbs}
+              />
+
+              <View style={styles.field}>
+                <Text style={styles.fieldLabel}>TYPICAL WORKOUT DURATION (MIN, OPTIONAL)</Text>
+                <TextInput
+                  value={workoutText}
+                  onChangeText={(t) => setWorkoutText(t.replace(/[^0-9]/g, ''))}
+                  keyboardType="number-pad"
+                  placeholder="e.g. 60"
+                  placeholderTextColor={Colors.text.ghost}
+                  style={styles.input}
+                  maxLength={3}
+                  accessibilityLabel="Typical workout duration in minutes"
+                />
               </View>
             </>
           )}

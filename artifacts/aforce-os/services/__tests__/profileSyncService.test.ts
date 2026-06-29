@@ -61,7 +61,7 @@ beforeEach(() => {
 });
 
 describe('profileSnapshotFromIdentity', () => {
-  it('maps body-model fields and carries birthYear; Section 19 fields stay null', () => {
+  it('maps body-model fields and carries birthYear; unset §19 fields are null', () => {
     const snap = profileSnapshotFromIdentity(
       identity({ bodyWeightLbs: 200, heightCm: 180, birthYear: 1990, biologicalSex: 'male', activityLevel: 6 }),
     );
@@ -72,6 +72,25 @@ describe('profileSnapshotFromIdentity', () => {
     expect(snap.trainingLevel).toBeNull();
     expect(snap.performanceGoal).toBeNull();
     expect(snap.connectedWearables).toEqual([]);
+  });
+
+  it('passes Section 19 fields into the snapshot slots (primaryGoal → performanceGoal)', () => {
+    const snap = profileSnapshotFromIdentity(
+      identity({
+        trainingLevel: 'Advanced',
+        primaryGoal: 'Strength & Muscle',
+        sweatClassification: 'heavy',
+        // Non-major baseline inputs — not in the snapshot.
+        goalWeightLbs: 185,
+        typicalWorkoutDurationMin: 60,
+      }),
+    );
+    expect(snap.trainingLevel).toBe('Advanced');
+    expect(snap.performanceGoal).toBe('Strength & Muscle');
+    expect(snap.sweatClassification).toBe('heavy');
+    // homeClimate / sleepSchedule remain unset (their sections haven't landed).
+    expect(snap.homeClimate).toBeNull();
+    expect(snap.sleepSchedule).toBeNull();
   });
 });
 
@@ -100,6 +119,44 @@ describe('saveProfileVersion', () => {
 
     expect(post).toHaveBeenCalledTimes(2);
     expect(post.mock.calls[1][1].initialConfidence).toBe(0.35); // initialAfterRecalibration
+  });
+
+  it('mints when a Section 19 major field changes (training / goal / sweat)', async () => {
+    // Establish v1 from a body-model-only save.
+    post.mockResolvedValueOnce(mintOk(1, 1, 1));
+    await saveProfileVersion(identity({ bodyWeightLbs: 200 }));
+    post.mockClear();
+
+    // Now set Primary Goal + Training Level + Sweat — all major slots.
+    post.mockResolvedValueOnce(mintOk(2, 2, 2));
+    const res = await saveProfileVersion(
+      identity({
+        bodyWeightLbs: 200,
+        primaryGoal: 'Endurance',
+        trainingLevel: 'Elite',
+        sweatClassification: 'very_heavy',
+      }),
+    );
+    expect(post).toHaveBeenCalledTimes(1);
+    const body = post.mock.calls[0][1];
+    expect(body.changedFields).toEqual(
+      expect.arrayContaining(['performanceGoal', 'trainingLevel', 'sweatClassification']),
+    );
+    expect(body.snapshot.performanceGoal).toBe('Endurance');
+    expect(res).toMatchObject({ changeType: 'major', synced: true, versionNumber: 2 });
+  });
+
+  it('does not mint for a non-major §19 field (goal weight / workout duration)', async () => {
+    post.mockResolvedValueOnce(mintOk(1, 1, 1));
+    await saveProfileVersion(identity({ bodyWeightLbs: 200 }));
+    post.mockClear();
+
+    // Goal weight + workout duration are baseline inputs, not snapshot slots.
+    const res = await saveProfileVersion(
+      identity({ bodyWeightLbs: 200, goalWeightLbs: 180, typicalWorkoutDurationMin: 90 }),
+    );
+    expect(post).not.toHaveBeenCalled();
+    expect(res.changeType).toBe('minor');
   });
 
   it('does not hit the network for a minor save', async () => {

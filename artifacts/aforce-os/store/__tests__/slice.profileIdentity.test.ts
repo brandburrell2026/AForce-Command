@@ -81,6 +81,11 @@ describe('store · profileIdentity slice', () => {
       caffeineHabit: 'unspecified' as const,
       occupationType: 'unspecified' as const,
       frequentTraveler: false,
+      trainingLevel: 'Advanced' as const,
+      primaryGoal: 'Lean Performance' as const,
+      sweatClassification: 'moderate' as const,
+      goalWeightLbs: 165,
+      typicalWorkoutDurationMin: 45,
     };
     const next = reducer(start, { type: 'SET_PROFILE_IDENTITY', payload: fresh });
     expect(next.profileIdentity).toEqual(fresh);
@@ -175,6 +180,11 @@ describe('utils · sanitizeProfileIdentity', () => {
       caffeineHabit: 'moderate' as const,
       occupationType: 'desk' as const,
       frequentTraveler: true,
+      trainingLevel: 'Elite' as const,
+      primaryGoal: 'Strength & Muscle' as const,
+      sweatClassification: 'heavy' as const,
+      goalWeightLbs: 170,
+      typicalWorkoutDurationMin: 60,
     };
     expect(sanitizeProfileIdentity(payload)).toEqual(payload);
   });
@@ -206,6 +216,11 @@ describe('utils · sanitizeProfileIdentity', () => {
       caffeineHabit: 'unspecified',
       occupationType: 'unspecified',
       frequentTraveler: false,
+      trainingLevel: null,
+      primaryGoal: null,
+      sweatClassification: null,
+      goalWeightLbs: null,
+      typicalWorkoutDurationMin: null,
     });
   });
 

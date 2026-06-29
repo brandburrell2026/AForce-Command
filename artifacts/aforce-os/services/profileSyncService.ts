@@ -67,11 +67,11 @@ const EMPTY_SNAPSHOT: ProfileSnapshot = {
 };
 
 /**
- * Map the editable identity to the major-variable snapshot. Fields not yet
- * collected by the UI (training level, primary goal, climate, sleep schedule,
- * sweat classification — all Section 19 — and connected wearables) map to
+ * Map the editable identity to the major-variable snapshot. Section 19 fields
+ * (training level, primary goal, sweat classification) now flow through. The
+ * remaining slots (home climate, sleep schedule, connected wearables) map to
  * null/empty deterministically so they never produce a spurious diff; they
- * begin minting versions once Section 19 / wearable integration populates them.
+ * begin minting versions once their own sections / wearable integration land.
  */
 export function profileSnapshotFromIdentity(identity: ProfileIdentity): ProfileSnapshot {
   return {
@@ -80,11 +80,14 @@ export function profileSnapshotFromIdentity(identity: ProfileIdentity): ProfileS
     birthYear: identity.birthYear,
     sex: identity.biologicalSex,
     activityLevel: identity.activityLevel,
-    trainingLevel: null,
-    performanceGoal: null,
+    // Section 19 — these slots are now populated from the Performance Profile
+    // fields, so completing onboarding / editing them mints a version.
+    trainingLevel: identity.trainingLevel,
+    performanceGoal: identity.primaryGoal,
+    sweatClassification: identity.sweatClassification,
+    // Still unset until their own sections land (climate / sleep / wearables).
     homeClimate: null,
     sleepSchedule: null,
-    sweatClassification: null,
     connectedWearables: [],
   };
 }

@@ -593,7 +593,10 @@ export default function ProfileScreen() {
             const weightLabel = profileIdentity.bodyWeightLbs != null
               ? `${profileIdentity.bodyWeightLbs} lb`
               : '—';
-            const recoveryGoalLabel = profileIdentity.recoveryGoal;
+            // §19 (B′): show the Primary Goal; fall back to the legacy
+            // recoveryGoal (default 'BALANCE', never null) so a returning
+            // user's card never blanks before they set a Primary Goal.
+            const recoveryGoalLabel = profileIdentity.primaryGoal ?? profileIdentity.recoveryGoal;
             const hasAvatarImage = profileIdentity.avatarUri.length > 0;
             const profileCard = (
               <View style={[styles.profileCard, { borderColor: `${tier.color}33` }]}>

@@ -41,25 +41,23 @@ import {
   BIOLOGICAL_SEX_OPTIONS,
   CAFFEINE_HABIT_OPTIONS,
   OCCUPATION_TYPE_OPTIONS,
-  RECOVERY_GOALS,
+  TRAINING_LEVELS,
+  PRIMARY_GOALS,
+  SWEAT_CLASSIFICATIONS,
+  WORKOUT_DURATION_MIN,
+  WORKOUT_DURATION_MAX,
   type BiologicalSex,
   type CaffeineHabit,
   type OccupationType,
   type ProfileIdentity,
-  type RecoveryGoal,
+  type TrainingLevel,
+  type PrimaryGoal,
+  type SweatClassification,
 } from '../utils/profileIdentity';
 import type { AuraState } from '../types';
 
 const FIELD_MAX_LEN = 48;
 const AVATAR_URI_MAX_LEN = 2048;
-
-const RECOVERY_GOAL_COLOR: Record<RecoveryGoal, string> = {
-  PERFORMANCE: Colors.states.PEAK.primary,
-  RECOVERY: Colors.states.RECOVERING.primary,
-  ENDURANCE: Colors.accent.secondary,
-  BALANCE: Colors.states.BALANCED.primary,
-  LONGEVITY: Colors.text.secondary,
-};
 
 const AURA_COLOR: Record<AuraState, string> = {
   IGNITE: Colors.states.DEPLETED.primary,
@@ -74,6 +72,13 @@ const SEX_LABEL: Record<BiologicalSex, string> = {
   female: 'FEMALE',
   'non-binary': 'NON-BINARY',
   unspecified: 'PREFER NOT TO SAY',
+};
+
+const SWEAT_LABEL: Record<SweatClassification, string> = {
+  light: 'Light',
+  moderate: 'Moderate',
+  heavy: 'Heavy',
+  very_heavy: 'Very Heavy',
 };
 
 const CAFFEINE_LABEL: Record<CaffeineHabit, string> = {
@@ -164,6 +169,7 @@ export function EditProfileModal({ visible, initialValue, onClose, onSave }: Pro
   // Committed back to `draft` on save via `inputToNum`.
   const [numericText, setNumericText] = useState<Record<string, string>>(() => ({
     birthYear: numToInput(initialValue.birthYear),
+    typicalWorkoutDurationMin: numToInput(initialValue.typicalWorkoutDurationMin),
   }));
   // Body weight + height units follow the user's global unit preference
   // so the editor matches onboarding and the rest of the OS.
@@ -174,6 +180,8 @@ export function EditProfileModal({ visible, initialValue, onClose, onSave }: Pro
       setDraft(initialValue);
       setNumericText({
         birthYear: numToInput(initialValue.birthYear),
+        goalWeightLbs: numToInput(initialValue.goalWeightLbs),
+        typicalWorkoutDurationMin: numToInput(initialValue.typicalWorkoutDurationMin),
       });
     }
   }, [visible, initialValue]);
@@ -231,6 +239,19 @@ export function EditProfileModal({ visible, initialValue, onClose, onSave }: Pro
       caffeineHabit: draft.caffeineHabit,
       occupationType: draft.occupationType,
       frequentTraveler: draft.frequentTraveler,
+      // Performance Profile (Section 19). trainingLevel / primaryGoal /
+      // sweatClassification are MAJOR variables — a change mints a version.
+      // goalWeightLbs + typicalWorkoutDurationMin are baseline inputs only.
+      trainingLevel: draft.trainingLevel,
+      primaryGoal: draft.primaryGoal,
+      sweatClassification: draft.sweatClassification,
+      // Goal weight is held canonically (lbs) by the unit-aware WeightField.
+      goalWeightLbs: draft.goalWeightLbs,
+      typicalWorkoutDurationMin: coerceNumeric(
+        numericText.typicalWorkoutDurationMin ?? '',
+        WORKOUT_DURATION_MIN,
+        WORKOUT_DURATION_MAX,
+      ),
     };
     Haptics.selectionAsync().catch(() => {});
     onSave(sanitized);
@@ -391,35 +412,78 @@ export function EditProfileModal({ visible, initialValue, onClose, onSave }: Pro
             </View>
 
             <View style={styles.sectionDivider} />
+            <Text style={styles.sectionLabel}>PERFORMANCE PROFILE</Text>
+            <Text style={styles.sectionHint}>
+              Feeds your Personal Baseline. Training level, primary goal &amp;
+              sweat level recalibrate future recommendations when they change.
+            </Text>
+
             <View style={styles.field}>
-              <Text style={styles.fieldLabel}>RECOVERY GOAL</Text>
+              <Text style={styles.fieldLabel}>TRAINING LEVEL</Text>
               <View style={styles.auraRow}>
-                {RECOVERY_GOALS.map((goal) => {
-                  const selected = draft.recoveryGoal === goal;
-                  const color = RECOVERY_GOAL_COLOR[goal];
+                {TRAINING_LEVELS.map((level) => {
+                  const selected = draft.trainingLevel === level;
+                  return (
+                    <Pressable
+                      key={level}
+                      onPress={() => {
+                        Haptics.selectionAsync().catch(() => {});
+                        setField('trainingLevel', level);
+                      }}
+                      style={[
+                        styles.auraOption,
+                        selected && {
+                          backgroundColor: `${Colors.accent.primary}22`,
+                          borderColor: Colors.accent.primary,
+                        },
+                      ]}
+                      accessibilityRole="button"
+                      accessibilityState={{ selected }}
+                      accessibilityLabel={`Training level ${level}`}
+                      testID={`edit-profile-trainingLevel-${level}`}
+                    >
+                      <Text
+                        style={[
+                          styles.auraLabel,
+                          { color: selected ? Colors.accent.primary : Colors.text.secondary },
+                        ]}
+                      >
+                        {level}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </View>
+
+            <View style={styles.field}>
+              <Text style={styles.fieldLabel}>PRIMARY GOAL</Text>
+              <View style={styles.auraRow}>
+                {PRIMARY_GOALS.map((goal) => {
+                  const selected = draft.primaryGoal === goal;
                   return (
                     <Pressable
                       key={goal}
                       onPress={() => {
                         Haptics.selectionAsync().catch(() => {});
-                        setField('recoveryGoal', goal);
+                        setField('primaryGoal', goal);
                       }}
                       style={[
                         styles.auraOption,
                         selected && {
-                          backgroundColor: `${color}22`,
-                          borderColor: color,
+                          backgroundColor: `${Colors.accent.primary}22`,
+                          borderColor: Colors.accent.primary,
                         },
                       ]}
                       accessibilityRole="button"
                       accessibilityState={{ selected }}
-                      accessibilityLabel={`Recovery goal ${goal}`}
-                      testID={`edit-profile-recoveryGoal-${goal}`}
+                      accessibilityLabel={`Primary goal ${goal}`}
+                      testID={`edit-profile-primaryGoal-${goal}`}
                     >
                       <Text
                         style={[
                           styles.auraLabel,
-                          { color: selected ? color : Colors.text.secondary },
+                          { color: selected ? Colors.accent.primary : Colors.text.secondary },
                         ]}
                       >
                         {goal}
@@ -428,6 +492,75 @@ export function EditProfileModal({ visible, initialValue, onClose, onSave }: Pro
                   );
                 })}
               </View>
+            </View>
+
+            <View style={styles.field}>
+              <Text style={styles.fieldLabel}>TYPICAL SWEAT LEVEL</Text>
+              <View style={styles.auraRow}>
+                {SWEAT_CLASSIFICATIONS.map((level) => {
+                  const selected = draft.sweatClassification === level;
+                  const label = SWEAT_LABEL[level];
+                  return (
+                    <Pressable
+                      key={level}
+                      onPress={() => {
+                        Haptics.selectionAsync().catch(() => {});
+                        setField('sweatClassification', level);
+                      }}
+                      style={[
+                        styles.auraOption,
+                        selected && {
+                          backgroundColor: `${Colors.accent.primary}22`,
+                          borderColor: Colors.accent.primary,
+                        },
+                      ]}
+                      accessibilityRole="button"
+                      accessibilityState={{ selected }}
+                      accessibilityLabel={`Typical sweat level ${label}`}
+                      testID={`edit-profile-sweatClassification-${level}`}
+                    >
+                      <Text
+                        style={[
+                          styles.auraLabel,
+                          { color: selected ? Colors.accent.primary : Colors.text.secondary },
+                        ]}
+                      >
+                        {label}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </View>
+
+            <WeightField
+              bodyWeightLbs={draft.goalWeightLbs}
+              unit={unitPreferences.weight}
+              label={`GOAL WEIGHT (${unitPreferences.weight === 'kg' ? 'KG' : 'LBS'})`}
+              onChange={(lbs) => setField('goalWeightLbs', lbs)}
+              testID="edit-profile-goalWeightLbs"
+            />
+
+            <View style={styles.field}>
+              <Text style={styles.fieldLabel}>TYPICAL WORKOUT DURATION (MIN)</Text>
+              <TextInput
+                value={numericText.typicalWorkoutDurationMin}
+                onChangeText={(t) =>
+                  setNumericText((m) => ({
+                    ...m,
+                    typicalWorkoutDurationMin: t.replace(/[^0-9]/g, ''),
+                  }))
+                }
+                placeholder="e.g. 60"
+                placeholderTextColor={Colors.text.muted}
+                keyboardType="number-pad"
+                inputMode="numeric"
+                maxLength={3}
+                autoCorrect={false}
+                style={styles.input}
+                accessibilityLabel="Typical workout duration in minutes"
+                testID="edit-profile-typicalWorkoutDurationMin"
+              />
             </View>
 
             <View style={styles.field}>
