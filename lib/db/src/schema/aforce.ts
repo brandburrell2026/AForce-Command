@@ -944,6 +944,20 @@ export const aforceBaselineVersions = pgTable(
     observationCount: integer("observation_count").notNull().default(0),
     startedAt: timestamp("started_at", { withTimezone: true }).notNull().defaultNow(),
     archivedAt: timestamp("archived_at", { withTimezone: true }),
+    /**
+     * Body Recalibration Engine™ (Section 20) — the five go-forward targets
+     * recomputed when this baseline opened, owned by this baseline version.
+     * NULLABLE: baselines minted before §20 (or where the client sent none)
+     * stay null; archived baselines keep the targets they opened with.
+     * Computed client-side from §19 inputs (see services/bodyRecalibrationEngine.ts).
+     */
+    targets: jsonb("targets").$type<{
+      dailyHydrationTargetOz: number | null;
+      electrolyteSodiumMg: number;
+      recoveryWindowMin: number | null;
+      recheckIntervalMin: number;
+      envPressureSensitivity: number | null;
+    } | null>(),
   },
   (t) => ({
     userStatusIdx: index("aforce_baseline_versions_user_status_idx").on(

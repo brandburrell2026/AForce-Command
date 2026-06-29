@@ -40,6 +40,10 @@ vi.mock('../aforceApiClient', () => ({
 
 import { saveProfileVersion, profileSnapshotFromIdentity } from '../profileSyncService';
 import {
+  recalibrateTargets,
+  recalibrationInputsFromIdentity,
+} from '../bodyRecalibrationEngine';
+import {
   DEFAULT_PROFILE_IDENTITY,
   type ProfileIdentity,
 } from '../../utils/profileIdentity';
@@ -108,6 +112,24 @@ describe('saveProfileVersion', () => {
     expect(typeof body.clientChangeId).toBe('string');
 
     expect(res).toMatchObject({ changeType: 'major', synced: true, minted: true, versionNumber: 1 });
+  });
+
+  it('sends the §20 recalibrated targets in the mint POST', async () => {
+    post.mockResolvedValueOnce(mintOk(1, 1, 1));
+    const id = identity({
+      bodyWeightLbs: 200,
+      trainingLevel: 'Advanced',
+      sweatClassification: 'heavy',
+      primaryGoal: 'Endurance',
+      typicalWorkoutDurationMin: 60,
+    });
+    await saveProfileVersion(id);
+
+    const body = post.mock.calls[0][1];
+    // The service sends exactly the engine's output for these inputs.
+    expect(body.targets).toEqual(
+      recalibrateTargets(recalibrationInputsFromIdentity(id)),
+    );
   });
 
   it('uses post-recalibration confidence on the second major save', async () => {

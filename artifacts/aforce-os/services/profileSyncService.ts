@@ -26,6 +26,10 @@ import {
   initialConfidence,
   type ProfileSnapshot,
 } from './adaptiveProfileEngine';
+import {
+  recalibrateTargets,
+  recalibrationInputsFromIdentity,
+} from './bodyRecalibrationEngine';
 import { PROFILE_SAVE_CONFIRMATION } from '../config/hydroStateModel';
 import type { ProfileIdentity } from '../utils/profileIdentity';
 
@@ -162,6 +166,9 @@ export async function saveProfileVersion(
 
   const isFirst = sync.profileVersionId == null;
   const confidence = initialConfidence(isFirst);
+  // §20 — recompute the five go-forward targets from the §19 inputs. Stored on
+  // the new baseline server-side; future-only, never touches past snapshots.
+  const targets = recalibrateTargets(recalibrationInputsFromIdentity(nextIdentity));
   // Reuse a pending id so a retry after a failed POST dedupes server-side.
   const clientChangeId = sync.pendingClientChangeId ?? newClientChangeId();
   // Mark pending BEFORE the network call so a crash mid-flight still retries
@@ -174,6 +181,7 @@ export async function saveProfileVersion(
       changedFields: decision.changedFields,
       explanation: decision.explanation,
       initialConfidence: confidence,
+      targets,
       clientChangeId,
     });
     await saveSyncState({

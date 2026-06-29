@@ -1,5 +1,5 @@
 import { Router, type IRouter, type Request } from "express";
-import { db, createDrizzleProfileRepo } from "@workspace/db";
+import { db, createDrizzleProfileRepo, type BaselineTargets } from "@workspace/db";
 import { requireAuth } from "../middlewares/requireAuth";
 
 /**
@@ -54,6 +54,9 @@ router.post("/version", requireAuth, async (req, res) => {
   const explanation = body.explanation;
   const initialConfidence = body.initialConfidence;
   const clientChangeId = body.clientChangeId;
+  // §20 recalibrated targets — optional; persisted verbatim on the new
+  // baseline. Must be an object when present (the repo doesn't interpret it).
+  const targets = body.targets;
 
   // Minimal validation — reject obviously malformed payloads before touching
   // the DB. The client is the single producer (its own engine output), so
@@ -67,7 +70,10 @@ router.post("/version", requireAuth, async (req, res) => {
     typeof explanation !== "string" ||
     typeof initialConfidence !== "number" ||
     !Number.isFinite(initialConfidence) ||
-    (clientChangeId !== undefined && typeof clientChangeId !== "string")
+    (clientChangeId !== undefined && typeof clientChangeId !== "string") ||
+    (targets !== undefined &&
+      targets !== null &&
+      typeof targets !== "object")
   ) {
     res.status(400).json({ error: "invalid_payload" });
     return;
@@ -80,6 +86,7 @@ router.post("/version", requireAuth, async (req, res) => {
       changedFields: changedFields as string[],
       explanation,
       initialConfidence,
+      targets: (targets ?? null) as BaselineTargets | null,
       clientChangeId: clientChangeId as string | undefined,
     });
     res.status(result.minted ? 201 : 200).json(result);

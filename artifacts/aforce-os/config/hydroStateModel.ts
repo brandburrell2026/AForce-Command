@@ -7,11 +7,16 @@
  * missing, add it HERE and reference it — do not inline it in the engine.
  *
  * This file grows ONE numbered section at a time (brief #3). Section 18
- * (Adaptive Profile Engine™) constants land first; the Section 19/20
- * hydration-recalc constants (daily target, electrolyte timing, recheck
- * intervals, environmental modifiers) are appended when those sections are
- * implemented — they are intentionally absent for now.
+ * (Adaptive Profile Engine™) constants landed first; Section 20 adds the Body
+ * Recalibration Engine™ math (daily target, electrolyte, recovery timing,
+ * recheck intervals, environmental modifiers) at the bottom.
  */
+
+import type {
+  TrainingLevel,
+  PrimaryGoal,
+  SweatClassification,
+} from '../utils/profileIdentity';
 
 /* ─── Section 18 — Adaptive Profile Engine™ / Profile Versioning™ ──────────── */
 
@@ -125,3 +130,83 @@ export const MAJOR_VARIABLE_LABELS: Record<MajorProfileVariable, string> = {
 /** Confirmation copy shown on profile save (spec §18, "On Save"). */
 export const PROFILE_SAVE_CONFIRMATION =
   'Your Performance Profile has been updated. Future recommendations will use your new baseline while preserving your performance history.';
+
+/* ─── Section 20 — Body Recalibration Engine™ ──────────────────────────────── */
+/**
+ * On a major profile change, the Body Recalibration Engine™ recomputes the
+ * FIVE go-forward targets below from the user's §19 Performance Profile inputs.
+ * Every coefficient lives here — services/bodyRecalibrationEngine.ts contains
+ * arithmetic + clamps only, no literals (brief #4). These are reviewed starting
+ * values; nothing consumes them in a live recommendation yet (Part B routes
+ * them in), so they are safe to tune later with real product input.
+ */
+
+/* (1) Daily hydration target — oz. base = weight × oz/lb, scaled by training,
+ *     plus a sweat adder and a goal modifier, clamped to a sane range. */
+export const HYDRATION_BASE_OZ_PER_LB = 0.5;
+export const TRAINING_LEVEL_HYDRATION_MULTIPLIER: Record<TrainingLevel, number> = {
+  Beginner: 1.0,
+  Active: 1.08,
+  Advanced: 1.15,
+  Elite: 1.22,
+};
+export const SWEAT_LEVEL_HYDRATION_ADDER_OZ: Record<SweatClassification, number> = {
+  light: 0,
+  moderate: 8,
+  heavy: 16,
+  very_heavy: 24,
+};
+export const GOAL_HYDRATION_MODIFIER_OZ: Record<PrimaryGoal, number> = {
+  'Fat Loss': 8,
+  'Lean Performance': 4,
+  'Strength & Muscle': 4,
+  'Performance Maintenance': 0,
+  Endurance: 12,
+  'Recovery Optimization': 6,
+  'Everyday Energy': 0,
+};
+export const HYDRATION_TARGET_FLOOR_OZ = 64;
+export const HYDRATION_TARGET_CEILING_OZ = 200;
+
+/* (2) Electrolyte recommendation — sodium mg/day. base + per-workout-minute
+ *     rate scaled by sweat volume. */
+export const SODIUM_BASE_MG = 500;
+export const SODIUM_MG_PER_WORKOUT_MIN_BY_SWEAT: Record<SweatClassification, number> = {
+  light: 3,
+  moderate: 6,
+  heavy: 10,
+  very_heavy: 14,
+};
+
+/* (3) Recovery timing — post-session rehydration window (min), by training
+ *     level, with a goal modifier. */
+export const RECOVERY_WINDOW_MIN_BY_TRAINING: Record<TrainingLevel, number> = {
+  Beginner: 30,
+  Active: 45,
+  Advanced: 60,
+  Elite: 90,
+};
+export const GOAL_RECOVERY_WINDOW_MODIFIER_MIN: Partial<Record<PrimaryGoal, number>> = {
+  'Recovery Optimization': 30,
+  Endurance: 15,
+};
+
+/* (4) Recheck interval — minutes between HydroState rechecks. base scaled down
+ *     as sweat volume rises (heavier sweaters re-check sooner), floored. */
+export const RECHECK_INTERVAL_BASE_MIN = 120;
+export const RECHECK_INTERVAL_SWEAT_FACTOR: Record<SweatClassification, number> = {
+  light: 1.0,
+  moderate: 0.85,
+  heavy: 0.7,
+  very_heavy: 0.55,
+};
+export const RECHECK_INTERVAL_FLOOR_MIN = 45;
+
+/* (5) Environmental Pressure™ sensitivity — multiplier applied to environmental
+ *     modifiers, by sweat volume (home climate folds in once §Climate lands). */
+export const ENV_PRESSURE_SENSITIVITY_BY_SWEAT: Record<SweatClassification, number> = {
+  light: 0.9,
+  moderate: 1.0,
+  heavy: 1.15,
+  very_heavy: 1.3,
+};

@@ -37,6 +37,20 @@ import {
   type AforceBaselineVersionRow,
 } from "./schema/aforce";
 
+/**
+ * Body Recalibration Engine™ (Section 20) targets, computed client-side and
+ * stored verbatim on the new baseline. Shape mirrors the `targets` column on
+ * aforce_baseline_versions; the repo persists it without interpreting it (the
+ * recalc math lives in the app, not the DB layer).
+ */
+export interface BaselineTargets {
+  dailyHydrationTargetOz: number | null;
+  electrolyteSodiumMg: number;
+  recoveryWindowMin: number | null;
+  recheckIntervalMin: number;
+  envPressureSensitivity: number | null;
+}
+
 export interface MajorChangeInput {
   userId: string;
   /** Full major-variable snapshot to persist as the new version. */
@@ -47,6 +61,8 @@ export interface MajorChangeInput {
   explanation: string;
   /** Confidence the new baseline opens at — computed by the engine. */
   initialConfidence: number;
+  /** Recalibrated go-forward targets owned by the new baseline (§20). */
+  targets?: BaselineTargets | null;
   /** Idempotency key (contract A). When omitted the mint always creates. */
   clientChangeId?: string;
 }
@@ -160,6 +176,7 @@ export function createInMemoryProfileRepo(): ProfileRepo {
         observationCount: 0,
         startedAt: now,
         archivedAt: null,
+        targets: input.targets ?? null,
       };
       baselines.push(baseline);
 
@@ -296,6 +313,7 @@ export function createDrizzleProfileRepo(
             status: "active",
             confidence: input.initialConfidence,
             observationCount: 0,
+            targets: input.targets ?? null,
           })
           .returning();
         const baseline = baselineRows[0];
