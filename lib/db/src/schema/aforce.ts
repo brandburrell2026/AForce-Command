@@ -462,19 +462,19 @@ export type InsertAforceCircleNotification = typeof aforceCircleNotifications.$i
 export const aforcePrivacy = pgTable("aforce_privacy", {
   userId: text("user_id").primaryKey(),
   scope: text("scope").notNull().default("circle"),
+  // No DB-level default: a JSONB object default canonicalizes in Postgres
+  // (whitespace + jsonb key ordering) and never string-matches drizzle-kit's
+  // compact generated form, so `push` re-emitted SET DEFAULT on every run
+  // (see docs/SCHEMA_DRIFT.md). The application owns the default instead —
+  // the sole insert path (api-server routes/privacy.ts) always supplies
+  // `fields`, so removing the DB default changes no runtime behavior.
   fields: jsonb("fields").$type<{
     score: boolean;
     state: boolean;
     streak: boolean;
     protocol: boolean;
     trend: boolean;
-  }>().notNull().default({
-    score: true,
-    state: true,
-    streak: true,
-    protocol: true,
-    trend: true,
-  }),
+  }>().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
