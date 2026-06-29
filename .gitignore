@@ -50,3 +50,4 @@ Thumbs.db
 
 # Pasted prompt text (never track future pasted prompts)
 attached_assets/Pasted-*
+artifacts/api-server/start-local.sh

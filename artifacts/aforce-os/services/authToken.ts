@@ -13,18 +13,28 @@
  */
 
 type TokenGetter = () => Promise<string | null>;
-
 let tokenGetter: TokenGetter | null = null;
-
 export function setTokenGetter(getter: TokenGetter | null): void {
   tokenGetter = getter;
 }
 
+
+
 export async function getAuthToken(): Promise<string | null> {
-  if (!tokenGetter) return null;
+  if (!tokenGetter) {
+    console.log('[TOK] no getter');
+    return null;
+  }
   try {
-    return await tokenGetter();
-  } catch {
+    const token = await tokenGetter();
+    if (!token) {
+      console.log('[TOK] got NULL');
+      return null;
+    }
+    console.log('[TOK] got', token.slice(0, 12) + '…');
+    return token;
+  } catch (e) {
+    console.log('[TOK] threw', String(e));
     return null;
   }
 }

@@ -20,6 +20,7 @@ export function ClerkAuthBridge(): null {
   const flags = useFeatureFlags();
   const outboxEnabled = flags.offline_intake_outbox_enabled;
 
+
   React.useEffect(() => {
     if (!isLoaded) return;
     // When signed out, explicitly null the token getters so any
