@@ -66,6 +66,35 @@ export type OccupationType =
   | 'other'
   | 'unspecified';
 
+/**
+ * Training Level (Performance Profile™, Section 19). Feeds Personal Baseline.
+ * MAJOR variable — a change mints a new Profile Version™.
+ */
+export type TrainingLevel = 'Beginner' | 'Active' | 'Advanced' | 'Elite';
+
+/**
+ * Primary Goal (Section 19) — the seven canonical performance objectives.
+ * MAJOR variable (maps to the snapshot's `performanceGoal` slot). This is the
+ * §19 canonical goal; the older `recoveryGoal` is retained as a display-only
+ * fallback (no engine consumes it) — see DEFAULT_PROFILE_IDENTITY.
+ */
+export type PrimaryGoal =
+  | 'Fat Loss'
+  | 'Lean Performance'
+  | 'Strength & Muscle'
+  | 'Performance Maintenance'
+  | 'Endurance'
+  | 'Recovery Optimization'
+  | 'Everyday Energy';
+
+/**
+ * Typical Sweat Level (Section 19) — self-reported sweat VOLUME. MAJOR
+ * variable. Deliberately distinct from the Sweat Calculator's per-session
+ * `SodiumProfile` in types/sweat.ts, which classifies sweat SODIUM
+ * concentration; same labels, different concern.
+ */
+export type SweatClassification = 'light' | 'moderate' | 'heavy' | 'very_heavy';
+
 export interface ProfileIdentity {
   /**
    * Display name shown as the primary headline on the identity card.
@@ -122,6 +151,26 @@ export interface ProfileIdentity {
   occupationType: OccupationType;
   /** True if the user flies / travels often (cabin-air + circadian load). */
   frequentTraveler: boolean;
+  // ── PERFORMANCE PROFILE (Section 19) ────────────────────────────
+  /** Training Level — `null` = unset. MAJOR variable (mints a version). */
+  trainingLevel: TrainingLevel | null;
+  /**
+   * Primary Goal — the §19 canonical 7-value objective. MAJOR variable
+   * (feeds the snapshot's `performanceGoal`). `null` = unset.
+   */
+  primaryGoal: PrimaryGoal | null;
+  /** Typical self-reported sweat VOLUME. MAJOR variable. `null` = unset. */
+  sweatClassification: SweatClassification | null;
+  /**
+   * Goal body weight in lbs. Baseline INPUT only — NOT a version trigger
+   * (a target, not current physiology). `null` = unset.
+   */
+  goalWeightLbs: number | null;
+  /**
+   * Typical workout duration in minutes. Baseline INPUT only — NOT a version
+   * trigger. `null` = unset.
+   */
+  typicalWorkoutDurationMin: number | null;
 }
 
 /**
@@ -173,6 +222,33 @@ export const OCCUPATION_TYPE_OPTIONS: readonly OccupationType[] = [
   'unspecified',
 ] as const;
 
+/** Canonical Training Level options (Section 19), in display order. */
+export const TRAINING_LEVELS: readonly TrainingLevel[] = [
+  'Beginner',
+  'Active',
+  'Advanced',
+  'Elite',
+] as const;
+
+/** Canonical Primary Goal options (Section 19), in display order. */
+export const PRIMARY_GOALS: readonly PrimaryGoal[] = [
+  'Fat Loss',
+  'Lean Performance',
+  'Strength & Muscle',
+  'Performance Maintenance',
+  'Endurance',
+  'Recovery Optimization',
+  'Everyday Energy',
+] as const;
+
+/** Canonical Typical Sweat Level options (Section 19), lightest → heaviest. */
+export const SWEAT_CLASSIFICATIONS: readonly SweatClassification[] = [
+  'light',
+  'moderate',
+  'heavy',
+  'very_heavy',
+] as const;
+
 /**
  * Empty defaults so the card degrades to "no chip rendered" rather
  * than literal whitespace. Body-model fields default to null so the
@@ -197,6 +273,11 @@ export const DEFAULT_PROFILE_IDENTITY: ProfileIdentity = {
   caffeineHabit: 'unspecified',
   occupationType: 'unspecified',
   frequentTraveler: false,
+  trainingLevel: null,
+  primaryGoal: null,
+  sweatClassification: null,
+  goalWeightLbs: null,
+  typicalWorkoutDurationMin: null,
 };
 
 /** Hard cap so a runaway paste can't blow out the chip strip layout. */
@@ -216,6 +297,13 @@ export const HEIGHT_CM_MAX = 230;
 /** Activity level scale used by the hydration-demand engine. */
 export const ACTIVITY_LEVEL_MIN = 0;
 export const ACTIVITY_LEVEL_MAX = 10;
+// ── PERFORMANCE PROFILE ranges (Section 19) ───────────────────────
+/** Goal weight reuses the same physiological guardrails as current weight. */
+export const GOAL_WEIGHT_LBS_MIN = WEIGHT_LBS_MIN;
+export const GOAL_WEIGHT_LBS_MAX = WEIGHT_LBS_MAX;
+/** Typical workout duration in minutes — 0 to a generous 6-hour cap. */
+export const WORKOUT_DURATION_MIN = 0;
+export const WORKOUT_DURATION_MAX = 360;
 const BIRTH_YEAR_MIN = 1900;
 /** Computed lazily so tests / fixtures aren't tied to the wall clock. */
 function birthYearMaxFor(now: Date): number {
@@ -267,6 +355,28 @@ function isOccupationType(v: unknown): v is OccupationType {
     v === 'shift' ||
     v === 'other' ||
     v === 'unspecified'
+  );
+}
+
+function isTrainingLevel(v: unknown): v is TrainingLevel {
+  return v === 'Beginner' || v === 'Active' || v === 'Advanced' || v === 'Elite';
+}
+
+function isPrimaryGoal(v: unknown): v is PrimaryGoal {
+  return (
+    v === 'Fat Loss' ||
+    v === 'Lean Performance' ||
+    v === 'Strength & Muscle' ||
+    v === 'Performance Maintenance' ||
+    v === 'Endurance' ||
+    v === 'Recovery Optimization' ||
+    v === 'Everyday Energy'
+  );
+}
+
+function isSweatClassification(v: unknown): v is SweatClassification {
+  return (
+    v === 'light' || v === 'moderate' || v === 'heavy' || v === 'very_heavy'
   );
 }
 
@@ -355,6 +465,25 @@ export function sanitizeProfileIdentity(raw: unknown): ProfileIdentity {
       typeof r.frequentTraveler === 'boolean'
         ? r.frequentTraveler
         : DEFAULT_PROFILE_IDENTITY.frequentTraveler,
+    trainingLevel: isTrainingLevel(r.trainingLevel)
+      ? r.trainingLevel
+      : DEFAULT_PROFILE_IDENTITY.trainingLevel,
+    primaryGoal: isPrimaryGoal(r.primaryGoal)
+      ? r.primaryGoal
+      : DEFAULT_PROFILE_IDENTITY.primaryGoal,
+    sweatClassification: isSweatClassification(r.sweatClassification)
+      ? r.sweatClassification
+      : DEFAULT_PROFILE_IDENTITY.sweatClassification,
+    goalWeightLbs: asClampedNumber(
+      r.goalWeightLbs,
+      GOAL_WEIGHT_LBS_MIN,
+      GOAL_WEIGHT_LBS_MAX,
+    ),
+    typicalWorkoutDurationMin: asClampedNumber(
+      r.typicalWorkoutDurationMin,
+      WORKOUT_DURATION_MIN,
+      WORKOUT_DURATION_MAX,
+    ),
   };
 }
 

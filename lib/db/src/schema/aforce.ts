@@ -206,6 +206,15 @@ export const aforceScoreSnapshots = pgTable(
     recoveryTrend: text("recovery_trend"), // 'rising' | 'stable' | 'declining'
     recoveryFingerprint: text("recovery_fingerprint"), // 8-char hex
     recoveryStory: text("recovery_story"),
+    // ── Adaptive Profile Engine™ stamping (Section 18) ──────────────────
+    // The active Profile Version™ / Baseline Version™ at the moment this
+    // HydroState record was captured. NULLABLE with no default: existing
+    // rows are never touched (historical preservation — brief #5), and a
+    // snapshot written before a user has any profile version stays null.
+    // New snapshots stamp the active ids so Performance Memory can always
+    // answer "which profile was active when this was recorded?".
+    profileVersionId: integer("profile_version_id"),
+    baselineVersionId: integer("baseline_version_id"),
     capturedAt: timestamp("captured_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => ({
@@ -453,19 +462,19 @@ export type InsertAforceCircleNotification = typeof aforceCircleNotifications.$i
 export const aforcePrivacy = pgTable("aforce_privacy", {
   userId: text("user_id").primaryKey(),
   scope: text("scope").notNull().default("circle"),
+  // No DB-level default: a JSONB object default canonicalizes in Postgres
+  // (whitespace + jsonb key ordering) and never string-matches drizzle-kit's
+  // compact generated form, so `push` re-emitted SET DEFAULT on every run
+  // (see docs/SCHEMA_DRIFT.md). The application owns the default instead —
+  // the sole insert path (api-server routes/privacy.ts) always supplies
+  // `fields`, so removing the DB default changes no runtime behavior.
   fields: jsonb("fields").$type<{
     score: boolean;
     state: boolean;
     streak: boolean;
     protocol: boolean;
     trend: boolean;
-  }>().notNull().default({
-    score: true,
-    state: true,
-    streak: true,
-    protocol: true,
-    trend: true,
-  }),
+  }>().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -841,3 +850,155 @@ export type AforceGarminAuthStatesRow =
   typeof aforceGarminAuthStates.$inferSelect;
 export type InsertAforceGarminAuthStates =
   typeof aforceGarminAuthStates.$inferInsert;
+
+/* ─── Adaptive Profile Engine™ / Profile Versioning™ (Section 18) ──────────── */
+/**
+ * The OS's user-specific calibration layer. Four tables work together:
+ *
+ *   aforce_user_profiles      — one row per user; MUTABLE pointer to the
+ *                               currently-active profile + baseline version.
+ *   aforce_profile_versions   — APPEND-ONLY immutable snapshots (v1, v2, v3…).
+ *                               A major-variable change mints a new row.
+ *   aforce_baseline_versions  — APPEND-ONLY baseline lifecycle with a
+ *                               confidence scalar. Recalibration archives the
+ *                               prior active row and opens a new one.
+ *   aforce_profile_change_log — APPEND-ONLY audit + Evidence Engine™ string
+ *                               for every change (major OR minor).
+ *
+ * Historical-preservation contract (brief #5): only aforce_user_profiles is
+ * ever UPDATEd (it just moves pointers). Versions, baselines, and change-log
+ * rows are NEVER updated or deleted — recalibration creates new rows and
+ * affects FUTURE recommendations only. The mint path (version + change-log +
+ * archive-prior-baseline + open-new-baseline + advance-pointer) MUST run in a
+ * single transaction so a partial write can never split-brain the layer
+ * (contract A in services/adaptiveProfileEngine.ts).
+ */
+
+/**
+ * One row per user. The ONLY mutable table in the layer — it carries the
+ * pointers to the currently-active version + baseline so HydroState /
+ * Performance Memory writes can stamp them in O(1). Pointers are nullable
+ * until the user's first profile version is minted.
+ */
+export const aforceUserProfiles = pgTable("aforce_user_profiles", {
+  userId: text("user_id").primaryKey(),
+  currentProfileVersionId: integer("current_profile_version_id"),
+  currentBaselineVersionId: integer("current_baseline_version_id"),
+  /** Surfaced as "View Last Calibration Date" (spec §18 User Control). */
+  lastCalibrationAt: timestamp("last_calibration_at", { withTimezone: true }),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+/**
+ * APPEND-ONLY immutable Profile Version™ snapshots. Each major-variable
+ * change mints a new row; `versionNumber` is the human-facing v1/v2/v3.
+ * `snapshot` holds the full major-variable set at this version; `changedFields`
+ * lists which variables triggered the mint.
+ *
+ * `clientChangeId` is the caller-supplied idempotency key (contract A): the
+ * (user_id, client_change_id) UNIQUE index lets a retried POST return the
+ * existing version instead of double-minting. NULL for server-originated
+ * mints with no client key (NULLS DISTINCT — those never collide).
+ */
+export const aforceProfileVersions = pgTable(
+  "aforce_profile_versions",
+  {
+    id: serial("id").primaryKey(),
+    userId: text("user_id").notNull(),
+    versionNumber: integer("version_number").notNull(),
+    snapshot: jsonb("snapshot").$type<Record<string, unknown>>().notNull(),
+    changedFields: jsonb("changed_fields").$type<string[]>().notNull().default([]),
+    clientChangeId: text("client_change_id"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => ({
+    userVersionIdx: index("aforce_profile_versions_user_version_idx").on(
+      t.userId,
+      t.versionNumber,
+    ),
+    userClientUq: uniqueIndex("aforce_profile_versions_user_client_uq").on(
+      t.userId,
+      t.clientChangeId,
+    ),
+  }),
+);
+
+/**
+ * APPEND-ONLY Baseline Version™ lifecycle. On recalibration the prior active
+ * row is flipped to 'archived' (its `archivedAt` set) and a NEW row opens with
+ * temporarily-lowered confidence; confidence rises as `observationCount`
+ * accumulates (see config/hydroStateModel.ts BASELINE_CONFIDENCE). Rows are
+ * never deleted — historical baselines are preserved forever.
+ */
+export const aforceBaselineVersions = pgTable(
+  "aforce_baseline_versions",
+  {
+    id: serial("id").primaryKey(),
+    userId: text("user_id").notNull(),
+    /** The profile version that opened this baseline. */
+    profileVersionId: integer("profile_version_id").notNull(),
+    /** 'active' | 'archived'. Exactly one 'active' row per user at a time. */
+    status: text("status").notNull().default("active"),
+    /** 0..1 confidence scalar; temporarily lowered on recalibration. */
+    confidence: real("confidence").notNull(),
+    observationCount: integer("observation_count").notNull().default(0),
+    startedAt: timestamp("started_at", { withTimezone: true }).notNull().defaultNow(),
+    archivedAt: timestamp("archived_at", { withTimezone: true }),
+    /**
+     * Body Recalibration Engine™ (Section 20) — the five go-forward targets
+     * recomputed when this baseline opened, owned by this baseline version.
+     * NULLABLE: baselines minted before §20 (or where the client sent none)
+     * stay null; archived baselines keep the targets they opened with.
+     * Computed client-side from §19 inputs (see services/bodyRecalibrationEngine.ts).
+     */
+    targets: jsonb("targets").$type<{
+      dailyHydrationTargetOz: number | null;
+      electrolyteSodiumMg: number;
+      recoveryWindowMin: number | null;
+      recheckIntervalMin: number;
+      envPressureSensitivity: number | null;
+    } | null>(),
+  },
+  (t) => ({
+    userStatusIdx: index("aforce_baseline_versions_user_status_idx").on(
+      t.userId,
+      t.status,
+    ),
+  }),
+);
+
+/**
+ * APPEND-ONLY change log. One row per profile save that the engine classified
+ * — `changeType` is 'major' (minted a version) or 'minor' (preference-only,
+ * no version). `explanation` is the human-readable Evidence Engine™ string
+ * shown to the user. Every recalibration must emit one (spec §18).
+ */
+export const aforceProfileChangeLog = pgTable(
+  "aforce_profile_change_log",
+  {
+    id: serial("id").primaryKey(),
+    userId: text("user_id").notNull(),
+    /** Resulting version; NULL for a minor edit that didn't bump a version. */
+    profileVersionId: integer("profile_version_id"),
+    baselineVersionId: integer("baseline_version_id"),
+    changeType: text("change_type").notNull(), // 'major' | 'minor'
+    changedFields: jsonb("changed_fields").$type<string[]>().notNull().default([]),
+    explanation: text("explanation").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => ({
+    userTimeIdx: index("aforce_profile_change_log_user_time_idx").on(
+      t.userId,
+      t.createdAt,
+    ),
+  }),
+);
+
+export type AforceUserProfileRow = typeof aforceUserProfiles.$inferSelect;
+export type InsertAforceUserProfile = typeof aforceUserProfiles.$inferInsert;
+export type AforceProfileVersionRow = typeof aforceProfileVersions.$inferSelect;
+export type InsertAforceProfileVersion = typeof aforceProfileVersions.$inferInsert;
+export type AforceBaselineVersionRow = typeof aforceBaselineVersions.$inferSelect;
+export type InsertAforceBaselineVersion = typeof aforceBaselineVersions.$inferInsert;
+export type AforceProfileChangeLogRow = typeof aforceProfileChangeLog.$inferSelect;
+export type InsertAforceProfileChangeLog = typeof aforceProfileChangeLog.$inferInsert;

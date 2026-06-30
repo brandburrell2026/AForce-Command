@@ -225,6 +225,11 @@ describe('derivePersonalizationSignals', () => {
         caffeineHabit: 'unspecified',
         occupationType: 'unspecified',
         frequentTraveler: false,
+        trainingLevel: null,
+        primaryGoal: null,
+        sweatClassification: null,
+        goalWeightLbs: null,
+        typicalWorkoutDurationMin: null,
       },
     });
     const bodyModel = out.reasons.find((r) => r.key === 'bodyModel');
@@ -255,6 +260,11 @@ describe('derivePersonalizationSignals', () => {
         caffeineHabit: 'unspecified',
         occupationType: 'unspecified',
         frequentTraveler: false,
+        trainingLevel: null,
+        primaryGoal: null,
+        sweatClassification: null,
+        goalWeightLbs: null,
+        typicalWorkoutDurationMin: null,
       },
     });
     expect(out.reasons.find((r) => r.key === 'bodyModel')).toBeUndefined();

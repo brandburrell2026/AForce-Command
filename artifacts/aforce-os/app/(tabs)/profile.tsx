@@ -45,6 +45,7 @@ import * as Linking from 'expo-linking';
 import { createPortalSession } from '@/lib/api';
 import { useGetMyReferralInfo } from '@workspace/api-client-react';
 import { openShareSheet } from '@/services/shareService';
+import { saveProfileVersion } from '@/services/profileSyncService';
 import { refreshEntitlement } from '@/hooks/useEntitlement';
 import { AFORCE_VOICES } from '@/services/voiceCatalog';
 import {
@@ -592,7 +593,10 @@ export default function ProfileScreen() {
             const weightLabel = profileIdentity.bodyWeightLbs != null
               ? `${profileIdentity.bodyWeightLbs} lb`
               : '—';
-            const recoveryGoalLabel = profileIdentity.recoveryGoal;
+            // §19 (B′): show the Primary Goal; fall back to the legacy
+            // recoveryGoal (default 'BALANCE', never null) so a returning
+            // user's card never blanks before they set a Primary Goal.
+            const recoveryGoalLabel = profileIdentity.primaryGoal ?? profileIdentity.recoveryGoal;
             const hasAvatarImage = profileIdentity.avatarUri.length > 0;
             const profileCard = (
               <View style={[styles.profileCard, { borderColor: `${tier.color}33` }]}>
@@ -1940,6 +1944,25 @@ export default function ProfileScreen() {
           // store exactly what the user saw.
           setProfileIdentity(next);
           setIsEditingProfile(false);
+          // Adaptive Profile Engine™ (Section 18): a MAJOR body-model change
+          // mints a server-side Profile Version™ and recalibrates future
+          // recommendations. Local-first / optimistic — the version mint runs
+          // async; a failed POST keeps the edit and retries idempotently.
+          void saveProfileVersion(next)
+            .then((result) => {
+              if (result.changeType === 'major') {
+                Alert.alert(
+                  'Performance Profile Updated',
+                  result.synced
+                    ? result.explanation || result.confirmation
+                    : result.confirmation,
+                );
+              }
+            })
+            .catch(() => {
+              // saveProfileVersion already swallows network errors into a
+              // not-synced result; this guards against unexpected throws.
+            });
         }}
       />
     </View>
