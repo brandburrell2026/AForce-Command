@@ -1,0 +1,98 @@
+@import "tailwindcss";
+
+/* ------------------------------------------------------------------ */
+/* AForce Brand System v2.1.0 — tokens locked to design/aforce-        */
+/* design-tokens.md. Do not substitute values.                        */
+/* ------------------------------------------------------------------ */
+@theme {
+  /* Canvas + surfaces (near-black, never pure black) */
+  --color-canvas: #0d0d0d;
+  --color-canvas-elevated: #101018;
+
+  /* Bone — off-white text / light surfaces */
+  --color-bone: #f5f0e8;
+
+  /* Brand accents */
+  --color-signal: #c1281b; /* Signal Red — used sparingly */
+  --color-soursop: #1fa35a; /* green — flavor + positive status */
+  --color-berry: #1e5bff; /* blue — secondary accent + flavor */
+
+  /* Type roles */
+  --font-display: "Archivo Black", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --font-body: "Inter", system-ui, sans-serif;
+}
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+
+  body {
+    margin: 0;
+    background-color: var(--color-canvas);
+    color: var(--color-bone);
+    font-family: var(--font-body);
+    font-weight: 400;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Bone-toned text selection */
+  ::selection {
+    background: var(--color-signal);
+    color: var(--color-bone);
+  }
+
+  /* Visible focus ring for keyboard users (never removed) */
+  :focus-visible {
+    outline: 2px solid var(--color-bone);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Scroll reveal — subtle, honors prefers-reduced-motion              */
+/* ------------------------------------------------------------------ */
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition:
+    opacity 700ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 700ms cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+.reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+/* Eyebrow / label treatment (IBM Plex Mono, tracked, uppercase) */
+.eyebrow {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.28em;
+  font-size: 0.6875rem; /* 11px */
+}

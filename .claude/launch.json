@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "aforce-web",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "aforce-web", "run", "dev"],
+      "port": 3200
+    },
+    {
+      "name": "aforce-marketing-site",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "marketing-site", "run", "dev"],
+      "port": 4321
+    }
+  ]
+}

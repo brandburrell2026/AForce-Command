@@ -1,0 +1,104 @@
+@import "tailwindcss";
+
+/* ------------------------------------------------------------------ */
+/* AForce Brand System v2.1.0 — canonical. Do not substitute values.  */
+/* Dark cinematic canvas · Signal Red accent (sparingly) · Bone text. */
+/* Silver / chrome is a surface treatment, never a new brand color.   */
+/* ------------------------------------------------------------------ */
+@theme {
+  --color-canvas: #0d0d0d;
+  --color-canvas-2: #050508;
+  --color-elevated: #101018;
+
+  --color-bone: #f5f0e8;
+  --color-signal: #c1281b; /* Signal Red — used sparingly */
+  --color-soursop: #1fa35a;
+  --color-berry: #1e5bff;
+
+  --font-display: var(--font-archivo), system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
+  --font-body: var(--font-inter), system-ui, sans-serif;
+}
+
+:root {
+  color-scheme: dark;
+  /* Chrome / brushed-aluminium gradient for silver product surfaces + rules */
+  --chrome: linear-gradient(
+    100deg,
+    #6b6b70 0%,
+    #d9d9dd 18%,
+    #f4f4f6 34%,
+    #a9a9b0 50%,
+    #e9e9ee 66%,
+    #8a8a90 82%,
+    #cfcfd6 100%
+  );
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: auto; /* Lenis owns smooth scrolling */
+}
+
+body {
+  margin: 0;
+  background: var(--color-canvas);
+  color: var(--color-bone);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+}
+
+::selection {
+  background: var(--color-signal);
+  color: var(--color-bone);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-bone);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+/* Utilities ------------------------------------------------------- */
+.eyebrow {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  font-size: 0.6875rem;
+}
+
+/* Chrome text — brushed metal wordmarks / numerals */
+.chrome-text {
+  background: var(--chrome);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Hairline rules */
+.hairline {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(245, 240, 232, 0.18),
+    transparent
+  );
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

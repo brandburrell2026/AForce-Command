@@ -1,0 +1,28 @@
+{
+  "name": "aforce-web",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AForce — immersive editorial luxury site (Next.js 15). Standalone, not part of the pnpm workspace.",
+  "scripts": {
+    "dev": "next dev -p 3200",
+    "build": "next build",
+    "start": "next start -p 3200",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "framer-motion": "^11.18.2",
+    "gsap": "^3.13.0",
+    "lenis": "^1.1.20",
+    "next": "^15.5.20",
+    "react": "19.1.0",
+    "react-dom": "19.1.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.14",
+    "@types/node": "^22.10.5",
+    "@types/react": "19.2.0",
+    "@types/react-dom": "19.2.0",
+    "tailwindcss": "^4.1.14",
+    "typescript": "^5.7.3"
+  }
+}
