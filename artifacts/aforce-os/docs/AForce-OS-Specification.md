@@ -38,8 +38,13 @@ These constrain every feature and cannot be silently overridden.
 - **Engine / UI Governance.** The engine may grow smarter; navigation may not grow.
   Feature flags control exposure. Principle: **Build 100% · Show 10% · Unlock over
   time.** One engine, multiple experiences.
-- **Product Positioning.** Decision order: Context → Recovery → Behavior →
-  Learning → Optional support. Products support behavior; they never drive it.
+- **Product Positioning — Body First, Product Last.** *The body comes first. The
+  recommendation comes second. The product comes last.* Decision order: Context →
+  Recovery → Behavior → Learning → Optional support. Products support behavior; they
+  never drive it — every recommendation is earned through intelligence, never sold.
+  Applies ecosystem-wide, including Phantom Band™ and Meridian™. Canonical statement:
+  `docs/PRODUCT_POSITIONING_PRINCIPLE.md` (governing: `AFORCE_OS_ARCHITECTURE_V1.md`
+  → "Product Positioning Principle — Body First, Product Last").
 
 ---
 
