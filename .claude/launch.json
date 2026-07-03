@@ -2,6 +2,12 @@
   "version": "0.0.1",
   "configurations": [
     {
+      "name": "aforce-site",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "4400", "--directory", "aforce-site"],
+      "port": 4400
+    },
+    {
       "name": "aforce-web",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["--prefix", "aforce-web", "run", "dev"],
