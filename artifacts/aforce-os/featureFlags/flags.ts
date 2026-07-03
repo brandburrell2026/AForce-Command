@@ -106,6 +106,11 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   spec_sharedContextLayer: true,
   spec_uiFreeze: true,
 
+  // Section 58 — Command Confidence Display™: the badge on the NEW surfaces
+  // (Performance Fit, Recovery Window, Sun Recovery). OFF in production until
+  // internal-preview sign-off. Today's Command shows confidence unflagged.
+  spec_commandConfidenceDisplay: false,
+
   // Recovery Layer — hidden engine. Phase 1 build, no visible surfaces.
   // Stays OFF in DEFAULT_FLAGS so the production binary cannot expose
   // it ahead of internal-preview readiness (Phase 2 in the spec).
@@ -276,6 +281,7 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
   spec_profileSource: true,
   spec_sharedContextLayer: true,
   spec_uiFreeze: true,
+  spec_commandConfidenceDisplay: true,
   // Demo profile lights the hidden Recovery engine so internal viewers
   // can inspect outputs via dev tools even before any visible surface
   // consumes them.

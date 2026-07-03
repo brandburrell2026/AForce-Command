@@ -628,6 +628,13 @@ export interface FeatureFlags {
   /** Rule #1 — UI Freeze keystone (14 frozen surfaces + 3 prohibitions). */
   spec_uiFreeze: boolean;
   /**
+   * Section 58 — Command Confidence Display™. Gates the confidence badge on the
+   * NEW surfaces (HydroScan Performance Fit, Recovery Window, Sun Recovery Mode).
+   * Today's Command shows confidence unflagged. Default OFF: build, do not
+   * release ("Build 100% · Show 10%").
+   */
+  spec_commandConfidenceDisplay: boolean;
+  /**
    * Recovery Layer (post-v18 architecture update) — hidden engine that
    * feeds existing surfaces (Orb, Coach, Timeline, HydroJournal,
    * Social, Guardian, Clutch). Phase 1 ships the engine only with no
@@ -809,7 +816,8 @@ export type SpecFlagName =
   | 'uiFreeze'
   | 'recovery'
   | 'demand_engine'
-  | 'weekly_report';
+  | 'weekly_report'
+  | 'commandConfidenceDisplay';
 
 // ─── Hydration Journal ────────────────────────────────────────────────────────
 /**

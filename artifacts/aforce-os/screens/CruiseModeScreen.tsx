@@ -38,6 +38,9 @@ import { Icon, type IconName } from '../components/Icon';
 import { GradientBackground } from "@/components/GradientBackground";
 import { FeatureGate } from "@/components/FeatureGate";
 import { Colors } from "@/theme/colors";
+import { CommandConfidenceBadge } from "@/components/CommandConfidenceBadge";
+import { useCommandConfidence } from "@/hooks/useCommandConfidence";
+import { useFlagsSlice } from "@/store/slices";
 import {
   evaluateCruise,
   CRUISE_DEMO_PROFILES,
@@ -103,6 +106,9 @@ const PORT_OPTIONS: ReadonlyArray<{ id: string; label: string }> = [
 function CruiseModeBody() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  // Section 58 — Command Confidence on the Sun Recovery Mode readout, gated.
+  const showConfidence = useFlagsSlice().spec_commandConfidenceDisplay;
+  const commandConfidence = useCommandConfidence();
   const [profileIdx, setProfileIdx] = useState(0);
   const [portId, setPortId] = useState<string>("cozumel");
   const [liveEnv, setLiveEnv] = useState<CruiseLiveEnvironment | null>(null);
@@ -385,6 +391,11 @@ function CruiseModeBody() {
                 value={matchedLiveEnv ? `${matchedLiveEnv.windKts} kts` : "—"}
               />
             </View>
+            {showConfidence ? (
+              <View style={{ flexDirection: "row", justifyContent: "flex-end", marginTop: 10 }}>
+                <CommandConfidenceBadge level={commandConfidence} />
+              </View>
+            ) : null}
             {journeyIntensity && (
               <View style={[styles.inlineBanner, { borderColor: CRUISE.aqua + "55", backgroundColor: CRUISE.aqua + "10" }]}>
                 <Icon name="activity" size={13} color={CRUISE.aqua} />
