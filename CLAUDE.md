@@ -2,6 +2,15 @@
 
 This is a **pre-launch production repository** for AForce Hydration, Inc. It is not a prototype. Treat all code, data, and configuration as production-grade. Read these rules at the start of every session and follow them without exception.
 
+## Governance — read before building
+
+The AForce OS governing documents live in `governance/` (mirrored in `artifacts/aforce-os/governance/`). Read them before building features:
+
+- **`AForce-Constitution.md`** — locked v1.0 principles (body first, product last; observation never diagnosis; trust over attention). Frozen — no new principles without Julius + Brandon approval and beta evidence.
+- **`Claude-Code-Build-Rules.md`** — the build contract: one numbered section at a time, tested; `/governance` first; thresholds in `config/hydroStateModel.ts`; no new nav or rebuilds.
+- **`Architecture-Appendix.md`** (Sections 1–64 with Status tags) and **`Phase-Roadmap.md`** (Phases 0–4) — what is Build Now vs. later phases.
+- Compliance is governed by `docs/COMPLIANCE_FRAMEWORK.md` (app copy in `artifacts/aforce-os/legal/`).
+
 ## Working agreement
 
 - **Never push or commit directly to `main`.** Work only on the current feature branch.
