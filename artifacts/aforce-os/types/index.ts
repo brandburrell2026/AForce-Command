@@ -755,6 +755,14 @@ export interface FeatureFlags {
    * only. OFF in the production binary. Score-Protection: read-only, never scores.
    */
   adaptive_response_enabled: boolean;
+  /**
+   * Section 60 — Response Timeline™. Gates the Phase-2 query layer that buckets
+   * response activity over time. Additionally data-gated: a consumer surfaces it
+   * only when this is ON *and* ~60–90 days of personal history exist
+   * (isResponseTimelineReady). OFF in the production binary. Score-Protection:
+   * read-only projection, never scores.
+   */
+  response_timeline_enabled: boolean;
 
   // HealthKit native module load gate. Controls whether the native
   // Nitro/HealthKit module (@kingstinct/react-native-healthkit) is loaded
