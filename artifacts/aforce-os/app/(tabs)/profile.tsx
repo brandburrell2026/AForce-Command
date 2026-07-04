@@ -58,6 +58,8 @@ import { useDevMode, setDevMode } from '@/services/devMode';
 import { AnalyticsConsentRow } from '@/components/settings/AnalyticsConsentRow';
 import { PerformanceMemoryGovernanceCard } from '@/components/settings/PerformanceMemoryGovernanceCard';
 import { PersonalResponseLibraryCard } from '@/components/settings/PersonalResponseLibraryCard';
+import { DailyLessonCard } from '@/components/settings/DailyLessonCard';
+import { ResponseTimelineCard } from '@/components/settings/ResponseTimelineCard';
 import { PerformanceIdentityCard } from '@/components/settings/PerformanceIdentityCard';
 import { getJsonAforceApi } from '@/services/aforceApiClient';
 import {
@@ -1625,6 +1627,18 @@ export default function ProfileScreen() {
                     <>
                       <Divider />
                       <PersonalResponseLibraryCard />
+                    </>
+                  ) : null}
+                  {state.featureFlags.living_performance_enabled ? (
+                    <>
+                      <Divider />
+                      <DailyLessonCard />
+                    </>
+                  ) : null}
+                  {state.featureFlags.response_timeline_enabled ? (
+                    <>
+                      <Divider />
+                      <ResponseTimelineCard />
                     </>
                   ) : null}
                 </View>

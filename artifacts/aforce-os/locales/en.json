@@ -226,10 +226,22 @@
     "category_performance_consistency": "performance consistency"
   },
   "livingPerformance": {
+    "title": "Today's Lesson",
     "eyebrow": "YOUR BODY TAUGHT US",
+    "eyebrow_on_track": "TODAY",
     "on_track": "You're exactly where you should be.",
     "lesson_improved": "Your body taught us that acting on your {{category}} commands lines up with your steadiest energy ({{pct}}% followed).",
     "lesson_declined": "Your body taught us your {{category}} energy dips when the routine slips — worth easing back in ({{pct}}% followed)."
+  },
+  "responseTimeline": {
+    "title": "Response Timeline",
+    "subtitle": "How your responses have moved over the weeks.",
+    "collecting_title": "Building your timeline",
+    "collecting": "It unlocks after about {{target}} days of history — {{days}} so far. Keep following your commands and the trend fills in.",
+    "empty": "No response activity in this window yet.",
+    "week_current": "This week",
+    "week_ago": "{{count}} week ago",
+    "week_ago_plural": "{{count}} weeks ago"
   },
   "coach": {
     "confidence_high": "HIGH CONFIDENCE",
