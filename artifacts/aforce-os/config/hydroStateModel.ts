@@ -210,3 +210,28 @@ export const ENV_PRESSURE_SENSITIVITY_BY_SWEAT: Record<SweatClassification, numb
   heavy: 1.15,
   very_heavy: 1.3,
 };
+
+/* ─── Section 59 — Adaptive Response Engine™ ───────────────────────────────────
+ * Tunables for the Personal Response Library (What Worked / Confidence After
+ * Action) and the recurring/severe-symptom physician-consultation trigger. The
+ * engine reads these; it never hardcodes them (brief constraint #4). Every value
+ * is observational — none reads into, awards, or mutates score. */
+
+/** Rolling window for adaptive-response learning (30 days, ms). */
+export const ADAPTIVE_RESPONSE_WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
+
+/** Minimum in-window observations before a category's response is 'ready'. */
+export const ADAPTIVE_RESPONSE_MIN_SAMPLES = 5;
+
+/** Sample size at which Confidence After Action reaches its ceiling of 1.0. */
+export const ADAPTIVE_RESPONSE_CONFIDENCE_FULL_SAMPLES = 10;
+
+/** Energy delta (1–5 self-report) needed to call an outcome improved/declined
+ *  rather than steady — the cause-and-effect threshold for "What Worked". */
+export const ADAPTIVE_RESPONSE_OUTCOME_ENERGY_DELTA = 0.5;
+
+/** Recurring/severe symptom trigger: the same symptom category this many times… */
+export const RECURRING_SYMPTOM_MIN_OCCURRENCES = 3;
+
+/** …within this window (14 days, ms) prompts a physician-consultation nudge. */
+export const RECURRING_SYMPTOM_WINDOW_MS = 14 * 24 * 60 * 60 * 1000;
