@@ -748,6 +748,13 @@ export interface FeatureFlags {
    * mutates / fabricates score.
    */
   performance_identity_enabled: boolean;
+  /**
+   * Section 59 — Adaptive Response Engine™. Gates whether the Personal Response
+   * Library (What Worked / Confidence After Action) may surface. The engine is
+   * pure + observational and always safe to derive; this flag governs exposure
+   * only. OFF in the production binary. Score-Protection: read-only, never scores.
+   */
+  adaptive_response_enabled: boolean;
 
   // HealthKit native module load gate. Controls whether the native
   // Nitro/HealthKit module (@kingstinct/react-native-healthkit) is loaded

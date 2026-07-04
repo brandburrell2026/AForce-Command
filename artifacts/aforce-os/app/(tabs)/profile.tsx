@@ -57,6 +57,7 @@ import { replayLastCommand, getLastCommand } from '@/services/voice/commandVoice
 import { useDevMode, setDevMode } from '@/services/devMode';
 import { AnalyticsConsentRow } from '@/components/settings/AnalyticsConsentRow';
 import { PerformanceMemoryGovernanceCard } from '@/components/settings/PerformanceMemoryGovernanceCard';
+import { PersonalResponseLibraryCard } from '@/components/settings/PersonalResponseLibraryCard';
 import { PerformanceIdentityCard } from '@/components/settings/PerformanceIdentityCard';
 import { getJsonAforceApi } from '@/services/aforceApiClient';
 import {
@@ -1618,6 +1619,12 @@ export default function ProfileScreen() {
                     <>
                       <Divider />
                       <PerformanceIdentityCard />
+                    </>
+                  ) : null}
+                  {state.featureFlags.adaptive_response_enabled ? (
+                    <>
+                      <Divider />
+                      <PersonalResponseLibraryCard />
                     </>
                   ) : null}
                 </View>
