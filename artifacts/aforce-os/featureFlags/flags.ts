@@ -170,6 +170,10 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   // OFF in production; the engine always derives (pure, observational). ON in DEMO.
   adaptive_response_enabled: false,
 
+  // Section 60 — Response Timeline™ query layer. OFF in production; also
+  // data-gated (~60–90 days of history) before any consumer surfaces it.
+  response_timeline_enabled: false,
+
   // Performance Memory™ — STEP 3 execution-memory expansion. Additive,
   // read-only command-completion recap (execution streak / recent follow-rate
   // + trend) read from the same ledger. OFF in the production binary so the
@@ -308,6 +312,9 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
 
   // Section 59 — Adaptive Response Engine™ ON for internal inspection.
   adaptive_response_enabled: true,
+
+  // Section 60 — Response Timeline™ ON for internal inspection.
+  response_timeline_enabled: true,
 
   // Performance Memory™ — STEP 3 execution-memory recap ON for internal inspection.
   performance_memory_execution_enabled: true,

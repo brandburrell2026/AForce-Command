@@ -235,3 +235,18 @@ export const RECURRING_SYMPTOM_MIN_OCCURRENCES = 3;
 
 /** …within this window (14 days, ms) prompts a physician-consultation nudge. */
 export const RECURRING_SYMPTOM_WINDOW_MS = 14 * 24 * 60 * 60 * 1000;
+
+/* ─── Section 60 — Response Timeline™ ──────────────────────────────────────────
+ * Tunables for the Phase-2 query layer that buckets response activity over time.
+ * The query reads these; it never hardcodes them (brief constraint #4). All are
+ * observational — none reads into, awards, or mutates score. */
+
+/** Trailing window the timeline spans (90 days, ms). */
+export const RESPONSE_TIMELINE_WINDOW_MS = 90 * 24 * 60 * 60 * 1000;
+
+/** Bucket width within the timeline (7 days = weekly, ms). */
+export const RESPONSE_TIMELINE_BUCKET_MS = 7 * 24 * 60 * 60 * 1000;
+
+/** Days of personal history required before the timeline is shown (spec: 60–90).
+ *  A consumer surfaces it only when the feature flag is ON *and* this is met. */
+export const RESPONSE_TIMELINE_MIN_DATA_DAYS = 60;

@@ -53,6 +53,18 @@ const COMMAND_CATEGORY_TO_RESPONSE: Record<CommandCategory, ResponseCategory> = 
   performance_activation: 'training',
 };
 
+/**
+ * The Section-59 response category a followed AForce command maps to, or null
+ * when the command type is unknown/unattributable (no fabrication). Shared so
+ * the engine and the Section 60 Response Timeline bucket by the identical rule —
+ * one source of truth for the mapping.
+ */
+export function responseCategoryForCommandType(
+  commandType: string | undefined | null,
+): ResponseCategory | null {
+  return isCommandCategory(commandType) ? COMMAND_CATEGORY_TO_RESPONSE[commandType] : null;
+}
+
 function isFiniteNumber(v: unknown): v is number {
   return typeof v === 'number' && Number.isFinite(v);
 }
@@ -139,8 +151,8 @@ export function deriveAdaptiveResponseProfile(
     }
     if (e.kind !== 'command_confirmation') continue;
     // Unknown / missing commandType cannot be attributed → ignored (no fabrication).
-    if (!isCommandCategory(e.commandType)) continue;
-    const category = COMMAND_CATEGORY_TO_RESPONSE[e.commandType];
+    const category = responseCategoryForCommandType(e.commandType);
+    if (category === null) continue;
     const entry = profile[category];
     entry.sampleSize += 1;
     if (e.followed) {
