@@ -763,6 +763,13 @@ export interface FeatureFlags {
    * read-only projection, never scores.
    */
   response_timeline_enabled: boolean;
+  /**
+   * Section 61 — Living Performance Model™. Gates the daily-lesson surface. The
+   * model is pure + observational and always safe to derive; this flag governs
+   * exposure only. OFF in the production binary. Score-Protection: read-only,
+   * never scores.
+   */
+  living_performance_enabled: boolean;
 
   // HealthKit native module load gate. Controls whether the native
   // Nitro/HealthKit module (@kingstinct/react-native-healthkit) is loaded
