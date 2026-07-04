@@ -250,3 +250,12 @@ export const RESPONSE_TIMELINE_BUCKET_MS = 7 * 24 * 60 * 60 * 1000;
 /** Days of personal history required before the timeline is shown (spec: 60–90).
  *  A consumer surfaces it only when the feature flag is ON *and* this is met. */
 export const RESPONSE_TIMELINE_MIN_DATA_DAYS = 60;
+
+/* ─── Section 61 — Living Performance Model™ ───────────────────────────────────
+ * Tunable for the daily lesson. Observational — reads a category's Confidence
+ * After Action only; never reads into, awards, or mutates score. */
+
+/** Minimum Confidence After Action (0–1) a category needs to become the day's
+ *  lesson. Below this the model stays on the Silent Intelligence on-track state
+ *  rather than surfacing a low-confidence takeaway (no fabrication). */
+export const LIVING_PERFORMANCE_MIN_LESSON_CONFIDENCE = 0.6;
