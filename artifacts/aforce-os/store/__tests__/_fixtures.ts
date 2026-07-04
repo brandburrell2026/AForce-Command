@@ -156,6 +156,10 @@ export const baseFlags: FeatureFlags = {
   performance_memory_execution_enabled: false,
   performance_memory_governance_enabled: false,
   performance_identity_enabled: false,
+  healthkit_native_enabled: false,
+  native_tabs_enabled: false,
+  native_screens_enabled: false,
+  secure_store_startup_guard: true,
 };
 
 export const baseSubscription: UserSubscription = {
