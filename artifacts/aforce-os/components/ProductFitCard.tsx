@@ -6,6 +6,9 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Colors } from '@/theme/colors';
 import type { ScanResult } from '@/types/scan';
+import { CommandConfidenceBadge } from '@/components/CommandConfidenceBadge';
+import { useCommandConfidence } from '@/hooks/useCommandConfidence';
+import { useFlagsSlice } from '@/store/slices';
 
 interface Props {
   result: ScanResult;
@@ -38,9 +41,16 @@ function colorFor(v: number): string {
 
 export function ProductFitCard({ result }: Props) {
   const axes = axesFor(result);
+  // Section 58 — surface the already-computed Command Confidence on the
+  // HydroScan Performance Fit surface, behind spec_commandConfidenceDisplay.
+  const showConfidence = useFlagsSlice().spec_commandConfidenceDisplay;
+  const confidence = useCommandConfidence();
   return (
     <View style={styles.card}>
-      <Text style={styles.title}>Product Profile</Text>
+      <View style={styles.header}>
+        <Text style={styles.title}>Product Profile</Text>
+        {showConfidence ? <CommandConfidenceBadge level={confidence} /> : null}
+      </View>
       <Text style={styles.subtitle}>{result.recommendation.detail}</Text>
 
       <View style={styles.axes}>
@@ -72,6 +82,11 @@ const styles = StyleSheet.create({
     borderColor: Colors.border.subtle,
     padding: 16,
     gap: 12,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   title: {
     fontSize: 14, fontFamily: 'Inter_700Bold',
