@@ -157,6 +157,7 @@ export const baseFlags: FeatureFlags = {
   adaptive_response_enabled: false,
   response_timeline_enabled: false,
   living_performance_enabled: false,
+  conversational_intelligence_enabled: false,
   performance_memory_execution_enabled: false,
   performance_memory_governance_enabled: false,
   performance_identity_enabled: false,
