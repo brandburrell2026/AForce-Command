@@ -243,6 +243,11 @@
     "week_ago": "{{count}} week ago",
     "week_ago_plural": "{{count}} weeks ago"
   },
+  "coachIntelligence": {
+    "urgent_command": "Now — {{action}}",
+    "recovery_window": "Recovery window's open. {{action}}",
+    "daily_lesson": "Your body taught us something today — worth a look."
+  },
   "coach": {
     "confidence_high": "HIGH CONFIDENCE",
     "confidence_medium": "GOOD CONFIDENCE",

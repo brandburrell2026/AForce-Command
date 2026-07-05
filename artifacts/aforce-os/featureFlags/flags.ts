@@ -178,6 +178,10 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   // production; the model always derives (pure, observational). ON in DEMO.
   living_performance_enabled: false,
 
+  // Section 64 — Conversational Intelligence™ policy activation for the AI Coach.
+  // OFF in production; the policy is pure/observational and always safe to run.
+  conversational_intelligence_enabled: false,
+
   // Performance Memory™ — STEP 3 execution-memory expansion. Additive,
   // read-only command-completion recap (execution streak / recent follow-rate
   // + trend) read from the same ledger. OFF in the production binary so the
@@ -322,6 +326,9 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
 
   // Section 61 — Living Performance Model™ ON for internal inspection.
   living_performance_enabled: true,
+
+  // Section 64 — Conversational Intelligence™ ON for internal inspection.
+  conversational_intelligence_enabled: true,
 
   // Performance Memory™ — STEP 3 execution-memory recap ON for internal inspection.
   performance_memory_execution_enabled: true,

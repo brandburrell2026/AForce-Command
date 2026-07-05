@@ -770,6 +770,14 @@ export interface FeatureFlags {
    * never scores.
    */
   living_performance_enabled: boolean;
+  /**
+   * Section 64 — Conversational Intelligence Architecture™. Gates whether the AI
+   * Coach's proactive, context-loaded behavior (the speak-first / stay-silent
+   * policy) drives the voice layer. The policy is pure + observational; this flag
+   * governs activation only. OFF in the production binary. Score-Protection:
+   * read-only, never scores.
+   */
+  conversational_intelligence_enabled: boolean;
 
   // HealthKit native module load gate. Controls whether the native
   // Nitro/HealthKit module (@kingstinct/react-native-healthkit) is loaded
