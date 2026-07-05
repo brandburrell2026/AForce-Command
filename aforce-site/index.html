@@ -78,7 +78,7 @@
   .hero{ min-height:100vh; background:var(--ink); color:var(--canvas); display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:120px 24px 80px; position:relative; overflow:hidden; }
   .hero-video{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; opacity:0.55; z-index:0; }
   .hero-video-overlay{ position:absolute; inset:0; z-index:1; background:linear-gradient(180deg, rgba(13,13,13,0.55) 0%, rgba(13,13,13,0.35) 40%, rgba(13,13,13,0.85) 100%); }
-  .hero > *:not(.hero-video):not(.hero-video-overlay){ position:relative; z-index:2; }
+  .hero > *:not(.hero-video):not(.hero-video-overlay):not(.hero-cine){ position:relative; z-index:2; }
   .hero .kicker{ font-family:'IBM Plex Mono', monospace; font-size:12px; letter-spacing:0.32em; text-transform:uppercase; color: var(--metal); margin-bottom:28px; opacity:0; transform:translateY(10px); }
   .hero h1{ font-family:'Archivo Black', serif; font-weight:400; font-size:clamp(52px, 9vw, 128px); line-height:1.0; opacity:0; transform:translateY(16px); }
   .hero h1 em{ font-style:normal; font-weight:300; }
@@ -93,6 +93,30 @@
   .scroll-cue .line{ width:1px; height:34px; background:rgba(245,240,232,0.25); position:relative; overflow:hidden;}
   .scroll-cue .line::after{ content:''; position:absolute; top:-100%; left:0; width:100%; height:100%; background:var(--canvas); animation: cue 2.4s ease-in-out infinite; }
   @keyframes cue{ 0%{top:-100%;} 60%{top:100%;} 100%{top:100%;} }
+
+  /* ---------- CINEMATIC HERO — ambient filmic motion behind the headline ---------- */
+  .hero-cine{ position:absolute; inset:0; z-index:0; overflow:hidden; background:var(--ink); }
+  .cine-scene{ position:absolute; inset:-12%; animation:cine-zoom 36s ease-in-out infinite alternate; will-change:transform; }
+  @keyframes cine-zoom{ from{ transform:scale(1.02);} to{ transform:scale(1.12);} }
+  .cine-glow{ position:absolute; border-radius:50%; will-change:transform,opacity; }
+  .cine-red{ width:130vmax; height:80vmax; left:50%; top:-34%; filter:blur(64px);
+    background:radial-gradient(closest-side, rgba(193,40,27,0.36), rgba(193,40,27,0.10) 45%, transparent 72%);
+    animation:cine-red 24s ease-in-out infinite alternate; }
+  @keyframes cine-red{ 0%{ transform:translate(-53%,-3%) scale(1); opacity:.55;} 100%{ transform:translate(-46%,5%) scale(1.14); opacity:.82;} }
+  .cine-silver{ width:92vmax; height:70vmax; right:-16%; bottom:-24%; filter:blur(72px); mix-blend-mode:screen;
+    background:radial-gradient(closest-side, rgba(245,240,232,0.12), transparent 70%);
+    animation:cine-silver 32s ease-in-out infinite alternate; }
+  @keyframes cine-silver{ 0%{ transform:translate(8%,6%) scale(1);} 100%{ transform:translate(-6%,-8%) scale(1.18);} }
+  .cine-beam{ position:absolute; top:-40%; left:0; width:55%; height:180%; mix-blend-mode:screen; filter:blur(8px);
+    background:linear-gradient(102deg, transparent 42%, rgba(245,240,232,0.16) 50%, transparent 58%);
+    transform:rotate(9deg) translateX(-80%); animation:cine-beam 19s ease-in-out infinite; }
+  @keyframes cine-beam{ 0%{ transform:rotate(9deg) translateX(-80%); opacity:0;} 15%{opacity:.6;} 70%{opacity:.42;} 100%{ transform:rotate(9deg) translateX(260%); opacity:0;} }
+  .cine-vignette{ position:absolute; inset:0; background:radial-gradient(130% 90% at 50% 38%, transparent 46%, rgba(0,0,0,0.62) 100%); }
+  .cine-dust{ position:absolute; inset:0; width:100%; height:100%; opacity:.45; }
+  @media (prefers-reduced-motion: reduce){
+    .cine-scene, .cine-red, .cine-silver, .cine-beam{ animation:none !important; }
+    .cine-beam{ opacity:.22; }
+  }
 
   section{ padding:150px clamp(20px,6vw,72px); }
   .eyebrow-label{ font-family:'IBM Plex Mono', monospace; font-size:11px; letter-spacing:0.24em; text-transform:uppercase; color:var(--red); margin-bottom:20px; opacity:0; transform:translateY(10px); }
@@ -234,22 +258,11 @@
   .os-hook .step .n{ font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--red); flex-shrink:0; padding-top:2px;}
   .os-hook .step h5{ font-weight:600; font-size:15px; margin-bottom:4px;}
   .os-hook .step p{ font-size:13.5px; color:rgba(245,240,232,0.55); margin:0; }
-  .os-visual{ background:#000; border:1px solid var(--line-on-dark); border-radius:4px; padding:28px 28px 0; aspect-ratio:9/16; max-width:320px; margin:0 auto; display:flex; flex-direction:column; justify-content:space-between; color:var(--canvas); overflow:hidden; }
-  .os-visual .top{ font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.14em; color:rgba(245,240,232,0.55); display:flex; justify-content:space-between; align-items:center; }
-  .os-visual .top .dot{ width:6px; height:6px; border-radius:50%; background:var(--green); box-shadow:0 0 6px var(--green); }
-  .os-visual .ring{ width:150px; height:150px; border-radius:50%; margin:0 auto; border:1px solid rgba(245,240,232,0.15); display:flex; align-items:center; justify-content:center; position:relative; }
-  .os-visual .ring::before{ content:''; position:absolute; inset:-1px; border-radius:50%; border:2px solid var(--green); border-right-color:transparent; border-bottom-color:transparent; transform:rotate(35deg); }
-  .os-visual .ring .score{ font-family:'Archivo Black',serif; font-size:48px; }
-  .os-visual .bottom p{ font-size:12px; color:rgba(245,240,232,0.6); text-align:center; margin-top:14px;}
-  .os-visual .cta{ margin-top:22px; text-align:center; font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.14em; border:1px solid rgba(245,240,232,0.25); padding:14px; border-radius:2px; }
-  .os-visual .trend{ display:flex; align-items:flex-end; gap:3px; height:28px; margin:18px 0 4px; padding:0 4px; }
-  .os-visual .trend span{ flex:1; background:rgba(31,163,90,0.55); border-radius:1px 1px 0 0; }
-  .os-visual .trend-label{ text-align:center; font-family:'IBM Plex Mono',monospace; font-size:8px; letter-spacing:0.08em; text-transform:uppercase; color:rgba(245,240,232,0.35); }
-  .os-visual .tabbar{ display:flex; justify-content:space-between; padding:16px 4px; margin-top:22px; border-top:1px solid var(--line-on-dark); }
-  .os-visual .tabbar .tab{ display:flex; flex-direction:column; align-items:center; gap:6px; font-family:'IBM Plex Mono',monospace; font-size:8px; letter-spacing:0.04em; text-transform:uppercase; color:rgba(245,240,232,0.35); }
-  .os-visual .tabbar .tab.active{ color:var(--canvas); }
-  .os-visual .tabbar .icon{ width:14px; height:14px; border:1px solid currentColor; border-radius:3px; }
-  .os-visual .tabbar .tab.active .icon{ background:currentColor; }
+  .os-visual{ max-width:480px; margin:0 auto; position:relative; }
+  .os-visual::before{ content:''; position:absolute; inset:-10% -8%; z-index:0; pointer-events:none;
+    background:radial-gradient(58% 52% at 62% 46%, rgba(31,163,90,0.18), rgba(31,163,90,0.05) 46%, transparent 72%);
+    filter:blur(46px); }
+  .os-visual img{ position:relative; z-index:1; width:100%; height:auto; display:block; }
 
   /* ---------- COMMUNITY ---------- */
   .community{ background:var(--canvas-dim); }
@@ -338,10 +351,19 @@
 </section>
 
 <section class="hero" id="hero">
-  <!-- Brandon: drop the finished cinematic hero video at assets/hero-video.mp4 (and .webm) — this
-       falls back gracefully to the dark background if the file isn't present yet. See
-       PHOTOGRAPHY_AND_VIDEO_SPEC.md for exact shot direction, duration, and export settings. -->
-  <video class="hero-video" id="heroVideo" autoplay muted loop playsinline poster="assets/can-red.png">
+  <div class="hero-cine" aria-hidden="true">
+    <div class="cine-scene">
+      <span class="cine-glow cine-red"></span>
+      <span class="cine-glow cine-silver"></span>
+      <span class="cine-beam"></span>
+    </div>
+    <canvas class="cine-dust" id="cineDust"></canvas>
+    <div class="cine-vignette"></div>
+  </div>
+  <!-- Cinematic hero loop: 2508x1080, 24fps, ~5s, monochrome, audio stripped. VP9 webm first
+       (smaller), H.264 mp4 fallback. Falls back to the dark .hero-cine background if neither
+       plays or autoplay is blocked (poster shows a matching dark frame). -->
+  <video class="hero-video" id="heroVideo" autoplay muted loop playsinline preload="metadata" poster="assets/hero-poster.jpg">
     <source src="assets/hero-video.webm" type="video/webm">
     <source src="assets/hero-video.mp4" type="video/mp4">
   </video>
@@ -538,22 +560,7 @@
     </div>
   </div>
   <div class="os-visual fade-in">
-    <div class="top"><span>AForce OS · New York</span><span class="dot"></span></div>
-    <div class="ring"><span class="score">79</span></div>
-    <div class="trend">
-      <span style="height:40%;"></span><span style="height:55%;"></span><span style="height:35%;"></span>
-      <span style="height:70%;"></span><span style="height:60%;"></span><span style="height:85%;"></span>
-      <span style="height:100%; background:var(--green);"></span>
-    </div>
-    <div class="trend-label">7-Day Readiness Trend</div>
-    <div class="bottom"><p>Performance stable. Hydration locked in.</p><div class="cta">Maintain Performance</div></div>
-    <div class="tabbar">
-      <div class="tab active"><span class="icon"></span>Home</div>
-      <div class="tab"><span class="icon"></span>Scanner</div>
-      <div class="tab"><span class="icon"></span>Protocol</div>
-      <div class="tab"><span class="icon"></span>Timeline</div>
-      <div class="tab"><span class="icon"></span>More</div>
-    </div>
+    <img src="assets/os-app-mockup.png" alt="AForce OS app — Readiness Score of 79, Performance stable, and the Recovery Coach hydration prompt" width="880" height="1002" loading="lazy">
   </div>
 </section>
 
@@ -577,11 +584,11 @@
   <div class="eyebrow-label fade-in" style="display:inline-block;">Founding 500 · Brickell, Miami</div>
   <h2 class="section-title fade-in" style="margin:0 auto 20px;">You're not buying a product. You're helping define a movement.</h2>
   <p class="sub fade-in">500 spots. Not a waitlist — a roster.</p>
-  <div class="benefits">
+  <div class="benefits fade-in">
     <span>Early Product Access</span><span>AForce OS Founding Membership</span><span>Founding 500 Designation</span>
     <span>Miami Launch Invitation</span><span>Product Feedback Access</span><span>Phantom Band Priority Consideration</span>
   </div>
-  <form onsubmit="event.preventDefault(); this.querySelector('button').textContent='Request Received';">
+  <form class="fade-in" onsubmit="event.preventDefault(); this.querySelector('button').textContent='Request Received';">
     <input type="email" placeholder="Email address" required>
     <button type="submit">Claim Access</button>
   </form>
@@ -645,6 +652,34 @@
   // Hero video: hide gracefully if the source file isn't there yet (Brandon hasn't added it)
   const heroVideo = document.getElementById('heroVideo');
   heroVideo.addEventListener('error', ()=>{ heroVideo.style.display = 'none'; }, true);
+
+  // Cinematic hero — slow drifting dust motes (skipped under reduced-motion; tiny perf budget)
+  (function(){
+    const c = document.getElementById('cineDust');
+    if(!c) return;
+    if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const ctx = c.getContext('2d');
+    let w, h, dpr, motes = [];
+    function resize(){
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      w = c.clientWidth; h = c.clientHeight;
+      c.width = w*dpr; c.height = h*dpr; ctx.setTransform(dpr,0,0,dpr,0,0);
+      const n = Math.min(46, Math.round(w*h/26000));
+      motes = Array.from({length:n}, ()=>({ x:Math.random()*w, y:Math.random()*h, r:Math.random()*1.5+0.4, s:Math.random()*0.16+0.04, a:Math.random()*0.35+0.12, d:Math.random()*Math.PI*2 }));
+    }
+    function tick(){
+      ctx.clearRect(0,0,w,h);
+      for(const m of motes){
+        m.y -= m.s; m.x += Math.sin(m.d)*0.12; m.d += 0.005;
+        if(m.y < -4){ m.y = h+4; m.x = Math.random()*w; }
+        ctx.beginPath(); ctx.arc(m.x, m.y, m.r, 0, Math.PI*2);
+        ctx.fillStyle = 'rgba(245,240,232,'+m.a+')'; ctx.fill();
+      }
+      requestAnimationFrame(tick);
+    }
+    resize(); tick();
+    let rt; window.addEventListener('resize', ()=>{ clearTimeout(rt); rt=setTimeout(resize,200); });
+  })();
 
   const io = new IntersectionObserver((entries)=>{
     entries.forEach(e=>{ if(e.isIntersecting) e.target.classList.add('visible'); });
