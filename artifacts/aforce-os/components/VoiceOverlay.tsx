@@ -32,9 +32,16 @@ import {
 } from '../services/speechToText';
 import { speak, stopSpeaking, VOICE_PLAYBACK_ENABLED } from '../services/textToSpeech';
 import { processTranscript } from '../services/voiceService';
+import { getCommandLedgerState, selectCommandEvents } from '../services/commandLedger';
+import { deriveAdaptiveResponseProfile } from '../utils/intelligence/adaptiveResponseEngine';
+import { deriveDailyLesson } from '../utils/intelligence/livingPerformanceModel';
+import { assembleCoachContext } from '../utils/intelligence/conversationalIntelligence';
+import { speakGuarded } from '../utils/intelligence/conversationalLanguage';
 import type {
   VoiceCommandResponse, VoiceState, VoiceAction,
 } from '../types/voice';
+
+const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
 interface Props {
   visible: boolean;
@@ -179,14 +186,51 @@ export function VoiceOverlay({ visible, onClose, autoStart = false }: Props) {
     setVoiceState('processing');
     // Tiny delay so users perceive the "processing" beat (<1s per spec).
     await new Promise((r) => setTimeout(r, 220));
-    const result = processTranscript(transcript, { engineOutput: appState.engineOutput });
+
+    // Section 64 — when the flag is ON, load full coach context so on-ask replies
+    // answer with HydroState / recovery / daily-lesson already loaded (never from
+    // zero). Read-only, synchronous ledger snapshot — nothing runs when OFF, so
+    // flag-off is byte-identical to today.
+    const ci = appState.featureFlags.conversational_intelligence_enabled;
+    const engineOutput = appState.engineOutput;
+    let ctxArg: Parameters<typeof processTranscript>[1] = { engineOutput };
+    if (ci) {
+      const lesson = deriveDailyLesson(
+        deriveAdaptiveResponseProfile(selectCommandEvents(getCommandLedgerState())),
+      );
+      const us = appState.userState;
+      const followedToday =
+        (us.confirmationDelta ?? 0) > 0 &&
+        us.confirmationDeltaSetAt != null &&
+        Date.now() - us.confirmationDeltaSetAt.getTime() < ONE_DAY_MS;
+      ctxArg = {
+        engineOutput,
+        coachContext: assembleCoachContext({
+          level: engineOutput.performanceState.level,
+          score: engineOutput.score,
+          urgency: engineOutput.command.urgencyLevel,
+          commandAction: engineOutput.command.action,
+          commandFollowedToday: followedToday,
+          recoveryWindowActive: engineOutput.social?.inRecoveryWindow ?? false,
+          hasDailyLesson: lesson.kind === 'lesson',
+        }),
+      };
+    }
+
+    const result = processTranscript(transcript, ctxArg);
     setResponse(result);
     setVoiceState(result.intent === 'UNKNOWN' ? 'error' : 'responding');
-    // speak() is a no-op while voice playback is disabled — kept here
-    // so re-enabling playback later requires only flipping the flag in
-    // textToSpeech.ts. Side-effect dispatch follows so logIntake's
-    // loading state can't visually compete with the response card.
-    void speak(result.spoken);
+    // speak() is a no-op while voice playback is disabled — kept here so
+    // re-enabling playback later requires only flipping the flag in
+    // textToSpeech.ts. When §64 is on, every on-ask line passes the guard before
+    // TTS (fail-closed to silence); when off, the exact prior call path runs.
+    if (ci) {
+      speakGuarded(result.spoken, (t) => {
+        void speak(t);
+      });
+    } else {
+      void speak(result.spoken);
+    }
     void executeAction(result.action);
     // Auto-dismiss after a comfortable read window. Navigation actions close
     // the sheet immediately via executeAction → onClose, so this timer only
@@ -195,7 +239,7 @@ export function VoiceOverlay({ visible, onClose, autoStart = false }: Props) {
     dismissTimerRef.current = setTimeout(() => {
       onClose();
     }, 8000);
-  }, [appState.engineOutput, executeAction, onClose]);
+  }, [appState.engineOutput, appState.featureFlags.conversational_intelligence_enabled, appState.userState, executeAction, onClose]);
 
   const stopAndFinalize = useCallback(async () => {
     const handle = sttRef.current;

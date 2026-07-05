@@ -54,3 +54,26 @@ export function assertCompliantCoachLine(text: string, label = 'coach line'): vo
     );
   }
 }
+
+/**
+ * The pre-TTS gate for §64 output: return the line only if it is compliant, else
+ * `null`. Guards the ACTUAL rendered text (interpolated params included), not
+ * just the template — so a forbidden word reaching the spoken string is caught.
+ */
+export function guardCoachLine(text: string): string | null {
+  if (typeof text !== 'string' || !text.trim()) return null;
+  return isCompliantCoachLine(text) ? text : null;
+}
+
+/**
+ * Speak a §64 line through `speaker` ONLY if it passes the guard — fail-closed:
+ * a non-compliant (or empty) line is suppressed and the coach stays SILENT.
+ * `speaker` is injected so this is unit-testable with a spy and RN-free. Returns
+ * true iff the line was actually spoken.
+ */
+export function speakGuarded(line: string, speaker: (text: string) => void): boolean {
+  const safe = guardCoachLine(line);
+  if (safe === null) return false;
+  speaker(safe);
+  return true;
+}

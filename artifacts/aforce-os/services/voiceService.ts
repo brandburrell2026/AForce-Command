@@ -28,9 +28,17 @@ import { classifyTranscript } from './intentClassifier';
 import { resolvePersona } from './voicePersonaService';
 import { renderTemplate } from './voiceTemplateEngine';
 import { setActiveMode } from './ttsConfigService';
+import i18n from './i18nService';
+import { proactiveLine, type CoachContext } from '../utils/intelligence/conversationalIntelligence';
 
 export interface VoiceContext {
   engineOutput: ScoreEngineOutput;
+  /**
+   * Section 64 — optional full coach context. When provided (flag ON), the
+   * on-ask GET_STATUS / GET_COMMAND replies lead with the loaded, observation-only
+   * line instead of a from-zero template. Absent ⇒ byte-identical to today.
+   */
+  coachContext?: CoachContext;
 }
 
 const SYMPTOM_LABEL: Record<VoiceSymptomId, string> = {
@@ -98,6 +106,18 @@ function buildPersonaContext(ctx: VoiceContext, extras: Partial<PersonaContext> 
   };
 }
 
+/**
+ * Section 64 — the context-loaded line the coach leads with when full context is
+ * present AND a high-value moment is live, rendered via i18n. Null when there's
+ * no context or nothing notable, so callers fall back to the template (flag-off /
+ * context-absent behavior is byte-identical). Pure — reads no store, no score.
+ */
+function coachLoadedLine(ctx: VoiceContext): string | null {
+  if (!ctx.coachContext) return null;
+  const line = proactiveLine(ctx.coachContext);
+  return line ? i18n.t(line.lineKey, line.params) : null;
+}
+
 function buildResponse(
   classification: VoiceClassification,
   ctx: VoiceContext,
@@ -146,9 +166,10 @@ function buildResponse(
 
     case 'GET_STATUS': {
       const rendered = renderTemplate('score_update', buildPersonaContext(ctx));
+      const loaded = coachLoadedLine(ctx);
       return {
         ...base,
-        spoken: rendered.spoken,
+        spoken: loaded ?? rendered.spoken,
         ...(rendered.detail ? { detail: rendered.detail } : {}),
         action: { type: 'CONFIRM_STATUS' },
       };
@@ -156,9 +177,10 @@ function buildResponse(
 
     case 'GET_COMMAND': {
       const rendered = renderTemplate('next_action', buildPersonaContext(ctx));
+      const loaded = coachLoadedLine(ctx);
       return {
         ...base,
-        spoken: rendered.spoken,
+        spoken: loaded ?? rendered.spoken,
         ...(rendered.detail ? { detail: rendered.detail } : {}),
         action: { type: 'NONE' },
       };

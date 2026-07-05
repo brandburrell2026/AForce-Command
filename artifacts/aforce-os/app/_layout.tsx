@@ -50,6 +50,7 @@ import { snoozeRevalidationDelay } from '@/utils/voiceCheckIn';
 import { useVoiceCheckIn } from '@/hooks/useVoiceCheckIn';
 import { VoiceCheckInOverlay } from '@/components/voiceCheckIn/VoiceCheckInOverlay';
 import { PerformanceStatementMount } from '@/components/performanceStatement/PerformanceStatementMount';
+import { ConversationalCoachMount } from '@/components/conversationalCoach/ConversationalCoachMount';
 import { enableScreens } from 'react-native-screens';
 import { DEFAULT_FLAGS } from '@/featureFlags/flags';
 
@@ -397,6 +398,10 @@ function AppShell() {
                   {/* Performance Statement — once-per-day voice-only coach
                       identity line; speaks after the opening / check-in. */}
                   <PerformanceStatementMount openingDone={openingDone} />
+                  {/* Section 64 — proactive Conversational Intelligence coach.
+                      Flag-gated (conversational_intelligence_enabled, default OFF);
+                      speaks first only on a high-value moment, silent otherwise. */}
+                  <ConversationalCoachMount openingDone={openingDone} />
                 </CartProvider>
               </AppProvider>
             </KeyboardProvider>

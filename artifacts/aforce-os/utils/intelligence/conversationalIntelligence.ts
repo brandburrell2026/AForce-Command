@@ -108,3 +108,37 @@ export function proactiveLine(ctx: CoachContext): ProactiveLine | null {
     mode: ctx.mode,
   };
 }
+
+/** One step of the proactive loop: the dedupe key to carry forward, and the
+ *  line to speak now (null = stay silent). */
+export interface ProactiveStep {
+  /** Dedupe key for the current utterance; null when there's no active trigger. */
+  key: string | null;
+  /** The line to speak this tick, or null to stay silent. */
+  utterance: ProactiveLine | null;
+}
+
+/**
+ * The silence gate + de-duplication, as a pure step. Given the previously-spoken
+ * key and the current context:
+ *  - No active trigger → silent, and key resets to null so a future trigger can
+ *    re-speak.
+ *  - Same utterance as last time → silent (never repeat a still-active trigger).
+ *  - A genuinely new value moment → speak it.
+ *
+ * The key encodes the trigger AND the specific command for `urgent_command`, so a
+ * NEW command re-speaks while the same one never nags. Pure — the caller holds
+ * `prevKey` across ticks.
+ */
+export function nextProactiveUtterance(prevKey: string | null, ctx: CoachContext): ProactiveStep {
+  const decision = decideProactiveSpeech(ctx);
+  if (!decision.speak || decision.trigger === null) {
+    return { key: null, utterance: null };
+  }
+  const key =
+    decision.trigger === 'urgent_command'
+      ? `urgent_command:${ctx.commandAction}`
+      : decision.trigger;
+  if (key === prevKey) return { key, utterance: null };
+  return { key, utterance: proactiveLine(ctx) };
+}
