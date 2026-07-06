@@ -76,8 +76,8 @@
 
   /* ---------- HERO (video-ready) ---------- */
   .hero{ min-height:100vh; background:#000; color:var(--canvas); display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:120px 24px 80px; position:relative; overflow:hidden; }
-  .hero-video{ position:absolute; top:50%; right:0; transform:translateY(-50%); width:63%; height:auto; opacity:0.5; z-index:0; -webkit-mask-image:linear-gradient(90deg, transparent 0%, #000 24%); mask-image:linear-gradient(90deg, transparent 0%, #000 24%); }
-  .hero-video-overlay{ position:absolute; inset:0; z-index:1; background:radial-gradient(115% 85% at 50% 40%, rgba(0,0,0,0.32) 0%, rgba(0,0,0,0.72) 52%, rgba(0,0,0,0.96) 100%); }
+  .hero-video{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:center; opacity:1; z-index:0; }
+  .hero-video-overlay{ position:absolute; inset:0; z-index:1; background:linear-gradient(180deg, rgba(0,0,0,0.38) 0%, rgba(0,0,0,0.06) 18%, rgba(0,0,0,0) 52%, rgba(0,0,0,0.34) 78%, rgba(0,0,0,0.66) 100%); }
   .hero > *:not(.hero-video):not(.hero-video-overlay):not(.hero-cine){ position:relative; z-index:2; }
   .hero .kicker{ font-family:'IBM Plex Mono', monospace; font-size:12px; letter-spacing:0.32em; text-transform:uppercase; color: var(--metal); margin-bottom:28px; opacity:0; transform:translateY(10px); }
   .hero h1{ font-family:'Archivo Black', serif; font-weight:400; font-size:clamp(52px, 9vw, 128px); line-height:1.0; opacity:0; transform:translateY(16px); }
@@ -111,6 +111,8 @@
   .hero .scroll-cue{ color:rgba(245,240,232,0.4); }
   .hero .btn{ font-family:'Inter', sans-serif; }
   .hero .scroll-cue .line{ background:rgba(245,240,232,0.25); }
+  .hero .cta-row{ position:absolute !important; left:0; right:0; bottom:98px; margin:0; z-index:2; }
+  .hero .scroll-cue{ position:absolute !important; }
   .hero-cine{ background:var(--ink); }
   .cine-silver{ background:radial-gradient(closest-side, rgba(245,240,232,0.12), transparent 70%); }
 
@@ -387,19 +389,15 @@
     <canvas class="cine-dust" id="cineDust"></canvas>
     <div class="cine-vignette"></div>
   </div>
-  <!-- Cinematic hero loop: 2508x1080, 24fps, ~5s, monochrome, audio stripped. VP9 webm first
-       (smaller), H.264 mp4 fallback. Falls back to the dark .hero-cine background if neither
-       plays or autoplay is blocked (poster shows a matching dark frame). -->
+  <!-- Cinematic hero loop: product beauty shot (AForce can, rooftop golden hour), 1920x1080,
+       ~11s, color, audio stripped. Full-bleed cover — the can leads. VP9 webm first (smaller),
+       H.264 mp4 fallback. Falls back to the dark .hero-cine background if neither plays or
+       autoplay is blocked (poster shows a matching frame). -->
   <video class="hero-video" id="heroVideo" autoplay muted loop playsinline preload="metadata" poster="assets/hero-poster.jpg">
     <source src="assets/hero-video.webm" type="video/webm">
     <source src="assets/hero-video.mp4" type="video/mp4">
   </video>
   <div class="hero-video-overlay"></div>
-  <div class="hero-mark fade-in">
-    <div class="eyebrow">Performance Is</div>
-    <div class="glyphs"><span class="n">N</span><span class="dash">—</span><span class="mirror">N</span></div>
-    <div class="caption">Non — Negotiable</div>
-  </div>
   <div class="cta-row fade-in">
     <a href="#founding" class="btn btn-ghost">Join the Founding 200</a>
   </div>
