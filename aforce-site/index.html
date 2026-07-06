@@ -256,7 +256,7 @@
   .arena-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:clamp(16px,2vw,28px); margin-top:60px; }
   .arena{ opacity:0; transform:translateY(16px); }
   .arena .shot{ aspect-ratio:3/4; overflow:hidden; border-radius:6px; background:var(--canvas); position:relative; }
-  .arena .shot img{ width:100%; height:100%; object-fit:cover; display:block; filter:grayscale(1) contrast(1.03); }
+  .arena .shot img{ width:100%; height:100%; object-fit:cover; display:block; filter:contrast(1.03); }
   .arena .shot.ph{ background:var(--canvas-dim); border:1px dashed rgba(13,13,13,0.18); }
   .arena .shot.ph::after{ content:attr(data-ph); position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.24em; text-transform:uppercase; color:rgba(13,13,13,0.34); }
   .arena .cap{ margin-top:18px; display:flex; justify-content:space-between; align-items:baseline; border-top:1px solid var(--line); padding-top:14px; }
