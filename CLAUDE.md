@@ -26,17 +26,22 @@ The AForce OS governing documents live in `governance/` (mirrored in `artifacts/
 - **Secrets:** never print, log, copy, export, or commit any secret value (Stripe, Clerk, database, API keys). Confirming a variable *exists* is fine; revealing or moving its value is not.
 - **Database data:** no destructive operations; never copy dev data into production.
 
-## Brand system v2.1.0 (canonical — conform to this, do not invent)
+## Brand system v2.2.0 (canonical — conform to this, do not invent)
+
+As of 2026-07-06 the marketing surface runs a **light theme**: Paper (`#E9E7E1`) is the
+primary background, with Cinematic Black retained for the cinematic hero and as the primary
+text color. (v2.1.0 was dark-primary; this reverses ground/figure for the site.)
 
 Colors:
 
-| Token            | Value     | Usage                         |
-|------------------|-----------|-------------------------------|
-| Cinematic Black  | `#0D0D0D` | Primary background            |
-| Signal Red       | `#C1281B` | Accent / brand mark           |
-| Bone             | `#F5F0E8` | Light surface / text on black |
-| Soursop Green    | `#1FA35A` | Status / positive states      |
-| Berry Blue       | `#1E5BFF` | Secondary accent              |
+| Token            | Value     | Usage                                        |
+|------------------|-----------|----------------------------------------------|
+| Paper            | `#E9E7E1` | Primary background / site surface            |
+| Cinematic Black  | `#0D0D0D` | Cinematic hero backdrop; primary text on light |
+| Signal Red       | `#C1281B` | Accent / brand mark                          |
+| Bone             | `#F5F0E8` | Legacy light surface (superseded by Paper)   |
+| Soursop Green    | `#1FA35A` | Status / positive states                     |
+| Berry Blue       | `#1E5BFF` | Secondary accent                             |
 
 Typography:
 
