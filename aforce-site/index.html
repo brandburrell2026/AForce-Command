@@ -58,9 +58,7 @@
   .nav a.shop-link{ opacity:1; border-bottom:1px solid currentColor; padding-bottom:2px; }
 
   /* ---------- HERO (video-ready) ---------- */
-  .hero{ min-height:100vh; background:var(--canvas); color:var(--ink); display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:120px 24px 80px; position:relative; overflow:hidden; }
-  /* Light theme: drop the dark cinematic hero backdrop; monogram sits on the light section. */
-  .hero-video, .hero-video-overlay, .hero-cine{ display:none; }
+  .hero{ min-height:100vh; background:var(--ink); color:var(--canvas); display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:120px 24px 80px; position:relative; overflow:hidden; }
   .hero-video{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; opacity:0.55; z-index:0; }
   .hero-video-overlay{ position:absolute; inset:0; z-index:1; background:linear-gradient(180deg, rgba(13,13,13,0.55) 0%, rgba(13,13,13,0.35) 40%, rgba(13,13,13,0.85) 100%); }
   .hero > *:not(.hero-video):not(.hero-video-overlay):not(.hero-cine){ position:relative; z-index:2; }
@@ -86,6 +84,17 @@
   .scroll-cue .line{ width:1px; height:34px; background:rgba(13,13,13,0.25); position:relative; overflow:hidden;}
   .scroll-cue .line::after{ content:''; position:absolute; top:-100%; left:0; width:100%; height:100%; background:var(--canvas); animation: cue 2.4s ease-in-out infinite; }
   @keyframes cue{ 0%{top:-100%;} 60%{top:100%;} 100%{top:100%;} }
+
+  /* Hero is a dark cinematic island in the light theme — keep its marks/text light over the video */
+  .hero-mark .eyebrow, .hero-mark .caption{ color:rgba(245,240,232,0.6); }
+  .hero-mark .glyphs .dash{ color:rgba(245,240,232,0.32); }
+  .hero-mark .glyphs .mirror{ color:var(--canvas); }
+  .hero .btn-ghost{ border-color:rgba(245,240,232,0.2); color:var(--canvas); }
+  .hero .btn-ghost:hover{ border-color:var(--canvas); }
+  .hero .scroll-cue{ color:rgba(245,240,232,0.4); }
+  .hero .scroll-cue .line{ background:rgba(245,240,232,0.25); }
+  .hero-cine{ background:var(--ink); }
+  .cine-silver{ background:radial-gradient(closest-side, rgba(245,240,232,0.12), transparent 70%); }
 
   /* ---------- CINEMATIC HERO — ambient filmic motion behind the headline ---------- */
   .hero-cine{ position:absolute; inset:0; z-index:0; overflow:hidden; background:var(--canvas); }
@@ -238,6 +247,7 @@
   .arena{ opacity:0; transform:translateY(16px); }
   .arena .shot{ aspect-ratio:3/4; overflow:hidden; border-radius:6px; background:var(--canvas); position:relative; }
   .arena .shot img{ width:100%; height:100%; object-fit:cover; display:block; filter:grayscale(1) contrast(1.03); }
+  .arena .shot.ph{ background:var(--canvas-dim); border:1px dashed rgba(13,13,13,0.18); }
   .arena .shot.ph::after{ content:attr(data-ph); position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.24em; text-transform:uppercase; color:rgba(13,13,13,0.34); }
   .arena .cap{ margin-top:18px; display:flex; justify-content:space-between; align-items:baseline; border-top:1px solid var(--line); padding-top:14px; }
   .arena .cap .role{ font-family:'Archivo Black',serif; font-weight:400; font-size:19px; }
