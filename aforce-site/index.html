@@ -49,6 +49,8 @@
 
   .shop-entry{ position:fixed; top:26px; right:clamp(20px,4vw,56px); z-index:150; font-family:'IBM Plex Mono',monospace; font-size:10.5px; letter-spacing:0.14em; text-transform:uppercase; color:rgba(13,13,13,0.55); text-decoration:none; transition:color .3s ease; mix-blend-mode:difference; }
   .shop-entry:hover{ color:#fff; }
+  .skip-intro{ position:absolute; bottom:26px; left:clamp(20px,4vw,56px); z-index:150; font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.14em; text-transform:uppercase; color:rgba(13,13,13,0.45); text-decoration:none; transition:color .3s ease; }
+  .skip-intro:hover{ color:rgba(13,13,13,0.8); }
 
   .nav{ position:fixed; top:0; left:0; right:0; z-index:100; display:flex; align-items:center; justify-content:space-between; padding: 26px clamp(20px,4vw,56px); mix-blend-mode:difference; color:#fff; font-size:13px; opacity:0; transition:opacity 1.2s ease; }
   .nav.show{opacity:1;}
@@ -57,35 +59,60 @@
   .nav a{text-decoration:none; font-family:'IBM Plex Mono',monospace; font-size:10.5px; letter-spacing:0.1em; text-transform:uppercase; opacity:0.85;}
   .nav a.shop-link{ opacity:1; border-bottom:1px solid currentColor; padding-bottom:2px; }
 
+  /* ---------- INTRO (light theme) ---------- */
+  .intro{ height:100vh; background:var(--canvas); color:var(--ink); display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden; }
+  .intro-word{ position:absolute; font-family:'Archivo Black', serif; font-weight:300; font-style:normal; font-size:clamp(40px, 9vw, 120px); opacity:0; }
+  .intro-sub{ position:absolute; bottom:14%; font-family:'IBM Plex Mono', monospace; font-size:11px; letter-spacing:0.2em; text-transform:uppercase; opacity:0; color:rgba(13,13,13,0.5); }
+  .intro-progress{ position:absolute; bottom:8%; left:50%; transform:translateX(-50%); display:flex; gap:8px; }
+  .intro-progress span{ width:22px; height:2px; background:rgba(13,13,13,0.2); }
+  .intro-progress span.active{ background: var(--ink); }
+  .reveal{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; opacity:0; }
+  .reveal .eyebrow{ font-family:'IBM Plex Mono', monospace; font-size:12px; letter-spacing:0.3em; color: rgba(13,13,13,0.55); margin-bottom:18px; }
+  .reveal .glyphs{ display:flex; align-items:baseline; gap:20px; font-family:'Archivo Black', serif; font-size:clamp(90px, 22vw, 280px); line-height:0.85; }
+  .reveal .glyphs .n{ color: var(--red); }
+  .reveal .glyphs .dash{ color: rgba(13,13,13,0.3); font-size:0.5em; }
+  .reveal .glyphs .mirror{ display:inline-block; color: var(--ink); transform: scaleX(-1); }
+  .reveal .caption{ margin-top:22px; font-family:'IBM Plex Mono', monospace; font-size:13px; letter-spacing:0.28em; text-transform:uppercase; color: rgba(13,13,13,0.7); }
+
   /* ---------- HERO (video-ready) ---------- */
-  .hero{ min-height:100vh; background:var(--canvas); color:var(--ink); display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:120px 24px 80px; position:relative; overflow:hidden; }
-  /* Light theme: drop the dark cinematic hero backdrop; monogram sits on the light section. */
-  .hero-video, .hero-video-overlay, .hero-cine{ display:none; }
-  .hero-video{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; opacity:0.55; z-index:0; }
-  .hero-video-overlay{ position:absolute; inset:0; z-index:1; background:linear-gradient(180deg, rgba(13,13,13,0.55) 0%, rgba(13,13,13,0.35) 40%, rgba(13,13,13,0.85) 100%); }
+  .hero{ min-height:100vh; background:#000; color:var(--canvas); display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:120px 24px 80px; position:relative; overflow:hidden; }
+  .hero-video{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; opacity:0.5; z-index:0; }
+  .hero-video-overlay{ position:absolute; inset:0; z-index:1; background:radial-gradient(115% 85% at 50% 40%, rgba(0,0,0,0.32) 0%, rgba(0,0,0,0.72) 52%, rgba(0,0,0,0.96) 100%); }
   .hero > *:not(.hero-video):not(.hero-video-overlay):not(.hero-cine){ position:relative; z-index:2; }
   .hero .kicker{ font-family:'IBM Plex Mono', monospace; font-size:12px; letter-spacing:0.32em; text-transform:uppercase; color: var(--metal); margin-bottom:28px; opacity:0; transform:translateY(10px); }
   .hero h1{ font-family:'Archivo Black', serif; font-weight:400; font-size:clamp(52px, 9vw, 128px); line-height:1.0; opacity:0; transform:translateY(16px); }
   .hero h1 em{ font-style:normal; font-weight:300; }
   .hero p.lede{ max-width:560px; margin:32px auto 0; font-size:17px; line-height:1.7; color: rgba(13,13,13,0.78); opacity:0; transform:translateY(16px); }
   /* Hero brand mark — N–N monogram in place of the headline */
-  .hero-mark{ display:flex; flex-direction:column; align-items:center; opacity:0; transform:translateY(16px); }
-  .hero-mark .eyebrow{ font-family:'IBM Plex Mono', monospace; font-size:clamp(11px,1.4vw,14px); letter-spacing:0.34em; color: rgba(13,13,13,0.55); margin-bottom:8px; }
+  .hero-mark{ display:flex; flex-direction:column; align-items:center; align-self:flex-start; margin-left:clamp(24px,7vw,150px); opacity:0; transform:translateY(16px); }
+  .hero-mark .eyebrow{ font-family:'Inter', sans-serif; font-size:clamp(11px,1.4vw,14px); letter-spacing:0.34em; color: rgba(13,13,13,0.55); margin-bottom:8px; }
   .hero-mark .glyphs{ display:flex; align-items:center; gap:clamp(16px,3vw,40px); font-family:'Archivo Black', serif; font-size:clamp(96px, 21vw, 260px); line-height:0.85; }
   .hero-mark .glyphs .n{ color: var(--red); }
   .hero-mark .glyphs .dash{ color: rgba(13,13,13,0.32); font-size:0.32em; }
   .hero-mark .glyphs .mirror{ display:inline-block; color: var(--ink); transform: scaleX(-1); }
-  .hero-mark .caption{ margin-top:6px; font-family:'IBM Plex Mono', monospace; font-size:clamp(12px,1.5vw,15px); letter-spacing:0.34em; text-transform:uppercase; color: rgba(13,13,13,0.7); }
+  .hero-mark .caption{ margin-top:6px; font-family:'Inter', sans-serif; font-size:clamp(12px,1.5vw,15px); letter-spacing:0.34em; text-transform:uppercase; color: rgba(13,13,13,0.7); }
   .cta-row{ margin-top:46px; display:flex; gap:16px; flex-wrap:wrap; justify-content:center; opacity:0; transform:translateY(16px); }
   .btn{ font-family:'IBM Plex Mono', monospace; font-size:11px; letter-spacing:0.16em; text-transform:uppercase; padding:16px 30px; text-decoration:none; border-radius:2px; transition: all .35s ease; display:inline-block; cursor:pointer; border:none; }
   .btn-primary{ background:var(--ink); color:var(--canvas); }
   .btn-primary:hover{ background:var(--red); color:#fff; }
   .btn-ghost{ border:1px solid var(--line-on-dark); color:var(--ink); background:transparent; }
   .btn-ghost:hover{ border-color:var(--ink); }
-  .scroll-cue{ position:absolute; bottom:36px; left:50%; transform:translateX(-50%); font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.24em; color: rgba(13,13,13,0.4); text-transform:uppercase; display:flex; flex-direction:column; align-items:center; gap:10px; z-index:2; }
+  .scroll-cue{ position:absolute; bottom:36px; left:50%; transform:translateX(-50%); font-family:'Inter', sans-serif; font-size:10px; letter-spacing:0.24em; color: rgba(13,13,13,0.4); text-transform:uppercase; display:flex; flex-direction:column; align-items:center; gap:10px; z-index:2; }
   .scroll-cue .line{ width:1px; height:34px; background:rgba(13,13,13,0.25); position:relative; overflow:hidden;}
   .scroll-cue .line::after{ content:''; position:absolute; top:-100%; left:0; width:100%; height:100%; background:var(--canvas); animation: cue 2.4s ease-in-out infinite; }
   @keyframes cue{ 0%{top:-100%;} 60%{top:100%;} 100%{top:100%;} }
+
+  /* Hero is a dark cinematic island in the light theme — keep its marks/text light over the video */
+  .hero-mark .eyebrow, .hero-mark .caption{ color:rgba(245,240,232,0.6); }
+  .hero-mark .glyphs .dash{ color:rgba(245,240,232,0.32); }
+  .hero-mark .glyphs .mirror{ color:var(--canvas); }
+  .hero .btn-ghost{ border-color:rgba(245,240,232,0.2); color:var(--canvas); }
+  .hero .btn-ghost:hover{ border-color:var(--canvas); }
+  .hero .scroll-cue{ color:rgba(245,240,232,0.4); }
+  .hero .btn{ font-family:'Inter', sans-serif; }
+  .hero .scroll-cue .line{ background:rgba(245,240,232,0.25); }
+  .hero-cine{ background:var(--ink); }
+  .cine-silver{ background:radial-gradient(closest-side, rgba(245,240,232,0.12), transparent 70%); }
 
   /* ---------- CINEMATIC HERO — ambient filmic motion behind the headline ---------- */
   .hero-cine{ position:absolute; inset:0; z-index:0; overflow:hidden; background:var(--canvas); }
@@ -170,19 +197,20 @@
 
   /* ---------- ASYMMETRIC BREAK ---------- */
   /* ---------- THE SIGNAL — the brand's signature visual motif ---------- */
-  .signal-section{ background:var(--canvas-dim); position:relative; display:grid; grid-template-columns: 1fr 1fr; min-height:80vh; align-items:stretch; padding:0; }
+  .signal-section{ background:var(--ink); position:relative; display:grid; grid-template-columns: 1fr 1fr; min-height:80vh; align-items:stretch; padding:0; }
+  .signal-section .section-title{ color:var(--canvas); }
   .signal-section .left{ padding:120px clamp(20px,6vw,80px); display:flex; flex-direction:column; justify-content:center; }
-  .signal-section .right{ background:var(--canvas); position:relative; overflow:hidden; display:flex; align-items:center; justify-content:center; padding:60px; }
-  .signal-section p.lead{ font-size:16px; line-height:1.75; color:#4a4d53; max-width:440px; margin-top:24px; }
+  .signal-section .right{ background:#181818; position:relative; overflow:hidden; display:flex; align-items:center; justify-content:center; padding:60px; }
+  .signal-section p.lead{ font-size:16px; line-height:1.75; color:rgba(245,240,232,0.7); max-width:440px; margin-top:24px; }
   .signal-visual{ width:100%; max-width:420px; }
-  .signal-track{ position:relative; height:2px; background:rgba(13,13,13,0.12); border-radius:2px; margin-bottom:36px; }
+  .signal-track{ position:relative; height:2px; background:rgba(245,240,232,0.14); border-radius:2px; margin-bottom:36px; }
   .signal-track .fill-bar{ position:absolute; top:0; left:0; height:100%; width:0%; border-radius:2px; background:linear-gradient(90deg, var(--red), var(--blue), var(--green)); transition: width 2.6s cubic-bezier(.4,0,.2,1); }
   .signal-track .dot{ position:absolute; top:50%; left:0%; width:14px; height:14px; margin-top:-7px; margin-left:-7px; border-radius:50%; background:var(--canvas); transition: left 2.6s cubic-bezier(.4,0,.2,1); box-shadow:0 0 0 0 rgba(13,13,13,0.5); }
   .signal-section.visible .signal-track .fill-bar{ width:100%; }
   .signal-section.visible .signal-track .dot{ left:100%; animation: pulse-ring 1.8s ease-out 2.6s 2; }
   @keyframes pulse-ring{ 0%{ box-shadow:0 0 0 0 rgba(31,163,90,0.5);} 100%{ box-shadow:0 0 0 22px rgba(31,163,90,0);} }
-  .signal-states{ display:flex; justify-content:space-between; font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:rgba(13,13,13,0.4); }
-  .signal-states span.reached{ color:var(--ink); }
+  .signal-states{ display:flex; justify-content:space-between; font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:rgba(245,240,232,0.4); }
+  .signal-states span.reached{ color:var(--canvas); }
   .signal-states .s1.reached{ color:#E8756A; } .signal-states .s2.reached{ color:#6E86FF; } .signal-states .s3.reached{ color:#5FC98A; }
 
   /* ---------- RITUAL — vertical connected timeline, not a grid ---------- */
@@ -213,7 +241,7 @@
   .product-minor{ background:var(--canvas); padding:34px 30px; display:flex; align-items:center; gap:22px; flex:1; border-bottom:1px solid var(--line-on-dark); opacity:0; transform:translateY(16px); transition:background .3s ease; }
   .product-minor:last-child{ border-bottom:none; }
   .product-minor:hover{ background:rgba(13,13,13,0.03); }
-  .product-minor img{ width:70px; height:120px; object-fit:contain; flex-shrink:0; }
+  .product-minor img{ width:126px; height:216px; object-fit:contain; flex-shrink:0; }
   .product-minor .tag{ font-family:'IBM Plex Mono',monospace; font-size:9.5px; letter-spacing:0.14em; text-transform:uppercase; margin-bottom:6px; }
   .product-minor h5{ font-family:'Archivo Black',serif; font-size:19px; font-weight:400; margin-bottom:4px; }
   .product-minor .ph{ font-size:10.5px; color:rgba(13,13,13,0.45); font-family:'IBM Plex Mono',monospace;}
@@ -229,7 +257,7 @@
 
   .stick-strip{ margin-top:60px; display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--line-on-dark); }
   .stick-strip .stick{ background:var(--canvas); padding:36px 20px; text-align:center; opacity:0; transform:translateY(16px); }
-  .stick-strip img{ height:180px; margin:0 auto 18px; object-fit:contain; }
+  .stick-strip img{ height:324px; margin:0 auto 18px; object-fit:contain; }
   .stick-strip .label{ font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.14em; color:rgba(13,13,13,0.6); text-transform:uppercase; }
 
   /* ---------- PROOF — typographic sentence, not a box grid ---------- */
@@ -238,6 +266,7 @@
   .arena{ opacity:0; transform:translateY(16px); }
   .arena .shot{ aspect-ratio:3/4; overflow:hidden; border-radius:6px; background:var(--canvas); position:relative; }
   .arena .shot img{ width:100%; height:100%; object-fit:cover; display:block; filter:grayscale(1) contrast(1.03); }
+  .arena .shot.ph{ background:var(--canvas-dim); border:1px dashed rgba(13,13,13,0.18); }
   .arena .shot.ph::after{ content:attr(data-ph); position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.24em; text-transform:uppercase; color:rgba(13,13,13,0.34); }
   .arena .cap{ margin-top:18px; display:flex; justify-content:space-between; align-items:baseline; border-top:1px solid var(--line); padding-top:14px; }
   .arena .cap .role{ font-family:'Archivo Black',serif; font-weight:400; font-size:19px; }
@@ -332,6 +361,21 @@
     <a href="#products" class="shop-link">Shop</a>
   </div>
 </nav>
+
+<section class="intro" id="intro">
+  <div class="intro-word" data-word="1">Pause.</div>
+  <div class="intro-word" data-word="2">Hydrate.</div>
+  <div class="intro-word" data-word="3">Lock in.</div>
+  <div class="intro-word" data-word="4">Perform.</div>
+  <div class="reveal" id="reveal">
+    <div class="eyebrow">Performance Is</div>
+    <div class="glyphs"><span class="n">N</span><span class="dash">—</span><span class="mirror">N</span></div>
+    <div class="caption">Non&nbsp;&#8209;&nbsp;Negotiable</div>
+  </div>
+  <div class="intro-sub">Quiet before the storm</div>
+  <div class="intro-progress"><span></span><span></span><span></span><span></span><span></span></div>
+  <a href="#hero" class="skip-intro" id="skipIntro">Skip Intro</a>
+</section>
 
 <section class="hero" id="hero">
   <div class="hero-cine" aria-hidden="true">
@@ -531,7 +575,7 @@
   <h2 class="section-title fade-in">Different arenas. Same standard.</h2>
   <div class="arena-grid">
     <div class="arena fade-in">
-      <div class="shot ph" data-ph="Surgeon — image pending"></div>
+      <div class="shot"><img src="assets/perf-surgeon.jpg" alt="Surgeon in scrubs and cap in an operating room" width="1200" height="1602" loading="lazy"></div>
       <div class="cap"><span class="role">Surgeon</span><span class="idx">01</span></div>
       <div class="line">Composure before the first incision.</div>
     </div>
@@ -541,9 +585,9 @@
       <div class="line">Composure before the open.</div>
     </div>
     <div class="arena fade-in">
-      <div class="shot"><img src="assets/perf-boxer.jpg" alt="Boxer, hooded with wrapped hands, in a dim gym" width="1200" height="1602" loading="lazy"></div>
-      <div class="cap"><span class="role">Boxer</span><span class="idx">03</span></div>
-      <div class="line">Composure before the bell.</div>
+      <div class="shot"><img src="assets/perf-boxer.jpg" alt="Basketball athlete holding a ball in a dim gym" width="1200" height="1602" loading="lazy"></div>
+      <div class="cap"><span class="role">Athlete</span><span class="idx">03</span></div>
+      <div class="line">Composure before tip-off.</div>
     </div>
   </div>
 </section>
@@ -618,9 +662,43 @@
 </footer>
 
 <script>
+  const words = document.querySelectorAll('.intro-word');
+  const dots = document.querySelectorAll('.intro-progress span');
+  const reveal = document.getElementById('reveal');
+  const introSub = document.querySelector('.intro-sub');
   const nav = document.getElementById('nav');
-  // Intro screen removed — reveal the nav immediately on load.
-  nav.classList.add('show');
+
+  function fadeStep(el, hold){
+    return new Promise(res=>{
+      el.style.transition = 'opacity 0.7s ease, transform 0.7s ease';
+      el.style.opacity = 1; el.style.transform = 'translateY(0)';
+      setTimeout(()=>{ el.style.transition = 'opacity 0.6s ease'; el.style.opacity = 0; res(); }, hold);
+    });
+  }
+  async function runIntro(){
+    for(let i=0;i<words.length;i++){
+      dots[i].classList.add('active');
+      await fadeStep(words[i], 2000);
+      await new Promise(r=>setTimeout(r,300));
+    }
+    dots[4].classList.add('active');
+    reveal.style.transition = 'opacity 1.2s ease';
+    reveal.style.opacity = 1;
+    setTimeout(()=>{ introSub.style.transition='opacity 1s ease'; introSub.style.opacity=1; }, 500);
+    setTimeout(()=>{ dismissIntro(); }, 2800);
+  }
+  function dismissIntro(){
+    const intro = document.getElementById('intro');
+    if(!intro || intro.dataset.done) return;
+    intro.dataset.done = '1';
+    nav.classList.add('show');
+    intro.style.transition = 'opacity 0.6s ease';
+    intro.style.opacity = '0';
+    setTimeout(()=>{ intro.style.display = 'none'; window.scrollTo(0,0); }, 600);
+  }
+  runIntro();
+
+  document.getElementById('skipIntro').addEventListener('click', (e)=>{ e.preventDefault(); dismissIntro(); });
 
   document.getElementById('shopEntry').addEventListener('click', ()=>{ nav.classList.add('show'); });
 
