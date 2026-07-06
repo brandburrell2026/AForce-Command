@@ -240,12 +240,16 @@
   .stick-strip .label{ font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.14em; color:rgba(245,240,232,0.6); text-transform:uppercase; }
 
   /* ---------- PROOF — typographic sentence, not a box grid ---------- */
-  .proof{ background:var(--canvas); padding:150px clamp(20px,6vw,72px); }
-  .proof-sentence{ max-width:920px; font-family:'Archivo Black',serif; font-weight:300; font-size:clamp(28px,4vw,46px); line-height:1.5; opacity:0; transform:translateY(14px); }
-  .proof-sentence .stat{ font-style:normal; font-weight:500; color:var(--red); }
-  .proof-sentence .stat.blue{ color:var(--blue); }
-  .proof-sentence .stat.green{ color:var(--green); }
-  .proof-footnote{ margin-top:36px; font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.06em; color:#8a8d93; opacity:0; transform:translateY(10px); }
+  .arenas{ background:var(--canvas); padding:150px clamp(20px,6vw,72px); }
+  .arena-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:clamp(16px,2vw,28px); margin-top:60px; }
+  .arena{ opacity:0; transform:translateY(16px); }
+  .arena .shot{ aspect-ratio:3/4; overflow:hidden; border-radius:6px; background:var(--ink); position:relative; }
+  .arena .shot img{ width:100%; height:100%; object-fit:cover; display:block; filter:grayscale(1) contrast(1.03); }
+  .arena .shot.ph::after{ content:attr(data-ph); position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.24em; text-transform:uppercase; color:rgba(245,240,232,0.34); }
+  .arena .cap{ margin-top:18px; display:flex; justify-content:space-between; align-items:baseline; border-top:1px solid var(--line); padding-top:14px; }
+  .arena .cap .role{ font-family:'Archivo Black',serif; font-weight:400; font-size:19px; }
+  .arena .cap .idx{ font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--red); }
+  .arena .line{ margin-top:8px; font-family:'IBM Plex Mono',monospace; font-size:11.5px; letter-spacing:0.02em; color:#6f7178; }
 
   /* ---------- OS ---------- */
   .os-hook{ background:var(--ink); color:var(--canvas); display:grid; grid-template-columns:1.1fr 0.9fr; gap:64px; align-items:center; }
@@ -315,6 +319,7 @@
     .signal-wrap{ margin:0 auto; }
     .community-layout{ grid-template-columns:1fr; }
     .os-hook, .signal-section{ grid-template-columns:1fr; }
+    .arena-grid{ grid-template-columns:1fr; max-width:420px; margin-left:auto; margin-right:auto; }
     .founding form{ flex-direction:column; gap:10px; }
     .founding input{ border-right:1px solid var(--line-on-dark); }
   }
@@ -542,10 +547,26 @@
   </div>
 </section>
 
-<section class="proof">
-  <div class="eyebrow-label fade-in">The Targets · Phase 1</div>
-  <p class="proof-sentence fade-in">We're building toward <span class="stat">60+ NPS</span> — people believe. <span class="stat blue">60%+ sixty-day retention</span> — people stay. <span class="stat green">20%+ membership conversion</span> — people commit. pH 8.8 alkaline hydration holds across every format we ship.</p>
-  <div class="proof-footnote fade-in">Phase 1 targets, not live results — tracked toward the January 2027 national stage. Actual results may vary.</div>
+<section class="arenas" id="arenas">
+  <div class="eyebrow-label fade-in">Performance Is Non-Negotiable</div>
+  <h2 class="section-title fade-in">Different arenas. Same standard.</h2>
+  <div class="arena-grid">
+    <div class="arena fade-in">
+      <div class="shot ph" data-ph="Surgeon — image pending"></div>
+      <div class="cap"><span class="role">Surgeon</span><span class="idx">01</span></div>
+      <div class="line">Composure before the first incision.</div>
+    </div>
+    <div class="arena fade-in">
+      <div class="shot"><img src="assets/perf-trader.jpg" alt="Trader at a dark desk of glowing market monitors" width="1200" height="1602" loading="lazy"></div>
+      <div class="cap"><span class="role">Trader</span><span class="idx">02</span></div>
+      <div class="line">Composure before the open.</div>
+    </div>
+    <div class="arena fade-in">
+      <div class="shot"><img src="assets/perf-boxer.jpg" alt="Boxer, hooded with wrapped hands, in a dim gym" width="1200" height="1602" loading="lazy"></div>
+      <div class="cap"><span class="role">Boxer</span><span class="idx">03</span></div>
+      <div class="line">Composure before the bell.</div>
+    </div>
+  </div>
 </section>
 
 <section class="os-hook" id="os">
