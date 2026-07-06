@@ -84,7 +84,7 @@
   .hero h1 em{ font-style:normal; font-weight:300; }
   .hero p.lede{ max-width:560px; margin:32px auto 0; font-size:17px; line-height:1.7; color: rgba(13,13,13,0.78); opacity:0; transform:translateY(16px); }
   /* Hero brand mark — N–N monogram in place of the headline */
-  .hero-mark{ display:flex; flex-direction:column; align-items:center; opacity:0; transform:translateY(16px); }
+  .hero-mark{ display:flex; flex-direction:column; align-items:center; align-self:flex-start; margin-left:clamp(24px,7vw,150px); opacity:0; transform:translateY(16px); }
   .hero-mark .eyebrow{ font-family:'IBM Plex Mono', monospace; font-size:clamp(11px,1.4vw,14px); letter-spacing:0.34em; color: rgba(13,13,13,0.55); margin-bottom:8px; }
   .hero-mark .glyphs{ display:flex; align-items:center; gap:clamp(16px,3vw,40px); font-family:'Archivo Black', serif; font-size:clamp(96px, 21vw, 260px); line-height:0.85; }
   .hero-mark .glyphs .n{ color: var(--red); }
@@ -255,7 +255,7 @@
 
   .stick-strip{ margin-top:60px; display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--line-on-dark); }
   .stick-strip .stick{ background:var(--canvas); padding:36px 20px; text-align:center; opacity:0; transform:translateY(16px); }
-  .stick-strip img{ height:207px; margin:0 auto 18px; object-fit:contain; }
+  .stick-strip img{ height:216px; margin:0 auto 18px; object-fit:contain; }
   .stick-strip .label{ font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.14em; color:rgba(13,13,13,0.6); text-transform:uppercase; }
 
   /* ---------- PROOF — typographic sentence, not a box grid ---------- */
