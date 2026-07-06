@@ -202,6 +202,9 @@
 
   /* ---------- RITUAL — vertical connected timeline, not a grid ---------- */
   .ritual{ background:var(--canvas); }
+  .ritual-grid{ display:grid; grid-template-columns: 1fr minmax(300px, 46%); gap:clamp(40px,6vw,88px); align-items:start; }
+  .ritual-media{ position:sticky; top:120px; }
+  .ritual-media img{ display:block; width:100%; height:auto; }
   .ritual-line{ margin-top:70px; max-width:720px; position:relative; }
   .ritual-line::before{ content:''; position:absolute; left:28px; top:10px; bottom:10px; width:1px; background:var(--line); }
   .ritual-item{ position:relative; padding-left:76px; margin-bottom:56px; opacity:0; transform:translateY(16px); }
@@ -328,6 +331,8 @@
     .signal-wrap{ margin:0 auto; }
     .community-layout{ grid-template-columns:1fr; }
     .os-hook, .signal-section{ grid-template-columns:1fr; }
+    .ritual-grid{ grid-template-columns:1fr; gap:48px; }
+    .ritual-media{ position:static; }
     .arena-grid{ grid-template-columns:1fr; max-width:420px; margin-left:auto; margin-right:auto; }
     .founding form{ flex-direction:column; gap:10px; }
     .founding input{ border-right:1px solid var(--line-on-dark); }
@@ -503,13 +508,20 @@
 </div>
 
 <section class="ritual" id="ritual">
-  <div class="eyebrow-label fade-in">The Ritual</div>
-  <h2 class="section-title fade-in">Not a tagline. A behavioral operating system.</h2>
-  <div class="ritual-line">
-    <div class="ritual-item fade-in"><span class="num">01</span><h3>Pause</h3><p>The moment before execution. The one every other brand skips past.</p></div>
-    <div class="ritual-item fade-in"><span class="num">02</span><h3>Hydrate</h3><p>pH 8.8 alkaline hydration, electrolytes and minerals, built for the body under load.</p></div>
-    <div class="ritual-item fade-in"><span class="num">03</span><h3>Lock In</h3><p>Readiness becomes intention. The AForce OS reads it, tracks it, holds you to it.</p></div>
-    <div class="ritual-item fade-in"><span class="num">04</span><h3>Perform</h3><p>Composure carried into the moment that actually mattered.</p></div>
+  <div class="ritual-grid">
+    <div class="ritual-copy">
+      <div class="eyebrow-label fade-in">The Ritual</div>
+      <h2 class="section-title fade-in">Not a tagline. A behavioral operating system.</h2>
+      <div class="ritual-line">
+        <div class="ritual-item fade-in"><span class="num">01</span><h3>Pause</h3><p>The moment before execution. The one every other brand skips past.</p></div>
+        <div class="ritual-item fade-in"><span class="num">02</span><h3>Hydrate</h3><p>pH 8.8 alkaline hydration, electrolytes and minerals, built for the body under load.</p></div>
+        <div class="ritual-item fade-in"><span class="num">03</span><h3>Lock In</h3><p>Readiness becomes intention. The AForce OS reads it, tracks it, holds you to it.</p></div>
+        <div class="ritual-item fade-in"><span class="num">04</span><h3>Perform</h3><p>Composure carried into the moment that actually mattered.</p></div>
+      </div>
+    </div>
+    <div class="ritual-media fade-in">
+      <img src="assets/ritual-pilot.jpg" alt="A pilot walks across the tarmac toward a waiting private jet, bag in hand" width="2000" height="1125" loading="lazy">
+    </div>
   </div>
 </section>
 
