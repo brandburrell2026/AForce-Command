@@ -49,8 +49,6 @@
 
   .shop-entry{ position:fixed; top:26px; right:clamp(20px,4vw,56px); z-index:150; font-family:'IBM Plex Mono',monospace; font-size:10.5px; letter-spacing:0.14em; text-transform:uppercase; color:rgba(245,240,232,0.55); text-decoration:none; transition:color .3s ease; mix-blend-mode:difference; }
   .shop-entry:hover{ color:#fff; }
-  .skip-intro{ position:absolute; bottom:26px; left:clamp(20px,4vw,56px); z-index:150; font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.14em; text-transform:uppercase; color:rgba(245,240,232,0.4); text-decoration:none; transition:color .3s ease; }
-  .skip-intro:hover{ color:rgba(245,240,232,0.8); }
 
   .nav{ position:fixed; top:0; left:0; right:0; z-index:100; display:flex; align-items:center; justify-content:space-between; padding: 26px clamp(20px,4vw,56px); mix-blend-mode:difference; color:#fff; font-size:13px; opacity:0; transition:opacity 1.2s ease; }
   .nav.show{opacity:1;}
@@ -58,21 +56,6 @@
   .nav .links{display:flex; gap:28px;}
   .nav a{text-decoration:none; font-family:'IBM Plex Mono',monospace; font-size:10.5px; letter-spacing:0.1em; text-transform:uppercase; opacity:0.85;}
   .nav a.shop-link{ opacity:1; border-bottom:1px solid currentColor; padding-bottom:2px; }
-
-  /* ---------- INTRO ---------- */
-  .intro{ height:100vh; background:var(--ink); color:var(--canvas); display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden; }
-  .intro-word{ position:absolute; font-family:'Archivo Black', serif; font-weight:300; font-style:normal; font-size:clamp(40px, 9vw, 120px); opacity:0; }
-  .intro-sub{ position:absolute; bottom:14%; font-family:'IBM Plex Mono', monospace; font-size:11px; letter-spacing:0.2em; text-transform:uppercase; opacity:0; color:rgba(245,240,232,0.5); }
-  .intro-progress{ position:absolute; bottom:8%; left:50%; transform:translateX(-50%); display:flex; gap:8px; }
-  .intro-progress span{ width:22px; height:2px; background:rgba(245,240,232,0.25); }
-  .intro-progress span.active{ background: var(--canvas); }
-  .reveal{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; opacity:0; }
-  .reveal .eyebrow{ font-family:'IBM Plex Mono', monospace; font-size:12px; letter-spacing:0.3em; color: rgba(245,240,232,0.55); margin-bottom:18px; }
-  .reveal .glyphs{ display:flex; align-items:baseline; gap:20px; font-family:'Archivo Black', serif; font-size:clamp(90px, 22vw, 280px); line-height:0.85; }
-  .reveal .glyphs .n{ color: var(--red); }
-  .reveal .glyphs .dash{ color: rgba(245,240,232,0.3); font-size:0.5em; }
-  .reveal .glyphs .mirror{ display:inline-block; color: var(--canvas); transform: scaleX(-1); }
-  .reveal .caption{ margin-top:22px; font-family:'IBM Plex Mono', monospace; font-size:13px; letter-spacing:0.28em; text-transform:uppercase; color: rgba(245,240,232,0.7); }
 
   /* ---------- HERO (video-ready) ---------- */
   .hero{ min-height:100vh; background:var(--ink); color:var(--canvas); display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:120px 24px 80px; position:relative; overflow:hidden; }
@@ -347,21 +330,6 @@
     <a href="#products" class="shop-link">Shop</a>
   </div>
 </nav>
-
-<section class="intro" id="intro">
-  <div class="intro-word" data-word="1">Pause.</div>
-  <div class="intro-word" data-word="2">Hydrate.</div>
-  <div class="intro-word" data-word="3">Lock in.</div>
-  <div class="intro-word" data-word="4">Perform.</div>
-  <div class="reveal" id="reveal">
-    <div class="eyebrow">Performance Is</div>
-    <div class="glyphs"><span class="n">N</span><span class="dash">—</span><span class="mirror">N</span></div>
-    <div class="caption">Non&nbsp;&#8209;&nbsp;Negotiable</div>
-  </div>
-  <div class="intro-sub">Quiet before the storm</div>
-  <div class="intro-progress"><span></span><span></span><span></span><span></span><span></span></div>
-  <a href="#hero" class="skip-intro" id="skipIntro">Skip Intro</a>
-</section>
 
 <section class="hero" id="hero">
   <div class="hero-cine" aria-hidden="true">
@@ -648,34 +616,9 @@
 </footer>
 
 <script>
-  const words = document.querySelectorAll('.intro-word');
-  const dots = document.querySelectorAll('.intro-progress span');
-  const reveal = document.getElementById('reveal');
-  const introSub = document.querySelector('.intro-sub');
   const nav = document.getElementById('nav');
-
-  function fadeStep(el, hold){
-    return new Promise(res=>{
-      el.style.transition = 'opacity 0.7s ease, transform 0.7s ease';
-      el.style.opacity = 1; el.style.transform = 'translateY(0)';
-      setTimeout(()=>{ el.style.transition = 'opacity 0.6s ease'; el.style.opacity = 0; res(); }, hold);
-    });
-  }
-  async function runIntro(){
-    for(let i=0;i<words.length;i++){
-      dots[i].classList.add('active');
-      await fadeStep(words[i], 2000);
-      await new Promise(r=>setTimeout(r,300));
-    }
-    dots[4].classList.add('active');
-    reveal.style.transition = 'opacity 1.2s ease';
-    reveal.style.opacity = 1;
-    setTimeout(()=>{ introSub.style.transition='opacity 1s ease'; introSub.style.opacity=1; }, 500);
-    setTimeout(()=>{ nav.classList.add('show'); document.getElementById('hero').scrollIntoView({behavior:'smooth'}); }, 2800);
-  }
-  runIntro();
-
-  document.getElementById('skipIntro').addEventListener('click', ()=>{ nav.classList.add('show'); });
+  // Intro screen removed — reveal the nav immediately on load.
+  nav.classList.add('show');
 
   document.getElementById('shopEntry').addEventListener('click', ()=>{ nav.classList.add('show'); });
 
