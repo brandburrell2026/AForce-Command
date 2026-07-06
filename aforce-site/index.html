@@ -138,11 +138,9 @@
   .clarity-list li::before{ content:''; width:7px; height:7px; border-radius:50%; border:1.5px solid var(--red); flex-shrink:0; }
   .clarity-list li sup{ font-size:0.62em; letter-spacing:0; }
 
-  /* ---------- MOMENT ---------- */
-  .moment{ background:var(--canvas); color:var(--ink); text-align:center; }
-  .moment .stack{ max-width:640px; margin:0 auto; }
-  .moment p{ font-family:'Archivo Black',serif; font-style:normal; font-size:clamp(22px,3vw,34px); line-height:1.9; color:rgba(13,13,13,0.85); opacity:0; transform:translateY(10px); }
-  .moment p.strong{ font-style:normal; font-family:'Inter'; font-size:16px; letter-spacing:0.02em; color:var(--ink); margin-top:36px; font-weight:500; }
+  /* ---------- MOMENT (full-bleed cinematic shot) ---------- */
+  .moment-shot{ margin:0; padding:0; background:var(--ink); line-height:0; }
+  .moment-shot img{ display:block; width:100%; height:auto; }
 
   /* ---------- INVITATION + PROFILE ---------- */
   .invite{ background:var(--canvas); text-align:center; }
@@ -390,11 +388,8 @@
   </div>
 </section>
 
-<section class="moment">
-  <div class="stack">
-    <p class="fade-in">Every day gives you moments that matter. A meeting. A workout. A flight. A difficult conversation.</p>
-    <p class="strong fade-in">You cannot control when those moments arrive. You can control how prepared you are when they do.</p>
-  </div>
+<section class="moment-shot">
+  <img src="assets/moment-studio.jpg" alt="A producer steps into a high-rise studio at golden hour, the city skyline glowing through floor-to-ceiling glass" width="2560" height="1440" loading="lazy">
 </section>
 
 <section class="invite" id="invite" aria-label="Performance Profile assessment">
