@@ -108,7 +108,7 @@
   .m-discipline-copy .m-support{ color:rgba(245,240,232,0.7); margin-top:clamp(34px,5vw,60px); }
 
   /* ---------- SECTION 4 — THE RITUAL (can video) ---------- */
-  .m-ritual{ position:relative; min-height:100vh; display:flex; align-items:center; overflow:hidden; background:var(--ink); padding:clamp(110px,16vh,200px) clamp(22px,7vw,120px); }
+  .m-ritual{ position:relative; min-height:100vh; display:flex; align-items:center; overflow:hidden; background:var(--canvas); color:var(--ink); padding:clamp(110px,16vh,200px) clamp(22px,7vw,120px); }
   .m-ritual video, .m-ritual .m-hero-poster{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:0; }
   .m-ritual .m-scrim{ position:absolute; inset:0; z-index:1; background:linear-gradient(90deg, rgba(13,13,13,0.9) 0%, rgba(13,13,13,0.66) 55%, rgba(13,13,13,0.42) 100%); }
   .m-ritual-inner{ position:relative; z-index:2; max-width:1000px; }
@@ -124,14 +124,17 @@
   .m-universal-final{ margin-top:clamp(60px,8vw,110px); font-family:'Archivo Black',serif; font-weight:400; line-height:1.02; letter-spacing:-0.02em; font-size:clamp(38px,7.4vw,108px); max-width:14ch; }
 
   /* ---------- SECTION 6 — THE STANDARD ---------- */
+  .m-sec.m-standard{ background:var(--red); }               /* Signal Red section */
+  .m-standard .m-eyebrow{ color:var(--canvas); }            /* red eyebrow would vanish on red */
+  .m-standard .m-blue{ color:var(--canvas) !important; }    /* blue accent illegible on red — use light */
   .m-standard .m-h + .m-h{ margin-top:clamp(6px,1vw,14px); }
   .m-standard .m-standard-list{ margin-top:clamp(56px,8vw,104px); display:flex; flex-direction:column; gap:clamp(14px,2vw,26px); max-width:40ch; }
   .m-standard .m-standard-list p{ font-family:'Inter',sans-serif; font-size:clamp(18px,2.1vw,26px); line-height:1.4; color:rgba(245,240,232,0.9); }
   .m-standard .m-standard-list p.dim{ color:rgba(245,240,232,0.55); }
 
   /* ---------- FINAL SECTION ---------- */
-  .m-final{ position:relative; background:#000; color:var(--canvas); min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:clamp(120px,16vh,200px) clamp(22px,7vw,120px); overflow:hidden; }
-  .m-final::before{ content:''; position:absolute; width:min(120vw,900px); height:min(120vw,900px); border-radius:50%; background:radial-gradient(closest-side, rgba(193,40,27,0.16), transparent 70%); top:38%; left:50%; transform:translate(-50%,-50%); z-index:0; }
+  .m-final{ position:relative; background:var(--canvas); color:var(--ink); min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:clamp(120px,16vh,200px) clamp(22px,7vw,120px); overflow:hidden; }
+  .m-final::before{ content:''; position:absolute; width:min(120vw,900px); height:min(120vw,900px); border-radius:50%; background:none; top:38%; left:50%; transform:translate(-50%,-50%); z-index:0; }
   .m-final-can{ position:relative; z-index:1; height:clamp(300px,52vh,560px); width:auto; filter:drop-shadow(0 30px 70px rgba(0,0,0,0.6)); opacity:0; transform:translateY(30px) scale(0.98); transition:opacity 1.8s ease, transform 1.8s ease; }
   .m-final-can.visible{ opacity:1; transform:none; }
   .m-final-lines{ position:relative; z-index:1; margin-top:clamp(48px,6vw,80px); }
@@ -140,9 +143,9 @@
   .m-final .btn{ position:relative; z-index:1; margin-top:clamp(46px,6vw,72px); }
 
   /* ---------- FOOTER (slim) ---------- */
-  .m-footer{ background:#000; color:rgba(245,240,232,0.5); padding:44px clamp(22px,7vw,120px); display:flex; flex-wrap:wrap; gap:16px 28px; align-items:center; justify-content:space-between; border-top:1px solid rgba(245,240,232,0.08); font-family:'IBM Plex Mono',monospace; font-size:10.5px; letter-spacing:0.1em; text-transform:uppercase; }
+  .m-footer{ background:var(--canvas); color:rgba(13,13,13,0.5); padding:44px clamp(22px,7vw,120px); display:flex; flex-wrap:wrap; gap:16px 28px; align-items:center; justify-content:space-between; border-top:1px solid rgba(13,13,13,0.1); font-family:'IBM Plex Mono',monospace; font-size:10.5px; letter-spacing:0.1em; text-transform:uppercase; }
   .m-footer .fnav{ display:flex; gap:24px; flex-wrap:wrap; }
-  .m-footer a:hover{ color:var(--canvas); }
+  .m-footer a:hover{ color:var(--ink); }
 
   /* ---------- STAGGER (line-by-line reveal) ---------- */
   .stagger > .reveal:nth-child(1){ transition-delay:.02s; }
@@ -287,7 +290,7 @@
       <p class="reveal">Preparation is a Choice.</p>
       <p class="reveal red">Performance Is Non&#8209;Negotiable.</p>
     </div>
-    <a href="/#founding" class="btn btn-ghost reveal">Build Your Ritual</a>
+    <a href="/#founding" class="btn btn-ghost on-light reveal">Build Your Ritual</a>
   </section>
 </main>
 
