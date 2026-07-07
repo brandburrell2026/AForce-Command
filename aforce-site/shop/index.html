@@ -101,70 +101,6 @@
   .pulse{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 2.4s infinite;}
   @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.25;}}
 
-  /* ---------- CALIBRATION MODULE ---------- */
-  .calibrate{
-    padding:clamp(56px,9vh,100px) var(--gutter);
-    background:var(--ink);color:var(--canvas);
-  }
-  .calibrate .eyebrow{color:var(--canvas-70);}
-  .calibrate .eyebrow::after{background:var(--canvas-25);}
-  .calibrate h2{
-    font-family:var(--display);font-weight:800;text-transform:uppercase;
-    font-size:clamp(30px,4.6vw,58px);letter-spacing:-.01em;line-height:1;max-width:16ch;
-  }
-  .calibrate h2 em{font-family:var(--serif);font-style:italic;font-weight:500;text-transform:none;}
-  .calibrate-sub{
-    margin-top:20px;max-width:54ch;
-    font-family:var(--serif);font-size:clamp(17px,2vw,21px);color:var(--canvas-70);line-height:1.5;
-  }
-  .cal-outputs{
-    margin-top:44px;display:grid;grid-template-columns:repeat(6,1fr);gap:1px;
-    background:var(--canvas-25);border:1px solid var(--canvas-25);
-  }
-  .cal-out{
-    background:var(--ink);padding:20px 18px;min-height:104px;
-    display:flex;flex-direction:column;justify-content:space-between;gap:12px;
-  }
-  .cal-out .co-num{font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:var(--canvas-70);}
-  .cal-out .co-label{font-family:var(--display);font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.03em;line-height:1.25;}
-  .cal-out.co-os .co-label{color:var(--canvas);display:flex;align-items:center;gap:8px;}
-  .cal-out.co-os{outline:1px solid var(--canvas);outline-offset:-1px;}
-  .calibrate-cta{
-    margin-top:40px;display:flex;align-items:center;gap:22px;flex-wrap:wrap;
-  }
-  .calibrate-cta a{
-    background:var(--canvas);color:var(--ink);
-    font-family:var(--mono);font-size:12px;letter-spacing:.16em;text-transform:uppercase;
-    padding:17px 34px;transition:transform .15s ease;
-  }
-  .calibrate-cta a:hover{transform:translateY(-1px);}
-  .cal-time{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--canvas-70);display:flex;align-items:center;gap:10px;}
-  .cal-time::before{content:"";width:32px;height:1px;background:var(--canvas-25);}
-  .cal-skip{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--canvas-70);margin-top:26px;}
-  .cal-skip a{text-decoration:underline;text-underline-offset:3px;}
-  @media (max-width:1080px){.cal-outputs{grid-template-columns:repeat(3,1fr);}}
-  @media (max-width:600px){.cal-outputs{grid-template-columns:repeat(2,1fr);}}
-
-  /* sample readout card */
-  .cal-lower{margin-top:44px;display:grid;grid-template-columns:minmax(300px,420px) 1fr;gap:clamp(28px,4vw,64px);align-items:center;}
-  .cal-sample{
-    background:var(--canvas);color:var(--ink);padding:26px 26px 22px;
-    position:relative;box-shadow:0 30px 60px rgba(0,0,0,.35);
-  }
-  .cal-sample::before{
-    content:"SAMPLE READOUT — ILLUSTRATIVE";
-    position:absolute;top:-11px;left:22px;background:var(--ink);color:var(--canvas);
-    font-family:var(--mono);font-size:9px;letter-spacing:.2em;padding:5px 10px;
-  }
-  .cs-row{
-    display:flex;justify-content:space-between;align-items:baseline;gap:16px;
-    padding:11px 0;border-bottom:1px solid var(--ink-12);
-  }
-  .cs-row:last-child{border-bottom:none;}
-  .cs-label{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-60);}
-  .cs-value{font-family:var(--display);font-weight:700;font-size:13.5px;text-transform:uppercase;letter-spacing:.03em;text-align:right;}
-  .cs-value.cs-os{color:var(--green);display:flex;align-items:center;gap:8px;}
-  @media (max-width:900px){.cal-lower{grid-template-columns:1fr;}}
 
   /* ---------- DEMAND SELECTOR ---------- */
   .demand{
@@ -491,38 +427,6 @@
   </div>
 </header>
 
-<!-- PERFORMANCE CALIBRATION -->
-<section class="calibrate reveal">
-  <p class="eyebrow">The Performance Calibration</p>
-  <h2>Know your demand. <em>Then equip it.</em></h2>
-  <p class="calibrate-sub">Most brands sell you a flavor. AForce reads your arena first — then prescribes your protocol. Your Calibration is saved and waiting inside your OS the moment you order.</p>
-
-  <div class="cal-outputs" aria-label="What your Calibration produces">
-    <div class="cal-out"><span class="co-num">OUT 01</span><span class="co-label">Daily Performance Profile</span></div>
-    <div class="cal-out"><span class="co-num">OUT 02</span><span class="co-label">Hydration Demand</span></div>
-    <div class="cal-out"><span class="co-num">OUT 03</span><span class="co-label">Ritual Load</span></div>
-    <div class="cal-out"><span class="co-num">OUT 04</span><span class="co-label">Recommended Protocol</span></div>
-    <div class="cal-out"><span class="co-num">OUT 05</span><span class="co-label">Recommended Formulation</span></div>
-    <div class="cal-out co-os"><span class="co-num">OUT 06</span><span class="co-label"><span class="os-dot" aria-hidden="true"></span>AForce OS · Activated</span></div>
-  </div>
-
-  <div class="cal-lower">
-    <div class="cal-sample" aria-label="Sample Calibration readout">
-      <div class="cs-row"><span class="cs-label">Performance Profile</span><span class="cs-value">The Operator</span></div>
-      <div class="cs-row"><span class="cs-label">Hydration Demand</span><span class="cs-value">High</span></div>
-      <div class="cs-row"><span class="cs-label">Recommended Protocol</span><span class="cs-value">Morning + Midday Ritual</span></div>
-      <div class="cs-row"><span class="cs-label">Recommended Formulation</span><span class="cs-value">Watermelon Surge &amp; Chlorella</span></div>
-      <div class="cs-row"><span class="cs-label">AForce OS</span><span class="cs-value cs-os"><span class="os-dot" aria-hidden="true"></span>Provisioned on Order</span></div>
-    </div>
-    <div>
-      <div class="calibrate-cta" style="margin-top:0;">
-        <a href="/#invite">Start My Performance Calibration</a>
-        <span class="cal-time">45 seconds · No account required</span>
-      </div>
-      <p class="cal-skip">Already know your protocol? <a href="#formulations">Go straight to the formulations.</a></p>
-    </div>
-  </div>
-</section>
 
 <!-- DEMAND SELECTOR -->
 <section class="demand reveal">
