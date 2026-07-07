@@ -55,7 +55,12 @@
      position:fixed element breaks fixed positioning in Safari (nav scrolls away) */
   .nav > *{ mix-blend-mode:difference; }
   .nav.show{opacity:1;}
-  .nav .mark{font-family:'Archivo Black',serif; font-size:19px; letter-spacing:0.04em; font-weight:500;}
+  .nav .mark{font-family:'Archivo Black',serif; font-size:28.5px; letter-spacing:0.04em; font-weight:500; mix-blend-mode:normal;}
+  /* N|N monogram in the nav (double N's, second mirrored) — first N red, second black, Signal-Red divider */
+  .nav .mark .nn{ display:inline-flex; align-items:center; gap:6px; line-height:1; }
+  .nav .mark .nn > span:first-child{ color:var(--red); }
+  .nav .mark .nn .bar{ display:inline-block; width:3px; height:22px; background:var(--red); }
+  .nav .mark .nn .flip{ display:inline-block; transform:scaleX(-1); color:var(--ink); }
   .nav .links{display:flex; gap:28px;}
   .nav a{text-decoration:none; font-family:'Inter',sans-serif; font-size:10.5px; letter-spacing:0.1em; text-transform:uppercase; opacity:0.85;}
   .nav a.shop-link{ opacity:1; border-bottom:1px solid currentColor; padding-bottom:2px; }
@@ -341,7 +346,6 @@
   footer .cols{ display:flex; gap:64px; flex-wrap:wrap; }
   footer .col h6{ font-family:'Inter',sans-serif; font-size:11px; letter-spacing:0.14em; text-transform:uppercase; color:var(--ink); margin-bottom:16px;}
   footer .col a{ display:block; text-decoration:none; font-size:13px; margin-bottom:10px; }
-  footer .credit{ font-family:'Inter',sans-serif; font-size:10.5px; letter-spacing:0.06em; color:rgba(13,13,13,0.4); margin-bottom:32px; text-transform:uppercase; }
   footer .legal{ font-size:11px; line-height:1.8; max-width:820px; }
   footer .legal p{ margin-bottom:10px; }
 
@@ -366,7 +370,7 @@
 <div class="grain" aria-hidden="true"></div>
 
 <nav class="nav" id="nav">
-  <div class="mark">AFORCE™</div>
+  <div class="mark" role="img" aria-label="AForce"><span class="nn"><span>N</span><span class="bar"></span><span class="flip">N</span></span></div>
   <div class="links">
     <a href="#ritual">Ritual</a>
     <a href="#os">The OS</a>
@@ -594,7 +598,6 @@
       <div class="col"><h6>Company</h6><a href="#founding">Founding 200</a><a href="#">Our Story</a><a href="#">Contact</a></div>
     </div>
   </div>
-  <div class="credit">Founded by Brandon &amp; Julius Burrell — read the full story on our About page (coming soon).</div>
   <div class="legal">
     <p>AFORCE™ and NON&#8209;И EGOTIABLE™ are trademarks of AForce Hydration, Inc. Statements regarding hydration, readiness, and performance support have not been evaluated by the Food and Drug Administration. This product is not intended to diagnose, treat, cure, or prevent any disease. Individual results vary. The AForce OS provides general wellness tracking and is not a medical device and does not provide medical advice; consult a physician before beginning any new hydration, supplement, or fitness regimen, particularly if pregnant, nursing, or managing a medical condition. Free AForce OS access requires proof of qualifying purchase; no purchase necessary to request Founding 200 access above.</p>
     <p>© 2026 AForce Hydration, Inc. All rights reserved. Performance Is Non&#8209;<span class="flip-n">N</span>egotiable.</p>
