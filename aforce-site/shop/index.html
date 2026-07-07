@@ -218,9 +218,11 @@
     position:relative;display:flex;align-items:center;justify-content:center;
     overflow:hidden;
   }
-  .plate[data-sku="red"] .plate-visual{background:var(--red);}
-  .plate[data-sku="blue"] .plate-visual{background:var(--blue);}
-  .plate[data-sku="green"] .plate-visual{background:var(--green);}
+  .plate[data-sku="red"] .plate-visual{background:radial-gradient(58% 50% at 50% 40%, rgba(255,255,255,.20), rgba(255,255,255,0) 66%), var(--red);}
+  .plate[data-sku="blue"] .plate-visual{background:radial-gradient(58% 50% at 50% 40%, rgba(255,255,255,.18), rgba(255,255,255,0) 66%), var(--blue);}
+  .plate[data-sku="green"] .plate-visual{background:radial-gradient(58% 50% at 50% 40%, rgba(255,255,255,.18), rgba(255,255,255,0) 66%), var(--green);}
+  /* soft contact shadow so the product grounds instead of floating flat */
+  .plate-visual::after{content:"";position:absolute;z-index:0;left:50%;bottom:13%;width:34%;height:22px;transform:translateX(-50%);border-radius:50%;background:radial-gradient(closest-side, rgba(0,0,0,.30), rgba(0,0,0,0) 74%);pointer-events:none;}
   .plate-index{
     position:absolute;top:26px;left:30px;
     font-family:var(--mono);font-size:11px;letter-spacing:.2em;color:var(--canvas-70);
@@ -233,8 +235,8 @@
      .plate-visual is the swappable slot. Drop a product image in by adding
      <img class="plate-photo" src="/assets/…"> inside .plate-visual and the
      CSS-rendered .can placeholder can be removed. No markup elsewhere changes. */
-  .plate-photo{position:relative;z-index:1;max-height:80%;width:auto;object-fit:contain;filter:drop-shadow(0 40px 60px rgba(0,0,0,.32));transition:transform .5s cubic-bezier(.2,.8,.2,1);}
-  .plate-photo.plate-stick{max-height:90%;}
+  .plate-photo{position:relative;z-index:1;max-height:62%;max-width:56%;width:auto;object-fit:contain;filter:drop-shadow(0 22px 34px rgba(0,0,0,.24));transition:transform .5s cubic-bezier(.2,.8,.2,1);}
+  .plate-photo.plate-stick{max-height:74%;max-width:34%;}
   .plate-photo[hidden]{display:none;}
   .plate:hover .plate-photo:not([hidden]){transform:translateY(-10px) rotate(-1.2deg);}
   /* CSS can — placeholder until product photography drops in */
