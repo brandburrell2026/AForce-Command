@@ -94,7 +94,7 @@
   .m-choice .row2{ color:rgba(13,13,13,0.32); }
 
   /* ---------- SECTION 3 — THE DISCIPLINE (sticky crossfade) ---------- */
-  .m-discipline{ position:relative; height:320vh; background:var(--ink); }
+  .m-discipline{ position:relative; height:180vh; background:var(--ink); }
   .m-pin{ position:sticky; top:0; height:100vh; overflow:hidden; display:flex; align-items:center; }
   .m-crossfade{ position:absolute; inset:0; z-index:0; }
   .m-crossfade img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; opacity:0; transition:opacity 1.2s ease; filter:contrast(1.04) saturate(0.96); }
@@ -154,7 +154,7 @@
 
   /* ---------- RESPONSIVE ---------- */
   @media (max-width:860px){
-    .m-discipline{ height:300vh; }
+    .m-discipline{ height:170vh; }
     .m-hero .m-scrim{ background:linear-gradient(180deg, rgba(13,13,13,0.78) 0%, rgba(13,13,13,0.66) 44%, rgba(13,13,13,0.9) 100%); }
     .m-ritual .m-scrim{ background:linear-gradient(180deg, rgba(13,13,13,0.55) 0%, rgba(13,13,13,0.86) 100%); }
     .m-footer{ flex-direction:column; align-items:flex-start; }
@@ -215,11 +215,7 @@
   <section class="m-discipline" id="discipline" aria-label="The Discipline">
     <div class="m-pin">
       <div class="m-crossfade" id="crossfade" aria-hidden="true">
-        <img src="/assets/perf-boxer.jpg" alt="" class="is-active" loading="lazy" data-i="0">
-        <img src="/assets/perf-surgeon.jpg" alt="" loading="lazy" data-i="1">
-        <img src="/assets/ritual-meditation.jpg" alt="" loading="lazy" data-i="2">
-        <img src="/assets/perf-trader.jpg" alt="" loading="lazy" data-i="3">
-        <img src="/assets/moment-firefighter.jpg" alt="" loading="lazy" data-i="4">
+        <img src="/assets/discipline-marathon.jpg" alt="" class="is-active" loading="lazy" data-i="0">
       </div>
       <div class="m-scrim" aria-hidden="true"></div>
       <div class="m-discipline-copy">
