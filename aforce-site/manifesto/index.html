@@ -41,6 +41,7 @@
   a{ color:inherit; text-decoration:none; }
   button{ font-family:inherit; }
   ::selection{ background:var(--red); color:var(--canvas); }
+  .flip-n{ display:inline-block; transform:scaleX(-1); }
 
   .grain{ position:fixed; inset:0; z-index:200; pointer-events:none; opacity:0.04; mix-blend-mode:overlay;
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
@@ -288,14 +289,14 @@
     <div class="m-final-lines stagger">
       <p class="reveal">Performance is Universal.</p>
       <p class="reveal">Preparation is a Choice.</p>
-      <p class="reveal red">Performance Is Non&#8209;Negotiable.</p>
+      <p class="reveal red">Performance Is Non&#8209;<span class="flip-n">N</span>egotiable.</p>
     </div>
     <a href="/#founding" class="btn btn-ghost on-light reveal">Build Your Ritual</a>
   </section>
 </main>
 
 <footer class="m-footer">
-  <div>© 2026 AForce Hydration, Inc. · Performance Is Non&#8209;Negotiable.</div>
+  <div>© 2026 AForce Hydration, Inc. · Performance Is Non&#8209;<span class="flip-n">N</span>egotiable.</div>
   <nav class="fnav" aria-label="Footer">
     <a href="/">Home</a>
     <a href="/#ritual">The Ritual</a>
