@@ -329,7 +329,9 @@
 
   /* ---------- FINAL ---------- */
   .final{ background:var(--canvas); color:var(--ink); display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:clamp(72px,10vh,120px) clamp(20px,6vw,72px); }
-  .final .mark{ font-family:'Archivo Black',serif; font-size:22px; letter-spacing:0.06em; opacity:0; transform:translateY(10px); margin-bottom:26px; }
+  .final .final-line{ font-family:'Archivo Black',serif; font-weight:400; font-size:clamp(30px,4.4vw,58px); line-height:1.04; letter-spacing:-0.01em; color:var(--ink); opacity:0; transform:translateY(10px); }
+  .final .final-line.top{ margin-bottom:clamp(28px,3.6vw,44px); }
+  .final .final-line.bottom{ margin-top:clamp(28px,3.6vw,44px); }
   .universal-close .glyphs{ display:flex; align-items:baseline; justify-content:center; gap:17px; font-family:'Archivo Black', serif; font-size:clamp(62.5px,10vw,125px); line-height:0.9; opacity:0; transform:translateY(10px); margin:clamp(48px,7vw,72px) 0 18px; }
   .universal-close .glyphs .n{ color: var(--red); } .universal-close .glyphs .dash{ color: rgba(13,13,13,0.3); font-size:0.5em; } .universal-close .glyphs .mirror{ display:inline-block; transform: scaleX(-1); }
   .universal-close .caption{ font-family:'IBM Plex Mono', monospace; font-size:12px; letter-spacing:0.26em; text-transform:uppercase; color: rgba(13,13,13,0.65); opacity:0; transform:translateY(10px); margin-bottom:0; }
@@ -582,8 +584,9 @@
 </section>
 
 <section class="final">
-  <div class="mark fade-in">AFORCE™</div>
+  <div class="final-line top fade-in">Performance Is</div>
   <a href="/shop" class="btn btn-primary fade-in">Begin Today's Ritual</a>
+  <div class="final-line bottom fade-in">Non&#8209;Negotiable</div>
 </section>
 
 <footer>
