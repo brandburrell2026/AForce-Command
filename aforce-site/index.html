@@ -135,13 +135,26 @@
   .fade-in.visible{ opacity:1 !important; transform:none !important; }
 
   /* ---------- CLARITY BEAT ---------- */
-  .clarity{ background:var(--canvas); color:var(--ink); min-height:70vh; display:flex; align-items:center; justify-content:center; text-align:center; }
-  .clarity h2{ font-family:'Archivo Black',serif; font-weight:300; font-size:clamp(30px,4.2vw,56px); line-height:1.3; max-width:780px; opacity:0; transform:translateY(12px); }
-  .clarity p{ margin-top:22px; font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:0.16em; text-transform:uppercase; color:rgba(13,13,13,0.5); opacity:0; transform:translateY(12px); }
-  .clarity-list{ list-style:none; margin:34px auto 0; padding:0; display:flex; flex-wrap:wrap; justify-content:center; gap:14px 30px; max-width:860px; opacity:0; transform:translateY(12px); }
+  .clarity{ background:var(--canvas); color:var(--ink); min-height:80vh; display:flex; align-items:center; }
+  .clarity-grid{ width:100%; max-width:1360px; margin:0 auto; display:grid; grid-template-columns:1.02fr 0.98fr; gap:clamp(40px,6vw,96px); align-items:center; padding:clamp(90px,13vh,150px) clamp(20px,4vw,56px); }
+  .clarity h2{ font-family:'Archivo Black',serif; font-weight:300; font-size:clamp(34px,4.6vw,62px); line-height:1.12; max-width:15ch; opacity:0; transform:translateY(12px); }
+  .clarity p{ margin-top:26px; font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:0.14em; text-transform:uppercase; line-height:1.9; color:rgba(13,13,13,0.5); opacity:0; transform:translateY(12px); }
+  .clarity-list{ list-style:none; margin:30px 0 0; padding:0; display:flex; flex-wrap:wrap; gap:14px 26px; max-width:620px; opacity:0; transform:translateY(12px); }
   .clarity-list li{ display:flex; align-items:center; gap:10px; font-family:'IBM Plex Mono',monospace; font-size:13px; letter-spacing:0.08em; color:var(--ink); }
   .clarity-list li::before{ content:''; width:7px; height:7px; border-radius:50%; border:1.5px solid var(--red); flex-shrink:0; }
   .clarity-list li sup{ font-size:0.62em; letter-spacing:0; }
+  .clarity-cta{ margin-top:clamp(36px,4.5vw,52px); opacity:0; transform:translateY(12px); }
+  .clarity-cta .arw{ margin-left:10px; }
+  /* right column — ritual words + N|N monogram + caption */
+  .clarity-mark{ display:flex; flex-direction:column; align-items:center; text-align:center; gap:clamp(28px,3.5vw,48px); }
+  .clarity-mark .ritual-row{ display:flex; flex-wrap:wrap; justify-content:center; gap:14px 32px; font-family:'IBM Plex Mono',monospace; font-size:clamp(12px,1.4vw,16px); letter-spacing:0.16em; text-transform:uppercase; color:var(--ink); opacity:0; transform:translateY(12px); }
+  .clarity-mark .glyphs{ display:flex; align-items:baseline; justify-content:center; gap:15px; font-family:'Archivo Black', serif; font-size:clamp(56px,8.5vw,120px); line-height:0.9; opacity:0; transform:translateY(12px); }
+  .clarity-mark .glyphs .n{ color:var(--red); } .clarity-mark .glyphs .dash{ color:rgba(13,13,13,0.3); font-size:0.5em; } .clarity-mark .glyphs .mirror{ display:inline-block; transform:scaleX(-1); }
+  .clarity-mark .mark-caption{ font-family:'IBM Plex Mono',monospace; font-size:clamp(11px,1.2vw,14px); letter-spacing:0.26em; text-transform:uppercase; color:rgba(13,13,13,0.65); opacity:0; transform:translateY(12px); }
+  @media (max-width:900px){
+    .clarity-grid{ grid-template-columns:1fr; gap:clamp(52px,9vw,80px); }
+    .clarity h2{ max-width:none; }
+  }
 
   /* ---------- MOMENT (full-bleed cinematic shot) ---------- */
   .moment-shot{ margin:0; padding:0; background:var(--ink); line-height:0; }
@@ -390,16 +403,26 @@
 </section>
 
 <section class="clarity">
-  <div>
-    <h2 class="fade-in">The performance hydration system built for the moments you cannot afford to miss.</h2>
-    <p class="fade-in">pH 8.8 alkaline hydration, a daily readiness ritual, and the AForce OS.</p>
-    <ul class="clarity-list fade-in">
-      <li>pH 8.8</li>
-      <li>Electrolytes + Minerals</li>
-      <li>Daily Readiness Ritual</li>
-      <li>AFORCE OS<sup>™</sup></li>
-      <li>Performance Community</li>
-    </ul>
+  <div class="clarity-grid">
+    <div class="clarity-copy">
+      <h2 class="fade-in">The performance hydration system built for the moments you cannot afford to miss.</h2>
+      <p class="fade-in">pH 8.8 alkaline hydration,<br>a daily readiness ritual, and the AForce OS.</p>
+      <ul class="clarity-list fade-in">
+        <li>pH 8.8</li>
+        <li>Electrolytes + Minerals</li>
+        <li>Daily Readiness Ritual</li>
+        <li>AFORCE OS<sup>™</sup></li>
+        <li>Performance Community</li>
+      </ul>
+      <div class="clarity-cta fade-in">
+        <a href="#ritual" class="btn btn-primary">Discover the Ritual <span class="arw">→</span></a>
+      </div>
+    </div>
+    <div class="clarity-mark">
+      <div class="ritual-row fade-in"><span>Pause.</span><span>Hydrate.</span><span>Lock In.</span><span>Perform.</span></div>
+      <div class="glyphs fade-in"><span class="n">N</span><span class="dash">—</span><span class="mirror">N</span></div>
+      <div class="mark-caption fade-in">Performance Is Non&#8209;Negotiable</div>
+    </div>
   </div>
 </section>
 
