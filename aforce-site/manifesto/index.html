@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AFORCE — The Manifesto</title>
+<meta name="description" content="Performance begins before the moment arrives. The AForce Manifesto — a behavioral operating system built around preparation, ritual, readiness, and discipline.">
+<meta name="theme-color" content="#0D0D0D">
+<link rel="icon" type="image/png" href="/assets/favicon.png">
+<link rel="canonical" href="https://drinkaforce.com/manifesto">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="AFORCE — The Manifesto">
+<meta property="og:description" content="We don't chase performance. We prepare for it.">
+<meta property="og:image" content="/assets/og-image.jpg">
+<meta property="og:url" content="https://drinkaforce.com/manifesto">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="AFORCE — The Manifesto">
+<meta name="twitter:description" content="We don't chase performance. We prepare for it.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* ---------- BASE (shared design system, mirrors the main site) ---------- */
+  @media (prefers-reduced-motion: reduce){
+    *, *::before, *::after{ animation-duration:0.01ms !important; animation-iteration-count:1 !important; transition-duration:0.01ms !important; scroll-behavior:auto !important; }
+  }
+  a:focus-visible, button:focus-visible{ outline:2px solid var(--red); outline-offset:3px; }
+  .skip-link{ position:absolute; left:-9999px; top:0; background:var(--canvas); color:var(--ink); padding:14px 20px; z-index:999; font-family:'IBM Plex Mono',monospace; font-size:12px; text-decoration:none; }
+  .skip-link:focus{ left:20px; top:20px; }
+  :root{
+    --ink:#0D0D0D; --canvas:#E9E7E1; --canvas-dim:#E1DDD4;
+    --red:#C1281B; --blue:#1E5BFF; --green:#1FA35A; --metal:#6B6B66;
+    --line: rgba(13,13,13,0.12); --line-on-dark: rgba(245,240,232,0.18);
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html{ scroll-behavior:smooth; }
+  body{ background:var(--ink); color:var(--canvas); font-family:'Inter', sans-serif; -webkit-font-smoothing:antialiased; overflow-x:hidden; }
+  img,video{ display:block; max-width:100%; }
+  a{ color:inherit; text-decoration:none; }
+  button{ font-family:inherit; }
+  ::selection{ background:var(--red); color:var(--canvas); }
+
+  .grain{ position:fixed; inset:0; z-index:200; pointer-events:none; opacity:0.04; mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+
+  /* ---------- NAV (shared) ---------- */
+  .nav{ position:fixed; top:0; left:0; right:0; z-index:100; display:flex; align-items:center; justify-content:space-between; padding:26px clamp(20px,4vw,56px); mix-blend-mode:difference; color:#fff; font-size:13px; }
+  .nav .mark{ font-family:'Archivo Black',serif; font-size:19px; letter-spacing:0.04em; }
+  .nav .links{ display:flex; gap:28px; }
+  .nav a{ font-family:'IBM Plex Mono',monospace; font-size:10.5px; letter-spacing:0.1em; text-transform:uppercase; opacity:0.85; }
+  .nav a.current{ opacity:1; border-bottom:1px solid currentColor; padding-bottom:2px; }
+
+  /* ---------- BUTTON (shared) ---------- */
+  .btn{ font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.16em; text-transform:uppercase; padding:17px 32px; border-radius:2px; transition:all .35s ease; display:inline-block; cursor:pointer; }
+  .btn-ghost{ border:1px solid rgba(245,240,232,0.28); color:var(--canvas); background:transparent; }
+  .btn-ghost:hover{ border-color:var(--canvas); background:rgba(245,240,232,0.04); }
+  .btn-ghost.on-light{ border-color:rgba(13,13,13,0.28); color:var(--ink); }
+  .btn-ghost.on-light:hover{ border-color:var(--ink); background:rgba(13,13,13,0.03); }
+
+  /* ---------- REVEAL SYSTEM (mirrors the site's IntersectionObserver .fade-in) ---------- */
+  .reveal{ opacity:0; transform:translateY(24px); transition:opacity 1.1s cubic-bezier(.2,.7,.2,1), transform 1.1s cubic-bezier(.2,.7,.2,1); }
+  .reveal.visible{ opacity:1; transform:none; }
+
+  /* ---------- SHARED SECTION SCAFFOLD ---------- */
+  .m-sec{ position:relative; padding:clamp(110px,16vh,220px) clamp(22px,7vw,120px); }
+  .m-sec.dark{ background:var(--ink); color:var(--canvas); }
+  .m-sec.light{ background:var(--canvas); color:var(--ink); }
+  .m-eyebrow{ font-family:'IBM Plex Mono',monospace; font-size:clamp(10px,1.2vw,12px); letter-spacing:0.28em; text-transform:uppercase; color:var(--red); margin-bottom:clamp(28px,4vw,52px); }
+  .m-h{ font-family:'Archivo Black',serif; font-weight:400; line-height:1.02; letter-spacing:-0.015em; font-size:clamp(38px,7.2vw,104px); }
+  .m-h.mid{ font-size:clamp(32px,5.8vw,78px); }
+  .m-blue{ color:var(--blue) !important; }
+  .m-support{ font-family:'Inter',sans-serif; font-weight:400; font-size:clamp(17px,1.9vw,23px); line-height:1.6; max-width:30ch; }
+  .light .m-support{ color:#54575E; }
+  .dark .m-support{ color:rgba(245,240,232,0.62); }
+  .m-gap-sm{ height:clamp(28px,4vw,48px); }
+  .m-gap-md{ height:clamp(48px,7vw,90px); }
+
+  /* ---------- SECTION 1 — HERO ---------- */
+  .m-hero{ position:relative; height:100vh; min-height:620px; display:flex; flex-direction:column; justify-content:center; padding:0 clamp(22px,7vw,120px); overflow:hidden; background:var(--ink); }
+  .m-hero video, .m-hero .m-hero-poster{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:0; }
+  .m-hero .m-hero-poster{ background-size:cover; background-position:center; }
+  .m-hero .m-scrim{ position:absolute; inset:0; z-index:1; background:linear-gradient(90deg, rgba(13,13,13,0.93) 0%, rgba(13,13,13,0.66) 52%, rgba(13,13,13,0.42) 100%), linear-gradient(180deg, rgba(13,13,13,0.42) 0%, rgba(13,13,13,0.24) 42%, rgba(13,13,13,0.76) 100%); }
+  .m-hero .m-hero-inner{ position:relative; z-index:2; max-width:1100px; }
+  .m-hero h1{ font-family:'Archivo Black',serif; font-weight:400; line-height:1.0; letter-spacing:-0.02em; font-size:clamp(40px,8.4vw,116px); margin:22px 0 34px; }
+  .m-hero .m-hero-sub{ font-family:'Inter',sans-serif; font-size:clamp(18px,2.1vw,26px); line-height:1.5; color:rgba(245,240,232,0.82); margin-bottom:44px; }
+  .m-hero .m-hero-sub .dim{ color:rgba(245,240,232,0.55); }
+  .m-scrollcue{ position:absolute; bottom:34px; left:50%; transform:translateX(-50%); z-index:2; font-family:'IBM Plex Mono',monospace; font-size:9.5px; letter-spacing:0.24em; text-transform:uppercase; color:rgba(245,240,232,0.5); display:flex; flex-direction:column; align-items:center; gap:10px; }
+  .m-scrollcue .line{ width:1px; height:34px; background:rgba(245,240,232,0.3); }
+
+  /* ---------- SECTION 2 — THE CHOICE (type only) ---------- */
+  .m-choice .m-h{ max-width:16ch; }
+  .m-choice .row2{ color:rgba(13,13,13,0.32); }
+
+  /* ---------- SECTION 3 — THE DISCIPLINE (sticky crossfade) ---------- */
+  .m-discipline{ position:relative; height:320vh; background:var(--ink); }
+  .m-pin{ position:sticky; top:0; height:100vh; overflow:hidden; display:flex; align-items:center; }
+  .m-crossfade{ position:absolute; inset:0; z-index:0; }
+  .m-crossfade img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; opacity:0; transition:opacity 1.2s ease; filter:contrast(1.04) saturate(0.96); }
+  .m-crossfade img.is-active{ opacity:1; }
+  .m-pin .m-scrim{ position:absolute; inset:0; z-index:1; background:radial-gradient(120% 90% at 50% 45%, rgba(13,13,13,0.42) 0%, rgba(13,13,13,0.72) 60%, rgba(13,13,13,0.92) 100%); }
+  .m-discipline-copy{ position:relative; z-index:2; width:100%; padding:0 clamp(22px,7vw,120px); }
+  .m-discipline-copy .m-h{ color:var(--canvas); max-width:15ch; }
+  .m-discipline-copy .m-support{ color:rgba(245,240,232,0.7); margin-top:clamp(34px,5vw,60px); }
+
+  /* ---------- SECTION 4 — THE RITUAL (can video) ---------- */
+  .m-ritual{ position:relative; min-height:100vh; display:flex; align-items:center; overflow:hidden; background:var(--ink); padding:clamp(110px,16vh,200px) clamp(22px,7vw,120px); }
+  .m-ritual video, .m-ritual .m-hero-poster{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:0; }
+  .m-ritual .m-scrim{ position:absolute; inset:0; z-index:1; background:linear-gradient(90deg, rgba(13,13,13,0.9) 0%, rgba(13,13,13,0.66) 55%, rgba(13,13,13,0.42) 100%); }
+  .m-ritual-inner{ position:relative; z-index:2; max-width:1000px; }
+  .m-ritual .lead{ font-family:'Archivo Black',serif; font-weight:400; line-height:1.05; letter-spacing:-0.015em; font-size:clamp(30px,5vw,66px); max-width:16ch; margin-bottom:clamp(46px,7vw,88px); }
+  .m-ritual-words{ display:flex; flex-direction:column; gap:clamp(8px,1.4vw,20px); }
+  .m-ritual-words span{ font-family:'Archivo Black',serif; font-weight:400; line-height:1.0; font-size:clamp(44px,9vw,120px); letter-spacing:-0.02em; }
+  .m-ritual-words span:nth-child(3){ color:var(--red); }
+
+  /* ---------- SECTION 5 — PERFORMANCE IS UNIVERSAL (list) ---------- */
+  .m-universal-list{ display:flex; flex-direction:column; }
+  .m-universal-list span{ font-family:'Archivo Black',serif; font-weight:400; line-height:1.06; letter-spacing:-0.015em; font-size:clamp(30px,6vw,86px); color:rgba(13,13,13,0.28); }
+  .m-universal-list span.visible{ color:var(--ink); transition:color 1.1s ease, opacity 1.1s ease, transform 1.1s ease; }
+  .m-universal-final{ margin-top:clamp(60px,8vw,110px); font-family:'Archivo Black',serif; font-weight:400; line-height:1.02; letter-spacing:-0.02em; font-size:clamp(38px,7.4vw,108px); max-width:14ch; }
+
+  /* ---------- SECTION 6 — THE STANDARD ---------- */
+  .m-standard .m-h + .m-h{ margin-top:clamp(6px,1vw,14px); }
+  .m-standard .m-standard-list{ margin-top:clamp(56px,8vw,104px); display:flex; flex-direction:column; gap:clamp(14px,2vw,26px); max-width:40ch; }
+  .m-standard .m-standard-list p{ font-family:'Inter',sans-serif; font-size:clamp(18px,2.1vw,26px); line-height:1.4; color:rgba(245,240,232,0.9); }
+  .m-standard .m-standard-list p.dim{ color:rgba(245,240,232,0.55); }
+
+  /* ---------- FINAL SECTION ---------- */
+  .m-final{ position:relative; background:#000; color:var(--canvas); min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:clamp(120px,16vh,200px) clamp(22px,7vw,120px); overflow:hidden; }
+  .m-final::before{ content:''; position:absolute; width:min(120vw,900px); height:min(120vw,900px); border-radius:50%; background:radial-gradient(closest-side, rgba(193,40,27,0.16), transparent 70%); top:38%; left:50%; transform:translate(-50%,-50%); z-index:0; }
+  .m-final-can{ position:relative; z-index:1; height:clamp(300px,52vh,560px); width:auto; filter:drop-shadow(0 30px 70px rgba(0,0,0,0.6)); opacity:0; transform:translateY(30px) scale(0.98); transition:opacity 1.8s ease, transform 1.8s ease; }
+  .m-final-can.visible{ opacity:1; transform:none; }
+  .m-final-lines{ position:relative; z-index:1; margin-top:clamp(48px,6vw,80px); }
+  .m-final-lines p{ font-family:'Archivo Black',serif; font-weight:400; line-height:1.14; letter-spacing:-0.01em; font-size:clamp(26px,4.2vw,58px); }
+  .m-final-lines p.red{ color:var(--red); }
+  .m-final .btn{ position:relative; z-index:1; margin-top:clamp(46px,6vw,72px); }
+
+  /* ---------- FOOTER (slim) ---------- */
+  .m-footer{ background:#000; color:rgba(245,240,232,0.5); padding:44px clamp(22px,7vw,120px); display:flex; flex-wrap:wrap; gap:16px 28px; align-items:center; justify-content:space-between; border-top:1px solid rgba(245,240,232,0.08); font-family:'IBM Plex Mono',monospace; font-size:10.5px; letter-spacing:0.1em; text-transform:uppercase; }
+  .m-footer .fnav{ display:flex; gap:24px; flex-wrap:wrap; }
+  .m-footer a:hover{ color:var(--canvas); }
+
+  /* ---------- STAGGER (line-by-line reveal) ---------- */
+  .stagger > .reveal:nth-child(1){ transition-delay:.02s; }
+  .stagger > .reveal:nth-child(2){ transition-delay:.14s; }
+  .stagger > .reveal:nth-child(3){ transition-delay:.26s; }
+  .stagger > .reveal:nth-child(4){ transition-delay:.38s; }
+  .stagger > .reveal:nth-child(5){ transition-delay:.5s; }
+  .stagger > .reveal:nth-child(6){ transition-delay:.62s; }
+  .stagger > .reveal:nth-child(7){ transition-delay:.74s; }
+  .stagger > .reveal:nth-child(8){ transition-delay:.86s; }
+  .stagger > .reveal:nth-child(9){ transition-delay:.98s; }
+
+  /* ---------- RESPONSIVE ---------- */
+  @media (max-width:860px){
+    .m-discipline{ height:300vh; }
+    .m-hero .m-scrim{ background:linear-gradient(180deg, rgba(13,13,13,0.78) 0%, rgba(13,13,13,0.66) 44%, rgba(13,13,13,0.9) 100%); }
+    .m-ritual .m-scrim{ background:linear-gradient(180deg, rgba(13,13,13,0.55) 0%, rgba(13,13,13,0.86) 100%); }
+    .m-footer{ flex-direction:column; align-items:flex-start; }
+  }
+  /* Immersive page: collapse the top nav to just the mark on phones (footer carries full nav) */
+  @media (max-width:720px){
+    .nav .links{ display:none; }
+  }
+</style>
+</head>
+<body>
+<a href="#choice" class="skip-link">Skip to content</a>
+<div class="grain" aria-hidden="true"></div>
+
+<nav class="nav" id="nav">
+  <a href="/" class="mark">AFORCE™</a>
+  <div class="links">
+    <a href="/#ritual">Ritual</a>
+    <a href="/#profile">Profile</a>
+    <a href="/#os">The OS</a>
+    <a href="/manifesto" class="current" aria-current="page">Manifesto</a>
+    <a href="/#products">Shop</a>
+  </div>
+</nav>
+
+<main>
+  <!-- ============ SECTION 1 — HERO ============ -->
+  <header class="m-hero" id="top">
+    <div class="m-hero-poster" style="background-image:url('/assets/community-poster.jpg')" aria-hidden="true"></div>
+    <video class="m-lazy-video" autoplay muted loop playsinline preload="none" poster="/assets/community-poster.jpg" aria-hidden="true"
+           data-webm="/assets/community-film.webm" data-mp4="/assets/community-film.mp4"></video>
+    <div class="m-scrim" aria-hidden="true"></div>
+    <div class="m-hero-inner">
+      <div class="m-eyebrow reveal">The Manifesto</div>
+      <h1 class="reveal">Performance begins before the moment arrives.</h1>
+      <div class="m-hero-sub reveal">We don&rsquo;t chase performance.<br><span class="dim">We prepare for it.</span></div>
+      <a href="#choice" class="btn btn-ghost reveal">Read the Manifesto</a>
+    </div>
+    <div class="m-scrollcue" aria-hidden="true"><span>Scroll</span><div class="line"></div></div>
+  </header>
+
+  <!-- ============ SECTION 2 — THE CHOICE ============ -->
+  <section class="m-sec light m-choice" id="choice">
+    <div class="m-eyebrow reveal">The Choice</div>
+    <div class="stagger">
+      <h2 class="m-h reveal">Before the work,<br>the breath.</h2>
+      <div class="m-gap-sm"></div>
+      <h2 class="m-h reveal row2">Before the breath,<br>the choice.</h2>
+    </div>
+    <div class="m-gap-md"></div>
+    <div class="stagger">
+      <p class="m-support reveal">Everything begins with one decision.</p>
+      <p class="m-support reveal" style="margin-top:14px; color:var(--ink); font-weight:500;">To prepare.</p>
+    </div>
+  </section>
+
+  <!-- ============ SECTION 3 — THE DISCIPLINE ============ -->
+  <section class="m-discipline" id="discipline" aria-label="The Discipline">
+    <div class="m-pin">
+      <div class="m-crossfade" id="crossfade" aria-hidden="true">
+        <img src="/assets/perf-boxer.jpg" alt="" class="is-active" loading="lazy" data-i="0">
+        <img src="/assets/perf-surgeon.jpg" alt="" loading="lazy" data-i="1">
+        <img src="/assets/ritual-meditation.jpg" alt="" loading="lazy" data-i="2">
+        <img src="/assets/perf-trader.jpg" alt="" loading="lazy" data-i="3">
+        <img src="/assets/moment-firefighter.jpg" alt="" loading="lazy" data-i="4">
+      </div>
+      <div class="m-scrim" aria-hidden="true"></div>
+      <div class="m-discipline-copy">
+        <div class="m-eyebrow reveal">The Discipline</div>
+        <div class="stagger">
+          <h2 class="m-h reveal">We do not chase<br>the moment.</h2>
+          <h2 class="m-h reveal m-blue" style="margin-top:8px;">We prepare for it.</h2>
+        </div>
+        <p class="m-support reveal">Preparation is invisible.<br>Until it isn&rsquo;t.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SECTION 4 — THE RITUAL ============ -->
+  <section class="m-ritual" id="ritual" aria-label="The Ritual">
+    <div class="m-hero-poster" style="background-image:url('/assets/hero-poster.jpg')" aria-hidden="true"></div>
+    <video class="m-lazy-video" autoplay muted loop playsinline preload="none" poster="/assets/hero-poster.jpg" aria-hidden="true"
+           data-webm="/assets/hero-video.webm" data-mp4="/assets/hero-video.mp4"></video>
+    <div class="m-scrim" aria-hidden="true"></div>
+    <div class="m-ritual-inner">
+      <div class="m-eyebrow reveal">The Ritual</div>
+      <p class="lead reveal">AForce is the ritual<br>before execution.</p>
+      <div class="m-ritual-words stagger">
+        <span class="reveal">Pause.</span>
+        <span class="reveal">Hydrate.</span>
+        <span class="reveal">Lock In.</span>
+        <span class="reveal">Perform.</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SECTION 5 — PERFORMANCE IS UNIVERSAL ============ -->
+  <section class="m-sec light m-universal" id="universal" aria-label="Performance is Universal">
+    <div class="m-eyebrow reveal">Performance is Universal</div>
+    <div class="m-universal-list stagger">
+      <span class="reveal">Founders.</span>
+      <span class="reveal">Athletes.</span>
+      <span class="reveal">Parents.</span>
+      <span class="reveal">Physicians.</span>
+      <span class="reveal">Pilots.</span>
+      <span class="reveal">Firefighters.</span>
+      <span class="reveal">Creators.</span>
+      <span class="reveal">Teachers.</span>
+      <span class="reveal">Operators.</span>
+    </div>
+    <h2 class="m-universal-final reveal">Performance belongs<br>to everyone.</h2>
+  </section>
+
+  <!-- ============ SECTION 6 — THE STANDARD ============ -->
+  <section class="m-sec dark m-standard" id="standard" aria-label="The Standard">
+    <div class="m-eyebrow reveal">The Standard</div>
+    <div class="stagger">
+      <h2 class="m-h reveal">The world is loud.</h2>
+      <h2 class="m-h reveal m-blue">AForce is disciplined.</h2>
+    </div>
+    <div class="m-standard-list stagger">
+      <p class="reveal dim">We don&rsquo;t compete for attention.</p>
+      <p class="reveal">We earn trust.</p>
+      <p class="reveal" style="margin-top:18px;">Hydration is the entry point.</p>
+      <p class="reveal">Behavior is the product.</p>
+      <p class="reveal">Preparation is the standard.</p>
+    </div>
+  </section>
+
+  <!-- ============ FINAL SECTION ============ -->
+  <section class="m-final" id="close" aria-label="Performance Is Non-Negotiable">
+    <img class="m-final-can" src="/assets/can-red.png" alt="AForce Watermelon Surge & Chlorella — pH 8.8 alkaline hydration" width="498" height="1281">
+    <div class="m-final-lines stagger">
+      <p class="reveal">Performance is Universal.</p>
+      <p class="reveal">Preparation is a Choice.</p>
+      <p class="reveal red">Performance Is Non&#8209;Negotiable.</p>
+    </div>
+    <a href="/#founding" class="btn btn-ghost reveal">Build Your Ritual</a>
+  </section>
+</main>
+
+<footer class="m-footer">
+  <div>© 2026 Alkaline Force LLC · Performance Is Non&#8209;Negotiable.</div>
+  <nav class="fnav" aria-label="Footer">
+    <a href="/">Home</a>
+    <a href="/#ritual">The Ritual</a>
+    <a href="/#os">AForce OS</a>
+    <a href="/#products">Shop</a>
+  </nav>
+</footer>
+
+<script>
+  // ---- Reveal on scroll (mirrors the site's IntersectionObserver) ----
+  const io = new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('visible'); io.unobserve(e.target); } });
+  }, { threshold:0.18, rootMargin:'0px 0px -8% 0px' });
+  document.querySelectorAll('.reveal').forEach(el=> io.observe(el));
+
+  // ---- Lazy-load background videos: attach sources only when near viewport ----
+  const vidIO = new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{
+      if(!e.isIntersecting) return;
+      const v = e.target;
+      if(v.dataset.loaded) { vidIO.unobserve(v); return; }
+      v.dataset.loaded = '1';
+      const add = (src,type)=>{ const s=document.createElement('source'); s.src=src; s.type=type; v.appendChild(s); };
+      if(v.dataset.webm) add(v.dataset.webm, 'video/webm');
+      if(v.dataset.mp4)  add(v.dataset.mp4,  'video/mp4');
+      v.load();
+      const p = v.play(); if(p && p.catch) p.catch(()=>{});
+      vidIO.unobserve(v);
+    });
+  }, { rootMargin:'400px 0px' });
+  document.querySelectorAll('.m-lazy-video').forEach(v=> vidIO.observe(v));
+
+  // ---- Section 3: scroll-driven crossfade through the discipline imagery ----
+  (function(){
+    const sec = document.getElementById('discipline');
+    const imgs = Array.from(document.querySelectorAll('#crossfade img'));
+    if(!sec || !imgs.length) return;
+    let ticking = false, current = 0;
+    function update(){
+      ticking = false;
+      const rect = sec.getBoundingClientRect();
+      const scrollable = rect.height - window.innerHeight;
+      if(scrollable <= 0) return;
+      // progress 0..1 while the tall section scrolls past the sticky pin
+      let p = (-rect.top) / scrollable;
+      p = Math.max(0, Math.min(0.9999, p));
+      const idx = Math.min(imgs.length-1, Math.floor(p * imgs.length));
+      if(idx !== current){
+        imgs[current].classList.remove('is-active');
+        imgs[idx].classList.add('is-active');
+        current = idx;
+      }
+    }
+    window.addEventListener('scroll', ()=>{ if(!ticking){ ticking=true; requestAnimationFrame(update); } }, { passive:true });
+    window.addEventListener('resize', update, { passive:true });
+    update();
+  })();
+</script>
+</body>
+</html>
