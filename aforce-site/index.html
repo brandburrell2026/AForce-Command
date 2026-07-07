@@ -22,7 +22,7 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
   /* Respect users who've asked their OS for reduced motion — accessibility baseline, not optional */
   @media (prefers-reduced-motion: reduce){
@@ -129,7 +129,7 @@
   }
 
   section{ padding:clamp(64px,9vh,96px) clamp(20px,6vw,72px); }
-  .eyebrow-label{ font-family:'Inter', sans-serif; font-size:11px; letter-spacing:0.24em; text-transform:uppercase; color:var(--red); margin-bottom:20px; opacity:0; transform:translateY(10px); }
+  .eyebrow-label{ font-family:'Inter', sans-serif; font-weight:700; font-size:11px; letter-spacing:0.24em; text-transform:uppercase; color:var(--red); margin-bottom:20px; opacity:0; transform:translateY(10px); }
   .section-title{ font-family:'Archivo Black', serif; font-weight:400; font-size:clamp(34px, 5vw, 64px); line-height:1.08; max-width:820px; opacity:0; transform:translateY(14px); }
   .fade-in{ transition: opacity 1s ease, transform 1s ease; }
   .fade-in.visible{ opacity:1 !important; transform:none !important; }
@@ -138,7 +138,7 @@
   .clarity{ background:var(--canvas); color:var(--ink); display:flex; align-items:center; }
   .clarity-grid{ width:100%; max-width:1360px; margin:0 auto; display:grid; grid-template-columns:1.02fr 0.98fr; gap:clamp(40px,6vw,96px); align-items:center; padding:clamp(64px,9vh,104px) clamp(20px,4vw,56px); }
   .clarity h2{ font-family:'Archivo Black',serif; font-weight:300; font-size:clamp(34px,4.6vw,62px); line-height:1.12; max-width:15ch; opacity:0; transform:translateY(12px); }
-  .clarity p{ margin-top:26px; font-family:'Inter',sans-serif; font-size:12px; letter-spacing:0.14em; text-transform:uppercase; line-height:1.9; color:rgba(13,13,13,0.5); opacity:0; transform:translateY(12px); }
+  .clarity p{ margin-top:26px; font-family:'Inter',sans-serif; font-weight:700; font-size:12px; letter-spacing:0.14em; text-transform:uppercase; line-height:1.9; color:rgba(13,13,13,0.5); opacity:0; transform:translateY(12px); }
   .clarity-list{ list-style:none; margin:30px 0 0; padding:0; display:flex; flex-wrap:wrap; gap:14px 26px; max-width:620px; opacity:0; transform:translateY(12px); }
   .clarity-list li{ display:flex; align-items:center; gap:10px; font-family:'Inter',sans-serif; font-size:13px; letter-spacing:0.08em; color:var(--ink); }
   .clarity-list li::before{ content:''; width:7px; height:7px; border-radius:50%; border:1.5px solid var(--red); flex-shrink:0; }
@@ -147,10 +147,10 @@
   .clarity-cta .arw{ margin-left:10px; }
   /* right column — ritual words + N|N monogram + caption */
   .clarity-mark{ display:flex; flex-direction:column; align-items:center; text-align:center; }
-  .clarity-mark .ritual-row{ display:flex; flex-wrap:wrap; justify-content:center; gap:16px 40px; font-family:'Inter',sans-serif; font-size:clamp(15px,1.75vw,20px); letter-spacing:0.16em; text-transform:uppercase; color:var(--ink); margin-bottom:clamp(60px,8vw,110px); opacity:0; transform:translateY(12px); }
+  .clarity-mark .ritual-row{ display:flex; flex-wrap:wrap; justify-content:center; gap:16px 40px; font-family:'Inter',sans-serif; font-weight:700; font-size:clamp(15px,1.75vw,20px); letter-spacing:0.16em; text-transform:uppercase; color:var(--ink); margin-bottom:clamp(60px,8vw,110px); opacity:0; transform:translateY(12px); }
   .clarity-mark .glyphs{ display:flex; align-items:baseline; justify-content:center; gap:22px; font-family:'Archivo Black', serif; font-size:clamp(84px,13vw,180px); line-height:0.9; margin-bottom:clamp(48px,6vw,80px); opacity:0; transform:translateY(12px); }
   .clarity-mark .glyphs .n{ color:var(--red); } .clarity-mark .glyphs .dash{ color:rgba(13,13,13,0.3); font-size:0.5em; } .clarity-mark .glyphs .mirror{ display:inline-block; transform:scaleX(-1); }
-  .clarity-mark .mark-caption{ font-family:'Inter',sans-serif; font-size:clamp(13px,1.4vw,16px); letter-spacing:0.26em; text-transform:uppercase; color:rgba(13,13,13,0.65); opacity:0; transform:translateY(12px); }
+  .clarity-mark .mark-caption{ font-family:'Inter',sans-serif; font-weight:700; font-size:clamp(13px,1.4vw,16px); letter-spacing:0.26em; text-transform:uppercase; color:rgba(13,13,13,0.65); opacity:0; transform:translateY(12px); }
   @media (max-width:900px){
     .clarity-grid{ grid-template-columns:1fr; gap:clamp(52px,9vw,80px); }
     .clarity h2{ max-width:none; }
@@ -229,7 +229,7 @@
   .ritual-item{ position:relative; padding-left:76px; margin-bottom:56px; opacity:0; transform:translateY(16px); }
   .ritual-item:last-child{ margin-bottom:0; }
   .ritual-item::before{ content:''; position:absolute; left:22px; top:6px; width:13px; height:13px; border-radius:50%; background:var(--canvas); border:1.5px solid var(--red); }
-  .ritual-item .num{ font-family:'Inter',sans-serif; font-size:10px; color:var(--red); position:absolute; left:0; top:2px; }
+  .ritual-item .num{ font-family:'Inter',sans-serif; font-weight:700; font-size:10px; color:var(--red); position:absolute; left:0; top:2px; }
   .ritual-item h3{ font-family:'Archivo Black',serif; font-size:34px; font-weight:400; margin-bottom:10px;}
   .ritual-item p{ font-size:15px; line-height:1.7; color:#54575E; max-width:480px; }
 
@@ -312,7 +312,7 @@
   .universal-close .uc-line{ font-family:'Archivo Black',serif; font-weight:400; font-size:clamp(28px,4.4vw,60px); line-height:1.12; color:var(--ink); }
   .universal-close .uc-line.uc-strong{ color:var(--red); }
   .uc-ritual{ margin-top:clamp(42px,6vw,66px); display:flex; flex-wrap:wrap; justify-content:center; gap:16px 40px; }
-  .uc-ritual span{ font-family:'Inter',sans-serif; font-size:clamp(13px,1.5vw,17px); letter-spacing:0.16em; text-transform:uppercase; color:var(--ink); }
+  .uc-ritual span{ font-family:'Inter',sans-serif; font-weight:700; font-size:clamp(13px,1.5vw,17px); letter-spacing:0.16em; text-transform:uppercase; color:var(--ink); }
 
   /* ---------- FOUNDING 200 ---------- */
   .founding{ background:var(--canvas); color:var(--ink); text-align:center; }
@@ -334,7 +334,7 @@
   .final .final-line.bottom{ margin-top:clamp(28px,3.6vw,44px); color:var(--red); }
   .universal-close .glyphs{ display:flex; align-items:baseline; justify-content:center; gap:21px; font-family:'Archivo Black', serif; font-size:clamp(78px,12.5vw,156px); line-height:0.9; opacity:0; transform:translateY(10px); margin:clamp(48px,7vw,72px) 0 18px; }
   .universal-close .glyphs .n{ color: var(--red); } .universal-close .glyphs .dash{ color: rgba(13,13,13,0.3); font-size:0.5em; } .universal-close .glyphs .mirror{ display:inline-block; transform: scaleX(-1); }
-  .universal-close .caption{ font-family:'Inter', sans-serif; font-size:12px; letter-spacing:0.26em; text-transform:uppercase; color: rgba(13,13,13,0.65); opacity:0; transform:translateY(10px); margin-bottom:0; }
+  .universal-close .caption{ font-family:'Inter', sans-serif; font-weight:700; font-size:12px; letter-spacing:0.26em; text-transform:uppercase; color: rgba(13,13,13,0.65); opacity:0; transform:translateY(10px); margin-bottom:0; }
   .final .btn{ opacity:0; transform:translateY(10px); }
 
   footer{ background:var(--canvas); color:rgba(13,13,13,0.55); padding:clamp(40px,6vh,60px) clamp(20px,6vw,72px) 40px; }
