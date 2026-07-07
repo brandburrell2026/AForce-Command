@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AFORCE — The Science</title>
+<meta name="description" content="The Science of AForce — hydration, electrolytes, pH 8.8, retort precision, ritual behavior, and the AForce OS. Preparation begins long before performance is visible.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800;900&family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Inter:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0B0D12;
+    --canvas:#F2F2F0;
+    --red:#E41E2B;
+    --blue:#2F5BFF;
+    --green:#2D6A4F;
+    --c:#F2F2F0;
+    --c70:rgba(242,242,240,.7);
+    --c55:rgba(242,242,240,.55);
+    --c40:rgba(242,242,240,.4);
+    --c25:rgba(242,242,240,.25);
+    --c14:rgba(242,242,240,.14);
+    --c08:rgba(242,242,240,.08);
+    --display:'Archivo',sans-serif;
+    --serif:'Cormorant Garamond',serif;
+    --body:'Inter',sans-serif;
+    --mono:'Space Mono',monospace;
+    --gutter:clamp(20px,5vw,80px);
+    --maxw:1240px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--ink);
+    color:var(--c);
+    font-family:var(--body);
+    font-size:16px;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  ::selection{background:var(--red);color:var(--canvas);}
+  a{color:inherit;text-decoration:none;}
+  button{font-family:inherit;cursor:pointer;color:inherit;background:none;border:none;}
+  :focus-visible{outline:2px solid var(--blue);outline-offset:3px;}
+  img,svg,video{max-width:100%;display:block;}
+
+  /* ---------- SHARED TYPE ---------- */
+  .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:var(--red);}
+  .h-display{font-family:var(--display);font-weight:800;text-transform:uppercase;line-height:1.02;letter-spacing:-0.01em;font-size:clamp(34px,6.4vw,84px);}
+  .h-2{font-family:var(--display);font-weight:800;text-transform:uppercase;line-height:1.06;letter-spacing:-0.005em;font-size:clamp(27px,4.4vw,56px);}
+  .h-3{font-family:var(--display);font-weight:700;text-transform:uppercase;line-height:1.1;font-size:clamp(19px,2.2vw,26px);}
+  .serif{font-family:var(--serif);font-style:italic;font-weight:400;line-height:1.3;color:var(--c70);font-size:clamp(20px,2.7vw,34px);}
+  .lead{font-family:var(--body);font-size:clamp(16px,1.35vw,19px);line-height:1.75;color:var(--c70);max-width:62ch;}
+  .mono-note{font-family:var(--mono);font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--c40);}
+  .accent-red{color:var(--red);}
+
+  /* mirrored-N brand treatment */
+  .flip{display:inline-block;transform:scaleX(-1);}
+
+  /* ---------- NAV ---------- */
+  .nav{
+    position:sticky;top:0;z-index:50;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:16px var(--gutter);
+    background:rgba(11,13,18,.82);
+    backdrop-filter:blur(12px);
+    border-bottom:1px solid var(--c08);
+  }
+  .mark{font-family:var(--display);font-weight:900;font-size:17px;letter-spacing:.02em;display:flex;align-items:center;gap:10px;}
+  .nn{display:inline-flex;align-items:center;gap:3px;font-weight:900;}
+  .nn .bar{display:inline-block;width:2px;height:14px;background:currentColor;}
+  .nn .nflip{display:inline-block;transform:scaleX(-1);}
+  .nav-links{display:flex;gap:clamp(16px,2.4vw,34px);align-items:center;font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;}
+  .nav-links a{opacity:.6;transition:opacity .2s;white-space:nowrap;}
+  .nav-links a:hover,.nav-links a[aria-current="page"]{opacity:1;}
+  .nav-links a[aria-current="page"]{color:var(--red);}
+  .nav-toggle{display:none;}
+
+  /* ---------- LAYOUT ---------- */
+  section{padding:clamp(90px,13vh,180px) var(--gutter);position:relative;scroll-margin-top:72px;}
+  .wrap{max-width:var(--maxw);margin:0 auto;}
+  .divider{border-top:1px solid var(--c08);}
+  .stack-lg>*+*{margin-top:clamp(28px,4vw,48px);}
+  .stack-md>*+*{margin-top:clamp(18px,2vw,26px);}
+
+  /* ---------- REVEAL / MOTION ---------- */
+  .reveal{opacity:0;transform:translateY(18px);transition:opacity .8s ease,transform .8s ease;}
+  .reveal.in{opacity:1;transform:none;}
+
+  /* ---------- ASSET PLACEHOLDER SLOT ---------- */
+  .asset-slot{
+    position:relative;width:100%;border:1px solid var(--c14);border-radius:2px;
+    background:
+      linear-gradient(135deg, rgba(242,242,240,.03), rgba(242,242,240,0) 60%),
+      repeating-linear-gradient(45deg, rgba(242,242,240,.02) 0 10px, transparent 10px 20px);
+    display:flex;align-items:center;justify-content:center;overflow:hidden;
+  }
+  .asset-slot .slot-inner{text-align:center;padding:28px;}
+  .asset-slot .slot-tag{font-family:var(--mono);font-size:10.5px;letter-spacing:.26em;text-transform:uppercase;color:var(--c40);}
+  .asset-slot .slot-desc{font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:var(--c25);margin-top:10px;}
+  .asset-slot .slot-corner{position:absolute;width:12px;height:12px;border-color:var(--c25);}
+  .asset-slot .tl{top:12px;left:12px;border-top:1px solid;border-left:1px solid;}
+  .asset-slot .tr{top:12px;right:12px;border-top:1px solid;border-right:1px solid;}
+  .asset-slot .bl{bottom:12px;left:12px;border-bottom:1px solid;border-left:1px solid;}
+  .asset-slot .br{bottom:12px;right:12px;border-bottom:1px solid;border-right:1px solid;}
+  .ratio-cine{aspect-ratio:16/10;}
+  .ratio-tall{aspect-ratio:4/5;}
+
+  /* ---------- HERO ---------- */
+  .hero{min-height:100vh;display:grid;grid-template-columns:1.05fr .95fr;gap:clamp(30px,5vw,72px);align-items:center;padding-top:clamp(60px,10vh,120px);padding-bottom:clamp(60px,10vh,120px);}
+  .hero-copy>*+*{margin-top:clamp(20px,2.6vw,30px);}
+  .hero h1{font-size:clamp(38px,6.6vw,92px);}
+  .hero .anchor-line{font-family:var(--mono);font-size:12px;letter-spacing:.16em;color:var(--c40);text-transform:uppercase;}
+  .cta{display:inline-flex;align-items:center;gap:12px;font-family:var(--mono);font-size:12px;letter-spacing:.18em;text-transform:uppercase;padding:16px 26px;border:1px solid var(--c25);border-radius:2px;transition:border-color .25s,background .25s,color .25s;}
+  .cta:hover{background:var(--c);color:var(--ink);border-color:var(--c);}
+  .cta.red{border-color:var(--red);color:var(--red);}
+  .cta.red:hover{background:var(--red);color:var(--canvas);}
+  .cta .arw{transition:transform .25s;}
+  .cta:hover .arw{transform:translateX(4px);}
+
+  /* ---------- WHY / SYSTEMS DIAGRAM ---------- */
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:clamp(34px,5vw,80px);align-items:center;}
+  .sys-svg{width:100%;height:auto;}
+  .sys-svg text{font-family:var(--mono);}
+
+  /* ---------- REGULATION LAYER ---------- */
+  .ion-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--c08);border:1px solid var(--c08);margin-top:clamp(30px,4vw,52px);}
+  .ion-cell{background:var(--ink);padding:clamp(24px,3vw,40px) clamp(18px,2vw,28px);}
+  .ion-cell .sym{font-family:var(--display);font-weight:800;font-size:clamp(26px,3vw,40px);color:var(--red);}
+  .ion-cell .nm{font-family:var(--display);font-weight:700;text-transform:uppercase;font-size:15px;letter-spacing:.02em;margin-top:14px;}
+  .ion-cell .fn{font-family:var(--body);font-size:14px;color:var(--c55);margin-top:10px;line-height:1.55;}
+  .ion-cell .lbl{font-family:var(--mono);font-size:10px;letter-spacing:.22em;color:var(--c40);text-transform:uppercase;}
+
+  /* ---------- INGREDIENT CARDS ---------- */
+  .card-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:clamp(30px,4vw,52px);}
+  .icard{border:1px solid var(--c14);border-radius:2px;padding:26px 24px;text-align:left;transition:border-color .25s,background .25s;position:relative;}
+  .icard:hover{border-color:var(--c25);}
+  .icard .idx{font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:var(--c40);}
+  .icard .inm{font-family:var(--display);font-weight:800;text-transform:uppercase;font-size:clamp(17px,1.6vw,20px);line-height:1.1;margin-top:16px;}
+  .icard .iwhat{font-family:var(--body);font-size:14px;color:var(--c70);margin-top:12px;line-height:1.6;}
+  .icard .idetail{max-height:0;overflow:hidden;transition:max-height .4s ease,opacity .3s ease,margin .3s ease;opacity:0;}
+  .icard[aria-expanded="true"] .idetail{max-height:340px;opacity:1;margin-top:16px;}
+  .icard .drow{font-family:var(--body);font-size:13.5px;line-height:1.55;color:var(--c55);}
+  .icard .drow+.drow{margin-top:12px;}
+  .icard .drow b{color:var(--c);font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;display:block;margin-bottom:4px;font-weight:700;}
+  .icard .more{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--red);margin-top:18px;display:inline-flex;gap:8px;align-items:center;}
+  .icard .more .sign::after{content:'+';}
+  .icard[aria-expanded="true"] .more .sign::after{content:'–';}
+
+  /* ---------- STANDARDS / NUMBERED SEQUENCES ---------- */
+  .seq{margin-top:clamp(34px,4vw,56px);border-top:1px solid var(--c08);}
+  .seq-row{display:grid;grid-template-columns:96px 1fr;gap:clamp(16px,3vw,44px);padding:clamp(26px,3.4vw,44px) 0;border-bottom:1px solid var(--c08);align-items:baseline;}
+  .seq-row .snum{font-family:var(--mono);font-size:12px;letter-spacing:.14em;color:var(--red);padding-top:6px;}
+  .seq-row .stitle{font-family:var(--display);font-weight:800;text-transform:uppercase;font-size:clamp(19px,2.1vw,28px);line-height:1.08;}
+  .seq-row .sbody{font-family:var(--body);font-size:15px;color:var(--c70);margin-top:12px;line-height:1.65;max-width:60ch;}
+  .seq-row .slink{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--red);margin-top:12px;display:inline-block;}
+  .display-close{font-family:var(--display);font-weight:800;text-transform:uppercase;font-size:clamp(24px,3.6vw,46px);line-height:1.1;margin-top:clamp(40px,5vw,66px);}
+  .display-close .dim{color:var(--c40);}
+
+  /* ---------- REFUSALS ---------- */
+  .refusals{max-width:900px;}
+  .refuse-line{font-family:var(--display);font-weight:700;text-transform:none;font-size:clamp(20px,2.7vw,33px);line-height:1.28;color:var(--c);padding:clamp(12px,1.4vw,18px) 0;letter-spacing:-0.01em;}
+  .refuse-line .x{color:var(--red);font-family:var(--mono);font-size:.5em;vertical-align:middle;margin-right:16px;letter-spacing:0;}
+
+  /* ---------- VERIFICATION / EXHIBITION QUESTIONS ---------- */
+  .exhibit{margin-top:clamp(34px,4vw,54px);}
+  .exhibit-row{display:grid;grid-template-columns:80px 1fr;gap:clamp(16px,3vw,40px);padding:clamp(24px,3vw,40px) 0;border-top:1px solid var(--c08);align-items:baseline;}
+  .exhibit-row:last-child{border-bottom:1px solid var(--c08);}
+  .exhibit-row .qn{font-family:var(--mono);font-size:12px;letter-spacing:.14em;color:var(--c40);}
+  .exhibit-row .qt{font-family:var(--display);font-weight:800;text-transform:uppercase;font-size:clamp(20px,2.6vw,34px);}
+
+  /* ---------- PRECISION EXHIBITION ---------- */
+  .exhibit-block{border-top:1px solid var(--c08);padding:clamp(40px,5.5vw,80px) 0;}
+  .exhibit-block:last-of-type{border-bottom:1px solid var(--c08);}
+  .exhibit-block .eb-num{font-family:var(--mono);font-size:12px;letter-spacing:.16em;color:var(--red);}
+  .exhibit-block .eb-title{font-family:var(--display);font-weight:800;text-transform:uppercase;font-size:clamp(24px,3.6vw,48px);line-height:1.04;margin-top:18px;max-width:16ch;}
+  .exhibit-block .eb-body{font-family:var(--body);font-size:16px;color:var(--c70);margin-top:20px;max-width:56ch;line-height:1.7;}
+
+  /* manufacturing timeline (structured markup) */
+  .timeline{list-style:none;margin:clamp(34px,4vw,56px) 0 0;position:relative;padding-left:34px;}
+  .timeline::before{content:'';position:absolute;left:5px;top:8px;bottom:8px;width:1px;background:var(--c14);}
+  .timeline li{position:relative;padding:0 0 clamp(26px,3vw,40px);}
+  .timeline li:last-child{padding-bottom:0;}
+  .timeline li::before{content:'';position:absolute;left:-34px;top:5px;width:11px;height:11px;border-radius:50%;border:1px solid var(--red);background:var(--ink);}
+  .timeline li.done::before{background:var(--red);}
+  .timeline .tstep{font-family:var(--mono);font-size:10.5px;letter-spacing:.2em;color:var(--c40);text-transform:uppercase;}
+  .timeline .tname{font-family:var(--display);font-weight:700;text-transform:uppercase;font-size:clamp(16px,1.8vw,21px);margin-top:6px;}
+
+  /* ---------- CHOREOGRAPHED MOMENT 1 — RITUAL WORDS ---------- */
+  .ritual-line{display:flex;flex-wrap:wrap;gap:clamp(18px,4vw,60px);margin-top:clamp(30px,4vw,50px);}
+  .ritual-word{font-family:var(--display);font-weight:800;text-transform:uppercase;font-size:clamp(30px,6.4vw,86px);line-height:1;letter-spacing:-0.01em;opacity:0;transform:translateY(20px);transition:opacity .7s ease,transform .7s ease;}
+  .ritual-line.in .ritual-word{opacity:1;transform:none;}
+  .ritual-line.in .ritual-word:nth-child(1){transition-delay:.05s;}
+  .ritual-line.in .ritual-word:nth-child(2){transition-delay:.35s;}
+  .ritual-line.in .ritual-word:nth-child(3){transition-delay:.65s;}
+  .ritual-line.in .ritual-word:nth-child(4){transition-delay:.95s;}
+  .ritual-word.rw-accent{color:var(--red);}
+
+  /* ---------- CHOREOGRAPHED MOMENT 2 — OS INTERSTITIAL ---------- */
+  .interstitial{min-height:74vh;display:flex;flex-direction:column;justify-content:center;gap:clamp(14px,2vw,22px);}
+  .os-line{font-family:var(--display);font-weight:800;text-transform:uppercase;font-size:clamp(26px,5vw,68px);line-height:1.05;letter-spacing:-0.01em;opacity:0;transform:translateY(22px);transition:opacity .9s ease,transform .9s ease;}
+  .interstitial.in .os-line:nth-child(1){opacity:1;transform:none;transition-delay:.1s;}
+  .interstitial.in .os-line:nth-child(2){opacity:1;transform:none;transition-delay:.7s;}
+  .os-line.dim{color:var(--c40);}
+
+  /* ---------- OS FLOW DIAGRAM ---------- */
+  .flow{list-style:none;margin:clamp(30px,4vw,52px) 0 0;display:flex;flex-direction:column;gap:0;max-width:520px;}
+  .flow li{font-family:var(--display);font-weight:800;text-transform:uppercase;font-size:clamp(20px,2.6vw,32px);padding:clamp(16px,2vw,24px) 0;border-top:1px solid var(--c08);display:flex;align-items:center;gap:18px;}
+  .flow li:last-child{border-bottom:1px solid var(--c08);color:var(--red);}
+  .flow li .fdot{font-family:var(--mono);font-size:12px;color:var(--c40);letter-spacing:0;}
+
+  /* ---------- OBSERVATIONS ---------- */
+  .obs-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--c08);border:1px solid var(--c08);margin-top:clamp(34px,4vw,54px);}
+  .obs-cell{background:var(--ink);padding:clamp(28px,3.4vw,46px);}
+  .obs-cell .on{font-family:var(--mono);font-size:11px;letter-spacing:.2em;color:var(--red);}
+  .obs-cell .ot{font-family:var(--display);font-weight:700;text-transform:uppercase;font-size:clamp(18px,2vw,24px);line-height:1.15;margin-top:16px;}
+
+  /* ---------- EVIDENCE ENGINE DASHBOARD ---------- */
+  .dash{margin-top:clamp(30px,4vw,50px);border:1px solid var(--c14);border-radius:3px;overflow:hidden;}
+  .dash-head{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:18px clamp(18px,2.4vw,30px);border-bottom:1px solid var(--c08);background:rgba(242,242,240,.02);}
+  .dash-head .dh-title{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--c70);}
+  .sample-tag{font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink);background:var(--red);padding:6px 12px;border-radius:2px;font-weight:700;}
+  .dash-grid{display:grid;grid-template-columns:repeat(3,1fr);}
+  .metric{padding:clamp(24px,3vw,38px) clamp(18px,2.4vw,30px);border-right:1px solid var(--c08);border-bottom:1px solid var(--c08);}
+  .metric .m-label{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--c40);}
+  .metric .m-value{font-family:var(--display);font-weight:800;font-size:clamp(30px,3.6vw,50px);margin-top:14px;line-height:1;}
+  .metric .m-value .unit{font-size:.42em;color:var(--c40);margin-left:6px;font-weight:700;}
+  .metric .m-spark{margin-top:16px;height:26px;width:100%;}
+  .metric .m-spark path{fill:none;stroke:var(--red);stroke-width:1.5;}
+
+  /* ---------- REFERENCES ---------- */
+  .refs{max-width:900px;}
+  .ref-list{list-style:none;margin-top:26px;border-top:1px solid var(--c08);}
+  .ref-list li{display:grid;grid-template-columns:44px 1fr auto;gap:16px;padding:18px 0;border-bottom:1px solid var(--c08);align-items:baseline;font-family:var(--mono);font-size:12px;letter-spacing:.04em;color:var(--c55);}
+  .ref-list li .rn{color:var(--c40);}
+  .ref-list li .pending{color:var(--red);font-size:10px;letter-spacing:.16em;text-transform:uppercase;white-space:nowrap;}
+
+  /* ---------- FINAL SECTION ---------- */
+  .final{text-align:left;}
+  .final .fbig{font-family:var(--display);font-weight:800;text-transform:uppercase;line-height:1.04;letter-spacing:-0.01em;font-size:clamp(30px,5.4vw,74px);}
+  .final .fbig span{display:block;opacity:0;transform:translateY(20px);transition:opacity .8s ease,transform .8s ease;}
+  .final .fbig.in span:nth-child(1){opacity:1;transform:none;transition-delay:.05s;}
+  .final .fbig.in span:nth-child(2){opacity:1;transform:none;transition-delay:.25s;}
+  .final .fbig.in span:nth-child(3){opacity:1;transform:none;transition-delay:.45s;}
+  .final .fbig.in span:nth-child(4){opacity:1;transform:none;transition-delay:.65s;}
+  .final .fbig .dim{color:var(--c40);}
+
+  /* ---------- COMPLIANCE FOOTER ---------- */
+  footer{padding:clamp(50px,7vw,90px) var(--gutter) clamp(40px,5vw,64px);border-top:1px solid var(--c08);}
+  .foot-legal{font-family:var(--mono);font-size:11px;line-height:2;letter-spacing:.03em;color:var(--c40);max-width:1000px;}
+  .foot-meta{display:flex;flex-wrap:wrap;gap:14px 30px;align-items:center;justify-content:space-between;margin-top:34px;font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--c40);}
+  .foot-meta .nonneg{color:var(--c70);}
+
+  /* ---------- RESPONSIVE ---------- */
+  @media (max-width:960px){
+    .hero{grid-template-columns:1fr;gap:44px;min-height:auto;}
+    .hero-visual{order:-1;}
+    .two-col{grid-template-columns:1fr;}
+    .card-grid{grid-template-columns:1fr 1fr;}
+    .dash-grid{grid-template-columns:1fr 1fr;}
+  }
+  @media (max-width:720px){
+    .nav-links{gap:14px;font-size:10px;letter-spacing:.1em;}
+    .ion-grid{grid-template-columns:1fr 1fr;}
+    .obs-grid{grid-template-columns:1fr;}
+    .card-grid{grid-template-columns:1fr;}
+    .dash-grid{grid-template-columns:1fr;}
+    .seq-row{grid-template-columns:1fr;gap:8px;}
+    .exhibit-row{grid-template-columns:1fr;gap:6px;}
+    .metric{border-right:none;}
+  }
+  @media (max-width:560px){
+    /* nav links wrap to a second row instead of overflowing the viewport */
+    .nav{flex-wrap:wrap;row-gap:12px;}
+    .nav-links{width:100%;flex-wrap:wrap;gap:11px 18px;justify-content:flex-start;}
+  }
+
+  /* ---------- REDUCED MOTION — all motion collapses to static ---------- */
+  @media (prefers-reduced-motion:reduce){
+    html{scroll-behavior:auto;}
+    .reveal,.ritual-word,.os-line,.final .fbig span{opacity:1 !important;transform:none !important;transition:none !important;}
+    .cta .arw{transition:none;}
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ NAV (matches site N|N mark) ============ -->
+<nav class="nav">
+  <a class="mark" href="/" aria-label="AForce home">
+    <span class="nn"><span>N</span><span class="bar"></span><span class="nflip">N</span></span>
+    AFORCE
+  </a>
+  <div class="nav-links">
+    <a href="/#ritual">Ritual</a>
+    <a href="/#os">The OS</a>
+    <a href="/science" aria-current="page">Science</a>
+    <a href="/manifesto">Manifesto</a>
+    <a href="/shop">Shop</a>
+  </div>
+</nav>
+
+<!-- ============ SECTION 1 — HERO ============ -->
+<section class="hero" id="top">
+  <div class="hero-copy reveal">
+    <div class="eyebrow">The Science</div>
+    <h1 class="h-display">Hydration is only<br>the beginning.</h1>
+    <p class="serif">Every ingredient. Every mineral. Every process. Chosen to support preparation before performance.</p>
+    <p class="anchor-line">Preparation begins long before performance is visible.</p>
+    <div>
+      <a class="cta red" href="#why">Explore the Science <span class="arw">↓</span></a>
+    </div>
+  </div>
+  <div class="hero-visual reveal">
+    <!-- PRODUCTION ASSET SLOT — macro can, condensation, cinematic. Swap this slot for the real <video>/<img> when shot. -->
+    <div class="asset-slot ratio-tall" role="img" aria-label="Production asset placeholder — macro product photography of the AForce can">
+      <span class="slot-corner tl"></span><span class="slot-corner tr"></span>
+      <span class="slot-corner bl"></span><span class="slot-corner br"></span>
+      <div class="slot-inner">
+        <div class="slot-tag">Production Asset</div>
+        <div class="slot-desc">Macro can · condensation · 4:5</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SECTION 2 — WHY HYDRATION MATTERS ============ -->
+<section id="why" class="divider">
+  <div class="wrap two-col">
+    <div class="reveal stack-md">
+      <div class="eyebrow">Why Hydration Matters</div>
+      <h2 class="h-2">Before your body<br>performs, it regulates.</h2>
+      <p class="lead">Hydration supports the systems your body relies on before pressure arrives: fluid balance, muscle function, nerve signaling, and cognitive focus. Readiness is not a single moment — it is the state you maintain before the moment asks anything of you.</p>
+    </div>
+    <div class="reveal">
+      <!-- REAL DELIVERABLE — systems diagram, inline SVG, locked palette -->
+      <svg class="sys-svg" viewBox="0 0 460 320" role="img" aria-label="Diagram: hydration supports fluid balance, electrolyte balance, muscle contraction, nerve signaling, and cognitive focus">
+        <rect x="150" y="14" width="160" height="42" rx="2" fill="none" stroke="#E41E2B" stroke-width="1.5"/>
+        <text x="230" y="40" text-anchor="middle" fill="#F2F2F0" font-size="14" letter-spacing="3" style="text-transform:uppercase">HYDRATION</text>
+        <g stroke="rgba(242,242,240,.22)" stroke-width="1">
+          <line x1="230" y1="56" x2="230" y2="86"/>
+          <line x1="60" y1="86" x2="400" y2="86"/>
+          <line x1="60" y1="86" x2="60" y2="108"/>
+          <line x1="145" y1="86" x2="145" y2="108"/>
+          <line x1="230" y1="86" x2="230" y2="108"/>
+          <line x1="315" y1="86" x2="315" y2="108"/>
+          <line x1="400" y1="86" x2="400" y2="108"/>
+        </g>
+        <g fill="none" stroke="#E41E2B" stroke-width="1.5">
+          <circle cx="60" cy="118" r="9"/><circle cx="145" cy="118" r="9"/><circle cx="230" cy="118" r="9"/><circle cx="315" cy="118" r="9"/><circle cx="400" cy="118" r="9"/>
+        </g>
+        <g fill="rgba(242,242,240,.75)" font-size="10" letter-spacing="1.5" text-anchor="middle">
+          <text x="60" y="160">FLUID</text><text x="60" y="174">BALANCE</text>
+          <text x="145" y="160">ELECTROLYTE</text><text x="145" y="174">BALANCE</text>
+          <text x="230" y="160">MUSCLE</text><text x="230" y="174">FUNCTION</text>
+          <text x="315" y="160">NERVE</text><text x="315" y="174">SIGNALING</text>
+          <text x="400" y="160">COGNITIVE</text><text x="400" y="174">FOCUS</text>
+        </g>
+        <text x="230" y="250" text-anchor="middle" fill="rgba(242,242,240,.35)" font-size="10" letter-spacing="4" style="text-transform:uppercase">THE STATE BEFORE THE MOMENT</text>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SECTION 3 — THE REGULATION LAYER ============ -->
+<section id="regulation" class="divider">
+  <div class="wrap">
+    <div class="reveal stack-md">
+      <div class="eyebrow">The Regulation Layer</div>
+      <h2 class="h-2">The Regulation Layer.</h2>
+      <p class="serif">Electrolytes help the body stay ready.</p>
+    </div>
+    <!-- REAL DELIVERABLE — ion grid, locked palette -->
+    <div class="ion-grid reveal">
+      <div class="ion-cell">
+        <div class="lbl">Ion · Na⁺</div>
+        <div class="sym">Na⁺</div>
+        <div class="nm">Sodium</div>
+        <div class="fn">Supports fluid balance and hydration signaling.</div>
+      </div>
+      <div class="ion-cell">
+        <div class="lbl">Ion · K⁺</div>
+        <div class="sym">K⁺</div>
+        <div class="nm">Potassium</div>
+        <div class="fn">Supports normal muscle and nerve function.</div>
+      </div>
+      <div class="ion-cell">
+        <div class="lbl">Ion · Mg²⁺</div>
+        <div class="sym">Mg²⁺</div>
+        <div class="nm">Magnesium</div>
+        <div class="fn">Supports muscle function and energy metabolism.</div>
+      </div>
+      <div class="ion-cell">
+        <div class="lbl">Ion · Ca²⁺</div>
+        <div class="sym">Ca²⁺</div>
+        <div class="nm">Calcium</div>
+        <div class="fn">Supports muscle contraction and nerve signaling.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SECTION 4 — THE AFORCE FORMULA ============ -->
+<section id="formula" class="divider">
+  <div class="wrap">
+    <div class="reveal stack-md">
+      <div class="eyebrow">The AForce Formula</div>
+      <h2 class="h-2">Designed with intention.</h2>
+      <p class="lead">Each element is here for a reason. Tap any ingredient to see what it is, why it matters, and how it supports the AForce ritual.</p>
+      <p class="mono-note">Ingredient list pending formulation sign-off</p>
+    </div>
+    <!-- Cards render from the INGREDIENTS config (see script). -->
+    <div class="card-grid reveal" id="ingredientGrid"></div>
+  </div>
+</section>
+
+<!-- ============ SECTION 5 — STANDARDS ============ -->
+<section id="standards" class="divider">
+  <div class="wrap">
+    <div class="reveal stack-md">
+      <div class="eyebrow">Standards</div>
+      <h2 class="h-2">Standards.</h2>
+      <p class="serif">Luxury companies talk about standards. Everyone else talks about features.</p>
+    </div>
+    <div class="seq reveal">
+      <div class="seq-row">
+        <div class="snum">Standard One</div>
+        <div>
+          <div class="stitle">Alkaline pH 8.8</div>
+          <p class="sbody">Chosen intentionally. Formulated at pH 8.8 as part of the hydration experience and brand standard.</p>
+        </div>
+      </div>
+      <div class="seq-row">
+        <div class="snum">Standard Two</div>
+        <div>
+          <div class="stitle">Controlled formulation</div>
+          <p class="sbody">Three formulations, locked. Nothing added without reason.</p>
+        </div>
+      </div>
+      <div class="seq-row">
+        <div class="snum">Standard Three</div>
+        <div>
+          <div class="stitle">Retort stability</div>
+          <p class="sbody">Every can shelf-stable, safe, and consistent.</p>
+          <a class="slink" href="#precision">See the Precision section →</a>
+        </div>
+      </div>
+      <div class="seq-row">
+        <div class="snum">Standard Four</div>
+        <div>
+          <div class="stitle">Behavior-first design</div>
+          <p class="sbody">The product is built around the ritual, not the other way around.</p>
+        </div>
+      </div>
+      <div class="seq-row">
+        <div class="snum">Standard Five</div>
+        <div>
+          <div class="stitle">OS integration</div>
+          <p class="sbody">Every can connects to the system that measures the behavior.</p>
+        </div>
+      </div>
+    </div>
+    <p class="display-close reveal">The promise is not a miracle.<br><span class="dim">The promise is</span> consistency.</p>
+  </div>
+</section>
+
+<!-- ============ PROOF LAYER · SECTION A — THE REFUSALS ============ -->
+<section id="refusals" class="divider">
+  <div class="wrap refusals">
+    <div class="reveal stack-md">
+      <div class="eyebrow">Our Standard</div>
+      <h2 class="h-2">The Refusals.</h2>
+      <p class="serif">What a brand declines to say tells you more than what it claims.</p>
+    </div>
+    <!-- FINAL COPY — six refusals, verbatim, do not soften or add -->
+    <div style="margin-top:clamp(30px,4vw,50px)">
+      <p class="refuse-line reveal"><span class="x">✕</span>We do not claim alkaline water cures anything.</p>
+      <p class="refuse-line reveal"><span class="x">✕</span>We do not claim detoxification.</p>
+      <p class="refuse-line reveal"><span class="x">✕</span>We do not claim to change your body's chemistry.</p>
+      <p class="refuse-line reveal"><span class="x">✕</span>We do not publish absorption percentages we cannot substantiate.</p>
+      <p class="refuse-line reveal"><span class="x">✕</span>We do not claim our processing preserves what we have not measured.</p>
+      <p class="refuse-line reveal"><span class="x">✕</span>We do not promise outcomes we cannot verify.</p>
+    </div>
+    <p class="display-close reveal">What remains is what<br>we can <span class="accent-red">stand behind.</span></p>
+  </div>
+</section>
+
+<!-- ============ PROOF LAYER · SECTION B — VERIFICATION BEFORE ASSERTION ============ -->
+<section id="verification" class="divider">
+  <div class="wrap" style="max-width:900px">
+    <div class="reveal stack-md">
+      <h2 class="h-2">Verification before assertion.</h2>
+      <p class="lead">Before anything becomes part of AForce, it passes three questions.</p>
+    </div>
+    <div class="exhibit reveal">
+      <div class="exhibit-row"><div class="qn">01</div><div class="qt">Can we explain it?</div></div>
+      <div class="exhibit-row"><div class="qn">02</div><div class="qt">Can we verify it?</div></div>
+      <div class="exhibit-row"><div class="qn">03</div><div class="qt">Can we repeat it?</div></div>
+    </div>
+    <p class="lead reveal" style="margin-top:clamp(26px,3vw,40px)">If the answer is no, it does not become part of the standard.</p>
+  </div>
+</section>
+
+<!-- ============ SECTION 6 — PRECISION (RETORT) ============ -->
+<section id="precision" class="divider">
+  <div class="wrap">
+    <div class="reveal stack-md">
+      <div class="eyebrow">Precision</div>
+      <h2 class="h-2">Precision.</h2>
+      <h3 class="h-3" style="color:var(--c70)">Engineered to perform. Built to last.</h3>
+      <p class="lead">Not all beverages are manufactured the same. AForce ready-to-drink cans are produced using advanced thermal processing — retort — a controlled process chosen for stability, safety, and consistency from the first can to the last.</p>
+    </div>
+
+    <div class="reveal" style="margin-top:clamp(40px,5vw,72px)">
+      <div class="mono-note" style="color:var(--red)">Why We Chose Retort Technology</div>
+      <div class="exhibit-block">
+        <div class="eb-num">01</div>
+        <div class="eb-title">Shelf Stability</div>
+        <p class="eb-body">No refrigeration required. Advanced thermal processing helps create a shelf-stable beverage that is ready whenever preparation is.</p>
+      </div>
+      <div class="exhibit-block">
+        <div class="eb-num">02</div>
+        <div class="eb-title">Safety</div>
+        <p class="eb-body">Every can is protected. Retort processing uses carefully controlled heat treatment to support microbiological safety.</p>
+      </div>
+      <div class="exhibit-block">
+        <div class="eb-num">03</div>
+        <div class="eb-title">Consistency</div>
+        <p class="eb-body">Every can performs the same. The process is designed to help deliver the same experience from batch to batch.</p>
+      </div>
+      <div class="exhibit-block">
+        <div class="eb-num">04</div>
+        <div class="eb-title">Convenience</div>
+        <p class="eb-body">Ready anywhere. Desk. Gym bag. Carry-on. Car. Studio. Firehouse. Flight deck. Preparation should travel with you.</p>
+      </div>
+    </div>
+
+    <!-- Manufacturing sequence — vertical editorial timeline (structured markup, Apple-engineering register) -->
+    <div class="reveal" style="margin-top:clamp(20px,3vw,40px)">
+      <div class="mono-note">The Sequence</div>
+      <ol class="timeline" aria-label="Manufacturing sequence">
+        <li class="done"><div class="tstep">Step 01</div><div class="tname">Ingredient Selection</div></li>
+        <li class="done"><div class="tstep">Step 02</div><div class="tname">Precision Formulation</div></li>
+        <li class="done"><div class="tstep">Step 03</div><div class="tname">Can Filling</div></li>
+        <li class="done"><div class="tstep">Step 04</div><div class="tname">Thermal Processing</div></li>
+        <li class="done"><div class="tstep">Step 05</div><div class="tname">Cooling</div></li>
+        <li class="done"><div class="tstep">Step 06</div><div class="tname">Quality Assurance</div></li>
+        <li><div class="tstep">Step 07</div><div class="tname">Ready for Preparation</div></li>
+      </ol>
+    </div>
+
+    <p class="display-close reveal">Preparation is not accidental.<br><span class="dim">Every ingredient. Every process. Every can.</span><br>Engineered to be <span class="accent-red">NON—<span class="flip">N</span>EGOTIABLE.</span></p>
+  </div>
+</section>
+
+<!-- ============ SECTION 7 — THE RITUAL (choreographed moment 1) ============ -->
+<section id="ritual" class="divider">
+  <div class="wrap">
+    <div class="reveal stack-md">
+      <div class="eyebrow">The Ritual</div>
+      <h2 class="h-2">Hydration is chemistry.<br>Preparation is behavior.</h2>
+    </div>
+    <!-- CHOREOGRAPHED MOMENT 1 — words reveal sequentially on scroll -->
+    <div class="ritual-line" id="ritualLine" aria-label="Pause. Hydrate. Lock In. Perform.">
+      <span class="ritual-word">Pause.</span>
+      <span class="ritual-word">Hydrate.</span>
+      <span class="ritual-word rw-accent">Lock In.</span>
+      <span class="ritual-word">Perform.</span>
+    </div>
+    <p class="lead reveal" style="margin-top:clamp(34px,4vw,54px)">The ritual turns hydration into a repeatable behavior. Repetition builds consistency. Consistency builds readiness.</p>
+  </div>
+</section>
+
+<!-- ============ SECTION 8 — THE AFORCE OS ============ -->
+<!-- CHOREOGRAPHED MOMENT 2 — interstitial, two lines reveal on scroll -->
+<section class="interstitial" id="osInterstitial" aria-label="Everything above can be purchased. Everything below has to be practiced.">
+  <div class="wrap">
+    <p class="os-line">Everything above<br>can be purchased.</p>
+    <p class="os-line dim">Everything below<br>has to be practiced.</p>
+  </div>
+</section>
+
+<section id="os" class="divider">
+  <div class="wrap two-col">
+    <div class="reveal stack-md">
+      <div class="eyebrow">The AForce OS</div>
+      <h2 class="h-2">From hydration<br>to behavior.</h2>
+      <p class="lead">AForce OS is designed to help turn daily preparation into measurable behavior — the layer that reads the ritual and holds you to the standard.</p>
+    </div>
+    <div class="reveal">
+      <!-- REAL DELIVERABLE — OS flow, vertical (structured markup) -->
+      <ol class="flow" aria-label="Hydration to Ritual to Behavior to Readiness to Consistency to Performance">
+        <li><span class="fdot">→</span>Hydration</li>
+        <li><span class="fdot">→</span>Ritual</li>
+        <li><span class="fdot">→</span>Behavior</li>
+        <li><span class="fdot">→</span>Readiness</li>
+        <li><span class="fdot">→</span>Consistency</li>
+        <li><span class="fdot">→</span>Performance</li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SECTION 8B — OBSERVATIONS ============ -->
+<section id="observations" class="divider">
+  <div class="wrap">
+    <div class="reveal stack-md">
+      <div class="eyebrow">Observations</div>
+      <h2 class="h-2">Observations.</h2>
+      <p class="serif">Not reviews. Not promises. Patterns.</p>
+    </div>
+    <div class="obs-grid reveal">
+      <div class="obs-cell"><div class="on">Observation 01</div><div class="ot">People who prepare intentionally tend to prepare repeatedly.</div></div>
+      <div class="obs-cell"><div class="on">Observation 02</div><div class="ot">Consistency compounds.</div></div>
+      <div class="obs-cell"><div class="on">Observation 03</div><div class="ot">Performance begins before execution.</div></div>
+      <div class="obs-cell"><div class="on">Observation 04</div><div class="ot">The ritual matters more than motivation.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SECTION 9 — THE EVIDENCE ENGINE ============ -->
+<section id="evidence" class="divider">
+  <div class="wrap">
+    <div class="reveal stack-md">
+      <div class="eyebrow">The Evidence Engine</div>
+      <h2 class="h-2">We measure behavior,<br>not just consumption.</h2>
+      <p class="lead">These are platform behavior metrics — how the ritual is practiced over time. Ritual logging reflects completed rituals, not live biometric readings.</p>
+    </div>
+    <!-- Dashboard renders from METRICS config. Permanent ILLUSTRATIVE — SAMPLE DATA tag is designed in. -->
+    <div class="dash reveal">
+      <div class="dash-head">
+        <span class="dh-title">AForce OS · Behavior Dashboard</span>
+        <span class="sample-tag">Illustrative — Sample Data</span>
+      </div>
+      <div class="dash-grid" id="metricGrid"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FINAL SECTION ============ -->
+<section class="final divider" id="closing">
+  <div class="wrap">
+    <div class="hero-visual reveal" style="max-width:340px;margin-bottom:clamp(40px,5vw,64px)">
+      <!-- PRODUCTION ASSET SLOT — can, static (no rotation, no breathing light) -->
+      <div class="asset-slot ratio-tall" role="img" aria-label="Production asset placeholder — static product photography of the AForce can">
+        <span class="slot-corner tl"></span><span class="slot-corner tr"></span>
+        <span class="slot-corner bl"></span><span class="slot-corner br"></span>
+        <div class="slot-inner">
+          <div class="slot-tag">Production Asset</div>
+          <div class="slot-desc">Can · static · 4:5</div>
+        </div>
+      </div>
+    </div>
+    <p class="fbig" id="finalLines">
+      <span>Hydration is the entry point.</span>
+      <span>Behavior is the product.</span>
+      <span>Readiness is the standard.</span>
+      <span class="dim">Performance is the outcome.</span>
+    </p>
+    <p class="serif reveal" style="margin-top:clamp(30px,4vw,48px)">Preparation is a discipline. AForce is the system built around it.</p>
+    <div class="reveal" style="margin-top:clamp(34px,4vw,52px)">
+      <a class="cta" href="/shop">Enter the Standard <span class="arw">→</span></a>
+    </div>
+  </div>
+</section>
+
+<!-- ============ REFERENCES (content pending) ============ -->
+<section id="references" class="divider">
+  <div class="wrap refs">
+    <div class="mono-note reveal" style="color:var(--c70);letter-spacing:.26em">References</div>
+    <!-- Real, checkable peer-reviewed citations to be supplied and verified before launch. -->
+    <ol class="ref-list reveal">
+      <li><span class="rn">01</span><span>Hydration physiology &amp; fluid balance</span><span class="pending">Citation Pending</span></li>
+      <li><span class="rn">02</span><span>Electrolyte function &amp; muscle contraction</span><span class="pending">Citation Pending</span></li>
+      <li><span class="rn">03</span><span>Sodium, potassium &amp; hydration signaling</span><span class="pending">Citation Pending</span></li>
+      <li><span class="rn">04</span><span>Magnesium &amp; energy metabolism</span><span class="pending">Citation Pending</span></li>
+      <li><span class="rn">05</span><span>Cognitive function under mild dehydration</span><span class="pending">Citation Pending</span></li>
+    </ol>
+    <p class="mono-note reveal" style="margin-top:20px">Sources support the educational sections only. No product claims are attached to any citation. Do not publish until sourced and verified.</p>
+  </div>
+</section>
+
+<!-- ============ COMPLIANCE FOOTER — verbatim ============ -->
+<footer>
+  <p class="foot-legal">AForce OS ritual logging reflects completed rituals, not live biometric readings. Provisional patent filed. These statements have not been evaluated by the Food and Drug Administration. This product is not intended to diagnose, treat, cure, or prevent any disease.</p>
+  <div class="foot-meta">
+    <span class="nonneg">NON—<span class="flip">N</span>EGOTIABLE</span>
+    <span>AFORCE · 535 Fifth Ave, New York</span>
+    <span>© 2026 AForce. All rights reserved.</span>
+  </div>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ── INGREDIENT CONFIG — single source of truth ──
+     PENDING FORMULATION SIGN-OFF: every card must be verified against the
+     final locked formula before launch. Copy is deliberately structure/function
+     style — no medical, cure, detox, or absorption claims. */
+  var INGREDIENTS = [
+    { name:"Coconut Water Powder",
+      what:"A plant-derived hydration base that naturally contains potassium.",
+      why:"Part of the electrolyte profile that supports fluid balance.",
+      how:"The starting point of the ritual's hydration experience." },
+    { name:"Electrolytes",
+      what:"Sodium, potassium, magnesium, and calcium.",
+      why:"Support normal fluid balance, muscle, and nerve function.",
+      how:"The regulation layer the entire ritual is built around." },
+    { name:"Minerals",
+      what:"Trace minerals selected to round out the profile.",
+      why:"Contribute to the overall hydration experience.",
+      how:"Chosen with intention — nothing added without reason." },
+    { name:"Plant-Based Ingredients",
+      what:"Formulated without animal-derived inputs.",
+      why:"Reflects the standard we set for what goes in.",
+      how:"Consistent with a preparation-first product." },
+    { name:"Natural Flavors",
+      what:"Flavor systems chosen for a clean, restrained taste.",
+      why:"Makes the ritual repeatable — a taste you return to.",
+      how:"Repetition is the point; the flavor supports the habit." },
+    { name:"Alkaline pH 8.8",
+      what:"Formulated at pH 8.8 (stick format: pH 8.8 as prepared).",
+      why:"A deliberate part of the hydration experience and brand standard.",
+      how:"A fixed specification, not a marketing afterthought." }
+  ];
+
+  /* ── EVIDENCE ENGINE METRICS CONFIG ──
+     ILLUSTRATIVE — SAMPLE DATA only. Platform behavior metrics, never health
+     measurements. "Membership Conversion" is intentionally NOT consumer-facing. */
+  var METRICS = [
+    { label:"Daily Ritual Completion", value:"87", unit:"%",  spark:[6,9,7,12,10,15,14,18] },
+    { label:"Hydration Streaks",       value:"14", unit:"days",spark:[2,3,5,4,7,9,11,14] },
+    { label:"Readiness Sessions",      value:"32", unit:"",    spark:[8,10,9,14,12,18,20,24] },
+    { label:"Consistency Score",       value:"91", unit:"/100",spark:[60,64,62,70,74,80,86,91] },
+    { label:"Recovery Check-ins",      value:"8",  unit:"/wk", spark:[3,4,4,5,6,6,7,8] },
+    { label:"Ritual Logged",           value:"426",unit:"total",spark:[40,90,150,210,270,330,380,426] }
+  ];
+
+  function sparkPath(vals){
+    var w=120, h=26, max=Math.max.apply(null,vals), min=Math.min.apply(null,vals), rng=(max-min)||1;
+    return vals.map(function(v,i){
+      var x=(i/(vals.length-1))*w;
+      var y=h-((v-min)/rng)*(h-4)-2;
+      return (i===0?"M":"L")+x.toFixed(1)+" "+y.toFixed(1);
+    }).join(" ");
+  }
+
+  // Render ingredient cards
+  var grid = document.getElementById("ingredientGrid");
+  if(grid){
+    INGREDIENTS.forEach(function(ing, i){
+      var idx = String(i+1).padStart(2,"0");
+      var btn = document.createElement("button");
+      btn.className = "icard";
+      btn.type = "button";
+      btn.setAttribute("aria-expanded","false");
+      btn.innerHTML =
+        '<div class="idx">'+idx+' / '+String(INGREDIENTS.length).padStart(2,"0")+'</div>'+
+        '<div class="inm">'+ing.name+'</div>'+
+        '<div class="iwhat">'+ing.what+'</div>'+
+        '<div class="idetail">'+
+          '<div class="drow"><b>Why it matters</b>'+ing.why+'</div>'+
+          '<div class="drow"><b>In the ritual</b>'+ing.how+'</div>'+
+        '</div>'+
+        '<span class="more"><span class="sign"></span> Details</span>';
+      btn.addEventListener("click", function(){
+        var open = btn.getAttribute("aria-expanded")==="true";
+        btn.setAttribute("aria-expanded", open ? "false" : "true");
+      });
+      grid.appendChild(btn);
+    });
+  }
+
+  // Render evidence metrics
+  var mGrid = document.getElementById("metricGrid");
+  if(mGrid){
+    METRICS.forEach(function(m){
+      var cell = document.createElement("div");
+      cell.className = "metric";
+      cell.innerHTML =
+        '<div class="m-label">'+m.label+'</div>'+
+        '<div class="m-value">'+m.value+'<span class="unit">'+m.unit+'</span></div>'+
+        '<svg class="m-spark" viewBox="0 0 120 26" preserveAspectRatio="none" aria-hidden="true"><path d="'+sparkPath(m.spark)+'"/></svg>';
+      mGrid.appendChild(cell);
+    });
+  }
+
+  // Scroll reveal (also drives the two choreographed moments + final lines)
+  var revealTargets = document.querySelectorAll(".reveal, #ritualLine, #osInterstitial, #finalLines");
+  if("IntersectionObserver" in window){
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(en){
+        if(en.isIntersecting){ en.target.classList.add("in"); io.unobserve(en.target); }
+      });
+    }, {threshold:.16});
+    revealTargets.forEach(function(el){ io.observe(el); });
+  } else {
+    revealTargets.forEach(function(el){ el.classList.add("in"); });
+  }
+})();
+</script>
+</body>
+</html>
