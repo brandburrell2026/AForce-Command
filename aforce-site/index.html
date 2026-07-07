@@ -281,18 +281,20 @@
     filter:blur(46px); }
   .os-visual img{ position:relative; z-index:1; width:100%; height:auto; display:block; }
 
-  /* ---------- COMMUNITY ---------- */
-  .community{ background:var(--canvas-dim); }
-  .community-layout{ margin-top:60px; display:grid; grid-template-columns:1.3fr 1fr; gap:1px; background:var(--line); border:1px solid var(--line); }
-  .pull-quote{ background:var(--canvas); color:var(--ink); padding:60px 46px; display:flex; flex-direction:column; justify-content:center; opacity:0; transform:translateY(16px); }
-  .pull-quote p{ font-family:'Archivo Black',serif; font-style:normal; font-size:clamp(26px,3vw,36px); line-height:1.4; margin-bottom:24px; }
-  .pull-quote .who{ font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.12em; text-transform:uppercase; color:rgba(13,13,13,0.55); }
-  .quote-stack{ display:flex; flex-direction:column; }
-  .quote-stack .quote-card{ background:var(--canvas); padding:30px 32px; border-bottom:1px solid var(--line); opacity:0; transform:translateY(16px); }
-  .quote-stack .quote-card:last-child{ border-bottom:none; }
-  .quote-card p{ font-family:'Archivo Black',serif; font-style:normal; font-size:17px; line-height:1.5; margin-bottom:14px; }
-  .quote-card .who{ font-family:'IBM Plex Mono',monospace; font-size:9.5px; letter-spacing:0.1em; text-transform:uppercase; color:#8a8d93; }
-  .community .note{ margin-top:28px; font-family:'IBM Plex Mono',monospace; font-size:10.5px; letter-spacing:0.06em; color:#9a9da3; }
+  /* ---------- COMMUNITY → PERFORMANCE IS UNIVERSAL (editorial) ---------- */
+  .universal{ background:var(--canvas); padding:150px 0; }
+  .universal-intro{ padding:0 clamp(20px,6vw,72px); }
+  .universal-intro .section-title{ margin-top:18px; }
+  .universal-sub{ margin-top:38px; font-family:'Archivo Black',serif; font-weight:400; font-size:clamp(21px,2.9vw,38px); line-height:1.16; color:var(--ink); }
+  .universal-body{ margin-top:36px; max-width:600px; display:flex; flex-direction:column; gap:20px; }
+  .universal-body p{ font-family:'Inter',sans-serif; font-size:clamp(15px,1.5vw,18px); line-height:1.75; color:#54575E; }
+  .universal-film{ margin-top:clamp(72px,9vw,132px); width:100%; overflow:hidden; background:var(--ink); line-height:0; }
+  .universal-video{ display:block; width:100%; height:clamp(420px,74vh,800px); object-fit:cover; object-position:center; }
+  .universal-close{ padding:clamp(96px,12vw,156px) clamp(20px,6vw,72px) 0; text-align:center; }
+  .universal-close .uc-line{ font-family:'Archivo Black',serif; font-weight:400; font-size:clamp(28px,4.4vw,60px); line-height:1.12; color:var(--ink); }
+  .universal-close .uc-line.uc-strong{ color:var(--red); }
+  .uc-ritual{ margin-top:clamp(42px,6vw,66px); display:flex; flex-wrap:wrap; justify-content:center; gap:16px 40px; }
+  .uc-ritual span{ font-family:'IBM Plex Mono',monospace; font-size:clamp(13px,1.5vw,17px); letter-spacing:0.16em; text-transform:uppercase; color:var(--ink); }
 
   /* ---------- FOUNDING 200 ---------- */
   .founding{ background:var(--canvas); color:var(--ink); text-align:center; }
@@ -330,7 +332,7 @@
     .stick-strip, .quotes{ grid-template-columns:1fr; }
     .result-body{ grid-template-columns:1fr; text-align:center; }
     .signal-wrap{ margin:0 auto; }
-    .community-layout{ grid-template-columns:1fr; }
+    .universal-video{ height:clamp(300px,52vh,460px); }
     .os-hook, .signal-section{ grid-template-columns:1fr; }
     .ritual-grid{ grid-template-columns:1fr; gap:48px; }
     .ritual-media{ position:static; height:auto; }
@@ -594,20 +596,32 @@
   </div>
 </section>
 
-<section class="community">
-  <div class="eyebrow-label fade-in">The Community</div>
-  <h2 class="section-title fade-in">Not membership. Belonging.</h2>
-  <div class="community-layout">
-    <div class="pull-quote fade-in">
-      <p>"It's protecting the standard nobody else sees — showing up ready before anyone asks me to."</p>
-      <div class="who">Founder · Operator</div>
-    </div>
-    <div class="quote-stack">
-      <div class="quote-card fade-in"><p>"Discipline I don't negotiate with, even alone."</p><div class="who">Collegiate Athlete</div></div>
-      <div class="quote-card fade-in"><p>"The pause is the part that actually changed how I show up."</p><div class="who">Physician · Guardian</div></div>
+<section class="universal" id="community">
+  <div class="universal-intro">
+    <div class="eyebrow-label fade-in">The Community</div>
+    <h2 class="section-title fade-in">Performance is universal.</h2>
+    <p class="universal-sub fade-in">Everyone performs.<br>Not everyone prepares.</p>
+    <div class="universal-body fade-in">
+      <p>Every person who joins AForce has a different mission. A different responsibility. A different definition of success.</p>
+      <p>What unites them is not what they do. It is how they prepare.</p>
     </div>
   </div>
-  <div class="note fade-in">Placeholder voices — replace with real Founding 200 members and Performance Network contributors before launch.</div>
+
+  <div class="universal-film fade-in">
+    <video class="universal-video" autoplay muted loop playsinline preload="metadata" poster="assets/community-poster.jpg" aria-label="Runners racing through the city at night — everyone performs">
+      <source src="assets/community-film.webm" type="video/webm">
+      <source src="assets/community-film.mp4" type="video/mp4">
+    </video>
+  </div>
+
+  <div class="universal-close fade-in">
+    <p class="uc-line">Performance is universal.</p>
+    <p class="uc-line">Preparation is a choice.</p>
+    <p class="uc-line uc-strong">Performance is non&#8209;negotiable.</p>
+    <div class="uc-ritual">
+      <span>Pause.</span><span>Hydrate.</span><span>Lock In.</span><span>Perform.</span>
+    </div>
+  </div>
 </section>
 
 <section class="founding" id="founding">
