@@ -270,7 +270,7 @@
   .stick-strip .label{ font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.14em; color:rgba(13,13,13,0.6); text-transform:uppercase; }
 
   /* ---------- PROOF — typographic sentence, not a box grid ---------- */
-  .arenas{ background:var(--canvas); padding:150px clamp(20px,6vw,72px); }
+  .arenas{ background:var(--canvas); padding:clamp(64px,9vh,96px) clamp(20px,6vw,72px); }
   .arena-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:clamp(16px,2vw,28px); margin-top:60px; }
   .arena{ opacity:0; transform:translateY(16px); }
   .arena .shot{ aspect-ratio:3/4; overflow:hidden; border-radius:6px; background:var(--canvas); position:relative; }
@@ -300,15 +300,15 @@
   .os-visual img{ position:relative; z-index:1; width:100%; height:auto; display:block; }
 
   /* ---------- COMMUNITY → PERFORMANCE IS UNIVERSAL (editorial) ---------- */
-  .universal{ background:var(--canvas); padding:150px 0; }
+  .universal{ background:var(--canvas); padding:clamp(64px,9vh,96px) 0; }
   .universal-intro{ padding:0 clamp(20px,6vw,72px); }
   .universal-intro .section-title{ margin-top:18px; }
   .universal-sub{ margin-top:38px; font-family:'Archivo Black',serif; font-weight:400; font-size:clamp(21px,2.9vw,38px); line-height:1.16; color:var(--ink); }
   .universal-body{ margin-top:36px; max-width:600px; display:flex; flex-direction:column; gap:20px; }
   .universal-body p{ font-family:'Inter',sans-serif; font-size:clamp(15px,1.5vw,18px); line-height:1.75; color:#54575E; }
-  .universal-film{ margin-top:clamp(72px,9vw,132px); width:100%; overflow:hidden; background:var(--ink); line-height:0; }
+  .universal-film{ margin-top:clamp(44px,6vw,84px); width:100%; overflow:hidden; background:var(--ink); line-height:0; }
   .universal-video{ display:block; width:100%; height:clamp(420px,74vh,800px); object-fit:cover; object-position:center; }
-  .universal-close{ padding:clamp(96px,12vw,156px) clamp(20px,6vw,72px) 0; text-align:center; }
+  .universal-close{ padding:clamp(48px,7vw,84px) clamp(20px,6vw,72px) 0; text-align:center; }
   .universal-close .uc-line{ font-family:'Archivo Black',serif; font-weight:400; font-size:clamp(28px,4.4vw,60px); line-height:1.12; color:var(--ink); }
   .universal-close .uc-line.uc-strong{ color:var(--red); }
   .uc-ritual{ margin-top:clamp(42px,6vw,66px); display:flex; flex-wrap:wrap; justify-content:center; gap:16px 40px; }
@@ -331,8 +331,8 @@
   .final{ background:var(--canvas); color:var(--ink); display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:clamp(72px,10vh,120px) clamp(20px,6vw,72px); }
   .final .final-line{ font-family:'Archivo Black',serif; font-weight:400; font-size:clamp(30px,4.4vw,58px); line-height:1.04; letter-spacing:-0.01em; color:var(--ink); opacity:0; transform:translateY(10px); }
   .final .final-line.top{ margin-bottom:clamp(28px,3.6vw,44px); }
-  .final .final-line.bottom{ margin-top:clamp(28px,3.6vw,44px); }
-  .universal-close .glyphs{ display:flex; align-items:baseline; justify-content:center; gap:17px; font-family:'Archivo Black', serif; font-size:clamp(62.5px,10vw,125px); line-height:0.9; opacity:0; transform:translateY(10px); margin:clamp(48px,7vw,72px) 0 18px; }
+  .final .final-line.bottom{ margin-top:clamp(28px,3.6vw,44px); color:var(--red); }
+  .universal-close .glyphs{ display:flex; align-items:baseline; justify-content:center; gap:21px; font-family:'Archivo Black', serif; font-size:clamp(78px,12.5vw,156px); line-height:0.9; opacity:0; transform:translateY(10px); margin:clamp(48px,7vw,72px) 0 18px; }
   .universal-close .glyphs .n{ color: var(--red); } .universal-close .glyphs .dash{ color: rgba(13,13,13,0.3); font-size:0.5em; } .universal-close .glyphs .mirror{ display:inline-block; transform: scaleX(-1); }
   .universal-close .caption{ font-family:'IBM Plex Mono', monospace; font-size:12px; letter-spacing:0.26em; text-transform:uppercase; color: rgba(13,13,13,0.65); opacity:0; transform:translateY(10px); margin-bottom:0; }
   .final .btn{ opacity:0; transform:translateY(10px); }
