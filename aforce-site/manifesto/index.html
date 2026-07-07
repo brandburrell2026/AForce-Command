@@ -81,7 +81,7 @@
   .m-hero{ position:relative; height:100vh; min-height:620px; display:flex; flex-direction:column; justify-content:center; padding:0 clamp(22px,7vw,120px); overflow:hidden; background:var(--ink); }
   .m-hero video, .m-hero .m-hero-poster{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:0; }
   .m-hero .m-hero-poster{ background-size:cover; background-position:center; }
-  .m-hero .m-scrim{ position:absolute; inset:0; z-index:1; background:linear-gradient(90deg, rgba(13,13,13,0.93) 0%, rgba(13,13,13,0.66) 52%, rgba(13,13,13,0.42) 100%), linear-gradient(180deg, rgba(13,13,13,0.42) 0%, rgba(13,13,13,0.24) 42%, rgba(13,13,13,0.76) 100%); }
+  .m-hero .m-scrim{ position:absolute; inset:0; z-index:1; background:linear-gradient(90deg, rgba(13,13,13,0.80) 0%, rgba(13,13,13,0.36) 46%, rgba(13,13,13,0.04) 100%), linear-gradient(180deg, rgba(13,13,13,0.18) 0%, rgba(13,13,13,0) 40%, rgba(13,13,13,0.44) 100%); }
   .m-hero .m-hero-inner{ position:relative; z-index:2; max-width:1100px; }
   .m-hero h1{ font-family:'Archivo Black',serif; font-weight:400; line-height:1.05; letter-spacing:-0.02em; font-size:clamp(25px,4.1vw,54px); max-width:14ch; margin:18px 0 28px; }
   .m-hero .m-hero-sub{ font-family:'Inter',sans-serif; font-size:clamp(18px,2.1vw,26px); line-height:1.5; color:rgba(245,240,232,0.82); margin-bottom:44px; }
@@ -94,14 +94,14 @@
   .m-choice .row2{ color:rgba(13,13,13,0.32); }
 
   /* ---------- SECTION 3 — THE DISCIPLINE (sticky crossfade) ---------- */
-  .m-discipline{ position:relative; height:320vh; background:var(--ink); }
+  .m-discipline{ position:relative; height:180vh; background:var(--ink); }
   .m-pin{ position:sticky; top:0; height:100vh; overflow:hidden; display:flex; align-items:center; }
   .m-crossfade{ position:absolute; inset:0; z-index:0; }
   .m-crossfade img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; opacity:0; transition:opacity 1.2s ease; filter:contrast(1.04) saturate(0.96); }
   .m-crossfade img.is-active{ opacity:1; }
   .m-pin .m-scrim{ position:absolute; inset:0; z-index:1; background:radial-gradient(120% 90% at 50% 45%, rgba(13,13,13,0.42) 0%, rgba(13,13,13,0.72) 60%, rgba(13,13,13,0.92) 100%); }
   .m-discipline-copy{ position:relative; z-index:2; width:100%; padding:0 clamp(22px,7vw,120px); }
-  .m-discipline-copy .m-h{ color:var(--canvas); max-width:15ch; }
+  .m-discipline-copy .m-h{ color:var(--canvas); max-width:15ch; font-size:clamp(28px,4.6vw,62px); }
   .m-discipline-copy .m-support{ color:rgba(245,240,232,0.7); margin-top:clamp(34px,5vw,60px); }
 
   /* ---------- SECTION 4 — THE RITUAL (can video) ---------- */
@@ -154,8 +154,8 @@
 
   /* ---------- RESPONSIVE ---------- */
   @media (max-width:860px){
-    .m-discipline{ height:300vh; }
-    .m-hero .m-scrim{ background:linear-gradient(180deg, rgba(13,13,13,0.78) 0%, rgba(13,13,13,0.66) 44%, rgba(13,13,13,0.9) 100%); }
+    .m-discipline{ height:170vh; }
+    .m-hero .m-scrim{ background:linear-gradient(180deg, rgba(13,13,13,0.60) 0%, rgba(13,13,13,0.34) 44%, rgba(13,13,13,0.8) 100%); }
     .m-ritual .m-scrim{ background:linear-gradient(180deg, rgba(13,13,13,0.55) 0%, rgba(13,13,13,0.86) 100%); }
     .m-footer{ flex-direction:column; align-items:flex-start; }
   }
@@ -215,11 +215,7 @@
   <section class="m-discipline" id="discipline" aria-label="The Discipline">
     <div class="m-pin">
       <div class="m-crossfade" id="crossfade" aria-hidden="true">
-        <img src="/assets/perf-boxer.jpg" alt="" class="is-active" loading="lazy" data-i="0">
-        <img src="/assets/perf-surgeon.jpg" alt="" loading="lazy" data-i="1">
-        <img src="/assets/ritual-meditation.jpg" alt="" loading="lazy" data-i="2">
-        <img src="/assets/perf-trader.jpg" alt="" loading="lazy" data-i="3">
-        <img src="/assets/moment-firefighter.jpg" alt="" loading="lazy" data-i="4">
+        <img src="/assets/discipline-marathon.jpg" alt="" class="is-active" loading="lazy" data-i="0">
       </div>
       <div class="m-scrim" aria-hidden="true"></div>
       <div class="m-discipline-copy">
