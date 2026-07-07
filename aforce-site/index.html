@@ -352,7 +352,6 @@
   <div class="mark">AFORCE™</div>
   <div class="links">
     <a href="#ritual">Ritual</a>
-    <a href="#profile">Profile</a>
     <a href="#os">The OS</a>
     <a href="/manifesto">Manifesto</a>
     <a href="/shop" class="shop-link">Shop</a>
@@ -400,95 +399,6 @@
 
 <section class="moment-shot">
   <img src="assets/moment-firefighter.jpg" alt="A firefighter in turnout gear stands in the station bay at golden hour, helmet in hand, engine backlit by the sunrise" width="2560" height="1440" loading="lazy">
-</section>
-
-<section class="invite" id="invite" aria-label="Performance Profile assessment">
-  <div class="eyebrow-label fade-in" style="margin:0 auto 20px; display:block; text-align:center;">The Invitation</div>
-  <h2 class="section-title fade-in" style="margin:0 auto;">What are you preparing for today?</h2>
-  <div class="chips" id="chips" role="group" aria-label="Choose what you're preparing for">
-    <button class="chip" data-v="Operator" aria-pressed="false">Meeting</button>
-    <button class="chip" data-v="Athlete" aria-pressed="false">Training</button>
-    <button class="chip" data-v="Guardian" aria-pressed="false">Recovery</button>
-    <button class="chip" data-v="Explorer" aria-pressed="false">Travel</button>
-    <button class="chip" data-v="Athlete" aria-pressed="false">Competition</button>
-    <button class="chip" data-v="Builder" aria-pressed="false">Building</button>
-    <button class="chip" data-v="Guardian" aria-pressed="false">Family</button>
-    <button class="chip" data-v="Executive" aria-pressed="false">Leadership</button>
-  </div>
-
-  <div class="profile" id="profile" aria-live="polite">
-    <div class="q current" data-i="0"><div class="pressure-track"><div class="pressure-fill"></div></div>
-      <div class="qnum">01 / 04</div>
-      <h4>When pressure hits, what do you reach for first?</h4>
-      <div class="opts">
-        <button class="opt" data-v="Operator">Structure — a plan I already trust.</button>
-        <button class="opt" data-v="Athlete">Movement — I need my body first.</button>
-        <button class="opt" data-v="Founder">Instinct — I've been here before.</button>
-        <button class="opt" data-v="Guardian">People — who else does this affect?</button>
-      </div>
-    </div>
-    <div class="q" data-i="1"><div class="pressure-track"><div class="pressure-fill"></div></div>
-      <div class="qnum">02 / 04</div>
-      <h4>What actually breaks your composure?</h4>
-      <div class="opts">
-        <button class="opt" data-v="Executive">Being unprepared in front of others.</button>
-        <button class="opt" data-v="Creator">Losing the thread of my own idea.</button>
-        <button class="opt" data-v="Builder">Slowness — mine or anyone else's.</button>
-        <button class="opt" data-v="Explorer">Staying still too long.</button>
-      </div>
-    </div>
-    <div class="q" data-i="2"><div class="pressure-track"><div class="pressure-fill"></div></div>
-      <div class="qnum">03 / 04</div>
-      <h4>Recovery, honestly — where does it rank?</h4>
-      <div class="opts">
-        <button class="opt" data-v="Guardian">First. I protect it on purpose.</button>
-        <button class="opt" data-v="Athlete">High, but I have to be disciplined about it.</button>
-        <button class="opt" data-v="Founder">Low. I know that's the problem.</button>
-        <button class="opt" data-v="Operator">Scheduled, like everything else.</button>
-      </div>
-    </div>
-    <div class="q" data-i="3"><div class="pressure-track"><div class="pressure-fill"></div></div>
-      <div class="qnum">04 / 04</div>
-      <h4>What does "Performance Is Non-Negotiable" mean to you?</h4>
-      <div class="opts">
-        <button class="opt" data-v="Executive">Showing up ready, every time, no excuses.</button>
-        <button class="opt" data-v="Creator">Protecting the standard nobody else sees.</button>
-        <button class="opt" data-v="Builder">Doing the work before the work is visible.</button>
-        <button class="opt" data-v="Founder">Never negotiating with your own discipline.</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="result" id="result">
-    <div class="idlabel">Your Performance Identity</div>
-    <h3 id="idName">Operator</h3>
-    <div class="result-body">
-      <div class="signal-wrap">
-        <svg viewBox="0 0 150 150">
-          <circle class="track" cx="75" cy="75" r="68"></circle>
-          <circle class="fill" id="signalCircle" cx="75" cy="75" r="68" stroke-dasharray="427" stroke-dashoffset="427"></circle>
-        </svg>
-        <div class="label">
-          <span class="st" id="stState">STEADY</span>
-          <span class="sub">Ritual Complete</span>
-        </div>
-      </div>
-      <div class="result-details">
-        <div class="row"><div class="lbl">Today's Statement</div><div class="val" id="stStatement">Composure is a decision, not a mood.</div></div>
-        <div class="row"><div class="lbl">Suggested Ritual</div><div class="val" id="stProtocol">Morning · pH 8.8 stick</div></div>
-        <div class="row">
-          <div class="lbl">Under Pressure</div>
-          <div class="val" id="stPressure">—</div>
-          <div class="pressure-meter"><div class="marker" id="pressureMarker"></div></div>
-          <div class="pressure-meter-labels"><span>Instinct</span><span>Deliberation</span><span>Consideration</span></div>
-        </div>
-      </div>
-    </div>
-    <div class="note">Your Signal reflects a completed ritual, not a live biometric reading — the AForce OS builds real readiness tracking from actual behavioral data.</div>
-    <div class="cta-row" style="justify-content:flex-start; margin-top:28px;">
-      <button id="shopMatchBtn" class="btn btn-primary" style="opacity:1; transform:none;">Shop Your Ritual</button>
-    </div>
-  </div>
 </section>
 
 <div class="signal-section" id="theSignal">
@@ -644,7 +554,7 @@
   <div class="mark fade-in">AFORCE™</div>
   <div class="glyphs fade-in"><span class="n">N</span><span class="dash">—</span><span class="mirror">N</span></div>
   <div class="caption fade-in">Performance Is Non&#8209;Negotiable</div>
-  <a href="#invite" class="btn btn-primary fade-in">Begin Today's Ritual</a>
+  <a href="/shop" class="btn btn-primary fade-in">Begin Today's Ritual</a>
 </section>
 
 <footer>
@@ -657,7 +567,7 @@
   </div>
   <div class="credit">Founded by Brandon &amp; Julius Burrell — read the full story on our About page (coming soon).</div>
   <div class="legal">
-    <p>AFORCE™ and NON&#8209;И EGOTIABLE™ are trademarks of Alkaline Force LLC. Statements regarding hydration, readiness, and performance support have not been evaluated by the Food and Drug Administration. This product is not intended to diagnose, treat, cure, or prevent any disease. Individual results vary. The AForce OS provides general wellness tracking and is not a medical device and does not provide medical advice; consult a physician before beginning any new hydration, supplement, or fitness regimen, particularly if pregnant, nursing, or managing a medical condition. The Performance Profile above is illustrative and for engagement purposes only — it does not constitute a medical or psychological assessment. Free AForce OS access requires proof of qualifying purchase; no purchase necessary to request Founding 200 access above.</p>
+    <p>AFORCE™ and NON&#8209;И EGOTIABLE™ are trademarks of Alkaline Force LLC. Statements regarding hydration, readiness, and performance support have not been evaluated by the Food and Drug Administration. This product is not intended to diagnose, treat, cure, or prevent any disease. Individual results vary. The AForce OS provides general wellness tracking and is not a medical device and does not provide medical advice; consult a physician before beginning any new hydration, supplement, or fitness regimen, particularly if pregnant, nursing, or managing a medical condition. Free AForce OS access requires proof of qualifying purchase; no purchase necessary to request Founding 200 access above.</p>
     <p>© 2026 Alkaline Force LLC. All rights reserved. Performance Is Non&#8209;Negotiable.</p>
   </div>
 </footer>
@@ -724,115 +634,6 @@
 
   window.addEventListener('scroll', ()=>{ if(window.scrollY > window.innerHeight * 0.4) nav.classList.add('show'); });
 
-  /* ---- Performance Profile quiz (front-end simulation only) ---- */
-  const chips = document.getElementById('chips');
-  const profileEl = document.getElementById('profile');
-  const resultEl = document.getElementById('result');
-  const tally = {};
-  let qIndex = 0;
-  const questions = document.querySelectorAll('.q');
-  const responseTimes = [];
-  let questionStartTime = null;
-
-  const statements = {
-    Operator:"Composure is a decision, not a mood.",
-    Athlete:"Recovery is training you don't skip.",
-    Executive:"Readiness is the real competitive edge.",
-    Builder:"The work before the work is the work.",
-    Creator:"Protect the thread before you protect the output.",
-    Guardian:"You can't pour from empty — hydrate first.",
-    Explorer:"Adaptability starts with a steady baseline.",
-    Founder:"Discipline is the only thing that scales."
-  };
-  const states = {
-    Operator:"STEADY", Athlete:"ASCENDING", Executive:"LOCKED IN", Builder:"IN MOTION",
-    Creator:"FOCUSED", Guardian:"GROUNDED", Explorer:"ALERT", Founder:"COMMITTED"
-  };
-  const protocols = {
-    Operator:"Morning · pH 8.8 stick", Athlete:"Midday · Berry Blast can", Executive:"Morning · pH 8.8 stick",
-    Builder:"Midday · Berry Blast can", Creator:"Evening · Soursop recovery", Guardian:"Evening · Soursop recovery",
-    Explorer:"Midday · Berry Blast can", Founder:"Morning · pH 8.8 stick"
-  };
-  const skuMap = {
-    Operator:"red", Executive:"red", Founder:"red",
-    Athlete:"blue", Builder:"blue", Explorer:"blue",
-    Creator:"green", Guardian:"green"
-  };
-  let matchedSku = "red";
-
-  function addTally(v){ tally[v] = (tally[v]||0) + 1; }
-
-  chips.addEventListener('click', (e)=>{
-    const chip = e.target.closest('.chip');
-    if(!chip) return;
-    chips.querySelectorAll('.chip').forEach(c=>{ c.classList.remove('active'); c.setAttribute('aria-pressed','false'); });
-    chip.classList.add('active');
-    chip.setAttribute('aria-pressed','true');
-    addTally(chip.dataset.v);
-    profileEl.classList.add('active');
-    questionStartTime = performance.now();
-    profileEl.scrollIntoView({behavior:'smooth', block:'center'});
-  });
-
-  document.querySelectorAll('.q .opt').forEach(opt=>{
-    opt.addEventListener('click', ()=>{
-      if(questionStartTime !== null){
-        responseTimes.push(performance.now() - questionStartTime);
-      }
-      addTally(opt.dataset.v);
-      const currentQ = questions[qIndex];
-      currentQ.classList.remove('current');
-      qIndex++;
-      if(qIndex < questions.length){
-        questions[qIndex].classList.add('current');
-        questionStartTime = performance.now();
-      } else {
-        showResult();
-      }
-    });
-  });
-
-  function showResult(){
-    profileEl.style.display = 'none';
-    let top = 'Operator', max = 0;
-    for(const k in tally){ if(tally[k] > max){ max = tally[k]; top = k; } }
-    document.getElementById('idName').textContent = top;
-    document.getElementById('stStatement').textContent = statements[top] || statements.Operator;
-    document.getElementById('stProtocol').textContent = protocols[top] || protocols.Operator;
-    document.getElementById('stState').textContent = states[top] || states.Operator;
-    matchedSku = skuMap[top] || 'red';
-    resultEl.classList.add('active');
-
-    // The Pressure Read — real measured response time, framed playfully, never fabricated
-    if(responseTimes.length){
-      const avgMs = responseTimes.reduce((a,b)=>a+b,0) / responseTimes.length;
-      const avgSec = (avgMs/1000).toFixed(1);
-      const read = avgMs < 3000 ? "Fast Instinct" : (avgMs < 6000 ? "Steady Deliberation" : "Deep Consideration");
-      document.getElementById('stPressure').textContent = `${avgSec}s avg · ${read}`;
-      const pct = Math.max(4, Math.min(96, (avgMs / 8000) * 100));
-      requestAnimationFrame(()=>{
-        requestAnimationFrame(()=>{ document.getElementById('pressureMarker').style.left = pct + '%'; });
-      });
-    } else {
-      document.getElementById('stPressure').textContent = "—";
-    }
-    requestAnimationFrame(()=>{
-      requestAnimationFrame(()=>{
-        document.getElementById('signalCircle').style.strokeDashoffset = '0';
-      });
-    });
-    resultEl.scrollIntoView({behavior:'smooth', block:'center'});
-  }
-
-  document.getElementById('shopMatchBtn').addEventListener('click', ()=>{
-    const target = document.querySelector(`[data-sku="${matchedSku}"]`);
-    if(target){
-      target.classList.add('recommended');
-      target.scrollIntoView({behavior:'smooth', block:'center'});
-    } else {
-      document.getElementById('products').scrollIntoView({behavior:'smooth'});
-    }
-  });
 </script>
 </body>
 </html>
