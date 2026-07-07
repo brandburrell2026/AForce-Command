@@ -241,19 +241,19 @@
   .product-featured .frame{ position:relative; padding:20px 0 32px; }
   .product-featured .frame::before{ content:''; position:absolute; inset:0; margin:auto; width:280px; height:280px; border-radius:50%; background:var(--red); filter:blur(80px); opacity:0.3; }
   .product-featured img{ position:relative; z-index:1; max-width:230px; height:400px; object-fit:contain; margin:0 auto; filter:drop-shadow(0 34px 44px rgba(0,0,0,0.5)); }
-  .product-featured .tag{ font-family:'Inter',sans-serif; font-size:10px; letter-spacing:0.16em; text-transform:uppercase; color:var(--red); margin-bottom:12px;}
+  .product-featured .tag{ font-family:'Inter',sans-serif; font-weight:700; font-size:10px; letter-spacing:0.16em; text-transform:uppercase; color:var(--red); margin-bottom:12px;}
   .product-featured h4{ font-family:'Archivo Black',serif; font-size:30px; font-weight:400; margin-bottom:8px;}
-  .product-featured .ph{ font-size:12px; color:rgba(13,13,13,0.5); font-family:'Inter',sans-serif; margin-bottom:20px;}
-  .product-featured .buy{ font-family:'Inter',sans-serif; font-size:10px; letter-spacing:0.12em; text-transform:uppercase; border:1px solid rgba(13,13,13,0.3); padding:12px 22px; transition:all .25s ease; }
+  .product-featured .ph{ font-size:12px; color:rgba(13,13,13,0.5); font-family:'Inter',sans-serif; font-weight:700; margin-bottom:20px;}
+  .product-featured .buy{ font-family:'Inter',sans-serif; font-weight:700; font-size:10px; letter-spacing:0.12em; text-transform:uppercase; border:1px solid rgba(13,13,13,0.3); padding:12px 22px; transition:all .25s ease; }
   .product-featured:hover .buy{ background:var(--canvas); color:var(--ink); border-color:var(--ink); }
   .product-minor-stack{ display:flex; flex-direction:column; }
   .product-minor{ background:var(--canvas); padding:34px 30px; display:flex; align-items:center; gap:22px; flex:1; border-bottom:1px solid var(--line-on-dark); opacity:0; transform:translateY(16px); transition:background .3s ease; }
   .product-minor:last-child{ border-bottom:none; }
   .product-minor:hover{ background:rgba(13,13,13,0.03); }
   .product-minor img{ width:126px; height:216px; object-fit:contain; flex-shrink:0; }
-  .product-minor .tag{ font-family:'Inter',sans-serif; font-size:9.5px; letter-spacing:0.14em; text-transform:uppercase; margin-bottom:6px; }
+  .product-minor .tag{ font-family:'Inter',sans-serif; font-weight:700; font-size:9.5px; letter-spacing:0.14em; text-transform:uppercase; margin-bottom:6px; }
   .product-minor h5{ font-family:'Archivo Black',serif; font-size:19px; font-weight:400; margin-bottom:4px; }
-  .product-minor .ph{ font-size:10.5px; color:rgba(13,13,13,0.45); font-family:'Inter',sans-serif;}
+  .product-minor .ph{ font-size:10.5px; color:rgba(13,13,13,0.45); font-family:'Inter',sans-serif; font-weight:700;}
   .tag.red{color:var(--red);} .tag.blue{color:#6E86FF;} .tag.green{color:#5FC98A;}
   .product-featured.recommended, .product-minor.recommended{ position:relative; }
   .product-featured.recommended::after, .product-minor.recommended::after{
@@ -267,7 +267,7 @@
   .stick-strip{ margin-top:60px; display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--line-on-dark); }
   .stick-strip .stick{ background:var(--canvas); padding:36px 20px; text-align:center; opacity:0; transform:translateY(16px); }
   .stick-strip img{ height:324px; margin:0 auto 18px; object-fit:contain; }
-  .stick-strip .label{ font-family:'Inter',sans-serif; font-size:10px; letter-spacing:0.14em; color:rgba(13,13,13,0.6); text-transform:uppercase; }
+  .stick-strip .label{ font-family:'Inter',sans-serif; font-weight:700; font-size:10px; letter-spacing:0.14em; color:rgba(13,13,13,0.6); text-transform:uppercase; }
 
   /* ---------- PROOF — typographic sentence, not a box grid ---------- */
   .arenas{ background:var(--canvas); padding:clamp(64px,9vh,96px) clamp(20px,6vw,72px); }
