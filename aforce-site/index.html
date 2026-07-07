@@ -47,10 +47,15 @@
   .grain{ position:fixed; inset:0; z-index:200; pointer-events:none; opacity:0.035; mix-blend-mode:overlay;
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
 
-  .shop-entry{ position:fixed; top:26px; right:clamp(20px,4vw,56px); z-index:150; font-family:'IBM Plex Mono',monospace; font-size:10.5px; letter-spacing:0.14em; text-transform:uppercase; color:rgba(13,13,13,0.55); text-decoration:none; transition:color .3s ease; mix-blend-mode:difference; }
+  .shop-entry{ position:fixed; top:26px; right:clamp(20px,4vw,56px); z-index:150; font-family:'IBM Plex Mono',monospace; font-size:10.5px; letter-spacing:0.14em; text-transform:uppercase; color:rgba(13,13,13,0.55); text-decoration:none; transition:color .3s ease; }
+  /* blend on the inner span, not the fixed link — keeps it fixed in Safari */
+  .shop-entry > span{ mix-blend-mode:difference; }
   .shop-entry:hover{ color:#fff; }
 
-  .nav{ position:fixed; top:0; left:0; right:0; z-index:100; display:flex; align-items:center; justify-content:space-between; padding: 26px clamp(20px,4vw,56px); mix-blend-mode:difference; color:#fff; font-size:13px; opacity:1; transition:opacity 1.2s ease; }
+  .nav{ position:fixed; top:0; left:0; right:0; z-index:100; display:flex; align-items:center; justify-content:space-between; padding: 26px clamp(20px,4vw,56px); color:#fff; font-size:13px; opacity:1; transition:opacity 1.2s ease; }
+  /* blend on the children, not the fixed .nav itself — mix-blend-mode on a
+     position:fixed element breaks fixed positioning in Safari (nav scrolls away) */
+  .nav > *{ mix-blend-mode:difference; }
   .nav.show{opacity:1;}
   .nav .mark{font-family:'Archivo Black',serif; font-size:19px; letter-spacing:0.04em; font-weight:500;}
   .nav .links{display:flex; gap:28px;}
@@ -346,7 +351,7 @@
 <body>
 <a href="#hero" class="skip-link">Skip to main content</a>
 <div class="grain" aria-hidden="true"></div>
-<a href="/shop" class="shop-entry" id="shopEntry">Shop —</a>
+<a href="/shop" class="shop-entry" id="shopEntry"><span>Shop —</span></a>
 
 <nav class="nav" id="nav">
   <div class="mark">AFORCE™</div>
