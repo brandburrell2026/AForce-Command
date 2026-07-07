@@ -312,9 +312,9 @@
   /* ---------- FINAL ---------- */
   .final{ background:var(--canvas); color:var(--ink); min-height:90vh; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; }
   .final .mark{ font-family:'Archivo Black',serif; font-size:22px; letter-spacing:0.06em; opacity:0; transform:translateY(10px); margin-bottom:26px; }
-  .final .glyphs{ display:flex; align-items:baseline; gap:14px; font-family:'Archivo Black', serif; font-size:clamp(50px,8vw,100px); line-height:0.9; opacity:0; transform:translateY(10px); margin-bottom:18px; }
-  .final .glyphs .n{ color: var(--red); } .final .glyphs .dash{ color: rgba(13,13,13,0.3); font-size:0.5em; } .final .glyphs .mirror{ transform: scaleX(-1); }
-  .final .caption{ font-family:'IBM Plex Mono', monospace; font-size:12px; letter-spacing:0.26em; text-transform:uppercase; color: rgba(13,13,13,0.65); opacity:0; transform:translateY(10px); margin-bottom:50px; }
+  .universal-close .glyphs{ display:flex; align-items:baseline; justify-content:center; gap:14px; font-family:'Archivo Black', serif; font-size:clamp(50px,8vw,100px); line-height:0.9; opacity:0; transform:translateY(10px); margin:clamp(48px,7vw,72px) 0 18px; }
+  .universal-close .glyphs .n{ color: var(--red); } .universal-close .glyphs .dash{ color: rgba(13,13,13,0.3); font-size:0.5em; } .universal-close .glyphs .mirror{ display:inline-block; transform: scaleX(-1); }
+  .universal-close .caption{ font-family:'IBM Plex Mono', monospace; font-size:12px; letter-spacing:0.26em; text-transform:uppercase; color: rgba(13,13,13,0.65); opacity:0; transform:translateY(10px); margin-bottom:0; }
   .final .btn{ opacity:0; transform:translateY(10px); }
 
   footer{ background:var(--canvas); color:rgba(13,13,13,0.55); padding:80px clamp(20px,6vw,72px) 40px; }
@@ -532,6 +532,8 @@
     <div class="uc-ritual">
       <span>Pause.</span><span>Hydrate.</span><span>Lock In.</span><span>Perform.</span>
     </div>
+    <div class="glyphs fade-in"><span class="n">N</span><span class="dash">—</span><span class="mirror">N</span></div>
+    <div class="caption fade-in">Performance Is Non&#8209;Negotiable</div>
   </div>
 </section>
 
@@ -552,8 +554,6 @@
 
 <section class="final">
   <div class="mark fade-in">AFORCE™</div>
-  <div class="glyphs fade-in"><span class="n">N</span><span class="dash">—</span><span class="mirror">N</span></div>
-  <div class="caption fade-in">Performance Is Non&#8209;Negotiable</div>
   <a href="/shop" class="btn btn-primary fade-in">Begin Today's Ritual</a>
 </section>
 
