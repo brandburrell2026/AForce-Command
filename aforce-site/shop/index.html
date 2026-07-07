@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AFORCE — Shop the Standard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800;900&family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Inter:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0B0D12;
+    --canvas:#F2F2F0;
+    --red:#E41E2B;
+    --blue:#2F5BFF;
+    --green:#2D6A4F;
+    --ink-60:rgba(11,13,18,.6);
+    --ink-30:rgba(11,13,18,.3);
+    --ink-12:rgba(11,13,18,.12);
+    --canvas-70:rgba(242,242,240,.7);
+    --canvas-25:rgba(242,242,240,.25);
+    --display:'Archivo',sans-serif;
+    --serif:'Cormorant Garamond',serif;
+    --body:'Inter',sans-serif;
+    --mono:'Space Mono',monospace;
+    --gutter:clamp(20px,5vw,72px);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--canvas);
+    color:var(--ink);
+    font-family:var(--body);
+    font-size:16px;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{background:var(--ink);color:var(--canvas);}
+  a{color:inherit;text-decoration:none;}
+  button{font-family:inherit;cursor:pointer;}
+  :focus-visible{outline:2px solid var(--blue);outline-offset:3px;}
+
+  /* ---------- NAV ---------- */
+  .nav{
+    position:sticky;top:0;z-index:50;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:18px var(--gutter);
+    background:rgba(242,242,240,.88);
+    backdrop-filter:blur(12px);
+    border-bottom:1px solid var(--ink-12);
+  }
+  .mark{
+    font-family:var(--display);font-weight:900;font-size:17px;letter-spacing:.02em;
+    display:flex;align-items:center;gap:10px;
+  }
+  .nn{display:inline-flex;align-items:center;gap:3px;font-weight:900;}
+  .nn .bar{display:inline-block;width:2px;height:14px;background:currentColor;}
+  .nn .flip{display:inline-block;transform:scaleX(-1);}
+  .nav-links{display:flex;gap:32px;align-items:center;font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;}
+  .nav-links a{opacity:.65;transition:opacity .2s;}
+  .nav-links a:hover,.nav-links a[aria-current]{opacity:1;}
+  .cart-btn{
+    background:var(--ink);color:var(--canvas);border:none;
+    font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+    padding:10px 18px;display:flex;gap:10px;align-items:center;
+    transition:transform .15s ease;
+  }
+  .cart-btn:hover{transform:translateY(-1px);}
+  .cart-count{font-weight:700;}
+
+  /* ---------- HERO ---------- */
+  .hero{
+    padding:clamp(72px,12vh,140px) var(--gutter) clamp(56px,9vh,110px);
+    border-bottom:1px solid var(--ink-12);
+  }
+  .eyebrow{
+    font-family:var(--mono);font-size:11px;letter-spacing:.22em;text-transform:uppercase;
+    color:var(--ink-60);margin-bottom:26px;display:flex;align-items:center;gap:14px;
+  }
+  .eyebrow::after{content:"";height:1px;width:64px;background:var(--ink-30);}
+  .hero h1{
+    font-family:var(--display);font-weight:800;
+    font-size:clamp(44px,8.5vw,118px);
+    line-height:.94;letter-spacing:-.015em;text-transform:uppercase;
+    max-width:14ch;
+  }
+  .hero h1 em{
+    font-family:var(--serif);font-style:italic;font-weight:500;
+    text-transform:none;letter-spacing:0;
+  }
+  .hero-sub{
+    margin-top:34px;max-width:520px;
+    font-family:var(--serif);font-size:clamp(19px,2.2vw,24px);
+    font-weight:400;line-height:1.5;color:var(--ink-60);
+  }
+  .hero-provision{
+    margin-top:44px;display:inline-flex;align-items:center;gap:14px;
+    font-family:var(--mono);font-size:12px;letter-spacing:.1em;
+    border:1px solid var(--ink);padding:14px 22px;
+  }
+  .pulse{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 2.4s infinite;}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.25;}}
+
+  /* ---------- CALIBRATION MODULE ---------- */
+  .calibrate{
+    padding:clamp(56px,9vh,100px) var(--gutter);
+    background:var(--ink);color:var(--canvas);
+  }
+  .calibrate .eyebrow{color:var(--canvas-70);}
+  .calibrate .eyebrow::after{background:var(--canvas-25);}
+  .calibrate h2{
+    font-family:var(--display);font-weight:800;text-transform:uppercase;
+    font-size:clamp(30px,4.6vw,58px);letter-spacing:-.01em;line-height:1;max-width:16ch;
+  }
+  .calibrate h2 em{font-family:var(--serif);font-style:italic;font-weight:500;text-transform:none;}
+  .calibrate-sub{
+    margin-top:20px;max-width:54ch;
+    font-family:var(--serif);font-size:clamp(17px,2vw,21px);color:var(--canvas-70);line-height:1.5;
+  }
+  .cal-outputs{
+    margin-top:44px;display:grid;grid-template-columns:repeat(6,1fr);gap:1px;
+    background:var(--canvas-25);border:1px solid var(--canvas-25);
+  }
+  .cal-out{
+    background:var(--ink);padding:20px 18px;min-height:104px;
+    display:flex;flex-direction:column;justify-content:space-between;gap:12px;
+  }
+  .cal-out .co-num{font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:var(--canvas-70);}
+  .cal-out .co-label{font-family:var(--display);font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.03em;line-height:1.25;}
+  .cal-out.co-os .co-label{color:var(--canvas);display:flex;align-items:center;gap:8px;}
+  .cal-out.co-os{outline:1px solid var(--canvas);outline-offset:-1px;}
+  .calibrate-cta{
+    margin-top:40px;display:flex;align-items:center;gap:22px;flex-wrap:wrap;
+  }
+  .calibrate-cta a{
+    background:var(--canvas);color:var(--ink);
+    font-family:var(--mono);font-size:12px;letter-spacing:.16em;text-transform:uppercase;
+    padding:17px 34px;transition:transform .15s ease;
+  }
+  .calibrate-cta a:hover{transform:translateY(-1px);}
+  .cal-time{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--canvas-70);display:flex;align-items:center;gap:10px;}
+  .cal-time::before{content:"";width:32px;height:1px;background:var(--canvas-25);}
+  .cal-skip{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--canvas-70);margin-top:26px;}
+  .cal-skip a{text-decoration:underline;text-underline-offset:3px;}
+  @media (max-width:1080px){.cal-outputs{grid-template-columns:repeat(3,1fr);}}
+  @media (max-width:600px){.cal-outputs{grid-template-columns:repeat(2,1fr);}}
+
+  /* sample readout card */
+  .cal-lower{margin-top:44px;display:grid;grid-template-columns:minmax(300px,420px) 1fr;gap:clamp(28px,4vw,64px);align-items:center;}
+  .cal-sample{
+    background:var(--canvas);color:var(--ink);padding:26px 26px 22px;
+    position:relative;box-shadow:0 30px 60px rgba(0,0,0,.35);
+  }
+  .cal-sample::before{
+    content:"SAMPLE READOUT — ILLUSTRATIVE";
+    position:absolute;top:-11px;left:22px;background:var(--ink);color:var(--canvas);
+    font-family:var(--mono);font-size:9px;letter-spacing:.2em;padding:5px 10px;
+  }
+  .cs-row{
+    display:flex;justify-content:space-between;align-items:baseline;gap:16px;
+    padding:11px 0;border-bottom:1px solid var(--ink-12);
+  }
+  .cs-row:last-child{border-bottom:none;}
+  .cs-label{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-60);}
+  .cs-value{font-family:var(--display);font-weight:700;font-size:13.5px;text-transform:uppercase;letter-spacing:.03em;text-align:right;}
+  .cs-value.cs-os{color:var(--green);display:flex;align-items:center;gap:8px;}
+  @media (max-width:900px){.cal-lower{grid-template-columns:1fr;}}
+
+  /* ---------- DEMAND SELECTOR ---------- */
+  .demand{
+    padding:clamp(56px,9vh,96px) var(--gutter) clamp(40px,6vh,64px);
+  }
+  .demand h2{
+    font-family:var(--display);font-weight:800;text-transform:uppercase;
+    font-size:clamp(26px,3.8vw,48px);letter-spacing:-.01em;line-height:1;
+  }
+  .demand h2 em{font-family:var(--serif);font-style:italic;font-weight:500;text-transform:none;}
+  .demand-sub{margin-top:14px;color:var(--ink-60);font-size:15px;max-width:52ch;}
+  .demand-chips{margin-top:34px;display:flex;flex-wrap:wrap;gap:12px;}
+  .chip{
+    background:transparent;border:1px solid var(--ink);padding:14px 26px;
+    font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;
+    transition:background .18s,color .18s,transform .15s;
+  }
+  .chip:hover{transform:translateY(-1px);}
+  .chip[aria-pressed="true"]{background:var(--ink);color:var(--canvas);}
+  .demand-answer{
+    margin-top:26px;font-family:var(--serif);font-style:italic;font-size:clamp(17px,2vw,21px);
+    color:var(--ink-60);min-height:1.6em;
+  }
+  .demand-answer b{font-style:normal;font-family:var(--display);font-weight:800;text-transform:uppercase;font-size:.82em;letter-spacing:.02em;color:var(--ink);}
+  .prescribe{
+    display:inline-block;margin-left:12px;
+    font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;
+    background:var(--ink);color:var(--canvas);padding:5px 10px;vertical-align:middle;
+  }
+  .plate.lit{outline:2px solid var(--ink);outline-offset:-2px;}
+
+  /* ---------- SECTION HEAD ---------- */
+  .section-head{
+    padding:clamp(56px,9vh,100px) var(--gutter) 36px;
+    display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap;
+  }
+  .section-head h2{
+    font-family:var(--display);font-weight:800;text-transform:uppercase;
+    font-size:clamp(26px,3.6vw,44px);letter-spacing:-.01em;line-height:1;
+  }
+  .section-head .note{
+    font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-60);
+  }
+
+  /* ---------- SKU PLATES ---------- */
+  .plate{
+    display:grid;grid-template-columns:1fr 1fr;min-height:520px;
+    border-top:1px solid var(--ink-12);
+  }
+  .plate-visual{
+    position:relative;display:flex;align-items:center;justify-content:center;
+    overflow:hidden;
+  }
+  .plate[data-sku="red"] .plate-visual{background:var(--red);}
+  .plate[data-sku="blue"] .plate-visual{background:var(--blue);}
+  .plate[data-sku="green"] .plate-visual{background:var(--green);}
+  .plate-index{
+    position:absolute;top:26px;left:30px;
+    font-family:var(--mono);font-size:11px;letter-spacing:.2em;color:var(--canvas-70);
+  }
+  .plate-ph{
+    position:absolute;bottom:26px;right:30px;
+    font-family:var(--mono);font-size:11px;letter-spacing:.2em;color:var(--canvas-70);
+  }
+  /* ── PRODUCT PHOTO SLOT ──
+     .plate-visual is the swappable slot. Drop a product image in by adding
+     <img class="plate-photo" src="/assets/…"> inside .plate-visual and the
+     CSS-rendered .can placeholder can be removed. No markup elsewhere changes. */
+  .plate-photo{position:relative;z-index:1;max-height:78%;width:auto;object-fit:contain;}
+  /* CSS can — placeholder until product photography drops in */
+  .can{
+    width:clamp(120px,14vw,168px);height:clamp(260px,30vw,360px);
+    border-radius:26px 26px 22px 22px;position:relative;
+    background:linear-gradient(105deg,rgba(255,255,255,.32) 0%,rgba(255,255,255,.06) 28%,rgba(0,0,0,.18) 62%,rgba(255,255,255,.14) 100%),var(--ink);
+    box-shadow:0 40px 70px rgba(0,0,0,.35);
+    transition:transform .5s cubic-bezier(.2,.8,.2,1);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
+  }
+  .plate:hover .can{transform:translateY(-10px) rotate(-1.2deg);}
+  .can::before{
+    content:"";position:absolute;top:10px;left:10%;right:10%;height:8px;
+    border-radius:50%;background:rgba(255,255,255,.22);
+  }
+  .can .can-mark{color:var(--canvas);font-family:var(--display);font-weight:900;font-size:clamp(15px,1.6vw,19px);letter-spacing:.04em;}
+  .can .can-flavor{
+    color:var(--canvas-70);font-family:var(--mono);font-size:9px;letter-spacing:.24em;text-transform:uppercase;
+    writing-mode:vertical-rl;position:absolute;right:14px;top:50%;transform:translateY(-50%);
+  }
+  .can .can-band{width:56%;height:3px;}
+  .plate[data-sku="red"] .can-band{background:var(--red);}
+  .plate[data-sku="blue"] .can-band{background:var(--blue);}
+  .plate[data-sku="green"] .can-band{background:var(--green);}
+
+  .plate-info{
+    padding:clamp(40px,6vw,80px);display:flex;flex-direction:column;justify-content:center;gap:0;
+    background:var(--canvas);
+  }
+  .plate-kicker{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-60);margin-bottom:18px;}
+  .plate-info h3{
+    font-family:var(--display);font-weight:800;text-transform:uppercase;
+    font-size:clamp(28px,3.4vw,46px);line-height:.98;letter-spacing:-.01em;
+  }
+  .plate-info h3 span{
+    display:block;font-family:var(--serif);font-style:italic;font-weight:400;text-transform:none;
+    font-size:clamp(20px,2.2vw,28px);margin-top:8px;color:var(--ink-60);letter-spacing:0;
+  }
+  .plate-copy{margin-top:22px;max-width:44ch;color:var(--ink-60);font-size:15px;}
+  .plate-specs{
+    margin-top:28px;display:flex;gap:0;border-top:1px solid var(--ink-12);border-bottom:1px solid var(--ink-12);
+  }
+  .spec{
+    flex:1;padding:14px 16px 14px 0;font-family:var(--mono);font-size:11px;letter-spacing:.08em;
+  }
+  .spec + .spec{padding-left:16px;border-left:1px solid var(--ink-12);}
+  .spec b{display:block;font-size:14px;font-weight:700;margin-top:3px;letter-spacing:.02em;}
+  .plate-buy{margin-top:30px;display:flex;align-items:center;gap:18px;flex-wrap:wrap;}
+  .format-toggle{display:flex;border:1px solid var(--ink);}
+  .format-toggle button{
+    background:transparent;border:none;padding:11px 18px;
+    font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-60);
+  }
+  .format-toggle button[aria-pressed="true"]{background:var(--ink);color:var(--canvas);}
+  .add-btn{
+    background:var(--ink);color:var(--canvas);border:1px solid var(--ink);
+    padding:14px 30px;font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+    display:flex;gap:14px;align-items:center;transition:transform .15s ease;
+  }
+  .add-btn:hover{transform:translateY(-1px);}
+  .add-btn .price{font-weight:700;}
+  .plate.flip{grid-template-columns:1fr 1fr;}
+  .plate.flip .plate-visual{order:2;}
+  .plate.flip .plate-info{order:1;}
+
+  /* ---------- LADDER ---------- */
+  .ladder{background:var(--ink);color:var(--canvas);padding-bottom:clamp(64px,10vh,120px);}
+  .ladder .section-head h2{color:var(--canvas);}
+  .ladder .section-head .note{color:var(--canvas-70);}
+  .ladder-grid{
+    display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--canvas-25);
+    margin:0 var(--gutter);border:1px solid var(--canvas-25);
+  }
+  .rung{
+    background:var(--ink);padding:clamp(28px,3.5vw,44px);
+    display:flex;flex-direction:column;gap:16px;min-height:340px;
+    position:relative;transition:background .25s;
+  }
+  .rung:hover{background:#12151d;}
+  .rung-tier{font-family:var(--mono);font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--canvas-70);}
+  .rung h3{font-family:var(--display);font-weight:800;font-size:clamp(20px,2.2vw,27px);text-transform:uppercase;line-height:1.05;}
+  .rung .rung-serif{font-family:var(--serif);font-style:italic;font-size:17px;color:var(--canvas-70);}
+  .rung ul{list-style:none;display:flex;flex-direction:column;gap:9px;margin-top:2px;}
+  .rung li{font-size:13.5px;color:var(--canvas-70);padding-left:18px;position:relative;}
+  .rung li::before{content:"—";position:absolute;left:0;color:var(--canvas-25);}
+  .rung li.os-line{color:var(--canvas);}
+  .rung li.os-line::before{content:"◆";font-size:8px;top:5px;color:var(--green);}
+  .rung-foot{margin-top:auto;display:flex;justify-content:space-between;align-items:center;gap:12px;}
+  .rung-price{font-family:var(--mono);font-size:15px;font-weight:700;letter-spacing:.04em;}
+  .rung-price small{display:block;font-weight:400;font-size:10px;color:var(--canvas-70);letter-spacing:.1em;margin-top:2px;}
+  .rung .add-btn{background:var(--canvas);color:var(--ink);border-color:var(--canvas);padding:12px 22px;}
+  .rung.featured{outline:1px solid var(--canvas);outline-offset:-1px;}
+  .rung.featured .rung-tier::after{content:"  ·  MOST CHOSEN";color:var(--canvas);}
+
+  /* ---------- PROVISION ---------- */
+  .provision{
+    padding:clamp(72px,11vh,130px) var(--gutter);
+    border-top:1px solid var(--ink-12);
+  }
+  .provision h2{
+    font-family:var(--display);font-weight:800;text-transform:uppercase;
+    font-size:clamp(30px,4.6vw,58px);letter-spacing:-.01em;line-height:1;max-width:18ch;
+  }
+  .provision h2 em{font-family:var(--serif);font-style:italic;font-weight:500;text-transform:none;}
+  .provision-sub{margin-top:20px;max-width:52ch;color:var(--ink-60);font-size:16px;}
+  .steps{
+    margin-top:56px;display:grid;grid-template-columns:repeat(3,1fr);gap:0;
+    border-top:1px solid var(--ink);
+  }
+  .step{padding:30px 28px 8px 0;position:relative;}
+  .step + .step{padding-left:28px;border-left:1px solid var(--ink-12);}
+  .step-num{font-family:var(--mono);font-size:11px;letter-spacing:.2em;color:var(--ink-60);}
+  .step h4{font-family:var(--display);font-weight:800;text-transform:uppercase;font-size:19px;margin:14px 0 10px;}
+  .step p{font-size:14px;color:var(--ink-60);max-width:34ch;}
+  .provision-legal{
+    margin-top:48px;font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;color:var(--ink-60);max-width:74ch;line-height:1.7;
+  }
+
+  /* ---------- FOUNDING ---------- */
+  .founding{
+    background:var(--ink);color:var(--canvas);
+    padding:clamp(64px,10vh,120px) var(--gutter);
+    display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:36px;
+  }
+  .founding h2{font-family:var(--display);font-weight:800;text-transform:uppercase;font-size:clamp(26px,3.8vw,48px);line-height:1;}
+  .founding .founding-serif{font-family:var(--serif);font-style:italic;font-size:clamp(17px,2vw,21px);color:var(--canvas-70);margin-top:14px;max-width:46ch;}
+  .founding a{
+    font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;
+    border:1px solid var(--canvas);padding:16px 34px;transition:background .2s,color .2s;white-space:nowrap;
+  }
+  .founding a:hover{background:var(--canvas);color:var(--ink);}
+
+  /* ---------- FOOTER ---------- */
+  footer{
+    padding:40px var(--gutter);display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap;
+    border-top:1px solid var(--ink-12);
+    font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-60);
+  }
+  .nonneg{display:inline-flex;align-items:baseline;gap:2px;font-family:var(--display);font-weight:900;letter-spacing:.03em;color:var(--ink);}
+  .nonneg .flip{display:inline-block;transform:scaleX(-1);}
+
+  /* ---------- CART DRAWER ---------- */
+  .drawer-veil{
+    position:fixed;inset:0;background:rgba(11,13,18,.45);z-index:98;
+    opacity:0;pointer-events:none;transition:opacity .3s;
+  }
+  .drawer-veil.open{opacity:1;pointer-events:auto;}
+  .drawer{
+    position:fixed;top:0;right:0;height:100%;width:min(440px,92vw);z-index:99;
+    background:var(--canvas);border-left:1px solid var(--ink-12);
+    transform:translateX(102%);transition:transform .38s cubic-bezier(.2,.8,.2,1);
+    display:flex;flex-direction:column;
+  }
+  .drawer.open{transform:translateX(0);}
+  .drawer-head{
+    padding:24px 28px;border-bottom:1px solid var(--ink-12);
+    display:flex;justify-content:space-between;align-items:center;
+  }
+  .drawer-head h3{font-family:var(--display);font-weight:800;text-transform:uppercase;font-size:19px;}
+  .drawer-close{background:none;border:none;font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-60);}
+  .drawer-body{flex:1;overflow-y:auto;padding:12px 28px;}
+  .drawer-empty{
+    padding:48px 0;text-align:center;font-family:var(--serif);font-style:italic;font-size:18px;color:var(--ink-60);
+  }
+  .cart-item{
+    display:flex;justify-content:space-between;align-items:flex-start;gap:14px;
+    padding:18px 0;border-bottom:1px solid var(--ink-12);
+  }
+  .ci-name{font-family:var(--display);font-weight:700;font-size:14px;text-transform:uppercase;letter-spacing:.02em;}
+  .ci-meta{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;color:var(--ink-60);margin-top:4px;}
+  .ci-qty{display:flex;align-items:center;gap:10px;margin-top:10px;}
+  .ci-qty button{
+    width:24px;height:24px;border:1px solid var(--ink-30);background:none;font-family:var(--mono);font-size:12px;line-height:1;
+  }
+  .ci-qty span{font-family:var(--mono);font-size:12px;min-width:16px;text-align:center;}
+  .ci-price{font-family:var(--mono);font-size:13px;font-weight:700;white-space:nowrap;}
+  .os-item{
+    display:flex;justify-content:space-between;align-items:center;gap:14px;
+    padding:18px 0;border-bottom:1px solid var(--ink-12);
+  }
+  .os-item .ci-name{display:flex;align-items:center;gap:9px;}
+  .os-dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 2.4s infinite;}
+  .os-item .ci-price{color:var(--green);}
+  .drawer-foot{padding:22px 28px 28px;border-top:1px solid var(--ink-12);}
+  .drawer-total{display:flex;justify-content:space-between;font-family:var(--mono);font-size:13px;letter-spacing:.08em;margin-bottom:8px;}
+  .drawer-total b{font-size:16px;}
+  .drawer-note{font-family:var(--mono);font-size:10px;letter-spacing:.08em;color:var(--ink-60);margin-bottom:16px;}
+  .checkout-btn{
+    width:100%;background:var(--ink);color:var(--canvas);border:none;
+    padding:17px;font-family:var(--mono);font-size:12px;letter-spacing:.18em;text-transform:uppercase;
+    transition:opacity .2s;
+  }
+  .checkout-btn:hover{opacity:.9;}
+
+  /* toast */
+  .toast{
+    position:fixed;bottom:26px;left:50%;transform:translate(-50%,20px);z-index:100;
+    background:var(--ink);color:var(--canvas);padding:13px 24px;
+    font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+    opacity:0;pointer-events:none;transition:opacity .3s,transform .3s;
+  }
+  .toast.show{opacity:1;transform:translate(-50%,0);}
+
+  /* reveal on scroll */
+  .reveal{opacity:0;transform:translateY(18px);transition:opacity .7s ease,transform .7s ease;}
+  .reveal.in{opacity:1;transform:none;}
+  @media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{animation:none!important;transition:none!important;}
+    .reveal{opacity:1;transform:none;}
+    html{scroll-behavior:auto;}
+  }
+
+  /* ---------- RESPONSIVE ---------- */
+  @media (max-width:860px){
+    .nav-links{display:none;}
+    .plate,.plate.flip{grid-template-columns:1fr;}
+    .plate .plate-visual{order:1;min-height:340px;}
+    .plate .plate-info{order:2;}
+    .ladder-grid{grid-template-columns:1fr;}
+    .steps{grid-template-columns:1fr;}
+    .step + .step{padding-left:0;border-left:none;border-top:1px solid var(--ink-12);}
+  }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a class="mark" href="/" aria-label="AForce home">
+    <span class="nn"><span>N</span><span class="bar"></span><span class="flip">N</span></span>
+    AFORCE
+  </a>
+  <div class="nav-links">
+    <a href="/">The Standard</a>
+    <a href="/shop" aria-current="page">Shop</a>
+    <a href="/#invite">The Invitation</a>
+    <a href="/#os">AForce OS</a>
+  </div>
+  <button class="cart-btn" id="cartOpen" aria-label="Open your ritual">
+    Your Ritual <span class="cart-count" id="cartCount">0</span>
+  </button>
+</nav>
+
+<!-- HERO -->
+<header class="hero">
+  <p class="eyebrow">Provisions · pH 8.8 · Performance Is Non-Negotiable</p>
+  <h1>Equip the <em>standard.</em></h1>
+  <p class="hero-sub"><em style="font-style:italic;">A system, not a drink.</em> Three formulations, two formats, one discipline — and every order carries your operating system with it.</p>
+  <div class="hero-provision">
+    <span class="pulse" aria-hidden="true"></span>
+    AFORCE OS ACTIVATION INCLUDED WITH EVERY ORDER
+  </div>
+</header>
+
+<!-- PERFORMANCE CALIBRATION -->
+<section class="calibrate reveal">
+  <p class="eyebrow">The Performance Calibration</p>
+  <h2>Know your demand. <em>Then equip it.</em></h2>
+  <p class="calibrate-sub">Most brands sell you a flavor. AForce reads your arena first — then prescribes your protocol. Your Calibration is saved and waiting inside your OS the moment you order.</p>
+
+  <div class="cal-outputs" aria-label="What your Calibration produces">
+    <div class="cal-out"><span class="co-num">OUT 01</span><span class="co-label">Daily Performance Profile</span></div>
+    <div class="cal-out"><span class="co-num">OUT 02</span><span class="co-label">Hydration Demand</span></div>
+    <div class="cal-out"><span class="co-num">OUT 03</span><span class="co-label">Ritual Load</span></div>
+    <div class="cal-out"><span class="co-num">OUT 04</span><span class="co-label">Recommended Protocol</span></div>
+    <div class="cal-out"><span class="co-num">OUT 05</span><span class="co-label">Recommended Formulation</span></div>
+    <div class="cal-out co-os"><span class="co-num">OUT 06</span><span class="co-label"><span class="os-dot" aria-hidden="true"></span>AForce OS · Activated</span></div>
+  </div>
+
+  <div class="cal-lower">
+    <div class="cal-sample" aria-label="Sample Calibration readout">
+      <div class="cs-row"><span class="cs-label">Performance Profile</span><span class="cs-value">The Operator</span></div>
+      <div class="cs-row"><span class="cs-label">Hydration Demand</span><span class="cs-value">High</span></div>
+      <div class="cs-row"><span class="cs-label">Recommended Protocol</span><span class="cs-value">Morning + Midday Ritual</span></div>
+      <div class="cs-row"><span class="cs-label">Recommended Formulation</span><span class="cs-value">Watermelon Surge &amp; Chlorella</span></div>
+      <div class="cs-row"><span class="cs-label">AForce OS</span><span class="cs-value cs-os"><span class="os-dot" aria-hidden="true"></span>Provisioned on Order</span></div>
+    </div>
+    <div>
+      <div class="calibrate-cta" style="margin-top:0;">
+        <a href="/#invite">Start My Performance Calibration</a>
+        <span class="cal-time">45 seconds · No account required</span>
+      </div>
+      <p class="cal-skip">Already know your protocol? <a href="#formulations">Go straight to the formulations.</a></p>
+    </div>
+  </div>
+</section>
+
+<!-- DEMAND SELECTOR -->
+<section class="demand reveal">
+  <h2>What are you <em>preparing for?</em></h2>
+  <p class="demand-sub">Nobody here is buying a flavor. Choose the demand — the protocol answers.</p>
+  <div class="demand-chips" role="group" aria-label="Choose your demand">
+    <button class="chip" data-demand="training" aria-pressed="false">Training</button>
+    <button class="chip" data-demand="recovery" aria-pressed="false">Recovery</button>
+    <button class="chip" data-demand="deepwork" aria-pressed="false">Deep Work</button>
+    <button class="chip" data-demand="travel" aria-pressed="false">Travel</button>
+    <button class="chip" data-demand="competition" aria-pressed="false">Competition</button>
+    <button class="chip" data-demand="heat" aria-pressed="false">Heat</button>
+  </div>
+  <p class="demand-answer" id="demandAnswer" aria-live="polite"></p>
+</section>
+
+<div class="section-head" id="formulations">
+  <h2>The Formulations</h2>
+  <span class="note">RTD 11 FL OZ · pH 8.8 · Sticks travel with you</span>
+</div>
+
+<section class="plate reveal" data-sku="red">
+  <div class="plate-visual">
+    <span class="plate-index">01 / 03</span>
+    <div class="can" aria-hidden="true">
+      <span class="can-mark">AFORCE</span>
+      <span class="can-band"></span>
+      <span class="can-flavor">Watermelon Surge</span>
+    </div>
+    <span class="plate-ph">pH 8.8 · 325 mL</span>
+  </div>
+  <div class="plate-info">
+    <p class="plate-kicker">Formulation 01 — Red</p>
+    <h3>Watermelon Surge <span>&amp; Chlorella</span></h3>
+    <p class="plate-copy">The opener. Built for the first demand of the day — chlorella-supported hydration with the composure to match the pace you set, not the pace set for you.</p>
+    <div class="plate-specs">
+      <div class="spec">Alkalinity<b>pH 8.8</b></div>
+      <div class="spec">Volume<b>11 FL OZ</b></div>
+      <div class="spec">Format<b class="fmt-label" data-sku="red">Can</b></div>
+    </div>
+    <div class="plate-buy">
+      <div class="format-toggle" role="group" aria-label="Choose format">
+        <button aria-pressed="true" data-sku="red" data-format="can">Can</button>
+        <button aria-pressed="false" data-sku="red" data-format="stick">Stick</button>
+      </div>
+      <button class="add-btn" data-add="red">Add to Ritual <span class="price" data-price="red">$4.99</span></button>
+    </div>
+  </div>
+</section>
+
+<section class="plate flip reveal" data-sku="blue">
+  <div class="plate-visual">
+    <span class="plate-index">02 / 03</span>
+    <div class="can" aria-hidden="true">
+      <span class="can-mark">AFORCE</span>
+      <span class="can-band"></span>
+      <span class="can-flavor">Berry Blast</span>
+    </div>
+    <span class="plate-ph">pH 8.8 · 325 mL</span>
+  </div>
+  <div class="plate-info">
+    <p class="plate-kicker">Formulation 02 — Blue</p>
+    <h3>Berry Blast <span>&amp; Dulse</span></h3>
+    <p class="plate-copy">The sustainer. Dulse-mineral depth for the long middle of the day — where most people fade and operators hold the line.</p>
+    <div class="plate-specs">
+      <div class="spec">Alkalinity<b>pH 8.8</b></div>
+      <div class="spec">Volume<b>11 FL OZ</b></div>
+      <div class="spec">Format<b class="fmt-label" data-sku="blue">Can</b></div>
+    </div>
+    <div class="plate-buy">
+      <div class="format-toggle" role="group" aria-label="Choose format">
+        <button aria-pressed="true" data-sku="blue" data-format="can">Can</button>
+        <button aria-pressed="false" data-sku="blue" data-format="stick">Stick</button>
+      </div>
+      <button class="add-btn" data-add="blue">Add to Ritual <span class="price" data-price="blue">$4.99</span></button>
+    </div>
+  </div>
+</section>
+
+<section class="plate reveal" data-sku="green">
+  <div class="plate-visual">
+    <span class="plate-index">03 / 03</span>
+    <div class="can" aria-hidden="true">
+      <span class="can-mark">AFORCE</span>
+      <span class="can-band"></span>
+      <span class="can-flavor">Soursop Edge</span>
+    </div>
+    <span class="plate-ph">pH 8.8 · 325 mL</span>
+  </div>
+  <div class="plate-info">
+    <p class="plate-kicker">Formulation 03 — Green</p>
+    <h3>Soursop Edge <span>&amp; Seamoss</span></h3>
+    <p class="plate-copy">The closer. Seamoss-anchored recovery for the hours after the arena — because tomorrow's composure is built tonight.</p>
+    <div class="plate-specs">
+      <div class="spec">Alkalinity<b>pH 8.8</b></div>
+      <div class="spec">Volume<b>11 FL OZ</b></div>
+      <div class="spec">Format<b class="fmt-label" data-sku="green">Can</b></div>
+    </div>
+    <div class="plate-buy">
+      <div class="format-toggle" role="group" aria-label="Choose format">
+        <button aria-pressed="true" data-sku="green" data-format="can">Can</button>
+        <button aria-pressed="false" data-sku="green" data-format="stick">Stick</button>
+      </div>
+      <button class="add-btn" data-add="green">Add to Ritual <span class="price" data-price="green">$4.99</span></button>
+    </div>
+  </div>
+</section>
+
+<!-- LADDER -->
+<section class="ladder">
+  <div class="section-head">
+    <h2>Choose Your Protocol</h2>
+    <span class="note">Every tier provisions AForce OS</span>
+  </div>
+  <div class="ladder-grid">
+    <div class="rung reveal">
+      <span class="rung-tier">Tier I — Entry</span>
+      <h3>The Calibration Kit</h3>
+      <p class="rung-serif">Your baseline, boxed.</p>
+      <ul>
+        <li>All three formulations — 3 cans + 3 sticks</li>
+        <li>The Standard card — your ritual, printed</li>
+        <li class="os-line">OS activation + your first Calibration saved</li>
+      </ul>
+      <div class="rung-foot">
+        <div class="rung-price" data-fixed="kit"><span class="rp-num">$24</span><small>One-time · first order only</small></div>
+        <button class="add-btn" data-add="kit">Add</button>
+      </div>
+    </div>
+    <div class="rung featured reveal">
+      <span class="rung-tier">Tier II — Protocol</span>
+      <h3>The Case</h3>
+      <p class="rung-serif">Twelve cans. One formulation. No decisions left to chance.</p>
+      <ul>
+        <li>12 × 11 FL OZ — choose your formulation</li>
+        <li>Every can scans into Performance Memory</li>
+        <li class="os-line">OS activation included</li>
+      </ul>
+      <div class="rung-foot">
+        <div class="rung-price" data-fixed="case"><span class="rp-num">$54</span><small class="rp-sub">$4.50 per can</small></div>
+        <button class="add-btn" data-add="case">Add</button>
+      </div>
+    </div>
+    <div class="rung reveal">
+      <span class="rung-tier">Tier III — Standard</span>
+      <h3>The Standing Order</h3>
+      <p class="rung-serif">The ritual, automated. Arrives before you run out.</p>
+      <ul>
+        <li>24 cans or 30 sticks monthly — your mix</li>
+        <li>Founding pricing, locked for life</li>
+        <li class="os-line">Full Intelligence Core access in OS</li>
+      </ul>
+      <div class="rung-foot">
+        <div class="rung-price" data-fixed="standing"><span class="rp-num">$99 / mo</span><small>Pause or adjust anytime</small></div>
+        <button class="add-btn" data-add="standing">Add</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROVISION -->
+<section class="provision reveal">
+  <p class="eyebrow">The Difference</p>
+  <h2>Your receipt is a <em>key.</em></h2>
+  <p class="provision-sub">Every AForce order provisions an AForce OS account. Nothing to sign up for, no account wall — what you bought is already yours. Claim it in thirty seconds.</p>
+  <div class="steps">
+    <div class="step">
+      <span class="step-num">01</span>
+      <h4>Order Completes</h4>
+      <p>Your OS account is provisioned from the order itself. The confirmation isn't a receipt — it's an activation notice.</p>
+    </div>
+    <div class="step">
+      <span class="step-num">02</span>
+      <h4>Claim the OS</h4>
+      <p>One tap from the confirmation, or scan the code on any can. Biometric sign-in. Your Calibration is already waiting.</p>
+    </div>
+    <div class="step">
+      <span class="step-num">03</span>
+      <h4>The System Learns</h4>
+      <p>Every can scanned logs a completed ritual into Performance Memory. The product feeds the intelligence. The intelligence sharpens the ritual.</p>
+    </div>
+  </div>
+  <p class="provision-legal">AForce OS ritual logging reflects completed rituals, not live biometric readings. Provisional patent filed. These statements have not been evaluated by the Food and Drug Administration. This product is not intended to diagnose, treat, cure, or prevent any disease.</p>
+</section>
+
+<!-- FOUNDING -->
+<section class="founding reveal">
+  <div>
+    <h2>Brickell. The Founding Cohort.</h2>
+    <p class="founding-serif">A numbered position, printed on your kit and written into your OS profile. When the roster closes, it closes.</p>
+  </div>
+  <a href="/#founding">Request Your Number</a>
+</section>
+
+<footer>
+  <span class="nonneg">NON—<span class="flip">N</span>EGOTIABLE</span>
+  <span>AFORCE · 535 Fifth Ave, New York</span>
+  <span>© 2026 AForce. All rights reserved.</span>
+</footer>
+
+<!-- CART DRAWER -->
+<div class="drawer-veil" id="veil"></div>
+<aside class="drawer" id="drawer" aria-label="Your ritual">
+  <div class="drawer-head">
+    <h3>Your Ritual</h3>
+    <button class="drawer-close" id="cartClose">Close</button>
+  </div>
+  <div class="drawer-body" id="drawerBody">
+    <p class="drawer-empty">Nothing secured yet.</p>
+  </div>
+  <div class="drawer-foot">
+    <div class="drawer-total"><span>Total</span><b id="cartTotal">$0.00</b></div>
+    <p class="drawer-note">OS ACTIVATION · CALIBRATION TRANSFER · RITUAL LOGGING — INCLUDED</p>
+    <button class="checkout-btn" id="checkoutBtn">Secure the Standard</button>
+  </div>
+</aside>
+
+<div class="toast" id="toast">Added to your ritual</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ── PRICE CONFIG — single source of truth ──
+     All prices live here. Locked numbers can be swapped in later by editing
+     CATALOG only; the markup renders from it on load (see initPrices).
+     PLACEHOLDER except the $4.99 can: $24 kit, $54 case, $99/mo standing, $2.49 stick. */
+  var CATALOG = {
+    red:   { name:"Watermelon Surge & Chlorella", can:{label:"Can · 11 FL OZ", price:4.99}, stick:{label:"Stick · Travel", price:2.49} },
+    blue:  { name:"Berry Blast & Dulse",          can:{label:"Can · 11 FL OZ", price:4.99}, stick:{label:"Stick · Travel", price:2.49} },
+    green: { name:"Soursop Edge & Seamoss",       can:{label:"Can · 11 FL OZ", price:4.99}, stick:{label:"Stick · Travel", price:2.49} },
+    kit:      { name:"The Calibration Kit",  fixed:{label:"3 cans + 3 sticks + OS", price:24.00} },
+    case:     { name:"The Case",             fixed:{label:"12 cans · one formulation", price:54.00, units:12} },
+    standing: { name:"The Standing Order",   fixed:{label:"Monthly · 24 cans or 30 sticks", price:99.00, interval:"mo"} }
+  };
+
+  var formatChoice = { red:"can", blue:"can", green:"can" };
+  var cart = []; // {sku, format, qty}
+
+  function money(n){ return "$" + n.toFixed(2); }
+  function priceLabel(n){ return "$" + (n % 1 === 0 ? String(n) : n.toFixed(2)); }
+
+  // Render every displayed price from CATALOG so the config is the only source.
+  function initPrices(){
+    ["red","blue","green"].forEach(function(sku){
+      var fmt = formatChoice[sku];
+      var priceEl = document.querySelector('[data-price="'+sku+'"]');
+      var fmtLabel = document.querySelector('.fmt-label[data-sku="'+sku+'"]');
+      if(priceEl) priceEl.textContent = money(CATALOG[sku][fmt].price);
+      if(fmtLabel) fmtLabel.textContent = fmt === "can" ? "Can" : "Stick";
+    });
+    document.querySelectorAll('.rung-price[data-fixed]').forEach(function(el){
+      var item = CATALOG[el.getAttribute("data-fixed")];
+      if(!item || !item.fixed) return;
+      var numEl = el.querySelector(".rp-num");
+      if(numEl){
+        numEl.textContent = priceLabel(item.fixed.price) + (item.fixed.interval ? " / " + item.fixed.interval : "");
+      }
+      var subEl = el.querySelector(".rp-sub");
+      if(subEl && item.fixed.units){
+        subEl.textContent = money(item.fixed.price / item.fixed.units) + " per can";
+      }
+    });
+  }
+
+  // format toggles
+  document.querySelectorAll(".format-toggle button").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      var sku = btn.getAttribute("data-sku");
+      var fmt = btn.getAttribute("data-format");
+      formatChoice[sku] = fmt;
+      btn.parentElement.querySelectorAll("button").forEach(function(b){
+        b.setAttribute("aria-pressed", b === btn ? "true" : "false");
+      });
+      var priceEl = document.querySelector('[data-price="'+sku+'"]');
+      var fmtLabel = document.querySelector('.fmt-label[data-sku="'+sku+'"]');
+      priceEl.textContent = money(CATALOG[sku][fmt].price);
+      fmtLabel.textContent = fmt === "can" ? "Can" : "Stick";
+    });
+  });
+
+  // add buttons
+  document.querySelectorAll("[data-add]").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      var sku = btn.getAttribute("data-add");
+      var fmt = CATALOG[sku].fixed ? "fixed" : formatChoice[sku];
+      var existing = cart.find(function(i){ return i.sku===sku && i.format===fmt; });
+      if(existing){ existing.qty++; } else { cart.push({sku:sku, format:fmt, qty:1}); }
+      render();
+      toast("Added to your ritual");
+      openDrawer();
+    });
+  });
+
+  function lineTotal(item){
+    return CATALOG[item.sku][item.format].price * item.qty;
+  }
+
+  function render(){
+    var body = document.getElementById("drawerBody");
+    var count = document.getElementById("cartCount");
+    var totalEl = document.getElementById("cartTotal");
+    body.innerHTML = "";
+
+    if(cart.length === 0){
+      body.innerHTML = '<p class="drawer-empty">Nothing secured yet.</p>';
+      count.textContent = "0";
+      totalEl.textContent = "$0.00";
+      return;
+    }
+
+    var total = 0, units = 0;
+    cart.forEach(function(item, idx){
+      total += lineTotal(item);
+      units += item.qty;
+      var meta = CATALOG[item.sku][item.format].label;
+      var row = document.createElement("div");
+      row.className = "cart-item";
+      row.innerHTML =
+        '<div>' +
+          '<div class="ci-name">' + CATALOG[item.sku].name + '</div>' +
+          '<div class="ci-meta">' + meta + '</div>' +
+          '<div class="ci-qty">' +
+            '<button aria-label="Decrease quantity" data-dec="'+idx+'">−</button>' +
+            '<span>' + item.qty + '</span>' +
+            '<button aria-label="Increase quantity" data-inc="'+idx+'">+</button>' +
+          '</div>' +
+        '</div>' +
+        '<div class="ci-price">$' + lineTotal(item).toFixed(2) + '</div>';
+      body.appendChild(row);
+    });
+
+    // the line no one else has
+    var os = document.createElement("div");
+    os.className = "os-item";
+    os.innerHTML =
+      '<div>' +
+        '<div class="ci-name"><span class="os-dot" aria-hidden="true"></span>AForce OS Activation</div>' +
+        '<div class="ci-meta">PROVISIONED WITH THIS ORDER · YOURS TO CLAIM</div>' +
+      '</div>' +
+      '<div class="ci-price">Included</div>';
+    body.appendChild(os);
+
+    body.querySelectorAll("[data-inc]").forEach(function(b){
+      b.addEventListener("click", function(){ cart[+b.getAttribute("data-inc")].qty++; render(); });
+    });
+    body.querySelectorAll("[data-dec]").forEach(function(b){
+      b.addEventListener("click", function(){
+        var i = +b.getAttribute("data-dec");
+        cart[i].qty--;
+        if(cart[i].qty <= 0) cart.splice(i,1);
+        render();
+      });
+    });
+
+    count.textContent = String(units);
+    totalEl.textContent = "$" + total.toFixed(2);
+  }
+
+  // drawer
+  var drawer = document.getElementById("drawer");
+  var veil = document.getElementById("veil");
+  function openDrawer(){ drawer.classList.add("open"); veil.classList.add("open"); }
+  function closeDrawer(){ drawer.classList.remove("open"); veil.classList.remove("open"); }
+  document.getElementById("cartOpen").addEventListener("click", openDrawer);
+  document.getElementById("cartClose").addEventListener("click", closeDrawer);
+  veil.addEventListener("click", closeDrawer);
+  document.addEventListener("keydown", function(e){ if(e.key==="Escape") closeDrawer(); });
+
+  // CHECKOUT — stubbed. Wire to Shopify cart/checkout in a later phase.
+  function checkout(){
+    if(!cart.length){ toast("Nothing secured yet"); return; }
+    // TODO(shopify): build line items from `cart` + CATALOG and redirect to Shopify checkout.
+    toast("Checkout connects to Shopify at launch");
+  }
+  document.getElementById("checkoutBtn").addEventListener("click", checkout);
+
+  // toast
+  var toastTimer;
+  function toast(msg){
+    var t = document.getElementById("toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ t.classList.remove("show"); }, 2200);
+  }
+
+  // demand selector
+  var DEMANDS = {
+    training:    { sku:"red",   format:"can",   line:'For Training: <b>Watermelon Surge &amp; Chlorella</b> — the opener. One can, thirty minutes before you start.' },
+    recovery:    { sku:"green", format:"can",   line:'For Recovery: <b>Soursop Edge &amp; Seamoss</b> — the closer. Tomorrow’s composure is built tonight.' },
+    deepwork:    { sku:"blue",  format:"can",   line:'For Deep Work: <b>Berry Blast &amp; Dulse</b> — the sustainer. Built for the long middle of the day.' },
+    travel:      { sku:"blue",  format:"stick", line:'For Travel: <b>Berry Blast &amp; Dulse</b>, stick format — the ritual moves with you. Any water becomes AForce.' },
+    competition: { sku:"red",   format:"can",   line:'For Competition: <b>Watermelon Surge &amp; Chlorella</b> — the opener, when the arena is watching.' },
+    heat:        { sku:"blue",  format:"can",   line:'For Heat: <b>Berry Blast &amp; Dulse</b> — dulse-mineral depth for when the environment is the opponent.' }
+  };
+
+  document.querySelectorAll(".chip").forEach(function(chip){
+    chip.addEventListener("click", function(){
+      var key = chip.getAttribute("data-demand");
+      var d = DEMANDS[key];
+      document.querySelectorAll(".chip").forEach(function(c){ c.setAttribute("aria-pressed", c===chip ? "true":"false"); });
+      document.getElementById("demandAnswer").innerHTML = d.line + '<span class="prescribe">Prescribed</span>';
+
+      // set format toggle on the target plate
+      var toggle = document.querySelector('.format-toggle button[data-sku="'+d.sku+'"][data-format="'+d.format+'"]');
+      if(toggle) toggle.click();
+
+      // light the plate
+      document.querySelectorAll(".plate").forEach(function(p){ p.classList.remove("lit"); });
+      var plate = document.querySelector('.plate[data-sku="'+d.sku+'"]');
+      plate.classList.add("lit");
+      plate.scrollIntoView({behavior:"smooth", block:"center"});
+      setTimeout(function(){ plate.classList.remove("lit"); }, 3200);
+    });
+  });
+
+  // reveal on scroll
+  if("IntersectionObserver" in window){
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(en){
+        if(en.isIntersecting){ en.target.classList.add("in"); io.unobserve(en.target); }
+      });
+    },{threshold:.12});
+    document.querySelectorAll(".reveal").forEach(function(el){ io.observe(el); });
+  } else {
+    document.querySelectorAll(".reveal").forEach(function(el){ el.classList.add("in"); });
+  }
+
+  initPrices();
+})();
+</script>
+</body>
+</html>
