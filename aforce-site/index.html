@@ -60,6 +60,10 @@
   .nav > *{ mix-blend-mode:difference; }
   .nav.show{opacity:1;}
   .nav .mark{font-family:'Archivo Black',serif; font-size:19px; letter-spacing:0.04em; font-weight:500;}
+  /* N|N monogram in the nav (double N's, second mirrored) — monochrome so it adapts via the nav's difference blend */
+  .nav .mark .nn{ display:inline-flex; align-items:center; gap:4px; line-height:1; }
+  .nav .mark .nn .bar{ display:inline-block; width:2px; height:15px; background:currentColor; }
+  .nav .mark .nn .flip{ display:inline-block; transform:scaleX(-1); }
   .nav .links{display:flex; gap:28px;}
   .nav a{text-decoration:none; font-family:'Inter',sans-serif; font-size:10.5px; letter-spacing:0.1em; text-transform:uppercase; opacity:0.85;}
   .nav a.shop-link{ opacity:1; border-bottom:1px solid currentColor; padding-bottom:2px; }
@@ -371,7 +375,7 @@
 <a href="/shop" class="shop-entry" id="shopEntry"><span>Shop —</span></a>
 
 <nav class="nav" id="nav">
-  <div class="mark">AFORCE™</div>
+  <div class="mark" role="img" aria-label="AForce"><span class="nn"><span>N</span><span class="bar"></span><span class="flip">N</span></span></div>
   <div class="links">
     <a href="#ritual">Ritual</a>
     <a href="#os">The OS</a>
