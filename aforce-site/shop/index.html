@@ -233,7 +233,10 @@
      .plate-visual is the swappable slot. Drop a product image in by adding
      <img class="plate-photo" src="/assets/…"> inside .plate-visual and the
      CSS-rendered .can placeholder can be removed. No markup elsewhere changes. */
-  .plate-photo{position:relative;z-index:1;max-height:78%;width:auto;object-fit:contain;}
+  .plate-photo{position:relative;z-index:1;max-height:80%;width:auto;object-fit:contain;filter:drop-shadow(0 40px 60px rgba(0,0,0,.32));transition:transform .5s cubic-bezier(.2,.8,.2,1);}
+  .plate-photo.plate-stick{max-height:90%;}
+  .plate-photo[hidden]{display:none;}
+  .plate:hover .plate-photo:not([hidden]){transform:translateY(-10px) rotate(-1.2deg);}
   /* CSS can — placeholder until product photography drops in */
   .can{
     width:clamp(120px,14vw,168px);height:clamp(260px,30vw,360px);
@@ -542,11 +545,8 @@
 <section class="plate reveal" data-sku="red">
   <div class="plate-visual">
     <span class="plate-index">01 / 03</span>
-    <div class="can" aria-hidden="true">
-      <span class="can-mark">AFORCE</span>
-      <span class="can-band"></span>
-      <span class="can-flavor">Watermelon Surge</span>
-    </div>
+    <img class="plate-photo plate-can" src="/assets/can-red.png" alt="AForce Watermelon Surge & Chlorella can" width="498" height="1281" data-format="can">
+    <img class="plate-photo plate-stick" src="/assets/stick-red.png" alt="AForce Watermelon Surge & Chlorella stick pack" width="255" height="1182" data-format="stick" hidden>
     <span class="plate-ph">pH 8.8 · 325 mL</span>
   </div>
   <div class="plate-info">
@@ -571,11 +571,8 @@
 <section class="plate flip reveal" data-sku="blue">
   <div class="plate-visual">
     <span class="plate-index">02 / 03</span>
-    <div class="can" aria-hidden="true">
-      <span class="can-mark">AFORCE</span>
-      <span class="can-band"></span>
-      <span class="can-flavor">Berry Blast</span>
-    </div>
+    <img class="plate-photo plate-can" src="/assets/can-blue.png" alt="AForce Berry Blast & Dulse can" width="498" height="1278" data-format="can">
+    <img class="plate-photo plate-stick" src="/assets/stick-blue.png" alt="AForce Berry Blast & Dulse stick pack" width="255" height="1182" data-format="stick" hidden>
     <span class="plate-ph">pH 8.8 · 325 mL</span>
   </div>
   <div class="plate-info">
@@ -600,11 +597,8 @@
 <section class="plate reveal" data-sku="green">
   <div class="plate-visual">
     <span class="plate-index">03 / 03</span>
-    <div class="can" aria-hidden="true">
-      <span class="can-mark">AFORCE</span>
-      <span class="can-band"></span>
-      <span class="can-flavor">Soursop Edge</span>
-    </div>
+    <img class="plate-photo plate-can" src="/assets/can-green.png" alt="AForce Soursop Edge & Seamoss can" width="498" height="1278" data-format="can">
+    <img class="plate-photo plate-stick" src="/assets/stick-green.png" alt="AForce Soursop Edge & Seamoss stick pack" width="270" height="1182" data-format="stick" hidden>
     <span class="plate-ph">pH 8.8 · 325 mL</span>
   </div>
   <div class="plate-info">
@@ -796,6 +790,13 @@
       var fmtLabel = document.querySelector('.fmt-label[data-sku="'+sku+'"]');
       priceEl.textContent = money(CATALOG[sku][fmt].price);
       fmtLabel.textContent = fmt === "can" ? "Can" : "Stick";
+      // swap the plate visual to match the chosen format
+      var plate = document.querySelector('.plate[data-sku="'+sku+'"]');
+      if(plate){
+        plate.querySelectorAll(".plate-photo").forEach(function(img){
+          img.hidden = (img.getAttribute("data-format") !== fmt);
+        });
+      }
     });
   });
 
