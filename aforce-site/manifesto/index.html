@@ -27,7 +27,7 @@
     *, *::before, *::after{ animation-duration:0.01ms !important; animation-iteration-count:1 !important; transition-duration:0.01ms !important; scroll-behavior:auto !important; }
   }
   a:focus-visible, button:focus-visible{ outline:2px solid var(--red); outline-offset:3px; }
-  .skip-link{ position:absolute; left:-9999px; top:0; background:var(--canvas); color:var(--ink); padding:14px 20px; z-index:999; font-family:'IBM Plex Mono',monospace; font-size:12px; text-decoration:none; }
+  .skip-link{ position:absolute; left:-9999px; top:0; background:var(--canvas); color:var(--ink); padding:14px 20px; z-index:999; font-family:'Inter',sans-serif; font-size:12px; text-decoration:none; }
   .skip-link:focus{ left:20px; top:20px; }
   :root{
     --ink:#0D0D0D; --canvas:#E9E7E1; --canvas-dim:#E1DDD4;
@@ -52,11 +52,11 @@
   .nav > *{ mix-blend-mode:difference; }
   .nav .mark{ font-family:'Archivo Black',serif; font-size:19px; letter-spacing:0.04em; }
   .nav .links{ display:flex; gap:28px; }
-  .nav a{ font-family:'IBM Plex Mono',monospace; font-size:10.5px; letter-spacing:0.1em; text-transform:uppercase; opacity:0.85; }
+  .nav a{ font-family:'Inter',sans-serif; font-size:10.5px; letter-spacing:0.1em; text-transform:uppercase; opacity:0.85; }
   .nav a.current{ opacity:1; border-bottom:1px solid currentColor; padding-bottom:2px; }
 
   /* ---------- BUTTON (shared) ---------- */
-  .btn{ font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.16em; text-transform:uppercase; padding:17px 32px; border-radius:2px; transition:all .35s ease; display:inline-block; cursor:pointer; }
+  .btn{ font-family:'Inter',sans-serif; font-size:11px; letter-spacing:0.16em; text-transform:uppercase; padding:17px 32px; border-radius:2px; transition:all .35s ease; display:inline-block; cursor:pointer; }
   .btn-ghost{ border:1px solid rgba(245,240,232,0.28); color:var(--canvas); background:transparent; }
   .btn-ghost:hover{ border-color:var(--canvas); background:rgba(245,240,232,0.04); }
   .btn-ghost.on-light{ border-color:rgba(13,13,13,0.28); color:var(--ink); }
@@ -70,7 +70,7 @@
   .m-sec{ position:relative; padding:clamp(110px,16vh,220px) clamp(22px,7vw,120px); }
   .m-sec.dark{ background:var(--ink); color:var(--canvas); }
   .m-sec.light{ background:var(--canvas); color:var(--ink); }
-  .m-eyebrow{ font-family:'IBM Plex Mono',monospace; font-size:clamp(10px,1.2vw,12px); letter-spacing:0.28em; text-transform:uppercase; color:var(--red); margin-bottom:clamp(28px,4vw,52px); }
+  .m-eyebrow{ font-family:'Inter',sans-serif; font-size:clamp(10px,1.2vw,12px); letter-spacing:0.28em; text-transform:uppercase; color:var(--red); margin-bottom:clamp(28px,4vw,52px); }
   .m-h{ font-family:'Archivo Black',serif; font-weight:400; line-height:1.02; letter-spacing:-0.015em; font-size:clamp(38px,7.2vw,104px); }
   .m-h.mid{ font-size:clamp(32px,5.8vw,78px); }
   .m-blue{ color:var(--blue) !important; }
@@ -89,7 +89,7 @@
   .m-hero h1{ font-family:'Archivo Black',serif; font-weight:400; line-height:1.05; letter-spacing:-0.02em; font-size:clamp(25px,4.1vw,54px); max-width:14ch; margin:18px 0 28px; }
   .m-hero .m-hero-sub{ font-family:'Inter',sans-serif; font-size:clamp(18px,2.1vw,26px); line-height:1.5; color:rgba(245,240,232,0.82); margin-bottom:44px; }
   .m-hero .m-hero-sub .dim{ color:rgba(245,240,232,0.55); }
-  .m-scrollcue{ position:absolute; bottom:34px; left:50%; transform:translateX(-50%); z-index:2; font-family:'IBM Plex Mono',monospace; font-size:9.5px; letter-spacing:0.24em; text-transform:uppercase; color:rgba(245,240,232,0.5); display:flex; flex-direction:column; align-items:center; gap:10px; }
+  .m-scrollcue{ position:absolute; bottom:34px; left:50%; transform:translateX(-50%); z-index:2; font-family:'Inter',sans-serif; font-size:9.5px; letter-spacing:0.24em; text-transform:uppercase; color:rgba(245,240,232,0.5); display:flex; flex-direction:column; align-items:center; gap:10px; }
   .m-scrollcue .line{ width:1px; height:34px; background:rgba(245,240,232,0.3); }
 
   /* ---------- SECTION 2 — THE CHOICE (type only) ---------- */
@@ -143,7 +143,7 @@
   .m-final .btn{ position:relative; z-index:1; margin-top:clamp(46px,6vw,72px); }
 
   /* ---------- FOOTER (slim) ---------- */
-  .m-footer{ background:var(--canvas); color:rgba(13,13,13,0.5); padding:44px clamp(22px,7vw,120px); display:flex; flex-wrap:wrap; gap:16px 28px; align-items:center; justify-content:space-between; border-top:1px solid rgba(13,13,13,0.1); font-family:'IBM Plex Mono',monospace; font-size:10.5px; letter-spacing:0.1em; text-transform:uppercase; }
+  .m-footer{ background:var(--canvas); color:rgba(13,13,13,0.5); padding:44px clamp(22px,7vw,120px); display:flex; flex-wrap:wrap; gap:16px 28px; align-items:center; justify-content:space-between; border-top:1px solid rgba(13,13,13,0.1); font-family:'Inter',sans-serif; font-size:10.5px; letter-spacing:0.1em; text-transform:uppercase; }
   .m-footer .fnav{ display:flex; gap:24px; flex-wrap:wrap; }
   .m-footer a:hover{ color:var(--ink); }
 
