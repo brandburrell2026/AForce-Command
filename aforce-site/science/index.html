@@ -108,6 +108,16 @@
   .asset-slot .br{bottom:12px;right:12px;border-bottom:1px solid;border-right:1px solid;}
   .ratio-cine{aspect-ratio:16/10;}
   .ratio-tall{aspect-ratio:4/5;}
+  /* filled media slot — matte-black frame holding the Soursop can (still now, video-ready in Slot A) */
+  .asset-slot.media{ background:#0B0D12; margin:0; }
+  .asset-slot.media .science-video,
+  .asset-slot.media .science-still,
+  .asset-slot.media .science-can{ position:absolute; inset:0; width:100%; height:100%; object-fit:contain; padding:7% 0; }
+  .asset-slot.media .science-still{ display:none; }
+  @media (prefers-reduced-motion:reduce){
+    .asset-slot.media .science-video{ display:none; }
+    .asset-slot.media .science-still{ display:block; }
+  }
 
   /* ---------- HERO ---------- */
   .hero{min-height:100vh;display:grid;grid-template-columns:1.05fr .95fr;gap:clamp(30px,5vw,72px);align-items:center;padding-top:clamp(60px,10vh,120px);padding-bottom:clamp(60px,10vh,120px);}
@@ -316,15 +326,16 @@
     </div>
   </div>
   <div class="hero-visual reveal">
-    <!-- PRODUCTION ASSET SLOT — macro can, condensation, cinematic. Swap this slot for the real <video>/<img> when shot. -->
-    <div class="asset-slot ratio-tall" role="img" aria-label="Production asset placeholder — macro product photography of the AFORCE can">
-      <span class="slot-corner tl"></span><span class="slot-corner tr"></span>
-      <span class="slot-corner bl"></span><span class="slot-corner br"></span>
-      <div class="slot-inner">
-        <div class="slot-tag">Production Asset</div>
-        <div class="slot-desc">Macro can · condensation · 4:5</div>
-      </div>
-    </div>
+    <!-- HERO (Slot A) — Soursop can. Interim: shows the still (video poster). To ship the cinematic loop (Asset 01),
+         drop the MP4/WebM into /assets and uncomment the two <source> lines below. Poster + reduced-motion fall back to the still. -->
+    <figure class="asset-slot ratio-tall media" aria-label="AFORCE Soursop Edge & Seamoss can — label reads Non-Negotiable">
+      <video class="science-video" autoplay muted loop playsinline preload="metadata" poster="/assets/can-green.png" aria-label="AFORCE Soursop Edge & Seamoss can">
+        <!-- Cinematic hero loop (Asset 01) — add when generated:
+        <source src="/assets/science-hero.webm" type="video/webm">
+        <source src="/assets/science-hero.mp4" type="video/mp4"> -->
+      </video>
+      <img class="science-still" src="/assets/can-green.png" alt="AFORCE Soursop Edge & Seamoss can, label reading Non-Negotiable, in condensation on a matte black background" loading="lazy" decoding="async">
+    </figure>
   </div>
 </section>
 
@@ -645,15 +656,10 @@
 <section class="final divider" id="closing">
   <div class="wrap">
     <div class="hero-visual reveal" style="max-width:340px;margin-bottom:clamp(40px,5vw,64px)">
-      <!-- PRODUCTION ASSET SLOT — can, static (no rotation, no breathing light) -->
-      <div class="asset-slot ratio-tall" role="img" aria-label="Production asset placeholder — static product photography of the AFORCE can">
-        <span class="slot-corner tl"></span><span class="slot-corner tr"></span>
-        <span class="slot-corner bl"></span><span class="slot-corner br"></span>
-        <div class="slot-inner">
-          <div class="slot-tag">Production Asset</div>
-          <div class="slot-desc">Can · static · 4:5</div>
-        </div>
-      </div>
+      <!-- FINALE (Slot B) — always a still, never a video. -->
+      <figure class="asset-slot ratio-tall media" role="img" aria-label="AFORCE Soursop Edge & Seamoss can — label reads Non-Negotiable">
+        <img class="science-can" src="/assets/can-green.png" alt="AFORCE Soursop Edge & Seamoss can, label reading Non-Negotiable" loading="lazy" decoding="async">
+      </figure>
     </div>
     <p class="fbig" id="finalLines">
       <span>Hydration is the entry point.</span>
