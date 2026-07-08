@@ -1,5 +1,5 @@
 /* ============================================================
-   AForce Legal Center — shared script
+   AFORCE Legal Center — shared script
    Single source of truth for company constants and the document
    index. Renders the sidebar, breadcrumb, and in-page contents,
    and injects configurable constants into [data-legal] elements.
@@ -8,8 +8,8 @@
 
 /* ---- Configurable constants (single source of truth) ---- */
 var LEGAL = {
-  company: "AForce Hydration, Inc.",
-  shortName: "AForce",
+  company: "AFORCE Hydration, Inc.",
+  shortName: "AFORCE",
   hqCity: "New York, New York",
   hqAddress: "New York, New York",           // street address to be added by counsel
   website: "https://drinkaforce.com",
@@ -29,12 +29,12 @@ var LEGAL = {
    Flip `built:true` as each document page is published. */
 var LEGAL_DOCS = [
   { group:"Overview", items:[
-    { slug:"", title:"Legal Center", desc:"Overview of every AForce policy and disclosure.", built:true },
+    { slug:"", title:"Legal Center", desc:"Overview of every AFORCE policy and disclosure.", built:true },
   ]},
   { group:"Privacy & Data", items:[
     { slug:"privacy", title:"Privacy Policy", desc:"What we collect on our sites and how we use and protect it.", built:true },
     { slug:"cookies", title:"Cookie Policy", desc:"How cookies and similar technologies are used, and your controls.", built:false },
-    { slug:"aforce-os-privacy", title:"AForce OS Privacy Policy", desc:"Privacy for the AForce OS app, membership, and community.", built:false },
+    { slug:"aforce-os-privacy", title:"AFORCE OS Privacy Policy", desc:"Privacy for the AFORCE OS app, membership, and community.", built:false },
     { slug:"health-data", title:"Health Data Policy", desc:"How readiness and wellness data is handled and protected.", built:false },
   ]},
   { group:"Terms & Purchases", items:[
@@ -46,12 +46,12 @@ var LEGAL_DOCS = [
   ]},
   { group:"Product & Wellness", items:[
     { slug:"fda-disclaimer", title:"FDA Disclaimer", desc:"Structure/function statements and supplement compliance.", built:true },
-    { slug:"general-wellness", title:"General Wellness Disclaimer", desc:"AForce OS, Readiness Scores, and no-medical-advice notice.", built:true },
+    { slug:"general-wellness", title:"General Wellness Disclaimer", desc:"AFORCE OS, Readiness Scores, and no-medical-advice notice.", built:true },
     { slug:"intellectual-property", title:"Intellectual Property Notice", desc:"Copyright, trademarks, media, and permitted use.", built:false },
   ]},
   { group:"App & Platform", items:[
-    { slug:"aforce-os-terms", title:"AForce OS Terms", desc:"Accounts, membership, features, and platform rules.", built:false },
-    { slug:"eula", title:"Mobile App EULA", desc:"License terms for the AForce mobile applications.", built:false },
+    { slug:"aforce-os-terms", title:"AFORCE OS Terms", desc:"Accounts, membership, features, and platform rules.", built:false },
+    { slug:"eula", title:"Mobile App EULA", desc:"License terms for the AFORCE mobile applications.", built:false },
   ]},
   { group:"Communications", items:[
     { slug:"sms", title:"SMS Terms", desc:"Consent, message frequency, and opt-out for texts.", built:false },
