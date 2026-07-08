@@ -140,10 +140,9 @@
   .os-hero .hero-grid{ display:grid; grid-template-columns:1.05fr .95fr; gap:clamp(30px,4vw,64px); align-items:center; width:100%; max-width:var(--maxw); margin:0 auto; }
   .os-hero .lead{ color:var(--b80); }
   .hero-cta{ display:flex; flex-wrap:wrap; gap:16px; margin-top:clamp(30px,3.5vw,42px); }
-  .hero-phones{ position:relative; display:flex; justify-content:center; align-items:center; min-height:clamp(420px,58vh,640px); }
-  .hero-phones .phone{ position:absolute; }
-  .hero-phones .p-back{ width:min(280px,62%); transform:translate(26%,-6%) rotate(4deg); opacity:.92; animation-delay:-3.5s; filter:drop-shadow(0 24px 50px rgba(0,0,0,.5)); }
-  .hero-phones .p-front{ width:min(300px,66%); transform:translate(-22%,10%) rotate(-3deg); z-index:2; }
+  .hero-video{ position:relative; width:100%; border-radius:16px; overflow:hidden; aspect-ratio:16/10; box-shadow:0 34px 74px rgba(0,0,0,.55); border:1px solid var(--b08); }
+  .hero-video .hv-video, .hero-video .hv-still{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block; }
+  .hero-video .hv-still{ display:none; }
 
   /* meta strip under hero copy */
   .hero-meta{ display:flex; flex-wrap:wrap; gap:12px 34px; margin-top:clamp(34px,4vw,50px); padding-top:clamp(24px,3vw,34px); border-top:1px solid var(--b14); }
@@ -168,8 +167,8 @@
 
   /* ---------- RESPONSIVE ---------- */
   @media (max-width:900px){
-    .os-hero .hero-grid{ grid-template-columns:1fr; gap:20px; }
-    .hero-phones{ min-height:clamp(380px,52vh,520px); order:2; }
+    .os-hero .hero-grid{ grid-template-columns:1fr; gap:28px; }
+    .hero-video{ order:2; }
     .split{ grid-template-columns:1fr; gap:32px; }
     .split-media, .split.reverse .split-media{ order:2; }
     .cmd-grid{ grid-template-columns:1fr; }
@@ -178,8 +177,6 @@
   @media (max-width:680px){
     .nav{ flex-wrap:wrap; row-gap:12px; padding-top:14px; padding-bottom:14px; }
     .nav-links{ width:100%; flex-wrap:wrap; gap:11px 15px; font-size:10px; letter-spacing:.08em; justify-content:flex-start; }
-    .hero-phones .p-front{ width:66%; transform:translate(-14%,8%) rotate(-3deg); }
-    .hero-phones .p-back{ width:60%; transform:translate(30%,-4%) rotate(4deg); }
   }
   @media (prefers-reduced-motion:reduce){
     html{ scroll-behavior:auto; }
@@ -187,6 +184,8 @@
     .stagger .reveal.in{ transition-delay:0s !important; }
     .phone{ animation:none !important; }
     .btn .arw{ transition:none; }
+    .hero-video .hv-video{ display:none; }
+    .hero-video .hv-still{ display:block; }
   }
 </style>
 </head>
@@ -224,9 +223,11 @@
         <div class="m"><div class="k">Protocol</div><div class="v">The next command</div></div>
       </div>
     </div>
-    <div class="hero-phones reveal in" aria-hidden="false">
-      <div class="phone p-back"><img src="/assets/os-report.png" alt="AFORCE OS Weekly Performance Report screen" loading="eager" decoding="async"></div>
-      <div class="phone p-front"><img src="/assets/os-protocol.png" alt="AFORCE OS Depletion Correction protocol screen showing the day's hydration commands" loading="eager" decoding="async"></div>
+    <div class="hero-video reveal in">
+      <video class="hv-video" autoplay muted loop playsinline preload="metadata" poster="/assets/os-hero-poster.jpg" aria-label="A person reaching for an AFORCE can in a Manhattan penthouse at golden hour">
+        <source src="/assets/os-hero.mp4" type="video/mp4">
+      </video>
+      <img class="hv-still" src="/assets/os-hero-poster.jpg" alt="A person reaching for an AFORCE can in a Manhattan penthouse at golden hour" loading="lazy" decoding="async">
     </div>
   </div>
 </header>
