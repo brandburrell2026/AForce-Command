@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AForce — Our Story</title>
+<meta name="description" content="Performance didn't begin with a drink. It began with a belief. The story of AForce — a performance readiness company founded on preparation, discipline, and the ritual of showing up at your best.">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://drinkaforce.com/our-story">
+<meta property="og:type" content="website">
+<meta property="og:title" content="AForce — Our Story">
+<meta property="og:description" content="Performance didn't begin with a drink. It began with a belief.">
+<meta property="og:url" content="https://drinkaforce.com/our-story">
+<meta property="og:image" content="https://drinkaforce.com/assets/hero-poster.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0D0D0D;
+    --bone:#F5F0E8;
+    --red:#C1281B;
+    --i80:rgba(13,13,13,.80);
+    --i64:rgba(13,13,13,.64);
+    --i46:rgba(13,13,13,.46);
+    --i30:rgba(13,13,13,.30);
+    --i14:rgba(13,13,13,.14);
+    --i08:rgba(13,13,13,.08);
+    --b80:rgba(245,240,232,.80);
+    --b64:rgba(245,240,232,.64);
+    --b40:rgba(245,240,232,.40);
+    --b24:rgba(245,240,232,.24);
+    --b14:rgba(245,240,232,.14);
+    --display:'Archivo Black',sans-serif;
+    --body:'Inter',sans-serif;
+    --gutter:clamp(22px,6vw,88px);
+    --maxw:1280px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{ background:var(--bone); color:var(--ink); font-family:var(--body); font-size:16px; line-height:1.65; -webkit-font-smoothing:antialiased; overflow-x:hidden; }
+  ::selection{ background:var(--red); color:var(--bone); }
+  a{color:inherit;text-decoration:none;}
+  button{font-family:inherit;cursor:pointer;color:inherit;background:none;border:none;}
+  :focus-visible{outline:2px solid var(--red);outline-offset:3px;}
+  img,svg,video{max-width:100%;display:block;}
+  .flip-n{ display:inline-block; transform:scaleX(-1); }
+
+  /* ---------- SHARED TYPE ---------- */
+  .eyebrow{ font-family:var(--body); font-weight:700; font-size:11px; letter-spacing:.28em; text-transform:uppercase; color:var(--red); }
+  .h-display{ font-family:var(--display); font-weight:400; line-height:1.03; letter-spacing:-0.01em; font-size:clamp(38px,6.4vw,92px); }
+  .h-2{ font-family:var(--display); font-weight:400; line-height:1.06; letter-spacing:-0.008em; font-size:clamp(30px,4.6vw,60px); }
+  .h-3{ font-family:var(--display); font-weight:400; font-size:clamp(20px,2.1vw,28px); line-height:1.14; }
+  .lead{ font-size:clamp(17px,1.5vw,21px); line-height:1.78; color:var(--i64); max-width:60ch; }
+  .lead-lg{ font-size:clamp(19px,2vw,27px); line-height:1.6; color:var(--i80); max-width:22ch; font-weight:300; }
+
+  /* ---------- NAV (scroll-aware: transparent over hero, solid after) ---------- */
+  .nav{ position:fixed; top:0; left:0; right:0; z-index:80; display:flex; align-items:center; justify-content:space-between; gap:24px; padding:18px var(--gutter); color:var(--bone); background:transparent; border-bottom:1px solid transparent; transition:background .4s ease, color .4s ease, border-color .4s ease, padding .4s ease; }
+  .nav.solid{ color:var(--ink); background:rgba(245,240,232,.85); backdrop-filter:blur(12px); border-bottom-color:var(--i08); padding-top:14px; padding-bottom:14px; }
+  .nav .mark{ font-family:var(--display); font-size:18px; letter-spacing:.02em; display:flex; align-items:center; gap:10px; white-space:nowrap; }
+  .nn{ display:inline-flex; align-items:center; gap:3px; }
+  .nn > span:first-child{ color:var(--red); }
+  .nn .bar{ display:inline-block; width:2px; height:14px; background:var(--red); }
+  .nn .nflip{ display:inline-block; transform:scaleX(-1); color:currentColor; }
+  .nav-links{ display:flex; gap:clamp(13px,1.9vw,28px); align-items:center; font-family:var(--body); font-weight:600; font-size:11px; letter-spacing:.12em; text-transform:uppercase; }
+  .nav-links a{ opacity:.7; transition:opacity .2s; white-space:nowrap; }
+  .nav-links a:hover,.nav-links a[aria-current="page"]{ opacity:1; }
+  .nav-links a[aria-current="page"]{ color:var(--red); opacity:1; }
+
+  /* ---------- BUTTONS ---------- */
+  .btn{ display:inline-flex; align-items:center; gap:12px; font-family:var(--body); font-weight:600; font-size:12px; letter-spacing:.14em; text-transform:uppercase; padding:16px 30px; border-radius:2px; transition:all .25s ease; border:1px solid transparent; }
+  .btn .arw{ transition:transform .25s; }
+  .btn:hover .arw{ transform:translateX(4px); }
+  .btn-primary{ background:var(--ink); color:var(--bone); }
+  .btn-primary:hover{ background:var(--red); }
+  .btn-ghost{ border-color:var(--i30); color:var(--ink); }
+  .btn-ghost:hover{ border-color:var(--ink); background:var(--ink); color:var(--bone); }
+  /* light variants for dark backgrounds */
+  .btn-light{ background:var(--bone); color:var(--ink); }
+  .btn-light:hover{ background:var(--red); color:var(--bone); }
+  .btn-outline-light{ border-color:var(--b40); color:var(--bone); }
+  .btn-outline-light:hover{ border-color:var(--bone); background:var(--bone); color:var(--ink); }
+
+  /* ---------- REVEAL ---------- */
+  .reveal{ opacity:0; transform:translateY(20px); transition:opacity 1s ease, transform 1s ease; }
+  .reveal.in{ opacity:1; transform:none; }
+  .stagger .reveal.in{ transition-delay:calc(var(--i,0) * .18s); }
+
+  /* ---------- LAYOUT ---------- */
+  .wrap{ max-width:var(--maxw); margin:0 auto; }
+  .measure{ max-width:900px; }
+
+  /* editorial text chapter */
+  .chapter{ padding:clamp(96px,17vh,220px) var(--gutter); }
+  .ch-num{ font-family:var(--body); font-weight:700; font-size:11px; letter-spacing:.3em; text-transform:uppercase; color:var(--red); margin-bottom:clamp(22px,3vw,34px); }
+  .chapter .h-display + .lead, .chapter .h-2 + .lead{ margin-top:clamp(28px,3.4vw,44px); }
+  .stanza{ display:flex; flex-direction:column; gap:clamp(6px,1vw,12px); }
+  .stanza .line{ font-family:var(--display); font-weight:400; font-size:clamp(26px,4vw,52px); line-height:1.08; letter-spacing:-0.008em; }
+  .stanza .line.mute{ color:var(--i30); }
+  .prose{ margin-top:clamp(28px,3.4vw,44px); display:flex; flex-direction:column; gap:22px; }
+  .prose p{ font-size:clamp(16px,1.35vw,19px); line-height:1.78; color:var(--i64); max-width:60ch; }
+  .prose p.emph{ color:var(--ink); font-weight:500; }
+
+  /* full-bleed cinematic section */
+  .cine{ position:relative; min-height:100svh; display:flex; align-items:flex-end; overflow:hidden; }
+  .cine.center{ align-items:center; }
+  .cine-media{ position:absolute; inset:0; z-index:0; }
+  .cine-media img,.cine-media video{ width:100%; height:100%; object-fit:cover; object-position:center; }
+  .cine-scrim{ position:absolute; inset:0; z-index:1; background:linear-gradient(180deg, rgba(13,13,13,.42) 0%, rgba(13,13,13,.05) 26%, rgba(13,13,13,0) 50%, rgba(13,13,13,.35) 76%, rgba(13,13,13,.78) 100%); }
+  .cine-inner{ position:relative; z-index:2; width:100%; max-width:var(--maxw); margin:0 auto; padding:clamp(56px,9vh,120px) var(--gutter); color:var(--bone); }
+  .cine-inner .eyebrow{ color:var(--bone); opacity:.86; }
+  .cine-inner .h-2, .cine-inner .h-display{ color:var(--bone); max-width:18ch; }
+  .cine-inner .cap{ margin-top:22px; font-size:clamp(15px,1.3vw,18px); line-height:1.7; color:var(--b80); max-width:46ch; }
+
+  /* belief / black full-screen */
+  .belief{ background:var(--ink); color:var(--bone); min-height:100svh; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:clamp(30px,6vh,72px); padding:clamp(80px,12vh,160px) var(--gutter); }
+  .belief-lines{ display:flex; flex-direction:column; gap:clamp(18px,3.4vh,42px); }
+  .belief-lines .line{ font-family:var(--display); font-weight:400; font-size:clamp(28px,5.4vw,74px); line-height:1.05; letter-spacing:-0.01em; }
+  .belief-lines .line .accent{ color:var(--red); white-space:nowrap; }
+  .belief .intro{ font-family:var(--body); font-weight:300; font-size:clamp(19px,2.4vw,30px); line-height:1.5; max-width:20ch; color:var(--b80); }
+
+  /* N mark (brand monogram, large reveal) */
+  .nmark{ display:inline-flex; align-items:center; gap:clamp(7px,1.2vw,16px); font-family:var(--display); font-size:clamp(64px,13vw,168px); line-height:1; }
+  .nmark span.n{ display:inline-block; }
+  .nmark .bar{ display:inline-block; width:clamp(4px,.7vw,9px); height:.72em; background:var(--red); }
+  .nmark .flip{ transform:scaleX(-1); }
+  .nmark.on-dark{ color:var(--bone); }
+
+  /* founders */
+  .founders{ padding:clamp(96px,15vh,180px) var(--gutter); }
+  .founder-grid{ display:grid; grid-template-columns:1fr 1fr; gap:clamp(28px,4vw,64px); margin-top:clamp(48px,6vw,80px); }
+  .founder-portrait{ position:relative; aspect-ratio:4/5; border:1px solid var(--i14); border-radius:2px; overflow:hidden; filter:grayscale(1) contrast(1.04); background:linear-gradient(160deg, rgba(13,13,13,.10), rgba(13,13,13,.02) 55%), repeating-linear-gradient(45deg, rgba(13,13,13,.028) 0 11px, transparent 11px 22px); display:flex; align-items:flex-end; }
+  .founder-portrait img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+  .founder-portrait .ph-tag{ position:relative; z-index:1; padding:20px; font-family:var(--body); font-weight:600; font-size:10.5px; letter-spacing:.2em; text-transform:uppercase; color:var(--i46); }
+  .founder-portrait .corner{ position:absolute; width:13px; height:13px; z-index:1; }
+  .founder-portrait .tl{ top:14px; left:14px; border-top:1px solid var(--i30); border-left:1px solid var(--i30); }
+  .founder-portrait .br{ bottom:14px; right:14px; border-bottom:1px solid var(--i30); border-right:1px solid var(--i30); }
+  .founder-name{ font-family:var(--display); font-size:clamp(24px,2.7vw,36px); margin-top:26px; }
+  .founder-role{ font-family:var(--body); font-weight:600; font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--red); margin-top:12px; }
+  .founder-bio{ margin-top:18px; font-size:15.5px; line-height:1.75; color:var(--i64); max-width:44ch; }
+
+  /* what we're building */
+  .building{ padding:clamp(96px,15vh,180px) var(--gutter); }
+  .pillar-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--i08); border:1px solid var(--i08); margin-top:clamp(44px,5vw,72px); }
+  .pillar{ background:var(--bone); padding:clamp(28px,3vw,42px); min-height:clamp(160px,15vw,210px); display:flex; flex-direction:column; gap:14px; transition:background .3s ease; }
+  .pillar:hover{ background:#efe9df; }
+  .pillar .p-idx{ font-family:var(--body); font-weight:700; font-size:11px; letter-spacing:.2em; color:var(--red); }
+  .pillar h3{ font-family:var(--display); font-size:clamp(17px,1.7vw,21px); line-height:1.14; }
+  .pillar p{ font-size:14px; line-height:1.65; color:var(--i64); }
+  .building-close{ margin-top:clamp(40px,5vw,64px); font-family:var(--display); font-size:clamp(20px,2.4vw,32px); line-height:1.2; max-width:22ch; }
+  .building-close .accent{ color:var(--red); }
+
+  /* footer */
+  .ft{ background:var(--ink); color:var(--b64); padding:clamp(60px,8vw,100px) var(--gutter) clamp(40px,5vw,60px); }
+  .ft .f-top{ display:flex; flex-wrap:wrap; justify-content:space-between; gap:40px; padding-bottom:clamp(36px,4vw,56px); border-bottom:1px solid var(--b14); }
+  .ft .f-brand .nn{ color:var(--bone); font-family:var(--display); font-size:22px; }
+  .ft .f-corp{ color:var(--bone); font-family:var(--display); font-size:clamp(18px,2vw,24px); line-height:1.3; }
+  .ft .f-corp span{ display:block; color:var(--b40); font-family:var(--body); font-weight:400; font-size:13px; letter-spacing:.04em; margin-top:10px; }
+  .ft .f-nav{ display:flex; flex-wrap:wrap; gap:14px 26px; font-family:var(--body); font-weight:600; font-size:11px; letter-spacing:.12em; text-transform:uppercase; }
+  .ft .f-nav a{ color:var(--b64); } .ft .f-nav a:hover{ color:var(--bone); }
+  .ft .f-meta{ margin-top:clamp(30px,3vw,44px); display:flex; flex-wrap:wrap; gap:12px 28px; font-family:var(--body); font-weight:600; font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--b40); }
+  .ft .f-meta .nonneg{ color:var(--b64); }
+
+  /* scroll cue */
+  .scroll-cue{ position:absolute; left:50%; bottom:clamp(24px,4vh,44px); transform:translateX(-50%); z-index:3; display:flex; flex-direction:column; align-items:center; gap:10px; color:var(--b64); font-family:var(--body); font-weight:600; font-size:10px; letter-spacing:.24em; text-transform:uppercase; }
+  .scroll-cue .rail{ width:1px; height:44px; background:linear-gradient(var(--b40), transparent); }
+
+  /* ---------- RESPONSIVE ---------- */
+  @media (max-width:1000px){
+    .pillar-grid{ grid-template-columns:repeat(2,1fr); }
+    .founder-grid{ gap:clamp(24px,4vw,40px); }
+  }
+  @media (max-width:680px){
+    .nav{ flex-wrap:wrap; row-gap:12px; padding-top:14px; padding-bottom:14px; }
+    .nav-links{ width:100%; flex-wrap:wrap; gap:11px 15px; font-size:10px; letter-spacing:.08em; justify-content:flex-start; }
+    .founder-grid{ grid-template-columns:1fr; }
+    .pillar-grid{ grid-template-columns:1fr; }
+    .founder-portrait{ max-width:360px; }
+  }
+  @media (prefers-reduced-motion:reduce){
+    html{ scroll-behavior:auto; }
+    .reveal{ opacity:1 !important; transform:none !important; transition:none !important; }
+    .stagger .reveal.in{ transition-delay:0s !important; }
+    .btn .arw{ transition:none; }
+    video{ display:none; }
+    .cine-media.has-fallback{ background-size:cover; background-position:center; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ NAV ============ -->
+<nav class="nav" id="nav">
+  <a class="mark" href="/" aria-label="AForce home">
+    <span class="nn"><span>N</span><span class="bar"></span><span class="nflip">N</span></span>
+    AFORCE
+  </a>
+  <div class="nav-links">
+    <a href="/#ritual">Ritual</a>
+    <a href="/#os">The OS</a>
+    <a href="/our-story" aria-current="page">Our Story</a>
+    <a href="/science">Science</a>
+    <a href="/investor-relations">Investors</a>
+    <a href="/manifesto">Manifesto</a>
+    <a href="/shop">Shop</a>
+  </div>
+</nav>
+
+<!-- ============ HERO ============ -->
+<header class="cine center" id="top">
+  <div class="cine-media">
+    <video autoplay muted loop playsinline preload="metadata" poster="/assets/hero-poster.jpg" aria-label="AForce founders preparing for the day — quiet, observed moments">
+      <source src="/assets/hero-video.webm" type="video/webm">
+      <source src="/assets/hero-video.mp4" type="video/mp4">
+    </video>
+  </div>
+  <div class="cine-scrim"></div>
+  <div class="cine-inner" style="text-align:center;">
+    <div class="reveal in" style="display:flex;flex-direction:column;align-items:center;gap:clamp(22px,3vw,34px);">
+      <div class="eyebrow">Our Story</div>
+      <h1 class="h-display" style="max-width:16ch;">Performance didn&rsquo;t begin with a drink.</h1>
+      <p class="lead-lg" style="color:var(--b80);max-width:26ch;">It began with a belief.</p>
+      <a class="btn btn-light" href="#chapter-1" style="margin-top:8px;">Continue <span class="arw">↓</span></a>
+    </div>
+  </div>
+  <div class="scroll-cue reveal in" aria-hidden="true">
+    <span>Scroll</span>
+    <span class="rail"></span>
+  </div>
+</header>
+
+<!-- ============ CHAPTER 1 — Everyone Performs ============ -->
+<section class="chapter" id="chapter-1">
+  <div class="wrap measure">
+    <div class="ch-num reveal">Chapter One</div>
+    <div class="stanza">
+      <span class="line reveal">Everyone performs.</span>
+      <span class="line mute reveal">Almost no one prepares.</span>
+    </div>
+    <div class="prose">
+      <p class="emph reveal">The world celebrates the moment. The closing argument. The final round. The presentation. The save.</p>
+      <p class="reveal">It rarely celebrates the hours before it &mdash; the ones no one sees. Preparation happens quietly, before anyone is watching. It is invisible.</p>
+      <p class="reveal">And yet it decides the outcome. This is the world AForce exists to serve.</p>
+    </div>
+  </div>
+</section>
+
+<!-- full-bleed operators -->
+<section class="cine" aria-label="Operators in their arenas">
+  <div class="cine-media has-fallback" style="background-image:url('/assets/perf-trader.jpg');">
+    <img src="/assets/perf-trader.jpg" alt="A trader at work before the market opens" loading="lazy" decoding="async">
+  </div>
+  <div class="cine-scrim"></div>
+  <div class="cine-inner">
+    <p class="h-2 reveal">The arena looks different for everyone.</p>
+    <p class="cap reveal">The discipline behind it does not.</p>
+  </div>
+</section>
+
+<!-- ============ CHAPTER 2 — Why We Started ============ -->
+<section class="chapter">
+  <div class="wrap measure">
+    <div class="ch-num reveal">Chapter Two</div>
+    <h2 class="h-display reveal">Why we started.</h2>
+    <div class="prose">
+      <p class="emph reveal">Brandon and Julius did not set out to make another hydration brand.</p>
+      <p class="reveal">They set out to build something that helps people consistently show up at their best &mdash; not on their best day, but on every day.</p>
+      <p class="reveal">Hydration became the first daily ritual. Not the destination. The place the relationship begins.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CHAPTER 3 — The Problem ============ -->
+<section class="chapter">
+  <div class="wrap measure">
+    <div class="ch-num reveal">Chapter Three</div>
+    <div class="stanza">
+      <span class="line reveal">The world sells more.</span>
+      <span class="line mute reveal">More energy.</span>
+      <span class="line mute reveal">More stimulation.</span>
+      <span class="line mute reveal">More shortcuts.</span>
+    </div>
+    <div class="prose">
+      <p class="emph reveal">We believe something quieter, and harder.</p>
+      <p class="reveal">Performance begins long before the moment arrives. Preparation is not the consolation prize. It is the competitive advantage.</p>
+    </div>
+  </div>
+</section>
+
+<!-- full-bleed the moment -->
+<section class="cine" aria-label="The moment arrives">
+  <div class="cine-media has-fallback" style="background-image:url('/assets/moment-firefighter.jpg');">
+    <img src="/assets/moment-firefighter.jpg" alt="A firefighter the instant the moment demands everything" loading="lazy" decoding="async">
+  </div>
+  <div class="cine-scrim"></div>
+  <div class="cine-inner">
+    <p class="h-2 reveal">When the moment comes, it asks one question.</p>
+    <p class="cap reveal">Were you ready before it arrived?</p>
+  </div>
+</section>
+
+<!-- ============ CHAPTER 4 — Why Hydration ============ -->
+<section class="chapter">
+  <div class="wrap measure">
+    <div class="ch-num reveal">Chapter Four</div>
+    <h2 class="h-display reveal">Why hydration.</h2>
+    <div class="prose stagger">
+      <p class="emph reveal" style="--i:0">We started where preparation is simplest to keep.</p>
+      <p class="reveal" style="--i:1">Hydration is universal. It is measurable. It is repeatable. It is the easiest behavior to improve, and the easiest to keep improving.</p>
+      <p class="reveal" style="--i:2">Small daily rituals become lifelong habits. This is where the relationship begins &mdash; one honest, repeatable act.</p>
+    </div>
+  </div>
+</section>
+
+<!-- full-bleed ritual -->
+<section class="cine center" aria-label="The daily ritual">
+  <div class="cine-media has-fallback" style="background-image:url('/assets/ritual-meditation.jpg');">
+    <img src="/assets/ritual-meditation.jpg" alt="A quiet daily ritual at first light" loading="lazy" decoding="async">
+  </div>
+  <div class="cine-scrim"></div>
+  <div class="cine-inner">
+    <p class="h-2 reveal" style="max-width:20ch;">The ritual is small on purpose.</p>
+    <p class="cap reveal">Small enough to keep. Repeated enough to matter.</p>
+  </div>
+</section>
+
+<!-- ============ CHAPTER 5 — The Philosophy (belief) ============ -->
+<section class="belief" id="philosophy" aria-label="Our philosophy">
+  <div class="eyebrow reveal" style="color:var(--red);">Chapter Five &mdash; The Philosophy</div>
+  <div class="belief-lines stagger">
+    <span class="line reveal" style="--i:0">Performance is universal.</span>
+    <span class="line reveal" style="--i:1">Preparation is a choice.</span>
+    <span class="line reveal" style="--i:2">Performance is <span class="accent">Non-<span class="flip-n">N</span>egotiable.</span></span>
+  </div>
+  <div class="nmark on-dark reveal" style="--i:3;" role="img" aria-label="The AForce N mark">
+    <span class="n">N</span><span class="bar"></span><span class="n flip">N</span>
+  </div>
+</section>
+
+<!-- ============ CHAPTER 6 — Meet the Founders ============ -->
+<section class="founders" id="founders" aria-label="The founders">
+  <div class="wrap">
+    <div class="ch-num reveal">Chapter Six</div>
+    <h2 class="h-display reveal" style="max-width:14ch;">The founders.</h2>
+    <p class="lead reveal" style="margin-top:24px;">Two brothers building the same standard from two disciplines. They support the mission &mdash; they are not the story.</p>
+    <div class="founder-grid" id="founderGrid"></div>
+  </div>
+</section>
+
+<!-- ============ CHAPTER 7 — What We're Building ============ -->
+<section class="building" id="building" aria-label="What we are building">
+  <div class="wrap">
+    <div class="ch-num reveal">Chapter Seven</div>
+    <h2 class="h-display reveal" style="max-width:16ch;">A performance readiness platform.</h2>
+    <p class="lead reveal" style="margin-top:24px;">The beverage is the entry point. Everything beyond it is the foundation for how people prepare, together, over a lifetime.</p>
+    <div class="pillar-grid stagger" id="pillarGrid"></div>
+    <p class="building-close reveal">The beverage is the beginning. The <span class="accent">platform</span> is the future.</p>
+  </div>
+</section>
+
+<!-- ============ CHAPTER 8 — The Future ============ -->
+<section class="cine center" aria-label="The future">
+  <div class="cine-media">
+    <video autoplay muted loop playsinline preload="none" poster="/assets/manifesto-poster.jpg" aria-label="The road ahead">
+      <source src="/assets/manifesto-hero.webm" type="video/webm">
+      <source src="/assets/manifesto-hero.mp4" type="video/mp4">
+    </video>
+  </div>
+  <div class="cine-scrim"></div>
+  <div class="cine-inner">
+    <div class="ch-num reveal" style="color:var(--bone);opacity:.8;">Chapter Eight</div>
+    <h2 class="h-display reveal">The work is just beginning.</h2>
+    <p class="cap reveal" style="max-width:48ch;">Every day presents a new opportunity to prepare. Our mission is to help more people meet that moment.</p>
+  </div>
+</section>
+
+<!-- ============ FINAL ============ -->
+<section class="belief" aria-label="Performance is non-negotiable">
+  <p class="intro reveal">Performance isn&rsquo;t reserved for athletes. It belongs to anyone willing to prepare.</p>
+  <div class="belief-lines stagger">
+    <span class="line reveal" style="--i:0">Performance is universal.</span>
+    <span class="line reveal" style="--i:1">Preparation is a choice.</span>
+    <span class="line reveal" style="--i:2">Performance is <span class="accent">Non-<span class="flip-n">N</span>egotiable.</span></span>
+  </div>
+  <div class="nmark on-dark reveal" style="--i:3;" role="img" aria-label="The AForce N mark">
+    <span class="n">N</span><span class="bar"></span><span class="n flip">N</span>
+  </div>
+  <div class="reveal" style="--i:4; display:flex; flex-wrap:wrap; gap:16px; justify-content:center; margin-top:8px;">
+    <a class="btn btn-light" href="/#ritual">Begin Your Ritual <span class="arw">&rarr;</span></a>
+    <a class="btn btn-outline-light" href="/#founding">Join the Founding 200 <span class="arw">&rarr;</span></a>
+  </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer class="ft">
+  <div class="wrap">
+    <div class="f-top">
+      <div class="f-brand">
+        <div class="nn" style="font-size:22px;color:var(--bone);"><span style="color:var(--red)">N</span><span class="bar" style="height:16px"></span><span class="nflip">N</span></div>
+        <div class="f-corp" style="margin-top:16px;">AForce Hydration, Inc.<span>New York, NY</span></div>
+      </div>
+      <nav class="f-nav" aria-label="Footer">
+        <a href="/">Home</a>
+        <a href="/our-story">Our Story</a>
+        <a href="/science">Science</a>
+        <a href="/manifesto">Manifesto</a>
+        <a href="/investor-relations">Investors</a>
+        <a href="/shop">Shop</a>
+      </nav>
+    </div>
+    <div class="f-meta">
+      <span>&copy; 2026 AForce Hydration, Inc.</span>
+      <span class="nonneg">Performance Is Non-<span class="flip-n">N</span>egotiable.</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* ============================================================
+   OUR STORY — content config (CMS-ready).
+   Edit these arrays to update content; layout renders from them.
+   ============================================================ */
+
+// Chapter 6 — founders. Drop a real B&W portrait path into `photo` to replace the placeholder frame.
+var FOUNDERS = [
+  {
+    name:"Brandon Burrell",
+    role:"Founder & Chief Executive Officer",
+    photo:"", // e.g. "/assets/founder-brandon.jpg"
+    bio:"Sets the vision and the standard. Focused on discipline, long-term thinking, and building a company that outlasts any single moment."
+  },
+  {
+    name:"Julius Burrell",
+    role:"Co-Founder & Chief Operating Officer",
+    photo:"",
+    bio:"Turns the standard into a system. Focused on execution, operations, and laying a foundation strong enough to build a category on."
+  }
+];
+
+// Chapter 7 — platform pillars.
+var PILLARS = [
+  { t:"Hydration Products", d:"The daily ritual, and the entry point to everything else." },
+  { t:"The AForce OS", d:"The system that turns preparation into a measurable habit." },
+  { t:"Behavior Change", d:"Small, repeatable actions engineered to last a lifetime." },
+  { t:"Community", d:"A standard held in common, by people who prepare." },
+  { t:"Membership", d:"A deeper commitment for those who go all in." },
+  { t:"Performance Network", d:"Operators across every arena, connected by one belief." },
+  { t:"Technology", d:"The infrastructure that makes readiness visible." },
+  { t:"Education", d:"Teaching preparation as a discipline, not a trend." },
+  { t:"Events", d:"Where the community gathers and the standard is set." }
+];
+
+function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+function el(html){ var t=document.createElement('template'); t.innerHTML=html.trim(); return t.content.firstChild; }
+
+/* ---- render founders ---- */
+(function renderFounders(){
+  var grid = document.getElementById('founderGrid');
+  FOUNDERS.forEach(function(f){
+    var portrait = f.photo
+      ? '<img src="'+esc(f.photo)+'" alt="Portrait of '+esc(f.name)+'" loading="lazy" decoding="async">'
+      : '<span class="corner tl"></span><span class="corner br"></span><span class="ph-tag">Editorial portrait &mdash; forthcoming</span>';
+    grid.appendChild(el(
+      '<article class="reveal">'+
+        '<div class="founder-portrait">'+portrait+'</div>'+
+        '<h3 class="founder-name">'+esc(f.name)+'</h3>'+
+        '<div class="founder-role">'+esc(f.role)+'</div>'+
+        '<p class="founder-bio">'+esc(f.bio)+'</p>'+
+      '</article>'
+    ));
+  });
+})();
+
+/* ---- render pillars ---- */
+(function renderPillars(){
+  var grid = document.getElementById('pillarGrid');
+  PILLARS.forEach(function(p, i){
+    var n = String(i+1).padStart(2,'0');
+    grid.appendChild(el(
+      '<div class="pillar reveal" style="--i:'+(i%3)+'">'+
+        '<span class="p-idx">'+n+'</span>'+
+        '<h3>'+esc(p.t)+'</h3>'+
+        '<p>'+esc(p.d)+'</p>'+
+      '</div>'
+    ));
+  });
+})();
+
+/* ---- reveal on scroll ---- */
+(function reveals(){
+  var els = document.querySelectorAll('.reveal:not(.in)');
+  if(!('IntersectionObserver' in window)){
+    els.forEach(function(e){ e.classList.add('in'); });
+    return;
+  }
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(en){
+      if(en.isIntersecting){ en.target.classList.add('in'); io.unobserve(en.target); }
+    });
+  }, { threshold:0.12, rootMargin:'0px 0px -8% 0px' });
+  els.forEach(function(e){ io.observe(e); });
+})();
+
+/* ---- scroll-aware nav ---- */
+(function stickyNav(){
+  var nav = document.getElementById('nav');
+  var trigger = Math.max(120, window.innerHeight * 0.7);
+  function onScroll(){
+    if(window.scrollY > trigger){ nav.classList.add('solid'); }
+    else{ nav.classList.remove('solid'); }
+  }
+  window.addEventListener('scroll', onScroll, { passive:true });
+  window.addEventListener('resize', function(){ trigger = Math.max(120, window.innerHeight * 0.7); onScroll(); });
+  onScroll();
+})();
+</script>
+</body>
+</html>
