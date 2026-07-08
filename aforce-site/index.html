@@ -64,8 +64,9 @@
   .nav .mark .nn .bar{ display:inline-block; width:13px; height:3px; background:var(--red); }
   .nav .mark .nn .flip{ display:inline-block; transform:scaleX(-1); color:var(--ink); }
   .nav .links{display:flex; gap:28px;}
-  .nav a{text-decoration:none; font-family:'Inter',sans-serif; font-weight:700; font-size:10.5px; letter-spacing:0.1em; text-transform:uppercase; opacity:0.85;}
+  .nav a{text-decoration:none; font-family:'Inter',sans-serif; font-weight:700; font-size:10.5px; letter-spacing:0.1em; text-transform:uppercase; opacity:0.85; transition:color .2s ease, opacity .2s ease;}
   .nav a.shop-link{ opacity:1; border-bottom:1px solid currentColor; padding-bottom:2px; }
+  .nav a:hover{ color:var(--red); opacity:1; }
   /* mobile: wrap nav links so all items stay reachable instead of clipping off-screen */
   @media (max-width:680px){
     .nav{ flex-wrap:wrap; row-gap:10px; }
