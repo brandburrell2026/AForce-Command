@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AFORCE OS — The Performance Operating System</title>
+<meta name="description" content="AFORCE OS turns hydration into a performance ritual. Scan the can, receive your Readiness Score, and follow the protocol designed to help you recover, hydrate, and perform with discipline.">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://drinkaforce.com/aforce-os">
+<meta property="og:type" content="website">
+<meta property="og:title" content="AFORCE OS — The Performance Operating System">
+<meta property="og:description" content="The can begins the ritual. The OS builds the habit. The community protects the standard.">
+<meta property="og:url" content="https://drinkaforce.com/aforce-os">
+<meta property="og:image" content="https://drinkaforce.com/assets/os-protocol.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0D0D0D;
+    --ink-2:#0B0D12;
+    --bone:#F5F0E8;
+    --bone-2:#EFEADF;
+    --red:#C1281B;
+    --green:#1FA35A;
+    --teal:#2FCFC0;
+    --amber:#E8A13A;
+    --i80:rgba(13,13,13,.80);
+    --i64:rgba(13,13,13,.64);
+    --i46:rgba(13,13,13,.46);
+    --i30:rgba(13,13,13,.30);
+    --i14:rgba(13,13,13,.14);
+    --i08:rgba(13,13,13,.08);
+    --b80:rgba(245,240,232,.80);
+    --b64:rgba(245,240,232,.64);
+    --b40:rgba(245,240,232,.40);
+    --b14:rgba(245,240,232,.14);
+    --b08:rgba(245,240,232,.08);
+    --display:'Archivo Black',sans-serif;
+    --body:'Inter',sans-serif;
+    --gutter:clamp(22px,6vw,88px);
+    --maxw:1240px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{ background:var(--bone); color:var(--ink); font-family:var(--body); font-size:16px; line-height:1.65; -webkit-font-smoothing:antialiased; overflow-x:hidden; }
+  ::selection{ background:var(--red); color:var(--bone); }
+  a{color:inherit;text-decoration:none;}
+  button{font-family:inherit;cursor:pointer;color:inherit;background:none;border:none;}
+  :focus-visible{outline:2px solid var(--red);outline-offset:3px;}
+  img,svg{max-width:100%;display:block;}
+  .flip-n{ display:inline-block; transform:scaleX(-1); }
+
+  /* ---------- TYPE ---------- */
+  .eyebrow{ font-family:var(--body); font-weight:700; font-size:11px; letter-spacing:.26em; text-transform:uppercase; color:var(--red); }
+  .h-display{ font-family:var(--display); font-weight:400; line-height:1.03; letter-spacing:-0.01em; font-size:clamp(36px,5.6vw,80px); }
+  .h-2{ font-family:var(--display); font-weight:400; line-height:1.07; letter-spacing:-0.008em; font-size:clamp(28px,4vw,52px); }
+  .lead{ font-size:clamp(16px,1.4vw,20px); line-height:1.75; color:var(--i64); max-width:56ch; }
+
+  /* ---------- NAV (scroll-aware) ---------- */
+  .nav{ position:fixed; top:0; left:0; right:0; z-index:80; display:flex; align-items:center; justify-content:space-between; gap:24px; padding:18px var(--gutter); color:#F5F0E8; background:transparent; border-bottom:1px solid transparent; transition:background .4s ease, color .4s ease, border-color .4s ease, padding .4s ease; }
+  .nav.solid{ color:var(--ink); background:rgba(245,240,232,.88); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); border-bottom-color:var(--i08); padding-top:14px; padding-bottom:14px; }
+  .nav .mark{ font-family:var(--display); font-size:18px; letter-spacing:.02em; display:flex; align-items:center; gap:10px; white-space:nowrap; }
+  .nn{ display:inline-flex; align-items:center; gap:5px; }
+  .nn > span:first-child{ color:var(--red); }
+  .nn .bar{ display:inline-block; width:12px; height:2.5px; background:var(--red); }
+  .nn .nflip{ display:inline-block; transform:scaleX(-1); color:currentColor; }
+  .nav-links{ display:flex; gap:clamp(13px,1.9vw,28px); align-items:center; font-family:var(--body); font-weight:700; font-size:11px; letter-spacing:.12em; text-transform:uppercase; }
+  .nav-links a{ opacity:.72; transition:opacity .2s, color .2s; white-space:nowrap; }
+  .nav-links a:hover{ opacity:1; color:var(--red); }
+  .nav-links a[aria-current="page"]{ opacity:1; color:var(--red); }
+
+  /* ---------- BUTTONS ---------- */
+  .btn{ display:inline-flex; align-items:center; gap:12px; font-family:var(--body); font-weight:600; font-size:12px; letter-spacing:.14em; text-transform:uppercase; padding:16px 30px; border-radius:2px; transition:all .25s ease; border:1px solid transparent; }
+  .btn .arw{ transition:transform .25s; }
+  .btn:hover .arw{ transform:translateX(4px); }
+  .btn-primary{ background:var(--red); color:var(--bone); }
+  .btn-primary:hover{ background:#a51f14; }
+  .btn-ink{ background:var(--ink); color:var(--bone); }
+  .btn-ink:hover{ background:var(--red); }
+  .btn-ghost{ border-color:var(--i30); color:var(--ink); }
+  .btn-ghost:hover{ border-color:var(--ink); background:var(--ink); color:var(--bone); }
+  .btn-light{ background:var(--bone); color:var(--ink); }
+  .btn-light:hover{ background:var(--red); color:var(--bone); }
+  .btn-outline-light{ border-color:var(--b40); color:var(--bone); }
+  .btn-outline-light:hover{ border-color:var(--bone); background:var(--bone); color:var(--ink); }
+
+  /* ---------- REVEAL ---------- */
+  .reveal{ opacity:0; transform:translateY(22px); transition:opacity 1s ease, transform 1s ease; }
+  .reveal.in{ opacity:1; transform:none; }
+  .stagger .reveal.in{ transition-delay:calc(var(--i,0) * .1s); }
+
+  /* ---------- LAYOUT ---------- */
+  .wrap{ max-width:var(--maxw); margin:0 auto; }
+  section{ position:relative; }
+  .block{ padding:clamp(84px,13vh,170px) var(--gutter); }
+  .dark{ background:var(--ink); color:var(--bone); }
+  .dark .lead{ color:var(--b64); }
+  .dark .eyebrow{ color:var(--red); }
+  .cream{ background:var(--bone-2); }
+
+  /* phone */
+  .phone{ position:relative; filter:drop-shadow(0 30px 60px rgba(0,0,0,.45)); animation:float 7s ease-in-out infinite; }
+  .phone img{ width:100%; height:auto; }
+  @keyframes float{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-14px); } }
+
+  /* split section */
+  .split{ display:grid; grid-template-columns:1fr 1fr; gap:clamp(36px,5vw,88px); align-items:center; }
+  .split.reverse .split-media{ order:-1; }
+  .split-media{ display:flex; justify-content:center; }
+  .split-media .phone{ width:min(340px,78%); }
+
+  /* feature points */
+  .points{ margin-top:clamp(30px,3.5vw,44px); display:flex; flex-direction:column; gap:clamp(20px,2.4vw,30px); }
+  .point{ display:grid; grid-template-columns:auto 1fr; gap:18px; align-items:start; }
+  .point .p-idx{ font-family:var(--body); font-weight:700; font-size:12px; letter-spacing:.16em; color:var(--red); padding-top:3px; }
+  .point h3{ font-family:var(--display); font-size:clamp(16px,1.5vw,19px); margin-bottom:6px; }
+  .point p{ font-size:14.5px; line-height:1.65; color:inherit; opacity:.72; max-width:48ch; }
+
+  /* command feature cards */
+  .cmd-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:14px; margin-top:clamp(28px,3vw,40px); }
+  .cmd{ border:1px solid var(--b14); border-left:2px solid var(--teal); border-radius:3px; padding:22px 24px; }
+  .cmd h4{ font-family:var(--body); font-weight:700; font-size:12px; letter-spacing:.16em; text-transform:uppercase; margin-bottom:10px; }
+  .cmd p{ font-size:14px; line-height:1.6; color:var(--b64); }
+  .cmd.balanced{ border-left-color:var(--teal); } .cmd.balanced h4{ color:var(--teal); }
+  .cmd.recovering{ border-left-color:var(--amber); } .cmd.recovering h4{ color:var(--amber); }
+  .cmd.peak{ border-left-color:var(--green); } .cmd.peak h4{ color:var(--green); }
+  .cmd.depleted{ border-left-color:var(--red); } .cmd.depleted h4{ color:#e5503f; }
+
+  /* ritual 3-col */
+  .ritual-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--b14); border:1px solid var(--b14); margin-top:clamp(44px,5vw,72px); }
+  .ritual-cell{ background:var(--ink); padding:clamp(30px,3.4vw,48px); }
+  .ritual-cell .r-idx{ font-family:var(--body); font-weight:700; font-size:12px; letter-spacing:.2em; color:var(--red); }
+  .ritual-cell h3{ font-family:var(--display); font-size:clamp(20px,2vw,26px); margin:16px 0 12px; }
+  .ritual-cell p{ font-size:14.5px; line-height:1.65; color:var(--b64); max-width:34ch; }
+
+  /* hero */
+  .os-hero{ min-height:100svh; display:flex; align-items:center; padding:clamp(110px,16vh,180px) var(--gutter) clamp(60px,9vh,110px); background:radial-gradient(140% 120% at 78% 30%, #14181f 0%, var(--ink) 55%); color:var(--bone); overflow:hidden; }
+  .os-hero .hero-grid{ display:grid; grid-template-columns:1.05fr .95fr; gap:clamp(30px,4vw,64px); align-items:center; width:100%; max-width:var(--maxw); margin:0 auto; }
+  .os-hero .lead{ color:var(--b80); }
+  .hero-cta{ display:flex; flex-wrap:wrap; gap:16px; margin-top:clamp(30px,3.5vw,42px); }
+  .hero-phones{ position:relative; display:flex; justify-content:center; align-items:center; min-height:clamp(420px,58vh,640px); }
+  .hero-phones .phone{ position:absolute; }
+  .hero-phones .p-back{ width:min(280px,62%); transform:translate(26%,-6%) rotate(4deg); opacity:.92; animation-delay:-3.5s; filter:drop-shadow(0 24px 50px rgba(0,0,0,.5)); }
+  .hero-phones .p-front{ width:min(300px,66%); transform:translate(-22%,10%) rotate(-3deg); z-index:2; }
+
+  /* meta strip under hero copy */
+  .hero-meta{ display:flex; flex-wrap:wrap; gap:12px 34px; margin-top:clamp(34px,4vw,50px); padding-top:clamp(24px,3vw,34px); border-top:1px solid var(--b14); }
+  .hero-meta .m .k{ font-family:var(--display); font-size:clamp(17px,1.7vw,22px); }
+  .hero-meta .m .v{ font-size:12px; letter-spacing:.04em; color:var(--b40); margin-top:5px; text-transform:uppercase; }
+
+  /* final / community centered */
+  .center-block{ text-align:center; display:flex; flex-direction:column; align-items:center; gap:clamp(20px,2.6vw,30px); }
+  .center-block .lead{ margin:0 auto; }
+  .center-block .cta-row{ display:flex; flex-wrap:wrap; gap:16px; justify-content:center; margin-top:8px; }
+
+  /* footer */
+  .ft{ background:var(--ink); color:var(--b64); padding:clamp(54px,7vw,88px) var(--gutter) clamp(36px,4vw,54px); border-top:1px solid var(--b08); }
+  .ft .f-wrap{ max-width:var(--maxw); margin:0 auto; }
+  .ft .f-top{ display:flex; flex-wrap:wrap; justify-content:space-between; gap:32px; padding-bottom:30px; border-bottom:1px solid var(--b14); }
+  .ft .f-corp{ color:var(--bone); font-family:var(--display); font-size:20px; }
+  .ft .f-corp span{ display:block; color:var(--b40); font-family:var(--body); font-weight:400; font-size:12.5px; margin-top:8px; }
+  .ft .f-nav{ display:flex; flex-wrap:wrap; gap:12px 24px; font-family:var(--body); font-weight:600; font-size:11px; letter-spacing:.1em; text-transform:uppercase; }
+  .ft .f-nav a{ color:var(--b64); } .ft .f-nav a:hover{ color:var(--bone); }
+  .ft .f-meta{ margin-top:24px; font-size:11px; letter-spacing:.04em; color:var(--b40); }
+  .ft .f-meta .nonneg{ color:var(--b64); font-weight:600; text-transform:uppercase; letter-spacing:.1em; }
+
+  /* ---------- RESPONSIVE ---------- */
+  @media (max-width:900px){
+    .os-hero .hero-grid{ grid-template-columns:1fr; gap:20px; }
+    .hero-phones{ min-height:clamp(380px,52vh,520px); order:2; }
+    .split{ grid-template-columns:1fr; gap:32px; }
+    .split-media, .split.reverse .split-media{ order:2; }
+    .cmd-grid{ grid-template-columns:1fr; }
+    .ritual-grid{ grid-template-columns:1fr; }
+  }
+  @media (max-width:680px){
+    .nav{ flex-wrap:wrap; row-gap:12px; padding-top:14px; padding-bottom:14px; }
+    .nav-links{ width:100%; flex-wrap:wrap; gap:11px 15px; font-size:10px; letter-spacing:.08em; justify-content:flex-start; }
+    .hero-phones .p-front{ width:66%; transform:translate(-14%,8%) rotate(-3deg); }
+    .hero-phones .p-back{ width:60%; transform:translate(30%,-4%) rotate(4deg); }
+  }
+  @media (prefers-reduced-motion:reduce){
+    html{ scroll-behavior:auto; }
+    .reveal{ opacity:1 !important; transform:none !important; transition:none !important; }
+    .stagger .reveal.in{ transition-delay:0s !important; }
+    .phone{ animation:none !important; }
+    .btn .arw{ transition:none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ NAV ============ -->
+<nav class="nav" id="nav">
+  <a class="mark" href="/" aria-label="AFORCE home">
+    <span class="nn"><span>N</span><span class="bar"></span><span class="nflip">N</span></span> AFORCE
+  </a>
+  <div class="nav-links">
+    <a href="/#ritual">Ritual</a>
+    <a href="/aforce-os" aria-current="page">The OS</a>
+    <a href="/our-story">Our Story</a>
+    <a href="/science">Science</a>
+    <a href="/manifesto">Manifesto</a>
+    <a href="/shop">Shop</a>
+  </div>
+</nav>
+
+<!-- ============ 1 · HERO ============ -->
+<header class="os-hero" id="top">
+  <div class="hero-grid">
+    <div class="reveal in">
+      <div class="eyebrow" style="margin-bottom:22px;">AFORCE OS</div>
+      <h1 class="h-display" style="max-width:15ch;">AFORCE OS turns hydration into a performance ritual.</h1>
+      <p class="lead" style="margin-top:clamp(22px,3vw,32px);">Every AFORCE purchase unlocks a free entry point into the AFORCE OS. Scan the can, receive your Readiness Score, and follow the protocol designed to help you recover, hydrate, and perform with discipline.</p>
+      <div class="hero-cta">
+        <a class="btn btn-primary" href="#depletion">Explore the OS <span class="arw">&rarr;</span></a>
+        <a class="btn btn-outline-light" href="/founding-250">Join the Founding Community</a>
+      </div>
+      <div class="hero-meta">
+        <div class="m"><div class="k">Scan</div><div class="v">The can begins it</div></div>
+        <div class="m"><div class="k">Readiness Score</div><div class="v">Your signal</div></div>
+        <div class="m"><div class="k">Protocol</div><div class="v">The next command</div></div>
+      </div>
+    </div>
+    <div class="hero-phones reveal in" aria-hidden="false">
+      <div class="phone p-back"><img src="/assets/os-report.png" alt="AFORCE OS Weekly Performance Report screen" loading="eager" decoding="async"></div>
+      <div class="phone p-front"><img src="/assets/os-protocol.png" alt="AFORCE OS Depletion Correction protocol screen showing the day's hydration commands" loading="eager" decoding="async"></div>
+    </div>
+  </div>
+</header>
+
+<!-- ============ 2 · DEPLETION CORRECTION ============ -->
+<section class="block cream" id="depletion">
+  <div class="wrap split">
+    <div>
+      <div class="eyebrow reveal">Depletion Correction</div>
+      <h2 class="h-2 reveal" style="margin-top:16px;max-width:16ch;">When your body is behind, the OS gives you the next command.</h2>
+      <p class="lead reveal" style="margin-top:22px;">The AFORCE OS does not overwhelm users with noise. It gives one clear action at the right moment. When hydration, recovery, or performance signals fall behind, the OS identifies the stage and delivers a simple command: drink, log, recheck, and confirm status.</p>
+      <div class="points stagger">
+        <div class="point reveal" style="--i:0"><span class="p-idx">01</span><div><h3>Identify the stage</h3><p>The OS recognizes when the user enters a depletion or recovery state.</p></div></div>
+        <div class="point reveal" style="--i:1"><span class="p-idx">02</span><div><h3>Give the next command</h3><p>Instead of generic reminders, the OS provides a specific hydration action.</p></div></div>
+        <div class="point reveal" style="--i:2"><span class="p-idx">03</span><div><h3>Recheck the signal</h3><p>The user returns after intake to confirm progress and protect the habit.</p></div></div>
+      </div>
+    </div>
+    <div class="split-media reveal">
+      <div class="phone"><img src="/assets/os-protocol.png" alt="AFORCE OS — Depletion Correction: drink 16–24 ounces, electrolytes critical, recheck in 20–30 minutes; next recheck 5 min, recovery consistency 82%" loading="lazy" decoding="async"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 3 · COMMAND HISTORY ============ -->
+<section class="block dark" id="history">
+  <div class="wrap split reverse">
+    <div class="split-media reveal">
+      <div class="phone"><img src="/assets/os-history.png" alt="AFORCE OS — Command history timeline showing Balanced, Recovering, Peak and Depleted states with the recommended action for each" loading="lazy" decoding="async"></div>
+    </div>
+    <div>
+      <div class="eyebrow reveal">Command History</div>
+      <h2 class="h-2 reveal" style="margin-top:16px;max-width:16ch;">Your performance summary, in commands.</h2>
+      <p class="lead reveal" style="margin-top:22px;">Every action builds a history. Every check-in builds the habit. AFORCE OS turns hydration into a measurable rhythm &mdash; users can see how their body trends throughout the day, what actions were recommended, and how quickly they returned to balance.</p>
+      <div class="cmd-grid stagger">
+        <div class="cmd balanced reveal" style="--i:0"><h4>Balanced</h4><p>Maintain rhythm and stay ahead of the next performance window.</p></div>
+        <div class="cmd recovering reveal" style="--i:1"><h4>Recovering</h4><p>Take the recommended action before fatigue becomes the standard.</p></div>
+        <div class="cmd peak reveal" style="--i:2"><h4>Peak</h4><p>Confirm what is working and repeat the behavior.</p></div>
+        <div class="cmd depleted reveal" style="--i:3"><h4>Depleted</h4><p>Correct early, recheck quickly, and protect the day.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 4 · WEEKLY PERFORMANCE REPORT ============ -->
+<section class="block cream" id="report">
+  <div class="wrap split">
+    <div>
+      <div class="eyebrow reveal">Weekly Performance Report</div>
+      <h2 class="h-2 reveal" style="margin-top:16px;max-width:15ch;">Daily behavior becomes a weekly performance picture.</h2>
+      <p class="lead reveal" style="margin-top:22px;">The Weekly Performance Report helps users understand how their hydration ritual is affecting consistency, recovery, and readiness over time. It is not about perfection. It is about building visible momentum.</p>
+      <div class="points stagger">
+        <div class="point reveal" style="--i:0"><span class="p-idx">—</span><div><h3>Performance Age Movement</h3><p>Tracks how daily behavior begins to influence the user&rsquo;s performance profile.</p></div></div>
+        <div class="point reveal" style="--i:1"><span class="p-idx">—</span><div><h3>Habit Velocity</h3><p>Shows whether the user is building consistency or losing rhythm.</p></div></div>
+        <div class="point reveal" style="--i:2"><span class="p-idx">—</span><div><h3>Recovery Trend</h3><p>Highlights whether recovery behavior is improving week over week.</p></div></div>
+        <div class="point reveal" style="--i:3"><span class="p-idx">—</span><div><h3>Top Command</h3><p>Reveals the action the user needed most often.</p></div></div>
+        <div class="point reveal" style="--i:4"><span class="p-idx">—</span><div><h3>Next Week Focus</h3><p>Gives one clear priority for the next seven days.</p></div></div>
+      </div>
+    </div>
+    <div class="split-media reveal">
+      <div class="phone"><img src="/assets/os-report.png" alt="AFORCE OS — Weekly Performance Report: performance age movement, habit velocity, recovery trend, top command, and next week focus" loading="lazy" decoding="async"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 5 · RITUAL SYSTEM ============ -->
+<section class="block dark" id="ritual-system">
+  <div class="wrap">
+    <div class="eyebrow reveal">The System</div>
+    <h2 class="h-display reveal" style="max-width:18ch;margin-top:16px;">The can begins the ritual. The OS builds the habit.</h2>
+    <div class="ritual-grid stagger">
+      <div class="ritual-cell reveal" style="--i:0"><div class="r-idx">01 — Scan</div><h3>Scan</h3><p>Scan the can or receipt and enter the OS without friction.</p></div>
+      <div class="ritual-cell reveal" style="--i:1"><div class="r-idx">02 — Act</div><h3>Act</h3><p>Receive the next hydration or recovery command.</p></div>
+      <div class="ritual-cell reveal" style="--i:2"><div class="r-idx">03 — Repeat</div><h3>Repeat</h3><p>Build streaks, track progress, and protect performance over time.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 6 · COMMUNITY ============ -->
+<section class="block dark" id="community" style="padding-top:0;">
+  <div class="wrap center-block">
+    <div class="eyebrow reveal">The Community</div>
+    <h2 class="h-display reveal" style="max-width:16ch;">The community protects the standard.</h2>
+    <p class="lead reveal" style="text-align:center;">AFORCE OS is designed to become more than a tracker. It becomes a shared performance ritual for people who refuse to drift. Founding members help establish the standard, build accountability, and prove that hydration can become a daily performance discipline.</p>
+    <div class="cta-row reveal">
+      <a class="btn btn-light" href="/founding-250">Join the Founding Community <span class="arw">&rarr;</span></a>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 7 · FINAL ============ -->
+<section class="block cream">
+  <div class="wrap center-block">
+    <h2 class="h-display reveal" style="max-width:16ch;">Performance is not guessed. It is built.</h2>
+    <p class="lead reveal" style="text-align:center;">AFORCE OS gives every user a simple way to turn hydration into action, action into rhythm, and rhythm into performance.</p>
+    <div class="cta-row reveal">
+      <a class="btn btn-ink" href="/shop">Start with AFORCE <span class="arw">&rarr;</span></a>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer class="ft">
+  <div class="f-wrap">
+    <div class="f-top">
+      <div>
+        <div class="nn" style="font-size:22px;color:var(--bone);"><span style="color:var(--red)">N</span><span class="bar" style="width:14px;height:3px"></span><span class="nflip">N</span></div>
+        <div class="f-corp" style="margin-top:14px;">AFORCE Hydration, Inc.<span>New York, New York</span></div>
+      </div>
+      <nav class="f-nav" aria-label="Footer">
+        <a href="/">Home</a>
+        <a href="/aforce-os">The OS</a>
+        <a href="/our-story">Our Story</a>
+        <a href="/science">Science</a>
+        <a href="/shop">Shop</a>
+        <a href="/legal">Legal</a>
+      </nav>
+    </div>
+    <div class="f-meta">
+      <span>&copy; 2026 AFORCE Hydration, Inc.</span> &nbsp;·&nbsp;
+      <span class="nonneg">Performance Is Non-<span class="flip-n">N</span>egotiable.</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* reveal on scroll */
+(function(){
+  var els = document.querySelectorAll('.reveal:not(.in)');
+  if(!('IntersectionObserver' in window)){ els.forEach(function(e){ e.classList.add('in'); }); return; }
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(en){ if(en.isIntersecting){ en.target.classList.add('in'); io.unobserve(en.target); } });
+  }, { threshold:0.12, rootMargin:'0px 0px -8% 0px' });
+  els.forEach(function(e){ io.observe(e); });
+})();
+
+/* scroll-aware nav */
+(function(){
+  var nav = document.getElementById('nav');
+  var trigger = Math.max(120, window.innerHeight * 0.7);
+  function onScroll(){ nav.classList.toggle('solid', window.scrollY > trigger); }
+  window.addEventListener('scroll', onScroll, { passive:true });
+  window.addEventListener('resize', function(){ trigger = Math.max(120, window.innerHeight * 0.7); onScroll(); });
+  onScroll();
+})();
+</script>
+</body>
+</html>
