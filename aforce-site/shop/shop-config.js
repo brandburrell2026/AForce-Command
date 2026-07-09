@@ -1,5 +1,12 @@
 /* =====================================================================
-   AFORCE — SHOP CONFIGURATION  (the "CMS")
+   ⚠️  DECOUPLED — this file is NO LONGER LOADED by the shop page.
+   The shop is now static-HTML-first: every step (intent, protocols,
+   commitment, flavors) is real markup in shop/index.html so the page
+   renders and sells even with zero JavaScript. Edit copy/prices there.
+   This file is kept only as a content reference.
+   =====================================================================
+
+   AFORCE — SHOP CONFIGURATION  (former "CMS")
    ---------------------------------------------------------------------
    MARKETING EDITS THIS FILE. Change copy, prices, CTAs, flavor text,
    recommendation defaults, and Delight-Moment strings here — no

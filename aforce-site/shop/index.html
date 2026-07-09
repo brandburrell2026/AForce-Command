@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script>document.documentElement.className+=" js";</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AFORCE — Shop the Standard</title>
@@ -324,8 +325,10 @@
   .nonneg .flip{display:inline-block;transform:scaleX(-1);}
 
   /* reveal on scroll */
-  .reveal{opacity:0;transform:translateY(18px);transition:opacity .7s ease,transform .7s ease;}
-  .reveal.in{opacity:1;transform:none;}
+  /* Only hide-for-reveal when JS is confirmed running (html.js). With JS off/failed,
+     every section stays fully visible — the page can never appear empty. */
+  .js .reveal{opacity:0;transform:translateY(18px);transition:opacity .7s ease,transform .7s ease;}
+  .js .reveal.in{opacity:1;transform:none;}
   @media (prefers-reduced-motion:reduce){
     *,*::before,*::after{animation:none!important;transition:none!important;}
     .reveal{opacity:1;transform:none;}
@@ -372,22 +375,30 @@
   </div>
 </header>
 
-<!-- BRAND SHOWCASE (visual only — buying happens in the guided flow below) -->
+<!-- BRAND SHOWCASE — CANS (static; visual only) -->
 <section class="showcase reveal" aria-label="The formulations">
   <div class="showcase-head">
-    <h2 id="showcaseHeading"></h2>
-    <p class="sc-sub" id="showcaseSub"></p>
+    <h2 id="showcaseHeading">The Formulations</h2>
+    <p class="sc-sub" id="showcaseSub">Three formulations, one standard. This is the product — choose yours inside the flow below.</p>
   </div>
-  <div class="showcase-grid" id="showcaseGrid"></div>
+  <div class="showcase-grid" id="showcaseGrid">
+    <div class="sc-card" data-flavor="red"><div class="sc-visual"><span class="sc-index">01 / 03</span><img src="/assets/can-red.png" alt="AFORCE Watermelon Surge" loading="lazy" decoding="async"></div><div class="sc-body"><h3>Watermelon Surge</h3><p>Heat Guard optimized. Built for high heat and high activity days.</p></div></div>
+    <div class="sc-card" data-flavor="blue"><div class="sc-visual"><span class="sc-index">02 / 03</span><img src="/assets/can-blue.png" alt="AFORCE Berry Blast" loading="lazy" decoding="async"></div><div class="sc-body"><h3>Berry Blast</h3><p>Daily performance. Your consistent foundation.</p></div></div>
+    <div class="sc-card" data-flavor="green"><div class="sc-visual"><span class="sc-index">03 / 03</span><img src="/assets/can-green.png" alt="AFORCE Soursop Edge" loading="lazy" decoding="async"></div><div class="sc-body"><h3>Soursop Edge</h3><p>Recovery. Built for your hardest recovery days.</p></div></div>
+  </div>
 </section>
 
-<!-- BRAND SHOWCASE — STICKS (visual only — same as the cans section) -->
+<!-- BRAND SHOWCASE — STICKS (static; visual only) -->
 <section class="showcase sticks reveal" aria-label="The sticks">
   <div class="showcase-head">
-    <h2 id="sticksHeading"></h2>
-    <p class="sc-sub" id="sticksSub"></p>
+    <h2 id="sticksHeading">The Sticks</h2>
+    <p class="sc-sub" id="sticksSub">The same formulations, portable. Drop a stick into any water and the ritual travels with you.</p>
   </div>
-  <div class="showcase-grid" id="sticksGrid"></div>
+  <div class="showcase-grid" id="sticksGrid">
+    <div class="sc-card" data-flavor="red"><div class="sc-visual"><span class="sc-index">01 / 03</span><img src="/assets/stick-red.png" alt="AFORCE Watermelon Surge stick" loading="lazy" decoding="async"></div><div class="sc-body"><h3>Watermelon Surge</h3><p>Heat Guard optimized. For high heat and high activity — anywhere.</p></div></div>
+    <div class="sc-card" data-flavor="blue"><div class="sc-visual"><span class="sc-index">02 / 03</span><img src="/assets/stick-blue.png" alt="AFORCE Berry Blast stick" loading="lazy" decoding="async"></div><div class="sc-body"><h3>Berry Blast</h3><p>Daily performance. Your consistent foundation, on the move.</p></div></div>
+    <div class="sc-card" data-flavor="green"><div class="sc-visual"><span class="sc-index">03 / 03</span><img src="/assets/stick-green.png" alt="AFORCE Soursop Edge stick" loading="lazy" decoding="async"></div><div class="sc-body"><h3>Soursop Edge</h3><p>Recovery. For your hardest recovery days, on the road.</p></div></div>
+  </div>
 </section>
 
 <!-- STEP RAIL -->
@@ -399,34 +410,105 @@
   <span class="sr" data-step="ready"><span class="dot"></span>Begin</span>
 </div>
 
-<!-- SECTION 0 — INTENT -->
+<!-- SECTION 0 — INTENT (static markup; JS enhances) -->
 <section class="sec reveal" id="intent">
   <p class="sec-eyebrow"><span class="step-i">Step 01</span> · The Demand</p>
   <h2 id="intentHeading">What are you <em>preparing for?</em></h2>
-  <p class="sec-sub" id="intentSub"></p>
-  <div class="chips" id="intentChips" role="group" aria-label="Choose your demand"></div>
+  <p class="sec-sub" id="intentSub">Nobody here is buying a flavor. Choose the demand — the protocol answers.</p>
+  <div class="chips" id="intentChips" role="group" aria-label="Choose your demand">
+    <button class="chip" type="button" data-intent="training"    data-rec-protocol="performance" data-rec-flavor="blue"  aria-pressed="false">Training</button>
+    <button class="chip" type="button" data-intent="recovery"    data-rec-protocol="performance" data-rec-flavor="green" aria-pressed="false">Recovery</button>
+    <button class="chip" type="button" data-intent="deepwork"    data-rec-protocol="performance" data-rec-flavor="blue"  aria-pressed="false">Deep Work</button>
+    <button class="chip" type="button" data-intent="travel"      data-rec-protocol="autopilot"   data-rec-flavor="green" aria-pressed="false">Travel</button>
+    <button class="chip" type="button" data-intent="competition" data-rec-protocol="performance" data-rec-flavor="red"   aria-pressed="false">Competition</button>
+    <button class="chip" type="button" data-intent="heat"        data-rec-protocol="performance" data-rec-flavor="red"   aria-pressed="false">Heat</button>
+  </div>
   <p class="intent-answer" id="intentAnswer" aria-live="polite"></p>
 </section>
 
-<!-- SECTION A — PROTOCOL -->
+<!-- SECTION A — PROTOCOL (static markup; JS enhances) -->
 <section class="sec reveal" id="protocol">
   <p class="sec-eyebrow"><span class="step-i">Step 02</span> · The Protocol</p>
-  <h2 id="protocolHeading"></h2>
-  <div class="protocols" id="protocolCards"></div>
+  <h2 id="protocolHeading">Choose Your Performance Protocol</h2>
+  <div class="protocols" id="protocolCards">
+
+    <article class="pcard" data-protocol="trial" data-name="Trial Protocol" data-pack="6-Pack" data-purchase-cta="Begin the Ritual"
+             data-why-body="For your first experience. No subscription, no obligation. Just your first ritual.">
+      <span class="rec-ribbon">Recommended</span>
+      <div class="pcard-visual is-stick"><img src="/assets/stick-red.png" alt="Trial Protocol — AFORCE stick" loading="lazy" decoding="async"></div>
+      <div class="p-pack">6-Pack — 11 oz cans</div>
+      <h3>Trial Protocol</h3>
+      <div class="p-lines"><span>Experience AFORCE.</span></div>
+      <div class="p-price">$32.99</div>
+      <div class="p-foot">
+        <button class="p-cta" type="button" data-choose="trial">Begin</button>
+        <button class="why-link" type="button" data-why="trial"><span class="i">i</span>Why this protocol?</button>
+      </div>
+    </article>
+
+    <article class="pcard" data-protocol="performance" data-name="Performance Protocol" data-pack="12-Pack" data-purchase-cta="Continue"
+             data-why-body="Built for people who want hydration to become part of a consistent performance routine. Includes AFORCE OS access.">
+      <span class="rec-ribbon">Recommended</span>
+      <div class="pcard-visual"><img src="/assets/can-blue.png" alt="Performance Protocol — AFORCE can" loading="lazy" decoding="async"></div>
+      <div class="p-pack">12-Pack — 11 oz cans</div>
+      <h3>Performance Protocol</h3>
+      <div class="p-lines"><span>Most chosen.</span><span>Built for daily execution.</span></div>
+      <div class="p-price">$59.99</div>
+      <div class="p-foot">
+        <button class="p-cta" type="button" data-choose="performance">Choose Protocol</button>
+        <button class="why-link" type="button" data-why="performance"><span class="i">i</span>Why this protocol?</button>
+      </div>
+    </article>
+
+    <article class="pcard" data-protocol="autopilot" data-name="AutoPilot" data-pack="12-Pack Subscription" data-purchase-cta="Activate My Protocol"
+             data-why-body="For people who have decided. Ships every 30 days. Your performance system runs itself.">
+      <span class="rec-ribbon">Recommended</span>
+      <div class="pcard-visual is-stick"><img src="/assets/stick-green.png" alt="AutoPilot — AFORCE stick" loading="lazy" decoding="async"></div>
+      <div class="p-pack">12-Pack Subscription — 11 oz cans</div>
+      <h3>AutoPilot</h3>
+      <div class="p-lines"><span>Ships every 30 days.</span><span>Includes AFORCE OS.</span></div>
+      <div class="p-price">$54.99<small>per 30 days</small></div>
+      <div class="p-foot">
+        <button class="p-cta" type="button" data-choose="autopilot">Activate AutoPilot</button>
+        <button class="why-link" type="button" data-why="autopilot"><span class="i">i</span>Why this protocol?</button>
+      </div>
+    </article>
+
+  </div>
 </section>
 
-<!-- SECTION B — COMMITMENT -->
+<!-- SECTION B — COMMITMENT (static markup; JS enhances) -->
 <section class="sec reveal" id="months">
   <p class="sec-eyebrow"><span class="step-i">Step 03</span> · The Commitment</p>
-  <h2 id="commitQuestion"></h2>
-  <div class="commit-opts" id="commitOpts" role="group" aria-label="Commitment length"></div>
+  <h2 id="commitQuestion">How many months should we prepare?</h2>
+  <div class="commit-opts" id="commitOpts" role="group" aria-label="Commitment length">
+    <button class="commit-opt" type="button" data-months="1" aria-pressed="false"><span class="radio" aria-hidden="true"></span>One Month</button>
+    <button class="commit-opt" type="button" data-months="2" aria-pressed="false"><span class="radio" aria-hidden="true"></span>Two Months</button>
+    <button class="commit-opt" type="button" data-months="3" aria-pressed="false"><span class="radio" aria-hidden="true"></span>Three Months</button>
+  </div>
 </section>
 
-<!-- SECTION C — FLAVOR -->
+<!-- SECTION C — FLAVOR (static markup; JS enhances) -->
 <section class="sec reveal" id="flavor">
   <p class="sec-eyebrow"><span class="step-i">Step 04</span> · The Formulation</p>
-  <h2 id="flavorHeading"></h2>
-  <div class="flavors" id="flavorCards"></div>
+  <h2 id="flavorHeading">Select Your Formulation</h2>
+  <div class="flavors" id="flavorCards">
+    <button class="fcard" type="button" data-flavor="red" data-name="Watermelon Surge">
+      <span class="rec-ribbon">Recommended</span>
+      <div class="fcard-visual"><img src="/assets/can-red.png" alt="AFORCE Watermelon Surge" loading="lazy" decoding="async"></div>
+      <div class="fcard-body"><h3>Watermelon Surge</h3><p>Heat Guard optimized. Built for high heat and high activity days.</p><span class="fcard-pick"></span></div>
+    </button>
+    <button class="fcard" type="button" data-flavor="blue" data-name="Berry Blast">
+      <span class="rec-ribbon">Recommended</span>
+      <div class="fcard-visual"><img src="/assets/can-blue.png" alt="AFORCE Berry Blast" loading="lazy" decoding="async"></div>
+      <div class="fcard-body"><h3>Berry Blast</h3><p>Daily performance. Your consistent foundation.</p><span class="fcard-pick"></span></div>
+    </button>
+    <button class="fcard" type="button" data-flavor="green" data-name="Soursop Edge">
+      <span class="rec-ribbon">Recommended</span>
+      <div class="fcard-visual"><img src="/assets/can-green.png" alt="AFORCE Soursop Edge" loading="lazy" decoding="async"></div>
+      <div class="fcard-body"><h3>Soursop Edge</h3><p>Recovery. Built for your hardest recovery days.</p><span class="fcard-pick"></span></div>
+    </button>
+  </div>
 </section>
 
 <!-- SECTION D — PURCHASE -->
@@ -493,194 +575,52 @@
   <button class="wm-close" id="whyClose">Close</button>
 </div>
 
-<!-- Absolute path so the config resolves whether the page is served at /shop or /shop/ -->
-<script src="/shop/shop-config.js"></script>
 <script>
+/* =====================================================================
+   AFORCE SHOP — interaction layer (DOM-DRIVEN)
+   ---------------------------------------------------------------------
+   Every step (intent, protocols, commitment, flavors) is real static
+   HTML above. This script only ENHANCES that markup — it binds click
+   handlers and reads copy/prices/recommendations from data-attributes
+   on the existing elements. It creates no content, so the page is fully
+   visible and readable even if this script fails or is slow to load.
+   Nothing here depends on an external config file.
+   ===================================================================== */
 (function(){
   "use strict";
 
-  /* ---------- CONFIG (external CMS file, with a COMPLETE built-in fallback) ----------
-     Primary source is /shop/shop-config.js (marketing-editable). If that file ever
-     fails to load, this fallback renders the FULL shop — every intent button,
-     protocol card, and flavor — so the page is never empty and can always sell.
-     Keep this fallback in sync with shop-config.js when prices/copy change. */
-  var CFG = window.AFORCE_SHOP_CONFIG;
-  if(!CFG || !CFG.protocols || !CFG.protocols.length){
-    CFG = {
-      intent:{
-        headlineLead:"What are you", headlineEm:"preparing for?",
-        subline:"Nobody here is buying a flavor. Choose the demand — the protocol answers.",
-        options:[
-          { id:"training",    label:"Training",    protocol:"performance", flavor:"blue",  line:"Training points to the <b>Performance Protocol</b> and <b>Berry Blast</b>. Adjust anything — this is a suggestion, not a lock." },
-          { id:"recovery",    label:"Recovery",    protocol:"performance", flavor:"green", line:"Recovery points to the <b>Performance Protocol</b> and <b>Soursop Edge</b>. Adjust anything — this is a suggestion, not a lock." },
-          { id:"deepwork",    label:"Deep Work",   protocol:"performance", flavor:"blue",  line:"Deep Work points to the <b>Performance Protocol</b> and <b>Berry Blast</b>. Adjust anything — this is a suggestion, not a lock." },
-          { id:"travel",      label:"Travel",      protocol:"autopilot",   flavor:"green", line:"Travel points to <b>AutoPilot</b> and <b>Soursop Edge</b>. Adjust anything — this is a suggestion, not a lock." },
-          { id:"competition", label:"Competition", protocol:"performance", flavor:"red",   line:"Competition points to the <b>Performance Protocol</b> and <b>Watermelon Surge</b>. Adjust anything — this is a suggestion, not a lock." },
-          { id:"heat",        label:"Heat",        protocol:"performance", flavor:"red",   line:"Heat points to the <b>Performance Protocol</b> and <b>Watermelon Surge</b>. Adjust anything — this is a suggestion, not a lock." }
-        ]
-      },
-      showcase:{ heading:"The Formulations", subline:"Three formulations, one standard. This is the product — choose yours inside the flow below." },
-      signatureCan:"/assets/can-blue.png",
-      protocolsHeading:"Choose Your Performance Protocol",
-      protocols:[
-        { id:"trial",       name:"Trial Protocol",       pack:"6-Pack",              cardImage:"/assets/stick-red.png",   lines:["Experience AFORCE."],                        price:32.99, priceNote:"",           cardCta:"Begin",             purchaseCta:"Begin the Ritual",     why:"For your first experience. Try AFORCE before committing to a full routine. No subscription, no obligation. Just your first ritual." },
-        { id:"performance", name:"Performance Protocol", pack:"12-Pack",             cardImage:"/assets/can-blue.png",    lines:["Most chosen.","Built for daily execution."], price:59.99, priceNote:"",           cardCta:"Choose Protocol",   purchaseCta:"Continue",             why:"Built for people who want hydration to become part of a consistent performance routine. Includes AFORCE OS access and is designed to support a daily ritual rather than occasional use." },
-        { id:"autopilot",   name:"AutoPilot",            pack:"12-Pack Subscription",cardImage:"/assets/stick-green.png", lines:["Ships every 30 days.","Includes AFORCE OS."], price:54.99, priceNote:"per 30 days", cardCta:"Activate AutoPilot",purchaseCta:"Activate My Protocol", why:"For people who have decided. Ships every 30 days so you never break your ritual. Includes full AFORCE OS access. Your performance system runs itself." }
-      ],
-      whyLinkLabel:"Why this protocol?",
-      commitment:{ question:"How many months should we prepare?", options:[{value:1,label:"One Month"},{value:2,label:"Two Months"},{value:3,label:"Three Months"}] },
-      flavorsHeading:"Select Your Formulation",
-      flavors:[
-        { id:"red",   name:"Watermelon Surge", desc:"Heat Guard optimized. Built for high heat and high activity days.", img:"/assets/can-red.png" },
-        { id:"blue",  name:"Berry Blast",      desc:"Daily performance. Your consistent foundation.",                   img:"/assets/can-blue.png" },
-        { id:"green", name:"Soursop Edge",     desc:"Recovery. Built for your hardest recovery days.",                  img:"/assets/can-green.png" }
-      ],
-      sticksShowcase:{ heading:"The Sticks", subline:"The same formulations, portable. Drop a stick into any water and the ritual travels with you." },
-      sticks:[
-        { id:"red",   name:"Watermelon Surge", desc:"Heat Guard optimized. For high heat and high activity — anywhere.", img:"/assets/stick-red.png" },
-        { id:"blue",  name:"Berry Blast",      desc:"Daily performance. Your consistent foundation, on the move.",       img:"/assets/stick-blue.png" },
-        { id:"green", name:"Soursop Edge",     desc:"Recovery. For your hardest recovery days, on the road.",            img:"/assets/stick-green.png" }
-      ],
-      purchase:{ fallbackCta:"Begin the Ritual", reassurance:"AFORCE OS activates the moment your Performance Profile is initialized." },
-      delight:{ recommendedRibbon:"Recommended" }
-    };
-  }
-
-  /* ---------- ANALYTICS (Section L, frontend events) ----------
-     track() pushes to window.dataLayer (GA4 / GTM friendly) and calls an
-     optional window.aforceTrack(event, props) hook. Wire a provider by
-     defining window.aforceTrack; no page change needed. Never throws. */
+  /* analytics — pushes to dataLayer + optional window.aforceTrack hook; never throws */
   function track(event, props){
     props = props || {};
     try{
       window.dataLayer = window.dataLayer || [];
       window.dataLayer.push(Object.assign({ event:event }, props));
       if(typeof window.aforceTrack === "function") window.aforceTrack(event, props);
-    }catch(e){ /* analytics must never break the flow */ }
+    }catch(e){}
   }
 
-  /* ---------- STATE ---------- */
   var state = { intent:null, protocol:null, months:null, flavor:null };
-  function protoById(id){ return CFG.protocols.filter(function(p){ return p.id===id; })[0] || null; }
-  function flavorById(id){ return CFG.flavors.filter(function(f){ return f.id===id; })[0] || null; }
-  function money(n){ return "$" + Number(n).toFixed(2); }
-  var esc = (function(){ var d=document.createElement("div"); return function(s){ d.textContent=s==null?"":String(s); return d.innerHTML; }; })();
+  var byId = function(id){ return document.getElementById(id); };
+  function pcard(id){ return document.querySelector('.pcard[data-protocol="'+id+'"]'); }
+  function fcard(id){ return document.querySelector('.fcard[data-flavor="'+id+'"]'); }
+  function nameFromCard(el){ var h=el&&el.querySelector("h3"); return h?h.textContent.trim():""; }
 
-  /* ---------- RENDER: BRAND SHOWCASE (visual only) ---------- */
-  var showcaseCfg = CFG.showcase || {};
-  document.getElementById("showcaseHeading").textContent = showcaseCfg.heading || "The Formulations";
-  document.getElementById("showcaseSub").textContent = showcaseCfg.subline || "";
-  var scWrap = document.getElementById("showcaseGrid");
-  (CFG.flavors||[]).forEach(function(f, i){
-    var card = document.createElement("div");
-    card.className = "sc-card"; card.setAttribute("data-flavor", f.id);
-    var idx = ("0" + (i+1)).slice(-2) + " / " + ("0" + CFG.flavors.length).slice(-2);
-    card.innerHTML =
-      '<div class="sc-visual"><span class="sc-index">'+idx+'</span>' +
-        '<img src="'+esc(f.img)+'" alt="AFORCE '+esc(f.name)+'" loading="lazy" decoding="async"></div>' +
-      '<div class="sc-body"><h3>'+esc(f.name)+'</h3><p>'+esc(f.desc)+'</p></div>';
-    scWrap.appendChild(card);
-  });
-
-  /* ---------- RENDER: STICKS SHOWCASE (visual only — mirrors the cans) ---------- */
-  var sticksCfg = CFG.sticksShowcase || {};
-  var stHead = document.getElementById("sticksHeading");
-  var stWrap = document.getElementById("sticksGrid");
-  if(stHead && stWrap && (CFG.sticks||[]).length){
-    stHead.textContent = sticksCfg.heading || "The Sticks";
-    document.getElementById("sticksSub").textContent = sticksCfg.subline || "";
-    CFG.sticks.forEach(function(s, i){
-      var card = document.createElement("div");
-      card.className = "sc-card"; card.setAttribute("data-flavor", s.id);
-      var idx = ("0" + (i+1)).slice(-2) + " / " + ("0" + CFG.sticks.length).slice(-2);
-      card.innerHTML =
-        '<div class="sc-visual"><span class="sc-index">'+idx+'</span>' +
-          '<img src="'+esc(s.img)+'" alt="AFORCE '+esc(s.name)+' stick" loading="lazy" decoding="async"></div>' +
-        '<div class="sc-body"><h3>'+esc(s.name)+'</h3><p>'+esc(s.desc)+'</p></div>';
-      stWrap.appendChild(card);
-    });
-  }
-
-  /* ---------- RENDER: SECTION 0 INTENT ---------- */
-  document.getElementById("intentHeading").innerHTML =
-    esc(CFG.intent.headlineLead) + ' <em>' + esc(CFG.intent.headlineEm) + '</em>';
-  document.getElementById("intentSub").textContent = CFG.intent.subline || "";
-  var chipsWrap = document.getElementById("intentChips");
-  (CFG.intent.options||[]).forEach(function(opt){
-    var b = document.createElement("button");
-    b.className = "chip"; b.type = "button";
-    b.setAttribute("data-intent", opt.id);
-    b.setAttribute("aria-pressed","false");
-    b.textContent = opt.label;
-    chipsWrap.appendChild(b);
-  });
-
-  /* ---------- RENDER: SECTION A PROTOCOLS ---------- */
-  document.getElementById("protocolHeading").textContent = CFG.protocolsHeading || "";
-  var pWrap = document.getElementById("protocolCards");
-  CFG.protocols.forEach(function(p){
-    var card = document.createElement("article");
-    card.className = "pcard"; card.setAttribute("data-protocol", p.id);
-    var lines = (p.lines||[]).map(function(l){ return '<span>'+esc(l)+'</span>'; }).join("");
-    var canImg = p.cardImage || CFG.signatureCan || "";
-    var isStick = canImg.indexOf("stick") > -1;
-    card.innerHTML =
-      '<span class="rec-ribbon">'+esc((CFG.delight&&CFG.delight.recommendedRibbon)||"Recommended")+'</span>' +
-      (canImg ? '<div class="pcard-visual'+(isStick?' is-stick':'')+'"><img src="'+esc(canImg)+'" alt="'+esc(p.name)+' — AFORCE '+(isStick?'stick':'can')+'" loading="lazy" decoding="async"></div>' : '') +
-      '<div class="p-pack">'+esc(p.pack)+'</div>' +
-      '<h3>'+esc(p.name)+'</h3>' +
-      '<div class="p-lines">'+lines+'</div>' +
-      '<div class="p-price">'+money(p.price)+ (p.priceNote?'<small>'+esc(p.priceNote)+'</small>':'') +'</div>' +
-      '<div class="p-foot">' +
-        '<button class="p-cta" type="button" data-choose="'+p.id+'">'+esc(p.cardCta)+'</button>' +
-        '<button class="why-link" type="button" data-why="'+p.id+'"><span class="i">i</span>'+esc(CFG.whyLinkLabel||"Why this protocol?")+'</button>' +
-      '</div>';
-    pWrap.appendChild(card);
-  });
-
-  /* ---------- RENDER: SECTION B COMMITMENT ---------- */
-  document.getElementById("commitQuestion").textContent = CFG.commitment.question || "";
-  var cWrap = document.getElementById("commitOpts");
-  (CFG.commitment.options||[]).forEach(function(o){
-    var b = document.createElement("button");
-    b.className="commit-opt"; b.type="button";
-    b.setAttribute("data-months", o.value); b.setAttribute("aria-pressed","false");
-    b.innerHTML = '<span class="radio" aria-hidden="true"></span>'+esc(o.label);
-    cWrap.appendChild(b);
-  });
-
-  /* ---------- RENDER: SECTION C FLAVORS ---------- */
-  document.getElementById("flavorHeading").textContent = CFG.flavorsHeading || "";
-  var fWrap = document.getElementById("flavorCards");
-  CFG.flavors.forEach(function(f){
-    var card = document.createElement("button");
-    card.className="fcard"; card.type="button"; card.setAttribute("data-flavor", f.id);
-    card.innerHTML =
-      '<span class="rec-ribbon">'+esc((CFG.delight&&CFG.delight.recommendedRibbon)||"Recommended")+'</span>' +
-      '<div class="fcard-visual"><img src="'+esc(f.img)+'" alt="AFORCE '+esc(f.name)+'" loading="lazy" decoding="async"></div>' +
-      '<div class="fcard-body"><h3>'+esc(f.name)+'</h3><p>'+esc(f.desc)+'</p><span class="fcard-pick"></span></div>';
-    fWrap.appendChild(card);
-  });
-
-  /* ---------- STEP RAIL ---------- */
   function markStep(step, done){
     var el = document.querySelector('.steprail .sr[data-step="'+step+'"]');
     if(el) el.classList.toggle("done", !!done);
   }
 
-  /* ---------- PRE-HIGHLIGHT (recommendation) ---------- */
+  /* pre-highlight recommended protocol + flavor (suggestion only, never forced) */
   function clearRecommended(){
     document.querySelectorAll(".pcard.recommended,.fcard.recommended").forEach(function(el){ el.classList.remove("recommended"); });
   }
-  function applyRecommendation(opt){
+  function applyRecommendation(recProtocol, recFlavor){
     clearRecommended();
-    var pc = document.querySelector('.pcard[data-protocol="'+opt.protocol+'"]');
-    var fc = document.querySelector('.fcard[data-flavor="'+opt.flavor+'"]');
+    var pc = pcard(recProtocol), fc = fcard(recFlavor);
     if(pc) pc.classList.add("recommended");
     if(fc) fc.classList.add("recommended");
   }
 
-  /* ---------- SUMMARY / PURCHASE BUTTON ---------- */
   function setSlot(slot, text, filled){
     var el = document.querySelector('.ps-cell .v[data-slot="'+slot+'"]');
     if(!el) return;
@@ -689,56 +629,61 @@
   }
   function refreshPurchase(){
     var ready = state.protocol && state.months && state.flavor;
-    var btn = document.getElementById("purchaseBtn");
-    var p = protoById(state.protocol);
-    btn.textContent = p ? (p.purchaseCta || CFG.purchase.fallbackCta) : CFG.purchase.fallbackCta;
+    var btn = byId("purchaseBtn");
+    var sel = state.protocol ? pcard(state.protocol) : null;
+    btn.textContent = (sel && sel.getAttribute("data-purchase-cta")) || "Begin the Ritual";
     btn.disabled = !ready;
-    document.getElementById("purchaseNote").textContent =
-      ready ? (CFG.purchase.reassurance||"") : "Choose your protocol, commitment, and formulation to begin.";
+    byId("purchaseNote").textContent = ready
+      ? "AFORCE OS activates the moment your Performance Profile is initialized."
+      : "Choose your protocol, commitment, and formulation to begin.";
     markStep("ready", !!ready);
   }
 
-  /* ---------- INTENT SELECT ---------- */
-  chipsWrap.addEventListener("click", function(e){
+  /* ---------- INTENT ---------- */
+  var chipsWrap = byId("intentChips");
+  if(chipsWrap) chipsWrap.addEventListener("click", function(e){
     var chip = e.target.closest(".chip"); if(!chip) return;
     var id = chip.getAttribute("data-intent");
-    var opt = (CFG.intent.options||[]).filter(function(o){ return o.id===id; })[0];
-    if(!opt) return;
+    var recP = chip.getAttribute("data-rec-protocol");
+    var recF = chip.getAttribute("data-rec-flavor");
     state.intent = id;
     document.querySelectorAll(".chip").forEach(function(c){ c.setAttribute("aria-pressed", c===chip?"true":"false"); });
-    document.getElementById("intentAnswer").innerHTML = opt.line || "";
-    applyRecommendation(opt);
+    applyRecommendation(recP, recF);
+    var pName = nameFromCard(pcard(recP)), fName = nameFromCard(fcard(recF));
+    byId("intentAnswer").innerHTML = "Recommended: <b>" + pName + "</b> · <b>" + fName +
+      "</b> — pre-highlighted below. Adjust anything; this is a suggestion, not a lock.";
     markStep("intent", true);
     track("intent_selected", { intent:id });
-    document.getElementById("protocol").scrollIntoView({ behavior:"smooth", block:"start" });
+    byId("protocol").scrollIntoView({ behavior:"smooth", block:"start" });
   });
 
-  /* ---------- PROTOCOL: choose + why ---------- */
-  pWrap.addEventListener("click", function(e){
+  /* ---------- PROTOCOL (choose + why) ---------- */
+  var pWrap = byId("protocolCards");
+  if(pWrap) pWrap.addEventListener("click", function(e){
     var choose = e.target.closest("[data-choose]");
     var why = e.target.closest("[data-why]");
     if(choose){
       var id = choose.getAttribute("data-choose");
       state.protocol = id;
       document.querySelectorAll(".pcard").forEach(function(c){ c.classList.toggle("selected", c.getAttribute("data-protocol")===id); });
-      var p = protoById(id);
-      setSlot("protocol", p ? (p.name + " · " + p.pack) : "", true);
+      var card = pcard(id);
+      setSlot("protocol", nameFromCard(card) + " · " + (card.getAttribute("data-pack")||""), true);
       refreshPurchase();
       markStep("protocol", true);
       track("protocol_card_selected", { protocol:id });
-      document.getElementById("months").scrollIntoView({ behavior:"smooth", block:"start" });
+      byId("months").scrollIntoView({ behavior:"smooth", block:"start" });
     } else if(why){
-      var wid = why.getAttribute("data-why");
-      var wp = protoById(wid); if(!wp) return;
-      document.getElementById("whyModalTitle").textContent = wp.name;
-      document.getElementById("whyModalBody").textContent = wp.why || "";
+      var card2 = pcard(why.getAttribute("data-why")); if(!card2) return;
+      byId("whyModalTitle").textContent = nameFromCard(card2);
+      byId("whyModalBody").textContent = card2.getAttribute("data-why-body") || "";
       openWhy();
-      track("why_protocol_overlay_opened", { protocol:wid });
+      track("why_protocol_overlay_opened", { protocol:why.getAttribute("data-why") });
     }
   });
 
   /* ---------- COMMITMENT ---------- */
-  cWrap.addEventListener("click", function(e){
+  var cWrap = byId("commitOpts");
+  if(cWrap) cWrap.addEventListener("click", function(e){
     var opt = e.target.closest(".commit-opt"); if(!opt) return;
     var months = parseInt(opt.getAttribute("data-months"), 10);
     state.months = months;
@@ -747,44 +692,42 @@
     refreshPurchase();
     markStep("months", true);
     track("commitment_months_selected", { months:months });
-    document.getElementById("flavor").scrollIntoView({ behavior:"smooth", block:"start" });
+    byId("flavor").scrollIntoView({ behavior:"smooth", block:"start" });
   });
 
   /* ---------- FLAVOR ---------- */
-  fWrap.addEventListener("click", function(e){
+  var fWrap = byId("flavorCards");
+  if(fWrap) fWrap.addEventListener("click", function(e){
     var card = e.target.closest(".fcard"); if(!card) return;
     var id = card.getAttribute("data-flavor");
     state.flavor = id;
     document.querySelectorAll(".fcard").forEach(function(c){ c.classList.toggle("selected", c===card); });
-    var f = flavorById(id);
-    setSlot("flavor", f ? f.name : "", true);
+    setSlot("flavor", nameFromCard(card), true);
     refreshPurchase();
     markStep("flavor", true);
     track("flavor_selected", { flavor:id });
-    document.getElementById("begin").scrollIntoView({ behavior:"smooth", block:"start" });
+    byId("begin").scrollIntoView({ behavior:"smooth", block:"start" });
   });
 
-  /* ---------- PURCHASE (Section D → checkout_started) ---------- */
-  document.getElementById("purchaseBtn").addEventListener("click", function(){
+  /* ---------- PURCHASE (checkout_started) ---------- */
+  byId("purchaseBtn").addEventListener("click", function(){
     if(!(state.protocol && state.months && state.flavor)) return;
-    var payload = { protocol:state.protocol, flavor:state.flavor, months:state.months };
+    var payload = { protocol:state.protocol, flavor:state.flavor, months:state.months, intent:state.intent };
     track("checkout_started", payload);
-    // Hand off to the real checkout (built in the AForce OS backend — see
-    // docs/AFORCE_SHOP_BACKEND_SPEC.md). If a checkout bridge is present, use it.
+    // Real checkout lives in the AForce OS backend — see docs/AFORCE_SHOP_BACKEND_SPEC.md
     if(typeof window.AForceCheckout === "function"){ window.AForceCheckout(payload); return; }
-    var note = document.getElementById("purchaseNote");
-    note.textContent = "Preparing your Performance Profile — checkout opens next.";
+    byId("purchaseNote").textContent = "Preparing your Performance Profile — checkout opens next.";
   });
 
   /* ---------- WHY OVERLAY ---------- */
-  var whyVeil = document.getElementById("whyVeil"), whyModal = document.getElementById("whyModal");
+  var whyVeil = byId("whyVeil"), whyModal = byId("whyModal");
   function openWhy(){ whyVeil.classList.add("open"); whyModal.classList.add("open"); }
   function closeWhy(){ whyVeil.classList.remove("open"); whyModal.classList.remove("open"); }
-  document.getElementById("whyClose").addEventListener("click", closeWhy);
+  byId("whyClose").addEventListener("click", closeWhy);
   whyVeil.addEventListener("click", closeWhy);
   document.addEventListener("keydown", function(e){ if(e.key==="Escape") closeWhy(); });
 
-  /* ---------- protocol_card_viewed (once per card, on first view) ---------- */
+  /* ---------- protocol_card_viewed (once per card) ---------- */
   if("IntersectionObserver" in window){
     var seen = {};
     var pvObs = new IntersectionObserver(function(entries){
