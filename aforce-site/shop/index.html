@@ -482,21 +482,50 @@
   <button class="wm-close" id="whyClose">Close</button>
 </div>
 
-<script src="shop-config.js"></script>
+<!-- Absolute path so the config resolves whether the page is served at /shop or /shop/ -->
+<script src="/shop/shop-config.js"></script>
 <script>
 (function(){
   "use strict";
 
-  /* ---------- CONFIG (with safe built-in fallback) ---------- */
+  /* ---------- CONFIG (external CMS file, with a COMPLETE built-in fallback) ----------
+     Primary source is /shop/shop-config.js (marketing-editable). If that file ever
+     fails to load, this fallback renders the FULL shop — every intent button,
+     protocol card, and flavor — so the page is never empty and can always sell.
+     Keep this fallback in sync with shop-config.js when prices/copy change. */
   var CFG = window.AFORCE_SHOP_CONFIG;
-  if(!CFG || !CFG.protocols){
-    // Fallback keeps the page functional if the config file fails to load.
+  if(!CFG || !CFG.protocols || !CFG.protocols.length){
     CFG = {
-      intent:{ headlineLead:"What are you", headlineEm:"preparing for?", subline:"Choose the demand — the protocol answers.", options:[] },
-      protocolsHeading:"Choose Your Performance Protocol", protocols:[], whyLinkLabel:"Why this protocol?",
+      intent:{
+        headlineLead:"What are you", headlineEm:"preparing for?",
+        subline:"Nobody here is buying a flavor. Choose the demand — the protocol answers.",
+        options:[
+          { id:"training",    label:"Training",    protocol:"performance", flavor:"blue",  line:"Training points to the <b>Performance Protocol</b> and <b>Berry Blast</b>. Adjust anything — this is a suggestion, not a lock." },
+          { id:"recovery",    label:"Recovery",    protocol:"performance", flavor:"green", line:"Recovery points to the <b>Performance Protocol</b> and <b>Soursop Edge</b>. Adjust anything — this is a suggestion, not a lock." },
+          { id:"deepwork",    label:"Deep Work",   protocol:"performance", flavor:"blue",  line:"Deep Work points to the <b>Performance Protocol</b> and <b>Berry Blast</b>. Adjust anything — this is a suggestion, not a lock." },
+          { id:"travel",      label:"Travel",      protocol:"autopilot",   flavor:"green", line:"Travel points to <b>AutoPilot</b> and <b>Soursop Edge</b>. Adjust anything — this is a suggestion, not a lock." },
+          { id:"competition", label:"Competition", protocol:"performance", flavor:"red",   line:"Competition points to the <b>Performance Protocol</b> and <b>Watermelon Surge</b>. Adjust anything — this is a suggestion, not a lock." },
+          { id:"heat",        label:"Heat",        protocol:"performance", flavor:"red",   line:"Heat points to the <b>Performance Protocol</b> and <b>Watermelon Surge</b>. Adjust anything — this is a suggestion, not a lock." }
+        ]
+      },
+      showcase:{ heading:"The Formulations", subline:"Three formulations, one standard. This is the product — choose yours inside the flow below." },
+      signatureCan:"/assets/can-blue.png",
+      protocolsHeading:"Choose Your Performance Protocol",
+      protocols:[
+        { id:"trial",       name:"Trial Protocol",       pack:"6-Pack",              lines:["Experience AFORCE."],                        price:32.99, priceNote:"",           cardCta:"Begin",             purchaseCta:"Begin the Ritual",     why:"For your first experience. Try AFORCE before committing to a full routine. No subscription, no obligation. Just your first ritual." },
+        { id:"performance", name:"Performance Protocol", pack:"12-Pack",             lines:["Most chosen.","Built for daily execution."], price:59.99, priceNote:"",           cardCta:"Choose Protocol",   purchaseCta:"Continue",             why:"Built for people who want hydration to become part of a consistent performance routine. Includes AFORCE OS access and is designed to support a daily ritual rather than occasional use." },
+        { id:"autopilot",   name:"AutoPilot",            pack:"12-Pack Subscription",lines:["Ships every 30 days.","Includes AFORCE OS."], price:54.99, priceNote:"per 30 days", cardCta:"Activate AutoPilot",purchaseCta:"Activate My Protocol", why:"For people who have decided. Ships every 30 days so you never break your ritual. Includes full AFORCE OS access. Your performance system runs itself." }
+      ],
+      whyLinkLabel:"Why this protocol?",
       commitment:{ question:"How many months should we prepare?", options:[{value:1,label:"One Month"},{value:2,label:"Two Months"},{value:3,label:"Three Months"}] },
-      flavorsHeading:"Select Your Formulation", flavors:[],
-      purchase:{ fallbackCta:"Begin the Ritual", reassurance:"" }, delight:{ recommendedRibbon:"Recommended" }
+      flavorsHeading:"Select Your Formulation",
+      flavors:[
+        { id:"red",   name:"Watermelon Surge", desc:"Heat Guard optimized. Built for high heat and high activity days.", img:"/assets/can-red.png" },
+        { id:"blue",  name:"Berry Blast",      desc:"Daily performance. Your consistent foundation.",                   img:"/assets/can-blue.png" },
+        { id:"green", name:"Soursop Edge",     desc:"Recovery. Built for your hardest recovery days.",                  img:"/assets/can-green.png" }
+      ],
+      purchase:{ fallbackCta:"Begin the Ritual", reassurance:"AFORCE OS activates the moment your Performance Profile is initialized." },
+      delight:{ recommendedRibbon:"Recommended" }
     };
   }
 
