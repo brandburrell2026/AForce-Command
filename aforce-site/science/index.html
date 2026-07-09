@@ -241,12 +241,25 @@
   .metric .m-spark{margin-top:16px;height:26px;width:100%;}
   .metric .m-spark path{fill:none;stroke:var(--red);stroke-width:1.5;}
 
-  /* ---------- REFERENCES ---------- */
+  /* ---------- REFERENCES / STANDARD ---------- */
   .refs{max-width:900px;}
+  .std-group{margin-top:clamp(24px,3vw,40px);}
+  .std-block{border-top:1px solid var(--c08);padding:clamp(22px,2.8vw,38px) 0;}
+  .std-block:last-child{border-bottom:1px solid var(--c08);}
+  .std-block .h-3{max-width:22ch;}
+  .std-block .eb-body{margin-top:12px;}
   .ref-list{list-style:none;margin-top:26px;border-top:1px solid var(--c08);}
-  .ref-list li{display:grid;grid-template-columns:44px 1fr auto;gap:16px;padding:18px 0;border-bottom:1px solid var(--c08);align-items:baseline;font-family:var(--mono);font-size:12px;letter-spacing:.04em;color:var(--c55);}
-  .ref-list li .rn{color:var(--c40);}
-  .ref-list li .pending{color:var(--red);font-size:10px;letter-spacing:.16em;text-transform:uppercase;white-space:nowrap;}
+  .ref-list li{display:grid;grid-template-columns:44px 1fr;gap:16px;padding:20px 0;border-bottom:1px solid var(--c08);align-items:baseline;}
+  .ref-list li .rn{font-family:var(--mono);font-size:12px;letter-spacing:.04em;color:var(--c40);}
+  .ref-topic{display:block;font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--red);}
+  .ref-cite{display:block;margin-top:8px;font-family:var(--body);font-size:14.5px;line-height:1.65;color:var(--c70);max-width:72ch;}
+  .refs-close{margin-top:clamp(48px,6vw,90px);border-top:1px solid var(--c08);padding-top:clamp(32px,4vw,54px);}
+  .refs-final-line{font-family:var(--display);font-weight:700;text-transform:uppercase;line-height:1.14;font-size:clamp(18px,2vw,26px);max-width:22ch;}
+  .nonneg-line{margin-top:22px;font-family:var(--display);font-weight:800;text-transform:uppercase;line-height:1.06;letter-spacing:-0.005em;font-size:clamp(22px,3vw,40px);}
+  .nn-mark{margin-top:28px;display:inline-flex;align-items:center;gap:7px;font-family:var(--display);font-weight:800;font-size:clamp(30px,4vw,52px);line-height:1;}
+  .nn-mark > span:first-child{color:var(--red);}
+  .nn-mark .nn-bar{display:inline-block;width:15px;height:3.5px;background:var(--red);}
+  .nn-mark .flip{display:inline-block;transform:scaleX(-1);}
 
   /* ---------- FINAL SECTION ---------- */
   .final{text-align:left;}
@@ -674,19 +687,53 @@
   </div>
 </section>
 
-<!-- ============ REFERENCES (content pending) ============ -->
+<!-- ============ THE AFORCE STANDARD / REFERENCES ============ -->
 <section id="references" class="divider">
   <div class="wrap refs">
-    <div class="mono-note reveal" style="color:var(--c70);letter-spacing:.26em">References</div>
-    <!-- Real, checkable peer-reviewed citations to be supplied and verified before launch. -->
+
+    <!-- THE AFORCE STANDARD -->
+    <div class="reveal stack-md">
+      <div class="eyebrow">The AFORCE Standard</div>
+      <p class="lead">Before anything becomes part of AFORCE, it earns its place. Every ingredient. Every process. Every decision is held to the same standard.</p>
+    </div>
+    <div class="reveal std-group">
+      <div class="std-block"><h3 class="h-3">Established Science</h3><p class="eb-body">Peer-reviewed scientific literature informs our understanding of hydration, electrolyte physiology, ingredient selection, and human performance.</p></div>
+      <div class="std-block"><h3 class="h-3">Engineering Standards</h3><p class="eb-body">Research informs our decisions. Engineering turns those decisions into a consistent product through disciplined formulation, manufacturing, and quality standards.</p></div>
+      <div class="std-block"><h3 class="h-3">Behavioral Intelligence</h3><p class="eb-body">AFORCE OS is designed to recognize preparation as a repeatable behavior. By observing completed rituals over time, it identifies patterns that help users build consistency and readiness. These observations are presented separately from scientific research and are not clinical outcomes.</p></div>
+    </div>
+
+    <!-- WHY WE CHOSE THIS -->
+    <div class="reveal stack-md" style="margin-top:clamp(60px,7vw,110px)">
+      <div class="eyebrow">Why We Chose This</div>
+      <p class="lead">Every choice reflects a standard.</p>
+    </div>
+    <div class="reveal std-group">
+      <div class="std-block"><h3 class="h-3">Marine &amp; Plant Ingredients</h3><p class="eb-body">Selected for their naturally occurring nutrient and mineral profiles and their alignment with our formulation philosophy.</p></div>
+      <div class="std-block"><h3 class="h-3">Electrolyte System</h3><p class="eb-body">Designed around minerals with established roles in hydration, fluid balance, muscle function, and nerve signaling.</p></div>
+      <div class="std-block"><h3 class="h-3">Alkaline pH 8.8</h3><p class="eb-body">Chosen intentionally as one of our formulation standards.</p></div>
+      <div class="std-block"><h3 class="h-3">Retort Processing</h3><p class="eb-body">Selected to support product safety, shelf stability, and manufacturing consistency through a controlled thermal process.</p></div>
+    </div>
+
+    <!-- SCIENTIFIC FOUNDATION -->
+    <div class="reveal stack-md" style="margin-top:clamp(60px,7vw,110px)">
+      <div class="eyebrow">Scientific Foundation</div>
+      <p class="lead">The references below provide educational context for the hydration physiology, electrolyte function, formulation principles, and manufacturing concepts discussed throughout this page. Unless explicitly stated, these references are not clinical studies conducted on AFORCE or evidence of product-specific outcomes.</p>
+    </div>
     <ol class="ref-list reveal">
-      <li><span class="rn">01</span><span>Hydration physiology &amp; fluid balance</span><span class="pending">Citation Pending</span></li>
-      <li><span class="rn">02</span><span>Electrolyte function &amp; muscle contraction</span><span class="pending">Citation Pending</span></li>
-      <li><span class="rn">03</span><span>Sodium, potassium &amp; hydration signaling</span><span class="pending">Citation Pending</span></li>
-      <li><span class="rn">04</span><span>Magnesium &amp; energy metabolism</span><span class="pending">Citation Pending</span></li>
-      <li><span class="rn">05</span><span>Cognitive function under mild dehydration</span><span class="pending">Citation Pending</span></li>
+      <li><span class="rn">01</span><span><span class="ref-topic">Hydration physiology &amp; fluid balance</span><span class="ref-cite">Jéquier E, Constant F. Water as an essential nutrient: the physiological basis of hydration. European Journal of Clinical Nutrition. 2010;64(2):115–123.</span></span></li>
+      <li><span class="rn">02</span><span><span class="ref-topic">Electrolyte function &amp; muscle contraction</span><span class="ref-cite">Shrimanker I, Bhattarai S. Electrolytes. In: StatPearls. Treasure Island (FL): StatPearls Publishing; 2023. NCBI Bookshelf NBK541123.</span></span></li>
+      <li><span class="rn">03</span><span><span class="ref-topic">Sodium, potassium &amp; hydration signaling</span><span class="ref-cite">Popkin BM, D'Anci KE, Rosenberg IH. Water, hydration, and health. Nutrition Reviews. 2010;68(8):439–458.</span></span></li>
+      <li><span class="rn">04</span><span><span class="ref-topic">Magnesium &amp; energy metabolism</span><span class="ref-cite">de Baaij JHF, Hoenderop JGJ, Bindels RJM. Magnesium in man: implications for health and disease. Physiological Reviews. 2015;95(1):1–46.</span></span></li>
+      <li><span class="rn">05</span><span><span class="ref-topic">Cognitive function under mild dehydration</span><span class="ref-cite">Szinnai G, Schachinger H, Arnaud MJ, Linder L, Keller U. Effect of water deprivation on cognitive-motor performance in healthy men and women. American Journal of Physiology – Regulatory, Integrative and Comparative Physiology. 2005;289(1):R275–R280.</span></span></li>
     </ol>
-    <p class="mono-note reveal" style="margin-top:20px">Sources support the educational sections only. No product claims are attached to any citation. Do not publish until sourced and verified.</p>
+
+    <!-- CLOSING -->
+    <div class="reveal refs-close">
+      <p class="refs-final-line">Nothing belongs in AFORCE without a reason.</p>
+      <p class="nonneg-line">Performance Is Non-<span class="flip">N</span>egotiable.</p>
+      <div class="nn-mark" role="img" aria-label="AFORCE N-N mark"><span>N</span><span class="nn-bar"></span><span class="flip">N</span></div>
+    </div>
+
   </div>
 </section>
 
