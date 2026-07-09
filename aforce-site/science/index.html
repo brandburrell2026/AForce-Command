@@ -117,13 +117,26 @@
   @media (prefers-reduced-motion:reduce){
     .asset-slot.media .science-video{ display:none; }
     .asset-slot.media .science-still{ display:block; }
+    .sci-hero-video{ display:none; }
+    .sci-hero-still{ display:block; }
   }
 
-  /* ---------- HERO ---------- */
-  .hero{min-height:100vh;display:grid;grid-template-columns:1.05fr .95fr;gap:clamp(30px,5vw,72px);align-items:center;padding-top:clamp(60px,10vh,120px);padding-bottom:clamp(60px,10vh,120px);}
-  .hero-copy>*+*{margin-top:clamp(20px,2.6vw,30px);}
-  .hero h1{font-size:clamp(38px,6.6vw,92px);}
-  .hero .anchor-line{font-family:var(--mono);font-size:12px;letter-spacing:.16em;color:var(--c40);text-transform:uppercase;}
+  /* ---------- HERO (full-screen cinematic video — matches AFORCE OS) ---------- */
+  .sci-hero{position:relative;min-height:100vh;display:flex;align-items:center;padding:clamp(110px,16vh,180px) var(--gutter) clamp(80px,11vh,130px);background:var(--ink);color:#F5F0E8;overflow:hidden;}
+  .sci-hero-video,.sci-hero-still{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;z-index:0;}
+  .sci-hero-still{display:none;}
+  .sci-hero-scrim{position:absolute;inset:0;z-index:1;background:
+    linear-gradient(90deg, rgba(11,13,18,0.92) 0%, rgba(11,13,18,0.78) 22%, rgba(11,13,18,0.40) 40%, rgba(11,13,18,0.06) 54%, rgba(11,13,18,0) 66%),
+    linear-gradient(180deg, rgba(11,13,18,0.45) 0%, rgba(11,13,18,0) 24%, rgba(11,13,18,0) 70%, rgba(11,13,18,0.64) 100%);}
+  .sci-hero-content{position:relative;z-index:2;width:100%;max-width:600px;margin:0;margin-right:auto;}
+  .sci-hero-content>*+*{margin-top:clamp(20px,2.6vw,28px);}
+  .sci-hero .h-display{color:#F5F0E8;font-size:clamp(30px,4.6vw,62px);line-height:1.04;}
+  .sci-hero .serif{color:rgba(245,240,232,0.82);}
+  .sci-hero .anchor-line{font-family:var(--mono);font-size:12px;letter-spacing:.16em;color:rgba(245,240,232,0.55);text-transform:uppercase;}
+  .sci-hero .cta.red{border-color:var(--red);color:#fff;background:rgba(228,30,43,0.16);}
+  .sci-hero .cta.red:hover{background:var(--red);color:#fff;border-color:var(--red);}
+  .sci-hero-cue{position:absolute;z-index:2;bottom:clamp(26px,4vh,44px);left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:9px;font-family:var(--body);font-weight:600;font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:rgba(245,240,232,0.5);}
+  .sci-hero-cue .line{width:1px;height:40px;background:linear-gradient(rgba(245,240,232,0.4), transparent);}
   .cta{display:inline-flex;align-items:center;gap:12px;font-family:var(--mono);font-size:12px;letter-spacing:.18em;text-transform:uppercase;padding:16px 26px;border:1px solid var(--c25);border-radius:2px;transition:border-color .25s,background .25s,color .25s;}
   .cta:hover{background:var(--ink);color:var(--canvas);border-color:var(--ink);}
   .cta.red{border-color:var(--red);color:var(--red);}
@@ -279,8 +292,7 @@
 
   /* ---------- RESPONSIVE ---------- */
   @media (max-width:960px){
-    .hero{grid-template-columns:1fr;gap:44px;min-height:auto;}
-    .hero-visual{order:-1;}
+    .sci-hero-scrim{background:linear-gradient(180deg, rgba(11,13,18,0.58) 0%, rgba(11,13,18,0.30) 42%, rgba(11,13,18,0.80) 100%);}
     .two-col{grid-template-columns:1fr;}
     .card-grid{grid-template-columns:1fr 1fr;}
     .dash-grid{grid-template-columns:1fr 1fr;}
@@ -328,29 +340,24 @@
 </nav>
 
 <!-- ============ SECTION 1 — HERO ============ -->
-<section class="hero" id="top">
-  <div class="hero-copy reveal">
+<header class="sci-hero" id="top">
+  <video class="sci-hero-video" autoplay muted loop playsinline preload="metadata" poster="/assets/science-hero-poster.jpg" aria-label="AFORCE — the science of hydration, cinematic loop">
+    <source src="/assets/science-hero.webm" type="video/webm">
+    <source src="/assets/science-hero.mp4" type="video/mp4">
+  </video>
+  <img class="sci-hero-still" src="/assets/science-hero-poster.jpg" alt="AFORCE — the science of hydration" loading="eager" decoding="async">
+  <div class="sci-hero-scrim"></div>
+  <div class="sci-hero-content reveal">
     <div class="eyebrow">The Science</div>
-    <h1 class="h-display">Hydration is only<br>the beginning.</h1>
+    <h1 class="h-display" style="max-width:14ch;">Hydration is only the beginning.</h1>
     <p class="serif">Every ingredient. Every mineral. Every process. Chosen to support preparation before performance.</p>
     <p class="anchor-line">Preparation begins long before performance is visible.</p>
     <div>
       <a class="cta red" href="#why">Explore the Science <span class="arw">↓</span></a>
     </div>
   </div>
-  <div class="hero-visual reveal">
-    <!-- HERO (Slot A) — Soursop can. Interim: shows the still (video poster). To ship the cinematic loop (Asset 01),
-         drop the MP4/WebM into /assets and uncomment the two <source> lines below. Poster + reduced-motion fall back to the still. -->
-    <figure class="asset-slot ratio-tall media" aria-label="AFORCE Soursop Edge & Seamoss can — label reads Non-Negotiable">
-      <video class="science-video" autoplay muted loop playsinline preload="metadata" poster="/assets/can-green.png" aria-label="AFORCE Soursop Edge & Seamoss can">
-        <!-- Cinematic hero loop (Asset 01) — add when generated:
-        <source src="/assets/science-hero.webm" type="video/webm">
-        <source src="/assets/science-hero.mp4" type="video/mp4"> -->
-      </video>
-      <img class="science-still" src="/assets/can-green.png" alt="AFORCE Soursop Edge & Seamoss can, label reading Non-Negotiable, in condensation on a matte black background" loading="lazy" decoding="async">
-    </figure>
-  </div>
-</section>
+  <div class="sci-hero-cue" aria-hidden="true"><span>Scroll</span><span class="line"></span></div>
+</header>
 
 <!-- ============ SECTION 2 — WHY HYDRATION MATTERS ============ -->
 <section id="why" class="divider">
