@@ -95,6 +95,25 @@
   .pulse{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 2.4s infinite;}
   @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.25;}}
 
+  /* ---------- BRAND SHOWCASE (below hero, visual only) ---------- */
+  .showcase{padding:clamp(48px,7vh,86px) var(--gutter) clamp(24px,4vh,48px);border-bottom:1px solid var(--ink-12);}
+  .showcase-head{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap;margin-bottom:34px;}
+  .showcase-head h2{font-family:var(--display);font-weight:800;text-transform:uppercase;font-size:clamp(26px,3.8vw,48px);letter-spacing:-.01em;line-height:1;}
+  .showcase-head .sc-sub{font-family:var(--serif);font-style:italic;font-size:clamp(16px,1.9vw,21px);color:var(--ink-60);max-width:46ch;}
+  .showcase-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+  .sc-card{position:relative;border:1px solid var(--ink-12);overflow:hidden;display:flex;flex-direction:column;background:var(--canvas);}
+  .sc-visual{position:relative;height:clamp(300px,34vw,460px);display:flex;align-items:center;justify-content:center;overflow:hidden;}
+  .sc-card[data-flavor="red"] .sc-visual{background:radial-gradient(60% 52% at 50% 38%, rgba(255,255,255,.18), rgba(255,255,255,0) 66%), var(--red);}
+  .sc-card[data-flavor="blue"] .sc-visual{background:radial-gradient(60% 52% at 50% 38%, rgba(255,255,255,.16), rgba(255,255,255,0) 66%), var(--blue);}
+  .sc-card[data-flavor="green"] .sc-visual{background:radial-gradient(60% 52% at 50% 38%, rgba(255,255,255,.16), rgba(255,255,255,0) 66%), var(--green);}
+  .sc-visual::after{content:"";position:absolute;left:50%;bottom:10%;width:38%;height:20px;transform:translateX(-50%);border-radius:50%;background:radial-gradient(closest-side, rgba(0,0,0,.30), rgba(0,0,0,0) 74%);}
+  .sc-index{position:absolute;top:20px;left:22px;z-index:1;font-family:var(--mono);font-size:11px;letter-spacing:.2em;color:var(--canvas-70);}
+  .sc-visual img{position:relative;z-index:1;max-height:82%;width:auto;object-fit:contain;filter:drop-shadow(0 22px 34px rgba(0,0,0,.26));transition:transform .6s cubic-bezier(.2,.8,.2,1);}
+  .sc-card:hover .sc-visual img{transform:translateY(-8px);}
+  .sc-body{padding:clamp(22px,2.2vw,30px);display:flex;flex-direction:column;gap:9px;}
+  .sc-body h3{font-family:var(--display);font-weight:800;text-transform:uppercase;font-size:clamp(20px,2.2vw,26px);line-height:1;}
+  .sc-body p{color:var(--ink-60);font-size:14px;line-height:1.5;}
+
   /* ---------- STEP RAIL ---------- */
   .steprail{
     display:flex;flex-wrap:wrap;gap:10px 28px;align-items:center;
@@ -152,6 +171,9 @@
     min-height:340px;transition:box-shadow .4s ease,border-color .4s ease,background .4s ease;
   }
   .pcard:hover{border-color:var(--ink-30);}
+  .pcard-visual{display:flex;align-items:flex-end;justify-content:center;height:clamp(116px,11vw,150px);margin:-4px 0 2px;}
+  .pcard-visual img{height:100%;width:auto;object-fit:contain;filter:drop-shadow(0 16px 24px rgba(0,0,0,.22));transition:transform .5s cubic-bezier(.2,.8,.2,1);}
+  .pcard:hover .pcard-visual img{transform:translateY(-6px);}
   .pcard.selected{background:var(--ink);color:var(--canvas);border-color:var(--ink);}
   .pcard.selected .p-pack,.pcard.selected .p-lines,.pcard.selected .why-link{color:var(--canvas-70);}
   .pcard.selected .why-link{border-color:var(--canvas-25);}
@@ -311,6 +333,7 @@
   /* ---------- RESPONSIVE ---------- */
   @media (max-width:860px){
     .nav-links{display:none;}
+    .showcase-grid{grid-template-columns:1fr;}
     .protocols{grid-template-columns:1fr;}
     .flavors{grid-template-columns:1fr;}
     .steps{grid-template-columns:1fr;}
@@ -346,6 +369,15 @@
     AFORCE OS ACTIVATION INCLUDED WITH EVERY ORDER
   </div>
 </header>
+
+<!-- BRAND SHOWCASE (visual only — buying happens in the guided flow below) -->
+<section class="showcase reveal" aria-label="The formulations">
+  <div class="showcase-head">
+    <h2 id="showcaseHeading"></h2>
+    <p class="sc-sub" id="showcaseSub"></p>
+  </div>
+  <div class="showcase-grid" id="showcaseGrid"></div>
+</section>
 
 <!-- STEP RAIL -->
 <div class="steprail" id="steprail" aria-hidden="true">
@@ -488,6 +520,22 @@
   function money(n){ return "$" + Number(n).toFixed(2); }
   var esc = (function(){ var d=document.createElement("div"); return function(s){ d.textContent=s==null?"":String(s); return d.innerHTML; }; })();
 
+  /* ---------- RENDER: BRAND SHOWCASE (visual only) ---------- */
+  var showcaseCfg = CFG.showcase || {};
+  document.getElementById("showcaseHeading").textContent = showcaseCfg.heading || "The Formulations";
+  document.getElementById("showcaseSub").textContent = showcaseCfg.subline || "";
+  var scWrap = document.getElementById("showcaseGrid");
+  (CFG.flavors||[]).forEach(function(f, i){
+    var card = document.createElement("div");
+    card.className = "sc-card"; card.setAttribute("data-flavor", f.id);
+    var idx = ("0" + (i+1)).slice(-2) + " / " + ("0" + CFG.flavors.length).slice(-2);
+    card.innerHTML =
+      '<div class="sc-visual"><span class="sc-index">'+idx+'</span>' +
+        '<img src="'+esc(f.img)+'" alt="AFORCE '+esc(f.name)+'" loading="lazy" decoding="async"></div>' +
+      '<div class="sc-body"><h3>'+esc(f.name)+'</h3><p>'+esc(f.desc)+'</p></div>';
+    scWrap.appendChild(card);
+  });
+
   /* ---------- RENDER: SECTION 0 INTENT ---------- */
   document.getElementById("intentHeading").innerHTML =
     esc(CFG.intent.headlineLead) + ' <em>' + esc(CFG.intent.headlineEm) + '</em>';
@@ -509,8 +557,10 @@
     var card = document.createElement("article");
     card.className = "pcard"; card.setAttribute("data-protocol", p.id);
     var lines = (p.lines||[]).map(function(l){ return '<span>'+esc(l)+'</span>'; }).join("");
+    var canImg = p.cardImage || CFG.signatureCan || "";
     card.innerHTML =
       '<span class="rec-ribbon">'+esc((CFG.delight&&CFG.delight.recommendedRibbon)||"Recommended")+'</span>' +
+      (canImg ? '<div class="pcard-visual"><img src="'+esc(canImg)+'" alt="'+esc(p.name)+' — AFORCE can" loading="lazy" decoding="async"></div>' : '') +
       '<div class="p-pack">'+esc(p.pack)+'</div>' +
       '<h3>'+esc(p.name)+'</h3>' +
       '<div class="p-lines">'+lines+'</div>' +
