@@ -93,9 +93,17 @@
   .m-scrollcue{ position:absolute; bottom:34px; left:50%; transform:translateX(-50%); z-index:2; font-family:'Inter',sans-serif; font-size:9.5px; letter-spacing:0.24em; text-transform:uppercase; color:rgba(245,240,232,0.5); display:flex; flex-direction:column; align-items:center; gap:10px; }
   .m-scrollcue .line{ width:1px; height:34px; background:rgba(245,240,232,0.3); }
 
-  /* ---------- SECTION 2 — THE CHOICE (type only) ---------- */
+  /* ---------- SECTION 2 — THE CHOICE (type + can) ---------- */
   .m-choice .m-h{ max-width:16ch; }
   .m-choice .row2{ color:rgba(13,13,13,0.32); }
+  .m-choice-grid{ display:grid; grid-template-columns:minmax(0,1fr) auto; gap:clamp(40px,6vw,110px); align-items:center; }
+  .m-choice-can{ justify-self:end; }
+  .m-choice-can img{ height:clamp(420px,66vh,720px); width:auto; filter:drop-shadow(0 34px 60px rgba(13,13,13,0.26)); }
+  @media (max-width:820px){
+    .m-choice-grid{ grid-template-columns:1fr; gap:clamp(48px,9vw,72px); }
+    .m-choice-can{ justify-self:center; }
+    .m-choice-can img{ height:clamp(340px,50vh,460px); }
+  }
 
   /* ---------- SECTION 3 — THE DISCIPLINE (sticky crossfade) ---------- */
   .m-discipline{ position:relative; height:180vh; background:var(--ink); }
@@ -206,16 +214,23 @@
 
   <!-- ============ SECTION 2 — THE CHOICE ============ -->
   <section class="m-sec light m-choice" id="choice">
-    <div class="m-eyebrow reveal">The Choice</div>
-    <div class="stagger">
-      <h2 class="m-h reveal">Before the work,<br>the breath.</h2>
-      <div class="m-gap-sm"></div>
-      <h2 class="m-h reveal row2">Before the breath,<br>the choice.</h2>
-    </div>
-    <div class="m-gap-md"></div>
-    <div class="stagger">
-      <p class="m-support reveal">Everything begins with one decision.</p>
-      <p class="m-support reveal" style="margin-top:14px; color:var(--ink); font-weight:500;">To prepare.</p>
+    <div class="m-choice-grid">
+      <div class="m-choice-copy">
+        <div class="m-eyebrow reveal">The Choice</div>
+        <div class="stagger">
+          <h2 class="m-h reveal">Before the work,<br>the breath.</h2>
+          <div class="m-gap-sm"></div>
+          <h2 class="m-h reveal row2">Before the breath,<br>the choice.</h2>
+        </div>
+        <div class="m-gap-md"></div>
+        <div class="stagger">
+          <p class="m-support reveal">Everything begins with one decision.</p>
+          <p class="m-support reveal" style="margin-top:14px; color:var(--ink); font-weight:500;">To prepare.</p>
+        </div>
+      </div>
+      <div class="m-choice-can reveal">
+        <img src="/assets/can-blue.png" alt="AFORCE can — Berry Blast &amp; Dulse, alkaline pH 8.8 hydration" loading="lazy" decoding="async">
+      </div>
     </div>
   </section>
 
