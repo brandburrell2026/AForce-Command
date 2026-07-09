@@ -165,18 +165,17 @@
   .recommended{box-shadow:inset 0 0 0 1.5px var(--ink);}
 
   /* ---------- SECTION A — PROTOCOLS ---------- */
-  .protocols{margin-top:clamp(60px,7vw,92px);display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+  .protocols{margin-top:38px;display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
   .pcard{
     position:relative;background:var(--canvas);border:1px solid var(--ink-12);
     padding:clamp(24px,2.4vw,34px);display:flex;flex-direction:column;gap:14px;
-    min-height:340px;overflow:visible;transition:box-shadow .4s ease,border-color .4s ease,background .4s ease;
+    min-height:340px;overflow:hidden;transition:box-shadow .4s ease,border-color .4s ease,background .4s ease;
   }
   .pcard:hover{border-color:var(--ink-30);}
-  .pcard-visual{position:relative;display:flex;align-items:flex-end;justify-content:center;height:clamp(116px,11vw,150px);margin:-4px 0 2px;overflow:visible;}
+  .pcard-visual{display:flex;align-items:center;justify-content:center;height:clamp(116px,11vw,150px);margin:-4px 0 2px;overflow:hidden;}
   .pcard-visual img{height:100%;width:auto;object-fit:contain;filter:drop-shadow(0 16px 24px rgba(0,0,0,.22));transition:transform .5s cubic-bezier(.2,.8,.2,1);}
-  /* sticks are tall + narrow — let them rise up and hang OUT above the card top
-     (bottom-aligned, so the pack labels below stay level with the can cards) */
-  .pcard-visual.is-stick img{height:138%;}
+  /* sticks are tall + narrow — keep them fully INSIDE the card, same height as the can */
+  .pcard-visual.is-stick img{height:100%;}
   .pcard:hover .pcard-visual img{transform:translateY(-6px);}
   .pcard.selected{background:var(--ink);color:var(--canvas);border-color:var(--ink);}
   .pcard.selected .p-pack,.pcard.selected .p-lines,.pcard.selected .why-link{color:var(--canvas-70);}
@@ -340,8 +339,7 @@
   @media (max-width:860px){
     .nav-links{display:none;}
     .showcase-grid{grid-template-columns:1fr;}
-    /* stacked cards: extra row-gap so the sticks hanging above each card clear the card above */
-    .protocols{grid-template-columns:1fr;row-gap:clamp(60px,16vw,80px);}
+    .protocols{grid-template-columns:1fr;}
     .flavors{grid-template-columns:1fr;}
     .steps{grid-template-columns:1fr;}
     .step + .step{padding-left:0;border-left:none;border-top:1px solid var(--ink-12);}
