@@ -173,6 +173,8 @@
   .pcard:hover{border-color:var(--ink-30);}
   .pcard-visual{display:flex;align-items:flex-end;justify-content:center;height:clamp(116px,11vw,150px);margin:-4px 0 2px;}
   .pcard-visual img{height:100%;width:auto;object-fit:contain;filter:drop-shadow(0 16px 24px rgba(0,0,0,.22));transition:transform .5s cubic-bezier(.2,.8,.2,1);}
+  /* sticks are much narrower than cans — give them extra height (bottom-aligned, so the pack labels below stay level) */
+  .pcard-visual.is-stick img{height:128%;}
   .pcard:hover .pcard-visual img{transform:translateY(-6px);}
   .pcard.selected{background:var(--ink);color:var(--canvas);border-color:var(--ink);}
   .pcard.selected .p-pack,.pcard.selected .p-lines,.pcard.selected .why-link{color:var(--canvas-70);}
@@ -521,9 +523,9 @@
       signatureCan:"/assets/can-blue.png",
       protocolsHeading:"Choose Your Performance Protocol",
       protocols:[
-        { id:"trial",       name:"Trial Protocol",       pack:"6-Pack",              lines:["Experience AFORCE."],                        price:32.99, priceNote:"",           cardCta:"Begin",             purchaseCta:"Begin the Ritual",     why:"For your first experience. Try AFORCE before committing to a full routine. No subscription, no obligation. Just your first ritual." },
-        { id:"performance", name:"Performance Protocol", pack:"12-Pack",             lines:["Most chosen.","Built for daily execution."], price:59.99, priceNote:"",           cardCta:"Choose Protocol",   purchaseCta:"Continue",             why:"Built for people who want hydration to become part of a consistent performance routine. Includes AFORCE OS access and is designed to support a daily ritual rather than occasional use." },
-        { id:"autopilot",   name:"AutoPilot",            pack:"12-Pack Subscription",lines:["Ships every 30 days.","Includes AFORCE OS."], price:54.99, priceNote:"per 30 days", cardCta:"Activate AutoPilot",purchaseCta:"Activate My Protocol", why:"For people who have decided. Ships every 30 days so you never break your ritual. Includes full AFORCE OS access. Your performance system runs itself." }
+        { id:"trial",       name:"Trial Protocol",       pack:"6-Pack",              cardImage:"/assets/stick-red.png",   lines:["Experience AFORCE."],                        price:32.99, priceNote:"",           cardCta:"Begin",             purchaseCta:"Begin the Ritual",     why:"For your first experience. Try AFORCE before committing to a full routine. No subscription, no obligation. Just your first ritual." },
+        { id:"performance", name:"Performance Protocol", pack:"12-Pack",             cardImage:"/assets/can-blue.png",    lines:["Most chosen.","Built for daily execution."], price:59.99, priceNote:"",           cardCta:"Choose Protocol",   purchaseCta:"Continue",             why:"Built for people who want hydration to become part of a consistent performance routine. Includes AFORCE OS access and is designed to support a daily ritual rather than occasional use." },
+        { id:"autopilot",   name:"AutoPilot",            pack:"12-Pack Subscription",cardImage:"/assets/stick-green.png", lines:["Ships every 30 days.","Includes AFORCE OS."], price:54.99, priceNote:"per 30 days", cardCta:"Activate AutoPilot",purchaseCta:"Activate My Protocol", why:"For people who have decided. Ships every 30 days so you never break your ritual. Includes full AFORCE OS access. Your performance system runs itself." }
       ],
       whyLinkLabel:"Why this protocol?",
       commitment:{ question:"How many months should we prepare?", options:[{value:1,label:"One Month"},{value:2,label:"Two Months"},{value:3,label:"Three Months"}] },
@@ -621,9 +623,10 @@
     card.className = "pcard"; card.setAttribute("data-protocol", p.id);
     var lines = (p.lines||[]).map(function(l){ return '<span>'+esc(l)+'</span>'; }).join("");
     var canImg = p.cardImage || CFG.signatureCan || "";
+    var isStick = canImg.indexOf("stick") > -1;
     card.innerHTML =
       '<span class="rec-ribbon">'+esc((CFG.delight&&CFG.delight.recommendedRibbon)||"Recommended")+'</span>' +
-      (canImg ? '<div class="pcard-visual"><img src="'+esc(canImg)+'" alt="'+esc(p.name)+' — AFORCE can" loading="lazy" decoding="async"></div>' : '') +
+      (canImg ? '<div class="pcard-visual'+(isStick?' is-stick':'')+'"><img src="'+esc(canImg)+'" alt="'+esc(p.name)+' — AFORCE '+(isStick?'stick':'can')+'" loading="lazy" decoding="async"></div>' : '') +
       '<div class="p-pack">'+esc(p.pack)+'</div>' +
       '<h3>'+esc(p.name)+'</h3>' +
       '<div class="p-lines">'+lines+'</div>' +

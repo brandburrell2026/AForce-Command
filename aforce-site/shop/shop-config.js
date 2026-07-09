@@ -55,6 +55,7 @@ window.AFORCE_SHOP_CONFIG = {
       id:"trial",
       name:"Trial Protocol",
       pack:"6-Pack",
+      cardImage:"/assets/stick-red.png",   // mix drinks + sticks across the cards
       lines:["Experience AFORCE."],
       price:32.99,
       priceNote:"",
@@ -66,6 +67,7 @@ window.AFORCE_SHOP_CONFIG = {
       id:"performance",
       name:"Performance Protocol",
       pack:"12-Pack",
+      cardImage:"/assets/can-blue.png",   // hero can stays on the most-chosen card
       lines:["Most chosen.","Built for daily execution."],
       price:59.99,
       priceNote:"",
@@ -77,6 +79,7 @@ window.AFORCE_SHOP_CONFIG = {
       id:"autopilot",
       name:"AutoPilot",
       pack:"12-Pack Subscription",
+      cardImage:"/assets/stick-green.png",   // mix drinks + sticks across the cards
       lines:["Ships every 30 days.","Includes AFORCE OS."],
       price:54.99,
       priceNote:"per 30 days",
