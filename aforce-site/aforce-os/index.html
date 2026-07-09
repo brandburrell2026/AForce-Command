@@ -136,9 +136,9 @@
   .ritual-cell p{ font-size:14.5px; line-height:1.65; color:var(--b64); max-width:34ch; }
 
   /* hero */
-  .os-hero{ min-height:100svh; display:flex; align-items:center; padding:clamp(110px,16vh,180px) var(--gutter) clamp(60px,9vh,110px); background:radial-gradient(140% 120% at 78% 30%, #14181f 0%, var(--ink) 55%); color:var(--bone); overflow:hidden; }
-  .os-hero .hero-grid{ display:grid; grid-template-columns:0.5fr 1.5fr; gap:clamp(24px,3vw,44px); align-items:center; width:100%; max-width:var(--maxw); margin:0 auto; }
-  .os-hero .h-display{ font-size:clamp(24px,2.7vw,40px); line-height:1.08; }
+  .os-hero{ min-height:100svh; display:flex; align-items:center; padding-top:clamp(110px,16vh,180px); padding-bottom:clamp(60px,9vh,110px); padding-left:max(var(--gutter), calc((100% - var(--maxw)) / 2)); padding-right:clamp(20px,2vw,40px); background:radial-gradient(140% 120% at 78% 30%, #14181f 0%, var(--ink) 55%); color:var(--bone); overflow:hidden; }
+  .os-hero .hero-grid{ display:grid; grid-template-columns:0.32fr 1.68fr; gap:clamp(18px,2vw,30px); align-items:center; width:100%; max-width:none; margin:0; }
+  .os-hero .h-display{ font-size:clamp(22px,2.4vw,36px); line-height:1.08; }
   .os-hero .lead{ color:var(--b80); font-size:14px; line-height:1.65; margin-top:18px; }
   .os-hero .hero-cta .btn{ padding:13px 22px; font-size:11px; }
   .os-hero .hero-meta{ display:none; }
