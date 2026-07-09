@@ -136,16 +136,19 @@
   .ritual-cell p{ font-size:14.5px; line-height:1.65; color:var(--b64); max-width:34ch; }
 
   /* hero */
-  .os-hero{ min-height:100svh; display:flex; align-items:center; padding-top:clamp(110px,16vh,180px); padding-bottom:clamp(60px,9vh,110px); padding-left:max(var(--gutter), calc((100% - var(--maxw)) / 2)); padding-right:clamp(20px,2vw,40px); background:radial-gradient(140% 120% at 78% 30%, #14181f 0%, var(--ink) 55%); color:var(--bone); overflow:hidden; }
-  .os-hero .hero-grid{ display:grid; grid-template-columns:0.32fr 1.68fr; gap:clamp(18px,2vw,30px); align-items:center; width:100%; max-width:none; margin:0; }
-  .os-hero .h-display{ font-size:clamp(22px,2.4vw,36px); line-height:1.08; }
-  .os-hero .lead{ color:var(--b80); font-size:14px; line-height:1.65; margin-top:18px; }
-  .os-hero .hero-cta .btn{ padding:13px 22px; font-size:11px; }
-  .os-hero .hero-meta{ display:none; }
+  /* full-screen background-video hero (matches the homepage setup) */
+  .os-hero{ position:relative; min-height:100vh; display:flex; align-items:center; padding:clamp(110px,16vh,180px) var(--gutter) clamp(80px,11vh,130px); background:var(--ink); color:var(--bone); overflow:hidden; }
+  .os-hero-video, .os-hero-still{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:center; z-index:0; }
+  .os-hero-still{ display:none; }
+  .os-hero-scrim{ position:absolute; inset:0; z-index:1; background:
+    linear-gradient(90deg, rgba(13,13,13,0.94) 0%, rgba(13,13,13,0.80) 26%, rgba(13,13,13,0.44) 50%, rgba(13,13,13,0.14) 72%, rgba(13,13,13,0.32) 100%),
+    linear-gradient(180deg, rgba(13,13,13,0.5) 0%, rgba(13,13,13,0) 26%, rgba(13,13,13,0) 66%, rgba(13,13,13,0.72) 100%); }
+  .os-hero-content{ position:relative; z-index:2; width:100%; max-width:var(--maxw); margin:0 auto; }
+  .os-hero .h-display{ font-size:clamp(30px,4.6vw,62px); line-height:1.04; }
+  .os-hero .lead{ color:var(--b80); font-size:clamp(15px,1.3vw,18px); line-height:1.7; max-width:46ch; }
   .hero-cta{ display:flex; flex-wrap:wrap; gap:16px; margin-top:clamp(30px,3.5vw,42px); }
-  .hero-video{ position:relative; width:100%; border-radius:16px; overflow:hidden; aspect-ratio:16/10; box-shadow:0 34px 74px rgba(0,0,0,.55); border:1px solid var(--b08); }
-  .hero-video .hv-video, .hero-video .hv-still{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block; }
-  .hero-video .hv-still{ display:none; }
+  .os-scroll-cue{ position:absolute; z-index:2; bottom:clamp(26px,4vh,44px); left:50%; transform:translateX(-50%); display:flex; flex-direction:column; align-items:center; gap:9px; font-family:var(--body); font-weight:600; font-size:10px; letter-spacing:.24em; text-transform:uppercase; color:var(--b64); }
+  .os-scroll-cue .line{ width:1px; height:40px; background:linear-gradient(var(--b40), transparent); }
 
   /* meta strip under hero copy */
   .hero-meta{ display:flex; flex-wrap:wrap; gap:12px 34px; margin-top:clamp(34px,4vw,50px); padding-top:clamp(24px,3vw,34px); border-top:1px solid var(--b14); }
@@ -170,8 +173,7 @@
 
   /* ---------- RESPONSIVE ---------- */
   @media (max-width:900px){
-    .os-hero .hero-grid{ grid-template-columns:1fr; gap:28px; }
-    .hero-video{ order:2; }
+    .os-hero-scrim{ background:linear-gradient(180deg, rgba(13,13,13,0.58) 0%, rgba(13,13,13,0.32) 42%, rgba(13,13,13,0.80) 100%); }
     .split{ grid-template-columns:1fr; gap:32px; }
     .split-media, .split.reverse .split-media{ order:2; }
     .cmd-grid{ grid-template-columns:1fr; }
@@ -187,8 +189,8 @@
     .stagger .reveal.in{ transition-delay:0s !important; }
     .phone{ animation:none !important; }
     .btn .arw{ transition:none; }
-    .hero-video .hv-video{ display:none; }
-    .hero-video .hv-still{ display:block; }
+    .os-hero-video{ display:none; }
+    .os-hero-still{ display:block; }
   }
 </style>
 </head>
@@ -211,28 +213,21 @@
 
 <!-- ============ 1 · HERO ============ -->
 <header class="os-hero" id="top">
-  <div class="hero-grid">
-    <div class="reveal in">
-      <div class="eyebrow" style="margin-bottom:22px;">AFORCE OS</div>
-      <h1 class="h-display" style="max-width:15ch;">AFORCE OS turns hydration into a performance ritual.</h1>
-      <p class="lead" style="margin-top:clamp(22px,3vw,32px);">Every AFORCE purchase unlocks a free entry point into the AFORCE OS. Scan the can, receive your Readiness Score, and follow the protocol designed to help you recover, hydrate, and perform with discipline.</p>
-      <div class="hero-cta">
-        <a class="btn btn-primary" href="#depletion">Explore the OS <span class="arw">&rarr;</span></a>
-        <a class="btn btn-outline-light" href="/founding-250">Join the Founding Community</a>
-      </div>
-      <div class="hero-meta">
-        <div class="m"><div class="k">Scan</div><div class="v">The can begins it</div></div>
-        <div class="m"><div class="k">Readiness Score</div><div class="v">Your signal</div></div>
-        <div class="m"><div class="k">Protocol</div><div class="v">The next command</div></div>
-      </div>
-    </div>
-    <div class="hero-video reveal in">
-      <video class="hv-video" autoplay muted loop playsinline preload="metadata" poster="/assets/os-hero-poster.jpg" aria-label="A person reaching for an AFORCE can in a Manhattan penthouse at golden hour">
-        <source src="/assets/os-hero.mp4" type="video/mp4">
-      </video>
-      <img class="hv-still" src="/assets/os-hero-poster.jpg" alt="A person reaching for an AFORCE can in a Manhattan penthouse at golden hour" loading="lazy" decoding="async">
+  <video class="os-hero-video" autoplay muted loop playsinline preload="metadata" poster="/assets/os-hero-poster.jpg" aria-label="AFORCE OS — the Readiness screen in hand beside the can at golden hour">
+    <source src="/assets/os-hero.mp4" type="video/mp4">
+  </video>
+  <img class="os-hero-still" src="/assets/os-hero-poster.jpg" alt="AFORCE OS — the Readiness screen in hand beside the can at golden hour" loading="eager" decoding="async">
+  <div class="os-hero-scrim"></div>
+  <div class="os-hero-content reveal in">
+    <div class="eyebrow" style="margin-bottom:22px;">AFORCE OS</div>
+    <h1 class="h-display" style="max-width:15ch;">AFORCE OS turns hydration into a performance ritual.</h1>
+    <p class="lead" style="margin-top:clamp(22px,3vw,30px);">Every AFORCE purchase unlocks a free entry point into the AFORCE OS. Scan the can, receive your Readiness Score, and follow the protocol designed to help you recover, hydrate, and perform with discipline.</p>
+    <div class="hero-cta">
+      <a class="btn btn-primary" href="#depletion">Explore the OS <span class="arw">&rarr;</span></a>
+      <a class="btn btn-outline-light" href="/founding-250">Join the Founding Community</a>
     </div>
   </div>
+  <div class="os-scroll-cue" aria-hidden="true"><span>Scroll</span><span class="line"></span></div>
 </header>
 
 <!-- ============ 2 · DEPLETION CORRECTION ============ -->
