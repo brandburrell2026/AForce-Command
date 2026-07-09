@@ -17,6 +17,7 @@
     --ink-60:rgba(11,13,18,.6);
     --ink-30:rgba(11,13,18,.3);
     --ink-12:rgba(11,13,18,.12);
+    --ink-06:rgba(11,13,18,.06);
     --canvas-70:rgba(242,242,240,.7);
     --canvas-25:rgba(242,242,240,.25);
     --display:'Archivo',sans-serif;
@@ -60,14 +61,6 @@
   .nav-links{display:flex;gap:32px;align-items:center;font-weight:700;font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;}
   .nav-links a{opacity:.65;transition:opacity .2s;}
   .nav-links a:hover,.nav-links a[aria-current]{opacity:1;}
-  .cart-btn{
-    background:var(--ink);color:var(--canvas);border:none;
-    font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;
-    padding:10px 18px;display:flex;gap:10px;align-items:center;
-    transition:transform .15s ease;
-  }
-  .cart-btn:hover{transform:translateY(-1px);}
-  .cart-count{font-weight:700;}
 
   /* ---------- HERO ---------- */
   .hero{
@@ -90,7 +83,7 @@
     text-transform:none;letter-spacing:0;
   }
   .hero-sub{
-    margin-top:34px;max-width:520px;
+    margin-top:34px;max-width:560px;
     font-family:var(--serif);font-size:clamp(19px,2.2vw,24px);
     font-weight:400;line-height:1.5;color:var(--ink-60);
   }
@@ -102,18 +95,32 @@
   .pulse{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 2.4s infinite;}
   @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.25;}}
 
-
-  /* ---------- DEMAND SELECTOR ---------- */
-  .demand{
-    padding:clamp(56px,9vh,96px) var(--gutter) clamp(40px,6vh,64px);
+  /* ---------- STEP RAIL ---------- */
+  .steprail{
+    display:flex;flex-wrap:wrap;gap:10px 28px;align-items:center;
+    padding:22px var(--gutter);border-bottom:1px solid var(--ink-12);
+    font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-30);
   }
-  .demand h2{
+  .steprail .sr{display:inline-flex;align-items:center;gap:9px;transition:color .3s;}
+  .steprail .sr .dot{width:6px;height:6px;border-radius:50%;background:currentColor;}
+  .steprail .sr.done{color:var(--ink);}
+
+  /* ---------- SECTION SHELL ---------- */
+  .sec{padding:clamp(52px,8vh,92px) var(--gutter);border-bottom:1px solid var(--ink-12);}
+  .sec-eyebrow{
+    font-family:var(--mono);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--ink-60);
+    margin-bottom:22px;display:flex;align-items:center;gap:12px;
+  }
+  .sec-eyebrow .step-i{color:var(--ink-30);}
+  .sec h2{
     font-family:var(--display);font-weight:800;text-transform:uppercase;
     font-size:clamp(26px,3.8vw,48px);letter-spacing:-.01em;line-height:1;
   }
-  .demand h2 em{font-family:var(--serif);font-style:italic;font-weight:500;text-transform:none;}
-  .demand-sub{margin-top:14px;color:var(--ink-60);font-size:15px;max-width:52ch;}
-  .demand-chips{margin-top:34px;display:flex;flex-wrap:wrap;gap:12px;}
+  .sec h2 em{font-family:var(--serif);font-style:italic;font-weight:500;text-transform:none;}
+  .sec-sub{margin-top:14px;color:var(--ink-60);font-size:15px;max-width:56ch;}
+
+  /* ---------- SECTION 0 — INTENT ---------- */
+  .chips{margin-top:32px;display:flex;flex-wrap:wrap;gap:12px;}
   .chip{
     background:transparent;border:1px solid var(--ink);padding:14px 26px;
     font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;
@@ -121,177 +128,153 @@
   }
   .chip:hover{transform:translateY(-1px);}
   .chip[aria-pressed="true"]{background:var(--ink);color:var(--canvas);}
-  .demand-answer{
+  .intent-answer{
     margin-top:26px;font-family:var(--serif);font-style:italic;font-size:clamp(17px,2vw,21px);
-    color:var(--ink-60);min-height:1.6em;
+    color:var(--ink-60);min-height:1.6em;max-width:60ch;
   }
-  .demand-answer b{font-style:normal;font-family:var(--display);font-weight:800;text-transform:uppercase;font-size:.82em;letter-spacing:.02em;color:var(--ink);}
-  .prescribe{
-    display:inline-block;margin-left:12px;
-    font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;
-    background:var(--ink);color:var(--canvas);padding:5px 10px;vertical-align:middle;
-  }
-  .plate.lit{outline:2px solid var(--ink);outline-offset:-2px;}
+  .intent-answer b{font-style:normal;font-family:var(--display);font-weight:800;text-transform:uppercase;font-size:.78em;letter-spacing:.02em;color:var(--ink);}
 
-  /* ---------- SECTION HEAD ---------- */
-  .section-head{
-    padding:clamp(56px,9vh,100px) var(--gutter) 36px;
-    display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap;
+  /* ---------- RECOMMENDED RIBBON (pre-highlight) ---------- */
+  .rec-ribbon{
+    position:absolute;top:0;left:0;
+    font-family:var(--mono);font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;
+    background:var(--ink);color:var(--canvas);padding:6px 12px;
+    opacity:0;transform:translateY(-2px);transition:opacity .4s ease,transform .4s ease;pointer-events:none;
   }
-  .section-head h2{
-    font-family:var(--display);font-weight:800;text-transform:uppercase;
-    font-size:clamp(26px,3.6vw,44px);letter-spacing:-.01em;line-height:1;
-  }
-  .section-head .note{
-    font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-60);
-  }
+  .recommended .rec-ribbon{opacity:1;transform:none;}
+  .recommended{box-shadow:inset 0 0 0 1.5px var(--ink);}
 
-  /* ---------- SKU PLATES ---------- */
-  .plate{
-    display:grid;grid-template-columns:1fr 1fr;min-height:520px;
-    border-top:1px solid var(--ink-12);
+  /* ---------- SECTION A — PROTOCOLS ---------- */
+  .protocols{margin-top:38px;display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+  .pcard{
+    position:relative;background:var(--canvas);border:1px solid var(--ink-12);
+    padding:clamp(24px,2.4vw,34px);display:flex;flex-direction:column;gap:14px;
+    min-height:340px;transition:box-shadow .4s ease,border-color .4s ease,background .4s ease;
   }
-  .plate-visual{
-    position:relative;display:flex;align-items:center;justify-content:center;
-    overflow:hidden;
-  }
-  .plate[data-sku="red"] .plate-visual{background:radial-gradient(58% 50% at 50% 40%, rgba(255,255,255,.20), rgba(255,255,255,0) 66%), var(--red);}
-  .plate[data-sku="blue"] .plate-visual{background:radial-gradient(58% 50% at 50% 40%, rgba(255,255,255,.18), rgba(255,255,255,0) 66%), var(--blue);}
-  .plate[data-sku="green"] .plate-visual{background:radial-gradient(58% 50% at 50% 40%, rgba(255,255,255,.18), rgba(255,255,255,0) 66%), var(--green);}
-  /* soft contact shadow so the product grounds instead of floating flat */
-  .plate-visual::after{content:"";position:absolute;z-index:0;left:50%;bottom:13%;width:34%;height:22px;transform:translateX(-50%);border-radius:50%;background:radial-gradient(closest-side, rgba(0,0,0,.30), rgba(0,0,0,0) 74%);pointer-events:none;}
-  .plate-index{
-    position:absolute;top:26px;left:30px;
-    font-family:var(--mono);font-size:11px;letter-spacing:.2em;color:var(--canvas-70);
-  }
-  .plate-ph{
-    position:absolute;bottom:26px;right:30px;
-    font-family:var(--mono);font-size:11px;letter-spacing:.2em;color:var(--canvas-70);
-  }
-  /* ── PRODUCT PHOTO SLOT ──
-     .plate-visual is the swappable slot. Drop a product image in by adding
-     <img class="plate-photo" src="/assets/…"> inside .plate-visual and the
-     CSS-rendered .can placeholder can be removed. No markup elsewhere changes. */
-  .plate-photo{position:relative;z-index:1;max-height:62%;max-width:56%;width:auto;object-fit:contain;filter:drop-shadow(0 22px 34px rgba(0,0,0,.24));transition:transform .5s cubic-bezier(.2,.8,.2,1);}
-  .plate-photo.plate-stick{max-height:74%;max-width:34%;}
-  .plate-photo[hidden]{display:none;}
-  .plate:hover .plate-photo:not([hidden]){transform:translateY(-10px) rotate(-1.2deg);}
-  /* CSS can — placeholder until product photography drops in */
-  .can{
-    width:clamp(120px,14vw,168px);height:clamp(260px,30vw,360px);
-    border-radius:26px 26px 22px 22px;position:relative;
-    background:linear-gradient(105deg,rgba(255,255,255,.32) 0%,rgba(255,255,255,.06) 28%,rgba(0,0,0,.18) 62%,rgba(255,255,255,.14) 100%),var(--ink);
-    box-shadow:0 40px 70px rgba(0,0,0,.35);
-    transition:transform .5s cubic-bezier(.2,.8,.2,1);
-    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
-  }
-  .plate:hover .can{transform:translateY(-10px) rotate(-1.2deg);}
-  .can::before{
-    content:"";position:absolute;top:10px;left:10%;right:10%;height:8px;
-    border-radius:50%;background:rgba(255,255,255,.22);
-  }
-  .can .can-mark{color:var(--canvas);font-family:var(--display);font-weight:900;font-size:clamp(15px,1.6vw,19px);letter-spacing:.04em;}
-  .can .can-flavor{
-    color:var(--canvas-70);font-family:var(--mono);font-size:9px;letter-spacing:.24em;text-transform:uppercase;
-    writing-mode:vertical-rl;position:absolute;right:14px;top:50%;transform:translateY(-50%);
-  }
-  .can .can-band{width:56%;height:3px;}
-  .plate[data-sku="red"] .can-band{background:var(--red);}
-  .plate[data-sku="blue"] .can-band{background:var(--blue);}
-  .plate[data-sku="green"] .can-band{background:var(--green);}
-
-  .plate-info{
-    padding:clamp(40px,6vw,80px);display:flex;flex-direction:column;justify-content:center;gap:0;
-    background:var(--canvas);
-  }
-  .plate-kicker{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-60);margin-bottom:18px;}
-  .plate-info h3{
-    font-family:var(--display);font-weight:800;text-transform:uppercase;
-    font-size:clamp(28px,3.4vw,46px);line-height:.98;letter-spacing:-.01em;
-  }
-  .plate-info h3 span{
-    display:block;font-family:var(--serif);font-style:italic;font-weight:400;text-transform:none;
-    font-size:clamp(20px,2.2vw,28px);margin-top:8px;color:var(--ink-60);letter-spacing:0;
-  }
-  .plate-copy{margin-top:22px;max-width:44ch;color:var(--ink-60);font-size:15px;}
-  .plate-specs{
-    margin-top:28px;display:flex;gap:0;border-top:1px solid var(--ink-12);border-bottom:1px solid var(--ink-12);
-  }
-  .spec{
-    flex:1;padding:14px 16px 14px 0;font-family:var(--mono);font-size:11px;letter-spacing:.08em;
-  }
-  .spec + .spec{padding-left:16px;border-left:1px solid var(--ink-12);}
-  .spec b{display:block;font-size:14px;font-weight:700;margin-top:3px;letter-spacing:.02em;}
-  .plate-buy{margin-top:30px;display:flex;align-items:center;gap:18px;flex-wrap:wrap;}
-  .format-toggle{display:flex;border:1px solid var(--ink);}
-  .format-toggle button{
-    background:transparent;border:none;padding:11px 18px;
-    font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-60);
-  }
-  .format-toggle button[aria-pressed="true"]{background:var(--ink);color:var(--canvas);}
-  .add-btn{
+  .pcard:hover{border-color:var(--ink-30);}
+  .pcard.selected{background:var(--ink);color:var(--canvas);border-color:var(--ink);}
+  .pcard.selected .p-pack,.pcard.selected .p-lines,.pcard.selected .why-link{color:var(--canvas-70);}
+  .pcard.selected .why-link{border-color:var(--canvas-25);}
+  .p-pack{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-60);}
+  .pcard h3{font-family:var(--display);font-weight:800;text-transform:uppercase;font-size:clamp(22px,2.4vw,30px);line-height:1;letter-spacing:-.01em;}
+  .p-lines{color:var(--ink-60);font-size:15px;line-height:1.5;}
+  .p-lines span{display:block;}
+  .p-price{font-family:var(--mono);font-weight:700;font-size:20px;letter-spacing:.02em;margin-top:2px;}
+  .p-price small{display:block;font-weight:400;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-60);margin-top:3px;}
+  .pcard.selected .p-price small{color:var(--canvas-70);}
+  .p-foot{margin-top:auto;display:flex;flex-direction:column;gap:12px;padding-top:18px;}
+  .p-cta{
     background:var(--ink);color:var(--canvas);border:1px solid var(--ink);
-    padding:14px 30px;font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;
-    display:flex;gap:14px;align-items:center;transition:transform .15s ease;
+    padding:14px 22px;font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+    transition:transform .15s ease,opacity .2s;text-align:center;
   }
-  .add-btn:hover{transform:translateY(-1px);}
-  .add-btn .price{font-weight:700;}
-  .plate.flip{grid-template-columns:1fr 1fr;}
-  .plate.flip .plate-visual{order:2;}
-  .plate.flip .plate-info{order:1;}
+  .p-cta:hover{transform:translateY(-1px);}
+  .pcard.selected .p-cta{background:var(--canvas);color:var(--ink);border-color:var(--canvas);}
+  .pcard.selected .p-cta::after{content:" ✓";}
+  .why-link{
+    background:none;border:none;padding:0;text-align:left;
+    font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-60);
+    display:inline-flex;align-items:center;gap:8px;
+  }
+  .why-link .i{
+    display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;
+    border:1px solid currentColor;font-size:9px;font-style:italic;font-family:var(--serif);
+  }
+  .why-link:hover{color:var(--ink);}
 
-  /* ---------- LADDER ---------- */
-  .ladder{background:var(--ink);color:var(--canvas);padding-bottom:clamp(64px,10vh,120px);}
-  .ladder .section-head h2{color:var(--canvas);}
-  .ladder .section-head .note{color:var(--canvas-70);}
-  .ladder-grid{
-    display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--canvas-25);
-    margin:0 var(--gutter);border:1px solid var(--canvas-25);
+  /* ---------- WHY OVERLAY ---------- */
+  .why-veil{position:fixed;inset:0;background:rgba(11,13,18,.5);z-index:98;opacity:0;pointer-events:none;transition:opacity .3s;}
+  .why-veil.open{opacity:1;pointer-events:auto;}
+  .why-modal{
+    position:fixed;z-index:99;top:50%;left:50%;transform:translate(-50%,-46%);
+    width:min(520px,92vw);background:var(--canvas);border:1px solid var(--ink);
+    padding:clamp(30px,4vw,48px);opacity:0;pointer-events:none;transition:opacity .3s ease,transform .3s ease;
   }
-  .rung{
-    background:var(--ink);padding:clamp(28px,3.5vw,44px);
-    display:flex;flex-direction:column;gap:16px;min-height:340px;
-    position:relative;transition:background .25s;
+  .why-modal.open{opacity:1;pointer-events:auto;transform:translate(-50%,-50%);}
+  .why-modal .wm-kicker{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-60);margin-bottom:14px;}
+  .why-modal h4{font-family:var(--display);font-weight:800;text-transform:uppercase;font-size:clamp(22px,2.6vw,30px);line-height:1;margin-bottom:16px;}
+  .why-modal p{font-family:var(--serif);font-size:clamp(18px,2vw,21px);line-height:1.55;color:var(--ink);}
+  .why-modal .wm-close{
+    margin-top:26px;background:var(--ink);color:var(--canvas);border:none;padding:13px 26px;
+    font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;
   }
-  .rung:hover{background:#12151d;}
-  .rung-tier{font-family:var(--mono);font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--canvas-70);}
-  .rung h3{font-family:var(--display);font-weight:800;font-size:clamp(20px,2.2vw,27px);text-transform:uppercase;line-height:1.05;}
-  .rung .rung-serif{font-family:var(--serif);font-style:italic;font-size:17px;color:var(--canvas-70);}
-  .rung ul{list-style:none;display:flex;flex-direction:column;gap:9px;margin-top:2px;}
-  .rung li{font-size:13.5px;color:var(--canvas-70);padding-left:18px;position:relative;}
-  .rung li::before{content:"—";position:absolute;left:0;color:var(--canvas-25);}
-  .rung li.os-line{color:var(--canvas);}
-  .rung li.os-line::before{content:"◆";font-size:8px;top:5px;color:var(--green);}
-  .rung-foot{margin-top:auto;display:flex;justify-content:space-between;align-items:center;gap:12px;}
-  .rung-price{font-family:var(--mono);font-size:15px;font-weight:700;letter-spacing:.04em;}
-  .rung-price small{display:block;font-weight:400;font-size:10px;color:var(--canvas-70);letter-spacing:.1em;margin-top:2px;}
-  .rung .add-btn{background:var(--canvas);color:var(--ink);border-color:var(--canvas);padding:12px 22px;}
-  .rung.featured{outline:1px solid var(--canvas);outline-offset:-1px;}
-  .rung.featured .rung-tier::after{content:"  ·  MOST CHOSEN";color:var(--canvas);}
 
-  /* ---------- PROVISION ---------- */
-  .provision{
-    padding:clamp(72px,11vh,130px) var(--gutter);
-    border-top:1px solid var(--ink-12);
+  /* ---------- SECTION B — COMMITMENT ---------- */
+  .commit-opts{margin-top:34px;display:flex;flex-wrap:wrap;gap:12px;}
+  .commit-opt{
+    background:transparent;border:1px solid var(--ink);padding:18px 34px;min-width:160px;
+    font-family:var(--display);font-weight:700;font-size:15px;text-transform:uppercase;letter-spacing:.02em;
+    display:flex;align-items:center;gap:14px;transition:background .18s,color .18s,transform .15s;
   }
-  .provision h2{
-    font-family:var(--display);font-weight:800;text-transform:uppercase;
-    font-size:clamp(30px,4.6vw,58px);letter-spacing:-.01em;line-height:1;max-width:18ch;
+  .commit-opt:hover{transform:translateY(-1px);}
+  .commit-opt .radio{width:14px;height:14px;border-radius:50%;border:1px solid currentColor;position:relative;}
+  .commit-opt[aria-pressed="true"]{background:var(--ink);color:var(--canvas);}
+  .commit-opt[aria-pressed="true"] .radio::after{content:"";position:absolute;inset:3px;border-radius:50%;background:var(--canvas);}
+
+  /* ---------- SECTION C — FLAVORS ---------- */
+  .flavors{margin-top:38px;display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+  .fcard{
+    position:relative;border:1px solid var(--ink-12);background:var(--canvas);
+    display:flex;flex-direction:column;text-align:left;overflow:hidden;
+    transition:box-shadow .4s ease,border-color .4s ease;
   }
+  .fcard:hover{border-color:var(--ink-30);}
+  .fcard.selected{box-shadow:inset 0 0 0 2px var(--ink);border-color:var(--ink);}
+  .fcard-visual{
+    position:relative;height:clamp(280px,32vw,420px);display:flex;align-items:center;justify-content:center;overflow:hidden;
+  }
+  .fcard[data-flavor="red"] .fcard-visual{background:radial-gradient(60% 52% at 50% 38%, rgba(255,255,255,.18), rgba(255,255,255,0) 66%), var(--red);}
+  .fcard[data-flavor="blue"] .fcard-visual{background:radial-gradient(60% 52% at 50% 38%, rgba(255,255,255,.16), rgba(255,255,255,0) 66%), var(--blue);}
+  .fcard[data-flavor="green"] .fcard-visual{background:radial-gradient(60% 52% at 50% 38%, rgba(255,255,255,.16), rgba(255,255,255,0) 66%), var(--green);}
+  .fcard-visual::after{content:"";position:absolute;left:50%;bottom:11%;width:38%;height:20px;transform:translateX(-50%);border-radius:50%;background:radial-gradient(closest-side, rgba(0,0,0,.30), rgba(0,0,0,0) 74%);}
+  .fcard-visual img{position:relative;z-index:1;max-height:80%;width:auto;object-fit:contain;filter:drop-shadow(0 22px 34px rgba(0,0,0,.26));transition:transform .5s cubic-bezier(.2,.8,.2,1);}
+  .fcard:hover .fcard-visual img{transform:translateY(-8px);}
+  .fcard-body{padding:clamp(22px,2.2vw,30px);display:flex;flex-direction:column;gap:10px;flex:1;}
+  .fcard-body h3{font-family:var(--display);font-weight:800;text-transform:uppercase;font-size:clamp(20px,2.2vw,26px);line-height:1;}
+  .fcard-body p{color:var(--ink-60);font-size:14px;line-height:1.5;}
+  .fcard-pick{
+    margin-top:auto;font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-60);
+    display:inline-flex;align-items:center;gap:8px;
+  }
+  .fcard.selected .fcard-pick{color:var(--ink);}
+  .fcard.selected .fcard-pick::after{content:"Selected ✓";}
+  .fcard:not(.selected) .fcard-pick::after{content:"Tap to select";}
+
+  /* ---------- SECTION D — PURCHASE ---------- */
+  .purchase{background:var(--ink);color:var(--canvas);border-bottom:none;}
+  .purchase h2{color:var(--canvas);}
+  .purchase .sec-eyebrow{color:var(--canvas-70);}
+  .purchase .sec-eyebrow .step-i{color:var(--canvas-25);}
+  .p-summary{
+    margin-top:30px;display:flex;flex-wrap:wrap;gap:0;border:1px solid var(--canvas-25);
+  }
+  .ps-cell{flex:1;min-width:180px;padding:20px 24px;border-right:1px solid var(--canvas-25);}
+  .ps-cell:last-child{border-right:none;}
+  .ps-cell .k{font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--canvas-70);}
+  .ps-cell .v{font-family:var(--display);font-weight:800;text-transform:uppercase;font-size:18px;margin-top:8px;letter-spacing:.01em;}
+  .ps-cell .v.pending{color:var(--canvas-25);font-family:var(--serif);font-style:italic;font-weight:400;text-transform:none;font-size:19px;}
+  .purchase-foot{margin-top:30px;display:flex;flex-wrap:wrap;align-items:center;gap:24px;}
+  .purchase-btn{
+    background:var(--canvas);color:var(--ink);border:1px solid var(--canvas);
+    padding:19px 44px;font-family:var(--mono);font-size:12px;letter-spacing:.18em;text-transform:uppercase;
+    transition:transform .15s ease,opacity .25s ease;
+  }
+  .purchase-btn:hover:not([disabled]){transform:translateY(-1px);}
+  .purchase-btn[disabled]{opacity:.32;cursor:not-allowed;}
+  .purchase-note{font-family:var(--serif);font-style:italic;font-size:16px;color:var(--canvas-70);max-width:40ch;}
+
+  /* ---------- PROVISION (editorial) ---------- */
+  .provision{padding:clamp(72px,11vh,130px) var(--gutter);border-top:1px solid var(--ink-12);}
+  .provision h2{font-family:var(--display);font-weight:800;text-transform:uppercase;font-size:clamp(30px,4.6vw,58px);letter-spacing:-.01em;line-height:1;max-width:18ch;}
   .provision h2 em{font-family:var(--serif);font-style:italic;font-weight:500;text-transform:none;}
   .provision-sub{margin-top:20px;max-width:52ch;color:var(--ink-60);font-size:16px;}
-  .steps{
-    margin-top:56px;display:grid;grid-template-columns:repeat(3,1fr);gap:0;
-    border-top:1px solid var(--ink);
-  }
+  .steps{margin-top:56px;display:grid;grid-template-columns:repeat(3,1fr);gap:0;border-top:1px solid var(--ink);}
   .step{padding:30px 28px 8px 0;position:relative;}
   .step + .step{padding-left:28px;border-left:1px solid var(--ink-12);}
   .step-num{font-family:var(--mono);font-size:11px;letter-spacing:.2em;color:var(--ink-60);}
   .step h4{font-family:var(--display);font-weight:800;text-transform:uppercase;font-size:19px;margin:14px 0 10px;}
   .step p{font-size:14px;color:var(--ink-60);max-width:34ch;}
-  .provision-legal{
-    margin-top:48px;font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;color:var(--ink-60);max-width:74ch;line-height:1.7;
-  }
+  .provision-legal{margin-top:48px;font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;color:var(--ink-60);max-width:74ch;line-height:1.7;}
 
   /* ---------- FOUNDING ---------- */
   .founding{
@@ -316,68 +299,6 @@
   .nonneg{display:inline-flex;align-items:baseline;gap:2px;font-family:var(--display);font-weight:900;letter-spacing:.03em;color:var(--ink);}
   .nonneg .flip{display:inline-block;transform:scaleX(-1);}
 
-  /* ---------- CART DRAWER ---------- */
-  .drawer-veil{
-    position:fixed;inset:0;background:rgba(11,13,18,.45);z-index:98;
-    opacity:0;pointer-events:none;transition:opacity .3s;
-  }
-  .drawer-veil.open{opacity:1;pointer-events:auto;}
-  .drawer{
-    position:fixed;top:0;right:0;height:100%;width:min(440px,92vw);z-index:99;
-    background:var(--canvas);border-left:1px solid var(--ink-12);
-    transform:translateX(102%);transition:transform .38s cubic-bezier(.2,.8,.2,1);
-    display:flex;flex-direction:column;
-  }
-  .drawer.open{transform:translateX(0);}
-  .drawer-head{
-    padding:24px 28px;border-bottom:1px solid var(--ink-12);
-    display:flex;justify-content:space-between;align-items:center;
-  }
-  .drawer-head h3{font-family:var(--display);font-weight:800;text-transform:uppercase;font-size:19px;}
-  .drawer-close{background:none;border:none;font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-60);}
-  .drawer-body{flex:1;overflow-y:auto;padding:12px 28px;}
-  .drawer-empty{
-    padding:48px 0;text-align:center;font-family:var(--serif);font-style:italic;font-size:18px;color:var(--ink-60);
-  }
-  .cart-item{
-    display:flex;justify-content:space-between;align-items:flex-start;gap:14px;
-    padding:18px 0;border-bottom:1px solid var(--ink-12);
-  }
-  .ci-name{font-family:var(--display);font-weight:700;font-size:14px;text-transform:uppercase;letter-spacing:.02em;}
-  .ci-meta{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;color:var(--ink-60);margin-top:4px;}
-  .ci-qty{display:flex;align-items:center;gap:10px;margin-top:10px;}
-  .ci-qty button{
-    width:24px;height:24px;border:1px solid var(--ink-30);background:none;font-family:var(--mono);font-size:12px;line-height:1;
-  }
-  .ci-qty span{font-family:var(--mono);font-size:12px;min-width:16px;text-align:center;}
-  .ci-price{font-family:var(--mono);font-size:13px;font-weight:700;white-space:nowrap;}
-  .os-item{
-    display:flex;justify-content:space-between;align-items:center;gap:14px;
-    padding:18px 0;border-bottom:1px solid var(--ink-12);
-  }
-  .os-item .ci-name{display:flex;align-items:center;gap:9px;}
-  .os-dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 2.4s infinite;}
-  .os-item .ci-price{color:var(--green);}
-  .drawer-foot{padding:22px 28px 28px;border-top:1px solid var(--ink-12);}
-  .drawer-total{display:flex;justify-content:space-between;font-family:var(--mono);font-size:13px;letter-spacing:.08em;margin-bottom:8px;}
-  .drawer-total b{font-size:16px;}
-  .drawer-note{font-family:var(--mono);font-size:10px;letter-spacing:.08em;color:var(--ink-60);margin-bottom:16px;}
-  .checkout-btn{
-    width:100%;background:var(--ink);color:var(--canvas);border:none;
-    padding:17px;font-family:var(--mono);font-size:12px;letter-spacing:.18em;text-transform:uppercase;
-    transition:opacity .2s;
-  }
-  .checkout-btn:hover{opacity:.9;}
-
-  /* toast */
-  .toast{
-    position:fixed;bottom:26px;left:50%;transform:translate(-50%,20px);z-index:100;
-    background:var(--ink);color:var(--canvas);padding:13px 24px;
-    font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;
-    opacity:0;pointer-events:none;transition:opacity .3s,transform .3s;
-  }
-  .toast.show{opacity:1;transform:translate(-50%,0);}
-
   /* reveal on scroll */
   .reveal{opacity:0;transform:translateY(18px);transition:opacity .7s ease,transform .7s ease;}
   .reveal.in{opacity:1;transform:none;}
@@ -390,12 +311,12 @@
   /* ---------- RESPONSIVE ---------- */
   @media (max-width:860px){
     .nav-links{display:none;}
-    .plate,.plate.flip{grid-template-columns:1fr;}
-    .plate .plate-visual{order:1;min-height:340px;}
-    .plate .plate-info{order:2;}
-    .ladder-grid{grid-template-columns:1fr;}
+    .protocols{grid-template-columns:1fr;}
+    .flavors{grid-template-columns:1fr;}
     .steps{grid-template-columns:1fr;}
     .step + .step{padding-left:0;border-left:none;border-top:1px solid var(--ink-12);}
+    .ps-cell{border-right:none;border-bottom:1px solid var(--canvas-25);}
+    .ps-cell:last-child{border-bottom:none;}
   }
 </style>
 </head>
@@ -413,193 +334,93 @@
     <a href="/shop" aria-current="page">Shop</a>
     <a href="/aforce-os">AFORCE OS</a>
   </div>
-  <button class="cart-btn" id="cartOpen" aria-label="Open your ritual">
-    Your Ritual <span class="cart-count" id="cartCount">0</span>
-  </button>
 </nav>
 
 <!-- HERO -->
 <header class="hero">
   <p class="eyebrow">Provisions · pH 8.8 · Performance Is Non-<span class="flip-n">N</span>egotiable</p>
-  <h1>Equip the <em>standard.</em></h1>
-  <p class="hero-sub"><em style="font-style:italic;">A system, not a drink.</em> Three formulations, two formats, one discipline — and every order carries your operating system with it.</p>
+  <h1>Join the <em>system.</em></h1>
+  <p class="hero-sub"><em style="font-style:italic;">A performance system, not a purchase.</em> Choose the demand, and the protocol answers — every order provisions your Performance Profile in AFORCE OS.</p>
   <div class="hero-provision">
     <span class="pulse" aria-hidden="true"></span>
     AFORCE OS ACTIVATION INCLUDED WITH EVERY ORDER
   </div>
 </header>
 
-
-<!-- DEMAND SELECTOR -->
-<section class="demand reveal">
-  <h2>What are you <em>preparing for?</em></h2>
-  <p class="demand-sub">Nobody here is buying a flavor. Choose the demand — the protocol answers.</p>
-  <div class="demand-chips" role="group" aria-label="Choose your demand">
-    <button class="chip" data-demand="training" aria-pressed="false">Training</button>
-    <button class="chip" data-demand="recovery" aria-pressed="false">Recovery</button>
-    <button class="chip" data-demand="deepwork" aria-pressed="false">Deep Work</button>
-    <button class="chip" data-demand="travel" aria-pressed="false">Travel</button>
-    <button class="chip" data-demand="competition" aria-pressed="false">Competition</button>
-    <button class="chip" data-demand="heat" aria-pressed="false">Heat</button>
-  </div>
-  <p class="demand-answer" id="demandAnswer" aria-live="polite"></p>
-</section>
-
-<div class="section-head" id="formulations">
-  <h2>The Formulations</h2>
-  <span class="note">RTD 11 FL OZ · pH 8.8 · Sticks travel with you</span>
+<!-- STEP RAIL -->
+<div class="steprail" id="steprail" aria-hidden="true">
+  <span class="sr" data-step="intent"><span class="dot"></span>Intent</span>
+  <span class="sr" data-step="protocol"><span class="dot"></span>Protocol</span>
+  <span class="sr" data-step="months"><span class="dot"></span>Commitment</span>
+  <span class="sr" data-step="flavor"><span class="dot"></span>Formulation</span>
+  <span class="sr" data-step="ready"><span class="dot"></span>Begin</span>
 </div>
 
-<section class="plate reveal" data-sku="red">
-  <div class="plate-visual">
-    <span class="plate-index">01 / 03</span>
-    <img class="plate-photo plate-can" src="/assets/can-red.png" alt="AFORCE Watermelon Surge & Chlorella can" width="498" height="1281" data-format="can">
-    <img class="plate-photo plate-stick" src="/assets/stick-red.png" alt="AFORCE Watermelon Surge & Chlorella stick pack" width="255" height="1182" data-format="stick" hidden>
-    <span class="plate-ph">pH 8.8 · 325 mL</span>
+<!-- SECTION 0 — INTENT -->
+<section class="sec reveal" id="intent">
+  <p class="sec-eyebrow"><span class="step-i">Step 01</span> · The Demand</p>
+  <h2 id="intentHeading">What are you <em>preparing for?</em></h2>
+  <p class="sec-sub" id="intentSub"></p>
+  <div class="chips" id="intentChips" role="group" aria-label="Choose your demand"></div>
+  <p class="intent-answer" id="intentAnswer" aria-live="polite"></p>
+</section>
+
+<!-- SECTION A — PROTOCOL -->
+<section class="sec reveal" id="protocol">
+  <p class="sec-eyebrow"><span class="step-i">Step 02</span> · The Protocol</p>
+  <h2 id="protocolHeading"></h2>
+  <div class="protocols" id="protocolCards"></div>
+</section>
+
+<!-- SECTION B — COMMITMENT -->
+<section class="sec reveal" id="months">
+  <p class="sec-eyebrow"><span class="step-i">Step 03</span> · The Commitment</p>
+  <h2 id="commitQuestion"></h2>
+  <div class="commit-opts" id="commitOpts" role="group" aria-label="Commitment length"></div>
+</section>
+
+<!-- SECTION C — FLAVOR -->
+<section class="sec reveal" id="flavor">
+  <p class="sec-eyebrow"><span class="step-i">Step 04</span> · The Formulation</p>
+  <h2 id="flavorHeading"></h2>
+  <div class="flavors" id="flavorCards"></div>
+</section>
+
+<!-- SECTION D — PURCHASE -->
+<section class="sec purchase reveal" id="begin">
+  <p class="sec-eyebrow"><span class="step-i">Step 05</span> · Begin</p>
+  <h2>Your ritual begins <em>here.</em></h2>
+  <div class="p-summary" id="pSummary">
+    <div class="ps-cell"><div class="k">Protocol</div><div class="v pending" data-slot="protocol">Not chosen yet</div></div>
+    <div class="ps-cell"><div class="k">Commitment</div><div class="v pending" data-slot="months">Not chosen yet</div></div>
+    <div class="ps-cell"><div class="k">Formulation</div><div class="v pending" data-slot="flavor">Not chosen yet</div></div>
   </div>
-  <div class="plate-info">
-    <p class="plate-kicker">Formulation 01 — Red</p>
-    <h3>Watermelon Surge <span>&amp; Chlorella</span></h3>
-    <p class="plate-copy">The opener. Built for the first demand of the day — chlorella-supported hydration with the composure to match the pace you set, not the pace set for you.</p>
-    <div class="plate-specs">
-      <div class="spec">Alkalinity<b>pH 8.8</b></div>
-      <div class="spec">Volume<b>11 FL OZ</b></div>
-      <div class="spec">Format<b class="fmt-label" data-sku="red">Can</b></div>
-    </div>
-    <div class="plate-buy">
-      <div class="format-toggle" role="group" aria-label="Choose format">
-        <button aria-pressed="true" data-sku="red" data-format="can">Can</button>
-        <button aria-pressed="false" data-sku="red" data-format="stick">Stick</button>
-      </div>
-      <button class="add-btn" data-add="red">Add to Ritual <span class="price" data-price="red">$4.99</span></button>
-    </div>
+  <div class="purchase-foot">
+    <button class="purchase-btn" id="purchaseBtn" disabled>Begin the Ritual</button>
+    <p class="purchase-note" id="purchaseNote"></p>
   </div>
 </section>
 
-<section class="plate flip reveal" data-sku="blue">
-  <div class="plate-visual">
-    <span class="plate-index">02 / 03</span>
-    <img class="plate-photo plate-can" src="/assets/can-blue.png" alt="AFORCE Berry Blast & Dulse can" width="498" height="1278" data-format="can">
-    <img class="plate-photo plate-stick" src="/assets/stick-blue.png" alt="AFORCE Berry Blast & Dulse stick pack" width="255" height="1182" data-format="stick" hidden>
-    <span class="plate-ph">pH 8.8 · 325 mL</span>
-  </div>
-  <div class="plate-info">
-    <p class="plate-kicker">Formulation 02 — Blue</p>
-    <h3>Berry Blast <span>&amp; Dulse</span></h3>
-    <p class="plate-copy">The sustainer. Dulse-mineral depth for the long middle of the day — where most people fade and operators hold the line.</p>
-    <div class="plate-specs">
-      <div class="spec">Alkalinity<b>pH 8.8</b></div>
-      <div class="spec">Volume<b>11 FL OZ</b></div>
-      <div class="spec">Format<b class="fmt-label" data-sku="blue">Can</b></div>
-    </div>
-    <div class="plate-buy">
-      <div class="format-toggle" role="group" aria-label="Choose format">
-        <button aria-pressed="true" data-sku="blue" data-format="can">Can</button>
-        <button aria-pressed="false" data-sku="blue" data-format="stick">Stick</button>
-      </div>
-      <button class="add-btn" data-add="blue">Add to Ritual <span class="price" data-price="blue">$4.99</span></button>
-    </div>
-  </div>
-</section>
-
-<section class="plate reveal" data-sku="green">
-  <div class="plate-visual">
-    <span class="plate-index">03 / 03</span>
-    <img class="plate-photo plate-can" src="/assets/can-green.png" alt="AFORCE Soursop Edge & Seamoss can" width="498" height="1278" data-format="can">
-    <img class="plate-photo plate-stick" src="/assets/stick-green.png" alt="AFORCE Soursop Edge & Seamoss stick pack" width="270" height="1182" data-format="stick" hidden>
-    <span class="plate-ph">pH 8.8 · 325 mL</span>
-  </div>
-  <div class="plate-info">
-    <p class="plate-kicker">Formulation 03 — Green</p>
-    <h3>Soursop Edge <span>&amp; Seamoss</span></h3>
-    <p class="plate-copy">The closer. Seamoss-anchored recovery for the hours after the arena — because tomorrow's composure is built tonight.</p>
-    <div class="plate-specs">
-      <div class="spec">Alkalinity<b>pH 8.8</b></div>
-      <div class="spec">Volume<b>11 FL OZ</b></div>
-      <div class="spec">Format<b class="fmt-label" data-sku="green">Can</b></div>
-    </div>
-    <div class="plate-buy">
-      <div class="format-toggle" role="group" aria-label="Choose format">
-        <button aria-pressed="true" data-sku="green" data-format="can">Can</button>
-        <button aria-pressed="false" data-sku="green" data-format="stick">Stick</button>
-      </div>
-      <button class="add-btn" data-add="green">Add to Ritual <span class="price" data-price="green">$4.99</span></button>
-    </div>
-  </div>
-</section>
-
-<!-- LADDER -->
-<section class="ladder">
-  <div class="section-head">
-    <h2>Choose Your Protocol</h2>
-    <span class="note">Every tier provisions AFORCE OS</span>
-  </div>
-  <div class="ladder-grid">
-    <div class="rung reveal">
-      <span class="rung-tier">Tier I — Entry</span>
-      <h3>The Calibration Kit</h3>
-      <p class="rung-serif">Your baseline, boxed.</p>
-      <ul>
-        <li>All three formulations — 3 cans + 3 sticks</li>
-        <li>The Standard card — your ritual, printed</li>
-        <li class="os-line">OS activation + your first Calibration saved</li>
-      </ul>
-      <div class="rung-foot">
-        <div class="rung-price" data-fixed="kit"><span class="rp-num">$24</span><small>One-time · first order only</small></div>
-        <button class="add-btn" data-add="kit">Add</button>
-      </div>
-    </div>
-    <div class="rung featured reveal">
-      <span class="rung-tier">Tier II — Protocol</span>
-      <h3>The Case</h3>
-      <p class="rung-serif">Twelve cans. One formulation. No decisions left to chance.</p>
-      <ul>
-        <li>12 × 11 FL OZ — choose your formulation</li>
-        <li>Every can scans into Performance Memory</li>
-        <li class="os-line">OS activation included</li>
-      </ul>
-      <div class="rung-foot">
-        <div class="rung-price" data-fixed="case"><span class="rp-num">$54</span><small class="rp-sub">$4.50 per can</small></div>
-        <button class="add-btn" data-add="case">Add</button>
-      </div>
-    </div>
-    <div class="rung reveal">
-      <span class="rung-tier">Tier III — Standard</span>
-      <h3>The Standing Order</h3>
-      <p class="rung-serif">The ritual, automated. Arrives before you run out.</p>
-      <ul>
-        <li>24 cans or 30 sticks monthly — your mix</li>
-        <li>Founding pricing, locked for life</li>
-        <li class="os-line">Full Intelligence Core access in OS</li>
-      </ul>
-      <div class="rung-foot">
-        <div class="rung-price" data-fixed="standing"><span class="rp-num">$99 / mo</span><small>Pause or adjust anytime</small></div>
-        <button class="add-btn" data-add="standing">Add</button>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- PROVISION -->
+<!-- PROVISION (editorial) -->
 <section class="provision reveal">
   <p class="eyebrow">The Difference</p>
   <h2>Your receipt is a <em>key.</em></h2>
-  <p class="provision-sub">Every AFORCE order provisions an AFORCE OS account. Nothing to sign up for, no account wall — what you bought is already yours. Claim it in thirty seconds.</p>
+  <p class="provision-sub">Every AFORCE order provisions an AFORCE OS account. Nothing to sign up for, no account wall — what you bought is already yours. Your Performance Profile initializes the moment you begin.</p>
   <div class="steps">
     <div class="step">
       <span class="step-num">01</span>
-      <h4>Order Completes</h4>
-      <p>Your OS account is provisioned from the order itself. The confirmation isn't a receipt — it's an activation notice.</p>
+      <h4>Performance Profile Initialized</h4>
+      <p>Your Performance Profile is provisioned from the order itself. The confirmation isn't a receipt — it's an activation notice.</p>
     </div>
     <div class="step">
       <span class="step-num">02</span>
-      <h4>Claim the OS</h4>
-      <p>One tap from the confirmation, or scan the code on any can. Biometric sign-in. Your Calibration is already waiting.</p>
+      <h4>Download AFORCE OS</h4>
+      <p>One tap from the confirmation, or scan the code on any can. Biometric sign-in. Your profile is already waiting.</p>
     </div>
     <div class="step">
       <span class="step-num">03</span>
       <h4>The System Learns</h4>
-      <p>Every can scanned logs a completed ritual into Performance Memory. The product feeds the intelligence. The intelligence sharpens the ritual.</p>
+      <p>Every can scanned logs a completed ritual into your profile. The product feeds the intelligence. The intelligence sharpens the ritual.</p>
     </div>
   </div>
   <p class="provision-legal">AFORCE OS ritual logging reflects completed rituals, not live biometric readings. Provisional patent filed. These statements have not been evaluated by the Food and Drug Administration. This product is not intended to diagnose, treat, cure, or prevent any disease.</p>
@@ -609,9 +430,9 @@
 <section class="founding reveal">
   <div>
     <h2>Brickell. The Founding Cohort.</h2>
-    <p class="founding-serif">A numbered position, printed on your kit and written into your OS profile. When the roster closes, it closes.</p>
+    <p class="founding-serif">A numbered position, printed on your kit and written into your OS profile.</p>
   </div>
-  <a href="/#founding">Request Your Number</a>
+  <a href="/founding-250">Request Your Number</a>
 </section>
 
 <footer>
@@ -620,243 +441,259 @@
   <span>© 2026 AFORCE. All rights reserved.</span>
 </footer>
 
-<!-- CART DRAWER -->
-<div class="drawer-veil" id="veil"></div>
-<aside class="drawer" id="drawer" aria-label="Your ritual">
-  <div class="drawer-head">
-    <h3>Your Ritual</h3>
-    <button class="drawer-close" id="cartClose">Close</button>
-  </div>
-  <div class="drawer-body" id="drawerBody">
-    <p class="drawer-empty">Nothing secured yet.</p>
-  </div>
-  <div class="drawer-foot">
-    <div class="drawer-total"><span>Total</span><b id="cartTotal">$0.00</b></div>
-    <p class="drawer-note">OS ACTIVATION · CALIBRATION TRANSFER · RITUAL LOGGING — INCLUDED</p>
-    <button class="checkout-btn" id="checkoutBtn">Secure the Standard</button>
-  </div>
-</aside>
+<!-- WHY THIS PROTOCOL OVERLAY -->
+<div class="why-veil" id="whyVeil"></div>
+<div class="why-modal" id="whyModal" role="dialog" aria-modal="true" aria-labelledby="whyModalTitle">
+  <p class="wm-kicker">Why this protocol?</p>
+  <h4 id="whyModalTitle"></h4>
+  <p id="whyModalBody"></p>
+  <button class="wm-close" id="whyClose">Close</button>
+</div>
 
-<div class="toast" id="toast">Added to your ritual</div>
-
+<script src="shop-config.js"></script>
 <script>
 (function(){
   "use strict";
 
-  /* ── PRICE CONFIG — single source of truth ──
-     All prices live here. Locked numbers can be swapped in later by editing
-     CATALOG only; the markup renders from it on load (see initPrices).
-     PLACEHOLDER except the $4.99 can: $24 kit, $54 case, $99/mo standing, $2.49 stick. */
-  var CATALOG = {
-    red:   { name:"Watermelon Surge & Chlorella", can:{label:"Can · 11 FL OZ", price:4.99}, stick:{label:"Stick · Travel", price:2.49} },
-    blue:  { name:"Berry Blast & Dulse",          can:{label:"Can · 11 FL OZ", price:4.99}, stick:{label:"Stick · Travel", price:2.49} },
-    green: { name:"Soursop Edge & Seamoss",       can:{label:"Can · 11 FL OZ", price:4.99}, stick:{label:"Stick · Travel", price:2.49} },
-    kit:      { name:"The Calibration Kit",  fixed:{label:"3 cans + 3 sticks + OS", price:24.00} },
-    case:     { name:"The Case",             fixed:{label:"12 cans · one formulation", price:54.00, units:12} },
-    standing: { name:"The Standing Order",   fixed:{label:"Monthly · 24 cans or 30 sticks", price:99.00, interval:"mo"} }
-  };
-
-  var formatChoice = { red:"can", blue:"can", green:"can" };
-  var cart = []; // {sku, format, qty}
-
-  function money(n){ return "$" + n.toFixed(2); }
-  function priceLabel(n){ return "$" + (n % 1 === 0 ? String(n) : n.toFixed(2)); }
-
-  // Render every displayed price from CATALOG so the config is the only source.
-  function initPrices(){
-    ["red","blue","green"].forEach(function(sku){
-      var fmt = formatChoice[sku];
-      var priceEl = document.querySelector('[data-price="'+sku+'"]');
-      var fmtLabel = document.querySelector('.fmt-label[data-sku="'+sku+'"]');
-      if(priceEl) priceEl.textContent = money(CATALOG[sku][fmt].price);
-      if(fmtLabel) fmtLabel.textContent = fmt === "can" ? "Can" : "Stick";
-    });
-    document.querySelectorAll('.rung-price[data-fixed]').forEach(function(el){
-      var item = CATALOG[el.getAttribute("data-fixed")];
-      if(!item || !item.fixed) return;
-      var numEl = el.querySelector(".rp-num");
-      if(numEl){
-        numEl.textContent = priceLabel(item.fixed.price) + (item.fixed.interval ? " / " + item.fixed.interval : "");
-      }
-      var subEl = el.querySelector(".rp-sub");
-      if(subEl && item.fixed.units){
-        subEl.textContent = money(item.fixed.price / item.fixed.units) + " per can";
-      }
-    });
+  /* ---------- CONFIG (with safe built-in fallback) ---------- */
+  var CFG = window.AFORCE_SHOP_CONFIG;
+  if(!CFG || !CFG.protocols){
+    // Fallback keeps the page functional if the config file fails to load.
+    CFG = {
+      intent:{ headlineLead:"What are you", headlineEm:"preparing for?", subline:"Choose the demand — the protocol answers.", options:[] },
+      protocolsHeading:"Choose Your Performance Protocol", protocols:[], whyLinkLabel:"Why this protocol?",
+      commitment:{ question:"How many months should we prepare?", options:[{value:1,label:"One Month"},{value:2,label:"Two Months"},{value:3,label:"Three Months"}] },
+      flavorsHeading:"Select Your Formulation", flavors:[],
+      purchase:{ fallbackCta:"Begin the Ritual", reassurance:"" }, delight:{ recommendedRibbon:"Recommended" }
+    };
   }
 
-  // format toggles
-  document.querySelectorAll(".format-toggle button").forEach(function(btn){
-    btn.addEventListener("click", function(){
-      var sku = btn.getAttribute("data-sku");
-      var fmt = btn.getAttribute("data-format");
-      formatChoice[sku] = fmt;
-      btn.parentElement.querySelectorAll("button").forEach(function(b){
-        b.setAttribute("aria-pressed", b === btn ? "true" : "false");
-      });
-      var priceEl = document.querySelector('[data-price="'+sku+'"]');
-      var fmtLabel = document.querySelector('.fmt-label[data-sku="'+sku+'"]');
-      priceEl.textContent = money(CATALOG[sku][fmt].price);
-      fmtLabel.textContent = fmt === "can" ? "Can" : "Stick";
-      // swap the plate visual to match the chosen format
-      var plate = document.querySelector('.plate[data-sku="'+sku+'"]');
-      if(plate){
-        plate.querySelectorAll(".plate-photo").forEach(function(img){
-          img.hidden = (img.getAttribute("data-format") !== fmt);
-        });
-      }
-    });
-  });
-
-  // add buttons
-  document.querySelectorAll("[data-add]").forEach(function(btn){
-    btn.addEventListener("click", function(){
-      var sku = btn.getAttribute("data-add");
-      var fmt = CATALOG[sku].fixed ? "fixed" : formatChoice[sku];
-      var existing = cart.find(function(i){ return i.sku===sku && i.format===fmt; });
-      if(existing){ existing.qty++; } else { cart.push({sku:sku, format:fmt, qty:1}); }
-      render();
-      toast("Added to your ritual");
-      openDrawer();
-    });
-  });
-
-  function lineTotal(item){
-    return CATALOG[item.sku][item.format].price * item.qty;
+  /* ---------- ANALYTICS (Section L, frontend events) ----------
+     track() pushes to window.dataLayer (GA4 / GTM friendly) and calls an
+     optional window.aforceTrack(event, props) hook. Wire a provider by
+     defining window.aforceTrack; no page change needed. Never throws. */
+  function track(event, props){
+    props = props || {};
+    try{
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push(Object.assign({ event:event }, props));
+      if(typeof window.aforceTrack === "function") window.aforceTrack(event, props);
+    }catch(e){ /* analytics must never break the flow */ }
   }
 
-  function render(){
-    var body = document.getElementById("drawerBody");
-    var count = document.getElementById("cartCount");
-    var totalEl = document.getElementById("cartTotal");
-    body.innerHTML = "";
+  /* ---------- STATE ---------- */
+  var state = { intent:null, protocol:null, months:null, flavor:null };
+  function protoById(id){ return CFG.protocols.filter(function(p){ return p.id===id; })[0] || null; }
+  function flavorById(id){ return CFG.flavors.filter(function(f){ return f.id===id; })[0] || null; }
+  function money(n){ return "$" + Number(n).toFixed(2); }
+  var esc = (function(){ var d=document.createElement("div"); return function(s){ d.textContent=s==null?"":String(s); return d.innerHTML; }; })();
 
-    if(cart.length === 0){
-      body.innerHTML = '<p class="drawer-empty">Nothing secured yet.</p>';
-      count.textContent = "0";
-      totalEl.textContent = "$0.00";
-      return;
+  /* ---------- RENDER: SECTION 0 INTENT ---------- */
+  document.getElementById("intentHeading").innerHTML =
+    esc(CFG.intent.headlineLead) + ' <em>' + esc(CFG.intent.headlineEm) + '</em>';
+  document.getElementById("intentSub").textContent = CFG.intent.subline || "";
+  var chipsWrap = document.getElementById("intentChips");
+  (CFG.intent.options||[]).forEach(function(opt){
+    var b = document.createElement("button");
+    b.className = "chip"; b.type = "button";
+    b.setAttribute("data-intent", opt.id);
+    b.setAttribute("aria-pressed","false");
+    b.textContent = opt.label;
+    chipsWrap.appendChild(b);
+  });
+
+  /* ---------- RENDER: SECTION A PROTOCOLS ---------- */
+  document.getElementById("protocolHeading").textContent = CFG.protocolsHeading || "";
+  var pWrap = document.getElementById("protocolCards");
+  CFG.protocols.forEach(function(p){
+    var card = document.createElement("article");
+    card.className = "pcard"; card.setAttribute("data-protocol", p.id);
+    var lines = (p.lines||[]).map(function(l){ return '<span>'+esc(l)+'</span>'; }).join("");
+    card.innerHTML =
+      '<span class="rec-ribbon">'+esc((CFG.delight&&CFG.delight.recommendedRibbon)||"Recommended")+'</span>' +
+      '<div class="p-pack">'+esc(p.pack)+'</div>' +
+      '<h3>'+esc(p.name)+'</h3>' +
+      '<div class="p-lines">'+lines+'</div>' +
+      '<div class="p-price">'+money(p.price)+ (p.priceNote?'<small>'+esc(p.priceNote)+'</small>':'') +'</div>' +
+      '<div class="p-foot">' +
+        '<button class="p-cta" type="button" data-choose="'+p.id+'">'+esc(p.cardCta)+'</button>' +
+        '<button class="why-link" type="button" data-why="'+p.id+'"><span class="i">i</span>'+esc(CFG.whyLinkLabel||"Why this protocol?")+'</button>' +
+      '</div>';
+    pWrap.appendChild(card);
+  });
+
+  /* ---------- RENDER: SECTION B COMMITMENT ---------- */
+  document.getElementById("commitQuestion").textContent = CFG.commitment.question || "";
+  var cWrap = document.getElementById("commitOpts");
+  (CFG.commitment.options||[]).forEach(function(o){
+    var b = document.createElement("button");
+    b.className="commit-opt"; b.type="button";
+    b.setAttribute("data-months", o.value); b.setAttribute("aria-pressed","false");
+    b.innerHTML = '<span class="radio" aria-hidden="true"></span>'+esc(o.label);
+    cWrap.appendChild(b);
+  });
+
+  /* ---------- RENDER: SECTION C FLAVORS ---------- */
+  document.getElementById("flavorHeading").textContent = CFG.flavorsHeading || "";
+  var fWrap = document.getElementById("flavorCards");
+  CFG.flavors.forEach(function(f){
+    var card = document.createElement("button");
+    card.className="fcard"; card.type="button"; card.setAttribute("data-flavor", f.id);
+    card.innerHTML =
+      '<span class="rec-ribbon">'+esc((CFG.delight&&CFG.delight.recommendedRibbon)||"Recommended")+'</span>' +
+      '<div class="fcard-visual"><img src="'+esc(f.img)+'" alt="AFORCE '+esc(f.name)+'" loading="lazy" decoding="async"></div>' +
+      '<div class="fcard-body"><h3>'+esc(f.name)+'</h3><p>'+esc(f.desc)+'</p><span class="fcard-pick"></span></div>';
+    fWrap.appendChild(card);
+  });
+
+  /* ---------- STEP RAIL ---------- */
+  function markStep(step, done){
+    var el = document.querySelector('.steprail .sr[data-step="'+step+'"]');
+    if(el) el.classList.toggle("done", !!done);
+  }
+
+  /* ---------- PRE-HIGHLIGHT (recommendation) ---------- */
+  function clearRecommended(){
+    document.querySelectorAll(".pcard.recommended,.fcard.recommended").forEach(function(el){ el.classList.remove("recommended"); });
+  }
+  function applyRecommendation(opt){
+    clearRecommended();
+    var pc = document.querySelector('.pcard[data-protocol="'+opt.protocol+'"]');
+    var fc = document.querySelector('.fcard[data-flavor="'+opt.flavor+'"]');
+    if(pc) pc.classList.add("recommended");
+    if(fc) fc.classList.add("recommended");
+  }
+
+  /* ---------- SUMMARY / PURCHASE BUTTON ---------- */
+  function setSlot(slot, text, filled){
+    var el = document.querySelector('.ps-cell .v[data-slot="'+slot+'"]');
+    if(!el) return;
+    el.textContent = text;
+    el.classList.toggle("pending", !filled);
+  }
+  function refreshPurchase(){
+    var ready = state.protocol && state.months && state.flavor;
+    var btn = document.getElementById("purchaseBtn");
+    var p = protoById(state.protocol);
+    btn.textContent = p ? (p.purchaseCta || CFG.purchase.fallbackCta) : CFG.purchase.fallbackCta;
+    btn.disabled = !ready;
+    document.getElementById("purchaseNote").textContent =
+      ready ? (CFG.purchase.reassurance||"") : "Choose your protocol, commitment, and formulation to begin.";
+    markStep("ready", !!ready);
+  }
+
+  /* ---------- INTENT SELECT ---------- */
+  chipsWrap.addEventListener("click", function(e){
+    var chip = e.target.closest(".chip"); if(!chip) return;
+    var id = chip.getAttribute("data-intent");
+    var opt = (CFG.intent.options||[]).filter(function(o){ return o.id===id; })[0];
+    if(!opt) return;
+    state.intent = id;
+    document.querySelectorAll(".chip").forEach(function(c){ c.setAttribute("aria-pressed", c===chip?"true":"false"); });
+    document.getElementById("intentAnswer").innerHTML = opt.line || "";
+    applyRecommendation(opt);
+    markStep("intent", true);
+    track("intent_selected", { intent:id });
+    document.getElementById("protocol").scrollIntoView({ behavior:"smooth", block:"start" });
+  });
+
+  /* ---------- PROTOCOL: choose + why ---------- */
+  pWrap.addEventListener("click", function(e){
+    var choose = e.target.closest("[data-choose]");
+    var why = e.target.closest("[data-why]");
+    if(choose){
+      var id = choose.getAttribute("data-choose");
+      state.protocol = id;
+      document.querySelectorAll(".pcard").forEach(function(c){ c.classList.toggle("selected", c.getAttribute("data-protocol")===id); });
+      var p = protoById(id);
+      setSlot("protocol", p ? (p.name + " · " + p.pack) : "", true);
+      refreshPurchase();
+      markStep("protocol", true);
+      track("protocol_card_selected", { protocol:id });
+      document.getElementById("months").scrollIntoView({ behavior:"smooth", block:"start" });
+    } else if(why){
+      var wid = why.getAttribute("data-why");
+      var wp = protoById(wid); if(!wp) return;
+      document.getElementById("whyModalTitle").textContent = wp.name;
+      document.getElementById("whyModalBody").textContent = wp.why || "";
+      openWhy();
+      track("why_protocol_overlay_opened", { protocol:wid });
     }
-
-    var total = 0, units = 0;
-    cart.forEach(function(item, idx){
-      total += lineTotal(item);
-      units += item.qty;
-      var meta = CATALOG[item.sku][item.format].label;
-      var row = document.createElement("div");
-      row.className = "cart-item";
-      row.innerHTML =
-        '<div>' +
-          '<div class="ci-name">' + CATALOG[item.sku].name + '</div>' +
-          '<div class="ci-meta">' + meta + '</div>' +
-          '<div class="ci-qty">' +
-            '<button aria-label="Decrease quantity" data-dec="'+idx+'">−</button>' +
-            '<span>' + item.qty + '</span>' +
-            '<button aria-label="Increase quantity" data-inc="'+idx+'">+</button>' +
-          '</div>' +
-        '</div>' +
-        '<div class="ci-price">$' + lineTotal(item).toFixed(2) + '</div>';
-      body.appendChild(row);
-    });
-
-    // the line no one else has
-    var os = document.createElement("div");
-    os.className = "os-item";
-    os.innerHTML =
-      '<div>' +
-        '<div class="ci-name"><span class="os-dot" aria-hidden="true"></span>AFORCE OS Activation</div>' +
-        '<div class="ci-meta">PROVISIONED WITH THIS ORDER · YOURS TO CLAIM</div>' +
-      '</div>' +
-      '<div class="ci-price">Included</div>';
-    body.appendChild(os);
-
-    body.querySelectorAll("[data-inc]").forEach(function(b){
-      b.addEventListener("click", function(){ cart[+b.getAttribute("data-inc")].qty++; render(); });
-    });
-    body.querySelectorAll("[data-dec]").forEach(function(b){
-      b.addEventListener("click", function(){
-        var i = +b.getAttribute("data-dec");
-        cart[i].qty--;
-        if(cart[i].qty <= 0) cart.splice(i,1);
-        render();
-      });
-    });
-
-    count.textContent = String(units);
-    totalEl.textContent = "$" + total.toFixed(2);
-  }
-
-  // drawer
-  var drawer = document.getElementById("drawer");
-  var veil = document.getElementById("veil");
-  function openDrawer(){ drawer.classList.add("open"); veil.classList.add("open"); }
-  function closeDrawer(){ drawer.classList.remove("open"); veil.classList.remove("open"); }
-  document.getElementById("cartOpen").addEventListener("click", openDrawer);
-  document.getElementById("cartClose").addEventListener("click", closeDrawer);
-  veil.addEventListener("click", closeDrawer);
-  document.addEventListener("keydown", function(e){ if(e.key==="Escape") closeDrawer(); });
-
-  // CHECKOUT — stubbed. Wire to Shopify cart/checkout in a later phase.
-  function checkout(){
-    if(!cart.length){ toast("Nothing secured yet"); return; }
-    // TODO(shopify): build line items from `cart` + CATALOG and redirect to Shopify checkout.
-    toast("Checkout connects to Shopify at launch");
-  }
-  document.getElementById("checkoutBtn").addEventListener("click", checkout);
-
-  // toast
-  var toastTimer;
-  function toast(msg){
-    var t = document.getElementById("toast");
-    t.textContent = msg;
-    t.classList.add("show");
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(function(){ t.classList.remove("show"); }, 2200);
-  }
-
-  // demand selector
-  var DEMANDS = {
-    training:    { sku:"red",   format:"can",   line:'For Training: <b>Watermelon Surge &amp; Chlorella</b> — the opener. One can, thirty minutes before you start.' },
-    recovery:    { sku:"green", format:"can",   line:'For Recovery: <b>Soursop Edge &amp; Seamoss</b> — the closer. Tomorrow’s composure is built tonight.' },
-    deepwork:    { sku:"blue",  format:"can",   line:'For Deep Work: <b>Berry Blast &amp; Dulse</b> — the sustainer. Built for the long middle of the day.' },
-    travel:      { sku:"blue",  format:"stick", line:'For Travel: <b>Berry Blast &amp; Dulse</b>, stick format — the ritual moves with you. Any water becomes AFORCE.' },
-    competition: { sku:"red",   format:"can",   line:'For Competition: <b>Watermelon Surge &amp; Chlorella</b> — the opener, when the arena is watching.' },
-    heat:        { sku:"blue",  format:"can",   line:'For Heat: <b>Berry Blast &amp; Dulse</b> — dulse-mineral depth for when the environment is the opponent.' }
-  };
-
-  document.querySelectorAll(".chip").forEach(function(chip){
-    chip.addEventListener("click", function(){
-      var key = chip.getAttribute("data-demand");
-      var d = DEMANDS[key];
-      document.querySelectorAll(".chip").forEach(function(c){ c.setAttribute("aria-pressed", c===chip ? "true":"false"); });
-      document.getElementById("demandAnswer").innerHTML = d.line + '<span class="prescribe">Prescribed</span>';
-
-      // set format toggle on the target plate
-      var toggle = document.querySelector('.format-toggle button[data-sku="'+d.sku+'"][data-format="'+d.format+'"]');
-      if(toggle) toggle.click();
-
-      // light the plate
-      document.querySelectorAll(".plate").forEach(function(p){ p.classList.remove("lit"); });
-      var plate = document.querySelector('.plate[data-sku="'+d.sku+'"]');
-      plate.classList.add("lit");
-      plate.scrollIntoView({behavior:"smooth", block:"center"});
-      setTimeout(function(){ plate.classList.remove("lit"); }, 3200);
-    });
   });
 
-  // reveal on scroll
+  /* ---------- COMMITMENT ---------- */
+  cWrap.addEventListener("click", function(e){
+    var opt = e.target.closest(".commit-opt"); if(!opt) return;
+    var months = parseInt(opt.getAttribute("data-months"), 10);
+    state.months = months;
+    document.querySelectorAll(".commit-opt").forEach(function(c){ c.setAttribute("aria-pressed", c===opt?"true":"false"); });
+    setSlot("months", months + (months===1?" Month":" Months"), true);
+    refreshPurchase();
+    markStep("months", true);
+    track("commitment_months_selected", { months:months });
+    document.getElementById("flavor").scrollIntoView({ behavior:"smooth", block:"start" });
+  });
+
+  /* ---------- FLAVOR ---------- */
+  fWrap.addEventListener("click", function(e){
+    var card = e.target.closest(".fcard"); if(!card) return;
+    var id = card.getAttribute("data-flavor");
+    state.flavor = id;
+    document.querySelectorAll(".fcard").forEach(function(c){ c.classList.toggle("selected", c===card); });
+    var f = flavorById(id);
+    setSlot("flavor", f ? f.name : "", true);
+    refreshPurchase();
+    markStep("flavor", true);
+    track("flavor_selected", { flavor:id });
+    document.getElementById("begin").scrollIntoView({ behavior:"smooth", block:"start" });
+  });
+
+  /* ---------- PURCHASE (Section D → checkout_started) ---------- */
+  document.getElementById("purchaseBtn").addEventListener("click", function(){
+    if(!(state.protocol && state.months && state.flavor)) return;
+    var payload = { protocol:state.protocol, flavor:state.flavor, months:state.months };
+    track("checkout_started", payload);
+    // Hand off to the real checkout (built in the AForce OS backend — see
+    // docs/AFORCE_SHOP_BACKEND_SPEC.md). If a checkout bridge is present, use it.
+    if(typeof window.AForceCheckout === "function"){ window.AForceCheckout(payload); return; }
+    var note = document.getElementById("purchaseNote");
+    note.textContent = "Preparing your Performance Profile — checkout opens next.";
+  });
+
+  /* ---------- WHY OVERLAY ---------- */
+  var whyVeil = document.getElementById("whyVeil"), whyModal = document.getElementById("whyModal");
+  function openWhy(){ whyVeil.classList.add("open"); whyModal.classList.add("open"); }
+  function closeWhy(){ whyVeil.classList.remove("open"); whyModal.classList.remove("open"); }
+  document.getElementById("whyClose").addEventListener("click", closeWhy);
+  whyVeil.addEventListener("click", closeWhy);
+  document.addEventListener("keydown", function(e){ if(e.key==="Escape") closeWhy(); });
+
+  /* ---------- protocol_card_viewed (once per card, on first view) ---------- */
+  if("IntersectionObserver" in window){
+    var seen = {};
+    var pvObs = new IntersectionObserver(function(entries){
+      entries.forEach(function(en){
+        if(en.isIntersecting){
+          var id = en.target.getAttribute("data-protocol");
+          if(id && !seen[id]){ seen[id]=1; track("protocol_card_viewed", { protocol:id }); }
+          pvObs.unobserve(en.target);
+        }
+      });
+    },{ threshold:.4 });
+    document.querySelectorAll(".pcard").forEach(function(c){ pvObs.observe(c); });
+  }
+
+  /* ---------- reveal on scroll ---------- */
   if("IntersectionObserver" in window){
     var io = new IntersectionObserver(function(entries){
-      entries.forEach(function(en){
-        if(en.isIntersecting){ en.target.classList.add("in"); io.unobserve(en.target); }
-      });
-    },{threshold:.12});
+      entries.forEach(function(en){ if(en.isIntersecting){ en.target.classList.add("in"); io.unobserve(en.target); } });
+    },{ threshold:.12 });
     document.querySelectorAll(".reveal").forEach(function(el){ io.observe(el); });
   } else {
     document.querySelectorAll(".reveal").forEach(function(el){ el.classList.add("in"); });
   }
 
-  initPrices();
+  refreshPurchase();
 })();
 </script>
 </body>
