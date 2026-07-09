@@ -36,6 +36,18 @@ window.AFORCE_SHOP_CONFIG = {
     ]
   },
 
+  /* ---------- BRAND SHOWCASE (below hero) — visual only, NOT a purchase path ----------
+     Renders the three formulations (same as Section C) as large cinematic can
+     renders. A brand section; buying always happens through the guided flow. */
+  showcase: {
+    heading: "The Formulations",
+    subline: "Three formulations, one standard. This is the product — choose yours inside the flow below."
+  },
+
+  /* Representative can shown on each Protocol card, tying each pack to the
+     physical product. Per-protocol `cardImage` overrides this default. */
+  signatureCan: "/assets/can-blue.png",
+
   /* ---------- SECTION A — PROTOCOL SELECTION ---------- */
   protocolsHeading: "Choose Your Performance Protocol",
   protocols: [
