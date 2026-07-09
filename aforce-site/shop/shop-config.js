@@ -105,6 +105,19 @@ window.AFORCE_SHOP_CONFIG = {
     { id:"green", name:"Soursop Edge",     desc:"Recovery. Built for your hardest recovery days.",                  img:"/assets/can-green.png" }
   ],
 
+  /* ---------- BRAND SHOWCASE — STICKS (below the cans, visual only) ----------
+     The travel format of the same three formulations. Visual brand section,
+     mirrors "The Formulations"; buying still happens in the guided flow. */
+  sticksShowcase: {
+    heading: "The Sticks",
+    subline: "The same formulations, portable. Drop a stick into any water and the ritual travels with you."
+  },
+  sticks: [
+    { id:"red",   name:"Watermelon Surge", desc:"Heat Guard optimized. For high heat and high activity — anywhere.", img:"/assets/stick-red.png" },
+    { id:"blue",  name:"Berry Blast",      desc:"Daily performance. Your consistent foundation, on the move.",       img:"/assets/stick-blue.png" },
+    { id:"green", name:"Soursop Edge",     desc:"Recovery. For your hardest recovery days, on the road.",            img:"/assets/stick-green.png" }
+  ],
+
   /* ---------- SECTION D — PURCHASE ---------- */
   purchase: {
     // Per-protocol CTA labels live on each protocol (purchaseCta).

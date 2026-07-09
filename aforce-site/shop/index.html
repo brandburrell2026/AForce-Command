@@ -379,6 +379,15 @@
   <div class="showcase-grid" id="showcaseGrid"></div>
 </section>
 
+<!-- BRAND SHOWCASE — STICKS (visual only — same as the cans section) -->
+<section class="showcase sticks reveal" aria-label="The sticks">
+  <div class="showcase-head">
+    <h2 id="sticksHeading"></h2>
+    <p class="sc-sub" id="sticksSub"></p>
+  </div>
+  <div class="showcase-grid" id="sticksGrid"></div>
+</section>
+
 <!-- STEP RAIL -->
 <div class="steprail" id="steprail" aria-hidden="true">
   <span class="sr" data-step="intent"><span class="dot"></span>Intent</span>
@@ -524,6 +533,12 @@
         { id:"blue",  name:"Berry Blast",      desc:"Daily performance. Your consistent foundation.",                   img:"/assets/can-blue.png" },
         { id:"green", name:"Soursop Edge",     desc:"Recovery. Built for your hardest recovery days.",                  img:"/assets/can-green.png" }
       ],
+      sticksShowcase:{ heading:"The Sticks", subline:"The same formulations, portable. Drop a stick into any water and the ritual travels with you." },
+      sticks:[
+        { id:"red",   name:"Watermelon Surge", desc:"Heat Guard optimized. For high heat and high activity — anywhere.", img:"/assets/stick-red.png" },
+        { id:"blue",  name:"Berry Blast",      desc:"Daily performance. Your consistent foundation, on the move.",       img:"/assets/stick-blue.png" },
+        { id:"green", name:"Soursop Edge",     desc:"Recovery. For your hardest recovery days, on the road.",            img:"/assets/stick-green.png" }
+      ],
       purchase:{ fallbackCta:"Begin the Ritual", reassurance:"AFORCE OS activates the moment your Performance Profile is initialized." },
       delight:{ recommendedRibbon:"Recommended" }
     };
@@ -564,6 +579,25 @@
       '<div class="sc-body"><h3>'+esc(f.name)+'</h3><p>'+esc(f.desc)+'</p></div>';
     scWrap.appendChild(card);
   });
+
+  /* ---------- RENDER: STICKS SHOWCASE (visual only — mirrors the cans) ---------- */
+  var sticksCfg = CFG.sticksShowcase || {};
+  var stHead = document.getElementById("sticksHeading");
+  var stWrap = document.getElementById("sticksGrid");
+  if(stHead && stWrap && (CFG.sticks||[]).length){
+    stHead.textContent = sticksCfg.heading || "The Sticks";
+    document.getElementById("sticksSub").textContent = sticksCfg.subline || "";
+    CFG.sticks.forEach(function(s, i){
+      var card = document.createElement("div");
+      card.className = "sc-card"; card.setAttribute("data-flavor", s.id);
+      var idx = ("0" + (i+1)).slice(-2) + " / " + ("0" + CFG.sticks.length).slice(-2);
+      card.innerHTML =
+        '<div class="sc-visual"><span class="sc-index">'+idx+'</span>' +
+          '<img src="'+esc(s.img)+'" alt="AFORCE '+esc(s.name)+' stick" loading="lazy" decoding="async"></div>' +
+        '<div class="sc-body"><h3>'+esc(s.name)+'</h3><p>'+esc(s.desc)+'</p></div>';
+      stWrap.appendChild(card);
+    });
+  }
 
   /* ---------- RENDER: SECTION 0 INTENT ---------- */
   document.getElementById("intentHeading").innerHTML =
