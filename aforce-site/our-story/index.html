@@ -85,8 +85,8 @@
   .wrap{ max-width:var(--maxw); margin:0 auto; }
   .measure{ max-width:900px; }
 
-  /* editorial section — near-full viewport, one idea per screen */
-  .chapter{ min-height:100svh; display:flex; align-items:center; padding:clamp(96px,15vh,180px) var(--gutter); }
+  /* editorial section — sized to its content, one idea per block */
+  .chapter{ min-height:0; display:flex; align-items:center; padding:clamp(72px,10vh,120px) var(--gutter); }
   .ch-num{ font-family:var(--body); font-weight:700; font-size:11px; letter-spacing:.3em; text-transform:uppercase; color:var(--red); margin-bottom:clamp(22px,3vw,34px); }
   .chapter .h-display + .prose, .chapter .h-2 + .prose{ margin-top:clamp(30px,3.6vw,48px); }
   .stanza{ display:flex; flex-direction:column; gap:clamp(6px,1vw,12px); }
@@ -110,6 +110,8 @@
 
   /* black statement / belief full-screen */
   .belief{ background:var(--ink); color:var(--bone); min-height:100svh; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:clamp(28px,5vh,60px); padding:clamp(80px,12vh,160px) var(--gutter); }
+  /* compact statement — sized to its content instead of a full viewport */
+  .belief.compact{ min-height:0; gap:clamp(22px,3.4vh,40px); padding-top:clamp(56px,8vh,100px); padding-bottom:clamp(56px,8vh,100px); }
   .belief-lines{ display:flex; flex-direction:column; gap:clamp(16px,3vh,38px); }
   .belief-lines .line{ font-family:var(--display); font-weight:400; font-size:clamp(28px,5.4vw,74px); line-height:1.05; letter-spacing:-0.01em; }
   .belief-lines .line .accent{ color:var(--red); white-space:nowrap; }
@@ -190,7 +192,7 @@
 </header>
 
 <!-- ============ STATEMENT ============ -->
-<section class="belief" aria-label="That belief became AFORCE">
+<section class="belief compact" aria-label="That belief became AFORCE">
   <div class="belief-lines stagger">
     <span class="line reveal" style="--i:0">Preparation.</span>
     <span class="line reveal" style="--i:1">Discipline.</span>
