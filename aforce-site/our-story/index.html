@@ -145,6 +145,10 @@
   .founding-btn{ padding:clamp(18px,2vw,22px) clamp(38px,6vw,66px); letter-spacing:.2em; font-size:clamp(12px,1.2vw,14px); }
   .founding-tag{ margin:0; font-family:var(--body); font-weight:600; font-size:clamp(11px,1.05vw,13px); letter-spacing:.28em; text-transform:uppercase; color:var(--b40); }
   .founding-rail{ width:1px; height:clamp(42px,7vh,66px); background:linear-gradient(var(--b40), transparent); margin-top:4px; }
+  /* firefighter CTA — copy pulled to the far left (off the subject) and scaled down */
+  .founding-cta.cta-left .cine-inner{ margin:0; }
+  .founding-cta.cta-left .founding-inner{ align-items:flex-start; text-align:left; }
+  .founding-cta.cta-left .h-2{ font-size:clamp(22px,2.9vw,40px); }
 
   /* ---------- RESPONSIVE ---------- */
   @media (max-width:680px){
@@ -317,13 +321,13 @@
 </section>
 
 <!-- ============ FOUNDING 250 — CINEMATIC CTA (on the firefighter frame) ============ -->
-<section class="cine center founding-cta" aria-label="Join the Founding 250">
+<section class="cine center founding-cta cta-left" aria-label="Join the Founding 250">
   <div class="cine-media has-fallback" style="background-image:url('/assets/moment-firefighter.jpg');">
     <img src="/assets/moment-firefighter.jpg" alt="Readiness the instant the moment asks for it" loading="lazy" decoding="async">
   </div>
   <div class="cine-scrim"></div>
   <div class="cine-inner founding-inner">
-    <p class="h-2 reveal" style="max-width:18ch;text-align:center;">Performance belongs to everyone.</p>
+    <p class="h-2 reveal" style="max-width:13ch;">Performance belongs to everyone.</p>
     <a class="btn btn-outline-light founding-btn reveal in" href="/#founding">Join the Founding 250</a>
     <p class="founding-tag reveal in">Quiet Before the Storm</p>
     <span class="founding-rail reveal in" aria-hidden="true"></span>
