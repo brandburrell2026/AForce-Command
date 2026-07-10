@@ -120,9 +120,9 @@
 
   /* N mark (brand monogram, large reveal) */
   .nmark{ display:inline-flex; align-items:center; gap:clamp(7px,1.2vw,16px); font-family:var(--display); font-size:clamp(60px,12vw,150px); line-height:1; color:var(--bone); }
-  .nmark span.n{ display:inline-block; }
+  .nmark span.n{ display:inline-block; color:var(--red); }
   .nmark .bar{ display:inline-block; width:clamp(4px,.7vw,9px); height:.72em; background:var(--red); }
-  .nmark .flip{ transform:scaleX(-1); }
+  .nmark span.n.flip{ transform:scaleX(-1); color:var(--bone); }
 
   /* footer */
   .ft{ background:var(--ink); color:var(--b64); padding:clamp(60px,8vw,100px) var(--gutter) clamp(40px,5vw,60px); }
