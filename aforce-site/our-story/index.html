@@ -124,16 +124,24 @@
   .nmark .bar{ display:inline-block; width:clamp(4px,.7vw,9px); height:.72em; background:var(--red); }
   .nmark span.n.flip{ transform:scaleX(-1); color:var(--bone); }
 
-  /* footer */
-  .ft{ background:var(--ink); color:var(--b64); padding:clamp(32px,4vw,52px) var(--gutter) clamp(40px,5vw,60px); }
-  .ft .f-top{ display:flex; flex-wrap:wrap; justify-content:space-between; gap:40px; padding-bottom:clamp(36px,4vw,56px); border-bottom:1px solid var(--b14); }
-  .ft .f-brand .nn{ color:var(--bone); font-family:var(--display); font-size:22px; }
-  .ft .f-corp{ color:var(--bone); font-family:var(--display); font-size:clamp(18px,2vw,24px); line-height:1.3; }
-  .ft .f-corp span{ display:block; color:var(--b40); font-family:var(--body); font-weight:400; font-size:13px; letter-spacing:.04em; margin-top:10px; }
+  /* light bottom — closing manifesto rendered on cream (second N flips to ink, button goes dark) */
+  .belief.belief-light{ background:var(--bone); color:var(--ink); }
+  .belief.belief-light .intro{ color:var(--i80); }
+  .belief.belief-light .nmark{ color:var(--ink); }
+  .belief.belief-light .nmark span.n.flip{ color:var(--ink); }
+  .belief.belief-light .btn-light{ background:var(--ink); color:var(--bone); }
+  .belief.belief-light .btn-light:hover{ background:var(--red); color:var(--bone); }
+
+  /* footer — on cream */
+  .ft{ background:var(--bone); color:var(--i64); padding:clamp(32px,4vw,52px) var(--gutter) clamp(40px,5vw,60px); }
+  .ft .f-top{ display:flex; flex-wrap:wrap; justify-content:space-between; gap:40px; padding-bottom:clamp(36px,4vw,56px); border-bottom:1px solid var(--i14); }
+  .ft .f-brand .nn{ color:var(--ink); font-family:var(--display); font-size:22px; }
+  .ft .f-corp{ color:var(--ink); font-family:var(--display); font-size:clamp(18px,2vw,24px); line-height:1.3; }
+  .ft .f-corp span{ display:block; color:var(--i46); font-family:var(--body); font-weight:400; font-size:13px; letter-spacing:.04em; margin-top:10px; }
   .ft .f-nav{ display:flex; flex-wrap:wrap; gap:14px 26px; font-family:var(--body); font-weight:600; font-size:11px; letter-spacing:.12em; text-transform:uppercase; }
-  .ft .f-nav a{ color:var(--b64); } .ft .f-nav a:hover{ color:var(--bone); }
-  .ft .f-meta{ margin-top:clamp(30px,3vw,44px); display:flex; flex-wrap:wrap; gap:12px 28px; font-family:var(--body); font-weight:600; font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--b40); }
-  .ft .f-meta .nonneg{ color:var(--b64); }
+  .ft .f-nav a{ color:var(--i64); } .ft .f-nav a:hover{ color:var(--ink); }
+  .ft .f-meta{ margin-top:clamp(30px,3vw,44px); display:flex; flex-wrap:wrap; gap:12px 28px; font-family:var(--body); font-weight:600; font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--i46); }
+  .ft .f-meta .nonneg{ color:var(--i64); }
 
   /* scroll cue */
   .scroll-cue{ position:absolute; left:50%; bottom:clamp(24px,4vh,44px); transform:translateX(-50%); z-index:3; display:flex; flex-direction:column; align-items:center; gap:10px; color:var(--b64); font-family:var(--body); font-weight:600; font-size:10px; letter-spacing:.24em; text-transform:uppercase; }
@@ -335,7 +343,7 @@
 </section>
 
 <!-- ============ CLOSING MANIFESTO ============ -->
-<section class="belief compact" aria-label="Performance is non-negotiable">
+<section class="belief compact belief-light" aria-label="Performance is non-negotiable">
   <div class="belief-lines stagger">
     <span class="line reveal" style="--i:0">Performance is Universal.</span>
     <span class="line reveal" style="--i:1">Preparation is a Choice.</span>
@@ -354,7 +362,7 @@
   <div class="wrap">
     <div class="f-top">
       <div class="f-brand">
-        <div class="nn" style="font-size:22px;color:var(--bone);"><span style="color:var(--red)">N</span><span class="bar" style="height:16px"></span><span class="nflip">N</span></div>
+        <div class="nn" style="font-size:22px;color:var(--ink);"><span style="color:var(--red)">N</span><span class="bar" style="height:16px"></span><span class="nflip">N</span></div>
         <div class="f-corp" style="margin-top:16px;">AFORCE Hydration, Inc.<span>New York, NY</span></div>
       </div>
       <nav class="f-nav" aria-label="Footer">
