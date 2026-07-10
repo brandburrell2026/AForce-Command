@@ -247,8 +247,11 @@
 
 <!-- interlude -->
 <section class="cine" aria-label="The quiet moments">
-  <div class="cine-media has-fallback" style="background-image:url('/assets/ritual-meditation.jpg');">
-    <img src="/assets/ritual-meditation.jpg" alt="A still morning ritual at first light" loading="lazy" decoding="async">
+  <div class="cine-media">
+    <video autoplay muted loop playsinline preload="none" poster="/assets/story-future-poster.jpg" aria-label="AFORCE, in motion">
+      <source src="/assets/story-future.webm" type="video/webm">
+      <source src="/assets/story-future.mp4" type="video/mp4">
+    </video>
   </div>
   <div class="cine-scrim"></div>
   <div class="cine-inner"><p class="h-2 reveal" style="max-width:16ch;">It happens in the quiet moments.</p></div>
@@ -328,11 +331,8 @@
 
 <!-- ============ THE FUTURE ============ -->
 <section class="cine future" aria-label="The future">
-  <div class="cine-media">
-    <video autoplay muted loop playsinline preload="none" poster="/assets/story-future-poster.jpg" aria-label="The road ahead">
-      <source src="/assets/story-future.webm" type="video/webm">
-      <source src="/assets/story-future.mp4" type="video/mp4">
-    </video>
+  <div class="cine-media has-fallback" style="background-image:url('/assets/ritual-meditation.jpg');">
+    <img src="/assets/ritual-meditation.jpg" alt="A still morning ritual at first light" loading="lazy" decoding="async">
   </div>
   <div class="cine-scrim"></div>
   <div class="cine-inner">
