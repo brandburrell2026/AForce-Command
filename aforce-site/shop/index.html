@@ -60,6 +60,10 @@
   .nn > span:first-child{color:var(--red);}
   .nn .bar{display:inline-block;width:10px;height:2.5px;background:var(--red);}
   .nn .flip{display:inline-block;transform:scaleX(-1);color:currentColor;}
+  /* §2.5 — hero N–И mark draws in once on load, then never moves */
+  @keyframes nnDraw{ from{ clip-path:inset(0 100% 0 0); opacity:.35; } to{ clip-path:inset(0 0 0 0); opacity:1; } }
+  .nav .nn{ animation:nnDraw .55s cubic-bezier(.2,.8,.2,1) both; }
+  @media (prefers-reduced-motion:reduce){ .nav .nn{ animation:none; } }
   .nav-links{display:flex;gap:32px;align-items:center;font-weight:700;font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;}
   .nav-links a{opacity:.65;transition:opacity .2s;}
   .nav-links a:hover,.nav-links a[aria-current]{opacity:1;}
@@ -325,7 +329,7 @@
     border-top:1px solid var(--ink-12);
     font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-60);
   }
-  .nonneg{display:inline-flex;align-items:baseline;gap:2px;font-family:var(--display);font-weight:900;letter-spacing:.03em;color:var(--ink);}
+  .nonneg{display:inline-flex;align-items:baseline;gap:2px;white-space:nowrap;font-family:var(--display);font-weight:900;letter-spacing:.03em;color:var(--ink);}
   .nonneg .flip{display:inline-block;transform:scaleX(-1);}
 
   /* reveal on scroll */
@@ -387,6 +391,19 @@
 
   /* checkout error state (FIX 1 / Architecture #3) */
   .purchase-btn.err,.sb-begin.err{background:var(--red)!important;color:#fff!important;opacity:1!important;}
+
+  /* §10 — product image zoom: hover/keyboard-focus scales the IMAGE (not the
+     card); clipped inside its frame → zero layout shift; no lightbox. */
+  .sc-visual img,.pcard-visual img,.fcard-visual img{ transition:transform .2s ease; will-change:transform; }
+  .sc-card:hover .sc-visual img,.sc-card:focus-within .sc-visual img,
+  .pcard:hover .pcard-visual img,.pcard:focus-within .pcard-visual img,
+  .fcard:hover .fcard-visual img,.fcard:focus-within .fcard-visual img{ transform:scale(1.16); }
+  @media (prefers-reduced-motion:reduce){
+    .sc-visual img,.pcard-visual img,.fcard-visual img{ transition:none; }
+    .sc-card:hover .sc-visual img,.sc-card:focus-within .sc-visual img,
+    .pcard:hover .pcard-visual img,.pcard:focus-within .pcard-visual img,
+    .fcard:hover .fcard-visual img,.fcard:focus-within .fcard-visual img{ transform:none; }
+  }
 
   /* ---------- RESPONSIVE ---------- */
   @media (max-width:860px){
