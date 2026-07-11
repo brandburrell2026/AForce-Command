@@ -183,6 +183,8 @@
   .pcard.selected .p-pack,.pcard.selected .p-lines,.pcard.selected .why-link{color:var(--canvas-70);}
   .pcard.selected .why-link{border-color:var(--canvas-25);}
   .p-pack{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-60);}
+  .p-spec{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-60);margin-top:2px;}
+  .pcard.selected .p-spec{color:var(--ink-60);}
   .pcard h3{font-family:var(--display);font-weight:800;text-transform:uppercase;font-size:clamp(22px,2.4vw,30px);line-height:1;letter-spacing:-.01em;}
   .p-lines{color:var(--ink-60);font-size:15px;line-height:1.5;}
   .p-lines span{display:block;}
@@ -456,7 +458,8 @@
 <div class="steprail" id="steprail" aria-hidden="true">
   <span class="sr" data-step="intent"><span class="dot"></span>Intent</span>
   <span class="sr" data-step="format"><span class="dot"></span>Format</span>
-  <span class="sr" data-step="months"><span class="dot"></span>Commitment</span>
+  <span class="sr" data-step="protocol"><span class="dot"></span>Protocol</span>
+  <span class="sr" data-step="commitment"><span class="dot"></span>Commitment</span>
   <span class="sr" data-step="flavor"><span class="dot"></span>Formulation</span>
   <span class="sr" data-step="ready"><span class="dot"></span>Begin</span>
 </div>
@@ -467,13 +470,13 @@
   <h2 id="intentHeading">What are you <em>preparing for?</em></h2>
   <p class="sec-sub" id="intentSub">Nobody here is buying a flavor. Choose the demand — the protocol answers.</p>
   <div class="chips" id="intentChips" role="group" aria-label="Choose your demand">
-    <button class="chip" type="button" data-intent="daily"       data-rec-format="sticks" data-rec-flavor="blue"  data-note="Your standard, every day."     aria-pressed="false">The Daily</button>
-    <button class="chip" type="button" data-intent="training"    data-rec-format="sticks" data-rec-flavor="blue"  data-note="Built for elevated sweat rate." aria-pressed="false">Training</button>
-    <button class="chip" type="button" data-intent="recovery"    data-rec-format="sticks" data-rec-flavor="green" data-note="Rebuild and rebalance."         aria-pressed="false">Recovery</button>
-    <button class="chip" type="button" data-intent="deepwork"    data-rec-format="sticks" data-rec-flavor="blue"  data-note="Steady state. No crash."        aria-pressed="false">Deep Work</button>
-    <button class="chip" type="button" data-intent="travel"      data-rec-format="can"    data-rec-flavor="green" data-note="Grab-and-go. No prep."           aria-pressed="false">Travel</button>
-    <button class="chip" type="button" data-intent="competition" data-rec-format="can"    data-rec-flavor="red"   data-note="Day-of. Crack and perform."     aria-pressed="false">Competition</button>
-    <button class="chip" type="button" data-intent="heat"        data-rec-format="can"    data-rec-flavor="red"   data-note="Heat Guard optimized."          aria-pressed="false">Heat</button>
+    <button class="chip" type="button" data-intent="daily"       data-rec-format="sticks" data-rec-protocol="performance" data-rec-flavor="blue"  data-note="Your standard, every day."     aria-pressed="false">The Daily</button>
+    <button class="chip" type="button" data-intent="training"    data-rec-format="sticks" data-rec-protocol="performance" data-rec-flavor="blue"  data-note="Built for elevated sweat rate." aria-pressed="false">Training</button>
+    <button class="chip" type="button" data-intent="recovery"    data-rec-format="sticks" data-rec-protocol="performance" data-rec-flavor="green" data-note="Rebuild and rebalance."         aria-pressed="false">Recovery</button>
+    <button class="chip" type="button" data-intent="deepwork"    data-rec-format="sticks" data-rec-protocol="performance" data-rec-flavor="blue"  data-note="Steady state. No crash."        aria-pressed="false">Deep Work</button>
+    <button class="chip" type="button" data-intent="travel"      data-rec-format="rtd"    data-rec-protocol="performance" data-rec-flavor="green" data-note="Grab-and-go. No prep."           aria-pressed="false">Travel</button>
+    <button class="chip" type="button" data-intent="competition" data-rec-format="rtd"    data-rec-protocol="performance" data-rec-flavor="red"   data-note="Day-of. Crack and perform."     aria-pressed="false">Competition</button>
+    <button class="chip" type="button" data-intent="heat"        data-rec-format="rtd"    data-rec-protocol="performance" data-rec-flavor="red"   data-note="Heat Guard optimized."          aria-pressed="false">Heat</button>
   </div>
   <div class="intent-status" id="intentStatus" aria-live="polite"></div>
 </section>
@@ -492,44 +495,85 @@
       <div class="p-pack">Hydration Sticks — mix your own</div>
       <h3>Sticks</h3>
       <div class="p-lines"><span>A month of precision hydration.</span><span>One stick. One glass.</span></div>
-      <div class="p-price">$59.99<small>per month · or $179.97 / 3 months</small></div>
+      <div class="p-spec" data-copy="sticks_spec">[30] STICKS · [30] SERVINGS</div>
+      <div class="p-price" data-copy="sticks_price">$59.99<small>per month · or $179.97 / 3 months</small></div>
       <div class="p-foot">
         <button class="p-cta" type="button" data-choose="sticks">Choose Sticks</button>
         <button class="why-link" type="button" data-why="sticks"><span class="i">i</span>Why sticks?</button>
       </div>
     </article>
 
-    <article class="pcard" data-format="can" data-name="RTD Cans" data-pack="Ready-to-Drink" data-purchase-cta="Begin the Ritual"
+    <article class="pcard" data-format="rtd" data-name="RTD Cans" data-pack="Ready-to-Drink" data-purchase-cta="Begin the Ritual"
              data-why-body="The canned protocol. Cold, alkaline, pH 8.8 precision hydration — no prep, no mixing. Crack it open and get back to work.">
       <span class="rec-ribbon">Recommended</span>
-      <div class="pcard-visual"><img src="/assets/can-blue.png" alt="AFORCE ready-to-drink can" loading="lazy" decoding="async"></div>
-      <div class="p-pack">Ready-to-Drink — 11 oz can</div>
+      <div class="pcard-visual"><img src="/assets/can-blue.png" alt="AFORCE ready-to-drink cans" loading="lazy" decoding="async"></div>
+      <div class="p-pack">Ready-to-Drink — 11 oz cans</div>
       <h3>RTD Cans</h3>
       <div class="p-lines"><span>The canned protocol.</span><span>No prep. Crack and go.</span></div>
-      <div class="p-price">$29.99<small>per can · single serve</small></div>
+      <div class="p-spec" data-copy="rtd_spec">$[PRICE] PER MONTH · [24] CANS</div>
+      <div class="p-price" data-copy="rtd_price">$[PRICE]<small>or $[3MO PRICE] / 3 months · $[X.XX]/can</small></div>
       <div class="p-foot">
-        <button class="p-cta" type="button" data-choose="can">Choose Cans</button>
-        <button class="why-link" type="button" data-why="can"><span class="i">i</span>Why cans?</button>
+        <button class="p-cta" type="button" data-choose="rtd">Choose Cans</button>
+        <button class="why-link" type="button" data-why="rtd"><span class="i">i</span>Why cans?</button>
       </div>
     </article>
 
   </div>
 </section>
 
-<!-- SECTION B — COMMITMENT (sticks only; static markup; JS enhances) -->
-<section class="sec reveal" id="months">
-  <p class="sec-eyebrow"><span class="step-i">Step 03</span> · The Commitment</p>
-  <h2 id="commitQuestion">How many months should we prepare?</h2>
+<!-- SECTION A2 — PROTOCOL (static markup; JS enhances) -->
+<section class="sec reveal" id="protocol">
+  <p class="sec-eyebrow"><span class="step-i">Step 03</span> · The Protocol</p>
+  <h2 id="protocolHeading">Choose your <em>protocol.</em></h2>
+  <p class="sec-sub">How your standard runs — a set commitment, or a membership on your cadence.</p>
+  <div class="protocols formats" id="protocolSelect">
+
+    <article class="pcard" data-protocol="performance" data-name="Performance Protocol" data-pack="Flavor × Duration" data-purchase-cta="Begin the Ritual"
+             data-why-body="The core protocol. Run it one month, three months, or ongoing. Precision hydration engineered for output measured daily.">
+      <span class="rec-ribbon">Recommended</span>
+      <div class="pcard-visual"><img src="/assets/can-red.png" alt="AFORCE Performance Protocol" loading="lazy" decoding="async"></div>
+      <div class="p-pack">Performance Protocol</div>
+      <h3>Performance</h3>
+      <div class="p-lines"><span>Most chosen.</span><span>One-time or ongoing.</span></div>
+      <div class="p-spec">ONE-TIME · OR ONGOING</div>
+      <div class="p-foot">
+        <button class="p-cta" type="button" data-choose-protocol="performance">Choose Performance</button>
+        <button class="why-link" type="button" data-why-protocol="performance"><span class="i">i</span>Why this protocol?</button>
+      </div>
+    </article>
+
+    <article class="pcard" data-protocol="autopilot" data-name="AutoPilot" data-pack="Ritual Membership" data-purchase-cta="Begin the Ritual"
+             data-why-body="For people who have decided. Ships on your cadence, includes AFORCE OS. Your performance system runs itself.">
+      <span class="rec-ribbon">Recommended</span>
+      <div class="pcard-visual"><img src="/assets/can-green.png" alt="AFORCE AutoPilot" loading="lazy" decoding="async"></div>
+      <div class="p-pack">Ritual Membership</div>
+      <h3>AutoPilot</h3>
+      <div class="p-lines"><span>Ships on your cadence.</span><span>Includes AFORCE OS.</span></div>
+      <div class="p-spec">ONGOING — RITUAL MEMBERSHIP</div>
+      <div class="p-foot">
+        <button class="p-cta" type="button" data-choose-protocol="autopilot">Choose AutoPilot</button>
+        <button class="why-link" type="button" data-why-protocol="autopilot"><span class="i">i</span>Why AutoPilot?</button>
+      </div>
+    </article>
+
+  </div>
+</section>
+
+<!-- SECTION B — COMMITMENT (Performance only; static markup; JS enhances) -->
+<section class="sec reveal" id="commitment">
+  <p class="sec-eyebrow"><span class="step-i">Step 04</span> · The Commitment</p>
+  <h2 id="commitQuestion">How long should we prepare?</h2>
   <div class="commit-opts" id="commitOpts" role="group" aria-label="Commitment length">
-    <button class="commit-opt" type="button" data-commitment="1mo" data-summary="1 Month" data-note="$59.99 for the month." aria-pressed="false"><span class="radio" aria-hidden="true"></span>One Month</button>
-    <button class="commit-opt" type="button" data-commitment="3mo" data-summary="3 Months" data-note="$179.97 for three months." aria-pressed="false"><span class="radio" aria-hidden="true"></span>Three Months</button>
+    <button class="commit-opt" type="button" data-commitment="1month" data-summary="1 Month" aria-pressed="false"><span class="radio" aria-hidden="true"></span>One Month</button>
+    <button class="commit-opt" type="button" data-commitment="3month" data-summary="3 Months" aria-pressed="false"><span class="radio" aria-hidden="true"></span>Three Months</button>
+    <button class="commit-opt commit-ongoing" type="button" data-commitment="ongoing" data-summary="Ongoing — Ritual Membership" aria-pressed="false"><span class="radio" aria-hidden="true"></span>Ongoing — Ritual Membership</button>
   </div>
   <p class="commit-note" id="commitNote" aria-live="polite"></p>
 </section>
 
 <!-- SECTION C — FLAVOR (static markup; JS enhances) -->
 <section class="sec reveal" id="flavor">
-  <p class="sec-eyebrow"><span class="step-i">Step 04</span> · The Formulation</p>
+  <p class="sec-eyebrow"><span class="step-i">Step 05</span> · The Formulation</p>
   <h2 id="flavorHeading">Select Your Formulation</h2>
   <div class="flavors" id="flavorCards">
     <button class="fcard" type="button" data-flavor="red" data-name="Watermelon Surge">
@@ -552,11 +596,12 @@
 
 <!-- SECTION D — PURCHASE -->
 <section class="sec purchase reveal" id="begin">
-  <p class="sec-eyebrow"><span class="step-i">Step 05</span> · Begin</p>
+  <p class="sec-eyebrow"><span class="step-i">Step 06</span> · Begin</p>
   <h2>Your ritual begins <em>here.</em></h2>
   <div class="p-summary" id="pSummary">
     <div class="ps-cell"><div class="k">Format</div><div class="v pending" data-slot="format">Not chosen yet</div></div>
-    <div class="ps-cell"><div class="k">Commitment</div><div class="v pending" data-slot="months">Not chosen yet</div></div>
+    <div class="ps-cell"><div class="k">Protocol</div><div class="v pending" data-slot="protocol">Not chosen yet</div></div>
+    <div class="ps-cell"><div class="k">Commitment</div><div class="v pending" data-slot="commitment">Not chosen yet</div></div>
     <div class="ps-cell"><div class="k">Formulation</div><div class="v pending" data-slot="flavor">Not chosen yet</div></div>
   </div>
   <div class="purchase-foot">
@@ -615,7 +660,7 @@
 <!-- WHY THIS PROTOCOL OVERLAY -->
 <div class="why-veil" id="whyVeil"></div>
 <div class="why-modal" id="whyModal" role="dialog" aria-modal="true" aria-labelledby="whyModalTitle">
-  <p class="wm-kicker">Why this format?</p>
+  <p class="wm-kicker">Why this?</p>
   <h4 id="whyModalTitle"></h4>
   <p id="whyModalBody"></p>
   <button class="wm-close" id="whyClose">Close</button>
@@ -645,51 +690,112 @@
     }catch(e){}
   }
 
+  /* =====================================================================
+     PRICING + COPY CONSTANTS — single source of truth. Edit HERE only.
+     [BRACKETED] values are PLACEHOLDERS the founder will supply.
+     ===================================================================== */
+  var STORE = "https://aforce-v2.myshopify.com";
+  var COPY = {
+    STICK_COUNT:    "[30]",         // FILL: sticks per month
+    STICK_SERVINGS: "[30]",         // FILL: servings per month
+    STICKS_PRICE:   "$59.99",       // Performance sticks — 1 month
+    STICKS_3MO:     "$179.97",      // Performance sticks — 3 month
+    RTD_PRICE:      "$[PRICE]",     // FILL: RTD monthly price
+    RTD_3MO:        "$[3MO PRICE]", // FILL: RTD 3-month price
+    RTD_CANS_MONTH: "[24]",         // FILL: cans per month
+    RTD_PER_CAN:    "$[X.XX]"       // FILL: per-can price (optional sub-label)
+  };
+
   /* ---- Architecture #1: ONE state object, single source of truth ---- */
-  var ritualState = { intent:null, format:null, commitment:null, formulation:null };
+  var ritualState = { intent:null, format:null, protocol:null, commitment:null, formulation:null };
   window.ritualState = ritualState; // inspectable per spec
 
-  /* ---- Architecture #2: VARIANT MAP ----------------------------------
-     Sticks (Performance Protocol) are sold by Flavor × Duration; RTD cans
-     (Performance Protocol RTD) are single-serve, Flavor only. Fill each
-     variantId from Shopify admin — see docs/AFORCE_SHOP_BACKEND_SPEC.md.
-     A combo with variantId:null is treated as not-yet-available —
-     checkout blocks with a clear message rather than faking a redirect.   */
+  /* =====================================================================
+     VARIANTS — FILL FROM CSV
+     Key = {format}_{protocol}_{flavor}_{commitment}
+       format:     sticks | rtd
+       protocol:   performance | autopilot   (autopilot is subscription-only)
+       flavor:     watermelon(red) | berry(blue) | soursop(green)
+       commitment: 1month | 3month | ongoing
+     Every *_ongoing key is a SUBSCRIPTION → also needs a sellingPlanId.
+     Any null id routes to the provisioning fallback — never a broken cart.
+     ===================================================================== */
   var VARIANTS = {
-    // Sticks — Performance Protocol ($59.99 / mo · $179.97 / 3 mo)
-    'sticks_red_1mo':   { variantId:null }, 'sticks_red_3mo':   { variantId:null },
-    'sticks_blue_1mo':  { variantId:null }, 'sticks_blue_3mo':  { variantId:null },
-    'sticks_green_1mo': { variantId:null }, 'sticks_green_3mo': { variantId:null },
-    // RTD Cans — Performance Protocol RTD ($29.99, single serve)
-    'can_red':   { variantId:null },
-    'can_blue':  { variantId:null },
-    'can_green': { variantId:null }
+    // ---- STICKS · PERFORMANCE (one-time 1/3 month, + ongoing membership) ----
+    'sticks_performance_watermelon_1month': { variantId:null },
+    'sticks_performance_watermelon_3month': { variantId:null },
+    'sticks_performance_watermelon_ongoing':{ variantId:null, sellingPlanId:null },
+    'sticks_performance_berry_1month':      { variantId:null },
+    'sticks_performance_berry_3month':      { variantId:null },
+    'sticks_performance_berry_ongoing':     { variantId:null, sellingPlanId:null },
+    'sticks_performance_soursop_1month':    { variantId:null },
+    'sticks_performance_soursop_3month':    { variantId:null },
+    'sticks_performance_soursop_ongoing':   { variantId:null, sellingPlanId:null },
+    // ---- STICKS · AUTOPILOT (subscription-only, ongoing) ----
+    'sticks_autopilot_watermelon_ongoing':  { variantId:null, sellingPlanId:null },
+    'sticks_autopilot_berry_ongoing':       { variantId:null, sellingPlanId:null },
+    'sticks_autopilot_soursop_ongoing':     { variantId:null, sellingPlanId:null },
+    // ---- RTD · PERFORMANCE (one-time 1/3 month, + ongoing membership) ----
+    'rtd_performance_watermelon_1month':    { variantId:null },
+    'rtd_performance_watermelon_3month':    { variantId:null },
+    'rtd_performance_watermelon_ongoing':   { variantId:null, sellingPlanId:null },
+    'rtd_performance_berry_1month':         { variantId:null },
+    'rtd_performance_berry_3month':         { variantId:null },
+    'rtd_performance_berry_ongoing':        { variantId:null, sellingPlanId:null },
+    'rtd_performance_soursop_1month':       { variantId:null },
+    'rtd_performance_soursop_3month':       { variantId:null },
+    'rtd_performance_soursop_ongoing':      { variantId:null, sellingPlanId:null },
+    // ---- RTD · AUTOPILOT (subscription-only, ongoing) ----
+    'rtd_autopilot_watermelon_ongoing':     { variantId:null, sellingPlanId:null },
+    'rtd_autopilot_berry_ongoing':          { variantId:null, sellingPlanId:null },
+    'rtd_autopilot_soursop_ongoing':        { variantId:null, sellingPlanId:null }
   };
+
+  /* internal flavor id (color) → Shopify flavor token */
+  var FLAVOR_KEY = { red:"watermelon", blue:"berry", green:"soursop" };
+
   function variantKey(){
-    if(!ritualState.format || !ritualState.formulation) return null;
-    if(ritualState.format==="sticks"){
-      if(!ritualState.commitment) return null;
-      return "sticks_" + ritualState.formulation + "_" + ritualState.commitment;
-    }
-    return "can_" + ritualState.formulation; // cans: no duration
+    var s = ritualState;
+    if(!s.format || !s.protocol || !s.formulation || !s.commitment) return null;
+    var fk = FLAVOR_KEY[s.formulation]; if(!fk) return null;
+    return s.format + "_" + s.protocol + "_" + fk + "_" + s.commitment;
   }
   function currentVariant(){ var k=variantKey(); return k ? VARIANTS[k] : null; }
+  /* subscription = any ongoing commitment (Performance ongoing + all AutoPilot) */
+  function isSubscription(){ return ritualState.commitment === "ongoing"; }
+
+  /* Build a Shopify cart permalink (option b). Returns null (→ fallback) if any
+     required id is missing: no variantId, or a subscription with no sellingPlanId. */
+  function permalink(v){
+    if(!v || !v.variantId) return null;
+    var url = STORE + "/cart/" + v.variantId + ":1";
+    if(isSubscription()){
+      if(!v.sellingPlanId) return null;               // subscription needs a plan
+      url += "?selling_plan=" + v.sellingPlanId;        // appended exactly once
+    }
+    return url;
+  }
 
   var byId = function(id){ return document.getElementById(id); };
-  function pcard(id){ return document.querySelector('.pcard[data-format="'+id+'"]'); }
+  function fmtCard(id){ return document.querySelector('.pcard[data-format="'+id+'"]'); }
+  function protCard(id){ return document.querySelector('.pcard[data-protocol="'+id+'"]'); }
   function fcard(id){ return document.querySelector('.fcard[data-flavor="'+id+'"]'); }
   function commitBtn(id){ return document.querySelector('.commit-opt[data-commitment="'+id+'"]'); }
   function nameFromCard(el){ var h=el&&el.querySelector("h3"); return h?h.textContent.trim():""; }
+  /* toggle .selected on cards within ONE container so format/protocol don't clash */
+  function selectIn(containerSel, attr, id){
+    document.querySelectorAll(containerSel + " .pcard").forEach(function(c){
+      c.classList.toggle("selected", c.getAttribute(attr) === id);
+    });
+  }
 
-  /* pre-highlight recommended protocol + formulation (suggestion only) */
+  /* pre-highlight recommended format + protocol + formulation (suggestion only) */
   function clearRecommended(){
     document.querySelectorAll(".pcard.recommended,.fcard.recommended").forEach(function(el){ el.classList.remove("recommended"); });
   }
-  function applyRecommendation(recProtocol, recFlavor){
+  function applyRecommendation(recFmt, recProt, recFlavor){
     clearRecommended();
-    var pc = pcard(recProtocol), fc = fcard(recFlavor);
-    if(pc) pc.classList.add("recommended");
-    if(fc) fc.classList.add("recommended");
+    [fmtCard(recFmt), protCard(recProt), fcard(recFlavor)].forEach(function(el){ if(el) el.classList.add("recommended"); });
   }
 
   /* ---- Architecture #1: EVERYTHING renders FROM ritualState ---- */
@@ -699,18 +805,24 @@
     el.textContent = filled ? text : "Not chosen yet";
     el.classList.toggle("pending", !filled);
   }
+  /* AutoPilot is subscription-only → commitment is always "ongoing" and its
+     step is skipped. Performance chooses 1month / 3month / ongoing. */
+  function commitmentApplies(){ return ritualState.protocol === "performance"; }
   function stepFor(){
-    // current step = first unfilled in order (commitment only applies to sticks)
     if(!ritualState.intent) return "intent";
     if(!ritualState.format) return "format";
-    if(ritualState.format==="sticks" && !ritualState.commitment) return "months";
+    if(!ritualState.protocol) return "protocol";
+    if(commitmentApplies() && !ritualState.commitment) return "commitment";
     if(!ritualState.formulation) return "flavor";
     return "ready";
   }
   function renderDots(){
-    var order = ["intent","format","months","flavor","ready"];
-    var monthsDone = ritualState.format==="sticks" ? !!ritualState.commitment : false;
-    var done = { intent:!!ritualState.intent, format:!!ritualState.format, months:monthsDone, flavor:!!ritualState.formulation, ready:isReady() };
+    var order = ["intent","format","protocol","commitment","flavor","ready"];
+    var commitDone = commitmentApplies() ? !!ritualState.commitment : false;
+    var done = {
+      intent:!!ritualState.intent, format:!!ritualState.format, protocol:!!ritualState.protocol,
+      commitment:commitDone, flavor:!!ritualState.formulation, ready:isReady()
+    };
     var cur = stepFor();
     order.forEach(function(step){
       var el = document.querySelector('.steprail .sr[data-step="'+step+'"]');
@@ -720,69 +832,72 @@
     });
   }
   function isReady(){
-    if(!ritualState.format || !ritualState.formulation) return false;
-    if(ritualState.format==="sticks") return !!ritualState.commitment;
-    return true; // cans are single-serve — format + formulation is enough
+    if(!ritualState.format || !ritualState.protocol || !ritualState.formulation) return false;
+    return !!ritualState.commitment; // autopilot pins commitment to "ongoing"
   }
-  /* Commitment (duration) only exists for sticks. Cans are single-serve, so
-     hide Step 03 and its rail dot when cans are chosen. */
-  function applyFormatVisibility(){
-    var isCan = ritualState.format==="can";
-    var monthsSec = byId("months");
-    var monthsDot = document.querySelector('.steprail .sr[data-step="months"]');
-    if(monthsSec) monthsSec.hidden = isCan;
-    if(monthsDot) monthsDot.style.display = isCan ? "none" : "";
+  /* AutoPilot: pin commitment to ongoing, hide the commitment step + its dot. */
+  function applyConstraints(){
+    var auto = ritualState.protocol === "autopilot";
+    if(auto && ritualState.commitment !== "ongoing"){ ritualState.commitment = "ongoing"; }
+    var sec = byId("commitment");
+    var dot = document.querySelector('.steprail .sr[data-step="commitment"]');
+    if(sec) sec.hidden = auto;
+    if(dot) dot.style.display = auto ? "none" : "";
   }
   function clearCommitment(){
     ritualState.commitment = null;
     document.querySelectorAll(".commit-opt").forEach(function(c){ c.setAttribute("aria-pressed","false"); });
     var note = byId("commitNote"); if(note) note.textContent = "";
   }
+  /* per-format price note for the chosen commitment (never "save"/"subscribe") */
+  function commitNoteFor(commitment){
+    var sticks = ritualState.format === "sticks";
+    if(commitment === "1month") return (sticks?COPY.STICKS_PRICE:COPY.RTD_PRICE) + " for the month.";
+    if(commitment === "3month") return (sticks?COPY.STICKS_3MO:COPY.RTD_3MO) + " for three months.";
+    if(commitment === "ongoing") return "Ritual Membership. Includes AFORCE OS — your cadence, pause or stop anytime.";
+    return "";
+  }
+  function commitLabel(){
+    if(ritualState.protocol === "autopilot") return "Ongoing — Ritual Membership";
+    var c = ritualState.commitment ? commitBtn(ritualState.commitment) : null;
+    return c ? c.getAttribute("data-summary") : "";
+  }
   function summaryLine(){
     var parts = [];
-    if(ritualState.format){ var p=pcard(ritualState.format); parts.push(nameFromCard(p)); }
-    if(ritualState.formulation){ var f=fcard(ritualState.formulation); parts.push(nameFromCard(f)); }
-    if(ritualState.format==="sticks"){
-      if(ritualState.commitment){ var c=commitBtn(ritualState.commitment); parts.push(c?c.getAttribute("data-summary"):""); }
-    } else if(ritualState.format==="can"){
-      parts.push("Single serve");
-    }
+    if(ritualState.format){ parts.push(nameFromCard(fmtCard(ritualState.format))); }
+    if(ritualState.protocol){ parts.push(nameFromCard(protCard(ritualState.protocol))); }
+    if(ritualState.formulation){ parts.push(nameFromCard(fcard(ritualState.formulation))); }
+    if(ritualState.commitment){ parts.push(commitLabel()); }
     return parts;
   }
   function render(){
-    applyFormatVisibility();
+    applyConstraints();
 
-    // Step 05 summary
-    var p = ritualState.format ? pcard(ritualState.format) : null;
-    setSlot("format", p ? (nameFromCard(p) + " · " + (p.getAttribute("data-pack")||"")) : "", !!ritualState.format);
-    if(ritualState.format==="can"){
-      setSlot("months", "Single serve", true);     // cans have no duration
-    } else {
-      var c = ritualState.commitment ? commitBtn(ritualState.commitment) : null;
-      setSlot("months", c ? c.getAttribute("data-summary") : "", !!ritualState.commitment);
-    }
+    // Step 06 summary
+    var fm = ritualState.format ? fmtCard(ritualState.format) : null;
+    setSlot("format", fm ? (nameFromCard(fm) + " · " + (fm.getAttribute("data-pack")||"")) : "", !!ritualState.format);
+    var pr = ritualState.protocol ? protCard(ritualState.protocol) : null;
+    setSlot("protocol", pr ? nameFromCard(pr) : "", !!ritualState.protocol);
+    setSlot("commitment", commitLabel(), !!ritualState.commitment);
     var f = ritualState.formulation ? fcard(ritualState.formulation) : null;
     setSlot("flavor", f ? nameFromCard(f) : "", !!ritualState.formulation);
 
-    // BEGIN button
+    // BEGIN button — CTA from chosen protocol (or format) card
     var ready = isReady();
+    var ctaSrc = pr || fm;
     var btn = byId("purchaseBtn");
     btn.classList.remove("err");
-    btn.textContent = (p && p.getAttribute("data-purchase-cta")) || "Begin the Ritual";
+    btn.textContent = (ctaSrc && ctaSrc.getAttribute("data-purchase-cta")) || "Begin the Ritual";
     btn.disabled = !ready;
     byId("purchaseNote").textContent = ready
       ? "AFORCE OS activates the moment your Performance Profile is initialized."
-      : (ritualState.format==="can"
-          ? "Choose your format and formulation to begin."
-          : "Choose your format, commitment, and formulation to begin.");
+      : ("Choose your format, protocol" + (commitmentApplies() ? ", commitment" : "") + " and formulation to begin.");
 
     // Sticky bar (renders from ritualState)
     var parts = summaryLine();
-    if(parts.length){
-      byId("sbSummary").innerHTML = parts.map(function(x){ return "<b>"+x+"</b>"; }).join(" · ");
-    } else {
-      byId("sbSummary").textContent = "Build your ritual";
-    }
+    byId("sbSummary").innerHTML = parts.length
+      ? parts.map(function(x){ return "<b>"+x+"</b>"; }).join(" · ")
+      : "Build your ritual";
     var sbb = byId("sbBegin");
     sbb.disabled = !ready; sbb.classList.toggle("ready", ready); sbb.classList.remove("err");
 
@@ -797,6 +912,7 @@
   var bootTimers = [];
   function runIntent(chip){
     var recFmt = chip.getAttribute("data-rec-format");
+    var recProt = chip.getAttribute("data-rec-protocol") || "performance";
     var recF = chip.getAttribute("data-rec-flavor");
     var note = chip.getAttribute("data-note") || "";
     var label = chip.textContent.trim().toUpperCase();
@@ -805,23 +921,28 @@
     // 1. tapped chip fills solid black instantly
     document.querySelectorAll(".chip").forEach(function(c){ c.setAttribute("aria-pressed", c===chip?"true":"false"); });
 
-    // 3. recommended format + formulation come PRE-SELECTED in ritualState
+    // 3. recommended format + protocol + formulation come PRE-SELECTED
     ritualState.format = recFmt;
+    ritualState.protocol = recProt;
     ritualState.formulation = recF;
-    if(recFmt==="can"){ clearCommitment(); }   // cans are single-serve
-    document.querySelectorAll(".pcard").forEach(function(c){ c.classList.toggle("selected", c.getAttribute("data-format")===recFmt); });
+    clearCommitment();   // Performance still picks a duration; AutoPilot pinned in applyConstraints
+    selectIn("#protocolCards", "data-format", recFmt);
+    selectIn("#protocolSelect", "data-protocol", recProt);
     document.querySelectorAll(".fcard").forEach(function(c){ c.classList.toggle("selected", c.getAttribute("data-flavor")===recF); });
-    applyRecommendation(recFmt, recF); setBadges(label);
-    [pcard(recFmt), fcard(recF)].forEach(function(el){ if(el){ el.classList.remove("rec-pulse"); void el.offsetWidth; el.classList.add("rec-pulse"); } });
+    applyRecommendation(recFmt, recProt, recF); setBadges(label);
+    [fmtCard(recFmt), protCard(recProt), fcard(recF)].forEach(function(el){ if(el){ el.classList.remove("rec-pulse"); void el.offsetWidth; el.classList.add("rec-pulse"); } });
     render(); showSticky();
     track("intent_selected", { intent:ritualState.intent });
 
     // 2. status block cascades in (boot sequence, Space Mono)
-    var pName = nameFromCard(pcard(recFmt)).toUpperCase(), fName = nameFromCard(fcard(recF)).toUpperCase();
+    var fmName = nameFromCard(fmtCard(recFmt)).toUpperCase();
+    var prName = nameFromCard(protCard(recProt)).toUpperCase();
+    var flName = nameFromCard(fcard(recF)).toUpperCase();
     var lines = [
       { cls:"", html:label + " SELECTED" },
-      { cls:"rec", html:"✓ <b>" + pName + "</b> — recommended" },
-      { cls:"rec", html:"✓ <b>" + fName + "</b> — recommended" },
+      { cls:"rec", html:"✓ <b>" + fmName + "</b> — recommended" },
+      { cls:"rec", html:"✓ <b>" + prName + "</b> — recommended" },
+      { cls:"rec", html:"✓ <b>" + flName + "</b> — recommended" },
       { cls:"note", html:note }
     ];
     var box = byId("intentStatus"); box.innerHTML = "";
@@ -832,45 +953,66 @@
       bootTimers.push(setTimeout(function(){ el.classList.add("in"); }, 60 + i*150));
     });
 
-    // 4. the ONLY auto-scroll — to the next real decision, after the pulse.
-    //    Sticks still need a commitment (Step 03); cans skip it, so land on Formulation.
-    var scrollTarget = (recFmt==="sticks") ? "months" : "flavor";
-    bootTimers.push(setTimeout(function(){ byId(scrollTarget).scrollIntoView({ behavior:"smooth", block:"start" }); }, 900));
+    // 4. the ONLY auto-scroll — to the next real decision (Commitment), after the pulse.
+    bootTimers.push(setTimeout(function(){ byId("commitment").scrollIntoView({ behavior:"smooth", block:"start" }); }, 900));
   }
   if(chipsWrap) chipsWrap.addEventListener("click", function(e){
     var chip = e.target.closest(".chip"); if(chip) runIntent(chip);
   });
 
+  function openWhyFor(card){
+    if(!card) return;
+    byId("whyModalTitle").textContent = nameFromCard(card);
+    byId("whyModalBody").textContent = card.getAttribute("data-why-body") || "";
+    openWhy();
+  }
+
   /* ---------- FORMAT (choose + why) ---------- */
-  var pWrap = byId("protocolCards");
-  if(pWrap) pWrap.addEventListener("click", function(e){
+  var fmtWrap = byId("protocolCards");
+  if(fmtWrap) fmtWrap.addEventListener("click", function(e){
     var choose = e.target.closest("[data-choose]");
     var why = e.target.closest("[data-why]");
     if(choose){
       var id = choose.getAttribute("data-choose");
       ritualState.format = id;
-      if(id==="can"){ clearCommitment(); }  // cans are single-serve — drop any duration
-      document.querySelectorAll(".pcard").forEach(function(c){ c.classList.toggle("selected", c.getAttribute("data-format")===id); });
+      selectIn("#protocolCards", "data-format", id);
       dropRecommendation();               // their choice wins silently
       render(); showSticky();
       track("format_selected", { format:id });
     } else if(why){
-      var card2 = pcard(why.getAttribute("data-why")); if(!card2) return;
-      byId("whyModalTitle").textContent = nameFromCard(card2);
-      byId("whyModalBody").textContent = card2.getAttribute("data-why-body") || "";
-      openWhy();
-      track("why_protocol_overlay_opened", { protocol:why.getAttribute("data-why") });
+      openWhyFor(fmtCard(why.getAttribute("data-why")));
+      track("why_overlay_opened", { kind:"format", id:why.getAttribute("data-why") });
     }
   });
 
-  /* ---------- COMMITMENT (sticks only — 1 or 3 months) ---------- */
+  /* ---------- PROTOCOL (choose + why) ---------- */
+  var protWrap = byId("protocolSelect");
+  if(protWrap) protWrap.addEventListener("click", function(e){
+    var choose = e.target.closest("[data-choose-protocol]");
+    var why = e.target.closest("[data-why-protocol]");
+    if(choose){
+      var id = choose.getAttribute("data-choose-protocol");
+      ritualState.protocol = id;
+      clearCommitment();                        // reset any prior duration
+      if(id === "autopilot"){ ritualState.commitment = "ongoing"; }  // pinned; step hidden
+      selectIn("#protocolSelect", "data-protocol", id);
+      dropRecommendation();               // their choice wins silently
+      render(); showSticky();
+      track("protocol_selected", { protocol:id });
+    } else if(why){
+      openWhyFor(protCard(why.getAttribute("data-why-protocol")));
+      track("why_overlay_opened", { kind:"protocol", id:why.getAttribute("data-why-protocol") });
+    }
+  });
+
+  /* ---------- COMMITMENT (Performance — 1 month / 3 month / ongoing) ---------- */
   var cWrap = byId("commitOpts");
   if(cWrap) cWrap.addEventListener("click", function(e){
     var opt = e.target.closest(".commit-opt"); if(!opt) return;
     var id = opt.getAttribute("data-commitment");
     ritualState.commitment = id;
     document.querySelectorAll(".commit-opt").forEach(function(c){ c.setAttribute("aria-pressed", c===opt?"true":"false"); });
-    byId("commitNote").textContent = opt.getAttribute("data-note") || "";
+    byId("commitNote").textContent = commitNoteFor(id);
     render(); showSticky();
     track("commitment_selected", { commitment:id });
   });
@@ -887,34 +1029,29 @@
     track("formulation_selected", { formulation:id });
   });
 
-  /* ---------- BEGIN THE RITUAL — Shopify checkout handoff (Architecture #3) ---------- */
-  function setBtnErr(msg){
-    byId("purchaseBtn").classList.add("err"); byId("purchaseBtn").textContent = msg;
-    byId("sbBegin").classList.add("err"); byId("sbBegin").textContent = msg + " →";
-    byId("purchaseNote").textContent = "Something went wrong. Tap to try again.";
-  }
+  /* ---------- BEGIN THE RITUAL — Shopify cart-permalink redirect (option b) ----------
+     The page is static on Vercel, so /cart/add.js cannot run. Instead we redirect
+     to a Shopify cart permalink on aforce-v2.myshopify.com:
+       one-time:     /cart/{variantId}:1
+       subscription: /cart/{variantId}:1?selling_plan={sellingPlanId}
+     permalink() returns null if any required id is missing → provisioning
+     fallback. We NEVER build a cart URL that contains a null id.              */
   var beginning = false;
   function beginRitual(){
     if(!isReady() || beginning) return;
     var v = currentVariant();
-    track("checkout_started", { format:ritualState.format, formulation:ritualState.formulation, commitment:ritualState.commitment, intent:ritualState.intent, key:variantKey() });
+    var url = permalink(v);
+    track("checkout_started", { format:ritualState.format, protocol:ritualState.protocol, formulation:ritualState.formulation, commitment:ritualState.commitment, intent:ritualState.intent, key:variantKey(), subscription:isSubscription() });
 
-    // Shopify variant IDs not provisioned yet → never fake a checkout (see backend spec).
-    if(!v || !v.variantId){
-      byId("purchaseNote").textContent = "Checkout is being provisioned — Shopify variant IDs pending (docs/AFORCE_SHOP_BACKEND_SPEC.md). Your ritual is saved.";
+    if(!url){
+      byId("purchaseNote").textContent = "Checkout is being provisioned — Shopify IDs pending for this combination (docs/AFORCE_SHOP_BACKEND_SPEC.md). Your ritual is saved.";
       if(typeof window.AForceCheckout === "function"){ window.AForceCheckout(Object.assign({}, ritualState)); }
+      track("checkout_provisioning", { key:variantKey() });
       return;
     }
 
     beginning = true;
-    var body = { id:v.variantId, quantity:1 };
-
-    // clear stale cart → add → /checkout ; visible error state on failure
-    fetch("/cart/clear.js", { method:"POST", headers:{ "Content-Type":"application/json" } })
-      .then(function(){ return fetch("/cart/add.js", { method:"POST", headers:{ "Content-Type":"application/json" }, body:JSON.stringify(body) }); })
-      .then(function(r){ if(!r.ok) throw new Error("add failed"); return r.json(); })
-      .then(function(){ window.location.href = "/checkout"; })
-      .catch(function(){ beginning=false; setBtnErr("Try Again"); track("checkout_error", { key:variantKey() }); });
+    window.location.href = url;   // hand off to Shopify checkout
   }
   byId("purchaseBtn").addEventListener("click", beginRitual);
   byId("sbBegin").addEventListener("click", beginRitual);
@@ -964,12 +1101,55 @@
     document.querySelectorAll(".reveal").forEach(function(el){ el.classList.add("in"); });
   }
 
+  /* ---------- COPY INJECTION (single source of truth = COPY) ---------- */
+  function setText(sel, txt){ var el=document.querySelector(sel); if(el) el.textContent = txt; }
+  function setHTML(sel, html){ var el=document.querySelector(sel); if(el) el.innerHTML = html; }
+  function fillCopy(){
+    setText('[data-copy="sticks_spec"]', COPY.STICK_COUNT + " STICKS · " + COPY.STICK_SERVINGS + " SERVINGS");
+    setHTML('[data-copy="sticks_price"]', COPY.STICKS_PRICE + "<small>per month · or " + COPY.STICKS_3MO + " / 3 months</small>");
+    setText('[data-copy="rtd_spec"]', COPY.RTD_PRICE + " PER MONTH · " + COPY.RTD_CANS_MONTH + " CANS");
+    setHTML('[data-copy="rtd_price"]', COPY.RTD_PRICE + "<small>or " + COPY.RTD_3MO + " / 3 months · " + COPY.RTD_PER_CAN + "/can</small>");
+  }
+
+  /* ---------- DEV: enumerate every combination → permalink (item 7) ----------
+     format × protocol × flavor × commitment, plus the URL each produces.
+     Any combo whose id(s) are null resolves to null here (→ provisioning
+     fallback at runtime) — no combination ever yields a URL with a null id.
+     Run window.aforceEnumerate() in the console; auto-runs on localhost/?debug. */
+  function enumerateCombos(){
+    var formats=["sticks","rtd"], protocols=["performance","autopilot"];
+    var flavors=[["red","watermelon"],["blue","berry"],["green","soursop"]];
+    var save={ format:ritualState.format, protocol:ritualState.protocol, formulation:ritualState.formulation, commitment:ritualState.commitment };
+    var rows=[];
+    formats.forEach(function(fmt){ protocols.forEach(function(prot){ flavors.forEach(function(fl){
+      var commits = prot==="autopilot" ? ["ongoing"] : ["1month","3month","ongoing"];
+      commits.forEach(function(cm){
+        ritualState.format=fmt; ritualState.protocol=prot; ritualState.formulation=fl[0]; ritualState.commitment=cm;
+        var key=variantKey(), url=permalink(currentVariant());
+        rows.push({ key:key, subscription:isSubscription(), url:url, status:url?"live":"FALLBACK (id pending)" });
+      });
+    }); }); });
+    ritualState.format=save.format; ritualState.protocol=save.protocol; ritualState.formulation=save.formulation; ritualState.commitment=save.commitment;
+    return rows;
+  }
+  window.aforceEnumerate = function(){
+    var rows = enumerateCombos();
+    if(window.console && console.table) console.table(rows);
+    var pending = rows.filter(function(r){ return !r.url; }).length;
+    if(window.console) console.log("AFORCE combos: " + rows.length + " total · " + (rows.length-pending) + " live · " + pending + " awaiting IDs (→ fallback).");
+    return rows;
+  };
+
   /* ---------- INIT ---------- */
-  // inject SELECTED labels into protocol + formulation cards (shown on .selected via CSS)
+  fillCopy();
+  // inject SELECTED labels into format/protocol + formulation cards (shown on .selected via CSS)
   document.querySelectorAll(".pcard").forEach(function(c){ var s=document.createElement("span"); s.className="p-selected"; s.textContent="Selected"; c.appendChild(s); });
   document.querySelectorAll(".fcard").forEach(function(c){ var s=document.createElement("span"); s.className="f-selected"; s.textContent="Selected"; c.appendChild(s); });
-
   render();
+
+  if(/^(localhost|127\.|0\.0\.0\.0)/.test(location.hostname) || location.search.indexOf("debug") > -1){
+    try{ window.aforceEnumerate(); }catch(e){}
+  }
 })();
 </script>
 </body>

@@ -210,59 +210,59 @@ No discount banners · no countdown timers · no spin-to-win / gamification in p
 
 ## §M — RITUAL BUILDER FRONTEND ↔ SHOPIFY HANDOFF (built; IDs pending)
 
+> Updated on branch `feat/shop-checkout-wiring`. Supersedes the earlier
+> 2-axis (Sticks/Cans, Performance-only) version.
+
 The shop ritual builder (`aforce-site/shop/index.html`) is fully wired on the
-frontend and matches the **actual catalog** (see `products_export.csv`): one
-protocol — **Performance** — sold in two formats. Trial, AutoPilot and the
-Ongoing subscription are **not** in the builder (deferred by the founder).
-The flow is: **Intent → Format (Sticks / RTD Cans) → [Commitment, sticks only]
-→ Formulation → Begin.** Everything below is the **founder/Shopify-admin side**
-that a static page cannot do.
+frontend for the **four-product catalog**. Flow:
+**Intent → Format (Sticks / RTD Cans) → Protocol (Performance / AutoPilot) →
+[Commitment — Performance only] → Formulation → Begin.**
+AutoPilot is **subscription-only**: it pins commitment to `ongoing` and hides
+the Commitment step. Everything below is the **founder/Shopify-admin side**.
 
-### 1. Fill the VARIANT MAP (required for checkout — ~9 IDs)
-In the page's `<script>`, `VARIANTS` is keyed to the two real products. Every
-value is `{ variantId:null }` (placeholder). Paste the **real Shopify variant
-IDs** from the admin (open a variant → the number in `…/variants/<ID>`):
+### 1. Checkout = cart-permalink redirect (option b — implemented)
+The page is static on Vercel, so `/cart/add.js` cannot run. `beginRitual()`
+redirects to a Shopify cart permalink on **`aforce-v2.myshopify.com`**:
+- one-time: `https://aforce-v2.myshopify.com/cart/{variantId}:1`
+- subscription (any `ongoing`): `…/cart/{variantId}:1?selling_plan={sellingPlanId}` (appended once)
 
-| Key | Product | Flavor | Duration | Price |
-|-----|---------|--------|----------|-------|
-| `sticks_red_1mo` / `sticks_red_3mo` | Performance Protocol (sticks) | Watermelon Surge | 1 mo / 3 mo | $59.99 / $179.97 |
-| `sticks_blue_1mo` / `sticks_blue_3mo` | Performance Protocol (sticks) | Berry Blast | 1 mo / 3 mo | $59.99 / $179.97 |
-| `sticks_green_1mo` / `sticks_green_3mo` | Performance Protocol (sticks) | Soursop Edge | 1 mo / 3 mo | $59.99 / $179.97 |
-| `can_red` | Performance Protocol — RTD | Watermelon Surge | single | $29.99 |
-| `can_blue` | Performance Protocol — RTD | Berry Blast | single | $29.99 |
-| `can_green` | Performance Protocol — RTD | Soursop Edge | single | $29.99 |
+`permalink()` returns `null` — routing to the provisioning fallback — if the
+`variantId` is missing, **or** a subscription has no `sellingPlanId`. No cart URL
+is ever built with a null id (verified: 24/24 combos → fallback while empty).
 
-Flavor→color: Watermelon=red, Berry=blue, Soursop=green. Any combo left `null`
-is treated as *not available*: BEGIN shows a "provisioning" message and
-**never fakes a checkout or redirect** (verified). No `sellingPlanId` /
-subscriptions anywhere — deferred.
+### 2. Fill the VARIANT MAP — FILL FROM CSV (24 variants)
+`VARIANTS` keys are `{format}_{protocol}_{flavor}_{commitment}`, all `null`.
+- `format`: `sticks` | `rtd`
+- `protocol`: `performance` | `autopilot`
+- `flavor`: `watermelon`(red) | `berry`(blue) | `soursop`(green)
+- `commitment`: `1month` | `3month` | `ongoing`
 
-### 2. Serve inside a Shopify theme (required for `/cart/add.js`)
-`beginRitual()` does `POST /cart/clear.js` → `POST /cart/add.js` (`{id, quantity:1}`)
-→ redirect `/checkout`, with a visible **"TRY AGAIN"** error state on failure.
-These AJAX routes only exist when the page is served **inside a Shopify theme**.
-This repo is a static Vercel site, so on the current deploy the routes 404 and the
-safe message shows. To go live: embed this markup/JS in the Shopify theme, **or**
-define a `window.AForceCheckout(ritualState)` shim that performs your own checkout.
+| Product | Keys | Needs |
+|---------|------|-------|
+| Performance Protocol (sticks) | `sticks_performance_{flavor}_{1month\|3month\|ongoing}` | variantId ×9; `ongoing` also sellingPlanId |
+| AutoPilot (sticks) | `sticks_autopilot_{flavor}_ongoing` | variantId + sellingPlanId ×3 |
+| Performance Protocol — RTD | `rtd_performance_{flavor}_{1month\|3month\|ongoing}` | variantId ×9; `ongoing` also sellingPlanId |
+| AutoPilot — RTD | `rtd_autopilot_{flavor}_ongoing` | variantId + sellingPlanId ×3 |
 
-### 3. Pricing (kept static)
-Card prices are hardcoded in markup and match the export ($59.99 / $179.97 sticks,
-$29.99 cans). If you later want prices pulled from `/products/{handle}.js`, that's
-an additive Shopify step.
+Every `*_ongoing` key (12 of the 24) is a subscription → needs both `variantId`
+and `sellingPlanId`. Run `window.aforceEnumerate()` in the console (or load
+`/shop/?debug`) to print all 24 combos and the URL each resolves to.
 
-### 4. FIX 7 — post-purchase (Shopify admin, not in this repo)
-Order-status page ("YOUR RITUAL IS PROVISIONED", cohort #, first delivery date,
-"DOWNLOAD AFORCE OS") + first email — build in Checkout → Order status / thank-you
-customization. See §F/§G above.
+### 3. Selling plan (Ongoing / AutoPilot)
+Install the **Shopify Subscriptions app**, create the selling plan(s), and paste
+the id into each `*_ongoing` entry's `sellingPlanId`. Positioning is **"Ritual
+Membership"**, commitment-based — never "subscribe and save" (guardrail enforced).
 
-### 5. Pre-launch verification (real phone, cellular)
-Cart connection (correct variant + price) · webhook under load · inventory
-decrement per variant · full cellular flow. All require the live Shopify store.
+### 4. Pricing copy — one constants block
+All editable pricing/spec copy lives in the `COPY` object at the top of the
+page `<script>`. Placeholders to supply: `STICK_COUNT`, `STICK_SERVINGS`,
+`RTD_PRICE`, `RTD_3MO`, `RTD_CANS_MONTH`, `RTD_PER_CAN`. (Sticks $59.99 / $179.97
+are set from the export.)
 
-### 6. Deferred (when you're ready to add them)
-Trial Protocol, AutoPilot, and the Ongoing subscription were removed from the
-builder because no such products/selling-plans exist yet. Re-adding them means:
-create the products/variants (and, for Ongoing/AutoPilot, the Subscriptions app +
-selling plans), then restore the corresponding `VARIANTS` keys and the Format /
-Commitment options. The frontend patterns for all of it are in this repo's git
-history (branch `chore/shop-ritual-builder`).
+### 5. FIX 7 — post-purchase (Shopify admin, not in this repo)
+Order-status / thank-you page ("YOUR RITUAL IS PROVISIONED", cohort #, first
+delivery date, "DOWNLOAD AFORCE OS") + first email. See §F/§G.
+
+### 6. Pre-launch verification (real phone, cellular)
+Permalink lands the right variant + price (and selling plan for subs) · webhook
+under load · inventory decrement per variant · full cellular flow.
