@@ -117,7 +117,10 @@
   .m-discipline-copy .m-support{ color:rgba(245,240,232,0.7); margin-top:clamp(34px,5vw,60px); }
 
   /* ---------- SECTION 4 — THE RITUAL (can video) ---------- */
-  .m-ritual{ position:relative; min-height:100vh; display:flex; align-items:center; overflow:hidden; background:var(--canvas); color:var(--ink); padding:clamp(110px,16vh,200px) clamp(22px,7vw,120px); }
+  .m-ritual{ position:relative; min-height:100vh; display:flex; align-items:center; justify-content:space-between; gap:clamp(40px,6vw,80px); overflow:hidden; background:var(--canvas); color:var(--ink); padding:clamp(110px,16vh,200px) clamp(22px,7vw,120px); }
+  .m-ritual-can{ margin:0; flex-shrink:0; }
+  .m-ritual-can img{ display:block; height:clamp(400px,64vh,680px); width:auto; filter:drop-shadow(0 34px 60px rgba(13,13,13,0.26)); }
+  @media (max-width:860px){ .m-ritual{ flex-direction:column; align-items:flex-start; gap:clamp(40px,8vw,60px); } .m-ritual-can img{ height:clamp(340px,50vh,460px); } }
   .m-ritual video, .m-ritual .m-hero-poster{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:0; }
   .m-ritual .m-scrim{ position:absolute; inset:0; z-index:1; background:linear-gradient(90deg, rgba(13,13,13,0.9) 0%, rgba(13,13,13,0.66) 55%, rgba(13,13,13,0.42) 100%); }
   .m-ritual-inner{ position:relative; z-index:2; max-width:1000px; }
@@ -264,6 +267,9 @@
         <span class="reveal">Perform.</span>
       </div>
     </div>
+    <figure class="m-ritual-can reveal">
+      <img src="/assets/can-manifesto.png" alt="AFORCE can — back panel: The Manifesto, Nutrition Facts, and Lock-In QR" loading="lazy" decoding="async">
+    </figure>
   </section>
 
   <!-- ============ SECTION 5 — PERFORMANCE IS UNIVERSAL ============ -->
