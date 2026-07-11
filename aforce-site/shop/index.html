@@ -7,7 +7,7 @@
 <title>AFORCE — Shop the Standard</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,500&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
   :root{
     --ink:#0B0D12;
@@ -336,6 +336,56 @@
     html{scroll-behavior:auto;}
   }
 
+  /* ================= RITUAL BUILDER — spec fixes ================= */
+  /* hero eyebrow must never fracture (FIX 0) */
+  .eyebrow .nobreak{white-space:nowrap;}
+  @media (max-width:560px){ .hero .eyebrow{letter-spacing:.13em;flex-wrap:wrap;} }
+
+  /* FIX 4 — progress dots render from ritualState */
+  .steprail .sr .dot{background:var(--ink-30);transition:background .3s ease,box-shadow .3s ease;}
+  .steprail .sr.done{color:var(--ink);}
+  .steprail .sr.done .dot{background:var(--red);}
+  .steprail .sr.current{color:var(--ink);font-weight:700;}
+  .steprail .sr.current .dot{background:transparent;box-shadow:inset 0 0 0 2px var(--ink);}
+
+  /* FIX 2 — protocol selected = red border + SELECTED label */
+  .pcard.selected{background:var(--canvas);color:var(--ink);border:2px solid var(--red);box-shadow:none;}
+  .pcard.selected .p-pack,.pcard.selected .p-lines{color:var(--ink-60);}
+  .pcard.selected .p-cta{background:var(--ink);color:var(--canvas);border-color:var(--ink);}
+  .pcard.selected .why-link{color:var(--ink-60);border-color:transparent;}
+  .p-selected,.f-selected{position:absolute;top:0;right:0;display:none;background:var(--red);color:#fff;font-family:var(--mono);font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;padding:6px 12px;z-index:2;}
+  .pcard.selected .p-selected,.fcard.selected .f-selected{display:block;}
+
+  /* FIX 3 — intent OS-boot status block + recommended pulse/badge */
+  .intent-status{margin-top:26px;font-family:'Space Mono',monospace;font-size:13px;line-height:1.9;min-height:1.6em;max-width:62ch;}
+  .intent-status .sl{display:block;opacity:0;transform:translateY(6px);transition:opacity .5s ease,transform .5s ease;}
+  .intent-status .sl.in{opacity:1;transform:none;}
+  .intent-status .sl.rec b{color:var(--red);font-weight:700;}
+  .intent-status .sl.note{color:var(--ink-60);}
+  .rec-badge{position:absolute;top:0;left:0;display:none;background:var(--red);color:#fff;font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;padding:6px 11px;z-index:2;}
+  .recommended .rec-badge{display:block;}
+  .pcard.selected .rec-badge,.fcard.selected .rec-badge{display:none;}
+  @keyframes recPulse{0%{box-shadow:inset 0 0 0 2px rgba(228,30,43,0);}30%{box-shadow:inset 0 0 0 2px rgba(228,30,43,.55);}100%{box-shadow:inset 0 0 0 2px rgba(228,30,43,0);}}
+  .rec-pulse{animation:recPulse 1s ease-out 1;}
+
+  /* FIX 6 — commitment note + ongoing membership */
+  .commit-note{margin-top:18px;font-family:var(--serif);font-style:italic;font-size:16px;color:var(--ink-60);min-height:1.2em;max-width:54ch;}
+  .commit-ongoing{border-color:var(--ink);}
+
+  /* FIX 5 — sticky summary bar (mobile-first) */
+  .sticky-bar{position:fixed;left:0;right:0;bottom:0;z-index:80;display:none;align-items:center;gap:12px;padding:11px clamp(14px,4vw,22px);background:var(--ink);color:var(--canvas);border-top:1px solid var(--canvas-25);transform:translateY(100%);transition:transform .35s ease;}
+  .sticky-bar.show{display:flex;transform:none;}
+  .sb-summary{flex:1;min-width:0;font-family:var(--mono);font-size:11px;letter-spacing:.05em;line-height:1.45;color:var(--canvas-70);}
+  .sb-summary b{color:var(--canvas);font-weight:700;}
+  .sb-begin{flex-shrink:0;min-height:44px;background:var(--canvas-25);color:var(--canvas);border:none;padding:12px 22px;font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;transition:background .2s,color .2s;}
+  .sb-begin.ready{background:var(--canvas);color:var(--ink);}
+  .sb-begin[disabled]{cursor:not-allowed;}
+  .sb-dismiss{flex-shrink:0;width:44px;height:44px;background:none;border:none;color:var(--canvas-70);font-size:22px;line-height:1;}
+  body.has-sticky{padding-bottom:76px;}
+
+  /* checkout error state (FIX 1 / Architecture #3) */
+  .purchase-btn.err,.sb-begin.err{background:var(--red)!important;color:#fff!important;opacity:1!important;}
+
   /* ---------- RESPONSIVE ---------- */
   @media (max-width:860px){
     .nav-links{display:none;}
@@ -367,7 +417,7 @@
 
 <!-- HERO -->
 <header class="hero">
-  <p class="eyebrow">Provisions · pH 8.8 · Performance Is Non-<span class="flip-n">N</span>egotiable</p>
+  <p class="eyebrow">Provisions · pH 8.8 · <span class="nobreak">Performance Is Non-<span class="flip-n">N</span>egotiable</span></p>
   <h1>Join the <em>system.</em></h1>
   <p class="hero-sub"><em style="font-style:italic;">A performance system, not a purchase.</em> Choose the demand, and the protocol answers — every order provisions your Performance Profile in AFORCE OS.</p>
   <div class="hero-provision">
@@ -417,14 +467,15 @@
   <h2 id="intentHeading">What are you <em>preparing for?</em></h2>
   <p class="sec-sub" id="intentSub">Nobody here is buying a flavor. Choose the demand — the protocol answers.</p>
   <div class="chips" id="intentChips" role="group" aria-label="Choose your demand">
-    <button class="chip" type="button" data-intent="training"    data-rec-protocol="performance" data-rec-flavor="blue"  aria-pressed="false">Training</button>
-    <button class="chip" type="button" data-intent="recovery"    data-rec-protocol="performance" data-rec-flavor="green" aria-pressed="false">Recovery</button>
-    <button class="chip" type="button" data-intent="deepwork"    data-rec-protocol="performance" data-rec-flavor="blue"  aria-pressed="false">Deep Work</button>
-    <button class="chip" type="button" data-intent="travel"      data-rec-protocol="autopilot"   data-rec-flavor="green" aria-pressed="false">Travel</button>
-    <button class="chip" type="button" data-intent="competition" data-rec-protocol="performance" data-rec-flavor="red"   aria-pressed="false">Competition</button>
-    <button class="chip" type="button" data-intent="heat"        data-rec-protocol="performance" data-rec-flavor="red"   aria-pressed="false">Heat</button>
+    <button class="chip" type="button" data-intent="daily"       data-rec-protocol="performance" data-rec-flavor="blue"  data-note="Your standard, every day."     aria-pressed="false">The Daily</button>
+    <button class="chip" type="button" data-intent="training"    data-rec-protocol="performance" data-rec-flavor="blue"  data-note="Built for elevated sweat rate." aria-pressed="false">Training</button>
+    <button class="chip" type="button" data-intent="recovery"    data-rec-protocol="performance" data-rec-flavor="green" data-note="Rebuild and rebalance."         aria-pressed="false">Recovery</button>
+    <button class="chip" type="button" data-intent="deepwork"    data-rec-protocol="performance" data-rec-flavor="blue"  data-note="Steady state. No crash."        aria-pressed="false">Deep Work</button>
+    <button class="chip" type="button" data-intent="travel"      data-rec-protocol="autopilot"   data-rec-flavor="green" data-note="Hydration on autopilot."        aria-pressed="false">Travel</button>
+    <button class="chip" type="button" data-intent="competition" data-rec-protocol="performance" data-rec-flavor="red"   data-note="Peak output. Zero variables."   aria-pressed="false">Competition</button>
+    <button class="chip" type="button" data-intent="heat"        data-rec-protocol="performance" data-rec-flavor="red"   data-note="Heat Guard optimized."          aria-pressed="false">Heat</button>
   </div>
-  <p class="intent-answer" id="intentAnswer" aria-live="polite"></p>
+  <div class="intent-status" id="intentStatus" aria-live="polite"></div>
 </section>
 
 <!-- SECTION A — PROTOCOL (static markup; JS enhances) -->
@@ -436,7 +487,7 @@
     <article class="pcard" data-protocol="trial" data-name="Trial Protocol" data-pack="6-Pack" data-purchase-cta="Begin the Ritual"
              data-why-body="For your first experience. No subscription, no obligation. Just your first ritual.">
       <span class="rec-ribbon">Recommended</span>
-      <div class="pcard-visual is-stick"><img src="/assets/stick-red.png" alt="Trial Protocol — AFORCE stick" loading="lazy" decoding="async"></div>
+      <div class="pcard-visual"><img src="/assets/can-red.png" alt="Trial Protocol — AFORCE can" loading="lazy" decoding="async"></div>
       <div class="p-pack">6-Pack — 11 oz cans</div>
       <h3>Trial Protocol</h3>
       <div class="p-lines"><span>Experience AFORCE.</span></div>
@@ -464,7 +515,7 @@
     <article class="pcard" data-protocol="autopilot" data-name="AutoPilot" data-pack="12-Pack Subscription" data-purchase-cta="Activate My Protocol"
              data-why-body="For people who have decided. Ships every 30 days. Your performance system runs itself.">
       <span class="rec-ribbon">Recommended</span>
-      <div class="pcard-visual is-stick"><img src="/assets/stick-green.png" alt="AutoPilot — AFORCE stick" loading="lazy" decoding="async"></div>
+      <div class="pcard-visual"><img src="/assets/can-green.png" alt="AutoPilot — AFORCE can" loading="lazy" decoding="async"></div>
       <div class="p-pack">12-Pack Subscription — 11 oz cans</div>
       <h3>AutoPilot</h3>
       <div class="p-lines"><span>Ships every 30 days.</span><span>Includes AFORCE OS.</span></div>
@@ -483,10 +534,11 @@
   <p class="sec-eyebrow"><span class="step-i">Step 03</span> · The Commitment</p>
   <h2 id="commitQuestion">How many months should we prepare?</h2>
   <div class="commit-opts" id="commitOpts" role="group" aria-label="Commitment length">
-    <button class="commit-opt" type="button" data-months="1" aria-pressed="false"><span class="radio" aria-hidden="true"></span>One Month</button>
-    <button class="commit-opt" type="button" data-months="2" aria-pressed="false"><span class="radio" aria-hidden="true"></span>Two Months</button>
-    <button class="commit-opt" type="button" data-months="3" aria-pressed="false"><span class="radio" aria-hidden="true"></span>Three Months</button>
+    <button class="commit-opt" type="button" data-commitment="1mo" data-summary="1 Month" aria-pressed="false"><span class="radio" aria-hidden="true"></span>One Month</button>
+    <button class="commit-opt" type="button" data-commitment="3mo" data-summary="3 Months" aria-pressed="false"><span class="radio" aria-hidden="true"></span>Three Months</button>
+    <button class="commit-opt commit-ongoing" type="button" data-commitment="ongoing" data-subscription="true" data-summary="Ongoing — Ritual Membership" aria-pressed="false"><span class="radio" aria-hidden="true"></span>Ongoing — Ritual Membership</button>
   </div>
+  <p class="commit-note" id="commitNote" aria-live="polite"></p>
 </section>
 
 <!-- SECTION C — FLAVOR (static markup; JS enhances) -->
@@ -567,6 +619,13 @@
   <span>© 2026 AFORCE. All rights reserved.</span>
 </footer>
 
+<!-- STICKY SUMMARY BAR (mobile-first) -->
+<div class="sticky-bar" id="stickyBar" aria-hidden="true">
+  <div class="sb-summary" id="sbSummary"></div>
+  <button class="sb-begin" id="sbBegin" type="button" disabled>Begin →</button>
+  <button class="sb-dismiss" id="sbDismiss" type="button" aria-label="Dismiss summary bar">×</button>
+</div>
+
 <!-- WHY THIS PROTOCOL OVERLAY -->
 <div class="why-veil" id="whyVeil"></div>
 <div class="why-modal" id="whyModal" role="dialog" aria-modal="true" aria-labelledby="whyModalTitle">
@@ -600,18 +659,45 @@
     }catch(e){}
   }
 
-  var state = { intent:null, protocol:null, months:null, flavor:null };
+  /* ---- Architecture #1: ONE state object, single source of truth ---- */
+  var ritualState = { intent:null, protocol:null, commitment:null, formulation:null };
+  window.ritualState = ritualState; // inspectable per spec
+
+  /* ---- Architecture #2: VARIANT MAP ----------------------------------
+     Key = {protocol}_{formulation}_{commitment}. Fill variantId (and
+     sellingPlanId for ongoing/autopilot subscriptions) from Shopify admin.
+     See docs/AFORCE_SHOP_BACKEND_SPEC.md. A combo with variantId:null is
+     treated as not-yet-available — checkout blocks with a clear message.  */
+  var VARIANTS = {
+    // one-time (cans)
+    'trial_red_1mo':          { variantId:null },
+    'trial_blue_1mo':         { variantId:null },
+    'trial_green_1mo':        { variantId:null },
+    'performance_red_1mo':    { variantId:null }, 'performance_red_3mo':    { variantId:null },
+    'performance_blue_1mo':   { variantId:null }, 'performance_blue_3mo':   { variantId:null },
+    'performance_green_1mo':  { variantId:null }, 'performance_green_3mo':  { variantId:null },
+    // subscriptions (ongoing / autopilot) — require sellingPlanId
+    'performance_red_ongoing':   { variantId:null, sellingPlanId:null },
+    'performance_blue_ongoing':  { variantId:null, sellingPlanId:null },
+    'performance_green_ongoing': { variantId:null, sellingPlanId:null },
+    'autopilot_red_ongoing':     { variantId:null, sellingPlanId:null },
+    'autopilot_blue_ongoing':    { variantId:null, sellingPlanId:null },
+    'autopilot_green_ongoing':   { variantId:null, sellingPlanId:null }
+  };
+  function variantKey(){
+    if(!(ritualState.protocol && ritualState.formulation && ritualState.commitment)) return null;
+    return ritualState.protocol + "_" + ritualState.formulation + "_" + ritualState.commitment;
+  }
+  function currentVariant(){ var k=variantKey(); return k ? VARIANTS[k] : null; }
+
   var byId = function(id){ return document.getElementById(id); };
   function pcard(id){ return document.querySelector('.pcard[data-protocol="'+id+'"]'); }
   function fcard(id){ return document.querySelector('.fcard[data-flavor="'+id+'"]'); }
+  function commitBtn(id){ return document.querySelector('.commit-opt[data-commitment="'+id+'"]'); }
   function nameFromCard(el){ var h=el&&el.querySelector("h3"); return h?h.textContent.trim():""; }
+  function isSubscription(){ return ritualState.protocol==="autopilot" || ritualState.commitment==="ongoing"; }
 
-  function markStep(step, done){
-    var el = document.querySelector('.steprail .sr[data-step="'+step+'"]');
-    if(el) el.classList.toggle("done", !!done);
-  }
-
-  /* pre-highlight recommended protocol + flavor (suggestion only, never forced) */
+  /* pre-highlight recommended protocol + formulation (suggestion only) */
   function clearRecommended(){
     document.querySelectorAll(".pcard.recommended,.fcard.recommended").forEach(function(el){ el.classList.remove("recommended"); });
   }
@@ -622,40 +708,119 @@
     if(fc) fc.classList.add("recommended");
   }
 
+  /* ---- Architecture #1: EVERYTHING renders FROM ritualState ---- */
   function setSlot(slot, text, filled){
     var el = document.querySelector('.ps-cell .v[data-slot="'+slot+'"]');
     if(!el) return;
-    el.textContent = text;
+    el.textContent = filled ? text : "Not chosen yet";
     el.classList.toggle("pending", !filled);
   }
-  function refreshPurchase(){
-    var ready = state.protocol && state.months && state.flavor;
+  function stepFor(){
+    // current step = first unfilled in order
+    if(!ritualState.intent) return "intent";
+    if(!ritualState.protocol) return "protocol";
+    if(!ritualState.commitment) return "months";
+    if(!ritualState.formulation) return "flavor";
+    return "ready";
+  }
+  function renderDots(){
+    var order = ["intent","protocol","months","flavor","ready"];
+    var done = { intent:!!ritualState.intent, protocol:!!ritualState.protocol, months:!!ritualState.commitment, flavor:!!ritualState.formulation, ready:isReady() };
+    var cur = stepFor();
+    order.forEach(function(step){
+      var el = document.querySelector('.steprail .sr[data-step="'+step+'"]');
+      if(!el) return;
+      el.classList.toggle("done", !!done[step]);
+      el.classList.toggle("current", step===cur && !done[step]);
+    });
+  }
+  function isReady(){ return !!(ritualState.protocol && ritualState.commitment && ritualState.formulation); }
+  function summaryLine(){
+    var parts = [];
+    if(ritualState.protocol){ var p=pcard(ritualState.protocol); parts.push(nameFromCard(p)); }
+    if(ritualState.formulation){ var f=fcard(ritualState.formulation); parts.push(nameFromCard(f)); }
+    if(ritualState.commitment){ var c=commitBtn(ritualState.commitment); parts.push(c?c.getAttribute("data-summary"):""); }
+    return parts;
+  }
+  function render(){
+    // Step 05 summary
+    var p = ritualState.protocol ? pcard(ritualState.protocol) : null;
+    setSlot("protocol", p ? (nameFromCard(p) + " · " + (p.getAttribute("data-pack")||"")) : "", !!ritualState.protocol);
+    var c = ritualState.commitment ? commitBtn(ritualState.commitment) : null;
+    setSlot("months", c ? c.getAttribute("data-summary") : "", !!ritualState.commitment);
+    var f = ritualState.formulation ? fcard(ritualState.formulation) : null;
+    setSlot("flavor", f ? nameFromCard(f) : "", !!ritualState.formulation);
+
+    // BEGIN button
+    var ready = isReady();
     var btn = byId("purchaseBtn");
-    var sel = state.protocol ? pcard(state.protocol) : null;
-    btn.textContent = (sel && sel.getAttribute("data-purchase-cta")) || "Begin the Ritual";
+    btn.classList.remove("err");
+    btn.textContent = (p && p.getAttribute("data-purchase-cta")) || "Begin the Ritual";
     btn.disabled = !ready;
     byId("purchaseNote").textContent = ready
       ? "AFORCE OS activates the moment your Performance Profile is initialized."
       : "Choose your protocol, commitment, and formulation to begin.";
-    markStep("ready", !!ready);
+
+    // Sticky bar (renders from ritualState)
+    var parts = summaryLine();
+    if(parts.length){
+      byId("sbSummary").innerHTML = parts.map(function(x){ return "<b>"+x+"</b>"; }).join(" · ");
+    } else {
+      byId("sbSummary").textContent = "Build your ritual";
+    }
+    var sbb = byId("sbBegin");
+    sbb.disabled = !ready; sbb.classList.toggle("ready", ready); sbb.classList.remove("err");
+
+    renderDots();
   }
 
-  /* ---------- INTENT ---------- */
+  /* ---------- INTENT (FIX 3 — OS boot, not typing) ---------- */
+  function setBadges(label){ document.querySelectorAll(".rec-ribbon").forEach(function(b){ b.textContent = "Built for " + label; }); }
+  function dropRecommendation(){ document.querySelectorAll(".pcard.recommended,.fcard.recommended").forEach(function(el){ el.classList.remove("recommended","rec-pulse"); }); }
+
   var chipsWrap = byId("intentChips");
-  if(chipsWrap) chipsWrap.addEventListener("click", function(e){
-    var chip = e.target.closest(".chip"); if(!chip) return;
-    var id = chip.getAttribute("data-intent");
+  var bootTimers = [];
+  function runIntent(chip){
     var recP = chip.getAttribute("data-rec-protocol");
     var recF = chip.getAttribute("data-rec-flavor");
-    state.intent = id;
+    var note = chip.getAttribute("data-note") || "";
+    var label = chip.textContent.trim().toUpperCase();
+    ritualState.intent = chip.getAttribute("data-intent");
+
+    // 1. tapped chip fills solid black instantly
     document.querySelectorAll(".chip").forEach(function(c){ c.setAttribute("aria-pressed", c===chip?"true":"false"); });
-    applyRecommendation(recP, recF);
-    var pName = nameFromCard(pcard(recP)), fName = nameFromCard(fcard(recF));
-    byId("intentAnswer").innerHTML = "Recommended: <b>" + pName + "</b> · <b>" + fName +
-      "</b> — pre-highlighted below. Adjust anything; this is a suggestion, not a lock.";
-    markStep("intent", true);
-    track("intent_selected", { intent:id });
-    byId("protocol").scrollIntoView({ behavior:"smooth", block:"start" });
+
+    // 3. recommended protocol + formulation come PRE-SELECTED in ritualState
+    ritualState.protocol = recP;
+    ritualState.formulation = recF;
+    document.querySelectorAll(".pcard").forEach(function(c){ c.classList.toggle("selected", c.getAttribute("data-protocol")===recP); });
+    document.querySelectorAll(".fcard").forEach(function(c){ c.classList.toggle("selected", c.getAttribute("data-flavor")===recF); });
+    applyRecommendation(recP, recF); setBadges(label);
+    [pcard(recP), fcard(recF)].forEach(function(el){ if(el){ el.classList.remove("rec-pulse"); void el.offsetWidth; el.classList.add("rec-pulse"); } });
+    render(); showSticky();
+    track("intent_selected", { intent:ritualState.intent });
+
+    // 2. status block cascades in (boot sequence, Space Mono)
+    var pName = nameFromCard(pcard(recP)).toUpperCase(), fName = nameFromCard(fcard(recF)).toUpperCase();
+    var lines = [
+      { cls:"", html:label + " SELECTED" },
+      { cls:"rec", html:"✓ <b>" + pName + "</b> — recommended" },
+      { cls:"rec", html:"✓ <b>" + fName + "</b> — recommended" },
+      { cls:"note", html:note }
+    ];
+    var box = byId("intentStatus"); box.innerHTML = "";
+    bootTimers.forEach(clearTimeout); bootTimers = [];
+    lines.forEach(function(ln,i){
+      var el = document.createElement("span"); el.className = "sl " + ln.cls; el.innerHTML = ln.html;
+      box.appendChild(el);
+      bootTimers.push(setTimeout(function(){ el.classList.add("in"); }, 60 + i*150));
+    });
+
+    // 4. the ONLY auto-scroll — to Step 03 Commitment, after the pulse
+    bootTimers.push(setTimeout(function(){ byId("months").scrollIntoView({ behavior:"smooth", block:"start" }); }, 900));
+  }
+  if(chipsWrap) chipsWrap.addEventListener("click", function(e){
+    var chip = e.target.closest(".chip"); if(chip) runIntent(chip);
   });
 
   /* ---------- PROTOCOL (choose + why) ---------- */
@@ -665,14 +830,11 @@
     var why = e.target.closest("[data-why]");
     if(choose){
       var id = choose.getAttribute("data-choose");
-      state.protocol = id;
+      ritualState.protocol = id;
       document.querySelectorAll(".pcard").forEach(function(c){ c.classList.toggle("selected", c.getAttribute("data-protocol")===id); });
-      var card = pcard(id);
-      setSlot("protocol", nameFromCard(card) + " · " + (card.getAttribute("data-pack")||""), true);
-      refreshPurchase();
-      markStep("protocol", true);
+      dropRecommendation();               // their choice wins silently
+      render(); showSticky();
       track("protocol_card_selected", { protocol:id });
-      byId("months").scrollIntoView({ behavior:"smooth", block:"start" });
     } else if(why){
       var card2 = pcard(why.getAttribute("data-why")); if(!card2) return;
       byId("whyModalTitle").textContent = nameFromCard(card2);
@@ -682,42 +844,75 @@
     }
   });
 
-  /* ---------- COMMITMENT ---------- */
+  /* ---------- COMMITMENT (FIX 6 — membership) ---------- */
   var cWrap = byId("commitOpts");
   if(cWrap) cWrap.addEventListener("click", function(e){
     var opt = e.target.closest(".commit-opt"); if(!opt) return;
-    var months = parseInt(opt.getAttribute("data-months"), 10);
-    state.months = months;
+    var id = opt.getAttribute("data-commitment");
+    ritualState.commitment = id;
     document.querySelectorAll(".commit-opt").forEach(function(c){ c.setAttribute("aria-pressed", c===opt?"true":"false"); });
-    setSlot("months", months + (months===1?" Month":" Months"), true);
-    refreshPurchase();
-    markStep("months", true);
-    track("commitment_months_selected", { months:months });
-    byId("flavor").scrollIntoView({ behavior:"smooth", block:"start" });
+    byId("commitNote").textContent = (id==="ongoing")
+      ? "Includes AFORCE OS. Your best per-can standard, delivered on your cadence — pause or stop anytime."
+      : "";
+    render(); showSticky();
+    track("commitment_selected", { commitment:id });
   });
 
-  /* ---------- FLAVOR ---------- */
+  /* ---------- FORMULATION ---------- */
   var fWrap = byId("flavorCards");
   if(fWrap) fWrap.addEventListener("click", function(e){
     var card = e.target.closest(".fcard"); if(!card) return;
     var id = card.getAttribute("data-flavor");
-    state.flavor = id;
+    ritualState.formulation = id;
     document.querySelectorAll(".fcard").forEach(function(c){ c.classList.toggle("selected", c===card); });
-    setSlot("flavor", nameFromCard(card), true);
-    refreshPurchase();
-    markStep("flavor", true);
-    track("flavor_selected", { flavor:id });
-    byId("begin").scrollIntoView({ behavior:"smooth", block:"start" });
+    dropRecommendation();               // their choice wins silently
+    render(); showSticky();
+    track("formulation_selected", { formulation:id });
   });
 
-  /* ---------- PURCHASE (checkout_started) ---------- */
-  byId("purchaseBtn").addEventListener("click", function(){
-    if(!(state.protocol && state.months && state.flavor)) return;
-    var payload = { protocol:state.protocol, flavor:state.flavor, months:state.months, intent:state.intent };
-    track("checkout_started", payload);
-    // Real checkout lives in the AForce OS backend — see docs/AFORCE_SHOP_BACKEND_SPEC.md
-    if(typeof window.AForceCheckout === "function"){ window.AForceCheckout(payload); return; }
-    byId("purchaseNote").textContent = "Preparing your Performance Profile — checkout opens next.";
+  /* ---------- BEGIN THE RITUAL — Shopify checkout handoff (Architecture #3) ---------- */
+  function setBtnErr(msg){
+    byId("purchaseBtn").classList.add("err"); byId("purchaseBtn").textContent = msg;
+    byId("sbBegin").classList.add("err"); byId("sbBegin").textContent = msg + " →";
+    byId("purchaseNote").textContent = "Something went wrong. Tap to try again.";
+  }
+  var beginning = false;
+  function beginRitual(){
+    if(!isReady() || beginning) return;
+    var v = currentVariant();
+    track("checkout_started", { protocol:ritualState.protocol, formulation:ritualState.formulation, commitment:ritualState.commitment, intent:ritualState.intent, key:variantKey() });
+
+    // Shopify variant IDs not provisioned yet → never fake a checkout (see backend spec).
+    if(!v || !v.variantId){
+      byId("purchaseNote").textContent = "Checkout is being provisioned — Shopify variant IDs pending (docs/AFORCE_SHOP_BACKEND_SPEC.md). Your ritual is saved.";
+      if(typeof window.AForceCheckout === "function"){ window.AForceCheckout(Object.assign({}, ritualState)); }
+      return;
+    }
+
+    beginning = true;
+    var body = { id:v.variantId, quantity:1 };
+    if(isSubscription() && v.sellingPlanId){ body.selling_plan = v.sellingPlanId; } // one selling plan only — no double-bill
+
+    // clear stale cart → add → /checkout ; visible error state on failure
+    fetch("/cart/clear.js", { method:"POST", headers:{ "Content-Type":"application/json" } })
+      .then(function(){ return fetch("/cart/add.js", { method:"POST", headers:{ "Content-Type":"application/json" }, body:JSON.stringify(body) }); })
+      .then(function(r){ if(!r.ok) throw new Error("add failed"); return r.json(); })
+      .then(function(){ window.location.href = "/checkout"; })
+      .catch(function(){ beginning=false; setBtnErr("Try Again"); track("checkout_error", { key:variantKey() }); });
+  }
+  byId("purchaseBtn").addEventListener("click", beginRitual);
+  byId("sbBegin").addEventListener("click", beginRitual);
+
+  /* ---------- STICKY BAR (FIX 5 — dismissible; returns on next selection) ---------- */
+  function showSticky(){
+    var bar = byId("stickyBar");
+    bar.classList.add("show"); bar.setAttribute("aria-hidden","false");
+    document.body.classList.add("has-sticky");
+  }
+  byId("sbDismiss").addEventListener("click", function(){
+    var bar = byId("stickyBar");
+    bar.classList.remove("show"); bar.setAttribute("aria-hidden","true");
+    document.body.classList.remove("has-sticky");
   });
 
   /* ---------- WHY OVERLAY ---------- */
@@ -753,7 +948,12 @@
     document.querySelectorAll(".reveal").forEach(function(el){ el.classList.add("in"); });
   }
 
-  refreshPurchase();
+  /* ---------- INIT ---------- */
+  // inject SELECTED labels into protocol + formulation cards (shown on .selected via CSS)
+  document.querySelectorAll(".pcard").forEach(function(c){ var s=document.createElement("span"); s.className="p-selected"; s.textContent="Selected"; c.appendChild(s); });
+  document.querySelectorAll(".fcard").forEach(function(c){ var s=document.createElement("span"); s.className="f-selected"; s.textContent="Selected"; c.appendChild(s); });
+
+  render();
 })();
 </script>
 </body>
