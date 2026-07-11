@@ -208,59 +208,62 @@ No discount banners · no countdown timers · no spin-to-win / gamification in p
 
 ---
 
-## §M — RITUAL BUILDER FRONTEND ↔ SHOPIFY HANDOFF (built; IDs pending)
+## §M — RITUAL BUILDER FRONTEND ↔ SHOPIFY HANDOFF (wired; selling-plan id pending)
 
-> Updated on branch `feat/shop-checkout-wiring`. Sticks stay monthly;
-> **RTD is now a weekly product** with its own two-decision flow.
+> Updated on branch `feat/shop-checkout-wiring`. Single-can / monthly model,
+> wired with real Admin-API variant IDs (aforce-v2). One open item: the
+> **Ritual Membership** selling-plan id.
 
-The shop ritual builder (`aforce-site/shop/index.html`) has **two divergent flows**:
-- **Sticks** (monthly): Intent → Format → Protocol (Performance / AutoPilot) → [Commitment — Performance: 1 / 3 month] → Formulation → Begin. AutoPilot is the monthly membership (ongoing) and hides the commitment step.
-- **RTD** (weekly): Intent → Format → Formulation → **Order** → Begin. Order = **Try It** (one-time 6-pack, $29.99) or **Performance Protocol** (one 6-pack every week, $29.99/wk — default + recommended). No Protocol / 1-month / 3-month / AutoPilot on the RTD path.
-
-Everything below is the **founder/Shopify-admin side**.
+One flow for both formats: **Intent → Format (Sticks / RTD Cans) → Protocol
+(Performance / AutoPilot) → [Commitment — Performance only] → Formulation →
+Begin.** Commitment is format-aware — **sticks** = 1 Month / 3 Month / Ongoing;
+**RTD** = One-Time / Ongoing. **AutoPilot** is the Ritual Membership: it pins the
+ongoing plan and hides the commitment step. Ongoing (any) and AutoPilot resolve
+to the base variant (sticks 1-Month · RTD can) **+ the Ritual Membership plan**.
 
 ### 1. Checkout = cart-permalink redirect (option b — implemented)
-The page is static on Vercel, so `/cart/add.js` cannot run. `beginRitual()`
-redirects to a Shopify cart permalink on **`aforce-v2.myshopify.com`**:
+Static on Vercel, so `/cart/add.js` cannot run. `beginRitual()` redirects to a
+Shopify cart permalink on **`aforce-v2.myshopify.com`**:
 - one-time: `https://aforce-v2.myshopify.com/cart/{variantId}:1`
-- subscription (sticks AutoPilot · RTD weekly): `…/cart/{variantId}:1?selling_plan={sellingPlanId}` (appended once)
+- subscription (AutoPilot / any Ongoing): `…/cart/{variantId}:1?selling_plan={sellingPlanId}` (appended once)
 
-`permalink()` returns `null` — routing to the provisioning fallback — if the
-`variantId` is missing, **or** a subscription has no `sellingPlanId`. No cart URL
-is ever built with a null id (verified: 15/15 combos → fallback while empty).
+`permalink()` returns `null` → provisioning fallback if a `variantId` is missing
+**or** a subscription has no `sellingPlanId`. Verified: **9 one-time combos LIVE**,
+**12 subscription combos fall back** until the plan id lands. No cart URL ever
+contains a null id.
 
-### 2. Fill the VARIANT MAP — FILL FROM CSV (15 variants)
+### 2. VARIANTS — wired with real IDs (21 keys)
+Variant IDs are filled from the Admin API. `RITUAL_MEMBERSHIP_PLAN` (top of the
+`<script>`) is `null` and shared by every subscription entry's `sellingPlanId`.
 
-| Product | Keys | Needs |
-|---------|------|-------|
-| Performance Protocol — Sticks | `sticks_performance_{flavor}_{1month\|3month}` | variantId ×6 |
-| AutoPilot — Sticks (monthly membership) | `sticks_autopilot_{flavor}_ongoing` | variantId + sellingPlanId ×3 |
-| RTD — Try It (one-time 6-pack, $29.99) | `rtd_tryit_{flavor}` | variantId ×3 |
-| RTD — Performance Protocol (6-pack / week, $29.99) | `rtd_weekly_{flavor}` | variantId + sellingPlanId ×3 |
+| Keys | variantId | plan |
+|------|-----------|------|
+| `sticks_performance_{flavor}_{1month\|3month}` (×6) | ✅ real | — one-time |
+| `sticks_performance_{flavor}_ongoing` (×3) | ✅ 1-Month variant | ⬜ pending |
+| `sticks_autopilot_{flavor}` (×3) | ✅ 1-Month variant | ⬜ pending |
+| `rtd_performance_{flavor}_onetime` (×3) | ✅ real | — one-time |
+| `rtd_performance_{flavor}_ongoing` (×3) | ✅ RTD variant | ⬜ pending |
+| `rtd_autopilot_{flavor}` (×3) | ✅ RTD variant | ⬜ pending |
 
-`flavor`: `watermelon`(red) | `berry`(blue) | `soursop`(green). The 6 subscription
-keys (`sticks_autopilot_*_ongoing`, `rtd_weekly_*`) need both a `variantId` and a
-`sellingPlanId`. Run `window.aforceEnumerate()` (or load `/shop/?debug`) to print
-all 15 combos and the URL each resolves to.
+`flavor`: watermelon(red) | berry(blue) | soursop(green). Run
+`window.aforceEnumerate()` (or `/shop/?debug`) to print all 21 combos + URLs.
 
-### 3. Selling plans
-Install the **Shopify Subscriptions app** and create the plans, then paste the id
-into each subscription entry's `sellingPlanId`:
-- **Sticks AutoPilot** → a **monthly** selling plan.
-- **RTD Performance Protocol** → a **weekly** selling plan (one 6-pack per week).
-
-Positioning is **"Performance Protocol / Ritual Membership"** — pause, skip, or
-cancel anytime. Never "subscription" / "subscribe and save" (guardrail enforced).
+### 3. Selling plan — THE one open item
+The **Ritual Membership** plan (Shopify Subscriptions app, monthly, on both
+products) was **not readable** by the "Site Checkout" app's credentials: the
+top-level `sellingPlanGroups` query returned none, and the per-product
+`product.sellingPlanGroups` query (added to `scripts/fetch-shopify-ids.mjs`) is
+the fallback. If that's also empty, the plan is owned by the Subscriptions app and
+isn't exposed to third-party tokens — pull the numeric **SellingPlan** id from
+admin and set `RITUAL_MEMBERSHIP_PLAN`. That lights up all 12 subscription combos.
 
 ### 4. Pricing copy — one constants block
-All editable pricing/spec copy lives in the `COPY` object at the top of the page
-`<script>`. RTD is set ($29.99 weekly, 6 cans) and Sticks ($59.99 / $179.97) from
-the export. **Only placeholders left:** `STICK_COUNT`, `STICK_SERVINGS` (sticks per
-month + servings).
+`COPY` at the top of the `<script>` holds all pricing/spec copy: Sticks
+$59.99 / $179.97, 20 sticks · 20 servings; RTD `RTD_PRICE` $29.99 per
+`RTD_UNIT_LABEL` (`"CAN"` — `// TODO: confirm unit`). No placeholders remain.
 
 ### 5. FIX 7 — post-purchase (Shopify admin, not in this repo)
-Order-status / thank-you page ("YOUR RITUAL IS PROVISIONED", cohort #, first
-delivery date, "DOWNLOAD AFORCE OS") + first email. See §F/§G.
+Order-status / thank-you page + first email. See §F/§G.
 
 ### 6. Pre-launch verification (real phone, cellular)
 Permalink lands the right variant + price (and selling plan for subs) · webhook

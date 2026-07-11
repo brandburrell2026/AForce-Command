@@ -103,6 +103,24 @@ const PLANS_Q = `
   }
 }`;
 
+/* Fallback: selling plan groups OWNED BY ANOTHER APP (e.g. Shopify
+   Subscriptions) may not appear in the top-level sellingPlanGroups query.
+   Query them per-product instead. */
+const PRODUCT_PLANS_Q = `
+{
+  products(first: 100) {
+    nodes {
+      handle
+      sellingPlanGroups(first: 50) {
+        nodes {
+          name
+          sellingPlans(first: 50) { nodes { id name } }
+        }
+      }
+    }
+  }
+}`;
+
 (async () => {
   const token = await getToken();
 
@@ -118,12 +136,29 @@ const PLANS_Q = `
     }
   }
 
-  console.log("\n=== SELLING PLAN GROUPS ===");
-  if (!groups.length) console.log("  (none)");
+  console.log("\n=== SELLING PLAN GROUPS (top-level) ===");
+  if (!groups.length) console.log("  (none — trying per-product below)");
   for (const g of groups) {
     for (const sp of g.sellingPlans.nodes) {
       console.log(`  group="${g.name}"  plan="${sp.name}"  id=${numericId(sp.id)}`);
     }
+  }
+
+  console.log("\n=== SELLING PLAN GROUPS (per product) ===");
+  const prodPlans = (await gql(token, PRODUCT_PLANS_Q)).products.nodes;
+  let anyProductPlan = false;
+  for (const p of prodPlans) {
+    for (const g of p.sellingPlanGroups.nodes) {
+      for (const sp of g.sellingPlans.nodes) {
+        anyProductPlan = true;
+        console.log(`  ${p.handle}  group="${g.name}"  plan="${sp.name}"  id=${numericId(sp.id)}`);
+      }
+    }
+  }
+  if (!anyProductPlan) {
+    console.log("  (none visible to this app's credentials — the Ritual Membership plan");
+    console.log("   is likely owned by the Shopify Subscriptions app. Pull its numeric");
+    console.log("   SellingPlan id from admin manually.)");
   }
 
   console.log("\nDone. No token/secret was printed. Paste the tables above back to wire VARIANTS.");
