@@ -66,6 +66,11 @@
   .nn > span:first-child{ color:var(--red); }
   .nn .bar{ display:inline-block; width:12px; height:2.5px; background:var(--red); }
   .nn .nflip{ display:inline-block; transform:scaleX(-1); color:currentColor; }
+  /* footer N–И sign-off monogram (brand ref): red N · low red dash · mirrored N */
+  .f-nn{ display:inline-flex; align-items:center; gap:.14em; font-family:var(--display); line-height:1; font-size:clamp(30px,4vw,42px); }
+  .f-nn .n1{ color:var(--red); }
+  .f-nn .bar{ display:inline-block; width:.44em; height:.12em; background:var(--red); position:relative; top:.22em; }
+  .f-nn .n2{ display:inline-block; transform:scaleX(-1); color:var(--bone); }
   .nav-links{ display:flex; gap:clamp(13px,1.9vw,28px); align-items:center; font-family:var(--body); font-weight:700; font-size:11px; letter-spacing:.12em; text-transform:uppercase; }
   .nav-links a{ opacity:.72; transition:opacity .2s, color .2s; white-space:nowrap; }
   .nav-links a:hover{ opacity:1; color:var(--red); }
@@ -337,7 +342,7 @@
   <div class="f-wrap">
     <div class="f-top">
       <div>
-        <div class="nn" style="font-size:22px;color:var(--bone);"><span style="color:var(--red)">N</span><span class="bar" style="width:14px;height:3px"></span><span class="nflip">N</span></div>
+        <div class="f-nn" role="img" aria-label="AFORCE N–N monogram"><span class="n1">N</span><span class="bar"></span><span class="n2">N</span></div>
         <div class="f-corp" style="margin-top:14px;">AFORCE Hydration, Inc.<span>New York, New York</span></div>
       </div>
       <nav class="f-nav" aria-label="Footer">
