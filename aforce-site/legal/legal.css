@@ -42,7 +42,7 @@ button{ font-family:inherit; cursor:pointer; color:inherit; background:none; bor
 .lc-brand{ font-family:var(--display); font-size:17px; letter-spacing:.02em; display:flex; align-items:center; gap:10px; white-space:nowrap; }
 .nn{ display:inline-flex; align-items:center; gap:3px; }
 .nn > span:first-child{ color:var(--red); }
-.nn .bar{ display:inline-block; width:2px; height:13px; background:var(--red); }
+.nn .bar{ display:inline-block; width:10px; height:2.5px; background:var(--red); }
 .nn .nflip{ display:inline-block; transform:scaleX(-1); }
 .lc-header-right{ display:flex; align-items:center; gap:clamp(10px,2vw,22px); font-family:var(--body); font-weight:600; font-size:11px; letter-spacing:.1em; text-transform:uppercase; }
 .lc-header-right a{ opacity:.66; transition:opacity .2s; } .lc-header-right a:hover{ opacity:1; }
