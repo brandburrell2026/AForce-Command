@@ -205,3 +205,50 @@ No discount banners · no countdown timers · no spin-to-win / gamification in p
 3. **§G** email (after F proven).
 4. **§H** app first open — **only after F webhook confirmed.**
 5. Verify all §L events fire. Audit every touchpoint against §K. Confirm no §J violation.
+
+---
+
+## §M — RITUAL BUILDER FRONTEND ↔ SHOPIFY HANDOFF (built; IDs pending)
+
+The shop ritual builder (`aforce-site/shop/index.html`) is now fully wired on the
+frontend per the frozen spec (state sync, selected states, intent OS-boot,
+progress dots, sticky bar, membership commitment, image integrity). Everything
+below is the **founder/Shopify-admin side** that a static page cannot do and that
+must be completed to make checkout functional.
+
+### 1. Fill the VARIANT MAP (required for checkout)
+In the page's `<script>`, `VARIANTS` maps `"{protocol}_{formulation}_{commitment}"`
+→ `{ variantId, sellingPlanId? }`. Every value is currently `null` (placeholder).
+Paste the **real Shopify variant IDs** from the admin. Keys already scaffolded:
+- One-time: `trial_{red|blue|green}_1mo`, `performance_{red|blue|green}_{1mo|3mo}`
+- Subscriptions: `performance_{red|blue|green}_ongoing`, `autopilot_{red|blue|green}_ongoing` — need `sellingPlanId` too.
+Any combo left `null` is treated as *not available*: BEGIN shows a "provisioning"
+message and **never fakes a checkout or redirect** (verified).
+
+### 2. Subscriptions (Ongoing / AutoPilot)
+Install the **Shopify Subscriptions app**, create one selling plan per subscription
+SKU, and put its id in `sellingPlanId`. The handoff sends `selling_plan` in the
+same `/cart/add.js` call — **one selling plan only, no double-bill** (`isSubscription()`
+gate). "subscribe and save" appears nowhere (verified).
+
+### 3. Serve inside a Shopify theme (required for `/cart/add.js`)
+`beginRitual()` does `POST /cart/clear.js` → `POST /cart/add.js` → redirect `/checkout`,
+with a visible **"TRY AGAIN"** error state on failure. These AJAX routes only exist
+when the page is served **inside a Shopify theme**. This repo is a static Vercel
+site, so on the current deploy the routes 404 and the safe message shows. To go
+live: embed this markup/JS in the Shopify theme, **or** define a
+`window.AForceCheckout(ritualState)` shim that performs your own checkout.
+
+### 4. Pricing (kept static per DO-NOT-TOUCH)
+Card prices remain hardcoded in markup (the spec froze "pricing display"). If you
+later want prices from `/products/{handle}.js`, that's an additive Shopify step.
+
+### 5. FIX 7 — post-purchase (Shopify admin, not in this repo)
+Order-status page ("YOUR RITUAL IS PROVISIONED", cohort #, first delivery date,
+"DOWNLOAD AFORCE OS") + first email — build in Checkout → Order status / thank-you
+customization. See §F/§G above.
+
+### 6. Pre-launch verification (real phone, cellular)
+Cart connection (correct variant/price/selling plan) · webhook under load ·
+inventory decrement per variant · full cellular flow. All require the live
+Shopify store.
