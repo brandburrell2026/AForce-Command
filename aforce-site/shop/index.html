@@ -388,11 +388,31 @@
   /* checkout error state (FIX 1 / Architecture #3) */
   .purchase-btn.err,.sb-begin.err{background:var(--red)!important;color:#fff!important;opacity:1!important;}
 
+  /* ---------- RTD ORDER (Try It vs Performance Protocol) ---------- */
+  .rtd-opts{margin-top:38px;display:grid;grid-template-columns:1.15fr .85fr;gap:16px;align-items:start;}
+  .ocard{position:relative;background:var(--canvas);border:1px solid var(--ink-12);padding:clamp(24px,2.4vw,34px);display:flex;flex-direction:column;gap:14px;transition:box-shadow .4s ease,border-color .4s ease;}
+  .ocard:hover{border-color:var(--ink-30);}
+  .ocard.ocard-primary{border-color:var(--ink-30);}
+  .ocard.selected{border:2px solid var(--red);}
+  .o-flag{position:absolute;top:0;right:0;background:var(--red);color:#fff;font-family:var(--mono);font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;padding:6px 12px;}
+  .ocard h3{font-family:var(--display);font-weight:800;text-transform:uppercase;font-size:clamp(22px,2.4vw,30px);line-height:1;letter-spacing:-.01em;}
+  .o-price{font-family:var(--mono);font-weight:700;font-size:22px;letter-spacing:.02em;}
+  .o-price small{display:block;font-weight:400;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-60);margin-top:4px;}
+  .o-lines{color:var(--ink-60);font-size:14px;line-height:1.5;}
+  .o-benefits{list-style:none;margin:2px 0 0;padding:0;display:flex;flex-direction:column;gap:9px;}
+  .o-benefits li{position:relative;padding-left:22px;font-size:13.5px;line-height:1.45;color:var(--ink);}
+  .o-benefits li::before{content:"";position:absolute;left:0;top:.5em;width:9px;height:2px;background:var(--red);}
+  .o-cta{margin-top:auto;background:transparent;color:var(--ink);border:1px solid var(--ink);padding:15px 22px;font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;transition:transform .15s ease,background .2s,color .2s;text-align:center;}
+  .o-cta:hover{transform:translateY(-1px);}
+  .o-cta-primary{background:var(--ink);color:var(--canvas);border-color:var(--ink);}
+  .ocard.selected .o-cta::after{content:" ✓";}
+
   /* ---------- RESPONSIVE ---------- */
   @media (max-width:860px){
     .nav-links{display:none;}
     .showcase-grid{grid-template-columns:1fr;}
     .protocols{grid-template-columns:1fr;}
+    .rtd-opts{grid-template-columns:1fr;}
     .flavors{grid-template-columns:1fr;}
     .steps{grid-template-columns:1fr;}
     .step + .step{padding-left:0;border-left:none;border-top:1px solid var(--ink-12);}
@@ -461,6 +481,7 @@
   <span class="sr" data-step="protocol"><span class="dot"></span>Protocol</span>
   <span class="sr" data-step="commitment"><span class="dot"></span>Commitment</span>
   <span class="sr" data-step="flavor"><span class="dot"></span>Formulation</span>
+  <span class="sr" data-step="order"><span class="dot"></span>Order</span>
   <span class="sr" data-step="ready"><span class="dot"></span>Begin</span>
 </div>
 
@@ -510,8 +531,8 @@
       <div class="p-pack">Ready-to-Drink — 11 oz cans</div>
       <h3>RTD Cans</h3>
       <div class="p-lines"><span>The canned protocol.</span><span>No prep. Crack and go.</span></div>
-      <div class="p-spec" data-copy="rtd_spec">$[PRICE] PER MONTH · [24] CANS</div>
-      <div class="p-price" data-copy="rtd_price">$[PRICE]<small>or $[3MO PRICE] / 3 months · $[X.XX]/can</small></div>
+      <div class="p-spec" data-copy="rtd_spec">6 CANS · $29.99 / WEEK</div>
+      <div class="p-price" data-copy="rtd_price">$29.99<small>per week · or a one-time 6-pack</small></div>
       <div class="p-foot">
         <button class="p-cta" type="button" data-choose="rtd">Choose Cans</button>
         <button class="why-link" type="button" data-why="rtd"><span class="i">i</span>Why cans?</button>
@@ -528,14 +549,14 @@
   <p class="sec-sub">How your standard runs — a set commitment, or a membership on your cadence.</p>
   <div class="protocols formats" id="protocolSelect">
 
-    <article class="pcard" data-protocol="performance" data-name="Performance Protocol" data-pack="Flavor × Duration" data-purchase-cta="Begin the Ritual"
-             data-why-body="The core protocol. Run it one month, three months, or ongoing. Precision hydration engineered for output measured daily.">
+    <article class="pcard" data-protocol="performance" data-name="Performance Protocol" data-pack="1 or 3 Months" data-purchase-cta="Begin the Ritual"
+             data-why-body="The core protocol. Run it one month or three. Precision hydration engineered for output measured daily.">
       <span class="rec-ribbon">Recommended</span>
       <div class="pcard-visual"><img src="/assets/can-red.png" alt="AFORCE Performance Protocol" loading="lazy" decoding="async"></div>
       <div class="p-pack">Performance Protocol</div>
       <h3>Performance</h3>
-      <div class="p-lines"><span>Most chosen.</span><span>One-time or ongoing.</span></div>
-      <div class="p-spec">ONE-TIME · OR ONGOING</div>
+      <div class="p-lines"><span>Most chosen.</span><span>One month or three.</span></div>
+      <div class="p-spec">ONE-TIME · 1 OR 3 MONTHS</div>
       <div class="p-foot">
         <button class="p-cta" type="button" data-choose-protocol="performance">Choose Performance</button>
         <button class="why-link" type="button" data-why-protocol="performance"><span class="i">i</span>Why this protocol?</button>
@@ -566,7 +587,6 @@
   <div class="commit-opts" id="commitOpts" role="group" aria-label="Commitment length">
     <button class="commit-opt" type="button" data-commitment="1month" data-summary="1 Month" aria-pressed="false"><span class="radio" aria-hidden="true"></span>One Month</button>
     <button class="commit-opt" type="button" data-commitment="3month" data-summary="3 Months" aria-pressed="false"><span class="radio" aria-hidden="true"></span>Three Months</button>
-    <button class="commit-opt commit-ongoing" type="button" data-commitment="ongoing" data-summary="Ongoing — Ritual Membership" aria-pressed="false"><span class="radio" aria-hidden="true"></span>Ongoing — Ritual Membership</button>
   </div>
   <p class="commit-note" id="commitNote" aria-live="polite"></p>
 </section>
@@ -591,6 +611,39 @@
       <div class="fcard-visual"><img src="/assets/can-green.png" alt="AFORCE Soursop Edge" loading="lazy" decoding="async"></div>
       <div class="fcard-body"><h3>Soursop Edge</h3><p>Recovery. Built for your hardest recovery days.</p><span class="fcard-pick"></span></div>
     </button>
+  </div>
+</section>
+
+<!-- SECTION C2 — RTD ORDER (RTD only; static markup; JS enhances) -->
+<section class="sec reveal" id="rtdorder" hidden>
+  <p class="sec-eyebrow"><span class="step-i">Step 04</span> · Your Ritual</p>
+  <h2>Try it once, or <em>join.</em></h2>
+  <p class="sec-sub">One 6-pack to start — or make it your weekly standard. Most operators join.</p>
+  <div class="rtd-opts" id="rtdOpts">
+
+    <article class="ocard ocard-primary" data-rtd="weekly" data-summary="Performance Protocol · Weekly">
+      <span class="o-flag">Recommended</span>
+      <h3>Performance Protocol</h3>
+      <div class="o-price">$29.99<small>per week · one 6-pack, every week</small></div>
+      <p class="o-lines">Pause, skip, or cancel anytime.</p>
+      <ul class="o-benefits">
+        <li>Never run out of AFORCE</li>
+        <li>Priority access to new flavors</li>
+        <li>Member-only rewards</li>
+        <li>Early product releases</li>
+        <li>Exclusive performance content</li>
+        <li>Pause or skip anytime</li>
+      </ul>
+      <button class="o-cta o-cta-primary" type="button" data-choose-rtd="weekly">Join the Performance Protocol</button>
+    </article>
+
+    <article class="ocard" data-rtd="tryit" data-summary="Try It · one-time 6-pack">
+      <h3>Try It</h3>
+      <div class="o-price">$29.99<small>one-time · a single 6-pack</small></div>
+      <p class="o-lines">No commitment. Just the ritual, once.</p>
+      <button class="o-cta" type="button" data-choose-rtd="tryit">Order a 6-Pack</button>
+    </article>
+
   </div>
 </section>
 
@@ -696,59 +749,49 @@
      ===================================================================== */
   var STORE = "https://aforce-v2.myshopify.com";
   var COPY = {
-    STICK_COUNT:    "[30]",         // FILL: sticks per month
-    STICK_SERVINGS: "[30]",         // FILL: servings per month
-    STICKS_PRICE:   "$59.99",       // Performance sticks — 1 month
-    STICKS_3MO:     "$179.97",      // Performance sticks — 3 month
-    RTD_PRICE:      "$[PRICE]",     // FILL: RTD monthly price
-    RTD_3MO:        "$[3MO PRICE]", // FILL: RTD 3-month price
-    RTD_CANS_MONTH: "[24]",         // FILL: cans per month
-    RTD_PER_CAN:    "$[X.XX]"       // FILL: per-can price (optional sub-label)
+    STICK_COUNT:    "[30]",     // FILL: sticks per month
+    STICK_SERVINGS: "[30]",     // FILL: servings per month
+    STICKS_PRICE:   "$59.99",   // Performance sticks — 1 month
+    STICKS_3MO:     "$179.97",  // Performance sticks — 3 month
+    RTD_CANS:       "6",        // cans per 6-pack
+    RTD_WEEKLY:     "$29.99",   // RTD — one 6-pack every week
+    RTD_TRYIT:      "$29.99"    // RTD — one-time 6-pack
   };
 
   /* ---- Architecture #1: ONE state object, single source of truth ---- */
-  var ritualState = { intent:null, format:null, protocol:null, commitment:null, formulation:null };
+  var ritualState = { intent:null, format:null, protocol:null, commitment:null, formulation:null, rtdPlan:null };
   window.ritualState = ritualState; // inspectable per spec
 
   /* =====================================================================
      VARIANTS — FILL FROM CSV
-     Key = {format}_{protocol}_{flavor}_{commitment}
-       format:     sticks | rtd
-       protocol:   performance | autopilot   (autopilot is subscription-only)
-       flavor:     watermelon(red) | berry(blue) | soursop(green)
-       commitment: 1month | 3month | ongoing
-     Every *_ongoing key is a SUBSCRIPTION → also needs a sellingPlanId.
+     STICKS  key = sticks_{protocol}_{flavor}_{commitment}
+       protocol: performance (1month | 3month)  ·  autopilot (ongoing membership)
+     RTD     key = rtd_{plan}_{flavor}
+       plan: tryit (one-time 6-pack, $29.99)  ·  weekly (Performance Protocol — 6-pack/week, $29.99)
+     flavor: watermelon(red) | berry(blue) | soursop(green)
+     Subscriptions (sticks autopilot · rtd weekly) also need a sellingPlanId.
      Any null id routes to the provisioning fallback — never a broken cart.
      ===================================================================== */
   var VARIANTS = {
-    // ---- STICKS · PERFORMANCE (one-time 1/3 month, + ongoing membership) ----
+    // ---- STICKS · PERFORMANCE (one-time 1 / 3 month) ----
     'sticks_performance_watermelon_1month': { variantId:null },
     'sticks_performance_watermelon_3month': { variantId:null },
-    'sticks_performance_watermelon_ongoing':{ variantId:null, sellingPlanId:null },
     'sticks_performance_berry_1month':      { variantId:null },
     'sticks_performance_berry_3month':      { variantId:null },
-    'sticks_performance_berry_ongoing':     { variantId:null, sellingPlanId:null },
     'sticks_performance_soursop_1month':    { variantId:null },
     'sticks_performance_soursop_3month':    { variantId:null },
-    'sticks_performance_soursop_ongoing':   { variantId:null, sellingPlanId:null },
-    // ---- STICKS · AUTOPILOT (subscription-only, ongoing) ----
+    // ---- STICKS · AUTOPILOT (monthly membership, ongoing) ----
     'sticks_autopilot_watermelon_ongoing':  { variantId:null, sellingPlanId:null },
     'sticks_autopilot_berry_ongoing':       { variantId:null, sellingPlanId:null },
     'sticks_autopilot_soursop_ongoing':     { variantId:null, sellingPlanId:null },
-    // ---- RTD · PERFORMANCE (one-time 1/3 month, + ongoing membership) ----
-    'rtd_performance_watermelon_1month':    { variantId:null },
-    'rtd_performance_watermelon_3month':    { variantId:null },
-    'rtd_performance_watermelon_ongoing':   { variantId:null, sellingPlanId:null },
-    'rtd_performance_berry_1month':         { variantId:null },
-    'rtd_performance_berry_3month':         { variantId:null },
-    'rtd_performance_berry_ongoing':        { variantId:null, sellingPlanId:null },
-    'rtd_performance_soursop_1month':       { variantId:null },
-    'rtd_performance_soursop_3month':       { variantId:null },
-    'rtd_performance_soursop_ongoing':      { variantId:null, sellingPlanId:null },
-    // ---- RTD · AUTOPILOT (subscription-only, ongoing) ----
-    'rtd_autopilot_watermelon_ongoing':     { variantId:null, sellingPlanId:null },
-    'rtd_autopilot_berry_ongoing':          { variantId:null, sellingPlanId:null },
-    'rtd_autopilot_soursop_ongoing':        { variantId:null, sellingPlanId:null }
+    // ---- RTD · TRY IT (one-time 6-pack, $29.99) ----
+    'rtd_tryit_watermelon': { variantId:null },
+    'rtd_tryit_berry':      { variantId:null },
+    'rtd_tryit_soursop':    { variantId:null },
+    // ---- RTD · WEEKLY (Performance Protocol — 6-pack every week, $29.99/wk) ----
+    'rtd_weekly_watermelon': { variantId:null, sellingPlanId:null },
+    'rtd_weekly_berry':      { variantId:null, sellingPlanId:null },
+    'rtd_weekly_soursop':    { variantId:null, sellingPlanId:null }
   };
 
   /* internal flavor id (color) → Shopify flavor token */
@@ -756,13 +799,21 @@
 
   function variantKey(){
     var s = ritualState;
-    if(!s.format || !s.protocol || !s.formulation || !s.commitment) return null;
+    if(!s.format || !s.formulation) return null;
     var fk = FLAVOR_KEY[s.formulation]; if(!fk) return null;
-    return s.format + "_" + s.protocol + "_" + fk + "_" + s.commitment;
+    if(s.format === "rtd"){
+      if(!s.rtdPlan) return null;
+      return "rtd_" + s.rtdPlan + "_" + fk;
+    }
+    if(!s.protocol || !s.commitment) return null;      // sticks
+    return "sticks_" + s.protocol + "_" + fk + "_" + s.commitment;
   }
   function currentVariant(){ var k=variantKey(); return k ? VARIANTS[k] : null; }
-  /* subscription = any ongoing commitment (Performance ongoing + all AutoPilot) */
-  function isSubscription(){ return ritualState.commitment === "ongoing"; }
+  /* subscription = RTD weekly, or a sticks AutoPilot (ongoing). Needs sellingPlanId. */
+  function isSubscription(){
+    if(ritualState.format === "rtd") return ritualState.rtdPlan === "weekly";
+    return ritualState.commitment === "ongoing";
+  }
 
   /* Build a Shopify cart permalink (option b). Returns null (→ fallback) if any
      required id is missing: no variantId, or a subscription with no sellingPlanId. */
@@ -805,23 +856,37 @@
     el.textContent = filled ? text : "Not chosen yet";
     el.classList.toggle("pending", !filled);
   }
-  /* AutoPilot is subscription-only → commitment is always "ongoing" and its
-     step is skipped. Performance chooses 1month / 3month / ongoing. */
+  /* AutoPilot is a monthly membership (ongoing) → skips the commitment step.
+     Performance chooses 1 month / 3 months. */
   function commitmentApplies(){ return ritualState.protocol === "performance"; }
+  function ocard(id){ return document.querySelector('.ocard[data-rtd="'+id+'"]'); }
+  function rtdPlanName(){ var o=ocard(ritualState.rtdPlan); return o?nameFromCard(o):""; }
+  function rtdPlanLabel(){ var o=ocard(ritualState.rtdPlan); return o?o.getAttribute("data-summary"):""; }
+
   function stepFor(){
-    if(!ritualState.intent) return "intent";
-    if(!ritualState.format) return "format";
-    if(!ritualState.protocol) return "protocol";
-    if(commitmentApplies() && !ritualState.commitment) return "commitment";
-    if(!ritualState.formulation) return "flavor";
+    var s = ritualState;
+    if(!s.intent) return "intent";
+    if(!s.format) return "format";
+    if(s.format === "rtd"){
+      if(!s.formulation) return "flavor";
+      if(!s.rtdPlan) return "order";
+      return "ready";
+    }
+    if(!s.protocol) return "protocol";                       // sticks
+    if(commitmentApplies() && !s.commitment) return "commitment";
+    if(!s.formulation) return "flavor";
     return "ready";
   }
   function renderDots(){
-    var order = ["intent","format","protocol","commitment","flavor","ready"];
-    var commitDone = commitmentApplies() ? !!ritualState.commitment : false;
+    var order = ["intent","format","protocol","commitment","flavor","order","ready"];
+    var isSticks = ritualState.format==="sticks", isRtd = ritualState.format==="rtd";
     var done = {
-      intent:!!ritualState.intent, format:!!ritualState.format, protocol:!!ritualState.protocol,
-      commitment:commitDone, flavor:!!ritualState.formulation, ready:isReady()
+      intent:!!ritualState.intent, format:!!ritualState.format,
+      protocol:   isSticks && !!ritualState.protocol,
+      commitment: isSticks && commitmentApplies() && !!ritualState.commitment,
+      flavor:!!ritualState.formulation,
+      order:      isRtd && !!ritualState.rtdPlan,
+      ready:isReady()
     };
     var cur = stepFor();
     order.forEach(function(step){
@@ -832,68 +897,110 @@
     });
   }
   function isReady(){
-    if(!ritualState.format || !ritualState.protocol || !ritualState.formulation) return false;
-    return !!ritualState.commitment; // autopilot pins commitment to "ongoing"
+    if(ritualState.format === "rtd") return !!(ritualState.formulation && ritualState.rtdPlan);
+    if(ritualState.format === "sticks") return !!(ritualState.protocol && ritualState.formulation && ritualState.commitment);
+    return false;
   }
-  /* AutoPilot: pin commitment to ongoing, hide the commitment step + its dot. */
+  /* Show/hide the path-specific steps + rail dots, then renumber visible steps. */
+  function showSec(secId, dotStep, visible){
+    var sec = byId(secId);
+    if(sec){ sec.hidden = !visible; if(visible) sec.classList.add("in"); }
+    var dot = document.querySelector('.steprail .sr[data-step="'+dotStep+'"]');
+    if(dot) dot.style.display = visible ? "" : "none";
+  }
+  function renumberSteps(){
+    var n = 0;
+    document.querySelectorAll("section.sec").forEach(function(sec){
+      if(sec.hidden) return;
+      var si = sec.querySelector(".step-i"); if(!si) return;
+      n++; si.textContent = "Step 0" + n;
+    });
+  }
   function applyConstraints(){
-    var auto = ritualState.protocol === "autopilot";
+    var isSticks = ritualState.format === "sticks";
+    var isRtd = ritualState.format === "rtd";
+    var auto = isSticks && ritualState.protocol === "autopilot";
     if(auto && ritualState.commitment !== "ongoing"){ ritualState.commitment = "ongoing"; }
-    var sec = byId("commitment");
-    var dot = document.querySelector('.steprail .sr[data-step="commitment"]');
-    if(sec) sec.hidden = auto;
-    if(dot) dot.style.display = auto ? "none" : "";
+    showSec("protocol",   "protocol",   isSticks);
+    showSec("commitment", "commitment", isSticks && !auto);
+    showSec("rtdorder",   "order",      isRtd);
+    renumberSteps();
   }
   function clearCommitment(){
     ritualState.commitment = null;
     document.querySelectorAll(".commit-opt").forEach(function(c){ c.setAttribute("aria-pressed","false"); });
     var note = byId("commitNote"); if(note) note.textContent = "";
   }
-  /* per-format price note for the chosen commitment (never "save"/"subscribe") */
+  function clearRtd(){
+    ritualState.rtdPlan = null;
+    document.querySelectorAll(".ocard").forEach(function(c){ c.classList.remove("selected"); });
+  }
+  function selectOcard(id){
+    document.querySelectorAll(".ocard").forEach(function(c){ c.classList.toggle("selected", c.getAttribute("data-rtd")===id); });
+  }
+  /* price note for the chosen sticks commitment */
   function commitNoteFor(commitment){
-    var sticks = ritualState.format === "sticks";
-    if(commitment === "1month") return (sticks?COPY.STICKS_PRICE:COPY.RTD_PRICE) + " for the month.";
-    if(commitment === "3month") return (sticks?COPY.STICKS_3MO:COPY.RTD_3MO) + " for three months.";
-    if(commitment === "ongoing") return "Ritual Membership. Includes AFORCE OS — your cadence, pause or stop anytime.";
+    if(commitment === "1month") return COPY.STICKS_PRICE + " for the month.";
+    if(commitment === "3month") return COPY.STICKS_3MO + " for three months.";
     return "";
   }
   function commitLabel(){
-    if(ritualState.protocol === "autopilot") return "Ongoing — Ritual Membership";
+    if(ritualState.protocol === "autopilot") return "AutoPilot — Monthly Membership";
     var c = ritualState.commitment ? commitBtn(ritualState.commitment) : null;
     return c ? c.getAttribute("data-summary") : "";
+  }
+  function setSlotLabel(slot, text){
+    var v = document.querySelector('.ps-cell .v[data-slot="'+slot+'"]');
+    if(!v) return; var k = v.parentNode.querySelector(".k"); if(k) k.textContent = text;
   }
   function summaryLine(){
     var parts = [];
     if(ritualState.format){ parts.push(nameFromCard(fmtCard(ritualState.format))); }
-    if(ritualState.protocol){ parts.push(nameFromCard(protCard(ritualState.protocol))); }
-    if(ritualState.formulation){ parts.push(nameFromCard(fcard(ritualState.formulation))); }
-    if(ritualState.commitment){ parts.push(commitLabel()); }
+    if(ritualState.format === "rtd"){
+      if(ritualState.formulation){ parts.push(nameFromCard(fcard(ritualState.formulation))); }
+      if(ritualState.rtdPlan){ parts.push(rtdPlanLabel()); }
+    } else {
+      if(ritualState.protocol){ parts.push(nameFromCard(protCard(ritualState.protocol))); }
+      if(ritualState.formulation){ parts.push(nameFromCard(fcard(ritualState.formulation))); }
+      if(ritualState.commitment){ parts.push(commitLabel()); }
+    }
     return parts;
   }
   function render(){
     applyConstraints();
+    var isRtd = ritualState.format === "rtd";
 
-    // Step 06 summary
     var fm = ritualState.format ? fmtCard(ritualState.format) : null;
-    setSlot("format", fm ? (nameFromCard(fm) + " · " + (fm.getAttribute("data-pack")||"")) : "", !!ritualState.format);
-    var pr = ritualState.protocol ? protCard(ritualState.protocol) : null;
-    setSlot("protocol", pr ? nameFromCard(pr) : "", !!ritualState.protocol);
-    setSlot("commitment", commitLabel(), !!ritualState.commitment);
+    setSlot("format", fm ? nameFromCard(fm) : "", !!ritualState.format);
+
+    if(isRtd){
+      setSlotLabel("protocol", "Plan");
+      setSlotLabel("commitment", "Cadence");
+      setSlot("protocol", ritualState.rtdPlan ? rtdPlanName() : "", !!ritualState.rtdPlan);
+      setSlot("commitment", ritualState.rtdPlan ? (ritualState.rtdPlan==="weekly" ? ("Weekly · "+COPY.RTD_WEEKLY+"/wk") : "One-time 6-pack") : "", !!ritualState.rtdPlan);
+    } else {
+      setSlotLabel("protocol", "Protocol");
+      setSlotLabel("commitment", "Commitment");
+      var pr = ritualState.protocol ? protCard(ritualState.protocol) : null;
+      setSlot("protocol", pr ? nameFromCard(pr) : "", !!ritualState.protocol);
+      setSlot("commitment", commitLabel(), !!ritualState.commitment);
+    }
     var f = ritualState.formulation ? fcard(ritualState.formulation) : null;
     setSlot("flavor", f ? nameFromCard(f) : "", !!ritualState.formulation);
 
-    // BEGIN button — CTA from chosen protocol (or format) card
+    // BEGIN button
     var ready = isReady();
-    var ctaSrc = pr || fm;
     var btn = byId("purchaseBtn");
     btn.classList.remove("err");
-    btn.textContent = (ctaSrc && ctaSrc.getAttribute("data-purchase-cta")) || "Begin the Ritual";
+    btn.textContent = isRtd
+      ? (ritualState.rtdPlan === "weekly" ? "Join the Performance Protocol" : (ritualState.rtdPlan === "tryit" ? "Order a 6-Pack" : "Begin the Ritual"))
+      : "Begin the Ritual";
     btn.disabled = !ready;
     byId("purchaseNote").textContent = ready
       ? "AFORCE OS activates the moment your Performance Profile is initialized."
-      : ("Choose your format, protocol" + (commitmentApplies() ? ", commitment" : "") + " and formulation to begin.");
+      : (isRtd ? "Choose your flavor, then how you want to order."
+               : ("Choose your format, protocol" + (commitmentApplies() ? ", commitment" : "") + " and formulation to begin."));
 
-    // Sticky bar (renders from ritualState)
     var parts = summaryLine();
     byId("sbSummary").innerHTML = parts.length
       ? parts.map(function(x){ return "<b>"+x+"</b>"; }).join(" · ")
@@ -921,27 +1028,33 @@
     // 1. tapped chip fills solid black instantly
     document.querySelectorAll(".chip").forEach(function(c){ c.setAttribute("aria-pressed", c===chip?"true":"false"); });
 
-    // 3. recommended format + protocol + formulation come PRE-SELECTED
+    // 3. recommended format + (protocol | plan) + formulation come PRE-SELECTED
     ritualState.format = recFmt;
-    ritualState.protocol = recProt;
     ritualState.formulation = recF;
-    clearCommitment();   // Performance still picks a duration; AutoPilot pinned in applyConstraints
+    var isRtd = recFmt === "rtd";
+    if(isRtd){
+      ritualState.protocol = null; clearCommitment();
+      ritualState.rtdPlan = "weekly";       // Performance Protocol = default + recommended
+      selectOcard("weekly");
+    } else {
+      ritualState.protocol = recProt; clearCommitment(); clearRtd();
+      selectIn("#protocolSelect", "data-protocol", recProt);
+    }
     selectIn("#protocolCards", "data-format", recFmt);
-    selectIn("#protocolSelect", "data-protocol", recProt);
     document.querySelectorAll(".fcard").forEach(function(c){ c.classList.toggle("selected", c.getAttribute("data-flavor")===recF); });
     applyRecommendation(recFmt, recProt, recF); setBadges(label);
-    [fmtCard(recFmt), protCard(recProt), fcard(recF)].forEach(function(el){ if(el){ el.classList.remove("rec-pulse"); void el.offsetWidth; el.classList.add("rec-pulse"); } });
+    [fmtCard(recFmt), isRtd?null:protCard(recProt), fcard(recF)].forEach(function(el){ if(el){ el.classList.remove("rec-pulse"); void el.offsetWidth; el.classList.add("rec-pulse"); } });
     render(); showSticky();
     track("intent_selected", { intent:ritualState.intent });
 
     // 2. status block cascades in (boot sequence, Space Mono)
     var fmName = nameFromCard(fmtCard(recFmt)).toUpperCase();
-    var prName = nameFromCard(protCard(recProt)).toUpperCase();
     var flName = nameFromCard(fcard(recF)).toUpperCase();
+    var midName = isRtd ? "PERFORMANCE PROTOCOL — WEEKLY" : nameFromCard(protCard(recProt)).toUpperCase();
     var lines = [
       { cls:"", html:label + " SELECTED" },
       { cls:"rec", html:"✓ <b>" + fmName + "</b> — recommended" },
-      { cls:"rec", html:"✓ <b>" + prName + "</b> — recommended" },
+      { cls:"rec", html:"✓ <b>" + midName + "</b> — recommended" },
       { cls:"rec", html:"✓ <b>" + flName + "</b> — recommended" },
       { cls:"note", html:note }
     ];
@@ -953,8 +1066,9 @@
       bootTimers.push(setTimeout(function(){ el.classList.add("in"); }, 60 + i*150));
     });
 
-    // 4. the ONLY auto-scroll — to the next real decision (Commitment), after the pulse.
-    bootTimers.push(setTimeout(function(){ byId("commitment").scrollIntoView({ behavior:"smooth", block:"start" }); }, 900));
+    // 4. the ONLY auto-scroll — to the next real decision, after the pulse.
+    var scrollTo = isRtd ? "flavor" : "commitment";
+    bootTimers.push(setTimeout(function(){ byId(scrollTo).scrollIntoView({ behavior:"smooth", block:"start" }); }, 900));
   }
   if(chipsWrap) chipsWrap.addEventListener("click", function(e){
     var chip = e.target.closest(".chip"); if(chip) runIntent(chip);
@@ -975,6 +1089,12 @@
     if(choose){
       var id = choose.getAttribute("data-choose");
       ritualState.format = id;
+      if(id === "rtd"){
+        ritualState.protocol = null; clearCommitment();
+        ritualState.rtdPlan = "weekly"; selectOcard("weekly");   // default + recommended
+      } else {
+        clearRtd(); clearCommitment();
+      }
       selectIn("#protocolCards", "data-format", id);
       dropRecommendation();               // their choice wins silently
       render(); showSticky();
@@ -983,6 +1103,17 @@
       openWhyFor(fmtCard(why.getAttribute("data-why")));
       track("why_overlay_opened", { kind:"format", id:why.getAttribute("data-why") });
     }
+  });
+
+  /* ---------- RTD ORDER (Try It vs Performance Protocol / weekly) ---------- */
+  var rWrap = byId("rtdOpts");
+  if(rWrap) rWrap.addEventListener("click", function(e){
+    var choose = e.target.closest("[data-choose-rtd]"); if(!choose) return;
+    var id = choose.getAttribute("data-choose-rtd");
+    ritualState.rtdPlan = id;
+    selectOcard(id);
+    render(); showSticky();
+    track("rtd_plan_selected", { plan:id });
   });
 
   /* ---------- PROTOCOL (choose + why) ---------- */
@@ -1107,8 +1238,8 @@
   function fillCopy(){
     setText('[data-copy="sticks_spec"]', COPY.STICK_COUNT + " STICKS · " + COPY.STICK_SERVINGS + " SERVINGS");
     setHTML('[data-copy="sticks_price"]', COPY.STICKS_PRICE + "<small>per month · or " + COPY.STICKS_3MO + " / 3 months</small>");
-    setText('[data-copy="rtd_spec"]', COPY.RTD_PRICE + " PER MONTH · " + COPY.RTD_CANS_MONTH + " CANS");
-    setHTML('[data-copy="rtd_price"]', COPY.RTD_PRICE + "<small>or " + COPY.RTD_3MO + " / 3 months · " + COPY.RTD_PER_CAN + "/can</small>");
+    setText('[data-copy="rtd_spec"]', COPY.RTD_CANS + " CANS · " + COPY.RTD_WEEKLY + " / WEEK");
+    setHTML('[data-copy="rtd_price"]', COPY.RTD_WEEKLY + "<small>per week · or a one-time 6-pack</small>");
   }
 
   /* ---------- DEV: enumerate every combination → permalink (item 7) ----------
@@ -1117,19 +1248,21 @@
      fallback at runtime) — no combination ever yields a URL with a null id.
      Run window.aforceEnumerate() in the console; auto-runs on localhost/?debug. */
   function enumerateCombos(){
-    var formats=["sticks","rtd"], protocols=["performance","autopilot"];
     var flavors=[["red","watermelon"],["blue","berry"],["green","soursop"]];
-    var save={ format:ritualState.format, protocol:ritualState.protocol, formulation:ritualState.formulation, commitment:ritualState.commitment };
+    var save={ format:ritualState.format, protocol:ritualState.protocol, formulation:ritualState.formulation, commitment:ritualState.commitment, rtdPlan:ritualState.rtdPlan };
     var rows=[];
-    formats.forEach(function(fmt){ protocols.forEach(function(prot){ flavors.forEach(function(fl){
-      var commits = prot==="autopilot" ? ["ongoing"] : ["1month","3month","ongoing"];
-      commits.forEach(function(cm){
-        ritualState.format=fmt; ritualState.protocol=prot; ritualState.formulation=fl[0]; ritualState.commitment=cm;
-        var key=variantKey(), url=permalink(currentVariant());
-        rows.push({ key:key, subscription:isSubscription(), url:url, status:url?"live":"FALLBACK (id pending)" });
+    function push(){ var key=variantKey(), url=permalink(currentVariant()); rows.push({ key:key, subscription:isSubscription(), url:url, status:url?"live":"FALLBACK (id pending)" }); }
+    flavors.forEach(function(fl){
+      // STICKS: performance 1/3 month, autopilot ongoing
+      [["performance","1month"],["performance","3month"],["autopilot","ongoing"]].forEach(function(pc){
+        ritualState.format="sticks"; ritualState.protocol=pc[0]; ritualState.commitment=pc[1]; ritualState.formulation=fl[0]; ritualState.rtdPlan=null; push();
       });
-    }); }); });
-    ritualState.format=save.format; ritualState.protocol=save.protocol; ritualState.formulation=save.formulation; ritualState.commitment=save.commitment;
+      // RTD: try it (one-time), weekly (Performance Protocol)
+      ["tryit","weekly"].forEach(function(plan){
+        ritualState.format="rtd"; ritualState.rtdPlan=plan; ritualState.formulation=fl[0]; ritualState.protocol=null; ritualState.commitment=null; push();
+      });
+    });
+    ritualState.format=save.format; ritualState.protocol=save.protocol; ritualState.formulation=save.formulation; ritualState.commitment=save.commitment; ritualState.rtdPlan=save.rtdPlan;
     return rows;
   }
   window.aforceEnumerate = function(){
