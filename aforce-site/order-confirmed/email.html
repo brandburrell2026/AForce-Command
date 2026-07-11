@@ -1,0 +1,81 @@
+<!--
+  §12 FIRST EMAIL — order/activation notification.
+  Table-based, inline styles (email-client safe). Web fonts and Space Mono
+  don't render in most clients, so this uses system + monospace fallbacks.
+
+  To install in Shopify (Settings → Notifications → Order confirmation), paste
+  the <body> markup and replace the {{…}} tokens with Liquid, e.g.:
+    {{ COHORT }}      → order/customer metafield (your cohort number)
+    {{ PROTOCOL }}    → line item property "protocol"
+    {{ FORMULATION }} → line item property "formulation"
+    {{ FORMAT }}      → line item property "format"
+    {{ DELIVERY }}    → first delivery date (fulfillment estimate)
+    {{ OS_URL }}      → AFORCE OS download link (e.g. https://drinkaforce.com/aforce-os)
+-->
+<body style="margin:0;padding:0;background:#0D0D0D;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#0D0D0D;">
+    <tr>
+      <td align="center" style="padding:40px 20px;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;">
+
+          <!-- mark -->
+          <tr><td style="font-family:Arial,Helvetica,sans-serif;font-weight:900;font-size:30px;line-height:1;color:#F5F0E8;padding-bottom:34px;">
+            <span style="color:#C1281B;">N</span><span style="display:inline-block;width:13px;height:3px;background:#C1281B;vertical-align:middle;margin:0 5px;"></span><span style="display:inline-block;transform:scaleX(-1);">N</span>
+          </td></tr>
+
+          <!-- eyebrow -->
+          <tr><td style="font-family:'Courier New',Courier,monospace;font-size:12px;letter-spacing:3px;text-transform:uppercase;color:rgba(245,240,232,0.45);padding-bottom:14px;">
+            Order Confirmed &middot; Cohort N&ordm; {{ COHORT }}
+          </td></tr>
+
+          <!-- headline -->
+          <tr><td style="font-family:Arial,Helvetica,sans-serif;font-weight:900;font-size:44px;line-height:0.98;letter-spacing:-0.5px;text-transform:uppercase;color:#F5F0E8;padding-bottom:32px;">
+            Your Ritual Is Provisioned.
+          </td></tr>
+
+          <!-- manifest -->
+          <tr><td style="padding:0;border-top:1px solid rgba(245,240,232,0.14);border-bottom:1px solid rgba(245,240,232,0.14);">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-family:'Courier New',Courier,monospace;font-size:13px;text-transform:uppercase;">
+              <tr>
+                <td style="padding:15px 0;color:rgba(245,240,232,0.4);letter-spacing:2px;">Protocol</td>
+                <td align="right" style="padding:15px 0;color:#F5F0E8;letter-spacing:1px;">{{ PROTOCOL }}</td>
+              </tr>
+              <tr>
+                <td style="padding:15px 0;color:rgba(245,240,232,0.4);letter-spacing:2px;border-top:1px solid rgba(245,240,232,0.14);">Formulation</td>
+                <td align="right" style="padding:15px 0;color:#F5F0E8;letter-spacing:1px;border-top:1px solid rgba(245,240,232,0.14);">{{ FORMULATION }}</td>
+              </tr>
+              <tr>
+                <td style="padding:15px 0;color:rgba(245,240,232,0.4);letter-spacing:2px;border-top:1px solid rgba(245,240,232,0.14);">Format</td>
+                <td align="right" style="padding:15px 0;color:#F5F0E8;letter-spacing:1px;border-top:1px solid rgba(245,240,232,0.14);">{{ FORMAT }}</td>
+              </tr>
+              <tr>
+                <td style="padding:15px 0;color:rgba(245,240,232,0.4);letter-spacing:2px;border-top:1px solid rgba(245,240,232,0.14);">First Delivery</td>
+                <td align="right" style="padding:15px 0;color:#F5F0E8;letter-spacing:1px;border-top:1px solid rgba(245,240,232,0.14);">{{ DELIVERY }}</td>
+              </tr>
+            </table>
+          </td></tr>
+
+          <!-- access key line -->
+          <tr><td style="font-family:Arial,Helvetica,sans-serif;font-size:17px;line-height:1.5;color:rgba(245,240,232,0.64);padding:32px 0 36px;">
+            Your AFORCE OS access key arrives with shipment confirmation.
+          </td></tr>
+
+          <!-- button -->
+          <tr><td>
+            <table role="presentation" cellpadding="0" cellspacing="0"><tr>
+              <td style="background:#F5F0E8;">
+                <a href="{{ OS_URL }}" style="display:inline-block;padding:18px 40px;font-family:'Courier New',Courier,monospace;font-size:12px;letter-spacing:3px;text-transform:uppercase;color:#0D0D0D;text-decoration:none;">Download AFORCE OS &rarr;</a>
+              </td>
+            </tr></table>
+          </td></tr>
+
+          <!-- footer -->
+          <tr><td style="padding-top:52px;border-top:1px solid rgba(245,240,232,0.14);margin-top:52px;font-family:'Courier New',Courier,monospace;font-size:10.5px;letter-spacing:1px;text-transform:uppercase;color:rgba(245,240,232,0.4);">
+            <span style="color:rgba(245,240,232,0.64);white-space:nowrap;">Non-<span style="display:inline-block;transform:scaleX(-1);">N</span>egotiable</span> &nbsp;&middot;&nbsp; &copy; 2026 AFORCE Hydration, Inc.
+          </td></tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
