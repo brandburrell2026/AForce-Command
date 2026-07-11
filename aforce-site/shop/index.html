@@ -392,6 +392,18 @@
   /* checkout error state (FIX 1 / Architecture #3) */
   .purchase-btn.err,.sb-begin.err{background:var(--red)!important;color:#fff!important;opacity:1!important;}
 
+  /* QA-1 — subscription options unpurchasable until the plan id lands:
+     visible but UNSELECTABLE (no selectable-but-unpurchasable state). */
+  .pcard.disabled{opacity:.5;pointer-events:none;filter:grayscale(.35);}
+  .pcard.disabled .p-cta{background:var(--ink-30);border-color:transparent;}
+  .commit-opt.disabled{opacity:.42;pointer-events:none;}
+  .pcard.disabled::after,.commit-opt.disabled::after{
+    content:"OPENING SOON";position:absolute;top:0;right:0;
+    font-family:var(--mono);font-size:9px;letter-spacing:.16em;
+    background:var(--ink);color:var(--canvas);padding:5px 9px;pointer-events:none;
+  }
+  .commit-opt{position:relative;}
+
   /* §10 — product image zoom: hover/keyboard-focus scales the IMAGE (not the
      card); clipped inside its frame → zero layout shift; no lightbox. */
   .sc-visual img,.pcard-visual img,.fcard-visual img{ transition:transform .2s ease; will-change:transform; }
@@ -882,6 +894,18 @@
       b.style.display = (f === "both" || f === ritualState.format) ? "" : "none";
     });
   }
+  function subscriptionAvailable(){ return RITUAL_MEMBERSHIP_PLAN != null; }
+  /* QA-1: never selectable-but-unpurchasable. Until the Ritual Membership plan
+     id is wired, the subscription options (AutoPilot protocol · Ongoing
+     commitment) are DISABLED — visible but unselectable — so every selectable
+     path resolves to a purchasable variant. Auto-enables once the id is set. */
+  function applyPurchasableGating(){
+    var subOff = !subscriptionAvailable();
+    var ap = protCard("autopilot");
+    if(ap){ ap.classList.toggle("disabled", subOff); ap.setAttribute("aria-disabled", subOff ? "true":"false"); }
+    var ong = commitBtn("ongoing");
+    if(ong){ ong.classList.toggle("disabled", subOff); ong.setAttribute("aria-disabled", subOff ? "true":"false"); }
+  }
   function applyConstraints(){
     var auto = ritualState.protocol === "autopilot";
     if(auto && ritualState.commitment !== "ongoing"){ ritualState.commitment = "ongoing"; }
@@ -889,6 +913,7 @@
     showSec("protocol",   "protocol",   !!ritualState.format);
     showSec("commitment", "commitment", !!ritualState.format && ritualState.protocol === "performance");
     applyCommitVisibility();
+    applyPurchasableGating();
     renumberSteps();
   }
   function clearCommitment(){
@@ -1024,7 +1049,7 @@
       selectIn("#protocolCards", "data-format", id);
       dropRecommendation();               // their choice wins silently
       render(); showSticky();
-      track("format_selected", { format:id });
+      track("format_switched", { format:id });
     } else if(why){
       openWhyFor(fmtCard(why.getAttribute("data-why")));
       track("why_overlay_opened", { kind:"format", id:why.getAttribute("data-why") });
@@ -1037,6 +1062,7 @@
     var choose = e.target.closest("[data-choose-protocol]");
     var why = e.target.closest("[data-why-protocol]");
     if(choose){
+      if(choose.closest(".pcard.disabled")) return;   // QA-1: unpurchasable = unselectable
       var id = choose.getAttribute("data-choose-protocol");
       ritualState.protocol = id;
       clearCommitment();                        // reset any prior duration
@@ -1054,7 +1080,7 @@
   /* ---------- COMMITMENT (Performance — 1 month / 3 month / ongoing) ---------- */
   var cWrap = byId("commitOpts");
   if(cWrap) cWrap.addEventListener("click", function(e){
-    var opt = e.target.closest(".commit-opt"); if(!opt) return;
+    var opt = e.target.closest(".commit-opt"); if(!opt || opt.classList.contains("disabled")) return;  // QA-1
     var id = opt.getAttribute("data-commitment");
     ritualState.commitment = id;
     document.querySelectorAll(".commit-opt").forEach(function(c){ c.setAttribute("aria-pressed", c===opt?"true":"false"); });
@@ -1084,6 +1110,7 @@
      fallback. We NEVER build a cart URL that contains a null id.              */
   var beginning = false;
   function beginRitual(){
+    track("begin_ritual_clicked", { key:variantKey(), ready:isReady() });
     if(!isReady() || beginning) return;
     var v = currentVariant();
     var url = permalink(v);
