@@ -1123,8 +1123,20 @@
       return;
     }
 
+    // Attach the ritual as cart attributes so the ORDER carries it — the §12
+    // activation page + email read these (Liquid: order.attributes.Protocol, …).
+    var attrs = {
+      Protocol:    nameFromCard(protCard(ritualState.protocol)),
+      Formulation: nameFromCard(fcard(ritualState.formulation)),
+      Format:      nameFromCard(fmtCard(ritualState.format)),
+      Commitment:  commitLabel()
+    };
+    var qs = Object.keys(attrs).filter(function(k){ return attrs[k]; })
+      .map(function(k){ return "attributes[" + encodeURIComponent(k) + "]=" + encodeURIComponent(attrs[k]); }).join("&");
+    if(qs){ url += (url.indexOf("?") > -1 ? "&" : "?") + qs; }
+
     beginning = true;
-    window.location.href = url;   // hand off to Shopify checkout
+    window.location.href = url;   // hand off to Shopify checkout (cart carries the ritual)
   }
   byId("purchaseBtn").addEventListener("click", beginRitual);
   byId("sbBegin").addEventListener("click", beginRitual);
