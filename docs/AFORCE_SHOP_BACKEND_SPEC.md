@@ -210,45 +210,59 @@ No discount banners · no countdown timers · no spin-to-win / gamification in p
 
 ## §M — RITUAL BUILDER FRONTEND ↔ SHOPIFY HANDOFF (built; IDs pending)
 
-The shop ritual builder (`aforce-site/shop/index.html`) is now fully wired on the
-frontend per the frozen spec (state sync, selected states, intent OS-boot,
-progress dots, sticky bar, membership commitment, image integrity). Everything
-below is the **founder/Shopify-admin side** that a static page cannot do and that
-must be completed to make checkout functional.
+The shop ritual builder (`aforce-site/shop/index.html`) is fully wired on the
+frontend and matches the **actual catalog** (see `products_export.csv`): one
+protocol — **Performance** — sold in two formats. Trial, AutoPilot and the
+Ongoing subscription are **not** in the builder (deferred by the founder).
+The flow is: **Intent → Format (Sticks / RTD Cans) → [Commitment, sticks only]
+→ Formulation → Begin.** Everything below is the **founder/Shopify-admin side**
+that a static page cannot do.
 
-### 1. Fill the VARIANT MAP (required for checkout)
-In the page's `<script>`, `VARIANTS` maps `"{protocol}_{formulation}_{commitment}"`
-→ `{ variantId, sellingPlanId? }`. Every value is currently `null` (placeholder).
-Paste the **real Shopify variant IDs** from the admin. Keys already scaffolded:
-- One-time: `trial_{red|blue|green}_1mo`, `performance_{red|blue|green}_{1mo|3mo}`
-- Subscriptions: `performance_{red|blue|green}_ongoing`, `autopilot_{red|blue|green}_ongoing` — need `sellingPlanId` too.
-Any combo left `null` is treated as *not available*: BEGIN shows a "provisioning"
-message and **never fakes a checkout or redirect** (verified).
+### 1. Fill the VARIANT MAP (required for checkout — ~9 IDs)
+In the page's `<script>`, `VARIANTS` is keyed to the two real products. Every
+value is `{ variantId:null }` (placeholder). Paste the **real Shopify variant
+IDs** from the admin (open a variant → the number in `…/variants/<ID>`):
 
-### 2. Subscriptions (Ongoing / AutoPilot)
-Install the **Shopify Subscriptions app**, create one selling plan per subscription
-SKU, and put its id in `sellingPlanId`. The handoff sends `selling_plan` in the
-same `/cart/add.js` call — **one selling plan only, no double-bill** (`isSubscription()`
-gate). "subscribe and save" appears nowhere (verified).
+| Key | Product | Flavor | Duration | Price |
+|-----|---------|--------|----------|-------|
+| `sticks_red_1mo` / `sticks_red_3mo` | Performance Protocol (sticks) | Watermelon Surge | 1 mo / 3 mo | $59.99 / $179.97 |
+| `sticks_blue_1mo` / `sticks_blue_3mo` | Performance Protocol (sticks) | Berry Blast | 1 mo / 3 mo | $59.99 / $179.97 |
+| `sticks_green_1mo` / `sticks_green_3mo` | Performance Protocol (sticks) | Soursop Edge | 1 mo / 3 mo | $59.99 / $179.97 |
+| `can_red` | Performance Protocol — RTD | Watermelon Surge | single | $29.99 |
+| `can_blue` | Performance Protocol — RTD | Berry Blast | single | $29.99 |
+| `can_green` | Performance Protocol — RTD | Soursop Edge | single | $29.99 |
 
-### 3. Serve inside a Shopify theme (required for `/cart/add.js`)
-`beginRitual()` does `POST /cart/clear.js` → `POST /cart/add.js` → redirect `/checkout`,
-with a visible **"TRY AGAIN"** error state on failure. These AJAX routes only exist
-when the page is served **inside a Shopify theme**. This repo is a static Vercel
-site, so on the current deploy the routes 404 and the safe message shows. To go
-live: embed this markup/JS in the Shopify theme, **or** define a
-`window.AForceCheckout(ritualState)` shim that performs your own checkout.
+Flavor→color: Watermelon=red, Berry=blue, Soursop=green. Any combo left `null`
+is treated as *not available*: BEGIN shows a "provisioning" message and
+**never fakes a checkout or redirect** (verified). No `sellingPlanId` /
+subscriptions anywhere — deferred.
 
-### 4. Pricing (kept static per DO-NOT-TOUCH)
-Card prices remain hardcoded in markup (the spec froze "pricing display"). If you
-later want prices from `/products/{handle}.js`, that's an additive Shopify step.
+### 2. Serve inside a Shopify theme (required for `/cart/add.js`)
+`beginRitual()` does `POST /cart/clear.js` → `POST /cart/add.js` (`{id, quantity:1}`)
+→ redirect `/checkout`, with a visible **"TRY AGAIN"** error state on failure.
+These AJAX routes only exist when the page is served **inside a Shopify theme**.
+This repo is a static Vercel site, so on the current deploy the routes 404 and the
+safe message shows. To go live: embed this markup/JS in the Shopify theme, **or**
+define a `window.AForceCheckout(ritualState)` shim that performs your own checkout.
 
-### 5. FIX 7 — post-purchase (Shopify admin, not in this repo)
+### 3. Pricing (kept static)
+Card prices are hardcoded in markup and match the export ($59.99 / $179.97 sticks,
+$29.99 cans). If you later want prices pulled from `/products/{handle}.js`, that's
+an additive Shopify step.
+
+### 4. FIX 7 — post-purchase (Shopify admin, not in this repo)
 Order-status page ("YOUR RITUAL IS PROVISIONED", cohort #, first delivery date,
 "DOWNLOAD AFORCE OS") + first email — build in Checkout → Order status / thank-you
 customization. See §F/§G above.
 
-### 6. Pre-launch verification (real phone, cellular)
-Cart connection (correct variant/price/selling plan) · webhook under load ·
-inventory decrement per variant · full cellular flow. All require the live
-Shopify store.
+### 5. Pre-launch verification (real phone, cellular)
+Cart connection (correct variant + price) · webhook under load · inventory
+decrement per variant · full cellular flow. All require the live Shopify store.
+
+### 6. Deferred (when you're ready to add them)
+Trial Protocol, AutoPilot, and the Ongoing subscription were removed from the
+builder because no such products/selling-plans exist yet. Re-adding them means:
+create the products/variants (and, for Ongoing/AutoPilot, the Subscriptions app +
+selling plans), then restore the corresponding `VARIANTS` keys and the Format /
+Commitment options. The frontend patterns for all of it are in this repo's git
+history (branch `chore/shop-ritual-builder`).
