@@ -516,7 +516,7 @@
       <div class="p-pack">Hydration Sticks — mix your own</div>
       <h3>Sticks</h3>
       <div class="p-lines"><span>A month of precision hydration.</span><span>One stick. One glass.</span></div>
-      <div class="p-spec" data-copy="sticks_spec">[30] STICKS · [30] SERVINGS</div>
+      <div class="p-spec" data-copy="sticks_spec">20 STICKS · 1 SERVING EACH</div>
       <div class="p-price" data-copy="sticks_price">$59.99<small>per month · or $179.97 / 3 months</small></div>
       <div class="p-foot">
         <button class="p-cta" type="button" data-choose="sticks">Choose Sticks</button>
@@ -749,8 +749,8 @@
      ===================================================================== */
   var STORE = "https://aforce-v2.myshopify.com";
   var COPY = {
-    STICK_COUNT:    "[30]",     // FILL: sticks per month
-    STICK_SERVINGS: "[30]",     // FILL: servings per month
+    STICK_COUNT:    "20",       // sticks per box (monthly)
+    STICK_SERVINGS: "1",        // servings per stick
     STICKS_PRICE:   "$59.99",   // Performance sticks — 1 month
     STICKS_3MO:     "$179.97",  // Performance sticks — 3 month
     RTD_CANS:       "6",        // cans per 6-pack
@@ -1236,7 +1236,7 @@
   function setText(sel, txt){ var el=document.querySelector(sel); if(el) el.textContent = txt; }
   function setHTML(sel, html){ var el=document.querySelector(sel); if(el) el.innerHTML = html; }
   function fillCopy(){
-    setText('[data-copy="sticks_spec"]', COPY.STICK_COUNT + " STICKS · " + COPY.STICK_SERVINGS + " SERVINGS");
+    setText('[data-copy="sticks_spec"]', COPY.STICK_COUNT + " STICKS · " + COPY.STICK_SERVINGS + " SERVING EACH");
     setHTML('[data-copy="sticks_price"]', COPY.STICKS_PRICE + "<small>per month · or " + COPY.STICKS_3MO + " / 3 months</small>");
     setText('[data-copy="rtd_spec"]', COPY.RTD_CANS + " CANS · " + COPY.RTD_WEEKLY + " / WEEK");
     setHTML('[data-copy="rtd_price"]', COPY.RTD_WEEKLY + "<small>per week · or a one-time 6-pack</small>");
