@@ -86,9 +86,9 @@
   /* Hero brand mark — N–N monogram in place of the headline */
   .hero-mark{ display:flex; flex-direction:column; align-items:center; align-self:flex-start; margin-left:clamp(24px,7vw,150px); opacity:0; transform:translateY(16px); }
   .hero-mark .eyebrow{ font-family:'Inter', sans-serif; font-size:clamp(11px,1.4vw,14px); letter-spacing:0.34em; color: rgba(13,13,13,0.55); margin-bottom:8px; }
-  .hero-mark .glyphs{ display:flex; align-items:center; gap:clamp(16px,3vw,40px); font-family:'Archivo Black', serif; font-size:clamp(96px, 21vw, 260px); line-height:0.85; }
+  .hero-mark .glyphs{ display:flex; align-items:center; gap:clamp(8px,1.7vw,24px); font-family:'Archivo Black', serif; font-size:clamp(96px, 21vw, 260px); line-height:0.85; }
   .hero-mark .glyphs .n{ color: var(--red); }
-  .hero-mark .glyphs .dash{ color: var(--red); font-size:0.32em; }
+  .hero-mark .glyphs .dash{ display:inline-block; width:.4em; height:.12em; background:var(--red); }
   .hero-mark .glyphs .mirror{ display:inline-block; color: var(--ink); transform: scaleX(-1); }
   .hero-mark .caption{ margin-top:6px; font-family:'Inter', sans-serif; font-size:clamp(12px,1.5vw,15px); letter-spacing:0.34em; text-transform:uppercase; color: rgba(13,13,13,0.7); }
   .cta-row{ margin-top:46px; display:flex; gap:16px; flex-wrap:wrap; justify-content:center; opacity:0; transform:translateY(16px); }
@@ -433,7 +433,7 @@
     </div>
     <div class="clarity-mark">
       <div class="ritual-row fade-in"><span>Pause.</span><span>Hydrate.</span><span>Lock In.</span><span>Perform.</span></div>
-      <div class="glyphs fade-in"><span class="n">N</span><span class="dash">—</span><span class="mirror">N</span></div>
+      <div class="glyphs fade-in"><span class="n">N</span><span class="dash"></span><span class="mirror">N</span></div>
       <div class="mark-caption fade-in">Performance Is Non&#8209;<span class="flip-n">N</span>egotiable</div>
     </div>
   </div>
@@ -575,7 +575,7 @@
     <div class="uc-ritual">
       <span>Pause.</span><span>Hydrate.</span><span>Lock In.</span><span>Perform.</span>
     </div>
-    <div class="glyphs fade-in"><span class="n">N</span><span class="dash">—</span><span class="mirror">N</span></div>
+    <div class="glyphs fade-in"><span class="n">N</span><span class="dash"></span><span class="mirror">N</span></div>
     <div class="caption fade-in">Performance Is Non&#8209;<span class="flip-n">N</span>egotiable</div>
   </div>
 </section>
