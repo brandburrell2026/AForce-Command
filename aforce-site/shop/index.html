@@ -552,11 +552,11 @@
              data-why-body="The canned protocol. Cold, alkaline, pH 8.8 precision hydration — no prep, no mixing. Crack it open and get back to work.">
       <span class="rec-ribbon">Recommended</span>
       <div class="pcard-visual"><img src="/assets/can-blue.png" alt="AFORCE ready-to-drink cans" loading="lazy" decoding="async"></div>
-      <div class="p-pack">Ready-to-Drink — 11 oz cans</div>
+      <div class="p-pack">Ready-to-Drink — 6 × 11 oz cans</div>
       <h3>RTD Cans</h3>
       <div class="p-lines"><span>The canned protocol.</span><span>No prep. Crack and go.</span></div>
-      <div class="p-spec" data-copy="rtd_spec">$29.99 PER CAN</div>
-      <div class="p-price" data-copy="rtd_price">$29.99<small>per can · one-time or membership</small></div>
+      <div class="p-spec" data-copy="rtd_spec">6 CANS · $29.99</div>
+      <div class="p-price" data-copy="rtd_price">$29.99<small>6-pack · one-time or membership</small></div>
       <div class="p-foot">
         <button class="p-cta" type="button" data-choose="rtd">Choose Cans</button>
         <button class="why-link" type="button" data-why="rtd"><span class="i">i</span>Why cans?</button>
@@ -745,8 +745,8 @@
     STICK_SERVINGS: "20",       // servings per box
     STICKS_PRICE:   "$59.99",   // Performance sticks — 1 month
     STICKS_3MO:     "$179.97",  // Performance sticks — 3 month
-    RTD_PRICE:      "$29.99",   // RTD — per can
-    RTD_UNIT_LABEL: "CAN"       // TODO: confirm unit (RTD sells as a single can today)
+    RTD_PRICE:      "$29.99",   // RTD — per 6-pack
+    RTD_CANS:       "6"         // cans per 6-pack
   };
 
   /* ---- Architecture #1: ONE state object, single source of truth ---- */
@@ -941,7 +941,7 @@
   function commitNoteFor(commitment){
     if(commitment === "1month") return COPY.STICKS_PRICE + " for the month.";
     if(commitment === "3month") return COPY.STICKS_3MO + " for three months.";
-    if(commitment === "onetime") return COPY.RTD_PRICE + " per " + COPY.RTD_UNIT_LABEL.toLowerCase() + ", one-time.";
+    if(commitment === "onetime") return COPY.RTD_PRICE + " for the " + COPY.RTD_CANS + "-pack, one-time.";
     if(commitment === "ongoing") return "Ritual Membership. Includes AFORCE OS — delivered monthly, pause or stop anytime.";
     return "";
   }
@@ -1208,8 +1208,8 @@
   function fillCopy(){
     setText('[data-copy="sticks_spec"]', COPY.STICK_COUNT + " STICKS · " + COPY.STICK_SERVINGS + " SERVINGS");
     setHTML('[data-copy="sticks_price"]', COPY.STICKS_PRICE + "<small>per month · or " + COPY.STICKS_3MO + " / 3 months</small>");
-    setText('[data-copy="rtd_spec"]', COPY.RTD_PRICE + " PER " + COPY.RTD_UNIT_LABEL);
-    setHTML('[data-copy="rtd_price"]', COPY.RTD_PRICE + "<small>per " + COPY.RTD_UNIT_LABEL.toLowerCase() + " · one-time or membership</small>");
+    setText('[data-copy="rtd_spec"]', COPY.RTD_CANS + " CANS · " + COPY.RTD_PRICE);
+    setHTML('[data-copy="rtd_price"]', COPY.RTD_PRICE + "<small>" + COPY.RTD_CANS + "-pack · one-time or membership</small>");
   }
 
   /* ---------- DEV: enumerate every combination → permalink (item 7) ----------
