@@ -365,6 +365,16 @@
 
   /* FIX 3 — intent OS-boot status block + recommended pulse/badge */
   .intent-status{margin-top:26px;font-family:'Space Mono',monospace;font-size:13px;line-height:1.9;min-height:1.6em;max-width:62ch;}
+  /* §11 — quiet "Why [formulation]?" expandables (ingredient-led) */
+  .why-formulations{margin-top:26px;display:flex;flex-direction:column;max-width:62ch;}
+  .why-f{border-top:1px solid var(--ink-12);}
+  .why-f:last-child{border-bottom:1px solid var(--ink-12);}
+  .why-f summary{list-style:none;cursor:pointer;padding:15px 0;font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-60);display:flex;align-items:center;gap:12px;transition:color .2s;}
+  .why-f summary::-webkit-details-marker{display:none;}
+  .why-f summary::before{content:"+";color:var(--red);font-size:14px;width:12px;text-align:center;}
+  .why-f[open] summary::before{content:"–";}
+  .why-f summary:hover{color:var(--ink);}
+  .why-f p{margin:0;padding:0 0 18px 24px;font-family:var(--serif);font-size:15px;line-height:1.55;color:var(--ink);max-width:56ch;}
   .intent-status .sl{display:block;opacity:0;transform:translateY(6px);transition:opacity .5s ease,transform .5s ease;}
   .intent-status .sl.in{opacity:1;transform:none;}
   .intent-status .sl.rec b{color:var(--red);font-weight:700;}
@@ -508,6 +518,12 @@
     <button class="chip" type="button" data-intent="heat"        data-rec-format="rtd"    data-rec-protocol="performance" data-rec-flavor="red"   data-note="Heat Guard optimized."          aria-pressed="false">Heat</button>
   </div>
   <div class="intent-status" id="intentStatus" aria-live="polite"></div>
+  <!-- §11 — quiet ingredient-led "Why [formulation]?" expandables (label-verified: Celtic sea salt) -->
+  <div class="why-formulations" aria-label="Why each formulation">
+    <details class="why-f"><summary>Why Watermelon Surge?</summary><p>Celtic sea salt, chlorella, and a considered mineral blend define the Watermelon Surge formulation.</p></details>
+    <details class="why-f"><summary>Why Berry Blast?</summary><p>Celtic sea salt, dulse, and a considered mineral blend define the Berry Blast formulation.</p></details>
+    <details class="why-f"><summary>Why Soursop Edge?</summary><p>Celtic sea salt, seamoss, and a considered mineral blend define the Soursop Edge formulation.</p></details>
+  </div>
 </section>
 
 <!-- SECTION A — FORMAT (static markup; JS enhances) -->
