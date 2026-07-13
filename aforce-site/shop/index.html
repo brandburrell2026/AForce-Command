@@ -508,7 +508,8 @@
   /* ================= HERO cycle → lock ================= */
   var heroOrder=["watermelon","berry","soursop"], heroIdx=1, heroTimer=null, heroLocked=false;
   function heroShow(f){ $$("#heroCan img").forEach(function(i){ i.classList.toggle("on", i.getAttribute("data-f")===f); }); }
-  function startHero(){ if(heroLocked||heroTimer) return; heroTimer=setInterval(function(){ heroIdx=(heroIdx+1)%heroOrder.length; heroShow(heroOrder[heroIdx]); },7000); }
+  /* while cycling (pre-demand) the accent theme follows the hero can — red can → everything red, etc. */
+  function startHero(){ if(heroLocked||heroTimer) return; heroTimer=setInterval(function(){ heroIdx=(heroIdx+1)%heroOrder.length; heroShow(heroOrder[heroIdx]); if(!state.demand){ document.body.setAttribute("data-theme", heroOrder[heroIdx]); } },7000); }
   function lockHero(){ heroLocked=true; if(heroTimer){clearInterval(heroTimer);heroTimer=null;} heroShow(state.formulation); }
 
   /* ================= CHECKOUT (pre-built fresh, never reused) ================= */
