@@ -19,7 +19,7 @@
     --display:'Inter',sans-serif; --body:'Inter',sans-serif; --mono:'Space Mono',monospace;
     --gutter:clamp(20px,5vw,72px);
     --theme:#2F5BFF;           /* formulation accent (light, never background paint) */
-    --glow:rgba(242,242,240,.5); /* neutral spotlight until a demand is chosen */
+    --glow:rgba(21,23,28,.14); /* neutral spotlight until a demand is chosen (soft, on cream) */
     --bar-h:0px;
   }
   body[data-theme="berry"]{ --theme:#2F5BFF; } body[data-theme="watermelon"]{ --theme:#E41E2B; } body[data-theme="soursop"]{ --theme:#2D6A4F; }
@@ -63,11 +63,22 @@
   .hero-can img.on{ opacity:1; }
 
   /* ================= DARK STAGE ================= */
-  .stage{ background:var(--ink); color:var(--canvas); }
+  /* LIGHT STAGE — purchase flow on warm cream (was Ink). Foreground/surface tokens
+     swap within this scope so every dark-stage rule renders dark-on-cream. */
+  .stage{
+    --ink:#E9E8E3;            /* surface (was dark) */
+    --canvas:#15171C;         /* foreground text / dark button fills (was light) */
+    --can-70:rgba(21,23,28,.64); --can-55:rgba(21,23,28,.52); --can-40:rgba(21,23,28,.44); --can-22:rgba(21,23,28,.20); --can-12:rgba(21,23,28,.11);
+    background:var(--ink); color:var(--canvas);
+  }
   .stage .eyebrow{ color:var(--theme); }
+  /* elevated white cards on the cream stage */
+  .stage .match-inner, .stage .fmt, .stage .begin-card{ background:#FCFCFB; }
+  .stage .fmt.on{ box-shadow:0 20px 50px rgba(21,23,28,.10); }
+  .stage .match-visual img, .stage .fmt-visual img{ filter:drop-shadow(0 20px 30px rgba(21,23,28,.20)); }
 
   /* progress rail (dark) */
-  .rail{ position:sticky; top:57px; z-index:40; display:flex; justify-content:center; padding:14px var(--gutter); background:rgba(11,13,18,.94); backdrop-filter:blur(10px); border-bottom:1px solid var(--can-12); }
+  .rail{ position:sticky; top:57px; z-index:40; display:flex; justify-content:center; padding:14px var(--gutter); background:rgba(233,232,227,.92); backdrop-filter:blur(10px); border-bottom:1px solid var(--can-12); }
   .rail .r{ display:flex; align-items:center; gap:9px; font-family:var(--mono); font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--can-40); }
   .rail .r + .r{ margin-left:clamp(14px,3vw,42px); }
   .rail .r .dot{ width:8px;height:8px;border-radius:50%; border:1.5px solid var(--can-40); transition:all .3s; }
