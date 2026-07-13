@@ -509,7 +509,10 @@
   var heroOrder=["watermelon","berry","soursop"], heroIdx=1, heroTimer=null, heroLocked=false;
   function heroShow(f){ $$("#heroCan img").forEach(function(i){ i.classList.toggle("on", i.getAttribute("data-f")===f); }); }
   /* while cycling (pre-demand) the accent theme follows the hero can — red can → everything red, etc. */
-  function startHero(){ if(heroLocked||heroTimer) return; heroTimer=setInterval(function(){ heroIdx=(heroIdx+1)%heroOrder.length; heroShow(heroOrder[heroIdx]); if(!state.demand){ document.body.setAttribute("data-theme", heroOrder[heroIdx]); } },7000); }
+  function startHero(){ if(heroLocked||heroTimer) return; heroTimer=setInterval(function(){
+    heroIdx=(heroIdx+1)%heroOrder.length; var f=heroOrder[heroIdx]; heroShow(f);
+    if(!state.demand){ state.formulation=f; applyTheme(); repaintImages(); renderSwitcher(); renderOverrides(); } // whole page (accents + product images + switcher) follows the cycling can
+  },7000); }
   function lockHero(){ heroLocked=true; if(heroTimer){clearInterval(heroTimer);heroTimer=null;} heroShow(state.formulation); }
 
   /* ================= CHECKOUT (pre-built fresh, never reused) ================= */
@@ -579,8 +582,9 @@
     track("demand_selected",{demand:id, formulation:d.f});
   }
   function overrideFormulation(f){
-    if(state.formulation===f) return;
+    if(state.formulation===f){ lockHero(); return; }   // same flavor: just stop the cycle
     var from=state.formulation; state.formulation=f;
+    lockHero();                       // a deliberate flavor pick stops the cycle so it sticks (shows f on the hero)
     applyTheme(); repaintImages(); paintMatch(); renderAll();
     track("formulation_overridden",{from:from, to:f});
   }
