@@ -224,7 +224,8 @@
   .founders-intro{ max-width:52ch; }
   .founders{ display:grid; grid-template-columns:1fr 1fr; gap:clamp(40px,6vw,80px); margin-top:clamp(44px,5vw,76px); }
   @media (max-width:800px){ .founders{ grid-template-columns:1fr; gap:clamp(48px,9vw,64px); } }
-  .founder .ph{ aspect-ratio:4/5; margin-bottom:26px; }
+  .founder .ph{ aspect-ratio:4/3; margin-bottom:26px; }
+  .founder .ph img{ width:100%; height:100%; object-fit:cover; display:block; }
   .founder .role{ font-family:var(--body); font-weight:700; font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:var(--red); }
   .founder h3{ font-family:var(--display); font-weight:400; font-size:clamp(26px,3vw,40px); margin:8px 0 20px; letter-spacing:-0.006em; }
   .founder blockquote{ font-size:clamp(17px,1.5vw,21px); line-height:1.7; color:var(--i80); max-width:34ch; font-weight:300; }
@@ -478,32 +479,35 @@
 <section class="chapter" id="founders" aria-label="Meet the founders">
   <div class="wrap">
     <div class="measure">
-      <div class="ch-num reveal">The Founders</div>
+      <div class="ch-num reveal">Why We Built It</div>
       <h2 class="h-display reveal">Two brothers.<br>One standard.</h2>
       <div class="prose founders-intro">
-        <p class="reveal">AFORCE is personal to us because the problem is personal. We know what it feels like to carry responsibility, move through demanding days and still be expected to arrive ready.</p>
-        <p class="reveal">We are building AFORCE for everyone who understands that preparation is not optional when the moment matters.</p>
+        <p class="reveal">AFORCE is personal to us because the problem was personal.</p>
+        <p class="reveal">We knew what it felt like to carry responsibility, move through demanding days and still be expected to arrive focused, composed and ready.</p>
+        <p class="reveal">We built AFORCE for people who understand that preparation is not optional when the moment matters.</p>
       </div>
     </div>
     <div class="founders stagger">
       <!-- FOUNDER COPY — these two statements are editable; Brandon and Julius should approve/personalize before launch -->
       <div class="founder reveal" style="--i:0">
-        <!-- IMAGE PLACEHOLDER → /assets/our-story/brandon-portrait.webp -->
-        <figure class="ph" role="img" aria-label="A restrained portrait of Brandon Burrell, Founder and CEO of AFORCE">
-          <div class="ph-meta"><div class="ph-k">Portrait — Brandon</div><div class="ph-f">/assets/our-story/brandon-portrait.webp</div></div>
+        <!-- PRODUCT IMAGE PLACEHOLDER → swap for <img> at /assets/our-story/aforce-products-hero.webp
+             (AFORCE hydration cans in Berry Blast, Watermelon Surge and Soursop Edge) -->
+        <figure class="ph" role="img" aria-label="AFORCE hydration cans in Berry Blast, Watermelon Surge and Soursop Edge">
+          <div class="ph-meta"><div class="ph-k">The Product</div></div>
         </figure>
         <div class="role">Founder &amp; CEO</div>
         <h3>Brandon Burrell</h3>
-        <blockquote>&ldquo;For me, performance means being ready to carry the responsibility you accepted &mdash; even when no one sees what it took to get there.&rdquo;</blockquote>
+        <blockquote>&ldquo;AFORCE began with a simple belief: the way we prepare determines how we arrive. We wanted to create something that helps people become intentional before the moment asks something of them.&rdquo;</blockquote>
       </div>
       <div class="founder reveal" style="--i:1">
-        <!-- IMAGE PLACEHOLDER → /assets/our-story/julius-portrait.webp -->
-        <figure class="ph" role="img" aria-label="A restrained portrait of Julius Burrell, Co-Founder and COO of AFORCE">
-          <div class="ph-meta"><div class="ph-k">Portrait — Julius</div><div class="ph-f">/assets/our-story/julius-portrait.webp</div></div>
+        <!-- PRODUCT IMAGE PLACEHOLDER → swap for <img> at /assets/our-story/aforce-development-table.webp
+             (AFORCE hydration sticks, packaging and product-development materials on a worktable) -->
+        <figure class="ph" role="img" aria-label="AFORCE hydration sticks, packaging and product-development materials on a worktable">
+          <div class="ph-meta"><div class="ph-k">The Work Behind It</div></div>
         </figure>
         <div class="role">Co-Founder &amp; COO</div>
         <h3>Julius Burrell</h3>
-        <blockquote>&ldquo;For me, preparation is a form of respect: for the opportunity, for the people depending on you and for the standard you set for yourself.&rdquo;</blockquote>
+        <blockquote>&ldquo;We built AFORCE with the same discipline we expect from ourselves. Every product, detail and decision must reflect the standard behind Performance Is <span class="nowrap">Non-Negotiable</span>.&rdquo;</blockquote>
       </div>
     </div>
   </div>
