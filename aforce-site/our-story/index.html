@@ -4,12 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AFORCE — Our Story</title>
-<meta name="description" content="Every great performance begins long before the moment arrives. The story of AFORCE — a performance readiness company built on preparation, discipline, and the daily ritual of showing up prepared.">
+<meta name="description" content="AFORCE was founded by brothers Brandon and Julius Burrell — not to create another drink, but to build a better way to prepare. The story of preparation, ritual, and the belief that performance is universal.">
 <meta name="robots" content="index,follow">
 <link rel="canonical" href="https://drinkaforce.com/our-story">
 <meta property="og:type" content="website">
 <meta property="og:title" content="AFORCE — Our Story">
-<meta property="og:description" content="Every great performance begins long before the moment arrives.">
+<meta property="og:description" content="Two brothers. One standard. A better way to prepare.">
 <meta property="og:url" content="https://drinkaforce.com/our-story">
 <meta property="og:image" content="https://drinkaforce.com/assets/story-hero-poster.jpg">
 <meta name="twitter:card" content="summary_large_image">
@@ -46,6 +46,7 @@
   :focus-visible{outline:2px solid var(--red);outline-offset:3px;}
   img,svg,video{max-width:100%;display:block;}
   .flip-n{ display:inline-block; transform:scaleX(-1); }
+  .nowrap{ white-space:nowrap; }
 
   /* ---------- SHARED TYPE ---------- */
   .eyebrow{ font-family:var(--body); font-weight:700; font-size:11px; letter-spacing:.28em; text-transform:uppercase; color:var(--red); }
@@ -76,6 +77,10 @@
   .btn{ display:inline-flex; align-items:center; gap:12px; font-family:var(--body); font-weight:600; font-size:12px; letter-spacing:.14em; text-transform:uppercase; padding:16px 30px; border-radius:2px; transition:all .25s ease; border:1px solid transparent; }
   .btn .arw{ transition:transform .25s; }
   .btn:hover .arw{ transform:translateX(4px); }
+  .btn-primary{ background:var(--ink); color:var(--bone); }
+  .btn-primary:hover{ background:var(--red); }
+  .btn-ghost{ border-color:var(--i30); color:var(--ink); }
+  .btn-ghost:hover{ border-color:var(--ink); background:var(--ink); color:var(--bone); }
   .btn-light{ background:var(--bone); color:var(--ink); }
   .btn-light:hover{ background:var(--red); color:var(--bone); }
   .btn-outline-light{ border-color:var(--b40); color:var(--bone); }
@@ -92,6 +97,10 @@
 
   /* editorial section — sized to its content, one idea per block */
   .chapter{ min-height:0; display:flex; align-items:center; padding:clamp(72px,10vh,120px) var(--gutter); }
+  .chapter.dark{ background:var(--ink); color:var(--bone); }
+  .chapter.dark .h-display,.chapter.dark .h-2{ color:var(--bone); }
+  .chapter.dark .prose p{ color:var(--b64); }
+  .chapter.dark .prose p.emph,.chapter.dark .pullquote{ color:var(--bone); }
   .ch-num{ font-family:var(--body); font-weight:700; font-size:11px; letter-spacing:.3em; text-transform:uppercase; color:var(--red); margin-bottom:clamp(22px,3vw,34px); }
   .chapter .h-display + .prose, .chapter .h-2 + .prose{ margin-top:clamp(30px,3.6vw,48px); }
   .stanza{ display:flex; flex-direction:column; gap:clamp(6px,1vw,12px); }
@@ -99,14 +108,30 @@
   .stanza .line.mute{ color:var(--i30); }
   .prose{ display:flex; flex-direction:column; gap:22px; }
   .prose p{ font-size:clamp(16px,1.4vw,20px); line-height:1.8; color:var(--i64); max-width:58ch; }
-
-  /* THE BEGINNING — copy + collage side by side */
-  .beginning-grid{ display:grid; grid-template-columns:minmax(0,1fr) clamp(280px,30vw,420px); gap:clamp(40px,6vw,84px); align-items:center; }
-  .beginning-media{ margin:0; }
-  .beginning-media img{ display:block; width:100%; height:auto; box-shadow:0 34px 70px rgba(13,13,13,.16); }
-  @media (max-width:860px){ .beginning-grid{ grid-template-columns:1fr; gap:clamp(34px,7vw,52px); } .beginning-media{ max-width:520px; } }
   .prose p.emph{ color:var(--ink); font-weight:500; }
   .prose .stanza + p{ margin-top:8px; }
+
+  /* generalized split (image + copy) */
+  .split{ display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:clamp(40px,6vw,84px); align-items:center; }
+  .split.media-right .split-media{ order:2; }
+  .split-media{ margin:0; }
+  .split-media img{ display:block; width:100%; height:auto; box-shadow:0 34px 70px rgba(13,13,13,.16); }
+  @media (max-width:860px){ .split{ grid-template-columns:1fr; gap:clamp(30px,7vw,48px); } .split.media-right .split-media{ order:0; } }
+
+  /* oversized inline statement */
+  .oversized{ font-family:var(--display); font-weight:400; font-size:clamp(26px,4.4vw,58px); line-height:1.08; letter-spacing:-0.01em; max-width:20ch; }
+  .oversized .mute{ color:var(--i30); display:block; }
+  .pullquote{ font-family:var(--display); font-weight:400; font-size:clamp(24px,3.6vw,46px); line-height:1.14; letter-spacing:-0.008em; max-width:20ch; }
+  .keyline{ font-family:var(--display); font-weight:400; font-size:clamp(22px,3vw,40px); line-height:1.12; letter-spacing:-0.008em; }
+  .keyline .mute{ color:var(--i30); }
+
+  /* placeholder figure — swap for founder assets (role=img + aria-label carry alt text) */
+  .ph{ position:relative; display:flex; align-items:flex-end; overflow:hidden; background:linear-gradient(150deg,#151515 0%,#202020 52%,#2b2b2b 100%); border:1px solid rgba(245,240,232,.06); }
+  .ph::after{ content:""; position:absolute; inset:0; background:radial-gradient(130% 100% at 26% 16%, rgba(245,240,232,.08), transparent 58%); pointer-events:none; }
+  .ph .ph-meta{ position:relative; z-index:1; padding:clamp(14px,2vw,22px); }
+  .ph .ph-k{ font-family:var(--body); font-weight:700; font-size:10px; letter-spacing:.24em; text-transform:uppercase; color:var(--b64); }
+  .ph .ph-f{ margin-top:7px; font-family:var(--body); font-weight:500; font-size:11px; letter-spacing:.02em; color:var(--b40); }
+  .split-media .ph{ aspect-ratio:4/5; box-shadow:0 34px 70px rgba(13,13,13,.18); }
 
   /* full-bleed cinematic interlude */
   .cine{ position:relative; min-height:100svh; display:flex; align-items:flex-end; overflow:hidden; }
@@ -119,29 +144,102 @@
   .cine-inner .h-2, .cine-inner .h-display{ color:var(--bone); max-width:18ch; }
   .cine-inner .cap{ margin-top:22px; font-size:clamp(15px,1.3vw,18px); line-height:1.7; color:var(--b80); max-width:52ch; }
 
+  /* HERO */
+  .os-hero{ align-items:center; }
+  .os-hero .cine-media{ background:radial-gradient(120% 90% at 30% 24%, #232323 0%, #161616 46%, #0D0D0D 100%); }
+  .os-hero .cine-scrim{ background:linear-gradient(180deg, rgba(13,13,13,.30) 0%, rgba(13,13,13,.10) 40%, rgba(13,13,13,.55) 100%); }
+  .os-hero .h-display{ max-width:15ch; }
+  .os-hero .sub{ margin-top:clamp(22px,3vw,32px); font-family:var(--body); font-weight:300; font-size:clamp(18px,1.9vw,25px); line-height:1.5; color:var(--bone); max-width:26ch; }
+  .os-hero .sub-2{ margin-top:20px; font-size:clamp(14px,1.3vw,17px); line-height:1.7; color:var(--b64); max-width:50ch; }
+  .ph-corner{ position:absolute; z-index:2; left:0; bottom:0; padding:clamp(16px,2vw,26px) var(--gutter); }
+  .ph-corner .ph-k{ font-family:var(--body); font-weight:700; font-size:10px; letter-spacing:.24em; text-transform:uppercase; color:var(--b40); }
+  .ph-corner .ph-f{ margin-top:6px; font-family:var(--body); font-weight:500; font-size:11px; color:rgba(245,240,232,.28); }
+
   /* black statement / belief full-screen */
   .belief{ background:var(--ink); color:var(--bone); min-height:100svh; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:clamp(28px,5vh,60px); padding:clamp(80px,12vh,160px) var(--gutter); }
-  /* compact statement — sized to its content instead of a full viewport */
   .belief.compact{ min-height:0; gap:clamp(22px,3.4vh,40px); padding-top:clamp(56px,8vh,100px); padding-bottom:clamp(56px,8vh,100px); }
   .belief-lines{ display:flex; flex-direction:column; gap:clamp(16px,3vh,38px); }
   .belief-lines .line{ font-family:var(--display); font-weight:400; font-size:clamp(28px,5.4vw,74px); line-height:1.05; letter-spacing:-0.01em; }
   .belief-lines .line .accent{ color:var(--red); white-space:nowrap; }
   .belief .intro{ font-family:var(--body); font-weight:300; font-size:clamp(18px,2.2vw,28px); line-height:1.55; max-width:24ch; color:var(--b80); }
+  .belief .support{ font-family:var(--body); font-weight:300; font-size:clamp(16px,1.6vw,21px); line-height:1.7; max-width:30ch; color:var(--b64); }
   .belief .b-cta{ display:flex; flex-wrap:wrap; gap:16px; justify-content:center; margin-top:8px; }
 
   /* N mark (brand monogram, large reveal) */
   .nmark{ display:inline-flex; align-items:center; gap:clamp(7px,1.2vw,16px); font-family:var(--display); font-size:clamp(60px,12vw,150px); line-height:1; color:var(--bone); }
   .nmark span.n{ display:inline-block; color:var(--red); }
-  .nmark .bar{ display:inline-block; width:.42em; height:.12em; background:var(--red); }
+  .nmark .bar{ display:inline-block; width:.42em; height:.12em; background:var(--red); align-self:center; }
   .nmark span.n.flip{ transform:scaleX(-1); color:var(--bone); }
 
-  /* light bottom — closing manifesto rendered on cream (second N flips to ink, button goes dark) */
+  /* light bottom — closing rendered on cream */
   .belief.belief-light{ background:var(--bone); color:var(--ink); }
   .belief.belief-light .intro{ color:var(--i80); }
+  .belief.belief-light .support{ color:var(--i64); }
   .belief.belief-light .nmark{ color:var(--ink); }
   .belief.belief-light .nmark span.n.flip{ color:var(--ink); }
   .belief.belief-light .btn-light{ background:var(--ink); color:var(--bone); }
   .belief.belief-light .btn-light:hover{ background:var(--red); color:var(--bone); }
+
+  /* ritual steps (typographic) */
+  .ritual-steps{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:clamp(26px,4vw,52px) clamp(40px,6vw,80px); margin-top:clamp(40px,5vw,64px); }
+  @media (max-width:640px){ .ritual-steps{ grid-template-columns:1fr; } }
+  .ritual-steps .step{ border-top:1px solid var(--i14); padding-top:20px; }
+  .ritual-steps .k{ font-family:var(--display); font-weight:400; font-size:clamp(13px,1.1vw,15px); letter-spacing:.04em; color:var(--red); }
+  .ritual-steps h3{ font-family:var(--display); font-weight:400; font-size:clamp(24px,2.6vw,34px); margin:12px 0 12px; }
+  .ritual-steps p{ font-size:clamp(15px,1.3vw,18px); color:var(--i64); max-width:34ch; }
+
+  /* universal performers sequence (accessible horizontal scroll → grid on desktop) */
+  .useq-wrap{ margin-top:clamp(40px,5vw,64px); }
+  .useq{ display:flex; gap:clamp(14px,1.8vw,22px); overflow-x:auto; scroll-snap-type:x mandatory; -webkit-overflow-scrolling:touch; padding-bottom:6px; }
+  .useq::-webkit-scrollbar{ height:6px; }
+  .useq::-webkit-scrollbar-thumb{ background:var(--i14); border-radius:3px; }
+  .useq .frame{ flex:0 0 76%; scroll-snap-align:start; position:relative; aspect-ratio:3/4; overflow:hidden; background:var(--ink); }
+  .useq .frame img{ width:100%; height:100%; object-fit:cover; }
+  .useq .frame .cap{ position:absolute; left:0; right:0; bottom:0; z-index:1; padding:clamp(16px,1.8vw,22px); background:linear-gradient(transparent, rgba(13,13,13,.85)); color:var(--bone); }
+  .useq .frame .cap b{ display:block; font-family:var(--body); font-weight:700; font-size:11px; letter-spacing:.16em; text-transform:uppercase; }
+  .useq .frame .cap span{ display:block; margin-top:5px; font-size:12.5px; color:var(--b64); }
+  @media (min-width:900px){
+    .useq{ display:grid; grid-template-columns:repeat(4,1fr); overflow:visible; }
+    .useq .frame{ flex:none; }
+  }
+
+  /* system flow (typographic diagram) */
+  .flow{ display:flex; flex-wrap:wrap; align-items:center; gap:clamp(10px,1.4vw,18px); margin-top:clamp(34px,4vw,52px); }
+  .flow .node{ font-family:var(--display); font-weight:400; font-size:clamp(18px,2vw,30px); letter-spacing:-0.006em; }
+  .flow .node.first{ color:var(--red); }
+  .flow .sep{ width:clamp(18px,3vw,42px); height:1px; background:var(--i30); flex:none; }
+  @media (max-width:640px){ .flow{ flex-direction:column; align-items:flex-start; gap:12px; } .flow .sep{ width:1px; height:18px; margin-left:6px; } }
+  .flow-link{ display:inline-flex; align-items:center; gap:10px; margin-top:clamp(34px,4vw,48px); font-family:var(--body); font-weight:700; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink); border-bottom:1px solid var(--i30); padding-bottom:4px; transition:color .2s,border-color .2s; }
+  .flow-link:hover{ color:var(--red); border-color:var(--red); }
+
+  /* the work gallery */
+  .work-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:clamp(14px,1.8vw,22px); margin-top:clamp(36px,4vw,56px); }
+  @media (max-width:760px){ .work-grid{ grid-template-columns:1fr; } }
+  .work-grid .ph{ aspect-ratio:3/4; }
+  .work-words{ display:flex; flex-wrap:wrap; gap:clamp(16px,3vw,44px); margin-top:clamp(30px,4vw,48px); }
+  .work-words span{ font-family:var(--display); font-weight:400; font-size:clamp(20px,2.6vw,36px); color:var(--i30); letter-spacing:-0.006em; }
+  .work-words span:first-child{ color:var(--red); }
+
+  /* founders */
+  .founders-intro{ max-width:52ch; }
+  .founders{ display:grid; grid-template-columns:1fr 1fr; gap:clamp(40px,6vw,80px); margin-top:clamp(44px,5vw,76px); }
+  @media (max-width:800px){ .founders{ grid-template-columns:1fr; gap:clamp(48px,9vw,64px); } }
+  .founder .ph{ aspect-ratio:4/5; margin-bottom:26px; }
+  .founder .role{ font-family:var(--body); font-weight:700; font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:var(--red); }
+  .founder h3{ font-family:var(--display); font-weight:400; font-size:clamp(26px,3vw,40px); margin:8px 0 20px; letter-spacing:-0.006em; }
+  .founder blockquote{ font-size:clamp(17px,1.5vw,21px); line-height:1.7; color:var(--i80); max-width:34ch; font-weight:300; }
+
+  /* progression */
+  .progression{ display:grid; grid-template-columns:repeat(2,1fr); gap:clamp(26px,4vw,48px) clamp(40px,6vw,80px); margin-top:clamp(40px,5vw,64px); }
+  @media (max-width:640px){ .progression{ grid-template-columns:1fr; } }
+  .progression .p-item{ border-top:1px solid var(--i14); padding-top:18px; }
+  .progression .p-k{ font-family:var(--body); font-weight:700; font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:var(--red); }
+  .progression .p-item h3{ font-family:var(--display); font-weight:400; font-size:clamp(22px,2.4vw,32px); margin:12px 0 8px; letter-spacing:-0.006em; }
+  .progression .p-item p{ color:var(--i64); font-size:clamp(15px,1.3vw,18px); max-width:34ch; }
+
+  /* scroll cue */
+  .scroll-cue{ position:absolute; left:50%; bottom:clamp(24px,4vh,44px); transform:translateX(-50%); z-index:3; display:flex; flex-direction:column; align-items:center; gap:10px; color:var(--b64); font-family:var(--body); font-weight:600; font-size:10px; letter-spacing:.24em; text-transform:uppercase; }
+  .scroll-cue .rail{ width:1px; height:44px; background:linear-gradient(var(--b40), transparent); }
 
   /* footer — on cream */
   .ft{ background:var(--bone); color:var(--i64); padding:clamp(32px,4vw,52px) var(--gutter) clamp(40px,5vw,60px); }
@@ -153,21 +251,6 @@
   .ft .f-nav a{ color:var(--i64); } .ft .f-nav a:hover{ color:var(--ink); }
   .ft .f-meta{ margin-top:clamp(30px,3vw,44px); display:flex; flex-wrap:wrap; gap:12px 28px; font-family:var(--body); font-weight:600; font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--i46); }
   .ft .f-meta .nonneg{ color:var(--i64); }
-
-  /* scroll cue */
-  .scroll-cue{ position:absolute; left:50%; bottom:clamp(24px,4vh,44px); transform:translateX(-50%); z-index:3; display:flex; flex-direction:column; align-items:center; gap:10px; color:var(--b64); font-family:var(--body); font-weight:600; font-size:10px; letter-spacing:.24em; text-transform:uppercase; }
-  .scroll-cue .rail{ width:1px; height:44px; background:linear-gradient(var(--b40), transparent); }
-
-  /* ---------- FOUNDING 250 — cinematic CTA (Quiet Before the Storm) ---------- */
-  .founding-cta .cine-scrim{ background:linear-gradient(180deg, rgba(13,13,13,.82) 0%, rgba(13,13,13,.70) 42%, rgba(13,13,13,.86) 100%); }
-  .founding-inner{ display:flex; flex-direction:column; align-items:center; gap:clamp(18px,2.6vw,28px); }
-  .founding-btn{ padding:clamp(18px,2vw,22px) clamp(38px,6vw,66px); letter-spacing:.2em; font-size:clamp(12px,1.2vw,14px); }
-  .founding-tag{ margin:0; font-family:var(--body); font-weight:600; font-size:clamp(11px,1.05vw,13px); letter-spacing:.28em; text-transform:uppercase; color:var(--b40); }
-  .founding-rail{ width:1px; height:clamp(42px,7vh,66px); background:linear-gradient(var(--b40), transparent); margin-top:4px; }
-  /* firefighter CTA — copy pulled to the far left (off the subject) and scaled down */
-  .founding-cta.cta-left .cine-inner{ margin:0; }
-  .founding-cta.cta-left .founding-inner{ align-items:flex-start; text-align:left; }
-  .founding-cta.cta-left .h-2{ font-size:clamp(22px,2.9vw,40px); }
 
   /* ---------- RESPONSIVE ---------- */
   @media (max-width:680px){
@@ -187,7 +270,7 @@
 </head>
 <body>
 
-<!-- ============ NAV ============ -->
+<!-- ============ NAV (shared) ============ -->
 <nav class="nav" id="nav">
   <a class="mark" href="/" aria-label="AFORCE home">
     <span class="nn"><span>N</span><span class="bar"></span><span class="nflip">N</span></span>
@@ -203,167 +286,281 @@
   </div>
 </nav>
 
-<!-- ============ HERO ============ -->
-<header class="cine" id="top">
-  <div class="cine-media">
-    <video autoplay muted loop playsinline preload="metadata" poster="/assets/story-hero-poster.jpg" aria-label="A surgeon composed at the scrub sink in the quiet moments of preparation before an operation">
-      <source src="/assets/story-hero.webm" type="video/webm">
-      <source src="/assets/story-hero.mp4" type="video/mp4">
-    </video>
-  </div>
+<!-- ============ 1 · CINEMATIC HERO ============ -->
+<header class="cine os-hero" id="top">
+  <!-- IMAGE PLACEHOLDER → replace this .cine-media with <img/video> of Brandon and Julius in an
+       authentic, quiet moment before sunrise. Asset: /assets/our-story/founders-hero.webp -->
+  <div class="cine-media" role="img" aria-label="Brandon and Julius Burrell together in a quiet, unstaged moment before sunrise, entering the workspace where AFORCE began"></div>
   <div class="cine-scrim"></div>
+  <div class="ph-corner" aria-hidden="true">
+    <div class="ph-k">Founder film — Hero</div>
+    <div class="ph-f">/assets/our-story/founders-hero.webp</div>
+  </div>
+  <div class="cine-inner">
+    <div class="eyebrow reveal in">Our Story</div>
+    <h1 class="h-display reveal in" style="margin-top:20px;">We didn&rsquo;t set out to create another drink.</h1>
+    <p class="sub reveal in">We set out to build a better way to prepare.</p>
+    <p class="sub-2 reveal in">AFORCE began with two brothers, one shared standard, and a belief that performance is earned long before anyone sees it.</p>
+  </div>
+  <div class="scroll-cue reveal in" aria-hidden="true"><span>Begin at the beginning</span><span class="rail"></span></div>
 </header>
 
-<!-- ============ THE BEGINNING ============ -->
-<section class="chapter" id="beginning">
-  <div class="wrap beginning-grid">
-    <div class="beginning-copy">
-      <div class="ch-num reveal">The Beginning</div>
-      <h2 class="h-display reveal">It was never about creating another hydration company.</h2>
+<!-- ============ 2 · THE LIFE BEFORE THE BRAND ============ -->
+<section class="chapter" id="before" aria-label="Before AFORCE">
+  <div class="wrap split media-right">
+    <div class="split-copy">
+      <div class="ch-num reveal">Before AFORCE</div>
+      <h2 class="h-display reveal">We knew what it felt like to be expected to perform.</h2>
       <div class="prose">
-        <p class="reveal">When we started AFORCE, we weren&rsquo;t trying to make another drink. There are already enough products promising more energy, more focus, and more performance.</p>
-        <p class="reveal">We believed something was missing. Not another product. A better way to prepare.</p>
-        <p class="reveal">Every meaningful performance begins long before the first meeting, the opening bell, the starting whistle, or the first step onto the field.</p>
-        <p class="emph reveal">Preparation is where performance is earned.</p>
+        <p class="reveal">Long days. Early mornings. Flights, meetings, responsibilities and workouts squeezed between everything else.</p>
+        <p class="reveal">Like millions of people, we were constantly being asked to show up focused, composed and ready.</p>
+        <p class="reveal">But the world seemed far more interested in the visible moment than in the preparation required to reach it.</p>
       </div>
     </div>
-    <figure class="beginning-media reveal">
-      <img src="/assets/story-beginning.jpg" alt="Quiet moments of preparation before performance — a surgeon at the scrub sink, a pilot in the cockpit, a firefighter at the station, an executive before a meeting, and a violinist backstage" loading="lazy" decoding="async">
+    <figure class="split-media reveal">
+      <!-- IMAGE PLACEHOLDER → /assets/our-story/founders-working.webp -->
+      <div class="ph" role="img" aria-label="Brandon and Julius mid-conversation during a demanding day — travel, work and the constant expectation to be ready">
+        <div class="ph-meta"><div class="ph-k">Founders — the life before</div><div class="ph-f">/assets/our-story/founders-working.webp</div></div>
+      </div>
     </figure>
   </div>
 </section>
 
-<!-- interlude -->
-<section class="cine" aria-label="Before the first meeting">
-  <div class="cine-media has-fallback" style="background-image:url('/assets/discipline-airport.jpg');">
-    <img src="/assets/discipline-airport.jpg" alt="A traveler at golden hour, composed before the day begins" loading="lazy" decoding="async">
+<!-- oversized statement -->
+<section class="chapter" aria-label="Everyone talks about performance">
+  <div class="wrap measure">
+    <p class="oversized reveal">Everyone talks about performance.<span class="mute">Almost no one talks about what happens before it.</span></p>
   </div>
-  <div class="cine-scrim"></div>
-  <div class="cine-inner"><p class="h-2 reveal" style="max-width:16ch;">Before anyone is watching.</p></div>
 </section>
 
-<!-- ============ A DIFFERENT PHILOSOPHY ============ -->
-<section class="chapter">
-  <div class="wrap measure">
-    <div class="ch-num reveal">A Different Philosophy</div>
-    <h2 class="h-display reveal">The world tells people to perform. We help them prepare.</h2>
-    <div class="prose">
-      <p class="reveal">Preparation isn&rsquo;t glamorous. It doesn&rsquo;t happen on a stage. It happens in the quiet moments.</p>
-      <div class="stanza reveal">
-        <span class="line">The first glass of water.</span>
-        <span class="line mute">The morning routine.</span>
-        <span class="line mute">The decision to show up.</span>
+<!-- ============ 3 · THE QUESTION ============ -->
+<section class="chapter" aria-label="The question">
+  <div class="wrap split">
+    <figure class="split-media reveal">
+      <!-- IMAGE PLACEHOLDER → /assets/our-story/formulation-detail.webp -->
+      <div class="ph" role="img" aria-label="Close detail of early formulation notes and a first packaging concept — the founders examining a prototype">
+        <div class="ph-meta"><div class="ph-k">Detail — formulation notes</div><div class="ph-f">/assets/our-story/formulation-detail.webp</div></div>
       </div>
-      <p class="emph reveal">Those small moments become habits. Habits become identity. Identity shapes performance.</p>
-    </div>
-  </div>
-</section>
-
-<!-- interlude -->
-<section class="cine" aria-label="The quiet moments">
-  <div class="cine-media">
-    <video autoplay muted loop playsinline preload="none" poster="/assets/story-future-poster.jpg" aria-label="AFORCE, in motion">
-      <source src="/assets/story-future.webm" type="video/webm">
-      <source src="/assets/story-future.mp4" type="video/mp4">
-    </video>
-  </div>
-  <div class="cine-scrim"></div>
-  <div class="cine-inner"><p class="h-2 reveal" style="max-width:16ch;">It happens in the quiet moments.</p></div>
-</section>
-
-<!-- ============ WHY HYDRATION ============ -->
-<section class="chapter">
-  <div class="wrap measure">
-    <div class="ch-num reveal">Why Hydration</div>
-    <h2 class="h-display reveal">Hydration is where the journey begins.</h2>
-    <div class="prose">
-      <p class="reveal">Hydration is one of the few rituals every person shares. It is simple. Universal. Repeatable.</p>
-      <p class="emph reveal">That is why it became the foundation of AFORCE &mdash; not because hydration is the destination, but because it is the first step toward building better daily habits.</p>
-    </div>
-  </div>
-</section>
-
-<!-- interlude -->
-<section class="cine" aria-label="Simple, universal, repeatable">
-  <div class="cine-media has-fallback" style="background-image:url('/assets/perf-controller.jpg');">
-    <img src="/assets/perf-controller.jpg" alt="An air traffic controller focused at the console before the day's demand" loading="lazy" decoding="async">
-  </div>
-  <div class="cine-scrim"></div>
-  <div class="cine-inner"><p class="h-2 reveal" style="max-width:14ch;">Simple. Universal. Repeatable.</p></div>
-</section>
-
-<!-- ============ BEYOND THE PRODUCT ============ -->
-<section class="chapter">
-  <div class="wrap measure">
-    <div class="ch-num reveal">Beyond the Product</div>
-    <h2 class="h-display reveal">AFORCE was never meant to stop at the can.</h2>
-    <div class="prose">
-      <div class="stanza reveal">
-        <span class="line">The beverage begins the ritual.</span>
-        <span class="line mute">Technology reinforces it.</span>
-        <span class="line mute">Community strengthens it.</span>
-        <span class="line mute">Accountability sustains it.</span>
+    </figure>
+    <div class="split-copy">
+      <div class="ch-num reveal">The Question</div>
+      <h2 class="h-2 reveal">Why was everything being optimized except the way we prepare?</h2>
+      <div class="prose">
+        <p class="reveal">The shelves were full of products promising more energy, more focus and more performance.</p>
+        <p class="reveal">But we did not believe the answer was simply another product making another promise. We believed something more fundamental was missing.</p>
+        <div class="stanza reveal">
+          <span class="line">A repeatable way to pause.</span>
+          <span class="line mute">A reason to become intentional.</span>
+          <span class="line mute">A ritual to prepare before the pressure arrives.</span>
+        </div>
+        <p class="emph reveal">Not another shortcut. A better starting point.</p>
       </div>
-      <p class="emph reveal">Together they create something larger than hydration &mdash; a system that helps people consistently prepare for whatever comes next.</p>
     </div>
   </div>
 </section>
 
-<!-- interlude (video) -->
-<section class="cine" aria-label="Community strengthens it">
-  <div class="cine-media">
-    <video autoplay muted loop playsinline preload="none" poster="/assets/community-film-poster.jpg" aria-label="The community, in motion">
-      <source src="/assets/community-film.webm" type="video/webm">
-      <source src="/assets/community-film.mp4" type="video/mp4">
-    </video>
-  </div>
-  <div class="cine-scrim"></div>
-  <div class="cine-inner"><p class="h-2 reveal" style="max-width:14ch;">Community strengthens it.</p></div>
-</section>
-
-<!-- ============ OUR STANDARD ============ -->
-<section class="chapter">
+<!-- ============ 4 · THE DECISION (dark) ============ -->
+<section class="chapter dark" aria-label="The decision">
   <div class="wrap measure">
-    <div class="ch-num reveal">Our Standard</div>
-    <h2 class="h-display reveal">Performance is earned before it is seen.</h2>
+    <div class="ch-num reveal">The Decision</div>
+    <h2 class="h-display reveal">If the system we needed didn&rsquo;t exist, we would build it.</h2>
     <div class="prose">
-      <p class="reveal">We believe performance belongs to everyone. Not just elite athletes. Not just executives. Not just high performers.</p>
-      <p class="reveal">Anyone willing to prepare deserves the opportunity to become their best.</p>
-      <p class="emph reveal">That belief guides every decision we make. Every product we create. Every experience we build.</p>
+      <p class="reveal">That decision became AFORCE. What began as a question about hydration became a much larger exploration of preparation, behavior and consistency.</p>
+      <p class="reveal">We began working through formulations, ingredients, packaging, technology, manufacturing and the countless details required to transform an idea into something real.</p>
+      <p class="reveal">We were not trying to move quickly for the appearance of progress. We wanted to build deliberately.</p>
+      <p class="pullquote reveal" style="margin-top:clamp(14px,2vw,24px);">We were willing to begin again until the product and the purpose belonged together.</p>
     </div>
   </div>
 </section>
 
-<!-- ============ FOUNDING 250 — CINEMATIC CTA (on the firefighter frame) ============ -->
-<section class="cine center founding-cta cta-left" aria-label="Join the Founding 250">
-  <div class="cine-media has-fallback" style="background-image:url('/assets/moment-firefighter.jpg');">
-    <img src="/assets/moment-firefighter.jpg" alt="Readiness the instant the moment asks for it" loading="lazy" decoding="async">
+<!-- ============ 5 · THE WORK NO ONE SEES ============ -->
+<section class="chapter" aria-label="The work">
+  <div class="wrap">
+    <div class="measure">
+      <div class="ch-num reveal">The Work</div>
+      <h2 class="h-display reveal">Most of building AFORCE happened when no one was watching.</h2>
+      <div class="prose">
+        <p class="reveal">There were delays. Revisions. Difficult decisions. Moments when the easier choice would have been to accept something that was simply good enough.</p>
+        <p class="emph reveal">But &ldquo;good enough&rdquo; could never become the standard behind Performance Is <span class="nowrap">Non-Negotiable</span>. AFORCE had to reflect the discipline it asks of the people who use it.</p>
+      </div>
+    </div>
+    <div class="work-grid stagger">
+      <!-- IMAGE PLACEHOLDERS → /assets/our-story/the-work-*.webp -->
+      <figure class="ph reveal" style="--i:0" role="img" aria-label="Formulation notes and product samples spread across a table under late-night light">
+        <div class="ph-meta"><div class="ph-k">The work — formulation</div><div class="ph-f">/assets/our-story/the-work-formulation.webp</div></div>
+      </figure>
+      <figure class="ph reveal" style="--i:1" role="img" aria-label="A manufacturing environment during a production and packaging review">
+        <div class="ph-meta"><div class="ph-k">The work — manufacturing</div><div class="ph-f">/assets/our-story/the-work-manufacturing.webp</div></div>
+      </figure>
+      <figure class="ph reveal" style="--i:2" role="img" aria-label="Brandon and Julius in a quiet, focused conversation reviewing materials and prototypes">
+        <div class="ph-meta"><div class="ph-k">The work — the founders</div><div class="ph-f">/assets/our-story/the-work-founders.webp</div></div>
+      </figure>
+    </div>
+    <div class="work-words reveal" aria-hidden="true"><span>Test.</span><span>Learn.</span><span>Refine.</span><span>Begin again.</span></div>
   </div>
+</section>
+
+<!-- ============ 6 · WHY HYDRATION ============ -->
+<section class="chapter" aria-label="Why hydration">
+  <div class="wrap">
+    <div class="measure">
+      <div class="ch-num reveal">Why Hydration</div>
+      <h2 class="h-display reveal">Hydration is not the destination.<br>It is the beginning.</h2>
+      <div class="prose">
+        <p class="reveal">Hydration is one of the few rituals almost every person shares. It is simple. Universal. Repeatable. That made it the right place to begin.</p>
+        <p class="reveal">Not because a drink can do the work for you, but because a deliberate action can mark the moment you decide to prepare.</p>
+      </div>
+    </div>
+    <div class="ritual-steps stagger">
+      <div class="step reveal" style="--i:0"><div class="k">01 — Pause</div><h3>Pause</h3><p>Create space between reaction and intention.</p></div>
+      <div class="step reveal" style="--i:1"><div class="k">02 — Hydrate</div><h3>Hydrate</h3><p>Begin with a deliberate physical action.</p></div>
+      <div class="step reveal" style="--i:2"><div class="k">03 — Lock-In</div><h3>Lock-In</h3><p>Direct your attention toward what matters.</p></div>
+      <div class="step reveal" style="--i:3"><div class="k">04 — Perform</div><h3>Perform</h3><p>Enter the moment prepared to meet it.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 7 · PERFORMANCE IS UNIVERSAL ============ -->
+<section class="chapter" aria-label="Performance is universal">
+  <div class="wrap">
+    <div class="measure">
+      <div class="ch-num reveal">What We Came To Believe</div>
+      <h2 class="h-display reveal">Performance does not belong to a type of person.<br>It belongs to a moment.</h2>
+      <div class="prose">
+        <p class="reveal">Performance is not limited to stadiums, stages or boardrooms. It appears whenever life asks something meaningful of us.</p>
+        <p class="emph reveal">The person may change. The pressure may change. The preparation still matters.</p>
+      </div>
+    </div>
+    <!-- Universal performers — reuses the site's existing cinematic performer library.
+         Keyboard-scrollable, no auto-scroll; stacks to a horizontal swipe on mobile. -->
+    <div class="useq-wrap">
+      <div class="useq" tabindex="0" role="group" aria-label="Universal performers preparing in quiet moments — scroll to view">
+        <figure class="frame">
+          <img src="/assets/perf-surgeon.jpg" alt="A surgeon composed at the scrub sink before an operation" loading="lazy" decoding="async">
+          <figcaption class="cap"><b>The Physician</b><span>Before the first incision.</span></figcaption>
+        </figure>
+        <figure class="frame">
+          <img src="/assets/moment-firefighter.jpg" alt="A firefighter still and ready at the station before a shift" loading="lazy" decoding="async">
+          <figcaption class="cap"><b>The Firefighter</b><span>Before the call comes.</span></figcaption>
+        </figure>
+        <figure class="frame">
+          <img src="/assets/perf-controller.jpg" alt="An air traffic controller focused at the console before the day's demand" loading="lazy" decoding="async">
+          <figcaption class="cap"><b>The Controller</b><span>Before the first clearance.</span></figcaption>
+        </figure>
+        <figure class="frame">
+          <img src="/assets/perf-trader.jpg" alt="A trader composed at a desk of monitors before the open" loading="lazy" decoding="async">
+          <figcaption class="cap"><b>The Founder</b><span>Before the room decides.</span></figcaption>
+        </figure>
+      </div>
+    </div>
+    <p class="keyline reveal" style="margin-top:clamp(34px,4vw,52px);">Performance Is Universal.</p>
+  </div>
+</section>
+
+<!-- ============ 8 · BEYOND THE PRODUCT ============ -->
+<section class="chapter" aria-label="What we are building">
+  <div class="wrap measure">
+    <div class="ch-num reveal">What We Are Building</div>
+    <h2 class="h-display reveal">AFORCE was never meant to end at the can.</h2>
+    <div class="prose">
+      <p class="reveal">The beverage begins the ritual. Technology reinforces it. Community strengthens it. Accountability sustains it.</p>
+      <p class="reveal">Together, these elements are becoming a system designed to help people prepare more intentionally and build greater consistency over time.</p>
+    </div>
+    <div class="flow reveal" role="img" aria-label="The AFORCE system: Product, then Ritual, then Technology, then Community, then Accountability">
+      <span class="node first">Product</span><span class="sep" aria-hidden="true"></span>
+      <span class="node">Ritual</span><span class="sep" aria-hidden="true"></span>
+      <span class="node">Technology</span><span class="sep" aria-hidden="true"></span>
+      <span class="node">Community</span><span class="sep" aria-hidden="true"></span>
+      <span class="node">Accountability</span>
+    </div>
+    <a class="flow-link reveal" href="/aforce-os">Explore AFORCE OS <span class="arw">&rarr;</span></a>
+  </div>
+</section>
+
+<!-- ============ 9 · MEET THE FOUNDERS ============ -->
+<section class="chapter" id="founders" aria-label="Meet the founders">
+  <div class="wrap">
+    <div class="measure">
+      <div class="ch-num reveal">The Founders</div>
+      <h2 class="h-display reveal">Two brothers.<br>One standard.</h2>
+      <div class="prose founders-intro">
+        <p class="reveal">AFORCE is personal to us because the problem is personal. We know what it feels like to carry responsibility, move through demanding days and still be expected to arrive ready.</p>
+        <p class="reveal">We are building AFORCE for everyone who understands that preparation is not optional when the moment matters.</p>
+      </div>
+    </div>
+    <div class="founders stagger">
+      <!-- FOUNDER COPY — these two statements are editable; Brandon and Julius should approve/personalize before launch -->
+      <div class="founder reveal" style="--i:0">
+        <!-- IMAGE PLACEHOLDER → /assets/our-story/brandon-portrait.webp -->
+        <figure class="ph" role="img" aria-label="A restrained portrait of Brandon Burrell, Founder and CEO of AFORCE">
+          <div class="ph-meta"><div class="ph-k">Portrait — Brandon</div><div class="ph-f">/assets/our-story/brandon-portrait.webp</div></div>
+        </figure>
+        <div class="role">Founder &amp; CEO</div>
+        <h3>Brandon Burrell</h3>
+        <blockquote>&ldquo;For me, performance means being ready to carry the responsibility you accepted &mdash; even when no one sees what it took to get there.&rdquo;</blockquote>
+      </div>
+      <div class="founder reveal" style="--i:1">
+        <!-- IMAGE PLACEHOLDER → /assets/our-story/julius-portrait.webp -->
+        <figure class="ph" role="img" aria-label="A restrained portrait of Julius Burrell, Co-Founder and COO of AFORCE">
+          <div class="ph-meta"><div class="ph-k">Portrait — Julius</div><div class="ph-f">/assets/our-story/julius-portrait.webp</div></div>
+        </figure>
+        <div class="role">Co-Founder &amp; COO</div>
+        <h3>Julius Burrell</h3>
+        <blockquote>&ldquo;For me, preparation is a form of respect: for the opportunity, for the people depending on you and for the standard you set for yourself.&rdquo;</blockquote>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 10 · OUR PROMISE ============ -->
+<section class="belief" aria-label="Our promise">
+  <div class="eyebrow reveal">Our Promise</div>
+  <div class="belief-lines">
+    <span class="line reveal">Everything we build must earn a place in your ritual.</span>
+  </div>
+  <p class="support reveal">It must be useful. It must be intentional. It must reflect the standard we ask people to carry into their own lives. Otherwise, it does not belong in AFORCE.</p>
+</section>
+
+<!-- ============ 11 · THIS IS THE BEGINNING ============ -->
+<section class="chapter" aria-label="The story is still being written">
+  <div class="wrap">
+    <div class="measure">
+      <div class="ch-num reveal">The Story Is Still Being Written</div>
+      <h2 class="h-display reveal">We are not presenting a finished story. We are inviting people into the beginning.</h2>
+    </div>
+    <div class="progression stagger">
+      <div class="p-item reveal" style="--i:0"><div class="p-k">The Idea</div><h3>A better way to prepare.</h3></div>
+      <div class="p-item reveal" style="--i:1"><div class="p-k">The First Ritual</div><h3>Pause. Hydrate. Lock-In. Perform.</h3></div>
+      <div class="p-item reveal" style="--i:2"><div class="p-k">The System</div><h3>Product, technology, community and accountability.</h3></div>
+      <div class="p-item reveal" style="--i:3"><div class="p-k">What Comes Next</div><h3>A new standard for everyday performance.</h3></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 12 · CLOSING CTA ============ -->
+<section class="cine center" aria-label="Join us at the beginning">
+  <!-- IMAGE PLACEHOLDER → /assets/our-story/founders-closing.webp -->
+  <div class="cine-media" role="img" aria-label="Brandon and Julius Burrell walking forward, leaving the workspace toward the next stage of the journey" style="background:radial-gradient(120% 90% at 68% 30%, #242424 0%, #161616 50%, #0D0D0D 100%);"></div>
   <div class="cine-scrim"></div>
-  <div class="cine-inner founding-inner">
-    <p class="h-2 reveal" style="max-width:13ch;">Performance belongs to everyone.</p>
-    <a class="btn btn-outline-light founding-btn reveal in" href="/#founding">Join the Founding 250</a>
-    <p class="founding-tag reveal in">Quiet Before the Storm</p>
-    <span class="founding-rail reveal in" aria-hidden="true"></span>
+  <div class="ph-corner" aria-hidden="true">
+    <div class="ph-k">Founder film — Closing</div>
+    <div class="ph-f">/assets/our-story/founders-closing.webp</div>
+  </div>
+  <div class="cine-inner">
+    <div class="eyebrow reveal in">Join Us At The Beginning</div>
+    <div class="belief-lines stagger" style="align-items:flex-start; margin-top:clamp(18px,2.4vw,28px);">
+      <span class="line reveal in" style="--i:0; font-size:clamp(26px,5vw,64px); font-family:var(--display); color:var(--bone); line-height:1.05;">Performance is Universal.</span>
+      <span class="line reveal in" style="--i:1; font-size:clamp(26px,5vw,64px); font-family:var(--display); color:var(--bone); line-height:1.05;">Preparation is a Choice.</span>
+      <span class="line reveal in nowrap" style="--i:2; font-size:clamp(26px,5vw,64px); font-family:var(--display); color:var(--red); line-height:1.05;">Performance is <span class="nowrap">Non-Negotiable</span>.</span>
+    </div>
+    <div class="b-cta reveal in" style="display:flex; flex-wrap:wrap; gap:16px; margin-top:clamp(30px,4vw,44px);">
+      <a class="btn btn-light" href="/shop">Begin Your Ritual <span class="arw">&rarr;</span></a>
+      <a class="btn btn-outline-light" href="/founding-250">Join the Founding Community <span class="arw">&rarr;</span></a>
+    </div>
   </div>
 </section>
 
-<!-- ============ CLOSING MANIFESTO ============ -->
-<section class="belief compact belief-light" aria-label="Performance is non-negotiable">
-  <div class="belief-lines stagger">
-    <span class="line reveal" style="--i:0">Performance is Universal.</span>
-    <span class="line reveal" style="--i:1">Preparation is a Choice.</span>
-    <span class="line reveal" style="--i:2">Performance is <span class="accent">Non-<span class="flip-n">N</span>egotiable.</span></span>
-  </div>
-  <div class="nmark reveal" style="--i:3;" role="img" aria-label="The AFORCE N mark">
-    <span class="n">N</span><span class="bar"></span><span class="n flip">N</span>
-  </div>
-  <div class="b-cta reveal" style="--i:4;">
-    <a class="btn btn-light" href="/#ritual">Begin Your Ritual <span class="arw">&rarr;</span></a>
-  </div>
-</section>
-
-<!-- ============ FOOTER ============ -->
+<!-- ============ FOOTER (shared) ============ -->
 <footer class="ft">
   <div class="wrap">
     <div class="f-top">
@@ -381,7 +578,7 @@
     </div>
     <div class="f-meta">
       <span>&copy; 2026 AFORCE Hydration, Inc.</span>
-      <span class="nonneg">Performance Is Non-<span class="flip-n">N</span>egotiable.</span>
+      <span class="nonneg nowrap">Performance Is Non-Negotiable.</span>
     </div>
   </div>
 </footer>
