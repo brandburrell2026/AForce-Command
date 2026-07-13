@@ -56,7 +56,7 @@
   .lead-lg{ font-size:clamp(19px,2vw,27px); line-height:1.6; color:var(--i80); max-width:24ch; font-weight:300; }
 
   /* ---------- NAV (scroll-aware: transparent over hero, solid after) ---------- */
-  .nav{ position:fixed; top:0; left:0; right:0; z-index:80; display:flex; align-items:center; justify-content:space-between; gap:24px; padding:18px var(--gutter); color:var(--bone); background:transparent; border-bottom:1px solid transparent; transition:background .4s ease, color .4s ease, border-color .4s ease, padding .4s ease; }
+  .nav{ position:fixed; top:0; left:0; right:0; z-index:80; display:flex; align-items:center; justify-content:space-between; gap:24px; padding:18px var(--gutter); color:var(--ink); background:transparent; border-bottom:1px solid transparent; transition:background .4s ease, color .4s ease, border-color .4s ease, padding .4s ease; }
   .nav.solid{ color:var(--ink); background:rgba(245,240,232,.85); backdrop-filter:blur(12px); border-bottom-color:var(--i08); padding-top:14px; padding-bottom:14px; }
   .nav .mark{ font-family:var(--display); font-size:18px; letter-spacing:.02em; display:flex; align-items:center; gap:10px; white-space:nowrap; }
   .nn{ display:inline-flex; align-items:center; gap:3px; }
@@ -154,6 +154,18 @@
   .ph-corner{ position:absolute; z-index:2; left:0; bottom:0; padding:clamp(16px,2vw,26px) var(--gutter); }
   .ph-corner .ph-k{ font-family:var(--body); font-weight:700; font-size:10px; letter-spacing:.24em; text-transform:uppercase; color:var(--b40); }
   .ph-corner .ph-f{ margin-top:6px; font-family:var(--body); font-weight:500; font-size:11px; color:rgba(245,240,232,.28); }
+  /* LIGHT HERO — Our Story opens on cream (editorial), matching the page body */
+  .os-hero{ background:var(--bone); }
+  .os-hero .cine-media{ background:var(--bone); }
+  .os-hero .cine-scrim{ display:none; }
+  .os-hero .cine-inner .eyebrow{ color:var(--red); opacity:1; }
+  .os-hero .cine-inner .h-display{ color:var(--ink); }
+  .os-hero .sub{ color:var(--ink); }
+  .os-hero .sub-2{ color:var(--i64); }
+  .os-hero .ph-corner .ph-k{ color:var(--i46); }
+  .os-hero .ph-corner .ph-f{ color:var(--i30); }
+  .os-hero .scroll-cue{ color:var(--i46); }
+  .os-hero .scroll-cue .rail{ background:linear-gradient(var(--i30), transparent); }
 
   /* black statement / belief full-screen */
   .belief{ background:var(--ink); color:var(--bone); min-height:100svh; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:clamp(28px,5vh,60px); padding:clamp(80px,12vh,160px) var(--gutter); }
