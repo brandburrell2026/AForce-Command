@@ -1,9 +1,0 @@
-{
-  "name": "aforce-site",
-  "private": true,
-  "version": "0.0.0",
-  "description": "AFORCE marketing site (static) + hidden headless /shop-preview serverless functions. No build step; Vercel serves static files and builds /api functions + middleware.",
-  "scripts": {
-    "build": "echo \"static site — no build\""
-  }
-}

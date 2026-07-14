@@ -1,9 +1,1 @@
-{
-  "outputDirectory": ".",
-  "framework": null,
-  "rewrites": [
-    { "source": "/shop-preview", "destination": "/api/shop-preview/plp" },
-    { "source": "/shop-preview/", "destination": "/api/shop-preview/plp" },
-    { "source": "/shop-preview/:handle", "destination": "/api/shop-preview/pdp" }
-  ]
-}
+{"installCommand": "echo skip", "buildCommand": "echo skip", "outputDirectory": ".", "framework": null}
