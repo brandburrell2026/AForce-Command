@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Product — AFORCE (preview)</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/shop-preview/shop.css">
+</head>
+<body>
+
+<nav class="sp-nav">
+  <a class="sp-mark" href="/" aria-label="AFORCE home">
+    <span class="sp-nn"><span class="n1">N</span><span class="bar"></span><span class="n2">N</span></span> AFORCE
+    <span class="sp-preview-tag">Shop Preview</span>
+  </a>
+  <button class="cart-btn" type="button" data-cart-open>Cart <span data-cart-count data-empty="true">0</span></button>
+</nav>
+
+<main id="pdp" class="pdp" aria-live="polite">
+  <div class="pdp-media skel"></div>
+  <div>
+    <span class="pdp-type skel" style="display:inline-block;width:120px;height:12px;"></span>
+    <h1 class="pdp-title skel" style="height:52px;border-radius:4px;margin-top:14px;"></h1>
+  </div>
+</main>
+<div id="state" class="sp-state" hidden></div>
+
+<footer class="sp-foot">
+  <span>AFORCE Hydration, Inc.</span>
+  <span>Performance Is Non-Negotiable.</span>
+  <span>Preview build — not indexed.</span>
+</footer>
+
+<script src="/shop-preview/cart.js"></script>
+<script>
+(function(){
+  "use strict";
+  function money(m){ if(!m) return ""; var n=parseFloat(m.amount||0); try{return new Intl.NumberFormat("en-US",{style:"currency",currency:m.currencyCode||"USD"}).format(n);}catch(e){return "$"+n.toFixed(2);} }
+  function esc(s){ return (s==null?"":String(s)).replace(/[&<>"]/g,function(c){return({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"})[c];}); }
+  function handleFromPath(){
+    var parts=location.pathname.replace(/\/+$/,"").split("/");
+    var last=parts[parts.length-1];
+    return (last && last!=="shop-preview" && last!=="product.html") ? decodeURIComponent(last) : (new URLSearchParams(location.search).get("handle")||"");
+  }
+  var selected=null, product=null;
+
+  function render(p){
+    product=p;
+    var vs=(p.variants&&p.variants.nodes)||[];
+    selected=vs.filter(function(v){return v.availableForSale;})[0]||vs[0]||null;
+    var img=p.featuredImage?('<img src="'+esc(p.featuredImage.url)+'" alt="'+esc(p.featuredImage.altText||p.title)+'">'):'';
+    var multi=vs.length>1;
+    var variantHtml=multi?('<div class="pdp-variants" id="variants">'+vs.map(function(v){
+      return '<button class="variant'+(v===selected?' on':'')+(v.availableForSale?'':' oos')+'" type="button" data-v="'+esc(v.id)+'">'+esc(v.title)+'</button>';
+    }).join("")+'</div>'):'';
+    document.getElementById("pdp").innerHTML=
+      '<div class="pdp-media">'+img+'</div>'+
+      '<div>'+
+        '<a class="pdp-back" href="/shop-preview">← All products</a>'+
+        (p.productType?'<div class="pdp-type">'+esc(p.productType)+'</div>':'')+
+        '<h1 class="pdp-title">'+esc(p.title)+'</h1>'+
+        '<div class="pdp-price" id="price">'+money(selected&&selected.price)+'</div>'+
+        (p.description?'<p class="pdp-desc">'+esc(p.description)+'</p>':'')+
+        variantHtml+
+        '<button class="btn btn-primary pdp-add" id="add" type="button">Add to cart</button>'+
+        '<p class="pdp-note">Shipping &amp; taxes calculated at checkout · secure checkout on shop.drinkaforce.com</p>'+
+      '</div>';
+    syncAdd();
+  }
+  function syncAdd(){
+    var add=document.getElementById("add");
+    var ok=selected&&selected.availableForSale;
+    add.disabled=!ok; add.textContent=ok?"Add to cart":"Sold out";
+    var pr=document.getElementById("price"); if(pr&&selected) pr.textContent=money(selected.price);
+  }
+  function showState(html){ document.getElementById("pdp").style.display="none"; var s=document.getElementById("state"); s.innerHTML=html; s.hidden=false; }
+
+  document.addEventListener("click",function(e){
+    var vb=e.target.closest("[data-v]");
+    if(vb){ var id=vb.getAttribute("data-v"); selected=(product.variants.nodes||[]).filter(function(v){return v.id===id;})[0];
+      document.querySelectorAll("#variants .variant").forEach(function(b){ b.classList.toggle("on", b===vb); }); syncAdd(); return; }
+    if(e.target.closest("#add")){ var add=e.target.closest("#add"); if(!selected) return;
+      add.disabled=true; add.textContent="Adding…";
+      window.AForceCart.addLine(selected.id,1).finally(function(){ add.disabled=false; syncAdd(); }); }
+  });
+
+  var handle=handleFromPath();
+  if(!handle){ showState('<p class="mono">Product not specified.</p>'); return; }
+  fetch("/api/shop/product?handle="+encodeURIComponent(handle))
+    .then(function(r){ return r.json().then(function(j){ if(!r.ok) throw Object.assign(new Error(j.error||("HTTP "+r.status)),{status:r.status}); return j; }); })
+    .then(function(j){ if(!j.product){ showState('<p class="mono">Product not found.</p>'); return; } render(j.product); })
+    .catch(function(e){
+      if(e.status===404){ showState('<p class="mono">Not found.</p>'); }
+      else if(e.status===503){ showState('<p class="mono">Connect Shopify to load this product.</p>'); }
+      else{ showState('<p class="mono">Couldn’t load this product.</p>'); }
+    });
+})();
+</script>
+</body>
+</html>

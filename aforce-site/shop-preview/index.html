@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shop — AFORCE (preview)</title>
+<!-- HIDDEN PRE-CUTOVER: never index this route. -->
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/shop-preview/shop.css">
+</head>
+<body>
+
+<nav class="sp-nav">
+  <a class="sp-mark" href="/" aria-label="AFORCE home">
+    <span class="sp-nn"><span class="n1">N</span><span class="bar"></span><span class="n2">N</span></span> AFORCE
+    <span class="sp-preview-tag">Shop Preview</span>
+  </a>
+  <button class="cart-btn" type="button" data-cart-open>Cart <span data-cart-count data-empty="true">0</span></button>
+</nav>
+
+<header class="sp-head wrap">
+  <p class="sp-eyebrow">The Standard</p>
+  <h1 class="sp-h1">Shop the ritual.</h1>
+  <p class="sp-sub">Every formulation, on drinkaforce.com. Checkout is the only handoff.</p>
+</header>
+
+<!-- combos (driven by a Shopify collection; hidden if the collection is empty/absent) -->
+<div id="combosLabel" class="sp-section-label" hidden>Launch Combos</div>
+<div id="combos" class="grid" hidden></div>
+
+<div class="sp-section-label">All Products</div>
+<div id="grid" class="grid" aria-live="polite">
+  <!-- skeletons -->
+  <div class="card skel-card"><div class="card-media skel"></div><div class="card-body"><span class="card-title skel"></span><span class="card-price skel"></span></div></div>
+  <div class="card skel-card"><div class="card-media skel"></div><div class="card-body"><span class="card-title skel"></span><span class="card-price skel"></span></div></div>
+  <div class="card skel-card"><div class="card-media skel"></div><div class="card-body"><span class="card-title skel"></span><span class="card-price skel"></span></div></div>
+</div>
+<div id="state" class="sp-state" hidden></div>
+
+<footer class="sp-foot">
+  <span>AFORCE Hydration, Inc.</span>
+  <span>Performance Is Non-Negotiable.</span>
+  <span>Preview build — not indexed.</span>
+</footer>
+
+<script src="/shop-preview/cart.js"></script>
+<script>
+(function(){
+  "use strict";
+  function money(m){ if(!m) return ""; var n=parseFloat(m.amount||0); try{return new Intl.NumberFormat("en-US",{style:"currency",currency:m.currencyCode||"USD"}).format(n);}catch(e){return "$"+n.toFixed(2);} }
+  function esc(s){ return (s==null?"":String(s)).replace(/[&<>"]/g,function(c){return({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"})[c];}); }
+  function priceLabel(p){
+    var mn=p.priceRange&&p.priceRange.minVariantPrice, mx=p.priceRange&&p.priceRange.maxVariantPrice;
+    if(mn&&mx&&mn.amount!==mx.amount) return "From "+money(mn);
+    return money(mn);
+  }
+  function firstAvailableVariant(p){
+    var vs=(p.variants&&p.variants.nodes)||[];
+    return vs.filter(function(v){return v.availableForSale;})[0]||vs[0]||null;
+  }
+  function card(p){
+    var img=p.featuredImage?('<img src="'+esc(p.featuredImage.url)+'" alt="'+esc(p.featuredImage.altText||p.title)+'" loading="lazy">'):'<span></span>';
+    var v=firstAvailableVariant(p);
+    var soldOut=v&&!v.availableForSale;
+    return '<article class="card">'+
+      '<a class="card-media" href="/shop-preview/'+esc(p.handle)+'">'+img+'</a>'+
+      '<div class="card-body">'+
+        (p.productType?'<span class="card-type">'+esc(p.productType)+'</span>':'')+
+        '<a class="card-title" href="/shop-preview/'+esc(p.handle)+'">'+esc(p.title)+'</a>'+
+        '<span class="card-price">'+priceLabel(p)+'</span>'+
+        '<div class="card-cta">'+
+          '<a class="btn btn-ghost" href="/shop-preview/'+esc(p.handle)+'">View</a>'+
+          (v&&!soldOut?'<button class="btn btn-primary" type="button" data-add="'+esc(v.id)+'">Add</button>':'<button class="btn btn-ghost" type="button" disabled>Sold out</button>')+
+        '</div>'+
+      '</div></article>';
+  }
+  function showState(html){ var s=document.getElementById("state"); s.innerHTML=html; s.hidden=false; }
+
+  function load(){
+    fetch("/api/shop/products").then(function(r){ return r.json().then(function(j){ if(!r.ok) throw Object.assign(new Error(j.error||("HTTP "+r.status)),{status:r.status}); return j; }); })
+      .then(function(j){
+        var grid=document.getElementById("grid");
+        var ps=j.products||[];
+        if(!ps.length){ grid.innerHTML=""; showState('<p class="mono">No products found.</p>'); return; }
+        grid.innerHTML=ps.map(card).join("");
+      })
+      .catch(function(e){
+        document.getElementById("grid").innerHTML="";
+        if(e.status===404){ showState('<p class="mono">Shop preview is disabled.</p>'); }
+        else if(e.status===503){ showState('<p class="mono">Connect Shopify to load products.</p><p style="margin-top:10px;font-size:13px">Set SHOPIFY_STORE_DOMAIN + SHOPIFY_STOREFRONT_ACCESS_TOKEN in Vercel.</p>'); }
+        else{ showState('<p class="mono">Couldn’t load products.</p>'); }
+      });
+
+    fetch("/api/shop/collection").then(function(r){ return r.ok?r.json():null; }).then(function(j){
+      if(!j||!j.collection||!j.collection.products||!j.collection.products.length) return;
+      var wrap=document.getElementById("combos");
+      wrap.innerHTML=j.collection.products.map(card).join("");
+      wrap.hidden=false; document.getElementById("combosLabel").hidden=false;
+    }).catch(function(){});
+  }
+
+  document.addEventListener("click", function(e){
+    var add=e.target.closest("[data-add]"); if(!add) return;
+    add.disabled=true; add.textContent="Adding…";
+    window.AForceCart.addLine(add.getAttribute("data-add"),1).finally(function(){ add.disabled=false; add.textContent="Add"; });
+  });
+
+  load();
+})();
+</script>
+</body>
+</html>

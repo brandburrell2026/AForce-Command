@@ -1,1 +1,9 @@
-{"installCommand": "echo skip", "buildCommand": "echo skip", "outputDirectory": ".", "framework": null}
+{
+  "installCommand": "echo skip",
+  "buildCommand": "echo skip",
+  "outputDirectory": ".",
+  "framework": null,
+  "rewrites": [
+    { "source": "/shop-preview/:handle", "destination": "/shop-preview/product.html" }
+  ]
+}
