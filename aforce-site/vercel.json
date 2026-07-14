@@ -4,6 +4,8 @@
   "outputDirectory": ".",
   "framework": null,
   "rewrites": [
-    { "source": "/shop-preview/:handle", "destination": "/shop-preview/product.html" }
+    { "source": "/shop-preview", "destination": "/api/shop-preview/plp" },
+    { "source": "/shop-preview/", "destination": "/api/shop-preview/plp" },
+    { "source": "/shop-preview/:handle", "destination": "/api/shop-preview/pdp" }
   ]
 }
