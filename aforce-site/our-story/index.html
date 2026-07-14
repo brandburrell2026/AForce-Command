@@ -228,6 +228,7 @@
   .work-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:clamp(14px,1.8vw,22px); margin-top:clamp(36px,4vw,56px); }
   @media (max-width:760px){ .work-grid{ grid-template-columns:1fr; } }
   .work-grid .ph{ aspect-ratio:3/4; }
+  .work-grid .ph img{ width:100%; height:100%; object-fit:cover; display:block; }
   .work-words{ display:flex; flex-wrap:wrap; gap:clamp(16px,3vw,44px); margin-top:clamp(30px,4vw,48px); }
   .work-words span{ font-family:var(--display); font-weight:400; font-size:clamp(20px,2.6vw,36px); color:var(--i30); letter-spacing:-0.006em; }
   .work-words span:first-child{ color:var(--red); }
@@ -395,15 +396,14 @@
       </div>
     </div>
     <div class="work-grid stagger">
-      <!-- IMAGE PLACEHOLDERS → /assets/our-story/the-work-*.webp -->
-      <figure class="ph reveal" style="--i:0" role="img" aria-label="Formulation notes and product samples spread across a table under late-night light">
-        <div class="ph-meta"><div class="ph-k">The work — formulation</div><div class="ph-f">/assets/our-story/the-work-formulation.webp</div></div>
+      <figure class="ph reveal" style="--i:0">
+        <img src="/assets/our-story/the-work-formulation.webp" alt="AFORCE formula notebook, hydration sticks and a lab scale during formulation work" loading="lazy" decoding="async">
       </figure>
-      <figure class="ph reveal" style="--i:1" role="img" aria-label="A manufacturing environment during a production and packaging review">
-        <div class="ph-meta"><div class="ph-k">The work — manufacturing</div><div class="ph-f">/assets/our-story/the-work-manufacturing.webp</div></div>
+      <figure class="ph reveal" style="--i:1">
+        <img src="/assets/our-story/the-work-manufacturing.webp" alt="AFORCE cans and stick sachets moving through a production and packaging line" loading="lazy" decoding="async">
       </figure>
-      <figure class="ph reveal" style="--i:2" role="img" aria-label="Brandon and Julius in a quiet, focused conversation reviewing materials and prototypes">
-        <div class="ph-meta"><div class="ph-k">The work — the founders</div><div class="ph-f">/assets/our-story/the-work-founders.webp</div></div>
+      <figure class="ph reveal" style="--i:2">
+        <img src="/assets/our-story/the-work-founders.webp" alt="AFORCE packaging, brand guidelines and hydration sticks laid out during a design review" loading="lazy" decoding="async">
       </figure>
     </div>
     <div class="work-words reveal" aria-hidden="true"><span>Test.</span><span>Learn.</span><span>Refine.</span><span>Begin again.</span></div>
