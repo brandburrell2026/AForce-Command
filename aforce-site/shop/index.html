@@ -200,6 +200,23 @@
   .fmt.on .fmt-choose{ background:var(--canvas); color:var(--ink); }
   .fmt-choose .sel{ display:none; } .fmt.on .fmt-choose .pick{ display:none; } .fmt.on .fmt-choose .sel{ display:inline; }
 
+  /* AFORCE OS informational tiers. NOT purchasable on web — the app membership
+     is bought/managed in-app; this band informs and routes to /aforce-os. */
+  #stepOS .os-tiers{ display:grid; grid-template-columns:1fr 1fr; gap:clamp(14px,2vw,22px); margin-top:clamp(20px,2.6vw,30px); }
+  @media (max-width:640px){ #stepOS .os-tiers{ grid-template-columns:1fr; } }
+  #stepOS .os-tier{ position:relative; border:1.5px solid var(--can-12); border-radius:6px; background:rgba(242,242,240,.03); padding:clamp(20px,2.4vw,28px); display:flex; flex-direction:column; gap:8px; }
+  #stepOS .os-tier--pro{ border-color:var(--can-40); }
+  #stepOS .os-badge{ align-self:flex-start; font-family:var(--mono); font-size:9.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--can-40); border:1px solid var(--can-12); border-radius:999px; padding:3px 9px; }
+  #stepOS .os-badge--pro{ color:var(--ink); background:var(--theme); border-color:var(--theme); }
+  #stepOS .os-tier h3{ font-family:var(--display); font-weight:800; font-size:clamp(22px,2.4vw,28px); letter-spacing:-.01em; color:var(--canvas); margin-top:4px; }
+  #stepOS .os-price{ display:flex; align-items:baseline; gap:6px; }
+  #stepOS .os-amt{ font-family:var(--display); font-weight:800; font-size:clamp(26px,3vw,34px); color:var(--canvas); }
+  #stepOS .os-per{ font-family:var(--mono); font-size:12px; color:var(--can-40); }
+  #stepOS .os-desc{ color:var(--can-70); font-size:14px; line-height:1.5; }
+  #stepOS .os-cta{ display:inline-flex; align-items:center; gap:8px; margin-top:clamp(20px,2.4vw,28px); font-weight:700; font-size:14px; border:1.5px solid var(--canvas); border-radius:999px; padding:14px 24px; min-height:44px; color:var(--canvas); transition:background .2s, color .2s; }
+  #stepOS .os-cta:hover{ background:var(--canvas); color:var(--ink); }
+  #stepOS .os-fine{ margin-top:12px; color:var(--can-40); font-size:11.5px; }
+
   /* ---- STEP 03 — BEGIN + ignition ---- */
   .begin-card{ position:relative; z-index:1; margin-top:clamp(24px,4vw,36px); border:1px solid var(--can-12); border-radius:6px; background:rgba(242,242,240,.03); padding:clamp(24px,3vw,40px); }
   .begin-summary{ font-family:var(--display); font-weight:700; font-size:clamp(17px,2vw,24px); letter-spacing:-.01em; line-height:1.35; color:var(--canvas); }
@@ -397,6 +414,31 @@
         <button class="fmt-choose" type="button" data-choose="cans"><span class="pick">Choose Cans</span><span class="sel">Cans selected</span></button>
       </div>
     </div>
+  </div>
+</section>
+
+<!-- AFORCE OS — the system every order activates (informational; membership is in-app) -->
+<section class="step" id="stepOS">
+  <div class="wrap">
+    <div class="step-i">AForce OS</div>
+    <h2>The system behind the ritual.</h2>
+    <p class="lead">Every order activates AFORCE OS. Scan the can, get your Readiness Score, and follow the protocol. Go deeper anytime — from the app.</p>
+    <div class="os-tiers">
+      <div class="os-tier">
+        <div class="os-badge">Included with any order</div>
+        <h3>Core</h3>
+        <div class="os-price"><span class="os-amt">Free</span></div>
+        <p class="os-desc">Readiness Score, hydration control center, basic AI commands, and daily logging — the entry point into the system.</p>
+      </div>
+      <div class="os-tier os-tier--pro">
+        <div class="os-badge os-badge--pro">Go deeper</div>
+        <h3>Athlete</h3>
+        <div class="os-price"><span class="os-amt">$19.99</span><span class="os-per">/ month</span></div>
+        <p class="os-desc">Enhanced AI decisioning, personalized protocols, advanced recovery guidance, expanded trends, and community competition.</p>
+      </div>
+    </div>
+    <a class="os-cta" href="/aforce-os">Explore AFORCE OS <span class="arw" aria-hidden="true">→</span></a>
+    <p class="os-fine">Membership is chosen and managed in the AFORCE OS app, not at checkout. Prices in USD.</p>
   </div>
 </section>
 
