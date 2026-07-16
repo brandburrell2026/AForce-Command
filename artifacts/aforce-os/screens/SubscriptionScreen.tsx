@@ -25,7 +25,7 @@ import { SubscriptionPlanCard } from '@/components/SubscriptionPlanCard';
 import { EnterprisePlanCard } from '@/components/EnterprisePlanCard';
 import { Colors } from '@/theme/colors';
 import { useAppStore } from '@/store/useAppStore';
-import { SUBSCRIPTION_PLANS } from '@/data/subscriptionPlans';
+import { SUBSCRIPTION_PLANS, LAUNCHED_PLAN_IDS } from '@/data/subscriptionPlans';
 import type { SubscriptionPlan, SubscriptionPlanId } from '@/types/subscription';
 import { createCheckoutSession, fetchCheckoutSession } from '@/lib/api';
 import { refreshEntitlement } from '@/hooks/useEntitlement';
@@ -77,9 +77,23 @@ export default function SubscriptionScreen() {
   const topPadding = Platform.OS === 'web' ? 67 : insets.top;
   const bottomPadding = Platform.OS === 'web' ? 34 : insets.bottom;
 
+  // Launch gating: only tiers in LAUNCHED_PLAN_IDS render. The other tiers stay
+  // defined in the catalog but dark until added to the allowlist.
   const visiblePlans = useMemo(
-    () => SUBSCRIPTION_PLANS.filter((p) => p.category === filter).sort((a, b) => a.rank - b.rank),
+    () =>
+      SUBSCRIPTION_PLANS
+        .filter((p) => p.category === filter && LAUNCHED_PLAN_IDS.has(p.id))
+        .sort((a, b) => a.rank - b.rank),
     [filter],
+  );
+
+  // Hide any category tab with zero launched plans (an empty tab reads as broken).
+  const availableFilters = useMemo(
+    () =>
+      FILTERS.filter((f) =>
+        SUBSCRIPTION_PLANS.some((p) => p.category === f.id && LAUNCHED_PLAN_IDS.has(p.id)),
+      ),
+    [],
   );
 
   const clutchPlans = useMemo(() => visiblePlans.filter((p) => p.subcategory === 'clutch'), [visiblePlans]);
@@ -89,9 +103,17 @@ export default function SubscriptionScreen() {
     if (state.subscription.planId === planId || pendingPlanId) return;
     setPendingPlanId(planId);
     try {
+      // Core is the free default tier — no checkout, no sales flow. Tapping
+      // your current Core plan already no-ops above; a paid user tapping Core
+      // is a downgrade, so route to Manage (downgrade flows are intentionally
+      // not built for launch).
+      if (planId === 'core') {
+        router.push('/subscription/manage');
+        return;
+      }
       // Paid consumer upgrades route through real Stripe Checkout. Everything
-      // else (Core entry tier, Team, Performance Systems) is sales-led and
-      // does not have an in-app self-serve flow at launch.
+      // else (Team, Performance Systems) is sales-led and does not have an
+      // in-app self-serve flow at launch.
       if (!STRIPE_PLAN_IDS.has(planId)) {
         Alert.alert(
           'Talk to our team',
@@ -241,7 +263,7 @@ export default function SubscriptionScreen() {
 
           {/* Category filter */}
           <View style={styles.filterRow}>
-            {FILTERS.map((f) => {
+            {availableFilters.map((f) => {
               const active = filter === f.id;
               return (
                 <Pressable

@@ -1,10 +1,18 @@
 /**
  * AForce Subscription plans — overhauled pricing system.
  *
+ * LAUNCH GATING: only plans in `LAUNCHED_PLAN_IDS` (core + athlete) are shown
+ * in-app and are checkout-eligible. Every other tier stays defined here but
+ * dark until its id is added to the allowlist — which is mirrored on the
+ * server (api-server/src/routes/checkout.ts) and guarded by
+ * subscriptionPlanParity.test.ts.
+ *
  *   CONSUMER
- *     core              Free          "Start your performance system"
- *     athlete           $19/mo        "Train and perform with precision"
- *     system            $49/mo        BEST VALUE — "Full performance control"
+ *     core              Free (launched)       "Start your performance system"
+ *     recovery_plus     $9.99/mo              "Wake up clear-headed"
+ *     athlete           $19.99/mo (launched)  "Train and perform with precision"
+ *     system            $59.99/mo             BEST VALUE — "Full control + monthly product"
+ *     elite             $99/mo                ELITE — "Guardian Mode + full system"
  *
  *   TEAM / PROGRAM
  *     team_starter      $49/mo        up to 25 — "Run your team with intelligence"
@@ -45,8 +53,8 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     positioning: 'Start your performance system',
     description:
       'Entry point into AForce OS — OS access, AI commands, and the daily hydration tracking layer.',
-    priceMonthly: 9.99,
-    priceLabel: priceLabel(9.99),
+    priceMonthly: 0,
+    priceLabel: priceLabel(0),
     rank: 1,
     ctaLabel: 'Start with Core',
     features: [
@@ -353,6 +361,24 @@ export const PLAN_BY_ID: Record<SubscriptionPlanId, SubscriptionPlan> =
     acc[p.id] = p;
     return acc;
   }, {} as Record<SubscriptionPlanId, SubscriptionPlan>);
+
+/**
+ * LAUNCH ALLOWLIST — the single source of truth for which tiers are live.
+ * Only these render in-app (SubscriptionScreen filters `visiblePlans` and the
+ * category tabs to this set) AND are checkout-eligible. The server mirrors this
+ * exact set in api-server/src/routes/checkout.ts and rejects any other planId,
+ * so a dark tier can never be purchased via a direct API call. Parity between
+ * the two is enforced by subscriptionPlanParity.test.ts.
+ *
+ * To launch a tier later: add its id here and on the server — one change,
+ * guarded by the parity test. Defaults to launch mode (core = Free, athlete).
+ */
+export const LAUNCHED_PLAN_IDS: ReadonlySet<SubscriptionPlanId> =
+  new Set<SubscriptionPlanId>(['core', 'athlete']);
+
+export function isPlanLaunched(id: SubscriptionPlanId): boolean {
+  return LAUNCHED_PLAN_IDS.has(id);
+}
 
 /** Walk the inheritance chain and return all features available at this plan. */
 export function getEffectiveFeatures(planId: SubscriptionPlanId) {

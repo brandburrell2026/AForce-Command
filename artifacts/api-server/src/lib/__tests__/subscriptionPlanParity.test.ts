@@ -15,8 +15,11 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { PLAN_CATALOG } from '../../routes/checkout';
-import { SUBSCRIPTION_PLANS } from '../../../../aforce-os/data/subscriptionPlans';
+import { PLAN_CATALOG, LAUNCHED_PLAN_IDS as SERVER_LAUNCHED } from '../../routes/checkout';
+import {
+  SUBSCRIPTION_PLANS,
+  LAUNCHED_PLAN_IDS as CLIENT_LAUNCHED,
+} from '../../../../aforce-os/data/subscriptionPlans';
 
 describe('checkout PLAN_CATALOG ↔ SUBSCRIPTION_PLANS parity', () => {
   for (const planId of Object.keys(PLAN_CATALOG)) {
@@ -33,4 +36,40 @@ describe('checkout PLAN_CATALOG ↔ SUBSCRIPTION_PLANS parity', () => {
       expect(serverEntry.name).toBe(clientPlan!.name);
     });
   }
+});
+
+describe('launch allowlist parity + free-Core invariants', () => {
+  it('client and server LAUNCHED_PLAN_IDS are identical', () => {
+    expect([...SERVER_LAUNCHED].sort()).toEqual([...CLIENT_LAUNCHED].sort());
+  });
+
+  it('every launched plan id exists in SUBSCRIPTION_PLANS', () => {
+    for (const id of SERVER_LAUNCHED) {
+      expect(
+        SUBSCRIPTION_PLANS.find((p) => p.id === id),
+        `launched plan "${id}" is missing from SUBSCRIPTION_PLANS`,
+      ).toBeDefined();
+    }
+  });
+
+  it('Core is free and never a Stripe checkout plan', () => {
+    const core = SUBSCRIPTION_PLANS.find((p) => p.id === 'core');
+    expect(core?.priceMonthly).toBe(0);
+    expect(core?.priceLabel).toBe('Free');
+    // Free tier must not be Stripe-eligible — it is granted directly (entitlement.ts).
+    expect(PLAN_CATALOG['core']).toBeUndefined();
+    expect(CLIENT_LAUNCHED.has('core')).toBe(true);
+  });
+
+  it('any catalogued tier that is NOT launched cannot be checked out', () => {
+    // Guards the direct-API purchase hole: dark tiers stay in PLAN_CATALOG but
+    // are rejected by the launch gate.
+    for (const planId of Object.keys(PLAN_CATALOG)) {
+      if (!SERVER_LAUNCHED.has(planId)) {
+        // A catalogued-but-dark tier (e.g. recovery_plus/system/elite) — the
+        // route rejects it via `!LAUNCHED_PLAN_IDS.has(planId)`.
+        expect(SERVER_LAUNCHED.has(planId)).toBe(false);
+      }
+    }
+  });
 });
