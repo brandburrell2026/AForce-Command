@@ -16,6 +16,7 @@ import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
 
 import { Colors } from '../theme/colors';
+import { LAUNCHED_PLAN_IDS } from '../data/subscriptionPlans';
 import { createCheckoutSession, fetchCheckoutSession } from '../lib/api';
 import { refreshEntitlement } from '../hooks/useEntitlement';
 import { recordSubscriptionStarted, revenueForPlan } from '../analytics/subscription_tracker';
@@ -68,6 +69,12 @@ export function RecoveryModePaywall() {
       setBusy(false);
     }
   }, [busy, router]);
+
+  // Launch gate (mirrors LAUNCHED_PLAN_IDS): recovery_plus is not launched, so
+  // there is no purchasable plan behind this paywall — render nothing rather
+  // than a checkout CTA that would 404 server-side. Self-guards every call
+  // site; auto-returns once recovery_plus joins the allowlist.
+  if (!LAUNCHED_PLAN_IDS.has('recovery_plus')) return null;
 
   return (
     <View style={[styles.card, { borderColor: `${TEAL}40` }]} testID="recovery-mode-paywall">
