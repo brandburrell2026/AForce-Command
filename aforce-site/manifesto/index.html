@@ -104,6 +104,15 @@
     .m-choice-can{ justify-self:center; }
     .m-choice-can img{ height:clamp(340px,50vh,460px); }
   }
+  /* The Standard — copy left, product stick right (mirrors The Choice) */
+  .m-standard-grid{ display:grid; grid-template-columns:minmax(0,1fr) auto; gap:clamp(40px,6vw,110px); align-items:center; }
+  .m-standard-can{ justify-self:end; }
+  .m-standard-can img{ height:clamp(420px,66vh,720px); width:auto; filter:drop-shadow(0 34px 60px rgba(13,13,13,0.26)); }
+  @media (max-width:820px){
+    .m-standard-grid{ grid-template-columns:1fr; gap:clamp(48px,9vw,72px); }
+    .m-standard-can{ justify-self:center; }
+    .m-standard-can img{ height:clamp(340px,50vh,460px); }
+  }
 
   /* ---------- SECTION 3 — THE DISCIPLINE (sticky crossfade) ---------- */
   .m-discipline{ position:relative; height:180vh; background:var(--ink); }
@@ -297,17 +306,24 @@
 
   <!-- ============ SECTION 6 — THE STANDARD ============ -->
   <section class="m-sec light m-standard" id="standard" aria-label="The Standard">
-    <div class="m-eyebrow reveal">The Standard</div>
-    <div class="stagger">
-      <h2 class="m-h reveal">The world is loud.</h2>
-      <h2 class="m-h reveal m-blue">AFORCE is disciplined.</h2>
-    </div>
-    <div class="m-standard-list stagger">
-      <p class="reveal dim">We don&rsquo;t compete for attention.</p>
-      <p class="reveal">We earn trust.</p>
-      <p class="reveal" style="margin-top:18px;">Hydration is the entry point.</p>
-      <p class="reveal">Behavior is the product.</p>
-      <p class="reveal">Preparation is the standard.</p>
+    <div class="m-standard-grid">
+      <div class="m-standard-copy">
+        <div class="m-eyebrow reveal">The Standard</div>
+        <div class="stagger">
+          <h2 class="m-h reveal">The world is loud.</h2>
+          <h2 class="m-h reveal m-blue">AFORCE is disciplined.</h2>
+        </div>
+        <div class="m-standard-list stagger">
+          <p class="reveal dim">We don&rsquo;t compete for attention.</p>
+          <p class="reveal">We earn trust.</p>
+          <p class="reveal" style="margin-top:18px;">Hydration is the entry point.</p>
+          <p class="reveal">Behavior is the product.</p>
+          <p class="reveal">Preparation is the standard.</p>
+        </div>
+      </div>
+      <div class="m-standard-can reveal">
+        <img src="/assets/stick-red.png" alt="AFORCE N-N — Watermelon Surge &amp; Chlorella alkaline hydration stick" loading="lazy" decoding="async">
+      </div>
     </div>
   </section>
 
