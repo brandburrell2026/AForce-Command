@@ -125,6 +125,16 @@ export const PLAN_CATALOG: Record<string, PlanCatalogEntry> = {
   },
 };
 
+// Launch allowlist — mirror of the client `LAUNCHED_PLAN_IDS`
+// (aforce-os/data/subscriptionPlans.ts). Only launched tiers are
+// checkout-eligible: a catalogued-but-not-launched planId (e.g. recovery_plus /
+// system / elite before their launch) is rejected exactly like an unknown plan,
+// so a dark tier cannot be purchased via a direct API call. `core` is launched
+// but intentionally absent from PLAN_CATALOG (it's free — never a Stripe
+// checkout). Parity with the client set is enforced by
+// subscriptionPlanParity.test.ts. To launch a tier: add its id here + on the client.
+export const LAUNCHED_PLAN_IDS = new Set<string>(['core', 'athlete']);
+
 // Acceptable schemes for the app-redirect bounce. Restricting to known
 // Expo / app-native / web schemes blocks open-redirect abuse.
 const ALLOWED_RETURN_SCHEMES = new Set([
@@ -200,8 +210,10 @@ router.post('/checkout/session', requireAuth, checkoutLimiter, async (req: Reque
     return;
   }
 
+  // Gate on the launch allowlist first: a not-yet-launched (dark) tier is
+  // rejected exactly like an unknown plan, closing the direct-API purchase hole.
   const plan = PLAN_CATALOG[planId];
-  if (!plan) {
+  if (!plan || !LAUNCHED_PLAN_IDS.has(planId)) {
     res.status(404).json({ error: `Plan "${planId}" is not eligible for Stripe checkout` });
     return;
   }
