@@ -218,6 +218,19 @@
   .fmt-choose{ margin-top:16px; text-align:center; font-weight:700; font-size:14px; letter-spacing:.02em; border:1.5px solid var(--canvas); border-radius:999px; padding:14px; min-height:44px; color:var(--canvas); transition:background .2s, color .2s; }
   .fmt.on .fmt-choose{ background:var(--canvas); color:var(--ink); }
   .fmt-choose .sel{ display:none; } .fmt.on .fmt-choose .pick{ display:none; } .fmt.on .fmt-choose .sel{ display:inline; }
+  /* Second-format nudge: once something is in the basket, the OTHER format's
+     card suggests adding it. Quiet — a relabelled Choose button with the
+     existing --theme accent, not an upsell banner. */
+  .fmt-choose .add-label{ display:none; }
+  .fmt.nudge:not(.on) .fmt-choose .pick{ display:none; }
+  .fmt.nudge:not(.on) .fmt-choose .add-label{ display:inline; }
+  /* Quiet: the relabel is the explicit prompt; a thin --theme border + accented
+     arrow are the only emphasis. Text stays charcoal — no colour fill, no badge. */
+  .fmt.nudge:not(.on) .fmt-choose{ border-color:var(--theme); }
+  .fmt.nudge:not(.on) .fmt-choose .arw{ display:inline-block; color:var(--theme); transition:transform .2s ease; }
+  .fmt.nudge:not(.on) .fmt-choose:hover .arw{ transform:translateX(3px); }
+  /* brief confirmation moment on the Add button after a successful add */
+  .ignite-btn.confirmed{ box-shadow:0 0 0 2px var(--theme) inset, 0 0 22px -4px var(--theme); }
 
   /* AFORCE OS informational tiers. NOT purchasable on web — the app membership
      is bought/managed in-app; this band informs and routes to /aforce-os. */
@@ -497,7 +510,7 @@
           <div class="stepper" data-format="sticks"><button type="button" data-step-dir="-1" aria-label="Fewer">–</button><span class="units"><span data-units>1</span><small>boxes</small></span><button type="button" data-step-dir="1" aria-label="More">+</button></div>
         </div>
         <details class="why-toggle"><summary>Why sticks?</summary><p>Portable and TSA-simple — your ritual holds on the road, in the gym bag, anywhere there's water.</p></details>
-        <button class="fmt-choose" type="button" data-choose="sticks" aria-pressed="false"><span class="pick">Choose Sticks</span><span class="sel">Sticks selected</span></button>
+        <button class="fmt-choose" type="button" data-choose="sticks" aria-pressed="false"><span class="pick">Choose Sticks</span><span class="sel">Sticks selected</span><span class="add-label">Add Sticks to your Ritual<span class="arw" aria-hidden="true"> →</span></span></button>
       </div>
       <!-- CANS -->
       <div class="fmt" data-format="cans">
@@ -521,7 +534,7 @@
           <div class="stepper" data-format="cans"><button type="button" data-step-dir="-1" aria-label="Fewer">–</button><span class="units"><span data-units>1</span><small>six-packs</small></span><button type="button" data-step-dir="1" aria-label="More">+</button></div>
         </div>
         <details class="why-toggle"><summary>Why cans?</summary><p>Zero prep — grab, crack, perform. The fastest way into the ritual on a moving day.</p></details>
-        <button class="fmt-choose" type="button" data-choose="cans" aria-pressed="false"><span class="pick">Choose Cans</span><span class="sel">Cans selected</span></button>
+        <button class="fmt-choose" type="button" data-choose="cans" aria-pressed="false"><span class="pick">Choose Cans</span><span class="sel">Cans selected</span><span class="add-label">Add Cans to your Ritual<span class="arw" aria-hidden="true"> →</span></span></button>
       </div>
     </div>
   </div>
@@ -826,6 +839,10 @@
       clearBeginError();
       track("added_to_ritual",{variant:vid, qty:qty, subscription:!!plan, source:source||"begin"});
       announce("Added to your ritual. "+basket.count()+" in your cart.");
+      /* Confirmation moment on the button, then let renderBegin restore it.
+         renderFormats (via the basket onChange) surfaces the second-format
+         nudge on the other card. */
+      if(btn){ btn.textContent="Added to Ritual"; btn.classList.add("confirmed"); setTimeout(function(){ if(document.getElementById("igniteBtn")===btn) renderBegin(); }, 1600); }
       openBasket();
     });
     return true;
@@ -974,6 +991,11 @@
   }
 
   /* ================= RENDER ================= */
+  /* Is this format already represented by a line in Your Ritual? */
+  function basketHasFormat(fmt){
+    return !!(basket && basket.lines().some(function(l){ var c=lineToConfig(l); return c && c.format===fmt; }));
+  }
+
   function renderFormats(){
     var pref = state.demand ? DEMANDS[state.demand].pref : null;
     $$(".fmt").forEach(function(card){
@@ -981,6 +1003,10 @@
       card.classList.toggle("bigger", pref===fmt);
       card.classList.toggle("floaty", pref===fmt);
       card.classList.toggle("on", state.format===fmt);
+      /* Nudge: once the basket has anything, the OTHER format (not selected,
+         not already in the basket) suggests being added too. */
+      var nudge = basket && !basket.isEmpty() && state.format!==fmt && !basketHasFormat(fmt);
+      card.classList.toggle("nudge", !!nudge);
       /* §7: the outer card is a plain container. The real "Choose" button
          carries the selected state (aria-pressed), so there is no nested
          interactive control. */
@@ -1145,7 +1171,14 @@
     /* §7: format is chosen ONLY via the real "Choose Sticks/Cans" button. The
        card is no longer an implicit button, so there is no nested-interaction
        and no custom keyboard handler — the real buttons handle Enter/Space. */
-    if(choose){ selectFormat(choose.getAttribute("data-choose")); return; }
+    if(choose){
+      var fromNudge = !!choose.closest(".fmt.nudge");
+      selectFormat(choose.getAttribute("data-choose"));
+      /* if this was the second-format nudge, bring its card into view so the
+         next step (depth + add) is right there — matters on stacked mobile. */
+      if(fromNudge){ var c=choose.closest(".fmt"); if(c) c.scrollIntoView({behavior:"smooth", block:"center"}); }
+      return;
+    }
   });
 
   /* Step 03 — interactive summary + missing-choice jump + primary Begin (delegated) */
@@ -1181,8 +1214,8 @@
 
   /* ================= YOUR RITUAL — basket events (§9) ================= */
   if(basket){
-    basket.onChange(renderBasket);
-    basket.hydrate().then(renderBasket);   // §9 persistence: restore on load
+    basket.onChange(function(){ renderBasket(); renderFormats(); });  // keep the second-format nudge in sync with the cart
+    basket.hydrate().then(function(){ renderBasket(); renderFormats(); });   // §9 persistence: restore on load
 
     var cartBtn=$("#afxCartBtn"); if(cartBtn) cartBtn.addEventListener("click", openBasket);
     $("#rb2Close").addEventListener("click", function(){ closeBasket(); });
