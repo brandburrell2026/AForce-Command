@@ -6,21 +6,24 @@
 <title>AFORCE — The Manifesto</title>
 <meta name="description" content="Performance begins before the moment arrives. The AFORCE Manifesto — a behavioral operating system built around preparation, ritual, readiness, and discipline.">
 <meta name="theme-color" content="#0D0D0D">
-<link rel="icon" type="image/png" href="/assets/favicon.png">
-<link rel="canonical" href="https://drinkaforce.com/manifesto">
+<link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
+<link rel="canonical" href="https://www.drinkaforce.com/manifesto">
 
 <meta property="og:type" content="website">
 <meta property="og:title" content="AFORCE — The Manifesto">
 <meta property="og:description" content="We don't chase performance. We prepare for it.">
-<meta property="og:image" content="/assets/og-image.jpg">
-<meta property="og:url" content="https://drinkaforce.com/manifesto">
+<meta property="og:image" content="https://www.drinkaforce.com/assets/manifesto-poster.jpg">
+<meta property="og:url" content="https://www.drinkaforce.com/manifesto">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="AFORCE — The Manifesto">
 <meta name="twitter:description" content="We don't chase performance. We prepare for it.">
+<meta name="twitter:image" content="https://www.drinkaforce.com/assets/manifesto-poster.jpg">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<!-- Universal header — loaded before the page style so the page's own colours win -->
+<link rel="stylesheet" href="/assets/header.css">
 <style>
   /* ---------- BASE (shared design system, mirrors the main site) ---------- */
   @media (prefers-reduced-motion: reduce){
@@ -46,15 +49,17 @@
   .grain{ position:fixed; inset:0; z-index:200; pointer-events:none; opacity:0.04; mix-blend-mode:overlay;
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
 
-  /* ---------- NAV (shared) ---------- */
-  .nav{ position:fixed; top:0; left:0; right:0; z-index:100; display:flex; align-items:center; justify-content:space-between; padding:26px clamp(20px,4vw,56px); color:#fff; font-size:13px; }
-  /* blend on children, not the fixed .nav — mix-blend-mode on a position:fixed
-     element breaks fixed positioning in Safari (nav scrolls away) */
-  .nav > *{ mix-blend-mode:difference; }
-  .nav .mark{ font-family:'Archivo Black',serif; font-size:19px; letter-spacing:0.04em; }
-  .nav .links{ display:flex; gap:28px; }
-  .nav a{ font-family:'Inter',sans-serif; font-weight:700; font-size:10.5px; letter-spacing:0.1em; text-transform:uppercase; opacity:0.85; }
-  .nav a.current{ opacity:1; border-bottom:1px solid currentColor; padding-bottom:2px; }
+  /* ---------- NAV (shared) ---------- layout/behaviour from
+     /assets/header.css; this keeps only the approved visual treatment —
+     SPECIAL CASE: no background/scrim, auto-contrast via mix-blend-mode. */
+  .afx-nav{ color:#fff; font-size:13px; }
+  /* blend on children, not the fixed .afx-nav — mix-blend-mode on a
+     position:fixed element breaks fixed positioning in Safari (nav scrolls away) */
+  .afx-nav > *{ mix-blend-mode:difference; }
+  .afx-nav .mark{ font-family:'Archivo Black',serif; font-size:19px; letter-spacing:0.04em; }
+  .afx-links{ gap:28px; }
+  .afx-nav a{ font-family:'Inter',sans-serif; font-weight:700; font-size:10.5px; letter-spacing:0.1em; text-transform:uppercase; opacity:0.85; }
+  .afx-nav a.current{ opacity:1; border-bottom:1px solid currentColor; padding-bottom:2px; }
 
   /* ---------- BUTTON (shared) ---------- */
   .btn{ font-family:'Inter',sans-serif; font-size:11px; letter-spacing:0.16em; text-transform:uppercase; padding:17px 32px; border-radius:2px; transition:all .35s ease; display:inline-block; cursor:pointer; }
@@ -192,27 +197,41 @@
     .m-ritual .m-scrim{ background:linear-gradient(180deg, rgba(13,13,13,0.55) 0%, rgba(13,13,13,0.86) 100%); }
     .m-footer{ flex-direction:column; align-items:flex-start; }
   }
-  /* Immersive page: collapse the top nav to just the mark on phones (footer carries full nav) */
-  @media (max-width:720px){
-    .nav .links{ display:none; }
-  }
 </style>
 </head>
 <body>
 <a href="#choice" class="skip-link">Skip to content</a>
 <div class="grain" aria-hidden="true"></div>
 
-<nav class="nav" id="nav">
-  <a href="/" class="mark">AFORCE™</a>
-  <div class="links">
-    <a href="/#ritual">Ritual</a>
-    <a href="/aforce-os">The OS</a>
-    <a href="/our-story">Our Story</a>
-    <a href="/science">Science</a>
-    <a href="/manifesto" class="current" aria-current="page">Manifesto</a>
-    <a href="/shop">Shop</a>
+<header class="afx-nav afx-overlay" id="afxNav">
+  <a href="/" class="afx-mark mark" aria-label="AFORCE — home">AFORCE™</a>
+  <div class="afx-right">
+    <div class="afx-links">
+      <a href="/#ritual">Ritual</a><a href="/aforce-os">The OS</a><a href="/our-story">Our Story</a><a href="/science">Science</a><a href="/manifesto" class="current" aria-current="page">Manifesto</a>
+    </div>
+    <a href="/shop" class="afx-shop">Shop</a>
+    <a href="https://shop.drinkaforce.com/cart" class="afx-cart" aria-label="Cart">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M6 8h12l-1 12H7L6 8z"/><path d="M9 8a3 3 0 0 1 6 0"/></svg>
+      <span class="afx-cart-count" id="afxCartCount" hidden>0</span>
+    </a>
+    <button class="afx-burger" id="afxBurger" type="button" aria-controls="afxDrawer" aria-expanded="false" aria-label="Open menu">
+      <span class="afx-bar"></span><span class="afx-bar"></span><span class="afx-bar"></span>
+    </button>
   </div>
-</nav>
+</header>
+<div class="afx-drawer" id="afxDrawer" data-open="false">
+  <div class="afx-backdrop" data-afx-close></div>
+  <div class="afx-panel">
+    <nav aria-label="Main">
+      <a href="/#ritual">Ritual</a>
+      <a href="/aforce-os">The OS</a>
+      <a href="/our-story">Our Story</a>
+      <a href="/science">Science</a>
+      <a href="/manifesto" aria-current="page">Manifesto</a>
+      <a href="/shop" class="afx-drawer-shop">Shop</a>
+    </nav>
+  </div>
+</div>
 
 <main>
   <!-- ============ SECTION 1 — HERO ============ -->
@@ -351,6 +370,7 @@
   </nav>
 </footer>
 
+<script src="/assets/header.js" defer></script>
 <script>
   // ---- Reveal on scroll (mirrors the site's IntersectionObserver) ----
   const io = new IntersectionObserver((entries)=>{

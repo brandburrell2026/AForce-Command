@@ -1,0 +1,187 @@
+/* =====================================================================
+   AFORCE — UNIVERSAL HEADER  (brief §4)
+   One header structure + behaviour across Ritual / The OS / Our Story /
+   Science / Manifesto / Shop.
+
+   COLOUR POLICY: structure only — no hex values here. Every colour resolves
+   from the host page's own tokens (--ink / --canvas / --red) or currentColor,
+   so the Shop keeps its warm-white/gray system and the cinematic pages keep
+   theirs. A page tunes the header via the --afx-* vars, which MUST be declared
+   on :root (the drawer is a SIBLING of the bar, so vars set on .afx-nav would
+   never reach it).
+
+   Desktop order (≥1024):  RITUAL | THE OS | OUR STORY | SCIENCE | MANIFESTO
+                           | SHOP (button) | CART
+   Compact (<1024) right:  SHOP (button) · CART · Hamburger
+   ===================================================================== */
+
+:root {
+  --afx-gutter: clamp(20px, 4vw, 56px);
+  --afx-h: 76px;                 /* desktop bar height */
+  --afx-h-mobile: 64px;          /* compact bar height */
+  --afx-surface: var(--canvas);  /* drawer + open-state bar surface */
+  --afx-on-surface: var(--ink);  /* text once the bar becomes a surface */
+}
+
+.afx-nav {
+  position: sticky;              /* §8 */
+  top: 0;
+  z-index: 300;                  /* §7 — above ritualbar / cart drawer / lightbox */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  height: var(--afx-h);
+  padding-left: max(var(--afx-gutter), env(safe-area-inset-left, 0px));
+  padding-right: max(var(--afx-gutter), env(safe-area-inset-right, 0px));
+  transition: background .4s ease, color .4s ease, border-color .4s ease;
+}
+
+/* OVERLAY MODE — for pages whose first section is a full-bleed hero. The old
+   nav was position:fixed (out of flow), so the hero began at y=0 with the bar
+   floating over it. Plain sticky occupies bar-height of flow and would push the
+   hero down (altering an approved hero, §3). A negative bottom margin cancels
+   that flow space, so the hero stays full-bleed AND the bar still sticks (§8).
+   Deliberately NOT mix-blend-mode: blend modes make WebKit drop sticky. */
+.afx-nav.afx-overlay { margin-bottom: calc(var(--afx-h) * -1); }
+@media (max-width: 1023.98px) {
+  .afx-nav.afx-overlay { margin-bottom: calc(var(--afx-h-mobile) * -1); }
+}
+
+/* Logo — each page keeps its own approved mark; only guarantee it can't be
+   squashed and that it is clickable (→ /) on every page including home. */
+.afx-mark { flex: 0 0 auto; display: inline-flex; align-items: center; text-decoration: none; color: inherit; }
+
+/* Right-hand cluster holds links + SHOP + CART on desktop. */
+.afx-right { display: flex; align-items: center; gap: clamp(14px, 1.8vw, 26px); min-width: 0; }
+
+.afx-links { display: flex; align-items: center; gap: clamp(14px, 1.8vw, 26px); flex-wrap: nowrap; min-width: 0; }
+.afx-links a { white-space: nowrap; text-decoration: none; color: inherit; }
+
+/* SHOP stays a distinct button (§4) — never reduced to a plain link. */
+.afx-shop {
+  flex: 0 0 auto;
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 40px; padding: 0 18px;
+  border: 1.5px solid currentColor; border-radius: 999px;
+  text-decoration: none; color: inherit;
+  font-weight: 700; font-size: 12px; letter-spacing: .08em; text-transform: uppercase;
+  transition: background .2s ease, color .2s ease, opacity .2s ease;
+  white-space: nowrap;
+}
+.afx-shop:hover { opacity: .82; }
+
+/* CART — a separate accessible control (§4). Icon is currentColor, no count
+   until a real basket exists (§9: never show a fake count). */
+.afx-cart {
+  flex: 0 0 auto; position: relative;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 44px; height: 44px;               /* 44×44 target (§21) */
+  margin-right: -8px;                        /* optical edge alignment */
+  border: 0; background: none; color: inherit; cursor: pointer;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.afx-cart svg { width: 21px; height: 21px; display: block; }
+.afx-cart .afx-cart-count {
+  position: absolute; top: 4px; right: 2px;
+  min-width: 16px; height: 16px; padding: 0 4px;
+  border-radius: 999px; background: var(--red); color: #fff;
+  font-family: var(--mono, monospace); font-size: 10px; line-height: 16px;
+  text-align: center; font-weight: 700;
+}
+.afx-cart .afx-cart-count[hidden] { display: none; }
+
+/* Hamburger (§6) — three lines, currentColor, no box; 44×44 target. */
+.afx-burger {
+  display: none;                 /* desktop: hidden */
+  position: relative; flex: 0 0 auto;
+  width: 44px; height: 44px; margin-right: -10px;
+  padding: 0; border: 0; background: none; color: inherit; cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.afx-burger .afx-bar {
+  position: absolute; left: 50%; width: 22px; height: 1.5px; margin-left: -11px;
+  background: currentColor; transition: transform .28s ease, opacity .2s ease, top .28s ease;
+}
+.afx-burger .afx-bar:nth-child(1) { top: 15px; }
+.afx-burger .afx-bar:nth-child(2) { top: 21.25px; }
+.afx-burger .afx-bar:nth-child(3) { top: 27.5px; }
+.afx-burger[aria-expanded="true"] .afx-bar:nth-child(1) { top: 21.25px; transform: rotate(45deg); }
+.afx-burger[aria-expanded="true"] .afx-bar:nth-child(2) { opacity: 0; }
+.afx-burger[aria-expanded="true"] .afx-bar:nth-child(3) { top: 21.25px; transform: rotate(-45deg); }
+
+/* ---------- Mobile drawer (§7) ---------- */
+.afx-drawer {
+  position: fixed; inset: 0; z-index: 290;   /* below the bar so the X stays visible */
+  display: none;
+}
+.afx-drawer[data-open="true"] { display: block; }
+.afx-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,.4); }
+.afx-panel {
+  position: absolute; top: var(--afx-h-mobile); left: 0; right: 0; bottom: 0;
+  background: var(--afx-surface); color: var(--afx-on-surface);
+  overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
+  padding: 12px max(var(--afx-gutter), env(safe-area-inset-left, 0px))
+           calc(28px + env(safe-area-inset-bottom, 0px))
+           max(var(--afx-gutter), env(safe-area-inset-right, 0px));
+}
+.afx-panel nav { display: flex; flex-direction: column; align-items: stretch; }
+.afx-panel a {
+  display: block; padding: 18px 0; font-size: 26px; line-height: 1.15;
+  letter-spacing: .01em; text-decoration: none; color: inherit; opacity: .72;
+  transition: opacity .2s ease;
+}
+.afx-panel a:hover { opacity: 1; }
+.afx-panel a[aria-current="page"] { opacity: 1; font-weight: 700; }
+.afx-panel a[aria-current="page"]::after {
+  content: ""; display: block; width: 26px; height: 2px; margin-top: 10px; background: var(--red);
+}
+/* SHOP as the final full-width button in the drawer (§7). */
+.afx-panel .afx-drawer-shop {
+  margin-top: 20px; padding: 18px; text-align: center;
+  border: 1.5px solid currentColor; border-radius: 999px;
+  font-size: 15px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+  opacity: 1;
+}
+.afx-panel .afx-drawer-shop::after { content: none; }
+
+/* Open state: bar becomes the drawer surface so they read as one plane. */
+.afx-nav.afx-open { background: var(--afx-surface); color: var(--afx-on-surface); border-bottom-color: transparent; }
+
+/* ---------- Breakpoint (§4 / §5): 1024 ---------- */
+@media (max-width: 1023.98px) {
+  .afx-nav { height: var(--afx-h-mobile); }
+  .afx-links { display: none; }          /* §7 no desktop nav behind the drawer */
+  .afx-burger { display: block; }
+  /* Compact SHOP stays a button but tighter. */
+  .afx-shop { min-height: 40px; padding: 0 14px; font-size: 11px; }
+}
+/* Narrow phones (≤380px): the logo wordmark + SHOP button + cart + hamburger
+   won't fit at default spacing, which pushed the hamburger past the viewport
+   edge (the §21 header-overflow cause). Tighten gaps and drop the optical
+   negative margins so every element stays inside the gutter — no clipping. */
+@media (max-width: 380px) {
+  .afx-nav { gap: 8px; }
+  .afx-right { gap: 8px; }
+  .afx-shop { padding: 0 11px; letter-spacing: .04em; }
+  .afx-cart { margin-right: -4px; }
+  .afx-burger { margin-right: -6px; }
+}
+@media (min-width: 1024px) {
+  .afx-drawer { display: none !important; }
+}
+
+/* Scroll lock (§7) — on <html>; JS compensates scrollbar width so the page
+   never shifts sideways (§8). */
+html.afx-locked, html.afx-locked body { overflow: hidden; touch-action: none; }
+
+/* Focus visibility (§19) */
+.afx-burger:focus-visible, .afx-cart:focus-visible, .afx-shop:focus-visible,
+.afx-links a:focus-visible, .afx-panel a:focus-visible {
+  outline: 2px solid var(--red); outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .afx-nav, .afx-burger .afx-bar { transition: none; }
+}

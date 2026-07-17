@@ -8,23 +8,26 @@
 <title>AFORCE — The Performance Operating System</title>
 <meta name="description" content="AFORCE — the first performance hydration system built around readiness, ritual, and AI. pH 8.8 alkaline hydration powered by a daily readiness app and performance ritual.">
 <meta name="theme-color" content="#E9E7E1">
-<link rel="icon" type="image/png" href="assets/favicon.png">
-<link rel="canonical" href="https://drinkaforce.com/">
+<link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
+<link rel="canonical" href="https://www.drinkaforce.com/">
 
-<!-- Open Graph / social share cards — swap og-image.jpg for a real 1200x630 branded image before launch -->
+<!-- Open Graph / social share cards. og-image.jpg does not exist; using the
+     live hero poster as the nonbroken fallback until a 1200x630 card is supplied. -->
 <meta property="og:type" content="website">
 <meta property="og:title" content="AFORCE — The Performance Operating System">
 <meta property="og:description" content="Performance Is Non-Negotiable. pH 8.8 alkaline hydration, a daily readiness ritual, and the AFORCE OS.">
-<meta property="og:image" content="assets/og-image.jpg">
-<meta property="og:url" content="https://drinkaforce.com/">
+<meta property="og:image" content="https://www.drinkaforce.com/assets/hero-poster.jpg">
+<meta property="og:url" content="https://www.drinkaforce.com/">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="AFORCE — The Performance Operating System">
 <meta name="twitter:description" content="Performance Is Non-Negotiable.">
-<meta name="twitter:image" content="assets/og-image.jpg">
+<meta name="twitter:image" content="https://www.drinkaforce.com/assets/hero-poster.jpg">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<!-- Universal header — loaded before the page style so the page's own colours win -->
+<link rel="stylesheet" href="/assets/header.css">
 <style>
   /* Respect users who've asked their OS for reduced motion — accessibility baseline, not optional */
   @media (prefers-reduced-motion: reduce){
@@ -52,26 +55,23 @@
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
 
 
-  /* Scroll-aware fixed nav. No mix-blend-mode: blend modes make WebKit/Safari
-     drop position:fixed to absolute, so the nav would scroll away on iOS/Safari.
-     Instead: light text over the dark hero, solid bone bar once scrolled. */
-  .nav{ position:fixed; top:0; left:0; right:0; z-index:100; display:flex; align-items:center; justify-content:space-between; padding: 22px clamp(20px,4vw,56px); color:#F5F0E8; font-size:13px; background:transparent; border-bottom:1px solid transparent; transition:background .4s ease, color .4s ease, border-color .4s ease, padding .4s ease; }
-  .nav.solid{ background:rgba(245,240,232,0.88); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); border-bottom-color:rgba(13,13,13,0.08); color:var(--ink); padding-top:14px; padding-bottom:14px; }
-  .nav .mark{font-family:'Archivo Black',serif; font-size:28.5px; letter-spacing:0.04em; font-weight:500;}
+  /* Scroll-aware nav — layout/behaviour from /assets/header.css; this keeps
+     only the approved visual treatment: light text over the dark hero, solid
+     bone bar once scrolled. */
+  .afx-nav{ color:#F5F0E8; font-size:13px; background:transparent; border-bottom:1px solid transparent; transition:background .4s ease, color .4s ease, border-color .4s ease, padding .4s ease; }
+  .afx-nav.solid{ background:rgba(245,240,232,0.88); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); border-bottom-color:rgba(13,13,13,0.08); color:var(--ink); padding-top:14px; padding-bottom:14px; }
+  .afx-nav.afx-open, .afx-nav.solid.afx-open{ background:var(--afx-surface); color:var(--afx-on-surface); border-bottom-color:transparent; }
+  .afx-nav .mark{font-family:'Archivo Black',serif; font-size:28.5px; letter-spacing:0.04em; font-weight:500;}
   /* N–N monogram in the nav (double N's, second mirrored) — first N + dash always Signal Red, second N adapts to nav color */
-  .nav .mark .nn{ display:inline-flex; align-items:center; gap:5px; line-height:1; }
-  .nav .mark .nn > span:first-child{ color:var(--red); }
-  .nav .mark .nn .bar{ display:inline-block; width:13px; height:3px; background:var(--red); }
-  .nav .mark .nn .flip{ display:inline-block; transform:scaleX(-1); color:currentColor; }
-  .nav .links{display:flex; gap:28px;}
-  .nav a{text-decoration:none; font-family:'Inter',sans-serif; font-weight:700; font-size:10.5px; letter-spacing:0.1em; text-transform:uppercase; opacity:0.85; transition:color .2s ease, opacity .2s ease;}
-  .nav a.shop-link{ opacity:1; border-bottom:1px solid currentColor; padding-bottom:2px; }
-  .nav a:hover{ color:var(--red); opacity:1; }
-  /* mobile: wrap nav links so all items stay reachable instead of clipping off-screen */
+  .afx-nav .mark .nn{ display:inline-flex; align-items:center; gap:5px; line-height:1; }
+  .afx-nav .mark .nn > span:first-child{ color:var(--red); }
+  .afx-nav .mark .nn .bar{ display:inline-block; width:13px; height:3px; background:var(--red); }
+  .afx-nav .mark .nn .flip{ display:inline-block; transform:scaleX(-1); color:currentColor; }
+  .afx-links{ gap:28px; }
+  .afx-nav a{text-decoration:none; font-family:'Inter',sans-serif; font-weight:700; font-size:10.5px; letter-spacing:0.1em; text-transform:uppercase; opacity:0.85; transition:color .2s ease, opacity .2s ease;}
+  .afx-nav a:hover{ color:var(--red); opacity:1; }
   @media (max-width:680px){
-    .nav{ flex-wrap:wrap; row-gap:10px; }
-    .nav .links{ width:100%; flex-wrap:wrap; gap:12px 16px; }
-    .nav .mark{ font-size:22px; }
+    .afx-nav .mark{ font-size:22px; }
   }
 
   /* ---------- HERO (video-ready) ---------- */
@@ -378,17 +378,35 @@
 <a href="#hero" class="skip-link">Skip to main content</a>
 <div class="grain" aria-hidden="true"></div>
 
-<nav class="nav" id="nav">
-  <div class="mark" role="img" aria-label="AFORCE"><span class="nn"><span>N</span><span class="bar"></span><span class="flip">N</span></span></div>
-  <div class="links">
-    <a href="#ritual">Ritual</a>
-    <a href="/aforce-os">The OS</a>
-    <a href="/our-story">Our Story</a>
-    <a href="/science">Science</a>
-    <a href="/manifesto">Manifesto</a>
-    <a href="/shop" class="shop-link">Shop</a>
+<header class="afx-nav afx-overlay" id="afxNav">
+  <a class="afx-mark mark" href="/" aria-label="AFORCE — home"><span class="nn"><span>N</span><span class="bar"></span><span class="flip">N</span></span></a>
+  <div class="afx-right">
+    <div class="afx-links">
+      <a href="/#ritual" aria-current="page">Ritual</a><a href="/aforce-os">The OS</a><a href="/our-story">Our Story</a><a href="/science">Science</a><a href="/manifesto">Manifesto</a>
+    </div>
+    <a href="/shop" class="afx-shop">Shop</a>
+    <a href="https://shop.drinkaforce.com/cart" class="afx-cart" aria-label="Cart">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M6 8h12l-1 12H7L6 8z"/><path d="M9 8a3 3 0 0 1 6 0"/></svg>
+      <span class="afx-cart-count" id="afxCartCount" hidden>0</span>
+    </a>
+    <button class="afx-burger" id="afxBurger" type="button" aria-controls="afxDrawer" aria-expanded="false" aria-label="Open menu">
+      <span class="afx-bar"></span><span class="afx-bar"></span><span class="afx-bar"></span>
+    </button>
   </div>
-</nav>
+</header>
+<div class="afx-drawer" id="afxDrawer" data-open="false">
+  <div class="afx-backdrop" data-afx-close></div>
+  <div class="afx-panel">
+    <nav aria-label="Main">
+      <a href="/#ritual" aria-current="page">Ritual</a>
+      <a href="/aforce-os">The OS</a>
+      <a href="/our-story">Our Story</a>
+      <a href="/science">Science</a>
+      <a href="/manifesto">Manifesto</a>
+      <a href="/shop" class="afx-drawer-shop">Shop</a>
+    </nav>
+  </div>
+</div>
 
 <section class="hero" id="hero">
   <div class="hero-cine" aria-hidden="true">
@@ -617,8 +635,9 @@
   </div>
 </footer>
 
+<script src="/assets/header.js" defer></script>
 <script>
-  const nav = document.getElementById('nav');
+  const nav = document.getElementById('afxNav');
 
   // No intro splash — the site loads straight to the hero and the nav is visible on load
 

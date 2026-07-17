@@ -6,11 +6,24 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AFORCE — Join the System</title>
 <meta name="description" content="Choose your demand. The protocol answers. Every AFORCE order activates your Performance Profile in AFORCE OS.">
+<link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
+<link rel="canonical" href="https://www.drinkaforce.com/shop">
+<meta property="og:type" content="website">
+<meta property="og:title" content="AFORCE — Join the System">
+<meta property="og:description" content="Choose your demand. The protocol answers. Every AFORCE order activates your Performance Profile in AFORCE OS.">
+<meta property="og:url" content="https://www.drinkaforce.com/shop">
+<meta property="og:image" content="https://www.drinkaforce.com/assets/hero-poster.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="AFORCE — Join the System">
+<meta name="twitter:description" content="Choose your demand. The protocol answers. Every AFORCE order activates your Performance Profile in AFORCE OS.">
+<meta name="twitter:image" content="https://www.drinkaforce.com/assets/hero-poster.jpg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,500&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <link rel="preload" as="image" href="/assets/can-blue.png"><link rel="preload" as="image" href="/assets/can-red.png"><link rel="preload" as="image" href="/assets/can-green.png">
 <link rel="preload" as="image" href="/assets/stick-blue.png"><link rel="preload" as="image" href="/assets/stick-red.png"><link rel="preload" as="image" href="/assets/stick-green.png">
+<!-- Universal header — loaded before the page style so the Shop's own colours win -->
+<link rel="stylesheet" href="/assets/header.css">
 <style>
   :root{
     --ink:#0B0D12; --canvas:#F2F2F0; --red:#C1281B; --blue:#2F5BFF; --green:#2D6A4F;
@@ -35,17 +48,27 @@
   .flip-n{display:inline-block;transform:scaleX(-1);}
   :focus-visible{outline:2px solid var(--theme);outline-offset:3px;}
 
-  /* ---------- NAV (light) ---------- */
-  .nav{ position:sticky;top:0;z-index:50; display:flex;align-items:center;justify-content:space-between; padding:18px var(--gutter); background:rgba(242,242,240,.9); backdrop-filter:blur(12px); border-bottom:1px solid var(--ink-12); }
+  /* ---------- NAV (light) — layout/behaviour from /assets/header.css;
+     this keeps only the Shop's approved warm-white surface + typography. */
+  :root{ --afx-gutter:var(--gutter); }
+  .afx-nav{ background:rgba(242,242,240,.9); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); border-bottom:1px solid var(--ink-12); }
   .mark{ font-family:var(--display);font-weight:900;font-size:17px;letter-spacing:.02em; display:flex;align-items:center;gap:10px; }
   .nn{display:inline-flex;align-items:center;gap:3px;font-weight:900;}
   .nn > span:first-child{color:var(--red);}
   .nn .bar{ display:inline-block; width:9px; height:2.5px; background:var(--red); }
   .nn .flip{ display:inline-block; transform:scaleX(-1); }
-  .nav-links{ display:flex; gap:clamp(12px,1.8vw,26px); font-weight:600; font-size:12px; letter-spacing:.06em; }
-  .nav-links a{ opacity:.62; transition:opacity .2s; white-space:nowrap; }
-  .nav-links a:hover,.nav-links a[aria-current="page"]{ opacity:1; }
-  .nav-links a[aria-current="page"]{ color:var(--theme); transition:color .6s ease; }
+  .afx-links{ font-weight:600; font-size:12px; letter-spacing:.06em; }
+  .afx-links a{ opacity:.62; transition:opacity .2s; }
+  .afx-links a:hover,.afx-links a[aria-current="page"]{ opacity:1; }
+  .afx-links a[aria-current="page"]{ color:var(--theme); transition:color .6s ease; }
+  /* drawer inherits the Shop's warm-white surface + charcoal ink from tokens */
+  .afx-panel{ font-family:var(--display); }
+  /* §5 hero CTA — existing pill/type system, existing --theme accent; no new colour */
+  .hero-cta{ display:inline-flex; align-items:center; justify-content:center; margin-top:22px; min-height:48px; padding:0 28px; border-radius:999px; background:var(--theme); color:var(--ink); font-family:var(--display); font-weight:700; font-size:13.5px; letter-spacing:.04em; text-decoration:none; transition:opacity .2s ease, background .6s ease; }
+  .hero-cta:hover{ opacity:.9; }
+  /* header (76/64px sticky) must not cover the scroll target (§5) */
+  #stepDemand{ scroll-margin-top:88px; }
+  @media (max-width:1023.98px){ #stepDemand{ scroll-margin-top:76px; } }
 
   .wrap{ max-width:1180px; margin:0 auto; padding:0 var(--gutter); }
   .eyebrow{ font-family:var(--mono); font-size:11px; letter-spacing:.22em; text-transform:uppercase; color:var(--theme); transition:color .6s ease; }
@@ -183,12 +206,8 @@
   .stepper button:disabled{ opacity:.3; pointer-events:none; }
   .stepper .units{ font-family:var(--display); font-weight:800; font-size:16px; color:var(--canvas); min-width:64px; text-align:center; }
   .stepper .units small{ display:block; font-family:var(--mono); font-weight:400; font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:var(--can-40); }
-  /* free-ship progress */
-  .freeship{ margin-top:14px; }
-  .freeship .fs-label{ display:flex; justify-content:space-between; font-family:var(--mono); font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:var(--can-55); margin-bottom:6px; }
-  .freeship .fs-track{ height:3px; border-radius:3px; background:var(--can-12); overflow:hidden; }
-  .freeship .fs-fill{ height:100%; width:0%; background:var(--theme); border-radius:3px; transition:width .35s ease, background .6s ease; }
-  .freeship.met .fs-label{ color:var(--canvas); }
+  /* §7/§19 screen-reader-only live region — visually hidden, still announced */
+  .sr-only{ position:absolute!important; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0 0 0 0); clip-path:inset(50%); white-space:nowrap; border:0; }
 
   .why-toggle{ margin-top:14px; }
   .why-toggle summary{ list-style:none; cursor:pointer; font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--can-40); display:inline-flex; align-items:center; gap:7px; }
@@ -213,6 +232,20 @@
   #stepOS .os-amt{ font-family:var(--display); font-weight:800; font-size:clamp(26px,3vw,34px); color:var(--canvas); }
   #stepOS .os-per{ font-family:var(--mono); font-size:12px; color:var(--can-40); }
   #stepOS .os-desc{ color:var(--can-70); font-size:14px; line-height:1.5; }
+  /* §6 Core/Command content — existing tokens only, no new colours */
+  #stepOS .os-sub{ font-family:var(--mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--can-40); }
+  #stepOS .os-line{ font-style:italic; color:var(--can-55); font-size:13.5px; margin-top:2px; }
+  #stepOS .os-feat{ list-style:none; margin:6px 0 0; padding:0; display:flex; flex-direction:column; gap:7px; }
+  #stepOS .os-feat li{ position:relative; padding-left:16px; font-size:13.5px; color:var(--can-70); }
+  #stepOS .os-feat li::before{ content:""; position:absolute; left:0; top:7px; width:5px; height:5px; border-radius:50%; background:var(--theme); }
+  /* §6/§14 MONTHLY | ANNUAL segmented control — existing pill language, 44px targets */
+  #stepOS .os-seg{ display:inline-flex; padding:3px; border:1px solid var(--can-22); border-radius:999px; gap:3px; align-self:flex-start; }
+  #stepOS .os-seg button{ min-height:44px; padding:0 16px; border:0; border-radius:999px; background:transparent; cursor:pointer; font-family:var(--display); font-weight:700; font-size:11.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--can-55); transition:background .2s, color .2s; }
+  #stepOS .os-seg button[aria-pressed="true"]{ background:var(--theme); color:var(--ink); }
+  #stepOS .os-save{ font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--can-55); border:1px solid var(--can-22); border-radius:999px; padding:2px 8px; align-self:center; }
+  /* COMMAND INCLUDED status — reuses the pro badge language, never green (§9) */
+  #stepOS .os-incl{ align-self:flex-start; font-family:var(--display); font-weight:700; font-size:12px; letter-spacing:.06em; text-transform:uppercase; color:var(--ink); background:var(--theme); border-radius:999px; padding:8px 14px; }
+  #stepOS .os-seg[hidden], #stepOS .os-save[hidden], #stepOS .os-incl[hidden]{ display:none; }
   #stepOS .os-cta{ display:inline-flex; align-items:center; gap:8px; margin-top:clamp(20px,2.4vw,28px); font-weight:700; font-size:14px; border:1.5px solid var(--canvas); border-radius:999px; padding:14px 24px; min-height:44px; color:var(--canvas); transition:background .2s, color .2s; }
   #stepOS .os-cta:hover{ background:var(--canvas); color:var(--ink); }
   #stepOS .os-fine{ margin-top:12px; color:var(--can-40); font-size:11.5px; }
@@ -248,10 +281,61 @@
   .plainly p + p{ margin-top:12px; }
 
   /* ---------- RITUAL BAR ---------- */
+  /* ---------- YOUR RITUAL basket drawer (§9) — warm-white, --ink text,
+     --ink-12 hairlines, stable AForce --blue accent (not flavor --theme) ---------- */
+  .rb2{ position:fixed; inset:0; z-index:280; display:none; }
+  .rb2[data-open="true"]{ display:block; }
+  .rb2-backdrop{ position:absolute; inset:0; background:rgba(11,13,18,.42); }
+  .rb2-panel{ position:absolute; top:0; right:0; bottom:0; width:min(440px,100%); background:#FCFCFB; color:var(--ink); display:flex; flex-direction:column; box-shadow:-24px 0 60px -30px rgba(11,13,18,.4); transform:translateX(100%); transition:transform .38s cubic-bezier(.2,.7,.2,1); padding-bottom:env(safe-area-inset-bottom,0px); }
+  .rb2[data-open="true"] .rb2-panel{ transform:none; }
+  .rb2-head{ display:flex; align-items:center; justify-content:space-between; padding:22px var(--gutter) 14px; }
+  .rb2-head h2{ font-family:var(--display); font-weight:800; font-size:19px; letter-spacing:-.01em; }
+  .rb2-x{ width:44px; height:44px; margin-right:-10px; border:0; background:none; cursor:pointer; position:relative; color:var(--ink); }
+  .rb2-x span{ position:absolute; left:12px; top:21px; width:20px; height:1.5px; background:currentColor; }
+  .rb2-x span:first-child{ transform:rotate(45deg); } .rb2-x span:last-child{ transform:rotate(-45deg); }
+  .rb2-included{ margin:0 var(--gutter) 4px; display:inline-flex; align-self:flex-start; align-items:center; gap:8px; font-family:var(--display); font-weight:700; font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:#fff; background:var(--blue); border-radius:999px; padding:7px 13px; }
+  .rb2-included[hidden]{ display:none; }
+  .rb2-included .dot{ width:6px; height:6px; border-radius:50%; background:#fff; }
+  .rb2-body{ flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; padding:8px var(--gutter) 12px; }
+  .rb2-line{ display:grid; grid-template-columns:64px 1fr; gap:14px; padding:16px 0; border-bottom:1px solid var(--ink-12); }
+  .rb2-thumb{ width:64px; height:64px; border-radius:6px; background:var(--ink-06); display:flex; align-items:center; justify-content:center; overflow:hidden; }
+  .rb2-thumb img{ width:100%; height:100%; object-fit:contain; }
+  .rb2-line-name{ font-family:var(--display); font-weight:700; font-size:14.5px; letter-spacing:-.01em; }
+  .rb2-line-meta{ margin-top:3px; font-size:12px; color:var(--ink-60); line-height:1.5; }
+  .rb2-line-plan{ display:inline-block; margin-top:5px; font-family:var(--mono); font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:var(--blue); }
+  .rb2-line-plan.onetime{ color:var(--ink-40); }
+  .rb2-line-bottom{ display:flex; align-items:center; justify-content:space-between; margin-top:11px; }
+  .rb2-qty{ display:inline-flex; align-items:center; border:1px solid var(--ink-12); border-radius:999px; }
+  .rb2-qty button{ width:34px; height:34px; border:0; background:none; cursor:pointer; font-size:16px; color:var(--ink); line-height:1; }
+  .rb2-qty button:disabled{ opacity:.3; cursor:not-allowed; }
+  .rb2-qty span{ min-width:26px; text-align:center; font-family:var(--mono); font-size:13px; }
+  .rb2-line-price{ font-family:var(--display); font-weight:700; font-size:14px; }
+  .rb2-line-acts{ margin-top:8px; display:flex; gap:16px; }
+  .rb2-line-acts button{ border:0; background:none; cursor:pointer; font-family:var(--mono); font-size:10.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-40); padding:6px 0; min-height:32px; }
+  .rb2-line-acts button:hover{ color:var(--ink); }
+  .rb2-line-acts button.rb2-remove:hover{ color:var(--red); }
+  .rb2-empty{ text-align:center; padding:48px 10px; color:var(--ink-60); }
+  .rb2-empty .rb2-empty-h{ font-family:var(--display); font-weight:800; font-size:18px; color:var(--ink); margin-bottom:8px; }
+  .rb2-undo{ margin:0 var(--gutter); display:flex; align-items:center; justify-content:space-between; gap:12px; background:var(--ink); color:var(--canvas); border-radius:8px; padding:12px 16px; font-size:13px; }
+  .rb2-undo[hidden]{ display:none; }
+  .rb2-undo button{ border:0; background:none; color:var(--canvas); cursor:pointer; font-family:var(--display); font-weight:700; font-size:12px; letter-spacing:.06em; text-transform:uppercase; text-decoration:underline; text-underline-offset:3px; min-height:32px; }
+  .rb2-foot{ border-top:1px solid var(--ink-12); padding:16px var(--gutter) calc(20px + env(safe-area-inset-bottom,0px)); background:#FCFCFB; }
+  .rb2-foot[hidden]{ display:none; }
+  .rb2-sub{ display:flex; justify-content:space-between; font-family:var(--display); font-weight:700; font-size:16px; }
+  .rb2-ship{ margin-top:4px; font-family:var(--mono); font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-40); }
+  .rb2-checkout{ display:block; width:100%; min-height:52px; margin-top:16px; border:0; border-radius:999px; background:var(--blue); color:#fff; font-family:var(--display); font-weight:700; font-size:14px; letter-spacing:.03em; cursor:pointer; transition:opacity .2s; }
+  .rb2-checkout:hover{ opacity:.9; } .rb2-checkout:disabled{ opacity:.4; cursor:not-allowed; }
+  .rb2-continue{ display:block; width:100%; min-height:44px; margin-top:10px; border:0; background:none; color:var(--ink-60); cursor:pointer; font-size:12.5px; text-decoration:underline; text-underline-offset:3px; }
+  .rb2-err{ margin:10px var(--gutter) 0; color:var(--red); font-size:12.5px; }
+  @media (prefers-reduced-motion:reduce){ .rb2-panel{ transition:none; } }
+
   .ritualbar{ position:fixed; left:0; right:0; bottom:0; z-index:60; transform:translateY(120%); transition:transform .4s cubic-bezier(.2,.7,.2,1); background:rgba(11,13,18,.98); backdrop-filter:blur(12px); border-top:1px solid var(--can-12); color:var(--canvas); padding:12px var(--gutter); }
   .ritualbar.show{ transform:none; }
   .rb-inner{ max-width:1180px; margin:0 auto; display:flex; align-items:center; gap:12px; }
-  .rb-chips{ display:flex; align-items:center; gap:8px; flex:1; overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
+  /* min-width:0 lets this flex item shrink below its content width so its
+     overflow-x:auto actually engages — without it the chips force the whole
+     ritual bar wider than the viewport (the §21 horizontal-overflow root cause). */
+  .rb-chips{ display:flex; align-items:center; gap:8px; flex:1; min-width:0; overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
   .rb-chips::-webkit-scrollbar{ display:none; }
   .rb-chip{ flex:none; display:inline-flex; align-items:center; gap:7px; font-family:var(--mono); font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--canvas); border:1px solid var(--can-22); border-radius:999px; padding:11px 15px; min-height:44px; white-space:nowrap; transition:border-color .2s; }
   .rb-chip:hover{ border-color:var(--can-55); }
@@ -282,13 +366,35 @@
 </head>
 <body data-theme="berry">
 
-<nav class="nav">
-  <a class="mark" href="/" aria-label="AFORCE home"><span class="nn"><span>N</span><span class="bar"></span><span class="flip">N</span></span> AFORCE</a>
-  <div class="nav-links">
-    <a href="/">The Standard</a><a href="/our-story">Our Story</a><a href="/science">Science</a>
-    <a href="/shop" aria-current="page">Shop</a><a href="/aforce-os">AFORCE OS</a>
+<header class="afx-nav" id="afxNav">
+  <a class="afx-mark mark" href="/" aria-label="AFORCE — home"><span class="nn"><span>N</span><span class="bar"></span><span class="flip">N</span></span> AFORCE</a>
+  <div class="afx-right">
+    <div class="afx-links">
+      <a href="/#ritual">Ritual</a><a href="/aforce-os">The OS</a><a href="/our-story">Our Story</a><a href="/science">Science</a><a href="/manifesto">Manifesto</a>
+    </div>
+    <a href="/shop" class="afx-shop" aria-current="page">Shop</a>
+    <button type="button" class="afx-cart" id="afxCartBtn" aria-label="Your ritual — cart" aria-haspopup="dialog" aria-expanded="false" aria-controls="ritualBasket">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M6 8h12l-1 12H7L6 8z"/><path d="M9 8a3 3 0 0 1 6 0"/></svg>
+      <span class="afx-cart-count" id="afxCartCount" hidden>0</span>
+    </button>
+    <button class="afx-burger" id="afxBurger" type="button" aria-controls="afxDrawer" aria-expanded="false" aria-label="Open menu">
+      <span class="afx-bar"></span><span class="afx-bar"></span><span class="afx-bar"></span>
+    </button>
   </div>
-</nav>
+</header>
+<div class="afx-drawer" id="afxDrawer" data-open="false">
+  <div class="afx-backdrop" data-afx-close></div>
+  <div class="afx-panel">
+    <nav aria-label="Main">
+      <a href="/#ritual">Ritual</a>
+      <a href="/aforce-os">The OS</a>
+      <a href="/our-story">Our Story</a>
+      <a href="/science">Science</a>
+      <a href="/manifesto">Manifesto</a>
+      <a href="/shop" class="afx-drawer-shop" aria-current="page">Shop</a>
+    </nav>
+  </div>
+</div>
 
 <!-- HERO (light) -->
 <header class="hero">
@@ -296,6 +402,7 @@
   <h1>Join the <em>system.</em></h1>
   <p class="hero-sub">Choose your demand. The protocol answers.</p>
   <div class="hero-badge"><span class="pulse" aria-hidden="true"></span>Every order activates AFORCE OS</div>
+  <a href="#stepDemand" class="hero-cta" data-hero-cta>Begin the Ritual</a>
   <div class="hero-can" id="heroCan" aria-hidden="true">
     <img data-f="watermelon" src="/assets/can-red.png" alt="">
     <img data-f="berry" src="/assets/can-blue.png" alt="" class="on">
@@ -362,9 +469,10 @@
       <button class="swdot" type="button" data-f="watermelon"><span class="d"></span>Watermelon Surge</button>
       <button class="swdot" type="button" data-f="soursop"><span class="d"></span>Soursop Edge</button>
     </div>
+    <div class="sr-only" id="afxLive" role="status" aria-live="polite"></div>
     <div class="formats" id="formats">
       <!-- STICKS -->
-      <div class="fmt" data-format="sticks" tabindex="0" role="button" aria-pressed="false" aria-label="Choose Sticks">
+      <div class="fmt" data-format="sticks">
         <div class="fmt-visual" data-format="sticks"><div class="glow" aria-hidden="true"></div>
           <img data-f="watermelon" src="/assets/stick-red.png" alt="AFORCE Watermelon Surge stick">
           <img data-f="berry" src="/assets/stick-blue.png" alt="AFORCE Berry Blast stick" class="on">
@@ -383,13 +491,12 @@
           <button class="depth-opt" type="button" data-depth="double"><span><span class="d-name">Double <span class="d-micro">Most begin here</span></span><span class="d-sub">2 boxes · 40 sticks</span></span><span class="d-price" data-depthprice="sticks-double"></span></button>
           <button class="depth-opt" type="button" data-depth="case"><span><span class="d-name">The Case</span><span class="d-sub">4 boxes · 80 sticks</span></span><span class="d-price" data-depthprice="sticks-case"></span></button>
           <div class="stepper" data-format="sticks"><button type="button" data-step-dir="-1" aria-label="Fewer">–</button><span class="units"><span data-units>1</span><small>boxes</small></span><button type="button" data-step-dir="1" aria-label="More">+</button></div>
-          <div class="freeship" data-format="sticks"><div class="fs-label"><span data-fslabel>Free shipping over $75</span></div><div class="fs-track"><div class="fs-fill" data-fsfill></div></div></div>
         </div>
         <details class="why-toggle"><summary>Why sticks?</summary><p>Portable and TSA-simple — your ritual holds on the road, in the gym bag, anywhere there's water.</p></details>
-        <button class="fmt-choose" type="button" data-choose="sticks"><span class="pick">Choose Sticks</span><span class="sel">Sticks selected</span></button>
+        <button class="fmt-choose" type="button" data-choose="sticks" aria-pressed="false"><span class="pick">Choose Sticks</span><span class="sel">Sticks selected</span></button>
       </div>
       <!-- CANS -->
-      <div class="fmt" data-format="cans" tabindex="0" role="button" aria-pressed="false" aria-label="Choose RTD Cans">
+      <div class="fmt" data-format="cans">
         <div class="fmt-visual" data-format="cans"><div class="glow" aria-hidden="true"></div>
           <img data-f="watermelon" src="/assets/can-red.png" alt="AFORCE Watermelon Surge can">
           <img data-f="berry" src="/assets/can-blue.png" alt="AFORCE Berry Blast can" class="on">
@@ -408,10 +515,9 @@
           <button class="depth-opt" type="button" data-depth="double"><span><span class="d-name">Double <span class="d-micro">Most begin here</span></span><span class="d-sub">2 six-packs</span></span><span class="d-price" data-depthprice="cans-double"></span></button>
           <button class="depth-opt" type="button" data-depth="case"><span><span class="d-name">The Case</span><span class="d-sub">4 six-packs · 24 cans</span></span><span class="d-price" data-depthprice="cans-case"></span></button>
           <div class="stepper" data-format="cans"><button type="button" data-step-dir="-1" aria-label="Fewer">–</button><span class="units"><span data-units>1</span><small>six-packs</small></span><button type="button" data-step-dir="1" aria-label="More">+</button></div>
-          <div class="freeship" data-format="cans"><div class="fs-label"><span data-fslabel>Free shipping over $75</span></div><div class="fs-track"><div class="fs-fill" data-fsfill></div></div></div>
         </div>
         <details class="why-toggle"><summary>Why cans?</summary><p>Zero prep — grab, crack, perform. The fastest way into the ritual on a moving day.</p></details>
-        <button class="fmt-choose" type="button" data-choose="cans"><span class="pick">Choose Cans</span><span class="sel">Cans selected</span></button>
+        <button class="fmt-choose" type="button" data-choose="cans" aria-pressed="false"><span class="pick">Choose Cans</span><span class="sel">Cans selected</span></button>
       </div>
     </div>
   </div>
@@ -427,14 +533,36 @@
       <div class="os-tier">
         <div class="os-badge">Included with any order</div>
         <h3>Core</h3>
-        <div class="os-price"><span class="os-amt">Free</span></div>
-        <p class="os-desc">Readiness Score, hydration control center, basic AI commands, and daily logging — the entry point into the system.</p>
+        <div class="os-price"><span class="os-amt">$0</span></div>
+        <div class="os-sub">No recurring charge</div>
+        <p class="os-line">Core records the ritual.</p>
+        <ul class="os-feat">
+          <li>Readiness Score</li>
+          <li>Hydration control center</li>
+          <li>Basic commands</li>
+          <li>Daily logging</li>
+        </ul>
       </div>
-      <div class="os-tier os-tier--pro">
+      <div class="os-tier os-tier--pro" id="osCommand">
         <div class="os-badge os-badge--pro">Go deeper</div>
-        <h3>Athlete</h3>
-        <div class="os-price"><span class="os-amt">$19.99</span><span class="os-per">/ month</span></div>
-        <p class="os-desc">Enhanced AI decisioning, personalized protocols, advanced recovery guidance, expanded trends, and community competition.</p>
+        <h3>Command</h3>
+        <p class="os-line">Command interprets the pattern.</p>
+        <div class="os-seg" id="osSeg" role="group" aria-label="Command billing period">
+          <button type="button" data-cycle="monthly" aria-pressed="true">Monthly</button>
+          <button type="button" data-cycle="annual" aria-pressed="false">Annual</button>
+        </div>
+        <div class="os-price">
+          <span class="os-amt" id="osAmt">$20</span><span class="os-per" id="osPer">/ month</span>
+          <span class="os-save" id="osSave" hidden>SAVE $40</span>
+        </div>
+        <div class="os-incl" id="osIncl" hidden>Command included</div>
+        <ul class="os-feat">
+          <li>Performance Age™</li>
+          <li>Weekly interpretation</li>
+          <li>Personalized depletion correction</li>
+          <li>Expanded trends</li>
+          <li>Advanced recovery guidance</li>
+        </ul>
       </div>
     </div>
     <a class="os-cta" href="/aforce-os">Explore AFORCE OS <span class="arw" aria-hidden="true">→</span></a>
@@ -474,6 +602,33 @@
 </div>
 <div class="lb" id="lightbox" aria-hidden="true"><img id="lbImg" src="" alt=""></div>
 
+<!-- YOUR RITUAL — multi-product basket (§9). Right-side drawer; state from
+     /assets/basket.js. Reuses the Shop's warm-white/gray + AForce-blue system. -->
+<div class="rb2" id="ritualBasketWrap" data-open="false">
+  <div class="rb2-backdrop" data-rb2-close></div>
+  <aside class="rb2-panel" id="ritualBasket" role="dialog" aria-modal="true" aria-labelledby="rb2Title" aria-hidden="true">
+    <div class="rb2-head">
+      <h2 id="rb2Title">Your Ritual</h2>
+      <button type="button" class="rb2-x" id="rb2Close" aria-label="Close your ritual"><span></span><span></span></button>
+    </div>
+    <div class="rb2-included" id="rb2Included" hidden><span class="dot" aria-hidden="true"></span>Command included</div>
+    <div class="rb2-body" id="rb2Body"><!-- lines or empty state injected --></div>
+    <div class="rb2-undo" id="rb2Undo" hidden role="status" aria-live="polite">
+      <span id="rb2UndoLabel">Item removed</span>
+      <button type="button" id="rb2UndoBtn">Undo</button>
+    </div>
+    <div class="rb2-foot" id="rb2Foot" hidden>
+      <div class="rb2-sub"><span>Subtotal</span><span id="rb2Subtotal">$0.00</span></div>
+      <div class="rb2-ship">Shipping calculated at checkout</div>
+      <button type="button" class="rb2-checkout" id="rb2Checkout">Continue to secure checkout</button>
+      <button type="button" class="rb2-continue" id="rb2Continue">Continue building</button>
+    </div>
+  </aside>
+</div>
+
+<script src="/assets/commerce.js"></script>
+<script src="/assets/basket.js"></script>
+<script src="/assets/header.js" defer></script>
 <script>
 /* =====================================================================
    AFORCE SHOP v2.3 — "THE PROTOCOL ANSWERS" · Dark Stage · Depth · Ignition
@@ -505,7 +660,6 @@
     sticks:{ watermelon:"43817245868150", berry:"43817131606134", soursop:"43817131638902" },
     cans:{   watermelon:"43817994158198", berry:"43817994190966", soursop:"43817994223734" }
   };
-  var FREE_SHIP = 75;
 
   var FORMS = {
     berry:      { name:"Berry Blast",      why:"Dark berries, clean finish, dulse minerals. The everyday standard — steady hydration for steady performance." },
@@ -515,7 +669,7 @@
   var DEMANDS = {
     daily:{label:"The Daily",f:"berry",pref:"cans"}, training:{label:"Training",f:"berry",pref:"sticks"},
     recovery:{label:"Recovery",f:"soursop",pref:"cans"}, deepwork:{label:"Deep Work",f:"berry",pref:"cans"},
-    travel:{label:"Travel",f:"berry",pref:"sticks"}, competition:{label:"Competition",f:"watermelon",pref:"sticks"},
+    travel:{label:"Travel",f:"soursop",pref:"sticks",plan:"autopilot"}, competition:{label:"Competition",f:"watermelon",pref:"sticks"},
     heat:{label:"Heat",f:"watermelon",pref:"sticks"}
   };
   var UNIT = { sticks:{autopilot:53.99, onetime:59.99}, cans:{autopilot:26.99, onetime:29.99} };
@@ -523,7 +677,7 @@
   var QTY_LABEL = { sticks:"20 Sticks", cans:"6 Cans" };
 
   /* ---- STATE (persisted → survives bfcache/back) ---- */
-  var DEFAULT = { demand:null, formulation:"berry", format:null, plan:"autopilot", depth:null, units:1 };
+  var DEFAULT = { demand:null, formulation:"berry", format:null, plan:"autopilot", depth:null, units:1, osCycle:"monthly" };
   var state = load();
   window.aforceState = state;
   function load(){
@@ -557,43 +711,150 @@
   },7000); }
   function lockHero(){ heroLocked=true; if(heroTimer){clearInterval(heroTimer);heroTimer=null;} heroShow(state.formulation); }
 
-  /* ================= CHECKOUT (pre-built fresh, never reused) ================= */
-  var checkoutURL = null;
+  /* ================= CHECKOUT =================================================
+     All Shopify specifics live in /assets/commerce.js (§12). This layer only
+     describes WHAT the customer asked for.
+
+     Subscriptions (AutoPilot) MUST go through the Storefront Cart API. Shopify
+     documents that "Selling plans don't work with cart permalinks", so the old
+     ?selling_plan= permalink silently produced a ONE-TIME order while the page
+     promised "per month". We now create a real cart and refuse to hand off
+     unless Shopify confirms the plan was applied (§11).
+     One-time orders keep the permalink: it is supported and needs no token. */
   function isReady(){ return !!state.demand && !!state.format && !!state.depth; }
   function isSubscription(){ return state.plan==="autopilot" && RITUAL_MEMBERSHIP_PLAN != null; }
-  function buildCheckout(){
-    // Regenerate from current state every time — never cache/reuse a consumed URL (A1b / Patch 3).
-    if(!isReady()){ checkoutURL=null; return null; }
-    var vid = VARIANTS[state.format][state.formulation];
-    if(!vid){ checkoutURL=null; return null; }
-    var qty = Math.min(10, Math.max(1, state.units|0));
-    var url = STORE + "/cart/" + vid + ":" + qty;
-    if(isSubscription()){ url += "?selling_plan=" + RITUAL_MEMBERSHIP_PLAN; }
-    var attrs = {
+  function orderAttrs(qty){
+    return {
       Protocol:    DEMANDS[state.demand].label + " Protocol",
       Formulation: FORMS[state.formulation].name,
       Depth:       qty + " × " + QTY_LABEL[state.format],
       Plan:        planLabel()
     };
-    var qs = Object.keys(attrs).map(function(k){ return "attributes["+encodeURIComponent(k)+"]="+encodeURIComponent(attrs[k]); }).join("&");
-    url += (url.indexOf("?")>-1?"&":"?") + qs;
-    checkoutURL = url;
-    return url;
+  }
+  function checkoutQty(){ return Math.min(10, Math.max(1, state.units|0)); }
+
+  function checkoutError(msg){
+    handing = false;
+    var btn = $("#igniteBtn");
+    if(btn){ btn.classList.remove("committed"); btn.disabled = false; }
+    var box = $("#checkoutErr");
+    if(!box){
+      box = document.createElement("div");
+      box.id = "checkoutErr";
+      box.setAttribute("role","alert");
+      box.className = "begin-init";
+      box.style.cssText = "color:var(--red);font-size:12.5px;margin-top:12px;";
+      var host = $("#beginBody"); if(host) host.appendChild(box);
+    }
+    box.textContent = msg;
+    track("checkout_failed", { plan:state.plan, subscription:isSubscription(), reason:msg });
   }
 
   var handing = false;
-  function goCheckout(source){
-    if(!isReady()) return false;
-    if(handing) return true;             // double-tap dedup: exactly one handoff
-    var url = buildCheckout();           // always fresh (A1b, A1d retry-by-rebuild)
-    if(!url){ url = buildCheckout(); }   // failsafe single retry
-    if(!url) return false;
-    track("checkout_started", { demand:state.demand, formulation:state.formulation, format:state.format, plan:state.plan, depth:state.depth, units:state.units, subscription:isSubscription(), source:source||"begin" });
-    handing = true;
+  function commit(url){
     var btn = $("#igniteBtn"); if(btn){ btn.classList.add("committed"); }
-    // commit to navigation on next frame so the committed state paints
     setTimeout(function(){ window.location.href = url; }, 30);
+  }
+
+  /* ================= YOUR RITUAL BASKET (§9) ================= */
+  var basket = window.AForceBasket ? new window.AForceBasket(window.AForceCommerce) : null;
+
+  /* variantId → {format, flavor} reverse map, for EDIT. */
+  var VARIANT_REV = (function(){ var m={}; Object.keys(VARIANTS).forEach(function(fmt){ Object.keys(VARIANTS[fmt]).forEach(function(fl){ m[VARIANTS[fmt][fl]]={format:fmt,flavor:fl}; }); }); return m; })();
+  function lineToConfig(l){ var n=(l.variantId||"").split("/").pop(); return VARIANT_REV[n]||null; }
+
+  function addToRitual(source){
+    if(!isReady() || !basket) return false;
+    var vid = VARIANTS[state.format][state.formulation];
+    if(!vid) return false;
+    var qty = checkoutQty();
+    var plan = isSubscription() ? RITUAL_MEMBERSHIP_PLAN : null;
+    var btn = $("#igniteBtn");
+    if(btn){ btn.disabled=true; }
+    clearBasketErr();
+    basket.add({ variantId:vid, quantity:qty, sellingPlanId:plan, attributes:orderAttrs(qty) }).then(function(res){
+      if(btn){ btn.disabled=false; }
+      if(res && res.error){ showBasketErr("We couldn’t add that to your ritual. Please try again."); return; }
+      /* §11 guard: if AutoPilot was requested, confirm the line actually got the
+         plan — never let a membership silently become one-time. */
+      if(plan){
+        var applied = basket.lines().some(function(l){ return (l.variantId||"").indexOf(vid)>-1 && l.sellingPlanId; });
+        if(!applied){ showBasketErr("AutoPilot couldn’t be applied right now. Please try again in a moment."); return; }
+      }
+      track("added_to_ritual",{variant:vid, qty:qty, subscription:!!plan, source:source||"begin"});
+      announce("Added to your ritual. "+basket.count()+" in your cart.");
+      openBasket();
+    });
     return true;
+  }
+  function showBasketErr(msg){ var b=$("#rb2Body"); if(!b)return; var e=$("#rb2Err")||document.createElement("div"); e.id="rb2Err"; e.className="rb2-err"; e.setAttribute("role","alert"); e.textContent=msg; b.parentNode.insertBefore(e, b); }
+  function clearBasketErr(){ var e=$("#rb2Err"); if(e) e.remove(); }
+
+  /* ---- basket drawer open/close (focus trap + scroll lock, §7/§9) ---- */
+  var rb2Wrap=$("#ritualBasketWrap"), rb2Panel=$("#ritualBasket"), rb2LastFocus=null;
+  function rb2Open(){ return rb2Wrap && rb2Wrap.getAttribute("data-open")==="true"; }
+  function openBasket(){
+    if(!rb2Wrap || rb2Open()) return;
+    rb2LastFocus=document.activeElement;
+    var sbw=window.innerWidth-document.documentElement.clientWidth; if(sbw>0) document.documentElement.style.paddingRight=sbw+"px";
+    rb2Wrap.setAttribute("data-open","true"); rb2Panel.setAttribute("aria-hidden","false");
+    document.documentElement.classList.add("afx-locked");
+    var cb=$("#afxCartBtn"); if(cb) cb.setAttribute("aria-expanded","true");
+    var f=$("#rb2Close"); if(f) f.focus();
+  }
+  function closeBasket(returnFocus){
+    if(!rb2Wrap || !rb2Open()) return;
+    rb2Wrap.setAttribute("data-open","false"); rb2Panel.setAttribute("aria-hidden","true");
+    document.documentElement.classList.remove("afx-locked"); document.documentElement.style.paddingRight="";
+    var cb=$("#afxCartBtn"); if(cb) cb.setAttribute("aria-expanded","false");
+    if(returnFocus!==false){ (cb||document.body).focus(); }
+  }
+
+  /* ---- render (subscribe to basket changes) ---- */
+  function money2(a){ return "$"+(Math.round(parseFloat(a)*100)/100).toFixed(2); }
+  function renderBasket(){
+    if(!basket) return;
+    var lines=basket.lines(), count=basket.count();
+    // header cart count
+    var cc=$("#afxCartCount"); if(cc){ cc.textContent=count; cc.hidden = count===0; }
+    // COMMAND INCLUDED
+    var inc=$("#rb2Included"); if(inc) inc.hidden = !basket.hasAutoPilot();
+    var body=$("#rb2Body"), foot=$("#rb2Foot");
+    if(!body) return;
+    if(!lines.length){
+      body.innerHTML='<div class="rb2-empty"><div class="rb2-empty-h">Your ritual is empty.</div><p>Choose a demand and add your first formulation to begin.</p></div>';
+      if(foot) foot.hidden=true;
+      renderUndo(); return;
+    }
+    body.innerHTML=lines.map(function(l){
+      var sub = !!l.sellingPlanId;
+      var cfg = lineToConfig(l);
+      var fmtLabel = cfg ? (cfg.format==="cans"?"RTD Cans":"Sticks") : "";
+      return '<div class="rb2-line" data-line="'+l.id+'">'+
+        '<div class="rb2-thumb">'+(l.image?'<img src="'+l.image+'" alt="'+(l.imageAlt||l.title||"")+'">':'')+'</div>'+
+        '<div>'+
+          '<div class="rb2-line-name">'+(l.productTitle||l.title||"Item")+'</div>'+
+          '<div class="rb2-line-meta">'+(l.title||"")+(fmtLabel?' · '+fmtLabel:'')+'</div>'+
+          '<span class="rb2-line-plan'+(sub?'':' onetime')+'">'+(sub?'AutoPilot · monthly':'One-Time')+'</span>'+
+          '<div class="rb2-line-bottom">'+
+            '<div class="rb2-qty"><button type="button" data-qty="-1" aria-label="Decrease quantity"'+(l.quantity<=1?' disabled':'')+'>–</button><span aria-label="Quantity">'+l.quantity+'</span><button type="button" data-qty="1" aria-label="Increase quantity"'+(l.quantity>=10?' disabled':'')+'>+</button></div>'+
+            '<span class="rb2-line-price">'+(l.lineTotal?money2(l.lineTotal):'')+'</span>'+
+          '</div>'+
+          '<div class="rb2-line-acts"><button type="button" class="rb2-edit">Edit</button><button type="button" class="rb2-remove">Remove</button></div>'+
+        '</div>'+
+      '</div>';
+    }).join("");
+    if(foot){
+      foot.hidden=false;
+      $("#rb2Subtotal").textContent = money2(basket.subtotal()||0);
+      $("#rb2Checkout").disabled = basket.busy;
+    }
+    renderUndo();
+  }
+  function renderUndo(){
+    var u=$("#rb2Undo"); if(!u||!basket) return;
+    if(basket.canUndo()){ u.hidden=false; $("#rb2UndoLabel").textContent="Item removed"; }
+    else u.hidden=true;
   }
 
   /* ================= STEP 01 — DEMAND ================= */
@@ -614,6 +875,10 @@
     var id=chip.getAttribute("data-demand"), d=DEMANDS[id];
     if(state.demand===id){ neutralize(); track("demand_deselected",{demand:id}); return; }
     state.demand=id; state.formulation=d.f;
+    /* §8: a demand may pin a plan on FIRST selection (Travel → AutoPilot).
+       Applied here (fires on click, not on renderAll), so later customer
+       changes to plan/flavor/format are respected and never reset. */
+    if(d.plan) state.plan=d.plan;
     $$(".chip").forEach(function(c){ c.setAttribute("aria-pressed", c===chip?"true":"false"); });
     var paint=function(){
       lockHero(); applyTheme(); repaintImages(); paintMatch();
@@ -632,14 +897,19 @@
   }
 
   /* ================= STEP 02 — FORMAT + PLAN + DEPTH ================= */
+  /* §7/§19 — announce meaningful selection/cart changes to assistive tech. */
+  function announce(msg){ var el=$("#afxLive"); if(el){ el.textContent=""; setTimeout(function(){ el.textContent=msg; }, 30); } }
+
   function selectFormat(fmt){
     if(state.format===fmt){ return; }
     state.format=fmt; renderAll();
+    announce((fmt==="cans"?"RTD Cans":"Sticks")+" selected."+(isReady()?" Order ready to begin.":""));
     track("format_selected",{format:fmt});
   }
   function selectPlan(fmt, plan){
     if(state.plan===plan) return;
     state.plan=plan; renderAll();
+    announce((plan==="autopilot"?"AutoPilot":"One-Time")+" selected.");
     track("plan_toggled",{plan:plan, format:fmt});
   }
   function selectDepth(fmt, depth){
@@ -648,6 +918,7 @@
     if(state.depth===depth){ return; }         // radio: never blank
     state.depth=depth; state.units=DEPTH_UNITS[depth];
     renderAll();
+    announce(depth.charAt(0).toUpperCase()+depth.slice(1)+" selected — "+state.units+" "+(state.format==="cans"?"six-packs":"boxes")+", "+money(total())+"."+(isReady()?" Order ready to begin.":""));
     track("depth_selected",{format:fmt, depth:depth, units:state.units});
   }
   function stepUnits(dir){
@@ -655,6 +926,7 @@
     var u=Math.min(10, Math.max(1, state.units + dir));
     if(u===state.units) return;
     state.units=u; renderAll();
+    announce(state.units+" "+(state.format==="cans"?"six-packs":"boxes")+", "+money(total())+".");
     track("units_changed",{units:u});
   }
 
@@ -666,7 +938,11 @@
       card.classList.toggle("bigger", pref===fmt);
       card.classList.toggle("floaty", pref===fmt);
       card.classList.toggle("on", state.format===fmt);
-      card.setAttribute("aria-pressed", state.format===fmt?"true":"false");
+      /* §7: the outer card is a plain container. The real "Choose" button
+         carries the selected state (aria-pressed), so there is no nested
+         interactive control. */
+      var choose=$('[data-choose="'+fmt+'"]', card);
+      if(choose) choose.setAttribute("aria-pressed", state.format===fmt?"true":"false");
     });
     // plan toggles
     $$(".plan").forEach(function(p){ var f=p.getAttribute("data-format"); $$(".plan-opt",p).forEach(function(o){ o.classList.toggle("on", o.getAttribute("data-plan")===state.plan); }); });
@@ -690,13 +966,6 @@
         $$("button",st)[0].disabled = state.units<=1;
         $$("button",st)[1].disabled = state.units>=10;
       }
-      // free-ship progress (use this card's plan pricing preview)
-      var t = (f===state.format) ? total() : (UNIT[f].autopilot * (state.depth?state.units:1));
-      var pct = Math.min(100, Math.round(t/FREE_SHIP*100));
-      var fill=$("[data-fsfill]",dep), lab=$("[data-fslabel]",dep), fs=$(".freeship",dep);
-      fill.style.width = pct + "%";
-      if(f===state.format && t>=FREE_SHIP){ fs.classList.add("met"); lab.textContent = "Free shipping unlocked"; }
-      else{ fs.classList.remove("met"); lab.textContent = "Free shipping over $75"; }
     });
   }
   function renderOverrides(){ $$("#overrides .ov").forEach(function(el){ el.classList.toggle("on", el.getAttribute("data-f")===state.formulation); }); }
@@ -711,8 +980,9 @@
     ];
   }
   function shippingLine(){
-    // Patch 1: only "Free shipping" when threshold unquestionably met; else calculated at checkout
-    return total() >= FREE_SHIP ? "Free shipping" : "Shipping calculated at checkout";
+    // §13: AForce does not offer free shipping. Shipping is calculated by
+    // Shopify at checkout from the delivery address — no threshold, no promise.
+    return "Shipping calculated at checkout";
   }
   function renderBegin(){
     var body=$("#beginBody");
@@ -729,8 +999,10 @@
       '<div class="begin-ship">'+shippingLine()+'</div>' +
       (state.plan==="autopilot" && RITUAL_MEMBERSHIP_PLAN==null ? '<div class="begin-init" style="color:var(--can-40);font-size:12.5px;">AutoPilot membership billing activates shortly — this order checks out as one-time until it’s live.</div>' : '') +
       '<div class="begin-init"><b>Your Performance Profile initializes with this order.</b></div>' +
-      '<button class="ignite-btn ready" id="igniteBtn" type="button">Begin the Ritual — '+money(total())+perSuffix()+'</button>' +
-      '<div class="begin-legal">Apple Pay &amp; Shop Pay at checkout · taxes &amp; shipping calculated by address · skip or cancel anytime in AFORCE OS</div>';
+      /* §9: primary action ADDS to the basket and keeps the customer on the
+         page; checkout happens from Your Ritual. */
+      '<button class="ignite-btn ready" id="igniteBtn" type="button">Add to Ritual — '+money(total())+perSuffix()+'</button>' +
+      '<div class="begin-legal">Build your ritual, then check out securely · taxes &amp; shipping calculated by address · skip or cancel anytime in AFORCE OS</div>';
   }
 
   /* one-shot ignition when the ritual first becomes complete */
@@ -766,10 +1038,35 @@
     $$("#rail .r").forEach(function(r){ var s=r.getAttribute("data-step"); r.classList.toggle("current", s===cur); r.classList.toggle("done", !!done[s]&&s!==cur); });
   }
 
+  /* §6/§14 — Command billing band. Informational only (membership is enrolled
+     inside AFORCE OS, never a Shopify line item). When the customer's order is
+     an AutoPilot/Ritual Membership, Command is included: show "COMMAND INCLUDED"
+     and drop the standalone price. When they leave AutoPilot, restore it. */
+  function renderOSband(){
+    var seg=$("#osSeg"), amt=$("#osAmt"), per=$("#osPer"), save=$("#osSave"), incl=$("#osIncl");
+    if(!seg) return;
+    var included = state.plan==="autopilot";
+    incl.hidden = !included;
+    seg.hidden = included;
+    save.hidden = included || state.osCycle!=="annual";
+    if(included){
+      amt.textContent = "$0"; per.textContent = "with Ritual Membership";
+    } else if(state.osCycle==="annual"){
+      amt.textContent = "$200"; per.textContent = "/ year";
+    } else {
+      amt.textContent = "$20"; per.textContent = "/ month";
+    }
+    $$("#osSeg button").forEach(function(b){
+      b.setAttribute("aria-pressed", b.getAttribute("data-cycle")===state.osCycle ? "true":"false");
+    });
+  }
+
   function renderAll(){
     applyTheme(); repaintImages(); renderOverrides(); renderSwitcher();
-    renderFormats(); renderBegin(); renderBar(); renderRail();
-    buildCheckout();   // pre-build fresh on every state change (A4)
+    renderFormats(); renderBegin(); renderBar(); renderRail(); renderOSband();
+    /* No checkout URL is pre-built any more: a subscription cart is created
+       server-side at click time, so there is nothing to cache here. The old
+       A1b concern (never reuse a consumed URL) is satisfied by construction. */
     fireIgnition();
     persist();
   }
@@ -778,6 +1075,12 @@
   function jump(stepId){ var el=$("#"+stepId); if(el) el.scrollIntoView({behavior:"smooth", block:"start"}); }
   $("#chips").addEventListener("click", function(e){ var c=e.target.closest(".chip"); if(c) selectDemand(c); });
   $("#matchContinue").addEventListener("click", function(){ jump("stepFormat"); });
+  /* §14 MONTHLY | ANNUAL — segmented control, keyboard-operable (real buttons) */
+  $("#osSeg").addEventListener("click", function(e){
+    var b=e.target.closest("button[data-cycle]"); if(!b) return;
+    var c=b.getAttribute("data-cycle");
+    if(state.osCycle!==c){ state.osCycle=c; renderAll(); track("os_cycle_toggled",{cycle:c}); }
+  });
   $("#overrides").addEventListener("click", function(e){ var o=e.target.closest(".ov"); if(o) overrideFormulation(o.getAttribute("data-f")); });
   $("#switcher").addEventListener("click", function(e){ var d=e.target.closest(".swdot"); if(d) overrideFormulation(d.getAttribute("data-f")); });
 
@@ -788,20 +1091,15 @@
     var why=e.target.closest(".why-toggle");
     var vis=e.target.closest(".fmt-visual");
     var choose=e.target.closest("[data-choose]");
-    var card=e.target.closest(".fmt");
     if(depth){ selectDepth(depth.closest(".depths").getAttribute("data-format"), depth.getAttribute("data-depth")); return; }
     if(stepBtn){ stepUnits(+stepBtn.getAttribute("data-step-dir")); return; }
     if(planOpt){ selectPlan(planOpt.closest(".plan").getAttribute("data-format"), planOpt.getAttribute("data-plan")); return; }
     if(why){ return; } // native <details>
     if(vis && window.matchMedia("(hover:none)").matches){ openLightbox(vis); return; }
+    /* §7: format is chosen ONLY via the real "Choose Sticks/Cans" button. The
+       card is no longer an implicit button, so there is no nested-interaction
+       and no custom keyboard handler — the real buttons handle Enter/Space. */
     if(choose){ selectFormat(choose.getAttribute("data-choose")); return; }
-    // A5: entire card is the tap target
-    if(card){ selectFormat(card.getAttribute("data-format")); }
-  });
-  // keyboard: format card as button
-  $("#formats").addEventListener("keydown", function(e){
-    if(e.key!=="Enter" && e.key!==" ") return;
-    var card=e.target.closest(".fmt"); if(card && e.target===card){ e.preventDefault(); selectFormat(card.getAttribute("data-format")); }
   });
 
   /* Step 03 — interactive summary + missing-choice jump + primary Begin (delegated) */
@@ -809,7 +1107,7 @@
     var jumpEl=e.target.closest("[data-jump]");
     var ignite=e.target.closest("#igniteBtn");
     if(jumpEl){ jump(jumpEl.getAttribute("data-jump")); return; }
-    if(ignite && !ignite.disabled){ track("begin_clicked",{source:"step03", ready:isReady()}); goCheckout("step03"); }
+    if(ignite && !ignite.disabled){ track("add_to_ritual_clicked",{source:"step03", ready:isReady()}); addToRitual("step03"); }
   });
   $("#beginBody").addEventListener("keydown", function(e){
     if(e.key!=="Enter" && e.key!==" ") return;
@@ -822,7 +1120,7 @@
     if(!isReady()){ jump(!state.demand?"stepDemand":"stepFormat"); return; }
     var r=$("#stepBegin").getBoundingClientRect();
     var atStep03 = r.top < window.innerHeight*0.6 && r.bottom > 0;
-    if(atStep03){ goCheckout("ritual_bar"); } else { jump("stepBegin"); }
+    if(atStep03){ addToRitual("ritual_bar"); } else { jump("stepBegin"); }
   });
   var holdTimer=null;
   $("#rbChips").addEventListener("click", function(e){ var chip=e.target.closest(".rb-chip"); if(!chip) return; track("ritual_bar_chip_tapped",{step:chip.getAttribute("data-step")}); jump(chip.getAttribute("data-step")==="demand"?"stepDemand":(chip.getAttribute("data-step")==="depth"?"stepFormat":"stepFormat")); });
@@ -834,6 +1132,65 @@
   function openLightbox(vis){ var img=$("img.on",vis); if(!img) return; $("#lbImg").src=img.getAttribute("src"); $("#lbImg").alt=img.getAttribute("alt")||""; $("#lightbox").classList.add("open"); }
   $("#lightbox").addEventListener("click", function(){ this.classList.remove("open"); });
   document.addEventListener("keydown", function(e){ if(e.key==="Escape"){ $("#lightbox").classList.remove("open"); } });
+
+  /* ================= YOUR RITUAL — basket events (§9) ================= */
+  if(basket){
+    basket.onChange(renderBasket);
+    basket.hydrate().then(renderBasket);   // §9 persistence: restore on load
+
+    var cartBtn=$("#afxCartBtn"); if(cartBtn) cartBtn.addEventListener("click", openBasket);
+    $("#rb2Close").addEventListener("click", function(){ closeBasket(); });
+    $("#rb2Continue").addEventListener("click", function(){ closeBasket(); });
+    rb2Wrap.addEventListener("click", function(e){ if(e.target.closest("[data-rb2-close]")) closeBasket(); });
+
+    /* line actions: qty ±, edit, remove (delegated) */
+    $("#rb2Body").addEventListener("click", function(e){
+      var lineEl=e.target.closest(".rb2-line"); if(!lineEl) return;
+      var id=lineEl.getAttribute("data-line");
+      var qtyBtn=e.target.closest("[data-qty]");
+      if(qtyBtn){ var l=basket.lines().filter(function(x){return x.id===id;})[0]; if(l){ basket.setQuantity(id, l.quantity + (+qtyBtn.getAttribute("data-qty"))); } return; }
+      if(e.target.closest(".rb2-remove")){ basket.remove(id); announce("Item removed. Undo available."); return; }
+      if(e.target.closest(".rb2-edit")){ editLine(id); return; }
+    });
+    $("#rb2Undo").querySelector("button").addEventListener("click", function(){ basket.undo().then(function(){ announce("Item restored."); }); });
+
+    /* CONTINUE TO SECURE CHECKOUT — validated Shopify URL (§9/§11/§14) */
+    $("#rb2Checkout").addEventListener("click", function(){
+      try{
+        var url=basket.checkout();
+        track("checkout_started",{ lines:basket.lines().length, count:basket.count(), subscription:basket.hasAutoPilot() });
+        commit(url);
+      }catch(err){ showBasketErr("Checkout isn’t available right now. Please try again."); }
+    });
+
+    /* Escape + focus trap while the basket is open */
+    document.addEventListener("keydown", function(e){
+      if(!rb2Open()) return;
+      if(e.key==="Escape"){ e.preventDefault(); closeBasket(); return; }
+      if(e.key!=="Tab") return;
+      var f=Array.prototype.filter.call(rb2Panel.querySelectorAll('a[href],button:not([disabled]),[tabindex="0"]'), function(el){ return el.offsetParent!==null; });
+      if(!f.length) return;
+      var first=f[0], last=f[f.length-1];
+      if(e.shiftKey && document.activeElement===first){ e.preventDefault(); last.focus(); }
+      else if(!e.shiftKey && document.activeElement===last){ e.preventDefault(); first.focus(); }
+    });
+    window.addEventListener("pagehide", function(){ closeBasket(false); });
+  }
+
+  /* EDIT a line: load its configuration back into the builder, remove the line,
+     scroll to Format so the customer adjusts and re-adds (§9). */
+  function editLine(id){
+    var l=basket.lines().filter(function(x){return x.id===id;})[0]; if(!l) return;
+    var cfg=lineToConfig(l); if(!cfg){ closeBasket(); return; }
+    state.formulation=cfg.flavor; state.format=cfg.format;
+    state.plan = l.sellingPlanId ? "autopilot" : "onetime";
+    state.depth = state.depth || "single"; state.units = l.quantity;
+    basket.remove(id);
+    renderAll();
+    closeBasket();
+    jump("stepFormat");
+    announce("Editing "+(l.productTitle||l.title)+". Adjust and add to your ritual again.");
+  }
 
   /* ================= A1 — BACK / bfcache RECOVERY ================= */
   function reconcile(){
@@ -852,7 +1209,9 @@
   // Patch 4: reconcile on EVERY pageshow, not only when persisted flagged
   window.addEventListener("pageshow", function(e){ reconcile(); });
   // extra safety: visibility restore
-  document.addEventListener("visibilitychange", function(){ if(document.visibilityState==="visible"){ handing=false; buildCheckout(); } });
+  /* Returning via back/bfcache: release the handoff latch so the customer can
+     check out again. Nothing to rebuild — the cart is created at click time. */
+  document.addEventListener("visibilitychange", function(){ if(document.visibilityState==="visible"){ handing=false; } });
 
   window.addEventListener("resize", function(){ if(barShown) measureBar(); });
 

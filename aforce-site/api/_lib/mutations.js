@@ -40,9 +40,13 @@ const CART_QUERY = `
   }
 `;
 
+/* $attributes carries the order context the Ritual Builder already sent on the
+   cart permalink (Protocol / Formulation / Depth / Plan). Without it, moving
+   the subscription path off permalinks would silently drop that data from the
+   order. Optional — omitting it is valid. */
 const CART_CREATE = `
-  mutation CartCreate($lines: [CartLineInput!]) {
-    cartCreate(input: { lines: $lines }) {
+  mutation CartCreate($lines: [CartLineInput!], $attributes: [AttributeInput!]) {
+    cartCreate(input: { lines: $lines, attributes: $attributes }) {
       cart { ${CART_FIELDS} }
       userErrors { field message }
     }

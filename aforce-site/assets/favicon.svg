@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="AFORCE">
+  <!-- AFORCE N–И monogram, reproduced from the site's existing brand mark:
+       Signal Red first N + dash, Cinematic Black mirrored second N.
+       Not a new design — the same monogram rendered in CSS across the site.
+       Replace with the official favicon asset if one exists. -->
+  <rect width="32" height="32" fill="#E9E7E1"/>
+  <g font-family="Arial Black, Arial, sans-serif" font-weight="900" font-size="15" dominant-baseline="central">
+    <text x="8.5" y="17" text-anchor="middle" fill="#C1281B">N</text>
+    <rect x="14" y="15" width="4" height="2" fill="#C1281B"/>
+    <text x="23.5" y="17" text-anchor="middle" fill="#0D0D0D" transform="scale(-1,1)" transform-origin="23.5 16">N</text>
+  </g>
+</svg>
