@@ -95,6 +95,46 @@
     });
   }
 
+  /* ---- Operation: retrieve a cart -----------------------------------
+     Returns the normalised cart, or null if it expired/completed (Shopify
+     returns null for a stale id — the caller then starts fresh). */
+  function getCart(cartId) {
+    if (!cartId) return Promise.resolve(null);
+    return fetch("/api/cart/get?id=" + encodeURIComponent(cartId), { credentials: "same-origin" })
+      .then(function (res) { return res.text().then(function (t) {
+        var d = null; try { d = t ? JSON.parse(t) : null; } catch (e) {}
+        if (!res.ok) { var e2 = new Error((d && d.error) || "Failed to load cart"); e2.status = res.status; throw e2; }
+        return d && d.cart ? normalise(d.cart) : null;
+      }); });
+  }
+
+  /* ---- Operation: add line(s) to an existing cart -------------------- */
+  function addLines(cartId, lines) {
+    var payload = (lines || []).map(toLineInput);
+    return postJSON("/api/cart/add", { cartId: cartId, lines: payload }).then(function (d) {
+      if (!d || !d.cart) throw new Error("Could not add to your ritual.");
+      return normalise(d.cart);
+    });
+  }
+
+  /* ---- Operation: update a line's quantity --------------------------- */
+  function updateLine(cartId, lineId, quantity) {
+    return postJSON("/api/cart/update", { cartId: cartId, lines: [{ id: lineId, quantity: Math.max(0, quantity | 0) }] })
+      .then(function (d) { if (!d || !d.cart) throw new Error("Could not update your ritual."); return normalise(d.cart); });
+  }
+
+  /* ---- Operation: remove line(s) ------------------------------------- */
+  function removeLines(cartId, lineIds) {
+    return postJSON("/api/cart/remove", { cartId: cartId, lineIds: lineIds || [] })
+      .then(function (d) { if (!d || !d.cart) throw new Error("Could not update your ritual."); return normalise(d.cart); });
+  }
+
+  function toLineInput(l) {
+    var line = { merchandiseId: variantGID(l.variantId), quantity: Math.max(1, l.quantity | 0) };
+    if (l.sellingPlanId) line.sellingPlanId = planGID(l.sellingPlanId);
+    return line;
+  }
+
   /* Normalise the Shopify shape into something the UI can hold without
      knowing Shopify. Crucially this surfaces `sellingPlanId` per line —
      the PROOF that a subscription was applied, straight from Shopify. */
@@ -107,11 +147,20 @@
       subtotal: cart.cost && cart.cost.subtotalAmount ? cart.cost.subtotalAmount.amount : null,
       lines: nodes.map(function (n) {
         var alloc = n.sellingPlanAllocation && n.sellingPlanAllocation.sellingPlan;
+        var m = n.merchandise || {};
         return {
           id: n.id,
           quantity: n.quantity,
-          variantId: n.merchandise && n.merchandise.id,
-          title: n.merchandise && n.merchandise.title,
+          variantId: m.id,
+          title: m.title,
+          image: m.image ? m.image.url : null,
+          imageAlt: m.image ? m.image.altText : null,
+          unitPrice: m.price ? m.price.amount : null,
+          lineTotal: n.cost && n.cost.totalAmount ? n.cost.totalAmount.amount : null,
+          productTitle: m.product ? m.product.title : null,
+          productHandle: m.product ? m.product.handle : null,
+          options: (m.selectedOptions || []).map(function (o) { return { name: o.name, value: o.value }; }),
+          available: m.availableForSale !== false,
           /* null when Shopify did NOT apply a selling plan to this line */
           sellingPlanId: alloc ? alloc.id : null,
           sellingPlanName: alloc ? alloc.name : null
@@ -157,6 +206,10 @@
 
   root.AForceCommerce = {
     createCart: createCart,
+    getCart: getCart,
+    addLines: addLines,
+    updateLine: updateLine,
+    removeLines: removeLines,
     checkoutURLFor: checkoutURLFor,
     subscriptionApplied: subscriptionApplied,
     oneTimePermalink: oneTimePermalink,
