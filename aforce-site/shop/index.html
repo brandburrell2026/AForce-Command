@@ -195,6 +195,8 @@
   .stepper button:disabled{ opacity:.3; pointer-events:none; }
   .stepper .units{ font-family:var(--display); font-weight:800; font-size:16px; color:var(--canvas); min-width:64px; text-align:center; }
   .stepper .units small{ display:block; font-family:var(--mono); font-weight:400; font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:var(--can-40); }
+  /* §7/§19 screen-reader-only live region — visually hidden, still announced */
+  .sr-only{ position:absolute!important; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0 0 0 0); clip-path:inset(50%); white-space:nowrap; border:0; }
 
   .why-toggle{ margin-top:14px; }
   .why-toggle summary{ list-style:none; cursor:pointer; font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--can-40); display:inline-flex; align-items:center; gap:7px; }
@@ -405,9 +407,10 @@
       <button class="swdot" type="button" data-f="watermelon"><span class="d"></span>Watermelon Surge</button>
       <button class="swdot" type="button" data-f="soursop"><span class="d"></span>Soursop Edge</button>
     </div>
+    <div class="sr-only" id="afxLive" role="status" aria-live="polite"></div>
     <div class="formats" id="formats">
       <!-- STICKS -->
-      <div class="fmt" data-format="sticks" tabindex="0" role="button" aria-pressed="false" aria-label="Choose Sticks">
+      <div class="fmt" data-format="sticks">
         <div class="fmt-visual" data-format="sticks"><div class="glow" aria-hidden="true"></div>
           <img data-f="watermelon" src="/assets/stick-red.png" alt="AFORCE Watermelon Surge stick">
           <img data-f="berry" src="/assets/stick-blue.png" alt="AFORCE Berry Blast stick" class="on">
@@ -428,10 +431,10 @@
           <div class="stepper" data-format="sticks"><button type="button" data-step-dir="-1" aria-label="Fewer">–</button><span class="units"><span data-units>1</span><small>boxes</small></span><button type="button" data-step-dir="1" aria-label="More">+</button></div>
         </div>
         <details class="why-toggle"><summary>Why sticks?</summary><p>Portable and TSA-simple — your ritual holds on the road, in the gym bag, anywhere there's water.</p></details>
-        <button class="fmt-choose" type="button" data-choose="sticks"><span class="pick">Choose Sticks</span><span class="sel">Sticks selected</span></button>
+        <button class="fmt-choose" type="button" data-choose="sticks" aria-pressed="false"><span class="pick">Choose Sticks</span><span class="sel">Sticks selected</span></button>
       </div>
       <!-- CANS -->
-      <div class="fmt" data-format="cans" tabindex="0" role="button" aria-pressed="false" aria-label="Choose RTD Cans">
+      <div class="fmt" data-format="cans">
         <div class="fmt-visual" data-format="cans"><div class="glow" aria-hidden="true"></div>
           <img data-f="watermelon" src="/assets/can-red.png" alt="AFORCE Watermelon Surge can">
           <img data-f="berry" src="/assets/can-blue.png" alt="AFORCE Berry Blast can" class="on">
@@ -452,7 +455,7 @@
           <div class="stepper" data-format="cans"><button type="button" data-step-dir="-1" aria-label="Fewer">–</button><span class="units"><span data-units>1</span><small>six-packs</small></span><button type="button" data-step-dir="1" aria-label="More">+</button></div>
         </div>
         <details class="why-toggle"><summary>Why cans?</summary><p>Zero prep — grab, crack, perform. The fastest way into the ritual on a moving day.</p></details>
-        <button class="fmt-choose" type="button" data-choose="cans"><span class="pick">Choose Cans</span><span class="sel">Cans selected</span></button>
+        <button class="fmt-choose" type="button" data-choose="cans" aria-pressed="false"><span class="pick">Choose Cans</span><span class="sel">Cans selected</span></button>
       </div>
     </div>
   </div>
@@ -743,14 +746,19 @@
   }
 
   /* ================= STEP 02 — FORMAT + PLAN + DEPTH ================= */
+  /* §7/§19 — announce meaningful selection/cart changes to assistive tech. */
+  function announce(msg){ var el=$("#afxLive"); if(el){ el.textContent=""; setTimeout(function(){ el.textContent=msg; }, 30); } }
+
   function selectFormat(fmt){
     if(state.format===fmt){ return; }
     state.format=fmt; renderAll();
+    announce((fmt==="cans"?"RTD Cans":"Sticks")+" selected."+(isReady()?" Order ready to begin.":""));
     track("format_selected",{format:fmt});
   }
   function selectPlan(fmt, plan){
     if(state.plan===plan) return;
     state.plan=plan; renderAll();
+    announce((plan==="autopilot"?"AutoPilot":"One-Time")+" selected.");
     track("plan_toggled",{plan:plan, format:fmt});
   }
   function selectDepth(fmt, depth){
@@ -759,6 +767,7 @@
     if(state.depth===depth){ return; }         // radio: never blank
     state.depth=depth; state.units=DEPTH_UNITS[depth];
     renderAll();
+    announce(depth.charAt(0).toUpperCase()+depth.slice(1)+" selected — "+state.units+" "+(state.format==="cans"?"six-packs":"boxes")+", "+money(total())+"."+(isReady()?" Order ready to begin.":""));
     track("depth_selected",{format:fmt, depth:depth, units:state.units});
   }
   function stepUnits(dir){
@@ -766,6 +775,7 @@
     var u=Math.min(10, Math.max(1, state.units + dir));
     if(u===state.units) return;
     state.units=u; renderAll();
+    announce(state.units+" "+(state.format==="cans"?"six-packs":"boxes")+", "+money(total())+".");
     track("units_changed",{units:u});
   }
 
@@ -777,7 +787,11 @@
       card.classList.toggle("bigger", pref===fmt);
       card.classList.toggle("floaty", pref===fmt);
       card.classList.toggle("on", state.format===fmt);
-      card.setAttribute("aria-pressed", state.format===fmt?"true":"false");
+      /* §7: the outer card is a plain container. The real "Choose" button
+         carries the selected state (aria-pressed), so there is no nested
+         interactive control. */
+      var choose=$('[data-choose="'+fmt+'"]', card);
+      if(choose) choose.setAttribute("aria-pressed", state.format===fmt?"true":"false");
     });
     // plan toggles
     $$(".plan").forEach(function(p){ var f=p.getAttribute("data-format"); $$(".plan-opt",p).forEach(function(o){ o.classList.toggle("on", o.getAttribute("data-plan")===state.plan); }); });
@@ -924,20 +938,15 @@
     var why=e.target.closest(".why-toggle");
     var vis=e.target.closest(".fmt-visual");
     var choose=e.target.closest("[data-choose]");
-    var card=e.target.closest(".fmt");
     if(depth){ selectDepth(depth.closest(".depths").getAttribute("data-format"), depth.getAttribute("data-depth")); return; }
     if(stepBtn){ stepUnits(+stepBtn.getAttribute("data-step-dir")); return; }
     if(planOpt){ selectPlan(planOpt.closest(".plan").getAttribute("data-format"), planOpt.getAttribute("data-plan")); return; }
     if(why){ return; } // native <details>
     if(vis && window.matchMedia("(hover:none)").matches){ openLightbox(vis); return; }
+    /* §7: format is chosen ONLY via the real "Choose Sticks/Cans" button. The
+       card is no longer an implicit button, so there is no nested-interaction
+       and no custom keyboard handler — the real buttons handle Enter/Space. */
     if(choose){ selectFormat(choose.getAttribute("data-choose")); return; }
-    // A5: entire card is the tap target
-    if(card){ selectFormat(card.getAttribute("data-format")); }
-  });
-  // keyboard: format card as button
-  $("#formats").addEventListener("keydown", function(e){
-    if(e.key!=="Enter" && e.key!==" ") return;
-    var card=e.target.closest(".fmt"); if(card && e.target===card){ e.preventDefault(); selectFormat(card.getAttribute("data-format")); }
   });
 
   /* Step 03 — interactive summary + missing-choice jump + primary Begin (delegated) */
