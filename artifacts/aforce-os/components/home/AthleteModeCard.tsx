@@ -10,6 +10,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { Icon } from '@/components/Icon';
 import { Colors } from '@/theme/colors';
 import type { AthleteModeView } from '@/utils/homeDashboard';
+import { athleteModeSub, athleteModeRemaining } from '@/utils/streak/streakCopy';
 
 const BRAND = Colors.accent.brand;
 
@@ -19,9 +20,7 @@ interface Props {
 
 export function AthleteModeCard({ mode }: Props) {
   const pct = Math.round(mode.progress * 100);
-  const remaining = mode.achievedTop
-    ? 'Top milestone reached'
-    : `${mode.daysRemaining} ${mode.daysRemaining === 1 ? 'day' : 'days'} remaining`;
+  const remaining = athleteModeRemaining(mode);
   return (
     <View style={styles.card}>
       <View style={styles.head}>
@@ -36,7 +35,7 @@ export function AthleteModeCard({ mode }: Props) {
       </View>
       <View style={styles.foot}>
         <Text style={styles.sub}>
-          {mode.streakDays}-day streak · target {mode.milestoneDays}
+          {athleteModeSub(mode.streakDays, mode.milestoneDays)}
         </Text>
         <Text style={styles.remaining}>{remaining}</Text>
       </View>
