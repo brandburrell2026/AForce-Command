@@ -11,6 +11,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,500&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <link rel="preload" as="image" href="/assets/can-blue.png"><link rel="preload" as="image" href="/assets/can-red.png"><link rel="preload" as="image" href="/assets/can-green.png">
 <link rel="preload" as="image" href="/assets/stick-blue.png"><link rel="preload" as="image" href="/assets/stick-red.png"><link rel="preload" as="image" href="/assets/stick-green.png">
+<!-- Universal header — loaded before the page style so the Shop's own colours win -->
+<link rel="stylesheet" href="/assets/header.css">
 <style>
   :root{
     --ink:#0B0D12; --canvas:#F2F2F0; --red:#C1281B; --blue:#2F5BFF; --green:#2D6A4F;
@@ -35,17 +37,27 @@
   .flip-n{display:inline-block;transform:scaleX(-1);}
   :focus-visible{outline:2px solid var(--theme);outline-offset:3px;}
 
-  /* ---------- NAV (light) ---------- */
-  .nav{ position:sticky;top:0;z-index:50; display:flex;align-items:center;justify-content:space-between; padding:18px var(--gutter); background:rgba(242,242,240,.9); backdrop-filter:blur(12px); border-bottom:1px solid var(--ink-12); }
+  /* ---------- NAV (light) — layout/behaviour from /assets/header.css;
+     this keeps only the Shop's approved warm-white surface + typography. */
+  :root{ --afx-gutter:var(--gutter); }
+  .afx-nav{ background:rgba(242,242,240,.9); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); border-bottom:1px solid var(--ink-12); }
   .mark{ font-family:var(--display);font-weight:900;font-size:17px;letter-spacing:.02em; display:flex;align-items:center;gap:10px; }
   .nn{display:inline-flex;align-items:center;gap:3px;font-weight:900;}
   .nn > span:first-child{color:var(--red);}
   .nn .bar{ display:inline-block; width:9px; height:2.5px; background:var(--red); }
   .nn .flip{ display:inline-block; transform:scaleX(-1); }
-  .nav-links{ display:flex; gap:clamp(12px,1.8vw,26px); font-weight:600; font-size:12px; letter-spacing:.06em; }
-  .nav-links a{ opacity:.62; transition:opacity .2s; white-space:nowrap; }
-  .nav-links a:hover,.nav-links a[aria-current="page"]{ opacity:1; }
-  .nav-links a[aria-current="page"]{ color:var(--theme); transition:color .6s ease; }
+  .afx-links{ font-weight:600; font-size:12px; letter-spacing:.06em; }
+  .afx-links a{ opacity:.62; transition:opacity .2s; }
+  .afx-links a:hover,.afx-links a[aria-current="page"]{ opacity:1; }
+  .afx-links a[aria-current="page"]{ color:var(--theme); transition:color .6s ease; }
+  /* drawer inherits the Shop's warm-white surface + charcoal ink from tokens */
+  .afx-panel{ font-family:var(--display); }
+  /* §5 hero CTA — existing pill/type system, existing --theme accent; no new colour */
+  .hero-cta{ display:inline-flex; align-items:center; justify-content:center; margin-top:22px; min-height:48px; padding:0 28px; border-radius:999px; background:var(--theme); color:var(--ink); font-family:var(--display); font-weight:700; font-size:13.5px; letter-spacing:.04em; text-decoration:none; transition:opacity .2s ease, background .6s ease; }
+  .hero-cta:hover{ opacity:.9; }
+  /* header (76/64px sticky) must not cover the scroll target (§5) */
+  #stepDemand{ scroll-margin-top:88px; }
+  @media (max-width:1023.98px){ #stepDemand{ scroll-margin-top:76px; } }
 
   .wrap{ max-width:1180px; margin:0 auto; padding:0 var(--gutter); }
   .eyebrow{ font-family:var(--mono); font-size:11px; letter-spacing:.22em; text-transform:uppercase; color:var(--theme); transition:color .6s ease; }
@@ -290,13 +302,35 @@
 </head>
 <body data-theme="berry">
 
-<nav class="nav">
-  <a class="mark" href="/" aria-label="AFORCE home"><span class="nn"><span>N</span><span class="bar"></span><span class="flip">N</span></span> AFORCE</a>
-  <div class="nav-links">
-    <a href="/">The Standard</a><a href="/our-story">Our Story</a><a href="/science">Science</a>
-    <a href="/shop" aria-current="page">Shop</a><a href="/aforce-os">AFORCE OS</a>
+<header class="afx-nav" id="afxNav">
+  <a class="afx-mark mark" href="/" aria-label="AFORCE — home"><span class="nn"><span>N</span><span class="bar"></span><span class="flip">N</span></span> AFORCE</a>
+  <div class="afx-right">
+    <div class="afx-links">
+      <a href="/#ritual">Ritual</a><a href="/aforce-os">The OS</a><a href="/our-story">Our Story</a><a href="/science">Science</a><a href="/manifesto">Manifesto</a>
+    </div>
+    <a href="/shop" class="afx-shop" aria-current="page">Shop</a>
+    <a href="https://shop.drinkaforce.com/cart" class="afx-cart" aria-label="Cart">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M6 8h12l-1 12H7L6 8z"/><path d="M9 8a3 3 0 0 1 6 0"/></svg>
+      <span class="afx-cart-count" id="afxCartCount" hidden>0</span>
+    </a>
+    <button class="afx-burger" id="afxBurger" type="button" aria-controls="afxDrawer" aria-expanded="false" aria-label="Open menu">
+      <span class="afx-bar"></span><span class="afx-bar"></span><span class="afx-bar"></span>
+    </button>
   </div>
-</nav>
+</header>
+<div class="afx-drawer" id="afxDrawer" data-open="false">
+  <div class="afx-backdrop" data-afx-close></div>
+  <div class="afx-panel">
+    <nav aria-label="Main">
+      <a href="/#ritual">Ritual</a>
+      <a href="/aforce-os">The OS</a>
+      <a href="/our-story">Our Story</a>
+      <a href="/science">Science</a>
+      <a href="/manifesto">Manifesto</a>
+      <a href="/shop" class="afx-drawer-shop" aria-current="page">Shop</a>
+    </nav>
+  </div>
+</div>
 
 <!-- HERO (light) -->
 <header class="hero">
@@ -304,6 +338,7 @@
   <h1>Join the <em>system.</em></h1>
   <p class="hero-sub">Choose your demand. The protocol answers.</p>
   <div class="hero-badge"><span class="pulse" aria-hidden="true"></span>Every order activates AFORCE OS</div>
+  <a href="#stepDemand" class="hero-cta" data-hero-cta>Begin the Ritual</a>
   <div class="hero-can" id="heroCan" aria-hidden="true">
     <img data-f="watermelon" src="/assets/can-red.png" alt="">
     <img data-f="berry" src="/assets/can-blue.png" alt="" class="on">
@@ -503,6 +538,7 @@
 <div class="lb" id="lightbox" aria-hidden="true"><img id="lbImg" src="" alt=""></div>
 
 <script src="/assets/commerce.js"></script>
+<script src="/assets/header.js" defer></script>
 <script>
 /* =====================================================================
    AFORCE SHOP v2.3 — "THE PROTOCOL ANSWERS" · Dark Stage · Depth · Ignition
