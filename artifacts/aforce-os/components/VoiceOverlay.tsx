@@ -32,6 +32,8 @@ import {
 } from '../services/speechToText';
 import { speak, stopSpeaking, VOICE_PLAYBACK_ENABLED } from '../services/textToSpeech';
 import { processTranscript } from '../services/voiceService';
+import { useProactiveCoach } from '../hooks/useProactiveCoach';
+import { localDayKey } from '../utils/voiceCheckIn';
 import type {
   VoiceCommandResponse, VoiceState, VoiceAction,
 } from '../types/voice';
@@ -65,7 +67,7 @@ const STATE_LABEL_KEY: Record<VoiceState, string> = {
   error:      'voice.try_again',
 };
 
-export function VoiceOverlay({ visible, onClose, autoStart = false }: Props) {
+export function VoiceOverlay({ visible, onClose, autoStart = false, demoMode = false }: Props) {
   const router = useRouter();
   const { t } = useTranslation();
   const {
@@ -75,8 +77,15 @@ export function VoiceOverlay({ visible, onClose, autoStart = false }: Props) {
     activateSocialMode, deactivateSocialMode,
   } = useAppStore();
 
+  // Section 64 — the proactive, speak-first coach line (null = stay silent, and
+  // always null in production, where the flag is OFF).
+  const proactive = useProactiveCoach();
+
   const [voiceState, setVoiceState] = useState<VoiceState>('idle');
   const [response, setResponse] = useState<VoiceCommandResponse | null>(null);
+  // Remembers the last proactive line surfaced (spoken text + local day) so the
+  // same value-moment never repeats within a day — the coach never nags.
+  const proactiveShownKeyRef = useRef<string | null>(null);
   const sttRef = useRef<STTHandle | null>(null);
   const dismissTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const autoStopTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -104,6 +113,20 @@ export function VoiceOverlay({ visible, onClose, autoStart = false }: Props) {
       clearTimers();
     }
   }, [visible, clearTimers]);
+
+  // Section 64 — surface the proactive coach line on open, while idle. Skipped
+  // when auto-starting listening (band trigger) or in demo mode, and de-duped by
+  // spoken text + day so a value-moment shows at most once per day. Inert in
+  // production (the flag keeps `proactive` null). speak() is a no-op until voice
+  // playback is enabled — the line still renders in the response card.
+  useEffect(() => {
+    if (!visible || autoStart || demoMode || voiceState !== 'idle' || !proactive) return;
+    const key = `${proactive.spoken}::${localDayKey(new Date())}`;
+    if (proactiveShownKeyRef.current === key) return;
+    proactiveShownKeyRef.current = key;
+    setResponse(proactive);
+    void speak(proactive.spoken);
+  }, [visible, autoStart, demoMode, voiceState, proactive]);
 
   /** Dispatch the side-effect declared by the orchestrator. */
   const executeAction = useCallback(async (action: VoiceAction) => {

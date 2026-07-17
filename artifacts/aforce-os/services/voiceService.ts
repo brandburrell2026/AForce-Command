@@ -17,7 +17,8 @@
  */
 
 import i18n from 'i18next';
-import type { ScoreEngineOutput, FeatureFlags } from '../types';
+import type { ScoreEngineOutput, FeatureFlags, HistoryEntry } from '../types';
+import type { DailyLessonKind } from '../types/livingPerformance';
 import type {
   VoiceCommandResponse, VoiceClassification, VoiceSymptomId,
   VoiceScreenTarget,
@@ -34,6 +35,7 @@ import {
   assembleCoachContext, proactiveLine, type CoachSignals,
 } from '../utils/intelligence/conversationalIntelligence';
 import { isCompliantCoachLine } from '../utils/intelligence/conversationalLanguage';
+import { intakeLoggedToday } from '../utils/intelligence/proactiveCoachSignals';
 
 export interface VoiceContext {
   engineOutput: ScoreEngineOutput;
@@ -369,4 +371,37 @@ export function buildProactiveCoachLine(
     action: { type: 'NONE' },
     at: Date.now(),
   };
+}
+
+/**
+ * Everything the proactive path needs, as plain values — so the whole wiring is
+ * pure and testable without a React renderer. `useProactiveCoach` is a thin hook
+ * that gathers these from the store and calls this.
+ */
+export interface ProactiveCoachInputs {
+  engineOutput: ScoreEngineOutput;
+  /** Full intake / cycle history — drives the "intake logged today" follow check. */
+  history: readonly HistoryEntry[];
+  /** §61 daily-lesson kind; `'lesson'` when a notable lesson is ready. */
+  dailyLessonKind: DailyLessonKind;
+  flags: Pick<FeatureFlags, 'conversational_intelligence_enabled'>;
+  /** Injected clock for the local-day intake check. */
+  now: Date;
+}
+
+/**
+ * Compose the proactive coach line from live app inputs: derive the behavioral
+ * signals (intake-today follow state, whether a notable §61 lesson is ready)
+ * and hand them to `buildProactiveCoachLine`. Pure — no store, no React, no
+ * score mutation; returns the line to speak, or `null` to stay silent.
+ */
+export function proactiveCoachResponse(input: ProactiveCoachInputs): VoiceCommandResponse | null {
+  return buildProactiveCoachLine(
+    { engineOutput: input.engineOutput },
+    {
+      commandFollowedToday: intakeLoggedToday(input.history, input.now),
+      hasDailyLesson: input.dailyLessonKind === 'lesson',
+    },
+    input.flags,
+  );
 }
