@@ -37,6 +37,9 @@ export type VoiceIntent =
   | 'SET_AUTOPILOT'
   | 'ACTIVATE_SOCIAL'
   | 'DEACTIVATE_SOCIAL'
+  // Section 64 — a coach-initiated proactive line (no user transcript). Never
+  // produced by `classifyTranscript`; emitted only by `buildProactiveCoachLine`.
+  | 'PROACTIVE_COACH'
   | 'UNKNOWN';
 
 /** Symptom ids the engine recognises (kept aligned with heatRiskEngine). */
