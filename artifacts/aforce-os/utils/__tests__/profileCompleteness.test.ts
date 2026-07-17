@@ -129,4 +129,66 @@ describe('Section 55 — assessProfileCompleteness', () => {
       ['fields', 'filledCount', 'level', 'ratio', 'totalFields'].sort(),
     );
   });
+
+  it('projects the exact 9 field keys, in descriptor order (pins identity + order)', () => {
+    // Guards against a key typo or a descriptor reordering — the Step-2 Data
+    // Confidence adapter will match on these exact strings.
+    expect(assessProfileCompleteness(FULLY_FILLED).fields.map((f) => f.key)).toEqual([
+      'bodyWeightLbs', 'heightCm', 'birthYear', 'biologicalSex', 'activityLevel',
+      'trainingLevel', 'primaryGoal', 'sweatClassification', 'goalWeightLbs',
+    ]);
+  });
+
+  it('activityLevel non-finite (NaN / Infinity) is unset — pins the finite guard', () => {
+    for (const bad of [Number.NaN, Infinity, -Infinity]) {
+      const p: ProfileIdentity = { ...DEFAULT_PROFILE_IDENTITY, activityLevel: bad };
+      const field = assessProfileCompleteness(p).fields.find((f) => f.key === 'activityLevel')!;
+      expect(field.present, `activityLevel=${bad}`).toBe(false);
+    }
+  });
+
+  it('birthYear non-finite / non-positive is unset (all four positiveNumber fields covered)', () => {
+    for (const bad of [Infinity, -1990, 0, Number.NaN]) {
+      const p: ProfileIdentity = { ...FULLY_FILLED, birthYear: bad as unknown as number };
+      const field = assessProfileCompleteness(p).fields.find((f) => f.key === 'birthYear')!;
+      expect(field.present, `birthYear=${bad}`).toBe(false);
+    }
+  });
+});
+
+// Custom descriptor groups sized to land ratios EXACTLY on the locked
+// thresholds — the 9-field group can't hit 0.8 or 0.34 exactly, but the
+// generic resolver (and the Step-2 adapter) can, so pin the >= edges here.
+describe('Section 55 — threshold edges are exact (>= not >)', () => {
+  /** N trivial descriptors, the first `filled` present. */
+  function makeDescriptors(total: number, filled: number): ProfileFieldDescriptor[] {
+    return Array.from({ length: total }, (_, i) => ({
+      key: `f${i}`,
+      present: () => i < filled,
+    }));
+  }
+  const levelOf = (total: number, filled: number) =>
+    assessProfileCompleteness(DEFAULT_PROFILE_IDENTITY, makeDescriptors(total, filled));
+
+  it('ratio exactly RICH_MIN_RATIO (0.80) is rich, not partial', () => {
+    const r = levelOf(5, 4); // 4/5 = 0.80
+    expect(r.ratio).toBe(RICH_MIN_RATIO);
+    expect(r.level).toBe('rich');
+  });
+
+  it('ratio exactly PARTIAL_MIN_RATIO (0.34) is partial, not sparse', () => {
+    const r = levelOf(50, 17); // 17/50 = 0.34
+    expect(r.ratio).toBe(PARTIAL_MIN_RATIO);
+    expect(r.level).toBe('partial');
+  });
+
+  it('the 0.79 / 0.80 boundary pair splits partial → rich', () => {
+    expect(levelOf(100, 79).level).toBe('partial'); // 0.79
+    expect(levelOf(100, 80).level).toBe('rich');    // 0.80
+  });
+
+  it('the 0.33 / 0.34 boundary pair splits sparse → partial', () => {
+    expect(levelOf(100, 33).level).toBe('sparse');  // 0.33
+    expect(levelOf(100, 34).level).toBe('partial'); // 0.34
+  });
 });
