@@ -16,7 +16,8 @@
  * the brand examples ("Autopilot activated.", "Performance Mode is now on.").
  */
 
-import type { ScoreEngineOutput } from '../types';
+import i18n from 'i18next';
+import type { ScoreEngineOutput, FeatureFlags } from '../types';
 import type {
   VoiceCommandResponse, VoiceClassification, VoiceSymptomId,
   VoiceScreenTarget,
@@ -28,6 +29,11 @@ import { classifyTranscript } from './intentClassifier';
 import { resolvePersona } from './voicePersonaService';
 import { renderTemplate } from './voiceTemplateEngine';
 import { setActiveMode } from './ttsConfigService';
+// Section 64 — Conversational Intelligence Architecture™ (Step 1 policy).
+import {
+  assembleCoachContext, proactiveLine, type CoachSignals,
+} from '../utils/intelligence/conversationalIntelligence';
+import { isCompliantCoachLine } from '../utils/intelligence/conversationalLanguage';
 
 export interface VoiceContext {
   engineOutput: ScoreEngineOutput;
@@ -287,4 +293,80 @@ export function processTranscript(transcript: string, ctx: VoiceContext): VoiceC
   setActiveMode(mode);
   const classification = classifyTranscript(transcript);
   return buildResponse(classification, ctx, transcript.trim());
+}
+
+// ─── Section 64 — Conversational Intelligence Architecture™ (Step 2 wiring) ────
+
+/**
+ * Behavioral signals the proactive coach needs that the engine snapshot does
+ * not already carry. The caller derives these from already-existing surfaces —
+ * no new data architecture (spec §64).
+ */
+export interface ProactiveCoachExtras {
+  /** Whether the user has already acted on today's command — so we never nag. */
+  commandFollowedToday: boolean;
+  /**
+   * Whether a ready, notable §61 daily lesson exists. Derived by the caller from
+   * the Living Performance Model (itself gated by `living_performance_enabled`);
+   * `false` whenever that surface is off.
+   */
+  hasDailyLesson: boolean;
+}
+
+/**
+ * The proactive, speak-first path — the counterpart to `processTranscript`.
+ *
+ * Called with NO user transcript: it assembles the coach's full context from
+ * already-derived signals (never from zero), runs the Silent-Intelligence gate
+ * (Water-First priority — urgent unacted command → open recovery window →
+ * notable daily lesson), and returns the one line worth speaking, or `null` to
+ * STAY SILENT (Constitution Principle 6 — silence is trust, not a gap).
+ *
+ * Score-Protection: reads injected signals only, dispatches nothing, mutates no
+ * score. The only side effect mirrors the reactive path — syncing the TTS
+ * persona mode so the line plays at the right rate/pitch.
+ *
+ * Gated by `conversational_intelligence_enabled` (OFF in the production binary):
+ * flag off → always silent. Every emitted line is re-checked against the §64
+ * observation-only language guard; a non-compliant line degrades to SILENCE
+ * rather than shipping or throwing.
+ */
+export function buildProactiveCoachLine(
+  ctx: VoiceContext,
+  extras: ProactiveCoachExtras,
+  flags: Pick<FeatureFlags, 'conversational_intelligence_enabled'>,
+): VoiceCommandResponse | null {
+  // Flag gate — OFF in production keeps the coach silent everywhere.
+  if (!flags.conversational_intelligence_enabled) return null;
+
+  const { engineOutput } = ctx;
+  const signals: CoachSignals = {
+    level: engineOutput.performanceState.level,
+    score: engineOutput.score,
+    urgency: engineOutput.command.urgencyLevel,
+    commandAction: engineOutput.command.action,
+    commandFollowedToday: extras.commandFollowedToday,
+    // The recovery window lives on the (nullable) social rollup.
+    recoveryWindowActive: engineOutput.social?.inRecoveryWindow ?? false,
+    hasDailyLesson: extras.hasDailyLesson,
+  };
+
+  const line = proactiveLine(assembleCoachContext(signals));
+  if (line === null) return null; // Silent Intelligence — nothing adds value now.
+
+  const spoken = i18n.t(line.lineKey, line.params);
+  // Defense in depth: the copy is guard-tested at build, but never ship a line
+  // that fails the observation-only rule — degrade to silence, never throw.
+  if (!isCompliantCoachLine(spoken)) return null;
+
+  // Mirror the reactive path: sync TTS mode before the line is spoken.
+  setActiveMode(line.mode);
+
+  return {
+    intent: 'PROACTIVE_COACH',
+    transcript: '',
+    spoken,
+    action: { type: 'NONE' },
+    at: Date.now(),
+  };
 }
