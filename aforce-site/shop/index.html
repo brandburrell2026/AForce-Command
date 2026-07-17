@@ -271,6 +271,10 @@
   .ignite-btn.fire{ animation:ignite .7s ease; }
   .ignite-btn.committed{ box-shadow:0 0 0 2px var(--theme) inset, 0 0 12px -2px var(--theme); }
   @keyframes ignite{ 0%{box-shadow:0 0 0 0 var(--theme);} 45%{box-shadow:0 0 46px 6px var(--theme);} 100%{box-shadow:0 0 34px -2px var(--theme);} }
+  /* Pre-launch CTA — replaces the Add-to-Ritual button. Same footprint, brand
+     system (display type, existing tokens, --theme accent). Non-interactive. */
+  .prelaunch{ margin-top:18px; width:100%; text-align:center; font-family:var(--display); font-weight:800; font-size:clamp(15px,1.7vw,18px); letter-spacing:.02em; border-radius:6px; padding:20px; min-height:56px; display:flex; align-items:center; justify-content:center; gap:11px; background:transparent; color:var(--canvas); border:1.5px solid var(--can-22); }
+  .prelaunch::before{ content:""; width:7px; height:7px; border-radius:50%; background:var(--theme); flex:none; }
   .begin-legal{ margin-top:14px; font-family:var(--mono); font-size:10.5px; letter-spacing:.06em; color:var(--can-40); text-align:center; }
 
   /* ---- "STATED PLAINLY" compliance block ---- */
@@ -766,6 +770,25 @@
   /* A visible error at the Begin card (where the button is). The basket drawer
      is closed at add time, so errors must NOT be written into it — they'd be
      invisible ("nothing moves"). */
+  /* Pre-launch state: commerce is not open yet (cart API flag off → 404). We
+     keep product browsing fully intact and only replace the Add-to-Ritual CTA
+     with a deliberate notice. Sticky once detected. */
+  var preLaunch = false;
+  function enterPreLaunch(){
+    if(preLaunch) return;
+    preLaunch = true;
+    clearBeginError();
+    renderBegin();
+    announce("The Ritual opens September 2026.");
+    track("shop_prelaunch_shown", {});
+  }
+  function primaryCTA(ready){
+    if(preLaunch) return '<div class="prelaunch" role="status">The Ritual opens September 2026</div>';
+    return ready
+      ? '<button class="ignite-btn ready" id="igniteBtn" type="button">Add to Ritual — '+money(total())+perSuffix()+'</button>'
+      : '<button class="ignite-btn dormant" id="igniteBtn" type="button" disabled>Begin</button>';
+  }
+
   function beginError(msg){
     var host=$("#beginBody"); if(!host) return;
     var e=$("#beginErr"); if(!e){ e=document.createElement("div"); e.id="beginErr"; e.setAttribute("role","alert"); e.style.cssText="margin-top:14px;color:var(--red);font-size:13px;line-height:1.5;"; host.appendChild(e); }
@@ -785,7 +808,15 @@
     clearBeginError();
     basket.add({ variantId:vid, quantity:qty, sellingPlanId:plan, attributes:orderAttrs(qty) }).then(function(res){
       if(btn){ btn.disabled=false; }
-      if(res && res.error){ beginError("We couldn’t add that to your ritual right now. Please try again in a moment."); return; }
+      if(res && res.error){
+        /* Distinguish the deliberate flag-off 404 (commerce not open yet) from a
+           real failure. A 404 means SHOP_PREVIEW_ENABLED is unset — pre-launch,
+           not an error — so switch the CTA to the pre-launch state instead of
+           showing an error. 5xx / network keep the #243 visible-error behaviour. */
+        if(res.error.status === 404){ enterPreLaunch(); return; }
+        beginError("We couldn’t add that to your ritual right now. Please try again in a moment.");
+        return;
+      }
       /* §11 guard: if AutoPilot was requested, confirm the line actually got the
          plan — never let a membership silently become one-time. */
       if(plan){
@@ -1001,7 +1032,7 @@
     if(!isReady()){
       var missing = !state.demand ? {t:"a demand", step:"stepDemand"} : (!state.format ? {t:"a format", step:"stepFormat"} : {t:"a depth", step:"stepFormat"});
       body.innerHTML = '<p class="begin-missing">Choose <button type="button" data-jump="'+missing.step+'">'+missing.t+'</button> to complete your ritual.</p>' +
-        '<button class="ignite-btn dormant" id="igniteBtn" type="button" disabled>Begin</button>';
+        primaryCTA(false);
       return;
     }
     var chips = summaryChips().map(function(c){ return '<span class="chip-back" role="button" tabindex="0" data-jump="'+(c.step==="demand"?"stepDemand":"stepFormat")+'">'+c.text+'</span>'; }).join(' · ');
@@ -1012,9 +1043,12 @@
       (state.plan==="autopilot" && RITUAL_MEMBERSHIP_PLAN==null ? '<div class="begin-init" style="color:var(--can-40);font-size:12.5px;">AutoPilot membership billing activates shortly — this order checks out as one-time until it’s live.</div>' : '') +
       '<div class="begin-init"><b>Your Performance Profile initializes with this order.</b></div>' +
       /* §9: primary action ADDS to the basket and keeps the customer on the
-         page; checkout happens from Your Ritual. */
-      '<button class="ignite-btn ready" id="igniteBtn" type="button">Add to Ritual — '+money(total())+perSuffix()+'</button>' +
-      '<div class="begin-legal">Build your ritual, then check out securely · taxes &amp; shipping calculated by address · skip or cancel anytime in AFORCE OS</div>';
+         page; checkout happens from Your Ritual. In pre-launch it becomes a
+         deliberate notice instead. */
+      primaryCTA(true) +
+      (preLaunch
+        ? '<div class="begin-legal">Browse the system now — ordering opens at launch.</div>'
+        : '<div class="begin-legal">Build your ritual, then check out securely · taxes &amp; shipping calculated by address · skip or cancel anytime in AFORCE OS</div>');
   }
 
   /* one-shot ignition when the ritual first becomes complete */
