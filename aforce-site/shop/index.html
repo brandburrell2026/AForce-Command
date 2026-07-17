@@ -270,6 +270,54 @@
   .plainly p + p{ margin-top:12px; }
 
   /* ---------- RITUAL BAR ---------- */
+  /* ---------- YOUR RITUAL basket drawer (§9) — warm-white, --ink text,
+     --ink-12 hairlines, stable AForce --blue accent (not flavor --theme) ---------- */
+  .rb2{ position:fixed; inset:0; z-index:280; display:none; }
+  .rb2[data-open="true"]{ display:block; }
+  .rb2-backdrop{ position:absolute; inset:0; background:rgba(11,13,18,.42); }
+  .rb2-panel{ position:absolute; top:0; right:0; bottom:0; width:min(440px,100%); background:#FCFCFB; color:var(--ink); display:flex; flex-direction:column; box-shadow:-24px 0 60px -30px rgba(11,13,18,.4); transform:translateX(100%); transition:transform .38s cubic-bezier(.2,.7,.2,1); padding-bottom:env(safe-area-inset-bottom,0px); }
+  .rb2[data-open="true"] .rb2-panel{ transform:none; }
+  .rb2-head{ display:flex; align-items:center; justify-content:space-between; padding:22px var(--gutter) 14px; }
+  .rb2-head h2{ font-family:var(--display); font-weight:800; font-size:19px; letter-spacing:-.01em; }
+  .rb2-x{ width:44px; height:44px; margin-right:-10px; border:0; background:none; cursor:pointer; position:relative; color:var(--ink); }
+  .rb2-x span{ position:absolute; left:12px; top:21px; width:20px; height:1.5px; background:currentColor; }
+  .rb2-x span:first-child{ transform:rotate(45deg); } .rb2-x span:last-child{ transform:rotate(-45deg); }
+  .rb2-included{ margin:0 var(--gutter) 4px; display:inline-flex; align-self:flex-start; align-items:center; gap:8px; font-family:var(--display); font-weight:700; font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:#fff; background:var(--blue); border-radius:999px; padding:7px 13px; }
+  .rb2-included[hidden]{ display:none; }
+  .rb2-included .dot{ width:6px; height:6px; border-radius:50%; background:#fff; }
+  .rb2-body{ flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; padding:8px var(--gutter) 12px; }
+  .rb2-line{ display:grid; grid-template-columns:64px 1fr; gap:14px; padding:16px 0; border-bottom:1px solid var(--ink-12); }
+  .rb2-thumb{ width:64px; height:64px; border-radius:6px; background:var(--ink-06); display:flex; align-items:center; justify-content:center; overflow:hidden; }
+  .rb2-thumb img{ width:100%; height:100%; object-fit:contain; }
+  .rb2-line-name{ font-family:var(--display); font-weight:700; font-size:14.5px; letter-spacing:-.01em; }
+  .rb2-line-meta{ margin-top:3px; font-size:12px; color:var(--ink-60); line-height:1.5; }
+  .rb2-line-plan{ display:inline-block; margin-top:5px; font-family:var(--mono); font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:var(--blue); }
+  .rb2-line-plan.onetime{ color:var(--ink-40); }
+  .rb2-line-bottom{ display:flex; align-items:center; justify-content:space-between; margin-top:11px; }
+  .rb2-qty{ display:inline-flex; align-items:center; border:1px solid var(--ink-12); border-radius:999px; }
+  .rb2-qty button{ width:34px; height:34px; border:0; background:none; cursor:pointer; font-size:16px; color:var(--ink); line-height:1; }
+  .rb2-qty button:disabled{ opacity:.3; cursor:not-allowed; }
+  .rb2-qty span{ min-width:26px; text-align:center; font-family:var(--mono); font-size:13px; }
+  .rb2-line-price{ font-family:var(--display); font-weight:700; font-size:14px; }
+  .rb2-line-acts{ margin-top:8px; display:flex; gap:16px; }
+  .rb2-line-acts button{ border:0; background:none; cursor:pointer; font-family:var(--mono); font-size:10.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-40); padding:6px 0; min-height:32px; }
+  .rb2-line-acts button:hover{ color:var(--ink); }
+  .rb2-line-acts button.rb2-remove:hover{ color:var(--red); }
+  .rb2-empty{ text-align:center; padding:48px 10px; color:var(--ink-60); }
+  .rb2-empty .rb2-empty-h{ font-family:var(--display); font-weight:800; font-size:18px; color:var(--ink); margin-bottom:8px; }
+  .rb2-undo{ margin:0 var(--gutter); display:flex; align-items:center; justify-content:space-between; gap:12px; background:var(--ink); color:var(--canvas); border-radius:8px; padding:12px 16px; font-size:13px; }
+  .rb2-undo[hidden]{ display:none; }
+  .rb2-undo button{ border:0; background:none; color:var(--canvas); cursor:pointer; font-family:var(--display); font-weight:700; font-size:12px; letter-spacing:.06em; text-transform:uppercase; text-decoration:underline; text-underline-offset:3px; min-height:32px; }
+  .rb2-foot{ border-top:1px solid var(--ink-12); padding:16px var(--gutter) calc(20px + env(safe-area-inset-bottom,0px)); background:#FCFCFB; }
+  .rb2-foot[hidden]{ display:none; }
+  .rb2-sub{ display:flex; justify-content:space-between; font-family:var(--display); font-weight:700; font-size:16px; }
+  .rb2-ship{ margin-top:4px; font-family:var(--mono); font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-40); }
+  .rb2-checkout{ display:block; width:100%; min-height:52px; margin-top:16px; border:0; border-radius:999px; background:var(--blue); color:#fff; font-family:var(--display); font-weight:700; font-size:14px; letter-spacing:.03em; cursor:pointer; transition:opacity .2s; }
+  .rb2-checkout:hover{ opacity:.9; } .rb2-checkout:disabled{ opacity:.4; cursor:not-allowed; }
+  .rb2-continue{ display:block; width:100%; min-height:44px; margin-top:10px; border:0; background:none; color:var(--ink-60); cursor:pointer; font-size:12.5px; text-decoration:underline; text-underline-offset:3px; }
+  .rb2-err{ margin:10px var(--gutter) 0; color:var(--red); font-size:12.5px; }
+  @media (prefers-reduced-motion:reduce){ .rb2-panel{ transition:none; } }
+
   .ritualbar{ position:fixed; left:0; right:0; bottom:0; z-index:60; transform:translateY(120%); transition:transform .4s cubic-bezier(.2,.7,.2,1); background:rgba(11,13,18,.98); backdrop-filter:blur(12px); border-top:1px solid var(--can-12); color:var(--canvas); padding:12px var(--gutter); }
   .ritualbar.show{ transform:none; }
   .rb-inner{ max-width:1180px; margin:0 auto; display:flex; align-items:center; gap:12px; }
@@ -311,10 +359,10 @@
       <a href="/#ritual">Ritual</a><a href="/aforce-os">The OS</a><a href="/our-story">Our Story</a><a href="/science">Science</a><a href="/manifesto">Manifesto</a>
     </div>
     <a href="/shop" class="afx-shop" aria-current="page">Shop</a>
-    <a href="https://shop.drinkaforce.com/cart" class="afx-cart" aria-label="Cart">
+    <button type="button" class="afx-cart" id="afxCartBtn" aria-label="Your ritual — cart" aria-haspopup="dialog" aria-expanded="false" aria-controls="ritualBasket">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M6 8h12l-1 12H7L6 8z"/><path d="M9 8a3 3 0 0 1 6 0"/></svg>
       <span class="afx-cart-count" id="afxCartCount" hidden>0</span>
-    </a>
+    </button>
     <button class="afx-burger" id="afxBurger" type="button" aria-controls="afxDrawer" aria-expanded="false" aria-label="Open menu">
       <span class="afx-bar"></span><span class="afx-bar"></span><span class="afx-bar"></span>
     </button>
@@ -540,7 +588,32 @@
 </div>
 <div class="lb" id="lightbox" aria-hidden="true"><img id="lbImg" src="" alt=""></div>
 
+<!-- YOUR RITUAL — multi-product basket (§9). Right-side drawer; state from
+     /assets/basket.js. Reuses the Shop's warm-white/gray + AForce-blue system. -->
+<div class="rb2" id="ritualBasketWrap" data-open="false">
+  <div class="rb2-backdrop" data-rb2-close></div>
+  <aside class="rb2-panel" id="ritualBasket" role="dialog" aria-modal="true" aria-labelledby="rb2Title" aria-hidden="true">
+    <div class="rb2-head">
+      <h2 id="rb2Title">Your Ritual</h2>
+      <button type="button" class="rb2-x" id="rb2Close" aria-label="Close your ritual"><span></span><span></span></button>
+    </div>
+    <div class="rb2-included" id="rb2Included" hidden><span class="dot" aria-hidden="true"></span>Command included</div>
+    <div class="rb2-body" id="rb2Body"><!-- lines or empty state injected --></div>
+    <div class="rb2-undo" id="rb2Undo" hidden role="status" aria-live="polite">
+      <span id="rb2UndoLabel">Item removed</span>
+      <button type="button" id="rb2UndoBtn">Undo</button>
+    </div>
+    <div class="rb2-foot" id="rb2Foot" hidden>
+      <div class="rb2-sub"><span>Subtotal</span><span id="rb2Subtotal">$0.00</span></div>
+      <div class="rb2-ship">Shipping calculated at checkout</div>
+      <button type="button" class="rb2-checkout" id="rb2Checkout">Continue to secure checkout</button>
+      <button type="button" class="rb2-continue" id="rb2Continue">Continue building</button>
+    </div>
+  </aside>
+</div>
+
 <script src="/assets/commerce.js"></script>
+<script src="/assets/basket.js"></script>
 <script src="/assets/header.js" defer></script>
 <script>
 /* =====================================================================
@@ -669,41 +742,105 @@
     setTimeout(function(){ window.location.href = url; }, 30);
   }
 
-  function goCheckout(source){
-    if(!isReady()) return false;
-    if(handing) return true;             // double-tap dedup: exactly one handoff
+  /* ================= YOUR RITUAL BASKET (§9) ================= */
+  var basket = window.AForceBasket ? new window.AForceBasket(window.AForceCommerce) : null;
+
+  /* variantId → {format, flavor} reverse map, for EDIT. */
+  var VARIANT_REV = (function(){ var m={}; Object.keys(VARIANTS).forEach(function(fmt){ Object.keys(VARIANTS[fmt]).forEach(function(fl){ m[VARIANTS[fmt][fl]]={format:fmt,flavor:fl}; }); }); return m; })();
+  function lineToConfig(l){ var n=(l.variantId||"").split("/").pop(); return VARIANT_REV[n]||null; }
+
+  function addToRitual(source){
+    if(!isReady() || !basket) return false;
     var vid = VARIANTS[state.format][state.formulation];
     if(!vid) return false;
     var qty = checkoutQty();
-    var C = window.AForceCommerce;
-    if(!C){ checkoutError("Checkout is unavailable right now. Please refresh and try again."); return false; }
-
-    handing = true;
-    track("checkout_started", { demand:state.demand, formulation:state.formulation, format:state.format, plan:state.plan, depth:state.depth, units:state.units, subscription:isSubscription(), source:source||"begin" });
-
-    if(!isSubscription()){
-      var url = C.oneTimePermalink(vid, qty, orderAttrs(qty));
-      if(!url){ checkoutError("We couldn’t open checkout. Please try again."); return false; }
-      commit(url);
-      return true;
-    }
-
-    /* AutoPilot — real subscription or nothing. Never downgrade silently. */
-    C.createCart([{ variantId: vid, quantity: qty, sellingPlanId: RITUAL_MEMBERSHIP_PLAN }], orderAttrs(qty))
-      .then(function(cart){
-        if(!C.subscriptionApplied(cart, RITUAL_MEMBERSHIP_PLAN)){
-          throw new Error("AutoPilot was not applied to the order.");
-        }
-        commit(C.checkoutURLFor(cart));
-      })
-      .catch(function(err){
-        /* §11: do not fall back to a one-time permalink here. The customer
-           asked for a membership; sending them to a one-time checkout would
-           charge them for something they did not choose. */
-        checkoutError("AutoPilot checkout isn’t available right now. Your ritual is saved — please try again in a moment.");
-        if(window.console && console.warn) console.warn("[checkout] subscription handoff failed:", err && err.message);
-      });
+    var plan = isSubscription() ? RITUAL_MEMBERSHIP_PLAN : null;
+    var btn = $("#igniteBtn");
+    if(btn){ btn.disabled=true; }
+    clearBasketErr();
+    basket.add({ variantId:vid, quantity:qty, sellingPlanId:plan, attributes:orderAttrs(qty) }).then(function(res){
+      if(btn){ btn.disabled=false; }
+      if(res && res.error){ showBasketErr("We couldn’t add that to your ritual. Please try again."); return; }
+      /* §11 guard: if AutoPilot was requested, confirm the line actually got the
+         plan — never let a membership silently become one-time. */
+      if(plan){
+        var applied = basket.lines().some(function(l){ return (l.variantId||"").indexOf(vid)>-1 && l.sellingPlanId; });
+        if(!applied){ showBasketErr("AutoPilot couldn’t be applied right now. Please try again in a moment."); return; }
+      }
+      track("added_to_ritual",{variant:vid, qty:qty, subscription:!!plan, source:source||"begin"});
+      announce("Added to your ritual. "+basket.count()+" in your cart.");
+      openBasket();
+    });
     return true;
+  }
+  function showBasketErr(msg){ var b=$("#rb2Body"); if(!b)return; var e=$("#rb2Err")||document.createElement("div"); e.id="rb2Err"; e.className="rb2-err"; e.setAttribute("role","alert"); e.textContent=msg; b.parentNode.insertBefore(e, b); }
+  function clearBasketErr(){ var e=$("#rb2Err"); if(e) e.remove(); }
+
+  /* ---- basket drawer open/close (focus trap + scroll lock, §7/§9) ---- */
+  var rb2Wrap=$("#ritualBasketWrap"), rb2Panel=$("#ritualBasket"), rb2LastFocus=null;
+  function rb2Open(){ return rb2Wrap && rb2Wrap.getAttribute("data-open")==="true"; }
+  function openBasket(){
+    if(!rb2Wrap || rb2Open()) return;
+    rb2LastFocus=document.activeElement;
+    var sbw=window.innerWidth-document.documentElement.clientWidth; if(sbw>0) document.documentElement.style.paddingRight=sbw+"px";
+    rb2Wrap.setAttribute("data-open","true"); rb2Panel.setAttribute("aria-hidden","false");
+    document.documentElement.classList.add("afx-locked");
+    var cb=$("#afxCartBtn"); if(cb) cb.setAttribute("aria-expanded","true");
+    var f=$("#rb2Close"); if(f) f.focus();
+  }
+  function closeBasket(returnFocus){
+    if(!rb2Wrap || !rb2Open()) return;
+    rb2Wrap.setAttribute("data-open","false"); rb2Panel.setAttribute("aria-hidden","true");
+    document.documentElement.classList.remove("afx-locked"); document.documentElement.style.paddingRight="";
+    var cb=$("#afxCartBtn"); if(cb) cb.setAttribute("aria-expanded","false");
+    if(returnFocus!==false){ (cb||document.body).focus(); }
+  }
+
+  /* ---- render (subscribe to basket changes) ---- */
+  function money2(a){ return "$"+(Math.round(parseFloat(a)*100)/100).toFixed(2); }
+  function renderBasket(){
+    if(!basket) return;
+    var lines=basket.lines(), count=basket.count();
+    // header cart count
+    var cc=$("#afxCartCount"); if(cc){ cc.textContent=count; cc.hidden = count===0; }
+    // COMMAND INCLUDED
+    var inc=$("#rb2Included"); if(inc) inc.hidden = !basket.hasAutoPilot();
+    var body=$("#rb2Body"), foot=$("#rb2Foot");
+    if(!body) return;
+    if(!lines.length){
+      body.innerHTML='<div class="rb2-empty"><div class="rb2-empty-h">Your ritual is empty.</div><p>Choose a demand and add your first formulation to begin.</p></div>';
+      if(foot) foot.hidden=true;
+      renderUndo(); return;
+    }
+    body.innerHTML=lines.map(function(l){
+      var sub = !!l.sellingPlanId;
+      var cfg = lineToConfig(l);
+      var fmtLabel = cfg ? (cfg.format==="cans"?"RTD Cans":"Sticks") : "";
+      return '<div class="rb2-line" data-line="'+l.id+'">'+
+        '<div class="rb2-thumb">'+(l.image?'<img src="'+l.image+'" alt="'+(l.imageAlt||l.title||"")+'">':'')+'</div>'+
+        '<div>'+
+          '<div class="rb2-line-name">'+(l.productTitle||l.title||"Item")+'</div>'+
+          '<div class="rb2-line-meta">'+(l.title||"")+(fmtLabel?' · '+fmtLabel:'')+'</div>'+
+          '<span class="rb2-line-plan'+(sub?'':' onetime')+'">'+(sub?'AutoPilot · monthly':'One-Time')+'</span>'+
+          '<div class="rb2-line-bottom">'+
+            '<div class="rb2-qty"><button type="button" data-qty="-1" aria-label="Decrease quantity"'+(l.quantity<=1?' disabled':'')+'>–</button><span aria-label="Quantity">'+l.quantity+'</span><button type="button" data-qty="1" aria-label="Increase quantity"'+(l.quantity>=10?' disabled':'')+'>+</button></div>'+
+            '<span class="rb2-line-price">'+(l.lineTotal?money2(l.lineTotal):'')+'</span>'+
+          '</div>'+
+          '<div class="rb2-line-acts"><button type="button" class="rb2-edit">Edit</button><button type="button" class="rb2-remove">Remove</button></div>'+
+        '</div>'+
+      '</div>';
+    }).join("");
+    if(foot){
+      foot.hidden=false;
+      $("#rb2Subtotal").textContent = money2(basket.subtotal()||0);
+      $("#rb2Checkout").disabled = basket.busy;
+    }
+    renderUndo();
+  }
+  function renderUndo(){
+    var u=$("#rb2Undo"); if(!u||!basket) return;
+    if(basket.canUndo()){ u.hidden=false; $("#rb2UndoLabel").textContent="Item removed"; }
+    else u.hidden=true;
   }
 
   /* ================= STEP 01 — DEMAND ================= */
@@ -848,8 +985,10 @@
       '<div class="begin-ship">'+shippingLine()+'</div>' +
       (state.plan==="autopilot" && RITUAL_MEMBERSHIP_PLAN==null ? '<div class="begin-init" style="color:var(--can-40);font-size:12.5px;">AutoPilot membership billing activates shortly — this order checks out as one-time until it’s live.</div>' : '') +
       '<div class="begin-init"><b>Your Performance Profile initializes with this order.</b></div>' +
-      '<button class="ignite-btn ready" id="igniteBtn" type="button">Begin the Ritual — '+money(total())+perSuffix()+'</button>' +
-      '<div class="begin-legal">Apple Pay &amp; Shop Pay at checkout · taxes &amp; shipping calculated by address · skip or cancel anytime in AFORCE OS</div>';
+      /* §9: primary action ADDS to the basket and keeps the customer on the
+         page; checkout happens from Your Ritual. */
+      '<button class="ignite-btn ready" id="igniteBtn" type="button">Add to Ritual — '+money(total())+perSuffix()+'</button>' +
+      '<div class="begin-legal">Build your ritual, then check out securely · taxes &amp; shipping calculated by address · skip or cancel anytime in AFORCE OS</div>';
   }
 
   /* one-shot ignition when the ritual first becomes complete */
@@ -954,7 +1093,7 @@
     var jumpEl=e.target.closest("[data-jump]");
     var ignite=e.target.closest("#igniteBtn");
     if(jumpEl){ jump(jumpEl.getAttribute("data-jump")); return; }
-    if(ignite && !ignite.disabled){ track("begin_clicked",{source:"step03", ready:isReady()}); goCheckout("step03"); }
+    if(ignite && !ignite.disabled){ track("add_to_ritual_clicked",{source:"step03", ready:isReady()}); addToRitual("step03"); }
   });
   $("#beginBody").addEventListener("keydown", function(e){
     if(e.key!=="Enter" && e.key!==" ") return;
@@ -967,7 +1106,7 @@
     if(!isReady()){ jump(!state.demand?"stepDemand":"stepFormat"); return; }
     var r=$("#stepBegin").getBoundingClientRect();
     var atStep03 = r.top < window.innerHeight*0.6 && r.bottom > 0;
-    if(atStep03){ goCheckout("ritual_bar"); } else { jump("stepBegin"); }
+    if(atStep03){ addToRitual("ritual_bar"); } else { jump("stepBegin"); }
   });
   var holdTimer=null;
   $("#rbChips").addEventListener("click", function(e){ var chip=e.target.closest(".rb-chip"); if(!chip) return; track("ritual_bar_chip_tapped",{step:chip.getAttribute("data-step")}); jump(chip.getAttribute("data-step")==="demand"?"stepDemand":(chip.getAttribute("data-step")==="depth"?"stepFormat":"stepFormat")); });
@@ -979,6 +1118,65 @@
   function openLightbox(vis){ var img=$("img.on",vis); if(!img) return; $("#lbImg").src=img.getAttribute("src"); $("#lbImg").alt=img.getAttribute("alt")||""; $("#lightbox").classList.add("open"); }
   $("#lightbox").addEventListener("click", function(){ this.classList.remove("open"); });
   document.addEventListener("keydown", function(e){ if(e.key==="Escape"){ $("#lightbox").classList.remove("open"); } });
+
+  /* ================= YOUR RITUAL — basket events (§9) ================= */
+  if(basket){
+    basket.onChange(renderBasket);
+    basket.hydrate().then(renderBasket);   // §9 persistence: restore on load
+
+    var cartBtn=$("#afxCartBtn"); if(cartBtn) cartBtn.addEventListener("click", openBasket);
+    $("#rb2Close").addEventListener("click", function(){ closeBasket(); });
+    $("#rb2Continue").addEventListener("click", function(){ closeBasket(); });
+    rb2Wrap.addEventListener("click", function(e){ if(e.target.closest("[data-rb2-close]")) closeBasket(); });
+
+    /* line actions: qty ±, edit, remove (delegated) */
+    $("#rb2Body").addEventListener("click", function(e){
+      var lineEl=e.target.closest(".rb2-line"); if(!lineEl) return;
+      var id=lineEl.getAttribute("data-line");
+      var qtyBtn=e.target.closest("[data-qty]");
+      if(qtyBtn){ var l=basket.lines().filter(function(x){return x.id===id;})[0]; if(l){ basket.setQuantity(id, l.quantity + (+qtyBtn.getAttribute("data-qty"))); } return; }
+      if(e.target.closest(".rb2-remove")){ basket.remove(id); announce("Item removed. Undo available."); return; }
+      if(e.target.closest(".rb2-edit")){ editLine(id); return; }
+    });
+    $("#rb2Undo").querySelector("button").addEventListener("click", function(){ basket.undo().then(function(){ announce("Item restored."); }); });
+
+    /* CONTINUE TO SECURE CHECKOUT — validated Shopify URL (§9/§11/§14) */
+    $("#rb2Checkout").addEventListener("click", function(){
+      try{
+        var url=basket.checkout();
+        track("checkout_started",{ lines:basket.lines().length, count:basket.count(), subscription:basket.hasAutoPilot() });
+        commit(url);
+      }catch(err){ showBasketErr("Checkout isn’t available right now. Please try again."); }
+    });
+
+    /* Escape + focus trap while the basket is open */
+    document.addEventListener("keydown", function(e){
+      if(!rb2Open()) return;
+      if(e.key==="Escape"){ e.preventDefault(); closeBasket(); return; }
+      if(e.key!=="Tab") return;
+      var f=Array.prototype.filter.call(rb2Panel.querySelectorAll('a[href],button:not([disabled]),[tabindex="0"]'), function(el){ return el.offsetParent!==null; });
+      if(!f.length) return;
+      var first=f[0], last=f[f.length-1];
+      if(e.shiftKey && document.activeElement===first){ e.preventDefault(); last.focus(); }
+      else if(!e.shiftKey && document.activeElement===last){ e.preventDefault(); first.focus(); }
+    });
+    window.addEventListener("pagehide", function(){ closeBasket(false); });
+  }
+
+  /* EDIT a line: load its configuration back into the builder, remove the line,
+     scroll to Format so the customer adjusts and re-adds (§9). */
+  function editLine(id){
+    var l=basket.lines().filter(function(x){return x.id===id;})[0]; if(!l) return;
+    var cfg=lineToConfig(l); if(!cfg){ closeBasket(); return; }
+    state.formulation=cfg.flavor; state.format=cfg.format;
+    state.plan = l.sellingPlanId ? "autopilot" : "onetime";
+    state.depth = state.depth || "single"; state.units = l.quantity;
+    basket.remove(id);
+    renderAll();
+    closeBasket();
+    jump("stepFormat");
+    announce("Editing "+(l.productTitle||l.title)+". Adjust and add to your ritual again.");
+  }
 
   /* ================= A1 — BACK / bfcache RECOVERY ================= */
   function reconcile(){
