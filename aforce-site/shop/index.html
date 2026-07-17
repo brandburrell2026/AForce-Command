@@ -261,6 +261,15 @@
   #stepOS .os-seg[hidden], #stepOS .os-save[hidden], #stepOS .os-incl[hidden]{ display:none; }
   #stepOS .os-cta{ display:inline-flex; align-items:center; gap:8px; margin-top:clamp(20px,2.4vw,28px); font-weight:700; font-size:14px; border:1.5px solid var(--canvas); border-radius:999px; padding:14px 24px; min-height:44px; color:var(--canvas); transition:background .2s, color .2s; }
   #stepOS .os-cta:hover{ background:var(--canvas); color:var(--ink); }
+  /* Command's own checkout button — the pro tier's primary action. Uses the
+     --theme accent (like the ready ignite button) so it reads as the buy CTA;
+     disabled while the Shopify product is being set up. */
+  /* the tier is flex-column already, so margin-top:auto pins the button to the bottom */
+  #stepOS .os-buy{ margin-top:auto; width:100%; text-align:center; font-family:var(--display); font-weight:800; font-size:15px; letter-spacing:.02em; border-radius:6px; padding:16px; min-height:52px; background:var(--theme); color:var(--ink); border:1.5px solid var(--theme); cursor:pointer; transition:opacity .2s; }
+  #stepOS .os-buy:hover{ opacity:.92; }
+  #stepOS .os-buy:disabled{ background:transparent; color:var(--can-40); border-color:var(--can-22); cursor:not-allowed; }
+  #stepOS .os-buy-note{ margin-top:10px; font-family:var(--mono); font-size:10.5px; letter-spacing:.06em; color:var(--can-40); text-align:center; }
+  #stepOS .os-buy-note[hidden]{ display:none; }
   #stepOS .os-fine{ margin-top:12px; color:var(--can-40); font-size:11.5px; }
 
   /* ---- STEP 03 — BEGIN + ignition ---- */
@@ -596,10 +605,12 @@
           <li>Expanded trends</li>
           <li>Advanced recovery guidance</li>
         </ul>
+        <button class="os-buy" id="osBuy" type="button">Enter Command</button>
+        <p class="os-buy-note" id="osBuyNote" role="status"></p>
       </div>
     </div>
     <a class="os-cta" href="/aforce-os">Explore AFORCE OS <span class="arw" aria-hidden="true">→</span></a>
-    <p class="os-fine">Membership is chosen and managed in the AFORCE OS app, not at checkout. Prices in USD.</p>
+    <p class="os-fine">Core is included with every order. Command checks out on its own and is managed in AFORCE OS. Prices in USD.</p>
   </div>
 </section>
 </main>
@@ -673,6 +684,19 @@
   /* ---- checkout config ---- */
   var STORE = "https://shop.drinkaforce.com";
   var RITUAL_MEMBERSHIP_PLAN = 2501607542; // monthly Ritual Membership SellingPlan (group 1547403382) — AutoPilot subscriptions live
+
+  /* ---- AFORCE OS Command — its OWN separate checkout ----------------------
+     Command is sold as a standalone subscription with its own Shopify product +
+     selling plans, checked out SEPARATELY from the hydration "Your Ritual" cart.
+     These are empty until that product exists in Shopify; while empty the OS
+     checkout is GATED (button disabled, "opens at launch") so nothing fake
+     ships. Fill the ids from Shopify Admin and it goes live.
+     COMMAND_AUTORENEWS gates any "renews" wording — set true only when the
+     plans genuinely auto-renew. */
+  var COMMAND_VARIANT    = null;                          // numeric variant id of the AFORCE OS Command product
+  var COMMAND_PLANS      = { monthly: null, annual: null }; // numeric SellingPlan ids ($20/mo, $200/yr)
+  var COMMAND_AUTORENEWS = false;
+  function osReady(){ return COMMAND_VARIANT != null && COMMAND_PLANS[state.osCycle] != null; }
   var VARIANTS = {
     sticks:{ watermelon:"43817245868150", berry:"43817131606134", soursop:"43817131638902" },
     cans:{   watermelon:"43817994158198", berry:"43817994190966", soursop:"43817994223734" }
@@ -1117,6 +1141,9 @@
   function renderOSband(){
     var seg=$("#osSeg"), amt=$("#osAmt"), per=$("#osPer"), save=$("#osSave"), incl=$("#osIncl");
     if(!seg) return;
+    var buy=$("#osBuy"), buyNote=$("#osBuyNote");
+    /* When the hydration order is AutoPilot (Ritual Membership), Command is
+       included — no separate purchase, no checkout button. */
     var included = state.plan==="autopilot";
     incl.hidden = !included;
     seg.hidden = included;
@@ -1131,6 +1158,47 @@
     $$("#osSeg button").forEach(function(b){
       b.setAttribute("aria-pressed", b.getAttribute("data-cycle")===state.osCycle ? "true":"false");
     });
+    /* Command's own separate checkout — gated until the Shopify product exists. */
+    if(buy){
+      if(included){ buy.hidden=true; }
+      else {
+        buy.hidden=false;
+        var ready=osReady();
+        buy.disabled=!ready;
+        buy.textContent = ready ? ("Enter Command — "+(state.osCycle==="annual"?"$200/yr":"$20/mo")) : "Enter Command";
+      }
+    }
+    if(buyNote){
+      if(included || (buy && !buy.hidden && osReady())){ buyNote.hidden=true; buyNote.textContent=""; }
+      else { buyNote.hidden=false; buyNote.textContent="Command checkout opens at launch."; }
+    }
+  }
+
+  /* Command checks out on its OWN — a fresh Shopify cart with just the Command
+     subscription, separate from the hydration "Your Ritual" basket. Gated and
+     §11-safe: never hands off unless Shopify confirms the plan was applied. */
+  var osHanding=false;
+  function osCheckout(){
+    if(state.plan==="autopilot") return;              // included — nothing to buy
+    var note=$("#osBuyNote"), C=window.AForceCommerce;
+    function gate(msg){ if(note){ note.hidden=false; note.textContent=msg; } }
+    if(!osReady() || !C){ gate("Command checkout opens at launch."); return; }
+    if(osHanding) return; osHanding=true;
+    var plan=COMMAND_PLANS[state.osCycle];
+    var btn=$("#osBuy"); if(btn) btn.disabled=true;
+    track("os_checkout_started",{ cycle:state.osCycle });
+    C.createCart([{ variantId:COMMAND_VARIANT, quantity:1, sellingPlanId:plan }],
+                 { Product:"AFORCE OS Command", Plan:(state.osCycle==="annual"?"Annual":"Monthly") })
+      .then(function(cart){
+        if(!C.subscriptionApplied(cart, plan)){ throw new Error("Command plan was not applied."); }
+        window.location.href = C.checkoutURLFor(cart);   // its own separate Shopify checkout
+      })
+      .catch(function(err){
+        osHanding=false; if(btn) btn.disabled=false;
+        gate((err && err.status===404) ? "Command checkout opens at launch."
+                                       : "Command checkout isn’t available right now. Please try again in a moment.");
+        if(window.console && console.warn) console.warn("[os checkout]", err && err.message);
+      });
   }
 
   function renderAll(){
@@ -1153,6 +1221,7 @@
     var c=b.getAttribute("data-cycle");
     if(state.osCycle!==c){ state.osCycle=c; renderAll(); track("os_cycle_toggled",{cycle:c}); }
   });
+  (function(){ var b=$("#osBuy"); if(b) b.addEventListener("click", function(){ if(!b.disabled) osCheckout(); }); })();
   $("#overrides").addEventListener("click", function(e){ var o=e.target.closest(".ov"); if(o) overrideFormulation(o.getAttribute("data-f")); });
   $("#switcher").addEventListener("click", function(e){ var d=e.target.closest(".swdot"); if(d) overrideFormulation(d.getAttribute("data-f")); });
 
