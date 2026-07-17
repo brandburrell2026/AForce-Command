@@ -74,7 +74,11 @@ export interface ProfileFieldDescriptor {
  * 1.0 so a complete-enough profile is never told to fill "just one more."
  */
 export const RICH_MIN_RATIO = 0.8;
-/** PARTIAL once at least ~a third of fields are in; below that is SPARSE. */
+/**
+ * PARTIAL once ratio ≥ 0.34 (≈ a third). With the 9-field group that is 4
+ * fields in — 3/9 (0.333) is still SPARSE; the threshold is deliberately just
+ * above an exact third so "a couple of fields" doesn't read as partial.
+ */
 export const PARTIAL_MIN_RATIO = 0.34;
 
 function isFiniteNumber(n: unknown): n is number {
@@ -94,6 +98,10 @@ function positiveNumber(v: number | null): boolean {
  * `'unspecified'` for biological sex (the engine's explicit "no sex signal"
  * default). `activityLevel` uses a finite check, not `> 0`, because 0
  * (mostly sedentary) is a real, provided answer — not "unset".
+ *
+ * `typicalWorkoutDurationMin` is intentionally NOT here: the §55 spec's field
+ * list names Goal Weight but not workout duration, and duration is captured
+ * per-session, not as a profile-level completeness field.
  */
 export const PROFILE_IDENTITY_FIELDS: readonly ProfileFieldDescriptor[] = [
   { key: 'bodyWeightLbs', present: (p) => positiveNumber(p.bodyWeightLbs) },
