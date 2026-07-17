@@ -332,7 +332,10 @@
   .ritualbar{ position:fixed; left:0; right:0; bottom:0; z-index:60; transform:translateY(120%); transition:transform .4s cubic-bezier(.2,.7,.2,1); background:rgba(11,13,18,.98); backdrop-filter:blur(12px); border-top:1px solid var(--can-12); color:var(--canvas); padding:12px var(--gutter); }
   .ritualbar.show{ transform:none; }
   .rb-inner{ max-width:1180px; margin:0 auto; display:flex; align-items:center; gap:12px; }
-  .rb-chips{ display:flex; align-items:center; gap:8px; flex:1; overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
+  /* min-width:0 lets this flex item shrink below its content width so its
+     overflow-x:auto actually engages — without it the chips force the whole
+     ritual bar wider than the viewport (the §21 horizontal-overflow root cause). */
+  .rb-chips{ display:flex; align-items:center; gap:8px; flex:1; min-width:0; overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
   .rb-chips::-webkit-scrollbar{ display:none; }
   .rb-chip{ flex:none; display:inline-flex; align-items:center; gap:7px; font-family:var(--mono); font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--canvas); border:1px solid var(--can-22); border-radius:999px; padding:11px 15px; min-height:44px; white-space:nowrap; transition:border-color .2s; }
   .rb-chip:hover{ border-color:var(--can-55); }

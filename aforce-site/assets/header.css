@@ -157,6 +157,17 @@
   /* Compact SHOP stays a button but tighter. */
   .afx-shop { min-height: 40px; padding: 0 14px; font-size: 11px; }
 }
+/* Narrow phones (≤380px): the logo wordmark + SHOP button + cart + hamburger
+   won't fit at default spacing, which pushed the hamburger past the viewport
+   edge (the §21 header-overflow cause). Tighten gaps and drop the optical
+   negative margins so every element stays inside the gutter — no clipping. */
+@media (max-width: 380px) {
+  .afx-nav { gap: 8px; }
+  .afx-right { gap: 8px; }
+  .afx-shop { padding: 0 11px; letter-spacing: .04em; }
+  .afx-cart { margin-right: -4px; }
+  .afx-burger { margin-right: -6px; }
+}
 @media (min-width: 1024px) {
   .afx-drawer { display: none !important; }
 }
