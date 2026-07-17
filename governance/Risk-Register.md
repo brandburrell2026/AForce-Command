@@ -33,3 +33,39 @@ Status legend: **OPEN** · **PENDING-DECISION** (needs a human call, not code) �
   `artifacts/aforce-os/featureFlags/flags.ts` (base = OFF; internal-inspection =
   ON). No behavior code changes — the gates are already in place.
 - **Not blocked on engineering.** Blocked on the deliberate go/no-go.
+
+---
+
+## Open — Section 63 follow-ups (compliance pass shipped; these deferred by decision)
+
+The §63 app-side compliance pass shipped in PR #253 (streak copy never threatens
+loss; guard test across all locales). Two pieces were deferred **with the design
+decided**, so neither can silently ship the wrong way. Detail in
+`governance/Section-63-Compliance-Pass.md`.
+
+### R63-1 — Comparative streak surfaces (leaderboards, territory, peer cards)
+- **Status:** OPEN · **Owner:** Phase 2 (react-native-engineer + performance-scientist) · **Opened:** session 2026-07-17
+- **Decision (do not re-litigate):** implementation deferred to **Phase 2** — these
+  are §47–52, flag-gated, not in the launch binary, so **no launch-runway effort**
+  goes here. But the design is decided so Phase 2 builds it right the first time:
+  when competition lights up, **rank decouples from streak** (rank on a non-streak
+  metric — active days / readiness), removing the loss vector at the source rather
+  than papering it with copy. **Neutral-comparative copy is the floor regardless
+  of metric** (state position/rank factually; never frame a rank drop as personal
+  loss).
+- **Guard-rail:** Phase 2 must not ship streak-weighted ranking un-reframed. This
+  item is the reminder.
+
+### R63-2 — Athlete Mode decay mechanic (never-empty-on-one-miss)
+- **Status:** OPEN · **Owner:** backend / streak-owner (whoever maintains `complianceStreak`) · **Opened:** session 2026-07-17
+- **Why it's not app-side:** the app receives `complianceStreak` **already zeroed
+  on a miss** and cannot reconstruct carried-forward days from it, so the decay
+  model (progress decays one day per missed day rather than emptying, so rebuilding
+  is always shorter than starting over) must be produced upstream. The app-side
+  copy pass already handles the language (neutral "new cycle", additive framing);
+  **"carried-forward" user-facing language is coupled to this mechanic** and lands
+  with it, not before.
+- **Gate on delivery:** performance-scientist reviews the **mechanic**, not just
+  copy — does a decay model read as momentum or as slow-motion loss? Fallback if it
+  reads as loss: a single grace day per cycle. Own test for the homeDashboard
+  logic; extend the streak language guard to the new surface.
