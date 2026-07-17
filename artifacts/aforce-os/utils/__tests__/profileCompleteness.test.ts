@@ -143,7 +143,8 @@ describe('Section 55 — assessProfileCompleteness', () => {
     for (const bad of [Number.NaN, Infinity, -Infinity]) {
       const p: ProfileIdentity = { ...DEFAULT_PROFILE_IDENTITY, activityLevel: bad };
       const field = assessProfileCompleteness(p).fields.find((f) => f.key === 'activityLevel')!;
-      expect(field.present, `activityLevel=${bad}`).toBe(false);
+      // soft → each value is proven independently, not short-circuited at NaN
+      expect.soft(field.present, `activityLevel=${bad}`).toBe(false);
     }
   });
 
@@ -151,7 +152,7 @@ describe('Section 55 — assessProfileCompleteness', () => {
     for (const bad of [Infinity, -1990, 0, Number.NaN]) {
       const p: ProfileIdentity = { ...FULLY_FILLED, birthYear: bad as unknown as number };
       const field = assessProfileCompleteness(p).fields.find((f) => f.key === 'birthYear')!;
-      expect(field.present, `birthYear=${bad}`).toBe(false);
+      expect.soft(field.present, `birthYear=${bad}`).toBe(false);
     }
   });
 });
