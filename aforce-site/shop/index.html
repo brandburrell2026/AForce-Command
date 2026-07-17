@@ -763,24 +763,36 @@
   var VARIANT_REV = (function(){ var m={}; Object.keys(VARIANTS).forEach(function(fmt){ Object.keys(VARIANTS[fmt]).forEach(function(fl){ m[VARIANTS[fmt][fl]]={format:fmt,flavor:fl}; }); }); return m; })();
   function lineToConfig(l){ var n=(l.variantId||"").split("/").pop(); return VARIANT_REV[n]||null; }
 
+  /* A visible error at the Begin card (where the button is). The basket drawer
+     is closed at add time, so errors must NOT be written into it — they'd be
+     invisible ("nothing moves"). */
+  function beginError(msg){
+    var host=$("#beginBody"); if(!host) return;
+    var e=$("#beginErr"); if(!e){ e=document.createElement("div"); e.id="beginErr"; e.setAttribute("role","alert"); e.style.cssText="margin-top:14px;color:var(--red);font-size:13px;line-height:1.5;"; host.appendChild(e); }
+    e.textContent=msg;
+  }
+  function clearBeginError(){ var e=$("#beginErr"); if(e) e.remove(); }
+
   function addToRitual(source){
-    if(!isReady() || !basket) return false;
+    if(!isReady()) return false;
+    if(!basket){ beginError("Checkout isn’t ready yet — please refresh the page and try again."); return false; }
     var vid = VARIANTS[state.format][state.formulation];
     if(!vid) return false;
     var qty = checkoutQty();
     var plan = isSubscription() ? RITUAL_MEMBERSHIP_PLAN : null;
     var btn = $("#igniteBtn");
     if(btn){ btn.disabled=true; }
-    clearBasketErr();
+    clearBeginError();
     basket.add({ variantId:vid, quantity:qty, sellingPlanId:plan, attributes:orderAttrs(qty) }).then(function(res){
       if(btn){ btn.disabled=false; }
-      if(res && res.error){ showBasketErr("We couldn’t add that to your ritual. Please try again."); return; }
+      if(res && res.error){ beginError("We couldn’t add that to your ritual right now. Please try again in a moment."); return; }
       /* §11 guard: if AutoPilot was requested, confirm the line actually got the
          plan — never let a membership silently become one-time. */
       if(plan){
         var applied = basket.lines().some(function(l){ return (l.variantId||"").indexOf(vid)>-1 && l.sellingPlanId; });
-        if(!applied){ showBasketErr("AutoPilot couldn’t be applied right now. Please try again in a moment."); return; }
+        if(!applied){ beginError("AutoPilot couldn’t be applied right now. Please try again in a moment."); return; }
       }
+      clearBeginError();
       track("added_to_ritual",{variant:vid, qty:qty, subscription:!!plan, source:source||"begin"});
       announce("Added to your ritual. "+basket.count()+" in your cart.");
       openBasket();
