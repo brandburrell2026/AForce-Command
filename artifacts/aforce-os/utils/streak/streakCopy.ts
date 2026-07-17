@@ -20,9 +20,14 @@
  * carried-forward days from it) — tracked as a §63 follow-up, not built here.
  */
 
+/** Non-negative whole days; non-finite or negative input collapses to 0. */
+function clampDays(v: number): number {
+  return Number.isFinite(v) ? Math.max(0, Math.floor(v)) : 0;
+}
+
 /** Athlete Mode milestone sub-line. Zero (post-miss) reads as a fresh cycle. */
 export function athleteModeSub(streakDays: number, milestoneDays: number): string {
-  const n = Math.max(0, Math.floor(streakDays) || 0);
+  const n = clampDays(streakDays);
   return n > 0
     ? `${n}-day streak · target ${milestoneDays}`
     : `New cycle · target ${milestoneDays}`;
@@ -31,20 +36,31 @@ export function athleteModeSub(streakDays: number, milestoneDays: number): strin
 /** Milestone progress line — aspiration ("days remaining"), never loss. */
 export function athleteModeRemaining(view: { achievedTop: boolean; daysRemaining: number }): string {
   if (view.achievedTop) return 'Top milestone reached';
-  const d = Math.max(0, Math.floor(view.daysRemaining) || 0);
+  const d = clampDays(view.daysRemaining);
   return `${d} ${d === 1 ? 'day' : 'days'} remaining`;
 }
 
-/** Journal StreakHero headline. */
+/**
+ * Journal StreakHero headline. The empty state is "a new cycle", never "your
+ * FIRST cycle" — the app receives `complianceStreak` already zeroed on a miss
+ * and cannot tell a brand-new user from one returning after a missed day, so
+ * "first" would be false (and read as a silent reset) for the returning user.
+ */
 export function streakHeroHeadline(streakDays: number): string {
-  const n = Math.max(0, Math.floor(streakDays) || 0);
-  return n > 0 ? `${n}-day momentum` : 'Begin your first cycle';
+  const n = clampDays(streakDays);
+  return n > 0 ? `${n}-day momentum` : 'Begin a new cycle';
 }
 
-/** Journal StreakHero sub. Active state carries forward; empty state is a plain start. */
+/**
+ * Journal StreakHero sub. Additive framing only — every logged day counts on
+ * its own. It deliberately makes NO carried-forward / continuity claim: the
+ * app cannot back one from the zeroed scalar it receives, so "carried forward"
+ * would be a false continuity promise (and is false outright on day 1). The
+ * carried-forward language lands WITH the backend decay mechanic, not before.
+ */
 export function streakHeroSub(streakDays: number): string {
-  const n = Math.max(0, Math.floor(streakDays) || 0);
+  const n = clampDays(streakDays);
   return n > 0
-    ? 'Recovery rhythm holding. Carried forward from yesterday.'
+    ? 'Recovery rhythm holding. Every day counts.'
     : 'Log an intake to begin.';
 }

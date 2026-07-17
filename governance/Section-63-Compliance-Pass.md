@@ -34,18 +34,37 @@ language was mostly neutral counts and mild momentum framing.
 Enforced this pass:
 - Streak copy for the RN surfaces (Athlete Mode card, Journal StreakHero) moved
   to one testable source, `utils/streak/streakCopy.ts`. A missed day (streak 0)
-  now reads as **"New cycle"**, never "0-day streak"; the active StreakHero state
-  reads **"Carried forward from yesterday."** The milestone "days remaining" line
-  is kept verbatim — aspiration, not threat.
-- The next-week consistency nudge (`locales/en.json`) reframed from "build your
-  streak" to "each day carries forward."
+  reads as **"New cycle"** on the card and **"Begin a new cycle"** on StreakHero
+  — never "0-day streak", never "your first cycle." The milestone "days
+  remaining" line is kept verbatim — aspiration, not threat.
+- **Additive framing, no continuity claim.** The performance-scientist gate
+  blocked an earlier draft that used "carried forward from yesterday" / "each day
+  carries forward": the app receives `complianceStreak` **already zeroed on a
+  miss** and cannot back a carried-forward claim (it is also false outright on
+  day 1). Carried-forward language is **coupled to the deferred backend decay
+  mechanic** and lands with it, not before. Until then the copy is additive and
+  state-true — "every day counts."
+- The next-week consistency nudge reframed from "build your streak" to
+  "every day counts on its own," **propagated across all 11 locales** (5
+  English-fallback updated to the new English; 5 translated equivalents authored
+  and flagged for native review — see follow-up).
 - A language guard — `utils/__tests__/streakCopy.test.ts` — asserts **no**
   loss-threat / break-the-chain framing across every streak string (component
-  builders + the i18n bundle), so regressions can't reintroduce it.
+  builders + **every** locale bundle), includes a **positive control** proving
+  the detector fires on known dark patterns, and covers preservation-urgency
+  ("keep your streak alive"), reset-to-zero, and invalid-input edges.
 
-Note: `ja.json` / `zh.json` mirror the English streak strings (currently English
-fallback text). Re-translating the changed keys is a localization follow-up; the
-guard runs against `en.json` (the source locale).
+Out of scope (recorded so it isn't re-opened as a §63 miss): the voice line
+`voice.command_missed` ("Missed. Decay accelerated.") is about **HydroState
+score** decay — a physiological-state observation beside `command_followed`
+("Score holding"), not a streak mechanic. It is a §59/voice-copy question, not
+§63 streak loss framing, and is left untouched here.
+
+Follow-up: the 5 translated nudge strings (de/es/fr/it/pt) were authored here to
+remove the forbidden framing immediately; they want a native-speaker pass. The
+guard's loss-threat patterns are English, so it protects the English-fallback
+locales against regression; semantic review of translated locales is a separate
+localization gate.
 
 ## Deferred, with decisions recorded (Risk Register)
 - **Group 4 — comparative surfaces** (leaderboards, territory density, peer
