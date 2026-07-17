@@ -474,6 +474,7 @@
 </div>
 <div class="lb" id="lightbox" aria-hidden="true"><img id="lbImg" src="" alt=""></div>
 
+<script src="/assets/commerce.js"></script>
 <script>
 /* =====================================================================
    AFORCE SHOP v2.3 — "THE PROTOCOL ANSWERS" · Dark Stage · Depth · Ignition
@@ -557,42 +558,85 @@
   },7000); }
   function lockHero(){ heroLocked=true; if(heroTimer){clearInterval(heroTimer);heroTimer=null;} heroShow(state.formulation); }
 
-  /* ================= CHECKOUT (pre-built fresh, never reused) ================= */
-  var checkoutURL = null;
+  /* ================= CHECKOUT =================================================
+     All Shopify specifics live in /assets/commerce.js (§12). This layer only
+     describes WHAT the customer asked for.
+
+     Subscriptions (AutoPilot) MUST go through the Storefront Cart API. Shopify
+     documents that "Selling plans don't work with cart permalinks", so the old
+     ?selling_plan= permalink silently produced a ONE-TIME order while the page
+     promised "per month". We now create a real cart and refuse to hand off
+     unless Shopify confirms the plan was applied (§11).
+     One-time orders keep the permalink: it is supported and needs no token. */
   function isReady(){ return !!state.demand && !!state.format && !!state.depth; }
   function isSubscription(){ return state.plan==="autopilot" && RITUAL_MEMBERSHIP_PLAN != null; }
-  function buildCheckout(){
-    // Regenerate from current state every time — never cache/reuse a consumed URL (A1b / Patch 3).
-    if(!isReady()){ checkoutURL=null; return null; }
-    var vid = VARIANTS[state.format][state.formulation];
-    if(!vid){ checkoutURL=null; return null; }
-    var qty = Math.min(10, Math.max(1, state.units|0));
-    var url = STORE + "/cart/" + vid + ":" + qty;
-    if(isSubscription()){ url += "?selling_plan=" + RITUAL_MEMBERSHIP_PLAN; }
-    var attrs = {
+  function orderAttrs(qty){
+    return {
       Protocol:    DEMANDS[state.demand].label + " Protocol",
       Formulation: FORMS[state.formulation].name,
       Depth:       qty + " × " + QTY_LABEL[state.format],
       Plan:        planLabel()
     };
-    var qs = Object.keys(attrs).map(function(k){ return "attributes["+encodeURIComponent(k)+"]="+encodeURIComponent(attrs[k]); }).join("&");
-    url += (url.indexOf("?")>-1?"&":"?") + qs;
-    checkoutURL = url;
-    return url;
+  }
+  function checkoutQty(){ return Math.min(10, Math.max(1, state.units|0)); }
+
+  function checkoutError(msg){
+    handing = false;
+    var btn = $("#igniteBtn");
+    if(btn){ btn.classList.remove("committed"); btn.disabled = false; }
+    var box = $("#checkoutErr");
+    if(!box){
+      box = document.createElement("div");
+      box.id = "checkoutErr";
+      box.setAttribute("role","alert");
+      box.className = "begin-init";
+      box.style.cssText = "color:var(--red);font-size:12.5px;margin-top:12px;";
+      var host = $("#beginBody"); if(host) host.appendChild(box);
+    }
+    box.textContent = msg;
+    track("checkout_failed", { plan:state.plan, subscription:isSubscription(), reason:msg });
   }
 
   var handing = false;
+  function commit(url){
+    var btn = $("#igniteBtn"); if(btn){ btn.classList.add("committed"); }
+    setTimeout(function(){ window.location.href = url; }, 30);
+  }
+
   function goCheckout(source){
     if(!isReady()) return false;
     if(handing) return true;             // double-tap dedup: exactly one handoff
-    var url = buildCheckout();           // always fresh (A1b, A1d retry-by-rebuild)
-    if(!url){ url = buildCheckout(); }   // failsafe single retry
-    if(!url) return false;
-    track("checkout_started", { demand:state.demand, formulation:state.formulation, format:state.format, plan:state.plan, depth:state.depth, units:state.units, subscription:isSubscription(), source:source||"begin" });
+    var vid = VARIANTS[state.format][state.formulation];
+    if(!vid) return false;
+    var qty = checkoutQty();
+    var C = window.AForceCommerce;
+    if(!C){ checkoutError("Checkout is unavailable right now. Please refresh and try again."); return false; }
+
     handing = true;
-    var btn = $("#igniteBtn"); if(btn){ btn.classList.add("committed"); }
-    // commit to navigation on next frame so the committed state paints
-    setTimeout(function(){ window.location.href = url; }, 30);
+    track("checkout_started", { demand:state.demand, formulation:state.formulation, format:state.format, plan:state.plan, depth:state.depth, units:state.units, subscription:isSubscription(), source:source||"begin" });
+
+    if(!isSubscription()){
+      var url = C.oneTimePermalink(vid, qty, orderAttrs(qty));
+      if(!url){ checkoutError("We couldn’t open checkout. Please try again."); return false; }
+      commit(url);
+      return true;
+    }
+
+    /* AutoPilot — real subscription or nothing. Never downgrade silently. */
+    C.createCart([{ variantId: vid, quantity: qty, sellingPlanId: RITUAL_MEMBERSHIP_PLAN }], orderAttrs(qty))
+      .then(function(cart){
+        if(!C.subscriptionApplied(cart, RITUAL_MEMBERSHIP_PLAN)){
+          throw new Error("AutoPilot was not applied to the order.");
+        }
+        commit(C.checkoutURLFor(cart));
+      })
+      .catch(function(err){
+        /* §11: do not fall back to a one-time permalink here. The customer
+           asked for a membership; sending them to a one-time checkout would
+           charge them for something they did not choose. */
+        checkoutError("AutoPilot checkout isn’t available right now. Your ritual is saved — please try again in a moment.");
+        if(window.console && console.warn) console.warn("[checkout] subscription handoff failed:", err && err.message);
+      });
     return true;
   }
 
@@ -769,7 +813,9 @@
   function renderAll(){
     applyTheme(); repaintImages(); renderOverrides(); renderSwitcher();
     renderFormats(); renderBegin(); renderBar(); renderRail();
-    buildCheckout();   // pre-build fresh on every state change (A4)
+    /* No checkout URL is pre-built any more: a subscription cart is created
+       server-side at click time, so there is nothing to cache here. The old
+       A1b concern (never reuse a consumed URL) is satisfied by construction. */
     fireIgnition();
     persist();
   }
@@ -852,7 +898,9 @@
   // Patch 4: reconcile on EVERY pageshow, not only when persisted flagged
   window.addEventListener("pageshow", function(e){ reconcile(); });
   // extra safety: visibility restore
-  document.addEventListener("visibilitychange", function(){ if(document.visibilityState==="visible"){ handing=false; buildCheckout(); } });
+  /* Returning via back/bfcache: release the handoff latch so the customer can
+     check out again. Nothing to rebuild — the cart is created at click time. */
+  document.addEventListener("visibilitychange", function(){ if(document.visibilityState==="visible"){ handing=false; } });
 
   window.addEventListener("resize", function(){ if(barShown) measureBar(); });
 
