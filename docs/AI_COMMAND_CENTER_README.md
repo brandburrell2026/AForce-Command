@@ -35,6 +35,8 @@ New feature or initiative → **ceo** produces the plan and routes: principal-ar
 
 Never merge red. scoringEngine.ts and statusColor.ts are Brandon-only. Secrets never in tracked files; exposed credentials are compromised by definition. Displayed price = charged price. No medical claims, ever. Branch → PR → green → merge. Human-only actions: credential rotation, App Review submission, refunds, live price changes, and anything touching the two protected files.
 
+Agents verify against current official documentation before asserting platform, tool, or API behavior. Training memory is a hypothesis; docs and logs are evidence.
+
 ## Maintenance
 
 These files are living doctrine. When a lesson is paid for, add it to the relevant agent the same session. When facts change (version bump, completed migration, new pricing), update the agent — a stale doctrine file is a confident liar.
