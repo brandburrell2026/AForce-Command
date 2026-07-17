@@ -170,7 +170,9 @@ describe('Section 63 — reframes are in place (no false continuity claim)', () 
   });
 
   it('StreakHero makes NO carried-forward continuity claim (unbacked until decay ships)', () => {
-    expect(streakHeroSub(1)).toBe('Recovery rhythm holding. Every day counts.');
+    // day 1 is "building" (no span-implying "holding"); 2+ is "holding"
+    expect(streakHeroSub(1)).toBe('Recovery rhythm building. Every day counts.');
+    expect(streakHeroSub(2)).toBe('Recovery rhythm holding. Every day counts.');
     expect(streakHeroSub(4)).not.toMatch(/carried forward|carries forward|from yesterday/i);
     expect(streakHeroSub(0)).toBe('Log an intake to begin.');
   });

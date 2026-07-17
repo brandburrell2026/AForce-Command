@@ -60,7 +60,9 @@ export function streakHeroHeadline(streakDays: number): string {
  */
 export function streakHeroSub(streakDays: number): string {
   const n = clampDays(streakDays);
-  return n > 0
+  if (n <= 0) return 'Log an intake to begin.';
+  // "holding" implies a span; on a single day it's "building" — no overstatement.
+  return n >= 2
     ? 'Recovery rhythm holding. Every day counts.'
-    : 'Log an intake to begin.';
+    : 'Recovery rhythm building. Every day counts.';
 }
