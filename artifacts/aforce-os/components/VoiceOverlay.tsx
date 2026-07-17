@@ -26,13 +26,14 @@ import { useTranslation } from 'react-i18next';
 
 import { Colors } from '../theme/colors';
 import { VoiceWaveform } from './VoiceWaveform';
-import { useAppStore } from '../store/useAppStore';
+import { useAppStore, useFeatureFlags } from '../store/useAppStore';
 import {
   startSpeechRecognition, type STTHandle,
 } from '../services/speechToText';
 import { speak, stopSpeaking, VOICE_PLAYBACK_ENABLED } from '../services/textToSpeech';
 import { processTranscript } from '../services/voiceService';
 import { useProactiveCoach } from '../hooks/useProactiveCoach';
+import { useAdaptiveResponse } from '../hooks/useAdaptiveResponse';
 import { localDayKey } from '../utils/voiceCheckIn';
 import type {
   VoiceCommandResponse, VoiceState, VoiceAction,
@@ -76,6 +77,11 @@ export function VoiceOverlay({ visible, onClose, autoStart = false, demoMode = f
     setSweatAutopilot,
     activateSocialMode, deactivateSocialMode,
   } = useAppStore();
+  const flags = useFeatureFlags();
+  // §64 rule 5 — the loaded Personal Response Library. Always computed (memoized,
+  // read-only); only consumed when conversational_intelligence_enabled is ON, so
+  // the reactive path is unchanged in the production binary.
+  const adaptiveProfile = useAdaptiveResponse();
 
   // Section 64 — the proactive, speak-first coach line (null = stay silent, and
   // always null in production, where the flag is OFF).
@@ -202,7 +208,11 @@ export function VoiceOverlay({ visible, onClose, autoStart = false, demoMode = f
     setVoiceState('processing');
     // Tiny delay so users perceive the "processing" beat (<1s per spec).
     await new Promise((r) => setTimeout(r, 220));
-    const result = processTranscript(transcript, { engineOutput: appState.engineOutput });
+    const result = processTranscript(
+      transcript,
+      { engineOutput: appState.engineOutput, adaptiveProfile },
+      { conversational_intelligence_enabled: flags.conversational_intelligence_enabled },
+    );
     setResponse(result);
     setVoiceState(result.intent === 'UNKNOWN' ? 'error' : 'responding');
     // speak() is a no-op while voice playback is disabled — kept here
@@ -218,7 +228,7 @@ export function VoiceOverlay({ visible, onClose, autoStart = false, demoMode = f
     dismissTimerRef.current = setTimeout(() => {
       onClose();
     }, 8000);
-  }, [appState.engineOutput, executeAction, onClose]);
+  }, [appState.engineOutput, adaptiveProfile, flags.conversational_intelligence_enabled, executeAction, onClose]);
 
   const stopAndFinalize = useCallback(async () => {
     const handle = sttRef.current;
