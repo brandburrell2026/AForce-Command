@@ -12,11 +12,13 @@ import en from '../../locales/en.json';
 
 import {
   buildProactiveCoachLine,
+  proactiveCoachResponse,
   type VoiceContext,
   type ProactiveCoachExtras,
 } from '../voiceService';
 import { isCompliantCoachLine } from '../../utils/intelligence/conversationalLanguage';
-import type { ScoreEngineOutput, PerformanceLevel } from '../../types';
+import type { ScoreEngineOutput, PerformanceLevel, HistoryEntry } from '../../types';
+import type { DailyLessonKind } from '../../types/livingPerformance';
 import type { CommandUrgency } from '../../utils/intelligence/commandCategory';
 
 // voiceService imports `i18next` directly (not the RN-pulling i18nService), so
@@ -149,5 +151,73 @@ describe('Section 64 — proactive coach (buildProactiveCoachLine)', () => {
     expect(first!.intent).toBe(second!.intent);
     // …and the proactive line is informational only — no score-mutating action.
     expect(first!.action.type).toBe('NONE');
+  });
+});
+
+describe('Section 64 — proactiveCoachResponse (Step 3 wiring)', () => {
+  const NOW = new Date(2026, 6, 16, 10, 0, 0);
+  const TODAY = new Date(2026, 6, 16, 8, 0, 0);
+  const YESTERDAY = new Date(2026, 6, 15, 20, 0, 0);
+
+  function intake(timestamp: Date, unitsTaken = 1): HistoryEntry {
+    return {
+      id: `${timestamp.getTime()}`, timestamp, score: 60,
+      state: 'BALANCED', action: 'Logged intake', unitsTaken,
+    } as HistoryEntry;
+  }
+
+  interface InputOpts {
+    urgency?: CommandUrgency;
+    inRecoveryWindow?: boolean;
+    history?: HistoryEntry[];
+    dailyLessonKind?: DailyLessonKind;
+    enabled?: boolean;
+  }
+
+  function run(opts: InputOpts = {}) {
+    const {
+      urgency = 'low', inRecoveryWindow = false, history = [],
+      dailyLessonKind = 'on_track', enabled = true,
+    } = opts;
+    return proactiveCoachResponse({
+      engineOutput: {
+        score: 60,
+        performanceState: { level: 'BALANCED', score: 60 },
+        command: { action: ACTION, urgencyLevel: urgency },
+        social: inRecoveryWindow ? { inRecoveryWindow: true } : null,
+      } as unknown as ScoreEngineOutput,
+      history,
+      dailyLessonKind,
+      flags: { conversational_intelligence_enabled: enabled },
+      now: NOW,
+    });
+  }
+
+  it('stays silent when the flag is OFF', () => {
+    expect(run({ urgency: 'high', enabled: false })).toBeNull();
+  });
+
+  it('speaks the urgent line when no intake has been logged today', () => {
+    expect(run({ urgency: 'high', history: [intake(YESTERDAY)] })!.spoken).toBe(`Now — ${ACTION}`);
+  });
+
+  it("does not nag once today's intake is logged", () => {
+    // Urgent command, but a real intake today suppresses the nag; nothing else
+    // adds value → silent.
+    expect(run({ urgency: 'high', history: [intake(TODAY)] })).toBeNull();
+  });
+
+  it("a logged intake still yields to an open recovery window", () => {
+    const out = run({ urgency: 'high', history: [intake(TODAY)], inRecoveryWindow: true });
+    expect(out!.spoken).toBe(`Recovery window's open. ${ACTION}`);
+  });
+
+  it("speaks the daily-lesson line when a §61 lesson is ready and today's command is done", () => {
+    const out = run({ urgency: 'low', history: [intake(TODAY)], dailyLessonKind: 'lesson' });
+    expect(out!.spoken).toBe('Your body taught us something today — worth a look.');
+  });
+
+  it("an on-track day is not a lesson trigger", () => {
+    expect(run({ urgency: 'low', history: [intake(TODAY)], dailyLessonKind: 'on_track' })).toBeNull();
   });
 });
