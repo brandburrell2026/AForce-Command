@@ -16,6 +16,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Icon } from '@/components/Icon';
 import { Colors } from '@/theme/colors';
+import { streakHeroHeadline, streakHeroSub } from '@/utils/streak/streakCopy';
 
 const LIME = Colors.states.PEAK.primary;
 
@@ -39,14 +40,8 @@ export default function StreakHero({ streakDays }: Props) {
     transform: [{ scale: 1 + pulse.value * 0.12 }],
   }));
 
-  const headline =
-    streakDays > 0
-      ? `${streakDays}-day momentum`
-      : 'Begin your first cycle';
-  const sub =
-    streakDays > 0
-      ? 'Recovery rhythm holding. Stay consistent.'
-      : 'Log an intake to start the streak.';
+  const headline = streakHeroHeadline(streakDays);
+  const sub = streakHeroSub(streakDays);
 
   return (
     <View style={styles.card}>
