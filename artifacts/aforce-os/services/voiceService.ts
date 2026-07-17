@@ -36,9 +36,18 @@ import {
 } from '../utils/intelligence/conversationalIntelligence';
 import { isCompliantCoachLine } from '../utils/intelligence/conversationalLanguage';
 import { intakeLoggedToday } from '../utils/intelligence/proactiveCoachSignals';
+import type {
+  AdaptiveResponseProfile, PersonalResponseEntry, ResponseCategory, ResponseOutcome,
+} from '../types/adaptiveResponse';
 
 export interface VoiceContext {
   engineOutput: ScoreEngineOutput;
+  /**
+   * §64 rule 5 — the loaded Adaptive Response profile (the Personal Response
+   * Library). Optional: absent → the reactive path is unchanged, so existing
+   * callers and the production binary (flag OFF) behave exactly as before.
+   */
+  adaptiveProfile?: AdaptiveResponseProfile;
 }
 
 const SYMPTOM_LABEL: Record<VoiceSymptomId, string> = {
@@ -290,11 +299,142 @@ function buildResponse(
  * BEFORE intent dispatch so even hard-coded branches (UNKNOWN, no-symptom)
  * play back at the right rate/pitch for the user's current performance state.
  */
-export function processTranscript(transcript: string, ctx: VoiceContext): VoiceCommandResponse {
+export function processTranscript(
+  transcript: string,
+  ctx: VoiceContext,
+  /**
+   * §64 rule 5. Optional so every existing caller/test is unchanged. When
+   * present with the flag ON, the reactive answer is enriched with the full
+   * loaded context (never from zero); flag OFF (production) → identical output.
+   */
+  flags?: Pick<FeatureFlags, 'conversational_intelligence_enabled'>,
+): VoiceCommandResponse {
   const { mode } = resolvePersona(ctx.engineOutput.performanceState.level);
   setActiveMode(mode);
   const classification = classifyTranscript(transcript);
-  return buildResponse(classification, ctx, transcript.trim());
+  const response = buildResponse(classification, ctx, transcript.trim());
+  if (!flags) return response;
+  const load = composeReactiveContext(ctx, flags);
+  if (!load || !load.detail) return response;
+  // Merge the loaded context into the secondary line — one exchange, full
+  // context, never a follow-up question (§64 rule 5).
+  return {
+    ...response,
+    detail: response.detail ? `${response.detail} ${load.detail}` : load.detail,
+  };
+}
+
+// ─── Section 64 Step 4 — Reactive full-context response (spec rule 5) ─────────
+
+export type ReactiveContextSource =
+  | 'hydroState'       // current HydroState — always present
+  | 'recoveryWindow'   // active Recovery Window status — always present
+  | 'adaptivePatterns' // recent Adaptive Response patterns (ready categories)
+  | 'personalLibrary'; // relevant Personal Response Library entry (cause-and-effect)
+
+export interface ReactiveContextLoad {
+  /** Source 1 — current HydroState. */
+  hydroState: { level: ScoreEngineOutput['performanceState']['level']; score: number };
+  /** Source 2 — active Recovery Window status. */
+  recoveryWindowActive: boolean;
+  /** Source 3 — Adaptive Response patterns: the categories with a ready learned response. */
+  learnedPatterns: ResponseCategory[];
+  /** Source 4 — the relevant Personal Response Library entry (strongest ready), or null. */
+  personalEntry: PersonalResponseEntry | null;
+  /** Which of the four sources actually contributed (1–2 always; 3–4 as the library fills). */
+  sources: ReactiveContextSource[];
+  /** Composed observation-only secondary line — guaranteed §64-compliant (may be ''). */
+  detail: string;
+}
+
+/* whatWorked.outcome is derived from the user's own self-reported ENERGY
+ * (deriveOutcome → mean energy on action vs non-action days) — NOT the readiness
+ * score. So the copy names "logged energy", states own-data CO-OCCURRENCE (not
+ * cause), and hedges for the small sample ("has tended to run … so far"). Naming
+ * the readiness score here would be a false claim the language guard can't catch
+ * (performance-scientist claim review, §64 Step 4). */
+const OUTCOME_PHRASE: Record<ResponseOutcome, string | null> = {
+  improved: 'higher',
+  steady:   'about the same',
+  declined: 'lower',
+  unknown:  null,
+};
+
+/** Observation-only composition of the loaded context. Own-data co-occurrence
+ *  only — never risk/diagnosis/prevent, never a population comparison (§64 rule 6),
+ *  never a causal or wrong-variable claim. */
+function composeContextDetail(load: Omit<ReactiveContextLoad, 'sources' | 'detail'>): string {
+  const parts: string[] = [];
+  // Source 1 — HydroState score, stated factually. Omit a non-finite score
+  // (engine error state) rather than speak "Readiness NaN".
+  if (Number.isFinite(load.hydroState.score)) parts.push(`Readiness ${load.hydroState.score}.`);
+  // Source 2 — Recovery Window, observed not prescribed.
+  if (load.recoveryWindowActive) parts.push('Recovery window open.');
+  // Source 4 — the relevant Personal Response entry: own-data co-occurrence of
+  // the measured variable (logged energy). Only rendered when the outcome maps
+  // to a direction; otherwise falls back to Source 3 ("pattern is building").
+  const w = load.personalEntry?.whatWorked;
+  const phrase = w ? OUTCOME_PHRASE[w.outcome] : null;
+  if (load.personalEntry && phrase) {
+    parts.push(`On days you followed your ${load.personalEntry.category} response, your logged energy has tended to run ${phrase} so far.`);
+  } else if (load.learnedPatterns.length) {
+    parts.push(`Your ${load.learnedPatterns.join(' and ')} pattern is building.`);
+  }
+  return parts.join(' ');
+}
+
+/**
+ * §64 rule 5 — assemble the full context a user-initiated exchange answers with:
+ * current HydroState, active Recovery Window, recent Adaptive Response patterns,
+ * and the relevant Personal Response Library entry. Pure — reads injected
+ * signals only, dispatches nothing, mutates no score.
+ *
+ * Never "starts from zero": HydroState and the Recovery Window are always loaded
+ * (sources 1–2), so a brand-new user with an empty library still gets a valid,
+ * context-loaded answer — the library sources (3–4) simply contribute nothing
+ * until they fill. Gated by `conversational_intelligence_enabled` (OFF in
+ * production → null, reactive path unchanged). The composed detail is re-checked
+ * against the observation-only guard and degrades to the base sources — then to
+ * '' — rather than ever shipping or throwing a non-compliant line.
+ */
+export function composeReactiveContext(
+  ctx: VoiceContext,
+  flags: Pick<FeatureFlags, 'conversational_intelligence_enabled'>,
+): ReactiveContextLoad | null {
+  if (!flags.conversational_intelligence_enabled) return null;
+
+  const { engineOutput, adaptiveProfile } = ctx;
+  const hydroState = { level: engineOutput.performanceState.level, score: engineOutput.score };
+  const recoveryWindowActive = engineOutput.social?.inRecoveryWindow ?? false;
+
+  // Source 3 — adaptive patterns: every category with a ready learned response.
+  const readyEntries = (adaptiveProfile ? Object.values(adaptiveProfile) : [])
+    .filter((e) => e.status === 'ready');
+  const learnedPatterns = readyEntries.map((e) => e.category);
+  // Source 4 — a Personal Response Library entry is surfaced only when it can
+  // render a directional own-data line: whatWorked present AND its outcome maps
+  // to a phrase (excludes 'unknown'). This keeps `sources` in lock-step with
+  // what the user actually hears — no personalLibrary source without the line.
+  const renderable = readyEntries.filter(
+    (e) => e.whatWorked !== null && OUTCOME_PHRASE[e.whatWorked.outcome] !== null,
+  );
+  const personalEntry = renderable.reduce<PersonalResponseEntry | null>(
+    (best, e) => (!best || (e.confidenceAfterAction ?? 0) > (best.confidenceAfterAction ?? 0) ? e : best),
+    null,
+  );
+
+  const sources: ReactiveContextSource[] = ['hydroState', 'recoveryWindow'];
+  if (learnedPatterns.length) sources.push('adaptivePatterns');
+  if (personalEntry) sources.push('personalLibrary');
+
+  let detail = composeContextDetail({ hydroState, recoveryWindowActive, learnedPatterns, personalEntry });
+  if (!isCompliantCoachLine(detail)) {
+    // Degrade to the always-present sources; then to silence. Never throw, never ship.
+    detail = composeContextDetail({ hydroState, recoveryWindowActive, learnedPatterns: [], personalEntry: null });
+    if (!isCompliantCoachLine(detail)) detail = '';
+  }
+
+  return { hydroState, recoveryWindowActive, learnedPatterns, personalEntry, sources, detail };
 }
 
 // ─── Section 64 — Conversational Intelligence Architecture™ (Step 2 wiring) ────
