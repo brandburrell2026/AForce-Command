@@ -16,10 +16,13 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<!-- Universal header — loaded before the page style so the page's own colours win -->
+<link rel="stylesheet" href="/assets/header.css">
 <style>
   :root{
     --ink:#0D0D0D;
     --bone:#F5F0E8;
+    --afx-surface:#F5F0E8;
     --red:#C1281B;
     --i80:rgba(13,13,13,.80);
     --i64:rgba(13,13,13,.64);
@@ -55,10 +58,13 @@
   .lead{ font-size:clamp(17px,1.5vw,21px); line-height:1.78; color:var(--i64); max-width:60ch; }
   .lead-lg{ font-size:clamp(19px,2vw,27px); line-height:1.6; color:var(--i80); max-width:24ch; font-weight:300; }
 
-  /* ---------- NAV (scroll-aware: transparent over hero, solid after) ---------- */
-  .nav{ position:fixed; top:0; left:0; right:0; z-index:80; display:flex; align-items:center; justify-content:space-between; gap:24px; padding:18px var(--gutter); color:var(--ink); background:transparent; border-bottom:1px solid transparent; transition:background .4s ease, color .4s ease, border-color .4s ease, padding .4s ease; }
-  .nav.solid{ color:var(--ink); background:rgba(245,240,232,.85); backdrop-filter:blur(12px); border-bottom-color:var(--i08); padding-top:14px; padding-bottom:14px; }
-  .nav .mark{ font-family:var(--display); font-size:18px; letter-spacing:.02em; display:flex; align-items:center; gap:10px; white-space:nowrap; }
+  /* ---------- NAV (scroll-aware: transparent over hero, solid after) —
+     layout/behaviour from /assets/header.css; this keeps only the approved
+     visual treatment ---------- */
+  .afx-nav{ color:var(--ink); background:transparent; border-bottom:1px solid transparent; transition:background .4s ease, color .4s ease, border-color .4s ease, padding .4s ease; }
+  .afx-nav.solid{ color:var(--ink); background:rgba(245,240,232,.85); backdrop-filter:blur(12px); border-bottom-color:var(--i08); padding-top:14px; padding-bottom:14px; }
+  .afx-nav.afx-open, .afx-nav.solid.afx-open{ background:var(--afx-surface); color:var(--afx-on-surface); border-bottom-color:transparent; }
+  .afx-nav .mark{ font-family:var(--display); font-size:18px; letter-spacing:.02em; display:flex; align-items:center; gap:10px; white-space:nowrap; }
   .nn{ display:inline-flex; align-items:center; gap:3px; }
   .nn > span:first-child{ color:var(--red); }
   .nn .bar{ display:inline-block; width:10px; height:2.5px; background:var(--red); }
@@ -68,10 +74,10 @@
   .f-nn .n1{ color:var(--red); }
   .f-nn .bar{ display:inline-block; width:.44em; height:.12em; background:var(--red); }
   .f-nn .n2{ display:inline-block; transform:scaleX(-1); color:var(--ink); }
-  .nav-links{ display:flex; gap:clamp(13px,1.9vw,28px); align-items:center; font-family:var(--body); font-weight:700; font-size:11px; letter-spacing:.12em; text-transform:uppercase; }
-  .nav-links a{ opacity:.7; transition:opacity .2s; white-space:nowrap; }
-  .nav-links a:hover,.nav-links a[aria-current="page"]{ opacity:1; }
-  .nav-links a[aria-current="page"]{ color:var(--red); opacity:1; }
+  .afx-links{ gap:clamp(13px,1.9vw,28px); font-family:var(--body); font-weight:700; font-size:11px; letter-spacing:.12em; text-transform:uppercase; }
+  .afx-links a{ opacity:.7; transition:opacity .2s; white-space:nowrap; }
+  .afx-links a:hover,.afx-links a[aria-current="page"]{ opacity:1; }
+  .afx-links a[aria-current="page"]{ color:var(--red); opacity:1; }
 
   /* ---------- BUTTONS ---------- */
   .btn{ display:inline-flex; align-items:center; gap:12px; font-family:var(--body); font-weight:600; font-size:12px; letter-spacing:.14em; text-transform:uppercase; padding:16px 30px; border-radius:2px; transition:all .25s ease; border:1px solid transparent; }
@@ -268,8 +274,6 @@
 
   /* ---------- RESPONSIVE ---------- */
   @media (max-width:680px){
-    .nav{ flex-wrap:wrap; row-gap:12px; padding-top:14px; padding-bottom:14px; }
-    .nav-links{ width:100%; flex-wrap:wrap; gap:11px 15px; font-size:10px; letter-spacing:.08em; justify-content:flex-start; }
     .chapter{ min-height:auto; }
   }
   @media (prefers-reduced-motion:reduce){
@@ -285,20 +289,38 @@
 <body>
 
 <!-- ============ NAV (shared) ============ -->
-<nav class="nav" id="nav">
-  <a class="mark" href="/" aria-label="AFORCE home">
+<header class="afx-nav afx-overlay" id="afxNav">
+  <a class="afx-mark mark" href="/" aria-label="AFORCE — home">
     <span class="nn"><span>N</span><span class="bar"></span><span class="nflip">N</span></span>
     AFORCE
   </a>
-  <div class="nav-links">
-    <a href="/#ritual">Ritual</a>
-    <a href="/aforce-os">The OS</a>
-    <a href="/our-story" aria-current="page">Our Story</a>
-    <a href="/science">Science</a>
-    <a href="/manifesto">Manifesto</a>
-    <a href="/shop">Shop</a>
+  <div class="afx-right">
+    <div class="afx-links">
+      <a href="/#ritual">Ritual</a><a href="/aforce-os">The OS</a><a href="/our-story" aria-current="page">Our Story</a><a href="/science">Science</a><a href="/manifesto">Manifesto</a>
+    </div>
+    <a href="/shop" class="afx-shop">Shop</a>
+    <a href="https://shop.drinkaforce.com/cart" class="afx-cart" aria-label="Cart">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M6 8h12l-1 12H7L6 8z"/><path d="M9 8a3 3 0 0 1 6 0"/></svg>
+      <span class="afx-cart-count" id="afxCartCount" hidden>0</span>
+    </a>
+    <button class="afx-burger" id="afxBurger" type="button" aria-controls="afxDrawer" aria-expanded="false" aria-label="Open menu">
+      <span class="afx-bar"></span><span class="afx-bar"></span><span class="afx-bar"></span>
+    </button>
   </div>
-</nav>
+</header>
+<div class="afx-drawer" id="afxDrawer" data-open="false">
+  <div class="afx-backdrop" data-afx-close></div>
+  <div class="afx-panel">
+    <nav aria-label="Main">
+      <a href="/#ritual">Ritual</a>
+      <a href="/aforce-os">The OS</a>
+      <a href="/our-story" aria-current="page">Our Story</a>
+      <a href="/science">Science</a>
+      <a href="/manifesto">Manifesto</a>
+      <a href="/shop" class="afx-drawer-shop">Shop</a>
+    </nav>
+  </div>
+</div>
 
 <!-- ============ 1 · CINEMATIC HERO ============ -->
 <header class="cine os-hero" id="top">
@@ -588,6 +610,7 @@
   </div>
 </footer>
 
+<script src="/assets/header.js" defer></script>
 <script>
 /* reveal on scroll */
 (function(){
@@ -601,7 +624,7 @@
 
 /* scroll-aware nav */
 (function(){
-  var nav = document.getElementById('nav');
+  var nav = document.getElementById('afxNav');
   var trigger = Math.max(120, window.innerHeight * 0.7);
   function onScroll(){ nav.classList.toggle('solid', window.scrollY > trigger); }
   window.addEventListener('scroll', onScroll, { passive:true });

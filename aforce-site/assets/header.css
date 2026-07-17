@@ -37,6 +37,17 @@
   transition: background .4s ease, color .4s ease, border-color .4s ease;
 }
 
+/* OVERLAY MODE — for pages whose first section is a full-bleed hero. The old
+   nav was position:fixed (out of flow), so the hero began at y=0 with the bar
+   floating over it. Plain sticky occupies bar-height of flow and would push the
+   hero down (altering an approved hero, §3). A negative bottom margin cancels
+   that flow space, so the hero stays full-bleed AND the bar still sticks (§8).
+   Deliberately NOT mix-blend-mode: blend modes make WebKit drop sticky. */
+.afx-nav.afx-overlay { margin-bottom: calc(var(--afx-h) * -1); }
+@media (max-width: 1023.98px) {
+  .afx-nav.afx-overlay { margin-bottom: calc(var(--afx-h-mobile) * -1); }
+}
+
 /* Logo — each page keeps its own approved mark; only guarantee it can't be
    squashed and that it is clickable (→ /) on every page including home. */
 .afx-mark { flex: 0 0 auto; display: inline-flex; align-items: center; text-decoration: none; color: inherit; }
