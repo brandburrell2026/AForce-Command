@@ -6,6 +6,9 @@
  * a monotonically-descending opacity; labels are structural caps tokens (not
  * claims); §56 is absent by design.
  */
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import path from 'node:path';
 import { describe, it, expect } from 'vitest';
 import { CONFIDENCE_OPACITY } from '../commandConfidenceDisplay';
 import {
@@ -22,6 +25,21 @@ describe('Show-10 — CHIP_OPACITY anchors to §58 (no parallel ramp)', () => {
     expect(CHIP_OPACITY.strong).toBe(CONFIDENCE_OPACITY.medium); // 0.7
     expect(CHIP_OPACITY.weak).toBe(CONFIDENCE_OPACITY.low);      // 0.45
     expect(CHIP_OPACITY.faint).toBeLessThan(CHIP_OPACITY.weak);  // 0.3 < 0.45
+  });
+
+  it('the anchor is a real reuse, not a coincidental literal (source-pin, qa M2)', () => {
+    // Value-equality can't tell `CONFIDENCE_OPACITY.high` from a hardcoded `1`
+    // (primitives carry no provenance). Pin the source references so a future
+    // delink to literals — silently reintroducing the parallel ramp this module
+    // exists to prevent — fails loudly. Robust to reformatting (references only).
+    const modulePath = path.join(
+      path.dirname(fileURLToPath(import.meta.url)),
+      '../confidence/confidenceChip.ts',
+    );
+    const src = readFileSync(modulePath, 'utf-8');
+    expect(src).toMatch(/full:\s*CONFIDENCE_OPACITY\.high\b/);
+    expect(src).toMatch(/strong:\s*CONFIDENCE_OPACITY\.medium\b/);
+    expect(src).toMatch(/weak:\s*CONFIDENCE_OPACITY\.low\b/);
   });
 });
 

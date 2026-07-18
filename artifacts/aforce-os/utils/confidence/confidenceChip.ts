@@ -17,7 +17,10 @@
  * Copy-independence (see docs/design/show10-confidence-surface.md): `label` is
  * the rating token in caps — a STRUCTURAL word that ships regardless of CR-1,
  * never a claim. Any explanatory sentence is a separate optional prop on the
- * view, never produced here. Pure · no React Native · no score · display-tunable.
+ * view, never produced here. (§58's CommandConfidenceBadge localizes ITS label
+ * via an i18n key; here the label is intentionally a plain structural token — do
+ * NOT "fix" it into an i18n key, which would turn a rating token into
+ * translatable copy subject to CR-1.) Pure · no RN · no score · display-tunable.
  */
 import { CONFIDENCE_OPACITY } from '../commandConfidenceDisplay';
 import type { SignalQualityRating } from './signalQuality';
