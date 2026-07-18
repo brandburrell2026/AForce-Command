@@ -1,9 +1,0 @@
-{
-  "extends": "./tsconfig.base.json",
-  "compileOnSave": false,
-  "files": [],
-  "references": [
-    { "path": "./lib/demand-engine" },
-    { "path": "./lib/api-client-react" }
-  ]
-}
