@@ -10,10 +10,11 @@ Status legend: **OPEN** · **PENDING-DECISION** (needs a human call, not code) �
 **BLOCKED** · **RESOLVED**.
 
 **Counsel of record / legal routing (AForce OS):** J. Peter Paredes —
-patent@awglaw.com (AWG Law), patent/IP counsel. Legal routing contact of record for
-AForce OS. Note: CR-1's pre-launch **claims/compliance** review is a distinct
-regulatory specialty — see CR-1 below for that reviewer's booking status; it is not
-assumed covered by patent/IP counsel unless confirmed.
+patent@awglaw.com (AWG Law). **Scope: patent/IP only** (confirmed 2026-07-18). Owns
+patent/IP matters — including PA-1 below — and is the routing contact for that lane.
+**Does not** cover CR-1's pre-launch **claims/compliance** review: that is a separate
+regulatory specialty and its reviewer is **still unbooked** (Launch-Readiness human
+action #1). Do not treat CR-1 as covered by patent counsel.
 
 ---
 
