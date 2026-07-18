@@ -63,10 +63,17 @@ export function ConfidenceChip({ label, opacity, explain }: Props) {
 }
 
 const styles = StyleSheet.create({
-  // dot + label match CommandConfidenceBadge exactly (the primitive it generalizes).
+  // dot + label use a SOLID base color (text.primary), NOT the semi-transparent
+  // text.secondary. The opacity ramp (1 / 0.78 / 0.55 / 0.30) is applied as the
+  // element `opacity` at render; over a 0.55-alpha base it COMPOUNDED (0.55 × ramp),
+  // dropping LIMITED/UNAVAILABLE to ~0.16–0.30 effective alpha — illegible once the
+  // DATA BEHIND THIS sheet renders a full list of them. With a solid base the ramp
+  // applies directly, so it now spans #FFFFFF → rgba(255,255,255,0.30) — and 0.30 is
+  // exactly `text.muted`, the app's established floor for quiet-but-readable text.
+  // The 1/0.78/0.55/0.30 gradient (spec §3) is preserved; only the base is solid.
   row: { flexDirection: 'row', alignItems: 'center', gap: 5 },
-  dot: { width: 5, height: 5, borderRadius: 5, backgroundColor: Colors.text.secondary },
-  label: { fontSize: 9, fontFamily: 'Inter_600SemiBold', color: Colors.text.secondary, letterSpacing: 1.2 },
+  dot: { width: 5, height: 5, borderRadius: 5, backgroundColor: Colors.text.primary },
+  label: { fontSize: 9, fontFamily: 'Inter_600SemiBold', color: Colors.text.primary, letterSpacing: 1.2 },
   // Explanatory copy: quiet body text, self-sizing, no reserved space when absent.
   explain: { marginTop: 4, fontSize: 12, fontFamily: 'Inter_400Regular', color: Colors.text.muted, lineHeight: 16 },
 });
