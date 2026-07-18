@@ -88,5 +88,33 @@ decided**, so neither can silently ship the wrong way. Detail in
   - **Superfood** structure/function copy (sea moss / dulse) — allowed/banned
     list exists; still warrants counsel sign-off under COMPLIANCE_FRAMEWORK §2/§14.
   - **Urine Hydration Check** verdicts — borders "observation, never diagnosis".
+  - **Personalization copy (§56):** audit all user-facing AND marketing-adjacent
+    copy against actual shipped behavior. Anything implying full-field calibration
+    or a working Personal Baseline™ is **out of bounds until the mechanism
+    exists** — "Personal Baseline" may appear **only as roadmap framing**. Flag any
+    in-app strings that fail this test.
 - **Rule:** nothing on this list ships until it clears here. Governs by
   `docs/COMPLIANCE_FRAMEWORK.md`. Not a code step — a deliberate go/no-go.
+- **Booking (human, will not self-surface):** the regulatory specialist must be
+  booked for this review — it does not happen without that engagement.
+
+---
+
+## §56 Universal Personalization — scope + reserved levers
+
+### S56-1 — §56 build scope (founder ruling, 2026-07-17)
+- **Status:** IN PROGRESS — Coverage-qualifier layer + §20 calibration wiring.
+- **Personal Baseline primitive** (learned averages superseding population) is
+  **post-launch, gated behind ruling ④ (cybersecurity + counsel).** **No
+  persistence of learned physiological data** before that ruling exists.
+- The §56 audit and its internal language are **internal governance documents.**
+  Any external / build-status summary for outside parties is written **FRESH** as
+  shipped / dark-pending-compliance / roadmap — never excerpted from the audit.
+
+### RL-1 — Ruling ⑤: a personalization field must enter the core score — RESERVED (LOCKED)
+- **Status:** RESERVED · **never exercised pre-launch under any circumstances.**
+- Making a field move the core HydroState score requires editing the off-limits
+  scoring engine. Any proposal that requires it is **post-launch by definition** —
+  route as a written proposal to Brandon, not a build task. §56's coverage layer
+  reports such fields (e.g. `sex` on HydroState) in a separate `scoring-locked`
+  bucket, never as an actionable miss.
