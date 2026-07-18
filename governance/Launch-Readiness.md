@@ -1,9 +1,12 @@
 # AForce OS — Launch Readiness Tracker
 
 Maintained by **scrum-master**. Consolidates what blocks the September 2026 launch across
-all workstreams. Verified against `main` @ `d44fc159` (2026-07-18) plus open PRs #263, #264,
-#265 (done, unmerged — content confirmed by diff) and stale PR #28 (found during this audit,
-not previously tracked).
+all workstreams. Verified against `main` @ `d44fc159` (2026-07-18).
+
+**Update 2026-07-18:** PRs #263–#266 **merged** (the build-status rows below that say
+"Open PR …" are now on `main`). Stale **PR #28 closed as superseded** (its one unique idea —
+app-wide proactive coaching — captured in §4). Joseph's email **descoped** (unrelated to
+AForce OS, per founder).
 
 Read alongside: `governance/Risk-Register.md` (live decisions/gates), `governance/decisions/DR-001-hydroscan-integration-and-launch-scope.md`,
 `governance/Architecture-Appendix.md`, `governance/Section-62-Founder-Mode-Spec.md`.
@@ -24,23 +27,15 @@ been booked.** The build is ahead of schedule: everything committed for the curr
    the personalization-copy audit (S56-1). Nothing on that list can ship until this happens,
    and it hasn't been scheduled. **This is the single largest risk to the September date** —
    everything else on this list is either done or waiting on this one review.
-2. **Joseph's status email is due this week** — not sent yet. Low effort, but it's a
-   standing commitment and the kind of thing that silently slips.
-3. **Merge the three open PRs (#263, #264, #265).** Done work, zero code risk (flag-off /
-   docs-only), sitting unmerged. Low effort, should not wait for CR-1.
-4. **§20 flag-flip has two unresolved sub-gates** even after CR-1: BLOCK-2 (under-18 users
+2. **§20 flag-flip has two unresolved sub-gates** even after CR-1: BLOCK-2 (under-18 users
    get adult coefficients — needs founder + counsel) and COND-3 (surfacing copy — needs
    performance-scientist). Neither is scheduled.
-5. **Everything shipped so far is headless.** §53/§54/§55/§56 and Command Confidence Display
+3. **Everything shipped so far is headless.** §53/§54/§55/§56 and Command Confidence Display
    have zero UI consumers. If launch means "a user can see personalization working," that
    requires a UI-wiring pass (Section 3 below) that has not been scoped or staffed yet.
 
-**Newly found, not previously tracked:** PR #28 (`feat/section-64-step-2-voice-wiring`) has
-been open since **2026-07-05** — 13 days, spanning the ~17 PRs merged since — with real,
-unsuperseded work (`useConversationalCoach.ts`, `ConversationalCoachMount.tsx`, proactive
-voice wiring). It is not on `main` and not referenced in the current sprint's open-PR list.
-Per standing risk-register discipline (blocked >2 sessions → escalate to ceo with a proposed
-unblock), this is escalated below (§4).
+CR-1 remains **the** single largest risk to the September date; everything else is done or
+downstream of it.
 
 ---
 
@@ -118,7 +113,8 @@ Profile) rather than five separate UI projects. §64 does not need this backlog;
 | **R63-2** — Athlete Mode decay mechanic | Backend / streak-owner | Nothing pre-launch — upstream mechanic change, gated on perf-scientist review of the mechanic itself | Opened session 2026-07-17 |
 | **Personal Baseline™ primitive** | Cybersecurity + counsel (ruling ④) | Nothing pre-launch — post-launch by design | Locked in PR #263 (unmerged) |
 | **§62 Q5** — competitor-failure scenario physiology | performance-scientist + outside counsel | §62 M7 build (post-launch); does not block launch | Standing, no expiry |
-| **PR #28** — §64 voice-wiring, stale | Escalating to **ceo** now (this doc) | Nothing blocks launch directly (flag stays OFF either way) — but 13 days unmerged/untracked is a process failure worth naming before it repeats on a launch-critical PR | **Opened 2026-07-05 — 13 days / ~17 merged PRs old.** Proposed unblock: either merge as-is (flag-off, no behavior change) in the next session, or explicitly close it as superseded if a reviewer determines the later §64 Step 4 work replaced it. Needs a decision, not more age |
+| **PR #28** — §64 voice-wiring | **RESOLVED 2026-07-18** | — | **Closed as superseded** — the merged §64 Steps 1–4 implement conversational-intelligence-in-voice via `useProactiveCoach` + `voiceService`, and #28's shared files had diverged 5 commits behind. Branch preserved/reopenable |
+| **App-wide proactive coaching** (product question, salvaged from #28) | Product + performance-scientist | Nothing pre-launch — §64 is dark/gated regardless | The merged §64 mounts the proactive coach in the **voice overlay only**; #28 had an app-wide `_layout` mount. If we want the coach to trigger app-wide (not just when voice is opened), build it clean on the current §64 — do not resurrect #28. Post-launch enhancement |
 
 ---
 
@@ -128,12 +124,10 @@ These do not self-surface. Listed first per standing scrum-master discipline.
 
 1. **Book the regulatory specialist for CR-1.** No reviewer is scheduled. This is the
    critical-path blocker for launch (§1 above) — every other open gate resolves through it.
-2. **Send Joseph's status email this week.** Standing commitment, not yet sent.
-3. *(New, this audit)* **Decide PR #28's fate** — merge (it's flag-off, zero behavior change
-   to `main`) or close as superseded. 13 days stale is outside normal cadence.
-4. **Merge PRs #263, #264, #265** — no founder decision required, purely a "hit merge"
-   action once CI is confirmed green; flagged here only because they are currently sitting
-   idle and nothing else in this doc is blocked on them except tidiness.
+   **This is now the sole open human action.**
+
+*Resolved 2026-07-18:* PRs #263–#266 merged · PR #28 closed as superseded · Joseph's email
+descoped (unrelated to AForce OS).
 
 ---
 
