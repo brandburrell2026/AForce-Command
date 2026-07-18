@@ -269,3 +269,46 @@ export const RESPONSE_TIMELINE_MIN_DATA_DAYS = 60;
  *  lesson. Below this the model stays on the Silent Intelligence on-track state
  *  rather than surfacing a low-confidence takeaway (no fabrication). */
 export const LIVING_PERFORMANCE_MIN_LESSON_CONFIDENCE = 0.6;
+
+/* ─── Section 53 — Data Freshness™ (per-signal recency windows) ─────────────────
+ * How current a signal's supporting data must be. Pure recency — never source
+ * quality (§54) or completeness (§55). `freshUntilMs ≤ staleAfterMs ≤
+ * expireAfterMs`. `expireAfterMs` omitted → the signal degrades to `stale` and
+ * stays present (offline-first: old context beats none). Bias conservative:
+ * too-loose windows read stale data as fresh (the dangerous direction).
+ * PENDING performance-scientist sign-off on each window's physiological currency. */
+
+const FRESHNESS_HOUR_MS = 3_600_000;
+const FRESHNESS_DAY_MS = 86_400_000;
+
+/** The §53 signals. `weather`/`sleep`/`hydration_verification` share names with
+ *  §54 QualitySignalKind so freshness composes onto the matching source rating. */
+export type FreshnessSignalKind =
+  | 'weather'
+  | 'sleep'
+  | 'hydration_verification'
+  | 'profile'
+  | 'camera_baseline'
+  | 'wearable_sync';
+
+export interface FreshnessWindows {
+  freshUntilMs: number;
+  staleAfterMs: number;
+  /** Absent → never expires to `unavailable`; a slowly-changing signal stays `stale`. */
+  expireAfterMs?: number;
+}
+
+export const FRESHNESS_WINDOWS: Record<FreshnessSignalKind, FreshnessWindows> = {
+  // Heat/humidity drive today's demand and shift within hours; >12h is noise.
+  weather: { freshUntilMs: 1 * FRESHNESS_HOUR_MS, staleAfterMs: 3 * FRESHNESS_HOUR_MS, expireAfterMs: 12 * FRESHNESS_HOUR_MS },
+  // "Last night"; usable into a second day as the best proxy; never expired.
+  sleep: { freshUntilMs: 12 * FRESHNESS_HOUR_MS, staleAfterMs: 36 * FRESHNESS_HOUR_MS },
+  // Optical point-in-time hydration state drifts over hours; >48h drop it.
+  hydration_verification: { freshUntilMs: 6 * FRESHNESS_HOUR_MS, staleAfterMs: 24 * FRESHNESS_HOUR_MS, expireAfterMs: 48 * FRESHNESS_HOUR_MS },
+  // The body model changes slowly; old → prompt refresh, never absent.
+  profile: { freshUntilMs: 90 * FRESHNESS_DAY_MS, staleAfterMs: 180 * FRESHNESS_DAY_MS },
+  // Optical calibration drifts over weeks; stale → recalibration nudge, not a block.
+  camera_baseline: { freshUntilMs: 30 * FRESHNESS_DAY_MS, staleAfterMs: 90 * FRESHNESS_DAY_MS },
+  // Freshness of the last successful biometric pull; >72h the stream is dark.
+  wearable_sync: { freshUntilMs: 6 * FRESHNESS_HOUR_MS, staleAfterMs: 24 * FRESHNESS_HOUR_MS, expireAfterMs: 72 * FRESHNESS_HOUR_MS },
+};
