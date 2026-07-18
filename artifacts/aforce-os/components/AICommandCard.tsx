@@ -75,9 +75,12 @@ export function AICommandCard({ command, performanceState, accentOverride, embed
           {confidenceTappable ? (
             <Pressable
               onPress={onConfidencePress}
-              hitSlop={8}
+              // Expand the ~16px chip's touch box to ~44pt via hitSlop (no layout
+              // shift); dim on press for tap affordance. Mirrors ProductFitCard.
+              hitSlop={{ top: 14, bottom: 14, left: 12, right: 12 }}
               accessibilityRole="button"
               accessibilityHint="Shows the data behind this recommendation"
+              style={({ pressed }) => (pressed ? styles.confidencePressed : undefined)}
             >
               <CommandConfidenceBadge level={command.confidence} />
             </Pressable>
@@ -130,6 +133,7 @@ const styles = StyleSheet.create({
     flexShrink: 1,
     gap: 6,
   },
+  confidencePressed: { opacity: 0.6 },
   sectionLabel: {
     fontSize: 10,
     fontFamily: 'Inter_700Bold',
