@@ -79,6 +79,9 @@ export function freshnessCeiling(rating: FreshnessRating): SignalQualityRating {
  *   - future timestamp (age ≤ 0) → `fresh` (clock skew, certainly not stale).
  *   - age ≤ freshUntil → fresh; ≤ staleAfter → aging;
  *   - beyond expireAfter (when defined) → expired; otherwise → stale.
+ *
+ * A `windows` override is assumed well-ordered (freshUntil ≤ staleAfter ≤
+ * expireAfter), like every config entry; the function does not validate it.
  */
 export function assessFreshness(
   kind: FreshnessSignalKind,
