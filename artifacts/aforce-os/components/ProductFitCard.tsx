@@ -3,7 +3,7 @@
  */
 
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { Colors } from '@/theme/colors';
 import type { ScanResult } from '@/types/scan';
 import { CommandConfidenceBadge } from '@/components/CommandConfidenceBadge';
@@ -12,6 +12,14 @@ import { useFlagsSlice } from '@/store/slices';
 
 interface Props {
   result: ScanResult;
+  /**
+   * Show-10: when provided, the Command Confidence badge becomes tappable and
+   * calls this to open the DATA BEHIND THIS sheet. The parent passes it only when
+   * `spec_confidenceDetailSheet` is on; its presence also makes the badge show
+   * here (so the HydroScan Fit chip can go live without flipping the shared
+   * `spec_commandConfidenceDisplay`, which would also light Social/Cruise).
+   */
+  onConfidencePress?: () => void;
 }
 
 interface Axis {
@@ -39,17 +47,34 @@ function colorFor(v: number): string {
   return Colors.states.DEPLETED.primary;
 }
 
-export function ProductFitCard({ result }: Props) {
+export function ProductFitCard({ result, onConfidencePress }: Props) {
   const axes = axesFor(result);
   // Section 58 — surface the already-computed Command Confidence on the
-  // HydroScan Performance Fit surface, behind spec_commandConfidenceDisplay.
-  const showConfidence = useFlagsSlice().spec_commandConfidenceDisplay;
+  // HydroScan Performance Fit surface. Shows when the shared §58 display flag is
+  // on, OR when the parent wired the tap-through (Show-10 slice): the latter lets
+  // the HydroScan Fit chip go live on its own without lighting Social/Cruise.
+  const showConfidence = useFlagsSlice().spec_commandConfidenceDisplay || !!onConfidencePress;
   const confidence = useCommandConfidence();
+  // Tappable only when a handler is wired AND there's a read to explain.
+  const confidenceTappable = !!onConfidencePress && !!confidence;
   return (
     <View style={styles.card}>
       <View style={styles.header}>
         <Text style={styles.title}>Product Profile</Text>
-        {showConfidence ? <CommandConfidenceBadge level={confidence} /> : null}
+        {showConfidence ? (
+          confidenceTappable ? (
+            <Pressable
+              onPress={onConfidencePress}
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityHint="Shows the data behind this confidence read"
+            >
+              <CommandConfidenceBadge level={confidence} />
+            </Pressable>
+          ) : (
+            <CommandConfidenceBadge level={confidence} />
+          )
+        ) : null}
       </View>
       <Text style={styles.subtitle}>{result.recommendation.detail}</Text>
 
