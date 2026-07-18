@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { selectHydrationDemandSnapshot } from '../hydrationDemandSelector';
 import { makeState, baseFlags } from '../../store/__tests__/_fixtures';
+import { DEFAULT_PROFILE_IDENTITY } from '../../utils/profileIdentity';
 import type { ProviderBiometrics, FeatureFlags } from '../../types';
 
 const flagsOn: FeatureFlags = { ...baseFlags, spec_demand_engine: true };
@@ -74,6 +75,17 @@ describe('selectHydrationDemandSnapshot', () => {
       expect(on!.recalibration!.electrolyteSodiumMg).toBeLessThanOrEqual(3500);
       // the demand target is byte-identical regardless of the §20 flag
       expect(on!.outputs).toEqual(off!.outputs);
+    });
+
+    it('additive property holds even when a recalibration target is NON-null (qa M5)', () => {
+      // makeState()'s default profile has bodyWeightLbs null → dailyHydrationTargetOz
+      // null, so a feedback leak gated on "only when computable" wouldn't fire.
+      // Force a computable target and re-assert byte-identity of outputs.
+      const state = makeState({ profileIdentity: { ...DEFAULT_PROFILE_IDENTITY, bodyWeightLbs: 180 } });
+      const off = selectHydrationDemandSnapshot(state, flagsOn);
+      const on = selectHydrationDemandSnapshot(state, s20On);
+      expect(on!.recalibration!.dailyHydrationTargetOz).not.toBeNull(); // probe is live
+      expect(on!.outputs).toEqual(off!.outputs); // outputs unaffected even so
     });
 
     it('does not leak: spec_demand_engine OFF returns null even with §20 flag ON', () => {
