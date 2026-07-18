@@ -393,7 +393,13 @@ function CruiseModeBody() {
             </View>
             {showConfidence ? (
               <View style={{ flexDirection: "row", justifyContent: "flex-end", marginTop: 10 }}>
-                <CommandConfidenceBadge level={commandConfidence} />
+                {/* Near-black backing pill: the monochrome chip's contrast is
+                    tuned for ~#0A0A0F (PR #285); Cruise's navy card (#0E2B45) is
+                    lighter and drops the low tier below AA. The pill restores the
+                    tuned surface so every tier stays legible. */}
+                <View style={styles.confidencePill}>
+                  <CommandConfidenceBadge level={commandConfidence} />
+                </View>
               </View>
             ) : null}
             {journeyIntensity && (
@@ -805,6 +811,14 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: CRUISE.borderSoft,
     padding: 16,
+  },
+  // Near-black backing for the Command Confidence chip so its monochrome ramp
+  // keeps the contrast it was tuned for (#285) on Cruise's lighter navy card.
+  confidencePill: {
+    backgroundColor: "#0A0A0F",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 100,
   },
 
   // Hydration orb
