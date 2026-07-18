@@ -16,6 +16,8 @@ import { CommandConfidenceBadge } from './CommandConfidenceBadge';
 import type { ScoreEngineOutput } from '../types';
 import { useCommandConfidence } from '../hooks/useCommandConfidence';
 import { useFlagsSlice } from '../store/slices';
+import i18n from '../services/i18nService';
+import { CONFIDENCE_LABEL_KEYS } from '../utils/commandConfidenceDisplay';
 
 interface Props {
   social: NonNullable<ScoreEngineOutput['social']>;
@@ -29,6 +31,11 @@ function SocialModeBannerImpl({ social, onPress }: Props) {
   // Section 58 — Command Confidence on the Recovery Window surface, gated.
   const showConfidence = useFlagsSlice().spec_commandConfidenceDisplay;
   const confidence = useCommandConfidence();
+  // The whole banner is one Pressable, so its accessibilityLabel is the ONLY
+  // thing a screen reader announces — the nested confidence chip is otherwise
+  // swallowed. Fold the confidence level into the banner's label so it's spoken.
+  const confidenceLabel = showConfidence && confidence ? i18n.t(CONFIDENCE_LABEL_KEYS[confidence]) : null;
+  const a11yLabel = confidenceLabel ? `${title}. ${confidenceLabel}` : title;
 
   return (
     <Pressable
@@ -37,7 +44,7 @@ function SocialModeBannerImpl({ social, onPress }: Props) {
         onPress();
       }}
       accessibilityRole="button"
-      accessibilityLabel={title}
+      accessibilityLabel={a11yLabel}
       testID="social-mode-banner"
       style={({ pressed }) => [
         styles.banner,
