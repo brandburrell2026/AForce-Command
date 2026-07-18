@@ -33,6 +33,9 @@ Status legend: **OPEN** · **PENDING-DECISION** (needs a human call, not code) �
   `artifacts/aforce-os/featureFlags/flags.ts` (base = OFF; internal-inspection =
   ON). No behavior code changes — the gates are already in place.
 - **Not blocked on engineering.** Blocked on the deliberate go/no-go.
+- **Explicit gate (founder, 2026-07-17):** RD-1 **stays OFF** until the
+  **pre-launch claims/compliance review (CR-1)** clears the §64 coach copy. It is
+  not enabled as a default; the go/no-go is made at that review, not before.
 
 ---
 
@@ -69,3 +72,21 @@ decided**, so neither can silently ship the wrong way. Detail in
   copy — does a decay model read as momentum or as slow-motion loss? Fallback if it
   reads as loss: a single grace day per cycle. Own test for the homeDashboard
   logic; extend the streak language guard to the new surface.
+
+---
+
+## Pre-launch reviews
+
+### CR-1 — Pre-launch claims / compliance review
+- **Status:** PENDING-DECISION · **Owner:** Brandon + performance-scientist (+ counsel on edges) · **Opened:** session 2026-07-17
+- **What it is:** the single deliberate review that signs off every user-facing
+  claim before launch. It is the **gate for RD-1** (§64 enablement) and must also
+  cover the HydroScan claims surfaced by the §28–37 audit:
+  - §64 reactive/proactive coach copy (all lines, one pass).
+  - HydroScan **"hydrates at X% efficiency"** — a precise numeric physiological
+    claim from a heuristic + proxy input (`services/hydrationScanService.ts`).
+  - **Superfood** structure/function copy (sea moss / dulse) — allowed/banned
+    list exists; still warrants counsel sign-off under COMPLIANCE_FRAMEWORK §2/§14.
+  - **Urine Hydration Check** verdicts — borders "observation, never diagnosis".
+- **Rule:** nothing on this list ships until it clears here. Governs by
+  `docs/COMPLIANCE_FRAMEWORK.md`. Not a code step — a deliberate go/no-go.
