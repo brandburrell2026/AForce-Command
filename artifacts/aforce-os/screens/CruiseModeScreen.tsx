@@ -815,7 +815,9 @@ const styles = StyleSheet.create({
   // Near-black backing for the Command Confidence chip so its monochrome ramp
   // keeps the contrast it was tuned for (#285) on Cruise's lighter navy card.
   confidencePill: {
-    backgroundColor: "#0A0A0F",
+    // The exact surface the confidence ramp is tuned for — reference the token,
+    // not a literal, so it tracks if background.card ever moves.
+    backgroundColor: Colors.background.card,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 100,
