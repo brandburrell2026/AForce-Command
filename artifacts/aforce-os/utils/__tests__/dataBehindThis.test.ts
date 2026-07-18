@@ -1,7 +1,9 @@
 /**
  * Show-10 ① — DATA BEHIND THIS assembly.
- * Pins that it composes §54 quality + §53 freshness into per-signal chip rows,
- * preserves order, passes §58 confidence through, and carries NO §56 / no copy.
+ * Pins that §54 quality + §53 freshness COMPOSE into ONE chip per signal
+ * (Design Decision 2: freshness caps quality, never a second chip), that the raw
+ * contributing ratings ride along for the detail line, that order is preserved,
+ * that §58 confidence passes through, and that rows carry NO §56 / no copy.
  */
 import { describe, it, expect } from 'vitest';
 import { buildDataBehindThis, type DataBehindSignal } from '../confidence/dataBehindThis';
@@ -10,47 +12,49 @@ const HOUR = 3_600_000;
 const NOW = 1_700_000_000_000;
 
 const SIGNALS: DataBehindSignal[] = [
-  // phantom source + captured now → EXCELLENT quality, FRESH
+  // phantom source → EXCELLENT, captured now → FRESH (ceiling excellent) → EXCELLENT
   { label: 'Sleep', quality: { kind: 'sleep', source: 'phantom' }, freshness: { kind: 'sleep', capturedAt: NOW } },
-  // wearable source, no freshness window → GOOD quality, freshness null
+  // wearable → GOOD, no freshness window → composed rating stays GOOD
   { label: 'Heart Rate', quality: { kind: 'heart_rate', source: 'apple_watch' } },
-  // regional weather + 13h old (weather expires at 12h) → LIMITED quality, EXPIRED
+  // regional weather → LIMITED, 13h old (weather expires at 12h) → EXPIRED (ceiling
+  // unavailable) → composed DOWN to UNAVAILABLE: freshness caps the source
   { label: 'Weather', quality: { kind: 'weather', provenance: 'measured_regional' }, freshness: { kind: 'weather', capturedAt: NOW - 13 * HOUR } },
-  // no source → UNAVAILABLE, freshness null
+  // no source → UNAVAILABLE, no freshness window
   { label: 'HRV', quality: { kind: 'hrv', source: null } },
 ];
 
 describe('Show-10 — buildDataBehindThis', () => {
   const result = buildDataBehindThis({ confidence: 'high', signals: SIGNALS, now: NOW });
+  const byLabel = Object.fromEntries(result.rows.map((r) => [r.label, r]));
 
   it('passes the §58 confidence level through for the header', () => {
     expect(result.confidence).toBe('high');
   });
 
-  it('grades §54 quality per signal (source tier → chip)', () => {
-    const byLabel = Object.fromEntries(result.rows.map((r) => [r.label, r.quality]));
-    expect(byLabel.Sleep).toEqual({ label: 'EXCELLENT', opacity: 1 });     // phantom
-    expect(byLabel['Heart Rate']).toEqual({ label: 'GOOD', opacity: 0.7 }); // wearable
-    expect(byLabel.Weather).toEqual({ label: 'LIMITED', opacity: 0.45 });   // regional env
-    expect(byLabel.HRV).toEqual({ label: 'UNAVAILABLE', opacity: 0.3 });    // no source
+  it('composes §54 quality ⊓ §53 freshness into ONE chip per signal', () => {
+    expect(byLabel.Sleep.chip).toEqual({ label: 'EXCELLENT', opacity: 1 });      // excellent ∧ fresh
+    expect(byLabel['Heart Rate'].chip).toEqual({ label: 'GOOD', opacity: 0.78 }); // good, no freshness
+    expect(byLabel.Weather.chip).toEqual({ label: 'UNAVAILABLE', opacity: 0.3 }); // limited capped by expired
+    expect(byLabel.HRV.chip).toEqual({ label: 'UNAVAILABLE', opacity: 0.3 });     // no source
   });
 
-  it('grades §53 freshness when a window exists, else null', () => {
-    const byLabel = Object.fromEntries(result.rows.map((r) => [r.label, r.freshness]));
-    expect(byLabel.Sleep).toEqual({ label: 'FRESH', opacity: 1 });     // captured now
-    expect(byLabel.Weather).toEqual({ label: 'EXPIRED', opacity: 0.3 }); // 13h > 12h expire
-    expect(byLabel['Heart Rate']).toBeNull(); // no freshness field
-    expect(byLabel.HRV).toBeNull();
+  it('exposes the raw contributing ratings for the detail line (chip is one, facts are two)', () => {
+    expect(byLabel.Sleep.sourceRating).toBe('excellent');
+    expect(byLabel.Sleep.freshnessRating).toBe('fresh');
+    expect(byLabel.Weather.sourceRating).toBe('limited');   // source, NOT the composed unavailable
+    expect(byLabel.Weather.freshnessRating).toBe('expired');
+    expect(byLabel['Heart Rate'].freshnessRating).toBeNull(); // no window
+    expect(byLabel.HRV.freshnessRating).toBeNull();
   });
 
   it('preserves row order (rows[i] mirrors signals[i])', () => {
     expect(result.rows.map((r) => r.label)).toEqual(['Sleep', 'Heart Rate', 'Weather', 'HRV']);
   });
 
-  it('rows carry only chips — no §56, no explanatory copy', () => {
+  it('rows carry only the one chip + raw ratings — no §56, no explanatory copy', () => {
     for (const row of result.rows) {
-      expect(Object.keys(row).sort()).toEqual(['freshness', 'label', 'quality']);
-      expect(Object.keys(row.quality).sort()).toEqual(['label', 'opacity']);
+      expect(Object.keys(row).sort()).toEqual(['chip', 'freshnessRating', 'label', 'sourceRating']);
+      expect(Object.keys(row.chip).sort()).toEqual(['label', 'opacity']);
     }
   });
 

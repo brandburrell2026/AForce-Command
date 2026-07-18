@@ -16,6 +16,7 @@ import {
   signalQualityChip,
   freshnessChip,
   CHIP_OPACITY,
+  SIGNAL_OPACITY,
   type ConfidenceChipModel,
 } from '../confidence/confidenceChip';
 
@@ -24,7 +25,12 @@ describe('Show-10 — CHIP_OPACITY anchors to §58 (no parallel ramp)', () => {
     expect(CHIP_OPACITY.full).toBe(CONFIDENCE_OPACITY.high);     // 1
     expect(CHIP_OPACITY.strong).toBe(CONFIDENCE_OPACITY.medium); // 0.7
     expect(CHIP_OPACITY.weak).toBe(CONFIDENCE_OPACITY.low);      // 0.45
-    expect(CHIP_OPACITY.faint).toBeLessThan(CHIP_OPACITY.weak);  // 0.3 < 0.45
+  });
+
+  it('the composed §54+§53 signal chip uses its own 4-step ramp (spec §3), descending', () => {
+    // Distinct from the 3-step §58 ramp — 1 / 0.78 / 0.55 / 0.30.
+    expect([SIGNAL_OPACITY.top, SIGNAL_OPACITY.high, SIGNAL_OPACITY.mid, SIGNAL_OPACITY.low])
+      .toEqual([1, 0.78, 0.55, 0.3]);
   });
 
   it('the anchor is a real reuse, not a coincidental literal (source-pin, qa M2)', () => {
@@ -54,8 +60,8 @@ describe('Show-10 — completeness chip (§55)', () => {
 describe('Show-10 — signal quality chip (§54)', () => {
   it('maps all four ratings, opacity descending', () => {
     expect(signalQualityChip('excellent')).toEqual({ label: 'EXCELLENT', opacity: 1 });
-    expect(signalQualityChip('good')).toEqual({ label: 'GOOD', opacity: 0.7 });
-    expect(signalQualityChip('limited')).toEqual({ label: 'LIMITED', opacity: 0.45 });
+    expect(signalQualityChip('good')).toEqual({ label: 'GOOD', opacity: 0.78 });
+    expect(signalQualityChip('limited')).toEqual({ label: 'LIMITED', opacity: 0.55 });
     expect(signalQualityChip('unavailable')).toEqual({ label: 'UNAVAILABLE', opacity: 0.3 });
   });
 });
@@ -63,8 +69,8 @@ describe('Show-10 — signal quality chip (§54)', () => {
 describe('Show-10 — freshness chip (§53)', () => {
   it('maps all four ratings, opacity descending', () => {
     expect(freshnessChip('fresh')).toEqual({ label: 'FRESH', opacity: 1 });
-    expect(freshnessChip('aging')).toEqual({ label: 'AGING', opacity: 0.7 });
-    expect(freshnessChip('stale')).toEqual({ label: 'STALE', opacity: 0.45 });
+    expect(freshnessChip('aging')).toEqual({ label: 'AGING', opacity: 0.78 });
+    expect(freshnessChip('stale')).toEqual({ label: 'STALE', opacity: 0.55 });
     expect(freshnessChip('expired')).toEqual({ label: 'EXPIRED', opacity: 0.3 });
   });
 });
