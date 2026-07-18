@@ -111,6 +111,10 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   // internal-preview sign-off. Today's Command shows confidence unflagged.
   spec_commandConfidenceDisplay: false,
 
+  // §55/Show-10 — Profile Strength section (completeness chip). Additive,
+  // presentational, OFF by default. Show-10.
+  spec_profileStrengthSection: false,
+
   // Recovery Layer — hidden engine. Phase 1 build, no visible surfaces.
   // Stays OFF in DEFAULT_FLAGS so the production binary cannot expose
   // it ahead of internal-preview readiness (Phase 2 in the spec).
@@ -303,6 +307,7 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
   spec_sharedContextLayer: true,
   spec_uiFreeze: true,
   spec_commandConfidenceDisplay: true,
+  spec_profileStrengthSection: true,
   // Demo profile lights the hidden Recovery engine so internal viewers
   // can inspect outputs via dev tools even before any visible surface
   // consumes them.

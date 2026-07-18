@@ -145,6 +145,7 @@ export const baseFlags: FeatureFlags = {
   spec_sharedContextLayer: true,
   spec_uiFreeze: true,
   spec_commandConfidenceDisplay: false,
+  spec_profileStrengthSection: false,
   spec_recovery: false,
   spec_demand_engine: false,
   spec_section20_calibration: false,

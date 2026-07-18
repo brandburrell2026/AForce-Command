@@ -32,7 +32,10 @@ interface Props {
 
 export function ConfidenceChip({ label, opacity, explain }: Props) {
   return (
-    <View accessibilityLabel={label}>
+    // `accessible` collapses the chip to ONE a11y node (no double-read of the
+    // label between the container and the <Text>), and the composed label folds
+    // in the explanatory line when present.
+    <View accessible accessibilityLabel={explain ? `${label}. ${explain}` : label}>
       <View style={styles.row}>
         <View style={[styles.dot, { opacity }]} />
         <Text style={[styles.label, { opacity }]}>{label}</Text>

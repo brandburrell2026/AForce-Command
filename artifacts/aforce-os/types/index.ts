@@ -635,6 +635,12 @@ export interface FeatureFlags {
    */
   spec_commandConfidenceDisplay: boolean;
   /**
+   * §55/Show-10 — the Profile Strength section (profile-completeness chip) in
+   * the Profile screen. Additive, presentational; OFF by default. No copy beyond
+   * the structural RICH/PARTIAL/SPARSE token ships until it's flipped.
+   */
+  spec_profileStrengthSection: boolean;
+  /**
    * Recovery Layer (post-v18 architecture update) — hidden engine that
    * feeds existing surfaces (Orb, Coach, Timeline, HydroJournal,
    * Social, Guardian, Clutch). Phase 1 ships the engine only with no

@@ -27,6 +27,8 @@ import {
 import { useAppStore } from '@/store/useAppStore';
 import { useUnitPreferencesSlice, useProfileIdentitySlice } from '@/store/slices';
 import { EditProfileModal } from '@/components/EditProfileModal';
+import { ConfidenceChip } from '@/components/ConfidenceChip';
+import { profileStrength } from '@/utils/profile/profileStrength';
 import type { UnitPreferences } from '@/utils/units';
 import { DEFAULT_FLAGS, DEMO_ALL_ON_FLAGS } from '@/featureFlags/flags';
 import type { FeatureFlags, AuraState } from '@/types';
@@ -784,6 +786,23 @@ export default function ProfileScreen() {
                 </View>
               </>
             );
+
+            // §55/Show-10 — Profile Strength (completeness chip). Flag-gated,
+            // additive, presentational. Chip is copy-independent (label+opacity).
+            const profileStrengthCard = state.featureFlags.spec_profileStrengthSection ? (
+              <>
+                <SectionHeader label="PROFILE STRENGTH" />
+                <View style={styles.card}>
+                  <View style={styles.settingRow}>
+                    <View style={styles.settingLeft}>
+                      <Icon name="user" size={16} color={Colors.text.secondary} />
+                      <Text style={styles.settingLabel}>Profile Completeness</Text>
+                    </View>
+                    <ConfidenceChip {...profileStrength(profileIdentity).chip} />
+                  </View>
+                </View>
+              </>
+            ) : null;
 
             const goalsCard = (
               <>
@@ -1902,7 +1921,7 @@ export default function ProfileScreen() {
             // group of settings. PhaseEntryRow ships under ACCOUNT so the
             // CLUTCH / GUARDIAN entries live next to subscription tier.
             const tabSections: Record<ProfileTabId, React.ReactNode[]> = {
-              performance: [modulesCard, weeklyReportCard, goalsCard, protocolToolsCard, voiceCard, demoModesCard],
+              performance: [profileStrengthCard, modulesCard, weeklyReportCard, goalsCard, protocolToolsCard, voiceCard, demoModesCard],
               devices: [hardwareCard, connectedDevicesCard],
               account: [inviteCard, subscriptionBlock, phaseEntryRow, settingsBlock, preferencesBlock],
               developer: [demoAccessCard, developerBlock, legalBlock],
