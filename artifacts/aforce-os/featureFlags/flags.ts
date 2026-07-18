@@ -106,10 +106,13 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   spec_sharedContextLayer: true,
   spec_uiFreeze: true,
 
-  // Section 58 — Command Confidence Display™: the badge on the NEW surfaces
-  // (Performance Fit, Recovery Window, Sun Recovery). OFF in production until
-  // internal-preview sign-off. Today's Command shows confidence unflagged.
-  spec_commandConfidenceDisplay: false,
+  // Section 58 — Command Confidence Display™: the badge on the NEW surfaces.
+  // LIVE (founder release 2026-07-18): shows the (display-only, non-tappable)
+  // Command Confidence badge on the Recovery Window / Social banner
+  // (SocialModeBanner) and Cruise (CruiseModeScreen). HydroScan Fit's badge is
+  // already lit + tappable via spec_confidenceDetailSheet; this flag is redundant
+  // there (no change). Today's Command shows confidence unflagged.
+  spec_commandConfidenceDisplay: true,
 
   // §55/Show-10 — Profile Strength section (completeness chip). Additive,
   // presentational, OFF by default. Show-10.

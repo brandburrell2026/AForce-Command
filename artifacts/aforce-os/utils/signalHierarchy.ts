@@ -13,7 +13,7 @@
  *                 Garmin → Google Health Connect → Voice Check-In → Manual
  *                 (Oura Ring sleep enters via Apple Health upstream, so
  *                  `oura` is intentionally absent from this ladder.)
- *   Heart Rate:   Phantom → Apple Watch → Samsung Watch → Garmin →
+ *   Heart Rate:   Phantom → WHOOP → Apple Watch → Samsung Watch → Garmin →
  *                 Google Health Connect → Manual
  *   Activity:     Phantom → Apple Health → Samsung Health → Garmin →
  *                 Google Health Connect → Manual
