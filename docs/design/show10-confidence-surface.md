@@ -97,7 +97,17 @@ one (see Design Decision 5), and why §5 below shows the copy-stripped rendering
 
 ### 2.1 Today's Command (`app/(tabs)/index.tsx` → `components/home/CommandStack.tsx`)
 
-**Already there:** `CommandConfidenceBadge` (§58) is mounted here **unflagged** today (per the component's own doc
+> **Grounding correction (2026-07-18, slice ① build):** the premise below is stale. `CommandStack` /
+> `CommandConsole` / `AICommandCard` — the card that renders `CommandConfidenceBadge` on Today's Command — is
+> **imported but mounted nowhere** in the live tree; the home screen was refactored to the video coach and the
+> "AFORCE COMMAND" text card was removed. The badge *is* still live on other surfaces (HydroScan Fit
+> `ProductFitCard`, `SocialModeBanner`, `CruiseModeScreen`), just not here. **Founder ruling:** slice ① lands as
+> **Build-100 dormant** — the sheet, the `gatherDataBehindSignals` adapter, and the tappable-badge plumbing on
+> `AICommandCard` all ship flag-gated (`spec_confidenceDetailSheet`, OFF) and inert; the live trigger lights up the
+> moment the AFORCE COMMAND card is remounted. No frozen-home surface is touched (UI Freeze / "no rebuilds"). The
+> §56 coverage rows referenced below remain excluded from this slice regardless (CR-1-gated).
+
+**Already there (stale — see correction above):** `CommandConfidenceBadge` (§58) is mounted here **unflagged** today (per the component's own doc
 comment — Today's Command is the one surface that shows confidence regardless of `spec_commandConfidenceDisplay`).
 Nothing to add for the badge itself.
 
