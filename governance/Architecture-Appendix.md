@@ -22,7 +22,14 @@ Adaptive Profile Engine, Performance Profile, Body Recalibration Engine, Sleep R
 
 Performance Decision Intelligence, Scan Anything, Performance Fit, Decision Confidence, Strengths & Considerations, Recovery Intelligence, Decision Memory, Integration Rule, Trust Principle, Global HydroScan.
 
-**Status:** Build Now.
+**Status:** Build Now (base scan). See **DR-001** for launch-scope amendments.
+
+> **Launch amendment — DR-001 (2026-07-17), controlling for launch:** §35 Integration
+> Rule is **advisory-only** — HydroScan surfaces advisory signals and never mutates a
+> score (Score-Protection isolation stays permanent). §32 / §33 / §34 / §29-OCR are
+> **post-launch** (deferred, not defects); built-but-dark HydroScan 2.0 stays behind its
+> flags, gated by CR-1. Full record:
+> `governance/decisions/DR-001-hydroscan-integration-and-launch-scope.md`.
 
 ## Sections 47–52 — Engagement, Sharing & Transparency
 
