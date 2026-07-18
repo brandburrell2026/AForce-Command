@@ -146,6 +146,7 @@ export const baseFlags: FeatureFlags = {
   spec_uiFreeze: true,
   spec_commandConfidenceDisplay: false,
   spec_profileStrengthSection: false,
+  spec_confidenceDetailSheet: false,
   spec_recovery: false,
   spec_demand_engine: false,
   spec_section20_calibration: false,

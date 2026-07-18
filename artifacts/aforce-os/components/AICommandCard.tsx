@@ -8,7 +8,7 @@
  */
 
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { Icon, type IconName } from './Icon';
 import { CommandConfidenceBadge } from './CommandConfidenceBadge';
 import type { Command, PerformanceState } from '../types';
@@ -32,6 +32,12 @@ interface Props {
    * into a single visual block.
    */
   embedded?: boolean;
+  /**
+   * Show-10 slice ①: when provided, the Command Confidence badge becomes
+   * tappable and calls this to open the DATA BEHIND THIS sheet. Absent on every
+   * other surface that renders this card, so the badge stays a static view there.
+   */
+  onConfidencePress?: () => void;
 }
 
 const URGENCY_ICONS: Record<string, IconName> = {
@@ -48,10 +54,13 @@ const URGENCY_LABELS: Record<string, string> = {
   critical: 'CRITICAL',
 };
 
-export function AICommandCard({ command, performanceState, accentOverride, embedded = false }: Props) {
+export function AICommandCard({ command, performanceState, accentOverride, embedded = false, onConfidencePress }: Props) {
   const color = accentOverride ?? performanceState.color;
   const icon = URGENCY_ICONS[command.urgencyLevel] ?? 'zap';
   const label = URGENCY_LABELS[command.urgencyLevel] ?? 'ACT NOW';
+  // Tappable only when a handler is wired AND there's a confidence read to
+  // explain — no empty sheet, no dead tap target.
+  const confidenceTappable = !!onConfidencePress && !!command.confidence;
 
   return (
     <View
@@ -63,7 +72,18 @@ export function AICommandCard({ command, performanceState, accentOverride, embed
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <Text style={styles.sectionLabel}>AFORCE COMMAND</Text>
-          <CommandConfidenceBadge level={command.confidence} />
+          {confidenceTappable ? (
+            <Pressable
+              onPress={onConfidencePress}
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityHint="Shows the data behind this recommendation"
+            >
+              <CommandConfidenceBadge level={command.confidence} />
+            </Pressable>
+          ) : (
+            <CommandConfidenceBadge level={command.confidence} />
+          )}
         </View>
         <View style={styles.headerRight}>
           <View style={[styles.urgencyBadge, { backgroundColor: `${color}1A`, borderColor: `${color}55` }]}>

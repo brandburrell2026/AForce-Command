@@ -115,6 +115,10 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   // presentational, OFF by default. Show-10.
   spec_profileStrengthSection: false,
 
+  // Show-10 slice ① — DATA BEHIND THIS tap-through sheet on Today's Command
+  // (§53/§54/§58 rows, no §56). Additive, presentational, OFF by default. Show-10.
+  spec_confidenceDetailSheet: false,
+
   // Recovery Layer — hidden engine. Phase 1 build, no visible surfaces.
   // Stays OFF in DEFAULT_FLAGS so the production binary cannot expose
   // it ahead of internal-preview readiness (Phase 2 in the spec).
@@ -308,6 +312,7 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
   spec_uiFreeze: true,
   spec_commandConfidenceDisplay: true,
   spec_profileStrengthSection: true,
+  spec_confidenceDetailSheet: true,
   // Demo profile lights the hidden Recovery engine so internal viewers
   // can inspect outputs via dev tools even before any visible surface
   // consumes them.

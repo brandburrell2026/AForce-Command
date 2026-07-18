@@ -641,6 +641,14 @@ export interface FeatureFlags {
    */
   spec_profileStrengthSection: boolean;
   /**
+   * Show-10 slice ① — the tap-through DATA BEHIND THIS bottom sheet. Makes
+   * Today's Command's confidence badge tappable; the sheet lists the per-signal
+   * §54 quality ⊓ §53 freshness chips behind the read (§53/§54/§58 content only —
+   * NO §56 personalization rows, which are CR-1-gated). Additive, presentational,
+   * copy-independent; OFF by default ("Build 100% · Show 10%").
+   */
+  spec_confidenceDetailSheet: boolean;
+  /**
    * Recovery Layer (post-v18 architecture update) — hidden engine that
    * feeds existing surfaces (Orb, Coach, Timeline, HydroJournal,
    * Social, Guardian, Clutch). Phase 1 ships the engine only with no
