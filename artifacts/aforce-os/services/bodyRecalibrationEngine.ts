@@ -30,6 +30,7 @@ import {
   HYDRATION_TARGET_CEILING_OZ,
   SODIUM_BASE_MG,
   SODIUM_MG_PER_WORKOUT_MIN_BY_SWEAT,
+  SODIUM_CEILING_MG,
   RECOVERY_WINDOW_MIN_BY_TRAINING,
   GOAL_RECOVERY_WINDOW_MODIFIER_MIN,
   RECHECK_INTERVAL_BASE_MIN,
@@ -107,7 +108,9 @@ function electrolyteSodiumMg(i: RecalibrationInputs): number {
     mg += SODIUM_MG_PER_WORKOUT_MIN_BY_SWEAT[i.sweatClassification] *
       i.typicalWorkoutDurationMin;
   }
-  return round(mg);
+  // Hard ceiling (BLOCK 1): a standalone four-digit sodium figure reads as
+  // dietary guidance; cap the surfaced number in a defensible athlete band.
+  return Math.min(SODIUM_CEILING_MG, round(mg));
 }
 
 function recoveryWindowMin(i: RecalibrationInputs): number | null {

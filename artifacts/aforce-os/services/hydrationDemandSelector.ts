@@ -23,11 +23,23 @@ import {
   type HydrationDemandInputs,
   type HydrationDemandOutputs,
 } from './hydrationDemandEngine';
+import {
+  recalibrateTargets,
+  recalibrationInputsFromIdentity,
+  type RecalibrationTargets,
+} from './bodyRecalibrationEngine';
 
 export interface HydrationDemandSnapshot {
   inputs: HydrationDemandInputs;
   outputs: HydrationDemandOutputs;
   trace: AdapterTrace;
+  /**
+   * §56/§20 — the Body Recalibration targets (Training / Sweat / Goal-
+   * personalized), or `null` when `spec_section20_calibration` is OFF. Additive:
+   * it never alters `outputs`; a surface opts in by reading it. Build 100 / Show 0
+   * until performance-scientist coefficient sign-off flips the flag.
+   */
+  recalibration: RecalibrationTargets | null;
 }
 
 /**
@@ -65,5 +77,13 @@ export function selectHydrationDemandSnapshot(
     effectiveOverrides,
   );
   const outputs = computeHydrationDemand(inputs);
-  return { inputs, outputs, trace };
+
+  // §56/§20: carry the recalibration targets when the flag is ON. Additive and
+  // gated — `outputs` above are untouched, so the snapshot is byte-identical to
+  // its pre-§20 shape (minus the always-present `recalibration: null`) when OFF.
+  const recalibration = isFlagEnabled(flags, 'spec_section20_calibration')
+    ? recalibrateTargets(recalibrationInputsFromIdentity(state.profileIdentity))
+    : null;
+
+  return { inputs, outputs, trace, recalibration };
 }

@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { selectHydrationDemandSnapshot } from '../hydrationDemandSelector';
 import { makeState, baseFlags } from '../../store/__tests__/_fixtures';
+import { DEFAULT_PROFILE_IDENTITY } from '../../utils/profileIdentity';
 import type { ProviderBiometrics, FeatureFlags } from '../../types';
 
 const flagsOn: FeatureFlags = { ...baseFlags, spec_demand_engine: true };
@@ -54,6 +55,43 @@ describe('selectHydrationDemandSnapshot', () => {
     const a = selectHydrationDemandSnapshot(state, flagsOn);
     const b = selectHydrationDemandSnapshot(state, flagsOn);
     expect(a).toEqual(b);
+  });
+
+  describe('§56/§20 recalibration is gated by spec_section20_calibration', () => {
+    const s20On: FeatureFlags = { ...flagsOn, spec_section20_calibration: true };
+
+    it('recalibration is null when the §20 flag is OFF', () => {
+      const snap = selectHydrationDemandSnapshot(makeState(), flagsOn);
+      expect(snap!.recalibration).toBeNull();
+    });
+
+    it('carries the §20 targets when ON, WITHOUT altering the demand outputs (additive)', () => {
+      const state = makeState();
+      const off = selectHydrationDemandSnapshot(state, flagsOn);
+      const on = selectHydrationDemandSnapshot(state, s20On);
+      expect(on!.recalibration).not.toBeNull();
+      // sodium stays inside the signed-off band (base..ceiling)
+      expect(on!.recalibration!.electrolyteSodiumMg).toBeGreaterThanOrEqual(500);
+      expect(on!.recalibration!.electrolyteSodiumMg).toBeLessThanOrEqual(3500);
+      // the demand target is byte-identical regardless of the §20 flag
+      expect(on!.outputs).toEqual(off!.outputs);
+    });
+
+    it('additive property holds even when a recalibration target is NON-null (qa M5)', () => {
+      // makeState()'s default profile has bodyWeightLbs null → dailyHydrationTargetOz
+      // null, so a feedback leak gated on "only when computable" wouldn't fire.
+      // Force a computable target and re-assert byte-identity of outputs.
+      const state = makeState({ profileIdentity: { ...DEFAULT_PROFILE_IDENTITY, bodyWeightLbs: 180 } });
+      const off = selectHydrationDemandSnapshot(state, flagsOn);
+      const on = selectHydrationDemandSnapshot(state, s20On);
+      expect(on!.recalibration!.dailyHydrationTargetOz).not.toBeNull(); // probe is live
+      expect(on!.outputs).toEqual(off!.outputs); // outputs unaffected even so
+    });
+
+    it('does not leak: spec_demand_engine OFF returns null even with §20 flag ON', () => {
+      const demandOff: FeatureFlags = { ...baseFlags, spec_section20_calibration: true };
+      expect(selectHydrationDemandSnapshot(makeState(), demandOff)).toBeNull();
+    });
   });
 
   describe('environmental adder is gated by location_intelligence_enabled', () => {

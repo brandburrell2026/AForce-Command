@@ -650,6 +650,14 @@ export interface FeatureFlags {
    */
   spec_demand_engine: boolean;
   /**
+   * §56/§20 — route the Body Recalibration Engine's §20 targets (Training /
+   * Sweat / Goal / Age-personalized hydration, electrolyte, recovery timing)
+   * into the Demand Engine snapshot. Build 100 / Show 0: the targets are
+   * computed and carried, NOT yet shown by any surface. Default OFF; the flip
+   * to live is gated on performance-scientist coefficient sign-off (CR-1).
+   */
+  spec_section20_calibration: boolean;
+  /**
    * HydroScan 2.0™ — profile-aware scan output (Hydration Impact +
    * Timing Guidance), the "Did you consume this?" prompt, the
    * never-dead-end unknown-product flow, and the local HydroScan

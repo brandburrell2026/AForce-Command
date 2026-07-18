@@ -121,6 +121,11 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   // for internal inspection.
   spec_demand_engine: false,
 
+  // §56/§20 — route the §20 Body Recalibration targets into the Demand Engine
+  // snapshot. Build 100 / Show 0. Default OFF; the flip to live is gated on
+  // performance-scientist coefficient sign-off (sodium ceiling, under_18, copy).
+  spec_section20_calibration: false,
+
   // HydroScan 2.0™ — profile-aware scan surfaces (Impact + Timing +
   // consumption prompt + unknown-product flow + local history). Build
   // 100% · Show 10%: OFF in the production binary, ON in DEMO_ALL_ON.
@@ -303,6 +308,7 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
   // consumes them.
   spec_recovery: true,
   spec_demand_engine: true,
+  spec_section20_calibration: true,
   hydro_scan_2_enabled: true,
   location_intelligence_enabled: true,
   signal_hierarchy_enabled: true,
