@@ -303,8 +303,10 @@ export const FRESHNESS_WINDOWS: Record<FreshnessSignalKind, FreshnessWindows> = 
   weather: { freshUntilMs: 1 * FRESHNESS_HOUR_MS, staleAfterMs: 3 * FRESHNESS_HOUR_MS, expireAfterMs: 12 * FRESHNESS_HOUR_MS },
   // "Last night"; usable into a second day as the best proxy; never expired.
   sleep: { freshUntilMs: 12 * FRESHNESS_HOUR_MS, staleAfterMs: 36 * FRESHNESS_HOUR_MS },
-  // Optical point-in-time hydration state drifts over hours; >48h drop it.
-  hydration_verification: { freshUntilMs: 6 * FRESHNESS_HOUR_MS, staleAfterMs: 24 * FRESHNESS_HOUR_MS, expireAfterMs: 48 * FRESHNESS_HOUR_MS },
+  // Optical point-in-time hydration state — the most exertion-volatile signal,
+  // and the freshness layer is activity-blind, so it carries the tightest fresh
+  // window (PS sign-off: body-water turnover can span a hydration category by ~6h).
+  hydration_verification: { freshUntilMs: 4 * FRESHNESS_HOUR_MS, staleAfterMs: 24 * FRESHNESS_HOUR_MS, expireAfterMs: 48 * FRESHNESS_HOUR_MS },
   // The body model changes slowly; old → prompt refresh, never absent.
   profile: { freshUntilMs: 90 * FRESHNESS_DAY_MS, staleAfterMs: 180 * FRESHNESS_DAY_MS },
   // Optical calibration drifts over weeks; stale → recalibration nudge, not a block.

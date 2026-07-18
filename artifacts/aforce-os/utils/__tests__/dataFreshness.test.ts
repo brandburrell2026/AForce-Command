@@ -55,6 +55,14 @@ describe('Section 53 — assessFreshness age → rating', () => {
     expect(assessFreshness('weather', NOW + 5 * 3_600_000, NOW).rating).toBe('fresh');
   });
 
+  it('a future timestamp is fresh even when freshUntilMs is non-positive (pins the ageMs≤0 branch)', () => {
+    // Isolates the explicit clock-skew branch from freshUntilMs sign: with a
+    // non-positive window, ageMs(-8) is NOT ≤ freshUntilMs(-10), so only the
+    // ageMs≤0 branch keeps it fresh (else it would fall through to aging).
+    const negativeWindow = { freshUntilMs: -10, staleAfterMs: -5 };
+    expect(assessFreshness('weather', at(-8), NOW, negativeWindow).rating).toBe('fresh');
+  });
+
   it('non-finite now fails safe to undated/stale', () => {
     expect(assessFreshness('weather', at(0), Number.NaN as any).undated).toBe(true);
   });

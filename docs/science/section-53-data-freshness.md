@@ -1,6 +1,13 @@
 # §53 — Data Freshness™ (design ruling)
 
-**Ruling by:** ml-engineer · **Date:** 2026-07-17 · **Status:** implemented (headless layer) · **Windows: PENDING performance-scientist sign-off**
+**Ruling by:** ml-engineer · **Date:** 2026-07-17 · **Status:** implemented (headless layer) · **Windows: performance-scientist SIGNED OFF (1 change)**
+
+> **PS sign-off (2026-07-17):** Windows signed off with one change — `hydration_verification`
+> fresh-until tightened **6h → 4h**. Rationale: `fresh` = uncapped `excellent`; HydroScan is a
+> point-in-time optical reading and the most exertion-volatile signal, while the freshness layer is
+> activity-blind. Body-water turnover ~5–10%/day means a 6h window can span a full hydration-category
+> change (~1.25–2.5% body mass) while reading fully current; 4h keeps drift sub-category (~0.8–1.7%).
+> All other windows approved as conservative. No health claim in vocabulary or copy.
 
 Basis for how §53 grades recency. Code: `artifacts/aforce-os/utils/confidence/dataFreshness.ts`;
 windows in `config/hydroStateModel.ts`.
@@ -22,7 +29,7 @@ Vocabulary `fresh | aging | stale | expired`, a pure function of AGE:
 |---|---|---|---|---|
 | weather | 1h | 3h | 12h | heat/humidity shift within hours; >12h is noise → climate normal |
 | sleep | 12h | 36h | — | "last night"; usable into a 2nd day; never expired |
-| hydration_verification (HydroScan) | 6h | 24h | 48h | optical point-in-time drifts; >48h → logs carry |
+| hydration_verification (HydroScan) | 4h | 24h | 48h | optical point-in-time, most exertion-volatile; >48h → logs carry (PS: 4h) |
 | profile | 90d | 180d | — | body model changes slowly; old → refresh nudge, never absent |
 | camera_baseline | 30d | 90d | — | optical calibration drifts over weeks; stale → recalibration nudge |
 | wearable_sync | 6h | 24h | 72h | last biometric pull; >72h stream is dark → phone/manual fallback |
