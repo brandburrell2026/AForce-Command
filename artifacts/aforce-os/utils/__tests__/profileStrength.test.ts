@@ -21,7 +21,7 @@ describe('§55 — profileStrength', () => {
   it('an empty (default) profile is sparse → SPARSE chip, dimmed', () => {
     expect(profileStrength(DEFAULT_PROFILE_IDENTITY)).toEqual({
       level: 'sparse',
-      chip: { label: 'SPARSE', opacity: 0.45 },
+      chip: { label: 'SPARSE', opacity: 0.47 },
     });
   });
 

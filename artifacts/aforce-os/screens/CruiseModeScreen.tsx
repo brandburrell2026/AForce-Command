@@ -266,6 +266,18 @@ function CruiseModeBody() {
                 </Text>
               </View>
             </View>
+            {showConfidence ? (
+              <View style={{ flexDirection: "row", justifyContent: "flex-end", marginTop: 10 }}>
+                {/* Command Confidence anchors to the recommendation OUTPUT (this
+                    Guest Readiness card), not to an input-data card — so it can't
+                    be misread as confidence in the weather feed (founder ruling
+                    2026-07-18). Near-black pill keeps the monochrome ramp legible
+                    on the navy card (PR #285/#288). */}
+                <View style={styles.confidencePill}>
+                  <CommandConfidenceBadge level={commandConfidence} />
+                </View>
+              </View>
+            ) : null}
           </View>
 
           {/* ── Block 2 — Today's Flow ──────────────────────────────────
@@ -391,17 +403,6 @@ function CruiseModeBody() {
                 value={matchedLiveEnv ? `${matchedLiveEnv.windKts} kts` : "—"}
               />
             </View>
-            {showConfidence ? (
-              <View style={{ flexDirection: "row", justifyContent: "flex-end", marginTop: 10 }}>
-                {/* Near-black backing pill: the monochrome chip's contrast is
-                    tuned for ~#0A0A0F (PR #285); Cruise's navy card (#0E2B45) is
-                    lighter and drops the low tier below AA. The pill restores the
-                    tuned surface so every tier stays legible. */}
-                <View style={styles.confidencePill}>
-                  <CommandConfidenceBadge level={commandConfidence} />
-                </View>
-              </View>
-            ) : null}
             {journeyIntensity && (
               <View style={[styles.inlineBanner, { borderColor: CRUISE.aqua + "55", backgroundColor: CRUISE.aqua + "10" }]}>
                 <Icon name="activity" size={13} color={CRUISE.aqua} />

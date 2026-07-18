@@ -105,7 +105,7 @@ export function DataBehindThisSheet({ visible, onDismiss, confidence, signals }:
               <Text style={styles.rowLabel}>{row.label}</Text>
               {/* One composed chip per row (§54 quality capped by §53 freshness).
                   No `explain` yet — the row is the badge-alone final design. */}
-              <ConfidenceChip label={row.chip.label} opacity={row.chip.opacity} />
+              <ConfidenceChip label={row.chip.label} opacity={row.chip.opacity} a11yContext="signal quality" />
             </View>
           ))}
 

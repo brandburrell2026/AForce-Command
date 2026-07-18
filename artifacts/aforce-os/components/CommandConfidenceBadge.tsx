@@ -38,7 +38,15 @@ interface Props {
  */
 export function CommandConfidenceBadge({ level }: Props) {
   if (!level) return null;
+  // §58 labels already carry the noun for high/medium ("HIGH CONFIDENCE" /
+  // "GOOD CONFIDENCE"); only the low tier's label is bare ("BUILDING"). Supply the
+  // a11y noun there so screen readers hear "BUILDING confidence" — without doubling
+  // "confidence" on the tiers whose visible label already says it.
   return (
-    <ConfidenceChip label={i18n.t(CONFIDENCE_LABEL_KEYS[level])} opacity={CONFIDENCE_OPACITY[level]} />
+    <ConfidenceChip
+      label={i18n.t(CONFIDENCE_LABEL_KEYS[level])}
+      opacity={CONFIDENCE_OPACITY[level]}
+      a11yContext={level === 'low' ? 'confidence' : undefined}
+    />
   );
 }

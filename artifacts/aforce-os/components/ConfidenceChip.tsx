@@ -29,12 +29,23 @@ interface Props {
   opacity: number;
   /** Optional explanatory line (CR-1-pending copy). Absent = a valid finished state. */
   explain?: string;
+  /**
+   * a11y-ONLY noun appended to the spoken label, never rendered visually. The
+   * rating tokens are bare words ('SPARSE', 'LIMITED', 'BUILDING') — spoken alone
+   * to a screen-reader user who can't see the dot, they lack the noun that gives
+   * them meaning. Pass the vocabulary's noun (e.g. 'confidence', 'profile
+   * completeness', 'signal quality') so it reads 'SPARSE profile completeness'.
+   * Structural, not a claim — ships regardless of CR-1.
+   */
+  a11yContext?: string;
 }
 
-export function ConfidenceChip({ label, opacity, explain }: Props) {
+export function ConfidenceChip({ label, opacity, explain, a11yContext }: Props) {
   // `accessible` collapses the chip to ONE a11y node (no double-read of the
   // label between the container and the <Text>). The composed a11y label folds
-  // in the explanatory line when present.
+  // in the a11y context noun and the explanatory line when present. The VISIBLE
+  // label is always just `label` — a11yContext is spoken-only.
+  const spokenLabel = a11yContext ? `${label} ${a11yContext}` : label;
 
   // Badge-alone (the default, no `explain`): the chip IS the row — a single node,
   // no wrapper box. This keeps it structurally identical to CommandConfidenceBadge
@@ -43,7 +54,7 @@ export function ConfidenceChip({ label, opacity, explain }: Props) {
   // to column/stretch and could shift siblings; there is deliberately none here.
   if (!explain) {
     return (
-      <View style={styles.row} accessible accessibilityLabel={label}>
+      <View style={styles.row} accessible accessibilityLabel={spokenLabel}>
         <View style={[styles.dot, { opacity }]} />
         <Text style={[styles.label, { opacity }]}>{label}</Text>
       </View>
@@ -52,7 +63,7 @@ export function ConfidenceChip({ label, opacity, explain }: Props) {
 
   // With copy: stack the row + explanatory line inside one accessible container.
   return (
-    <View accessible accessibilityLabel={`${label}. ${explain}`}>
+    <View accessible accessibilityLabel={`${spokenLabel}. ${explain}`}>
       <View style={styles.row}>
         <View style={[styles.dot, { opacity }]} />
         <Text style={[styles.label, { opacity }]}>{label}</Text>

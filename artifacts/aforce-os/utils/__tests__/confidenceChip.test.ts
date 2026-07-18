@@ -24,7 +24,7 @@ describe('Show-10 — CHIP_OPACITY anchors to §58 (no parallel ramp)', () => {
   it('reuses Command Confidence opacities for full/strong/weak', () => {
     expect(CHIP_OPACITY.full).toBe(CONFIDENCE_OPACITY.high);     // 1
     expect(CHIP_OPACITY.strong).toBe(CONFIDENCE_OPACITY.medium); // 0.7
-    expect(CHIP_OPACITY.weak).toBe(CONFIDENCE_OPACITY.low);      // 0.45
+    expect(CHIP_OPACITY.weak).toBe(CONFIDENCE_OPACITY.low);      // 0.47
   });
 
   it('the composed §54+§53 signal chip uses its own 4-step ramp (spec §3), descending', () => {
@@ -53,7 +53,7 @@ describe('Show-10 — completeness chip (§55)', () => {
   it('maps every level to the right token + opacity', () => {
     expect(completenessChip('rich')).toEqual({ label: 'RICH', opacity: 1 });
     expect(completenessChip('partial')).toEqual({ label: 'PARTIAL', opacity: 0.7 });
-    expect(completenessChip('sparse')).toEqual({ label: 'SPARSE', opacity: 0.45 });
+    expect(completenessChip('sparse')).toEqual({ label: 'SPARSE', opacity: 0.47 });
   });
 });
 
