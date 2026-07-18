@@ -147,6 +147,7 @@ export const baseFlags: FeatureFlags = {
   spec_commandConfidenceDisplay: false,
   spec_recovery: false,
   spec_demand_engine: false,
+  spec_section20_calibration: false,
   hydro_scan_2_enabled: false,
   location_intelligence_enabled: false,
   signal_hierarchy_enabled: false,

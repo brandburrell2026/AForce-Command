@@ -177,6 +177,15 @@ export const SODIUM_MG_PER_WORKOUT_MIN_BY_SWEAT: Record<SweatClassification, num
   heavy: 10,
   very_heavy: 14,
 };
+/**
+ * Hard ceiling on the surfaced daily electrolyte figure (mg). The per-minute
+ * rate × a long very-heavy session runs open-ended (~5,540 mg at the 360-min
+ * input cap); a standalone four-digit sodium number reads as dietary guidance.
+ * 3,500 mg covers heavy-sweat sessions up to ~210 min and keeps the surfaced
+ * value in a defensible athlete band. Defense-in-depth last line; performance-
+ * scientist sign-off condition (BLOCK 1) for §20 going live.
+ */
+export const SODIUM_CEILING_MG = 3500;
 
 /* (3) Recovery timing — post-session rehydration window (min), by training
  *     level, with a goal modifier. */

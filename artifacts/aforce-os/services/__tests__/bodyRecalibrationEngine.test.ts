@@ -22,6 +22,7 @@ import {
   HYDRATION_TARGET_CEILING_OZ,
   SODIUM_BASE_MG,
   SODIUM_MG_PER_WORKOUT_MIN_BY_SWEAT,
+  SODIUM_CEILING_MG,
   RECOVERY_WINDOW_MIN_BY_TRAINING,
   GOAL_RECOVERY_WINDOW_MODIFIER_MIN,
   RECHECK_INTERVAL_BASE_MIN,
@@ -176,5 +177,25 @@ describe('purity + identity extraction', () => {
       primaryGoal: 'Strength & Muscle',
       typicalWorkoutDurationMin: 75,
     });
+  });
+
+  it('clamps the surfaced sodium figure to SODIUM_CEILING_MG (BLOCK 1)', () => {
+    // 500 base + 14 mg/min × 360 min (upstream input cap) = 5540 → clamped.
+    const t = recalibrateTargets(inputs({
+      bodyWeightLbs: 200, trainingLevel: 'Elite',
+      sweatClassification: 'very_heavy', primaryGoal: 'Endurance',
+      typicalWorkoutDurationMin: 360,
+    }));
+    expect(t.electrolyteSodiumMg).toBe(SODIUM_CEILING_MG);
+  });
+
+  it('leaves a normal sodium figure unclamped', () => {
+    const t = recalibrateTargets(inputs({
+      sweatClassification: 'moderate', typicalWorkoutDurationMin: 60,
+    }));
+    expect(t.electrolyteSodiumMg).toBe(
+      SODIUM_BASE_MG + SODIUM_MG_PER_WORKOUT_MIN_BY_SWEAT.moderate * 60,
+    );
+    expect(t.electrolyteSodiumMg).toBeLessThan(SODIUM_CEILING_MG);
   });
 });

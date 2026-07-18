@@ -56,6 +56,32 @@ describe('selectHydrationDemandSnapshot', () => {
     expect(a).toEqual(b);
   });
 
+  describe('§56/§20 recalibration is gated by spec_section20_calibration', () => {
+    const s20On: FeatureFlags = { ...flagsOn, spec_section20_calibration: true };
+
+    it('recalibration is null when the §20 flag is OFF', () => {
+      const snap = selectHydrationDemandSnapshot(makeState(), flagsOn);
+      expect(snap!.recalibration).toBeNull();
+    });
+
+    it('carries the §20 targets when ON, WITHOUT altering the demand outputs (additive)', () => {
+      const state = makeState();
+      const off = selectHydrationDemandSnapshot(state, flagsOn);
+      const on = selectHydrationDemandSnapshot(state, s20On);
+      expect(on!.recalibration).not.toBeNull();
+      // sodium stays inside the signed-off band (base..ceiling)
+      expect(on!.recalibration!.electrolyteSodiumMg).toBeGreaterThanOrEqual(500);
+      expect(on!.recalibration!.electrolyteSodiumMg).toBeLessThanOrEqual(3500);
+      // the demand target is byte-identical regardless of the §20 flag
+      expect(on!.outputs).toEqual(off!.outputs);
+    });
+
+    it('does not leak: spec_demand_engine OFF returns null even with §20 flag ON', () => {
+      const demandOff: FeatureFlags = { ...baseFlags, spec_section20_calibration: true };
+      expect(selectHydrationDemandSnapshot(makeState(), demandOff)).toBeNull();
+    });
+  });
+
   describe('environmental adder is gated by location_intelligence_enabled', () => {
     const locOn: FeatureFlags = {
       ...flagsOn,
