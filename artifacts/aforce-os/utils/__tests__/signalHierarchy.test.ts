@@ -29,9 +29,12 @@ describe('signalHierarchy — priority tables match the spec verbatim', () => {
     expect(SLEEP_PRIORITY).not.toContain('oura' as unknown as string);
   });
 
-  it('heart-rate ladder is Phantom→AppleWatch→SamsungWatch→Garmin→Google→Manual', () => {
+  it('heart-rate ladder is Phantom→WHOOP→AppleWatch→SamsungWatch→Garmin→Google→Manual', () => {
+    // WHOOP sits at #2 (mirroring the sleep ladder) — a dedicated continuous-HR
+    // recovery device, trusted for HR as it is for sleep.
     expect([...HEART_RATE_PRIORITY]).toEqual([
       'phantom',
+      'whoop',
       'apple_watch',
       'samsung_watch',
       'garmin',
@@ -77,6 +80,18 @@ describe('resolveSignal — deterministic priority, never freshness', () => {
     expect(res?.source).toBe('whoop');
     expect(res?.value).toBe(8);
     expect(res?.rank).toBe(2); // whoop is rung #2 in the sleep ladder
+  });
+
+  it('resolves WHOOP heart-rate at rung #2, above the watches (task_c37a3c68)', () => {
+    // WHOOP-only HR now resolves (previously produced no candidate → no HR row).
+    const candidates: SignalCandidate<number>[] = [
+      { source: 'whoop', value: 58, fetchedAt: 1 },
+      { source: 'garmin', value: 61, fetchedAt: 999 }, // fresher, lower priority
+    ];
+    const res = resolveSignal('heart_rate', candidates);
+    expect(res?.source).toBe('whoop');
+    expect(res?.value).toBe(58);
+    expect(res?.rank).toBe(2); // phantom is #1, whoop #2
   });
 
   it('falls back down the ladder when higher-priority sources have no value', () => {
