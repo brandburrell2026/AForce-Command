@@ -90,9 +90,17 @@ export const SLEEP_PRIORITY: readonly SignalSourceId[] = [
   'manual',
 ] as const;
 
-/** Heart-rate ladder. Apple/Samsung WATCH streams sit above Garmin. */
+/**
+ * Heart-rate ladder. WHOOP sits at #2 (after Phantom, above the watches),
+ * mirroring its rank on the sleep ladder — it's a dedicated continuous-HR
+ * recovery device, trusted for HR as it is for sleep. Apple/Samsung WATCH
+ * streams then sit above Garmin. All of these grade as `wearable` tier in
+ * SOURCE_TIER, so this order only tie-breaks which source wins when a user has
+ * more than one; it does not change the §54 quality rating.
+ */
 export const HEART_RATE_PRIORITY: readonly SignalSourceId[] = [
   'phantom',
+  'whoop',
   'apple_watch',
   'samsung_watch',
   'garmin',

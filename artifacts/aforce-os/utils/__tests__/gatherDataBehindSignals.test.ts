@@ -50,6 +50,16 @@ describe('gatherDataBehindSignals', () => {
     expect(byLabel.Activity.freshness).toEqual({ kind: 'wearable_sync', capturedAt: NOW - HOUR });
   });
 
+  it('a WHOOP-only user now gets a Heart Rate row (task_c37a3c68 — WHOOP joined the HR ladder)', () => {
+    // Before WHOOP was added to HEART_RATE_PRIORITY this resolved to nothing.
+    const bio: ProviderBiometrics = {
+      whoop: { providerId: 'whoop', restingHeartRate: 54, fetchedAt: NOW },
+    };
+    const byLabel = Object.fromEntries(gatherDataBehindSignals(bio).map((s) => [s.label, s]));
+    expect(byLabel['Heart Rate']).toBeDefined();
+    expect(byLabel['Heart Rate'].quality).toEqual({ kind: 'heart_rate', source: 'whoop' });
+  });
+
   it('omits a family whose ladder has no candidate — never a fabricated row', () => {
     // oura is NOT a ladder source (Oura enters via Apple Health upstream), so an
     // Oura-only sleep reading resolves to nothing → no Sleep row.
