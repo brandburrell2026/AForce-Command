@@ -5,10 +5,11 @@
  * status-color band or urgency palette. One grammar across §53/§54/§55/§58.
  *
  * This generalizes §58's `CommandConfidenceBadge` (identical dot+label styling);
- * that badge should migrate to render THROUGH this primitive so there is one
- * chip, not two — deferred as its own follow-up because the badge feeds three
- * live surfaces (Today's Command, HydroScan Fit, Social) and that de-dup wants a
- * visual pass, not a blind refactor. Tracked separately.
+ * that badge now renders THROUGH this primitive, so there is one chip, not two.
+ * The badge stays the §58-specific adapter (it owns the level→label/opacity
+ * mapping) and delegates the actual dot+label render here. The badge-alone path
+ * below is deliberately a single row node so the migration is visually a no-op at
+ * the badge's live call sites (HydroScan Fit, Social, Cruise).
  *
  * Copy-independence (docs/design/show10-confidence-surface.md): `label` (a
  * structural caps token) + `opacity` are the whole chip. `explain` is OPTIONAL,
@@ -31,16 +32,32 @@ interface Props {
 }
 
 export function ConfidenceChip({ label, opacity, explain }: Props) {
+  // `accessible` collapses the chip to ONE a11y node (no double-read of the
+  // label between the container and the <Text>). The composed a11y label folds
+  // in the explanatory line when present.
+
+  // Badge-alone (the default, no `explain`): the chip IS the row — a single node,
+  // no wrapper box. This keeps it structurally identical to CommandConfidenceBadge
+  // (the §58 primitive this generalizes, which renders THROUGH this) so migrating
+  // the badge adds zero layout at its live call sites. A wrapper View would default
+  // to column/stretch and could shift siblings; there is deliberately none here.
+  if (!explain) {
+    return (
+      <View style={styles.row} accessible accessibilityLabel={label}>
+        <View style={[styles.dot, { opacity }]} />
+        <Text style={[styles.label, { opacity }]}>{label}</Text>
+      </View>
+    );
+  }
+
+  // With copy: stack the row + explanatory line inside one accessible container.
   return (
-    // `accessible` collapses the chip to ONE a11y node (no double-read of the
-    // label between the container and the <Text>), and the composed label folds
-    // in the explanatory line when present.
-    <View accessible accessibilityLabel={explain ? `${label}. ${explain}` : label}>
+    <View accessible accessibilityLabel={`${label}. ${explain}`}>
       <View style={styles.row}>
         <View style={[styles.dot, { opacity }]} />
         <Text style={[styles.label, { opacity }]}>{label}</Text>
       </View>
-      {explain ? <Text style={styles.explain}>{explain}</Text> : null}
+      <Text style={styles.explain}>{explain}</Text>
     </View>
   );
 }
