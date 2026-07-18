@@ -798,7 +798,7 @@ export default function ProfileScreen() {
                       <Icon name="user" size={16} color={Colors.text.secondary} />
                       <Text style={styles.settingLabel}>Profile Completeness</Text>
                     </View>
-                    <ConfidenceChip {...profileStrength(profileIdentity).chip} />
+                    <ConfidenceChip {...profileStrength(profileIdentity).chip} a11yContext="profile completeness" />
                   </View>
                 </View>
               </>

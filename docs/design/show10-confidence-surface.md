@@ -219,8 +219,10 @@ freshnessChip(rating)     // §53  → { label: 'FRESH'|…, opacity }
 the chip itself stays presentational.**
 
 Visual anatomy (unchanged from the shipped badge): a 5×5px circle + an 9px IBM Plex Mono / Inter SemiBold caps
-label at `letterSpacing: 1.2`, both driven by one opacity value, in `Colors.text.secondary` (`rgba(255,255,255,0.55)`
-white) as the base — never a hue.
+label at `letterSpacing: 1.2`, both driven by one opacity value, over a **solid `Colors.text.primary` (`#FFFFFF`)
+base** — never a hue. (As of PR #285 the base is solid white, not the earlier `text.secondary` at `rgba(255,255,255,0.55)`:
+applying the ramp opacity over an already-translucent base compounded the alpha and dropped the low tiers below AA once
+the DATA BEHIND THIS sheet rendered a full list of them. Solid base → the ramp applies directly.)
 
 **Design Decision 1 — confidence is monochrome, always.** No chip in this layer ever borrows Signal Red, Soursop
 Green, Berry Blue, or the amber/orange status hues. Those four colors are entirely reserved for

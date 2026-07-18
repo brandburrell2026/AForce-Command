@@ -25,6 +25,11 @@ export const CONFIDENCE_LABEL_KEYS: Record<CommandConfidenceLevel, string> = {
  */
 export const CONFIDENCE_OPACITY: Record<CommandConfidenceLevel, number> = {
   high: 1,
+  // low raised 0.45 → 0.47 (founder ruling 2026-07-18): on a solid-white base
+  // (ConfidenceChip, PR #285) over the tuned card #0A0A0F, 0.45 = 4.49:1 (borderline
+  // AA for 9px text); 0.47 = 4.82:1, clearing AA with margin. Also lifts §55's
+  // SPARSE (CHIP_OPACITY.weak reads this). SIGNAL_OPACITY's 0.30 floor is left as
+  // the intentional "absent data" tier (= text.muted convention), unchanged.
   medium: 0.7,
-  low: 0.45,
+  low: 0.47,
 };
