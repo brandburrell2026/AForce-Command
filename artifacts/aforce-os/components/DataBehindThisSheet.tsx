@@ -46,15 +46,21 @@ export function DataBehindThisSheet({ visible, onDismiss, confidence, signals }:
   const translateY = useSharedValue(60);
   // Capture `now` ONCE per open so freshness is evaluated at open-time and stays
   // stable while the sheet is up (re-evaluating every render would flicker chips).
+  // MUST capture at the visible edge DURING render — the model is built below in
+  // this same render, before any effect fires. Capturing in the effect would leave
+  // now = 0 on the first visible frame, and assessFreshness reads ageMs <= 0 as
+  // `fresh`, so every signal would falsely read fresh and the §53 ceiling would
+  // never cap. Reset to 0 on hide so the next open re-captures.
   const nowRef = useRef(0);
+  if (visible && nowRef.current === 0) nowRef.current = Date.now();
 
   useEffect(() => {
     if (visible) {
-      nowRef.current = Date.now();
       if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
       opacity.value = withTiming(1, { duration: 220, easing: Easing.out(Easing.quad) });
       translateY.value = withSpring(0, { damping: 18, stiffness: 220 });
     } else {
+      nowRef.current = 0;
       opacity.value = withTiming(0, { duration: 180 });
       translateY.value = withTiming(60, { duration: 180 });
     }
