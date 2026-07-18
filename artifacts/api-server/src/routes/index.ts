@@ -37,9 +37,21 @@ import {
   runGarminFetchOnce,
 } from "../lib/garminFetchWorker";
 import { getGarminRefreshRegistry } from "../lib/garminRegistry";
+import { buildOuraOAuthRouter } from "./ouraOAuth";
+import {
+  createInMemoryOuraAuthStateStore,
+  createDrizzleOuraAuthStateStore,
+  type OuraAuthStateStore,
+} from "../lib/ouraAuthStateStore";
+import {
+  buildDefaultOuraFetchDeps,
+  runOuraFetchOnce,
+} from "../lib/ouraFetchWorker";
+import { getOuraRefreshRegistry } from "../lib/ouraRegistry";
 import {
   createDrizzleWhoopTokenStoreForUser,
   createDrizzleGarminTokenStoreForUser,
+  createDrizzleOuraTokenStoreForUser,
   db,
 } from "@workspace/db";
 import { getWhoopRefreshRegistry } from "../lib/whoopRegistry";
@@ -158,6 +170,49 @@ if (garminClientId && garminClientSecret && garminRedirectUri) {
           refreshRegistry: getGarminRefreshRegistry(),
         });
         const outcome = await runGarminFetchOnce(userId, deps);
+        return { status: outcome.status, fetchedAt: outcome.fetchedAt };
+      },
+    }),
+  );
+}
+
+// Hidden-infra mount: the Oura OAuth routes only exist when all three
+// env vars are set. With nothing configured (the default), the router is
+// not mounted and `/api/oura/*` 404s — there is no half-configured or
+// fake-"live" surface that can leak. Mirrors the WHOOP/Garmin gates above.
+const ouraClientId = process.env["OURA_CLIENT_ID"];
+const ouraClientSecret = process.env["OURA_CLIENT_SECRET"];
+const ouraRedirectUri = process.env["OURA_OAUTH_REDIRECT_URI"];
+if (ouraClientId && ouraClientSecret && ouraRedirectUri) {
+  const ouraDriverRaw = process.env["OURA_AUTH_STATE_STORE_DRIVER"];
+  const useDrizzleOuraAuthState = ouraDriverRaw === "drizzle";
+  const ouraAuthStateStore: OuraAuthStateStore = useDrizzleOuraAuthState
+    ? createDrizzleOuraAuthStateStore(db)
+    : createInMemoryOuraAuthStateStore();
+  logger.info(
+    { driver: useDrizzleOuraAuthState ? "drizzle" : "memory" },
+    "ouraOAuth: auth-state store initialized",
+  );
+  router.use(
+    buildOuraOAuthRouter({
+      authStateStore: ouraAuthStateStore,
+      oauthConfig: {
+        clientId: ouraClientId,
+        clientSecret: ouraClientSecret,
+      },
+      redirectUri: ouraRedirectUri,
+      tokenStoreFor: (userId) =>
+        createDrizzleOuraTokenStoreForUser(db, userId, {
+          encryptionKey: process.env["OURA_TOKEN_ENCRYPTION_KEY"] ?? null,
+          log: logger,
+        }),
+      successRedirectUrl: process.env["OURA_OAUTH_SUCCESS_URL"],
+      runSyncForUser: async (userId) => {
+        const deps = buildDefaultOuraFetchDeps(db, userId, {
+          log: logger,
+          refreshRegistry: getOuraRefreshRegistry(),
+        });
+        const outcome = await runOuraFetchOnce(userId, deps);
         return { status: outcome.status, fetchedAt: outcome.fetchedAt };
       },
     }),
