@@ -810,6 +810,30 @@ export interface FeatureFlags {
   // Score-Protection: biometrics feed Readiness only, never the Score.
   healthkit_native_enabled: boolean;
 
+  // ─── Health-platform integrations (per-provider enable gates) ───
+  // One master gate per provider on the HEALTH PLATFORMS screen. A provider
+  // only offers a real, actionable Connect when its gate is ON **and** the
+  // integration is actually available (creds/health-check for OAuth, native
+  // module for device providers, external approval where required) — see
+  // utils/health/healthProviderStatus.ts. OFF by default in the production
+  // binary until each provider's credentials/approval land; when OFF (or not
+  // yet available) the screen shows an honest non-interactive status
+  // (Coming Soon / Approval Pending / Unsupported), never a fake "connected".
+  // Score-Protection: these gate DISPLAY + connection only; real biometrics
+  // still flow solely through setProviderBiometrics + the existing clamps.
+  health_apple_enabled: boolean;
+  health_google_connect_enabled: boolean;
+  health_whoop_enabled: boolean;
+  health_oura_enabled: boolean;
+  health_strava_enabled: boolean;
+  health_garmin_enabled: boolean;
+  health_samsung_direct_enabled: boolean;
+  // Labeled DEMO data for the health screen (investor/DEMO_ALL_ON builds only).
+  // When ON, providers render a clearly-labeled "DEMO DATA — not from your
+  // account, does not affect your score" snapshot. NEVER surfaces as a real
+  // connection and NEVER reaches the score (Score-Protection).
+  health_demo_data_enabled: boolean;
+
   // Native Liquid Glass tabs gate. Controls whether iOS 26 uses the native
   // tab bar (expo-router/unstable-native-tabs -> RNScreens RNSTabBarController)
   // instead of the JS ClassicTabLayout. OFF everywhere: the native tab
