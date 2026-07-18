@@ -185,20 +185,28 @@ owed later — this is the payoff of building one reusable primitive now.
 
 ### Component: `ConfidenceChip`
 
-Generalizes `CommandConfidenceBadge` (currently: dot + label, opacity-only). Same shape, three inputs instead of
-one hardcoded vocabulary:
+Generalizes `CommandConfidenceBadge` (dot + label, opacity-only). **As shipped (PR #273), the factoring is a pure
+model + a dumb view** — mirroring the existing §58 split (`commandConfidenceDisplay.ts` holds the table, the badge
+just reads it), not a vocabulary-switching component:
 
 ```
+// pure — utils/confidence/confidenceChip.ts: vocabulary → { label, opacity }
+completenessChip(level)   // §55  → { label: 'RICH'|'PARTIAL'|'SPARSE', opacity }
+signalQualityChip(rating) // §54  → { label: 'EXCELLENT'|…, opacity }
+freshnessChip(rating)     // §53  → { label: 'FRESH'|…, opacity }
+//   §58 keeps its own CONFIDENCE_LABEL_KEYS/CONFIDENCE_OPACITY; §56 is excluded (categories, CR-1-gated)
+
+// view — components/ConfidenceChip.tsx: the dumb chip
 <ConfidenceChip
-  vocabulary="commandConfidence" | "signalQuality" | "freshness" | "completeness" | "coverage"
-  value={...}            // the specific rating/status string for that vocabulary — REQUIRED, always renders
-  onPress?={...}         // opens the DATA BEHIND THIS sheet when provided
-  explain?={...}         // OPTIONAL plain-English line, CR-1-gated — see Design Decision 5
+  label={...}      // structural caps token — REQUIRED, always renders, ships pre-CR-1
+  opacity={...}    // REQUIRED, the monochrome ramp value
+  explain?={...}   // OPTIONAL plain-English line, CR-1-pending — see Design Decision 5
 />
 ```
 
-`explain` is the only prop this contract treats as provisional. Everything else — the dot, the opacity, the label —
-is locked design, not pending review. `value` alone is a complete, shippable chip.
+`explain` is the only provisional input. `label` + `opacity` alone are a complete, shippable chip. **Tap-through
+(`onPress` → the DATA BEHIND THIS sheet) is NOT part of the chip — it belongs to slice ① (the sheet), a later slice;
+the chip itself stays presentational.**
 
 Visual anatomy (unchanged from the shipped badge): a 5×5px circle + an 9px IBM Plex Mono / Inter SemiBold caps
 label at `letterSpacing: 1.2`, both driven by one opacity value, in `Colors.text.secondary` (`rgba(255,255,255,0.55)`
