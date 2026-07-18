@@ -31,6 +31,9 @@ import { GradientBackground } from '@/components/GradientBackground';
 import { ScanResultCard } from '@/components/ScanResultCard';
 import { ScanAICoachCard } from '@/components/ScanAICoachCard';
 import { ProductFitCard } from '@/components/ProductFitCard';
+import { DataBehindThisSheet } from '@/components/DataBehindThisSheet';
+import { gatherDataBehindSignals } from '@/utils/confidence/gatherDataBehindSignals';
+import { useCommandConfidence } from '@/hooks/useCommandConfidence';
 import { AForceReplacementCard } from '@/components/AForceReplacementCard';
 import { CameraScanModal } from '@/components/CameraScanModal';
 import { AddDrinkModal } from '@/components/AddDrinkModal';
@@ -92,6 +95,18 @@ export default function HydrationScanScreen() {
   // full name for evaluators who want to pick one explicitly.
   const [previewTab, setPreviewTab] = useState<'other' | 'aforce'>('aforce');
   const [aforcePickerOpen, setAforcePickerOpen] = useState(false);
+
+  // Show-10 slice ① on HydroScan Fit — the DATA BEHIND THIS tap-through. Gated
+  // by spec_confidenceDetailSheet; when on, ProductFitCard's Command Confidence
+  // badge becomes tappable and opens the sheet, seeded from the same command
+  // read (confidence) + the biometric signals behind it. NO §56 (CR-1-gated).
+  const detailSheetEnabled = state.featureFlags.spec_confidenceDetailSheet;
+  const commandConfidence = useCommandConfidence() ?? null;
+  const [dataBehindOpen, setDataBehindOpen] = useState(false);
+  const dataBehindSignals = useMemo(
+    () => (detailSheetEnabled ? gatherDataBehindSignals(state.userState.biometrics) : []),
+    [detailSheetEnabled, state.userState.biometrics],
+  );
 
   // Success flash overlay — fires after a successful log, fades a PEAK
   // tint over the screen, plays a Success haptic, and pops back to Home
@@ -854,7 +869,10 @@ export default function HydrationScanScreen() {
                 </Pressable>
               )}
 
-              <ProductFitCard result={result} />
+              <ProductFitCard
+                result={result}
+                onConfidencePress={detailSheetEnabled ? () => setDataBehindOpen(true) : undefined}
+              />
 
             </>
           )}
@@ -934,6 +952,13 @@ export default function HydrationScanScreen() {
       {/* Success flash overlay — pointerEvents='none' so it never blocks
           taps mid-fade. Tinted PEAK so a successful log feels rewarded. */}
       <Animated.View pointerEvents="none" style={[styles.flashOverlay, flashStyle]} />
+
+      <DataBehindThisSheet
+        visible={dataBehindOpen}
+        onDismiss={() => setDataBehindOpen(false)}
+        confidence={commandConfidence}
+        signals={dataBehindSignals}
+      />
 
       <CameraScanModal
         visible={cameraOpen}

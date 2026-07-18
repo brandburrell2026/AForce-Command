@@ -115,9 +115,12 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   // presentational, OFF by default. Show-10.
   spec_profileStrengthSection: false,
 
-  // Show-10 slice ① — DATA BEHIND THIS tap-through sheet on Today's Command
-  // (§53/§54/§58 rows, no §56). Additive, presentational, OFF by default. Show-10.
-  spec_confidenceDetailSheet: false,
+  // Show-10 — DATA BEHIND THIS tap-through sheet (§53/§54/§58 rows, no §56).
+  // LIVE on HydroScan Fit (founder release 2026-07-18): flipping this ON makes
+  // ProductFitCard's Command Confidence badge tappable → the sheet, WITHOUT
+  // touching the shared spec_commandConfidenceDisplay (so Social/Cruise stay
+  // dark). Today's Command's trigger is unmounted, so it's unaffected here.
+  spec_confidenceDetailSheet: true,
 
   // Recovery Layer — hidden engine. Phase 1 build, no visible surfaces.
   // Stays OFF in DEFAULT_FLAGS so the production binary cannot expose
