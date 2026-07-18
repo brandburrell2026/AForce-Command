@@ -9,6 +9,13 @@ escalated to **ceo** with a proposed unblock.
 Status legend: **OPEN** · **PENDING-DECISION** (needs a human call, not code) ·
 **BLOCKED** · **RESOLVED**.
 
+**Counsel of record / legal routing (AForce OS):** J. Peter Paredes —
+patent@awglaw.com (AWG Law). **Scope: patent/IP only** (confirmed 2026-07-18). Owns
+patent/IP matters — including PA-1 below — and is the routing contact for that lane.
+**Does not** cover CR-1's pre-launch **claims/compliance** review: that is a separate
+regulatory specialty and its reviewer is **still unbooked** (Launch-Readiness human
+action #1). Do not treat CR-1 as covered by patent counsel.
+
 ---
 
 ## Pending decisions
@@ -118,3 +125,20 @@ decided**, so neither can silently ship the wrong way. Detail in
   route as a written proposal to Brandon, not a build task. §56's coverage layer
   reports such fields (e.g. `sex` on HydroState) in a separate `scoring-locked`
   bucket, never as an actionable miss.
+
+---
+
+## IP / corporate
+
+### PA-1 — Patent assignment: Aforce Group LLC → AForce Hydration, Inc.
+- **Status:** PENDING-DECISION — verification pending with counsel · **Owner:** Brandon
+  + counsel (J. Peter Paredes, patent@awglaw.com) · **Opened:** session 2026-07-18
+- **What it is:** the AForce OS patent/IP rights must be assigned from **Aforce Group
+  LLC** to **AForce Hydration, Inc.** (the operating entity for this repository). The
+  assignment / chain of title is **not yet verified** — confirmation is pending with
+  counsel.
+- **Why it matters:** clean chain of title to the operating entity is standard
+  pre-launch / pre-financing IP hygiene; an unverified assignment is a diligence gap
+  that does not surface on its own.
+- **Next (human, will not self-surface):** counsel (Paredes / AWG) confirms the
+  assignment is executed and recorded; move to RESOLVED on written confirmation.
