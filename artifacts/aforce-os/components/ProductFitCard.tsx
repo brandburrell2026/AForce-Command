@@ -65,9 +65,13 @@ export function ProductFitCard({ result, onConfidencePress }: Props) {
           confidenceTappable ? (
             <Pressable
               onPress={onConfidencePress}
-              hitSlop={8}
+              // Chip is ~16px tall; expand the touch box to ~44pt (iOS HIG) via
+              // hitSlop without shifting the header layout. Dim on press so the
+              // tap has affordance/confirmation (matches the primary CTA pattern).
+              hitSlop={{ top: 14, bottom: 14, left: 12, right: 12 }}
               accessibilityRole="button"
               accessibilityHint="Shows the data behind this confidence read"
+              style={({ pressed }) => (pressed ? styles.confidencePressed : undefined)}
             >
               <CommandConfidenceBadge level={confidence} />
             </Pressable>
@@ -113,6 +117,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
+  confidencePressed: { opacity: 0.6 },
   title: {
     fontSize: 14, fontFamily: 'Inter_700Bold',
     color: Colors.text.primary, letterSpacing: -0.2,
