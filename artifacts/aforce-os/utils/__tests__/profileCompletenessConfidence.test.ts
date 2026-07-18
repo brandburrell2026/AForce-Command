@@ -61,6 +61,11 @@ describe('Section 55 Step 2 — profileCompletenessSignal', () => {
       expect(profileCompletenessSignal(p).quality).not.toBe('verified');
     }
   });
+
+  it('PROFILE_COMPLETENESS_SIGNAL_KEY is pinned to its literal contract value', () => {
+    // stable external id (debug trace / consumer concat key) — drift must fail loudly
+    expect(PROFILE_COMPLETENESS_SIGNAL_KEY).toBe('profileCompleteness');
+  });
 });
 
 describe('Section 55 Step 2 — withProfileCompleteness (opt-in composition)', () => {
