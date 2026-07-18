@@ -388,21 +388,22 @@ score/board/color behavior):
 
 ---
 
-## 7. Open questions for the founder
+## 7. Open questions — RESOLVED (founder, 2026-07-18)
 
-1. **Launch-Readiness tracker correction:** §53 is listed as "Shipped-live (engine)" but the code isn't on `main`
-   or `origin/main` — it's stranded on an unmerged branch. Is this a stale tracker entry that needs correcting, or
-   is there a second location I haven't found? Either way, someone needs to merge or re-file it before any §53 row
-   in the DATA BEHIND THIS sheet can go live.
-2. Is `app/(hidden)/cruise/recovery.tsx` actually the intended "Recovery Window" from the §58 badge's doc comment,
-   or is that a different, not-yet-built screen? I've deliberately not designed bespoke chrome for it either way —
-   just confirming the name isn't pointing at a screen I should have found and didn't.
-3. The Profile personalization audit table (§56) is the most exposed "honest gap" surface in this whole pass — it's
-   the first place a user could see, in plain language, that e.g. HydroState is running on a population default for
-   their sex. Given CR-1 hasn't been scheduled, does this table wait for CR-1 sign-off as a unit, or can the
-   completeness-only Profile Strength section (no §56 table) ship ahead of it since its copy is already locked and
-   compliance-reviewed in `profileNudge.ts`?
-4. Naming: `ConfidenceChip` / "DATA BEHIND THIS" are functional, plain, deliberately unglamorous names chosen to
-   avoid gamifying a trust surface. Does Brandon want a distinct ritual-vocabulary term for the sheet (in the
-   spirit of "Lock In" / "Perform" / "Your Ritual"), or is a plain, almost technical name actually the right choice
-   here specifically *because* this is trust infrastructure, not a ritual moment?
+1. **§53 not on `main`** — RESOLVED. Was orphaned by a stacked-merge (#260 merged into #259's branch); recovered in
+   **#268**. §53 freshness rows may go live once that's merged (now on `main`).
+2. **Recovery Window screen** — DEFERRED (design question). `AFORCE_OS_ARCHITECTURE_V1` specs Recovery Window as a
+   *calculated value* (recalculated on profile change), not a dedicated surfacing screen. Ambiguous → **out of the
+   smallest subset**, no bespoke chrome designed. Revisit if/when a Recovery Window UI is actually specced.
+3. **§56 personalization audit table** — DECIDED: it **waits for CR-1 as a unit**, and is **NOT built ahead, even
+   flag-gated** — a built surface creates pressure to ship, and "we're estimating your sex" is exactly what CR-1
+   exists to vet. This extends to the **§56 coverage rows in the DATA BEHIND THIS sheet**: same claims-sensitive
+   content, also excluded from this pass. The **completeness-only Profile Strength section ships now** (its §55 copy
+   is already locked/reviewed in `profileNudge.ts`).
+4. **Naming** — DECIDED: keep **plain** (`ConfidenceChip` / "DATA BEHIND THIS"). Confidence UI is trust
+   infrastructure; trust infrastructure that performs is less trustworthy. Ritual vocabulary stays reserved for the
+   ritual loop — the restraint is the design.
+
+**Build scope confirmed:** smallest subset ① (Today's Command badge → sheet, §53/§54/§58 content only, **no §56
+rows**) + ② (Profile Strength completeness section), flag-gated. §56 (sheet rows + audit table) is CR-1-gated and
+not built in this pass.
