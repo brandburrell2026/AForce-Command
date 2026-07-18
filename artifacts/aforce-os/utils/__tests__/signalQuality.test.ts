@@ -65,6 +65,15 @@ describe('Section 54 — rating → Data Confidence bridge', () => {
     ]);
     expect(assessDataConfidence(two.asDataSignals).level).toBe('high');
   });
+
+  it('limited maps to partial, NOT verified — two phone-tier signals stay medium (never high)', () => {
+    // if limited→verified regressed, two verified would resolve to high; partial caps at medium
+    const two = assessSignalQuality([
+      { kind: 'water_intake', source: 'manual' },
+      { kind: 'sleep', source: 'voice_checkin' },
+    ]);
+    expect(assessDataConfidence(two.asDataSignals).level).toBe('medium');
+  });
 });
 
 describe('Section 54 — per-signal grading by family', () => {
@@ -128,6 +137,13 @@ describe('Section 54 — corroboration never promotes a tier', () => {
     const r = assessSignalQuality([{ kind: 'sleep', source: 'whoop', corroboratingCount: 3 }]);
     expect(r.signals[0].rating).toBe('good'); // NOT excellent
     expect(r.signals[0].note).toContain('corroborated ×3');
+  });
+
+  it('a negative or non-integer corroboratingCount neither promotes nor crashes', () => {
+    for (const count of [-3, 1.5, 0]) {
+      const r = assessSignalQuality([{ kind: 'sleep', source: 'whoop', corroboratingCount: count }]);
+      expect(r.signals[0].rating, `count=${count}`).toBe('good');
+    }
   });
 });
 

@@ -194,6 +194,13 @@ function baseRating(input: SignalQualityInput): { rating: SignalQualityRating; t
  * composite is only as trustworthy as its weakest input; a referenced kind not
  * present is treated as `unavailable` (the floor). Everything else rates from
  * its own source (biometric/hydration) or provenance (environmental).
+ *
+ * Derivation is SINGLE-LEVEL: `derivedFrom` is resolved against base ratings
+ * only, so a derived kind that references another derived kind reads that kind's
+ * BASE rating (never its resolved one). Today the only derived kind
+ * (`environmental_pressure`) references non-derived kinds; keep it that way, or
+ * resolve in dependency order if chaining is ever intended. The direction is
+ * always conservative (floor), so a chain can only under-rate, never overstate.
  */
 export function assessSignalQuality(
   inputs: readonly SignalQualityInput[],
