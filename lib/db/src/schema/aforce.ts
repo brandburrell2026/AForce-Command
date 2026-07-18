@@ -851,6 +851,85 @@ export type AforceGarminAuthStatesRow =
 export type InsertAforceGarminAuthStates =
   typeof aforceGarminAuthStates.$inferInsert;
 
+/**
+ * Oura Ring OAuth2 token store — faithful mirror of `aforceWhoopTokens`
+ * / `aforceGarminTokens` above. One row per `(userId)`; `expiresAt` is
+ * `timestamptz`; refresh token rotates (single-use) per Oura's OAuth2
+ * contract (https://cloud.ouraring.com/docs/authentication).
+ *
+ * Hidden-infra: no UI or route writes here until OURA_CLIENT_ID +
+ * OURA_CLIENT_SECRET + OURA_OAUTH_REDIRECT_URI are configured (the
+ * OAuth router is only mounted then). Encryption mirrors WHOOP/Garmin
+ * Phase A: dual-write plaintext + `pgp_sym_encrypt` enc columns when
+ * `OURA_TOKEN_ENCRYPTION_KEY` is set; reads prefer enc and fall back to
+ * plaintext.
+ */
+export const aforceOuraTokens = pgTable(
+  "aforce_oura_tokens",
+  {
+    userId: text("user_id").primaryKey(),
+    accessToken: text("access_token").notNull(),
+    refreshToken: text("refresh_token").notNull(),
+    /** pgcrypto-encrypted access token. Nullable so the rollout is
+     *  purely additive (see aforceWhoopTokens.accessTokenEnc). */
+    accessTokenEnc: customBytea("access_token_enc"),
+    /** See accessTokenEnc — same lifecycle, same rollout phase. */
+    refreshTokenEnc: customBytea("refresh_token_enc"),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    /** Space-separated scopes the user granted. Null when Oura's token
+     *  endpoint didn't echo `scope` back. */
+    scope: text("scope"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => ({
+    // Composite index supporting keyset pagination over a future fetch
+    // sweep, mirroring the WHOOP/Garmin token tables.
+    updatedUserIdx: index("aforce_oura_tokens_updated_user_idx").on(
+      t.updatedAt,
+      t.userId,
+    ),
+  }),
+);
+
+export type AforceOuraTokensRow = typeof aforceOuraTokens.$inferSelect;
+export type InsertAforceOuraTokens = typeof aforceOuraTokens.$inferInsert;
+
+/**
+ * Oura OAuth in-flight state store — backs the PKCE / state handoff
+ * between `/oura/oauth/start` and `/oura/oauth/callback`. Faithful
+ * mirror of `aforceWhoopAuthStates` / `aforceGarminAuthStates`: rows
+ * written at `start`, DELETEd (single-use, atomic) at `callback`;
+ * unconsumed rows expire by TTL.
+ */
+export const aforceOuraAuthStates = pgTable(
+  "aforce_oura_auth_states",
+  {
+    /** The random `state` param returned to the OAuth client and
+     *  echoed back by Oura. Primary key. */
+    state: text("state").primaryKey(),
+    /** PKCE verifier minted alongside this state. */
+    codeVerifier: text("code_verifier").notNull(),
+    /** Authenticated user who started the flow. */
+    userId: text("user_id").notNull(),
+    /** Insertion time; used for TTL on consume. */
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => ({
+    createdIdx: index("aforce_oura_auth_states_created_idx").on(t.createdAt),
+  }),
+);
+
+export type AforceOuraAuthStatesRow = typeof aforceOuraAuthStates.$inferSelect;
+export type InsertAforceOuraAuthStates =
+  typeof aforceOuraAuthStates.$inferInsert;
+
 /* ─── Adaptive Profile Engine™ / Profile Versioning™ (Section 18) ──────────── */
 /**
  * The OS's user-specific calibration layer. Four tables work together:

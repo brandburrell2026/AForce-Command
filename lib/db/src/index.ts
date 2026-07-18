@@ -27,4 +27,5 @@ export * from "./scanRepo";
 export * from "./demandSnapshotRepo";
 export * from "./whoopTokenStore";
 export * from "./garminTokenStore";
+export * from "./ouraTokenStore";
 export * from "./profileRepo";
