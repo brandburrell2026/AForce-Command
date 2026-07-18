@@ -38,6 +38,27 @@ describe('Show-10 — buildDataBehindThis', () => {
     expect(byLabel.HRV.chip).toEqual({ label: 'UNAVAILABLE', opacity: 0.3 });     // no source
   });
 
+  it('a STRONG source is pulled DOWN by stale freshness (the headline composition, spec §3 worked example)', () => {
+    // excellent source, but 40h old (sleep staleAfterMs = 36h, never expires) →
+    // freshnessCeiling('stale') = 'limited' → applyFreshness caps excellent DOWN
+    // to limited. The one chip lands at the freshness ceiling; the raw ratings
+    // still remember the source was excellent.
+    const [row] = buildDataBehindThis({
+      confidence: 'medium',
+      signals: [
+        {
+          label: 'Sleep',
+          quality: { kind: 'sleep', source: 'phantom' }, // → excellent
+          freshness: { kind: 'sleep', capturedAt: NOW - 40 * HOUR }, // > 36h sleep stale window → stale
+        },
+      ],
+      now: NOW,
+    }).rows;
+    expect(row.chip).toEqual({ label: 'LIMITED', opacity: 0.55 }); // capped, not excellent
+    expect(row.sourceRating).toBe('excellent'); // source remembered for the detail line
+    expect(row.freshnessRating).toBe('stale');
+  });
+
   it('exposes the raw contributing ratings for the detail line (chip is one, facts are two)', () => {
     expect(byLabel.Sleep.sourceRating).toBe('excellent');
     expect(byLabel.Sleep.freshnessRating).toBe('fresh');

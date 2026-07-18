@@ -87,7 +87,11 @@ export function signalQualityChip(rating: SignalQualityRating): ConfidenceChipMo
   }
 }
 
-/** §53 data freshness → chip (4-step ramp). Used for the detail line's freshness fact. */
+/**
+ * §53 data freshness → chip (4-step ramp). Reserved for the sheet's detail line
+ * (slice ①-2, not yet wired) — dataBehindThis composes freshness INTO the row
+ * chip via applyFreshness, so nothing renders a standalone freshness chip yet.
+ */
 export function freshnessChip(rating: FreshnessRating): ConfidenceChipModel {
   switch (rating) {
     case 'fresh':
