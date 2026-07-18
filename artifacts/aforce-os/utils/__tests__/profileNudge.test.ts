@@ -64,7 +64,7 @@ describe('Section 55 Step 3 — copy is capability-only, never a claim or a mete
   });
 
   it('no line makes an outcome/health claim', () => {
-    const OUTCOME = /\b(hydrat|recover|performa?nce?|readiness|prevent|avoid|better|improve|reduce|risk)\w*/i;
+    const OUTCOME = /\b(hydrat|recover|perform|readiness|prevent|avoid|better|improve|reduce|risk)\w*/i;
     for (const line of ALL_COPY) {
       expect(line, line).not.toMatch(OUTCOME);
     }
@@ -141,9 +141,17 @@ describe('Section 55 Step 3 — cadence "occasionally, never nag"', () => {
     expect(shouldShowProfileNudge(showable({ daysSinceLastDismissed: NUDGE_DISMISS_COOLDOWN_DAYS }))).toBe(true);
   });
 
+  it('rule 5: a same-day dismiss (0 days) still blocks — the case right after a tap', () => {
+    expect(shouldShowProfileNudge(showable({ daysSinceLastDismissed: 0 }))).toBe(false);
+  });
+
   it('rule 6: min interval since last shown (exact boundary)', () => {
     expect(shouldShowProfileNudge(showable({ daysSinceLastShown: NUDGE_MIN_INTERVAL_DAYS - 1 }))).toBe(false);
     expect(shouldShowProfileNudge(showable({ daysSinceLastShown: NUDGE_MIN_INTERVAL_DAYS }))).toBe(true);
+  });
+
+  it('rule 6: a just-shown nudge (0 days) still blocks', () => {
+    expect(shouldShowProfileNudge(showable({ daysSinceLastShown: 0 }))).toBe(false);
   });
 
   it('never-shown / never-dismissed (null) skips the interval rules', () => {
