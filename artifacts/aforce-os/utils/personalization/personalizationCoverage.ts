@@ -263,20 +263,32 @@ export function assessEngineCoverage(
   opts?: {
     registry?: Record<PersonalizationEngine, EngineCoverageSpec>;
     reflectTarget?: PersonalizationEngine;
+    /** Internal: ancestor engines in the current resolution chain (cycle guard). */
+    _visited?: ReadonlySet<PersonalizationEngine>;
   },
 ): EngineCoverageResult {
   const registry = opts?.registry ?? LOAD_BEARING_FIELDS;
+  const visited = opts?._visited ?? new Set<PersonalizationEngine>();
+  // Cycle guard: this engine is already being resolved in its own ancestry
+  // (only reachable via a cyclic registry edit). Cannot recurse — report it as
+  // not-yet-built so it is excluded from the denominator and surfaced in
+  // pendingBuild upstream, rather than overflowing the stack.
+  if (visited.has(engine)) {
+    return { ...absentResult(engine), kind: registry[engine].kind };
+  }
   const spec = registry[engine];
+  const childOpts = { ...opts, _visited: new Set(visited).add(engine) };
 
   switch (spec.kind) {
     case 'absent':
       return absentResult(engine);
 
     case 'reflective': {
-      if (!opts?.reflectTarget) {
+      // No target — or a self-reflection — has nothing to reflect.
+      if (!opts?.reflectTarget || opts.reflectTarget === engine) {
         return { ...absentResult(engine), kind: 'reflective', buildStatus: 'built' };
       }
-      const target = assessEngineCoverage(opts.reflectTarget, available, consumed, opts);
+      const target = assessEngineCoverage(opts.reflectTarget, available, consumed, childOpts);
       return { ...target, engine, kind: 'reflective' };
     }
 
@@ -284,19 +296,26 @@ export function assessEngineCoverage(
       return finalize(engine, 'direct', coverFields(spec.loadBearing, available, consumed), []);
 
     case 'composite': {
-      const members = spec.composedOf.map((m) => ({
-        name: m,
-        result: assessEngineCoverage(m, available, consumed, opts),
-      }));
-      const pendingBuild = members
-        .filter((m) => m.result.buildStatus === 'not-yet-built')
-        .map((m) => m.name);
-      // Union member FieldCoverage by field. available/consumed are consistent
-      // across members (same predicates); merge requiresSignOff (OR) and the
-      // scoring-locked boundary (locked in any member ⇒ locked here).
+      const members = spec.composedOf.map((m) =>
+        assessEngineCoverage(m, available, consumed, childOpts));
+      // pendingBuild = direct not-yet-built members ∪ nested composites' pendingBuild.
+      const pending = new Set<PersonalizationEngine>();
+      for (let i = 0; i < members.length; i += 1) {
+        if (members[i].buildStatus === 'not-yet-built') pending.add(spec.composedOf[i]);
+        for (const nested of members[i].pendingBuild) pending.add(nested);
+      }
+      const built = members.filter((m) => m.buildStatus === 'built');
+      // A composite whose members are ALL unbuilt is itself not-yet-built —
+      // never report coverage 1 for a wholly-absent composite.
+      if (built.length === 0) {
+        return { ...absentResult(engine), kind: 'composite', buildStatus: 'not-yet-built', pendingBuild: [...pending] };
+      }
+      // Union built members' FieldCoverage by field. available/consumed are
+      // consistent across members (same predicates); merge requiresSignOff (OR)
+      // and the scoring-locked boundary (locked in any member ⇒ locked here).
       const byField = new Map<PersonalizationField, FieldCoverage>();
-      for (const m of members) {
-        for (const f of m.result.fields) {
+      for (const m of built) {
+        for (const f of m.fields) {
           const prior = byField.get(f.field);
           if (!prior) {
             byField.set(f.field, { ...f });
@@ -313,7 +332,7 @@ export function assessEngineCoverage(
           }
         }
       }
-      return finalize(engine, 'composite', [...byField.values()], pendingBuild);
+      return finalize(engine, 'composite', [...byField.values()], [...pending]);
     }
   }
 }

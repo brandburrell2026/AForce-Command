@@ -15,7 +15,12 @@ import {
   STRUCTURAL_FIELDS,
   type PersonalizationField,
   type PersonalizationEngine,
+  type EngineCoverageSpec,
 } from '../personalization/personalizationCoverage';
+
+/** Build a registry override for the recursion-hardening tests. */
+const withRegistry = (over: Partial<Record<PersonalizationEngine, EngineCoverageSpec>>) =>
+  ({ ...LOAD_BEARING_FIELDS, ...over }) as Record<PersonalizationEngine, EngineCoverageSpec>;
 
 const ALL_FIELDS: PersonalizationField[] = [
   'age', 'height', 'weight', 'sex', 'activityLevel', 'trainingLevel', 'primaryGoal',
@@ -101,6 +106,11 @@ describe('§56 — composite engine (Guardian)', () => {
     expect(r.coverage).toBe(1); // all consumed
     // a field load-bearing in multiple members appears once
     expect(r.fields.filter((f) => f.field === 'age')).toHaveLength(1);
+    // OR-merge of requiresSignOff (not last-write-wins): activityLevel is
+    // sign-off-free in HydroState/RecoveryWindow but sign-off-required in
+    // SleepReadiness, so the union must surface it as pending.
+    expect(r.pendingSignOff).toContain('activityLevel');
+    expect(byField(r).activityLevel).toBe('personalized');
   });
 
   it('Cruise composes only HydroState — its actionable set matches HydroState', () => {
@@ -138,6 +148,40 @@ describe('§56 — absent engine (TomorrowLoadForecast)', () => {
     expect(r.fields).toEqual([]);
     expect(r.actionableTotal).toBe(0);
     expect(r.coverage).toBe(1);
+  });
+});
+
+describe('§56 — recursion hardening (registry designed to grow)', () => {
+  it('a composite over only-absent members is not-yet-built, never coverage 1', () => {
+    const reg = withRegistry({ Cruise: { kind: 'composite', composedOf: ['TomorrowLoadForecast'] } });
+    const r = assessEngineCoverage('Cruise', ALL, ALL, { registry: reg });
+    expect(r.buildStatus).toBe('not-yet-built');
+    expect(r.pendingBuild).toContain('TomorrowLoadForecast');
+  });
+
+  it('nested pendingBuild propagates from a composite one level down', () => {
+    // Cruise → Guardian → (…, TomorrowLoadForecast absent). The absent engine is
+    // one level below Cruise and must still surface in Cruise.pendingBuild.
+    const reg = withRegistry({ Cruise: { kind: 'composite', composedOf: ['Guardian'] } });
+    const r = assessEngineCoverage('Cruise', ALL, ALL, { registry: reg });
+    expect(r.buildStatus).toBe('built'); // Guardian is built (has HydroState)
+    expect(r.pendingBuild).toContain('TomorrowLoadForecast');
+  });
+
+  it('a cyclic registry terminates (no stack overflow) and surfaces the cycle member', () => {
+    const reg = withRegistry({
+      Cruise: { kind: 'composite', composedOf: ['Guardian'] },
+      Guardian: { kind: 'composite', composedOf: ['Cruise', 'HydroState'] },
+    });
+    const r = assessEngineCoverage('Cruise', ALL, ALL, { registry: reg });
+    expect(r.buildStatus).toBe('built'); // resolves via HydroState
+    expect(r.pendingBuild).toContain('Cruise'); // the cycle member, reported not resolved
+  });
+
+  it('a self-referential reflect target has nothing to reflect (no infinite loop)', () => {
+    const r = assessEngineCoverage('EvidenceEngine', ALL, ALL, { reflectTarget: 'EvidenceEngine' });
+    expect(r.coverage).toBe(1);
+    expect(r.fields).toEqual([]);
   });
 });
 
