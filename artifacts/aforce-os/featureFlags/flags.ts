@@ -231,6 +231,18 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   // services/appleHealth.ts. Independent of metabolic_readiness_enabled.
   healthkit_native_enabled: false,
 
+  // Health-platform integration gates — all OFF in the production binary until
+  // each provider's credentials/approval land. When OFF (or not yet available)
+  // the HEALTH PLATFORMS screen shows an honest status, never a fake connection.
+  health_apple_enabled: false,
+  health_google_connect_enabled: false,
+  health_whoop_enabled: false,
+  health_oura_enabled: false,
+  health_strava_enabled: false,
+  health_garmin_enabled: false,
+  health_samsung_direct_enabled: false,
+  health_demo_data_enabled: false,
+
   // Native Liquid Glass tabs gate — OFF. On iOS 26 the native tab bar
   // (expo-router/unstable-native-tabs -> RNScreens RNSTabBarController) throws
   // a void NSException at startup, crashing Release/TestFlight builds
@@ -369,6 +381,19 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
   // HealthKit/Nitro deps are removed from package.json, so the module is not
   // in the bundle and cannot be loaded regardless of profile.
   healthkit_native_enabled: false,
+
+  // Health-platform gates in the investor/demo build: the per-provider ENABLE
+  // gates stay OFF (they aren't really credentialed — an honest demo never
+  // claims a live connection), but the LABELED demo-data flag is ON so the
+  // wearable cards populate with clearly-marked "DEMO DATA" snapshots.
+  health_apple_enabled: false,
+  health_google_connect_enabled: false,
+  health_whoop_enabled: false,
+  health_oura_enabled: false,
+  health_strava_enabled: false,
+  health_garmin_enabled: false,
+  health_samsung_direct_enabled: false,
+  health_demo_data_enabled: true,
 
   // Stays OFF even in the demo profile: native tabs are crash-disabled on
   // iOS 26 (react-native-screens #3940), not a demo toggle.
