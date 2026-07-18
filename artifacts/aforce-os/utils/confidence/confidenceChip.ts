@@ -44,7 +44,7 @@ export interface ConfidenceChipModel {
 export const CHIP_OPACITY = {
   full: CONFIDENCE_OPACITY.high,     // 1
   strong: CONFIDENCE_OPACITY.medium, // 0.7
-  weak: CONFIDENCE_OPACITY.low,      // 0.45
+  weak: CONFIDENCE_OPACITY.low,      // 0.47
 } as const;
 
 /**
