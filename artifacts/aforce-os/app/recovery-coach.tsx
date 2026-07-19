@@ -23,11 +23,20 @@ export default function RecoveryCoachRoute() {
   if (!state.featureFlags.spec_recoveryCoach) return <Redirect href="/" />;
 
   const engineCommand = state.engineOutput.command;
-  // Build the normalized command from live store data. The engine command string
-  // is parsed into title + instruction with any "Recheck in …" clause STRIPPED —
-  // the recheck is shown only by the countdown (spec §2/§7). The recheck time
-  // comes from the risk timer. When the recovery/rules engine emits structured
-  // commands, feed those straight to buildRecoveryCommand instead.
+  // Reconstruct the recheck window from the risk timer. `timerSeconds` is the
+  // *remaining* time (it ticks down every second); the full window it was seeded
+  // from is `riskTimer.minutes * 60`. Passing only the remaining value would make
+  // the Coach treat a mid-cycle command as a fresh short window ("4 MIN" on a
+  // 15-minute recheck). Deriving elapsed = full − remaining anchors createdAt to
+  // the true issue time, so countdown, duration, and progress stay coherent
+  // (spec §11). Clamp so the window never drops below the remaining time.
+  const remainingSeconds = Math.max(0, state.timerSeconds);
+  const fullWindowSeconds = Math.max(remainingSeconds, (state.engineOutput.riskTimer?.minutes ?? 0) * 60);
+  const elapsedSeconds = fullWindowSeconds - remainingSeconds;
+  // The engine command string is parsed into title + instruction with any
+  // "Recheck in …" clause STRIPPED — the recheck is shown only by the countdown
+  // (spec §2/§7). When the recovery/rules engine emits structured commands, feed
+  // those straight to buildRecoveryCommand instead.
   const { title, instruction } = parseEngineActionCopy(engineCommand.action);
   const command = buildRecoveryCommand(
     {
@@ -36,7 +45,8 @@ export default function RecoveryCoachRoute() {
       instruction,
       primaryActionLabel: "I've had the water",
       rationale: engineCommand.explanation,
-      recheckInSeconds: state.timerSeconds,
+      recheckInSeconds: remainingSeconds,
+      elapsedSeconds,
       sourceVersion: 'engine@live',
     },
     Date.now(),

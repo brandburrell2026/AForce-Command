@@ -76,3 +76,29 @@ describe('buildRecoveryCommand', () => {
     expect(view.durationLabel).toBe('15 MIN');
   });
 });
+
+describe('buildRecoveryCommand — elapsedSeconds anchors the full window (spec §11)', () => {
+  it('a mid-cycle command reports the FULL window, not the remaining slice', () => {
+    // Viewed 13 min into a 15-min recheck: 2 min remain, 13 elapsed.
+    const cmd = buildRecoveryCommand({ ...src, recheckInSeconds: 2 * 60, elapsedSeconds: 13 * 60 }, NOW);
+    expect(Date.parse(cmd.createdAt)).toBe(NOW - 13 * MIN); // issued 13 min ago
+    expect(Date.parse(cmd.recheckAt)).toBe(NOW + 2 * MIN); //  rechecks in 2 min
+    const view = deriveRecoveryCommandView(cmd, NOW);
+    expect(view.countdown).toBe('02:00'); //     remaining, not the whole window
+    expect(view.durationLabel).toBe('15 MIN'); // full window = elapsed + remaining
+    expect(view.progress).toBeCloseTo(13 / 15, 2); // ~87% elapsed, not stuck at 0
+    expect(validateRecoveryCommand(cmd).valid).toBe(true);
+  });
+
+  it('defaults to created = now when no elapsed is supplied (backward compatible)', () => {
+    const cmd = buildRecoveryCommand({ ...src, recheckInSeconds: 15 * 60 }, NOW);
+    expect(Date.parse(cmd.createdAt)).toBe(NOW);
+    expect(deriveRecoveryCommandView(cmd, NOW).progress).toBe(0);
+  });
+
+  it('clamps a negative elapsed to 0 and stays valid/derivable', () => {
+    const cmd = buildRecoveryCommand({ ...src, recheckInSeconds: 15 * 60, elapsedSeconds: -120 }, NOW);
+    expect(Date.parse(cmd.createdAt)).toBe(NOW);
+    expect(validateRecoveryCommand(cmd).valid).toBe(true);
+  });
+});
