@@ -29,6 +29,7 @@
 
 import type { Logger } from "pino";
 import type { WhoopFetchOutcomeStatus } from "./whoopFetchWorker";
+import { serializeError } from "./serializeError";
 
 export interface WhoopFetchSweepTally {
   total: number;
@@ -166,7 +167,7 @@ export async function runWhoopFetchSweep(
         // skip, not retry) is the only safe call.
         tally.byStatus.error += 1;
         log?.error(
-          { userId, err: err instanceof Error ? err.name : "unknown_error" },
+          { userId, err: serializeError(err) },
           "whoopFetchSweep:runOnce threw",
         );
       }
@@ -343,7 +344,7 @@ export function startWhoopFetchSweepLoop(
       // runSweep itself shouldn't throw (it absorbs per-user errors),
       // but if it does, log and keep the loop alive.
       log?.error(
-        { err: err instanceof Error ? err.name : "unknown_error" },
+        { err: serializeError(err) },
         "whoopFetchSweep:runSweep threw",
       );
     } finally {
