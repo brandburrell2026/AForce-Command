@@ -68,6 +68,7 @@ import {
   Sunrise,
   Wind,
   Cloud,
+  CloudDrizzle,
   MapPin,
   Navigation,
   Compass,
@@ -99,6 +100,7 @@ import {
   // Media / device
   Camera,
   CameraOff,
+  Mic,
   VolumeX,
   Volume2,
   Watch,
@@ -235,6 +237,7 @@ export const ICON_MAP: Record<string, LucideIcon> = {
   sunrise: Sunrise,
   wind: Wind,
   cloud: Cloud,
+  'cloud-drizzle': CloudDrizzle,
   'map-pin': MapPin,
   navigation: Navigation,
   compass: Compass,
@@ -267,6 +270,7 @@ export const ICON_MAP: Record<string, LucideIcon> = {
   // media / device
   camera: Camera,
   'camera-off': CameraOff,
+  mic: Mic,
   'volume-x': VolumeX,
   'volume-2': Volume2,
   watch: Watch,
