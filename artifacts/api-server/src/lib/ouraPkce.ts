@@ -28,11 +28,9 @@ import { randomBytes, createHash } from "node:crypto";
 export const OURA_AUTHORIZE_ENDPOINT = "https://cloud.ouraring.com/oauth/authorize";
 
 /**
- * Default scope set. Verified against Oura's authentication docs
+ * Default scope set — least-privilege for exactly the data the snapshot reads.
+ * Verified against Oura's authentication docs
  * (https://cloud.ouraring.com/docs/authentication, 2026-07):
- *   - "personal"  — profile (gender, age, height, weight) — mirrors
- *     WHOOP's `read:profile` inclusion even though the snapshot
- *     doesn't consume it today.
  *   - "daily"     — daily summaries: readiness, sleep, activity
  *     (covers daily_readiness, daily_sleep, daily_activity; also
  *     requested for the detailed `/v2/usercollection/sleep` endpoint,
@@ -40,8 +38,13 @@ export const OURA_AUTHORIZE_ENDPOINT = "https://cloud.ouraring.com/oauth/authori
  *     closest documented bucket and is the assumption used here).
  *   - "heartrate" — time-series heart rate (Gen 3 rings).
  *   - "workout"   — auto-detected + manually entered workouts.
+ *
+ * Deliberately DROPS Oura's "personal" scope (gender/age/height/weight profile
+ * PII): ouraSnapshot never reads profile, so requesting it would over-collect
+ * sensitive data against the minimum-collection rule (cybersecurity review,
+ * PR #292 follow-up). Add it back only when a feature actually consumes profile.
  */
-export const OURA_DEFAULT_SCOPES = "personal daily heartrate workout";
+export const OURA_DEFAULT_SCOPES = "daily heartrate workout";
 
 export function base64UrlEncode(buf: Buffer): string {
   return buf
