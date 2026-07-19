@@ -930,6 +930,106 @@ export type AforceOuraAuthStatesRow = typeof aforceOuraAuthStates.$inferSelect;
 export type InsertAforceOuraAuthStates =
   typeof aforceOuraAuthStates.$inferInsert;
 
+/**
+ * Strava OAuth2 token store — faithful mirror of `aforceWhoopTokens` /
+ * `aforceGarminTokens` / `aforceOuraTokens` above. One row per
+ * `(userId)`; `expiresAt` is `timestamptz`; refresh token rotates per
+ * Strava's OAuth2 contract (https://developers.strava.com/docs/authentication,
+ * verified 2026-07 — "Applications should persist the refresh token
+ * contained in the response, and always use the most recent refresh
+ * token").
+ *
+ * Hidden-infra: no UI or route writes here until STRAVA_CLIENT_ID +
+ * STRAVA_CLIENT_SECRET + STRAVA_OAUTH_REDIRECT_URI are configured (the
+ * OAuth router is only mounted then). Encryption mirrors WHOOP/Garmin/
+ * Oura Phase A: dual-write plaintext + `pgp_sym_encrypt` enc columns
+ * when `STRAVA_TOKEN_ENCRYPTION_KEY` is set; reads prefer enc and fall
+ * back to plaintext.
+ *
+ * Strava contributes ACTIVITY data only (see `stravaSnapshot.ts`) —
+ * never recovery/sleep/HRV/readiness. This table only stores OAuth
+ * tokens; it has no bearing on which biometric fields get populated.
+ */
+export const aforceStravaTokens = pgTable(
+  "aforce_strava_tokens",
+  {
+    userId: text("user_id").primaryKey(),
+    accessToken: text("access_token").notNull(),
+    refreshToken: text("refresh_token").notNull(),
+    /** pgcrypto-encrypted access token. Nullable so the rollout is
+     *  purely additive (see aforceWhoopTokens.accessTokenEnc). */
+    accessTokenEnc: customBytea("access_token_enc"),
+    /** See accessTokenEnc — same lifecycle, same rollout phase. */
+    refreshTokenEnc: customBytea("refresh_token_enc"),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    /** Space-delimited scopes Strava echoes back in the token response
+     *  (e.g. 'activity:read'). Null when omitted. */
+    scope: text("scope"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => ({
+    // Composite index supporting keyset pagination over a future fetch
+    // sweep, mirroring the WHOOP/Garmin/Oura token tables.
+    updatedUserIdx: index("aforce_strava_tokens_updated_user_idx").on(
+      t.updatedAt,
+      t.userId,
+    ),
+  }),
+);
+
+export type AforceStravaTokensRow = typeof aforceStravaTokens.$inferSelect;
+export type InsertAforceStravaTokens = typeof aforceStravaTokens.$inferInsert;
+
+/**
+ * Strava OAuth in-flight state store — backs the CSRF handoff between
+ * `/strava/oauth/start` and `/strava/oauth/callback`.
+ *
+ * UNLIKE `aforceWhoopAuthStates` / `aforceGarminAuthStates` /
+ * `aforceOuraAuthStates`, this table has NO `codeVerifier` column.
+ * Strava is a confidential OAuth2 client — the code->token exchange
+ * requires `client_secret` and Strava's docs
+ * (https://developers.strava.com/docs/authentication, verified
+ * 2026-07) do not document or accept PKCE (`code_challenge` /
+ * `code_verifier`) at all. Carrying a permanently-empty PKCE column
+ * here would be a placeholder field, not a real security control —
+ * the single-use `state` param (validated server-side) is the entire
+ * CSRF defense for this integration, same role WHOOP/Garmin/Oura's
+ * `state` plays, just without a PKCE companion.
+ *
+ * Lifecycle: rows are written at `start` and DELETEd at `callback`
+ * (single-use, atomic via DELETE ... RETURNING); unconsumed rows
+ * expire by TTL.
+ */
+export const aforceStravaAuthStates = pgTable(
+  "aforce_strava_auth_states",
+  {
+    /** The random `state` param returned to the OAuth client and
+     *  echoed back by Strava. Primary key. */
+    state: text("state").primaryKey(),
+    /** Authenticated user who started the flow. */
+    userId: text("user_id").notNull(),
+    /** Insertion time; used for TTL on consume. */
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => ({
+    createdIdx: index("aforce_strava_auth_states_created_idx").on(
+      t.createdAt,
+    ),
+  }),
+);
+
+export type AforceStravaAuthStatesRow =
+  typeof aforceStravaAuthStates.$inferSelect;
+export type InsertAforceStravaAuthStates =
+  typeof aforceStravaAuthStates.$inferInsert;
+
 /* ─── Adaptive Profile Engine™ / Profile Versioning™ (Section 18) ──────────── */
 /**
  * The OS's user-specific calibration layer. Four tables work together:

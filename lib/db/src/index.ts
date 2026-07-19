@@ -28,4 +28,5 @@ export * from "./demandSnapshotRepo";
 export * from "./whoopTokenStore";
 export * from "./garminTokenStore";
 export * from "./ouraTokenStore";
+export * from "./stravaTokenStore";
 export * from "./profileRepo";
