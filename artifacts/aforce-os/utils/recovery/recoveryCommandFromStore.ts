@@ -27,6 +27,15 @@ export interface RecoveryCommandSource {
   rationale: string;
   /** Seconds until the next check (from the risk timer). Clamped ≥ 0. */
   recheckInSeconds: number;
+  /**
+   * Seconds already elapsed in the current recheck window (i.e. how long ago the
+   * command was issued). Anchors `createdAt` to the true issue time rather than
+   * screen-mount, so the full window = elapsed + remaining. Without it, a command
+   * viewed mid-cycle would report its *remaining* time as the whole window — a
+   * "4 MIN" duration on a 15-minute recheck (spec §11: timer, duration, and
+   * progress must all agree). Clamped ≥ 0; defaults to 0 (created = now).
+   */
+  elapsedSeconds?: number;
   /** Only set when a structured, validated dose exists — never fabricated. */
   quantity?: { value: number; unit: RecoveryQuantityUnit };
   /** Version of the rules/content source that produced this command. */
@@ -67,12 +76,16 @@ export function parseEngineActionCopy(action: string): { title: string; instruct
 }
 
 /**
- * Build a validated-shape RecoveryCommand from source data. createdAt = now,
- * recheckAt = now + recheckInSeconds, expiresAt = recheckAt + validFor. The
- * caller should still pass the result through deriveRecoveryCommandView, which
- * enforces validity + expiry at render.
+ * Build a validated-shape RecoveryCommand from source data.
+ * createdAt = now − elapsedSeconds, recheckAt = now + recheckInSeconds,
+ * expiresAt = recheckAt + validFor. Anchoring createdAt to the true issue time
+ * (via elapsedSeconds) makes the full recheck window = elapsed + remaining, so
+ * the derived duration label and progress reflect the whole window — not just the
+ * remaining slice. The caller should still pass the result through
+ * deriveRecoveryCommandView, which enforces validity + expiry at render.
  */
 export function buildRecoveryCommand(src: RecoveryCommandSource, now: number): RecoveryCommand {
+  const createdMs = now - Math.max(0, src.elapsedSeconds ?? 0) * 1000;
   const recheckMs = now + Math.max(0, src.recheckInSeconds) * 1000;
   const validFor = src.validForMs ?? DEFAULT_VALID_FOR_MS;
   return {
@@ -85,7 +98,7 @@ export function buildRecoveryCommand(src: RecoveryCommandSource, now: number): R
     recheckAt: new Date(recheckMs).toISOString(),
     rationale: src.rationale,
     sourceVersion: src.sourceVersion,
-    createdAt: new Date(now).toISOString(),
+    createdAt: new Date(createdMs).toISOString(),
     expiresAt: new Date(recheckMs + validFor).toISOString(),
   };
 }
