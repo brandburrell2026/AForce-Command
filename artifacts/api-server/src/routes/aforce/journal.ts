@@ -7,6 +7,7 @@ import {
 import { eq, sql, and, gte, asc, desc } from "drizzle-orm";
 import { logger } from "../../lib/logger";
 import { resolveUserId } from "./shared";
+import { LEVELS, snapshotSchema } from "./journalSchema";
 
 const router: IRouter = Router();
 
@@ -16,41 +17,28 @@ const router: IRouter = Router();
 //   GET  /journal/timeline  → chronological interleave of snapshots + intake_logs
 //   GET  /journal/rollups   → per-day aggregates (avg/min/max score, % time per band, totals)
 
-const LEVELS = ["PEAK", "BALANCED", "RECOVERING", "DEPLETED"] as const;
-const snapshotSchema = z.object({
-  score: z.number().int().min(0).max(100),
-  level: z.enum(LEVELS),
-  ozConsumedToday: z.number().min(0).default(0),
-  aforceUnitsToday: z.number().int().min(0).default(0),
-  unitsConsumedToday: z.number().int().min(0).default(0),
-  sodiumDeliveredMg: z.number().min(0).default(0),
-  sodiumLostMg: z.number().min(0).default(0),
-  deficitPct: z.number().min(0).default(0),
-  clutchActive: z.boolean().default(false),
-  socialActive: z.boolean().default(false),
-  autopilotActive: z.boolean().default(false),
-  reason: z.string().max(280).default(""),
-  // Recovery Layer — all optional; persisted only when the client opts
-  // in (i.e. `spec_recovery` is on). Server is content-agnostic.
-  recoveryScore: z.number().int().min(0).max(100).optional(),
-  pressureScore: z.number().int().min(0).max(100).optional(),
-  recoveryTrend: z.enum(["rising", "stable", "declining"]).optional(),
-  recoveryFingerprint: z.string().regex(/^[0-9a-f]{8}$/).optional(),
-  recoveryStory: z.string().max(280).optional(),
-});
-
 router.post("/journal/snapshot", async (req, res) => {
+  // Validate first, and report a schema rejection distinctly from a write
+  // failure. The old catch collapsed both into an opaque 400, so a contract
+  // mismatch and a DB error were indistinguishable in the field. We surface the
+  // failing field PATHS + codes (never the values — privacy), and reserve 5xx
+  // for write/DB errors so a deployed-schema drift can't masquerade as a 400.
+  const parsed = snapshotSchema.safeParse(req.body);
+  if (!parsed.success) {
+    const issues = parsed.error.issues.map((i) => ({ path: i.path.join("."), code: i.code }));
+    logger.warn({ issues }, "POST /aforce/journal/snapshot rejected (schema)");
+    return res.status(400).json({ error: "snapshot_invalid", issues });
+  }
   try {
-    const body = snapshotSchema.parse(req.body);
     const userId = resolveUserId(req);
     const [row] = await db
       .insert(aforceScoreSnapshots)
-      .values({ userId, ...body })
+      .values({ userId, ...parsed.data })
       .returning();
     return res.json({ snapshot: row });
   } catch (err) {
-    logger.error({ err }, "POST /aforce/journal/snapshot failed");
-    return res.status(400).json({ error: "snapshot_failed" });
+    logger.error({ err }, "POST /aforce/journal/snapshot write failed");
+    return res.status(500).json({ error: "snapshot_write_failed" });
   }
 });
 
