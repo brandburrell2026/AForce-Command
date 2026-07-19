@@ -23,7 +23,11 @@ export const RecoveryCoachTokens = {
   surfaceRaised: '#141518', //   elevated interactive surface
   textPrimary: '#F4F2ED', //     command, timer, button text
   textSecondary: '#A6A5A1', //   instructions + status
-  textTertiary: '#727378', //    micro-labels + inactive detail
+  // Micro-labels + inactive detail. Bumped from the spec's #727378 (which
+  // computes to ~4.31:1 on #050506 — below its own §9 AA 4.5:1 floor) to #85868C
+  // (~5:1). These labels are small informational text (eyebrow, NEXT CHECK,
+  // footer), so AA normal-text applies; a11y > the spec's exact hex.
+  textTertiary: '#85868C',
   divider: 'rgba(255,255,255,0.10)',
   border: 'rgba(255,255,255,0.16)',
   red: Colors.accent.primary, //          #C1281B — AForce Signal Red (spec af.red, resolved)

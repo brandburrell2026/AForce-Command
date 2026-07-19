@@ -38,6 +38,35 @@ export interface RecoveryCommandSource {
 const DEFAULT_VALID_FOR_MS = 45 * 60_000;
 
 /**
+ * Split a loose engine command string (Command.action — "WHAT + WHEN + OUTCOME",
+ * e.g. "Start with water — 20 oz now. Recheck in 15 minutes.") into a clean
+ * title + one-line instruction, STRIPPING any "Recheck in …" clause.
+ *
+ * This is the spec §2/§7 enforcement point: the recheck time is shown ONLY by the
+ * live countdown, so it must never survive into the instruction (a static
+ * "Recheck in 15 minutes" next to a ticking 04:12 is the exact contradiction the
+ * spec forbids). Pure + testable.
+ */
+export function parseEngineActionCopy(action: string): { title: string; instruction: string } {
+  // Drop a trailing "Recheck in <…>." sentence (case-insensitive), and any
+  // now-empty trailing separators/whitespace.
+  const noRecheck = action
+    .replace(/\s*Recheck in[^.]*\.?\s*$/i, '')
+    // Trim only trailing whitespace / dangling separators left behind — NOT a
+    // sentence-ending period (keep "20 oz now.").
+    .replace(/[\s—–-]+$/u, '')
+    .trim();
+  // Titles never carry a trailing period; instructions keep theirs.
+  const titleize = (s: string) => s.replace(/\.\s*$/u, '').trim();
+  // Split the leading title off an em-dash / dash separator when present.
+  const m = noRecheck.split(/\s+[—–-]\s+/u);
+  if (m.length >= 2 && m[0].trim()) {
+    return { title: titleize(m[0]), instruction: m.slice(1).join(' — ').trim() };
+  }
+  return { title: titleize(noRecheck), instruction: '' };
+}
+
+/**
  * Build a validated-shape RecoveryCommand from source data. createdAt = now,
  * recheckAt = now + recheckInSeconds, expiresAt = recheckAt + validFor. The
  * caller should still pass the result through deriveRecoveryCommandView, which

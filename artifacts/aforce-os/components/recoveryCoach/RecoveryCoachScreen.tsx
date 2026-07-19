@@ -133,7 +133,9 @@ export function RecoveryCoachScreen({ command, onClose, onPrimary, onAdjust, off
   };
 
   const progressPct = `${Math.round(view.progress * 100)}%` as const;
-  const progressA11y = `Recovery focus, ${Math.round(view.progress * 100)} percent, next check in ${view.countdown.replace(':', ' minutes ')} seconds`;
+  const remMin = Math.floor(view.countdownSeconds / 60);
+  const remSec = view.countdownSeconds % 60;
+  const progressA11y = `Recovery focus, ${Math.round(view.progress * 100)} percent, next check in ${remMin} minutes ${remSec} seconds`;
 
   return (
     <View style={[styles.root, { backgroundColor: T.canvas }]}>
@@ -164,6 +166,8 @@ export function RecoveryCoachScreen({ command, onClose, onPrimary, onAdjust, off
         <Animated.View style={enterStyle}>
           {/* Ambient pulse (decorative) */}
           <View style={styles.pulseZone} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+            {/* Soft radial atmosphere (§5) — Signal Red at low alpha, well below the pulse. */}
+            <View style={[styles.pulseAtmosphere, { backgroundColor: T.redDim }]} />
             <Animated.View style={[styles.pulseRing, { borderColor: T.redHairline }, ringStyle]} />
             <Animated.View style={[styles.pulseCore, { backgroundColor: T.red }, coreStyle]} />
           </View>
@@ -230,12 +234,14 @@ export function RecoveryCoachScreen({ command, onClose, onPrimary, onAdjust, off
       {/* Progress footer — anchored above bottom safe area */}
       {!isExpired ? (
         <View style={[styles.footer, { paddingBottom: insets.bottom + 20 }]} accessibilityLabel={progressA11y}>
-          <View style={[styles.track, { backgroundColor: 'rgba(255,255,255,0.10)' }]}>
-            <View style={[styles.trackFill, { width: progressPct, backgroundColor: T.red }]} />
-          </View>
-          <View style={styles.footerLabels}>
-            <Text style={[styles.footerLabel, { color: T.textTertiary }]}>RECOVERY FOCUS</Text>
-            <Text style={[styles.footerLabel, { color: T.textTertiary }]}>{view.durationLabel}</Text>
+          <View style={styles.footerInner}>
+            <View style={[styles.track, { backgroundColor: T.divider }]}>
+              <View style={[styles.trackFill, { width: progressPct, backgroundColor: T.red }]} />
+            </View>
+            <View style={styles.footerLabels}>
+              <Text style={[styles.footerLabel, { color: T.textTertiary }]}>RECOVERY FOCUS</Text>
+              <Text style={[styles.footerLabel, { color: T.textTertiary }]}>{view.durationLabel}</Text>
+            </View>
           </View>
         </View>
       ) : null}
@@ -245,15 +251,22 @@ export function RecoveryCoachScreen({ command, onClose, onPrimary, onAdjust, off
 
 const styles = StyleSheet.create({
   root: { ...StyleSheet.absoluteFillObject, zIndex: 300 },
-  content: { paddingHorizontal: 24, minHeight: '100%' },
+  // Content clamps to the spec's 430pt max readable width and centers on large
+  // phones/tablets (§5), so buttons/header/footer don't stretch edge-to-edge.
+  content: { paddingHorizontal: 24, minHeight: '100%', width: '100%', maxWidth: 430, alignSelf: 'center' },
   header: { minHeight: 52, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
   headerLeft: { gap: 6 },
   headerLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   liveDot: { width: 7, height: 7, borderRadius: 4 },
   headerLabel: { fontSize: 12, lineHeight: 16, fontFamily: 'Inter_700Bold', letterSpacing: 1.9 },
   status: { fontSize: 13, lineHeight: 18, fontFamily: 'Inter_400Regular' },
-  close: { width: 44, height: 44, borderRadius: 22, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  close: {
+    // 44pt iOS / 48dp Android minimum touch target (§9).
+    ...Platform.select({ android: { width: 48, height: 48, borderRadius: 24 }, default: { width: 44, height: 44, borderRadius: 22 } }),
+    borderWidth: 1, alignItems: 'center', justifyContent: 'center',
+  },
   pulseZone: { height: 264, alignItems: 'center', justifyContent: 'center' },
+  pulseAtmosphere: { position: 'absolute', width: 300, height: 300, borderRadius: 150, opacity: 0.5 },
   pulseRing: { position: 'absolute', width: 240, height: 240, borderRadius: 120, borderWidth: 1 },
   pulseCore: { width: 88, height: 88, borderRadius: 44, opacity: 0.72 },
   commandBlock: { alignItems: 'center', maxWidth: 342, alignSelf: 'center' },
@@ -274,7 +287,9 @@ const styles = StyleSheet.create({
   whyText: { fontSize: 15, fontFamily: 'Inter_500Medium' },
   whySheet: { marginTop: 16, padding: 16, borderRadius: 14, borderWidth: 1 },
   whyBody: { fontSize: 15, lineHeight: 22, fontFamily: 'Inter_400Regular' },
-  footer: { position: 'absolute', left: 24, right: 24, bottom: 0 },
+  // Footer clamps to the same 430pt readable width, centered (§5).
+  footer: { position: 'absolute', left: 0, right: 0, bottom: 0, alignItems: 'center' },
+  footerInner: { width: '100%', maxWidth: 430, paddingHorizontal: 24 },
   track: { height: 4, borderRadius: 2, overflow: 'hidden' },
   trackFill: { height: '100%', borderRadius: 2 },
   footerLabels: { marginTop: 14, flexDirection: 'row', justifyContent: 'space-between' },
