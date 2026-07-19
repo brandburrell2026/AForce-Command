@@ -194,7 +194,22 @@ export function getBaseRiskMinutes(level: PerformanceLevel, minutesSinceLast: nu
 export function generateSocialCommand(state: UserState, social: NonNullable<ScoreEngineOutput['social']>): Command | null {
   // Recovery Mode (drinking ended within 8h) — coach pivots to recovery
   // protocol. Calm, non-judgmental, never "don't drink".
+  //
+  // Ruling #2: one cadence framing per state, never both at once. While the
+  // user is still awake the window runs as a timed 15-minute recheck loop
+  // (countdown-driven). The single "before sleep" command is the night's
+  // TERMINAL closer — no recheck — shown only once they're winding down
+  // (`isAwake === false`). The sleep/awake signal is the switch.
   if (social.inRecoveryWindow && !social.active) {
+    if (state.isAwake) {
+      return {
+        id: 'cmd-social-recovery-loop',
+        action: i18n.t('coach.social_recovery_loop_action'),
+        explanation: i18n.t('coach.social_recovery_loop_explanation'),
+        urgencyLevel: 'high',
+        estimatedImpact: '+15 to score',
+      };
+    }
     return {
       id: 'cmd-social-recovery',
       action: i18n.t('coach.social_recovery_action'),

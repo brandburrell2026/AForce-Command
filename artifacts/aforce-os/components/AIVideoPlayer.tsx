@@ -332,10 +332,15 @@ export function AIVideoPlayer({ video, command, compact = true, timerSeconds, sc
   const glow = displayed?.glow ?? status.glow;
   const speedMultiplier = status.animationSpeed;
 
-  // "· LIVE" means an active recheck countdown — same state, same label on both
-  // the compact card and the expanded sheet (ruling #11). When the window is
-  // closed/paused (no ticking countdown), neither surface shows it.
-  const liveActive = timerSeconds != null && timerSeconds > 0;
+  // Ruling #2: the "before sleep" recovery command (`cmd-social-recovery`) is
+  // the night's TERMINAL closer — no recheck loop. Suppress the countdown and
+  // the loop overlay subtitle so a single cadence shows (never "recheck 15 min"
+  // beside "before sleep"). The awake-state loop command keeps its countdown.
+  const terminalRecovery = command.id === 'cmd-social-recovery';
+  const showCountdown = timerSeconds != null && timerSeconds > 0 && !terminalRecovery;
+  // "· LIVE" tracks an active recheck countdown — same state, same label on both
+  // the compact card and the expanded sheet (ruling #11).
+  const liveActive = showCountdown;
 
   // Progress bar (loops video duration)
   const progress = useSharedValue(0);
@@ -390,7 +395,7 @@ export function AIVideoPlayer({ video, command, compact = true, timerSeconds, sc
           <Scene kind={video.scene} accent={accent} glow={glow} speedMultiplier={speedMultiplier} />
           <View style={styles.overlayTextBlock} pointerEvents="none">
             <Text style={[styles.overlayTitle, { color: '#fff' }]}>{video.overlayTitle}</Text>
-            <Text style={styles.overlaySub}>{video.overlaySubtitle}</Text>
+            {!terminalRecovery ? <Text style={styles.overlaySub}>{video.overlaySubtitle}</Text> : null}
           </View>
         </View>
 
@@ -401,7 +406,7 @@ export function AIVideoPlayer({ video, command, compact = true, timerSeconds, sc
         <View style={styles.metaRow}>
           <Text style={styles.metaText}>{categoryLabel(video.videoCategory)}</Text>
           <Text style={styles.metaText}>
-            {timerSeconds != null ? `NEXT CHECK ${formatTimer(timerSeconds)}` : `${video.durationSec}s`}
+            {showCountdown ? `NEXT CHECK ${formatTimer(timerSeconds ?? 0)}` : `${video.durationSec}s`}
           </Text>
         </View>
       </Pressable>
@@ -424,7 +429,7 @@ export function AIVideoPlayer({ video, command, compact = true, timerSeconds, sc
               <Scene kind={video.scene} accent={accent} glow={glow} speedMultiplier={speedMultiplier} />
               <View style={styles.overlayTextBlock} pointerEvents="none">
                 <Text style={[styles.overlayTitleLg, { color: '#fff' }]}>{video.overlayTitle}</Text>
-                <Text style={styles.overlaySubLg}>{video.overlaySubtitle}</Text>
+                {!terminalRecovery ? <Text style={styles.overlaySubLg}>{video.overlaySubtitle}</Text> : null}
               </View>
             </View>
 
@@ -440,7 +445,7 @@ export function AIVideoPlayer({ video, command, compact = true, timerSeconds, sc
             <View style={styles.metaRow}>
               <Text style={styles.metaText}>{categoryLabel(video.videoCategory)}</Text>
               <Text style={styles.metaText}>
-                {timerSeconds != null ? `NEXT CHECK ${formatTimer(timerSeconds)}` : `${video.durationSec}s`}
+                {showCountdown ? `NEXT CHECK ${formatTimer(timerSeconds ?? 0)}` : `${video.durationSec}s`}
               </Text>
             </View>
           </View>
