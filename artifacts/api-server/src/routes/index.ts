@@ -101,6 +101,24 @@ router.use(commandCenterAdminRouter);
 const whoopClientId = process.env["WHOOP_CLIENT_ID"];
 const whoopClientSecret = process.env["WHOOP_CLIENT_SECRET"];
 const whoopRedirectUri = process.env["WHOOP_OAUTH_REDIRECT_URI"];
+// Runtime mount verification: log the PRESENCE (never the value) of each
+// WHOOP_* var in the running process. The classic failure is a var set in the
+// Railway dashboard but attached to the wrong variable group / read at build
+// time, leaving process.env.WHOOP_* undefined at runtime — the router then
+// silently doesn't mount and /api/whoop/oauth/* 404s. This line makes that
+// diagnosable from the boot logs. NOTE the exact required names below; a common
+// mistake is setting WHOOP_REDIRECT_URI instead of WHOOP_OAUTH_REDIRECT_URI.
+logger.info(
+  {
+    WHOOP_CLIENT_ID: Boolean(whoopClientId),
+    WHOOP_CLIENT_SECRET: Boolean(whoopClientSecret),
+    WHOOP_OAUTH_REDIRECT_URI: Boolean(whoopRedirectUri),
+    WHOOP_OAUTH_SUCCESS_URL: Boolean(process.env["WHOOP_OAUTH_SUCCESS_URL"]),
+    WHOOP_TOKEN_ENCRYPTION_KEY: Boolean(process.env["WHOOP_TOKEN_ENCRYPTION_KEY"]),
+    willMount: Boolean(whoopClientId && whoopClientSecret && whoopRedirectUri),
+  },
+  "whoopOAuth: env presence (mount verification)",
+);
 if (whoopClientId && whoopClientSecret && whoopRedirectUri) {
   // Hidden-infra env gate. Default = in-memory (preserves zero
   // behavior change for single-replica deploys). Strict whitelist
