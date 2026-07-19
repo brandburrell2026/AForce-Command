@@ -144,7 +144,7 @@ describe("fetchWhoopSnapshot", () => {
     const snap = await fetchWhoopSnapshot({
       accessToken: "AT",
       fetchImpl: fn,
-      log: { warn },
+      log: { warn, info: vi.fn() },
     });
     expect(snap.recoveryPct).toBeNull();
     expect(snap.hrvSdnn).toBeNull();
@@ -165,7 +165,7 @@ describe("fetchWhoopSnapshot", () => {
     const snap = await fetchWhoopSnapshot({
       accessToken: "AT",
       fetchImpl: fn,
-      log: { warn },
+      log: { warn, info: vi.fn() },
     });
     expect(snap).toEqual(EMPTY_WHOOP_SNAPSHOT);
     expect(warn).toHaveBeenCalledTimes(1);

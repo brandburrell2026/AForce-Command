@@ -67,6 +67,10 @@ import {
   db,
 } from "@workspace/db";
 import { getWhoopRefreshRegistry } from "../lib/whoopRegistry";
+import {
+  buildDefaultWhoopFetchDeps,
+  runWhoopFetchOnce,
+} from "../lib/whoopFetchWorker";
 import { logger } from "../lib/logger";
 // Note: smartCaptureRouter is mounted directly in app.ts BEFORE the global
 // 64kB express.json() limiter (base64 photos blow past 64kB instantly).
@@ -149,6 +153,18 @@ if (whoopClientId && whoopClientSecret && whoopRedirectUri) {
           log: logger,
         }),
       successRedirectUrl: process.env["WHOOP_OAUTH_SUCCESS_URL"],
+      // Initial fetch on connect — mirrors the Garmin/Oura/Strava mounts.
+      // Shares the process-singleton refresh registry with the cron sweep so
+      // a connect-time fetch and a mid-sweep fetch can't double-refresh the
+      // same user's token.
+      runSyncForUser: async (userId) => {
+        const deps = buildDefaultWhoopFetchDeps(db, userId, {
+          log: logger,
+          refreshRegistry: getWhoopRefreshRegistry(),
+        });
+        const outcome = await runWhoopFetchOnce(userId, deps);
+        return { status: outcome.status, fetchedAt: outcome.fetchedAt };
+      },
     }),
   );
   // Admin trigger shares the OAuth env gate AND the process-singleton

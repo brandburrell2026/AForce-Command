@@ -57,6 +57,22 @@ export interface WhoopOAuthDeps {
   tokenStoreFor: (userId: string) => WhoopTokenStore;
   /** Optional post-success redirect. When omitted, returns JSON. */
   successRedirectUrl?: string;
+  /**
+   * Optional post-connect sync. When wired, the callback kicks a best-effort
+   * initial biometrics fetch right after the tokens are stored, so real WHOOP
+   * data lands immediately instead of waiting for the periodic sweep's next
+   * tick. It never blocks or fails the browser redirect — a sync error is
+   * logged and the ongoing sweep retries. Mirrors the Garmin/Oura/Strava hook.
+   */
+  runSyncForUser?: (userId: string) => Promise<{
+    status:
+      | "ok"
+      | "skipped_no_token"
+      | "skipped_no_state"
+      | "skipped_locked"
+      | "error";
+    fetchedAt?: number;
+  }>;
   /** Test seams. */
   fetchImpl?: typeof fetch;
   nowMs?: () => number;
@@ -191,6 +207,23 @@ export function buildWhoopOAuthRouter(deps: WhoopOAuthDeps): IRouter {
         { userId: record.userId },
         "whoopOAuth:callback persisted tokens",
       );
+      // Best-effort initial fetch so the app shows real biometrics right after
+      // connect (not on the next sweep tick). Awaited so it definitely runs,
+      // but wrapped so a fetch error never blocks or fails the redirect.
+      if (deps.runSyncForUser) {
+        try {
+          const outcome = await deps.runSyncForUser(record.userId);
+          req.log?.info(
+            { userId: record.userId, status: outcome.status },
+            "whoopOAuth:callback initial sync",
+          );
+        } catch (err) {
+          req.log?.warn(
+            { userId: record.userId, err: errName(err) },
+            "whoopOAuth:callback initial sync threw",
+          );
+        }
+      }
       if (deps.successRedirectUrl) {
         res.redirect(302, deps.successRedirectUrl);
         return;
