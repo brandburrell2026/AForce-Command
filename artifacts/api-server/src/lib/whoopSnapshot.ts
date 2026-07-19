@@ -46,8 +46,10 @@ export interface FetchWhoopSnapshotOptions {
   /** OAuth2 bearer token. Null / blank = no fetch, empty snapshot. */
   accessToken: string | null;
   fetchImpl?: typeof fetch;
-  /** Pino-ish logger for per-endpoint warnings. Defaults to no-op. */
-  log?: Pick<Logger, "warn"> | { warn: (...args: unknown[]) => void };
+  /** Pino-ish logger for per-endpoint call/warn lines. Defaults to no-op. */
+  log?:
+    | Pick<Logger, "warn" | "info">
+    | { warn: (...args: unknown[]) => void; info: (...args: unknown[]) => void };
 }
 
 interface WhoopRecoveryPayload {
@@ -79,12 +81,18 @@ async function getJson<T>(
   url: string,
   token: string,
   fetchImpl: typeof fetch,
-  log: Pick<Logger, "warn"> | { warn: (...args: unknown[]) => void },
+  log:
+    | Pick<Logger, "warn" | "info">
+    | { warn: (...args: unknown[]) => void; info: (...args: unknown[]) => void },
 ): Promise<T | null> {
   try {
     const res = await fetchImpl(url, {
       headers: { Authorization: `Bearer ${token}` },
     });
+    // Per-call visibility (task: confirm real data flow in the logs). Logs the
+    // URL + HTTP status of every developer/v1 GET — never the bearer token,
+    // which lives only in the Authorization header, not the URL.
+    log.info({ url, status: res.status }, "whoop fetch");
     if (!res.ok) {
       log.warn({ url, status: res.status }, "whoop fetch non-ok");
       return null;
@@ -113,7 +121,7 @@ export async function fetchWhoopSnapshot(
   const token = opts.accessToken?.trim();
   if (!token) return { ...EMPTY_WHOOP_SNAPSHOT };
   const fetchImpl = opts.fetchImpl ?? fetch;
-  const log = opts.log ?? { warn: () => undefined };
+  const log = opts.log ?? { warn: () => undefined, info: () => undefined };
 
   const [recovery, cycle, sleep] = await Promise.all([
     getJson<WhoopRecoveryPayload>(
