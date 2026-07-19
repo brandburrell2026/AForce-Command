@@ -32,8 +32,10 @@
  * follow-up PRs.
  */
 
+import type { Logger } from "pino";
 import type { WhoopTokens, WhoopTokenStore } from "@workspace/db";
 import type { WhoopRefreshCoordinator } from "./whoopRefreshRegistry";
+import { serializeError } from "./serializeError";
 
 export const WHOOP_TOKEN_ENDPOINT =
   "https://api.prod.whoop.com/oauth/oauth2/token";
@@ -71,6 +73,12 @@ export interface WhoopTokenManagerOptions {
    * which is sufficient when only one manager exists per user.
    */
   refreshCoordinator?: WhoopRefreshCoordinator;
+  /**
+   * Optional logger. When provided, `getValidAccessToken` logs the otherwise
+   * silently-swallowed refresh failure (undecryptable refresh token, WHOOP 401,
+   * etc.) instead of returning null with no trace.
+   */
+  log?: Pick<Logger, "error">;
 }
 
 export interface WhoopTokenManager {
@@ -253,7 +261,15 @@ export function createWhoopTokenManager(
       try {
         const next = await refresh();
         return next.accessToken;
-      } catch {
+      } catch (err) {
+        // Previously swallowed silently. Surface the real cause (undecryptable
+        // refresh token after a key rotation, WHOOP rejecting a stale refresh
+        // token, network, …) — redacted so no token leaks — then keep the
+        // null-on-failure contract so the sweep moves on.
+        opts.log?.error(
+          { err: serializeError(err) },
+          "whoopTokenManager:getValidAccessToken refresh failed",
+        );
         return null;
       }
     },

@@ -34,6 +34,7 @@ import {
   type WhoopTokenStore,
 } from "@workspace/db";
 import type { Logger } from "pino";
+import { serializeError } from "./serializeError";
 import {
   createWhoopTokenManager,
   getWhoopOAuthConfigFromEnv,
@@ -124,10 +125,12 @@ export async function runWhoopFetchOnce(
   try {
     accessToken = await deps.tokenManager.getValidAccessToken();
   } catch (err) {
-    // `getValidAccessToken` is contractually `null`-on-failure, but
-    // defend against an unexpected throw so the sweep keeps moving.
-    log?.warn(
-      { userId, err: errMessage(err) },
+    // `getValidAccessToken` is contractually `null`-on-failure, but a THROW
+    // here means the token read itself failed (e.g. an undecryptable stored
+    // token after a key rotation). Surface it at error level with the real,
+    // redacted message/stack — not just the class name.
+    log?.error(
+      { userId, err: serializeError(err) },
       "whoopFetchWorker:token resolution threw",
     );
     return { userId, status: "skipped_no_token" };
@@ -145,7 +148,7 @@ export async function runWhoopFetchOnce(
     snapshot = await fetcher(accessToken);
   } catch (err) {
     log?.error(
-      { userId, err: errMessage(err) },
+      { userId, err: serializeError(err) },
       "whoopFetchWorker:fetch threw",
     );
     return { userId, status: "error", error: errMessage(err) };
@@ -254,6 +257,7 @@ export function buildDefaultWhoopFetchDeps(
     store,
     config,
     refreshCoordinator: opts.refreshRegistry?.coordinatorFor(userId),
+    log: opts.log,
   });
   return {
     tokenManager,
