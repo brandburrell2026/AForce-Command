@@ -48,10 +48,22 @@ import {
   runOuraFetchOnce,
 } from "../lib/ouraFetchWorker";
 import { getOuraRefreshRegistry } from "../lib/ouraRegistry";
+import { buildStravaOAuthRouter } from "./stravaOAuth";
+import {
+  createInMemoryStravaAuthStateStore,
+  createDrizzleStravaAuthStateStore,
+  type StravaAuthStateStore,
+} from "../lib/stravaAuthStateStore";
+import {
+  buildDefaultStravaFetchDeps,
+  runStravaFetchOnce,
+} from "../lib/stravaFetchWorker";
+import { getStravaRefreshRegistry } from "../lib/stravaRegistry";
 import {
   createDrizzleWhoopTokenStoreForUser,
   createDrizzleGarminTokenStoreForUser,
   createDrizzleOuraTokenStoreForUser,
+  createDrizzleStravaTokenStoreForUser,
   db,
 } from "@workspace/db";
 import { getWhoopRefreshRegistry } from "../lib/whoopRegistry";
@@ -213,6 +225,50 @@ if (ouraClientId && ouraClientSecret && ouraRedirectUri) {
           refreshRegistry: getOuraRefreshRegistry(),
         });
         const outcome = await runOuraFetchOnce(userId, deps);
+        return { status: outcome.status, fetchedAt: outcome.fetchedAt };
+      },
+    }),
+  );
+}
+
+// Hidden-infra mount: the Strava OAuth routes only exist when all three
+// env vars are set. With nothing configured (the default), the router is
+// not mounted and `/api/strava/*` 404s — there is no half-configured or
+// fake-"live" surface that can leak. Mirrors the WHOOP/Garmin/Oura gates
+// above.
+const stravaClientId = process.env["STRAVA_CLIENT_ID"];
+const stravaClientSecret = process.env["STRAVA_CLIENT_SECRET"];
+const stravaRedirectUri = process.env["STRAVA_OAUTH_REDIRECT_URI"];
+if (stravaClientId && stravaClientSecret && stravaRedirectUri) {
+  const stravaDriverRaw = process.env["STRAVA_AUTH_STATE_STORE_DRIVER"];
+  const useDrizzleStravaAuthState = stravaDriverRaw === "drizzle";
+  const stravaAuthStateStore: StravaAuthStateStore = useDrizzleStravaAuthState
+    ? createDrizzleStravaAuthStateStore(db)
+    : createInMemoryStravaAuthStateStore();
+  logger.info(
+    { driver: useDrizzleStravaAuthState ? "drizzle" : "memory" },
+    "stravaOAuth: auth-state store initialized",
+  );
+  router.use(
+    buildStravaOAuthRouter({
+      authStateStore: stravaAuthStateStore,
+      oauthConfig: {
+        clientId: stravaClientId,
+        clientSecret: stravaClientSecret,
+      },
+      redirectUri: stravaRedirectUri,
+      tokenStoreFor: (userId) =>
+        createDrizzleStravaTokenStoreForUser(db, userId, {
+          encryptionKey: process.env["STRAVA_TOKEN_ENCRYPTION_KEY"] ?? null,
+          log: logger,
+        }),
+      successRedirectUrl: process.env["STRAVA_OAUTH_SUCCESS_URL"],
+      runSyncForUser: async (userId) => {
+        const deps = buildDefaultStravaFetchDeps(db, userId, {
+          log: logger,
+          refreshRegistry: getStravaRefreshRegistry(),
+        });
+        const outcome = await runStravaFetchOnce(userId, deps);
         return { status: outcome.status, fetchedAt: outcome.fetchedAt };
       },
     }),
