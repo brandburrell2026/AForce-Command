@@ -301,7 +301,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const latest = userStateRef.current;
     const merged: UserState = {
       ...newUserState,
-      biometrics: latest.biometrics,
+      // biometrics is NOT overridden here anymore: the SET_USER_STATE reducer
+      // reconciles it freshest-wins so server-fetched provider snapshots (WHOOP)
+      // land while on-device/demo ones are preserved. appleHealth stays a pure
+      // on-device overlay.
       appleHealth: latest.appleHealth,
     };
     dispatch({

@@ -29,8 +29,11 @@ import type {
   JournalTimelineEntry,
   JournalRollup,
   PerformanceLevel,
+  ProviderBiometrics,
+  ProviderSnapshot,
 } from '../types';
 import type { PreparedIntake, IntakeEventWire } from '../utils/intakeOutbox';
+import { mergeBiometrics } from '../utils/biometricsMerge';
 import { calculateScore } from '../utils/scoringEngine';
 import { computeEventImpact } from './hydrationScoreService';
 import { PRODUCTS } from '../data/products';
@@ -60,6 +63,30 @@ const AFORCE_BASE = `${API_BASE}/aforce`;
 // The Postgres row returns ISO date strings + nullable fields; the rest
 // of the app expects `Date` instances. Centralize the conversion so the
 // store never has to know the wire format.
+/**
+ * Coerce the server's `biometrics` jsonb blob into `ProviderBiometrics`.
+ *
+ * The backend fetch workers (WHOOP today) write one entry per provider under
+ * `aforce_user_state.biometrics`, each already `ProviderSnapshot`-shaped
+ * (`providerId` + numeric `fetchedAt` + metrics). We keep only well-formed
+ * entries and re-stamp `providerId` from the key so a malformed blob can never
+ * poison the score. Returns undefined when there's nothing usable.
+ */
+export function normalizeBiometrics(raw: unknown): ProviderBiometrics | undefined {
+  if (!raw || typeof raw !== 'object') return undefined;
+  const out: Record<string, ProviderSnapshot> = {};
+  for (const [key, val] of Object.entries(raw as Record<string, unknown>)) {
+    if (
+      val &&
+      typeof val === 'object' &&
+      typeof (val as { fetchedAt?: unknown }).fetchedAt === 'number'
+    ) {
+      out[key] = { ...(val as object), providerId: key } as ProviderSnapshot;
+    }
+  }
+  return Object.keys(out).length > 0 ? (out as ProviderBiometrics) : undefined;
+}
+
 export function normalizeUserState(row: Record<string, unknown>): UserState {
   const get = <T>(k: string): T => row[k] as T;
   const dateOrNull = (k: string): Date | null => {
@@ -112,6 +139,10 @@ export function normalizeUserState(row: Record<string, unknown>): UserState {
     language: ((get<string>('language') ?? 'en') as UserState['language']),
     intakeEvents: normalizeIntakeEvents(row['intakeEvents']),
     socialMode: normalizeSocialMode(row['socialMode']),
+    // Server-fetched provider biometrics (e.g. WHOOP). Previously dropped as
+    // "client-only"; the backend now persists them, so carry them through and
+    // let the freshest-wins merge reconcile with any client-owned snapshots.
+    biometrics: normalizeBiometrics(row['biometrics']),
   };
 }
 
@@ -218,12 +249,13 @@ export async function fetchHome(userState: UserState): Promise<HomePayload> {
     const normalized = normalizeUserState(row);
     const merged: UserState = {
       ...normalized,
-      // appleHealth + biometrics are client-only (sourced from on-device
-      // HealthKit + provider OAuth). The server doesn't persist them
-      // (yet), so without preserving here, every server round-trip
-      // would erase the score contribution from connected platforms.
+      // appleHealth is client-only (on-device HealthKit); preserve it so a
+      // server round-trip never erases it.
       appleHealth: userState.appleHealth ?? normalized.appleHealth,
-      ...(userState.biometrics ? { biometrics: userState.biometrics } : {}),
+      // biometrics: the backend now persists server-fetched provider snapshots
+      // (WHOOP) AND the client holds on-device / demo ones. Merge freshest-wins
+      // so real server data flows in and can't freeze behind a stale local copy.
+      biometrics: mergeBiometrics(normalized.biometrics, userState.biometrics),
     };
     lastKnownState = merged;
     return { engineOutput: calculateScore(merged), userState: merged, serverTime };
@@ -384,7 +416,7 @@ export async function sendPreparedIntake(
   const newUserState: UserState = {
     ...normalized,
     appleHealth: preserve.appleHealth ?? normalized.appleHealth,
-    ...(preserve.biometrics ? { biometrics: preserve.biometrics } : {}),
+    biometrics: mergeBiometrics(normalized.biometrics, preserve.biometrics),
   };
   lastKnownState = newUserState;
   const log: IntakeLog = {
@@ -461,7 +493,7 @@ async function postAndRecompute(
   const newUserState: UserState = {
     ...normalized,
     appleHealth: preserve.appleHealth ?? normalized.appleHealth,
-    ...(preserve.biometrics ? { biometrics: preserve.biometrics } : {}),
+    biometrics: mergeBiometrics(normalized.biometrics, preserve.biometrics),
   };
   lastKnownState = newUserState;
   return { newUserState, engineOutput: calculateScore(newUserState) };
