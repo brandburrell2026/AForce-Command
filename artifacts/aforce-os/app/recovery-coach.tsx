@@ -13,7 +13,7 @@ import React from 'react';
 import { Redirect, useRouter } from 'expo-router';
 import { useAppStore } from '../store/useAppStore';
 import { RecoveryCoachScreen } from '../components/recoveryCoach/RecoveryCoachScreen';
-import { buildRecoveryCommand } from '../utils/recovery/recoveryCommandFromStore';
+import { buildRecoveryCommand, parseEngineActionCopy } from '../utils/recovery/recoveryCommandFromStore';
 
 export default function RecoveryCoachRoute() {
   const router = useRouter();
@@ -23,15 +23,17 @@ export default function RecoveryCoachRoute() {
   if (!state.featureFlags.spec_recoveryCoach) return <Redirect href="/" />;
 
   const engineCommand = state.engineOutput.command;
-  // Build the normalized command from live store data. Title is the recovery
-  // framing; instruction is the engine command verbatim (no dose parsed out);
-  // recheck is the risk timer. When the recovery/rules engine emits structured
-  // commands, feed those to buildRecoveryCommand instead.
+  // Build the normalized command from live store data. The engine command string
+  // is parsed into title + instruction with any "Recheck in …" clause STRIPPED —
+  // the recheck is shown only by the countdown (spec §2/§7). The recheck time
+  // comes from the risk timer. When the recovery/rules engine emits structured
+  // commands, feed those straight to buildRecoveryCommand instead.
+  const { title, instruction } = parseEngineActionCopy(engineCommand.action);
   const command = buildRecoveryCommand(
     {
       commandId: engineCommand.id,
-      title: 'Start with water',
-      instruction: engineCommand.action,
+      title: title || 'Start with water',
+      instruction,
       primaryActionLabel: "I've had the water",
       rationale: engineCommand.explanation,
       recheckInSeconds: state.timerSeconds,

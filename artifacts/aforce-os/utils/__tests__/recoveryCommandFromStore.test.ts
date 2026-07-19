@@ -3,7 +3,7 @@
  * data without fabricating a dose.
  */
 import { describe, it, expect } from 'vitest';
-import { buildRecoveryCommand } from '../recovery/recoveryCommandFromStore';
+import { buildRecoveryCommand, parseEngineActionCopy } from '../recovery/recoveryCommandFromStore';
 import { deriveRecoveryCommandView, validateRecoveryCommand } from '../recovery/recoveryCommand';
 
 const NOW = Date.parse('2026-07-18T12:00:00.000Z');
@@ -18,6 +18,29 @@ const src = {
   recheckInSeconds: 15 * 60,
   sourceVersion: 'engine@live',
 };
+
+describe('parseEngineActionCopy — strips the recheck clause (spec §2/§7)', () => {
+  it('splits title/instruction and removes "Recheck in …" so the countdown is the ONLY recheck', () => {
+    const r = parseEngineActionCopy('Start with water — 20 oz now. Recheck in 15 minutes.');
+    expect(r.title).toBe('Start with water');
+    expect(r.instruction).toBe('20 oz now.');
+    expect(`${r.title} ${r.instruction}`.toLowerCase()).not.toContain('recheck');
+  });
+
+  it('handles no separator (title only, empty instruction)', () => {
+    expect(parseEngineActionCopy('Add electrolytes. Recheck in 15 minutes.')).toEqual({ title: 'Add electrolytes', instruction: '' });
+  });
+
+  it('leaves a clean action without a recheck clause intact', () => {
+    expect(parseEngineActionCopy('Add electrolytes — one serving now.')).toEqual({ title: 'Add electrolytes', instruction: 'one serving now.' });
+  });
+
+  it('never leaves a stray trailing separator', () => {
+    const r = parseEngineActionCopy('Hold steady — you are on pace. Recheck in 20 minutes.');
+    expect(r.instruction).toBe('you are on pace.');
+    expect(r.instruction).not.toMatch(/[—-]\s*$/);
+  });
+});
 
 describe('buildRecoveryCommand', () => {
   it('produces a valid command whose timeline is created ≤ recheck ≤ expires', () => {
