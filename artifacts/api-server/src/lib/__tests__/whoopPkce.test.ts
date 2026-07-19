@@ -46,10 +46,20 @@ describe("createCodeVerifier / createOAuthState", () => {
     expect(v.length).toBe(43);
   });
 
-  it("state is url-safe and 32 chars (24 bytes base64url -> 32)", () => {
-    const s = createOAuthState();
-    expect(s).toMatch(URL_SAFE);
-    expect(s.length).toBe(32);
+  it("state is url-safe and EXACTLY 8 chars (WHOOP requirement; 6 bytes base64url -> 8)", () => {
+    // WHOOP rejects a longer state at the authorize step, so this length is a
+    // hard contract, not an implementation detail — assert it every run.
+    for (let i = 0; i < 50; i += 1) {
+      const s = createOAuthState();
+      expect(s).toMatch(URL_SAFE);
+      expect(s.length).toBe(8);
+    }
+  });
+
+  it("state values diverge across calls (48-bit entropy sanity)", () => {
+    const seen = new Set<string>();
+    for (let i = 0; i < 200; i += 1) seen.add(createOAuthState());
+    expect(seen.size).toBe(200);
   });
 
   it("verifier values diverge across calls (cheap entropy check)", () => {

@@ -9,8 +9,12 @@
  *     [A-Z a-z 0-9 - . _ ~]. We generate 32 random bytes and
  *     base64url-encode -> 43 chars (max-entropy, well under the cap).
  *   - code_challenge (S256): base64url(SHA-256(verifier)).
- *   - state: CSRF token bound to the user's session start. We use
- *     base64url(24 random bytes) -> 32 chars.
+ *   - state: CSRF token bound to the user's session start. WHOOP requires
+ *     the state to be EXACTLY 8 characters when self-generated (a longer
+ *     token silently fails the authorize step), so we use
+ *     base64url(6 random bytes) -> 8 chars (48 bits; single-use + short-lived
+ *     + server-stored, so 48 bits of entropy is sufficient here). See
+ *     https://developer.whoop.com/docs/developing/oauth/
  *
  * Why S256-only: WHOOP supports it; `plain` defeats the point of
  * PKCE and is forbidden by anyone who's taken a second look at the
@@ -22,9 +26,14 @@ import { randomBytes, createHash } from "node:crypto";
 export const WHOOP_AUTHORIZE_ENDPOINT =
   "https://api.prod.whoop.com/oauth/oauth2/auth";
 
-/** Default scope set — mirrors the mobile WHOOP integration. */
+/**
+ * Default scope set — the WHOOP developer app's authorized read scopes plus
+ * `offline` (required to receive a refresh token; without it recovery sync
+ * breaks on token expiry). `read:workout` is included so training-load reads
+ * are authorized alongside recovery/cycles/sleep.
+ */
 export const WHOOP_DEFAULT_SCOPES =
-  "offline read:recovery read:cycles read:sleep read:profile";
+  "offline read:recovery read:cycles read:sleep read:workout read:profile";
 
 export function base64UrlEncode(buf: Buffer): string {
   return buf
@@ -45,7 +54,9 @@ export function codeChallengeS256(verifier: string): string {
 }
 
 export function createOAuthState(): string {
-  return base64UrlEncode(randomBytes(24));
+  // WHOOP requires the `state` to be exactly 8 characters. 6 random bytes
+  // base64url-encode to exactly 8 chars (no padding), so this is always 8.
+  return base64UrlEncode(randomBytes(6));
 }
 
 export interface BuildAuthorizeUrlArgs {
