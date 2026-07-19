@@ -1237,6 +1237,24 @@ export default function ProfileScreen() {
                     </Text>
                   </Pressable>
 
+                  {/* Dev-only preview entry for the dormant Recovery Coach mode
+                      (no home entry is wired yet). __DEV__ is false in release
+                      builds, so this never ships. Flips the flag + opens it. */}
+                  {__DEV__ ? (
+                    <Pressable
+                      onPress={() => {
+                        setFeatureFlags({ ...state.featureFlags, spec_recoveryCoach: true });
+                        router.push('/recovery-coach');
+                      }}
+                      style={[styles.demoMaster, { borderColor: Colors.accent.primary, marginTop: 10 }]}
+                    >
+                      <Icon name="activity" size={14} color={Colors.accent.primary} />
+                      <Text style={[styles.demoMasterText, { color: Colors.accent.primary }]}>
+                        Preview Recovery Coach (dev)
+                      </Text>
+                    </Pressable>
+                  ) : null}
+
                   <FlagRow flag="clutch_access_enabled" label="Clutch Access" desc="Phase 2 — Command the Team" color={Colors.clutch.primary} state={state} onToggle={toggleFlag} />
                   <FlagRow flag="clutch_heat_mode_enabled" label="Heat Mode" desc="Aggressive cadence under heat stress" color={Colors.clutch.primary} state={state} onToggle={toggleFlag} />
                   <FlagRow flag="clutch_inventory_enabled" label="Auto Replenish" desc="Inventory + restock automation" color={Colors.clutch.primary} state={state} onToggle={toggleFlag} />
