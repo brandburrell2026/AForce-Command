@@ -657,6 +657,14 @@ export interface FeatureFlags {
    */
   spec_recovery: boolean;
   /**
+   * Recovery Coach — the full-screen premium focused mode (spec:
+   * docs/specs/recovery-coach-premium-spec.md). Net-new surface driven entirely
+   * by the normalized RecoveryCommand. Default OFF: built dormant, no entry wired
+   * into the frozen home; the launch is flipped on deliberately. Score-Protection:
+   * display only — dose comes solely from the validated command, never fabricated.
+   */
+  spec_recoveryCoach: boolean;
+  /**
    * Hydration Demand Engine™ — pure module that replaces generic
    * 8-glasses logic with an input-driven daily target. Phase 1 ships
    * the module only; outputs are NOT consumed by any visible surface

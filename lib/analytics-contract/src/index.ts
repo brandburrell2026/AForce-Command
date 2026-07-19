@@ -78,6 +78,12 @@ export const PHASE1_EVENTS = [
   { eventType: "performance_age_snapshot", owner: "mobile", trigger: "Once per UTC day, the client records the member's display-only Performance Age™ estimate. Emits ONLY the privacy-safe years delta (performanceAge − actualAge, negative = younger) plus its lifecycle status — NEVER the actual age, birth year, biometrics, or sub-scores. A display-only health estimate, never a scoring input (Score-Protection)", payloadFields: ["deltaYears", "status"] },
   { eventType: "subscription_started", owner: "mobile", trigger: "A paid subscription becomes active — emitted CLIENT-side on confirmed checkout (sole emitter), carrying descriptive non-PII revenue metadata", payloadFields: ["planTier", "amountCents", "currency", "billingInterval"] },
   { eventType: "day7_subscription_offer", owner: "mobile", trigger: "The Day-7 subscription offer is shown to the user", payloadFields: [] },
+  { eventType: "recovery_coach_viewed", owner: "mobile", trigger: "The full-screen Recovery Coach focused mode is shown", payloadFields: ["commandId", "commandState", "sourceVersion", "screenVersion"] },
+  { eventType: "recovery_coach_primary_tapped", owner: "mobile", trigger: "The Recovery Coach primary action (e.g. 'I've had the water') is tapped", payloadFields: ["commandId", "commandState", "screenVersion"] },
+  { eventType: "recovery_coach_adjust_tapped", owner: "mobile", trigger: "The Recovery Coach secondary 'Adjust command' action is tapped", payloadFields: ["commandId", "screenVersion"] },
+  { eventType: "recovery_coach_why_opened", owner: "mobile", trigger: "The Recovery Coach 'Why this command' rationale disclosure is opened", payloadFields: ["commandId", "screenVersion"] },
+  { eventType: "recovery_coach_dismissed", owner: "mobile", trigger: "The Recovery Coach focused mode is closed", payloadFields: ["commandId", "commandState", "screenVersion"] },
+  { eventType: "recovery_coach_completed", owner: "mobile", trigger: "The Recovery Coach command is confirmed complete via the primary action", payloadFields: ["commandId", "screenVersion"] },
 ] as const satisfies ReadonlyArray<{
   eventType: string;
   owner: AnalyticsEventOwner;
