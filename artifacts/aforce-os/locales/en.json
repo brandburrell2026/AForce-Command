@@ -277,6 +277,8 @@
     "social_slow_intake_explanation": "Spacing drinks to 30+ minutes keeps the rhythm steady and the morning clean.",
     "social_recovery_action": "Sip 20 ounces of water before sleep.",
     "social_recovery_explanation": "Recovery window is open. Two units of fluid + electrolytes now is the difference.",
+    "social_recovery_loop_action": "Start with water — 20 oz now. Recheck in 15 minutes.",
+    "social_recovery_loop_explanation": "Recovery window is open. Ease in — 20 oz now keeps you ahead. I'll recheck in 15.",
     "social_stop_action": "Pause alcohol. Recovery window is open.",
     "social_stop_explanation": "You're in a high-impact window. Switch to water and begin your recovery.",
     "social_do_not_drive_action": "Please don't drive. Use a rideshare or call a friend.",
