@@ -148,6 +148,7 @@ export const baseFlags: FeatureFlags = {
   spec_profileStrengthSection: false,
   spec_confidenceDetailSheet: false,
   spec_recovery: false,
+  spec_recoveryCoach: false,
   spec_demand_engine: false,
   spec_section20_calibration: false,
   hydro_scan_2_enabled: false,
