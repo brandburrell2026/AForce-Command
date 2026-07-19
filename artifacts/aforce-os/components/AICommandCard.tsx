@@ -38,6 +38,14 @@ interface Props {
    * other surface that renders this card, so the badge stays a static view there.
    */
   onConfidencePress?: () => void;
+  /**
+   * Ruling #5 (Recovery Mode tone): true while Recovery Mode is active
+   * (engine score below `MODE_RECOVERY_SCORE`). Softens the 'critical'
+   * urgency badge from alarm framing to a recovery-toned read — label
+   * and icon only, never `command.urgencyLevel` itself. Defaults to
+   * false so every other surface renders unchanged.
+   */
+  recoveryActive?: boolean;
 }
 
 const URGENCY_ICONS: Record<string, IconName> = {
@@ -54,10 +62,14 @@ const URGENCY_LABELS: Record<string, string> = {
   critical: 'CRITICAL',
 };
 
-export function AICommandCard({ command, performanceState, accentOverride, embedded = false, onConfidencePress }: Props) {
+export function AICommandCard({ command, performanceState, accentOverride, embedded = false, onConfidencePress, recoveryActive = false }: Props) {
   const color = accentOverride ?? performanceState.color;
-  const icon = URGENCY_ICONS[command.urgencyLevel] ?? 'zap';
-  const label = URGENCY_LABELS[command.urgencyLevel] ?? 'ACT NOW';
+  // Ruling #5: while Recovery Mode is active, 'critical' urgency drops
+  // the alarm framing — recovery-toned label + a calmer icon. Every
+  // other urgency level, and normal mode, are untouched.
+  const recoveryTone = recoveryActive && command.urgencyLevel === 'critical';
+  const icon = recoveryTone ? 'heart' : (URGENCY_ICONS[command.urgencyLevel] ?? 'zap');
+  const label = recoveryTone ? 'RECOVERING' : (URGENCY_LABELS[command.urgencyLevel] ?? 'ACT NOW');
   // Tappable only when a handler is wired AND there's a confidence read to
   // explain — no empty sheet, no dead tap target.
   const confidenceTappable = !!onConfidencePress && !!command.confidence;

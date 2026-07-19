@@ -17,10 +17,12 @@ import { StyleSheet, View } from 'react-native';
 import type { Command, PerformanceState } from '../../types';
 import { Colors } from '../../theme/colors';
 import { useFeatureFlags } from '../../store/useAppStore';
+import { useEngineSlice } from '../../store/slices';
 import { AICommandCard } from '../AICommandCard';
 import { CommandEvidence } from './CommandEvidence';
 import { VoiceStatusModule } from '../VoiceStatusModule';
 import { useRecoverySnapshotFromStore } from '../../services/useRecoverySnapshot';
+import { MODE_RECOVERY_SCORE } from '../../utils/modes/smartModes';
 
 interface Props {
   command: Command;
@@ -31,6 +33,12 @@ interface Props {
 function CommandConsoleImpl({ command, performanceState, accentOverride }: Props) {
   const color = accentOverride ?? performanceState.color;
   const flags = useFeatureFlags();
+  // Ruling #5 (Recovery Mode tone): while Recovery Mode is active (score
+  // below MODE_RECOVERY_SCORE), the AI Command's 'critical' badge drops
+  // alarm framing. Gated so normal mode (score >= threshold) renders
+  // identically to before.
+  const engine = useEngineSlice();
+  const recoveryActive = typeof engine.score === 'number' && engine.score < MODE_RECOVERY_SCORE;
   // Phase 3 (Recovery Layer): when `spec_recovery` is on, swap the
   // headline `action` for the Recovery engine's short imperative.
   // Hook returns null in production (flag default OFF) — no change.
@@ -46,6 +54,7 @@ function CommandConsoleImpl({ command, performanceState, accentOverride }: Props
         performanceState={performanceState}
         accentOverride={accentOverride}
         embedded
+        recoveryActive={recoveryActive}
       />
       {flags.evidence_engine_enabled && <CommandEvidence />}
       {flags.voice_status_module_visible && <VoiceStatusModule embedded />}
