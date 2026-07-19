@@ -332,6 +332,11 @@ export function AIVideoPlayer({ video, command, compact = true, timerSeconds, sc
   const glow = displayed?.glow ?? status.glow;
   const speedMultiplier = status.animationSpeed;
 
+  // "· LIVE" means an active recheck countdown — same state, same label on both
+  // the compact card and the expanded sheet (ruling #11). When the window is
+  // closed/paused (no ticking countdown), neither surface shows it.
+  const liveActive = timerSeconds != null && timerSeconds > 0;
+
   // Progress bar (loops video duration)
   const progress = useSharedValue(0);
   React.useEffect(() => {
@@ -374,8 +379,8 @@ export function AIVideoPlayer({ video, command, compact = true, timerSeconds, sc
 
         {/* Header */}
         <View style={styles.headerRow}>
-          <View style={[styles.liveDot, { backgroundColor: accent }]} />
-          <Text style={[styles.eyebrow, { color: accent }]}>RECOVERY COACH · LIVE</Text>
+          {liveActive ? <View style={[styles.liveDot, { backgroundColor: accent }]} /> : null}
+          <Text style={[styles.eyebrow, { color: accent }]}>{liveActive ? 'RECOVERY COACH · LIVE' : 'RECOVERY COACH'}</Text>
           <View style={{ flex: 1 }} />
           <Icon name="maximize-2" size={12} color={Colors.text.muted} />
         </View>
@@ -407,8 +412,8 @@ export function AIVideoPlayer({ video, command, compact = true, timerSeconds, sc
           <View style={styles.modalScrim} />
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <View style={[styles.liveDot, { backgroundColor: accent }]} />
-              <Text style={[styles.eyebrow, { color: accent }]}>RECOVERY COACH</Text>
+              {liveActive ? <View style={[styles.liveDot, { backgroundColor: accent }]} /> : null}
+              <Text style={[styles.eyebrow, { color: accent }]}>{liveActive ? 'RECOVERY COACH · LIVE' : 'RECOVERY COACH'}</Text>
               <View style={{ flex: 1 }} />
               <TouchableOpacity onPress={handleCollapse} hitSlop={12}>
                 <Icon name="x" size={22} color={Colors.text.primary} />
