@@ -81,10 +81,21 @@ interface Props {
    * existing glow tween so the orb stays in one visual language.
    */
   trend?: 'rising' | 'falling' | 'flat';
+  /**
+   * Ruling #5 (Recovery Mode tone): when true, softens the orb's glow
+   * dominance so a surrounding hero element (the AForce Command) reads
+   * as primary instead of the score. Purely a glow-opacity reduction —
+   * the score digit itself stays at full opacity/legibility. Defaults
+   * to false, preserving current behaviour everywhere else.
+   */
+  deEmphasize?: boolean;
 }
 
 const DEFAULT_ORB_SIZE = 200;
 const GLOW_RATIO = 1.85; // dramatic dominant halo
+// Ruling #5: glow-opacity multiplier applied only when `deEmphasize` is
+// true. Single tunable constant — restrained, not hidden.
+const RECOVERY_DEEMPHASIS_GLOW_MUL = 0.65;
 
 const COLOR_MAP: Record<PulseConfig['colorMode'], { primary: string; glow: string }> = {
   lime:  { primary: Colors.states.PEAK.primary,       glow: Colors.states.PEAK.glow },
@@ -93,7 +104,7 @@ const COLOR_MAP: Record<PulseConfig['colorMode'], { primary: string; glow: strin
   red:   { primary: Colors.states.DEPLETED.primary,   glow: Colors.states.DEPLETED.glow },
 };
 
-export function StatusPulseOrb({ pulseConfig, score, burstAt = 0, onTap, size, socialOverlay, displayedAccent, displayedScore, voiceActive = false, trend = 'flat' }: Props) {
+export function StatusPulseOrb({ pulseConfig, score, burstAt = 0, onTap, size, socialOverlay, displayedAccent, displayedScore, voiceActive = false, trend = 'flat', deEmphasize = false }: Props) {
   const { pulseSpeed, glowStrength, pulseIntensity, waveBehavior, colorMode, animations } = pulseConfig;
   const baseColors = COLOR_MAP[colorMode];
   // Override colour ONLY — kinetic behaviour (waveBehavior, flare,
@@ -297,11 +308,14 @@ export function StatusPulseOrb({ pulseConfig, score, burstAt = 0, onTap, size, s
   // No new animation primitives, just a static multiplier.
   const trendGlowMul = trend === 'rising' ? 1.18 : trend === 'falling' ? 0.82 : 1.0;
   const trendScaleBoost = trend === 'rising' ? 0.04 : 0;
+  // Ruling #5: additional glow multiplier, restrained and additive —
+  // 1.0 (no-op) unless `deEmphasize` is set.
+  const deEmphasizeMul = deEmphasize ? RECOVERY_DEEMPHASIS_GLOW_MUL : 1.0;
 
   const outerGlowStyle = useAnimatedStyle(() => ({
     opacity: Math.min(
       1,
-      interpolate(glowAnim.value, [0, 1], [0.28, 0.55 + glowStrength * 0.45]) * trendGlowMul,
+      interpolate(glowAnim.value, [0, 1], [0.28, 0.55 + glowStrength * 0.45]) * trendGlowMul * deEmphasizeMul,
     ),
     transform: [{ scale: interpolate(glowAnim.value, [0, 1], [0.98, 1.18 + trendScaleBoost]) }],
   }));
@@ -309,7 +323,7 @@ export function StatusPulseOrb({ pulseConfig, score, burstAt = 0, onTap, size, s
   const innerGlowStyle = useAnimatedStyle(() => ({
     opacity: Math.min(
       1,
-      interpolate(pulseAnim.value, [0, 1], [0.45, 0.75 + pulseIntensity * 0.25]) * trendGlowMul,
+      interpolate(pulseAnim.value, [0, 1], [0.45, 0.75 + pulseIntensity * 0.25]) * trendGlowMul * deEmphasizeMul,
     ),
     transform: [{ scale: interpolate(pulseAnim.value, [0, 1], [0.95, 1.08 + trendScaleBoost]) }],
   }));

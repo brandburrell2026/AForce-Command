@@ -23,6 +23,7 @@ import {
 } from '../../services/voice/commandVoiceBus';
 import { useRecoverySnapshotFromStore } from '../../services/useRecoverySnapshot';
 import { emit } from '../../analytics/event_dispatcher';
+import { MODE_RECOVERY_SCORE } from '../../utils/modes/smartModes';
 
 interface Props {
   onOpenBreakdown: () => void;
@@ -38,7 +39,17 @@ function OrbSectionImpl({ onOpenBreakdown, orbSize }: Props) {
   // other state-tinted element on the home screen. Falls back to the
   // engine's instantaneous accent when the provider isn't mounted.
   const displayed = useDisplayedAccent();
-  const stateColor = displayed?.primary ?? engine.performanceState.color;
+  // Ruling #5 (Recovery Mode tone): while Recovery Mode is active (score
+  // below MODE_RECOVERY_SCORE), the orb ring/glow/digit and the
+  // prediction strip shift from alarm-red to amber, and the orb's
+  // visual dominance is softened so the Command reads as hero, not the
+  // number. Gated on recoveryActive so normal mode is byte-identical.
+  const recoveryActive = typeof engine.score === 'number' && engine.score < MODE_RECOVERY_SCORE;
+  const recoveryAccent = recoveryActive
+    ? { primary: Colors.states.RECOVERING.primary, glow: Colors.states.RECOVERING.glow }
+    : undefined;
+  const displayedAccentForOrb = recoveryAccent ?? (displayed ? { primary: displayed.primary, glow: displayed.glow } : undefined);
+  const stateColor = recoveryAccent?.primary ?? displayed?.primary ?? engine.performanceState.color;
 
   const onTap = React.useCallback(() => {
     if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
@@ -90,9 +101,10 @@ function OrbSectionImpl({ onOpenBreakdown, orbSize }: Props) {
         onTap={onTap}
         size={orbSize}
         socialOverlay={socialOverlay}
-        displayedAccent={displayed ? { primary: displayed.primary, glow: displayed.glow } : undefined}
+        displayedAccent={displayedAccentForOrb}
         displayedScore={displayed?.displayedScore}
         voiceActive={voiceActive}
+        deEmphasize={recoveryActive}
       />
       <Text style={styles.orbHint}>TAP ORB FOR FULL BREAKDOWN</Text>
       {intake.noRecentIntake ? (
