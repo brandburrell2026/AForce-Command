@@ -9,6 +9,7 @@
 
 import type { UserState } from '../types';
 import type { AppState, Action } from './appStoreTypes';
+import { mergeBiometrics } from '../utils/biometricsMerge';
 
 /**
  * Canonical default body weight (lb). Matches `mockUserProfile.bodyWeightLbs`
@@ -147,18 +148,18 @@ export function reducer(state: AppState, action: Action): AppState {
     }
     case 'SET_USER_STATE': {
       const { newUserState, engineOutput } = action.payload;
-      // INVARIANT (defense-in-depth — primary enforcement lives in
-      // the `applyServerUserState` helper in useAppStore): client-only
-      // overlays (`biometrics`, `appleHealth`) are owned exclusively
-      // by the device and NEVER originate server-side. Service
-      // responses only echo what the request sent, so at every
-      // SET_USER_STATE dispatch we override the payload's overlays
-      // with the current store state. Explicit overlay mutations
-      // (connect / disconnect) flow through `SET_PROVIDER_BIOMETRICS`
-      // and `SET_APPLE_HEALTH`, never through this reducer.
+      // `appleHealth` is a pure on-device overlay that never originates
+      // server-side, so it's always restored from the current store state.
+      // `biometrics`, however, now legitimately comes from BOTH sides — the
+      // backend fetches provider snapshots (WHOOP) that ride in on the
+      // GET /state payload, while on-device (Apple Health) + demo snapshots are
+      // client-owned. Reconcile freshest-wins per provider so real server data
+      // lands without a stale local copy masking it, and an empty/echoed server
+      // payload never wipes a client overlay. Explicit connect/disconnect still
+      // flows through SET_PROVIDER_BIOMETRICS.
       const merged: UserState = {
         ...newUserState,
-        biometrics: state.userState.biometrics,
+        biometrics: mergeBiometrics(newUserState.biometrics, state.userState.biometrics),
         appleHealth: state.userState.appleHealth,
       };
       return {

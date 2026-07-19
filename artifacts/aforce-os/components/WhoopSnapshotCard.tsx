@@ -58,6 +58,9 @@ interface WhoopSnapshotCardProps {
   sleepHoursLastNight?: number | null;
   /** Sleep performance 0–100. Optional — defaults to a derived estimate. */
   sleepPerformance?: number | null;
+  /** True while connected but the first real snapshot hasn't arrived yet.
+   *  Shows an honest "syncing" state instead of claiming live/scored data. */
+  syncing?: boolean;
 }
 
 function recoveryColor(pct: number | null | undefined): string {
@@ -80,6 +83,7 @@ export function WhoopSnapshotCard({
   strain,
   sleepHoursLastNight,
   sleepPerformance,
+  syncing = false,
 }: WhoopSnapshotCardProps) {
   const recColor = recoveryColor(recoveryPct);
   const recValue = recoveryPct != null ? Math.round(recoveryPct) : null;
@@ -147,7 +151,7 @@ export function WhoopSnapshotCard({
         <Text style={styles.wordmark}>WHOOP</Text>
         <View style={styles.connectedRow}>
           <Animated.View style={[styles.pulseDot, animatedDotStyle]} />
-          <Text style={styles.connectedText}>CONNECTED</Text>
+          <Text style={styles.connectedText}>{syncing ? 'SYNCING…' : 'CONNECTED'}</Text>
         </View>
       </View>
 
@@ -218,7 +222,9 @@ export function WhoopSnapshotCard({
       {/* Footer — feeding score line */}
       <View style={styles.footer}>
         <View style={[styles.footerDot, { backgroundColor: CONNECTED_GREEN }]} />
-        <Text style={styles.footerText}>FEEDING AFORCE HYDRATION SCORE · LIVE</Text>
+        <Text style={styles.footerText}>
+          {syncing ? 'SYNCING FROM WHOOP · FIRST PULL' : 'FEEDING AFORCE HYDRATION SCORE · LIVE'}
+        </Text>
       </View>
     </LinearGradient>
   );

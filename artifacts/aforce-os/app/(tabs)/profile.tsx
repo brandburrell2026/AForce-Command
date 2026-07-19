@@ -347,13 +347,33 @@ export default function ProfileScreen() {
         next.add(id);
         return next;
       });
-      // Seed a demo snapshot so the score immediately reflects the
-      // newly connected provider. Real OAuth ships in v1.1 native.
-      const snap = buildDemoSnapshot(id);
-      if (snap) setProviderBiometrics(id, snap);
+      // WHOOP pulls REAL biometrics server-side (the backend fetches on connect
+      // and they arrive on the next GET /state sync as biometrics.whoop). Seed an
+      // EMPTY placeholder — never fabricated numbers — so the provider is marked
+      // linked and the server's real snapshot can fill it via the merge. The
+      // fetchedAt=0 sentinel guarantees any real fetch (positive timestamp) wins,
+      // clock-skew-proof. Other providers still seed a representative demo
+      // snapshot until their own real fetch is wired.
+      if (id === 'whoop') {
+        setProviderBiometrics('whoop', {
+          providerId: 'whoop',
+          fetchedAt: 0,
+          recoveryPct: null,
+          strain: null,
+          sleepHoursLastNight: null,
+          hrvSdnn: null,
+          restingHeartRate: null,
+        });
+      } else {
+        const snap = buildDemoSnapshot(id);
+        if (snap) setProviderBiometrics(id, snap);
+      }
     };
 
-    const authorizeMessage = `You'll be redirected to ${name} to authorize AForce. Mocked in this build — a representative biometric snapshot is seeded so the hydration score reflects the connection.`;
+    const authorizeMessage =
+      id === 'whoop'
+        ? `You'll be redirected to ${name} to authorize AForce. Your real recovery, strain, and sleep sync shortly after you connect.`
+        : `You'll be redirected to ${name} to authorize AForce. Mocked in this build — a representative biometric snapshot is seeded so the hydration score reflects the connection.`;
 
     // RN Web: skip the broken multi-button Alert and use window.confirm.
     if (Platform.OS === 'web') {
@@ -1146,19 +1166,23 @@ export default function ProfileScreen() {
                           </View>
                         )}
                         {p.id === 'whoop' && linked && (() => {
-                          // Cinematic WHOOP-styled live panel. Numbers come
-                          // straight from DEMO_PROVIDER_SNAPSHOTS.whoop —
-                          // the same payload the score engine consumes — so
-                          // what the user sees here matches what's moving
-                          // the orb. Swaps to a real OAuth-backed snapshot
-                          // in v1.1.
-                          const snap = buildDemoSnapshot('whoop');
-                          if (!snap) return null;
+                          // Real WHOOP snapshot the backend fetched and persisted
+                          // (biometrics.whoop, synced via GET /state) — the SAME
+                          // payload the score engine consumes, so the panel matches
+                          // the orb. No mock: until the first pull lands we show an
+                          // honest "syncing" state rather than fabricated numbers.
+                          const snap = state.userState.biometrics?.whoop;
+                          const hasData =
+                            !!snap &&
+                            (snap.recoveryPct != null ||
+                              snap.strain != null ||
+                              snap.sleepHoursLastNight != null);
                           return (
                             <WhoopSnapshotCard
-                              recoveryPct={snap.recoveryPct}
-                              strain={snap.strain}
-                              sleepHoursLastNight={snap.sleepHoursLastNight}
+                              recoveryPct={snap?.recoveryPct ?? null}
+                              strain={snap?.strain ?? null}
+                              sleepHoursLastNight={snap?.sleepHoursLastNight ?? null}
+                              syncing={!hasData}
                             />
                           );
                         })()}
