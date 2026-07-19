@@ -123,7 +123,10 @@ const MODE_SPECS: Record<SmartModeId, ModeSpec> = {
     labelKey: 'smartModes.recovery.label',
     shortKey: 'smartModes.recovery.short',
     icon: 'heart',
-    guidance: 'Start with water — recovery focus. Ease in, no pressure.',
+    // Mode INDICATOR, not a command restatement (ruling #8): the RECOVERY COACH
+    // card is the single source of the active command on Home, so the banner
+    // states the mode + tone and never re-prints "start with water".
+    guidance: 'Recovery focus is on. Ease in — no pressure.',
     guidanceKey: 'smartModes.recovery.guidance',
     reminderFactor: 0.6,
     targetFactor: 1.0,
