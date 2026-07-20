@@ -540,11 +540,33 @@ export default function ProfileScreen() {
     void refreshWhoopState();
   }, [refreshWhoopState]);
 
-  // Whenever WHOOP is not a live connection, drop any stale WHOOP biometrics so
-  // a disconnected (or prior-session/other-user) snapshot can't keep feeding the
-  // score or render the panel as connected.
+  // Keep the client-owned WHOOP biometrics key in sync with the connection.
   useEffect(() => {
-    if (whoopState !== 'connected' && state.userState.biometrics?.whoop) {
+    if (whoopState === 'connected') {
+      // Establish the WHOOP key so the backend-fetched biometrics.whoop
+      // (delivered on GET /aforce/state) can flow in. mergeBiometrics is
+      // client-keys-authoritative — WITHOUT a client key here it drops the
+      // server's real WHOOP snapshot entirely (the card stays "syncing" forever
+      // even though the data exists server-side). An EMPTY placeholder
+      // (fetchedAt:0, all-null) marks the key; the real server snapshot
+      // (positive fetchedAt) supersedes it on the next state sync via
+      // freshest-wins. Only seed when absent, so a real snapshot is never
+      // clobbered back to the placeholder.
+      if (!state.userState.biometrics?.whoop) {
+        setProviderBiometrics('whoop', {
+          providerId: 'whoop',
+          fetchedAt: 0,
+          recoveryPct: null,
+          strain: null,
+          sleepHoursLastNight: null,
+          hrvSdnn: null,
+          restingHeartRate: null,
+        });
+      }
+    } else if (state.userState.biometrics?.whoop) {
+      // Not connected → drop any stale WHOOP snapshot so a disconnected (or
+      // prior-session/other-user) snapshot can't keep feeding the score or
+      // render the panel as connected.
       setProviderBiometrics('whoop', null);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
