@@ -161,21 +161,6 @@ export async function fetchWhoopSnapshot(
     ),
   ]);
 
-  // Structural diagnostic — record counts + the latest record's score_state.
-  // NO health values are logged (privacy): this tells us whether a null metric
-  // is "no records", "latest not yet SCORED", or a genuine field mismatch.
-  log.info(
-    {
-      recoveryRecords: recovery?.records?.length ?? 0,
-      recoveryState: recovery?.records?.[0]?.score_state ?? null,
-      cycleRecords: cycle?.records?.length ?? 0,
-      cycleState: cycle?.records?.[0]?.score_state ?? null,
-      sleepRecords: sleep?.records?.length ?? 0,
-      sleepState: sleep?.records?.[0]?.score_state ?? null,
-    },
-    "whoop v2 snapshot shape",
-  );
-
   const rec = scoreSourceOf(recovery?.records);
   const cyc = scoreSourceOf(cycle?.records);
   const slp = (scoreSourceOf(sleep?.records)?.["stage_summary"] ?? null) as
@@ -189,35 +174,13 @@ export async function fetchWhoopSnapshot(
     sleepHoursLastNight = Math.max(0, inBed - awake) / (1000 * 60 * 60);
   }
 
-  const snapshot: WhoopSnapshot = {
+  return {
     recoveryPct: num(rec?.["recovery_score"]),
     strain: num(cyc?.["strain"]),
     hrvSdnn: num(rec?.["hrv_rmssd_milli"]),
     restingHeartRate: num(rec?.["resting_heart_rate"]),
     sleepHoursLastNight,
   };
-
-  // TEMPORARY UNCONDITIONAL ground-truth diagnostic (remove after confirmation).
-  // Fires every sweep. Logs, in one line: the raw newest v2 record per endpoint
-  // (actual field keys + values) AND `extracted` (the values this worker mapped
-  // and is about to persist). This settles the question definitively:
-  //   - `extracted` has real numbers -> extraction works; a blank card is an
-  //     app-side read/merge issue, not this worker.
-  //   - `extracted` is all-null while the raw records show data -> the v2 field
-  //     paths differ from what we read; the raw records show the real keys.
-  // Logs biometric VALUES — a temporary capture on the owner's own account, by
-  // explicit request.
-  log.info(
-    {
-      recoveryRecord0: recovery?.records?.[0] ?? null,
-      cycleRecord0: cycle?.records?.[0] ?? null,
-      sleepRecord0: sleep?.records?.[0] ?? null,
-      extracted: snapshot,
-    },
-    "whoop v2 GROUND TRUTH (dev diagnostic — remove after)",
-  );
-
-  return snapshot;
 }
 
 /** Provider snapshot blob shape, mirroring
