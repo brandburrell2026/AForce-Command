@@ -46,6 +46,7 @@ import {
   exchangeAuthorizationCode,
   type WhoopOAuthConfig,
 } from "../lib/whoopTokenManager";
+import { serializeError } from "../lib/serializeError";
 
 export interface WhoopOAuthDeps {
   authStateStore: WhoopAuthStateStore;
@@ -200,7 +201,7 @@ export function buildWhoopOAuthRouter(deps: WhoopOAuthDeps): IRouter {
         await deps.tokenStoreFor(record.userId).write(tokens);
       } catch (err) {
         req.log?.error(
-          { userId: record.userId, err: errName(err) },
+          { userId: record.userId, err: serializeError(err) },
           "whoopOAuth:callback token persist failed",
         );
         res.status(500).json({ error: "token_persist_failed" });
