@@ -62,8 +62,13 @@ export interface FetchWhoopSnapshotOptions {
     | { warn: (...args: unknown[]) => void; info: (...args: unknown[]) => void };
 }
 
+// v2 populates `score` ONLY when `score_state === "SCORED"` — the most recent
+// record (today's, still in progress) is typically PENDING_SCORE / UNSCORABLE
+// with a null score. So we fetch a small window and take the freshest SCORED
+// record rather than blindly records[0].
 interface WhoopRecoveryPayload {
   records?: Array<{
+    score_state?: string | null;
     score?: {
       recovery_score?: number | null;
       hrv_rmssd_milli?: number | null;
@@ -73,11 +78,15 @@ interface WhoopRecoveryPayload {
 }
 
 interface WhoopCyclePayload {
-  records?: Array<{ score?: { strain?: number | null } | null }>;
+  records?: Array<{
+    score_state?: string | null;
+    score?: { strain?: number | null } | null;
+  }>;
 }
 
 interface WhoopSleepPayload {
   records?: Array<{
+    score_state?: string | null;
     score?: {
       stage_summary?: {
         total_in_bed_time_milli?: number | null;
@@ -85,6 +94,18 @@ interface WhoopSleepPayload {
       } | null;
     } | null;
   }>;
+}
+
+/** Freshest record whose `score` is populated (v2 nulls the score until a
+ *  record is SCORED). WHOOP returns records most-recent-first. */
+function firstScored<S>(
+  records: Array<{ score?: S | null }> | undefined,
+): S | null {
+  if (!records) return null;
+  for (const r of records) {
+    if (r?.score != null) return r.score;
+  }
+  return null;
 }
 
 async function getJson<T>(
@@ -135,28 +156,43 @@ export async function fetchWhoopSnapshot(
 
   const [recovery, cycle, sleep] = await Promise.all([
     getJson<WhoopRecoveryPayload>(
-      `${WHOOP_API_BASE}/recovery?limit=1`,
+      `${WHOOP_API_BASE}/recovery?limit=10`,
       token,
       fetchImpl,
       log,
     ),
     getJson<WhoopCyclePayload>(
-      `${WHOOP_API_BASE}/cycle?limit=1`,
+      `${WHOOP_API_BASE}/cycle?limit=10`,
       token,
       fetchImpl,
       log,
     ),
     getJson<WhoopSleepPayload>(
-      `${WHOOP_API_BASE}/activity/sleep?limit=1`,
+      `${WHOOP_API_BASE}/activity/sleep?limit=10`,
       token,
       fetchImpl,
       log,
     ),
   ]);
 
-  const rec = recovery?.records?.[0]?.score ?? null;
-  const cyc = cycle?.records?.[0]?.score ?? null;
-  const slp = sleep?.records?.[0]?.score?.stage_summary ?? null;
+  // Structural diagnostic — record counts + the latest record's score_state.
+  // NO health values are logged (privacy): this tells us whether a null metric
+  // is "no records", "latest not yet SCORED", or a genuine field mismatch.
+  log.info(
+    {
+      recoveryRecords: recovery?.records?.length ?? 0,
+      recoveryState: recovery?.records?.[0]?.score_state ?? null,
+      cycleRecords: cycle?.records?.length ?? 0,
+      cycleState: cycle?.records?.[0]?.score_state ?? null,
+      sleepRecords: sleep?.records?.length ?? 0,
+      sleepState: sleep?.records?.[0]?.score_state ?? null,
+    },
+    "whoop v2 snapshot shape",
+  );
+
+  const rec = firstScored(recovery?.records);
+  const cyc = firstScored(cycle?.records);
+  const slp = firstScored(sleep?.records)?.stage_summary ?? null;
 
   let sleepHoursLastNight: number | null = null;
   const inBed = num(slp?.total_in_bed_time_milli);
