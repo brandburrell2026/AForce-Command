@@ -14,16 +14,26 @@
  *   - WHOOP wire shape stays inside this module — the rest of the
  *     server consumes the normalized `WhoopSnapshot` only.
  *
- * Endpoints (all under `/developer/v1`):
+ * Endpoints (all under `/developer/v2` — WHOOP retired v1, which now 404s):
  *   GET /recovery?limit=1        -> recovery_score, hrv_rmssd_milli, resting_heart_rate
  *   GET /cycle?limit=1           -> strain
  *   GET /activity/sleep?limit=1  -> stage_summary.{total_in_bed_time_milli, total_awake_time_milli}
  *                                   sleepHoursLastNight = max(0, inBed - awake) / 3.6e6
+ *
+ * v1→v2 migration notes (https://developer.whoop.com/docs/developing/v1-v2-migration/):
+ *   - Same paths, same OAuth flow + scopes; only the version segment changes.
+ *   - The score fields we read are retained in v2 (v2's changes are record IDs
+ *     long->UUID and richer sleep data). This fetcher reads only `score.*` — it
+ *     never parses a record `id` — so the UUID change is a no-op here.
+ *   - Mapping stays null-safe: any renamed/absent v2 field lands as null, never
+ *     a throw.
  */
 
 import type { Logger } from "pino";
 
-export const WHOOP_API_BASE = "https://api.prod.whoop.com/developer/v1";
+// WHOOP deprecated v1 ("The v1 API is no longer supported") — v1/recovery and
+// v1/activity/sleep now 404. v2 keeps the same sub-paths.
+export const WHOOP_API_BASE = "https://api.prod.whoop.com/developer/v2";
 
 /** Normalized snapshot — same fields the mobile aggregator consumes. */
 export interface WhoopSnapshot {
@@ -90,7 +100,7 @@ async function getJson<T>(
       headers: { Authorization: `Bearer ${token}` },
     });
     // Per-call visibility (task: confirm real data flow in the logs). Logs the
-    // URL + HTTP status of every developer/v1 GET — never the bearer token,
+    // URL + HTTP status of every developer/v2 GET — never the bearer token,
     // which lives only in the Authorization header, not the URL.
     log.info({ url, status: res.status }, "whoop fetch");
     if (!res.ok) {
