@@ -62,48 +62,34 @@ export interface FetchWhoopSnapshotOptions {
     | { warn: (...args: unknown[]) => void; info: (...args: unknown[]) => void };
 }
 
-// v2 populates `score` ONLY when `score_state === "SCORED"` — the most recent
-// record (today's, still in progress) is typically PENDING_SCORE / UNSCORABLE
-// with a null score. So we fetch a small window and take the freshest SCORED
-// record rather than blindly records[0].
-interface WhoopRecoveryPayload {
-  records?: Array<{
-    score_state?: string | null;
-    score?: {
-      recovery_score?: number | null;
-      hrv_rmssd_milli?: number | null;
-      resting_heart_rate?: number | null;
-    } | null;
-  }>;
+// v2 populates the score ONLY when `score_state === "SCORED"` — the most recent
+// record (today's, still in progress) is typically PENDING_SCORE / UNSCORABLE.
+// We fetch a small window and take the freshest SCORED record. The metric fields
+// are read shape-tolerantly (see `scoreSourceOf`): whether v2 keeps them under a
+// `score` object or flattens them onto the record, `score ?? record` resolves.
+type WhoopRecord = {
+  score_state?: string | null;
+  score?: Record<string, unknown> | null;
+} & Record<string, unknown>;
+
+interface WhoopCollection {
+  records?: WhoopRecord[];
 }
 
-interface WhoopCyclePayload {
-  records?: Array<{
-    score_state?: string | null;
-    score?: { strain?: number | null } | null;
-  }>;
-}
-
-interface WhoopSleepPayload {
-  records?: Array<{
-    score_state?: string | null;
-    score?: {
-      stage_summary?: {
-        total_in_bed_time_milli?: number | null;
-        total_awake_time_milli?: number | null;
-      } | null;
-    } | null;
-  }>;
-}
-
-/** Freshest record whose `score` is populated (v2 nulls the score until a
- *  record is SCORED). WHOOP returns records most-recent-first. */
-function firstScored<S>(
-  records: Array<{ score?: S | null }> | undefined,
-): S | null {
+/**
+ * The field source of the freshest SCORED record. Returns `record.score` when
+ * present (v1/v2 nested shape), else the record itself (defensive against a v2
+ * shape that flattens the metrics onto the record). Null when no scored record
+ * exists in the window.
+ */
+function scoreSourceOf(
+  records: WhoopRecord[] | undefined,
+): Record<string, unknown> | null {
   if (!records) return null;
   for (const r of records) {
-    if (r?.score != null) return r.score;
+    if (!r) continue;
+    const scored = r.score_state === "SCORED" || r.score != null;
+    if (scored) return (r.score ?? r) as Record<string, unknown>;
   }
   return null;
 }
@@ -155,19 +141,19 @@ export async function fetchWhoopSnapshot(
   const log = opts.log ?? { warn: () => undefined, info: () => undefined };
 
   const [recovery, cycle, sleep] = await Promise.all([
-    getJson<WhoopRecoveryPayload>(
+    getJson<WhoopCollection>(
       `${WHOOP_API_BASE}/recovery?limit=10`,
       token,
       fetchImpl,
       log,
     ),
-    getJson<WhoopCyclePayload>(
+    getJson<WhoopCollection>(
       `${WHOOP_API_BASE}/cycle?limit=10`,
       token,
       fetchImpl,
       log,
     ),
-    getJson<WhoopSleepPayload>(
+    getJson<WhoopCollection>(
       `${WHOOP_API_BASE}/activity/sleep?limit=10`,
       token,
       fetchImpl,
@@ -190,24 +176,48 @@ export async function fetchWhoopSnapshot(
     "whoop v2 snapshot shape",
   );
 
-  const rec = firstScored(recovery?.records);
-  const cyc = firstScored(cycle?.records);
-  const slp = firstScored(sleep?.records)?.stage_summary ?? null;
+  const rec = scoreSourceOf(recovery?.records);
+  const cyc = scoreSourceOf(cycle?.records);
+  const slp = (scoreSourceOf(sleep?.records)?.["stage_summary"] ?? null) as
+    | Record<string, unknown>
+    | null;
 
   let sleepHoursLastNight: number | null = null;
-  const inBed = num(slp?.total_in_bed_time_milli);
+  const inBed = num(slp?.["total_in_bed_time_milli"]);
   if (inBed !== null) {
-    const awake = num(slp?.total_awake_time_milli) ?? 0;
+    const awake = num(slp?.["total_awake_time_milli"]) ?? 0;
     sleepHoursLastNight = Math.max(0, inBed - awake) / (1000 * 60 * 60);
   }
 
-  return {
-    recoveryPct: num(rec?.recovery_score),
-    strain: num(cyc?.strain),
-    hrvSdnn: num(rec?.hrv_rmssd_milli),
-    restingHeartRate: num(rec?.resting_heart_rate),
+  const snapshot: WhoopSnapshot = {
+    recoveryPct: num(rec?.["recovery_score"]),
+    strain: num(cyc?.["strain"]),
+    hrvSdnn: num(rec?.["hrv_rmssd_milli"]),
+    restingHeartRate: num(rec?.["resting_heart_rate"]),
     sleepHoursLastNight,
   };
+
+  // TEMPORARY dev diagnostic — remove once the v2 mapping is confirmed. Fires
+  // ONLY when extraction produced nothing despite a 200, and logs the raw
+  // newest record per endpoint so the exact v2 field paths are visible. Logs
+  // biometric values — a one-time capture on the owner's own account, by their
+  // explicit request; it self-silences the moment real data maps through.
+  if (
+    snapshot.recoveryPct === null &&
+    snapshot.strain === null &&
+    snapshot.sleepHoursLastNight === null
+  ) {
+    log.info(
+      {
+        recoveryRecord0: recovery?.records?.[0] ?? null,
+        cycleRecord0: cycle?.records?.[0] ?? null,
+        sleepRecord0: sleep?.records?.[0] ?? null,
+      },
+      "whoop v2 raw record[0] (dev diagnostic — remove after)",
+    );
+  }
+
+  return snapshot;
 }
 
 /** Provider snapshot blob shape, mirroring
