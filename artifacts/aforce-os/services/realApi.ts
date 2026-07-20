@@ -240,6 +240,24 @@ export interface HomePayload {
 
 let lastKnownState: UserState = defaultUserState;
 
+/**
+ * Read the server-side provider biometrics blob DIRECTLY (before the
+ * client-owned merge). Used to pull a server-fetched provider snapshot (WHOOP,
+ * written by the backend) into the client store right after connect/sync — so
+ * the card reflects it immediately instead of waiting for the next full state
+ * sync (and without the client-keys merge dropping a key the client hasn't
+ * seeded yet). Returns undefined on any failure — never throws.
+ */
+export async function fetchServerBiometrics(): Promise<ProviderBiometrics | undefined> {
+  try {
+    const { userState: row } = await getJson<{ userState: Record<string, unknown> }>('/state');
+    return normalizeBiometrics(row['biometrics']);
+  } catch (err) {
+    console.warn('[AForce] fetchServerBiometrics failed', err);
+    return undefined;
+  }
+}
+
 export async function fetchHome(userState: UserState): Promise<HomePayload> {
   // Push any client-side mutations (clutchActive flag, appleHealth,
   // biometrics) forward by merging them onto whatever the server
