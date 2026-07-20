@@ -106,6 +106,40 @@ describe("fetchWhoopSnapshot", () => {
     });
   });
 
+  it("skips unscored records and uses the freshest SCORED one (v2 score_state)", async () => {
+    // v2 nulls `score` until a record is SCORED; the newest record (today's,
+    // in progress) is PENDING_SCORE. We must fall through to the last night's
+    // scored record, not return null.
+    const unscored = { score_state: "PENDING_SCORE", score: null };
+    const { fn } = makeFetch({
+      [RECOVERY_URL]: () =>
+        jsonResponse({
+          records: [
+            unscored,
+            { score_state: "SCORED", score: { recovery_score: 28, hrv_rmssd_milli: 31.8, resting_heart_rate: 64 } },
+          ],
+        }),
+      [CYCLE_URL]: () =>
+        jsonResponse({ records: [unscored, { score_state: "SCORED", score: { strain: 5.4 } }] }),
+      [SLEEP_URL]: () =>
+        jsonResponse({
+          records: [
+            unscored,
+            {
+              score_state: "SCORED",
+              score: { stage_summary: { total_in_bed_time_milli: (5 * 3600 + 10 * 60) * 1000, total_awake_time_milli: 0 } },
+            },
+          ],
+        }),
+    });
+    const snap = await fetchWhoopSnapshot({ accessToken: "AT", fetchImpl: fn });
+    expect(snap.recoveryPct).toBe(28);
+    expect(snap.strain).toBe(5.4);
+    expect(snap.hrvSdnn).toBe(31.8);
+    expect(snap.restingHeartRate).toBe(64);
+    expect(snap.sleepHoursLastNight).toBeCloseTo(5 + 10 / 60, 2); // 5h10m
+  });
+
   it("sends Authorization: Bearer <token> on every endpoint call", async () => {
     const authHeaders: string[] = [];
     const captureFetch: typeof fetch = (async (url, init) => {
