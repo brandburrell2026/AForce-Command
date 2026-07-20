@@ -197,25 +197,25 @@ export async function fetchWhoopSnapshot(
     sleepHoursLastNight,
   };
 
-  // TEMPORARY dev diagnostic — remove once the v2 mapping is confirmed. Fires
-  // ONLY when extraction produced nothing despite a 200, and logs the raw
-  // newest record per endpoint so the exact v2 field paths are visible. Logs
-  // biometric values — a one-time capture on the owner's own account, by their
-  // explicit request; it self-silences the moment real data maps through.
-  if (
-    snapshot.recoveryPct === null &&
-    snapshot.strain === null &&
-    snapshot.sleepHoursLastNight === null
-  ) {
-    log.info(
-      {
-        recoveryRecord0: recovery?.records?.[0] ?? null,
-        cycleRecord0: cycle?.records?.[0] ?? null,
-        sleepRecord0: sleep?.records?.[0] ?? null,
-      },
-      "whoop v2 raw record[0] (dev diagnostic — remove after)",
-    );
-  }
+  // TEMPORARY UNCONDITIONAL ground-truth diagnostic (remove after confirmation).
+  // Fires every sweep. Logs, in one line: the raw newest v2 record per endpoint
+  // (actual field keys + values) AND `extracted` (the values this worker mapped
+  // and is about to persist). This settles the question definitively:
+  //   - `extracted` has real numbers -> extraction works; a blank card is an
+  //     app-side read/merge issue, not this worker.
+  //   - `extracted` is all-null while the raw records show data -> the v2 field
+  //     paths differ from what we read; the raw records show the real keys.
+  // Logs biometric VALUES — a temporary capture on the owner's own account, by
+  // explicit request.
+  log.info(
+    {
+      recoveryRecord0: recovery?.records?.[0] ?? null,
+      cycleRecord0: cycle?.records?.[0] ?? null,
+      sleepRecord0: sleep?.records?.[0] ?? null,
+      extracted: snapshot,
+    },
+    "whoop v2 GROUND TRUTH (dev diagnostic — remove after)",
+  );
 
   return snapshot;
 }
