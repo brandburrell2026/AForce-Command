@@ -71,6 +71,13 @@ import {
   syncGarminSnapshot,
 } from '@/services/garmin';
 import {
+  getWhoopStatus,
+  startWhoopConnect,
+  disconnectWhoop,
+  syncWhoopSnapshot,
+  type WhoopConnectionState,
+} from '@/services/whoopConnect';
+import {
   deriveGarminUiState,
   isLiveGarminState,
   shouldShowGarminDemoSnapshot,
@@ -250,6 +257,12 @@ export default function ProfileScreen() {
   // "demo" card and NEVER written into the score-consumed biometrics —
   // Score-Protection is enforced via `garminScoreSnapshot`.
   const [garminDemoSnapshot, setGarminDemoSnapshot] = useState<ProviderSnapshot | null>(null);
+  // WHOOP also has a REAL backend OAuth flow — driven by SERVER truth
+  // (`/whoop/status`), not the mocked `linkedProviders` set. Starts
+  // 'not_connected'; a mount-time status check corrects it ('credentials_missing'
+  // when the integration is dormant, 'connected' when this user has a stored
+  // token). WHOOP has no demo state — real data only.
+  const [whoopState, setWhoopState] = useState<WhoopConnectionState>('not_connected');
   // Latest Apple Health snapshot — null until the user grants
   // permission AND the bridge actually returns data. Rendered in a
   // small "Live from Apple Health" panel so the user can see the
@@ -347,33 +360,14 @@ export default function ProfileScreen() {
         next.add(id);
         return next;
       });
-      // WHOOP pulls REAL biometrics server-side (the backend fetches on connect
-      // and they arrive on the next GET /state sync as biometrics.whoop). Seed an
-      // EMPTY placeholder — never fabricated numbers — so the provider is marked
-      // linked and the server's real snapshot can fill it via the merge. The
-      // fetchedAt=0 sentinel guarantees any real fetch (positive timestamp) wins,
-      // clock-skew-proof. Other providers still seed a representative demo
-      // snapshot until their own real fetch is wired.
-      if (id === 'whoop') {
-        setProviderBiometrics('whoop', {
-          providerId: 'whoop',
-          fetchedAt: 0,
-          recoveryPct: null,
-          strain: null,
-          sleepHoursLastNight: null,
-          hrvSdnn: null,
-          restingHeartRate: null,
-        });
-      } else {
-        const snap = buildDemoSnapshot(id);
-        if (snap) setProviderBiometrics(id, snap);
-      }
+      // Seed a demo snapshot so the score immediately reflects the newly
+      // connected provider. WHOOP and Garmin have REAL OAuth flows and are
+      // handled by their own toggles — they never reach this generic mock path.
+      const snap = buildDemoSnapshot(id);
+      if (snap) setProviderBiometrics(id, snap);
     };
 
-    const authorizeMessage =
-      id === 'whoop'
-        ? `You'll be redirected to ${name} to authorize AForce. Your real recovery, strain, and sleep sync shortly after you connect.`
-        : `You'll be redirected to ${name} to authorize AForce. Mocked in this build — a representative biometric snapshot is seeded so the hydration score reflects the connection.`;
+    const authorizeMessage = `You'll be redirected to ${name} to authorize AForce. Mocked in this build — a representative biometric snapshot is seeded so the hydration score reflects the connection.`;
 
     // RN Web: skip the broken multi-button Alert and use window.confirm.
     if (Platform.OS === 'web') {
@@ -525,6 +519,85 @@ export default function ProfileScreen() {
 
     // 'credentials_missing' (dormant build) — offer the labeled demo.
     offerGarminDemo();
+  };
+
+  // ─── WHOOP: real backend OAuth flow ───────────────────────────────────
+  // Sync WHOOP connection state from SERVER truth (`/whoop/status`). When
+  // connected, pull immediately so the card/score reflect real data.
+  const refreshWhoopState = useCallback(async () => {
+    try {
+      const status = await getWhoopStatus();
+      setWhoopState(status.state);
+      if (status.state === 'connected') {
+        try { await syncWhoopSnapshot(); } catch { /* best-effort */ }
+      }
+    } catch {
+      // Network/unknown — leave the current state untouched.
+    }
+  }, []);
+
+  useEffect(() => {
+    void refreshWhoopState();
+  }, [refreshWhoopState]);
+
+  // Whenever WHOOP is not a live connection, drop any stale WHOOP biometrics so
+  // a disconnected (or prior-session/other-user) snapshot can't keep feeding the
+  // score or render the panel as connected.
+  useEffect(() => {
+    if (whoopState !== 'connected' && state.userState.biometrics?.whoop) {
+      setProviderBiometrics('whoop', null);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [whoopState]);
+
+  const handleWhoopToggle = async () => {
+    if (Platform.OS !== 'web') hapticSelection();
+
+    // ─── Disconnect ──────────────────────────────────────────────────
+    if (whoopState === 'connected') {
+      const performWhoopDisconnect = async () => {
+        try { await disconnectWhoop(); } catch { /* best-effort */ }
+        setProviderBiometrics('whoop', null);
+        setWhoopState('not_connected');
+      };
+      const msg = 'AForce will stop pulling biometrics from your WHOOP account.';
+      if (Platform.OS === 'web') {
+        if (typeof window !== 'undefined' && window.confirm(`Disconnect WHOOP? ${msg}`)) {
+          void performWhoopDisconnect();
+        }
+        return;
+      }
+      Alert.alert('Disconnect WHOOP?', msg, [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Disconnect', style: 'destructive', onPress: () => void performWhoopDisconnect() },
+      ]);
+      return;
+    }
+
+    // ─── Connect — consult the REAL server status ────────────────────
+    const status = await getWhoopStatus().catch(() => null);
+    if (!status) {
+      Alert.alert('WHOOP unavailable', 'Could not reach the WHOOP service. Please try again later.');
+      return;
+    }
+    if (status.state === 'connected') {
+      setWhoopState('connected');
+      try { await syncWhoopSnapshot(); } catch { /* best-effort */ }
+      return;
+    }
+    if (status.state === 'not_connected') {
+      // Real OAuth — open WHOOP's authorize page; the server handles the
+      // callback (code exchange + token store + initial fetch). Re-check
+      // status when the user returns from the browser.
+      const start = await startWhoopConnect();
+      if (start.status === 'ok') {
+        try { await WebBrowser.openBrowserAsync(start.authorizeUrl); } catch { /* closed/unsupported */ }
+        await refreshWhoopState();
+        return;
+      }
+    }
+    // credentials_missing — WHOOP has no demo path; surface it plainly.
+    Alert.alert('WHOOP unavailable', 'The WHOOP integration isn’t configured yet. Please try again later.');
   };
 
   const layout = useResponsiveLayout();
@@ -1061,14 +1134,24 @@ export default function ProfileScreen() {
                     const isGarmin = p.id === 'garmin';
                     const garminLive = isGarmin && isLiveGarminState(garminState);
                     const garminDemo = isGarmin && garminState === 'demo';
+                    // WHOOP is likewise server-driven — LIVE only when the
+                    // backend holds a real token (whoopState), never a local flag.
+                    const isWhoop = p.id === 'whoop';
+                    const whoopLive = isWhoop && whoopState === 'connected';
                     const linked = isGarmin
                       ? garminLive || garminDemo
-                      : linkedProviders.has(p.id);
+                      : isWhoop
+                        ? whoopLive
+                        : linkedProviders.has(p.id);
                     return (
                       <React.Fragment key={p.id}>
                         <Pressable
                           onPress={() =>
-                            isGarmin ? handleGarminToggle() : toggleProvider(p.id, p.name)
+                            isGarmin
+                              ? handleGarminToggle()
+                              : isWhoop
+                                ? handleWhoopToggle()
+                                : toggleProvider(p.id, p.name)
                           }
                           style={({ pressed }) => [
                             styles.providerRow,
