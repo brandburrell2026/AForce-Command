@@ -232,5 +232,100 @@ export function buildWhoopOAuthRouter(deps: WhoopOAuthDeps): IRouter {
     },
   );
 
+  // ─── Connection status ──────────────────────────────────────────────────────
+  // The app drives its WHOOP row off SERVER truth (a stored token), not a cached
+  // local flag: no token -> the UI shows Connect. `credentialsConfigured` is
+  // always true here because the router only mounts when the WHOOP_* env is set.
+  router.get("/whoop/status", requireAuth, async (req, res): Promise<void> => {
+    const userId = req.userId;
+    if (!userId) {
+      res.status(401).json({ error: "unauthorized" });
+      return;
+    }
+    try {
+      const tokens = await deps.tokenStoreFor(userId).read();
+      res.status(200).json({
+        credentialsConfigured: true,
+        connected: tokens !== null,
+        // Display-only metadata; never the token itself.
+        expiresAt: tokens ? tokens.expiresAt : null,
+      });
+    } catch (err) {
+      req.log?.error(
+        { userId, err: errName(err) },
+        "whoopOAuth:status token read failed",
+      );
+      res.status(500).json({ error: "status_unavailable" });
+    }
+  });
+
+  // ─── Disconnect ─────────────────────────────────────────────────────────────
+  // Clears the stored token so a subsequent Connect re-runs a real OAuth
+  // authorization (the fix for a stale/undecryptable token after key rotation).
+  router.delete(
+    "/whoop/disconnect",
+    requireAuth,
+    async (req, res): Promise<void> => {
+      const userId = req.userId;
+      if (!userId) {
+        res.status(401).json({ error: "unauthorized" });
+        return;
+      }
+      try {
+        await deps.tokenStoreFor(userId).clear();
+      } catch (err) {
+        req.log?.error(
+          { userId, err: errName(err) },
+          "whoopOAuth:disconnect token clear failed",
+        );
+        res.status(500).json({ error: "disconnect_failed" });
+        return;
+      }
+      req.log?.info({ userId }, "whoopOAuth:disconnect cleared tokens");
+      res.status(200).json({ ok: true });
+    },
+  );
+
+  // ─── Manual sync ────────────────────────────────────────────────────────────
+  // Lets the app pull immediately after a browser OAuth return, rather than
+  // waiting for the periodic sweep. Mirrors /garmin/sync.
+  router.post("/whoop/sync", requireAuth, async (req, res): Promise<void> => {
+    const userId = req.userId;
+    if (!userId) {
+      res.status(401).json({ error: "unauthorized" });
+      return;
+    }
+    if (!deps.runSyncForUser) {
+      res.status(500).json({ error: "sync_unconfigured" });
+      return;
+    }
+    let outcome: Awaited<ReturnType<NonNullable<WhoopOAuthDeps["runSyncForUser"]>>>;
+    try {
+      outcome = await deps.runSyncForUser(userId);
+    } catch (err) {
+      req.log?.error({ userId, err: errName(err) }, "whoopOAuth:sync runner threw");
+      res.status(502).json({ error: "sync_failed" });
+      return;
+    }
+    switch (outcome.status) {
+      case "ok":
+        res.status(200).json({ ok: true, synced: true, fetchedAt: outcome.fetchedAt ?? null });
+        return;
+      case "skipped_no_token":
+        res.status(409).json({ error: "not_connected" });
+        return;
+      case "skipped_no_state":
+        res.status(200).json({ ok: true, synced: false, reason: "no_state" });
+        return;
+      case "skipped_locked":
+        res.status(200).json({ ok: true, synced: false, reason: "locked" });
+        return;
+      case "error":
+      default:
+        res.status(502).json({ error: "sync_failed" });
+        return;
+    }
+  });
+
   return router;
 }
