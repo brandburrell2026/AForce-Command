@@ -140,6 +140,27 @@ describe("fetchWhoopSnapshot", () => {
     expect(snap.sleepHoursLastNight).toBeCloseTo(5 + 10 / 60, 2); // 5h10m
   });
 
+  it("maps a v2 FLATTENED record — metrics on the record itself, no `score` wrapper", async () => {
+    // Defensive: if v2 drops the `score` object and puts the fields on the
+    // record, `score ?? record` must still resolve them (score_state SCORED).
+    const { fn } = makeFetch({
+      [RECOVERY_URL]: () =>
+        jsonResponse({ records: [{ score_state: "SCORED", recovery_score: 28, hrv_rmssd_milli: 31.8, resting_heart_rate: 64 }] }),
+      [CYCLE_URL]: () =>
+        jsonResponse({ records: [{ score_state: "SCORED", strain: 5.4 }] }),
+      [SLEEP_URL]: () =>
+        jsonResponse({
+          records: [{ score_state: "SCORED", stage_summary: { total_in_bed_time_milli: (5 * 3600 + 10 * 60) * 1000, total_awake_time_milli: 0 } }],
+        }),
+    });
+    const snap = await fetchWhoopSnapshot({ accessToken: "AT", fetchImpl: fn });
+    expect(snap.recoveryPct).toBe(28);
+    expect(snap.strain).toBe(5.4);
+    expect(snap.hrvSdnn).toBe(31.8);
+    expect(snap.restingHeartRate).toBe(64);
+    expect(snap.sleepHoursLastNight).toBeCloseTo(5 + 10 / 60, 2);
+  });
+
   it("sends Authorization: Bearer <token> on every endpoint call", async () => {
     const authHeaders: string[] = [];
     const captureFetch: typeof fetch = (async (url, init) => {
