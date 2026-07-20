@@ -77,6 +77,7 @@ import {
   syncWhoopSnapshot,
   type WhoopConnectionState,
 } from '@/services/whoopConnect';
+import { fetchServerBiometrics } from '@/services/realApi';
 import {
   deriveGarminUiState,
   isLiveGarminState,
@@ -530,10 +531,17 @@ export default function ProfileScreen() {
       setWhoopState(status.state);
       if (status.state === 'connected') {
         try { await syncWhoopSnapshot(); } catch { /* best-effort */ }
+        // Pull the server's real WHOOP biometrics DIRECTLY and set it. This
+        // bypasses the client-keys merge (which drops a server-only key) and the
+        // periodic-sync timing, so the card shows real recovery/strain/sleep
+        // immediately after connect/refresh instead of staying on "syncing".
+        const whoop = (await fetchServerBiometrics())?.whoop;
+        if (whoop) setProviderBiometrics('whoop', whoop);
       }
     } catch {
       // Network/unknown — leave the current state untouched.
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
