@@ -331,48 +331,68 @@ export function createDrizzleWhoopTokenStoreForUser(
       // stay populated (Phase A), AND `pgp_sym_encrypt` ciphertext
       // lands in the enc columns. A raw `sql` template handles the
       // pgcrypto call since the encrypted columns are bytea.
-      if (encryptionKey) {
-        await db.execute(sql`
-          insert into aforce_whoop_tokens
-            (user_id, access_token, refresh_token,
-             access_token_enc, refresh_token_enc,
-             expires_at, scope)
-          values
-            (${userId}, ${t.accessToken}, ${t.refreshToken},
-             pgp_sym_encrypt(${t.accessToken}, ${encryptionKey}),
-             pgp_sym_encrypt(${t.refreshToken}, ${encryptionKey}),
-             ${new Date(t.expiresAt)}, ${t.scope ?? null})
-          on conflict (user_id) do update set
-            access_token = excluded.access_token,
-            refresh_token = excluded.refresh_token,
-            access_token_enc = excluded.access_token_enc,
-            refresh_token_enc = excluded.refresh_token_enc,
-            expires_at = excluded.expires_at,
-            scope = excluded.scope,
-            updated_at = now()
-        `);
-        return;
-      }
+      const upsert = async (): Promise<void> => {
+        if (encryptionKey) {
+          await db.execute(sql`
+            insert into aforce_whoop_tokens
+              (user_id, access_token, refresh_token,
+               access_token_enc, refresh_token_enc,
+               expires_at, scope)
+            values
+              (${userId}, ${t.accessToken}, ${t.refreshToken},
+               pgp_sym_encrypt(${t.accessToken}, ${encryptionKey}),
+               pgp_sym_encrypt(${t.refreshToken}, ${encryptionKey}),
+               ${new Date(t.expiresAt)}, ${t.scope ?? null})
+            on conflict (user_id) do update set
+              access_token = excluded.access_token,
+              refresh_token = excluded.refresh_token,
+              access_token_enc = excluded.access_token_enc,
+              refresh_token_enc = excluded.refresh_token_enc,
+              expires_at = excluded.expires_at,
+              scope = excluded.scope,
+              updated_at = now()
+          `);
+          return;
+        }
 
-      await db
-        .insert(aforceWhoopTokens)
-        .values({
-          userId,
-          accessToken: t.accessToken,
-          refreshToken: t.refreshToken,
-          expiresAt: new Date(t.expiresAt),
-          scope: t.scope ?? null,
-        })
-        .onConflictDoUpdate({
-          target: aforceWhoopTokens.userId,
-          set: {
+        await db
+          .insert(aforceWhoopTokens)
+          .values({
+            userId,
             accessToken: t.accessToken,
             refreshToken: t.refreshToken,
             expiresAt: new Date(t.expiresAt),
             scope: t.scope ?? null,
-            updatedAt: sql`now()`,
-          },
-        });
+          })
+          .onConflictDoUpdate({
+            target: aforceWhoopTokens.userId,
+            set: {
+              accessToken: t.accessToken,
+              refreshToken: t.refreshToken,
+              expiresAt: new Date(t.expiresAt),
+              scope: t.scope ?? null,
+              updatedAt: sql`now()`,
+            },
+          });
+      };
+
+      try {
+        await upsert();
+      } catch (err) {
+        // Self-heal: a stale/unreconcilable EXISTING row must never block a
+        // fresh token write. The classic case is a row left encrypted under a
+        // rotated WHOOP_TOKEN_ENCRYPTION_KEY — a re-authorization would then be
+        // stuck forever ("token_persist_failed") because the bad row can't be
+        // reconciled. Clear the row and write clean; a fresh OAuth token has no
+        // dependence on the old one. If this SECOND write also fails, it's a
+        // real DB fault and rightly propagates.
+        log?.warn(
+          { err: err instanceof Error ? err.message : String(err), userId },
+          "whoopTokenStore: token write failed; clearing stale row and re-writing",
+        );
+        await db.delete(aforceWhoopTokens).where(eq(aforceWhoopTokens.userId, userId));
+        await upsert();
+      }
     },
     async clear() {
       await db
