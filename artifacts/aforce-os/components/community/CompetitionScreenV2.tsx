@@ -18,6 +18,7 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter, useNavigation } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { Icon } from '@/components/Icon';
 
 import { GradientBackground } from '@/components/GradientBackground';
@@ -37,15 +38,17 @@ import { useBattlesSubscription, useCircleSubscription } from '@/hooks/useCircle
 
 type SectionKey = 'rankings' | 'challenges' | 'battles' | 'teams' | 'map';
 
-const SECTIONS: { key: SectionKey; label: string; icon: string }[] = [
-  { key: 'rankings',   label: 'RANK',       icon: 'bar-chart-2' },
-  { key: 'challenges', label: 'CHALLENGES', icon: 'zap' },
-  { key: 'battles',    label: 'BATTLES',    icon: 'shield' },
-  { key: 'teams',      label: 'TEAMS',      icon: 'users' },
-  { key: 'map',        label: 'MAP',        icon: 'map' },
+// `label` resolves under community.v2.sec_<key> at render.
+const SECTIONS: { key: SectionKey; icon: string }[] = [
+  { key: 'rankings',   icon: 'bar-chart-2' },
+  { key: 'challenges', icon: 'zap' },
+  { key: 'battles',    icon: 'shield' },
+  { key: 'teams',      icon: 'users' },
+  { key: 'map',        icon: 'map' },
 ];
 
 export function CompetitionScreenV2() {
+  const { t } = useTranslation();
   const router = useRouter();
   // Tab-level navigator handle — used to jump back to the Home tab
   // explicitly. `router.replace('/')` is unreliable inside route
@@ -131,20 +134,20 @@ export function CompetitionScreenV2() {
               accessibilityRole="button"
               accessibilityLabel={
                 sectionHistory.length > 0
-                  ? 'Back to previous section'
-                  : 'Back to home'
+                  ? t('community.v2.back_prev_a11y')
+                  : t('community.v2.back_home_a11y')
               }
               testID="community-back"
             >
               <Icon name="chevron-left" size={22} color={af.textPrimary} />
             </Pressable>
             <View style={{ flex: 1 }}>
-              <Text style={styles.eyebrow}>SPORT MODE</Text>
-              <Text style={styles.title}>Community</Text>
+              <Text style={styles.eyebrow}>{t('community.v2.eyebrow')}</Text>
+              <Text style={styles.title}>{t('community.v2.title')}</Text>
             </View>
             <View style={[styles.statePill, { borderColor: `${af.green}55`, backgroundColor: `${af.green}15` }]}>
               <Icon name="zap" size={10} color={af.green} />
-              <Text style={[styles.statePillText, { color: af.green }]}>LIVE</Text>
+              <Text style={[styles.statePillText, { color: af.green }]}>{t('community.v2.live')}</Text>
             </View>
           </View>
 
@@ -163,7 +166,7 @@ export function CompetitionScreenV2() {
                   onPress={() => goToSection(s.key)}
                   style={[styles.sectionBtn, active && styles.sectionBtnActive]}
                   accessibilityRole="button"
-                  accessibilityLabel={s.label}
+                  accessibilityLabel={t(`community.v2.sec_${s.key}`)}
                   testID={`community-section-${s.key}`}
                 >
                   <Icon
@@ -172,7 +175,7 @@ export function CompetitionScreenV2() {
                     color={active ? af.textPrimary : af.textTertiary}
                   />
                   <Text style={[styles.sectionBtnText, active && styles.sectionBtnTextActive]}>
-                    {s.label}
+                    {t(`community.v2.sec_${s.key}`)}
                   </Text>
                 </Pressable>
               );
@@ -220,6 +223,7 @@ interface RankingsProps {
 }
 
 function RankingsSection({ snapshot, me, myTeam, topCity, featureFlags }: RankingsProps) {
+  const { t } = useTranslation();
   const enabledScopeKinds = React.useMemo<CompetitionScope[]>(() => {
     const out: CompetitionScope[] = [];
     if (featureFlags.city_competition_enabled !== false)    out.push('city');
@@ -247,7 +251,7 @@ function RankingsSection({ snapshot, me, myTeam, topCity, featureFlags }: Rankin
     }
   }, [effectiveScope, snapshot]);
 
-  const stateLabelDisplay = me.user.state_label === 'PEAK' ? 'OPTIMAL' : me.user.state_label;
+  const stateLabelDisplay = me.user.state_label === 'PEAK' ? t('community.v2.optimal') : me.user.state_label;
 
   return (
     <>
@@ -263,15 +267,15 @@ function RankingsSection({ snapshot, me, myTeam, topCity, featureFlags }: Rankin
           </View>
           <View style={[styles.deltaPill, me.recentDelta > 0 ? { backgroundColor: `${af.green}1F` } : null]}>
             <Icon name="arrow-up-right" size={11} color={af.green} />
-            <Text style={[styles.deltaText, { color: af.green }]}>+{me.recentDelta} spots</Text>
+            <Text style={[styles.deltaText, { color: af.green }]}>{t('community.v2.spots', { count: me.recentDelta })}</Text>
           </View>
         </View>
         <View style={styles.userStatsRow}>
-          <UserStat label="GLOBAL" value={`#${me.globalRank ?? '—'}`} accent={af.green} />
-          <UserStat label="CITY"   value={`#${me.cityRank ?? '—'}`} />
-          <UserStat label="STATE"  value={`#${me.stateRank ?? '—'}`} />
-          <UserStat label="TEAM"   value={me.teamRank != null ? `#${me.teamRank}` : '—'} />
-          <UserStat label="SCORE"  value={String(me.user.competitionScore)} accent={af.green} />
+          <UserStat label={t('community.v2.stat_global')} value={`#${me.globalRank ?? '—'}`} accent={af.green} />
+          <UserStat label={t('community.v2.stat_city')}   value={`#${me.cityRank ?? '—'}`} />
+          <UserStat label={t('community.v2.stat_state')}  value={`#${me.stateRank ?? '—'}`} />
+          <UserStat label={t('community.v2.stat_team')}   value={me.teamRank != null ? `#${me.teamRank}` : '—'} />
+          <UserStat label={t('community.v2.stat_score')}  value={String(me.user.competitionScore)} accent={af.green} />
         </View>
       </View>
 
@@ -280,7 +284,7 @@ function RankingsSection({ snapshot, me, myTeam, topCity, featureFlags }: Rankin
           <Icon name="award" size={14} color={af.green} />
           <Text style={styles.celebrateText}>
             <Text style={{ color: af.green, fontFamily: 'Inter_700Bold' }}>{topCity.name}</Text>
-            {' leads the country this week.'}
+            {t('community.v2.leads_country')}
           </Text>
         </View>
       )}
@@ -293,7 +297,7 @@ function RankingsSection({ snapshot, me, myTeam, topCity, featureFlags }: Rankin
             style={[styles.scopeBtn, effectiveScope === kind && styles.scopeBtnActive]}
           >
             <Text style={[styles.scopeText, effectiveScope === kind && styles.scopeTextActive]}>
-              {kind.toUpperCase()}
+              {t(`community.v2.scope_${kind}`)}
             </Text>
           </Pressable>
         ))}
@@ -307,15 +311,14 @@ function RankingsSection({ snapshot, me, myTeam, topCity, featureFlags }: Rankin
 
       <Leaderboard entries={entries} />
 
-      <Text style={styles.footnote}>
-        Re-ranks live as you log intake, complete protocols, and recover.
-      </Text>
+      <Text style={styles.footnote}>{t('community.v2.rankings_footnote')}</Text>
     </>
   );
 }
 
 // ─── Challenges ────────────────────────────────────────────────────
 function ChallengesSection() {
+  const { t } = useTranslation();
   const v = useCircleSubscription();
   const challenges = React.useMemo(() => listChallenges(), [v]);
 
@@ -323,17 +326,17 @@ function ChallengesSection() {
     return (
       <EmptyBlock
         icon="zap"
-        title="No open challenges"
-        body="When someone in your circle calls you out, it shows up here."
+        title={t('community.v2.challenges_empty_title')}
+        body={t('community.v2.challenges_empty_body')}
       />
     );
   }
   return (
     <View style={styles.stack}>
       <SectionHeader
-        eyebrow="OPEN CHALLENGES"
-        title={`${challenges.length} waiting`}
-        sub="Tap accept to lock in a 24-hour rivalry."
+        eyebrow={t('community.v2.challenges_eyebrow')}
+        title={t('community.v2.challenges_waiting', { count: challenges.length })}
+        sub={t('community.v2.challenges_sub')}
       />
       {challenges.map((c) => (
         <CircleChallengeCard
@@ -348,6 +351,7 @@ function ChallengesSection() {
 
 // ─── Battles ───────────────────────────────────────────────────────
 function BattlesSection() {
+  const { t } = useTranslation();
   const v = useBattlesSubscription();
   const battles = React.useMemo(() => listBattles(), [v]);
 
@@ -355,17 +359,17 @@ function BattlesSection() {
     return (
       <EmptyBlock
         icon="shield"
-        title="No live battles"
-        body="Region rivalries open at the start of each weekly cycle."
+        title={t('community.v2.battles_empty_title')}
+        body={t('community.v2.battles_empty_body')}
       />
     );
   }
   return (
     <View style={styles.stack}>
       <SectionHeader
-        eyebrow="HYDRATION BATTLES"
-        title={`${battles.length} live`}
-        sub="Pick a side. Your score adds to their total."
+        eyebrow={t('community.v2.battles_eyebrow')}
+        title={t('community.v2.battles_live', { count: battles.length })}
+        sub={t('community.v2.battles_sub')}
       />
       {battles.map((b) => (
         <BattleCard
@@ -385,12 +389,14 @@ interface TeamsProps {
   myTeamRank: number | undefined;
 }
 function TeamsSection({ teams, myTeam, myTeamRank }: TeamsProps) {
+  // aliased to `tr` — the teams.map() callback below binds `t` to a team.
+  const { t: tr } = useTranslation();
   return (
     <View style={styles.stack}>
       <SectionHeader
-        eyebrow="TEAM PERFORMANCE"
-        title={`${teams.length} ranked teams`}
-        sub="Composite score across performance, compliance, consistency, and recovery."
+        eyebrow={tr('community.v2.teams_eyebrow')}
+        title={tr('community.v2.teams_ranked', { count: teams.length })}
+        sub={tr('community.v2.teams_sub')}
       />
       {myTeam && <TeamCard team={myTeam} yourRank={myTeamRank} />}
       <View style={styles.teamList}>
@@ -410,7 +416,7 @@ function TeamsSection({ teams, myTeam, myTeamRank }: TeamsProps) {
               <View style={{ flex: 1 }}>
                 <Text style={styles.teamName}>{t.name}</Text>
                 <Text style={styles.teamMeta}>
-                  {t.city} · {t.rosterSize} athletes
+                  {t.city} · {tr('community.v2.team_athletes', { count: t.rosterSize })}
                 </Text>
               </View>
               <View style={styles.teamScoreCol}>
@@ -432,14 +438,15 @@ interface MapProps {
   onOpen: () => void;
 }
 function MapSection({ cityName, cityScore, onOpen }: MapProps) {
+  const { t } = useTranslation();
   return (
     <View style={styles.stack}>
       <SectionHeader
-        eyebrow="COMMUNITY MAPS"
-        title="Performance Map"
-        sub="Stylized hydration map of every city, state and team."
+        eyebrow={t('community.v2.map_eyebrow')}
+        title={t('community.v2.map_title')}
+        sub={t('community.v2.map_sub')}
       />
-      <Pressable onPress={onOpen} style={styles.mapCard} accessibilityRole="button" accessibilityLabel="Open Performance Map">
+      <Pressable onPress={onOpen} style={styles.mapCard} accessibilityRole="button" accessibilityLabel={t('community.v2.map_open_a11y')}>
         <View style={styles.mapHero}>
           <HeatBlob top={-20}  left={-10}   color={af.green} />
           <HeatBlob top={30}   left={80}    color={af.green} />
@@ -449,17 +456,17 @@ function MapSection({ cityName, cityScore, onOpen }: MapProps) {
           <HeatBlob top={70}   right={-30}  color={af.cyan} />
           <HeatBlob bottom={20} left={-30}  color={af.amber} />
           <View style={styles.mapHeroVignette} pointerEvents="none" />
-          <Text style={styles.mapHeroLabel}>HYDRATION HEAT MAP</Text>
+          <Text style={styles.mapHeroLabel}>{t('community.v2.map_hero')}</Text>
         </View>
         <View style={styles.mapBody}>
           <View style={{ flex: 1 }}>
             <Text style={styles.mapTitle}>
-              {cityName ? `${cityName} leading` : 'Live ranking'}
+              {cityName ? t('community.v2.map_leading', { city: cityName }) : t('community.v2.map_live_ranking')}
             </Text>
             <Text style={styles.mapSub}>
               {cityScore != null
-                ? `Composite score ${cityScore} · tap to explore`
-                : 'Tap to explore the full map'}
+                ? t('community.v2.map_composite', { score: cityScore })
+                : t('community.v2.map_tap_explore')}
             </Text>
           </View>
           <Icon name="arrow-up-right" size={18} color={af.textPrimary} />

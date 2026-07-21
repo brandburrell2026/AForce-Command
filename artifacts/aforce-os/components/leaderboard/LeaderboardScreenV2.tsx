@@ -11,6 +11,7 @@ import {
   View, Text, StyleSheet, ScrollView, Pressable, RefreshControl, Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 
 import { Icon } from '@/components/Icon';
@@ -19,6 +20,7 @@ import { af } from '@/theme';
 import { useGetReferralLeaderboard } from '@workspace/api-client-react';
 
 export function LeaderboardScreenV2() {
+  const { t } = useTranslation();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [refreshing, setRefreshing] = useState(false);
@@ -68,8 +70,8 @@ export function LeaderboardScreenV2() {
               <Icon name="chevron-left" size={20} color={af.textPrimary} />
             </Pressable>
             <View style={{ flex: 1 }}>
-              <Text style={styles.eyebrow}>RECRUITERS</Text>
-              <Text style={styles.title}>Leaderboard</Text>
+              <Text style={styles.eyebrow}>{t('leaderboard.v2.eyebrow')}</Text>
+              <Text style={styles.title}>{t('leaderboard.v2.title')}</Text>
             </View>
           </View>
 
@@ -78,28 +80,25 @@ export function LeaderboardScreenV2() {
               <Text style={styles.summaryNumber}>
                 {yourRank > 0 ? `#${yourRank}` : '—'}
               </Text>
-              <Text style={styles.summaryLabel}>YOUR RANK</Text>
+              <Text style={styles.summaryLabel}>{t('leaderboard.v2.your_rank')}</Text>
             </View>
             <View style={styles.summaryDivider} />
             <View style={styles.summaryCol}>
               <Text style={styles.summaryNumber}>{yourClaims}</Text>
-              <Text style={styles.summaryLabel}>YOUR CLAIMS</Text>
+              <Text style={styles.summaryLabel}>{t('leaderboard.v2.your_claims')}</Text>
             </View>
             <View style={styles.summaryDivider} />
             <View style={styles.summaryCol}>
               <Text style={styles.summaryNumber}>{totalParticipants}</Text>
-              <Text style={styles.summaryLabel}>OPERATORS</Text>
+              <Text style={styles.summaryLabel}>{t('leaderboard.v2.operators')}</Text>
             </View>
           </View>
 
           {q.isLoading ? (
-            <Text style={styles.emptyText}>Loading the boards…</Text>
+            <Text style={styles.emptyText}>{t('leaderboard.v2.loading')}</Text>
           ) : entries.length === 0 ? (
             <View style={styles.empty}>
-              <Text style={styles.emptyText}>
-                No recruits on the boards yet.{'\n'}Be the first to put an
-                operator's name up.
-              </Text>
+              <Text style={styles.emptyText}>{t('leaderboard.v2.empty')}</Text>
             </View>
           ) : (
             <View style={styles.list}>
@@ -120,7 +119,7 @@ export function LeaderboardScreenV2() {
                   </View>
                   <Row
                     rank={yourRank}
-                    handle="You"
+                    handle={t('leaderboard.v2.you')}
                     tierLabel=""
                     claims={yourClaims}
                     isYou
@@ -130,10 +129,7 @@ export function LeaderboardScreenV2() {
             </View>
           )}
 
-          <Text style={styles.footnote}>
-            Handles are anonymous — derived from each operator's invite
-            code. No emails, no real names. Recognition only.
-          </Text>
+          <Text style={styles.footnote}>{t('leaderboard.v2.footnote')}</Text>
         </ScrollView>
       </GradientBackground>
     </View>
@@ -145,6 +141,7 @@ function Row({
 }: {
   rank: number; handle: string; tierLabel: string; claims: number; isYou: boolean;
 }) {
+  const { t } = useTranslation();
   return (
     <View
       style={[styles.row, isYou && styles.rowYou]}
@@ -161,7 +158,7 @@ function Row({
       </View>
       <View style={styles.rowRight}>
         <Text style={[styles.rowClaims, isYou && styles.rowClaimsYou]}>{claims}</Text>
-        <Text style={styles.rowClaimsLabel}>RECRUITS</Text>
+        <Text style={styles.rowClaimsLabel}>{t('leaderboard.v2.recruits')}</Text>
       </View>
     </View>
   );

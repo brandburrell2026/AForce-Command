@@ -1295,5 +1295,102 @@
       "cite_estimate_body": "Anchored to per-sport population-mean sweat rates (Baker 2017), scaled by Du Bois body-surface area, RPE-mapped intensity, USARIEM-style climate factors, and Périard 2015 acclimatization adjustment.",
       "cite_calibration": "Calibration target: ±15% of measured rate at moderate intensity, thermoneutral conditions. Always confirm with a scale for clinical decisions. Not a medical device."
     }
+  },
+  "achievements": {
+    "v2": {
+      "eyebrow": "RETENTION",
+      "title": "Achievements",
+      "unlocked": "Unlocked"
+    }
+  },
+  "leaderboard": {
+    "v2": {
+      "eyebrow": "RECRUITERS",
+      "title": "Leaderboard",
+      "your_rank": "YOUR RANK",
+      "your_claims": "YOUR CLAIMS",
+      "operators": "OPERATORS",
+      "loading": "Loading the boards…",
+      "empty": "No recruits on the boards yet.\nBe the first to put an operator's name up.",
+      "you": "You",
+      "recruits": "RECRUITS",
+      "footnote": "Handles are anonymous — derived from each operator's invite code. No emails, no real names. Recognition only."
+    }
+  },
+  "community": {
+    "v2": {
+      "sec_rankings": "RANK",
+      "sec_challenges": "CHALLENGES",
+      "sec_battles": "BATTLES",
+      "sec_teams": "TEAMS",
+      "sec_map": "MAP",
+      "back_prev_a11y": "Back to previous section",
+      "back_home_a11y": "Back to home",
+      "eyebrow": "SPORT MODE",
+      "title": "Community",
+      "live": "LIVE",
+      "optimal": "OPTIMAL",
+      "spots": "+{{count}} spots",
+      "stat_global": "GLOBAL",
+      "stat_city": "CITY",
+      "stat_state": "STATE",
+      "stat_team": "TEAM",
+      "stat_score": "SCORE",
+      "leads_country": " leads the country this week.",
+      "scope_city": "CITY",
+      "scope_state": "STATE",
+      "scope_team": "TEAM",
+      "scope_individual": "INDIVIDUAL",
+      "rankings_footnote": "Re-ranks live as you log intake, complete protocols, and recover.",
+      "challenges_empty_title": "No open challenges",
+      "challenges_empty_body": "When someone in your circle calls you out, it shows up here.",
+      "challenges_eyebrow": "OPEN CHALLENGES",
+      "challenges_waiting": "{{count}} waiting",
+      "challenges_sub": "Tap accept to lock in a 24-hour rivalry.",
+      "battles_empty_title": "No live battles",
+      "battles_empty_body": "Region rivalries open at the start of each weekly cycle.",
+      "battles_eyebrow": "HYDRATION BATTLES",
+      "battles_live": "{{count}} live",
+      "battles_sub": "Pick a side. Your score adds to their total.",
+      "teams_eyebrow": "TEAM PERFORMANCE",
+      "teams_ranked": "{{count}} ranked teams",
+      "teams_sub": "Composite score across performance, compliance, consistency, and recovery.",
+      "team_athletes": "{{count}} athletes",
+      "map_eyebrow": "COMMUNITY MAPS",
+      "map_title": "Performance Map",
+      "map_sub": "Stylized hydration map of every city, state and team.",
+      "map_open_a11y": "Open Performance Map",
+      "map_hero": "HYDRATION HEAT MAP",
+      "map_leading": "{{city}} leading",
+      "map_live_ranking": "Live ranking",
+      "map_composite": "Composite score {{score}} · tap to explore",
+      "map_tap_explore": "Tap to explore the full map"
+    }
+  },
+  "share": {
+    "v2": {
+      "fmt_card": "CARD",
+      "fmt_story": "STORY",
+      "fmt_text": "TEXT",
+      "fmt_recap": "RECAP",
+      "voice_status_label": "STATUS",
+      "voice_status_tagline": "System state",
+      "voice_action_label": "ACTION",
+      "voice_action_tagline": "Proof in motion",
+      "voice_identity_label": "IDENTITY",
+      "voice_identity_tagline": "How I run",
+      "section_voice": "VOICE",
+      "section_share_to": "SHARE TO",
+      "section_format": "FORMAT",
+      "section_message": "MESSAGE",
+      "title": "Share",
+      "voice_a11y": "{{label}} voice — {{tagline}}",
+      "share_to_a11y": "Share to {{name}}",
+      "format_a11y": "{{label}} format",
+      "message_option_a11y": "Message option {{n}}: {{preview}}",
+      "open_share_a11y": "Open share sheet",
+      "cta_opening": "OPENING…",
+      "cta_share": "SHARE"
+    }
   }
 }

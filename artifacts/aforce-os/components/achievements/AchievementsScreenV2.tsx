@@ -12,6 +12,7 @@ import {
   View, Text, StyleSheet, ScrollView, Pressable, RefreshControl, Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { Icon } from '@/components/Icon';
 import { useRouter } from 'expo-router';
 
@@ -24,6 +25,7 @@ import {
 import { fetchAchievements } from '@/services/realApi';
 
 export function AchievementsScreenV2() {
+  const { t } = useTranslation();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [unlocks, setUnlocks] = useState<AchievementUnlockState[]>([]);
@@ -61,8 +63,8 @@ export function AchievementsScreenV2() {
               <Icon name="chevron-left" size={20} color={af.textPrimary} />
             </Pressable>
             <View style={{ flex: 1 }}>
-              <Text style={styles.eyebrow}>RETENTION</Text>
-              <Text style={styles.title}>Achievements</Text>
+              <Text style={styles.eyebrow}>{t('achievements.v2.eyebrow')}</Text>
+              <Text style={styles.title}>{t('achievements.v2.title')}</Text>
             </View>
           </View>
 
@@ -70,7 +72,7 @@ export function AchievementsScreenV2() {
             <Text style={styles.summaryNumber}>{unlockedCount}</Text>
             <Text style={styles.summaryDivider}>/</Text>
             <Text style={styles.summaryTotal}>{ACHIEVEMENTS.length}</Text>
-            <Text style={styles.summaryLabel}>Unlocked</Text>
+            <Text style={styles.summaryLabel}>{t('achievements.v2.unlocked')}</Text>
           </View>
 
           <View style={styles.grid}>
