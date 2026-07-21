@@ -129,6 +129,7 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   // Stays OFF in DEFAULT_FLAGS so the production binary cannot expose
   // it ahead of internal-preview readiness (Phase 2 in the spec).
   spec_recovery: false,
+  spec_hydration: false,
   spec_recoveryCoach: false,
   spec_protocol: false,
 
@@ -340,6 +341,7 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
   spec_recovery: true,
   spec_recoveryCoach: true,
   spec_protocol: true,
+  spec_hydration: true,
   spec_demand_engine: true,
   spec_section20_calibration: true,
   hydro_scan_2_enabled: true,

@@ -672,6 +672,12 @@ export interface FeatureFlags {
    */
   spec_protocol: boolean;
   /**
+   * Hydration premium redesign (Phase 2 · S5) — live hydration dashboard
+   * (ring, scan/log CTAs, recent intake). Default OFF: the Performance Timeline
+   * renders until flipped. Same store data; presentation only.
+   */
+  spec_hydration: boolean;
+  /**
    * Hydration Demand Engine™ — pure module that replaces generic
    * 8-glasses logic with an input-driven daily target. Phase 1 ships
    * the module only; outputs are NOT consumed by any visible surface
