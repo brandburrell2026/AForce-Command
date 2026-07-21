@@ -11,6 +11,7 @@
  */
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import {
   AFScreen,
@@ -36,6 +37,7 @@ function dayInitial(ts: Date | string): string {
 }
 
 export function ReadinessInsightsV2() {
+  const { t } = useTranslation();
   const { state } = useAppStore();
   const engine = useEngineSlice();
   const { history } = state;
@@ -60,24 +62,26 @@ export function ReadinessInsightsV2() {
 
   return (
     <AFScreen scroll>
-      <AFTopBar eyebrow="Last 7 days" title="Readiness insights" />
+      <AFTopBar eyebrow={t('reports.v2.eyebrow')} title={t('reports.v2.title')} />
 
       {scores.length < 2 ? (
         <AFEmptyState
           icon="activity"
-          title="Not enough history yet"
-          message="Complete a couple more days of cycles and your readiness trend will appear here."
+          title={t('reports.v2.empty_title')}
+          message={t('reports.v2.empty_message')}
         />
       ) : (
         <>
           {/* Weekly score hero */}
           <View style={styles.hero}>
             <Text style={styles.score}>{avg}</Text>
-            <Text style={styles.scoreLabel}>AVG READINESS</Text>
+            <Text style={styles.scoreLabel}>{t('reports.v2.avg_label')}</Text>
             {delta != null && delta !== 0 && (
               <View style={styles.deltaWrap}>
                 <AFStatusBadge
-                  label={`${delta > 0 ? '+' : '−'}${Math.abs(delta)} this week`}
+                  label={t(delta > 0 ? 'reports.v2.delta_positive' : 'reports.v2.delta_negative', {
+                    value: Math.abs(delta),
+                  })}
                   tone={delta > 0 ? 'positive' : 'critical'}
                   icon={delta > 0 ? 'trending-up' : 'trending-down'}
                 />
@@ -91,16 +95,16 @@ export function ReadinessInsightsV2() {
               values={scores}
               labels={labels}
               height={140}
-              summary={`Readiness over ${scores.length} days, averaging ${avg}.`}
+              summary={t('reports.v2.chart_summary', { days: scores.length, avg })}
             />
           </View>
 
           {/* Three drivers */}
           <View style={styles.section}>
-            <AFSectionLabel label="What moved your score" />
+            <AFSectionLabel label={t('reports.v2.movers_label')} />
             <AFCard padded={false} style={styles.driversCard}>
               {drivers.length === 0 ? (
-                <Text style={styles.noDrivers}>No notable movers this week.</Text>
+                <Text style={styles.noDrivers}>{t('reports.v2.no_movers')}</Text>
               ) : (
                 drivers.map((d, i) => (
                   <View key={d.id} style={[styles.driverRow, i > 0 && styles.driverDivider]}>
@@ -118,10 +122,10 @@ export function ReadinessInsightsV2() {
           {/* One AForce insight */}
           {topPositive && (
             <View style={styles.section}>
-              <AFSectionLabel label="AForce insight" />
+              <AFSectionLabel label={t('reports.v2.insight_label')} />
               <AFCard>
                 <Text style={styles.insight}>
-                  {topPositive.label} is your biggest lift this week — keep leaning into it.
+                  {t('reports.v2.insight_text', { label: topPositive.label })}
                 </Text>
               </AFCard>
             </View>

@@ -61,6 +61,21 @@
       "hrv": "HRV",
       "vo2": "VO₂ EST",
       "mode": "MODE"
+    },
+    "v2": {
+      "freshness": "Updated just now",
+      "readiness_label": "READINESS",
+      "readiness_a11y": "Readiness {{score}} of 100. Tap for insights.",
+      "default_command_title": "Start with water",
+      "log_water": "Log water",
+      "signals_label": "Signals",
+      "signal_hydration": "Hydration",
+      "signal_heat": "Heat",
+      "signal_recovery": "Recovery",
+      "heat_high": "High",
+      "heat_moderate": "Moderate",
+      "heat_low": "Low",
+      "greeting_default": "there"
     }
   },
   "logIntake": {
@@ -518,6 +533,20 @@
       "low_activity": "Wenig Aktivität diese Woche ({{activeDays}}).",
       "performance_age_older": "Dein Leistungsalter stieg um {{deltaYears}} Jahre.",
       "recovery_down": "Die Erholung sank um {{delta}} Punkte."
+    },
+    "v2": {
+      "eyebrow": "Last 7 days",
+      "title": "Readiness insights",
+      "empty_title": "Not enough history yet",
+      "empty_message": "Complete a couple more days of cycles and your readiness trend will appear here.",
+      "avg_label": "AVG READINESS",
+      "delta_positive": "+{{value}} this week",
+      "delta_negative": "−{{value}} this week",
+      "chart_summary": "Readiness over {{days}} days, averaging {{avg}}.",
+      "movers_label": "What moved your score",
+      "no_movers": "No notable movers this week.",
+      "insight_label": "AForce insight",
+      "insight_text": "{{label}} is your biggest lift this week — keep leaning into it."
     }
   },
   "smartModes": {

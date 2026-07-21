@@ -13,6 +13,7 @@
  */
 import React from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useUser } from '@clerk/expo';
 
 import {
@@ -35,10 +36,11 @@ interface HomeActions {
   ) => Promise<void>;
 }
 
-function heatLabel(heatLoad: number): string {
-  if (heatLoad >= 60) return 'High';
-  if (heatLoad >= 30) return 'Moderate';
-  return 'Low';
+/** Heat-load band → i18n key suffix (translated at the call site). */
+function heatBand(heatLoad: number): 'high' | 'moderate' | 'low' {
+  if (heatLoad >= 60) return 'high';
+  if (heatLoad >= 30) return 'moderate';
+  return 'low';
 }
 
 function titleCase(level: string): string {
@@ -58,6 +60,7 @@ function Signal({ label, value }: { label: string; value: string }) {
 }
 
 export function HomeScreenV2() {
+  const { t } = useTranslation();
   const { state } = useAppStore();
   const engine = useEngineSlice();
   const { logIntake } = useActionsSlice<HomeActions>();
@@ -71,15 +74,15 @@ export function HomeScreenV2() {
     userState.dailyTarget > 0
       ? Math.round((userState.unitsConsumedToday / userState.dailyTarget) * 100)
       : 0;
-  const greeting = clerkUser?.firstName ?? 'there';
+  const greeting = clerkUser?.firstName ?? t('home.v2.greeting_default');
 
   return (
     <AFScreen scroll>
       {/* Wordmark + freshness */}
       <View style={styles.header}>
-        <Text style={styles.welcome}>Welcome, {greeting}</Text>
-        <Text style={styles.brand}>AForce OS</Text>
-        <Text style={styles.freshness}>Updated just now</Text>
+        <Text style={styles.welcome}>{t('home.welcome', { name: greeting })}</Text>
+        <Text style={styles.brand}>{t('home.subtitle_title')}</Text>
+        <Text style={styles.freshness}>{t('home.v2.freshness')}</Text>
       </View>
 
       {/* Dominant readiness value + thin arc (tap → insights) */}
@@ -87,21 +90,21 @@ export function HomeScreenV2() {
         style={styles.arcWrap}
         onPress={() => router.push('/weekly-report')}
         accessibilityRole="button"
-        accessibilityLabel={`Readiness ${score} of 100. Tap for insights.`}
+        accessibilityLabel={t('home.v2.readiness_a11y', { score })}
         testID="home-readiness-arc"
       >
         <AFReadinessArc score={score} size={240}>
           <Text style={styles.score}>{score}</Text>
-          <Text style={styles.scoreLabel}>READINESS</Text>
+          <Text style={styles.scoreLabel}>{t('home.v2.readiness_label')}</Text>
           <Text style={styles.stateLabel}>{engine.performanceState.level}</Text>
         </AFReadinessArc>
       </Pressable>
 
       {/* One command */}
       <AFCommandCard
-        title={title || 'Start with water'}
+        title={title || t('home.v2.default_command_title')}
         instruction={instruction}
-        primaryLabel="Log water"
+        primaryLabel={t('home.v2.log_water')}
         onPrimary={() => {
           void logIntake('water', { silent: true, ozOverride: parseDoseOz(engine.command.action) });
         }}
@@ -110,11 +113,11 @@ export function HomeScreenV2() {
 
       {/* Three quiet signals */}
       <View style={styles.signalsSection}>
-        <AFSectionLabel label="Signals" />
+        <AFSectionLabel label={t('home.v2.signals_label')} />
         <View style={styles.signals}>
-          <Signal label="Hydration" value={`${hydrationPct}%`} />
-          <Signal label="Heat" value={heatLabel(userState.heatLoad)} />
-          <Signal label="Recovery" value={titleCase(engine.performanceState.level)} />
+          <Signal label={t('home.v2.signal_hydration')} value={`${hydrationPct}%`} />
+          <Signal label={t('home.v2.signal_heat')} value={t(`home.v2.heat_${heatBand(userState.heatLoad)}`)} />
+          <Signal label={t('home.v2.signal_recovery')} value={titleCase(engine.performanceState.level)} />
         </View>
       </View>
 
