@@ -17,6 +17,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { Icon, type IconName } from '@/components/Icon';
 import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
@@ -48,6 +49,7 @@ function formatDate(iso?: string): string {
 }
 
 export function ManageSubscriptionScreenV2() {
+  const { t } = useTranslation();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { state } = useAppStore();
@@ -73,15 +75,15 @@ export function ManageSubscriptionScreenV2() {
         // customer record for them. Surface a clear next step instead
         // of a raw error. For any other failure we keep the message
         // generic — server error bodies aren't safe to render verbatim.
-        let friendly = 'Could not open billing. Please try again.';
+        let friendly = t('subscription.v2.billing_generic');
         if (isApiError(err)) {
           if (err.status === 404 && err.message.includes('no_stripe_customer')) {
-            friendly = 'No billing account yet. Choose a plan to set up billing first.';
+            friendly = t('subscription.v2.billing_no_customer');
           } else if (err.status === 401) {
-            friendly = 'Please sign in again to manage billing.';
+            friendly = t('subscription.v2.billing_signin');
           }
         }
-        Alert.alert('Billing unavailable', friendly);
+        Alert.alert(t('subscription.v2.billing_unavailable_title'), friendly);
         return;
       }
       await WebBrowser.openAuthSessionAsync(session.url, returnUrl);
@@ -114,8 +116,8 @@ export function ManageSubscriptionScreenV2() {
               <Icon name="chevron-left" size={20} color={af.textPrimary} />
             </Pressable>
             <View style={{ flex: 1 }}>
-              <Text style={styles.eyebrow}>SUBSCRIPTION</Text>
-              <Text style={styles.title}>Manage Plan</Text>
+              <Text style={styles.eyebrow}>{t('subscription.v2.manage_eyebrow')}</Text>
+              <Text style={styles.title}>{t('subscription.v2.manage_title')}</Text>
             </View>
           </View>
 
@@ -133,32 +135,32 @@ export function ManageSubscriptionScreenV2() {
 
             <Pressable onPress={() => router.push('/subscription')} style={styles.changeBtn}>
               <Icon name="repeat" size={14} color={af.textPrimary} />
-              <Text style={styles.changeBtnText}>CHANGE PLAN</Text>
+              <Text style={styles.changeBtnText}>{t('subscription.v2.change_plan')}</Text>
             </Pressable>
           </View>
 
           {/* Billing */}
-          <SectionHeader label="BILLING" />
+          <SectionHeader label={t('subscription.v2.section_billing')} />
           <View style={styles.card}>
-            <Row icon="calendar"    label="Next renewal"    value={formatDate(sub.billing.nextRenewalAt)} />
+            <Row icon="calendar"    label={t('subscription.v2.row_next_renewal')}    value={formatDate(sub.billing.nextRenewalAt)} />
             <Divider />
-            <Row icon="dollar-sign" label="Last charge"     value={sub.billing.lastChargeAmount != null ? `$${sub.billing.lastChargeAmount.toLocaleString('en-US')}` : '—'} />
+            <Row icon="dollar-sign" label={t('subscription.v2.row_last_charge')}     value={sub.billing.lastChargeAmount != null ? `$${sub.billing.lastChargeAmount.toLocaleString('en-US')}` : '—'} />
             {plan.setupFee != null && (
               <>
                 <Divider />
-                <Row icon="package" label="One-time setup"  value={`$${plan.setupFee.toLocaleString('en-US')}`} />
+                <Row icon="package" label={t('subscription.v2.row_setup')}  value={`$${plan.setupFee.toLocaleString('en-US')}`} />
               </>
             )}
             {plan.minimumTermMonths != null && (
               <>
                 <Divider />
-                <Row icon="calendar" label="Minimum term"   value={`${plan.minimumTermMonths} months`} />
+                <Row icon="calendar" label={t('subscription.v2.row_minimum_term')}   value={t('subscription.v2.months', { count: plan.minimumTermMonths })} />
               </>
             )}
             <Divider />
-            <Row icon="credit-card" label="Payment method"  value={sub.billing.paymentMethodLabel ?? '—'} />
+            <Row icon="credit-card" label={t('subscription.v2.row_payment_method')}  value={sub.billing.paymentMethodLabel ?? '—'} />
             <Divider />
-            <Row icon="shield"      label="Provider"        value={sub.billing.provider.toUpperCase()} />
+            <Row icon="shield"      label={t('subscription.v2.row_provider')}        value={sub.billing.provider.toUpperCase()} />
           </View>
 
           {/* Product subscription — display only at launch. Skip / pause
@@ -166,12 +168,12 @@ export function ManageSubscriptionScreenV2() {
               and will land via a v1.1 fulfillment endpoint. */}
           {sub.product && (
             <>
-              <SectionHeader label="PRODUCT SHIPMENTS" />
+              <SectionHeader label={t('subscription.v2.section_shipments')} />
               <View style={styles.card}>
                 <View style={styles.shipmentTop}>
                   <Icon name="package" size={16} color={af.green} />
                   <View style={{ flex: 1 }}>
-                    <Text style={styles.shipmentTitle}>Next delivery</Text>
+                    <Text style={styles.shipmentTitle}>{t('subscription.v2.next_delivery')}</Text>
                     <Text style={styles.shipmentDate}>{formatDate(sub.product.nextDeliveryAt)}</Text>
                   </View>
                   <Text style={styles.shipmentStatus}>{sub.product.status.toUpperCase()}</Text>
@@ -179,7 +181,7 @@ export function ManageSubscriptionScreenV2() {
                 {sub.product.allotments.map((a, i) => (
                   <React.Fragment key={a.fluidType}>
                     {i === 0 && <Divider />}
-                    <Row icon="droplet" label={a.label} value={`× ${a.unitsPerCycle}`} />
+                    <Row icon="droplet" label={a.label} value={t('subscription.v2.units_per_cycle', { count: a.unitsPerCycle })} />
                     {i < sub.product!.allotments.length - 1 && <Divider />}
                   </React.Fragment>
                 ))}
@@ -188,7 +190,7 @@ export function ManageSubscriptionScreenV2() {
           )}
 
           {/* Features unlocked */}
-          <SectionHeader label="UNLOCKED FEATURES" hint={`${features.length} included`} />
+          <SectionHeader label={t('subscription.v2.section_features')} hint={t('subscription.v2.features_included', { count: features.length })} />
           <View style={styles.card}>
             {features.map((f, i) => (
               <React.Fragment key={f.id}>
@@ -211,7 +213,7 @@ export function ManageSubscriptionScreenV2() {
 
           {/* Controls — Stripe Customer Portal handles cancel / pause /
               resume / payment method update / invoices in one hosted UI. */}
-          <SectionHeader label="SUBSCRIPTION CONTROLS" />
+          <SectionHeader label={t('subscription.v2.section_controls')} />
           <View style={styles.card}>
             <Pressable
               onPress={onManageBilling}
@@ -220,17 +222,13 @@ export function ManageSubscriptionScreenV2() {
             >
               <Icon name="external-link" size={14} color={af.textPrimary} />
               <Text style={styles.portalBtnText}>
-                {busy ? 'OPENING…' : 'MANAGE BILLING'}
+                {busy ? t('subscription.v2.portal_opening') : t('subscription.v2.portal_manage')}
               </Text>
             </Pressable>
-            <Text style={styles.portalHint}>
-              Cancel, pause, update payment, or download invoices in the Stripe billing portal.
-            </Text>
+            <Text style={styles.portalHint}>{t('subscription.v2.portal_hint')}</Text>
           </View>
 
-          <Text style={styles.footnote}>
-            Secured by Stripe.
-          </Text>
+          <Text style={styles.footnote}>{t('subscription.v2.footnote')}</Text>
         </ScrollView>
       </GradientBackground>
     </View>
