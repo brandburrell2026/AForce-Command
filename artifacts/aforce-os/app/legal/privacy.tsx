@@ -13,7 +13,7 @@
  */
 
 import React from 'react';
-import { LegalDocumentScreen, type LegalSection } from '@/components/LegalDocumentScreen';
+import { LegalDocumentScreen, type LegalSection } from '@/components/legal/LegalDocumentGated';
 
 const SECTIONS: LegalSection[] = [
   {
