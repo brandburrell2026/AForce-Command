@@ -130,6 +130,7 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   // it ahead of internal-preview readiness (Phase 2 in the spec).
   spec_recovery: false,
   spec_recoveryCoach: false,
+  spec_protocol: false,
 
   // Hydration Demand Engine™ — pure module, not consumed by any
   // visible surface yet. Build 100%, show 0%. Flip ON in DEMO_ALL_ON
@@ -337,6 +338,7 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
   // consumes them.
   spec_recovery: true,
   spec_recoveryCoach: true,
+  spec_protocol: true,
   spec_demand_engine: true,
   spec_section20_calibration: true,
   hydro_scan_2_enabled: true,

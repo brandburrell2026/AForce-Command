@@ -665,6 +665,13 @@ export interface FeatureFlags {
    */
   spec_recoveryCoach: boolean;
   /**
+   * Protocol premium redesign (Phase 2 · S2) — the redesigned Protocol tab
+   * (large active step, ordered upcoming timeline, "Why this plan" disclosure).
+   * Default OFF: the legacy Protocol screen renders until flipped. Same data
+   * (deriveProtocol); presentation only.
+   */
+  spec_protocol: boolean;
+  /**
    * Hydration Demand Engine™ — pure module that replaces generic
    * 8-glasses logic with an input-driven daily target. Phase 1 ships
    * the module only; outputs are NOT consumed by any visible surface
