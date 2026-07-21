@@ -14,6 +14,7 @@ import {
   View, Text, StyleSheet, ScrollView, Pressable, Switch, Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { Icon, type IconName } from '@/components/Icon';
 import { useRouter } from 'expo-router';
 
@@ -24,21 +25,21 @@ import type { NotificationSettingKey } from '@/types';
 
 interface ToggleRow {
   key: NotificationSettingKey;
-  label: string;
-  hint: string;
   icon: IconName;
 }
 
+// Label + hint resolve under notifications.v2.row_<key>_{label,hint} at render.
 const ROWS: ToggleRow[] = [
-  { key: 'recheckReminders',    label: 'Recheck Reminders',    hint: 'Risk-timer pings as your hydration window closes.',           icon: 'clock' },
-  { key: 'scoreDecayAlerts',    label: 'Score Decay Alerts',   hint: 'Voice + push when you cross PEAK / STABLE / RISK bands.',     icon: 'activity' },
-  { key: 'morningKickoff',      label: 'Morning Kickoff',      hint: 'Daily 06:30 summary of the prior day + today\'s plan.',       icon: 'sunrise' },
-  { key: 'circleActivity',      label: 'Circle Activity',      hint: 'Pings when friends in your circle log a peak streak.',         icon: 'users' },
-  { key: 'challengeDeadlines',  label: 'Challenge Deadlines',  hint: 'Reminders before an open circle challenge expires.',           icon: 'flag' },
-  { key: 'lowInventoryAlert',   label: 'Low Inventory Alerts', hint: 'Restock prompts when sticks/RTD/canister inventory hits zero.', icon: 'shopping-bag' },
+  { key: 'recheckReminders',    icon: 'clock' },
+  { key: 'scoreDecayAlerts',    icon: 'activity' },
+  { key: 'morningKickoff',      icon: 'sunrise' },
+  { key: 'circleActivity',      icon: 'users' },
+  { key: 'challengeDeadlines',  icon: 'flag' },
+  { key: 'lowInventoryAlert',   icon: 'shopping-bag' },
 ];
 
 export function NotificationsScreenV2() {
+  const { t } = useTranslation();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { notificationSettings, setNotificationSetting } = useAppStore();
@@ -58,15 +59,12 @@ export function NotificationsScreenV2() {
               <Icon name="chevron-left" size={20} color={af.textPrimary} />
             </Pressable>
             <View style={{ flex: 1 }}>
-              <Text style={styles.eyebrow}>PREFERENCES</Text>
-              <Text style={styles.title}>Notifications</Text>
+              <Text style={styles.eyebrow}>{t('notifications.v2.eyebrow')}</Text>
+              <Text style={styles.title}>{t('notifications.v2.title')}</Text>
             </View>
           </View>
 
-          <Text style={styles.intro}>
-            Decide exactly which alerts AForce sends. Voice, push, and in-app
-            badges all honor these toggles together.
-          </Text>
+          <Text style={styles.intro}>{t('notifications.v2.intro')}</Text>
 
           <View style={styles.card}>
             {ROWS.map((row, idx) => (
@@ -78,8 +76,8 @@ export function NotificationsScreenV2() {
                       <Icon name={row.icon} size={14} color={af.cyan} />
                     </View>
                     <View style={{ flex: 1 }}>
-                      <Text style={styles.rowLabel}>{row.label}</Text>
-                      <Text style={styles.rowHint}>{row.hint}</Text>
+                      <Text style={styles.rowLabel}>{t(`notifications.v2.row_${row.key}_label`)}</Text>
+                      <Text style={styles.rowHint}>{t(`notifications.v2.row_${row.key}_hint`)}</Text>
                     </View>
                   </View>
                   <Switch
@@ -95,10 +93,7 @@ export function NotificationsScreenV2() {
             ))}
           </View>
 
-          <Text style={styles.footnote}>
-            Score-band and risk-timer voice also respect the AForce Command
-            Voice Engine scope/intensity in Profile › Voice.
-          </Text>
+          <Text style={styles.footnote}>{t('notifications.v2.footnote')}</Text>
         </ScrollView>
       </GradientBackground>
     </View>

@@ -770,5 +770,45 @@
       "billing_no_customer": "No billing account yet. Choose a plan to set up billing first.",
       "billing_signin": "Please sign in again to manage billing."
     }
+  },
+  "urine": {
+    "v2": {
+      "eyebrow": "AForce · Tool",
+      "title": "Urine check",
+      "select_a11y": "Select {{label}}",
+      "recommended": "RECOMMENDED",
+      "placeholder": "Tap a color above to read your hydration signal.",
+      "performance_signals": "Performance signals",
+      "signals_active": "{{count}} active",
+      "energy_state": "Energy state",
+      "current_score": "CURRENT SCORE",
+      "complete_cycle": "Complete cycle"
+    }
+  },
+  "notifications": {
+    "v2": {
+      "eyebrow": "PREFERENCES",
+      "title": "Notifications",
+      "intro": "Decide exactly which alerts AForce sends. Voice, push, and in-app badges all honor these toggles together.",
+      "footnote": "Score-band and risk-timer voice also respect the AForce Command Voice Engine scope/intensity in Profile › Voice.",
+      "row_recheckReminders_label": "Recheck Reminders",
+      "row_recheckReminders_hint": "Risk-timer pings as your hydration window closes.",
+      "row_scoreDecayAlerts_label": "Score Decay Alerts",
+      "row_scoreDecayAlerts_hint": "Voice + push when you cross PEAK / STABLE / RISK bands.",
+      "row_morningKickoff_label": "Morning Kickoff",
+      "row_morningKickoff_hint": "Daily 06:30 summary of the prior day + today's plan.",
+      "row_circleActivity_label": "Circle Activity",
+      "row_circleActivity_hint": "Pings when friends in your circle log a peak streak.",
+      "row_challengeDeadlines_label": "Challenge Deadlines",
+      "row_challengeDeadlines_hint": "Reminders before an open circle challenge expires.",
+      "row_lowInventoryAlert_label": "Low Inventory Alerts",
+      "row_lowInventoryAlert_hint": "Restock prompts when sticks/RTD/canister inventory hits zero."
+    }
+  },
+  "legal": {
+    "v2": {
+      "back_a11y": "Back",
+      "updated": "Updated {{date}}"
+    }
   }
 }
