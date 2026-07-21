@@ -30,4 +30,13 @@ export { AFEmptyState, type AFEmptyStateProps } from './AFEmptyState';
 export { AFErrorState, type AFErrorStateProps, type AFErrorVariant } from './AFErrorState';
 export { AFEditorialHero, type AFEditorialHeroProps } from './AFEditorialHero';
 
+// Phase 3 · shared primitives for the remaining-screen redesigns
+export { AFPrice, type AFPriceProps } from './AFPrice';
+export { AFProductCard, type AFProductCardProps } from './AFProductCard';
+export {
+  AFSegmentedControl,
+  type AFSegmentedControlProps,
+  type AFSegment,
+} from './AFSegmentedControl';
+
 export * from './afPrimitives.logic';

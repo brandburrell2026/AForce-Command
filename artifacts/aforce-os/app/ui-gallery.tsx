@@ -27,6 +27,9 @@ import {
   AFErrorState,
   AFDisclosureSheet,
   AFEditorialHero,
+  AFPrice,
+  AFProductCard,
+  AFSegmentedControl,
 } from '@/components/ui';
 
 const HERO = require('../assets/images/welcome-hero.png');
@@ -44,6 +47,7 @@ export default function UIGallery() {
   if (!__DEV__) return <Redirect href="/" />;
   const [toggle, setToggle] = React.useState(true);
   const [sheet, setSheet] = React.useState(false);
+  const [seg, setSeg] = React.useState('rank');
 
   return (
     <AFScreen scroll>
@@ -195,6 +199,42 @@ export default function UIGallery() {
           before electrolytes or rest. We recheck in 15 minutes to confirm the next move.
         </Text>
       </AFDisclosureSheet>
+
+      <Row title="Segmented control (Phase 3)">
+        <AFSegmentedControl
+          segments={[
+            { key: 'rank', label: 'Rankings' },
+            { key: 'challenges', label: 'Challenges' },
+            { key: 'battles', label: 'Battles' },
+            { key: 'teams', label: 'Teams' },
+            { key: 'map', label: 'Map' },
+          ]}
+          value={seg}
+          onChange={setSeg}
+        />
+      </Row>
+
+      <Row title="Price (Phase 3)">
+        <View style={styles.inline}>
+          <AFPrice value="$29.99" compareAt="$39.99" caption="$0.99 / serving" />
+          <AFPrice value="$59.00" size="lg" />
+        </View>
+      </Row>
+
+      <Row title="Product card (Phase 3)">
+        <AFProductCard
+          title="AForce Canister · 30 servings"
+          subtitle="Watermelon"
+          badge="Subscribe & save"
+          price={<AFPrice value="$44.99" compareAt="$54.99" caption="$1.50 / serving" />}
+          selected
+          onPress={() => {}}
+        >
+          <View style={{ marginTop: 12 }}>
+            <AFPrimaryButton label="Add to cart" onPress={() => {}} />
+          </View>
+        </AFProductCard>
+      </Row>
 
       <View style={{ height: 48 }} />
     </AFScreen>
