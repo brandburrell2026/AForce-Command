@@ -22,6 +22,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
+import { useTranslation } from "react-i18next";
 import * as Haptics from "expo-haptics";
 import * as WebBrowser from "expo-web-browser";
 import * as Linking from "expo-linking";
@@ -39,6 +40,7 @@ import { useResponsiveLayout } from "@/hooks/useResponsiveLayout";
 const SHIPPING_THRESHOLD_CENTS = 5000; // $50 free-shipping threshold
 
 export function CartScreenV2() {
+  const { t } = useTranslation();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const layout = useResponsiveLayout();
@@ -63,8 +65,8 @@ export function CartScreenV2() {
       try {
         session = await createCartCheckoutSession({ items, returnUrl });
       } catch (err) {
-        const msg = err instanceof Error ? err.message : "Could not start checkout.";
-        Alert.alert("Checkout unavailable", msg);
+        const msg = err instanceof Error ? err.message : t('cart.v2.checkout_could_not_start');
+        Alert.alert(t('cart.v2.checkout_unavailable_title'), msg);
         return;
       }
 
@@ -76,7 +78,7 @@ export function CartScreenV2() {
       const parsed = Linking.parse(redirected);
       const status = (parsed.queryParams?.status as string | undefined) ?? "";
       if (status !== "success") {
-        setCheckoutNotice("Checkout was cancelled. Your cart is saved.");
+        setCheckoutNotice(t('cart.v2.checkout_cancelled'));
         return;
       }
 
@@ -91,9 +93,7 @@ export function CartScreenV2() {
         verified = false;
       }
       if (!verified) {
-        setCheckoutNotice(
-          "We couldn't confirm payment. If you were charged, your order is safe — refresh in a moment.",
-        );
+        setCheckoutNotice(t('cart.v2.checkout_unconfirmed'));
         return;
       }
 
@@ -101,9 +101,7 @@ export function CartScreenV2() {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
       }
       clear();
-      setCheckoutNotice(
-        "Order confirmed. Your cart has been cleared — a receipt is on its way.",
-      );
+      setCheckoutNotice(t('cart.v2.checkout_confirmed'));
     } finally {
       setPending(false);
     }
@@ -138,17 +136,17 @@ export function CartScreenV2() {
               style={styles.backBtn}
               hitSlop={12}
               accessibilityRole="button"
-              accessibilityLabel="Back"
+              accessibilityLabel={t('cart.v2.back_a11y')}
             >
               <Icon name="chevron-left" size={20} color={af.textPrimary} />
             </Pressable>
             <View style={{ flex: 1 }}>
-              <Text style={styles.eyebrow}>YOUR CART</Text>
-              <Text style={styles.title}>Order Summary</Text>
+              <Text style={styles.eyebrow}>{t('cart.v2.eyebrow')}</Text>
+              <Text style={styles.title}>{t('cart.v2.title')}</Text>
             </View>
             {resolvedLines.length > 0 && (
-              <Pressable onPress={clear} hitSlop={10} accessibilityRole="button" accessibilityLabel="Clear cart">
-                <Text style={styles.clearText}>CLEAR</Text>
+              <Pressable onPress={clear} hitSlop={10} accessibilityRole="button" accessibilityLabel={t('cart.v2.clear_a11y')}>
+                <Text style={styles.clearText}>{t('cart.v2.clear')}</Text>
               </Pressable>
             )}
           </View>
@@ -156,16 +154,14 @@ export function CartScreenV2() {
           {resolvedLines.length === 0 ? (
             <View style={styles.emptyCard}>
               <Icon name="shopping-bag" size={28} color={af.textTertiary} />
-              <Text style={styles.emptyTitle}>Your cart is empty</Text>
-              <Text style={styles.emptyHint}>
-                Browse Fuel and add the formats your protocol needs.
-              </Text>
+              <Text style={styles.emptyTitle}>{t('cart.v2.empty_title')}</Text>
+              <Text style={styles.emptyHint}>{t('cart.v2.empty_hint')}</Text>
               <Pressable
                 onPress={() => router.replace("/store")}
                 style={styles.emptyCta}
               >
                 <Icon name="grid" size={14} color={af.textPrimary} />
-                <Text style={styles.emptyCtaText}>BROWSE FUEL</Text>
+                <Text style={styles.emptyCtaText}>{t('cart.v2.browse_fuel')}</Text>
               </Pressable>
             </View>
           ) : (
@@ -174,14 +170,14 @@ export function CartScreenV2() {
                 <View style={styles.shipBanner}>
                   <Icon name="truck" size={12} color={af.textTertiary} />
                   <Text style={styles.shipBannerText}>
-                    Add {formatPrice(shipGap)} more for free shipping.
+                    {t('cart.v2.ship_gap', { price: formatPrice(shipGap) })}
                   </Text>
                 </View>
               ) : (
                 <View style={[styles.shipBanner, { borderColor: `${af.green}55` }]}>
                   <Icon name="check-circle" size={12} color={af.green} />
                   <Text style={[styles.shipBannerText, { color: af.green }]}>
-                    Free shipping unlocked.
+                    {t('cart.v2.ship_unlocked')}
                   </Text>
                 </View>
               )}
@@ -200,7 +196,7 @@ export function CartScreenV2() {
                         resizeMode="contain"
                         accent={accent}
                         caption={line.sku.title}
-                        accessibilityLabel={`Zoom in on ${line.sku.title}`}
+                        accessibilityLabel={t('cart.v2.zoom_a11y', { title: line.sku.title })}
                         testID={`cart-zoom-${line.skuId}`}
                       />
                     </View>
@@ -213,7 +209,7 @@ export function CartScreenV2() {
                           onPress={() => setQty(line.skuId, line.qty - 1)}
                           style={styles.qtyBtn}
                           accessibilityRole="button"
-                          accessibilityLabel="Decrease quantity"
+                          accessibilityLabel={t('cart.v2.qty_decrease_a11y')}
                         >
                           <Icon name="minus" size={14} color={af.textPrimary} />
                         </Pressable>
@@ -222,7 +218,7 @@ export function CartScreenV2() {
                           onPress={() => setQty(line.skuId, line.qty + 1)}
                           style={styles.qtyBtn}
                           accessibilityRole="button"
-                          accessibilityLabel="Increase quantity"
+                          accessibilityLabel={t('cart.v2.qty_increase_a11y')}
                         >
                           <Icon name="plus" size={14} color={af.textPrimary} />
                         </Pressable>
@@ -235,7 +231,7 @@ export function CartScreenV2() {
                       style={styles.removeBtn}
                       hitSlop={8}
                       accessibilityRole="button"
-                      accessibilityLabel={`Remove ${line.sku.title}`}
+                      accessibilityLabel={t('cart.v2.remove_a11y', { title: line.sku.title })}
                     >
                       <Icon name="x" size={14} color={af.textTertiary} />
                     </Pressable>
@@ -245,22 +241,22 @@ export function CartScreenV2() {
 
               <View style={styles.totalsCard}>
                 <View style={styles.totalsRow}>
-                  <Text style={styles.totalsLabel}>Subtotal</Text>
+                  <Text style={styles.totalsLabel}>{t('cart.v2.subtotal')}</Text>
                   <Text style={styles.totalsValue}>{formatPrice(subtotalCents)}</Text>
                 </View>
                 <View style={styles.totalsRow}>
-                  <Text style={styles.totalsLabel}>Shipping</Text>
+                  <Text style={styles.totalsLabel}>{t('cart.v2.shipping')}</Text>
                   <Text style={styles.totalsValue}>
-                    {shippingCents === 0 ? "Free" : formatPrice(shippingCents)}
+                    {shippingCents === 0 ? t('cart.v2.free') : formatPrice(shippingCents)}
                   </Text>
                 </View>
                 <View style={styles.totalsRow}>
-                  <Text style={styles.totalsLabel}>Estimated tax</Text>
+                  <Text style={styles.totalsLabel}>{t('cart.v2.estimated_tax')}</Text>
                   <Text style={styles.totalsValue}>{formatPrice(taxCents)}</Text>
                 </View>
                 <View style={styles.totalsDivider} />
                 <View style={styles.totalsRow}>
-                  <Text style={styles.totalsLabelBig}>Total</Text>
+                  <Text style={styles.totalsLabelBig}>{t('cart.v2.total')}</Text>
                   <Text style={styles.totalsValueBig}>{formatPrice(totalCents)}</Text>
                 </View>
               </View>
@@ -280,7 +276,7 @@ export function CartScreenV2() {
                   (pressed || pending) && { opacity: 0.85 },
                 ]}
                 accessibilityRole="button"
-                accessibilityLabel="Proceed to checkout"
+                accessibilityLabel={t('cart.v2.checkout_a11y')}
                 accessibilityState={{ disabled: pending, busy: pending }}
               >
                 {pending ? (
@@ -289,13 +285,11 @@ export function CartScreenV2() {
                   <Icon name="lock" size={14} color="#000" />
                 )}
                 <Text style={styles.checkoutBtnText}>
-                  {pending ? "STARTING CHECKOUT…" : `SECURE CHECKOUT · ${formatPrice(totalCents)}`}
+                  {pending ? t('cart.v2.checkout_starting') : t('cart.v2.checkout_secure', { price: formatPrice(totalCents) })}
                 </Text>
               </Pressable>
 
-              <Text style={styles.footnote}>
-                AForce stands behind every product. 30-day satisfaction guarantee.
-              </Text>
+              <Text style={styles.footnote}>{t('cart.v2.footnote')}</Text>
             </>
           )}
         </ScrollView>

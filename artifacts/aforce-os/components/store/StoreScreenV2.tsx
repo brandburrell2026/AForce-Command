@@ -24,6 +24,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
+import { useTranslation } from "react-i18next";
 import * as Haptics from "expo-haptics";
 import { Icon, type IconName } from '@/components/Icon';
 
@@ -49,10 +50,11 @@ import { useAppStore } from "@/store/useAppStore";
 import { useResponsiveLayout } from "@/hooks/useResponsiveLayout";
 
 // FIELD BAG / bulk bag is intentionally not offered in the store right now.
-const FORMAT_ORDER: { id: StoreFormatId; label: string; artwork: "stick" | "can" | "jar" | "bag" }[] = [
-  { id: "aforce_stick", label: "Hydration Sticks", artwork: "stick" },
-  { id: "aforce_rtd", label: "Ready-To-Drink", artwork: "can" },
-  { id: "aforce_canister", label: "Canisters", artwork: "jar" },
+// `labelKey` resolves under store.v2.* at render (format names are screen copy).
+const FORMAT_ORDER: { id: StoreFormatId; labelKey: string; artwork: "stick" | "can" | "jar" | "bag" }[] = [
+  { id: "aforce_stick", labelKey: "format_stick", artwork: "stick" },
+  { id: "aforce_rtd", labelKey: "format_rtd", artwork: "can" },
+  { id: "aforce_canister", labelKey: "format_canister", artwork: "jar" },
 ];
 
 type FlavorKey = keyof typeof PRODUCT_FLAVORS;
@@ -75,16 +77,13 @@ function useCaseChipColor(useCase: StoreSKU["useCase"]): string {
   }
 }
 
-function protocolRoleLabel(role: StoreSKU["protocolRole"]): string {
-  switch (role) {
-    case "baseline_hydration":      return "Baseline Hydration";
-    case "field_grade_hydration":   return "Field-Grade Hydration";
-    case "daily_protocol_fuel":     return "Daily Protocol Fuel";
-    case "team_bulk":               return "Team Bulk";
-  }
+/** protocolRole → store.v2.role_* key suffix (translated at the call site). */
+function protocolRoleKey(role: StoreSKU["protocolRole"]): string {
+  return `role_${role}`;
 }
 
 export function StoreScreenV2() {
+  const { t } = useTranslation();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const layout = useResponsiveLayout();
@@ -136,14 +135,14 @@ export function StoreScreenV2() {
         >
           <View style={styles.headerRow}>
             <View style={{ flex: 1 }}>
-              <Text style={styles.eyebrow}>AFORCE FUEL</Text>
-              <Text style={styles.title}>Fuel Your Protocol</Text>
+              <Text style={styles.eyebrow}>{t('store.v2.eyebrow')}</Text>
+              <Text style={styles.title}>{t('store.v2.title')}</Text>
             </View>
             <Pressable
               onPress={() => router.push("/cart")}
               style={styles.cartIconBtn}
               accessibilityRole="button"
-              accessibilityLabel={`Cart, ${itemCount} items`}
+              accessibilityLabel={t('store.v2.cart_a11y', { count: itemCount })}
               hitSlop={10}
             >
               <Icon name="shopping-bag" size={18} color={af.textPrimary} />
@@ -155,10 +154,7 @@ export function StoreScreenV2() {
             </Pressable>
           </View>
 
-          <Text style={styles.subtitle}>
-            Every flavor pairs a functional ingredient with the state your body is in.
-            We'll point you to what your protocol needs.
-          </Text>
+          <Text style={styles.subtitle}>{t('store.v2.subtitle')}</Text>
 
           {/* Recommended-for-you banner */}
           <View
@@ -167,13 +163,13 @@ export function StoreScreenV2() {
               { borderColor: `${recommendedVariant.accent}66`, backgroundColor: `${recommendedVariant.accent}14` },
             ]}
           >
-            <Text style={styles.recommendLabel}>RECOMMENDED FOR YOU</Text>
+            <Text style={styles.recommendLabel}>{t('store.v2.recommended_for_you')}</Text>
             <Text style={styles.recommendName}>
               {recommendedVariant.name}{" "}
               <Text style={styles.recommendIngredient}>+ {recommendedVariant.functionalIngredient}</Text>
             </Text>
             <Text style={styles.recommendCmd}>{recommendedVariant.aiCommand}</Text>
-            <Text style={styles.recommendState}>State: {userLevel}</Text>
+            <Text style={styles.recommendState}>{t('store.v2.state', { level: userLevel })}</Text>
           </View>
 
           {FORMAT_ORDER.map((fmt) => {
@@ -181,7 +177,7 @@ export function StoreScreenV2() {
             if (skus.length === 0) return null;
             return (
               <View key={fmt.id} style={styles.formatBlock}>
-                <Text style={styles.formatHeader}>{fmt.label.toUpperCase()}</Text>
+                <Text style={styles.formatHeader}>{t(`store.v2.${fmt.labelKey}`).toUpperCase()}</Text>
                 <View style={layout.isWide ? styles.skuGrid : undefined}>
                   {skus.map((sku) => {
                     const accent = flavorAccent(sku.flavor);
@@ -232,7 +228,7 @@ export function StoreScreenV2() {
                                 resizeMode="contain"
                                 accent={accent}
                                 caption={sku.title}
-                                accessibilityLabel={`Zoom in on ${sku.title}`}
+                                accessibilityLabel={t('store.v2.zoom_a11y', { title: sku.title })}
                                 testID={`store-zoom-${sku.id}`}
                               />
                             ) : null}
@@ -268,7 +264,7 @@ export function StoreScreenV2() {
                                       { color: '#8B5CF6' },
                                     ]}
                                   >
-                                    INCLUDED · PERFORMANCE BUNDLE
+                                    {t('store.v2.performance_bundle')}
                                   </Text>
                                 </View>
                               ) : null}
@@ -289,11 +285,11 @@ export function StoreScreenV2() {
                               </Text>
                               <Text style={styles.intelDivider}>·</Text>
                               <Text style={styles.intelChip}>
-                                {protocolRoleLabel(sku.protocolRole).toUpperCase()}
+                                {t(`store.v2.${protocolRoleKey(sku.protocolRole)}`).toUpperCase()}
                               </Text>
                             </View>
                             <Text style={styles.intelRecommend}>
-                              RECOMMENDED FOR{" "}
+                              {t('store.v2.recommended_for')}{" "}
                               <Text style={{ color: accent }}>
                                 {sku.recommendedFor.join(" · ")}
                               </Text>
@@ -322,7 +318,7 @@ export function StoreScreenV2() {
                                 !isSubscribed && { color: accent },
                               ]}
                             >
-                              ONE-TIME
+                              {t('store.v2.one_time')}
                             </Text>
                           </Pressable>
                           <Pressable
@@ -344,7 +340,7 @@ export function StoreScreenV2() {
                                 isSubscribed && { color: accent },
                               ]}
                             >
-                              SUBSCRIBE · {subPricing.discountLabel.toUpperCase()}
+                              {t('store.v2.subscribe_toggle', { discount: subPricing.discountLabel.toUpperCase() })}
                             </Text>
                           </Pressable>
                         </View>
@@ -371,7 +367,7 @@ export function StoreScreenV2() {
                                   selectedBundleId === null && { color: accent },
                                 ]}
                               >
-                                SINGLE
+                                {t('store.v2.single')}
                               </Text>
                             </Pressable>
                             {bundles.map((b) => {
@@ -393,7 +389,7 @@ export function StoreScreenV2() {
                                     },
                                   ]}
                                   accessibilityRole="button"
-                                  accessibilityLabel={`Select ${b.bundle.label} · ${b.savingsLabel}`}
+                                  accessibilityLabel={t('store.v2.select_bundle_a11y', { label: b.bundle.label, savings: b.savingsLabel })}
                                 >
                                   <Text
                                     style={[
@@ -427,11 +423,11 @@ export function StoreScreenV2() {
                           ) : null}
                           {!selectedBundle ? (
                             <Text style={styles.pricePerServing}>
-                              · {formatPrice(perServing)}/serving
+                              {t('store.v2.per_serving', { price: formatPrice(perServing) })}
                             </Text>
                           ) : (
                             <Text style={styles.pricePerServing}>
-                              · {formatPrice(selectedBundle.effectiveUnitCents)}/pack
+                              {t('store.v2.per_pack', { price: formatPrice(selectedBundle.effectiveUnitCents) })}
                             </Text>
                           )}
                         </View>
@@ -445,18 +441,18 @@ export function StoreScreenV2() {
                             pressed && { opacity: 0.85 },
                           ]}
                           accessibilityRole="button"
-                          accessibilityLabel={`Add ${sku.title} to cart${
-                            isSubscribed ? " (subscription)" : ""
+                          accessibilityLabel={`${t('store.v2.add_a11y', { title: sku.title })}${
+                            isSubscribed ? t('store.v2.add_a11y_subscription') : ""
                           }${selectedBundle ? ` (${selectedBundle.bundle.label})` : ""}`}
                           testID={`store-add-${sku.id}`}
                         >
                           <Icon name="plus" size={14} color={accent} />
                           <Text style={[styles.addBtnText, { color: accent }]}>
                             {isSubscribed
-                              ? `SUBSCRIBE & ${subPricing.discountLabel.toUpperCase()}`
+                              ? t('store.v2.add_subscribe', { discount: subPricing.discountLabel.toUpperCase() })
                               : selectedBundle
-                                ? `ADD ${selectedBundle.bundle.label.toUpperCase()}`
-                                : "ADD TO CART"}
+                                ? t('store.v2.add_bundle', { bundle: selectedBundle.bundle.label.toUpperCase() })
+                                : t('store.v2.add_to_cart')}
                           </Text>
                         </Pressable>
                       </View>
@@ -469,14 +465,14 @@ export function StoreScreenV2() {
 
           <View style={styles.legalBlock}>
             <Text style={styles.legalText}>
-              Prices in USD. Subscriptions billed monthly until canceled. Manage under{" "}
+              {t('store.v2.legal_prefix')}
               <Text
                 style={styles.legalLink}
                 onPress={() => router.push("/subscription")}
               >
-                Subscription
+                {t('store.v2.legal_link')}
               </Text>
-              .
+              {t('store.v2.legal_suffix')}
             </Text>
           </View>
         </ScrollView>
@@ -496,7 +492,7 @@ export function StoreScreenV2() {
               },
             ]}
             accessibilityRole="button"
-            accessibilityLabel={`View cart, ${itemCount} items, subtotal ${formatPrice(subtotalCents)}`}
+            accessibilityLabel={t('store.v2.view_cart_a11y', { count: itemCount, subtotal: formatPrice(subtotalCents) })}
           >
             <View style={styles.cartPillIcon}>
               <Icon name="shopping-bag" size={14} color={af.textPrimary} />
@@ -504,7 +500,7 @@ export function StoreScreenV2() {
                 <Text style={styles.cartPillBadgeText}>{itemCount}</Text>
               </View>
             </View>
-            <Text style={styles.cartPillText}>VIEW CART</Text>
+            <Text style={styles.cartPillText}>{t('store.v2.view_cart')}</Text>
             <Text style={styles.cartPillTotal}>{formatPrice(subtotalCents)}</Text>
             <Icon name="chevron-right" size={16} color={af.textPrimary} />
           </Pressable>
