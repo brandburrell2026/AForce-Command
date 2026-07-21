@@ -95,19 +95,23 @@ const hapticSelection = () => {
   import('expo-haptics').then(m => m.selectionAsync().catch(() => {})).catch(() => {});
 };
 
-const TIER_LABELS: Record<string, { label: string; desc: string; color: string }> = {
-  core:           { label: 'AForce Core',           desc: 'Start your performance system.',                      color: af.cyan },
-  athlete:        { label: 'AForce Athlete',        desc: 'Train and perform with precision.',                   color: af.green },
-  system:         { label: 'AForce System',         desc: 'Full performance control — software + product.',      color: af.green },
-  team_starter:   { label: 'Team Core Starter',     desc: 'Run your team with intelligence. Up to 25 members.',  color: af.cyan },
-  team_growth:    { label: 'Team Core Growth',      desc: 'Scale team performance. Up to 50 members.',           color: af.cyan },
-  team_pro:       { label: 'Team Core Pro',         desc: 'Operate at a higher level. Up to 100 members.',       color: af.cyan },
-  clutch_starter: { label: 'Clutch Starter',        desc: 'Control performance in real time.',                   color: af.cyan },
-  clutch_pro:     { label: 'Clutch Pro',            desc: 'Advance live decision making.',                       color: af.cyan },
-  clutch_elite:   { label: 'Clutch Elite',          desc: 'Elite team command system.',                          color: af.cyan },
-  guardian_core:  { label: 'Guardian Core',         desc: 'Protect athletes before breakdown.',                  color: '#8B5CF6' },
-  guardian_elite: { label: 'Guardian Elite',        desc: 'Elite roster protection system.',                     color: '#8B5CF6' },
-  all_access:     { label: 'AForce All-Access',     desc: 'Full performance OS across every layer.',             color: af.green },
+// Per-tier accent colours only. Human-readable label/desc live in the
+// `profile.v2.tier_*` locale namespace and are resolved at the render
+// sites (this const is declared outside any component, so it can't call
+// `t()`). The keys here double as the i18n key suffixes (`tier_<key>_label`).
+const TIER_LABELS: Record<string, { color: string }> = {
+  core:           { color: af.cyan },
+  athlete:        { color: af.green },
+  system:         { color: af.green },
+  team_starter:   { color: af.cyan },
+  team_growth:    { color: af.cyan },
+  team_pro:       { color: af.cyan },
+  clutch_starter: { color: af.cyan },
+  clutch_pro:     { color: af.cyan },
+  clutch_elite:   { color: af.cyan },
+  guardian_core:  { color: '#8B5CF6' },
+  guardian_elite: { color: '#8B5CF6' },
+  all_access:     { color: af.green },
 };
 
 export function ProfileScreenV2() {
@@ -156,7 +160,7 @@ export function ProfileScreenV2() {
       );
       setEncStatus(data);
     } catch (err) {
-      setEncError(err instanceof Error ? err.message : 'request failed');
+      setEncError(err instanceof Error ? err.message : t('profile.v2.request_failed'));
       setEncStatus(null);
     } finally {
       setEncLoading(false);
@@ -283,16 +287,16 @@ export function ProfileScreenV2() {
   const connectAppleHealth = async (): Promise<boolean> => {
     if (!isAppleHealthSupported()) {
       Alert.alert(
-        'Apple Health needs a native iOS build',
-        "Apple Health uses HealthKit, which only works in a native iOS build of AForce — not in the web preview or on Android. Build with EAS / a dev client on iPhone, then tap Connect again.",
+        t('profile.v2.apple_native_title'),
+        t('profile.v2.apple_native_body'),
       );
       return false;
     }
     const granted = await requestAppleHealthPermissions();
     if (!granted) {
       Alert.alert(
-        'Apple Health permission not granted',
-        'AForce will stay disconnected until you allow access. Open Settings → Health → Data Access & Devices → AForce OS to change this later.',
+        t('profile.v2.apple_denied_title'),
+        t('profile.v2.apple_denied_body'),
       );
       return false;
     }
@@ -307,8 +311,8 @@ export function ProfileScreenV2() {
     if (linkedProviders.has(id)) {
       const disconnectMessage =
         id === 'apple_health'
-          ? 'AForce will stop pulling Apple Health data. Permission stays granted in iOS Settings until you revoke it there.'
-          : 'AForce will stop pulling biometrics from this source.';
+          ? t('profile.v2.disconnect_apple_msg')
+          : t('profile.v2.disconnect_generic_msg');
 
       const performDisconnect = () => {
         setLinkedProviders((prev) => {
@@ -329,15 +333,15 @@ export function ProfileScreenV2() {
       // RN Web: Alert.alert with multi-button onPress callbacks is a
       // no-op, so fall back to the browser's native confirm dialog.
       if (Platform.OS === 'web') {
-        if (typeof window !== 'undefined' && window.confirm(`Disconnect ${name}? ${disconnectMessage}`)) {
+        if (typeof window !== 'undefined' && window.confirm(t('profile.v2.disconnect_confirm', { name, message: disconnectMessage }))) {
           performDisconnect();
         }
         return;
       }
 
-      Alert.alert(`Disconnect ${name}?`, disconnectMessage, [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Disconnect', style: 'destructive', onPress: performDisconnect },
+      Alert.alert(t('profile.v2.disconnect_title', { name }), disconnectMessage, [
+        { text: t('profile.v2.cancel'), style: 'cancel' },
+        { text: t('profile.v2.disconnect'), style: 'destructive', onPress: performDisconnect },
       ]);
       return;
     }
@@ -368,19 +372,19 @@ export function ProfileScreenV2() {
       if (snap) setProviderBiometrics(id, snap);
     };
 
-    const authorizeMessage = `You'll be redirected to ${name} to authorize AForce. Mocked in this build — a representative biometric snapshot is seeded so the hydration score reflects the connection.`;
+    const authorizeMessage = t('profile.v2.authorize_message', { name });
 
     // RN Web: skip the broken multi-button Alert and use window.confirm.
     if (Platform.OS === 'web') {
-      if (typeof window !== 'undefined' && window.confirm(`Connect ${name}? ${authorizeMessage}`)) {
+      if (typeof window !== 'undefined' && window.confirm(t('profile.v2.connect_confirm', { name, message: authorizeMessage }))) {
         performAuthorize();
       }
       return;
     }
 
-    Alert.alert(`Connect ${name}`, authorizeMessage, [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Authorize', onPress: performAuthorize },
+    Alert.alert(t('profile.v2.connect_title', { name }), authorizeMessage, [
+      { text: t('profile.v2.cancel'), style: 'cancel' },
+      { text: t('profile.v2.authorize'), onPress: performAuthorize },
     ]);
   };
 
@@ -433,9 +437,8 @@ export function ProfileScreenV2() {
   };
 
   const offerGarminDemo = () => {
-    const title = 'Garmin Connect isn’t available yet';
-    const body =
-      'Live Garmin sync ships in a later build. Preview the experience with clearly-labeled demo data? It will not be presented as your real Garmin account.';
+    const title = t('profile.v2.garmin_soon_title');
+    const body = t('profile.v2.garmin_soon_body');
     if (Platform.OS === 'web') {
       if (typeof window !== 'undefined' && window.confirm(`${title}\n\n${body}`)) {
         seedGarminDemo();
@@ -443,8 +446,8 @@ export function ProfileScreenV2() {
       return;
     }
     Alert.alert(title, body, [
-      { text: 'Not now', style: 'cancel' },
-      { text: 'Preview demo data', onPress: seedGarminDemo },
+      { text: t('profile.v2.not_now'), style: 'cancel' },
+      { text: t('profile.v2.preview_demo_data'), onPress: seedGarminDemo },
     ]);
   };
 
@@ -468,18 +471,18 @@ export function ProfileScreenV2() {
         setGarminState(wasDemo ? 'credentials_missing' : 'not_connected');
       };
       const msg = wasDemo
-        ? 'This clears the Garmin demo preview.'
-        : 'AForce will stop pulling biometrics from your Garmin account.';
+        ? t('profile.v2.disconnect_garmin_demo_msg')
+        : t('profile.v2.disconnect_garmin_msg');
       if (Platform.OS === 'web') {
-        if (typeof window !== 'undefined' && window.confirm(`Disconnect Garmin? ${msg}`)) {
+        if (typeof window !== 'undefined' && window.confirm(t('profile.v2.disconnect_garmin_confirm', { msg }))) {
           void performGarminDisconnect();
         }
         return;
       }
-      Alert.alert('Disconnect Garmin?', msg, [
-        { text: 'Cancel', style: 'cancel' },
+      Alert.alert(t('profile.v2.disconnect_garmin_title'), msg, [
+        { text: t('profile.v2.cancel'), style: 'cancel' },
         {
-          text: 'Disconnect',
+          text: t('profile.v2.disconnect'),
           style: 'destructive',
           onPress: () => void performGarminDisconnect(),
         },
@@ -491,8 +494,8 @@ export function ProfileScreenV2() {
     const status = await getGarminStatus().catch(() => null);
     if (!status) {
       Alert.alert(
-        'Garmin unavailable',
-        'Could not reach the Garmin service. Please try again later.',
+        t('profile.v2.garmin_unavailable_title'),
+        t('profile.v2.garmin_unavailable_body'),
       );
       return;
     }
@@ -590,16 +593,16 @@ export function ProfileScreenV2() {
         setProviderBiometrics('whoop', null);
         setWhoopState('not_connected');
       };
-      const msg = 'AForce will stop pulling biometrics from your WHOOP account.';
+      const msg = t('profile.v2.disconnect_whoop_msg');
       if (Platform.OS === 'web') {
-        if (typeof window !== 'undefined' && window.confirm(`Disconnect WHOOP? ${msg}`)) {
+        if (typeof window !== 'undefined' && window.confirm(t('profile.v2.disconnect_whoop_confirm', { msg }))) {
           void performWhoopDisconnect();
         }
         return;
       }
-      Alert.alert('Disconnect WHOOP?', msg, [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Disconnect', style: 'destructive', onPress: () => void performWhoopDisconnect() },
+      Alert.alert(t('profile.v2.disconnect_whoop_title'), msg, [
+        { text: t('profile.v2.cancel'), style: 'cancel' },
+        { text: t('profile.v2.disconnect'), style: 'destructive', onPress: () => void performWhoopDisconnect() },
       ]);
       return;
     }
@@ -607,7 +610,7 @@ export function ProfileScreenV2() {
     // ─── Connect — consult the REAL server status ────────────────────
     const status = await getWhoopStatus().catch(() => null);
     if (!status) {
-      Alert.alert('WHOOP unavailable', 'Could not reach the WHOOP service. Please try again later.');
+      Alert.alert(t('profile.v2.whoop_unavailable_title'), t('profile.v2.whoop_unavailable_body'));
       return;
     }
     if (status.state === 'connected') {
@@ -627,7 +630,7 @@ export function ProfileScreenV2() {
       }
     }
     // credentials_missing — WHOOP has no demo path; surface it plainly.
-    Alert.alert('WHOOP unavailable', 'The WHOOP integration isn’t configured yet. Please try again later.');
+    Alert.alert(t('profile.v2.whoop_unavailable_title'), t('profile.v2.whoop_unconfigured_body'));
   };
 
   const layout = useResponsiveLayout();
@@ -679,14 +682,14 @@ export function ProfileScreenV2() {
             style={styles.backHomeBtn}
             hitSlop={8}
             accessibilityRole="button"
-            accessibilityLabel="Back to Home"
+            accessibilityLabel={t('profile.v2.back_a11y')}
             testID="profile-back-home"
           >
             <Icon name="chevron-left" size={14} color={af.textSecondary} />
-            <Text style={styles.backHomeText}>HOME</Text>
+            <Text style={styles.backHomeText}>{t('profile.v2.home')}</Text>
           </Pressable>
-          <Text style={styles.eyebrow}>PROFILE</Text>
-          <Text style={styles.title}>Commander</Text>
+          <Text style={styles.eyebrow}>{t('profile.v2.eyebrow')}</Text>
+          <Text style={styles.title}>{t('profile.v2.title')}</Text>
 
           {(() => {
             // ─── Reusable section fragments ──────────────────────
@@ -716,10 +719,10 @@ export function ProfileScreenV2() {
             // Each cell falls back to an em-dash when the field is unset
             // so the row stays visually balanced rather than collapsing.
             const heightLabel = profileIdentity.heightCm != null
-              ? `${profileIdentity.heightCm} cm`
+              ? t('profile.v2.unit_cm', { value: profileIdentity.heightCm })
               : '—';
             const weightLabel = profileIdentity.bodyWeightLbs != null
-              ? `${profileIdentity.bodyWeightLbs} lb`
+              ? t('profile.v2.unit_lb', { value: profileIdentity.bodyWeightLbs })
               : '—';
             // §19 (B′): show the Primary Goal; fall back to the legacy
             // recoveryGoal (default 'BALANCE', never null) so a returning
@@ -734,7 +737,7 @@ export function ProfileScreenV2() {
                       source={{ uri: profileIdentity.avatarUri }}
                       style={[styles.avatar, { borderColor: `${tier.color}55` }]}
                       accessibilityIgnoresInvertColors
-                      accessibilityLabel="Profile avatar"
+                      accessibilityLabel={t('profile.v2.avatar_a11y')}
                     />
                   ) : (
                     <View style={[styles.avatar, { backgroundColor: `${tier.color}20`, borderColor: `${tier.color}55` }]}>
@@ -766,7 +769,7 @@ export function ProfileScreenV2() {
                     style={styles.profileEditBtn}
                     hitSlop={10}
                     accessibilityRole="button"
-                    accessibilityLabel="Edit profile identity"
+                    accessibilityLabel={t('profile.v2.edit_a11y')}
                   >
                     <Icon name="edit-2" size={14} color={af.textSecondary} />
                   </Pressable>
@@ -775,13 +778,13 @@ export function ProfileScreenV2() {
                 <View style={styles.profileChipStrip}>
                   <IdentityChip
                     icon="award"
-                    label={tier.label.toUpperCase()}
+                    label={t(`profile.v2.tier_${tierKey}_label`).toUpperCase()}
                     color={tier.color}
                   />
                   {typeof mockUserProfile.streakDays === 'number' && mockUserProfile.streakDays > 0 ? (
                     <IdentityChip
                       icon="zap"
-                      label={`${mockUserProfile.streakDays}-DAY STREAK`}
+                      label={t('profile.v2.day_streak', { days: mockUserProfile.streakDays })}
                       color={af.amber}
                     />
                   ) : null}
@@ -801,23 +804,23 @@ export function ProfileScreenV2() {
                   ) : null}
                   <IdentityChip
                     icon="activity"
-                    label={`${profileIdentity.auraState} AURA`}
+                    label={t('profile.v2.aura', { aura: profileIdentity.auraState })}
                     color={auraColor}
                   />
                 </View>
                 <View style={styles.profileMetricStrip}>
                   <View style={styles.profileMetricCell}>
-                    <Text style={styles.profileMetricLabel}>HEIGHT</Text>
+                    <Text style={styles.profileMetricLabel}>{t('profile.v2.metric_height')}</Text>
                     <Text style={styles.profileMetricValue}>{heightLabel}</Text>
                   </View>
                   <View style={styles.profileMetricDivider} />
                   <View style={styles.profileMetricCell}>
-                    <Text style={styles.profileMetricLabel}>WEIGHT</Text>
+                    <Text style={styles.profileMetricLabel}>{t('profile.v2.metric_weight')}</Text>
                     <Text style={styles.profileMetricValue}>{weightLabel}</Text>
                   </View>
                   <View style={styles.profileMetricDivider} />
                   <View style={styles.profileMetricCell}>
-                    <Text style={styles.profileMetricLabel}>RECOVERY GOAL</Text>
+                    <Text style={styles.profileMetricLabel}>{t('profile.v2.metric_recovery_goal')}</Text>
                     <Text
                       style={[styles.profileMetricValue, { color: auraColor }]}
                       numberOfLines={1}
@@ -835,19 +838,19 @@ export function ProfileScreenV2() {
             const inviteNextTier = referralQ.data?.nextTier ?? null;
             const inviteClaimsToNext = referralQ.data?.claimsToNextTier ?? 0;
             const inviteSubtitle = inviteCode == null
-              ? 'Issuing your code…'
+              ? t('profile.v2.invite_issuing')
               : inviteClaims === 0
-                ? 'No one on board yet. Be the first to recruit.'
-                : `${inviteClaims} ${inviteClaims === 1 ? 'operator' : 'operators'} on board.`;
+                ? t('profile.v2.invite_none')
+                : t(inviteClaims === 1 ? 'profile.v2.invite_onboard_one' : 'profile.v2.invite_onboard_other', { count: inviteClaims });
             const inviteProgressLine = inviteNextTier
-              ? `${inviteClaimsToNext} more to ${inviteNextTier.label}`
-              : 'Top of the boards — General rank.';
+              ? t('profile.v2.invite_more', { count: inviteClaimsToNext, tier: inviteNextTier.label })
+              : t('profile.v2.invite_top');
             const handleShareInvite = async () => {
               if (!inviteCode) return;
               hapticSelection();
               await openShareSheet({
                 format: 'text',
-                message: `Run AForce OS with me. Use code ${inviteCode}.`,
+                message: t('profile.v2.invite_share_msg', { code: inviteCode }),
                 url: 'https://aforce.app',
               });
             };
@@ -857,18 +860,18 @@ export function ProfileScreenV2() {
             };
             const inviteCard = (
               <>
-                <SectionHeader label="INVITE" hint="Recruit operators to AForce OS" />
+                <SectionHeader label={t('profile.v2.invite_label')} hint={t('profile.v2.invite_hint')} />
                 <View style={[styles.card, styles.inviteCard]}>
                   {inviteTier ? (
                     <View style={styles.inviteTierBadge} testID="profile-invite-tier">
                       <Text style={styles.inviteTierLabel}>{inviteTier.label.toUpperCase()}</Text>
                     </View>
                   ) : null}
-                  <Text style={styles.inviteEyebrow}>YOUR CODE</Text>
+                  <Text style={styles.inviteEyebrow}>{t('profile.v2.your_code')}</Text>
                   <Text
                     style={styles.inviteCodeText}
                     accessibilityLabel={
-                      inviteCode ? `Your referral code is ${inviteCode}` : 'Loading referral code'
+                      inviteCode ? t('profile.v2.code_a11y', { code: inviteCode }) : t('profile.v2.code_loading_a11y')
                     }
                     selectable
                   >
@@ -887,11 +890,11 @@ export function ProfileScreenV2() {
                       pressed && styles.inviteShareBtnPressed,
                     ]}
                     accessibilityRole="button"
-                    accessibilityLabel="Share invite code"
+                    accessibilityLabel={t('profile.v2.share_invite_a11y')}
                     testID="profile-invite-share"
                   >
                     <Icon name="send" size={14} color="#0A0A0F" />
-                    <Text style={styles.inviteShareLabel}>SHARE INVITE</Text>
+                    <Text style={styles.inviteShareLabel}>{t('profile.v2.share_invite')}</Text>
                   </Pressable>
                   <Pressable
                     onPress={handleViewLeaderboard}
@@ -900,10 +903,10 @@ export function ProfileScreenV2() {
                       pressed && styles.inviteLeaderboardBtnPressed,
                     ]}
                     accessibilityRole="button"
-                    accessibilityLabel="View recruiters leaderboard"
+                    accessibilityLabel={t('profile.v2.view_leaderboard_a11y')}
                     testID="profile-invite-leaderboard"
                   >
-                    <Text style={styles.inviteLeaderboardLabel}>VIEW LEADERBOARD</Text>
+                    <Text style={styles.inviteLeaderboardLabel}>{t('profile.v2.view_leaderboard')}</Text>
                     <Icon name="chevron-right" size={14} color={af.textPrimary} />
                   </Pressable>
                 </View>
@@ -914,14 +917,14 @@ export function ProfileScreenV2() {
             // additive, presentational. Chip is copy-independent (label+opacity).
             const profileStrengthCard = state.featureFlags.spec_profileStrengthSection ? (
               <>
-                <SectionHeader label="PROFILE STRENGTH" />
+                <SectionHeader label={t('profile.v2.strength_label')} />
                 <View style={styles.card}>
                   <View style={styles.settingRow}>
                     <View style={styles.settingLeft}>
                       <Icon name="user" size={16} color={af.textSecondary} />
-                      <Text style={styles.settingLabel}>Profile Completeness</Text>
+                      <Text style={styles.settingLabel}>{t('profile.v2.profile_completeness')}</Text>
                     </View>
-                    <ConfidenceChip {...profileStrength(profileIdentity).chip} a11yContext="profile completeness" />
+                    <ConfidenceChip {...profileStrength(profileIdentity).chip} a11yContext={t('profile.v2.completeness_a11y_context')} />
                   </View>
                 </View>
               </>
@@ -929,30 +932,30 @@ export function ProfileScreenV2() {
 
             const goalsCard = (
               <>
-                <SectionHeader label="GOALS" />
+                <SectionHeader label={t('profile.v2.goals_label')} />
                 <View style={styles.card}>
-                  <SettingRow icon="target" label="Daily Target" value={`${mockUserProfile.dailyTarget} units`} />
+                  <SettingRow icon="target" label={t('profile.v2.daily_target')} value={t('profile.v2.unit_units', { value: mockUserProfile.dailyTarget })} />
                   <Divider />
-                  <SettingRow icon="droplet" label="Daily Ounces Target" value={`${mockUserProfile.dailyTarget * 12} ounces`} />
+                  <SettingRow icon="droplet" label={t('profile.v2.daily_ounces_target')} value={t('profile.v2.unit_ounces', { value: mockUserProfile.dailyTarget * 12 })} />
                   <Divider />
                   <SettingRow
                     icon="user"
-                    label="Body Weight"
+                    label={t('profile.v2.body_weight')}
                     value={
                       profileIdentity.bodyWeightLbs != null
-                        ? `${profileIdentity.bodyWeightLbs} lb`
-                        : `${mockUserProfile.bodyWeightLbs} lb`
+                        ? t('profile.v2.unit_lb', { value: profileIdentity.bodyWeightLbs })
+                        : t('profile.v2.unit_lb', { value: mockUserProfile.bodyWeightLbs })
                     }
                   />
                   <Divider />
-                  <SettingRow icon="activity" label="Activity Type" value={mockUserProfile.activityType} />
+                  <SettingRow icon="activity" label={t('profile.v2.activity_type')} value={mockUserProfile.activityType} />
                   <Divider />
-                  <SettingRow icon="sunrise" label="Wake Time" value={mockUserProfile.wakeTimeHHMM} />
+                  <SettingRow icon="sunrise" label={t('profile.v2.wake_time')} value={mockUserProfile.wakeTimeHHMM} />
                   <Divider />
                   <View style={styles.settingRow}>
                     <View style={styles.settingLeft}>
                       <Icon name="bell" size={16} color={af.cyan} />
-                      <Text style={styles.settingLabel}>Reminders</Text>
+                      <Text style={styles.settingLabel}>{t('profile.v2.reminders')}</Text>
                     </View>
                     <Switch
                       value={remindersEnabled}
@@ -971,8 +974,8 @@ export function ProfileScreenV2() {
                     <View style={styles.settingLeft}>
                       <Icon name="sliders" size={16} color={af.cyan} />
                       <View>
-                        <Text style={styles.settingLabel}>Notification Preferences</Text>
-                        <Text style={styles.settingSubLabel}>Score alerts · Risk timer · Recovery · Reorder</Text>
+                        <Text style={styles.settingLabel}>{t('profile.v2.notif_prefs')}</Text>
+                        <Text style={styles.settingSubLabel}>{t('profile.v2.notif_prefs_sub')}</Text>
                       </View>
                     </View>
                     <Icon name="chevron-right" size={16} color={af.textTertiary} />
@@ -983,7 +986,7 @@ export function ProfileScreenV2() {
 
             const modulesCard = (
               <>
-                <SectionHeader label="MODULES" hint="Every engine module · internal evaluation" />
+                <SectionHeader label={t('profile.v2.modules_label')} hint={t('profile.v2.modules_hint')} />
                 <View style={styles.card}>
                   <Pressable
                     onPress={() => router.push('/modules')}
@@ -993,9 +996,9 @@ export function ProfileScreenV2() {
                     <View style={styles.settingLeft}>
                       <Icon name="grid" size={16} color="#C1281B" />
                       <View>
-                        <Text style={styles.settingLabel}>All Modules</Text>
+                        <Text style={styles.settingLabel}>{t('profile.v2.all_modules')}</Text>
                         <Text style={styles.settingSubLabel}>
-                          Social · Sleep · Cruise · Guardian · Clutch · Phantom · Recovery · Science · Providers · Protocol · Timeline · HydroScan
+                          {t('profile.v2.all_modules_sub')}
                         </Text>
                       </View>
                     </View>
@@ -1010,7 +1013,7 @@ export function ProfileScreenV2() {
             // the Modules launcher always lists it for internal evaluation.
             const weeklyReportCard = state.featureFlags.spec_weekly_report ? (
               <>
-                <SectionHeader label="WEEKLY REPORT" hint="Your week in review · screenshot & share" />
+                <SectionHeader label={t('profile.v2.weekly_label')} hint={t('profile.v2.weekly_hint')} />
                 <View style={styles.card}>
                   <Pressable
                     onPress={() => router.push('/weekly-report')}
@@ -1020,9 +1023,9 @@ export function ProfileScreenV2() {
                     <View style={styles.settingLeft}>
                       <Icon name="trending-up" size={16} color="#1E5BFF" />
                       <View>
-                        <Text style={styles.settingLabel}>Weekly Performance Report</Text>
+                        <Text style={styles.settingLabel}>{t('profile.v2.weekly_report')}</Text>
                         <Text style={styles.settingSubLabel}>
-                          What improved · needs attention · habit velocity · next week focus
+                          {t('profile.v2.weekly_report_sub')}
                         </Text>
                       </View>
                     </View>
@@ -1034,7 +1037,7 @@ export function ProfileScreenV2() {
 
             const protocolToolsCard = (
               <>
-                <SectionHeader label="PROTOCOL TOOLS" />
+                <SectionHeader label={t('profile.v2.protocol_tools_label')} />
                 <View style={styles.card}>
                   <Pressable
                     onPress={() => router.push('/sensors')}
@@ -1044,8 +1047,8 @@ export function ProfileScreenV2() {
                     <View style={styles.settingLeft}>
                       <Icon name="upload" size={16} color={af.cyan} />
                       <View>
-                        <Text style={styles.settingLabel}>Sensor Import</Text>
-                        <Text style={styles.settingSubLabel}>hDrop · Nix · Gatorade Gx — CSV/JSON</Text>
+                        <Text style={styles.settingLabel}>{t('profile.v2.sensor_import')}</Text>
+                        <Text style={styles.settingSubLabel}>{t('profile.v2.sensor_import_sub')}</Text>
                       </View>
                     </View>
                     <Icon name="chevron-right" size={16} color={af.textTertiary} />
@@ -1059,8 +1062,8 @@ export function ProfileScreenV2() {
                     <View style={styles.settingLeft}>
                       <Icon name="anchor" size={16} color="#00E5FF" />
                       <View>
-                        <Text style={styles.settingLabel}>Cruise Mode · Premium</Text>
-                        <Text style={styles.settingSubLabel}>Hydration intelligence for life at sea</Text>
+                        <Text style={styles.settingLabel}>{t('profile.v2.cruise_mode')}</Text>
+                        <Text style={styles.settingSubLabel}>{t('profile.v2.cruise_mode_sub')}</Text>
                       </View>
                     </View>
                     <Icon name="chevron-right" size={16} color={af.textTertiary} />
@@ -1074,8 +1077,8 @@ export function ProfileScreenV2() {
                     <View style={styles.settingLeft}>
                       <Icon name="users" size={16} color="#C1281B" />
                       <View>
-                        <Text style={styles.settingLabel}>Social Mode v2 · Preview</Text>
-                        <Text style={styles.settingSubLabel}>5-block spec · tap PLAY DEMO inside</Text>
+                        <Text style={styles.settingLabel}>{t('profile.v2.social_v2')}</Text>
+                        <Text style={styles.settingSubLabel}>{t('profile.v2.social_v2_sub')}</Text>
                       </View>
                     </View>
                     <Icon name="chevron-right" size={16} color={af.textTertiary} />
@@ -1089,8 +1092,8 @@ export function ProfileScreenV2() {
                     <View style={styles.settingLeft}>
                       <Icon name="award" size={16} color={af.green} />
                       <View>
-                        <Text style={styles.settingLabel}>Achievements</Text>
-                        <Text style={styles.settingSubLabel}>Streaks · badges · unlock progress</Text>
+                        <Text style={styles.settingLabel}>{t('profile.v2.achievements')}</Text>
+                        <Text style={styles.settingSubLabel}>{t('profile.v2.achievements_sub')}</Text>
                       </View>
                     </View>
                     <Icon name="chevron-right" size={16} color={af.textTertiary} />
@@ -1104,8 +1107,8 @@ export function ProfileScreenV2() {
                     <View style={styles.settingLeft}>
                       <Icon name="book-open" size={16} color={af.textSecondary} />
                       <View>
-                        <Text style={styles.settingLabel}>Science & Methodology</Text>
-                        <Text style={styles.settingSubLabel}>Formulas · citations · export PDF</Text>
+                        <Text style={styles.settingLabel}>{t('profile.v2.science')}</Text>
+                        <Text style={styles.settingSubLabel}>{t('profile.v2.science_sub')}</Text>
                       </View>
                     </View>
                     <Icon name="chevron-right" size={16} color={af.textTertiary} />
@@ -1116,22 +1119,22 @@ export function ProfileScreenV2() {
 
             const hardwareCard = (
               <>
-                <SectionHeader label="HARDWARE" />
+                <SectionHeader label={t('profile.v2.hardware_label')} />
                 <View style={styles.card}>
                   <Pressable onPress={() => router.push('/phantom')} testID="profile-phantom-link">
                     <HardwareRow
-                      name="PHANTOM Band"
-                      kind="Private consumer wearable · BLE · 30s sync"
+                      name={t('profile.v2.hw_phantom_name')}
+                      kind={t('profile.v2.hw_phantom_kind')}
                       ledColor={af.cyan}
-                      status="MANAGE ›"
+                      status={t('profile.v2.hw_manage')}
                     />
                   </Pressable>
                   <Divider />
                   <HardwareRow
-                    name="CLUTCH Clip"
-                    kind="Athlete clip · BLE · 15s in-game"
+                    name={t('profile.v2.hw_clutch_name')}
+                    kind={t('profile.v2.hw_clutch_kind')}
                     ledColor={af.cyan}
-                    status="UNPAIRED"
+                    status={t('profile.v2.hw_unpaired')}
                   />
                 </View>
               </>
@@ -1139,7 +1142,7 @@ export function ProfileScreenV2() {
 
             const connectedDevicesCard = (
               <>
-                <SectionHeader label="CONNECTED DEVICES" />
+                <SectionHeader label={t('profile.v2.connected_devices_label')} />
                 <View style={styles.card}>
                   {mockUserProfile.connectedDevices.map((device, i) => (
                     <React.Fragment key={device}>
@@ -1148,13 +1151,13 @@ export function ProfileScreenV2() {
                           <View style={[styles.deviceDot, { backgroundColor: af.green }]} />
                           <Text style={styles.deviceName}>{device}</Text>
                         </View>
-                        <Text style={[styles.deviceStatus, { color: af.green }]}>LIVE</Text>
+                        <Text style={[styles.deviceStatus, { color: af.green }]}>{t('profile.v2.device_live')}</Text>
                       </View>
                       {i < mockUserProfile.connectedDevices.length - 1 && <Divider />}
                     </React.Fragment>
                   ))}
                 </View>
-                <SectionHeader label="HEALTH PLATFORMS" hint="Pull biometrics from these services" />
+                <SectionHeader label={t('profile.v2.health_platforms_label')} hint={t('profile.v2.health_platforms_hint')} />
                 <View style={styles.card}>
                   {[...HEALTH_PROVIDERS].sort((a, b) => a.name.localeCompare(b.name)).map((p, i) => {
                     // Garmin is backed by a REAL OAuth flow: its connection
@@ -1189,7 +1192,9 @@ export function ProfileScreenV2() {
                           ]}
                           accessibilityRole="button"
                           accessibilityLabel={
-                            linked ? `Disconnect ${p.name}` : `Connect ${p.name}`
+                            linked
+                              ? t('profile.v2.disconnect_a11y', { name: p.name })
+                              : t('profile.v2.connect_a11y', { name: p.name })
                           }
                           testID={`provider-${p.id}`}
                         >
@@ -1220,14 +1225,14 @@ export function ProfileScreenV2() {
                               <Text
                                 style={[styles.connectPillText, { color: af.cyan }]}
                               >
-                                DEMO
+                                {t('profile.v2.demo_pill')}
                               </Text>
                             </View>
                           ) : linked ? (
                             <Text
                               style={[styles.deviceStatus, { color: af.green }]}
                             >
-                              LIVE
+                              {t('profile.v2.device_live')}
                             </Text>
                           ) : (
                             <View
@@ -1237,7 +1242,7 @@ export function ProfileScreenV2() {
                               ]}
                             >
                               <Text style={[styles.connectPillText, { color: p.brand }]}>
-                                CONNECT
+                                {t('profile.v2.connect_pill')}
                               </Text>
                             </View>
                           )}
@@ -1245,19 +1250,19 @@ export function ProfileScreenV2() {
                         {garminDemo && garminDemoSnapshot && (
                           <View style={styles.garminDemoBlock}>
                             <Text style={styles.garminDemoLabel}>
-                              DEMO DATA — NOT FROM YOUR GARMIN ACCOUNT
+                              {t('profile.v2.garmin_demo_label')}
                             </Text>
                             <View style={styles.snapshotGrid}>
                               <SnapshotCell
-                                label="HRV"
+                                label={t('profile.v2.snap_hrv')}
                                 value={
                                   garminDemoSnapshot.hrvSdnn != null
-                                    ? `${Math.round(garminDemoSnapshot.hrvSdnn)} ms`
+                                    ? t('profile.v2.unit_ms', { value: Math.round(garminDemoSnapshot.hrvSdnn) })
                                     : '—'
                                 }
                               />
                               <SnapshotCell
-                                label="Stress"
+                                label={t('profile.v2.snap_stress')}
                                 value={
                                   garminDemoSnapshot.stressScore != null
                                     ? `${Math.round(garminDemoSnapshot.stressScore)}`
@@ -1265,16 +1270,16 @@ export function ProfileScreenV2() {
                                 }
                               />
                               <SnapshotCell
-                                label="Workout"
+                                label={t('profile.v2.snap_workout')}
                                 value={
                                   garminDemoSnapshot.workoutMinutesToday != null
-                                    ? `${Math.round(garminDemoSnapshot.workoutMinutesToday)} min`
+                                    ? t('profile.v2.unit_min', { value: Math.round(garminDemoSnapshot.workoutMinutesToday) })
                                     : '—'
                                 }
                               />
                             </View>
                             <Text style={styles.garminDemoFootnote}>
-                              Preview only · does not affect your score
+                              {t('profile.v2.garmin_demo_footnote')}
                             </Text>
                           </View>
                         )}
@@ -1302,12 +1307,12 @@ export function ProfileScreenV2() {
                         {p.id === 'apple_health' && linked && appleSnapshot && (
                           <View style={styles.snapshotBlock}>
                             <View style={styles.snapshotHeader}>
-                              <Text style={styles.snapshotLabel}>LIVE FROM APPLE HEALTH</Text>
+                              <Text style={styles.snapshotLabel}>{t('profile.v2.live_apple')}</Text>
                               <Pressable
                                 onPress={() => refreshAppleSnapshot()}
                                 hitSlop={10}
                                 accessibilityRole="button"
-                                accessibilityLabel="Refresh Apple Health"
+                                accessibilityLabel={t('profile.v2.refresh_apple_a11y')}
                               >
                                 <Icon
                                   name="refresh-cw"
@@ -1318,23 +1323,23 @@ export function ProfileScreenV2() {
                             </View>
                             <View style={styles.snapshotGrid}>
                               <SnapshotCell
-                                label="Resting HR"
+                                label={t('profile.v2.snap_resting_hr')}
                                 value={
                                   appleSnapshot.restingHeartRate != null
-                                    ? `${Math.round(appleSnapshot.restingHeartRate)} bpm`
+                                    ? t('profile.v2.unit_bpm', { value: Math.round(appleSnapshot.restingHeartRate) })
                                     : '—'
                                 }
                               />
                               <SnapshotCell
-                                label="HRV"
+                                label={t('profile.v2.snap_hrv')}
                                 value={
                                   appleSnapshot.hrvSdnn != null
-                                    ? `${Math.round(appleSnapshot.hrvSdnn)} ms`
+                                    ? t('profile.v2.unit_ms', { value: Math.round(appleSnapshot.hrvSdnn) })
                                     : '—'
                                 }
                               />
                               <SnapshotCell
-                                label="Steps"
+                                label={t('profile.v2.snap_steps')}
                                 value={
                                   appleSnapshot.stepsToday != null
                                     ? Math.round(appleSnapshot.stepsToday).toLocaleString()
@@ -1342,10 +1347,10 @@ export function ProfileScreenV2() {
                                 }
                               />
                               <SnapshotCell
-                                label="Sleep"
+                                label={t('profile.v2.snap_sleep')}
                                 value={
                                   appleSnapshot.sleepHoursLastNight != null
-                                    ? `${appleSnapshot.sleepHoursLastNight.toFixed(1)} h`
+                                    ? t('profile.v2.unit_h', { value: appleSnapshot.sleepHoursLastNight.toFixed(1) })
                                     : '—'
                                 }
                               />
@@ -1362,7 +1367,7 @@ export function ProfileScreenV2() {
 
             const demoAccessCard = (
               <>
-                <SectionHeader label="DEMO ACCESS" hint="Preview Phase 2 + Phase 3" />
+                <SectionHeader label={t('profile.v2.demo_access_label')} hint={t('profile.v2.demo_access_hint')} />
                 <View style={styles.card}>
                   <Pressable
                     onPress={() => setFeatureFlags(allOn ? DEFAULT_FLAGS : DEMO_ALL_ON_FLAGS)}
@@ -1370,7 +1375,7 @@ export function ProfileScreenV2() {
                   >
                     <Icon name={allOn ? 'eye-off' : 'eye'} size={14} color={allOn ? af.green : af.textSecondary} />
                     <Text style={[styles.demoMasterText, { color: allOn ? af.green : af.textPrimary }]}>
-                      {allOn ? 'Lock all demo features' : 'Unlock all demo features'}
+                      {allOn ? t('profile.v2.lock_all') : t('profile.v2.unlock_all')}
                     </Text>
                   </Pressable>
 
@@ -1387,21 +1392,21 @@ export function ProfileScreenV2() {
                     >
                       <Icon name="activity" size={14} color={af.red} />
                       <Text style={[styles.demoMasterText, { color: af.red }]}>
-                        Preview Recovery Coach (dev)
+                        {t('profile.v2.preview_recovery_coach')}
                       </Text>
                     </Pressable>
                   ) : null}
 
-                  <FlagRow flag="clutch_access_enabled" label="Clutch Access" desc="Phase 2 — Command the Team" color={af.cyan} state={state} onToggle={toggleFlag} />
-                  <FlagRow flag="clutch_heat_mode_enabled" label="Heat Mode" desc="Aggressive cadence under heat stress" color={af.cyan} state={state} onToggle={toggleFlag} />
-                  <FlagRow flag="clutch_inventory_enabled" label="Auto Replenish" desc="Inventory + restock automation" color={af.cyan} state={state} onToggle={toggleFlag} />
-                  <FlagRow flag="clutch_clip_enabled" label="CLUTCH Clip" desc="Coach-visible BLE hardware" color={af.cyan} state={state} onToggle={toggleFlag} />
+                  <FlagRow flag="clutch_access_enabled" label={t('profile.v2.flag_clutch_label')} desc={t('profile.v2.flag_clutch_desc')} color={af.cyan} state={state} onToggle={toggleFlag} />
+                  <FlagRow flag="clutch_heat_mode_enabled" label={t('profile.v2.flag_heat_label')} desc={t('profile.v2.flag_heat_desc')} color={af.cyan} state={state} onToggle={toggleFlag} />
+                  <FlagRow flag="clutch_inventory_enabled" label={t('profile.v2.flag_replenish_label')} desc={t('profile.v2.flag_replenish_desc')} color={af.cyan} state={state} onToggle={toggleFlag} />
+                  <FlagRow flag="clutch_clip_enabled" label={t('profile.v2.flag_clip_label')} desc={t('profile.v2.flag_clip_desc')} color={af.cyan} state={state} onToggle={toggleFlag} />
 
-                  <FlagRow flag="guardian_intelligence_enabled" label="Guardian Intelligence" desc="Phase 3 — Protect the Roster" color={'#8B5CF6'} state={state} onToggle={toggleFlag} />
-                  <FlagRow flag="guardian_body_map_enabled" label="Body Risk Map" desc="Per-body-region risk visualization" color={'#8B5CF6'} state={state} onToggle={toggleFlag} />
-                  <FlagRow flag="guardian_alerts_enabled" label="Critical Alerts" desc="Coach + medical escalations" color={'#8B5CF6'} state={state} onToggle={toggleFlag} />
+                  <FlagRow flag="guardian_intelligence_enabled" label={t('profile.v2.flag_guardian_label')} desc={t('profile.v2.flag_guardian_desc')} color={'#8B5CF6'} state={state} onToggle={toggleFlag} />
+                  <FlagRow flag="guardian_body_map_enabled" label={t('profile.v2.flag_riskmap_label')} desc={t('profile.v2.flag_riskmap_desc')} color={'#8B5CF6'} state={state} onToggle={toggleFlag} />
+                  <FlagRow flag="guardian_alerts_enabled" label={t('profile.v2.flag_alerts_label')} desc={t('profile.v2.flag_alerts_desc')} color={'#8B5CF6'} state={state} onToggle={toggleFlag} />
 
-                  <FlagRow flag="phantom_wearable_enabled" label="PHANTOM Band" desc="Private consumer wearable" color={af.cyan} state={state} onToggle={toggleFlag} />
+                  <FlagRow flag="phantom_wearable_enabled" label={t('profile.v2.flag_phantom_label')} desc={t('profile.v2.flag_phantom_desc')} color={af.cyan} state={state} onToggle={toggleFlag} />
                 </View>
               </>
             );
@@ -1505,8 +1510,8 @@ export function ProfileScreenV2() {
                         <Text style={styles.settingLabel}>{t('profile.voice_section.row_label')}</Text>
                         <Text style={[styles.flagDesc, { marginTop: 2 }]}>
                           {voiceCoachEnabled
-                            ? 'Voice persona reads each new AI command aloud.'
-                            : 'AI commands are visual-only.'}
+                            ? t('profile.v2.voice_on_desc')
+                            : t('profile.v2.voice_off_desc')}
                         </Text>
                       </View>
                     </View>
@@ -1520,7 +1525,7 @@ export function ProfileScreenV2() {
                   {voiceCoachEnabled ? (
                     <View style={{ paddingHorizontal: 14, paddingTop: 4, paddingBottom: 12 }}>
                       <Text style={[styles.flagDesc, { marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.6 }]}>
-                        Coach voice
+                        {t('profile.v2.coach_voice')}
                       </Text>
                       <View style={{ gap: 6 }}>
                         {AFORCE_VOICES.map((v) => {
@@ -1534,9 +1539,9 @@ export function ProfileScreenV2() {
                             >
                               <View style={{ flex: 1 }}>
                                 <Text style={voicePickerStyles.rowLabel}>
-                                  Coach {v.label}
+                                  {t('profile.v2.coach_prefix', { name: v.label })}
                                   <Text style={voicePickerStyles.rowGender}>
-                                    {'  '}· {v.gender === 'male' ? 'M' : 'F'}
+                                    {'  '}· {v.gender === 'male' ? t('profile.v2.voice_m') : t('profile.v2.voice_f')}
                                   </Text>
                                 </Text>
                                 <Text style={voicePickerStyles.rowDesc}>{v.description}</Text>
@@ -1549,7 +1554,7 @@ export function ProfileScreenV2() {
                         })}
                       </View>
                       <Text style={[styles.flagDesc, { marginTop: 10, fontSize: 11 }]}>
-                        Premium AForce voices, streamed from our server.
+                        {t('profile.v2.voice_premium_desc')}
                       </Text>
 
                       {/* AForce Command Voice Engine — intensity picker.
@@ -1557,7 +1562,7 @@ export function ProfileScreenV2() {
                           (auto-Pressure when DEPLETED), Pressure = forced
                           short sharp lines for every command. */}
                       <Text style={[styles.flagDesc, { marginTop: 16, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.6 }]}>
-                        Voice intensity
+                        {t('profile.v2.voice_intensity')}
                       </Text>
                       <View style={voicePickerStyles.segmentRow}>
                         {(['calm', 'standard', 'pressure'] as const).map((opt) => {
@@ -1586,7 +1591,7 @@ export function ProfileScreenV2() {
                                   selected && { color: accent },
                                 ]}
                               >
-                                {opt.toUpperCase()}
+                                {t(`profile.v2.vintensity_${opt}`)}
                               </Text>
                             </Pressable>
                           );
@@ -1594,10 +1599,10 @@ export function ProfileScreenV2() {
                       </View>
                       <Text style={[styles.flagDesc, { marginTop: 6, fontSize: 11 }]}>
                         {voiceIntensity === 'calm'
-                          ? 'Measured Performance Command tone. Full sentences.'
+                          ? t('profile.v2.vintensity_desc_calm')
                           : voiceIntensity === 'pressure'
-                            ? `${BRAND_LANGUAGE.pressureMode} active. Short, sharp, direct.`
-                            : 'Default — spec phrases, auto-engages Pressure Mode when DEPLETED.'}
+                            ? t('profile.v2.vintensity_desc_pressure', { mode: BRAND_LANGUAGE.pressureMode })
+                            : t('profile.v2.vintensity_desc_standard')}
                       </Text>
 
                       {/* AForce Command Voice Engine — scope picker.
@@ -1605,16 +1610,12 @@ export function ProfileScreenV2() {
                           allowed to fire. 'muted' is silent at the
                           category gate even if the master toggle is on. */}
                       <Text style={[styles.flagDesc, { marginTop: 16, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.6 }]}>
-                        When voice plays
+                        {t('profile.v2.when_voice_plays')}
                       </Text>
                       <View style={voicePickerStyles.segmentRow}>
                         {(['all', 'risk', 'commands', 'muted'] as const).map((opt) => {
                           const selected = voiceScope === opt;
-                          const label =
-                            opt === 'all' ? 'ALWAYS'
-                              : opt === 'risk' ? 'RISK'
-                                : opt === 'commands' ? 'CMDS'
-                                  : 'MUTED';
+                          const label = t(`profile.v2.scope_${opt}`);
                           const accent = opt === 'muted'
                             ? af.textTertiary
                             : af.green;
@@ -1644,10 +1645,10 @@ export function ProfileScreenV2() {
                         })}
                       </View>
                       <Text style={[styles.flagDesc, { marginTop: 6, fontSize: 11 }]}>
-                        {voiceScope === 'all' && 'Every voice event — score band, risk timer, commands, completion.'}
-                        {voiceScope === 'risk' && 'Score-band crossings + risk-timer alerts only.'}
-                        {voiceScope === 'commands' && 'Performance Commands + cycle completion only.'}
-                        {voiceScope === 'muted' && 'No voice events. Master toggle stays on for replay.'}
+                        {voiceScope === 'all' && t('profile.v2.scope_desc_all')}
+                        {voiceScope === 'risk' && t('profile.v2.scope_desc_risk')}
+                        {voiceScope === 'commands' && t('profile.v2.scope_desc_commands')}
+                        {voiceScope === 'muted' && t('profile.v2.scope_desc_muted')}
                       </Text>
 
                       {/* Replay last command — surfaces the same data the
@@ -1676,7 +1677,7 @@ export function ProfileScreenV2() {
                             { color: getLastCommand() ? af.green : af.textTertiary },
                           ]}
                         >
-                          {getLastCommand() ? 'REPLAY LAST COMMAND' : 'NOTHING TO REPLAY YET'}
+                          {getLastCommand() ? t('profile.v2.replay_last') : t('profile.v2.nothing_to_replay')}
                         </Text>
                       </Pressable>
 
@@ -1700,7 +1701,7 @@ export function ProfileScreenV2() {
                           ]}
                           testID="profile-investor-demo-launch"
                           accessibilityRole="button"
-                          accessibilityLabel="Launch investor demo"
+                          accessibilityLabel={t('profile.v2.investor_demo_a11y')}
                         >
                           <Text
                             style={[
@@ -1708,7 +1709,7 @@ export function ProfileScreenV2() {
                               { color: af.green },
                             ]}
                           >
-                            ▶  LAUNCH INVESTOR DEMO · 60s
+                            {t('profile.v2.investor_demo_label')}
                           </Text>
                         </Pressable>
                       ) : null}
@@ -1738,8 +1739,8 @@ export function ProfileScreenV2() {
                     <View style={[styles.phaseIcon, { backgroundColor: `${af.cyan}1A` }]}>
                       <Icon name="users" size={20} color={af.cyan} />
                     </View>
-                    <Text style={[styles.phaseTitle, { color: af.cyan }]}>CLUTCH</Text>
-                    <Text style={styles.phaseDesc}>Command the Team</Text>
+                    <Text style={[styles.phaseTitle, { color: af.cyan }]}>{t('profile.v2.phase_clutch_title')}</Text>
+                    <Text style={styles.phaseDesc}>{t('profile.v2.phase_clutch_desc')}</Text>
                   </Pressable>
                 ) : null}
                 {showGuardianEntry ? (
@@ -1750,8 +1751,8 @@ export function ProfileScreenV2() {
                     <View style={[styles.phaseIcon, { backgroundColor: `${'#8B5CF6'}1A` }]}>
                       <Icon name="shield" size={20} color={'#8B5CF6'} />
                     </View>
-                    <Text style={[styles.phaseTitle, { color: '#8B5CF6' }]}>GUARDIAN</Text>
-                    <Text style={styles.phaseDesc}>Protect the Roster</Text>
+                    <Text style={[styles.phaseTitle, { color: '#8B5CF6' }]}>{t('profile.v2.phase_guardian_title')}</Text>
+                    <Text style={styles.phaseDesc}>{t('profile.v2.phase_guardian_desc')}</Text>
                   </Pressable>
                 ) : null}
               </View>
@@ -1759,7 +1760,7 @@ export function ProfileScreenV2() {
 
             const subscriptionBlock = (
               <>
-                <SectionHeader label="SUBSCRIPTION" />
+                <SectionHeader label={t('profile.v2.subscription_label')} />
                 <SubscriptionPanel />
               </>
             );
@@ -1773,7 +1774,7 @@ export function ProfileScreenV2() {
                   </View>
                   <Divider />
                   <UnitPreferenceRow<CoachMode>
-                    label="Coach"
+                    label={t('profile.v2.coach_label')}
                     options={COACH_MODES.map((m) => ({
                       value: m,
                       label: m.charAt(0).toUpperCase() + m.slice(1),
@@ -1824,43 +1825,43 @@ export function ProfileScreenV2() {
             // setUnitPreference, which persists to AsyncStorage.
             const preferencesBlock = (
               <>
-                <SectionHeader label="PREFERENCES" hint="How values are displayed" />
+                <SectionHeader label={t('profile.v2.preferences_label')} hint={t('profile.v2.preferences_hint')} />
                 <View style={styles.card}>
                   <UnitPreferenceRow
-                    label="Weight"
+                    label={t('profile.v2.pref_weight')}
                     options={[
-                      { value: 'lbs', label: 'lbs' },
-                      { value: 'kg', label: 'kg' },
+                      { value: 'lbs', label: t('profile.v2.pref_lbs') },
+                      { value: 'kg', label: t('profile.v2.pref_kg') },
                     ]}
                     selected={unitPreferences.weight}
                     onSelect={(v) => setUnitPreference('weight', v)}
                   />
                   <Divider />
                   <UnitPreferenceRow
-                    label="Height"
+                    label={t('profile.v2.pref_height')}
                     options={[
-                      { value: 'ft', label: 'ft' },
-                      { value: 'cm', label: 'cm' },
+                      { value: 'ft', label: t('profile.v2.pref_ft') },
+                      { value: 'cm', label: t('profile.v2.pref_cm') },
                     ]}
                     selected={unitPreferences.height}
                     onSelect={(v) => setUnitPreference('height', v)}
                   />
                   <Divider />
                   <UnitPreferenceRow
-                    label="Temperature"
+                    label={t('profile.v2.pref_temperature')}
                     options={[
-                      { value: 'F', label: '°F' },
-                      { value: 'C', label: '°C' },
+                      { value: 'F', label: t('profile.v2.pref_f') },
+                      { value: 'C', label: t('profile.v2.pref_c') },
                     ]}
                     selected={unitPreferences.temperature}
                     onSelect={(v) => setUnitPreference('temperature', v)}
                   />
                   <Divider />
                   <UnitPreferenceRow
-                    label="Volume"
+                    label={t('profile.v2.pref_volume')}
                     options={[
-                      { value: 'oz', label: 'oz' },
-                      { value: 'mL', label: 'mL' },
+                      { value: 'oz', label: t('profile.v2.pref_oz') },
+                      { value: 'mL', label: t('profile.v2.pref_ml') },
                     ]}
                     selected={unitPreferences.volume}
                     onSelect={(v) => setUnitPreference('volume', v)}
@@ -1875,15 +1876,15 @@ export function ProfileScreenV2() {
                 : 0;
             const developerBlock = (
               <>
-                <SectionHeader label="DEVELOPER" hint="Internal tools · not for production users" />
+                <SectionHeader label={t('profile.v2.developer_label')} hint={t('profile.v2.developer_hint')} />
                 <View style={styles.card}>
                   <View style={styles.settingRow} testID="profile-dev-mode">
                     <View style={styles.settingLeft}>
                       <Icon name="settings" size={16} color={af.textSecondary} />
                       <View>
-                        <Text style={styles.settingLabel}>Developer Mode</Text>
+                        <Text style={styles.settingLabel}>{t('profile.v2.developer_mode')}</Text>
                         <Text style={styles.settingSubLabel}>
-                          Adds the legacy Recovery/Cruise tab next to Social
+                          {t('profile.v2.developer_mode_sub')}
                         </Text>
                       </View>
                     </View>
@@ -1892,7 +1893,7 @@ export function ProfileScreenV2() {
                       onValueChange={(v) => { void setDevMode(v); }}
                       trackColor={{ false: 'rgba(255,255,255,0.12)', true: '#C1281B' }}
                       thumbColor={Platform.OS === 'android' ? '#0a0014' : undefined}
-                      accessibilityLabel="Toggle Developer Mode"
+                      accessibilityLabel={t('profile.v2.developer_mode_a11y')}
                     />
                   </View>
                 </View>
@@ -1903,20 +1904,20 @@ export function ProfileScreenV2() {
                       <View style={styles.settingLeft}>
                         <Icon name="shield" size={16} color="#C1281B" />
                         <View>
-                          <Text style={styles.settingLabel}>WHOOP token encryption</Text>
+                          <Text style={styles.settingLabel}>{t('profile.v2.whoop_enc')}</Text>
                           <Text style={styles.settingSubLabel}>
-                            Phase B backfill progress · admin only
+                            {t('profile.v2.whoop_enc_sub')}
                           </Text>
                         </View>
                       </View>
                       <Pressable
                         onPress={() => { void refreshEncStatus(); }}
                         style={styles.encRefreshBtn}
-                        accessibilityLabel="Refresh encryption status"
+                        accessibilityLabel={t('profile.v2.refresh_enc_a11y')}
                         testID="profile-whoop-encryption-refresh"
                       >
                         <Text style={styles.encRefreshLabel}>
-                          {encLoading ? '…' : 'Refresh'}
+                          {encLoading ? '…' : t('profile.v2.refresh')}
                         </Text>
                       </Pressable>
                     </View>
@@ -1932,8 +1933,10 @@ export function ProfileScreenV2() {
                             {encPct.toFixed(1)}%
                           </Text>
                           <Text style={styles.encHeroLabel}>
-                            {encStatus.encrypted.toLocaleString()} /{' '}
-                            {encStatus.total.toLocaleString()} rows encrypted
+                            {t('profile.v2.enc_rows', {
+                              encrypted: encStatus.encrypted.toLocaleString(),
+                              total: encStatus.total.toLocaleString(),
+                            })}
                           </Text>
                         </View>
                         <View style={styles.encBarTrack}>
@@ -1949,7 +1952,7 @@ export function ProfileScreenV2() {
                             <Text style={styles.encStatNum}>
                               {encStatus.plaintextOnly.toLocaleString()}
                             </Text>
-                            <Text style={styles.encStatLabel}>plaintext only</Text>
+                            <Text style={styles.encStatLabel}>{t('profile.v2.enc_plaintext')}</Text>
                           </View>
                           <View style={styles.encStatCell}>
                             <Text
@@ -1960,13 +1963,13 @@ export function ProfileScreenV2() {
                             >
                               {encStatus.halfEncrypted.toLocaleString()}
                             </Text>
-                            <Text style={styles.encStatLabel}>partial</Text>
+                            <Text style={styles.encStatLabel}>{t('profile.v2.enc_partial')}</Text>
                           </View>
                           <View style={styles.encStatCell}>
                             <Text style={styles.encStatNum}>
                               {encStatus.encrypted.toLocaleString()}
                             </Text>
-                            <Text style={styles.encStatLabel}>encrypted</Text>
+                            <Text style={styles.encStatLabel}>{t('profile.v2.enc_encrypted')}</Text>
                           </View>
                         </View>
                         <View style={styles.encFlagRow}>
@@ -1978,7 +1981,7 @@ export function ProfileScreenV2() {
                                 : styles.encFlagOff,
                             ]}
                           >
-                            KEY {encStatus.encryptionKeyConfigured ? 'ON' : 'OFF'}
+                            {t('profile.v2.enc_key', { state: encStatus.encryptionKeyConfigured ? t('profile.v2.on') : t('profile.v2.off') })}
                           </Text>
                           <Text
                             style={[
@@ -1988,13 +1991,13 @@ export function ProfileScreenV2() {
                                 : styles.encFlagOff,
                             ]}
                           >
-                            CRON {encStatus.backfillCronEnabled ? 'ON' : 'OFF'}
+                            {t('profile.v2.enc_cron', { state: encStatus.backfillCronEnabled ? t('profile.v2.on') : t('profile.v2.off') })}
                           </Text>
                         </View>
                       </>
                     ) : (
                       <Text style={styles.settingSubLabel}>
-                        {encLoading ? 'Loading…' : 'Tap Refresh to load.'}
+                        {encLoading ? t('profile.v2.enc_loading') : t('profile.v2.enc_tap_refresh')}
                       </Text>
                     )}
                   </View>
@@ -2004,7 +2007,7 @@ export function ProfileScreenV2() {
 
             const legalBlock = (
               <>
-                <SectionHeader label="LEGAL" hint="Terms · privacy · disclaimers" />
+                <SectionHeader label={t('profile.v2.legal_label')} hint={t('profile.v2.legal_hint')} />
                 <View style={styles.card}>
                   <Pressable
                     onPress={() => router.push('/legal/terms')}
@@ -2014,8 +2017,8 @@ export function ProfileScreenV2() {
                     <View style={styles.settingLeft}>
                       <Icon name="file-text" size={16} color={af.textSecondary} />
                       <View>
-                        <Text style={styles.settingLabel}>Terms of Service</Text>
-                        <Text style={styles.settingSubLabel}>How the app works · your account · subscriptions</Text>
+                        <Text style={styles.settingLabel}>{t('profile.v2.terms')}</Text>
+                        <Text style={styles.settingSubLabel}>{t('profile.v2.terms_sub')}</Text>
                       </View>
                     </View>
                     <Icon name="chevron-right" size={16} color={af.textTertiary} />
@@ -2029,8 +2032,8 @@ export function ProfileScreenV2() {
                     <View style={styles.settingLeft}>
                       <Icon name="shield" size={16} color={af.textSecondary} />
                       <View>
-                        <Text style={styles.settingLabel}>Privacy Policy</Text>
-                        <Text style={styles.settingSubLabel}>What we collect · where it lives · your controls</Text>
+                        <Text style={styles.settingLabel}>{t('profile.v2.privacy')}</Text>
+                        <Text style={styles.settingSubLabel}>{t('profile.v2.privacy_sub')}</Text>
                       </View>
                     </View>
                     <Icon name="chevron-right" size={16} color={af.textTertiary} />
@@ -2044,8 +2047,8 @@ export function ProfileScreenV2() {
                     <View style={styles.settingLeft}>
                       <Icon name="activity" size={16} color={af.textSecondary} />
                       <View>
-                        <Text style={styles.settingLabel}>Health Disclaimer</Text>
-                        <Text style={styles.settingSubLabel}>Performance tool · not medical advice</Text>
+                        <Text style={styles.settingLabel}>{t('profile.v2.health_disclaimer')}</Text>
+                        <Text style={styles.settingSubLabel}>{t('profile.v2.health_disclaimer_sub')}</Text>
                       </View>
                     </View>
                     <Icon name="chevron-right" size={16} color={af.textTertiary} />
@@ -2061,8 +2064,8 @@ export function ProfileScreenV2() {
                     <View style={styles.settingLeft}>
                       <Icon name="mail" size={16} color={af.textSecondary} />
                       <View>
-                        <Text style={styles.settingLabel}>Contact Support</Text>
-                        <Text style={styles.settingSubLabel}>support@aforce.com · response within 24h</Text>
+                        <Text style={styles.settingLabel}>{t('profile.v2.contact_support')}</Text>
+                        <Text style={styles.settingSubLabel}>{t('profile.v2.contact_support_sub')}</Text>
                       </View>
                     </View>
                     <Icon name="chevron-right" size={16} color={af.textTertiary} />
@@ -2118,13 +2121,13 @@ export function ProfileScreenV2() {
 
           <SignOutRow />
 
-          <Text style={styles.version}>AForce OS v1.0.0 · Phase 1 Core</Text>
-          <Text style={styles.patent}>PATENT PENDING</Text>
+          <Text style={styles.version}>{t('profile.v2.version')}</Text>
+          <Text style={styles.patent}>{t('profile.v2.patent_pending')}</Text>
           <Text style={styles.patentSub}>
-            U.S. Provisional Patent Application No. 64/057,695{'\n'}
-            Filed May 5, 2026 · Docket AFG-101-US-P{'\n'}
-            Closed-Loop Real-Time Physiological Performance Operating System{'\n'}
-            and Methods of Use
+            {t('profile.v2.patent_sub_1')}{'\n'}
+            {t('profile.v2.patent_sub_2')}{'\n'}
+            {t('profile.v2.patent_sub_3')}{'\n'}
+            {t('profile.v2.patent_sub_4')}
           </Text>
         </ScrollView>
       </GradientBackground>
@@ -2147,7 +2150,7 @@ export function ProfileScreenV2() {
             .then((result) => {
               if (result.changeType === 'major') {
                 Alert.alert(
-                  'Performance Profile Updated',
+                  t('profile.v2.profile_updated_title'),
                   result.synced
                     ? result.explanation || result.confirmation
                     : result.confirmation,
@@ -2169,6 +2172,7 @@ export function ProfileScreenV2() {
  * Safe: only rendered inside <ClerkProvider> via the root _layout.
  */
 function SignOutRow() {
+  const { t } = useTranslation();
   const auth = useAuth();
   const userHook = useUser();
   if (!auth.isSignedIn) return null;
@@ -2178,17 +2182,17 @@ function SignOutRow() {
       {email && <Text style={signOutStyles.email}>{email}</Text>}
       <Pressable
         onPress={() => {
-          Alert.alert('Sign out', 'Are you sure you want to sign out?', [
-            { text: 'Cancel', style: 'cancel' },
-            { text: 'Sign out', style: 'destructive', onPress: () => auth.signOut() },
+          Alert.alert(t('profile.v2.sign_out_title'), t('profile.v2.sign_out_message'), [
+            { text: t('profile.v2.cancel'), style: 'cancel' },
+            { text: t('profile.v2.sign_out'), style: 'destructive', onPress: () => auth.signOut() },
           ]);
         }}
         style={({ pressed }) => [signOutStyles.btn, pressed && { opacity: 0.7 }]}
         accessibilityRole="button"
-        accessibilityLabel="Sign out"
+        accessibilityLabel={t('profile.v2.sign_out_a11y')}
       >
         <Icon name="log-out" size={14} color={af.textPrimary} />
-        <Text style={signOutStyles.btnText}>Sign out</Text>
+        <Text style={signOutStyles.btnText}>{t('profile.v2.sign_out')}</Text>
       </Pressable>
     </View>
   );
@@ -2226,11 +2230,14 @@ function SectionHeader({ label, hint }: { label: string; hint?: string }) {
 // uses Signal Red fill on black text with a soft glow; inactive pills are
 // hairline outlines on the cinematic near-black canvas.
 type ProfileTabId = 'performance' | 'devices' | 'account' | 'developer';
-const PROFILE_TABS: ReadonlyArray<{ id: ProfileTabId; label: string }> = [
-  { id: 'performance', label: 'PERFORMANCE' },
-  { id: 'devices', label: 'DEVICES' },
-  { id: 'account', label: 'ACCOUNT' },
-  { id: 'developer', label: 'DEVELOPER' },
+// Tab labels live in the `profile.v2.tab_<id>` locale namespace and are
+// resolved at the render site (this const is declared outside any
+// component, so it can't call `t()`).
+const PROFILE_TABS: ReadonlyArray<{ id: ProfileTabId }> = [
+  { id: 'performance' },
+  { id: 'devices' },
+  { id: 'account' },
+  { id: 'developer' },
 ];
 
 function ProfileTabBar({
@@ -2240,6 +2247,7 @@ function ProfileTabBar({
   active: ProfileTabId;
   onChange: (id: ProfileTabId) => void;
 }) {
+  const { t } = useTranslation();
   return (
     <View style={styles.tabBarWrap} testID="profile-tab-bar">
       <ScrollView
@@ -2249,6 +2257,7 @@ function ProfileTabBar({
       >
         {PROFILE_TABS.map((tab) => {
           const isActive = tab.id === active;
+          const tabLabel = t(`profile.v2.tab_${tab.id}`);
           return (
             <Pressable
               key={tab.id}
@@ -2256,7 +2265,7 @@ function ProfileTabBar({
               style={[styles.tabPill, isActive && styles.tabPillActive]}
               accessibilityRole="tab"
               accessibilityState={{ selected: isActive }}
-              accessibilityLabel={tab.label}
+              accessibilityLabel={tabLabel}
               testID={`profile-tab-${tab.id}`}
               hitSlop={8}
             >
@@ -2264,7 +2273,7 @@ function ProfileTabBar({
                 style={[styles.tabPillLabel, isActive && styles.tabPillLabelActive]}
                 numberOfLines={1}
               >
-                {tab.label}
+                {tabLabel}
               </Text>
             </Pressable>
           );
@@ -2435,6 +2444,7 @@ function UnitPreferenceRow<T extends string>({
 }
 
 function SubscriptionPanel() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { state } = useAppStore();
   const sub = state.subscription;
@@ -2460,17 +2470,17 @@ function SubscriptionPanel() {
     }
   }, [portalBusy, router]);
 
-  const planName = TIER_LABELS[sub.planId]?.label ?? 'AForce';
+  const planName = TIER_LABELS[sub.planId] ? t(`profile.v2.tier_${sub.planId}_label`) : t('profile.v2.tier_fallback');
   const accent =
     sub.planId.startsWith('guardian') ? '#8B5CF6' :
     sub.planId.startsWith('clutch')   ? af.cyan :
     sub.planId === 'system' || sub.planId === 'athlete' ? af.green :
     af.cyan;
   const statusLabel =
-    sub.status === 'active'   ? 'ACTIVE' :
-    sub.status === 'trialing' ? 'TRIAL' :
-    sub.status === 'paused'   ? 'PAUSED' :
-    sub.status === 'past_due' ? 'PAST DUE' : 'CANCELED';
+    sub.status === 'active'   ? t('profile.v2.status_active') :
+    sub.status === 'trialing' ? t('profile.v2.status_trial') :
+    sub.status === 'paused'   ? t('profile.v2.status_paused') :
+    sub.status === 'past_due' ? t('profile.v2.status_past_due') : t('profile.v2.status_canceled');
 
   return (
     <View style={[styles.subscriptionCard, { borderColor: `${accent}33` }]}>
@@ -2479,8 +2489,8 @@ function SubscriptionPanel() {
           <Text style={[styles.tierName, { color: accent }]}>{planName}</Text>
           <Text style={styles.tierDesc}>
             {sub.product
-              ? 'AForce OS + monthly product shipment.'
-              : 'AForce OS subscription.'}
+              ? t('profile.v2.tier_desc_product')
+              : t('profile.v2.tier_desc_sub')}
           </Text>
         </View>
         <View style={[styles.tierTag, { backgroundColor: `${accent}1A`, borderColor: `${accent}55` }]}>
@@ -2494,10 +2504,10 @@ function SubscriptionPanel() {
           onPress={onManage}
           disabled={portalBusy}
           accessibilityRole="button"
-          accessibilityLabel="Manage subscription"
+          accessibilityLabel={t('profile.v2.manage_a11y')}
           accessibilityState={{ busy: portalBusy, disabled: portalBusy }}
         >
-          <Text style={[styles.upgradeBtnText, { color: accent }]}>Manage</Text>
+          <Text style={[styles.upgradeBtnText, { color: accent }]}>{t('profile.v2.manage')}</Text>
           <Icon name="settings" size={14} color={accent} />
         </TouchableOpacity>
         <TouchableOpacity
@@ -2505,7 +2515,7 @@ function SubscriptionPanel() {
           activeOpacity={0.85}
           onPress={() => router.push('/subscription')}
         >
-          <Text style={[styles.upgradeBtnText, { color: accent }]}>Upgrade</Text>
+          <Text style={[styles.upgradeBtnText, { color: accent }]}>{t('profile.v2.upgrade')}</Text>
           <Icon name="arrow-up-right" size={14} color={accent} />
         </TouchableOpacity>
       </View>
