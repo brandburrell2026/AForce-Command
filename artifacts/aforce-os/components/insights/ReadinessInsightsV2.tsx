@@ -23,7 +23,19 @@ import {
 } from '@/components/ui';
 import { af, afType } from '@/theme';
 import { useAppStore } from '@/store/useAppStore';
-import { useEngineSlice } from '@/store/slices';
+import { useEngineSlice, useCycleSlice } from '@/store/slices';
+
+// Relocated Home detail zones (S3 folded them here — spec "tap score for
+// insights"). Each self-gates on its own flag (Metabolic/PerformanceAge/
+// VoiceCheckIn ship OFF → render null), so nothing that was dormant surfaces,
+// while Activation Journey + the AI-Coach video (which users DID see on the
+// legacy Home) stay accessible.
+import { MetabolicReadinessZone } from '@/components/home/MetabolicReadinessZone';
+import { PerformanceAgeZone } from '@/components/home/PerformanceAgeZone';
+import { VoiceCheckInZone } from '@/components/home/VoiceCheckInZone';
+import { ActivationJourneyZone } from '@/components/home/ActivationJourneyZone';
+import { AIVideoPlayer } from '@/components/AIVideoPlayer';
+import { matchVideo } from '@/services/videoEngine';
 
 function dayInitial(ts: Date | string): string {
   const d = new Date(ts);
@@ -38,7 +50,9 @@ function dayInitial(ts: Date | string): string {
 export function ReadinessInsightsV2() {
   const { state } = useAppStore();
   const engine = useEngineSlice();
+  const { timerSeconds } = useCycleSlice();
   const { history } = state;
+  const coachVideo = matchVideo({ engineOutput: engine, userState: state.userState });
 
   // Chronological window of the most recent readings (history is newest-first).
   const window = history.slice(0, 7).reverse();
@@ -129,6 +143,26 @@ export function ReadinessInsightsV2() {
         </>
       )}
 
+      {/* Relocated Home detail zones (spec "tap score for insights"). The
+          self-gating zones render only when their own flag is on; the AI-Coach
+          video + Activation Journey (user-visible on the legacy Home) stay
+          reachable so nothing users had access to went missing. */}
+      <View style={styles.section}>
+        <AFSectionLabel label="Your system" />
+        <View style={styles.zones}>
+          <AIVideoPlayer
+            video={coachVideo}
+            command={engine.command}
+            timerSeconds={timerSeconds}
+            score={engine.score}
+          />
+          <ActivationJourneyZone />
+          <MetabolicReadinessZone />
+          <PerformanceAgeZone />
+          <VoiceCheckInZone />
+        </View>
+      </View>
+
       <View style={{ height: 40 }} />
     </AFScreen>
   );
@@ -141,6 +175,7 @@ const styles = StyleSheet.create({
   deltaWrap: { marginTop: 10 },
   chart: { marginTop: 28 },
   section: { marginTop: 28, gap: 12 },
+  zones: { gap: 16 },
   driversCard: { paddingHorizontal: 16 },
   driverRow: {
     flexDirection: 'row',
