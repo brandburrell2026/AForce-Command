@@ -15,6 +15,7 @@ import { useAppStore } from '../store/useAppStore';
 import { RecoveryCoachScreen } from '../components/recoveryCoach/RecoveryCoachScreen';
 import { buildRecoveryCommand, parseEngineActionCopy, parseDoseOz } from '../utils/recovery/recoveryCommandFromStore';
 import { useActionsSlice } from '../store/slices';
+import { AdjustCommandSheet } from '../components/recoveryCoach/AdjustCommandSheet';
 import type { FluidType } from '../types';
 
 interface CoachActions {
@@ -22,12 +23,14 @@ interface CoachActions {
     fluidType: FluidType,
     opts?: { silent?: boolean; ozOverride?: number; flavorLabel?: string },
   ) => Promise<void>;
+  snooze: () => void;
 }
 
 export default function RecoveryCoachRoute() {
   const router = useRouter();
   const { state } = useAppStore();
-  const { logIntake } = useActionsSlice<CoachActions>();
+  const { logIntake, snooze } = useActionsSlice<CoachActions>();
+  const [adjustOpen, setAdjustOpen] = React.useState(false);
 
   // Dormant unless explicitly enabled — never surfaces in the production binary.
   if (!state.featureFlags.spec_recoveryCoach) return <Redirect href="/" />;
@@ -63,24 +66,42 @@ export default function RecoveryCoachRoute() {
   );
 
   return (
-    <RecoveryCoachScreen
-      command={command}
-      onClose={() => router.back()}
-      // "I've had the water" — log the intake so the ack is real (feeds the
-      // hydration score). The screen keeps showing the acknowledged/recheck
-      // state (spec §8.10: confirm once, countdown continues); the user closes
-      // when ready. `silent` keeps this off the "ritual_started" analytics path
-      // since it's a coach acknowledgement, not a fresh ritual. The dose is
-      // parsed from the command's own copy (e.g. "Drink 20 oz" → 20) so the log
-      // matches what was prescribed; parseDoseOz returns undefined when no dose
-      // is stated, so logIntake falls back to the product default.
-      onPrimary={() => {
-        void logIntake('water', { silent: true, ozOverride: parseDoseOz(engineCommand.action) });
-      }}
-      // "Adjust command" — for S1 this dismisses the focused mode so the user
-      // can log manually / re-check on Home. A structured adjust flow (dose /
-      // snooze) is a follow-up.
-      onAdjust={() => router.back()}
-    />
+    <>
+      <RecoveryCoachScreen
+        command={command}
+        onClose={() => router.back()}
+        // "I've had the water" — log the intake so the ack is real (feeds the
+        // hydration score). The screen keeps showing the acknowledged/recheck
+        // state (spec §8.10: confirm once, countdown continues); the user closes
+        // when ready. `silent` keeps this off the "ritual_started" analytics path
+        // since it's a coach acknowledgement, not a fresh ritual. The dose is
+        // parsed from the command's own copy (e.g. "Drink 20 oz" → 20) so the log
+        // matches what was prescribed; parseDoseOz returns undefined when no dose
+        // is stated, so logIntake falls back to the product default.
+        onPrimary={() => {
+          void logIntake('water', { silent: true, ozOverride: parseDoseOz(engineCommand.action) });
+        }}
+        // "Adjust command" — opens the adjust sheet (snooze / change dose / dismiss).
+        onAdjust={() => setAdjustOpen(true)}
+      />
+      <AdjustCommandSheet
+        visible={adjustOpen}
+        onClose={() => setAdjustOpen(false)}
+        onSnooze={() => {
+          snooze();
+          setAdjustOpen(false);
+          router.back();
+        }}
+        onLogDose={(oz) => {
+          void logIntake('water', { silent: true, ozOverride: oz });
+          setAdjustOpen(false);
+          router.back();
+        }}
+        onDismiss={() => {
+          setAdjustOpen(false);
+          router.back();
+        }}
+      />
+    </>
   );
 }
