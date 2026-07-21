@@ -27,6 +27,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter, router as globalRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { Icon, type IconName } from '@/components/Icon';
 import Svg, { Defs, LinearGradient as SvgLinearGradient, Polygon, Stop } from 'react-native-svg';
 
@@ -81,6 +82,7 @@ const DEFICIT_COLOR: Record<string, string> = {
 // — projected fluid loss, sodium, efficiency, intensity — so the user
 // lands on the calculator with the live read already in view.
 function SweatLossSnapshot() {
+  const { t } = useTranslation();
   const user = useUserSlice();
   const snap = React.useMemo(() => deriveSweatLoss(user), [user]);
 
@@ -95,42 +97,42 @@ function SweatLossSnapshot() {
   return (
     <View style={[styles.snapshotCard, { borderColor: accent + '55' }]}>
       <View style={styles.snapshotHeaderRow}>
-        <Text style={[styles.snapshotEyebrow, { color: accent }]}>SWEAT LOSS · LIVE</Text>
+        <Text style={[styles.snapshotEyebrow, { color: accent }]}>{t('sweat.v2.snap_eyebrow')}</Text>
         {snap.confidence === 'low' ? (
-          <Text style={styles.snapshotConfidence}>EST.</Text>
+          <Text style={styles.snapshotConfidence}>{t('sweat.v2.snap_est')}</Text>
         ) : null}
       </View>
       <View style={styles.snapshotHeroRow}>
         <Text style={styles.snapshotHero}>{snap.fluidLossOz}</Text>
-        <Text style={styles.snapshotHeroUnit}>oz projected</Text>
+        <Text style={styles.snapshotHeroUnit}>{t('sweat.v2.snap_oz_projected')}</Text>
       </View>
       <View style={styles.snapshotMetricsRow}>
         <View style={styles.snapshotMetric}>
-          <Text style={styles.snapshotMetricLabel} numberOfLines={1}>SODIUM</Text>
+          <Text style={styles.snapshotMetricLabel} numberOfLines={1}>{t('sweat.v2.snap_sodium')}</Text>
           <Text
             style={styles.snapshotMetricValue}
             numberOfLines={1}
             adjustsFontSizeToFit
             minimumFontScale={0.75}
           >
-            {snap.sodiumLossMg} mg
+            {t('sweat.v2.unit_mg', { value: snap.sodiumLossMg })}
           </Text>
         </View>
         <View style={styles.snapshotMetricDivider} />
         <View style={styles.snapshotMetric}>
-          <Text style={styles.snapshotMetricLabel} numberOfLines={1}>EFFICIENCY</Text>
+          <Text style={styles.snapshotMetricLabel} numberOfLines={1}>{t('sweat.v2.snap_efficiency')}</Text>
           <Text
             style={[styles.snapshotMetricValue, { color: accent }]}
             numberOfLines={1}
             adjustsFontSizeToFit
             minimumFontScale={0.75}
           >
-            {snap.efficiencyPct}%
+            {t('sweat.v2.unit_pct', { value: snap.efficiencyPct })}
           </Text>
         </View>
         <View style={styles.snapshotMetricDivider} />
         <View style={styles.snapshotMetric}>
-          <Text style={styles.snapshotMetricLabel} numberOfLines={1}>INTENSITY</Text>
+          <Text style={styles.snapshotMetricLabel} numberOfLines={1}>{t('sweat.v2.snap_intensity')}</Text>
           <Text
             style={styles.snapshotMetricValue}
             numberOfLines={1}
@@ -141,14 +143,13 @@ function SweatLossSnapshot() {
           </Text>
         </View>
       </View>
-      <Text style={styles.snapshotHint}>
-        Run a calculation below for a calibrated reading.
-      </Text>
+      <Text style={styles.snapshotHint}>{t('sweat.v2.snap_hint')}</Text>
     </View>
   );
 }
 
 export function SweatCalculatorScreenV2() {
+  const { t } = useTranslation();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   // `?demo=1` auto-runs Calculate on mount so previews / share screens
@@ -217,12 +218,12 @@ export function SweatCalculatorScreenV2() {
       const dur = num(qDuration);
       const fluid = num(qFluid);
       const h = num(qHeight);
-      if (pre <= 0 || pre > 700) return 'Enter a pre-weight between 1 and 700 lbs.';
-      if (post <= 0 || post > 700) return 'Enter a post-weight between 1 and 700 lbs.';
-      if (post > pre + 5) return 'Post-weight is higher than pre-weight — check your numbers.';
-      if (h !== 0 && (h <= 0 || h > 8)) return 'Height should be 0.5–8 ft (or leave blank).';
-      if (dur <= 0 || dur > 600) return 'Enter a duration between 1 and 600 minutes.';
-      if (fluid < 0 || fluid > 500) return 'Fluid intake should be 0–500 ounces.';
+      if (pre <= 0 || pre > 700) return t('sweat.v2.val_pre_weight');
+      if (post <= 0 || post > 700) return t('sweat.v2.val_post_weight');
+      if (post > pre + 5) return t('sweat.v2.val_post_higher');
+      if (h !== 0 && (h <= 0 || h > 8)) return t('sweat.v2.val_height');
+      if (dur <= 0 || dur > 600) return t('sweat.v2.val_duration');
+      if (fluid < 0 || fluid > 500) return t('sweat.v2.val_fluid');
       return null;
     }
     if (mode === 'precision') {
@@ -232,20 +233,20 @@ export function SweatCalculatorScreenV2() {
       const fluid = num(pFluid);
       const urine = num(pUrine);
       const h = num(pHeight);
-      if (pre <= 0 || pre > 700) return 'Enter a pre-weight between 1 and 700 lbs.';
-      if (post <= 0 || post > 700) return 'Enter a post-weight between 1 and 700 lbs.';
-      if (post > pre + 5) return 'Post-weight is higher than pre-weight — check your numbers.';
-      if (h !== 0 && (h <= 0 || h > 8)) return 'Height should be 0.5–8 ft (or leave blank).';
-      if (dur <= 0 || dur > 600) return 'Enter a duration between 1 and 600 minutes.';
-      if (fluid < 0 || fluid > 500) return 'Fluid intake should be 0–500 ounces.';
-      if (urine < 0 || urine > 100) return 'Urine output should be 0–100 ounces.';
+      if (pre <= 0 || pre > 700) return t('sweat.v2.val_pre_weight');
+      if (post <= 0 || post > 700) return t('sweat.v2.val_post_weight');
+      if (post > pre + 5) return t('sweat.v2.val_post_higher');
+      if (h !== 0 && (h <= 0 || h > 8)) return t('sweat.v2.val_height');
+      if (dur <= 0 || dur > 600) return t('sweat.v2.val_duration');
+      if (fluid < 0 || fluid > 500) return t('sweat.v2.val_fluid');
+      if (urine < 0 || urine > 100) return t('sweat.v2.val_urine');
       return null;
     }
     const dur = num(eDuration);
     if (eWeightLbs == null || eWeightLbs <= 0)
-      return 'Enter your body weight to estimate without a scale.';
-    if (eHeightCm == null) return 'Set your height to estimate without a scale.';
-    if (dur <= 0 || dur > 600) return 'Enter a duration between 1 and 600 minutes.';
+      return t('sweat.v2.val_need_weight');
+    if (eHeightCm == null) return t('sweat.v2.val_need_height');
+    if (dur <= 0 || dur > 600) return t('sweat.v2.val_duration');
     return null;
   })();
   const canCalculate = validationError === null;
@@ -349,20 +350,17 @@ export function SweatCalculatorScreenV2() {
                 style={styles.backBtn}
                 hitSlop={12}
                 accessibilityRole="button"
-                accessibilityLabel="Back"
+                accessibilityLabel={t('sweat.v2.back_a11y')}
               >
                 <Icon name="chevron-left" size={20} color={af.textPrimary} />
               </Pressable>
               <View style={{ flex: 1 }}>
-                <Text style={styles.eyebrow}>SWEAT INTELLIGENCE</Text>
-                <Text style={styles.title}>Sweat Calculator</Text>
+                <Text style={styles.eyebrow}>{t('sweat.v2.eyebrow')}</Text>
+                <Text style={styles.title}>{t('sweat.v2.title')}</Text>
               </View>
             </View>
 
-            <Text style={styles.subhead}>
-              Measure your sweat rate, sodium loss, and the exact AForce
-              replacement protocol — calibrated to ACSM and Baker 2017.
-            </Text>
+            <Text style={styles.subhead}>{t('sweat.v2.subhead')}</Text>
 
             <SweatLossSnapshot />
 
@@ -370,37 +368,37 @@ export function SweatCalculatorScreenV2() {
 
             {mode === 'quick' && (
               <Card>
-                <SectionTitle>Inputs</SectionTitle>
-                <NumberRow label="Pre-weight" suffix="lbs" value={qPre} onChange={setQPre} />
-                <NumberRow label="Post-weight" suffix="lbs" value={qPost} onChange={setQPost} />
-                <NumberRow label="Height" suffix="ft" value={qHeight} onChange={setQHeight} />
-                <NumberRow label="Duration" suffix="min" value={qDuration} onChange={setQDuration} />
-                <NumberRow label="Fluid intake" suffix="ounces" value={qFluid} onChange={setQFluid} />
-                <Helper>Weigh nude or in dry clothing for accuracy. 1 lb of weight loss ≈ 16 ounces of sweat.</Helper>
+                <SectionTitle>{t('sweat.v2.inputs')}</SectionTitle>
+                <NumberRow label={t('sweat.v2.pre_weight')} suffix={t('sweat.v2.suffix_lbs')} value={qPre} onChange={setQPre} />
+                <NumberRow label={t('sweat.v2.post_weight')} suffix={t('sweat.v2.suffix_lbs')} value={qPost} onChange={setQPost} />
+                <NumberRow label={t('sweat.v2.height')} suffix={t('sweat.v2.suffix_ft')} value={qHeight} onChange={setQHeight} />
+                <NumberRow label={t('sweat.v2.duration')} suffix={t('sweat.v2.suffix_min')} value={qDuration} onChange={setQDuration} />
+                <NumberRow label={t('sweat.v2.fluid_intake')} suffix={t('sweat.v2.suffix_ounces')} value={qFluid} onChange={setQFluid} />
+                <Helper>{t('sweat.v2.helper_quick')}</Helper>
               </Card>
             )}
 
             {mode === 'precision' && (
               <Card>
-                <SectionTitle>Inputs</SectionTitle>
-                <NumberRow label="Pre-weight" suffix="lbs" value={pPre} onChange={setPPre} />
-                <NumberRow label="Post-weight" suffix="lbs" value={pPost} onChange={setPPost} />
-                <NumberRow label="Height" suffix="ft" value={pHeight} onChange={setPHeight} />
-                <NumberRow label="Duration" suffix="min" value={pDuration} onChange={setPDuration} />
-                <NumberRow label="Fluid intake" suffix="ounces" value={pFluid} onChange={setPFluid} />
-                <NumberRow label="Urine output" suffix="ounces" value={pUrine} onChange={setPUrine} />
+                <SectionTitle>{t('sweat.v2.inputs')}</SectionTitle>
+                <NumberRow label={t('sweat.v2.pre_weight')} suffix={t('sweat.v2.suffix_lbs')} value={pPre} onChange={setPPre} />
+                <NumberRow label={t('sweat.v2.post_weight')} suffix={t('sweat.v2.suffix_lbs')} value={pPost} onChange={setPPost} />
+                <NumberRow label={t('sweat.v2.height')} suffix={t('sweat.v2.suffix_ft')} value={pHeight} onChange={setPHeight} />
+                <NumberRow label={t('sweat.v2.duration')} suffix={t('sweat.v2.suffix_min')} value={pDuration} onChange={setPDuration} />
+                <NumberRow label={t('sweat.v2.fluid_intake')} suffix={t('sweat.v2.suffix_ounces')} value={pFluid} onChange={setPFluid} />
+                <NumberRow label={t('sweat.v2.urine_output')} suffix={t('sweat.v2.suffix_ounces')} value={pUrine} onChange={setPUrine} />
                 <Divider />
-                <SubLabel>Sport</SubLabel>
+                <SubLabel>{t('sweat.v2.sport')}</SubLabel>
                 <SportPicker value={pSportId} onChange={setPSportId} />
                 <Divider />
-                <SubLabel>Sweat-sodium profile</SubLabel>
+                <SubLabel>{t('sweat.v2.sodium_profile')}</SubLabel>
                 <SodiumPicker value={pSodium} onChange={setPSodium} />
                 <Divider />
                 <ToggleRow
-                  label="Heat-acclimatized"
+                  label={t('sweat.v2.heat_acclimatized')}
                   value={pAcclimatized}
                   onChange={setPAcclimatized}
-                  hint="≥ 10 days of heat exposure / training in current climate"
+                  hint={t('sweat.v2.heat_acclimatized_hint')}
                 />
                 <ClimateLine climate={climate} ambientTempC={ambientTempC} />
               </Card>
@@ -408,7 +406,7 @@ export function SweatCalculatorScreenV2() {
 
             {mode === 'estimate' && (
               <Card>
-                <SectionTitle>Inputs</SectionTitle>
+                <SectionTitle>{t('sweat.v2.inputs')}</SectionTitle>
                 <WeightField
                   bodyWeightLbs={eWeightLbs}
                   unit={unitPrefs.weight}
@@ -419,29 +417,25 @@ export function SweatCalculatorScreenV2() {
                   unit={unitPrefs.height}
                   onChange={(cm) => setProfileIdentity({ heightCm: cm })}
                 />
-                <NumberRow label="Session duration" suffix="min" value={eDuration} onChange={setEDuration} />
+                <NumberRow label={t('sweat.v2.session_duration')} suffix={t('sweat.v2.suffix_min')} value={eDuration} onChange={setEDuration} />
                 <Divider />
-                <SubLabel>Sport</SubLabel>
+                <SubLabel>{t('sweat.v2.sport')}</SubLabel>
                 <SportPicker value={eSportId} onChange={setESportId} />
                 <Divider />
-                <SubLabel>Intensity</SubLabel>
+                <SubLabel>{t('sweat.v2.intensity')}</SubLabel>
                 <IntensityPicker value={eIntensity} onChange={setEIntensity} />
                 <Divider />
-                <SubLabel>Sweat-sodium profile</SubLabel>
+                <SubLabel>{t('sweat.v2.sodium_profile')}</SubLabel>
                 <SodiumPicker value={eSodium} onChange={setESodium} />
                 <Divider />
                 <ToggleRow
-                  label="Heat-acclimatized"
+                  label={t('sweat.v2.heat_acclimatized')}
                   value={eAcclimatized}
                   onChange={setEAcclimatized}
-                  hint="≥ 10 days of heat exposure / training in current climate"
+                  hint={t('sweat.v2.heat_acclimatized_hint')}
                 />
                 <ClimateLine climate={climate} ambientTempC={ambientTempC} />
-                <Helper>
-                  Estimate path uses your sport&apos;s population-mean sweat rate
-                  (Baker 2017) scaled by body surface area, intensity, and
-                  climate. Measure with a scale for the most accurate number.
-                </Helper>
+                <Helper>{t('sweat.v2.helper_estimate')}</Helper>
               </Card>
             )}
 
@@ -465,7 +459,7 @@ export function SweatCalculatorScreenV2() {
                 color={canCalculate ? af.onRed : af.textTertiary}
               />
               <Text style={[styles.calcBtnText, !canCalculate && styles.calcBtnTextDisabled]}>
-                Calculate
+                {t('sweat.v2.calculate')}
               </Text>
             </Pressable>
 
@@ -482,7 +476,7 @@ export function SweatCalculatorScreenV2() {
                 color={af.textTertiary}
               />
               <Text style={styles.citationToggleText}>
-                {showCitations ? 'Hide' : 'Show'} methodology &amp; citations
+                {showCitations ? t('sweat.v2.methodology_hide') : t('sweat.v2.methodology_show')}
               </Text>
             </Pressable>
             {showCitations && <CitationCard />}
@@ -507,10 +501,11 @@ function ModeSegment({
   mode: SweatInputMode;
   onChange: (m: SweatInputMode) => void;
 }) {
+  const { t } = useTranslation();
   const items: { id: SweatInputMode; label: string }[] = [
-    { id: 'quick', label: 'Quick' },
-    { id: 'precision', label: 'Precision' },
-    { id: 'estimate', label: 'Estimate' },
+    { id: 'quick', label: t('sweat.v2.mode_quick') },
+    { id: 'precision', label: t('sweat.v2.mode_precision') },
+    { id: 'estimate', label: t('sweat.v2.mode_estimate') },
   ];
   return (
     <View style={styles.segment}>
@@ -565,6 +560,7 @@ function NumberRow({
   value: string;
   onChange: (v: string) => void;
 }) {
+  const { t } = useTranslation();
   return (
     <View style={styles.numberRow}>
       <Text style={styles.numberLabel} numberOfLines={1}>
@@ -577,7 +573,7 @@ function NumberRow({
           onChangeText={onChange}
           keyboardType="decimal-pad"
           inputMode="decimal"
-          placeholder="0"
+          placeholder={t('sweat.v2.number_placeholder')}
           placeholderTextColor={af.textTertiary}
           accessibilityLabel={label}
         />
@@ -617,6 +613,7 @@ function SodiumPicker({
   value: SodiumProfile;
   onChange: (v: SodiumProfile) => void;
 }) {
+  const { t } = useTranslation();
   return (
     <View style={{ gap: 6 }}>
       {SODIUM_BANDS.map((b) => {
@@ -635,7 +632,7 @@ function SodiumPicker({
             <View style={{ flex: 1 }}>
               <Text style={styles.sodiumLabel}>{b.label}</Text>
               <Text style={styles.sodiumDesc}>
-                {b.mgPerLiter} mg/L sweat — {b.description}
+                {t('sweat.v2.sodium_band_desc', { mg: b.mgPerLiter, desc: b.description })}
               </Text>
             </View>
           </Pressable>
@@ -652,7 +649,14 @@ function IntensityPicker({
   value: 1 | 2 | 3 | 4 | 5;
   onChange: (v: 1 | 2 | 3 | 4 | 5) => void;
 }) {
-  const labels = ['Light', 'Easy', 'Moderate', 'Hard', 'Max'];
+  const { t } = useTranslation();
+  const labels = [
+    t('sweat.v2.intensity_light'),
+    t('sweat.v2.intensity_easy'),
+    t('sweat.v2.intensity_moderate'),
+    t('sweat.v2.intensity_hard'),
+    t('sweat.v2.intensity_max'),
+  ];
   return (
     <View style={styles.intensityRow}>
       {[1, 2, 3, 4, 5].map((n) => {
@@ -704,11 +708,17 @@ function ToggleRow({
 }
 
 function ClimateLine({ climate, ambientTempC }: { climate: CityClimate; ambientTempC: number }) {
+  const { t } = useTranslation();
   return (
     <View style={styles.climateLine}>
       <Icon name="sun" size={12} color={af.textTertiary} />
       <Text style={styles.climateText}>
-        Climate: {climate.city} · {Math.round(climate.tempF)}°F ({ambientTempC}°C) · {climate.humidityPct}% RH
+        {t('sweat.v2.climate_line', {
+          city: climate.city,
+          tempF: Math.round(climate.tempF),
+          tempC: ambientTempC,
+          humidity: climate.humidityPct,
+        })}
       </Text>
     </View>
   );
@@ -744,21 +754,22 @@ function ResultPane({ result }: { result: SweatSession }) {
 
 /* ── A. Performance Header ──────────────────────────────────────────── */
 function PerformanceHeader({ result }: { result: SweatSession }) {
+  const { t } = useTranslation();
   const bandColor = DEFICIT_COLOR[result.deficitBand] ?? af.textPrimary;
   const bandSpec = DEFICIT_BANDS.find((b) => b.id === result.deficitBand);
   const sportLabel = result.audit.sport?.label;
 
   return (
     <View style={styles.heroCard}>
-      <Text style={styles.heroEyebrow}>PERFORMANCE SUMMARY</Text>
+      <Text style={styles.heroEyebrow}>{t('sweat.v2.perf_eyebrow')}</Text>
 
       <View style={styles.heroNumbers}>
         <Text style={[styles.heroBig, { color: bandColor }]}>
           {result.deficitPct.toFixed(1)}
         </Text>
         <View style={{ marginLeft: 6 }}>
-          <Text style={[styles.heroUnitTop, { color: bandColor }]}>%</Text>
-          <Text style={styles.heroUnitBottom}>fluid deficit</Text>
+          <Text style={[styles.heroUnitTop, { color: bandColor }]}>{t('sweat.v2.perf_deficit_unit')}</Text>
+          <Text style={styles.heroUnitBottom}>{t('sweat.v2.perf_fluid_deficit')}</Text>
         </View>
       </View>
 
@@ -767,9 +778,9 @@ function PerformanceHeader({ result }: { result: SweatSession }) {
       </View>
 
       <View style={styles.perfMetaRow}>
-        <PerfMeta label="Sweat rate" value={`${result.sweatRateLh.toFixed(2)} L/h`} />
-        <PerfMeta label="Total loss" value={`${result.sweatLossL.toFixed(2)} L`} />
-        <PerfMeta label="Sodium loss" value={`${(result.sodiumLossMg / 1000).toFixed(2)} g`} />
+        <PerfMeta label={t('sweat.v2.perf_sweat_rate')} value={t('sweat.v2.unit_lh', { value: result.sweatRateLh.toFixed(2) })} />
+        <PerfMeta label={t('sweat.v2.perf_total_loss')} value={t('sweat.v2.unit_l', { value: result.sweatLossL.toFixed(2) })} />
+        <PerfMeta label={t('sweat.v2.perf_sodium_loss')} value={t('sweat.v2.unit_g', { value: (result.sodiumLossMg / 1000).toFixed(2) })} />
       </View>
 
       {sportLabel && (
@@ -779,12 +790,12 @@ function PerformanceHeader({ result }: { result: SweatSession }) {
       {result.audit.source === 'estimated' && (
         <View style={styles.estimatedBadge}>
           <Icon name="info" size={10} color={af.amber} />
-          <Text style={styles.estimatedBadgeText}>ESTIMATED — measure with scale for precision</Text>
+          <Text style={styles.estimatedBadgeText}>{t('sweat.v2.perf_estimated_badge')}</Text>
         </View>
       )}
 
       <Text style={styles.intentionalSodiumLine}>
-        AForce formula sodium: {AFORCE_SODIUM_PER_UNIT_MG}mg per serving — intentional by design
+        {t('sweat.v2.perf_formula_note', { mg: AFORCE_SODIUM_PER_UNIT_MG })}
       </Text>
     </View>
   );
@@ -801,21 +812,16 @@ function PerfMeta({ label, value }: { label: string; value: string }) {
 
 /* ── B. Recovery Intelligence — verbatim positioning copy ───────────── */
 function RecoveryIntelligenceCard() {
+  const { t } = useTranslation();
   return (
     <View style={styles.intelCard}>
-      <Text style={styles.intelEyebrow}>RECOVERY INTELLIGENCE</Text>
-      <Text style={styles.intelHeadline}>
-        Recovery is not driven by sodium alone.
-      </Text>
-      <Text style={styles.intelBody}>
-        AForce uses {AFORCE_SODIUM_PER_UNIT_MG}mg of sodium paired with marine
-        bioavailable minerals and pH 8.8 alkaline structuring to drive
-        cellular recovery — not flood you with salt.
-      </Text>
+      <Text style={styles.intelEyebrow}>{t('sweat.v2.ri_eyebrow')}</Text>
+      <Text style={styles.intelHeadline}>{t('sweat.v2.ri_headline')}</Text>
+      <Text style={styles.intelBody}>{t('sweat.v2.ri_body', { mg: AFORCE_SODIUM_PER_UNIT_MG })}</Text>
       <View style={styles.intelChipRow}>
-        <View style={styles.intelChip}><Text style={styles.intelChipText}>{AFORCE_SODIUM_PER_UNIT_MG}mg sodium</Text></View>
-        <View style={styles.intelChip}><Text style={styles.intelChipText}>Marine minerals</Text></View>
-        <View style={styles.intelChip}><Text style={styles.intelChipText}>pH 8.8</Text></View>
+        <View style={styles.intelChip}><Text style={styles.intelChipText}>{t('sweat.v2.ri_chip_sodium', { mg: AFORCE_SODIUM_PER_UNIT_MG })}</Text></View>
+        <View style={styles.intelChip}><Text style={styles.intelChipText}>{t('sweat.v2.ri_chip_minerals')}</Text></View>
+        <View style={styles.intelChip}><Text style={styles.intelChipText}>{t('sweat.v2.ri_chip_ph')}</Text></View>
       </View>
     </View>
   );
@@ -823,21 +829,22 @@ function RecoveryIntelligenceCard() {
 
 /* ── C. AForce System — 4 spec rows + 3 verbatim ingredient lines ───── */
 function AForceSystemCard() {
+  const { t } = useTranslation();
   return (
     <View style={styles.systemCard}>
-      <Text style={styles.cardEyebrow}>AFORCE SYSTEM</Text>
+      <Text style={styles.cardEyebrow}>{t('sweat.v2.sys_eyebrow')}</Text>
 
-      <SystemRow k={`${AFORCE_SODIUM_PER_UNIT_MG}mg Sodium`} v="Per serving — controlled, not bombarding." />
-      <SystemRow k="72 Trace Minerals" v="Marine source (Irish Seamoss)." />
-      <SystemRow k="pH 8.8 Alkaline" v="Structured water for cellular uptake." />
-      <SystemRow k="4-Hour Recovery Window" v="Time-released absorption profile." />
+      <SystemRow k={t('sweat.v2.sys_sodium_k', { mg: AFORCE_SODIUM_PER_UNIT_MG })} v={t('sweat.v2.sys_sodium_v')} />
+      <SystemRow k={t('sweat.v2.sys_minerals_k')} v={t('sweat.v2.sys_minerals_v')} />
+      <SystemRow k={t('sweat.v2.sys_ph_k')} v={t('sweat.v2.sys_ph_v')} />
+      <SystemRow k={t('sweat.v2.sys_window_k')} v={t('sweat.v2.sys_window_v')} />
 
       <View style={styles.systemDivider} />
 
-      <Text style={styles.systemSubhead}>Ingredient Detail</Text>
-      <IngredientLine name="Irish Seamoss" line="Marine source of 72 trace minerals critical to cellular function." />
-      <IngredientLine name="Chlorella" line="Binds heavy metals and supports oxygen transport." />
-      <IngredientLine name="Atlantic Dulse" line="Iodine-rich for thyroid + metabolic recovery." />
+      <Text style={styles.systemSubhead}>{t('sweat.v2.sys_ingredient_detail')}</Text>
+      <IngredientLine name={t('sweat.v2.ing_seamoss_name')} line={t('sweat.v2.ing_seamoss_line')} />
+      <IngredientLine name={t('sweat.v2.ing_chlorella_name')} line={t('sweat.v2.ing_chlorella_line')} />
+      <IngredientLine name={t('sweat.v2.ing_dulse_name')} line={t('sweat.v2.ing_dulse_line')} />
     </View>
   );
 }
@@ -868,10 +875,11 @@ function AIRecoveryDecision({
   result: SweatSession;
   protocol: RecoveryProtocolPlan;
 }) {
+  const { t } = useTranslation();
   const urgencyLabel =
-    result.autopilot.urgency === 'critical' ? 'Critical recovery'
-    : result.autopilot.urgency === 'high' ? 'High priority'
-    : 'Steady recovery';
+    result.autopilot.urgency === 'critical' ? t('sweat.v2.ai_urgency_critical')
+    : result.autopilot.urgency === 'high' ? t('sweat.v2.ai_urgency_high')
+    : t('sweat.v2.ai_urgency_steady');
 
   const urgencyColor =
     result.autopilot.urgency === 'critical' ? af.red
@@ -882,14 +890,14 @@ function AIRecoveryDecision({
     <View style={styles.aiCard}>
       <View style={styles.aiHeader}>
         <Icon name="cpu" size={14} color={urgencyColor} />
-        <Text style={[styles.aiEyebrow, { color: urgencyColor }]}>AI RECOVERY DECISION</Text>
+        <Text style={[styles.aiEyebrow, { color: urgencyColor }]}>{t('sweat.v2.ai_eyebrow')}</Text>
       </View>
 
-      <Text style={styles.aiHeadline}>{urgencyLabel} · recheck every {result.autopilot.intervalMin} min</Text>
+      <Text style={styles.aiHeadline}>{t('sweat.v2.ai_subhead', { urgency: urgencyLabel, min: result.autopilot.intervalMin })}</Text>
 
       <View style={styles.aiBullets}>
-        <BulletRow text={`${result.deficitPct.toFixed(1)}% deficit triggered ${result.autopilot.urgency} cadence (${result.autopilot.recoveryWindowHours}h window).`} />
-        <BulletRow text={`Sodium loss ${result.sodiumLossMg} mg → ${result.aforceSodiumTotalMg} mg delivered by ${result.prescription.aforceSticks} unit${result.prescription.aforceSticks === 1 ? '' : 's'}; gap ${result.sodiumGapMg} mg covered by structured-water absorption.`} />
+        <BulletRow text={t('sweat.v2.ai_reason', { pct: result.deficitPct.toFixed(1), urgency: result.autopilot.urgency, hours: result.autopilot.recoveryWindowHours })} />
+        <BulletRow text={t(result.prescription.aforceSticks === 1 ? 'sweat.v2.ai_sodium_line_one' : 'sweat.v2.ai_sodium_line_other', { loss: result.sodiumLossMg, delivered: result.aforceSodiumTotalMg, sticks: result.prescription.aforceSticks, gap: result.sodiumGapMg })} />
         <BulletRow text={protocol.reasoning} />
       </View>
     </View>
@@ -913,21 +921,22 @@ function RecoveryProtocolCard({
   protocol: RecoveryProtocolPlan;
   result: SweatSession;
 }) {
+  const { t } = useTranslation();
   if (protocol.reason === 'restock') {
     return (
       <View style={[styles.protocolCard, styles.protocolRestock]}>
-        <Text style={styles.cardEyebrow}>RECOVERY PROTOCOL</Text>
+        <Text style={styles.cardEyebrow}>{t('sweat.v2.rp_eyebrow')}</Text>
         <Text style={styles.protocolHeadline}>{protocol.headline}</Text>
         <Text style={styles.protocolReasoning}>{protocol.reasoning}</Text>
         <Pressable
           style={styles.restockBtn}
           accessibilityRole="button"
-          accessibilityLabel="Restock AForce — open AForce Fuel"
+          accessibilityLabel={t('sweat.v2.rp_restock_a11y')}
           testID="recovery-restock-cta"
           onPress={() => globalRouter.push('/store')}
         >
           <Icon name="shopping-bag" size={14} color={af.onRed} />
-          <Text style={styles.restockBtnText}>Restock AForce</Text>
+          <Text style={styles.restockBtnText}>{t('sweat.v2.rp_restock_btn')}</Text>
         </Pressable>
       </View>
     );
@@ -935,7 +944,7 @@ function RecoveryProtocolCard({
 
   return (
     <View style={styles.protocolCard}>
-      <Text style={styles.cardEyebrow}>RECOVERY PROTOCOL · NEXT {result.prescription.windowHours}H</Text>
+      <Text style={styles.cardEyebrow}>{t('sweat.v2.rp_eyebrow_next', { hours: result.prescription.windowHours })}</Text>
       <Text style={styles.protocolHeadline}>{protocol.headline}</Text>
 
       <View style={styles.protocolSteps}>
@@ -944,7 +953,7 @@ function RecoveryProtocolCard({
             <View style={styles.protocolStepIdx}><Text style={styles.protocolStepIdxText}>{i + 1}</Text></View>
             <View style={{ flex: 1 }}>
               <Text style={styles.protocolStepLabel}>{s.label}</Text>
-              <Text style={styles.protocolStepHint}>{labelForProduct(s.productId)}</Text>
+              <Text style={styles.protocolStepHint}>{t(`sweat.v2.${labelForProductKey(s.productId)}`)}</Text>
             </View>
           </View>
         ))}
@@ -953,8 +962,8 @@ function RecoveryProtocolCard({
             <Icon name="droplet" size={11} color={af.textSecondary} />
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={styles.protocolStepLabel}>{protocol.waterOz} ounces water</Text>
-            <Text style={styles.protocolStepHint}>Pair across the {result.autopilot.recoveryWindowHours}h window.</Text>
+            <Text style={styles.protocolStepLabel}>{t('sweat.v2.rp_water', { oz: protocol.waterOz })}</Text>
+            <Text style={styles.protocolStepHint}>{t('sweat.v2.rp_pair', { hours: result.autopilot.recoveryWindowHours })}</Text>
           </View>
         </View>
       </View>
@@ -964,33 +973,35 @@ function RecoveryProtocolCard({
   );
 }
 
-function labelForProduct(id: 'rtd' | 'stick' | 'canister'): string {
-  if (id === 'rtd') return 'Ready-to-drink — fastest start.';
-  if (id === 'stick') return 'Single-serve stick — pour into water.';
-  return 'Canister scoop — bulk option.';
+/** Product id → sweat.v2.product_* key suffix (translated at the call site). */
+function labelForProductKey(id: 'rtd' | 'stick' | 'canister'): string {
+  if (id === 'rtd') return 'product_rtd';
+  if (id === 'stick') return 'product_stick';
+  return 'product_canister';
 }
 
 /* ── F. Optional Support ────────────────────────────────────────────── */
 function OptionalSupportCard({ result }: { result: SweatSession }) {
   // Symptom-aware add-ons. Light, optional, never prescriptive — these
   // amplify the protocol when conditions warrant.
+  const { t } = useTranslation();
   const items: { icon: IconName; label: string; hint: string }[] = [];
 
   if (result.deficitPct >= 2) {
-    items.push({ icon: 'moon', label: 'Cool-down rest', hint: '15–20 min low HR before next bout.' });
+    items.push({ icon: 'moon', label: t('sweat.v2.opt_cooldown_label'), hint: t('sweat.v2.opt_cooldown_hint') });
   }
   if (result.sodiumGapMg > 100) {
-    items.push({ icon: 'coffee', label: 'Salty whole food', hint: 'Olives, broth, or pickle juice closes the sodium gap.' });
+    items.push({ icon: 'coffee', label: t('sweat.v2.opt_salty_label'), hint: t('sweat.v2.opt_salty_hint') });
   }
   if (result.deficitBand === 'mild' || result.deficitBand === 'optimal') {
-    items.push({ icon: 'sun', label: 'Daylight + slow breath', hint: 'Parasympathetic restart — accelerates absorption.' });
+    items.push({ icon: 'sun', label: t('sweat.v2.opt_daylight_label'), hint: t('sweat.v2.opt_daylight_hint') });
   } else {
-    items.push({ icon: 'thermometer', label: 'Cooling shower', hint: 'Drop core temp 1–2°F to free up cardiac output.' });
+    items.push({ icon: 'thermometer', label: t('sweat.v2.opt_shower_label'), hint: t('sweat.v2.opt_shower_hint') });
   }
 
   return (
     <View style={styles.supportCard}>
-      <Text style={styles.cardEyebrow}>OPTIONAL SUPPORT</Text>
+      <Text style={styles.cardEyebrow}>{t('sweat.v2.opt_eyebrow')}</Text>
       <View style={{ gap: 10 }}>
         {items.map((it, i) => (
           <View key={i} style={styles.supportRow}>
@@ -1004,51 +1015,44 @@ function OptionalSupportCard({ result }: { result: SweatSession }) {
           </View>
         ))}
       </View>
-      <Text style={styles.supportFooter}>
-        For higher-output sessions, add a small pinch of Celtic sea salt if needed.
-      </Text>
+      <Text style={styles.supportFooter}>{t('sweat.v2.opt_footer')}</Text>
     </View>
   );
 }
 
 /* ── E2. Sodium Gap Protocol — Celtic sea salt card ─────────────────── */
 function SodiumGapCard({ result }: { result: SweatSession }) {
+  const { t } = useTranslation();
   return (
     <View style={styles.sodiumGapCard}>
-      <Text style={styles.sodiumGapEyebrow}>⚡ SODIUM GAP PROTOCOL</Text>
+      <Text style={styles.sodiumGapEyebrow}>{t('sweat.v2.gap_eyebrow')}</Text>
 
       <View style={styles.sodiumGapRows}>
         <View style={styles.sodiumGapRow}>
-          <Text style={styles.sodiumGapKey}>Your sweat sodium loss</Text>
-          <Text style={styles.sodiumGapValue}>{result.sodiumLossMg} mg</Text>
+          <Text style={styles.sodiumGapKey}>{t('sweat.v2.gap_loss_k')}</Text>
+          <Text style={styles.sodiumGapValue}>{t('sweat.v2.unit_mg', { value: result.sodiumLossMg })}</Text>
         </View>
         <View style={styles.sodiumGapRow}>
-          <Text style={styles.sodiumGapKey}>AForce provides</Text>
-          <Text style={styles.sodiumGapValue}>{result.aforceSodiumTotalMg} mg</Text>
+          <Text style={styles.sodiumGapKey}>{t('sweat.v2.gap_provides_k')}</Text>
+          <Text style={styles.sodiumGapValue}>{t('sweat.v2.unit_mg', { value: result.aforceSodiumTotalMg })}</Text>
         </View>
         <View style={styles.sodiumGapRow}>
-          <Text style={styles.sodiumGapKey}>Remaining gap</Text>
+          <Text style={styles.sodiumGapKey}>{t('sweat.v2.gap_remaining_k')}</Text>
           <Text style={[styles.sodiumGapValue, styles.sodiumGapValueAccent]}>
-            {result.sodiumGapMg} mg
+            {t('sweat.v2.unit_mg', { value: result.sodiumGapMg })}
           </Text>
         </View>
       </View>
 
-      <Text style={styles.sodiumGapBody}>
-        For sessions with high sodium loss add ¼ tsp of Celtic sea salt to your
-        water between each AForce unit over the next 4 hours.
-      </Text>
-      <Text style={styles.sodiumGapNote}>
-        Celtic sea salt is minimally processed and retains a broad spectrum of
-        naturally occurring trace minerals. It is philosophically aligned with
-        AForce — unprocessed and ocean-sourced like our algae ingredients.
-      </Text>
+      <Text style={styles.sodiumGapBody}>{t('sweat.v2.gap_body')}</Text>
+      <Text style={styles.sodiumGapNote}>{t('sweat.v2.gap_note')}</Text>
     </View>
   );
 }
 
 /* ── G. Advanced Data — collapsible audit ───────────────────────────── */
 function AdvancedDataCard({ result }: { result: SweatSession }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
 
   return (
@@ -1059,22 +1063,22 @@ function AdvancedDataCard({ result }: { result: SweatSession }) {
         accessibilityRole="button"
         accessibilityState={{ expanded: open }}
       >
-        <Text style={styles.cardEyebrow}>ADVANCED DATA</Text>
+        <Text style={styles.cardEyebrow}>{t('sweat.v2.adv_eyebrow')}</Text>
         <Icon name={open ? 'chevron-up' : 'chevron-down'} size={16} color={af.textTertiary} />
       </Pressable>
 
       {open && (
         <View style={{ marginTop: 6 }}>
-          <AuditRow k="Sweat-sodium concentration" v={`${result.sodiumConcentrationMgL} mg/L`} />
-          <AuditRow k="Sodium profile assumed" v={result.sodiumProfile.replace('_', ' ')} />
-          <AuditRow k="AForce sodium delivered" v={`${result.aforceSodiumTotalMg} mg (${result.prescription.aforceSticks} × ${AFORCE_SODIUM_PER_UNIT_MG} mg)`} />
-          <AuditRow k="Sodium gap" v={`${result.sodiumGapMg} mg`} />
-          {result.audit.sport && <AuditRow k="Sport reference" v={`${result.audit.sport.label} · ${result.audit.sport.meanSweatRateLh} L/h`} />}
-          {result.audit.heatFactor !== undefined && <AuditRow k="Climate factor" v={`×${result.audit.heatFactor.toFixed(2)}`} />}
-          {result.audit.acclimFactor !== undefined && <AuditRow k="Acclim. factor" v={`×${result.audit.acclimFactor.toFixed(2)}`} />}
-          {result.audit.bsaM2 !== undefined && <AuditRow k="Body surface area" v={`${result.audit.bsaM2.toFixed(2)} m² (Du Bois)`} />}
-          <AuditRow k="Method" v={result.audit.source === 'measured' ? 'Direct measurement (ACSM)' : 'Anchored estimate (Baker 2017)'} />
-          <AuditRow k="Autopilot" v={`${result.autopilot.intervalMin} min · ${result.autopilot.urgency}`} />
+          <AuditRow k={t('sweat.v2.adv_concentration_k')} v={t('sweat.v2.unit_mgl', { value: result.sodiumConcentrationMgL })} />
+          <AuditRow k={t('sweat.v2.adv_profile_k')} v={result.sodiumProfile.replace('_', ' ')} />
+          <AuditRow k={t('sweat.v2.adv_delivered_k')} v={t('sweat.v2.adv_delivered_v', { total: result.aforceSodiumTotalMg, sticks: result.prescription.aforceSticks, per: AFORCE_SODIUM_PER_UNIT_MG })} />
+          <AuditRow k={t('sweat.v2.adv_gap_k')} v={t('sweat.v2.unit_mg', { value: result.sodiumGapMg })} />
+          {result.audit.sport && <AuditRow k={t('sweat.v2.adv_sport_ref_k')} v={t('sweat.v2.adv_sport_ref_v', { label: result.audit.sport.label, rate: result.audit.sport.meanSweatRateLh })} />}
+          {result.audit.heatFactor !== undefined && <AuditRow k={t('sweat.v2.adv_climate_k')} v={`×${result.audit.heatFactor.toFixed(2)}`} />}
+          {result.audit.acclimFactor !== undefined && <AuditRow k={t('sweat.v2.adv_acclim_k')} v={`×${result.audit.acclimFactor.toFixed(2)}`} />}
+          {result.audit.bsaM2 !== undefined && <AuditRow k={t('sweat.v2.adv_bsa_k')} v={t('sweat.v2.adv_bsa_v', { value: result.audit.bsaM2.toFixed(2) })} />}
+          <AuditRow k={t('sweat.v2.adv_method_k')} v={result.audit.source === 'measured' ? t('sweat.v2.adv_method_direct') : t('sweat.v2.adv_method_estimate')} />
+          <AuditRow k={t('sweat.v2.adv_autopilot_k')} v={t('sweat.v2.adv_autopilot_v', { min: result.autopilot.intervalMin, urgency: result.autopilot.urgency })} />
         </View>
       )}
     </View>
@@ -1091,22 +1095,25 @@ function AuditRow({ k, v }: { k: string; v: string }) {
 }
 
 /* ── H. Comparison Table — the only brand-comparison surface ────────── */
-const COMPARISON_ROWS: { brand: string; sodium: string; profile: string; you: boolean }[] = [
-  { brand: 'AForce',     sodium: '25 mg',     profile: 'Marine · pH 8.8 · structured', you: true  },
-  { brand: 'Gatorade',   sodium: '~270 mg',   profile: 'Sugar-driven · table salt',     you: false },
-  { brand: 'LMNT',       sodium: '1000 mg',   profile: 'Salt-bomb · no minerals',       you: false },
-  { brand: 'Liquid IV',  sodium: '~500 mg',   profile: 'Sugar + salt · no structuring', you: false },
+// brand + sodium are DATA; `profileKey` resolves the descriptive profile
+// column under sweat.v2.cmp_profile_* at render (authored English copy).
+const COMPARISON_ROWS: { brand: string; sodium: string; profileKey: string; you: boolean }[] = [
+  { brand: 'AForce',     sodium: '25 mg',     profileKey: 'cmp_profile_aforce',    you: true  },
+  { brand: 'Gatorade',   sodium: '~270 mg',   profileKey: 'cmp_profile_gatorade',  you: false },
+  { brand: 'LMNT',       sodium: '1000 mg',   profileKey: 'cmp_profile_lmnt',      you: false },
+  { brand: 'Liquid IV',  sodium: '~500 mg',   profileKey: 'cmp_profile_liquid_iv', you: false },
 ];
 
 function ComparisonTable() {
+  const { t } = useTranslation();
   return (
     <View style={styles.compareCard}>
-      <Text style={styles.cardEyebrow}>HOW AFORCE COMPARES</Text>
+      <Text style={styles.cardEyebrow}>{t('sweat.v2.cmp_eyebrow')}</Text>
 
       <View style={[styles.compareRow, styles.compareHead]}>
-        <Text style={[styles.compareCell, styles.compareCellBrand, styles.compareHeadText]}>Brand</Text>
-        <Text style={[styles.compareCell, styles.compareCellSodium, styles.compareHeadText]}>Sodium</Text>
-        <Text style={[styles.compareCell, styles.compareCellProfile, styles.compareHeadText]}>Profile</Text>
+        <Text style={[styles.compareCell, styles.compareCellBrand, styles.compareHeadText]}>{t('sweat.v2.cmp_brand')}</Text>
+        <Text style={[styles.compareCell, styles.compareCellSodium, styles.compareHeadText]}>{t('sweat.v2.cmp_sodium')}</Text>
+        <Text style={[styles.compareCell, styles.compareCellProfile, styles.compareHeadText]}>{t('sweat.v2.cmp_profile')}</Text>
       </View>
 
       {COMPARISON_ROWS.map((r) => (
@@ -1114,27 +1121,26 @@ function ComparisonTable() {
           <View style={[styles.compareCellBrand, { flexDirection: 'row', alignItems: 'center', gap: 6 }]}>
             <Text style={[styles.compareCell, r.you && styles.compareYouText]}>{r.brand}</Text>
             {r.you && (
-              <View style={styles.youDot}><Text style={styles.youDotText}>YOU</Text></View>
+              <View style={styles.youDot}><Text style={styles.youDotText}>{t('sweat.v2.cmp_you')}</Text></View>
             )}
           </View>
           <Text style={[styles.compareCell, styles.compareCellSodium, r.you && styles.compareYouText]}>{r.sodium}</Text>
-          <Text style={[styles.compareCell, styles.compareCellProfile, r.you && styles.compareYouText]}>{r.profile}</Text>
+          <Text style={[styles.compareCell, styles.compareCellProfile, r.you && styles.compareYouText]}>{t(`sweat.v2.${r.profileKey}`)}</Text>
         </View>
       ))}
 
-      <Text style={styles.compareCloser}>
-        More sodium is not always the goal. Better recovery is.
-      </Text>
+      <Text style={styles.compareCloser}>{t('sweat.v2.cmp_closer')}</Text>
     </View>
   );
 }
 
 /* ── I. Share Card hand-off ─────────────────────────────────────────── */
 function ShareCardHandoff({ result }: { result: SweatSession }) {
+  const { t } = useTranslation();
   const headline =
-    result.deficitPct >= 4 ? 'Recovery on autopilot.'
-    : result.deficitPct >= 2 ? 'Sodium gap closed — smarter, not saltier.'
-    : 'Hydration held. Sweat decoded.';
+    result.deficitPct >= 4 ? t('sweat.v2.share_headline_autopilot')
+    : result.deficitPct >= 2 ? t('sweat.v2.share_headline_gap')
+    : t('sweat.v2.share_headline_default');
 
   return (
     <Pressable style={styles.shareCard} accessibilityRole="button">
@@ -1154,15 +1160,15 @@ function ShareCardHandoff({ result }: { result: SweatSession }) {
 
       <View style={styles.shareTopRow}>
         <View style={styles.shareDot} />
-        <Text style={styles.shareEyebrow}>AFORCE · SWEAT SESSION</Text>
+        <Text style={styles.shareEyebrow}>{t('sweat.v2.share_eyebrow')}</Text>
       </View>
       <Text style={styles.shareHeadline}>{headline}</Text>
       <Text style={styles.shareSub}>
-        {result.deficitPct.toFixed(1)}% deficit · {result.prescription.aforceSticks} units · {result.autopilot.intervalMin} min recheck
+        {t('sweat.v2.share_summary', { pct: result.deficitPct.toFixed(1), units: result.prescription.aforceSticks, min: result.autopilot.intervalMin })}
       </Text>
       <View style={styles.shareCTA}>
         <Icon name="share-2" size={13} color={af.textPrimary} />
-        <Text style={styles.shareCTAText}>SHARE RECAP</Text>
+        <Text style={styles.shareCTAText}>{t('sweat.v2.share_cta')}</Text>
       </View>
 
       <Text style={styles.shareUrl}>drinkaforce.com</Text>
@@ -1171,37 +1177,36 @@ function ShareCardHandoff({ result }: { result: SweatSession }) {
 }
 
 function CitationCard() {
+  const { t } = useTranslation();
   return (
     <View style={styles.citationCard}>
-      <Text style={styles.citationTitle}>Methodology</Text>
+      <Text style={styles.citationTitle}>{t('sweat.v2.cite_title')}</Text>
       <Text style={styles.citationBody}>
-        <Text style={styles.citationBold}>Sweat-rate formula (Quick &amp; Precision):</Text>{'\n'}
-        Sweat (L) = (Pre-weight − Post-weight) + Fluid intake − Urine{'\n'}
-        Sweat rate (L/h) = Sweat / duration (h){'\n'}
-        Source: Sawka MN et al. 2007. ACSM Position Stand. Med Sci Sports Exerc 39(2):377–390.
-      </Text>
-      <Text style={styles.citationBody}>
-        <Text style={styles.citationBold}>Hydration-deficit thresholds:</Text>{'\n'}
-        &gt;2% body weight loss → measurable performance decline; &gt;4% → heat-illness risk.{'\n'}
-        Sources: ACSM 2007 §C; Cheuvront SN, Kenefick RW. 2014. Compr Physiol 4(1):257–285.
+        <Text style={styles.citationBold}>{t('sweat.v2.cite_formula_heading')}</Text>{'\n'}
+        {t('sweat.v2.cite_formula_1')}{'\n'}
+        {t('sweat.v2.cite_formula_2')}{'\n'}
+        {t('sweat.v2.cite_formula_source')}
       </Text>
       <Text style={styles.citationBody}>
-        <Text style={styles.citationBold}>Sweat-sodium ranges:</Text>{'\n'}
-        Population mean ≈ 50 mmol/L (1150 mg/L); range 200–2300 mg/L.{'\n'}
-        Source: Baker LB. 2017. Sports Med 47(Suppl 1):111–128, Table 2.
+        <Text style={styles.citationBold}>{t('sweat.v2.cite_thresholds_heading')}</Text>{'\n'}
+        {t('sweat.v2.cite_thresholds_body')}{'\n'}
+        {t('sweat.v2.cite_thresholds_source')}
       </Text>
       <Text style={styles.citationBody}>
-        <Text style={styles.citationBold}>Replacement strategy:</Text>{'\n'}
-        Replace 100–150% of fluid loss within 4–6 h post-exercise; pair sodium intake with fluid for full re-equilibration.{'\n'}
-        Source: Sawka 2007 §G; Maughan RJ &amp; Shirreffs SM. 2010. Scand J Med Sci Sports 20(s2):31–42.
+        <Text style={styles.citationBold}>{t('sweat.v2.cite_ranges_heading')}</Text>{'\n'}
+        {t('sweat.v2.cite_ranges_body')}{'\n'}
+        {t('sweat.v2.cite_ranges_source')}
       </Text>
       <Text style={styles.citationBody}>
-        <Text style={styles.citationBold}>Estimate path:</Text>{'\n'}
-        Anchored to per-sport population-mean sweat rates (Baker 2017), scaled by Du Bois body-surface area, RPE-mapped intensity, USARIEM-style climate factors, and Périard 2015 acclimatization adjustment.
+        <Text style={styles.citationBold}>{t('sweat.v2.cite_strategy_heading')}</Text>{'\n'}
+        {t('sweat.v2.cite_strategy_body')}{'\n'}
+        {t('sweat.v2.cite_strategy_source')}
       </Text>
-      <Text style={styles.citationDisclaimer}>
-        Calibration target: ±15% of measured rate at moderate intensity, thermoneutral conditions. Always confirm with a scale for clinical decisions. Not a medical device.
+      <Text style={styles.citationBody}>
+        <Text style={styles.citationBold}>{t('sweat.v2.cite_estimate_heading')}</Text>{'\n'}
+        {t('sweat.v2.cite_estimate_body')}
       </Text>
+      <Text style={styles.citationDisclaimer}>{t('sweat.v2.cite_calibration')}</Text>
     </View>
   );
 }
