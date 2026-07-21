@@ -129,9 +129,9 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   // Stays OFF in DEFAULT_FLAGS so the production binary cannot expose
   // it ahead of internal-preview readiness (Phase 2 in the spec).
   spec_recovery: false,
-  spec_hydration: false,
+  spec_hydration: true,
   spec_recoveryCoach: false,
-  spec_protocol: false,
+  spec_protocol: true,
 
   // Hydration Demand Engine™ — pure module, not consumed by any
   // visible surface yet. Build 100%, show 0%. Flip ON in DEMO_ALL_ON
@@ -166,8 +166,8 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   // Build 100% · Show 10%: OFF in the production binary, ON in DEMO_ALL_ON.
   // Score-Protection: read-only projection; sections without data render
   // explicit "collecting"/"awaiting", never fabricated trends.
-  spec_home: false,
-  spec_weekly_report: false,
+  spec_home: true,
+  spec_weekly_report: true,
 
   // Score-from-Ledger Hybrid — Tier-1 score-integration seam (P2b). OFF in
   // prod AND demo: shadow-compare only until contribution-level parity is
