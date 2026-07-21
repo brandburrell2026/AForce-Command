@@ -724,6 +724,11 @@ export interface FeatureFlags {
   // Show 10%: OFF in the production binary, ON in DEMO_ALL_ON. Every section
   // is a read-only projection — Score-Protection: never awards or fabricates
   // a trend; sections without data render explicit "collecting"/"awaiting".
+  /**
+   * Home premium redesign (Phase 2 · S3) — reduced readiness-arc Home.
+   * Default OFF: legacy Home renders until flipped. Same engine data.
+   */
+  spec_home: boolean;
   spec_weekly_report: boolean;
 
   // Score-from-Ledger Hybrid — Tier-1 score-integration seam (P2b). When ON,

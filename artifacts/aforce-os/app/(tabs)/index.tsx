@@ -37,6 +37,7 @@ import { LiveStatusLine } from '@/components/home/LiveStatusLine';
 import { NotificationBanner } from '@/components/home/NotificationBanner';
 import { SmartModesBanner } from '@/components/home/SmartModesBanner';
 import { RecoveryCoachEntry } from '@/components/home/RecoveryCoachEntry';
+import { HomeScreenV2 } from '@/components/home/HomeScreenV2';
 import { LocationInsightBanner } from '@/components/home/LocationInsightBanner';
 import { HomeDashboard } from '@/components/home/HomeDashboard';
 import { MetabolicReadinessZone } from '@/components/home/MetabolicReadinessZone';
@@ -447,7 +448,16 @@ interface HomeActions {
   ) => Promise<void>;
 }
 
+/**
+ * Home route — renders the Phase 2 redesign when `spec_home` is on, else the
+ * legacy Home below (unchanged). Flipping the flag is the go-live switch.
+ */
 export default function HomeScreen() {
+  const specHome = useAppStore().state.featureFlags.spec_home;
+  return specHome ? <HomeScreenV2 /> : <HomeScreenLegacy />;
+}
+
+function HomeScreenLegacy() {
   const { state, dismissSuccess, completeOnboarding, voiceCoachEnabled } = useAppStore();
   const layout = useResponsiveLayout();
   const insets = useSafeAreaInsets();

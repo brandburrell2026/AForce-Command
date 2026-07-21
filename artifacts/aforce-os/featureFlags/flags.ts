@@ -165,6 +165,7 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   // Build 100% · Show 10%: OFF in the production binary, ON in DEMO_ALL_ON.
   // Score-Protection: read-only projection; sections without data render
   // explicit "collecting"/"awaiting", never fabricated trends.
+  spec_home: false,
   spec_weekly_report: false,
 
   // Score-from-Ledger Hybrid — Tier-1 score-integration seam (P2b). OFF in
@@ -344,6 +345,7 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
   hydro_scan_2_enabled: true,
   location_intelligence_enabled: true,
   signal_hierarchy_enabled: true,
+  spec_home: true,
   spec_weekly_report: true,
   // Stays OFF even in the demo profile: enabling a "score from ledger" path
   // before contribution-level parity is proven could misrepresent the score.
