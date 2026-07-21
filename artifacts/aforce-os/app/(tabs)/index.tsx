@@ -36,6 +36,7 @@ import { EntryActions } from '@/components/home/EntryActions';
 import { LiveStatusLine } from '@/components/home/LiveStatusLine';
 import { NotificationBanner } from '@/components/home/NotificationBanner';
 import { SmartModesBanner } from '@/components/home/SmartModesBanner';
+import { RecoveryCoachEntry } from '@/components/home/RecoveryCoachEntry';
 import { LocationInsightBanner } from '@/components/home/LocationInsightBanner';
 import { HomeDashboard } from '@/components/home/HomeDashboard';
 import { MetabolicReadinessZone } from '@/components/home/MetabolicReadinessZone';
@@ -617,6 +618,11 @@ export default function HomeScreen() {
                 (Heat · Workout · Travel · Recovery) and water-first
                 guidance. Additive, self-hides when no mode is active. */}
             <SmartModesBanner />
+
+            {/* S1 — flag-gated entry to the full-screen Recovery Coach. Self-
+                hides unless spec_recoveryCoach is on AND recovery is recommended.
+                Dormant by default; flipping the flag is the go-live switch. */}
+            <RecoveryCoachEntry />
 
             {/* Location Intelligence™ "Show 10%" — a quiet Water-First
                 insight about what the current environment (altitude · UV ·
