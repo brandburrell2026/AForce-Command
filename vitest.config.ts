@@ -17,6 +17,7 @@ export default defineConfig({
       'artifacts/aforce-os/services/**/__tests__/**/*.test.ts',
       'artifacts/aforce-os/analytics/**/__tests__/**/*.test.ts',
       'artifacts/aforce-os/utils/__tests__/**/*.test.ts',
+      'artifacts/aforce-os/theme/**/__tests__/**/*.test.ts',
       'artifacts/aforce-os/store/__tests__/**/*.test.ts',
       'artifacts/aforce-os/hooks/__tests__/**/*.test.ts',
       'artifacts/aforce-os/featureFlags/**/__tests__/**/*.test.ts',
