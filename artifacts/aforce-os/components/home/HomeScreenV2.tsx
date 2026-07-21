@@ -6,9 +6,10 @@
  *
  * Same live engine data as the legacy Home (score, command, signals) — no
  * scoring change (statusColor/scoringEngine untouched). Tapping the arc opens
- * the existing score-breakdown ("insights") drill-in; the richer detail zones
- * from the legacy Home are PRESERVED there and in the legacy screen (founder
- * ruling: relocate, never delete) and fold into S4 Readiness Insights.
+ * Readiness Insights, where the legacy Home's detail zones (Metabolic Readiness,
+ * Performance Age, Voice Check-In, Activation Journey, AI-Coach video) now live
+ * (founder ruling: relocate, never delete) — so nothing users had access to on
+ * the legacy Home went missing.
  */
 import React from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
@@ -20,8 +21,8 @@ import {
   AFCommandCard,
   AFSectionLabel,
 } from '@/components/ui';
+import { useRouter } from 'expo-router';
 import { af, afType } from '@/theme';
-import { ScoreBreakdownSheet } from '@/components/ScoreBreakdownSheet';
 import { useAppStore } from '@/store/useAppStore';
 import { useEngineSlice, useActionsSlice } from '@/store/slices';
 import { parseEngineActionCopy } from '@/utils/recovery/recoveryCommandFromStore';
@@ -61,7 +62,7 @@ export function HomeScreenV2() {
   const engine = useEngineSlice();
   const { logIntake } = useActionsSlice<HomeActions>();
   const clerkUser = useUser().user;
-  const [breakdownOpen, setBreakdownOpen] = React.useState(false);
+  const router = useRouter();
 
   const { userState } = state;
   const score = Math.max(0, Math.min(100, Math.round(engine.score)));
@@ -84,7 +85,7 @@ export function HomeScreenV2() {
       {/* Dominant readiness value + thin arc (tap → insights) */}
       <Pressable
         style={styles.arcWrap}
-        onPress={() => setBreakdownOpen(true)}
+        onPress={() => router.push('/weekly-report')}
         accessibilityRole="button"
         accessibilityLabel={`Readiness ${score} of 100. Tap for insights.`}
         testID="home-readiness-arc"
@@ -118,14 +119,6 @@ export function HomeScreenV2() {
       </View>
 
       <View style={{ height: 40 }} />
-
-      <ScoreBreakdownSheet
-        visible={breakdownOpen}
-        onDismiss={() => setBreakdownOpen(false)}
-        score={score}
-        contributions={engine.breakdown}
-        performanceState={engine.performanceState}
-      />
     </AFScreen>
   );
 }
