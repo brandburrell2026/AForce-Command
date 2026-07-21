@@ -510,8 +510,8 @@ export function HydrationScanScreenV2() {
               <Icon name="chevron-left" size={20} color={af.textPrimary} />
             </Pressable>
             <View style={{ flex: 1 }}>
-              <Text style={styles.eyebrow}>SCAN TO DECIDE</Text>
-              <Text style={styles.title}>AForce Scan</Text>
+              <Text style={styles.eyebrow}>{t('hydroScan2.v2.eyebrow')}</Text>
+              <Text style={styles.title}>{t('hydroScan2.v2.title')}</Text>
             </View>
             <View style={styles.statePill}>
               <View style={[styles.dot, { backgroundColor: state.engineOutput.performanceState.color }]} />
@@ -543,7 +543,7 @@ export function HydrationScanScreenV2() {
               />
             </View>
             <Text style={styles.viewfinderLabel}>
-              {scanning ? 'IDENTIFYING…' : Platform.OS === 'web' ? 'PREVIEW MODE — TEST RESULTS USING SAMPLE INPUT' : 'TAP TO OPEN CAMERA'}
+              {scanning ? t('hydroScan2.v2.viewfinder_identifying') : Platform.OS === 'web' ? t('hydroScan2.v2.viewfinder_preview') : t('hydroScan2.v2.viewfinder_tap')}
             </Text>
           </Pressable>
 
@@ -553,7 +553,7 @@ export function HydrationScanScreenV2() {
           <View style={styles.trayCard}>
             <View style={styles.trayHeader}>
               <Icon name="zap" size={12} color={af.textTertiary} />
-              <Text style={styles.trayHeaderText}>PREVIEW SCAN</Text>
+              <Text style={styles.trayHeaderText}>{t('hydroScan2.v2.preview_scan')}</Text>
             </View>
 
             <View style={styles.tabRow}>
@@ -563,7 +563,7 @@ export function HydrationScanScreenV2() {
                 testID="preview-tab-aforce"
               >
                 <Text style={[styles.tabPillText, previewTab === 'aforce' && styles.tabPillTextActive]}>
-                  AForce Products
+                  {t('hydroScan2.v2.tab_aforce')}
                 </Text>
               </Pressable>
               <Pressable
@@ -572,7 +572,7 @@ export function HydrationScanScreenV2() {
                 testID="preview-tab-other"
               >
                 <Text style={[styles.tabPillText, previewTab === 'other' && styles.tabPillTextActive]}>
-                  Other Brands
+                  {t('hydroScan2.v2.tab_other')}
                 </Text>
               </Pressable>
             </View>
@@ -589,7 +589,7 @@ export function HydrationScanScreenV2() {
               >
                 <Icon name="list" size={14} color={af.green} />
                 <Text style={[styles.chipText, { color: af.green }]}>
-                  Select an AForce product
+                  {t('hydroScan2.v2.select_aforce_product')}
                 </Text>
               </Pressable>
             ) : (
@@ -624,11 +624,11 @@ export function HydrationScanScreenV2() {
             >
               <Pressable style={styles.pickerSheet} onPress={(e) => e.stopPropagation()}>
                 <View style={styles.pickerHeader}>
-                  <Text style={styles.pickerTitle}>AForce Products</Text>
+                  <Text style={styles.pickerTitle}>{t('hydroScan2.v2.picker_title')}</Text>
                   <Pressable
                     onPress={() => setAforcePickerOpen(false)}
                     hitSlop={10}
-                    accessibilityLabel="Close picker"
+                    accessibilityLabel={t('hydroScan2.v2.close_picker_a11y')}
                   >
                     <Icon name="x" size={18} color={af.textPrimary} />
                   </Pressable>
@@ -658,13 +658,13 @@ export function HydrationScanScreenV2() {
 
           {/* Manual search — looks up AForce products via the comparison engine */}
           <View style={styles.manualCard}>
-            <Text style={styles.manualLabel}>MANUAL SEARCH</Text>
+            <Text style={styles.manualLabel}>{t('hydroScan2.v2.manual_search')}</Text>
             <View style={styles.manualRow}>
               <TextInput
                 style={styles.manualInput}
                 value={manualQuery}
                 onChangeText={setManualQuery}
-                placeholder="Search product or brand"
+                placeholder={t('hydroScan2.v2.manual_placeholder')}
                 placeholderTextColor={af.textTertiary}
                 onSubmitEditing={onManualSubmit}
                 returnKeyType="search"
@@ -689,16 +689,16 @@ export function HydrationScanScreenV2() {
               },
             ]}
             accessibilityRole="button"
-            accessibilityLabel="Log any drink — coffee, tea, sports drinks, social intake, custom"
+            accessibilityLabel={t('hydroScan2.v2.log_any_a11y')}
             testID="hydroscan-log-any-drink"
           >
             <Icon name="plus-circle" size={16} color={af.green} />
             <View style={{ flex: 1 }}>
               <Text style={[styles.logAnyTitle, { color: af.green }]}>
-                LOG ANY DRINK
+                {t('hydroScan2.v2.log_any_title')}
               </Text>
               <Text style={styles.logAnyHint}>
-                Coffee · Tea · Sports · Energy · Social · Custom
+                {t('hydroScan2.v2.log_any_hint')}
               </Text>
             </View>
             <Icon name="chevron-right" size={16} color={af.green} />
@@ -719,16 +719,16 @@ export function HydrationScanScreenV2() {
               },
             ]}
             accessibilityRole="button"
-            accessibilityLabel="Smart Capture — photograph a food or drink for AI hydration analysis"
+            accessibilityLabel={t('hydroScan2.v2.smart_capture_a11y')}
             testID="hydroscan-smart-capture"
           >
             <Icon name="camera" size={16} color={af.red} />
             <View style={{ flex: 1 }}>
               <Text style={[styles.logAnyTitle, { color: af.red }]}>
-                SMART CAPTURE
+                {t('hydroScan2.v2.smart_capture_title')}
               </Text>
               <Text style={styles.logAnyHint}>
-                Snap any food or drink · AI estimates load + correction
+                {t('hydroScan2.v2.smart_capture_hint')}
               </Text>
             </View>
             <Icon name="chevron-right" size={16} color={af.red} />
@@ -749,16 +749,16 @@ export function HydrationScanScreenV2() {
               },
             ]}
             accessibilityRole="button"
-            accessibilityLabel="Urine Hydration Check — use urine color as a simple hydration signal"
+            accessibilityLabel={t('hydroScan2.v2.urine_check_a11y')}
             testID="hydroscan-urine-check"
           >
             <Icon name="droplet" size={16} color={af.cyan} />
             <View style={{ flex: 1 }}>
               <Text style={[styles.logAnyTitle, { color: af.cyan }]}>
-                URINE HYDRATION CHECK
+                {t('hydroScan2.v2.urine_check_title')}
               </Text>
               <Text style={styles.logAnyHint}>
-                Simple color read · Not a medical test
+                {t('hydroScan2.v2.urine_check_hint')}
               </Text>
             </View>
             <Icon name="chevron-right" size={16} color={af.cyan} />
@@ -800,18 +800,28 @@ export function HydrationScanScreenV2() {
                   style={styles.recoveryStrip}
                   testID="scan-recovery-strip"
                   accessible
-                  accessibilityLabel={`Recovery ${recoveryLayer.recovery}. Pressure ${recoveryLayer.pressure}. Trend ${recoveryLayer.trend}.`}
+                  accessibilityLabel={t('hydroScan2.v2.recovery_strip_a11y', {
+                    recovery: recoveryLayer.recovery,
+                    pressure: recoveryLayer.pressure,
+                    trend: recoveryLayer.trend,
+                  })}
                 >
                   <Text
                     style={styles.recoveryStripText}
                     numberOfLines={1}
                     ellipsizeMode="tail"
                   >
-                    RECOVERY {recoveryLayer.recovery}  ·  PRESSURE {recoveryLayer.pressure}  ·  {
-                      recoveryLayer.trend === 'rising' ? 'TREND ↑'
-                      : recoveryLayer.trend === 'declining' ? 'TREND ↓'
-                      : 'TREND —'
-                    }
+                    {t('hydroScan2.v2.recovery_strip', {
+                      recovery: recoveryLayer.recovery,
+                      pressure: recoveryLayer.pressure,
+                      trend: t(
+                        recoveryLayer.trend === 'rising'
+                          ? 'hydroScan2.v2.trend_rising'
+                          : recoveryLayer.trend === 'declining'
+                            ? 'hydroScan2.v2.trend_declining'
+                            : 'hydroScan2.v2.trend_flat',
+                      ),
+                    })}
                   </Text>
                 </View>
               ) : null}
@@ -864,7 +874,7 @@ export function HydrationScanScreenV2() {
                 >
                   <Icon name="check-circle" size={16} color={af.green} />
                   <Text style={[styles.primaryCtaText, { color: af.green }]}>
-                    {logging ? 'LOGGING…' : `LOG ${result.product.productName.toUpperCase()}`}
+                    {logging ? t('hydroScan2.v2.logging') : t('hydroScan2.v2.log_product', { name: result.product.productName.toUpperCase() })}
                   </Text>
                 </Pressable>
               )}
@@ -880,11 +890,11 @@ export function HydrationScanScreenV2() {
           {!result && !outcome && (
             <View style={styles.emptyCard}>
               <Icon name="camera" size={20} color={af.textTertiary} />
-              <Text style={styles.emptyTitle}>Awaiting scan</Text>
+              <Text style={styles.emptyTitle}>{t('hydroScan2.v2.empty_title')}</Text>
               <Text style={styles.emptyHint}>
                 {Platform.OS === 'web'
-                  ? 'Tap a product above to simulate a barcode scan, or search by name.'
-                  : 'Tap the viewfinder to open the camera, or use simulate scan.'}
+                  ? t('hydroScan2.v2.empty_hint_web')
+                  : t('hydroScan2.v2.empty_hint_native')}
               </Text>
             </View>
           )}
@@ -894,8 +904,8 @@ export function HydrationScanScreenV2() {
             <View style={styles.historyCard}>
               <View style={styles.historyHeader}>
                 <Icon name="clock" size={12} color={af.textTertiary} />
-                <Text style={styles.historyHeaderText}>RECENT SCANS</Text>
-                <Text style={styles.historySync}>SYNCED</Text>
+                <Text style={styles.historyHeaderText}>{t('hydroScan2.v2.recent_scans')}</Text>
+                <Text style={styles.historySync}>{t('hydroScan2.v2.synced')}</Text>
               </View>
               {serverScans.slice(0, 5).map((s) => (
                 <View key={s.id} style={styles.historyRow}>
@@ -903,7 +913,7 @@ export function HydrationScanScreenV2() {
                   <View style={{ flex: 1 }}>
                     <Text style={styles.historyTitle} numberOfLines={1}>{s.productName}</Text>
                     <Text style={styles.historyMeta} numberOfLines={1}>
-                      {formatRelativeTime(s.loggedAt)} · fit {s.fitScore}
+                      {formatRelativeTime(s.loggedAt)} · {t('hydroScan2.v2.history_fit', { score: s.fitScore })}
                     </Text>
                   </View>
                   <Text style={[styles.historyVerdict, { color: verdictColor(s.verdict) }]}>
@@ -944,9 +954,7 @@ export function HydrationScanScreenV2() {
             </View>
           )}
 
-          <Text style={styles.scanDisclaimer}>
-            Scan provides performance and hydration guidance only. It is not intended to diagnose, treat, cure, or prevent medical conditions.
-          </Text>
+          <Text style={styles.scanDisclaimer}>{t('hydroScan2.v2.disclaimer')}</Text>
         </ScrollView>
       </GradientBackground>
       {/* Success flash overlay — pointerEvents='none' so it never blocks
