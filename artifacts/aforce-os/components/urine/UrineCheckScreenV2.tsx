@@ -7,6 +7,7 @@
  */
 import React, { useEffect, useState } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import {
   AFScreen,
@@ -48,6 +49,7 @@ const haptic = (kind: 'select' | 'heavy') => {
 };
 
 export function UrineCheckScreenV2({ onBack }: { onBack: () => void }) {
+  const { t } = useTranslation();
   const [selection, setSelection] = useState<UrineColor | null>(null);
   const result: UrineCheckResult | null = selection ? assessUrineColor(selection) : null;
   const sev = result ? SEVERITY[result.severity] : null;
@@ -78,7 +80,7 @@ export function UrineCheckScreenV2({ onBack }: { onBack: () => void }) {
 
   return (
     <AFScreen scroll>
-      <AFTopBar eyebrow="AForce · Tool" title="Urine check" onBack={onBack} />
+      <AFTopBar eyebrow={t('urine.v2.eyebrow')} title={t('urine.v2.title')} onBack={onBack} />
       <Text style={styles.disclaimer}>{URINE_DISCLAIMER}</Text>
 
       {/* Color tiles — real swatch hexes preserved */}
@@ -90,7 +92,7 @@ export function UrineCheckScreenV2({ onBack }: { onBack: () => void }) {
               key={opt.color}
               onPress={() => setSelection(opt.color)}
               accessibilityRole="button"
-              accessibilityLabel={`Select ${opt.label}`}
+              accessibilityLabel={t('urine.v2.select_a11y', { label: opt.label })}
               accessibilityState={{ selected: active }}
               testID={`urine-color-${opt.color}`}
               style={[styles.tile, { borderColor: active ? af.red : af.border }]}
@@ -111,19 +113,19 @@ export function UrineCheckScreenV2({ onBack }: { onBack: () => void }) {
           </Text>
           <Text style={styles.detail}>{result.detail}</Text>
           <View style={[styles.recCard, { borderColor: sev.color }]}>
-            <Text style={[styles.recLabel, { color: sev.color }]}>RECOMMENDED</Text>
+            <Text style={[styles.recLabel, { color: sev.color }]}>{t('urine.v2.recommended')}</Text>
             <Text style={styles.recBody}>{result.recommendation}</Text>
           </View>
         </AFCard>
       ) : (
         <AFCard>
-          <Text style={styles.placeholder}>Tap a color above to read your hydration signal.</Text>
+          <Text style={styles.placeholder}>{t('urine.v2.placeholder')}</Text>
         </AFCard>
       )}
 
       {/* Performance signals */}
       <View style={styles.section}>
-        <AFSectionLabel label="Performance signals" action={{ label: `${symptoms.length} active`, onPress: () => {} }} />
+        <AFSectionLabel label={t('urine.v2.performance_signals')} action={{ label: t('urine.v2.signals_active', { count: symptoms.length }), onPress: () => {} }} />
         <AFCard>
           <View style={styles.chipRow}>
             {SYMPTOM_CATALOG.map((s) => {
@@ -146,7 +148,7 @@ export function UrineCheckScreenV2({ onBack }: { onBack: () => void }) {
 
       {/* Energy state */}
       <View style={styles.section}>
-        <AFSectionLabel label="Energy state" />
+        <AFSectionLabel label={t('urine.v2.energy_state')} />
         <View style={styles.energyGrid}>
           {ENERGY_STATE_OPTIONS.map((opt) => {
             const selected = energy === opt.value;
@@ -176,7 +178,7 @@ export function UrineCheckScreenV2({ onBack }: { onBack: () => void }) {
       {/* Live score preview */}
       <View style={styles.section}>
         <AFCard>
-          <Text style={styles.previewLabel}>CURRENT SCORE</Text>
+          <Text style={styles.previewLabel}>{t('urine.v2.current_score')}</Text>
           <Text style={styles.previewScore}>{engineOutput.score}</Text>
           <Text style={styles.previewState}>
             {engineOutput.performanceState.level} · {engineOutput.command.action}
@@ -185,7 +187,7 @@ export function UrineCheckScreenV2({ onBack }: { onBack: () => void }) {
       </View>
 
       <View style={{ marginTop: 20 }}>
-        <AFPrimaryButton label="Complete cycle" icon="check-circle" onPress={handleConfirm} />
+        <AFPrimaryButton label={t('urine.v2.complete_cycle')} icon="check-circle" onPress={handleConfirm} />
       </View>
       <View style={{ height: 40 }} />
     </AFScreen>

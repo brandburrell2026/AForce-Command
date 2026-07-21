@@ -18,6 +18,7 @@ import { af } from '@/theme';
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 
 import { Icon } from '@/components/Icon';
@@ -47,6 +48,7 @@ export function LegalDocumentScreenV2({
   sections,
   footer,
 }: Props) {
+  const { t } = useTranslation();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const topPad = Platform.OS === 'web' ? WEB_TOP_PADDING : insets.top + 12;
@@ -64,7 +66,7 @@ export function LegalDocumentScreenV2({
             onPress={() => router.back()}
             style={styles.backBtn}
             accessibilityRole="button"
-            accessibilityLabel="Back"
+            accessibilityLabel={t('legal.v2.back_a11y')}
             testID="legal-back"
           >
             <Icon name="chevron-left" size={20} color={af.textPrimary} />
@@ -75,7 +77,7 @@ export function LegalDocumentScreenV2({
           </View>
         </View>
 
-        <Text style={styles.meta}>Updated {updatedAt}</Text>
+        <Text style={styles.meta}>{t('legal.v2.updated', { date: updatedAt })}</Text>
 
         {intro && <Text style={styles.intro}>{intro}</Text>}
 
