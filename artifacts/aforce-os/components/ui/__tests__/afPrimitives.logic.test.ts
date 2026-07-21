@@ -11,6 +11,8 @@ import {
   trendOf,
   buttonPhase,
   buttonIsInert,
+  chartScale,
+  timelineStepIsActionable,
 } from '../afPrimitives.logic';
 
 describe('clampProgress', () => {
@@ -72,5 +74,36 @@ describe('button phase precedence', () => {
     expect(buttonIsInert({ disabled: true })).toBe(true);
     expect(buttonIsInert({ loading: true })).toBe(true);
     expect(buttonIsInert({})).toBe(false);
+  });
+});
+
+describe('chartScale', () => {
+  it('spans the padded width and inverts y (max at top)', () => {
+    const { points, min, max } = chartScale([10, 20, 30], 100, 50, 6);
+    expect(min).toBe(10);
+    expect(max).toBe(30);
+    expect(points[0].x).toBe(6);
+    expect(points[2].x).toBe(94);
+    // Highest value → smallest y (top); lowest → largest y (bottom).
+    expect(points[2].y).toBeLessThan(points[0].y);
+    expect(points[2].y).toBeCloseTo(6, 6); // max pins to top pad
+    expect(points[0].y).toBeCloseTo(44, 6); // min pins to bottom (height-pad)
+  });
+  it('pins a flat series to the mid-line instead of dividing by zero', () => {
+    const { points } = chartScale([5, 5, 5], 100, 50, 6);
+    for (const p of points) expect(p.y).toBeCloseTo(25, 6);
+  });
+  it('handles empty input', () => {
+    expect(chartScale([], 100, 50)).toEqual({ points: [], polyline: '', min: 0, max: 0 });
+  });
+});
+
+describe('timelineStepIsActionable', () => {
+  it('is true only for current + upcoming', () => {
+    expect(timelineStepIsActionable('current')).toBe(true);
+    expect(timelineStepIsActionable('upcoming')).toBe(true);
+    expect(timelineStepIsActionable('completed')).toBe(false);
+    expect(timelineStepIsActionable('locked')).toBe(false);
+    expect(timelineStepIsActionable('hold')).toBe(false);
   });
 });

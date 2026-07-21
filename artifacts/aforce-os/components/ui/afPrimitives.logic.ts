@@ -96,3 +96,50 @@ export function buttonPhase(flags: {
 export function buttonIsInert(flags: { disabled?: boolean; loading?: boolean }): boolean {
   return Boolean(flags.disabled || flags.loading);
 }
+
+// ─── AFChart scaling (F3) ────────────────────────────────────────────────────
+
+export interface ChartPoint {
+  x: number;
+  y: number;
+  value: number;
+}
+
+/**
+ * Map a value series into SVG coordinates for AFChart. y is inverted (SVG is
+ * y-down, so the highest value sits at the smallest y). A flat series (or a
+ * single point) pins to the vertical mid-line rather than dividing by zero.
+ * `pad` insets the plot so stroke caps and dots don't clip the viewbox.
+ */
+export function chartScale(
+  values: number[],
+  width: number,
+  height: number,
+  pad = 6,
+): { points: ChartPoint[]; polyline: string; min: number; max: number } {
+  if (values.length === 0) return { points: [], polyline: '', min: 0, max: 0 };
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const range = max - min;
+  const innerW = Math.max(0, width - pad * 2);
+  const innerH = Math.max(0, height - pad * 2);
+  const stepX = values.length > 1 ? innerW / (values.length - 1) : 0;
+  const points = values.map((v, i) => {
+    const x = pad + i * stepX;
+    // Flat series → mid-line; else invert so max is at the top.
+    const norm = range === 0 ? 0.5 : (v - min) / range;
+    const y = pad + innerH * (1 - norm);
+    return { x, y, value: v };
+  });
+  const polyline = points.map((p) => `${p.x},${p.y}`).join(' ');
+  return { points, polyline, min, max };
+}
+
+// ─── AFTimeline step states (F3) ─────────────────────────────────────────────
+
+export type AFTimelineStepState = 'completed' | 'current' | 'upcoming' | 'locked' | 'hold';
+
+/** Only the current + upcoming steps are actionable; completed/locked/hold are not. */
+export function timelineStepIsActionable(state: AFTimelineStepState): boolean {
+  return state === 'current' || state === 'upcoming';
+}
