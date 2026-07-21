@@ -3,7 +3,7 @@
  * data without fabricating a dose.
  */
 import { describe, it, expect } from 'vitest';
-import { buildRecoveryCommand, parseEngineActionCopy } from '../recovery/recoveryCommandFromStore';
+import { buildRecoveryCommand, parseEngineActionCopy, parseDoseOz } from '../recovery/recoveryCommandFromStore';
 import { deriveRecoveryCommandView, validateRecoveryCommand } from '../recovery/recoveryCommand';
 
 const NOW = Date.parse('2026-07-18T12:00:00.000Z');
@@ -100,5 +100,25 @@ describe('buildRecoveryCommand — elapsedSeconds anchors the full window (spec 
     const cmd = buildRecoveryCommand({ ...src, recheckInSeconds: 15 * 60, elapsedSeconds: -120 }, NOW);
     expect(Date.parse(cmd.createdAt)).toBe(NOW);
     expect(validateRecoveryCommand(cmd).valid).toBe(true);
+  });
+});
+
+describe('parseDoseOz', () => {
+  it('extracts the stated oz dose from command copy', () => {
+    expect(parseDoseOz('Drink 20 oz with electrolytes')).toBe(20);
+    expect(parseDoseOz('20 oz now.')).toBe(20);
+    expect(parseDoseOz('Recovery mode recommended. Drink 20 oz.')).toBe(20);
+    expect(parseDoseOz('16 ounces before your session')).toBe(16);
+    expect(parseDoseOz('Drink 8oz then more')).toBe(8);
+  });
+  it('returns undefined when no dose / implausible / empty', () => {
+    expect(parseDoseOz('Start with water')).toBeUndefined();
+    expect(parseDoseOz('')).toBeUndefined();
+    expect(parseDoseOz(undefined)).toBeUndefined();
+    expect(parseDoseOz(null)).toBeUndefined();
+    expect(parseDoseOz('drink 999 oz')).toBeUndefined(); // implausible
+  });
+  it('takes the first dose when multiple are present', () => {
+    expect(parseDoseOz('Drink 12 oz now, 20 oz later')).toBe(12);
   });
 });

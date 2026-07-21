@@ -76,6 +76,21 @@ export function parseEngineActionCopy(action: string): { title: string; instruct
 }
 
 /**
+ * Extract the prescribed dose in ounces from a command's action/instruction text
+ * (e.g. "Drink 20 oz with electrolytes" → 20; "20 oz now." → 20). Returns
+ * undefined when no oz dose is stated, so callers fall back to the product
+ * default. Implausible values (≤0 or >200 oz) are treated as no-dose. Matches the
+ * FIRST "<n> oz|ounce(s)" occurrence.
+ */
+export function parseDoseOz(text: string | undefined | null): number | undefined {
+  if (!text) return undefined;
+  const m = /(\d{1,3})\s*(oz|ounce)/i.exec(text);
+  if (!m) return undefined;
+  const oz = Number(m[1]);
+  return Number.isFinite(oz) && oz > 0 && oz <= 200 ? oz : undefined;
+}
+
+/**
  * Build a validated-shape RecoveryCommand from source data.
  * createdAt = now − elapsedSeconds, recheckAt = now + recheckInSeconds,
  * expiresAt = recheckAt + validFor. Anchoring createdAt to the true issue time

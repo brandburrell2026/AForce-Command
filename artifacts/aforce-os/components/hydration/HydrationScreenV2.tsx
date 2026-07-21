@@ -27,6 +27,7 @@ import {
 import { af, afType } from '@/theme';
 import { useAppStore } from '@/store/useAppStore';
 import { useEngineSlice, useActionsSlice } from '@/store/slices';
+import { parseDoseOz } from '@/utils/recovery/recoveryCommandFromStore';
 import { formatTimeAgo } from '@/data/mockData';
 import type { FluidType, IntakeEvent } from '@/types';
 
@@ -90,7 +91,7 @@ export function HydrationScreenV2() {
       {/* Actions */}
       <View style={styles.actions}>
         <AFPrimaryButton label="Scan a drink" icon="camera" onPress={() => router.push('/scan')} />
-        <AFSecondaryButton label="Log manually" onPress={() => void logIntake('water')} />
+        <AFSecondaryButton label="Log manually" onPress={() => void logIntake('water', { ozOverride: parseDoseOz(engine.command.action) })} />
       </View>
 
       {/* Recent intake */}
