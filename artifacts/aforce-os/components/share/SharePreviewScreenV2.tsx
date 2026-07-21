@@ -19,6 +19,7 @@ import {
 } from 'react-native';
 import { Icon, type IconName } from '@/components/Icon';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import ViewShot from 'react-native-view-shot';
@@ -43,19 +44,20 @@ import {
   type JournalSharePayload,
 } from '@/services/journalShareCache';
 
-const BASE_FORMATS: { id: ShareFormat; label: string; icon: IconName }[] = [
-  { id: 'card',  label: 'CARD',  icon: 'square'    },
-  { id: 'story', label: 'STORY', icon: 'smartphone' },
-  { id: 'text',  label: 'TEXT',  icon: 'type'      },
+// `label`/`tagline` resolve under share.v2.{fmt_<id>, voice_<id>_*} at render.
+const BASE_FORMATS: { id: ShareFormat; icon: IconName }[] = [
+  { id: 'card',  icon: 'square'    },
+  { id: 'story', icon: 'smartphone' },
+  { id: 'text',  icon: 'type'      },
 ];
-const RECAP_FORMAT: { id: ShareFormat; label: string; icon: IconName } = {
-  id: 'recap', label: 'RECAP', icon: 'bar-chart-2',
+const RECAP_FORMAT: { id: ShareFormat; icon: IconName } = {
+  id: 'recap', icon: 'bar-chart-2',
 };
 
-const VOICES: { id: ShareVoice; label: string; tagline: string }[] = [
-  { id: 'status',   label: 'STATUS',   tagline: 'System state' },
-  { id: 'action',   label: 'ACTION',   tagline: 'Proof in motion' },
-  { id: 'identity', label: 'IDENTITY', tagline: 'How I run' },
+const VOICES: { id: ShareVoice }[] = [
+  { id: 'status' },
+  { id: 'action' },
+  { id: 'identity' },
 ];
 
 function levelToStateLabel(level: string): StateLabel {
@@ -114,6 +116,7 @@ function parseContext(
 }
 
 export function SharePreviewScreenV2() {
+  const { t } = useTranslation();
   const router = useRouter();
   const params = useLocalSearchParams();
   const insets = useSafeAreaInsets();
@@ -230,7 +233,7 @@ export function SharePreviewScreenV2() {
   return (
     <View style={[styles.root, { paddingTop: insets.top + 8 }]}>
       <View style={styles.headerPad}>
-        <AFTopBar title="Share" onClose={() => router.back()} />
+        <AFTopBar title={t('share.v2.title')} onClose={() => router.back()} />
       </View>
 
       <ScrollView
@@ -263,10 +266,12 @@ export function SharePreviewScreenV2() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionLabel}>VOICE</Text>
+          <Text style={styles.sectionLabel}>{t('share.v2.section_voice')}</Text>
           <View style={styles.voiceRow}>
             {VOICES.map((v) => {
               const active = v.id === voice;
+              const voiceLabel = t(`share.v2.voice_${v.id}_label`);
+              const voiceTagline = t(`share.v2.voice_${v.id}_tagline`);
               return (
                 <Pressable
                   key={v.id}
@@ -277,15 +282,15 @@ export function SharePreviewScreenV2() {
                   }}
                   style={[styles.voiceBtn, active && styles.voiceBtnActive]}
                   accessibilityRole="button"
-                  accessibilityLabel={`${v.label} voice — ${v.tagline}`}
+                  accessibilityLabel={t('share.v2.voice_a11y', { label: voiceLabel, tagline: voiceTagline })}
                   accessibilityState={{ selected: active }}
                   testID={`voice-${v.id}`}
                 >
                   <Text style={[styles.voiceLabel, active && styles.voiceLabelActive]}>
-                    {v.label}
+                    {voiceLabel}
                   </Text>
                   <Text style={[styles.voiceTagline, active && styles.voiceTaglineActive]}>
-                    {v.tagline}
+                    {voiceTagline}
                   </Text>
                 </Pressable>
               );
@@ -294,7 +299,7 @@ export function SharePreviewScreenV2() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionLabel}>SHARE TO</Text>
+          <Text style={styles.sectionLabel}>{t('share.v2.section_share_to')}</Text>
           {/*
             One-tap social targets. Each opens that network's share intent
             (or the OS share sheet for Instagram + "More"). The row is
@@ -318,7 +323,7 @@ export function SharePreviewScreenV2() {
                   sharing && { opacity: 0.5 },
                 ]}
                 accessibilityRole="button"
-                accessibilityLabel={`Share to ${target.label}`}
+                accessibilityLabel={t('share.v2.share_to_a11y', { name: target.label })}
                 testID={`share-to-${target.id}`}
               >
                 <View style={[styles.socialIconCircle, { borderColor: `${target.tint}55` }]}>
@@ -331,10 +336,11 @@ export function SharePreviewScreenV2() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionLabel}>FORMAT</Text>
+          <Text style={styles.sectionLabel}>{t('share.v2.section_format')}</Text>
           <View style={styles.formatRow}>
             {formats.map((f) => {
               const active = f.id === format;
+              const formatLabel = t(`share.v2.fmt_${f.id}`);
               return (
                 <Pressable
                   key={f.id}
@@ -343,12 +349,12 @@ export function SharePreviewScreenV2() {
                     setFormat(f.id);
                   }}
                   style={[styles.formatBtn, active && styles.formatBtnActive]}
-                  accessibilityLabel={`${f.label} format`}
+                  accessibilityLabel={t('share.v2.format_a11y', { label: formatLabel })}
                   accessibilityState={{ selected: active }}
                 >
                   <Icon name={f.icon} size={14} color={active ? af.onRed : af.textPrimary} />
                   <Text style={[styles.formatBtnText, active && styles.formatBtnTextActive]}>
-                    {f.label}
+                    {formatLabel}
                   </Text>
                 </Pressable>
               );
@@ -357,7 +363,7 @@ export function SharePreviewScreenV2() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionLabel}>MESSAGE</Text>
+          <Text style={styles.sectionLabel}>{t('share.v2.section_message')}</Text>
           <View style={styles.variantsCol}>
             {broadcasts.map((b, i) => {
               const active = i === variantIdx;
@@ -370,7 +376,7 @@ export function SharePreviewScreenV2() {
                     setVariantIdx(i);
                   }}
                   style={[styles.variantBtn, active && styles.variantBtnActive]}
-                  accessibilityLabel={`Message option ${i + 1}: ${preview}`}
+                  accessibilityLabel={t('share.v2.message_option_a11y', { n: i + 1, preview })}
                   accessibilityState={{ selected: active }}
                 >
                   <View style={[styles.radio, active && styles.radioActive]} />
@@ -396,10 +402,10 @@ export function SharePreviewScreenV2() {
             (pressed || sharing) && styles.ctaPressed,
           ]}
           accessibilityRole="button"
-          accessibilityLabel="Open share sheet"
+          accessibilityLabel={t('share.v2.open_share_a11y')}
         >
           <Icon name="share" size={16} color={af.onRed} />
-          <Text style={styles.ctaText}>{sharing ? 'OPENING…' : 'SHARE'}</Text>
+          <Text style={styles.ctaText}>{sharing ? t('share.v2.cta_opening') : t('share.v2.cta_share')}</Text>
         </Pressable>
       </View>
     </View>
