@@ -736,6 +736,25 @@ export interface FeatureFlags {
    */
   spec_home: boolean;
   spec_weekly_report: boolean;
+  // Phase 3 redesign flags (one per redesigned screen; default OFF). Presentation-only.
+  spec_community: boolean;
+  spec_store: boolean;
+  spec_share: boolean;
+  spec_urine: boolean;
+  spec_scan: boolean;
+  spec_sweat: boolean;
+  spec_profile: boolean;
+  spec_onboarding: boolean;
+  spec_cart: boolean;
+  spec_subscription: boolean;
+  spec_manageSub: boolean;
+  spec_leaderboard: boolean;
+  spec_achievements: boolean;
+  spec_notifScreen: boolean;
+  spec_science: boolean;
+  spec_legal: boolean;
+  spec_sensors: boolean;
+  spec_auth: boolean;
 
   // Score-from-Ledger Hybrid — Tier-1 score-integration seam (P2b). When ON,
   // the hydration score reads its INPUTS from a ledger-projected UserState
