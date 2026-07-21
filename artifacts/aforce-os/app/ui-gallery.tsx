@@ -20,7 +20,16 @@ import {
   AFStatusBadge,
   AFSectionLabel,
   AFListRow,
+  AFCommandCard,
+  AFTimeline,
+  AFChart,
+  AFEmptyState,
+  AFErrorState,
+  AFDisclosureSheet,
+  AFEditorialHero,
 } from '@/components/ui';
+
+const HERO = require('../assets/images/welcome-hero.png');
 
 function Row({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -34,6 +43,7 @@ function Row({ title, children }: { title: string; children: React.ReactNode }) 
 export default function UIGallery() {
   if (!__DEV__) return <Redirect href="/" />;
   const [toggle, setToggle] = React.useState(true);
+  const [sheet, setSheet] = React.useState(false);
 
   return (
     <AFScreen scroll>
@@ -108,6 +118,83 @@ export default function UIGallery() {
         <View style={{ height: 12 }} />
         <AFTextButton label="Why this command" onPress={() => {}} icon="chevron-up" />
       </Row>
+
+      <Row title="Command card">
+        <AFCommandCard
+          title="Start with water"
+          instruction="Drink 20 oz. Recheck in 15 minutes."
+          primaryLabel="I've had the water"
+          onPrimary={() => {}}
+          secondaryLabel="Adjust command"
+          onSecondary={() => {}}
+          rationale="Recovery window is open. Ease in — 20 oz now keeps you ahead."
+        />
+      </Row>
+
+      <Row title="Timeline">
+        <AFTimeline
+          steps={[
+            { title: 'Hydrate now', subtitle: 'Drink 20 oz of water', state: 'current', meta: 'Now' },
+            { title: 'Cool down', subtitle: '5 minutes · after hydration', state: 'upcoming' },
+            { title: 'Recheck signals', subtitle: 'In 15 minutes', state: 'upcoming' },
+            { title: 'Morning baseline', subtitle: 'Locked until tomorrow', state: 'locked' },
+            { title: 'Warm-up', state: 'completed', meta: 'Done' },
+          ]}
+        />
+      </Row>
+
+      <Row title="Chart">
+        <AFChart
+          values={[40, 44, 55, 52, 68, 74, 90]}
+          labels={['M', 'T', 'W', 'T', 'F', 'S', 'S']}
+          summary="Weekly readiness rose from 40 to 90."
+        />
+      </Row>
+
+      <Row title="Empty state">
+        <AFCard>
+          <AFEmptyState
+            icon="inbox"
+            title="No readings yet"
+            message="Connect a device to start seeing your readiness trend."
+            action={{ label: 'Connect a device', onPress: () => {} }}
+          />
+        </AFCard>
+      </Row>
+
+      <Row title="Error state (offline — neutral, not red)">
+        <AFCard>
+          <AFErrorState
+            variant="offline"
+            title="You're offline"
+            message="Showing your last verified reading. We'll refresh when you reconnect."
+            action={{ label: 'Retry', onPress: () => {} }}
+          />
+        </AFCard>
+      </Row>
+
+      <Row title="Disclosure sheet">
+        <AFSecondaryButton label="Open disclosure sheet" onPress={() => setSheet(true)} />
+      </Row>
+
+      <Row title="Editorial hero">
+        <AFEditorialHero
+          source={HERO}
+          height={340}
+          eyebrow="Performance is non-negotiable"
+          title="Built for people who don't get to be off."
+          style={{ borderRadius: 24 }}
+        >
+          <AFPrimaryButton label="Begin setup" onPress={() => {}} />
+        </AFEditorialHero>
+      </Row>
+
+      <AFDisclosureSheet visible={sheet} onClose={() => setSheet(false)} title="Why this command">
+        <Text style={styles.cardText}>
+          Your readiness is low and the recovery window is open. Water first stabilizes recovery
+          before electrolytes or rest. We recheck in 15 minutes to confirm the next move.
+        </Text>
+      </AFDisclosureSheet>
 
       <View style={{ height: 48 }} />
     </AFScreen>
