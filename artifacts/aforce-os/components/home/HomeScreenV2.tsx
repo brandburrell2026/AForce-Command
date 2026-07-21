@@ -25,7 +25,7 @@ import { useRouter } from 'expo-router';
 import { af, afType } from '@/theme';
 import { useAppStore } from '@/store/useAppStore';
 import { useEngineSlice, useActionsSlice } from '@/store/slices';
-import { parseEngineActionCopy } from '@/utils/recovery/recoveryCommandFromStore';
+import { parseEngineActionCopy, parseDoseOz } from '@/utils/recovery/recoveryCommandFromStore';
 import type { FluidType } from '@/types';
 
 interface HomeActions {
@@ -103,7 +103,7 @@ export function HomeScreenV2() {
         instruction={instruction}
         primaryLabel="Log water"
         onPrimary={() => {
-          void logIntake('water', { silent: true });
+          void logIntake('water', { silent: true, ozOverride: parseDoseOz(engine.command.action) });
         }}
         rationale={engine.command.explanation || undefined}
       />

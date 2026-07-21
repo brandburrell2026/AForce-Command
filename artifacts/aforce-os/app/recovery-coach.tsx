@@ -13,7 +13,7 @@ import React from 'react';
 import { Redirect, useRouter } from 'expo-router';
 import { useAppStore } from '../store/useAppStore';
 import { RecoveryCoachScreen } from '../components/recoveryCoach/RecoveryCoachScreen';
-import { buildRecoveryCommand, parseEngineActionCopy } from '../utils/recovery/recoveryCommandFromStore';
+import { buildRecoveryCommand, parseEngineActionCopy, parseDoseOz } from '../utils/recovery/recoveryCommandFromStore';
 import { useActionsSlice } from '../store/slices';
 import type { FluidType } from '../types';
 
@@ -70,10 +70,12 @@ export default function RecoveryCoachRoute() {
       // hydration score). The screen keeps showing the acknowledged/recheck
       // state (spec §8.10: confirm once, countdown continues); the user closes
       // when ready. `silent` keeps this off the "ritual_started" analytics path
-      // since it's a coach acknowledgement, not a fresh ritual. Dose follows the
-      // product default; a command-driven oz override is a later refinement.
+      // since it's a coach acknowledgement, not a fresh ritual. The dose is
+      // parsed from the command's own copy (e.g. "Drink 20 oz" → 20) so the log
+      // matches what was prescribed; parseDoseOz returns undefined when no dose
+      // is stated, so logIntake falls back to the product default.
       onPrimary={() => {
-        void logIntake('water', { silent: true });
+        void logIntake('water', { silent: true, ozOverride: parseDoseOz(engineCommand.action) });
       }}
       // "Adjust command" — for S1 this dismisses the focused mode so the user
       // can log manually / re-check on Home. A structured adjust flow (dose /
