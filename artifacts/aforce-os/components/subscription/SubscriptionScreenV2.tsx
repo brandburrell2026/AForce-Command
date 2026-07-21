@@ -16,6 +16,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { Icon } from '@/components/Icon';
 import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
@@ -40,31 +41,15 @@ const STRIPE_PLAN_IDS = new Set<SubscriptionPlanId>(['recovery_plus', 'athlete',
 
 type CategoryId = 'consumer' | 'team' | 'performance';
 
-const FILTERS: { id: CategoryId; label: string }[] = [
-  { id: 'consumer',    label: 'CONSUMER' },
-  { id: 'team',        label: 'TEAM / PROGRAM' },
-  { id: 'performance', label: 'PERFORMANCE' },
+// Filter tabs — labels resolve under subscription.v2.filter_* at render.
+const FILTERS: { id: CategoryId; labelKey: string }[] = [
+  { id: 'consumer',    labelKey: 'filter_consumer' },
+  { id: 'team',        labelKey: 'filter_team' },
+  { id: 'performance', labelKey: 'filter_performance' },
 ];
 
-const CATEGORY_HEADER: Record<CategoryId, { eyebrow: string; title: string; subtitle: string }> = {
-  consumer: {
-    eyebrow: 'CONSUMER',
-    title: 'Your performance system.',
-    subtitle: 'AForce OS for individuals — from the entry layer to the full system.',
-  },
-  team: {
-    eyebrow: 'TEAM / PROGRAM',
-    title: 'Run your roster.',
-    subtitle: 'Roster-aware AForce OS for programs and organizations.',
-  },
-  performance: {
-    eyebrow: 'PERFORMANCE SYSTEMS',
-    title: 'Mission-critical performance.',
-    subtitle: 'Real-time team command and roster protection for elite organizations.',
-  },
-};
-
 export function SubscriptionScreenV2() {
+  const { t } = useTranslation();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const layout = useResponsiveLayout();
@@ -115,10 +100,7 @@ export function SubscriptionScreenV2() {
       // else (Team, Performance Systems) is sales-led and does not have an
       // in-app self-serve flow at launch.
       if (!STRIPE_PLAN_IDS.has(planId)) {
-        Alert.alert(
-          'Talk to our team',
-          'This plan is sold direct. Email sales@aforce.app and we will get you set up.',
-        );
+        Alert.alert(t('subscription.v2.sales_title'), t('subscription.v2.sales_body'));
         return;
       }
 
@@ -127,8 +109,8 @@ export function SubscriptionScreenV2() {
       try {
         session = await createCheckoutSession({ planId, returnUrl });
       } catch (err) {
-        const msg = err instanceof Error ? err.message : 'Could not start checkout.';
-        Alert.alert('Checkout unavailable', msg);
+        const msg = err instanceof Error ? err.message : t('subscription.v2.checkout_could_not_start');
+        Alert.alert(t('subscription.v2.checkout_unavailable_title'), msg);
         return;
       }
 
@@ -156,10 +138,7 @@ export function SubscriptionScreenV2() {
         paid = false;
       }
       if (!paid) {
-        Alert.alert(
-          'Could not confirm checkout',
-          'We could not verify your payment. If you were charged, your plan will update shortly.',
-        );
+        Alert.alert(t('subscription.v2.checkout_unconfirmed_title'), t('subscription.v2.checkout_unconfirmed_body'));
         return;
       }
 
@@ -224,8 +203,6 @@ export function SubscriptionScreenV2() {
     />
   );
 
-  const header = CATEGORY_HEADER[filter];
-
   return (
     <View style={styles.root}>
       <GradientBackground>
@@ -249,17 +226,15 @@ export function SubscriptionScreenV2() {
               <Icon name="chevron-left" size={20} color={af.textPrimary} />
             </Pressable>
             <View style={{ flex: 1 }}>
-              <Text style={styles.eyebrow}>AFORCE PRICING</Text>
-              <Text style={styles.title}>Choose Your Plan</Text>
+              <Text style={styles.eyebrow}>{t('subscription.v2.eyebrow')}</Text>
+              <Text style={styles.title}>{t('subscription.v2.title')}</Text>
             </View>
             <Pressable onPress={() => router.push('/subscription/manage')} style={styles.manageBtn} hitSlop={10}>
               <Icon name="settings" size={16} color={af.textPrimary} />
             </Pressable>
           </View>
 
-          <Text style={styles.subtitle}>
-            AForce is not hydration software. AForce is performance control, recovery intelligence, and team command.
-          </Text>
+          <Text style={styles.subtitle}>{t('subscription.v2.subtitle')}</Text>
 
           {/* Category filter */}
           <View style={styles.filterRow}>
@@ -271,7 +246,7 @@ export function SubscriptionScreenV2() {
                   onPress={() => setFilter(f.id)}
                   style={[styles.filterBtn, active && styles.filterBtnActive]}
                 >
-                  <Text style={[styles.filterText, active && styles.filterTextActive]}>{f.label}</Text>
+                  <Text style={[styles.filterText, active && styles.filterTextActive]}>{t(`subscription.v2.${f.labelKey}`)}</Text>
                 </Pressable>
               );
             })}
@@ -279,9 +254,9 @@ export function SubscriptionScreenV2() {
 
           {/* Section header */}
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionEyebrow}>{header.eyebrow}</Text>
-            <Text style={styles.sectionTitle}>{header.title}</Text>
-            <Text style={styles.sectionSubtitle}>{header.subtitle}</Text>
+            <Text style={styles.sectionEyebrow}>{t(`subscription.v2.cat_${filter}_eyebrow`)}</Text>
+            <Text style={styles.sectionTitle}>{t(`subscription.v2.cat_${filter}_title`)}</Text>
+            <Text style={styles.sectionSubtitle}>{t(`subscription.v2.cat_${filter}_subtitle`)}</Text>
           </View>
 
           {/* Plan cards */}
@@ -290,9 +265,9 @@ export function SubscriptionScreenV2() {
               {/* Clutch sub-section */}
               <SubGroupHeader
                 accent={af.cyan}
-                eyebrow="CLUTCH ACCESS"
-                title="Real-time team command"
-                hint="Live decision support for game-time and high-intensity environments."
+                eyebrow={t('subscription.v2.clutch_eyebrow')}
+                title={t('subscription.v2.clutch_title')}
+                hint={t('subscription.v2.clutch_hint')}
               />
               <View style={styles.plans}>
                 {clutchPlans.map(renderEnterpriseCard)}
@@ -301,9 +276,9 @@ export function SubscriptionScreenV2() {
               {/* Guardian sub-section */}
               <SubGroupHeader
                 accent={'#8B5CF6'}
-                eyebrow="GUARDIAN"
-                title="Roster protection"
-                hint="Mission-critical injury risk reduction and proactive intervention."
+                eyebrow={t('subscription.v2.guardian_eyebrow')}
+                title={t('subscription.v2.guardian_title')}
+                hint={t('subscription.v2.guardian_hint')}
               />
               <View style={styles.plans}>
                 {guardianPlans.map(renderEnterpriseCard)}
@@ -317,9 +292,7 @@ export function SubscriptionScreenV2() {
 
           <View style={styles.trustRow}>
             <Icon name="shield" size={12} color={af.textTertiary} />
-            <Text style={styles.trustText}>
-              Secured by Stripe. Cancel anytime from Manage Plan.
-            </Text>
+            <Text style={styles.trustText}>{t('subscription.v2.trust')}</Text>
           </View>
         </ScrollView>
       </GradientBackground>
