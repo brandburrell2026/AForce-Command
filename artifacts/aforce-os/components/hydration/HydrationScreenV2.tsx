@@ -10,6 +10,7 @@
  */
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 
 import {
@@ -38,17 +39,17 @@ interface HydrationActions {
   ) => Promise<void>;
 }
 
-const FLUID_LABEL: Record<FluidType, string> = {
-  water: 'Water',
-  aforce_stick: 'AForce Stick',
-  aforce_rtd: 'AForce RTD',
-  aforce_canister: 'AForce Canister',
-  aforce_bulk_bag: 'AForce Bulk',
+/** FluidType → i18n key suffix under hydration.v2.fluid_* (translated at render). */
+const FLUID_KEY: Record<FluidType, string> = {
+  water: 'fluid_water',
+  aforce_stick: 'fluid_aforce_stick',
+  aforce_rtd: 'fluid_aforce_rtd',
+  aforce_canister: 'fluid_aforce_canister',
+  aforce_bulk_bag: 'fluid_aforce_bulk_bag',
 };
 
-const DAYS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
-
 export function HydrationScreenV2() {
+  const { t, i18n } = useTranslation();
   const router = useRouter();
   const { state } = useAppStore();
   const engine = useEngineSlice();
@@ -63,9 +64,24 @@ export function HydrationScreenV2() {
   const streak = Math.max(0, Math.min(7, userState.complianceStreak));
   const todayIdx = new Date(userState.lastIntakeTime).getDay();
 
+  // Locale-aware weekday initials, Sunday-indexed to match getDay(). 2023-01-01
+  // was a Sunday; English narrow → S M T W T F S (unchanged), other locales
+  // localize. Falls back to English initials if Intl narrow is unavailable.
+  const weekdayInitials = React.useMemo(
+    () =>
+      Array.from({ length: 7 }, (_, i) => {
+        try {
+          return new Date(2023, 0, 1 + i).toLocaleDateString(i18n.language, { weekday: 'narrow' });
+        } catch {
+          return ['S', 'M', 'T', 'W', 'T', 'F', 'S'][i];
+        }
+      }),
+    [i18n.language],
+  );
+
   return (
     <AFScreen scroll>
-      <AFTopBar eyebrow="Today" title="Hydration" />
+      <AFTopBar eyebrow={t('hydration.v2.eyebrow')} title={t('hydration.v2.title')} />
 
       {/* Intake ring + stats */}
       <AFCard variant="raised" style={styles.mainCard}>
@@ -74,10 +90,19 @@ export function HydrationScreenV2() {
             <Text style={styles.ringPct}>{Math.round(pct * 100)}%</Text>
           </AFProgressRing>
           <View style={styles.stats}>
-            <Stat label="Water logged" value={`${Math.round(userState.ozConsumedToday)} of ${userState.ozTarget} oz`} />
-            <Stat label="Electrolytes" value={`${userState.aforceUnitsToday} servings`} />
+            <Stat
+              label={t('hydration.v2.stat_water_logged')}
+              value={t('hydration.v2.stat_water_value', {
+                consumed: Math.round(userState.ozConsumedToday),
+                target: userState.ozTarget,
+              })}
+            />
+            <Stat
+              label={t('hydration.v2.stat_electrolytes')}
+              value={t('hydration.v2.stat_electrolytes_value', { count: userState.aforceUnitsToday })}
+            />
             <View style={styles.recoveryRow}>
-              <Text style={styles.statLabel}>RECOVERY</Text>
+              <Text style={styles.statLabel}>{t('hydration.v2.recovery_label')}</Text>
               <AFStatusBadge
                 label={titleCase(engine.performanceState.level)}
                 tone={engine.performanceState.level === 'DEPLETED' ? 'critical' : 'neutral'}
@@ -90,19 +115,19 @@ export function HydrationScreenV2() {
 
       {/* Actions */}
       <View style={styles.actions}>
-        <AFPrimaryButton label="Scan a drink" icon="camera" onPress={() => router.push('/scan')} />
-        <AFSecondaryButton label="Log manually" onPress={() => void logIntake('water', { ozOverride: parseDoseOz(engine.command.action) })} />
+        <AFPrimaryButton label={t('hydration.v2.scan_a_drink')} icon="camera" onPress={() => router.push('/scan')} />
+        <AFSecondaryButton label={t('hydration.v2.log_manually')} onPress={() => void logIntake('water', { ozOverride: parseDoseOz(engine.command.action) })} />
       </View>
 
       {/* Recent intake */}
       <View style={styles.section}>
-        <AFSectionLabel label="Recent intake" />
+        <AFSectionLabel label={t('hydration.v2.recent_intake')} />
         {recent.length === 0 ? (
           <AFCard>
             <AFEmptyState
               icon="droplet"
-              title="Nothing logged yet"
-              message="Scan or log a drink to start today's intake."
+              title={t('hydration.v2.empty_title')}
+              message={t('hydration.v2.empty_message')}
             />
           </AFCard>
         ) : (
@@ -111,9 +136,9 @@ export function HydrationScreenV2() {
               <AFListRow
                 key={e.id}
                 icon={e.fluidType === 'water' ? 'droplet' : 'zap'}
-                title={FLUID_LABEL[e.fluidType] ?? 'Drink'}
+                title={t(`hydration.v2.${FLUID_KEY[e.fluidType] ?? 'fluid_default'}`)}
                 subtitle={formatTimeAgo(e.loggedAt)}
-                value={`${Math.round(e.oz)} oz`}
+                value={t('hydration.v2.oz_value', { oz: Math.round(e.oz) })}
               />
             ))}
           </AFCard>
@@ -122,9 +147,9 @@ export function HydrationScreenV2() {
 
       {/* 7-day strip (streak, honest) */}
       <View style={styles.section}>
-        <AFSectionLabel label="This week" />
+        <AFSectionLabel label={t('hydration.v2.this_week')} />
         <View style={styles.strip}>
-          {DAYS.map((d, i) => {
+          {weekdayInitials.map((d, i) => {
             // Fill the most recent `streak` days up to and including today.
             const daysBack = (todayIdx - i + 7) % 7;
             const filled = daysBack < streak;

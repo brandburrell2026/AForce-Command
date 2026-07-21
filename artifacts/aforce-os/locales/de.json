@@ -178,7 +178,28 @@
     "social_stop_action": "Alkoholzufuhr stoppen. Erholung nötig.",
     "social_stop_explanation": "Du bist in einem stark beeinträchtigten Bereich. Wechsle zu Wasser und starte das Erholungsprotokoll.",
     "social_do_not_drive_action": "Nicht fahren. Nimm ein Taxi oder ruf einen Freund.",
-    "social_do_not_drive_explanation": "Reaktion und Urteilsvermögen sind deutlich reduziert. Eine Fahrt zu organisieren ist sicherer."
+    "social_do_not_drive_explanation": "Reaktion und Urteilsvermögen sind deutlich reduziert. Eine Fahrt zu organisieren ist sicherer.",
+    "v2": {
+      "header_label": "RECOVERY COACH",
+      "status_offline": "Offline",
+      "status_live": "Live guidance",
+      "close_a11y": "Close Recovery Coach",
+      "recheck_in_progress": "Recheck in progress",
+      "water_logged": "Water logged",
+      "eyebrow": "YOUR NEXT MOVE",
+      "adjust": "Adjust command",
+      "why": "Why this command",
+      "recovery_focus": "RECOVERY FOCUS",
+      "progress_a11y": "Recovery focus, {{pct}} percent, next check in {{min}} minutes {{sec}} seconds",
+      "countdown_a11y": "{{label}}, {{countdown}}",
+      "default_command_title": "Start with water",
+      "primary_action_label": "I've had the water",
+      "snooze_subtitle": "Push the recheck back — same command when it returns",
+      "log_different": "Log a different amount",
+      "log_oz_a11y": "Log {{oz}} ounces",
+      "dose_oz": "{{oz}} oz",
+      "dismiss": "Dismiss"
+    }
   },
   "social": {
     "title": "SOCIAL-MODUS",
@@ -619,6 +640,54 @@
     "expired": {
       "title": "Du bist vollständig aktiviert",
       "body": "Du hast die Gewohnheit aufgebaut. Sieh dir die Tarife an, wann immer du willst."
+    }
+  },
+  "hydration": {
+    "v2": {
+      "eyebrow": "Today",
+      "title": "Hydration",
+      "fluid_water": "Water",
+      "fluid_aforce_stick": "AForce Stick",
+      "fluid_aforce_rtd": "AForce RTD",
+      "fluid_aforce_canister": "AForce Canister",
+      "fluid_aforce_bulk_bag": "AForce Bulk",
+      "fluid_default": "Drink",
+      "stat_water_logged": "Water logged",
+      "stat_water_value": "{{consumed}} of {{target}} oz",
+      "stat_electrolytes": "Electrolytes",
+      "stat_electrolytes_value": "{{count}} servings",
+      "recovery_label": "RECOVERY",
+      "scan_a_drink": "Scan a drink",
+      "log_manually": "Log manually",
+      "recent_intake": "Recent intake",
+      "empty_title": "Nothing logged yet",
+      "empty_message": "Scan or log a drink to start today's intake.",
+      "this_week": "This week",
+      "oz_value": "{{oz}} oz"
+    }
+  },
+  "protocol": {
+    "v2": {
+      "eyebrow": "Today",
+      "title": "Protocol",
+      "recovery_plan": "Recovery plan",
+      "progress_count": "{{completed}} of {{total}} complete",
+      "consistency": "{{pct}}% consistency",
+      "active_step": "ACTIVE STEP",
+      "next_recheck": "NEXT RECHECK",
+      "recheck_minutes": "{{min}} min",
+      "plan_complete": "Plan complete",
+      "plan_complete_body": "Every step is done. Hold and recheck at the next window.",
+      "next": "Next",
+      "why_this_plan": "Why this plan",
+      "today_section": "Today",
+      "metric_goal": "Goal",
+      "metric_logged": "Logged",
+      "metric_streak": "Streak",
+      "unit_units": "units",
+      "unit_day": "d",
+      "recent_activity": "Recent activity",
+      "why_consistency": "You're {{pct}}% consistent this week. The plan adapts each recheck ({{min}} min) to your live readiness."
     }
   }
 }
