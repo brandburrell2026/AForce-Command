@@ -18,6 +18,7 @@ import Animated, {
   Easing, useReducedMotion, cancelAnimation,
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
+import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Icon } from '../Icon';
@@ -43,6 +44,7 @@ interface Props {
 }
 
 export function RecoveryCoachScreen({ command, onClose, onPrimary, onAdjust, offline, nowOverride }: Props) {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const reduceMotion = useReducedMotion();
   const [now, setNow] = useState<number>(() => nowOverride ?? Date.now());
@@ -68,8 +70,8 @@ export function RecoveryCoachScreen({ command, onClose, onPrimary, onAdjust, off
   const ackElapsed = ackAt !== null ? now - ackAt : null;
   const showAck = ackElapsed !== null && ackElapsed < 800 || view.acknowledged;
   const showRechecking = (ackElapsed !== null && ackElapsed >= 800) || view.state === 'rechecking';
-  const title = view.state === 'expired' ? view.title : showRechecking ? 'Recheck in progress' : view.title;
-  const primaryLabel = view.state === 'expired' ? view.primaryActionLabel : showAck ? 'Water logged' : view.primaryActionLabel;
+  const title = view.state === 'expired' ? view.title : showRechecking ? t('coach.v2.recheck_in_progress') : view.title;
+  const primaryLabel = view.state === 'expired' ? view.primaryActionLabel : showAck ? t('coach.v2.water_logged') : view.primaryActionLabel;
   const isExpired = view.state === 'expired';
 
   // ── Motion: entrance + pulse (Reduce-Motion → static) ──
@@ -135,7 +137,11 @@ export function RecoveryCoachScreen({ command, onClose, onPrimary, onAdjust, off
   const progressPct = `${Math.round(view.progress * 100)}%` as const;
   const remMin = Math.floor(view.countdownSeconds / 60);
   const remSec = view.countdownSeconds % 60;
-  const progressA11y = `Recovery focus, ${Math.round(view.progress * 100)} percent, next check in ${remMin} minutes ${remSec} seconds`;
+  const progressA11y = t('coach.v2.progress_a11y', {
+    pct: Math.round(view.progress * 100),
+    min: remMin,
+    sec: remSec,
+  });
 
   return (
     <View style={[styles.root, { backgroundColor: T.canvas }]}>
@@ -148,15 +154,15 @@ export function RecoveryCoachScreen({ command, onClose, onPrimary, onAdjust, off
           <View style={styles.headerLeft}>
             <View style={styles.headerLabelRow}>
               <View style={[styles.liveDot, { backgroundColor: T.red }]} />
-              <Text style={[styles.headerLabel, { color: T.textPrimary }]}>RECOVERY COACH</Text>
+              <Text style={[styles.headerLabel, { color: T.textPrimary }]}>{t('coach.v2.header_label')}</Text>
             </View>
-            <Text style={[styles.status, { color: T.textSecondary }]}>{offline ? 'Offline' : 'Live guidance'}</Text>
+            <Text style={[styles.status, { color: T.textSecondary }]}>{offline ? t('coach.v2.status_offline') : t('coach.v2.status_live')}</Text>
           </View>
           <Pressable
             onPress={onCloseTap}
             hitSlop={12}
             accessibilityRole="button"
-            accessibilityLabel="Close Recovery Coach"
+            accessibilityLabel={t('coach.v2.close_a11y')}
             style={[styles.close, { borderColor: T.border }]}
           >
             <Icon name="x" size={20} color={T.textSecondary} />
@@ -174,7 +180,7 @@ export function RecoveryCoachScreen({ command, onClose, onPrimary, onAdjust, off
 
           {/* Command block */}
           <View style={styles.commandBlock}>
-            <Text style={[styles.eyebrow, { color: T.textTertiary }]}>YOUR NEXT MOVE</Text>
+            <Text style={[styles.eyebrow, { color: T.textTertiary }]}>{t('coach.v2.eyebrow')}</Text>
             <Text style={[styles.title, { color: T.textPrimary }]} accessibilityRole="text">{title}</Text>
             {!isExpired && view.instruction ? (
               <Text style={[styles.instruction, { color: T.textSecondary }]}>{view.instruction}</Text>
@@ -186,7 +192,7 @@ export function RecoveryCoachScreen({ command, onClose, onPrimary, onAdjust, off
 
           {/* Countdown */}
           {!isExpired ? (
-            <View style={styles.countdownBlock} accessibilityLabel={`${view.timerLabel}, ${view.countdown}`}>
+            <View style={styles.countdownBlock} accessibilityLabel={t('coach.v2.countdown_a11y', { label: view.timerLabel, countdown: view.countdown })}>
               <View style={[styles.timerHairline, { backgroundColor: T.red }]} />
               <Text style={[styles.timerLabel, { color: T.textTertiary }]}>{view.timerLabel}</Text>
               <Text style={[styles.timer, { color: T.textPrimary }]}>{view.countdown}</Text>
@@ -208,18 +214,18 @@ export function RecoveryCoachScreen({ command, onClose, onPrimary, onAdjust, off
               <Pressable
                 onPress={onAdjustTap}
                 accessibilityRole="button"
-                accessibilityLabel="Adjust command"
+                accessibilityLabel={t('coach.v2.adjust')}
                 style={({ pressed }) => [styles.secondaryBtn, { borderColor: T.border, opacity: pressed ? 0.7 : 1 }]}
               >
-                <Text style={[styles.secondaryLabel, { color: T.textPrimary }]}>Adjust command</Text>
+                <Text style={[styles.secondaryLabel, { color: T.textPrimary }]}>{t('coach.v2.adjust')}</Text>
               </Pressable>
             ) : null}
           </View>
 
           {/* Why this command */}
           {!isExpired ? (
-            <Pressable onPress={onWhyTap} accessibilityRole="button" accessibilityLabel="Why this command" style={styles.whyLink}>
-              <Text style={[styles.whyText, { color: T.textSecondary }]}>Why this command</Text>
+            <Pressable onPress={onWhyTap} accessibilityRole="button" accessibilityLabel={t('coach.v2.why')} style={styles.whyLink}>
+              <Text style={[styles.whyText, { color: T.textSecondary }]}>{t('coach.v2.why')}</Text>
               <Icon name={whyOpen ? 'chevron-up' : 'chevron-down'} size={14} color={T.textTertiary} />
             </Pressable>
           ) : null}
@@ -239,7 +245,7 @@ export function RecoveryCoachScreen({ command, onClose, onPrimary, onAdjust, off
               <View style={[styles.trackFill, { width: progressPct, backgroundColor: T.red }]} />
             </View>
             <View style={styles.footerLabels}>
-              <Text style={[styles.footerLabel, { color: T.textTertiary }]}>RECOVERY FOCUS</Text>
+              <Text style={[styles.footerLabel, { color: T.textTertiary }]}>{t('coach.v2.recovery_focus')}</Text>
               <Text style={[styles.footerLabel, { color: T.textTertiary }]}>{view.durationLabel}</Text>
             </View>
           </View>

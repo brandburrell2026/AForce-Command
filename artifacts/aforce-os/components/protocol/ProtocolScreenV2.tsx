@@ -10,6 +10,7 @@
  */
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 
 import {
@@ -30,6 +31,7 @@ import { deriveProtocol } from '@/services/mockApi';
 import { formatTimeAgo } from '@/data/mockData';
 
 export function ProtocolScreenV2() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { state } = useAppStore();
   const { history, engineOutput, userState } = state;
@@ -59,17 +61,17 @@ export function ProtocolScreenV2() {
 
   return (
     <AFScreen scroll>
-      <AFTopBar eyebrow="Today" title="Protocol" />
+      <AFTopBar eyebrow={t('protocol.v2.eyebrow')} title={t('protocol.v2.title')} />
 
       {/* Recovery-plan progress */}
       <View style={styles.planHeader}>
-        <AFSectionLabel label="Recovery plan" />
+        <AFSectionLabel label={t('protocol.v2.recovery_plan')} />
         <View style={styles.progressRow}>
           <Text style={styles.progressCount}>
-            {completedCount} of {total} complete
+            {t('protocol.v2.progress_count', { completed: completedCount, total })}
           </Text>
           <AFStatusBadge
-            label={`${protocol.weeklyCompliancePct}% consistency`}
+            label={t('protocol.v2.consistency', { pct: protocol.weeklyCompliancePct })}
             tone="positive"
             icon={null}
           />
@@ -82,25 +84,25 @@ export function ProtocolScreenV2() {
       {/* One large ACTIVE step */}
       {activeStep ? (
         <AFCard variant="raised" style={styles.activeCard} testID="protocol-active-step">
-          <Text style={styles.activeEyebrow}>ACTIVE STEP</Text>
+          <Text style={styles.activeEyebrow}>{t('protocol.v2.active_step')}</Text>
           <Text style={styles.activeTitle}>{activeStep.label}</Text>
           <Text style={styles.activeWindow}>{activeStep.window}</Text>
           <View style={styles.activeFooter}>
-            <Text style={styles.footerLabel}>NEXT RECHECK</Text>
-            <Text style={styles.footerValue}>{protocol.nextRecheckMinutes} min</Text>
+            <Text style={styles.footerLabel}>{t('protocol.v2.next_recheck')}</Text>
+            <Text style={styles.footerValue}>{t('protocol.v2.recheck_minutes', { min: protocol.nextRecheckMinutes })}</Text>
           </View>
         </AFCard>
       ) : (
         <AFCard variant="raised" style={styles.activeCard}>
-          <AFStatusBadge label="Plan complete" tone="positive" />
-          <Text style={styles.activeWindow}>Every step is done. Hold and recheck at the next window.</Text>
+          <AFStatusBadge label={t('protocol.v2.plan_complete')} tone="positive" />
+          <Text style={styles.activeWindow}>{t('protocol.v2.plan_complete_body')}</Text>
         </AFCard>
       )}
 
       {/* Ordered upcoming */}
       {timelineSteps.length > 0 && (
         <View style={styles.section}>
-          <AFSectionLabel label="Next" />
+          <AFSectionLabel label={t('protocol.v2.next')} />
           <View style={styles.timelineWrap}>
             <AFTimeline steps={timelineSteps} />
           </View>
@@ -109,17 +111,17 @@ export function ProtocolScreenV2() {
 
       {/* Why this plan */}
       <View style={styles.whyRow}>
-        <AFTextButton label="Why this plan" icon={whyOpen ? 'chevron-up' : 'chevron-down'} onPress={() => setWhyOpen(true)} />
+        <AFTextButton label={t('protocol.v2.why_this_plan')} icon={whyOpen ? 'chevron-up' : 'chevron-down'} onPress={() => setWhyOpen(true)} />
       </View>
 
       {/* Relocated: plan metrics */}
       <View style={styles.section}>
-        <AFSectionLabel label="Today" />
+        <AFSectionLabel label={t('protocol.v2.today_section')} />
         <AFCard>
           <View style={styles.metricsRow}>
-            <AFMetric label="Goal" value={`${userState.dailyTarget}`} unit="units" />
-            <AFMetric label="Logged" value={`${userState.unitsConsumedToday}`} unit="units" />
-            <AFMetric label="Streak" value={`${userState.complianceStreak}`} unit="d" />
+            <AFMetric label={t('protocol.v2.metric_goal')} value={`${userState.dailyTarget}`} unit={t('protocol.v2.unit_units')} />
+            <AFMetric label={t('protocol.v2.metric_logged')} value={`${userState.unitsConsumedToday}`} unit={t('protocol.v2.unit_units')} />
+            <AFMetric label={t('protocol.v2.metric_streak')} value={`${userState.complianceStreak}`} unit={t('protocol.v2.unit_day')} />
           </View>
         </AFCard>
       </View>
@@ -127,7 +129,7 @@ export function ProtocolScreenV2() {
       {/* Relocated: command history (compact) */}
       {history.length > 0 && (
         <View style={styles.section}>
-          <AFSectionLabel label="Recent activity" />
+          <AFSectionLabel label={t('protocol.v2.recent_activity')} />
           <AFCard padded={false} style={styles.historyCard}>
             {history.slice(0, 5).map((entry, i) => (
               <View key={entry.id} style={[styles.historyRow, i > 0 && styles.historyDivider]}>
@@ -144,12 +146,14 @@ export function ProtocolScreenV2() {
 
       <View style={{ height: 40 }} />
 
-      <AFDisclosureSheet visible={whyOpen} onClose={() => setWhyOpen(false)} title="Why this plan">
+      <AFDisclosureSheet visible={whyOpen} onClose={() => setWhyOpen(false)} title={t('protocol.v2.why_this_plan')}>
         <Text style={styles.whyStage}>{protocol.stage}</Text>
         <Text style={styles.whyBody}>{protocol.description}</Text>
         <Text style={styles.whyBody}>
-          You're {protocol.weeklyCompliancePct}% consistent this week. The plan adapts each recheck
-          ({protocol.nextRecheckMinutes} min) to your live readiness.
+          {t('protocol.v2.why_consistency', {
+            pct: protocol.weeklyCompliancePct,
+            min: protocol.nextRecheckMinutes,
+          })}
         </Text>
       </AFDisclosureSheet>
     </AFScreen>

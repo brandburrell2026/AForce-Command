@@ -7,6 +7,7 @@
  */
 import React from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { AFDisclosureSheet, AFListRow, AFSectionLabel } from '@/components/ui';
 import { af, afType } from '@/theme';
 
@@ -30,36 +31,37 @@ export function AdjustCommandSheet({
   onLogDose,
   onDismiss,
 }: AdjustCommandSheetProps) {
+  const { t } = useTranslation();
   return (
-    <AFDisclosureSheet visible={visible} onClose={onClose} title="Adjust command">
+    <AFDisclosureSheet visible={visible} onClose={onClose} title={t('coach.v2.adjust')}>
       <AFListRow
         icon="clock"
-        title="Snooze 20 minutes"
-        subtitle="Push the recheck back — same command when it returns"
+        title={t('home.snooze')}
+        subtitle={t('coach.v2.snooze_subtitle')}
         onPress={onSnooze}
         testID="adjust-snooze"
       />
 
       <View style={styles.section}>
-        <AFSectionLabel label="Log a different amount" />
+        <AFSectionLabel label={t('coach.v2.log_different')} />
         <View style={styles.doseRow}>
           {DOSE_OPTIONS.map((oz) => (
             <Pressable
               key={oz}
               onPress={() => onLogDose(oz)}
               accessibilityRole="button"
-              accessibilityLabel={`Log ${oz} ounces`}
+              accessibilityLabel={t('coach.v2.log_oz_a11y', { oz })}
               testID={`adjust-dose-${oz}`}
               style={({ pressed }) => [styles.doseChip, pressed && styles.doseChipPressed]}
             >
-              <Text style={styles.doseText}>{oz} oz</Text>
+              <Text style={styles.doseText}>{t('coach.v2.dose_oz', { oz })}</Text>
             </Pressable>
           ))}
         </View>
       </View>
 
       <View style={styles.section}>
-        <AFListRow icon="x" title="Dismiss" onPress={onDismiss} testID="adjust-dismiss" />
+        <AFListRow icon="x" title={t('coach.v2.dismiss')} onPress={onDismiss} testID="adjust-dismiss" />
       </View>
     </AFDisclosureSheet>
   );

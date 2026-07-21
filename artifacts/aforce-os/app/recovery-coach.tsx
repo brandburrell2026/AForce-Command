@@ -10,6 +10,7 @@
  * hardcoded hero copy, no fabricated dose.
  */
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Redirect, useRouter } from 'expo-router';
 import { useAppStore } from '../store/useAppStore';
 import { RecoveryCoachScreen } from '../components/recoveryCoach/RecoveryCoachScreen';
@@ -27,6 +28,7 @@ interface CoachActions {
 }
 
 export default function RecoveryCoachRoute() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { state } = useAppStore();
   const { logIntake, snooze } = useActionsSlice<CoachActions>();
@@ -54,9 +56,9 @@ export default function RecoveryCoachRoute() {
   const command = buildRecoveryCommand(
     {
       commandId: engineCommand.id,
-      title: title || 'Start with water',
+      title: title || t('coach.v2.default_command_title'),
       instruction,
-      primaryActionLabel: "I've had the water",
+      primaryActionLabel: t('coach.v2.primary_action_label'),
       rationale: engineCommand.explanation,
       recheckInSeconds: remainingSeconds,
       elapsedSeconds,
