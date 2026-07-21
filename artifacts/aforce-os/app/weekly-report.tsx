@@ -38,6 +38,8 @@ import {
 } from '@/utils/weeklyReport';
 import type { AnalyticsEvent } from '@/utils/analytics/metrics';
 import { getAnalyticsSnapshot } from '@/services/analytics';
+import { useAppStore } from '@/store/useAppStore';
+import { ReadinessInsightsV2 } from '@/components/insights/ReadinessInsightsV2';
 import { usePerformanceAge } from '@/hooks/usePerformanceAge';
 import { openShareSheet } from '@/services/shareService';
 
@@ -72,7 +74,17 @@ const SECTION_ORDER: WeeklyReportSectionKey[] = [
   'nextWeekFocus',
 ];
 
+/**
+ * Weekly Report route — renders the Phase 2 "Readiness insights" redesign when
+ * `spec_weekly_report` is on, else the legacy report below (unchanged). Flipping
+ * the flag is the go-live switch.
+ */
 export default function WeeklyReportScreen() {
+  const specOn = useAppStore().state.featureFlags.spec_weekly_report;
+  return specOn ? <ReadinessInsightsV2 /> : <WeeklyReportLegacy />;
+}
+
+function WeeklyReportLegacy() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { t, i18n } = useTranslation();
