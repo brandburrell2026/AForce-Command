@@ -22,6 +22,7 @@
 
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { Icon } from './Icon';
 import { Colors } from '@/theme/colors';
 import type { SuperfoodSignalsBlock } from '@/utils/superfoodSignals';
@@ -31,6 +32,7 @@ interface Props {
 }
 
 export function SuperfoodSignalsCard({ block }: Props) {
+  const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
   const accent = Colors.accent.primary;
 
@@ -41,7 +43,7 @@ export function SuperfoodSignalsCard({ block }: Props) {
         <Text style={[styles.eyebrow, { color: accent }]}>{block.header}</Text>
       </View>
 
-      <View style={styles.chipRow} accessibilityLabel="Superfood signals">
+      <View style={styles.chipRow} accessibilityLabel={t('hydroScan2.cards.superfood_a11y')}>
         {block.signals.map((s) => (
           <View
             key={s.key}

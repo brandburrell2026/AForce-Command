@@ -32,6 +32,7 @@ import {
   Alert,
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
+import { useTranslation } from 'react-i18next';
 import { Icon } from './Icon';
 import { Colors } from '../theme/colors';
 import { DRINK_CATEGORIES, type DrinkCategoryId } from '../data/drinkCatalog';
@@ -77,6 +78,7 @@ const DISCLAIMER =
   'and is not a medical or nutritional diagnostic tool.';
 
 export function SmartCaptureModal({ visible, accentColor, onCancel, onLogCorrection, personalization }: Props) {
+  const { t } = useTranslation();
   const [stage, setStage] = useState<Stage>({ kind: 'choose' });
 
   // Reset every time the modal opens so a previous analysis doesn't bleed in.
@@ -100,8 +102,8 @@ export function SmartCaptureModal({ visible, accentColor, onCancel, onLogCorrect
         const perm = await ImagePicker.requestCameraPermissionsAsync();
         if (!perm.granted) {
           Alert.alert(
-            'Camera access needed',
-            'AForce OS needs camera access to capture your food or drink.',
+            t('hydroScan2.smartCapture.camera_needed_title'),
+            t('hydroScan2.smartCapture.camera_needed_body'),
           );
           return;
         }
@@ -124,7 +126,7 @@ export function SmartCaptureModal({ visible, accentColor, onCancel, onLogCorrect
       const asset = result.assets[0];
       const b64 = asset.base64;
       if (!b64) {
-        setStage({ kind: 'error', localUri: null, message: 'Could not read photo. Please try again.' });
+        setStage({ kind: 'error', localUri: null, message: t('hydroScan2.smartCapture.err_read_photo') });
         return;
       }
 
@@ -144,7 +146,7 @@ export function SmartCaptureModal({ visible, accentColor, onCancel, onLogCorrect
         localUri: asset.uri,
       });
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Could not open photo picker.';
+      const message = err instanceof Error ? err.message : t('hydroScan2.smartCapture.err_open_picker');
       setStage({ kind: 'error', localUri: null, message });
     }
   }, []);
@@ -163,7 +165,7 @@ export function SmartCaptureModal({ visible, accentColor, onCancel, onLogCorrect
       const message =
         err instanceof Error
           ? err.message
-          : 'Smart Capture could not analyze that photo. Please try again.';
+          : t('hydroScan2.smartCapture.err_analyze');
       setStage({ kind: 'error', localUri, message });
     }
   }, [stage]);
@@ -206,8 +208,8 @@ export function SmartCaptureModal({ visible, accentColor, onCancel, onLogCorrect
           {/* Header */}
           <View style={styles.headerRow}>
             <View style={{ width: 20 }} />
-            <Text style={styles.title}>SMART CAPTURE</Text>
-            <Pressable onPress={onCancel} hitSlop={12} accessibilityLabel="Close">
+            <Text style={styles.title}>{t('hydroScan2.smartCapture.title')}</Text>
+            <Pressable onPress={onCancel} hitSlop={12} accessibilityLabel={t('hydroScan2.smartCapture.close_a11y')}>
               <Icon name="x" size={20} color={Colors.text.secondary} />
             </Pressable>
           </View>
@@ -258,13 +260,13 @@ function ChooseStage(props: {
   accentColor: string;
   onPick: (source: 'camera' | 'library') => void;
 }) {
+  const { t } = useTranslation();
   const { accentColor, onPick } = props;
   return (
     <View style={{ gap: 14 }}>
-      <Text style={styles.eyebrow}>SNAP A FOOD OR DRINK</Text>
+      <Text style={styles.eyebrow}>{t('hydroScan2.smartCapture.choose_eyebrow')}</Text>
       <Text style={styles.bodyText}>
-        Get an instant read on hydration demand, recovery load, stimulants,
-        and acidic burden — plus what to drink next to correct.
+        {t('hydroScan2.smartCapture.choose_body')}
       </Text>
 
       <View style={{ gap: 10, marginTop: 6 }}>
@@ -279,7 +281,7 @@ function ChooseStage(props: {
           testID="smart-capture-take"
         >
           <Icon name="camera" size={16} color={Colors.text.inverse} />
-          <Text style={styles.ctaPrimaryText}>TAKE PHOTO</Text>
+          <Text style={styles.ctaPrimaryText}>{t('hydroScan2.smartCapture.take_photo')}</Text>
         </Pressable>
 
         <Pressable
@@ -289,7 +291,7 @@ function ChooseStage(props: {
           testID="smart-capture-upload"
         >
           <Icon name="image" size={16} color={Colors.text.primary} />
-          <Text style={styles.ctaSecondaryText}>UPLOAD FROM LIBRARY</Text>
+          <Text style={styles.ctaSecondaryText}>{t('hydroScan2.smartCapture.upload_library')}</Text>
         </Pressable>
       </View>
     </View>
@@ -302,6 +304,7 @@ function PreviewStage(props: {
   onRetake: () => void;
   onAnalyze: () => void;
 }) {
+  const { t } = useTranslation();
   const { localUri, accentColor, onRetake, onAnalyze } = props;
   return (
     <View style={{ gap: 12 }}>
@@ -312,7 +315,7 @@ function PreviewStage(props: {
           style={({ pressed }) => [styles.ctaSecondary, { flex: 1 }, pressed && { opacity: 0.85 }]}
         >
           <Icon name="refresh-cw" size={14} color={Colors.text.primary} />
-          <Text style={styles.ctaSecondaryText}>RETAKE</Text>
+          <Text style={styles.ctaSecondaryText}>{t('hydroScan2.smartCapture.retake')}</Text>
         </Pressable>
         <Pressable
           onPress={onAnalyze}
@@ -324,7 +327,7 @@ function PreviewStage(props: {
           testID="smart-capture-analyze"
         >
           <Icon name="zap" size={14} color={Colors.text.inverse} />
-          <Text style={styles.ctaPrimaryText}>ANALYZE</Text>
+          <Text style={styles.ctaPrimaryText}>{t('hydroScan2.smartCapture.analyze')}</Text>
         </Pressable>
       </View>
     </View>
@@ -332,14 +335,15 @@ function PreviewStage(props: {
 }
 
 function LoadingStage(props: { localUri: string; accentColor: string }) {
+  const { t } = useTranslation();
   const { localUri, accentColor } = props;
   return (
     <View style={{ gap: 14, alignItems: 'center' }}>
       <Image source={{ uri: localUri }} style={[styles.previewImage, { opacity: 0.4 }]} resizeMode="cover" />
       <ActivityIndicator size="small" color={accentColor} />
-      <Text style={styles.eyebrow}>ANALYZING…</Text>
+      <Text style={styles.eyebrow}>{t('hydroScan2.smartCapture.analyzing')}</Text>
       <Text style={[styles.bodyText, { textAlign: 'center' }]}>
-        Estimating hydration, recovery, stimulant, and acidic load.
+        {t('hydroScan2.smartCapture.loading_body')}
       </Text>
     </View>
   );
@@ -353,6 +357,7 @@ function ResultStage(props: {
   onRetake: () => void;
   onLog: () => void;
 }) {
+  const { t } = useTranslation();
   const { localUri, result, accentColor, personalization, onRetake, onLog } = props;
   const cat = DRINK_CATEGORIES[result.correctionRecommendation.drinkCategory];
 
@@ -365,7 +370,7 @@ function ResultStage(props: {
       <View style={styles.resultHeader}>
         <Image source={{ uri: localUri }} style={styles.resultThumb} resizeMode="cover" />
         <View style={{ flex: 1 }}>
-          <Text style={styles.eyebrow}>WE SEE</Text>
+          <Text style={styles.eyebrow}>{t('hydroScan2.smartCapture.we_see')}</Text>
           <Text style={styles.resultSummary} numberOfLines={2}>{result.itemSummary}</Text>
         </View>
       </View>
@@ -375,19 +380,22 @@ function ResultStage(props: {
       )}
 
       <View style={styles.loadsGrid}>
-        <LoadCard label="HYDRATION DEMAND" item={result.hydrationDemand} />
-        <LoadCard label="RECOVERY LOAD"    item={result.recoveryLoad} />
-        <LoadCard label="STIMULANT LOAD"   item={result.stimulantLoad} />
-        <LoadCard label="ACIDIC LOAD"      item={result.acidicLoad} />
+        <LoadCard label={t('hydroScan2.smartCapture.load_hydration')} item={result.hydrationDemand} />
+        <LoadCard label={t('hydroScan2.smartCapture.load_recovery')}  item={result.recoveryLoad} />
+        <LoadCard label={t('hydroScan2.smartCapture.load_stimulant')} item={result.stimulantLoad} />
+        <LoadCard label={t('hydroScan2.smartCapture.load_acidic')}    item={result.acidicLoad} />
       </View>
 
       <View style={[styles.correctionCard, { borderColor: accentColor }]}>
-        <Text style={[styles.eyebrow, { color: accentColor }]}>CORRECTION</Text>
+        <Text style={[styles.eyebrow, { color: accentColor }]}>{t('hydroScan2.smartCapture.correction')}</Text>
         <Text style={styles.correctionName}>
-          {cat?.label ?? 'Drink'} \u00b7 {result.correctionRecommendation.drinkName}
+          {cat?.label ?? t('hydroScan2.smartCapture.drink_fallback')} \u00b7 {result.correctionRecommendation.drinkName}
         </Text>
         <Text style={styles.correctionMeta}>
-          {result.correctionRecommendation.oz} oz \u00b7 {Math.round((cat?.hydrationCoefficient ?? 0.8) * 100)}% hydration credit
+          {t('hydroScan2.smartCapture.correction_meta', {
+            oz: result.correctionRecommendation.oz,
+            pct: Math.round((cat?.hydrationCoefficient ?? 0.8) * 100),
+          })}
         </Text>
         <Text style={styles.correctionRationale} numberOfLines={4}>
           {result.correctionRecommendation.rationale}
@@ -404,7 +412,7 @@ function ResultStage(props: {
         >
           <Icon name="check-circle" size={14} color={Colors.text.inverse} />
           <Text style={styles.ctaPrimaryText}>
-            LOG {result.correctionRecommendation.oz} OZ
+            {t('hydroScan2.smartCapture.log_oz', { oz: result.correctionRecommendation.oz })}
           </Text>
         </Pressable>
       </View>
@@ -414,13 +422,14 @@ function ResultStage(props: {
         style={({ pressed }) => [styles.ctaSecondary, pressed && { opacity: 0.85 }]}
       >
         <Icon name="refresh-cw" size={14} color={Colors.text.primary} />
-        <Text style={styles.ctaSecondaryText}>NEW CAPTURE</Text>
+        <Text style={styles.ctaSecondaryText}>{t('hydroScan2.smartCapture.new_capture')}</Text>
       </Pressable>
     </ScrollView>
   );
 }
 
 function ErrorStage(props: { message: string; accentColor: string; onRetry: () => void }) {
+  const { t } = useTranslation();
   const { message, accentColor, onRetry } = props;
   return (
     <View style={{ gap: 12 }}>
@@ -437,7 +446,7 @@ function ErrorStage(props: { message: string; accentColor: string; onRetry: () =
         ]}
       >
         <Icon name="refresh-cw" size={14} color={Colors.text.inverse} />
-        <Text style={styles.ctaPrimaryText}>TRY AGAIN</Text>
+        <Text style={styles.ctaPrimaryText}>{t('hydroScan2.smartCapture.try_again')}</Text>
       </Pressable>
     </View>
   );
@@ -449,13 +458,14 @@ function LoadCard(props: {
   label: string;
   item: { level: LoadLevel; score: number; note: string };
 }) {
+  const { t } = useTranslation();
   const { label, item } = props;
   const color = loadColor(item.level);
   return (
     <View style={[styles.loadCard, { borderColor: `${color}55` }]}>
       <View style={styles.loadRow}>
         <Text style={styles.loadLabel}>{label}</Text>
-        <Text style={[styles.loadLevel, { color }]}>{formatLevel(item.level)}</Text>
+        <Text style={[styles.loadLevel, { color }]}>{t(formatLevel(item.level))}</Text>
       </View>
       <View style={styles.loadBarTrack}>
         <View
@@ -472,10 +482,10 @@ function LoadCard(props: {
 
 function formatLevel(l: LoadLevel): string {
   switch (l) {
-    case 'low': return 'LOW';
-    case 'moderate': return 'MODERATE';
-    case 'high': return 'HIGH';
-    case 'very_high': return 'VERY HIGH';
+    case 'low': return 'hydroScan2.smartCapture.level_low';
+    case 'moderate': return 'hydroScan2.smartCapture.level_moderate';
+    case 'high': return 'hydroScan2.smartCapture.level_high';
+    case 'very_high': return 'hydroScan2.smartCapture.level_very_high';
   }
 }
 

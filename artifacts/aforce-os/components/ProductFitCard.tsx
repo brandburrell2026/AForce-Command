@@ -4,6 +4,7 @@
 
 import React from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { Colors } from '@/theme/colors';
 import type { ScanResult } from '@/types/scan';
 import { CommandConfidenceBadge } from '@/components/CommandConfidenceBadge';
@@ -23,20 +24,22 @@ interface Props {
 }
 
 interface Axis {
-  label: string;
+  /** hydroScan2.cards.* key suffix for the axis label (translated at render). */
+  labelKey: string;
+  /** hydroScan2.cards.* key suffix for the axis hint. */
+  hintKey: string;
   /** 0–100, higher = better. */
   value: number;
-  hint: string;
 }
 
 function axesFor(result: ScanResult): Axis[] {
   const p = result.product;
   return [
-    { label: 'Hydration speed',     value: p.hydrationSpeed,        hint: 'How fast the product reaches the bloodstream.' },
-    { label: 'Electrolyte density', value: p.electrolyteDensity,    hint: 'Sodium / potassium concentration per serving.' },
-    { label: 'Sugar load',          value: 100 - p.sugarLevel,      hint: 'Lower sugar = higher score.' },
-    { label: 'Recovery fit',        value: p.recoveryFit,           hint: 'Effectiveness for closing a deficit.' },
-    { label: 'Performance fit',     value: p.performanceFit,        hint: 'Effectiveness for sustaining output.' },
+    { labelKey: 'axis_hydration_speed', hintKey: 'axis_hydration_speed_hint', value: p.hydrationSpeed },
+    { labelKey: 'axis_electrolyte',     hintKey: 'axis_electrolyte_hint',     value: p.electrolyteDensity },
+    { labelKey: 'axis_sugar',           hintKey: 'axis_sugar_hint',           value: 100 - p.sugarLevel },
+    { labelKey: 'axis_recovery',        hintKey: 'axis_recovery_hint',        value: p.recoveryFit },
+    { labelKey: 'axis_performance',     hintKey: 'axis_performance_hint',     value: p.performanceFit },
   ];
 }
 
@@ -48,6 +51,7 @@ function colorFor(v: number): string {
 }
 
 export function ProductFitCard({ result, onConfidencePress }: Props) {
+  const { t } = useTranslation();
   const axes = axesFor(result);
   // Section 58 — surface the already-computed Command Confidence on the
   // HydroScan Performance Fit surface. Shows when the shared §58 display flag is
@@ -60,7 +64,7 @@ export function ProductFitCard({ result, onConfidencePress }: Props) {
   return (
     <View style={styles.card}>
       <View style={styles.header}>
-        <Text style={styles.title}>Product Profile</Text>
+        <Text style={styles.title}>{t('hydroScan2.cards.product_profile')}</Text>
         {showConfidence ? (
           confidenceTappable ? (
             <Pressable
@@ -70,7 +74,7 @@ export function ProductFitCard({ result, onConfidencePress }: Props) {
               // tap has affordance/confirmation (matches the primary CTA pattern).
               hitSlop={{ top: 14, bottom: 14, left: 12, right: 12 }}
               accessibilityRole="button"
-              accessibilityHint="Shows the data behind this confidence read"
+              accessibilityHint={t('hydroScan2.cards.confidence_hint')}
               style={({ pressed }) => (pressed ? styles.confidencePressed : undefined)}
             >
               <CommandConfidenceBadge level={confidence} />
@@ -86,15 +90,15 @@ export function ProductFitCard({ result, onConfidencePress }: Props) {
         {axes.map((a) => {
           const color = colorFor(a.value);
           return (
-            <View key={a.label} style={styles.axisRow}>
+            <View key={a.labelKey} style={styles.axisRow}>
               <View style={styles.axisHead}>
-                <Text style={styles.axisLabel}>{a.label}</Text>
+                <Text style={styles.axisLabel}>{t(`hydroScan2.cards.${a.labelKey}`)}</Text>
                 <Text style={[styles.axisValue, { color }]}>{a.value}</Text>
               </View>
               <View style={styles.barTrack}>
                 <View style={[styles.barFill, { width: `${Math.max(2, a.value)}%`, backgroundColor: color }]} />
               </View>
-              <Text style={styles.axisHint}>{a.hint}</Text>
+              <Text style={styles.axisHint}>{t(`hydroScan2.cards.${a.hintKey}`)}</Text>
             </View>
           );
         })}

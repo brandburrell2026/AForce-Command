@@ -5,6 +5,7 @@
 
 import React from 'react';
 import { View, Text, StyleSheet, Pressable, Platform } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import * as Haptics from 'expo-haptics';
 import { Icon } from './Icon';
 
@@ -19,6 +20,7 @@ interface Props {
 }
 
 export function AForceReplacementCard({ result, onTakeAction, isLogging }: Props) {
+  const { t } = useTranslation();
   const replacementId = result.recommendation.aforceEquivalentId;
   if (!replacementId) return null;
   const product = COMPARE_PRODUCTS.find((p) => p.id === replacementId);
@@ -31,7 +33,7 @@ export function AForceReplacementCard({ result, onTakeAction, isLogging }: Props
       <View style={styles.headerRow}>
         <View style={[styles.badge, { backgroundColor: `${accent}1A`, borderColor: `${accent}66` }]}>
           <Icon name="zap" size={11} color={accent} />
-          <Text style={[styles.badgeText, { color: accent }]}>BEST AFORCE REPLACEMENT</Text>
+          <Text style={[styles.badgeText, { color: accent }]}>{t('hydroScan2.cards.replacement_badge')}</Text>
         </View>
       </View>
 
@@ -51,7 +53,7 @@ export function AForceReplacementCard({ result, onTakeAction, isLogging }: Props
       >
         <Icon name="arrow-right-circle" size={16} color={accent} />
         <Text style={[styles.ctaText, { color: accent }]} numberOfLines={2}>
-          {isLogging ? 'LOGGING…' : result.recommendation.command.toUpperCase()}
+          {isLogging ? t('hydroScan2.cards.logging') : result.recommendation.command.toUpperCase()}
         </Text>
       </Pressable>
     </View>
