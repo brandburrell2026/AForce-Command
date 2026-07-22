@@ -420,7 +420,12 @@ export function AIVideoPlayer({ video, command, compact = true, timerSeconds, sc
               {liveActive ? <View style={[styles.liveDot, { backgroundColor: accent }]} /> : null}
               <Text style={[styles.eyebrow, { color: accent }]}>{liveActive ? 'RECOVERY COACH · LIVE' : 'RECOVERY COACH'}</Text>
               <View style={{ flex: 1 }} />
-              <TouchableOpacity onPress={handleCollapse} hitSlop={12}>
+              <TouchableOpacity
+                onPress={handleCollapse}
+                hitSlop={12}
+                accessibilityRole="button"
+                accessibilityLabel="Close"
+              >
                 <Icon name="x" size={22} color={Colors.text.primary} />
               </TouchableOpacity>
             </View>

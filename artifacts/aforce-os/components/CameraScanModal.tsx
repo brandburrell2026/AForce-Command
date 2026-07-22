@@ -159,7 +159,7 @@ function CameraScanBody({
       </View>
 
       <View style={styles.topBar}>
-        <Pressable onPress={onClose} hitSlop={12} style={styles.iconBtn}>
+        <Pressable onPress={onClose} hitSlop={12} style={styles.iconBtn} accessibilityRole="button" accessibilityLabel="Close scanner">
           <Icon name="x" size={22} color={Colors.text.primary} />
         </Pressable>
         <Text style={styles.topBarTitle}>AFORCE HYDROSCAN</Text>

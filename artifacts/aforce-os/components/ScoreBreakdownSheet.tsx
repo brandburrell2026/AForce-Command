@@ -81,7 +81,7 @@ export function ScoreBreakdownSheet({ visible, onDismiss, score, contributions, 
               </View>
             </View>
           </View>
-          <Pressable hitSlop={12} onPress={onDismiss} style={styles.closeBtn}>
+          <Pressable hitSlop={12} onPress={onDismiss} style={styles.closeBtn} accessibilityRole="button" accessibilityLabel="Close">
             <Icon name="x" size={18} color={Colors.text.secondary} />
           </Pressable>
         </View>
