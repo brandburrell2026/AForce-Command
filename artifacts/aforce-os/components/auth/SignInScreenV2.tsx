@@ -19,6 +19,7 @@ import {
 import { useSSO } from '@clerk/expo';
 import { useSignIn } from '@clerk/expo/legacy';
 import { Link, useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import * as AuthSession from 'expo-auth-session';
 import * as WebBrowser from 'expo-web-browser';
 import { GradientBackground } from '@/components/GradientBackground';
@@ -30,6 +31,7 @@ import { extractClerkError } from '@/utils/clerkErrors';
 WebBrowser.maybeCompleteAuthSession();
 
 export function SignInScreenV2() {
+  const { t } = useTranslation();
   const { isLoaded, signIn, setActive } = useSignIn();
   const { startSSOFlow } = useSSO();
   const router = useRouter();
@@ -55,7 +57,7 @@ export function SignInScreenV2() {
         router.replace('/(tabs)');
       }
     } catch (err) {
-      setSubmitError(err instanceof Error ? err.message : 'Google sign-in failed.');
+      setSubmitError(err instanceof Error ? err.message : t('auth.v2.signin_err_google'));
     } finally {
       setOauthBusy(false);
     }
@@ -76,12 +78,12 @@ export function SignInScreenV2() {
       } else {
         // Multi-factor or other intermediate states; surface a clear
         // message rather than silently stalling.
-        setSubmitError(`Additional verification required (${attempt.status}).`);
+        setSubmitError(t('auth.v2.signin_err_mfa', { status: attempt.status }));
       }
     } catch (err: unknown) {
       // Clerk throws a structured error with a `errors[]` array; pull
       // the first user-facing message when available.
-      const message = extractClerkError(err) ?? 'Sign-in failed. Please check your credentials.';
+      const message = extractClerkError(err) ?? t('auth.v2.signin_err_fallback');
       setSubmitError(message);
     } finally {
       setSubmitting(false);
@@ -97,11 +99,11 @@ export function SignInScreenV2() {
         style={styles.flex}
       >
         <View style={styles.container}>
-          <Text style={styles.eyebrow}>AFORCE OS</Text>
-          <Text style={styles.title}>Welcome back</Text>
-          <Text style={styles.subtitle}>Sign in to your performance OS.</Text>
+          <Text style={styles.eyebrow}>{t('auth.v2.eyebrow')}</Text>
+          <Text style={styles.title}>{t('auth.v2.signin_title')}</Text>
+          <Text style={styles.subtitle}>{t('auth.v2.signin_subtitle')}</Text>
 
-          <Text style={styles.label}>Email</Text>
+          <Text style={styles.label}>{t('auth.v2.label_email')}</Text>
           <TextInput
             style={styles.input}
             value={emailAddress}
@@ -109,12 +111,12 @@ export function SignInScreenV2() {
             autoCapitalize="none"
             autoCorrect={false}
             keyboardType="email-address"
-            placeholder="you@example.com"
+            placeholder={t('auth.v2.placeholder_email')}
             placeholderTextColor={af.textTertiary}
-            accessibilityLabel="Email address"
+            accessibilityLabel={t('auth.v2.a11y_email')}
           />
 
-          <Text style={styles.label}>Password</Text>
+          <Text style={styles.label}>{t('auth.v2.label_password')}</Text>
           <TextInput
             style={styles.input}
             value={password}
@@ -122,7 +124,7 @@ export function SignInScreenV2() {
             secureTextEntry
             placeholder="••••••••"
             placeholderTextColor={af.textTertiary}
-            accessibilityLabel="Password"
+            accessibilityLabel={t('auth.v2.a11y_password')}
           />
           {submitError && <Text style={styles.error}>{submitError}</Text>}
 
@@ -135,16 +137,16 @@ export function SignInScreenV2() {
               pressed && styles.buttonPressed,
             ]}
             accessibilityRole="button"
-            accessibilityLabel="Sign in"
+            accessibilityLabel={t('auth.v2.signin_a11y')}
           >
             <Text style={styles.buttonText}>
-              {submitting ? 'Signing in…' : 'Sign in'}
+              {submitting ? t('auth.v2.signin_submitting') : t('auth.v2.signin_submit')}
             </Text>
           </Pressable>
 
           <View style={styles.dividerRow}>
             <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>or</Text>
+            <Text style={styles.dividerText}>{t('auth.v2.or')}</Text>
             <View style={styles.dividerLine} />
           </View>
 
@@ -157,28 +159,28 @@ export function SignInScreenV2() {
               pressed && styles.buttonPressed,
             ]}
             accessibilityRole="button"
-            accessibilityLabel="Continue with Google"
+            accessibilityLabel={t('auth.v2.continue_google')}
           >
             <Text style={styles.oauthButtonText}>
-              {oauthBusy ? 'Connecting…' : 'Continue with Google'}
+              {oauthBusy ? t('auth.v2.connecting') : t('auth.v2.continue_google')}
             </Text>
           </Pressable>
 
           <View style={styles.linkRow}>
-            <Text style={styles.linkText}>New here? </Text>
+            <Text style={styles.linkText}>{t('auth.v2.signin_new_here')}</Text>
             <Link href="/(auth)/sign-up" replace>
-              <Text style={styles.link}>Create an account</Text>
+              <Text style={styles.link}>{t('auth.v2.signin_create')}</Text>
             </Link>
           </View>
 
           <Text style={styles.acknowledgment}>
-            By signing in you agree to our{' '}
-            <Link href="/legal/terms"><Text style={styles.acknowledgmentLink}>Terms</Text></Link>
-            ,{' '}
-            <Link href="/legal/privacy"><Text style={styles.acknowledgmentLink}>Privacy Policy</Text></Link>
-            , and{' '}
-            <Link href="/legal/health-disclaimer"><Text style={styles.acknowledgmentLink}>Health Disclaimer</Text></Link>
-            .
+            {t('auth.v2.ack_prefix_signin')}
+            <Link href="/legal/terms"><Text style={styles.acknowledgmentLink}>{t('auth.v2.ack_terms')}</Text></Link>
+            {t('auth.v2.ack_sep_comma')}
+            <Link href="/legal/privacy"><Text style={styles.acknowledgmentLink}>{t('auth.v2.ack_privacy')}</Text></Link>
+            {t('auth.v2.ack_sep_and')}
+            <Link href="/legal/health-disclaimer"><Text style={styles.acknowledgmentLink}>{t('auth.v2.ack_health')}</Text></Link>
+            {t('auth.v2.ack_suffix_signin')}
           </Text>
         </View>
       </KeyboardAvoidingView>

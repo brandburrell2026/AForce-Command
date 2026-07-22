@@ -41,6 +41,7 @@ import { router } from 'expo-router';
 import { recordOnboardingCompleted } from '@/services/analytics';
 import { emit } from '@/analytics/event_dispatcher';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Pressable,
   StyleSheet,
@@ -96,26 +97,26 @@ const PROMISE_STEPS: Step[] = ['promise1', 'promise2', 'promise3'];
 const INPUT_STEPS: Step[] = ['goal', 'activity', 'profile', 'lifestyle'];
 
 interface PromiseScreen {
-  eyebrow: string;
-  title: string;
-  body: string;
+  eyebrowKey: string;
+  titleKey: string;
+  bodyKey: string;
 }
 
 const PROMISE_SCREENS: readonly PromiseScreen[] = [
   {
-    eyebrow: '01 — 03',
-    title: 'Know when your body is ready.',
-    body: 'AForce turns hydration, recovery, and environment into one clear readiness signal.',
+    eyebrowKey: 'promise_1_eyebrow',
+    titleKey: 'promise_1_title',
+    bodyKey: 'promise_1_body',
   },
   {
-    eyebrow: '02 — 03',
-    title: 'Hydrate before performance drops.',
-    body: 'Get one command at the right time — water first, support second.',
+    eyebrowKey: 'promise_2_eyebrow',
+    titleKey: 'promise_2_title',
+    bodyKey: 'promise_2_body',
   },
   {
-    eyebrow: '03 — 03',
-    title: 'Lock in your daily command.',
-    body: 'Follow the command, log the action, and watch your readiness respond.',
+    eyebrowKey: 'promise_3_eyebrow',
+    titleKey: 'promise_3_title',
+    bodyKey: 'promise_3_body',
   },
 ] as const;
 
@@ -125,8 +126,8 @@ const AGE_MAX = 100;
 
 interface GoalOption {
   goal: PrimaryGoal;
-  title: string;
-  subtitle: string;
+  titleKey: string;
+  subKey: string;
 }
 
 // Section 19 Primary Goal (the §19 canonical 7-value objective). Replaces the
@@ -134,34 +135,34 @@ interface GoalOption {
 // mapping. recoveryGoal is retained only as a display fallback (no engine
 // consumes it) — see docs / profileIdentity.ts.
 const GOAL_OPTIONS: readonly GoalOption[] = [
-  { goal: 'Fat Loss', title: 'Fat Loss', subtitle: 'Lean out while staying fueled' },
-  { goal: 'Lean Performance', title: 'Lean Performance', subtitle: 'Stay lean and perform at your limit' },
-  { goal: 'Strength & Muscle', title: 'Strength & Muscle', subtitle: 'Build size and power' },
-  { goal: 'Performance Maintenance', title: 'Performance Maintenance', subtitle: 'Hold your current level' },
-  { goal: 'Endurance', title: 'Endurance', subtitle: 'Sustained energy for long efforts' },
-  { goal: 'Recovery Optimization', title: 'Recovery Optimization', subtitle: 'Bounce back between sessions' },
-  { goal: 'Everyday Energy', title: 'Everyday Energy', subtitle: 'Stay sharp through everyday demands' },
+  { goal: 'Fat Loss', titleKey: 'goal_fatloss_title', subKey: 'goal_fatloss_sub' },
+  { goal: 'Lean Performance', titleKey: 'goal_lean_title', subKey: 'goal_lean_sub' },
+  { goal: 'Strength & Muscle', titleKey: 'goal_strength_title', subKey: 'goal_strength_sub' },
+  { goal: 'Performance Maintenance', titleKey: 'goal_maintenance_title', subKey: 'goal_maintenance_sub' },
+  { goal: 'Endurance', titleKey: 'goal_endurance_title', subKey: 'goal_endurance_sub' },
+  { goal: 'Recovery Optimization', titleKey: 'goal_recovery_title', subKey: 'goal_recovery_sub' },
+  { goal: 'Everyday Energy', titleKey: 'goal_everyday_title', subKey: 'goal_everyday_sub' },
 ] as const;
 
 interface ActivityOption {
   value: number;
-  title: string;
-  subtitle: string;
+  titleKey: string;
+  subKey: string;
 }
 
 const ACTIVITY_OPTIONS: readonly ActivityOption[] = [
-  { value: 2, title: 'Mostly Sedentary', subtitle: 'Desk-bound, little exercise' },
-  { value: 4, title: 'Lightly Active', subtitle: 'Walks, light workouts weekly' },
-  { value: 6, title: 'Moderately Active', subtitle: 'Train a few times a week' },
-  { value: 8, title: 'Very Active', subtitle: 'Daily training or labor' },
-  { value: ACTIVITY_LEVEL_MAX, title: 'Athlete / Pro', subtitle: 'High-volume competitive load' },
+  { value: 2, titleKey: 'activity_sedentary_title', subKey: 'activity_sedentary_sub' },
+  { value: 4, titleKey: 'activity_light_title', subKey: 'activity_light_sub' },
+  { value: 6, titleKey: 'activity_moderate_title', subKey: 'activity_moderate_sub' },
+  { value: 8, titleKey: 'activity_very_title', subKey: 'activity_very_sub' },
+  { value: ACTIVITY_LEVEL_MAX, titleKey: 'activity_athlete_title', subKey: 'activity_athlete_sub' },
 ] as const;
 
-const SEX_OPTIONS: readonly { value: BiologicalSex; label: string }[] = [
-  { value: 'male', label: 'Male' },
-  { value: 'female', label: 'Female' },
-  { value: 'non-binary', label: 'Non-Binary' },
-  { value: 'unspecified', label: 'Prefer not to say' },
+const SEX_OPTIONS: readonly { value: BiologicalSex; labelKey: string }[] = [
+  { value: 'male', labelKey: 'sex_male' },
+  { value: 'female', labelKey: 'sex_female' },
+  { value: 'non-binary', labelKey: 'sex_nonbinary' },
+  { value: 'unspecified', labelKey: 'sex_prefer' },
 ] as const;
 
 // Caffeine is REQUIRED to advance the lifestyle step — `unspecified` is
@@ -169,31 +170,31 @@ const SEX_OPTIONS: readonly { value: BiologicalSex; label: string }[] = [
 // the user skips the whole wizard).
 interface CaffeineOption {
   value: Exclude<CaffeineHabit, 'unspecified'>;
-  title: string;
-  subtitle: string;
+  titleKey: string;
+  subKey: string;
 }
 
 const CAFFEINE_OPTIONS: readonly CaffeineOption[] = [
-  { value: 'none', title: 'None', subtitle: 'No coffee, tea, or energy drinks' },
-  { value: 'low', title: 'Light', subtitle: 'About a cup a day' },
-  { value: 'moderate', title: 'Moderate', subtitle: '2–3 cups a day' },
-  { value: 'high', title: 'Heavy', subtitle: '4+ cups a day' },
+  { value: 'none', titleKey: 'caffeine_none_title', subKey: 'caffeine_none_sub' },
+  { value: 'low', titleKey: 'caffeine_light_title', subKey: 'caffeine_light_sub' },
+  { value: 'moderate', titleKey: 'caffeine_moderate_title', subKey: 'caffeine_moderate_sub' },
+  { value: 'high', titleKey: 'caffeine_heavy_title', subKey: 'caffeine_heavy_sub' },
 ] as const;
 
 const OCCUPATION_OPTIONS: readonly {
   value: Exclude<OccupationType, 'unspecified'>;
-  label: string;
+  labelKey: string;
 }[] = [
-  { value: 'desk', label: 'Desk / Office' },
-  { value: 'active', label: 'On My Feet' },
-  { value: 'outdoor', label: 'Outdoor / Heat' },
-  { value: 'shift', label: 'Shift / Irregular' },
-  { value: 'other', label: 'Other' },
+  { value: 'desk', labelKey: 'occ_desk' },
+  { value: 'active', labelKey: 'occ_feet' },
+  { value: 'outdoor', labelKey: 'occ_outdoor' },
+  { value: 'shift', labelKey: 'occ_shift' },
+  { value: 'other', labelKey: 'occ_other' },
 ] as const;
 
-const SYSTEM_OPTIONS: readonly { value: MeasurementSystem; label: string }[] = [
-  { value: 'imperial', label: 'Imperial' },
-  { value: 'metric', label: 'Metric' },
+const SYSTEM_OPTIONS: readonly { value: MeasurementSystem; labelKey: string }[] = [
+  { value: 'imperial', labelKey: 'sys_imperial' },
+  { value: 'metric', labelKey: 'sys_metric' },
 ] as const;
 
 function parseInRange(text: string, min: number, max: number): number | null {
@@ -203,6 +204,7 @@ function parseInRange(text: string, min: number, max: number): number | null {
 }
 
 export function OnboardingScreenV2() {
+  const { t } = useTranslation();
   const { setProfileIdentity, setUnitPreference, unitPreferences } = useAppStore();
   const currentIdentity = useProfileIdentitySlice();
 
@@ -371,7 +373,7 @@ export function OnboardingScreenV2() {
             hitSlop={12}
             disabled={step === 'promise1'}
             accessibilityRole="button"
-            accessibilityLabel="Back"
+            accessibilityLabel={t('onboarding.v2.back_a11y')}
             style={styles.headerBtn}
           >
             {step !== 'promise1' && step !== 'ready' ? (
@@ -408,10 +410,10 @@ export function OnboardingScreenV2() {
             }}
             hitSlop={12}
             accessibilityRole="button"
-            accessibilityLabel="Skip setup"
+            accessibilityLabel={t('onboarding.v2.skip_a11y')}
             style={styles.headerBtn}
           >
-            {step !== 'ready' ? <Text style={styles.skip}>SKIP</Text> : null}
+            {step !== 'ready' ? <Text style={styles.skip}>{t('onboarding.v2.skip')}</Text> : null}
           </Pressable>
         </View>
 
@@ -425,23 +427,23 @@ export function OnboardingScreenV2() {
           {promiseIndex >= 0 && (
             <View style={styles.promiseWrap}>
               <Text style={styles.promiseEyebrow}>
-                {PROMISE_SCREENS[promiseIndex].eyebrow}
+                {t(`onboarding.v2.${PROMISE_SCREENS[promiseIndex].eyebrowKey}`)}
               </Text>
               <Text style={styles.promiseTitle}>
-                {PROMISE_SCREENS[promiseIndex].title}
+                {t(`onboarding.v2.${PROMISE_SCREENS[promiseIndex].titleKey}`)}
               </Text>
               <Text style={styles.promiseBody}>
-                {PROMISE_SCREENS[promiseIndex].body}
+                {t(`onboarding.v2.${PROMISE_SCREENS[promiseIndex].bodyKey}`)}
               </Text>
             </View>
           )}
 
           {step === 'goal' && (
             <>
-              <Text style={styles.kicker}>STEP 1 · YOUR GOAL</Text>
-              <Text style={styles.title}>What are you{'\n'}optimizing for?</Text>
+              <Text style={styles.kicker}>{t('onboarding.v2.goal_kicker')}</Text>
+              <Text style={styles.title}>{t('onboarding.v2.goal_title')}</Text>
               <Text style={styles.lede}>
-                We tune your hydration intelligence around this.
+                {t('onboarding.v2.goal_lede')}
               </Text>
               <View style={styles.list}>
                 {GOAL_OPTIONS.map((opt) => {
@@ -456,13 +458,13 @@ export function OnboardingScreenV2() {
                       style={[styles.card, selected && styles.cardSelected]}
                       accessibilityRole="button"
                       accessibilityState={{ selected }}
-                      accessibilityLabel={opt.title}
+                      accessibilityLabel={t(`onboarding.v2.${opt.titleKey}`)}
                     >
                       <View style={styles.cardText}>
                         <Text style={[styles.cardTitle, selected && styles.cardTitleSelected]}>
-                          {opt.title}
+                          {t(`onboarding.v2.${opt.titleKey}`)}
                         </Text>
-                        <Text style={styles.cardSubtitle}>{opt.subtitle}</Text>
+                        <Text style={styles.cardSubtitle}>{t(`onboarding.v2.${opt.subKey}`)}</Text>
                       </View>
                       {selected ? (
                         <Icon name="check-circle" size={22} color={af.red} />
@@ -478,10 +480,10 @@ export function OnboardingScreenV2() {
 
           {step === 'activity' && (
             <>
-              <Text style={styles.kicker}>STEP 2 · ACTIVITY</Text>
-              <Text style={styles.title}>How active{'\n'}are you?</Text>
+              <Text style={styles.kicker}>{t('onboarding.v2.activity_kicker')}</Text>
+              <Text style={styles.title}>{t('onboarding.v2.activity_title')}</Text>
               <Text style={styles.lede}>
-                Sets your baseline fluid demand. You can change it later.
+                {t('onboarding.v2.activity_lede')}
               </Text>
               <View style={styles.list}>
                 {ACTIVITY_OPTIONS.map((opt) => {
@@ -496,13 +498,13 @@ export function OnboardingScreenV2() {
                       style={[styles.card, selected && styles.cardSelected]}
                       accessibilityRole="button"
                       accessibilityState={{ selected }}
-                      accessibilityLabel={opt.title}
+                      accessibilityLabel={t(`onboarding.v2.${opt.titleKey}`)}
                     >
                       <View style={styles.cardText}>
                         <Text style={[styles.cardTitle, selected && styles.cardTitleSelected]}>
-                          {opt.title}
+                          {t(`onboarding.v2.${opt.titleKey}`)}
                         </Text>
-                        <Text style={styles.cardSubtitle}>{opt.subtitle}</Text>
+                        <Text style={styles.cardSubtitle}>{t(`onboarding.v2.${opt.subKey}`)}</Text>
                       </View>
                       {selected ? (
                         <Icon name="check-circle" size={22} color={af.red} />
@@ -518,14 +520,14 @@ export function OnboardingScreenV2() {
 
           {step === 'profile' && (
             <>
-              <Text style={styles.kicker}>STEP 3 · PROFILE</Text>
-              <Text style={styles.title}>A few body{'\n'}basics</Text>
+              <Text style={styles.kicker}>{t('onboarding.v2.profile_kicker')}</Text>
+              <Text style={styles.title}>{t('onboarding.v2.profile_title')}</Text>
               <Text style={styles.lede}>
-                Optional, but sharpens every recommendation.
+                {t('onboarding.v2.profile_lede')}
               </Text>
 
               <View style={styles.field}>
-                <Text style={styles.fieldLabel}>UNITS</Text>
+                <Text style={styles.fieldLabel}>{t('onboarding.v2.field_units')}</Text>
                 <View style={styles.segment}>
                   {SYSTEM_OPTIONS.map((opt) => {
                     const selected = system === opt.value;
@@ -536,7 +538,7 @@ export function OnboardingScreenV2() {
                         style={[styles.segmentItem, selected && styles.segmentItemSelected]}
                         accessibilityRole="button"
                         accessibilityState={{ selected }}
-                        accessibilityLabel={`${opt.label} units`}
+                        accessibilityLabel={t('onboarding.v2.units_a11y', { unit: t(`onboarding.v2.${opt.labelKey}`) })}
                       >
                         <Text
                           style={[
@@ -544,7 +546,7 @@ export function OnboardingScreenV2() {
                             selected && styles.segmentLabelSelected,
                           ]}
                         >
-                          {opt.label}
+                          {t(`onboarding.v2.${opt.labelKey}`)}
                         </Text>
                       </Pressable>
                     );
@@ -559,16 +561,16 @@ export function OnboardingScreenV2() {
               />
 
               <View style={styles.field}>
-                <Text style={styles.fieldLabel}>AGE</Text>
+                <Text style={styles.fieldLabel}>{t('onboarding.v2.field_age')}</Text>
                 <TextInput
                   value={ageText}
                   onChangeText={setAgeText}
                   keyboardType="number-pad"
-                  placeholder="e.g. 32"
+                  placeholder={t('onboarding.v2.placeholder_age')}
                   placeholderTextColor={af.textDisabled}
                   style={styles.input}
                   maxLength={3}
-                  accessibilityLabel="Age in years"
+                  accessibilityLabel={t('onboarding.v2.a11y_age')}
                 />
               </View>
 
@@ -579,7 +581,7 @@ export function OnboardingScreenV2() {
               />
 
               <View style={styles.field}>
-                <Text style={styles.fieldLabel}>BIOLOGICAL SEX</Text>
+                <Text style={styles.fieldLabel}>{t('onboarding.v2.field_sex')}</Text>
                 <View style={styles.segment}>
                   {SEX_OPTIONS.map((opt) => {
                     const selected = sex === opt.value;
@@ -593,7 +595,7 @@ export function OnboardingScreenV2() {
                         style={[styles.segmentItem, selected && styles.segmentItemSelected]}
                         accessibilityRole="button"
                         accessibilityState={{ selected }}
-                        accessibilityLabel={opt.label}
+                        accessibilityLabel={t(`onboarding.v2.${opt.labelKey}`)}
                       >
                         <Text
                           style={[
@@ -601,7 +603,7 @@ export function OnboardingScreenV2() {
                             selected && styles.segmentLabelSelected,
                           ]}
                         >
-                          {opt.label}
+                          {t(`onboarding.v2.${opt.labelKey}`)}
                         </Text>
                       </Pressable>
                     );
@@ -610,7 +612,7 @@ export function OnboardingScreenV2() {
               </View>
 
               <View style={styles.field}>
-                <Text style={styles.fieldLabel}>TRAINING LEVEL</Text>
+                <Text style={styles.fieldLabel}>{t('onboarding.v2.field_training')}</Text>
                 <View style={styles.segment}>
                   {TRAINING_LEVELS.map((level) => {
                     const selected = trainingLevel === level;
@@ -624,7 +626,7 @@ export function OnboardingScreenV2() {
                         style={[styles.segmentItem, selected && styles.segmentItemSelected]}
                         accessibilityRole="button"
                         accessibilityState={{ selected }}
-                        accessibilityLabel={`Training level ${level}`}
+                        accessibilityLabel={t('onboarding.v2.training_a11y', { level })}
                       >
                         <Text
                           style={[styles.segmentLabel, selected && styles.segmentLabelSelected]}
@@ -638,13 +640,13 @@ export function OnboardingScreenV2() {
               </View>
 
               <View style={styles.field}>
-                <Text style={styles.fieldLabel}>TYPICAL SWEAT LEVEL</Text>
+                <Text style={styles.fieldLabel}>{t('onboarding.v2.field_sweat')}</Text>
                 <View style={styles.segment}>
                   {SWEAT_CLASSIFICATIONS.map((level) => {
                     const selected = sweatClass === level;
                     const label =
                       level === 'very_heavy'
-                        ? 'Very Heavy'
+                        ? t('onboarding.v2.sweat_very_heavy')
                         : level.charAt(0).toUpperCase() + level.slice(1);
                     return (
                       <Pressable
@@ -656,7 +658,7 @@ export function OnboardingScreenV2() {
                         style={[styles.segmentItem, selected && styles.segmentItemSelected]}
                         accessibilityRole="button"
                         accessibilityState={{ selected }}
-                        accessibilityLabel={`Typical sweat level ${label}`}
+                        accessibilityLabel={t('onboarding.v2.sweat_a11y', { label })}
                       >
                         <Text
                           style={[styles.segmentLabel, selected && styles.segmentLabelSelected]}
@@ -672,21 +674,21 @@ export function OnboardingScreenV2() {
               <WeightField
                 bodyWeightLbs={goalWeightLbs}
                 unit={system === 'metric' ? 'kg' : 'lbs'}
-                label={`GOAL WEIGHT (${system === 'metric' ? 'KG' : 'LBS'}, OPTIONAL)`}
+                label={t('onboarding.v2.goal_weight_label', { unit: system === 'metric' ? t('onboarding.v2.unit_kg') : t('onboarding.v2.unit_lbs') })}
                 onChange={setGoalWeightLbs}
               />
 
               <View style={styles.field}>
-                <Text style={styles.fieldLabel}>TYPICAL WORKOUT DURATION (MIN, OPTIONAL)</Text>
+                <Text style={styles.fieldLabel}>{t('onboarding.v2.field_workout')}</Text>
                 <TextInput
                   value={workoutText}
-                  onChangeText={(t) => setWorkoutText(t.replace(/[^0-9]/g, ''))}
+                  onChangeText={(value) => setWorkoutText(value.replace(/[^0-9]/g, ''))}
                   keyboardType="number-pad"
-                  placeholder="e.g. 60"
+                  placeholder={t('onboarding.v2.placeholder_workout')}
                   placeholderTextColor={af.textDisabled}
                   style={styles.input}
                   maxLength={3}
-                  accessibilityLabel="Typical workout duration in minutes"
+                  accessibilityLabel={t('onboarding.v2.a11y_workout')}
                 />
               </View>
             </>
@@ -694,14 +696,14 @@ export function OnboardingScreenV2() {
 
           {step === 'lifestyle' && (
             <>
-              <Text style={styles.kicker}>STEP 4 · LIFESTYLE</Text>
-              <Text style={styles.title}>Your daily{'\n'}rhythm</Text>
+              <Text style={styles.kicker}>{t('onboarding.v2.lifestyle_kicker')}</Text>
+              <Text style={styles.title}>{t('onboarding.v2.lifestyle_title')}</Text>
               <Text style={styles.lede}>
-                Caffeine and your day shape how fast you lose water.
+                {t('onboarding.v2.lifestyle_lede')}
               </Text>
 
               <View style={styles.field}>
-                <Text style={styles.fieldLabel}>DAILY CAFFEINE</Text>
+                <Text style={styles.fieldLabel}>{t('onboarding.v2.field_caffeine')}</Text>
                 <View style={styles.list}>
                   {CAFFEINE_OPTIONS.map((opt) => {
                     const selected = caffeine === opt.value;
@@ -715,13 +717,13 @@ export function OnboardingScreenV2() {
                         style={[styles.card, selected && styles.cardSelected]}
                         accessibilityRole="button"
                         accessibilityState={{ selected }}
-                        accessibilityLabel={opt.title}
+                        accessibilityLabel={t(`onboarding.v2.${opt.titleKey}`)}
                       >
                         <View style={styles.cardText}>
                           <Text style={[styles.cardTitle, selected && styles.cardTitleSelected]}>
-                            {opt.title}
+                            {t(`onboarding.v2.${opt.titleKey}`)}
                           </Text>
-                          <Text style={styles.cardSubtitle}>{opt.subtitle}</Text>
+                          <Text style={styles.cardSubtitle}>{t(`onboarding.v2.${opt.subKey}`)}</Text>
                         </View>
                         {selected ? (
                           <Icon name="check-circle" size={22} color={af.red} />
@@ -736,7 +738,7 @@ export function OnboardingScreenV2() {
 
               <View style={styles.field}>
                 <Text style={styles.fieldLabel}>
-                  WORK ENVIRONMENT <Text style={styles.optionalTag}>· OPTIONAL</Text>
+                  {t('onboarding.v2.field_work_env')}<Text style={styles.optionalTag}>{t('onboarding.v2.optional_tag')}</Text>
                 </Text>
                 <View style={styles.pillWrap}>
                   {OCCUPATION_OPTIONS.map((opt) => {
@@ -751,12 +753,12 @@ export function OnboardingScreenV2() {
                         style={[styles.pill, selected && styles.pillSelected]}
                         accessibilityRole="button"
                         accessibilityState={{ selected }}
-                        accessibilityLabel={opt.label}
+                        accessibilityLabel={t(`onboarding.v2.${opt.labelKey}`)}
                       >
                         <Text
                           style={[styles.pillLabel, selected && styles.pillLabelSelected]}
                         >
-                          {opt.label}
+                          {t(`onboarding.v2.${opt.labelKey}`)}
                         </Text>
                       </Pressable>
                     );
@@ -767,9 +769,9 @@ export function OnboardingScreenV2() {
               <View style={styles.field}>
                 <View style={styles.travelerRow}>
                   <View style={styles.travelerText}>
-                    <Text style={styles.travelerTitle}>Frequent Traveler</Text>
+                    <Text style={styles.travelerTitle}>{t('onboarding.v2.traveler_title')}</Text>
                     <Text style={styles.travelerSubtitle}>
-                      Flights and time-zone shifts dry you out faster.
+                      {t('onboarding.v2.traveler_sub')}
                     </Text>
                   </View>
                   <Switch
@@ -780,7 +782,7 @@ export function OnboardingScreenV2() {
                     }}
                     trackColor={{ true: af.red, false: af.surfaceRaised }}
                     thumbColor={af.textPrimary}
-                    accessibilityLabel="Frequent traveler"
+                    accessibilityLabel={t('onboarding.v2.traveler_a11y')}
                   />
                 </View>
               </View>
@@ -790,12 +792,11 @@ export function OnboardingScreenV2() {
           {step === 'ready' && (
             <View style={styles.ready}>
               <Icon name="check-circle" size={56} color={af.red} />
-              <Text style={styles.readyTitle}>You&apos;re set.</Text>
+              <Text style={styles.readyTitle}>{t('onboarding.v2.ready_title')}</Text>
               <Text style={styles.readyLede}>
-                Your first command is waiting. Start with water — lock in
-                your first cycle and watch your score respond.
+                {t('onboarding.v2.ready_lede')}
               </Text>
-              <Text style={styles.mantra}>PAUSE · HYDRATE · LOCK IN · PERFORM</Text>
+              <Text style={styles.mantra}>{t('onboarding.v2.mantra')}</Text>
             </View>
           )}
         </KeyboardAwareScrollViewCompat>
@@ -810,10 +811,10 @@ export function OnboardingScreenV2() {
               !canContinue && step !== 'ready' && styles.ctaDisabled,
             ]}
             accessibilityRole="button"
-            accessibilityLabel={step === 'ready' ? 'Enter AForce' : 'Continue'}
+            accessibilityLabel={step === 'ready' ? t('onboarding.v2.cta_enter_a11y') : t('onboarding.v2.cta_continue_a11y')}
           >
             <Text style={styles.ctaLabel}>
-              {step === 'ready' ? 'ENTER AFORCE' : 'CONTINUE'}
+              {step === 'ready' ? t('onboarding.v2.cta_enter') : t('onboarding.v2.cta_continue')}
             </Text>
             <Icon name="arrow-right" size={18} color={af.onRed} />
           </Pressable>

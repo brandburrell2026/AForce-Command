@@ -14,6 +14,7 @@ import {
 import { useSSO, useAuth } from '@clerk/expo';
 import { useSignUp } from '@clerk/expo/legacy';
 import { Link, useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import * as AuthSession from 'expo-auth-session';
 import * as WebBrowser from 'expo-web-browser';
 import { GradientBackground } from '@/components/GradientBackground';
@@ -26,6 +27,7 @@ import { claimReferral, setAuthTokenGetter } from '@workspace/api-client-react';
 WebBrowser.maybeCompleteAuthSession();
 
 export function SignUpScreenV2() {
+  const { t } = useTranslation();
   const { isLoaded, signUp, setActive } = useSignUp();
   const { startSSOFlow } = useSSO();
   const { getToken } = useAuth();
@@ -78,7 +80,7 @@ export function SignUpScreenV2() {
         router.replace('/(tabs)');
       }
     } catch (err) {
-      setSubmitError(err instanceof Error ? err.message : 'Google sign-up failed.');
+      setSubmitError(err instanceof Error ? err.message : t('auth.v2.signup_err_google'));
     } finally {
       setOauthBusy(false);
     }
@@ -97,7 +99,7 @@ export function SignUpScreenV2() {
       await signUp.prepareEmailAddressVerification({ strategy: 'email_code' });
       setPendingVerification(true);
     } catch (err: unknown) {
-      setSubmitError(extractClerkError(err) ?? 'Sign-up failed.');
+      setSubmitError(extractClerkError(err) ?? t('auth.v2.signup_err_start'));
     } finally {
       setSubmitting(false);
     }
@@ -114,10 +116,10 @@ export function SignUpScreenV2() {
         await tryClaimReferral();
         router.replace('/(tabs)');
       } else {
-        setSubmitError(`Verification incomplete (${attempt.status}).`);
+        setSubmitError(t('auth.v2.signup_err_verify_incomplete', { status: attempt.status }));
       }
     } catch (err: unknown) {
-      setSubmitError(extractClerkError(err) ?? 'Verification failed.');
+      setSubmitError(extractClerkError(err) ?? t('auth.v2.signup_err_verify_fallback'));
     } finally {
       setSubmitting(false);
     }
@@ -129,7 +131,7 @@ export function SignUpScreenV2() {
     try {
       await signUp.prepareEmailAddressVerification({ strategy: 'email_code' });
     } catch (err: unknown) {
-      setSubmitError(extractClerkError(err) ?? 'Could not resend code.');
+      setSubmitError(extractClerkError(err) ?? t('auth.v2.signup_err_resend'));
     }
   };
 
@@ -143,25 +145,25 @@ export function SignUpScreenV2() {
         style={styles.flex}
       >
         <View style={styles.container}>
-          <Text style={styles.eyebrow}>AFORCE OS</Text>
-          <Text style={styles.title}>{pendingVerification ? 'Verify your email' : 'Create account'}</Text>
+          <Text style={styles.eyebrow}>{t('auth.v2.eyebrow')}</Text>
+          <Text style={styles.title}>{pendingVerification ? t('auth.v2.signup_title_verify') : t('auth.v2.signup_title_create')}</Text>
           <Text style={styles.subtitle}>
             {pendingVerification
-              ? 'Enter the 6-digit code we just emailed you.'
-              : 'Real-time human performance OS.'}
+              ? t('auth.v2.signup_subtitle_verify')
+              : t('auth.v2.signup_subtitle_create')}
           </Text>
 
           {pendingVerification ? (
             <>
-              <Text style={styles.label}>Verification code</Text>
+              <Text style={styles.label}>{t('auth.v2.signup_label_code')}</Text>
               <TextInput
                 style={styles.input}
                 value={code}
                 onChangeText={setCode}
                 keyboardType="number-pad"
-                placeholder="123456"
+                placeholder={t('auth.v2.signup_placeholder_code')}
                 placeholderTextColor={af.textTertiary}
-                accessibilityLabel="Verification code"
+                accessibilityLabel={t('auth.v2.signup_a11y_code')}
               />
               {submitError && <Text style={styles.error}>{submitError}</Text>}
 
@@ -174,10 +176,10 @@ export function SignUpScreenV2() {
                   pressed && styles.buttonPressed,
                 ]}
                 accessibilityRole="button"
-                accessibilityLabel="Verify code"
+                accessibilityLabel={t('auth.v2.signup_a11y_verify')}
               >
                 <Text style={styles.buttonText}>
-                  {submitting ? 'Verifying…' : 'Verify'}
+                  {submitting ? t('auth.v2.signup_verifying') : t('auth.v2.signup_verify')}
                 </Text>
               </Pressable>
 
@@ -185,25 +187,25 @@ export function SignUpScreenV2() {
                 onPress={handleResend}
                 style={({ pressed }) => [styles.linkBtn, pressed && { opacity: 0.6 }]}
                 accessibilityRole="button"
-                accessibilityLabel="Resend verification code"
+                accessibilityLabel={t('auth.v2.signup_a11y_resend')}
               >
-                <Text style={styles.link}>Resend code</Text>
+                <Text style={styles.link}>{t('auth.v2.signup_resend')}</Text>
               </Pressable>
             </>
           ) : (
             <>
-              <Text style={styles.label}>First name</Text>
+              <Text style={styles.label}>{t('auth.v2.signup_label_firstname')}</Text>
               <TextInput
                 style={styles.input}
                 value={firstName}
                 onChangeText={setFirstName}
                 autoCapitalize="words"
-                placeholder="Brandon"
+                placeholder={t('auth.v2.signup_placeholder_firstname')}
                 placeholderTextColor={af.textTertiary}
-                accessibilityLabel="First name"
+                accessibilityLabel={t('auth.v2.signup_a11y_firstname')}
               />
 
-              <Text style={styles.label}>Email</Text>
+              <Text style={styles.label}>{t('auth.v2.label_email')}</Text>
               <TextInput
                 style={styles.input}
                 value={emailAddress}
@@ -211,32 +213,32 @@ export function SignUpScreenV2() {
                 autoCapitalize="none"
                 autoCorrect={false}
                 keyboardType="email-address"
-                placeholder="you@example.com"
+                placeholder={t('auth.v2.placeholder_email')}
                 placeholderTextColor={af.textTertiary}
-                accessibilityLabel="Email address"
+                accessibilityLabel={t('auth.v2.a11y_email')}
               />
 
-              <Text style={styles.label}>Password</Text>
+              <Text style={styles.label}>{t('auth.v2.label_password')}</Text>
               <TextInput
                 style={styles.input}
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry
-                placeholder="At least 8 characters"
+                placeholder={t('auth.v2.signup_placeholder_password')}
                 placeholderTextColor={af.textTertiary}
-                accessibilityLabel="Password"
+                accessibilityLabel={t('auth.v2.a11y_password')}
               />
 
-              <Text style={styles.label}>Referral code (optional)</Text>
+              <Text style={styles.label}>{t('auth.v2.signup_label_referral')}</Text>
               <TextInput
                 style={styles.input}
                 value={referralCode}
                 onChangeText={(v) => setReferralCode(v.toUpperCase())}
                 autoCapitalize="characters"
                 autoCorrect={false}
-                placeholder="e.g. K7M2P4Q9"
+                placeholder={t('auth.v2.signup_placeholder_referral')}
                 placeholderTextColor={af.textTertiary}
-                accessibilityLabel="Referral code"
+                accessibilityLabel={t('auth.v2.signup_a11y_referral')}
                 maxLength={16}
               />
               {submitError && <Text style={styles.error}>{submitError}</Text>}
@@ -250,16 +252,16 @@ export function SignUpScreenV2() {
                   pressed && styles.buttonPressed,
                 ]}
                 accessibilityRole="button"
-                accessibilityLabel="Continue"
+                accessibilityLabel={t('auth.v2.signup_a11y_continue')}
               >
                 <Text style={styles.buttonText}>
-                  {submitting ? 'Working…' : 'Continue'}
+                  {submitting ? t('auth.v2.signup_working') : t('auth.v2.signup_continue')}
                 </Text>
               </Pressable>
 
               <View style={styles.dividerRow}>
                 <View style={styles.dividerLine} />
-                <Text style={styles.dividerText}>or</Text>
+                <Text style={styles.dividerText}>{t('auth.v2.or')}</Text>
                 <View style={styles.dividerLine} />
               </View>
 
@@ -272,28 +274,28 @@ export function SignUpScreenV2() {
                   pressed && styles.buttonPressed,
                 ]}
                 accessibilityRole="button"
-                accessibilityLabel="Continue with Google"
+                accessibilityLabel={t('auth.v2.continue_google')}
               >
                 <Text style={styles.oauthButtonText}>
-                  {oauthBusy ? 'Connecting…' : 'Continue with Google'}
+                  {oauthBusy ? t('auth.v2.connecting') : t('auth.v2.continue_google')}
                 </Text>
               </Pressable>
 
               <View style={styles.linkRow}>
-                <Text style={styles.linkText}>Already have an account? </Text>
+                <Text style={styles.linkText}>{t('auth.v2.signup_have_account')}</Text>
                 <Link href="/(auth)/sign-in" replace>
-                  <Text style={styles.link}>Sign in</Text>
+                  <Text style={styles.link}>{t('auth.v2.signup_signin_link')}</Text>
                 </Link>
               </View>
 
               <Text style={styles.acknowledgment}>
-                By creating an account you agree to our{' '}
-                <Link href="/legal/terms"><Text style={styles.acknowledgmentLink}>Terms</Text></Link>
-                ,{' '}
-                <Link href="/legal/privacy"><Text style={styles.acknowledgmentLink}>Privacy Policy</Text></Link>
-                , and{' '}
-                <Link href="/legal/health-disclaimer"><Text style={styles.acknowledgmentLink}>Health Disclaimer</Text></Link>
-                . AForce OS is a performance and wellness tool — not medical advice.
+                {t('auth.v2.ack_prefix_signup')}
+                <Link href="/legal/terms"><Text style={styles.acknowledgmentLink}>{t('auth.v2.ack_terms')}</Text></Link>
+                {t('auth.v2.ack_sep_comma')}
+                <Link href="/legal/privacy"><Text style={styles.acknowledgmentLink}>{t('auth.v2.ack_privacy')}</Text></Link>
+                {t('auth.v2.ack_sep_and')}
+                <Link href="/legal/health-disclaimer"><Text style={styles.acknowledgmentLink}>{t('auth.v2.ack_health')}</Text></Link>
+                {t('auth.v2.ack_suffix_signup')}
               </Text>
 
               {/* Required for Clerk's bot sign-up protection */}
