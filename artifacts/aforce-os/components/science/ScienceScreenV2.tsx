@@ -14,6 +14,7 @@ import {
   View, Text, StyleSheet, ScrollView, Pressable, ActivityIndicator, Platform, Linking,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { Icon } from '@/components/Icon';
 import { useRouter } from 'expo-router';
 import * as Print from 'expo-print';
@@ -114,6 +115,7 @@ const SECTIONS: Section[] = [
 ];
 
 export function ScienceScreenV2() {
+  const { t } = useTranslation();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [exporting, setExporting] = useState(false);
@@ -132,7 +134,7 @@ export function ScienceScreenV2() {
       } else {
         const { uri } = await Print.printToFileAsync({ html });
         if (await Sharing.isAvailableAsync()) {
-          await Sharing.shareAsync(uri, { mimeType: 'application/pdf', dialogTitle: 'AForce Methodology' });
+          await Sharing.shareAsync(uri, { mimeType: 'application/pdf', dialogTitle: t('science.v2.share_dialog_title') });
         } else {
           await Linking.openURL(uri);
         }
@@ -145,7 +147,7 @@ export function ScienceScreenV2() {
     } finally {
       setExporting(false);
     }
-  }, []);
+  }, [t]);
 
   return (
     <View style={styles.root}>
@@ -159,14 +161,12 @@ export function ScienceScreenV2() {
               <Icon name="chevron-left" size={20} color={af.textPrimary} />
             </Pressable>
             <View style={{ flex: 1 }}>
-              <Text style={styles.eyebrow}>VALIDATION</Text>
-              <Text style={styles.title}>The Science</Text>
+              <Text style={styles.eyebrow}>{t('science.v2.eyebrow')}</Text>
+              <Text style={styles.title}>{t('science.v2.title')}</Text>
             </View>
           </View>
 
-          <Text style={styles.intro}>
-            Every number AForce OS shows is computed from the formulas below. Tap export to send a study-ready PDF brief to your sports-science partner.
-          </Text>
+          <Text style={styles.intro}>{t('science.v2.intro')}</Text>
 
           <Pressable
             onPress={onExport}
@@ -179,19 +179,19 @@ export function ScienceScreenV2() {
             ) : (
               <>
                 <Icon name="download" size={14} color={af.canvas} />
-                <Text style={styles.exportLabel}>EXPORT METHODOLOGY PDF</Text>
+                <Text style={styles.exportLabel}>{t('science.v2.export_pdf')}</Text>
               </>
             )}
           </Pressable>
 
           <View style={styles.compareCard}>
-            <Text style={styles.compareTitle}>FORMULA COMPARISON</Text>
-            <Text style={styles.compareSub}>How AForce&apos;s engine compares to the field standard at a glance.</Text>
+            <Text style={styles.compareTitle}>{t('science.v2.formula_comparison')}</Text>
+            <Text style={styles.compareSub}>{t('science.v2.comparison_sub')}</Text>
             <View style={styles.compareTable}>
               <View style={styles.compareHeaderRow}>
-                <Text style={[styles.compareCell, styles.compareHeaderCell, { flex: 1.2 }]}>METRIC</Text>
-                <Text style={[styles.compareCell, styles.compareHeaderCell]}>AFORCE</Text>
-                <Text style={[styles.compareCell, styles.compareHeaderCell]}>STANDARD</Text>
+                <Text style={[styles.compareCell, styles.compareHeaderCell, { flex: 1.2 }]}>{t('science.v2.col_metric')}</Text>
+                <Text style={[styles.compareCell, styles.compareHeaderCell]}>{t('science.v2.col_aforce')}</Text>
+                <Text style={[styles.compareCell, styles.compareHeaderCell]}>{t('science.v2.col_standard')}</Text>
               </View>
               {[
                 { metric: 'Sweat rate',         aforce: 'Multi-source + scale',   standard: 'Pre/post weight only' },
@@ -216,11 +216,11 @@ export function ScienceScreenV2() {
                 <Text style={styles.sectionNumber}>{s.number}</Text>
                 <Text style={styles.sectionTitle}>{s.title}</Text>
               </View>
-              <Field label="WHAT WE COMPUTE" body={s.what} />
-              <FormulaField label="FORMULA" body={s.formula} />
-              <Field label="REFERENCE" body={s.reference} />
+              <Field label={t('science.v2.field_what')} body={s.what} />
+              <FormulaField label={t('science.v2.field_formula')} body={s.formula} />
+              <Field label={t('science.v2.field_reference')} body={s.reference} />
               <View style={styles.limitations}>
-                <Text style={styles.fieldLabel}>LIMITATIONS</Text>
+                <Text style={styles.fieldLabel}>{t('science.v2.field_limitations')}</Text>
                 {s.limitations.map((lim, i) => (
                   <View key={i} style={styles.bulletRow}>
                     <Text style={styles.bulletDot}>•</Text>
@@ -231,9 +231,7 @@ export function ScienceScreenV2() {
             </View>
           ))}
 
-          <Text style={styles.footnote}>
-            Full markdown source: docs/validation-methodology.md
-          </Text>
+          <Text style={styles.footnote}>{t('science.v2.footnote')}</Text>
         </ScrollView>
       </GradientBackground>
     </View>

@@ -1712,5 +1712,47 @@
       "signup_err_verify_fallback": "Verification failed.",
       "signup_err_resend": "Could not resend code."
     }
+  },
+  "science": {
+    "v2": {
+      "eyebrow": "VALIDATION",
+      "title": "The Science",
+      "intro": "Every number AForce OS shows is computed from the formulas below. Tap export to send a study-ready PDF brief to your sports-science partner.",
+      "export_pdf": "EXPORT METHODOLOGY PDF",
+      "formula_comparison": "FORMULA COMPARISON",
+      "comparison_sub": "How AForce's engine compares to the field standard at a glance.",
+      "col_metric": "METRIC",
+      "col_aforce": "AFORCE",
+      "col_standard": "STANDARD",
+      "field_what": "WHAT WE COMPUTE",
+      "field_formula": "FORMULA",
+      "field_reference": "REFERENCE",
+      "field_limitations": "LIMITATIONS",
+      "footnote": "Full markdown source: docs/validation-methodology.md",
+      "share_dialog_title": "AForce Methodology"
+    }
+  },
+  "sensors": {
+    "v2": {
+      "eyebrow": "HARDWARE",
+      "title": "Sweat-Sensor Import",
+      "intro": "Import data from a third-party sweat patch. Each row creates an intake event and a score snapshot tagged with the sensor source.",
+      "source_label": "SOURCE",
+      "pick_file": "Pick a CSV / JSON file",
+      "file_label": "FILE",
+      "file_hint": "CSV with timestamp + sweat_loss columns",
+      "paste_label": "PASTE",
+      "paste_hint": "CSV or JSON — overrides the file when filled",
+      "preview_label": "PREVIEW",
+      "rows_ready": "Rows ready",
+      "columns_recognised": "Columns recognised",
+      "skipped": "Skipped",
+      "preview_reading": "{{ml}} mL · {{na}} mg Na",
+      "import_rows": "IMPORT {{count}} ROWS",
+      "nothing_to_import": "NOTHING TO IMPORT",
+      "read_error": "Could not read file: {{msg}}",
+      "imported": "Imported {{count}} rows from {{source}}.",
+      "import_failed": "Import failed: {{msg}}"
+    }
   }
 }
