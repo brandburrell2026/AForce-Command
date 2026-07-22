@@ -22,6 +22,7 @@ import {
   Platform,
   Alert,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { Colors } from '@/theme/colors';
 import { Icon } from '@/components/Icon';
@@ -36,6 +37,7 @@ import { emit, clearOutbox } from '@/analytics/event_dispatcher';
 import { flushPendingActivation } from '@/analytics/activation_tracker';
 
 export function AnalyticsConsentRow() {
+  const { t } = useTranslation();
   const [granted, setGranted] = React.useState(false);
   const [busy, setBusy] = React.useState(false);
 
@@ -86,12 +88,12 @@ export function AnalyticsConsentRow() {
       return;
     }
     Alert.alert(
-      'Delete analytics data?',
-      'This permanently erases the anonymous product-analytics events tied to this device and turns analytics off. It does not affect your account, hydration history, or scores.',
+      t('settings.analyticsConsent.delete_title'),
+      t('settings.analyticsConsent.delete_body'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Delete',
+          text: t('settings.analyticsConsent.delete_confirm'),
           style: 'destructive',
           onPress: () => {
             void runDelete();
@@ -107,11 +109,8 @@ export function AnalyticsConsentRow() {
         <View style={styles.left}>
           <Icon name="lock" size={16} color={Colors.text.secondary} />
           <View style={styles.textWrap}>
-            <Text style={styles.label}>Anonymous Analytics</Text>
-            <Text style={styles.subLabel}>
-              Help improve AForce with privacy-safe usage data. No personal
-              identity is stored, and you can delete it anytime.
-            </Text>
+            <Text style={styles.label}>{t('settings.analyticsConsent.label')}</Text>
+            <Text style={styles.subLabel}>{t('settings.analyticsConsent.sublabel')}</Text>
           </View>
         </View>
         <Switch
@@ -122,7 +121,7 @@ export function AnalyticsConsentRow() {
           }}
           trackColor={{ false: 'rgba(255,255,255,0.12)', true: '#C1281B' }}
           thumbColor={Platform.OS === 'android' ? '#0a0014' : undefined}
-          accessibilityLabel="Toggle anonymous analytics"
+          accessibilityLabel={t('settings.analyticsConsent.toggle_a11y')}
           testID="analytics-consent-switch"
         />
       </View>
@@ -132,10 +131,10 @@ export function AnalyticsConsentRow() {
           disabled={busy}
           style={styles.deleteBtn}
           accessibilityRole="button"
-          accessibilityLabel="Delete my analytics data"
+          accessibilityLabel={t('settings.analyticsConsent.delete_a11y')}
           testID="analytics-consent-delete"
         >
-          <Text style={styles.deleteLabel}>Delete my analytics data</Text>
+          <Text style={styles.deleteLabel}>{t('settings.analyticsConsent.delete_btn')}</Text>
         </Pressable>
       ) : null}
     </View>

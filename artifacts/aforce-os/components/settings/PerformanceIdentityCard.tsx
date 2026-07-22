@@ -18,6 +18,7 @@
  */
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { Colors } from '@/theme/colors';
 import { Icon, type IconName } from '@/components/Icon';
@@ -47,6 +48,7 @@ function SignalRow(props: { icon: IconName; label: string; value: string; hint: 
 }
 
 export function PerformanceIdentityCard() {
+  const { t } = useTranslation();
   const identity = usePerformanceIdentity();
   // Intentionally do NOT read archetype/confidence for display. The classifier
   // is inert in this build, and this surface is a verification readout that
@@ -57,70 +59,68 @@ export function PerformanceIdentityCard() {
 
   const updatedLabel =
     lastUpdated == null
-      ? 'No signals captured yet'
-      : `Signals updated ${new Date(lastUpdated).toLocaleDateString()}`;
+      ? t('settings.perfIdentity.no_signals')
+      : t('settings.perfIdentity.signals_updated', { date: new Date(lastUpdated).toLocaleDateString() });
 
   const topGoalTypes =
     s.adherence.preferredCommandTypes.length > 0
       ? s.adherence.preferredCommandTypes.map((p) => p.commandType).join(', ')
-      : 'None yet';
+      : t('settings.perfIdentity.none_yet');
 
   return (
     <View style={styles.wrap} testID="performance-identity">
       <View style={styles.header}>
         <Icon name="activity" size={16} color={Colors.text.secondary} />
         <View style={styles.textWrap}>
-          <Text style={styles.title}>Performance Identity · Internal</Text>
-          <Text style={styles.subTitle}>
-            Foundation only. These are the raw behavioural signals a future
-            classifier would read. No archetype is assigned in this build.
-          </Text>
+          <Text style={styles.title}>{t('settings.perfIdentity.title')}</Text>
+          <Text style={styles.subTitle}>{t('settings.perfIdentity.subtitle')}</Text>
         </View>
       </View>
 
       {/* Inert classification banner — proves no verdict is produced. */}
       <View style={styles.banner} testID="performance-identity-classification">
-        <Text style={styles.bannerLabel}>Classification</Text>
-        <Text style={styles.bannerValue}>NOT ASSIGNED (inert)</Text>
-        <Text style={styles.bannerHint}>Confidence — · classifier disabled</Text>
+        <Text style={styles.bannerLabel}>{t('settings.perfIdentity.classification')}</Text>
+        <Text style={styles.bannerValue}>{t('settings.perfIdentity.not_assigned')}</Text>
+        <Text style={styles.bannerHint}>{t('settings.perfIdentity.confidence_disabled')}</Text>
       </View>
 
       <View style={styles.list}>
         <SignalRow
           icon="droplet"
-          label="Consistency"
-          value={`${s.consistency.hydrationDaysActive}d`}
-          hint={`${s.consistency.hydrationLogs} logs · ${s.consistency.checkInEntries} check-ins`}
+          label={t('settings.perfIdentity.row_consistency')}
+          value={t('settings.perfIdentity.value_days', { count: s.consistency.hydrationDaysActive })}
+          hint={t('settings.perfIdentity.hint_consistency', { logs: s.consistency.hydrationLogs, checkins: s.consistency.checkInEntries })}
         />
         <SignalRow
           icon="check-circle"
-          label="Completion rate"
+          label={t('settings.perfIdentity.row_completion')}
           value={pct(s.completionRate.allTimeRate)}
           hint={
             s.completionRate.total > 0
-              ? `${s.completionRate.followed}/${s.completionRate.total} all-time`
-              : 'No commands confirmed yet'
+              ? t('settings.perfIdentity.hint_completion', { followed: s.completionRate.followed, total: s.completionRate.total })
+              : t('settings.perfIdentity.no_commands')
           }
         />
         <SignalRow
           icon="battery"
-          label="Recovery behavior"
+          label={t('settings.perfIdentity.row_recovery')}
           value={num(s.recoveryBehavior.recovery)}
-          hint={s.recoveryBehavior.available && s.recoveryBehavior.trend ? s.recoveryBehavior.trend : 'No data yet'}
+          hint={s.recoveryBehavior.available && s.recoveryBehavior.trend ? s.recoveryBehavior.trend : t('settings.common.no_data')}
         />
         <SignalRow
           icon="trending-up"
-          label="Streak behavior"
-          value={`${s.streakBehavior.executionStreak}d`}
-          hint={`${s.streakBehavior.checkInStreak}d check-in · ${
-            s.streakBehavior.executionTrend ?? 'no trend'
-          }`}
+          label={t('settings.perfIdentity.row_streak')}
+          value={t('settings.perfIdentity.value_days', { count: s.streakBehavior.executionStreak })}
+          hint={t('settings.perfIdentity.hint_streak', {
+            days: s.streakBehavior.checkInStreak,
+            trend: s.streakBehavior.executionTrend ?? t('settings.perfIdentity.no_trend'),
+          })}
         />
         <SignalRow
           icon="target"
-          label="Adherence"
+          label={t('settings.perfIdentity.row_adherence')}
           value={pct(s.adherence.recentFollowedRate)}
-          hint={`Prefers: ${topGoalTypes}`}
+          hint={t('settings.perfIdentity.hint_adherence', { types: topGoalTypes })}
         />
       </View>
 
