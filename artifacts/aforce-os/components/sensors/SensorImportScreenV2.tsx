@@ -15,6 +15,7 @@ import {
   View, Text, StyleSheet, ScrollView, Pressable, TextInput, ActivityIndicator, Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { Icon } from '@/components/Icon';
 import { useRouter } from 'expo-router';
 import * as DocumentPicker from 'expo-document-picker';
@@ -30,6 +31,7 @@ import { postSensorImport } from '@/services/realApi';
 const SOURCES: SensorSource[] = ['hdrop', 'nix', 'gatorade_gx'];
 
 export function SensorImportScreenV2() {
+  const { t } = useTranslation();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [source, setSource] = useState<SensorSource>('hdrop');
@@ -75,7 +77,7 @@ export function SensorImportScreenV2() {
       setParseResult(result);
       setPasteText('');
     } catch (err) {
-      setResultMessage(`Could not read file: ${(err as Error).message}`);
+      setResultMessage(t('sensors.v2.read_error', { msg: (err as Error).message }));
     }
   };
 
@@ -90,12 +92,12 @@ export function SensorImportScreenV2() {
     setResultMessage(null);
     try {
       const res = await postSensorImport({ source, rows: activeResult.rows });
-      setResultMessage(`Imported ${res.imported} rows from ${SENSOR_SOURCE_LABELS[source]}.`);
+      setResultMessage(t('sensors.v2.imported', { count: res.imported, source: SENSOR_SOURCE_LABELS[source] }));
       setParseResult(null);
       setPickedFileName(null);
       setPasteText('');
     } catch (err) {
-      setResultMessage(`Import failed: ${(err as Error).message}`);
+      setResultMessage(t('sensors.v2.import_failed', { msg: (err as Error).message }));
     } finally {
       setImporting(false);
     }
@@ -113,17 +115,15 @@ export function SensorImportScreenV2() {
               <Icon name="chevron-left" size={20} color={af.textPrimary} />
             </Pressable>
             <View style={{ flex: 1 }}>
-              <Text style={styles.eyebrow}>HARDWARE</Text>
-              <Text style={styles.title}>Sweat-Sensor Import</Text>
+              <Text style={styles.eyebrow}>{t('sensors.v2.eyebrow')}</Text>
+              <Text style={styles.title}>{t('sensors.v2.title')}</Text>
             </View>
           </View>
 
-          <Text style={styles.intro}>
-            Import data from a third-party sweat patch. Each row creates an intake event and a score snapshot tagged with the sensor source.
-          </Text>
+          <Text style={styles.intro}>{t('sensors.v2.intro')}</Text>
 
           {/* Source picker */}
-          <SectionHeader label="SOURCE" />
+          <SectionHeader label={t('sensors.v2.source_label')} />
           <View style={styles.card}>
             {SOURCES.map((s, i) => (
               <Pressable
@@ -146,12 +146,12 @@ export function SensorImportScreenV2() {
           </View>
 
           {/* File picker */}
-          <SectionHeader label="FILE" hint="CSV with timestamp + sweat_loss columns" />
+          <SectionHeader label={t('sensors.v2.file_label')} hint={t('sensors.v2.file_hint')} />
           <View style={styles.card}>
             <Pressable onPress={onPickFile} style={styles.row} testID="sensor-pick-file">
               <View style={styles.rowLeft}>
                 <Icon name="file-plus" size={16} color={af.cyan} />
-                <Text style={styles.rowLabel}>{pickedFileName ?? 'Pick a CSV / JSON file'}</Text>
+                <Text style={styles.rowLabel}>{pickedFileName ?? t('sensors.v2.pick_file')}</Text>
               </View>
               {pickedFileName && (
                 <Pressable onPress={onClearPick} hitSlop={8} testID="sensor-clear-pick">
@@ -162,11 +162,11 @@ export function SensorImportScreenV2() {
           </View>
 
           {/* Paste fallback */}
-          <SectionHeader label="PASTE" hint="CSV or JSON — overrides the file when filled" />
+          <SectionHeader label={t('sensors.v2.paste_label')} hint={t('sensors.v2.paste_hint')} />
           <View style={styles.pasteCard}>
             <TextInput
               value={pasteText}
-              onChangeText={(t) => { setPasteText(t); setParseResult(null); setPickedFileName(null); }}
+              onChangeText={(text) => { setPasteText(text); setParseResult(null); setPickedFileName(null); }}
               placeholder={'timestamp,sweat_loss_ml,sodium_mg\n2026-04-29T10:00:00Z,420,180\n2026-04-29T10:30:00Z,510,220'}
               placeholderTextColor={af.textTertiary}
               multiline
@@ -180,20 +180,20 @@ export function SensorImportScreenV2() {
           {/* Preview */}
           {activeResult && (
             <>
-              <SectionHeader label="PREVIEW" />
+              <SectionHeader label={t('sensors.v2.preview_label')} />
               <View style={styles.card}>
                 <PreviewRow
-                  label="Rows ready"
+                  label={t('sensors.v2.rows_ready')}
                   value={`${activeResult.rows.length}`}
                   highlight={activeResult.rows.length > 0}
                 />
-                <PreviewRow label="Columns recognised" value={activeResult.recognized.join(', ') || '—'} />
-                <PreviewRow label="Skipped" value={`${activeResult.skipped.length}`} />
+                <PreviewRow label={t('sensors.v2.columns_recognised')} value={activeResult.recognized.join(', ') || '—'} />
+                <PreviewRow label={t('sensors.v2.skipped')} value={`${activeResult.skipped.length}`} />
                 {activeResult.rows.slice(0, 3).map((r, i) => (
                   <PreviewRow
                     key={i}
                     label={new Date(r.timestamp).toLocaleString()}
-                    value={`${r.sweatLossMl} mL · ${r.sodiumMg} mg Na`}
+                    value={t('sensors.v2.preview_reading', { ml: r.sweatLossMl, na: r.sodiumMg })}
                     muted
                   />
                 ))}
@@ -217,7 +217,7 @@ export function SensorImportScreenV2() {
               <>
                 <Icon name="upload-cloud" size={14} color={af.canvas} />
                 <Text style={styles.primaryButtonLabel}>
-                  {rowCount > 0 ? `IMPORT ${rowCount} ROWS` : 'NOTHING TO IMPORT'}
+                  {rowCount > 0 ? t('sensors.v2.import_rows', { count: rowCount }) : t('sensors.v2.nothing_to_import')}
                 </Text>
               </>
             )}
