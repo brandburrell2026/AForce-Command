@@ -90,6 +90,14 @@ interface IconProps {
   strokeWidth?: number;
   style?: StyleProp<ViewStyle>;
   testID?: string;
+  /**
+   * Icons are DECORATIVE by default and hidden from the screen reader — the
+   * meaning is carried by adjacent text or the parent control's own
+   * `accessibilityLabel`. Pass this ONLY for the rare icon that conveys
+   * meaning on its own with no visible label; it is then exposed as an image
+   * with this label instead of being hidden.
+   */
+  accessibilityLabel?: string;
 }
 
 export function Icon({
@@ -99,11 +107,26 @@ export function Icon({
   strokeWidth = DEFAULT_STROKE_WIDTH,
   style,
   testID,
+  accessibilityLabel,
 }: IconProps) {
   const px = resolveIconSize(size);
   const tint = color ?? MIN_ICON_COLOR_DARK;
   warnIfTooFaint(name, tint);
   const LucideComponent = lookupIcon(name);
+
+  // Decorative by default → hidden from the a11y tree (meaning is carried by
+  // adjacent text / the parent control's label). When an explicit label is
+  // provided, expose the icon as an image instead.
+  const a11yProps = accessibilityLabel
+    ? ({
+        accessible: true,
+        accessibilityRole: 'image' as const,
+        accessibilityLabel,
+      })
+    : ({
+        accessibilityElementsHidden: true,
+        importantForAccessibility: 'no-hide-descendants' as const,
+      });
 
   if (LucideComponent) {
     return (
@@ -113,6 +136,7 @@ export function Icon({
         strokeWidth={strokeWidth}
         style={style}
         testID={testID}
+        {...a11yProps}
       />
     );
   }
@@ -131,6 +155,7 @@ export function Icon({
       color={tint}
       style={style as never}
       testID={testID}
+      {...a11yProps}
     />
   );
 }
