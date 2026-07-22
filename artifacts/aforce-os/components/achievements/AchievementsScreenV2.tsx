@@ -59,7 +59,7 @@ export function AchievementsScreenV2() {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.headerRow}>
-            <Pressable onPress={() => router.back()} style={styles.backButton} hitSlop={12} testID="achievements-back">
+            <Pressable onPress={() => router.back()} style={styles.backButton} hitSlop={12} accessibilityRole="button" accessibilityLabel={t('common.back')} testID="achievements-back">
               <Icon name="chevron-left" size={20} color={af.textPrimary} />
             </Pressable>
             <View style={{ flex: 1 }}>
@@ -80,10 +80,20 @@ export function AchievementsScreenV2() {
               const u = unlocks.find((x) => x.code === a.code);
               const unlocked = !!u?.unlocked;
               const progress = u?.progress ?? (unlocked ? 1 : 0);
+              const tileA11yLabel =
+                `${a.title}. ${a.description}` +
+                (unlocked
+                  ? `. ${t('achievements.v2.unlocked')}`
+                  : progress > 0 && progress < 1
+                    ? `. ${Math.round(progress * 100)}%`
+                    : '');
               return (
                 <View
                   key={a.code}
                   style={[styles.tile, unlocked ? styles.tileUnlocked : styles.tileLocked]}
+                  accessible
+                  accessibilityLabel={tileA11yLabel}
+                  accessibilityState={{ disabled: !unlocked }}
                   testID={`achievement-${a.code}`}
                 >
                   <View style={[styles.iconWrap, unlocked ? styles.iconWrapUnlocked : styles.iconWrapLocked]}>
@@ -97,7 +107,11 @@ export function AchievementsScreenV2() {
                   <Text style={[styles.tileTitle, !unlocked && { color: af.textSecondary }]}>{a.title}</Text>
                   <Text style={styles.tileDesc} numberOfLines={2}>{a.description}</Text>
                   {progress > 0 && progress < 1 && (
-                    <View style={styles.progressTrack}>
+                    <View
+                      style={styles.progressTrack}
+                      accessibilityElementsHidden
+                      importantForAccessibility="no-hide-descendants"
+                    >
                       <View style={[styles.progressFill, { width: `${Math.round(progress * 100)}%` }]} />
                     </View>
                   )}

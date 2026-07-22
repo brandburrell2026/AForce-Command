@@ -26,6 +26,7 @@ export function AFSegmentedControl({ segments, value, onChange, testID }: AFSegm
       horizontal
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={styles.rail}
+      accessibilityRole="tablist"
       testID={testID}
     >
       {segments.map((seg) => {
@@ -37,6 +38,7 @@ export function AFSegmentedControl({ segments, value, onChange, testID }: AFSegm
             accessibilityRole="tab"
             accessibilityState={{ selected: active }}
             accessibilityLabel={seg.label}
+            hitSlop={{ top: 6, bottom: 6 }}
             style={[styles.pill, active ? styles.pillActive : styles.pillIdle]}
           >
             <Text style={[styles.label, { color: active ? af.onRed : af.textSecondary }]}>

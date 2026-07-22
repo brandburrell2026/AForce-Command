@@ -29,15 +29,20 @@ export function AFListRow({
   onPress,
   testID,
 }: AFListRowProps) {
+  const composedLabel = [title, subtitle, value].filter(Boolean).join(', ');
   const body = (
     <View style={styles.row}>
       {icon && (
-        <View style={styles.iconWrap}>
+        <View
+          style={styles.iconWrap}
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+        >
           <Icon name={icon} size={16} color={af.textSecondary} />
         </View>
       )}
       <View style={styles.text}>
-        <Text style={styles.title} numberOfLines={1}>
+        <Text style={styles.title} numberOfLines={1} adjustsFontSizeToFit>
           {title}
         </Text>
         {subtitle && (

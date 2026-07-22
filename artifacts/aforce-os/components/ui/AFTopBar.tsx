@@ -48,7 +48,13 @@ export function AFTopBar({ title, eyebrow, onBack, onClose, actions = [], testID
         <View>
           {eyebrow && <Text style={styles.eyebrow}>{eyebrow.toUpperCase()}</Text>}
           {title && (
-            <Text style={styles.title} numberOfLines={1} accessibilityRole="header">
+            <Text
+              style={styles.title}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.8}
+              accessibilityRole="header"
+            >
               {title}
             </Text>
           )}

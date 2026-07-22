@@ -15,6 +15,8 @@ export interface AFCardProps {
   variant?: AFCardVariant;
   onPress?: () => void;
   padded?: boolean;
+  selected?: boolean;
+  disabled?: boolean;
   style?: StyleProp<ViewStyle>;
   testID?: string;
   accessibilityLabel?: string;
@@ -25,6 +27,8 @@ export function AFCard({
   variant = 'standard',
   onPress,
   padded = true,
+  selected,
+  disabled,
   style,
   testID,
   accessibilityLabel,
@@ -42,6 +46,7 @@ export function AFCard({
         onPress={onPress}
         accessibilityRole="button"
         accessibilityLabel={accessibilityLabel}
+        accessibilityState={{ selected, disabled }}
         testID={testID}
         style={({ pressed }) => [base, pressed && styles.pressed]}
       >

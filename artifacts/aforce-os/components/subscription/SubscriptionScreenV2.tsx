@@ -222,14 +222,26 @@ export function SubscriptionScreenV2() {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.headerRow}>
-            <Pressable onPress={() => router.back()} style={styles.backBtn} hitSlop={10}>
+            <Pressable
+              onPress={() => router.back()}
+              style={styles.backBtn}
+              hitSlop={10}
+              accessibilityRole="button"
+              accessibilityLabel={t('common.back')}
+            >
               <Icon name="chevron-left" size={20} color={af.textPrimary} />
             </Pressable>
             <View style={{ flex: 1 }}>
               <Text style={styles.eyebrow}>{t('subscription.v2.eyebrow')}</Text>
               <Text style={styles.title}>{t('subscription.v2.title')}</Text>
             </View>
-            <Pressable onPress={() => router.push('/subscription/manage')} style={styles.manageBtn} hitSlop={10}>
+            <Pressable
+              onPress={() => router.push('/subscription/manage')}
+              style={styles.manageBtn}
+              hitSlop={10}
+              accessibilityRole="button"
+              accessibilityLabel={t('subscription.v2.manage_gear_a11y')}
+            >
               <Icon name="settings" size={16} color={af.textPrimary} />
             </Pressable>
           </View>
@@ -245,6 +257,8 @@ export function SubscriptionScreenV2() {
                   key={f.id}
                   onPress={() => setFilter(f.id)}
                   style={[styles.filterBtn, active && styles.filterBtnActive]}
+                  accessibilityRole="tab"
+                  accessibilityState={{ selected: active }}
                 >
                   <Text style={[styles.filterText, active && styles.filterTextActive]}>{t(`subscription.v2.${f.labelKey}`)}</Text>
                 </Pressable>

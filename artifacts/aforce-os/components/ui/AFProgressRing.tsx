@@ -65,7 +65,15 @@ export function AFProgressRing({
           />
         </G>
       </Svg>
-      {children != null && <View style={styles.center}>{children}</View>}
+      {children != null && (
+        <View
+          style={styles.center}
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+        >
+          {children}
+        </View>
+      )}
     </View>
   );
 }

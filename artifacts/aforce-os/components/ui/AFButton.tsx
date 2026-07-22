@@ -122,11 +122,12 @@ export function AFTextButton({ label, onPress, disabled, icon, style, testID }: 
 
 const styles = StyleSheet.create({
   base: {
-    height: afLayout.buttonHeight,
+    minHeight: afLayout.buttonHeight,
     borderRadius: afLayout.radiusButton,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 20,
+    paddingVertical: 8,
   },
   content: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   label: { ...afType.bodyStrong },

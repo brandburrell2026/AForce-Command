@@ -159,6 +159,8 @@ export function CartScreenV2() {
               <Pressable
                 onPress={() => router.replace("/store")}
                 style={styles.emptyCta}
+                accessibilityRole="button"
+                accessibilityLabel={t('cart.v2.browse_fuel')}
               >
                 <Icon name="grid" size={14} color={af.textPrimary} />
                 <Text style={styles.emptyCtaText}>{t('cart.v2.browse_fuel')}</Text>
@@ -208,6 +210,7 @@ export function CartScreenV2() {
                         <Pressable
                           onPress={() => setQty(line.skuId, line.qty - 1)}
                           style={styles.qtyBtn}
+                          hitSlop={10}
                           accessibilityRole="button"
                           accessibilityLabel={t('cart.v2.qty_decrease_a11y')}
                         >
@@ -217,6 +220,7 @@ export function CartScreenV2() {
                         <Pressable
                           onPress={() => setQty(line.skuId, line.qty + 1)}
                           style={styles.qtyBtn}
+                          hitSlop={10}
                           accessibilityRole="button"
                           accessibilityLabel={t('cart.v2.qty_increase_a11y')}
                         >
@@ -240,29 +244,51 @@ export function CartScreenV2() {
               })}
 
               <View style={styles.totalsCard}>
-                <View style={styles.totalsRow}>
+                <View
+                  style={styles.totalsRow}
+                  accessible
+                  accessibilityLabel={`${t('cart.v2.subtotal')} ${formatPrice(subtotalCents)}`}
+                >
                   <Text style={styles.totalsLabel}>{t('cart.v2.subtotal')}</Text>
                   <Text style={styles.totalsValue}>{formatPrice(subtotalCents)}</Text>
                 </View>
-                <View style={styles.totalsRow}>
+                <View
+                  style={styles.totalsRow}
+                  accessible
+                  accessibilityLabel={`${t('cart.v2.shipping')} ${shippingCents === 0 ? t('cart.v2.free') : formatPrice(shippingCents)}`}
+                >
                   <Text style={styles.totalsLabel}>{t('cart.v2.shipping')}</Text>
                   <Text style={styles.totalsValue}>
                     {shippingCents === 0 ? t('cart.v2.free') : formatPrice(shippingCents)}
                   </Text>
                 </View>
-                <View style={styles.totalsRow}>
+                <View
+                  style={styles.totalsRow}
+                  accessible
+                  accessibilityLabel={`${t('cart.v2.estimated_tax')} ${formatPrice(taxCents)}`}
+                >
                   <Text style={styles.totalsLabel}>{t('cart.v2.estimated_tax')}</Text>
                   <Text style={styles.totalsValue}>{formatPrice(taxCents)}</Text>
                 </View>
                 <View style={styles.totalsDivider} />
-                <View style={styles.totalsRow}>
+                <View
+                  style={styles.totalsRow}
+                  accessible
+                  accessibilityLabel={`${t('cart.v2.total')} ${formatPrice(totalCents)}`}
+                >
                   <Text style={styles.totalsLabelBig}>{t('cart.v2.total')}</Text>
                   <Text style={styles.totalsValueBig}>{formatPrice(totalCents)}</Text>
                 </View>
               </View>
 
               {checkoutNotice && (
-                <View style={styles.noticeBox}>
+                <View
+                  style={styles.noticeBox}
+                  accessible
+                  accessibilityRole="alert"
+                  accessibilityLiveRegion="polite"
+                  accessibilityLabel={checkoutNotice}
+                >
                   <Icon name="info" size={14} color={af.textPrimary} />
                   <Text style={styles.noticeText}>{checkoutNotice}</Text>
                 </View>

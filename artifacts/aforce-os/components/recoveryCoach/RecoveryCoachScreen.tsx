@@ -192,7 +192,7 @@ export function RecoveryCoachScreen({ command, onClose, onPrimary, onAdjust, off
 
           {/* Countdown */}
           {!isExpired ? (
-            <View style={styles.countdownBlock} accessibilityLabel={t('coach.v2.countdown_a11y', { label: view.timerLabel, countdown: view.countdown })}>
+            <View style={styles.countdownBlock} accessible accessibilityLabel={t('coach.v2.countdown_a11y', { label: view.timerLabel, countdown: view.countdown })}>
               <View style={[styles.timerHairline, { backgroundColor: T.red }]} />
               <Text style={[styles.timerLabel, { color: T.textTertiary }]}>{view.timerLabel}</Text>
               <Text style={[styles.timer, { color: T.textPrimary }]}>{view.countdown}</Text>
@@ -224,7 +224,7 @@ export function RecoveryCoachScreen({ command, onClose, onPrimary, onAdjust, off
 
           {/* Why this command */}
           {!isExpired ? (
-            <Pressable onPress={onWhyTap} accessibilityRole="button" accessibilityLabel={t('coach.v2.why')} style={styles.whyLink}>
+            <Pressable onPress={onWhyTap} accessibilityRole="button" accessibilityState={{ expanded: whyOpen }} accessibilityLabel={t('coach.v2.why')} style={styles.whyLink}>
               <Text style={[styles.whyText, { color: T.textSecondary }]}>{t('coach.v2.why')}</Text>
               <Icon name={whyOpen ? 'chevron-up' : 'chevron-down'} size={14} color={T.textTertiary} />
             </Pressable>
@@ -239,9 +239,13 @@ export function RecoveryCoachScreen({ command, onClose, onPrimary, onAdjust, off
 
       {/* Progress footer — anchored above bottom safe area */}
       {!isExpired ? (
-        <View style={[styles.footer, { paddingBottom: insets.bottom + 20 }]} accessibilityLabel={progressA11y}>
+        <View style={[styles.footer, { paddingBottom: insets.bottom + 20 }]} accessible accessibilityLabel={progressA11y}>
           <View style={styles.footerInner}>
-            <View style={[styles.track, { backgroundColor: T.divider }]}>
+            <View
+              style={[styles.track, { backgroundColor: T.divider }]}
+              importantForAccessibility="no-hide-descendants"
+              accessibilityElementsHidden
+            >
               <View style={[styles.trackFill, { width: progressPct, backgroundColor: T.red }]} />
             </View>
             <View style={styles.footerLabels}>
@@ -285,9 +289,9 @@ const styles = StyleSheet.create({
   timerLabel: { fontSize: 11, lineHeight: 14, fontFamily: 'Inter_600SemiBold', letterSpacing: 2 },
   timer: { marginTop: 14, fontSize: 72, lineHeight: 76, fontFamily: 'Inter_400Regular', letterSpacing: 2.9, fontVariant: ['tabular-nums'] },
   actions: { marginTop: 32, gap: 12 },
-  primaryBtn: { height: 56, borderRadius: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  primaryBtn: { minHeight: 56, borderRadius: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
   primaryLabel: { fontSize: 17, lineHeight: 22, fontFamily: 'Inter_600SemiBold' },
-  secondaryBtn: { height: 56, borderRadius: 16, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  secondaryBtn: { minHeight: 56, borderRadius: 16, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
   secondaryLabel: { fontSize: 16, lineHeight: 22, fontFamily: 'Inter_500Medium' },
   whyLink: { marginTop: 24, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 },
   whyText: { fontSize: 15, fontFamily: 'Inter_500Medium' },

@@ -134,6 +134,8 @@ export function UrineCheckScreenV2({ onBack }: { onBack: () => void }) {
                 <Pressable
                   key={s.id}
                   onPress={() => toggleSymptom(s.id)}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: active }}
                   style={[styles.chip, active && { borderColor: af.red, backgroundColor: af.redDim }]}
                 >
                   <Text style={[styles.chipText, { color: active ? af.red : af.textSecondary }]}>
@@ -159,6 +161,8 @@ export function UrineCheckScreenV2({ onBack }: { onBack: () => void }) {
                   haptic('select');
                   setEnergy(opt.value);
                 }}
+                accessibilityRole="button"
+                accessibilityState={{ selected }}
                 style={[
                   styles.energyTile,
                   {

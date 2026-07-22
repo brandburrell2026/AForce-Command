@@ -506,7 +506,7 @@ export function HydrationScanScreenV2() {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.headerRow}>
-            <Pressable onPress={() => router.back()} style={styles.backBtn} hitSlop={10}>
+            <Pressable onPress={() => router.back()} style={styles.backBtn} hitSlop={10} accessibilityRole="button" accessibilityLabel={t('common.back')}>
               <Icon name="chevron-left" size={20} color={af.textPrimary} />
             </Pressable>
             <View style={{ flex: 1 }}>
@@ -525,6 +525,8 @@ export function HydrationScanScreenV2() {
           <Pressable
             onPress={openCamera}
             disabled={Platform.OS === 'web' || scanning}
+            accessibilityRole="button"
+            accessibilityLabel={t('hydroScan2.v2.open_camera_a11y')}
             style={({ pressed }) => [
               styles.viewfinder,
               { opacity: Platform.OS === 'web' ? 1 : pressed ? 0.85 : 1 },
@@ -559,6 +561,8 @@ export function HydrationScanScreenV2() {
             <View style={styles.tabRow}>
               <Pressable
                 onPress={() => setPreviewTab('aforce')}
+                accessibilityRole="tab"
+                accessibilityState={{ selected: previewTab === 'aforce' }}
                 style={[styles.tabPill, previewTab === 'aforce' && styles.tabPillActive]}
                 testID="preview-tab-aforce"
               >
@@ -568,6 +572,8 @@ export function HydrationScanScreenV2() {
               </Pressable>
               <Pressable
                 onPress={() => setPreviewTab('other')}
+                accessibilityRole="tab"
+                accessibilityState={{ selected: previewTab === 'other' }}
                 style={[styles.tabPill, previewTab === 'other' && styles.tabPillActive]}
                 testID="preview-tab-other"
               >
@@ -599,6 +605,7 @@ export function HydrationScanScreenV2() {
                     key={it.code}
                     onPress={() => runScan({ kind: 'barcode', rawValue: it.code })}
                     disabled={scanning}
+                    accessibilityRole="button"
                     style={({ pressed }) => [
                       styles.chip,
                       { opacity: scanning ? 0.5 : pressed ? 0.7 : 1 },
@@ -628,6 +635,7 @@ export function HydrationScanScreenV2() {
                   <Pressable
                     onPress={() => setAforcePickerOpen(false)}
                     hitSlop={10}
+                    accessibilityRole="button"
                     accessibilityLabel={t('hydroScan2.v2.close_picker_a11y')}
                   >
                     <Icon name="x" size={18} color={af.textPrimary} />
@@ -669,7 +677,7 @@ export function HydrationScanScreenV2() {
                 onSubmitEditing={onManualSubmit}
                 returnKeyType="search"
               />
-              <Pressable onPress={onManualSubmit} style={styles.manualBtn} disabled={scanning}>
+              <Pressable onPress={onManualSubmit} style={styles.manualBtn} disabled={scanning} accessibilityRole="button" accessibilityLabel={t('hydroScan2.v2.search_a11y')}>
                 <Icon name="search" size={14} color={af.textPrimary} />
               </Pressable>
             </View>
@@ -766,7 +774,7 @@ export function HydrationScanScreenV2() {
 
           {/* Result region */}
           {outcome?.ok === false && (
-            <View style={styles.errorCard}>
+            <View style={styles.errorCard} accessibilityLiveRegion="assertive">
               <Icon name="alert-triangle" size={14} color={af.amber} />
               <Text style={styles.errorText}>{outcome.failure.message}</Text>
             </View>
@@ -864,6 +872,8 @@ export function HydrationScanScreenV2() {
                 <Pressable
                   onPress={onLogScanned}
                   disabled={logging}
+                  accessibilityRole="button"
+                  accessibilityState={{ busy: logging }}
                   style={({ pressed }) => [
                     styles.primaryCta,
                     {

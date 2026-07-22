@@ -102,12 +102,20 @@ function SweatLossSnapshot() {
           <Text style={styles.snapshotConfidence}>{t('sweat.v2.snap_est')}</Text>
         ) : null}
       </View>
-      <View style={styles.snapshotHeroRow}>
+      <View
+        style={styles.snapshotHeroRow}
+        accessible
+        accessibilityLabel={`${snap.fluidLossOz} ${t('sweat.v2.snap_oz_projected')}`}
+      >
         <Text style={styles.snapshotHero}>{snap.fluidLossOz}</Text>
         <Text style={styles.snapshotHeroUnit}>{t('sweat.v2.snap_oz_projected')}</Text>
       </View>
       <View style={styles.snapshotMetricsRow}>
-        <View style={styles.snapshotMetric}>
+        <View
+          style={styles.snapshotMetric}
+          accessible
+          accessibilityLabel={`${t('sweat.v2.snap_sodium')} ${t('sweat.v2.unit_mg', { value: snap.sodiumLossMg })}`}
+        >
           <Text style={styles.snapshotMetricLabel} numberOfLines={1}>{t('sweat.v2.snap_sodium')}</Text>
           <Text
             style={styles.snapshotMetricValue}
@@ -119,7 +127,11 @@ function SweatLossSnapshot() {
           </Text>
         </View>
         <View style={styles.snapshotMetricDivider} />
-        <View style={styles.snapshotMetric}>
+        <View
+          style={styles.snapshotMetric}
+          accessible
+          accessibilityLabel={`${t('sweat.v2.snap_efficiency')} ${t('sweat.v2.unit_pct', { value: snap.efficiencyPct })}`}
+        >
           <Text style={styles.snapshotMetricLabel} numberOfLines={1}>{t('sweat.v2.snap_efficiency')}</Text>
           <Text
             style={[styles.snapshotMetricValue, { color: accent }]}
@@ -131,7 +143,11 @@ function SweatLossSnapshot() {
           </Text>
         </View>
         <View style={styles.snapshotMetricDivider} />
-        <View style={styles.snapshotMetric}>
+        <View
+          style={styles.snapshotMetric}
+          accessible
+          accessibilityLabel={`${t('sweat.v2.snap_intensity')} ${intensityLabel}`}
+        >
           <Text style={styles.snapshotMetricLabel} numberOfLines={1}>{t('sweat.v2.snap_intensity')}</Text>
           <Text
             style={styles.snapshotMetricValue}
@@ -469,6 +485,7 @@ export function SweatCalculatorScreenV2() {
               onPress={() => setShowCitations((s) => !s)}
               style={styles.citationToggle}
               accessibilityRole="button"
+              accessibilityState={{ expanded: showCitations }}
             >
               <Icon
                 name={showCitations ? 'chevron-up' : 'chevron-down'}
@@ -563,7 +580,7 @@ function NumberRow({
   const { t } = useTranslation();
   return (
     <View style={styles.numberRow}>
-      <Text style={styles.numberLabel} numberOfLines={1}>
+      <Text style={styles.numberLabel} numberOfLines={1} adjustsFontSizeToFit>
         {label}
       </Text>
       <View style={styles.numberInputWrap}>
@@ -700,6 +717,8 @@ function ToggleRow({
       <Switch
         value={value}
         onValueChange={onChange}
+        accessibilityLabel={label}
+        accessibilityHint={hint}
         thumbColor={af.textPrimary}
         trackColor={{ true: af.cyan, false: af.surface }}
       />
@@ -803,7 +822,7 @@ function PerformanceHeader({ result }: { result: SweatSession }) {
 
 function PerfMeta({ label, value }: { label: string; value: string }) {
   return (
-    <View style={styles.perfMeta}>
+    <View style={styles.perfMeta} accessible accessibilityLabel={`${label} ${value}`}>
       <Text style={styles.perfMetaValue}>{value}</Text>
       <Text style={styles.perfMetaLabel}>{label}</Text>
     </View>
@@ -851,7 +870,7 @@ function AForceSystemCard() {
 
 function SystemRow({ k, v }: { k: string; v: string }) {
   return (
-    <View style={styles.systemRow}>
+    <View style={styles.systemRow} accessible accessibilityLabel={`${k} ${v}`}>
       <Text style={styles.systemRowKey}>{k}</Text>
       <Text style={styles.systemRowValue}>{v}</Text>
     </View>
@@ -860,7 +879,7 @@ function SystemRow({ k, v }: { k: string; v: string }) {
 
 function IngredientLine({ name, line }: { name: string; line: string }) {
   return (
-    <View style={styles.ingredientRow}>
+    <View style={styles.ingredientRow} accessible accessibilityLabel={`${name} ${line}`}>
       <Text style={styles.ingredientName}>{name}</Text>
       <Text style={styles.ingredientLine}>{line}</Text>
     </View>
@@ -1087,7 +1106,7 @@ function AdvancedDataCard({ result }: { result: SweatSession }) {
 
 function AuditRow({ k, v }: { k: string; v: string }) {
   return (
-    <View style={styles.auditRow}>
+    <View style={styles.auditRow} accessible accessibilityLabel={`${k} ${v}`}>
       <Text style={styles.auditKey}>{k}</Text>
       <Text style={styles.auditValue}>{v}</Text>
     </View>
@@ -1144,9 +1163,14 @@ function ShareCardHandoff({ result }: { result: SweatSession }) {
 
   return (
     <Pressable style={styles.shareCard} accessibilityRole="button">
-      <View style={styles.shareGlow} />
+      <View style={styles.shareGlow} importantForAccessibility="no-hide-descendants" accessibilityElementsHidden />
 
-      <View style={styles.shareTriangleMark} pointerEvents="none">
+      <View
+        style={styles.shareTriangleMark}
+        pointerEvents="none"
+        importantForAccessibility="no-hide-descendants"
+        accessibilityElementsHidden
+      >
         <Svg width={28} height={28} viewBox="0 0 28 28">
           <Defs>
             <SvgLinearGradient id="aforceTriGrad" x1="0" y1="0" x2="1" y2="1">

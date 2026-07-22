@@ -14,7 +14,9 @@
     "minutes_long_plural": "{{count}} Minuten",
     "oz": "ounces",
     "today": "heute",
-    "now": "jetzt"
+    "now": "jetzt",
+    "remove": "Remove",
+    "refresh": "Refresh"
   },
   "tabs": {
     "hydration": "Hydration",
@@ -870,7 +872,10 @@
       "recent_scans": "RECENT SCANS",
       "synced": "SYNCED",
       "history_fit": "fit {{score}}",
-      "disclaimer": "Scan provides performance and hydration guidance only. It is not intended to diagnose, treat, cure, or prevent medical conditions."
+      "disclaimer": "Scan provides performance and hydration guidance only. It is not intended to diagnose, treat, cure, or prevent medical conditions.",
+      "open_camera_a11y": "Open camera to scan",
+      "search_a11y": "Search products",
+      "log_cta_a11y": "Log scanned product"
     }
   },
   "locationIntel": {
@@ -1220,7 +1225,9 @@
       "billing_unavailable_title": "Billing unavailable",
       "billing_generic": "Could not open billing. Please try again.",
       "billing_no_customer": "No billing account yet. Choose a plan to set up billing first.",
-      "billing_signin": "Please sign in again to manage billing."
+      "billing_signin": "Please sign in again to manage billing.",
+      "back_a11y": "Back",
+      "manage_gear_a11y": "Manage subscription"
     }
   },
   "urine": {
@@ -1254,7 +1261,8 @@
       "row_challengeDeadlines_label": "Challenge Deadlines",
       "row_challengeDeadlines_hint": "Reminders before an open circle challenge expires.",
       "row_lowInventoryAlert_label": "Low Inventory Alerts",
-      "row_lowInventoryAlert_hint": "Restock prompts when sticks/RTD/canister inventory hits zero."
+      "row_lowInventoryAlert_hint": "Restock prompts when sticks/RTD/canister inventory hits zero.",
+      "back_a11y": "Back"
     }
   },
   "legal": {
@@ -1443,7 +1451,8 @@
     "v2": {
       "eyebrow": "RETENTION",
       "title": "Achievements",
-      "unlocked": "Unlocked"
+      "unlocked": "Unlocked",
+      "back_a11y": "Back"
     }
   },
   "leaderboard": {
@@ -1457,7 +1466,9 @@
       "empty": "No recruits on the boards yet.\nBe the first to put an operator's name up.",
       "you": "You",
       "recruits": "RECRUITS",
-      "footnote": "Handles are anonymous — derived from each operator's invite code. No emails, no real names. Recognition only."
+      "footnote": "Handles are anonymous — derived from each operator's invite code. No emails, no real names. Recognition only.",
+      "back_a11y": "Back",
+      "rank_a11y": "Rank {{rank}}"
     }
   },
   "community": {
@@ -1613,7 +1624,8 @@
       "field_reference": "REFERENCE",
       "field_limitations": "LIMITATIONS",
       "footnote": "Full markdown source: docs/validation-methodology.md",
-      "share_dialog_title": "AForce Methodology"
+      "share_dialog_title": "AForce Methodology",
+      "back_a11y": "Back"
     }
   },
   "sensors": {
@@ -1636,7 +1648,9 @@
       "nothing_to_import": "NOTHING TO IMPORT",
       "read_error": "Could not read file: {{msg}}",
       "imported": "Imported {{count}} rows from {{source}}.",
-      "import_failed": "Import failed: {{msg}}"
+      "import_failed": "Import failed: {{msg}}",
+      "remove_file_a11y": "Remove file",
+      "import_a11y": "Import rows"
     }
   }
 }

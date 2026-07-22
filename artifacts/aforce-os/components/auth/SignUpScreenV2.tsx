@@ -165,7 +165,15 @@ export function SignUpScreenV2() {
                 placeholderTextColor={af.textTertiary}
                 accessibilityLabel={t('auth.v2.signup_a11y_code')}
               />
-              {submitError && <Text style={styles.error}>{submitError}</Text>}
+              {submitError && (
+                <Text
+                  style={styles.error}
+                  accessibilityLiveRegion="assertive"
+                  accessibilityRole="alert"
+                >
+                  {submitError}
+                </Text>
+              )}
 
               <Pressable
                 onPress={handleVerify}
@@ -241,7 +249,15 @@ export function SignUpScreenV2() {
                 accessibilityLabel={t('auth.v2.signup_a11y_referral')}
                 maxLength={16}
               />
-              {submitError && <Text style={styles.error}>{submitError}</Text>}
+              {submitError && (
+                <Text
+                  style={styles.error}
+                  accessibilityLiveRegion="assertive"
+                  accessibilityRole="alert"
+                >
+                  {submitError}
+                </Text>
+              )}
 
               <Pressable
                 onPress={handleStart}

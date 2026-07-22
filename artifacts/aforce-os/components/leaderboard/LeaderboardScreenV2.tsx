@@ -65,6 +65,8 @@ export function LeaderboardScreenV2() {
               onPress={() => router.back()}
               style={styles.backButton}
               hitSlop={12}
+              accessibilityRole="button"
+              accessibilityLabel={t('common.back')}
               testID="leaderboard-back"
             >
               <Icon name="chevron-left" size={20} color={af.textPrimary} />
@@ -142,9 +144,14 @@ function Row({
   rank: number; handle: string; tierLabel: string; claims: number; isYou: boolean;
 }) {
   const { t } = useTranslation();
+  const rowA11yLabel =
+    `#${rank} ${handle}${tierLabel ? `, ${tierLabel}` : ''}, ` +
+    `${claims} ${t('leaderboard.v2.recruits')}`;
   return (
     <View
       style={[styles.row, isYou && styles.rowYou]}
+      accessible
+      accessibilityLabel={rowA11yLabel}
       testID={isYou ? 'leaderboard-row-you' : `leaderboard-row-${rank}`}
     >
       <Text style={[styles.rowRank, isYou && styles.rowRankYou]}>

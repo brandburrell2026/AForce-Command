@@ -23,7 +23,7 @@ export function AFSectionLabel({ label, action, testID }: AFSectionLabelProps) {
           onPress={action.onPress}
           accessibilityRole="button"
           accessibilityLabel={action.label}
-          hitSlop={8}
+          hitSlop={13}
         >
           <Text style={styles.action}>{action.label}</Text>
         </Pressable>

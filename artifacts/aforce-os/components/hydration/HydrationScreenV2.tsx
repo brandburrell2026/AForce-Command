@@ -79,6 +79,20 @@ export function HydrationScreenV2() {
     [i18n.language],
   );
 
+  // Locale-aware full weekday names for screen readers — the narrow initial
+  // ("S"/"M") is ambiguous spoken aloud.
+  const weekdayLabels = React.useMemo(
+    () =>
+      Array.from({ length: 7 }, (_, i) => {
+        try {
+          return new Date(2023, 0, 1 + i).toLocaleDateString(i18n.language, { weekday: 'long' });
+        } catch {
+          return ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][i];
+        }
+      }),
+    [i18n.language],
+  );
+
   return (
     <AFScreen scroll>
       <AFTopBar eyebrow={t('hydration.v2.eyebrow')} title={t('hydration.v2.title')} />
@@ -101,7 +115,11 @@ export function HydrationScreenV2() {
               label={t('hydration.v2.stat_electrolytes')}
               value={t('hydration.v2.stat_electrolytes_value', { count: userState.aforceUnitsToday })}
             />
-            <View style={styles.recoveryRow}>
+            <View
+              style={styles.recoveryRow}
+              accessible
+              accessibilityLabel={`${t('hydration.v2.recovery_label')} ${titleCase(engine.performanceState.level)}`}
+            >
               <Text style={styles.statLabel}>{t('hydration.v2.recovery_label')}</Text>
               <AFStatusBadge
                 label={titleCase(engine.performanceState.level)}
@@ -155,7 +173,13 @@ export function HydrationScreenV2() {
             const filled = daysBack < streak;
             const isToday = i === todayIdx;
             return (
-              <View key={i} style={styles.dayCol}>
+              <View
+                key={i}
+                style={styles.dayCol}
+                accessible
+                accessibilityLabel={weekdayLabels[i]}
+                accessibilityState={{ selected: filled }}
+              >
                 <View
                   style={[
                     styles.dayDot,
@@ -177,7 +201,7 @@ export function HydrationScreenV2() {
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <View style={styles.stat}>
+    <View style={styles.stat} accessible accessibilityLabel={`${label} ${value}`}>
       <Text style={styles.statLabel}>{label.toUpperCase()}</Text>
       <Text style={styles.statValue}>{value}</Text>
     </View>

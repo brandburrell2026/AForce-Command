@@ -20,7 +20,11 @@ export function AFEmptyState({ title, message, icon, action, testID }: AFEmptySt
   return (
     <View style={styles.wrap} testID={testID}>
       {icon && (
-        <View style={styles.iconWrap}>
+        <View
+          style={styles.iconWrap}
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+        >
           <Icon name={icon} size={22} color={af.textTertiary} />
         </View>
       )}

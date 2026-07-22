@@ -76,7 +76,7 @@ export function ProtocolScreenV2() {
             icon={null}
           />
         </View>
-        <View style={styles.track}>
+        <View style={styles.track} importantForAccessibility="no-hide-descendants" accessibilityElementsHidden>
           <View style={[styles.fill, { width: `${Math.round(progress * 100)}%` }]} />
         </View>
       </View>
@@ -132,7 +132,12 @@ export function ProtocolScreenV2() {
           <AFSectionLabel label={t('protocol.v2.recent_activity')} />
           <AFCard padded={false} style={styles.historyCard}>
             {history.slice(0, 5).map((entry, i) => (
-              <View key={entry.id} style={[styles.historyRow, i > 0 && styles.historyDivider]}>
+              <View
+                key={entry.id}
+                style={[styles.historyRow, i > 0 && styles.historyDivider]}
+                accessible
+                accessibilityLabel={`${entry.action} ${formatTimeAgo(entry.timestamp)} ${entry.score}`}
+              >
                 <View style={styles.historyLeft}>
                   <Text style={styles.historyAction} numberOfLines={1}>{entry.action}</Text>
                   <Text style={styles.historyTime}>{formatTimeAgo(entry.timestamp)}</Text>

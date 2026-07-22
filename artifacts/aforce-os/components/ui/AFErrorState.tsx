@@ -33,7 +33,11 @@ export function AFErrorState({ variant = 'retry', title, message, action, testID
   const tint = v.critical ? af.red : af.textSecondary;
   return (
     <View style={styles.wrap} testID={testID}>
-      <View style={[styles.iconWrap, { borderColor: v.critical ? af.red : af.border }]}>
+      <View
+        style={[styles.iconWrap, { borderColor: v.critical ? af.red : af.border }]}
+        accessibilityElementsHidden
+        importantForAccessibility="no-hide-descendants"
+      >
         <Icon name={v.icon} size={22} color={tint} />
       </View>
       <Text style={styles.title} accessibilityRole="header">

@@ -112,7 +112,13 @@ export function ManageSubscriptionScreenV2() {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.headerRow}>
-            <Pressable onPress={() => router.back()} style={styles.backBtn} hitSlop={10}>
+            <Pressable
+              onPress={() => router.back()}
+              style={styles.backBtn}
+              hitSlop={10}
+              accessibilityRole="button"
+              accessibilityLabel={t('common.back')}
+            >
               <Icon name="chevron-left" size={20} color={af.textPrimary} />
             </Pressable>
             <View style={{ flex: 1 }}>
@@ -133,7 +139,12 @@ export function ManageSubscriptionScreenV2() {
               <Text style={styles.priceText}>{plan.priceLabel}</Text>
             </View>
 
-            <Pressable onPress={() => router.push('/subscription')} style={styles.changeBtn}>
+            <Pressable
+              onPress={() => router.push('/subscription')}
+              style={styles.changeBtn}
+              accessibilityRole="button"
+              accessibilityLabel={t('subscription.v2.change_plan')}
+            >
               <Icon name="repeat" size={14} color={af.textPrimary} />
               <Text style={styles.changeBtnText}>{t('subscription.v2.change_plan')}</Text>
             </Pressable>
@@ -219,6 +230,9 @@ export function ManageSubscriptionScreenV2() {
               onPress={onManageBilling}
               disabled={busy}
               style={({ pressed }) => [styles.portalBtn, pressed && styles.portalBtnPressed]}
+              accessibilityRole="button"
+              accessibilityLabel={t('subscription.v2.portal_manage')}
+              accessibilityState={{ disabled: busy, busy }}
             >
               <Icon name="external-link" size={14} color={af.textPrimary} />
               <Text style={styles.portalBtnText}>

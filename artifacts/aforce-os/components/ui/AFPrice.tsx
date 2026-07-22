@@ -29,7 +29,11 @@ export function AFPrice({ value, compareAt, caption, size = 'md', testID }: AFPr
         <Text style={[size === 'lg' ? styles.valueLg : styles.value]} accessibilityLabel={value}>
           {value}
         </Text>
-        {compareAt && <Text style={styles.compareAt}>{compareAt}</Text>}
+        {compareAt && (
+          <Text style={styles.compareAt} accessibilityLabel={`Was ${compareAt}`}>
+            {compareAt}
+          </Text>
+        )}
       </View>
       {caption && <Text style={styles.caption}>{caption}</Text>}
     </View>

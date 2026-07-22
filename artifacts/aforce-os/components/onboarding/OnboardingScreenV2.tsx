@@ -411,6 +411,8 @@ export function OnboardingScreenV2() {
             hitSlop={12}
             accessibilityRole="button"
             accessibilityLabel={t('onboarding.v2.skip_a11y')}
+            accessibilityElementsHidden={step === 'ready'}
+            importantForAccessibility={step === 'ready' ? 'no-hide-descendants' : 'auto'}
             style={styles.headerBtn}
           >
             {step !== 'ready' ? <Text style={styles.skip}>{t('onboarding.v2.skip')}</Text> : null}
