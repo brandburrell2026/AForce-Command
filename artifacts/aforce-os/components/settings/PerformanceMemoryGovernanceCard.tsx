@@ -20,16 +20,23 @@
  */
 import React from 'react';
 import { View, Text, StyleSheet, Pressable, Platform, Alert } from 'react-native';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 
 import { Colors } from '@/theme/colors';
 import { Icon, type IconName } from '@/components/Icon';
 import { useUnifiedPerformanceMemory } from '@/hooks/useUnifiedPerformanceMemory';
 import { clearPerformanceMemoryCapture } from '@/services/performanceMemoryCapture';
 
-/** Format a "X of Y days" coverage hint, or a neutral empty-state string. */
-function coverageHint(available: boolean, sampleSize: number): string {
-  if (!available || sampleSize <= 0) return 'No data yet';
-  return `${sampleSize} observed`;
+/** Coverage hint: "{n} observed", or a neutral empty-state string. */
+function coverageHint(t: TFunction, available: boolean, sampleSize: number): string {
+  if (!available || sampleSize <= 0) return t('settings.common.no_data');
+  return t('settings.perfMemory.observed', { count: sampleSize });
+}
+
+/** Localized "day"/"days" word by count. */
+function dayWord(t: TFunction, n: number): string {
+  return n === 1 ? t('settings.common.day') : t('settings.common.days');
 }
 
 function MemoryRow(props: {
@@ -53,6 +60,7 @@ function MemoryRow(props: {
 }
 
 export function PerformanceMemoryGovernanceCard() {
+  const { t } = useTranslation();
   const memory = useUnifiedPerformanceMemory();
   const [busy, setBusy] = React.useState(false);
 
@@ -71,12 +79,12 @@ export function PerformanceMemoryGovernanceCard() {
       return;
     }
     Alert.alert(
-      'Delete captured memory?',
-      'This permanently erases the observational streams AForce has captured on this device (travel, caffeine, and your self-reported daily priority). It does not affect your account, hydration history, command history, or scores.',
+      t('settings.perfMemory.delete_title'),
+      t('settings.perfMemory.delete_body'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Delete',
+          text: t('settings.analyticsConsent.delete_confirm'),
           style: 'destructive',
           onPress: () => {
             void runDelete();
@@ -100,82 +108,83 @@ export function PerformanceMemoryGovernanceCard() {
 
   const updatedLabel =
     lastUpdated == null
-      ? 'No memory captured yet'
-      : `Updated ${new Date(lastUpdated).toLocaleDateString()}`;
+      ? t('settings.perfMemory.no_memory')
+      : t('settings.perfMemory.updated', { date: new Date(lastUpdated).toLocaleDateString() });
 
   return (
     <View style={styles.wrap} testID="performance-memory-governance">
       <View style={styles.header}>
         <Icon name="activity" size={16} color={Colors.text.secondary} />
         <View style={styles.textWrap}>
-          <Text style={styles.title}>Performance Memory</Text>
-          <Text style={styles.subTitle}>
-            A read-only summary of what AForce has observed about your behaviour.
-            Observational only — it never changes your score.
-          </Text>
+          <Text style={styles.title}>{t('settings.perfMemory.title')}</Text>
+          <Text style={styles.subTitle}>{t('settings.perfMemory.subtitle')}</Text>
         </View>
       </View>
 
       <View style={styles.list}>
         <MemoryRow
           icon="droplet"
-          label="Hydration"
+          label={t('settings.perfMemory.row_hydration')}
           value={`${hp.totalLogs}`}
-          hint={`${hp.daysActive} active ${hp.daysActive === 1 ? 'day' : 'days'} · ${coverageHint(
-            hp.coverage.available,
-            hp.coverage.sampleSize,
-          )}`}
+          hint={t('settings.perfMemory.hint_active', {
+            count: hp.daysActive,
+            days: dayWord(t, hp.daysActive),
+            coverage: coverageHint(t, hp.coverage.available, hp.coverage.sampleSize),
+          })}
         />
         <MemoryRow
           icon="coffee"
-          label="Caffeine"
+          label={t('settings.perfMemory.row_caffeine')}
           value={`${cp.totalLogs}`}
-          hint={`${cp.daysWithCaffeine} ${cp.daysWithCaffeine === 1 ? 'day' : 'days'} · ${coverageHint(
-            cp.coverage.available,
-            cp.coverage.sampleSize,
-          )}`}
+          hint={t('settings.perfMemory.hint_days_cov', {
+            count: cp.daysWithCaffeine,
+            days: dayWord(t, cp.daysWithCaffeine),
+            coverage: coverageHint(t, cp.coverage.available, cp.coverage.sampleSize),
+          })}
         />
         <MemoryRow
           icon="navigation"
-          label="Travel"
+          label={t('settings.perfMemory.row_travel')}
           value={`${tp.travelDays}`}
-          hint={coverageHint(tp.coverage.available, tp.coverage.sampleSize)}
+          hint={coverageHint(t, tp.coverage.available, tp.coverage.sampleSize)}
         />
         <MemoryRow
           icon="target"
-          label="Daily priority"
+          label={t('settings.perfMemory.row_priority')}
           value={up.topGoal ?? '—'}
-          hint={`${up.daysRecorded} ${up.daysRecorded === 1 ? 'day' : 'days'} · ${coverageHint(
-            up.coverage.available,
-            up.coverage.sampleSize,
-          )}`}
+          hint={t('settings.perfMemory.hint_days_cov', {
+            count: up.daysRecorded,
+            days: dayWord(t, up.daysRecorded),
+            coverage: coverageHint(t, up.coverage.available, up.coverage.sampleSize),
+          })}
         />
         <MemoryRow
           icon="check-circle"
-          label="Command completion"
+          label={t('settings.perfMemory.row_completion')}
           value={ch.total > 0 ? `${ch.followed}/${ch.total}` : '—'}
-          hint={coverageHint(ch.coverage.available, ch.coverage.sampleSize)}
+          hint={coverageHint(t, ch.coverage.available, ch.coverage.sampleSize)}
         />
         <MemoryRow
           icon="calendar"
-          label="Check-ins"
+          label={t('settings.perfMemory.row_checkins')}
           value={`${cih.entriesLogged}`}
-          hint={`${cih.streak} ${cih.streak === 1 ? 'day' : 'days'} streak`}
+          hint={t('settings.perfMemory.hint_streak', { count: cih.streak, days: dayWord(t, cih.streak) })}
         />
         <MemoryRow
           icon="battery"
-          label="Recovery"
+          label={t('settings.perfMemory.row_recovery')}
           value={rp.available && rp.recovery != null ? `${Math.round(rp.recovery)}` : '—'}
-          hint={rp.available && rp.trend ? rp.trend : 'No data yet'}
+          hint={rp.available && rp.trend ? rp.trend : t('settings.common.no_data')}
         />
         <MemoryRow
           icon="trending-up"
-          label="Performance Age"
+          label={t('settings.perfMemory.row_perf_age')}
           value={pah.latest != null ? `${pah.latest}` : '—'}
-          hint={`${pah.daysOfHistory} ${pah.daysOfHistory === 1 ? 'day' : 'days'} · ${coverageHint(
-            pah.coverage.available,
-            pah.coverage.sampleSize,
-          )}`}
+          hint={t('settings.perfMemory.hint_days_cov', {
+            count: pah.daysOfHistory,
+            days: dayWord(t, pah.daysOfHistory),
+            coverage: coverageHint(t, pah.coverage.available, pah.coverage.sampleSize),
+          })}
         />
       </View>
 
@@ -186,10 +195,10 @@ export function PerformanceMemoryGovernanceCard() {
         disabled={busy}
         style={styles.deleteBtn}
         accessibilityRole="button"
-        accessibilityLabel="Delete captured performance memory"
+        accessibilityLabel={t('settings.perfMemory.delete_a11y')}
         testID="performance-memory-delete"
       >
-        <Text style={styles.deleteLabel}>Delete captured memory</Text>
+        <Text style={styles.deleteLabel}>{t('settings.perfMemory.delete_btn')}</Text>
       </Pressable>
     </View>
   );

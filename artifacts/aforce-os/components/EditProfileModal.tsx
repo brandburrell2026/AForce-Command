@@ -21,6 +21,7 @@
  */
 
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Modal,
   View,
@@ -67,64 +68,68 @@ const AURA_COLOR: Record<AuraState, string> = {
   APEX: Colors.states.PEAK.primary,
 };
 
+// Maps hold i18n key SUFFIXES (under settings.editProfile.*); resolved
+// to display text at the render sites via t(`settings.editProfile.${...}`).
 const SEX_LABEL: Record<BiologicalSex, string> = {
-  male: 'MALE',
-  female: 'FEMALE',
-  'non-binary': 'NON-BINARY',
-  unspecified: 'PREFER NOT TO SAY',
+  male: 'sex_male',
+  female: 'sex_female',
+  'non-binary': 'sex_nonbinary',
+  unspecified: 'sex_prefer',
 };
 
 const SWEAT_LABEL: Record<SweatClassification, string> = {
-  light: 'Light',
-  moderate: 'Moderate',
-  heavy: 'Heavy',
-  very_heavy: 'Very Heavy',
+  light: 'sweat_light',
+  moderate: 'sweat_moderate',
+  heavy: 'sweat_heavy',
+  very_heavy: 'sweat_very_heavy',
 };
 
 const CAFFEINE_LABEL: Record<CaffeineHabit, string> = {
-  none: 'NONE',
-  low: 'LOW',
-  moderate: 'MODERATE',
-  high: 'HIGH',
-  unspecified: 'SKIP',
+  none: 'caffeine_none',
+  low: 'caffeine_low',
+  moderate: 'caffeine_moderate',
+  high: 'caffeine_high',
+  unspecified: 'caffeine_skip',
 };
 
 const OCCUPATION_LABEL: Record<OccupationType, string> = {
-  desk: 'DESK',
-  active: 'ACTIVE',
-  outdoor: 'OUTDOOR',
-  shift: 'SHIFT',
-  other: 'OTHER',
-  unspecified: 'SKIP',
+  desk: 'occ_desk',
+  active: 'occ_active',
+  outdoor: 'occ_outdoor',
+  shift: 'occ_shift',
+  other: 'occ_other',
+  unspecified: 'occ_skip',
 };
 
 interface TextFieldSpec {
   key: 'displayName' | 'nickname' | 'city' | 'country' | 'teamCircle' | 'territoryBadge';
-  label: string;
-  placeholder: string;
+  // i18n key SUFFIXES under settings.editProfile.*; resolved at render.
+  labelKey: string;
+  phKey: string;
   autoCapitalize: 'none' | 'words' | 'characters';
-  hint?: string;
+  hintKey?: string;
 }
 
 const TEXT_FIELDS: readonly TextFieldSpec[] = [
   {
     key: 'displayName',
-    label: 'Display Name',
-    placeholder: 'Coach Rock',
+    labelKey: 'field_displayName_label',
+    phKey: 'field_displayName_ph',
     autoCapitalize: 'words',
-    hint: 'Real name or alias — your call. Leave empty to use your sign-in name.',
+    hintKey: 'field_displayName_hint',
   },
-  { key: 'nickname', label: 'Handle', placeholder: 'MiamiPulse', autoCapitalize: 'none' },
-  { key: 'city', label: 'City', placeholder: 'Miami', autoCapitalize: 'words' },
-  { key: 'country', label: 'Country', placeholder: 'USA', autoCapitalize: 'characters' },
-  { key: 'teamCircle', label: 'Team / Circle', placeholder: 'South Beach Run Club', autoCapitalize: 'words' },
-  { key: 'territoryBadge', label: 'Territory Badge', placeholder: 'MIAMI HEAT ZONE', autoCapitalize: 'characters' },
+  { key: 'nickname', labelKey: 'field_nickname_label', phKey: 'field_nickname_ph', autoCapitalize: 'none' },
+  { key: 'city', labelKey: 'field_city_label', phKey: 'field_city_ph', autoCapitalize: 'words' },
+  { key: 'country', labelKey: 'field_country_label', phKey: 'field_country_ph', autoCapitalize: 'characters' },
+  { key: 'teamCircle', labelKey: 'field_teamCircle_label', phKey: 'field_teamCircle_ph', autoCapitalize: 'words' },
+  { key: 'territoryBadge', labelKey: 'field_territoryBadge_label', phKey: 'field_territoryBadge_ph', autoCapitalize: 'characters' },
 ];
 
 interface NumericFieldSpec {
   key: 'bodyWeightLbs' | 'heightCm' | 'birthYear';
-  label: string;
-  placeholder: string;
+  // i18n key SUFFIXES under settings.editProfile.*; resolved at render.
+  labelKey: string;
+  phKey: string;
   /** Inclusive guardrail; out-of-range or non-numeric saves as `null`. */
   min: number;
   max: number;
@@ -136,7 +141,7 @@ const NUMERIC_FIELDS: readonly NumericFieldSpec[] = [
   // Body weight + height are handled by the shared, unit-aware
   // BodyMeasure fields (canonical lbs / cm). Birth year stays a plain
   // numeric input here.
-  { key: 'birthYear', label: 'Birth Year', placeholder: 'e.g. 1990', min: 1900, max: new Date().getFullYear(), digits: 4 },
+  { key: 'birthYear', labelKey: 'field_birthYear_label', phKey: 'field_birthYear_ph', min: 1900, max: new Date().getFullYear(), digits: 4 },
 ];
 
 /** "" when the field is unset so the placeholder shows. */
@@ -160,6 +165,7 @@ interface Props {
 }
 
 export function EditProfileModal({ visible, initialValue, onClose, onSave }: Props) {
+  const { t } = useTranslation();
   // Local draft so typing doesn't dispatch on every keystroke. Reset
   // whenever the modal is re-opened so a previous cancelled edit
   // doesn't leak back in.
@@ -269,12 +275,12 @@ export function EditProfileModal({ visible, initialValue, onClose, onSave }: Pro
         <View style={styles.sheet}>
           <View style={styles.handle} />
           <View style={styles.header}>
-            <Text style={styles.title}>EDIT IDENTITY</Text>
+            <Text style={styles.title}>{t('settings.editProfile.title')}</Text>
             <Pressable
               onPress={onClose}
               hitSlop={12}
               accessibilityRole="button"
-              accessibilityLabel="Close edit profile"
+              accessibilityLabel={t('settings.editProfile.close_a11y')}
             >
               <Icon name="x" size={20} color={Colors.text.muted} />
             </Pressable>
@@ -287,48 +293,53 @@ export function EditProfileModal({ visible, initialValue, onClose, onSave }: Pro
             bottomOffset={24}
           >
             <View style={styles.field}>
-              <Text style={styles.fieldLabel}>AVATAR IMAGE URL</Text>
+              <Text style={styles.fieldLabel}>{t('settings.editProfile.avatar_label')}</Text>
               <TextInput
                 value={draft.avatarUri}
-                onChangeText={(t) => setField('avatarUri', t)}
-                placeholder="https://… or data:image/…"
+                onChangeText={(next) => setField('avatarUri', next)}
+                placeholder={t('settings.editProfile.avatar_ph')}
                 placeholderTextColor={Colors.text.muted}
                 maxLength={AVATAR_URI_MAX_LEN}
                 autoCapitalize="none"
                 autoCorrect={false}
                 keyboardType="url"
                 style={styles.input}
-                accessibilityLabel="Avatar image URL"
+                accessibilityLabel={t('settings.editProfile.avatar_a11y')}
                 testID="edit-profile-avatarUri"
               />
               <Text style={styles.hint}>
-                Paste an https:// link or a data:image/ URI. Other schemes are dropped on save.
+                {t('settings.editProfile.avatar_hint')}
               </Text>
             </View>
 
-            {TEXT_FIELDS.map((field) => (
+            {TEXT_FIELDS.map((field) => {
+              const label = t(`settings.editProfile.${field.labelKey}`);
+              return (
               <View key={field.key} style={styles.field}>
-                <Text style={styles.fieldLabel}>{field.label.toUpperCase()}</Text>
+                <Text style={styles.fieldLabel}>{label.toUpperCase()}</Text>
                 <TextInput
                   value={draft[field.key]}
-                  onChangeText={(t) => setField(field.key, t)}
-                  placeholder={field.placeholder}
+                  onChangeText={(next) => setField(field.key, next)}
+                  placeholder={t(`settings.editProfile.${field.phKey}`)}
                   placeholderTextColor={Colors.text.muted}
                   maxLength={FIELD_MAX_LEN}
                   autoCapitalize={field.autoCapitalize}
                   autoCorrect={false}
                   style={styles.input}
-                  accessibilityLabel={field.label}
+                  accessibilityLabel={label}
                   testID={`edit-profile-${field.key}`}
                 />
-                {field.hint ? <Text style={styles.hint}>{field.hint}</Text> : null}
+                {field.hintKey ? (
+                  <Text style={styles.hint}>{t(`settings.editProfile.${field.hintKey}`)}</Text>
+                ) : null}
               </View>
-            ))}
+              );
+            })}
 
             <View style={styles.sectionDivider} />
-            <Text style={styles.sectionLabel}>BODY MODEL</Text>
+            <Text style={styles.sectionLabel}>{t('settings.editProfile.section_body_model')}</Text>
             <Text style={styles.sectionHint}>
-              Optional. Helps the system tune recommendations to your body — skip any field and the engine falls back to safe defaults.
+              {t('settings.editProfile.section_body_model_hint')}
             </Text>
 
             <WeightField
@@ -347,31 +358,29 @@ export function EditProfileModal({ visible, initialValue, onClose, onSave }: Pro
 
             {NUMERIC_FIELDS.map((field) => (
               <View key={field.key} style={styles.field}>
-                <Text style={styles.fieldLabel}>{field.label.toUpperCase()}</Text>
+                <Text style={styles.fieldLabel}>{t(`settings.editProfile.${field.labelKey}`).toUpperCase()}</Text>
                 <TextInput
                   value={numericText[field.key]}
-                  onChangeText={(t) =>
-                    setNumericText((m) => ({ ...m, [field.key]: t.replace(/[^0-9]/g, '') }))
+                  onChangeText={(next) =>
+                    setNumericText((m) => ({ ...m, [field.key]: next.replace(/[^0-9]/g, '') }))
                   }
-                  placeholder={field.placeholder}
+                  placeholder={t(`settings.editProfile.${field.phKey}`)}
                   placeholderTextColor={Colors.text.muted}
                   keyboardType="number-pad"
                   inputMode="numeric"
                   maxLength={field.digits}
                   autoCorrect={false}
                   style={styles.input}
-                  accessibilityLabel={field.label}
+                  accessibilityLabel={t(`settings.editProfile.${field.labelKey}`)}
                   testID={`edit-profile-${field.key}`}
                 />
               </View>
             ))}
 
             <View style={styles.sectionDivider} />
-            <Text style={styles.sectionLabel}>BIOLOGICAL PROFILE</Text>
+            <Text style={styles.sectionLabel}>{t('settings.editProfile.section_bio')}</Text>
             <Text style={styles.sectionHint}>
-              Optional. Quietly calibrates hydration demand, sweat &amp; load
-              estimates, and Recovery Capacity. Not a medical record — used
-              only on-device to tune your numbers.
+              {t('settings.editProfile.section_bio_hint')}
             </Text>
 
             <View style={styles.field}>
@@ -394,7 +403,7 @@ export function EditProfileModal({ visible, initialValue, onClose, onSave }: Pro
                       ]}
                       accessibilityRole="button"
                       accessibilityState={{ selected }}
-                      accessibilityLabel={`Biological profile ${sex}`}
+                      accessibilityLabel={t('settings.editProfile.bio_a11y', { sex })}
                       testID={`edit-profile-sex-${sex}`}
                     >
                       <Text
@@ -403,7 +412,7 @@ export function EditProfileModal({ visible, initialValue, onClose, onSave }: Pro
                           { color: selected ? Colors.accent.primary : Colors.text.secondary },
                         ]}
                       >
-                        {SEX_LABEL[sex]}
+                        {t(`settings.editProfile.${SEX_LABEL[sex]}`)}
                       </Text>
                     </Pressable>
                   );
@@ -412,14 +421,13 @@ export function EditProfileModal({ visible, initialValue, onClose, onSave }: Pro
             </View>
 
             <View style={styles.sectionDivider} />
-            <Text style={styles.sectionLabel}>PERFORMANCE PROFILE</Text>
+            <Text style={styles.sectionLabel}>{t('settings.editProfile.section_perf')}</Text>
             <Text style={styles.sectionHint}>
-              Feeds your Personal Baseline. Training level, primary goal &amp;
-              sweat level recalibrate future recommendations when they change.
+              {t('settings.editProfile.section_perf_hint')}
             </Text>
 
             <View style={styles.field}>
-              <Text style={styles.fieldLabel}>TRAINING LEVEL</Text>
+              <Text style={styles.fieldLabel}>{t('settings.editProfile.field_training')}</Text>
               <View style={styles.auraRow}>
                 {TRAINING_LEVELS.map((level) => {
                   const selected = draft.trainingLevel === level;
@@ -439,7 +447,7 @@ export function EditProfileModal({ visible, initialValue, onClose, onSave }: Pro
                       ]}
                       accessibilityRole="button"
                       accessibilityState={{ selected }}
-                      accessibilityLabel={`Training level ${level}`}
+                      accessibilityLabel={t('settings.editProfile.training_a11y', { level })}
                       testID={`edit-profile-trainingLevel-${level}`}
                     >
                       <Text
@@ -457,7 +465,7 @@ export function EditProfileModal({ visible, initialValue, onClose, onSave }: Pro
             </View>
 
             <View style={styles.field}>
-              <Text style={styles.fieldLabel}>PRIMARY GOAL</Text>
+              <Text style={styles.fieldLabel}>{t('settings.editProfile.field_primary_goal')}</Text>
               <View style={styles.auraRow}>
                 {PRIMARY_GOALS.map((goal) => {
                   const selected = draft.primaryGoal === goal;
@@ -477,7 +485,7 @@ export function EditProfileModal({ visible, initialValue, onClose, onSave }: Pro
                       ]}
                       accessibilityRole="button"
                       accessibilityState={{ selected }}
-                      accessibilityLabel={`Primary goal ${goal}`}
+                      accessibilityLabel={t('settings.editProfile.primary_goal_a11y', { goal })}
                       testID={`edit-profile-primaryGoal-${goal}`}
                     >
                       <Text
@@ -495,11 +503,11 @@ export function EditProfileModal({ visible, initialValue, onClose, onSave }: Pro
             </View>
 
             <View style={styles.field}>
-              <Text style={styles.fieldLabel}>TYPICAL SWEAT LEVEL</Text>
+              <Text style={styles.fieldLabel}>{t('settings.editProfile.field_sweat')}</Text>
               <View style={styles.auraRow}>
                 {SWEAT_CLASSIFICATIONS.map((level) => {
                   const selected = draft.sweatClassification === level;
-                  const label = SWEAT_LABEL[level];
+                  const label = t(`settings.editProfile.${SWEAT_LABEL[level]}`);
                   return (
                     <Pressable
                       key={level}
@@ -516,7 +524,7 @@ export function EditProfileModal({ visible, initialValue, onClose, onSave }: Pro
                       ]}
                       accessibilityRole="button"
                       accessibilityState={{ selected }}
-                      accessibilityLabel={`Typical sweat level ${label}`}
+                      accessibilityLabel={t('settings.editProfile.sweat_a11y', { label })}
                       testID={`edit-profile-sweatClassification-${level}`}
                     >
                       <Text
@@ -536,35 +544,40 @@ export function EditProfileModal({ visible, initialValue, onClose, onSave }: Pro
             <WeightField
               bodyWeightLbs={draft.goalWeightLbs}
               unit={unitPreferences.weight}
-              label={`GOAL WEIGHT (${unitPreferences.weight === 'kg' ? 'KG' : 'LBS'})`}
+              label={t('settings.editProfile.goal_weight', {
+                unit:
+                  unitPreferences.weight === 'kg'
+                    ? t('settings.editProfile.unit_kg')
+                    : t('settings.editProfile.unit_lbs'),
+              })}
               onChange={(lbs) => setField('goalWeightLbs', lbs)}
               testID="edit-profile-goalWeightLbs"
             />
 
             <View style={styles.field}>
-              <Text style={styles.fieldLabel}>TYPICAL WORKOUT DURATION (MIN)</Text>
+              <Text style={styles.fieldLabel}>{t('settings.editProfile.field_workout')}</Text>
               <TextInput
                 value={numericText.typicalWorkoutDurationMin}
-                onChangeText={(t) =>
+                onChangeText={(next) =>
                   setNumericText((m) => ({
                     ...m,
-                    typicalWorkoutDurationMin: t.replace(/[^0-9]/g, ''),
+                    typicalWorkoutDurationMin: next.replace(/[^0-9]/g, ''),
                   }))
                 }
-                placeholder="e.g. 60"
+                placeholder={t('settings.editProfile.workout_ph')}
                 placeholderTextColor={Colors.text.muted}
                 keyboardType="number-pad"
                 inputMode="numeric"
                 maxLength={3}
                 autoCorrect={false}
                 style={styles.input}
-                accessibilityLabel="Typical workout duration in minutes"
+                accessibilityLabel={t('settings.editProfile.workout_a11y')}
                 testID="edit-profile-typicalWorkoutDurationMin"
               />
             </View>
 
             <View style={styles.field}>
-              <Text style={styles.fieldLabel}>AURA</Text>
+              <Text style={styles.fieldLabel}>{t('settings.editProfile.field_aura')}</Text>
               <View style={styles.auraRow}>
                 {AURA_STATES.map((aura) => {
                   const selected = draft.auraState === aura;
@@ -585,7 +598,7 @@ export function EditProfileModal({ visible, initialValue, onClose, onSave }: Pro
                       ]}
                       accessibilityRole="button"
                       accessibilityState={{ selected }}
-                      accessibilityLabel={`${aura} aura`}
+                      accessibilityLabel={t('settings.editProfile.aura_a11y', { aura })}
                     >
                       <Text
                         style={[
@@ -602,15 +615,13 @@ export function EditProfileModal({ visible, initialValue, onClose, onSave }: Pro
             </View>
 
             <View style={styles.sectionDivider} />
-            <Text style={styles.sectionLabel}>LIFESTYLE</Text>
+            <Text style={styles.sectionLabel}>{t('settings.editProfile.section_lifestyle')}</Text>
             <Text style={styles.sectionHint}>
-              Optional. Sets a hydration-demand floor so the engine plans ahead
-              for caffeine, your work environment, and travel. Tunes your target
-              only — never your score.
+              {t('settings.editProfile.section_lifestyle_hint')}
             </Text>
 
             <View style={styles.field}>
-              <Text style={styles.fieldLabel}>CAFFEINE</Text>
+              <Text style={styles.fieldLabel}>{t('settings.editProfile.field_caffeine')}</Text>
               <View style={styles.auraRow}>
                 {CAFFEINE_HABIT_OPTIONS.map((opt) => {
                   const selected = draft.caffeineHabit === opt;
@@ -630,7 +641,7 @@ export function EditProfileModal({ visible, initialValue, onClose, onSave }: Pro
                       ]}
                       accessibilityRole="button"
                       accessibilityState={{ selected }}
-                      accessibilityLabel={`Caffeine ${opt}`}
+                      accessibilityLabel={t('settings.editProfile.caffeine_a11y', { opt })}
                       testID={`edit-profile-caffeine-${opt}`}
                     >
                       <Text
@@ -639,7 +650,7 @@ export function EditProfileModal({ visible, initialValue, onClose, onSave }: Pro
                           { color: selected ? Colors.accent.primary : Colors.text.secondary },
                         ]}
                       >
-                        {CAFFEINE_LABEL[opt]}
+                        {t(`settings.editProfile.${CAFFEINE_LABEL[opt]}`)}
                       </Text>
                     </Pressable>
                   );
@@ -648,7 +659,7 @@ export function EditProfileModal({ visible, initialValue, onClose, onSave }: Pro
             </View>
 
             <View style={styles.field}>
-              <Text style={styles.fieldLabel}>OCCUPATION TYPE</Text>
+              <Text style={styles.fieldLabel}>{t('settings.editProfile.field_occupation')}</Text>
               <View style={styles.auraRow}>
                 {OCCUPATION_TYPE_OPTIONS.map((opt) => {
                   const selected = draft.occupationType === opt;
@@ -668,7 +679,7 @@ export function EditProfileModal({ visible, initialValue, onClose, onSave }: Pro
                       ]}
                       accessibilityRole="button"
                       accessibilityState={{ selected }}
-                      accessibilityLabel={`Occupation ${opt}`}
+                      accessibilityLabel={t('settings.editProfile.occupation_a11y', { opt })}
                       testID={`edit-profile-occupation-${opt}`}
                     >
                       <Text
@@ -677,7 +688,7 @@ export function EditProfileModal({ visible, initialValue, onClose, onSave }: Pro
                           { color: selected ? Colors.accent.primary : Colors.text.secondary },
                         ]}
                       >
-                        {OCCUPATION_LABEL[opt]}
+                        {t(`settings.editProfile.${OCCUPATION_LABEL[opt]}`)}
                       </Text>
                     </Pressable>
                   );
@@ -686,7 +697,7 @@ export function EditProfileModal({ visible, initialValue, onClose, onSave }: Pro
             </View>
 
             <View style={styles.field}>
-              <Text style={styles.fieldLabel}>FREQUENT TRAVELER</Text>
+              <Text style={styles.fieldLabel}>{t('settings.editProfile.field_traveler')}</Text>
               <View style={styles.auraRow}>
                 {[false, true].map((val) => {
                   const selected = draft.frequentTraveler === val;
@@ -706,7 +717,11 @@ export function EditProfileModal({ visible, initialValue, onClose, onSave }: Pro
                       ]}
                       accessibilityRole="button"
                       accessibilityState={{ selected }}
-                      accessibilityLabel={`Frequent traveler ${val ? 'yes' : 'no'}`}
+                      accessibilityLabel={t(
+                        val
+                          ? 'settings.editProfile.traveler_a11y_yes'
+                          : 'settings.editProfile.traveler_a11y_no',
+                      )}
                       testID={`edit-profile-traveler-${val ? 'yes' : 'no'}`}
                     >
                       <Text
@@ -715,7 +730,7 @@ export function EditProfileModal({ visible, initialValue, onClose, onSave }: Pro
                           { color: selected ? Colors.accent.primary : Colors.text.secondary },
                         ]}
                       >
-                        {val ? 'YES' : 'NO'}
+                        {t(val ? 'settings.editProfile.traveler_yes' : 'settings.editProfile.traveler_no')}
                       </Text>
                     </Pressable>
                   );
@@ -729,18 +744,18 @@ export function EditProfileModal({ visible, initialValue, onClose, onSave }: Pro
               onPress={onClose}
               style={[styles.btn, styles.btnGhost]}
               accessibilityRole="button"
-              accessibilityLabel="Cancel"
+              accessibilityLabel={t('settings.editProfile.cancel_a11y')}
             >
-              <Text style={styles.btnGhostText}>CANCEL</Text>
+              <Text style={styles.btnGhostText}>{t('settings.editProfile.cancel_btn')}</Text>
             </Pressable>
             <Pressable
               onPress={handleSave}
               style={[styles.btn, styles.btnPrimary]}
               accessibilityRole="button"
-              accessibilityLabel="Save identity"
+              accessibilityLabel={t('settings.editProfile.save_a11y')}
               testID="edit-profile-save"
             >
-              <Text style={styles.btnPrimaryText}>SAVE</Text>
+              <Text style={styles.btnPrimaryText}>{t('settings.editProfile.save_btn')}</Text>
             </Pressable>
           </View>
         </View>

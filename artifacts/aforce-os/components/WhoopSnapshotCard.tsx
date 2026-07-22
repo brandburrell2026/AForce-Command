@@ -15,6 +15,7 @@
 
 import React, { useEffect } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import Svg, { Circle } from 'react-native-svg';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, {
@@ -70,12 +71,13 @@ function recoveryColor(pct: number | null | undefined): string {
   return WHOOP_RED;
 }
 
-function strainBucket(s: number | null | undefined): string {
-  if (s == null) return '—';
-  if (s < 10) return 'LIGHT';
-  if (s < 14) return 'MODERATE';
-  if (s < 18) return 'STRENUOUS';
-  return 'ALL OUT';
+// null → '—' placeholder; otherwise a settings.whoop.strain_* key suffix.
+function strainBucketKey(s: number | null | undefined): string | null {
+  if (s == null) return null;
+  if (s < 10) return 'strain_light';
+  if (s < 14) return 'strain_moderate';
+  if (s < 18) return 'strain_strenuous';
+  return 'strain_all_out';
 }
 
 export function WhoopSnapshotCard({
@@ -85,6 +87,7 @@ export function WhoopSnapshotCard({
   sleepPerformance,
   syncing = false,
 }: WhoopSnapshotCardProps) {
+  const { t } = useTranslation();
   const recColor = recoveryColor(recoveryPct);
   const recValue = recoveryPct != null ? Math.round(recoveryPct) : null;
   const strainValue = strain != null ? strain.toFixed(1) : '—';
@@ -151,7 +154,7 @@ export function WhoopSnapshotCard({
         <Text style={styles.wordmark}>WHOOP</Text>
         <View style={styles.connectedRow}>
           <Animated.View style={[styles.pulseDot, animatedDotStyle]} />
-          <Text style={styles.connectedText}>{syncing ? 'SYNCING…' : 'CONNECTED'}</Text>
+          <Text style={styles.connectedText}>{syncing ? t('settings.whoop.syncing') : t('settings.whoop.connected')}</Text>
         </View>
       </View>
 
@@ -186,19 +189,19 @@ export function WhoopSnapshotCard({
             <Text style={[styles.recoveryValue, { color: recColor }]}>
               {recValue != null ? `${recValue}%` : '—'}
             </Text>
-            <Text style={styles.recoveryLabel}>RECOVERY</Text>
+            <Text style={styles.recoveryLabel}>{t('settings.whoop.recovery')}</Text>
           </View>
         </View>
 
         {/* Right-side stack — Strain + Sleep */}
         <View style={styles.statStack}>
           <View style={styles.statBlock}>
-            <Text style={styles.statLabel}>STRAIN</Text>
+            <Text style={styles.statLabel}>{t('settings.whoop.strain')}</Text>
             <View style={styles.statValueRow}>
               <Text style={[styles.statValue, { color: WHOOP_TEAL }]}>{strainValue}</Text>
               <Text style={styles.statDenom}>/ {STRAIN_MAX}</Text>
             </View>
-            <Text style={styles.statSubtle}>{strainBucket(strain)}</Text>
+            <Text style={styles.statSubtle}>{(() => { const k = strainBucketKey(strain); return k ? t(`settings.whoop.${k}`) : '—'; })()}</Text>
             <View style={styles.barTrack}>
               <Animated.View
                 style={[styles.barFill, { backgroundColor: WHOOP_TEAL }, animatedStrainBarStyle]}
@@ -207,13 +210,13 @@ export function WhoopSnapshotCard({
           </View>
 
           <View style={styles.statBlock}>
-            <Text style={styles.statLabel}>SLEEP</Text>
+            <Text style={styles.statLabel}>{t('settings.whoop.sleep')}</Text>
             <View style={styles.statValueRow}>
               <Text style={[styles.statValue, { color: TEXT_PRIMARY }]}>{sleepValue}</Text>
-              <Text style={styles.statDenom}>h</Text>
+              <Text style={styles.statDenom}>{t('settings.whoop.sleep_h')}</Text>
             </View>
             <Text style={styles.statSubtle}>
-              {sleepPerf != null ? `${sleepPerf}% PERFORMANCE` : '—'}
+              {sleepPerf != null ? t('settings.whoop.sleep_performance', { pct: sleepPerf }) : '—'}
             </Text>
           </View>
         </View>
@@ -223,7 +226,7 @@ export function WhoopSnapshotCard({
       <View style={styles.footer}>
         <View style={[styles.footerDot, { backgroundColor: CONNECTED_GREEN }]} />
         <Text style={styles.footerText}>
-          {syncing ? 'SYNCING FROM WHOOP · FIRST PULL' : 'FEEDING AFORCE HYDRATION SCORE · LIVE'}
+          {syncing ? t('settings.whoop.footer_syncing') : t('settings.whoop.footer_live')}
         </Text>
       </View>
     </LinearGradient>
