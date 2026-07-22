@@ -1416,7 +1416,7 @@ export function ProfileScreenV2() {
                       style={[styles.demoMaster, { borderColor: af.red, marginTop: 10 }]}
                     >
                       <Icon name="activity" size={14} color={af.red} />
-                      <Text style={[styles.demoMasterText, { color: af.red }]}>
+                      <Text style={[styles.demoMasterText, { color: af.redText }]}>
                         {t('profile.v2.preview_recovery_coach')}
                       </Text>
                     </Pressable>
@@ -2620,7 +2620,7 @@ const styles = StyleSheet.create({
     fontSize: 20, fontFamily: 'Inter_700Bold', color: af.textPrimary, letterSpacing: -0.3,
   },
   profileHandle: {
-    fontSize: 13, fontFamily: 'Inter_500Medium', color: af.red,
+    fontSize: 13, fontFamily: 'Inter_500Medium', color: af.redText,
     letterSpacing: 0.2,
   },
   profileLocation: {
@@ -2825,7 +2825,7 @@ const styles = StyleSheet.create({
   },
   inviteTierLabel: {
     fontFamily: 'Inter_700Bold', fontSize: 10, letterSpacing: 2,
-    color: af.red,
+    color: af.redText,
   },
   inviteProgress: {
     fontFamily: 'Inter_500Medium', fontSize: 11, letterSpacing: 1.2,

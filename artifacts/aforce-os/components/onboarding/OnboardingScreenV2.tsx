@@ -859,7 +859,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter_700Bold',
     fontSize: 12,
     letterSpacing: 2,
-    color: af.red,
+    color: af.redText,
   },
   promiseTitle: {
     fontFamily: 'Inter_800ExtraBold',
@@ -877,7 +877,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter_700Bold',
     fontSize: 12,
     letterSpacing: 2,
-    color: af.red,
+    color: af.redText,
     marginBottom: 12,
   },
   title: {
@@ -917,7 +917,7 @@ const styles = StyleSheet.create({
     color: af.textPrimary,
     marginBottom: 3,
   },
-  cardTitleSelected: { color: af.red },
+  cardTitleSelected: { color: af.redText },
   cardSubtitle: {
     fontFamily: 'Inter_400Regular',
     fontSize: 13,
@@ -977,7 +977,7 @@ const styles = StyleSheet.create({
     color: af.textSecondary,
     textAlign: 'center',
   },
-  segmentLabelSelected: { color: af.red },
+  segmentLabelSelected: { color: af.redText },
   pillWrap: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -1000,7 +1000,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: af.textSecondary,
   },
-  pillLabelSelected: { color: af.red },
+  pillLabelSelected: { color: af.redText },
   travelerRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1050,7 +1050,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter_700Bold',
     fontSize: 12,
     letterSpacing: 2,
-    color: af.red,
+    color: af.redText,
     marginTop: 12,
   },
   footer: {

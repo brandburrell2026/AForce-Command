@@ -66,7 +66,7 @@ const styles = StyleSheet.create({
   hero: { justifyContent: 'flex-end', overflow: 'hidden' },
   fill: { flex: 1 },
   safeZone: { padding: afLayout.screenPaddingX, gap: 6 },
-  eyebrow: { ...afType.eyebrow, color: af.red },
+  eyebrow: { ...afType.eyebrow, color: af.redText },
   title: { ...afType.displayHero, color: af.textPrimary },
   subtitle: { ...afType.body, color: af.textSecondary, marginTop: 2 },
   cta: { marginTop: 20, gap: 12 },

@@ -732,7 +732,7 @@ export function HydrationScanScreenV2() {
           >
             <Icon name="camera" size={16} color={af.red} />
             <View style={{ flex: 1 }}>
-              <Text style={[styles.logAnyTitle, { color: af.red }]}>
+              <Text style={[styles.logAnyTitle, { color: af.redText }]}>
                 {t('hydroScan2.v2.smart_capture_title')}
               </Text>
               <Text style={styles.logAnyHint}>

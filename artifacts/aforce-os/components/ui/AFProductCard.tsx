@@ -82,7 +82,7 @@ export function AFProductCard({
 
 const styles = StyleSheet.create({
   selected: { borderColor: af.red },
-  badge: { ...afType.eyebrow, color: af.red, marginBottom: 8 },
+  badge: { ...afType.eyebrow, color: af.redText, marginBottom: 8 },
   top: { flexDirection: 'row', gap: 14 },
   image: { width: 64, height: 64, borderRadius: 12 },
   body: { flex: 1, gap: 4 },

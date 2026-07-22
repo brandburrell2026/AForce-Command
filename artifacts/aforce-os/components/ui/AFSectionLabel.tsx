@@ -39,5 +39,5 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   label: { ...afType.eyebrow, color: af.textTertiary },
-  action: { ...afType.caption, color: af.red },
+  action: { ...afType.caption, color: af.redText },
 });

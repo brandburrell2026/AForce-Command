@@ -113,7 +113,9 @@ export function UrineCheckScreenV2({ onBack }: { onBack: () => void }) {
           </Text>
           <Text style={styles.detail}>{result.detail}</Text>
           <View style={[styles.recCard, { borderColor: sev.color }]}>
-            <Text style={[styles.recLabel, { color: sev.color }]}>{t('urine.v2.recommended')}</Text>
+            {/* Border keeps the severity color; the label uses redText for the
+                'correction' band so red text stays WCAG-AA on the dark card. */}
+            <Text style={[styles.recLabel, { color: result.severity === 'correction' ? af.redText : sev.color }]}>{t('urine.v2.recommended')}</Text>
             <Text style={styles.recBody}>{result.recommendation}</Text>
           </View>
         </AFCard>
