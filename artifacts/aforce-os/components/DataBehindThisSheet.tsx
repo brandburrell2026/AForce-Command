@@ -90,7 +90,7 @@ export function DataBehindThisSheet({ visible, onDismiss, confidence, signals }:
               <CommandConfidenceBadge level={confidence} />
             </View>
           </View>
-          <Pressable hitSlop={12} onPress={onDismiss} style={styles.closeBtn}>
+          <Pressable hitSlop={12} onPress={onDismiss} style={styles.closeBtn} accessibilityRole="button" accessibilityLabel="Close">
             <Icon name="x" size={18} color={Colors.text.secondary} />
           </Pressable>
         </View>

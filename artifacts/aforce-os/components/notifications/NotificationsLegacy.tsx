@@ -54,7 +54,7 @@ export function NotificationsLegacy() {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.headerRow}>
-            <Pressable onPress={() => router.back()} style={styles.backBtn} hitSlop={12} testID="notifications-back">
+            <Pressable onPress={() => router.back()} style={styles.backBtn} hitSlop={12} accessibilityRole="button" accessibilityLabel="Back" testID="notifications-back">
               <Icon name="chevron-left" size={20} color={Colors.text.primary} />
             </Pressable>
             <View style={{ flex: 1 }}>
