@@ -7,6 +7,7 @@
 
 import React, { useEffect } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -27,12 +28,13 @@ const VERDICT_COLOR: Record<ScanResult['verdict'], string> = {
   avoid:      Colors.states.DEPLETED.primary,
 };
 
-const VERDICT_LABEL: Record<ScanResult['verdict'], string> = {
-  optimal:    'OPTIMAL',
-  strong:     'STRONG FIT',
-  acceptable: 'ACCEPTABLE',
-  suboptimal: 'SUBOPTIMAL',
-  avoid:      'AVOID',
+// verdict → hydroScan2.cards.verdict_* key suffix (translated at render).
+const VERDICT_KEY: Record<ScanResult['verdict'], string> = {
+  optimal:    'verdict_optimal',
+  strong:     'verdict_strong',
+  acceptable: 'verdict_acceptable',
+  suboptimal: 'verdict_suboptimal',
+  avoid:      'verdict_avoid',
 };
 
 interface Props {
@@ -40,6 +42,7 @@ interface Props {
 }
 
 export function ScanResultCard({ result }: Props) {
+  const { t } = useTranslation();
   const opacity = useSharedValue(0);
   const ty = useSharedValue(8);
 
@@ -57,7 +60,7 @@ export function ScanResultCard({ result }: Props) {
   }));
 
   const color = VERDICT_COLOR[result.verdict];
-  const verdictLabel = VERDICT_LABEL[result.verdict];
+  const verdictLabel = t(`hydroScan2.cards.${VERDICT_KEY[result.verdict]}`);
 
   return (
     <Animated.View style={[styles.card, { borderColor: `${color}55` }, animStyle]}>
@@ -70,7 +73,7 @@ export function ScanResultCard({ result }: Props) {
           />
         </View>
         <View style={{ flex: 1 }}>
-          <Text style={styles.eyebrow}>SCAN IDENTIFIED</Text>
+          <Text style={styles.eyebrow}>{t('hydroScan2.cards.scan_identified')}</Text>
           <Text style={styles.name} numberOfLines={1}>{result.product.productName}</Text>
           <Text style={styles.brand}>{result.product.brand}</Text>
         </View>
@@ -82,13 +85,13 @@ export function ScanResultCard({ result }: Props) {
       <View style={styles.fitRow}>
         <Text style={[styles.fitScore, { color }]}>{result.currentFitScore}</Text>
         <View style={{ flex: 1, marginLeft: 12 }}>
-          <Text style={styles.fitLabel}>FIT SCORE — {result.evaluatedAgainstState}</Text>
+          <Text style={styles.fitLabel}>{t('hydroScan2.cards.fit_score', { state: result.evaluatedAgainstState })}</Text>
           <Text style={styles.fitHeadline}>{result.recommendation.headline}</Text>
         </View>
       </View>
 
       <View style={styles.efficiencyRow} testID="scan-efficiency-row">
-        <Text style={styles.fitLabel}>EFFICIENCY</Text>
+        <Text style={styles.fitLabel}>{t('hydroScan2.cards.efficiency')}</Text>
         <Text style={[styles.efficiencyText, { color }]}>{result.efficiencyLabel}</Text>
       </View>
     </Animated.View>

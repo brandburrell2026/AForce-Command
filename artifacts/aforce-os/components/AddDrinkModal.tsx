@@ -33,6 +33,7 @@ import {
   Platform,
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
+import { useTranslation } from 'react-i18next';
 import { Icon } from './Icon';
 import { Colors } from '../theme/colors';
 import {
@@ -77,6 +78,7 @@ type Stage =
   | { kind: 'custom'; categoryId: DrinkCategoryId; name: string; oz: number };
 
 export function AddDrinkModal({ visible, accentColor, onCancel, onConfirm }: Props) {
+  const { t } = useTranslation();
   const [query, setQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState<DrinkCategoryId | null>(null);
   const [stage, setStage] = useState<Stage>({ kind: 'browse' });
@@ -192,7 +194,7 @@ export function AddDrinkModal({ visible, accentColor, onCancel, onConfirm }: Pro
           {/* Header */}
           <View style={styles.headerRow}>
             {stage.kind !== 'browse' ? (
-              <Pressable onPress={back} hitSlop={12} accessibilityLabel="Back">
+              <Pressable onPress={back} hitSlop={12} accessibilityLabel={t('hydroScan2.addDrink.back_a11y')}>
                 <Icon name="chevron-left" size={20} color={Colors.text.secondary} />
               </Pressable>
             ) : (
@@ -200,12 +202,12 @@ export function AddDrinkModal({ visible, accentColor, onCancel, onConfirm }: Pro
             )}
             <Text style={styles.title}>
               {stage.kind === 'browse'
-                ? 'LOG ANY DRINK'
+                ? t('hydroScan2.addDrink.title_browse')
                 : stage.kind === 'pick-oz'
-                ? 'HOW MUCH?'
-                : 'CUSTOM DRINK'}
+                ? t('hydroScan2.addDrink.title_pick_oz')
+                : t('hydroScan2.addDrink.title_custom')}
             </Text>
-            <Pressable onPress={onCancel} hitSlop={12} accessibilityLabel="Close">
+            <Pressable onPress={onCancel} hitSlop={12} accessibilityLabel={t('hydroScan2.addDrink.close_a11y')}>
               <Icon name="x" size={20} color={Colors.text.secondary} />
             </Pressable>
           </View>
@@ -269,6 +271,7 @@ function BrowseStage(props: {
   onStartCustom: () => void;
   accentColor: string;
 }) {
+  const { t } = useTranslation();
   const {
     query, onQueryChange, activeCategory, onCategoryChange,
     results, onPickDrink, onStartCustom, accentColor,
@@ -283,7 +286,7 @@ function BrowseStage(props: {
           style={styles.searchInput}
           value={query}
           onChangeText={onQueryChange}
-          placeholder="Search drinks, brands, categories…"
+          placeholder={t('hydroScan2.addDrink.search_placeholder')}
           placeholderTextColor={Colors.text.muted}
           autoCorrect={false}
           autoCapitalize="none"
@@ -291,7 +294,7 @@ function BrowseStage(props: {
           testID="add-drink-search"
         />
         {query.length > 0 && (
-          <Pressable onPress={() => onQueryChange('')} hitSlop={8} accessibilityLabel="Clear search">
+          <Pressable onPress={() => onQueryChange('')} hitSlop={8} accessibilityLabel={t('hydroScan2.addDrink.clear_search_a11y')}>
             <Icon name="x" size={14} color={Colors.text.muted} />
           </Pressable>
         )}
@@ -304,7 +307,7 @@ function BrowseStage(props: {
         contentContainerStyle={styles.chipStrip}
       >
         <CategoryChip
-          label="ALL"
+          label={t('hydroScan2.addDrink.chip_all')}
           active={activeCategory === null}
           accentColor={accentColor}
           onPress={() => onCategoryChange(null)}
@@ -329,9 +332,9 @@ function BrowseStage(props: {
       >
         {results.length === 0 && (
           <View style={styles.emptyState}>
-            <Text style={styles.emptyTitle}>No matches</Text>
+            <Text style={styles.emptyTitle}>{t('hydroScan2.addDrink.no_matches')}</Text>
             <Text style={styles.emptyHint}>
-              Try a different word, switch category, or add a custom drink below.
+              {t('hydroScan2.addDrink.no_matches_hint')}
             </Text>
           </View>
         )}
@@ -354,7 +357,10 @@ function BrowseStage(props: {
                 {d.name}
               </Text>
               <Text style={styles.resultMeta} numberOfLines={1}>
-                {DRINK_CATEGORIES[d.categoryId].label} · {d.ozPerServing} oz
+                {t('hydroScan2.addDrink.result_meta', {
+                  category: DRINK_CATEGORIES[d.categoryId].label,
+                  oz: d.ozPerServing,
+                })}
                 {d.brand ? ` · ${d.brand}` : ''}
               </Text>
             </View>
@@ -372,7 +378,7 @@ function BrowseStage(props: {
       >
         <Icon name="plus-circle" size={16} color={accentColor} />
         <Text style={[styles.customCtaText, { color: accentColor }]}>
-          ADD CUSTOM DRINK
+          {t('hydroScan2.addDrink.add_custom')}
         </Text>
       </Pressable>
     </View>
@@ -412,6 +418,7 @@ function PickOzStage(props: {
   onPreset: (oz: number) => void;
   onConfirm: () => void;
 }) {
+  const { t } = useTranslation();
   const { drink, oz, accentColor, onAdjust, onPreset, onConfirm } = props;
   const cat = DRINK_CATEGORIES[drink.categoryId];
   const coef = getDrinkCoefficient(drink);
@@ -425,7 +432,7 @@ function PickOzStage(props: {
           {drink.brand ? `${drink.brand} — ` : ''}{drink.name}
         </Text>
         <Text style={styles.previewCoef}>
-          Hydration credit · {Math.round(coef * 100)}% of plain water
+          {t('hydroScan2.addDrink.hydration_credit', { pct: Math.round(coef * 100) })}
         </Text>
       </View>
 
@@ -437,9 +444,9 @@ function PickOzStage(props: {
       />
 
       <View style={styles.impactCard}>
-        <Text style={styles.impactLabel}>SCORE IMPACT</Text>
+        <Text style={styles.impactLabel}>{t('hydroScan2.addDrink.score_impact')}</Text>
         <Text style={[styles.impactValue, { color: accentColor }]}>
-          ≈ {effective} oz water-equivalent
+          {t('hydroScan2.addDrink.water_equivalent', { oz: effective })}
         </Text>
       </View>
 
@@ -454,7 +461,7 @@ function PickOzStage(props: {
         testID="add-drink-confirm-catalog"
       >
         <Icon name="check-circle" size={16} color={Colors.text.inverse} />
-        <Text style={styles.ctaText}>LOG {oz} OZ</Text>
+        <Text style={styles.ctaText}>{t('hydroScan2.addDrink.log_oz', { oz })}</Text>
       </Pressable>
     </View>
   );
@@ -473,6 +480,7 @@ function CustomStage(props: {
   onPreset: (oz: number) => void;
   onConfirm: () => void;
 }) {
+  const { t } = useTranslation();
   const {
     categoryId, name, oz, accentColor,
     onCategoryChange, onNameChange, onAdjust, onPreset, onConfirm,
@@ -483,12 +491,12 @@ function CustomStage(props: {
   return (
     <View style={{ gap: 14 }}>
       <View>
-        <Text style={styles.fieldLabel}>NAME</Text>
+        <Text style={styles.fieldLabel}>{t('hydroScan2.addDrink.field_name')}</Text>
         <TextInput
           style={styles.nameInput}
           value={name}
           onChangeText={onNameChange}
-          placeholder="e.g. Mom's Lemonade, Cold Brew with oat milk"
+          placeholder={t('hydroScan2.addDrink.name_placeholder')}
           placeholderTextColor={Colors.text.muted}
           maxLength={CUSTOM_NAME_MAX}
           autoFocus
@@ -497,7 +505,7 @@ function CustomStage(props: {
       </View>
 
       <View>
-        <Text style={styles.fieldLabel}>CATEGORY</Text>
+        <Text style={styles.fieldLabel}>{t('hydroScan2.addDrink.field_category')}</Text>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -526,9 +534,9 @@ function CustomStage(props: {
       />
 
       <View style={styles.impactCard}>
-        <Text style={styles.impactLabel}>SCORE IMPACT</Text>
+        <Text style={styles.impactLabel}>{t('hydroScan2.addDrink.score_impact')}</Text>
         <Text style={[styles.impactValue, { color: accentColor }]}>
-          ≈ {effective} oz water-equivalent
+          {t('hydroScan2.addDrink.water_equivalent', { oz: effective })}
         </Text>
       </View>
 
@@ -545,7 +553,7 @@ function CustomStage(props: {
         testID="add-drink-confirm-custom"
       >
         <Icon name="check-circle" size={16} color={Colors.text.inverse} />
-        <Text style={styles.ctaText}>LOG {oz} OZ</Text>
+        <Text style={styles.ctaText}>{t('hydroScan2.addDrink.log_oz', { oz })}</Text>
       </Pressable>
     </View>
   );
@@ -559,6 +567,7 @@ function OzStepper(props: {
   onAdjust: (delta: number) => void;
   onPreset: (oz: number) => void;
 }) {
+  const { t } = useTranslation();
   const { oz, accentColor, onAdjust, onPreset } = props;
   return (
     <View>
@@ -566,19 +575,19 @@ function OzStepper(props: {
         <Pressable
           onPress={() => onAdjust(-OZ_STEP)}
           style={styles.stepperBtn}
-          accessibilityLabel="Decrease ounces"
+          accessibilityLabel={t('hydroScan2.addDrink.decrease_oz_a11y')}
           hitSlop={8}
         >
           <Icon name="minus" size={20} color={Colors.text.primary} />
         </Pressable>
         <View style={styles.amountDisplay}>
           <Text style={[styles.amountValue, { color: accentColor }]}>{oz}</Text>
-          <Text style={styles.amountUnit}>oz</Text>
+          <Text style={styles.amountUnit}>{t('hydroScan2.addDrink.oz_unit')}</Text>
         </View>
         <Pressable
           onPress={() => onAdjust(OZ_STEP)}
           style={styles.stepperBtn}
-          accessibilityLabel="Increase ounces"
+          accessibilityLabel={t('hydroScan2.addDrink.increase_oz_a11y')}
           hitSlop={8}
         >
           <Icon name="plus" size={20} color={Colors.text.primary} />
@@ -599,7 +608,7 @@ function OzStepper(props: {
                 },
               ]}
               accessibilityRole="button"
-              accessibilityLabel={`${p} ounces`}
+              accessibilityLabel={t('hydroScan2.addDrink.preset_a11y', { count: p })}
               accessibilityState={{ selected: active }}
               testID={`drink-oz-preset-${p}`}
             >

@@ -22,6 +22,7 @@ import Animated, {
   Easing, interpolate,
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
+import { useTranslation } from 'react-i18next';
 import { Icon } from './Icon';
 
 import { Colors } from '@/theme/colors';
@@ -72,6 +73,7 @@ export function ScanAICoachCard({
   onSpeak,
   onStop,
 }: Props) {
+  const { t } = useTranslation();
   const [isPlaying, setIsPlaying] = useState(false);
 
   // Centralized color system — every accent on this card reads from the
@@ -194,10 +196,10 @@ export function ScanAICoachCard({
           {/* Status dot — the small pulsing signal next to AI COACH */}
           <Animated.View style={[styles.statusDot, { backgroundColor: accent, shadowColor: accent }, statusDotStyle]} />
           <Icon name="message-circle" size={11} color={accent} />
-          <Text style={[styles.badgeText, { color: accent }]}>AI COACH</Text>
+          <Text style={[styles.badgeText, { color: accent }]}>{t('hydroScan2.cards.ai_coach')}</Text>
         </View>
         {script.hasComparison && (
-          <Text style={styles.headerHint}>Scanned vs AForce</Text>
+          <Text style={styles.headerHint}>{t('hydroScan2.cards.scanned_vs_aforce')}</Text>
         )}
       </View>
 
@@ -215,7 +217,7 @@ export function ScanAICoachCard({
             <Text style={styles.comparisonHeaderLabel} numberOfLines={1}>
               {scannedName}
             </Text>
-            <Text style={styles.comparisonHeaderMetric}>METRIC</Text>
+            <Text style={styles.comparisonHeaderMetric}>{t('hydroScan2.cards.metric')}</Text>
             <Text style={[styles.comparisonHeaderLabel, { textAlign: 'right', color: accent }]} numberOfLines={1}>
               {aforceName ?? 'AForce'}
             </Text>
@@ -263,7 +265,7 @@ export function ScanAICoachCard({
           },
         ]}
         accessibilityRole="button"
-        accessibilityLabel={isPlaying ? 'Stop Recovery Coach' : 'Hear Recovery Coach'}
+        accessibilityLabel={isPlaying ? t('hydroScan2.cards.coach_stop_a11y') : t('hydroScan2.cards.coach_hear_a11y')}
         testID="scan-ai-coach-toggle"
       >
         <Icon
@@ -272,7 +274,7 @@ export function ScanAICoachCard({
           color={accent}
         />
         <Text style={[styles.ctaText, { color: accent }]}>
-          {isPlaying ? 'STOP' : 'HEAR IT AGAIN'}
+          {isPlaying ? t('hydroScan2.cards.coach_stop') : t('hydroScan2.cards.coach_hear_again')}
         </Text>
       </Pressable>
     </Animated.View>

@@ -11,6 +11,7 @@
 
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { Icon } from './Icon';
 import { Colors } from '../theme/colors';
 import type { PersonalizationOutput } from '../utils/personalizationSignals';
@@ -23,6 +24,7 @@ interface Props {
 }
 
 export function WhyThisForYouCard({ personalization, accentColor, compact }: Props) {
+  const { t } = useTranslation();
   const accent = accentColor ?? Colors.accent.primary;
   const { reasons, summary } = personalization;
 
@@ -40,7 +42,7 @@ export function WhyThisForYouCard({ personalization, accentColor, compact }: Pro
         <Text style={[styles.eyebrow, { color: accent }]}>{summary.toUpperCase()}</Text>
       </View>
       {showChips && (
-        <View style={styles.chipRow} accessibilityLabel="Personalization signals">
+        <View style={styles.chipRow} accessibilityLabel={t('hydroScan2.cards.personalization_a11y')}>
           {reasons.map((r) => (
             <View
               key={r.key}
