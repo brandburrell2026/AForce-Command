@@ -48,13 +48,21 @@ export function AFProductCard({
     <AFCard
       variant={selected ? 'raised' : 'standard'}
       onPress={onPress}
-      accessibilityLabel={title}
+      selected={selected}
       style={[selected && styles.selected, style]}
       testID={testID}
     >
       {badge && <Text style={styles.badge}>{badge.toUpperCase()}</Text>}
       <View style={styles.top}>
-        {image && <Image source={image} style={styles.image} resizeMode="contain" />}
+        {image && (
+          <Image
+            source={image}
+            style={styles.image}
+            resizeMode="contain"
+            accessibilityElementsHidden
+            importantForAccessibility="no-hide-descendants"
+          />
+        )}
         <View style={styles.body}>
           <Text style={styles.title} numberOfLines={2}>
             {title}

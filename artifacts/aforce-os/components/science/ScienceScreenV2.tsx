@@ -157,7 +157,7 @@ export function ScienceScreenV2() {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.headerRow}>
-            <Pressable onPress={() => router.back()} style={styles.backButton} hitSlop={12} testID="science-back">
+            <Pressable onPress={() => router.back()} style={styles.backButton} hitSlop={12} accessibilityRole="button" accessibilityLabel={t('common.back')} testID="science-back">
               <Icon name="chevron-left" size={20} color={af.textPrimary} />
             </Pressable>
             <View style={{ flex: 1 }}>
@@ -172,6 +172,9 @@ export function ScienceScreenV2() {
             onPress={onExport}
             disabled={exporting}
             style={[styles.exportBtn, exporting && { opacity: 0.5 }]}
+            accessibilityRole="button"
+            accessibilityLabel={t('science.v2.export_pdf')}
+            accessibilityState={{ busy: exporting }}
             testID="science-export"
           >
             {exporting ? (

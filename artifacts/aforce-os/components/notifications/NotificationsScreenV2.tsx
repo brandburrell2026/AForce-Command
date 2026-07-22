@@ -55,7 +55,7 @@ export function NotificationsScreenV2() {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.headerRow}>
-            <Pressable onPress={() => router.back()} style={styles.backBtn} hitSlop={12} testID="notifications-back">
+            <Pressable onPress={() => router.back()} style={styles.backBtn} hitSlop={12} accessibilityRole="button" accessibilityLabel={t('common.back')} testID="notifications-back">
               <Icon name="chevron-left" size={20} color={af.textPrimary} />
             </Pressable>
             <View style={{ flex: 1 }}>
@@ -83,6 +83,7 @@ export function NotificationsScreenV2() {
                   <Switch
                     value={notificationSettings[row.key]}
                     onValueChange={(v) => setNotificationSetting(row.key, v)}
+                    accessibilityLabel={t(`notifications.v2.row_${row.key}_label`)}
                     trackColor={{ false: af.surface, true: af.green }}
                     thumbColor={af.textPrimary}
                     ios_backgroundColor={af.surface}

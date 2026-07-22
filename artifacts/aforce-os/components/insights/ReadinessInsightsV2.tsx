@@ -74,8 +74,14 @@ export function ReadinessInsightsV2() {
         <>
           {/* Weekly score hero */}
           <View style={styles.hero}>
-            <Text style={styles.score}>{avg}</Text>
-            <Text style={styles.scoreLabel}>{t('reports.v2.avg_label')}</Text>
+            <Text style={styles.score} accessibilityLabel={`${avg} ${t('reports.v2.avg_label')}`}>{avg}</Text>
+            <Text
+              style={styles.scoreLabel}
+              importantForAccessibility="no-hide-descendants"
+              accessibilityElementsHidden
+            >
+              {t('reports.v2.avg_label')}
+            </Text>
             {delta != null && delta !== 0 && (
               <View style={styles.deltaWrap}>
                 <AFStatusBadge
@@ -107,7 +113,12 @@ export function ReadinessInsightsV2() {
                 <Text style={styles.noDrivers}>{t('reports.v2.no_movers')}</Text>
               ) : (
                 drivers.map((d, i) => (
-                  <View key={d.id} style={[styles.driverRow, i > 0 && styles.driverDivider]}>
+                  <View
+                    key={d.id}
+                    style={[styles.driverRow, i > 0 && styles.driverDivider]}
+                    accessible
+                    accessibilityLabel={`${d.label} ${d.delta > 0 ? '+' : '−'}${Math.abs(Math.round(d.delta))}`}
+                  >
                     <Text style={styles.driverLabel}>{d.label}</Text>
                     <Text style={[styles.driverDelta, { color: d.delta > 0 ? af.green : af.red }]}>
                       {d.delta > 0 ? '+' : '−'}

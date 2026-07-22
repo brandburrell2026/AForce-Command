@@ -963,6 +963,7 @@ export function ProfileScreenV2() {
                       trackColor={{ false: af.surface, true: af.green }}
                       thumbColor={af.textPrimary}
                       ios_backgroundColor={af.surface}
+                      accessibilityLabel={t('profile.v2.reminders')}
                     />
                   </View>
                   <Divider />
@@ -970,6 +971,8 @@ export function ProfileScreenV2() {
                     onPress={() => router.push('/notifications')}
                     testID="profile-notifications-link"
                     style={styles.settingRow}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('profile.v2.notif_prefs')}
                   >
                     <View style={styles.settingLeft}>
                       <Icon name="sliders" size={16} color={af.cyan} />
@@ -992,6 +995,8 @@ export function ProfileScreenV2() {
                     onPress={() => router.push('/modules')}
                     testID="profile-modules-link"
                     style={styles.settingRow}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('profile.v2.all_modules')}
                   >
                     <View style={styles.settingLeft}>
                       <Icon name="grid" size={16} color="#C1281B" />
@@ -1019,6 +1024,8 @@ export function ProfileScreenV2() {
                     onPress={() => router.push('/weekly-report')}
                     testID="profile-weekly-report-link"
                     style={styles.settingRow}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('profile.v2.weekly_report')}
                   >
                     <View style={styles.settingLeft}>
                       <Icon name="trending-up" size={16} color="#1E5BFF" />
@@ -1043,6 +1050,8 @@ export function ProfileScreenV2() {
                     onPress={() => router.push('/sensors')}
                     testID="profile-sensors-link"
                     style={styles.settingRow}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('profile.v2.sensor_import')}
                   >
                     <View style={styles.settingLeft}>
                       <Icon name="upload" size={16} color={af.cyan} />
@@ -1058,6 +1067,8 @@ export function ProfileScreenV2() {
                     onPress={() => router.push('/cruise')}
                     testID="profile-cruise-link"
                     style={styles.settingRow}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('profile.v2.cruise_mode')}
                   >
                     <View style={styles.settingLeft}>
                       <Icon name="anchor" size={16} color="#00E5FF" />
@@ -1073,6 +1084,8 @@ export function ProfileScreenV2() {
                     onPress={() => router.push('/social-v2')}
                     testID="profile-social-v2-link"
                     style={styles.settingRow}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('profile.v2.social_v2')}
                   >
                     <View style={styles.settingLeft}>
                       <Icon name="users" size={16} color="#C1281B" />
@@ -1088,6 +1101,8 @@ export function ProfileScreenV2() {
                     onPress={() => router.push('/achievements')}
                     testID="profile-achievements-link"
                     style={styles.settingRow}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('profile.v2.achievements')}
                   >
                     <View style={styles.settingLeft}>
                       <Icon name="award" size={16} color={af.green} />
@@ -1103,6 +1118,8 @@ export function ProfileScreenV2() {
                     onPress={() => router.push('/science')}
                     testID="profile-science-link"
                     style={styles.settingRow}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('profile.v2.science')}
                   >
                     <View style={styles.settingLeft}>
                       <Icon name="book-open" size={16} color={af.textSecondary} />
@@ -1121,7 +1138,12 @@ export function ProfileScreenV2() {
               <>
                 <SectionHeader label={t('profile.v2.hardware_label')} />
                 <View style={styles.card}>
-                  <Pressable onPress={() => router.push('/phantom')} testID="profile-phantom-link">
+                  <Pressable
+                    onPress={() => router.push('/phantom')}
+                    testID="profile-phantom-link"
+                    accessibilityRole="button"
+                    accessibilityLabel={t('profile.v2.hw_phantom_name')}
+                  >
                     <HardwareRow
                       name={t('profile.v2.hw_phantom_name')}
                       kind={t('profile.v2.hw_phantom_kind')}
@@ -1372,6 +1394,9 @@ export function ProfileScreenV2() {
                   <Pressable
                     onPress={() => setFeatureFlags(allOn ? DEFAULT_FLAGS : DEMO_ALL_ON_FLAGS)}
                     style={[styles.demoMaster, { borderColor: allOn ? af.green : af.border }]}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: allOn }}
+                    accessibilityLabel={allOn ? t('profile.v2.lock_all') : t('profile.v2.unlock_all')}
                   >
                     <Icon name={allOn ? 'eye-off' : 'eye'} size={14} color={allOn ? af.green : af.textSecondary} />
                     <Text style={[styles.demoMasterText, { color: allOn ? af.green : af.textPrimary }]}>
@@ -1519,6 +1544,7 @@ export function ProfileScreenV2() {
                       value={voiceCoachEnabled}
                       onValueChange={setVoiceCoachEnabled}
                       testID="profile-voice-coach-toggle"
+                      accessibilityLabel={t('profile.voice_section.row_label')}
                     />
                   </View>
 
@@ -1536,6 +1562,9 @@ export function ProfileScreenV2() {
                               onPress={() => setSelectedVoiceId(v.id)}
                               style={[voicePickerStyles.row, selected && voicePickerStyles.rowSelected]}
                               testID={`profile-voice-${v.label.toLowerCase()}`}
+                              accessibilityRole="button"
+                              accessibilityState={{ selected }}
+                              accessibilityLabel={t('profile.v2.coach_prefix', { name: v.label })}
                             >
                               <View style={{ flex: 1 }}>
                                 <Text style={voicePickerStyles.rowLabel}>
@@ -1584,6 +1613,9 @@ export function ProfileScreenV2() {
                                 },
                               ]}
                               testID={`profile-voice-intensity-${opt}`}
+                              accessibilityRole="button"
+                              accessibilityState={{ selected }}
+                              accessibilityLabel={t(`profile.v2.vintensity_${opt}`)}
                             >
                               <Text
                                 style={[
@@ -1631,6 +1663,9 @@ export function ProfileScreenV2() {
                                 },
                               ]}
                               testID={`profile-voice-scope-${opt}`}
+                              accessibilityRole="button"
+                              accessibilityState={{ selected }}
+                              accessibilityLabel={label}
                             >
                               <Text
                                 style={[
@@ -1735,6 +1770,8 @@ export function ProfileScreenV2() {
                   <Pressable
                     onPress={() => router.push('/clutch')}
                     style={[styles.phaseCard, { borderColor: `${af.cyan}55` }]}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('profile.v2.phase_clutch_title')}
                   >
                     <View style={[styles.phaseIcon, { backgroundColor: `${af.cyan}1A` }]}>
                       <Icon name="users" size={20} color={af.cyan} />
@@ -1747,6 +1784,8 @@ export function ProfileScreenV2() {
                   <Pressable
                     onPress={() => router.push('/guardian')}
                     style={[styles.phaseCard, { borderColor: `${'#8B5CF6'}55` }]}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('profile.v2.phase_guardian_title')}
                   >
                     <View style={[styles.phaseIcon, { backgroundColor: `${'#8B5CF6'}1A` }]}>
                       <Icon name="shield" size={20} color={'#8B5CF6'} />
@@ -2013,6 +2052,8 @@ export function ProfileScreenV2() {
                     onPress={() => router.push('/legal/terms')}
                     testID="profile-legal-terms"
                     style={styles.settingRow}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('profile.v2.terms')}
                   >
                     <View style={styles.settingLeft}>
                       <Icon name="file-text" size={16} color={af.textSecondary} />
@@ -2028,6 +2069,8 @@ export function ProfileScreenV2() {
                     onPress={() => router.push('/legal/privacy')}
                     testID="profile-legal-privacy"
                     style={styles.settingRow}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('profile.v2.privacy')}
                   >
                     <View style={styles.settingLeft}>
                       <Icon name="shield" size={16} color={af.textSecondary} />
@@ -2043,6 +2086,8 @@ export function ProfileScreenV2() {
                     onPress={() => router.push('/legal/health-disclaimer')}
                     testID="profile-legal-health"
                     style={styles.settingRow}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('profile.v2.health_disclaimer')}
                   >
                     <View style={styles.settingLeft}>
                       <Icon name="activity" size={16} color={af.textSecondary} />
@@ -2060,6 +2105,8 @@ export function ProfileScreenV2() {
                     }}
                     testID="profile-legal-support"
                     style={styles.settingRow}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('profile.v2.contact_support')}
                   >
                     <View style={styles.settingLeft}>
                       <Icon name="mail" size={16} color={af.textSecondary} />
@@ -2340,6 +2387,7 @@ function FlagRow({
         trackColor={{ false: af.surface, true: color }}
         thumbColor={af.textPrimary}
         ios_backgroundColor={af.surface}
+        accessibilityLabel={label}
       />
     </View>
   );
@@ -2514,6 +2562,8 @@ function SubscriptionPanel() {
           style={[styles.upgradeBtn, { borderColor: `${accent}44`, flex: 1, backgroundColor: `${accent}10` }]}
           activeOpacity={0.85}
           onPress={() => router.push('/subscription')}
+          accessibilityRole="button"
+          accessibilityLabel={t('profile.v2.upgrade')}
         >
           <Text style={[styles.upgradeBtnText, { color: accent }]}>{t('profile.v2.upgrade')}</Text>
           <Icon name="arrow-up-right" size={14} color={accent} />

@@ -50,7 +50,7 @@ function titleCase(level: string): string {
 /** Compact signal tile — fixed-width column so word values never collide. */
 function Signal({ label, value }: { label: string; value: string }) {
   return (
-    <View style={styles.signal}>
+    <View style={styles.signal} accessible accessibilityLabel={`${label} ${value}`}>
       <Text style={styles.signalLabel}>{label.toUpperCase()}</Text>
       <Text style={styles.signalValue} numberOfLines={1} adjustsFontSizeToFit>
         {value}
@@ -90,7 +90,7 @@ export function HomeScreenV2() {
         style={styles.arcWrap}
         onPress={() => router.push('/weekly-report')}
         accessibilityRole="button"
-        accessibilityLabel={t('home.v2.readiness_a11y', { score })}
+        accessibilityLabel={`${t('home.v2.readiness_a11y', { score })} ${engine.performanceState.level}`}
         testID="home-readiness-arc"
       >
         <AFReadinessArc score={score} size={240}>

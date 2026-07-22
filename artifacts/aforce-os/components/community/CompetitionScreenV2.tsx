@@ -167,6 +167,7 @@ export function CompetitionScreenV2() {
                   style={[styles.sectionBtn, active && styles.sectionBtnActive]}
                   accessibilityRole="button"
                   accessibilityLabel={t(`community.v2.sec_${s.key}`)}
+                  accessibilityState={{ selected: active }}
                   testID={`community-section-${s.key}`}
                 >
                   <Icon
@@ -256,7 +257,18 @@ function RankingsSection({ snapshot, me, myTeam, topCity, featureFlags }: Rankin
   return (
     <>
       {/* User context card */}
-      <View style={[styles.userCard, { borderColor: af.border }]}>
+      <View
+        style={[styles.userCard, { borderColor: af.border }]}
+        accessible
+        accessibilityLabel={
+          `${me.user.name}, ${me.user.city}, ${me.user.state} · ${stateLabelDisplay}. ` +
+          `${t('community.v2.stat_global')} #${me.globalRank ?? '—'}, ` +
+          `${t('community.v2.stat_city')} #${me.cityRank ?? '—'}, ` +
+          `${t('community.v2.stat_state')} #${me.stateRank ?? '—'}, ` +
+          `${t('community.v2.stat_team')} ${me.teamRank != null ? `#${me.teamRank}` : '—'}, ` +
+          `${t('community.v2.stat_score')} ${me.user.competitionScore}`
+        }
+      >
         <View style={styles.userTopRow}>
           <View style={[styles.youAvatar, { backgroundColor: af.green }]}>
             <Text style={styles.youAvatarText}>{me.user.avatarInitials}</Text>
@@ -295,6 +307,8 @@ function RankingsSection({ snapshot, me, myTeam, topCity, featureFlags }: Rankin
             key={kind}
             onPress={() => setScope(kind)}
             style={[styles.scopeBtn, effectiveScope === kind && styles.scopeBtnActive]}
+            accessibilityRole="button"
+            accessibilityState={{ selected: effectiveScope === kind }}
           >
             <Text style={[styles.scopeText, effectiveScope === kind && styles.scopeTextActive]}>
               {t(`community.v2.scope_${kind}`)}
@@ -409,6 +423,12 @@ function TeamsSection({ teams, myTeam, myTeamRank }: TeamsProps) {
                 styles.teamRow,
                 isMine && { borderColor: `${af.green}55` },
               ]}
+              accessible
+              accessibilityLabel={
+                `#${t.rank} ${t.name}, ${t.city} · ` +
+                `${tr('community.v2.team_athletes', { count: t.rosterSize })}, ` +
+                `${t.competitionScore}, ${t.trend.toUpperCase()}`
+              }
             >
               <Text style={[styles.teamRank, isMine && { color: af.green }]}>
                 #{t.rank}
@@ -482,7 +502,12 @@ function HeatBlob({
 }: { top?: number; left?: number; right?: number; bottom?: number; color: string }) {
   const pos = { top, left, right, bottom };
   return (
-    <View style={[styles.heatBlobWrap, pos]} pointerEvents="none">
+    <View
+      style={[styles.heatBlobWrap, pos]}
+      pointerEvents="none"
+      accessibilityElementsHidden
+      importantForAccessibility="no-hide-descendants"
+    >
       <View style={[styles.heatBlobOuter, { backgroundColor: color }]} />
       <View style={[styles.heatBlobMid,   { backgroundColor: color }]} />
       <View style={[styles.heatBlobCore,  { backgroundColor: color }]} />

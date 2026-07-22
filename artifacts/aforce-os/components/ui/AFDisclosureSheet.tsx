@@ -21,14 +21,14 @@ export function AFDisclosureSheet({ visible, onClose, title, children, testID }:
   const insets = useSafeAreaInsets();
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose} testID={testID}>
-      <Pressable style={styles.backdrop} onPress={onClose} accessibilityLabel="Dismiss" />
+      <Pressable style={styles.backdrop} onPress={onClose} accessibilityRole="button" accessibilityLabel="Dismiss" />
       <View style={[styles.panel, { paddingBottom: insets.bottom + 24 }]}>
         <View style={styles.grabber} />
         <View style={styles.header}>
           <Text style={styles.title} accessibilityRole="header">
             {title}
           </Text>
-          <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel="Close" hitSlop={8}>
+          <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel="Close" hitSlop={12}>
             <Icon name="x" size={18} color={af.textSecondary} />
           </Pressable>
         </View>

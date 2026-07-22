@@ -126,7 +126,15 @@ export function SignInScreenV2() {
             placeholderTextColor={af.textTertiary}
             accessibilityLabel={t('auth.v2.a11y_password')}
           />
-          {submitError && <Text style={styles.error}>{submitError}</Text>}
+          {submitError && (
+            <Text
+              style={styles.error}
+              accessibilityLiveRegion="polite"
+              accessibilityRole="alert"
+            >
+              {submitError}
+            </Text>
+          )}
 
           <Pressable
             onPress={handleSubmit}

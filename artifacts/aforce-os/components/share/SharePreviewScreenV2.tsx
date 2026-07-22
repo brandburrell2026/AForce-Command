@@ -241,7 +241,11 @@ export function SharePreviewScreenV2() {
         contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 120 }]}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.previewWrap}>
+        <View
+          style={styles.previewWrap}
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+        >
           {/*
             ViewShot wraps the live preview so we can snapshot it as a
             PNG when the user taps share. options.result='tmpfile' yields
@@ -349,6 +353,7 @@ export function SharePreviewScreenV2() {
                     setFormat(f.id);
                   }}
                   style={[styles.formatBtn, active && styles.formatBtnActive]}
+                  accessibilityRole="button"
                   accessibilityLabel={t('share.v2.format_a11y', { label: formatLabel })}
                   accessibilityState={{ selected: active }}
                 >
@@ -376,6 +381,7 @@ export function SharePreviewScreenV2() {
                     setVariantIdx(i);
                   }}
                   style={[styles.variantBtn, active && styles.variantBtnActive]}
+                  accessibilityRole="radio"
                   accessibilityLabel={t('share.v2.message_option_a11y', { n: i + 1, preview })}
                   accessibilityState={{ selected: active }}
                 >

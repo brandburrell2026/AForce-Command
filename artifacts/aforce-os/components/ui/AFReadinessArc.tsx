@@ -45,10 +45,22 @@ export function AFReadinessArc({
   const center = size / 2;
   // Rotate so the unpainted gap sits centered at the bottom.
   const rotation = 90 + (360 - sweepDeg) / 2;
+  const pct = Math.round(fraction * 100);
 
   return (
-    <View style={[{ width: size, height: size }, style]} testID={testID}>
-      <Svg width={size} height={size} style={StyleSheet.absoluteFill}>
+    <View
+      style={[{ width: size, height: size }, style]}
+      testID={testID}
+      accessibilityRole="progressbar"
+      accessibilityValue={{ min: 0, max: 100, now: pct }}
+    >
+      <Svg
+        width={size}
+        height={size}
+        style={StyleSheet.absoluteFill}
+        accessibilityElementsHidden
+        importantForAccessibility="no-hide-descendants"
+      >
         <G rotation={rotation} origin={`${center}, ${center}`}>
           <Circle
             cx={center}

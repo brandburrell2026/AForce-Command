@@ -311,6 +311,7 @@ export function StoreScreenV2() {
                               },
                             ]}
                             accessibilityRole="button"
+                            accessibilityState={{ selected: !isSubscribed }}
                           >
                             <Text
                               style={[
@@ -333,6 +334,7 @@ export function StoreScreenV2() {
                               },
                             ]}
                             accessibilityRole="button"
+                            accessibilityState={{ selected: isSubscribed }}
                           >
                             <Text
                               style={[
@@ -360,6 +362,7 @@ export function StoreScreenV2() {
                                 },
                               ]}
                               accessibilityRole="button"
+                              accessibilityState={{ selected: selectedBundleId === null }}
                             >
                               <Text
                                 style={[
@@ -389,6 +392,7 @@ export function StoreScreenV2() {
                                     },
                                   ]}
                                   accessibilityRole="button"
+                                  accessibilityState={{ selected: active }}
                                   accessibilityLabel={t('store.v2.select_bundle_a11y', { label: b.bundle.label, savings: b.savingsLabel })}
                                 >
                                   <Text
@@ -416,7 +420,21 @@ export function StoreScreenV2() {
                         ) : null}
 
                         {/* Price row */}
-                        <View style={styles.priceRow}>
+                        <View
+                          style={styles.priceRow}
+                          accessible
+                          accessibilityLabel={[
+                            formatPrice(bigPriceCents),
+                            compareCents != null && compareCents > bigPriceCents
+                              ? formatPrice(compareCents)
+                              : null,
+                            !selectedBundle
+                              ? t('store.v2.per_serving', { price: formatPrice(perServing) })
+                              : t('store.v2.per_pack', { price: formatPrice(selectedBundle.effectiveUnitCents) }),
+                          ]
+                            .filter(Boolean)
+                            .join(' ')}
+                        >
                           <Text style={styles.priceMain}>{formatPrice(bigPriceCents)}</Text>
                           {compareCents != null && compareCents > bigPriceCents ? (
                             <Text style={styles.priceCompare}>{formatPrice(compareCents)}</Text>

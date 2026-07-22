@@ -111,7 +111,7 @@ export function SensorImportScreenV2() {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.headerRow}>
-            <Pressable onPress={() => router.back()} style={styles.backButton} hitSlop={12} testID="sensors-back">
+            <Pressable onPress={() => router.back()} style={styles.backButton} hitSlop={12} accessibilityRole="button" accessibilityLabel={t('common.back')} testID="sensors-back">
               <Icon name="chevron-left" size={20} color={af.textPrimary} />
             </Pressable>
             <View style={{ flex: 1 }}>
@@ -130,6 +130,8 @@ export function SensorImportScreenV2() {
                 key={s}
                 onPress={() => setSource(s)}
                 style={[styles.row, i < SOURCES.length - 1 && styles.rowBorder]}
+                accessibilityRole="radio"
+                accessibilityState={{ checked: source === s }}
                 testID={`sensor-source-${s}`}
               >
                 <View style={styles.rowLeft}>
@@ -148,13 +150,13 @@ export function SensorImportScreenV2() {
           {/* File picker */}
           <SectionHeader label={t('sensors.v2.file_label')} hint={t('sensors.v2.file_hint')} />
           <View style={styles.card}>
-            <Pressable onPress={onPickFile} style={styles.row} testID="sensor-pick-file">
+            <Pressable onPress={onPickFile} style={styles.row} accessibilityRole="button" testID="sensor-pick-file">
               <View style={styles.rowLeft}>
                 <Icon name="file-plus" size={16} color={af.cyan} />
                 <Text style={styles.rowLabel}>{pickedFileName ?? t('sensors.v2.pick_file')}</Text>
               </View>
               {pickedFileName && (
-                <Pressable onPress={onClearPick} hitSlop={8} testID="sensor-clear-pick">
+                <Pressable onPress={onClearPick} hitSlop={8} accessibilityRole="button" accessibilityLabel={t('sensors.v2.remove_file_a11y')} testID="sensor-clear-pick">
                   <Icon name="x" size={14} color={af.textTertiary} />
                 </Pressable>
               )}
@@ -209,6 +211,8 @@ export function SensorImportScreenV2() {
               styles.primaryButton,
               (importing || rowCount === 0) && styles.primaryButtonDisabled,
             ]}
+            accessibilityRole="button"
+            accessibilityState={{ busy: importing, disabled: importing || rowCount === 0 }}
             testID="sensor-import-btn"
           >
             {importing ? (
@@ -224,7 +228,7 @@ export function SensorImportScreenV2() {
           </Pressable>
 
           {resultMessage && (
-            <Text style={styles.resultMessage} testID="sensor-result">{resultMessage}</Text>
+            <Text style={styles.resultMessage} accessibilityLiveRegion="polite" testID="sensor-result">{resultMessage}</Text>
           )}
         </ScrollView>
       </GradientBackground>
