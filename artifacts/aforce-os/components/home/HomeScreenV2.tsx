@@ -134,7 +134,7 @@ const styles = StyleSheet.create({
   arcWrap: { alignItems: 'center', marginVertical: 24 },
   score: { ...afType.displayScore, color: af.textPrimary, fontVariant: ['tabular-nums'] },
   scoreLabel: { ...afType.eyebrow, color: af.textTertiary, marginTop: 2 },
-  stateLabel: { ...afType.caption, color: af.red, marginTop: 6 },
+  stateLabel: { ...afType.caption, color: af.redText, marginTop: 6 },
   signalsSection: { marginTop: 28, gap: 12 },
   signals: { flexDirection: 'row', gap: 12 },
   signal: {

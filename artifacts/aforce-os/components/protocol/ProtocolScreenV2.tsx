@@ -172,7 +172,7 @@ const styles = StyleSheet.create({
   track: { height: 6, borderRadius: 3, backgroundColor: af.divider, overflow: 'hidden' },
   fill: { height: 6, borderRadius: 3, backgroundColor: af.red },
   activeCard: { marginTop: 20 },
-  activeEyebrow: { ...afType.eyebrow, color: af.red, marginBottom: 8 },
+  activeEyebrow: { ...afType.eyebrow, color: af.redText, marginBottom: 8 },
   activeTitle: { ...afType.title1, color: af.textPrimary },
   activeWindow: { ...afType.body, color: af.textSecondary, marginTop: 4 },
   activeFooter: {

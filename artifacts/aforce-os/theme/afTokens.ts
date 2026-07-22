@@ -60,8 +60,13 @@ export const af = {
   // Brand red — FROZEN #C1281B (rgb 193,40,27). Primary action, live state,
   // critical accent. Distinct from the DEPLETED state red (#FF2800), which is
   // owned by the off-limits statusColor.ts.
-  red: Colors.accent.primary, //          #C1281B — AForce Signal Red
+  red: Colors.accent.primary, //          #C1281B — AForce Signal Red (FILLS only)
   onRed: '#FFFFFF', //                    text/icons on af.red (AA-verified)
+  // Signal Red is too dark for TEXT/icons on the dark surfaces (fails WCAG AA:
+  // ~3.1:1). redText is a lightened Signal Red for red text/icon color ONLY —
+  // AA-clean on canvas/surface/surfaceRaised (5.30/4.98/4.68:1). Fills, borders,
+  // dots and pill backgrounds keep `red`. Brand fill red stays frozen #C1281B.
+  redText: '#E4564A', //                  red text/icons on dark surfaces (AA)
   redDim: 'rgba(193,40,27,0.16)', //      red atmosphere / selected background
   redHairline: 'rgba(193,40,27,0.34)', // progress + ambient rings
 

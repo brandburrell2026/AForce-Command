@@ -219,13 +219,13 @@ const styles = StyleSheet.create({
     width: 44, fontFamily: 'Inter_700Bold', fontSize: 16,
     color: af.textSecondary, textAlign: 'center',
   },
-  rowRankYou: { color: af.red },
+  rowRankYou: { color: af.redText },
   rowMid: { flex: 1, gap: 2 },
   rowHandle: {
     fontFamily: Platform.select({ ios: 'Menlo', android: 'monospace', default: 'monospace' }),
     fontSize: 15, color: af.textPrimary, letterSpacing: 1.5,
   },
-  rowHandleYou: { color: af.red },
+  rowHandleYou: { color: af.redText },
   rowTier: {
     fontFamily: 'Inter_600SemiBold', fontSize: 9,
     letterSpacing: 1.6, color: af.textTertiary,
@@ -234,7 +234,7 @@ const styles = StyleSheet.create({
   rowClaims: {
     fontFamily: 'Inter_700Bold', fontSize: 20, color: af.textPrimary,
   },
-  rowClaimsYou: { color: af.red },
+  rowClaimsYou: { color: af.redText },
   rowClaimsLabel: {
     fontFamily: 'Inter_600SemiBold', fontSize: 9,
     letterSpacing: 1.4, color: af.textTertiary,

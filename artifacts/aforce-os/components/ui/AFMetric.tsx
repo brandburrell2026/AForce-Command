@@ -18,7 +18,7 @@ export interface AFMetricProps {
   testID?: string;
 }
 
-const TREND_COLOR = { up: af.green, down: af.red, flat: af.textTertiary } as const;
+const TREND_COLOR = { up: af.green, down: af.redText, flat: af.textTertiary } as const;
 const TREND_ICON = { up: 'trending-up', down: 'trending-down', flat: 'minus' } as const;
 
 export function AFMetric({ label, value, unit, trendDelta, timestamp, testID }: AFMetricProps) {

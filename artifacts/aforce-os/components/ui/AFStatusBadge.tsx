@@ -10,12 +10,21 @@ import { af, afType } from '@/theme';
 
 export type AFStatusTone = 'neutral' | 'positive' | 'caution' | 'info' | 'critical';
 
+// Pill fill + border tone (brand tint). critical keeps frozen Signal Red.
 const TONE_COLOR: Record<AFStatusTone, string> = {
   neutral: af.textSecondary,
   positive: af.green,
   caution: af.amber,
   info: af.cyan,
   critical: af.red,
+};
+
+// Label + icon color. Only `critical` differs: Signal Red as text fails WCAG AA
+// (~2.9:1 on the tinted pill), so the label/icon use the lightened redText while
+// the pill fill/border stay the brand red above. Others already pass AA.
+const TONE_TEXT_COLOR: Record<AFStatusTone, string> = {
+  ...TONE_COLOR,
+  critical: af.redText,
 };
 
 const TONE_ICON: Record<AFStatusTone, IconName> = {
@@ -36,6 +45,7 @@ export interface AFStatusBadgeProps {
 
 export function AFStatusBadge({ label, tone = 'neutral', icon, testID }: AFStatusBadgeProps) {
   const color = TONE_COLOR[tone];
+  const textColor = TONE_TEXT_COLOR[tone];
   const glyph = icon === null ? null : (icon ?? TONE_ICON[tone]);
   return (
     <View
@@ -44,8 +54,8 @@ export function AFStatusBadge({ label, tone = 'neutral', icon, testID }: AFStatu
       accessibilityLabel={`${tone}: ${label}`}
       testID={testID}
     >
-      {glyph && <Icon name={glyph} size={12} color={color} />}
-      <Text style={[styles.label, { color }]}>{label}</Text>
+      {glyph && <Icon name={glyph} size={12} color={textColor} />}
+      <Text style={[styles.label, { color: textColor }]}>{label}</Text>
     </View>
   );
 }
