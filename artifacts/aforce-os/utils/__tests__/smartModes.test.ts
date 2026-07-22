@@ -96,7 +96,7 @@ describe('deriveActiveModes', () => {
     expect(r.reminderIntensityMultiplier).toBeCloseTo(0.864);
   });
 
-  it('every guidance string leads with water (build-lock water-first)', () => {
+  it('command-restating modes lead with water; recovery is a mode indicator (build-lock water-first, ruling #8)', () => {
     const r = deriveActiveModes({
       heatIndexC: 35,
       workoutMinutesToday: 45,
@@ -107,6 +107,17 @@ describe('deriveActiveModes', () => {
     expect(r.active.length).toBe(4);
     for (const mode of r.active) {
       const g = mode.guidance;
+      if (mode.id === 'recovery') {
+        // Ruling #8: the recovery banner is a mode INDICATOR, not a command
+        // restatement — the RECOVERY COACH card is the single source of the
+        // water-first command on Home, so this line states mode + tone and
+        // never re-prints "start with water" (would double the command).
+        // The water-first build-lock is upheld where the command actually
+        // lives, so recovery is exempt here rather than duplicating it.
+        expect(g).not.toBe('');
+        continue;
+      }
+      // Every mode that DOES restate the command must stay water-first.
       expect(
         g.startsWith('HYDRATE NOW') || g.startsWith('Start with water'),
       ).toBe(true);
