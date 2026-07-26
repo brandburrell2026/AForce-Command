@@ -3,7 +3,7 @@
 **Purpose:** the single resume point. No session starts over — every session resumes from this
 file + repository evidence. Per the Final Consolidated Implementation Lock §2.
 
-**Last updated:** 2026-07-26 (end of day) · **Mode:** Lock sequence `/CONTINUITY → /AUDIT (PASS
+**Last updated:** 2026-07-26 (PASS-3 complete) · **Mode:** Lock sequence `/CONTINUITY → /AUDIT (PASS
 1+2) → /RECONCILE → /PLAN → /BUILD (safe set)` complete and merged; plus same-day commerce
 verification, a production-pipeline incident (found + fixed), and config restoration. Later Lock
 modes (`/REDTEAM /SECURITY /PRIVACY /GLOBAL /ACCESSIBILITY /PERFORMANCE /TEST /SHIPGATE`) have
@@ -87,21 +87,23 @@ sensors migration. Guardrails recorded in project memory.
 
 ## 8. EXACT NEXT SAFE ACTION
 
-**PASS-3 `/AUDIT`** on the sections PASS 1/2 did not reach — §7 profile-survival matrix, §10
-consumption state machine, §26 provider capability↔actual-access, §30 entitlement/price
-single-source — then extend Register §21 and produce the next `/PLAN` slice for founder approval.
-Also queued for a build slice (founder-approved content, mechanical): restore graph tables +
-`sensors.ts` migration from the runbook. **No implementation code without an approved plan.**
+**PASS-3 /AUDIT COMPLETE (Register §23, RC-L11–L15).** Next: founder prioritizes the four
+recommended `/PLAN` candidates in §23 (tier/price unification RC-L14 is the sharpest — $19.99 vs
+$20/$200 + missing Shopify→entitlement bridge), then a `/PLAN` slice for approval. Also queued
+(mechanical, pre-approved content): restore graph tables + sensors.ts migration from the runbook.
+**No implementation code without an approved plan.**
 
 ## 9. AUDIT coverage (honest)
 
 | Verified against code/live systems | Not yet audited |
 |---|---|
-| Navigation + label wiring · both band systems | §7 profile survival matrix |
-| Can-size copy · Founding-count sites | §10 consumption state machine |
-| Flags · schema tables · append-only ledgers | §26 capability↔actual-access matrix |
-| Score-write path (gap found → 3A shipped) | §30 entitlement/price single-source |
-| Intelligence contracts (headless, honest status) | §33 security program · §34 a11y/perf suites |
-| **Commerce cart pipeline (live E2E, both plans)** | §36 full test matrix · §38 deliverables 3–15 |
+| Navigation + labels · band systems · flags · schema | §33 security program · §34 a11y/perf suites |
+| Append-only ledgers · score-write path (→3A) | §36 full test matrix · §38 deliverables 3–15 |
+| Intelligence contracts (headless, honest) | Lock §§11–25, 27–29 (engines/content sections) |
+| Commerce cart pipeline (live E2E, both plans) | |
+| **§7 profile survival (PASS-3 → RC-L11)** | |
+| **§10 consumption machine (PASS-3 → RC-L12)** | |
+| **§26 provider capability↔access (PASS-3 → RC-L13)** | |
+| **§30 entitlement/pricing (PASS-3 → RC-L14/L15)** | |
 
 Screens, mocks, and comments do not count as working features (Lock §2).

@@ -358,3 +358,82 @@ status corrected accordingly: graph schema reverts from "in source" to **Specifi
 
 **RC-L3 addendum:** can *artwork* (hero) reads 11 FL OZ (325 ml) vs the keep-12-oz ruling and
 12-oz site copy — final approved label required to close the loop.
+
+---
+
+## 23. PASS-3 audit findings (2026-07-26) — Lock §7 / §10 / §26 / §30
+
+Read-only audit; no code changed. Four parallel evidence-based audits. New conflict IDs RC-L11–L15,
+all **OPEN — pending founder ruling + `/PLAN` slice**. Statuses use the Lock §4 vocabulary.
+
+### RC-L11 — §7 Adaptive Profile: server truth not consumed by the client
+**Server machinery HOLDS** (atomic version minting in `lib/db/src/profileRepo.ts`, append-only
+history, `(userId, clientChangeId)` idempotency, server-authoritative Stripe entitlement restore).
+**Client gaps:**
+- **K-1 VIOLATION:** profile identity + sync snapshots live in **plain AsyncStorage**
+  (`store/useAppStore.tsx:878/904`, `services/profileSyncService.ts:110`); SecureStore is used
+  only for OAuth tokens. The required encrypted profile cache does not exist.
+- **Effective source-of-truth VIOLATION:** the app **only POSTs** profile versions; **no code path
+  ever GETs** `/api/aforce/profile` — so reinstall / device replacement / new-device login loses
+  the operational profile even though the server has it.
+- Multi-device conflict reconciliation: documented as intentionally not built; no reconnect flush
+  (pending sync retries only on next manual save).
+- **NOT-FOUND:** in-app data export and account/profile deletion (privacy screen says "contact us").
+**Status: Partially Built** (server Built, client hydration Proposed).
+
+### RC-L12 — §10 Verified Consumption State Machine: absent (0 of 9 states)
+- No `Identified→…→Reconciled` machine, no "Start Drinking" session, no Finished/Partially
+  Finished, no spill/discard/abandon handling. **A single tap credits HydroState immediately**
+  (`store/app/actions.ts:107-249` → `POST /intake` mutates counters unconditionally,
+  `intake.ts:49-203`). Consistent with (and larger than) RC-L8b.
+- **No corrections/deletion:** intake is append-only with a single POST route; no undo/edit/delete
+  route or UI exists anywhere.
+- Duplicate protection **PARTIAL:** `(userId, clientEventId)` unique index exists but
+  `clientEventId` is sent only on the flag-gated offline-outbox path; **online taps are not
+  deduped** (NULLs distinct). Offline outbox itself is a real exactly-once design.
+- **HOLDS:** scans are architecturally isolated from credit (`hydroScanHistory.ts:6-10`);
+  purchases never touch consumption/score.
+**Status: Partially Built** (tap-to-credit model Public Live; the §10 machine Proposed).
+
+### RC-L13 — §26 Provider honesty: real backends, dishonest surface
+- **Server adapters are REAL** for WHOOP/Garmin/Oura/Strava (OAuth+PKCE, encrypted token stores,
+  refresh, fetch workers; WHOOP additionally has cron sweep + backfill). Capability maps are
+  honest (WHOOP exposes no steps; Strava activity-only).
+- **VIOLATION of §26's core rule in the rendered UI:** the honest 10-state status vocabulary
+  (`utils/health/healthProviderStatus.ts`) is **built + tested but never rendered**; the Profile
+  screen collapses to LIVE/DEMO/CONNECT and shows **"LIVE" on token presence alone** (OAuth
+  success), with `expiresAt`/freshness fetched but discarded.
+- **Oura + Strava: real server, MOCK client** — no client OAuth wiring exists; a mock toggle shows
+  fake "LIVE" and **seeds demo ProviderSnapshots into score inputs**
+  (`ProfileScreenV2.tsx:307-374`) — flagged as Score-Protection-adjacent (§9): demo biometrics
+  influencing score context without a real connection.
+- Webhooks: none for any health provider (Stripe only). Backfill: WHOOP only. Provider-side token
+  revocation: none (disconnect clears local rows).
+**Status: Partially Built** (backends Built-Hidden/Internal; UI truthfulness Proposed).
+
+### RC-L14 — §30 Pricing/entitlement: two disconnected universes
+- **Entitlement architecture HOLDS:** server-side, Stripe-authoritative, fail-safe downgrade to
+  core (`routes/entitlement.ts`), client flags downstream of server plan.
+- **VIOLATION — no single price source, and the universes disagree:**
+  **Universe A (app+api, Stripe):** paid consumer tier is **`athlete` $19.99/mo**, no annual
+  option (`subscriptionPlans.ts:98`, `checkout.ts:112`). Internally parity-tested.
+  **Universe B (marketing site, Shopify):** **Command $20/mo · $200/yr** hand-coded in
+  `shop/index.html`. Internally consistent.
+  Nothing ties A to B; the flagship paid tier differs in **name and price** ($19.99 vs $20; the
+  exact $19.99 conflict the surgical report warned about).
+- **Commerce integrity gap:** web Command is sold via **Shopify selling plans**, but app
+  entitlement reads **only Stripe** — a web Command purchaser gets **no app entitlement** (no
+  Shopify→entitlement bridge exists; grep = zero hits).
+- Physical vs digital separation HOLDS (no double-billing path). Demo surfaces are labeled and
+  cannot reach real records; **founder role-simulation (§30 Founder Preview) NOT-FOUND** as a
+  distinct surface (RC-L15, minor — Specified).
+**Status: Partially Built** (entitlement Built; single-source pricing + tier unification Proposed).
+
+**PASS-3 recommended next `/PLAN` candidates (founder to prioritize):**
+1. RC-L14 tier/price unification decision (biggest commercial risk: $19.99 vs $20/$200 + missing
+   Shopify→entitlement bridge — must be resolved before Command cutover sells real app access).
+2. RC-L13 quick win: wire the already-built status vocabulary into the Profile screen; remove the
+   Oura/Strava fake-LIVE mock path (or label it DEMO and stop seeding score inputs).
+3. RC-L11 client hydration: GET-on-login profile rehydration + SecureStore/encrypted cache (K-1).
+4. RC-L12: scope a minimal honest consumption ladder (e.g., logged → verified) rather than all 9
+   states at once; add correction/deletion route (§10 + §36 requirement).
