@@ -3,8 +3,11 @@
 **Purpose:** the single resume point. No session starts over — every session resumes from this
 file + repository evidence. Per the Final Consolidated Implementation Lock §2.
 
-**Last updated:** 2026-07-26 · **Mode:** `/CONTINUITY` + `/AUDIT` (PASS 1 & 2) + `/RECONCILE` +
-`/PLAN` + `/BUILD` (safe set) complete on branch `feat/lock-reconciliation`. Gated items remain held.
+**Last updated:** 2026-07-26 (end of day) · **Mode:** Lock sequence `/CONTINUITY → /AUDIT (PASS
+1+2) → /RECONCILE → /PLAN → /BUILD (safe set)` complete and merged; plus same-day commerce
+verification, a production-pipeline incident (found + fixed), and config restoration. Later Lock
+modes (`/REDTEAM /SECURITY /PRIVACY /GLOBAL /ACCESSIBILITY /PERFORMANCE /TEST /SHIPGATE`) have
+**not** run.
 
 ---
 
@@ -12,86 +15,93 @@ file + repository evidence. Per the Final Consolidated Implementation Lock §2.
 
 | | |
 |---|---|
-| Branch | `feat/lock-reconciliation` (cut from `fix/smartmodes-water-first`) |
-| Lock build commits | `4000791f` Circle label · `60720b6f` Founding 250 (non-frozen) · `c7723f66` Score Protection shadow guard |
-| Still uncommitted | prior in-flight working tree (D-08 impl, §39 design, intelligence contracts, demo-build config) + this session's governance docs — **not** part of the 3 Lock commits above. |
-| Not pushed | all local; nothing pushed to remote. Never `main`. |
+| Branch | `main` (current, in sync with origin) — plus `preview-e2e` (kept: re-testable Vercel preview alias) |
+| Merged today | #377 Lock reconciliation · #378→#381 hero swap + founder-ordered restore · #379 standalone-Command cleanup · #380 Command billing IDs + auto-renew disclosure · #382 Railway build fix · #383 demo-build config restore |
+| Branch hygiene | 128 → 2 local branches; all others merged or archived on origin |
 
-## 2. Last successful migration
+## 2. Migrations & schema state
 
-**None executed this session.** Schema deployment is **OPEN (R-21)**:
-- D-08 `aforce_score_snapshots.hydrostate_model_version` — **in source, not deployed**.
-- Stage-2 graph tables (`aforce_graph_nodes`, `aforce_graph_edges`) — **in source, not deployed**.
-- Convention: `drizzle-kit push` (no committed migration files, no down-migrations).
-- A dev `DATABASE_URL` was later provided; the push was **authorized but never executed** (build/CLI blockers). **Verify DB state before any push.**
+- **PRODUCTION DB (Railway): `aforce_score_snapshots.hydrostate_model_version` ADDED 2026-07-26**
+  (founder-run `ALTER TABLE … ADD COLUMN IF NOT EXISTS`, per the D-08 runbook). D-08 stamping code
+  deployed same day → new snapshots stamp `hydrostate-v0`. Final end-to-end proof = first organic
+  row showing the stamp (SELECT in §7).
+- **Dev DB deploy (R-21 dev side):** still unexecuted (no `DATABASE_URL`).
+- ⚠️ **Stage-2 graph tables (`aforce_graph_nodes`/`aforce_graph_edges`) are NO LONGER IN SOURCE** —
+  they were uncommitted schema edits destroyed by the 2026-07-26 `reset --hard` incident (see §6).
+  Recoverable from `governance/STAGE-2-GRAPH-SCHEMA-DEPLOYMENT-RUNBOOK.md`. Same for the
+  `sensors.ts` D-08 repo migration (main's `sensors.ts` still direct-inserts; compiles fine).
 
-## 3. Completed work this session (governance/design — see decision records)
+## 3. Completed this cycle (all merged to main, statuses truthful)
 
 | Item | Status |
 |---|---|
-| Phases 1–3.7 intelligence governance | Recorded in `governance/` (SPECIFICATION-AUTHORITY, registers, DR-001…DR-009) |
-| D-08 HydroState model version (`hydrostate-v0`) | **Implemented in source** (`config/hydroStateModel.ts`, `lib/db/src/scoreSnapshotRepo.ts`, routes migrated). **Not deployed.** |
-| §39 Prediction Engine | **Design authorized, implementation GATED** (DR-007/DR-008) — legal + scientific review + schema deploy + success contracts all open |
-| Stage-1/2/3 intelligence contracts (event / graph / §42 gate) | **In source, headless, no runtime caller** — Partially Built |
-| Demo build config | `demoMode.ts` env-driven; `eas.json` `demo` profile; `app.json` `runtimeVersion → "1.0.0"` |
+| Circle tab label, 11 locales (RC-L1) | Public Live (label); Circle content vision Partially Built |
+| Founding 250 — non-frozen docs (RC-L7) | Done; frozen docs HELD for Julius + Brandon (BUILD-2b) |
+| Score Protection shadow guard (RC-L8b 3A) | Partially Built — journal path only, shadow, off-in-prod by default |
+| D-08 model-version stamping | **Public Live** (code on Railway + prod column) |
+| Standalone Command shop cleanup | Public Live (revenue-guardian approved) |
+| Command billing IDs + #osRenew disclosure | Public Live in code; **checkout gated** (see §5) |
+| **Command cart E2E** | **VERIFIED 2026-07-26** — gates 1 (404) / 2 (503) / 3 (real cartCreate) all passed; both plans confirmed applied at $20.00/mo and $200.00/yr; checkout host allowed. Closes PR #380 review condition B |
+| Demo-build config (runtimeVersion 1.0.0, `demo` EAS profile, env-driven DEMO_MODE) | Restored on main; next iOS build will test the TestFlight crash fix |
+| Hero | Founder-ordered restore of the cinematic video — live on drinkaforce.com |
 
 ## 4. Active feature flags
 
-~217 flags in `featureFlags/flags.ts`. **All new `spec_*`, `clutch_*`, `guardian_*`, `cruise_*`,
-and `demo_mode_enabled` default `false`.** No public exposure enabled.
+~217 in `featureFlags/flags.ts`; all `spec_*`/`clutch_*`/`guardian_*`/`cruise_*` false.
+`SCORE_PROTECTION_MODE` env: unset (= shadow in dev, **off in prod** until 3B pre-flight).
+`SHOP_PREVIEW_ENABLED`: **Preview-scope only** (founder's standing rule) — production checkout
+deliberately cannot transact until cutover.
 
-## 5. Conflicts — founder-ruled 2026-07-26 (see Reconciliation Register §21)
+## 5. Open decisions & conflicts
 
-- **RC-L1 / RC-L4** 5th tab = **Circle**. PASS-2: **label-only** change — route stays `competition.tsx`; set `tabs.competition` ("Community") → **"Circle"** in all locales. **PENDING BUILD**.
-- **RC-L3** Can size = **keep 12 oz** → **no change, resolved.**
-- **RC-L7** = **Founder 250**. **Docs-only** (no app copy); Constitution/Phase-Roadmap edits need Julius+Brandon. **PENDING BUILD**.
-- **RC-L2 / RC-L5 / RC-L8a / RC-L9** — RESOLVED confirmatory (both bands intentional; config versioned; ledger tables append-only; intelligence contracts correctly logged as headless/Partially Built).
-- **RC-L8b — OPEN, flagged for `/PLAN` (N-5 / R-29):** Score Protection is **documented-only, not enforced server-side** — the snapshot write trusts client-supplied scores and reads no confirmation gate (`journal.ts:39`, `intake.ts:132`). Real integrity gap; fix = new server write-gate, **needs founder approval**. Does not touch off-limits scoring math.
+- **Cutover blocker — displayed ≠ charged (Ritual plan 2501607542):** founder ruled 2026-07-26
+  "keep this pricing for now" → plan charges FULL $59.99/$29.99 while the shop displays
+  $53.99/$26.99 "Save 10%". Harmless while checkout is gated; **must resolve before
+  `SHOP_PREVIEW_ENABLED` reaches Production** — either add the 10% recurring policy or change the
+  shop copy. (Today's 10%-policy attempt never appeared on the storefront.)
+- **RC-L3 addendum:** ruling = keep 12 oz, but the hero can *artwork* (video-era and the retired
+  static image) reads **11 FL OZ (325 ml)** — final approved label needed to close.
+- **BUILD-2b:** Founding 250 in `AForce-Constitution.md` + `Phase-Roadmap.md` — Julius + Brandon.
+- **BUILD-3B:** Score Protection enforce — 5-item pre-flight in Register §21; do not enforce in
+  prod until done.
+- Counsel nod on Command renew/cancel copy (recommended before heavy promotion).
 
-## 6. Tests (baseline — `governance/TEST-BASELINE.md`)
+## 6. Incident record (2026-07-26) — resolved, lessons memorialized
 
-- Full suite: **46 failed files / 18 failed tests** — all environmental (RN Flow-parse under Vite SSR; `DATABASE_URL` for api-server). **Not regressions.**
-- Pure-runner (real logic): green. This session added: D-08 (23), intelligence contracts (34), graph (54), §42 gate (62) — all passing.
-- **Criterion for a NEW failure:** anything outside the two known signatures, or the pure-runner set dropping. See baseline doc §5.
+PR #377 shipped `journal.ts` importing never-committed files (typecheck ran against a dirty tree)
+→ every Railway deploy 11:26–13:0x failed (prod served last good build; no outage). Compounding: a
+`reset --hard origin/main` during the #377 retarget destroyed all uncommitted tracked changes
+(D-08 lib/schema edits, demo-build config). Fixed by #382 (missing deps, verified with zero
+untracked files in affected packages) + #383 (config restore). Remaining loss: §2's graph tables +
+sensors migration. Guardrails recorded in project memory.
 
-## 7. Open operational items (non-governance)
+## 7. Tests & verification
 
-| Item | State |
-|---|---|
-| iPhone TestFlight crash (build 41) | expo-updates error-recovery crash on launch; still crashes offline → in the build. Deferred by founder. Next: fresh build to test `runtimeVersion` fix. |
-| Android demo APK | Build path set (`demo` profile); not confirmed installed. |
-| DB deployment (R-21) | Authorized, not executed. |
+- Baseline unchanged (`governance/TEST-BASELINE.md`): RN Flow-parse + DATABASE_URL failures are
+  environmental, not regressions.
+- Touched-path suites green at merge: scoreWriteGuard 12 · scoreSnapshotRepo 19 · version parity 4
+  · journal schema 6 · conversational/voice (Section 64) 38.
+- D-08 organic-row check (founder, any time):
+  `SELECT id, score, hydrostate_model_version, captured_at FROM aforce_score_snapshots ORDER BY captured_at DESC LIMIT 5;`
+  → new rows should read `hydrostate-v0`.
 
 ## 8. EXACT NEXT SAFE ACTION
 
-Safe set is built and committed (see §1). **Remaining held/gated work — needs founder action:**
-1. **BUILD-2b — Founding 250 in frozen docs** (`AForce-Constitution.md:73,91`, `Phase-Roadmap.md:17`).
-   Blocked on **Julius + Brandon** sign-off. Until then the phase rename is incomplete.
-2. **BUILD-3B — Score Protection enforce mode.** Blocked on (a) **R-21** DB deploy for nullable
-   provenance columns, and (b) client attaching provenance to `POST /journal/snapshot`. Do NOT flip
-   `SCORE_PROTECTION_MODE=enforce` in prod until the **5-item Phase 3B pre-flight** in Reconciliation
-   Register §21 is done: (1) confirm prod `NODE_ENV=production` or invert the default, (2) add
-   `(userId, loggedAt)` index for evidence lookups, (3) enforce-path integration tests, (4) make the
-   enforce path fail-closed (not silently fail-open), (5) wire `sensors.ts`. Source: PR #377 review.
-3. **Observe 3A shadow logs** once deployed — confirm real client traffic before enforcing.
-4. **In-screen "Circle" rebrand** (optional) — list `community.*` headings for a go/no-go.
+**PASS-3 `/AUDIT`** on the sections PASS 1/2 did not reach — §7 profile-survival matrix, §10
+consumption state machine, §26 provider capability↔actual-access, §30 entitlement/price
+single-source — then extend Register §21 and produce the next `/PLAN` slice for founder approval.
+Also queued for a build slice (founder-approved content, mechanical): restore graph tables +
+`sensors.ts` migration from the runbook. **No implementation code without an approved plan.**
 
-Governing order (Lock §3): `/CONTINUITY → /AUDIT → /RECONCILE → /PLAN → /BUILD`. **Safe set done;
-next actionable step is a founder decision on 2b / 3B, or merging `feat/lock-reconciliation`.**
+## 9. AUDIT coverage (honest)
 
-## 9. AUDIT coverage (honest — PASS 1 & 2 complete)
-
-| Verified against code | Not yet deep-audited (future, non-blocking) |
+| Verified against code/live systems | Not yet audited |
 |---|---|
-| Navigation / tabs + label wiring | §10 consumption state machine end-to-end |
-| Both band systems (4-band + 5-band) | §26 provider capability↔actual-access matrix |
-| Can-size language | §30 entitlement single-source-of-price |
-| Integrations present | Security / privacy / a11y / perf suites |
-| Flag count | |
-| Schema table count | |
-| Append-only ledger tables (RC-L8a) | |
-| Score Protection write path (RC-L8b) | |
-| Intelligence-contract runtime wiring (RC-L9) | |
+| Navigation + label wiring · both band systems | §7 profile survival matrix |
+| Can-size copy · Founding-count sites | §10 consumption state machine |
+| Flags · schema tables · append-only ledgers | §26 capability↔actual-access matrix |
+| Score-write path (gap found → 3A shipped) | §30 entitlement/price single-source |
+| Intelligence contracts (headless, honest status) | §33 security program · §34 a11y/perf suites |
+| **Commerce cart pipeline (live E2E, both plans)** | §36 full test matrix · §38 deliverables 3–15 |
 
-**PASS 1 & 2 done; not exhaustive.** Screens, mocks, and comments do not count as working
-features (Lock §2).
+Screens, mocks, and comments do not count as working features (Lock §2).
