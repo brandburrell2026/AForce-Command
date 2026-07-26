@@ -418,7 +418,12 @@
       "manage": "Manage",
       "upgrade": "Upgrade",
       "hardware_label": "HARDWARE",
-      "disconnect_a11y": "Disconnect {{name}}"
+      "disconnect_a11y": "Disconnect {{name}}",
+      "needs_attention": "AKTION NÖTIG",
+      "approval_pending": "GENEHMIGUNG AUSSTEHEND",
+      "coming_soon": "DEMNÄCHST",
+      "via_health_connect": "ÜBER HEALTH CONNECT",
+      "unsupported": "Auf diesem Gerät nicht unterstützt"
     }
   },
   "settings": {

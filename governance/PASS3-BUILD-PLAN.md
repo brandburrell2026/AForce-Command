@@ -105,4 +105,4 @@ RC-L15 (founder role-simulation): stays **Specified**; revisit with Guardian/ent
 Also queued alongside slice 3 (same schema PR): restore Stage-2 graph tables + `sensors.ts`
 migration from the runbook (pre-approved content, mechanical).
 
-**Nothing builds until the founder approves this plan.**
+**APPROVED 2026-07-26.** Founder: build slices 1-3; **D-1 = Command $20/$200 everywhere** (app renames athlete→Command, adds annual); **D-2 = Shopify webhook → entitlement bridge**. Slice 4 unblocked after 1-3, revenue-guardian gate stands.
