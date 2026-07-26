@@ -88,18 +88,22 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     ],
   },
   {
+    // D-1 (PASS-3 slice 4, founder 2026-07-26): the canonical paid consumer
+    // tier is COMMAND at $20/mo, matching the marketing site. The internal id
+    // stays 'athlete' — it is the storage key on live aforce_users rows and
+    // Stripe metadata; renaming it would orphan existing subscribers.
     id: 'athlete',
-    name: 'AForce Athlete',
+    name: 'AForce Command',
     category: 'consumer',
     subcategory: 'consumer',
-    positioning: 'Train and perform with precision',
+    positioning: 'Command interprets the pattern',
     description:
-      'The daily performance system for serious users who want deeper decisioning, recovery guidance, and personalized protocols.',
-    priceMonthly: 19.99,
-    priceLabel: priceLabel(19.99),
+      'The paid intelligence layer for serious users who want deeper decisioning, recovery guidance, and personalized protocols.',
+    priceMonthly: 20,
+    priceLabel: priceLabel(20),
     rank: 2,
     inheritsFromId: 'core',
-    ctaLabel: 'Upgrade to Athlete',
+    ctaLabel: 'Enter Command',
     features: [
       { id: 'ai_pro',         label: 'Enhanced AI decisioning',          detail: 'Deeper protocol personalization tuned to your activity profile.', badge: 'PRO' },
       { id: 'protocol_pro',   label: 'Personalized hydration protocol' },
