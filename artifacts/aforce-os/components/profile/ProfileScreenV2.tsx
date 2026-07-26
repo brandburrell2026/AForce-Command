@@ -18,6 +18,7 @@ import { af } from '@/theme';
 import { mockUserProfile } from '@/data/mockData';
 import { HEALTH_PROVIDERS, type HealthProviderId } from '@/data/healthProviders';
 import { buildDemoSnapshot } from '@/data/providerDemoSnapshots';
+import { deriveProviderRowStatus } from '@/utils/health/providerRowStatus';
 import {
   isAppleHealthSupported,
   requestAppleHealthPermissions,
@@ -268,6 +269,9 @@ export function ProfileScreenV2() {
   // when the integration is dormant, 'connected' when this user has a stored
   // token). WHOOP has no demo state — real data only.
   const [whoopState, setWhoopState] = useState<WhoopConnectionState>('not_connected');
+  // Token expiry (epoch ms) from /whoop/status — drives the §26 honesty rule
+  // that an expired token renders "Needs Attention", never LIVE.
+  const [whoopExpiresAt, setWhoopExpiresAt] = useState<number | null>(null);
   // Latest Apple Health snapshot — null until the user grants
   // permission AND the bridge actually returns data. Rendered in a
   // small "Live from Apple Health" panel so the user can see the
@@ -365,11 +369,10 @@ export function ProfileScreenV2() {
         next.add(id);
         return next;
       });
-      // Seed a demo snapshot so the score immediately reflects the newly
-      // connected provider. WHOOP and Garmin have REAL OAuth flows and are
-      // handled by their own toggles — they never reach this generic mock path.
-      const snap = buildDemoSnapshot(id);
-      if (snap) setProviderBiometrics(id, snap);
+      // §26/§9 (RC-L13): this generic path has NO real integration behind it —
+      // it is a labeled DEMO opt-in only. It must never seed biometrics into
+      // score inputs and never render as a live connection. (WHOOP and Garmin
+      // have real OAuth flows handled by their own toggles.)
     };
 
     const authorizeMessage = t('profile.v2.authorize_message', { name });
@@ -532,6 +535,7 @@ export function ProfileScreenV2() {
     try {
       const status = await getWhoopStatus();
       setWhoopState(status.state);
+      setWhoopExpiresAt(status.expiresAt ?? null);
       if (status.state === 'connected') {
         try { await syncWhoopSnapshot(); } catch { /* best-effort */ }
         // Pull the server's real WHOOP biometrics DIRECTLY and set it. This
@@ -592,6 +596,7 @@ export function ProfileScreenV2() {
         try { await disconnectWhoop(); } catch { /* best-effort */ }
         setProviderBiometrics('whoop', null);
         setWhoopState('not_connected');
+        setWhoopExpiresAt(null);
       };
       const msg = t('profile.v2.disconnect_whoop_msg');
       if (Platform.OS === 'web') {
@@ -615,6 +620,7 @@ export function ProfileScreenV2() {
     }
     if (status.state === 'connected') {
       setWhoopState('connected');
+      setWhoopExpiresAt(status.expiresAt ?? null);
       try { await syncWhoopSnapshot(); } catch { /* best-effort */ }
       return;
     }
@@ -1182,22 +1188,28 @@ export function ProfileScreenV2() {
                 <SectionHeader label={t('profile.v2.health_platforms_label')} hint={t('profile.v2.health_platforms_hint')} />
                 <View style={styles.card}>
                   {[...HEALTH_PROVIDERS].sort((a, b) => a.name.localeCompare(b.name)).map((p, i) => {
-                    // Garmin is backed by a REAL OAuth flow: its connection
-                    // is driven by `garminState`, not the mocked
-                    // `linkedProviders` set. It shows a row whenever it's a
-                    // live connection OR an explicit demo session.
+                    // §26 (RC-L13): the row status comes from the honest
+                    // resolver — token presence alone is never "LIVE", an
+                    // expired token demotes to Needs Attention, and providers
+                    // with no real client wiring (Oura/Strava/Google) can only
+                    // ever show a labeled DEMO, never a live connection.
                     const isGarmin = p.id === 'garmin';
-                    const garminLive = isGarmin && isLiveGarminState(garminState);
-                    const garminDemo = isGarmin && garminState === 'demo';
-                    // WHOOP is likewise server-driven — LIVE only when the
-                    // backend holds a real token (whoopState), never a local flag.
                     const isWhoop = p.id === 'whoop';
-                    const whoopLive = isWhoop && whoopState === 'connected';
-                    const linked = isGarmin
-                      ? garminLive || garminDemo
-                      : isWhoop
-                        ? whoopLive
-                        : linkedProviders.has(p.id);
+                    const garminDemo = isGarmin && garminState === 'demo';
+                    const row = deriveProviderRowStatus({
+                      provider: p.id,
+                      platform:
+                        Platform.OS === 'ios' ? 'ios' : Platform.OS === 'android' ? 'android' : 'web',
+                      whoopState,
+                      whoopExpiresAt,
+                      garminLive: isGarmin ? isLiveGarminState(garminState) : undefined,
+                      garminDemo,
+                      garminCredentialsMissing: isGarmin ? garminState === 'credentials_missing' : undefined,
+                      locallyLinked: linkedProviders.has(p.id),
+                      appleNativeReady: p.id === 'apple_health' ? isAppleHealthSupported() : undefined,
+                    });
+                    const demoLinked = garminDemo || (!isGarmin && !isWhoop && linkedProviders.has(p.id));
+                    const linked = row.live || demoLinked;
                     return (
                       <React.Fragment key={p.id}>
                         <Pressable
@@ -1235,9 +1247,9 @@ export function ProfileScreenV2() {
                             <Text style={styles.deviceName}>{p.name}</Text>
                             <Text style={styles.providerSub}>{p.pulls}</Text>
                           </View>
-                          {garminDemo ? (
+                          {demoLinked && !row.live ? (
                             // Demo is its own labeled pill — neutral info blue,
-                            // never the green LIVE treatment.
+                            // never the green LIVE treatment (§26/§9).
                             <View
                               style={[
                                 styles.connectPill,
@@ -1250,11 +1262,39 @@ export function ProfileScreenV2() {
                                 {t('profile.v2.demo_pill')}
                               </Text>
                             </View>
-                          ) : linked ? (
+                          ) : row.live ? (
                             <Text
                               style={[styles.deviceStatus, { color: af.green }]}
                             >
                               {t('profile.v2.device_live')}
+                            </Text>
+                          ) : row.status === 'needs_attention' ? (
+                            // Verified link, but the token expired / errored —
+                            // honest reconnect prompt, never LIVE (§26).
+                            <Text style={[styles.deviceStatus, { color: af.redText }]}>
+                              {t('profile.v2.needs_attention')}
+                            </Text>
+                          ) : row.status === 'approval_pending' ? (
+                            <View style={[styles.connectPill, { borderColor: `${p.brand}55` }]}>
+                              <Text style={[styles.connectPillText, { color: `${p.brand}AA` }]}>
+                                {t('profile.v2.approval_pending')}
+                              </Text>
+                            </View>
+                          ) : row.status === 'coming_soon' ? (
+                            <View style={[styles.connectPill, { borderColor: `${p.brand}55` }]}>
+                              <Text style={[styles.connectPillText, { color: `${p.brand}AA` }]}>
+                                {t('profile.v2.coming_soon')}
+                              </Text>
+                            </View>
+                          ) : row.status === 'available_through_health_connect' ? (
+                            <View style={[styles.connectPill, { borderColor: `${p.brand}55` }]}>
+                              <Text style={[styles.connectPillText, { color: `${p.brand}AA` }]}>
+                                {t('profile.v2.via_health_connect')}
+                              </Text>
+                            </View>
+                          ) : row.status === 'unsupported' ? (
+                            <Text style={[styles.providerSub]}>
+                              {t('profile.v2.unsupported')}
                             </Text>
                           ) : (
                             <View
