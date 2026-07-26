@@ -681,14 +681,15 @@
   /* ---- AFORCE OS Command — its OWN separate checkout ----------------------
      Command is sold as a standalone subscription with its own Shopify product +
      selling plans, checked out SEPARATELY from the hydration "Your Ritual" cart.
-     These are empty until that product exists in Shopify; while empty the OS
-     checkout is GATED (button disabled, "opens at launch") so nothing fake
-     ships. Fill the ids from Shopify Admin and it goes live.
-     COMMAND_AUTORENEWS gates any "renews" wording — set true only when the
-     plans genuinely auto-renew. */
-  var COMMAND_VARIANT    = null;                          // numeric variant id of the AFORCE OS Command product
-  var COMMAND_PLANS      = { monthly: null, annual: null }; // numeric SellingPlan ids ($20/mo, $200/yr)
-  var COMMAND_AUTORENEWS = false;
+     LIVE 2026-07-26: Shopify product 8210450808950 ("AFORCE OS Command",
+     handle aforce-os-command). Charged prices verified against the live
+     storefront's selling-plan allocations: monthly plan → $20.00/mo, annual
+     plan → $200.00/yr (fixed-price adjustment over the $20 base variant).
+     COMMAND_AUTORENEWS gates any "renews" wording — true because both selling
+     plans are recurring subscriptions (recurring_deliveries: true). */
+  var COMMAND_VARIANT    = 43905417838710;                // AFORCE OS Command variant (base $20)
+  var COMMAND_PLANS      = { monthly: 2532999286, annual: 2533032054 }; // SellingPlan ids ($20/mo, $200/yr)
+  var COMMAND_AUTORENEWS = true;
   function osReady(){ return COMMAND_VARIANT != null && COMMAND_PLANS[state.osCycle] != null; }
   var VARIANTS = {
     sticks:{ watermelon:"43817245868150", berry:"43817131606134", soursop:"43817131638902" },
