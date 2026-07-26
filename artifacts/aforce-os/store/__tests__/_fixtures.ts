@@ -112,6 +112,7 @@ export const baseFlags: FeatureFlags = {
   intent_capture_enabled: false,
   performance_statements_enabled: false,
   offline_intake_outbox_enabled: false,
+  profile_server_hydration_enabled: false,
   cruise_mode_enabled: false,
   cruise_journey_pulse_enabled: false,
   cruise_commerce_enabled: false,

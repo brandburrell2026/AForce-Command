@@ -30,11 +30,14 @@ router.get("/", requireAuth, async (req, res) => {
     return;
   }
   try {
-    const [profile, baseline] = await Promise.all([
+    const [profile, baseline, version] = await Promise.all([
       repo.getCurrentProfile(userId),
       repo.getActiveBaseline(userId),
+      // Latest Profile Version™ (carries the major-variable snapshot) so a
+      // fresh install can rehydrate the profile (Lock §7 / RC-L11).
+      repo.getCurrentVersion(userId),
     ]);
-    res.json({ profile, baseline });
+    res.json({ profile, baseline, version });
   } catch (err) {
     req.log?.error({ err }, "profile:get failed");
     res.status(500).json({ error: "get_failed" });

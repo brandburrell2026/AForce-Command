@@ -93,6 +93,12 @@ export interface ProfileRepo {
   recordMinorChange(input: MinorChangeInput): Promise<void>;
   /** Current pointer row, or null if the user has no profile yet. */
   getCurrentProfile(userId: string): Promise<AforceUserProfileRow | null>;
+  /**
+   * The user's latest Profile Version™ row (carries the major-variable
+   * `snapshot`), or null before the first mint. Powers client rehydration
+   * after reinstall / device replacement (Lock §7 / RC-L11).
+   */
+  getCurrentVersion(userId: string): Promise<AforceProfileVersionRow | null>;
   /** The single active baseline for a user, or null. */
   getActiveBaseline(userId: string): Promise<AforceBaselineVersionRow | null>;
   /**
@@ -207,6 +213,12 @@ export function createInMemoryProfileRepo(): ProfileRepo {
 
     async getCurrentProfile(userId) {
       return profiles.get(userId) ?? null;
+    },
+
+    async getCurrentVersion(userId) {
+      const mine = versions.filter((v) => v.userId === userId);
+      if (mine.length === 0) return null;
+      return mine.reduce((a, b) => (b.versionNumber > a.versionNumber ? b : a));
     },
 
     async getActiveBaseline(userId) {
@@ -377,6 +389,16 @@ export function createDrizzleProfileRepo(
         .select()
         .from(aforceUserProfiles)
         .where(eq(aforceUserProfiles.userId, userId))
+        .limit(1);
+      return rows[0] ?? null;
+    },
+
+    async getCurrentVersion(userId) {
+      const rows = await db
+        .select()
+        .from(aforceProfileVersions)
+        .where(eq(aforceProfileVersions.userId, userId))
+        .orderBy(desc(aforceProfileVersions.versionNumber))
         .limit(1);
       return rows[0] ?? null;
     },

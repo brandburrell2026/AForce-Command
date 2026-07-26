@@ -40,6 +40,11 @@ import {
 } from '../utils/profileIdentity';
 import { SliceProvider, type ActionsSlice } from './slices';
 import { defaultSubscription } from '../services/subscriptionService';
+import { secureKV } from '../services/secureStorage';
+import {
+  hydrateProfileFromServer,
+  flushPendingProfileSync,
+} from '../services/profileSyncService';
 import { generateCycleIdentityMessage, generateNextCycleHint } from '../utils/scoringEngine';
 import { defaultUserState, mockHistory } from '../data/mockData';
 import { DEFAULT_FLAGS } from '../featureFlags/flags';
@@ -875,7 +880,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     let cancelled = false;
-    AsyncStorage.getItem(PROFILE_IDENTITY_KEY)
+    // K-1 (RC-L11): identity lives in the encrypted store; the read
+    // transparently migrates any legacy plain-AsyncStorage value.
+    secureKV.getItem(PROFILE_IDENTITY_KEY)
       .then((raw) => {
         if (cancelled) return;
         if (profileIdentityDirtyRef.current) return;
@@ -901,11 +908,54 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!profileIdentityHydratedRef.current) return;
-    AsyncStorage.setItem(
+    secureKV.setItem(
       PROFILE_IDENTITY_KEY,
       JSON.stringify(state.profileIdentity),
     ).catch(() => {});
   }, [state.profileIdentity]);
+
+  // ─── Lock §7 / RC-L11 — server rehydration + reconnect flush ────────────
+  // After a reinstall / device replacement the server holds the profile but
+  // the local store is empty. Flag-gated; deterministic (never overwrites a
+  // calibrated local profile or a pending unsynced change).
+  const profileServerHydrationRanRef = useRef(false);
+  const profileIdentityRef = useRef(state.profileIdentity);
+  profileIdentityRef.current = state.profileIdentity;
+
+  useEffect(() => {
+    if (!state.featureFlags.profile_server_hydration_enabled) return;
+    if (profileServerHydrationRanRef.current) return;
+    profileServerHydrationRanRef.current = true;
+    // Wait one tick so the local secure-store hydrate (above) lands first.
+    const timer = setTimeout(() => {
+      void hydrateProfileFromServer(profileIdentityRef.current)
+        .then((result) => {
+          if (result.decision === 'hydrate' && result.patch && !profileIdentityDirtyRef.current) {
+            dispatch({
+              type: 'SET_PROFILE_IDENTITY',
+              payload: sanitizeProfileIdentity({
+                ...profileIdentityRef.current,
+                ...result.patch,
+              }),
+            });
+          }
+        })
+        .catch(() => {});
+    }, 800);
+    return () => clearTimeout(timer);
+  }, [state.featureFlags.profile_server_hydration_enabled]);
+
+  // Reconnect flush (§7): retry a pending profile sync when the app
+  // foregrounds (previously it retried only on the next manual save).
+  useEffect(() => {
+    if (!state.featureFlags.profile_server_hydration_enabled) return;
+    const sub = RNAppState.addEventListener('change', (s: AppStateStatus) => {
+      if (s === 'active') {
+        void flushPendingProfileSync(profileIdentityRef.current).catch(() => {});
+      }
+    });
+    return () => sub.remove();
+  }, [state.featureFlags.profile_server_hydration_enabled]);
 
   const setProfileIdentity = useCallback((patch: Partial<ProfileIdentity>) => {
     // Mark dirty before dispatch (same race-safe ordering as the unit
