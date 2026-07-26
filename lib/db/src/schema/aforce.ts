@@ -215,6 +215,13 @@ export const aforceScoreSnapshots = pgTable(
     // answer "which profile was active when this was recorded?".
     profileVersionId: integer("profile_version_id"),
     baselineVersionId: integer("baseline_version_id"),
+    // ── HydroState model-version stamp (D-08 / DR-009) ──────────────────
+    // Which scoring-model version produced this snapshot. NULLABLE with no
+    // default: historical rows are never touched, and a null reads as the
+    // honest "not recorded" for pre-D-08 rows. New writes are stamped
+    // centrally by lib/db/src/scoreSnapshotRepo.ts — routes can neither
+    // supply nor omit it (founder Decision 5).
+    hydroStateModelVersion: text("hydrostate_model_version"),
     capturedAt: timestamp("captured_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => ({

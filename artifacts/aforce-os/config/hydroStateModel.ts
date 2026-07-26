@@ -18,6 +18,23 @@ import type {
   SweatClassification,
 } from '../utils/profileIdentity';
 
+/* ─── HydroState model version (D-08 / DR-009) ─────────────────────────────── */
+
+/**
+ * The AUTHORITATIVE HydroState scoring-model version identifier. Stamped onto
+ * every `aforce_score_snapshots` row by the central persistence boundary
+ * (`lib/db/src/scoreSnapshotRepo.ts`) so any historical score can be traced to
+ * the exact model that produced it.
+ *
+ * `hydrostate-v0` = the current pre-governance model (founder Decision 2,
+ * Option C — DR-009). Format: `hydrostate-v<major>[.<minor>]`. Changing this
+ * value requires Founder + Engineering approval (+ Scientific review where the
+ * change is physiological) per DR-009 §3. The api-server keeps a hand-written
+ * mirror (`src/lib/hydroStateModelVersion.ts`) guarded by a parity test —
+ * update BOTH together.
+ */
+export const HYDROSTATE_MODEL_VERSION = 'hydrostate-v0';
+
 /* ─── Section 18 — Adaptive Profile Engine™ / Profile Versioning™ ──────────── */
 
 /**
