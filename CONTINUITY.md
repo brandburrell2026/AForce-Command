@@ -68,8 +68,11 @@ Safe set is built and committed (see §1). **Remaining held/gated work — needs
 1. **BUILD-2b — Founding 250 in frozen docs** (`AForce-Constitution.md:73,91`, `Phase-Roadmap.md:17`).
    Blocked on **Julius + Brandon** sign-off. Until then the phase rename is incomplete.
 2. **BUILD-3B — Score Protection enforce mode.** Blocked on (a) **R-21** DB deploy for nullable
-   provenance columns, and (b) client attaching provenance to `POST /journal/snapshot`. Also wire
-   `sensors.ts` (deferred from 3A). Do NOT flip `SCORE_PROTECTION_MODE=enforce` in prod until both.
+   provenance columns, and (b) client attaching provenance to `POST /journal/snapshot`. Do NOT flip
+   `SCORE_PROTECTION_MODE=enforce` in prod until the **5-item Phase 3B pre-flight** in Reconciliation
+   Register §21 is done: (1) confirm prod `NODE_ENV=production` or invert the default, (2) add
+   `(userId, loggedAt)` index for evidence lookups, (3) enforce-path integration tests, (4) make the
+   enforce path fail-closed (not silently fail-open), (5) wire `sensors.ts`. Source: PR #377 review.
 3. **Observe 3A shadow logs** once deployed — confirm real client traffic before enforcing.
 4. **In-screen "Circle" rebrand** (optional) — list `community.*` headings for a go/no-go.
 

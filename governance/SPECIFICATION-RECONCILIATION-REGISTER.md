@@ -292,6 +292,27 @@ set; three commits landed. No off-limits files touched; score math unchanged.
   `score:70`) is deferred to **Phase 3B**. **3B (enforce) remains OPEN** — gated on R-21 DB deploy
   (add nullable provenance columns) + client attaching provenance to snapshot posts.
 
+**PR #377 — code review APPROVED for shadow-mode merge (2026-07-26).** All hard gates passed
+(guard tests 12/12, api-server typecheck clean, CI green, no off-limits files, score math unchanged,
+fail-open verified, 11 locales consistent, frozen docs untouched, no log privacy leak).
+
+**Phase 3B enforcement pre-flight — REQUIRED before flipping `SCORE_PROTECTION_MODE=enforce`
+(tracked follow-ups, do NOT block the shadow merge):**
+1. **Prod env guarantee.** Confirm the deployed api-server explicitly sets `NODE_ENV=production` —
+   otherwise the `off-in-prod` default in `scoreWriteGuard.ts:resolveScoreProtectionMode` is
+   contingent and the guard would run shadow in prod. If not guaranteed, change the default to
+   **off-unless-explicitly-enabled**.
+2. **Evidence-lookup index.** Add a `(userId, loggedAt)` index supporting the two `count(*)`
+   evidence queries — `aforce_confirmations` currently has none; `aforce_intake_logs`'s `loggedAt`
+   is unindexed. (Additive index; deploys with R-21.)
+3. **Enforce-path integration coverage.** The route wiring (query construction, the 409 return, the
+   catch) has no integration test — only the pure functions are covered. Add before 3B.
+4. **Enforce-mode error handling.** The inner `try/catch` in `journal.ts` currently fails open even
+   in `enforce` mode — a guard/DB error would let an unexplained write through. Change so that in
+   `enforce`, a guard failure does **not** silently pass (fail-closed or explicit error). Safe as-is
+   for shadow; must change for 3B.
+5. **Wire `sensors.ts`** into the guard (deferred from 3A).
+
 ---
 
 **Audit status — PASS 2 COMPLETE (2026-07-26).** Verified against code: navigation + label wiring,
