@@ -78,10 +78,6 @@
   .hero{ min-height:100vh; background:#000; color:var(--canvas); display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:120px 24px 80px; position:relative; overflow:hidden; }
   .hero-video{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:center; opacity:1; z-index:0; }
   .hero-video-overlay{ position:absolute; inset:0; z-index:1; background:linear-gradient(180deg, rgba(0,0,0,0.38) 0%, rgba(0,0,0,0.06) 18%, rgba(0,0,0,0) 52%, rgba(0,0,0,0.34) 78%, rgba(0,0,0,0.66) 100%); }
-  .hero-can-stage{ position:relative; display:flex; align-items:center; justify-content:center; }
-  .hero-can-stage::before{ content:''; position:absolute; width:150%; height:135%; border-radius:50%; background:radial-gradient(closest-side, rgba(245,240,232,0.11), rgba(193,40,27,0.05) 45%, transparent 72%); z-index:-1; }
-  .hero-can{ height:clamp(340px, 74vh, 820px); width:auto; display:block; filter:drop-shadow(0 34px 70px rgba(0,0,0,0.62)); }
-  .hero .hero-cine{ background:var(--ink); }
   .hero > *:not(.hero-video):not(.hero-video-overlay):not(.hero-cine){ position:relative; z-index:2; }
   .hero .kicker{ font-family:'Inter', sans-serif; font-size:12px; letter-spacing:0.32em; text-transform:uppercase; color: var(--metal); margin-bottom:28px; opacity:0; transform:translateY(10px); }
   .hero h1{ font-family:'Archivo Black', serif; font-weight:400; font-size:clamp(52px, 9vw, 128px); line-height:1.0; opacity:0; transform:translateY(16px); }
@@ -363,7 +359,6 @@
   footer .legal p{ margin-bottom:10px; }
 
   @media (max-width: 860px){
-    .hero-can{ height:clamp(300px, 52vh, 470px); }
     .product-layout{ grid-template-columns:1fr; }
     .stick-strip, .quotes{ grid-template-columns:1fr; }
     .result-body{ grid-template-columns:1fr; text-align:center; }
@@ -423,12 +418,15 @@
     <canvas class="cine-dust" id="cineDust"></canvas>
     <div class="cine-vignette"></div>
   </div>
-  <!-- Hero product shot: matted AForce can (legible v2 label) on the dark .hero-cine
-       backdrop, replacing the earlier cinematic video (whose AI-rendered label text
-       was garbled). Static PNG with transparent background. -->
-  <div class="hero-can-stage">
-    <img class="hero-can" src="assets/hero-can.png" alt="AForce Watermelon Surge & Chlorella can — pH 8.8 alkaline hydration, electrolytes and minerals" width="1273" height="1700">
-  </div>
+  <!-- Cinematic hero loop: product beauty shot (AFORCE can, rooftop golden hour), 1920x1080,
+       ~11s, color, audio stripped. Full-bleed cover — the can leads. VP9 webm first (smaller),
+       H.264 mp4 fallback. Falls back to the dark .hero-cine background if neither plays or
+       autoplay is blocked (poster shows a matching frame). -->
+  <video class="hero-video" id="heroVideo" autoplay muted loop playsinline preload="metadata" poster="assets/hero-poster.jpg">
+    <source src="assets/hero-video.webm" type="video/webm">
+    <source src="assets/hero-video.mp4" type="video/mp4">
+  </video>
+  <div class="hero-video-overlay"></div>
   <div class="cta-row fade-in">
     <a href="#founding" class="btn btn-ghost">Join the Founding 250</a>
   </div>
@@ -642,6 +640,10 @@
   const nav = document.getElementById('afxNav');
 
   // No intro splash — the site loads straight to the hero and the nav is visible on load
+
+  // Hero video: hide gracefully if the source file isn't there yet (Brandon hasn't added it)
+  const heroVideo = document.getElementById('heroVideo');
+  heroVideo.addEventListener('error', ()=>{ heroVideo.style.display = 'none'; }, true);
 
   // Cinematic hero — slow drifting dust motes (skipped under reduced-motion; tiny perf budget)
   (function(){
