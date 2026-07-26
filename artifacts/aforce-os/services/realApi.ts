@@ -489,11 +489,18 @@ export async function postIntakeLog(
   body: IntakeLogPayload,
 ): Promise<IntakeLogResponse> {
   const prepared = prepareIntake(userState, body);
-  // Legacy/online path: no clientEventId on the wire → byte-identical request.
-  return sendPreparedIntake(prepared, {
-    ...(userState.appleHealth ? { appleHealth: userState.appleHealth } : {}),
-    ...(userState.biometrics ? { biometrics: userState.biometrics } : {}),
-  });
+  // RC-L12 (§10): the online path now sends the idempotency key too, so a
+  // double-fired tap dedupes server-side ((userId, clientEventId) unique
+  // index) instead of double-counting. Server treats the key as optional, so
+  // this stays wire-compatible in both directions.
+  return sendPreparedIntake(
+    prepared,
+    {
+      ...(userState.appleHealth ? { appleHealth: userState.appleHealth } : {}),
+      ...(userState.biometrics ? { biometrics: userState.biometrics } : {}),
+    },
+    { withClientEventId: true },
+  );
 }
 
 // ─── POST /signals ───────────────────────────────────────────────────────────

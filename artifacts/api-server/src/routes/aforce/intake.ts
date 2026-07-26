@@ -6,6 +6,7 @@ import { getUserState, ALL_FLUID_TYPES, isAforceFluid } from "../../lib/aforceSt
 import { logger } from "../../lib/logger";
 import { intakeLimiter } from "../../middlewares/rateLimits";
 import { resolveUserId, broadcastState } from "./shared";
+import { planIntakeCorrection, CORRECTION_REASONS } from "../../lib/intakeCorrection";
 
 const router: IRouter = Router();
 
@@ -38,10 +39,13 @@ const intakeSchema = z.object({
   scoreBefore: z.number().int(),
   scoreAfter: z.number().int(),
   event: intakeEventSchema.optional(),
-  // Offline-outbox idempotency key (the frozen client event id). OMITTED by
-  // legacy/online writes (outbox flag off) → the server flow stays
-  // byte-identical to the pre-outbox behavior. Present only on queued replays.
+  // Idempotency key (the frozen client event id). Since RC-L12 slice 3 the
+  // client sends it on the ONLINE path too, so a double-fired tap dedupes.
+  // Still optional so legacy clients keep working unchanged.
   clientEventId: z.string().min(1).max(64).optional(),
+  // §10 honesty (RC-L12) — record-only capture metadata, both optional.
+  entrySource: z.enum(["tap", "scan_log", "voice", "offline_replay", "sensor"]).optional(),
+  confirmationLevel: z.enum(["logged", "verified"]).optional(),
 });
 
 const INTAKE_EVENT_MAX_AGE_MS = 24 * 60 * 60 * 1000;
@@ -164,6 +168,8 @@ router.post("/intake", intakeLimiter, async (req, res) => {
           scoreBefore: body.scoreBefore,
           scoreAfter: body.scoreAfter,
           ...(body.clientEventId ? { clientEventId: body.clientEventId } : {}),
+          ...(body.entrySource ? { entrySource: body.entrySource } : {}),
+          ...(body.confirmationLevel ? { confirmationLevel: body.confirmationLevel } : {}),
           // Keyed replays keep the original capture time for an accurate
           // historical log; legacy writes fall through to defaultNow().
           ...(body.event && body.clientEventId
@@ -199,6 +205,126 @@ router.post("/intake", intakeLimiter, async (req, res) => {
   } catch (err) {
     logger.error({ err }, "POST /aforce/intake failed");
     return res.status(400).json({ error: "intake_failed" });
+  }
+});
+
+// ─── POST /intake/correction ───────────────────────────────────────────────────
+// §10 (RC-L12): auditable, append-only correction of a mistaken intake. The
+// original row is NEVER mutated or deleted — a correction row references it
+// (corrects_intake_id + reason) and, when the original applied to today's
+// counters (24h window), reverses those counters and removes the linked
+// scoring event so the materialized score no longer includes it. Floor-0
+// guards make a replayed/racing correction safe.
+const correctionSchema = z.object({
+  intakeLogId: z.number().int().positive(),
+  reason: z.enum(CORRECTION_REASONS),
+});
+
+router.post("/intake/correction", intakeLimiter, async (req, res) => {
+  try {
+    const body = correctionSchema.parse(req.body);
+    const userId = resolveUserId(req);
+    await getUserState(userId);
+    const now = new Date();
+
+    const result = await db.transaction(async (tx) => {
+      // Serialize per-user (same lock as /intake) so a double-tapped Undo
+      // can't reverse counters twice.
+      await tx
+        .select({ userId: aforceUserState.userId })
+        .from(aforceUserState)
+        .where(eq(aforceUserState.userId, userId))
+        .limit(1)
+        .for("update");
+
+      const [log] = await tx
+        .select()
+        .from(aforceIntakeLogs)
+        .where(eq(aforceIntakeLogs.id, body.intakeLogId))
+        .limit(1);
+      const [existingCorrection] = log
+        ? await tx
+            .select({ id: aforceIntakeLogs.id })
+            .from(aforceIntakeLogs)
+            .where(
+              and(
+                eq(aforceIntakeLogs.userId, userId),
+                eq(aforceIntakeLogs.correctsIntakeId, body.intakeLogId),
+              ),
+            )
+            .limit(1)
+        : [undefined];
+
+      const plan = planIntakeCorrection({
+        log: log ?? null,
+        requestUserId: userId,
+        alreadyCorrected: existingCorrection != null,
+        isAforceFluid: log ? isAforceFluid(log.fluidType as never) : false,
+        nowMs: now.getTime(),
+      });
+      if (!plan.ok) return { rejected: plan.reason } as const;
+
+      // Append the correction row (zero-impact scores: a correction is
+      // bookkeeping, never score movement — Score Protection §9).
+      const [correction] = await tx
+        .insert(aforceIntakeLogs)
+        .values({
+          userId,
+          fluidType: log!.fluidType,
+          ozAmount: log!.ozAmount,
+          scoreBefore: 0,
+          scoreAfter: 0,
+          correctsIntakeId: log!.id,
+          correctionReason: body.reason,
+          entrySource: "tap",
+          confirmationLevel: "logged",
+        })
+        .returning();
+
+      if (!plan.reverseCounters) {
+        const [row] = await tx
+          .select()
+          .from(aforceUserState)
+          .where(eq(aforceUserState.userId, userId))
+          .limit(1);
+        return { rejected: null, updated: row!, correction: correction! } as const;
+      }
+
+      // Reverse today's counters (floor 0) + drop the linked scoring event.
+      const [current] = await tx
+        .select({ intakeEvents: aforceUserState.intakeEvents })
+        .from(aforceUserState)
+        .where(eq(aforceUserState.userId, userId))
+        .limit(1);
+      const nextEvents = (current?.intakeEvents ?? []).filter(
+        (e) => plan.removeEventId == null || e.id !== plan.removeEventId,
+      );
+      const [updated] = await tx
+        .update(aforceUserState)
+        .set({
+          unitsConsumedToday: sql`GREATEST(${aforceUserState.unitsConsumedToday} - 1, 0)`,
+          ozConsumedToday: sql`GREATEST(${aforceUserState.ozConsumedToday} - ${plan.ozToReverse}, 0)`,
+          aforceUnitsToday: plan.isAforce
+            ? sql`GREATEST(${aforceUserState.aforceUnitsToday} - 1, 0)`
+            : aforceUserState.aforceUnitsToday,
+          intakeEvents: nextEvents,
+          updatedAt: now,
+        })
+        .where(eq(aforceUserState.userId, userId))
+        .returning();
+      if (!updated) throw new Error("user_state_missing");
+      return { rejected: null, updated, correction: correction! } as const;
+    });
+
+    if (result.rejected) {
+      const status = result.rejected === "not_found" || result.rejected === "not_owner" ? 404 : 409;
+      return res.status(status).json({ error: result.rejected });
+    }
+    broadcastState(userId, result.updated);
+    return res.json({ userState: result.updated, correction: result.correction });
+  } catch (err) {
+    logger.error({ err }, "POST /aforce/intake/correction failed");
+    return res.status(400).json({ error: "correction_failed" });
   }
 });
 

@@ -164,6 +164,16 @@ export const aforceIntakeLogs = pgTable(
      *  NULLS DISTINCT means those rows never collide, so the dedupe applies
      *  ONLY to keyed offline-outbox replays. Score-Protection on replay. */
     clientEventId: text("client_event_id"),
+    // ── Lock §10 honesty + corrections (RC-L12, all nullable/additive) ──
+    /** When set, this row is an auditable CORRECTION reversing the referenced
+     *  log (append-only: the original row is never mutated or deleted). */
+    correctsIntakeId: integer("corrects_intake_id"),
+    /** 'mistake' | 'spill' | 'wrong_product' | 'duplicate' — why it was corrected. */
+    correctionReason: text("correction_reason"),
+    /** How the entry was captured: 'tap' | 'scan_log' | 'voice' | 'offline_replay' | 'sensor'. */
+    entrySource: text("entry_source"),
+    /** §10 minimal ladder: 'logged' (self-reported tap) | 'verified' (future). */
+    confirmationLevel: text("confirmation_level"),
     loggedAt: timestamp("logged_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => ({
