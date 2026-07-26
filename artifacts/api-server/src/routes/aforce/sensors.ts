@@ -3,8 +3,10 @@ import { z } from "zod";
 import {
   db,
   aforceIntakeLogs, aforceUserState, aforceScoreSnapshots,
+  createDrizzleScoreSnapshotRepo,
 } from "@workspace/db";
 import { eq } from "drizzle-orm";
+import { HYDROSTATE_MODEL_VERSION } from "../../lib/hydroStateModelVersion";
 import { getUserState } from "../../lib/aforceState";
 import { logger } from "../../lib/logger";
 import { resolveUserId, unlockAchievementCode } from "./shared";
@@ -100,7 +102,11 @@ router.post("/sensors/import", async (req, res) => {
 
     await db.transaction(async (tx) => {
       await tx.insert(aforceIntakeLogs).values(intakes);
-      await tx.insert(aforceScoreSnapshots).values(snapshots);
+      // D-08 / DR-009: snapshots go through the central repository so every
+      // row is stamped with the HydroState model version. The tx handle keeps
+      // the batch atomic (founder Decision 4 scope).
+      const snapshotRepo = createDrizzleScoreSnapshotRepo(tx, HYDROSTATE_MODEL_VERSION);
+      await snapshotRepo.createMany(snapshots);
       // Bump lastIntakeTime to the most recent valid sensor sample so
       // the engine's recency-aware terms reflect the import.
       if (safeLastTs > 0) {
