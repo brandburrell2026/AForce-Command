@@ -112,6 +112,10 @@
         "projectId": "c30ebfdb-7cce-475f-98f8-8ff14e58f5b3"
       }
     },
-    "owner": "brandburrell2026"
+    "owner": "brandburrell2026",
+    "runtimeVersion": "1.0.0",
+    "updates": {
+      "url": "https://u.expo.dev/c30ebfdb-7cce-475f-98f8-8ff14e58f5b3"
+    }
   }
 }

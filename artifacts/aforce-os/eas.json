@@ -27,6 +27,14 @@
         "buildType": "apk"
       }
     },
+    "demo": {
+      "extends": "preview",
+      "channel": "demo",
+      "env": {
+        "EXPO_PUBLIC_DEMO_MODE": "true"
+      },
+      "node": "22.13.0"
+    },
     "production": {
       "channel": "production",
       "autoIncrement": true,
