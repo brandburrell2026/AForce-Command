@@ -268,6 +268,10 @@
   #stepOS .os-buy:disabled{ background:transparent; color:var(--can-40); border-color:var(--can-22); cursor:not-allowed; }
   #stepOS .os-buy-note{ margin-top:10px; font-family:var(--mono); font-size:10.5px; letter-spacing:.06em; color:var(--can-40); text-align:center; }
   #stepOS .os-buy-note[hidden]{ display:none; }
+  /* Auto-renew disclosure — must be visible adjacent to the Enter Command CTA
+     whenever the selling plans genuinely auto-renew (COMMAND_AUTORENEWS). */
+  #stepOS .os-renew{ margin-top:8px; font-family:var(--mono); font-size:10.5px; letter-spacing:.06em; color:var(--can-55); text-align:center; }
+  #stepOS .os-renew[hidden]{ display:none; }
   #stepOS .os-fine{ margin-top:12px; color:var(--can-40); font-size:11.5px; }
 
   /* ---- STEP 03 — BEGIN + ignition ---- */
@@ -584,6 +588,7 @@
           <li>Advanced recovery guidance</li>
         </ul>
         <button class="os-buy" id="osBuy" type="button">Enter Command</button>
+        <p class="os-renew" id="osRenew" hidden></p>
         <p class="os-buy-note" id="osBuyNote" role="status"></p>
       </div>
     </div>
@@ -1152,6 +1157,18 @@
     if(buyNote){
       if(osReady()){ buyNote.hidden=true; buyNote.textContent=""; }
       else { buyNote.hidden=false; buyNote.textContent="Command checkout opens at launch."; }
+    }
+    /* Auto-renew disclosure (COMMAND_AUTORENEWS): shown adjacent to the CTA
+       whenever the plans genuinely auto-renew and checkout is live. Mirrors the
+       Ritual tier's approved "cancel anytime in AFORCE OS" language. */
+    var renew=$("#osRenew");
+    if(renew){
+      var show = COMMAND_AUTORENEWS && osReady();
+      renew.hidden = !show;
+      renew.textContent = show
+        ? (annual ? "Renews yearly at $200 · cancel anytime in AFORCE OS"
+                  : "Renews monthly at $20 · cancel anytime in AFORCE OS")
+        : "";
     }
   }
 
