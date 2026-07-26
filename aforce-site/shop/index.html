@@ -256,9 +256,7 @@
   #stepOS .os-seg button{ min-height:44px; padding:0 16px; border:0; border-radius:999px; background:transparent; cursor:pointer; font-family:var(--display); font-weight:700; font-size:11.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--can-55); transition:background .2s, color .2s; }
   #stepOS .os-seg button[aria-pressed="true"]{ background:var(--theme); color:var(--ink); }
   #stepOS .os-save{ font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--can-55); border:1px solid var(--can-22); border-radius:999px; padding:2px 8px; align-self:center; }
-  /* COMMAND INCLUDED status — reuses the pro badge language, never green (§9) */
-  #stepOS .os-incl{ align-self:flex-start; font-family:var(--display); font-weight:700; font-size:12px; letter-spacing:.06em; text-transform:uppercase; color:var(--ink); background:var(--theme); border-radius:999px; padding:8px 14px; }
-  #stepOS .os-seg[hidden], #stepOS .os-save[hidden], #stepOS .os-incl[hidden]{ display:none; }
+  #stepOS .os-seg[hidden], #stepOS .os-save[hidden]{ display:none; }
   #stepOS .os-cta{ display:inline-flex; align-items:center; gap:8px; margin-top:clamp(20px,2.4vw,28px); font-weight:700; font-size:14px; border:1.5px solid var(--canvas); border-radius:999px; padding:14px 24px; min-height:44px; color:var(--canvas); transition:background .2s, color .2s; }
   #stepOS .os-cta:hover{ background:var(--canvas); color:var(--ink); }
   /* Command's own checkout button — the pro tier's primary action. Uses the
@@ -319,9 +317,6 @@
   .rb2-x{ width:44px; height:44px; margin-right:-10px; border:0; background:none; cursor:pointer; position:relative; color:var(--ink); }
   .rb2-x span{ position:absolute; left:12px; top:21px; width:20px; height:1.5px; background:currentColor; }
   .rb2-x span:first-child{ transform:rotate(45deg); } .rb2-x span:last-child{ transform:rotate(-45deg); }
-  .rb2-included{ margin:0 var(--gutter) 4px; display:inline-flex; align-self:flex-start; align-items:center; gap:8px; font-family:var(--display); font-weight:700; font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:#fff; background:var(--blue); border-radius:999px; padding:7px 13px; }
-  .rb2-included[hidden]{ display:none; }
-  .rb2-included .dot{ width:6px; height:6px; border-radius:50%; background:#fff; }
   .rb2-body{ flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; padding:8px var(--gutter) 12px; }
   .rb2-line{ display:grid; grid-template-columns:64px 1fr; gap:14px; padding:16px 0; border-bottom:1px solid var(--ink-12); }
   .rb2-thumb{ width:64px; height:64px; border-radius:6px; background:var(--ink-06); display:flex; align-items:center; justify-content:center; overflow:hidden; }
@@ -581,7 +576,6 @@
           <span class="os-amt" id="osAmt">$20</span><span class="os-per" id="osPer">/ month</span>
           <span class="os-save" id="osSave" hidden>SAVE $40</span>
         </div>
-        <div class="os-incl" id="osIncl" hidden>Command included</div>
         <ul class="os-feat">
           <li>Performance Age™</li>
           <li>Weekly interpretation</li>
@@ -639,7 +633,6 @@
       <h2 id="rb2Title">Your Ritual</h2>
       <button type="button" class="rb2-x" id="rb2Close" aria-label="Close your ritual"><span></span><span></span></button>
     </div>
-    <div class="rb2-included" id="rb2Included" hidden><span class="dot" aria-hidden="true"></span>Command included</div>
     <div class="rb2-body" id="rb2Body"><!-- lines or empty state injected --></div>
     <div class="rb2-undo" id="rb2Undo" hidden role="status" aria-live="polite">
       <span id="rb2UndoLabel">Item removed</span>
@@ -901,8 +894,6 @@
     var lines=basket.lines(), count=basket.count();
     // header cart count
     var cc=$("#afxCartCount"); if(cc){ cc.textContent=count; cc.hidden = count===0; }
-    // COMMAND INCLUDED
-    var inc=$("#rb2Included"); if(inc) inc.hidden = !basket.hasAutoPilot();
     var body=$("#rb2Body"), foot=$("#rb2Foot");
     if(!body) return;
     if(!lines.length){
@@ -1134,17 +1125,14 @@
     $$("#rail .r").forEach(function(r){ var s=r.getAttribute("data-step"); r.classList.toggle("current", s===cur); r.classList.toggle("done", !!done[s]&&s!==cur); });
   }
 
-  /* §6/§14 — Command billing band. Informational only (membership is enrolled
-     inside AFORCE OS, never a Shopify line item). When the customer's order is
-     an AutoPilot/Ritual Membership, Command is included: show "COMMAND INCLUDED"
-     and drop the standalone price. When they leave AutoPilot, restore it. */
+  /* §6/§14 — Command billing band. Command is its OWN standalone subscription
+     with its OWN Shopify product + checkout, priced independently of the
+     hydration plan and NEVER bundled into a Ritual Membership. Its pricing is
+     therefore always selectable here, regardless of the customer's order. */
   function renderOSband(){
-    var seg=$("#osSeg"), amt=$("#osAmt"), per=$("#osPer"), save=$("#osSave"), incl=$("#osIncl");
+    var seg=$("#osSeg"), amt=$("#osAmt"), per=$("#osPer"), save=$("#osSave");
     if(!seg) return;
     var buy=$("#osBuy"), buyNote=$("#osBuyNote");
-    /* Command is its OWN standalone subscription with its OWN checkout, so its
-       pricing is always selectable here — independent of the hydration plan. */
-    if(incl) incl.hidden = true;
     seg.hidden = false;
     var annual = state.osCycle==="annual";
     save.hidden = !annual;
