@@ -19,8 +19,14 @@
  *     per the DB schema, so there is no multi-device race to reconcile).
  */
 
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { postJsonAforceApi } from './aforceApiClient';
+import { secureKV } from './secureStorage';
+import { getJsonAforceApi, postJsonAforceApi } from './aforceApiClient';
+import {
+  decideProfileHydration,
+  identityPatchFromServerSnapshot,
+  type HydrationDecision,
+  type ServerProfileSnapshot,
+} from '../utils/profileHydration';
 import {
   classifyProfileSave,
   initialConfidence,
@@ -98,7 +104,9 @@ export function profileSnapshotFromIdentity(identity: ProfileIdentity): ProfileS
 
 async function loadSyncState(): Promise<ProfileSyncState> {
   try {
-    const raw = await AsyncStorage.getItem(SYNC_STATE_KEY);
+    // K-1 (RC-L11): sync state lives in the encrypted store; the read
+    // transparently migrates any legacy plain-AsyncStorage value.
+    const raw = await secureKV.getItem(SYNC_STATE_KEY);
     if (!raw) return { ...EMPTY_SYNC_STATE };
     const parsed = JSON.parse(raw) as Partial<ProfileSyncState>;
     return { ...EMPTY_SYNC_STATE, ...parsed };
@@ -109,7 +117,7 @@ async function loadSyncState(): Promise<ProfileSyncState> {
 
 async function saveSyncState(next: ProfileSyncState): Promise<void> {
   try {
-    await AsyncStorage.setItem(SYNC_STATE_KEY, JSON.stringify(next));
+    await secureKV.setItem(SYNC_STATE_KEY, JSON.stringify(next));
   } catch {
     // Persistence is best-effort; a failed write just means the next save
     // re-diffs against the prior snapshot (idempotent on the server).
@@ -223,4 +231,72 @@ export async function getActivePointers(): Promise<{
     profileVersionId: sync.profileVersionId,
     baselineVersionId: sync.baselineVersionId,
   };
+}
+
+/* ─── Lock §7 / RC-L11 — server rehydration + reconnect flush ────────────── */
+
+interface ProfileGetResponse {
+  profile: { currentProfileVersionId: number | null; currentBaselineVersionId: number | null } | null;
+  baseline: { id: number } | null;
+  version: { id: number; versionNumber: number; snapshot: ServerProfileSnapshot } | null;
+}
+
+export interface HydrationResult {
+  decision: HydrationDecision;
+  /** Sparse identity patch to apply when `decision === 'hydrate'`. */
+  patch: Partial<ProfileIdentity> | null;
+}
+
+/**
+ * Restore the server-backed profile after a fresh install / new device.
+ * Deterministic (see utils/profileHydration.ts): a pending local change or an
+ * already-calibrated local profile is NEVER silently overwritten. On hydrate,
+ * the sync state is seeded from the server snapshot + pointers so the next
+ * save diffs against confirmed server truth.
+ */
+export async function hydrateProfileFromServer(
+  localIdentity: ProfileIdentity,
+): Promise<HydrationResult> {
+  let res: ProfileGetResponse;
+  try {
+    res = await getJsonAforceApi<ProfileGetResponse>('/profile');
+  } catch {
+    // Offline / server error — hydration is best-effort; local state stands.
+    return { decision: 'noop', patch: null };
+  }
+
+  const sync = await loadSyncState();
+  const serverSnapshot = res.version?.snapshot ?? null;
+  const decision = decideProfileHydration({
+    localIdentity,
+    hasPendingSync: sync.pendingClientChangeId != null,
+    serverSnapshot,
+  });
+  if (decision !== 'hydrate' || !serverSnapshot || !res.version) {
+    return { decision, patch: null };
+  }
+
+  // Seed sync state from server truth so the next save diffs correctly and
+  // pointer stamping resumes (reinstall wiped the local pointers).
+  await saveSyncState({
+    lastSyncedSnapshot: serverSnapshot as ProfileSnapshot,
+    profileVersionId: res.profile?.currentProfileVersionId ?? res.version.id,
+    baselineVersionId: res.profile?.currentBaselineVersionId ?? res.baseline?.id ?? null,
+    pendingClientChangeId: null,
+  });
+  return { decision, patch: identityPatchFromServerSnapshot(serverSnapshot) };
+}
+
+/**
+ * Reconnect flush (§7): if a major change is still pending (POST failed
+ * offline), retry it now with the SAME idempotency key via the normal save
+ * path. Safe to call on app-foreground / network-regain; no-op when clean.
+ */
+export async function flushPendingProfileSync(
+  currentIdentity: ProfileIdentity,
+): Promise<boolean> {
+  const sync = await loadSyncState();
+  if (sync.pendingClientChangeId == null) return false;
+  const result = await saveProfileVersion(currentIdentity);
+  return result.synced;
 }

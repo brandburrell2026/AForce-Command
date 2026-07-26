@@ -549,6 +549,13 @@ export interface FeatureFlags {
   // the server's idempotency key prevents any double-apply.
   offline_intake_outbox_enabled: boolean;
 
+  // Lock §7 / RC-L11 — server rehydration of the Adaptive Profile on a fresh
+  // install / new device, plus reconnect flush of a pending profile sync.
+  // OFF by default until physical-device reinstall verification passes
+  // (PASS-3 build plan, slice 2 release gate). Deterministic: never
+  // overwrites a calibrated local profile or a pending unsynced change.
+  profile_server_hydration_enabled: boolean;
+
   // Enterprise — Cruise Mode (premium add-on for cruise lines & guests).
   // Master switch. Phase 1 public release lights up Journey Pulse,
   // Guest Readiness Signal, Today's Flow, and Port Signal. Phases 2/3

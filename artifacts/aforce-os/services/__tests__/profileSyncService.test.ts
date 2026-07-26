@@ -16,10 +16,13 @@
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
-// In-memory AsyncStorage, hoisted so the vi.mock factory can close over it.
+// In-memory secure KV (the service's storage moved from plain AsyncStorage to
+// the encrypted secureKV in RC-L11), hoisted so the vi.mock factory can close
+// over it. Mocking here also keeps react-native / expo-secure-store (Flow
+// syntax) out of the pure runner.
 const { mem } = vi.hoisted(() => ({ mem: new Map<string, string>() }));
-vi.mock('@react-native-async-storage/async-storage', () => ({
-  default: {
+vi.mock('../secureStorage', () => ({
+  secureKV: {
     getItem: async (k: string) => (mem.has(k) ? (mem.get(k) as string) : null),
     setItem: async (k: string, v: string) => {
       mem.set(k, v);
@@ -30,15 +33,22 @@ vi.mock('@react-native-async-storage/async-storage', () => ({
   },
 }));
 
-// Capture POST calls and script the response/throw per test.
-const { post } = vi.hoisted(() => ({
+// Capture GET/POST calls and script the response/throw per test.
+const { post, get } = vi.hoisted(() => ({
   post: vi.fn(),
+  get: vi.fn(),
 }));
 vi.mock('../aforceApiClient', () => ({
   postJsonAforceApi: (path: string, body: unknown) => post(path, body),
+  getJsonAforceApi: (path: string) => get(path),
 }));
 
-import { saveProfileVersion, profileSnapshotFromIdentity } from '../profileSyncService';
+import {
+  saveProfileVersion,
+  profileSnapshotFromIdentity,
+  hydrateProfileFromServer,
+  flushPendingProfileSync,
+} from '../profileSyncService';
 import {
   recalibrateTargets,
   recalibrationInputsFromIdentity,
@@ -214,5 +224,109 @@ describe('saveProfileVersion', () => {
     const retry = await saveProfileVersion(identity({ bodyWeightLbs: 200 }));
     expect(retry.synced).toBe(true);
     expect(post.mock.calls[1][1].clientChangeId).toBe(firstChangeId);
+  });
+});
+
+/* ─── RC-L11 — server rehydration + reconnect flush ──────────────────────── */
+
+describe('hydrateProfileFromServer (Lock §7 / RC-L11)', () => {
+  const serverVersion = {
+    profile: { currentProfileVersionId: 7, currentBaselineVersionId: 9 },
+    baseline: { id: 9 },
+    version: {
+      id: 7,
+      versionNumber: 3,
+      snapshot: { weightLbs: 200, heightCm: 178, birthYear: 1988, sex: 'male' },
+    },
+  };
+
+  beforeEach(() => {
+    mem.clear();
+    get.mockReset();
+    post.mockReset();
+  });
+
+  it('fresh install + server profile → hydrates and seeds sync state', async () => {
+    get.mockResolvedValueOnce(serverVersion);
+    const result = await hydrateProfileFromServer({ ...DEFAULT_PROFILE_IDENTITY });
+    expect(result.decision).toBe('hydrate');
+    expect(result.patch).toMatchObject({ bodyWeightLbs: 200, birthYear: 1988 });
+    // Sync state seeded from server truth (pointers + last-synced snapshot).
+    const sync = JSON.parse(mem.get('aforce.profileSync') as string);
+    expect(sync.profileVersionId).toBe(7);
+    expect(sync.baselineVersionId).toBe(9);
+    expect(sync.lastSyncedSnapshot.weightLbs).toBe(200);
+    expect(sync.pendingClientChangeId).toBeNull();
+  });
+
+  it('calibrated local profile → keep_local, no patch, sync state untouched', async () => {
+    get.mockResolvedValueOnce(serverVersion);
+    const result = await hydrateProfileFromServer({
+      ...DEFAULT_PROFILE_IDENTITY,
+      bodyWeightLbs: 150,
+    });
+    expect(result.decision).toBe('keep_local');
+    expect(result.patch).toBeNull();
+    expect(mem.has('aforce.profileSync')).toBe(false);
+  });
+
+  it('pending unsynced change → keep_local (never overwritten by the server)', async () => {
+    mem.set(
+      'aforce.profileSync',
+      JSON.stringify({ lastSyncedSnapshot: null, profileVersionId: null, baselineVersionId: null, pendingClientChangeId: 'pv_x' }),
+    );
+    get.mockResolvedValueOnce(serverVersion);
+    const result = await hydrateProfileFromServer({ ...DEFAULT_PROFILE_IDENTITY });
+    expect(result.decision).toBe('keep_local');
+  });
+
+  it('offline / GET failure → noop, local state stands', async () => {
+    get.mockRejectedValueOnce(new Error('offline'));
+    const result = await hydrateProfileFromServer({ ...DEFAULT_PROFILE_IDENTITY });
+    expect(result.decision).toBe('noop');
+  });
+
+  it('server has no version yet → noop', async () => {
+    get.mockResolvedValueOnce({ profile: null, baseline: null, version: null });
+    const result = await hydrateProfileFromServer({ ...DEFAULT_PROFILE_IDENTITY });
+    expect(result.decision).toBe('noop');
+  });
+});
+
+describe('flushPendingProfileSync (Lock §7 reconnect flush)', () => {
+  beforeEach(() => {
+    mem.clear();
+    get.mockReset();
+    post.mockReset();
+  });
+
+  it('no pending change → no-op, no network', async () => {
+    const flushed = await flushPendingProfileSync({ ...DEFAULT_PROFILE_IDENTITY });
+    expect(flushed).toBe(false);
+    expect(post).not.toHaveBeenCalled();
+  });
+
+  it('pending change → retries the save with the SAME idempotency key', async () => {
+    mem.set(
+      'aforce.profileSync',
+      JSON.stringify({
+        lastSyncedSnapshot: null,
+        profileVersionId: null,
+        baselineVersionId: null,
+        pendingClientChangeId: 'pv_retry_me',
+      }),
+    );
+    post.mockResolvedValueOnce({
+      pointers: { profileVersionId: 1, baselineVersionId: 2, versionNumber: 1 },
+      minted: true,
+    });
+    const flushed = await flushPendingProfileSync({
+      ...DEFAULT_PROFILE_IDENTITY,
+      bodyWeightLbs: 190,
+    });
+    expect(flushed).toBe(true);
+    expect(post).toHaveBeenCalledTimes(1);
+    const body = post.mock.calls[0][1] as { clientChangeId: string };
+    expect(body.clientChangeId).toBe('pv_retry_me');
   });
 });
