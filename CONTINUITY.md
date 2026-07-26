@@ -87,11 +87,9 @@ sensors migration. Guardrails recorded in project memory.
 
 ## 8. EXACT NEXT SAFE ACTION
 
-**PASS-3 /AUDIT COMPLETE (Register §23, RC-L11–L15).** Next: founder prioritizes the four
-recommended `/PLAN` candidates in §23 (tier/price unification RC-L14 is the sharpest — $19.99 vs
-$20/$200 + missing Shopify→entitlement bridge), then a `/PLAN` slice for approval. Also queued
-(mechanical, pre-approved content): restore graph tables + sensors.ts migration from the runbook.
-**No implementation code without an approved plan.**
+**PASS-3 BUILD SLICES 1–4a COMPLETE (2026-07-26, PRs #387–#390 merged).** Slice 1 provider honesty (RC-L13) · Slice 2 profile hydration+encrypted cache behind profile_server_hydration_enabled=OFF (RC-L11) · Slice 3 intake corrections+online dedupe+honesty columns, schema source-only (RC-L12) · Slice 4a Command $20/mo unification, internal id stays athlete (RC-L14/D-1).
+
+NEXT SAFE ACTIONS: (1) slice-2 release gate — physical-device reinstall test, then flip the flag; (2) deploy slice-3 intake columns (runbook pattern: dev then prod ALTER); (3) slice 4b $200/yr annual Stripe option; (4) slice 4c D-2 Shopify-webhook entitlement bridge — needs founder Shopify webhook config + revenue-guardian gate; (5) Stage-2 graph-tables restore from runbook; (6) Undo UI + intake_corrections_enabled flag. Founder standing items: RC-L10 pricing display, BUILD-2b sign-off, 11 oz label ruling.
 
 ## 9. AUDIT coverage (honest)
 
