@@ -2,9 +2,17 @@ import { Router, type IRouter } from "express";
 import { z } from "zod";
 import {
   db,
-  aforceIntakeLogs, aforceScoreSnapshots,
+  aforceIntakeLogs, aforceScoreSnapshots, aforceConfirmations,
+  createDrizzleScoreSnapshotRepo,
 } from "@workspace/db";
 import { eq, sql, and, gte, asc, desc } from "drizzle-orm";
+import { HYDROSTATE_MODEL_VERSION } from "../../lib/hydroStateModelVersion";
+import {
+  resolveScoreProtectionMode,
+  evaluateScoreWrite,
+  decideScoreWrite,
+  SCORE_WRITE_GUARD,
+} from "../../lib/scoreWriteGuard";
 import { logger } from "../../lib/logger";
 import { resolveUserId } from "./shared";
 import { LEVELS, snapshotSchema } from "./journalSchema";
@@ -31,10 +39,60 @@ router.post("/journal/snapshot", async (req, res) => {
   }
   try {
     const userId = resolveUserId(req);
-    const [row] = await db
-      .insert(aforceScoreSnapshots)
-      .values({ userId, ...parsed.data })
-      .returning();
+    // D-08: the model version is stamped centrally by the repository — this
+    // route neither supplies nor can omit it (DR-009, founder Decision 5).
+    const repo = createDrizzleScoreSnapshotRepo(db, HYDROSTATE_MODEL_VERSION);
+
+    // RC-L8b Score Protection gate (Phase 3A = shadow). Judge the proposed
+    // score movement against the append-only behavior record. In `shadow` this
+    // ONLY observes + logs; it never blocks and never throws into the write —
+    // any guard failure is logged and the write proceeds (observe-only
+    // guarantee). `enforce` (Phase 3B) is a deliberate per-env flip.
+    const mode = resolveScoreProtectionMode();
+    if (mode !== "off") {
+      try {
+        const [priorRow] = await db
+          .select({ score: aforceScoreSnapshots.score, capturedAt: aforceScoreSnapshots.capturedAt })
+          .from(aforceScoreSnapshots)
+          .where(eq(aforceScoreSnapshots.userId, userId))
+          .orderBy(desc(aforceScoreSnapshots.capturedAt))
+          .limit(1);
+        // Evidence window: since the prior snapshot, or a bounded lookback when
+        // this is the user's first-ever write.
+        const evidenceSince =
+          priorRow?.capturedAt ?? new Date(Date.now() - SCORE_WRITE_GUARD.EVIDENCE_WINDOW_MS);
+        const [confRows, intakeRows] = await Promise.all([
+          db
+            .select({ n: sql<number>`count(*)::int` })
+            .from(aforceConfirmations)
+            .where(and(eq(aforceConfirmations.userId, userId), gte(aforceConfirmations.loggedAt, evidenceSince))),
+          db
+            .select({ n: sql<number>`count(*)::int` })
+            .from(aforceIntakeLogs)
+            .where(and(eq(aforceIntakeLogs.userId, userId), gte(aforceIntakeLogs.loggedAt, evidenceSince))),
+        ]);
+        const verdict = evaluateScoreWrite({
+          proposed: { score: parsed.data.score },
+          prior: priorRow ? { score: priorRow.score, capturedAt: priorRow.capturedAt } : null,
+          evidence: { confirmations: confRows[0]?.n ?? 0, intakeLogs: intakeRows[0]?.n ?? 0 },
+        });
+        const decision = decideScoreWrite(mode, verdict);
+        if (!verdict.ok) {
+          logger.warn(
+            { mode, userId, delta: verdict.delta, evidenceCount: verdict.evidenceCount, violations: verdict.violations },
+            "score-protection: unexplained score movement",
+          );
+        }
+        if (decision.blocked) {
+          return res.status(409).json({ error: "score_protection_violation", violations: verdict.violations });
+        }
+      } catch (guardErr) {
+        // The guard must never break a legitimate write. Log and continue.
+        logger.error({ err: guardErr }, "score-protection guard failed (write proceeding)");
+      }
+    }
+
+    const row = await repo.create({ userId, ...parsed.data });
     return res.json({ snapshot: row });
   } catch (err) {
     logger.error({ err }, "POST /aforce/journal/snapshot write failed");
