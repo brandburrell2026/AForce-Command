@@ -97,7 +97,7 @@ const hapticSelection = () => {
 
 const TIER_LABELS: Record<string, { label: string; desc: string; color: string }> = {
   core:           { label: 'AForce Core',           desc: 'Start your performance system.',                      color: Colors.states.BALANCED.primary },
-  athlete:        { label: 'AForce Athlete',        desc: 'Train and perform with precision.',                   color: Colors.states.PEAK.primary },
+  athlete:        { label: 'AForce Command',        desc: 'Command interprets the pattern.',                   color: Colors.states.PEAK.primary },
   system:         { label: 'AForce System',         desc: 'Full performance control — software + product.',      color: Colors.states.PEAK.primary },
   team_starter:   { label: 'Team Core Starter',     desc: 'Run your team with intelligence. Up to 25 members.',  color: Colors.states.BALANCED.primary },
   team_growth:    { label: 'Team Core Growth',      desc: 'Scale team performance. Up to 50 members.',           color: Colors.states.BALANCED.primary },

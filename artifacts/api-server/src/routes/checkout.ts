@@ -109,9 +109,11 @@ export const PLAN_CATALOG: Record<string, PlanCatalogEntry> = {
     description: 'Unlock Recovery Mode after Social Mode sessions.',
   },
   athlete: {
-    amountCents: 1999,
-    name: 'AForce Athlete',
-    description: 'Train and perform with precision.',
+    // D-1 (2026-07-26): canonical Command pricing — $20.00/mo, matching the
+    // marketing site. Internal id stays 'athlete' (storage key on live rows).
+    amountCents: 2000,
+    name: 'AForce Command',
+    description: 'The paid intelligence layer — Command interprets the pattern.',
   },
   system: {
     amountCents: 5999,
