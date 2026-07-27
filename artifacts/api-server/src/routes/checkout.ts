@@ -93,6 +93,9 @@ const router: IRouter = Router();
 
 interface PlanCatalogEntry {
   amountCents: number;
+  /** Annual price in cents — only plans offering an annual cadence set it
+   *  (D-1: Command $200/yr). Absent = monthly-only. */
+  amountCentsAnnual?: number;
   name: string;
   description: string;
 }
@@ -109,9 +112,10 @@ export const PLAN_CATALOG: Record<string, PlanCatalogEntry> = {
     description: 'Unlock Recovery Mode after Social Mode sessions.',
   },
   athlete: {
-    // D-1 (2026-07-26): canonical Command pricing — $20.00/mo, matching the
-    // marketing site. Internal id stays 'athlete' (storage key on live rows).
+    // D-1 (2026-07-26): canonical Command pricing — $20.00/mo · $200.00/yr,
+    // matching the marketing site. Internal id stays 'athlete' (storage key).
     amountCents: 2000,
+    amountCentsAnnual: 20000,
     name: 'AForce Command',
     description: 'The paid intelligence layer — Command interprets the pattern.',
   },
@@ -201,10 +205,19 @@ function inboundHost(req: Request): string | null {
 
 // ─── Subscription: POST /checkout/session ────────────────────────────────────
 router.post('/checkout/session', requireAuth, checkoutLimiter, async (req: Request, res: Response) => {
-  const { planId, returnUrl } = (req.body ?? {}) as { planId?: string; returnUrl?: string };
+  const { planId, returnUrl, cadence } = (req.body ?? {}) as {
+    planId?: string;
+    returnUrl?: string;
+    /** Optional billing cadence — omitted/legacy clients get monthly. */
+    cadence?: string;
+  };
 
   if (!planId || typeof planId !== 'string') {
     res.status(400).json({ error: 'planId is required' });
+    return;
+  }
+  if (cadence != null && cadence !== 'monthly' && cadence !== 'annual') {
+    res.status(400).json({ error: 'cadence must be "monthly" or "annual"' });
     return;
   }
   if (!returnUrl || typeof returnUrl !== 'string' || !isAllowedReturnUrl(returnUrl, inboundHost(req))) {
@@ -219,6 +232,14 @@ router.post('/checkout/session', requireAuth, checkoutLimiter, async (req: Reque
     res.status(404).json({ error: `Plan "${planId}" is not eligible for Stripe checkout` });
     return;
   }
+  // Annual is offered only where the catalog defines an annual price (D-1:
+  // Command). Requesting annual on a monthly-only plan is a 400, never a
+  // silent monthly fallback — displayed cadence must equal charged cadence.
+  const isAnnual = cadence === 'annual';
+  if (isAnnual && plan.amountCentsAnnual == null) {
+    res.status(400).json({ error: `Plan "${planId}" has no annual option` });
+    return;
+  }
 
   try {
     const stripe = await getStripeClient();
@@ -229,15 +250,19 @@ router.post('/checkout/session', requireAuth, checkoutLimiter, async (req: Reque
     // Prefer a real seeded Stripe price id (recommended pattern). Fall
     // back to inline price_data when the product hasn't been seeded yet
     // — keeps the demo flow working before `seed-products.ts` runs.
-    const realPriceId = await lookupStripePriceId(planId);
+    // The seeded-price lookup is cadence-unaware (it would return the monthly
+    // price), so ANNUAL always uses inline price_data with the catalog's
+    // annual amount — the product metadata still carries planId, so the
+    // entitlement join resolves identically for both cadences.
+    const realPriceId = isAnnual ? null : await lookupStripePriceId(planId);
     const lineItem = realPriceId
       ? { quantity: 1, price: realPriceId }
       : {
           quantity: 1,
           price_data: {
             currency: 'usd',
-            unit_amount: plan.amountCents,
-            recurring: { interval: 'month' as const },
+            unit_amount: isAnnual ? plan.amountCentsAnnual! : plan.amountCents,
+            recurring: { interval: (isAnnual ? 'year' : 'month') as 'year' | 'month' },
             // Echo planId into product metadata so the entitlement
             // lookup (which joins via stripe.products.metadata->>'planId')
             // still resolves to the right plan for un-seeded products.
