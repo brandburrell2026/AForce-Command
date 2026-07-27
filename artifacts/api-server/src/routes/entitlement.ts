@@ -168,7 +168,11 @@ router.get("/entitlement", requireAuth, async (req, res) => {
           .limit(1);
         const unexpired =
           web && (web.currentPeriodEnd == null || web.currentPeriodEnd.getTime() > Date.now());
-        if (web && unexpired) {
+        // Defense-in-depth (security sign-off): re-assert scope at read
+        // time — the web rail may only ever grant these plans, regardless
+        // of what a future writer or out-of-band DB edit stores.
+        const WEB_GRANTABLE_PLANS = new Set(["athlete"]);
+        if (web && unexpired && WEB_GRANTABLE_PLANS.has(web.planId)) {
           planId = web.planId;
           status = "active";
           currentPeriodEnd = web.currentPeriodEnd;
