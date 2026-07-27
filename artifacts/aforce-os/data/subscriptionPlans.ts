@@ -100,6 +100,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     description:
       'The paid intelligence layer for serious users who want deeper decisioning, recovery guidance, and personalized protocols.',
     priceMonthly: 20,
+    priceAnnual: 200,
     priceLabel: priceLabel(20),
     rank: 2,
     inheritsFromId: 'core',

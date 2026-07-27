@@ -88,6 +88,9 @@ export interface SubscriptionPlan {
   description: string;
   /** Fixed monthly price in USD. 0 = Free. */
   priceMonthly: number;
+  /** Annual price in USD — only plans offering an annual cadence set it
+   *  (D-1: Command $200/yr). Absent = monthly-only. */
+  priceAnnual?: number;
   /** Optional one-time setup / onboarding fee (USD). */
   setupFee?: number;
   /** Optional minimum contract term (months). */
