@@ -331,3 +331,39 @@ export const FRESHNESS_WINDOWS: Record<FreshnessSignalKind, FreshnessWindows> = 
   // Freshness of the last successful biometric pull; >72h the stream is dark.
   wearable_sync: { freshUntilMs: 6 * FRESHNESS_HOUR_MS, staleAfterMs: 24 * FRESHNESS_HOUR_MS, expireAfterMs: 72 * FRESHNESS_HOUR_MS },
 };
+
+/* ─── Intelligence retention + graph evidence (K-2 / DR-003 / DR-005) ─────── */
+/* RESTORED 2026-07-26 after the reset-hard incident, from the authoritative
+ * decision records: DR-005 (retention classes R0–R7) and DR-003 (evidence
+ * gates: ≥5 comparable observations across ≥3 distinct days). Values are
+ * verified by the intelligence test suites, which assert behavior. */
+
+/** Retention days per class (DR-005). null = active-account lifetime;
+ *  R7 = null pending counsel (minimum metadata only until then). */
+export const RETENTION_CLASS_DAYS: Record<string, number | null> = {
+  R0: 0, //      transient computation — memory/job lifetime only
+  R1: 90, //     high-frequency raw signals
+  R2: 730, //    normalized personal events (24 months)
+  R3: 1095, //   daily/periodic derived features (36 months)
+  R4: null, //   graph & model history — active account lifetime
+  R5: 730, //    predictions & outcomes (24 months)
+  R6: null, //   user-facing insight history — active account lifetime
+  R7: null, //   privacy/consent/security — TBD, LEGAL REQUIRED (DR-005)
+};
+
+/** Superseded record retention (DR-005 R4/R6 rider): 24 months. */
+export const SUPERSEDED_RECORD_RETENTION_DAYS = 730;
+
+/** DR-003: emerging evidence floor — below this an edge is merely observed. */
+export const GRAPH_MIN_SUPPORTING_OBSERVATIONS = 3;
+/** DR-003: 'supported' requires ≥5 comparable observations… */
+export const GRAPH_SUPPORTED_MIN_OBSERVATIONS = 5;
+/** …across ≥3 distinct days. */
+export const GRAPH_SUPPORTED_MIN_DISTINCT_DAYS = 3;
+/** Contradiction gate: contradicting/(supporting+contradicting) ≥ this ⇒ contradicted. */
+export const GRAPH_CONTRADICTION_RATIO = 0.5;
+
+/** Query safety caps (defense-in-depth on the pure query layer). */
+export const GRAPH_QUERY_MAX_DEPTH = 4;
+export const GRAPH_QUERY_MAX_NODES = 500;
+export const GRAPH_QUERY_MAX_EDGES = 1000;
