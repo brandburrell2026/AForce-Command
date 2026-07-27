@@ -193,10 +193,14 @@ export interface CheckoutSession {
   sessionId: string;
 }
 
-/** Create a Stripe Checkout session for a consumer plan upgrade. */
+/** Create a Stripe Checkout session for a consumer plan upgrade.
+ *  `cadence` is optional (D-1 slice 4b): omitted = monthly; 'annual' is valid
+ *  only for plans the server catalog prices annually (Command $200/yr) — the
+ *  server 400s rather than silently downgrading cadence. */
 export async function createCheckoutSession(input: {
   planId: string;
   returnUrl: string;
+  cadence?: 'monthly' | 'annual';
 }): Promise<CheckoutSession> {
   return request<CheckoutSession>(
     "POST",

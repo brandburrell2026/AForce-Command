@@ -122,10 +122,44 @@ export default function SubscriptionScreen() {
         return;
       }
 
+      // D-1 (slice 4b): plans with an annual price offer a cadence choice.
+      // Displayed cadence = charged cadence — the server 400s rather than
+      // silently downgrading, so an explicit pick here is the only path.
+      const plan = SUBSCRIPTION_PLANS.find((p) => p.id === planId);
+      let cadence: 'monthly' | 'annual' = 'monthly';
+      if (plan?.priceAnnual != null) {
+        const annualSavings = Math.round(plan.priceMonthly * 12 - plan.priceAnnual);
+        const monthlyLabel = `$${plan.priceMonthly}/month`;
+        const annualLabel =
+          `$${plan.priceAnnual}/year` + (annualSavings > 0 ? ` (save $${annualSavings})` : '');
+        const picked = await new Promise<'monthly' | 'annual' | null>((resolve) => {
+          if (Platform.OS === 'web') {
+            // RN Web: multi-button Alert callbacks are a no-op — use confirm.
+            if (typeof window !== 'undefined') {
+              resolve(
+                window.confirm(`Bill annually at ${annualLabel}? Cancel = ${monthlyLabel}.`)
+                  ? 'annual'
+                  : 'monthly',
+              );
+            } else resolve('monthly');
+            return;
+          }
+          Alert.alert(`${plan.name} billing`, 'Choose your billing cadence.', [
+            { text: 'Cancel', style: 'cancel', onPress: () => resolve(null) },
+            { text: monthlyLabel, onPress: () => resolve('monthly') },
+            { text: annualLabel, onPress: () => resolve('annual') },
+          ]);
+        });
+        if (picked == null) return; // user backed out — no checkout
+        cadence = picked;
+      }
+
       const returnUrl = Linking.createURL('/subscription', { queryParams: {} });
       let session;
       try {
-        session = await createCheckoutSession({ planId, returnUrl });
+        session = await createCheckoutSession(
+          cadence === 'annual' ? { planId, returnUrl, cadence } : { planId, returnUrl },
+        );
       } catch (err) {
         const msg = err instanceof Error ? err.message : 'Could not start checkout.';
         Alert.alert('Checkout unavailable', msg);
