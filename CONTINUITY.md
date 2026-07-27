@@ -89,6 +89,8 @@ sensors migration. Guardrails recorded in project memory.
 
 **PASS-3 BUILD SLICES 1–4a COMPLETE (2026-07-26, PRs #387–#390 merged).** Slice 1 provider honesty (RC-L13) · Slice 2 profile hydration+encrypted cache behind profile_server_hydration_enabled=OFF (RC-L11) · Slice 3 intake corrections+online dedupe+honesty columns, schema source-only (RC-L12) · Slice 4a Command $20/mo unification, internal id stays athlete (RC-L14/D-1).
 
+SLICE 4a+4b REVIEWED (revenue-guardian, 2026-07-26): FIX-FIRST defect (cadence-unaware price lookup → cross-cadence mischarge) FIXED in PR #393 (lookup pinned to exact amount+interval, fail-safe fallback; annual parity assertion added). ⛔ GATE: cadence UI stays unbuilt until the founder audits live Stripe for active planId=athlete prices ≠ 2000¢/month (archive them) and a canonical two-cadence product is seeded. Grandfathering note: existing $19.99 subscribers keep their price — needs a conscious founder nod.
+
 NEXT SAFE ACTIONS: (1) slice-2 release gate — physical-device reinstall test, then flip the flag; (2) deploy slice-3 intake columns (runbook pattern: dev then prod ALTER); (3) slice 4b $200/yr annual Stripe option; (4) slice 4c D-2 Shopify-webhook entitlement bridge — needs founder Shopify webhook config + revenue-guardian gate; (5) Stage-2 graph-tables restore from runbook; (6) Undo UI + intake_corrections_enabled flag. Founder standing items: RC-L10 pricing display, BUILD-2b sign-off, 11 oz label ruling.
 
 ## 9. AUDIT coverage (honest)
