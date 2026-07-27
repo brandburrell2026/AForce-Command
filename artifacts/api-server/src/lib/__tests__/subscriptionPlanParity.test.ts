@@ -34,6 +34,16 @@ describe('checkout PLAN_CATALOG ↔ SUBSCRIPTION_PLANS parity', () => {
       const expectedCents = Math.round(clientPlan!.priceMonthly * 100);
       expect(serverEntry.amountCents).toBe(expectedCents);
       expect(serverEntry.name).toBe(clientPlan!.name);
+      // Annual cadence (D-1, slice 4b): both sides must define it together
+      // and at the same amount — displayed annual = charged annual.
+      const clientAnnual = clientPlan!.priceAnnual;
+      const serverAnnual = (serverEntry as { amountCentsAnnual?: number }).amountCentsAnnual;
+      if (clientAnnual != null || serverAnnual != null) {
+        expect(
+          serverAnnual,
+          `plan "${planId}" annual price must exist on BOTH sides at the same amount`,
+        ).toBe(Math.round((clientAnnual ?? 0) * 100));
+      }
     });
   }
 });

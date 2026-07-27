@@ -37,7 +37,17 @@ import { analyticsIdFromHeader } from '../lib/serverAnalytics';
  * `scripts/src/seed-products.ts`. Returns null when the integration
  * isn't connected yet (so callers can fall back to inline price_data).
  */
-async function lookupStripePriceId(planId: string): Promise<string | null> {
+async function lookupStripePriceId(
+  planId: string,
+  expectedCents: number,
+  interval: 'month' | 'year',
+): Promise<string | null> {
+  // Revenue-guardian (slice-4 review, 2026-07-26): the lookup MUST pin the
+  // interval AND the exact amount. Inline price_data checkouts mint new
+  // active planId-tagged products, so a recency-only match would eventually
+  // serve one cadence's price to the other (e.g. a monthly buyer inheriting
+  // a fresh $200/year price — a 10x mischarge). If nothing matches exactly,
+  // the caller's inline fallback charges the catalog price — always correct.
   try {
     const result = await db.execute(sql`
       SELECT pr.id AS price_id
@@ -46,6 +56,8 @@ async function lookupStripePriceId(planId: string): Promise<string | null> {
       WHERE p.metadata->>'planId' = ${planId}
         AND p.active = true
         AND pr.active = true
+        AND pr.unit_amount = ${expectedCents}
+        AND pr.recurring->>'interval' = ${interval}
       ORDER BY pr.created DESC NULLS LAST
       LIMIT 1
     `);
@@ -250,11 +262,15 @@ router.post('/checkout/session', requireAuth, checkoutLimiter, async (req: Reque
     // Prefer a real seeded Stripe price id (recommended pattern). Fall
     // back to inline price_data when the product hasn't been seeded yet
     // — keeps the demo flow working before `seed-products.ts` runs.
-    // The seeded-price lookup is cadence-unaware (it would return the monthly
-    // price), so ANNUAL always uses inline price_data with the catalog's
-    // annual amount — the product metadata still carries planId, so the
-    // entitlement join resolves identically for both cadences.
-    const realPriceId = isAnnual ? null : await lookupStripePriceId(planId);
+    // The lookup is pinned to the requested cadence's exact amount+interval,
+    // so it can never cross-serve prices; a miss falls back to inline
+    // price_data at the catalog amount (metadata planId keeps entitlement
+    // resolution identical for both cadences).
+    const realPriceId = await lookupStripePriceId(
+      planId,
+      isAnnual ? plan.amountCentsAnnual! : plan.amountCents,
+      isAnnual ? 'year' : 'month',
+    );
     const lineItem = realPriceId
       ? { quantity: 1, price: realPriceId }
       : {
