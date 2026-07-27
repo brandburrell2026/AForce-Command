@@ -1277,3 +1277,34 @@ export const aforceGraphEdges = pgTable(
 
 export type AforceGraphNodeRow = typeof aforceGraphNodes.$inferSelect;
 export type AforceGraphEdgeRow = typeof aforceGraphEdges.$inferSelect;
+
+/* ─── D-2 (PASS-3 slice 4c) — web Command entitlements bridge ────────────────
+ * A Command subscription purchased on the marketing site (Shopify selling
+ * plans) grants app entitlement here. Rows are written ONLY by the verified
+ * Shopify webhook; matched to a user by lowercased email at entitlement
+ * read time (userId back-filled on first match). Stripe remains the primary
+ * rail; this is an additive OR — the fail-safe core downgrade still applies
+ * when neither rail is active. */
+export const aforceWebEntitlements = pgTable(
+  "aforce_web_entitlements",
+  {
+    id: serial("id").primaryKey(),
+    /** Lowercased purchaser email from Shopify — the matching key. */
+    email: text("email").notNull(),
+    /** Back-filled on first successful entitlement match. */
+    userId: text("user_id"),
+    planId: text("plan_id").notNull(), // 'athlete' (Command) only, today
+    source: text("source").notNull().default("shopify"),
+    /** Shopify subscription-contract id — idempotency key per source. */
+    externalRef: text("external_ref").notNull(),
+    status: text("status").notNull(), // 'active' | 'cancelled'
+    currentPeriodEnd: timestamp("current_period_end", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => ({
+    sourceRefUq: uniqueIndex("aforce_web_entitlements_source_ref_uq").on(t.source, t.externalRef),
+    emailIdx: index("aforce_web_entitlements_email_idx").on(t.email),
+  }),
+);
+export type AforceWebEntitlementRow = typeof aforceWebEntitlements.$inferSelect;
