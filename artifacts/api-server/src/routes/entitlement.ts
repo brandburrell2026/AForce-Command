@@ -17,6 +17,8 @@ import { Router, type IRouter } from "express";
 import { db, aforceUsers, aforceWebEntitlements } from "@workspace/db";
 import { and, desc, eq, sql } from "drizzle-orm";
 import { requireAuth } from "../middlewares/requireAuth";
+import { clerkClient } from "@clerk/express";
+import { extractVerifiedPrimaryEmail } from "../lib/verifiedEmail";
 import { logger } from "../lib/logger";
 
 const router: IRouter = Router();
@@ -121,6 +123,27 @@ router.get("/entitlement", requireAuth, async (req, res) => {
       } catch (err) {
         // stripe schema missing or query failed — silent fallback to cache.
         logger.debug({ err }, "entitlement: stripe.subscriptions lookup failed; using cache");
+      }
+    }
+
+    // Trust-root sync (gate blocker #2): populate aforce_users.email from
+    // Clerk's VERIFIED primary email, server-to-server, exactly once per
+    // user (refresh only when empty). Never client-supplied; an unverified
+    // primary yields null and nothing is written. Fail-soft: a Clerk API
+    // error just skips the web-rail check this read.
+    if (row && !row.email && process.env["CLERK_SECRET_KEY"]) {
+      try {
+        const clerkUser = await clerkClient.users.getUser(userId);
+        const verified = extractVerifiedPrimaryEmail(clerkUser);
+        if (verified) {
+          await db
+            .update(aforceUsers)
+            .set({ email: verified, updatedAt: new Date() })
+            .where(eq(aforceUsers.id, userId));
+          row = { ...row, email: verified };
+        }
+      } catch (err) {
+        logger.debug({ err }, "entitlement: clerk verified-email sync skipped");
       }
     }
 
