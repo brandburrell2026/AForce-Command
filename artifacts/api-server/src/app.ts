@@ -5,6 +5,7 @@ import pinoHttp from "pino-http";
 import { clerkMiddleware } from "@clerk/express";
 import router from "./routes";
 import stripeWebhookRouter from "./routes/stripeWebhook";
+import shopifyWebhookRouter from "./routes/shopifyWebhook";
 import smartCaptureRouter from "./routes/smartCapture";
 import { logger } from "./lib/logger";
 import {
@@ -56,6 +57,8 @@ app.use(CLERK_PROXY_PATH, clerkProxyMiddleware());
 // available to verify the HMAC signature. The router itself attaches
 // express.raw({type:'application/json'}) for its single POST route.
 app.use("/api", stripeWebhookRouter);
+// Shopify webhook (D-2 bridge) — same raw-body-before-json requirement.
+app.use("/api", shopifyWebhookRouter);
 
 // Smart Capture — MUST run before the global 64kB express.json() limiter
 // because base64-encoded photos are 100kB–6MB and would 413 otherwise.

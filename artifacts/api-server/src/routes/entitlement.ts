@@ -14,8 +14,8 @@
  */
 
 import { Router, type IRouter } from "express";
-import { db, aforceUsers } from "@workspace/db";
-import { eq, sql } from "drizzle-orm";
+import { db, aforceUsers, aforceWebEntitlements } from "@workspace/db";
+import { and, desc, eq, sql } from "drizzle-orm";
 import { requireAuth } from "../middlewares/requireAuth";
 import { logger } from "../lib/logger";
 
@@ -121,6 +121,43 @@ router.get("/entitlement", requireAuth, async (req, res) => {
       } catch (err) {
         // stripe schema missing or query failed — silent fallback to cache.
         logger.debug({ err }, "entitlement: stripe.subscriptions lookup failed; using cache");
+      }
+    }
+
+    // D-2 bridge (slice 4c): a web (Shopify) Command purchase grants app
+    // entitlement when the Stripe rail has nothing better. Additive OR —
+    // Stripe stays primary; an unexpired active web row upgrades core, never
+    // downgrades a live Stripe plan. Cache is NOT overwritten (the web rail
+    // is re-checked each read, so a cancelled web sub loses access on the
+    // next read — same fail-safe posture as the Stripe path).
+    if (planId === "core" && row?.email) {
+      try {
+        const [web] = await db
+          .select()
+          .from(aforceWebEntitlements)
+          .where(
+            and(
+              eq(aforceWebEntitlements.email, row.email.trim().toLowerCase()),
+              eq(aforceWebEntitlements.status, "active"),
+            ),
+          )
+          .orderBy(desc(aforceWebEntitlements.updatedAt))
+          .limit(1);
+        const unexpired =
+          web && (web.currentPeriodEnd == null || web.currentPeriodEnd.getTime() > Date.now());
+        if (web && unexpired) {
+          planId = web.planId;
+          status = "active";
+          currentPeriodEnd = web.currentPeriodEnd;
+          if (web.userId !== userId) {
+            await db
+              .update(aforceWebEntitlements)
+              .set({ userId, updatedAt: new Date() })
+              .where(eq(aforceWebEntitlements.id, web.id));
+          }
+        }
+      } catch (err) {
+        logger.debug({ err }, "entitlement: web-entitlement lookup failed; using stripe/cache result");
       }
     }
 
