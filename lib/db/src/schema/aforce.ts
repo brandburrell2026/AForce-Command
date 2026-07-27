@@ -1198,3 +1198,82 @@ export type AforceBaselineVersionRow = typeof aforceBaselineVersions.$inferSelec
 export type InsertAforceBaselineVersion = typeof aforceBaselineVersions.$inferInsert;
 export type AforceProfileChangeLogRow = typeof aforceProfileChangeLog.$inferSelect;
 export type InsertAforceProfileChangeLog = typeof aforceProfileChangeLog.$inferInsert;
+
+/* ─── Stage 2 — Performance Knowledge Graph™ (§38, DR-003) ──────────────────
+ * RESTORED 2026-07-26: these definitions were uncommitted schema work
+ * destroyed by the reset-hard incident (CONTINUITY §6); reconstructed from
+ * the surviving authoritative sources — types/knowledgeGraph.ts (GraphNode /
+ * GraphEdge) and STAGE-2-GRAPH-SCHEMA-DEPLOYMENT-RUNBOOK.md (index
+ * inventory, text ids, provenance_links GIN).
+ *
+ * APPEND-ORIENTED, application-enforced integrity (no FKs — repo convention).
+ * NOT DEPLOYED: source-only until the runbook executes (R-21). No runtime
+ * caller exists yet (Stage 2 is Partially Built — headless by design).
+ * Ids are deterministic TEXT keys minted by the pure graph builder
+ * (e.g. 'n:<family>:<hash>'), never serials — replay-safe.
+ */
+export const aforceGraphNodes = pgTable(
+  "aforce_graph_nodes",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull(),
+    family: text("family").notNull(),
+    sourceEventId: text("source_event_id"),
+    occurredAt: timestamp("occurred_at", { withTimezone: true }).notNull(),
+    recordedAt: timestamp("recorded_at", { withTimezone: true }).notNull(),
+    dayIndex: integer("day_index").notNull(),
+    dayIndexBasis: text("day_index_basis").notNull(),
+    profileVersionId: integer("profile_version_id"),
+    baselineVersionId: integer("baseline_version_id"),
+    modelVersion: text("model_version"),
+    provenance: jsonb("provenance").$type<Record<string, unknown>>().notNull(),
+    privacyClass: text("privacy_class").notNull(),
+    retentionClass: text("retention_class").notNull(),
+    quality: jsonb("quality").$type<Record<string, unknown>>().notNull(),
+    invalidationStatus: text("invalidation_status").notNull().default("active"),
+    invalidation: jsonb("invalidation").$type<Record<string, unknown>>().notNull(),
+    audit: jsonb("audit").$type<Record<string, unknown>>().notNull(),
+    attributes: jsonb("attributes").$type<Record<string, unknown>>().notNull().default({}),
+  },
+  (t) => ({
+    userFamilyIdx: index("aforce_graph_nodes_user_family_idx").on(t.userId, t.family),
+    userStatusIdx: index("aforce_graph_nodes_user_status_idx").on(t.userId, t.invalidationStatus),
+    userOccurredIdx: index("aforce_graph_nodes_user_occurred_idx").on(t.userId, t.occurredAt),
+    sourceEventIdx: index("aforce_graph_nodes_source_event_idx").on(t.sourceEventId),
+  }),
+);
+
+export const aforceGraphEdges = pgTable(
+  "aforce_graph_edges",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull(),
+    family: text("family").notNull(),
+    direction: text("direction").notNull(),
+    sourceNodeId: text("source_node_id").notNull(),
+    targetNodeId: text("target_node_id").notNull(),
+    /** clientEventIds justifying this edge. Empty ⇒ unsupportable (§41). */
+    provenanceLinks: jsonb("provenance_links").$type<string[]>().notNull().default([]),
+    /** Full EvidenceAssessment — state/method/inputs/score; counter-evidence
+     *  (contradictingCount) lives inside and is NEVER discarded (DR-003). */
+    evidence: jsonb("evidence").$type<Record<string, unknown>>().notNull(),
+    modelVersion: text("model_version").notNull(),
+    privacyClass: text("privacy_class").notNull(),
+    retentionClass: text("retention_class").notNull(),
+    invalidationStatus: text("invalidation_status").notNull().default("active"),
+    invalidation: jsonb("invalidation").$type<Record<string, unknown>>().notNull(),
+    audit: jsonb("audit").$type<Record<string, unknown>>().notNull(),
+  },
+  (t) => ({
+    userFamilyIdx: index("aforce_graph_edges_user_family_idx").on(t.userId, t.family),
+    userStatusIdx: index("aforce_graph_edges_user_status_idx").on(t.userId, t.invalidationStatus),
+    sourceNodeIdx: index("aforce_graph_edges_source_node_idx").on(t.sourceNodeId),
+    targetNodeIdx: index("aforce_graph_edges_target_node_idx").on(t.targetNodeId),
+    // Reverse-derivation lookup: "which edges depend on this event?" (§41
+    // deletion propagation) — GIN over the provenance jsonb array.
+    provenanceGin: index("aforce_graph_edges_provenance_gin").using("gin", t.provenanceLinks),
+  }),
+);
+
+export type AforceGraphNodeRow = typeof aforceGraphNodes.$inferSelect;
+export type AforceGraphEdgeRow = typeof aforceGraphEdges.$inferSelect;
