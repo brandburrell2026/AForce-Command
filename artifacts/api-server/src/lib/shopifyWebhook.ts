@@ -46,6 +46,13 @@ const ENDED = new Set(["cancelled", "CANCELLED", "expired", "EXPIRED", "failed",
 export function planWebEntitlement(topic: string, payload: unknown): WebEntitlementPlan {
   const none: WebEntitlementPlan = { action: "ignore", email: null, externalRef: null, currentPeriodEnd: null };
   if (topic === "orders/paid") return planFromPaidOrder(payload);
+  if (topic === "orders/refunded" || topic === "refunds/create") {
+    // A refunded Command order revokes ITS OWN grant row (same external_ref).
+    const paid = planFromPaidOrder(
+      topic === "refunds/create" ? (payload as { order?: unknown })?.order ?? payload : payload,
+    );
+    return paid.action === "activate" ? { ...paid, action: "cancel" } : paid;
+  }
   if (!topic.startsWith("subscription_contracts/")) return none;
   const p = payload as {
     id?: unknown;

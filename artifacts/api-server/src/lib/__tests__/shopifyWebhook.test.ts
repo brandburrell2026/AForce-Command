@@ -81,3 +81,23 @@ describe("orders/paid path (Admin-UI-registerable bridge)", () => {
     expect(planWebEntitlement("orders/paid", null).action).toBe("ignore");
   });
 });
+
+describe("gate follow-ups: mixed cart, one-time, refund revocation", () => {
+  const order = (li: object[]) => ({ id: 7, admin_graphql_api_id: "gid://shopify/Order/7", email: "b@x.com", processed_at: "2026-07-26T12:00:00Z", line_items: li });
+  it("mixed cart (drink + Command) activates — legit purchase", () => {
+    expect(planWebEntitlement("orders/paid", order([
+      { variant_id: 43817994158198, price: "29.99" },
+      { variant_id: 43905417838710, selling_plan_id: 2532999286, price: "20.00" },
+    ])).action).toBe("activate");
+  });
+  it("one-time Command (no plan id, $20) → 35d self-expiring", () => {
+    const p = planWebEntitlement("orders/paid", order([{ variant_id: 43905417838710, price: "20.00" }]));
+    expect(p.action).toBe("activate");
+    expect((p.currentPeriodEnd!.getTime() - Date.parse("2026-07-26T12:00:00Z")) / 86400000).toBe(35);
+  });
+  it("orders/refunded on a Command order → cancel (same ref); drink refund ignored", () => {
+    const p = planWebEntitlement("orders/refunded", order([{ variant_id: 43905417838710, price: "200.00" }]));
+    expect(p).toMatchObject({ action: "cancel", externalRef: "gid://shopify/Order/7" });
+    expect(planWebEntitlement("orders/refunded", order([{ variant_id: 43817994158198, price: "29.99" }])).action).toBe("ignore");
+  });
+});

@@ -139,13 +139,21 @@ router.get("/entitlement", requireAuth, async (req, res) => {
             and(
               eq(aforceWebEntitlements.email, row.email.trim().toLowerCase()),
               eq(aforceWebEntitlements.status, "active"),
+              // Gate FIX-FIRST: expiry must live in SQL — with many rows per
+              // email, a redelivered EXPIRED order bumps updatedAt and would
+              // shadow a live renewal row at LIMIT 1 (denying a paying user).
+              sql`(${aforceWebEntitlements.currentPeriodEnd} IS NULL OR ${aforceWebEntitlements.currentPeriodEnd} > now())`,
             ),
           )
           .orderBy(desc(aforceWebEntitlements.updatedAt))
           .limit(1);
         const unexpired =
           web && (web.currentPeriodEnd == null || web.currentPeriodEnd.getTime() > Date.now());
-        if (web && unexpired) {
+        // Defense-in-depth (security sign-off; re-applied after a lost race
+        // with the #400 merge): the web rail may only ever grant these plans,
+        // regardless of what a future writer or DB edit stores.
+        const WEB_GRANTABLE_PLANS = new Set(["athlete"]);
+        if (web && unexpired && WEB_GRANTABLE_PLANS.has(web.planId)) {
           planId = web.planId;
           status = "active";
           currentPeriodEnd = web.currentPeriodEnd;
