@@ -27,14 +27,25 @@ export interface WebEntitlementPlan {
  *  Anything else — e.g. the Ritual Membership physical plan 2501607542 —
  *  must be IGNORED, or every drink subscriber gets Command free. */
 export const COMMAND_SELLING_PLAN_IDS = new Set(["2532999286", "2533032054"]);
+/** The Command product's variant — the orders/paid allowlist key. */
+export const COMMAND_VARIANT_IDS = new Set(["43905417838710"]);
+/** Rolling entitlement windows (orders/paid path): each renewal order
+ *  re-activates and extends; no renewal → the grant EXPIRES ON ITS OWN.
+ *  Small grace over the billing interval absorbs processing delays. */
+export const MONTHLY_WINDOW_MS = 35 * 24 * 60 * 60 * 1000;
+export const ANNUAL_WINDOW_MS = 370 * 24 * 60 * 60 * 1000;
+export const ANNUAL_SELLING_PLAN_ID = "2533032054";
 
 const ACTIVE = new Set(["active", "ACTIVE"]);
 const ENDED = new Set(["cancelled", "CANCELLED", "expired", "EXPIRED", "failed", "FAILED"]);
 
-/** Map a subscription_contracts/* payload onto the bridge's upsert plan.
- *  Anything unrecognized is IGNORED — never a guess, never a grant. */
+/** Map a webhook payload onto the bridge's upsert plan. Two supported paths:
+ *  subscription_contracts/* (API-registered, if ever added) and orders/paid
+ *  (Admin-UI-registerable — the operative path). Anything unrecognized is
+ *  IGNORED — never a guess, never a grant. */
 export function planWebEntitlement(topic: string, payload: unknown): WebEntitlementPlan {
   const none: WebEntitlementPlan = { action: "ignore", email: null, externalRef: null, currentPeriodEnd: null };
+  if (topic === "orders/paid") return planFromPaidOrder(payload);
   if (!topic.startsWith("subscription_contracts/")) return none;
   const p = payload as {
     id?: unknown;
@@ -67,4 +78,40 @@ export function planWebEntitlement(topic: string, payload: unknown): WebEntitlem
   if (ACTIVE.has(status)) return { action: "activate", email, externalRef: ref, currentPeriodEnd: periodEnd };
   if (ENDED.has(status)) return { action: "cancel", email, externalRef: ref, currentPeriodEnd: periodEnd };
   return none;
+}
+
+/** orders/paid: activate ONLY when a line item is the Command variant.
+ *  Rolling expiry per cadence (selling plan when present, else line price —
+ *  $200 line = annual). Cancellation model: non-renewal → natural expiry. */
+function planFromPaidOrder(payload: unknown): WebEntitlementPlan {
+  const none: WebEntitlementPlan = { action: "ignore", email: null, externalRef: null, currentPeriodEnd: null };
+  const o = payload as {
+    id?: unknown;
+    admin_graphql_api_id?: unknown;
+    email?: unknown;
+    contact_email?: unknown;
+    customer?: { email?: unknown };
+    processed_at?: unknown;
+    created_at?: unknown;
+    line_items?: Array<{ variant_id?: unknown; selling_plan_id?: unknown; price?: unknown }>;
+  } | null;
+  if (!o) return none;
+  const line = (o.line_items ?? []).find((l) => COMMAND_VARIANT_IDS.has(String(l?.variant_id ?? "")));
+  if (!line) return none;
+  const emailRaw = (o.email ?? o.contact_email ?? o.customer?.email) as string | undefined;
+  const email = typeof emailRaw === "string" && emailRaw.includes("@") ? emailRaw.trim().toLowerCase() : null;
+  const ref = String(o.admin_graphql_api_id ?? o.id ?? "");
+  if (!email || !ref) return none;
+  const planRaw = String(line.selling_plan_id ?? "");
+  const priceNum = Number.parseFloat(String(line.price ?? "0"));
+  const isAnnual = planRaw === ANNUAL_SELLING_PLAN_ID || (!planRaw && priceNum >= 100);
+  const baseRaw = (o.processed_at ?? o.created_at) as string | undefined;
+  const base = baseRaw ? new Date(baseRaw) : new Date();
+  const baseMs = Number.isNaN(base.getTime()) ? Date.now() : base.getTime();
+  return {
+    action: "activate",
+    email,
+    externalRef: ref,
+    currentPeriodEnd: new Date(baseMs + (isAnnual ? ANNUAL_WINDOW_MS : MONTHLY_WINDOW_MS)),
+  };
 }

@@ -51,3 +51,33 @@ describe("selling-plan allowlist (#1 release-gate blocker)", () => {
     expect(planWebEntitlement("subscription_contracts/update", { ...cmd, lines: [{ selling_plan: { id: "gid://shopify/SellingPlan/2533032054" } }] }).action).toBe("activate");
   });
 });
+
+describe("orders/paid path (Admin-UI-registerable bridge)", () => {
+  const order = (li: object[], over: object = {}) => ({
+    id: 5551, admin_graphql_api_id: "gid://shopify/Order/5551",
+    email: "Buyer@X.com", processed_at: "2026-07-26T12:00:00Z", line_items: li, ...over,
+  });
+  it("Command variant + monthly plan → activate, ~35d rolling window", () => {
+    const p = planWebEntitlement("orders/paid", order([{ variant_id: 43905417838710, selling_plan_id: 2532999286, price: "20.00" }]));
+    expect(p.action).toBe("activate");
+    expect(p.email).toBe("buyer@x.com");
+    const days = (p.currentPeriodEnd!.getTime() - Date.parse("2026-07-26T12:00:00Z")) / 86400000;
+    expect(days).toBe(35);
+  });
+  it("annual plan (or $200 line without plan id) → ~370d window", () => {
+    for (const li of [
+      { variant_id: "43905417838710", selling_plan_id: 2533032054, price: "200.00" },
+      { variant_id: "43905417838710", price: "200.00" },
+    ]) {
+      const p = planWebEntitlement("orders/paid", order([li]));
+      const days = (p.currentPeriodEnd!.getTime() - Date.parse("2026-07-26T12:00:00Z")) / 86400000;
+      expect(days).toBe(370);
+    }
+  });
+  it("ignored: cans/sticks order (no Command variant), missing email, empty lines", () => {
+    expect(planWebEntitlement("orders/paid", order([{ variant_id: 43817994158198, price: "29.99" }])).action).toBe("ignore");
+    expect(planWebEntitlement("orders/paid", order([{ variant_id: 43905417838710, price: "20.00" }], { email: null, customer: {} })).action).toBe("ignore");
+    expect(planWebEntitlement("orders/paid", order([])).action).toBe("ignore");
+    expect(planWebEntitlement("orders/paid", null).action).toBe("ignore");
+  });
+});
