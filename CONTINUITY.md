@@ -91,6 +91,8 @@ sensors migration. Guardrails recorded in project memory.
 
 SLICE 4a+4b REVIEWED (revenue-guardian, 2026-07-26): FIX-FIRST defect (cadence-unaware price lookup → cross-cadence mischarge) FIXED in PR #393 (lookup pinned to exact amount+interval, fail-safe fallback; annual parity assertion added). ⛔ GATE: cadence UI stays unbuilt until the founder audits live Stripe for active planId=athlete prices ≠ 2000¢/month (archive them) and a canonical two-cadence product is seeded. Grandfathering note: existing $19.99 subscribers keep their price — needs a conscious founder nod.
 
+INCIDENT RECOVERY COMPLETE (PRs #395, #396): graph tables restored; Stage 1-3 intelligence layer (15 files, 150 tests) LANDED from untracked; DR-005/DR-003 constants reconstructed and behaviorally verified. App typecheck fully clean. All reset-hard losses repaid. Remaining solo-executable work: none — every open item is founder-gated (Stripe audit, Shopify webhook config, device reinstall gate, schema deploys R-21, RC-L10, BUILD-2b, 11oz).
+
 NEXT SAFE ACTIONS: (1) slice-2 release gate — physical-device reinstall test, then flip the flag; (2) deploy slice-3 intake columns (runbook pattern: dev then prod ALTER); (3) slice 4b $200/yr annual Stripe option; (4) slice 4c D-2 Shopify-webhook entitlement bridge — needs founder Shopify webhook config + revenue-guardian gate; (5) Stage-2 graph-tables restore from runbook; (6) Undo UI + intake_corrections_enabled flag. Founder standing items: RC-L10 pricing display, BUILD-2b sign-off, 11 oz label ruling.
 
 ## 9. AUDIT coverage (honest)
