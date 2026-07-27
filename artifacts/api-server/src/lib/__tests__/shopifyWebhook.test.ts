@@ -19,7 +19,7 @@ describe("verifyShopifyHmac (fail-closed)", () => {
 });
 
 describe("planWebEntitlement (never a guess, never a grant on unknowns)", () => {
-  const base = { admin_graphql_api_id: "gid://shopify/SubscriptionContract/42", customer: { email: "A@X.com" }, next_billing_date: "2026-08-26T00:00:00Z" };
+  const base = { admin_graphql_api_id: "gid://shopify/SubscriptionContract/42", customer: { email: "A@X.com" }, next_billing_date: "2026-08-26T00:00:00Z", lines: [{ selling_plan_id: 2532999286 }] };
   it("ACTIVE contract → activate, email lowercased, period end parsed", () => {
     const p = planWebEntitlement("subscription_contracts/create", { ...base, status: "ACTIVE" });
     expect(p).toMatchObject({ action: "activate", email: "a@x.com", externalRef: base.admin_graphql_api_id });
@@ -35,5 +35,19 @@ describe("planWebEntitlement (never a guess, never a grant on unknowns)", () => 
     expect(planWebEntitlement("subscription_contracts/update", { ...base, status: "paused" }).action).toBe("ignore");
     expect(planWebEntitlement("subscription_contracts/create", { status: "ACTIVE" }).action).toBe("ignore");
     expect(planWebEntitlement("subscription_contracts/create", null).action).toBe("ignore");
+  });
+});
+
+describe("selling-plan allowlist (#1 release-gate blocker)", () => {
+  const cmd = { admin_graphql_api_id: "gid://shopify/SubscriptionContract/9", customer: { email: "b@x.com" }, status: "ACTIVE" };
+  it("Ritual Membership (2501607542) contract is IGNORED — no free Command", () => {
+    expect(planWebEntitlement("subscription_contracts/create", { ...cmd, lines: [{ selling_plan_id: 2501607542 }] }).action).toBe("ignore");
+  });
+  it("no lines at all → ignore (never grant on ambiguity)", () => {
+    expect(planWebEntitlement("subscription_contracts/create", cmd).action).toBe("ignore");
+  });
+  it("Command monthly/annual plans grant (numeric + gid forms)", () => {
+    expect(planWebEntitlement("subscription_contracts/create", { ...cmd, lines: [{ selling_plan_id: 2532999286 }] }).action).toBe("activate");
+    expect(planWebEntitlement("subscription_contracts/update", { ...cmd, lines: [{ selling_plan: { id: "gid://shopify/SellingPlan/2533032054" } }] }).action).toBe("activate");
   });
 });

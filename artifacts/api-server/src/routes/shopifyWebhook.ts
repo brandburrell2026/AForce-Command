@@ -47,7 +47,13 @@ router.post(
         .onConflictDoUpdate({
           target: [aforceWebEntitlements.source, aforceWebEntitlements.externalRef],
           set: {
-            status: plan.action === "activate" ? "active" : "cancelled",
+            // #3 (release gate): a stale redelivered 'create' must never
+            // resurrect a cancelled contract — cancelled is terminal per
+            // external_ref; only an explicit cancel can set it.
+            status:
+              plan.action === "activate"
+                ? sql`CASE WHEN ${aforceWebEntitlements.status} = 'cancelled' THEN 'cancelled' ELSE 'active' END`
+                : "cancelled",
             currentPeriodEnd: plan.currentPeriodEnd,
             email: plan.email!,
             updatedAt: sql`now()`,

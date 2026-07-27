@@ -23,6 +23,11 @@ export interface WebEntitlementPlan {
   currentPeriodEnd: Date | null;
 }
 
+/** ONLY the web Command selling plans may grant the app tier (D-2 scope).
+ *  Anything else — e.g. the Ritual Membership physical plan 2501607542 —
+ *  must be IGNORED, or every drink subscriber gets Command free. */
+export const COMMAND_SELLING_PLAN_IDS = new Set(["2532999286", "2533032054"]);
+
 const ACTIVE = new Set(["active", "ACTIVE"]);
 const ENDED = new Set(["cancelled", "CANCELLED", "expired", "EXPIRED", "failed", "FAILED"]);
 
@@ -38,12 +43,24 @@ export function planWebEntitlement(topic: string, payload: unknown): WebEntitlem
     customer?: { email?: unknown };
     email?: unknown;
     next_billing_date?: unknown;
+    lines?: Array<{ selling_plan_id?: unknown; selling_plan?: { id?: unknown } }>;
+    line_items?: Array<{ selling_plan_id?: unknown }>;
   } | null;
   if (!p) return none;
   const ref = String(p.admin_graphql_api_id ?? p.id ?? "");
   const emailRaw = (p.customer?.email ?? p.email) as string | undefined;
   const email = typeof emailRaw === "string" && emailRaw.includes("@") ? emailRaw.trim().toLowerCase() : null;
   if (!ref || !email) return none;
+  // Selling-plan allowlist (#1 from the release-gate review): the contract
+  // must contain a Command selling plan. No line match -> ignore, never grant.
+  const lines = [...(p.lines ?? []), ...(p.line_items ?? [])];
+  const hasCommandPlan = lines.some((l) => {
+    const sp = (l as { selling_plan_id?: unknown; selling_plan?: { id?: unknown } });
+    const raw = sp.selling_plan_id ?? sp.selling_plan?.id;
+    const idNum = String(raw ?? "").replace(/^gid:\/\/shopify\/SellingPlan\//, "");
+    return COMMAND_SELLING_PLAN_IDS.has(idNum);
+  });
+  if (!hasCommandPlan) return none;
   const status = String(p.status ?? "");
   const nextBilling = typeof p.next_billing_date === "string" ? new Date(p.next_billing_date) : null;
   const periodEnd = nextBilling && !Number.isNaN(nextBilling.getTime()) ? nextBilling : null;
