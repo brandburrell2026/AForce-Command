@@ -60,6 +60,10 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   // Lock §7 / RC-L11 — profile server rehydration + reconnect flush. OFF
   // until the physical-device reinstall gate passes (PASS-3 plan, slice 2).
   profile_server_hydration_enabled: false,
+  // App Store 3.1.1 posture — iOS in-app Stripe checkout OFF until counsel
+  // clears the external-purchase-link path; iOS points to drinkaforce.com
+  // (the web->app entitlement bridge unlocks the account automatically).
+  ios_direct_checkout_enabled: false,
 
   // Enterprise — Cruise Mode (premium add-on). Per spec: master switch
   // is ON for internal builds, OFF for the public production binary.
@@ -322,6 +326,9 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
   // keep it OFF here too until the reinstall release-gate passes — demo builds
   // must never be the first place a persistence path runs.
   profile_server_hydration_enabled: false,
+  // Demo builds show the full checkout flow (no real purchase possible —
+  // the API 401s in demo); the App Store posture applies to store builds.
+  ios_direct_checkout_enabled: true,
   cruise_mode_enabled: true,
   cruise_journey_pulse_enabled: true,
   cruise_commerce_enabled: true,
