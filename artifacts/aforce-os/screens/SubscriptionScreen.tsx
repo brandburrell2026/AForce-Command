@@ -122,6 +122,19 @@ export default function SubscriptionScreen() {
         return;
       }
 
+      // App Store 3.1.1 posture: on iOS store builds the in-app Stripe web
+      // checkout stays OFF (ios_direct_checkout_enabled=false) until counsel
+      // clears the external-purchase-link path. Users purchase on the web;
+      // the Shopify->entitlement bridge unlocks the account automatically
+      // (matched by verified email), so no dead end. Android/web unaffected.
+      if (Platform.OS === 'ios' && !state.featureFlags.ios_direct_checkout_enabled) {
+        Alert.alert(
+          'Purchase on the web',
+          'AForce Command is available at drinkaforce.com. Your account unlocks automatically after purchase with this email.',
+        );
+        return;
+      }
+
       // D-1 (slice 4b): plans with an annual price offer a cadence choice.
       // Displayed cadence = charged cadence — the server 400s rather than
       // silently downgrading, so an explicit pick here is the only path.

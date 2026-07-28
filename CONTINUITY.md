@@ -65,6 +65,11 @@ deliberately cannot transact until cutover.
 - **BUILD-3B:** Score Protection enforce — 5-item pre-flight in Register §21; do not enforce in
   prod until done.
 - Counsel nod on Command renew/cancel copy (recommended before heavy promotion).
+- **App Store 3.1.1 (Apple) — counsel check before iOS submission:** in-app Stripe checkout for
+  the digital Command tier is now gated OFF on iOS (`ios_direct_checkout_enabled=false`; users are
+  pointed to drinkaforce.com and the web→app bridge unlocks the account). Counsel to confirm the
+  post-Epic US external-purchase-link posture before flipping the flag or choosing IAP. Physical
+  goods (cans/sticks) are exempt and unaffected.
 
 ## 6. Incident record (2026-07-26) — resolved, lessons memorialized
 

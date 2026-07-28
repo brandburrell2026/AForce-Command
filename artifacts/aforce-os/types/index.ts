@@ -549,6 +549,14 @@ export interface FeatureFlags {
   // the server's idempotency key prevents any double-apply.
   offline_intake_outbox_enabled: boolean;
 
+  // App Store Guideline 3.1.1 posture: direct Stripe web checkout from the
+  // iOS app sells a digital subscription outside IAP. OFF by default so the
+  // iOS submission build is compliant-everywhere (users are pointed to
+  // drinkaforce.com; the Shopify->entitlement bridge unlocks the app).
+  // Flip ON only after counsel clears the US external-purchase-link ruling
+  // for our case. Android/web are unaffected by this flag.
+  ios_direct_checkout_enabled: boolean;
+
   // Lock §7 / RC-L11 — server rehydration of the Adaptive Profile on a fresh
   // install / new device, plus reconnect flush of a pending profile sync.
   // OFF by default until physical-device reinstall verification passes
