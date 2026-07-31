@@ -1117,10 +1117,13 @@ function AuditRow({ k, v }: { k: string; v: string }) {
 // brand + sodium are DATA; `profileKey` resolves the descriptive profile
 // column under sweat.v2.cmp_profile_* at render (authored English copy).
 const COMPARISON_ROWS: { brand: string; sodium: string; profileKey: string; you: boolean }[] = [
-  { brand: 'AForce',     sodium: '25 mg',     profileKey: 'cmp_profile_aforce',    you: true  },
-  { brand: 'Gatorade',   sodium: '~270 mg',   profileKey: 'cmp_profile_gatorade',  you: false },
-  { brand: 'LMNT',       sodium: '1000 mg',   profileKey: 'cmp_profile_lmnt',      you: false },
-  { brand: 'Liquid IV',  sodium: '~500 mg',   profileKey: 'cmp_profile_liquid_iv', you: false },
+  // Categories, not named brands (CR-1 ER-3): avoids Lanham/disparagement and
+  // per-brand claims we can't source. Sodium values are category-typical (~), not
+  // brand-specific. profileKey names are legacy identifiers; their copy is generic.
+  { brand: 'AForce',            sodium: '25 mg',    profileKey: 'cmp_profile_aforce',    you: true  },
+  { brand: 'Sports drinks', sodium: '~200 mg',  profileKey: 'cmp_profile_gatorade',  you: false },
+  { brand: 'Salt mixes',    sodium: '~1000 mg', profileKey: 'cmp_profile_lmnt',      you: false },
+  { brand: 'ORS mixes',     sodium: '~500 mg',  profileKey: 'cmp_profile_liquid_iv', you: false },
 ];
 
 function ComparisonTable() {
