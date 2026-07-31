@@ -151,14 +151,17 @@ with their tables.
 
 ## 11. Evidence required to close R-21
 
-**All six. R-21 stays open until every one is recorded.**
+**CLOSED 2026-07-31 on FOUNDER ATTESTATION (production).** Items 1/2/6 recorded on the founder's
+attestation; items 3/4/5 (console output) were **not independently captured in this environment**
+(no `DATABASE_URL`) — they are **attested, not verified**. If the `\d`/`\di`/smoke-test output is
+later captured, upgrade this to fully-verified.
 
-- [ ] **1.** Target environment named (dev / staging / production) and authorization recorded
-- [ ] **2.** Deployment executed — date, operator, command
-- [ ] **3.** Both tables verified present (`\d` output)
-- [ ] **4.** All 9 indexes verified present (`\di` output)
-- [ ] **5.** Smoke tests §9 passed
-- [ ] **6.** Evidence recorded in `OPEN-RISKS.md` R-21 and `CAPABILITY-STATUS-REGISTER.md`
+- [x] **1.** Target environment: **production** — founder-authorized + attested 2026-07-31
+- [x] **2.** Deployment executed — **founder-attested 2026-07-31** (exact date/operator/command not captured in-repo)
+- [ ] **3.** Both tables verified present (`\d` output) — **founder-attested; `\d` output NOT captured in-repo**
+- [ ] **4.** All 9 indexes verified present (`\di` output) — **founder-attested; `\di` output NOT captured in-repo**
+- [ ] **5.** Smoke tests §9 passed — **founder-attested; result NOT captured in-repo**
+- [x] **6.** Evidence recorded in `OPEN-RISKS.md` R-21 + `CAPABILITY-STATUS-REGISTER.md` — done (this attested closure)
 
 **Deploying to a development database closes R-21 only for that environment.** Production
 deployment is a separate, separately-authorized event.

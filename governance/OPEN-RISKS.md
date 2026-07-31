@@ -31,7 +31,7 @@ Severity: **S1** critical (blocks launch) · **S2** major · **S3** moderate
 
 | ID | Risk | Sev | Status | Mitigation |
 |---|---|---|---|---|
-| **R-21** | **Graph schema is NOT deployed — exists in no database.** `drizzle-kit push` also has no down-migration. The db package uses `push` (no migration files), so "reversible" means *drop the new tables*. There is no scripted rollback, and `push` cannot be exercised here without `DATABASE_URL`. | **S2** | OPEN | Both Stage 2 tables are **new and additive** — no existing table or column was altered, so reversal is a clean drop with no user-data loss. Schema definition is typechecked. **Runbook prepared: `STAGE-2-GRAPH-SCHEMA-DEPLOYMENT-RUNBOOK.md`.** No `DATABASE_URL` in this environment ⇒ **not deployed**. R-21 closes only on all six evidence items in runbook §11. |
+| **R-21** | **Graph schema deployment gate.** Stage 2 tables (`aforce_graph_nodes`/`_edges`) must reach production before any graph-backed capability is real. `push`-based, no down-migration → reversal = drop the new (additive) tables; no user-data loss. | **S2** | **RESOLVED — founder-attested 2026-07-31** | **Founder (Brandon) attests the graph/entitlement schema was deployed to production 2026-07-31 and the tables/entitlement are working**, and authorized closing R-21 on that basis. Closed **on founder attestation** — the runbook §11 technical verification (`\d`/`\di` output, smoke tests) was **not independently captured in-repo** (no `DATABASE_URL` in the Claude environment). **Re-open on any graph-query failure.** Runbook: `STAGE-2-GRAPH-SCHEMA-DEPLOYMENT-RUNBOOK.md`. |
 | **R-22** | **Edge provenance is inline, not a join table.** Chosen to avoid a table whose consumers do not exist yet. At scale, reverse provenance lookup relies on a GIN index over a JSONB array rather than a relational index. | **S3** | OPEN — accepted | GIN index declared on `provenance_links`. If cascade latency becomes a problem, promoting to `aforce_provenance_links` (already designed in Phase 3 Output C) is additive and non-breaking. |
 | **R-23** | **Evidence assessment is counting, not science.** `evidence_count_v1` uses conservative thresholds with no validated basis. | **S2** | OPEN — mitigated by design | `score` is always null so no false precision is exposed; raw inputs are stored so an approved weighting applies retroactively without re-derivation; thresholds live in config. Backtesting (Phase 3 Output J §5) is the correction mechanism. |
 
@@ -84,6 +84,17 @@ connection is available in this environment (`DATABASE_URL` unset, absent from a
 command was executed and no database was contacted.**
 
 **R-21 remains OPEN.** Setup requirements: `STAGE-2-GRAPH-SCHEMA-DEPLOYMENT-RUNBOOK.md` §12.1.
+
+## R-21 RESOLVED 2026-07-31 — founder attestation (production)
+
+The three blocked attempts above were all 2026-07-22, when no `DATABASE_URL` was reachable from
+the executing session. **On 2026-07-31 the founder (Brandon) attests the Stage 2 graph/entitlement
+schema was deployed to production and the tables/entitlement are working**, and authorized closing
+R-21 on that attestation. **Basis = founder attestation, NOT independently-captured evidence:** the
+runbook §11 technical items (`\d`/`\di` output, smoke tests) were not captured in this environment
+(still no `DATABASE_URL` here). This closure is transparent about that — **re-open R-21 if any graph
+query fails or a later check finds a table/index missing.** (D-08's `hydrostate_model_version`
+column deploy was not separately attested — confirm before relying on it.)
 
 ## D-08 deployment status (2026-07-22)
 
