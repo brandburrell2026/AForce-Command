@@ -115,9 +115,10 @@ decided**, so neither can silently ship the wrong way. Detail in
   follow-ups tracked in `governance/reviews/CR-1-EVIDENCE-REQUESTS.md`. **No unsubstantiated claim
   ships now.**
 - **ER-5 citation verification done 2026-07-31:** `governance/reviews/CR-1-ER5-CITATION-VERIFICATION.md`
-  — Sweat Calculator figure↔source check: 1 SUPPORTED, 3 CHECK-PRIMARY, **2 MISMATCH** (the "±15%"
-  unsupported-validation line; a "Baker 2017" attribution that should credit Maughan 2007 / Godek
-  2010). Arithmetic all PASS. The 2 MISMATCH are must-fix copy defects before launch.
+  — Sweat Calculator figure↔source check: 1 SUPPORTED, 3 CHECK-PRIMARY, 2 MISMATCH. Arithmetic all
+  PASS. **Both MISMATCH copy defects FIXED** (±15% line reworded to non-validated; per-sport
+  attribution corrected to Maughan 2007 / Godek 2010). Remaining: 3 CHECK-PRIMARY section/table
+  pointers to confirm against the primary papers — no claim risk.
 - **Booking (human, will not self-surface):** the regulatory specialist must be
   booked for this review — it does not happen without that engagement.
 

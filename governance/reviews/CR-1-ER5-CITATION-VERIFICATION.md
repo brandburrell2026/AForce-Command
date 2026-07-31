@@ -7,7 +7,7 @@
 **Summary:** 6 figure→source pairs assessed — **1 SUPPORTED · 3 CHECK-PRIMARY · 2 MISMATCH.**
 Arithmetic/unit sub-checks (definitively verifiable in-repo): **all PASS** except one minor internal constant (BSA reference 1.9 vs computed 1.85 m²). **No validation study and no sweat-engine test exist in the repo** — the ±15% calibration figure is unsupported as written.
 
-> **Two MISMATCH defects need a copy fix before launch** (items 6 and 5 below). The CHECK-PRIMARY items need the actual papers confirmed but are directionally sound. Arithmetic is clean.
+> **Update 2026-07-31 — both MISMATCH copy defects FIXED.** The "±15%" line is reworded to non-validated language ("This is a modeled estimate, not a measurement…"); the per-sport attribution now reads "(Baker 2017; sport-specific values from Maughan 2007 and Godek 2010)". Applied across all 11 locales + the legacy screen. The 3 CHECK-PRIMARY items still need the actual papers confirmed; arithmetic is clean.
 
 ---
 
@@ -83,8 +83,8 @@ Arithmetic/unit sub-checks (definitively verifiable in-repo): **all PASS** excep
 
 ## Defects to fix before launch
 
-1. **[MISMATCH — must fix] ±15% calibration line (en.json 1808).** Unsupported validation claim; no study or test in repo. Reword to non-validated language or produce the calibration evidence. Highest priority — an accuracy claim beside "Not a medical device."
-2. **[MISMATCH — must fix] Per-sport mean attribution (en.json 1665, 1773, 1807).** UI credits "Baker 2017" for Soccer/Football values that come from Maughan 2007 and Godek 2010 (`sweatSports.ts`). Correct the attribution or restrict to Baker-sourced sports.
+1. **[MISMATCH — ✅ FIXED 2026-07-31] ±15% calibration line.** Reworded to "This is a modeled estimate, not a measurement — always confirm with a scale for clinical decisions. Not a medical device." (11 locales + legacy screen). The "±15%" number is gone; if a real calibration study is later done, a validated figure can be reintroduced with its evidence + a test.
+2. **[MISMATCH — ✅ FIXED 2026-07-31] Per-sport mean attribution.** Now reads "(Baker 2017; sport-specific values from Maughan 2007 and Godek 2010)" in the methodology cite; the short label → "Anchored estimate (published means)" and the helper drops the single-source "(Baker 2017)". (11 locales + legacy screen.)
 3. **[CHECK-PRIMARY] Baker 2017 Table 2 (en.json 1802).** Confirm sodium ranges are in Table 2, ≈50 mmol/L is a mean, and 200–2300 mg/L are within the spread. (Cross-check Table 1 vs 2 against `sweatSports.ts`.)
 4. **[CHECK-PRIMARY] Cheuvront & Kenefick §C + >4% bright line (en.json 1799).** Confirm section pointer and that the 2%/4% cut-points are stated numerically.
 5. **[CHECK-PRIMARY] Sawka §G / Maughan & Shirreffs 2010 coordinates (en.json 1805).** Confirm section and supplement page range.

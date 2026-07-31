@@ -1546,7 +1546,7 @@
       "heat_acclimatized": "Heat-acclimatized",
       "heat_acclimatized_hint": "≥ 10 days of heat exposure / training in current climate",
       "helper_quick": "Weigh nude or in dry clothing for accuracy. 1 lb of weight loss ≈ 16 ounces of sweat.",
-      "helper_estimate": "Estimate path uses your sport's population-mean sweat rate (Baker 2017) scaled by body surface area, intensity, and climate. Measure with a scale for the most accurate number.",
+      "helper_estimate": "Estimate path uses your sport's published population-mean sweat rate, scaled by body surface area, intensity, and climate. Measure with a scale for the most accurate number.",
       "calculate": "Calculate",
       "methodology_hide": "Hide methodology & citations",
       "methodology_show": "Show methodology & citations",
@@ -1654,7 +1654,7 @@
       "adv_bsa_v": "{{value}} m² (Du Bois)",
       "adv_method_k": "Method",
       "adv_method_direct": "Direct measurement (ACSM)",
-      "adv_method_estimate": "Anchored estimate (Baker 2017)",
+      "adv_method_estimate": "Anchored estimate (published means)",
       "adv_autopilot_k": "Autopilot",
       "adv_autopilot_v": "{{min}} min · {{urgency}}",
       "cmp_eyebrow": "HOW AFORCE COMPARES",
@@ -1688,8 +1688,8 @@
       "cite_strategy_body": "Replace 100–150% of fluid loss within 4–6 h post-exercise; pair sodium intake with fluid for full re-equilibration.",
       "cite_strategy_source": "Source: Sawka 2007 §G; Maughan RJ & Shirreffs SM. 2010. Scand J Med Sci Sports 20(s2):31–42.",
       "cite_estimate_heading": "Estimate path:",
-      "cite_estimate_body": "Anchored to per-sport population-mean sweat rates (Baker 2017), scaled by Du Bois body-surface area, RPE-mapped intensity, USARIEM-style climate factors, and Périard 2015 acclimatization adjustment.",
-      "cite_calibration": "Calibration target: ±15% of measured rate at moderate intensity, thermoneutral conditions. Always confirm with a scale for clinical decisions. Not a medical device."
+      "cite_estimate_body": "Anchored to per-sport population-mean sweat rates (Baker 2017; sport-specific values from Maughan 2007 and Godek 2010), scaled by Du Bois body-surface area, RPE-mapped intensity, USARIEM-style climate factors, and Périard 2015 acclimatization adjustment.",
+      "cite_calibration": "This is a modeled estimate, not a measurement — always confirm with a scale for clinical decisions. Not a medical device."
     }
   },
   "achievements": {
