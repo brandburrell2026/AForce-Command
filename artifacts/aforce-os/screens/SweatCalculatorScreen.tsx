@@ -821,21 +821,20 @@ function RecoveryIntelligenceCard() {
   );
 }
 
-/* ── C. AForce System — 4 spec rows + 3 verbatim ingredient lines ───── */
+/* ── C. AForce System — 3 spec rows + 3 ingredient lines ───── */
 function AForceSystemCard() {
   return (
     <View style={styles.systemCard}>
       <Text style={styles.cardEyebrow}>AFORCE SYSTEM</Text>
 
       <SystemRow k={`${AFORCE_SODIUM_PER_UNIT_MG}mg Sodium`} v="Per serving — controlled, not bombarding." />
-      <SystemRow k="72 Trace Minerals" v="Marine source (Irish Seamoss)." />
+      <SystemRow k="Trace Minerals" v="Marine source (Irish Seamoss)." />
       <SystemRow k="pH 8.8 Alkaline" v="A smooth, higher-pH profile — part of the AForce standard." />
-      <SystemRow k="4-Hour Recovery Window" v="Time-released absorption profile." />
 
       <View style={styles.systemDivider} />
 
       <Text style={styles.systemSubhead}>Ingredient Detail</Text>
-      <IngredientLine name="Irish Seamoss" line="Marine source of 72 trace minerals critical to cellular function." />
+      <IngredientLine name="Irish Seamoss" line="Red marine algae — a whole-food source of trace minerals." />
       <IngredientLine name="Chlorella" line="Freshwater green algae — a whole-food source of chlorophyll and minerals." />
       <IngredientLine name="Atlantic Dulse" line="Atlantic seaweed — a natural source of iodine and trace minerals." />
     </View>
