@@ -105,6 +105,10 @@ decided**, so neither can silently ship the wrong way. Detail in
 - **Review package prepared 2026-07-31:** `governance/reviews/CR-1-CLAIMS-REVIEW-PACKAGE.md`
   — cited claims inventory (app + marketing + locales), reviewer specification, existing §42
   controls, and a go/no-go disposition worksheet. Makes booking a one-step action.
+- **Internal science half complete 2026-07-31:** `governance/reviews/CR-1-SCIENTIFIC-SUBSTANTIATION-PASS.md`
+  — performance-scientist assessment of the 6 highest-risk claims (5 salvageable-with-qualifier,
+  5 remove/substantiate-on-file, 3 hard §2 red-lines). Internal only; the external regulatory
+  review is still the open gate.
 - **Booking (human, will not self-surface):** the regulatory specialist must be
   booked for this review — it does not happen without that engagement.
 

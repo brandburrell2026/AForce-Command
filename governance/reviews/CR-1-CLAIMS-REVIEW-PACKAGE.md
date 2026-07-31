@@ -240,8 +240,11 @@ wording, so approvals flow straight back into `CLAIMS-REGISTER.md` and the §42 
 
 1. **Confirm the reviewer** — AWG (regulatory scope?) or a referred FTC/FDA advertising-claims
    specialist. This package is the scope-of-work; it lets a reviewer quote and start.
-2. **Start the internal half now** — the performance-scientist can begin the scientific-substantiation
-   pass on Part 3.7 in parallel; it needs no external booking.
+2. **Internal science half — DONE (2026-07-31).** The performance-scientist's scientific-substantiation
+   pass on Part 3.7 is complete: `governance/reviews/CR-1-SCIENTIFIC-SUBSTANTIATION-PASS.md` — 5 claims
+   salvageable-with-qualifier (with exact replacement wording), 5 must-remove-or-substantiate-on-file,
+   and 3 hard §2 diagnosis red-lines. It is an internal assessment, not a clearance; it hands the
+   regulatory reviewer a pre-analyzed worksheet and gives an early read on what must change.
 3. **On clearance** — record dispositions into `CLAIMS-REGISTER.md`, flip flags per Part 1, move
    CR-1 to RESOLVED in `Risk-Register.md` + `Launch-Readiness.md`.
 
