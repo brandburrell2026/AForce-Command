@@ -856,7 +856,6 @@ function AForceSystemCard() {
       <SystemRow k={t('sweat.v2.sys_sodium_k', { mg: AFORCE_SODIUM_PER_UNIT_MG })} v={t('sweat.v2.sys_sodium_v')} />
       <SystemRow k={t('sweat.v2.sys_minerals_k')} v={t('sweat.v2.sys_minerals_v')} />
       <SystemRow k={t('sweat.v2.sys_ph_k')} v={t('sweat.v2.sys_ph_v')} />
-      <SystemRow k={t('sweat.v2.sys_window_k')} v={t('sweat.v2.sys_window_v')} />
 
       <View style={styles.systemDivider} />
 
