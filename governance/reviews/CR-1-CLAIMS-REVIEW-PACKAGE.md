@@ -239,7 +239,9 @@ wording, so approvals flow straight back into `CLAIMS-REGISTER.md` and the §42 
 ## Part 6 — Booking (the human action that will not self-surface)
 
 1. **Confirm the reviewer** — AWG (regulatory scope?) or a referred FTC/FDA advertising-claims
-   specialist. This package is the scope-of-work; it lets a reviewer quote and start.
+   specialist. This package is the scope-of-work; it lets a reviewer quote and start. A ready-to-send
+   outreach (both an AWG scope-check and a cold-specialist version) is drafted in
+   `governance/reviews/CR-1-REVIEWER-OUTREACH.md`.
 2. **Internal science half — DONE (2026-07-31).** The performance-scientist's scientific-substantiation
    pass on Part 3.7 is complete: `governance/reviews/CR-1-SCIENTIFIC-SUBSTANTIATION-PASS.md` — 5 claims
    salvageable-with-qualifier (with exact replacement wording), 5 must-remove-or-substantiate-on-file,
