@@ -21,8 +21,8 @@
  *   'estimated'` in the output so the UI can flag them.
  *
  *   Sodium loss is computed from the resolved SodiumProfile band
- *   (Baker 2017, Table 2), not assumed. Replacement guidance follows
- *   Sawka 2007 §G — replace 100-150 % of fluid loss within 4-6h.
+ *   (Baker 2017, Figure 2), not assumed. Replacement guidance follows
+ *   ACSM 2007 (Sawka MN et al.) — replace 100-150 % of fluid loss within 4-6h.
  */
 
 import {
@@ -43,7 +43,7 @@ import { getSport, SWEAT_SPORTS } from '@/data/sweatSports';
 
 // ─── Constants & reference bands ─────────────────────────────────────────────
 
-/** ACSM 2007 Position Stand, §C — performance / safety thresholds. */
+/** ACSM 2007 Position Stand (Sawka MN et al.) — performance / safety thresholds. */
 export const DEFICIT_BANDS: DeficitBandSpec[] = [
   {
     id: 'optimal',
@@ -73,9 +73,10 @@ export const DEFICIT_BANDS: DeficitBandSpec[] = [
 
 /**
  * Sweat-sodium reference bands.
- * Source: Baker LB. 2017. Sports Med 47(Suppl 1):111-128, Table 2.
- * Population sweat [Na+] median ≈ 50 mmol/L (1150 mg/L). Atomic mass of
- * sodium = 22.99 — converting mmol/L → mg/L by ×23 (rounded).
+ * Source: Baker LB. 2017. Sports Med 47(Suppl 1):111-128, Figure 2.
+ * Sweat [Na+] spans ≈ 10–90 mmol/L across athletes (no single population
+ * mean is stated). Atomic mass of sodium = 22.99 — converting mmol/L → mg/L
+ * by ×23 (rounded).
  */
 export const SODIUM_BANDS: SodiumProfileBand[] = [
   {
@@ -87,7 +88,7 @@ export const SODIUM_BANDS: SodiumProfileBand[] = [
   {
     id: 'moderate',
     label: 'Moderate Sweater',
-    mgPerLiter: 1150,  // ≈ 50 mmol/L (population mean)
+    mgPerLiter: 1150,  // ≈ 50 mmol/L (mid-band reference)
     description: 'Typical athlete. Faint salt residue after long sessions.',
   },
   {
@@ -273,7 +274,7 @@ export function estimateSweatRateLh(a: EstimateArgs): { sweatRateLh: number; bsa
  * Build the personalized AForce prescription.
  *
  * Replacement target: 125 % of fluid loss over 4 hours
- *   (mid-band of Sawka 2007 §G, "100–150% within 4-6 h").
+ *   (mid-band of ACSM 2007 / Sawka MN et al., "100–150% within 4-6 h").
  *
  * Sodium target: replace the sodium that was actually lost
  *   (already accounts for acclimatization at the concentration
@@ -311,7 +312,9 @@ export function buildPrescription(
   const pairWaterOz = Math.max(0, replacementOz - stickFluidOz);
 
   // Ongoing per-hour intake rate during similar future sessions.
-  // Mid-band of Sawka §F: replace 80–100% of sweat as you go.
+  // Replace ~80–100% of sweat as you go during similar sessions (per ACSM 2007,
+  // Sawka MN et al. Med Sci Sports Exerc 39(2):377–390). The 80–100% figure is
+  // an AForce operational target, not a verbatim ACSM value.
   const ongoingOzPerHour = Math.round(clampPositive(ongoingRateLh) * OZ_PER_L * 0.9);
 
   const headline = aforceSticks > 0
