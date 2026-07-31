@@ -23,7 +23,7 @@ export type WeightUnit = 'lbs' | 'kg';
 export type FluidUnit = 'oz' | 'ml';
 export type HeightUnit = 'in' | 'cm' | 'ft';
 
-/** ── Sweat-sodium classification (Baker 2017, Table 2) ─────────────── */
+/** ── Sweat-sodium classification (Baker 2017, Figure 2) ─────────────── */
 export type SodiumProfile = 'light' | 'moderate' | 'heavy' | 'very_heavy';
 
 export interface SodiumProfileBand {

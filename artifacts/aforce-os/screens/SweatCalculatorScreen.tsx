@@ -1183,17 +1183,17 @@ function CitationCard() {
       <Text style={styles.citationBody}>
         <Text style={styles.citationBold}>Hydration-deficit thresholds:</Text>{'\n'}
         &gt;2% body weight loss → measurable performance decline; &gt;4% → heat-illness risk.{'\n'}
-        Sources: ACSM 2007 §C; Cheuvront SN, Kenefick RW. 2014. Compr Physiol 4(1):257–285.
+        Sources: ACSM 2007 (Sawka MN et al. Med Sci Sports Exerc 39(2):377–390); Cheuvront SN, Kenefick RW. 2014. Compr Physiol 4(1):257–285.
       </Text>
       <Text style={styles.citationBody}>
         <Text style={styles.citationBold}>Sweat-sodium ranges:</Text>{'\n'}
-        Population mean ≈ 50 mmol/L (1150 mg/L); range 200–2300 mg/L.{'\n'}
-        Source: Baker LB. 2017. Sports Med 47(Suppl 1):111–128, Table 2.
+        Sweat sodium spans ≈ 10–90 mmol/L (≈ 230–2070 mg/L) across athletes, with wide individual variation.{'\n'}
+        Source: Baker LB. 2017. Sports Med 47(Suppl 1):111–128, Figure 2.
       </Text>
       <Text style={styles.citationBody}>
         <Text style={styles.citationBold}>Replacement strategy:</Text>{'\n'}
         Replace 100–150% of fluid loss within 4–6 h post-exercise; pair sodium intake with fluid for full re-equilibration.{'\n'}
-        Source: Sawka 2007 §G; Maughan RJ &amp; Shirreffs SM. 2010. Scand J Med Sci Sports 20(s2):31–42.
+        Source: Sawka MN et al. 2007. Med Sci Sports Exerc 39(2):377–390; Maughan RJ, Shirreffs SM. 2010. Scand J Med Sci Sports 20(Suppl 2):59–69.
       </Text>
       <Text style={styles.citationBody}>
         <Text style={styles.citationBold}>Estimate path:</Text>{'\n'}
