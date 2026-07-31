@@ -94,7 +94,7 @@ const SIGNALS: readonly SuperfoodSignal[] = [
   { key: 'mineralSupport', label: 'Mineral Support' },
   { key: 'recoverySupport', label: 'Recovery Support' },
   { key: 'electrolyteEfficiency', label: 'Electrolyte Efficiency' },
-  { key: 'cellularHydrationSupport', label: 'Cellular Hydration Support' },
+  { key: 'cellularHydrationSupport', label: 'Mineral + Hydration Support' },
   { key: 'performanceSupport', label: 'Performance Support' },
 ];
 

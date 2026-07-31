@@ -86,8 +86,7 @@ export function buildRecommendation(
   bestAforce: CompareResult | undefined,
 ): ScanRecommendation {
   const stateLabel = inputs.state.charAt(0) + inputs.state.slice(1).toLowerCase();
-  // Tone — AForce is positioned as system fuel / mineral recovery
-  // support / hydration efficiency support / performance amplifier.
+  // Tone — AForce is positioned as system fuel / performance support.
   // Headlines read as natural system observations, never as a
   // hard sell. Recommended pour standardized at 12 oz water.
 
@@ -103,13 +102,13 @@ export function buildRecommendation(
   }
   // CASE 2: AForce alternative exists and outperforms.
   // Lead with a system observation, then surface the recommended
-  // pairing — water + AForce as mineral recovery support.
+  // pairing — water + AForce.
   if (bestAforce && bestAforce.product.id !== scanned.productId && bestAforce.fitScore > selfFit.fitScore + 4) {
     return {
       headline: `Current intake may increase hydration demand.`,
       detail: bestAforce.whyItFits,
       aforceEquivalentId: bestAforce.product.id,
-      command: `Recommended: 12 oz water + ${bestAforce.product.name} for mineral recovery support.`,
+      command: `Recommended: 12 oz water + ${bestAforce.product.name}.`,
       shouldLog: false,
     };
   }
@@ -138,7 +137,7 @@ export function buildRecommendation(
     detail: selfFit.whyItFits,
     aforceEquivalentId: bestAforce?.product.id,
     command: bestAforce
-      ? `Recommended: 12 oz water + ${bestAforce.product.name} for hydration efficiency support.`
+      ? `Recommended: 12 oz water + ${bestAforce.product.name}.`
       : `Recommended: 12 oz water. Recheck in 20 minutes.`,
     shouldLog: false,
   };

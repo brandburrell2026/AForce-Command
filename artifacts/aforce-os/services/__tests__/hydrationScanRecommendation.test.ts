@@ -4,8 +4,7 @@
  * Locks the natural-recommend tone for the on-card verdict line:
  * - headlines read as system observations, never as "buy this"
  * - the recommended pour is standardized at 12 oz water
- * - AForce is positioned as system fuel / mineral recovery support /
- *   hydration efficiency support / performance amplifier
+ * - AForce is positioned as system fuel / performance support
  *
  * Targets the pure `buildRecommendation()` seam so we don't depend on
  * the full app-state machine; the four cases map 1:1 to the four
@@ -114,12 +113,12 @@ describe('buildRecommendation — AForce positioning + 12 oz pour', () => {
     expect(rec.shouldLog).toBe(true);
   });
 
-  it('CASE 2 (AForce alternative outperforms scanned) — natural observation + mineral recovery support', () => {
+  it('CASE 2 (AForce alternative outperforms scanned) — natural observation, no efficacy tail', () => {
     const selfFit = makeFit({ fitScore: 60 });
     const rec = buildRecommendation(scannedGatorade, baseInputs, selfFit, bestAforce);
     expect(rec.headline).toBe('Current intake may increase hydration demand.');
     expect(rec.command).toBe(
-      'Recommended: 12 oz water + AForce Stick for mineral recovery support.',
+      'Recommended: 12 oz water + AForce Stick.',
     );
     expect(rec.aforceEquivalentId).toBe('aforce_stick');
     expect(rec.shouldLog).toBe(false);
@@ -153,7 +152,7 @@ describe('buildRecommendation — AForce positioning + 12 oz pour', () => {
     expect(rec.shouldLog).toBe(true);
   });
 
-  it('CASE 4a (sub-par scanned, marginal AForce uplift available) — hydration efficiency support framing', () => {
+  it('CASE 4a (sub-par scanned, marginal AForce uplift available) — plain AForce recommendation', () => {
     // Sub-par selfFit (weak verdict), AForce only +2 better → skips
     // CASE 2 (+4 threshold) and CASE 3 (verdict not strong/optimal),
     // falls through to CASE 4 with bestAforce present.
@@ -166,7 +165,7 @@ describe('buildRecommendation — AForce positioning + 12 oz pour', () => {
     const rec = buildRecommendation(scannedGatorade, baseInputs, selfFit, closeAforce);
     expect(rec.headline).toBe('Current intake may increase hydration demand.');
     expect(rec.command).toBe(
-      'Recommended: 12 oz water + AForce Stick for hydration efficiency support.',
+      'Recommended: 12 oz water + AForce Stick.',
     );
     expect(rec.aforceEquivalentId).toBe('aforce_stick');
     expect(rec.shouldLog).toBe(false);

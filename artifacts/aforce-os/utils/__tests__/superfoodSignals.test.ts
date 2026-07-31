@@ -28,7 +28,7 @@ describe('Superfood Signals — chip list', () => {
       'Mineral Support',
       'Recovery Support',
       'Electrolyte Efficiency',
-      'Cellular Hydration Support',
+      'Mineral + Hydration Support',
       'Performance Support',
     ]);
   });
