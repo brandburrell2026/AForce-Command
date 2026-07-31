@@ -1,6 +1,6 @@
 # CR-1 — Supplier Evidence Request (DRAFT to send)
 
-**Status:** ⏳ **DRAFT — not sent.** For **Brandon** to send to the AForce formulation manufacturer / contract lab. Claude drafted this; sending is the founder's action (fill the `[…]` placeholders first).
+**Status:** ⏳ **FINALIZED except recipient — not sent.** For **Brandon** to send to the AForce formulation manufacturer / contract lab. Product/SKU details are filled in; the **only** field left is the recipient name (`[name]`) and, if your manufacturer uses them, internal formula/lot codes. Sending is the founder's action.
 **Purpose:** obtain the product-specific documentation needed to **restore the held claims** (ER-1, ER-2) and close the open evidence items in `governance/reviews/CR-1-EVIDENCE-REQUESTS.md`. Until each document is received **and** validated by the performance-scientist, the corresponding claim stays removed from copy.
 **Prepared:** 2026-07-31.
 
@@ -10,9 +10,9 @@
 
 > Subject: **AForce — pre-launch documentation request (CoA + specs)**
 >
-> Hi [manufacturer / lab contact],
+> Hi [name],
 >
-> Ahead of launch we're finalizing our claims substantiation file and need current, product-specific documentation for the AForce formulations ([SKU list / formula codes]). Could you provide the items in the checklist below — ideally the most recent production lot, dated, with the testing method noted for each analytical result?
+> Ahead of launch we're finalizing our claims substantiation file and need current, product-specific documentation for the AForce line — our two formats (**RTD cans**, 6-pack; **hydration sticks**, 20 servings/box) across three flavors: **Watermelon Surge + Chlorella**, **Berry Blast + Dulse**, and **Soursop Edge + Sea Moss** (please cross-reference your internal formula/lot codes). Could you provide the items in the checklist below — ideally the most recent production lot, dated, with the testing method noted for each analytical result?
 >
 > A few are standard (CoA, spec sheet, contaminant panel); two are more specific (a distinct-mineral count and any time-release/absorption data you hold). Where a test hasn't been run, just say so — we'd rather know than assume.
 >
@@ -61,4 +61,4 @@ Send Item 7's iodine data to the reviewer for the *dulse ingredient statement*, 
 3. Restored wording flows into `CLAIMS-REGISTER.md` **only after** the external regulatory reviewer signs off.
 4. For anything the supplier says isn't tested, log it as "no evidence — claim stays out" so it doesn't get re-litigated.
 
-*Draft only. No message has been sent. Fill the `[…]` placeholders (contact, SKU/formula codes) and send from your own mail/portal.*
+*Finalized except recipient. No message has been sent. Add the recipient name (`[name]`) — and internal formula/lot codes if your manufacturer uses them — then send from your own mail/portal.*
