@@ -32,7 +32,8 @@ Read alongside: `governance/OPEN-RISKS.md` (live risks, esp. R-21 graph deploy),
 was "built but everything's headless." Since then the two most user-visible programs shipped
 **live**: the redesigned screens (default-ON) and the Command billing path (app + Shopify,
 displayed = charged, price-pinned). What's left is now a shorter, sharper list — one unbooked
-review, one commerce cutover, one infra deploy, and the still-headless personalization layer.
+review, one commerce cutover, one infra deploy, and a **partly-shipped** personalization layer
+(its confidence/display surfaces are now live; only the deeper adaptive engines stay dark).
 
 **Top 6 things that actually block launch, in order:**
 
@@ -69,10 +70,16 @@ review, one commerce cutover, one infra deploy, and the still-headless personali
    has never run — the tables exist in **no database**, there is no ingestion path, and there
    is no `DATABASE_URL` in this environment. `STAGE-2-GRAPH-SCHEMA-DEPLOYMENT-RUNBOOK.md` must
    be executed (six evidence items) before any graph-backed capability is real.
-5. **Personalization is still headless.** §53–§56, §58–§61, §64, and PASS-3 slices 2/3/4c did
-   not get user-facing surfaces this window (they shipped correct-but-invisible or default-OFF).
-   If launch means "a user can see personalization working," that still needs the UI-wiring
-   pass in Section 3 — not yet scoped/staffed.
+5. **Personalization — display layer SHIPPED; only the deeper engines stay dark. (Corrected
+   2026-07-31 — the prior "everything headless" claim was stale.)** The **Show-10
+   confidence/personalization display layer is live**: the **Command Confidence badge**
+   (`spec_commandConfidenceDisplay` ON) renders on Social, Cruise, and Product-Fit/HydroScan, and
+   the **"DATA BEHIND THIS" signal-quality sheet** (`spec_confidenceDetailSheet` ON) is live on
+   HydroScan — components wired into 8 surfaces (PRs #278/#279 + the confidence-system ruling).
+   Still dark: the **Profile Strength section** (§55, `spec_profileStrengthSection` OFF in prod /
+   ON in demo) and the **§59–61 adaptive/timeline/living engines + §64** (flags OFF). So "a user
+   sees personalization working" is now largely TRUE on the confidence surfaces; what remains is
+   the profile-strength flag flip + the adaptive engines — a much smaller gap than previously stated.
 6. **iOS purchase posture is a deliberate parked decision.** `ios_direct_checkout_enabled` is
    default-OFF (#403): iOS store builds route Command purchases to drinkaforce.com (App Store
    3.1.1 posture). Flipping to in-app external-purchase-link routing waits on counsel — a
@@ -108,18 +115,18 @@ runtime caller / no DB / no deploy) · **Not-built** (post-launch, no code) · *
 | PASS-3 slice 1 — provider honesty (RC-L13) | **Shipped-live (UI)** | — | #387: wired `resolveHealthProviderStatus` into Profile rows. "LIVE" now requires verified + unexpired link; killed the fake-LIVE mock + demo-biometric seeding into score inputs |
 | PASS-3 slice 2 — profile server hydration (RC-L11) | Built-behind-flag (dark) | `profile_server_hydration_enabled` (OFF) | #388: server rehydration + K-1 encrypted secure-store cache + reconnect flush. One-line flip after a physical-device reinstall test |
 | PASS-3 slice 3 — intake corrections (RC-L12) | **Source-only** (route caller-less) | — (`intake_corrections_enabled` unbuilt) | #389: `POST /intake/correction` (append-only reversal) + §10 honesty columns. Undo UI deferred; schema source-only until runbook deploy |
-| §53 Data Freshness | Shipped-live (engine) | — | Headless engine; no display surface yet (Section 3) |
-| §54 Signal Quality | Built (headless util) | — (no flag, no UI consumer) | Grades source quality per signal; no surface reads it |
-| §55 Profile Completeness (Steps 1–3) | Built (headless; nudge fires) | — | Nudge fires; underlying confidence math has no display surface |
-| §56 Personalization Coverage resolver | Built (headless) | — | Pure qualifier; no UI shows which recs are population-default |
-| §58 Command Confidence Display | Built-behind-flag (dark) | `spec_commandConfidenceDisplay` (**ON**), `command_confidence_adaptive_enabled` (OFF) | Badge flag is ON, but not wired into Today's Command / HydroScan Fit / Recovery Window / Sun Recovery — adaptive selection influence still gated |
+| §53 Data Freshness | Shipped-live | — | Surfaced in the "DATA BEHIND THIS" sheet (`spec_confidenceDetailSheet` ON) |
+| §54 Signal Quality | **Shipped-live** | `spec_confidenceDetailSheet` (**ON**) | Per-signal source quality surfaced in the DATA BEHIND THIS sheet on HydroScan (corrected 2026-07-31 — was mislabeled headless) |
+| §55 Profile Completeness (Steps 1–3) | Built-behind-flag (dark) | `spec_profileStrengthSection` (OFF prod / ON demo) | Resolver + nudge live; the Profile Strength display card is gated OFF in prod |
+| §56 Personalization Coverage resolver | Built; feeds confidence surfaces | — | Resolver merged (#feat/section-56); feeds the confidence chips. No dedicated "population-default per field" display |
+| §58 Command Confidence Display | **Shipped-live** | `spec_commandConfidenceDisplay` (**ON**); `command_confidence_adaptive_enabled` (OFF) | Badge wired + live on **Social, Cruise, Product-Fit/HydroScan** (corrected 2026-07-31 — was mislabeled "not wired"). Adaptive *selection* influence still gated |
 | §59 Adaptive Response Engine | Built-behind-flag (dark) | `adaptive_response_enabled` (OFF) | Engine always derives; exposure gated |
 | §60 Response Timeline | Built-behind-flag (dark) | `response_timeline_enabled` (OFF) | Also data-gated: needs 60–90 days personal history regardless of flag |
 | §61 Living Performance Model | Built-behind-flag (dark) | `living_performance_enabled` (OFF) | Engine always derives; exposure gated |
 | §62 Founder Mode / four-environment architecture | Not-built (spec only) | — | Spec complete; zero implementation. Post-launch, internal-only, never in Production build |
 | §63 Guardian/Clutch/Cruise compliance pass | Shipped-live | — | Streak-loss language fixed org-wide. R63-1/R63-2 remain Phase-2 |
 | §64 Conversational Intelligence | Built-behind-flag (dark) | `conversational_intelligence_enabled` (OFF) | **RD-1 pending**: stays OFF until CR-1 clears coach copy |
-| Graph schema (§38 `aforce_graph_nodes`/`_edges`) | **Source-only — NOT deployed** | — | #395: defined in `lib/db`; `drizzle-kit push` never run; exists in no DB. **R-21 OPEN** |
+| Graph schema (§38 `aforce_graph_nodes`/`_edges`) | Source verified; **founder reports deployed 2026-07-31** | — | #395: defined + typecheck-verified in `lib/db`. Deploy evidence not yet recorded in the runbook §11 / `OPEN-RISKS.md` (still read **R-21 OPEN**) — see §4/§5 |
 | Intelligence constants (Stage 1–3 contracts, PKG builder/query, §42 gate) | **Source-only**, 150 tests green | — | #396: incident residue closed; app typecheck clean. Stages 1–3 officially "Partially Built" |
 | Demand Engine (`hydrationDemandSelector`) | Built-behind-flag (dark) | `spec_demand_engine` (OFF) | Pure module, no visible consumer |
 | Evidence Engine ("Why this command") | Built-behind-flag (dark) | `evidence_engine_enabled` (OFF) | Headless explainability layer |
@@ -133,28 +140,30 @@ runtime caller / no DB / no deploy) · **Not-built** (post-launch, no code) · *
 
 ---
 
-## 3. "Show 10" surface backlog — headless layers needing UI to reach users
+## 3. "Show 10" surface backlog — **mostly DELIVERED** (corrected 2026-07-31)
 
-Everything below is **built and correct** but invisible (or flag-off) to a real user. Each
-line needs a **ui-designer** pass plus the named gate before it can ship visible. This
-backlog is materially unchanged since the prior refresh — the redesign go-live added screens,
-not personalization surfaces.
+**This section was stale.** The Show-10 confidence/personalization display layer shipped
+(PRs #278/#279 + the confidence-system ruling; `ConfidenceChip` / `DataBehindThisSheet` /
+`CommandConfidenceBadge` wired into 8 surfaces). The prior "materially unchanged / invisible"
+framing was wrong. Current state:
 
-| Layer | What's missing | Gate before visible |
+| Layer | Status | Note |
 |---|---|---|
-| §53 Data Freshness | No surface shows "how fresh is this reading" | None outstanding — UI-only work |
-| §54 Signal Quality | No surface shows per-signal source quality (Excellent/Good/Limited/Unavailable) | None outstanding — UI-only work |
-| §55 Profile Completeness → Confidence | Nudge fires; the confidence badge/explanation has no display surface | None outstanding — UI-only work |
-| §56 Personalization Coverage | Resolver reports personalized / population-default / blocked-on-input / scoring-locked per field — no UI shows which recs are population-default | S56-1 copy audit (CR-1) |
-| §58 Command Confidence Display | `spec_commandConfidenceDisplay` is ON, but the badge is not wired into Today's Command, HydroScan Fit, Recovery Window, Sun Recovery | Wire into the four surfaces; adaptive influence stays gated |
+| §53 Data Freshness | ✅ **Delivered** | Shown in the DATA BEHIND THIS sheet (`spec_confidenceDetailSheet` ON) |
+| §54 Signal Quality | ✅ **Delivered** | Per-signal source quality in the DATA BEHIND THIS sheet on HydroScan |
+| §58 Command Confidence Display | ✅ **Delivered** | Badge live on Social / Cruise / Product-Fit/HydroScan (`spec_commandConfidenceDisplay` ON) |
+| §55 Profile Completeness → Confidence | ⚙️ Built, **flag-off in prod** | Profile Strength card behind `spec_profileStrengthSection` (ON in demo only) — a flag flip, not a build |
+| §56 Personalization Coverage | ⚙️ Resolver merged, feeds confidence | No dedicated "which recs are population-default" display; low priority |
+| §59–§61 / §64 (adaptive engines) | ⛔ Dark | Separate deeper layer — flags OFF (§64 gated on RD-1/CR-1); the genuine remaining personalization work |
 | §59/§60/§61 (Adaptive Response / Response Timeline / Living Performance) | Personal Response Library, timeline results, daily lesson have no consuming screen | §60 additionally data-gated (60–90 days history) |
 | PASS-3 slice 2 — profile hydration | Server rehydration built; needs a physical-device reinstall test to flip `profile_server_hydration_enabled` | Device reinstall test (one-line flip) |
 | PASS-3 slice 3 — intake corrections | `POST /intake/correction` has no caller; Undo UI unbuilt behind an unbuilt flag | Build `intake_corrections_enabled` + Undo UI; DB deploy |
 | §64 Conversational Intelligence | Proactive + reactive coach live in the voice layer behind the flag; audible behavior gated by RD-1/CR-1, not missing UI | CR-1, then RD-1 go/no-go |
 
-**Recommendation:** batch §53/§54/§55/§56/§58 into one ui-designer engagement — they compose
-at the same display layer (confidence/personalization badges across HydroState, Command,
-Profile) rather than five separate UI projects.
+**Recommendation (updated):** the confidence display layer (§53/§54/§58) is **done**. The only
+remaining personalization UI decisions are (a) flip `spec_profileStrengthSection` ON in prod
+once its gate clears (§55), and (b) decide whether §59–§61/§64 (the adaptive engines) get
+surfaces for launch — that is the real remaining scope, and it is gated on RD-1/CR-1 for §64.
 
 ---
 
@@ -164,7 +173,7 @@ Profile) rather than five separate UI projects.
 |---|---|---|---|
 | **CR-1** — pre-launch claims/compliance review | Brandon + performance-scientist (+ counsel) | RD-1 (§64 enable); HydroScan flag flips; *restoring* held claims (ER-1/ER-2); R-24 per-locale | **PREP COMPLETE, review UNBOOKED** — claims remediated (PRs #405–#419; no unsubstantiated claim ships); reviewer package + outreach + supplier-evidence request all **finalized (one field from sent)** in `governance/reviews/`. Booking/engaging counsel is the open step. Human action #1 |
 | **Ritual Save-10% displayed ≠ charged** | Brandon + revenue-guardian | Commerce cutover trust | **CLOSED 2026-07-31 (PR #405, deployed live + verified)** — shop copy set to full price ($59.99/$29.99), "Save 10%" badges removed; `shop.drinkaforce.com` storefront charges the same (no discount policy, `compare_at` null). Displayed = charged across all surfaces. Was pre-launch, no customer charged |
-| **R-21** — graph schema DB deploy | devops + backend | Any graph-backed intelligence capability (Stages 1–3 real) | **OPEN** — `drizzle-kit push` never run; no `DATABASE_URL`; six runbook evidence items outstanding |
+| **R-21** — graph schema DB deploy | devops + backend | Any graph-backed intelligence capability (Stages 1–3 real) | **Founder reports DEPLOYED 2026-07-31** — formal closure pending: the runbook §11 evidence (target env, date/operator/command, `\d` + `\di` verification, smoke tests) is not yet recorded, and `OPEN-RISKS.md` R-21 + the capability register still read OPEN. Provide the deploy specifics and I'll record them to close it. |
 | **`SHOPIFY_WEBHOOK_SECRET` on Railway** | devops | #400/#402 Shopify→app entitlement bridge going live | **OPEN** — env not set; bridge source-only until then |
 | **iOS external-purchase-link posture** | Brandon + counsel | `ios_direct_checkout_enabled` flip | **OPEN (parked)** — default routes to web (App Store 3.1.1 compliant); no launch blocker while OFF |
 | **RD-1** — enable §64 in production | Brandon (decision) | Nothing else; §64 stays OFF until CR-1 clears | PENDING-DECISION, gated on CR-1 |
@@ -196,9 +205,11 @@ These do not self-surface. Listed first per standing scrum-master discipline.
    (Hot Yoga 0.85→1.0 **applied**, cited Alrefai 2020; Basketball **kept 1.38**). CrossFit locus now
    resolved (Cronin 2016) — **ER-5 fully closed**, every Sweat Calculator citation traced to a
    verified source.
-2. **Set `SHOPIFY_WEBHOOK_SECRET` on Railway and run the graph/entitlement DB deploy** (R-21
-   runbook). Unblocks both the Shopify entitlement bridge (#400/#402) and the graph layer
-   (#395/#396) in one deploy pass.
+2. **Record the R-21 deploy evidence (founder reports the graph/entitlement DB deploy ran
+   2026-07-31).** To formally close R-21, fill the runbook §11 checklist (target env,
+   date/operator/command, `\d` + `\di` output, smoke tests) and update `OPEN-RISKS.md` R-21 +
+   the capability register — they still read OPEN. Also confirm `SHOPIFY_WEBHOOK_SECRET` is set
+   on Railway so the Shopify entitlement bridge (#400/#402) is live, not just the graph tables.
 3. **Decide the iOS purchase posture with counsel** — keep web-routing (current, compliant)
    or flip `ios_direct_checkout_enabled`. Non-blocking while OFF, but decide before the store
    submission narrative is finalized.
