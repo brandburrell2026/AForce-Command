@@ -29,11 +29,15 @@
  *   - Alrefai H, Mathis SL, Hicks SM, Pivovarova AI, MacGregor GG. 2020. Salt
  *     and water balance after sweat loss: a study of Bikram yoga. Physiol Rep
  *     8(22):e14647. (1.54 L over ~90 min ~= 1.0 L/h -> Hot Yoga)
+ *   - Cronin CC, O'Neal EK, Simpson J, Miller BL, Green M, Helm Allen JA,
+ *     Boman S. 2016. Natural training hydration status, sweat rates, and
+ *     perception of sweat losses during CrossFit training. Int J Exerc Sci
+ *     9(4). (training: men 1.66 / women 0.89 L/h, mixed ~1.3 -> CrossFit)
  *   - Baker LB. 2017. Sweating rate and sweat sodium concentration in athletes:
  *     a review of methodology and intra/interindividual variability. Sports Med
  *     47(Suppl 1):111-128. (overall WBSR range ~0.5-2.0 L/h; range anchor for
- *     Tennis, Cycling, Triathlon, CrossFit where no single normative mean is
- *     locked -- NOT a per-sport source)
+ *     Tennis, Cycling, Triathlon where no single normative mean is locked --
+ *     NOT a per-sport source)
  *   - Sawka MN, Burke LM, Eichner ER, Maughan RJ, Montain SJ, Stachenfeld NS.
  *     2007. ACSM Position Stand: Exercise and Fluid Replacement. Med Sci Sports
  *     Exerc 39(2):377-390. (general/resistance training band -> General Gym)
@@ -42,7 +46,8 @@
  *   - Hot Yoga: 0.85 -> 1.0 L/h APPLIED (Alrefai 2020 Bikram measurement).
  *   - Basketball: KEEP 1.38 (male-competition anchor, Broad 1996). Barnes 2019's
  *     pooled 0.95 was considered and declined (user base skews competitive).
- *   - CrossFit 1.30 has CrossFit-field support (~1.28) pending a locked study locus (open).
+ *   - CrossFit: KEEP 1.30, now cited to Cronin 2016 (Int J Exerc Sci 9(4);
+ *     training men 1.66 / women 0.89 L/h, mixed ~1.3) -- locus locked.
  *
  * MET values from:
  *   - Ainsworth BE et al. 2011. Compendium of Physical Activities, 2nd ed.
@@ -119,7 +124,7 @@ export const SWEAT_SPORTS: SportDefault[] = [
     emoji: '💥',
     meanSweatRateLh: 1.30,
     met: 8.0,
-    citation: 'Baker 2017 (0.5-2.0 L/h range)',
+    citation: 'Cronin 2016',
   },
   {
     id: 'hot_yoga',
