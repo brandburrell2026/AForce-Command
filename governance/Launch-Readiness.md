@@ -64,12 +64,13 @@ review, one commerce cutover, one infra deploy, and a **partly-shipped** persona
 3. **§20 flag-flip still has two unresolved sub-gates** even after CR-1: BLOCK-2 (under-18
    users get adult coefficients — founder + counsel) and COND-3 (surfacing copy —
    performance-scientist). `spec_section20_calibration` stays OFF until both clear.
-4. **Graph / intelligence layer is definition-only — not deployed (R-21 OPEN).** The graph
-   schema (`aforce_graph_nodes` / `aforce_graph_edges`) and the Stage 1–3 intelligence
-   constants are restored to source with 150 tests green (#395/#396), but `drizzle-kit push`
-   has never run — the tables exist in **no database**, there is no ingestion path, and there
-   is no `DATABASE_URL` in this environment. `STAGE-2-GRAPH-SCHEMA-DEPLOYMENT-RUNBOOK.md` must
-   be executed (six evidence items) before any graph-backed capability is real.
+4. **Graph / intelligence layer — schema deployed (founder-attested), but not yet a working
+   capability.** The graph schema (`aforce_graph_nodes` / `aforce_graph_edges`) + Stage 1–3
+   constants are in source with 150 tests green (#395/#396), and the **schema is now deployed to
+   production per founder attestation 2026-07-31 (R-21 closed on attestation** — `\d`/`\di`/smoke
+   output not independently captured in-repo). What remains is **not** the deploy but the layer
+   above it: **no ingestion path / no runtime caller** writes to or reads from the graph yet —
+   deployed tables ≠ a graph-backed capability. That wiring is post-launch intelligence work.
 5. **Personalization — display layer SHIPPED; only the deeper engines stay dark. (Corrected
    2026-07-31 — the prior "everything headless" claim was stale.)** The **Show-10
    confidence/personalization display layer is live**: the **Command Confidence badge**
@@ -126,7 +127,7 @@ runtime caller / no DB / no deploy) · **Not-built** (post-launch, no code) · *
 | §62 Founder Mode / four-environment architecture | Not-built (spec only) | — | Spec complete; zero implementation. Post-launch, internal-only, never in Production build |
 | §63 Guardian/Clutch/Cruise compliance pass | Shipped-live | — | Streak-loss language fixed org-wide. R63-1/R63-2 remain Phase-2 |
 | §64 Conversational Intelligence | Built-behind-flag (dark) | `conversational_intelligence_enabled` (OFF) | **RD-1 pending**: stays OFF until CR-1 clears coach copy |
-| Graph schema (§38 `aforce_graph_nodes`/`_edges`) | Source verified; **founder reports deployed 2026-07-31** | — | #395: defined + typecheck-verified in `lib/db`. Deploy evidence not yet recorded in the runbook §11 / `OPEN-RISKS.md` (still read **R-21 OPEN**) — see §4/§5 |
+| Graph schema (§38 `aforce_graph_nodes`/`_edges`) | **Deployed to prod (founder-attested 2026-07-31)** | — | #395 defined + typecheck-verified; **R-21 closed on founder attestation** (`\d`/`\di`/smoke output not independently captured in-repo). No ingestion path yet — deployed schema ≠ working capability |
 | Intelligence constants (Stage 1–3 contracts, PKG builder/query, §42 gate) | **Source-only**, 150 tests green | — | #396: incident residue closed; app typecheck clean. Stages 1–3 officially "Partially Built" |
 | Demand Engine (`hydrationDemandSelector`) | Built-behind-flag (dark) | `spec_demand_engine` (OFF) | Pure module, no visible consumer |
 | Evidence Engine ("Why this command") | Built-behind-flag (dark) | `evidence_engine_enabled` (OFF) | Headless explainability layer |
@@ -173,7 +174,7 @@ surfaces for launch — that is the real remaining scope, and it is gated on RD-
 |---|---|---|---|
 | **CR-1** — pre-launch claims/compliance review | Brandon + performance-scientist (+ counsel) | RD-1 (§64 enable); HydroScan flag flips; *restoring* held claims (ER-1/ER-2); R-24 per-locale | **PREP COMPLETE, review UNBOOKED** — claims remediated (PRs #405–#419; no unsubstantiated claim ships); reviewer package + outreach + supplier-evidence request all **finalized (one field from sent)** in `governance/reviews/`. Booking/engaging counsel is the open step. Human action #1 |
 | **Ritual Save-10% displayed ≠ charged** | Brandon + revenue-guardian | Commerce cutover trust | **CLOSED 2026-07-31 (PR #405, deployed live + verified)** — shop copy set to full price ($59.99/$29.99), "Save 10%" badges removed; `shop.drinkaforce.com` storefront charges the same (no discount policy, `compare_at` null). Displayed = charged across all surfaces. Was pre-launch, no customer charged |
-| **R-21** — graph schema DB deploy | devops + backend | Any graph-backed intelligence capability (Stages 1–3 real) | **Founder reports DEPLOYED 2026-07-31** — formal closure pending: the runbook §11 evidence (target env, date/operator/command, `\d` + `\di` verification, smoke tests) is not yet recorded, and `OPEN-RISKS.md` R-21 + the capability register still read OPEN. Provide the deploy specifics and I'll record them to close it. |
+| **R-21** — graph schema DB deploy | devops + backend | Any graph-backed intelligence capability (Stages 1–3 real) | **RESOLVED (founder-attested) 2026-07-31** — closed on founder attestation of a production deploy; recorded in `OPEN-RISKS.md` R-21 + runbook §11 + capability register. `\d`/`\di`/smoke output not independently captured in-repo → re-open on any graph-query failure. Optional: capture that output to upgrade to fully-verified |
 | **`SHOPIFY_WEBHOOK_SECRET` on Railway** | devops | #400/#402 Shopify→app entitlement bridge going live | **OPEN** — env not set; bridge source-only until then |
 | **iOS external-purchase-link posture** | Brandon + counsel | `ios_direct_checkout_enabled` flip | **OPEN (parked)** — default routes to web (App Store 3.1.1 compliant); no launch blocker while OFF |
 | **RD-1** — enable §64 in production | Brandon (decision) | Nothing else; §64 stays OFF until CR-1 clears | PENDING-DECISION, gated on CR-1 |
@@ -205,11 +206,11 @@ These do not self-surface. Listed first per standing scrum-master discipline.
    (Hot Yoga 0.85→1.0 **applied**, cited Alrefai 2020; Basketball **kept 1.38**). CrossFit locus now
    resolved (Cronin 2016) — **ER-5 fully closed**, every Sweat Calculator citation traced to a
    verified source.
-2. **Record the R-21 deploy evidence (founder reports the graph/entitlement DB deploy ran
-   2026-07-31).** To formally close R-21, fill the runbook §11 checklist (target env,
-   date/operator/command, `\d` + `\di` output, smoke tests) and update `OPEN-RISKS.md` R-21 +
-   the capability register — they still read OPEN. Also confirm `SHOPIFY_WEBHOOK_SECRET` is set
-   on Railway so the Shopify entitlement bridge (#400/#402) is live, not just the graph tables.
+2. **Confirm `SHOPIFY_WEBHOOK_SECRET` is set on Railway** so the Shopify entitlement bridge
+   (#400/#402) is actually live, not just the graph tables. (R-21 graph-schema deploy is now
+   closed on founder attestation — 2026-07-31; optionally capture the `\d`/`\di`/smoke output to
+   upgrade R-21 from founder-attested to fully-verified.) Also confirm **D-08's
+   `hydrostate_model_version` column** deployed (not separately attested).
 3. **Decide the iOS purchase posture with counsel** — keep web-routing (current, compliant)
    or flip `ios_direct_checkout_enabled`. Non-blocking while OFF, but decide before the store
    submission narrative is finalized.
