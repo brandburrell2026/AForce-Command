@@ -169,7 +169,9 @@ These do not self-surface. Listed first per standing scrum-master discipline.
 
 1. **Book the regulatory/claims reviewer for CR-1.** Still unscheduled since 2026-07-17. The
    critical-path blocker — every other claims/copy gate resolves through it. **Sole standing
-   human action from the prior refresh; still open.**
+   human action from the prior refresh; still open.** Review package now prepared
+   (`governance/reviews/CR-1-CLAIMS-REVIEW-PACKAGE.md`: reviewer spec + cited claims worksheet)
+   — booking is the remaining step.
 2. **Set `SHOPIFY_WEBHOOK_SECRET` on Railway and run the graph/entitlement DB deploy** (R-21
    runbook). Unblocks both the Shopify entitlement bridge (#400/#402) and the graph layer
    (#395/#396) in one deploy pass.
