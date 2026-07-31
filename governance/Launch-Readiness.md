@@ -192,9 +192,9 @@ These do not self-surface. Listed first per standing scrum-master discipline.
    all 3 items in copy (Baker "Table 2"→"Figure 2" + range → 10–90 mmol/L; Maughan →
    `20(Suppl 2):59–69`; §C/§G/§F → paper-level coords), across 11 locales + screen + comments.
    `data/sweatSports.ts` per-sport provenance reconciled 2026-07-31 — citation fixes applied
-   (8 sports were mis-cited to Baker 2017, now correctly sourced), with **2 data-value changes
-   awaiting founder sign-off** (Hot Yoga 0.85→~1.0; optional Basketball 1.38→0.95 — would change
-   the sweat calc, no claim risk). See `governance/reviews/CR-1-ER5-CITATION-VERIFICATION.md`.
+   (8 sports were mis-cited to Baker 2017, now correctly sourced); founder value decisions made
+   (Hot Yoga 0.85→1.0 **applied**, cited Alrefai 2020; Basketball **kept 1.38**). Only open item:
+   the CrossFit study locus (interim range-cite, no claim risk). ER-5 fully closed otherwise.
 2. **Set `SHOPIFY_WEBHOOK_SECRET` on Railway and run the graph/entitlement DB deploy** (R-21
    runbook). Unblocks both the Shopify entitlement bridge (#400/#402) and the graph layer
    (#395/#396) in one deploy pass.

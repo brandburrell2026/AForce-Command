@@ -26,21 +26,23 @@
  *   - Logan-Sprenger HM, Palmer MS, Spriet LL. 2011. Estimated fluid and sodium
  *     balance and drink preferences in elite male junior players during an ice
  *     hockey game. Appl Physiol Nutr Metab 36(1):145-152. (game 1.11 L/h -> Hockey)
+ *   - Alrefai H, Mathis SL, Hicks SM, Pivovarova AI, MacGregor GG. 2020. Salt
+ *     and water balance after sweat loss: a study of Bikram yoga. Physiol Rep
+ *     8(22):e14647. (1.54 L over ~90 min ~= 1.0 L/h -> Hot Yoga)
  *   - Baker LB. 2017. Sweating rate and sweat sodium concentration in athletes:
  *     a review of methodology and intra/interindividual variability. Sports Med
  *     47(Suppl 1):111-128. (overall WBSR range ~0.5-2.0 L/h; range anchor for
- *     Tennis, Cycling, Triathlon, CrossFit, Hot Yoga where no single normative
- *     mean is locked -- NOT a per-sport source)
+ *     Tennis, Cycling, Triathlon, CrossFit where no single normative mean is
+ *     locked -- NOT a per-sport source)
  *   - Sawka MN, Burke LM, Eichner ER, Maughan RJ, Montain SJ, Stachenfeld NS.
  *     2007. ACSM Position Stand: Exercise and Fluid Replacement. Med Sci Sports
  *     Exerc 39(2):377-390. (general/resistance training band -> General Gym)
  *
- * OPEN — founder sign-off (see governance/reviews/CR-1-ER5-CITATION-VERIFICATION.md):
- *   - Hot Yoga value 0.85 contradicts the only Bikram-yoga measurement
- *     (~1.0 L/h); proposed change to ~1.0 (a functional change, not applied).
- *   - Basketball 1.38 is a male-competition anchor (Broad 1996); Barnes 2019's
- *     pooled mean is 0.95 — documented alternative, not applied.
- *   - CrossFit 1.30 has CrossFit-field support (~1.28) pending a locked study locus.
+ * FOUNDER DECISIONS (see governance/reviews/CR-1-ER5-CITATION-VERIFICATION.md):
+ *   - Hot Yoga: 0.85 -> 1.0 L/h APPLIED (Alrefai 2020 Bikram measurement).
+ *   - Basketball: KEEP 1.38 (male-competition anchor, Broad 1996). Barnes 2019's
+ *     pooled 0.95 was considered and declined (user base skews competitive).
+ *   - CrossFit 1.30 has CrossFit-field support (~1.28) pending a locked study locus (open).
  *
  * MET values from:
  *   - Ainsworth BE et al. 2011. Compendium of Physical Activities, 2nd ed.
@@ -123,9 +125,9 @@ export const SWEAT_SPORTS: SportDefault[] = [
     id: 'hot_yoga',
     label: 'Hot Yoga',
     emoji: '🧘',
-    meanSweatRateLh: 0.85,
+    meanSweatRateLh: 1.0,
     met: 4.5,
-    citation: 'Baker 2017 (0.5-2.0 L/h range)',
+    citation: 'Alrefai 2020',
   },
   {
     id: 'hockey',
