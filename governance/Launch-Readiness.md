@@ -12,6 +12,13 @@ closed, cadence picker shipped; **(c)** the reset-hard incident residue reconstr
 schema + intelligence constants restored to source, 150 tests green. The prior tracker's
 "Open PR #263–#266 / PR #28" rows are long since merged/closed and have been removed.
 
+**CR-1 update 2026-07-31 (PRs #405–#419):** the pre-launch claims layer is now prepped and
+conservatively remediated — cited reviewer package + internal scientific pass + ER-5 citation
+verification; every live-flagged claim fixed / held / genericized; both ER-5 citation
+mismatches fixed. **No unsubstantiated claim currently ships.** The external regulatory review
+itself is still **unbooked** (the remaining gate); reviewer outreach + supplier-evidence
+requests are drafted in `governance/reviews/`. See §1 / §4 / §5 below.
+
 Read alongside: `governance/OPEN-RISKS.md` (live risks, esp. R-21 graph deploy),
 `governance/CAPABILITY-STATUS-REGISTER.md`, `governance/PASS3-BUILD-PLAN.md`,
 `governance/Risk-Register.md`, `governance/decisions/DR-001-hydroscan-integration-and-launch-scope.md`,
@@ -29,13 +36,18 @@ review, one commerce cutover, one infra deploy, and the still-headless personali
 
 **Top 6 things that actually block launch, in order:**
 
-1. **CR-1 (pre-launch claims/compliance review) still has no reviewer booked.** Unchanged
-   since 2026-07-17. It gates RD-1 (§64 enable), the HydroScan efficiency%/superfood/urine
-   claims, §20 surfacing copy, the personalization-copy audit (S56-1), and — per
-   `OPEN-RISKS.md` R-24 — the per-locale intelligence-claims validation (only English is
-   §42-validated; the launch locales ship product copy but need an 8-item review before any
-   locale emits intelligence claims). **Still the single largest schedule risk** — most other
-   open items are downstream of it.
+1. **CR-1 (pre-launch claims/compliance review) — claims remediated, external review still
+   unbooked.** The acute risk is materially reduced: as of 2026-07-31 the full claims layer is
+   prepped and conservatively remediated (PRs #405–#419) — a cited reviewer package + internal
+   scientific-substantiation pass; every live-flagged claim **fixed, held, or genericized**
+   (marketing "Heat Guard" fixed + deployed; §2 hard-stops removed; urine verdicts
+   observation-only; competitor table genericized; "72 minerals" / "4-hour window" held pending
+   evidence; both ER-5 citation mismatches fixed). **No unsubstantiated claim currently ships.**
+   What remains is the **external regulatory review itself**, still unbooked — it gates RD-1
+   (§64 enable), the HydroScan flag flips, *restoring* the held claims, and the R-24 per-locale
+   validation. Reviewer outreach + supplier-evidence requests are drafted (`governance/reviews/`),
+   so booking is a send-away. Still the top **schedule** item (review lead time), but no longer
+   an acute claims-exposure risk.
 2. **Commerce cutover is not proven end-to-end in production.** The Command path is built and
    pins price correctly (#380/#390/#392/#393/#398). The **Ritual "Save-10% displayed ≠
    charged"** mismatch is **closed** — reconciled (PR #405), **deployed live**, and **verified
@@ -149,7 +161,7 @@ Profile) rather than five separate UI projects.
 
 | Item | Owner | What it blocks | Status |
 |---|---|---|---|
-| **CR-1** — pre-launch claims/compliance review | Brandon + performance-scientist (+ counsel on edges) | RD-1 (§64); HydroScan efficiency%/superfood/urine claims; §20 surfacing copy (COND-3); S56-1 personalization copy; R-24 per-locale claims | **OPEN — no reviewer booked** (since 2026-07-17). Human action #1 |
+| **CR-1** — pre-launch claims/compliance review | Brandon + performance-scientist (+ counsel) | RD-1 (§64 enable); HydroScan flag flips; *restoring* held claims (ER-1/ER-2); R-24 per-locale | **PREP COMPLETE, review UNBOOKED** — claims remediated (PRs #405–#419; no unsubstantiated claim ships); reviewer package + outreach + supplier-evidence request all drafted in `governance/reviews/`. Booking/engaging counsel is the open step. Human action #1 |
 | **Ritual Save-10% displayed ≠ charged** | Brandon + revenue-guardian | Commerce cutover trust | **CLOSED 2026-07-31 (PR #405, deployed live + verified)** — shop copy set to full price ($59.99/$29.99), "Save 10%" badges removed; `shop.drinkaforce.com` storefront charges the same (no discount policy, `compare_at` null). Displayed = charged across all surfaces. Was pre-launch, no customer charged |
 | **R-21** — graph schema DB deploy | devops + backend | Any graph-backed intelligence capability (Stages 1–3 real) | **OPEN** — `drizzle-kit push` never run; no `DATABASE_URL`; six runbook evidence items outstanding |
 | **`SHOPIFY_WEBHOOK_SECRET` on Railway** | devops | #400/#402 Shopify→app entitlement bridge going live | **OPEN** — env not set; bridge source-only until then |
@@ -167,11 +179,14 @@ Profile) rather than five separate UI projects.
 
 These do not self-surface. Listed first per standing scrum-master discipline.
 
-1. **Book the regulatory/claims reviewer for CR-1.** Still unscheduled since 2026-07-17. The
-   critical-path blocker — every other claims/copy gate resolves through it. **Sole standing
-   human action from the prior refresh; still open.** Review package now prepared
-   (`governance/reviews/CR-1-CLAIMS-REVIEW-PACKAGE.md`: reviewer spec + cited claims worksheet)
-   — booking is the remaining step.
+1. **Send the CR-1 reviewer outreach / engage counsel.** All prep is done and the claims are
+   conservatively remediated (no unsubstantiated claim ships), so this is now a send-away, not a
+   scramble: reviewer outreach (`governance/reviews/CR-1-REVIEWER-OUTREACH.md` — incl. an AWG
+   scope-check + a cold-specialist note), the cited worksheet (`CR-1-CLAIMS-REVIEW-PACKAGE.md`),
+   and the supplier evidence request (`CR-1-SUPPLIER-EVIDENCE-REQUEST.md`) are all drafted and
+   one step from sent. Engaging the reviewer is the remaining human action. **Also:** confirm the
+   3 ER-5 citation section/table pointers (Baker Table 2, Cheuvront §C, Sawka §G) against the
+   actual papers — a citation-accuracy check, no claim risk.
 2. **Set `SHOPIFY_WEBHOOK_SECRET` on Railway and run the graph/entitlement DB deploy** (R-21
    runbook). Unblocks both the Shopify entitlement bridge (#400/#402) and the graph layer
    (#395/#396) in one deploy pass.
