@@ -438,8 +438,8 @@ export default function SweatCalculatorScreen() {
                 />
                 <ClimateLine climate={climate} ambientTempC={ambientTempC} />
                 <Helper>
-                  Estimate path uses your sport&apos;s population-mean sweat rate
-                  (Baker 2017) scaled by body surface area, intensity, and
+                  Estimate path uses your sport&apos;s published population-mean
+                  sweat rate, scaled by body surface area, intensity, and
                   climate. Measure with a scale for the most accurate number.
                 </Helper>
               </Card>
@@ -1072,7 +1072,7 @@ function AdvancedDataCard({ result }: { result: SweatSession }) {
           {result.audit.heatFactor !== undefined && <AuditRow k="Climate factor" v={`×${result.audit.heatFactor.toFixed(2)}`} />}
           {result.audit.acclimFactor !== undefined && <AuditRow k="Acclim. factor" v={`×${result.audit.acclimFactor.toFixed(2)}`} />}
           {result.audit.bsaM2 !== undefined && <AuditRow k="Body surface area" v={`${result.audit.bsaM2.toFixed(2)} m² (Du Bois)`} />}
-          <AuditRow k="Method" v={result.audit.source === 'measured' ? 'Direct measurement (ACSM)' : 'Anchored estimate (Baker 2017)'} />
+          <AuditRow k="Method" v={result.audit.source === 'measured' ? 'Direct measurement (ACSM)' : 'Anchored estimate (published means)'} />
           <AuditRow k="Autopilot" v={`${result.autopilot.intervalMin} min · ${result.autopilot.urgency}`} />
         </View>
       )}
@@ -1197,10 +1197,10 @@ function CitationCard() {
       </Text>
       <Text style={styles.citationBody}>
         <Text style={styles.citationBold}>Estimate path:</Text>{'\n'}
-        Anchored to per-sport population-mean sweat rates (Baker 2017), scaled by Du Bois body-surface area, RPE-mapped intensity, USARIEM-style climate factors, and Périard 2015 acclimatization adjustment.
+        Anchored to per-sport population-mean sweat rates (Baker 2017; sport-specific values from Maughan 2007 and Godek 2010), scaled by Du Bois body-surface area, RPE-mapped intensity, USARIEM-style climate factors, and Périard 2015 acclimatization adjustment.
       </Text>
       <Text style={styles.citationDisclaimer}>
-        Calibration target: ±15% of measured rate at moderate intensity, thermoneutral conditions. Always confirm with a scale for clinical decisions. Not a medical device.
+        This is a modeled estimate, not a measurement — always confirm with a scale for clinical decisions. Not a medical device.
       </Text>
     </View>
   );
