@@ -37,12 +37,12 @@ review, one commerce cutover, one infra deploy, and the still-headless personali
    locale emits intelligence claims). **Still the single largest schedule risk** — most other
    open items are downstream of it.
 2. **Commerce cutover is not proven end-to-end in production.** The Command path is built and
-   pins price correctly (#380/#390/#392/#393/#398), but: (a) the **Ritual "Save-10%
-   displayed ≠ charged"** mismatch is **still open** — the shop displays a 10% saving while
-   the live plan (2501607542) is kept at full price (founder ruling 2026-07-26); (b) the
-   Shopify→app entitlement bridge (#400/#402) is **source-only** until the DB deploy (see #4)
-   and `SHOPIFY_WEBHOOK_SECRET` is set on Railway; (c) a live E2E round-trip on the deployed
-   cart API is still a documented pre-reliance step.
+   pins price correctly (#380/#390/#392/#393/#398). The **Ritual "Save-10% displayed ≠
+   charged"** mismatch is now **reconciled** (PR #405, pending merge — shop copy set to full
+   price, "Save 10%" badges removed; verified live plan 2501607542 has no discount policy).
+   Still open: (a) the Shopify→app entitlement bridge (#400/#402) is **source-only** until the
+   DB deploy (see #4) and `SHOPIFY_WEBHOOK_SECRET` is set on Railway; (b) a live E2E round-trip
+   on the deployed cart API is still a documented pre-reliance step.
 3. **§20 flag-flip still has two unresolved sub-gates** even after CR-1: BLOCK-2 (under-18
    users get adult coefficients — founder + counsel) and COND-3 (surfacing copy —
    performance-scientist). `spec_section20_calibration` stays OFF until both clear.
@@ -87,7 +87,7 @@ runtime caller / no DB / no deploy) · **Not-built** (post-launch, no code) · *
 | **Shopify→app entitlement bridge** (D-2, slice 4c) | **Source-only** | — | #400: HMAC webhook + email-keyed bridge table + additive OR in `GET /entitlement` (never downgrades). Table source-only until R-21-style deploy + `SHOPIFY_WEBHOOK_SECRET` on Railway |
 | **orders/paid bridge** | **Built** (source) | — | #402: `orders/paid` + Command-variant allowlist → rolling self-expiring grants (35d/370d). Bound: refund-then-keep-access ≤ one billing window until `orders/refunded` mapped |
 | **iOS purchase posture** | **Built-behind-flag (dark)** | `ios_direct_checkout_enabled` (OFF) | #403: iOS store builds route Command purchases to drinkaforce.com (web→app bridge). Flip only after counsel confirms external-purchase-link posture (App Store 3.1.1) |
-| Ritual subscription plan | Shipped-live (full price) | — | Plan 2501607542 kept at FULL price (founder 2026-07-26); **shop still displays Save-10% → displayed ≠ charged is an OPEN cutover blocker** |
+| Ritual subscription plan | Shipped-live (full price) | — | Plan 2501607542 kept at FULL price (founder 2026-07-26). Displayed ≠ charged Save-10% mismatch **reconciled** — shop copy set to full price, badges removed (PR #405, pending merge) |
 | PASS-3 slice 1 — provider honesty (RC-L13) | **Shipped-live (UI)** | — | #387: wired `resolveHealthProviderStatus` into Profile rows. "LIVE" now requires verified + unexpired link; killed the fake-LIVE mock + demo-biometric seeding into score inputs |
 | PASS-3 slice 2 — profile server hydration (RC-L11) | Built-behind-flag (dark) | `profile_server_hydration_enabled` (OFF) | #388: server rehydration + K-1 encrypted secure-store cache + reconnect flush. One-line flip after a physical-device reinstall test |
 | PASS-3 slice 3 — intake corrections (RC-L12) | **Source-only** (route caller-less) | — (`intake_corrections_enabled` unbuilt) | #389: `POST /intake/correction` (append-only reversal) + §10 honesty columns. Undo UI deferred; schema source-only until runbook deploy |
@@ -146,7 +146,7 @@ Profile) rather than five separate UI projects.
 | Item | Owner | What it blocks | Status |
 |---|---|---|---|
 | **CR-1** — pre-launch claims/compliance review | Brandon + performance-scientist (+ counsel on edges) | RD-1 (§64); HydroScan efficiency%/superfood/urine claims; §20 surfacing copy (COND-3); S56-1 personalization copy; R-24 per-locale claims | **OPEN — no reviewer booked** (since 2026-07-17). Human action #1 |
-| **Ritual Save-10% displayed ≠ charged** | Brandon + revenue-guardian | Commerce cutover trust | **OPEN** — plan kept at full price 2026-07-26; shop still shows a 10% saving. Reconcile display or pricing before relying on the cart |
+| **Ritual Save-10% displayed ≠ charged** | Brandon + revenue-guardian | Commerce cutover trust | **RESOLVED 2026-07-31 (PR #405, pending merge)** — shop copy set to full price ($59.99/$29.99), "Save 10%" badges removed; verified plan 2501607542 has no discount policy. Was pre-launch, no customer charged |
 | **R-21** — graph schema DB deploy | devops + backend | Any graph-backed intelligence capability (Stages 1–3 real) | **OPEN** — `drizzle-kit push` never run; no `DATABASE_URL`; six runbook evidence items outstanding |
 | **`SHOPIFY_WEBHOOK_SECRET` on Railway** | devops | #400/#402 Shopify→app entitlement bridge going live | **OPEN** — env not set; bridge source-only until then |
 | **iOS external-purchase-link posture** | Brandon + counsel | `ios_direct_checkout_enabled` flip | **OPEN (parked)** — default routes to web (App Store 3.1.1 compliant); no launch blocker while OFF |
@@ -166,15 +166,16 @@ These do not self-surface. Listed first per standing scrum-master discipline.
 1. **Book the regulatory/claims reviewer for CR-1.** Still unscheduled since 2026-07-17. The
    critical-path blocker — every other claims/copy gate resolves through it. **Sole standing
    human action from the prior refresh; still open.**
-2. **Reconcile the Ritual shop display vs. charged price** (Save-10% shown, full price
-   charged). Founder + revenue-guardian: either remove the 10% display or re-price the plan
-   before the cart is relied on.
-3. **Set `SHOPIFY_WEBHOOK_SECRET` on Railway and run the graph/entitlement DB deploy** (R-21
+2. **Set `SHOPIFY_WEBHOOK_SECRET` on Railway and run the graph/entitlement DB deploy** (R-21
    runbook). Unblocks both the Shopify entitlement bridge (#400/#402) and the graph layer
    (#395/#396) in one deploy pass.
-4. **Decide the iOS purchase posture with counsel** — keep web-routing (current, compliant)
+3. **Decide the iOS purchase posture with counsel** — keep web-routing (current, compliant)
    or flip `ios_direct_checkout_enabled`. Non-blocking while OFF, but decide before the store
    submission narrative is finalized.
+
+*Resolved 2026-07-31:* the Ritual "Save-10% displayed ≠ charged" mismatch — shop copy set to
+full price and the "Save 10%" badges removed (PR #405, pending merge). No longer a human
+action; the founder's full-price ruling is now reflected in what the shop displays.
 
 ---
 
