@@ -109,11 +109,15 @@ decided**, so neither can silently ship the wrong way. Detail in
   — performance-scientist assessment of the 6 highest-risk claims (5 salvageable-with-qualifier,
   5 remove/substantiate-on-file, 3 hard §2 red-lines). Internal only; the external regulatory
   review is still the open gate.
-- **App-copy dispositions applied 2026-07-31 (PR #410 marketing, #411 app):** hard §2 claims removed,
-  urine verdicts moved to observation-only, unsubstantiated efficacy tails dropped. Open follow-ups
-  tracked in `governance/reviews/CR-1-EVIDENCE-REQUESTS.md` (ER-1…ER-7) — ER-1 "72 minerals" and
-  ER-2 "4-hour window" gate **currently-live** claims (substantiate-or-remove before launch); the
-  named-competitor rows (ER-3) await a decision + sourced data.
+- **App-copy dispositions applied 2026-07-31 (PR #410 marketing, #411 app, #413 competitor table,
+  #415 held claims):** hard §2 claims removed, urine verdicts observation-only, efficacy tails
+  dropped, competitor table genericized (ER-3), 72-minerals/4-hour-window held (ER-1/ER-2). Open
+  follow-ups tracked in `governance/reviews/CR-1-EVIDENCE-REQUESTS.md`. **No unsubstantiated claim
+  ships now.**
+- **ER-5 citation verification done 2026-07-31:** `governance/reviews/CR-1-ER5-CITATION-VERIFICATION.md`
+  — Sweat Calculator figure↔source check: 1 SUPPORTED, 3 CHECK-PRIMARY, **2 MISMATCH** (the "±15%"
+  unsupported-validation line; a "Baker 2017" attribution that should credit Maughan 2007 / Godek
+  2010). Arithmetic all PASS. The 2 MISMATCH are must-fix copy defects before launch.
 - **Booking (human, will not self-surface):** the regulatory specialist must be
   booked for this review — it does not happen without that engagement.
 
