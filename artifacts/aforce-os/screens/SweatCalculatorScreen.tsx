@@ -1092,10 +1092,11 @@ function AuditRow({ k, v }: { k: string; v: string }) {
 
 /* ── H. Comparison Table — the only brand-comparison surface ────────── */
 const COMPARISON_ROWS: { brand: string; sodium: string; profile: string; you: boolean }[] = [
-  { brand: 'AForce',     sodium: '25 mg',     profile: 'Marine · pH 8.8 · structured', you: true  },
-  { brand: 'Gatorade',   sodium: '~270 mg',   profile: 'Sugar-driven · table salt',     you: false },
-  { brand: 'LMNT',       sodium: '1000 mg',   profile: 'Salt-bomb · no minerals',       you: false },
-  { brand: 'Liquid IV',  sodium: '~500 mg',   profile: 'Sugar + salt · no structuring', you: false },
+  // Categories, not named brands (CR-1 ER-3). Sodium is category-typical (~).
+  { brand: 'AForce',            sodium: '25 mg',    profile: 'Marine minerals · pH 8.8', you: true  },
+  { brand: 'Sports drinks', sodium: '~200 mg',  profile: 'Sugar + sodium',   you: false },
+  { brand: 'Salt mixes',    sodium: '~1000 mg', profile: 'Sodium-forward',   you: false },
+  { brand: 'ORS mixes',     sodium: '~500 mg',  profile: 'Glucose + sodium', you: false },
 ];
 
 function ComparisonTable() {
