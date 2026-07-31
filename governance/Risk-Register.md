@@ -102,6 +102,9 @@ decided**, so neither can silently ship the wrong way. Detail in
     in-app strings that fail this test.
 - **Rule:** nothing on this list ships until it clears here. Governs by
   `docs/COMPLIANCE_FRAMEWORK.md`. Not a code step — a deliberate go/no-go.
+- **Review package prepared 2026-07-31:** `governance/reviews/CR-1-CLAIMS-REVIEW-PACKAGE.md`
+  — cited claims inventory (app + marketing + locales), reviewer specification, existing §42
+  controls, and a go/no-go disposition worksheet. Makes booking a one-step action.
 - **Booking (human, will not self-surface):** the regulatory specialist must be
   booked for this review — it does not happen without that engagement.
 
