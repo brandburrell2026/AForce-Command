@@ -507,7 +507,7 @@
         <h3>Sticks</h3>
         <p class="fmt-desc">Drop one into any water — the ritual travels with you.</p>
         <div class="plan" data-format="sticks">
-          <button class="plan-opt on" type="button" data-plan="autopilot"><span class="radio"></span><span class="pl-main"><span class="pl-name">AutoPilot</span><span class="pl-price" data-price="sticks-autopilot">$53.99</span><span class="pl-unit">/ month</span><span class="pl-save">Save 10%</span><span class="pl-note">Ritual Membership · skip or cancel anytime in AFORCE OS</span></span></button>
+          <button class="plan-opt on" type="button" data-plan="autopilot"><span class="radio"></span><span class="pl-main"><span class="pl-name">AutoPilot</span><span class="pl-price" data-price="sticks-autopilot">$59.99</span><span class="pl-unit">/ month</span><span class="pl-note">Ritual Membership · skip or cancel anytime in AFORCE OS</span></span></button>
           <button class="plan-opt" type="button" data-plan="onetime"><span class="radio"></span><span class="pl-main"><span class="pl-name">One-Time</span><span class="pl-price" data-price="sticks-onetime">$59.99</span><span class="pl-unit">one box</span></span></button>
         </div>
         <div class="depths" data-format="sticks">
@@ -531,7 +531,7 @@
         <h3>RTD Cans</h3>
         <p class="fmt-desc">Cold, immediate, no mixing — the ritual, ready.</p>
         <div class="plan" data-format="cans">
-          <button class="plan-opt on" type="button" data-plan="autopilot"><span class="radio"></span><span class="pl-main"><span class="pl-name">AutoPilot</span><span class="pl-price" data-price="cans-autopilot">$26.99</span><span class="pl-unit">/ 6-pack, monthly</span><span class="pl-save">Save 10%</span><span class="pl-note">Ritual Membership · skip or cancel anytime in AFORCE OS</span></span></button>
+          <button class="plan-opt on" type="button" data-plan="autopilot"><span class="radio"></span><span class="pl-main"><span class="pl-name">AutoPilot</span><span class="pl-price" data-price="cans-autopilot">$29.99</span><span class="pl-unit">/ 6-pack, monthly</span><span class="pl-note">Ritual Membership · skip or cancel anytime in AFORCE OS</span></span></button>
           <button class="plan-opt" type="button" data-plan="onetime"><span class="radio"></span><span class="pl-main"><span class="pl-name">One-Time</span><span class="pl-price" data-price="cans-onetime">$29.99</span><span class="pl-unit">6-pack</span></span></button>
         </div>
         <div class="depths" data-format="cans">
@@ -712,7 +712,12 @@
     travel:{label:"Travel",f:"soursop",pref:"sticks",plan:"autopilot"}, competition:{label:"Competition",f:"watermelon",pref:"sticks"},
     heat:{label:"Heat",f:"watermelon",pref:"sticks"}
   };
-  var UNIT = { sticks:{autopilot:53.99, onetime:59.99}, cans:{autopilot:26.99, onetime:29.99} };
+  // AutoPilot (Ritual Membership, SellingPlan 2501607542) charges the FULL
+  // variant price — the plan has NO pricing adjustment (empty pricingPolicies,
+  // verified live 2026-07-31: stick $59.99, can $29.99). Founder ruling
+  // 2026-07-26: kept at full price. So autopilot === onetime here; displaying a
+  // lower "subscribe & save" price would show less than checkout charges.
+  var UNIT = { sticks:{autopilot:59.99, onetime:59.99}, cans:{autopilot:29.99, onetime:29.99} };
   var DEPTH_UNITS = { single:1, double:2, "case":4 };
   var QTY_LABEL = { sticks:"20 Sticks", cans:"6 Cans" };
 
