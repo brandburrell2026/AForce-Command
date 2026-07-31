@@ -187,9 +187,12 @@ These do not self-surface. Listed first per standing scrum-master discipline.
    cold-specialist note) and the supplier evidence request (`CR-1-SUPPLIER-EVIDENCE-REQUEST.md` —
    product/SKU filled) are each **one field from sent** (recipient name only); the cited worksheet
    (`CR-1-CLAIMS-REVIEW-PACKAGE.md`) is the scope-of-work to hand over under engagement. Sending
-   them + engaging the reviewer is the remaining human action. **Also:** confirm the 3 ER-5
-   citation section/table pointers (Baker Table 2, Cheuvront §C, Sawka §G) against the actual
-   papers — a citation-accuracy check, no claim risk.
+   them + engaging the reviewer is the remaining human action. **ER-5 citation check done
+   2026-07-31** — it found **2 citation-accuracy fixes** (Baker "Table 2" is the wrong table +
+   range runs high → fix pointer / re-source to Baker 2019; Maughan & Shirreffs 2010 is
+   `20(Suppl 2):59–69`, not `31–42`), plus "§C/§G/§F" internal-shorthand pointers to replace.
+   Physiological directions are sound (no claim risk); performance-scientist to pick the correct
+   source/pages. See `governance/reviews/CR-1-ER5-CITATION-VERIFICATION.md`.
 2. **Set `SHOPIFY_WEBHOOK_SECRET` on Railway and run the graph/entitlement DB deploy** (R-21
    runbook). Unblocks both the Shopify entitlement bridge (#400/#402) and the graph layer
    (#395/#396) in one deploy pass.
