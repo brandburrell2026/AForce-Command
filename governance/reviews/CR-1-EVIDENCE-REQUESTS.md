@@ -11,7 +11,7 @@
 
 ## Process (per item)
 
-1. **Provider** obtains the document (manufacturer/formulation lab for CoA/PK/bioavailability; founder for competitor sourcing).
+1. **Provider** obtains the document (manufacturer/formulation lab for CoA/PK/bioavailability; founder for competitor sourcing). A ready-to-send request for the manufacturer is drafted in `governance/reviews/CR-1-SUPPLIER-EVIDENCE-REQUEST.md` (fill placeholders + send).
 2. **Validator** (performance-scientist) confirms the document actually supports the claim *as worded*.
 3. **External regulatory reviewer** (CR-1 proper) blesses final wording → approved phrasing recorded in `CLAIMS-REGISTER.md`.
 4. **If the evidence cannot be obtained** → the claim is **removed/reworded** before launch (do not ship on the "pending" status).
