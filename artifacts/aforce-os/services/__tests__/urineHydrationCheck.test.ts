@@ -32,7 +32,7 @@ describe('Urine Hydration Check — color → verdict mapping (spec)', () => {
     ['clear', 'Hydration Appears Stable', 'stable'],
     ['light_yellow', 'Good Hydration Range', 'good'],
     ['yellow', 'Hydration Support Suggested', 'support'],
-    ['dark_yellow', 'Hydration Correction Recommended', 'correction'],
+    ['dark_yellow', 'Deeper Color — A Good Time for Fluids', 'correction'],
   ])('maps %s → "%s" (severity=%s)', (color, verdict, severity) => {
     const result = assessUrineColor(color);
     expect(result.color).toBe(color);
@@ -44,13 +44,14 @@ describe('Urine Hydration Check — color → verdict mapping (spec)', () => {
     expect(result.hex).toMatch(/^#[0-9A-F]{6}$/i);
   });
 
-  it('uses the natural AForce positioning language for support/correction', () => {
-    expect(assessUrineColor('yellow').recommendation).toMatch(
-      /hydration efficiency support/,
-    );
-    expect(assessUrineColor('dark_yellow').recommendation).toMatch(
-      /mineral recovery support/,
-    );
+  it('recommends AForce + water without unsubstantiated efficacy tails or diagnosis language (CR-1)', () => {
+    expect(assessUrineColor('yellow').recommendation).toMatch(/AForce/);
+    expect(assessUrineColor('dark_yellow').recommendation).toMatch(/AForce/);
+    for (const c of ['yellow', 'dark_yellow'] as const) {
+      expect(assessUrineColor(c).recommendation).not.toMatch(/efficiency support|mineral recovery support/);
+    }
+    expect(assessUrineColor('dark_yellow').verdict).not.toMatch(/Correction/);
+    expect(assessUrineColor('dark_yellow').detail).not.toMatch(/before performance is affected/);
   });
 
   it('does not push AForce when hydration is already stable / good', () => {

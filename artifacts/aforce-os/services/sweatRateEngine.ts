@@ -122,8 +122,8 @@ const AFORCE_STICK_REFERENCE_OZ = 12;   // serving size
 
 /**
  * Sodium per AForce serving (stick / RTD / canister scoop). Per spec:
- * 25mg / serving. Intentional positioning: marine minerals + pH 8.8
- * structured water drive cellular recovery, not sodium flooding.
+ * 25mg / serving. Intentional positioning: marine minerals + a pH 8.8
+ * profile, not sodium flooding.
  */
 export const AFORCE_SODIUM_PER_UNIT_MG = 25;
 

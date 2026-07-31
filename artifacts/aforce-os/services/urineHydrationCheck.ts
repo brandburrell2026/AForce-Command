@@ -4,8 +4,8 @@
  * Maps a urine color signal to a hydration verdict and recommendation.
  * Not a medical test — see DISCLAIMER. Tone matches the HydroScan
  * rebrand: natural observation framing, never an aggressive sell,
- * 12 oz water as the standard pour, AForce positioned as mineral
- * recovery / hydration efficiency support.
+ * 12 oz water as the standard pour, AForce positioned as system
+ * fuel / performance support.
  *
  * Inputs (per spec):
  *   clear | light_yellow | yellow | dark_yellow
@@ -14,7 +14,7 @@
  *   Hydration Appears Stable
  *   Good Hydration Range
  *   Hydration Support Suggested
- *   Hydration Correction Recommended
+ *   Deeper Color — A Good Time for Fluids
  */
 
 export type UrineColor = 'clear' | 'light_yellow' | 'yellow' | 'dark_yellow';
@@ -82,9 +82,9 @@ export function assessUrineColor(color: UrineColor): UrineCheckResult {
         hex,
         severity: 'support',
         verdict: 'Hydration Support Suggested',
-        detail: 'Fluids are trending behind demand. A small correction now keeps you ahead.',
+        detail: 'Fluids are trending behind demand. A good moment to top up.',
         recommendation:
-          'Recommended: 12 oz water + AForce for hydration efficiency support.',
+          '12 oz water + AForce.',
       };
     case 'dark_yellow':
       return {
@@ -92,10 +92,10 @@ export function assessUrineColor(color: UrineColor): UrineCheckResult {
         colorLabel,
         hex,
         severity: 'correction',
-        verdict: 'Hydration Correction Recommended',
-        detail: 'Hydration is trailing the demand curve. Address before performance is affected.',
+        verdict: 'Deeper Color — A Good Time for Fluids',
+        detail: 'Deeper urine color often tracks with lower recent fluid intake.',
         recommendation:
-          'Recommended: 16 oz water + AForce for mineral recovery support. Recheck in 30 minutes.',
+          '16 oz water + AForce. Recheck in 30 minutes.',
       };
     default: {
       // Compile-time exhaustiveness guard. If a new UrineColor value

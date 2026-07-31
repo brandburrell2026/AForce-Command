@@ -829,15 +829,15 @@ function AForceSystemCard() {
 
       <SystemRow k={`${AFORCE_SODIUM_PER_UNIT_MG}mg Sodium`} v="Per serving — controlled, not bombarding." />
       <SystemRow k="72 Trace Minerals" v="Marine source (Irish Seamoss)." />
-      <SystemRow k="pH 8.8 Alkaline" v="Structured water for cellular uptake." />
+      <SystemRow k="pH 8.8 Alkaline" v="A smooth, higher-pH profile — part of the AForce standard." />
       <SystemRow k="4-Hour Recovery Window" v="Time-released absorption profile." />
 
       <View style={styles.systemDivider} />
 
       <Text style={styles.systemSubhead}>Ingredient Detail</Text>
       <IngredientLine name="Irish Seamoss" line="Marine source of 72 trace minerals critical to cellular function." />
-      <IngredientLine name="Chlorella" line="Binds heavy metals and supports oxygen transport." />
-      <IngredientLine name="Atlantic Dulse" line="Iodine-rich for thyroid + metabolic recovery." />
+      <IngredientLine name="Chlorella" line="Freshwater green algae — a whole-food source of chlorophyll and minerals." />
+      <IngredientLine name="Atlantic Dulse" line="Atlantic seaweed — a natural source of iodine and trace minerals." />
     </View>
   );
 }
@@ -1123,7 +1123,7 @@ function ComparisonTable() {
       ))}
 
       <Text style={styles.compareCloser}>
-        More sodium is not always the goal. Better recovery is.
+        More sodium isn't always the goal — the right balance is.
       </Text>
     </View>
   );
