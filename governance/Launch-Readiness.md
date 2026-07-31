@@ -16,8 +16,8 @@ schema + intelligence constants restored to source, 150 tests green. The prior t
 conservatively remediated — cited reviewer package + internal scientific pass + ER-5 citation
 verification; every live-flagged claim fixed / held / genericized; both ER-5 citation
 mismatches fixed. **No unsubstantiated claim currently ships.** The external regulatory review
-itself is still **unbooked** (the remaining gate); reviewer outreach + supplier-evidence
-requests are drafted in `governance/reviews/`. See §1 / §4 / §5 below.
+itself is still **unbooked** (the remaining gate); the reviewer outreach and supplier-evidence
+request are **finalized and one field from sent** in `governance/reviews/`. See §1 / §4 / §5.
 
 Read alongside: `governance/OPEN-RISKS.md` (live risks, esp. R-21 graph deploy),
 `governance/CAPABILITY-STATUS-REGISTER.md`, `governance/PASS3-BUILD-PLAN.md`,
@@ -45,8 +45,9 @@ review, one commerce cutover, one infra deploy, and the still-headless personali
    evidence; both ER-5 citation mismatches fixed). **No unsubstantiated claim currently ships.**
    What remains is the **external regulatory review itself**, still unbooked — it gates RD-1
    (§64 enable), the HydroScan flag flips, *restoring* the held claims, and the R-24 per-locale
-   validation. Reviewer outreach + supplier-evidence requests are drafted (`governance/reviews/`),
-   so booking is a send-away. Still the top **schedule** item (review lead time), but no longer
+   validation. Reviewer outreach + supplier-evidence request are **finalized and one field from
+   sent** (`governance/reviews/`), so booking is a send-away. Still the top **schedule** item
+   (review lead time), but no longer
    an acute claims-exposure risk.
 2. **Commerce cutover is not proven end-to-end in production.** The Command path is built and
    pins price correctly (#380/#390/#392/#393/#398). The **Ritual "Save-10% displayed ≠
@@ -161,7 +162,7 @@ Profile) rather than five separate UI projects.
 
 | Item | Owner | What it blocks | Status |
 |---|---|---|---|
-| **CR-1** — pre-launch claims/compliance review | Brandon + performance-scientist (+ counsel) | RD-1 (§64 enable); HydroScan flag flips; *restoring* held claims (ER-1/ER-2); R-24 per-locale | **PREP COMPLETE, review UNBOOKED** — claims remediated (PRs #405–#419; no unsubstantiated claim ships); reviewer package + outreach + supplier-evidence request all drafted in `governance/reviews/`. Booking/engaging counsel is the open step. Human action #1 |
+| **CR-1** — pre-launch claims/compliance review | Brandon + performance-scientist (+ counsel) | RD-1 (§64 enable); HydroScan flag flips; *restoring* held claims (ER-1/ER-2); R-24 per-locale | **PREP COMPLETE, review UNBOOKED** — claims remediated (PRs #405–#419; no unsubstantiated claim ships); reviewer package + outreach + supplier-evidence request all **finalized (one field from sent)** in `governance/reviews/`. Booking/engaging counsel is the open step. Human action #1 |
 | **Ritual Save-10% displayed ≠ charged** | Brandon + revenue-guardian | Commerce cutover trust | **CLOSED 2026-07-31 (PR #405, deployed live + verified)** — shop copy set to full price ($59.99/$29.99), "Save 10%" badges removed; `shop.drinkaforce.com` storefront charges the same (no discount policy, `compare_at` null). Displayed = charged across all surfaces. Was pre-launch, no customer charged |
 | **R-21** — graph schema DB deploy | devops + backend | Any graph-backed intelligence capability (Stages 1–3 real) | **OPEN** — `drizzle-kit push` never run; no `DATABASE_URL`; six runbook evidence items outstanding |
 | **`SHOPIFY_WEBHOOK_SECRET` on Railway** | devops | #400/#402 Shopify→app entitlement bridge going live | **OPEN** — env not set; bridge source-only until then |
@@ -179,14 +180,16 @@ Profile) rather than five separate UI projects.
 
 These do not self-surface. Listed first per standing scrum-master discipline.
 
-1. **Send the CR-1 reviewer outreach / engage counsel.** All prep is done and the claims are
-   conservatively remediated (no unsubstantiated claim ships), so this is now a send-away, not a
-   scramble: reviewer outreach (`governance/reviews/CR-1-REVIEWER-OUTREACH.md` — incl. an AWG
-   scope-check + a cold-specialist note), the cited worksheet (`CR-1-CLAIMS-REVIEW-PACKAGE.md`),
-   and the supplier evidence request (`CR-1-SUPPLIER-EVIDENCE-REQUEST.md`) are all drafted and
-   one step from sent. Engaging the reviewer is the remaining human action. **Also:** confirm the
-   3 ER-5 citation section/table pointers (Baker Table 2, Cheuvront §C, Sawka §G) against the
-   actual papers — a citation-accuracy check, no claim risk.
+1. **Send the CR-1 reviewer outreach + supplier request / engage counsel.** All prep is done and
+   the claims are conservatively remediated (no unsubstantiated claim ships), so this is a
+   send-away, not a scramble. **Both outreaches are finalized:** the reviewer outreach
+   (`governance/reviews/CR-1-REVIEWER-OUTREACH.md` — AWG scope-check w/ September filled + a
+   cold-specialist note) and the supplier evidence request (`CR-1-SUPPLIER-EVIDENCE-REQUEST.md` —
+   product/SKU filled) are each **one field from sent** (recipient name only); the cited worksheet
+   (`CR-1-CLAIMS-REVIEW-PACKAGE.md`) is the scope-of-work to hand over under engagement. Sending
+   them + engaging the reviewer is the remaining human action. **Also:** confirm the 3 ER-5
+   citation section/table pointers (Baker Table 2, Cheuvront §C, Sawka §G) against the actual
+   papers — a citation-accuracy check, no claim risk.
 2. **Set `SHOPIFY_WEBHOOK_SECRET` on Railway and run the graph/entitlement DB deploy** (R-21
    runbook). Unblocks both the Shopify entitlement bridge (#400/#402) and the graph layer
    (#395/#396) in one deploy pass.
