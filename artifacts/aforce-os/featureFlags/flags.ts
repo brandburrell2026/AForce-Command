@@ -91,6 +91,8 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   // visible surfaces stay governed by their pre-existing flags above.
   spec_activation: true,
   spec_social: true,
+  // Night Out Protocol — Founder/Internal Preview only (NO-10). OFF in prod.
+  night_out_enabled: false,
   spec_sleep: false,
   spec_cruise: false,
   spec_coachV2: true,
@@ -362,6 +364,8 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
   // creates them); flipping them on now would crash i18next on lookup.
   spec_activation: true,
   spec_social: true,
+  // Night Out Protocol — ON only in the internal/demo build (never prod default).
+  night_out_enabled: true,
   spec_sleep: true,
   spec_cruise: true,
   spec_coachV2: true,
