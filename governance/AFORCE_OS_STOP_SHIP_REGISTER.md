@@ -71,3 +71,20 @@
   real secondary divergence.
 
 Sequencing of fixes is proposed (not authorized) in `AFORCE_OS_ELITE_IMPLEMENTATION_PLAN.md`.
+
+---
+
+## 4. Night Out Protocol addendum (2026-08-01)
+
+From the Night Out reconciliation pass (`AFORCE_OS_NIGHT_OUT_PROTOCOL_SPEC.md`). SS-05 (residual
+BAC/impairment/driving) already covers the largest Night-Out safety item. One net-new S1:
+
+| ID | Sev | Item | Evidence | Verdict | Owner |
+|---|---|---|---|---|---|
+| **SS-26** | **S1** | **No age gating / regional alcohol eligibility** for alcohol-specific Night Out controls — grep-clean (no `drinkingAge`/`legalAge`/`ageGate`). Alcohol quick-log + disclaimers must respect jurisdiction; age entry alone ≠ legal eligibility. | direct verify | CONFIRMED (absence) | Founder + counsel — required before public alcohol features |
+
+Night-Out items already tracked elsewhere: **SS-05** (BAC/driving = NO-5), **SS-06** (private-by-default
+sharing), **SS-21** ("Hangover Risk" wording = NO-6), **SS-23** (consumption ladder = NO-7), **SS-25**
+(RTD leads with product). New reconciliation-only items NO-1..NO-4, NO-9, NO-10 are in the
+Reconciliation Register (not all stop-ship). **Aligned/compliant (no action):** deterministic capped
+alcohol depletion (§5) and neutral alcohol logging (§11).

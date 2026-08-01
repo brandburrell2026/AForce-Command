@@ -66,3 +66,10 @@ No confetti / looping celebration / decorative animation (Constitution Principle
 ## 5. Status
 Motion tokens = **Live** (defined + tested, `afMotion`). Reduced-motion coverage + haptics opt-out =
 **Partially Built**. Adoption of the token layer is opt-in per screen; enforcement is a Plan P5 item.
+
+## 6. Night Out Protocol cross-reference (2026-08-01)
+Per `AFORCE_OS_NIGHT_OUT_PROTOCOL_SPEC.md` §14: **no celebration on Night Out activation or on alcohol
+logging**; **neutral or no haptic for alcohol logging**; success feedback reserved for verified
+beneficial completion only. **Currently compliant** — alcohol is logged via a separate `logSocialDrink`
+path (no `notification(Success)`), and the screen uses light selection/impact haptics
+(`SocialModeV2Screen.tsx:265,324`). Preserve this on rename.

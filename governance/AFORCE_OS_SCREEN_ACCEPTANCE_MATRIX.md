@@ -75,3 +75,13 @@ prompt enumerates (first-open, morning, midday, pre/post-training, Peak/Balanced
 offline, limited/stale/partial data, permissions-missing, sync-in-progress, no-command). This matrix
 is the **inventory**; the acceptance criteria + deterministic screenshots per state are a build
 deliverable, not part of Phase 0.
+
+## 5. Night Out Protocol deterministic states (2026-08-01)
+`AFORCE_OS_NIGHT_OUT_PROTOCOL_SPEC.md` §24 enumerates the required Night-Out acceptance states
+(first-use, alcohol-free, off, preparing, active-no-command, active-with-Water-First-command,
+accepted/adjusted/deferred command, partial/verified water completion, scanned/selected/intended-not-
+consumed, neutral confirmed alcohol log, corrected/deleted entry, before-sleep + next-morning handoff,
+limited/stale/offline/pending-sync/conflict, denied notifications/health-permissions, Force-Mode off,
+lock-screen-previews off, ineligible-alcohol controls, emergency-boundary, recoverable/unrecoverable
+error). Night Out must render **inside the Protocol tab** (no 6th tab). Fixtures must never appear as
+fabricated provider measurements. Authoring these rows + screenshots is a build deliverable.

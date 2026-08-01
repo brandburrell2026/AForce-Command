@@ -57,3 +57,12 @@ api-server `DATABASE_URL` needs (environmental, not regressions — `TEST-BASELI
 concrete, dependency-ordered set (see `AFORCE_OS_ELITE_IMPLEMENTATION_PLAN.md`), led by five S1
 production-safety items (SS-01…SS-05) plus the standing CR-1/commerce/infra gates already tracked. All
 proposed work is founder-gated; nothing in this suite authorizes a build.
+
+## 6. Night Out Protocol readiness (2026-08-01)
+Night Out (current "Social Mode") = **Partially Built; Blocked for public Night-Out exposure** —
+`AFORCE_OS_NIGHT_OUT_PROTOCOL_SPEC.md`. Launch-relevant gates it adds: **SS-26/NO-8** age + regional
+alcohol controls (legal, S1), **SS-05/NO-5** residual BAC/driving deprecation (S1), naming + Protocol
+placement (NO-1/NO-2), "Hangover Risk" wording (NO-6), and an unresolved **founder entitlement decision**
+(NO-10). Not launch-ready as Night Out until these clear plus legal review, deterministic states, and
+real-device evidence. Already-compliant: deterministic capped alcohol depletion (§5) and neutral alcohol
+logging (§11).
