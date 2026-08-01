@@ -85,3 +85,11 @@ limited/stale/offline/pending-sync/conflict, denied notifications/health-permiss
 lock-screen-previews off, ineligible-alcohol controls, emergency-boundary, recoverable/unrecoverable
 error). Night Out must render **inside the Protocol tab** (no 6th tab). Fixtures must never appear as
 fabricated provider measurements. Authoring these rows + screenshots is a build deliverable.
+
+**NO-c (2026-08-01):** deterministic **view-model fixtures** now exist for 8 Water-First command states
+(`services/nightOut/commandFixtures.ts`): pre-session-command, pre-session-no-command, active-timer,
+timer-expired, processing, limited-confidence, stale-offline, invalid-timer-recovery — each test-locked
+to its mode. Route/flag states (unauthorized-redirect, flag-off, internal-preview) are covered by the
+routing tests. **Real-device / preview screenshots for these states are still pending** (the screen is
+gated behind the DEMO/internal context) — do not classify the Night Out visual experience as fully
+Validated until captured.

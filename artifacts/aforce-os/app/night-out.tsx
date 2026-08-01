@@ -6,21 +6,22 @@
  * redirects to the Protocol tab, so unauthorized / production users can neither
  * see nor enter Night Out, and no loop is possible (Protocol is a terminal tab).
  *
- * NO-b is naming + placement + visibility only. The interim target is the
- * EXISTING screen (renamed to Night Out); the active command experience (pre-
- * session / timer / START WATER) is built in NO-c. No scoring, alcohol, intake,
- * or session state is changed here.
+ * NO-c: the canonical target is now the Water-First command experience
+ * (`NightOutCommandScreen`) — HYDROSTATE → NOW → NEXT → LATER, one dominant
+ * action, no alcohol. Authorization is enforced here: unauthorized / production
+ * users are redirected to Protocol (terminal — no loop). Rendering changes no
+ * scoring/session state.
  */
 import React from 'react';
 import { Redirect } from 'expo-router';
 import { useFeatureFlags } from '@/store/useAppStore';
 import { isNightOutEnabled, nightOutInternalPreviewContext } from '@/services/nightOut/access';
-import SocialModeV2Screen from '@/screens/SocialModeV2Screen';
+import NightOutCommandScreen from '@/screens/NightOutCommandScreen';
 
 export default function NightOutRoute() {
   const flags = useFeatureFlags();
   if (!isNightOutEnabled(flags, nightOutInternalPreviewContext())) {
     return <Redirect href="/(tabs)/protocol" />;
   }
-  return <SocialModeV2Screen />;
+  return <NightOutCommandScreen />;
 }

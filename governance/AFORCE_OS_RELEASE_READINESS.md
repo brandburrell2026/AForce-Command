@@ -66,3 +66,10 @@ placement (NO-1/NO-2), "Hangover Risk" wording (NO-6), and an unresolved **found
 (NO-10). Not launch-ready as Night Out until these clear plus legal review, deterministic states, and
 real-device evidence. Already-compliant: deterministic capped alcohol depletion (§5) and neutral alcohol
 logging (§11).
+
+**NO-c (2026-08-01)** landed the Water-First command experience (gated `/night-out`): authoritative-
+timestamp timer with background/force-close restoration (local only — **cross-device restoration not
+supported**), COMPLETE WATER via the approved `logIntake` Score-Protection path, honest confidence/
+freshness, reduced-motion, 72 tests. Readiness caveats added by NO-c: **real-device / preview
+screenshots not yet captured** (gated screen) and **render-level a11y not yet verified** — both required
+before the Night Out visual/experience is classified Validated.

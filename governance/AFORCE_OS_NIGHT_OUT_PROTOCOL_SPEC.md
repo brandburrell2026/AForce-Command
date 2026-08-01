@@ -284,6 +284,49 @@ NO-c…NO-f (NO-f blocked pending legal/compliance).
 ## 23. Stop condition (NO-b)
 NO-b committed in isolation. Stop for Julius + Brandon review. Do not begin NO-c.
 
+## 24. NO-c record (2026-08-01) — Water-First command experience
+
+First real command experience + the reusable **HYDROSTATE → NOW → NEXT → LATER** pattern, behind the
+existing authorization. **Water-First only. No alcohol logging / scan / correction / provider / new
+scoring / new thresholds / entitlement / legal copy.** Presentation-only.
+
+- **Screen** `screens/NightOutCommandScreen.tsx` (rendered by the gated `/night-out` route): header
+  (AFORCE PROTOCOL / NIGHT OUT / Private Evening Protocol) → **HydroState hero** (`AFReadinessArc`, the
+  only hero) → **NOW** (one Water-First command, dose, window, reason, one calm telemetry line
+  "Command confidence: High · Updated N min ago", **START WATER** / Adjust / Not Now) → **NEXT**
+  ("Update confirmed intake · Reassessment in N min") → **LATER** ("Subject to change"). Calm
+  no-command state: *"You're exactly where you should be. No action needed."*
+- **Timer contract** `services/nightOut/commandTimer.ts` (pure) + `commandTimerStore.ts` (local
+  AsyncStorage) + `hooks/useNightOutCommandTimer.ts`: the timer **does not start before acceptance**;
+  it is anchored to an **authoritative stored `startedAtMs`** and the view is re-derived from it, so it
+  **restores across background / force-close / reopen / device restart**. Clock-safe (never negative;
+  backwards-clock conservative; invalid/stale → safe recoverable state). **Expiry ≠ completion.**
+  **Cross-device restoration is NOT supported** (no server persistence for this timer — not claimed).
+- **Completion** routes through the approved `logIntake('water', { silent, ozOverride })` intake path
+  (Score-Protection). The screen **never** dispatches or mutates score directly (test-enforced). After
+  confirmation: neutral **"Water confirmed. Reassessing…"** — no confetti / streak / arbitrary bonus.
+- **Confidence + freshness** come from `deriveCommandConfidence` + real state timestamps — never
+  fabricated (High/Moderate/Limited; "Waiting for fresher confirmed signals" when limited/undated).
+- **Adjust** uses approved amounts only (`NIGHT_OUT_ADJUST_OZ = 8/12/16/20/24`, validated); **Not Now**
+  defers with no score penalty and preserves the session; neither lets AI choose an amount.
+- **Motion/haptics**: `animate={!reducedMotion}` on the hero; medium haptic on START WATER, success only
+  after verified completion, light for selection.
+
+Tests (`commandTimer`, `commandPresentation`, `commandScreen` + fixtures) — **72 Night Out tests**: timer
+contract (authoritative timestamp, restoration, never-negative, expiry≠completion, invalid→safe),
+mode resolution (no-command/pre-session/active/processing), confidence/freshness honesty, Adjust bounds,
+Score-Protection (completion via `logIntake`, no direct score write, timer starts only on accept, no
+alcohol code), route gating. tsc 0; full suite green (pre-existing failures only). Deterministic
+view-model **fixtures** for 8 states in `commandFixtures.ts`.
+
+**Honest limitations:** cross-device timer restoration not supported (local only); **real-device /
+preview screenshots not captured this pass** (the screen is gated behind the DEMO/internal context —
+fixtures + tests cover the states; live capture is a follow-up). Render-level a11y (screen-reader
+order, dynamic-type overflow) is implemented via props but not render-tested. **Not started:** NO-d…NO-f.
+
+## 25. Stop condition (NO-c)
+NO-c committed in isolation. Stop for Julius + Brandon review. Do not begin NO-d.
+
 ## 21. NO-a.1 record (2026-08-01) — internal flag isolation
 
 Follow-up correction on the NO-a branch, closing the PR #447 merge blocker: the

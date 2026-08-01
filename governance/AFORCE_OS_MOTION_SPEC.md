@@ -67,6 +67,13 @@ No confetti / looping celebration / decorative animation (Constitution Principle
 Motion tokens = **Live** (defined + tested, `afMotion`). Reduced-motion coverage + haptics opt-out =
 **Partially Built**. Adoption of the token layer is opt-in per screen; enforcement is a Plan P5 item.
 
+## 7. Night Out command experience — NO-c (2026-08-01)
+`NightOutCommandScreen` honors reduced motion (`animate={!reducedMotion}` on the HydroState hero;
+static fallback). Haptics: **medium** on START WATER (command acceptance), **success only after verified
+COMPLETE WATER** (routed through `logIntake`), **light** for selection (Adjust/Not Now). No decorative
+looping motion; no confetti/celebration on completion — the post-completion state is a neutral
+"Water confirmed. Reassessing…". Web has no haptics (guarded).
+
 ## 6. Night Out Protocol cross-reference (2026-08-01)
 Per `AFORCE_OS_NIGHT_OUT_PROTOCOL_SPEC.md` §14: **no celebration on Night Out activation or on alcohol
 logging**; **neutral or no haptic for alcohol logging**; success feedback reserved for verified
