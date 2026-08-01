@@ -15,6 +15,8 @@ export {
 } from './AFButton';
 export { AFMetric, type AFMetricProps } from './AFMetric';
 export { AFReadinessArc, type AFReadinessArcProps } from './AFReadinessArc';
+export { AFMotionPressable, type AFMotionPressableProps } from './AFMotionPressable';
+export { AFSkeleton, type AFSkeletonProps } from './AFSkeleton';
 export { AFProgressRing, type AFProgressRingProps } from './AFProgressRing';
 export { AFStatusBadge, type AFStatusBadgeProps, type AFStatusTone } from './AFStatusBadge';
 export { AFSectionLabel, type AFSectionLabelProps } from './AFSectionLabel';
