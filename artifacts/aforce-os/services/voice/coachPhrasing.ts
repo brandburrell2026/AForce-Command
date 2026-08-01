@@ -60,11 +60,13 @@ export function preservesCommandSubstance(orig: string, out: string): boolean {
 }
 
 /**
- * Re-voice a command/instruction line in the coach's tone. Fail-safe: returns the
- * original text unchanged if the re-voiced line would drop any dose/timing token
- * or introduce non-compliant (§64) language.
+ * Prepend a coach's tone lead to an already-selected line, keeping the line's
+ * substance and §64 compliance intact. Shared by the on-screen command card
+ * (`formatCommandForCoach`) and the spoken alert banks (`formatSpokenLineForCoach`).
+ * Fail-safe: returns the original text unchanged if the re-voiced line would drop
+ * any dose/timing token or introduce non-compliant (§64) language.
  */
-export function formatCommandForCoach(text: string, archetype: CoachArchetype): string {
+function revoiceWithLead(text: string, archetype: CoachArchetype): string {
   if (!text || !text.trim()) return text;
   const lead = coachLead(archetype);
   if (!lead) return text;
@@ -72,4 +74,24 @@ export function formatCommandForCoach(text: string, archetype: CoachArchetype): 
   if (!preservesCommandSubstance(text, candidate)) return text;
   if (!isCompliantCoachLine(candidate)) return text;
   return candidate;
+}
+
+/**
+ * Re-voice a command/instruction line in the coach's tone (on-screen command
+ * card). Fail-safe to the original text — see `revoiceWithLead`.
+ */
+export function formatCommandForCoach(text: string, archetype: CoachArchetype): string {
+  return revoiceWithLead(text, archetype);
+}
+
+/**
+ * Re-voice a *spoken* alert line (score-band / risk-timer / completion) in the
+ * coach's tone, for the Command Voice Engine's TTS output. Delivery-only: the
+ * engine has already chosen WHICH line fires and WHAT it says — this only
+ * prepends the coach's signature lead so different coaches sound distinct aloud.
+ * Same fail-safe guards as the command card: any dropped dose/timing token or
+ * §64 violation returns the original line verbatim.
+ */
+export function formatSpokenLineForCoach(line: string, archetype: CoachArchetype): string {
+  return revoiceWithLead(line, archetype);
 }

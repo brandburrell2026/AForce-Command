@@ -19,7 +19,7 @@
 
 import { useEffect, useRef } from 'react';
 
-import { useAppStore } from '../store/useAppStore';
+import { useAppStore, useFeatureFlags } from '../store/useAppStore';
 import { useEngineSlice } from '../store/slices';
 import {
   categoryAllowedForScope,
@@ -28,10 +28,13 @@ import {
   type ScoreBand,
 } from '../services/voice/commandVoice';
 import { commandSpeak } from '../services/voice/commandVoiceBus';
+import { findVoice } from '../services/voiceCatalog';
+import { formatSpokenLineForCoach } from '../services/voice/coachPhrasing';
 
 export function useScoreBandVoice(): void {
   const engine = useEngineSlice();
-  const { voiceCoachEnabled, voiceIntensity, voiceScope } = useAppStore();
+  const { voiceCoachEnabled, voiceIntensity, voiceScope, selectedVoiceId } = useAppStore();
+  const eliteVoice = useFeatureFlags().elite_voice_coach_enabled;
 
   // Snapshot of the band that fired most recently (or the band the
   // engine was in at first render — see the suppress-first-fire note
@@ -59,7 +62,17 @@ export function useScoreBandVoice(): void {
     if (!voiceCoachEnabled) return;
     if (!categoryAllowedForScope('score_band', voiceScope)) return;
 
-    commandSpeak(scoreBandLine(engine.score, voiceIntensity), {
+    // Elite Voice Coach (flag-gated, delivery-only): re-voice the spoken line
+    // in the selected coach's tone. Off → the exact shipped line. The engine
+    // still chose the band + line; coachPhrasing only prepends a tone lead and
+    // fail-safes to the original on any §64/substance violation.
+    const line = scoreBandLine(engine.score, voiceIntensity);
+    const spoken =
+      eliteVoice
+        ? formatSpokenLineForCoach(line, findVoice(selectedVoiceId)?.archetype ?? 'push')
+        : line;
+
+    commandSpeak(spoken, {
       level: engine.performanceState.level,
       intensity: voiceIntensity,
       category: 'score_band',
@@ -75,5 +88,7 @@ export function useScoreBandVoice(): void {
     voiceCoachEnabled,
     voiceIntensity,
     voiceScope,
+    eliteVoice,
+    selectedVoiceId,
   ]);
 }
