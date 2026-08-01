@@ -149,7 +149,13 @@ const initialState: AppState = {
   profileIdentity: DEFAULT_PROFILE_IDENTITY,
 };
 
-const AppContext = createContext<AppContextValue | null>(null);
+// Exported (read-only use) so the dev/demo-only Screen Gallery
+// (`demo/AForceScreenGallery.tsx`, __DEV__/demo-mode gated, never reachable
+// in production) can shadow this context with a fixture `AppContextValue`
+// for a screen subtree — the same pattern `<SliceProvider>` already supports
+// for the slice contexts below. No behavior change for every real call site;
+// `AppProvider` still owns the one live instance app-wide.
+export const AppContext = createContext<AppContextValue | null>(null);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(reducer, initialState);
