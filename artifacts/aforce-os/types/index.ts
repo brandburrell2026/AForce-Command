@@ -750,6 +750,13 @@ export interface FeatureFlags {
    * Default OFF: legacy Home renders until flipped. Same engine data.
    */
   spec_home: boolean;
+  /**
+   * Elite Home experience (E1) — presentation-only elevation of HomeScreenV2:
+   * band-tinted arc accent, ring reveal + truthful score count-up, staggered
+   * entrance, band-aware signal ordering. Default OFF; reduced-motion collapses
+   * it to the static Home. Never touches score/command/eligibility/safety logic.
+   */
+  elite_home_experience_enabled: boolean;
   spec_weekly_report: boolean;
   // Phase 3 redesign flags (one per redesigned screen; default OFF). Presentation-only.
   spec_community: boolean;

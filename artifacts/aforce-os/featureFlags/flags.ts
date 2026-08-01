@@ -174,6 +174,11 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   // Score-Protection: read-only projection; sections without data render
   // explicit "collecting"/"awaiting", never fabricated trends.
   spec_home: true,
+  // Elite Home (E1) — presentation-only elevation of HomeScreenV2. OFF in the
+  // production binary, ON in DEMO_ALL_ON. Score-Protection: band-tint / reveal /
+  // count-up / ordering only; never reads into or mutates score, command,
+  // eligibility, timing, or safety. Reduced-motion → static Home.
+  elite_home_experience_enabled: false,
   spec_weekly_report: true,
   // ── Phase 3 redesign — one flag per redesigned screen, default OFF until go-live ──
   spec_community: true,
@@ -381,6 +386,7 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
   location_intelligence_enabled: true,
   signal_hierarchy_enabled: true,
   spec_home: true,
+  elite_home_experience_enabled: true,
   spec_weekly_report: true,
   // ── Phase 3 redesign ──
   spec_community: true,

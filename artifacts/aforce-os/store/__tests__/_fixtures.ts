@@ -90,6 +90,7 @@ export const baseEngine = makeEngine();
 export const baseUser = makeUserState();
 
 export const baseFlags: FeatureFlags = {
+  elite_home_experience_enabled: false,
   clutch_access_enabled: false,
   clutch_heat_mode_enabled: false,
   clutch_inventory_enabled: false,
