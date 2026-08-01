@@ -185,6 +185,10 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   // buildWeeklyReport model; sections without data render explicit
   // calibrating/awaiting states, never a fabricated trend.
   elite_weekly_report_enabled: false,
+  // Elite Motion (E3) — premium press-feel + shimmer skeletons where adopted.
+  // OFF in production, ON in DEMO_ALL_ON. Presentation-only; every motion has a
+  // static reduced-motion alternative (Score-Protection unaffected).
+  elite_motion_enabled: false,
   // ── Phase 3 redesign — one flag per redesigned screen, default OFF until go-live ──
   spec_community: true,
   spec_store: true,
@@ -394,6 +398,7 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
   elite_home_experience_enabled: true,
   spec_weekly_report: true,
   elite_weekly_report_enabled: true,
+  elite_motion_enabled: true,
   // ── Phase 3 redesign ──
   spec_community: true,
   spec_store: true,

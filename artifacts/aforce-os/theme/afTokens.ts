@@ -121,12 +121,22 @@ export const afLayout = {
 // these tokens describe the animated register only.
 export const afMotion = {
   durations: {
+    fast: 120, //        120ms — press-scale, tab dot; the quickest register
     selection: 150, //   120–180ms — tone/opacity change, no bounce
+    standard: 220, //    220ms — the default UI transition
     entrance: 260, //    220–320ms — opacity + short translate, ease-out
     sheet: 300, //       native sheet spring
+    slow: 360, //        360ms — larger content transitions
+    cinematic: 700, //   550–800ms — hero reveals (arc draw-in, count-up window)
     pulse: 3200, //      recovery pulse — extremely subtle ring scale/opacity
   },
   entranceTranslateY: 10, // 8–12pt entrance rise
+  // Press-scale for interactive surfaces (E3). rest = 1; pressed compresses
+  // slightly. A static (reduced-motion) surface simply stays at `rest`.
+  scale: {
+    rest: 1,
+    pressed: 0.97,
+  },
   easing: {
     standardOut: [0.22, 1, 0.36, 1] as const, //   ease-out
     standardInOut: [0.4, 0, 0.2, 1] as const, //    symmetric

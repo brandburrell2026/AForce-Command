@@ -766,6 +766,12 @@ export interface FeatureFlags {
    * `buildWeeklyReport` model — never fabricates a trend.
    */
   elite_weekly_report_enabled: boolean;
+  /**
+   * Elite Motion system (E3) — turns on the premium press-feel (AFMotionPressable
+   * scale + meaningful haptics) and shimmer skeletons where adopted. Default OFF;
+   * every animation has a static reduced-motion alternative. Presentation-only.
+   */
+  elite_motion_enabled: boolean;
   // Phase 3 redesign flags (one per redesigned screen; default OFF). Presentation-only.
   spec_community: boolean;
   spec_store: boolean;

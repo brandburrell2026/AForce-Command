@@ -9,7 +9,6 @@
  */
 import React from 'react';
 import {
-  Pressable,
   Text,
   ActivityIndicator,
   View,
@@ -20,6 +19,8 @@ import {
 import { Icon, type IconName } from '../Icon';
 import { af, afType, afLayout } from '@/theme';
 import { buttonIsInert } from './afPrimitives.logic';
+import { AFMotionPressable } from './AFMotionPressable';
+import { useFeatureFlags } from '@/store/useAppStore';
 
 export interface AFButtonProps {
   label: string;
@@ -42,22 +43,26 @@ function useInert(disabled?: boolean, loading?: boolean) {
   };
 }
 
+/**
+ * Elite motion adoption (E3): when `elite_motion_enabled` is on, the button
+ * compresses slightly on press (AFMotionPressable) and fires a `selection`
+ * haptic. When OFF — or under reduced-motion — the press is the exact prior
+ * behavior: only the `pressedStyle` opacity/tone changes, no scale, no haptic.
+ */
 export function AFPrimaryButton({ label, onPress, disabled, loading, icon, style, testID }: AFButtonProps) {
+  const elite = useFeatureFlags().elite_motion_enabled;
   const { inert, a11y } = useInert(disabled, loading);
   return (
-    <Pressable
+    <AFMotionPressable
       onPress={inert ? undefined : onPress}
       disabled={inert}
+      motionEnabled={elite}
+      haptic={elite ? 'selection' : false}
       accessibilityLabel={label}
+      accessibilityState={a11y.accessibilityState}
       testID={testID}
-      {...a11y}
-      style={({ pressed }) => [
-        styles.base,
-        styles.primary,
-        pressed && !inert && styles.primaryPressed,
-        disabled && styles.disabled,
-        style,
-      ]}
+      style={[styles.base, styles.primary, disabled && styles.disabled, style]}
+      pressedStyle={styles.primaryPressed}
     >
       {loading ? (
         <ActivityIndicator color={af.onRed} />
@@ -67,26 +72,24 @@ export function AFPrimaryButton({ label, onPress, disabled, loading, icon, style
           <Text style={[styles.label, { color: af.onRed }]}>{label}</Text>
         </View>
       )}
-    </Pressable>
+    </AFMotionPressable>
   );
 }
 
 export function AFSecondaryButton({ label, onPress, disabled, loading, icon, style, testID }: AFButtonProps) {
+  const elite = useFeatureFlags().elite_motion_enabled;
   const { inert, a11y } = useInert(disabled, loading);
   return (
-    <Pressable
+    <AFMotionPressable
       onPress={inert ? undefined : onPress}
       disabled={inert}
+      motionEnabled={elite}
+      haptic={elite ? 'selection' : false}
       accessibilityLabel={label}
+      accessibilityState={a11y.accessibilityState}
       testID={testID}
-      {...a11y}
-      style={({ pressed }) => [
-        styles.base,
-        styles.secondary,
-        pressed && !inert && styles.secondaryPressed,
-        disabled && styles.disabled,
-        style,
-      ]}
+      style={[styles.base, styles.secondary, disabled && styles.disabled, style]}
+      pressedStyle={styles.secondaryPressed}
     >
       {loading ? (
         <ActivityIndicator color={af.textPrimary} />
@@ -96,27 +99,30 @@ export function AFSecondaryButton({ label, onPress, disabled, loading, icon, sty
           <Text style={[styles.label, { color: af.textPrimary }]}>{label}</Text>
         </View>
       )}
-    </Pressable>
+    </AFMotionPressable>
   );
 }
 
 export function AFTextButton({ label, onPress, disabled, icon, style, testID }: AFButtonProps) {
+  const elite = useFeatureFlags().elite_motion_enabled;
   const { inert, a11y } = useInert(disabled, false);
   return (
-    <Pressable
+    <AFMotionPressable
       onPress={inert ? undefined : onPress}
       disabled={inert}
+      motionEnabled={elite}
       accessibilityLabel={label}
+      accessibilityState={a11y.accessibilityState}
       testID={testID}
       hitSlop={8}
-      {...a11y}
-      style={({ pressed }) => [styles.textBtn, pressed && !inert && styles.textPressed, style]}
+      style={[styles.textBtn, style]}
+      pressedStyle={styles.textPressed}
     >
       <View style={styles.content}>
         {icon && <Icon name={icon} size={14} color={disabled ? af.textDisabled : af.redText} />}
         <Text style={[afType.bodyStrong, { color: disabled ? af.textDisabled : af.redText }]}>{label}</Text>
       </View>
-    </Pressable>
+    </AFMotionPressable>
   );
 }
 
