@@ -132,7 +132,9 @@ describe('night_out_enabled flag scaffold (founder decision NO-10)', () => {
     expect(DEFAULT_FLAGS.night_out_enabled).toBe(false);
   });
 
-  it('is ON only in the internal/demo build', () => {
-    expect(DEMO_ALL_ON_FLAGS.night_out_enabled).toBe(true);
+  it('is a RESTRICTED flag — OFF even in the generic demo set (NO-a.1 isolation)', () => {
+    // Restricted internal-preview flag: the generic client "unlock all" must not
+    // enable it. Enablement + authorization is governed by services/nightOut/access.ts.
+    expect(DEMO_ALL_ON_FLAGS.night_out_enabled).toBe(false);
   });
 });

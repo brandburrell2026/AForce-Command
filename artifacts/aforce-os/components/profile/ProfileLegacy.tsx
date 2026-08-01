@@ -30,7 +30,7 @@ import { EditProfileModal } from '@/components/EditProfileModal';
 import { ConfidenceChip } from '@/components/ConfidenceChip';
 import { profileStrength } from '@/utils/profile/profileStrength';
 import type { UnitPreferences } from '@/utils/units';
-import { DEFAULT_FLAGS, DEMO_ALL_ON_FLAGS } from '@/featureFlags/flags';
+import { DEFAULT_FLAGS, demoUnlockAllFlags } from '@/featureFlags/flags';
 import type { FeatureFlags, AuraState } from '@/types';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 import { LanguageSelector } from '@/components/LanguageSelector';
@@ -641,7 +641,8 @@ export function ProfileLegacy() {
     setFeatureFlags({ ...state.featureFlags, [key]: !state.featureFlags[key] });
   };
 
-  const allOn = Object.keys(DEMO_ALL_ON_FLAGS).every((k) => state.featureFlags[k as keyof FeatureFlags] === DEMO_ALL_ON_FLAGS[k as keyof FeatureFlags]);
+  const demoUnlockPayload = demoUnlockAllFlags();
+  const allOn = Object.keys(demoUnlockPayload).every((k) => state.featureFlags[k as keyof FeatureFlags] === demoUnlockPayload[k as keyof FeatureFlags]);
 
   return (
     <View style={styles.root}>
@@ -1365,7 +1366,7 @@ export function ProfileLegacy() {
                 <SectionHeader label="DEMO ACCESS" hint="Preview Phase 2 + Phase 3" />
                 <View style={styles.card}>
                   <Pressable
-                    onPress={() => setFeatureFlags(allOn ? DEFAULT_FLAGS : DEMO_ALL_ON_FLAGS)}
+                    onPress={() => setFeatureFlags(allOn ? DEFAULT_FLAGS : demoUnlockPayload)}
                     style={[styles.demoMaster, { borderColor: allOn ? Colors.states.PEAK.primary : Colors.border.medium }]}
                   >
                     <Icon name={allOn ? 'eye-off' : 'eye'} size={14} color={allOn ? Colors.states.PEAK.primary : Colors.text.secondary} />

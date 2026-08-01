@@ -94,7 +94,7 @@ Every "Live/Built-Hidden/Internal Preview" row cites code + flag + current visib
 | Founder Mode (§62) | **Not Built** (devMode is client-only; §62 never built) |
 | Circle/Community | Live (legacy) + Built-Hidden (V2) |
 | Sharing privacy controls | Partially Built (defaults inverted; no moderation/age gate) |
-| **Night Out Protocol** (current "Social Mode") | **Partially Built; Blocked for Night-Out public exposure** — see `AFORCE_OS_NIGHT_OUT_PROTOCOL_SPEC.md` §15/§19 (naming NO-1, Protocol placement NO-2, BAC/hangover NO-5/NO-6, age/regional NO-8, flag/entitlement NO-10). **NO-a landed:** `night_out_enabled` flag (Founder/Internal-Preview, OFF in prod) + canonical session-state model (`services/nightOut/sessionState.ts`) reconciled onto `SocialModeState`, 18 tests. No UI/scoring/nav change yet. |
+| **Night Out Protocol** (current "Social Mode") | **Partially Built; Blocked for Night-Out public exposure** — see `AFORCE_OS_NIGHT_OUT_PROTOCOL_SPEC.md` §15/§19 (naming NO-1, Protocol placement NO-2, BAC/hangover NO-5/NO-6, age/regional NO-8, flag/entitlement NO-10). **NO-a landed:** `night_out_enabled` flag (Founder/Internal-Preview, OFF in prod) + canonical session-state model (`services/nightOut/sessionState.ts`) reconciled onto `SocialModeState`. **NO-a.1 landed:** internal flag isolation — generic client "unlock all" cannot enable it (restricted-flag clamp `demoUnlockAllFlags`), plus an authorization resolver where the flag is necessary-but-not-sufficient (approved `DEMO_MODE` context required); `services/nightOut/access.ts`. 26 tests. Server-side authorization still outstanding (NO-10). No UI/scoring/nav change. |
 
 ## 7. Health providers (see `AFORCE_OS_HEALTH_SOURCE_MATRIX.md`)
 

@@ -364,8 +364,14 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
   // creates them); flipping them on now would crash i18next on lookup.
   spec_activation: true,
   spec_social: true,
-  // Night Out Protocol — ON only in the internal/demo build (never prod default).
-  night_out_enabled: true,
+  // Night Out Protocol (NO-10) is a RESTRICTED internal-preview flag: it is
+  // deliberately OFF even in the generic demo "unlock all" set. `DEMO_ALL_ON_FLAGS`
+  // is demo *presentation* capability, NOT authorization — it must never grant
+  // Night Out. The generic client unlock applies `demoUnlockAllFlags()` (below),
+  // which force-clamps every INTERNAL_PREVIEW_RESTRICTED_FLAGS entry to false.
+  // Night Out is enabled only through an approved internal-preview context
+  // (env-driven DEMO_MODE) via `services/nightOut/access.ts`.
+  night_out_enabled: false,
   spec_sleep: true,
   spec_cruise: true,
   spec_coachV2: true,
@@ -519,4 +525,30 @@ export function shouldShowInvestorDemo(flags: FeatureFlags, active: boolean): bo
  */
 export function getSpecFlag(flags: FeatureFlags, name: SpecFlagName): boolean {
   return Boolean(flags[`spec_${name}` as keyof FeatureFlags]);
+}
+
+/**
+ * Restricted internal-preview flags (NO-10 · founder decision). These are
+ * Founder/Internal Preview only and MUST NOT be enabled by the generic
+ * client-side "unlock all" developer action — that action is production-reachable
+ * (Phase-0 SS-01) and is not an authorization boundary. Enablement happens only
+ * through an approved internal-preview context (`services/nightOut/access.ts`),
+ * and ultimately server-side authorization.
+ */
+export const INTERNAL_PREVIEW_RESTRICTED_FLAGS = ['night_out_enabled'] as const;
+
+/**
+ * Payload for the developer "unlock all" control. Returns the demo-presentation
+ * flag set with every restricted internal-preview flag force-clamped to `false`,
+ * so the generic client unlock can NEVER enable a restricted capability —
+ * regardless of what `DEMO_ALL_ON_FLAGS` contains. Pure + testable; the `base`
+ * param lets tests prove the clamp holds even against a base that (incorrectly)
+ * sets a restricted flag true.
+ */
+export function demoUnlockAllFlags(base: FeatureFlags = DEMO_ALL_ON_FLAGS): FeatureFlags {
+  const out: FeatureFlags = { ...base };
+  for (const k of INTERNAL_PREVIEW_RESTRICTED_FLAGS) {
+    out[k] = false;
+  }
+  return out;
 }
