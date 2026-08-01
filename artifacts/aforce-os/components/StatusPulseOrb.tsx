@@ -24,6 +24,7 @@ import Animated, {
   Easing,
   cancelAnimation,
 } from 'react-native-reanimated';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
 import type { PulseConfig } from '../types';
 import { Colors } from '../theme/colors';
 import { AnimatedScore } from './AnimatedScore';
@@ -142,6 +143,8 @@ export function StatusPulseOrb({ pulseConfig, score, burstAt = 0, onTap, size, s
   // Tap press feedback
   const tapScale = useSharedValue(1);
 
+  const reducedMotion = useReducedMotion();
+
   useEffect(() => {
     cancelAnimation(pulseAnim);
     cancelAnimation(glowAnim);
@@ -152,6 +155,15 @@ export function StatusPulseOrb({ pulseConfig, score, burstAt = 0, onTap, size, s
     cancelAnimation(flareOpacity);
     cancelAnimation(collapseScale);
     cancelAnimation(collapseOpacity);
+
+    // Reduced-motion: hold the orb at its static resting frame — no looping
+    // pulse/glow/scale (the afMotion "static alternative" contract).
+    if (reducedMotion) {
+      pulseAnim.value = 0;
+      glowAnim.value = 0;
+      scaleAnim.value = 1;
+      return;
+    }
 
     if (waveBehavior === 'sharp_outward') {
       // PEAK
@@ -286,7 +298,7 @@ export function StatusPulseOrb({ pulseConfig, score, burstAt = 0, onTap, size, s
     } else {
       collapseOpacity.value = 0;
     }
-  }, [waveBehavior, cycleMs, animations.flareOnPeak, animations.collapseOnDepletion, pulseIntensity]);
+  }, [waveBehavior, cycleMs, animations.flareOnPeak, animations.collapseOnDepletion, pulseIntensity, reducedMotion]);
 
   // Burst-on-intake animation
   useEffect(() => {

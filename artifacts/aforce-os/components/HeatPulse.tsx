@@ -26,6 +26,7 @@ import Animated, {
 
 import type { HeatRiskBand, HeatVisualMode } from "../types/heat";
 import { HEAT_BANDS } from "../services/heatRiskEngine";
+import { useReducedMotion } from "@/hooks/useReducedMotion";
 
 interface Props {
   band: HeatRiskBand;
@@ -114,14 +115,21 @@ export function HeatPulse({ band, score, size = 180 }: Props) {
   const colorScore = useSharedValue(
     typeof score === "number" ? Math.max(0, Math.min(100, score)) : -1,
   );
+  const reducedMotion = useReducedMotion();
+
   useEffect(() => {
     if (typeof score !== "number") return;
     const clamped = Math.max(0, Math.min(100, score));
+    // Reduced-motion: snap to the hue, no crossfade.
+    if (reducedMotion) {
+      colorScore.value = clamped;
+      return;
+    }
     colorScore.value = withTiming(clamped, {
       duration: 600,
       easing: Easing.inOut(Easing.quad),
     });
-  }, [score, colorScore]);
+  }, [score, colorScore, reducedMotion]);
 
   // When `score` is provided, derive a live color; otherwise fall back
   // to the discrete band color via a constant derived value so the
@@ -138,6 +146,12 @@ export function HeatPulse({ band, score, size = 180 }: Props) {
   useEffect(() => {
     inner.value = cfg.innerScaleFrom;
     outer.value = cfg.outerScaleFrom;
+
+    // Reduced-motion: hold at the resting frame — no breathing scale / flash.
+    if (reducedMotion) {
+      flash.value = 1;
+      return;
+    }
 
     inner.value = withRepeat(
       withTiming(cfg.innerScaleTo, {
@@ -175,7 +189,7 @@ export function HeatPulse({ band, score, size = 180 }: Props) {
     };
     // We intentionally rebind whenever the visual mode changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [display.visualMode]);
+  }, [display.visualMode, reducedMotion]);
 
   const innerStyle = useAnimatedStyle(() => ({
     transform: [{ scale: inner.value }],

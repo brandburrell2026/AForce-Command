@@ -12,6 +12,7 @@ import Animated, {
   useAnimatedReaction,
   runOnJS,
 } from 'react-native-reanimated';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
 
 interface Props {
   value: number;
@@ -34,9 +35,18 @@ export function AnimatedScore({ value, color, label, size = 56, displayValue }: 
   const animated = useSharedValue(0);
   const [display, setDisplay] = useState(0);
   const isControlled = displayValue !== undefined;
+  const reducedMotion = useReducedMotion();
 
   useEffect(() => {
     if (isControlled) return;
+    // Reduced-motion: land on the value immediately — no count-up (the static
+    // alternative the afMotion contract requires).
+    if (reducedMotion) {
+      animated.value = value;
+      setDisplay(value);
+      previousRef.current = value;
+      return;
+    }
     const from = previousRef.current;
     animated.value = from;
     animated.value = withTiming(value, {
@@ -44,7 +54,7 @@ export function AnimatedScore({ value, color, label, size = 56, displayValue }: 
       easing: Easing.out(Easing.cubic),
     });
     previousRef.current = value;
-  }, [value, isControlled]);
+  }, [value, isControlled, reducedMotion]);
 
   useAnimatedReaction(
     () => animated.value,
