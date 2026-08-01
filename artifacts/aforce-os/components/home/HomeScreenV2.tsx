@@ -41,7 +41,7 @@ import {
   AFSectionLabel,
 } from '@/components/ui';
 import { useRouter } from 'expo-router';
-import { af, afType } from '@/theme';
+import { af, afType, AF_MAX_DISPLAY_FONT_SCALE } from '@/theme';
 import { useAppStore, useFeatureFlags } from '@/store/useAppStore';
 import { useEngineSlice, useActionsSlice } from '@/store/slices';
 import { parseEngineActionCopy, parseDoseOz } from '@/utils/recovery/recoveryCommandFromStore';
@@ -116,7 +116,7 @@ function EliteScoreNumber({
     (v) => runOnJS(setShown)(Math.round(v)),
   );
   return (
-    <Text style={style} numberOfLines={1}>
+    <Text style={style} numberOfLines={1} maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}>
       {shown}
     </Text>
   );
@@ -207,7 +207,7 @@ export function HomeScreenV2() {
                 style={styles.score}
               />
             ) : (
-              <Text style={styles.score}>{score}</Text>
+              <Text style={styles.score} maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}>{score}</Text>
             )}
             <Text style={styles.scoreLabel}>{t('home.v2.readiness_label')}</Text>
             {elite ? (
