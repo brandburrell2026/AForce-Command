@@ -5,7 +5,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Icon } from '../Icon';
-import { af, afType } from '@/theme';
+import { af, afType, AF_MAX_DISPLAY_FONT_SCALE } from '@/theme';
 import { trendOf } from './afPrimitives.logic';
 
 export interface AFMetricProps {
@@ -28,7 +28,7 @@ export function AFMetric({ label, value, unit, trendDelta, timestamp, testID }: 
     <View style={styles.wrap} testID={testID}>
       <Text style={styles.label}>{label.toUpperCase()}</Text>
       <View style={styles.valueRow}>
-        <Text style={styles.value} allowFontScaling>
+        <Text style={styles.value} allowFontScaling maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}>
           {value}
         </Text>
         {unit && <Text style={styles.unit}>{unit}</Text>}

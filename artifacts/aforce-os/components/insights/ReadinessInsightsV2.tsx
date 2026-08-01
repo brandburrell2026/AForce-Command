@@ -22,7 +22,7 @@ import {
   AFStatusBadge,
   AFEmptyState,
 } from '@/components/ui';
-import { af, afType } from '@/theme';
+import { af, afType, AF_MAX_DISPLAY_FONT_SCALE } from '@/theme';
 import { useAppStore, useFeatureFlags } from '@/store/useAppStore';
 import { useEngineSlice } from '@/store/slices';
 import { EliteWeeklyEditorial } from './EliteWeeklyEditorial';
@@ -77,7 +77,7 @@ export function ReadinessInsightsV2() {
         <>
           {/* Weekly score hero */}
           <View style={styles.hero}>
-            <Text style={styles.score} accessibilityLabel={`${avg} ${t('reports.v2.avg_label')}`}>{avg}</Text>
+            <Text style={styles.score} accessibilityLabel={`${avg} ${t('reports.v2.avg_label')}`} maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}>{avg}</Text>
             <Text
               style={styles.scoreLabel}
               importantForAccessibility="no-hide-descendants"

@@ -143,5 +143,14 @@ export const afMotion = {
   },
 } as const;
 
+/**
+ * Dynamic-type clamp for LARGE DISPLAY numerals only (P-C). Body/label text keeps
+ * the OS's full Dynamic-Type scaling for accessibility; the oversized display
+ * numbers (readiness score, weekly average, metric values) are clamped so extreme
+ * text sizes can't blow out the ring / hero layout. Pass as
+ * `maxFontSizeMultiplier` on those Text nodes; never apply to body copy.
+ */
+export const AF_MAX_DISPLAY_FONT_SCALE = 1.35;
+
 export type AfColorToken = keyof typeof af;
 export type AfTypeToken = keyof typeof afType;
