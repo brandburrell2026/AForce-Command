@@ -772,6 +772,13 @@ export interface FeatureFlags {
    * every animation has a static reduced-motion alternative. Presentation-only.
    */
   elite_motion_enabled: boolean;
+  /**
+   * Elite Voice Coach (E4) — coach personality in DELIVERY only: a per-coach
+   * eyebrow + tone lead on the command, plus shipped trust copy. Default OFF.
+   * Never changes the command, dose, timing, evidence, or eligibility — the
+   * phrasing adapter is fail-safe + §64-guarded (Score-Protection).
+   */
+  elite_voice_coach_enabled: boolean;
   // Phase 3 redesign flags (one per redesigned screen; default OFF). Presentation-only.
   spec_community: boolean;
   spec_store: boolean;
