@@ -47,6 +47,15 @@ describe('NO-b — route wiring (gated entry, safe redirects, no loops)', () => 
     expect(sv2).not.toMatch(/SocialModeV2Screen/); // no longer mounts the screen directly
   });
 
+  it('the legacy /social alias is authorization-gated (cannot bypass in production)', () => {
+    const social = read('app', '(tabs)', 'social.tsx');
+    expect(social).toMatch(/isNightOutEnabled/);
+    expect(social).toMatch(/Redirect href="\/\(tabs\)\/protocol"/);
+    // no self-loop back to a Night Out alias
+    expect(social).not.toMatch(/Redirect href="\/social/);
+    expect(social).not.toMatch(/Redirect href="\/night-out"/);
+  });
+
   it('social-legacy is dev-gated and redirects to Protocol when not in Developer Mode', () => {
     const legacy = read('app', '(tabs)', 'social-legacy.tsx');
     expect(legacy).toMatch(/useDevMode/);

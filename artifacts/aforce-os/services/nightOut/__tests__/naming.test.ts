@@ -46,6 +46,15 @@ describe('NO-b — no public "Social Mode" residue in user-facing en.json', () =
     expect(demo).not.toMatch(/Social Mode/i);
     expect(en.profile?.v2?.social_v2 ?? '').not.toMatch(/Social Mode/i);
   });
+
+  it('NO active locale (all 12) contains public "Social Mode" residue', () => {
+    const dir = join(APP, 'locales');
+    for (const file of require('node:fs').readdirSync(dir).filter((f: string) => f.endsWith('.json'))) {
+      const raw = readFileSync(join(dir, file), 'utf8');
+      expect(raw, `${file} contains stale public naming`).not.toMatch(/Social Mode/);
+      expect(raw, `${file} contains stale public naming`).not.toMatch(/SOCIAL MODE/);
+    }
+  });
 });
 
 describe('NO-b — the Night Out screen header renders the approved name', () => {
