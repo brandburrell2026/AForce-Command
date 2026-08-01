@@ -198,7 +198,7 @@ export function HomeScreenV2() {
           accessibilityLabel={`${t('home.v2.readiness_a11y', { score })} ${engine.performanceState.level}`}
           testID="home-readiness-arc"
         >
-          <AFReadinessArc score={score} size={240} color={accent} animate={arcPlan.animateRing}>
+          <AFReadinessArc score={score} size={240} color={accent} animate={arcPlan.animateRing} alive={elite}>
             {elite ? (
               <EliteScoreNumber
                 score={score}

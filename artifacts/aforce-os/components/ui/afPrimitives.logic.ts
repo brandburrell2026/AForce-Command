@@ -58,6 +58,18 @@ export function arcGeometry(
   };
 }
 
+/**
+ * Readiness-ring "alive" halo (P-A). Maps a 0…1 breath phase to the halo stroke's
+ * opacity + width — a subtle band-tinted glow behind the progress arc. Pure so the
+ * curve is pinned by a test; the arc worklet inlines the same math. At rest (breath
+ * 0) the glow is faint; at peak (breath 1) it swells slightly. Reduced-motion pins
+ * breath to a fixed mid value (a static glow, no motion).
+ */
+export function ringHalo(breath: number, stroke: number): { opacity: number; width: number } {
+  const b = clampProgress(breath);
+  return { opacity: 0.12 + b * 0.22, width: stroke * (2 + b * 1.2) };
+}
+
 export type TrendDirection = 'up' | 'down' | 'flat';
 
 /** Resolve a numeric delta into a trend direction + accessible sign. */

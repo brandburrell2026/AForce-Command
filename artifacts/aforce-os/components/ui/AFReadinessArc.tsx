@@ -18,10 +18,12 @@ import Animated, {
   useSharedValue,
   useAnimatedProps,
   withTiming,
+  withRepeat,
+  cancelAnimation,
   Easing,
   useReducedMotion,
 } from 'react-native-reanimated';
-import { af } from '@/theme';
+import { af, afMotion } from '@/theme';
 import { arcGeometry, clampProgress } from './afPrimitives.logic';
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
@@ -38,6 +40,12 @@ export interface AFReadinessArcProps {
   trackColor?: string;
   /** Reveal the progress stroke on mount (E1). Ignored under reduced-motion. */
   animate?: boolean;
+  /**
+   * "Alive" (P-A): a subtle band-tinted glow halo behind the progress arc that
+   * breathes slowly. Reduced-motion shows a static glow (no breathing); off by
+   * default → no halo, byte-identical to the base render.
+   */
+  alive?: boolean;
   children?: React.ReactNode;
   style?: StyleProp<ViewStyle>;
   testID?: string;
@@ -53,6 +61,7 @@ export function AFReadinessArc({
   color = af.red,
   trackColor = af.divider,
   animate = false,
+  alive = false,
   children,
   style,
   testID,
@@ -87,6 +96,34 @@ export function AFReadinessArc({
     strokeDashoffset: geo.arcLength * (1 - fill.value),
   }));
 
+  // "Alive" glow halo: breathe when alive & motion allowed; a static mid-glow
+  // under reduced-motion (the static alternative); nothing when not alive.
+  const breatheActive = alive && !reducedMotion;
+  const breath = useSharedValue(alive ? 0.5 : 0);
+  React.useEffect(() => {
+    if (breatheActive) {
+      breath.value = 0;
+      breath.value = withRepeat(
+        withTiming(1, { duration: afMotion.durations.pulse, easing: Easing.inOut(Easing.quad) }),
+        -1,
+        true,
+      );
+    } else {
+      cancelAnimation(breath);
+      breath.value = alive ? 0.5 : 0;
+    }
+    return () => cancelAnimation(breath);
+  }, [breatheActive, alive, breath]);
+
+  const haloProps = useAnimatedProps(() => {
+    const b = breath.value < 0 ? 0 : breath.value > 1 ? 1 : breath.value;
+    return {
+      strokeOpacity: 0.12 + b * 0.22,
+      strokeWidth: stroke * (2 + b * 1.2),
+      strokeDashoffset: geo.arcLength * (1 - fill.value),
+    };
+  });
+
   return (
     <View
       style={[{ width: size, height: size }, style]}
@@ -112,6 +149,18 @@ export function AFReadinessArc({
             strokeLinecap="round"
             fill="none"
           />
+          {alive && (
+            <AnimatedCircle
+              cx={center}
+              cy={center}
+              r={geo.radius}
+              stroke={color}
+              strokeDasharray={geo.dashArray}
+              animatedProps={haloProps}
+              strokeLinecap="round"
+              fill="none"
+            />
+          )}
           <AnimatedCircle
             cx={center}
             cy={center}
