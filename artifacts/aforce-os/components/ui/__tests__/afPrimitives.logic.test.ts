@@ -4,6 +4,28 @@
  * error-prone parts; pin them here so the RN components stay thin wrappers.
  */
 import { describe, it, expect } from 'vitest';
+import { ringHalo } from '../afPrimitives.logic';
+
+describe('ringHalo (P-A ring-alive glow)', () => {
+  it('swells opacity + width from rest (0) to peak (1)', () => {
+    const rest = ringHalo(0, 6);
+    const peak = ringHalo(1, 6);
+    expect(peak.opacity).toBeGreaterThan(rest.opacity);
+    expect(peak.width).toBeGreaterThan(rest.width);
+  });
+  it('stays a subtle glow (never opaque, always wider than the stroke)', () => {
+    for (const b of [0, 0.5, 1]) {
+      const h = ringHalo(b, 6);
+      expect(h.opacity).toBeGreaterThan(0);
+      expect(h.opacity).toBeLessThan(0.5);
+      expect(h.width).toBeGreaterThan(6);
+    }
+  });
+  it('clamps out-of-range breath (guards NaN/overshoot)', () => {
+    expect(ringHalo(2, 6).opacity).toBe(ringHalo(1, 6).opacity);
+    expect(ringHalo(-1, 6).opacity).toBe(ringHalo(0, 6).opacity);
+  });
+});
 import {
   clampProgress,
   ringGeometry,
