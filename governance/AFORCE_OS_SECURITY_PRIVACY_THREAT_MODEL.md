@@ -76,3 +76,13 @@
 4. Private-by-default sharing + moderation/age gate (SS-06/07/08) **[counsel]**.
 5. Smart Capture consent + image minimization before enable (SS-10).
 6. Add client crash reporting + retention enforcement; run the `/SECURITY` + `/PRIVACY` Lock modes.
+
+## 8. Night Out Protocol cross-reference (2026-08-01)
+Per `AFORCE_OS_NIGHT_OUT_PROTOCOL_SPEC.md` §11–§12: confirmed alcohol data is **sensitive personal
+data**; Night Out is **private by default** — no auto-disclosure of activation/timing/venue/beverage/
+alcohol/HydroState/commands to Circle, Guardian, Clutch Team, coaches, or Cruise/enterprise tenants
+(any future visibility needs separate policy + field-level consent + RBAC + revocation). Lock-screen
+notifications neutral by default ("AForce has an update"); no precise-location requirement. **Absent
+today:** age gating / regional alcohol eligibility (**SS-26 / NO-8** — legal). Default share posture is
+still opt-out (SS-06). Provider event-class honesty (no fabricated beverage capability) per §13 +
+`AFORCE_OS_HEALTH_SOURCE_MATRIX.md`.

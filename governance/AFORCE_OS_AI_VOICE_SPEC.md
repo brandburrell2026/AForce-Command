@@ -71,3 +71,11 @@ state+behavior — needs a founder ordering ruling (SS-25).
 Persona delivery-only + language guardrails = **Live/Validated** (well-guarded). Command Standard
 coverage = **Partially Built**. Force Mode / Daily Standard = **Partially Built / Proposed**. §64
 production enable stays gated on RD-1/CR-1 (out of this program's scope).
+
+## 7. Night Out Protocol cross-reference (2026-08-01)
+Night-Out AI/language constraints are in `AFORCE_OS_NIGHT_OUT_PROTOCOL_SPEC.md` §10: AI may never
+determine/display BAC, impairment, sobriety, driving, alcohol clearance, hangover prevention, a safe
+alcohol quantity, a score weight, or a medical conclusion, and may never infer alcohol use from
+face/voice/gait/wearable/location. Residual BAC/impairment/transportation copy in `socialModeEngine`
+(NO-5 = SS-05) and "Hangover Risk" wording (NO-6 = SS-21) are the items to retire. Use "configured
+recommended range"; never a safe alcohol range.

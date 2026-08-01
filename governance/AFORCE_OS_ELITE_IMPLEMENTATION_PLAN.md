@@ -88,6 +88,21 @@ Depends on P1 sign-off cadence, independent code-wise.
 
 ---
 
+### Phase P-NO — Night Out Protocol (parallel track, gated on founder rulings)
+Documentation reconciled in `AFORCE_OS_NIGHT_OUT_PROTOCOL_SPEC.md`. Sequence once the NO-* rulings land:
+1. **NO-5 (S1) / NO-8 (S1, legal)** — with P1: complete BAC/impairment/driving deprecation; add age +
+   regional alcohol controls (counsel). These gate any public Night-Out alcohol feature.
+2. **NO-1 / NO-2 / NO-6** — rename Social Mode → Night Out (public; legacy alias retained); relocate into
+   the Protocol tab (five tabs preserved); retire `social-v2`/`social-legacy` duplicates; drop "Hangover
+   Risk" wording. Presentation + routing, additive.
+3. **NO-10** — dedicated `night_out_enabled` flag + **founder-approved entitlement** (server-authoritative
+   per SS-02) before public exposure.
+4. **NO-3 / NO-4 / NO-7 / NO-9** — move alcohol-depletion constants to `config/hydroStateModel.ts`
+   (Build-Rule #13, DR if thresholds change); confirmed-drink correction via approved event replay;
+   consumption ladder (shared with SS-23); emergency-boundary design (counsel + clinical).
+- **Guardrail:** preserve the already-compliant behavior — deterministic capped alcohol depletion (§5)
+  and neutral `logSocialDrink` logging (§11) must survive the rename. No HydroState-authority change.
+
 ## 3. Recommended first phase (for founder decision)
 
 **Phase P1 (production-safety hardening).** It is the dependency root, contains all five S1 items, is

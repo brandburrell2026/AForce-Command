@@ -34,6 +34,7 @@ the detailed matrices and registers.
 | 12 | `AFORCE_OS_SECURITY_PRIVACY_THREAT_MODEL.md` | Auth, tokens, consent, deletion, threat model |
 | 13 | `AFORCE_OS_ACCESSIBILITY_REPORT.md` | WCAG, dynamic type, reduced motion, targets |
 | 14 | `AFORCE_OS_RELEASE_READINESS.md` | Phase-0 addendum to `Launch-Readiness.md` |
+| 15 | `AFORCE_OS_NIGHT_OUT_PROTOCOL_SPEC.md` | Night Out Protocol reconciliation (2026-08-01 addendum; Authority + Event-Class-Provider + Entitlement matrices) |
 
 ---
 

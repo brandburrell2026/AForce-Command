@@ -94,6 +94,7 @@ Every "Live/Built-Hidden/Internal Preview" row cites code + flag + current visib
 | Founder Mode (§62) | **Not Built** (devMode is client-only; §62 never built) |
 | Circle/Community | Live (legacy) + Built-Hidden (V2) |
 | Sharing privacy controls | Partially Built (defaults inverted; no moderation/age gate) |
+| **Night Out Protocol** (current "Social Mode") | **Partially Built; Blocked for Night-Out public exposure** — see `AFORCE_OS_NIGHT_OUT_PROTOCOL_SPEC.md` §15 (naming NO-1, Protocol placement NO-2, BAC/hangover NO-5/NO-6, age/regional NO-8, flag/entitlement NO-10) |
 
 ## 7. Health providers (see `AFORCE_OS_HEALTH_SOURCE_MATRIX.md`)
 

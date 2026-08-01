@@ -153,3 +153,29 @@ resolution · decision owner · blocking?
 (on comparison surface). **Non-blocking / docs-hygiene:** PA-02, PA-05, PA-08, PA-09, PA-10.
 
 No conflict was resolved by choosing; each blocking item is routed to Julius + Brandon.
+
+---
+
+## 4. Night Out Protocol addendum (2026-08-01) — `NO-*`
+
+Opened by the Night Out reconciliation pass (see `AFORCE_OS_NIGHT_OUT_PROTOCOL_SPEC.md`). Current
+implementation = "Social Mode". Full evidence + Authority/Provider/Entitlement matrices live in the
+spec; the register records the conflicts.
+
+| ID | Conflict (source vs code) | Governing rule | Owner | Blocking? |
+|---|---|---|---|---|
+| **NO-1** | Public term is "Social Mode" (`SocialModeV2Screen`, `socialModeEngine`, `spec_social`, `social.*` locale keys) vs addendum name-lock "Night Out". | Addendum §2 (name lock); "Social Mode" retained as legacy alias only. | Julius + Brandon | yes |
+| **NO-2** | Night Out must live **inside Protocol tab**; code exposes it as a hidden bottom-tab route (`(tabs)/social.tsx` href:null) + duplicate `social-v2` + legacy `social-legacy`. | Addendum §3; Build-Rule #14 (no new tab). | Founder + eng | yes |
+| **NO-3** | Alcohol-depletion constants (`PER_DRINK_WEIGHT=5`, `SOCIAL_INTAKE_MAX_PENALTY`, `decayMultiplier`/`activeMinutes`) hardcoded in `hangoverRisk.ts`/`alcoholDrinks.ts`. | Build-Rule #13 — tunables in `config/hydroStateModel.ts`. | eng (DR if thresholds change) | yes |
+| **NO-4** | Confirmed-drink correction/deletion lives in client `state.socialMode.drinks`; no approved event-reconciliation/replay for it. | Addendum §5 (correction must follow approved replay, not silent rewrite). | eng | yes (before any correction) |
+| **NO-5** | `socialModeEngine` still computes BAC/impairment/transportation into `ScoreEngineOutput.social`; strings in 12 locales. | Addendum §12/§14; Constitution P5; = **SS-05**. | Founder + counsel | **S1** |
+| **NO-6** | "Hangover Risk" user-facing terminology (`calculateHangoverRisk`; `en.json:770,1397`). | Terminology §7 (banned "risk"); addendum §12. | Founder + counsel | yes |
+| **NO-7** | No consumption state machine (SCANNED→…→DISCARDED); partial consumption unmodeled. | Addendum §10; = RC-L12 / SS-23. | product | yes |
+| **NO-8** | No age gating / regional alcohol eligibility logic (grep-clean). | Addendum §17; legal. | Founder + counsel | **S1 (legal)** |
+| **NO-9** | No emergency-boundary path. | Addendum §18; legal + clinical. | Founder + counsel + clinical | yes (design) |
+| **NO-10** | No dedicated `night_out_enabled` flag / entitlement; `spec_social` is a reskin flag; Athlete tier retired. | Addendum §7; server-authoritative per SS-02. | Julius + Brandon | yes |
+
+**Aligned / confirmatory (no conflict):** alcohol's score influence is deterministic + capped +
+time-decaying + prospective (addendum §5 ✔); alcohol logging is neutral via a separate `logSocialDrink`
+path, no celebration (addendum §11 ✔); `socialModeEngine` rollup does not mutate the score (Score
+Protection ✔); activation/scan/select/intent are score-neutral ✔.
