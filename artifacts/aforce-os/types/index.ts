@@ -779,6 +779,16 @@ export interface FeatureFlags {
    * phrasing adapter is fail-safe + §64-guarded (Score-Protection).
    */
   elite_voice_coach_enabled: boolean;
+  /**
+   * AForce Night Out Protocol (the renamed "Social Mode") — Founder/Internal
+   * Preview only (founder decision NO-10). Default OFF in production; ON only in
+   * approved internal/demo environments. Not assigned to any paid tier; no
+   * client-side toggle may grant real access, and production access must
+   * ultimately require server-side authorization (enforced in a later slice).
+   * NO-a introduces the flag + the canonical session-state model only — no UI,
+   * no scoring/alcohol/navigation/entitlement change.
+   */
+  night_out_enabled: boolean;
   // Phase 3 redesign flags (one per redesigned screen; default OFF). Presentation-only.
   spec_community: boolean;
   spec_store: boolean;

@@ -90,6 +90,9 @@ Depends on P1 sign-off cadence, independent code-wise.
 
 ### Phase P-NO — Night Out Protocol (parallel track, gated on founder rulings)
 Documentation reconciled in `AFORCE_OS_NIGHT_OUT_PROTOCOL_SPEC.md`. Sequence once the NO-* rulings land:
+0. **NO-a (DONE 2026-08-01)** — `night_out_enabled` flag (Founder/Internal-Preview, OFF prod) + canonical
+   session-state model reconciled onto `SocialModeState` (pure, no migration, legacy preserved), 18 tests.
+   No UI/scoring/nav change. Founder review pending before NO-b.
 1. **NO-5 (S1) / NO-8 (S1, legal)** — with P1: complete BAC/impairment/driving deprecation; add age +
    regional alcohol controls (counsel). These gate any public Night-Out alcohol feature.
 2. **NO-1 / NO-2 / NO-6** — rename Social Mode → Night Out (public; legacy alias retained); relocate into

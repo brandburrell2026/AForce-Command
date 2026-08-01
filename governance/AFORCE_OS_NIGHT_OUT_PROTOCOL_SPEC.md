@@ -220,3 +220,68 @@ Out until these clear + legal review + deterministic states + real-device eviden
 Documentation only. No product code, packages, migrations, provider connections, entitlement
 assignment, or HydroState-authority change. Entitlement (§7) and every blocking NO-item stop for Julius
 + Brandon. After approval, the implementation phase is authored via Prompt 2; Prompt 3 certifies.
+
+## 19. NO-a implementation record (2026-08-01) — flag + session-state model
+
+First implementation slice of Phase P-NO (founder-approved). **Scope-limited: no UI, no HydroState/
+alcohol/navigation change; entitlement stays Founder/Internal-Preview per NO-10.**
+
+- **Flag `night_out_enabled`** — added to `types/index.ts` (FeatureFlags), `featureFlags/flags.ts`
+  (`DEFAULT_FLAGS` = **false** / prod-off; `DEMO_ALL_ON_FLAGS` = **true** / internal-demo only), and the
+  test `baseFlags`. Founder decision NO-10: not assigned to any paid tier; no client toggle grants real
+  access; production access must ultimately require server-side authorization (a later slice).
+- **Canonical session-state model** — `services/nightOut/sessionState.ts`:
+  `NightOutSessionState = OFF | PREPARING | ACTIVE | WINDING_DOWN | RECOVERY_HANDOFF | CLOSED`, resolved
+  by a **pure** `resolveNightOutSessionState(social, {now, phaseHint})` that **reconciles onto the
+  existing `SocialModeState`** (reads `active`/`endedAt`/`cruiseUntil`; 8h/24h recovery window;
+  clock-safe). **No parallel state system, no stored-shape change → no migration; legacy Social Mode
+  data + the `social_mode` alias are preserved** (`NIGHT_OUT_LEGACY_ALIAS`). PREPARING/WINDING_DOWN are
+  reserved canonical states not yet in the stored shape — driven only by an explicit `phaseHint` until
+  the NO-c session-start/wind-down flows exist.
+- **Fixtures** — `services/nightOut/fixtures.ts`: one deterministic `SocialModeState` per canonical
+  state (clock-injected; DEV/test only, never production data).
+- **Tests** — `services/nightOut/__tests__/sessionState.test.ts` (18): derivation, 8h/24h window,
+  clock-skew safety, malformed-date safety, reserved-state hints, legacy-alias, fixture coverage of all
+  six states, and flag defaults (OFF prod / ON demo). tsc 0; full suite green (pre-existing failures
+  only). **Not started:** NO-b…NO-f (NO-f blocked pending legal/compliance).
+
+## 20. Stop condition (NO-a)
+NO-a committed in isolation. Stop for Julius + Brandon review. Do not begin NO-b…NO-f.
+
+## 21. NO-a.1 record (2026-08-01) — internal flag isolation
+
+Follow-up correction on the NO-a branch, closing the PR #447 merge blocker: the
+production-reachable Developer "unlock all" applied `DEMO_ALL_ON_FLAGS`, which had
+`night_out_enabled: true` — a client action could enable a Founder/Internal-Preview
+capability (Phase-0 SS-01). Fixed with a two-layer defense, and the three concepts
+are now kept explicitly separate:
+
+| Concept | Mechanism | Grants access? |
+|---|---|---|
+| **Demo presentation capability** | `DEMO_ALL_ON_FLAGS` / demo build | **No** — presentation only |
+| **Restricted internal-preview authorization** | `services/nightOut/access.ts` `isNightOutEnabled(flags, ctx)` — flag AND env-driven `DEMO_MODE` context both required | **Yes**, only in an approved internal context |
+| **Future server-side authorization** | not yet implemented — the authoritative boundary; supersedes the client gate when it lands | (future) |
+
+Changes:
+- `featureFlags/flags.ts`: `DEMO_ALL_ON_FLAGS.night_out_enabled` → **false**; added
+  `INTERNAL_PREVIEW_RESTRICTED_FLAGS = ['night_out_enabled']` + pure
+  `demoUnlockAllFlags(base?)` that force-clamps every restricted flag to false —
+  so the generic unlock can NEVER enable Night Out, even if the demo set is later
+  edited to `true`.
+- `components/profile/ProfileScreenV2.tsx` + `ProfileLegacy.tsx`: the "unlock all"
+  control now applies `demoUnlockAllFlags()` (one-line payload swap + matching
+  `allOn` comparison). **No Developer-tab redesign; no new toggle; no Night Out UI.**
+- `services/nightOut/access.ts` (new): `isNightOutEnabled` (flag necessary but not
+  sufficient — approved context required), `nightOutInternalPreviewContext(DEMO_MODE)`,
+  `enableNightOutForInternalPreview` (the only sanctioned enabler; for a later
+  approved internal entry, never the generic unlock).
+- Flags are **not persisted** (`SET_FLAGS` is in-memory; cold start = `DEFAULT_FLAGS`),
+  so there is no persisted-override vector; the access gate additionally denies any
+  runtime-flipped flag without the approved context.
+
+Tests (`services/nightOut/__tests__/access.test.ts`, 8): default OFF; restricted-flag
+membership; generic unlock cannot enable even against a tampered base; other demo
+flags preserved; flag-alone insufficient; context-alone insufficient; client/persisted
+override denied without context; approved internal context enables where intended.
+tsc 0; full suite green (pre-existing failures only). Server-side authorization
+remains the outstanding NO-10 item.
