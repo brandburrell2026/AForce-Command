@@ -95,9 +95,11 @@ Documentation reconciled in `AFORCE_OS_NIGHT_OUT_PROTOCOL_SPEC.md`. Sequence onc
    No UI/scoring/nav change. Founder review pending before NO-b.
 1. **NO-5 (S1) / NO-8 (S1, legal)** — with P1: complete BAC/impairment/driving deprecation; add age +
    regional alcohol controls (counsel). These gate any public Night-Out alcohol feature.
-2. **NO-1 / NO-2 / NO-6** — rename Social Mode → Night Out (public; legacy alias retained); relocate into
-   the Protocol tab (five tabs preserved); retire `social-v2`/`social-legacy` duplicates; drop "Hangover
-   Risk" wording. Presentation + routing, additive.
+2. **NO-1 / NO-2 (DONE 2026-08-01, NO-b)** — public rename Social Mode → Night Out (legacy alias
+   retained); authorized entry inside the Protocol tab (five tabs preserved); social-v2/social-legacy
+   de-discovered via safe redirects; Home pip/banner/entry-tile gated behind authorization; 43 tests.
+   No scoring/alcohol/persistence/entitlement change. (**NO-6** "Hangover Risk" wording retirement is
+   still pending — deferred to a copy slice.) Founder review pending before NO-c.
 3. **NO-10** — dedicated `night_out_enabled` flag + **founder-approved entitlement** (server-authoritative
    per SS-02) before public exposure.
 4. **NO-3 / NO-4 / NO-7 / NO-9** — move alcohol-depletion constants to `config/hydroStateModel.ts`

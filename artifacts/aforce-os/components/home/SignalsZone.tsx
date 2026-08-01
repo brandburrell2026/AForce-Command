@@ -23,6 +23,7 @@ import { RingStatusCard } from '../RingStatusCard';
 import { HeatAlertBanner } from '../HeatAlertBanner';
 import { SocialModeBanner } from '../SocialModeBanner';
 import { useEngineSlice, useUserSlice, useCycleSlice, useSocialSlice, useFlagsSlice } from '../../store/slices';
+import { isNightOutEnabled, nightOutInternalPreviewContext } from '@/services/nightOut/access';
 import type { HeatRiskBand } from '../../types/heat';
 
 interface Props {
@@ -46,6 +47,11 @@ function SignalsZoneImpl({ heatScore, onOpenSocial, includeEntryActions, entryAc
   // remote config in production).
   const flags = useFlagsSlice();
   const showHardwareSignals = flags.phantom_wearable_enabled;
+  // NO-b: Night Out (formerly Social Mode) is Founder/Internal-Preview only
+  // (NO-10). Its Home surfaces — the banner and the entry tile — render only
+  // when authorized, so production / unauthorized users can neither see nor
+  // enter Night Out from Home.
+  const nightOutAuthorized = isNightOutEnabled(flags, nightOutInternalPreviewContext());
 
   return (
     <>
@@ -76,28 +82,32 @@ function SignalsZoneImpl({ heatScore, onOpenSocial, includeEntryActions, entryAc
           </View>
         </>
       )}
-      {social && (
+      {nightOutAuthorized && social && (
         <>
           <Spacer />
           <SocialModeBanner social={social} onPress={onOpenSocial} />
         </>
       )}
-      <Spacer />
-      <TouchableOpacity
-        onPress={() => {
-          if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
-          onOpenSocial();
-        }}
-        activeOpacity={0.85}
-        style={[styles.socialEntry, { borderColor: '#9D7CFB55' }]}
-        accessibilityRole="button"
-        accessibilityLabel={t('social.entry_button')}
-        testID="home-social-entry"
-      >
-        <Icon name="moon" size={16} color="#9D7CFB" />
-        <Text style={styles.socialEntryText}>{t('social.entry_button')}</Text>
-        <Icon name="chevron-right" size={16} color="#9D7CFB" />
-      </TouchableOpacity>
+      {nightOutAuthorized && (
+        <>
+          <Spacer />
+          <TouchableOpacity
+            onPress={() => {
+              if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
+              onOpenSocial();
+            }}
+            activeOpacity={0.85}
+            style={[styles.socialEntry, { borderColor: '#9D7CFB55' }]}
+            accessibilityRole="button"
+            accessibilityLabel={t('social.entry_button')}
+            testID="home-social-entry"
+          >
+            <Icon name="moon" size={16} color="#9D7CFB" />
+            <Text style={styles.socialEntryText}>{t('social.entry_button')}</Text>
+            <Icon name="chevron-right" size={16} color="#9D7CFB" />
+          </TouchableOpacity>
+        </>
+      )}
     </>
   );
 }

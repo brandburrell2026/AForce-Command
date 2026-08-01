@@ -15,12 +15,14 @@ import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native
 import * as Haptics from 'expo-haptics';
 
 import { Colors } from '../../theme/colors';
-import { useAppStore } from '@/store/useAppStore';
+import { useAppStore, useFeatureFlags } from '@/store/useAppStore';
 import { useEngineSlice, useUserSlice } from '../../store/slices';
+import { isNightOutEnabled, nightOutInternalPreviewContext } from '@/services/nightOut/access';
 
 export function SocialModePip() {
   const userState = useUserSlice();
   const engine = useEngineSlice();
+  const flags = useFeatureFlags();
   const { activateSocialMode, deactivateSocialMode } = useAppStore();
 
   const active = !!userState.socialMode?.active;
@@ -35,6 +37,11 @@ export function SocialModePip() {
     }
   }, [active, activateSocialMode, deactivateSocialMode]);
 
+  // NO-b: Night Out (formerly Social Mode) is Founder/Internal-Preview only
+  // (NO-10). This Home entry renders NOTHING unless authorized — so production /
+  // unauthorized users can neither see nor activate Night Out from Home.
+  if (!isNightOutEnabled(flags, nightOutInternalPreviewContext())) return null;
+
   // Inactive = muted border, active = Signal Red accent + decay badge so the
   // cost of the choice is visible at a glance.
   const accent = active ? Colors.accent.primary : Colors.text.muted;
@@ -46,11 +53,11 @@ export function SocialModePip() {
       style={[styles.pip, { borderColor: `${accent}55`, backgroundColor: `${accent}14` }]}
       accessibilityRole="button"
       accessibilityState={{ selected: active }}
-      accessibilityLabel={active ? 'Social Mode active. Tap to deactivate.' : 'Activate Social Mode.'}
+      accessibilityLabel={active ? 'Night Out active. Tap to deactivate.' : 'Activate Night Out.'}
       testID="home-social-pip"
     >
       <View style={[styles.dot, { backgroundColor: accent }]} />
-      <Text style={[styles.eyebrow, { color: accent }]}>SOCIAL</Text>
+      <Text style={[styles.eyebrow, { color: accent }]}>NIGHT OUT</Text>
       <Text style={[styles.label, { color: accent }]}>{active ? 'ON' : 'OFF'}</Text>
       {active ? (
         <Text style={styles.decay}>{decay.toFixed(2)} pts/min</Text>

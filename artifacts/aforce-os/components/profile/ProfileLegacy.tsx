@@ -1075,7 +1075,7 @@ export function ProfileLegacy() {
                     <View style={styles.settingLeft}>
                       <Icon name="users" size={16} color="#C1281B" />
                       <View>
-                        <Text style={styles.settingLabel}>Social Mode v2 · Preview</Text>
+                        <Text style={styles.settingLabel}>Night Out · Preview</Text>
                         <Text style={styles.settingSubLabel}>5-block spec · tap PLAY DEMO inside</Text>
                       </View>
                     </View>

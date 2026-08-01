@@ -1088,23 +1088,9 @@ export function ProfileScreenV2() {
                     </View>
                     <Icon name="chevron-right" size={16} color={af.textTertiary} />
                   </Pressable>
-                  <Divider />
-                  <Pressable
-                    onPress={() => router.push('/social-v2')}
-                    testID="profile-social-v2-link"
-                    style={styles.settingRow}
-                    accessibilityRole="button"
-                    accessibilityLabel={t('profile.v2.social_v2')}
-                  >
-                    <View style={styles.settingLeft}>
-                      <Icon name="users" size={16} color="#C1281B" />
-                      <View>
-                        <Text style={styles.settingLabel}>{t('profile.v2.social_v2')}</Text>
-                        <Text style={styles.settingSubLabel}>{t('profile.v2.social_v2_sub')}</Text>
-                      </View>
-                    </View>
-                    <Icon name="chevron-right" size={16} color={af.textTertiary} />
-                  </Pressable>
+                  {/* NO-b: the "Social V2" discoverability link was removed —
+                      Night Out is reached only through its authorized Protocol
+                      entry (restricted flag + internal-preview context). */}
                   <Divider />
                   <Pressable
                     onPress={() => router.push('/achievements')}

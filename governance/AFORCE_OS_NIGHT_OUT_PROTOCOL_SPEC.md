@@ -248,6 +248,42 @@ alcohol/navigation change; entitlement stays Founder/Internal-Preview per NO-10.
 ## 20. Stop condition (NO-a)
 NO-a committed in isolation. Stop for Julius + Brandon review. Do not begin NO-b…NO-f.
 
+## 22. NO-b record (2026-08-01) — public rename + Protocol placement + visibility
+
+Naming migration + gated placement + route-visibility. **No HydroState scoring, alcohol modeling,
+session persistence, or database schema changed; no consumer entitlement tier assigned; no NO-f
+legal-gated copy added; no active command experience built; five bottom tabs preserved.**
+
+- **Canonical naming** — `services/nightOut/naming.ts`: public **NIGHT OUT**, official **AForce Night
+  Out Protocol**, descriptor **Private Evening Protocol**, eyebrow **AFORCE PROTOCOL**. "Social Mode"
+  retired from user-facing copy; retained only as the internal `social_mode` legacy alias.
+- **Authorized entry inside Protocol** — `components/nightOut/NightOutProtocolEntry.tsx` mounted in
+  `ProtocolScreenV2`. Renders **null** unless authorized (`isNightOutEnabled` = restricted flag +
+  approved internal-preview context) → hidden in production; routes to `/night-out` when authorized.
+- **Canonical gated route** — `app/night-out.tsx`: authorization-gated; redirects to `/(tabs)/protocol`
+  when unauthorized (no loop). Interim target is the existing (renamed) screen; the active experience
+  is NO-c.
+- **Duplicate-route visibility removed (non-destructive)** — `app/social-v2.tsx` → redirect to
+  `/night-out`; `app/(tabs)/social-legacy.tsx` → dev-gated (redirects to Protocol when not in Developer
+  Mode); the Profile "Social V2" discoverability link removed. Legacy `/social` route + `socialMode`
+  state + analytics keys preserved as compatibility aliases.
+- **Home entry points gated** — the Home `SocialModePip` and the `SignalsZone` Night Out banner + entry
+  tile now render only when authorized, so unauthorized/production users can neither see nor enter Night
+  Out from Home. (This removes the previously ungated Social entry from the production Home — a visible
+  change; flagged for founder awareness.)
+- **Residue removed** — user-facing "Social Mode"/"SOCIAL MODE" replaced with Night Out across the
+  screen header, disclaimer, `en.json` (`social.*` + Profile demo-preview), the Home pip/quote, and the
+  legacy Profile label. Locale KEYS unchanged (compat).
+
+Tests (`services/nightOut/__tests__/naming.test.ts` + `routing.test.ts`, +25): canonical naming; no
+user-facing residue in en.json / screen; gating (prod hidden, internal reachable); safe redirects with
+no loops; social-v2/social-legacy not discoverable; Home entries gated; five tabs / no Night Out tab.
+Night Out suite **43/43**; tsc 0; full suite green (pre-existing failures only). **Not started:**
+NO-c…NO-f (NO-f blocked pending legal/compliance).
+
+## 23. Stop condition (NO-b)
+NO-b committed in isolation. Stop for Julius + Brandon review. Do not begin NO-c.
+
 ## 21. NO-a.1 record (2026-08-01) — internal flag isolation
 
 Follow-up correction on the NO-a branch, closing the PR #447 merge blocker: the

@@ -29,7 +29,7 @@ const TYPE_META: Record<QuoteType, { label: string; dot: string }> = {
   result:   { label: 'RESULT',      dot: Colors.states.BALANCED.primary },
   identity: { label: 'IDENTITY',    dot: Colors.states.PEAK.primary },
   product:  { label: 'AFORCE',      dot: Colors.text.muted },
-  social:   { label: 'SOCIAL MODE', dot: Colors.states.RECOVERING.primary },
+  social:   { label: 'NIGHT OUT', dot: Colors.states.RECOVERING.primary },
 };
 
 function TodayQuoteImpl() {
