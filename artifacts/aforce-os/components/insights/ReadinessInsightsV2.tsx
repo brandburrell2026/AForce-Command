@@ -23,8 +23,9 @@ import {
   AFEmptyState,
 } from '@/components/ui';
 import { af, afType } from '@/theme';
-import { useAppStore } from '@/store/useAppStore';
+import { useAppStore, useFeatureFlags } from '@/store/useAppStore';
 import { useEngineSlice } from '@/store/slices';
+import { EliteWeeklyEditorial } from './EliteWeeklyEditorial';
 
 function dayInitial(ts: Date | string): string {
   const d = new Date(ts);
@@ -40,6 +41,8 @@ export function ReadinessInsightsV2() {
   const { t } = useTranslation();
   const { state } = useAppStore();
   const engine = useEngineSlice();
+  const flags = useFeatureFlags();
+  const elite = flags.elite_weekly_report_enabled;
   const { history } = state;
 
   // Chronological window of the most recent readings (history is newest-first).
@@ -103,6 +106,13 @@ export function ReadinessInsightsV2() {
               height={140}
               summary={t('reports.v2.chart_summary', { days: scores.length, avg })}
             />
+            {/* E2: surface the chart's plain-language summary on-screen (it is
+                screen-reader-only in the shipped V2). */}
+            {elite && (
+              <Text style={styles.caption}>
+                {t('reports.v2.chart_summary', { days: scores.length, avg })}
+              </Text>
+            )}
           </View>
 
           {/* Three drivers */}
@@ -141,6 +151,11 @@ export function ReadinessInsightsV2() {
               </AFCard>
             </View>
           )}
+
+          {/* E2: editorial performance-review sections (wins / watch / Performance
+              Age + disclaimer / next-week focus), with honest calibrating/awaiting
+              states. Mounted only when the flag is on. */}
+          {elite && <EliteWeeklyEditorial />}
         </>
       )}
 
@@ -155,6 +170,7 @@ const styles = StyleSheet.create({
   scoreLabel: { ...afType.eyebrow, color: af.textTertiary },
   deltaWrap: { marginTop: 10 },
   chart: { marginTop: 28 },
+  caption: { ...afType.caption, color: af.textTertiary, marginTop: 10, textAlign: 'center' },
   section: { marginTop: 28, gap: 12 },
   driversCard: { paddingHorizontal: 16 },
   driverRow: {

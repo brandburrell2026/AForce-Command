@@ -42,6 +42,7 @@ import { useAppStore } from '@/store/useAppStore';
 import { ReadinessInsightsV2 } from '@/components/insights/ReadinessInsightsV2';
 import { usePerformanceAge } from '@/hooks/usePerformanceAge';
 import { openShareSheet } from '@/services/shareService';
+import { sectionSummary } from '@/components/insights/weeklyReportCopy';
 
 type IconName = React.ComponentProps<typeof Icon>['name'];
 
@@ -213,48 +214,6 @@ function WeeklyReportLegacy() {
       </GradientBackground>
     </View>
   );
-}
-
-/** Localized one-line summary used both in the card and the share payload. */
-function sectionSummary(
-  t: ReturnType<typeof useTranslation>['t'],
-  s: WeeklyReportSection,
-): string {
-  const base = `reports.sections.${s.key}`;
-  switch (s.key) {
-    case 'improved':
-      return s.status === 'improved'
-        ? (s.findings ?? []).map((f) => t(`reports.findings.${f.code}`, f.params)).join(' ')
-        : t(`${base}.collecting`);
-    case 'attention':
-      if (s.status === 'attention') {
-        return (s.findings ?? []).map((f) => t(`reports.findings.${f.code}`, f.params)).join(' ');
-      }
-      return s.status === 'steady' ? t(`${base}.steady`) : t(`${base}.collecting`);
-    case 'performanceAge':
-      if (s.status === 'improved') return t(`${base}.younger`, s.params);
-      if (s.status === 'attention') return t(`${base}.older`, s.params);
-      if (s.status === 'steady') return t(`${base}.steady`);
-      return t(`${base}.collecting`);
-    case 'habitVelocity':
-      if (s.status === 'improved') return t(`${base}.improved`, s.params);
-      if (s.status === 'attention') return t(`${base}.attention`, s.params);
-      if (s.status === 'steady') return t(`${base}.steady`, s.params);
-      return t(`${base}.collecting`);
-    case 'recovery':
-      if (s.status === 'improved') return t(`${base}.up`, s.params);
-      if (s.status === 'attention') return t(`${base}.down`, s.params);
-      if (s.status === 'steady') return t(`${base}.steady`);
-      return t(`${base}.collecting`);
-    case 'topCommand':
-      return s.status === 'awaiting' ? t(`${base}.awaiting`) : t(`${base}.detail`, s.params);
-    case 'nextWeekFocus': {
-      const focus = String(s.params.focus ?? 'maintain');
-      return t(`${base}.${focus}`);
-    }
-    default:
-      return '';
-  }
 }
 
 function SectionCard({ section }: { section: WeeklyReportSection }) {
