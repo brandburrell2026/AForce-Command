@@ -1,0 +1,153 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>AForce OS · P0 Screen Gallery</title>
+<style>
+:root{--paper:#E9E7E1;--ink:#0D0D0D;--red:#C1281B;--mut:#8a8a86;}
+*{box-sizing:border-box}body{margin:0;background:var(--ink);color:var(--paper);font:15px/1.5 -apple-system,Segoe UI,Roboto,sans-serif;padding:32px}
+h1{font-size:26px;margin:0 0 4px}p.sub{color:var(--mut);margin:0 0 24px;max-width:70ch}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:24px}
+.card{margin:0;background:#161615;border:1px solid #262625;border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
+.card img{width:100%;height:auto;display:block;background:#000;border-bottom:1px solid #262625}
+figcaption{padding:12px 14px;display:flex;flex-direction:column;gap:6px}
+.num{color:var(--red);font-weight:700;font-size:12px;letter-spacing:.08em}
+.lbl{font-weight:600}
+.drv{color:var(--mut);font-size:11.5px;font-family:ui-monospace,Menlo,monospace;line-height:1.45;word-break:break-word}
+.lim{color:#e0a13a;font-size:11px;font-weight:600}
+footer{color:var(--mut);font-size:12px;margin-top:28px;border-top:1px solid #262625;padding-top:14px}
+</style></head><body>
+<h1>AForce OS — P0 Screen Gallery</h1>
+<p class="sub">13 deterministic states of the shipped …ScreenV2 surfaces, captured at the Standard 390×844 viewport on the Expo web demo target. Every state is the real component fed a fixture — no forks, no fabricated data, no protected-logic changes. Generated 2026-08-01T16:44:04Z.</p>
+<div class="grid">
+
+  <figure class="card">
+    <img src="01-home-depleted.png" alt="Home — Depleted" loading="lazy" />
+    <figcaption>
+      <span class="num">01</span>
+      <span class="lbl">Home — Depleted</span>
+      <code class="drv">engineOutput.score=38 (DEPLETED 0–59) + low-intake/high-heat userState; flags.spec_home</code>
+      
+    </figcaption>
+  </figure>
+
+  <figure class="card">
+    <img src="02-home-balanced.png" alt="Home — Balanced" loading="lazy" />
+    <figcaption>
+      <span class="num">02</span>
+      <span class="lbl">Home — Balanced</span>
+      <code class="drv">engineOutput.score=76 (BALANCED 75–89); shipped defaultUserState; flags.spec_home</code>
+      
+    </figcaption>
+  </figure>
+
+  <figure class="card">
+    <img src="03-hydration-empty.png" alt="Hydration — Empty" loading="lazy" />
+    <figcaption>
+      <span class="num">03</span>
+      <span class="lbl">Hydration — Empty</span>
+      <code class="drv">intakeEvents=[]; ozConsumedToday=0; complianceStreak=0; flags.spec_hydration</code>
+      
+    </figcaption>
+  </figure>
+
+  <figure class="card">
+    <img src="04-hydration-populated.png" alt="Hydration — Populated" loading="lazy" />
+    <figcaption>
+      <span class="num">04</span>
+      <span class="lbl">Hydration — Populated</span>
+      <code class="drv">5 logged intake events today; ozConsumedToday=64; flags.spec_hydration</code>
+      
+    </figcaption>
+  </figure>
+
+  <figure class="card">
+    <img src="05-command-active.png" alt="Command — Active" loading="lazy" />
+    <figcaption>
+      <span class="num">05</span>
+      <span class="lbl">Command — Active</span>
+      <code class="drv">RecoveryCommand.state='active' (direct prop, no store)</code>
+      
+    </figcaption>
+  </figure>
+
+  <figure class="card">
+    <img src="06-command-completed.png" alt="Command — Completed" loading="lazy" />
+    <figcaption>
+      <span class="num">06</span>
+      <span class="lbl">Command — Completed</span>
+      <code class="drv">RecoveryCommand.state='complete' (direct prop)</code>
+      
+    </figcaption>
+  </figure>
+
+  <figure class="card">
+    <img src="07-guardian-eligible.png" alt="Guardian — Eligible (Alert)" loading="lazy" />
+    <figcaption>
+      <span class="num">07</span>
+      <span class="lbl">Guardian — Eligible (Alert)</span>
+      <code class="drv">guardian_intelligence_enabled=true + engineOutput.score=8 → CRITICAL risk</code>
+      
+    </figcaption>
+  </figure>
+
+  <figure class="card">
+    <img src="08-guardian-not-eligible.png" alt="Guardian — Not Eligible (Quiet)" loading="lazy" />
+    <figcaption>
+      <span class="num">08</span>
+      <span class="lbl">Guardian — Not Eligible (Quiet)</span>
+      <code class="drv">guardian_intelligence_enabled=false → real FeatureGate quiet state</code>
+      
+    </figcaption>
+  </figure>
+
+  <figure class="card">
+    <img src="09-calibration-limited-data.png" alt="Calibration — Limited Data" loading="lazy" />
+    <figcaption>
+      <span class="num">09</span>
+      <span class="lbl">Calibration — Limited Data</span>
+      <code class="drv">VoiceCheckInOverlay mounted at first step (pure props)</code>
+      
+    </figcaption>
+  </figure>
+
+  <figure class="card">
+    <img src="10-offline.png" alt="Offline" loading="lazy" />
+    <figcaption>
+      <span class="num">10</span>
+      <span class="lbl">Offline</span>
+      <code class="drv">RecoveryCoachScreen offline=true, cached acknowledged command</code>
+      
+    </figcaption>
+  </figure>
+
+  <figure class="card">
+    <img src="11-permission-denied.png" alt="Permission Denied" loading="lazy" />
+    <figcaption>
+      <span class="num">11</span>
+      <span class="lbl">Permission Denied</span>
+      <code class="drv">Composed from AF* primitives (AFErrorState/AFEmptyState)</code>
+      <span class="lim">⚠ Approximated</span>
+    </figcaption>
+  </figure>
+
+  <figure class="card">
+    <img src="12-activation-failure.png" alt="Activation — Failure" loading="lazy" />
+    <figcaption>
+      <span class="num">12</span>
+      <span class="lbl">Activation — Failure</span>
+      <code class="drv">subscription.status='past_due' → real amber PAST_DUE pill</code>
+      
+    </figcaption>
+  </figure>
+
+  <figure class="card">
+    <img src="13-activation-success.png" alt="Activation — Success" loading="lazy" />
+    <figcaption>
+      <span class="num">13</span>
+      <span class="lbl">Activation — Success</span>
+      <code class="drv">subscription.status='active' → real green ACTIVE pill</code>
+      
+    </figcaption>
+  </figure>
+</div>
+<footer>Route: <code>/gallery</code> (dev/demo-only, __DEV__ / EXPO_PUBLIC_DEMO_MODE gated) · captured via headless Chrome/CDP · see <code>manifest.json</code>.</footer>
+</body></html>
