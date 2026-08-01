@@ -694,6 +694,7 @@
     "daily_lesson": "Your body taught us something today — worth a look."
   },
   "coach": {
+    "trust_line": "Your coach sets the tone — the code sets the score. Only verified behavior moves it.",
     "confidence_high": "HIGH CONFIDENCE",
     "confidence_medium": "GOOD CONFIDENCE",
     "confidence_low": "BUILDING",

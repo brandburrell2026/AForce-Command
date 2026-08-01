@@ -50,6 +50,8 @@ import {
   resolveArcAnimation,
   type SignalKey,
 } from './homePresentation';
+import { findVoice } from '@/services/voiceCatalog';
+import { coachEyebrow, coachLead, formatCommandForCoach } from '@/services/voice/coachPhrasing';
 import type { FluidType } from '@/types';
 
 interface HomeActions {
@@ -122,7 +124,7 @@ function EliteScoreNumber({
 
 export function HomeScreenV2() {
   const { t } = useTranslation();
-  const { state } = useAppStore();
+  const { state, selectedVoiceId } = useAppStore();
   const engine = useEngineSlice();
   const flags = useFeatureFlags();
   const { logIntake } = useActionsSlice<HomeActions>();
@@ -156,6 +158,18 @@ export function HomeScreenV2() {
   const accent = elite ? presentation.accent : af.red;
   const reveal = (idx: number) =>
     elite && !reducedMotion ? FadeInDown.duration(420).delay(idx * 90) : undefined;
+
+  // ── E4 elite voice-coach delivery (flag-gated; phrasing/delivery ONLY) ──────
+  // Same command/dose/timing/evidence for every coach — only the eyebrow + tone
+  // change, via the fail-safe, §64-guarded coachPhrasing adapter.
+  const voiceElite = flags.elite_voice_coach_enabled;
+  const archetype = findVoice(selectedVoiceId)?.archetype ?? 'push';
+  const commandEyebrow = voiceElite ? coachEyebrow(archetype) : undefined;
+  const commandInstruction = voiceElite
+    ? instruction
+      ? formatCommandForCoach(instruction, archetype)
+      : coachLead(archetype)
+    : instruction;
 
   const signalTiles: Record<SignalKey, React.ReactNode> = {
     hydration: <Signal label={t('home.v2.signal_hydration')} value={`${hydrationPct}%`} />,
@@ -212,14 +226,20 @@ export function HomeScreenV2() {
       {/* One command */}
       <Animated.View entering={reveal(2)}>
         <AFCommandCard
+          eyebrow={commandEyebrow}
           title={title || t('home.v2.default_command_title')}
-          instruction={instruction}
+          instruction={commandInstruction}
           primaryLabel={t('home.v2.log_water')}
           onPrimary={() => {
             void logIntake('water', { silent: true, ozOverride: parseDoseOz(engine.command.action) });
           }}
           rationale={engine.command.explanation || undefined}
         />
+        {voiceElite && (
+          <Text style={styles.trust} testID="home-coach-trust">
+            {t('coach.trust_line')}
+          </Text>
+        )}
       </Animated.View>
 
       {/* Three quiet signals */}
@@ -269,4 +289,5 @@ const styles = StyleSheet.create({
   },
   signalLabel: { ...afType.eyebrow, color: af.textTertiary },
   signalValue: { ...afType.title3, color: af.textPrimary },
+  trust: { ...afType.caption, color: af.textTertiary, marginTop: 10, lineHeight: 17 },
 });
