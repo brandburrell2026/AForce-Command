@@ -149,12 +149,19 @@ const initialState: AppState = {
   profileIdentity: DEFAULT_PROFILE_IDENTITY,
 };
 
-// Exported (read-only use) so the dev/demo-only Screen Gallery
-// (`demo/AForceScreenGallery.tsx`, __DEV__/demo-mode gated, never reachable
-// in production) can shadow this context with a fixture `AppContextValue`
-// for a screen subtree — the same pattern `<SliceProvider>` already supports
-// for the slice contexts below. No behavior change for every real call site;
-// `AppProvider` still owns the one live instance app-wide.
+// Exported SOLELY for the dev/demo-only Screen Gallery
+// (`demo/AForceScreenGallery.tsx`, __DEV__/EXPO_PUBLIC_DEMO_MODE gated, never
+// reachable or evaluated in a production build). It shadows this exact context
+// with a fixture `AppContextValue` around one screen subtree — `useAppStore()`
+// reads THIS instance, so no separate context can substitute, and injecting
+// via `AppProvider`/`SliceProvider` can't feed `useAppStore()`.
+//   WHY the export (not a provider wrap): the alternatives are worse — adding
+//   an override prop to `AppProvider` puts a dev branch in the live provider's
+//   runtime path; a demo-side `createContext()` is a different instance.
+//   NON-BREAKING: additive visibility only; every existing call site is
+//   unchanged and `AppProvider` still owns the one live instance app-wide.
+//   NO RUNTIME BEHAVIOR CHANGE: `export` is compile-time only — the context
+//   value, provider, and reducer are byte-identical at runtime.
 export const AppContext = createContext<AppContextValue | null>(null);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {

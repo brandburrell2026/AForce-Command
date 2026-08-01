@@ -101,6 +101,20 @@ it, shown inline in the gallery's detail header.
   wired to no-ops — the gallery is inspection-only and must never mutate real
   state, log real intake, or speak (voice is force-muted).
 
+### Decision record — the one-line `AppContext` export in `store/useAppStore.tsx`
+
+The gallery's only touch to a production file is `export const AppContext`
+(previously module-private). This was re-evaluated against cleaner alternatives
+before keeping it:
+
+| Option | Verdict |
+|---|---|
+| **Wrap the provider** (`AppProvider`) | Rejected — it builds *live* state and takes no override; injecting fixtures needs a new override prop + a **dev branch in the live provider's runtime path**. *More* invasive than the export, and it alters runtime behavior. |
+| **Existing provider boundary** (`SliceProvider`) | Insufficient — `SliceProvider` (already used here) feeds the *slice* contexts, not `AppContext`; screens call `useAppStore()` → `useContext(AppContext)`, which it can't satisfy. No test/dev render-provider exists to reuse. |
+| **Dependency injection** | Not supported — `useAppStore()` is hardcoded to `useContext(AppContext)`; no injectable store instance or swappable provider. |
+| **Demo-side `createContext()`** | Impossible — a different instance; `useAppStore()` reads *this* one. |
+| **Keep the export** ✅ | Minimal, least-invasive. **Non-breaking** (additive visibility; every call site unchanged; `AppProvider` still owns the one live instance). **Zero runtime behavior change** (`export` is compile-time only; value/provider/reducer byte-identical). Exists **solely** for this dev/demo-gated gallery. |
+
 ## Limitations (documented honestly, not fabricated)
 
 - **`permission-denied`** has no first-class existing screen. This repo's
