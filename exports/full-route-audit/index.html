@@ -1,0 +1,529 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/><title>AForce OS · Full-Route Render Audit</title>
+<style>
+:root{--paper:#E9E7E1;--ink:#0D0D0D;--mut:#8a8a86}*{box-sizing:border-box}
+body{margin:0;background:var(--ink);color:var(--paper);font:15px/1.5 -apple-system,Segoe UI,Roboto,sans-serif;padding:32px}
+h1{font-size:26px;margin:0 0 4px}p.sub{color:var(--mut);margin:0 0 18px;max-width:80ch}
+.legend{display:flex;flex-wrap:wrap;gap:14px;margin:0 0 24px;font-size:12.5px;color:var(--mut)}
+.legend b{color:var(--paper)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:22px}
+.card{margin:0;background:#161615;border:1px solid #262625;border-radius:14px;overflow:hidden;display:flex;flex-direction:column;border-top-width:3px}
+.card.s-rendered{border-top-color:#1FA35A}.card.s-redirected{border-top-color:#1E5BFF}
+.card.s-requiresauthentication{border-top-color:#C99A2E}.card.s-entitlementflaggated{border-top-color:#7A5CFF}
+.card.s-errorboundary{border-top-color:#C1281B}.card.s-blankrender{border-top-color:#8a8a86}
+.card img{width:100%;height:auto;display:block;background:#000;border-bottom:1px solid #262625}
+figcaption{padding:12px 14px;display:flex;flex-direction:column;gap:5px}
+.num{color:#C1281B;font-weight:700;font-size:11px}.lbl{font-weight:600}
+.badge{align-self:flex-start;font-size:11px;padding:2px 8px;border-radius:20px;background:#222;color:var(--paper)}
+.path{color:var(--mut);font-size:11px;font-family:ui-monospace,Menlo,monospace}
+.reason{color:var(--mut);font-size:11.5px;line-height:1.45}
+</style></head><body>
+<h1>AForce OS — Full-Route Render Audit</h1>
+<p class="sub">Every user-facing route navigated fresh on the Expo web demo target (EXPO_PUBLIC_DEMO_MODE) through the app’s own expo-router navigation — no auth / entitlement / flag / safety bypass. Captured at 390×844. Generated 2026-08-01T16:57:32Z.</p>
+<div class="legend">
+  <span><b>34</b> rendered</span>
+  <span><b>6</b> redirected</span>
+  <span><b>1</b> auth</span>
+  <span><b>2</b> entitlement/flag-gated</span>
+  <span><b>2</b> error-boundary</span>
+  <span><b>3</b> device-dependent</span>
+  <span>of <b>45</b> total</span>
+</div>
+<div class="grid">
+
+  <figure class="card s-rendered">
+    <img src="01-home.png" alt="Home (tab)" loading="lazy"/>
+    <figcaption>
+      <span class="num">01</span>
+      <span class="lbl">Home (tab)</span>
+      <span class="badge">rendered</span>
+      <code class="path">/(tabs)</code>
+      <span class="reason">Rendered (active tab).</span>
+    </figcaption>
+  </figure>
+
+  <figure class="card s-rendered">
+    <img src="02-hydration.png" alt="Hydration (tab)" loading="lazy"/>
+    <figcaption>
+      <span class="num">02</span>
+      <span class="lbl">Hydration (tab)</span>
+      <span class="badge">rendered</span>
+      <code class="path">/journal</code>
+      <span class="reason">Rendered (active tab).</span>
+    </figcaption>
+  </figure>
+
+  <figure class="card s-rendered">
+    <img src="03-protocol.png" alt="Protocol (tab)" loading="lazy"/>
+    <figcaption>
+      <span class="num">03</span>
+      <span class="lbl">Protocol (tab)</span>
+      <span class="badge">rendered</span>
+      <code class="path">/protocol</code>
+      <span class="reason">Rendered (active tab).</span>
+    </figcaption>
+  </figure>
+
+  <figure class="card s-rendered">
+    <img src="04-community.png" alt="Community (tab)" loading="lazy"/>
+    <figcaption>
+      <span class="num">04</span>
+      <span class="lbl">Community (tab)</span>
+      <span class="badge">rendered</span>
+      <code class="path">/competition</code>
+      <span class="reason">Rendered (active tab).</span>
+    </figcaption>
+  </figure>
+
+  <figure class="card s-errorboundary">
+    <img src="05-profile.png" alt="Profile (tab)" loading="lazy"/>
+    <figcaption>
+      <span class="num">05</span>
+      <span class="lbl">Profile (tab)</span>
+      <span class="badge">error-boundary</span>
+      <code class="path">/profile</code>
+      <span class="reason">Root ErrorBoundary "Something went wrong" — profile throws on the web (RN-Web) target (native-only dependency). Renders on a native/device build.</span>
+    </figcaption>
+  </figure>
+
+  <figure class="card s-rendered">
+    <img src="06-scan-tab.png" alt="Scan (tab)" loading="lazy"/>
+    <figcaption>
+      <span class="num">06</span>
+      <span class="lbl">Scan (tab)</span>
+      <span class="badge">rendered</span>
+      <code class="path">/scan</code>
+      <span class="reason">Rendered (device-capture tab; shown without live camera/sensor hardware on web).</span>
+    </figcaption>
+  </figure>
+
+  <figure class="card s-rendered">
+    <img src="07-social-tab.png" alt="Social (tab)" loading="lazy"/>
+    <figcaption>
+      <span class="num">07</span>
+      <span class="lbl">Social (tab)</span>
+      <span class="badge">rendered</span>
+      <code class="path">/social</code>
+      <span class="reason">Rendered (active tab).</span>
+    </figcaption>
+  </figure>
+
+  <figure class="card s-rendered">
+    <img src="08-social-legacy.png" alt="Social (legacy tab)" loading="lazy"/>
+    <figcaption>
+      <span class="num">08</span>
+      <span class="lbl">Social (legacy tab)</span>
+      <span class="badge">rendered</span>
+      <code class="path">/social-legacy</code>
+      <span class="reason">Rendered (active tab).</span>
+    </figcaption>
+  </figure>
+
+  <figure class="card s-rendered">
+    <img src="09-sleep.png" alt="Sleep (tab)" loading="lazy"/>
+    <figcaption>
+      <span class="num">09</span>
+      <span class="lbl">Sleep (tab)</span>
+      <span class="badge">rendered</span>
+      <code class="path">/sleep</code>
+      <span class="reason">Rendered (active tab).</span>
+    </figcaption>
+  </figure>
+
+  <figure class="card s-rendered">
+    <img src="10-onboarding.png" alt="Onboarding" loading="lazy"/>
+    <figcaption>
+      <span class="num">10</span>
+      <span class="lbl">Onboarding</span>
+      <span class="badge">rendered</span>
+      <code class="path">/onboarding</code>
+      <span class="reason">Rendered with content on the web target.</span>
+    </figcaption>
+  </figure>
+
+  <figure class="card s-requiresauthentication">
+    <img src="11-auth.png" alt="Auth (sign-in/up)" loading="lazy"/>
+    <figcaption>
+      <span class="num">11</span>
+      <span class="lbl">Auth (sign-in/up)</span>
+      <span class="badge">requires-authentication</span>
+      <code class="path">/(auth)</code>
+      <span class="reason">Clerk sign-in surface (email/password form). DEMO_MODE bypasses the gate for the rest of the app; the (auth) route itself renders the sign-in UI.</span>
+    </figcaption>
+  </figure>
+
+  <figure class="card s-rendered">
+    <img src="12-scan.png" alt="HydroScan" loading="lazy"/>
+    <figcaption>
+      <span class="num">12</span>
+      <span class="lbl">HydroScan</span>
+      <span class="badge">rendered</span>
+      <code class="path">/scan</code>
+      <span class="reason">Rendered (device-dependent surface shown without hardware on web).</span>
+    </figcaption>
+  </figure>
+
+  <figure class="card s-rendered">
+    <img src="13-subscription.png" alt="Subscription" loading="lazy"/>
+    <figcaption>
+      <span class="num">13</span>
+      <span class="lbl">Subscription</span>
+      <span class="badge">rendered</span>
+      <code class="path">/subscription</code>
+      <span class="reason">Rendered with content on the web target.</span>
+    </figcaption>
+  </figure>
+
+  <figure class="card s-rendered">
+    <img src="14-subscription-manage.png" alt="Subscription · Manage" loading="lazy"/>
+    <figcaption>
+      <span class="num">14</span>
+      <span class="lbl">Subscription · Manage</span>
+      <span class="badge">rendered</span>
+      <code class="path">/subscription/manage</code>
+      <span class="reason">Rendered with content on the web target.</span>
+    </figcaption>
+  </figure>
+
+  <figure class="card s-rendered">
+    <img src="15-store.png" alt="Store" loading="lazy"/>
+    <figcaption>
+      <span class="num">15</span>
+      <span class="lbl">Store</span>
+      <span class="badge">rendered</span>
+      <code class="path">/store</code>
+      <span class="reason">Rendered with content on the web target.</span>
+    </figcaption>
+  </figure>
+
+  <figure class="card s-rendered">
+    <img src="16-cart.png" alt="Cart" loading="lazy"/>
+    <figcaption>
+      <span class="num">16</span>
+      <span class="lbl">Cart</span>
+      <span class="badge">rendered</span>
+      <code class="path">/cart</code>
+      <span class="reason">Rendered with content on the web target.</span>
+    </figcaption>
+  </figure>
+
+  <figure class="card s-rendered">
+    <img src="17-heat.png" alt="Heat" loading="lazy"/>
+    <figcaption>
+      <span class="num">17</span>
+      <span class="lbl">Heat</span>
+      <span class="badge">rendered</span>
+      <code class="path">/heat</code>
+      <span class="reason">Rendered with content on the web target.</span>
+    </figcaption>
+  </figure>
+
+  <figure class="card s-rendered">
+    <img src="18-urine-check.png" alt="Urine Check" loading="lazy"/>
+    <figcaption>
+      <span class="num">18</span>
+      <span class="lbl">Urine Check</span>
+      <span class="badge">rendered</span>
+      <code class="path">/urine-check</code>
+      <span class="reason">Rendered with content on the web target.</span>
+    </figcaption>
+  </figure>
+
+  <figure class="card s-redirected">
+    <img src="19-heat-guardian.png" alt="Heat · Guardian" loading="lazy"/>
+    <figcaption>
+      <span class="num">19</span>
+      <span class="lbl">Heat · Guardian</span>
+      <span class="badge">redirected</span>
+      <code class="path">/heat/guardian</code>
+      <span class="reason">Resolved to "/heat" instead of the requested route (guard/alias).</span>
+    </figcaption>
+  </figure>
+
+  <figure class="card s-redirected">
+    <img src="20-phantom.png" alt="Phantom" loading="lazy"/>
+    <figcaption>
+      <span class="num">20</span>
+      <span class="lbl">Phantom</span>
+      <span class="badge">redirected</span>
+      <code class="path">/phantom</code>
+      <span class="reason">Navigated but resolved to Home — not reachable by direct route-name navigation on web (needs route params / an in-app entry point, or a guard sent it Home).</span>
+    </figcaption>
+  </figure>
+
+  <figure class="card s-rendered">
+    <img src="21-cruise.png" alt="Cruise" loading="lazy"/>
+    <figcaption>
+      <span class="num">21</span>
+      <span class="lbl">Cruise</span>
+      <span class="badge">rendered</span>
+      <code class="path">/cruise</code>
+      <span class="reason">Rendered with content on the web target.</span>
+    </figcaption>
+  </figure>
+
+  <figure class="card s-redirected">
+    <img src="22-hidden-cruise.png" alt="Cruise (hidden group)" loading="lazy"/>
+    <figcaption>
+      <span class="num">22</span>
+      <span class="lbl">Cruise (hidden group)</span>
+      <span class="badge">redirected</span>
+      <code class="path">/cruise</code>
+      <span class="reason">Navigated but resolved to Home — not reachable by direct route-name navigation on web (needs route params / an in-app entry point, or a guard sent it Home).</span>
+    </figcaption>
+  </figure>
+
+  <figure class="card s-redirected">
+    <img src="23-ring.png" alt="Ring" loading="lazy"/>
+    <figcaption>
+      <span class="num">23</span>
+      <span class="lbl">Ring</span>
+      <span class="badge">redirected</span>
+      <code class="path">/ring</code>
+      <span class="reason">Navigated but resolved to Home — not reachable by direct route-name navigation on web (needs route params / an in-app entry point, or a guard sent it Home).</span>
+    </figcaption>
+  </figure>
+
+  <figure class="card s-redirected">
+    <img src="24-ring-session.png" alt="Ring · Session" loading="lazy"/>
+    <figcaption>
+      <span class="num">24</span>
+      <span class="lbl">Ring · Session</span>
+      <span class="badge">redirected</span>
+      <code class="path">/ring/session</code>
+      <span class="reason">Navigated but resolved to Home — not reachable by direct route-name navigation on web (needs route params / an in-app entry point, or a guard sent it Home).</span>
+    </figcaption>
+  </figure>
+
+  <figure class="card s-rendered">
+    <img src="25-notifications.png" alt="Notifications" loading="lazy"/>
+    <figcaption>
+      <span class="num">25</span>
+      <span class="lbl">Notifications</span>
+      <span class="badge">rendered</span>
+      <code class="path">/notifications</code>
+      <span class="reason">Rendered with content on the web target.</span>
+    </figcaption>
+  </figure>
+
+  <figure class="card s-errorboundary">
+    <img src="26-leaderboard.png" alt="Leaderboard" loading="lazy"/>
+    <figcaption>
+      <span class="num">26</span>
+      <span class="lbl">Leaderboard</span>
+      <span class="badge">error-boundary</span>
+      <code class="path">/leaderboard</code>
+      <span class="reason">Root ErrorBoundary "Something went wrong" — leaderboard throws on the web (RN-Web) target (native-only dependency). Renders on a native/device build.</span>
+    </figcaption>
+  </figure>
+
+  <figure class="card s-rendered">
+    <img src="27-legal.png" alt="Legal" loading="lazy"/>
+    <figcaption>
+      <span class="num">27</span>
+      <span class="lbl">Legal</span>
+      <span class="badge">rendered</span>
+      <code class="path">/legal</code>
+      <span class="reason">Rendered — the /legal group resolves to its default child (Terms of Service).</span>
+    </figcaption>
+  </figure>
+
+  <figure class="card s-rendered">
+    <img src="28-modules.png" alt="Modules" loading="lazy"/>
+    <figcaption>
+      <span class="num">28</span>
+      <span class="lbl">Modules</span>
+      <span class="badge">rendered</span>
+      <code class="path">/modules</code>
+      <span class="reason">Rendered with content on the web target.</span>
+    </figcaption>
+  </figure>
+
+  <figure class="card s-rendered">
+    <img src="29-weekly-report.png" alt="Weekly Report" loading="lazy"/>
+    <figcaption>
+      <span class="num">29</span>
+      <span class="lbl">Weekly Report</span>
+      <span class="badge">rendered</span>
+      <code class="path">/weekly-report</code>
+      <span class="reason">Rendered with content on the web target.</span>
+    </figcaption>
+  </figure>
+
+  <figure class="card s-rendered">
+    <img src="30-share.png" alt="Share" loading="lazy"/>
+    <figcaption>
+      <span class="num">30</span>
+      <span class="lbl">Share</span>
+      <span class="badge">rendered</span>
+      <code class="path">/share</code>
+      <span class="reason">Rendered with content on the web target.</span>
+    </figcaption>
+  </figure>
+
+  <figure class="card s-rendered">
+    <img src="31-sweat.png" alt="Sweat" loading="lazy"/>
+    <figcaption>
+      <span class="num">31</span>
+      <span class="lbl">Sweat</span>
+      <span class="badge">rendered</span>
+      <code class="path">/sweat</code>
+      <span class="reason">Rendered with content on the web target.</span>
+    </figcaption>
+  </figure>
+
+  <figure class="card s-entitlementflaggated">
+    <img src="32-clutch.png" alt="Clutch" loading="lazy"/>
+    <figcaption>
+      <span class="num">32</span>
+      <span class="lbl">Clutch</span>
+      <span class="badge">entitlement/flag-gated</span>
+      <code class="path">/clutch</code>
+      <span class="reason">FeatureGate "DEMO LOCKED" quiet state — clutch flag is OFF in DEFAULT_FLAGS (entitlement-gated preview surface).</span>
+    </figcaption>
+  </figure>
+
+  <figure class="card s-rendered">
+    <img src="33-circles.png" alt="Circles" loading="lazy"/>
+    <figcaption>
+      <span class="num">33</span>
+      <span class="lbl">Circles</span>
+      <span class="badge">rendered</span>
+      <code class="path">/circles</code>
+      <span class="reason">Rendered with content on the web target.</span>
+    </figcaption>
+  </figure>
+
+  <figure class="card s-rendered">
+    <img src="34-circles-manage.png" alt="Circles · Manage" loading="lazy"/>
+    <figcaption>
+      <span class="num">34</span>
+      <span class="lbl">Circles · Manage</span>
+      <span class="badge">rendered</span>
+      <code class="path">/circles/manage</code>
+      <span class="reason">Rendered with content on the web target.</span>
+    </figcaption>
+  </figure>
+
+  <figure class="card s-rendered">
+    <img src="35-circles-shared.png" alt="Circles · Shared" loading="lazy"/>
+    <figcaption>
+      <span class="num">35</span>
+      <span class="lbl">Circles · Shared</span>
+      <span class="badge">rendered</span>
+      <code class="path">/circles/shared</code>
+      <span class="reason">Rendered with content on the web target.</span>
+    </figcaption>
+  </figure>
+
+  <figure class="card s-rendered">
+    <img src="36-circles-id.png" alt="Circle · Detail [id]" loading="lazy"/>
+    <figcaption>
+      <span class="num">36</span>
+      <span class="lbl">Circle · Detail [id]</span>
+      <span class="badge">rendered</span>
+      <code class="path">/circles/demo</code>
+      <span class="reason">Rendered minimal/placeholder content (35 chars — e.g. unknown demo id).</span>
+    </figcaption>
+  </figure>
+
+  <figure class="card s-rendered">
+    <img src="37-science.png" alt="Science" loading="lazy"/>
+    <figcaption>
+      <span class="num">37</span>
+      <span class="lbl">Science</span>
+      <span class="badge">rendered</span>
+      <code class="path">/science</code>
+      <span class="reason">Rendered with content on the web target.</span>
+    </figcaption>
+  </figure>
+
+  <figure class="card s-rendered">
+    <img src="38-sensors.png" alt="Sensors" loading="lazy"/>
+    <figcaption>
+      <span class="num">38</span>
+      <span class="lbl">Sensors</span>
+      <span class="badge">rendered</span>
+      <code class="path">/sensors</code>
+      <span class="reason">Rendered (device-dependent surface shown without hardware on web).</span>
+    </figcaption>
+  </figure>
+
+  <figure class="card s-entitlementflaggated">
+    <img src="39-guardian.png" alt="Guardian" loading="lazy"/>
+    <figcaption>
+      <span class="num">39</span>
+      <span class="lbl">Guardian</span>
+      <span class="badge">entitlement/flag-gated</span>
+      <code class="path">/guardian</code>
+      <span class="reason">FeatureGate "DEMO LOCKED" quiet state — guardian flag is OFF in DEFAULT_FLAGS (entitlement-gated preview surface).</span>
+    </figcaption>
+  </figure>
+
+  <figure class="card s-rendered">
+    <img src="40-social-v2.png" alt="Social v2" loading="lazy"/>
+    <figcaption>
+      <span class="num">40</span>
+      <span class="lbl">Social v2</span>
+      <span class="badge">rendered</span>
+      <code class="path">/social-v2</code>
+      <span class="reason">Rendered with content on the web target.</span>
+    </figcaption>
+  </figure>
+
+  <figure class="card s-rendered">
+    <img src="41-territory.png" alt="Territory" loading="lazy"/>
+    <figcaption>
+      <span class="num">41</span>
+      <span class="lbl">Territory</span>
+      <span class="badge">rendered</span>
+      <code class="path">/territory</code>
+      <span class="reason">Rendered with content on the web target.</span>
+    </figcaption>
+  </figure>
+
+  <figure class="card s-rendered">
+    <img src="42-achievements.png" alt="Achievements" loading="lazy"/>
+    <figcaption>
+      <span class="num">42</span>
+      <span class="lbl">Achievements</span>
+      <span class="badge">rendered</span>
+      <code class="path">/achievements</code>
+      <span class="reason">Rendered with content on the web target.</span>
+    </figcaption>
+  </figure>
+
+  <figure class="card s-redirected">
+    <img src="43-recovery-coach.png" alt="Recovery Coach" loading="lazy"/>
+    <figcaption>
+      <span class="num">43</span>
+      <span class="lbl">Recovery Coach</span>
+      <span class="badge">redirected</span>
+      <code class="path">/recovery-coach</code>
+      <span class="reason">Navigated but resolved to Home — not reachable by direct route-name navigation on web (needs route params / an in-app entry point, or a guard sent it Home).</span>
+    </figcaption>
+  </figure>
+
+  <figure class="card s-rendered">
+    <img src="44-ui-gallery.png" alt="UI Gallery" loading="lazy"/>
+    <figcaption>
+      <span class="num">44</span>
+      <span class="lbl">UI Gallery</span>
+      <span class="badge">rendered</span>
+      <code class="path">/ui-gallery</code>
+      <span class="reason">Rendered with content on the web target.</span>
+    </figcaption>
+  </figure>
+
+  <figure class="card s-rendered">
+    <img src="45-gallery.png" alt="P0 Screen Gallery" loading="lazy"/>
+    <figcaption>
+      <span class="num">45</span>
+      <span class="lbl">P0 Screen Gallery</span>
+      <span class="badge">rendered</span>
+      <code class="path">/gallery</code>
+      <span class="reason">Rendered with content on the web target.</span>
+    </figcaption>
+  </figure>
+</div>
+</body></html>
