@@ -1,5 +1,7 @@
 /**
- * SOCIAL MODE V2 — spec-driven rewrite.
+ * NIGHT OUT (V2) — spec-driven rewrite. Public name: NIGHT OUT / AForce Night Out
+ * Protocol. The legacy `social_mode` alias is retained only for stored-data /
+ * route / analytics compatibility (never rendered publicly).
  *
  * Compliance: no alcohol UI, no BAC, no drink counts, no impairment
  * estimates. Inputs are restricted to Recovery Capacity, Water Cycles,
@@ -370,7 +372,7 @@ export default function SocialModeV2Screen() {
             >
               <Icon name="chevron-left" size={22} color={Colors.text.primary} />
             </Pressable>
-            <Text style={styles.eyebrow}>SOCIAL MODE</Text>
+            <Text style={styles.eyebrow}>NIGHT OUT</Text>
             <View style={{ width: 22 }} />
           </View>
 
@@ -526,7 +528,7 @@ export default function SocialModeV2Screen() {
                 onPress={startDemo}
                 style={({ pressed }) => [styles.demoBtn, pressed && { opacity: 0.85 }]}
                 accessibilityRole="button"
-                accessibilityLabel="Play Social Mode demo"
+                accessibilityLabel="Play Night Out demo"
               >
                 <Text style={styles.demoBtnText}>▶  PLAY DEMO</Text>
               </Pressable>
@@ -542,7 +544,7 @@ export default function SocialModeV2Screen() {
               accessibilityLabel="Dismiss disclaimer"
             >
               <Text style={styles.disclaimerText}>
-                Social Mode provides estimated hydration and recovery guidance only.
+                Night Out provides estimated hydration and recovery guidance only.
                 It is not a medical, diagnostic, safety, or impairment tool.
               </Text>
               <Text style={styles.disclaimerDismiss}>TAP TO DISMISS</Text>

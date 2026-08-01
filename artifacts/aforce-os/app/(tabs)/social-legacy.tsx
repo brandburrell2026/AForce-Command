@@ -15,11 +15,12 @@ import React from 'react';
 import {
   View, Text, StyleSheet, Pressable, Platform, ScrollView,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, Redirect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import { Icon } from '../../components/Icon';
 
+import { useDevMode } from '@/services/devMode';
 import { GradientBackground } from '@/components/GradientBackground';
 import { SocialModeSheet } from '@/components/SocialModeSheet';
 import { Colors } from '@/theme/colors';
@@ -50,6 +51,7 @@ export default function SocialLegacyScreen() {
   const { state } = useAppStore();
   const userState = useUserSlice();
   const engine = useEngineSlice();
+  const devMode = useDevMode();
   const {
     activateSocialMode,
     logSocialDrink,
@@ -58,6 +60,13 @@ export default function SocialLegacyScreen() {
     activateCruiseMode,
     activateVoyageShield,
   } = useActionsSlice<SocialActions>();
+
+  // NO-b: this legacy QA surface is no longer publicly discoverable. It stays
+  // reachable ONLY in Developer Mode; a production/normal deep link redirects to
+  // Protocol (non-destructive — the screen is preserved for QA). No loop.
+  if (!devMode) {
+    return <Redirect href="/(tabs)/protocol" />;
+  }
 
   const planId = state.subscription?.planId ?? 'core';
   const isSubscribed = planId !== 'core';
@@ -133,7 +142,7 @@ export default function SocialLegacyScreen() {
             onPress={goToStore}
             style={({ pressed }) => [styles.cta, pressed && { opacity: 0.9 }]}
             accessibilityRole="button"
-            accessibilityLabel="Upgrade to unlock Social Mode"
+            accessibilityLabel="Upgrade to unlock Night Out"
           >
             <Text style={styles.ctaText}>UPGRADE TO UNLOCK</Text>
           </Pressable>

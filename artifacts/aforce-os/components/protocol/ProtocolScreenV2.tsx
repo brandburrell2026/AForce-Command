@@ -29,6 +29,7 @@ import { af, afType, afLayout } from '@/theme';
 import { useAppStore } from '@/store/useAppStore';
 import { deriveProtocol } from '@/services/mockApi';
 import { formatTimeAgo } from '@/data/mockData';
+import { NightOutProtocolEntry } from '@/components/nightOut/NightOutProtocolEntry';
 
 export function ProtocolScreenV2() {
   const { t } = useTranslation();
@@ -62,6 +63,10 @@ export function ProtocolScreenV2() {
   return (
     <AFScreen scroll>
       <AFTopBar eyebrow={t('protocol.v2.eyebrow')} title={t('protocol.v2.title')} />
+
+      {/* Night Out Protocol — authorized entry (renders null unless authorized;
+          hidden in production/default). NO-b: placement only, no command experience. */}
+      <NightOutProtocolEntry />
 
       {/* Recovery-plan progress */}
       <View style={styles.planHeader}>
