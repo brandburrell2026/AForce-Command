@@ -197,6 +197,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => { voiceIntensityRef.current = voiceIntensity; }, [voiceIntensity]);
   useEffect(() => { voiceScopeRef.current = voiceScope; }, [voiceScope]);
   useEffect(() => { voiceCoachEnabledRef.current = voiceCoachEnabled; }, [voiceCoachEnabled]);
+  // Elite Voice Coach (flag-gated, delivery-only): coach id + master switch,
+  // mirrored into refs so the completion-reward speak reads the live values.
+  const selectedVoiceIdRef = useRef(selectedVoiceId);
+  const eliteVoiceCoachRef = useRef(state.featureFlags.elite_voice_coach_enabled);
+  useEffect(() => { selectedVoiceIdRef.current = selectedVoiceId; }, [selectedVoiceId]);
+  useEffect(() => { eliteVoiceCoachRef.current = state.featureFlags.elite_voice_coach_enabled; }, [state.featureFlags.elite_voice_coach_enabled]);
 
   // Wire the AForce Command Voice Engine bus to the real TTS speaker
   // exactly once on mount. The bus defaults to a silent noop so it can
@@ -561,6 +567,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     voiceCoachEnabledRef,
     voiceScopeRef,
     voiceIntensityRef,
+    selectedVoiceIdRef,
+    eliteVoiceCoachRef,
   });
 
   // ─── Hydration Journal snapshot writer ──────────────────────────────

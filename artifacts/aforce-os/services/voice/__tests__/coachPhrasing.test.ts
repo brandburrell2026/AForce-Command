@@ -3,10 +3,17 @@ import {
   coachEyebrow,
   coachLead,
   formatCommandForCoach,
+  formatSpokenLineForCoach,
   preservesCommandSubstance,
 } from '../coachPhrasing';
 import { AFORCE_VOICES } from '@/services/voiceCatalog';
 import { isCompliantCoachLine } from '@/utils/intelligence/conversationalLanguage';
+import {
+  scoreBandLine,
+  riskTimerLine,
+  getCompletionRewardLines,
+  RISK_THRESHOLDS,
+} from '../commandVoice';
 
 const ARCHETYPES = ['push', 'precision', 'ignite', 'recovery'] as const;
 
@@ -61,5 +68,46 @@ describe('formatCommandForCoach — phrasing only, substance identical across co
   it('fail-safes to the original for empty / whitespace input (never invents a command)', () => {
     expect(formatCommandForCoach('', 'push')).toBe('');
     expect(formatCommandForCoach('   ', 'ignite')).toBe('   ');
+  });
+});
+
+describe('formatSpokenLineForCoach — TTS line banks (delivery-only)', () => {
+  // The full set of engine-authored spoken lines, across all bands/thresholds/rewards.
+  const SPOKEN_LINES: string[] = [
+    ...[100, 80, 60, 40, 10].flatMap((s) =>
+      (['calm', 'standard', 'pressure'] as const).map((i) => scoreBandLine(s, i)),
+    ),
+    ...RISK_THRESHOLDS.flatMap((th) =>
+      (['calm', 'standard', 'pressure'] as const).map((i) => riskTimerLine(th, i)),
+    ),
+    ...getCompletionRewardLines(),
+  ];
+
+  it('re-voices every shipped spoken line without dropping substance or breaking §64', () => {
+    for (const line of SPOKEN_LINES) {
+      for (const a of ARCHETYPES) {
+        const out = formatSpokenLineForCoach(line, a);
+        expect(preservesCommandSubstance(line, out)).toBe(true); // dose/timing intact
+        expect(isCompliantCoachLine(out)).toBe(true); // observation-only guard holds
+      }
+    }
+  });
+
+  it('produces a distinct coach tone per archetype for the same line', () => {
+    const line = scoreBandLine(40, 'standard'); // "Recovery window open. ..."
+    const outs = ARCHETYPES.map((a) => formatSpokenLineForCoach(line, a));
+    expect(new Set(outs).size).toBe(4);
+    for (const out of outs) expect(out).not.toBe(line); // tone was layered on
+  });
+
+  it('preserves the exact dose token in a risk line ("Twelve ounces. AForce. Now.")', () => {
+    const line = riskTimerLine(0, 'pressure');
+    const out = formatSpokenLineForCoach(line, 'push');
+    expect(preservesCommandSubstance(line, out)).toBe(true);
+  });
+
+  it('fail-safes to the original for empty input (never fabricates an alert)', () => {
+    expect(formatSpokenLineForCoach('', 'push')).toBe('');
+    expect(formatSpokenLineForCoach('   ', 'recovery')).toBe('   ');
   });
 });

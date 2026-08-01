@@ -21,7 +21,7 @@
 
 import { useEffect, useRef } from 'react';
 
-import { useAppStore } from '../store/useAppStore';
+import { useAppStore, useFeatureFlags } from '../store/useAppStore';
 import { useEngineSlice } from '../store/slices';
 import {
   RISK_THRESHOLDS,
@@ -31,10 +31,13 @@ import {
   type RiskThreshold,
 } from '../services/voice/commandVoice';
 import { commandSpeak } from '../services/voice/commandVoiceBus';
+import { findVoice } from '../services/voiceCatalog';
+import { formatSpokenLineForCoach } from '../services/voice/coachPhrasing';
 
 export function useRiskTimerVoice(): void {
   const engine = useEngineSlice();
-  const { voiceCoachEnabled, voiceIntensity, voiceScope } = useAppStore();
+  const { voiceCoachEnabled, voiceIntensity, voiceScope, selectedVoiceId } = useAppStore();
+  const eliteVoice = useFeatureFlags().elite_voice_coach_enabled;
 
   /**
    * The most-recently-fired threshold, or null when no alert has fired
@@ -66,7 +69,14 @@ export function useRiskTimerVoice(): void {
     if (!voiceCoachEnabled) return;
     if (!categoryAllowedForScope('risk_timer', voiceScope)) return;
 
-    commandSpeak(riskTimerLine(current, voiceIntensity), {
+    // Elite Voice Coach (flag-gated, delivery-only) — see useScoreBandVoice.
+    const line = riskTimerLine(current, voiceIntensity);
+    const spoken =
+      eliteVoice
+        ? formatSpokenLineForCoach(line, findVoice(selectedVoiceId)?.archetype ?? 'push')
+        : line;
+
+    commandSpeak(spoken, {
       level: engine.performanceState.level,
       intensity: voiceIntensity,
       category: 'risk_timer',
@@ -77,5 +87,7 @@ export function useRiskTimerVoice(): void {
     voiceCoachEnabled,
     voiceIntensity,
     voiceScope,
+    eliteVoice,
+    selectedVoiceId,
   ]);
 }

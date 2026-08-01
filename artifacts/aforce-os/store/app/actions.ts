@@ -55,6 +55,8 @@ import {
   type VoiceScope,
 } from '../../services/voice/commandVoice';
 import { commandSpeak, markCycleExecuted } from '../../services/voice/commandVoiceBus';
+import { findVoice } from '../../services/voiceCatalog';
+import { formatSpokenLineForCoach } from '../../services/voice/coachPhrasing';
 import { emit } from '../../analytics/event_dispatcher';
 import { markFirstCommandCompleted } from '../../analytics/activation_anchor';
 import { categorizeCommand } from '../../utils/intelligence/commandCategory';
@@ -77,6 +79,9 @@ interface StoreActionsDeps {
   voiceCoachEnabledRef: MutableRefObject<boolean>;
   voiceScopeRef: MutableRefObject<VoiceScope>;
   voiceIntensityRef: MutableRefObject<VoiceIntensity>;
+  /** Elite Voice Coach (flag-gated, delivery-only) — coach id + master switch. */
+  selectedVoiceIdRef: MutableRefObject<string | null>;
+  eliteVoiceCoachRef: MutableRefObject<boolean>;
 }
 
 /**
@@ -94,6 +99,8 @@ export function useStoreActions({
   voiceCoachEnabledRef,
   voiceScopeRef,
   voiceIntensityRef,
+  selectedVoiceIdRef,
+  eliteVoiceCoachRef,
 }: StoreActionsDeps) {
   const logIntake = useCallback(async (
     fluidType: FluidType,
@@ -268,7 +275,17 @@ export function useStoreActions({
         && voiceCoachEnabledRef.current
         && categoryAllowedForScope('completion', voiceScopeRef.current)
       ) {
-        commandSpeak(completionRewardLine(), {
+        // Elite Voice Coach (flag-gated, delivery-only): re-voice the reward in
+        // the selected coach's tone. Off → the exact shipped line. Fail-safe to
+        // the original on any §64/substance violation (see coachPhrasing).
+        const rewardLine = completionRewardLine();
+        const spokenReward = eliteVoiceCoachRef.current
+          ? formatSpokenLineForCoach(
+              rewardLine,
+              findVoice(selectedVoiceIdRef.current)?.archetype ?? 'push',
+            )
+          : rewardLine;
+        commandSpeak(spokenReward, {
           level: mergedEngine.performanceState.level,
           intensity: voiceIntensityRef.current,
           category: 'completion',
