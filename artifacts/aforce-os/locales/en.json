@@ -1344,6 +1344,10 @@
       "no_movers": "No notable movers this week.",
       "insight_label": "AForce insight",
       "insight_text": "{{label}} is your biggest lift this week — keep leaning into it."
+    },
+    "elite": {
+      "review_label": "This week's review",
+      "beta": "Beta"
     }
   },
   "smartModes": {

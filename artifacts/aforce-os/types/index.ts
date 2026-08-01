@@ -758,6 +758,14 @@ export interface FeatureFlags {
    */
   elite_home_experience_enabled: boolean;
   spec_weekly_report: boolean;
+  /**
+   * Elite Weekly Report (E2) — presentation-only editorial elevation of the
+   * Readiness Insights surface: visible chart caption + editorial wins / watch /
+   * Performance-Age (Beta + non-medical disclaimer) / next-week-focus sections,
+   * with honest calibrating/awaiting states. Default OFF; reuses the honest
+   * `buildWeeklyReport` model — never fabricates a trend.
+   */
+  elite_weekly_report_enabled: boolean;
   // Phase 3 redesign flags (one per redesigned screen; default OFF). Presentation-only.
   spec_community: boolean;
   spec_store: boolean;

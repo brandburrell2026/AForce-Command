@@ -180,6 +180,11 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   // eligibility, timing, or safety. Reduced-motion → static Home.
   elite_home_experience_enabled: false,
   spec_weekly_report: true,
+  // Elite Weekly Report (E2) — editorial elevation of Readiness Insights. OFF in
+  // production, ON in DEMO_ALL_ON. Score-Protection: reuses the honest
+  // buildWeeklyReport model; sections without data render explicit
+  // calibrating/awaiting states, never a fabricated trend.
+  elite_weekly_report_enabled: false,
   // ── Phase 3 redesign — one flag per redesigned screen, default OFF until go-live ──
   spec_community: true,
   spec_store: true,
@@ -388,6 +393,7 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
   spec_home: true,
   elite_home_experience_enabled: true,
   spec_weekly_report: true,
+  elite_weekly_report_enabled: true,
   // ── Phase 3 redesign ──
   spec_community: true,
   spec_store: true,

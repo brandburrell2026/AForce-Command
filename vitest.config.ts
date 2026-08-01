@@ -20,6 +20,7 @@ export default defineConfig({
       'artifacts/aforce-os/theme/**/__tests__/**/*.test.ts',
       'artifacts/aforce-os/components/ui/__tests__/**/*.test.ts',
       'artifacts/aforce-os/components/home/__tests__/**/*.test.ts',
+      'artifacts/aforce-os/components/insights/__tests__/**/*.test.ts',
       'artifacts/aforce-os/store/__tests__/**/*.test.ts',
       'artifacts/aforce-os/hooks/__tests__/**/*.test.ts',
       'artifacts/aforce-os/featureFlags/**/__tests__/**/*.test.ts',
