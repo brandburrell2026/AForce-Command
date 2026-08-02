@@ -65,10 +65,12 @@ describe('NO-c Score-Protection invariants (screen is presentation-only)', () =>
     expect(screen).not.toMatch(/logSocialDrink\(|activateSocialMode\(|estimateBAC|logIntake\('(?!water)/);
   });
 
-  it('uses the HydroState hero (AFReadinessArc) and honors reduced motion', () => {
-    expect(screen).toMatch(/AFReadinessArc/);
+  it('the container honors reduced motion and delegates rendering to the pure view', () => {
     expect(screen).toMatch(/useReducedMotion/);
-    expect(screen).toMatch(/animate=\{!reducedMotion\}/);
+    expect(screen).toMatch(/<NightOutCommandView/);
+    const viewCmp = read('components', 'nightOut', 'NightOutCommandView.tsx');
+    expect(viewCmp).toMatch(/AFReadinessArc/); // HydroState hero, the only hero
+    expect(viewCmp).toMatch(/animate=\{!reducedMotion\}/);
   });
 });
 

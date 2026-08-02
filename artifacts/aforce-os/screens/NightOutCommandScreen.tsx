@@ -1,26 +1,20 @@
 /**
- * NightOutCommandScreen (NO-c) — the first real AForce Night Out command
- * experience and the reusable protocol pattern: HYDROSTATE → NOW → NEXT → LATER,
- * one screen, one decision, one dominant action.
+ * NightOutCommandScreen (NO-c) — CONTAINER for the Water-First command experience.
  *
- * Water-First ONLY. No alcohol logging, beverage scan, correction/deletion, or
- * provider surfaces (those are later slices). PRESENTATION ONLY: it never mutates
- * HydroState. Completion routes through the approved `logIntake('water')` intake
- * path (Score-Protection). The command/dose/confidence/timing come from the
- * deterministic engine; this screen only arranges and accepts them.
- *
- * Authorization is enforced by the route (`app/night-out.tsx`); this screen
- * assumes it is only mounted when Night Out is authorized (Founder/Internal
- * Preview). Opening it changes nothing; accepting a command changes nothing;
- * only a verified COMPLETE WATER routes an intake.
+ * Resolves the view model from the deterministic engine + confidence/freshness +
+ * the persisted command timer, wires the handlers (START/COMPLETE/Adjust/Not Now),
+ * and renders the pure presentational `NightOutCommandView`. Water-First ONLY — no
+ * alcohol/scan/correction/provider surfaces. PRESENTATION ONLY: it never mutates
+ * HydroState; COMPLETE WATER routes through the approved `logIntake('water')` path
+ * (Score-Protection). Authorization is enforced by the route (`app/night-out.tsx`);
+ * this container is only mounted when Night Out is authorized.
  */
 import React from 'react';
-import { View, Text, Pressable, StyleSheet, Platform } from 'react-native';
+import { Platform } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 
-import { AFScreen, AFReadinessArc } from '@/components/ui';
-import { af, afType } from '@/theme';
+import { AFScreen } from '@/components/ui';
 import { useAppStore } from '@/store/useAppStore';
 import { useEngineSlice, useActionsSlice } from '@/store/slices';
 import { parseEngineActionCopy, parseDoseOz } from '@/utils/recovery/recoveryCommandFromStore';
@@ -34,11 +28,7 @@ import {
   NIGHT_OUT_ADJUST_OZ,
   isApprovedAdjustOz,
 } from '@/services/nightOut/commandPresentation';
-import {
-  NIGHT_OUT_PUBLIC_NAME,
-  NIGHT_OUT_DESCRIPTOR,
-  NIGHT_OUT_EYEBROW,
-} from '@/services/nightOut/naming';
+import { NightOutCommandView } from '@/components/nightOut/NightOutCommandView';
 import type { FluidType } from '@/types';
 
 interface Actions {
@@ -52,7 +42,6 @@ function haptic(kind: 'light' | 'medium' | 'success') {
   else Haptics.selectionAsync().catch(() => {});
 }
 
-/** Freshest confirmed-signal age (ms) from real state timestamps, or null. */
 function freshestAgeMs(state: ReturnType<typeof useAppStore>['state'], now: number): number | null {
   const ts: number[] = [];
   const li = state.userState.lastIntakeTime;
@@ -86,7 +75,7 @@ export default function NightOutCommandScreen() {
   // RESTORATION TRUTH: while a timer is active (including after background /
   // force-close / reopen restore), the displayed command is the one that was
   // ACCEPTED — read from the persisted snapshot, NOT the (possibly changed) live
-  // engine command. So the timer can never restore alongside a different amount.
+  // engine command. So the timer can never restore with a different amount.
   const isActive = !!timer.view && timer.view.status !== 'invalid';
   const acceptedDose = timer.accepted?.doseOz;
   const doseOz = isActive ? (acceptedDose ?? engineDose) : (pendingDoseOz ?? engineDose);
@@ -115,16 +104,9 @@ export default function NightOutCommandScreen() {
     justCompleted: processing,
   });
 
-  const accent = af.cyan; // restrained cyan for water / active protocol
-
   const onStartWater = async () => {
     haptic('medium');
-    // Snapshot the command AS ACCEPTED so it restores with the timer.
-    await timer.start(commandId, windowMs, {
-      doseOz,
-      title: displayTitle,
-      instruction: displayInstruction,
-    });
+    await timer.start(commandId, windowMs, { doseOz, title: displayTitle, instruction: displayInstruction });
     setAdjusting(false);
   };
 
@@ -136,8 +118,6 @@ export default function NightOutCommandScreen() {
     await timer.clear();
     setProcessing(true);
     setPendingDoseOz(undefined);
-    // Presentation-only: leave the neutral "Reassessing…" state until the engine
-    // reflects the new state, then return to the fresh command.
     setTimeout(() => setProcessing(false), 1500);
   };
 
@@ -156,153 +136,17 @@ export default function NightOutCommandScreen() {
 
   return (
     <AFScreen scroll>
-      {/* Header hierarchy */}
-      <View style={styles.header}>
-        <Text style={styles.eyebrow}>{NIGHT_OUT_EYEBROW}</Text>
-        <Text style={styles.title}>{NIGHT_OUT_PUBLIC_NAME}</Text>
-        <Text style={styles.descriptor}>{NIGHT_OUT_DESCRIPTOR}</Text>
-      </View>
-
-      {/* HYDROSTATE hero — the only hero metric */}
-      <View style={styles.heroWrap}>
-        <AFReadinessArc score={score} size={220} color={accent} animate={!reducedMotion}>
-          <Text style={styles.score}>{score}</Text>
-          <Text style={styles.stateLabel}>{view.hero.stateLabel}</Text>
-        </AFReadinessArc>
-        <Text style={styles.interpretation}>{view.hero.interpretation}</Text>
-      </View>
-
-      {/* NOW */}
-      <Text style={styles.sectionLabel}>NOW</Text>
-      <View style={styles.nowCard} testID={`night-out-now-${view.mode}`}>
-        {view.mode === 'no-command' ? (
-          <Text style={styles.calm} testID="night-out-calm">{view.now.calmMessage}</Text>
-        ) : view.mode === 'processing' ? (
-          <Text style={styles.processing} testID="night-out-processing">{view.now.processingLabel}</Text>
-        ) : (
-          <>
-            <Text style={styles.commandTitle}>{view.now.title}</Text>
-            <Text style={styles.commandBody}>{view.now.instruction}</Text>
-            <Text style={styles.window}>{view.now.windowLabel}</Text>
-            {!!view.now.reason && <Text style={styles.reason}>{view.now.reason}</Text>}
-
-            {/* Calm telemetry: one governed confidence + freshness line */}
-            <Text style={styles.telemetry} testID="night-out-telemetry">
-              Command confidence: {view.now.confidenceLabel} · {view.now.freshnessLabel}
-            </Text>
-
-            {/* Adjust picker (approved amounts only) */}
-            {adjusting && (
-              <View style={styles.adjustRow} testID="night-out-adjust-row">
-                {NIGHT_OUT_ADJUST_OZ.map((oz) => (
-                  <Pressable
-                    key={oz}
-                    onPress={() => onAdjustPick(oz)}
-                    style={[styles.ozChip, doseOz === oz && { borderColor: accent }]}
-                    accessibilityRole="button"
-                    accessibilityLabel={`Set ${oz} ounces`}
-                  >
-                    <Text style={[styles.ozChipText, doseOz === oz && { color: accent }]}>{oz} oz</Text>
-                  </Pressable>
-                ))}
-              </View>
-            )}
-
-            {/* One dominant action */}
-            <Pressable
-              onPress={view.now.cta === 'START WATER' ? onStartWater : onCompleteWater}
-              style={[styles.primaryCta, { backgroundColor: accent }]}
-              accessibilityRole="button"
-              accessibilityLabel={view.now.cta === 'START WATER' ? 'Start water' : 'Complete water'}
-              testID="night-out-primary-cta"
-            >
-              <Text style={styles.primaryCtaText}>{view.now.cta}</Text>
-            </Pressable>
-
-            {/* Secondary actions */}
-            <View style={styles.secondaryRow}>
-              {view.now.showAdjust && (
-                <Pressable
-                  onPress={() => { haptic('light'); setAdjusting((v) => !v); }}
-                  style={styles.secondaryBtn}
-                  accessibilityRole="button"
-                  accessibilityLabel="Adjust amount"
-                  testID="night-out-adjust"
-                >
-                  <Text style={styles.secondaryText}>Adjust</Text>
-                </Pressable>
-              )}
-              {view.now.showNotNow && (
-                <Pressable
-                  onPress={onNotNow}
-                  style={styles.secondaryBtn}
-                  accessibilityRole="button"
-                  accessibilityLabel="Not now"
-                  testID="night-out-not-now"
-                >
-                  <Text style={styles.secondaryText}>Not now</Text>
-                </Pressable>
-              )}
-            </View>
-          </>
-        )}
-      </View>
-
-      {/* NEXT */}
-      <Text style={styles.sectionLabel}>NEXT</Text>
-      <View style={styles.quietCard}>
-        <Text style={styles.quietPrimary}>Update confirmed intake</Text>
-        <Text style={styles.quietSub}>{view.next.reassessLabel} · only if something changes</Text>
-      </View>
-
-      {/* LATER */}
-      <Text style={styles.sectionLabel}>LATER</Text>
-      <View style={styles.quietCard}>
-        <Text style={styles.quietPrimary}>{view.later.previewLabel}</Text>
-        <Text style={styles.quietSub}>Subject to change</Text>
-      </View>
-
-      <View style={{ height: 40 }} />
+      <NightOutCommandView
+        view={view}
+        reducedMotion={reducedMotion}
+        adjusting={adjusting}
+        approvedAdjustOz={NIGHT_OUT_ADJUST_OZ}
+        selectedDoseOz={doseOz}
+        onPrimary={view.now.cta === 'START WATER' ? onStartWater : onCompleteWater}
+        onToggleAdjust={() => { haptic('light'); setAdjusting((v) => !v); }}
+        onAdjustPick={onAdjustPick}
+        onNotNow={onNotNow}
+      />
     </AFScreen>
   );
 }
-
-const styles = StyleSheet.create({
-  header: { marginTop: 8, marginBottom: 8, alignItems: 'center', gap: 2 },
-  eyebrow: { ...afType.eyebrow, color: af.textTertiary },
-  title: { ...afType.title1, color: af.textPrimary },
-  descriptor: { ...afType.caption, color: af.textTertiary },
-  heroWrap: { alignItems: 'center', marginVertical: 20, gap: 12 },
-  score: { ...afType.displayScore, color: af.textPrimary, fontVariant: ['tabular-nums'] },
-  stateLabel: { ...afType.eyebrow, color: af.textTertiary, marginTop: 2 },
-  interpretation: { ...afType.body, color: af.textSecondary, textAlign: 'center' },
-  sectionLabel: { ...afType.eyebrow, color: af.textTertiary, marginTop: 20, marginBottom: 8 },
-  nowCard: {
-    padding: 18, borderRadius: 18, borderWidth: 1, borderColor: af.border,
-    backgroundColor: af.surface, gap: 8,
-  },
-  calm: { ...afType.title3, color: af.textPrimary, textAlign: 'center', paddingVertical: 12 },
-  processing: { ...afType.title3, color: af.cyan, textAlign: 'center', paddingVertical: 12 },
-  commandTitle: { ...afType.eyebrow, color: af.cyan },
-  commandBody: { ...afType.title2, color: af.textPrimary },
-  window: { ...afType.secondary, color: af.textSecondary },
-  reason: { ...afType.secondary, color: af.textTertiary },
-  telemetry: { ...afType.caption, color: af.textTertiary, marginTop: 4 },
-  adjustRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 6 },
-  ozChip: {
-    paddingHorizontal: 12, paddingVertical: 8, borderRadius: 999,
-    borderWidth: 1, borderColor: af.border, minWidth: 44, alignItems: 'center',
-  },
-  ozChipText: { ...afType.caption, color: af.textSecondary },
-  primaryCta: {
-    marginTop: 12, paddingVertical: 16, borderRadius: 16,
-    alignItems: 'center', justifyContent: 'center',
-  },
-  primaryCtaText: { ...afType.bodyStrong, color: af.canvas, letterSpacing: 1 },
-  secondaryRow: { flexDirection: 'row', gap: 12, marginTop: 4 },
-  secondaryBtn: { flex: 1, paddingVertical: 12, alignItems: 'center', borderRadius: 12, borderWidth: 1, borderColor: af.border },
-  secondaryText: { ...afType.secondary, color: af.textSecondary },
-  quietCard: { padding: 16, borderRadius: 14, borderWidth: 1, borderColor: af.divider, backgroundColor: af.canvasElevated, gap: 4 },
-  quietPrimary: { ...afType.body, color: af.textPrimary },
-  quietSub: { ...afType.caption, color: af.textTertiary },
-});

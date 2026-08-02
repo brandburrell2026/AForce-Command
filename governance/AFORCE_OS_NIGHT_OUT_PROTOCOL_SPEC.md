@@ -352,15 +352,31 @@ dominant CTA (Adjust/Not Now secondary); confidence + freshness shown as one cal
 surface; no user-facing "Social Mode"; accent is `af.cyan` (water/active) — **Signal Red is not used
 for positive/Balanced state**; approved `af`/`afType` tokens throughout.
 
-**Runtime / visual screenshots + render-level a11y — NOT captured (honest gap):** the screen is
-**deliberately un-enableable from any client control** (NO-a.1 restricted-flag clamp), and the DEMO
-build's cold-launch SplashGate intercepts deep links, so the gated screen cannot be rendered in this
-environment without a throwaway internal build (temporarily forcing `night_out_enabled`) + driving
-each state. Confirmed live only that `DEMO_MODE=true` and that `/night-out` does not render for an
-unauthorized client. **Deterministic screenshots (14 states × phone sizes + max-text-scale) and
-render-level accessibility (screen-reader order, dynamic-type overflow, 44×44, keyboard-safe Adjust)
-remain the outstanding pre-merge evidence** — to be captured on the internal/demo build. This is why
-the PR is a DRAFT.
+**Render evidence via a NON-SHIPPING harness (NO-c evidence-2 pass) — captured, without touching the
+authorization clamp:** the screen was split into a pure presentational `NightOutCommandView`
+(props-driven; no store/route/flag/timer imports) rendered by the container. A non-shipping harness
+(`components/nightOut/__tests__/nightOutCommandView.render.test.tsx`, happy-dom + react-native-web)
+renders that component with injected view models for the required states and produces:
+- **10 reproducible DOM snapshot artifacts** (`__snapshots__/…snap`) covering eligible-idle,
+  low-confidence, stale-data, command-accepted, restored-active, nearing-expiry, expired/reassessing,
+  completed/processing, deferred, pre-acceptance-adjust — at small/standard/large widths, a
+  max-text-scale variant, and reduced-motion;
+- **render-level accessibility assertions** on the real DOM: primary CTA `role="button"` + accessible
+  name ("Complete water"/"Start water", not clipped), exactly one dominant CTA per state, secondary
+  actions labeled ("Adjust amount"/"Not now") with selectable state, HydroState hero labeled
+  ("HydroState 76, BALANCED"), NOW/NEXT/LATER headers present, status by TEXT not color alone, and
+  44×44 minimum-target tokens.
+- **Production-bundle isolation proof** (`services/nightOut/__tests__/bundleIsolation.test.ts`): no
+  shipping file imports the harness/fixtures; the harness never imports the route guard or enables the
+  flag; the presentation component is pure; `night_out_enabled` stays default-false and the ONLY
+  `=true` path is the sanctioned `enableNightOutForInternalPreview` in `access.ts`; the `/night-out`
+  route guard is unchanged. The `react-native → react-native-web` alias is **test-only** (never in the
+  app bundle) and broke no node suites.
+
+**Honest caveat:** these are **react-native-web DOM renders** (structure + ARIA), not native pixel
+screenshots. They give reproducible render-level structural + a11y evidence without weakening the
+clamp; **native/simulator pixel capture** (exact typography/overflow at OS text scales) remains a
+recommended final-sign-off step. Cross-device timer restoration remains unsupported.
 
 ## 21. NO-a.1 record (2026-08-01) — internal flag isolation
 
