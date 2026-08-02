@@ -16,6 +16,9 @@ import { DEMO_MODE } from '@/services/demoMode';
 import { isInternalEvidenceBuild } from './internalGate';
 import { readInternalBuildInputs } from './buildInputs';
 import { enableEvidenceMode, disableEvidenceMode, evidenceAccessGranted } from './evidenceModeService';
+// [NO-c][diag] TEMPORARY: read-only import used only to report the resulting flag
+// value in the Disable-handler diagnostic below. Remove with the diagnostic logs.
+import { disableNightOutForInternalPreview } from '@/services/nightOut/access';
 
 const NIGHT_OUT_HREF = '/night-out' as unknown as Href;
 
@@ -44,7 +47,14 @@ export function NightOutEvidenceModeControl() {
     force();
   };
   const onReset = () => {
-    disableEvidenceMode({ flags, setFeatureFlags, build });
+    // [NO-c][diag] TEMPORARY diagnostic — determines whether this handler fires on
+    // native iOS. Remove in the cleanup commit. No behavior/hit-target/layout change.
+    console.warn('[NO-c][diag] onReset:ENTER — Disable/Reset handler fired');
+    const diagOk = disableEvidenceMode({ flags, setFeatureFlags, build });
+    console.warn(
+      '[NO-c][diag] onReset:AFTER disableEvidenceMode returned=' + diagOk +
+        ' night_out_enabled=' + disableNightOutForInternalPreview(flags).night_out_enabled,
+    );
     force();
   };
 
