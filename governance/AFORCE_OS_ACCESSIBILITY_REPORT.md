@@ -50,3 +50,14 @@ not been formally run before this pass — `CONTINUITY.md`.)
 Accessibility conformance = **Partially Built** — strong label/role coverage and AA-corrected tokens;
 dynamic-type clamp, a11y settings screen, broad reduced-motion coverage, and render-level a11y tests
 are the outstanding items.
+
+## 5. Night Out command view — render-level a11y evidence (NO-c, 2026-08-01)
+First **render-level** a11y verification in the repo (Phase-0 noted 0 render tests): a non-shipping
+harness (`components/nightOut/__tests__/nightOutCommandView.render.test.tsx`, happy-dom +
+react-native-web) renders the pure `NightOutCommandView` to a real DOM and asserts, on captured markup:
+primary CTA `role="button"` + accessible name (not clipped), exactly one dominant CTA per state,
+labeled secondary actions with selectable state, labeled HydroState hero, NOW/NEXT/LATER headers,
+**status communicated by text not color alone**, and 44×44 minimum-target tokens; plus reduced-motion
+and max-text-scale render variants. 10 reproducible DOM snapshots committed. **Caveat:** DOM/ARIA
+structure, not native pixel capture — simulator screen-reader + dynamic-type-overflow verification
+remains a final-sign-off step. This is the pattern to extend to other screens.

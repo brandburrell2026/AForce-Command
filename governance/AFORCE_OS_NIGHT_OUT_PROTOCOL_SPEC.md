@@ -284,6 +284,149 @@ NO-c…NO-f (NO-f blocked pending legal/compliance).
 ## 23. Stop condition (NO-b)
 NO-b committed in isolation. Stop for Julius + Brandon review. Do not begin NO-c.
 
+## 24. NO-c record (2026-08-01) — Water-First command experience
+
+First real command experience + the reusable **HYDROSTATE → NOW → NEXT → LATER** pattern, behind the
+existing authorization. **Water-First only. No alcohol logging / scan / correction / provider / new
+scoring / new thresholds / entitlement / legal copy.** Presentation-only.
+
+- **Screen** `screens/NightOutCommandScreen.tsx` (rendered by the gated `/night-out` route): header
+  (AFORCE PROTOCOL / NIGHT OUT / Private Evening Protocol) → **HydroState hero** (`AFReadinessArc`, the
+  only hero) → **NOW** (one Water-First command, dose, window, reason, one calm telemetry line
+  "Command confidence: High · Updated N min ago", **START WATER** / Adjust / Not Now) → **NEXT**
+  ("Update confirmed intake · Reassessment in N min") → **LATER** ("Subject to change"). Calm
+  no-command state: *"You're exactly where you should be. No action needed."*
+- **Timer contract** `services/nightOut/commandTimer.ts` (pure) + `commandTimerStore.ts` (local
+  AsyncStorage) + `hooks/useNightOutCommandTimer.ts`: the timer **does not start before acceptance**;
+  it is anchored to an **authoritative stored `startedAtMs`** and the view is re-derived from it, so it
+  **restores across background / force-close / reopen / device restart**. Clock-safe (never negative;
+  backwards-clock conservative; invalid/stale → safe recoverable state). **Expiry ≠ completion.**
+  **Cross-device restoration is NOT supported** (no server persistence for this timer — not claimed).
+- **Completion** routes through the approved `logIntake('water', { silent, ozOverride })` intake path
+  (Score-Protection). The screen **never** dispatches or mutates score directly (test-enforced). After
+  confirmation: neutral **"Water confirmed. Reassessing…"** — no confetti / streak / arbitrary bonus.
+- **Confidence + freshness** come from `deriveCommandConfidence` + real state timestamps — never
+  fabricated (High/Moderate/Limited; "Waiting for fresher confirmed signals" when limited/undated).
+- **Adjust** uses approved amounts only (`NIGHT_OUT_ADJUST_OZ = 8/12/16/20/24`, validated); **Not Now**
+  defers with no score penalty and preserves the session; neither lets AI choose an amount.
+- **Motion/haptics**: `animate={!reducedMotion}` on the hero; medium haptic on START WATER, success only
+  after verified completion, light for selection.
+
+Tests (`commandTimer`, `commandPresentation`, `commandScreen` + fixtures) — **72 Night Out tests**: timer
+contract (authoritative timestamp, restoration, never-negative, expiry≠completion, invalid→safe),
+mode resolution (no-command/pre-session/active/processing), confidence/freshness honesty, Adjust bounds,
+Score-Protection (completion via `logIntake`, no direct score write, timer starts only on accept, no
+alcohol code), route gating. tsc 0; full suite green (pre-existing failures only). Deterministic
+view-model **fixtures** for 8 states in `commandFixtures.ts`.
+
+**Honest limitations:** cross-device timer restoration not supported (local only); **real-device /
+preview screenshots not captured this pass** (the screen is gated behind the DEMO/internal context —
+fixtures + tests cover the states; live capture is a follow-up). Render-level a11y (screen-reader
+order, dynamic-type overflow) is implemented via props but not render-tested. **Not started:** NO-d…NO-f.
+
+## 25. Stop condition (NO-c)
+NO-c committed in isolation. Stop for Julius + Brandon review. Do not begin NO-d.
+
+## 27. NO-c evidence tiers + native gate (2026-08-01)
+
+Three distinct, non-interchangeable evidence tiers:
+
+| Tier | What it proves | Status |
+|---|---|---|
+| **1 · Code-level acceptance** | Score-Protection invariants, restoration truth, Water-First, no alcohol, naming, mode logic, Adjust bounds — via static tests | ✅ **Complete** (74 logic/route/isolation tests) |
+| **2 · DOM structural + automated a11y** | Real DOM render (react-native-web/happy-dom) of the pure `NightOutCommandView`: roles/accessible names, one dominant CTA, text-not-color status, 44×44 tokens, 10 reproducible snapshots across widths/max-text-scale/reduced-motion | ✅ **Complete** (non-shipping harness; §26) |
+| **3 · Native visual + VoiceOver** | iOS-simulator/device pixel rendering: safe-area/dynamic-island/home-indicator, real typography overflow at OS text sizes, live VoiceOver focus/order/announcements, reduced-motion on device | ⛔ **BLOCKED — see below** |
+
+**Why Tier 3 is blocked (honest, not a shortcut declined):**
+1. **No wired authorized enablement path exists.** Rendering the screen requires
+   `night_out_enabled = true` via an authorized mechanism. `isNightOutEnabled` requires the flag AND
+   the `DEMO_MODE` context; the only sanctioned enabler (`enableNightOutForInternalPreview` in
+   `services/nightOut/access.ts`) currently has **no shipping caller** (deferred to a founder-approved
+   internal-preview / NO-10 step). The NO-a.1 clamp (correctly) blocks every client control. Per the
+   founder's constraints, `flags.ts`, the route guard, and any client enablement path **must not** be
+   modified — so there is no permitted way to make the screen render in a native build from this pass.
+2. **Native build + interactive VoiceOver are not performable in this environment.** No AForce native
+   app is installed on the booted simulator, an Expo native build is not feasible here, and VoiceOver
+   is an interactive iOS accessibility feature that cannot be driven programmatically.
+
+**What must happen to complete Tier 3 (operator runbook):** on a founder-authorized **internal-preview
+build** where `night_out_enabled` is enabled through an approved mechanism (its wiring is itself a
+founder decision), an operator runs the protocol below and attaches the artifacts to PR #449. This is
+the sole remaining NO-c gate.
+
+### Native evidence protocol + recording template (for the internal-build operator)
+Capture each state × config; for every row record: device + iOS version · text-size setting ·
+reduced-motion status · state/fixture · screenshot or recording · PASS/FAIL · defect + fix commit.
+
+- **States:** eligible-idle · accepted-active · restored-active (verify exact accepted dose) ·
+  nearing-expiry · stale/low-confidence · pre-acceptance-Adjust · expired/reassessing · completed ·
+  **unauthorized-route** (confirm `/night-out` redirects to Protocol when not authorized).
+- **Configs:** smallest supported iPhone · standard iPhone · largest iPhone · **max iOS text size** on
+  smallest/standard · **reduced-motion ON** for an animated active state.
+- **Layout checks (native):** no clipped title/dose/instruction/freshness/confidence/CTA copy · CTA
+  visible + reachable above the safe area · Adjust keyboard-safe · no overlap with nav / home indicator
+  / dynamic island · exactly one dominant CTA/state · restored command shows the exact accepted dose ·
+  Signal Red not used as a positive state · reduced motion removes/minimizes nonessential animation.
+- **VoiceOver pass (iOS):** initial focus · reading order · HydroState accessible value · primary CTA
+  name + role · secondary action names + roles · status understandable without color · any redundant /
+  missing / confusing announcements.
+
+## 28. Stop condition (NO-c native gate)
+No code change was required or made this pass (native rendering is not permitted without wiring an
+enablement path or editing `flags.ts`, both forbidden). Governance record updated only. Stop for
+Julius + Brandon. Do not un-draft, merge, or begin NO-d without explicit approval.
+
+## 26. NO-c evidence pass (2026-08-01)
+
+**Restoration-truth correction (real defect fixed):** the persisted timer now carries the command
+**as accepted** (`AcceptedCommandSnapshot` = doseOz/title/instruction on `NightOutCommandTimer`). On
+background / force-close / reopen restore, the active screen displays the **accepted** command from the
+snapshot — never the (possibly changed) live engine command — and COMPLETE WATER logs the accepted
+amount. So the timer can never restore alongside a different displayed amount. Adjust is now
+pre-acceptance only (the amount is snapshotted at START WATER); during an active command only Not Now
+(cancel) is offered. Tests added (timer accepted-snapshot round-trip; screen restoration-truth).
+**Restores:** `startedAtMs`, `windowMs`, `commandId`, accepted amount/title/instruction, running/expired
+status (re-derived). **Does NOT restore (by design, transient):** the `Not Now` deferral and the
+post-completion `Reassessing…` state — reopening shows the fresh engine command. **Cross-device
+restoration remains UNSUPPORTED** (local AsyncStorage only; no server persistence — not claimed).
+
+**Score-Protection (re-confirmed, test-enforced):** opening changes no score; START WATER changes no
+score (only persists a timestamp); timer expiry changes no score; Adjust/Not Now change no score and
+apply no penalty; COMPLETE WATER routes only through `logIntake('water', …)`; the screen contains no
+`dispatch(`/`SET_SCORE`/`CYCLE_SUCCESS`/direct `engine.score =` write.
+
+**Visual acceptance (code-level review — PASS):** HydroState (`AFReadinessArc`) is the only hero;
+NIGHT OUT / AFORCE PROTOCOL / Private Evening Protocol present; NOW/NEXT/LATER hierarchy with one
+dominant CTA (Adjust/Not Now secondary); confidence + freshness shown as one calm line; no alcohol
+surface; no user-facing "Social Mode"; accent is `af.cyan` (water/active) — **Signal Red is not used
+for positive/Balanced state**; approved `af`/`afType` tokens throughout.
+
+**Render evidence via a NON-SHIPPING harness (NO-c evidence-2 pass) — captured, without touching the
+authorization clamp:** the screen was split into a pure presentational `NightOutCommandView`
+(props-driven; no store/route/flag/timer imports) rendered by the container. A non-shipping harness
+(`components/nightOut/__tests__/nightOutCommandView.render.test.tsx`, happy-dom + react-native-web)
+renders that component with injected view models for the required states and produces:
+- **10 reproducible DOM snapshot artifacts** (`__snapshots__/…snap`) covering eligible-idle,
+  low-confidence, stale-data, command-accepted, restored-active, nearing-expiry, expired/reassessing,
+  completed/processing, deferred, pre-acceptance-adjust — at small/standard/large widths, a
+  max-text-scale variant, and reduced-motion;
+- **render-level accessibility assertions** on the real DOM: primary CTA `role="button"` + accessible
+  name ("Complete water"/"Start water", not clipped), exactly one dominant CTA per state, secondary
+  actions labeled ("Adjust amount"/"Not now") with selectable state, HydroState hero labeled
+  ("HydroState 76, BALANCED"), NOW/NEXT/LATER headers present, status by TEXT not color alone, and
+  44×44 minimum-target tokens.
+- **Production-bundle isolation proof** (`services/nightOut/__tests__/bundleIsolation.test.ts`): no
+  shipping file imports the harness/fixtures; the harness never imports the route guard or enables the
+  flag; the presentation component is pure; `night_out_enabled` stays default-false and the ONLY
+  `=true` path is the sanctioned `enableNightOutForInternalPreview` in `access.ts`; the `/night-out`
+  route guard is unchanged. The `react-native → react-native-web` alias is **test-only** (never in the
+  app bundle) and broke no node suites.
+
+**Honest caveat:** these are **react-native-web DOM renders** (structure + ARIA), not native pixel
+screenshots. They give reproducible render-level structural + a11y evidence without weakening the
+clamp; **native/simulator pixel capture** (exact typography/overflow at OS text scales) remains a
+recommended final-sign-off step. Cross-device timer restoration remains unsupported.
+
 ## 21. NO-a.1 record (2026-08-01) — internal flag isolation
 
 Follow-up correction on the NO-a branch, closing the PR #447 merge blocker: the

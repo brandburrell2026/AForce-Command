@@ -100,6 +100,11 @@ Documentation reconciled in `AFORCE_OS_NIGHT_OUT_PROTOCOL_SPEC.md`. Sequence onc
    de-discovered via safe redirects; Home pip/banner/entry-tile gated behind authorization; 43 tests.
    No scoring/alcohol/persistence/entitlement change. (**NO-6** "Hangover Risk" wording retirement is
    still pending — deferred to a copy slice.) Founder review pending before NO-c.
+2b. **NO-c (DONE 2026-08-01)** — Water-First command experience at the gated `/night-out` route
+   (HYDROSTATE→NOW→NEXT→LATER; authoritative-timestamp timer with restoration; COMPLETE WATER via
+   approved `logIntake`; confidence/freshness display; Adjust/Not Now; reduced-motion). 72 tests; no
+   scoring/alcohol/schema/entitlement change. Cross-device timer + real-device screenshots pending.
+   Founder review pending before NO-d.
 3. **NO-10** — dedicated `night_out_enabled` flag + **founder-approved entitlement** (server-authoritative
    per SS-02) before public exposure.
 4. **NO-3 / NO-4 / NO-7 / NO-9** — move alcohol-depletion constants to `config/hydroStateModel.ts`
