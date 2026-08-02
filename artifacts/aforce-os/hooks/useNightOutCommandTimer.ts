@@ -13,6 +13,7 @@ import {
   resolveCommandTimerView,
   type NightOutCommandTimer,
   type NightOutTimerView,
+  type AcceptedCommandSnapshot,
 } from '@/services/nightOut/commandTimer';
 import {
   loadCommandTimer,
@@ -25,8 +26,10 @@ export interface UseNightOutCommandTimer {
   view: NightOutTimerView | null;
   /** The accepted command id this timer belongs to, if any. */
   activeCommandId: string | null;
-  /** Accept a command → create + persist the authoritative timer. */
-  start: (commandId: string, windowMs: number) => Promise<void>;
+  /** The command exactly as accepted — restores WITH the timer (restoration truth). */
+  accepted: AcceptedCommandSnapshot | null;
+  /** Accept a command → create + persist the authoritative timer + accepted snapshot. */
+  start: (commandId: string, windowMs: number, accepted?: AcceptedCommandSnapshot) => Promise<void>;
   /** Clear the timer (on completion / cancel). */
   clear: () => Promise<void>;
   restored: boolean;
@@ -36,6 +39,7 @@ export function useNightOutCommandTimer(): UseNightOutCommandTimer {
   const timerRef = useRef<NightOutCommandTimer | null>(null);
   const [view, setView] = useState<NightOutTimerView | null>(null);
   const [activeCommandId, setActiveCommandId] = useState<string | null>(null);
+  const [accepted, setAccepted] = useState<AcceptedCommandSnapshot | null>(null);
   const [restored, setRestored] = useState(false);
 
   const recompute = useCallback(() => {
@@ -51,6 +55,7 @@ export function useNightOutCommandTimer(): UseNightOutCommandTimer {
       if (cancelled) return;
       timerRef.current = t;
       setActiveCommandId(t?.commandId ?? null);
+      setAccepted(t?.accepted ?? null);
       recompute();
       setRestored(true);
     })();
@@ -67,10 +72,11 @@ export function useNightOutCommandTimer(): UseNightOutCommandTimer {
   }, [activeCommandId, recompute]);
 
   const start = useCallback(
-    async (commandId: string, windowMs: number) => {
-      const t = makeCommandTimer(commandId, windowMs, Date.now());
+    async (commandId: string, windowMs: number, snapshot?: AcceptedCommandSnapshot) => {
+      const t = makeCommandTimer(commandId, windowMs, Date.now(), snapshot);
       timerRef.current = t;
       setActiveCommandId(commandId);
+      setAccepted(snapshot ?? null);
       recompute();
       await saveCommandTimer(t);
     },
@@ -80,9 +86,10 @@ export function useNightOutCommandTimer(): UseNightOutCommandTimer {
   const clear = useCallback(async () => {
     timerRef.current = null;
     setActiveCommandId(null);
+    setAccepted(null);
     setView(null);
     await clearCommandTimer();
   }, []);
 
-  return { view, activeCommandId, start, clear, restored };
+  return { view, activeCommandId, accepted, start, clear, restored };
 }

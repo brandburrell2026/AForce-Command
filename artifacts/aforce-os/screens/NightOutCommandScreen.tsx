@@ -78,22 +78,33 @@ export default function NightOutCommandScreen() {
   const score = Math.max(0, Math.min(100, Math.round(engine.score)));
   const { title, instruction } = parseEngineActionCopy(engine.command.action);
   const engineDose = parseDoseOz(engine.command.action);
-  const doseOz = pendingDoseOz ?? engineDose;
   const confidenceLevel = deriveCommandConfidence(commandConfidenceInputsFromState(state.userState, now));
   const reassessMinutes = engine.riskTimer.minutes;
   const commandId = engine.command.id ?? 'nightout-water';
   const windowMs = Math.max(1, reassessMinutes) * 60 * 1000;
 
+  // RESTORATION TRUTH: while a timer is active (including after background /
+  // force-close / reopen restore), the displayed command is the one that was
+  // ACCEPTED — read from the persisted snapshot, NOT the (possibly changed) live
+  // engine command. So the timer can never restore alongside a different amount.
+  const isActive = !!timer.view && timer.view.status !== 'invalid';
+  const acceptedDose = timer.accepted?.doseOz;
+  const doseOz = isActive ? (acceptedDose ?? engineDose) : (pendingDoseOz ?? engineDose);
+  const displayTitle = isActive ? (timer.accepted?.title ?? 'Water first') : (title || 'Water first');
+  const displayInstruction = isActive
+    ? (timer.accepted?.instruction ?? (doseOz ? `Drink ${doseOz} oz water` : 'Drink water'))
+    : (instruction || (doseOz ? `Drink ${doseOz} oz water` : 'Drink water'));
+
   const hasActionableCommand =
-    !deferred && ((doseOz ?? 0) > 0 || instruction.trim().length > 0 || title.trim().length > 0);
+    !deferred && ((doseOz ?? 0) > 0 || displayInstruction.trim().length > 0 || displayTitle.trim().length > 0);
 
   const view = resolveNightOutCommandView({
     score,
     stateLabel: engine.performanceState.level,
     interpretation: engine.command.explanation || 'Your confirmed signals are steady.',
     hasActionableCommand,
-    commandTitle: title || 'Water first',
-    commandInstruction: instruction || (doseOz ? `Drink ${doseOz} oz water` : 'Drink water'),
+    commandTitle: displayTitle,
+    commandInstruction: displayInstruction,
     doseOz,
     reason: engine.command.explanation || '',
     confidenceLevel,
@@ -108,12 +119,18 @@ export default function NightOutCommandScreen() {
 
   const onStartWater = async () => {
     haptic('medium');
-    await timer.start(commandId, windowMs);
+    // Snapshot the command AS ACCEPTED so it restores with the timer.
+    await timer.start(commandId, windowMs, {
+      doseOz,
+      title: displayTitle,
+      instruction: displayInstruction,
+    });
     setAdjusting(false);
   };
 
   const onCompleteWater = async () => {
-    // Route through the APPROVED intake path — never mutate score here.
+    // Route through the APPROVED intake path — never mutate score here. Log the
+    // amount the user ACCEPTED (from the snapshot), not a since-changed engine dose.
     await logIntake('water', { silent: true, ozOverride: doseOz });
     haptic('success');
     await timer.clear();

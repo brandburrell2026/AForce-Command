@@ -50,6 +50,16 @@ describe('NO-c Score-Protection invariants (screen is presentation-only)', () =>
     expect(screen).toMatch(/const onStartWater = async \(\) => \{[\s\S]*timer\.start\(/);
   });
 
+  it('restoration truth: START WATER snapshots the accepted amount, and the active view reads it', () => {
+    // acceptance persists the snapshot
+    expect(screen).toMatch(/timer\.start\(commandId, windowMs, \{[\s\S]*doseOz/);
+    // during an active/restored command the displayed command comes from the
+    // accepted snapshot, not the live engine command
+    expect(screen).toMatch(/acceptedDose = timer\.accepted\?\.doseOz/);
+    expect(screen).toMatch(/isActive \? \(acceptedDose \?\? engineDose\)/);
+    expect(screen).toMatch(/isActive \? \(timer\.accepted\?\.title/);
+  });
+
   it('contains NO alcohol-logging / session-activation code in NO-c', () => {
     // the word "alcohol" may appear in the doc comment; assert no such CODE.
     expect(screen).not.toMatch(/logSocialDrink\(|activateSocialMode\(|estimateBAC|logIntake\('(?!water)/);

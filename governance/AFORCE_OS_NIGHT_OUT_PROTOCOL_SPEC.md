@@ -327,6 +327,41 @@ order, dynamic-type overflow) is implemented via props but not render-tested. **
 ## 25. Stop condition (NO-c)
 NO-c committed in isolation. Stop for Julius + Brandon review. Do not begin NO-d.
 
+## 26. NO-c evidence pass (2026-08-01)
+
+**Restoration-truth correction (real defect fixed):** the persisted timer now carries the command
+**as accepted** (`AcceptedCommandSnapshot` = doseOz/title/instruction on `NightOutCommandTimer`). On
+background / force-close / reopen restore, the active screen displays the **accepted** command from the
+snapshot — never the (possibly changed) live engine command — and COMPLETE WATER logs the accepted
+amount. So the timer can never restore alongside a different displayed amount. Adjust is now
+pre-acceptance only (the amount is snapshotted at START WATER); during an active command only Not Now
+(cancel) is offered. Tests added (timer accepted-snapshot round-trip; screen restoration-truth).
+**Restores:** `startedAtMs`, `windowMs`, `commandId`, accepted amount/title/instruction, running/expired
+status (re-derived). **Does NOT restore (by design, transient):** the `Not Now` deferral and the
+post-completion `Reassessing…` state — reopening shows the fresh engine command. **Cross-device
+restoration remains UNSUPPORTED** (local AsyncStorage only; no server persistence — not claimed).
+
+**Score-Protection (re-confirmed, test-enforced):** opening changes no score; START WATER changes no
+score (only persists a timestamp); timer expiry changes no score; Adjust/Not Now change no score and
+apply no penalty; COMPLETE WATER routes only through `logIntake('water', …)`; the screen contains no
+`dispatch(`/`SET_SCORE`/`CYCLE_SUCCESS`/direct `engine.score =` write.
+
+**Visual acceptance (code-level review — PASS):** HydroState (`AFReadinessArc`) is the only hero;
+NIGHT OUT / AFORCE PROTOCOL / Private Evening Protocol present; NOW/NEXT/LATER hierarchy with one
+dominant CTA (Adjust/Not Now secondary); confidence + freshness shown as one calm line; no alcohol
+surface; no user-facing "Social Mode"; accent is `af.cyan` (water/active) — **Signal Red is not used
+for positive/Balanced state**; approved `af`/`afType` tokens throughout.
+
+**Runtime / visual screenshots + render-level a11y — NOT captured (honest gap):** the screen is
+**deliberately un-enableable from any client control** (NO-a.1 restricted-flag clamp), and the DEMO
+build's cold-launch SplashGate intercepts deep links, so the gated screen cannot be rendered in this
+environment without a throwaway internal build (temporarily forcing `night_out_enabled`) + driving
+each state. Confirmed live only that `DEMO_MODE=true` and that `/night-out` does not render for an
+unauthorized client. **Deterministic screenshots (14 states × phone sizes + max-text-scale) and
+render-level accessibility (screen-reader order, dynamic-type overflow, 44×44, keyboard-safe Adjust)
+remain the outstanding pre-merge evidence** — to be captured on the internal/demo build. This is why
+the PR is a DRAFT.
+
 ## 21. NO-a.1 record (2026-08-01) — internal flag isolation
 
 Follow-up correction on the NO-a branch, closing the PR #447 merge blocker: the

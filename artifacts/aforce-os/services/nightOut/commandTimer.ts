@@ -21,6 +21,18 @@
  * touches the session — Score-Protection.
  */
 
+/**
+ * The command exactly as ACCEPTED, snapshotted at acceptance. Persisted WITH the
+ * timer so restoration can never show a different amount/instruction than the one
+ * the user accepted — even if the live engine command has since changed. (NO-c
+ * restoration-truth fix.)
+ */
+export interface AcceptedCommandSnapshot {
+  doseOz?: number;
+  title?: string;
+  instruction?: string;
+}
+
 export interface NightOutCommandTimer {
   /** Identity of the accepted command this timer belongs to. */
   commandId: string;
@@ -28,6 +40,8 @@ export interface NightOutCommandTimer {
   startedAtMs: number;
   /** Command completion window length in ms (from the engine command window). */
   windowMs: number;
+  /** The command as accepted — restores together with the timer. */
+  accepted?: AcceptedCommandSnapshot;
 }
 
 export type NightOutTimerStatus = 'running' | 'expired' | 'invalid';
@@ -61,8 +75,9 @@ export function makeCommandTimer(
   commandId: string,
   windowMs: number,
   nowMs: number,
+  accepted?: AcceptedCommandSnapshot,
 ): NightOutCommandTimer {
-  return { commandId, startedAtMs: nowMs, windowMs };
+  return { commandId, startedAtMs: nowMs, windowMs, ...(accepted ? { accepted } : {}) };
 }
 
 /**

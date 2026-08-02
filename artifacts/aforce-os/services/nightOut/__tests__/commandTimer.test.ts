@@ -15,6 +15,15 @@ describe('NO-c timer contract', () => {
     expect(t).toEqual({ commandId: 'cmd-1', startedAtMs: T0, windowMs: 20 * MIN });
   });
 
+  it('restoration truth: the ACCEPTED command snapshot is stored with the timer', () => {
+    const t = makeCommandTimer('cmd-1', 20 * MIN, T0, { doseOz: 16, title: 'Water first', instruction: 'Drink 16 oz water' });
+    expect(t.accepted).toEqual({ doseOz: 16, title: 'Water first', instruction: 'Drink 16 oz water' });
+    // it survives a JSON round-trip (persistence layer), so reopen shows the same amount
+    const restored = JSON.parse(JSON.stringify(t));
+    expect(restored.accepted.doseOz).toBe(16);
+    expect(resolveCommandTimerView(restored, T0 + 5 * MIN).status).toBe('running');
+  });
+
   it('no timer object exists until acceptance — a null timer resolves to invalid (idle), never running', () => {
     const v = resolveCommandTimerView(null, T0);
     expect(v.status).toBe('invalid');

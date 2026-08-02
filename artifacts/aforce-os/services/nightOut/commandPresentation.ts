@@ -128,7 +128,10 @@ export function resolveNightOutCommandView(input: NightOutCommandInput): NightOu
         windowLabel: input.timerView.expired ? 'Window elapsed — confirm when done' : `${remainingLabel} remaining`,
         cta: 'COMPLETE WATER',
         remainingLabel,
-        showAdjust: true,
+        // Adjust applies BEFORE acceptance (amount is snapshotted at START WATER);
+        // during an active command only Not Now (cancel) is offered — keeps the
+        // restored amount consistent with the timer.
+        showAdjust: false,
         showNotNow: true,
       },
       next,
