@@ -61,3 +61,14 @@ export function isNightOutEnabled(
 export function enableNightOutForInternalPreview(flags: FeatureFlags): FeatureFlags {
   return { ...flags, night_out_enabled: true };
 }
+
+/**
+ * The sanctioned counterpart to disable Night Out internal-preview authorization
+ * (NO-c native-evidence enabler). Modifies ONLY `night_out_enabled`; every
+ * unrelated flag is preserved. Pure; does not mutate. Like the enabler, it is
+ * only ever composed by the internal-preview service (which itself fails closed
+ * outside the authorized internal build) — never a direct UI flag mutation.
+ */
+export function disableNightOutForInternalPreview(flags: FeatureFlags): FeatureFlags {
+  return { ...flags, night_out_enabled: false };
+}

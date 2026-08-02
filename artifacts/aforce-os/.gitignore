@@ -39,3 +39,6 @@ yarn-error.*
 .vercel
 
 .env
+
+# NO-c native-evidence enabler — generated internal route (never commit)
+app/internal-preview.tsx

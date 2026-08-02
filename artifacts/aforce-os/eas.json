@@ -50,6 +50,21 @@
         "buildType": "app-bundle"
       },
       "node": "22.13.0"
+    },
+    "internal-native": {
+      "extends": "development",
+      "channel": "internal-native",
+      "env": {
+        "APP_PROFILE": "internal-native",
+        "EXPO_PUBLIC_APP_VARIANT": "internal",
+        "EXPO_PUBLIC_INTERNAL_PREVIEW": "true",
+        "EXPO_PUBLIC_DEMO_MODE": "true"
+      },
+      "ios": {
+        "simulator": true,
+        "resourceClass": "m-medium"
+      },
+      "node": "22.13.0"
     }
   },
   "submit": {
