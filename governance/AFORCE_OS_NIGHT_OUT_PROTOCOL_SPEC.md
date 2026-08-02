@@ -327,6 +327,55 @@ order, dynamic-type overflow) is implemented via props but not render-tested. **
 ## 25. Stop condition (NO-c)
 NO-c committed in isolation. Stop for Julius + Brandon review. Do not begin NO-d.
 
+## 27. NO-c evidence tiers + native gate (2026-08-01)
+
+Three distinct, non-interchangeable evidence tiers:
+
+| Tier | What it proves | Status |
+|---|---|---|
+| **1 · Code-level acceptance** | Score-Protection invariants, restoration truth, Water-First, no alcohol, naming, mode logic, Adjust bounds — via static tests | ✅ **Complete** (74 logic/route/isolation tests) |
+| **2 · DOM structural + automated a11y** | Real DOM render (react-native-web/happy-dom) of the pure `NightOutCommandView`: roles/accessible names, one dominant CTA, text-not-color status, 44×44 tokens, 10 reproducible snapshots across widths/max-text-scale/reduced-motion | ✅ **Complete** (non-shipping harness; §26) |
+| **3 · Native visual + VoiceOver** | iOS-simulator/device pixel rendering: safe-area/dynamic-island/home-indicator, real typography overflow at OS text sizes, live VoiceOver focus/order/announcements, reduced-motion on device | ⛔ **BLOCKED — see below** |
+
+**Why Tier 3 is blocked (honest, not a shortcut declined):**
+1. **No wired authorized enablement path exists.** Rendering the screen requires
+   `night_out_enabled = true` via an authorized mechanism. `isNightOutEnabled` requires the flag AND
+   the `DEMO_MODE` context; the only sanctioned enabler (`enableNightOutForInternalPreview` in
+   `services/nightOut/access.ts`) currently has **no shipping caller** (deferred to a founder-approved
+   internal-preview / NO-10 step). The NO-a.1 clamp (correctly) blocks every client control. Per the
+   founder's constraints, `flags.ts`, the route guard, and any client enablement path **must not** be
+   modified — so there is no permitted way to make the screen render in a native build from this pass.
+2. **Native build + interactive VoiceOver are not performable in this environment.** No AForce native
+   app is installed on the booted simulator, an Expo native build is not feasible here, and VoiceOver
+   is an interactive iOS accessibility feature that cannot be driven programmatically.
+
+**What must happen to complete Tier 3 (operator runbook):** on a founder-authorized **internal-preview
+build** where `night_out_enabled` is enabled through an approved mechanism (its wiring is itself a
+founder decision), an operator runs the protocol below and attaches the artifacts to PR #449. This is
+the sole remaining NO-c gate.
+
+### Native evidence protocol + recording template (for the internal-build operator)
+Capture each state × config; for every row record: device + iOS version · text-size setting ·
+reduced-motion status · state/fixture · screenshot or recording · PASS/FAIL · defect + fix commit.
+
+- **States:** eligible-idle · accepted-active · restored-active (verify exact accepted dose) ·
+  nearing-expiry · stale/low-confidence · pre-acceptance-Adjust · expired/reassessing · completed ·
+  **unauthorized-route** (confirm `/night-out` redirects to Protocol when not authorized).
+- **Configs:** smallest supported iPhone · standard iPhone · largest iPhone · **max iOS text size** on
+  smallest/standard · **reduced-motion ON** for an animated active state.
+- **Layout checks (native):** no clipped title/dose/instruction/freshness/confidence/CTA copy · CTA
+  visible + reachable above the safe area · Adjust keyboard-safe · no overlap with nav / home indicator
+  / dynamic island · exactly one dominant CTA/state · restored command shows the exact accepted dose ·
+  Signal Red not used as a positive state · reduced motion removes/minimizes nonessential animation.
+- **VoiceOver pass (iOS):** initial focus · reading order · HydroState accessible value · primary CTA
+  name + role · secondary action names + roles · status understandable without color · any redundant /
+  missing / confusing announcements.
+
+## 28. Stop condition (NO-c native gate)
+No code change was required or made this pass (native rendering is not permitted without wiring an
+enablement path or editing `flags.ts`, both forbidden). Governance record updated only. Stop for
+Julius + Brandon. Do not un-draft, merge, or begin NO-d without explicit approval.
+
 ## 26. NO-c evidence pass (2026-08-01)
 
 **Restoration-truth correction (real defect fixed):** the persisted timer now carries the command
