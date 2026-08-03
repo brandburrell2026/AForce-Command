@@ -175,7 +175,10 @@ describe('ConnectedHealthContainer wiring — real model input renders through t
 
     const banner = q('[data-testid="connected-health-offline-banner"]');
     expect(banner).not.toBeNull();
-    expect(banner?.textContent).toContain('Offline');
+    // #491 review B2: reworded away from "Offline" (false on a cold-start
+    // probe failure, which has no last-known status yet) to an honest
+    // "couldn't check ... may be out of date" sentence.
+    expect(banner?.textContent).toMatch(/couldn't check|out of date/i);
 
     // The row that was genuinely connected before the probe cycle failed
     // still renders its true last-known state — offline mode never

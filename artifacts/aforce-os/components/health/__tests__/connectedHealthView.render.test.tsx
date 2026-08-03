@@ -145,7 +145,9 @@ describe('screen states', () => {
   it('offline renders the offline banner AND still shows last-known rows', () => {
     render('offline');
     expect(q('[data-testid="connected-health-offline-banner"]')).not.toBeNull();
-    expect(host.textContent).toMatch(/Offline/);
+    // #491 review B2: reworded away from "Offline" — a cold-start probe
+    // failure isn't necessarily offline, and there's no last-known status yet.
+    expect(host.textContent).toMatch(/couldn't check|out of date/i);
     expect(qa('[data-testid^="ch-row-"]').length).toBeGreaterThan(0);
   });
 });

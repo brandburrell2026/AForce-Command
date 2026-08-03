@@ -309,7 +309,10 @@ describe('screen modes', () => {
   it('offline surfaces the honest offline notice key while keeping last-known rows', () => {
     const view = resolveConnectedHealthView({ ...screenWith(['connected']), mode: 'offline' });
     expect(view.offlineNotice).toEqual({ key: 'connected_health.offline_notice' });
-    expect(EN_LOCALE.connected_health.offline_notice).toMatch(/Offline/);
+    // #491 review B2: a cold-start probe failure has no "last known" status to
+    // show, so the copy no longer claims "Offline" — it honestly says the
+    // check failed and the list may be stale.
+    expect(EN_LOCALE.connected_health.offline_notice).toMatch(/couldn't check|out of date/i);
     expect(view.rows.length).toBe(1);
   });
   it('ready + zero providers → honest empty copy key, not a blank screen', () => {
