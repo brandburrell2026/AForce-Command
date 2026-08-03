@@ -107,6 +107,101 @@ export const EMPTY_SELF_LOG: CruiseSelfLog = {
   sleepQualityPct: null,
 };
 
+// ─── Self-log hygiene (pure helpers, unit-tested) ────────────────────────────
+
+/**
+ * Sane physical bounds for self-logged values. The steppers clamp at 0 on the
+ * way down; these cap the way up so a runaway tap (or bad stored payload)
+ * can't feed absurd loads (400 hr poolside) into the readiness math.
+ */
+export const SELF_LOG_LIMITS = {
+  maxHours: 24, //   pool / excursion / fitness hours per day
+  maxDrinks: 20, //  logged drinks per day
+} as const;
+
+const clampNum = (n: number, max: number) =>
+  Number.isFinite(n) ? Math.min(max, Math.max(0, Math.round(n))) : 0;
+
+/** Bound every numeric field of a self-log; non-numeric fields pass through. */
+export function clampSelfLog(log: CruiseSelfLog): CruiseSelfLog {
+  return {
+    ...log,
+    poolHours: clampNum(log.poolHours, SELF_LOG_LIMITS.maxHours),
+    excursionHours: clampNum(log.excursionHours, SELF_LOG_LIMITS.maxHours),
+    fitnessHours: clampNum(log.fitnessHours, SELF_LOG_LIMITS.maxHours),
+    alcoholDrinks: clampNum(log.alcoholDrinks, SELF_LOG_LIMITS.maxDrinks),
+    sleepQualityPct:
+      log.sleepQualityPct == null ? null : clampNum(log.sleepQualityPct, 100),
+  };
+}
+
+/**
+ * Guest-type cycler INCLUDING the unset state: null → family → … → excursion
+ * → back to null, so a guest who tapped in by mistake can return to "Not set"
+ * (self-report stays fully reversible — nothing is stuck logged).
+ */
+const GUEST_TYPE_CYCLE: ReadonlyArray<CruiseGuestType> = [
+  'family', 'athlete', 'older_traveler', 'party', 'excursion',
+];
+
+export function nextGuestType(cur: CruiseGuestType | null): CruiseGuestType | null {
+  if (cur == null) return GUEST_TYPE_CYCLE[0];
+  const i = GUEST_TYPE_CYCLE.indexOf(cur);
+  return i === GUEST_TYPE_CYCLE.length - 1 ? null : GUEST_TYPE_CYCLE[i + 1];
+}
+
+// ─── Day-scoped self-log persistence codec ───────────────────────────────────
+// The container persists the guest's log so navigating away doesn't silently
+// zero it (and readiness doesn't quietly rise). Day-scoped on purpose: a
+// cruise day's sun/drinks/excursions are facts about TODAY only — restoring
+// yesterday's log would fabricate today's load.
+
+export interface StoredSelfLog {
+  day: string; // local YYYY-MM-DD the log belongs to
+  log: CruiseSelfLog;
+}
+
+export function encodeSelfLog(log: CruiseSelfLog, day: string): string {
+  return JSON.stringify({ day, log } satisfies StoredSelfLog);
+}
+
+const GUEST_TYPES = new Set<string>(GUEST_TYPE_CYCLE);
+const DAY_MODES = new Set<string>(['sea_day', 'port_day']);
+const DECKS = new Set<string>(['indoor', 'mixed', 'outdoor']);
+const RISKS = new Set<string>(['none', 'low', 'moderate', 'high']);
+
+/**
+ * Parse a stored payload back into a safe CruiseSelfLog. Returns null when the
+ * payload is malformed OR belongs to a different local day (fresh day = fresh
+ * log). Every field is whitelisted + clamped — storage is treated as untrusted.
+ */
+export function decodeSelfLog(raw: string | null | undefined, today: string): CruiseSelfLog | null {
+  if (!raw) return null;
+  try {
+    // Untrusted input: parse to unknown-shaped fields, never to the real type.
+    const parsed = JSON.parse(raw) as { day?: unknown; log?: unknown };
+    if (parsed?.day !== today || typeof parsed.log !== 'object' || parsed.log == null) return null;
+    const l = parsed.log as Record<string, unknown>;
+    return clampSelfLog({
+      guestType: typeof l.guestType === 'string' && GUEST_TYPES.has(l.guestType)
+        ? (l.guestType as CruiseGuestType) : null,
+      dayMode: typeof l.dayMode === 'string' && DAY_MODES.has(l.dayMode)
+        ? (l.dayMode as CruiseDayMode) : EMPTY_SELF_LOG.dayMode,
+      deckExposure: typeof l.deckExposure === 'string' && DECKS.has(l.deckExposure)
+        ? (l.deckExposure as CruiseDeckExposure) : EMPTY_SELF_LOG.deckExposure,
+      excursionRisk: typeof l.excursionRisk === 'string' && RISKS.has(l.excursionRisk)
+        ? (l.excursionRisk as CruiseExcursionRisk) : EMPTY_SELF_LOG.excursionRisk,
+      poolHours: typeof l.poolHours === 'number' ? l.poolHours : 0,
+      alcoholDrinks: typeof l.alcoholDrinks === 'number' ? l.alcoholDrinks : 0,
+      excursionHours: typeof l.excursionHours === 'number' ? l.excursionHours : 0,
+      fitnessHours: typeof l.fitnessHours === 'number' ? l.fitnessHours : 0,
+      sleepQualityPct: typeof l.sleepQualityPct === 'number' ? l.sleepQualityPct : null,
+    });
+  } catch {
+    return null;
+  }
+}
+
 export interface CruiseModeInput {
   /** Live engine readiness score (0–100), already rounded/clamped; null when unavailable. */
   hydrationScore: number | null;

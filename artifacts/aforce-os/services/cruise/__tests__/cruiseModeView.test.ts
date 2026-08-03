@@ -3,7 +3,13 @@ import {
   resolveCruiseModeView,
   CRUISE_DISCLAIMER,
   EMPTY_SELF_LOG,
+  SELF_LOG_LIMITS,
+  clampSelfLog,
+  nextGuestType,
+  encodeSelfLog,
+  decodeSelfLog,
   type CruiseModeInput,
+  type CruiseSelfLog,
 } from '../cruiseModeView';
 import { CRUISE_FIXTURES } from '../cruiseModeFixtures';
 
@@ -188,6 +194,77 @@ describe('static scaffold + compliance', () => {
   it('passes reduced-motion through', () => {
     expect(r('reduced-motion').reducedMotion).toBe(true);
     expect(r('live-balanced').reducedMotion).toBe(false);
+  });
+});
+
+describe('self-log hygiene helpers', () => {
+  it('clampSelfLog bounds every numeric field (hours ≤ 24, drinks ≤ 20, sleep ≤ 100, floor 0)', () => {
+    const wild: CruiseSelfLog = {
+      ...EMPTY_SELF_LOG,
+      poolHours: 400, excursionHours: -3, fitnessHours: 25.7,
+      alcoholDrinks: 999, sleepQualityPct: 250,
+    };
+    const c = clampSelfLog(wild);
+    expect(c.poolHours).toBe(SELF_LOG_LIMITS.maxHours);
+    expect(c.excursionHours).toBe(0);
+    expect(c.fitnessHours).toBe(SELF_LOG_LIMITS.maxHours);
+    expect(c.alcoholDrinks).toBe(SELF_LOG_LIMITS.maxDrinks);
+    expect(c.sleepQualityPct).toBe(100);
+  });
+
+  it('clampSelfLog passes sane values through and keeps null sleep null', () => {
+    const sane: CruiseSelfLog = { ...EMPTY_SELF_LOG, poolHours: 3, alcoholDrinks: 2 };
+    expect(clampSelfLog(sane)).toEqual(sane);
+    expect(clampSelfLog({ ...sane, poolHours: NaN }).poolHours).toBe(0);
+  });
+
+  it('nextGuestType cycles through every type and back to unset', () => {
+    const seen: Array<string | null> = [];
+    let cur: ReturnType<typeof nextGuestType> = null;
+    for (let i = 0; i < 6; i++) { cur = nextGuestType(cur); seen.push(cur); }
+    expect(seen).toEqual(['family', 'athlete', 'older_traveler', 'party', 'excursion', null]);
+  });
+});
+
+describe('day-scoped self-log persistence codec', () => {
+  const DAY = '2026-08-03';
+  const logged: CruiseSelfLog = {
+    ...EMPTY_SELF_LOG, guestType: 'party', dayMode: 'port_day', poolHours: 2, alcoholDrinks: 3,
+  };
+
+  it('round-trips a same-day log', () => {
+    expect(decodeSelfLog(encodeSelfLog(logged, DAY), DAY)).toEqual(logged);
+  });
+
+  it("rejects a DIFFERENT day's log (yesterday's drinks are not today's load)", () => {
+    expect(decodeSelfLog(encodeSelfLog(logged, '2026-08-02'), DAY)).toBeNull();
+  });
+
+  it('rejects malformed / empty payloads without throwing', () => {
+    expect(decodeSelfLog(null, DAY)).toBeNull();
+    expect(decodeSelfLog('', DAY)).toBeNull();
+    expect(decodeSelfLog('not json {', DAY)).toBeNull();
+    expect(decodeSelfLog(JSON.stringify({ day: DAY }), DAY)).toBeNull();
+  });
+
+  it('treats storage as untrusted: whitelists enums + clamps numbers', () => {
+    const hostile = JSON.stringify({
+      day: DAY,
+      log: {
+        guestType: 'admin', dayMode: 'warp_day', deckExposure: 'lava', excursionRisk: 'extreme',
+        poolHours: 9999, alcoholDrinks: '12', excursionHours: 3, fitnessHours: null, sleepQualityPct: 400,
+      },
+    });
+    const out = decodeSelfLog(hostile, DAY);
+    expect(out).not.toBeNull();
+    expect(out?.guestType).toBeNull();
+    expect(out?.dayMode).toBe('sea_day');
+    expect(out?.deckExposure).toBe('mixed');
+    expect(out?.excursionRisk).toBe('none');
+    expect(out?.poolHours).toBe(SELF_LOG_LIMITS.maxHours);
+    expect(out?.alcoholDrinks).toBe(0); // string → not a number → 0, never coerced
+    expect(out?.excursionHours).toBe(3);
+    expect(out?.sleepQualityPct).toBe(100);
   });
 });
 
