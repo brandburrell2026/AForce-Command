@@ -5,17 +5,33 @@
  * Renders the PURE presentational `ConnectedHealthView` to a real DOM
  * (react-native-web → react-dom, happy-dom) with a resolved fixture view
  * model injected directly. Imports no store, flag, or route — so it can
- * never enable a gated feature. Asserts structure + accessibility across
- * every fixture state.
+ * never enable a gated feature. Asserts structure, accessibility, and
+ * (since review #460 item 4 moved copy through i18n) the actual translated
+ * text across every fixture state.
  *
- * NOTE: this file will not be picked up by the root vitest.config.ts until
- * `components/health/__tests__/**` is added to `test.include` and
- * `test.environmentMatchGlobs` (mirroring the sleep/cruise/nightOut entries).
+ * This file IS picked up by the root vitest.config.ts:
+ * `components/health/__tests__/**` is already present in both `test.include`
+ * and `test.environmentMatchGlobs` (mirroring the sleep/cruise/nightOut
+ * entries) — see /Users/brandonburrell/AForce-Command/vitest.config.ts.
+ *
+ * i18n wiring: the component calls `useTranslation()` from `react-i18next`.
+ * Rather than importing the app's real `services/i18nService.ts` (which
+ * pulls in `expo-localization` — a native module that cannot load under
+ * happy-dom/node, per the precedent in components/cruise/__tests__/
+ * cruiseModeView.render.test.tsx mocking CommandConfidenceBadge for the same
+ * reason), this harness spins up its OWN `i18next` instance directly from
+ * the real `locales/en.json` file and provides it via `I18nextProvider`.
+ * That gives real, translated assertions (e.g. "Awaiting Access" actually
+ * renders) without any native-module dependency.
  */
 import React from 'react';
 import { flushSync } from 'react-dom';
 import { createRoot, type Root } from 'react-dom/client';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import i18nCore from 'i18next';
+import { I18nextProvider, initReactI18next } from 'react-i18next';
 
 // Icon uses native vector fonts/SVG irrelevant to structure/a11y here.
 vi.mock('@/components/Icon', () => ({
@@ -23,31 +39,67 @@ vi.mock('@/components/Icon', () => ({
 }));
 
 import { ConnectedHealthView } from '../ConnectedHealthView';
-import { resolveConnectedHealthView } from '@/services/health/connectedHealthView';
-import { CONNECTED_HEALTH_FIXTURES } from '@/services/health/connectedHealthFixtures';
+import { resolveConnectedHealthView, type ConnectedHealthInput } from '@/services/health/connectedHealthView';
+import { CONNECTED_HEALTH_FIXTURES, PROVIDER_ROW_FIXTURES } from '@/services/health/connectedHealthFixtures';
+import type { ProviderPresentationState } from '@workspace/health-core';
+
+const EN_LOCALE = JSON.parse(
+  readFileSync(join(__dirname, '..', '..', '..', 'locales', 'en.json'), 'utf8'),
+);
+
+const testI18n = i18nCore.createInstance();
+testI18n.use(initReactI18next).init({
+  lng: 'en',
+  fallbackLng: 'en',
+  resources: { en: { translation: EN_LOCALE } },
+  interpolation: { escapeValue: false },
+  react: { useSuspense: false },
+});
 
 let host: HTMLElement;
 let root: Root;
 const noop = () => {};
 
+function renderView(
+  view: ConnectedHealthInput,
+  over: { onTroubleshoot?: (id: string) => void; onDisconnect?: (id: string) => void } = {},
+) {
+  const resolved = resolveConnectedHealthView(view);
+  root = createRoot(host);
+  flushSync(() =>
+    root.render(
+      React.createElement(
+        I18nextProvider,
+        { i18n: testI18n },
+        React.createElement(ConnectedHealthView, {
+          view: resolved,
+          onBack: noop,
+          onTroubleshoot: over.onTroubleshoot ?? noop,
+          onDisconnect: over.onDisconnect ?? noop,
+        }),
+      ),
+    ),
+  );
+  return resolved;
+}
+
 function render(
   fixtureKey: keyof typeof CONNECTED_HEALTH_FIXTURES,
   over: { onTroubleshoot?: (id: string) => void; onDisconnect?: (id: string) => void } = {},
 ) {
-  const view = resolveConnectedHealthView(CONNECTED_HEALTH_FIXTURES[fixtureKey]);
-  root = createRoot(host);
-  flushSync(() =>
-    root.render(
-      React.createElement(ConnectedHealthView, {
-        view,
-        onBack: noop,
-        onTroubleshoot: over.onTroubleshoot ?? noop,
-        onDisconnect: over.onDisconnect ?? noop,
-      }),
-    ),
-  );
-  return view;
+  return renderView(CONNECTED_HEALTH_FIXTURES[fixtureKey], over);
 }
+
+/** Renders a single-row screen for one ProviderPresentationState fixture. */
+function renderState(state: ProviderPresentationState) {
+  return renderView({
+    now: CONNECTED_HEALTH_FIXTURES.mixed.now,
+    mode: 'ready',
+    platform: 'ios',
+    providers: [PROVIDER_ROW_FIXTURES[state]],
+  });
+}
+
 const q = (sel: string) => host.querySelector(sel);
 const qa = (sel: string) => Array.from(host.querySelectorAll(sel));
 
@@ -126,6 +178,87 @@ describe('per-row structure + testIDs', () => {
     const disconnect = q('[data-testid="ch-disconnect-apple_health"]');
     expect(disconnect).not.toBeNull();
     expect(disconnect?.getAttribute('role')).toBe('button');
+  });
+});
+
+describe('review #460 item 1 — dormant reads factually, no commitment language', () => {
+  it('dormant renders "Awaiting Access", never "Coming Soon"', () => {
+    renderState('dormant');
+    const status = q('[data-testid^="ch-status-"]');
+    expect(status?.textContent).toContain('Awaiting Access');
+    expect(host.textContent).not.toMatch(/coming soon/i);
+  });
+
+  it('requires_external_approval renders its own distinct label ("Approval Pending")', () => {
+    renderState('requires_external_approval');
+    const status = q('[data-testid^="ch-status-"]');
+    expect(status?.textContent).toContain('Approval Pending');
+  });
+});
+
+describe('review #460 item 2 — troubleshoot affordances match what is actually actionable', () => {
+  it('stale (real link, old data) offers Reconnect', () => {
+    renderState('stale');
+    const action = q('[data-testid^="ch-action-"]');
+    expect(action).not.toBeNull();
+    expect(action?.textContent).toContain('Reconnect');
+  });
+
+  it('no_recent_data (fine link, nothing generated yet) offers no action, and the sub-copy explains why', () => {
+    renderState('no_recent_data');
+    expect(q('[data-testid^="ch-action-"]')).toBeNull();
+    expect(host.textContent).toMatch(/nothing to sync/i);
+  });
+});
+
+describe('review #460 item 3 — pull-chip row never summarizes denied grants as "pulled"', () => {
+  it('connected_limited row: the pulls container carries no aria-label of its own', () => {
+    renderState('connected_limited'); // apple_health, sleep_session denied
+    const pullsContainer = q('[data-testid^="ch-pulls-"]');
+    expect(pullsContainer).not.toBeNull();
+    expect(pullsContainer?.hasAttribute('aria-label')).toBe(false);
+  });
+
+  it('the denied Sleep chip is announced as "denied", never implying it was pulled', () => {
+    renderState('connected_limited');
+    const chips = qa('[aria-label*="Sleep"]');
+    expect(chips.length).toBeGreaterThan(0);
+    for (const chip of chips) {
+      const label = chip.getAttribute('aria-label') ?? '';
+      expect(label).toMatch(/denied/i);
+      expect(label).not.toMatch(/pulled/i);
+    }
+  });
+
+  it('a granted chip in the same row is announced as "granted"', () => {
+    renderState('connected_limited');
+    const hrChip = qa('[aria-label*="Resting HR"]')[0];
+    expect(hrChip?.getAttribute('aria-label')).toMatch(/granted/i);
+  });
+});
+
+describe('review #460 item 6 — gated rows render zero pull chips (non-actionable, no phantom pulls)', () => {
+  for (const state of ['dormant', 'requires_external_approval', 'unavailable'] as const) {
+    it(`${state} row renders no pull chips and no action/disconnect affordances`, () => {
+      renderState(state);
+      const pullsContainer = q('[data-testid^="ch-pulls-"]');
+      expect(pullsContainer).toBeNull();
+      expect(q('[data-testid^="ch-action-"]')).toBeNull();
+      expect(q('[data-testid^="ch-disconnect-"]')).toBeNull();
+    });
+  }
+});
+
+describe('review #460 item 9 — via-Health-Connect attribution + gated non-actionability', () => {
+  it('Samsung (via_health_connect) shows explicit "via Health Connect" attribution', () => {
+    renderState('via_health_connect');
+    expect(host.textContent).toContain('Samsung Health · via Health Connect');
+  });
+
+  it('Samsung (via_health_connect) row is not disconnectable and has no troubleshoot action', () => {
+    renderState('via_health_connect');
+    expect(q('[data-testid^="ch-disconnect-"]')).toBeNull();
+    expect(q('[data-testid^="ch-action-"]')).toBeNull();
   });
 });
 

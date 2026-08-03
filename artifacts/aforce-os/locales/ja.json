@@ -1853,5 +1853,95 @@
       "remove_file_a11y": "Remove file",
       "import_a11y": "Import rows"
     }
+  },
+  "connected_health": {
+    "header": {
+      "title": "CONNECTED HEALTH",
+      "tagline": "What's connected, what's synced, and what isn't — stated plainly."
+    },
+    "back": "Back",
+    "offline_notice": "Offline — showing the last known connection status.",
+    "loading": "Checking your connected sources…",
+    "empty": "No health sources configured yet.",
+    "status_a11y": "Status: {{label}}",
+    "disconnect": "Disconnect",
+    "disconnect_a11y": "Disconnect {{name}}",
+    "pull_chip_a11y": "{{label}}, {{status}}",
+    "state_label": {
+      "connected": "Connected",
+      "connected_limited": "Limited Access",
+      "syncing": "Syncing",
+      "stale": "Stale",
+      "no_recent_data": "No Recent Data",
+      "action_required": "Action Required",
+      "error": "Error",
+      "via_health_connect": "Via Health Connect",
+      "connecting": "Connecting",
+      "disconnected": "Not Connected",
+      "dormant": "Awaiting Access",
+      "requires_external_approval": "Approval Pending",
+      "unavailable": "Unavailable"
+    },
+    "sub_copy": {
+      "connected": "Connected and syncing normally",
+      "connected_limited": "Limited permissions granted",
+      "syncing": "Sync in progress",
+      "stale": "Connected — data is stale",
+      "no_recent_data": "Connected — no recent data. The link is fine; there's simply nothing to sync yet.",
+      "action_required": "Reconnect to resume syncing",
+      "via_health_connect": "Arrives through Health Connect",
+      "connecting": "Connecting…",
+      "disconnected": "Not connected",
+      "dormant": "Awaiting partner access",
+      "requires_external_approval": "Awaiting partner approval",
+      "unavailable": "Not available on this device",
+      "error": {
+        "sync_failed": "Sync error — the last sync failed. Reconnect to resolve.",
+        "auth_expired": "Sync error — your session expired. Reconnect to resume.",
+        "permission_revoked": "Sync error — permission was revoked. Reconnect to restore access.",
+        "provider_outage": "Sync error — the provider is temporarily unavailable.",
+        "unknown": "Sync error — reconnect to resolve."
+      }
+    },
+    "troubleshoot": {
+      "connect": "Connect",
+      "reconnect": "Reconnect",
+      "manage_permissions_ios": "Manage in Health app",
+      "manage_permissions_android": "Manage in Health Connect",
+      "manage_permissions_web": "Manage Permissions"
+    },
+    "pull_chip_status": {
+      "granted": "granted",
+      "denied": "denied",
+      "unknown": "unknown"
+    },
+    "pull_chip_label": {
+      "sleep_session": "Sleep",
+      "resting_heart_rate": "Resting HR",
+      "hrv": "HRV",
+      "heart_rate_summary": "Heart Rate",
+      "workout": "Workouts",
+      "steps": "Steps",
+      "active_energy": "Active Energy",
+      "respiratory_rate": "Respiratory Rate",
+      "provider_score": "Provider Score"
+    },
+    "provenance": {
+      "direct": "{{name}} · Direct",
+      "via_health_connect": "{{name}} · via Health Connect"
+    },
+    "freshness": {
+      "never_synced": "Never synced",
+      "just_now": "Synced just now",
+      "minutes_ago": "Synced {{count}}m ago",
+      "hours_ago": "Synced {{count}}h ago",
+      "days_ago": "Synced {{count}}d ago",
+      "literal": "{{text}}"
+    },
+    "footer": {
+      "title": "HOW YOUR DATA IS USED",
+      "score_protection": "Health data informs Readiness only. It never changes your Hydration Score.",
+      "body": "Disconnecting a source stops new data immediately. Historical entries stay attributed to the provider that recorded them."
+    }
   }
 }
