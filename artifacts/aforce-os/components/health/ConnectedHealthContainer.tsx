@@ -29,6 +29,17 @@
  * `services/health/connectedHealthContainerModel.ts` (pure model +
  * injectable I/O layer) so it can be unit-tested without mounting this
  * component — see that file's header for why the split is drawn there.
+ *
+ * PROBE RESILIENCE (fix/health-connected-probe-resilience):
+ *   `loadConnectedHealthCloudFacts` is structurally built to never reject
+ *   (see its own header) — every cloud probe is bounded by
+ *   `CLOUD_PROBE_TIMEOUT_MS` and any rejection/throw is caught internally.
+ *   `refreshCloudFacts` below still wraps the call in try/catch as defense
+ *   in depth: this container must never assume that invariant holds forever
+ *   just because it holds today. A probe rejection, timeout, or missing
+ *   bridge maps to `cloudProbeStatus: 'retry'` → `mode: 'offline'`, the
+ *   existing, honest "showing the last known connection status" shell —
+ *   never a fabricated `disconnected`/`denied`/`unsupported` row state.
  */
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View, StyleSheet, Platform, Alert } from 'react-native';
@@ -68,7 +79,18 @@ export function ConnectedHealthContainer({ onBack }: ConnectedHealthContainerPro
   const { state, setProviderBiometrics } = useAppStore();
 
   const [cloud, setCloud] = useState<ConnectedHealthCloudFacts>(EMPTY_CLOUD_FACTS);
-  const [probesLoaded, setProbesLoaded] = useState(false);
+  /**
+   * 'loading'  — no probe cycle has completed yet (initial mount shell).
+   * 'ready'    — the most recent probe cycle completed with every cloud
+   *              probe resolving honestly (a negative/ambiguous per-provider
+   *              result still counts as "resolved" — see the model's header).
+   * 'retry'    — the most recent probe cycle had at least one probe that
+   *              REJECTED, THREW, or TIMED OUT — a client-side failure to
+   *              even ask, distinct from a real-but-ambiguous server answer.
+   *              Maps to `mode: 'offline'` below, never to a fabricated
+   *              per-row `disconnected`/`denied`/`unsupported`.
+   */
+  const [cloudProbeStatus, setCloudProbeStatus] = useState<'loading' | 'ready' | 'retry'>('loading');
   const [now, setNow] = useState<number>(() => Date.now());
 
   // Tick once a minute so "Synced Xm ago" freshness text can't go stale
@@ -79,9 +101,23 @@ export function ConnectedHealthContainer({ onBack }: ConnectedHealthContainerPro
   }, []);
 
   const refreshCloudFacts = useCallback(async () => {
-    const facts = await loadConnectedHealthCloudFacts(Date.now());
-    setCloud(facts);
-    setProbesLoaded(true);
+    try {
+      const { facts, anyProbeFailed } = await loadConnectedHealthCloudFacts(Date.now());
+      // Merge in whatever the cycle actually produced — successful providers
+      // update immediately; a provider whose probe failed this cycle falls
+      // back to the same honest "can't tell" signal the mapping layer already
+      // uses for ambiguous network errors (never a fabricated link), so this
+      // never regresses a row below what an ordinary ambiguous probe would.
+      setCloud(facts);
+      setCloudProbeStatus(anyProbeFailed ? 'retry' : 'ready');
+    } catch {
+      // Defense in depth only — see file header. `loadConnectedHealthCloudFacts`
+      // is built to never reach this catch, but this container must not
+      // depend on that invariant holding forever: keep whatever cloud facts
+      // are already known (never overwrite good data with a worse guess) and
+      // surface the same honest retry state.
+      setCloudProbeStatus('retry');
+    }
   }, []);
 
   useEffect(() => {
@@ -95,7 +131,7 @@ export function ConnectedHealthContainer({ onBack }: ConnectedHealthContainerPro
   const view = useMemo(() => {
     const input = buildConnectedHealthInput({
       nowMs: now,
-      mode: probesLoaded ? 'ready' : 'loading',
+      mode: cloudProbeStatus === 'loading' ? 'loading' : cloudProbeStatus === 'retry' ? 'offline' : 'ready',
       platform,
       featureFlags: state.featureFlags,
       biometrics: state.userState.biometrics,
@@ -104,7 +140,7 @@ export function ConnectedHealthContainer({ onBack }: ConnectedHealthContainerPro
       appleHealthNativeReady,
     });
     return resolveConnectedHealthView(input);
-  }, [now, probesLoaded, platform, state.featureFlags, state.userState.biometrics, cloud, appleHealthLinked, appleHealthNativeReady]);
+  }, [now, cloudProbeStatus, platform, state.featureFlags, state.userState.biometrics, cloud, appleHealthLinked, appleHealthNativeReady]);
 
   const onTroubleshoot = useCallback((_providerId: HealthProviderId) => {
     // See file header — connect/reconnect activation is next-phase work.

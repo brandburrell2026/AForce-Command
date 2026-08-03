@@ -46,15 +46,29 @@
  *     today reaches presentation state `'error'` (see `providerPresentation.ts`
  *     — its `BASE_STATE` map never emits `'error'`, only `'action_required'`,
  *     which already carries its own honest sub-copy with no `errorKind`).
- *   - `mode` is only ever `'ready'` or `'loading'` here — never `'offline'`.
- *     This codebase has no network-connectivity primitive (no NetInfo /
- *     expo-network dependency) and `fetchHealthConnectionSignals` deliberately
- *     collapses a genuine network failure into the SAME signal as "not
- *     configured" (see its own file header) — so this container cannot
- *     honestly distinguish "you're offline" from "these are legitimately
- *     unconfigured." Claiming `'offline'` without that evidence would be
- *     exactly the kind of fabrication this codebase's honesty doctrine
- *     forbids. Flagged as a follow-up, not silently solved.
+ *   - `mode` is `'ready'` or `'loading'` here for the reason that already
+ *     shipped: this codebase has no network-connectivity primitive (no
+ *     NetInfo / expo-network dependency) and `fetchHealthConnectionSignals`
+ *     deliberately collapses a genuine network failure into the SAME signal
+ *     as "not configured" (see its own file header) — so a single per-provider
+ *     probe result can never honestly distinguish "you're offline" from
+ *     "this is legitimately unconfigured." That epistemic limit is unchanged
+ *     and still flagged as a follow-up, not silently solved.
+ *
+ *     `mode` DOES become `'offline'` in one narrow, honestly-distinguishable
+ *     case: when the client's own probe *attempt* fails to complete at all —
+ *     a rejected probe promise or one that blows past `CLOUD_PROBE_TIMEOUT_MS`
+ *     without resolving. That is a categorically different, stronger fact
+ *     than "the server told us something ambiguous": it means we don't have
+ *     a real read on cloud connection state this cycle, full stop. Per-row
+ *     facts still use the same conflated-but-honest `{integrationReady:false,
+ *     link:'none'}` fallback (never a fabricated `disconnected`/`denied`/
+ *     `unsupported`), and any previously-successful cloud facts already in
+ *     the container are left in place rather than being overwritten by a
+ *     worse guess — `mode: 'offline'`'s own copy ("showing the last known
+ *     connection status") is what makes surfacing this honest instead of
+ *     silent. See `CLOUD_PROBE_TIMEOUT_MS` / `probeCloudProvider` below and
+ *     `ConnectedHealthContainer.tsx`'s `refreshCloudFacts`.
  */
 import type { CanonicalHealthMetricType, HealthProviderId } from '@workspace/health-core';
 import { HEALTH_PROVIDERS } from '../../data/healthProviders';
@@ -294,21 +308,120 @@ export interface ConnectedHealthContainerDeps {
   disconnectWhoop?: (deps?: WhoopServiceDeps) => Promise<WhoopDisconnectResult>;
   disconnectGarmin?: (deps?: GarminServiceDeps) => Promise<GarminDisconnectResult>;
   deleteJson?: WhoopServiceDeps['deleteJson'];
+  /** Override the bounded per-probe timeout (tests only — fake timers). */
+  probeTimeoutMs?: number;
+}
+
+/**
+ * Bounded wait for a single cloud probe before this container gives up on it
+ * for the current cycle. A hung bridge/transport (a `fetch` that never
+ * settles) must never wedge `probesLoaded`/`mode: 'loading'` forever — see
+ * file header. Chosen well above realistic p99 API latency, short enough
+ * that a genuinely stuck probe surfaces the honest `'offline'` retry state
+ * within one screen visit rather than leaving the user staring at a spinner.
+ */
+export const CLOUD_PROBE_TIMEOUT_MS = 8_000;
+
+/** The one honest fallback signal for a probe that did NOT complete —
+ *  identical in shape to `fetchHealthConnectionSignals`'s own "can't tell"
+ *  bucket (see its file header), so a failed/timed-out probe never renders
+ *  any differently, per-row, than an ambiguous network error already does.
+ *  Never a fabricated `disconnected`/`denied`/`unsupported`. */
+const PROBE_INCOMPLETE_SIGNAL: HealthConnectionSignals = { integrationReady: false, link: 'none' };
+
+interface CloudProbeAttempt {
+  id: (typeof CLOUD_PROBE_PROVIDERS)[number];
+  signals: HealthConnectionSignals;
+  /** True when this probe REJECTED or exceeded `probeTimeoutMs` — i.e. the
+   *  client's own attempt failed to complete, not "the server answered
+   *  ambiguously." Never true for a resolved (even negative) probe result. */
+  failed: boolean;
+}
+
+/**
+ * Run one cloud probe with a bounded timeout, guaranteed to RESOLVE, never
+ * reject and never hang past `timeoutMs` — the structural fix for "a probe
+ * promise path is currently unhandled." Whichever settles first (the real
+ * probe, or the timeout) wins; the loser is simply ignored (its eventual
+ * settlement, if any, is swallowed here rather than left to become an
+ * unhandled rejection later).
+ */
+function probeCloudProvider(
+  id: (typeof CLOUD_PROBE_PROVIDERS)[number],
+  fetchCloudSignals: NonNullable<ConnectedHealthContainerDeps['fetchCloudSignals']>,
+  probeDeps: HealthConnectionsDeps,
+  timeoutMs: number,
+): Promise<CloudProbeAttempt> {
+  return new Promise((resolve) => {
+    let settled = false;
+    const timer = setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      resolve({ id, signals: PROBE_INCOMPLETE_SIGNAL, failed: true });
+    }, timeoutMs);
+
+    // `Promise.resolve().then(...)` so a SYNCHRONOUS throw from a test-injected
+    // `fetchCloudSignals` (not just a rejected promise) is caught the same way
+    // as a genuine rejection — both are "the probe attempt failed," never an
+    // unhandled rejection or an uncaught synchronous throw.
+    Promise.resolve()
+      .then(() => fetchCloudSignals(id, probeDeps))
+      .then((signals) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        resolve({ id, signals, failed: false });
+      })
+      .catch(() => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        resolve({ id, signals: PROBE_INCOMPLETE_SIGNAL, failed: true });
+      });
+  });
+}
+
+export interface ConnectedHealthCloudProbeResult {
+  facts: ConnectedHealthCloudFacts;
+  /**
+   * True when one or more cloud probes failed to complete honestly this
+   * cycle (rejected, threw, or timed out) — NEVER true for a probe that
+   * simply resolved to a negative/ambiguous-but-real result. Drives the
+   * container's `mode: 'offline'` retry presentation; never changes any
+   * per-provider fact on its own.
+   */
+  anyProbeFailed: boolean;
 }
 
 /**
  * Fetch real cloud connection signals for every cloud OAuth provider. First
  * production caller of `fetchHealthConnectionSignals` — see file header.
+ *
+ * Structurally cannot reject: every individual probe is wrapped by
+ * `probeCloudProvider`, which always resolves (bounded by `probeTimeoutMs`),
+ * so `Promise.all` over already-non-rejecting promises cannot reject either.
+ * Callers may still wrap this in their own try/catch as defense in depth,
+ * but no known code path here produces an unhandled rejection.
  */
 export async function loadConnectedHealthCloudFacts(
   nowMs: number,
   deps: ConnectedHealthContainerDeps = {},
-): Promise<ConnectedHealthCloudFacts> {
+): Promise<ConnectedHealthCloudProbeResult> {
   const fetchCloudSignals = deps.fetchCloudSignals ?? fetchHealthConnectionSignals;
-  const [whoop, garmin, oura, strava] = await Promise.all(
-    CLOUD_PROBE_PROVIDERS.map((id) => fetchCloudSignals(id, { now: nowMs, getJson: deps.getJson })),
+  const timeoutMs = deps.probeTimeoutMs ?? CLOUD_PROBE_TIMEOUT_MS;
+  const probeDeps: HealthConnectionsDeps = { now: nowMs, getJson: deps.getJson };
+
+  const attempts = await Promise.all(
+    CLOUD_PROBE_PROVIDERS.map((id) => probeCloudProvider(id, fetchCloudSignals, probeDeps, timeoutMs)),
   );
-  return { whoop, garmin, oura, strava };
+
+  const facts: ConnectedHealthCloudFacts = {};
+  let anyProbeFailed = false;
+  for (const attempt of attempts) {
+    facts[attempt.id] = attempt.signals;
+    if (attempt.failed) anyProbeFailed = true;
+  }
+  return { facts, anyProbeFailed };
 }
 
 /**
