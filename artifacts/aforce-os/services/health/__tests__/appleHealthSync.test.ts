@@ -7,6 +7,8 @@ import {
   createEmptyAppleHealthAnchorState,
   AppleHealthKitAuthorizationRevokedError,
   APPLE_HEALTH_ANCHOR_SCHEMA_VERSION,
+  ALL_APPLE_HEALTH_SAMPLE_TYPES,
+  SAMPLE_TYPE_TO_METRIC_TYPE,
   type HealthKitQueryClient,
   type AppleHealthAuthorizationStatus,
   type AppleHealthAnchoredQueryPage,
@@ -514,5 +516,286 @@ describe('sleep and workout types route through their existing mappers', () => {
 
     expect(result.records).toHaveLength(1);
     expect(result.records[0].metricType).toBe('workout');
+  });
+});
+
+// ─── SAMPLE_TYPE_TO_METRIC_TYPE mirrors the mappers' own dispatch ──────────
+
+describe('SAMPLE_TYPE_TO_METRIC_TYPE', () => {
+  it('has exactly one entry per ALL_APPLE_HEALTH_SAMPLE_TYPES, matching what the mappers actually produce', async () => {
+    expect(Object.keys(SAMPLE_TYPE_TO_METRIC_TYPE).sort()).toEqual([...ALL_APPLE_HEALTH_SAMPLE_TYPES].sort());
+    expect(SAMPLE_TYPE_TO_METRIC_TYPE).toEqual({
+      restingHeartRate: 'resting_heart_rate',
+      hrvSdnn: 'hrv',
+      steps: 'steps',
+      activeEnergy: 'active_energy',
+      respiratoryRate: 'respiratory_rate',
+      sleepAnalysis: 'sleep_session',
+      workout: 'workout',
+    });
+  });
+
+  function scriptFor(type: AppleHealthSampleType): ScriptedPages {
+    const newAnchor = `${type}-anchor`;
+    if (type === 'sleepAnalysis') {
+      return {
+        auth: 'authorized',
+        pages: [
+          {
+            samples: [{ value: 1, startDate: '2026-08-01T00:00:00.000Z', endDate: '2026-08-01T01:00:00.000Z' }],
+            newAnchor,
+            done: true,
+          },
+        ],
+      };
+    }
+    if (type === 'workout') {
+      return {
+        auth: 'authorized',
+        pages: [
+          {
+            samples: [
+              {
+                workoutActivityType: 'Cycling',
+                durationSec: 600,
+                startDate: '2026-08-01T00:00:00.000Z',
+                endDate: '2026-08-01T00:10:00.000Z',
+              },
+            ],
+            newAnchor,
+            done: true,
+          },
+        ],
+      };
+    }
+    return {
+      auth: 'authorized',
+      pages: [{ samples: [quantitySample(1, '2026-08-01T00:00:00.000Z')], newAnchor, done: true }],
+    };
+  }
+
+  it.each(ALL_APPLE_HEALTH_SAMPLE_TYPES)(
+    '%s: the synced record\'s metricType matches SAMPLE_TYPE_TO_METRIC_TYPE',
+    async (type) => {
+      const script: Partial<Record<AppleHealthSampleType, ScriptedPages>> = {};
+      script[type] = scriptFor(type);
+      const { client } = makeClient(script);
+
+      const result = await runAppleHealthSync({
+        client,
+        userId: USER_ID,
+        types: [type],
+        anchors: null,
+        nowMs: NOW_MS,
+        syncedAt: SYNCED_AT,
+      });
+      expect(result.records).toHaveLength(1);
+      expect(result.records[0].metricType).toBe(SAMPLE_TYPE_TO_METRIC_TYPE[type]);
+    },
+  );
+});
+
+// ─── Malformed payloads: never throw, drop what's bad, isolate the rest ───
+
+describe('malformed payloads never throw', () => {
+  it('a page whose `samples` is not an array is reported as a type-level error, not a thrown exception, and does not advance the anchor', async () => {
+    const { client } = makeClient({
+      steps: {
+        auth: 'authorized',
+        pages: [{ samples: 'not-an-array' as unknown as unknown[], newAnchor: 'bad-anchor', done: true }],
+      },
+    });
+
+    // The bare `await` is the "never throws" proof: a thrown/rejected sync
+    // would fail this test via an uncaught rejection, not a mismatch below.
+    const result = await runAppleHealthSync({
+      client,
+      userId: USER_ID,
+      types: ['steps'],
+      anchors: anchorState({ steps: 'anchor-before' }),
+      nowMs: NOW_MS,
+      syncedAt: SYNCED_AT,
+    });
+
+    expect(result.records).toEqual([]);
+    expect(result.authorization.steps?.status).toBe('error');
+    expect(result.authorization.steps?.message).toMatch(/not an array/i);
+    // The malformed page's `newAnchor` must never be trusted or persisted.
+    expect(result.nextAnchors.anchors.steps).toBe('anchor-before');
+  });
+
+  it('a null entry inside an otherwise-valid samples array is dropped, siblings in the same page still sync', async () => {
+    const { client } = makeClient({
+      steps: {
+        auth: 'authorized',
+        pages: [
+          {
+            samples: [null, quantitySample(500, '2026-08-01T00:00:00.000Z')] as unknown[],
+            newAnchor: 'steps-anchor-1',
+            done: true,
+          },
+        ],
+      },
+    });
+
+    const result = await runAppleHealthSync({
+      client,
+      userId: USER_ID,
+      types: ['steps'],
+      anchors: null,
+      nowMs: NOW_MS,
+      syncedAt: SYNCED_AT,
+    });
+
+    expect(result.records).toHaveLength(1);
+    expect(result.authorization.steps).toEqual({ status: 'synced' });
+    // The page's own anchor IS trusted — only the individual entry was bad,
+    // not the page's shape.
+    expect(result.nextAnchors.anchors.steps).toBe('steps-anchor-1');
+  });
+
+  it('a quantity sample missing `quantity` is dropped rather than producing a fabricated value', async () => {
+    const { client } = makeClient({
+      hrvSdnn: {
+        auth: 'authorized',
+        pages: [
+          {
+            samples: [{ startDate: '2026-08-01T00:00:00.000Z', endDate: '2026-08-01T00:00:00.000Z' }] as unknown[],
+            newAnchor: 'hrv-1',
+            done: true,
+          },
+        ],
+      },
+    });
+
+    const result = await runAppleHealthSync({
+      client,
+      userId: USER_ID,
+      types: ['hrvSdnn'],
+      anchors: null,
+      nowMs: NOW_MS,
+      syncedAt: SYNCED_AT,
+    });
+
+    expect(result.records).toEqual([]);
+    expect(result.authorization.hrvSdnn).toEqual({ status: 'synced' });
+  });
+
+  it('a workout sample missing `workoutActivityType` is dropped instead of crashing on `.toLowerCase()`', async () => {
+    const { client } = makeClient({
+      workout: {
+        auth: 'authorized',
+        pages: [
+          {
+            samples: [
+              { durationSec: 900, startDate: '2026-08-01T00:00:00.000Z', endDate: '2026-08-01T00:15:00.000Z' },
+            ] as unknown[],
+            newAnchor: 'workout-1',
+            done: true,
+          },
+        ],
+      },
+    });
+
+    const result = await runAppleHealthSync({
+      client,
+      userId: USER_ID,
+      types: ['workout'],
+      anchors: null,
+      nowMs: NOW_MS,
+      syncedAt: SYNCED_AT,
+    });
+
+    expect(result.records).toEqual([]);
+    expect(result.authorization.workout).toEqual({ status: 'synced' });
+  });
+
+  it('a sleep sample missing `value` is dropped instead of polluting the session with an undefined stage', async () => {
+    const { client } = makeClient({
+      sleepAnalysis: {
+        auth: 'authorized',
+        pages: [
+          {
+            samples: [
+              { startDate: '2026-08-01T00:00:00.000Z', endDate: '2026-08-01T01:00:00.000Z' },
+            ] as unknown[],
+            newAnchor: 'sleep-1',
+            done: true,
+          },
+        ],
+      },
+    });
+
+    const result = await runAppleHealthSync({
+      client,
+      userId: USER_ID,
+      types: ['sleepAnalysis'],
+      anchors: null,
+      nowMs: NOW_MS,
+      syncedAt: SYNCED_AT,
+    });
+
+    expect(result.records).toEqual([]);
+    expect(result.authorization.sleepAnalysis).toEqual({ status: 'synced' });
+  });
+
+  it('a malformed page mid-pagination still preserves the prior page\'s samples and anchor', async () => {
+    const { client } = makeClient({
+      steps: {
+        auth: 'authorized',
+        pages: [
+          { samples: [quantitySample(1, '2026-08-01T00:00:00.000Z')], newAnchor: 'p1', done: false },
+          { samples: null as unknown as unknown[], newAnchor: 'p2-bad', done: true },
+        ],
+      },
+    });
+
+    const result = await runAppleHealthSync({
+      client,
+      userId: USER_ID,
+      types: ['steps'],
+      anchors: null,
+      nowMs: NOW_MS,
+      syncedAt: SYNCED_AT,
+    });
+
+    expect(result.records).toHaveLength(1); // page 1's sample survives
+    expect(result.authorization.steps?.status).toBe('error');
+    expect(result.nextAnchors.anchors.steps).toBe('p1'); // NOT 'p2-bad'
+  });
+});
+
+// ─── native-unavailable vs clean-empty: explicit contrast ──────────────────
+
+describe('native-unavailable (client: null) vs clean-empty (client present, zero samples) are unambiguous', () => {
+  it('produce different authorization shapes for the same type even though both report zero records', async () => {
+    const unavailableResult = await runAppleHealthSync({
+      client: null,
+      userId: USER_ID,
+      types: ['steps'],
+      anchors: null,
+      nowMs: NOW_MS,
+      syncedAt: SYNCED_AT,
+    });
+
+    const { client } = makeClient({
+      steps: { auth: 'authorized', pages: [{ samples: [], newAnchor: null, done: true }] },
+    });
+    const cleanEmptyResult = await runAppleHealthSync({
+      client,
+      userId: USER_ID,
+      types: ['steps'],
+      anchors: null,
+      nowMs: NOW_MS,
+      syncedAt: SYNCED_AT,
+    });
+
+    // Both report zero records...
+    expect(unavailableResult.records).toEqual([]);
+    expect(cleanEmptyResult.records).toEqual([]);
+    // ...but the per-type status is never conflated.
+    expect(unavailableResult.authorization.steps).toEqual({ status: 'unavailable' });
+    expect(cleanEmptyResult.authorization.steps).toEqual({ status: 'synced' });
+    expect(unavailableResult.authorization.steps?.status).not.toBe(cleanEmptyResult.authorization.steps?.status);
   });
 });
