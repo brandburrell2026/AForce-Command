@@ -296,6 +296,7 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   health_garmin_enabled: false,
   health_samsung_direct_enabled: false,
   health_demo_data_enabled: false,
+  health_canonical_consumers: false,
 
   // Native Liquid Glass tabs gate — OFF. On iOS 26 the native tab bar
   // (expo-router/unstable-native-tabs -> RNScreens RNSTabBarController) throws
@@ -491,6 +492,7 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
   health_garmin_enabled: false,
   health_samsung_direct_enabled: false,
   health_demo_data_enabled: true,
+  health_canonical_consumers: false,
 
   // Stays OFF even in the demo profile: native tabs are crash-disabled on
   // iOS 26 (react-native-screens #3940), not a demo toggle.

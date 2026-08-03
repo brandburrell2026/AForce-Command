@@ -203,6 +203,7 @@ export const baseFlags: FeatureFlags = {
   health_garmin_enabled: false,
   health_samsung_direct_enabled: false,
   health_demo_data_enabled: false,
+  health_canonical_consumers: false,
   native_tabs_enabled: false,
   native_screens_enabled: false,
   secure_store_startup_guard: true,
