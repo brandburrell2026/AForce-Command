@@ -1,53 +1,59 @@
 /**
  * Server-side WHOOP OAuth2 token manager.
  *
- * Port of the mobile manager at
- * `artifacts/aforce-os/services/whoopAuth.ts`. Pure orchestration
- * around an injected `WhoopTokenStore` (which is per-user on the
- * server — see `lib/db/whoopTokenStore.ts`) plus the WHOOP token
- * endpoint. Identical surface to mobile so the two can stay in
- * lockstep if WHOOP changes its contract.
- *
- * Behavior:
- *   - `getValidAccessToken()` returns the cached access token when
- *     it has >`refreshSkewMs` (default 60s) of life left. Otherwise
- *     it refreshes synchronously, persists the new bundle, and
- *     returns the fresh access token. On refresh failure it returns
- *     `null` so callers (e.g. the biometrics fetch worker) can skip
- *     the user without throwing.
- *   - `refresh()` exposes the same refresh path but rethrows on
- *     failure for callers that need the failure mode.
- *   - `setTokens()` persists a freshly-exchanged bundle (used by
- *     the OAuth callback route once it lands).
- *   - `signOut()` clears the store.
- *   - `peek()` is read-through to the store for debug surfaces.
+ * Thin wrapper over `providerKit/tokenManager.ts` — the authorization
+ * grant, refresh grant, 60s skew, and sanitized-error behavior are all
+ * shared implementation now (see that module for the full contract
+ * doc). This file exists to keep WHOOP's public API — every exported
+ * name, type, and default — byte-identical to what it was before the
+ * extraction, so `routes/whoopOAuth.ts`, `whoopFetchWorker.ts`, and
+ * every existing WHOOP test keep passing unchanged.
  *
  * Refresh contract (per WHOOP):
  *   `POST https://api.prod.whoop.com/oauth/oauth2/token`
  *   form body: grant_type=refresh_token, refresh_token, client_id,
- *   client_secret, scope=offline.
+ *   client_secret, scope=offline. WHOOP is the one provider on this
+ *   kit whose refresh grant needs the extra `scope=offline` field —
+ *   passed via `refreshExtraBody`.
+ *
+ * WHOOP-specific behavior the kit can't express, kept local to this
+ * wrapper: `getValidAccessToken` logs a refresh failure through
+ * `serializeError` (redacts JWT/Bearer/opaque-token-shaped substrings
+ * from the message + stack before it ever reaches a log line — see
+ * `./serializeError.ts`). `providerKit/tokenManager.ts`'s own built-in
+ * failure log is a raw `{name, message}` with NO redaction, which is
+ * unsafe to wire up for a token endpoint (an error message from a
+ * misbehaving OAuth provider or a corrupt stored token could echo the
+ * literal secret into the log stream). This wrapper therefore never
+ * passes `log` into the kit's manager; instead it re-implements the
+ * thin `getValidAccessToken` orchestration (read -> skew check ->
+ * `refresh()` -> catch-and-log) atop the kit's `refresh()` — which
+ * still carries the kit's singleflight/coordinator behavior — so the
+ * only thing duplicated is the skew check, not the network/refresh
+ * logic itself.
  *
  * Architecture lock: hidden-infra. No public route invokes this
- * module yet; the OAuth callback + biometrics fetch worker land in
- * follow-up PRs.
+ * module unless WHOOP_* env vars are configured (the OAuth router is
+ * only mounted then).
  */
 
 import type { Logger } from "pino";
 import type { WhoopTokens, WhoopTokenStore } from "@workspace/db";
 import type { WhoopRefreshCoordinator } from "./whoopRefreshRegistry";
 import { serializeError } from "./serializeError";
+import {
+  createProviderTokenManager,
+  exchangeProviderAuthorizationCode,
+  getProviderOAuthConfigFromEnv,
+  type ProviderTokenManager,
+  type ProviderTokenResponse,
+} from "./providerKit/tokenManager";
 
 export const WHOOP_TOKEN_ENDPOINT =
   "https://api.prod.whoop.com/oauth/oauth2/token";
 
 /** Wire shape returned by the WHOOP token endpoint. */
-export interface WhoopTokenResponse {
-  access_token: string;
-  refresh_token: string;
-  expires_in: number;
-  token_type?: string;
-  scope?: string;
-}
+export type WhoopTokenResponse = ProviderTokenResponse;
 
 export interface WhoopOAuthConfig {
   clientId: string;
@@ -81,18 +87,7 @@ export interface WhoopTokenManagerOptions {
   log?: Pick<Logger, "error">;
 }
 
-export interface WhoopTokenManager {
-  /** Current valid access token, refreshing if needed. Null when no tokens stored or refresh failed. */
-  getValidAccessToken(): Promise<string | null>;
-  /** Force a refresh now. Throws on network / OAuth error. */
-  refresh(): Promise<WhoopTokens>;
-  /** Persist a fresh token bundle (e.g. after the initial OAuth code exchange). */
-  setTokens(tokens: WhoopTokens): Promise<void>;
-  /** Clear stored tokens (sign-out / revoke). */
-  signOut(): Promise<void>;
-  /** Inspect — never on the hot path, useful for /admin/whoop/peek. */
-  peek(): Promise<WhoopTokens | null>;
-}
+export type WhoopTokenManager = ProviderTokenManager;
 
 /**
  * Read WHOOP OAuth config from env. Fails loudly with a clear
@@ -102,14 +97,11 @@ export interface WhoopTokenManager {
  * to refresh.
  */
 export function getWhoopOAuthConfigFromEnv(): WhoopOAuthConfig {
-  const clientId = process.env["WHOOP_CLIENT_ID"];
-  const clientSecret = process.env["WHOOP_CLIENT_SECRET"];
-  if (!clientId || !clientSecret) {
-    throw new Error(
-      "WHOOP OAuth config missing: set WHOOP_CLIENT_ID and WHOOP_CLIENT_SECRET",
-    );
-  }
-  return { clientId, clientSecret };
+  return getProviderOAuthConfigFromEnv({
+    provider: "WHOOP",
+    clientIdVar: "WHOOP_CLIENT_ID",
+    clientSecretVar: "WHOOP_CLIENT_SECRET",
+  });
 }
 
 export interface ExchangeAuthorizationCodeArgs {
@@ -137,121 +129,42 @@ export interface ExchangeAuthorizationCodeArgs {
 export async function exchangeAuthorizationCode(
   args: ExchangeAuthorizationCodeArgs,
 ): Promise<WhoopTokens> {
-  const fetchImpl = args.fetchImpl ?? fetch;
-  const now = args.nowMs ?? ((): number => Date.now());
-  const body = new URLSearchParams({
-    grant_type: "authorization_code",
+  return exchangeProviderAuthorizationCode({
+    provider: "WHOOP",
+    tokenEndpoint: WHOOP_TOKEN_ENDPOINT,
     code: args.code,
-    redirect_uri: args.redirectUri,
-    client_id: args.config.clientId,
-    client_secret: args.config.clientSecret,
-    code_verifier: args.codeVerifier,
+    codeVerifier: args.codeVerifier,
+    redirectUri: args.redirectUri,
+    config: args.config,
+    fetchImpl: args.fetchImpl,
+    nowMs: args.nowMs,
   });
-  const res = await fetchImpl(WHOOP_TOKEN_ENDPOINT, {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: body.toString(),
-  });
-  if (!res.ok) {
-    throw new Error(`WHOOP code exchange failed: HTTP ${res.status}`);
-  }
-  const json = (await res.json()) as WhoopTokenResponse;
-  if (
-    typeof json.access_token !== "string" ||
-    typeof json.refresh_token !== "string" ||
-    typeof json.expires_in !== "number" ||
-    !Number.isFinite(json.expires_in)
-  ) {
-    throw new Error("WHOOP code exchange failed: malformed payload");
-  }
-  return {
-    accessToken: json.access_token,
-    refreshToken: json.refresh_token,
-    expiresAt: now() + json.expires_in * 1000,
-    scope: json.scope ?? null,
-  };
 }
 
 export function createWhoopTokenManager(
   opts: WhoopTokenManagerOptions,
 ): WhoopTokenManager {
-  const fetchImpl = opts.fetchImpl ?? fetch;
   const now = opts.nowMs ?? ((): number => Date.now());
   const skew = opts.refreshSkewMs ?? 60_000;
 
-  // Singleflight: while a refresh is in-flight for this manager (which
-  // is per-user), additional callers await the same promise instead of
-  // each firing their own POST. WHOOP rotates refresh tokens, so two
-  // concurrent refreshes would race — the first to land invalidates
-  // the refresh token the second is still using, returning invalid_grant
-  // for the loser. Singleflight collapses that into one network call;
-  // every caller gets the same WhoopTokens (or the same rejection).
-  // The promise is cleared on settle (resolve OR reject) so the next
-  // call after a failure retries cleanly rather than caching the error.
-  //
-  // Scope: when `opts.refreshCoordinator` is provided, the manager
-  // delegates singleflight to that function — which can dedupe across
-  // multiple manager instances (process-level, keyed by userId). When
-  // no coordinator is passed, the per-manager `inflight` slot below is
-  // used; this preserves the PR #17 behavior for direct test callers
-  // and any caller that only ever holds one manager per user.
-  let inflight: Promise<WhoopTokens> | null = null;
-  const defaultCoordinator: WhoopRefreshCoordinator = (impl) => {
-    if (inflight) return inflight;
-    const p = impl().finally(() => {
-      // Owner-check — only the original creator clears its slot.
-      if (inflight === p) inflight = null;
-    });
-    inflight = p;
-    return p;
-  };
-  const coordinate: WhoopRefreshCoordinator =
-    opts.refreshCoordinator ?? defaultCoordinator;
-
-  async function refreshImpl(): Promise<WhoopTokens> {
-    const current = await opts.store.read();
-    if (!current?.refreshToken) {
-      throw new Error("WHOOP refresh failed: no refresh token stored");
-    }
-    const body = new URLSearchParams({
-      grant_type: "refresh_token",
-      refresh_token: current.refreshToken,
-      client_id: opts.config.clientId,
-      client_secret: opts.config.clientSecret,
-      scope: "offline",
-    });
-    const res = await fetchImpl(WHOOP_TOKEN_ENDPOINT, {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: body.toString(),
-    });
-    if (!res.ok) {
-      throw new Error(`WHOOP refresh failed: HTTP ${res.status}`);
-    }
-    const json = (await res.json()) as WhoopTokenResponse;
-    if (
-      typeof json.access_token !== "string" ||
-      typeof json.expires_in !== "number" ||
-      !Number.isFinite(json.expires_in)
-    ) {
-      throw new Error("WHOOP refresh failed: malformed payload");
-    }
-    const next: WhoopTokens = {
-      accessToken: json.access_token,
-      // WHOOP rotates refresh tokens; keep the previous one when the
-      // response omits a new one (defensive — the contract today
-      // always returns one).
-      refreshToken: json.refresh_token ?? current.refreshToken,
-      expiresAt: now() + json.expires_in * 1000,
-      scope: json.scope ?? current.scope ?? null,
-    };
-    await opts.store.write(next);
-    return next;
-  }
-
-  function refresh(): Promise<WhoopTokens> {
-    return coordinate(refreshImpl);
-  }
+  // Deliberately NOT passed to the kit — see the module doc's
+  // "WHOOP-specific behavior" note. The kit's own failure log has no
+  // secret redaction; this wrapper does its own catch-and-log below
+  // using `serializeError`, so `inner`'s built-in log path (which only
+  // fires from ITS `getValidAccessToken`, never called here) is simply
+  // unused.
+  const inner = createProviderTokenManager({
+    provider: "WHOOP",
+    tokenEndpoint: WHOOP_TOKEN_ENDPOINT,
+    store: opts.store,
+    config: opts.config,
+    // WHOOP's refresh grant requires `scope=offline`.
+    refreshExtraBody: { scope: "offline" },
+    fetchImpl: opts.fetchImpl,
+    nowMs: opts.nowMs,
+    refreshSkewMs: opts.refreshSkewMs,
+    refreshCoordinator: opts.refreshCoordinator,
+  });
 
   return {
     async getValidAccessToken() {
@@ -259,7 +172,7 @@ export function createWhoopTokenManager(
       if (!current) return null;
       if (current.expiresAt - now() > skew) return current.accessToken;
       try {
-        const next = await refresh();
+        const next = await inner.refresh();
         return next.accessToken;
       } catch (err) {
         // Previously swallowed silently. Surface the real cause (undecryptable
@@ -273,15 +186,9 @@ export function createWhoopTokenManager(
         return null;
       }
     },
-    refresh,
-    async setTokens(tokens) {
-      await opts.store.write(tokens);
-    },
-    async signOut() {
-      await opts.store.clear();
-    },
-    peek() {
-      return opts.store.read();
-    },
+    refresh: () => inner.refresh(),
+    setTokens: (tokens) => inner.setTokens(tokens),
+    signOut: () => inner.signOut(),
+    peek: () => inner.peek(),
   };
 }
