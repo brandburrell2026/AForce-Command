@@ -6,6 +6,14 @@
  * access — everything arrives via props, so it is testable in isolation
  * (render harness) and can never enable a gated feature or a live connection.
  *
+ * I18N: every string the resolver emits is an `I18nText` (`{ key, params? }`)
+ * — this component is the ONLY place in the Connected Health surface that
+ * calls `t()`. Static chrome that the resolver has no state-dependent copy
+ * for (the Back button, the Disconnect button, accessibility templates) is
+ * translated here directly under the same `connected_health.*` namespace.
+ * See services/health/connectedHealthView.ts's file header for why the
+ * split is drawn this way.
+ *
  * Within-brand palette only (af.* tokens) — no new colors. Status is
  * communicated by TEXT + SHAPE, never color alone: every status pill carries
  * its honest label, and the dot/border color is a reinforcement, not the
@@ -14,13 +22,14 @@
  */
 import React from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { af, afType, afLayout, AF_MAX_DISPLAY_FONT_SCALE } from '@/theme';
 import { Icon } from '@/components/Icon';
 import type {
   ConnectedHealthView as ConnectedHealthVM,
   ConnectedHealthRowView,
+  I18nText,
   StatusTone,
-  PullChipStatus,
 } from '@/services/health/connectedHealthView';
 
 export interface ConnectedHealthViewProps {
@@ -38,48 +47,45 @@ const TONE_COLOR: Record<StatusTone, string> = {
   neutral: af.textTertiary,
 };
 
-const CHIP_STATUS_LABEL: Record<PullChipStatus, string> = {
-  granted: 'granted',
-  denied: 'denied',
-  unknown: 'unknown',
-};
-
 export function ConnectedHealthView({ view, onBack, onTroubleshoot, onDisconnect }: ConnectedHealthViewProps) {
+  const { t } = useTranslation();
+  const tt = (text: I18nText) => t(text.key, text.params);
+
   const { header, mode, offlineNotice, rows, emptyCopy, footer } = view;
 
   return (
     <View style={styles.root} testID="connected-health-view">
       {/* 1 · Header */}
       <View style={styles.header}>
-        <Pressable onPress={onBack} hitSlop={12} accessibilityRole="button" accessibilityLabel="Back" style={styles.iconBtn}>
+        <Pressable onPress={onBack} hitSlop={12} accessibilityRole="button" accessibilityLabel={t('connected_health.back')} style={styles.iconBtn}>
           <Icon name="chevron-left" size={22} color={af.textPrimary} />
         </Pressable>
         <View style={styles.headerCenter}>
           <View style={styles.headerTitleRow}>
             <Icon name="activity" size={14} color={af.cyan} />
-            <Text style={styles.headerTitle} accessibilityRole="header">{header.title}</Text>
+            <Text style={styles.headerTitle} accessibilityRole="header">{tt(header.title)}</Text>
           </View>
-          <Text style={styles.headerTagline}>{header.tagline}</Text>
+          <Text style={styles.headerTagline}>{tt(header.tagline)}</Text>
         </View>
         <View style={styles.iconBtn} />
       </View>
 
       {/* Offline notice — loud, never silent; text carries the meaning. */}
       {offlineNotice ? (
-        <View style={styles.offlineBanner} testID="connected-health-offline-banner" accessible accessibilityRole="alert" accessibilityLabel={offlineNotice}>
+        <View style={styles.offlineBanner} testID="connected-health-offline-banner" accessible accessibilityRole="alert" accessibilityLabel={tt(offlineNotice)}>
           <Icon name="wifi-off" size={14} color={af.amber} />
-          <Text style={styles.offlineBannerText}>{offlineNotice}</Text>
+          <Text style={styles.offlineBannerText}>{tt(offlineNotice)}</Text>
         </View>
       ) : null}
 
       {mode === 'loading' ? (
-        <View style={styles.shell} testID="connected-health-loading" accessible accessibilityLabel="Loading connected health sources">
-          <Text style={styles.shellText}>Checking your connected sources…</Text>
+        <View style={styles.shell} testID="connected-health-loading" accessible accessibilityLabel={t('connected_health.loading')}>
+          <Text style={styles.shellText}>{t('connected_health.loading')}</Text>
         </View>
       ) : emptyCopy ? (
-        <View style={styles.shell} testID="connected-health-empty" accessible accessibilityLabel={emptyCopy}>
+        <View style={styles.shell} testID="connected-health-empty" accessible accessibilityLabel={tt(emptyCopy)}>
           <Icon name="link" size={18} color={af.textSecondary} />
-          <Text style={styles.shellText}>{emptyCopy}</Text>
+          <Text style={styles.shellText}>{tt(emptyCopy)}</Text>
         </View>
       ) : (
         <View style={styles.rows}>
@@ -91,9 +97,9 @@ export function ConnectedHealthView({ view, onBack, onTroubleshoot, onDisconnect
 
       {/* Footer — the Score-Protection truth. Always visible, never conditional. */}
       <View style={styles.footer} testID="connected-health-footer">
-        <Text style={styles.footerTitle} accessibilityRole="header">{footer.title}</Text>
-        <Text style={styles.footerScoreLine}>{footer.scoreProtectionLine}</Text>
-        <Text style={styles.footerBody}>{footer.body}</Text>
+        <Text style={styles.footerTitle} accessibilityRole="header">{tt(footer.title)}</Text>
+        <Text style={styles.footerScoreLine}>{tt(footer.scoreProtectionLine)}</Text>
+        <Text style={styles.footerBody}>{tt(footer.body)}</Text>
       </View>
     </View>
   );
@@ -106,60 +112,71 @@ function ProviderRow({
   onTroubleshoot: (providerId: ConnectedHealthRowView['providerId']) => void;
   onDisconnect: (providerId: ConnectedHealthRowView['providerId']) => void;
 }) {
+  const { t } = useTranslation();
+  const tt = (text: I18nText) => t(text.key, text.params);
+
   const toneColor = TONE_COLOR[row.statusPill.tone];
   const hasAction = row.troubleshoot.kind !== 'none' && row.troubleshoot.label != null;
+  const statusLabel = tt(row.statusPill.label);
 
   return (
     <View style={styles.card} testID={`ch-row-${row.providerId}`}>
       <View style={styles.cardTopRow}>
         <View style={styles.cardTitleWrap}>
           <Text style={styles.providerName}>{row.displayName}</Text>
-          <Text style={styles.provenance}>{row.provenanceLine}</Text>
+          <Text style={styles.provenance}>{tt(row.provenance)}</Text>
         </View>
         <View
           style={[styles.pill, { borderColor: toneColor }]}
           testID={`ch-status-${row.providerId}`}
           accessible
-          accessibilityLabel={`Status: ${row.statusPill.label}`}
+          accessibilityLabel={t('connected_health.status_a11y', { label: statusLabel })}
         >
           <View style={[styles.pillDot, { backgroundColor: toneColor }]} />
-          <Text style={[styles.pillText, { color: toneColor }]}>{row.statusPill.label}</Text>
+          <Text style={[styles.pillText, { color: toneColor }]}>{statusLabel}</Text>
         </View>
       </View>
 
-      <Text style={styles.subCopy}>{row.subCopy}</Text>
-      <Text style={styles.freshness}>{row.freshnessLine}</Text>
+      <Text style={styles.subCopy}>{tt(row.subCopy)}</Text>
+      <Text style={styles.freshness}>{tt(row.freshness)}</Text>
 
       {row.pulls.length > 0 ? (
-        <View style={styles.chipRow} accessibilityLabel={`Data pulled: ${row.pulls.map((c) => c.label).join(', ')}`}>
-          {row.pulls.map((chip) => (
-            <View
-              key={chip.type}
-              style={[styles.dataChip, chip.status === 'denied' && styles.dataChipDenied]}
-              accessible
-              accessibilityLabel={`${chip.label}, ${CHIP_STATUS_LABEL[chip.status]}`}
-            >
-              {chip.status === 'denied' ? <Icon name="slash" size={10} color={af.textTertiary} /> : null}
-              <Text style={[styles.dataChipText, chip.status === 'denied' && styles.dataChipTextDenied]}>
-                {chip.label}
-              </Text>
-            </View>
-          ))}
+        // Review #460 item 3: no container-level accessibilityLabel. A denied
+        // chip must never be summarized into a "pulled" announcement — each
+        // chip carries its own honest label instead (below).
+        <View style={styles.chipRow} testID={`ch-pulls-${row.providerId}`}>
+          {row.pulls.map((chip) => {
+            const chipLabel = tt(chip.label);
+            const chipStatus = t(`connected_health.pull_chip_status.${chip.status}`);
+            return (
+              <View
+                key={chip.type}
+                style={[styles.dataChip, chip.status === 'denied' && styles.dataChipDenied]}
+                accessible
+                accessibilityLabel={t('connected_health.pull_chip_a11y', { label: chipLabel, status: chipStatus })}
+              >
+                {chip.status === 'denied' ? <Icon name="slash" size={10} color={af.textTertiary} /> : null}
+                <Text style={[styles.dataChipText, chip.status === 'denied' && styles.dataChipTextDenied]}>
+                  {chipLabel}
+                </Text>
+              </View>
+            );
+          })}
         </View>
       ) : null}
 
       {(hasAction || row.canDisconnect) ? (
         <View style={styles.actionsRow}>
-          {hasAction ? (
+          {hasAction && row.troubleshoot.label ? (
             <Pressable
               onPress={() => onTroubleshoot(row.providerId)}
               style={styles.actionBtn}
               accessibilityRole="button"
-              accessibilityLabel={row.troubleshoot.label ?? undefined}
+              accessibilityLabel={tt(row.troubleshoot.label)}
               testID={`ch-action-${row.providerId}`}
             >
               <Text style={styles.actionBtnText} maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}>
-                {row.troubleshoot.label}
+                {tt(row.troubleshoot.label)}
               </Text>
               <Icon name="chevron-right" size={14} color={af.cyan} />
             </Pressable>
@@ -169,10 +186,10 @@ function ProviderRow({
               onPress={() => onDisconnect(row.providerId)}
               style={styles.disconnectBtn}
               accessibilityRole="button"
-              accessibilityLabel={`Disconnect ${row.displayName}`}
+              accessibilityLabel={t('connected_health.disconnect_a11y', { name: row.displayName })}
               testID={`ch-disconnect-${row.providerId}`}
             >
-              <Text style={styles.disconnectBtnText}>Disconnect</Text>
+              <Text style={styles.disconnectBtnText}>{t('connected_health.disconnect')}</Text>
             </Pressable>
           ) : null}
         </View>

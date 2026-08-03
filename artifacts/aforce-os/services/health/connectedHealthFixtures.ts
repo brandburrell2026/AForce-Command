@@ -18,6 +18,7 @@ import { HEALTH_PROVIDER_CAPABILITIES } from '@workspace/health-core';
 import { HEALTH_PROVIDERS } from '@/data/healthProviders';
 import {
   CONNECTED_HEALTH_GROUP_BY_STATE,
+  type ConnectedHealthErrorKind,
   type ConnectedHealthInput,
   type ConnectedHealthProviderInput,
 } from './connectedHealthView';
@@ -45,7 +46,7 @@ function providerFixture(
     lastSyncAtMs: number | null;
     grantedTypes?: readonly CanonicalHealthMetricType[];
     deniedTypes?: readonly CanonicalHealthMetricType[];
-    errorNote?: string | null;
+    errorKind?: ConnectedHealthErrorKind | null;
     ageLabel?: string | null;
   },
 ): ConnectedHealthProviderInput {
@@ -63,7 +64,7 @@ function providerFixture(
     grantedTypes:
       over.grantedTypes ?? (HAS_LINK.has(state) ? allTypes.filter((t) => !(over.deniedTypes ?? []).includes(t)) : []),
     deniedTypes: over.deniedTypes ?? [],
-    errorNote: over.errorNote ?? null,
+    errorKind: over.errorKind ?? null,
     ageLabel: over.ageLabel ?? null,
   };
 }
@@ -87,12 +88,12 @@ export const PROVIDER_ROW_FIXTURES: Record<ProviderPresentationState, ConnectedH
 
   action_required: providerFixture('google_health', 'action_required', {
     lastSyncAtMs: FIXED_NOW - 3 * HOUR,
-    errorNote: 'Permission needs to be renewed.',
+    errorKind: 'permission_revoked',
   }),
 
   error: providerFixture('strava', 'error', {
     lastSyncAtMs: FIXED_NOW - 5 * HOUR,
-    errorNote: 'Last sync failed — token expired.',
+    errorKind: 'auth_expired',
   }),
 
   disconnected: providerFixture('strava', 'disconnected', { lastSyncAtMs: null }),
@@ -136,7 +137,7 @@ const MIXED_PROVIDERS: readonly ConnectedHealthProviderInput[] = [
   providerFixture('samsung_health', 'via_health_connect', { lastSyncAtMs: FIXED_NOW - 45 * MIN }),
   providerFixture('google_health', 'action_required', {
     lastSyncAtMs: FIXED_NOW - 3 * HOUR,
-    errorNote: 'Permission needs to be renewed.',
+    errorKind: 'permission_revoked',
   }),
   providerFixture('garmin', 'dormant', { lastSyncAtMs: null }),
   providerFixture('strava', 'disconnected', { lastSyncAtMs: null }),
@@ -146,10 +147,20 @@ export const CONNECTED_HEALTH_FIXTURES: Record<string, ConnectedHealthInput> = {
   // 1 · Mixed — every group represented (connected / connectable / gated)
   mixed: screen({ providers: MIXED_PROVIDERS }),
 
-  // 2 · All connected — the happiest honest state
+  // 2 · All connected — the happiest honest state.
+  // Review #460 item 8: Garmin and Samsung can NEVER honestly appear as
+  // `connected` — Garmin has no connected-group state at all (only
+  // `dormant` / `requires_external_approval`, both gated pending partner
+  // credentials/approval; see health-core HEALTH_PROVIDER_CAPABILITIES), and
+  // Samsung ships Phase-1 strictly as an upstream origin through Health
+  // Connect (`via_health_connect`), never a direct connection. Garmin is
+  // excluded from this scenario entirely; Samsung appears in its one
+  // legitimate connected-group state.
   'all-connected': screen({
-    providers: HEALTH_PROVIDERS.map((p) =>
-      providerFixture(p.id, 'connected', { lastSyncAtMs: FIXED_NOW - 10 * MIN }),
+    providers: HEALTH_PROVIDERS.filter((p) => p.id !== 'garmin').map((p) =>
+      p.id === 'samsung_health'
+        ? providerFixture(p.id, 'via_health_connect', { lastSyncAtMs: FIXED_NOW - 10 * MIN })
+        : providerFixture(p.id, 'connected', { lastSyncAtMs: FIXED_NOW - 10 * MIN }),
     ),
   }),
 
@@ -167,11 +178,11 @@ export const CONNECTED_HEALTH_FIXTURES: Record<string, ConnectedHealthInput> = {
     providers: [
       providerFixture('apple_health', 'action_required', {
         lastSyncAtMs: FIXED_NOW - 6 * HOUR,
-        errorNote: 'Motion & Fitness permission revoked.',
+        errorKind: 'permission_revoked',
       }),
       providerFixture('whoop', 'error', {
         lastSyncAtMs: FIXED_NOW - 8 * HOUR,
-        errorNote: 'Last sync failed — token expired.',
+        errorKind: 'auth_expired',
       }),
     ],
   }),

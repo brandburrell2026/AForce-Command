@@ -3,10 +3,24 @@
  *
  * Turns the raw per-provider connection facts (canonical presentation state
  * from `services/health/providerPresentation.ts`, last-sync timestamp,
- * granted/denied record types, error notes) into a fully-resolved,
- * presentation-ready view model for the Connected Health command center.
- * RN-free and dependency-free so it stays unit-testable and deterministic
- * (`now` is injected; nothing reads the clock).
+ * granted/denied record types, a closed error-kind enum) into a fully-resolved
+ * view model for the Connected Health command center. RN-free and
+ * dependency-free so it stays unit-testable and deterministic (`now` is
+ * injected; nothing reads the clock).
+ *
+ * I18N ARCHITECTURE (review #460, item 4):
+ *   This resolver NEVER calls `t()` and never imports react-i18next / the app
+ *   i18n singleton. Every user-facing string is emitted as an `I18nText` —
+ *   `{ key, params? }` — pointing at the `connected_health.*` namespace in
+ *   `locales/*.json`. Translation happens exactly one place: the
+ *   presentational component (`components/health/ConnectedHealthView.tsx`),
+ *   which is the only file in this surface that calls `useTranslation()`.
+ *   This choice was made (over translating at the resolver edge) because the
+ *   resolver's own unit tests assert on the state → copy mapping tables
+ *   below; keeping the resolver's output as stable, locale-independent keys
+ *   means those tests need no i18n runtime and stay exactly as fast and
+ *   dependency-free as the rest of this module. It also means a locale can
+ *   be edited without touching or re-testing this file at all.
  *
  * HONESTY DISCIPLINE (mirrors sleepModeView / healthProviderStatus):
  *   - `state` on the status pill is ALWAYS the true `ProviderPresentationState`
@@ -19,7 +33,15 @@
  *     (e.g. `dormant` ⇒ "Awaiting partner access", never "Connected").
  *   - Pull chips reflect the REAL permission grant, not the mere existence of
  *     a capability: a type absent from both `grantedTypes` and `deniedTypes`
- *     renders `unknown` — never silently assumed granted.
+ *     renders `unknown` — never silently assumed granted. Gated rows
+ *     (`dormant` / `requires_external_approval` / `unavailable`) never render
+ *     pull chips at all — there is no real link to have pulled anything from.
+ *   - Troubleshoot affordances match what is actually actionable: `stale`
+ *     has a live link with old data, so `reconnect` is offered; `no_recent_data`
+ *     has a live link that has simply produced nothing yet, so there is
+ *     nothing to reconnect — no affordance is offered and the sub-copy says so.
+ *   - `errorKind` is a closed union, never a raw provider/HTTP string — no
+ *     backend error text has a path into product copy.
  *   - Health data is scoped to Readiness ONLY. The footer card carries the
  *     exact Score-Protection sentence; nothing in this module (or its
  *     consumers) may imply health data changes the Hydration Score.
@@ -54,6 +76,23 @@ export type TroubleshootKind = 'connect' | 'reconnect' | 'manage_permissions' | 
 
 export type PullChipStatus = 'granted' | 'denied' | 'unknown';
 
+/**
+ * Closed error vocabulary (review #460, item 7). No raw provider/HTTP error
+ * text is ever accepted here — the caller (container) classifies the failure
+ * into one of these four buckets before handing it to the resolver.
+ */
+export type ConnectedHealthErrorKind =
+  | 'sync_failed'
+  | 'auth_expired'
+  | 'permission_revoked'
+  | 'provider_outage';
+
+/** A translation reference, never a resolved string. See file header. */
+export interface I18nText {
+  key: string;
+  params?: Record<string, string | number>;
+}
+
 // ─── Inputs ──────────────────────────────────────────────────────────────────
 
 export interface ConnectedHealthProviderInput {
@@ -66,8 +105,8 @@ export interface ConnectedHealthProviderInput {
   grantedTypes: readonly CanonicalHealthMetricType[];
   /** Record types the user has actually denied (subset of the capability's recordTypes). */
   deniedTypes: readonly CanonicalHealthMetricType[];
-  /** Human-readable error detail when presentation.state === 'error'; else null. */
-  errorNote: string | null;
+  /** Closed error classification when presentation.state === 'error'; else null. */
+  errorKind: ConnectedHealthErrorKind | null;
   /**
    * Optional PRE-FORMATTED freshness line (e.g. "Synced 2h ago"), typically
    * produced by a locale-aware formatter upstream. When omitted, the resolver
@@ -87,20 +126,20 @@ export interface ConnectedHealthInput {
 
 export interface ConnectedHealthStatusPill {
   state: ProviderPresentationState;
-  label: string;
+  label: I18nText;
   tone: StatusTone;
 }
 
 export interface ConnectedHealthPullChip {
   type: CanonicalHealthMetricType;
-  label: string;
+  label: I18nText;
   status: PullChipStatus;
 }
 
 export interface ConnectedHealthTroubleshoot {
   kind: TroubleshootKind;
   /** Accessible action label; null when kind === 'none' (no affordance to render). */
-  label: string | null;
+  label: I18nText | null;
 }
 
 export interface ConnectedHealthRowView {
@@ -109,43 +148,51 @@ export interface ConnectedHealthRowView {
   group: ConnectedHealthRowGroup;
   statusPill: ConnectedHealthStatusPill;
   /** "Synced 2h ago" | "Never synced" — always present, never fabricated. */
-  freshnessLine: string;
+  freshness: I18nText;
+  /** Empty for gated rows (dormant / requires_external_approval / unavailable) — no real link exists. */
   pulls: readonly ConnectedHealthPullChip[];
-  subCopy: string;
+  subCopy: I18nText;
   /** e.g. "Samsung Health · via Health Connect" — always visible provenance. */
-  provenanceLine: string;
+  provenance: I18nText;
   troubleshoot: ConnectedHealthTroubleshoot;
   canDisconnect: boolean;
 }
 
 export interface ConnectedHealthFooterView {
-  title: string; // "HOW YOUR DATA IS USED"
-  /** EXACT Score-Protection sentence — do not paraphrase. */
-  scoreProtectionLine: string;
-  body: string;
+  title: I18nText; // "HOW YOUR DATA IS USED"
+  /** EXACT Score-Protection sentence — do not paraphrase. See SCORE_PROTECTION_LINE. */
+  scoreProtectionLine: I18nText;
+  body: I18nText;
 }
 
 export interface ConnectedHealthView {
   mode: ConnectedHealthScreenMode;
-  header: { title: string; tagline: string };
+  header: { title: I18nText; tagline: I18nText };
   /** Non-null only when mode === 'offline'. */
-  offlineNotice: string | null;
+  offlineNotice: I18nText | null;
   rows: readonly ConnectedHealthRowView[];
   /** Non-null only when mode === 'ready' and there are zero rows. */
-  emptyCopy: string | null;
+  emptyCopy: I18nText | null;
   footer: ConnectedHealthFooterView;
 }
 
 // ─── Exact, load-bearing copy ────────────────────────────────────────────────
 
-/** EXACT Score-Protection sentence (governance: health data → Readiness only). */
+/**
+ * EXACT Score-Protection sentence (governance: health data → Readiness only).
+ * The resolver does NOT emit this string directly — `footer.scoreProtectionLine`
+ * is the locale key `connected_health.footer.score_protection`. This constant
+ * is the canonical literal kept for tests and documentation; the EN value at
+ * that key must always equal it exactly (enforced by
+ * `services/health/__tests__/prohibitedCopy.test.ts`).
+ */
 export const SCORE_PROTECTION_LINE =
   'Health data informs Readiness only. It never changes your Hydration Score.';
 
-export const CONNECTED_HEALTH_HEADER = {
-  title: 'CONNECTED HEALTH',
-  tagline: "What's connected, what's synced, and what isn't — stated plainly.",
-} as const;
+export const CONNECTED_HEALTH_HEADER: { title: I18nText; tagline: I18nText } = {
+  title: { key: 'connected_health.header.title' },
+  tagline: { key: 'connected_health.header.tagline' },
+};
 
 // ─── Static maps (state → honest presentation facts) ────────────────────────
 
@@ -172,20 +219,31 @@ const GROUP_RANK: Record<ConnectedHealthRowGroup, number> = {
   gated: 2,
 };
 
-const STATE_LABEL: Record<ProviderPresentationState, string> = {
-  connected: 'Connected',
-  connected_limited: 'Limited Access',
-  syncing: 'Syncing',
-  stale: 'Stale',
-  no_recent_data: 'No Recent Data',
-  action_required: 'Action Required',
-  error: 'Error',
-  via_health_connect: 'Via Health Connect',
-  connecting: 'Connecting',
-  disconnected: 'Not Connected',
-  dormant: 'Coming Soon',
-  requires_external_approval: 'Approval Pending',
-  unavailable: 'Unavailable',
+/**
+ * Locale key suffix per state, under `connected_health.state_label.*`.
+ * Kept as an exhaustive Record (rather than a template string) so adding a
+ * new `ProviderPresentationState` in health-core is a compile error here
+ * until a factual, non-promissory label is chosen for it.
+ *
+ * Review #460 item 1: `dormant` reads factually as "Awaiting Access" (never
+ * "Coming Soon" — that is commitment language this product has not made).
+ * `requires_external_approval` keeps its OWN distinct factual label
+ * ("Approval Pending") — the two gated states are never merged into one copy.
+ */
+const STATE_LABEL_KEY: Record<ProviderPresentationState, string> = {
+  connected: 'connected',
+  connected_limited: 'connected_limited',
+  syncing: 'syncing',
+  stale: 'stale',
+  no_recent_data: 'no_recent_data',
+  action_required: 'action_required',
+  error: 'error',
+  via_health_connect: 'via_health_connect',
+  connecting: 'connecting',
+  disconnected: 'disconnected',
+  dormant: 'dormant',
+  requires_external_approval: 'requires_external_approval',
+  unavailable: 'unavailable',
 };
 
 /** Never `green` for anything short of a genuinely fresh, real link. */
@@ -205,31 +263,52 @@ const STATE_TONE: Record<ProviderPresentationState, StatusTone> = {
   unavailable: 'neutral',
 };
 
-/** Honest per-state sub-copy. The five values below are the EXACT required strings. */
-function subCopyFor(state: ProviderPresentationState, errorNote: string | null): string {
-  switch (state) {
-    case 'dormant': return 'Awaiting partner access';
-    case 'via_health_connect': return 'Arrives through Health Connect';
-    case 'stale': return 'Connected — data is stale';
-    case 'no_recent_data': return 'Connected — no recent data';
-    case 'connected_limited': return 'Limited permissions granted';
-    case 'connected': return 'Connected and syncing normally';
-    case 'syncing': return 'Sync in progress';
-    case 'connecting': return 'Connecting…';
-    case 'disconnected': return 'Not connected';
-    case 'action_required': return 'Reconnect to resume syncing';
-    case 'error': return errorNote ? `Sync error — ${errorNote}` : 'Sync error — reconnect to resolve';
-    case 'requires_external_approval': return 'Awaiting partner approval';
-    case 'unavailable': return 'Not available on this device';
-  }
-}
+/** Non-error states each have exactly one honest sub-copy key. */
+type NonErrorState = Exclude<ProviderPresentationState, 'error'>;
 
+const SUB_COPY_KEY: Record<NonErrorState, string> = {
+  dormant: 'dormant',
+  via_health_connect: 'via_health_connect',
+  stale: 'stale',
+  // Review #460 item 2: the link is real and fine here — there is simply
+  // nothing to sync yet. The copy explains that explicitly so the missing
+  // troubleshoot affordance (see TROUBLESHOOT_KIND below) reads as intentional,
+  // not broken.
+  no_recent_data: 'no_recent_data',
+  connected_limited: 'connected_limited',
+  connected: 'connected',
+  syncing: 'syncing',
+  connecting: 'connecting',
+  disconnected: 'disconnected',
+  action_required: 'action_required',
+  requires_external_approval: 'requires_external_approval',
+  unavailable: 'unavailable',
+};
+
+/** `error` sub-copy is keyed by the closed error kind, never a raw string. */
+const ERROR_SUB_COPY_KEY: Record<ConnectedHealthErrorKind | 'unknown', string> = {
+  sync_failed: 'sync_failed',
+  auth_expired: 'auth_expired',
+  permission_revoked: 'permission_revoked',
+  provider_outage: 'provider_outage',
+  unknown: 'unknown',
+};
+
+/**
+ * Troubleshoot affordance per state (review #460 item 2 — SWAPPED from the
+ * shipped #460 build, which had this backwards):
+ *   - `stale`: a real link exists but the last snapshot has aged out —
+ *     actionable, so `reconnect` is offered.
+ *   - `no_recent_data`: the link is fine; the user simply hasn't generated
+ *     anything for the provider to sync yet. There is nothing to reconnect —
+ *     `none`. The sub-copy (see SUB_COPY_KEY) explains why no button appears.
+ */
 const TROUBLESHOOT_KIND: Record<ProviderPresentationState, TroubleshootKind> = {
   connected: 'none',
   connected_limited: 'manage_permissions',
   syncing: 'none',
-  stale: 'none',
-  no_recent_data: 'reconnect',
+  stale: 'reconnect',
+  no_recent_data: 'none',
   action_required: 'reconnect',
   error: 'reconnect',
   via_health_connect: 'none',
@@ -245,40 +324,18 @@ const CAN_DISCONNECT_STATES: ReadonlySet<ProviderPresentationState> = new Set([
   'connected', 'connected_limited', 'syncing', 'stale', 'no_recent_data', 'action_required', 'error',
 ]);
 
-const METHOD_PROVENANCE: Record<ConnectMethod, string> = {
-  device_native: 'Direct',
-  oauth_cloud: 'Direct',
-  via_health_connect: 'via Health Connect',
-};
-
-const METRIC_LABEL: Record<CanonicalHealthMetricType, string> = {
-  sleep_session: 'Sleep',
-  resting_heart_rate: 'Resting HR',
-  hrv: 'HRV',
-  heart_rate_summary: 'Heart Rate',
-  workout: 'Workouts',
-  steps: 'Steps',
-  active_energy: 'Active Energy',
-  respiratory_rate: 'Respiratory Rate',
-  provider_score: 'Provider Score',
-};
-
 const DISPLAY_NAME_BY_ID: Partial<Record<HealthProviderId, string>> = Object.fromEntries(
   HEALTH_PROVIDERS.map((p) => [p.id, p.name]),
 );
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function troubleshootLabel(kind: TroubleshootKind, platform: ConnectedHealthPlatform): string | null {
+function troubleshootLabel(kind: TroubleshootKind, platform: ConnectedHealthPlatform): I18nText | null {
   switch (kind) {
-    case 'connect': return 'Connect';
-    case 'reconnect': return 'Reconnect';
+    case 'connect': return { key: 'connected_health.troubleshoot.connect' };
+    case 'reconnect': return { key: 'connected_health.troubleshoot.reconnect' };
     case 'manage_permissions':
-      return platform === 'ios'
-        ? 'Manage in Health app'
-        : platform === 'android'
-          ? 'Manage in Health Connect'
-          : 'Manage Permissions';
+      return { key: `connected_health.troubleshoot.manage_permissions_${platform}` };
     case 'none': return null;
   }
 }
@@ -293,16 +350,31 @@ function pullStatus(
   return 'unknown';
 }
 
-/** Deterministic freshness label from injected `now` — never `Date.now()`. */
-function formatSyncedAgo(now: number, lastSyncAtMs: number): string {
+function pullChipLabel(type: CanonicalHealthMetricType): I18nText {
+  return { key: `connected_health.pull_chip_label.${type}` };
+}
+
+function provenanceFor(providerId: HealthProviderId, method: ConnectMethod): I18nText {
+  const name = DISPLAY_NAME_BY_ID[providerId] ?? providerId;
+  const key = method === 'via_health_connect'
+    ? 'connected_health.provenance.via_health_connect'
+    : 'connected_health.provenance.direct';
+  return { key, params: { name } };
+}
+
+/** Deterministic freshness reference from injected `now` — never `Date.now()`. */
+function freshnessFor(now: number, lastSyncAtMs: number | null, ageLabel: string | null | undefined): I18nText {
+  if (lastSyncAtMs == null) return { key: 'connected_health.freshness.never_synced' };
+  if (ageLabel != null) return { key: 'connected_health.freshness.literal', params: { text: ageLabel } };
+
   const ms = Math.max(0, now - lastSyncAtMs);
   const mins = Math.floor(ms / 60000);
-  if (mins < 1) return 'Synced just now';
-  if (mins < 60) return `Synced ${mins}m ago`;
+  if (mins < 1) return { key: 'connected_health.freshness.just_now' };
+  if (mins < 60) return { key: 'connected_health.freshness.minutes_ago', params: { count: mins } };
   const hours = Math.floor(mins / 60);
-  if (hours < 24) return `Synced ${hours}h ago`;
+  if (hours < 24) return { key: 'connected_health.freshness.hours_ago', params: { count: hours } };
   const days = Math.floor(hours / 24);
-  return `Synced ${days}d ago`;
+  return { key: 'connected_health.freshness.days_ago', params: { count: days } };
 }
 
 // ─── Resolver ────────────────────────────────────────────────────────────────
@@ -321,13 +393,13 @@ export function resolveConnectedHealthView(input: ConnectedHealthInput): Connect
   return {
     mode,
     header: CONNECTED_HEALTH_HEADER,
-    offlineNotice: mode === 'offline' ? 'Offline — showing the last known connection status.' : null,
+    offlineNotice: mode === 'offline' ? { key: 'connected_health.offline_notice' } : null,
     rows,
-    emptyCopy: mode === 'ready' && rows.length === 0 ? 'No health sources configured yet.' : null,
+    emptyCopy: mode === 'ready' && rows.length === 0 ? { key: 'connected_health.empty' } : null,
     footer: {
-      title: 'HOW YOUR DATA IS USED',
-      scoreProtectionLine: SCORE_PROTECTION_LINE,
-      body: 'Disconnecting a source stops new data immediately. Historical entries stay attributed to the provider that recorded them.',
+      title: { key: 'connected_health.footer.title' },
+      scoreProtectionLine: { key: 'connected_health.footer.score_protection' },
+      body: { key: 'connected_health.footer.body' },
     },
   };
 }
@@ -341,10 +413,11 @@ function resolveProviderRow(
   const capability = HEALTH_PROVIDER_CAPABILITIES[p.providerId];
   const group = CONNECTED_HEALTH_GROUP_BY_STATE[state];
 
-  const freshnessLine =
-    p.lastSyncAtMs == null ? 'Never synced' : (p.ageLabel ?? formatSyncedAgo(now, p.lastSyncAtMs));
-
   const troubleshootKind = TROUBLESHOOT_KIND[state];
+
+  const subCopy: I18nText = state === 'error'
+    ? { key: `connected_health.sub_copy.error.${ERROR_SUB_COPY_KEY[p.errorKind ?? 'unknown']}` }
+    : { key: `connected_health.sub_copy.${SUB_COPY_KEY[state as NonErrorState]}` };
 
   return {
     providerId: p.providerId,
@@ -352,17 +425,20 @@ function resolveProviderRow(
     group,
     statusPill: {
       state,
-      label: STATE_LABEL[state],
+      label: { key: `connected_health.state_label.${STATE_LABEL_KEY[state]}` },
       tone: STATE_TONE[state],
     },
-    freshnessLine,
-    pulls: capability.recordTypes.map((type) => ({
-      type,
-      label: METRIC_LABEL[type],
-      status: pullStatus(type, p.grantedTypes, p.deniedTypes),
-    })),
-    subCopy: subCopyFor(state, p.errorNote),
-    provenanceLine: `${DISPLAY_NAME_BY_ID[p.providerId] ?? p.providerId} · ${METHOD_PROVENANCE[capability.method]}`,
+    freshness: freshnessFor(now, p.lastSyncAtMs, p.ageLabel),
+    // Review #460 item 6: gated rows have no real link — never claim a pull.
+    pulls: group === 'gated'
+      ? []
+      : capability.recordTypes.map((type) => ({
+          type,
+          label: pullChipLabel(type),
+          status: pullStatus(type, p.grantedTypes, p.deniedTypes),
+        })),
+    subCopy,
+    provenance: provenanceFor(p.providerId, capability.method),
     troubleshoot: {
       kind: troubleshootKind,
       label: troubleshootLabel(troubleshootKind, platform),
