@@ -462,7 +462,7 @@ importers:
         specifier: ^0.4.1
         version: 0.4.1
       '@kingstinct/react-native-healthkit':
-        specifier: ^14.0.2
+        specifier: 14.0.2
         version: 14.0.2(react-native-nitro-modules@0.35.10(react-native@0.81.5(patch_hash=4362d381f1a3defaeb14ce6bf99b44c7c9f744771220ec7e94bb82c679028780)(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0))(react-native@0.81.5(patch_hash=4362d381f1a3defaeb14ce6bf99b44c7c9f744771220ec7e94bb82c679028780)(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)
       '@workspace/activation-core':
         specifier: workspace:*
@@ -516,7 +516,7 @@ importers:
         specifier: 0.81.5
         version: 0.81.5(patch_hash=4362d381f1a3defaeb14ce6bf99b44c7c9f744771220ec7e94bb82c679028780)(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0)
       react-native-nitro-modules:
-        specifier: ^0.35.10
+        specifier: 0.35.10
         version: 0.35.10(react-native@0.81.5(patch_hash=4362d381f1a3defaeb14ce6bf99b44c7c9f744771220ec7e94bb82c679028780)(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)
       react-native-view-shot:
         specifier: ^4.0.3

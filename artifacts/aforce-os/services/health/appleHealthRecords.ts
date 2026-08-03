@@ -15,20 +15,30 @@
  *     is HKQuantityTypeIdentifierHeartRateVariabilitySDNN — true SDNN — so
  *     every hrv record this module produces is stamped `hrvMethod: 'sdnn'`.
  *     There is no code path here that can emit `hrvMethod: 'rmssd'`.
- *   - Provenance is never claimed as first-party unless the sample really is
- *     first-party. `resolveNativeOrigin` (health-core) only recognizes
- *     THIRD-PARTY bundle ids — it correctly falls back to
- *     'unknown_device_app' for an absent/unrecognized bundle id, which would
- *     wrongly demote genuine Apple/first-party samples (whose sourceRevision
- *     is often bundle-id-less, or stamped with an Apple/AForce bundle) into
- *     "unknown app" territory. `resolveAppleHealthOrigin` below does the one
- *     extra check health-core deliberately leaves to each platform bridge:
- *     is this bundle id Apple's own or ours? If so, hop0 is 'apple_health'
- *     directly; otherwise it defers to `resolveNativeOrigin` exactly as
- *     documented (third-party origin as hop0, 'apple_health' aggregator_export
- *     as hop1).
+ *   - Provenance is never claimed as first-party unless the sample carries
+ *     POSITIVE EVIDENCE of it — an explicit Apple bundle id. `resolveNativeOrigin`
+ *     (health-core) only recognizes THIRD-PARTY bundle ids and falls back to
+ *     'unknown_device_app' for an absent/unrecognized one; `isFirstPartyBundle`
+ *     below does the one extra check health-core deliberately leaves to each
+ *     platform bridge — is this bundle id Apple's own? If so, hop0 is
+ *     'apple_health' directly; otherwise (including an ABSENT bundle id —
+ *     no sourceRevision at all) it defers to `resolveNativeOrigin`, landing
+ *     on 'unknown_device_app' hop0 + 'apple_health' aggregator_export hop1.
+ *     An absent bundle id is NOT evidence of first-party. Every genuine
+ *     HKSample HealthKit hands an app carries a populated sourceRevision —
+ *     an app never legitimately sees one missing it, so treating "missing"
+ *     as "must be the Watch/first-party" was an unfounded guess, not a
+ *     reading of real evidence. If it happens (malformed bridge output,
+ *     sloppy test data), the honest default is "we don't know", not "assume
+ *     Apple". See `isFirstPartyBundle`'s own doc for the full rationale,
+ *     including why `com.aforce.os` (AForce's OWN bundle) is deliberately
+ *     NOT in the first-party set despite being AForce's app.
  *   - `syncedAt` is always caller-supplied. No function in this file calls
  *     Date.now() — determinism and testability over convenience.
+ *   - `toIsoUtc` returns `null` for an unparseable date instead of throwing.
+ *     Every mapper treats a null date as "drop this one sample/record", never
+ *     letting one malformed timestamp abort an entire batch of otherwise-good
+ *     samples, and never substituting a guessed or clamped time.
  *
  * Pure: no I/O, no native imports, no clocks.
  */
@@ -107,16 +117,36 @@ export interface MapOptions {
 // ─── Provenance resolution ────────────────────────────────────────────────────
 
 /**
- * Apple's own Health app and AForce's own app write/re-surface samples whose
- * sourceRevision either has no bundle id at all, or carries one of these
+ * Apple's own Health/Watch stack writes samples stamped with one of these
  * bundle families. `resolveNativeOrigin` intentionally has no knowledge of
  * these — it only maps THIRD-PARTY bundle ids — so this check must happen
  * before deferring to it.
+ *
+ * DELIBERATELY DOES NOT INCLUDE `com.aforce.os`. AForce's own app can write
+ * samples into HealthKit (e.g. water intake) and later read them back via
+ * the same query surface. If we labeled those `apple_health` hop0 with
+ * transport 'measured', that's a self-loop: it claims Apple's platform
+ * measured a value AForce itself entered, which is exactly the honesty
+ * violation `provenanceChain` exists to prevent. `com.aforce.os` is
+ * therefore left OUT of this set on purpose, so it falls through to
+ * `resolveNativeOrigin` below like any other bundle id health-core doesn't
+ * recognize — landing on 'unknown_device_app' hop0 + 'apple_health'
+ * aggregator_export hop1. health-core's frozen HealthOriginId union has no
+ * dedicated 'self'/'aforce' origin (and this adapter doesn't modify that
+ * contract), so 'unknown_device_app' is the honest fallback: it correctly
+ * signals "not a recognized wearable, and not first-party Apple either".
  */
-const FIRST_PARTY_BUNDLE_PREFIXES = ['com.apple.health', 'com.aforce.os'];
+const FIRST_PARTY_BUNDLE_PREFIXES = ['com.apple.health'];
 
+/**
+ * True only when `bundleId` carries POSITIVE evidence of being Apple's own
+ * bundle. An absent bundle id (`undefined`/empty) is NOT first-party — see
+ * file header. Every genuine HKSample HealthKit hands an app has a
+ * populated sourceRevision; if this code ever sees one missing, the honest
+ * read is "we don't know who produced this", not "must be the Watch".
+ */
 function isFirstPartyBundle(bundleId: string | undefined): boolean {
-  if (!bundleId) return true; // No source metadata ⇒ device/Watch-native sample.
+  if (!bundleId) return false;
   return FIRST_PARTY_BUNDLE_PREFIXES.some((p) => bundleId === p || bundleId.startsWith(`${p}.`));
 }
 
@@ -126,11 +156,15 @@ function bundleIdOf(sample: { sourceRevision?: HKSourceRevision }): string | und
 
 /**
  * hop0 from sourceRevision.bundleIdentifier:
- *   - Apple/AForce first-party ⇒ single hop, provider 'apple_health', transport 'measured'.
- *   - Third-party (or genuinely unrecognized) bundle ⇒ hop0 is that bundle's
- *     resolved origin (transport 'measured' — it really did measure the
- *     data), hop1 is 'apple_health' (transport 'aggregator_export' — Health
- *     re-exported what the other app wrote).
+ *   - Apple first-party bundle (positive match) ⇒ single hop, provider
+ *     'apple_health', transport 'measured'.
+ *   - Everything else — third-party, genuinely unrecognized, ABSENT, or
+ *     AForce's own `com.aforce.os` (deliberately excluded from first-party,
+ *     see FIRST_PARTY_BUNDLE_PREFIXES) — defers to `resolveNativeOrigin`:
+ *     hop0 is that bundle's resolved origin (transport 'measured'; absent/
+ *     unrecognized resolves to 'unknown_device_app'), hop1 is
+ *     'apple_health' (transport 'aggregator_export' — Health re-exported
+ *     what the other source produced).
  */
 function resolveAppleHealthProvenance(bundleId: string | undefined): ProvenanceHop[] {
   if (isFirstPartyBundle(bundleId)) {
@@ -144,13 +178,22 @@ function resolveAppleHealthProvenance(bundleId: string | undefined): ProvenanceH
   }
   const origin = resolveNativeOrigin(bundleId);
   return [
-    { provider: origin, nativeOrigin: bundleId, transport: 'measured' },
+    { provider: origin, ...(bundleId ? { nativeOrigin: bundleId } : {}), transport: 'measured' },
     { provider: 'apple_health', transport: 'aggregator_export' },
   ];
 }
 
-function toIsoUtc(value: string | Date): string {
-  return new Date(value).toISOString();
+/**
+ * ISO-8601 UTC, or `null` if `value` doesn't parse to a valid date.
+ * Deliberately never throws — a malformed date from the native bridge (or a
+ * malformed fixture) must not abort an entire batch of otherwise-good
+ * samples. Every call site treats `null` as "drop this one sample/record",
+ * consistent with this module's no-fabrication rule: an unparseable
+ * timestamp isn't something we can honestly stamp a record with.
+ */
+function toIsoUtc(value: string | Date): string | null {
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString();
 }
 
 // ─── Shared record builder ────────────────────────────────────────────────────
@@ -216,23 +259,30 @@ function mapQuantitySamples(
   unit: string,
   hrvMethod?: HrvMethod,
 ): CanonicalHealthRecord[] {
-  return samples.map((s) => {
+  const records: CanonicalHealthRecord[] = [];
+  for (const s of samples) {
     const startTime = toIsoUtc(s.startDate);
     const endTime = toIsoUtc(s.endDate);
-    return buildRecord({
-      userId: opts.userId,
-      metricType,
-      value: s.quantity,
-      unit,
-      startTime,
-      endTime,
-      observedAt: endTime,
-      syncedAt: opts.syncedAt,
-      bundleId: bundleIdOf(s),
-      externalId: s.uuid,
-      hrvMethod,
-    });
-  });
+    // An unparseable date isn't a record we can honestly timestamp — drop
+    // just this sample, don't fail the whole batch (see toIsoUtc's doc).
+    if (startTime === null || endTime === null) continue;
+    records.push(
+      buildRecord({
+        userId: opts.userId,
+        metricType,
+        value: s.quantity,
+        unit,
+        startTime,
+        endTime,
+        observedAt: endTime,
+        syncedAt: opts.syncedAt,
+        bundleId: bundleIdOf(s),
+        externalId: s.uuid,
+        hrvMethod,
+      }),
+    );
+  }
+  return records;
 }
 
 /** Resting heart rate — HKQuantityTypeIdentifierRestingHeartRate, bpm. */
@@ -287,27 +337,32 @@ export function mapWorkoutSamples(
   samples: readonly HKWorkoutSample[],
   opts: MapOptions,
 ): CanonicalHealthRecord[] {
-  return samples.map((s) => {
+  const records: CanonicalHealthRecord[] = [];
+  for (const s of samples) {
     const startTime = toIsoUtc(s.startDate);
     const endTime = toIsoUtc(s.endDate);
+    if (startTime === null || endTime === null) continue;
     const value: WorkoutValue = {
       activityKind: s.workoutActivityType.toLowerCase(),
       durationMin: s.durationSec / 60,
       activeEnergyKcal: s.totalEnergyBurnedKcal ?? null,
       avgHeartRateBpm: s.averageHeartRateBpm ?? null,
     };
-    return buildRecord({
-      userId: opts.userId,
-      metricType: 'workout',
-      value,
-      startTime,
-      endTime,
-      observedAt: endTime,
-      syncedAt: opts.syncedAt,
-      bundleId: bundleIdOf(s),
-      externalId: s.uuid,
-    });
-  });
+    records.push(
+      buildRecord({
+        userId: opts.userId,
+        metricType: 'workout',
+        value,
+        startTime,
+        endTime,
+        observedAt: endTime,
+        syncedAt: opts.syncedAt,
+        bundleId: bundleIdOf(s),
+        externalId: s.uuid,
+      }),
+    );
+  }
+  return records;
 }
 
 // ─── Sleep session mapper ─────────────────────────────────────────────────────
@@ -337,10 +392,27 @@ const HK_SLEEP_STAGE_MAP: Record<Exclude<HKSleepStageValue, 0>, SleepStageName> 
  * caller runs downstream once it knows which providers are directly
  * connected for this user.
  *
- * `totalSleepHours` sums only genuinely-asleep intervals (HK values 1,3,4,5);
- * time spent in bed but awake, or simply "in bed" (0), is tracked in
- * `inBedHours` and never counted as sleep. Empty input ⇒ empty output — no
- * night is fabricated from nothing.
+ * `totalSleepHours` sums only genuinely-asleep intervals (HK values
+ * 1,3,4,5) — awake time and explicit "in bed" (0) time are both excluded
+ * from it, never counted as sleep.
+ *
+ * `inBedHours` comes ONLY from explicit inBed(0) samples, and ONLY when at
+ * least one is present in the group — it is NEVER derived by summing
+ * asleep+awake durations. HealthKit's sleep-analysis samples are a flat,
+ * independent list with no session container asserting overall coverage;
+ * summing "everything that isn't asleep-labeled-awake" and calling it
+ * "in bed" would assume a continuous, gap-free recording that HealthKit
+ * never actually guarantees. If no inBed(0) sample was recorded for this
+ * source, the honest answer is `null` — "this source didn't tell us" — not
+ * a number computed from unrelated stage data. (Health Connect's adapter
+ * makes a DIFFERENT, deliberately-justified choice here because its
+ * platform contract is structurally different — see mapRecords.ts's
+ * mapSleepStages doc for that adapter's reasoning.)
+ *
+ * Empty input ⇒ empty output — no night is fabricated from nothing. A
+ * sample with an unparseable date is dropped individually (see toIsoUtc);
+ * if every sample in a source group turns out unparseable, that group
+ * produces no record rather than a record spanning nothing.
  */
 export function mapSleepSamplesToRecords(
   samples: readonly HKSleepCategorySample[],
@@ -373,8 +445,15 @@ export function mapSleepSamplesToRecords(
     let windowEndMs = -Infinity;
 
     for (const s of groupSamples) {
-      const startMs = new Date(s.startDate).getTime();
-      const endMs = new Date(s.endDate).getTime();
+      const startIso = toIsoUtc(s.startDate);
+      const endIso = toIsoUtc(s.endDate);
+      // An unparseable date drops just this ONE sample — its duration,
+      // stage entry, and window contribution are all excluded, but sibling
+      // samples in the same source group still produce an honest (if
+      // smaller) session. See toIsoUtc's doc.
+      if (startIso === null || endIso === null) continue;
+      const startMs = new Date(startIso).getTime();
+      const endMs = new Date(endIso).getTime();
       const durMs = Math.max(0, endMs - startMs);
       windowStartMs = Math.min(windowStartMs, startMs);
       windowEndMs = Math.max(windowEndMs, endMs);
@@ -386,12 +465,13 @@ export function mapSleepSamplesToRecords(
       }
       const stage = HK_SLEEP_STAGE_MAP[s.value];
       if (ASLEEP_VALUES.has(s.value)) asleepMs += durMs;
-      stages.push({
-        stage,
-        startUtc: toIsoUtc(s.startDate),
-        endUtc: toIsoUtc(s.endDate),
-      });
+      stages.push({ stage, startUtc: startIso, endUtc: endIso });
     }
+
+    // Every sample in this source group had an unparseable date ⇒ no
+    // window to report ⇒ no record for this group, rather than fabricating
+    // one that spans nothing.
+    if (!Number.isFinite(windowStartMs) || !Number.isFinite(windowEndMs)) continue;
 
     const value: SleepSessionValue = {
       totalSleepHours: asleepMs / (1000 * 60 * 60),

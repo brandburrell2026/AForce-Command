@@ -26,17 +26,19 @@
  *       a google_health aggregator hop 1 (it did arrive via Health
  *       Connect) — attributed honestly, never upgraded to first-party.
  *
- * HRV: Health Connect's HeartRateVariabilityRmssdRecord emits RMSSD only.
- * hrvMethod is stamped 'rmssd' with a load-time guard against health-core's
- * HRV_METHOD_BY_PROVIDER.google_health drifting off 'rmssd' — this adapter
- * must never silently start mislabeling HRV as SDNN.
+ * HRV: Health Connect's HeartRateVariabilityRmssdRecord emits RMSSD only,
+ * so hrvMethod is unconditionally stamped 'rmssd' (GOOGLE_HRV_METHOD below)
+ * — mirroring how appleHealthRecords.ts unconditionally stamps 'sdnn'. The
+ * health-core HRV_METHOD_BY_PROVIDER.google_health invariant this assumes
+ * is asserted in mapRecords.test.ts, not re-derived at module load (a
+ * throw-on-import was here previously; see GOOGLE_HRV_METHOD comment for
+ * why that was a production landmine).
  */
 
 import {
   buildDeduplicationKey,
   resolveNativeOrigin,
   HEALTH_RECORD_SCHEMA_VERSION,
-  HRV_METHOD_BY_PROVIDER,
   type CanonicalHealthRecord,
   type HealthOriginId,
   type HrvMethod,
@@ -98,20 +100,22 @@ function buildProvenanceChain(dataOrigin: HcDataOrigin): ProvenanceHop[] {
 // ─── HRV method guard ─────────────────────────────────────────────────────────
 
 /**
- * Fails loudly at module load if health-core's declared HRV statistic for
- * google_health ever drifts off 'rmssd' — this adapter's entire HRV mapping
- * assumes Health Connect never emits SDNN.
+ * Health Connect's HeartRateVariabilityRmssdRecord type is RMSSD by
+ * definition (it's in the record's own name) — this adapter only ever
+ * consumes that record type, so it hardcodes 'rmssd' rather than deriving
+ * it from health-core's HRV_METHOD_BY_PROVIDER table at runtime.
+ *
+ * This USED to be a throw-on-module-load guard that re-derived the value
+ * from HRV_METHOD_BY_PROVIDER.google_health and threw if it wasn't 'rmssd'.
+ * That's a production landmine: a throw during module evaluation crashes
+ * the app the instant anything imports this file — before any HRV mapping
+ * is even attempted, unreachable by a caller's try/catch, and liable to
+ * fire at an unpredictable moment under Metro fast refresh or bundler
+ * reordering. The invariant this guarded is real and worth keeping, but it
+ * belongs in a test (see mapRecords.test.ts's GOOGLE_HRV_METHOD describe
+ * block), not on the import path.
  */
-const GOOGLE_HRV_METHOD: HrvMethod = (() => {
-  const method = HRV_METHOD_BY_PROVIDER.google_health;
-  if (method !== 'rmssd') {
-    throw new Error(
-      `healthConnect/mapRecords: health-core HRV_METHOD_BY_PROVIDER.google_health is '${method}', expected 'rmssd'. ` +
-        'This adapter assumes Health Connect only emits RMSSD — re-verify before shipping H2.',
-    );
-  }
-  return method;
-})();
+const GOOGLE_HRV_METHOD: HrvMethod = 'rmssd';
 
 // ─── Sleep stage mapping ──────────────────────────────────────────────────────
 
@@ -145,10 +149,32 @@ function durationMs(startTime: string, endTime: string): number {
 
 /**
  * HC stages → SleepSessionValue. `totalSleepHours` counts every stage
- * EXCEPT 'awake' (asleep, not in-bed, per the contract's field doc);
- * `inBedHours` sums every stage that isn't out-of-bed (awake included —
- * you're still in bed while briefly awake). Out-of-bed periods count
- * toward neither and are dropped from the stages array outright.
+ * EXCEPT 'awake' (asleep, not in-bed, per the contract's field doc).
+ *
+ * INBED-HOURS HONESTY DECISION (deliberately DIFFERENT MECHANISM from the
+ * Apple lane, same honesty standard — see appleHealthRecords.ts's
+ * mapSleepSamplesToRecords doc for the contrast):
+ *
+ * HealthKit's sleep-analysis samples are a flat, independent list with an
+ * explicit inBed(0) category value; Apple provides no session container,
+ * so "in bed" there can ONLY come from an explicit inBed sample being
+ * present — summing asleep+awake and calling it in-bed would assume
+ * coverage HealthKit never asserts.
+ *
+ * Health Connect is structurally different: per Android's own
+ * SleepSessionRecord contract, the top-level session's startTime/endTime
+ * IS the entire tracked sleep episode (bedtime to rise), and
+ * STAGE_TYPE_OUT_OF_BED is documented as an explicit carve-out of periods
+ * WITHIN that span where the user briefly left — there is no separate
+ * "in bed" signal because the session container already means that.
+ * Session span minus explicitly-excluded out-of-bed time is therefore a
+ * direct reading of what HC itself asserts, not an assumption stacked on
+ * top of unrelated stage data — so summing every non-out-of-bed stage
+ * (awake included — you're still in bed while briefly awake) is the
+ * honest equivalent here, not a shortcut.
+ *
+ * `inBedHours` is `null` only when HC gave us zero stages at all (no
+ * session data to derive anything from) — see the ternary below.
  */
 export function mapSleepStages(rawStages: readonly HcSleepStage[]): SleepSessionValue {
   const stages: NonNullable<SleepSessionValue['stages']> = [];
@@ -237,18 +263,24 @@ export function mapStepsRecord(record: StepsRecord, ctx: MapContext): CanonicalH
 /**
  * HC's HeartRateRecord is a sample series; CanonicalHealthMetricType has no
  * raw-series slot, so this summarizes to 'heart_rate_summary' (mean bpm,
- * rounded to 1 decimal). An empty sample array yields 0 — H2's sync loop
- * should filter out empty sessions before calling this; it is not this
- * pure function's job to decide whether an empty session is worth syncing.
+ * rounded to 1 decimal).
+ *
+ * An empty sample array returns `null` — NO record — rather than fabricating
+ * an average of zero samples as `0 bpm`. `0 bpm` is a real (if alarming)
+ * physiological value; silently emitting it for "no data" would be exactly
+ * the kind of fabrication this whole normalization layer exists to prevent.
+ * Callers (H2's sync loop) must handle the null return and simply not sync
+ * anything for that session — this pure function makes that the only
+ * option, rather than leaving "should I filter empty sessions" as a caller
+ * discipline that's easy to forget.
  */
-export function mapHeartRateRecord(record: HeartRateRecord, ctx: MapContext): CanonicalHealthRecord {
+export function mapHeartRateRecord(record: HeartRateRecord, ctx: MapContext): CanonicalHealthRecord | null {
+  if (record.samples.length === 0) return null;
   const chain = buildProvenanceChain(record.metadata.dataOrigin);
   const origin = chain[0].provider;
   const observedAt = record.startTime;
   const avgBpm =
-    record.samples.length === 0
-      ? 0
-      : Math.round((record.samples.reduce((sum, s) => sum + s.beatsPerMinute, 0) / record.samples.length) * 10) / 10;
+    Math.round((record.samples.reduce((sum, s) => sum + s.beatsPerMinute, 0) / record.samples.length) * 10) / 10;
   return {
     schemaVersion: HEALTH_RECORD_SCHEMA_VERSION,
     userId: ctx.userId,

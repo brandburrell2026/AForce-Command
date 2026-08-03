@@ -6,14 +6,22 @@
  *
  * HONESTY DIFFERENCE FROM THE APPLE LANE: Health Connect grants are
  * EXPLICIT and individually queryable (`getGrantedPermissions()` returns
- * exactly what's authorized). A requested permission that isn't in the
- * granted set is DEFINITIVELY denied — there is no ambiguous case the way
- * there is with HealthKit, where read authorization is intentionally
- * unobservable and a "denied" read looks identical to "no data yet"
- * (hence the Apple lane needing an honest `indeterminate` bucket). This
- * resolver keeps the same three-bucket shape for interface symmetry with
- * that lane, but `indeterminate` is provably always empty here — asserted
- * in tests, not just documented.
+ * exactly what's authorized) — ONCE the app has actually asked. That's a
+ * different ambiguity than HealthKit's: HealthKit can never observe read
+ * grant/deny for ANY request, ever (its `indeterminate` bucket, see
+ * appleHealthRecords.ts, is permanent and per-API). Health Connect has no
+ * such permanent unobservable case — but it has a temporal one: a metric
+ * type this app has never sent through `requestPermission()` yet (fresh
+ * install, connect flow not run) is absent from `getGrantedPermissions()`
+ * for exactly the same reason a truly-denied one would be. Treating that
+ * absence as `denied` would falsely claim the user refused something they
+ * were never asked about. `resolvePermissionGrant` takes an explicit
+ * `hasRequested` flag from the caller (did we actually call
+ * `requestPermission()` for this set, ever) so a never-asked permission
+ * lands in `notRequested`, not `denied`. Once `hasRequested` is true, every
+ * requested permission is definitively `granted` or `denied` — Health
+ * Connect's grant set really is authoritative at that point, so
+ * `notRequested` is provably empty on that path, asserted in tests.
  */
 
 import type { CanonicalHealthMetricType } from '@workspace/health-core';
@@ -78,21 +86,39 @@ export function buildHealthConnectPermissions(
 export interface PermissionGrantResolution {
   granted: HealthConnectPermissionString[];
   denied: HealthConnectPermissionString[];
-  /** Always empty for Health Connect — see file header. Kept for interface symmetry with the Apple lane. */
-  indeterminate: HealthConnectPermissionString[];
+  /**
+   * Requested permissions this app has never actually sent through
+   * `requestPermission()` — see `hasRequested` below. Provably empty
+   * whenever `hasRequested` is true (asserted in tests). This is NOT the
+   * Apple lane's `indeterminate` — that's a permanent per-API
+   * unobservability; this bucket empties the instant the request flow
+   * actually runs.
+   */
+  notRequested: HealthConnectPermissionString[];
 }
 
 /**
- * Resolve what a permission request actually got. Health Connect's grant
- * set is authoritative and explicit, so every requested permission lands
- * in exactly one of `granted` / `denied` — never `indeterminate`.
+ * Resolve what a permission request actually got.
+ *
+ * `hasRequested` is caller-supplied provenance: has this app EVER called
+ * `requestPermission()` for this metric-type set? If not, none of these
+ * permissions can honestly be called `denied` — the user was never asked,
+ * so nothing was refused, and every entry lands in `notRequested`. Once
+ * `hasRequested` is true, Health Connect's grant set is authoritative and
+ * explicit, so every requested permission lands in exactly one of
+ * `granted` / `denied` — never `notRequested`.
  */
 export function resolvePermissionGrant(
   requested: readonly HealthConnectPermissionString[],
   granted: readonly HealthConnectPermissionString[],
+  hasRequested: boolean,
 ): PermissionGrantResolution {
+  if (!hasRequested) {
+    return { granted: [], denied: [], notRequested: [...requested] };
+  }
+
   const grantedSet = new Set(granted);
-  const result: PermissionGrantResolution = { granted: [], denied: [], indeterminate: [] };
+  const result: PermissionGrantResolution = { granted: [], denied: [], notRequested: [] };
 
   for (const permission of requested) {
     if (grantedSet.has(permission)) {

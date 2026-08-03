@@ -58,11 +58,31 @@ describe('resolveHealthConnectAvailability — Android 14+ (built-in, API 34+)',
       userAction: 'unsupported_platform',
     });
   });
+
+  it('SDK_UNAVAILABLE_PROVIDER_UPDATE_REQUIRED on a built-in OS ⇒ system_update, NOT install_update (no Play Store page for this tier)', () => {
+    expect(resolveHealthConnectAvailability('SDK_UNAVAILABLE_PROVIDER_UPDATE_REQUIRED', 'android', 34)).toEqual({
+      availability: 'needs_update',
+      userAction: 'system_update',
+    });
+  });
+
+  it('SDK_UNAVAILABLE_PROVIDER_UPDATE_REQUIRED stays system_update well above API 34 too', () => {
+    expect(resolveHealthConnectAvailability('SDK_UNAVAILABLE_PROVIDER_UPDATE_REQUIRED', 'android', 36).userAction).toBe(
+      'system_update',
+    );
+  });
 });
 
 describe('resolveHealthConnectAvailability — unknown API level (benefit of the doubt)', () => {
   it('SDK_UNAVAILABLE with no androidApiLevel given resolves to the fixable install_update case', () => {
     expect(resolveHealthConnectAvailability('SDK_UNAVAILABLE', 'android')).toEqual({
+      availability: 'needs_update',
+      userAction: 'install_update',
+    });
+  });
+
+  it('SDK_UNAVAILABLE_PROVIDER_UPDATE_REQUIRED with no androidApiLevel given is install_update, NOT system_update (unknown level never qualifies for the built-in tier)', () => {
+    expect(resolveHealthConnectAvailability('SDK_UNAVAILABLE_PROVIDER_UPDATE_REQUIRED', 'android')).toEqual({
       availability: 'needs_update',
       userAction: 'install_update',
     });

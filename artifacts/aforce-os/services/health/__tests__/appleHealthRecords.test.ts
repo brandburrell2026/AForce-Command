@@ -18,17 +18,20 @@ import {
 const USER_ID = 'user_evidence_only';
 const SYNCED_AT = '2026-08-03T09:00:00.000Z';
 
+/** Apple's own bundle id — the ONLY thing that earns first-party attribution now. See appleHealthRecords.ts's honesty rules. */
+const APPLE_FIRST_PARTY_BUNDLE = { source: { bundleIdentifier: 'com.apple.health' } };
+
 describe('mapSleepSamplesToRecords', () => {
-  // A realistic night, 23:00 -> 07:00, on the Apple Watch (first-party,
-  // no bundle id — the shape a device-native HK sample normally has),
-  // plus the SAME night re-exported into HealthKit by the Oura app.
+  // A realistic night, 23:00 -> 07:00, on the Apple Watch — stamped with
+  // Apple's own bundle id (positive evidence of first-party), plus the SAME
+  // night re-exported into HealthKit by the Oura app.
   const appleWatchNight: HKSleepCategorySample[] = [
-    { value: 0, startDate: '2026-08-02T23:00:00.000Z', endDate: '2026-08-02T23:15:00.000Z' }, // inBed, not asleep
-    { value: 3, startDate: '2026-08-02T23:15:00.000Z', endDate: '2026-08-03T01:15:00.000Z' }, // asleepCore -> light, 2h
-    { value: 4, startDate: '2026-08-03T01:15:00.000Z', endDate: '2026-08-03T02:15:00.000Z' }, // asleepDeep, 1h
-    { value: 2, startDate: '2026-08-03T02:15:00.000Z', endDate: '2026-08-03T02:30:00.000Z' }, // awake, 15m
-    { value: 5, startDate: '2026-08-03T02:30:00.000Z', endDate: '2026-08-03T03:30:00.000Z' }, // asleepREM, 1h
-    { value: 3, startDate: '2026-08-03T03:30:00.000Z', endDate: '2026-08-03T07:00:00.000Z' }, // asleepCore -> light, 3.5h
+    { value: 0, startDate: '2026-08-02T23:00:00.000Z', endDate: '2026-08-02T23:15:00.000Z', sourceRevision: APPLE_FIRST_PARTY_BUNDLE }, // inBed, not asleep
+    { value: 3, startDate: '2026-08-02T23:15:00.000Z', endDate: '2026-08-03T01:15:00.000Z', sourceRevision: APPLE_FIRST_PARTY_BUNDLE }, // asleepCore -> light, 2h
+    { value: 4, startDate: '2026-08-03T01:15:00.000Z', endDate: '2026-08-03T02:15:00.000Z', sourceRevision: APPLE_FIRST_PARTY_BUNDLE }, // asleepDeep, 1h
+    { value: 2, startDate: '2026-08-03T02:15:00.000Z', endDate: '2026-08-03T02:30:00.000Z', sourceRevision: APPLE_FIRST_PARTY_BUNDLE }, // awake, 15m
+    { value: 5, startDate: '2026-08-03T02:30:00.000Z', endDate: '2026-08-03T03:30:00.000Z', sourceRevision: APPLE_FIRST_PARTY_BUNDLE }, // asleepREM, 1h
+    { value: 3, startDate: '2026-08-03T03:30:00.000Z', endDate: '2026-08-03T07:00:00.000Z', sourceRevision: APPLE_FIRST_PARTY_BUNDLE }, // asleepCore -> light, 3.5h
   ];
 
   const ouraViaHealthKitNight: HKSleepCategorySample[] = [
@@ -55,7 +58,9 @@ describe('mapSleepSamplesToRecords', () => {
     expect(appleRecord).toBeDefined();
     expect(appleRecord.metricType).toBe('sleep_session');
     expect(appleRecord.provider).toBe('apple_health');
-    expect(appleRecord.provenanceChain).toEqual([{ provider: 'apple_health', transport: 'measured' }]);
+    expect(appleRecord.provenanceChain).toEqual([
+      { provider: 'apple_health', nativeOrigin: 'com.apple.health', transport: 'measured' },
+    ]);
     expect(appleRecord.originalSource).toBeUndefined();
 
     // asleep-not-inBed: 2h (light) + 1h (deep) + 1h (rem) + 3.5h (light) = 7.5h.
@@ -136,6 +141,88 @@ describe('mapSleepSamplesToRecords', () => {
     expect(records[0].provenanceChain[0].provider).toBe('unknown_device_app');
     expect(records[0].provenanceChain[1]).toEqual({ provider: 'apple_health', transport: 'aggregator_export' });
   });
+
+  it('an ABSENT bundle id (no sourceRevision at all) is attributed as unknown_device_app, NEVER assumed first-party', () => {
+    // Previously: no sourceRevision was treated as "must be the Apple
+    // Watch" and given a single first-party hop. That was an unfounded
+    // guess — every genuine HKSample carries a populated sourceRevision,
+    // so a missing one is honestly "we don't know", not "assume Apple".
+    const records = mapSleepSamplesToRecords(
+      [{ value: 1, startDate: '2026-08-02T23:00:00.000Z', endDate: '2026-08-03T06:00:00.000Z' }],
+      { userId: USER_ID, syncedAt: SYNCED_AT },
+    );
+    expect(records).toHaveLength(1);
+    expect(records[0].provenanceChain).toEqual([
+      { provider: 'unknown_device_app', transport: 'measured' },
+      { provider: 'apple_health', transport: 'aggregator_export' },
+    ]);
+    expect(records[0].provider).toBe('apple_health'); // still the delivering provider
+  });
+
+  it('com.aforce.os (our own app writing back into HealthKit) is NEVER attributed as first-party apple_health — no self-loop', () => {
+    const records = mapSleepSamplesToRecords(
+      [
+        {
+          value: 1,
+          startDate: '2026-08-02T23:00:00.000Z',
+          endDate: '2026-08-03T06:00:00.000Z',
+          sourceRevision: { source: { bundleIdentifier: 'com.aforce.os' } },
+        },
+      ],
+      { userId: USER_ID, syncedAt: SYNCED_AT },
+    );
+    expect(records).toHaveLength(1);
+    // NOT [{ provider: 'apple_health', transport: 'measured' }] — that would
+    // claim Apple's platform measured a value AForce itself wrote.
+    expect(records[0].provenanceChain).toEqual([
+      { provider: 'unknown_device_app', nativeOrigin: 'com.aforce.os', transport: 'measured' },
+      { provider: 'apple_health', transport: 'aggregator_export' },
+    ]);
+    expect(records[0].originalSource).toBe('com.aforce.os');
+  });
+
+  it('inBedHours is null (not derived from asleep+awake) when no explicit inBed(0) sample is present', () => {
+    // Same shape of night as ouraViaHealthKitNight-style data — asleep and
+    // awake samples, but the source never sent an explicit inBed(0) sample.
+    const records = mapSleepSamplesToRecords(
+      [
+        { value: 1, startDate: '2026-08-02T23:00:00.000Z', endDate: '2026-08-03T02:00:00.000Z', sourceRevision: APPLE_FIRST_PARTY_BUNDLE }, // asleep, 3h
+        { value: 2, startDate: '2026-08-03T02:00:00.000Z', endDate: '2026-08-03T02:15:00.000Z', sourceRevision: APPLE_FIRST_PARTY_BUNDLE }, // awake, 15m
+        { value: 1, startDate: '2026-08-03T02:15:00.000Z', endDate: '2026-08-03T05:15:00.000Z', sourceRevision: APPLE_FIRST_PARTY_BUNDLE }, // asleep, 3h
+      ],
+      { userId: USER_ID, syncedAt: SYNCED_AT },
+    );
+    expect(records).toHaveLength(1);
+    const value = records[0].value as { totalSleepHours: number; inBedHours: number | null };
+    expect(value.totalSleepHours).toBeCloseTo(6, 5); // 3h + 3h asleep; the 15m awake gap excluded
+    // NOT 6.25 (asleep+awake summed) — this source never told us an in-bed
+    // interval, so the honest answer is null, not a derived guess.
+    expect(value.inBedHours).toBeNull();
+  });
+
+  it('a sample with an unparseable date is dropped individually, not fabricated or crash-inducing', () => {
+    const records = mapSleepSamplesToRecords(
+      [
+        { value: 1, startDate: 'not-a-date', endDate: '2026-08-03T02:00:00.000Z', sourceRevision: APPLE_FIRST_PARTY_BUNDLE },
+        { value: 4, startDate: '2026-08-03T02:00:00.000Z', endDate: '2026-08-03T03:00:00.000Z', sourceRevision: APPLE_FIRST_PARTY_BUNDLE },
+      ],
+      { userId: USER_ID, syncedAt: SYNCED_AT },
+    );
+    expect(records).toHaveLength(1);
+    expect(records[0].startTime).toBe('2026-08-03T02:00:00.000Z');
+    expect(records[0].endTime).toBe('2026-08-03T03:00:00.000Z');
+    const value = records[0].value as { totalSleepHours: number; stages: unknown[] | null };
+    expect(value.stages).toHaveLength(1); // only the valid sample survives
+    expect(value.totalSleepHours).toBeCloseTo(1, 5);
+  });
+
+  it('a source group where EVERY sample has an unparseable date produces no record, not a zero-span fabrication', () => {
+    const records = mapSleepSamplesToRecords(
+      [{ value: 1, startDate: 'garbage', endDate: 'also garbage', sourceRevision: APPLE_FIRST_PARTY_BUNDLE }],
+      { userId: USER_ID, syncedAt: SYNCED_AT },
+    );
+    expect(records).toEqual([]);
+  });
 });
 
 describe('mapHrvSdnnSamples', () => {
@@ -154,7 +241,12 @@ describe('mapHrvSdnnSamples', () => {
     expect(record.value).toBe(62.4);
     expect(record.unit).toBe('ms');
     expect(record.externalId).toBe('hrv-1');
-    expect(record.provenanceChain).toEqual([{ provider: 'apple_health', transport: 'measured' }]);
+    // No sourceRevision on this sample ⇒ no positive first-party evidence ⇒
+    // unknown_device_app + apple_health aggregator hop (never assumed Apple).
+    expect(record.provenanceChain).toEqual([
+      { provider: 'unknown_device_app', transport: 'measured' },
+      { provider: 'apple_health', transport: 'aggregator_export' },
+    ]);
   });
 
   it('never emits hrvMethod rmssd across a batch of samples', () => {
@@ -183,6 +275,18 @@ describe('mapRestingHeartRateSamples', () => {
     expect(record.value).toBe(54);
     expect(record.unit).toBe('bpm');
     expect(record.hrvMethod).toBeUndefined();
+  });
+
+  it('drops a sample with an unparseable date instead of throwing, keeping the rest of the batch', () => {
+    const records = mapRestingHeartRateSamples(
+      [
+        { quantity: 54, startDate: 'not-a-real-date', endDate: '2026-08-03T07:00:00.000Z' },
+        { quantity: 58, startDate: '2026-08-03T08:00:00.000Z', endDate: '2026-08-03T08:00:00.000Z' },
+      ],
+      { userId: USER_ID, syncedAt: SYNCED_AT },
+    );
+    expect(records).toHaveLength(1);
+    expect(records[0].value).toBe(58);
   });
 });
 
@@ -279,6 +383,23 @@ describe('mapWorkoutSamples', () => {
     const value = record.value as { activeEnergyKcal: number | null; avgHeartRateBpm: number | null };
     expect(value.activeEnergyKcal).toBeNull();
     expect(value.avgHeartRateBpm).toBeNull();
+  });
+
+  it('drops a workout with an unparseable date instead of throwing', () => {
+    const records = mapWorkoutSamples(
+      [
+        { workoutActivityType: 'cycling', durationSec: 900, startDate: 'nope', endDate: '2026-08-03T12:15:00.000Z' },
+        {
+          workoutActivityType: 'walking',
+          durationSec: 600,
+          startDate: '2026-08-03T13:00:00.000Z',
+          endDate: '2026-08-03T13:10:00.000Z',
+        },
+      ],
+      { userId: USER_ID, syncedAt: SYNCED_AT },
+    );
+    expect(records).toHaveLength(1);
+    expect((records[0].value as { activityKind: string }).activityKind).toBe('walking');
   });
 });
 
