@@ -18,7 +18,7 @@ import { af } from '@/theme';
 import { mockUserProfile } from '@/data/mockData';
 import { HEALTH_PROVIDERS, type HealthProviderId } from '@/data/healthProviders';
 import { buildDemoSnapshot } from '@/data/providerDemoSnapshots';
-import { deriveProviderRowStatus } from '@/utils/health/providerRowStatus';
+import { deriveProviderRowStatus, healthFlagsFromFeatureFlags } from '@/utils/health/providerRowStatus';
 import {
   isAppleHealthSupported,
   requestAppleHealthPermissions,
@@ -1196,6 +1196,10 @@ export function ProfileScreenV2() {
                       garminCredentialsMissing: isGarmin ? garminState === 'credentials_missing' : undefined,
                       locallyLinked: linkedProviders.has(p.id),
                       appleNativeReady: p.id === 'apple_health' ? isAppleHealthSupported() : undefined,
+                      // Foundation 1A — health_* flags govern connectability
+                      // (all default OFF; WHOOP keeps its server-credential
+                      // gating until the provider-kit cutover in PR 1B).
+                      healthFlags: healthFlagsFromFeatureFlags(state.featureFlags),
                     });
                     const demoLinked = garminDemo || (!isGarmin && !isWhoop && linkedProviders.has(p.id));
                     const linked = row.live || demoLinked;

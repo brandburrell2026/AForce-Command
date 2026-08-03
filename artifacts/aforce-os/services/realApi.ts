@@ -30,9 +30,9 @@ import type {
   JournalRollup,
   PerformanceLevel,
   ProviderBiometrics,
-  ProviderSnapshot,
 } from '../types';
 import type { PreparedIntake, IntakeEventWire } from '../utils/intakeOutbox';
+import { normalizeProviderBiometrics } from '@workspace/health-core';
 import { mergeBiometrics } from '../utils/biometricsMerge';
 import { calculateScore } from '../utils/scoringEngine';
 import { computeEventImpact } from './hydrationScoreService';
@@ -73,18 +73,13 @@ const AFORCE_BASE = `${API_BASE}/aforce`;
  * poison the score. Returns undefined when there's nothing usable.
  */
 export function normalizeBiometrics(raw: unknown): ProviderBiometrics | undefined {
-  if (!raw || typeof raw !== 'object') return undefined;
-  const out: Record<string, ProviderSnapshot> = {};
-  for (const [key, val] of Object.entries(raw as Record<string, unknown>)) {
-    if (
-      val &&
-      typeof val === 'object' &&
-      typeof (val as { fetchedAt?: unknown }).fetchedAt === 'number'
-    ) {
-      out[key] = { ...(val as object), providerId: key } as ProviderSnapshot;
-    }
-  }
-  return Object.keys(out).length > 0 ? (out as ProviderBiometrics) : undefined;
+  // THE normalization boundary (health-core): preserves the original
+  // semantics (well-formed entries only, providerId re-stamped from the key)
+  // and additionally resolves shipped provider shape drift — Garmin `hrvMs` →
+  // `hrvRmssdMs`, `stress` → `stressScore` — and populates the honest HRV
+  // fields (`hrvRmssdMs`/`hrvSdnnMs`) via explicit per-provider translation.
+  // Legacy `hrvSdnn` passes through byte-identical for compatibility.
+  return normalizeProviderBiometrics(raw);
 }
 
 export function normalizeUserState(row: Record<string, unknown>): UserState {
