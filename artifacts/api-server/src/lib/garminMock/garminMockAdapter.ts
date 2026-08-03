@@ -45,7 +45,7 @@ type ResolvedFixtures = Required<GarminMockAdapterOptions>;
  * 404s, mirroring how an unexpected real-API path would fail.
  */
 function buildMockFetch(fixtures: ResolvedFixtures): typeof fetch {
-  return (async (url: RequestInfo | URL) => {
+  return (async (url: string | URL) => {
     const u = String(url);
     const body = u.includes("/dailies")
       ? fixtures.dailies
