@@ -15,10 +15,17 @@
  *   - `sweepLoop.ts`       — fan-out sweep + interval scheduling +
  *                            env-cadence parsing.
  *   - `retry.ts`           — error classification + backoff math.
- *   - `userStateRepo.ts`   — re-export seam for `UserStateRepo` /
- *                            `createDrizzleUserStateRepo` (still
- *                            sourced from `whoopFetchWorker.ts` until
- *                            the WHOOP cutover).
+ *   - `userStateRepo.ts`   — biometrics-blob write surface (source of
+ *                            truth as of the W3 WHOOP cutover;
+ *                            `whoopFetchWorker.ts` re-exports from
+ *                            here).
+ *   - `tokenUserIds.ts`    — keyset-paginated token-table userId
+ *                            iteration, table-parameterized. Both WHOOP
+ *                            and Oura wrap this.
+ *   - `advisoryLock.ts`    — namespace-parameterized Postgres advisory
+ *                            lock orchestration for multi-replica
+ *                            singleflight. Both WHOOP and Oura wrap
+ *                            this.
  */
 
 export * from "./oauthStateStore";
@@ -27,3 +34,5 @@ export * from "./fetchWorker";
 export * from "./sweepLoop";
 export * from "./retry";
 export * from "./userStateRepo";
+export * from "./tokenUserIds";
+export * from "./advisoryLock";

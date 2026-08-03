@@ -25,7 +25,6 @@ import {
   purgeExpiredProviderAuthStates,
   type ProviderAuthStateRecord,
   type ProviderAuthStateStore,
-  type ProviderAuthStateTable,
 } from "./providerKit/oauthStateStore";
 
 /**
@@ -43,9 +42,15 @@ export const WHOOP_AUTH_STATE_DEFAULT_TTL_MS = PROVIDER_AUTH_STATE_DEFAULT_TTL_M
 export type WhoopAuthStateRecord = ProviderAuthStateRecord;
 export type WhoopAuthStateStore = ProviderAuthStateStore;
 
-// `aforceWhoopAuthStates` (state/codeVerifier/userId/createdAt) satisfies
-// `ProviderAuthStateTable` structurally.
-const WHOOP_AUTH_STATE_TABLE = aforceWhoopAuthStates as unknown as ProviderAuthStateTable;
+// `aforceWhoopAuthStates` (state/codeVerifier/userId/createdAt)
+// satisfies `ProviderAuthStateTable` structurally — passed straight
+// through below with NO cast. `createDrizzleProviderAuthStateStore` /
+// `purgeExpiredProviderAuthStates` are generic over the concrete table
+// type, so TypeScript's normal argument-assignability check IS the
+// safety net: a future column rename fails to compile here instead of
+// silently passing through an `as unknown as ProviderAuthStateTable`
+// double-cast (see `providerKit/oauthStateStore.ts`'s module doc for
+// why the double-cast was the actual bug this generic fixes).
 
 export interface InMemoryWhoopAuthStateStoreOptions {
   /** Defaults to {@link WHOOP_AUTH_STATE_DEFAULT_TTL_MS}. */
@@ -72,7 +77,7 @@ export function createDrizzleWhoopAuthStateStore(
   db: NodePgDatabase<Record<string, unknown>>,
   opts: DrizzleWhoopAuthStateStoreOptions = {},
 ): WhoopAuthStateStore {
-  return createDrizzleProviderAuthStateStore(db, WHOOP_AUTH_STATE_TABLE, opts);
+  return createDrizzleProviderAuthStateStore(db, aforceWhoopAuthStates, opts);
 }
 
 /**
@@ -84,5 +89,5 @@ export async function purgeExpiredWhoopAuthStates(
   nowMs: number,
   ttlMs: number,
 ): Promise<number> {
-  return purgeExpiredProviderAuthStates(db, WHOOP_AUTH_STATE_TABLE, nowMs, ttlMs);
+  return purgeExpiredProviderAuthStates(db, aforceWhoopAuthStates, nowMs, ttlMs);
 }
