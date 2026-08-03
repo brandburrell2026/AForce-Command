@@ -1,0 +1,57 @@
+name: Integration Tests
+
+# Testcontainers-backed DB integration suite (lib/db/src/__integration__/**).
+# Recommended as a REQUIRED check on every PR, not label-gated — see
+# docs/CI_BRANCH_PROTECTION.md for the reasoning. Runs on the same triggers as
+# ci.yml so it's never accidentally skipped.
+#
+# No secrets, no provider env vars: the only DATABASE_URL in play is the
+# throwaway one Testcontainers mints per-run (a `postgres:16-alpine` container
+# it starts and tears down itself via the Docker daemon already on the
+# ubuntu-latest runner image). Nothing here is committed anywhere or reused
+# across runs.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  integration:
+    name: integration
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup pnpm + Node
+        uses: pnpm/setup@v1
+        with:
+          runtime: node@22
+          cache: true
+          install: false
+
+      - name: Install dependencies (frozen lockfile)
+        run: pnpm install --frozen-lockfile
+
+      # Fail loudly, not silently: ubuntu-latest ships Docker pre-installed
+      # and running, but if that ever regresses (self-hosted runner swap,
+      # image change, daemon not up yet) this must be a hard, obvious CI
+      # failure — never a quietly-skipped/green integration job. No
+      # continue-on-error anywhere in this workflow, deliberately.
+      - name: Verify Docker is available (required, not optional)
+        run: |
+          if ! docker info > /dev/null 2>&1; then
+            echo "::error::Docker is not available on this runner. The integration suite"
+            echo "uses Testcontainers to start a real Postgres container and cannot run"
+            echo "without it. This job must fail here, not skip the suite and report green."
+            exit 1
+          fi
+          echo "Docker is available."
+
+      - name: Run integration suite (Testcontainers Postgres)
+        run: pnpm test:integration

@@ -1,0 +1,225 @@
+name: CI
+
+# Required-status-check contract (see docs/CI_BRANCH_PROTECTION.md before wiring
+# branch protection): typecheck, tests-baseline, focused-health, governance-drift.
+#
+# KNOWN BLOCKERS on a truly fresh checkout — verified 2026-08-03 against an
+# isolated `git worktree` of main@20136093 (NOT the long-lived local checkout,
+# which has accumulated state that masks both of these). See
+# docs/CI_BRANCH_PROTECTION.md "Before this can go green" for detail and fixes.
+#   1. `pnpm install --frozen-lockfile` fails outright (ERR_PNPM_IGNORED_BUILDS)
+#      because pnpm-workspace.yaml's `allowBuilds` map is missing 5 packages
+#      that are still listed under the now-inert, pnpm-11-removed
+#      `onlyBuiltDependencies` key.
+#   2. `artifacts/aforce-os` typecheck fails (TS2307, `node:fs`/`node:url`/
+#      `node:path` not found) because @types/node is not a declared dependency
+#      there and only resolves by incidental hoisting on aged local installs.
+# Neither is caused by this workflow; both must be fixed in pnpm-workspace.yaml
+# / artifacts/aforce-os/package.json (owner-gated, out of this PR's scope)
+# before these jobs will pass on a fresh runner.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  typecheck:
+    name: typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      # pnpm 11+: pnpm/action-setup is only maintained for pnpm v10 and older.
+      # pnpm/setup installs the pnpm v11 standalone binary *and* Node in one
+      # step. `version` is omitted deliberately — it reads packageManager
+      # ("pnpm@11.1.2") from package.json, so this workflow and the repo's
+      # pnpm pin can never drift apart.
+      - name: Setup pnpm + Node
+        uses: pnpm/setup@v1
+        with:
+          # No .nvmrc / engines field exists in this repo (verified 2026-08-03).
+          # Pinned to 22 to match the Dockerfile (`FROM node:22-slim`) that
+          # Railway builds from — the one place Node version parity actually
+          # matters today. Recommend adding an `engines.node` field so this
+          # pin has a single source of truth instead of living in two files.
+          runtime: node@22
+          cache: true
+          install: false
+
+      - name: Install dependencies (frozen lockfile)
+        run: pnpm install --frozen-lockfile
+
+      - name: Verify install did not silently rewrite workspace config
+        # pnpm's `allowBuilds` auto-approval mechanism writes a placeholder
+        # entry into pnpm-workspace.yaml for any *new* dependency with an
+        # unreviewed build script (see https://pnpm.io/settings/build#allowbuilds).
+        # --frozen-lockfile guarantees pnpm-lock.yaml can't drift, but says
+        # nothing about pnpm-workspace.yaml. This step converts a silent
+        # mutation into a loud, actionable failure instead of trusting the
+        # working tree is clean.
+        run: |
+          if ! git diff --quiet -- pnpm-workspace.yaml pnpm-lock.yaml; then
+            echo "::error::pnpm install mutated pnpm-workspace.yaml or pnpm-lock.yaml during CI."
+            echo "This means a dependency change introduced a native build script pnpm hasn't"
+            echo "seen before. Run 'pnpm install' locally, review the diff below, decide true/false"
+            echo "for the new allowBuilds entry, and commit that decision as part of this PR."
+            git diff -- pnpm-workspace.yaml pnpm-lock.yaml
+            exit 1
+          fi
+
+      - name: Typecheck libs (tsc --build)
+        run: pnpm run typecheck:libs
+
+      - name: Typecheck aforce-os
+        run: pnpm --filter @workspace/aforce-os run typecheck
+
+      - name: Typecheck api-server
+        run: pnpm --filter @workspace/api-server run typecheck
+
+  tests-baseline:
+    name: tests-baseline
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup pnpm + Node
+        uses: pnpm/setup@v1
+        with:
+          runtime: node@22
+          cache: true
+          install: false
+
+      - name: Install dependencies (frozen lockfile)
+        run: pnpm install --frozen-lockfile
+
+      # Canonical no-DB run (governance/TEST-BASELINE.md §1). DATABASE_URL is
+      # deliberately left UNSET: the documented baseline already accounts for
+      # the ~33 files that fail to load without it (Cause B in the doc). A
+      # real Postgres for these paths is exercised separately by the
+      # integration workflow via Testcontainers, not here.
+      #
+      # `|| true`: a run at/under baseline is expected to exit non-zero
+      # (vitest's own exit code reflects the 18 known-failing WHOOP assertions).
+      # The baseline-comparison step below is what actually decides pass/fail
+      # for this job — not vitest's exit code.
+      - name: Run canonical suite (JSON report)
+        run: pnpm exec vitest run --reporter=default --reporter=json --outputFile.json=vitest-report.json || true
+
+      - name: Compare against documented baseline (governance/TEST-BASELINE.md)
+        run: |
+          node <<'NODESCRIPT'
+          const fs = require('fs');
+
+          // Fallback only — kept in sync with governance/TEST-BASELINE.md §2.
+          // Used solely if the doc's table can't be parsed at runtime (e.g. its
+          // format changed). If you touch this number, update the doc too, or
+          // better: fix the doc so the runtime parse succeeds again.
+          const FALLBACK_FAILED_FILES = 46;
+          const FALLBACK_FAILED_TESTS = 18;
+
+          const baselineDoc = fs.readFileSync('governance/TEST-BASELINE.md', 'utf8');
+          const filesMatch = baselineDoc.match(/\*\*Test files — failed\*\*\s*\|\s*\*\*(\d+)\*\*/);
+          const testsMatch = baselineDoc.match(/\*\*Tests — failed\*\*\s*\|\s*\*\*(\d+)\*\*/);
+
+          let baselineFiles, baselineTests, source;
+          if (filesMatch && testsMatch) {
+            baselineFiles = Number(filesMatch[1]);
+            baselineTests = Number(testsMatch[1]);
+            source = 'governance/TEST-BASELINE.md (parsed at runtime)';
+          } else {
+            baselineFiles = FALLBACK_FAILED_FILES;
+            baselineTests = FALLBACK_FAILED_TESTS;
+            source = 'pinned fallback constants in ci.yml (doc table did not parse — fix the doc)';
+            console.log('::warning::Could not parse governance/TEST-BASELINE.md; using pinned fallback constants.');
+          }
+
+          const report = JSON.parse(fs.readFileSync('vitest-report.json', 'utf8'));
+          // testResults[].status is the per-FILE outcome — this is what
+          // TEST-BASELINE.md calls "Test files" (and what the vitest console
+          // reporter's "Test Files" line reports). numFailedTestSuites counts
+          // describe blocks, not files, and does NOT match the doc's metric —
+          // verified empirically before wiring this up.
+          const failedFiles = report.testResults.filter((t) => t.status === 'failed').length;
+          const failedTests = report.numFailedTests;
+
+          console.log(`Baseline source: ${source}`);
+          console.log(`Baseline:  ${baselineFiles} failed files / ${baselineTests} failed tests`);
+          console.log(`Observed:  ${failedFiles} failed files / ${failedTests} failed tests`);
+
+          let regressed = false;
+          if (failedFiles > baselineFiles) {
+            console.log(`::error::${failedFiles} failed files exceeds documented baseline of ${baselineFiles} — new regression, investigate before merging.`);
+            regressed = true;
+          }
+          if (failedTests > baselineTests) {
+            console.log(`::error::${failedTests} failed tests exceeds documented baseline of ${baselineTests} — new regression, investigate before merging.`);
+            regressed = true;
+          }
+          if (regressed) {
+            console.log('New PASSING tests are always fine; only a rise in FAILURES fails this check. See governance/TEST-BASELINE.md §5 for the full new-vs-expected criteria.');
+            process.exit(1);
+          }
+          console.log('Within documented baseline — no new regressions.');
+          NODESCRIPT
+
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vitest-report
+          path: vitest-report.json
+          retention-days: 14
+
+  focused-health:
+    name: focused-health
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup pnpm + Node
+        uses: pnpm/setup@v1
+        with:
+          runtime: node@22
+          cache: true
+          install: false
+
+      - name: Install dependencies (frozen lockfile)
+        run: pnpm install --frozen-lockfile
+
+      # Fast, DB-free signal over the health/wearable-parity core: must stay
+      # 100% green (no baseline tolerance here — unlike tests-baseline, any
+      # failure in this lane is a real regression by construction, since none
+      # of these suites are in the documented DATABASE_URL/RN-parse failure set).
+      - name: Run focused health suite
+        run: >
+          pnpm exec vitest run
+          lib/health-core
+          artifacts/aforce-os/services/health
+          artifacts/api-server/src/__tests__/whoopParity
+          artifacts/api-server/src/lib/garminMock
+
+  governance-drift:
+    name: governance-drift
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+
+      # Enforces Founder Decision 3 (2026-07-22): /governance is the sole
+      # authoritative source; no stray or diverged copies under artifacts/.
+      # Pure node:fs/node:path — no dependency install needed.
+      - name: Check governance drift
+        run: node scripts/src/check-governance-drift.mjs
