@@ -92,6 +92,13 @@ export interface SleepModeInput {
   };
   /** Completed checklist item ids (subset of CHECKLIST_DEFS ids). */
   completed: readonly ChecklistItemDef['id'][];
+  /**
+   * Public kill switch (`flags.sleep_mode_enabled`). Optional so existing
+   * callers/fixtures are unchanged; omitted ⇒ treated as enabled. When false
+   * the view model carries `gatedNotice` so the screen NEVER silently renders
+   * the normal experience with the kill switch off (legacy-banner parity).
+   */
+  sleepModeEnabled?: boolean;
 }
 
 // ─── Resolved view model ─────────────────────────────────────────────────────
@@ -167,6 +174,12 @@ export interface SleepGuidanceView {
 
 export interface SleepModeView {
   mode: SleepScreenMode;
+  /**
+   * Non-null when the public kill switch (`sleep_mode_enabled`) is OFF: the
+   * exact legacy internal-preview copy, rendered as a loud banner so the
+   * gated state is explicit — never silent.
+   */
+  gatedNotice: string | null;
   header: { title: string; tagline: string };
   hero: SleepHeroView;
   target: SleepTargetView;
@@ -199,6 +212,10 @@ const CONFIDENCE_LABEL: Record<ConfidenceLevel, string> = {
   low: 'BUILDING', // low is framed as "building", never a failure
 };
 
+/** Exact legacy internal-preview copy (SleepModeScreenLegacy banner parity). */
+export const SLEEP_GATED_NOTICE =
+  'INTERNAL PREVIEW — sleep_mode_enabled is off for the public build.';
+
 function fmt12(t: { h: number; m: number }): string {
   const ap = t.h >= 12 ? 'PM' : 'AM';
   const h12 = t.h % 12 === 0 ? 12 : t.h % 12;
@@ -207,6 +224,55 @@ function fmt12(t: { h: number; m: number }): string {
 
 function clamp01(n: number): number {
   return n < 0 ? 0 : n > 1 ? 1 : n;
+}
+
+// ─── H2 — once-per-calendar-day EMA fold guard (pure, unit-tested) ───────────
+// The container folds `sleepLastNight` into the persisted 7-night EMA. Without
+// a guard, every mount re-folds the SAME night, biasing the average the honest
+// morning comparison is built on. These helpers make the guard deterministic.
+
+/** Local calendar day (YYYY-MM-DD) for an epoch-ms instant. */
+export function localDayKey(now: number): string {
+  const d = new Date(now);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+const DAY_KEY_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+/**
+ * True when the EMA should fold today: there is a real sleep value AND the
+ * stored guard is missing, malformed, or from a different (stale) day. A
+ * malformed guard is treated as absent — never as "already folded" — so a
+ * corrupt value can only cause one extra fold, not a silent permanent skip.
+ */
+export function shouldFoldSleepAvg(
+  lastFoldedDay: string | null | undefined,
+  today: string,
+  sleepLastNight: number | null,
+): boolean {
+  if (sleepLastNight == null || !Number.isFinite(sleepLastNight)) return false;
+  if (typeof lastFoldedDay !== 'string' || !DAY_KEY_RE.test(lastFoldedDay)) return true;
+  return lastFoldedDay !== today;
+}
+
+/** One EMA step (alpha = 1/7) — the exact math the container has always used. */
+export function foldSevenNightAvg(prev: number | null, lastNight: number): number {
+  return prev == null || !Number.isFinite(prev) ? lastNight : prev + (lastNight - prev) / 7;
+}
+
+// ─── H3 — primary CTA semantics (pure, unit-tested) ──────────────────────────
+
+/**
+ * What pressing the primary CTA should DO (observable, honest — no score
+ * mutation, no fabricated data): complete the primary product-backed item
+ * (hydrate) when it isn't done yet; otherwise move the user to the checklist.
+ */
+export type PrimaryCtaAction = 'complete_hydrate' | 'focus_checklist';
+
+export function primaryCtaAction(
+  completed: readonly ChecklistItemDef['id'][],
+): PrimaryCtaAction {
+  return completed.includes('hydrate') ? 'focus_checklist' : 'complete_hydrate';
 }
 
 function morningSentence(lastNight: number | null, avg: number | null): string {
@@ -298,6 +364,8 @@ export function resolveSleepModeView(input: SleepModeInput): SleepModeView {
 
   return {
     mode,
+    // Kill switch: omitted ⇒ enabled. False ⇒ loud internal-preview banner.
+    gatedNotice: input.sleepModeEnabled === false ? SLEEP_GATED_NOTICE : null,
     header: { title: 'SLEEP MODE', tagline: 'Recover. Rehydrate. Reset.' },
     hero,
     target: targetView,
