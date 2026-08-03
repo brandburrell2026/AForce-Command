@@ -49,25 +49,21 @@ export function isAppleHealthSupported(): boolean {
  * try to resolve the native side on web/Android, where the package's
  * Nitro module isn't linked.
  *
- * ISOLATION BUILD (healthkit_native_enabled = false): the native
- * @kingstinct/react-native-healthkit dependency is removed from package.json
- * for the iOS launch-crash isolation test, so the dynamic import below is
- * intentionally commented out — it must NOT remain a live, Metro-resolvable
- * reference or the bundler will fail to resolve the now-missing module.
- * isAppleHealthSupported() already returns false when the flag is off, and the
- * explicit flag guard below short-circuits to null before any import would run.
- *
- * To re-enable: (1) re-add @kingstinct/react-native-healthkit +
- * react-native-nitro-modules to package.json, (2) flip healthkit_native_enabled
- * -> true in DEFAULT_FLAGS, (3) uncomment the two import lines below.
+ * RE-ENABLE STATUS: @kingstinct/react-native-healthkit + react-native-nitro-modules
+ * are back in package.json (dependency step of the HealthKit bridge re-enable),
+ * so the dynamic import below is live again. It still only executes when
+ * isAppleHealthSupported() is true AND healthkit_native_enabled is true — both
+ * default OFF in DEFAULT_FLAGS — so non-iOS/flag-off builds never reach the
+ * import and Metro never needs to resolve the native module for them.
+ * Native activation (pod install / native build / flag flip) is a separate,
+ * deliberately un-taken step.
  */
 async function loadHealthKit(): Promise<any | null> {
   if (!isAppleHealthSupported()) return null;
   if (!DEFAULT_FLAGS.healthkit_native_enabled) return null;
   try {
-    // const mod = await import('@kingstinct/react-native-healthkit');
-    // return mod;
-    return null;
+    const mod = await import('@kingstinct/react-native-healthkit');
+    return mod;
   } catch (err) {
     console.warn('[AppleHealth] failed to load native module', err);
     return null;
