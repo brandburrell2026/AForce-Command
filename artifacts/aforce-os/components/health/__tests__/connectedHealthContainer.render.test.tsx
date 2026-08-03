@@ -161,6 +161,35 @@ describe('ConnectedHealthContainer wiring — real model input renders through t
     expect(q('[data-testid="connected-health-loading"]')).not.toBeNull();
   });
 
+  it('a probe failure (mode: offline) surfaces the honest retry banner while still showing last-known rows — never a fabricated denied/disconnected/unsupported', () => {
+    const view = renderModelInput(
+      baseInput({
+        mode: 'offline',
+        // Last-known-good facts from before the probe started failing —
+        // ConnectedHealthContainer's refreshCloudFacts never discards these
+        // on a failed cycle.
+        cloud: { whoop: { integrationReady: true, link: 'connected' } as HealthConnectionSignals },
+        biometrics: { whoop: { fetchedAt: NOW - 5 * MIN } as never },
+      }),
+    );
+
+    const banner = q('[data-testid="connected-health-offline-banner"]');
+    expect(banner).not.toBeNull();
+    expect(banner?.textContent).toContain('Offline');
+
+    // The row that was genuinely connected before the probe cycle failed
+    // still renders its true last-known state — offline mode never
+    // downgrades a real fact into a fabricated one.
+    const whoopRow = view.rows.find((r) => r.providerId === 'whoop')!;
+    expect(whoopRow.statusPill.state).toBe('connected');
+    expect(q('[data-testid="ch-status-whoop"]')?.textContent).toContain('Connected');
+
+    // No row anywhere renders a state this container has no evidence for.
+    for (const row of view.rows) {
+      expect(row.statusPill.state).not.toBe('disconnected');
+    }
+  });
+
   it('every rendered row exposes 44pt touch targets on its interactive affordances (a11y)', () => {
     renderModelInput(
       baseInput({
@@ -183,7 +212,7 @@ describe('ConnectedHealthContainer wiring — real model input renders through t
 describe('orchestration deps agree with the container-shaped call pattern', () => {
   it('loadConnectedHealthCloudFacts probes all 4 cloud providers with an injected fetch', async () => {
     const calls: string[] = [];
-    const facts = await loadConnectedHealthCloudFacts(NOW, {
+    const { facts, anyProbeFailed } = await loadConnectedHealthCloudFacts(NOW, {
       fetchCloudSignals: async (provider) => {
         calls.push(provider);
         return { integrationReady: false, link: 'none' };
@@ -191,6 +220,7 @@ describe('orchestration deps agree with the container-shaped call pattern', () =
     });
     expect(calls.sort()).toEqual(['garmin', 'oura', 'strava', 'whoop']);
     expect(facts.whoop).toEqual({ integrationReady: false, link: 'none' });
+    expect(anyProbeFailed).toBe(false);
   });
 
   it('performConnectedHealthDisconnect surfaces "unsupported" for apple_health without calling any transport', async () => {
