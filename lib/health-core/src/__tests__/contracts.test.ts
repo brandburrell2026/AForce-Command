@@ -51,6 +51,22 @@ describe('provider capability declarations', () => {
     expect(new Set(all).size).toBe(all.length); // no score kind claimed by two providers
   });
 
+  it('no two DISTINCT providers declare the same providerScores kind (explicit pairwise check)', () => {
+    // Independent of the Set-size trick above: enumerate every provider pair
+    // and assert their declared providerScores arrays share no kind. This is
+    // the invariant signalResolution.ts's `SCORE_KIND_OWNER` / ownership
+    // guard depends on — if it ever failed, a provider_score record's true
+    // owner would be ambiguous.
+    for (let i = 0; i < ALL.length; i++) {
+      for (let j = i + 1; j < ALL.length; j++) {
+        const a = HEALTH_PROVIDER_CAPABILITIES[ALL[i]].providerScores;
+        const b = HEALTH_PROVIDER_CAPABILITIES[ALL[j]].providerScores;
+        const shared = a.filter((kind) => b.includes(kind));
+        expect(shared).toEqual([]);
+      }
+    }
+  });
+
   it('backfill caps respect the Health Connect 30-day floor; SpO₂ / clinical types are absent from release-1 record types', () => {
     for (const p of ALL) {
       expect(HEALTH_PROVIDER_CAPABILITIES[p].maxBackfillDays).toBeLessThanOrEqual(30);
