@@ -18,7 +18,13 @@
  * provenance-honest) data with ZERO scoring-file changes.
  *
  * ── Wiring status: NOT WIRED (deliberate) ─────────────────────────────────
- * Nothing imports this adapter into the app yet. The flag-gated swap point is
+ * `toReadinessBiometrics` (THIS file's adapter) is not wired anywhere. Do not
+ * confuse it with `canonicalReadinessSignals` in `healthSignalsFromStore.ts`,
+ * which IS wired — `useMetabolicReadiness` / `usePerformanceAge` already call
+ * it behind `health_canonical_consumers` (default OFF). The two share the
+ * same `EMITTING_FRESHNESS` policy (exported below) but are separate
+ * projections onto separate consumer shapes.
+ * Nothing imports THIS adapter into the app yet. The flag-gated swap point is
  * the STORE / CONTAINER layer (where `state.biometrics` is populated today),
  * NOT the scoring layer — scoring keeps reading `state.biometrics` verbatim
  * either way. The store-shaped input builder already exists
@@ -108,10 +114,16 @@ export const READINESS_SIGNALS_SCORE_PROTECTION =
  * Only these §53 ratings may influence readiness surfaces through this
  * adapter. `stale` and `expired` readings emit NOTHING (stricter than the raw
  * snapshot passthrough — see file header, "STALE/EXPIRED EMIT NOTHING").
+ *
+ * ONE constant, ONE policy: exported so `healthSignalsFromStore.ts`'s
+ * `canonicalReadinessSignals` projection gates on the exact same freshness
+ * rule this adapter uses, rather than maintaining a second copy that could
+ * drift. Any surface projecting `HealthSignals` into a readiness-influencing
+ * value must reuse `EMITTING_FRESHNESS` / `emits()` — never fork it.
  */
-const EMITTING_FRESHNESS: ReadonlySet<HealthSignalFreshness> = new Set(['fresh', 'aging']);
+export const EMITTING_FRESHNESS: ReadonlySet<HealthSignalFreshness> = new Set(['fresh', 'aging']);
 
-function emits(freshness: HealthSignalFreshness): boolean {
+export function emits(freshness: HealthSignalFreshness): boolean {
   return EMITTING_FRESHNESS.has(freshness);
 }
 
