@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -17,6 +17,36 @@ import {
   type AppleHealthAnchorToken,
 } from '../appleHealthSync';
 import type { HKQuantitySample } from '../appleHealthRecords';
+
+// ─── Controllable mapping failure (map-failure / ATOMIC-COMMIT tests) ────────
+// `appleHealthRecords.ts` is off-limits, consume-only code (see
+// appleHealthSync.ts's file header) — this suite never edits it. To exercise
+// the "mapping throws after samples were already fetched" path honestly, this
+// mock wraps the REAL `mapStepsSamples` and only injects a throw when a test
+// explicitly arms `stepsMapShouldFail`, delegating to the real implementation
+// otherwise. `stepsMapShouldFail` is reset after every test so failures never
+// leak across cases.
+let stepsMapShouldFail = false;
+
+vi.mock('../appleHealthRecords', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../appleHealthRecords')>();
+  return {
+    ...actual,
+    mapStepsSamples: (...args: Parameters<typeof actual.mapStepsSamples>) => {
+      if (stepsMapShouldFail) {
+        // Deliberately generic — proves the engine's own diagnostic message
+        // (not this thrown text) is what callers see. See the map-failure
+        // tests' assertion that `message` never contains this raw text.
+        throw new Error('mapper internal invariant violated');
+      }
+      return actual.mapStepsSamples(...args);
+    },
+  };
+});
+
+afterEach(() => {
+  stepsMapShouldFail = false;
+});
 
 const USER_ID = 'user_lane_a2';
 const SYNCED_AT = '2026-08-03T09:00:00.000Z';
@@ -437,6 +467,31 @@ describe('anchor schema version', () => {
     expect(result.nextAnchors.anchors.steps).toBe('fresh-1');
   });
 
+  it('anchor deserialization failure: a blob with no recognizable version field at all re-baselines exactly like a version mismatch, never throwing', async () => {
+    const { client, calls } = makeClient({
+      steps: { auth: 'authorized', pages: [{ samples: [], newAnchor: 'fresh-2', done: true }] },
+    });
+
+    // Simulates a truly corrupt/foreign persisted blob (e.g. JSON.parse of
+    // garbage, or a pre-schema shape) rather than merely an old version
+    // number — `version` is absent entirely.
+    const corruptBlob = { anchors: { steps: 'old-format-token' } } as unknown as AppleHealthAnchorState;
+
+    const result = await runAppleHealthSync({
+      client,
+      userId: USER_ID,
+      types: ['steps'],
+      anchors: corruptBlob,
+      nowMs: NOW_MS,
+      syncedAt: SYNCED_AT,
+    });
+
+    expect(calls.query[0].anchor).toBeNull();
+    expect(result.authorization.steps).toEqual({ status: 'synced' });
+    expect(result.nextAnchors.version).toBe(APPLE_HEALTH_ANCHOR_SCHEMA_VERSION);
+    expect(result.nextAnchors.anchors.steps).toBe('fresh-2');
+  });
+
   it('createEmptyAppleHealthAnchorState starts every future type from null', () => {
     const empty = createEmptyAppleHealthAnchorState();
     expect(empty.version).toBe(APPLE_HEALTH_ANCHOR_SCHEMA_VERSION);
@@ -624,6 +679,54 @@ describe('malformed payloads never throw', () => {
     expect(result.nextAnchors.anchors.steps).toBe('anchor-before');
   });
 
+  it('malformed-record retry: a run that hit a malformed page can be safely retried from the returned (unmoved) anchor once the bridge sends a good payload', async () => {
+    const cursor = { calls: 0 };
+    const client: HealthKitQueryClient = {
+      async getAuthorizationStatus() {
+        return 'authorized';
+      },
+      async queryAnchored(_type, anchor) {
+        cursor.calls += 1;
+        if (cursor.calls === 1) {
+          // First attempt: a native-bridge protocol violation.
+          return { samples: 'not-an-array' as unknown as unknown[], newAnchor: 'bad-anchor', done: true } as never;
+        }
+        // Retry: the same anchor comes back in, and this time the bridge
+        // behaves. Proves the anchor round-trip is exactly what makes the
+        // retry safe.
+        expect(anchor).toBe('anchor-before');
+        return {
+          samples: [quantitySample(42, '2026-08-01T00:00:00.000Z')],
+          newAnchor: 'anchor-after',
+          done: true,
+        } as never;
+      },
+    };
+
+    const firstRun = await runAppleHealthSync({
+      client,
+      userId: USER_ID,
+      types: ['steps'],
+      anchors: anchorState({ steps: 'anchor-before' }),
+      nowMs: NOW_MS,
+      syncedAt: SYNCED_AT,
+    });
+    expect(firstRun.authorization.steps?.status).toBe('error');
+    expect(firstRun.nextAnchors.anchors.steps).toBe('anchor-before');
+
+    const retryRun = await runAppleHealthSync({
+      client,
+      userId: USER_ID,
+      types: ['steps'],
+      anchors: firstRun.nextAnchors,
+      nowMs: NOW_MS,
+      syncedAt: SYNCED_AT,
+    });
+    expect(retryRun.authorization.steps).toEqual({ status: 'synced' });
+    expect(retryRun.records).toHaveLength(1);
+    expect(retryRun.nextAnchors.anchors.steps).toBe('anchor-after');
+  });
+
   it('a null entry inside an otherwise-valid samples array is dropped, siblings in the same page still sync', async () => {
     const { client } = makeClient({
       steps: {
@@ -762,6 +865,277 @@ describe('malformed payloads never throw', () => {
     expect(result.records).toHaveLength(1); // page 1's sample survives
     expect(result.authorization.steps?.status).toBe('error');
     expect(result.nextAnchors.anchors.steps).toBe('p1'); // NOT 'p2-bad'
+  });
+});
+
+// ─── Mapping failures: ATOMIC-COMMIT correction ──────────────────────────────
+// These are the defect-fix tests: a mapping/normalization failure must never
+// advance the anchor past what was true before THIS run started, because
+// `collected` (what gets mapped in one bulk call) can span every page fetched
+// this run — the anchor variable tracking fetch progress is a red herring
+// once mapping itself fails, since nothing fetched was ever actually emitted.
+
+describe('mapping failures (ATOMIC-COMMIT correction)', () => {
+  it('a single successful page still commits the anchor when mapping succeeds (control case for the failure tests below)', async () => {
+    const { client } = makeClient({
+      steps: {
+        auth: 'authorized',
+        pages: [{ samples: [quantitySample(10, '2026-08-01T00:00:00.000Z')], newAnchor: 'steps-final', done: true }],
+      },
+    });
+
+    const result = await runAppleHealthSync({
+      client,
+      userId: USER_ID,
+      types: ['steps'],
+      anchors: anchorState({ steps: 'steps-prior' }),
+      nowMs: NOW_MS,
+      syncedAt: SYNCED_AT,
+    });
+
+    expect(result.authorization.steps).toEqual({ status: 'synced' });
+    expect(result.nextAnchors.anchors.steps).toBe('steps-final');
+    expect(result.records).toHaveLength(1);
+  });
+
+  it('a mapping failure on the final (done:true) page returns the INPUT anchor, not the already-advanced page anchor', async () => {
+    stepsMapShouldFail = true;
+    const { client } = makeClient({
+      steps: {
+        auth: 'authorized',
+        pages: [{ samples: [quantitySample(10, '2026-08-01T00:00:00.000Z')], newAnchor: 'steps-final', done: true }],
+      },
+    });
+
+    const result = await runAppleHealthSync({
+      client,
+      userId: USER_ID,
+      types: ['steps'],
+      anchors: anchorState({ steps: 'steps-prior' }),
+      nowMs: NOW_MS,
+      syncedAt: SYNCED_AT,
+    });
+
+    expect(result.records).toEqual([]);
+    expect(result.authorization.steps?.status).toBe('error');
+    expect(result.authorization.steps?.reason).toBe('map_failed');
+    // The defect: this used to persist 'steps-final' (the page's advanced
+    // anchor) with zero emitted records — permanent data loss per the file
+    // header's ATOMIC-COMMIT OBLIGATION. The fix: the INPUT anchor, unmoved.
+    expect(result.nextAnchors.anchors.steps).toBe('steps-prior');
+    expect(result.nextAnchors.anchors.steps).not.toBe('steps-final');
+    // Diagnostics identify type + page count, never the raw mapper text
+    // (which could, in principle, echo a sample value from off-limits code).
+    expect(result.authorization.steps?.message).toMatch(/steps/i);
+    expect(result.authorization.steps?.message).not.toMatch(/invariant violated/i);
+  });
+
+  it('a mapping failure after MULTIPLE successful page fetches rolls back to the run\'s INPUT anchor, not to any intermediate page boundary', async () => {
+    stepsMapShouldFail = true;
+    const { client } = makeClient({
+      steps: {
+        auth: 'authorized',
+        pages: [
+          { samples: [quantitySample(1, '2026-08-01T00:00:00.000Z')], newAnchor: 'p1', done: false },
+          { samples: [quantitySample(2, '2026-08-01T01:00:00.000Z')], newAnchor: 'p2', done: true },
+        ],
+      },
+    });
+
+    const result = await runAppleHealthSync({
+      client,
+      userId: USER_ID,
+      types: ['steps'],
+      anchors: anchorState({ steps: 'steps-input' }),
+      nowMs: NOW_MS,
+      syncedAt: SYNCED_AT,
+    });
+
+    expect(result.records).toEqual([]);
+    expect(result.authorization.steps?.reason).toBe('map_failed');
+    // `collected` spans BOTH pages by the time mapping runs (mapping is one
+    // bulk call over the whole run's accumulation, not per-page) — so even
+    // 'p1', the boundary after the first individually-successful fetch, is
+    // not a safe rewind target: nothing from p1 OR p2 was ever durably
+    // emitted. Only the anchor that was true before this run started is.
+    expect(result.nextAnchors.anchors.steps).toBe('steps-input');
+    expect(result.nextAnchors.anchors.steps).not.toBe('p1');
+    expect(result.nextAnchors.anchors.steps).not.toBe('p2');
+  });
+
+  it('a mapping failure inside the queryAnchored-throw catch path also rolls back to the INPUT anchor, not the last-successful-page anchor', async () => {
+    stepsMapShouldFail = true;
+    const { client } = makeClient({
+      steps: {
+        auth: 'authorized',
+        pages: [
+          { samples: [quantitySample(1, '2026-08-01T00:00:00.000Z')], newAnchor: 'p1', done: false },
+          new Error('native bridge timeout'),
+        ],
+      },
+    });
+
+    const result = await runAppleHealthSync({
+      client,
+      userId: USER_ID,
+      types: ['steps'],
+      anchors: anchorState({ steps: 'steps-input' }),
+      nowMs: NOW_MS,
+      syncedAt: SYNCED_AT,
+    });
+
+    expect(result.records).toEqual([]);
+    expect(result.authorization.steps?.status).toBe('error');
+    expect(result.authorization.steps?.reason).toBe('map_failed');
+    // Previously this branch discarded the mapping error entirely and
+    // returned `anchor` (p1) alongside the query-throw's generic message —
+    // silently advancing past data that was never actually emitted.
+    expect(result.nextAnchors.anchors.steps).toBe('steps-input');
+    expect(result.nextAnchors.anchors.steps).not.toBe('p1');
+  });
+
+  it('a mapping failure at the maxPagesPerType safety cap also rolls back to the INPUT anchor', async () => {
+    stepsMapShouldFail = true;
+    const { client } = makeClient({
+      steps: {
+        auth: 'authorized',
+        pages: [
+          { samples: [quantitySample(1, '2026-08-01T00:00:00.000Z')], newAnchor: 'p1', done: false },
+          { samples: [quantitySample(2, '2026-08-01T00:00:00.000Z')], newAnchor: 'p2', done: false },
+        ],
+      },
+    });
+
+    const result = await runAppleHealthSync({
+      client,
+      userId: USER_ID,
+      types: ['steps'],
+      anchors: anchorState({ steps: 'steps-input' }),
+      nowMs: NOW_MS,
+      syncedAt: SYNCED_AT,
+      maxPagesPerType: 2,
+    });
+
+    expect(result.records).toEqual([]);
+    expect(result.authorization.steps?.reason).toBe('map_failed');
+    expect(result.nextAnchors.anchors.steps).toBe('steps-input');
+    expect(result.nextAnchors.anchors.steps).not.toBe('p2');
+  });
+
+  it('retry of the same (unmoved) anchor after a map failure succeeds once the mapper condition clears — proving the failure was honestly retryable', async () => {
+    stepsMapShouldFail = true;
+    // The real HealthKit client re-issues the SAME page for the SAME
+    // unmoved anchor on retry — two identical scripted pages model that
+    // honestly (the shared test double's cursor advances per call, not per
+    // anchor, so this is the correct way to script "retry re-fetches").
+    const page = { samples: [quantitySample(10, '2026-08-01T00:00:00.000Z')], newAnchor: 'steps-final', done: true };
+    const { client, calls } = makeClient({
+      steps: { auth: 'authorized', pages: [page, page] },
+    });
+
+    const firstRun = await runAppleHealthSync({
+      client,
+      userId: USER_ID,
+      types: ['steps'],
+      anchors: anchorState({ steps: 'steps-input' }),
+      nowMs: NOW_MS,
+      syncedAt: SYNCED_AT,
+    });
+    expect(firstRun.authorization.steps?.reason).toBe('map_failed');
+    expect(firstRun.nextAnchors.anchors.steps).toBe('steps-input');
+
+    // Simulate the underlying mapper defect clearing (e.g. a fixed deploy)
+    // and the caller retrying with exactly the anchor the failed run handed
+    // back — per the ATOMIC-COMMIT contract, that is the honest, safe thing
+    // for a caller to persist and replay.
+    stepsMapShouldFail = false;
+    const retryRun = await runAppleHealthSync({
+      client,
+      userId: USER_ID,
+      types: ['steps'],
+      anchors: firstRun.nextAnchors,
+      nowMs: NOW_MS,
+      syncedAt: SYNCED_AT,
+    });
+
+    expect(retryRun.authorization.steps).toEqual({ status: 'synced' });
+    expect(retryRun.records).toHaveLength(1);
+    expect(retryRun.nextAnchors.anchors.steps).toBe('steps-final');
+    // Both the failed run and the retry queried from the SAME anchor —
+    // confirming the failed run truly never advanced past it.
+    expect(calls.query.map((c) => c.anchor)).toEqual(['steps-input', 'steps-input']);
+  });
+});
+
+// ─── Dedup-key idempotency: why re-emission on retry is safe ─────────────────
+// The map-failure fix above relies on retries safely re-fetching and
+// re-emitting the same samples. That is only actually safe because the
+// mappers already produce a deterministic, content-derived
+// `deduplicationKey` — this suite proves that property directly rather than
+// assuming it.
+
+describe('dedup-key idempotency (why retry re-emission is safe)', () => {
+  it('two identical sync runs over the same input produce records with identical deduplicationKeys', async () => {
+    const buildClient = () =>
+      makeClient({
+        steps: {
+          auth: 'authorized',
+          pages: [
+            {
+              samples: [quantitySample(500, '2026-08-01T00:00:00.000Z')],
+              newAnchor: 'steps-anchor-1',
+              done: true,
+            },
+          ],
+        },
+      });
+
+    const params = (client: HealthKitQueryClient) => ({
+      client,
+      userId: USER_ID,
+      types: ['steps'] as AppleHealthSampleType[],
+      anchors: anchorState({ steps: 'steps-input' }),
+      nowMs: NOW_MS,
+      syncedAt: SYNCED_AT,
+    });
+
+    const run1 = await runAppleHealthSync(params(buildClient().client));
+    const run2 = await runAppleHealthSync(params(buildClient().client));
+
+    expect(run1.records).toHaveLength(1);
+    expect(run2.records).toHaveLength(1);
+    expect(run1.records[0].deduplicationKey).toBe(run2.records[0].deduplicationKey);
+    expect(run1.records[0].deduplicationKey).toBeTruthy();
+  });
+
+  it('the same raw sample appearing twice within one run (e.g. an overlapping anchor boundary) maps to two records sharing one deduplicationKey', async () => {
+    const duplicateSample = quantitySample(500, '2026-08-01T00:00:00.000Z');
+    const { client } = makeClient({
+      steps: {
+        auth: 'authorized',
+        pages: [
+          { samples: [duplicateSample], newAnchor: 'p1', done: false },
+          { samples: [duplicateSample], newAnchor: 'p2', done: true },
+        ],
+      },
+    });
+
+    const result = await runAppleHealthSync({
+      client,
+      userId: USER_ID,
+      types: ['steps'],
+      anchors: null,
+      nowMs: NOW_MS,
+      syncedAt: SYNCED_AT,
+    });
+
+    // This engine does not itself deduplicate (that is health-core's
+    // dedupe.ts, downstream of this module) — but the KEY it produces for
+    // both copies must be identical, which is what makes a downstream
+    // upsert-by-key idempotent instead of silently double-counting.
+    expect(result.records).toHaveLength(2);
+    expect(result.records[0].deduplicationKey).toBe(result.records[1].deduplicationKey);
+    expect(result.records[0].deduplicationKey).toBeTruthy();
   });
 });
 

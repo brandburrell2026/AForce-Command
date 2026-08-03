@@ -298,6 +298,18 @@ export type AppleHealthTypeSyncStatus =
   | 'authorization_revoked'
   | 'error';
 
+/**
+ * Machine-readable sub-reason for a `'error'` status, for callers that need
+ * to branch on WHY a type failed rather than string-matching `message`.
+ * `'map_failed'`: every sample for this type's anchor span was fetched, but
+ * normalizing/mapping the collected batch (via the off-limits, consume-only
+ * mappers in `./appleHealthRecords`) threw. This is always retryable — the
+ * anchor is deliberately left unmoved (see `syncOneType`'s map-failure
+ * handling) so a later run with a fixed mapper, or the same input, safely
+ * re-fetches and re-attempts the exact same span.
+ */
+export type AppleHealthTypeErrorReason = 'map_failed';
+
 export interface AppleHealthTypeResult {
   status: AppleHealthTypeSyncStatus;
   /**
@@ -305,6 +317,8 @@ export interface AppleHealthTypeResult {
    * from the thrown error — never any sample payload or user health data.
    */
   message?: string;
+  /** Present only for `'error'` — see `AppleHealthTypeErrorReason`. */
+  reason?: AppleHealthTypeErrorReason;
   /**
    * `true` only when status is `'synced'` AND the `maxPagesPerType` safety
    * cap was hit before the client reported `done: true` — there is more
@@ -513,6 +527,42 @@ interface SyncOneTypeOutcome {
 }
 
 /**
+ * ATOMIC-COMMIT correction (see `RunAppleHealthSyncResult.nextAnchors` doc):
+ * an anchor may be committed only after EVERY record for that anchor's span
+ * has been read + mapped + normalized + accepted. `collected` spans the
+ * ENTIRE run for this type — potentially many successful page fetches — so
+ * when the bulk mapping call over `collected` throws, no record from ANY of
+ * those pages was actually emitted. Persisting `anchor` (the last page's
+ * boundary, tracked separately from mapping) here would tell the caller
+ * "everything up to here was delivered" when NOTHING from this run was.
+ * That is the exact permanent-data-loss shape the file header's
+ * ATOMIC-COMMIT OBLIGATION warns about. Rewinding one page is not enough —
+ * the only anchor value that was ever true before this run started is
+ * `inputAnchor`, so that is the only anchor safe to hand back.
+ *
+ * The failure is reported as a retryable `'error'` with a machine-readable
+ * `reason: 'map_failed'`. The message intentionally carries only the type
+ * and how many pages were fetched before the mapping failure — never the
+ * underlying mapper error text, which comes from off-limits, consume-only
+ * code this module cannot audit for accidentally embedding a sample value.
+ */
+function mapFailedOutcome(
+  type: AppleHealthSampleType,
+  inputAnchor: AppleHealthAnchorToken | null,
+  pagesFetched: number,
+): SyncOneTypeOutcome {
+  return {
+    records: [],
+    newAnchor: inputAnchor,
+    result: {
+      status: 'error',
+      reason: 'map_failed',
+      message: `mapping failed for '${type}' after ${pagesFetched} page(s) fetched this run; anchor not advanced, safe to retry`,
+    },
+  };
+}
+
+/**
  * Drives ONE type's anchored pagination to completion (or to a stopping
  * point: not-authorized, an error, a revocation, or the page-count safety
  * cap). Never throws — every failure mode here is captured as `result`, so
@@ -552,8 +602,13 @@ async function syncOneType(
       // Samples from pages that succeeded BEFORE this failure are still
       // real and still mapped — see file header, "PER-TYPE ISOLATION". The
       // anchor persisted is `anchor` (the last successful page's), never
-      // advanced past the failure.
+      // advanced past the failure — UNLESS mapping those already-fetched
+      // samples ALSO fails, in which case nothing was actually emitted and
+      // even `anchor` is unsafe to persist (see `mapFailedOutcome`).
       const mapped = safeMapSamplesForType(type, collected, mapOpts);
+      if (mapped.error) {
+        return mapFailedOutcome(type, inputAnchor, pageCount);
+      }
       if (err instanceof AppleHealthKitAuthorizationRevokedError) {
         return {
           records: mapped.records,
@@ -586,7 +641,11 @@ async function syncOneType(
     if (page.done) {
       const mapped = safeMapSamplesForType(type, collected, mapOpts);
       if (mapped.error) {
-        return { records: mapped.records, newAnchor: anchor, result: { status: 'error', message: mapped.error } };
+        // `anchor` was already advanced to this final page's `newAnchor`
+        // above — a FULLY ADVANCED anchor with a mapping failure is exactly
+        // the permanent-data-loss shape this fix corrects. See
+        // `mapFailedOutcome`.
+        return mapFailedOutcome(type, inputAnchor, pageCount + 1);
       }
       return { records: mapped.records, newAnchor: anchor, result: { status: 'synced' } };
     }
@@ -598,7 +657,10 @@ async function syncOneType(
   // backlog as an error.
   const mapped = safeMapSamplesForType(type, collected, mapOpts);
   if (mapped.error) {
-    return { records: mapped.records, newAnchor: anchor, result: { status: 'error', message: mapped.error } };
+    // Same correction as the `page.done` branch above: `anchor` reflects
+    // `maxPagesPerType` pages of fetch progress, but none of it was ever
+    // emitted, so only `inputAnchor` is safe to persist.
+    return mapFailedOutcome(type, inputAnchor, opts.maxPagesPerType);
   }
   return {
     records: mapped.records,
