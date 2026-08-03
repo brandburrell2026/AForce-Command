@@ -40,6 +40,13 @@ export const NATIVE_ORIGIN_MAP: Readonly<Record<string, HealthProviderId>> = {
   'com.ouraring.oura': 'oura',
   'com.garmin.connect.mobile': 'garmin',
   'com.whoop.iphone': 'whoop',
+  // DEAD-PLATFORM ENTRY (documentation only — behavior deliberately unchanged):
+  // AForce has no iOS Samsung ingest path. HEALTH_PROVIDER_CAPABILITIES
+  // .samsung_health declares platforms: ['android'] / method 'via_health_connect',
+  // so Samsung reaches us only as an upstream origin through Health Connect —
+  // the Android package below. This iOS bundle id is retained verbatim (removing
+  // it would be a behavior change) but must not be read as evidence that a
+  // Samsung-over-HealthKit path exists or is supported.
   'com.samsung.shealth': 'samsung_health',
   'com.strava.stravaride': 'strava',
   // Android package names
@@ -53,6 +60,112 @@ export const NATIVE_ORIGIN_MAP: Readonly<Record<string, HealthProviderId>> = {
 export function resolveNativeOrigin(nativeOrigin: string | undefined): HealthOriginId {
   if (!nativeOrigin) return 'unknown_device_app';
   return NATIVE_ORIGIN_MAP[nativeOrigin] ?? 'unknown_device_app';
+}
+
+// ─── Aggregator first-party origins ──────────────────────────────────────────
+
+/**
+ * The two platform aggregators. Both re-export records authored by other apps,
+ * so for both of them "who delivered it" ≠ "who measured it", and the native
+ * origin string is the only evidence of hop 0.
+ */
+export type HealthAggregatorId = Extract<HealthProviderId, 'apple_health' | 'google_health'>;
+
+/**
+ * Native origin identifiers that mean "this aggregator is itself the origin" —
+ * platform-native data, not a re-export of some other app's records.
+ *
+ * MATCH POLICY IS PER-PLATFORM AND DELIBERATE (applied by
+ * resolveOriginForAggregator; these are plain strings, the rule lives in code):
+ *
+ *   apple_health — EXACT **or DOTTED-PREFIX** (`<entry>.` + suffix).
+ *     'com.apple.Health' is the Health app's own bundle id. 'com.apple.health'
+ *     is additionally the stem HealthKit uses for device-sourced samples, which
+ *     surface as 'com.apple.health.<DEVICE-UUID>' (iPhone / Apple Watch sensor
+ *     data with no third-party author). Exact-only would misfile every one of
+ *     those as unknown_device_app. The prefix limb is safe here because Apple
+ *     code signing makes the 'com.apple.*' namespace unforgeable.
+ *
+ *   google_health — EXACT ONLY.
+ *     Health Connect is exactly one package. Android grants no signing
+ *     authority over a namespace: a sideloaded APK cannot claim the exact
+ *     package name of an installed Health Connect, but it CAN claim a dotted
+ *     sub-name such as 'com.google.android.apps.healthdata.x'. Prefix matching
+ *     would therefore be an impersonation vector, so it is refused.
+ *
+ * Matching is CASE-SENSITIVE on purpose. Widening the first-party matcher is
+ * the dangerous direction — a false first-party claim launders unattributed
+ * data as platform-native — so both Apple spellings are listed explicitly
+ * rather than case-folded.
+ *
+ * Each aggregator's list is consulted only for ITSELF: an Apple bundle id
+ * arriving over Health Connect is not first-party HC, and vice versa.
+ */
+export const AGGREGATOR_FIRST_PARTY_ORIGINS: Readonly<
+  Record<HealthAggregatorId, readonly string[]>
+> = {
+  apple_health: ['com.apple.health', 'com.apple.Health'],
+  google_health: ['com.google.android.apps.healthdata'],
+};
+
+/**
+ * DEFECT GUARD — origins that must NEVER resolve to an aggregator id, checked
+ * before the allow list so a future edit to AGGREGATOR_FIRST_PARTY_ORIGINS
+ * cannot reintroduce the defect.
+ *
+ * 'com.google.android.apps.fitness' (Google Fit) is the case this exists for.
+ * Fit is a separate consumer app that WRITES INTO Health Connect; it is not
+ * Health Connect. Much of what it writes is phone-estimated (accelerometer
+ * step/activity inference), not device-measured. Resolving Fit to
+ * 'google_health' would make those estimates indistinguishable from
+ * HC-native records at every downstream read: SOURCE_PRIORITY ranks
+ * 'google_health' first for steps/active_energy, and dedupeRecords Pass 2
+ * treats an aggregator-origin record differently from a third-party one.
+ * Fit therefore resolves to 'unknown_device_app' with its aggregator hop
+ * intact — kept, attributed, and honestly labelled as an app we do not model.
+ *
+ * Fit is deliberately absent from NATIVE_ORIGIN_MAP as well: mapping it to any
+ * HealthProviderId would assert a provider relationship AForce does not have.
+ */
+export const AGGREGATOR_NEVER_FIRST_PARTY: readonly string[] = [
+  'com.google.android.apps.fitness',
+];
+
+/**
+ * Resolve provenance hop 0 for a record delivered BY an aggregator.
+ *
+ * Policy, in order:
+ *   1. undefined / empty / whitespace-only ⇒ 'unknown_device_app'. Absent
+ *      attribution is absence of evidence, never evidence the platform
+ *      measured it — this path must NEVER return the aggregator id.
+ *   2. Listed in AGGREGATOR_NEVER_FIRST_PARTY ⇒ falls through to the
+ *      third-party map (Google Fit defect guard, above).
+ *   3. Matches THIS aggregator's first-party set (per-platform exact/prefix
+ *      rule) ⇒ the aggregator id.
+ *   4. Otherwise defer to the shipped resolveNativeOrigin ⇒ the mapped upstream
+ *      provider, or 'unknown_device_app'. Upstream origins are never relabelled
+ *      as the aggregator; that is precisely what preserves hop 0.
+ *
+ * Pure and total: same input ⇒ same output, no clocks, no throws. The caller
+ * still records the aggregator as hop 1 with transport 'aggregator_export'.
+ */
+export function resolveOriginForAggregator(
+  aggregator: HealthAggregatorId,
+  nativeOrigin: string | undefined,
+): HealthOriginId {
+  if (!nativeOrigin || nativeOrigin.trim() === '') return 'unknown_device_app';
+
+  if (AGGREGATOR_NEVER_FIRST_PARTY.includes(nativeOrigin)) {
+    return resolveNativeOrigin(nativeOrigin);
+  }
+
+  const allowPrefix = aggregator === 'apple_health';
+  for (const entry of AGGREGATOR_FIRST_PARTY_ORIGINS[aggregator]) {
+    if (nativeOrigin === entry) return aggregator;
+    if (allowPrefix && nativeOrigin.startsWith(`${entry}.`)) return aggregator;
+  }
+
+  return resolveNativeOrigin(nativeOrigin);
 }
 
 /** A record's ORIGIN is hop 0 of its provenance chain. */
