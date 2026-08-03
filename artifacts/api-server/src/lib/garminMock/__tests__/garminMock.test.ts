@@ -18,21 +18,17 @@
  *   (c) `createGarminMockAdapter()` itself is drop-in compatible with the
  *       `GarminSnapshotFetcher` seam `runGarminFetchOnce` already accepts.
  *
- * No `garmin*` file is modified anywhere in this lane — every import './_env';
-import below
+ * No `garmin*` file is modified anywhere in this lane — every import below
  * is read-only against the real, unmodified modules.
  *
- * health-core import note: `@workspace/health-core` is NOT a declared
- * dependency of `@workspace/api-server` (confirmed: no entry in
- * `artifacts/api-server/package.json`, no symlink under
- * `artifacts/api-server/node_modules/@workspace`). Only `artifacts/aforce-os`
- * depends on it today. Adding the dependency is a `package.json` edit,
- * which is out of scope for a test-only lane — so this file imports the
- * frozen contract source by RELATIVE PATH instead of the package
- * specifier. This is a real gap worth flagging for whoever does the G3/1B
- * provider-kit cutover: the api-server will need `@workspace/health-core`
- * added as an actual workspace dependency at that point.
+ * health-core import note: `@workspace/health-core` IS a declared dependency
+ * of `@workspace/api-server` (`artifacts/api-server/package.json` lists
+ * `"@workspace/health-core": "workspace:*"`, and it's symlinked at
+ * `artifacts/api-server/node_modules/@workspace/health-core`) — confirmed by
+ * reading both directly. The import below uses the ordinary package
+ * specifier, not a relative path into `lib/health-core/src`.
  */
+import "./_env";
 import { describe, it, expect } from "vitest";
 import { fetchGarminSnapshot } from "../../garminSnapshot";
 import {
@@ -47,8 +43,6 @@ import {
   GARMIN_SLEEPS_DURATION_FALLBACK_FIXTURE,
   GARMIN_SLEEPS_FIXTURE,
 } from "../garminMock.fixtures";
-// Relative import into the frozen health-core contract source — see the
-// module docstring above for why this isn't `@workspace/health-core`.
 import { normalizeProviderSnapshot } from "@workspace/health-core";
 
 function jsonResponse(body: unknown, status = 200): Response {
@@ -188,5 +182,24 @@ describe("(c) createGarminMockAdapter — GarminSnapshotFetcher seam compatibili
     const normalized = normalizeProviderSnapshot("garmin", blob);
     expect(normalized?.hrvRmssdMs).toBe(41);
     expect(normalized?.stressScore).toBe(37);
+  });
+});
+
+describe("(d) suite runs without DATABASE_URL", () => {
+  it("the `./_env` guard executed (DATABASE_URL is defined) even though this suite never opens a database connection", () => {
+    // This suite's only transitive brush with `@workspace/db` is a
+    // TYPE-only import (`import type { GarminSnapshotFetcher }` in
+    // `garminMockAdapter.ts`, which itself only types-imports from
+    // `garminFetchWorker.ts`) — type-only imports are erased at
+    // compile/transform time and never touch the module at runtime, so
+    // `@workspace/db`'s import-time DATABASE_URL guard is never actually
+    // reached by this file today. `./_env` is imported anyway (as the
+    // first executable import, immediately after this file's module
+    // docstring) so the suite stays green if a future edit adds a real
+    // (non-type-only) `@workspace/db` import — matching the defensive
+    // pattern already used by the WHOOP parity suite's `_env.ts`. This
+    // assertion is the collection-time proof that the guard ran: run the
+    // whole file with `env -u DATABASE_URL` and this still passes.
+    expect(process.env["DATABASE_URL"]).toBeDefined();
   });
 });

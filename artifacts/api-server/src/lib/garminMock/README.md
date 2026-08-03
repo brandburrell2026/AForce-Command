@@ -10,6 +10,17 @@ this directory changes that status.** No `garmin*` file is modified; no
 route or worker is wired to call Garmin for real; `createGarminMockAdapter`
 is not referenced anywhere outside its own tests.
 
+**Production wellness delivery is expected to require a verified
+push/webhook architecture** — Garmin's wellness API is widely documented as
+push-based (Garmin calls a registered webhook with summary payloads), not a
+poll-on-demand model. The dormant pull-style endpoints this directory mocks
+(`fetchGarminSnapshot`'s `/dailies`, `/sleeps`, `/hrv` GETs) are **NOT
+verified** against a live Garmin sandbox or partner portal — they mirror
+only the documented REST shapes. G3 is scoped to partner
+docs-and-credentials work (see the checklist below), not to building the
+real (likely webhook-receiver-shaped) integration; that is separate,
+later work once the delivery model is confirmed.
+
 ## What this proves
 
 That the plumbing between "Garmin sends us data" and "AForce's canonical
@@ -49,34 +60,31 @@ documented (unverified) wire shapes:
 ## Running
 
 ```
-DATABASE_URL="postgresql://user:pass@localhost:5432/db" \
-  npx vitest run artifacts/api-server/src/lib/garminMock
+env -u DATABASE_URL npx vitest run artifacts/api-server/src/lib/garminMock
 ```
 
-(The `DATABASE_URL` requirement is a pre-existing `@workspace/db`
-import-time guard unrelated to Garmin — see the WHOOP parity lane's README
-for the full explanation. This suite makes no real DB or network call.)
+This suite passes with **no `DATABASE_URL` set at all** — confirmed by
+running it that way. `./_env.ts` (imported first, matching the WHOOP parity
+lane's identical guard) defaults `DATABASE_URL` defensively in case a future
+edit adds a real (non-type-only) `@workspace/db` import, but nothing in this
+suite reaches one today: the only brush with `@workspace/db` is a
+**type-only** import (`import type { GarminSnapshotFetcher }` in
+`garminMockAdapter.ts`, itself type-only against `garminFetchWorker.ts`),
+which is erased at compile time and never touches the module at runtime.
+See the "(d) suite runs without DATABASE_URL" test for the collection-time
+proof. This suite makes no real DB or network call either way.
 
-## Known gap: `@workspace/health-core` is not an api-server dependency
+## `@workspace/health-core` dependency
 
-`artifacts/api-server/package.json` does not list `@workspace/health-core`,
-and there is no `@workspace/health-core` symlink under
-`artifacts/api-server/node_modules/@workspace/` (confirmed by listing that
-directory — it holds exactly the six workspace packages api-server actually
-depends on). Only `artifacts/aforce-os` currently depends on health-core.
-
-Because this lane is test/fixture files only (no `package.json` edits), the
-contract test imports the frozen contract source by **relative path**
-(`../../../../../../lib/health-core/src/normalize`) rather than the package
-specifier `@workspace/health-core`. This works today because vitest
-resolves relative imports independent of pnpm's workspace linking, and it
-exercises the identical, unmodified source file. It is not how production
-code should import it.
-
-**Action item for whoever does the real G3/1B provider-kit cutover:** add
-`"@workspace/health-core": "workspace:*"` to
-`artifacts/api-server/package.json`'s dependencies and run `pnpm install`
-before any non-test api-server code imports it via the package specifier.
+`artifacts/api-server/package.json` DOES list
+`"@workspace/health-core": "workspace:*"`, and it IS symlinked at
+`artifacts/api-server/node_modules/@workspace/health-core` — confirmed by
+reading both directly. The contract test imports it via the ordinary
+package specifier (`@workspace/health-core`), not a relative path. (An
+earlier version of this doc and the test file's docstring claimed the
+dependency didn't exist and that the import used a relative path into
+`lib/health-core/src`; neither was true by the time this was checked —
+corrected here.)
 
 ## G3 verification checklist (before requesting/using real Garmin credentials)
 
@@ -107,6 +115,18 @@ are independently verified against a live sandbox response:
       whether HRV is truly RMSSD (assumed here and in
       `HRV_METHOD_BY_PROVIDER.garmin = 'rmssd'` in health-core) or something
       else Garmin-specific.
+- [ ] **`durationInSeconds` (in-bed) vs `sleepTimeInSeconds` (asleep)
+      fallback semantics**: `fetchGarminSnapshot` treats
+      `GARMIN_SLEEPS_DURATION_FALLBACK_FIXTURE`'s `durationInSeconds` as an
+      interchangeable substitute for `sleepTimeInSeconds` when the latter is
+      absent (see the "falls back to durationInSeconds" test in
+      `__tests__/garminMock.test.ts`). These are not necessarily the same
+      quantity — `sleepTimeInSeconds` documents time actually asleep,
+      while `durationInSeconds` more plausibly means total time in bed
+      (asleep + awake), mirroring WHOOP's own in-bed-vs-awake distinction
+      (`whoopSnapshot.ts`). Confirm against the partner portal / a live
+      payload whether this fallback silently overstates sleep hours before
+      trusting it in production.
 - [ ] **Rate limits / backfill window** vs. the `maxBackfillDays: 30`
       declared in `lib/health-core/src/contracts.ts`.
 - [ ] **Partner approval SLA** — `requiresExternalApproval: true` in the
