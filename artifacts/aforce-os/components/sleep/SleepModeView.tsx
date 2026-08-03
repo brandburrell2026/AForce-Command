@@ -32,6 +32,11 @@ export interface SleepModeViewProps {
   onToggleChecklist: (id: ChecklistItemDef['id']) => void;
   onPrimaryCta: () => void;
   onHealthCta: () => void;
+  /**
+   * Reports the checklist card's y-offset (relative to this view's root) so
+   * the container can scroll it into view for the H3 focus-checklist action.
+   */
+  onChecklistLayout?: (y: number) => void;
 }
 
 const CHIP_COLOR: Record<HealthChip, string> = {
@@ -51,9 +56,9 @@ const POSTURE_COLOR: Record<RecoveryPosture, string> = {
 export function SleepModeView({
   view, reducedMotion, editingTarget, targetDraft,
   onBack, onEditTarget, onChangeTargetDraft, onSaveTarget,
-  onToggleChecklist, onPrimaryCta, onHealthCta,
+  onToggleChecklist, onPrimaryCta, onHealthCta, onChecklistLayout,
 }: SleepModeViewProps) {
-  const { header, hero, target, recovery, health, checklist, lifecycle, guidance, mode } = view;
+  const { header, hero, target, recovery, health, checklist, lifecycle, guidance, mode, gatedNotice } = view;
 
   return (
     <View style={styles.root} testID="sleep-mode-view">
@@ -71,6 +76,22 @@ export function SleepModeView({
         </View>
         <View style={styles.iconBtn} />
       </View>
+
+      {/* Kill switch (sleep_mode_enabled) — legacy-banner parity. Rendered FIRST
+          and loud so the gated state is never silent; text carries the meaning
+          (color-independent), amber signals caution. */}
+      {gatedNotice ? (
+        <View
+          style={styles.gatedBanner}
+          testID="sleep-gated-banner"
+          accessible
+          accessibilityRole="alert"
+          accessibilityLabel={gatedNotice}
+        >
+          <Icon name="alert-triangle" size={14} color={af.amber} />
+          <Text style={styles.gatedBannerText}>{gatedNotice}</Text>
+        </View>
+      ) : null}
 
       {mode === 'loading' ? (
         <View style={styles.shell} testID="sleep-loading" accessible accessibilityLabel="Loading sleep mode">
@@ -189,6 +210,7 @@ export function SleepModeView({
       </Card>
 
       {/* 6 · Pre-sleep protocol checklist */}
+      <View onLayout={(e) => onChecklistLayout?.(e.nativeEvent.layout.y)}>
       <Card label="PRE-SLEEP PROTOCOL">
         <View style={styles.progressRow}>
           <Text style={styles.progressLabel}>{checklist.progressLabel}</Text>
@@ -225,6 +247,7 @@ export function SleepModeView({
           <Text style={styles.primaryCtaText}>{checklist.primaryCtaLabel}</Text>
         </Pressable>
       </Card>
+      </View>
 
       {/* 7 · Lifecycle indicator (system-derived — not tabs) */}
       <View style={styles.lifecycle} accessibilityLabel={`Sleep lifecycle, current: ${lifecycle.states[lifecycle.activeIndex]?.label}`}>
@@ -281,6 +304,13 @@ const styles = StyleSheet.create({
   headerTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   headerTitle: { ...afType.eyebrow, color: af.textPrimary, letterSpacing: 3 },
   headerTagline: { ...afType.caption, color: af.textTertiary },
+
+  gatedBanner: {
+    flexDirection: 'row', alignItems: 'center', gap: 10,
+    paddingVertical: 10, paddingHorizontal: 14, borderRadius: 12,
+    borderWidth: 1, borderColor: 'rgba(255,160,30,0.4)', backgroundColor: 'rgba(255,160,30,0.08)',
+  },
+  gatedBannerText: { ...afType.eyebrow, fontSize: 10, color: af.amber, flex: 1 },
 
   shell: { padding: 16, borderRadius: afLayout.radiusCard, borderWidth: 1, borderColor: af.border, backgroundColor: af.surface, flexDirection: 'row', alignItems: 'center', gap: 10 },
   shellError: { borderColor: af.redHairline, backgroundColor: af.redDim },

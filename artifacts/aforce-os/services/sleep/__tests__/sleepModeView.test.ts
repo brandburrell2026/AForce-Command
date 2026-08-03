@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
-  resolveSleepModeView, CHECKLIST_DEFS, SLEEP_PHASES,
+  resolveSleepModeView, CHECKLIST_DEFS, SLEEP_PHASES, SLEEP_GATED_NOTICE,
+  localDayKey, shouldFoldSleepAvg, foldSevenNightAvg, primaryCtaAction,
   type SleepModeInput,
 } from '../sleepModeView';
 import { SLEEP_FIXTURES } from '../sleepModeFixtures';
@@ -167,5 +168,64 @@ describe('mode shells + guidance + compliance', () => {
     const v = r('idle');
     expect(v.header.title).toBe('SLEEP MODE');
     expect(v.header.tagline).toBe('Recover. Rehydrate. Reset.');
+  });
+});
+
+describe('H1 — kill switch (sleep_mode_enabled) keeps its semantics', () => {
+  it('enabled (or omitted, for legacy callers) → no gated notice', () => {
+    expect(r('idle').gatedNotice).toBeNull(); // fixtures omit the field
+    expect(
+      resolveSleepModeView({ ...SLEEP_FIXTURES['idle'], sleepModeEnabled: true }).gatedNotice,
+    ).toBeNull();
+  });
+  it('disabled → the exact legacy internal-preview copy, never silent', () => {
+    const v = resolveSleepModeView({ ...SLEEP_FIXTURES['idle'], sleepModeEnabled: false });
+    expect(v.gatedNotice).toBe(SLEEP_GATED_NOTICE);
+    expect(v.gatedNotice).toBe('INTERNAL PREVIEW — sleep_mode_enabled is off for the public build.');
+  });
+});
+
+describe('H2 — once-per-calendar-day EMA fold guard', () => {
+  const TODAY = '2026-08-03';
+  it('first fold of the day (no stored guard) → folds', () => {
+    expect(shouldFoldSleepAvg(null, TODAY, 7.5)).toBe(true);
+    expect(shouldFoldSleepAvg(undefined, TODAY, 7.5)).toBe(true);
+  });
+  it('remount on the same day (guard === today) → does NOT fold again', () => {
+    expect(shouldFoldSleepAvg(TODAY, TODAY, 7.5)).toBe(false);
+  });
+  it('next day (stale guard) → folds', () => {
+    expect(shouldFoldSleepAvg('2026-08-02', '2026-08-04', 7.5)).toBe(true);
+  });
+  it('malformed stored guard → treated as absent (folds once), never a permanent skip', () => {
+    for (const bad of ['garbage', '2026-8-3', '08-03-2026', '', '2026-08-03T00:00:00Z']) {
+      expect(shouldFoldSleepAvg(bad, TODAY, 7.5), JSON.stringify(bad)).toBe(true);
+    }
+  });
+  it('missing sleepLastNight → never folds, regardless of guard', () => {
+    expect(shouldFoldSleepAvg(null, TODAY, null)).toBe(false);
+    expect(shouldFoldSleepAvg('2026-08-02', TODAY, null)).toBe(false);
+    expect(shouldFoldSleepAvg(null, TODAY, Number.NaN)).toBe(false);
+  });
+  it('foldSevenNightAvg preserves the exact existing EMA math (alpha 1/7)', () => {
+    expect(foldSevenNightAvg(null, 7.5)).toBe(7.5); // first value seeds the average
+    expect(foldSevenNightAvg(7.0, 7.7)).toBeCloseTo(7.0 + (7.7 - 7.0) / 7, 10);
+    expect(foldSevenNightAvg(Number.NaN, 6.5)).toBe(6.5); // corrupt stored avg → reseed
+  });
+  it('localDayKey is a stable local YYYY-MM-DD', () => {
+    // Local-time constructor keeps this deterministic across timezones.
+    expect(localDayKey(new Date(2026, 7, 3, 23, 59).getTime())).toBe('2026-08-03');
+    expect(localDayKey(new Date(2026, 0, 9, 0, 0).getTime())).toBe('2026-01-09');
+  });
+});
+
+describe('H3 — primary CTA action semantics', () => {
+  it('hydrate not yet done → completes the primary item', () => {
+    expect(primaryCtaAction([])).toBe('complete_hydrate');
+    expect(primaryCtaAction(['screens_down', 'breathe'])).toBe('complete_hydrate');
+  });
+  it('hydrate already done → focuses the checklist instead', () => {
+    expect(primaryCtaAction(['hydrate'])).toBe('focus_checklist');
+    expect(primaryCtaAction(['hydrate', 'screens_down', 'dim_lights', 'breathe', 'cool_room'])).toBe('focus_checklist');
   });
 });

@@ -25,8 +25,17 @@ let host: HTMLElement;
 let root: Root;
 const noop = () => {};
 
-function render(fixtureKey: keyof typeof SLEEP_FIXTURES, over: { reducedMotion?: boolean; editing?: boolean } = {}) {
-  const view = resolveSleepModeView(SLEEP_FIXTURES[fixtureKey]);
+function render(
+  fixtureKey: keyof typeof SLEEP_FIXTURES,
+  over: {
+    reducedMotion?: boolean; editing?: boolean; sleepModeEnabled?: boolean;
+    onPrimaryCta?: () => void; onToggleChecklist?: (id: string) => void;
+  } = {},
+) {
+  const input = over.sleepModeEnabled === undefined
+    ? SLEEP_FIXTURES[fixtureKey]
+    : { ...SLEEP_FIXTURES[fixtureKey], sleepModeEnabled: over.sleepModeEnabled };
+  const view = resolveSleepModeView(input);
   root = createRoot(host);
   flushSync(() =>
     root.render(
@@ -36,7 +45,9 @@ function render(fixtureKey: keyof typeof SLEEP_FIXTURES, over: { reducedMotion?:
         editingTarget: over.editing ?? false,
         targetDraft: '11:00 PM',
         onBack: noop, onEditTarget: noop, onChangeTargetDraft: noop, onSaveTarget: noop,
-        onToggleChecklist: noop, onPrimaryCta: noop, onHealthCta: noop,
+        onToggleChecklist: over.onToggleChecklist ?? noop,
+        onPrimaryCta: over.onPrimaryCta ?? noop,
+        onHealthCta: noop,
       }),
     ),
   );
@@ -152,5 +163,42 @@ describe('guidance is concise + non-diagnostic', () => {
     render('idle');
     expect(host.textContent).toContain('ABOUT SLEEP MODE');
     expect(host.textContent).toMatch(/does not diagnose or treat/i);
+  });
+});
+
+describe('H1 — kill-switch banner (sleep_mode_enabled)', () => {
+  it('disabled → loud internal-preview banner with role=alert and legacy copy', () => {
+    render('idle', { sleepModeEnabled: false });
+    const banner = q('[data-testid="sleep-gated-banner"]');
+    expect(banner).not.toBeNull();
+    expect(banner?.getAttribute('role')).toBe('alert');
+    expect(host.textContent).toContain('INTERNAL PREVIEW — sleep_mode_enabled is off for the public build.');
+    // Not silent AND not a dead end: the normal experience still renders below
+    // the banner (legacy parity — internal QA can still exercise the screen).
+    expect(q('[data-testid="sleep-primary-cta"]')).not.toBeNull();
+  });
+  it('enabled → no banner', () => {
+    render('idle', { sleepModeEnabled: true });
+    expect(q('[data-testid="sleep-gated-banner"]')).toBeNull();
+  });
+  it('omitted (legacy caller shape) → no banner', () => {
+    render('idle');
+    expect(q('[data-testid="sleep-gated-banner"]')).toBeNull();
+  });
+});
+
+describe('H3 — CTA + checklist presses reach their handlers', () => {
+  it('pressing the primary CTA invokes onPrimaryCta exactly once', () => {
+    const spy = vi.fn();
+    render('pre-sleep-ready', { onPrimaryCta: spy });
+    (q('[data-testid="sleep-primary-cta"]') as HTMLElement).click();
+    expect(spy).toHaveBeenCalledTimes(1);
+  });
+  it('pressing a checklist item invokes onToggleChecklist with its id', () => {
+    const spy = vi.fn();
+    render('pre-sleep-ready', { onToggleChecklist: spy });
+    (q('[data-testid="sleep-check-breathe"]') as HTMLElement).click();
+    expect(spy).toHaveBeenCalledTimes(1);
+    expect(spy).toHaveBeenCalledWith('breathe');
   });
 });
