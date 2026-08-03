@@ -25,10 +25,19 @@
  * re-append or churn the store). Until ≥2 distinct days with a baseline
  * spanning the window exist, the trends honestly report "collecting…" rather
  * than a fabricated slope.
+ *
+ * `health_canonical_consumers` (W3.2): when ON, sleep hours + workout
+ * minutes are read via `services/health/healthSignalsFromStore` (the frozen
+ * `resolveHealthSignals` contract) instead of the legacy freshest-wins
+ * selectors; OFF keeps behavior byte-identical to before this flag existed.
+ * `strain` has no canonical general equivalent (WHOOP strain is
+ * provider-attributed only) and stays on the legacy selector either way —
+ * see `healthSignalsFromStore`'s doc and `useMetabolicReadiness`, which
+ * documents the same call.
  */
 import React from 'react';
 
-import { useEngineSlice, useUserSlice, useProfileIdentitySlice } from '@/store/slices';
+import { useEngineSlice, useUserSlice, useProfileIdentitySlice, useFlagsSlice } from '@/store/slices';
 import {
   deriveRecoverySnapshot,
   recoveryInputsFromState,
@@ -38,6 +47,10 @@ import {
   selectMaxWorkoutMinutes,
   selectMaxStrain,
 } from '@/services/metabolicReadinessService';
+import {
+  healthSignalsFromStore,
+  canonicalReadinessSignals,
+} from '@/services/health/healthSignalsFromStore';
 import { ageFromBirthYear } from '@/utils/profileIdentity';
 import { getAnalyticsMetrics } from '@/services/analytics';
 import { emitPerformanceAgeSnapshot } from '@/analytics/event_dispatcher';
@@ -69,6 +82,7 @@ export function usePerformanceAge(): PerformanceAgeSnapshot {
   const engine = useEngineSlice();
   const profile = useProfileIdentitySlice();
   const ledger = useCommandLedgerStore();
+  const flags = useFlagsSlice();
 
   const [activeDays, setActiveDays] = React.useState(0);
   const [complianceStreak, setComplianceStreak] = React.useState<number | null>(null);
@@ -95,21 +109,36 @@ export function usePerformanceAge(): PerformanceAgeSnapshot {
     const recovery = deriveRecoverySnapshot(
       recoveryInputsFromState(user, engine),
     ).recovery;
-    const sleep = selectFreshestSleepHours(user.biometrics);
+    const nowMs = Date.now();
+
+    let sleepHours: number | null;
+    let workoutMinutes: number | null;
+    if (flags.health_canonical_consumers) {
+      const canonical = canonicalReadinessSignals(
+        healthSignalsFromStore({ biometrics: user.biometrics, nowMs }),
+      );
+      sleepHours = canonical.sleepHours;
+      workoutMinutes = canonical.workoutMinutes;
+    } else {
+      const sleep = selectFreshestSleepHours(user.biometrics);
+      sleepHours = sleep ? sleep.hours : null;
+      workoutMinutes = selectMaxWorkoutMinutes(user.biometrics);
+    }
 
     return derivePerformanceAge({
       actualAge: ageFromBirthYear(profile.birthYear),
       recoveryCapacity: typeof recovery === 'number' ? recovery : null,
-      sleepHours: sleep ? sleep.hours : null,
-      workoutMinutes: selectMaxWorkoutMinutes(user.biometrics),
+      sleepHours,
+      workoutMinutes,
+      // No canonical general equivalent — always legacy (see file header).
       strain: selectMaxStrain(user.biometrics),
       activityLevel: profile.activityLevel,
       complianceStreak,
       activeDays,
       dailySnapshots,
-      nowMs: Date.now(),
+      nowMs,
     });
-  }, [user, engine, profile, activeDays, complianceStreak, dailySnapshots]);
+  }, [user, engine, profile, activeDays, complianceStreak, dailySnapshots, flags.health_canonical_consumers]);
 
   // Record one snapshot per UTC day (advisory-only; never mutates score). Three
   // guards keep this idempotent + loop-safe so the first finite value of the day
