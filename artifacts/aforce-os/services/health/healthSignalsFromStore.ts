@@ -63,6 +63,7 @@ import {
   type HealthSignals,
   type ResolveHealthSignalsInput,
 } from './signalResolution';
+import { emits } from './readinessSignals';
 
 export interface HealthSignalsFromStoreInput {
   /** `UserState.biometrics` — already includes the Apple Health overlay; see file header. */
@@ -114,38 +115,66 @@ export function healthSignalsFromStore(input: HealthSignalsFromStoreInput): Heal
  * hooks keep reading `selectMaxStrain(biometrics)` (the legacy selector)
  * regardless of `health_canonical_consumers` — documented at each call site.
  */
+/**
+ * FRESHNESS GATE (governance fix, W3.5 follow-up): every field below emits
+ * only when the winning reading's §53 rating is `fresh` or `aging` — the
+ * SAME `EMITTING_FRESHNESS` policy `readinessSignals.ts`'s `toReadinessBiometrics`
+ * uses, imported from there rather than redefined here (one constant, one
+ * policy; see that file's export). This matters because the `sleep` family
+ * has no `expireAfterMs` (config/hydroStateModel.ts §53 — "never expired"):
+ * `signals.sleepDuration.available` alone stays `true` forever, even for a
+ * reading that is months stale, so gating on `available` alone (the prior
+ * behavior here) let arbitrarily old sleep data score as if it were current.
+ * Gating on freshness here closes that gap without touching `available`'s
+ * own semantics or anything in `resolveHealthSignals`.
+ */
 export interface CanonicalReadinessSignals {
-  /** Winning source's total sleep hours, or null when unavailable/expired. */
+  /** Winning source's total sleep hours, or null when unavailable OR stale/expired. */
   sleepHours: number | null;
   /**
    * Winning source's HRV in ms — SDNN ONLY. BLOCKER fix (batch review):
    * metabolicReadinessService's normalization curve is SDNN-anchored; an
    * RMSSD value scored on it fabricates readiness. Non-SDNN methods project
    * null — which is also exact legacy parity (legacy read hrvSdnn only).
+   * Also null when unavailable or stale/expired.
    */
   hrvMs: number | null;
-  /** The winning reading's actual statistic, for callers that can handle both. */
+  /**
+   * The winning reading's actual statistic, for callers that can handle both.
+   * Surfaced even when `hrvMs` is null for the SDNN-only reason above, but
+   * null (like every other field) when the reading is stale/expired — a
+   * method annotation on a signal we've otherwise excluded would be a leak,
+   * not a courtesy.
+   */
   hrvMethod: 'rmssd' | 'sdnn' | null;
   /**
-   * Total workout minutes from the ONE winning source's entries for today.
-   * Summing multiple entries from a single already-selected origin is the
-   * same "sum within one winning provider's own samples" rule `resolveSteps`
-   * uses — never a sum/average ACROSS competing providers.
+   * Total workout minutes from the ONE winning source's entries for today, or
+   * null when unavailable or stale/expired. Summing multiple entries from a
+   * single already-selected origin is the same "sum within one winning
+   * provider's own samples" rule `resolveSteps` uses — never a sum/average
+   * ACROSS competing providers. Non-finite durations (NaN) are skipped rather
+   * than propagating a NaN total — same guard as `toReadinessBiometrics`.
    */
   workoutMinutes: number | null;
 }
 
 export function canonicalReadinessSignals(signals: HealthSignals): CanonicalReadinessSignals {
-  const sleepHours = signals.sleepDuration.available
-    ? signals.sleepDuration.value.totalSleepHours
-    : null;
-  const hrvMethod = signals.hrv.available ? signals.hrv.value.method : null;
+  const sleep = signals.sleepDuration;
+  const sleepHours = sleep.available && emits(sleep.freshness) ? sleep.value.totalSleepHours : null;
+
+  const hrv = signals.hrv;
+  const hrvMethod = hrv.available && emits(hrv.freshness) ? hrv.value.method : null;
   const hrvMs =
-    signals.hrv.available && signals.hrv.value.method === 'sdnn'
-      ? signals.hrv.value.valueMs
+    hrv.available && emits(hrv.freshness) && hrv.value.method === 'sdnn' ? hrv.value.valueMs : null;
+
+  const workouts = signals.workouts;
+  const workoutMinutes =
+    workouts.available && emits(workouts.freshness)
+      ? workouts.value.reduce(
+          (sum, entry) => (Number.isFinite(entry.durationMin) ? sum + entry.durationMin : sum),
+          0,
+        )
       : null;
-  const workoutMinutes = signals.workouts.available
-    ? signals.workouts.value.reduce((sum, entry) => sum + entry.durationMin, 0)
-    : null;
+
   return { sleepHours, hrvMs, hrvMethod, workoutMinutes };
 }
