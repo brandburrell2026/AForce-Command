@@ -26,6 +26,9 @@ import {
   SLEEP_OVERLAP_AND_CROSS_ORIGIN,
   PARTIAL_PERMISSIONS,
   NO_DATA,
+  PROVIDER_SCORE_DIRECT,
+  PROVIDER_SCORE_AGGREGATOR_PLUS_DIRECT,
+  PROVIDER_SCORE_FORGED_DIRECT,
 } from '../signalResolutionFixtures';
 
 function expectAvailable<T, U extends string>(signal: HealthSignal<T, U>): asserts signal is Extract<
@@ -242,6 +245,40 @@ describe('Score-Protection', () => {
     for (const entry of out.providerScores) {
       expect(entry.kind).toMatch(/^(whoop|oura|garmin|strava)_/);
     }
+  });
+});
+
+describe('13. Provider-score origin attribution + capability guard (#492 follow-up)', () => {
+  it('(c) direct path is byte-identical to before the fix', () => {
+    const out = resolveHealthSignals(PROVIDER_SCORE_DIRECT);
+    expect(out.providerScores).toEqual([
+      expect.objectContaining({
+        kind: 'whoop_recovery',
+        provider: 'whoop',
+        value: 72,
+      }),
+    ]);
+    expect(out.providerScores).toHaveLength(1);
+  });
+
+  it('(a) an aggregator-delivered provider_score attributes to its TRUE origin, never the transport', () => {
+    const out = resolveHealthSignals(PROVIDER_SCORE_AGGREGATOR_PLUS_DIRECT);
+    for (const entry of out.providerScores) {
+      expect(entry.provider).not.toBe('apple_health');
+    }
+  });
+
+  it('(a) the direct record and its aggregator-relayed copy collapse to a SINGLE entry, never doubled', () => {
+    const out = resolveHealthSignals(PROVIDER_SCORE_AGGREGATOR_PLUS_DIRECT);
+    const ouraReadiness = out.providerScores.filter((e) => e.kind === 'oura_readiness');
+    expect(ouraReadiness).toHaveLength(1);
+    expect(ouraReadiness[0].provider).toBe('oura');
+    expect(ouraReadiness[0].value).toBe(74);
+  });
+
+  it('(b) a contract-violating (forged) provider_score is DROPPED, never re-homed to the transport provider', () => {
+    const out = resolveHealthSignals(PROVIDER_SCORE_FORGED_DIRECT);
+    expect(out.providerScores).toEqual([]);
   });
 });
 

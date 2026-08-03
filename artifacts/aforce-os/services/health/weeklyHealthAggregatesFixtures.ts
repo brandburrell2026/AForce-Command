@@ -353,14 +353,24 @@ export const SAME_DAY_DISTINCT_PROVIDER_SCORE_RECORDS: CanonicalHealthRecord[] =
 // ─── 8c. Duplicate copies of the SAME provider's score, SAME day ───────────
 // Two survivors of the SAME (provider, kind) pair land on the SAME calendar
 // day — e.g. a retried sync (fresh externalId, so record-level Pass-1 key
-// dedup can't catch it) or an aggregator copy of a provider WITHOUT an active
-// direct connection (so Pass-2's aggregator-copy drop doesn't fire either).
-// `provider_score` records are points (no start/end window), so Pass-3's
-// overlap-based same-origin collapse never applies to them regardless of
-// day — see health-core/dedupe.ts windowOverlapFraction. The WEEKLY aggregate
-// is the one place left that can enforce "one real score per provider+kind+
-// day": it must collapse these to the single freshest-OBSERVED reading, never
-// average both into that day's contribution.
+// dedup can't catch it). `provider_score` records are points (no start/end
+// window), so Pass-3's overlap-based same-origin collapse never applies to
+// them regardless of day — see health-core/dedupe.ts windowOverlapFraction.
+// The WEEKLY aggregate is the one place left that can enforce "one real
+// score per provider+kind+day" for THIS case: it must collapse these to the
+// single freshest-OBSERVED reading, never average both into that day's
+// contribution.
+//
+// An aggregator copy of a provider score delivered WITHOUT an active direct
+// connection is a DIFFERENT case, not exercised by this fixture — this
+// module's transport-keyed grouping (by the record's own declared provider)
+// would not by itself catch that duplicate. `HEALTH_PROVIDER_CAPABILITIES`
+// already excludes `provider_score` for apple_health/google_health, so no
+// real ingestion path produces it; and as of `signalResolution.ts`'s
+// origin-attribution + capability guard (`resolveProviderScores`), any such
+// record is re-attributed to its true origin (surfacing as a same-origin
+// duplicate the resolver itself collapses) or dropped outright as a
+// contract violation — before it ever reaches this weekly aggregator.
 
 export const PROVIDER_SCORE_DUPLICATE_SAME_DAY_EARLIER_VALUE = 70;
 export const PROVIDER_SCORE_DUPLICATE_SAME_DAY_LATER_VALUE = 76;
