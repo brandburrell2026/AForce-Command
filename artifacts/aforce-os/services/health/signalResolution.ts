@@ -189,7 +189,15 @@ export interface WorkoutSignalEntry {
   observedAtMs: number;
 }
 
-/** One provider-attributed score. Never cross-selected, never blended. */
+/**
+ * One provider-attributed score. Never cross-selected, never blended.
+ *
+ * INVARIANT: at most one `ProviderScoreEntry` per (origin, kind) pair per
+ * `resolveHealthSignals` call — see `HealthSignals.providerScores` for the
+ * full statement and `resolveProviderScores` / `preferredScoreRecord` for the
+ * enforcement (collapses retried-sync duplicates and direct-vs-relayed
+ * copies of the same reading to the single freshest-observed one).
+ */
 export interface ProviderScoreEntry {
   kind: ProviderScoreKind;
   provider: HealthProviderId;
@@ -199,6 +207,16 @@ export interface ProviderScoreEntry {
   freshness: HealthSignalFreshness;
   confidence: HealthSignalConfidence;
   originalSource?: string;
+  /**
+   * The platform that DELIVERED this reading, when different from `provider`
+   * (the true origin) — same convention as `WorkoutSignalEntry.aggregator` /
+   * `HealthSignalReading.aggregator` (#483). Undefined when the reading came
+   * direct, or when the delivering platform IS the origin. When a direct
+   * copy and a relayed copy of the same (origin, kind) both exist,
+   * `preferredScoreRecord` prefers the direct one, so a winning entry's
+   * `aggregator` is populated only when NO direct copy competed for it.
+   */
+  aggregator?: HealthProviderId;
 }
 
 // ─── Input contract ─────────────────────────────────────────────────────────
@@ -239,7 +257,19 @@ export interface HealthSignals {
   hrv: HealthSignal<HrvSignalValue, 'ms'>;
   workouts: HealthSignal<WorkoutSignalEntry[], 'entries'>;
   steps: HealthSignal<number, 'count'>;
-  /** Always an array (possibly empty) — absence of a score is its own honesty, not an `unavailable` shape. */
+  /**
+   * Always an array (possibly empty) — absence of a score is its own
+   * honesty, not an `unavailable` shape.
+   *
+   * INVARIANT: at most one entry per (origin, kind) pair per resolution
+   * call. `resolveProviderScores` enforces this at RESOLUTION time — a
+   * retried sync (same origin+kind, distinct externalId) and a direct copy
+   * competing with its own aggregator-relayed copy both collapse to a
+   * single freshest-observed entry via `preferredScoreRecord`, never two.
+   * Distinct (origin, kind) pairs — including two DIFFERENT providers'
+   * scores landing on the same day — are unaffected and each get their own
+   * entry.
+   */
   providerScores: readonly ProviderScoreEntry[];
 }
 
@@ -370,6 +400,16 @@ const SCORE_KIND_OWNER: Readonly<Partial<Record<ProviderScoreKind, HealthProvide
  * `deduplicationKey` is the final, purely-deterministic tie-break. This is
  * SELECTION, never blending — same rule every other family in this file
  * already follows.
+ *
+ * DELIBERATELY DIVERGES from health-core/dedupe.ts's own `preferred()`
+ * tie-break, which orders by `syncedAt` (newest INGESTED wins — correct for
+ * its job: upserting the authoritative copy of a record during dedup). A
+ * `provider_score` is a point-in-time reading; once two candidates already
+ * share one (origin, scoreKind) — i.e. dedup's job is done and this is a
+ * value-selection tie-break — the honest measure of "which one is current"
+ * is when the score was OBSERVED, not when it happened to sync. A stale
+ * score re-synced late (e.g. a backfill) must never outrank a genuinely
+ * fresher observation just because it reached AForce more recently.
  */
 function preferredScoreRecord(a: CanonicalHealthRecord, b: CanonicalHealthRecord): CanonicalHealthRecord {
   const aDirect = isDirect(a);
@@ -858,6 +898,7 @@ function resolveProviderScores(
         freshness,
         confidence: confidenceFor(freshness, isDirect(r)),
         originalSource: attribution.originalSource,
+        aggregator: attribution.aggregator,
       });
     }
     return entries;
