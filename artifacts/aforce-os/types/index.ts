@@ -613,6 +613,9 @@ export interface FeatureFlags {
   spec_activation: boolean;
   spec_social: boolean;
   spec_sleep: boolean;
+  /** Sleep Mode premium redesign (guided pre-sleep protocol). Default OFF —
+   *  gates the redesigned Sleep screen; legacy screen stays until go-live. */
+  spec_sleep_v2: boolean;
   spec_cruise: boolean;
   spec_coachV2: boolean;
   spec_premium: boolean;
