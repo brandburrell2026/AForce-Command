@@ -205,6 +205,38 @@ export const HRV_METHOD_CONFLICT_WEEK_RECORDS: CanonicalHealthRecord[] = [
   ),
 ];
 
+// ─── 5b. HRV method-conflict week WITH a genuine gap — coverage must count
+// ONLY method-valid (dominant) observations, distinct from both "missing
+// entirely" and "excluded for wrong method". 3 sdnn days (dominant, at the
+// coverage floor), 2 rmssd days (excluded), 2 genuinely empty days.
+
+export const HRV_GAP_SDNN_DAYS = [0, 1, 2] as const;
+export const HRV_GAP_RMSSD_DAYS = [3, 4] as const;
+// days 5, 6 — no HRV record at all (honestly missing, not method-excluded).
+export const HRV_GAP_SDNN_VALUES = [44, 46, 43] as const;
+export const HRV_GAP_RMSSD_VALUES = [28, 31] as const;
+
+export const HRV_METHOD_CONFLICT_WITH_GAP_WEEK_RECORDS: CanonicalHealthRecord[] = [
+  ...HRV_GAP_SDNN_DAYS.map((dayIndex, i) =>
+    mkRecord({
+      provider: 'apple_health',
+      metricType: 'hrv',
+      value: HRV_GAP_SDNN_VALUES[i],
+      hrvMethod: 'sdnn' as HrvMethod,
+      observedAtMs: dayMidMs(dayIndex),
+    }),
+  ),
+  ...HRV_GAP_RMSSD_DAYS.map((dayIndex, i) =>
+    mkRecord({
+      provider: 'garmin',
+      metricType: 'hrv',
+      value: HRV_GAP_RMSSD_VALUES[i],
+      hrvMethod: 'rmssd' as HrvMethod,
+      observedAtMs: dayMidMs(dayIndex),
+    }),
+  ),
+];
+
 // ─── 6. Timezone week — local-day bucketing under a non-zero offset ────────
 // PDT (UTC-7 => -420 min). Local midnight falls at 07:00 UTC, so a reading
 // observed at 2026-08-04T06:30Z is 2026-08-03T23:30 LOCAL — it must bucket
@@ -292,3 +324,63 @@ export const PROVIDER_SCORE_WEEK_RECORDS: CanonicalHealthRecord[] = Object.entri
     });
   },
 );
+
+// ─── 8b. Same-day, DISTINCT providers — must never collapse into each other ─
+// WHOOP recovery and Oura readiness both land on day 3 of the SAME week.
+// They share nothing but the calendar day: different provider, different
+// scoreKind. Correct keying is (provider, kind[, day]) — never day alone.
+
+export const SAME_DAY_WHOOP_RECOVERY_VALUE = 58;
+export const SAME_DAY_OURA_READINESS_VALUE = 74;
+
+export const SAME_DAY_DISTINCT_PROVIDER_SCORE_RECORDS: CanonicalHealthRecord[] = [
+  mkRecord({
+    provider: 'whoop',
+    metricType: 'provider_score',
+    scoreKind: 'whoop_recovery',
+    value: SAME_DAY_WHOOP_RECOVERY_VALUE,
+    observedAtMs: dayMidMs(3),
+  }),
+  mkRecord({
+    provider: 'oura',
+    metricType: 'provider_score',
+    scoreKind: 'oura_readiness',
+    value: SAME_DAY_OURA_READINESS_VALUE,
+    observedAtMs: dayMidMs(3) + HOUR,
+  }),
+];
+
+// ─── 8c. Duplicate copies of the SAME provider's score, SAME day ───────────
+// Two survivors of the SAME (provider, kind) pair land on the SAME calendar
+// day — e.g. a retried sync (fresh externalId, so record-level Pass-1 key
+// dedup can't catch it) or an aggregator copy of a provider WITHOUT an active
+// direct connection (so Pass-2's aggregator-copy drop doesn't fire either).
+// `provider_score` records are points (no start/end window), so Pass-3's
+// overlap-based same-origin collapse never applies to them regardless of
+// day — see health-core/dedupe.ts windowOverlapFraction. The WEEKLY aggregate
+// is the one place left that can enforce "one real score per provider+kind+
+// day": it must collapse these to the single freshest-OBSERVED reading, never
+// average both into that day's contribution.
+
+export const PROVIDER_SCORE_DUPLICATE_SAME_DAY_EARLIER_VALUE = 70;
+export const PROVIDER_SCORE_DUPLICATE_SAME_DAY_LATER_VALUE = 76;
+
+export const PROVIDER_SCORE_DUPLICATE_SAME_DAY_RECORDS: CanonicalHealthRecord[] = [
+  mkRecord({
+    provider: 'oura',
+    metricType: 'provider_score',
+    scoreKind: 'oura_readiness',
+    value: PROVIDER_SCORE_DUPLICATE_SAME_DAY_EARLIER_VALUE,
+    observedAtMs: dayMidMs(2),
+    externalId: 'oura-readiness-day2-sync-a',
+  }),
+  mkRecord({
+    provider: 'oura',
+    metricType: 'provider_score',
+    scoreKind: 'oura_readiness',
+    // The later-observed retry — freshest-observed should win, not blend.
+    value: PROVIDER_SCORE_DUPLICATE_SAME_DAY_LATER_VALUE,
+    observedAtMs: dayMidMs(2) + 30 * 60_000,
+    externalId: 'oura-readiness-day2-sync-b',
+  }),
+];

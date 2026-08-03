@@ -503,9 +503,13 @@ function aggregateProviderScores(
     dayIndex: number;
     value: number;
     freshness: HealthSignalFreshness;
+    observedAtMs: number;
   }
   const byGroup = new Map<string, { kind: ProviderScoreKind; provider: HealthProviderId; entries: ScoreEntry[] }>();
 
+  // Grouped by (provider, kind) — DISTINCT providers/kinds sharing a calendar
+  // day never collapse into each other here; each gets its own group
+  // regardless of day.
   daySignals.forEach((s, dayIndex) => {
     for (const entry of s.providerScores) {
       const key = `${entry.provider}|${entry.kind}`;
@@ -514,13 +518,33 @@ function aggregateProviderScores(
         group = { kind: entry.kind, provider: entry.provider, entries: [] };
         byGroup.set(key, group);
       }
-      group.entries.push({ dayIndex, value: entry.value, freshness: entry.freshness });
+      group.entries.push({ dayIndex, value: entry.value, freshness: entry.freshness, observedAtMs: entry.observedAtMs });
     }
   });
 
   const results: WeeklyProviderScoreMetricAggregate[] = [];
   for (const group of byGroup.values()) {
-    const coveredDayIndexes = new Set(group.entries.map((e) => e.dayIndex));
+    // Intra-group DEDUP keyed on (provider, kind, day) — never day alone,
+    // and never provider+kind alone either. `resolveProviderScores` selects
+    // a single per-day winner for genuinely distinct providers/kinds, but it
+    // never cross-selects WITHIN one (provider, kind) pair (provider_score
+    // deliberately has no cross-provider selection — see signalResolution.ts).
+    // A retried sync or an aggregator copy that slips past record-level dedupe
+    // can therefore still surface as two entries for the SAME provider, kind,
+    // AND calendar day. Left un-collapsed, both would silently double-weight
+    // that one day in the mean/min/max below even though `coverage.covered`
+    // (a day COUNT) would still — misleadingly — read as one. Collapse to the
+    // single freshest-OBSERVED reading per day before aggregating; this is the
+    // one point where this module deviates from "never resolve within a day"
+    // (see file header) because provider_score is UNSELECTED upstream by design.
+    const byDay = new Map<number, ScoreEntry>();
+    for (const e of group.entries) {
+      const cur = byDay.get(e.dayIndex);
+      if (!cur || e.observedAtMs > cur.observedAtMs) byDay.set(e.dayIndex, e);
+    }
+    const dedupedEntries = [...byDay.values()];
+
+    const coveredDayIndexes = new Set(dedupedEntries.map((e) => e.dayIndex));
     const missingDays = Array.from({ length: total }, (_, i) => i).filter((i) => !coveredDayIndexes.has(i));
     const coverage: WeeklyHealthCoverage = { covered: coveredDayIndexes.size, total, missingDays };
 
@@ -535,8 +559,8 @@ function aggregateProviderScores(
       continue;
     }
 
-    const values = group.entries.map((e) => e.value);
-    const freshest = [...group.entries].sort((a, b) => b.dayIndex - a.dayIndex)[0];
+    const values = dedupedEntries.map((e) => e.value);
+    const freshest = [...dedupedEntries].sort((a, b) => b.dayIndex - a.dayIndex)[0];
     results.push({
       kind: group.kind,
       provider: group.provider,

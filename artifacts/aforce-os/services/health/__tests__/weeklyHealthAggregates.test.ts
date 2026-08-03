@@ -39,6 +39,13 @@ import {
   DST_WEEK_BOUNDARY_EDGE_RECORD,
   PROVIDER_SCORE_WEEK_RECORDS,
   WHOOP_RECOVERY_VALUES_BY_DAY,
+  SAME_DAY_DISTINCT_PROVIDER_SCORE_RECORDS,
+  SAME_DAY_WHOOP_RECOVERY_VALUE,
+  SAME_DAY_OURA_READINESS_VALUE,
+  PROVIDER_SCORE_DUPLICATE_SAME_DAY_RECORDS,
+  PROVIDER_SCORE_DUPLICATE_SAME_DAY_LATER_VALUE,
+  HRV_METHOD_CONFLICT_WITH_GAP_WEEK_RECORDS,
+  HRV_GAP_SDNN_VALUES,
   dayMidMs,
   mkRecord,
 } from '../weeklyHealthAggregatesFixtures';
@@ -221,6 +228,48 @@ describe('HRV method-conflict week — dominant method wins, minority excluded (
     expect(singleMethod.hrv.methodConflict).toBe(false);
     expect(singleMethod.hrv.excludedMethodConflictDays).toBe(0);
   });
+
+  it('method-conflict PLUS a genuine gap — coverage counts ONLY the dominant-method days, never the excluded or truly-missing ones', () => {
+    const result2 = buildWeeklyHealthAggregates({
+      records: HRV_METHOD_CONFLICT_WITH_GAP_WEEK_RECORDS,
+      activeDirectProviders: new Set<HealthProviderId>(),
+      days: DAYS,
+      timezoneOffsetMin: UTC_OFFSET_MIN,
+      nowMs: FIXED_NOW,
+      // Exactly at the 3-day floor for the dominant (sdnn) method alone —
+      // proves coverage is NOT "3 sdnn + 2 rmssd = 5 real readings ⇒ ok"
+      // reasoning; only method-valid observations count toward the threshold.
+      minCoverageDays: 3,
+    });
+    expectHrvOk(result2.hrv);
+    expect(result2.hrv.hrvMethod).toBe('sdnn');
+    expect(result2.hrv.methodConflict).toBe(true);
+    // 3 dominant + 2 excluded + 2 missing == 7 (total) — every day accounted
+    // for exactly once, across three honestly-distinct buckets.
+    expect(result2.hrv.coverage).toEqual({ covered: 3, total: 7, missingDays: [5, 6] });
+    expect(result2.hrv.excludedMethodConflictDays).toBe(2);
+    expect(result2.hrv.excludedMethodConflictDayIndexes).toEqual([3, 4]);
+    // The mean is over the 3 sdnn values ONLY — the rmssd values never enter,
+    // regardless of how the coverage floor was reached.
+    const expectedMean = HRV_GAP_SDNN_VALUES.reduce((a, b) => a + b, 0) / HRV_GAP_SDNN_VALUES.length;
+    expect(result2.hrv.mean).toBeCloseTo(expectedMean, 6);
+    expect(result2.hrv.daysCovered).toBe(3);
+  });
+
+  it('raising minCoverageDays past the dominant-method count alone reports insufficient_data — excluded-method days never pad the count', () => {
+    const result3 = buildWeeklyHealthAggregates({
+      records: HRV_METHOD_CONFLICT_WITH_GAP_WEEK_RECORDS,
+      activeDirectProviders: new Set<HealthProviderId>(),
+      days: DAYS,
+      timezoneOffsetMin: UTC_OFFSET_MIN,
+      nowMs: FIXED_NOW,
+      // 3 dominant-method days exist; demanding 4 must fail even though 5
+      // REAL hrv readings exist across both methods combined.
+      minCoverageDays: 4,
+    });
+    expectInsufficient(result3.hrv);
+    expect(result3.hrv.daysCovered).toBe(3);
+  });
 });
 
 describe('timezone — local-day bucketing under a non-zero offset', () => {
@@ -333,6 +382,50 @@ describe('provider scores — attributed per (provider, kind), never blended', (
     expect(sparse.providerScores).toHaveLength(1);
     expect(sparse.providerScores[0].status).toBe('insufficient_data');
     expect(sparse.providerScores[0].daysCovered).toBe(1);
+  });
+
+  it('DISTINCT providers on the SAME calendar day never collapse into each other', () => {
+    const sameDay = buildWeeklyHealthAggregates({
+      records: SAME_DAY_DISTINCT_PROVIDER_SCORE_RECORDS,
+      activeDirectProviders: new Set<HealthProviderId>(['whoop', 'oura']),
+      days: DAYS,
+      timezoneOffsetMin: UTC_OFFSET_MIN,
+      nowMs: FIXED_NOW,
+      minCoverageDays: 1,
+    });
+    expect(sameDay.providerScores).toHaveLength(2);
+    const whoop = sameDay.providerScores.find((g) => g.provider === 'whoop');
+    const oura = sameDay.providerScores.find((g) => g.provider === 'oura');
+    expect(whoop?.kind).toBe('whoop_recovery');
+    expect(oura?.kind).toBe('oura_readiness');
+    if (whoop?.status === 'ok') expect(whoop.mean).toBe(SAME_DAY_WHOOP_RECOVERY_VALUE);
+    else throw new Error('expected whoop group to be ok');
+    if (oura?.status === 'ok') expect(oura.mean).toBe(SAME_DAY_OURA_READINESS_VALUE);
+    else throw new Error('expected oura group to be ok');
+    // Each attributes its own single covered day — sharing a calendar day
+    // never merges their coverage or their values.
+    expect(whoop?.coverage.covered).toBe(1);
+    expect(oura?.coverage.covered).toBe(1);
+  });
+
+  it('duplicate copies of the SAME (provider, kind) on the SAME day collapse to ONE — freshest-observed wins, never blended into the mean', () => {
+    const dup = buildWeeklyHealthAggregates({
+      records: PROVIDER_SCORE_DUPLICATE_SAME_DAY_RECORDS,
+      activeDirectProviders: new Set<HealthProviderId>(['oura']),
+      days: DAYS,
+      timezoneOffsetMin: UTC_OFFSET_MIN,
+      nowMs: FIXED_NOW,
+      minCoverageDays: 1,
+    });
+    expect(dup.providerScores).toHaveLength(1);
+    const group = dup.providerScores[0];
+    expect(group.coverage.covered).toBe(1); // one calendar day, not two entries
+    if (group.status !== 'ok') throw new Error('expected ok');
+    // The later-observed retry wins outright — the mean is NOT the average of
+    // both duplicates (73), which would silently double-weight this one day.
+    expect(group.mean).toBe(PROVIDER_SCORE_DUPLICATE_SAME_DAY_LATER_VALUE);
+    expect(group.min).toBe(PROVIDER_SCORE_DUPLICATE_SAME_DAY_LATER_VALUE);
+    expect(group.max).toBe(PROVIDER_SCORE_DUPLICATE_SAME_DAY_LATER_VALUE);
   });
 });
 
