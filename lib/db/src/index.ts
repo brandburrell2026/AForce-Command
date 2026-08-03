@@ -31,3 +31,4 @@ export * from "./ouraTokenStore";
 export * from "./stravaTokenStore";
 export * from "./profileRepo";
 export * from "./scoreSnapshotRepo";
+export * from "./healthRecordsRepo";

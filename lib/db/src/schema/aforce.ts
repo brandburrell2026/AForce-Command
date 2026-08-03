@@ -12,6 +12,7 @@
  */
 
 import { pgTable, text, integer, real, boolean, timestamp, jsonb, serial, bigint, index, uniqueIndex, customType } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 
 /**
  * Postgres `bytea` column — Drizzle doesn't ship a first-class bytea
@@ -1308,3 +1309,100 @@ export const aforceWebEntitlements = pgTable(
   }),
 );
 export type AforceWebEntitlementRow = typeof aforceWebEntitlements.$inferSelect;
+
+/* ─── Canonical health records (Lane F3) ──────────────────────────────────────
+ * The durable store for `@workspace/health-core`'s `CanonicalHealthRecord` —
+ * every normalized record any provider (WHOOP / Oura / Garmin / Strava /
+ * Apple Health / Health Connect) delivers, after dedupe, lands here keyed by
+ * its own `deduplicationKey`.
+ *
+ * `id` IS the record's `deduplicationKey` (see @workspace/health-core
+ * dedupe.buildDeduplicationKey) — not a surrogate serial. That key is already
+ * a deterministic function of (userId, metricType, origin, externalId |
+ * startTime/endTime), so it doubles as the natural idempotency key: a re-sync
+ * of the same underlying reading always produces the same id, and `ON
+ * CONFLICT (id) DO UPDATE` (gated on `synced_at` — newer sync wins, an older
+ * replay can never clobber a fresher row) is what makes ingestion safe to
+ * retry.
+ *
+ * Soft-delete only: `deletedAt` tombstones a provider's records on disconnect
+ * (never a DELETE — historical readiness/recovery context must survive a
+ * reconnect). A real DELETE happens exactly once, for every row, on the
+ * account-deletion hook (`purgeUser`) — see healthRecordsRepo.ts.
+ *
+ * DORMANT: no runtime writer exists yet (F6/provider-kit lands the ingestion
+ * path). This table + healthRecordsRepo.ts are the persistence contract that
+ * lands ahead of it. `drizzle-kit push` applies additive schema directly —
+ * this repo has no migration files (established convention, see
+ * docs/SCHEMA_DRIFT.md).
+ */
+export const aforceHealthRecords = pgTable(
+  "aforce_health_records",
+  {
+    /** = CanonicalHealthRecord.deduplicationKey. Deterministic, not a serial. */
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull(),
+    /** The HealthProviderId that DELIVERED this record (chain hop N). */
+    provider: text("provider").notNull(),
+    /** The HealthOriginId that MEASURED it — equals `provider` for a direct
+     *  pull; differs when relayed via HealthKit / Health Connect. */
+    origin: text("origin").notNull(),
+    metricType: text("metric_type").notNull(),
+    /** Provider-native record id when one exists — strongest dedup input. */
+    externalId: text("external_id"),
+    /** HEALTH_RECORD_SCHEMA_VERSION at write time — lets future migrations
+     *  reinterpret `value` without guessing the shape it was written under. */
+    schemaVersion: integer("schema_version").notNull(),
+    /** CanonicalHealthValue — number | string | SleepSessionValue |
+     *  WorkoutValue | Record<string, unknown>, JSON-serialized verbatim. */
+    value: jsonb("value").notNull(),
+    unit: text("unit"),
+    startUtc: timestamp("start_utc", { withTimezone: true }),
+    endUtc: timestamp("end_utc", { withTimezone: true }),
+    observedAt: timestamp("observed_at", { withTimezone: true }).notNull(),
+    syncedAt: timestamp("synced_at", { withTimezone: true }).notNull(),
+    fetchedAt: timestamp("fetched_at", { withTimezone: true }),
+    /** REQUIRED (by contract, not by the DB) when metricType = 'hrv'. */
+    hrvMethod: text("hrv_method"),
+    /** Set only for metricType = 'provider_score'. Provider-attributed —
+     *  never blended into an AForce score (Score-Protection). */
+    scoreKind: text("score_kind"),
+    confidence: text("confidence"), // 'high' | 'medium' | 'low' | 'unknown'
+    /** ProvenanceHop[] — [origin, ...aggregators]; length 1 = direct. */
+    provenanceChain: jsonb("provenance_chain").notNull(),
+    /** Raw native origin identifier when delivered via an aggregator (HK
+     *  sourceRevision bundle id / HC dataOrigin package name). */
+    originalSource: text("original_source"),
+    device: jsonb("device").$type<{
+      manufacturer?: string;
+      model?: string;
+      hardwareVersion?: string;
+      softwareVersion?: string;
+    } | null>(),
+    /** Tombstone — set on provider disconnect (soft-delete). NULL = live. */
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => ({
+    // Primary read path: "this user's <metric> history, newest first."
+    userMetricObservedIdx: index("aforce_health_records_user_metric_observed_idx").on(
+      t.userId,
+      t.metricType,
+      t.observedAt.desc(),
+    ),
+    // Per-provider scoping (disconnect tombstone sweep, provider filters).
+    userProviderIdx: index("aforce_health_records_user_provider_idx").on(
+      t.userId,
+      t.provider,
+    ),
+    // Partial index so the hot "live records only" path (the default for
+    // listRecords) never has to scan tombstoned rows.
+    liveOnlyIdx: index("aforce_health_records_live_only_idx")
+      .on(t.userId, t.metricType, t.observedAt)
+      .where(sql`${t.deletedAt} is null`),
+  }),
+);
+
+export type AforceHealthRecordRow = typeof aforceHealthRecords.$inferSelect;
+export type InsertAforceHealthRecord = typeof aforceHealthRecords.$inferInsert;
