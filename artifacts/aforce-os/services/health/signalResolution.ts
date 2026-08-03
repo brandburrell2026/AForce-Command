@@ -290,7 +290,10 @@ function attributionFor(
   return {
     source: record.provider,
     originalSource: record.originalSource,
-    aggregator: isDirect(record) ? undefined : record.provider,
+    // Review fix: `aggregator` is meaningful only when DIFFERENT from
+    // `source` — "Apple Health via Apple Health" is nonsense. Unattributable
+    // origins keep source = deliverer with no aggregator claim.
+    aggregator: undefined,
   };
 }
 
