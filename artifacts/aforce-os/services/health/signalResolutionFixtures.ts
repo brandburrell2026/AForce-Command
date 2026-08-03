@@ -355,6 +355,84 @@ export const NO_DATA: ResolveHealthSignalsInput = baseInput({
   connections: undefined,
 });
 
+// ─── 13. Provider-score origin attribution + capability guard (#492 follow-up) ─
+// Not part of the original 12 brief scenarios above — added for the
+// independent-review follow-up on `resolveProviderScores`'s attribution bug.
+// See `__tests__/signalResolution.test.ts` for the assertions.
+
+/** A genuinely direct provider score — the common, already-correct path. Proves item (1)'s fix is byte-identical here. */
+export const PROVIDER_SCORE_DIRECT: ResolveHealthSignalsInput = baseInput({
+  records: [
+    mkRecord({
+      provider: 'whoop',
+      metricType: 'provider_score',
+      scoreKind: 'whoop_recovery',
+      value: 72,
+      observedAtMs: FIXED_NOW - 1 * HOUR,
+    }),
+  ],
+  activeDirectProviders: new Set(['whoop']),
+});
+
+/**
+ * An Oura-authored readiness score delivered via Apple Health (chain:
+ * oura → apple_health), alongside a genuinely direct Oura copy of the SAME
+ * reading. Because `oura` is deliberately NOT in `activeDirectProviders`
+ * here, `dedupeRecords`'s aggregator-copy-of-direct pass (which only fires
+ * when the origin IS actively/directly connected) does not collapse them —
+ * both survive into `resolveProviderScores`, which must attribute both to
+ * `oura` (the true origin, never `apple_health`, the transport) and collapse
+ * them to a single entry (see `preferredScoreRecord`), never double-count.
+ */
+export const PROVIDER_SCORE_AGGREGATOR_PLUS_DIRECT: ResolveHealthSignalsInput = baseInput({
+  records: [
+    mkRecord({
+      provider: 'oura',
+      metricType: 'provider_score',
+      scoreKind: 'oura_readiness',
+      value: 74,
+      observedAtMs: FIXED_NOW - 2 * HOUR,
+      externalId: 'oura-readiness-direct',
+    }),
+    mkRecord({
+      provider: 'apple_health',
+      metricType: 'provider_score',
+      scoreKind: 'oura_readiness',
+      value: 74, // the aggregator's own copy of the identical reading
+      observedAtMs: FIXED_NOW - 2 * HOUR,
+      provenanceChain: [
+        { provider: 'oura', nativeOrigin: 'com.ouraring.oura', transport: 'measured' },
+        { provider: 'apple_health', transport: 'aggregator_export' },
+      ],
+      originalSource: 'com.ouraring.oura',
+      externalId: 'apple-oura-readiness-copy',
+    }),
+  ],
+  // Deliberately empty — see doc above. Proves the resolver's OWN guard
+  // catches what dedupeRecords cannot see without an active direct connection.
+  activeDirectProviders: new Set(),
+});
+
+/**
+ * A CONTRACT-VIOLATING provider_score: delivered directly (chain length 1)
+ * by `apple_health`, which `HEALTH_PROVIDER_CAPABILITIES` declares can never
+ * emit a provider_score at all. No real ingestion path produces this today —
+ * it exists to prove the capability/ownership guard drops it rather than
+ * attributing it to `apple_health` (the pre-fix, reviewer-identified defect).
+ */
+export const PROVIDER_SCORE_FORGED_DIRECT: ResolveHealthSignalsInput = baseInput({
+  records: [
+    mkRecord({
+      provider: 'apple_health',
+      metricType: 'provider_score',
+      scoreKind: 'oura_readiness',
+      value: 88,
+      observedAtMs: FIXED_NOW - 1 * HOUR,
+    }),
+  ],
+  activeDirectProviders: new Set(),
+});
+
 export const ALL_SIGNAL_RESOLUTION_FIXTURES = {
   APPLE_ONLY,
   HC_ONLY,
@@ -369,4 +447,7 @@ export const ALL_SIGNAL_RESOLUTION_FIXTURES = {
   SLEEP_OVERLAP_AND_CROSS_ORIGIN,
   PARTIAL_PERMISSIONS,
   NO_DATA,
+  PROVIDER_SCORE_DIRECT,
+  PROVIDER_SCORE_AGGREGATOR_PLUS_DIRECT,
+  PROVIDER_SCORE_FORGED_DIRECT,
 } as const;

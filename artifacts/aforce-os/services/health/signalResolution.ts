@@ -342,6 +342,46 @@ function buildUnavailable(reason: HealthSignalUnavailableReason): HealthSignalUn
 }
 
 /**
+ * Provider-score OWNERSHIP: the only origin each `ProviderScoreKind` may be
+ * attributed to. Derived from `HEALTH_PROVIDER_CAPABILITIES.providerScores`
+ * (single source of truth), never hand-duplicated. Mirrors the same-named
+ * guard in `readinessSignals.ts` (`SCORE_KIND_OWNER`) — that one enforces the
+ * identical rule one layer downstream, on the adapter's output; this one runs
+ * at RESOLUTION, so a mis-attributed / capability-violating `provider_score`
+ * record never reaches `HealthSignals.providerScores` in the first place.
+ */
+const SCORE_KIND_OWNER: Readonly<Partial<Record<ProviderScoreKind, HealthProviderId>>> = (() => {
+  const owner: Partial<Record<ProviderScoreKind, HealthProviderId>> = {};
+  for (const pid of Object.keys(HEALTH_PROVIDER_CAPABILITIES) as HealthProviderId[]) {
+    for (const kind of HEALTH_PROVIDER_CAPABILITIES[pid].providerScores) {
+      owner[kind] = pid;
+    }
+  }
+  return owner;
+})();
+
+/**
+ * Deterministic winner between two `provider_score` records that resolved to
+ * the SAME (origin, scoreKind) pair — e.g. a direct Oura reading and an
+ * aggregator-relayed copy of that same reading arriving via `apple_health`
+ * when `oura` is not (yet, or currently) in `activeDirectProviders`, so
+ * `dedupeRecords`'s aggregator-copy-of-direct pass never saw them as
+ * redundant. Direct wins over relayed; freshest wins a same-directness tie;
+ * `deduplicationKey` is the final, purely-deterministic tie-break. This is
+ * SELECTION, never blending — same rule every other family in this file
+ * already follows.
+ */
+function preferredScoreRecord(a: CanonicalHealthRecord, b: CanonicalHealthRecord): CanonicalHealthRecord {
+  const aDirect = isDirect(a);
+  const bDirect = isDirect(b);
+  if (aDirect !== bDirect) return aDirect ? a : b;
+  const at = Date.parse(a.observedAt);
+  const bt = Date.parse(b.observedAt);
+  if (at !== bt) return at > bt ? a : b;
+  return a.deduplicationKey <= b.deduplicationKey ? a : b;
+}
+
+/**
  * A revoked/never-granted permission must NEVER surface a value, even if a
  * stale local blob happens to still carry one — otherwise `permission_denied`
  * could never actually be reached. Keyed on the CONNECTED provider identity
@@ -768,22 +808,56 @@ function resolveProviderScores(
 
   const hasScoreRecords = dedupedRecords?.some((r) => r.metricType === 'provider_score') ?? false;
   if (hasScoreRecords && dedupedRecords) {
+    // Keyed by resolved (origin, scoreKind) — collapses a direct record and an
+    // aggregator-relayed copy of the SAME score into one entry via
+    // `preferredScoreRecord`. `dedupeRecords`'s aggregator-copy-of-direct pass
+    // only guarantees this when the origin is in `activeDirectProviders`; this
+    // is the residual case it can't see (see `preferredScoreRecord` doc).
+    const winners = new Map<string, CanonicalHealthRecord>();
     for (const r of dedupedRecords) {
       if (r.metricType !== 'provider_score' || !r.scoreKind) continue;
       if (isDeniedForFamily(r.provider, 'provider_score', input.connections)) continue;
-      const value = asNumber(r.value);
-      if (value == null) continue;
+      if (asNumber(r.value) == null) continue;
+
+      // Attribute via the TRUE origin, same pattern as every other resolver
+      // in this file (see `attributionFor`) — never the delivering transport.
+      const attribution = attributionFor(r);
+      const origin = attribution.source;
+
+      // OWNERSHIP / CAPABILITY GUARD: a provider_score record only survives
+      // resolution when its resolved origin is BOTH the score kind's declared
+      // owner AND capability-eligible to emit provider_score at all. A record
+      // that fails this (e.g. one whose origin resolves to apple_health /
+      // google_health — HEALTH_PROVIDER_CAPABILITIES forbids provider_score
+      // for both) is a contract violation: DROPPED here, never re-homed to
+      // the transport provider. This path is unreachable today only because
+      // upstream ingestion already enforces the same capability table — this
+      // guard is defense in depth against a future producer that doesn't.
+      const originCapabilities: { recordTypes: readonly CanonicalHealthMetricType[] } | undefined =
+        HEALTH_PROVIDER_CAPABILITIES[origin];
+      const ownsKind = SCORE_KIND_OWNER[r.scoreKind] === origin;
+      const originCapable = originCapabilities?.recordTypes.includes('provider_score') ?? false;
+      if (!ownsKind || !originCapable) continue;
+
+      const key = `${origin}|${r.scoreKind}`;
+      const existing = winners.get(key);
+      winners.set(key, existing ? preferredScoreRecord(existing, r) : r);
+    }
+
+    for (const r of winners.values()) {
+      const attribution = attributionFor(r);
+      const value = asNumber(r.value)!;
       const observedAtMs = Date.parse(r.observedAt);
       const freshness = assessFreshness('wearable_sync', observedAtMs, input.nowMs).rating;
       entries.push({
-        kind: r.scoreKind,
-        provider: r.provider,
+        kind: r.scoreKind!,
+        provider: attribution.source,
         value,
         unit: 'score',
         observedAtMs,
         freshness,
         confidence: confidenceFor(freshness, isDirect(r)),
-        originalSource: r.originalSource,
+        originalSource: attribution.originalSource,
       });
     }
     return entries;
