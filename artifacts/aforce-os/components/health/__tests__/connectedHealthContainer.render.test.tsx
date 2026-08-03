@@ -48,13 +48,22 @@ vi.mock('@/components/Icon', () => ({
 import { ConnectedHealthView } from '../ConnectedHealthView';
 import { resolveConnectedHealthView } from '@/services/health/connectedHealthView';
 import {
+  applyProbeCycle,
   buildConnectedHealthInput,
+  dropCloudFact,
   loadConnectedHealthCloudFacts,
   performConnectedHealthDisconnect,
   type ConnectedHealthContainerModelInput,
 } from '@/services/health/connectedHealthContainerModel';
 import { DEFAULT_FLAGS } from '@/featureFlags/flags';
 import type { HealthConnectionSignals } from '@/utils/health/healthConnectionMapping';
+
+/** The container's own source, read as text so the orchestration suite below
+ *  can pin its literal `setCloud(...)` call sites to the exact model
+ *  functions this file exercises — see each guard's own comment for why a
+ *  no-mount unit test needs this to catch a wiring regression at all
+ *  (`ConnectedHealthContainer.tsx` is deliberately never mounted here). */
+const CONTAINER_SOURCE = readFileSync(join(__dirname, '..', 'ConnectedHealthContainer.tsx'), 'utf8');
 
 const EN_LOCALE = JSON.parse(readFileSync(join(__dirname, '..', '..', '..', 'locales', 'en.json'), 'utf8'));
 
@@ -233,4 +242,116 @@ describe('orchestration deps agree with the container-shaped call pattern', () =
     });
     expect(outcome).toBe('unsupported');
   });
+
+  it(
+    '#494 S-1 — B1 regression guard: two probe cycles merge via applyProbeCycle exactly as ' +
+      'ConnectedHealthContainer wires it, and a failed second cycle cannot downgrade a connected WHOOP row',
+    async () => {
+      // Source-text guard: pin the container's literal `setCloud` call site
+      // to `applyProbeCycle`, the exact function this test exercises below.
+      // ConnectedHealthContainer.tsx is deliberately never mounted in this
+      // suite (see file header), so this is what makes a regression back to
+      // `setCloud(facts)` (the actual #494 S-1 bug — real, and previously
+      // invisible to all 415 tests that existed before this pair) fail a
+      // test at all. Confirmed by temporary mutation while building this
+      // test: reverting the container's line to `setCloud(facts);` fails
+      // this exact assertion (see PR body).
+      expect(CONTAINER_SOURCE).toContain('setCloud((prev) => applyProbeCycle(prev, facts));');
+
+      // Cycle 1: whoop's cloud probe genuinely resolves connected.
+      const cycle1 = await loadConnectedHealthCloudFacts(NOW, {
+        fetchCloudSignals: async (provider) =>
+          provider === 'whoop'
+            ? ({ integrationReady: true, link: 'connected' } as HealthConnectionSignals)
+            : ({ integrationReady: false, link: 'none' } as HealthConnectionSignals),
+      });
+      expect(cycle1.anyProbeFailed).toBe(false);
+      const cloudAfterCycle1 = applyProbeCycle({}, cycle1.facts);
+      expect(cloudAfterCycle1.whoop).toEqual({ integrationReady: true, link: 'connected' });
+
+      // Cycle 2: whoop's probe now fails to complete (rejects) — exactly the
+      // scenario `mergeCloudFacts`'s own header documents as the reason a
+      // plain `setCloud(facts)` replacement would be wrong: it would
+      // silently drop whoop back to "no evidence" instead of preserving
+      // cycle 1's real, last-known-good fact.
+      const cycle2 = await loadConnectedHealthCloudFacts(NOW, {
+        fetchCloudSignals: async (provider) => {
+          if (provider === 'whoop') throw new Error('bridge exploded');
+          return { integrationReady: false, link: 'none' };
+        },
+      });
+      expect(cycle2.anyProbeFailed).toBe(true);
+      const cloudAfterCycle2 = applyProbeCycle(cloudAfterCycle1, cycle2.facts);
+
+      // The actual regression-catching assertion: with a plain-replacement
+      // bug, `cloudAfterCycle2.whoop` would be `undefined` here (cycle 2's
+      // empty `facts` would have wholly replaced cycle 1's), which resolves
+      // to a non-'connected' presentation below. Rendered through the REAL
+      // view exactly as ConnectedHealthContainer would on this exact state.
+      const view = renderModelInput(
+        baseInput({
+          mode: 'offline', // cycle 2 failed a probe → container's mode maps to offline
+          cloud: cloudAfterCycle2,
+          biometrics: { whoop: { fetchedAt: NOW - 5 * MIN } as never },
+        }),
+      );
+      const whoopRow = view.rows.find((r) => r.providerId === 'whoop')!;
+      expect(whoopRow.statusPill.state).toBe('connected');
+      expect(q('[data-testid="ch-status-whoop"]')?.textContent).toContain('Connected');
+    },
+  );
+
+  it(
+    '#494 S-2 — post-disconnect regression guard: a successful WHOOP disconnect drops its cloud fact ' +
+      'immediately, so a failed follow-up probe cycle leaves it honestly absent, never stale-connected',
+    async () => {
+      // Source-text guard: pin the container's onDisconnect success path to
+      // dropping the cloud fact via `dropCloudFact` before the follow-up
+      // refresh. Same rationale as the S-1 guard above — the container is
+      // never mounted here, so this is what makes a regression (removing
+      // this line, leaving only the pre-existing `refreshCloudFacts()` call)
+      // fail a test.
+      expect(CONTAINER_SOURCE).toContain('setCloud((prev) => dropCloudFact(prev, providerId));');
+
+      // Cloud already shows whoop connected from a prior successful cycle —
+      // the exact real-world lead-up to a disconnect action.
+      const priorCycle = await loadConnectedHealthCloudFacts(NOW, {
+        fetchCloudSignals: async (provider) =>
+          provider === 'whoop'
+            ? ({ integrationReady: true, link: 'connected' } as HealthConnectionSignals)
+            : ({ integrationReady: false, link: 'none' } as HealthConnectionSignals),
+      });
+      let cloud = applyProbeCycle({}, priorCycle.facts);
+      expect(cloud.whoop).toEqual({ integrationReady: true, link: 'connected' });
+
+      // Disconnect succeeds: the container drops whoop's key immediately,
+      // exactly as `onDisconnect`'s success branch does, before the
+      // follow-up `refreshCloudFacts` even starts.
+      cloud = dropCloudFact(cloud, 'whoop');
+      expect('whoop' in cloud).toBe(false);
+
+      // The follow-up refreshCloudFacts probe cycle then FAILS for whoop
+      // (server hasn't caught up yet / bridge hiccup) — exactly the sequence
+      // #494 S-2 flags. Pre-fix, nothing would have dropped the stale fact
+      // above, so this failed cycle's merge alone would have left
+      // "connected" in place.
+      const followUp = await loadConnectedHealthCloudFacts(NOW, {
+        fetchCloudSignals: async (provider) => {
+          if (provider === 'whoop') throw new Error('not caught up yet');
+          return { integrationReady: false, link: 'none' };
+        },
+      });
+      expect(followUp.anyProbeFailed).toBe(true);
+      cloud = applyProbeCycle(cloud, followUp.facts);
+      expect(cloud.whoop).toBeUndefined();
+
+      // Rendered through the REAL view: honestly absent, never "Connected".
+      // (No biometrics override — `setProviderBiometrics(providerId, null)`
+      // already ran in the real onDisconnect handler on this path.)
+      const view = renderModelInput(baseInput({ mode: 'offline', cloud }));
+      const whoopRow = view.rows.find((r) => r.providerId === 'whoop')!;
+      expect(whoopRow.statusPill.state).not.toBe('connected');
+      expect(q('[data-testid="ch-status-whoop"]')?.textContent).not.toContain('Connected');
+    },
+  );
 });
