@@ -23,6 +23,7 @@ import { Colors } from '@/theme/colors';
 import { af, afType, afLayout, AF_MAX_DISPLAY_FONT_SCALE } from '@/theme/afTokens';
 import type { CommandConfidenceLevel } from '@/types';
 import {
+  nextGuestType,
   type CruiseModeView as CruiseModeViewModel,
   type CruiseTone,
   type CruiseSelfLog,
@@ -30,7 +31,6 @@ import {
   type CruiseExcursionRisk,
   type CruiseDayMode,
 } from '@/services/cruise/cruiseModeView';
-import { type CruiseGuestType } from '@/services/cruiseModeService';
 
 const TONE: Record<CruiseTone, string> = {
   green: af.green,
@@ -40,7 +40,6 @@ const TONE: Record<CruiseTone, string> = {
   neutral: af.textSecondary,
 };
 
-const GUEST_CYCLE: CruiseGuestType[] = ['family', 'athlete', 'older_traveler', 'party', 'excursion'];
 const DECK_CYCLE: CruiseDeckExposure[] = ['indoor', 'mixed', 'outdoor'];
 const RISK_CYCLE: CruiseExcursionRisk[] = ['none', 'low', 'moderate', 'high'];
 
@@ -311,7 +310,9 @@ function DayCard({
       <View style={styles.logGroup}>
         <LogControl
           icon="user" label="Guest type" value={guestLabel} set={log.guestType != null}
-          onPress={() => onLogChange({ guestType: log.guestType == null ? GUEST_CYCLE[0] : cycle(GUEST_CYCLE, log.guestType) })}
+          // Cycles through every type AND back to "Not set" (nextGuestType) —
+          // self-report stays reversible; a mistaken tap is never stuck logged.
+          onPress={() => onLogChange({ guestType: nextGuestType(log.guestType) })}
           testID="cruise-log-guest"
         />
         <LogControl

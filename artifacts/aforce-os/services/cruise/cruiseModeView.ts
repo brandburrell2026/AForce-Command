@@ -178,7 +178,8 @@ const RISKS = new Set<string>(['none', 'low', 'moderate', 'high']);
 export function decodeSelfLog(raw: string | null | undefined, today: string): CruiseSelfLog | null {
   if (!raw) return null;
   try {
-    const parsed = JSON.parse(raw) as Partial<StoredSelfLog>;
+    // Untrusted input: parse to unknown-shaped fields, never to the real type.
+    const parsed = JSON.parse(raw) as { day?: unknown; log?: unknown };
     if (parsed?.day !== today || typeof parsed.log !== 'object' || parsed.log == null) return null;
     const l = parsed.log as Record<string, unknown>;
     return clampSelfLog({

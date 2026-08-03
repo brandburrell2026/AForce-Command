@@ -21,6 +21,7 @@ import { View, StyleSheet, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { GradientBackground } from '@/components/GradientBackground';
 import { FeatureGate } from '@/components/FeatureGate';
@@ -35,6 +36,9 @@ import {
 import {
   resolveCruiseModeView,
   EMPTY_SELF_LOG,
+  clampSelfLog,
+  encodeSelfLog,
+  decodeSelfLog,
   type CruiseSelfLog,
   type CruiseLiveEnv,
 } from '@/services/cruise/cruiseModeView';
@@ -62,6 +66,14 @@ const CROSS_NAV: CruiseCrossNavItem[] = [
 
 interface LogIntakeActions {
   logIntake: (fluidType: FluidType, opts?: { silent?: boolean; ozOverride?: number }) => Promise<void>;
+}
+
+const SELF_LOG_KEY = '@aforce/cruiseMode/selfLog';
+
+/** Local calendar day (YYYY-MM-DD) — the self-log's scope. */
+function todayKey(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
 function formatClock(iso: string): string {
@@ -100,6 +112,29 @@ function CruiseModeBody() {
   const [envLoading, setEnvLoading] = useState(true);
   const [envError, setEnvError] = useState(false);
   const [log, setLog] = useState<CruiseSelfLog>(EMPTY_SELF_LOG);
+  const [now, setNow] = useState<number>(() => Date.now());
+
+  // Tick once a minute so minutes-since-last-intake (and the readiness it
+  // feeds) can't go stale while the screen sits open.
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 60_000);
+    return () => clearInterval(id);
+  }, []);
+
+  // Hydrate today's persisted self-log on mount. Day-scoped: a log from a
+  // different local day decodes to null (fresh day = fresh log — restoring
+  // yesterday's drinks would fabricate today's load).
+  useEffect(() => {
+    let cancelled = false;
+    AsyncStorage.getItem(SELF_LOG_KEY)
+      .then((raw) => {
+        if (cancelled) return;
+        const restored = decodeSelfLog(raw, todayKey());
+        if (restored) setLog(restored);
+      })
+      .catch(() => { /* storage unavailable — keep the empty log */ });
+    return () => { cancelled = true; };
+  }, []);
 
   // Pull live conditions for the selected port. The api-server returns a
   // deterministic Caribbean baseline (source: 'fallback') when OpenWeather is
@@ -118,14 +153,15 @@ function CruiseModeBody() {
   // Only trust the response when it matches the currently-selected port.
   const matchedEnv = liveEnv && liveEnv.port === portId ? liveEnv : null;
 
-  // Real minutes since the last logged intake. Guard the Date defensively —
-  // persisted state can rehydrate it as a string.
+  // Real minutes since the last logged intake, recomputed on the minute tick
+  // so it can't go stale on-screen. Guard the Date defensively — persisted
+  // state can rehydrate it as a string.
   const minutesSinceLastIntake = useMemo<number | null>(() => {
     const t = user.lastIntakeTime;
     const ms = t instanceof Date ? t.getTime() : t ? new Date(t).getTime() : NaN;
     if (!Number.isFinite(ms)) return null;
-    return Math.max(0, Math.round((Date.now() - ms) / 60000));
-  }, [user.lastIntakeTime]);
+    return Math.max(0, Math.round((now - ms) / 60000));
+  }, [user.lastIntakeTime, now]);
 
   const hydrationScore = useMemo<number | null>(() => {
     const s = engine?.score;
@@ -163,7 +199,14 @@ function CruiseModeBody() {
 
   const onLogChange = useCallback((patch: Partial<CruiseSelfLog>) => {
     if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
-    setLog((prev) => ({ ...prev, ...patch }));
+    setLog((prev) => {
+      // Bound every patch (hours ≤ 24, drinks ≤ 20) and persist day-scoped so
+      // navigating away doesn't silently zero the log (and quietly raise
+      // readiness). Persistence is best-effort; the UI state is authoritative.
+      const next = clampSelfLog({ ...prev, ...patch });
+      AsyncStorage.setItem(SELF_LOG_KEY, encodeSelfLog(next, todayKey())).catch(() => {});
+      return next;
+    });
   }, []);
 
   const onNavigate = useCallback((key: string) => {
