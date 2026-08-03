@@ -60,15 +60,20 @@
  *     a rejected probe promise or one that blows past `CLOUD_PROBE_TIMEOUT_MS`
  *     without resolving. That is a categorically different, stronger fact
  *     than "the server told us something ambiguous": it means we don't have
- *     a real read on cloud connection state this cycle, full stop. Per-row
- *     facts still use the same conflated-but-honest `{integrationReady:false,
- *     link:'none'}` fallback (never a fabricated `disconnected`/`denied`/
- *     `unsupported`), and any previously-successful cloud facts already in
- *     the container are left in place rather than being overwritten by a
- *     worse guess — `mode: 'offline'`'s own copy ("showing the last known
- *     connection status") is what makes surfacing this honest instead of
- *     silent. See `CLOUD_PROBE_TIMEOUT_MS` / `probeCloudProvider` below and
- *     `ConnectedHealthContainer.tsx`'s `refreshCloudFacts`.
+ *     a real read on cloud connection state this cycle, full stop. A provider
+ *     whose probe fails this way is OMITTED from `loadConnectedHealthCloudFacts`'s
+ *     returned `facts` entirely (never written as a fabricated
+ *     `{integrationReady:false, link:'none'}` — that shape is reserved for a
+ *     probe that genuinely RESOLVED to "nothing configured/linked"), and
+ *     `ConnectedHealthContainer`'s `refreshCloudFacts` merges each cycle's
+ *     `facts` on top of the previous cycle's (`mergeCloudFacts` below) rather
+ *     than replacing the whole object — so any previously-successful cloud
+ *     facts already in the container are genuinely left in place rather than
+ *     being overwritten by a worse guess. `mode: 'offline'`'s own copy
+ *     ("showing the last known connection status") is therefore an accurate
+ *     description of what's on screen, not an aspiration. See
+ *     `CLOUD_PROBE_TIMEOUT_MS` / `probeCloudProvider` / `mergeCloudFacts`
+ *     below and `ConnectedHealthContainer.tsx`'s `refreshCloudFacts`.
  */
 import type { CanonicalHealthMetricType, HealthProviderId } from '@workspace/health-core';
 import { HEALTH_PROVIDERS } from '../../data/healthProviders';
@@ -108,9 +113,17 @@ import {
 /** Cloud OAuth providers this app can probe via `GET /{provider}/status`. */
 const CLOUD_PROBE_PROVIDERS = ['whoop', 'garmin', 'oura', 'strava'] as const;
 
-/** Real cloud probe results, one per cloud OAuth provider. Undefined ⇒ the
- *  probe hasn't resolved (or errored) yet — treated identically to an
- *  explicit `{integrationReady:false, link:'none'}`, never fabricated. */
+/** Real cloud probe results, one per cloud OAuth provider. Undefined ⇒ either
+ *  no probe cycle has completed yet for this provider, OR its most recent
+ *  attempt failed to complete honestly (rejected/threw/timed out) —
+ *  `loadConnectedHealthCloudFacts` OMITS a failed provider from its returned
+ *  `facts` rather than writing a fabricated `{integrationReady:false,
+ *  link:'none'}` in its place. Every downstream reader (`whoopRowFacts`'s
+ *  `!probe`, `garminCredentialsMissing`'s `!probe`) already treats absence
+ *  identically to that explicit "nothing configured" signal, so the two
+ *  cases render the same today — but only the omission preserves whatever a
+ *  PRIOR successful cycle already knew once `ConnectedHealthContainer` merges
+ *  cycles together (see `mergeCloudFacts`). */
 export type ConnectedHealthCloudFacts = Partial<Record<(typeof CLOUD_PROBE_PROVIDERS)[number], HealthConnectionSignals>>;
 
 const EMPTY_METRIC_TYPES: readonly CanonicalHealthMetricType[] = [];
@@ -308,7 +321,12 @@ export interface ConnectedHealthContainerDeps {
   disconnectWhoop?: (deps?: WhoopServiceDeps) => Promise<WhoopDisconnectResult>;
   disconnectGarmin?: (deps?: GarminServiceDeps) => Promise<GarminDisconnectResult>;
   deleteJson?: WhoopServiceDeps['deleteJson'];
-  /** Override the bounded per-probe timeout (tests only — fake timers). */
+  /** Override the bounded per-probe timeout. Defaults to `CLOUD_PROBE_TIMEOUT_MS`
+   *  (the production value). This is a real tuning knob, not a test-only
+   *  seam — tests exercise it with fake timers to assert timeout behavior
+   *  deterministically, but nothing here restricts it to test callers, and
+   *  a future production caller adjusting probe patience for a specific
+   *  provider or network condition is a legitimate use. */
   probeTimeoutMs?: number;
 }
 
@@ -319,19 +337,35 @@ export interface ConnectedHealthContainerDeps {
  * file header. Chosen well above realistic p99 API latency, short enough
  * that a genuinely stuck probe surfaces the honest `'offline'` retry state
  * within one screen visit rather than leaving the user staring at a spinner.
+ *
+ * NOTE (N1): this is a client-side give-up timer, not a request cancellation.
+ * There is no `AbortController` wired to `fetchCloudSignals` here, so the
+ * underlying request (whatever `fetchCloudSignals`/`getJson` actually does)
+ * keeps running after `timeoutMs` elapses — this module simply stops
+ * waiting for it and moves on. A late completion is not observed by
+ * anything (see `probeCloudProvider`'s `settled` guard) and cannot corrupt
+ * state, but it is also not free: it's an in-flight request this module no
+ * longer tracks. Wiring real cancellation is a follow-up, not solved here.
+ *
+ * NOTE (N2): a probe that eventually SUCCEEDS after `timeoutMs` has already
+ * elapsed has its real, correct answer silently dropped for this cycle — the
+ * timeout branch has already resolved the race by the time the late success
+ * arrives (see the `settled` guard in `probeCloudProvider`). That provider
+ * is simply omitted from this cycle's `facts` (see `loadConnectedHealthCloudFacts`)
+ * exactly as if the probe were still pending, and gets another chance on the
+ * next probe cycle. It is never treated as a failure fact, just a missed
+ * cycle.
  */
 export const CLOUD_PROBE_TIMEOUT_MS = 8_000;
 
-/** The one honest fallback signal for a probe that did NOT complete —
- *  identical in shape to `fetchHealthConnectionSignals`'s own "can't tell"
- *  bucket (see its file header), so a failed/timed-out probe never renders
- *  any differently, per-row, than an ambiguous network error already does.
- *  Never a fabricated `disconnected`/`denied`/`unsupported`. */
-const PROBE_INCOMPLETE_SIGNAL: HealthConnectionSignals = { integrationReady: false, link: 'none' };
-
 interface CloudProbeAttempt {
   id: (typeof CLOUD_PROBE_PROVIDERS)[number];
-  signals: HealthConnectionSignals;
+  /** Present only when the probe genuinely resolved this cycle (`failed`
+   *  false). A probe that rejected, threw, or timed out carries no signals
+   *  at all — see `loadConnectedHealthCloudFacts`, which OMITS such a
+   *  provider from its returned `facts` rather than writing any fallback
+   *  value in its place. */
+  signals?: HealthConnectionSignals;
   /** True when this probe REJECTED or exceeded `probeTimeoutMs` — i.e. the
    *  client's own attempt failed to complete, not "the server answered
    *  ambiguously." Never true for a resolved (even negative) probe result. */
@@ -344,7 +378,8 @@ interface CloudProbeAttempt {
  * promise path is currently unhandled." Whichever settles first (the real
  * probe, or the timeout) wins; the loser is simply ignored (its eventual
  * settlement, if any, is swallowed here rather than left to become an
- * unhandled rejection later).
+ * unhandled rejection later — see N1/N2 on `CLOUD_PROBE_TIMEOUT_MS` above
+ * for what that swallowing actually costs).
  */
 function probeCloudProvider(
   id: (typeof CLOUD_PROBE_PROVIDERS)[number],
@@ -357,7 +392,7 @@ function probeCloudProvider(
     const timer = setTimeout(() => {
       if (settled) return;
       settled = true;
-      resolve({ id, signals: PROBE_INCOMPLETE_SIGNAL, failed: true });
+      resolve({ id, failed: true });
     }, timeoutMs);
 
     // `Promise.resolve().then(...)` so a SYNCHRONOUS throw from a test-injected
@@ -376,12 +411,18 @@ function probeCloudProvider(
         if (settled) return;
         settled = true;
         clearTimeout(timer);
-        resolve({ id, signals: PROBE_INCOMPLETE_SIGNAL, failed: true });
+        resolve({ id, failed: true });
       });
   });
 }
 
 export interface ConnectedHealthCloudProbeResult {
+  /** Only providers whose probe genuinely resolved THIS cycle. A provider
+   *  whose probe rejected, threw, or timed out is OMITTED here entirely —
+   *  never written as a fabricated `{integrationReady:false, link:'none'}` —
+   *  so that `ConnectedHealthContainer`'s cycle-over-cycle merge
+   *  (`mergeCloudFacts`) can genuinely preserve whatever a prior successful
+   *  cycle already knew about that provider instead of downgrading it. */
   facts: ConnectedHealthCloudFacts;
   /**
    * True when one or more cloud probes failed to complete honestly this
@@ -418,10 +459,35 @@ export async function loadConnectedHealthCloudFacts(
   const facts: ConnectedHealthCloudFacts = {};
   let anyProbeFailed = false;
   for (const attempt of attempts) {
+    if (attempt.failed) {
+      // OMIT — never write a fallback value. See `ConnectedHealthCloudFacts`
+      // and `ConnectedHealthCloudProbeResult.facts` for why: this is what
+      // lets the container's merge genuinely keep a prior cycle's real fact
+      // instead of downgrading it to a fresh worse guess.
+      anyProbeFailed = true;
+      continue;
+    }
     facts[attempt.id] = attempt.signals;
-    if (attempt.failed) anyProbeFailed = true;
   }
   return { facts, anyProbeFailed };
+}
+
+/**
+ * Merge one probe cycle's facts on top of the previous cycle's, provider by
+ * provider. A provider present in `next` (its probe resolved this cycle,
+ * successfully or not — see `loadConnectedHealthCloudFacts`) always wins.
+ * A provider ABSENT from `next` (its probe failed to complete this cycle —
+ * rejected, threw, or timed out) simply keeps whatever `prev` already had,
+ * including "nothing yet" (`undefined`) if no cycle has ever succeeded for
+ * it. This is the one place the "last known connection status" claim
+ * (`mode: 'offline'`'s copy, and `ConnectedHealthContainer`'s file header)
+ * is actually implemented, rather than merely asserted.
+ */
+export function mergeCloudFacts(
+  prev: ConnectedHealthCloudFacts,
+  next: ConnectedHealthCloudFacts,
+): ConnectedHealthCloudFacts {
+  return { ...prev, ...next };
 }
 
 /**
