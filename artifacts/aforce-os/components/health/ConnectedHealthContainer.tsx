@@ -39,15 +39,16 @@
  *   in depth: this container must never assume that invariant holds forever
  *   just because it holds today. A probe rejection, timeout, or missing
  *   bridge maps to `cloudProbeStatus: 'retry'` → `mode: 'offline'`, the
- *   existing, honest "showing the last known connection status" shell —
- *   never a fabricated `disconnected`/`denied`/`unsupported` row state. That
- *   "last known" claim is genuinely implemented, not just asserted:
- *   `refreshCloudFacts` merges each cycle's facts on top of the previous
- *   cycle's (`mergeCloudFacts`) rather than replacing the whole `cloud`
- *   object, and a provider whose probe fails a given cycle is OMITTED from
- *   that cycle's facts (never overwritten with a fabricated "disconnected"
- *   guess) — so a provider connected on cycle 1 stays rendered as connected
- *   through a cycle-2 timeout, instead of being downgraded to dormant.
+ *   existing, honest "Couldn't check your connections just now — this list
+ *   may be out of date." shell (`connected_health.offline_notice`) — never a
+ *   fabricated `disconnected`/`denied`/`unsupported` row state. That hedge is
+ *   genuinely earned, not just asserted: `refreshCloudFacts` merges each
+ *   cycle's facts on top of the previous cycle's (`applyProbeCycle` →
+ *   `mergeCloudFacts`) rather than replacing the whole `cloud` object, and a
+ *   provider whose probe fails a given cycle is OMITTED from that cycle's
+ *   facts (never overwritten with a fabricated "disconnected" guess) — so a
+ *   provider connected on cycle 1 stays rendered as connected through a
+ *   cycle-2 timeout, instead of being downgraded to dormant.
  */
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View, StyleSheet, Platform, Alert } from 'react-native';
@@ -60,9 +61,10 @@ import { isAppleHealthSupported } from '@/services/appleHealth';
 import { HEALTH_PROVIDERS, type HealthProviderId } from '@/data/healthProviders';
 import { resolveConnectedHealthView } from '@/services/health/connectedHealthView';
 import {
+  applyProbeCycle,
   buildConnectedHealthInput,
+  dropCloudFact,
   loadConnectedHealthCloudFacts,
-  mergeCloudFacts,
   performConnectedHealthDisconnect,
   revocationCopyKey,
   type ConnectedHealthCloudFacts,
@@ -113,16 +115,18 @@ export function ConnectedHealthContainer({ onBack }: ConnectedHealthContainerPro
     try {
       const { facts, anyProbeFailed } = await loadConnectedHealthCloudFacts(Date.now());
       // Genuinely MERGE this cycle's facts on top of whatever we already had
-      // (`mergeCloudFacts`) rather than replacing the whole object. A
-      // provider whose probe resolved this cycle (successfully or to a real
-      // negative/ambiguous result) updates immediately. A provider whose
-      // probe failed to complete this cycle (rejected/threw/timed out) is
-      // OMITTED from `facts` entirely by `loadConnectedHealthCloudFacts`, so
-      // the merge leaves that provider's prior, real value untouched — this
-      // is what makes "showing the last known connection status" (this
-      // container's `mode: 'offline'` copy) an accurate description of the
-      // screen instead of an unimplemented claim.
-      setCloud((prev) => mergeCloudFacts(prev, facts));
+      // (via `applyProbeCycle` → `mergeCloudFacts`) rather than replacing the
+      // whole object. A provider whose probe resolved this cycle
+      // (successfully or to a real negative/ambiguous result) updates
+      // immediately. A provider whose probe failed to complete this cycle
+      // (rejected/threw/timed out) is OMITTED from `facts` entirely by
+      // `loadConnectedHealthCloudFacts`, so the merge leaves that provider's
+      // prior, real value untouched — this is what makes this container's
+      // `mode: 'offline'` copy ("Couldn't check your connections just now —
+      // this list may be out of date.") an honest hedge instead of an
+      // unimplemented claim: the rows genuinely ARE last-known-good facts,
+      // not a fresh worse guess dressed up as a warning.
+      setCloud((prev) => applyProbeCycle(prev, facts));
       setCloudProbeStatus(anyProbeFailed ? 'retry' : 'ready');
     } catch {
       // Defense in depth only — see file header. `loadConnectedHealthCloudFacts`
@@ -171,6 +175,13 @@ export function ConnectedHealthContainer({ onBack }: ConnectedHealthContainerPro
             // Score-Protection / stale-data hygiene: a genuinely revoked
             // provider must stop contributing anything, immediately.
             setProviderBiometrics(providerId, null);
+            // #494 S-2: drop this provider's cloud fact NOW, before the
+            // follow-up refresh below — see `dropCloudFact`'s own header. If
+            // the follow-up probe cycle then fails to complete (rejects/
+            // times out), this provider must already read as honestly
+            // absent, never as a stale pre-revocation "connected" fact
+            // surviving `applyProbeCycle`'s merge.
+            setCloud((prev) => dropCloudFact(prev, providerId));
             await refreshCloudFacts();
           }
           const copy = revocationCopyKey(outcome);
