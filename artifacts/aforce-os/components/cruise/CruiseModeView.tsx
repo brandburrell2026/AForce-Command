@@ -18,7 +18,10 @@ import {
 } from 'react-native';
 
 import { Icon, type IconName } from '@/components/Icon';
+import { CommandConfidenceBadge } from '@/components/CommandConfidenceBadge';
+import { Colors } from '@/theme/colors';
 import { af, afType, afLayout, AF_MAX_DISPLAY_FONT_SCALE } from '@/theme/afTokens';
+import type { CommandConfidenceLevel } from '@/types';
 import {
   type CruiseModeView as CruiseModeViewModel,
   type CruiseTone,
@@ -54,6 +57,13 @@ export interface CruiseModeViewProps {
   ports: ReadonlyArray<{ id: string; label: string }>;
   selectedPortId: string;
   crossNav: ReadonlyArray<CruiseCrossNavItem>;
+  /**
+   * Section 58 — already-computed Command Confidence™ level, or null to hide
+   * (flag off / no level yet). Anchors to the Guest Readiness card — the
+   * recommendation OUTPUT — never an input-data card (founder ruling
+   * 2026-07-18). The container reads flag + hook; this stays props-only.
+   */
+  confidence?: CommandConfidenceLevel | null;
   onBack: () => void;
   onSelectPort: (id: string) => void;
   onLogWater: () => void;
@@ -108,7 +118,7 @@ function Stepper({
 
 // ─── Sections ────────────────────────────────────────────────────────────────
 
-function ReadinessHero({ view }: { view: CruiseModeViewModel }) {
+function ReadinessHero({ view, confidence }: { view: CruiseModeViewModel; confidence?: CommandConfidenceLevel | null }) {
   const r = view.readiness;
   const tone = TONE[r.tone];
   const building = r.posture === 'building';
@@ -147,6 +157,18 @@ function ReadinessHero({ view }: { view: CruiseModeViewModel }) {
           <Text style={styles.ringCaptionSoft}>· adjusted for live conditions</Text>
         ) : null}
       </View>
+      {confidence ? (
+        <View style={styles.confidenceRow}>
+          {/* Command Confidence anchors to the recommendation OUTPUT (this
+              Guest Readiness card), not an input-data card (founder ruling
+              2026-07-18). Near-black pill keeps the monochrome ramp on the
+              exact surface it was tuned for (PR #285/#288) — reference the
+              token, not a literal, so it tracks if background.card moves. */}
+          <View style={styles.confidencePill} testID="cruise-confidence">
+            <CommandConfidenceBadge level={confidence} />
+          </View>
+        </View>
+      ) : null}
     </Card>
   );
 }
@@ -393,7 +415,7 @@ function RecoveryCard({ view }: { view: CruiseModeViewModel }) {
 // ─── Root ────────────────────────────────────────────────────────────────────
 
 export function CruiseModeView({
-  view, log, ports, selectedPortId, crossNav,
+  view, log, ports, selectedPortId, crossNav, confidence,
   onBack, onSelectPort, onLogWater, onLogChange, onNavigate,
 }: CruiseModeViewProps) {
   return (
@@ -417,7 +439,7 @@ export function CruiseModeView({
       </View>
 
       <SectionHeader label="GUEST READINESS SIGNAL" />
-      <ReadinessHero view={view} />
+      <ReadinessHero view={view} confidence={confidence} />
 
       {/* Real self-report water CTA (or honest preview) */}
       <Pressable
@@ -549,6 +571,14 @@ const styles = StyleSheet.create({
   ringCaptionRow: { flexDirection: 'row', alignItems: 'baseline', gap: 4, marginTop: 8, flexWrap: 'wrap' },
   ringCaption: { ...afType.eyebrow, color: af.textTertiary },
   ringCaptionSoft: { ...afType.caption, color: af.textTertiary, fontSize: 11 },
+  confidenceRow: { flexDirection: 'row', justifyContent: 'flex-end', marginTop: 10 },
+  // The exact surface the §58 confidence ramp is tuned for (#285/#288).
+  confidencePill: {
+    backgroundColor: Colors.background.card,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: afLayout.radiusPill,
+  },
 
   // Live env strip
   liveStrip: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
