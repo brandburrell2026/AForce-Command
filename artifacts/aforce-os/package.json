@@ -71,7 +71,8 @@
     "react-native-worklets": "0.5.1",
     "typescript": "~5.9.2",
     "zod": "catalog:",
-    "zod-validation-error": "^3.4.0"
+    "zod-validation-error": "^3.4.0",
+    "@types/node": "^25.3.3"
   },
   "dependencies": {
     "@clerk/expo": "3.2.2",
