@@ -95,7 +95,8 @@
     "react": "19.1.0",
     "react-i18next": "^17.0.4",
     "react-native": "0.81.5",
-    "react-native-view-shot": "^4.0.3"
+    "react-native-view-shot": "^4.0.3",
+    "@workspace/health-core": "workspace:*"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
