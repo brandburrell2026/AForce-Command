@@ -27,6 +27,7 @@ export default defineConfig({
       'artifacts/aforce-os/components/home/__tests__/**/*.test.ts',
       'artifacts/aforce-os/components/insights/__tests__/**/*.test.ts',
       'artifacts/aforce-os/components/nightOut/__tests__/**/*.render.test.tsx',
+      'artifacts/aforce-os/components/cruise/__tests__/**/*.render.test.tsx',
       'artifacts/aforce-os/store/__tests__/**/*.test.ts',
       'artifacts/aforce-os/hooks/__tests__/**/*.test.ts',
       'artifacts/aforce-os/featureFlags/**/__tests__/**/*.test.ts',
@@ -42,6 +43,8 @@ export default defineConfig({
       ['artifacts/aforce-site/**', 'happy-dom'],
       // The Night Out render harness renders to a DOM.
       ['artifacts/aforce-os/components/nightOut/__tests__/**', 'happy-dom'],
+      // The Cruise Mode render harness renders to a DOM.
+      ['artifacts/aforce-os/components/cruise/__tests__/**', 'happy-dom'],
     ],
     reporters: 'default',
   },
