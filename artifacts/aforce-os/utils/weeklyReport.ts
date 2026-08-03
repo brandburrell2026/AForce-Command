@@ -29,6 +29,16 @@ import {
   type PerformanceAgeDailySnapshot,
   type PerformanceAgeResult,
 } from './performanceAge';
+// TYPE-ONLY import (erased at compile time — zero runtime dependency, so the
+// "imports nothing from services" purity guarantee above still holds for the
+// actual bundle). W3.4: `health` is a pass-through field only — this module
+// never computes an aggregate itself, never reads a clock/store to build
+// one, and never renders it. The caller (screen) builds the aggregate via
+// `services/health/weeklyHealthAggregates.ts` behind `health_canonical_
+// consumers` and hands it in; when omitted, `report.health` is `null` and
+// every existing section/behavior is unchanged (Score-Protection: read-only
+// signal passthrough, never a score).
+import type { WeeklyHealthAggregates } from '../services/health/weeklyHealthAggregates';
 
 const MS_PER_DAY = 86_400_000;
 
@@ -104,6 +114,13 @@ export interface WeeklyReportInput {
   };
   /** This-week command usage (empty until command metadata is logged). */
   commandUsage?: WeeklyCommandUsage[];
+  /**
+   * Canonical weekly health aggregates (ADDITIVE, W3.4). `undefined`/omitted
+   * ⇒ `WeeklyReport.health` is `null` and nothing else changes — no existing
+   * section reads this field. Gated by the caller behind
+   * `health_canonical_consumers`; see file header.
+   */
+  health?: WeeklyHealthAggregates | null;
 }
 
 export interface WeeklyReport {
@@ -111,6 +128,8 @@ export interface WeeklyReport {
   weekEndISO: string;
   generatedAtISO: string;
   sections: WeeklyReportSection[];
+  /** Pass-through of `WeeklyReportInput.health` — `null` when not supplied. Additive, W3.4; see that field's doc. */
+  health: WeeklyHealthAggregates | null;
 }
 
 export interface WeekWindow {
@@ -353,6 +372,7 @@ export function buildWeeklyReport(input: WeeklyReportInput): WeeklyReport {
     weekEndISO: input.weekEndISO,
     generatedAtISO: input.nowISO,
     sections,
+    health: input.health ?? null,
   };
 }
 
