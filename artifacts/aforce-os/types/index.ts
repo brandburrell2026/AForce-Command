@@ -934,6 +934,10 @@ export interface FeatureFlags {
   // account, does not affect your score" snapshot. NEVER surfaces as a real
   // connection and NEVER reaches the score (Score-Protection).
   health_demo_data_enabled: boolean;
+  /** Wave-3 rollout gate: product surfaces consume services/health/signalResolution
+   *  instead of the scattered legacy selectors. Default OFF — flip per-surface
+   *  rollout only. Not a provider flag; activates no provider. */
+  health_canonical_consumers: boolean;
 
   // Native Liquid Glass tabs gate. Controls whether iOS 26 uses the native
   // tab bar (expo-router/unstable-native-tabs -> RNScreens RNSTabBarController)
