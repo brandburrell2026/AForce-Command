@@ -1,10 +1,17 @@
 # CI & Branch Protection
 
 This documents the checks defined in `.github/workflows/ci.yml` and
-`.github/workflows/integration.yml`, what to require on `main`, and — critically —
-two pre-existing repo defects that will make a truly fresh checkout fail even
-though the long-lived local dev checkout looks green. Read the last section
-before wiring up required status checks.
+`.github/workflows/integration.yml`, and what to require on `main`. See "Fresh-
+checkout defects" near the bottom for two repo defects a truly fresh checkout
+used to hit (both fixed as of PR 2.2B) — read it before assuming a future
+edit to `pnpm-workspace.yaml` or `artifacts/aforce-os/package.json` is safe.
+
+**Repo setup required before `tests-baseline`'s self-serving-edit guard is
+useful:** create a `baseline-override` label on this repository (Settings →
+Labels → New label). The guard step in `ci.yml` checks for this exact label
+name on the pull request; if the label doesn't exist yet, no PR can ever
+apply it, and any PR that touches `governance/TEST-BASELINE.md` will fail
+`tests-baseline` unconditionally until a maintainer creates it once.
 
 ## Required status checks — recommendation
 
@@ -78,6 +85,25 @@ nothing to do with the database. That argument loses here because:
   constants pinned in `ci.yml` with a comment pointing back at this doc — if
   you see the `::warning::` about that fallback, the doc's table format
   changed and needs a look.
+
+  **Self-serving-edit protection (added PR 2.2B, 2026-08-03):** the file this
+  job compares against is never the pull request's own working copy. For a
+  `pull_request` event, the job does `git fetch --depth=1 origin
+  ${{ github.base_ref }}` and reads `governance/TEST-BASELINE.md` from that
+  target-branch ref (written to `target-baseline.md`) — so a PR that edits
+  the doc cannot change the number it is itself judged against. (For a
+  `push` event — e.g. a direct push to `main` — there is no separate target
+  branch to diff against, so the checked-out `HEAD` copy is used, since
+  `HEAD` *is* the branch of record at that point.) A PR is still allowed to
+  edit `governance/TEST-BASELINE.md` — to legitimately lower it after fixing
+  tests, or to raise it with an accepted new gap — but doing so without the
+  **`baseline-override`** label fails the job outright with an
+  `::error::` naming exactly that. The label doesn't change what this run is
+  measured against (it still uses the target branch's numbers); it only
+  turns a silent ceiling-move into something a reviewer had to consciously
+  apply. `governance/TEST-BASELINE.md` also carries the `governance/`
+  CODEOWNERS entry, so the same PR that trips this guard also requires the
+  governance owner's review.
 - **`focused-health`** — `vitest run` scoped to `lib/health-core`,
   `artifacts/aforce-os/services/health`,
   `artifacts/api-server/src/__tests__/whoopParity`, and
@@ -154,62 +180,59 @@ reports "Already up to date" and touches nothing, because those 5 packages'
 build scripts already ran and were approved on that machine at some point.
 **That approval state is local-machine memory, not part of the repo.**
 
-## Before this can go green: two pre-existing defects, verified in isolation
+## Fresh-checkout defects — fixed in PR 2.2B (2026-08-03)
 
-Everything above was validated against an isolated `git worktree` checked out
-at `main@20136093` — deliberately *not* the long-lived local working
-directory, which has weeks of accumulated `node_modules` state that masks
-both of the following. Both were reproduced twice from a full `rm -rf
-node_modules && pnpm install --frozen-lockfile`, so they are deterministic on
-a fresh runner, not flaky:
+Everything above was originally validated against an isolated `git worktree`
+checked out at `main@20136093` — deliberately *not* the long-lived local
+working directory, which has weeks of accumulated `node_modules` state that
+masked both of the defects below. Both are now fixed; kept here as the record
+of what was wrong and how it was verified fixed, since a future edit to
+either file could reopen either gap silently on a long-lived local checkout.
 
-1. **`pnpm install --frozen-lockfile` fails outright** with
+1. **`pnpm install --frozen-lockfile` used to fail outright** with
    `ERR_PNPM_IGNORED_BUILDS` for `@clerk/shared`, `browser-tabs-lock`,
    `core-js`, `esbuild`, and `sharp` — the 5 packages stranded in the dead
-   `onlyBuiltDependencies` list above. **Fix:** add them to `allowBuilds` as
-   `true` (they're already trusted and already running today; this only
-   re-declares that trust in the format pnpm 11 actually reads):
+   `onlyBuiltDependencies` list. **Fixed:** `pnpm-workspace.yaml`'s
+   `allowBuilds` now carries an explicit `true`/`false` per package, decided
+   on evidence (not "true because it used to be inert-listed"):
+   - `esbuild` and `sharp` stay `true` — both have genuine native
+     install-time steps (esbuild downloads its platform binary; sharp
+     fetches/builds libvips). Confirmed by reading `install.js` / `install/
+     check.js` directly.
+   - `@clerk/shared`, `browser-tabs-lock`, and `core-js` are now `false` —
+     each package's postinstall script was read directly and does nothing
+     but print a notice (Clerk's telemetry notice, browser-tabs-lock's
+     thank-you banner, core-js's donation banner); none compiles anything,
+     and all three ship prebuilt `dist`/entry files in their npm tarballs.
+     Verified with a full `pnpm install --frozen-lockfile` against a
+     **fresh, empty pnpm store** (`--config.store-dir` pointed at a new
+     directory, so no prior build-approval cache could mask a real
+     regression): exit 0, no `ERR_PNPM_IGNORED_BUILDS`, and the real
+     Clerk-dependent adversarial route suite
+     (`destructiveEndpointSecurity.test.ts`) still passed end-to-end
+     (29/29) against that install.
 
-   ```yaml
-   allowBuilds:
-     '@clerk/shared': true
-     browser-tabs-lock: true
-     core-js: true
-     cpu-features: false
-     esbuild: true
-     protobufjs: false
-     sharp: true
-     ssh2: false
-   ```
+   The now-fully-inert `onlyBuiltDependencies` block has also been deleted —
+   pnpm 11.1.2 never reads it, so keeping it around only misrepresented what
+   was actually in effect.
 
-   (`pnpm approve-builds --all` in a scratch checkout produces exactly this
-   diff.) Once fixed, also delete the now-fully-inert `onlyBuiltDependencies`
-   block so the file doesn't keep lying about what's in effect.
+2. **`artifacts/aforce-os` typecheck was one version bump from drifting** —
+   `artifacts/aforce-os/package.json` hand-pinned `@types/node` to
+   `^25.3.3`, a version string that happened to match the shared
+   `pnpm-workspace.yaml` catalog entry rather than being sourced from it.
+   **Fixed:** it now reads `@types/node: "catalog:"`, identical to every
+   other workspace's `@types/node` declaration, with `pnpm install
+   --lockfile-only` re-run to regenerate `pnpm-lock.yaml` (a one-line
+   specifier change; the resolved version is unchanged).
 
-2. **`artifacts/aforce-os` typecheck fails** — 18 `TS2307` errors across 6
-   files under `utils/__tests__/` (`Cannot find module 'node:fs'` /
-   `'node:url'` / `'node:path'`). Root cause: `artifacts/aforce-os/package.json`
-   never declares `@types/node` as a dependency. It typechecks today on
-   aged local machines only because `@types/node` happens to be hoisted to
-   the repo root `node_modules/@types/node` as an incidental side effect of
-   that machine's install history — not because the lockfile or any
-   `package.json` guarantees it. A CI runner, or anyone's fresh `git clone`,
-   starts with none of that incidental state and hits this every time. These
-   test files were added 2026-06-21, four weeks before
-   `governance/TEST-BASELINE.md` recorded aforce-os typecheck as green — the
-   gap has been silently masked since before the baseline was even written.
-   **Fix:** add `@types/node` (matching the `catalog:`-pinned version the
-   `scripts` package already uses) as an explicit devDependency of
-   `artifacts/aforce-os`.
-
-Neither fix is in scope for this PR — `pnpm-workspace.yaml` and
-`artifacts/aforce-os/package.json` are both outside the files this change
-touches, and both fall under CODEOWNERS' owner-only / mobile-lead paths. Until
-they land, `typecheck` will fail on every fresh runner regardless of what the
-PR under review actually changed. **Do not flip on required-status-checks
-branch protection for `typecheck` until both are fixed and verified with a
-clean-checkout run** (`rm -rf node_modules && pnpm install --frozen-lockfile`
-locally is enough to reproduce and confirm the fix).
+Both fixes were verified together with `pnpm --filter @workspace/aforce-os
+run typecheck`, `pnpm --filter @workspace/api-server run typecheck`, and
+`pnpm run typecheck:libs`, all green, plus the fresh-store install above.
+**Recommendation:** re-run `rm -rf node_modules && pnpm install
+--frozen-lockfile` (or an isolated `git worktree`) after any future edit to
+`pnpm-workspace.yaml` or `artifacts/aforce-os/package.json`, rather than
+trusting a long-lived local checkout's cached state — that's exactly the gap
+that let both of these ship unnoticed the first time.
 
 ## Validation method for this workflow (stated honestly)
 
@@ -232,7 +255,32 @@ locally is enough to reproduce and confirm the fix).
   parts no local tool can check (trigger syntax, `concurrency`, job-level
   `steps`/`uses`/`with` shape).
 
+**Added for PR 2.2B's `tests-baseline` self-serving-edit guard:**
+
+- Re-ran the same parse-then-extract-then-`bash -n` method above against the
+  updated `tests-baseline` job after adding the target-branch-fetch and
+  guard steps — all steps still parse and pass shell syntax validation.
+- Extracted the (now target-baseline.md-reading) comparison script the same
+  way as before and ran it against four synthetic `vitest-report.json`
+  fixtures: exactly-at-baseline (pass), files-regressed (fails on file
+  count), tests-regressed (fails on test count), and improved (pass) — all
+  four produced the expected exit code and `::error::`/success messaging.
+- Simulated the guard step's actual `git diff` logic (not just read the
+  script) against a throwaway local bare-repo + clone: a branch that edits
+  `governance/TEST-BASELINE.md` relative to its fetched `origin/main` is
+  correctly detected (the step would fail without the label); a branch that
+  edits an unrelated file is correctly left alone (the step would pass).
+- `github.event.pull_request.labels.*.name` / `contains(...)` is the
+  documented GitHub Actions object-filter + function pattern for checking a
+  PR's labels from `github.event` directly (no `gh api` call needed) —
+  confirmed against current GitHub Actions expression-syntax documentation,
+  not run against a live PR event (that requires an actual PR, which local
+  tooling can't fabricate).
+
 This is not a substitute for a real Actions run on the actual runner image —
 recommend treating the first PR that includes these files as also the first
 real-environment smoke test, and watching that run closely rather than
-merging on the strength of local validation alone.
+merging on the strength of local validation alone. In particular, watch the
+first PR that legitimately needs the `baseline-override` label end-to-end
+(guard fails without the label, passes once applied) before trusting it as a
+proven gate rather than a reviewed-but-unexercised one.

@@ -32,7 +32,27 @@ export type HealthConnectUserAction =
   | 'install_update'
   | 'system_update'
   | 'none'
-  | 'unsupported_platform';
+  | 'unsupported_platform'
+  | 'retry';
+
+/**
+ * `'retry'` is never produced by `resolveHealthConnectAvailability` itself —
+ * this function only ever sees an sdkStatus HC actually returned, which by
+ * construction is always one of the three legitimate statuses handled below.
+ * It exists for `sync.ts`'s `getSdkStatus()` call site: when that call
+ * THROWS (native bridge crash, transport failure, process died mid-call),
+ * that is NOT Health Connect telling us it's unavailable — it's us failing
+ * to even ask. Reporting `'unsupported_platform'` there (the pre-fix
+ * behavior) fabricated "this device doesn't support Health Connect," which
+ * is a permanent, non-actionable claim the caller had no evidence for and
+ * which would incorrectly steer a user away from a device that may support
+ * Health Connect perfectly well. `'retry'` says only what's actually known:
+ * the check itself failed and trying again is the honest next step — as
+ * opposed to `'temporarily_unavailable'` (rejected: that phrasing implies a
+ * confirmed state, whereas nothing was confirmed) or a fabricated permanent
+ * status. See `sync.ts`'s `getSdkStatus()` catch block, the only call site
+ * that ever emits this value.
+ */
 
 export interface HealthConnectAvailabilityResult {
   availability: HealthConnectAvailability;

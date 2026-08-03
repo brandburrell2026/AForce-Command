@@ -247,9 +247,17 @@ export interface ProviderDisconnectOptions {
  *   'succeeded'              — revoker ran against a stored token and the
  *                              provider accepted it. The upstream grant
  *                              is dead.
- *   'failed'                 — revoker ran and the provider rejected or
- *                              errored. The upstream grant MAY STILL BE
- *                              LIVE. Local cleanup still completed.
+ *   'failed'                 — EITHER the revoker ran and the provider
+ *                              rejected/errored, OR we could not even
+ *                              determine what to revoke (reading the
+ *                              stored token threw, or the store returned
+ *                              a malformed token — see `reason`:
+ *                              'token_read_failed' / 'token_read_malformed'
+ *                              vs. an upstream error name for the
+ *                              ran-and-rejected case). In every case the
+ *                              upstream grant MAY STILL BE LIVE — this
+ *                              outcome always errs toward "assume it is."
+ *                              Local cleanup still completed regardless.
  *   'unsupported'            — this provider has no revoke contract we
  *                              can call (Garmin: partner endpoints are
  *                              unverified/dormant — see module doc). A
@@ -363,6 +371,18 @@ function errName(err: unknown): string {
   return err instanceof Error ? err.name : "unknown_error";
 }
 
+/**
+ * Guards against a token STORE returning something truthy but unusable
+ * (corrupt row, partial write, a bug upstream) — as opposed to the store
+ * legitimately returning `null`. Only `accessToken` is checked: it's the
+ * one field every `ProviderRevoker` above actually reads, so a token
+ * missing/blank in that field cannot be safely handed to a revoker no
+ * matter what `refreshToken`/`expiresAt` say.
+ */
+function isUsableProviderTokens(tokens: ProviderTokens): boolean {
+  return typeof tokens.accessToken === "string" && tokens.accessToken.length > 0;
+}
+
 export function createProviderDisconnector(
   opts: CreateProviderDisconnectorOptions,
 ): ProviderDisconnector {
@@ -389,15 +409,57 @@ export function createProviderDisconnector(
       };
       if (opts.revoker) {
         let tokens: ProviderTokens | null = null;
+        // Distinct from `tokens === null`: null means the store told us,
+        // authoritatively, that nothing is stored (the honest idempotent
+        // case). This flag means we DON'T KNOW — the read threw, or the
+        // store handed back something that isn't a usable token — which
+        // must never be reported the same way as a confirmed-empty store.
+        let tokenReadFailed = false;
         try {
-          tokens = await store.read();
+          const stored = await store.read();
+          if (stored === null) {
+            tokens = null;
+          } else if (isUsableProviderTokens(stored)) {
+            tokens = stored;
+          } else {
+            // The store returned a truthy value that isn't a usable
+            // token (e.g. missing/blank accessToken — a corrupt row or a
+            // partial write). Calling the revoker with this would send a
+            // garbage request upstream; silently treating it as "nothing
+            // to revoke" would be the exact lie this fix exists to
+            // remove, since the store DOES have a row here. Handled
+            // identically to a read failure below.
+            tokenReadFailed = true;
+            revocation.reason = "token_read_malformed";
+            log?.warn(
+              { userId, provider },
+              `${providerKey}Disconnect: stored token failed shape validation before revoke (non-blocking)`,
+            );
+          }
         } catch (err) {
+          tokenReadFailed = true;
+          revocation.reason = "token_read_failed";
           log?.warn(
             { userId, provider, err: errName(err) },
             `${providerKey}Disconnect: token read before revoke failed (non-blocking)`,
           );
         }
-        if (tokens) {
+
+        if (tokenReadFailed) {
+          // We could not determine whether a live grant exists. The old
+          // behavior fell through to the "nothing stored" branch below
+          // and reported `skipped_no_tokens` — i.e. "confirmed nothing to
+          // revoke" — when the truth was "couldn't look." That's a lie in
+          // exactly the direction that matters: a live grant could be
+          // sitting unrevoked while the user is told there was nothing to
+          // revoke. `revoker` was never invoked (there is nothing safe to
+          // hand it), so `attempted` stays `false`, but `ok:false` +
+          // outcome `'failed'` err toward "assume the grant may still be
+          // live" — the same posture as a revoker call that actually ran
+          // and lost.
+          revocation.ok = false;
+          revocation.outcome = "failed";
+        } else if (tokens) {
           revocation.attempted = true;
           try {
             await opts.revoker(tokens);

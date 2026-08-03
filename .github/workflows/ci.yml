@@ -3,20 +3,25 @@ name: CI
 # Required-status-check contract (see docs/CI_BRANCH_PROTECTION.md before wiring
 # branch protection): typecheck, tests-baseline, focused-health, governance-drift.
 #
-# KNOWN BLOCKERS on a truly fresh checkout — verified 2026-08-03 against an
-# isolated `git worktree` of main@20136093 (NOT the long-lived local checkout,
-# which has accumulated state that masks both of these). See
-# docs/CI_BRANCH_PROTECTION.md "Before this can go green" for detail and fixes.
-#   1. `pnpm install --frozen-lockfile` fails outright (ERR_PNPM_IGNORED_BUILDS)
-#      because pnpm-workspace.yaml's `allowBuilds` map is missing 5 packages
-#      that are still listed under the now-inert, pnpm-11-removed
-#      `onlyBuiltDependencies` key.
-#   2. `artifacts/aforce-os` typecheck fails (TS2307, `node:fs`/`node:url`/
-#      `node:path` not found) because @types/node is not a declared dependency
-#      there and only resolves by incidental hoisting on aged local installs.
-# Neither is caused by this workflow; both must be fixed in pnpm-workspace.yaml
-# / artifacts/aforce-os/package.json (owner-gated, out of this PR's scope)
-# before these jobs will pass on a fresh runner.
+# FORMER known blockers on a truly fresh checkout, FIXED as of PR 2.2B
+# (2026-08-03) — kept here as a record, not as an open TODO:
+#   1. `pnpm install --frozen-lockfile` used to fail outright
+#      (ERR_PNPM_IGNORED_BUILDS) because pnpm-workspace.yaml's `allowBuilds`
+#      map was missing packages still listed only under the now-inert,
+#      pnpm-11-removed `onlyBuiltDependencies` key. Fixed: `allowBuilds` now
+#      carries an explicit true/false per package (see pnpm-workspace.yaml's
+#      own comment for the evidence behind each decision — a fresh-store
+#      install plus the real Clerk-dependent adversarial route suite were
+#      both run to confirm the `false` entries are safe), and the dead
+#      `onlyBuiltDependencies` block is gone.
+#   2. `artifacts/aforce-os/package.json` hand-pinned `@types/node` to a
+#      version string that merely happened to match the shared catalog
+#      value rather than being sourced from it — one version bump away from
+#      silently drifting apart. Fixed: it now reads `catalog:` directly,
+#      same as every other workspace's `@types/node`.
+# Re-verify both with `rm -rf node_modules && pnpm install --frozen-lockfile`
+# (or an isolated `git worktree`) before assuming a future edit to either
+# file hasn't reopened a real gap.
 
 on:
   pull_request:
@@ -99,6 +104,53 @@ jobs:
       - name: Install dependencies (frozen lockfile)
         run: pnpm install --frozen-lockfile
 
+      # ── Self-serving-edit protection (PR 2.2B, section C4) ──────────────
+      #
+      # The comparison step below decides pass/fail by reading
+      # governance/TEST-BASELINE.md. Left unguarded, a single PR could both
+      # (a) raise the documented failure ceiling in that file AND (b) add
+      # new failing tests, using its own edit to launder a real regression
+      # past this check. The fix: for a pull_request event, the numeric
+      # comparison ALWAYS uses the baseline as it exists on the TARGET
+      # branch (fetched fresh here), never the PR's own working copy of the
+      # file — so editing the file in the PR cannot change what this PR is
+      # judged against. On a push (no target branch to diff against — e.g.
+      # a direct push to `main`), the checked-out HEAD copy is used, since
+      # HEAD *is* the branch of record at that point.
+      - name: Fetch target branch (PRs only, shallow)
+        if: github.event_name == 'pull_request'
+        run: git fetch --no-tags --depth=1 origin "${{ github.base_ref }}:refs/remotes/origin/${{ github.base_ref }}"
+
+      - name: Resolve the baseline to compare against
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "Using governance/TEST-BASELINE.md from target branch 'origin/${{ github.base_ref }}' (not this PR's copy)."
+            git show "origin/${{ github.base_ref }}:governance/TEST-BASELINE.md" > target-baseline.md
+          else
+            echo "Push event — no target branch to diff against; using HEAD's governance/TEST-BASELINE.md."
+            cp governance/TEST-BASELINE.md target-baseline.md
+          fi
+
+      # A PR is still allowed to edit TEST-BASELINE.md (e.g. to legitimately
+      # lower it after fixing tests, or raise it with an accepted new gap) —
+      # it just can't do so silently. Requiring a human-applied label turns
+      # "the ceiling moved" into something a reviewer has to consciously
+      # notice and approve, rather than a diff hunk that scrolls by. Note
+      # this step only GATES the edit; the comparison above still measures
+      # against the TARGET's baseline either way (see rationale above), so
+      # the new numbers in the PR's copy take effect for OTHER PRs only
+      # once this one merges.
+      - name: Guard against unacknowledged TEST-BASELINE.md edits
+        if: >
+          github.event_name == 'pull_request' &&
+          !contains(github.event.pull_request.labels.*.name, 'baseline-override')
+        run: |
+          if ! git diff --quiet "origin/${{ github.base_ref }}" HEAD -- governance/TEST-BASELINE.md; then
+            echo "::error::This PR modifies governance/TEST-BASELINE.md without the 'baseline-override' label. A PR must not be able to silently move its own pass/fail ceiling — see docs/CI_BRANCH_PROTECTION.md. Ask a reviewer to confirm the new baseline is legitimate and apply the 'baseline-override' label, then re-run this check."
+            git diff "origin/${{ github.base_ref }}" HEAD -- governance/TEST-BASELINE.md
+            exit 1
+          fi
+
       # Canonical no-DB run (governance/TEST-BASELINE.md §1). DATABASE_URL is
       # deliberately left UNSET: the documented baseline already accounts for
       # the ~33 files that fail to load without it (Cause B in the doc). A
@@ -112,7 +164,7 @@ jobs:
       - name: Run canonical suite (JSON report)
         run: pnpm exec vitest run --reporter=default --reporter=json --outputFile.json=vitest-report.json || true
 
-      - name: Compare against documented baseline (governance/TEST-BASELINE.md)
+      - name: Compare against documented baseline (governance/TEST-BASELINE.md, target-branch copy)
         run: |
           node <<'NODESCRIPT'
           const fs = require('fs');
@@ -124,7 +176,11 @@ jobs:
           const FALLBACK_FAILED_FILES = 46;
           const FALLBACK_FAILED_TESTS = 18;
 
-          const baselineDoc = fs.readFileSync('governance/TEST-BASELINE.md', 'utf8');
+          // target-baseline.md is the TARGET branch's copy (see the
+          // "Resolve the baseline to compare against" step above) — never
+          // this PR's own working copy — so a PR editing TEST-BASELINE.md
+          // cannot change what it is judged against.
+          const baselineDoc = fs.readFileSync('target-baseline.md', 'utf8');
           const filesMatch = baselineDoc.match(/\*\*Test files — failed\*\*\s*\|\s*\*\*(\d+)\*\*/);
           const testsMatch = baselineDoc.match(/\*\*Tests — failed\*\*\s*\|\s*\*\*(\d+)\*\*/);
 

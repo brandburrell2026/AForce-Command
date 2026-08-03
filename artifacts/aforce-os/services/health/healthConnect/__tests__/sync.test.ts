@@ -155,6 +155,24 @@ describe('runHealthConnectSync — availability short-circuit', () => {
     );
     expect(result.nextChangesTokens).toEqual({ sleep_session: existingToken });
   });
+
+  it('an unsupported platform (Android below API 28) short-circuits with userAction: unsupported_platform — a legitimate result, not a bridge failure', async () => {
+    // Gap-fill: the parametrized case above only exercises the built-in
+    // (API 34) tier. This is the OTHER legitimate 'unsupported_platform'
+    // source — `resolveHealthConnectAvailability`'s platform/API-floor gate
+    // — and it must be honestly distinguished from the getSdkStatus()-threw
+    // 'retry' case below: both share `availabilityBlocked: true`, but only
+    // a bridge failure sets `availabilityError`.
+    const client = makeClient({ getSdkStatus: vi.fn(async () => 'SDK_AVAILABLE' as const) });
+    const result = await runHealthConnectSync(
+      baseParams({ client, types: ['sleep_session'], androidApiLevel: 26 }),
+    );
+    expect(result.availability).toEqual({ availability: 'unavailable', userAction: 'unsupported_platform' });
+    expect(result.availabilityBlocked).toBe(true);
+    expect(result.availabilityError).toBeUndefined();
+    expect(result.records).toEqual([]);
+    expect(result.perType).toEqual({});
+  });
 });
 
 // ─── Unguarded-await hardening: getSdkStatus/getGrantedPermissions must never reject the sync ─
@@ -174,7 +192,13 @@ describe('runHealthConnectSync — client calls that throw never reject the sync
 
     expect(result.records).toEqual([]);
     expect(result.deletedExternalIds).toEqual([]);
-    expect(result.availability).toEqual({ availability: 'unavailable', userAction: 'unsupported_platform' });
+    // userAction is 'retry', NOT 'unsupported_platform' — this catch block
+    // only knows the SDK-status CHECK failed (bridge/transport error), not
+    // that Health Connect is actually absent from the device. Reporting
+    // 'unsupported_platform' here would fabricate a permanent, non-actionable
+    // claim the caller has no evidence for. See availability.ts's `'retry'`
+    // doc for the full reasoning.
+    expect(result.availability).toEqual({ availability: 'unavailable', userAction: 'retry' });
     expect(result.availabilityBlocked).toBe(true);
     expect(result.availabilityError).toBe('native bridge crashed');
     expect(result.partial).toBe(false);
