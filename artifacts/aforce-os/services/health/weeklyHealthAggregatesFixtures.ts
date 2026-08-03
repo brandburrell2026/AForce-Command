@@ -18,6 +18,7 @@ import {
   type ProvenanceHop,
 } from '@workspace/health-core';
 import { defaultDayBoundariesMs } from './weeklyHealthAggregates';
+import type { HealthSignals } from './signalResolution';
 
 export const FIXED_NOW = new Date('2026-08-03T12:00:00Z').getTime();
 export const HOUR = 60 * 60_000;
@@ -356,10 +357,20 @@ export const SAME_DAY_DISTINCT_PROVIDER_SCORE_RECORDS: CanonicalHealthRecord[] =
 // dedup can't catch it). `provider_score` records are points (no start/end
 // window), so Pass-3's overlap-based same-origin collapse never applies to
 // them regardless of day — see health-core/dedupe.ts windowOverlapFraction.
-// The WEEKLY aggregate is the one place left that can enforce "one real
-// score per provider+kind+day" for THIS case: it must collapse these to the
-// single freshest-OBSERVED reading, never average both into that day's
-// contribution.
+//
+// Since signalResolution.ts's `resolveProviderScores` enforces "at most one
+// entry per (origin, kind) per resolution call" (see its own invariant doc),
+// and this fixture's two records land in the SAME day bucket, the RESOLVER
+// itself already collapses them to the single freshest-observed reading
+// before this weekly aggregate ever sees more than one entry for the day.
+// This fixture now exercises that resolver-level guarantee end-to-end on the
+// records plane — it no LONGER exercises this module's OWN per-day dedup in
+// `aggregateProviderScores` (see that function's comment). That dedup
+// remains load-bearing ONLY for the `dailySignals` OVERRIDE path, which
+// bypasses the resolver entirely — see
+// `OVERRIDE_DUPLICATE_SCORE_*` below and
+// `__tests__/weeklyHealthAggregates.test.ts`'s override-path duplicate-score
+// test for the case that still needs it.
 //
 // An aggregator copy of a provider score delivered WITHOUT an active direct
 // connection is a DIFFERENT case, not exercised by this fixture — this
@@ -394,3 +405,51 @@ export const PROVIDER_SCORE_DUPLICATE_SAME_DAY_RECORDS: CanonicalHealthRecord[] 
     externalId: 'oura-readiness-day2-sync-b',
   }),
 ];
+
+// ─── 8d. Duplicate copies of the SAME (provider, kind) via the OVERRIDE path ─
+// The `dailySignals` override path bypasses `resolveHealthSignals` (and
+// therefore its own resolution-time collapse — see signalResolution.ts's
+// `HealthSignals.providerScores` invariant doc) entirely: a caller can hand
+// this module an already-resolved `HealthSignals` for a given day whose OWN
+// `providerScores` array carries two entries for the SAME (provider, kind).
+// This is the one remaining case `aggregateProviderScores`'s intra-group
+// per-day dedup (see its own comment) still guards — see
+// `__tests__/weeklyHealthAggregates.test.ts`'s override-path duplicate-score
+// test, verified by mutation (deleting that dedup fails only that test).
+
+export const OVERRIDE_DUPLICATE_SCORE_EARLIER_VALUE = 60;
+export const OVERRIDE_DUPLICATE_SCORE_LATER_VALUE = 66;
+
+/** An honest absence for every family this fixture doesn't care about. */
+const OVERRIDE_UNAVAILABLE = { available: false as const, reason: 'no_provider' as const };
+
+export function buildOverrideDuplicateScoreDaySignals(dayIndex: number): HealthSignals {
+  return {
+    sleepDuration: OVERRIDE_UNAVAILABLE,
+    restingHeartRate: OVERRIDE_UNAVAILABLE,
+    hrv: OVERRIDE_UNAVAILABLE,
+    workouts: OVERRIDE_UNAVAILABLE,
+    steps: OVERRIDE_UNAVAILABLE,
+    providerScores: [
+      {
+        kind: 'oura_readiness',
+        provider: 'oura',
+        value: OVERRIDE_DUPLICATE_SCORE_EARLIER_VALUE,
+        unit: 'score',
+        observedAtMs: dayMidMs(dayIndex),
+        freshness: 'fresh',
+        confidence: 'high',
+      },
+      {
+        kind: 'oura_readiness',
+        provider: 'oura',
+        // The later-observed entry — freshest-observed should win, never blend.
+        value: OVERRIDE_DUPLICATE_SCORE_LATER_VALUE,
+        unit: 'score',
+        observedAtMs: dayMidMs(dayIndex) + 30 * 60_000,
+        freshness: 'fresh',
+        confidence: 'high',
+      },
+    ],
+  };
+}

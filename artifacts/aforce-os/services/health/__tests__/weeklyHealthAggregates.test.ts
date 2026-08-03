@@ -46,6 +46,8 @@ import {
   PROVIDER_SCORE_DUPLICATE_SAME_DAY_LATER_VALUE,
   HRV_METHOD_CONFLICT_WITH_GAP_WEEK_RECORDS,
   HRV_GAP_SDNN_VALUES,
+  buildOverrideDuplicateScoreDaySignals,
+  OVERRIDE_DUPLICATE_SCORE_LATER_VALUE,
   dayMidMs,
   mkRecord,
 } from '../weeklyHealthAggregatesFixtures';
@@ -426,6 +428,37 @@ describe('provider scores — attributed per (provider, kind), never blended', (
     expect(group.mean).toBe(PROVIDER_SCORE_DUPLICATE_SAME_DAY_LATER_VALUE);
     expect(group.min).toBe(PROVIDER_SCORE_DUPLICATE_SAME_DAY_LATER_VALUE);
     expect(group.max).toBe(PROVIDER_SCORE_DUPLICATE_SAME_DAY_LATER_VALUE);
+  });
+});
+
+describe('provider-score dedup via the OVERRIDE path — guards aggregateProviderScores\'s per-day dedup', () => {
+  it('a duplicate (provider, kind) pair inside one override day collapses to the freshest entry, never doubled', () => {
+    // The override path (`dailySignals[].signals`) bypasses
+    // `resolveHealthSignals` entirely, so signalResolution.ts's own
+    // (origin, kind) collapse never runs here — this is the residual case
+    // `aggregateProviderScores`'s own per-day dedup exists to guard (see its
+    // comment). Every other day of the week is a genuine "no data" day
+    // (records: undefined ⇒ no providerScores at all), so the group's
+    // coverage can only come from the override day.
+    const result = buildWeeklyHealthAggregates({
+      dailySignals: [{ dayIndex: 3, signals: buildOverrideDuplicateScoreDaySignals(3) }],
+      activeDirectProviders: new Set<HealthProviderId>(['oura']),
+      days: DAYS,
+      timezoneOffsetMin: UTC_OFFSET_MIN,
+      nowMs: FIXED_NOW,
+      minCoverageDays: 1,
+    });
+    expect(result.providerScores).toHaveLength(1);
+    const group = result.providerScores[0];
+    expect(group.provider).toBe('oura');
+    expect(group.kind).toBe('oura_readiness');
+    expect(group.coverage.covered).toBe(1); // one calendar day, not two entries
+    if (group.status !== 'ok') throw new Error('expected ok');
+    // The later-observed entry wins outright — the mean is NOT the average
+    // of both duplicates (63), which would silently double-weight this day.
+    expect(group.mean).toBe(OVERRIDE_DUPLICATE_SCORE_LATER_VALUE);
+    expect(group.min).toBe(OVERRIDE_DUPLICATE_SCORE_LATER_VALUE);
+    expect(group.max).toBe(OVERRIDE_DUPLICATE_SCORE_LATER_VALUE);
   });
 });
 

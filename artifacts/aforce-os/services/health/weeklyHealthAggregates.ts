@@ -535,21 +535,37 @@ function aggregateProviderScores(
   const results: WeeklyProviderScoreMetricAggregate[] = [];
   for (const group of byGroup.values()) {
     // Intra-group DEDUP keyed on (provider, kind, day) — never day alone,
-    // and never provider+kind alone either. `resolveProviderScores` selects
-    // a single per-day winner for genuinely distinct providers/kinds, but it
-    // never cross-selects WITHIN one (provider, kind) pair (provider_score
-    // deliberately has no cross-provider selection — see signalResolution.ts).
-    // A retried sync or an aggregator copy that slips past record-level dedupe
-    // can therefore still surface as two entries for the SAME provider, kind,
-    // AND calendar day. Left un-collapsed, both would silently double-weight
-    // that one day in the mean/min/max below even though `coverage.covered`
-    // (a day COUNT) would still — misleadingly — read as one. Collapse to the
-    // single freshest-OBSERVED reading per day before aggregating; this is the
-    // one point where this module deviates from "never resolve within a day"
-    // (see file header) because provider_score is UNSELECTED upstream by design.
-    // On an exact `observedAtMs` tie, the winner is whichever entry was
-    // inserted first in `group.entries`' stable iteration order (deterministic,
-    // but an arbitrary ordering artifact — never a recency signal).
+    // and never provider+kind alone either.
+    //
+    // As of signalResolution.ts's `resolveProviderScores`, "at most one entry
+    // per (origin, kind) per resolution call" is now enforced UPSTREAM of
+    // this function (see that module's own invariant doc +
+    // `preferredScoreRecord`) — a retried sync or a direct-vs-aggregator-
+    // relayed duplicate already collapses to one entry inside a single
+    // `resolveHealthSignals` call. Since the RECORDS-PLANE path above calls
+    // `resolveHealthSignals` once per day bucket, that day's `providerScores`
+    // already carries at most one entry per (provider, kind) by the time it
+    // reaches this aggregator — this dedup is REDUNDANT (not load-bearing)
+    // for that path today.
+    //
+    // It remains load-bearing for exactly one residual case: the
+    // `dailySignals` OVERRIDE path (`buildWeeklyHealthAggregates`), where a
+    // caller supplies an already-resolved `HealthSignals` for a day directly
+    // (`override.signals`) — bypassing `resolveHealthSignals`, and therefore
+    // its dedup, entirely. A hand-built or persisted override whose own
+    // `providerScores` array carries two entries for the same (provider,
+    // kind) would silently double-weight that day in the mean/min/max below
+    // without this guard, even though `coverage.covered` (a day COUNT) would
+    // still — misleadingly — read as one. Collapse to the single freshest-
+    // OBSERVED reading per day before aggregating; this is the one point
+    // where this module deviates from "never resolve within a day" (see file
+    // header), kept specifically for that override path. On an exact
+    // `observedAtMs` tie, the winner is whichever entry was inserted first in
+    // `group.entries`' stable iteration order (deterministic, but an
+    // arbitrary ordering artifact — never a recency signal). See
+    // `__tests__/weeklyHealthAggregates.test.ts`'s override-path duplicate-
+    // score test — the one test this dedup still guards (confirmed by
+    // mutation: deleting this dedup fails only that test).
     const byDay = new Map<number, ScoreEntry>();
     for (const e of group.entries) {
       const cur = byDay.get(e.dayIndex);
