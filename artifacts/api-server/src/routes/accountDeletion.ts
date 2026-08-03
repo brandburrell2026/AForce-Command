@@ -38,6 +38,17 @@
  *     Calling this endpoint twice in a row is a safe, indistinguishable
  *     no-op the second time.
  *
+ *     Sync-state / cursor storage: NONE EXISTS. Verified by grep over
+ *     `lib/db/src/schema/aforce.ts` for
+ *     `cursor|sync_state|last_sync|watermark|checkpoint|since_token|
+ *     next_token` — zero matches. The fetch sweep paginates with a
+ *     keyset over `aforce_{provider}_tokens.(updated_at, user_id)`, so
+ *     the "cursor" is the token row itself and step 1 already deletes
+ *     it; there is no separate per-user cursor table to cascade into.
+ *     `routes/__tests__/providerDisconnectMounts.test.ts` pins that with
+ *     a schema-drift guard so adding one without extending this cascade
+ *     turns the suite red.
+ *
  *     Scope: HEALTH data only, per the route name. This does NOT delete
  *     the user's AForce account itself (aforce_users row), intake/
  *     hydration history, referrals, circle membership, or Stripe/
@@ -69,7 +80,10 @@ import {
   createHealthRecordsRepo,
   type HealthRecordsRepo,
 } from "@workspace/db";
-import { requireAuth } from "../middlewares/requireAuth";
+import {
+  destructiveGuards,
+  type DestructiveRouteDeps,
+} from "../middlewares/destructiveGuards";
 
 /** Minimal token-store surface this route needs — any provider's
  *  `{Whoop,Garmin,Oura,Strava}TokenStore` satisfies this. */
@@ -92,7 +106,7 @@ export interface AccountDeletionAuthStateDb {
   clearBiometrics(userId: string): Promise<void>;
 }
 
-export interface AccountDeletionDeps {
+export interface AccountDeletionDeps extends DestructiveRouteDeps {
   whoopTokenStoreFor: (userId: string) => AccountDeletionTokenStore;
   garminTokenStoreFor: (userId: string) => AccountDeletionTokenStore;
   ouraTokenStoreFor: (userId: string) => AccountDeletionTokenStore;
@@ -113,7 +127,17 @@ export function buildAccountDeletionRouter(deps: AccountDeletionDeps): IRouter {
 
   router.post(
     "/delete-health-data",
-    requireAuth,
+    // The single most destructive endpoint on the server: it hard-deletes
+    // every physiological record this user has. Origin allow-list ->
+    // rate limit -> REAL auth (no DEFAULT_USER_ID dev fallback, in any
+    // environment). A tighter bucket than the per-provider disconnects —
+    // a legitimate user calls this at most once.
+    ...destructiveGuards({
+      scope: "account_delete_health_data",
+      limit: deps.destructiveRateLimit?.limit ?? 5,
+      windowMs: deps.destructiveRateLimit?.windowMs,
+      auth: deps.destructiveAuth,
+    }),
     async (req, res): Promise<void> => {
       const userId = req.userId;
       if (!userId) {

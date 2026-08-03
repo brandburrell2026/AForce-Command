@@ -68,8 +68,19 @@ import {
   createDrizzleGarminTokenStoreForUser,
   createDrizzleOuraTokenStoreForUser,
   createDrizzleStravaTokenStoreForUser,
+  createHealthRecordsRepo,
   db,
 } from "@workspace/db";
+import type { NodePgDatabase } from "drizzle-orm/node-postgres";
+import type { Logger } from "pino";
+import {
+  createDrizzleProviderUserStateDb,
+  createProviderDisconnector,
+  createOuraRevoker,
+  createStravaRevoker,
+  createWhoopRevoker,
+  type ProviderDisconnector,
+} from "../lib/providerKit/disconnect";
 import { getWhoopRefreshRegistry } from "../lib/whoopRegistry";
 import {
   buildDefaultWhoopFetchDeps,
@@ -78,6 +89,86 @@ import {
 import { logger } from "../lib/logger";
 // Note: smartCaptureRouter is mounted directly in app.ts BEFORE the global
 // 64kB express.json() limiter (base64 photos blow past 64kB instantly).
+
+/**
+ * F5 production wiring for `providerKit/disconnect.ts`.
+ *
+ * Before this, the disconnector existed and was tested but was NOT
+ * mounted anywhere: every `DELETE /api/{provider}/disconnect` in
+ * production took the legacy `store.clear()`-only branch. The user-
+ * visible consequence was the exact dishonesty the module was written to
+ * fix — tokens cleared, but the last-synced snapshot still sitting in
+ * `aforce_user_state.biometrics` and still rendering in
+ * `GET /api/aforce/state`, and (for Oura/Strava/WHOOP) the grant still
+ * live at the provider. Untested wiring is not a feature; unmounted
+ * wiring is not a fix.
+ *
+ * Exported so `routes/__tests__/providerDisconnectMounts.test.ts` can
+ * assert the wiring itself — provider name, revoker presence, and the
+ * Garmin `revocationSupported: false` ruling — rather than inferring it
+ * from the express stack.
+ *
+ * Revoker matrix:
+ *   Oura   — POST /oauth/revoke                 -> 'succeeded' | 'failed'
+ *   Strava — POST /oauth/deauthorize            -> 'succeeded' | 'failed'
+ *   WHOOP  — DELETE /developer/v2/user/access   -> 'succeeded' | 'failed'
+ *   Garmin — none. Partner endpoints are unverified/dormant pending
+ *            credentials, so `revocationSupported: false` makes the
+ *            route answer 'unsupported' — a true statement — instead of
+ *            'skipped_not_configured', which would imply a fixable gap.
+ */
+export function buildProviderDisconnectors(
+  database: NodePgDatabase<Record<string, unknown>>,
+  log?: Logger,
+): Record<"whoop" | "garmin" | "oura" | "strava", ProviderDisconnector> {
+  const userStateDb = createDrizzleProviderUserStateDb(database);
+  const healthRecordsRepo = createHealthRecordsRepo(database);
+  const common = { db: userStateDb, healthRecordsRepo, log };
+  return {
+    whoop: createProviderDisconnector({
+      ...common,
+      provider: "Whoop",
+      tokenStoreFor: (userId) =>
+        createDrizzleWhoopTokenStoreForUser(database, userId, {
+          encryptionKey: process.env["WHOOP_TOKEN_ENCRYPTION_KEY"] ?? null,
+          log,
+        }),
+      revoker: createWhoopRevoker(),
+    }),
+    garmin: createProviderDisconnector({
+      ...common,
+      provider: "Garmin",
+      tokenStoreFor: (userId) =>
+        createDrizzleGarminTokenStoreForUser(database, userId, {
+          encryptionKey: process.env["GARMIN_TOKEN_ENCRYPTION_KEY"] ?? null,
+          log,
+        }),
+      revocationSupported: false,
+    }),
+    oura: createProviderDisconnector({
+      ...common,
+      provider: "Oura",
+      tokenStoreFor: (userId) =>
+        createDrizzleOuraTokenStoreForUser(database, userId, {
+          encryptionKey: process.env["OURA_TOKEN_ENCRYPTION_KEY"] ?? null,
+          log,
+        }),
+      revoker: createOuraRevoker(),
+    }),
+    strava: createProviderDisconnector({
+      ...common,
+      provider: "Strava",
+      tokenStoreFor: (userId) =>
+        createDrizzleStravaTokenStoreForUser(database, userId, {
+          encryptionKey: process.env["STRAVA_TOKEN_ENCRYPTION_KEY"] ?? null,
+          log,
+        }),
+      revoker: createStravaRevoker(),
+    }),
+  };
+}
+
+const disconnectors = buildProviderDisconnectors(db, logger);
 
 const router: IRouter = Router();
 
@@ -151,6 +242,8 @@ if (whoopClientId && whoopClientSecret && whoopRedirectUri) {
   );
   router.use(
     buildWhoopOAuthRouter({
+      // F5: revoke + token delete + served-snapshot removal.
+      disconnector: disconnectors.whoop,
       authStateStore,
       oauthConfig: {
         clientId: whoopClientId,
@@ -210,6 +303,8 @@ if (garminClientId && garminClientSecret && garminRedirectUri) {
   );
   router.use(
     buildGarminOAuthRouter({
+      // F5: revoke + token delete + served-snapshot removal.
+      disconnector: disconnectors.garmin,
       authStateStore: garminAuthStateStore,
       oauthConfig: {
         clientId: garminClientId,
@@ -253,6 +348,8 @@ if (ouraClientId && ouraClientSecret && ouraRedirectUri) {
   );
   router.use(
     buildOuraOAuthRouter({
+      // F5: revoke + token delete + served-snapshot removal.
+      disconnector: disconnectors.oura,
       authStateStore: ouraAuthStateStore,
       oauthConfig: {
         clientId: ouraClientId,
@@ -297,6 +394,8 @@ if (stravaClientId && stravaClientSecret && stravaRedirectUri) {
   );
   router.use(
     buildStravaOAuthRouter({
+      // F5: revoke + token delete + served-snapshot removal.
+      disconnector: disconnectors.strava,
       authStateStore: stravaAuthStateStore,
       oauthConfig: {
         clientId: stravaClientId,

@@ -50,6 +50,10 @@ import { z } from "zod";
 import type { OuraTokenStore } from "@workspace/db";
 import { requireAuth } from "../middlewares/requireAuth";
 import {
+  destructiveGuards,
+  type DestructiveRouteDeps,
+} from "../middlewares/destructiveGuards";
+import {
   buildOuraAuthorizeUrl,
   codeChallengeS256,
   createCodeVerifier,
@@ -63,7 +67,7 @@ import {
 } from "../lib/ouraTokenManager";
 import type { ProviderDisconnector } from "../lib/providerKit/disconnect";
 
-export interface OuraOAuthDeps {
+export interface OuraOAuthDeps extends DestructiveRouteDeps {
   authStateStore: OuraAuthStateStore;
   oauthConfig: OuraOAuthConfig;
   redirectUri: string;
@@ -268,7 +272,14 @@ export function buildOuraOAuthRouter(deps: OuraOAuthDeps): IRouter {
 
   router.delete(
     "/oura/disconnect",
-    requireAuth,
+    // Destructive: origin allow-list -> rate limit -> REAL auth (no
+    // DEFAULT_USER_ID dev fallback). See middlewares/destructiveGuards.ts.
+    ...destructiveGuards({
+      scope: "oura_disconnect",
+      limit: deps.destructiveRateLimit?.limit,
+      windowMs: deps.destructiveRateLimit?.windowMs,
+      auth: deps.destructiveAuth,
+    }),
     async (req, res): Promise<void> => {
       const userId = req.userId;
       if (!userId) {
@@ -297,7 +308,18 @@ export function buildOuraOAuthRouter(deps: OuraOAuthDeps): IRouter {
             },
             "ouraOAuth:disconnect complete (providerKit)",
           );
-          res.status(200).json({ ok: true, status: result.status });
+          // Truthful three-part answer. `ok`/`local` describe what THIS
+          // server did (tokens deleted + snapshot key removed);
+          // `revocation` describes what the PROVIDER did, and is the
+          // only field that can tell the user whether the upstream
+          // grant is actually dead. A blanket `ok:true` used to stand
+          // for both.
+          res.status(200).json({
+            ok: true,
+            local: "succeeded",
+            revocation: result.revocation.outcome,
+            status: result.status,
+          });
         } catch (err) {
           req.log?.error(
             { userId, err: errName(err) },
@@ -321,7 +343,14 @@ export function buildOuraOAuthRouter(deps: OuraOAuthDeps): IRouter {
         return;
       }
       req.log?.info({ userId }, "ouraOAuth:disconnect cleared tokens");
-      res.status(200).json({ ok: true });
+      // `local: "tokens_only"` — this path clears the token row and
+      // NOTHING else: the biometrics snapshot survives and no revoke was
+      // attempted. Saying "succeeded" here would overstate it.
+      res.status(200).json({
+        ok: true,
+        local: "tokens_only",
+        revocation: "skipped_not_configured",
+      });
     },
   );
 
