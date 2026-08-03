@@ -4,7 +4,7 @@ This is a **pre-launch production repository** for AForce Hydration, Inc. It is 
 
 ## Governance — read before building
 
-The AForce OS governing documents live in `governance/` (mirrored in `artifacts/aforce-os/governance/`). Read them before building features:
+The AForce OS governing documents live in `governance/` (sole authoritative source — Founder Decision 3, 2026-07-22; `artifacts/aforce-os/governance/README.md` is a pointer only). Read them before building features:
 
 - **`AForce-Constitution.md`** — locked v1.0 principles (body first, product last; observation never diagnosis; trust over attention). Frozen — no new principles without Julius + Brandon approval and beta evidence.
 - **`Claude-Code-Build-Rules.md`** — the build contract: one numbered section at a time, tested; `/governance` first; thresholds in `config/hydroStateModel.ts`; no new nav or rebuilds.
