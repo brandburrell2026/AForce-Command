@@ -6,10 +6,12 @@ import { resolveConnectedHealthView } from '../connectedHealthView';
 import {
   buildConnectedHealthInput,
   loadConnectedHealthCloudFacts,
+  mergeCloudFacts,
   performConnectedHealthDisconnect,
   resolveRevocationOutcome,
   revocationCopyKey,
   CLOUD_DISCONNECT_PROVIDERS,
+  CLOUD_PROBE_TIMEOUT_MS,
   type ConnectedHealthCloudProbeResult,
   type ConnectedHealthContainerModelInput,
 } from '../connectedHealthContainerModel';
@@ -300,7 +302,7 @@ describe('loadConnectedHealthCloudFacts — fetch injected for tests', () => {
     expect(anyProbeFailed).toBe(false);
   });
 
-  it('a rejected probe is caught, never fabricates a link, and marks anyProbeFailed', async () => {
+  it('a rejected probe is caught, OMITTED from facts (never fabricates a link), and marks anyProbeFailed', async () => {
     const fetchCloudSignals = vi.fn(async (provider: string): Promise<HealthConnectionSignals> => {
       if (provider === 'whoop') throw new Error('bridge exploded');
       return NONE;
@@ -309,11 +311,14 @@ describe('loadConnectedHealthCloudFacts — fetch injected for tests', () => {
     const { facts, anyProbeFailed } = await loadConnectedHealthCloudFacts(NOW, { fetchCloudSignals: fetchCloudSignals as never });
 
     expect(anyProbeFailed).toBe(true);
-    // The one honest fallback — identical to the "can't tell" bucket
-    // fetchHealthConnectionSignals itself already uses. Never a fabricated
-    // 'connected' / 'expired' link, and never surfaced as disconnected/denied/
-    // unsupported (those live only in resolver-level vocabulary, untouched).
-    expect(facts.whoop).toEqual({ integrationReady: false, link: 'none' });
+    // OMITTED, not a fabricated fallback — `whoop` never resolved this cycle,
+    // so it is absent from `facts` entirely. This is what lets the
+    // container's merge (`mergeCloudFacts`) preserve a prior cycle's real
+    // value instead of downgrading it to a fresh worse guess. Never surfaced
+    // as disconnected/denied/unsupported (those live only in resolver-level
+    // vocabulary, untouched).
+    expect(facts.whoop).toBeUndefined();
+    expect('whoop' in facts).toBe(false);
     // A sibling probe that succeeded is unaffected by whoop's rejection.
     expect(facts.garmin).toEqual(NONE);
   });
@@ -329,11 +334,12 @@ describe('loadConnectedHealthCloudFacts — fetch injected for tests', () => {
     const { facts, anyProbeFailed } = await loadConnectedHealthCloudFacts(NOW, { fetchCloudSignals: fetchCloudSignals as never });
 
     expect(anyProbeFailed).toBe(true);
-    expect(facts.garmin).toEqual({ integrationReady: false, link: 'none' });
+    expect(facts.garmin).toBeUndefined();
+    expect('garmin' in facts).toBe(false);
     expect(facts.whoop).toEqual(NONE);
   });
 
-  it('a hung probe past the timeout resolves to the honest fallback instead of wedging forever (fake timers)', async () => {
+  it('a hung probe past the timeout is OMITTED from facts instead of wedging forever or fabricating a value (fake timers)', async () => {
     vi.useFakeTimers();
     try {
       const fetchCloudSignals = vi.fn((provider: string): Promise<HealthConnectionSignals> => {
@@ -350,7 +356,35 @@ describe('loadConnectedHealthCloudFacts — fetch injected for tests', () => {
       const { facts, anyProbeFailed } = await resultPromise;
 
       expect(anyProbeFailed).toBe(true);
-      expect(facts.whoop).toEqual({ integrationReady: false, link: 'none' });
+      expect(facts.whoop).toBeUndefined();
+      expect('whoop' in facts).toBe(false);
+      expect(facts.garmin).toEqual(NONE);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('S2 — a hung probe honors the actual PRODUCTION timeout bound (CLOUD_PROBE_TIMEOUT_MS = 8_000ms), no override', async () => {
+    vi.useFakeTimers();
+    try {
+      const fetchCloudSignals = vi.fn((provider: string): Promise<HealthConnectionSignals> => {
+        if (provider === 'whoop') return new Promise(() => {}); // never settles
+        return Promise.resolve(NONE);
+      });
+
+      // No `probeTimeoutMs` override — this exercises the real production
+      // default (`CLOUD_PROBE_TIMEOUT_MS`), which every other timeout test in
+      // this file bypasses via an injected shorter value for speed.
+      expect(CLOUD_PROBE_TIMEOUT_MS).toBe(8_000);
+      const resultPromise = loadConnectedHealthCloudFacts(NOW, {
+        fetchCloudSignals: fetchCloudSignals as never,
+      });
+
+      await vi.advanceTimersByTimeAsync(CLOUD_PROBE_TIMEOUT_MS);
+      const { facts, anyProbeFailed } = await resultPromise;
+
+      expect(anyProbeFailed).toBe(true);
+      expect(facts.whoop).toBeUndefined();
       expect(facts.garmin).toEqual(NONE);
     } finally {
       vi.useRealTimers();
@@ -389,6 +423,102 @@ describe('loadConnectedHealthCloudFacts — fetch injected for tests', () => {
 
     process.removeListener('unhandledRejection', onUnhandled);
     expect(seenRejections).toEqual([]);
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────
+// S1 — merge semantics across probe cycles (this is the actual B1 fix: a
+// provider's last-known-good fact must genuinely survive a later failed
+// cycle, not just get reasserted in a comment). `mergeCloudFacts` is the
+// pure helper `ConnectedHealthContainer.refreshCloudFacts` calls as
+// `setCloud((prev) => mergeCloudFacts(prev, facts))` — exercised here at the
+// function level, no component mount required.
+// ─────────────────────────────────────────────────────────────────────────
+
+describe('mergeCloudFacts — cycle-over-cycle "last known connection status"', () => {
+  it('a provider present in `next` always wins over `prev`, even a negative/ambiguous real result', () => {
+    const prev = { whoop: CONFIGURED_CONNECTED };
+    const next = { whoop: CONFIGURED_NONE };
+    expect(mergeCloudFacts(prev, next)).toEqual({ whoop: CONFIGURED_NONE });
+  });
+
+  it('a provider ABSENT from `next` (its probe failed this cycle) keeps its prior value untouched', () => {
+    const prev = { whoop: CONFIGURED_CONNECTED, garmin: CONFIGURED_NONE };
+    const next = { garmin: CONFIGURED_CONNECTED }; // whoop omitted — its probe failed this cycle
+    expect(mergeCloudFacts(prev, next)).toEqual({ whoop: CONFIGURED_CONNECTED, garmin: CONFIGURED_CONNECTED });
+  });
+
+  it('a provider that has NEVER succeeded stays absent — merge never invents a value `prev` never had', () => {
+    const prev = {}; // no cycle has ever succeeded for anything yet
+    const next = {}; // this cycle failed for everything too
+    const merged = mergeCloudFacts(prev, next);
+    expect(merged.whoop).toBeUndefined();
+    expect('whoop' in merged).toBe(false);
+  });
+
+  it('a later success updates a provider that was previously absent', () => {
+    const prev: ReturnType<typeof mergeCloudFacts> = {}; // whoop never resolved before
+    const next = { whoop: CONFIGURED_CONNECTED }; // now it does
+    expect(mergeCloudFacts(prev, next)).toEqual({ whoop: CONFIGURED_CONNECTED });
+  });
+
+  it('end-to-end: loadConnectedHealthCloudFacts + mergeCloudFacts reproduces the exact B1 scenario — ' +
+    'cycle 1 whoop connects, cycle 2 whoop times out, merged state still shows whoop connected', async () => {
+    // Cycle 1: whoop resolves connected; strava's probe never resolves at
+    // all (times out) on EITHER cycle — it has never once succeeded.
+    vi.useFakeTimers();
+    let cloud: ReturnType<typeof mergeCloudFacts> = {};
+    try {
+      const cycle1Promise = loadConnectedHealthCloudFacts(NOW, {
+        fetchCloudSignals: (provider) => {
+          if (provider === 'whoop') return Promise.resolve(CONFIGURED_CONNECTED);
+          if (provider === 'strava') return new Promise(() => {}); // never resolves
+          return Promise.resolve(NONE);
+        },
+        probeTimeoutMs: 5_000,
+      });
+      await vi.advanceTimersByTimeAsync(5_000);
+      const cycle1 = await cycle1Promise;
+
+      expect(cycle1.anyProbeFailed).toBe(true); // strava's timeout
+      expect(cycle1.facts.whoop).toEqual(CONFIGURED_CONNECTED);
+      expect(cycle1.facts.strava).toBeUndefined();
+      cloud = mergeCloudFacts({}, cycle1.facts);
+      expect(cloud.whoop).toEqual(CONFIGURED_CONNECTED);
+      expect(cloud.strava).toBeUndefined();
+
+      // Cycle 2: whoop's probe NOW times out (client-side failure to
+      // complete) — a fresh regression, distinct from strava's ongoing one.
+      // Everything else resolves honestly negative.
+      const cycle2Promise = loadConnectedHealthCloudFacts(NOW, {
+        fetchCloudSignals: (provider) => {
+          if (provider === 'whoop' || provider === 'strava') return new Promise(() => {}); // never resolves
+          return Promise.resolve(NONE);
+        },
+        probeTimeoutMs: 5_000,
+      });
+      await vi.advanceTimersByTimeAsync(5_000);
+      const cycle2 = await cycle2Promise;
+
+      expect(cycle2.anyProbeFailed).toBe(true);
+      expect(cycle2.facts.whoop).toBeUndefined(); // omitted, never a fabricated dormant/disconnected guess
+
+      // This is the exact merge the container performs in refreshCloudFacts.
+      cloud = mergeCloudFacts(cloud, cycle2.facts);
+    } finally {
+      vi.useRealTimers();
+    }
+
+    // The B1 bug: whoop must NOT have downgraded to "dormant"/"not connected"
+    // just because cycle 2's probe timed out. It must still read connected —
+    // the last known connection status, genuinely preserved.
+    expect(cloud.whoop).toEqual(CONFIGURED_CONNECTED);
+    // A sibling provider that never once succeeded across either cycle stays
+    // genuinely absent, not coerced into any fallback value.
+    expect(cloud.strava).toBeUndefined();
+    // A later success (garmin resolved NONE both cycles — a real, honest
+    // negative fact, correctly present throughout).
+    expect(cloud.garmin).toEqual(NONE);
   });
 });
 
