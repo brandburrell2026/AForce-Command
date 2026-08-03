@@ -22,8 +22,16 @@
  *     mounted), so a 404 from the client means "credentials missing".
  *
  *   DELETE /api/strava/disconnect     (requireAuth)
- *     Clears the user's stored Strava tokens. Idempotent.
+ *     Clears the user's stored Strava tokens. Idempotent. When `deps.
+ *     disconnector` is wired (Lane F5 — providerKit/disconnect.ts), also
+ *     best-effort revokes the token at Strava, removes the Strava key
+ *     from the `aforce_user_state.biometrics` snapshot blob, and — when
+ *     `?purge=true` is passed — soft-tombstones this user's Strava
+ *     health records. Omitting `deps.disconnector` keeps the
+ *     pre-Lane-F5 token-clear-only behavior (current production mount —
+ *     see `routes/index.ts`, not rewired in this lane).
  *
+
  *   POST   /api/strava/sync           (requireAuth)
  *     Runs one biometrics fetch+persist for the caller via the injected
  *     `runSyncForUser`. 409 `not_connected` when no tokens are stored;
@@ -52,6 +60,7 @@ import {
   exchangeAuthorizationCode,
   type StravaOAuthConfig,
 } from "../lib/stravaTokenManager";
+import type { ProviderDisconnector } from "../lib/providerKit/disconnect";
 
 export interface StravaOAuthDeps {
   authStateStore: StravaAuthStateStore;
@@ -76,6 +85,14 @@ export interface StravaOAuthDeps {
   /** Test seams. */
   fetchImpl?: typeof fetch;
   nowMs?: () => number;
+  /**
+   * Lane F5 disconnect+cleanup. When omitted, `DELETE /strava/disconnect`
+   * keeps its pre-Lane-F5 behavior (token clear only) — see
+   * `providerKit/disconnect.ts` for the full step contract. Not wired
+   * by the production mount in `routes/index.ts` in this lane; that
+   * wiring is a documented follow-up.
+   */
+  disconnector?: ProviderDisconnector;
 }
 
 const startBodySchema = z.object({}).strict().or(z.undefined()).or(z.null());
@@ -231,6 +248,41 @@ export function buildStravaOAuthRouter(deps: StravaOAuthDeps): IRouter {
         res.status(401).json({ error: "unauthorized" });
         return;
       }
+
+      // Lane F5 path: revoke + token clear + snapshot purge + optional
+      // record tombstone via the shared providerKit disconnector.
+      // `?purge=true` opts into the record-plane tombstone — chosen over
+      // a body flag because DELETE request bodies are unreliable across
+      // clients/proxies; a query param is unambiguous on a DELETE.
+      if (deps.disconnector) {
+        const purgeRecords = req.query["purge"] === "true";
+        try {
+          const result = await deps.disconnector.disconnect(userId, {
+            purgeRecords,
+          });
+          req.log?.info(
+            {
+              userId,
+              status: result.status,
+              revocationOk: result.revocation.ok,
+              snapshotRemoved: result.snapshotRemoved,
+              recordsTombstoned: result.recordsTombstoned,
+            },
+            "stravaOAuth:disconnect complete (providerKit)",
+          );
+          res.status(200).json({ ok: true, status: result.status });
+        } catch (err) {
+          req.log?.error(
+            { userId, err: errName(err) },
+            "stravaOAuth:disconnect (providerKit) failed",
+          );
+          res.status(500).json({ error: "disconnect_failed" });
+        }
+        return;
+      }
+
+      // Legacy path (no disconnector wired) — byte-identical to
+      // pre-Lane-F5 behavior: token clear only.
       try {
         await deps.tokenStoreFor(userId).clear();
       } catch (err) {

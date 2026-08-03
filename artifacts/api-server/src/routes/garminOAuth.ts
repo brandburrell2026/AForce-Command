@@ -21,8 +21,20 @@
  *     mounted), so a 404 from the client means "credentials missing".
  *
  *   DELETE /api/garmin/disconnect     (requireAuth)
- *     Clears the user's stored Garmin tokens. Idempotent.
+ *     Clears the user's stored Garmin tokens. Idempotent. When `deps.
+ *     disconnector` is wired (Lane F5 — providerKit/disconnect.ts), also
+ *     removes the Garmin key from the `aforce_user_state.biometrics`
+ *     snapshot blob and — when `?purge=true` is passed — soft-tombstones
+ *     this user's Garmin health records. No provider-side revocation is
+ *     attempted for Garmin: the Garmin Health API partner endpoints are
+ *     UNVERIFIED / DORMANT pending partner credentials (see
+ *     `lib/garminSnapshot.ts`), so there is no confirmed revoke contract
+ *     to call — `providerKit/disconnect.ts` is mounted for Garmin with
+ *     `revoker` omitted. Omitting `deps.disconnector` entirely keeps the
+ *     pre-Lane-F5 token-clear-only behavior (current production mount —
+ *     see `routes/index.ts`, not rewired in this lane).
  *
+
  * DORMANT / hidden-infra: this router is only mounted by
  * `routes/index.ts` when GARMIN_OAUTH_REDIRECT_URI + GARMIN_CLIENT_ID +
  * GARMIN_CLIENT_SECRET are all present. With nothing configured (the
@@ -46,6 +58,7 @@ import {
   exchangeAuthorizationCode,
   type GarminOAuthConfig,
 } from "../lib/garminTokenManager";
+import type { ProviderDisconnector } from "../lib/providerKit/disconnect";
 
 export interface GarminOAuthDeps {
   authStateStore: GarminAuthStateStore;
@@ -72,6 +85,15 @@ export interface GarminOAuthDeps {
   /** Test seams. */
   fetchImpl?: typeof fetch;
   nowMs?: () => number;
+  /**
+   * Lane F5 disconnect+cleanup. When omitted, `DELETE /garmin/disconnect`
+   * keeps its pre-Lane-F5 behavior (token clear only) — see
+   * `providerKit/disconnect.ts` for the full step contract (Garmin is
+   * mounted there with no revoker — see that module's doc). Not wired
+   * by the production mount in `routes/index.ts` in this lane; that
+   * wiring is a documented follow-up.
+   */
+  disconnector?: ProviderDisconnector;
 }
 
 const startBodySchema = z.object({}).strict().or(z.undefined()).or(z.null());
@@ -233,6 +255,42 @@ export function buildGarminOAuthRouter(deps: GarminOAuthDeps): IRouter {
         res.status(401).json({ error: "unauthorized" });
         return;
       }
+
+      // Lane F5 path: token clear + snapshot purge + optional record
+      // tombstone via the shared providerKit disconnector. No
+      // provider-side revoke for Garmin (see module doc). `?purge=true`
+      // opts into the record-plane tombstone — chosen over a body flag
+      // because DELETE request bodies are unreliable across
+      // clients/proxies; a query param is unambiguous on a DELETE.
+      if (deps.disconnector) {
+        const purgeRecords = req.query["purge"] === "true";
+        try {
+          const result = await deps.disconnector.disconnect(userId, {
+            purgeRecords,
+          });
+          req.log?.info(
+            {
+              userId,
+              status: result.status,
+              revocationOk: result.revocation.ok,
+              snapshotRemoved: result.snapshotRemoved,
+              recordsTombstoned: result.recordsTombstoned,
+            },
+            "garminOAuth:disconnect complete (providerKit)",
+          );
+          res.status(200).json({ ok: true, status: result.status });
+        } catch (err) {
+          req.log?.error(
+            { userId, err: errName(err) },
+            "garminOAuth:disconnect (providerKit) failed",
+          );
+          res.status(500).json({ error: "disconnect_failed" });
+        }
+        return;
+      }
+
+      // Legacy path (no disconnector wired) — byte-identical to
+      // pre-Lane-F5 behavior: token clear only.
       try {
         await deps.tokenStoreFor(userId).clear();
       } catch (err) {
