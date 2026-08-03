@@ -15,13 +15,18 @@
  *       google_health/'aggregator_export' — we never claim a direct Samsung
  *       connection through this path (see HEALTH_PROVIDER_CAPABILITIES
  *       .samsung_health.activationGates in health-core/contracts.ts).
- *     - a recognized first-party Google package (Google Fit / the Health
- *       Connect app itself) ⇒ single hop, google_health, transport
- *       'measured'. These packages are NOT in the shared NATIVE_ORIGIN_MAP
- *       (that map deliberately has no Google entry, so it never falsely
- *       claims first-party for an unmapped app) — recognizing them is a
- *       LOCAL detail of this Health Connect adapter, not a change to the
- *       frozen contract.
+ *     - a recognized first-party Google package (the Health Connect app
+ *       itself — EXACT match only, per health-core's per-platform policy)
+ *       ⇒ single hop, google_health, transport 'measured'. Origin
+ *       resolution is delegated entirely to health-core's
+ *       `resolveOriginForAggregator('google_health', packageName)` — the
+ *       canonical, frozen aggregator first-party policy (see
+ *       lib/health-core/src/dedupe.ts). Google Fit
+ *       (`com.google.android.apps.fitness`) is DENYLISTED there on purpose:
+ *       it is a separate consumer app that writes phone-estimated data INTO
+ *       Health Connect, not Health Connect itself, so it resolves to
+ *       'unknown_device_app' (with its aggregator hop intact) rather than
+ *       being laundered as HC-native.
  *     - anything else unmapped ⇒ 'unknown_device_app' as hop 0, still with
  *       a google_health aggregator hop 1 (it did arrive via Health
  *       Connect) — attributed honestly, never upgraded to first-party.
@@ -37,7 +42,7 @@
 
 import {
   buildDeduplicationKey,
-  resolveNativeOrigin,
+  resolveOriginForAggregator,
   HEALTH_RECORD_SCHEMA_VERSION,
   type CanonicalHealthRecord,
   type HealthOriginId,
@@ -71,19 +76,13 @@ export interface MapContext {
 // ─── Origin / provenance ──────────────────────────────────────────────────────
 
 /**
- * First-party Google packages that write directly into Health Connect.
- * Deliberately local to this adapter — see file header. Health Connect's
- * own package id varies by OS build; both are recognized so a record
- * written by either resolves as first-party google_health.
+ * hop0 origin for a Health Connect record, resolved entirely by
+ * health-core's `resolveOriginForAggregator('google_health', packageName)`
+ * — see file header and lib/health-core/src/dedupe.ts for the canonical
+ * policy (EXACT-only first-party match; Google Fit denylisted).
  */
-const GOOGLE_FIRST_PARTY_PACKAGES: ReadonlySet<string> = new Set([
-  'com.google.android.apps.fitness', // Google Fit
-  'com.google.android.apps.healthdata', // Health Connect app itself
-]);
-
 function resolveHealthConnectOrigin(dataOrigin: HcDataOrigin): HealthOriginId {
-  if (GOOGLE_FIRST_PARTY_PACKAGES.has(dataOrigin.packageName)) return 'google_health';
-  return resolveNativeOrigin(dataOrigin.packageName);
+  return resolveOriginForAggregator('google_health', dataOrigin.packageName);
 }
 
 function buildProvenanceChain(dataOrigin: HcDataOrigin): ProvenanceHop[] {
