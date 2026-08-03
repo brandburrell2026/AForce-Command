@@ -8,6 +8,11 @@ import { maybeStartWhoopFetchSweep } from "./lib/whoopFetchSweepBootstrap";
 import { maybeStartWhoopAuthStatePurge } from "./lib/whoopAuthStatePurgeBootstrap";
 import { maybeStartWhoopTokenBackfill } from "./lib/whoopTokenBackfillBootstrap";
 import { getWhoopRefreshRegistry } from "./lib/whoopRegistry";
+import {
+  maybeStartOuraFetchSweep,
+  maybeStartOuraAuthStatePurge,
+} from "./lib/ouraFetchSweepBootstrap";
+import { getOuraRefreshRegistry } from "./lib/ouraRegistry";
 
 const rawPort = process.env["PORT"];
 
@@ -58,6 +63,25 @@ server.listen(port, () => {
   // for a sustained window, Phase C can flip reads to enc-only and
   // drop the plaintext columns.
   maybeStartWhoopTokenBackfill({
+    db,
+    log: logger,
+  });
+  // Hidden-infra: dormant by default — only starts when
+  // OURA_FETCH_SWEEP_INTERVAL_MS is set to a positive number. Mirrors
+  // the WHOOP fetch sweep wiring above; shares the process-singleton
+  // OuraRefreshRegistry with the Oura sync route so concurrent
+  // fetches for the same user collapse to one refresh.
+  maybeStartOuraFetchSweep({
+    db,
+    refreshRegistry: getOuraRefreshRegistry(),
+    log: logger,
+  });
+  // Hidden-infra: dormant by default — only ticks when
+  // OURA_AUTH_STATE_PURGE_INTERVAL_MS is set to a positive number.
+  // Reaps abandoned OAuth authorize rows from
+  // `aforce_oura_auth_states` that `consume` never deleted. Hygiene
+  // only, mirrors the WHOOP auth-state purge above.
+  maybeStartOuraAuthStatePurge({
     db,
     log: logger,
   });
