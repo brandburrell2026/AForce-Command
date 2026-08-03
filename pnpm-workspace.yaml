@@ -149,11 +149,6 @@ onlyBuiltDependencies:
 # remote-Docker-over-SSH transport. Local Docker (how the integration tests run)
 # never uses it, so we skip those native build scripts.
 allowBuilds:
-  '@clerk/shared': false
-  browser-tabs-lock: false
-  core-js: false
   cpu-features: false
-  esbuild: false
   protobufjs: false
-  sharp: false
   ssh2: false
