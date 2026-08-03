@@ -16,8 +16,17 @@
  *      unavailable → null, workout minutes summed within one winning
  *      source — never across providers);
  *   4. stale/expired data does NOT feed through as if it were live — the
- *      canonical path honestly returns null past the §53 freshness
- *      contract's expiry window, unlike the ungated legacy selectors.
+ *      canonical path honestly returns null past the §53 freshness contract's
+ *      stale/expiry boundary (sleepHours, hrvMs/hrvMethod, workoutMinutes all
+ *      covered), unlike the ungated legacy selectors. This closes the W3.5
+ *      REQUEST-CHANGES governance finding: `canonicalReadinessSignals`
+ *      previously gated only on `.available`, and because `sleep` has no
+ *      `expireAfterMs` (config/hydroStateModel.ts §53), `available` never
+ *      flips false for sleep — a months-old sleep snapshot scored as fresh.
+ *      The fix reuses `readinessSignals.ts`'s exported `EMITTING_FRESHNESS`
+ *      policy (fresh|aging) here — one constant, one policy;
+ *   5. a non-finite (NaN) `durationMin` is skipped rather than propagating
+ *      NaN through the workout-minutes sum (Should-fix, same review).
  */
 import { describe, it, expect } from 'vitest';
 import type { ProviderBiometrics } from '@/types/biometrics';
@@ -155,9 +164,15 @@ describe('canonicalReadinessSignals', () => {
 describe('stale/expired honesty (freshness gating already lives in resolveHealthSignals)', () => {
   // Beyond the §53 wearable_sync 72h expiry window (config/hydroStateModel.ts) —
   // hrv + workout both key off 'wearable_sync'. Sleep has no expireAfterMs
-  // (only a 36h staleAfterMs), so it stays available-but-stale, not unavailable
-  // — an intentional, documented asymmetry in the frozen contract, not a bug
-  // here.
+  // (only a 36h staleAfterMs), so `resolveHealthSignals` reports it
+  // available-but-stale, not unavailable — an intentional, documented
+  // asymmetry in the frozen §53 contract, NOT a bug in `resolveHealthSignals`
+  // itself. The bug this suite now guards against lived one layer up: before
+  // this fix, `canonicalReadinessSignals` gated only on `.available`, so a
+  // sleep reading of ANY age (months old — `available` never flips false for
+  // sleep) flowed through as if current. `canonicalReadinessSignals` now
+  // reuses `readinessSignals.ts`'s `EMITTING_FRESHNESS` policy (fresh|aging
+  // only), so stale sleep nulls out here exactly like stale hrv/workouts do.
   const EXPIRED_BIOMETRICS: ProviderBiometrics = {
     apple_health: {
       providerId: 'apple_health',
@@ -190,11 +205,94 @@ describe('stale/expired honesty (freshness gating already lives in resolveHealth
     expect(selectMaxWorkoutMinutes(EXPIRED_BIOMETRICS)).toBe(35);
   });
 
-  it('sleep (no expiry window) stays available but is honestly flagged stale, not silently treated as fresh', () => {
+  it('sleep (no expiry window) stays available-but-stale at the resolveHealthSignals layer, but the wired projection now excludes it too', () => {
     const signals = healthSignalsFromStore({ biometrics: EXPIRED_BIOMETRICS, nowMs: FIXED_NOW });
     expect(signals.sleepDuration.available).toBe(true);
     if (signals.sleepDuration.available) {
       expect(signals.sleepDuration.freshness).toBe('stale');
     }
+
+    // GOVERNANCE FIX (W3.5 REQUEST-CHANGES): this is the exact regression a
+    // 180-day-old sleep snapshot exposed — `available` alone never gates
+    // sleep to false, so without a freshness gate here this would have
+    // returned 7.2 (stale data scoring as current). It must now be null.
+    expect(canonicalReadinessSignals(signals).sleepHours).toBeNull();
+  });
+
+  it('a >36h-old sleep snapshot (past staleAfterMs, §53) yields sleepHours: null through the wired projection', () => {
+    // 40h old: past the 36h staleAfterMs boundary but nowhere near an
+    // "expired" reading — proves the gate fires on ordinary staleness, not
+    // only on extreme age like the 100h fixture above.
+    const STALE_SLEEP_ONLY: ProviderBiometrics = {
+      apple_health: {
+        providerId: 'apple_health',
+        fetchedAt: FIXED_NOW - 40 * HOUR,
+        sleepHoursLastNight: 6.5,
+      },
+    };
+    const signals = healthSignalsFromStore({ biometrics: STALE_SLEEP_ONLY, nowMs: FIXED_NOW });
+    expect(signals.sleepDuration.available).toBe(true);
+    if (signals.sleepDuration.available) {
+      expect(signals.sleepDuration.freshness).toBe('stale');
+    }
+    expect(canonicalReadinessSignals(signals).sleepHours).toBeNull();
+  });
+
+  it('a fresh (<12h) sleep snapshot still projects normally — the gate excludes stale data, not all data', () => {
+    const FRESH_SLEEP_ONLY: ProviderBiometrics = {
+      apple_health: {
+        providerId: 'apple_health',
+        fetchedAt: FIXED_NOW - 2 * HOUR,
+        sleepHoursLastNight: 8.1,
+      },
+    };
+    const signals = healthSignalsFromStore({ biometrics: FRESH_SLEEP_ONLY, nowMs: FIXED_NOW });
+    expect(signals.sleepDuration.available).toBe(true);
+    if (signals.sleepDuration.available) {
+      expect(signals.sleepDuration.freshness).toBe('fresh');
+    }
+    expect(canonicalReadinessSignals(signals).sleepHours).toBe(8.1);
+  });
+});
+
+describe('workoutMinutes NaN guard (Should-fix, W3.5 REQUEST-CHANGES condition 3)', () => {
+  it('skips a non-finite durationMin instead of propagating NaN through the sum', () => {
+    // Hand-built HealthSignals, same pattern as the "sums within one winning
+    // source" test above — isolates the projection from the resolver.
+    const signals: HealthSignals = {
+      sleepDuration: { available: false, reason: 'no_provider' },
+      restingHeartRate: { available: false, reason: 'no_provider' },
+      hrv: { available: false, reason: 'no_provider' },
+      steps: { available: false, reason: 'no_provider' },
+      providerScores: [],
+      workouts: {
+        available: true,
+        value: [
+          {
+            activityKind: 'run',
+            durationMin: Number.NaN,
+            activeEnergyKcal: null,
+            avgHeartRateBpm: null,
+            source: 'whoop',
+            observedAtMs: FIXED_NOW - 1 * HOUR,
+          },
+          {
+            activityKind: 'lift',
+            durationMin: 45,
+            activeEnergyKcal: null,
+            avgHeartRateBpm: null,
+            source: 'whoop',
+            observedAtMs: FIXED_NOW - 2 * HOUR,
+          },
+        ],
+        unit: 'entries',
+        source: 'whoop',
+        observedAtMs: FIXED_NOW - 1 * HOUR,
+        freshness: 'fresh',
+        confidence: 'high',
+      },
+    };
+    // Before the fix: NaN + 45 = NaN. After: the NaN entry is skipped, 45 survives.
+    expect(canonicalReadinessSignals(signals).workoutMinutes).toBe(45);
   });
 });
