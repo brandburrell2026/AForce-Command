@@ -94,6 +94,8 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   // Night Out Protocol — Founder/Internal Preview only (NO-10). OFF in prod.
   night_out_enabled: false,
   spec_sleep: false,
+  // Sleep Mode premium redesign — build, hide until go-live (default OFF).
+  spec_sleep_v2: false,
   spec_cruise: false,
   spec_coachV2: true,
   spec_premium: false,
@@ -373,6 +375,7 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
   // (env-driven DEMO_MODE) via `services/nightOut/access.ts`.
   night_out_enabled: false,
   spec_sleep: true,
+  spec_sleep_v2: true,
   spec_cruise: true,
   spec_coachV2: true,
   spec_premium: true,

@@ -131,6 +131,7 @@ export const baseFlags: FeatureFlags = {
   spec_social: false,
   night_out_enabled: false,
   spec_sleep: false,
+  spec_sleep_v2: false,
   spec_cruise: false,
   spec_coachV2: false,
   spec_premium: false,
