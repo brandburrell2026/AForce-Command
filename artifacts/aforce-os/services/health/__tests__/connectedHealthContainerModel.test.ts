@@ -4,7 +4,9 @@ import type { FeatureFlags } from '../../../types';
 import type { HealthConnectionSignals } from '../../../utils/health/healthConnectionMapping';
 import { resolveConnectedHealthView } from '../connectedHealthView';
 import {
+  applyProbeCycle,
   buildConnectedHealthInput,
+  dropCloudFact,
   loadConnectedHealthCloudFacts,
   mergeCloudFacts,
   performConnectedHealthDisconnect,
@@ -374,8 +376,11 @@ describe('loadConnectedHealthCloudFacts — fetch injected for tests', () => {
 
       // No `probeTimeoutMs` override — this exercises the real production
       // default (`CLOUD_PROBE_TIMEOUT_MS`), which every other timeout test in
-      // this file bypasses via an injected shorter value for speed.
-      expect(CLOUD_PROBE_TIMEOUT_MS).toBe(8_000);
+      // this file bypasses via an injected shorter value for speed. Advancing
+      // fake timers by exactly `CLOUD_PROBE_TIMEOUT_MS` below already proves
+      // the no-override bound is honored; a bare `expect(CLOUD_PROBE_TIMEOUT_MS)
+      // .toBe(8_000)` here would be a change-detector on the constant itself,
+      // not a behavioral assertion (#494 N-2).
       const resultPromise = loadConnectedHealthCloudFacts(NOW, {
         fetchCloudSignals: fetchCloudSignals as never,
       });
@@ -519,6 +524,100 @@ describe('mergeCloudFacts — cycle-over-cycle "last known connection status"', 
     // A later success (garmin resolved NONE both cycles — a real, honest
     // negative fact, correctly present throughout).
     expect(cloud.garmin).toEqual(NONE);
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────
+// #494 S-1 — applyProbeCycle: the container's actual, literal setCloud
+// call-site helper (pinned by name in
+// components/health/__tests__/connectedHealthContainer.render.test.tsx's
+// source-text guard). Covered here at the function level for the same
+// merge-semantics reasons as `mergeCloudFacts` above; the render-test file
+// covers that the container really calls it.
+// ─────────────────────────────────────────────────────────────────────────
+
+describe('applyProbeCycle — the container\'s literal setCloud(prev => ...) wrapper', () => {
+  it('delegates to mergeCloudFacts semantics: a resolved cycle wins over prior facts', () => {
+    expect(applyProbeCycle({ whoop: CONFIGURED_CONNECTED }, { whoop: CONFIGURED_NONE })).toEqual({
+      whoop: CONFIGURED_NONE,
+    });
+  });
+
+  it('a provider omitted from this cycle (its probe failed) keeps its prior value — the actual B1 fix', () => {
+    const prev = { whoop: CONFIGURED_CONNECTED };
+    const thisCycleFacts = {}; // whoop's probe failed this cycle, omitted entirely
+    expect(applyProbeCycle(prev, thisCycleFacts)).toEqual({ whoop: CONFIGURED_CONNECTED });
+  });
+
+  it('is exactly mergeCloudFacts, not a divergent copy', () => {
+    const prev = { whoop: CONFIGURED_CONNECTED, garmin: CONFIGURED_NONE };
+    const next = { garmin: CONFIGURED_CONNECTED };
+    expect(applyProbeCycle(prev, next)).toEqual(mergeCloudFacts(prev, next));
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────
+// #494 S-2 — post-disconnect stale window
+// ─────────────────────────────────────────────────────────────────────────
+
+describe('dropCloudFact — immediate post-disconnect honesty (#494 S-2)', () => {
+  it('drops a present cloud-probe provider key entirely', () => {
+    const facts = { whoop: CONFIGURED_CONNECTED, garmin: CONFIGURED_NONE };
+    const next = dropCloudFact(facts, 'whoop');
+    expect('whoop' in next).toBe(false);
+    expect(next.garmin).toEqual(CONFIGURED_NONE);
+  });
+
+  it('is a no-op when the provider key is already absent', () => {
+    const facts = { garmin: CONFIGURED_NONE };
+    expect(dropCloudFact(facts, 'whoop')).toEqual(facts);
+  });
+
+  it('is a no-op for a provider that is never cloud-probed at all (e.g. apple_health)', () => {
+    const facts = { whoop: CONFIGURED_CONNECTED };
+    expect(dropCloudFact(facts, 'apple_health')).toEqual(facts);
+  });
+
+  it('does not mutate the input object (pure)', () => {
+    const facts = { whoop: CONFIGURED_CONNECTED };
+    const next = dropCloudFact(facts, 'whoop');
+    expect(facts.whoop).toEqual(CONFIGURED_CONNECTED); // original untouched
+    expect(next).not.toBe(facts);
+  });
+
+  it('end-to-end: drop-then-failed-follow-up-cycle leaves the provider honestly absent, never stale-connected', async () => {
+    // Cloud already shows whoop connected from a prior successful cycle.
+    let cloud: ReturnType<typeof mergeCloudFacts> = { whoop: CONFIGURED_CONNECTED };
+
+    // Disconnect succeeds: the container drops whoop's key immediately,
+    // before the follow-up refresh even starts.
+    cloud = dropCloudFact(cloud, 'whoop');
+    expect('whoop' in cloud).toBe(false);
+
+    // The follow-up refreshCloudFacts probe cycle then FAILS for whoop
+    // (server hasn't caught up yet / bridge hiccup) — exactly the sequence
+    // #494 S-2 flags. Pre-fix, nothing would have dropped the stale fact, so
+    // this failed cycle's merge would have left "connected" in place.
+    vi.useFakeTimers();
+    try {
+      const followUpPromise = loadConnectedHealthCloudFacts(NOW, {
+        fetchCloudSignals: (provider) => {
+          if (provider === 'whoop') return new Promise(() => {}); // never resolves
+          return Promise.resolve(NONE);
+        },
+        probeTimeoutMs: 5_000,
+      });
+      await vi.advanceTimersByTimeAsync(5_000);
+      const followUp = await followUpPromise;
+      expect(followUp.anyProbeFailed).toBe(true);
+      cloud = applyProbeCycle(cloud, followUp.facts);
+    } finally {
+      vi.useRealTimers();
+    }
+
+    // Honest absence, never stale-connected.
+    expect(cloud.whoop).toBeUndefined();
+    expect('whoop' in cloud).toBe(false);
   });
 });
 
