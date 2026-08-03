@@ -10,7 +10,7 @@ import {
   resolveRevocationOutcome,
   revocationCopyKey,
   CLOUD_DISCONNECT_PROVIDERS,
-  type ConnectedHealthCloudFacts,
+  type ConnectedHealthCloudProbeResult,
   type ConnectedHealthContainerModelInput,
 } from '../connectedHealthContainerModel';
 
@@ -273,11 +273,12 @@ describe('loadConnectedHealthCloudFacts — fetch injected for tests', () => {
       return provider === 'whoop' ? CONFIGURED_CONNECTED : NONE;
     });
 
-    const facts = await loadConnectedHealthCloudFacts(NOW, { fetchCloudSignals: fetchCloudSignals as never });
+    const { facts, anyProbeFailed } = await loadConnectedHealthCloudFacts(NOW, { fetchCloudSignals: fetchCloudSignals as never });
 
     expect(seen.sort()).toEqual(['garmin', 'oura', 'strava', 'whoop']);
     expect(facts.whoop).toEqual(CONFIGURED_CONNECTED);
     expect(facts.garmin).toEqual(NONE);
+    expect(anyProbeFailed).toBe(false);
   });
 
   it('with no injected fn, falls back to the real fetchHealthConnectionSignals — proven via injected getJson', async () => {
@@ -287,13 +288,107 @@ describe('loadConnectedHealthCloudFacts — fetch injected for tests', () => {
       throw err;
     });
 
-    const facts: ConnectedHealthCloudFacts = await loadConnectedHealthCloudFacts(NOW, { getJson });
+    const { facts, anyProbeFailed }: ConnectedHealthCloudProbeResult = await loadConnectedHealthCloudFacts(NOW, { getJson });
 
     // whoop/status resolved 200 connected:true → integrationReady true, link connected.
     expect(facts.whoop).toEqual({ integrationReady: true, link: 'connected' });
     // every other path 404s (not our AforceApiError class, but any thrown value
     // that isn't recognized maps to `unavailable` → not-ready, no link — never fabricated).
     expect(facts.garmin).toEqual({ integrationReady: false, link: 'none' });
+    // fetchHealthConnectionSignals itself resolves honestly here (a 404 IS a
+    // real, if ambiguous, server answer) — this is NOT a probe-layer failure.
+    expect(anyProbeFailed).toBe(false);
+  });
+
+  it('a rejected probe is caught, never fabricates a link, and marks anyProbeFailed', async () => {
+    const fetchCloudSignals = vi.fn(async (provider: string): Promise<HealthConnectionSignals> => {
+      if (provider === 'whoop') throw new Error('bridge exploded');
+      return NONE;
+    });
+
+    const { facts, anyProbeFailed } = await loadConnectedHealthCloudFacts(NOW, { fetchCloudSignals: fetchCloudSignals as never });
+
+    expect(anyProbeFailed).toBe(true);
+    // The one honest fallback — identical to the "can't tell" bucket
+    // fetchHealthConnectionSignals itself already uses. Never a fabricated
+    // 'connected' / 'expired' link, and never surfaced as disconnected/denied/
+    // unsupported (those live only in resolver-level vocabulary, untouched).
+    expect(facts.whoop).toEqual({ integrationReady: false, link: 'none' });
+    // A sibling probe that succeeded is unaffected by whoop's rejection.
+    expect(facts.garmin).toEqual(NONE);
+  });
+
+  it('a synchronously-throwing probe (e.g. native module absent) is caught the same way as a rejection', async () => {
+    const fetchCloudSignals = vi.fn((provider: string): Promise<HealthConnectionSignals> => {
+      if (provider === 'garmin') {
+        throw new Error('native module not available');
+      }
+      return Promise.resolve(NONE);
+    });
+
+    const { facts, anyProbeFailed } = await loadConnectedHealthCloudFacts(NOW, { fetchCloudSignals: fetchCloudSignals as never });
+
+    expect(anyProbeFailed).toBe(true);
+    expect(facts.garmin).toEqual({ integrationReady: false, link: 'none' });
+    expect(facts.whoop).toEqual(NONE);
+  });
+
+  it('a hung probe past the timeout resolves to the honest fallback instead of wedging forever (fake timers)', async () => {
+    vi.useFakeTimers();
+    try {
+      const fetchCloudSignals = vi.fn((provider: string): Promise<HealthConnectionSignals> => {
+        if (provider === 'whoop') return new Promise(() => {}); // never settles
+        return Promise.resolve(NONE);
+      });
+
+      const resultPromise = loadConnectedHealthCloudFacts(NOW, {
+        fetchCloudSignals: fetchCloudSignals as never,
+        probeTimeoutMs: 5_000,
+      });
+
+      await vi.advanceTimersByTimeAsync(5_000);
+      const { facts, anyProbeFailed } = await resultPromise;
+
+      expect(anyProbeFailed).toBe(true);
+      expect(facts.whoop).toEqual({ integrationReady: false, link: 'none' });
+      expect(facts.garmin).toEqual(NONE);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('a clean, all-empty probe result (nothing connected anywhere) is honest, not a failure', async () => {
+    const { facts, anyProbeFailed } = await loadConnectedHealthCloudFacts(NOW, {
+      fetchCloudSignals: async () => NONE,
+    });
+
+    expect(anyProbeFailed).toBe(false);
+    for (const id of ['whoop', 'garmin', 'oura', 'strava'] as const) {
+      expect(facts[id]).toEqual(NONE);
+    }
+  });
+
+  it('never produces an unhandled promise rejection even when fired-and-forgotten like the container does', async () => {
+    const seenRejections: unknown[] = [];
+    const onUnhandled = (reason: unknown) => seenRejections.push(reason);
+    process.once('unhandledRejection', onUnhandled);
+
+    // Mirrors the container's `void refreshCloudFacts()` call pattern: no
+    // `.catch`, no `await` at the call site.
+    void loadConnectedHealthCloudFacts(NOW, {
+      fetchCloudSignals: async (provider) => {
+        if (provider === 'whoop') throw new Error('boom');
+        return NONE;
+      },
+    });
+
+    // Flush the microtask/macrotask queue so a leaked rejection would have
+    // had its chance to fire the process listener.
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    await new Promise((resolve) => setImmediate(resolve));
+
+    process.removeListener('unhandledRejection', onUnhandled);
+    expect(seenRejections).toEqual([]);
   });
 });
 
