@@ -94,8 +94,10 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   // Night Out Protocol — Founder/Internal Preview only (NO-10). OFF in prod.
   night_out_enabled: false,
   spec_sleep: false,
-  // Sleep Mode premium redesign — build, hide until go-live (default OFF).
-  spec_sleep_v2: false,
+  // Sleep Mode premium redesign — LAUNCHED (go-live flip 2026-08-03, PR #455
+  // hardening complete). Legacy screen remains reachable by forcing this
+  // flag false; it is deleted in a separate post-soak cleanup PR.
+  spec_sleep_v2: true,
   spec_cruise: false,
   spec_coachV2: true,
   spec_premium: false,
