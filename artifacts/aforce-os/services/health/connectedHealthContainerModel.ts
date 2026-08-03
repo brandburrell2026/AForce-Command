@@ -66,14 +66,28 @@
  *     `{integrationReady:false, link:'none'}` — that shape is reserved for a
  *     probe that genuinely RESOLVED to "nothing configured/linked"), and
  *     `ConnectedHealthContainer`'s `refreshCloudFacts` merges each cycle's
- *     `facts` on top of the previous cycle's (`mergeCloudFacts` below) rather
- *     than replacing the whole object — so any previously-successful cloud
- *     facts already in the container are genuinely left in place rather than
- *     being overwritten by a worse guess. `mode: 'offline'`'s own copy
- *     ("showing the last known connection status") is therefore an accurate
- *     description of what's on screen, not an aspiration. See
- *     `CLOUD_PROBE_TIMEOUT_MS` / `probeCloudProvider` / `mergeCloudFacts`
- *     below and `ConnectedHealthContainer.tsx`'s `refreshCloudFacts`.
+ *     `facts` on top of the previous cycle's (`applyProbeCycle` /
+ *     `mergeCloudFacts` below) rather than replacing the whole object — so
+ *     any previously-successful cloud facts already in the container are
+ *     genuinely left in place rather than being overwritten by a worse
+ *     guess. `mode: 'offline'`'s own copy (`connected_health.offline_notice`:
+ *     "Couldn't check your connections just now — this list may be out of
+ *     date.") is a hedge, not a claim that a "last known status" definitely
+ *     exists for every row — and this merge-not-replace behavior is exactly
+ *     what makes the hedge true, in a STRICTLY LARGER set of cases than the
+ *     older, stronger "showing the last known connection status" wording
+ *     this comment used to argue for (#496 changed the copy; this argument
+ *     is updated to match, not just re-quoted). That older phrasing was only
+ *     accurate once a provider had resolved at least one prior cycle; for a
+ *     provider that has NEVER resolved (still `undefined` in `cloud`), there
+ *     is no "last known status" to show, so the old phrasing would have
+ *     overclaimed. The current, softer "may be out of date" is honestly true
+ *     either way: a provider with real prior data shows that real data
+ *     (possibly stale), and a provider with no prior data shows nothing
+ *     extra — never a fabricated guess in either case. See
+ *     `CLOUD_PROBE_TIMEOUT_MS` / `probeCloudProvider` / `mergeCloudFacts` /
+ *     `applyProbeCycle` below and `ConnectedHealthContainer.tsx`'s
+ *     `refreshCloudFacts`.
  */
 import type { CanonicalHealthMetricType, HealthProviderId } from '@workspace/health-core';
 import { HEALTH_PROVIDERS } from '../../data/healthProviders';
@@ -352,25 +366,32 @@ export interface ConnectedHealthContainerDeps {
  * timeout branch has already resolved the race by the time the late success
  * arrives (see the `settled` guard in `probeCloudProvider`). That provider
  * is simply omitted from this cycle's `facts` (see `loadConnectedHealthCloudFacts`)
- * exactly as if the probe were still pending, and gets another chance on the
- * next probe cycle. It is never treated as a failure fact, just a missed
- * cycle.
+ * exactly as if the probe were still pending. It is never treated as a
+ * failure fact, just a missed cycle — but corrected (#494 S-2 review): within
+ * a single screen visit there is no "next probe cycle" waiting to pick this
+ * up. `ConnectedHealthContainer.refreshCloudFacts` only runs on mount and
+ * after a successful disconnect — the 60s `setInterval` in that component
+ * only advances the `now` clock for freshness text ("Synced Xm ago"), it
+ * never re-probes. So this provider's next real chance to report a correct
+ * answer is the next MOUNT of this screen (a fresh visit), or the next
+ * post-disconnect refresh — not some cycle still to come in the current
+ * visit.
  */
 export const CLOUD_PROBE_TIMEOUT_MS = 8_000;
 
-interface CloudProbeAttempt {
-  id: (typeof CLOUD_PROBE_PROVIDERS)[number];
-  /** Present only when the probe genuinely resolved this cycle (`failed`
-   *  false). A probe that rejected, threw, or timed out carries no signals
-   *  at all — see `loadConnectedHealthCloudFacts`, which OMITS such a
-   *  provider from its returned `facts` rather than writing any fallback
-   *  value in its place. */
-  signals?: HealthConnectionSignals;
-  /** True when this probe REJECTED or exceeded `probeTimeoutMs` — i.e. the
-   *  client's own attempt failed to complete, not "the server answered
-   *  ambiguously." Never true for a resolved (even negative) probe result. */
-  failed: boolean;
-}
+/**
+ * Discriminated on `failed` (#494 N-1): a probe that genuinely resolved this
+ * cycle carries `failed: false` and, structurally, ALWAYS carries `signals`
+ * — there is no way to construct the "resolved but signals missing" shape
+ * that a plain optional `signals?: HealthConnectionSignals` on a flat
+ * `{ failed: boolean }` interface used to allow. A probe that rejected,
+ * threw, or timed out carries `failed: true` and no `signals` field at all —
+ * see `loadConnectedHealthCloudFacts`, which OMITS such a provider from its
+ * returned `facts` rather than writing any fallback value in its place.
+ */
+type CloudProbeAttempt =
+  | { id: (typeof CLOUD_PROBE_PROVIDERS)[number]; failed: false; signals: HealthConnectionSignals }
+  | { id: (typeof CLOUD_PROBE_PROVIDERS)[number]; failed: true };
 
 /**
  * Run one cloud probe with a bounded timeout, guaranteed to RESOLVE, never
@@ -479,15 +500,79 @@ export async function loadConnectedHealthCloudFacts(
  * A provider ABSENT from `next` (its probe failed to complete this cycle —
  * rejected, threw, or timed out) simply keeps whatever `prev` already had,
  * including "nothing yet" (`undefined`) if no cycle has ever succeeded for
- * it. This is the one place the "last known connection status" claim
- * (`mode: 'offline'`'s copy, and `ConnectedHealthContainer`'s file header)
- * is actually implemented, rather than merely asserted.
+ * it. This is the one place `mode: 'offline'`'s copy
+ * (`connected_health.offline_notice`: "Couldn't check your connections just
+ * now — this list may be out of date.") is actually earned rather than
+ * merely asserted: a provider's real prior fact survives a failed cycle
+ * untouched, so "may be out of date" never quietly means "may be
+ * fabricated." See `ConnectedHealthContainer`'s file header and
+ * `applyProbeCycle`, the container's actual call-site wrapper around this
+ * function.
  */
 export function mergeCloudFacts(
   prev: ConnectedHealthCloudFacts,
   next: ConnectedHealthCloudFacts,
 ): ConnectedHealthCloudFacts {
   return { ...prev, ...next };
+}
+
+/**
+ * The exact state-update composition `ConnectedHealthContainer.refreshCloudFacts`
+ * performs on every probe cycle: fold this cycle's newly-resolved facts on
+ * top of whatever cloud facts the container already had, via `mergeCloudFacts`
+ * — never a plain replacement (see `mergeCloudFacts`'s own header for why a
+ * replacement would silently break the `mode: 'offline'` copy's honesty).
+ *
+ * Deliberately a thin, named wrapper rather than calling `mergeCloudFacts`
+ * directly from the container: `components/health/__tests__/connectedHealthContainer.render.test.tsx`
+ * pins the container's literal `setCloud(...)` call site to this exact
+ * function BY NAME (a source-text assertion, since the container itself is
+ * never mounted in that suite — see its file header for why). That gives a
+ * regression back to `setCloud(facts)` (#494 S-1 — a real prior bug at this
+ * exact call site, invisible to the 415 tests that existed before this
+ * function/test pair) a deterministic test failure instead of silently
+ * shipping.
+ */
+export function applyProbeCycle(
+  prev: ConnectedHealthCloudFacts,
+  facts: ConnectedHealthCloudFacts,
+): ConnectedHealthCloudFacts {
+  return mergeCloudFacts(prev, facts);
+}
+
+/**
+ * Drop a single provider's cloud fact immediately on a successful disconnect
+ * (#494 S-2), rather than leaving it to the follow-up probe cycle to
+ * overwrite. Without this, a provider that was genuinely revoked but whose
+ * follow-up `refreshCloudFacts` probe then FAILS (rejects/times out) would
+ * have its stale pre-revocation fact survive `applyProbeCycle`'s merge
+ * untouched — the row would keep rendering as connected for a provider whose
+ * token was just revoked, until the screen remounts. Dropping the key here
+ * means a failed follow-up probe leaves the provider honestly ABSENT — the
+ * same "no evidence yet" state as a provider that has never once probed
+ * successfully — rather than fabricating staleness into a claim of current
+ * connection.
+ *
+ * A no-op for any `providerId` outside `CLOUD_PROBE_PROVIDERS` (apple_health
+ * / google_health / samsung_health / oura / strava aren't cloud-probed at
+ * all, so `facts` never has a key for them) — safe to call unconditionally
+ * from the container's disconnect handler regardless of which provider was
+ * revoked.
+ */
+export function dropCloudFact(
+  facts: ConnectedHealthCloudFacts,
+  providerId: HealthProviderId,
+): ConnectedHealthCloudFacts {
+  if (!isCloudProbeProvider(providerId) || !(providerId in facts)) return facts;
+  const next = { ...facts };
+  delete next[providerId];
+  return next;
+}
+
+function isCloudProbeProvider(
+  providerId: HealthProviderId,
+): providerId is (typeof CLOUD_PROBE_PROVIDERS)[number] {
+  return (CLOUD_PROBE_PROVIDERS as readonly string[]).includes(providerId);
 }
 
 /**
