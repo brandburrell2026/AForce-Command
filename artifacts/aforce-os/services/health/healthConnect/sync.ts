@@ -83,6 +83,7 @@ import type {
   HeartRateRecord,
   HeartRateVariabilityRmssdRecord,
   HealthConnectClient,
+  HealthConnectPermissionString,
   RespiratoryRateRecord,
   RestingHeartRateRecord,
   SleepSessionRecord,
@@ -92,7 +93,18 @@ import type {
 // ─── Public input / output shapes ──────────────────────────────────────────────
 
 export interface HealthConnectSyncParams {
-  client: HealthConnectClient;
+  /**
+   * Deliberately `Omit<HealthConnectClient, 'requestPermission'>`, not the
+   * full interface — an interface-level guarantee, not a runtime
+   * convention, that no code path reachable through this sync engine (or
+   * anything that only has this narrowed type) can trigger Health Connect's
+   * permission dialog. This matches A2's `HealthKitQueryClient`, which
+   * doesn't expose a request method AT ALL for the same reason: a
+   * background sync engine must never be able to pop UI. HC's real client
+   * legitimately needs `requestPermission` elsewhere (the connect flow owns
+   * that call) — this field just can't see it.
+   */
+  client: Omit<HealthConnectClient, 'requestPermission'>;
   /** Whose records these become — passed straight through to MapContext. */
   userId: string;
   /** The canonical metric types this sync pass should cover. */
@@ -144,6 +156,23 @@ export interface HealthConnectSyncResult {
   /** True iff at least one requested, granted type failed with an error this pass. Never true merely because a type was ungranted or unsupported — that's an access state, not a failure. */
   partial: boolean;
   availability: HealthConnectAvailabilityResult;
+  /**
+   * True iff this pass never got past the availability gate — either HC
+   * legitimately reported itself unavailable/needs_update, or the
+   * `getSdkStatus()` call itself threw (see `availabilityError`). This is
+   * the signal a caller keys off to tell "there is no usable Health Connect
+   * here" apart from "Health Connect answered and genuinely synced zero
+   * records for every type" — both shapes have `records: []`, but only the
+   * former sets this `true`. `perType` is always `{}` when this is `true`.
+   */
+  availabilityBlocked: boolean;
+  /**
+   * Present only when `availabilityBlocked` is true AND the reason was
+   * `getSdkStatus()` throwing rather than a legitimate SDK_UNAVAILABLE /
+   * SDK_UNAVAILABLE_PROVIDER_UPDATE_REQUIRED status. Absent ⇒ HC itself told
+   * us it's unavailable. Present ⇒ we couldn't even ask.
+   */
+  availabilityError?: string;
   /** Permission-string-level grant/deny/not-requested resolution — see permissions.ts. */
   permissions: PermissionGrantResolution;
   /** Per-type diagnostic breakdown — the only place `reSynced` and per-type access/error state surface. */
@@ -351,7 +380,7 @@ function describeError(err: unknown): string {
  * and "might silently lose one," this always takes the re-confirm side.
  */
 async function fullRead(
-  client: HealthConnectClient,
+  client: Omit<HealthConnectClient, 'requestPermission'>,
   config: HcTypeConfig,
   ctx: MapContext,
 ): Promise<{ records: CanonicalHealthRecord[]; nextChangesToken: string }> {
@@ -368,8 +397,33 @@ async function fullRead(
 export async function runHealthConnectSync(params: HealthConnectSyncParams): Promise<HealthConnectSyncResult> {
   const permissionBuild = buildHealthConnectPermissions(params.types);
 
-  const sdkStatus = await params.client.getSdkStatus();
-  const availability = resolveHealthConnectAvailability(sdkStatus, 'android', params.androidApiLevel);
+  let availability: HealthConnectAvailabilityResult;
+  try {
+    const sdkStatus = await params.client.getSdkStatus();
+    availability = resolveHealthConnectAvailability(sdkStatus, 'android', params.androidApiLevel);
+  } catch (err) {
+    // getSdkStatus() itself throwing is NOT a legitimate SDK_UNAVAILABLE /
+    // SDK_UNAVAILABLE_PROVIDER_UPDATE_REQUIRED signal from Health Connect —
+    // it's a transport/host failure (native bridge threw, process crashed
+    // mid-call, etc). Reporting this as 'available', or guessing a specific
+    // needs_update tier we have no evidence for, would both be
+    // fabrications. `availability: 'unavailable'` + `availabilityError` is
+    // the honest shape: "we could not determine availability," which is a
+    // different fact than "HC told us no" (that case never sets
+    // `availabilityError`). Zero further client calls are made — the same
+    // honest short-circuit as the legitimate-unavailable branch below.
+    return {
+      records: [],
+      deletedExternalIds: [],
+      nextChangesTokens: { ...params.changesTokens },
+      partial: false,
+      availability: { availability: 'unavailable', userAction: 'unsupported_platform' },
+      availabilityBlocked: true,
+      availabilityError: describeError(err),
+      permissions: { granted: [], denied: [], notRequested: [...permissionBuild.permissions] },
+      perType: {},
+    };
+  }
 
   if (availability.availability !== 'available') {
     // Honest short-circuit: unavailable/needs_update means the SDK itself
@@ -386,12 +440,41 @@ export async function runHealthConnectSync(params: HealthConnectSyncParams): Pro
       nextChangesTokens: { ...params.changesTokens },
       partial: false,
       availability,
+      availabilityBlocked: true,
       permissions: { granted: [], denied: [], notRequested: [...permissionBuild.permissions] },
       perType: {},
     };
   }
 
-  const grantedPermissions = await params.client.getGrantedPermissions();
+  let grantedPermissions: HealthConnectPermissionString[];
+  try {
+    grantedPermissions = await params.client.getGrantedPermissions();
+  } catch (err) {
+    // The SDK IS available, but the grant query itself failed. This must
+    // never be silently treated as "everything denied" — that would falsely
+    // claim a choice the user may never have made. Every requested type
+    // instead gets an honest per-type 'error' outcome (this pass could not
+    // determine grant state for ANY type), every token is left completely
+    // untouched (nothing was read for any type), and `permissions` falls
+    // back to `notRequested` for the same reason the unavailable branch
+    // above does — a failed grant query isn't a real signal either.
+    const errorMessage = describeError(err);
+    const perType: Partial<Record<CanonicalHealthMetricType, HealthConnectSyncTypeOutcome>> = {};
+    for (const metricType of params.types) {
+      perType[metricType] = { status: 'error', reSynced: false, deletedExternalIds: [], error: errorMessage };
+    }
+    return {
+      records: [],
+      deletedExternalIds: [],
+      nextChangesTokens: { ...params.changesTokens },
+      partial: true,
+      availability,
+      availabilityBlocked: false,
+      permissions: { granted: [], denied: [], notRequested: [...permissionBuild.permissions] },
+      perType,
+    };
+  }
+
   const permissions = resolvePermissionGrant(permissionBuild.permissions, grantedPermissions, params.hasRequested);
   const grantedSet = new Set(permissions.granted);
 
@@ -475,5 +558,14 @@ export async function runHealthConnectSync(params: HealthConnectSyncParams): Pro
     }
   }
 
-  return { records, deletedExternalIds, nextChangesTokens, partial, availability, permissions, perType };
+  return {
+    records,
+    deletedExternalIds,
+    nextChangesTokens,
+    partial,
+    availability,
+    availabilityBlocked: false,
+    permissions,
+    perType,
+  };
 }

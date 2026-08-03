@@ -59,21 +59,26 @@ function hrvRaw(id: string, packageName = 'com.google.android.apps.healthdata'):
  */
 interface MockClientOverrides {
   getSdkStatus?: HealthConnectClient['getSdkStatus'];
-  requestPermission?: HealthConnectClient['requestPermission'];
   getGrantedPermissions?: HealthConnectClient['getGrantedPermissions'];
   readRecords?: (recordType: string, options?: unknown) => Promise<unknown[]>;
   getChangesToken?: HealthConnectClient['getChangesToken'];
   getChanges?: HealthConnectClient['getChanges'];
 }
 
-/** A client whose every method throws unless overridden — proves "NO reads" claims. */
-function makeClient(overrides: MockClientOverrides = {}): HealthConnectClient {
+/**
+ * A client whose every method throws unless overridden — proves "NO reads"
+ * claims. Deliberately typed (and built) as `Omit<HealthConnectClient,
+ * 'requestPermission'>`, matching `HealthConnectSyncParams['client']`
+ * exactly: `requestPermission` isn't merely unimplemented here, it doesn't
+ * exist on the object at all, so no test in this file could accidentally
+ * call it even if it tried.
+ */
+function makeClient(overrides: MockClientOverrides = {}): Omit<HealthConnectClient, 'requestPermission'> {
   const unexpected = (name: string) => async () => {
     throw new Error(`unexpected call: ${name}`);
   };
   return {
     getSdkStatus: overrides.getSdkStatus ?? (unexpected('getSdkStatus') as HealthConnectClient['getSdkStatus']),
-    requestPermission: overrides.requestPermission ?? (unexpected('requestPermission') as HealthConnectClient['requestPermission']),
     getGrantedPermissions:
       overrides.getGrantedPermissions ?? (unexpected('getGrantedPermissions') as HealthConnectClient['getGrantedPermissions']),
     readRecords: (overrides.readRecords ?? unexpected('readRecords')) as HealthConnectClient['readRecords'],
@@ -81,6 +86,22 @@ function makeClient(overrides: MockClientOverrides = {}): HealthConnectClient {
     getChanges: overrides.getChanges ?? (unexpected('getChanges') as HealthConnectClient['getChanges']),
   };
 }
+
+// ─── Compile-level guarantee: the sync engine cannot request permissions ───
+//
+// This block asserts nothing at runtime and is never invoked — it exists so
+// `tsc` fails the build if the guarantee below regresses. `sync.ts` types
+// its client param as `Omit<HealthConnectClient, 'requestPermission'>`, not
+// the full interface, which makes calling `requestPermission` through that
+// type a COMPILE ERROR, not merely an untested code path — the same
+// interface-level guarantee A2's `HealthKitQueryClient` gets by never
+// declaring a request method at all (see appleHealthSync.ts).
+function _assertSyncClientCannotRequestPermission(client: HealthConnectSyncParams['client']): void {
+  // @ts-expect-error — `requestPermission` must not exist on the type this
+  // module accepts; if this stops erroring, the narrowing above regressed.
+  client.requestPermission;
+}
+void _assertSyncClientCannotRequestPermission;
 
 function baseParams(overrides: Partial<HealthConnectSyncParams> = {}): HealthConnectSyncParams {
   return {
@@ -117,6 +138,9 @@ describe('runHealthConnectSync — availability short-circuit', () => {
       });
       expect(result.perType).toEqual({});
       expect(result.partial).toBe(false);
+      // Legitimate "HC told us it's unavailable" ⇒ availabilityBlocked, no error note.
+      expect(result.availabilityBlocked).toBe(true);
+      expect(result.availabilityError).toBeUndefined();
       // getSdkStatus is the only call this made — everything else would have
       // thrown via makeClient's `unexpected` default.
       expect(client.getSdkStatus).toHaveBeenCalledTimes(1);
@@ -130,6 +154,75 @@ describe('runHealthConnectSync — availability short-circuit', () => {
       baseParams({ client, changesTokens: { sleep_session: existingToken } }),
     );
     expect(result.nextChangesTokens).toEqual({ sleep_session: existingToken });
+  });
+});
+
+// ─── Unguarded-await hardening: getSdkStatus/getGrantedPermissions must never reject the sync ─
+
+describe('runHealthConnectSync — client calls that throw never reject the sync promise', () => {
+  it('getSdkStatus() throwing resolves with an honest unavailable-shaped result plus an error note, never a rejection', async () => {
+    const client = makeClient({
+      getSdkStatus: vi.fn(async () => {
+        throw new Error('native bridge crashed');
+      }),
+    });
+
+    // The `await` below is itself the "never rejects" proof: a rejection
+    // would fail this test via an uncaught promise rejection, not a
+    // mismatched assertion.
+    const result = await runHealthConnectSync(baseParams({ client, types: ['sleep_session', 'steps'] }));
+
+    expect(result.records).toEqual([]);
+    expect(result.deletedExternalIds).toEqual([]);
+    expect(result.availability).toEqual({ availability: 'unavailable', userAction: 'unsupported_platform' });
+    expect(result.availabilityBlocked).toBe(true);
+    expect(result.availabilityError).toBe('native bridge crashed');
+    expect(result.partial).toBe(false);
+    expect(result.perType).toEqual({});
+    expect(result.permissions).toEqual({ granted: [], denied: [], notRequested: [READ_SLEEP, READ_STEPS] });
+  });
+
+  it('getSdkStatus() throwing leaves every input changes token untouched', async () => {
+    const client = makeClient({
+      getSdkStatus: vi.fn(async () => {
+        throw new Error('boom');
+      }),
+    });
+    const existingToken = serializeChangesToken('raw-preexisting');
+    const result = await runHealthConnectSync(
+      baseParams({ client, changesTokens: { sleep_session: existingToken } }),
+    );
+    expect(result.nextChangesTokens).toEqual({ sleep_session: existingToken });
+  });
+
+  it('getGrantedPermissions() throwing resolves with every requested type as "error", tokens untouched, never a rejection', async () => {
+    const stepsToken = serializeChangesToken('raw-steps-token');
+    const client = makeClient({
+      getSdkStatus: vi.fn(async () => 'SDK_AVAILABLE' as const),
+      getGrantedPermissions: vi.fn(async () => {
+        throw new Error('grant query unreachable');
+      }),
+    });
+
+    // As above, the bare `await` is the "never rejects" proof.
+    const result = await runHealthConnectSync(
+      baseParams({ client, types: ['sleep_session', 'steps'], changesTokens: { steps: stepsToken } }),
+    );
+
+    expect(result.records).toEqual([]);
+    expect(result.deletedExternalIds).toEqual([]);
+    // SDK IS available — this is not the "no HC" shape.
+    expect(result.availabilityBlocked).toBe(false);
+    expect(result.availability.availability).toBe('available');
+    expect(result.partial).toBe(true);
+    expect(result.perType).toEqual({
+      sleep_session: { status: 'error', reSynced: false, deletedExternalIds: [], error: 'grant query unreachable' },
+      steps: { status: 'error', reSynced: false, deletedExternalIds: [], error: 'grant query unreachable' },
+    });
+    expect(result.permissions).toEqual({ granted: [], denied: [], notRequested: [READ_SLEEP, READ_STEPS] });
+    // Nothing was read for either type, so neither token moves.
+    expect(result.nextChangesTokens.steps).toBe(stepsToken);
+    expect(result.nextChangesTokens.sleep_session).toBeUndefined();
   });
 });
 
@@ -182,6 +275,10 @@ describe('runHealthConnectSync — initial sync (no prior token)', () => {
     expect(result.records).toEqual([]);
     expect(result.perType.sleep_session?.status).toBe('synced');
     expect(result.partial).toBe(false);
+    // "Synced zero records" is NOT "HC is absent" — availabilityBlocked
+    // distinguishes this shape from the SDK_UNAVAILABLE short-circuit above,
+    // even though both report `records: []`.
+    expect(result.availabilityBlocked).toBe(false);
   });
 });
 
