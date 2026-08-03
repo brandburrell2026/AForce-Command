@@ -43,6 +43,7 @@ import { ReadinessInsightsV2 } from '@/components/insights/ReadinessInsightsV2';
 import { usePerformanceAge } from '@/hooks/usePerformanceAge';
 import { openShareSheet } from '@/services/shareService';
 import { sectionSummary } from '@/components/insights/weeklyReportCopy';
+import { buildWeeklyHealthAggregates } from '@/services/health/weeklyHealthAggregates';
 
 type IconName = React.ComponentProps<typeof Icon>['name'];
 
@@ -90,6 +91,9 @@ function WeeklyReportLegacy() {
   const insets = useSafeAreaInsets();
   const { t, i18n } = useTranslation();
   const isWeb = Platform.OS === 'web';
+  const { state } = useAppStore();
+  const healthCanonicalConsumers = state.featureFlags.health_canonical_consumers;
+  const biometrics = state.userState.biometrics;
 
   const topPad = isWeb ? WEB_TOP_PADDING : insets.top + 16;
   const bottomPad = isWeb ? WEB_BOTTOM_PADDING : insets.bottom + TAB_BAR_HEIGHT + 24;
@@ -115,19 +119,52 @@ function WeeklyReportLegacy() {
   // Current Performance Age is a live engine output — read-only reference.
   const pa = usePerformanceAge();
 
-  const report: WeeklyReport = React.useMemo(
-    () =>
-      buildWeeklyReport({
-        nowISO,
-        weekStartISO: week.weekStartISO,
-        weekEndISO: week.weekEndISO,
-        priorWeekStartISO: week.priorWeekStartISO,
-        priorWeekEndISO: week.priorWeekEndISO,
-        analyticsEvents: events,
-        current: { performanceAge: pa.result },
-      }),
-    [nowISO, week, events, pa.result],
-  );
+  const report: WeeklyReport = React.useMemo(() => {
+    // W3.4 — canonical health aggregates, gated behind
+    // `health_canonical_consumers` (default OFF): when OFF this branch never
+    // runs, so `health` stays `undefined` and `buildWeeklyReport`'s output is
+    // byte-identical to before this flag existed.
+    //
+    // HONEST LIMITATION: no per-day health HISTORY is persisted anywhere in
+    // the store yet (see services/health/healthSignalsFromStore.ts's own
+    // doc) — only TODAY's biometrics snapshot is real. Wiring it in as the
+    // single most-recent day of a 7-day window is deliberate: 6 of 7 days
+    // are honestly absent, so every metric correctly reports
+    // `insufficient_data` (1-of-7 coverage < the default 3-of-7 threshold)
+    // rather than a fabricated week. This becomes a real weekly rollup the
+    // moment daily history is persisted (tracked follow-up, not this PR).
+    const nowMs = Date.parse(nowISO);
+    const health = healthCanonicalConsumers
+      ? buildWeeklyHealthAggregates({
+          dailySignals: [
+            {
+              dayIndex: 6,
+              input: {
+                biometrics,
+                records: undefined,
+                activeDirectProviders: new Set(),
+                connections: undefined,
+                nowMs,
+              },
+            },
+          ],
+          days: 7,
+          timezoneOffsetMin: -new Date(nowISO).getTimezoneOffset(),
+          nowMs,
+        })
+      : undefined;
+
+    return buildWeeklyReport({
+      nowISO,
+      weekStartISO: week.weekStartISO,
+      weekEndISO: week.weekEndISO,
+      priorWeekStartISO: week.priorWeekStartISO,
+      priorWeekEndISO: week.priorWeekEndISO,
+      analyticsEvents: events,
+      current: { performanceAge: pa.result },
+      health,
+    });
+  }, [nowISO, week, events, pa.result, healthCanonicalConsumers, biometrics]);
 
   const fmtDay = React.useCallback(
     (iso: string) => {
