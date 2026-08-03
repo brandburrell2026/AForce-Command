@@ -24,8 +24,9 @@
  * it behind `health_canonical_consumers` (default OFF). The two share the
  * same `EMITTING_FRESHNESS` policy (exported below) but are separate
  * projections onto separate consumer shapes.
- * Nothing imports THIS adapter into the app yet. The flag-gated swap point is
- * the STORE / CONTAINER layer (where `state.biometrics` is populated today),
+ * Nothing calls `toReadinessBiometrics` yet (the module IS imported for its
+ * shared `emits()` policy — see `healthSignalsFromStore.ts`). The flag-gated
+ * swap point is the STORE / CONTAINER layer (where `state.biometrics` is populated today),
  * NOT the scoring layer — scoring keeps reading `state.biometrics` verbatim
  * either way. The store-shaped input builder already exists
  * (`healthSignalsFromStore.ts`, W3.2): the future wiring composes
