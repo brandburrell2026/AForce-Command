@@ -1904,7 +1904,7 @@
       "tagline": "What's connected, what's synced, and what isn't — stated plainly."
     },
     "back": "Back",
-    "offline_notice": "Offline — showing the last known connection status.",
+    "offline_notice": "Couldn't check your connections just now — this list may be out of date.",
     "loading": "Checking your connected sources…",
     "empty": "No health sources configured yet.",
     "status_a11y": "Status: {{label}}",
