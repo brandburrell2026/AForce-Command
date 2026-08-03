@@ -9,8 +9,13 @@
  *      documented ±10 recovery contribution.
  *   2. The recovery delta stays clamped to ±10 under extreme canonical inputs
  *      (all providers maxed, both directions).
- *   3. Stale/expired canonical signals produce NO readiness influence
- *      (the adapter emits nothing).
+ *   3. Stale/expired canonical signals produce NO readiness influence through
+ *      the `toReadinessBiometrics` ADAPTER (this file) — it emits nothing.
+ *      The separately-wired `canonicalReadinessSignals` projection
+ *      (`healthSignalsFromStore.ts`, consumed by `useMetabolicReadiness` /
+ *      `usePerformanceAge` behind `health_canonical_consumers`) is its own
+ *      surface with the same freshness policy; its stale/expired coverage
+ *      lives in `__tests__/healthSignalsFromStore.test.ts`, not here.
  *   4. Duplicated provider records do not amplify anything.
  *   5. Unavailable data fails safe (empty adapter output, score identical to
  *      no-biometrics).
