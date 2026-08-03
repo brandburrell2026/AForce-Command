@@ -17,6 +17,14 @@ vi.mock('@/components/Icon', () => ({
   Icon: ({ name }: { name: string }) => React.createElement('span', { 'data-icon': name }),
 }));
 
+// CommandConfidenceBadge pulls i18nService → expo-localization (native), which
+// can't load under happy-dom. The badge is a shipped, separately-exercised
+// component — here we only assert the view passes the level through / hides it.
+vi.mock('@/components/CommandConfidenceBadge', () => ({
+  CommandConfidenceBadge: ({ level }: { level: string | null | undefined }) =>
+    level ? React.createElement('span', { 'data-confidence': level }) : null,
+}));
+
 import { CruiseModeView, type CruiseCrossNavItem } from '../CruiseModeView';
 import { resolveCruiseModeView } from '@/services/cruise/cruiseModeView';
 import { CRUISE_FIXTURES } from '@/services/cruise/cruiseModeFixtures';
@@ -30,7 +38,7 @@ let host: HTMLElement;
 let root: Root;
 const noop = () => {};
 
-function render(fixtureKey: keyof typeof CRUISE_FIXTURES) {
+function render(fixtureKey: keyof typeof CRUISE_FIXTURES, over: { confidence?: 'high' | 'medium' | 'low' | null } = {}) {
   const input = CRUISE_FIXTURES[fixtureKey];
   const view = resolveCruiseModeView(input);
   root = createRoot(host);
@@ -42,6 +50,7 @@ function render(fixtureKey: keyof typeof CRUISE_FIXTURES) {
         ports: input.ports,
         selectedPortId: input.portId,
         crossNav: CROSS_NAV,
+        confidence: over.confidence ?? null,
         onBack: noop, onSelectPort: noop, onLogWater: noop, onLogChange: noop, onNavigate: noop,
       }),
     ),
@@ -159,5 +168,19 @@ describe('compliance', () => {
   it('always renders the non-diagnostic disclaimer', () => {
     render('building');
     expect(host.textContent).toMatch(/not a medical, diagnostic, safety, or navigation tool/i);
+  });
+});
+
+describe('Section 58 — Command Confidence on the readiness card', () => {
+  it('renders the confidence pill on the Guest Readiness card when a level is provided', () => {
+    render('live-balanced', { confidence: 'high' });
+    const pill = q('[data-testid="cruise-confidence"]');
+    expect(pill).not.toBeNull();
+    expect(pill?.querySelector('[data-confidence="high"]')).not.toBeNull();
+  });
+
+  it('hides the pill entirely when confidence is null (flag off / no level — no fabricated confidence)', () => {
+    render('live-balanced');
+    expect(q('[data-testid="cruise-confidence"]')).toBeNull();
   });
 });

@@ -26,7 +26,8 @@ import { GradientBackground } from '@/components/GradientBackground';
 import { FeatureGate } from '@/components/FeatureGate';
 import { af } from '@/theme/afTokens';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
-import { useEngineSlice, useUserSlice, useActionsSlice } from '@/store/slices';
+import { useCommandConfidence } from '@/hooks/useCommandConfidence';
+import { useEngineSlice, useUserSlice, useActionsSlice, useFlagsSlice } from '@/store/slices';
 import {
   fetchCruiseEnvironment,
   type CruiseLiveEnvironment,
@@ -90,6 +91,9 @@ function CruiseModeBody() {
   const engine = useEngineSlice();
   const user = useUserSlice();
   const { logIntake } = useActionsSlice<LogIntakeActions>();
+  // Section 58 — Command Confidence on the Guest Readiness readout, gated.
+  const showConfidence = useFlagsSlice().spec_commandConfidenceDisplay;
+  const commandConfidence = useCommandConfidence();
 
   const [portId, setPortId] = useState<string>('cozumel');
   const [liveEnv, setLiveEnv] = useState<CruiseLiveEnvironment | null>(null);
@@ -184,6 +188,7 @@ function CruiseModeBody() {
             ports={PORT_OPTIONS}
             selectedPortId={portId}
             crossNav={CROSS_NAV}
+            confidence={showConfidence ? commandConfidence ?? null : null}
             onBack={onBack}
             onSelectPort={setPortId}
             onLogWater={onLogWater}
