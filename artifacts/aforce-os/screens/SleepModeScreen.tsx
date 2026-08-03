@@ -24,8 +24,9 @@ import {
 import {
   resolveSleepModeView, PRE_SLEEP_LEAD_MIN, RECOVERY_WINDOW_LEAD_MIN,
   CHECKLIST_DEFS, localDayKey, shouldFoldSleepAvg, foldSevenNightAvg, primaryCtaAction,
-  type SleepPhase, type SleepMetricInput, type HealthChip, type ChecklistItemDef,
+  type SleepPhase, type ChecklistItemDef,
 } from '@/services/sleep/sleepModeView';
+import { sleepSignalsForContainer } from '@/services/health/sleepSignals';
 import { SleepModeView } from '@/components/sleep/SleepModeView';
 import SleepModeScreenLegacy from './SleepModeScreenLegacy';
 
@@ -122,20 +123,23 @@ function SleepModeRedesign() {
     return () => { cancelled = true; };
   }, []);
 
-  const sleepLastNight: number | null = React.useMemo(() => {
-    const fromApple = user.appleHealth?.sleepHoursLastNight;
-    if (isFiniteNum(fromApple)) return fromApple;
-    const bio = user.biometrics;
-    if (!bio) return null;
-    let best: { v: number; at: number } | null = null;
-    for (const snap of Object.values(bio)) {
-      const v = snap?.sleepHoursLastNight;
-      if (!isFiniteNum(v)) continue;
-      const at = snap?.fetchedAt ?? 0;
-      if (!best || at > best.at) best = { v, at };
-    }
-    return best?.v ?? null;
-  }, [user.appleHealth, user.biometrics]);
+  // W3.3 — canonical health-selector consumer. Behind `health_canonical_consumers`
+  // (default OFF): flag OFF reproduces the screen's original inline
+  // freshest-wins-across-snapshots / Apple-Health-only logic EXACTLY; flag ON
+  // routes sleep hours, HRV, and resting HR through `resolveHealthSignals` so
+  // HRV/RHR can come from ANY connected provider, honestly (never fabricated,
+  // never presenting a stale/expired signal as connected-fresh). See
+  // services/health/sleepSignals.ts.
+  const signals = React.useMemo(
+    () => sleepSignalsForContainer(
+      { appleHealth: user.appleHealth, biometrics: user.biometrics },
+      now.getTime(),
+      flags.health_canonical_consumers,
+    ),
+    [user.appleHealth, user.biometrics, now, flags.health_canonical_consumers],
+  );
+  const sleepLastNight = signals.sleepLastNight;
+  const recoveryMetrics = signals.recoveryMetrics;
 
   // H2 — fold last-night sleep into the 7-night EMA at most ONCE per local
   // calendar day. Gated on `hydrated` so the stored average + guard are loaded
@@ -158,23 +162,7 @@ function SleepModeRedesign() {
   const minsUntil = target ? minutesUntilNext(target, now) : null;
   const phase = minsUntil == null ? 'idle' : derivePhase(minsUntil, now.getHours());
 
-  // Honest health chip: real sleep signal ⇒ connected; a health object present but
-  // no signal ⇒ waiting; nothing at all ⇒ not connected. No fabricated status.
-  const hasHealthObject = user.appleHealth != null || (user.biometrics != null && Object.keys(user.biometrics).length > 0);
-  const chip: HealthChip = sleepLastNight != null ? 'connected' : hasHealthObject ? 'waiting' : 'not_connected';
-  const freshness: string | null = sleepLastNight != null ? 'Last night' : hasHealthObject ? 'No recent signal' : null;
-
   const confidence = deriveCommandConfidence(commandConfidenceInputsFromState(user, now.getTime()));
-
-  // Only REAL biometric values become metrics (never a placeholder number).
-  const recoveryMetrics: SleepMetricInput[] = React.useMemo(() => {
-    const out: SleepMetricInput[] = [];
-    const hrv = user.appleHealth?.hrvSdnn;
-    const rhr = user.appleHealth?.restingHeartRate;
-    if (isFiniteNum(hrv)) out.push({ key: 'hrv', label: 'HRV', value: Math.round(hrv), unit: 'ms', real: true });
-    if (isFiniteNum(rhr)) out.push({ key: 'resting_hr', label: 'Resting HR', value: Math.round(rhr), unit: ' bpm', real: true });
-    return out;
-  }, [user.appleHealth]);
 
   const view = resolveSleepModeView({
     now: now.getTime(),
@@ -186,7 +174,14 @@ function SleepModeRedesign() {
     sevenNightAvg,
     recoveryMetrics,
     confidence,
-    health: { provider: Platform.OS === 'ios' ? 'Apple Health' : 'Google Health Connect', chip, freshness },
+    health: {
+      // Canonical path attributes the actual winning provider; legacy path
+      // (and any canonical "no reading" state) falls back to the honest
+      // platform default — never a fabricated provider name.
+      provider: signals.providerLabel ?? (Platform.OS === 'ios' ? 'Apple Health' : 'Google Health Connect'),
+      chip: signals.chip,
+      freshness: signals.freshness,
+    },
     completed: Array.from(completed),
     // H1 — public kill switch keeps its semantics on the redesigned path:
     // when off, the view renders the loud internal-preview banner (legacy parity).
