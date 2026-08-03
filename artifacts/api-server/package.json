@@ -28,7 +28,8 @@
     "pino": "^9",
     "pino-http": "^10",
     "ws": "8.18.0",
-    "zod": "catalog:"
+    "zod": "catalog:",
+    "@workspace/health-core": "workspace:*"
   },
   "devDependencies": {
     "@types/cookie-parser": "^1.4.10",

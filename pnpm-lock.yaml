@@ -461,6 +461,9 @@ importers:
       '@expo-google-fonts/ibm-plex-mono':
         specifier: ^0.4.1
         version: 0.4.1
+      '@kingstinct/react-native-healthkit':
+        specifier: ^14.0.2
+        version: 14.0.2(react-native-nitro-modules@0.35.10(react-native@0.81.5(patch_hash=4362d381f1a3defaeb14ce6bf99b44c7c9f744771220ec7e94bb82c679028780)(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0))(react-native@0.81.5(patch_hash=4362d381f1a3defaeb14ce6bf99b44c7c9f744771220ec7e94bb82c679028780)(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)
       '@workspace/activation-core':
         specifier: workspace:*
         version: link:../../lib/activation-core
@@ -512,6 +515,9 @@ importers:
       react-native:
         specifier: 0.81.5
         version: 0.81.5(patch_hash=4362d381f1a3defaeb14ce6bf99b44c7c9f744771220ec7e94bb82c679028780)(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0)
+      react-native-nitro-modules:
+        specifier: ^0.35.10
+        version: 0.35.10(react-native@0.81.5(patch_hash=4362d381f1a3defaeb14ce6bf99b44c7c9f744771220ec7e94bb82c679028780)(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)
       react-native-view-shot:
         specifier: ^4.0.3
         version: 4.0.3(react-native@0.81.5(patch_hash=4362d381f1a3defaeb14ce6bf99b44c7c9f744771220ec7e94bb82c679028780)(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)
@@ -952,6 +958,9 @@ importers:
       '@workspace/demand-engine':
         specifier: workspace:*
         version: link:../../lib/demand-engine
+      '@workspace/health-core':
+        specifier: workspace:*
+        version: link:../../lib/health-core
       '@workspace/integrations-openai-ai-server':
         specifier: workspace:*
         version: link:../../lib/integrations-openai-ai-server
@@ -2367,6 +2376,13 @@ packages:
 
   '@js-sdsl/ordered-map@4.4.2':
     resolution: {integrity: sha512-iUKgm52T8HOE/makSxjqoWhe95ZJA1/G1sYsGev2JDKUSS14KAgg1LHb+Ba+IPow0xflbnSkOsZcO08C7w1gYw==}
+
+  '@kingstinct/react-native-healthkit@14.0.2':
+    resolution: {integrity: sha512-ed6x7xtSaML8qy8qswJWlVPKImeNEvHfWtuzylQZ9MsxgLriv33gDjf/8iWIcB4SKCW/BZNOFBcCqTQq5i5zmw==}
+    peerDependencies:
+      react: '>=19'
+      react-native: '>=0.79'
+      react-native-nitro-modules: '>=0.35'
 
   '@kwsites/file-exists@1.1.1':
     resolution: {integrity: sha512-m9/5YGR18lIwxSFDwfE3oA7bWuq9kdau6ugN4H2rJeyhFQZcG9AgSHkQtSD15a8WvTgfz9aikZMrKPHvbpqFiw==}
@@ -6838,6 +6854,12 @@ packages:
       react-native: '*'
       react-native-reanimated: '>=3.0.0'
 
+  react-native-nitro-modules@0.35.10:
+    resolution: {integrity: sha512-KsySOAIkbSTjNiX2GvXiNT9P5DMeZd99yvtE/+Lw7RXV7Ztxh9Z+YyAbYkBqadhN5J/KXXuPjhRYgyLOIZgsbQ==}
+    peerDependencies:
+      react: '*'
+      react-native: '*'
+
   react-native-reanimated@4.1.7:
     resolution: {integrity: sha512-Q4H6xA3Tn7QL0/E/KjI86I1KK4tcf+ErRE04LH34Etka2oVQhW6oXQ+Q8ZcDCVxiWp5vgbBH6XcH8BOo4w/Rhg==}
     peerDependencies:
@@ -9526,6 +9548,12 @@ snapshots:
       '@jridgewell/sourcemap-codec': 1.5.5
 
   '@js-sdsl/ordered-map@4.4.2': {}
+
+  '@kingstinct/react-native-healthkit@14.0.2(react-native-nitro-modules@0.35.10(react-native@0.81.5(patch_hash=4362d381f1a3defaeb14ce6bf99b44c7c9f744771220ec7e94bb82c679028780)(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0))(react-native@0.81.5(patch_hash=4362d381f1a3defaeb14ce6bf99b44c7c9f744771220ec7e94bb82c679028780)(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)':
+    dependencies:
+      react: 19.1.0
+      react-native: 0.81.5(patch_hash=4362d381f1a3defaeb14ce6bf99b44c7c9f744771220ec7e94bb82c679028780)(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0)
+      react-native-nitro-modules: 0.35.10(react-native@0.81.5(patch_hash=4362d381f1a3defaeb14ce6bf99b44c7c9f744771220ec7e94bb82c679028780)(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)
 
   '@kwsites/file-exists@1.1.1':
     dependencies:
@@ -14692,6 +14720,11 @@ snapshots:
       react-native: 0.81.5(patch_hash=4362d381f1a3defaeb14ce6bf99b44c7c9f744771220ec7e94bb82c679028780)(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0)
       react-native-is-edge-to-edge: 1.3.1(react-native@0.81.5(patch_hash=4362d381f1a3defaeb14ce6bf99b44c7c9f744771220ec7e94bb82c679028780)(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)
       react-native-reanimated: 4.1.7(react-native-worklets@0.5.1(@babel/core@7.29.0)(react-native@0.81.5(patch_hash=4362d381f1a3defaeb14ce6bf99b44c7c9f744771220ec7e94bb82c679028780)(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0))(react-native@0.81.5(patch_hash=4362d381f1a3defaeb14ce6bf99b44c7c9f744771220ec7e94bb82c679028780)(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)
+
+  react-native-nitro-modules@0.35.10(react-native@0.81.5(patch_hash=4362d381f1a3defaeb14ce6bf99b44c7c9f744771220ec7e94bb82c679028780)(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0):
+    dependencies:
+      react: 19.1.0
+      react-native: 0.81.5(patch_hash=4362d381f1a3defaeb14ce6bf99b44c7c9f744771220ec7e94bb82c679028780)(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0)
 
   react-native-reanimated@4.1.7(react-native-worklets@0.5.1(@babel/core@7.29.0)(react-native@0.81.5(patch_hash=4362d381f1a3defaeb14ce6bf99b44c7c9f744771220ec7e94bb82c679028780)(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0))(react-native@0.81.5(patch_hash=4362d381f1a3defaeb14ce6bf99b44c7c9f744771220ec7e94bb82c679028780)(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0):
     dependencies:
