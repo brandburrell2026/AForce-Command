@@ -2,6 +2,16 @@
  * WHOOP biometrics fetch sweep — runs `runWhoopFetchOnce` for every
  * user with stored WHOOP tokens at a configured interval.
  *
+ * Thin wrapper over `providerKit/sweepLoop.ts` — the worker-pool
+ * fan-out, streaming/paginated variant, and setTimeout-chain interval
+ * scheduling are all shared implementation now (see that module for
+ * the full contract doc, which is itself a pure extraction of THIS
+ * file's pre-W3 shape merged with `whoopFetchSweepBootstrap.ts`'s
+ * env-cadence parsing pattern). This file exists to keep WHOOP's
+ * public API — every exported name, type, and default — byte-identical
+ * to what it was before the extraction, so `whoopFetchSweepBootstrap.ts`
+ * and every existing WHOOP test keep passing unchanged.
+ *
  * Two exports:
  *   - `runWhoopFetchSweep` — one pass. Takes the userId list and a
  *     per-user runner, fans out under a concurrency cap, returns a
@@ -16,6 +26,11 @@
  *     load. Returns a stop function that prevents further ticks; an
  *     in-flight sweep is allowed to drain.
  *
+ * Log-line prefix is pinned to "whoopFetchSweep" (via `logPrefix`) so
+ * every log line this module emits — including the streaming variant's
+ * `whoopFetchSweepStreaming:done` — reads byte-identical to the
+ * pre-extraction implementation.
+ *
  * Architecture lock: hidden-infra. This module is NOT wired into
  * server boot in this PR. A follow-up will gate startup on a
  * `WHOOP_FETCH_SWEEP_INTERVAL_MS` env var; until then the code path
@@ -29,21 +44,22 @@
 
 import type { Logger } from "pino";
 import type { WhoopFetchOutcomeStatus } from "./whoopFetchWorker";
-import { serializeError } from "./serializeError";
+import {
+  runProviderFetchSweep,
+  runProviderFetchSweepStreaming,
+  startProviderFetchSweepLoop,
+  type AcquireUserSweepLock as ProviderAcquireUserSweepLock,
+  type ProviderFetchSweepResult,
+  type ProviderFetchSweepTally,
+  type RunProviderFetchSweepArgs,
+  type RunProviderFetchSweepStreamingArgs,
+  type StartProviderFetchSweepLoopArgs,
+} from "./providerKit/sweepLoop";
 
-export interface WhoopFetchSweepTally {
-  total: number;
-  byStatus: Record<WhoopFetchOutcomeStatus, number>;
-}
+const LOG_PREFIX = "whoopFetchSweep";
 
-export interface WhoopFetchSweepResult extends WhoopFetchSweepTally {
-  /** Epoch ms when the sweep started. */
-  startedAt: number;
-  /** Epoch ms when the sweep finished. */
-  finishedAt: number;
-  /** Wall-clock duration in ms (finishedAt - startedAt). */
-  durationMs: number;
-}
+export type WhoopFetchSweepTally = ProviderFetchSweepTally;
+export type WhoopFetchSweepResult = ProviderFetchSweepResult;
 
 /**
  * Multi-replica singleflight seam. When provided, every per-user
@@ -60,10 +76,7 @@ export interface WhoopFetchSweepResult extends WhoopFetchSweepTally {
  * does the actual wiring. Any non-blocking distributed lock satisfying
  * this shape works (Redis SETNX, etcd, etc.) if WHOOP ever migrates.
  */
-export type AcquireUserSweepLock = <T>(
-  userId: string,
-  fn: () => Promise<T>,
-) => Promise<{ acquired: true; value: T } | { acquired: false }>;
+export type AcquireUserSweepLock = ProviderAcquireUserSweepLock;
 
 export interface RunWhoopFetchSweepArgs {
   /** Users to fetch this pass — produced by `listWhoopTokenUserIds`. */
@@ -97,98 +110,10 @@ export interface RunWhoopFetchSweepArgs {
 export async function runWhoopFetchSweep(
   args: RunWhoopFetchSweepArgs,
 ): Promise<WhoopFetchSweepResult> {
-  const now = args.nowMs ?? ((): number => Date.now());
-  const concurrency = Math.max(1, args.concurrency ?? 4);
-  const log = args.log;
-  const startedAt = now();
-
-  const tally: WhoopFetchSweepTally = {
-    total: args.userIds.length,
-    byStatus: {
-      ok: 0,
-      skipped_no_token: 0,
-      skipped_no_state: 0,
-      skipped_locked: 0,
-      error: 0,
-    },
-  };
-
-  if (args.userIds.length === 0) {
-    const finishedAt = now();
-    log?.info(
-      { total: 0, durationMs: finishedAt - startedAt },
-      "whoopFetchSweep:empty",
-    );
-    return {
-      ...tally,
-      startedAt,
-      finishedAt,
-      durationMs: finishedAt - startedAt,
-    };
-  }
-
-  let cursor = 0;
-  const next = (): string | null => {
-    if (cursor >= args.userIds.length) return null;
-    const id = args.userIds[cursor]!;
-    cursor += 1;
-    return id;
-  };
-
-  const acquireLock = args.acquireLock;
-  async function worker(): Promise<void> {
-    for (;;) {
-      const userId = next();
-      if (userId === null) return;
-      try {
-        if (acquireLock !== undefined) {
-          // Multi-replica path: wrap runOnce in the distributed lock.
-          // `acquired:false` is the "another replica owns this user
-          // right now" signal — tally as skipped_locked and move on,
-          // do NOT call runOnce (would defeat the lock's purpose).
-          const lockOut = await acquireLock(
-            userId,
-            () => args.runOnce(userId),
-          );
-          if (lockOut.acquired) {
-            tally.byStatus[lockOut.value.status] += 1;
-          } else {
-            tally.byStatus.skipped_locked += 1;
-          }
-        } else {
-          const out = await args.runOnce(userId);
-          tally.byStatus[out.status] += 1;
-        }
-      } catch (err) {
-        // `runWhoopFetchOnce` is contractually never-throws, but
-        // defend against a future regression so one bad user can't
-        // crash the sweep. Same path catches acquireLock throws —
-        // lock state is ambiguous on throw, treating as error (not
-        // skip, not retry) is the only safe call.
-        tally.byStatus.error += 1;
-        log?.error(
-          { userId, err: serializeError(err) },
-          "whoopFetchSweep:runOnce threw",
-        );
-      }
-    }
-  }
-
-  const workers = Array.from(
-    { length: Math.min(concurrency, args.userIds.length) },
-    () => worker(),
-  );
-  await Promise.all(workers);
-
-  const finishedAt = now();
-  const result: WhoopFetchSweepResult = {
-    ...tally,
-    startedAt,
-    finishedAt,
-    durationMs: finishedAt - startedAt,
-  };
-  log?.info({ ...tally, durationMs: result.durationMs }, "whoopFetchSweep:done");
-  return result;
+  return runProviderFetchSweep({
+    ...(args as RunProviderFetchSweepArgs),
+    logPrefix: LOG_PREFIX,
+  });
 }
 
 export interface RunWhoopFetchSweepStreamingArgs {
@@ -225,60 +150,15 @@ export interface RunWhoopFetchSweepStreamingArgs {
  * The per-page `runWhoopFetchSweep` still emits its own `done` log —
  * useful telemetry at high page counts so you can watch progress mid-
  * sweep. The streaming wrapper adds one final aggregate `done` log on
- * top.
+ * top (`whoopFetchSweepStreaming:done`).
  */
 export async function runWhoopFetchSweepStreaming(
   args: RunWhoopFetchSweepStreamingArgs,
 ): Promise<WhoopFetchSweepResult> {
-  const now = args.nowMs ?? ((): number => Date.now());
-  const startedAt = now();
-  const tally: WhoopFetchSweepTally = {
-    total: 0,
-    byStatus: {
-      ok: 0,
-      skipped_no_token: 0,
-      skipped_no_state: 0,
-      skipped_locked: 0,
-      error: 0,
-    },
-  };
-  let pageCount = 0;
-
-  for await (const page of args.pages) {
-    pageCount += 1;
-    // Skip the empty-page log noise from `runWhoopFetchSweep` by
-    // bailing here — a well-behaved iterator never yields an empty
-    // page, but the contract doesn't forbid it.
-    if (page.length === 0) continue;
-    const pageResult = await runWhoopFetchSweep({
-      userIds: page,
-      runOnce: args.runOnce,
-      concurrency: args.concurrency,
-      acquireLock: args.acquireLock,
-      nowMs: args.nowMs,
-      log: args.log,
-    });
-    tally.total += pageResult.total;
-    const statuses = Object.keys(tally.byStatus) as Array<
-      keyof typeof tally.byStatus
-    >;
-    for (const k of statuses) {
-      tally.byStatus[k] += pageResult.byStatus[k];
-    }
-  }
-
-  const finishedAt = now();
-  const result: WhoopFetchSweepResult = {
-    ...tally,
-    startedAt,
-    finishedAt,
-    durationMs: finishedAt - startedAt,
-  };
-  args.log?.info(
-    { ...tally, pageCount, durationMs: result.durationMs },
-    "whoopFetchSweepStreaming:done",
-  );
-  return result;
+  return runProviderFetchSweepStreaming({
+    ...(args as RunProviderFetchSweepStreamingArgs),
+    logPrefix: LOG_PREFIX,
+  });
 }
 
 export interface StartWhoopFetchSweepLoopArgs {
@@ -307,59 +187,8 @@ export interface StartWhoopFetchSweepLoopArgs {
 export function startWhoopFetchSweepLoop(
   args: StartWhoopFetchSweepLoopArgs,
 ): () => void {
-  if (!Number.isFinite(args.intervalMs) || args.intervalMs <= 0) {
-    throw new Error(
-      `startWhoopFetchSweepLoop: intervalMs must be > 0, got ${args.intervalMs}`,
-    );
-  }
-  const setT = args.setTimeoutImpl ?? setTimeout;
-  const clearT = args.clearTimeoutImpl ?? clearTimeout;
-  const log = args.log;
-  let stopped = false;
-  let timer: ReturnType<typeof setTimeout> | null = null;
-  let running = false;
-
-  const schedule = (): void => {
-    if (stopped) return;
-    timer = setT(() => {
-      timer = null;
-      void tick();
-    }, args.intervalMs);
-  };
-
-  const tick = async (): Promise<void> => {
-    if (stopped) return;
-    if (running) {
-      // Re-entrancy guard — should be impossible with a setTimeout
-      // chain (we don't schedule until the previous tick finishes),
-      // but pin the invariant in case someone later moves to setInterval.
-      log?.warn("whoopFetchSweep:tick skipped — previous sweep still running");
-      schedule();
-      return;
-    }
-    running = true;
-    try {
-      await args.runSweep();
-    } catch (err) {
-      // runSweep itself shouldn't throw (it absorbs per-user errors),
-      // but if it does, log and keep the loop alive.
-      log?.error(
-        { err: serializeError(err) },
-        "whoopFetchSweep:runSweep threw",
-      );
-    } finally {
-      running = false;
-      schedule();
-    }
-  };
-
-  schedule();
-
-  return function stop(): void {
-    stopped = true;
-    if (timer !== null) {
-      clearT(timer);
-      timer = null;
-    }
-  };
+  return startProviderFetchSweepLoop({
+    ...(args as StartProviderFetchSweepLoopArgs),
+    logPrefix: LOG_PREFIX,
+  });
 }
