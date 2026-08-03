@@ -24,6 +24,7 @@ import {
   resolveHealthSignals,
   type ResolveHealthSignalsInput,
 } from './signalResolution';
+import type { HrvMethod } from '@workspace/health-core';
 import { HEALTH_PROVIDERS, type HealthProviderId } from '@/data/healthProviders';
 import type { AppleHealthInputs, ProviderBiometrics } from '@/types';
 import type { SleepMetricInput, HealthChip } from '@/services/sleep/sleepModeView';
@@ -66,6 +67,30 @@ function isFiniteNum(v: unknown): v is number {
 
 function providerDisplayName(id: HealthProviderId): string {
   return HEALTH_PROVIDERS.find((p) => p.id === id)?.name ?? id;
+}
+
+/**
+ * HRV METHOD LABELING (honesty rule — see signalResolution.ts's own header on
+ * `HrvSignalValue.method`, which is PRESERVED, never inferred or coerced).
+ * The canonical path can surface HRV from ANY connected provider — RMSSD
+ * (WHOOP/Oura/Garmin/Health Connect) and SDNN (Apple Health) are different
+ * statistics on different numeric scales, not interchangeable readings of
+ * "the same HRV." A generic "HRV" label on both would silently imply they
+ * are, and would make a provider switch (e.g. WHOOP → Apple Watch) read as an
+ * unexplained jump in the same metric. `method` is non-optional on an
+ * AVAILABLE reading in today's contract, so the `default` branch below is
+ * defensive-only — never label a value with the WRONG method; omit the
+ * qualifier entirely rather than guess.
+ */
+export function hrvMetricLabel(method: HrvMethod | undefined): string {
+  switch (method) {
+    case 'rmssd':
+      return 'HRV (RMSSD)';
+    case 'sdnn':
+      return 'HRV (SDNN)';
+    default:
+      return 'HRV';
+  }
 }
 
 // ─── Flag OFF — exact legacy behavior ────────────────────────────────────────
@@ -159,7 +184,11 @@ export function canonicalSignals(
   const recoveryMetrics: SleepMetricInput[] = [];
   if (signals.hrv.available) {
     recoveryMetrics.push({
-      key: 'hrv', label: 'HRV', value: Math.round(signals.hrv.value.valueMs), unit: 'ms', real: true,
+      key: 'hrv',
+      label: hrvMetricLabel(signals.hrv.value.method),
+      value: Math.round(signals.hrv.value.valueMs),
+      unit: 'ms',
+      real: true,
     });
   }
   if (signals.restingHeartRate.available) {
