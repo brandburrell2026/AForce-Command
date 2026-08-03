@@ -153,6 +153,16 @@ export interface BuildWeeklyHealthAggregatesInput {
 
 // ─── Output contract ────────────────────────────────────────────────────────
 
+/**
+ * INVARIANT: `covered + missingDays.length + excludedMethodConflictDays ===
+ * total`, always. `excludedMethodConflictDays` lives on `WeeklyHrvAggregate`
+ * (a sibling field, not part of this shape) and is the ONLY metric with a
+ * nonzero third term — a day with a real, non-dominant-method HRV reading is
+ * neither "covered" (excluded from mean/min/max, never averaged in) nor
+ * "missing" (a reading did exist). Every other metric has no method-conflict
+ * concept, so its `excludedMethodConflictDays` is implicitly 0 and the
+ * invariant reduces to `covered + missingDays.length === total`.
+ */
 export interface WeeklyHealthCoverage {
   /** Days with an available, aggregated reading for this metric. */
   covered: number;
@@ -537,6 +547,9 @@ function aggregateProviderScores(
     // single freshest-OBSERVED reading per day before aggregating; this is the
     // one point where this module deviates from "never resolve within a day"
     // (see file header) because provider_score is UNSELECTED upstream by design.
+    // On an exact `observedAtMs` tie, the winner is whichever entry was
+    // inserted first in `group.entries`' stable iteration order (deterministic,
+    // but an arbitrary ordering artifact — never a recency signal).
     const byDay = new Map<number, ScoreEntry>();
     for (const e of group.entries) {
       const cur = byDay.get(e.dayIndex);
