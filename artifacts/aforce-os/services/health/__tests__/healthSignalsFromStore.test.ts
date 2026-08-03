@@ -81,7 +81,8 @@ describe('canonicalReadinessSignals', () => {
   it('projects an available signal to its scalar value', () => {
     const signals = healthSignalsFromStore({ biometrics: APPLE_ONLY.biometrics, nowMs: FIXED_NOW });
     const projected = canonicalReadinessSignals(signals);
-    expect(projected).toEqual({ sleepHours: 7.2, hrvMs: 42, workoutMinutes: 35 });
+    // Apple-only fixture: HRV is true SDNN, so it projects (with method surfaced).
+    expect(projected).toEqual({ sleepHours: 7.2, hrvMs: 42, hrvMethod: 'sdnn', workoutMinutes: 35 });
   });
 
   it('projects an unavailable signal to null (never a fabricated 0 or placeholder)', () => {
@@ -89,8 +90,23 @@ describe('canonicalReadinessSignals', () => {
     expect(canonicalReadinessSignals(signals)).toEqual({
       sleepHours: null,
       hrvMs: null,
+      hrvMethod: null,
       workoutMinutes: null,
     });
+  });
+
+  it('BLOCKER regression: RMSSD is NEVER projected onto the SDNN-anchored readiness curve', () => {
+    // WHOOP HRV is RMSSD — the canonical resolver reports it method-true.
+    const signals = healthSignalsFromStore({
+      biometrics: {
+        whoop: { providerId: 'whoop', hrvSdnn: 58, sleepHoursLastNight: 7.0, fetchedAt: FIXED_NOW - 60_000 },
+      },
+      nowMs: FIXED_NOW,
+    });
+    expect(signals.hrv.available && signals.hrv.value.method).toBe('rmssd');
+    const projected = canonicalReadinessSignals(signals);
+    expect(projected.hrvMs).toBeNull();          // never scored on the SDNN curve
+    expect(projected.hrvMethod).toBe('rmssd');   // but the method is surfaced honestly
   });
 
   it('sums workout minutes WITHIN the one already-selected winning source, never across providers', () => {

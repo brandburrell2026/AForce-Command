@@ -117,8 +117,15 @@ export function healthSignalsFromStore(input: HealthSignalsFromStoreInput): Heal
 export interface CanonicalReadinessSignals {
   /** Winning source's total sleep hours, or null when unavailable/expired. */
   sleepHours: number | null;
-  /** Winning source's HRV value in ms — method-preserved, never averaged across methods. */
+  /**
+   * Winning source's HRV in ms — SDNN ONLY. BLOCKER fix (batch review):
+   * metabolicReadinessService's normalization curve is SDNN-anchored; an
+   * RMSSD value scored on it fabricates readiness. Non-SDNN methods project
+   * null — which is also exact legacy parity (legacy read hrvSdnn only).
+   */
   hrvMs: number | null;
+  /** The winning reading's actual statistic, for callers that can handle both. */
+  hrvMethod: 'rmssd' | 'sdnn' | null;
   /**
    * Total workout minutes from the ONE winning source's entries for today.
    * Summing multiple entries from a single already-selected origin is the
@@ -132,9 +139,13 @@ export function canonicalReadinessSignals(signals: HealthSignals): CanonicalRead
   const sleepHours = signals.sleepDuration.available
     ? signals.sleepDuration.value.totalSleepHours
     : null;
-  const hrvMs = signals.hrv.available ? signals.hrv.value.valueMs : null;
+  const hrvMethod = signals.hrv.available ? signals.hrv.value.method : null;
+  const hrvMs =
+    signals.hrv.available && signals.hrv.value.method === 'sdnn'
+      ? signals.hrv.value.valueMs
+      : null;
   const workoutMinutes = signals.workouts.available
     ? signals.workouts.value.reduce((sum, entry) => sum + entry.durationMin, 0)
     : null;
-  return { sleepHours, hrvMs, workoutMinutes };
+  return { sleepHours, hrvMs, hrvMethod, workoutMinutes };
 }
