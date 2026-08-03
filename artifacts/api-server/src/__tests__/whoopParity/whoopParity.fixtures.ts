@@ -164,6 +164,123 @@ export const WHOOP_EXPECTED_SNAPSHOT = {
   sleepHoursLastNight: 7 + 20 / 60,
 };
 
+// ─── Selection-predicate edge cases ──────────────────────────────────────────
+//
+// The REAL predicate (`scoreSourceOf` in whoopSnapshot.ts:91) is:
+//   r.score_state === "SCORED" || r.score != null
+// This is an OR — a non-null `score` object selects a record EVEN IF its
+// `score_state` is not "SCORED". The NESTED/FLATTENED fixtures above happen
+// to skip their PENDING_SCORE record only because that record's `score` is
+// ALSO null there — not because "PENDING_SCORE" is special-cased anywhere in
+// the source. Selection is ARRAY-FIRST: `scoreSourceOf` returns the first
+// record (in whatever order the collection response lists them) that
+// satisfies the predicate — there is no recency/timestamp comparison, despite
+// whoopSnapshot.ts's top-of-file comment describing it as picking the
+// "freshest" one. Do not read "freshest" as "most recently updated"; read it
+// as "first array element that qualifies."
+
+/** A PENDING_SCORE record that nonetheless carries a non-null `score` object
+ *  — the OR-predicate selects it despite the PENDING_SCORE label. */
+export const WHOOP_RECOVERY_PENDING_WITH_SCORE_FIXTURE = {
+  records: [
+    {
+      score_state: "PENDING_SCORE",
+      score: { recovery_score: 81, hrv_rmssd_milli: 40.1, resting_heart_rate: 50 },
+    },
+  ],
+};
+
+export const WHOOP_RECOVERY_PENDING_WITH_SCORE_EXPECTED = {
+  recoveryPct: 81,
+  hrvSdnn: 40.1,
+  restingHeartRate: 50,
+};
+
+/** UNSCORABLE: score_state is neither "SCORED" nor is `score` non-null —
+ *  must NOT be selected. WHOOP uses this state for a cycle/recovery/sleep
+ *  that will never be scored (e.g. too short, or a skipped sleep). */
+export const WHOOP_RECOVERY_UNSCORABLE_FIXTURE = {
+  records: [{ score_state: "UNSCORABLE", score: null }],
+};
+
+/** Every record in every collection is unselectable (PENDING_SCORE and
+ *  UNSCORABLE, `score` null in both) — no record anywhere satisfies the
+ *  predicate, so the full snapshot must come back null across every field,
+ *  matching EMPTY_WHOOP_SNAPSHOT exactly ("no SCORED-or-scored record in the
+ *  window" case). */
+export const WHOOP_RECOVERY_NO_SCORED_FIXTURE = {
+  records: [
+    { score_state: "PENDING_SCORE", score: null },
+    { score_state: "UNSCORABLE", score: null },
+  ],
+};
+export const WHOOP_CYCLE_NO_SCORED_FIXTURE = {
+  records: [
+    { score_state: "PENDING_SCORE", score: null },
+    { score_state: "UNSCORABLE", score: null },
+  ],
+};
+export const WHOOP_SLEEP_NO_SCORED_FIXTURE = {
+  records: [
+    { score_state: "PENDING_SCORE", score: null },
+    { score_state: "UNSCORABLE", score: null },
+  ],
+};
+
+// ─── Null/missing-field edge cases against `fetchWhoopSnapshot` ─────────────
+
+/** SCORED sleep record missing `total_awake_time_milli` entirely — the
+ *  `num(...) ?? 0` fallback must treat it as zero minutes awake, NOT null
+ *  out the whole sleep computation. */
+export const WHOOP_SLEEP_NO_AWAKE_FIELD_FIXTURE = {
+  records: [
+    {
+      score_state: "SCORED",
+      score: { stage_summary: { total_in_bed_time_milli: 8 * 3600 * 1000 } },
+    },
+  ],
+};
+export const WHOOP_SLEEP_NO_AWAKE_FIELD_EXPECTED_HOURS = 8;
+
+/** Malformed record where awake time exceeds in-bed time (a WHOOP data
+ *  glitch, not a documented case) — `Math.max(0, inBed - awake)` must clamp
+ *  at zero, never go negative. */
+export const WHOOP_SLEEP_AWAKE_EXCEEDS_INBED_FIXTURE = {
+  records: [
+    {
+      score_state: "SCORED",
+      score: {
+        stage_summary: {
+          total_in_bed_time_milli: 1 * 3600 * 1000,
+          total_awake_time_milli: 2 * 3600 * 1000,
+        },
+      },
+    },
+  ],
+};
+
+/** `recovery_score` as a string — survives real JSON serialization intact
+ *  (unlike NaN, below). `num()` must reject it on the `typeof` guard, never
+ *  `Number("67")`-coerce it. */
+export const WHOOP_RECOVERY_STRING_SCORE_FIXTURE = {
+  records: [{ score_state: "SCORED", score: { recovery_score: "67" } }],
+};
+
+/** A `strain` of `NaN`. Real WHOOP JSON can never carry `NaN` (it isn't
+ *  valid JSON — `JSON.stringify(NaN)` produces the text `null`), so this
+ *  fixture is only meaningful when handed to `res.json()` WITHOUT going
+ *  through real JSON-text serialization (see `rawJsonResponse` in the test
+ *  file). It exercises `num()`'s `Number.isFinite` guard directly; it is not
+ *  a claim that WHOOP's wire format can produce this payload. */
+export const WHOOP_CYCLE_NAN_STRAIN_FIXTURE = {
+  records: [{ score_state: "SCORED", score: { strain: Number.NaN } }],
+};
+
+/** A collection response with no `records` key at all (not even an empty
+ *  array) — `scoreSourceOf(collection?.records)` must tolerate `undefined`
+ *  rather than throw. */
+export const WHOOP_COLLECTION_NO_RECORDS_KEY_FIXTURE = {};
+
 // ─── Route contracts ─────────────────────────────────────────────────────────
 
 /** Exact shape (key set) of GET /whoop/status's 200 JSON body. */

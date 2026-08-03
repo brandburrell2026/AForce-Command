@@ -30,7 +30,7 @@ that is exactly the failure mode this suite is designed to catch.
 | Surface | What's pinned |
 |---|---|
 | PKCE | `state` length EXACTLY 8, `verifier` length EXACTLY 43, S256 challenge derivation, exact authorize param key set, exact scope string, authorize/token/API-base endpoint URLs |
-| Snapshot | `/developer/v2/{recovery,cycle,activity/sleep}` with `limit=10`; `score_state` SCORED-selection (skips `PENDING_SCORE`); **flattened-shape tolerance** — a v2 response with no `score` wrapper maps identically to the nested shape; field mapping (`recoveryPct`/`strain`/`hrvSdnn` ← `recovery_score`/`strain`/`hrv_rmssd_milli`; sleep hours = `max(0, inBed − awake) / 3.6e6`); per-endpoint failure isolation; blank-token short-circuit (zero fetches) |
+| Snapshot | `/developer/v2/{recovery,cycle,activity/sleep}` with `limit=10`; selection predicate is `score_state==='SCORED' \|\| score!=null` (an OR — a PENDING_SCORE record WITH a non-null `score` IS selected, it is not excluded by label), **array-first** (first record in the collection matching the predicate — no recency/timestamp comparison, despite the source's "freshest" wording), UNSCORABLE (or any record failing the predicate everywhere) → all-null snapshot; **flattened-shape tolerance** — a v2 response with no `score` wrapper maps identically to the nested shape; field mapping (`recoveryPct`/`strain`/`hrvSdnn` ← `recovery_score`/`strain`/`hrv_rmssd_milli`; sleep hours = `max(0, inBed − awake) / 3.6e6`, awake defaults to 0 when absent, clamped ≥0 when awake > inBed); `num()` rejects non-finite/non-number values (string, NaN) → null; a `records` key absent entirely is tolerated; per-endpoint failure isolation; blank-token short-circuit (zero fetches) |
 | Token manager | Refresh body includes `scope=offline`; the 60s skew boundary (`expiresAt − now === skew` refreshes, `skew + 1` does not); WHOOP's refresh-token-omitted-on-refresh behavior (keeps the prior one); null-on-failure |
 | Route contract | `GET /whoop/status` returns exactly `{credentialsConfigured, connected, expiresAt}`; `GET /whoop/oauth/callback` tolerates unrecognized extra query params (schema is deliberately non-`.strict()`); state is single-use end-to-end (route level) and at the store level |
 
@@ -73,3 +73,34 @@ stubbed via each module's existing `fetchImpl` seam.
   (recovery-shaped) case inside `whoopSnapshot.test.ts`; this suite pins it
   across all three collections (recovery/cycle/sleep) against one shared
   expected-value fixture, which is the form W3 needs for a real diff.
+- **The selection predicate is not "skip PENDING_SCORE" — it's an OR.**
+  `scoreSourceOf`'s test at `whoopSnapshot.ts:91` is
+  `r.score_state === "SCORED" || r.score != null`. A record whose
+  `score_state` is `PENDING_SCORE` (or anything else) but which carries a
+  non-null `score` object IS selected. The original test title and this
+  README both previously described the behavior as "skips PENDING_SCORE",
+  which is only true in the specific fixture where that record's `score` is
+  also null — it is not a rule the source code encodes. Fixed here; see
+  `WHOOP_RECOVERY_PENDING_WITH_SCORE_FIXTURE` and the dedicated predicate
+  describe block in the test file.
+- **Selection is array-first, not "freshest."** Despite whoopSnapshot.ts's
+  comment describing `scoreSourceOf` as taking "the freshest SCORED record,"
+  the function is a plain `for...of` loop with an early return on the first
+  match — there is no date/timestamp comparison anywhere in it. If WHOOP
+  ever returned a SCORED record out of chronological order, this code would
+  silently take the wrong one. Pinned via a two-SCORED-record fixture where
+  the first (not the numerically larger/"newer-looking") value wins.
+- **`GET /whoop/status` with `CLERK_SECRET_KEY` set but no `clerkMiddleware`
+  upstream returns 500, not 401/503.** `requireAuth` calls `@clerk/express`'s
+  `getAuth(req)`, which throws when `clerkMiddleware()` hasn't run earlier in
+  the pipeline. The real app (`src/app.ts:101`) always mounts
+  `clerkMiddleware()`, so this never fires in production; this suite's
+  router-only harness (matching every other test here) doesn't, so this
+  specific combination surfaces as an unhandled-exception 500 with a leaking
+  Clerk stack-trace HTML page. Separately: `requireAuth`'s `IS_PRODUCTION`
+  constant is captured once at module-import time, before this test file's
+  own `NODE_ENV` assignment runs — so the real fail-closed 401/503 paths
+  cannot be exercised from any test in this file at all, under any
+  `CLERK_SECRET_KEY` value, without a separate process pinned to
+  `NODE_ENV=production` before import. See the dedicated test's comment for
+  the full branch-by-branch trace.
