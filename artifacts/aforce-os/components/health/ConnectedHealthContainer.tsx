@@ -30,7 +30,8 @@
  * injectable I/O layer) so it can be unit-tested without mounting this
  * component — see that file's header for why the split is drawn there.
  *
- * PROBE RESILIENCE (fix/health-connected-probe-resilience):
+ * PROBE RESILIENCE (fix/health-connected-probe-resilience,
+ * fix/health-probe-truthful-fallback):
  *   `loadConnectedHealthCloudFacts` is structurally built to never reject
  *   (see its own header) — every cloud probe is bounded by
  *   `CLOUD_PROBE_TIMEOUT_MS` and any rejection/throw is caught internally.
@@ -39,7 +40,14 @@
  *   just because it holds today. A probe rejection, timeout, or missing
  *   bridge maps to `cloudProbeStatus: 'retry'` → `mode: 'offline'`, the
  *   existing, honest "showing the last known connection status" shell —
- *   never a fabricated `disconnected`/`denied`/`unsupported` row state.
+ *   never a fabricated `disconnected`/`denied`/`unsupported` row state. That
+ *   "last known" claim is genuinely implemented, not just asserted:
+ *   `refreshCloudFacts` merges each cycle's facts on top of the previous
+ *   cycle's (`mergeCloudFacts`) rather than replacing the whole `cloud`
+ *   object, and a provider whose probe fails a given cycle is OMITTED from
+ *   that cycle's facts (never overwritten with a fabricated "disconnected"
+ *   guess) — so a provider connected on cycle 1 stays rendered as connected
+ *   through a cycle-2 timeout, instead of being downgraded to dormant.
  */
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View, StyleSheet, Platform, Alert } from 'react-native';
@@ -54,6 +62,7 @@ import { resolveConnectedHealthView } from '@/services/health/connectedHealthVie
 import {
   buildConnectedHealthInput,
   loadConnectedHealthCloudFacts,
+  mergeCloudFacts,
   performConnectedHealthDisconnect,
   revocationCopyKey,
   type ConnectedHealthCloudFacts,
@@ -103,12 +112,17 @@ export function ConnectedHealthContainer({ onBack }: ConnectedHealthContainerPro
   const refreshCloudFacts = useCallback(async () => {
     try {
       const { facts, anyProbeFailed } = await loadConnectedHealthCloudFacts(Date.now());
-      // Merge in whatever the cycle actually produced — successful providers
-      // update immediately; a provider whose probe failed this cycle falls
-      // back to the same honest "can't tell" signal the mapping layer already
-      // uses for ambiguous network errors (never a fabricated link), so this
-      // never regresses a row below what an ordinary ambiguous probe would.
-      setCloud(facts);
+      // Genuinely MERGE this cycle's facts on top of whatever we already had
+      // (`mergeCloudFacts`) rather than replacing the whole object. A
+      // provider whose probe resolved this cycle (successfully or to a real
+      // negative/ambiguous result) updates immediately. A provider whose
+      // probe failed to complete this cycle (rejected/threw/timed out) is
+      // OMITTED from `facts` entirely by `loadConnectedHealthCloudFacts`, so
+      // the merge leaves that provider's prior, real value untouched — this
+      // is what makes "showing the last known connection status" (this
+      // container's `mode: 'offline'` copy) an accurate description of the
+      // screen instead of an unimplemented claim.
+      setCloud((prev) => mergeCloudFacts(prev, facts));
       setCloudProbeStatus(anyProbeFailed ? 'retry' : 'ready');
     } catch {
       // Defense in depth only — see file header. `loadConnectedHealthCloudFacts`
