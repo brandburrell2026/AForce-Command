@@ -87,7 +87,7 @@
  * Pure: no I/O, no native imports, no flag/store imports, no clocks.
  */
 
-import type { CanonicalHealthRecord } from '@workspace/health-core';
+import type { CanonicalHealthMetricType, CanonicalHealthRecord } from '@workspace/health-core';
 
 import {
   mapActiveEnergySamples,
@@ -134,6 +134,58 @@ export const ALL_APPLE_HEALTH_SAMPLE_TYPES: readonly AppleHealthSampleType[] = [
   'sleepAnalysis',
   'workout',
 ];
+
+/**
+ * `AppleHealthSampleType` (this lane's HealthKit-shaped input key) →
+ * `CanonicalHealthMetricType` (health-core's output key), exactly as each
+ * mapper in `./appleHealthRecords` resolves it internally (see e.g.
+ * `mapHrvSdnnSamples` → `'hrv'`, `mapRestingHeartRateSamples` →
+ * `'resting_heart_rate'`). Exported so a caller that receives
+ * `RunAppleHealthSyncResult.records` — an already-flattened, already-mixed
+ * array across every requested type — can key its own per-type bookkeeping
+ * (e.g. "which type does this anchor's write-back correspond to") without
+ * re-deriving or guessing this mapping itself. This is a read-only mirror of
+ * what the mappers already do; it does not change mapper behavior and isn't
+ * consulted by `runAppleHealthSync` — `mapSamplesForType`'s switch is the one
+ * actual dispatch, this map exists purely for callers.
+ */
+export const SAMPLE_TYPE_TO_METRIC_TYPE: Record<AppleHealthSampleType, CanonicalHealthMetricType> = {
+  restingHeartRate: 'resting_heart_rate',
+  hrvSdnn: 'hrv',
+  steps: 'steps',
+  activeEnergy: 'active_energy',
+  respiratoryRate: 'respiratory_rate',
+  sleepAnalysis: 'sleep_session',
+  workout: 'workout',
+};
+
+// ─── Required units per sample type (A5/caller obligation) ──────────────────
+
+/**
+ * REQUIRED UNIT PER SAMPLE TYPE — caller obligation, not something this
+ * engine (or its mappers) converts. `HKQuantitySample.quantity` in
+ * `./appleHealthRecords` is documented as "already unit-converted by the
+ * caller"; A5's real `HealthKitQueryClient.queryAnchored` implementation
+ * OWNS turning whatever unit HealthKit natively reports into exactly this
+ * unit before a sample ever reaches `queryAnchored`'s return value. Getting
+ * one of these wrong silently produces a syntactically valid but
+ * semantically wrong canonical record (e.g. an RHR value that's actually in
+ * a different unit) — this engine and its mappers have no way to detect
+ * that from the number alone, so A5 is the one and only place this
+ * conversion may happen:
+ *
+ *   - `hrvSdnn`         → milliseconds (ms)
+ *   - `restingHeartRate`→ beats per minute (bpm)
+ *   - `steps`           → count
+ *   - `activeEnergy`    → kilocalories (kcal)
+ *   - `respiratoryRate` → breaths per minute (brpm)
+ *
+ * `sleepAnalysis` and `workout` are not quantity samples (see
+ * `HKSleepCategorySample` / `HKWorkoutSample`) and carry no caller-converted
+ * unit of their own — `workout`'s `durationSec` is seconds by construction
+ * (the mapper converts to minutes itself) and its optional
+ * `totalEnergyBurnedKcal` is kcal, matching `activeEnergy`'s unit.
+ */
 
 // ─── Authorization ────────────────────────────────────────────────────────────
 
@@ -288,7 +340,29 @@ export interface RunAppleHealthSyncParams {
 
 export interface RunAppleHealthSyncResult {
   records: CanonicalHealthRecord[];
-  /** Persist this verbatim and pass it back in as `anchors` on the next run. */
+  /**
+   * Persist this verbatim and pass it back in as `anchors` on the next run.
+   *
+   * ATOMIC-COMMIT OBLIGATION (caller, not this module, is responsible):
+   * `nextAnchors` MUST be persisted ONLY AFTER `records` (and
+   * `deletedExternalIds`, where applicable upstream) from THIS SAME result
+   * have been durably committed to the caller's own store. An anchor is
+   * HealthKit's promise that "everything up to here has been delivered" —
+   * advancing it without having durably kept what was delivered is
+   * PERMANENT, UNRECOVERABLE data loss: the next run starts paging from
+   * `nextAnchors` and will never re-offer the dropped batch, and HealthKit
+   * itself keeps no independent replay log this engine (or the caller) can
+   * fall back to. Concretely: write `records` to durable storage first,
+   * THEN write `nextAnchors` — in that order, and only advance the
+   * persisted anchor if the record write actually succeeded. If a caller
+   * crashes between committing records and persisting `nextAnchors`, the
+   * worst case is re-fetching (and, via the mappers' dedup keys,
+   * harmlessly re-confirming) already-committed records on the next run —
+   * safe. The reverse order's worst case is silent, permanent loss — never
+   * safe. This module cannot enforce this ordering itself (see file header:
+   * "this module never touches storage"), so it is the caller's obligation
+   * end to end.
+   */
   nextAnchors: AppleHealthAnchorState;
   /**
    * `true` if ANY requested type did not fully reach the live edge this run —
@@ -331,6 +405,97 @@ function mapSamplesForType(
       const exhaustive: never = type;
       return exhaustive;
     }
+  }
+}
+
+// ─── Malformed-payload guards ─────────────────────────────────────────────────
+// A native bridge is untrusted input at this boundary: a buggy/mid-upgrade
+// implementation of `HealthKitQueryClient` can resolve (not throw) with a
+// page whose `samples` isn't an array, or an array containing `null`/
+// non-object entries, or entries missing the field their type is defined
+// by. The mappers in `./appleHealthRecords` are off-limits, consume-only
+// code that assumes well-shaped input (e.g. `mapWorkoutSamples` calls
+// `s.workoutActivityType.toLowerCase()` unconditionally) — this section is
+// what stands between a malformed payload and a mapper throwing PAST the
+// point `syncOneType` can still isolate the failure to just this type.
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
+}
+
+/**
+ * Minimal per-type shape guard for ONE raw sample, applied BEFORE it ever
+ * reaches a mapper. Anything failing this guard is dropped — silently for
+ * this single sample, never fabricated into a placeholder record, and never
+ * allowed to abort the rest of the page.
+ */
+function isPlausibleRawSample(type: AppleHealthSampleType, sample: unknown): sample is AnyAppleHealthSample {
+  if (!isRecord(sample)) return false;
+  switch (type) {
+    case 'workout':
+      return typeof sample.workoutActivityType === 'string';
+    case 'sleepAnalysis':
+      return typeof sample.value === 'number';
+    case 'restingHeartRate':
+    case 'hrvSdnn':
+    case 'steps':
+    case 'activeEnergy':
+    case 'respiratoryRate':
+      // Quantity samples: `quantity` is the field every quantity mapper
+      // reads unconditionally into the record's value. A missing/
+      // non-numeric `quantity` wouldn't crash the mapper, but silently
+      // accepting it would produce a syntactically-valid, semantically
+      // meaningless canonical record — dropped here instead.
+      return typeof sample.quantity === 'number';
+    default: {
+      const exhaustive: never = type;
+      return exhaustive;
+    }
+  }
+}
+
+/**
+ * Validates a raw page's `samples` before any entry reaches a mapper.
+ * `malformed: true` means the PAGE ITSELF is unusable (not an array at
+ * all) — a native-bridge protocol violation severe enough that this type's
+ * pagination cannot safely continue (there is no honest way to interpret
+ * `page.newAnchor` against a page this broken), so the caller reports a
+ * type-level error rather than guessing. `malformed: false` with a shrunk
+ * array means the page's shape was fine but SOME entries in it were dropped
+ * individually — pagination continues normally using this page's
+ * `newAnchor`, which is still trustworthy: the array itself, just not every
+ * entry in it, is what failed.
+ */
+function sanitizePageSamples(
+  type: AppleHealthSampleType,
+  samples: unknown,
+): { malformed: true } | { malformed: false; samples: AnyAppleHealthSample[] } {
+  if (!Array.isArray(samples)) return { malformed: true };
+  return {
+    malformed: false,
+    samples: samples.filter((s): s is AnyAppleHealthSample => isPlausibleRawSample(type, s)),
+  };
+}
+
+/**
+ * `mapSamplesForType` calls into `./appleHealthRecords`, off-limits,
+ * consume-only code. `sanitizePageSamples`/`isPlausibleRawSample` above are
+ * this engine's best-effort defense against the specific crash paths those
+ * mappers have today, but "never throws" (this module's own hard guarantee
+ * — see `syncOneType`'s doc) cannot depend on enumerating every way a future
+ * mapper change could throw. This wrapper is the backstop: any residual
+ * throw becomes an honest per-type error message instead of propagating
+ * past `syncOneType` and taking down sibling types.
+ */
+function safeMapSamplesForType(
+  type: AppleHealthSampleType,
+  samples: readonly AnyAppleHealthSample[],
+  opts: MapOptions,
+): { records: CanonicalHealthRecord[]; error: string | null } {
+  try {
+    return { records: mapSamplesForType(type, samples, opts), error: null };
+  } catch (err) {
+    return { records: [], error: errorMessage(err) };
   }
 }
 
@@ -388,22 +553,42 @@ async function syncOneType(
       // real and still mapped — see file header, "PER-TYPE ISOLATION". The
       // anchor persisted is `anchor` (the last successful page's), never
       // advanced past the failure.
-      const partialRecords = mapSamplesForType(type, collected, mapOpts);
+      const mapped = safeMapSamplesForType(type, collected, mapOpts);
       if (err instanceof AppleHealthKitAuthorizationRevokedError) {
         return {
-          records: partialRecords,
+          records: mapped.records,
           newAnchor: anchor,
           result: { status: 'authorization_revoked', message: err.message },
         };
       }
-      return { records: partialRecords, newAnchor: anchor, result: { status: 'error', message: errorMessage(err) } };
+      return { records: mapped.records, newAnchor: anchor, result: { status: 'error', message: errorMessage(err) } };
     }
 
-    collected.push(...page.samples);
+    // The client RESOLVED, but its payload is untrusted input — a
+    // non-array `samples` means this whole page is unusable (see
+    // `sanitizePageSamples`'s doc). Malformed individual entries are
+    // dropped without treating the page as a failure.
+    const sanitized = sanitizePageSamples(type, page.samples);
+    if (sanitized.malformed) {
+      const mapped = safeMapSamplesForType(type, collected, mapOpts);
+      return {
+        records: mapped.records,
+        // This page's `newAnchor` is not trustworthy against a payload this
+        // broken — persist the last page that actually validated.
+        newAnchor: anchor,
+        result: { status: 'error', message: `malformed HealthKit page for ${type}: samples is not an array` },
+      };
+    }
+
+    collected.push(...sanitized.samples);
     anchor = page.newAnchor;
 
     if (page.done) {
-      return { records: mapSamplesForType(type, collected, mapOpts), newAnchor: anchor, result: { status: 'synced' } };
+      const mapped = safeMapSamplesForType(type, collected, mapOpts);
+      if (mapped.error) {
+        return { records: mapped.records, newAnchor: anchor, result: { status: 'error', message: mapped.error } };
+      }
+      return { records: mapped.records, newAnchor: anchor, result: { status: 'synced' } };
     }
   }
 
@@ -411,8 +596,12 @@ async function syncOneType(
   // actually fetched is still mapped and returned; `hasMorePages` tells the
   // caller this type isn't fully caught up yet, without treating a large
   // backlog as an error.
+  const mapped = safeMapSamplesForType(type, collected, mapOpts);
+  if (mapped.error) {
+    return { records: mapped.records, newAnchor: anchor, result: { status: 'error', message: mapped.error } };
+  }
   return {
-    records: mapSamplesForType(type, collected, mapOpts),
+    records: mapped.records,
     newAnchor: anchor,
     result: { status: 'synced', hasMorePages: true },
   };
