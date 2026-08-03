@@ -542,4 +542,130 @@ describe('account deletion — real-Postgres cross-provider cascade', () => {
     const bCounts = await healthRecordsRepo.counts(USER_B);
     expect(bCounts.total).toBeGreaterThan(0);
   });
+
+  /**
+   * Cascade-completeness, asked of the DATABASE rather than of the
+   * cascade's own source. Enumerates every table in the live schema that
+   * carries a `user_id` column and asserts the deleted user has zero
+   * rows in ALL of them. A future per-user provider table — a sync
+   * cursor, a webhook-subscription row, a fetch watermark — starts
+   * failing this the moment it holds a row for a deleted user, without
+   * anyone remembering to extend the assertion list.
+   *
+   * `aforce_user_state` is excluded: account health-data deletion NULLs
+   * its `biometrics` column (asserted separately above) but deliberately
+   * keeps the row — this endpoint deletes health data, not the account.
+   */
+  it('leaves zero user-scoped rows in EVERY table carrying a user_id (cascade-completeness)', async () => {
+    await seedFullAccount(USER_A);
+    await deleteHealthData(USER_A);
+
+    const tables = await pool.query<{ table_name: string }>(`
+      SELECT table_name
+        FROM information_schema.columns
+       WHERE table_schema = 'public'
+         AND column_name  = 'user_id'
+         AND table_name  <> 'aforce_user_state'
+       GROUP BY table_name
+       ORDER BY table_name
+    `);
+    // Sanity: the query found the tables it is supposed to police.
+    expect(tables.rows.length).toBeGreaterThanOrEqual(9);
+
+    const leftovers: Array<{ table: string; rows: number }> = [];
+    for (const { table_name } of tables.rows) {
+      const n = await countRows(table_name, USER_A);
+      if (n > 0) leftovers.push({ table: table_name, rows: n });
+    }
+    expect(leftovers).toEqual([]);
+  });
+});
+
+/**
+ * WHOOP adoption of the shared disconnect path (F5 security pass).
+ *
+ * WHOOP was the last provider still on clear()-only disconnect, and the
+ * only one whose live grant also keeps INBOUND webhooks flowing. These
+ * cases prove the same jsonb + token isolation contract holds for the
+ * `whoop` key specifically, against a real Postgres — the route-level
+ * behavior is covered in
+ * `artifacts/api-server/src/routes/__tests__/destructiveEndpointSecurity.test.ts`.
+ */
+describe('WHOOP disconnect — real-Postgres parity with the other three providers', () => {
+  it('removes the whoop token row + whoop snapshot key while all three siblings survive', async () => {
+    for (const [store, at] of [
+      [createDrizzleWhoopTokenStoreForUser(db, USER_A), 'w'],
+      [createDrizzleGarminTokenStoreForUser(db, USER_A), 'g'],
+      [createDrizzleOuraTokenStoreForUser(db, USER_A), 'o'],
+      [createDrizzleStravaTokenStoreForUser(db, USER_A), 's'],
+    ] as const) {
+      await store.write({
+        accessToken: `${at}_at`,
+        refreshToken: `${at}_rt`,
+        expiresAt: Date.now() + 3_600_000,
+      });
+    }
+    await seedBiometrics(USER_A, {
+      whoop: { providerId: 'whoop', recoveryScore: 61, fetchedAt: 1 },
+      garmin: { providerId: 'garmin', bodyBattery: 44, fetchedAt: 1 },
+      oura: { providerId: 'oura', readinessScore: 82, fetchedAt: 1 },
+      strava: { providerId: 'strava', trainingLoad: 12, fetchedAt: 1 },
+    });
+
+    await createDrizzleWhoopTokenStoreForUser(db, USER_A).clear();
+    expect((await removeProviderSnapshotEntry(USER_A, 'whoop')).removed).toBe(true);
+
+    expect(await countRows('aforce_whoop_tokens', USER_A)).toBe(0);
+    // Stale-snapshot-absent, asked of the column GET /api/aforce/state
+    // actually reads.
+    const raw = await pool.query(
+      `SELECT biometrics ? 'whoop' AS has_whoop FROM "aforce_user_state" WHERE user_id = $1`,
+      [USER_A],
+    );
+    expect(raw.rows[0]?.has_whoop).toBe(false);
+
+    // Every sibling intact — tokens AND snapshot.
+    for (const t of [
+      'aforce_garmin_tokens',
+      'aforce_oura_tokens',
+      'aforce_strava_tokens',
+    ]) {
+      expect(await countRows(t, USER_A)).toBe(1);
+    }
+    expect(await readBiometrics(USER_A)).toEqual({
+      garmin: { providerId: 'garmin', bodyBattery: 44, fetchedAt: 1 },
+      oura: { providerId: 'oura', readinessScore: 82, fetchedAt: 1 },
+      strava: { providerId: 'strava', trainingLoad: 12, fetchedAt: 1 },
+    });
+  });
+
+  it('is idempotent and never reaches across users', async () => {
+    await createDrizzleWhoopTokenStoreForUser(db, USER_A).write({
+      accessToken: 'a_at',
+      refreshToken: 'a_rt',
+      expiresAt: Date.now() + 3_600_000,
+    });
+    await createDrizzleWhoopTokenStoreForUser(db, USER_B).write({
+      accessToken: 'b_at',
+      refreshToken: 'b_rt',
+      expiresAt: Date.now() + 3_600_000,
+    });
+    await seedBiometrics(USER_A, { whoop: { providerId: 'whoop', fetchedAt: 1 } });
+    await seedBiometrics(USER_B, { whoop: { providerId: 'whoop', fetchedAt: 1 } });
+
+    await createDrizzleWhoopTokenStoreForUser(db, USER_A).clear();
+    expect((await removeProviderSnapshotEntry(USER_A, 'whoop')).removed).toBe(true);
+
+    // Repeat — the second call must be a clean no-op, which is what the
+    // route reports as revocation: 'skipped_no_tokens'.
+    await createDrizzleWhoopTokenStoreForUser(db, USER_A).clear();
+    expect((await removeProviderSnapshotEntry(USER_A, 'whoop')).removed).toBe(false);
+
+    expect(await countRows('aforce_whoop_tokens', USER_A)).toBe(0);
+    expect(await readBiometrics(USER_A)).toEqual({});
+    expect(await countRows('aforce_whoop_tokens', USER_B)).toBe(1);
+    expect(await readBiometrics(USER_B)).toEqual({
+      whoop: { providerId: 'whoop', fetchedAt: 1 },
+    });
+  });
 });

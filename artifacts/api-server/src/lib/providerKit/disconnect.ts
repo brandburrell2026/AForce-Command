@@ -44,15 +44,16 @@
  * (`provider.toLowerCase()`), or disconnect silently fails to find the
  * entry to remove.
  *
- * WHOOP follow-up (tracked, not done here): WHOOP is frozen/production
- * for this lane (W3 owns `whoopOAuth.ts` / `whoopFetchWorker.ts`) and is
- * NOT wired onto this disconnector. `DELETE /api/whoop/*` disconnect
- * (if/when it exists) and the WHOOP branch of `POST
- * /api/account/delete-health-data` (see `routes/accountDeletion.ts`)
- * should adopt these exact semantics — revoke-then-clear-then-purge-
- * snapshot, all idempotent — as a documented follow-up immediately
- * after W3 merges. Until then WHOOP keeps its pre-existing
- * `store.clear()`-only disconnect behavior.
+ * WHOOP (adopted, F5 security pass): W3 has merged, so `DELETE
+ * /api/whoop/disconnect` now takes the same `disconnector` seam as the
+ * other three and the production mount in `routes/index.ts` wires it
+ * with `createWhoopRevoker()`. WHOOP's revoke contract is
+ * `DELETE https://api.prod.whoop.com/developer/v2/user/access`
+ * ("Revoke the access token granted by the user… it will no longer
+ * receive [webhooks] for this user", WHOOP API reference, verified
+ * 2026-08-03) — the first provider here whose revoke also stops inbound
+ * webhooks, which is why leaving it on clear()-only was the worst of
+ * the four gaps.
  *
  * Garmin: no revoker is wired for Garmin anywhere in this file. The
  * Garmin Health API partner endpoints are UNVERIFIED / DORMANT pending
@@ -190,6 +191,36 @@ export function createStravaRevoker(opts: RevokerFetchOpts = {}): ProviderRevoke
   };
 }
 
+/**
+ * WHOOP: DELETE https://api.prod.whoop.com/developer/v2/user/access with
+ * the user's bearer token. Documented as "Revoke the access token
+ * granted by the user"; returns 204 on success. Verified against the
+ * WHOOP API reference (developer.whoop.com/api) on 2026-08-03. Base URL
+ * matches `lib/whoopSnapshot.ts`'s `WHOOP_API_BASE` (v2 — WHOOP retired
+ * v1, which now 404s).
+ *
+ * A non-2xx is treated as FAILURE, including 401/403. That is
+ * deliberate: an expired ACCESS token can 401 while the underlying
+ * grant (and therefore the refresh token and the webhook subscription)
+ * is still live at WHOOP. Reporting "revoked" off a 401 would be
+ * exactly the blanket-ok lie this pass exists to remove.
+ */
+export function createWhoopRevoker(opts: RevokerFetchOpts = {}): ProviderRevoker {
+  const fetchImpl = opts.fetchImpl ?? fetch;
+  return async (tokens) => {
+    const res = await fetchImpl(
+      "https://api.prod.whoop.com/developer/v2/user/access",
+      {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${tokens.accessToken}` },
+      },
+    );
+    if (!res.ok) {
+      throw new Error(`whoop revoke failed: HTTP ${res.status}`);
+    }
+  };
+}
+
 // No `createGarminRevoker` export — see the module doc's Garmin section.
 
 /* ─── Disconnector ────────────────────────────────────────────────────────── */
@@ -205,13 +236,62 @@ export interface ProviderDisconnectOptions {
   purgeRecords?: boolean;
 }
 
+/**
+ * What actually happened upstream, as one wire-safe token. This is the
+ * value the disconnect ROUTES return to the client, and it is the whole
+ * point of the F5 truthfulness fix: before this, every disconnect
+ * answered a blanket `{ok:true}` whether or not the provider-side grant
+ * was still live, so a user who pressed Disconnect could believe AForce
+ * had been cut off at Oura/Strava/WHOOP when it had not.
+ *
+ *   'succeeded'              — revoker ran against a stored token and the
+ *                              provider accepted it. The upstream grant
+ *                              is dead.
+ *   'failed'                 — revoker ran and the provider rejected or
+ *                              errored. The upstream grant MAY STILL BE
+ *                              LIVE. Local cleanup still completed.
+ *   'unsupported'            — this provider has no revoke contract we
+ *                              can call (Garmin: partner endpoints are
+ *                              unverified/dormant — see module doc). A
+ *                              permanent property of the provider, not a
+ *                              deployment gap.
+ *   'skipped_not_configured' — a revoker EXISTS for this provider but
+ *                              this mount didn't wire one (also the
+ *                              answer from the legacy no-disconnector
+ *                              route path). A deployment gap, fixable.
+ *   'skipped_no_tokens'      — nothing was stored to revoke: the user
+ *                              was never connected, or this is the
+ *                              second call of an idempotent repeat and
+ *                              the FIRST call already handled upstream.
+ *
+ * `'skipped_no_tokens'` is a deliberate superset of the four states the
+ * F5 brief enumerated. Folding the repeat-disconnect case into any of
+ * the other four would have required claiming either a revocation that
+ * did not happen this call ('succeeded'), a failure that did not occur
+ * ('failed'), or a missing configuration that is in fact present
+ * ('skipped_not_configured'). Each is a lie, and this contract exists to
+ * stop telling exactly that class of lie.
+ */
+export type RevocationOutcome =
+  | "succeeded"
+  | "failed"
+  | "unsupported"
+  | "skipped_not_configured"
+  | "skipped_no_tokens";
+
 export interface ProviderDisconnectResult {
   provider: string;
   userId: string;
   /** Final lifecycle stage reached this call — see `DeletionStatus` in
    *  `@workspace/health-core`. */
   status: DeletionStatus;
-  revocation: { attempted: boolean; ok: boolean | null; reason?: string };
+  revocation: {
+    attempted: boolean;
+    ok: boolean | null;
+    reason?: string;
+    /** Wire-safe summary — see `RevocationOutcome`. */
+    outcome: RevocationOutcome;
+  };
   tokensDeleted: boolean;
   snapshotRemoved: boolean;
   /** `null` when `purgeRecords` was false or no records repo was
@@ -247,6 +327,17 @@ export interface CreateProviderDisconnectorOptions {
   /** Best-effort provider-side revocation. Omit for providers with no
    *  verified revoke contract (Garmin — see module doc). */
   revoker?: ProviderRevoker;
+  /**
+   * Whether a revoke contract EXISTS for this provider at all. Only
+   * consulted when `revoker` is omitted, to tell the two honest "no
+   * revocation happened" cases apart:
+   *   `false` -> `'unsupported'`            (Garmin: no contract to call)
+   *   `true`  -> `'skipped_not_configured'` (contract exists, mount gap)
+   * Defaults to `true` so an accidentally-unwired revoker reports a
+   * fixable deployment gap rather than quietly claiming the provider
+   * can't be revoked.
+   */
+  revocationSupported?: boolean;
   /** Record-plane tombstone. Omit to make `purgeRecords` a no-op
    *  (`recordsTombstoned` stays `null` even when the caller asks). */
   healthRecordsRepo?: ProviderRecordsRepoLike;
@@ -291,6 +382,10 @@ export function createProviderDisconnector(
       const revocation: ProviderDisconnectResult["revocation"] = {
         attempted: false,
         ok: null,
+        // Overwritten on every branch below; this initial value is the
+        // "revoker omitted and caller said the provider supports it"
+        // case, i.e. a deployment gap.
+        outcome: "skipped_not_configured",
       };
       if (opts.revoker) {
         let tokens: ProviderTokens | null = null;
@@ -307,9 +402,11 @@ export function createProviderDisconnector(
           try {
             await opts.revoker(tokens);
             revocation.ok = true;
+            revocation.outcome = "succeeded";
           } catch (err) {
             revocation.ok = false;
             revocation.reason = errName(err);
+            revocation.outcome = "failed";
             log?.warn(
               { userId, provider, err: errName(err) },
               `${providerKey}Disconnect: provider-side revocation failed (non-blocking)`,
@@ -318,9 +415,14 @@ export function createProviderDisconnector(
         } else {
           // Nothing stored to revoke — the idempotent repeat-call case.
           revocation.reason = "no_tokens_stored";
+          revocation.outcome = "skipped_no_tokens";
         }
       } else {
         revocation.reason = "no_revoker_configured";
+        revocation.outcome =
+          opts.revocationSupported === false
+            ? "unsupported"
+            : "skipped_not_configured";
       }
 
       // Step 2 — token row delete. Real failure here DOES throw: the
@@ -384,6 +486,7 @@ export function createProviderDisconnector(
           status,
           revocationAttempted: revocation.attempted,
           revocationOk: revocation.ok,
+          revocationOutcome: revocation.outcome,
           snapshotRemoved,
           recordsTombstoned,
         },

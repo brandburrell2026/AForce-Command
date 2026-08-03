@@ -35,6 +35,10 @@ import { z } from "zod";
 import type { WhoopTokenStore } from "@workspace/db";
 import { requireAuth } from "../middlewares/requireAuth";
 import {
+  destructiveGuards,
+  type DestructiveRouteDeps,
+} from "../middlewares/destructiveGuards";
+import {
   buildWhoopAuthorizeUrl,
   codeChallengeS256,
   createCodeVerifier,
@@ -47,8 +51,9 @@ import {
   type WhoopOAuthConfig,
 } from "../lib/whoopTokenManager";
 import { serializeError } from "../lib/serializeError";
+import type { ProviderDisconnector } from "../lib/providerKit/disconnect";
 
-export interface WhoopOAuthDeps {
+export interface WhoopOAuthDeps extends DestructiveRouteDeps {
   authStateStore: WhoopAuthStateStore;
   oauthConfig: WhoopOAuthConfig;
   redirectUri: string;
@@ -77,6 +82,17 @@ export interface WhoopOAuthDeps {
   /** Test seams. */
   fetchImpl?: typeof fetch;
   nowMs?: () => number;
+  /**
+   * F5 disconnect+cleanup, adopted for WHOOP now that W3 has merged.
+   * When wired (the production mount in `routes/index.ts` does),
+   * `DELETE /whoop/disconnect` revokes at WHOOP, deletes the token row,
+   * removes the `whoop` key from the `aforce_user_state.biometrics`
+   * snapshot blob, and — with `?purge=true` — soft-tombstones this
+   * user's WHOOP health records. When omitted, the route keeps its
+   * pre-F5 token-clear-only behavior and says so in the response
+   * (`local: "tokens_only"`). See `providerKit/disconnect.ts`.
+   */
+  disconnector?: ProviderDisconnector;
 }
 
 const startBodySchema = z
@@ -265,16 +281,68 @@ export function buildWhoopOAuthRouter(deps: WhoopOAuthDeps): IRouter {
 
   // ─── Disconnect ─────────────────────────────────────────────────────────────
   // Clears the stored token so a subsequent Connect re-runs a real OAuth
-  // authorization (the fix for a stale/undecryptable token after key rotation).
+  // authorization (the fix for a stale/undecryptable token after key rotation),
+  // and — when the F5 disconnector is wired — revokes at WHOOP and removes the
+  // served biometrics snapshot so the app stops rendering a dead connection.
   router.delete(
     "/whoop/disconnect",
-    requireAuth,
+    // Destructive: origin allow-list -> rate limit -> REAL auth (no
+    // DEFAULT_USER_ID dev fallback). See middlewares/destructiveGuards.ts.
+    ...destructiveGuards({
+      scope: "whoop_disconnect",
+      limit: deps.destructiveRateLimit?.limit,
+      windowMs: deps.destructiveRateLimit?.windowMs,
+      auth: deps.destructiveAuth,
+    }),
     async (req, res): Promise<void> => {
       const userId = req.userId;
       if (!userId) {
         res.status(401).json({ error: "unauthorized" });
         return;
       }
+
+      // F5 path: revoke + token clear + snapshot purge + optional record
+      // tombstone via the shared providerKit disconnector. `?purge=true`
+      // opts into the record-plane tombstone — a query param rather than
+      // a body flag because DELETE bodies are unreliable across
+      // clients/proxies. Mirrors oura/strava/garmin exactly.
+      if (deps.disconnector) {
+        const purgeRecords = req.query["purge"] === "true";
+        try {
+          const result = await deps.disconnector.disconnect(userId, {
+            purgeRecords,
+          });
+          req.log?.info(
+            {
+              userId,
+              status: result.status,
+              revocationOk: result.revocation.ok,
+              snapshotRemoved: result.snapshotRemoved,
+              recordsTombstoned: result.recordsTombstoned,
+            },
+            "whoopOAuth:disconnect complete (providerKit)",
+          );
+          // Truthful three-part answer — see the sibling provider routes.
+          // For WHOOP specifically, `revocation` is also the user's only
+          // signal that inbound webhooks have stopped.
+          res.status(200).json({
+            ok: true,
+            local: "succeeded",
+            revocation: result.revocation.outcome,
+            status: result.status,
+          });
+        } catch (err) {
+          req.log?.error(
+            { userId, err: errName(err) },
+            "whoopOAuth:disconnect (providerKit) failed",
+          );
+          res.status(500).json({ error: "disconnect_failed" });
+        }
+        return;
+      }
+
+      // Legacy path (no disconnector wired) — byte-identical to pre-F5
+      // behavior: token clear only.
       try {
         await deps.tokenStoreFor(userId).clear();
       } catch (err) {
@@ -286,7 +354,13 @@ export function buildWhoopOAuthRouter(deps: WhoopOAuthDeps): IRouter {
         return;
       }
       req.log?.info({ userId }, "whoopOAuth:disconnect cleared tokens");
-      res.status(200).json({ ok: true });
+      // `local: "tokens_only"` — the snapshot survives and nothing was
+      // revoked. Saying "succeeded" here would overstate it.
+      res.status(200).json({
+        ok: true,
+        local: "tokens_only",
+        revocation: "skipped_not_configured",
+      });
     },
   );
 

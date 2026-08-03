@@ -40,6 +40,7 @@ import {
   type OuraTokens,
 } from "@workspace/db";
 import { logger } from "../../lib/logger";
+import { DEFAULT_USER_ID } from "../../lib/aforceState";
 import {
   createInMemoryOuraAuthStateStore,
   type OuraAuthStateStore,
@@ -98,6 +99,16 @@ async function startHarness(opts: {
   });
   app.use(
     buildOuraOAuthRouter({
+      // DELETE /{p}/disconnect is now gated by `requireRealAuth` (F5):
+      // a genuine Clerk identity in EVERY environment, no DEFAULT_USER_ID
+      // fallback. This suite predates that and runs without Clerk, so it
+      // injects the identity it has always assumed. The strict gate
+      // itself — and every way around it — is attacked in
+      // `destructiveEndpointSecurity.test.ts`.
+      destructiveAuth: (req, _res, next) => {
+        req.userId = DEFAULT_USER_ID;
+        next();
+      },
       authStateStore,
       oauthConfig: CONFIG,
       redirectUri: REDIRECT_URI,

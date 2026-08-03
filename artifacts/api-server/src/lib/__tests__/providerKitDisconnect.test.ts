@@ -239,6 +239,12 @@ describe("createProviderDisconnector.disconnect — revocation failure never blo
       attempted: false,
       ok: null,
       reason: "no_revoker_configured",
+      // No `revocationSupported: false` passed here, so this mount reads
+      // as a fixable deployment gap rather than "Garmin has no revoke
+      // contract". The production Garmin mount DOES pass the flag and
+      // therefore reports 'unsupported' — see
+      // `routes/__tests__/providerDisconnectMounts.test.ts`.
+      outcome: "skipped_not_configured",
     });
     expect(result.tokensDeleted).toBe(true);
     expect(result.snapshotRemoved).toBe(true);
@@ -275,6 +281,8 @@ describe("createProviderDisconnector.disconnect — idempotency", () => {
       attempted: false,
       ok: null,
       reason: "no_tokens_stored",
+      // Truthful about the repeat call: nothing was revoked THIS time.
+      outcome: "skipped_no_tokens",
     });
     expect(second.tokensDeleted).toBe(true); // clear() on empty store still "succeeds"
     expect(second.snapshotRemoved).toBe(false); // key already gone
