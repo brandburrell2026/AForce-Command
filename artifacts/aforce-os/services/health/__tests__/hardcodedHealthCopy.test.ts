@@ -56,6 +56,11 @@
  *   A secondary, narrower check scans `.tsx` files for raw JSX text nodes
  *   (`>Some Words<` with no `{}` interpolation) as defense-in-depth against
  *   a literal slipping in as component children rather than a prop/string.
+ *   KNOWN RESIDUAL GAP: a text node CONTAINING an interpolation
+ *   (`>Your streak is {n} days<`) is invisible to this net — the brace ends
+ *   the match before the closing `<`. Its string-literal siblings ARE
+ *   covered (template literals above), but mixed JSX text + `{expr}` is not;
+ *   do not mistake this scan for coverage of that shape.
  *
  * KNOWN, DOCUMENTED DEBT — the pending-extraction allowlist
  *   `sleepSignals.ts` currently returns plain-string `freshness` / metric
@@ -131,12 +136,20 @@ const PATH_PREFIX = /^[./@]/;
 // Anchored on the declaration keyword: without it, ANY identifier merely
 // ENDING in a capital run (`probeA`, `hrvSDNN`) exempted its literal.
 const CANONICAL_CONST = /\b(?:export\s+)?(?:const|let|var)\s+[A-Z][A-Z0-9_]*\s*(?::\s*string)?\s*=\s*$/;
-// `message:` (diagnostic-result object property) and `super(` (Error subclass
-// constructor) are exempt alongside `new XxxError(`: this layer's contract
-// maps every error/diagnostic to a closed status enum before any UI, so these
-// strings have no path to a screen (see the file header).
+// `super(` (Error subclass constructor) and `message =` (default param) are
+// exempt alongside `new XxxError(`: this layer's contract maps every
+// error/diagnostic to a closed status enum before any UI, so these strings
+// have no path to a screen (see the file header).
 const ERROR_DIAGNOSTIC =
-  /(new\s+[A-Za-z0-9_]*Error\s*\(\s*$|throw\s+new\s+[A-Za-z0-9_]*\s*\(\s*$|\bsuper\s*\(\s*$|\bmessage\s*[:=]\s*$)/;
+  /(new\s+[A-Za-z0-9_]*Error\s*\(\s*$|throw\s+new\s+[A-Za-z0-9_]*\s*\(\s*$|\bsuper\s*\(\s*$|\bmessage\s*=\s*$)/;
+// A `message:` PROPERTY is exempt only inside a diagnostic-result object —
+// i.e. when a `status: '<enum>'` sibling precedes it in the same literal.
+// Batch review (#497): a bare `\bmessage\s*:` exemption would go silent on
+// `message: 'Something went wrong.'` in a future view model — exactly the
+// leak this lock exists to catch. The status-sibling requirement keeps the
+// exemption pinned to the closed-enum contract instead of a naming
+// convention.
+const STATUS_ERROR_MESSAGE = /\bstatus\s*:\s*'[a-z_]+'\s*,[^{}]*\bmessage\s*:\s*$/;
 
 function isSuspiciousLiteral(raw: string): boolean {
   const trimmed = raw.trim();
@@ -177,6 +190,7 @@ function scanSource(raw: string, relPath: string): Finding[] {
     const before = src.slice(Math.max(0, idx - 120), idx).replace(/\n/g, ' ');
     if (CANONICAL_CONST.test(before)) continue;
     if (ERROR_DIAGNOSTIC.test(before)) continue;
+    if (STATUS_ERROR_MESSAGE.test(before)) continue;
     if (allowlist.has(val)) continue;
     findings.push({ file: relPath, line: src.slice(0, idx).split('\n').length, value: val });
   }
@@ -277,6 +291,21 @@ describe('no new hardcoded user-facing strings in the health consumer layer', ()
     // Single words, lowercase starts, and interpolations stay exempt.
     expect(scanJsxSource('<Text>Connected</Text>', 'x.tsx')).toEqual([]);
     expect(scanJsxSource('<Text>{t("connected_health.header.title")}</Text>', 'x.tsx')).toEqual([]);
+  });
+
+  it('self-test: a bare `message:` property is NOT exempt — only diagnostic-result objects are', () => {
+    // Batch review (#497): the exemption must be pinned to the closed-enum
+    // contract (a `status:` sibling), not to a property NAME — otherwise a
+    // future view model's `message: 'Something went wrong.'` sails through.
+    expect(
+      scanSource("const vm = { message: 'Something went wrong.' };\n", 'services/health/synthetic.ts'),
+    ).toHaveLength(1);
+    expect(
+      scanSource(
+        "return { status: 'error', reason: 'map_failed', message: `mapping failed for pages fetched this run` };\n",
+        'services/health/synthetic.ts',
+      ),
+    ).toEqual([]);
   });
 
   it('self-test: the canonical-const exemption requires a declaration keyword', () => {
