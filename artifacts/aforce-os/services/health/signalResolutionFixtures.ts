@@ -383,6 +383,10 @@ export const PROVIDER_SCORE_DIRECT: ResolveHealthSignalsInput = baseInput({
  * both survive into `resolveProviderScores`, which must attribute both to
  * `oura` (the true origin, never `apple_health`, the transport) and collapse
  * them to a single entry (see `preferredScoreRecord`), never double-count.
+ *
+ * The two copies deliberately carry DIFFERENT values (74 direct, 73 relayed)
+ * — proves the winning entry is the DIRECT record's own value, never the
+ * relayed copy's and never an average of the two.
  */
 export const PROVIDER_SCORE_AGGREGATOR_PLUS_DIRECT: ResolveHealthSignalsInput = baseInput({
   records: [
@@ -398,7 +402,7 @@ export const PROVIDER_SCORE_AGGREGATOR_PLUS_DIRECT: ResolveHealthSignalsInput = 
       provider: 'apple_health',
       metricType: 'provider_score',
       scoreKind: 'oura_readiness',
-      value: 74, // the aggregator's own copy of the identical reading
+      value: 73, // the aggregator's own (slightly different) copy — must be DROPPED, not blended
       observedAtMs: FIXED_NOW - 2 * HOUR,
       provenanceChain: [
         { provider: 'oura', nativeOrigin: 'com.ouraring.oura', transport: 'measured' },
@@ -411,6 +415,84 @@ export const PROVIDER_SCORE_AGGREGATOR_PLUS_DIRECT: ResolveHealthSignalsInput = 
   // Deliberately empty — see doc above. Proves the resolver's OWN guard
   // catches what dedupeRecords cannot see without an active direct connection.
   activeDirectProviders: new Set(),
+});
+
+/**
+ * The SAME (origin, scoreKind) delivered ONLY via an aggregator relay — no
+ * competing direct copy exists for `preferredScoreRecord` to prefer over it.
+ * Locks `ProviderScoreEntry.aggregator`: populated with the delivering
+ * platform (`apple_health`) when it genuinely differs from the true origin
+ * (`oura`), per the #483 convention shared with `WorkoutSignalEntry` /
+ * `HealthSignalReading`.
+ */
+export const PROVIDER_SCORE_RELAYED_ONLY: ResolveHealthSignalsInput = baseInput({
+  records: [
+    mkRecord({
+      provider: 'apple_health',
+      metricType: 'provider_score',
+      scoreKind: 'oura_readiness',
+      value: 81,
+      observedAtMs: FIXED_NOW - 1 * HOUR,
+      provenanceChain: [
+        { provider: 'oura', nativeOrigin: 'com.ouraring.oura', transport: 'measured' },
+        { provider: 'apple_health', transport: 'aggregator_export' },
+      ],
+      originalSource: 'com.ouraring.oura',
+    }),
+  ],
+  activeDirectProviders: new Set(),
+});
+
+/**
+ * Two independently-synced DIRECT Oura readiness records — no aggregator
+ * involved at all, distinct `externalId`s (e.g. a retried sync), same
+ * calendar day. Locks the invariant documented on `ProviderScoreEntry` /
+ * `HealthSignals.providerScores`: at most one entry per (origin, kind) per
+ * resolution call. `preferredScoreRecord`'s same-directness tie-break
+ * (freshest-OBSERVED wins) must collapse these to the single freshest value,
+ * never both and never an average.
+ */
+export const PROVIDER_SCORE_DIRECT_DUPLICATE_SAME_DAY: ResolveHealthSignalsInput = baseInput({
+  records: [
+    mkRecord({
+      provider: 'oura',
+      metricType: 'provider_score',
+      scoreKind: 'oura_readiness',
+      value: 70,
+      observedAtMs: FIXED_NOW - 3 * HOUR,
+      externalId: 'oura-readiness-sync-a',
+    }),
+    mkRecord({
+      provider: 'oura',
+      metricType: 'provider_score',
+      scoreKind: 'oura_readiness',
+      value: 76, // the later-observed retry — freshest wins, never averaged with 70
+      observedAtMs: FIXED_NOW - 1 * HOUR,
+      externalId: 'oura-readiness-sync-b',
+    }),
+  ],
+  activeDirectProviders: new Set(['oura']),
+});
+
+/**
+ * A SHARPER contract violation than `PROVIDER_SCORE_FORGED_DIRECT`: `oura` IS
+ * capability-eligible to emit `provider_score` records at all (unlike
+ * `apple_health`), but claims `whoop_recovery` — a kind `SCORE_KIND_OWNER`
+ * attributes to `whoop`, not `oura`. Proves the OWNERSHIP guard (not merely
+ * the coarser capability guard) independently drops a capable provider's
+ * out-of-lane claim.
+ */
+export const PROVIDER_SCORE_FORGED_CAPABLE_WRONG_KIND: ResolveHealthSignalsInput = baseInput({
+  records: [
+    mkRecord({
+      provider: 'oura',
+      metricType: 'provider_score',
+      scoreKind: 'whoop_recovery',
+      value: 91,
+      observedAtMs: FIXED_NOW - 1 * HOUR,
+    }),
+  ],
+  activeDirectProviders: new Set(['oura']),
 });
 
 /**
@@ -449,5 +531,8 @@ export const ALL_SIGNAL_RESOLUTION_FIXTURES = {
   NO_DATA,
   PROVIDER_SCORE_DIRECT,
   PROVIDER_SCORE_AGGREGATOR_PLUS_DIRECT,
+  PROVIDER_SCORE_RELAYED_ONLY,
+  PROVIDER_SCORE_DIRECT_DUPLICATE_SAME_DAY,
   PROVIDER_SCORE_FORGED_DIRECT,
+  PROVIDER_SCORE_FORGED_CAPABLE_WRONG_KIND,
 } as const;

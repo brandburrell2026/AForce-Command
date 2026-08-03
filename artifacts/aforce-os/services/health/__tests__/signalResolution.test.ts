@@ -28,7 +28,12 @@ import {
   NO_DATA,
   PROVIDER_SCORE_DIRECT,
   PROVIDER_SCORE_AGGREGATOR_PLUS_DIRECT,
+  PROVIDER_SCORE_RELAYED_ONLY,
+  PROVIDER_SCORE_DIRECT_DUPLICATE_SAME_DAY,
   PROVIDER_SCORE_FORGED_DIRECT,
+  PROVIDER_SCORE_FORGED_CAPABLE_WRONG_KIND,
+  FIXED_NOW,
+  HOUR,
 } from '../signalResolutionFixtures';
 
 function expectAvailable<T, U extends string>(signal: HealthSignal<T, U>): asserts signal is Extract<
@@ -251,12 +256,21 @@ describe('Score-Protection', () => {
 describe('13. Provider-score origin attribution + capability guard (#492 follow-up)', () => {
   it('(c) direct path is byte-identical to before the fix', () => {
     const out = resolveHealthSignals(PROVIDER_SCORE_DIRECT);
+    // Full-entry equality (not objectContaining) — catches drift in
+    // observedAtMs/freshness/confidence/originalSource/aggregator, not just
+    // the three fields spot-checked before.
     expect(out.providerScores).toEqual([
-      expect.objectContaining({
+      {
         kind: 'whoop_recovery',
         provider: 'whoop',
         value: 72,
-      }),
+        unit: 'score',
+        observedAtMs: FIXED_NOW - 1 * HOUR,
+        freshness: 'fresh',
+        confidence: 'high',
+        originalSource: undefined,
+        aggregator: undefined,
+      },
     ]);
     expect(out.providerScores).toHaveLength(1);
   });
@@ -268,16 +282,45 @@ describe('13. Provider-score origin attribution + capability guard (#492 follow-
     }
   });
 
-  it('(a) the direct record and its aggregator-relayed copy collapse to a SINGLE entry, never doubled', () => {
+  it('(a) the direct record and its aggregator-relayed copy collapse to a SINGLE entry — direct wins over relayed, never averaged', () => {
     const out = resolveHealthSignals(PROVIDER_SCORE_AGGREGATOR_PLUS_DIRECT);
     const ouraReadiness = out.providerScores.filter((e) => e.kind === 'oura_readiness');
     expect(ouraReadiness).toHaveLength(1);
     expect(ouraReadiness[0].provider).toBe('oura');
-    expect(ouraReadiness[0].value).toBe(74);
+    expect(ouraReadiness[0].value).toBe(74); // the direct value — never 73, never (74+73)/2
+    expect(ouraReadiness[0].confidence).toBe('high');
+    // Direct won the tie-break, so the winning entry carries no aggregator —
+    // `aggregator` reflects the WINNER's own provenance, not the also-ran's.
+    expect(ouraReadiness[0].aggregator).toBeUndefined();
+  });
+
+  it('a relayed-only provider_score (no competing direct copy) carries `aggregator` — the true origin stays `provider`', () => {
+    const out = resolveHealthSignals(PROVIDER_SCORE_RELAYED_ONLY);
+    expect(out.providerScores).toEqual([
+      expect.objectContaining({
+        kind: 'oura_readiness',
+        provider: 'oura',
+        aggregator: 'apple_health',
+        value: 81,
+      }),
+    ]);
+  });
+
+  it('two direct same-kind records from retried syncs collapse to ONE entry, freshest wins — locks the (origin, kind) invariant', () => {
+    const out = resolveHealthSignals(PROVIDER_SCORE_DIRECT_DUPLICATE_SAME_DAY);
+    const ouraReadiness = out.providerScores.filter((e) => e.kind === 'oura_readiness');
+    expect(ouraReadiness).toHaveLength(1);
+    expect(ouraReadiness[0].provider).toBe('oura');
+    expect(ouraReadiness[0].value).toBe(76); // the later-observed retry — never 70, never an average
   });
 
   it('(b) a contract-violating (forged) provider_score is DROPPED, never re-homed to the transport provider', () => {
     const out = resolveHealthSignals(PROVIDER_SCORE_FORGED_DIRECT);
+    expect(out.providerScores).toEqual([]);
+  });
+
+  it('a CAPABLE provider claiming another capable provider\'s kind is DROPPED — the ownership guard, not merely the capability guard', () => {
+    const out = resolveHealthSignals(PROVIDER_SCORE_FORGED_CAPABLE_WRONG_KIND);
     expect(out.providerScores).toEqual([]);
   });
 });
