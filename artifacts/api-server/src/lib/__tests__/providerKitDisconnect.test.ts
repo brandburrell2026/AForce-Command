@@ -193,7 +193,11 @@ describe("createProviderDisconnector.disconnect — revocation failure never blo
     expect(result.snapshotRemoved).toBe(true);
   });
 
-  it("a token-read failure before revoke is also non-blocking", async () => {
+  it("a token-read failure before revoke is also non-blocking, and is reported as 'failed' — NEVER 'skipped_no_tokens'", async () => {
+    // This is the F5-follow-up fix: a store.read() throw used to fall into
+    // the "nothing stored" branch and claim skipped_no_tokens — "nothing to
+    // revoke" — when the truth was "couldn't look." A live grant could be
+    // sitting unrevoked while the caller is told there was nothing to do.
     const calls: string[] = [];
     const store: ProviderTokenStore = {
       async read() {
@@ -216,9 +220,96 @@ describe("createProviderDisconnector.disconnect — revocation failure never blo
 
     const result = await disconnector.disconnect("u1");
 
+    // Nothing safe to hand the revoker, so it's never invoked — but that
+    // must not be conflated with "confirmed nothing to revoke."
     expect(revoker).not.toHaveBeenCalled();
-    expect(result.revocation).toMatchObject({ attempted: false, ok: null });
+    expect(result.revocation).toEqual({
+      attempted: false,
+      // ok:false (not null) — err toward "the grant may still be live",
+      // the same posture as a revoker call that actually ran and lost.
+      ok: false,
+      reason: "token_read_failed",
+      outcome: "failed",
+    });
+    // Local cleanup (step 2+) still proceeds regardless.
     expect(calls).toContain("clear");
+  });
+
+  it("an EMPTY store (read resolves null, no throw) is the true idempotent case — still skipped_no_tokens", async () => {
+    const calls: string[] = [];
+    const store: ProviderTokenStore = {
+      async read() {
+        return null;
+      },
+      async write() {},
+      async clear() {
+        calls.push("clear");
+      },
+    };
+    const db = fakeUserStateDb(new Map(), calls);
+    const revoker = vi.fn();
+
+    const disconnector = createProviderDisconnector({
+      provider: "Oura",
+      tokenStoreFor: () => store,
+      db,
+      revoker,
+    });
+
+    const result = await disconnector.disconnect("u1");
+
+    expect(revoker).not.toHaveBeenCalled();
+    expect(result.revocation).toEqual({
+      attempted: false,
+      ok: null,
+      reason: "no_tokens_stored",
+      outcome: "skipped_no_tokens",
+    });
+    expect(calls).toContain("clear");
+  });
+
+  it("a MALFORMED stored token (store resolves a truthy value with no usable accessToken) is honestly 'failed', never handed to the revoker", async () => {
+    const calls: string[] = [];
+    const revoker = vi.fn(async () => {
+      throw new Error("revoker must never be called with a malformed token");
+    });
+    const garbageCases: Array<Record<string, unknown>> = [
+      // Missing accessToken entirely.
+      { refreshToken: "rt", expiresAt: Date.now() },
+      // accessToken present but blank — equally unusable against a real
+      // provider endpoint (e.g. `?access_token=` with nothing after it).
+      { accessToken: "", refreshToken: "rt", expiresAt: Date.now() },
+    ];
+
+    for (const garbage of garbageCases) {
+      const store: ProviderTokenStore = {
+        async read() {
+          return garbage as unknown as ProviderTokens;
+        },
+        async write() {},
+        async clear() {
+          calls.push("clear");
+        },
+      };
+      const disconnector = createProviderDisconnector({
+        provider: "Oura",
+        tokenStoreFor: () => store,
+        db: fakeUserStateDb(new Map(), calls),
+        revoker,
+      });
+
+      const result = await disconnector.disconnect("u1");
+
+      expect(revoker).not.toHaveBeenCalled();
+      expect(result.revocation).toEqual({
+        attempted: false,
+        ok: false,
+        reason: "token_read_malformed",
+        outcome: "failed",
+      });
+      // Local cleanup still proceeds even though revocation couldn't run.
+      expect(result.tokensDeleted).toBe(true);
+    }
   });
 
   it("no revoker configured (the Garmin case) — disconnect still completes", async () => {
@@ -369,6 +460,25 @@ describe("createProviderDisconnector.disconnect — durable-write failures propa
     });
     const disconnector = createProviderDisconnector(opts);
     await expect(disconnector.disconnect("u1")).rejects.toThrow("update failed");
+  });
+
+  it("local-cleanup failure propagates even when revocation itself SUCCEEDED — never surfaces a misleading partial-success result", async () => {
+    // A successful revoker call followed by a snapshot-removal throw must
+    // reject the whole call, not resolve with a result object that reports
+    // revocation:'succeeded' while silently omitting that cleanup failed.
+    // The route layer's only honest option here is to 500.
+    const { opts } = baseOpts({
+      revoker: async () => {},
+      db: {
+        removeProviderSnapshotEntry: async () => {
+          throw new Error("snapshot update failed");
+        },
+      },
+    });
+    const disconnector = createProviderDisconnector(opts);
+    await expect(disconnector.disconnect("u1")).rejects.toThrow(
+      "snapshot update failed",
+    );
   });
 
   it("throws when the record tombstone fails (only when purgeRecords is requested)", async () => {

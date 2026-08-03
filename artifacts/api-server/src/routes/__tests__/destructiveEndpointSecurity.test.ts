@@ -674,6 +674,63 @@ describe("disconnect responses tell the truth about the upstream grant", () => {
     }
   });
 
+  it("'failed' when the token READ itself throws — never 'skipped_no_tokens', local cleanup still completes", async () => {
+    // The F5-follow-up defect this guards: a token-store read failure used
+    // to fall into the same branch as "nothing was ever stored," so the
+    // client was told skipped_no_tokens ("nothing to revoke") when the
+    // truth was "the server couldn't even look." A live upstream grant
+    // could be sitting unrevoked while the response claims otherwise.
+    const userStateDb = createFakeUserStateDb({
+      [USER_A]: { oura: { readinessScore: 82 }, whoop: { recovery: 60 } },
+    });
+    const readCalls: string[] = [];
+    const brokenStore: OuraTokenStore = {
+      async read() {
+        readCalls.push("read");
+        throw new Error("token store unreachable");
+      },
+      async write() {},
+      async clear() {
+        readCalls.push("clear");
+      },
+    };
+    const disconnector = createProviderDisconnector({
+      provider: "Oura",
+      tokenStoreFor: () => brokenStore,
+      db: userStateDb,
+      revoker: createOuraRevoker({ fetchImpl: okRevoke() }),
+    });
+    const h = await ouraHarness({
+      auth: authAs(USER_A),
+      userStateDb,
+      disconnector,
+    });
+    try {
+      const res = await fetch(`${h.baseUrl}/api/oura/disconnect`, {
+        method: "DELETE",
+      });
+      expect(res.status).toBe(200);
+      expect(await res.json()).toEqual({
+        ok: true,
+        local: "succeeded",
+        // NOT 'skipped_no_tokens' — we never confirmed there was nothing
+        // to revoke, we simply couldn't read the store. Wire-collapsed
+        // into the same 'failed' value a rejected revoke call reports;
+        // the granular reason ('token_read_failed') is server-side only.
+        revocation: "failed",
+        status: "snapshot_removed",
+      });
+      expect(readCalls).toEqual(["read", "clear"]);
+      // Local cleanup (snapshot removal) proceeded despite the read
+      // failure — this provider's key is gone, siblings untouched.
+      expect(userStateDb.blobs.get(USER_A)).toEqual({
+        whoop: { recovery: 60 },
+      });
+    } finally {
+      await h.close();
+    }
+  });
+
   it("'unsupported' for Garmin — no revoke contract exists to call", async () => {
     const garminStores = new Map<string, GarminTokenStore>();
     const s = createInMemoryGarminTokenStore();

@@ -412,12 +412,19 @@ export async function runHealthConnectSync(params: HealthConnectSyncParams): Pro
     // different fact than "HC told us no" (that case never sets
     // `availabilityError`). Zero further client calls are made — the same
     // honest short-circuit as the legitimate-unavailable branch below.
+    //
+    // `userAction: 'retry'` — NOT 'unsupported_platform'. The pre-fix
+    // behavior fabricated "this device doesn't support Health Connect,"
+    // a permanent claim this catch block has zero evidence for (it only
+    // knows the CHECK failed, not that HC is absent) — see the `'retry'`
+    // doc in availability.ts for the full reasoning and why
+    // 'temporarily_unavailable' was considered and rejected.
     return {
       records: [],
       deletedExternalIds: [],
       nextChangesTokens: { ...params.changesTokens },
       partial: false,
-      availability: { availability: 'unavailable', userAction: 'unsupported_platform' },
+      availability: { availability: 'unavailable', userAction: 'retry' },
       availabilityBlocked: true,
       availabilityError: describeError(err),
       permissions: { granted: [], denied: [], notRequested: [...permissionBuild.permissions] },

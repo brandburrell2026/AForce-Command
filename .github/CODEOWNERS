@@ -69,6 +69,13 @@ artifacts/aforce-os/screens/SleepModeScreen.tsx         @OWNER_HANDLE
 artifacts/aforce-os/services/cruiseModeService.ts       @OWNER_HANDLE
 artifacts/aforce-os/services/voice/                     @OWNER_HANDLE
 
+# ── Governance (constitution, build rules, TEST-BASELINE.md) ─────────────────
+# TEST-BASELINE.md backs the tests-baseline CI gate's pass/fail ceiling (see
+# .github/workflows/ci.yml's "Guard against unacknowledged TEST-BASELINE.md
+# edits" step and docs/CI_BRANCH_PROTECTION.md) — an edit here changes what
+# CI accepts as green, so it needs the same sign-off as CI/infra config below.
+governance/                              @OWNER_HANDLE
+
 # ── Build, CI, infra, repo-level config (owner only) ─────────────────────────
 .github/                                @OWNER_HANDLE
 .replit                                 @OWNER_HANDLE

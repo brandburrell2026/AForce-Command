@@ -135,27 +135,48 @@ overrides:
 patchedDependencies:
   react-native@0.81.5: patches/react-native@0.81.5.patch
 
-onlyBuiltDependencies:
-  - "@clerk/shared"
-  - "@swc/core"
-  - browser-tabs-lock
-  - core-js
-  - esbuild
-  - msw
-  - sharp
-  - unrs-resolver
-
 # @testcontainers/postgresql pulls ssh2 (+ cpu-features, protobufjs) for its
 # remote-Docker-over-SSH transport. Local Docker (how the integration tests run)
 # never uses it, so we skip those native build scripts.
+#
+# Least-privilege pass (PR 2.2B, section C1): `onlyBuiltDependencies` (the
+# pnpm-11-removed, now fully inert list this block used to sit next to) has
+# been deleted rather than fixed forward — pnpm 11.1.2 never reads it, so
+# keeping it around only misrepresented what's actually in effect. Every
+# package that needs a build-script approval is declared here instead, each
+# with an explicit true/false decided on the evidence below, not "true
+# because it used to be inert-listed":
+#
+#   true  (native binaries — genuinely need their install-time build/fetch
+#   step, verified by reading their postinstall/install scripts):
+#     - esbuild: `install.js` downloads the platform-specific esbuild binary.
+#       Without it, esbuild has no binary to invoke at all.
+#     - sharp: `install/check.js || npm run build` fetches/builds the
+#       prebuilt libvips binary for the host platform. Without it, sharp has
+#       no native image-processing backend.
+#
+#   false (verified NOT to need their build step — each package's
+#   postinstall script was read directly, and a full `pnpm install
+#   --frozen-lockfile` against a FRESH pnpm store (no prior build-approval
+#   cache) was run with these three flipped to false: exit 0, no
+#   ERR_PNPM_IGNORED_BUILDS, and the real Clerk-dependent adversarial route
+#   suite — destructiveEndpointSecurity.test.ts, 28/28 tests at the time of
+#   this check — still passed end-to-end):
+#     - '@clerk/shared': postinstall (scripts/postinstall.mjs) only writes a
+#       local telemetry-notice marker file and console.logs a notice — no
+#       compilation. The package's dist/ ships prebuilt in the npm tarball.
+#     - browser-tabs-lock: postinstall (scripts/postinstall.js) only
+#       console.logs a thank-you banner. Its `index.js`/`processLock.js` etc.
+#       are already-compiled files shipped in the package — the `build`
+#       script (`tsc`) is a dev-only step for the upstream repo's own
+#       release process, never invoked via postinstall.
+#     - core-js: postinstall (`postinstall.js`) only shows a
+#       donation/sponsorship banner (and self-skips under any CI env var
+#       already) — verified in source, no build step exists at all.
 allowBuilds:
-  # pnpm 11 REMOVED onlyBuiltDependencies (no auto-migration) — these five
-  # ship build scripts we genuinely need; without them a fresh
-  # `pnpm install --frozen-lockfile` hard-fails (ERR_PNPM_IGNORED_BUILDS).
-  # This also ends the recurring auto-placeholder-write loop.
-  '@clerk/shared': true
-  browser-tabs-lock: true
-  core-js: true
+  '@clerk/shared': false
+  browser-tabs-lock: false
+  core-js: false
   esbuild: true
   sharp: true
   cpu-features: false
