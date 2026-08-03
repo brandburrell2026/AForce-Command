@@ -81,14 +81,17 @@ export interface OuraOAuthDeps {
 
 const startBodySchema = z.object({}).strict().or(z.undefined()).or(z.null());
 
-const callbackQuerySchema = z
-  .object({
-    code: z.string().min(1).optional(),
-    state: z.string().min(1).optional(),
-    error: z.string().min(1).optional(),
-    error_description: z.string().optional(),
-  })
-  .strict();
+// NOT `.strict()`: an OAuth provider may append params to the redirect beyond
+// the ones we consume, same as WHOOP's callback query (see whoopOAuth.ts).
+// Rejecting on an unexpected param would 400 a perfectly valid callback
+// ("bad_request"). Unknown keys are stripped (zod default); `code`/`state`
+// are still validated below (the handler requires both, or an `error`).
+const callbackQuerySchema = z.object({
+  code: z.string().min(1).optional(),
+  state: z.string().min(1).optional(),
+  error: z.string().min(1).optional(),
+  error_description: z.string().optional(),
+});
 
 function errName(err: unknown): string {
   return err instanceof Error ? err.name : "unknown_error";
@@ -198,6 +201,24 @@ export function buildOuraOAuthRouter(deps: OuraOAuthDeps): IRouter {
       { userId: record.userId },
       "ouraOAuth:callback persisted tokens",
     );
+    // Best-effort initial fetch so the app shows real biometrics right after
+    // connect (not on the next sweep tick). Awaited so it definitely runs,
+    // but wrapped so a fetch error never blocks or fails the redirect.
+    // Mirrors the WHOOP/Garmin/Strava callback hook (see whoopOAuth.ts).
+    if (deps.runSyncForUser) {
+      try {
+        const outcome = await deps.runSyncForUser(record.userId);
+        req.log?.info(
+          { userId: record.userId, status: outcome.status },
+          "ouraOAuth:callback initial sync",
+        );
+      } catch (err) {
+        req.log?.warn(
+          { userId: record.userId, err: errName(err) },
+          "ouraOAuth:callback initial sync threw",
+        );
+      }
+    }
     if (deps.successRedirectUrl) {
       res.redirect(302, deps.successRedirectUrl);
       return;

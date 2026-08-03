@@ -1,19 +1,20 @@
 /**
  * Oura biometrics fetch worker.
  *
- * Faithful mirror of `garminFetchWorker`'s `runGarminFetchOnce` (which
- * itself mirrors `whoopFetchWorker`'s `runWhoopFetchOnce`). Flow for
- * one user:
- *   1. Resolve a valid access token via the token manager. Null when no
- *      tokens stored OR refresh failed -> `{status:'skipped_no_token'}`.
- *      No throw.
- *   2. Fetch the Oura snapshot. Per-endpoint failures fall through to
- *      null fields (handled inside the fetcher).
- *   3. Merge the Oura entry into the user's biometrics blob via the
- *      provider-agnostic `UserStateRepo` (jsonb_set on a single key),
- *      preserving every other provider. UPDATE only — never creates a
- *      state row (the worker must not fabricate users).
- *   4. Result describes what happened, suitable for logs / admin.
+ * Thin wrapper over `providerKit/fetchWorker.ts` — the
+ * resolve-token / fetch-snapshot / merge-into-biometrics-blob
+ * orchestration is shared implementation now (see that module for the
+ * full contract doc). This file exists to keep Oura's public API —
+ * every exported name, type, and default — byte-identical to what it
+ * was before the extraction, so `routes/ouraOAuth.ts` and every
+ * existing Oura test keep passing unchanged.
+ *
+ * `UserStateRepo` / `createDrizzleUserStateRepo` are imported (not
+ * duplicated) — now via `providerKit/userStateRepo` instead of
+ * `./whoopFetchWorker` directly, whose doc comment explains why the
+ * source of truth is still `whoopFetchWorker.ts` until the WHOOP
+ * cutover. Not re-exported from this file, matching the pre-extraction
+ * shape (Oura's public API never exported these names either).
  *
  * Architecture lock: hidden-infra. The only caller is the
  * `POST /oura/sync` route, which itself only exists when OURA_* env
@@ -39,17 +40,25 @@ import type { OuraRefreshRegistry } from "./ouraRefreshRegistry";
 import {
   fetchOuraSnapshot,
   ouraSnapshotToProviderBlob,
-  type OuraProviderBlob,
   type OuraSnapshot,
 } from "./ouraSnapshot";
 import {
-  createDrizzleUserStateRepo,
+  createProviderFetchWorker,
+  type ProviderFetchOutcome,
+} from "./providerKit/fetchWorker";
+import {
   type UserStateRepo,
-} from "./whoopFetchWorker";
+  createDrizzleUserStateRepo,
+} from "./providerKit/userStateRepo";
 
 /** Pluggable HTTP fetcher seam — keeps tests offline. */
 export type OuraSnapshotFetcher = (accessToken: string) => Promise<OuraSnapshot>;
 
+// Narrower than providerKit's `ProviderFetchOutcomeStatus` (which also
+// carries `skipped_locked` for sweep-layer consumers with a
+// multi-replica lock — Oura has no such lock today). `runOraFetchOnce`
+// below never produces `skipped_locked` at runtime, so this narrowing
+// is safe and keeps the public type identical to pre-extraction Oura.
 export type OuraFetchOutcomeStatus =
   | "ok"
   | "skipped_no_token"
@@ -80,11 +89,17 @@ export interface RunOuraFetchOnceDeps {
   log?: Pick<Logger, "info" | "warn" | "error">;
 }
 
-/** Defensive: never let an Error containing token-ish strings leak. */
-function errMessage(err: unknown): string {
-  if (err instanceof Error) return err.name;
-  return "unknown_error";
-}
+const ouraWorker = createProviderFetchWorker<OuraSnapshot>({
+  provider: "Oura",
+  // `OuraProviderBlob` is a specific shape (no index signature), same
+  // as the pre-extraction worker's `blob as unknown as Record<string,
+  // unknown>` cast at the `writeProviderEntry` call site.
+  toBlob: (snapshot, fetchedAt): Record<string, unknown> =>
+    ouraSnapshotToProviderBlob(snapshot, fetchedAt) as unknown as Record<
+      string,
+      unknown
+    >,
+});
 
 /**
  * Run one Oura biometrics fetch + persist for a single user. Never
@@ -94,62 +109,21 @@ export async function runOuraFetchOnce(
   userId: string,
   deps: RunOuraFetchOnceDeps,
 ): Promise<OuraFetchOutcome> {
-  const now = deps.nowMs ?? ((): number => Date.now());
-  const log = deps.log;
-  if (!userId) {
-    return { userId, status: "error", error: "empty userId" };
-  }
-
-  let accessToken: string | null;
-  try {
-    accessToken = await deps.tokenManager.getValidAccessToken();
-  } catch (err) {
-    log?.warn(
-      { userId, err: errMessage(err) },
-      "ouraFetchWorker:token resolution threw",
-    );
-    return { userId, status: "skipped_no_token" };
-  }
-  if (!accessToken) {
-    log?.info({ userId }, "ouraFetchWorker:skipped_no_token");
-    return { userId, status: "skipped_no_token" };
-  }
-
-  let snapshot: OuraSnapshot;
-  try {
-    const fetcher: OuraSnapshotFetcher =
-      deps.snapshotFetcher ??
-      ((token) => fetchOuraSnapshot({ accessToken: token, log }));
-    snapshot = await fetcher(accessToken);
-  } catch (err) {
-    log?.error({ userId, err: errMessage(err) }, "ouraFetchWorker:fetch threw");
-    return { userId, status: "error", error: errMessage(err) };
-  }
-
-  const fetchedAt = now();
-  const blob: OuraProviderBlob = ouraSnapshotToProviderBlob(snapshot, fetchedAt);
-
-  try {
-    const updated = await deps.stateRepo.writeProviderEntry(
-      userId,
-      "oura",
-      blob as unknown as Record<string, unknown>,
-    );
-    if (!updated) {
-      // No state row for this user — never fabricate.
-      log?.info({ userId }, "ouraFetchWorker:skipped_no_state");
-      return { userId, status: "skipped_no_state" };
-    }
-  } catch (err) {
-    log?.error(
-      { userId, err: errMessage(err) },
-      "ouraFetchWorker:state write threw",
-    );
-    return { userId, status: "error", error: errMessage(err) };
-  }
-
-  log?.info({ userId, fetchedAt }, "ouraFetchWorker:ok");
-  return { userId, status: "ok", snapshot, fetchedAt };
+  const outcome: ProviderFetchOutcome<OuraSnapshot> = await ouraWorker.runOnce(
+    userId,
+    {
+      tokenManager: deps.tokenManager,
+      stateRepo: deps.stateRepo,
+      snapshotFetcher:
+        deps.snapshotFetcher ??
+        ((token) => fetchOuraSnapshot({ accessToken: token, log: deps.log })),
+      nowMs: deps.nowMs,
+      log: deps.log,
+    },
+  );
+  // `status` is never `skipped_locked` in practice (see the type note
+  // above) — Oura's fetch worker has no multi-replica lock seam.
+  return outcome as OuraFetchOutcome;
 }
 
 /**
