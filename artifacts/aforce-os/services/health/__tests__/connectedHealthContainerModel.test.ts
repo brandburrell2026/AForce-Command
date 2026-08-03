@@ -440,7 +440,7 @@ describe('loadConnectedHealthCloudFacts — fetch injected for tests', () => {
 // function level, no component mount required.
 // ─────────────────────────────────────────────────────────────────────────
 
-describe('mergeCloudFacts — cycle-over-cycle "last known connection status"', () => {
+describe('mergeCloudFacts — failed cycles never overwrite previously-known facts', () => {
   it('a provider present in `next` always wins over `prev`, even a negative/ambiguous real result', () => {
     const prev = { whoop: CONFIGURED_CONNECTED };
     const next = { whoop: CONFIGURED_NONE };
@@ -516,7 +516,9 @@ describe('mergeCloudFacts — cycle-over-cycle "last known connection status"', 
 
     // The B1 bug: whoop must NOT have downgraded to "dormant"/"not connected"
     // just because cycle 2's probe timed out. It must still read connected —
-    // the last known connection status, genuinely preserved.
+    // the previously-known fact, genuinely preserved (the offline banner now
+    // reads "Couldn't check your connections just now — this list may be out
+    // of date.", true in exactly this case).
     expect(cloud.whoop).toEqual(CONFIGURED_CONNECTED);
     // A sibling provider that never once succeeded across either cycle stays
     // genuinely absent, not coerced into any fallback value.

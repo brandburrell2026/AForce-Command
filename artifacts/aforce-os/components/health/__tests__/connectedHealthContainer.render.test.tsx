@@ -62,8 +62,17 @@ import type { HealthConnectionSignals } from '@/utils/health/healthConnectionMap
  *  can pin its literal `setCloud(...)` call sites to the exact model
  *  functions this file exercises — see each guard's own comment for why a
  *  no-mount unit test needs this to catch a wiring regression at all
- *  (`ConnectedHealthContainer.tsx` is deliberately never mounted here). */
+ *  (`ConnectedHealthContainer.tsx` is deliberately never mounted here).
+ *
+ *  Comments are stripped before pinning: a source-text guard is only a guard
+ *  if the regression can't hide one `//` away. Batch review demonstrated that
+ *  `setCloud(facts); // old: setCloud((prev) => applyProbeCycle(prev, facts));`
+ *  passed a naive `toContain` pin — so each guard also asserts the
+ *  anti-pattern's ABSENCE from the comment-stripped code. */
 const CONTAINER_SOURCE = readFileSync(join(__dirname, '..', 'ConnectedHealthContainer.tsx'), 'utf8');
+const CONTAINER_CODE = CONTAINER_SOURCE
+  .replace(/\/\*[\s\S]*?\*\//g, ' ')
+  .replace(/\/\/.*$/gm, '');
 
 const EN_LOCALE = JSON.parse(readFileSync(join(__dirname, '..', '..', '..', 'locales', 'en.json'), 'utf8'));
 
@@ -253,10 +262,11 @@ describe('orchestration deps agree with the container-shaped call pattern', () =
       // suite (see file header), so this is what makes a regression back to
       // `setCloud(facts)` (the actual #494 S-1 bug — real, and previously
       // invisible to all 415 tests that existed before this pair) fail a
-      // test at all. Confirmed by temporary mutation while building this
-      // test: reverting the container's line to `setCloud(facts);` fails
-      // this exact assertion (see PR body).
-      expect(CONTAINER_SOURCE).toContain('setCloud((prev) => applyProbeCycle(prev, facts));');
+      // test at all. Comment-stripped + regex (whitespace-tolerant) + a
+      // negative assertion, so neither a commented-out copy of the good line
+      // nor a Prettier reflow can defeat the guard.
+      expect(CONTAINER_CODE).toMatch(/setCloud\(\s*\(prev\)\s*=>\s*applyProbeCycle\(prev,\s*facts\)\s*\)/);
+      expect(CONTAINER_CODE).not.toMatch(/setCloud\(\s*facts\s*\)/);
 
       // Cycle 1: whoop's cloud probe genuinely resolves connected.
       const cycle1 = await loadConnectedHealthCloudFacts(NOW, {
@@ -307,11 +317,11 @@ describe('orchestration deps agree with the container-shaped call pattern', () =
     async () => {
       // Source-text guard: pin the container's onDisconnect success path to
       // dropping the cloud fact via `dropCloudFact` before the follow-up
-      // refresh. Same rationale as the S-1 guard above — the container is
-      // never mounted here, so this is what makes a regression (removing
-      // this line, leaving only the pre-existing `refreshCloudFacts()` call)
-      // fail a test.
-      expect(CONTAINER_SOURCE).toContain('setCloud((prev) => dropCloudFact(prev, providerId));');
+      // refresh. Same rationale (and same comment-proof hardening) as the
+      // S-1 guard above — the container is never mounted here, so this is
+      // what makes a regression (removing this line, leaving only the
+      // pre-existing `refreshCloudFacts()` call) fail a test.
+      expect(CONTAINER_CODE).toMatch(/setCloud\(\s*\(prev\)\s*=>\s*dropCloudFact\(prev,\s*providerId\)\s*\)/);
 
       // Cloud already shows whoop connected from a prior successful cycle —
       // the exact real-world lead-up to a disconnect action.
