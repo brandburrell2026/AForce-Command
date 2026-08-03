@@ -64,17 +64,25 @@ import {
   type AcquireUserSweepLock,
   type ProviderFetchSweepResult,
 } from "./providerKit/sweepLoop";
+import {
+  withProviderUserAdvisoryLock,
+  type PgClientLike as ProviderPgClientLike,
+  type PgPoolLike as ProviderPgPoolLike,
+  type ProviderAdvisoryLockOutcome,
+} from "./providerKit/advisoryLock";
 
 /* ─── Multi-replica advisory lock (Oura namespace) ──────────────────────
  *
- * Structural mirror of `whoopAdvisoryLock.ts`'s `withWhoopUserAdvisoryLock`
- * — session-level `pg_try_advisory_lock(hashtextextended(userId, seed))`,
- * non-blocking, connection-pinned for the acquire/fn/unlock cycle. NOT
- * imported from `whoopAdvisoryLock.ts`: Oura's provider modules stay
- * decoupled from WHOOP's (only `providerKit/*` is shared), and the two
- * providers must use DIFFERENT namespace seeds so their locks occupy
- * disjoint regions of the 64-bit advisory-lock keyspace even though
- * both hash the same userId strings.
+ * Thin wrapper over `providerKit/advisoryLock.ts`'s
+ * `withProviderUserAdvisoryLock` — session-level
+ * `pg_try_advisory_lock(hashtextextended(userId, seed))`, non-blocking,
+ * connection-pinned for the acquire/fn/unlock cycle. See that module
+ * for the full invariants (client release on every path, destroy-vs-
+ * recycle on acquire/unlock failure). Namespace-parameterized: this
+ * file supplies the Oura-specific seed so Oura's locks occupy a
+ * disjoint region of the 64-bit advisory-lock keyspace from WHOOP's
+ * (`whoopAdvisoryLock.ts`), even though both hash the same userId
+ * strings.
  *
  * Value mnemonic: 0x4f550001 = "OU" (0x4f55) slot 1 — parallel to
  * WHOOP's 0x57480001 ("WH" slot 1). Picked once, never reuse for
@@ -82,23 +90,16 @@ import {
  */
 export const OURA_USER_ADVISORY_LOCK_NAMESPACE = 0x4f550001;
 
-/** Minimal `pg.Pool` shape we actually use. Decoupled so tests can
- *  pass a fake without pulling in the `pg` types. Structurally
- *  identical to `whoopAdvisoryLock.ts`'s `PgPoolLike` — not imported
- *  from there, see module doc. */
-export interface OuraPgPoolLike {
-  connect(): Promise<OuraPgClientLike>;
-}
+/** Minimal `pg.Pool` shape we actually use. Re-exported from
+ *  `providerKit/advisoryLock.ts` — structurally identical to what this
+ *  file declared before the extraction (and to `whoopAdvisoryLock.ts`'s
+ *  `PgPoolLike`). */
+export type OuraPgPoolLike = ProviderPgPoolLike;
 
 /** Minimal `pg.PoolClient` shape. */
-export interface OuraPgClientLike {
-  query(text: string, values?: unknown[]): Promise<{ rows: Array<unknown> }>;
-  release(err?: Error | boolean): void;
-}
+export type OuraPgClientLike = ProviderPgClientLike;
 
-export type OuraAdvisoryLockOutcome<T> =
-  | { acquired: true; value: T }
-  | { acquired: false };
+export type OuraAdvisoryLockOutcome<T> = ProviderAdvisoryLockOutcome<T>;
 
 /**
  * Run `fn` exactly once across all replicas that share this DB, keyed
@@ -113,52 +114,17 @@ export type OuraAdvisoryLockOutcome<T> =
  * ambiguous and a plain `release()` would risk poisoning a later
  * checkout with a stuck advisory lock.
  */
-export async function withOuraUserAdvisoryLock<T>(
+export function withOuraUserAdvisoryLock<T>(
   pool: OuraPgPoolLike,
   userId: string,
   fn: () => Promise<T>,
 ): Promise<OuraAdvisoryLockOutcome<T>> {
-  const client = await pool.connect();
-  let acquired = false;
-  let acquireErr: unknown = undefined;
-  let unlockErr: unknown = undefined;
-  try {
-    try {
-      const result = await client.query(
-        "SELECT pg_try_advisory_lock(hashtextextended($1, $2::bigint)) AS got",
-        [userId, OURA_USER_ADVISORY_LOCK_NAMESPACE],
-      );
-      const row = result.rows?.[0] as { got?: boolean } | undefined;
-      acquired = row?.got === true;
-    } catch (err) {
-      acquireErr = err;
-      throw err;
-    }
-    if (!acquired) {
-      return { acquired: false };
-    }
-    const value = await fn();
-    return { acquired: true, value };
-  } finally {
-    if (acquired) {
-      try {
-        await client.query(
-          "SELECT pg_advisory_unlock(hashtextextended($1, $2::bigint))",
-          [userId, OURA_USER_ADVISORY_LOCK_NAMESPACE],
-        );
-      } catch (err) {
-        unlockErr = err;
-      }
-    }
-    const fatalErr = acquireErr ?? unlockErr;
-    if (fatalErr !== undefined) {
-      client.release(
-        fatalErr instanceof Error ? fatalErr : new Error(String(fatalErr)),
-      );
-    } else {
-      client.release();
-    }
-  }
+  return withProviderUserAdvisoryLock(
+    pool,
+    userId,
+    OURA_USER_ADVISORY_LOCK_NAMESPACE,
+    fn,
+  );
 }
 
 /** Parse the multi-replica env flag. Truthy values: "1", "true",

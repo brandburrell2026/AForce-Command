@@ -23,7 +23,6 @@ import {
   purgeExpiredProviderAuthStates,
   type ProviderAuthStateRecord,
   type ProviderAuthStateStore,
-  type ProviderAuthStateTable,
 } from "./providerKit/oauthStateStore";
 
 /** Default TTL for an in-flight Oura OAuth state record. */
@@ -32,9 +31,13 @@ export const OURA_AUTH_STATE_DEFAULT_TTL_MS = PROVIDER_AUTH_STATE_DEFAULT_TTL_MS
 export type OuraAuthStateRecord = ProviderAuthStateRecord;
 export type OuraAuthStateStore = ProviderAuthStateStore;
 
-// `aforceOuraAuthStates` (state/codeVerifier/userId/createdAt) satisfies
-// `ProviderAuthStateTable` structurally.
-const OURA_AUTH_STATE_TABLE = aforceOuraAuthStates as unknown as ProviderAuthStateTable;
+// `aforceOuraAuthStates` (state/codeVerifier/userId/createdAt)
+// satisfies `ProviderAuthStateTable` structurally — passed straight
+// through below with NO cast. See `whoopAuthStateStore.ts`'s matching
+// comment / `providerKit/oauthStateStore.ts`'s module doc for why the
+// prior `as unknown as ProviderAuthStateTable` double-cast was the
+// actual bug this generic-over-table-type approach fixes (it defeated
+// the column-rename compile-error a single `as` would have provided).
 
 export interface InMemoryOuraAuthStateStoreOptions {
   /** Defaults to {@link OURA_AUTH_STATE_DEFAULT_TTL_MS}. */
@@ -61,7 +64,7 @@ export function createDrizzleOuraAuthStateStore(
   db: NodePgDatabase<Record<string, unknown>>,
   opts: DrizzleOuraAuthStateStoreOptions = {},
 ): OuraAuthStateStore {
-  return createDrizzleProviderAuthStateStore(db, OURA_AUTH_STATE_TABLE, opts);
+  return createDrizzleProviderAuthStateStore(db, aforceOuraAuthStates, opts);
 }
 
 /**
@@ -73,5 +76,5 @@ export async function purgeExpiredOuraAuthStates(
   nowMs: number,
   ttlMs: number,
 ): Promise<number> {
-  return purgeExpiredProviderAuthStates(db, OURA_AUTH_STATE_TABLE, nowMs, ttlMs);
+  return purgeExpiredProviderAuthStates(db, aforceOuraAuthStates, nowMs, ttlMs);
 }

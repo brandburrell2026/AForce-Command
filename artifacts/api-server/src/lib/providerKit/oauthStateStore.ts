@@ -33,6 +33,24 @@
  *     is enforced via `DELETE ... RETURNING` (one statement, one
  *     winner — concurrent callbacks for the same state see exactly
  *     one record).
+ *
+ * Cast-safety note: `createDrizzleProviderAuthStateStore` and
+ * `purgeExpiredProviderAuthStates` are GENERIC over the concrete table
+ * type `T extends ProviderAuthStateTable`, rather than accepting the
+ * structural `ProviderAuthStateTable` type directly. Callers
+ * (`whoopAuthStateStore.ts`, `ouraAuthStateStore.ts`) pass their real
+ * Drizzle table object straight through — no cast at all. TypeScript's
+ * generic-constraint check on the argument IS the safety net: if a
+ * future schema edit renames `codeVerifier`/`userId`/`createdAt`/
+ * `state` on the underlying table, the call site fails to compile
+ * ("does not satisfy the constraint") instead of silently passing. A
+ * pre-generic version of this module required callers to
+ * `as unknown as ProviderAuthStateTable` their table (going through
+ * `unknown` to bypass TS2352's "insufficient overlap" check on a
+ * direct `as` cast) — that double-cast defeated the very check a
+ * single `as` would have provided, so a column rename would NOT have
+ * been caught at compile time. Generics remove the cast (and the
+ * hazard) entirely.
  */
 
 import { sql } from "drizzle-orm";
@@ -125,9 +143,11 @@ export interface DrizzleProviderAuthStateStoreOptions {
  *     gets null. TTL is applied AFTER the delete so an expired row is
  *     still removed (no clock-rewind revive, matching in-memory).
  */
-export function createDrizzleProviderAuthStateStore(
+export function createDrizzleProviderAuthStateStore<
+  T extends ProviderAuthStateTable,
+>(
   db: NodePgDatabase<Record<string, unknown>>,
-  table: ProviderAuthStateTable,
+  table: T,
   opts: DrizzleProviderAuthStateStoreOptions = {},
 ): ProviderAuthStateStore {
   const ttlMs = opts.ttlMs ?? PROVIDER_AUTH_STATE_DEFAULT_TTL_MS;
@@ -176,9 +196,11 @@ export function createDrizzleProviderAuthStateStore(
  * concurrently with `consume` (each row is owned by exactly one
  * statement). Returns the number of rows reaped.
  */
-export async function purgeExpiredProviderAuthStates(
+export async function purgeExpiredProviderAuthStates<
+  T extends ProviderAuthStateTable,
+>(
   db: NodePgDatabase<Record<string, unknown>>,
-  table: ProviderAuthStateTable,
+  table: T,
   nowMs: number,
   ttlMs: number,
 ): Promise<number> {
