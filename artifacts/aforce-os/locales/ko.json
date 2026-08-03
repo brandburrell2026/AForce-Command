@@ -512,7 +512,7 @@
       "sleep_h": "h",
       "sleep_performance": "{{pct}}% PERFORMANCE",
       "footer_syncing": "SYNCING FROM WHOOP · FIRST PULL",
-      "footer_live": "FEEDING AFORCE HYDRATION SCORE · LIVE"
+      "footer_live": "INFORMING AFORCE READINESS · LIVE"
     },
     "analyticsConsent": {
       "label": "Anonymous Analytics",

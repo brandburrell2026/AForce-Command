@@ -10,15 +10,17 @@
  */
 
 import type { Feather } from '@expo/vector-icons';
+import type { HealthProviderId } from '@workspace/health-core';
 
-export type HealthProviderId =
-  | 'apple_health'
-  | 'oura'
-  | 'samsung_health'
-  | 'google_health'
-  | 'garmin'
-  | 'whoop'
-  | 'strava';
+/**
+ * Provider identity is owned by `@workspace/health-core` (single source of
+ * truth shared with the api-server). Re-exported here so every existing
+ * `import { HealthProviderId } from '@/data/healthProviders'` keeps working.
+ * The typed capability declarations live in health-core
+ * (`HEALTH_PROVIDER_CAPABILITIES`); this catalog remains the DISPLAY surface
+ * (names, brand colors, icons).
+ */
+export type { HealthProviderId } from '@workspace/health-core';
 
 export interface HealthProvider {
   id: HealthProviderId;

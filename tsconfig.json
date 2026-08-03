@@ -13,6 +13,9 @@
       "path": "./lib/demand-engine"
     },
     {
+      "path": "./lib/health-core"
+    },
+    {
       "path": "./lib/api-client-react"
     },
     {

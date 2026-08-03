@@ -24,6 +24,56 @@ Samsung Health, Fitbit, Polar, Coros, Suunto.**
 4. **Privacy-first.** Minimal scopes, per-signal consent, revoke ⇒ purge, no
    population comparison, data-classification-aware storage.
 
+## 1a. FOUNDATION 1A — LANDED 2026-08-03 (`@workspace/health-core`)
+
+> This section reconciles the proposal below with what has now shipped. Where
+> the two differ, **health-core is authoritative**; §3's sketch is superseded
+> by the shipped contracts.
+
+**Canonical contracts now live in `lib/health-core`** (shared workspace lib;
+the app's `types/biometrics.ts` and `data/healthProviders.ts` re-export it):
+
+- **Metric ownership:** `ProviderSnapshot` (snapshot plane, unchanged wire
+  shape) + `CanonicalHealthRecord` (record plane: sessions/stages/workouts as
+  STRUCTURED values, never forced into one number). `CanonicalHealthMetricType`
+  scopes release 1 — no SpO₂, no clinical types (locked by contract tests).
+- **Provider identity:** `HealthProviderId` (7 providers; §3's wider
+  `ProviderId` list — fitbit/polar/coros/suunto — stays proposal-only until a
+  capability declaration exists). `health_connect` is not a provider id: it is
+  Google Health (`google_health`) as a platform, and Samsung Phase 1 arrives
+  *through* it as an upstream ORIGIN (`via_health_connect`), never claimed
+  as a direct connection.
+- **HRV honesty (approved decision D1):** `hrvRmssdMs` vs `hrvSdnnMs`; legacy
+  `hrvSdnn` deprecated (it carries RMSSD for WHOOP/Oura/Garmin); translation
+  is explicit per provider (`HRV_METHOD_BY_PROVIDER`, `resolveHrv`).
+- **Provenance model:** `ProvenanceHop[]` — hop 0 = origin (with the native
+  HealthKit bundle id / Health Connect package when delivered via an
+  aggregator), later hops = aggregators. Chains are preserved, surfaced
+  ("via Health Connect"), and never silently dropped.
+- **Deduplication + source priority:** `dedupeRecords` (deterministic;
+  external-id → provenance → origin → type → ≥80% window overlap → value
+  tolerance; retries upsert on the dedup key) and `SOURCE_PRIORITY` —
+  per-metric-family priority-then-freshness selection. Recovery-family
+  metrics prefer dedicated wearables; steps/energy prefer the platform
+  aggregator; provider scores are never cross-selected; step totals are
+  never summed across providers.
+- **Status + freshness:** `resolveHealthProviderStatus` (§26) remains the
+  connection source of truth; `services/health/providerPresentation.ts`
+  composes it with the §53 `wearable_sync` windows so a connected-but-stale
+  provider presents as `stale` / `no_recent_data`, never live.
+- **Flags govern connectability:** `health_*` flags (all default OFF, locked
+  by test) now gate new connections via `providerRowStatus`. WHOOP carve-out:
+  server-credential gating until the PR 1B provider-kit cutover. Activation
+  gates per provider are declared in `HEALTH_PROVIDER_CAPABILITIES`
+  (Garmin: DORMANT pending partner credentials + endpoint verification;
+  Strava: PARKED; Samsung direct: partner SDK + `health_samsung_direct_enabled`).
+- **Disconnect/deletion semantics (contract now, enforcement in PR 1B):**
+  disconnect must revoke provider-side where supported, delete/tombstone
+  tokens, stop sync, REMOVE the provider's served snapshot, and be
+  idempotent; account deletion cascades into token + health tables.
+  `DeletionStatus` models the lifecycle. Today's shipped gap (disconnect
+  leaves the last snapshot being served) is 1B's first fix.
+
 ## 2. What already exists (reuse)
 
 - **WHOOP is the reference pipeline.** `services/whoop.ts` / `whoopAuth.ts` /

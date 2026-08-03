@@ -25,11 +25,54 @@ import {
   type HealthProviderStatus,
 } from './healthProviderStatus';
 import type { HealthProviderId } from '@/data/healthProviders';
+import type { FeatureFlags } from '@/types';
+
+/** Project the app FeatureFlags onto the per-provider connectability map. */
+export function healthFlagsFromFeatureFlags(
+  flags: Pick<
+    FeatureFlags,
+    | 'health_apple_enabled' | 'health_google_connect_enabled' | 'health_whoop_enabled'
+    | 'health_oura_enabled' | 'health_strava_enabled' | 'health_garmin_enabled'
+    | 'health_samsung_direct_enabled'
+  >,
+): Partial<Record<HealthProviderId, boolean>> {
+  return {
+    apple_health: flags.health_apple_enabled,
+    google_health: flags.health_google_connect_enabled,
+    whoop: flags.health_whoop_enabled,
+    oura: flags.health_oura_enabled,
+    strava: flags.health_strava_enabled,
+    garmin: flags.health_garmin_enabled,
+    samsung_health: flags.health_samsung_direct_enabled,
+  };
+}
+
+/**
+ * FeatureFlags key gating each provider's user-facing connectability.
+ * All default OFF (featureFlags/flags.ts) — enforced by
+ * featureFlags/__tests__/healthFlagsDefaultOff.test.ts.
+ */
+export const HEALTH_FLAG_BY_PROVIDER: Record<HealthProviderId, string> = {
+  apple_health: 'health_apple_enabled',
+  google_health: 'health_google_connect_enabled',
+  whoop: 'health_whoop_enabled',
+  oura: 'health_oura_enabled',
+  strava: 'health_strava_enabled',
+  garmin: 'health_garmin_enabled',
+  samsung_health: 'health_samsung_direct_enabled',
+};
 
 /** The screen-side facts the Profile screen actually holds. */
 export interface ProviderRowFacts {
   provider: HealthProviderId;
   platform: HealthPlatform;
+  /**
+   * Per-provider connectability from the `health_*` feature flags
+   * (HEALTH_FLAG_BY_PROVIDER). Pure module — the SCREEN reads the flag slice
+   * and passes the values in. Omitted map / omitted provider ⇒ NOT enabled,
+   * with one documented carve-out below.
+   */
+  healthFlags?: Partial<Record<HealthProviderId, boolean>>;
   /** WHOOP server connection state ('connected' | 'not_connected' | 'credentials_missing' | ...). */
   whoopState?: string;
   /** Epoch ms the WHOOP access token expires; null/undefined when unknown. */
@@ -97,10 +140,22 @@ export function deriveProviderRowStatus(f: ProviderRowFacts): HealthProviderStat
       break;
   }
 
+  // Flag enforcement (Foundation 1A): the `health_*` flags now govern
+  // connectability. WHOOP carve-out — its gating remains the server
+  // credential probe (`credentials_missing` ⇒ not integrationReady), exactly
+  // as shipped, until the provider-kit cutover (PR 1B) migrates it onto
+  // `health_whoop_enabled`. Every other provider is strictly flag-gated and
+  // all `health_*` flags default OFF, so no provider becomes connectable
+  // from this change alone. A real existing link always wins (resolver
+  // ordering) — flags gate NEW connections, they never fake or hide a
+  // genuine connected state.
+  const enabled =
+    f.provider === 'whoop' ? true : f.healthFlags?.[f.provider] === true;
+
   return resolveHealthProviderStatus({
     provider: f.provider,
     platform: f.platform,
-    enabled: true,
+    enabled,
     integrationReady,
     approvalGranted,
     link,

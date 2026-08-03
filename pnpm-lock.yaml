@@ -464,6 +464,9 @@ importers:
       '@workspace/activation-core':
         specifier: workspace:*
         version: link:../../lib/activation-core
+      '@workspace/health-core':
+        specifier: workspace:*
+        version: link:../../lib/health-core
       expo:
         specifier: ~54.0.35
         version: 54.0.35(@babel/core@7.29.0)(@expo/metro-runtime@6.1.2)(expo-router@6.0.24)(react-native@0.81.5(patch_hash=4362d381f1a3defaeb14ce6bf99b44c7c9f744771220ec7e94bb82c679028780)(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)(typescript@5.9.3)
@@ -1252,6 +1255,8 @@ importers:
         version: 0.31.9
 
   lib/demand-engine: {}
+
+  lib/health-core: {}
 
   lib/integrations-openai-ai-server:
     dependencies:

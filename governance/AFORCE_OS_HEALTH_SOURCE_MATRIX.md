@@ -61,3 +61,38 @@ and are **not** re-verified here — most providers are Specified/Proposed.
 Four OAuth providers = **Partially Built** (encryption Phase-C + prod-key verification are the gating
 items). Native/other providers = **Specified/Proposed**. No provider is **Live** in production
 (all provider flags off).
+
+## 5. Foundation 1A (2026-08-03) — canonical layer landed, still no provider Live
+
+The provider-neutral foundation (`@workspace/health-core`, PR: health foundation 1A) added the shared
+contracts WITHOUT activating anything. **No provider status above changed; no provider is Live.**
+All `health_*` flags remain OFF in DEFAULT and DEMO sets — now locked by
+`featureFlags/__tests__/healthFlagsDefaultOff.test.ts`.
+
+What is now canonical (owned by `lib/health-core`):
+- **Provider identity + typed capability declarations** (`HEALTH_PROVIDER_CAPABILITIES`): method,
+  platforms, external-approval requirement (Garmin, Samsung-direct), typed record coverage,
+  provider-attributed score kinds, HRV method, backfill caps, sync model, and **activation gates**
+  per provider. Garmin is declared DORMANT (partner credentials + endpoint verification gates);
+  Strava is declared PARKED (kept intact, not exposed); Samsung is modeled **via Health Connect**
+  only — never a direct-connection claim.
+- **HRV honesty (D1):** `hrvRmssdMs` / `hrvSdnnMs` split. The legacy `hrvSdnn` field is deprecated —
+  WHOOP/Oura/Garmin actually populate it with RMSSD-based values; translation is explicit and
+  per-provider (`HRV_METHOD_BY_PROVIDER`, `resolveHrv`). RMSSD is never presented as SDNN.
+- **One normalization boundary** (`normalizeProviderBiometrics`) resolving shipped drift
+  (Garmin `hrvMs`→`hrvRmssdMs`, `stress`→`stressScore`) at ingestion.
+- **Deterministic deduplication + provenance chains** (`dedupeRecords`, `SOURCE_PRIORITY`): the four
+  named double-count paths (Oura/Garmin via HealthKit, WHOOP via platform store, Samsung via Health
+  Connect) are covered by fixture tests; provider scores are never cross-selected; steps are never
+  summed across providers; cross-provider selection is priority-then-freshness, not freshest-wins.
+- **Freshness-aware presentation** (`services/health/providerPresentation.ts`): a connected link with
+  stale (>24h) or expired (>72h) data presents as `stale` / `no_recent_data`, never as live.
+- **Compliance copy fix (D5):** the WHOOP card claim "FEEDING AFORCE HYDRATION SCORE · LIVE" was
+  replaced with "INFORMING AFORCE READINESS · LIVE" in all locales, with a regression test
+  (`services/health/__tests__/prohibitedCopy.test.ts`) preventing the prohibited claim from returning.
+
+Deferred to PR 1B (server provider-kit + privacy lifecycle): shared OAuth/token/sync extraction
+(Oura first, WHOOP last behind byte-parity tests), disconnect that also removes the served biometrics
+snapshot + revokes provider-side where supported, account-deletion cascade, encryption Phase B for all
+providers then Phase C, admin sync diagnostics. Until 1B, WHOOP keeps its shipped server-credential
+gating (documented carve-out in `utils/health/providerRowStatus.ts`).

@@ -1,46 +1,21 @@
 /**
- * Cross-provider biometric snapshot.
+ * Cross-provider biometric snapshot — CANONICAL MODEL MOVED, NOT FORKED.
  *
- * AForce ingests data from multiple health platforms (Apple Health,
- * Oura, Samsung Health, Google Health Connect, Garmin, WHOOP, Strava).
- * Every platform exposes a slightly different schema; this is the
- * union we normalize to before feeding the score. Any field a given
- * provider doesn't expose stays null — never substituted with a
- * placeholder. That keeps the aggregator honest about what's actually
- * connected and what isn't.
+ * The `ProviderSnapshot` / `ProviderBiometrics` model that lived here is now
+ * owned by `@workspace/health-core` (the provider-neutral AForce Health
+ * Integration Layer), so the mobile app and the api-server share one source
+ * of truth. This module re-exports it verbatim — every existing import path
+ * keeps working unchanged.
  *
- * The previous model only stored an `appleHealth` field on UserState;
- * with seven providers in the catalog (see data/healthProviders.ts)
- * the score now derives from whichever providers the user has linked.
+ * What health-core added (additive only):
+ *   - `hrvRmssdMs` / `hrvSdnnMs` — honest HRV statistics. The legacy
+ *     `hrvSdnn` field is @deprecated: WHOOP/Oura/Garmin actually populate it
+ *     with RMSSD-based values. Read HRV via `resolveHrv()` or the new fields;
+ *     never place RMSSD in an SDNN field (or vice versa).
+ *   - `schemaVersion` — stamped by the normalization boundary.
+ *
+ * Any field a provider doesn't expose stays null — never substituted with a
+ * placeholder. That keeps every consumer honest about what's connected.
  */
 
-import type { HealthProviderId } from '../data/healthProviders';
-
-export interface ProviderSnapshot {
-  /** Which provider this snapshot came from. */
-  providerId: HealthProviderId;
-  /** Resting heart rate (bpm). */
-  restingHeartRate?: number | null;
-  /** Heart rate variability — SDNN, milliseconds. */
-  hrvSdnn?: number | null;
-  /** Total sleep duration last night (hours). */
-  sleepHoursLastNight?: number | null;
-  /** Total steps for the current local day. */
-  stepsToday?: number | null;
-  /** Active workout / exercise minutes for the current local day. */
-  workoutMinutesToday?: number | null;
-  /** WHOOP-style strain score (0–21). */
-  strain?: number | null;
-  /** WHOOP / Oura recovery percentage (0–100, higher = more recovered). */
-  recoveryPct?: number | null;
-  /** Oura readiness score (0–100). */
-  readinessScore?: number | null;
-  /** Garmin stress score (0–100, higher = more stressed). */
-  stressScore?: number | null;
-  /** Strava-style 7-day acute training load (arbitrary CTL/ATL units). */
-  trainingLoad?: number | null;
-  /** When this snapshot was last refreshed (epoch ms). */
-  fetchedAt: number;
-}
-
-export type ProviderBiometrics = Partial<Record<HealthProviderId, ProviderSnapshot>>;
+export type { ProviderSnapshot, ProviderBiometrics } from '@workspace/health-core';
