@@ -1,13 +1,19 @@
 import { describe, it, expect } from 'vitest';
-import { dedupeRecords } from '@workspace/health-core';
+import { dedupeRecords, HRV_METHOD_BY_PROVIDER } from '@workspace/health-core';
 import {
   mapSleepSessionRecord,
   mapSleepStages,
+  mapHeartRateRecord,
   mapHeartRateVariabilityRmssdRecord,
   resolveHealthConnectOrigin,
   type MapContext,
 } from '../mapRecords';
-import type { HcSleepStage, HeartRateVariabilityRmssdRecord, SleepSessionRecord } from '../types';
+import type {
+  HcSleepStage,
+  HeartRateRecord,
+  HeartRateVariabilityRmssdRecord,
+  SleepSessionRecord,
+} from '../types';
 
 const CTX: MapContext = { userId: 'user_1', syncedAt: '2026-08-03T12:00:00.000Z' };
 
@@ -147,6 +153,20 @@ describe('mapSleepStages — HC stage int → canonical stage table', () => {
     expect(value.totalSleepHours).toBe(0);
     expect(value.inBedHours).toBeNull();
   });
+
+  it('an unrecognized stage int (e.g. 7, STAGE_TYPE_AWAKE_IN_BED) falls back to unspecified rather than being dropped', () => {
+    // HcSleepStageType is `number`, not a closed 0-6 union, precisely so a
+    // real HC provider can hand us stage 7 without an unsound cast.
+    const value = mapSleepStages([
+      { startTime: '2026-08-03T02:00:00.000Z', endTime: '2026-08-03T03:00:00.000Z', stage: 7 },
+    ]);
+    expect(value.stages).toEqual([
+      { stage: 'unspecified', startUtc: '2026-08-03T02:00:00.000Z', endUtc: '2026-08-03T03:00:00.000Z' },
+    ]);
+    // Counted as asleep+in-bed, same as the other "some real state, no bucket yet" ints (0, 2).
+    expect(value.totalSleepHours).toBe(1);
+    expect(value.inBedHours).toBe(1);
+  });
 });
 
 // ─── HRV — RMSSD only, never SDNN ─────────────────────────────────────────────
@@ -173,6 +193,55 @@ describe('mapHeartRateVariabilityRmssdRecord', () => {
     const mapped = mapHeartRateVariabilityRmssdRecord(hrvRecord('com.sec.android.app.shealth'), CTX);
     expect(mapped.hrvMethod).toBe('rmssd');
     expect(mapped.provenanceChain[0].provider).toBe('samsung_health');
+  });
+});
+
+// ─── mapHeartRateRecord — never fabricate 0 bpm from an empty session ────────
+
+describe('mapHeartRateRecord', () => {
+  function hrRecord(samples: { time: string; beatsPerMinute: number }[]): HeartRateRecord {
+    return {
+      metadata: {
+        id: 'hc_hr_1',
+        dataOrigin: { packageName: 'com.google.android.apps.healthdata' },
+        lastModifiedTime: '2026-08-03T07:00:00.000Z',
+      },
+      startTime: '2026-08-03T06:00:00.000Z',
+      endTime: '2026-08-03T06:05:00.000Z',
+      samples,
+    };
+  }
+
+  it('an empty sample array produces NO record — never a fabricated 0 bpm', () => {
+    const result = mapHeartRateRecord(hrRecord([]), CTX);
+    expect(result).toBeNull();
+  });
+
+  it('a non-empty sample array still averages correctly and rounds to 1 decimal', () => {
+    const result = mapHeartRateRecord(
+      hrRecord([
+        { time: '2026-08-03T06:00:00.000Z', beatsPerMinute: 60 },
+        { time: '2026-08-03T06:01:00.000Z', beatsPerMinute: 61 },
+        { time: '2026-08-03T06:02:00.000Z', beatsPerMinute: 60 },
+      ]),
+      CTX,
+    );
+    expect(result).not.toBeNull();
+    expect(result!.metricType).toBe('heart_rate_summary');
+    expect(result!.value).toBeCloseTo(60.3, 5);
+    expect(result!.unit).toBe('bpm');
+  });
+});
+
+// ─── GOOGLE_HRV_METHOD invariant (moved out of a module-load throw — see mapRecords.ts) ─
+
+describe('GOOGLE_HRV_METHOD invariant', () => {
+  it('health-core still declares rmssd for google_health — this adapter hardcodes that assumption without re-deriving it', () => {
+    // mapRecords.ts used to throw at import time if this ever drifted.
+    // That's a production landmine (crashes on import, not on use); the
+    // invariant now lives here instead, where a failure is a clear,
+    // catchable test failure rather than an app-wide crash.
+    expect(HRV_METHOD_BY_PROVIDER.google_health).toBe('rmssd');
   });
 });
 

@@ -47,12 +47,22 @@ interface HcRecordBase {
  * Health Connect `SleepSessionRecord.Stage` type ints
  * (androidx.health.connect.client.records.SleepSessionRecord):
  *   0 unknown · 1 awake · 2 sleeping (undifferentiated) · 3 out of bed ·
- *   4 light · 5 deep · 6 REM.
- * Stage 7 (awake-in-bed) exists in newer HC releases and is deliberately
- * left unmapped here — see mapRecords.ts's stage table comment for the
- * honest fallback behavior.
+ *   4 light · 5 deep · 6 REM · 7 awake-in-bed (STAGE_TYPE_AWAKE_IN_BED,
+ *   added in a later HC release than the original 0–6 set).
+ *
+ * Deliberately typed as `number`, NOT a closed 0|1|...|6 literal union.
+ * That literal union was a lie the moment HC shipped stage 7 — a native
+ * bridge delivers whatever int the installed HC provider defines, which
+ * Google can extend at any time, and a closed union here would either
+ * (a) silently mis-narrow real values via an unsound cast at the native
+ * boundary, or (b) make it impossible to even write a test for an
+ * unrecognized stage. mapRecords.ts's stage table already documented
+ * "falls back to 'unspecified' for anything unmapped, including stage 7"
+ * as the intended runtime behavior — this type just stops lying about
+ * what inputs are possible. See mapRecords.ts's HC_SLEEP_STAGE_MAP comment
+ * for the honest fallback behavior.
  */
-export type HcSleepStageType = 0 | 1 | 2 | 3 | 4 | 5 | 6;
+export type HcSleepStageType = number;
 
 export interface HcSleepStage {
   startTime: string; // ISO-8601 UTC

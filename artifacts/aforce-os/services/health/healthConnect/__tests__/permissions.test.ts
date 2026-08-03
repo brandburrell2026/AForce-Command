@@ -54,7 +54,7 @@ describe('buildHealthConnectPermissions', () => {
 });
 
 describe('resolvePermissionGrant — Health Connect partial-grant honesty', () => {
-  it('splits requested permissions into granted/denied with indeterminate always empty', () => {
+  it('splits requested permissions into granted/denied with notRequested always empty once hasRequested is true', () => {
     const requested = [
       'android.permission.health.READ_SLEEP',
       'android.permission.health.READ_STEPS',
@@ -62,24 +62,47 @@ describe('resolvePermissionGrant — Health Connect partial-grant honesty', () =
     ] as const;
     const granted = ['android.permission.health.READ_SLEEP'] as const;
 
-    const result = resolvePermissionGrant(requested, granted);
+    const result = resolvePermissionGrant(requested, granted, true);
     expect(result.granted).toEqual(['android.permission.health.READ_SLEEP']);
     expect(result.denied).toEqual([
       'android.permission.health.READ_STEPS',
       'android.permission.health.READ_HEART_RATE_VARIABILITY',
     ]);
-    // The defining difference from the Apple/HealthKit lane: HC grants are
-    // explicit, so nothing is ever ambiguous.
-    expect(result.indeterminate).toEqual([]);
+    // The defining difference from the Apple/HealthKit lane: once actually
+    // requested, HC grants are explicit, so nothing is ever ambiguous.
+    expect(result.notRequested).toEqual([]);
   });
 
-  it('a full grant leaves denied empty; a full denial leaves granted empty — both still indeterminate: []', () => {
+  it('a full grant leaves denied empty; a full denial leaves granted empty — both still notRequested: []', () => {
     const requested = ['android.permission.health.READ_STEPS'] as const;
 
-    const fullGrant = resolvePermissionGrant(requested, requested);
-    expect(fullGrant).toEqual({ granted: [...requested], denied: [], indeterminate: [] });
+    const fullGrant = resolvePermissionGrant(requested, requested, true);
+    expect(fullGrant).toEqual({ granted: [...requested], denied: [], notRequested: [] });
 
-    const fullDenial = resolvePermissionGrant(requested, []);
-    expect(fullDenial).toEqual({ granted: [], denied: [...requested], indeterminate: [] });
+    const fullDenial = resolvePermissionGrant(requested, [], true);
+    expect(fullDenial).toEqual({ granted: [], denied: [...requested], notRequested: [] });
+  });
+
+  it('never-requested ≠ denied: hasRequested false puts everything in notRequested, even if it happens to be in the granted set', () => {
+    const requested = [
+      'android.permission.health.READ_SLEEP',
+      'android.permission.health.READ_STEPS',
+    ] as const;
+    // Even if the OS-reported granted set is non-empty (e.g. stale from a
+    // prior, unrelated request), hasRequested:false means WE never asked
+    // for these specific permissions — they must not read as denied.
+    const result = resolvePermissionGrant(requested, ['android.permission.health.READ_SLEEP'], false);
+    expect(result).toEqual({
+      granted: [],
+      denied: [],
+      notRequested: [...requested],
+    });
+  });
+
+  it('a fresh install (empty granted set, hasRequested false) is notRequested, not a wall of denials', () => {
+    const requested = ['android.permission.health.READ_STEPS'] as const;
+    const result = resolvePermissionGrant(requested, [], false);
+    expect(result.denied).toEqual([]);
+    expect(result.notRequested).toEqual([...requested]);
   });
 });
