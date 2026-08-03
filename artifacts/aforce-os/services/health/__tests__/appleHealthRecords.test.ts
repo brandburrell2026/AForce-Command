@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { dedupeRecords } from '@workspace/health-core';
+import { dedupeRecords, resolveOriginForAggregator } from '@workspace/health-core';
 
 import {
   mapSleepSamplesToRecords,
@@ -179,6 +179,33 @@ describe('mapSleepSamplesToRecords', () => {
       { provider: 'apple_health', transport: 'aggregator_export' },
     ]);
     expect(records[0].originalSource).toBe('com.aforce.os');
+  });
+
+  it("com.apple.Health (the real Health.app bundle id, capital H) resolves single-hop first-party apple_health — matching health-core's canonical policy", () => {
+    // Regression pin for a real divergence found when this adapter's
+    // first-party check was migrated onto health-core's shared
+    // resolveOriginForAggregator: the old LOCAL allow-list here only knew
+    // the lowercase 'com.apple.health' stem (the device-sample prefix), and
+    // never recognized 'com.apple.Health' — the Health app's OWN bundle id
+    // per lib/health-core/src/dedupe.ts's AGGREGATOR_FIRST_PARTY_ORIGINS.
+    // That meant the actual Health app bundle id would have been misfiled
+    // as unknown_device_app + an aggregator hop. The helper is canonical;
+    // this pins the corrected (single-hop, first-party) outcome.
+    const records = mapSleepSamplesToRecords(
+      [
+        {
+          value: 1,
+          startDate: '2026-08-02T23:00:00.000Z',
+          endDate: '2026-08-03T06:00:00.000Z',
+          sourceRevision: { source: { bundleIdentifier: 'com.apple.Health' } },
+        },
+      ],
+      { userId: USER_ID, syncedAt: SYNCED_AT },
+    );
+    expect(records).toHaveLength(1);
+    expect(records[0].provenanceChain).toEqual([
+      { provider: 'apple_health', nativeOrigin: 'com.apple.Health', transport: 'measured' },
+    ]);
   });
 
   it('inBedHours is null (not derived from asleep+awake) when no explicit inBed(0) sample is present', () => {
@@ -442,4 +469,74 @@ describe('resolvePartialAppleHealthAuthorization', () => {
     });
     expect(result).toEqual({ granted: [], denied: [], indeterminate: ['HKQuantityTypeIdentifierDietaryWater'] });
   });
+});
+
+// ─── Cross-platform origin-resolution parity (Apple side) ────────────────────
+//
+// This adapter no longer implements its own first-party-origin policy — it
+// delegates hop-0 resolution to health-core's resolveOriginForAggregator.
+// These tests pin two things:
+//   1. this adapter's REAL output (via mapSleepSamplesToRecords) matches
+//      what the canonical helper says for 'apple_health', proving genuine
+//      delegation rather than a reimplementation that happens to agree today.
+//   2. for every input that isn't first-party evidence for EITHER aggregator
+//      (degenerate values, unrecognized junk, and known third-party wearable
+//      ids), 'apple_health' and 'google_health' resolve IDENTICALLY — the
+//      same regression the sibling Health Connect adapter's test file pins
+//      for its own side (see healthConnect/__tests__/mapRecords.test.ts).
+describe('cross-platform origin resolution parity (apple_health adapter)', () => {
+  function hop0Provider(bundleId: string | undefined) {
+    const [record] = mapSleepSamplesToRecords(
+      [
+        {
+          value: 1,
+          startDate: '2026-08-02T23:00:00.000Z',
+          endDate: '2026-08-03T06:00:00.000Z',
+          ...(bundleId !== undefined ? { sourceRevision: { source: { bundleIdentifier: bundleId } } } : {}),
+        },
+      ],
+      { userId: USER_ID, syncedAt: SYNCED_AT },
+    );
+    return record.provenanceChain[0].provider;
+  }
+
+  it('delegates genuinely to resolveOriginForAggregator — adapter output matches the helper for every case', () => {
+    const inputs: (string | undefined)[] = [
+      undefined,
+      'not-a-real-bundle-id',
+      'com.ouraring.oura',
+      'com.sec.android.app.shealth',
+      'com.google.android.apps.fitness',
+      'com.apple.health',
+      'com.apple.Health',
+      'com.aforce.os',
+    ];
+    for (const input of inputs) {
+      expect(hop0Provider(input)).toBe(resolveOriginForAggregator('apple_health', input));
+    }
+  });
+
+  // Degenerate / non-first-party inputs — SAME policy outcome on both
+  // aggregators, since none of these are positive first-party evidence for
+  // either platform. First-party spellings are deliberately excluded here
+  // (they are platform-specific by construction); that asymmetry is covered
+  // by health-core's own aggregatorOrigins.test.ts.
+  const parityInputs: { label: string; input: string | undefined }[] = [
+    { label: 'undefined (no sourceRevision)', input: undefined },
+    { label: 'empty string', input: '' },
+    { label: 'unrecognized junk', input: 'not-a-real-bundle-id' },
+    { label: 'Oura bundle id', input: 'com.ouraring.oura' },
+    { label: 'Samsung package', input: 'com.sec.android.app.shealth' },
+    { label: 'Google Fit package (denylisted)', input: 'com.google.android.apps.fitness' },
+  ];
+
+  for (const { label, input } of parityInputs) {
+    it(`${label} ⇒ identical origin on apple_health and google_health`, () => {
+      const viaApple = resolveOriginForAggregator('apple_health', input);
+      const viaGoogle = resolveOriginForAggregator('google_health', input);
+      expect(viaApple).toBe(viaGoogle);
+      // And this adapter's real behavior matches the shared result too.
+      expect(hop0Provider(input)).toBe(viaApple);
+    });
+  }
 });

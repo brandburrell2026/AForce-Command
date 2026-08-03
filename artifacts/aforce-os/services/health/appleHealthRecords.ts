@@ -16,23 +16,17 @@
  *     every hrv record this module produces is stamped `hrvMethod: 'sdnn'`.
  *     There is no code path here that can emit `hrvMethod: 'rmssd'`.
  *   - Provenance is never claimed as first-party unless the sample carries
- *     POSITIVE EVIDENCE of it — an explicit Apple bundle id. `resolveNativeOrigin`
- *     (health-core) only recognizes THIRD-PARTY bundle ids and falls back to
- *     'unknown_device_app' for an absent/unrecognized one; `isFirstPartyBundle`
- *     below does the one extra check health-core deliberately leaves to each
- *     platform bridge — is this bundle id Apple's own? If so, hop0 is
- *     'apple_health' directly; otherwise (including an ABSENT bundle id —
- *     no sourceRevision at all) it defers to `resolveNativeOrigin`, landing
- *     on 'unknown_device_app' hop0 + 'apple_health' aggregator_export hop1.
- *     An absent bundle id is NOT evidence of first-party. Every genuine
- *     HKSample HealthKit hands an app carries a populated sourceRevision —
- *     an app never legitimately sees one missing it, so treating "missing"
- *     as "must be the Watch/first-party" was an unfounded guess, not a
- *     reading of real evidence. If it happens (malformed bridge output,
- *     sloppy test data), the honest default is "we don't know", not "assume
- *     Apple". See `isFirstPartyBundle`'s own doc for the full rationale,
- *     including why `com.aforce.os` (AForce's OWN bundle) is deliberately
- *     NOT in the first-party set despite being AForce's app.
+ *     POSITIVE EVIDENCE of it — an explicit Apple bundle id. Origin
+ *     resolution for hop 0 is delegated entirely to health-core's
+ *     `resolveOriginForAggregator('apple_health', bundleId)`, which is the
+ *     canonical, single source of truth for the aggregator first-party
+ *     policy (see lib/health-core/src/dedupe.ts). An absent bundle id is NOT
+ *     evidence of first-party — every genuine HKSample HealthKit hands an
+ *     app carries a populated sourceRevision, so a missing one resolves to
+ *     'unknown_device_app', never "assume Apple". `com.aforce.os` (AForce's
+ *     OWN bundle) is likewise NOT in health-core's first-party set, so
+ *     AForce writing its own samples back into HealthKit and reading them
+ *     later never self-loops as `apple_health`-measured.
  *   - `syncedAt` is always caller-supplied. No function in this file calls
  *     Date.now() — determinism and testability over convenience.
  *   - `toIsoUtc` returns `null` for an unparseable date instead of throwing.
@@ -45,7 +39,7 @@
 
 import {
   HEALTH_RECORD_SCHEMA_VERSION,
-  resolveNativeOrigin,
+  resolveOriginForAggregator,
   buildDeduplicationKey,
   type CanonicalHealthMetricType,
   type CanonicalHealthRecord,
@@ -116,58 +110,26 @@ export interface MapOptions {
 
 // ─── Provenance resolution ────────────────────────────────────────────────────
 
-/**
- * Apple's own Health/Watch stack writes samples stamped with one of these
- * bundle families. `resolveNativeOrigin` intentionally has no knowledge of
- * these — it only maps THIRD-PARTY bundle ids — so this check must happen
- * before deferring to it.
- *
- * DELIBERATELY DOES NOT INCLUDE `com.aforce.os`. AForce's own app can write
- * samples into HealthKit (e.g. water intake) and later read them back via
- * the same query surface. If we labeled those `apple_health` hop0 with
- * transport 'measured', that's a self-loop: it claims Apple's platform
- * measured a value AForce itself entered, which is exactly the honesty
- * violation `provenanceChain` exists to prevent. `com.aforce.os` is
- * therefore left OUT of this set on purpose, so it falls through to
- * `resolveNativeOrigin` below like any other bundle id health-core doesn't
- * recognize — landing on 'unknown_device_app' hop0 + 'apple_health'
- * aggregator_export hop1. health-core's frozen HealthOriginId union has no
- * dedicated 'self'/'aforce' origin (and this adapter doesn't modify that
- * contract), so 'unknown_device_app' is the honest fallback: it correctly
- * signals "not a recognized wearable, and not first-party Apple either".
- */
-const FIRST_PARTY_BUNDLE_PREFIXES = ['com.apple.health'];
-
-/**
- * True only when `bundleId` carries POSITIVE evidence of being Apple's own
- * bundle. An absent bundle id (`undefined`/empty) is NOT first-party — see
- * file header. Every genuine HKSample HealthKit hands an app has a
- * populated sourceRevision; if this code ever sees one missing, the honest
- * read is "we don't know who produced this", not "must be the Watch".
- */
-function isFirstPartyBundle(bundleId: string | undefined): boolean {
-  if (!bundleId) return false;
-  return FIRST_PARTY_BUNDLE_PREFIXES.some((p) => bundleId === p || bundleId.startsWith(`${p}.`));
-}
-
 function bundleIdOf(sample: { sourceRevision?: HKSourceRevision }): string | undefined {
   return sample.sourceRevision?.source?.bundleIdentifier;
 }
 
 /**
- * hop0 from sourceRevision.bundleIdentifier:
- *   - Apple first-party bundle (positive match) ⇒ single hop, provider
- *     'apple_health', transport 'measured'.
- *   - Everything else — third-party, genuinely unrecognized, ABSENT, or
- *     AForce's own `com.aforce.os` (deliberately excluded from first-party,
- *     see FIRST_PARTY_BUNDLE_PREFIXES) — defers to `resolveNativeOrigin`:
- *     hop0 is that bundle's resolved origin (transport 'measured'; absent/
- *     unrecognized resolves to 'unknown_device_app'), hop1 is
+ * hop0 from sourceRevision.bundleIdentifier, resolved entirely by
+ * health-core's `resolveOriginForAggregator('apple_health', bundleId)` — the
+ * canonical, frozen aggregator first-party policy (dotted-prefix match for
+ * Apple's `com.apple.health`/`com.apple.Health` families; absent/unrecognized/
+ * `com.aforce.os` ⇒ 'unknown_device_app'; see lib/health-core/src/dedupe.ts).
+ *   - Apple first-party origin ⇒ single hop, provider 'apple_health',
+ *     transport 'measured'.
+ *   - Everything else — third-party, genuinely unrecognized, or ABSENT —
+ *     hop0 is the resolved origin (transport 'measured'), hop1 is
  *     'apple_health' (transport 'aggregator_export' — Health re-exported
  *     what the other source produced).
  */
 function resolveAppleHealthProvenance(bundleId: string | undefined): ProvenanceHop[] {
-  if (isFirstPartyBundle(bundleId)) {
+  const origin = resolveOriginForAggregator('apple_health', bundleId);
+  if (origin === 'apple_health') {
     return [
       {
         provider: 'apple_health',
@@ -176,7 +138,6 @@ function resolveAppleHealthProvenance(bundleId: string | undefined): ProvenanceH
       },
     ];
   }
-  const origin = resolveNativeOrigin(bundleId);
   return [
     { provider: origin, ...(bundleId ? { nativeOrigin: bundleId } : {}), transport: 'measured' },
     { provider: 'apple_health', transport: 'aggregator_export' },

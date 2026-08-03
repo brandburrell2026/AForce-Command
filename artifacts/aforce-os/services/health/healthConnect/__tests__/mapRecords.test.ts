@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { dedupeRecords, HRV_METHOD_BY_PROVIDER } from '@workspace/health-core';
+import { dedupeRecords, HRV_METHOD_BY_PROVIDER, resolveOriginForAggregator } from '@workspace/health-core';
 import {
   mapSleepSessionRecord,
   mapSleepStages,
@@ -69,20 +69,39 @@ describe('provenance chain — Samsung origin (via Health Connect)', () => {
 });
 
 describe('provenance chain — first-party google_health record', () => {
-  it.each(['com.google.android.apps.fitness', 'com.google.android.apps.healthdata'])(
-    'package %s resolves to a single google_health hop, transport measured',
-    (packageName) => {
-      const stages: HcSleepStage[] = [
-        { startTime: '2026-08-03T02:00:00.000Z', endTime: '2026-08-03T09:00:00.000Z', stage: 5 },
-      ];
-      const record = sleepRecord(packageName, stages);
-      const mapped = mapSleepSessionRecord(record, CTX);
-      expect(mapped.provenanceChain).toEqual([
-        { provider: 'google_health', nativeOrigin: packageName, transport: 'measured' },
-      ]);
-      expect(mapped.provenanceChain).toHaveLength(1);
-    },
-  );
+  it('the Health Connect app package resolves to a single google_health hop, transport measured', () => {
+    const stages: HcSleepStage[] = [
+      { startTime: '2026-08-03T02:00:00.000Z', endTime: '2026-08-03T09:00:00.000Z', stage: 5 },
+    ];
+    const record = sleepRecord('com.google.android.apps.healthdata', stages);
+    const mapped = mapSleepSessionRecord(record, CTX);
+    expect(mapped.provenanceChain).toEqual([
+      { provider: 'google_health', nativeOrigin: 'com.google.android.apps.healthdata', transport: 'measured' },
+    ]);
+    expect(mapped.provenanceChain).toHaveLength(1);
+  });
+
+  it('Google Fit is DENYLISTED, not first-party — resolves to unknown_device_app with the aggregator hop intact', () => {
+    // Regression pin for a real divergence found when this adapter's
+    // first-party check was migrated onto health-core's shared
+    // resolveOriginForAggregator: the old LOCAL allow-list here
+    // (GOOGLE_FIRST_PARTY_PACKAGES) treated 'com.google.android.apps.fitness'
+    // (Google Fit) as first-party google_health, alongside the real Health
+    // Connect app package. That was a real defect — health-core's
+    // AGGREGATOR_NEVER_FIRST_PARTY guard exists specifically because Fit is a
+    // separate consumer app writing phone-estimated data INTO Health
+    // Connect, not Health Connect itself (see lib/health-core/src/dedupe.ts).
+    // The helper is canonical; this pins the corrected outcome.
+    const stages: HcSleepStage[] = [
+      { startTime: '2026-08-03T02:00:00.000Z', endTime: '2026-08-03T09:00:00.000Z', stage: 5 },
+    ];
+    const record = sleepRecord('com.google.android.apps.fitness', stages);
+    const mapped = mapSleepSessionRecord(record, CTX);
+    expect(mapped.provenanceChain).toEqual([
+      { provider: 'unknown_device_app', nativeOrigin: 'com.google.android.apps.fitness', transport: 'measured' },
+      { provider: 'google_health', transport: 'aggregator_export' },
+    ]);
+  });
 });
 
 describe('provenance chain — unrecognized package', () => {
@@ -253,4 +272,58 @@ describe('deduplicationKey', () => {
     const mapped = mapSleepSessionRecord(sleepRecord('com.sec.android.app.shealth', stages), CTX);
     expect(mapped.deduplicationKey).toBe('user_1|sleep_session|samsung_health|ext:hc_sleep_1');
   });
+});
+
+// ─── Cross-platform origin-resolution parity (Health Connect side) ───────────
+//
+// This adapter no longer implements its own first-party-origin policy — it
+// delegates hop-0 resolution to health-core's resolveOriginForAggregator.
+// These tests pin two things:
+//   1. this adapter's REAL output (via resolveHealthConnectOrigin) matches
+//      what the canonical helper says for 'google_health', proving genuine
+//      delegation rather than a reimplementation that happens to agree today.
+//   2. for every input that isn't first-party evidence for EITHER aggregator
+//      (degenerate values, unrecognized junk, and known third-party wearable
+//      ids), 'apple_health' and 'google_health' resolve IDENTICALLY — the
+//      same regression the sibling Apple adapter's test file pins for its
+//      own side (see __tests__/appleHealthRecords.test.ts).
+describe('cross-platform origin resolution parity (google_health adapter)', () => {
+  it('delegates genuinely to resolveOriginForAggregator — adapter output matches the helper for every case', () => {
+    const inputs = [
+      '',
+      'not-a-real-package-id',
+      'com.ouraring.oura',
+      'com.sec.android.app.shealth',
+      'com.google.android.apps.fitness',
+      'com.google.android.apps.healthdata',
+    ];
+    for (const input of inputs) {
+      expect(resolveHealthConnectOrigin({ packageName: input })).toBe(
+        resolveOriginForAggregator('google_health', input),
+      );
+    }
+  });
+
+  // Degenerate / non-first-party inputs — SAME policy outcome on both
+  // aggregators, since none of these are positive first-party evidence for
+  // either platform. First-party spellings are deliberately excluded here
+  // (they are platform-specific by construction); that asymmetry is covered
+  // by health-core's own aggregatorOrigins.test.ts.
+  const parityInputs: { label: string; input: string }[] = [
+    { label: 'empty string', input: '' },
+    { label: 'unrecognized junk', input: 'not-a-real-package-id' },
+    { label: 'Oura bundle id', input: 'com.ouraring.oura' },
+    { label: 'Samsung package', input: 'com.sec.android.app.shealth' },
+    { label: 'Google Fit package (denylisted)', input: 'com.google.android.apps.fitness' },
+  ];
+
+  for (const { label, input } of parityInputs) {
+    it(`${label} ⇒ identical origin on apple_health and google_health`, () => {
+      const viaApple = resolveOriginForAggregator('apple_health', input);
+      const viaGoogle = resolveOriginForAggregator('google_health', input);
+      expect(viaApple).toBe(viaGoogle);
+      // And this adapter's real behavior matches the shared result too.
+      expect(resolveHealthConnectOrigin({ packageName: input })).toBe(viaGoogle);
+    });
+  }
 });
