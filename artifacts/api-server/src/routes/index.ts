@@ -11,6 +11,10 @@ import cruiseRouter from "./cruise";
 import battlesRouter from "./battles";
 import circleRouter from "./circle";
 import privacyRouter from "./privacy";
+import {
+  buildAccountDeletionRouter,
+  buildDefaultAccountDeletionDeps,
+} from "./accountDeletion";
 import voiceTtsRouter from "./voiceTts";
 import designTokensRouter from "./designTokens";
 import referralsRouter from "./referrals";
@@ -89,6 +93,14 @@ router.use("/aforce/profile", profileRouter);
 router.use("/battles", battlesRouter);
 router.use("/circle", circleRouter);
 router.use("/privacy", privacyRouter);
+// Lane F5 (privacy/disconnect/deletion enforcement): the only mount this
+// lane adds to this file. Always mounted (unlike the provider OAuth
+// gates below) — account-level health-data deletion is not conditional
+// on any provider's credentials being configured.
+router.use(
+  "/account",
+  buildAccountDeletionRouter(buildDefaultAccountDeletionDeps(db, logger)),
+);
 router.use(voiceTtsRouter);
 router.use(designTokensRouter);
 router.use("/referrals", referralsRouter);
