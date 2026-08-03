@@ -19,8 +19,9 @@
  *       consumer/presentation code).
  *
  * HEURISTIC — how a string literal is judged "suspicious"
- *   A single- or double-quoted string literal (comments stripped first) is
- *   flagged as a possible hardcoded user-facing string when ALL of:
+ *   A single-quoted, double-quoted, or template (backtick) string literal
+ *   (comments stripped first) is flagged as a possible hardcoded user-facing
+ *   string when ALL of:
  *     1. It has at least two whitespace-separated tokens (rules out unit
  *        strings like `'ms'`, `' bpm'`, `'hours'`, single-word enum values
  *        like `'stale'`, `'connected'`, and code identifiers).
@@ -127,8 +128,15 @@ function stripComments(src: string): string {
 
 const KEY_SHAPE = /^[a-z0-9_]+(\.[a-z0-9_]+)+$/;
 const PATH_PREFIX = /^[./@]/;
-const CANONICAL_CONST = /[A-Z][A-Z0-9_]*\s*(:\s*string)?\s*=\s*$/;
-const ERROR_DIAGNOSTIC = /(new\s+[A-Za-z0-9_]*Error\s*\(\s*$|throw\s+new\s+[A-Za-z0-9_]*\s*\(\s*$|\bmessage\s*=\s*$)/;
+// Anchored on the declaration keyword: without it, ANY identifier merely
+// ENDING in a capital run (`probeA`, `hrvSDNN`) exempted its literal.
+const CANONICAL_CONST = /\b(?:export\s+)?(?:const|let|var)\s+[A-Z][A-Z0-9_]*\s*(?::\s*string)?\s*=\s*$/;
+// `message:` (diagnostic-result object property) and `super(` (Error subclass
+// constructor) are exempt alongside `new XxxError(`: this layer's contract
+// maps every error/diagnostic to a closed status enum before any UI, so these
+// strings have no path to a screen (see the file header).
+const ERROR_DIAGNOSTIC =
+  /(new\s+[A-Za-z0-9_]*Error\s*\(\s*$|throw\s+new\s+[A-Za-z0-9_]*\s*\(\s*$|\bsuper\s*\(\s*$|\bmessage\s*[:=]\s*$)/;
 
 function isSuspiciousLiteral(raw: string): boolean {
   const trimmed = raw.trim();
@@ -147,17 +155,24 @@ interface Finding {
   value: string;
 }
 
-function scanFile(absPath: string): Finding[] {
-  const relPath = relative(ROOT, absPath).split('\\').join('/');
-  const raw = readFileSync(absPath, 'utf8');
+function scanSource(raw: string, relPath: string): Finding[] {
   const src = stripComments(raw);
   const allowlist = new Set(PENDING_EXTRACTION_ALLOWLIST[relPath] ?? []);
-  const re = /'((?:[^'\\]|\\.)*)'|"((?:[^"\\]|\\.)*)"/g;
+  // Template literals included: interpolated copy (`Synced ${h}h ago`) is the
+  // natural shape for hardcoded user-facing sentences and was invisible to
+  // the original quoted-only scan.
+  const re = /'((?:[^'\\]|\\.)*)'|"((?:[^"\\]|\\.)*)"|`((?:[^`\\]|\\.)*)`/g;
   const findings: Finding[] = [];
   let m: RegExpExecArray | null;
   while ((m = re.exec(src))) {
-    const val = m[1] ?? m[2] ?? '';
-    if (!isSuspiciousLiteral(val)) continue;
+    const val = m[1] ?? m[2] ?? m[3] ?? '';
+    // For template literals, judge only the STATIC text: blanking `${…}`
+    // holes keeps interpolated sentences flaggable while exempting key
+    // builders (`connected_health.sub_copy.${k}`), composite map keys
+    // (`${a}|${b}`), and template-literal TYPES — their static remainder has
+    // no two-word sentence in it.
+    const judged = m[3] != null ? val.replace(/\$\{[^}]*\}/g, '') : val;
+    if (!isSuspiciousLiteral(judged)) continue;
     const idx = m.index;
     const before = src.slice(Math.max(0, idx - 120), idx).replace(/\n/g, ' ');
     if (CANONICAL_CONST.test(before)) continue;
@@ -168,19 +183,34 @@ function scanFile(absPath: string): Finding[] {
   return findings;
 }
 
-/** Defense-in-depth: raw JSX text nodes (`>Some Words<`) with no `{}` escape. */
-function scanJsxTextNodes(absPath: string): Finding[] {
+function scanFile(absPath: string): Finding[] {
   const relPath = relative(ROOT, absPath).split('\\').join('/');
-  if (extname(absPath) !== '.tsx') return [];
-  const raw = readFileSync(absPath, 'utf8');
+  return scanSource(readFileSync(absPath, 'utf8'), relPath);
+}
+
+/** Defense-in-depth: raw JSX text nodes (`>Some words<`) with no `{}` escape. */
+function scanJsxSource(raw: string, relPath: string): Finding[] {
   const src = stripComments(raw);
-  const re = />([A-Z][a-zA-Z]+(?: [a-zA-Z][a-zA-Z]*)+)</g;
+  // Match ANY brace-free text node, then apply the same capital-start +
+  // two-word gate as the literal scan. The original pattern's inner class
+  // ([a-zA-Z ] only) silently dropped any sentence containing punctuation —
+  // an apostrophe or period defeated the net entirely.
+  const re = />([^<>{}]+)</g;
   const findings: Finding[] = [];
   let m: RegExpExecArray | null;
   while ((m = re.exec(src))) {
-    findings.push({ file: relPath, line: src.slice(0, m.index).split('\n').length, value: m[1] });
+    const text = m[1].trim();
+    if (!/^[A-Z]/.test(text)) continue;
+    if (text.split(/\s+/).filter(Boolean).length < 2) continue;
+    findings.push({ file: relPath, line: src.slice(0, m.index).split('\n').length, value: text });
   }
   return findings;
+}
+
+function scanJsxTextNodes(absPath: string): Finding[] {
+  if (extname(absPath) !== '.tsx') return [];
+  const relPath = relative(ROOT, absPath).split('\\').join('/');
+  return scanJsxSource(readFileSync(absPath, 'utf8'), relPath);
 }
 
 function allScannedFiles(): string[] {
@@ -191,7 +221,9 @@ describe('no new hardcoded user-facing strings in the health consumer layer', ()
   const files = allScannedFiles();
 
   it('scans a non-trivial number of source files (scope sanity check)', () => {
-    expect(files.length).toBeGreaterThanOrEqual(15);
+    // Pinned to the current file count: a DROP below it means the scan's
+    // scope silently narrowed (growth is fine and expected).
+    expect(files.length).toBeGreaterThanOrEqual(17);
   });
 
   for (const file of files) {
@@ -228,6 +260,37 @@ describe('no new hardcoded user-facing strings in the health consumer layer', ()
     expect(isSuspiciousLiteral('ms')).toBe(false); // unit, single word
     expect(isSuspiciousLiteral('stale')).toBe(false); // enum value, single word
     expect(isSuspiciousLiteral('HRV (RMSSD)')).toBe(true); // multi-word, all-caps acronym still counts
+  });
+
+  it('self-test: template literals are scanned (the original scan was blind to backticks)', () => {
+    const src = 'export const staleText = `Your sleep data could not be refreshed right now.`;\n';
+    const findings = scanSource(src, 'services/health/synthetic.ts');
+    expect(findings.map((f) => f.value)).toEqual([
+      'Your sleep data could not be refreshed right now.',
+    ]);
+  });
+
+  it("self-test: JSX text nodes with punctuation are caught (an apostrophe used to defeat the net)", () => {
+    const src = "<Text>Couldn't check your connections</Text>\n";
+    const findings = scanJsxSource(src, 'components/health/Synthetic.tsx');
+    expect(findings.map((f) => f.value)).toEqual(["Couldn't check your connections"]);
+    // Single words, lowercase starts, and interpolations stay exempt.
+    expect(scanJsxSource('<Text>Connected</Text>', 'x.tsx')).toEqual([]);
+    expect(scanJsxSource('<Text>{t("connected_health.header.title")}</Text>', 'x.tsx')).toEqual([]);
+  });
+
+  it('self-test: the canonical-const exemption requires a declaration keyword', () => {
+    // A lone capital-suffixed identifier must NOT exempt its literal…
+    expect(
+      scanSource("const x = probeA = 'Two hardcoded words';\n", 'services/health/synthetic.ts'),
+    ).toHaveLength(1);
+    // …while the documented UPPER_SNAKE constant convention stays exempt.
+    expect(
+      scanSource(
+        "export const SCORE_PROTECTION_LINE = 'Never affects your Hydration Score.';\n",
+        'services/health/synthetic.ts',
+      ),
+    ).toEqual([]);
   });
 
   it('self-test: the allowlist only exempts its exact literal, not the whole file', () => {
