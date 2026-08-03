@@ -2107,6 +2107,16 @@
       "title": "HOW YOUR DATA IS USED",
       "score_protection": "Health data informs Readiness only. It never changes your Hydration Score.",
       "body": "Disconnecting a source stops new data immediately. Historical entries stay attributed to the provider that recorded them."
+    },
+    "revocation": {
+      "confirm_title": "Disconnect {{name}}?",
+      "confirm_body": "This stops new syncing from {{name}} immediately. Historical entries stay attributed to {{name}}.",
+      "confirm_cta": "Disconnect",
+      "confirm_cancel": "Cancel",
+      "succeeded": "Disconnected {{name}}. New syncing has stopped.",
+      "failed": "Couldn't disconnect {{name}} — try again in a moment.",
+      "unsupported": "{{name}} can't be disconnected from here yet. Manage it in its own app or device settings.",
+      "skipped_not_connected": "{{name}} wasn't actually connected — nothing to disconnect."
     }
   }
 }
