@@ -16,6 +16,7 @@ import {
   sleepSignalsForContainer,
   legacySignals,
   canonicalSignals,
+  hrvMetricLabel,
   type SleepSignalsContainerState,
 } from '../sleepSignals';
 import type { ResolveHealthSignalsInput } from '../signalResolution';
@@ -122,9 +123,11 @@ describe('flag ON — canonical selector, multi-provider readings', () => {
     expect(out.chip).toBe('connected');
     expect(out.freshness).toBe('Last night');
     expect(out.providerLabel).toBe('Apple Health');
+    // APPLE_ONLY's HRV is a true SDNN reading (hrvSdnnMs) — the canonical path
+    // must label it as SDNN, never a bare/ambiguous "HRV".
     expect(out.recoveryMetrics).toEqual(
       expect.arrayContaining([
-        { key: 'hrv', label: 'HRV', value: 42, unit: 'ms', real: true },
+        { key: 'hrv', label: 'HRV (SDNN)', value: 42, unit: 'ms', real: true },
         { key: 'resting_hr', label: 'Resting HR', value: 54, unit: ' bpm', real: true },
       ]),
     );
@@ -140,12 +143,36 @@ describe('flag ON — canonical selector, multi-provider readings', () => {
 
   it('WHOOP direct (record plane): HRV now surfaces via the canonical path (previously Apple-only) — sleep stays honestly "waiting"', () => {
     const out = canonicalSignals(stateFrom(WHOOP_DIRECT), FIXED_NOW);
-    expect(out.recoveryMetrics).toEqual([{ key: 'hrv', label: 'HRV', value: 38, unit: 'ms', real: true }]);
+    // WHOOP's HRV is RMSSD (WHOOP_DIRECT fixture: hrvMethod 'rmssd') — a
+    // DIFFERENT statistic, on a different numeric scale, from Apple's SDNN.
+    // Labeling it as bare "HRV" (indistinguishable from the SDNN case above)
+    // would imply the two are the same measurement — they are not.
+    expect(out.recoveryMetrics).toEqual([{ key: 'hrv', label: 'HRV (RMSSD)', value: 38, unit: 'ms', real: true }]);
     // WHOOP is connected (activeDirectProviders) but never produced a sleep
     // reading in this fixture — honestly "waiting", never "connected".
     expect(out.sleepLastNight).toBeNull();
     expect(out.chip).toBe('waiting');
     expect(out.providerLabel).toBeNull();
+  });
+});
+
+// ─── HRV method labeling — never label the wrong statistic, omit when unknown ─
+
+describe('hrvMetricLabel — method-honest label, or an honest omission', () => {
+  it('rmssd ⇒ "HRV (RMSSD)"', () => {
+    expect(hrvMetricLabel('rmssd')).toBe('HRV (RMSSD)');
+  });
+
+  it('sdnn ⇒ "HRV (SDNN)"', () => {
+    expect(hrvMetricLabel('sdnn')).toBe('HRV (SDNN)');
+  });
+
+  it('unknown/undefined method ⇒ omits the method-specific interpretation entirely, never guesses', () => {
+    expect(hrvMetricLabel(undefined)).toBe('HRV');
+    // A malformed/unrecognized method string (defensive — today's contract
+    // never produces one on an available reading) must NOT fall through to
+    // either real method label.
+    expect(hrvMetricLabel('unknown' as unknown as Parameters<typeof hrvMetricLabel>[0])).toBe('HRV');
   });
 });
 
