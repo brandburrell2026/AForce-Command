@@ -20,7 +20,6 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 import {
-  Modal,
   View,
   Text,
   StyleSheet,
@@ -33,6 +32,7 @@ import {
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { useTranslation } from 'react-i18next';
+import { AFModal } from './ui/AFModal';
 import { Icon } from './Icon';
 import { Colors } from '../theme/colors';
 import { DRINK_CATEGORIES, type DrinkCategoryId } from '../data/drinkCatalog';
@@ -196,7 +196,7 @@ export function SmartCaptureModal({ visible, accentColor, onCancel, onLogCorrect
   };
 
   return (
-    <Modal
+    <AFModal
       visible={visible}
       animationType="slide"
       transparent
@@ -250,7 +250,7 @@ export function SmartCaptureModal({ visible, accentColor, onCancel, onLogCorrect
           <Text style={styles.disclaimer}>{DISCLAIMER}</Text>
         </Pressable>
       </Pressable>
-    </Modal>
+    </AFModal>
   );
 }
 

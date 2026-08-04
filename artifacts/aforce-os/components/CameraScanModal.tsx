@@ -11,7 +11,6 @@
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
-  Modal,
   Platform,
   Pressable,
   StyleSheet,
@@ -21,6 +20,7 @@ import {
 import { Icon, type IconName } from './Icon';
 
 import { Colors } from "@/theme/colors";
+import { AFModal } from "@/components/ui/AFModal";
 
 export type CameraScanResult = {
   type: string;
@@ -51,7 +51,7 @@ export function CameraScanModal({ visible, onClose, onScan }: Props) {
   if (Platform.OS === "web") return null;
 
   return (
-    <Modal
+    <AFModal
       visible={visible}
       animationType="slide"
       onRequestClose={onClose}
@@ -60,7 +60,7 @@ export function CameraScanModal({ visible, onClose, onScan }: Props) {
       {/* Mount body ONLY while visible so the camera unmounts between sessions
           and we get a fresh `armed` + permission state on every open. */}
       {visible ? <CameraScanBody onClose={onClose} onScan={onScan} /> : null}
-    </Modal>
+    </AFModal>
   );
 }
 

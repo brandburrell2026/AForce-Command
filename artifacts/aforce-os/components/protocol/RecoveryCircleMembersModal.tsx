@@ -13,7 +13,6 @@
  */
 import React, { useCallback, useEffect, useState } from 'react';
 import {
-  Modal,
   View,
   Text,
   StyleSheet,
@@ -24,6 +23,7 @@ import {
 } from 'react-native';
 
 import { Colors } from '@/theme/colors';
+import { AFModal } from '@/components/ui/AFModal';
 import { Icon } from '@/components/Icon';
 import {
   CIRCLE_MAX,
@@ -101,7 +101,7 @@ export function RecoveryCircleMembersModal({ visible, snapshot, onClose, onChang
   );
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+    <AFModal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <Pressable style={styles.scrim} onPress={onClose}>
         <Pressable style={styles.card} onPress={() => { /* swallow */ }}>
           <View style={styles.header}>
@@ -180,7 +180,7 @@ export function RecoveryCircleMembersModal({ visible, snapshot, onClose, onChang
           )}
         </Pressable>
       </Pressable>
-    </Modal>
+    </AFModal>
   );
 }
 

@@ -34,7 +34,7 @@ import { useReducedMotion } from '@/hooks/useReducedMotion';
 export interface AFModalProps extends ModalProps {
   /** Marks the modal content as an accessibility-modal region. Default true. */
   accessibilityViewIsModal?: boolean;
-  children: React.ReactNode;
+  children?: React.ReactNode;
 }
 
 export function AFModal({

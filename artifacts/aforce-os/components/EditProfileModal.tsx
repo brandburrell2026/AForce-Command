@@ -23,7 +23,6 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  Modal,
   View,
   Text,
   StyleSheet,
@@ -32,6 +31,7 @@ import {
   Platform,
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
+import { AFModal } from './ui/AFModal';
 import { KeyboardAwareScrollViewCompat } from './KeyboardAwareScrollViewCompat';
 import { Icon } from './Icon';
 import { HeightField, WeightField } from './bodyModel';
@@ -264,7 +264,7 @@ export function EditProfileModal({ visible, initialValue, onClose, onSave }: Pro
   };
 
   return (
-    <Modal
+    <AFModal
       visible={visible}
       animationType="slide"
       transparent
@@ -760,7 +760,7 @@ export function EditProfileModal({ visible, initialValue, onClose, onSave }: Pro
           </View>
         </View>
       </View>
-    </Modal>
+    </AFModal>
   );
 }
 

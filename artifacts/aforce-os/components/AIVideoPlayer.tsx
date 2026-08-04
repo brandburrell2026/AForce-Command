@@ -14,8 +14,9 @@
 
 import React from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity, Modal, Platform, Pressable,
+  View, Text, StyleSheet, TouchableOpacity, Platform, Pressable,
 } from 'react-native';
+import { AFModal } from './ui/AFModal';
 import { Icon } from './Icon';
 import * as Haptics from 'expo-haptics';
 import Animated, {
@@ -412,7 +413,7 @@ export function AIVideoPlayer({ video, command, compact = true, timerSeconds, sc
       </Pressable>
 
       {/* Expanded full-screen */}
-      <Modal visible={expanded} transparent animationType="fade" onRequestClose={handleCollapse}>
+      <AFModal visible={expanded} transparent animationType="fade" onRequestClose={handleCollapse}>
         <View style={styles.modalRoot}>
           <View style={styles.modalScrim} />
           <View style={styles.modalContent}>
@@ -455,7 +456,7 @@ export function AIVideoPlayer({ video, command, compact = true, timerSeconds, sc
             </View>
           </View>
         </View>
-      </Modal>
+      </AFModal>
     </>
   );
 }
