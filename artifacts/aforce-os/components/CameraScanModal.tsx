@@ -167,7 +167,11 @@ function CameraScanBody({
       </View>
 
       {!armed && (
-        <Pressable style={styles.rescanBtn} onPress={reArm}>
+        // RC-1 fix: paddingVertical 12 + an 11pt label was a ~38pt-tall
+        // pill — under the 44pt minimum. hitSlop 6 brings the effective
+        // target to ~44-50pt without resizing the visible pill (no color
+        // or copy touched — camera surface is dark-pending-legal).
+        <Pressable style={styles.rescanBtn} onPress={reArm} hitSlop={6}>
           <Icon name="refresh-cw" size={14} color={Colors.text.primary} />
           <Text style={styles.rescanBtnText}>SCAN AGAIN</Text>
         </Pressable>

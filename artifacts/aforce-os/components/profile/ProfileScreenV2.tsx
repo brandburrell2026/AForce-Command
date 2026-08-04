@@ -1511,7 +1511,11 @@ export function ProfileScreenV2() {
                               <Text style={styles.snapshotLabel}>{t('profile.v2.live_apple')}</Text>
                               <Pressable
                                 onPress={() => refreshAppleSnapshot()}
-                                hitSlop={10}
+                                // RC-1 fix: 12pt icon + hitSlop 10 was a ~32pt
+                                // effective target — under the 44pt minimum.
+                                // hitSlop 16 brings it to ~44pt without
+                                // touching the visible icon size.
+                                hitSlop={16}
                                 accessibilityRole="button"
                                 accessibilityLabel={t('profile.v2.refresh_apple_a11y')}
                               >
@@ -2157,6 +2161,12 @@ export function ProfileScreenV2() {
                       <Pressable
                         onPress={() => { void refreshEncStatus(); }}
                         style={styles.encRefreshBtn}
+                        // RC-1 fix: paddingVertical 6 + a 10pt label was a
+                        // ~24pt-tall pill — under the 44pt minimum. hitSlop
+                        // 10 brings the effective target to ~44pt without
+                        // resizing the visible pill.
+                        hitSlop={10}
+                        accessibilityRole="button"
                         accessibilityLabel={t('profile.v2.refresh_enc_a11y')}
                         testID="profile-whoop-encryption-refresh"
                       >
