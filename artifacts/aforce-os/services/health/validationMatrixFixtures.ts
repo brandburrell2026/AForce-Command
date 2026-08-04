@@ -31,7 +31,7 @@
  * conventions (`mkRecord`, `dayMidMs`, `FIXED_NOW`) from
  * `weeklyHealthAggregatesFixtures.ts` rather than re-inventing them.
  */
-import type { HealthProviderId } from '@workspace/health-core';
+import type { CanonicalHealthRecord, HealthProviderId } from '@workspace/health-core';
 import { mkRecord, dayMidMs, HOUR, FIXED_NOW } from './weeklyHealthAggregatesFixtures';
 import type { ResolveHealthSignalsInput } from './signalResolution';
 import type { WeeklyHealthDayInput } from './weeklyHealthAggregates';
@@ -421,3 +421,404 @@ export function buildRevokedMidWeekDayInputs(): WeeklyHealthDayInput[] {
     };
   });
 }
+
+// ─── E. Duplicates never amplify — direct + a GENUINELY deduplicable aggregator
+// copy of the SAME measurement (matching provider-native id, so
+// `buildDeduplicationKey` produces an IDENTICAL key for both records — see
+// `lib/health-core/src/dedupe.ts`'s Pass 1 key-identical collapse, backed up
+// by Pass 2's origin-based aggregator-copy drop). This is deliberately NOT a
+// race of two different measurements (that is `SLEEP_OVERLAP_AND_CROSS_ORIGIN`
+// / the steps cross-provider-race fixtures elsewhere) — both copies here
+// carry the SAME value, because they represent ONE real-world observation
+// delivered twice (once by the origin directly, once re-exported by
+// `apple_health`). Each metric ships a SINGLE-copy input and a TWO-copy
+// (duplicate pair) input built from the identical base record set, so a test
+// can assert the resolved output is EXACTLY equal between them — proving the
+// duplicate adds nothing, not merely "doesn't crash".
+//
+// Provider pairings mirror dedupe.ts's own documented double-count paths:
+// sleep uses Oura-direct + Oura-via-Apple (the file's own worked example);
+// workout uses Garmin-direct + Garmin-via-Apple (path #2, and the FIRST
+// fixture coverage `workout` has ever had in this suite — previously zero);
+// steps uses Oura-direct + Oura-via-Apple again (path #1), on a DIFFERENT
+// metric family from the sleep pair and deliberately distinct from
+// `ALL_FIVE_PROVIDERS_WEEK_RECORDS` day 4's WITHIN-ORIGIN summation case
+// (two distinct apple_health windows, honestly summed) — this is instead two
+// copies of the SAME window/id, which must collapse to ONE, never sum to 2x.
+
+const DUPLICATE_SLEEP_EXTERNAL_ID = 'oura-sleep-dup-1';
+const DUPLICATE_SLEEP_VALUE = { totalSleepHours: 7.4, inBedHours: 7.9, stages: null } as const;
+
+export const DUPLICATE_SLEEP_DIRECT_RECORD: CanonicalHealthRecord = mkRecord({
+  provider: 'oura',
+  metricType: 'sleep_session',
+  value: DUPLICATE_SLEEP_VALUE,
+  observedAtMs: FIXED_NOW - 6 * HOUR,
+  startTimeMs: FIXED_NOW - 14 * HOUR,
+  endTimeMs: FIXED_NOW - 6 * HOUR,
+  externalId: DUPLICATE_SLEEP_EXTERNAL_ID,
+});
+
+/** The SAME Oura sleep session, re-exported through Apple Health — same provider-native id, so `originOf` (hop 0 = oura) and `buildDeduplicationKey` both agree this IS the direct record, not a different one. */
+export const DUPLICATE_SLEEP_RELAYED_RECORD: CanonicalHealthRecord = mkRecord({
+  provider: 'apple_health',
+  metricType: 'sleep_session',
+  value: DUPLICATE_SLEEP_VALUE,
+  observedAtMs: FIXED_NOW - 6 * HOUR,
+  startTimeMs: FIXED_NOW - 14 * HOUR,
+  endTimeMs: FIXED_NOW - 6 * HOUR,
+  externalId: DUPLICATE_SLEEP_EXTERNAL_ID,
+  provenanceChain: [
+    { provider: 'oura', nativeOrigin: 'com.ouraring.oura', transport: 'measured' },
+    { provider: 'apple_health', transport: 'aggregator_export' },
+  ],
+  originalSource: 'com.ouraring.oura',
+});
+
+export const DUPLICATE_SLEEP_SINGLE_INPUT: ResolveHealthSignalsInput = {
+  biometrics: undefined,
+  records: [DUPLICATE_SLEEP_DIRECT_RECORD],
+  activeDirectProviders: new Set<HealthProviderId>(['oura']),
+  connections: undefined,
+  nowMs: FIXED_NOW,
+};
+
+export const DUPLICATE_SLEEP_PAIR_INPUT: ResolveHealthSignalsInput = {
+  ...DUPLICATE_SLEEP_SINGLE_INPUT,
+  records: [DUPLICATE_SLEEP_DIRECT_RECORD, DUPLICATE_SLEEP_RELAYED_RECORD],
+};
+
+const DUPLICATE_WORKOUT_EXTERNAL_ID = 'garmin-workout-dup-1';
+const DUPLICATE_WORKOUT_VALUE = {
+  activityKind: 'run',
+  durationMin: 32,
+  activeEnergyKcal: 210,
+  avgHeartRateBpm: 145,
+} as const;
+
+export const DUPLICATE_WORKOUT_DIRECT_RECORD: CanonicalHealthRecord = mkRecord({
+  provider: 'garmin',
+  metricType: 'workout',
+  value: DUPLICATE_WORKOUT_VALUE,
+  observedAtMs: FIXED_NOW - 4 * HOUR,
+  startTimeMs: FIXED_NOW - 4.5 * HOUR,
+  endTimeMs: FIXED_NOW - 4 * HOUR,
+  externalId: DUPLICATE_WORKOUT_EXTERNAL_ID,
+});
+
+/** The SAME Garmin activity, re-exported through Apple Health (dedupe.ts's documented path #2). */
+export const DUPLICATE_WORKOUT_RELAYED_RECORD: CanonicalHealthRecord = mkRecord({
+  provider: 'apple_health',
+  metricType: 'workout',
+  value: DUPLICATE_WORKOUT_VALUE,
+  observedAtMs: FIXED_NOW - 4 * HOUR,
+  startTimeMs: FIXED_NOW - 4.5 * HOUR,
+  endTimeMs: FIXED_NOW - 4 * HOUR,
+  externalId: DUPLICATE_WORKOUT_EXTERNAL_ID,
+  provenanceChain: [
+    { provider: 'garmin', nativeOrigin: 'com.garmin.connect.mobile', transport: 'measured' },
+    { provider: 'apple_health', transport: 'aggregator_export' },
+  ],
+  originalSource: 'com.garmin.connect.mobile',
+});
+
+export const DUPLICATE_WORKOUT_SINGLE_INPUT: ResolveHealthSignalsInput = {
+  biometrics: undefined,
+  records: [DUPLICATE_WORKOUT_DIRECT_RECORD],
+  activeDirectProviders: new Set<HealthProviderId>(['garmin']),
+  connections: undefined,
+  nowMs: FIXED_NOW,
+};
+
+export const DUPLICATE_WORKOUT_PAIR_INPUT: ResolveHealthSignalsInput = {
+  ...DUPLICATE_WORKOUT_SINGLE_INPUT,
+  records: [DUPLICATE_WORKOUT_DIRECT_RECORD, DUPLICATE_WORKOUT_RELAYED_RECORD],
+};
+
+const DUPLICATE_STEPS_EXTERNAL_ID = 'oura-steps-dup-1';
+const DUPLICATE_STEPS_VALUE = 6200;
+
+export const DUPLICATE_STEPS_DIRECT_RECORD: CanonicalHealthRecord = mkRecord({
+  provider: 'oura',
+  metricType: 'steps',
+  value: DUPLICATE_STEPS_VALUE,
+  observedAtMs: FIXED_NOW - 2 * HOUR,
+  externalId: DUPLICATE_STEPS_EXTERNAL_ID,
+});
+
+/** The SAME Oura step total, re-exported through Apple Health. NOT the within-origin-summation case (see `ALL_FIVE_PROVIDERS_WEEK_RECORDS` day 4) — this is one measurement, twice. */
+export const DUPLICATE_STEPS_RELAYED_RECORD: CanonicalHealthRecord = mkRecord({
+  provider: 'apple_health',
+  metricType: 'steps',
+  value: DUPLICATE_STEPS_VALUE,
+  observedAtMs: FIXED_NOW - 2 * HOUR,
+  externalId: DUPLICATE_STEPS_EXTERNAL_ID,
+  provenanceChain: [
+    { provider: 'oura', nativeOrigin: 'com.ouraring.oura', transport: 'measured' },
+    { provider: 'apple_health', transport: 'aggregator_export' },
+  ],
+  originalSource: 'com.ouraring.oura',
+});
+
+export const DUPLICATE_STEPS_SINGLE_INPUT: ResolveHealthSignalsInput = {
+  biometrics: undefined,
+  records: [DUPLICATE_STEPS_DIRECT_RECORD],
+  activeDirectProviders: new Set<HealthProviderId>(['oura']),
+  connections: undefined,
+  nowMs: FIXED_NOW,
+};
+
+export const DUPLICATE_STEPS_PAIR_INPUT: ResolveHealthSignalsInput = {
+  ...DUPLICATE_STEPS_SINGLE_INPUT,
+  records: [DUPLICATE_STEPS_DIRECT_RECORD, DUPLICATE_STEPS_RELAYED_RECORD],
+};
+
+// ─── E2. The same three duplicate pairs, placed inside a full 7-day week ────
+// Proves the "N copies == 1 copy" invariant survives `buildWeeklyHealthAggregates`'s
+// own dedup-once-BEFORE-bucketing pipeline (file header's DEDUP ASSUMPTION) —
+// not merely a single `resolveHealthSignals` call, and NOT merely a
+// same-instant duplicate that `resolveHealthSignals`'s OWN per-bucket dedup
+// would catch anyway regardless of the weekly module's own pre-pass. To make
+// this genuinely load-bearing for `buildWeeklyHealthAggregates`'s "ONE dedupe
+// pass over the full, un-bucketed week, THEN bucket" design (as opposed to
+// redundant with per-bucket dedup), the relayed copy is placed in the NEXT
+// calendar day (index 4) from the direct copy (index 3) — a realistic
+// aggregator-relay delivery skew across a local-midnight boundary. Matching
+// `externalId` (not matching time) is what identifies these as one real
+// measurement (see dedupe.ts's key-identical Pass 1), so the top-level dedup
+// must collapse them BEFORE bucketing, keeping only the direct copy's own
+// day (3). If that top-level pass were skipped, bucketing would split the
+// two raw copies into DIFFERENT day buckets first — and since each bucket
+// then gets its OWN separate `resolveHealthSignals` call (which only ever
+// sees its own bucket's records), the per-bucket dedup could no longer see
+// them together at all, and day 4 would falsely show a second, phantom
+// covered day. See the mutation-verification note in the PR description for
+// the targeted, reverted `buildWeeklyHealthAggregates` mutation that
+// reproduces exactly this failure and confirms this fixture actually
+// exercises the module's own pre-pass, not just `resolveHealthSignals`'s.
+
+const WEEK_DUP_DIRECT_DAY_INDEX = 3;
+const WEEK_DUP_RELAYED_DAY_INDEX = 4;
+
+export const DUPLICATE_SLEEP_WEEK_SINGLE_RECORDS: CanonicalHealthRecord[] = [
+  mkRecord({
+    provider: 'oura',
+    metricType: 'sleep_session',
+    value: DUPLICATE_SLEEP_VALUE,
+    observedAtMs: dayMidMs(WEEK_DUP_DIRECT_DAY_INDEX),
+    startTimeMs: dayMidMs(WEEK_DUP_DIRECT_DAY_INDEX) - 8 * HOUR,
+    endTimeMs: dayMidMs(WEEK_DUP_DIRECT_DAY_INDEX),
+    externalId: 'oura-sleep-week-dup',
+  }),
+];
+export const DUPLICATE_SLEEP_WEEK_PAIR_RECORDS: CanonicalHealthRecord[] = [
+  ...DUPLICATE_SLEEP_WEEK_SINGLE_RECORDS,
+  mkRecord({
+    provider: 'apple_health',
+    metricType: 'sleep_session',
+    value: DUPLICATE_SLEEP_VALUE,
+    observedAtMs: dayMidMs(WEEK_DUP_RELAYED_DAY_INDEX), // relay lands a day later — same reading, matching externalId
+    startTimeMs: dayMidMs(WEEK_DUP_RELAYED_DAY_INDEX) - 8 * HOUR,
+    endTimeMs: dayMidMs(WEEK_DUP_RELAYED_DAY_INDEX),
+    externalId: 'oura-sleep-week-dup',
+    provenanceChain: [
+      { provider: 'oura', nativeOrigin: 'com.ouraring.oura', transport: 'measured' },
+      { provider: 'apple_health', transport: 'aggregator_export' },
+    ],
+    originalSource: 'com.ouraring.oura',
+  }),
+];
+// Deliberately EMPTY — unlike the single-day fixtures above (which set the
+// origin as actively directly connected, matching dedupe.ts's documented
+// aggregator-copy-of-direct convention). An empty set here means Pass 2
+// (origin-based) cannot independently save this fixture from amplifying;
+// ONLY Pass 1's key-identical collapse — which requires both copies to be
+// compared TOGETHER in the SAME `dedupeRecords` call, i.e. BEFORE
+// `buildWeeklyHealthAggregates` buckets them into different days — can. This
+// is what makes the weekly-level test load-bearing for the module's own
+// pre-bucket dedup pass specifically, not merely a restatement of Pass 2
+// (already proven at the single-day level above).
+export const DUPLICATE_SLEEP_WEEK_ACTIVE_DIRECT = new Set<HealthProviderId>();
+
+export const DUPLICATE_WORKOUT_WEEK_SINGLE_RECORDS: CanonicalHealthRecord[] = [
+  mkRecord({
+    provider: 'garmin',
+    metricType: 'workout',
+    value: DUPLICATE_WORKOUT_VALUE,
+    observedAtMs: dayMidMs(WEEK_DUP_DIRECT_DAY_INDEX),
+    startTimeMs: dayMidMs(WEEK_DUP_DIRECT_DAY_INDEX) - 0.5 * HOUR,
+    endTimeMs: dayMidMs(WEEK_DUP_DIRECT_DAY_INDEX),
+    externalId: 'garmin-workout-week-dup',
+  }),
+];
+export const DUPLICATE_WORKOUT_WEEK_PAIR_RECORDS: CanonicalHealthRecord[] = [
+  ...DUPLICATE_WORKOUT_WEEK_SINGLE_RECORDS,
+  mkRecord({
+    provider: 'apple_health',
+    metricType: 'workout',
+    value: DUPLICATE_WORKOUT_VALUE,
+    observedAtMs: dayMidMs(WEEK_DUP_RELAYED_DAY_INDEX),
+    startTimeMs: dayMidMs(WEEK_DUP_RELAYED_DAY_INDEX) - 0.5 * HOUR,
+    endTimeMs: dayMidMs(WEEK_DUP_RELAYED_DAY_INDEX),
+    externalId: 'garmin-workout-week-dup',
+    provenanceChain: [
+      { provider: 'garmin', nativeOrigin: 'com.garmin.connect.mobile', transport: 'measured' },
+      { provider: 'apple_health', transport: 'aggregator_export' },
+    ],
+    originalSource: 'com.garmin.connect.mobile',
+  }),
+];
+// Deliberately EMPTY — see `DUPLICATE_SLEEP_WEEK_ACTIVE_DIRECT`'s comment above.
+export const DUPLICATE_WORKOUT_WEEK_ACTIVE_DIRECT = new Set<HealthProviderId>();
+
+export const DUPLICATE_STEPS_WEEK_SINGLE_RECORDS: CanonicalHealthRecord[] = [
+  mkRecord({
+    provider: 'oura',
+    metricType: 'steps',
+    value: DUPLICATE_STEPS_VALUE,
+    observedAtMs: dayMidMs(WEEK_DUP_DIRECT_DAY_INDEX),
+    externalId: 'oura-steps-week-dup',
+  }),
+];
+export const DUPLICATE_STEPS_WEEK_PAIR_RECORDS: CanonicalHealthRecord[] = [
+  ...DUPLICATE_STEPS_WEEK_SINGLE_RECORDS,
+  mkRecord({
+    provider: 'apple_health',
+    metricType: 'steps',
+    value: DUPLICATE_STEPS_VALUE,
+    observedAtMs: dayMidMs(WEEK_DUP_RELAYED_DAY_INDEX),
+    externalId: 'oura-steps-week-dup',
+    provenanceChain: [
+      { provider: 'oura', nativeOrigin: 'com.ouraring.oura', transport: 'measured' },
+      { provider: 'apple_health', transport: 'aggregator_export' },
+    ],
+    originalSource: 'com.ouraring.oura',
+  }),
+];
+// Deliberately EMPTY — see `DUPLICATE_SLEEP_WEEK_ACTIVE_DIRECT`'s comment above.
+export const DUPLICATE_STEPS_WEEK_ACTIVE_DIRECT = new Set<HealthProviderId>();
+
+// ─── F. Spring-forward DST fed through the real aggregator pipeline ────────
+// `NY_SPRING_FORWARD_WEEK_BOUNDARIES` (above) was, before this fixture,
+// proven correct in isolation (the "ground truth" describe block in
+// `__tests__/validationMatrix.test.ts`) but never actually handed to
+// `buildWeeklyHealthAggregates` — this is that missing feed. Day index 3
+// (Mar 8 → Mar 9) is the real 23h local day. One steps record per day (0-6,
+// distinct values so a mis-bucketed or vanished day changes the mean
+// detectably) plus a boundary-edge record placed EXACTLY at
+// `NY_SPRING_FORWARD_WEEK_BOUNDARIES[4]` (the end of the 23h day) — half-open
+// bucketing means this must land in day 4 (summed with day 4's own apple_health
+// reading, same origin — honest within-origin summation), never in day 3,
+// never in both.
+
+const SF = NY_SPRING_FORWARD_WEEK_BOUNDARIES;
+export const SPRING_FORWARD_WEEK_NOW_MS = dayMidMs(6, SF);
+export const SPRING_FORWARD_STEPS_VALUES = [4000, 4100, 4200, 4300, 4400, 4500, 4600] as const;
+
+export const SPRING_FORWARD_WEEK_RECORDS: CanonicalHealthRecord[] = [
+  ...SPRING_FORWARD_STEPS_VALUES.map((value, dayIndex) =>
+    mkRecord({ provider: 'apple_health', metricType: 'steps', value, observedAtMs: dayMidMs(dayIndex, SF) }),
+  ),
+  // Boundary-edge record: the real day3→day4 instant (end of the 23h day).
+  mkRecord({
+    provider: 'apple_health',
+    metricType: 'steps',
+    value: 999,
+    observedAtMs: SF[4],
+    externalId: 'spring-forward-edge-day3-4',
+  }),
+];
+
+export const SPRING_FORWARD_ACTIVE_DIRECT = new Set<HealthProviderId>(['apple_health']);
+
+// ─── G. Whole-provider revocation — sibling provider stays fully intact ────
+// The user revokes EVERY record type Apple Health is capable of emitting
+// (not just one family, unlike `buildRevokedMidWeekDayInputs`'s single-family
+// mid-week case) while a completely different provider (Oura, direct) is
+// untouched. Proves the revocation is provider-scoped, not global: Apple
+// Health disappears from every family it could have supplied, and Oura's own
+// reading is entirely unaffected by another provider's connection state.
+
+export const WHOLE_PROVIDER_REVOKED_APPLE_SIBLING_OURA_INTACT: ResolveHealthSignalsInput = {
+  biometrics: {
+    apple_health: {
+      providerId: 'apple_health',
+      fetchedAt: FIXED_NOW - 1 * HOUR,
+      // Present in the raw blob but every family must be suppressed below —
+      // proves suppression (not merely absence of data).
+      sleepHoursLastNight: 7.5,
+      restingHeartRate: 50,
+      hrvSdnnMs: 41,
+      stepsToday: 9000,
+      workoutMinutesToday: 40,
+    },
+  },
+  records: [
+    mkRecord({
+      provider: 'oura',
+      metricType: 'sleep_session',
+      value: { totalSleepHours: 6.9, inBedHours: 7.4, stages: null },
+      observedAtMs: FIXED_NOW - 5 * HOUR,
+      startTimeMs: FIXED_NOW - 13 * HOUR,
+      endTimeMs: FIXED_NOW - 5 * HOUR,
+    }),
+  ],
+  activeDirectProviders: new Set<HealthProviderId>(['oura']),
+  connections: {
+    apple_health: {
+      presentationState: 'disconnected',
+      grantedTypes: [],
+      deniedTypes: [
+        'sleep_session',
+        'resting_heart_rate',
+        'hrv',
+        'heart_rate_summary',
+        'workout',
+        'steps',
+        'active_energy',
+        'respiratory_rate',
+      ],
+    },
+  },
+  nowMs: FIXED_NOW,
+};
+
+// ─── H. HC direct + Samsung-via-HC, together — combo 9's missing half ──────
+// `SAMSUNG_VIA_HEALTH_CONNECT_SINGLE_DAY` (above) already proves a Samsung
+// reading relayed through Health Connect is attributed to `samsung_health`,
+// never `google_health`. What it never tests is the OTHER half of the same
+// combo: a genuine Health-Connect-NATIVE reading (Health Connect itself is
+// the origin, hop 0 — not a relay of anything) arriving ALONGSIDE a
+// Samsung-via-HC reading in the same resolution call. Uses two DIFFERENT
+// metric families (steps for the HC-native reading, resting_heart_rate for
+// the Samsung-via-HC reading) so there is no cross-family selection to reason
+// about — the point is purely that both origins stay independently and
+// correctly attributed when both are present together.
+
+export const HC_DIRECT_PLUS_SAMSUNG_VIA_HC: ResolveHealthSignalsInput = {
+  biometrics: undefined,
+  records: [
+    // Health-Connect-native: hop 0 IS google_health (no upstream app authored it).
+    mkRecord({
+      provider: 'google_health',
+      metricType: 'steps',
+      value: 7300,
+      observedAtMs: FIXED_NOW - 1 * HOUR,
+      provenanceChain: [{ provider: 'google_health', nativeOrigin: 'com.google.android.apps.healthdata', transport: 'measured' }],
+    }),
+    mkRecord({
+      provider: 'google_health',
+      metricType: 'resting_heart_rate',
+      value: 55,
+      observedAtMs: FIXED_NOW - 1 * HOUR,
+      provenanceChain: [
+        { provider: 'samsung_health', nativeOrigin: 'com.sec.android.app.shealth', transport: 'measured' },
+        { provider: 'google_health', transport: 'aggregator_export' },
+      ],
+      originalSource: 'com.sec.android.app.shealth',
+    }),
+  ],
+  activeDirectProviders: new Set(),
+  connections: undefined,
+  nowMs: FIXED_NOW,
+};
