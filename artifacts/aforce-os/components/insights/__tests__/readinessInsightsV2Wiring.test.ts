@@ -28,8 +28,13 @@ const SOURCE = readFileSync(join(__dirname, '..', 'ReadinessInsightsV2.tsx'), 'u
 const CODE = SOURCE.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/\/\/.*$/gm, '');
 
 describe('ReadinessInsightsV2 — AFTopBar back + share wiring (RC-1 P0)', () => {
-  it('wires onBack to router.back()', () => {
-    expect(CODE).toMatch(/onBack=\{\(\)\s*=>\s*router\.back\(\)\}/);
+  it('wires onBack to the guarded canGoBack() pattern (RC-1 verdict-pass item 4), matching app/weekly-report.tsx', () => {
+    expect(CODE).toMatch(
+      /onBack=\{\(\)\s*=>\s*\(router\.canGoBack\(\)\s*\?\s*router\.back\(\)\s*:\s*router\.replace\('\/'\)\)\}/,
+    );
+    // The old, unguarded call (a P0 crash risk when there's no back history —
+    // e.g. deep link entry) must not reappear.
+    expect(CODE).not.toMatch(/onBack=\{\(\)\s*=>\s*router\.back\(\)\}/);
   });
 
   it('no longer renders AFTopBar with neither onBack nor actions (the pre-fix bug)', () => {

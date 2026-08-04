@@ -94,6 +94,11 @@ export const afType = {
   // Tracked uppercase micro-label. Spec tracking 0.14–0.18em ≈ 1.6px at 11px.
   eyebrow: { fontFamily: Typography.roles.eyebrow, fontSize: 11, lineHeight: 14, letterSpacing: 1.6 },
   tab: { fontFamily: Typography.fonts.medium, fontSize: 11, lineHeight: 14 },
+  // Bold counterpart to `tab` — small tracked/emphasized inline labels (trend
+  // arrows, verbs, deltas) that need Inter Bold rather than Medium at the
+  // same micro scale. Added for LiveStatusLine's af.* migration (RC-1
+  // Wave-1 r2, item 5) since no existing afType entry covers bold at 11px.
+  microLabel: { fontFamily: Typography.fonts.bold, fontSize: 11, lineHeight: 14 },
 } as const;
 
 // ─── Layout: spacing, radius, sizing (spec §3.3, §4.3) ───────────────────────

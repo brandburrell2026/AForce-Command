@@ -7,20 +7,27 @@
  * Same live engine data as the legacy Home (score, command, signals) — no
  * scoring change (statusColor/scoringEngine untouched).
  *
- * HONEST STATUS (RC-1 audit correction — this comment previously claimed the
- * legacy Home's detail zones were "relocated" into Readiness Insights with
- * "nothing missing"; that was false): the legacy Home's four detail zones —
- * MetabolicReadinessZone, PerformanceAgeZone, VoiceCheckInZone,
- * ActivationJourneyZone (all in components/home/) — are rendered ONLY by
- * HomeScreenLegacy (app/(tabs)/index.tsx), not by this component or by
- * ReadinessInsightsV2. Tapping the arc opens Readiness Insights, which shows
- * a chart + drivers + insight, not those four zones. Today the zones are
- * still reachable because `spec_home` defaults OFF and legacy renders
- * alongside this component — but the moment `spec_home` flips on for good,
- * they become orphaned/unreachable UI with no relocation path defined yet.
- * Actually relocating them (or explicitly retiring them) needs a founder decision
- * before `spec_home` ships as the only Home — this file must not claim that
- * decision has already happened.
+ * HONEST STATUS (RC-1 verdict-pass correction — a prior version of this
+ * comment claimed the legacy Home's four detail zones were "relocated" into
+ * Readiness Insights with "nothing missing," then a later version claimed
+ * they were "still reachable" because `spec_home` defaults OFF; both claims
+ * are false): the legacy Home's four detail zones — MetabolicReadinessZone,
+ * PerformanceAgeZone, VoiceCheckInZone, ActivationJourneyZone (all in
+ * components/home/) — are rendered ONLY by HomeScreenLegacy (defined below
+ * in app/(tabs)/index.tsx). Tapping the arc opens Readiness Insights, which
+ * shows a chart + drivers + insight, not those four zones.
+ *
+ * `featureFlags/flags.ts` sets `spec_home: true` in `DEFAULT_FLAGS` (line
+ * 182 as of this writing), and `app/(tabs)/index.tsx`'s `HomeScreen` is a
+ * ternary — `specHome ? <HomeScreenV2 /> : <HomeScreenLegacy />` — that
+ * renders EITHER this component OR the legacy screen, never both. There is
+ * no code path today where both render "alongside" each other. That means
+ * the four legacy detail zones are ALREADY orphaned/unreachable in today's
+ * default build, not merely "at risk of becoming orphaned" on some future
+ * flag flip. Restoring them (in some form, somewhere) or explicitly retiring
+ * them needs a founder decision — this file must not claim that decision
+ * has already happened, and must not understate that the orphaning has
+ * already occurred.
  *
  * E1 — Elite Home (flag `elite_home_experience_enabled`, default OFF):
  * PRESENTATION-ONLY elevation layered on the exact same data. When the flag is

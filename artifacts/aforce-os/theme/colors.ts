@@ -75,7 +75,25 @@ export const Colors = {
 
   text: {
     primary: '#FFFFFF',
-    secondary: 'rgba(255,255,255,0.55)',
+    // RC-1 verdict-pass correction (Wave-1 r2, item 7): the #530 AA pass
+    // below fixed muted/ghost but left `secondary` at its pre-existing .55,
+    // only .03 above the newly-raised `muted` (.52) — white-on-near-black
+    // alpha blends to a near-identical resulting color across every
+    // background in this file (#0D0D0D/#050508/#0A0A0F/#101018/#141420 all
+    // sit within a few luminance steps of pure black), so at that small an
+    // alpha gap the two are perceptually one color, collapsing the intended
+    // secondary/muted/ghost three-tier emphasis ladder to two tiers. Raised
+    // to .66 to restore clear separation AND improve its own ratio (flat-bg
+    // range, all 5 backgrounds, continuous WCAG relative-luminance math,
+    // same formula as theme/__tests__/afTokens.test.ts):
+    //   secondary .55 -> 6.14-6.26:1   (old)
+    //   secondary .66 -> 8.36-8.77:1   (new — clear gap above muted below)
+    //   muted     .52 -> 5.62-5.69:1   (unchanged)
+    //   ghost     .48 -> 4.95-5.00:1   (see below — also changed this pass)
+    // Worst-case gap secondary-to-muted is now 2.74 (8.36 - 5.62), up from
+    // an effectively-invisible 0.45 (6.14 - 5.69) at the old .55 — the three
+    // tiers now read as three tiers again, not two.
+    secondary: 'rgba(255,255,255,0.66)',
     // muted/ghost were WCAG AA failures (RC-1 audit): white-on-black alpha
     // blends to a near-identical resulting color across every background in
     // this file (#0D0D0D/#050508/#0A0A0F/#101018/#141420 all sit within a few
@@ -85,16 +103,31 @@ export const Colors = {
     // under the 4.5:1 AA floor for body-weight text. Minimum alpha for 4.5:1
     // across all five backgrounds is ~.45; bumped past that with a safety
     // margin (rendering/anti-aliasing variance) while keeping muted below
-    // `secondary` (.55) and ghost below `muted`, preserving the emphasis
+    // `secondary` (now .66) and ghost below `muted`, preserving the emphasis
     // ladder:
-    //   secondary .55 -> 6.14-6.26:1   (unchanged)
-    //   muted     .52 -> 5.28-5.62:1   (was .30 -> 2.53-2.69:1)
-    //   ghost     .46 -> 4.50-4.62:1   (was .18 -> 1.59-1.67:1)
+    //   muted     .52 -> 5.62-5.69:1   (was .30 -> 2.53-2.69:1)
+    //   ghost     .48 -> 4.95-5.00:1   (was .18 -> 1.59-1.67:1; see below re: .46 -> .48)
     // Same precedent as the af.textTertiary bump in afTokens.ts:50-52 —
     // a11y over the exact prior value. Visual-QA note: secondary/muted-role
     // text app-wide reads slightly brighter as a result; see PR body.
+    //
+    // RC-1 verdict-pass correction (Wave-1 r2, item 7): ghost's flat-background
+    // numbers above (4.50-4.62:1 at .46) cleared AA on a bare background, but
+    // ghost is also used on raised/interactive surfaces painted with a
+    // translucent white fill on top — e.g. `surface` (#141420) + `fill.medium`
+    // (rgba(255,255,255,0.05)) — and text sits on the RESULT of that
+    // composite, not the bare surface underneath. Composite math (fill.medium
+    // painted over surface first, producing an effective background of
+    // rgb(31.75, 31.75, 43.15), then ghost's own alpha painted on top of
+    // THAT):
+    //   ghost .46 vs surface+fill.medium composite -> 4.49:1  (FAILS — hair under the 4.5:1 floor)
+    //   ghost .48 vs surface+fill.medium composite -> 4.76:1  (clears AA with margin)
+    // Bumped ghost .46 -> .48 to close that gap; still comfortably below
+    // `muted` (.52) on every flat background (4.95-5.00:1 vs 5.62-5.69:1),
+    // so the emphasis ladder is preserved on top of being AA-clean on both
+    // bare and filled surfaces.
     muted: 'rgba(255,255,255,0.52)',
-    ghost: 'rgba(255,255,255,0.46)',
+    ghost: 'rgba(255,255,255,0.48)',
     inverse: '#000000',
   },
 
