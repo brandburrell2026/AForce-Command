@@ -32,6 +32,7 @@ import {
   Text,
   View,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import Animated, {
   Easing,
   cancelAnimation,
@@ -202,6 +203,7 @@ function PillButton({
 
 // ─── WelcomeHero ─────────────────────────────────────────────────────
 export function WelcomeHero({ active, onGetStarted, onSignIn }: Props) {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   // RC-1 Wave-2A gating fix: this read the OS reduce-motion setting via raw
   // `AccessibilityInfo` polling — one of the three inconsistent ways the app
@@ -243,19 +245,20 @@ export function WelcomeHero({ active, onGetStarted, onSignIn }: Props) {
             numberOfLines={1}
             adjustsFontSizeToFit
           >
-            PERFORMANCE IS NON-NEGOTIABLE
+            {t('welcome.eyebrow')}
           </Text>
         </Reveal>
 
         {/* CENTER — wordmark + tagline, biased just below true center */}
         <View style={styles.centerZone}>
           <Reveal active={active} reduce={reduce} delay={250} dy={8} duration={800}>
+            {/* Brand wordmark — not run through t(), matches every other
+                "AFORCE" wordmark site in the app (see e.g.
+                screens/TerritoryScreen.tsx, components/home/HomeScreenLegacy.tsx). */}
             <Text style={styles.wordmark}>AFORCE</Text>
           </Reveal>
           <Reveal active={active} reduce={reduce} delay={450} dy={8}>
-            <Text style={styles.tagline}>
-              BUILT FOR PEOPLE{'\n'}WHO DON&apos;T GET TO BE OFF
-            </Text>
+            <Text style={styles.tagline}>{t('welcome.tagline')}</Text>
           </Reveal>
         </View>
 
@@ -271,12 +274,12 @@ export function WelcomeHero({ active, onGetStarted, onSignIn }: Props) {
           ]}
         >
           <PillButton
-            label="GET STARTED"
+            label={t('welcome.get_started')}
             variant="primary"
             onPress={onGetStarted}
           />
           <View style={styles.pillGap} />
-          <PillButton label="SIGN IN" variant="secondary" onPress={onSignIn} />
+          <PillButton label={t('welcome.sign_in')} variant="secondary" onPress={onSignIn} />
         </Reveal>
       </View>
     </View>

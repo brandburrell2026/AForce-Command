@@ -48,6 +48,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import Svg, { Path, Defs, RadialGradient, Stop, Rect } from 'react-native-svg';
 import * as Haptics from 'expo-haptics';
+import { useTranslation } from 'react-i18next';
 
 import { Colors } from '@/theme/colors';
 import { Typography } from '@/theme/typography';
@@ -286,11 +287,12 @@ function MonogramHero({
 }
 
 function StageBrand({ active, reduce }: { active: boolean; reduce: boolean }) {
+  const { t } = useTranslation();
   return (
     <StageLayer active={active} reduce={reduce}>
       <View style={styles.center}>
         <Reveal active={active} reduce={reduce} dy={6} duration={700}>
-          <Text style={styles.brandEyebrow}>PERFORMANCE IS</Text>
+          <Text style={styles.brandEyebrow}>{t('opening.brand_eyebrow')}</Text>
         </Reveal>
         <Reveal
           active={active}
@@ -299,6 +301,9 @@ function StageBrand({ active, reduce }: { active: boolean; reduce: boolean }) {
           dy={10}
           duration={900}
         >
+          {/* Brand wordmark — not run through t(), matches every other
+              "AFORCE" wordmark site in the app (see e.g.
+              screens/TerritoryScreen.tsx, components/home/HomeScreenLegacy.tsx). */}
           <Text style={styles.wordmark}>AFORCE</Text>
         </Reveal>
         <Reveal active={active} reduce={reduce} delay={reduce ? 120 : 500} dy={8}>
@@ -311,7 +316,7 @@ function StageBrand({ active, reduce }: { active: boolean; reduce: boolean }) {
             {/* Plain forward-facing text. The scaleX(-1) mirror is isolated to
                 the monogram's right N only (see MonogramHero) — it must NOT leak
                 onto any caption N. */}
-            <Text style={styles.brandCaption}>NON — NEGOTIABLE</Text>
+            <Text style={styles.brandCaption}>{t('opening.brand_caption')}</Text>
             <View style={styles.captionRule} />
           </View>
         </Reveal>
@@ -321,19 +326,23 @@ function StageBrand({ active, reduce }: { active: boolean; reduce: boolean }) {
 }
 
 // ─── Stage 3 — The ritual ────────────────────────────────────────────
-const RITUAL = ['PAUSE', 'HYDRATE', 'LOCK IN', 'PERFORM'];
+// Ordered i18n keys — RITUAL_KEYS.length and the visual sequence (PAUSE →
+// HYDRATE → LOCK IN → PERFORM) must stay in lockstep with opening.ritual_*
+// in locales/*.json.
+const RITUAL_KEYS = ['ritual_pause', 'ritual_hydrate', 'ritual_lock_in', 'ritual_perform'] as const;
 
 function StageRitual({ active, reduce }: { active: boolean; reduce: boolean }) {
+  const { t } = useTranslation();
   const step = reduce ? 90 : 500;
   return (
     <StageLayer active={active} reduce={reduce}>
       <View style={styles.center}>
-        {RITUAL.map((word, i) => (
-          <React.Fragment key={word}>
+        {RITUAL_KEYS.map((key, i) => (
+          <React.Fragment key={key}>
             <Reveal active={active} reduce={reduce} delay={i * step} dy={10}>
-              <Text style={styles.ritualWord}>{word}</Text>
+              <Text style={styles.ritualWord}>{t(`opening.${key}`)}</Text>
             </Reveal>
-            {i < RITUAL.length - 1 && (
+            {i < RITUAL_KEYS.length - 1 && (
               <Reveal
                 active={active}
                 reduce={reduce}
@@ -348,12 +357,12 @@ function StageRitual({ active, reduce }: { active: boolean; reduce: boolean }) {
         <Reveal
           active={active}
           reduce={reduce}
-          delay={RITUAL.length * step + 200}
+          delay={RITUAL_KEYS.length * step + 200}
           dy={8}
           style={styles.ritualFootnoteWrap}
         >
           <Text style={styles.ritualFootnote}>
-            Your Readiness Ritual Starts Now
+            {t('opening.ritual_footnote')}
           </Text>
         </Reveal>
       </View>
@@ -373,6 +382,7 @@ function StageReadiness({
   target: number;
   statusLabel: string;
 }) {
+  const { t } = useTranslation();
   const [count, setCount] = React.useState(0);
   const targetRef = React.useRef(target);
   targetRef.current = target;
@@ -403,7 +413,7 @@ function StageReadiness({
     <StageLayer active={active} reduce={reduce}>
       <View style={styles.center}>
         <Reveal active={active} reduce={reduce} dy={8}>
-          <Text style={styles.readinessEyebrow}>TODAY&apos;S READINESS</Text>
+          <Text style={styles.readinessEyebrow}>{t('opening.readiness_eyebrow')}</Text>
         </Reveal>
         <Reveal active={active} reduce={reduce} delay={120} dy={10}>
           <Text style={styles.readinessNumber}>{count}</Text>
@@ -425,6 +435,7 @@ export function OpeningSequence({
   statusLabel,
   onFinish,
 }: Props) {
+  const { t } = useTranslation();
   const [stage, setStage] = React.useState<Stage>(1);
   const [reduce, setReduce] = React.useState(false);
   const finishedRef = React.useRef(false);
@@ -535,7 +546,7 @@ export function OpeningSequence({
         style={StyleSheet.absoluteFill}
         onPress={onSkip}
         accessibilityRole="button"
-        accessibilityLabel="Skip the opening sequence"
+        accessibilityLabel={t('opening.skip_a11y')}
         testID="opening-skip"
       >
         <StageSymbol active={stage === 1} reduce={reduce} />
@@ -545,7 +556,7 @@ export function OpeningSequence({
           active={stage === 4}
           reduce={reduce}
           target={target}
-          statusLabel={statusLabel ?? 'READY TO PERFORM'}
+          statusLabel={statusLabel ?? t('opening.readiness_default_status')}
         />
 
         <Reveal
@@ -555,7 +566,7 @@ export function OpeningSequence({
           dy={0}
           style={styles.skipHintWrap}
         >
-          <Text style={styles.skipHint}>TAP TO SKIP</Text>
+          <Text style={styles.skipHint}>{t('opening.tap_to_skip')}</Text>
         </Reveal>
       </Pressable>
     </Animated.View>
