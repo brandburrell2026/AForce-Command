@@ -67,4 +67,19 @@ describe('app/(tabs)/ route manifest — no undeclared files (RC-1 fix-forward, 
     const actual = readdirSync(TABS_DIR);
     expect(actual).not.toContain('HomeScreenLegacy.tsx');
   });
+
+  it('contains no subdirectory entries (RC-1 W3P2 carried follow-up, #547 code-review nit b)', () => {
+    // The "EXACTLY the known route file set" guard above filters to files
+    // only (`statSync(...).isFile()`), so a stray subdirectory dropped
+    // under `app/(tabs)/` — e.g. a nested route group, or a component
+    // folder someone assumes is as safe here as `components/home/` —
+    // would pass that guard silently. expo-router treats subdirectories
+    // as route segments too, so this closes the same class of gap the
+    // HomeScreenLegacy.tsx regression above was about, just for directories
+    // instead of files.
+    const subdirectories = readdirSync(TABS_DIR).filter((name) =>
+      statSync(join(TABS_DIR, name)).isDirectory(),
+    );
+    expect(subdirectories).toEqual([]);
+  });
 });
