@@ -12,6 +12,7 @@ import {
   CLERK_PROXY_PATH,
   clerkProxyMiddleware,
 } from "./middlewares/clerkProxyMiddleware";
+import { buildCorsOptions } from "./middlewares/corsPolicy";
 
 const app: Express = express();
 
@@ -68,27 +69,12 @@ app.use("/api", smartCaptureRouter);
 
 // CORS — allowlist driven. In production, set CORS_ALLOWED_ORIGINS to a
 // comma-separated list (e.g. "https://app.example.com,https://example.com").
-// In development, reflect the request origin so Expo web previews work
-// without per-port config. Never reflect arbitrary origins with
-// credentials in production: that's CSRF on a silver platter.
-const CORS_ENV = process.env["CORS_ALLOWED_ORIGINS"];
-const CORS_ALLOWLIST = CORS_ENV
-  ? CORS_ENV.split(",").map((o) => o.trim()).filter(Boolean)
-  : null;
-const IS_PROD_FOR_CORS = process.env["NODE_ENV"] === "production";
-app.use(
-  cors({
-    credentials: true,
-    origin: (origin, cb) => {
-      if (!origin) return cb(null, true); // same-origin / curl / native fetch
-      if (CORS_ALLOWLIST && CORS_ALLOWLIST.length > 0) {
-        return cb(null, CORS_ALLOWLIST.includes(origin));
-      }
-      if (!IS_PROD_FOR_CORS) return cb(null, true);
-      return cb(null, false);
-    },
-  }),
-);
+// Never reflect arbitrary origins with credentials in production: that's
+// CSRF on a silver platter. Outside production, reflecting every origin
+// requires an explicit opt-in (CORS_DEV_REFLECT=1) — see
+// `./middlewares/corsPolicy.ts` for the full threat model and
+// `.env.example` for the local-dev setup line.
+app.use(cors(buildCorsOptions()));
 // Explicit body-size cap. The largest legitimate payload is the
 // UserState snapshot (~12kB); 64kB leaves headroom without letting a
 // malicious client tie up the parser with multi-MB JSON.
