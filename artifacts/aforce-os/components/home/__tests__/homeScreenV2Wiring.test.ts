@@ -51,8 +51,12 @@ describe('HomeScreenV2 — pre-hydration skeleton wiring (RC-1 Wave-2B, item 2a)
     expect(CODE).toContain("import { HomeSkeleton } from './HomeSkeleton';");
   });
 
-  it('reads isHydrated off useAppStore()', () => {
-    expect(CODE).toMatch(/const\s*\{\s*state,\s*selectedVoiceId,\s*isHydrated\s*\}\s*=\s*useAppStore\(\);/);
+  it('reads isHydrated off the sliced bootstrap context (migrated off the useAppStore facade in RC-1 W3P2)', () => {
+    expect(CODE).toMatch(/const\s*\{\s*isHydrated\s*\}\s*=\s*useBootstrapSlice\(\);/);
+  });
+
+  it('never calls the useAppStore() facade (RC-1 W3P2 regression guard — see the render-count harness for the behavioral proof)', () => {
+    expect(CODE).not.toMatch(/useAppStore\(/);
   });
 
   it('renders <HomeSkeleton /> when NOT hydrated, and the real arc/command/tiles otherwise (mutually exclusive)', () => {

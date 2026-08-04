@@ -62,8 +62,8 @@ import {
 } from '@/components/ui';
 import { useRouter } from 'expo-router';
 import { af, afType, AF_MAX_DISPLAY_FONT_SCALE } from '@/theme';
-import { useAppStore, useFeatureFlags } from '@/store/useAppStore';
-import { useEngineSlice, useActionsSlice } from '@/store/slices';
+import { useFeatureFlags } from '@/store/useAppStore';
+import { useEngineSlice, useActionsSlice, useUserSlice, useVoiceSettingsSlice, useBootstrapSlice } from '@/store/slices';
 import { useIntakeOutboxStore, selectPendingCount, selectHasFailedItem } from '@/services/intakeOutbox';
 import { HomeSkeleton } from './HomeSkeleton';
 import { parseEngineActionCopy, parseDoseOz } from '@/utils/recovery/recoveryCommandFromStore';
@@ -149,7 +149,9 @@ function EliteScoreNumber({
 
 export function HomeScreenV2() {
   const { t } = useTranslation();
-  const { state, selectedVoiceId, isHydrated } = useAppStore();
+  const userState = useUserSlice();
+  const { selectedVoiceId } = useVoiceSettingsSlice();
+  const { isHydrated } = useBootstrapSlice();
   const engine = useEngineSlice();
   const flags = useFeatureFlags();
   const { logIntake } = useActionsSlice<HomeActions>();
@@ -165,7 +167,6 @@ export function HomeScreenV2() {
   const outboxPendingCount = flags.offline_intake_outbox_enabled ? selectPendingCount(outboxState) : 0;
   const outboxHasFailedItem = flags.offline_intake_outbox_enabled ? selectHasFailedItem(outboxState) : false;
 
-  const { userState } = state;
   const score = Math.max(0, Math.min(100, Math.round(engine.score)));
   const { title, instruction } = parseEngineActionCopy(engine.command.action);
   const hydrationPct =
