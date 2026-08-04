@@ -134,9 +134,16 @@ already-known and move on.
       not a rendered UI element that has to be interpreted. The Oura consent
       screen (which shows human-readable labels for the granted scopes, not
       the raw scope string, and which Oura controls the wording of, not
-      AForce) is CORROBORATING evidence only — record what it displays, but
-      the scope-param capture is what the verdict rests on. User grants, app
-      transitions to `connected`.
+      AForce) is CORROBORATING evidence — record what it displays; the
+      scope-param capture is what the verdict primarily rests on. However,
+      if the consent screen displays ANY personal-profile-scope language
+      (gender, age, height, weight, or an equivalent "personal info" grant),
+      that is an INDEPENDENT FAIL condition in its own right, not merely a
+      note — fail the run even if the authorize-URL `scope` param itself
+      reads clean, since a personal-scope appearance on the consent screen
+      is evidence the requested scope diverged from `OURA_DEFAULT_SCOPES`
+      somewhere between construction and what Oura actually received. User
+      grants, app transitions to `connected`.
 - [ ] **Cancel** — user backs out of the Oura consent screen or closes the
       in-app browser mid-flow; app does not claim `connected`.
 - [ ] **Partial approval** — N/A if Oura's consent screen is all-or-nothing

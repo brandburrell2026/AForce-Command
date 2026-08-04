@@ -78,14 +78,19 @@ from real-device evidence is not a FAIL.
   categories above (never reproductive health, nutrition, or anything else
   outside this list) — active energy/respiratory absence is the declared
   set getting ahead of the implementation, not a leak; do not fail on it.
-  The `DietaryWater` WRITE request is AForce's OWN hydration-logging write
-  (the app writing water intake back to Health), not a read of provider
-  data — the runbook should list it explicitly as observed, distinct from
-  the read permissions, rather than let it silently trip the "no
-  unrelated-category" rule. **Flagged to the founder to confirm this write
-  is intended** (it is consistent with a hydration app writing its own
-  logged water intake, but has not been explicitly product-confirmed in
-  this program).
+  The `DietaryWater` WRITE request is an UNUSED write scope requested at
+  authorization — over-collection, not a shipped feature. `git grep` for
+  `DietaryWater` across the non-test codebase returns exactly ONE hit, the
+  `toShare: ['HKQuantityTypeIdentifierDietaryWater']` array itself
+  (`appleHealth.ts:92`); no code path anywhere calls a HealthKit save/write
+  API for it. Do not describe this as "AForce's own hydration-logging
+  write" — no such write exists to describe. **Founder decision memo
+  open:** either remove the scope from the authorization request or ship
+  the write feature that would justify asking for it. Until resolved, the
+  runbook should list the permission-sheet WRITE grant explicitly as
+  observed, distinct from the read permissions, rather than let it
+  silently trip the "no unrelated-category" rule — but validators should
+  not describe it as a working feature.
 - **HRV is SDNN, not RMSSD.** Apple's `HKQuantityTypeIdentifierHeartRateVariabilitySDNN`
   is true SDNN (`HRV_METHOD_BY_PROVIDER.apple_health === 'sdnn'` in
   `lib/health-core/src/normalize.ts`) — the only provider in this program
@@ -231,9 +236,12 @@ from real-device evidence is not a FAIL.
       snapshot carries only a `fetchedAt`-equivalent write time, no
       per-metric observation timestamp survives onto the snapshot plane
       (`ProviderSnapshot`, `lib/health-core/src/contracts.ts`). A 5-day-old
-      resting-HR sample synced 10 minutes ago presents as fresh/live; that
-      is shipped behavior across every provider on this plane, not a bug
-      specific to Apple.
+      resting-HR sample synced 10 minutes ago presents as fresh/live; this
+      is shipped behavior across every provider on this plane, product
+      ruling PENDING (founder memo open) on whether sync-recency-as-
+      freshness is the intended long-term behavior — not something specific
+      to Apple. Validators record the observed fresh/stale value here; they
+      do not adjudicate whether that value is "correct."
 - [ ] **No recent data** — same `fetchedAt`-based age exceeding 72h shows
       `no_recent_data`. Same sync-recency caveat as Stale applies.
 - [ ] **Malformed record** — inject (via test harness / simulated HealthKit
