@@ -14,16 +14,23 @@
  *   2. A clean retry afterward completes the entire cascade and leaves
  *      zero rows.
  *
- * `deleteHealthDataTransactional` below is a byte-for-byte structural
- * mirror of `runCascadeInTransaction` inside
- * `buildDefaultAccountDeletionDeps` in
+ * #506 review finding: this test used to exercise
+ * `deleteHealthDataTransactional`, a byte-for-byte structural COPY of
+ * `runCascadeInTransaction` inside `buildDefaultAccountDeletionDeps` in
  * `artifacts/api-server/src/routes/accountDeletion.ts` — duplicated
- * rather than imported because that file lives in the api-server app
- * package, not `@workspace/db`, and this package must not depend on an
- * application that depends on it (same rule `providerCleanup
- * .integration.test.ts` documents for its own mirrored helpers). The
- * fault is a REAL SQL failure (the target table is dropped before the
- * call), not a mocked throw, matching the technique in
+ * because that file used to live in the api-server app package with
+ * the cascade body inlined there, and this package must not depend on
+ * an application that depends on it. That meant the ONLY code path
+ * that runs the cascade atomically in production had ZERO direct test
+ * coverage; this file only ever proved its own copy was correct, and
+ * the two could silently drift. The cascade body now lives once, in
+ * this package, as `runAccountDeletionCascade`
+ * (`./accountDeletionCascade`) — `accountDeletion.ts` imports it for
+ * both its transactional and fallback paths, and this test below now
+ * wraps THAT SAME function in `db.transaction` directly, so this test
+ * proves the real production code path, not a copy of it. The fault is
+ * a REAL SQL failure (the target table is dropped before the call),
+ * not a mocked throw, matching the technique in
  * `profileRepo.rollback.integration.test.ts`.
  *
  * NOT in the fast unit suite — runs only via `pnpm test:integration`
@@ -56,6 +63,10 @@ import { createDrizzleGarminTokenStoreForUser } from '../garminTokenStore';
 import { createDrizzleOuraTokenStoreForUser } from '../ouraTokenStore';
 import { createDrizzleStravaTokenStoreForUser } from '../stravaTokenStore';
 import { createHealthRecordsRepo } from '../healthRecordsRepo';
+import {
+  runAccountDeletionCascade,
+  createAccountDeletionAuthStateDb,
+} from '../accountDeletionCascade';
 import type { CanonicalHealthRecord } from '@workspace/health-core';
 
 const { Pool } = pg;
@@ -317,44 +328,35 @@ async function seedFullAccount(userId: string): Promise<void> {
 }
 
 /**
- * Byte-for-byte structural mirror of `runCascadeInTransaction` inside
- * `buildDefaultAccountDeletionDeps` in
- * `artifacts/api-server/src/routes/accountDeletion.ts` — see this
- * file's module doc for why it's duplicated rather than imported. All
- * four local-data steps run against `tx`, so a failure in the last one
- * (the health-records purge) must roll back the first three too.
+ * Thin wrapper around the REAL `runAccountDeletionCascade`
+ * (`../accountDeletionCascade`) — the same function
+ * `artifacts/api-server/src/routes/accountDeletion.ts` imports for
+ * both its transactional and fallback paths. This is no longer a
+ * hand-maintained structural copy (see this file's module doc): the
+ * only thing this wrapper does is bind the cascade's dependencies to
+ * `tx`, so all four steps enroll in the same transaction and a
+ * failure in the last one (the health-records purge) rolls back the
+ * first three too.
  */
 async function deleteHealthDataTransactional(
   dbx: NodePgDatabase<typeof schema>,
   userId: string,
 ): Promise<{ purged: number }> {
-  return dbx.transaction(async (tx) => {
-    await createDrizzleWhoopTokenStoreForUser(tx, userId).clear();
-    await createDrizzleGarminTokenStoreForUser(tx, userId).clear();
-    await createDrizzleOuraTokenStoreForUser(tx, userId).clear();
-    await createDrizzleStravaTokenStoreForUser(tx, userId).clear();
-
-    await tx
-      .delete(aforceWhoopAuthStates)
-      .where(eq(aforceWhoopAuthStates.userId, userId));
-    await tx
-      .delete(aforceGarminAuthStates)
-      .where(eq(aforceGarminAuthStates.userId, userId));
-    await tx
-      .delete(aforceOuraAuthStates)
-      .where(eq(aforceOuraAuthStates.userId, userId));
-    await tx
-      .delete(aforceStravaAuthStates)
-      .where(eq(aforceStravaAuthStates.userId, userId));
-
-    await tx
-      .update(aforceUserState)
-      .set({ biometrics: null })
-      .where(eq(aforceUserState.userId, userId));
-
-    const purge = await createHealthRecordsRepo(tx).purgeUser(userId);
-    return { purged: purge.purged };
-  });
+  return dbx.transaction((tx) =>
+    runAccountDeletionCascade(
+      {
+        whoopTokenStoreFor: (u) => createDrizzleWhoopTokenStoreForUser(tx, u),
+        garminTokenStoreFor: (u) =>
+          createDrizzleGarminTokenStoreForUser(tx, u),
+        ouraTokenStoreFor: (u) => createDrizzleOuraTokenStoreForUser(tx, u),
+        stravaTokenStoreFor: (u) =>
+          createDrizzleStravaTokenStoreForUser(tx, u),
+        authStateDb: createAccountDeletionAuthStateDb(tx),
+        healthRecordsRepo: createHealthRecordsRepo(tx),
+      },
+      userId,
+    ),
+  );
 }
 
 beforeAll(async () => {
