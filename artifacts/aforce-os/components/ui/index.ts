@@ -47,5 +47,7 @@ export { AFInlineErrorRow, type AFInlineErrorRowProps } from './AFInlineErrorRow
 
 // RC-1 Wave-5 · a11y breadth — composed numeral+label announcement
 export { AFStatPair, type AFStatPairProps } from './AFStatPair';
+// RC-1 Wave-5 · a11y breadth — reduced-motion-aware, modal-region-marked Modal
+export { AFModal, type AFModalProps } from './AFModal';
 
 export * from './afPrimitives.logic';
