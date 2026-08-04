@@ -15,7 +15,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root{
     --ink:#0D0D0D;
@@ -31,7 +31,7 @@
     --b64:rgba(245,240,232,.64);
     --b40:rgba(245,240,232,.40);
     --b14:rgba(245,240,232,.14);
-    --display:'Archivo Black',sans-serif;
+    --display:'Inter',sans-serif;
     --body:'Inter',sans-serif;
     --gutter:clamp(22px,6vw,88px);
     --maxw:1180px;
@@ -67,7 +67,7 @@
   /* ---------- HERO ---------- */
   .hero{ min-height:calc(100svh - 56px); display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:clamp(48px,8vh,96px) var(--gutter) clamp(40px,6vh,72px); position:relative; }
   .hero .eyebrow{ margin-bottom:clamp(22px,3vw,30px); }
-  .hero h1{ font-family:var(--display); font-weight:400; font-size:clamp(38px,7vw,92px); line-height:1.02; letter-spacing:-0.015em; max-width:16ch; }
+  .hero h1{ font-family:var(--display); font-weight:700; font-size:clamp(38px,7vw,92px); line-height:1.02; letter-spacing:-0.015em; max-width:16ch; }
   .hero h1 .accent{ position:relative; white-space:nowrap; }
   .hero h1 .accent::after{ content:''; position:absolute; left:0; right:0; bottom:.06em; height:.07em; background:var(--red); border-radius:2px; }
   .hero .sub{ margin-top:clamp(22px,3vw,32px); font-size:clamp(17px,1.7vw,22px); font-weight:500; color:var(--i64); }
@@ -111,7 +111,7 @@
   /* ---------- WHY ---------- */
   .why{ padding:clamp(80px,12vh,150px) var(--gutter); border-top:1px solid var(--i08); background:var(--paper-2); }
   .why .why-head{ max-width:760px; }
-  .why h2{ font-family:var(--display); font-weight:400; font-size:clamp(30px,4.4vw,58px); line-height:1.05; letter-spacing:-0.01em; margin:18px 0 clamp(26px,3vw,36px); }
+  .why h2{ font-family:var(--display); font-weight:700; font-size:clamp(30px,4.4vw,58px); line-height:1.05; letter-spacing:-0.01em; margin:18px 0 clamp(26px,3vw,36px); }
   .why p{ font-size:clamp(16px,1.4vw,20px); line-height:1.8; color:var(--i64); max-width:64ch; }
   .why p + p{ margin-top:20px; }
   .why p strong{ color:var(--ink); font-weight:600; }
@@ -158,6 +158,8 @@
     .stagger .reveal.in{ transition-delay:0s !important; }
     .btn .arw{ transition:none; }
   }
+  /* Brand N–И monogram stays Archivo Black (logo, not body writing) */
+  .afx-nav .nn, .f-nn, .afx-nav .mark .nn{ font-family:'Archivo Black',serif !important; }
 </style>
 </head>
 <body>

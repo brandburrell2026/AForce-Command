@@ -17,12 +17,12 @@
 -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
   :root{
     --ink:#0D0D0D; --bone:#F5F0E8; --red:#C1281B;
     --bone-64:rgba(245,240,232,.64); --bone-38:rgba(245,240,232,.38); --bone-14:rgba(245,240,232,.14);
-    --display:'Archivo Black',sans-serif; --body:'Inter',sans-serif; --mono:'Space Mono',monospace;
+    --display:'Inter',sans-serif; --body:'Inter',sans-serif; --mono:'Inter',sans-serif;
   }
   *{margin:0;padding:0;box-sizing:border-box;}
   a{color:inherit;text-decoration:none;}
@@ -50,7 +50,7 @@
 
   h1{
     margin-top:22px;
-    font-family:var(--display); font-weight:400; text-transform:uppercase;
+    font-family:var(--display); font-weight:700; text-transform:uppercase;
     font-size:clamp(38px,8vw,86px); line-height:.94; letter-spacing:-.01em; max-width:12ch;
   }
 
@@ -91,6 +91,8 @@
   @media (max-width:520px){
     .manifest .v{ padding-left:14px; }
   }
+  /* Brand N–И monogram stays Archivo Black (logo, not body writing) */
+  .afx-nav .nn, .f-nn, .afx-nav .mark .nn{ font-family:'Archivo Black',serif !important; }
 </style>
 </head>
 <body>
