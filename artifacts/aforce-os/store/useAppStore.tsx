@@ -126,6 +126,7 @@ import {
 } from './app/constants';
 import { buildSyntheticBaselineEntry } from './app/helpers';
 import { useStoreActions } from './app/actions';
+import { useAppStateGatedInterval } from '../hooks/useAppStateGatedInterval';
 
 // Initial render only — engine output is then immediately refreshed via
 // /v1/home from the service layer in an effect (see AppProvider mount).
@@ -224,11 +225,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     return () => setBusSpeakerImpl(null);
   }, []);
 
-  // Live countdown timer (drives recheck)
-  useEffect(() => {
-    const interval = setInterval(() => dispatch({ type: 'TICK_TIMER' }), 1000);
-    return () => clearInterval(interval);
-  }, []);
+  // Live countdown timer (drives recheck). AppState-gated (RC-1 W3P1):
+  // zero dispatches while backgrounded; fires once immediately on
+  // foreground return, then resumes the normal 1s cadence.
+  useAppStateGatedInterval(() => dispatch({ type: 'TICK_TIMER' }), 1000);
 
   // Ref-backed latest snapshot of the full UserState. Long-lived
   // intervals (30s poll, 15min weather) close over `state.userState` at
@@ -402,50 +402,67 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // Periodic /state refresh — keeps the engine output current (decay
   // ticks, weather staleness, etc.) and rehydrates from server in case
   // a WS push was missed.
+  //
+  // Ref-backed "still mounted" guard — was a `cancelled` local inside the
+  // single effect that used to own both the mount-time call AND the
+  // interval; hoisted to a ref (RC-1 W3P1) so the same post-unmount guard
+  // still applies now that the recurring cadence is owned by the
+  // AppState-gated interval below (a separate effect).
+  const stateRefreshMountedRef = useRef(true);
   useEffect(() => {
-    let cancelled = false;
-    const refresh = async () => {
-      const current = userStateRef.current;
-      try {
-        const { engineOutput, userState } = await fetchHome(current);
-        if (cancelled) return;
-        // If server returned a newer state (e.g. from another device or
-        // a fresh weather lookup), adopt it; otherwise just refresh the
-        // engine. We compare a few fields rather than deep-equal to keep
-        // this cheap.
-        const drift =
-          userState.weatherFetchedAt !== current.weatherFetchedAt ||
-          userState.unitsConsumedToday !== current.unitsConsumedToday ||
-          userState.urineSignal !== current.urineSignal ||
-          // Pick up a language change persisted from another device when
-          // the WS push was missed — without this, the Profile picker on
-          // device A would never reach device B until a stronger drift
-          // (intake / weather refresh) triggered the swap.
-          userState.language !== current.language;
-        if (drift) {
-          applyServerUserState(userState, engineOutput);
-        } else {
-          dispatch({ type: 'REFRESH_ENGINE', payload: { engineOutput } });
-        }
-        // We just reached the server successfully — a good moment to drain any
-        // intakes queued while offline. No-op (returns immediately) when the
-        // flag is off or the queue is empty.
-        void flushOutboxRef.current();
-      } catch {
-        // swallow — UI keeps last known engineOutput
-      } finally {
-        // First pass (success or failure) ends the pre-hydration window.
-        // Cheap to call again on every 30s tick — React bails out a
-        // no-op `setState(true)` once already true (Object.is same-value).
-        if (!cancelled) setIsHydrated(true);
+    stateRefreshMountedRef.current = true;
+    return () => { stateRefreshMountedRef.current = false; };
+  }, []);
+
+  const refreshState = useCallback(async () => {
+    const current = userStateRef.current;
+    try {
+      const { engineOutput, userState } = await fetchHome(current);
+      if (!stateRefreshMountedRef.current) return;
+      // If server returned a newer state (e.g. from another device or
+      // a fresh weather lookup), adopt it; otherwise just refresh the
+      // engine. We compare a few fields rather than deep-equal to keep
+      // this cheap.
+      const drift =
+        userState.weatherFetchedAt !== current.weatherFetchedAt ||
+        userState.unitsConsumedToday !== current.unitsConsumedToday ||
+        userState.urineSignal !== current.urineSignal ||
+        // Pick up a language change persisted from another device when
+        // the WS push was missed — without this, the Profile picker on
+        // device A would never reach device B until a stronger drift
+        // (intake / weather refresh) triggered the swap.
+        userState.language !== current.language;
+      if (drift) {
+        applyServerUserState(userState, engineOutput);
+      } else {
+        dispatch({ type: 'REFRESH_ENGINE', payload: { engineOutput } });
       }
-    };
-    refresh();
-    const interval = setInterval(refresh, 30 * 1000); // every 30s
-    return () => { cancelled = true; clearInterval(interval); };
-    // Mount-once timer; reads latest state via userStateRef.
+      // We just reached the server successfully — a good moment to drain any
+      // intakes queued while offline. No-op (returns immediately) when the
+      // flag is off or the queue is empty.
+      void flushOutboxRef.current();
+    } catch {
+      // swallow — UI keeps last known engineOutput
+    } finally {
+      // First pass (success or failure) ends the pre-hydration window.
+      // Cheap to call again on every 30s tick — React bails out a
+      // no-op `setState(true)` once already true (Object.is same-value).
+      if (stateRefreshMountedRef.current) setIsHydrated(true);
+    }
+  }, [applyServerUserState]);
+
+  useEffect(() => {
+    refreshState();
+    // Mount-once immediate call; the recurring 30s cadence is owned by the
+    // AppState-gated interval below.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // AppState-gated (RC-1 W3P1): zero polls while backgrounded; fires once
+  // immediately on foreground return (so a returning user isn't stuck on
+  // state that's up to as-stale-as-the-background-duration), then resumes
+  // the normal 30s cadence.
+  useAppStateGatedInterval(() => { void refreshState(); }, 30 * 1000);
 
   // Flush the offline intake outbox the moment the app returns to the
   // foreground — the most likely point connectivity has been restored. The
@@ -507,25 +524,37 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // safe default (matches the existing climate strip) so we never block
   // the UI on a permission prompt; if expo-location grants real coords
   // later the next tick will use them.
+  //
+  // `lat`/`lon` hoisted to refs (RC-1 W3P1, were plain `let`s closed over by
+  // one effect) purely so the AppState-gated interval — a separate effect
+  // now — can still read whatever coordinates the mount-time geolocation
+  // lookup resolved to. Same "resolve once, reuse forever" behavior as
+  // before: the interval never re-resolves location, only re-fetches
+  // weather for the last-known lat/lon.
+  const weatherLatRef = useRef(39.7392); // Denver default
+  const weatherLonRef = useRef(-104.9903); // Denver default
+  const weatherMountedRef = useRef(true);
+  useEffect(() => {
+    weatherMountedRef.current = true;
+    return () => { weatherMountedRef.current = false; };
+  }, []);
+
+  const weatherTick = useCallback(async (lat: number, lon: number) => {
+    try {
+      // Read latest userState via ref so a tick that fires AFTER a
+      // provider connect / Apple-Health snapshot lands carries those
+      // overlays into the merge, instead of the mount-time closure
+      // that lacked them.
+      const { newUserState, engineOutput } = await refreshWeather(userStateRef.current, lat, lon);
+      if (!weatherMountedRef.current) return;
+      applyServerUserState(newUserState, engineOutput);
+    } catch (err) {
+      console.warn('[AForce] weather refresh failed', err);
+    }
+  }, [applyServerUserState]);
+
   useEffect(() => {
     let cancelled = false;
-    const DEFAULT_LAT = 39.7392;
-    const DEFAULT_LON = -104.9903;
-    const tick = async (lat: number, lon: number) => {
-      try {
-        // Read latest userState via ref so a tick that fires AFTER a
-        // provider connect / Apple-Health snapshot lands carries those
-        // overlays into the merge, instead of the mount-time closure
-        // that lacked them.
-        const { newUserState, engineOutput } = await refreshWeather(userStateRef.current, lat, lon);
-        if (cancelled) return;
-        applyServerUserState(newUserState, engineOutput);
-      } catch (err) {
-        console.warn('[AForce] weather refresh failed', err);
-      }
-    };
-    let lat = DEFAULT_LAT;
-    let lon = DEFAULT_LON;
     // Best-effort geolocation — only on web/native where the API exists.
     // Failures fall through to the Denver default.
     (async () => {
@@ -534,18 +563,26 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         const { status } = await Location.requestForegroundPermissionsAsync();
         if (status === 'granted') {
           const pos = await Location.getCurrentPositionAsync({});
-          lat = pos.coords.latitude;
-          lon = pos.coords.longitude;
+          weatherLatRef.current = pos.coords.latitude;
+          weatherLonRef.current = pos.coords.longitude;
         }
       } catch {
         // fall back to Denver
       }
-      if (!cancelled) tick(lat, lon);
+      if (!cancelled) void weatherTick(weatherLatRef.current, weatherLonRef.current);
     })();
-    const interval = setInterval(() => tick(lat, lon), 15 * 60 * 1000);
-    return () => { cancelled = true; clearInterval(interval); };
+    return () => { cancelled = true; };
+    // Mount-once geolocation resolution + first fetch; the recurring 15min
+    // cadence is owned by the AppState-gated interval below.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // AppState-gated (RC-1 W3P1): zero weather fetches while backgrounded;
+  // fires once immediately on foreground return, then resumes the normal
+  // 15min cadence.
+  useAppStateGatedInterval(() => {
+    void weatherTick(weatherLatRef.current, weatherLonRef.current);
+  }, 15 * 60 * 1000);
 
   // Action handlers — extracted into a factory hook so the bodies live
   // outside this (very large) provider. The factory receives dispatch /
