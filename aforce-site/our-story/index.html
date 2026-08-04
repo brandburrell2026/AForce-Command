@@ -33,7 +33,7 @@
     --faint:rgba(13,13,13,0.40);
     --red:#C1281B;          /* Signal Red */
     --sans:'Inter',system-ui,sans-serif;
-    --mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;
+    --mono:'Inter',ui-monospace,Menlo,monospace;
     --maxw:1200px;
     --pad:clamp(20px,6vw,80px);
   }
@@ -49,7 +49,7 @@
   .afx-nav .afx-links a{ color:var(--ink); }
   .afx-nav.solid{ background:rgba(245,240,232,0.9); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); border-bottom:1px solid rgba(13,13,13,0.08); }
   /* N–И monogram in the nav — matches the homepage (all Signal Red) */
-  .afx-nav .mark .nn{ display:inline-flex; align-items:center; gap:5px; line-height:1; font-family:'Archivo Black',serif; font-size:28.5px; font-weight:500; letter-spacing:0.04em; }
+  .afx-nav .mark .nn{ display:inline-flex; align-items:center; gap:5px; line-height:1; font-family:'Inter',sans-serif; font-size:28.5px; font-weight:500; letter-spacing:0.04em; }
   .afx-nav .mark .nn > span:first-child{ color:var(--red); }
   .afx-nav .mark .nn .bar{ display:inline-block; width:13px; height:3px; background:var(--red); }
   .afx-nav .mark .nn .flip{ display:inline-block; transform:scaleX(-1); color:var(--red); }
@@ -181,6 +181,8 @@
   .btn.ghost{ border:1px solid var(--line); color:var(--ink); }
   .btn.ghost:hover{ border-color:var(--ink); }
   .endline{ margin-top:clamp(48px,7vw,88px); font-family:var(--mono); font-size:clamp(13px,1.6vw,17px); letter-spacing:0.24em; text-transform:uppercase; color:var(--ink); }
+  /* Brand N–И monogram stays Archivo Black (logo, not body writing) */
+  .afx-nav .nn, .f-nn, .afx-nav .mark .nn{ font-family:'Archivo Black',serif !important; }
 </style>
 </head>
 <body>
