@@ -926,7 +926,7 @@ export function HydrationScanScreenV2() {
                       {formatRelativeTime(s.loggedAt)} · {t('hydroScan2.v2.history_fit', { score: s.fitScore })}
                     </Text>
                   </View>
-                  <Text style={[styles.historyVerdict, { color: verdictColor(s.verdict) }]}>
+                  <Text style={[styles.historyVerdict, { color: toTextSafeColor(verdictColor(s.verdict)) }]}>
                     {s.verdict.toUpperCase()}
                   </Text>
                 </View>
@@ -956,7 +956,7 @@ export function HydrationScanScreenV2() {
                       {formatRelativeTime(e.scannedAt)} · {t(`hydroScan2.consumption.${e.consumption}`)}
                     </Text>
                   </View>
-                  <Text style={[styles.historyVerdict, { color: impactColor(e.impactLevel) }]}>
+                  <Text style={[styles.historyVerdict, { color: toTextSafeColor(impactColor(e.impactLevel)) }]}>
                     {t(IMPACT_I18N_KEY[e.impactLevel])}
                   </Text>
                 </View>
@@ -1021,6 +1021,15 @@ function impactColor(level: string): string {
     case 'HIGH_IMPACT': return af.red;
     default: return af.textTertiary;
   }
+}
+
+// af.red (#C1281B) is a fill/border color — it measures ~3.3:1 as TEXT on
+// these dark surfaces, under the 4.5:1 AA floor. verdictColor/impactColor
+// above are shared with dot backgroundColor (fills are fine at af.red);
+// this wrapper is for the two Text usages only, swapping to af.redText
+// (~5:1, AA-verified) without touching the dot fill color.
+function toTextSafeColor(color: string): string {
+  return color === af.red ? af.redText : color;
 }
 
 function formatRelativeTime(iso: string): string {

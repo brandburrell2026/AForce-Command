@@ -2787,7 +2787,9 @@ const styles = StyleSheet.create({
   },
   encRefreshLabel: {
     fontFamily: 'Inter_600SemiBold', fontSize: 10, letterSpacing: 1.5,
-    color: '#C1281B', textTransform: 'uppercase',
+    // af.red (#C1281B) as TEXT measures ~3.3:1 on dark surfaces — under AA.
+    // af.redText is the AA-verified red for text/icon color (RC-1 fix).
+    color: af.redText, textTransform: 'uppercase',
   },
   encError: {
     paddingHorizontal: 18, paddingBottom: 16, color: '#FF6B6B',
@@ -2798,7 +2800,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18, paddingTop: 4,
   },
   encHeroPct: {
-    fontFamily: 'Inter_700Bold', fontSize: 36, color: '#C1281B',
+    // af.red as TEXT fails AA (~3.3:1); af.redText is the AA-verified swap.
+    fontFamily: 'Inter_700Bold', fontSize: 36, color: af.redText,
     letterSpacing: -1,
   },
   encHeroLabel: {
@@ -2837,7 +2840,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   encFlagOn: {
-    color: '#C1281B', borderColor: 'rgba(193,40,27,0.4)',
+    // Text color only — af.red as TEXT fails AA (~3.3:1); border/background
+    // fills stay the brand red, unaffected by this fix.
+    color: af.redText, borderColor: 'rgba(193,40,27,0.4)',
     backgroundColor: 'rgba(193,40,27,0.08)',
   },
   encFlagOff: {
