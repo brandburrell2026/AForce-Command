@@ -13,9 +13,11 @@ import Animated, {
   withDelay,
   withRepeat,
   Easing,
+  cancelAnimation,
 } from 'react-native-reanimated';
 import type { PerformanceState } from '../types';
 import { Colors } from '../theme/colors';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
 
 interface Props {
   unitsConsumed: number;
@@ -103,10 +105,23 @@ export function WaterCycleBar({ unitsConsumed, dailyTarget, performanceState }: 
   const nextIdx = unitsConsumed < CELL_COUNT ? unitsConsumed : -1;
   const caretY = useSharedValue(0);
   const caretOpacity = useSharedValue(0);
+  // RC-1 Wave-2A gating fix: the vertical "breathe" loop below was an
+  // ungated `withRepeat(..., -1)` with no reduced-motion check and no
+  // unmount cleanup. Pattern mirrors components/WhoopSnapshotCard.tsx:126-168
+  // — hold a static frame under reduced motion, cancelAnimation always on
+  // unmount/re-run.
+  const reducedMotion = useReducedMotion();
   useEffect(() => {
     if (nextIdx < 0) {
+      cancelAnimation(caretY);
       caretOpacity.value = withTiming(0, { duration: 300 });
       return;
+    }
+    if (reducedMotion) {
+      cancelAnimation(caretY);
+      caretOpacity.value = withTiming(1, { duration: 420, easing: Easing.out(Easing.cubic) });
+      caretY.value = 0.5; // static mid-frame — no breathing loop
+      return () => cancelAnimation(caretY);
     }
     caretOpacity.value = withTiming(1, { duration: 420, easing: Easing.out(Easing.cubic) });
     caretY.value = withRepeat(
@@ -114,7 +129,8 @@ export function WaterCycleBar({ unitsConsumed, dailyTarget, performanceState }: 
       -1,
       true,
     );
-  }, [nextIdx, caretOpacity, caretY]);
+    return () => cancelAnimation(caretY);
+  }, [nextIdx, caretOpacity, caretY, reducedMotion]);
   const caretStyle = useAnimatedStyle(() => ({
     opacity: caretOpacity.value,
     transform: [{ translateY: -2 + caretY.value * 4 }],

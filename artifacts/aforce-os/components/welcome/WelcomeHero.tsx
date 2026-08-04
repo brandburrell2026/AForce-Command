@@ -26,7 +26,6 @@
 
 import React from 'react';
 import {
-  AccessibilityInfo,
   Platform,
   Pressable,
   StyleSheet,
@@ -49,6 +48,7 @@ import * as Haptics from 'expo-haptics';
 
 import { Colors } from '@/theme/colors';
 import { Typography } from '@/theme/typography';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
 
 const BG = Colors.background.primary; // cinematic black #0D0D0D
 const BONE = Colors.bone; // #F5F0E8
@@ -203,25 +203,13 @@ function PillButton({
 // ─── WelcomeHero ─────────────────────────────────────────────────────
 export function WelcomeHero({ active, onGetStarted, onSignIn }: Props) {
   const insets = useSafeAreaInsets();
-  const [reduce, setReduce] = React.useState(false);
-
-  // Honour the OS reduce-motion setting (mirrors OpeningSequence).
-  React.useEffect(() => {
-    let mounted = true;
-    AccessibilityInfo.isReduceMotionEnabled()
-      .then((v) => {
-        if (mounted) setReduce(v);
-      })
-      .catch(() => {});
-    const sub = AccessibilityInfo.addEventListener(
-      'reduceMotionChanged',
-      (v) => setReduce(v),
-    );
-    return () => {
-      mounted = false;
-      sub?.remove?.();
-    };
-  }, []);
+  // RC-1 Wave-2A gating fix: this read the OS reduce-motion setting via raw
+  // `AccessibilityInfo` polling — one of the three inconsistent ways the app
+  // used to check reduced motion (see hooks/useReducedMotion.ts's own
+  // doc-comment). The looping Ken Burns pan in <HeroImage> below was already
+  // correctly gated + cancelAnimation-cleaned up; this swap only makes the
+  // SIGNAL it gates on match every other elite motion surface in the app.
+  const reduce = useReducedMotion();
 
   return (
     <View
