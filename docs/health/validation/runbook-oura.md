@@ -66,6 +66,44 @@ approval required (unlike Garmin).
   drop data — otherwise this is expected behavior, not a bug, and should
   be recorded as confirmed rather than "fixed."
 
+## Known gaps — read before scoring Sync / Data truthfulness
+
+These are verified facts about the shipped code, not open questions. A
+checkbox below that appears to fail ONLY because it observed one of these
+gaps is a false FAIL — do not fail the run on it; record the gap as
+already-known and move on.
+
+- **There is no backfill.** `ouraSnapshot.ts:180-182` computes
+  `start_date = today - 24h`, `end_date = today` on every call — a ~2-day
+  window, not a 30-day pull. There is no `backfill` identifier anywhere in
+  the Oura lib (`ouraSnapshot.ts`, `ouraFetchWorker.ts`,
+  `routes/ouraOAuth.ts` — grepped, zero hits). `maxBackfillDays: 30` in
+  `lib/health-core/src/contracts.ts`'s `HEALTH_PROVIDER_CAPABILITIES.oura`
+  is a DECLARED CAPABILITY the contract reserves for a future
+  implementation — it is not wired to anything Oura's fetcher does today.
+  Its absence in observed behavior is not a validation failure.
+- **Freshness measures sync recency, not observation recency.**
+  `resolveProviderPresentation` (`artifacts/aforce-os/services/health/providerPresentation.ts:79-92`)
+  computes `age = nowMs - latestFetchedAtMs`, where `latestFetchedAtMs` is
+  the biometrics blob's `fetchedAt` (`ouraSnapshot.ts`'s
+  `OuraProviderBlob.fetchedAt` — stamped by `providerKit/fetchWorker.ts` at
+  the moment of the HTTP call, not by Oura). `ProviderSnapshot`
+  (`lib/health-core/src/contracts.ts`) carries only `fetchedAt` — there is
+  no per-metric observation timestamp on this snapshot plane. A 3-day-old
+  readiness score synced 10 minutes ago presents as fresh/live; that is
+  shipped behavior, not a bug. Observation-time freshness
+  (`CanonicalHealthRecord.observedAt`, distinct from `syncedAt`/`fetchedAt`)
+  exists only on the canonical-record plane, which Oura's shipped path
+  (`ouraFetchWorker.ts` → the `biometrics.oura` blob) never populates.
+- **There is no per-record dedup on this path.** `ouraFetchWorker.ts`
+  writes exactly one JSON blob per user under `biometrics.oura` via
+  `writeProviderEntry` (`providerKit/fetchWorker.ts:164-168` — a `jsonb_set`
+  overwrite of a single key), never a list of records. `externalId` /
+  `deduplicationKey` are `CanonicalHealthRecord` fields
+  (`lib/health-core/src/contracts.ts:229,247`) that this path never
+  produces — checking for them here is unsatisfiable against the correct
+  build, not evidence of a missing dedup implementation.
+
 ## Step-by-step validation flow
 
 1. Confirm env vars present (see Prerequisites) without ever viewing
@@ -85,12 +123,20 @@ approval required (unlike Garmin).
 ## §5 Test-case checklist
 
 ### Authorization
-- [ ] **First connection** — OAuth consent screen appears with exactly the
-      declared scopes (`daily`, `heartrate`, `workout` — `OURA_DEFAULT_SCOPES`
-      in `ouraPkce.ts:47`). The `personal` scope (gender/age/height/weight
-      profile) must NOT appear: it is deliberately dropped on privacy grounds
-      (`ouraPkce.ts:42`) — its presence on the consent screen is a FAIL, not
-      its absence. User grants, app transitions to `connected`.
+- [ ] **First connection** — PRIMARY evidence: capture the `authorizeUrl`
+      returned by `POST /oura/oauth/start` (built by `buildOuraAuthorizeUrl`
+      at `ouraPkce.ts:87`, passed through at `ouraOAuth.ts:161`) and read its
+      `scope` query param directly off the URL. It must read exactly `daily
+      heartrate workout` (`OURA_DEFAULT_SCOPES`, `ouraPkce.ts:47`), with no
+      `personal` scope (gender/age/height/weight profile — deliberately
+      dropped on privacy grounds, `ouraPkce.ts:42`). This is the objectively
+      verifiable artifact: a raw URL parameter a validator reads directly,
+      not a rendered UI element that has to be interpreted. The Oura consent
+      screen (which shows human-readable labels for the granted scopes, not
+      the raw scope string, and which Oura controls the wording of, not
+      AForce) is CORROBORATING evidence only — record what it displays, but
+      the scope-param capture is what the verdict rests on. User grants, app
+      transitions to `connected`.
 - [ ] **Cancel** — user backs out of the Oura consent screen or closes the
       in-app browser mid-flow; app does not claim `connected`.
 - [ ] **Partial approval** — N/A if Oura's consent screen is all-or-nothing
@@ -119,9 +165,20 @@ approval required (unlike Garmin).
       check in `ouraAuthStateStore.ts` rejects it.
 
 ### Sync
-- [ ] **First historical sync** — initial pull covers the expected backfill
-      window (`maxBackfillDays: 30` per `HEALTH_PROVIDER_CAPABILITIES.oura`).
-- [ ] **Incremental sync** — later sync fetches only new records.
+- [ ] **First sync** — capture the actual `start_date`/`end_date` on the
+      wire (or via a request log) and verify it is a yesterday..today
+      (~2-day) window, computed fresh from `now()` (`ouraSnapshot.ts:180-182`)
+      — NOT a 30-day backfill. See the "no backfill" known gap above; a
+      ~2-day window is the correct, passing observation for this checkbox,
+      not a partial result.
+- [ ] **Incremental sync** — verify that a second sync run shortly after the
+      first re-requests the SAME window shape (`now-24h` .. `now`) rather
+      than narrowing to "since last sync" — there is no persisted cursor.
+      Within that window, verify freshest-record semantics: each endpoint's
+      `data[]` array is read in ascending date order and the LAST element is
+      kept (`ouraSnapshot.ts`'s `latest()`); an "incremental" gain happens
+      only because the window's calendar day advances, never because a
+      cursor remembers what was already fetched.
 - [ ] **Pagination** — verify the "first page only" assumption (see hard
       rules) against real same-day workout volume if the test account has
       enough activity; otherwise record as not exercisable this cycle.
@@ -153,9 +210,13 @@ approval required (unlike Garmin).
       the window; shown as unavailable, not zero/fabricated.
 - [ ] **Missing device** — account-only (no ring) test setup; verify
       graceful absence for all ring-derived metrics, not an error state.
-- [ ] **Stale** — most recent record >24h old shows `stale`.
-- [ ] **No recent data** — most recent record >72h old shows
-      `no_recent_data`.
+- [ ] **Stale** — verify `stale` appears when `now - fetchedAt` (the blob's
+      last-sync timestamp) exceeds 24h. This is sync recency, not the age of
+      the underlying Oura record — see the freshness known gap above. Do not
+      fail this checkbox for measuring sync time instead of the readiness/
+      sleep/activity record's own date; that is shipped behavior.
+- [ ] **No recent data** — same `fetchedAt`-based age exceeding 72h shows
+      `no_recent_data`. Same sync-recency caveat as Stale applies.
 - [ ] **Malformed record** — a record missing a required field or with a
       non-finite value is dropped, not passed through (per `num()`-style
       coercion in the snapshot mapping).
@@ -165,8 +226,13 @@ approval required (unlike Garmin).
       true SDNN anywhere downstream (see hard rules above) — this is the
       single most important data-truthfulness case for this runbook, given
       the misleading `hrvSdnn` field name in the snapshot type itself.
-- [ ] **Duplicate provider record** — same record ingested twice (e.g. sync
-      retry); dedup by `externalId`/`deduplicationKey`.
+- [ ] **Duplicate provider record** — Oura's shipped path has no per-record
+      identity to dedup (see the "no per-record dedup" known gap above).
+      Verify the actual observable property instead: two concurrent or
+      retried syncs converge on ONE overwritten `biometrics.oura` blob value
+      (last-write-wins, overwrite-idempotent), never a duplicated entry.
+      Checking for `externalId`/`deduplicationKey` dedup here is
+      unsatisfiable against the correct build, not a bug to find.
 - [ ] **Aggregator copy** — N/A in the HealthKit/Health-Connect
       relay sense for the direct Oura OAuth path; if Oura data ALSO
       reaches AForce via a HealthKit re-export (Oura writes to Apple

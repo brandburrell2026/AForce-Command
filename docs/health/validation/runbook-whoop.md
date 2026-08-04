@@ -60,6 +60,17 @@ the parity suite already pins.
   `HRV_METHOD_BY_PROVIDER.whoop === 'rmssd'`
   (`lib/health-core/src/normalize.ts`). Never let WHOOP's HRV be presented
   or logged as SDNN anywhere downstream.
+- **The persisted field is LITERALLY NAMED `hrvSdnn` while holding an RMSSD
+  value — by design, not a bug.** `whoopSnapshot.ts`'s `WhoopProviderBlob`
+  interface (`hrvSdnn: number | null` at `whoopSnapshot.ts:192`) stores
+  `hrv_rmssd_milli` under that legacy field name for cross-provider shape
+  parity (`lib/health-core/src/normalize.ts`'s doc comment on
+  `HRV_METHOD_BY_PROVIDER` says so explicitly). If a validator inspects a
+  raw captured payload (e.g. the `EVIDENCE-TEMPLATE.md` canonical-record
+  attachment) and sees a field key containing "Sdnn," that alone is NOT
+  evidence of an RMSSD/SDNN conflict — check the RESOLVED value
+  (`resolveHrv()` / the canonical `hrvRmssdMs` field), never the raw legacy
+  field's name, before calling this a truthfulness violation.
 - **WHOOP retired v1 — all endpoints are `/developer/v2`.** v1 `/recovery`
   and `/activity/sleep` now 404 per WHOOP's own migration notes. If any
   code path or evidence artifact shows a v1 URL succeeding or failing
@@ -87,6 +98,53 @@ the parity suite already pins.
   same collection, use it to confirm the OR-predicate and array-first
   selection behave as pinned, not as the code's own ("freshest") comment
   claims.
+
+## Known gaps — read before scoring Sync / Data truthfulness
+
+These are verified facts about the shipped code, not open questions. A
+checkbox below that appears to fail ONLY because it observed one of these
+gaps is a false FAIL — do not fail the run on it; record the gap as
+already-known and move on.
+
+- **There is no backfill and no date-windowed request at all.**
+  `whoopSnapshot.ts:143-162` issues exactly three requests —
+  `GET /recovery?limit=10`, `GET /cycle?limit=10`,
+  `GET /activity/sleep?limit=10` — with NO `start`/`end` date params of any
+  kind. `maxBackfillDays: 30` in `lib/health-core/src/contracts.ts`'s
+  `HEALTH_PROVIDER_CAPABILITIES.whoop` is a DECLARED CAPABILITY, not wired
+  to anything the fetcher does today. Its absence in observed behavior is
+  not a validation failure.
+- **Incremental sync re-requests the identical last-10 query every time.**
+  There is no cursor, no `since` param, no persisted state between sweeps.
+  "Incremental" here means only: within the fixed limit-10 window, the
+  freshest `SCORED` record is re-selected each time (see the
+  "parity-fixture-constrained" section above on the OR-predicate and
+  array-first selection) — not that fewer records are fetched on a later
+  call.
+- **Pagination is N/A by construction, not by observation.** Each endpoint
+  is a single request for the first (and only) page, `limit=10`, no
+  `next`/cursor param in the request and none read from the response. There
+  is no page loop to verify — record this as N/A with the reason above,
+  don't attempt to induce a second page.
+- **There is no per-record dedup on this path.** WHOOP's fetch worker
+  writes exactly one JSON blob per user under `biometrics.whoop`
+  (`mergeWhoopIntoBiometrics`, `whoopSnapshot.ts:221-228` — a full-object
+  overwrite), never a list of records. `externalId` / `deduplicationKey`
+  are `CanonicalHealthRecord` fields (`lib/health-core/src/contracts.ts`)
+  this path never produces. Verify the actual observable property instead:
+  two concurrent or retried syncs converge on ONE overwritten blob value
+  (last-write-wins, overwrite-idempotent), never a duplicated entry.
+- **Freshness measures sync recency, not observation recency.**
+  `resolveProviderPresentation` (`artifacts/aforce-os/services/health/providerPresentation.ts:79-92`)
+  computes `age = nowMs - latestFetchedAtMs`, where `latestFetchedAtMs` is
+  the blob's `fetchedAt` — stamped by `providerKit/fetchWorker.ts` at the
+  moment of the HTTP call, not derived from WHOOP's own record timestamps.
+  `ProviderSnapshot` carries only `fetchedAt` — no per-metric observation
+  timestamp on this snapshot plane. A 5-day-old recovery score synced 10
+  minutes ago presents as fresh/live; that is shipped behavior, not a bug.
+  Observation-time freshness (`CanonicalHealthRecord.observedAt`) exists
+  only on the canonical-record plane, which WHOOP's shipped path never
+  populates.
 
 ## Step-by-step validation flow
 
@@ -142,12 +200,18 @@ the parity suite already pins.
       suite pins both).
 
 ### Sync
-- [ ] **First historical sync** — initial pull covers the expected backfill
-      window (`maxBackfillDays: 30` per `HEALTH_PROVIDER_CAPABILITIES.whoop`).
-- [ ] **Incremental sync** — later sync fetches only new records.
-- [ ] **Pagination** — verify behavior against `limit=10` per-endpoint
-      fetches (`/recovery`, `/cycle`, `/activity/sleep`) if the real
-      account has more than 10 records in the sync window.
+- [ ] **First sync** — verify the three requests actually sent are
+      `GET /recovery?limit=10`, `GET /cycle?limit=10`,
+      `GET /activity/sleep?limit=10` with no date params (see the "no
+      backfill" known gap above). A 30-day backfill is NOT expected
+      behavior; a bare `limit=10` fetch is the correct, passing observation.
+- [ ] **Incremental sync** — verify a second sync shortly after the first
+      re-issues the IDENTICAL `limit=10` requests (no `since`/cursor param
+      appears), and that the freshest-`SCORED`-record selection (see hard
+      rules) re-runs over that same fixed window each time.
+- [ ] **Pagination** — N/A by construction: each endpoint is a single
+      `limit=10` request with no `next`/cursor param sent or read. Record as
+      N/A with this reason rather than attempting to induce a second page.
 - [ ] **Interrupted sync** — force-quit/background mid-sync; verify clean
       recovery on next sync.
 - [ ] **Retry** — transient per-endpoint failure results in that
@@ -181,9 +245,14 @@ the parity suite already pins.
       connected account always implies a device. Record as N/A with
       reason, or use an account with a very old/unworn strap to check the
       stale/no-recent-data path instead.
-- [ ] **Stale** — most recent record >24h old shows `stale`.
-- [ ] **No recent data** — most recent record >72h old shows
-      `no_recent_data`.
+- [ ] **Stale** — verify `stale` appears when `now - fetchedAt` (the blob's
+      last-sync timestamp) exceeds 24h. This is sync recency, not the age of
+      the underlying WHOOP record (recovery/cycle/sleep have no per-metric
+      observation timestamp on this snapshot plane) — see the freshness
+      known gap above. Do not fail this checkbox for measuring sync time
+      instead of record time; that is shipped behavior.
+- [ ] **No recent data** — same `fetchedAt`-based age exceeding 72h shows
+      `no_recent_data`. Same sync-recency caveat as Stale applies.
 - [ ] **Malformed record** — a record missing a required field or with a
       non-finite value (per `num()`'s reject-non-finite contract in the
       parity suite) is dropped, not passed through.
@@ -191,8 +260,13 @@ the parity suite already pins.
       Record as N/A with reason.
 - [ ] **RMSSD/SDNN conflict** — verify WHOOP's HRV is never presented as
       SDNN anywhere downstream (see hard rules above).
-- [ ] **Duplicate provider record** — same record ingested twice (e.g. sync
-      retry); dedup by `externalId`/`deduplicationKey`.
+- [ ] **Duplicate provider record** — WHOOP's shipped path has no
+      per-record identity to dedup (see the "no per-record dedup" known gap
+      above). Verify the actual observable property instead: two concurrent
+      or retried syncs converge on ONE overwritten `biometrics.whoop` blob
+      value (last-write-wins, overwrite-idempotent), never a duplicated
+      entry. Checking for `externalId`/`deduplicationKey` dedup here is
+      unsatisfiable against the correct build, not a bug to find.
 - [ ] **Aggregator copy** — N/A for the direct WHOOP OAuth path; if WHOOP
       data also reaches AForce via a HealthKit re-export, that's Squad E's
       cross-provider matrix, not this runbook.
