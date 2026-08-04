@@ -19,7 +19,7 @@
 <meta name="twitter:image" content="https://www.drinkaforce.com/assets/hero-poster.jpg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,500&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,500&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <link rel="preload" as="image" href="/assets/can-blue.png"><link rel="preload" as="image" href="/assets/can-red.png"><link rel="preload" as="image" href="/assets/can-green.png">
 <link rel="preload" as="image" href="/assets/stick-blue.png"><link rel="preload" as="image" href="/assets/stick-red.png"><link rel="preload" as="image" href="/assets/stick-green.png">
 <!-- Universal header — loaded before the page style so the Shop's own colours win -->
@@ -387,6 +387,11 @@
     *{ animation:none !important; } html{ scroll-behavior:auto; }
     .hero-can img,.match-visual img,.fmt-visual img{ transition:opacity .01s; }
   }
+  /* Canonical N–И monogram — 100% consistent everywhere (matches the can) */
+  .afx-nav .mark .nn, .afx-nav .nn, .f-nn{ font-family:'Archivo Black',serif !important; font-weight:400 !important; letter-spacing:0 !important; gap:0.13em !important; align-items:center !important; }
+  .afx-nav .nn > span:first-child, .afx-nav .nn .n1, .f-nn .n1{ color:var(--red) !important; }
+  .afx-nav .nn .bar, .f-nn .bar{ display:inline-block !important; width:0.44em !important; height:0.15em !important; background:var(--red) !important; border-radius:0 !important; }
+  .afx-nav .nn .flip, .afx-nav .nn .nflip, .f-nn .n2{ display:inline-block !important; transform:scaleX(-1) !important; color:var(--red) !important; }
 </style>
 </head>
 <body data-theme="berry">
