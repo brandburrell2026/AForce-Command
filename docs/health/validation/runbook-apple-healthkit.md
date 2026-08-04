@@ -7,6 +7,36 @@ dependency gate) — both OFF in DEFAULT and DEMO flag sets today
 (`artifacts/aforce-os/featureFlags/flags.ts`).
 **Connect method:** `device_native`, iOS only, no external approval required.
 
+## CRITICAL — which code path this runbook validates
+
+There are TWO Apple HealthKit modules in this codebase. They are not
+interchangeable, and every Sync checkbox below must be judged against the
+first one, not the second:
+
+- **`artifacts/aforce-os/services/appleHealth.ts`** — the WIRED path. This
+  is what `createAppleHealthConnection`
+  (`artifacts/aforce-os/services/healthConnection.bindings.ts:26-33`) binds
+  to the Connected Health screen. It requests a fixed permission set,
+  re-queries fixed windows on every call (no persisted anchor/cursor), and
+  returns four plain numbers — no `CanonicalHealthRecord`, no provenance
+  chain, no dedup key, no per-record `observedAt`.
+- **`artifacts/aforce-os/services/health/appleHealthSync.ts`** — the
+  UNWIRED anchored-query engine. Its own header states plainly: "RUNTIME
+  ACTIVATION STAYS OFF... not imported by any screen, store, or flag-gated
+  bridge." Verified: this file has zero non-test importers anywhere in the
+  repo (`git grep -n runAppleHealthSync` / `appleHealthSync` outside
+  `__tests__/` returns only the file itself). It produces
+  `CanonicalHealthRecord[]` with real anchors, provenance, `observedAt`,
+  and sleep stages — none of which the shipped build can produce today.
+
+If a checkbox below describes anchor persistence, provenance chains,
+`observedAt`, sleep stages, or a dedup key, it is describing
+`appleHealthSync.ts`'s output shape, not what a device validation run
+against the current app will ever see. Those checkboxes are marked
+**"engine-level"** below — they are exercised by that module's own unit
+suite (`appleHealthSync.test.ts`), not by this runbook, and their absence
+from real-device evidence is not a FAIL.
+
 ## Prerequisites
 
 - **Device:** a physical iPhone. HealthKit is unavailable in the iOS
@@ -32,13 +62,30 @@ dependency gate) — both OFF in DEFAULT and DEMO flag sets today
 
 ## Provider-specific hard rules (verbatim — check these explicitly)
 
-- **Required metrics only.** AForce requests sleep duration, sleep stages
-  where available, resting heart rate, HRV (SDNN), heart-rate observations,
-  workouts, steps, and active energy **only where used**. Do not request
-  unrelated HealthKit permissions (e.g. no request for reproductive health,
-  nutrition, or other categories AForce does not consume) — see
-  `HEALTH_PROVIDER_CAPABILITIES.apple_health.recordTypes` in
-  `lib/health-core/src/contracts.ts` for the exact declared set.
+- **Required metrics only — but the WIRED request set is narrower than the
+  DECLARED set, and that is expected, not a bug.** The actual
+  `requestAuthorization` call (`appleHealth.ts:83-93`) requests exactly:
+  `HKQuantityTypeIdentifierHeartRate`,
+  `HKQuantityTypeIdentifierRestingHeartRate`,
+  `HKQuantityTypeIdentifierHeartRateVariabilitySDNN`,
+  `HKQuantityTypeIdentifierStepCount`,
+  `HKCategoryTypeIdentifierSleepAnalysis`, `HKWorkoutTypeIdentifier` to
+  READ, plus `HKQuantityTypeIdentifierDietaryWater` to SHARE (write).
+  `HEALTH_PROVIDER_CAPABILITIES.apple_health.recordTypes`
+  (`lib/health-core/src/contracts.ts`) additionally declares
+  `active_energy` and `respiratory_rate` — NEITHER is requested by the
+  wired path. Verify the permission sheet shows exactly the six read
+  categories above (never reproductive health, nutrition, or anything else
+  outside this list) — active energy/respiratory absence is the declared
+  set getting ahead of the implementation, not a leak; do not fail on it.
+  The `DietaryWater` WRITE request is AForce's OWN hydration-logging write
+  (the app writing water intake back to Health), not a read of provider
+  data — the runbook should list it explicitly as observed, distinct from
+  the read permissions, rather than let it silently trip the "no
+  unrelated-category" rule. **Flagged to the founder to confirm this write
+  is intended** (it is consistent with a hydration app writing its own
+  logged water intake, but has not been explicitly product-confirmed in
+  this program).
 - **HRV is SDNN, not RMSSD.** Apple's `HKQuantityTypeIdentifierHeartRateVariabilitySDNN`
   is true SDNN (`HRV_METHOD_BY_PROVIDER.apple_health === 'sdnn'` in
   `lib/health-core/src/normalize.ts`) — the only provider in this program
@@ -50,6 +97,15 @@ dependency gate) — both OFF in DEFAULT and DEMO flag sets today
   design). An empty read result must be presented as "no data available,"
   never as "permission denied" — conflating the two is a truthfulness
   violation the presentation layer must not make.
+- **`healthkit_native_enabled` is a compile-time constant, not a runtime
+  flag.** `appleHealth.ts` imports it directly from `DEFAULT_FLAGS`
+  (`featureFlags/flags.ts:286,481` — both `false`), a plain object literal
+  bundled at build time; `isAppleHealthSupported()` and `loadHealthKit()`
+  both gate on it (`appleHealth.ts:44,63`). "Flip the flag for this test
+  build" (Prerequisites, above) means cutting a new build with the constant
+  changed and the native dependency linked — it cannot be toggled
+  server-side or via a remote-config flip against a build already
+  installed on the test device.
 
 ## Step-by-step validation flow
 
@@ -69,14 +125,23 @@ dependency gate) — both OFF in DEFAULT and DEMO flag sets today
 ## §5 Test-case checklist
 
 ### Authorization
-- [ ] **First connection** — permission sheet appears with exactly the
-      declared categories (see hard rules above), user grants all, app
+- [ ] **First connection** — permission sheet appears with exactly the six
+      requested READ categories plus the one WRITE category (see hard rules
+      above — NOT the full declared `recordTypes` list; active energy and
+      respiratory rate are correctly absent), user grants all, app
       transitions to `connected`.
 - [ ] **Cancel** — user dismisses the permission sheet without choosing;
       app does not claim `connected`.
-- [ ] **Partial approval** — user grants some categories, denies others
-      (e.g. grants sleep, denies workouts); app presents `connected_limited`
-      or equivalent, and only requests/reads the granted categories.
+- [ ] **Partial approval** — N/A BY PLATFORM DESIGN, not an untested case.
+      `deriveProviderRowStatus` (`artifacts/aforce-os/utils/health/providerRowStatus.ts:134-137`)
+      sets `apple_health`'s `link` to `'connected'` or `'none'` ONLY — there
+      is no code path that produces a `'partial'` link for Apple, which
+      composes to `connected_limited` never appearing for this provider.
+      This is consistent with this file's own hard rule (HealthKit cannot
+      tell the app whether a category was denied vs. granted-but-empty, so
+      the app cannot honestly render a "these categories granted, those
+      denied" state in the first place). Record as N/A with this reason,
+      not as "not exercised this cycle."
 - [ ] **Deny all** — user denies every category; app presents
       `disconnected`/`unavailable`, never `connected`.
 - [ ] **External revoke** — user later revokes HealthKit access for the app
@@ -97,13 +162,33 @@ dependency gate) — both OFF in DEFAULT and DEMO flag sets today
       not crash, must present the feature as unavailable.
 
 ### Sync
-- [ ] **First historical sync** — initial pull covers the expected backfill
-      window (`maxBackfillDays: 30` per `HEALTH_PROVIDER_CAPABILITIES.apple_health`).
-- [ ] **Incremental sync** — a later sync fetches only new records since
-      the last sync, without re-ingesting the historical window.
-- [ ] **Pagination** — if the historical window returns more records than
-      one HealthKit query batch, verify all pages are collected, not just
-      the first.
+- [ ] **First sync** — `contracts.ts`'s declared `sync: 'push_from_device'`
+      for `apple_health` means there is no server-side "initial pull" at
+      all; verify what the WIRED path (`appleHealth.ts`) actually does on
+      first connect: resting HR and HRV each read the single most recent
+      sample with no start bound (`queryQuantitySamples(..., {limit: 1,
+      filter: {date: {startDate: new Date(0), endDate: now}}})`,
+      `appleHealth.ts:124-133`); steps reads midnight-to-now for the local
+      day (`appleHealth.ts:143-149`); sleep reads the trailing 18 hours
+      (`appleHealth.ts:157-162`). None of this is a 30-day backfill —
+      `maxBackfillDays: 30` in `HEALTH_PROVIDER_CAPABILITIES.apple_health`
+      is a DECLARED CAPABILITY not implemented by this path; its absence in
+      observed behavior is not a validation failure.
+- [ ] **Incremental sync** — verify a later sync RE-QUERIES the same fixed
+      windows above from scratch (midnight-to-now for steps, trailing-18h
+      for sleep, most-recent-sample for RHR/HRV) rather than resuming from
+      an anchor. There is no persisted anchor token anywhere in
+      `appleHealth.ts` — every call recomputes `startOfDay` /
+      `lastNightStart` off `new Date()`. (The anchored-token engine that
+      WOULD make this genuinely incremental is `appleHealthSync.ts` —
+      engine-level, see the framing note at the top of this file; not
+      reachable from the shipped build.)
+- [ ] **Pagination** — single unpaged queries: RHR/HRV use `limit: 1`
+      (most-recent-sample only); steps/sleep use `limit: 0` (HealthKit's
+      "return everything in the date filter," not a page size) with no loop
+      over multiple batches. Verify no pagination is attempted — a query
+      that silently truncated a large step/sleep result set would be the
+      actual bug to watch for, not the absence of a page-2 request.
 - [ ] **Interrupted sync** — force-quit or background the app mid-sync;
       verify no partial/corrupt state and that a subsequent sync recovers
       cleanly.
@@ -123,9 +208,14 @@ dependency gate) — both OFF in DEFAULT and DEMO flag sets today
 - [ ] **Reinstall** — uninstall and reinstall the app; verify the
       permission sheet re-appears (HealthKit permission is tied to the app
       installation) and sync resumes correctly from a clean local state.
-- [ ] **Timezone change** — change device timezone mid-session; verify
-      sleep-session and timestamp handling stays correct (`observedAt`
-      stored as UTC ISO-8601 per `CanonicalHealthRecord`).
+- [ ] **Timezone change** — change device timezone mid-session; verify the
+      WIRED path's window math (`startOfDay`/`lastNightStart`, both derived
+      from device-local `new Date()`, `appleHealth.ts:110-113`) doesn't
+      shift or double-count a day when the local clock jumps. NOTE:
+      `observedAt` as UTC ISO-8601 is a `CanonicalHealthRecord` field
+      (`lib/health-core/src/contracts.ts`) — engine-level
+      (`appleHealthSync.ts`/`appleHealthRecords.ts`), not something the
+      wired path stamps on anything; do not expect to observe it here.
 - [ ] **DST transition** — verify a sleep session spanning a DST transition
       is not double-counted or mis-durationed.
 
@@ -135,10 +225,17 @@ dependency gate) — both OFF in DEFAULT and DEMO flag sets today
       fabricated.
 - [ ] **Missing device** — no Watch/paired device for HR/HRV; verify
       graceful absence, not an error state.
-- [ ] **Stale** — most recent record is >24h old; presentation shows
-      `stale`, not `connected`/live (per `ProviderPresentationState`).
-- [ ] **No recent data** — most recent record is >72h old; presentation
-      shows `no_recent_data`.
+- [ ] **Stale** — verify `stale` appears when `now - fetchedAt` (the last
+      successful sync's timestamp) exceeds 24h. This is sync recency, not
+      the age of the underlying HealthKit sample — `appleHealth.ts`'s
+      snapshot carries only a `fetchedAt`-equivalent write time, no
+      per-metric observation timestamp survives onto the snapshot plane
+      (`ProviderSnapshot`, `lib/health-core/src/contracts.ts`). A 5-day-old
+      resting-HR sample synced 10 minutes ago presents as fresh/live; that
+      is shipped behavior across every provider on this plane, not a bug
+      specific to Apple.
+- [ ] **No recent data** — same `fetchedAt`-based age exceeding 72h shows
+      `no_recent_data`. Same sync-recency caveat as Stale applies.
 - [ ] **Malformed record** — inject (via test harness / simulated HealthKit
       response) a record with a non-finite or missing required field;
       verify it's dropped, not passed through as corrupted canonical data.
@@ -148,14 +245,22 @@ dependency gate) — both OFF in DEFAULT and DEMO flag sets today
       matrix in `STAGE-LADDER.md` / Squad E).
 - [ ] **RMSSD/SDNN conflict** — verify Apple's own HRV is never relabeled as
       RMSSD anywhere downstream (see hard rules above).
-- [ ] **Duplicate provider record** — the same sleep session or workout
-      appears twice in a HealthKit query (e.g. due to a sync retry); verify
-      dedup by `externalId`/`deduplicationKey`.
-- [ ] **Aggregator copy** — a record written by a different app (e.g. Oura,
-      Garmin) that HealthKit re-exports to AForce; verify
-      `provenanceChain`/native origin correctly attributes to the writing
-      app (`NATIVE_ORIGIN_MAP` in `lib/health-core/src/dedupe.ts`), not to
-      Apple.
+- [ ] **Duplicate provider record** — ENGINE-LEVEL, not observable in the
+      shipped build. `externalId`/`deduplicationKey` are
+      `CanonicalHealthRecord` fields the WIRED path never produces —
+      `appleHealth.ts` returns four aggregate numbers (latest sample /
+      day-sum), not a list of identifiable records. Per-record dedup only
+      exists in the unwired `appleHealthSync.ts` + `appleHealthRecords.ts`
+      pipeline (zero non-test callers — see framing note at top of file),
+      exercised by `appleHealthSync.test.ts`. Do not fail this checkbox for
+      the shipped build's absence of a dedup key; record as N/A with this
+      reason.
+- [ ] **Aggregator copy** — ENGINE-LEVEL, not observable in the shipped
+      build, for the same reason: `provenanceChain` / `NATIVE_ORIGIN_MAP`
+      attribution (`lib/health-core/src/dedupe.ts`) is a
+      `CanonicalHealthRecord` concept the wired path never constructs.
+      Exercised by `appleHealthRecords.test.ts` / `appleHealthSync.test.ts`
+      unit suites. Record as N/A with this reason.
 - [ ] **Direct copy** — a record actually measured on-device/by-Watch;
       verify it's attributed to `apple_health` as origin, not
       `unknown_device_app`.
@@ -203,9 +308,14 @@ dependency gate) — both OFF in DEFAULT and DEMO flag sets today
       sync info.
 - [ ] **Home** — any Home-surface content sourced from Apple Health data
       reflects the actual canonical record, not a cached/stale value.
-- [ ] **Sleep** — sleep session, duration, and stages (if available) render
-      correctly, honestly reflecting `stages: null` when Apple provided no
-      stage breakdown.
+- [ ] **Sleep** — the WIRED path renders `sleepHoursLastNight` as a single
+      trailing-18h duration figure (`appleHealth.ts:157-176`) — there is no
+      stage breakdown on this path at all (no `SleepSessionValue.stages`
+      field is ever populated; that structured type belongs to
+      `CanonicalHealthRecord`, engine-level per the framing note above).
+      Verify the duration figure itself renders correctly; do NOT expect a
+      stages UI to appear or fail this checkbox for `stages` being absent —
+      there is no shipped code path that could produce it today.
 - [ ] **Weekly** — weekly aggregate view reflects actual ingested data
       across the week, not a single day repeated.
 - [ ] **Readiness** — Apple-derived HRV/RHR inform Readiness only, per
@@ -215,9 +325,10 @@ dependency gate) — both OFF in DEFAULT and DEMO flag sets today
 - [ ] **a11y labels** — VoiceOver reads correct, current state labels for
       connected/disconnected/error/loading (not a generic "loading" stuck
       label).
-- [ ] **Limited permissions** — with a `connected_limited` grant (partial
-      approval case above), verify surfaces correctly show data for granted
-      categories and honest absence for denied ones.
+- [ ] **Limited permissions** — N/A BY PLATFORM DESIGN (see "Partial
+      approval" under Authorization above): `connected_limited` is
+      unreachable for `apple_health`, so there is no partial-grant product
+      surface to exercise. Record as N/A with this reason.
 - [ ] **Offline** — app offline; verify Apple Health surfaces degrade
       gracefully (cached last-known state, not a crash or infinite spinner).
 - [ ] **Loading** — verify a genuine loading state is shown during sync,
