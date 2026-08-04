@@ -20,6 +20,7 @@ import { Icon } from './Icon';
 import { Colors } from '@/theme/colors';
 import { afMotion } from '@/theme/afTokens';
 import type { ScanResult } from '@/types/scan';
+import { AFStatPair } from './ui/AFStatPair';
 
 const VERDICT_COLOR: Record<ScanResult['verdict'], string> = {
   optimal:    Colors.states.PEAK.primary,
@@ -94,10 +95,15 @@ export function ScanResultCard({ result }: Props) {
         </View>
       </View>
 
-      <View style={styles.efficiencyRow} testID="scan-efficiency-row">
-        <Text style={styles.fitLabel}>{t('hydroScan2.cards.efficiency')}</Text>
-        <Text style={[styles.efficiencyText, { color }]}>{result.efficiencyLabel}</Text>
-      </View>
+      <AFStatPair
+        label={t('hydroScan2.cards.efficiency')}
+        value={result.efficiencyLabel}
+        direction="column"
+        style={styles.efficiencyRow}
+        labelStyle={styles.fitLabel}
+        valueStyle={[styles.efficiencyText, { color }]}
+        testID="scan-efficiency-row"
+      />
     </Animated.View>
   );
 }

@@ -15,7 +15,7 @@ import { useRouter } from 'expo-router';
 import { GradientBackground } from '@/components/GradientBackground';
 import { WhoopSnapshotCard } from '@/components/WhoopSnapshotCard';
 import { af } from '@/theme';
-import { AFInlineErrorRow } from '@/components/ui';
+import { AFInlineErrorRow, AFStatPair } from '@/components/ui';
 import { ProviderSectionSkeleton } from './ProviderSectionSkeleton';
 import { mockUserProfile } from '@/data/mockData';
 import { HEALTH_PROVIDERS, type HealthProviderId } from '@/data/healthProviders';
@@ -2537,10 +2537,14 @@ function ProfileTabBar({
 
 function SnapshotCell({ label, value }: { label: string; value: string }) {
   return (
-    <View style={styles.snapshotCell}>
-      <Text style={styles.snapshotCellLabel}>{label}</Text>
-      <Text style={styles.snapshotCellValue}>{value}</Text>
-    </View>
+    <AFStatPair
+      label={label}
+      value={value}
+      direction="column"
+      style={styles.snapshotCell}
+      labelStyle={styles.snapshotCellLabel}
+      valueStyle={styles.snapshotCellValue}
+    />
   );
 }
 

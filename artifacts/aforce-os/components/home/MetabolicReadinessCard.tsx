@@ -24,6 +24,7 @@ import { Icon } from '@/components/Icon';
 import { Colors } from '@/theme/colors';
 import { accentForLevel } from '@/utils/scoreBand';
 import type { MetabolicReadiness } from '@/utils/metabolicScore';
+import { AFStatPair } from '@/components/ui/AFStatPair';
 
 const BRAND = Colors.accent.brand;
 const DISCLAIMER = 'Wellness estimate — not a medical measurement.';
@@ -59,17 +60,24 @@ function MetricRow({
   return (
     <>
       {divider ? <View style={styles.divider} /> : null}
-      <View style={styles.metricRow}>
-        <Text style={styles.metricLabel}>{label}</Text>
-        {hasData ? (
-          <View style={styles.metricRight}>
-            <Text style={[styles.metricScore, { color: tint }]}>{readiness.score}</Text>
-            <Text style={[styles.metricBand, { color: tint }]}>{readiness.band}</Text>
-          </View>
-        ) : (
+      {hasData ? (
+        <AFStatPair
+          label={label}
+          value={readiness.score as number}
+          unit={readiness.band as string}
+          unitLayout="adjacent"
+          style={styles.metricRow}
+          labelStyle={styles.metricLabel}
+          valueStyle={[styles.metricScore, { color: tint }]}
+          unitStyle={[styles.metricBand, { color: tint }]}
+          valueGroupStyle={styles.metricRight}
+        />
+      ) : (
+        <View style={styles.metricRow}>
+          <Text style={styles.metricLabel}>{label}</Text>
           <Text style={styles.metricEmpty}>Needs more data</Text>
-        )}
-      </View>
+        </View>
+      )}
     </>
   );
 }

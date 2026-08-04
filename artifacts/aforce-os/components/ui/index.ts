@@ -45,4 +45,7 @@ export {
 export { AFOfflineBanner, type AFOfflineBannerProps } from './AFOfflineBanner';
 export { AFInlineErrorRow, type AFInlineErrorRowProps } from './AFInlineErrorRow';
 
+// RC-1 Wave-5 · a11y breadth — composed numeral+label announcement
+export { AFStatPair, type AFStatPairProps } from './AFStatPair';
+
 export * from './afPrimitives.logic';

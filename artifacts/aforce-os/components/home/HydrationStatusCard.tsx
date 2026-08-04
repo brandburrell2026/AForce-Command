@@ -11,6 +11,7 @@ import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Svg, { Circle, G } from 'react-native-svg';
 import { Icon } from '@/components/Icon';
 import { Colors } from '@/theme/colors';
+import { AFStatPair } from '@/components/ui/AFStatPair';
 
 const BRAND = Colors.accent.brand;
 
@@ -57,10 +58,13 @@ const CIRC = 2 * Math.PI * R;
 
 function StatRow({ label, value }: { label: string; value: string }) {
   return (
-    <View style={styles.statRow}>
-      <Text style={styles.statLabel}>{label}</Text>
-      <Text style={styles.statValue}>{value}</Text>
-    </View>
+    <AFStatPair
+      label={label}
+      value={value}
+      style={styles.statRow}
+      labelStyle={styles.statLabel}
+      valueStyle={styles.statValue}
+    />
   );
 }
 
