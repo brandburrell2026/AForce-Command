@@ -17,7 +17,7 @@
 
 import React from 'react';
 import {
-  View, Text, ScrollView, Pressable, StyleSheet, Platform,
+  View, Text, ScrollView, Pressable, StyleSheet, Platform, ActivityIndicator,
 } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -105,12 +105,30 @@ function WeeklyReportLegacy() {
 
   // Analytics event log loads asynchronously; until it lands we render an
   // honest empty projection (every signal "collecting"/"awaiting").
+  //
+  // RC-1 fix (P0 live bug): this fetch had no `.catch()` (a rejected promise
+  // was silently swallowed) and no loading flag, so a slow/failed fetch was
+  // indistinguishable from the *designed* empty state (genuinely zero
+  // events). `eventsLoading` gates a real loading indicator below, distinct
+  // from the honest "collecting"/"awaiting" per-section states that render
+  // once the fetch has settled.
   const [events, setEvents] = React.useState<AnalyticsEvent[]>([]);
+  const [eventsLoading, setEventsLoading] = React.useState(true);
   React.useEffect(() => {
     let cancelled = false;
-    void getAnalyticsSnapshot().then((snap) => {
-      if (!cancelled && snap) setEvents(snap.events);
-    });
+    setEventsLoading(true);
+    getAnalyticsSnapshot()
+      .then((snap) => {
+        if (!cancelled && snap) setEvents(snap.events);
+      })
+      .catch(() => {
+        // Best-effort — leave `events` at its honest empty default so
+        // every section renders "collecting"/"awaiting" (Score-Protection)
+        // rather than crashing the report.
+      })
+      .finally(() => {
+        if (!cancelled) setEventsLoading(false);
+      });
     return () => {
       cancelled = true;
     };
@@ -240,11 +258,17 @@ function WeeklyReportLegacy() {
               <Text style={styles.range}>{weekRange}</Text>
               <Text style={styles.generated}>{generated}</Text>
 
-              <View style={styles.grid}>
-                {sections.map((s) => (
-                  <SectionCard key={s.key} section={s} />
-                ))}
-              </View>
+              {eventsLoading ? (
+                <View style={styles.loadingWrap} testID="weekly-report-loading">
+                  <ActivityIndicator color="#FFFFFF" />
+                </View>
+              ) : (
+                <View style={styles.grid}>
+                  {sections.map((s) => (
+                    <SectionCard key={s.key} section={s} />
+                  ))}
+                </View>
+              )}
             </ScrollView>
           </View>
         </AdaptiveScreenWrapper>
@@ -382,6 +406,7 @@ const styles = StyleSheet.create({
     marginBottom: 18,
   },
   grid: { gap: 12 },
+  loadingWrap: { alignItems: 'center', justifyContent: 'center', paddingVertical: 60 },
   card: {
     padding: 16,
     borderRadius: 16,

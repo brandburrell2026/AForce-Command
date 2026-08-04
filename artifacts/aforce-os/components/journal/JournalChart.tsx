@@ -38,6 +38,7 @@ import Svg, {
 const AnimatedPath = Animated.createAnimatedComponent(Path);
 import type { JournalSnapshot } from '@/types';
 import { Colors } from '@/theme/colors';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
@@ -143,31 +144,49 @@ export default function JournalChart({
   //                constellation (the "floating signal" feeling)
   //   `shimmer`  — 4.8s, drives a barely-perceptible opacity shimmer on
   //                the trend line itself (the "signal flow" feeling)
+  // RC-1 fix (P0): all three were ungated infinite `withRepeat(..., -1)`
+  // loops with no reduced-motion check — they ran forever, including for
+  // users who have motion reduction on. Gated on the shared
+  // hooks/useReducedMotion (same pattern as components/WhoopSnapshotCard.tsx
+  // and components/RecoveryCapacityCard.tsx); the static fallback settles
+  // each oscillator at a value that renders a sensible resting frame (no
+  // halo breathing, no drift, no shimmer) instead of freezing mid-loop.
+  // Unmount cleanup was already correct — kept as-is.
+  const reducedMotion = useReducedMotion();
   const breath = useSharedValue(0);
   const drift = useSharedValue(0);
   const shimmer = useSharedValue(0);
   useEffect(() => {
-    breath.value = withRepeat(
-      withTiming(1, { duration: 2600, easing: Easing.inOut(Easing.quad) }),
-      -1,
-      true,
-    );
-    drift.value = withRepeat(
-      withTiming(1, { duration: 6000, easing: Easing.inOut(Easing.sin) }),
-      -1,
-      true,
-    );
-    shimmer.value = withRepeat(
-      withTiming(1, { duration: 4800, easing: Easing.inOut(Easing.sin) }),
-      -1,
-      true,
-    );
+    if (reducedMotion) {
+      cancelAnimation(breath);
+      cancelAnimation(drift);
+      cancelAnimation(shimmer);
+      breath.value = 0;
+      drift.value = 0;
+      shimmer.value = 0;
+    } else {
+      breath.value = withRepeat(
+        withTiming(1, { duration: 2600, easing: Easing.inOut(Easing.quad) }),
+        -1,
+        true,
+      );
+      drift.value = withRepeat(
+        withTiming(1, { duration: 6000, easing: Easing.inOut(Easing.sin) }),
+        -1,
+        true,
+      );
+      shimmer.value = withRepeat(
+        withTiming(1, { duration: 4800, easing: Easing.inOut(Easing.sin) }),
+        -1,
+        true,
+      );
+    }
     return () => {
       cancelAnimation(breath);
       cancelAnimation(drift);
       cancelAnimation(shimmer);
     };
-  }, [breath, drift, shimmer]);
+  }, [breath, drift, shimmer, reducedMotion]);
 
   const haloOuterProps = useAnimatedProps(() => ({
     opacity: 0.06 + breath.value * 0.06,

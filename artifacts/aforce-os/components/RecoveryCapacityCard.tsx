@@ -14,12 +14,13 @@ import React, { useEffect } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import Animated, {
   useSharedValue, useAnimatedStyle, withTiming, withRepeat,
-  Easing, interpolate, interpolateColor,
+  Easing, interpolate, interpolateColor, cancelAnimation,
 } from 'react-native-reanimated';
 
 import { Icon } from './Icon';
 import { Colors } from '../theme/colors';
 import type { RecoveryCapacityScore } from '../services/recoveryCapacity';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
 
 interface Props {
   recovery: RecoveryCapacityScore;
@@ -60,13 +61,32 @@ export function RecoveryCapacityCard({ recovery }: Props) {
 
   // Ambient halo behind the score number — soft 3s breathing tied to
   // band color. Adds the "alive data" feel without box-shadows.
+  //
+  // RC-1 fix (P0): this was an ungated infinite `withRepeat(..., -1)` loop
+  // with no reduced-motion check and no teardown — it ran forever, including
+  // for users who have motion reduction on, and kept animating on
+  // Reanimated's UI thread past unmount. Pattern mirrors
+  // components/WhoopSnapshotCard.tsx:118-165 — gate on the shared
+  // hooks/useReducedMotion, and cancelAnimation in both the static branch
+  // and the unmount cleanup.
+  const reducedMotion = useReducedMotion();
   const halo = useSharedValue(0);
   useEffect(() => {
-    halo.value = withRepeat(
-      withTiming(1, { duration: 3000, easing: Easing.inOut(Easing.quad) }),
-      -1, true,
-    );
-  }, [halo]);
+    if (reducedMotion) {
+      // Static alternative: settle at the oscillation's midpoint — no
+      // breathing loop — rather than freezing at either visual extreme.
+      cancelAnimation(halo);
+      halo.value = 0.5;
+    } else {
+      halo.value = withRepeat(
+        withTiming(1, { duration: 3000, easing: Easing.inOut(Easing.quad) }),
+        -1, true,
+      );
+    }
+    return () => {
+      cancelAnimation(halo);
+    };
+  }, [halo, reducedMotion]);
   const haloStyle = useAnimatedStyle(() => ({
     opacity: interpolate(halo.value, [0, 1], [0.18, 0.42]),
     transform: [{ scale: interpolate(halo.value, [0, 1], [0.92, 1.08]) }],

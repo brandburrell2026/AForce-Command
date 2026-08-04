@@ -5,11 +5,22 @@
  * three quiet signal metrics. One score, one command, one CTA.
  *
  * Same live engine data as the legacy Home (score, command, signals) — no
- * scoring change (statusColor/scoringEngine untouched). Tapping the arc opens
- * Readiness Insights, where the legacy Home's detail zones (Metabolic Readiness,
- * Performance Age, Voice Check-In, Activation Journey, AI-Coach video) now live
- * (founder ruling: relocate, never delete) — so nothing users had access to on
- * the legacy Home went missing.
+ * scoring change (statusColor/scoringEngine untouched).
+ *
+ * HONEST STATUS (RC-1 audit correction — this comment previously claimed the
+ * legacy Home's detail zones were "relocated" into Readiness Insights with
+ * "nothing missing"; that was false): the legacy Home's four detail zones —
+ * MetabolicReadinessZone, PerformanceAgeZone, VoiceCheckInZone,
+ * ActivationJourneyZone (all in components/home/) — are rendered ONLY by
+ * HomeScreenLegacy (app/(tabs)/index.tsx), not by this component or by
+ * ReadinessInsightsV2. Tapping the arc opens Readiness Insights, which shows
+ * a chart + drivers + insight, not those four zones. Today the zones are
+ * still reachable because `spec_home` defaults OFF and legacy renders
+ * alongside this component — but the moment `spec_home` flips on for good,
+ * they become orphaned/unreachable UI with no relocation path defined yet.
+ * Actually relocating them (or explicitly retiring them) needs a founder decision
+ * before `spec_home` ships as the only Home — this file must not claim that
+ * decision has already happened.
  *
  * E1 — Elite Home (flag `elite_home_experience_enabled`, default OFF):
  * PRESENTATION-ONLY elevation layered on the exact same data. When the flag is
@@ -53,6 +64,9 @@ import {
 import { findVoice } from '@/services/voiceCatalog';
 import { coachEyebrow, coachLead, formatCommandForCoach } from '@/services/voice/coachPhrasing';
 import type { FluidType } from '@/types';
+import { LiveStatusLine } from './LiveStatusLine';
+import { useScoreTrend } from '@/hooks/useScoreTrend';
+import { getStatusVerb } from '@/services/statusVerb';
 
 interface HomeActions {
   logIntake: (
@@ -159,6 +173,18 @@ export function HomeScreenV2() {
   const reveal = (idx: number) =>
     elite && !reducedMotion ? FadeInDown.duration(420).delay(idx * 90) : undefined;
 
+  // RC-1 fix (P0 vs founder's 3-second brief): momentum was missing from
+  // Home — the tested, existing `LiveStatusLine` (trend arrow + delta
+  // window + status verb) lived only on the legacy Home. Same hook/service
+  // pair the legacy screen uses (app/(tabs)/index.tsx), tinted with V2's own
+  // `accent` so it stays in this screen's spare visual language instead of
+  // reaching into the legacy band-color selector.
+  const trend = useScoreTrend(score);
+  const statusVerb = React.useMemo(
+    () => getStatusVerb(engine.performanceState.level, trend.direction),
+    [engine.performanceState.level, trend.direction],
+  );
+
   // ── E4 elite voice-coach delivery (flag-gated; phrasing/delivery ONLY) ──────
   // Same command/dose/timing/evidence for every coach — only the eyebrow + tone
   // change, via the fail-safe, §64-guarded coachPhrasing adapter.
@@ -221,6 +247,14 @@ export function HomeScreenV2() {
             )}
           </AFReadinessArc>
         </Pressable>
+        <LiveStatusLine
+          direction={trend.direction}
+          delta={trend.delta}
+          ageSec={trend.ageSec}
+          verb={statusVerb}
+          accent={accent}
+          testID="home-v2-live-status-line"
+        />
       </Animated.View>
 
       {/* One command */}

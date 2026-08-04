@@ -12,6 +12,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { useRouter } from 'expo-router';
 
 import {
   AFScreen,
@@ -26,6 +27,35 @@ import { af, afType, AF_MAX_DISPLAY_FONT_SCALE } from '@/theme';
 import { useAppStore, useFeatureFlags } from '@/store/useAppStore';
 import { useEngineSlice } from '@/store/slices';
 import { EliteWeeklyEditorial } from './EliteWeeklyEditorial';
+import type { AnalyticsEvent } from '@/utils/analytics/metrics';
+import { getAnalyticsSnapshot } from '@/services/analytics';
+import {
+  buildWeeklyReport,
+  lastCompletedWeek,
+  type WeeklyReport,
+  type WeeklyReportSection,
+  type WeeklyReportSectionKey,
+} from '@/utils/weeklyReport';
+import { usePerformanceAge } from '@/hooks/usePerformanceAge';
+import { openShareSheet } from '@/services/shareService';
+import { sectionSummary } from './weeklyReportCopy';
+import { buildWeeklyHealthAggregates } from '@/services/health/weeklyHealthAggregates';
+
+/**
+ * RC-1 fix (P0 live bug): the same 7-section order used by the legacy Weekly
+ * Report grid (app/weekly-report.tsx), duplicated verbatim here so the share
+ * action below always composes the full report regardless of which visual
+ * (legacy grid or this Phase-2 view) is on screen.
+ */
+const SHARE_SECTION_ORDER: WeeklyReportSectionKey[] = [
+  'improved',
+  'attention',
+  'performanceAge',
+  'habitVelocity',
+  'recovery',
+  'topCommand',
+  'nextWeekFocus',
+];
 
 function dayInitial(ts: Date | string): string {
   const d = new Date(ts);
@@ -38,7 +68,8 @@ function dayInitial(ts: Date | string): string {
 }
 
 export function ReadinessInsightsV2() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const router = useRouter();
   const { state } = useAppStore();
   const engine = useEngineSlice();
   const flags = useFeatureFlags();
@@ -63,9 +94,112 @@ export function ReadinessInsightsV2() {
 
   const topPositive = drivers.find((d) => d.delta > 0);
 
+  // ─── RC-1 fix (P0 live bug): back + share ──────────────────────────────
+  // This screen previously rendered AFTopBar with no onBack and no share
+  // action — a dead-end with no way to leave except the hardware/gesture
+  // back, and no way to share the report at all. Share is ported verbatim
+  // from the dormant legacy path's `onShare` (app/weekly-report.tsx:192-200)
+  // so "share" always composes the full 7-section report — identical
+  // content regardless of whether the legacy grid or this Phase-2 view is
+  // the one currently on screen.
+  const healthCanonicalConsumers = state.featureFlags.health_canonical_consumers;
+  const biometrics = state.userState.biometrics;
+  const shareNowISO = React.useRef(new Date().toISOString()).current;
+  const shareWeek = React.useMemo(() => lastCompletedWeek(shareNowISO), [shareNowISO]);
+
+  const [shareEvents, setShareEvents] = React.useState<AnalyticsEvent[]>([]);
+  React.useEffect(() => {
+    let cancelled = false;
+    getAnalyticsSnapshot()
+      .then((snap) => {
+        if (!cancelled && snap) setShareEvents(snap.events);
+      })
+      .catch(() => {
+        // Best-effort — a failed snapshot fetch leaves shareEvents at its
+        // honest empty default; the shared report's sections simply read
+        // "collecting"/"awaiting" (Score-Protection), never a crash.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const sharePerformanceAge = usePerformanceAge();
+
+  const shareReport: WeeklyReport = React.useMemo(() => {
+    const nowMs = Date.parse(shareNowISO);
+    const health = healthCanonicalConsumers
+      ? buildWeeklyHealthAggregates({
+          dailySignals: [
+            {
+              dayIndex: 6,
+              input: {
+                biometrics,
+                records: undefined,
+                activeDirectProviders: new Set(),
+                connections: undefined,
+                nowMs,
+              },
+            },
+          ],
+          days: 7,
+          timezoneOffsetMin: -new Date(shareNowISO).getTimezoneOffset(),
+          nowMs,
+        })
+      : undefined;
+
+    return buildWeeklyReport({
+      nowISO: shareNowISO,
+      weekStartISO: shareWeek.weekStartISO,
+      weekEndISO: shareWeek.weekEndISO,
+      priorWeekStartISO: shareWeek.priorWeekStartISO,
+      priorWeekEndISO: shareWeek.priorWeekEndISO,
+      analyticsEvents: shareEvents,
+      current: { performanceAge: sharePerformanceAge.result },
+      health,
+    });
+  }, [shareNowISO, shareWeek, shareEvents, sharePerformanceAge.result, healthCanonicalConsumers, biometrics]);
+
+  const fmtShareDay = React.useCallback(
+    (iso: string) => {
+      const d = new Date(iso);
+      if (Number.isNaN(d.getTime())) return iso;
+      try {
+        return d.toLocaleDateString(i18n.language, { month: 'short', day: 'numeric' });
+      } catch {
+        return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+      }
+    },
+    [i18n.language],
+  );
+
+  const shareWeekRange = t('reports.weekRange', {
+    start: fmtShareDay(shareReport.weekStartISO),
+    end: fmtShareDay(shareReport.weekEndISO),
+  });
+
+  const shareSections = SHARE_SECTION_ORDER.map((key) =>
+    shareReport.sections.find((s) => s.key === key),
+  ).filter((s): s is WeeklyReportSection => Boolean(s));
+
+  const onShare = React.useCallback(() => {
+    const lines: string[] = [t('reports.shareTitle'), shareWeekRange, ''];
+    for (const s of shareSections) {
+      const title = t(`reports.sections.${s.key}.title`);
+      const summary = sectionSummary(t, s);
+      lines.push(summary ? `${title}: ${summary}` : title);
+    }
+    void openShareSheet({ format: 'recap', message: lines.join('\n') });
+  }, [t, shareWeekRange, shareSections]);
+
   return (
     <AFScreen scroll>
-      <AFTopBar eyebrow={t('reports.v2.eyebrow')} title={t('reports.v2.title')} />
+      <AFTopBar
+        eyebrow={t('reports.v2.eyebrow')}
+        title={t('reports.v2.title')}
+        onBack={() => router.back()}
+        actions={[{ icon: 'share', onPress: onShare, label: t('reports.share_a11y') }]}
+      />
 
       {scores.length < 2 ? (
         <AFEmptyState
