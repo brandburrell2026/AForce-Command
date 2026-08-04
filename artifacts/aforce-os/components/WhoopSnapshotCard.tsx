@@ -25,8 +25,11 @@ import Animated, {
   withTiming,
   withRepeat,
   withSequence,
+  cancelAnimation,
   Easing,
 } from 'react-native-reanimated';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
+import { AF_MAX_DISPLAY_FONT_SCALE } from '@/theme';
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
@@ -110,25 +113,59 @@ export function WhoopSnapshotCard({
   // Strain bar fill-in.
   const strainProgress = useSharedValue(0);
 
+  // A11y fix (Squad-F HIGH #1): the connection-dot pulse was an ungated
+  // `withRepeat(..., -1)` loop with no reduced-motion check and no teardown —
+  // it ran forever, including for users who have motion reduction on, and
+  // kept animating on Reanimated's UI thread even after this card unmounted.
+  // The ring/strain reveal tweens were finite but had the same gap. Pattern
+  // mirrors components/ui/AFReadinessArc.tsx:77-116 — gate on the shared
+  // hooks/useReducedMotion, and cancelAnimation in both the static branch and
+  // the unmount cleanup.
+  const reducedMotion = useReducedMotion();
+
   useEffect(() => {
     const target = recoveryPct != null ? Math.max(0, Math.min(100, recoveryPct)) / 100 : 0;
-    ringProgress.value = withTiming(target, {
-      duration: 900,
-      easing: Easing.out(Easing.cubic),
-    });
-    strainProgress.value = withTiming(strainPct, {
-      duration: 900,
-      easing: Easing.out(Easing.cubic),
-    });
-    pulse.value = withRepeat(
-      withSequence(
-        withTiming(0.35, { duration: 900, easing: Easing.inOut(Easing.quad) }),
-        withTiming(1, { duration: 900, easing: Easing.inOut(Easing.quad) }),
-      ),
-      -1,
-      false,
-    );
-  }, [recoveryPct, strainPct, ringProgress, strainProgress, pulse]);
+
+    if (reducedMotion) {
+      // Static alternative: jump straight to the resolved values — no reveal
+      // tween, no looping pulse (the connection dot holds fully opaque).
+      cancelAnimation(ringProgress);
+      cancelAnimation(strainProgress);
+      cancelAnimation(pulse);
+      ringProgress.value = target;
+      strainProgress.value = strainPct;
+      pulse.value = 1;
+    } else {
+      ringProgress.value = withTiming(target, {
+        duration: 900,
+        easing: Easing.out(Easing.cubic),
+      });
+      strainProgress.value = withTiming(strainPct, {
+        duration: 900,
+        easing: Easing.out(Easing.cubic),
+      });
+      pulse.value = withRepeat(
+        withSequence(
+          withTiming(0.35, { duration: 900, easing: Easing.inOut(Easing.quad) }),
+          withTiming(1, { duration: 900, easing: Easing.inOut(Easing.quad) }),
+        ),
+        -1,
+        false,
+      );
+    }
+
+    // Unmount (and re-run) teardown: always cancel so nothing keeps
+    // animating on the UI thread past this render's inputs. This repo has no
+    // established pattern for pausing Reanimated loops on screen-blur (sibling
+    // loops — StatusPulseOrb, AFReadinessArc's `alive` halo — don't do it
+    // either); unmount cleanup + the reduced-motion gate is what's implemented
+    // here, consistent with those.
+    return () => {
+      cancelAnimation(ringProgress);
+      cancelAnimation(strainProgress);
+      cancelAnimation(pulse);
+    };
+  }, [recoveryPct, strainPct, reducedMotion, ringProgress, strainProgress, pulse]);
 
   const animatedRingProps = useAnimatedProps(() => ({
     strokeDashoffset: RING_CIRCUMFERENCE * (1 - ringProgress.value),
@@ -142,6 +179,37 @@ export function WhoopSnapshotCard({
     width: `${strainProgress.value * 100}%`,
   }));
 
+  // A11y fix (Squad-F HIGH #2): this card had zero accessibility props —
+  // every metric was a bare pair of sibling <Text> nodes, so a screen reader
+  // read the recovery ring, strain block, and sleep block as loose fragments
+  // (a raw "—" on a null metric, with no indication of what was missing).
+  // Each block below is grouped into ONE accessible element with a composed,
+  // honest label — including the null-metric case, which must say something
+  // meaningful rather than announce a bare dash.
+  const connectionStateLabel = syncing ? t('settings.whoop.syncing') : t('settings.whoop.connected');
+  const recoveryA11yLabel =
+    recValue != null
+      ? t('settings.whoop.recovery_a11y', { value: recValue })
+      : t('settings.whoop.recovery_a11y_unknown');
+  const strainBucket = strainBucketKey(strain);
+  const strainA11yLabel =
+    strain != null
+      ? t('settings.whoop.strain_a11y', {
+          value: strainValue,
+          max: STRAIN_MAX,
+          bucket: strainBucket ? t(`settings.whoop.${strainBucket}`) : '',
+        })
+      : t('settings.whoop.strain_a11y_unknown');
+  const sleepA11yLabel =
+    sleepHoursLastNight != null && sleepPerf != null
+      ? t('settings.whoop.sleep_a11y', { hours: sleepValue, pct: sleepPerf })
+      : sleepHoursLastNight != null
+        ? t('settings.whoop.sleep_a11y_hours_only', { hours: sleepValue })
+        : sleepPerf != null
+          ? t('settings.whoop.sleep_a11y_pct_only', { pct: sleepPerf })
+          : t('settings.whoop.sleep_a11y_unknown');
+  const footerLabel = syncing ? t('settings.whoop.footer_syncing') : t('settings.whoop.footer_live');
+
   return (
     <LinearGradient
       colors={[PANEL_BG_TOP, PANEL_BG_BOTTOM]}
@@ -151,17 +219,32 @@ export function WhoopSnapshotCard({
     >
       {/* Header — WHOOP wordmark + live indicator */}
       <View style={styles.header}>
-        <Text style={styles.wordmark}>WHOOP</Text>
-        <View style={styles.connectedRow}>
-          <Animated.View style={[styles.pulseDot, animatedDotStyle]} />
-          <Text style={styles.connectedText}>{syncing ? t('settings.whoop.syncing') : t('settings.whoop.connected')}</Text>
+        <Text style={styles.wordmark} accessibilityRole="header">WHOOP</Text>
+        <View
+          style={styles.connectedRow}
+          accessible
+          accessibilityLabel={connectionStateLabel}
+          accessibilityLiveRegion="polite"
+          testID="whoop-connection-state"
+        >
+          <Animated.View
+            style={[styles.pulseDot, animatedDotStyle]}
+            accessibilityElementsHidden
+            importantForAccessibility="no-hide-descendants"
+          />
+          <Text style={styles.connectedText}>{connectionStateLabel}</Text>
         </View>
       </View>
 
       {/* Hero — Recovery ring */}
       <View style={styles.heroRow}>
         <View style={styles.ringWrap}>
-          <Svg width={RING_SIZE} height={RING_SIZE}>
+          <Svg
+            width={RING_SIZE}
+            height={RING_SIZE}
+            accessibilityElementsHidden
+            importantForAccessibility="no-hide-descendants"
+          >
             {/* Track */}
             <Circle
               cx={RING_SIZE / 2}
@@ -185,31 +268,54 @@ export function WhoopSnapshotCard({
               transform={`rotate(-90 ${RING_SIZE / 2} ${RING_SIZE / 2})`}
             />
           </Svg>
-          <View style={styles.ringCenter} pointerEvents="none">
-            <Text style={[styles.recoveryValue, { color: recColor }]}>
+          <View
+            style={styles.ringCenter}
+            pointerEvents="none"
+            accessible
+            accessibilityLabel={recoveryA11yLabel}
+            testID="whoop-recovery"
+          >
+            {/*
+             * Dynamic Type fix (Squad-F HIGH #5b): these numerics sit inside a
+             * fixed 132px ring (RING_SIZE); uncapped Dynamic Type would blow
+             * past the ring's geometry. AF_MAX_DISPLAY_FONT_SCALE
+             * (theme/afTokens.ts) is the documented clamp for exactly this —
+             * oversized DISPLAY numerals in a fixed hero shape — never
+             * applied to body copy. The ring itself is NOT resized.
+             */}
+            <Text
+              style={[styles.recoveryValue, { color: recColor }]}
+              maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}
+            >
               {recValue != null ? `${recValue}%` : '—'}
             </Text>
-            <Text style={styles.recoveryLabel}>{t('settings.whoop.recovery')}</Text>
+            <Text style={styles.recoveryLabel} maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}>
+              {t('settings.whoop.recovery')}
+            </Text>
           </View>
         </View>
 
         {/* Right-side stack — Strain + Sleep */}
         <View style={styles.statStack}>
-          <View style={styles.statBlock}>
+          <View style={styles.statBlock} accessible accessibilityLabel={strainA11yLabel} testID="whoop-strain">
             <Text style={styles.statLabel}>{t('settings.whoop.strain')}</Text>
             <View style={styles.statValueRow}>
               <Text style={[styles.statValue, { color: WHOOP_TEAL }]}>{strainValue}</Text>
               <Text style={styles.statDenom}>/ {STRAIN_MAX}</Text>
             </View>
-            <Text style={styles.statSubtle}>{(() => { const k = strainBucketKey(strain); return k ? t(`settings.whoop.${k}`) : '—'; })()}</Text>
-            <View style={styles.barTrack}>
+            <Text style={styles.statSubtle}>{strainBucket ? t(`settings.whoop.${strainBucket}`) : '—'}</Text>
+            <View
+              style={styles.barTrack}
+              accessibilityElementsHidden
+              importantForAccessibility="no-hide-descendants"
+            >
               <Animated.View
                 style={[styles.barFill, { backgroundColor: WHOOP_TEAL }, animatedStrainBarStyle]}
               />
             </View>
           </View>
 
-          <View style={styles.statBlock}>
+          <View style={styles.statBlock} accessible accessibilityLabel={sleepA11yLabel} testID="whoop-sleep">
             <Text style={styles.statLabel}>{t('settings.whoop.sleep')}</Text>
             <View style={styles.statValueRow}>
               <Text style={[styles.statValue, { color: TEXT_PRIMARY }]}>{sleepValue}</Text>
@@ -223,11 +329,13 @@ export function WhoopSnapshotCard({
       </View>
 
       {/* Footer — feeding score line */}
-      <View style={styles.footer}>
-        <View style={[styles.footerDot, { backgroundColor: CONNECTED_GREEN }]} />
-        <Text style={styles.footerText}>
-          {syncing ? t('settings.whoop.footer_syncing') : t('settings.whoop.footer_live')}
-        </Text>
+      <View style={styles.footer} accessible accessibilityLabel={footerLabel} testID="whoop-footer">
+        <View
+          style={[styles.footerDot, { backgroundColor: CONNECTED_GREEN }]}
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+        />
+        <Text style={styles.footerText}>{footerLabel}</Text>
       </View>
     </LinearGradient>
   );

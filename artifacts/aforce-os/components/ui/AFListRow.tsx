@@ -42,7 +42,15 @@ export function AFListRow({
         </View>
       )}
       <View style={styles.text}>
-        <Text style={styles.title} numberOfLines={1} adjustsFontSizeToFit>
+        {/*
+         * A11y fix (Squad-F HIGH #5a): `numberOfLines={1} adjustsFontSizeToFit`
+         * shrank the title to fit one line, which at large Dynamic Type sizes
+         * silently truncates/illegibly compresses it. `AF_MAX_DISPLAY_FONT_SCALE`
+         * is documented (theme/afTokens.ts) for oversized DISPLAY numerals only
+         * — never body copy — so the correct fix here is to let the title wrap
+         * and keep the OS's full Dynamic-Type scaling, matching the subtitle.
+         */}
+        <Text style={styles.title}>
           {title}
         </Text>
         {subtitle && (
@@ -57,7 +65,7 @@ export function AFListRow({
           value={toggle.value}
           onValueChange={toggle.onValueChange}
           trackColor={{ false: 'rgba(255,255,255,0.12)', true: af.red }}
-          accessibilityLabel={title}
+          accessibilityLabel={composedLabel}
         />
       )}
       {disclosure && <Icon name="chevron-right" size={16} color={af.textTertiary} />}
@@ -69,7 +77,7 @@ export function AFListRow({
       <Pressable
         onPress={onPress}
         accessibilityRole="button"
-        accessibilityLabel={title}
+        accessibilityLabel={composedLabel}
         testID={testID}
         style={({ pressed }) => [styles.pressable, pressed && styles.pressed]}
       >

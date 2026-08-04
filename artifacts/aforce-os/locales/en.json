@@ -487,7 +487,16 @@
       "approval_pending": "APPROVAL PENDING",
       "coming_soon": "COMING SOON",
       "via_health_connect": "VIA HEALTH CONNECT",
-      "unsupported": "Unsupported on this device"
+      "unsupported": "Unsupported on this device",
+      "row_a11y_demo": "{{name}}, demo mode, double tap to disconnect",
+      "row_a11y_connected": "{{name}}, connected, double tap to disconnect",
+      "row_a11y_syncing": "{{name}}, connected, syncing, double tap to disconnect",
+      "row_a11y_partial": "{{name}}, connected with limited permissions, double tap to disconnect",
+      "row_a11y_needs_attention": "{{name}}, needs attention, double tap to disconnect",
+      "row_a11y_approval_pending": "{{name}}, approval pending",
+      "row_a11y_coming_soon": "{{name}}, coming soon",
+      "row_a11y_via_health_connect": "{{name}}, available through Health Connect",
+      "row_a11y_unsupported": "{{name}}, unsupported on this device"
     }
   },
   "settings": {
@@ -512,7 +521,15 @@
       "sleep_h": "h",
       "sleep_performance": "{{pct}}% PERFORMANCE",
       "footer_syncing": "SYNCING FROM WHOOP · FIRST PULL",
-      "footer_live": "INFORMING AFORCE READINESS · LIVE"
+      "footer_live": "INFORMING AFORCE READINESS · LIVE",
+      "recovery_a11y": "Recovery {{value}} percent",
+      "recovery_a11y_unknown": "Recovery not yet available",
+      "strain_a11y": "Strain {{value}} of {{max}}, {{bucket}}",
+      "strain_a11y_unknown": "Strain not yet available",
+      "sleep_a11y": "Sleep {{hours}} hours, {{pct}} percent performance",
+      "sleep_a11y_hours_only": "Sleep {{hours}} hours",
+      "sleep_a11y_pct_only": "Sleep performance {{pct}} percent",
+      "sleep_a11y_unknown": "Sleep data not yet available"
     },
     "analyticsConsent": {
       "label": "Anonymous Analytics",

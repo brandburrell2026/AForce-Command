@@ -45,12 +45,25 @@ export function BiometricDetailSheet({ visible, payload, onDismiss }: Props) {
       onRequestClose={onDismiss}
       statusBarTranslucent
     >
-      <Pressable style={styles.backdrop} onPress={onDismiss} accessibilityRole="button" accessibilityLabel="Dismiss">
+      {/*
+       * A11y fix (Squad-F HIGH #4): the backdrop used to be a single
+       * Pressable that WRAPPED the entire sheet subtree — VoiceOver/TalkBack
+       * then collapsed the whole modal into one "Dismiss" button and the
+       * sheet's own controls (card, primary action, Close) were never
+       * individually reachable. The backdrop is now its own sibling element
+       * positioned BEHIND the sheet (absolute-fill, painted first), so it
+       * still dismisses on an outside tap but no longer owns the sheet's
+       * accessibility tree. `accessibilityViewIsModal` on the sheet
+       * constrains screen-reader navigation to the sheet's content while open.
+       */}
+      <View style={styles.backdropContainer}>
         <Pressable
-          style={styles.sheet}
-          onPress={(e) => e.stopPropagation()}
-          accessible={false}
-        >
+          style={StyleSheet.absoluteFillObject}
+          onPress={onDismiss}
+          accessibilityRole="button"
+          accessibilityLabel="Dismiss"
+        />
+        <View style={styles.sheet} accessibilityViewIsModal>
           <View style={styles.handle} />
           {payload ? (
             <BiometricCard
@@ -94,14 +107,14 @@ export function BiometricDetailSheet({ visible, payload, onDismiss }: Props) {
             <Icon name="x" size={16} color={Colors.text.secondary} />
             <Text style={styles.closeText}>CLOSE</Text>
           </Pressable>
-        </Pressable>
-      </Pressable>
+        </View>
+      </View>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
-  backdrop: {
+  backdropContainer: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.65)',
     justifyContent: 'flex-end',
