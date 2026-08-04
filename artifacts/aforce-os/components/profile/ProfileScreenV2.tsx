@@ -1204,6 +1204,31 @@ export function ProfileScreenV2() {
                       // Foundation 1A — health_* flags govern connectability
                       // (all default OFF; WHOOP keeps its server-credential
                       // gating until the provider-kit cutover in PR 1B).
+                      //
+                      // RC-1 verdict-pass disclosure (Wave-1 r2, item 8): what
+                      // this actually does — `healthFlagsFromFeatureFlags`
+                      // projects the current `health_apple_enabled` /
+                      // `health_google_connect_enabled` / `health_oura_enabled`
+                      // / `health_strava_enabled` / `health_garmin_enabled` /
+                      // `health_samsung_direct_enabled` flags into a per-
+                      // provider connectability map that `deriveProviderRowStatus`
+                      // gates every non-WHOOP provider's row on (see
+                      // `utils/health/providerRowStatus.ts`'s `enabled =
+                      // f.provider === 'whoop' ? true : f.healthFlags?.[f.provider]
+                      // === true`). It is INERT TODAY: every `health_*` flag
+                      // defaults OFF (enforced by
+                      // `featureFlags/__tests__/healthFlagsDefaultOff.test.ts`),
+                      // so `enabled` resolves `false` for every provider this
+                      // wiring governs and each row renders exactly as it did
+                      // before this was added — no behavior change under
+                      // `DEFAULT_FLAGS`. It ENGAGES the moment any one of those
+                      // flags flips to `true`: that provider's row immediately
+                      // becomes eligible to show a real "Connected" state
+                      // instead of being permanently capped at DEMO/Coming
+                      // Soon/Approval Pending. This is intentional forward
+                      // wiring — cohort/beta rollout work will flip these
+                      // flags per-provider without needing a follow-up code
+                      // change here; do not revert this wiring as "unused."
                       healthFlags: healthFlagsFromFeatureFlags(state.featureFlags),
                     });
                     const demoLinked = garminDemo || (!isGarmin && !isWhoop && linkedProviders.has(p.id));
