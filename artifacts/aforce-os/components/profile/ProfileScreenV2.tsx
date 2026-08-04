@@ -1535,7 +1535,7 @@ export function ProfileScreenV2() {
                               message={appleFetchError}
                               onRetry={() => { void refreshAppleSnapshot(); }}
                               retryLabel={t('common.retry')}
-                              testID="profile-apple-fetch-error"
+                              testID="profile-apple-fetch-error-no-snapshot"
                             />
                           </View>
                         )}

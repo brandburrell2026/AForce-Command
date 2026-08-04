@@ -1564,7 +1564,6 @@
       "free": "Free",
       "estimated_tax": "Estimated tax",
       "total": "Total",
-      "checkout_unavailable_title": "Checkout unavailable",
       "checkout_could_not_start": "Could not start checkout.",
       "checkout_cancelled": "Checkout was cancelled. Your cart is saved.",
       "checkout_unconfirmed": "We couldn't confirm payment. If you were charged, your order is safe — refresh in a moment.",
