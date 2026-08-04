@@ -38,6 +38,19 @@ export function useAppStateGatedInterval(callback: () => void, intervalMs: numbe
 
   useEffect(() => {
     let interval: ReturnType<typeof setInterval> | null = null;
+    // Tracks the AppState value as of the last processed 'change' event
+    // (seeded with the state at mount). RC-1 W3P1 fix-forward, should-fix
+    // 3: resume-fire used to trigger on EVERY 'active' event unconditionally
+    // — but cold-start permission dialogs (HealthKit, location,
+    // notifications) and Control Center emit inactive → active pairs (or
+    // even back-to-back 'active' events) without a genuine background stop
+    // ever having happened, causing a spurious extra poll/weather fetch.
+    // Resume-fire now only runs on a GENUINE non-active → active edge — i.e.
+    // the previously-recorded state was itself not 'active' (a real `stop()`
+    // ran). An active → active event still calls `start()` (a no-op, since
+    // `start()` already guards on `interval != null`), just skips the
+    // callback invocation.
+    let previous: AppStateStatus = AppState.currentState;
     const start = () => {
       if (interval != null) return;
       interval = setInterval(() => callbackRef.current(), intervalMs);
@@ -48,11 +61,16 @@ export function useAppStateGatedInterval(callback: () => void, intervalMs: numbe
         interval = null;
       }
     };
-    if (AppState.currentState === 'active') start();
+    if (previous === 'active') start();
     const sub = AppState.addEventListener('change', (next: AppStateStatus) => {
+      const wasActive = previous === 'active';
+      previous = next;
       if (next === 'active') {
-        // Resume-fire: don't make a returning user wait for the next tick.
-        callbackRef.current();
+        if (!wasActive) {
+          // Genuine background/inactive → active edge: don't make a
+          // returning user wait for the next tick.
+          callbackRef.current();
+        }
         start();
       } else {
         stop();

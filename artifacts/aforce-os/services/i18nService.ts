@@ -184,6 +184,12 @@ function importLocale(lang: AnyLanguage) {
   }
 }
 
+// In-flight load cache (RC-1 fix-forward, should-fix 5): dedupes concurrent
+// `ensureLanguageLoaded` calls for the SAME language — e.g. two components
+// independently triggering a switch to French at once share one dynamic
+// `import()` + one `addResourceBundle` call instead of racing two.
+const inFlightLoads = new Map<AnyLanguage, Promise<void>>();
+
 // Registers a locale's resource bundle with i18next on first use. No-op if
 // already loaded (covers `en` and a matched `EAGER_SECONDARY` immediately;
 // covers everything else after its first `setLanguage()` call). This is the
@@ -192,9 +198,19 @@ function importLocale(lang: AnyLanguage) {
 // including the 5 hidden placeholders once a future release exposes them.
 async function ensureLanguageLoaded(lang: AnyLanguage): Promise<void> {
   if (loadedLanguages.has(lang)) return;
-  const mod = await importLocale(lang);
-  i18n.addResourceBundle(lang, 'translation', mod.default, true, true);
-  loadedLanguages.add(lang);
+  const existing = inFlightLoads.get(lang);
+  if (existing) return existing;
+  const load = (async () => {
+    const mod = await importLocale(lang);
+    i18n.addResourceBundle(lang, 'translation', mod.default, true, true);
+    loadedLanguages.add(lang);
+  })();
+  inFlightLoads.set(lang, load);
+  try {
+    await load;
+  } finally {
+    inFlightLoads.delete(lang);
+  }
 }
 
 let initialized = false;
@@ -221,15 +237,33 @@ export function initI18n(initial?: AnyLanguage): typeof i18n {
   return i18n;
 }
 
+// Request token (RC-1 fix-forward, should-fix 5): bumped on every
+// `setLanguage` call. Without this, rapid switching (e.g. fr → en) could
+// settle on whichever call's `ensureLanguageLoaded` / `changeLanguage`
+// happened to resolve LAST — not whichever was requested last. `fr` (not
+// yet loaded) needs a real dynamic import; `en` (already loaded) resolves
+// near-instantly — so a `setLanguage('fr')` immediately followed by
+// `setLanguage('en')` could finish in fr → en REQUEST order but en → fr
+// RESOLUTION order, leaving the user on French after asking for English.
+// Each call snapshots its own token and bails out (without touching
+// i18next's active language) the moment a newer call has superseded it.
+let languageRequestToken = 0;
+
 export async function setLanguage(lang: AnyLanguage): Promise<void> {
+  const myToken = ++languageRequestToken;
   if (!initialized) initI18n(lang);
   // Make sure the resource bundle exists BEFORE switching i18next's active
   // language, so lookups resolve immediately instead of flashing raw keys /
   // the English fallback while the dynamic import is still in flight.
   await ensureLanguageLoaded(lang);
+  // Superseded by a later `setLanguage` call while this one's import was in
+  // flight — do not switch the active language out from under it.
+  if (myToken !== languageRequestToken) return;
   if (i18n.language !== lang) {
     await i18n.changeLanguage(lang);
   }
+  // Re-check after the (also async) changeLanguage call, for the same reason.
+  if (myToken !== languageRequestToken) return;
   // Mirror layout direction for RTL locales. `forceRTL` takes effect
   // on the next app launch in production (React Native limitation);
   // current-session text wrapping still benefits from the i18n change.
