@@ -24,12 +24,14 @@
 <link rel="stylesheet" href="/assets/header.css">
 <style>
   :root{
-    --ink:#0D0D0D;              /* Cinematic Black */
+    --ink:#0D0D0D;              /* Cinematic Black — primary text */
+    --canvas:#E9E7E1;          /* Paper — primary background (matches home) */
+    --canvas-dim:#E1DDD4;      /* raised paper surface */
     --panel:#141517;
-    --line:rgba(245,240,232,0.12);
-    --bone:#F5F0E8;            /* Paper / text on dark */
-    --mute:rgba(245,240,232,0.60);
-    --faint:rgba(245,240,232,0.34);
+    --line:rgba(13,13,13,0.12);
+    --bone:#F5F0E8;            /* light — text over the dark photo sections */
+    --mute:rgba(13,13,13,0.60);
+    --faint:rgba(13,13,13,0.42);
     --red:#C1281B;            /* Signal Red */
     --sans:'Inter',system-ui,sans-serif;
     --mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;
@@ -38,7 +40,7 @@
   }
   *{ margin:0; padding:0; box-sizing:border-box; }
   html{ scroll-behavior:smooth; }
-  body{ background:var(--ink); color:var(--bone); font-family:var(--sans); font-size:17px; line-height:1.66; -webkit-font-smoothing:antialiased; overflow-x:hidden; }
+  body{ background:var(--canvas); color:var(--ink); font-family:var(--sans); font-size:17px; line-height:1.66; -webkit-font-smoothing:antialiased; overflow-x:hidden; }
   ::selection{ background:var(--red); color:var(--bone); }
   a{ color:inherit; }
   img{ display:block; max-width:100%; }
@@ -46,6 +48,8 @@
   /* Nav (light on dark) + monogram like the homepage */
   .afx-nav{ color:var(--bone); }
   .afx-nav .afx-links a{ color:var(--bone); }
+  .afx-nav.solid{ background:rgba(245,240,232,0.92); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); border-bottom:1px solid rgba(13,13,13,0.08); color:var(--ink); }
+  .afx-nav.solid .afx-links a{ color:var(--ink); }
   .afx-nav .mark .nn{ display:inline-flex; align-items:center; gap:5px; line-height:1; }
   .afx-nav .mark .nn > span:first-child{ color:var(--red); }
   .afx-nav .mark .nn .bar{ display:inline-block; width:13px; height:3px; background:var(--red); }
@@ -62,7 +66,7 @@
   .h-lg{ font-size:clamp(30px,4.6vw,60px); }
   .h-md{ font-size:clamp(24px,3vw,38px); }
   .lead{ font-size:clamp(17px,1.5vw,21px); color:var(--mute); max-width:58ch; }
-  .lead.bone{ color:var(--bone); }
+  .lead.bone{ color:var(--ink); }
   .em-red{ color:var(--red); }
   .mt-s{ margin-top:14px; } .mt-m{ margin-top:26px; } .mt-l{ margin-top:44px; } .mt-xl{ margin-top:clamp(40px,6vw,72px); }
 
@@ -93,7 +97,7 @@
   .can-fig img{ width:min(320px,72%); margin:0 auto; filter:drop-shadow(0 30px 70px rgba(0,0,0,0.6)); }
   .can-fig figcaption{ font-family:var(--mono); font-size:11px; letter-spacing:0.2em; text-transform:uppercase; color:var(--faint); margin-top:20px; }
   .pillars{ display:grid; gap:1px; background:var(--line); border:1px solid var(--line); border-radius:6px; overflow:hidden; }
-  .pillar{ background:var(--ink); padding:clamp(22px,2.6vw,30px); }
+  .pillar{ background:var(--canvas-dim); padding:clamp(22px,2.6vw,30px); }
   .pillar .pn{ font-family:var(--mono); font-size:12px; color:var(--red); letter-spacing:0.14em; }
   .pillar .pt{ font-size:clamp(19px,2vw,24px); font-weight:700; margin-top:8px; }
   .pillar .pd{ color:var(--mute); font-size:15.5px; margin-top:8px; }
@@ -124,6 +128,17 @@
   .finale .nonneg{ margin-top:clamp(26px,4vw,44px); font-family:var(--mono); font-size:clamp(14px,1.8vw,20px); letter-spacing:0.14em; text-transform:uppercase; color:var(--red); }
   .finale .cta{ justify-content:center; }
   .finale .triline{ justify-content:center; }
+
+  /* Photo sections stay dark islands with light text (like the home hero) */
+  .m-hero, .finale{ color:var(--bone); }
+  .m-hero .display, .finale .display{ color:var(--bone); }
+  .m-hero .sub{ color:rgba(245,240,232,0.55); }
+  .m-hero .body{ color:rgba(245,240,232,0.72); }
+  .m-hero .body b{ color:var(--bone); }
+  .finale .lead{ color:rgba(245,240,232,0.72); }
+  .finale .triline span{ color:var(--bone); }
+  .m-hero .btn.ghost, .finale .btn.ghost{ border-color:rgba(245,240,232,0.30); color:var(--bone); }
+  .m-hero .btn.ghost:hover, .finale .btn.ghost:hover{ border-color:var(--bone); }
 
   /* Footer */
   .m-footer{ padding:clamp(44px,6vw,72px) var(--pad); display:flex; flex-wrap:wrap; gap:24px 40px; justify-content:space-between; align-items:center; border-top:1px solid var(--line); }
