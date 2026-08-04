@@ -12,8 +12,13 @@ import { ScrollView, StyleSheet, Text, View, type ViewStyle } from 'react-native
 
 import { Colors } from '@/theme/colors';
 import { Spacing } from '@/theme/spacing';
+import { af } from '@/theme';
 
 const ACCENT = Colors.accent.primary;
+// af.red (Colors.accent.primary, #C1281B) as TEXT measures ~3.3:1 on these
+// dark surfaces — under the 4.5:1 AA floor. ACCENT stays for fills/borders;
+// ACCENT_TEXT (af.redText, AA-verified ~5:1) is for text-color usages only.
+const ACCENT_TEXT = af.redText;
 const BORDER = 'rgba(255,255,255,0.04)';
 const LABEL_DIM = 'rgba(255,255,255,0.50)';
 const COPY_DIM = 'rgba(255,255,255,0.72)';
@@ -91,7 +96,7 @@ const styles = StyleSheet.create({
 
   headerBlock: { marginBottom: Spacing[8] },
   eyebrow: {
-    color: ACCENT,
+    color: ACCENT_TEXT,
     fontSize: 11,
     letterSpacing: 2.4,
     textTransform: 'uppercase',
@@ -168,7 +173,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     fontVariant: ['tabular-nums'],
   },
-  rowValueEmphasis: { color: ACCENT, fontWeight: '700' },
+  rowValueEmphasis: { color: ACCENT_TEXT, fontWeight: '700' },
 
   placeholder: {
     color: COPY_DIM,

@@ -76,8 +76,25 @@ export const Colors = {
   text: {
     primary: '#FFFFFF',
     secondary: 'rgba(255,255,255,0.55)',
-    muted: 'rgba(255,255,255,0.30)',
-    ghost: 'rgba(255,255,255,0.18)',
+    // muted/ghost were WCAG AA failures (RC-1 audit): white-on-black alpha
+    // blends to a near-identical resulting color across every background in
+    // this file (#0D0D0D/#050508/#0A0A0F/#101018/#141420 all sit within a few
+    // luminance steps of pure black), so the alpha value alone determines the
+    // contrast ratio. At the old .30, worst case (background.secondary
+    // #050508) measured 2.53:1; at .18, ghost measured 1.59:1 — both far
+    // under the 4.5:1 AA floor for body-weight text. Minimum alpha for 4.5:1
+    // across all five backgrounds is ~.45; bumped past that with a safety
+    // margin (rendering/anti-aliasing variance) while keeping muted below
+    // `secondary` (.55) and ghost below `muted`, preserving the emphasis
+    // ladder:
+    //   secondary .55 -> 6.14-6.26:1   (unchanged)
+    //   muted     .52 -> 5.28-5.62:1   (was .30 -> 2.53-2.69:1)
+    //   ghost     .46 -> 4.50-4.62:1   (was .18 -> 1.59-1.67:1)
+    // Same precedent as the af.textTertiary bump in afTokens.ts:50-52 —
+    // a11y over the exact prior value. Visual-QA note: secondary/muted-role
+    // text app-wide reads slightly brighter as a result; see PR body.
+    muted: 'rgba(255,255,255,0.52)',
+    ghost: 'rgba(255,255,255,0.46)',
     inverse: '#000000',
   },
 

@@ -48,6 +48,10 @@ const SEVEN_NIGHT_KEY = '@aforce/sleepMode/sevenNightAvg';
 const PRE_SLEEP_LEAD_MIN = 90;
 const RECOVERY_WINDOW_LEAD_MIN = 60;
 const LIME = '#C1281B';
+// LIME as TEXT measures ~3.3:1 on these dark surfaces — under the 4.5:1 AA
+// floor. LIME stays for fills/borders (386, 489-490); LIME_TEXT mirrors
+// af.redText (theme/afTokens.ts) — AA-verified (~5:1) red for text/links.
+const LIME_TEXT = '#E4564A';
 
 type Phase = 'idle' | 'pre_sleep' | 'recovery_window' | 'morning';
 
@@ -491,7 +495,7 @@ const styles = StyleSheet.create({
   },
   timeSaveText: {
     fontFamily: 'Inter_700Bold', fontSize: 11, letterSpacing: 2,
-    color: LIME,
+    color: LIME_TEXT,
   },
   targetSub: {
     fontFamily: 'Inter_400Regular', fontSize: 12,

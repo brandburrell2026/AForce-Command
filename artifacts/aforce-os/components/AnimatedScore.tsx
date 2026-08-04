@@ -13,6 +13,7 @@ import Animated, {
   runOnJS,
 } from 'react-native-reanimated';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
+import { Typography } from '@/theme/typography';
 
 interface Props {
   value: number;
@@ -73,7 +74,11 @@ export function AnimatedScore({ value, color, label, size = 56, displayValue }: 
 
 const styles = StyleSheet.create({
   score: {
-    fontFamily: 'Inter_700Bold',
+    // Score typeface doctrine: numerals are a metric role (IBM Plex Mono),
+    // never Inter — matches HomeScreenV2's afType.displayScore font family.
+    // No `style` prop is exposed on this component (see Props above), so no
+    // caller can override this fontFamily; only caller is StatusPulseOrb.tsx.
+    fontFamily: Typography.roles.metric,
     letterSpacing: -2,
   },
   label: {

@@ -24,6 +24,7 @@ import { useDevMode } from '@/services/devMode';
 import { GradientBackground } from '@/components/GradientBackground';
 import { SocialModeSheet } from '@/components/SocialModeSheet';
 import { Colors } from '@/theme/colors';
+import { af } from '@/theme';
 import { useAppStore } from '@/store/useAppStore';
 import {
   useUserSlice,
@@ -167,7 +168,9 @@ const styles = StyleSheet.create({
   legacyBannerText: {
     fontFamily: 'Inter_700Bold',
     fontSize: 10, letterSpacing: 2,
-    color: '#C1281B',
+    // af.red as TEXT fails AA (~3.3:1); af.redText is the AA-verified swap.
+    // Banner background/border above keep the brand red fill, unaffected.
+    color: af.redText,
   },
   lockedContent: {
     paddingHorizontal: 24,

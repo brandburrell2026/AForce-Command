@@ -14,6 +14,7 @@ import Animated, {
 import * as Haptics from 'expo-haptics';
 
 import { Colors } from '../theme/colors';
+import { Typography } from '../theme/typography';
 import type { ScoreContribution, PerformanceState } from '../types';
 import { ScoreDrivers } from './ScoreDrivers';
 import { buildScoreDrivers } from '../utils/scoring/drivers';
@@ -186,7 +187,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 4,
   },
   score: {
-    fontSize: 44, fontFamily: 'Inter_700Bold', letterSpacing: -2, lineHeight: 50,
+    // Score typeface doctrine: numerals are a metric role (IBM Plex Mono),
+    // never Inter — matches HomeScreenV2's afType.displayScore font family
+    // (Typography.roles.metric). Size/spacing/line-height stay this sheet's
+    // own 44pt hero; this is a typeface-only fix, not a full af.* migration.
+    fontSize: 44, fontFamily: Typography.roles.metric, letterSpacing: -2, lineHeight: 50,
   },
   statePill: {
     paddingHorizontal: 10, paddingVertical: 4, borderRadius: 100, borderWidth: 1,

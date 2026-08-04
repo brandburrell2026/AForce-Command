@@ -9,6 +9,7 @@
  */
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { af, afType } from '@/theme';
 
 export interface AFPriceProps {
@@ -23,14 +24,27 @@ export interface AFPriceProps {
 }
 
 export function AFPrice({ value, compareAt, caption, size = 'md', testID }: AFPriceProps) {
+  const { t } = useTranslation();
+  // RC-1 fix: `value` and `compareAt` were two separately-labeled Text nodes
+  // ("$29.99" then the hardcoded, non-localized "Was $39.99"), so a screen
+  // reader announced them as two disconnected reads instead of one price.
+  // Composed into a single "$X, was $Y" label on the row, reusing the
+  // existing `logIntake.score_was` i18n key (translated in every locale
+  // already) instead of adding a new hardcoded English string.
+  const composedLabel = compareAt ? `${value}, ${t('logIntake.score_was')} ${compareAt}` : value;
   return (
     <View style={styles.wrap} testID={testID}>
-      <View style={styles.row}>
-        <Text style={[size === 'lg' ? styles.valueLg : styles.value]} accessibilityLabel={value}>
+      <View
+        style={styles.row}
+        accessible
+        accessibilityRole="text"
+        accessibilityLabel={composedLabel}
+      >
+        <Text style={[size === 'lg' ? styles.valueLg : styles.value]}>
           {value}
         </Text>
         {compareAt && (
-          <Text style={styles.compareAt} accessibilityLabel={`Was ${compareAt}`}>
+          <Text style={styles.compareAt}>
             {compareAt}
           </Text>
         )}
