@@ -34,7 +34,7 @@ end against documented Garmin wellness-summary shapes:
   seam `RunGarminFetchOnceDeps.snapshotFetcher` expects) backed by
   fixtures instead of a live HTTP call, calling the REAL unmodified
   `fetchGarminSnapshot` — never a reimplementation of the mapping.
-- `__tests__/garminMock.test.ts` — three contract tests confirming the
+- `__tests__/garminMock.test.ts` — 9 contract tests in 4 groups confirming the
   known field-name drift (`hrvMs`, `stress`) survives correctly through
   `@workspace/health-core`'s `normalizeProviderSnapshot('garmin', ...)`
   onto the canonical `hrvRmssdMs` / `stressScore` fields, with zero
